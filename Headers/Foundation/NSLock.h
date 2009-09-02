@@ -35,6 +35,8 @@
 
 #import	<Foundation/NSObject.h>
 
+#include <pthread.h>
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -58,12 +60,20 @@ extern "C" {
 
 /**
  * Simplest lock for protecting critical sections of code.
+ *
+ * An <code>NSLock</code> is used in multi-threaded applications to protect
+ * critical pieces of code. While one thread holds a lock within a piece of
+ * code, another thread cannot execute that code until the first thread has
+ * given up its hold on the lock. The limitation of <code>NSLock</code> is
+ * that you can only lock an <code>NSLock</code> once and it must be unlocked
+ * before it can be acquired again.<br /> Other lock classes, notably
+ * [NSRecursiveLock], have different restrictions.
  */
 @interface NSLock : NSObject <NSLocking>
 {
 @private
-  void          *_mutex;
-  NSString      *_name;
+  pthread_mutex_t  _mutex;
+  NSString        *_name;
 }
 
 /**
@@ -99,6 +109,46 @@ extern "C" {
 @end
 
 /**
+ * NSCondition provides an interface to POSIX condition variables.
+ */
+@interface NSCondition : NSObject <NSLocking>
+{
+@private
+	pthread_cond_t _condition;
+	pthread_mutex_t _mutex;
+	NSString *_name;
+}
+/**
+ * Blocks atomically unlocks the receiver.  This method should only be called
+ * when the receiver is locked.  The caller will then block until the receiver
+ * is sent either a -signal or -broadcast message from another thread.  At this
+ * point, the calling thread will reacquire the lock.
+ */
+- (void)wait;
+/**
+ * Blocks the calling thread and acquires the lock, in the same way as -wait.
+ * Returns YES if the condition is signaled, or NO if the timeout is reached.
+ */
+- (BOOL)waitUntilDate: (NSDate*)limit;
+/**
+ * Wakes a single thread that is waiting on this condition.
+ */
+- (void)signal;
+/**
+ * Wakes all threads that are waiting on this condition.
+ */
+- (void)broadcast;
+/**
+ * Sets the name used for debugging messages.
+ */
+- (void)setName:(NSString*)newName;
+/**
+ * Returns the name used for debugging messages.
+ */
+- (NSString*)name;
+@end
+
+/**
  *  Lock that allows user to request it only when an internal integer
  *  condition is equal to a particular value.  The condition is set on
  *  initialization and whenever the lock is relinquished.
@@ -106,8 +156,7 @@ extern "C" {
 @interface NSConditionLock : NSObject <NSLocking>
 {
 @private
-  void *_condition;
-  void *_mutex;
+  NSCondition *_condition;
   int   _condition_value;
   NSString      *_name;
 }
@@ -198,7 +247,7 @@ extern "C" {
 @interface NSRecursiveLock : NSObject <NSLocking>
 {
 @private
-  void *_mutex;
+  pthread_mutex_t _mutex;
   NSString      *_name;
 }
 

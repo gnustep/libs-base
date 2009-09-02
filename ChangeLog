@@ -1,3 +1,32 @@
+2009-09-01 David Chisnall <csdavec@swan.ac.uk>
+
+	* Source/NSLock.m
+	* Headers/Foundation/NSLock.h
+	Completely rewritten implementations of NSLock.h classes.  These are now
+	faster, more complete, OS X-compatible, and most importantly actually
+	work.  The old ones, for example, called functions that were not
+	implemented on Windows.  
+	* Source/NSThread.m
+	Call pthread functions directly in NSThread instead of via the libobjc
+	abstraction layer.  Also fixed a few issues, such as GC not being
+	initialized properly for NSThread subclasses that override -main (Javaism
+	supported by OS X) and tidies up the code in several places, removing
+	premature optimizations, especially those that introduce a test for an
+	unlikely case at the start of a method and thus slow everything down.
+
+	As a result of this change, GNUstep now depends on an implementation of
+	POSIX threads.  This is included as standard on all modern UNIX systems,
+	and as an option on less-modern UNIX systems and non-UNIX systems,
+	including Windows.  If you are building GNUstep on Windows, please install
+	the pthreads-win32 package, available from:
+
+	http://sourceware.org/pthreads-win32/
+
+	PLEASE TEST THIS!  There may be some code that depended on the old
+	behaviour.  I have been running the new NSLock implementation on FreeBSD
+	for a few weeks without issue; please report to me any problems that you
+	have on your platform.
+
 2009-09-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version: bump to 1.19.3

@@ -48,9 +48,6 @@
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
 #endif
-#ifdef NeXT_RUNTIME
-#include "thr-mach.h"
-#endif
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif
@@ -82,6 +79,15 @@
 
 #if	GS_WITH_GC
 #include	<gc.h>
+#endif
+
+// Some older BSD systems used a non-standard range of thread priorities.
+// Use these if they exist, otherwise define standard ones.
+#ifndef PTHREAD_MAX_PRIORITY
+#define PTHREAD_MAX_PRIORITY 31
+#endif
+#ifndef PTHREAD_MIN_PRIORITY
+#define PTHREAD_MIN_PRIORITY 0
 #endif
 
 @interface NSAutoreleasePool (NSThread)
@@ -256,18 +262,16 @@ extern objc_mutex_t __objc_runtime_mutex;
 extern int __objc_runtime_threads_alive;
 extern int __objc_is_multi_threaded;
 
+/* WARNING:
+ * GNUstep appears to have been written on the assumption that these variables
+ * are used correctly by the GNU runtime.  In fact, they are used in only one
+ * place, and are used incorrectly there.
+ */
 inline static void objc_thread_add (void)
 {
   objc_mutex_lock(__objc_runtime_mutex);
   __objc_is_multi_threaded = 1;
   __objc_runtime_threads_alive++;
-  objc_mutex_unlock(__objc_runtime_mutex);
-}
-
-inline static void objc_thread_remove (void)
-{
-  objc_mutex_lock(__objc_runtime_mutex);
-  __objc_runtime_threads_alive--;
   objc_mutex_unlock(__objc_runtime_mutex);
 }
 #endif /* not HAVE_OBJC_THREAD_ADD */
@@ -277,87 +281,35 @@ inline static void objc_thread_remove (void)
  */
 static BOOL	entered_multi_threaded_state = NO;
 
-/*
- * Default thread.
- */
-static NSThread	*defaultThread = nil;
+static NSLock *thread_creation_lock;
 
 /**
- * <p>
- *   This function is a GNUstep extension.  It pretty much
- *   duplicates the functionality of [NSThread +currentThread]
- *   but is more efficient and is used internally throughout
- *   GNUstep.
- * </p>
- * <p>
- *   Returns the current thread.  Could perhaps return <code>nil</code>
- *   if executing a thread that was started outside the GNUstep
- *   environment and not registered (this should not happen in a
- *   well-coded application).
- * </p>
+ * Pthread cleanup call; used to free the current NSThread object when the
+ * thread exits.
+ */
+static void releaseThread(void *thread)
+{
+	[(NSThread*)thread release];
+}
+
+static pthread_key_t thread_object_key;
+
+/**
+ * These functions are serious examples of premature optimisation.
  */
 inline NSThread*
 GSCurrentThread(void)
 {
-  NSThread	*t;
-
-  if (entered_multi_threaded_state == NO)
-    {
-      /*
-       * If the NSThread class has been initialized, we will have a default
-       * thread set up - otherwise we must make sure the class is initialised.
-       */
-      if (defaultThread == nil)
-	{
-	  t = [NSThread currentThread];
-	}
-      else
-	{
-	  t = defaultThread;
-	}
-    }
-  else
-    {
-      t = (NSThread*)objc_thread_get_data();
-      if (t == nil)
-	{
-	  fprintf(stderr,
-"ALERT ... GSCurrentThread() ... objc_thread_get_data() call returned nil!\n"
-"Your application MUST call GSRegisterCurrentThread() before attempting to\n"
-"use any GNUstep code from a thread other than the main GNUstep thread.\n");
-	  fflush(stderr);	// Needed for windoze
-	}
-    }
-  return t;
+	return [NSThread currentThread];
 }
-
-typedef struct { @defs(NSThread) } *TInfo;
-
-/**
- * Fast access function for thread dictionary of current thread.<br />
- * If there is no dictionary, creates the dictionary.
- */
 NSMutableDictionary*
 GSDictionaryForThread(NSThread *t)
 {
-  if (t == nil)
-    {
-      t = GSCurrentThread();
-    }
-  if (t == nil)
-    {
-      return nil;
-    }
-  else
-    {
-      NSMutableDictionary	*dict = ((TInfo)t)->_thread_dictionary;
-
-      if (dict == nil)
+	if (nil == t)
 	{
-	  dict = [t threadDictionary];
+		t = [NSThread currentThread];
 	}
-      return dict;
-    }
+	return [t threadDictionary];
 }
 
 /**
@@ -410,6 +362,11 @@ gnustep_base_thread_callback(void)
 	       * Won't work properly if threads are not all created
 	       * by this class, but it's better than nothing.
 	       */
+	      // FIXME: This code is complete nonsense; this can be called from
+	      // any thread (and is when adding new foreign threads), so this
+	      // will often be called from the wrong thread, delivering
+	      // notifications to the wrong thread, and generally doing the
+	      // wrong thing..
 	      if (nc == nil)
 		{
 		  nc = RETAIN([NSNotificationCenter defaultCenter]);
@@ -434,36 +391,40 @@ gnustep_base_thread_callback(void)
 
 @implementation NSThread
 
+static void setThreadForCurrentThread(NSThread *t)
+{
+  pthread_setspecific(thread_object_key, t);
+  gnustep_base_thread_callback();
+}
+
 + (NSArray*) callStackReturnAddresses
 {
   NSMutableArray        *stack = GSPrivateStackAddresses();
 
   return stack;
 }
++ (BOOL)_createThreadForCurrentPthread
+{
+  NSThread	*t = pthread_getspecific(thread_object_key);
+  if (t == nil)
+    {
+	[thread_creation_lock lock];
+	t = pthread_getspecific(thread_object_key);
+	if (t == nil)
+	{
+	    t = [self new];
+	    pthread_setspecific(thread_object_key, t);
+	    [thread_creation_lock unlock];
+	    return YES;
+	}
+	[thread_creation_lock unlock];
+    }
+  return NO;
+}
 
 + (NSThread*) currentThread
 {
-  NSThread	*t = nil;
-
-  if (entered_multi_threaded_state == NO)
-    {
-      /*
-       * The NSThread class has been initialized - so we will have a default
-       * thread set up unless the default thread subsequently exited.
-       */
-      t = defaultThread;
-    }
-  if (t == nil)
-    {
-      t = (NSThread*)objc_thread_get_data();
-      if (t == nil)
-	{
-	  fprintf(stderr, "ALERT ... [NSThread +currentThread] ... the "
-	    "objc_thread_get_data() call returned nil!");
-	  fflush(stderr);	// Needed for windoze
-	}
-    }
-  return t;
+  return (NSThread*)pthread_getspecific(thread_object_key);
 }
 
 + (void) detachNewThreadSelector: (SEL)aSelector
@@ -475,10 +436,9 @@ gnustep_base_thread_callback(void)
   /*
    * Create the new thread.
    */
-  thread = (NSThread*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  thread = [thread initWithTarget: aTarget
-                         selector: aSelector
-                           object: anArgument];
+  thread = [[NSThread alloc] initWithTarget: aTarget
+                                   selector: aSelector
+                                     object: anArgument];
 
   [thread start];
   RELEASE(thread);
@@ -510,23 +470,14 @@ gnustep_base_thread_callback(void)
 
       [(GSRunLoopThreadInfo*)t->_runLoopInfo invalidate];
 
-      /*
-       * destroy the thread object.
-       */
-      DESTROY(t);
-
-      objc_thread_set_data (NULL);
-
 #if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
       GC_unregister_my_thread();
 #endif
-      /*
-       * Tell the runtime to exit the thread
-       */
-      objc_thread_exit();
+      pthread_exit(NULL);
     }
 }
 
+static NSThread *defaultThread;
 /*
  * Class initialization
  */
@@ -542,15 +493,18 @@ gnustep_base_thread_callback(void)
        */
       objc_set_thread_callback(gnustep_base_thread_callback);
 
+      if (pthread_key_create(&thread_object_key, releaseThread))
+      {
+	[NSException raise: NSInternalInconsistencyException
+	            format: @"Unable to create thread key!"];
+      }
+	  thread_creation_lock = [NSLock new];
       /*
        * Ensure that the default thread exists.
        */
-      defaultThread
-	= (NSThread*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-      defaultThread = [defaultThread init];
-      defaultThread->_active = YES;
-      objc_thread_set_data(defaultThread);
       threadClass = self;
+      [NSThread _createThreadForCurrentPthread];
+      defaultThread = [NSThread currentThread];
     }
 }
 
@@ -572,21 +526,26 @@ gnustep_base_thread_callback(void)
 /**
  * Set the priority of the current thread.  This is a value in the
  * range 0.0 (lowest) to 1.0 (highest) which is mapped to the underlying
- * system priorities.  The current gnu objc runtime supports three
- * priority levels which you can obtain using values of 0.0, 0.5, and 1.0
+ * system priorities.  
  */
 + (void) setThreadPriority: (double)pri
 {
-  int	p;
+#ifdef _POSIX_THREAD_PRIORITY_SCHEDULING
+  int	policy;
+  struct sched_param param;
 
-  if (pri <= 0.3)
-    p = OBJC_THREAD_LOW_PRIORITY;
-  else if (pri <= 0.6)
-    p = OBJC_THREAD_BACKGROUND_PRIORITY;
-  else
-    p = OBJC_THREAD_INTERACTIVE_PRIORITY;
+  // Clamp pri into the required range.
+  if (pri > 1) { pri = 1; }
+  if (pri < 0) { pri = 0; }
 
-  objc_thread_set_priority(p);
+  // Scale pri based on the range of the host system.
+  pri *= (PTHREAD_MAX_PRIORITY - PTHREAD_MIN_PRIORITY);
+  pri += PTHREAD_MIN_PRIORITY;
+
+  pthread_getschedparam(pthread_self(), &policy, &param);
+  param.sched_priority = pri;
+  pthread_setschedparam(pthread_self(), policy, &param);
+#endif
 }
 
 + (void) sleepForTimeInterval: (NSTimeInterval)ti
@@ -612,16 +571,22 @@ gnustep_base_thread_callback(void)
  */
 + (double) threadPriority
 {
-  int	p = objc_thread_get_priority();
+  double pri = 0;
+#ifdef _POSIX_THREAD_PRIORITY_SCHEDULING
+  int policy;
+  struct sched_param param;
 
-  if (p == OBJC_THREAD_LOW_PRIORITY)
-    return 0.0;
-  else if (p == OBJC_THREAD_BACKGROUND_PRIORITY)
-    return 0.5;
-  else if (p == OBJC_THREAD_INTERACTIVE_PRIORITY)
-    return 1.0;
-  else
-    return 0.0;	// Unknown.
+  pthread_getschedparam(pthread_self(), &policy, &param);
+  pri = param.sched_priority;
+  // Scale pri based on the range of the host system.
+  pri -= PTHREAD_MIN_PRIORITY;
+  pri /= (PTHREAD_MAX_PRIORITY - PTHREAD_MIN_PRIORITY);
+
+#else
+#warning Your pthread implementation does not support thread priorities
+#endif
+  return pri;
+
 }
 
 
@@ -701,12 +666,6 @@ gnustep_base_thread_callback(void)
   _selector = aSelector;
   _target = RETAIN(aTarget);
   _arg = RETAIN(anArgument);
-  _thread_dictionary = nil;	// Initialize this later only when needed
-  _exception_handler = NULL;
-  _cancelled = NO;
-  _active = NO;
-  _finished = NO;
-  _name = nil;
   init_autorelease_thread_vars(&_autorelease_vars);
   return self;
 }
@@ -740,14 +699,38 @@ gnustep_base_thread_callback(void)
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }
-  if (objc_thread_get_data() != nil)
-    {
-      [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on running thread",
-        NSStringFromClass([self class]),
-        NSStringFromSelector(_cmd)];
-    }
 
+  [_target performSelector: _selector withObject: _arg];
+
+}
+
+- (NSString*) name
+{
+  return _name;
+}
+
+- (void) setName: (NSString*)aName
+{
+  ASSIGN(_name, aName);
+}
+
+- (void) setStackSize: (NSUInteger)stackSize
+{
+  _stackSize = stackSize;
+}
+
+- (NSUInteger) stackSize
+{
+  return _stackSize;
+}
+
+/**
+ * Trampoline function called to launch the thread
+ */
+static void *nsthreadLauncher(void* thread)
+{
+    NSThread *t = (NSThread*)thread;
+    setThreadForCurrentThread(t);
 #if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
   {
     struct GC_stack_base	base;
@@ -769,37 +752,6 @@ gnustep_base_thread_callback(void)
   }
 #endif
 
-#if     defined(HAVE_SETRLIMIT) && defined(RLIMIT_STACK)
-  if (_stackSize > 0)
-    {
-      struct rlimit     rl;
-
-      rl.rlim_cur = _stackSize;
-      rl.rlim_max = _stackSize;
-      if (setrlimit(RLIMIT_STACK, &rl) < 0)
-        {
-          NSDebugMLog(@"Unable to set thread stack size to %u: %@",
-            _stackSize, [NSError _last]);
-        }
-    }
-#endif
-
-  /*
-   * We are running in the new thread - so we store ourself in the thread
-   * dictionary and release ourself - thus, when the thread exits, we will
-   * be deallocated cleanly.
-   */
-  objc_thread_set_data(self);
-
-#if     defined(PTHREAD_JOINABLE)
-/* Hack to work around the fact that
- * some versions of the objective-c
- * library fail to create the thread detached.
- * We should really do this only in such cases.
- */
-pthread_detach(pthread_self());
-#endif
-
   /*
    * Let observers know a new thread is starting.
    */
@@ -808,35 +760,14 @@ pthread_detach(pthread_self());
       nc = RETAIN([NSNotificationCenter defaultCenter]);
     }
   [nc postNotificationName: NSThreadDidStartNotification
-		    object: self
+		    object: t
 		  userInfo: nil];
 
-  [_target performSelector: _selector withObject: _arg];
+  [t main];
 
   [NSThread exit];
-}
-
-- (NSString*) name
-{
-  return _name;
-}
-
-- (void) setName: (NSString*)aName
-{
-  ASSIGN(_name, aName);
-}
-
-- (void) setStackSize: (NSUInteger)stackSize
-{
-  _stackSize = stackSize;
-#if     !defined(HAVE_SETRLIMIT) || !defined(RLIMIT_STACK)
-  GSOnceMLog(@"Warning ... -setStackSize: not implemented on this system");
-#endif
-}
-
-- (NSUInteger) stackSize
-{
-  return _stackSize;
+  // Not reached
+  return NULL;
 }
 
 - (void) start
@@ -869,16 +800,27 @@ pthread_detach(pthread_self());
 
   /* The thread must persist until it finishes executing.
    */
-  IF_NO_GC(RETAIN(self);)
+  RETAIN(self);
 
   /* Mark the thread as active whiul it's running.
    */
   _active = YES;
 
   errno = 0;
-  if (objc_thread_detach(@selector(main), self, nil) == NULL)
+  pthread_t thr;
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  // Create this thread detached, because we never use the return state from
+  // threads.
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  // Set the stack size when the thread is created.  Unlike the old setrlimit
+  // code, this actually works.
+  if (_stackSize > 0)
     {
-      _active = NO;
+      pthread_attr_setstacksize(&attr, _stackSize);
+    }
+  if (pthread_create(&thr, &attr, nsthreadLauncher, self))
+    {
       RELEASE(self);
       [NSException raise: NSInternalInconsistencyException
                   format: @"Unable to detach thread (last error %@)",
@@ -1297,55 +1239,8 @@ GSRunLoopInfoForThread(NSThread *aThread)
 BOOL
 GSRegisterCurrentThread (void)
 {
-  NSThread *thread;
-
-  /*
-   * Do nothing and return NO if the thread is known to us.
-   */
-  if ((NSThread*)objc_thread_get_data() != nil)
-    {
-      return NO;
-    }
-
-  /*
-   * Make sure the Objective-C runtime knows there is an additional thread.
-   */
-  objc_thread_add ();
-
-  if (threadClass == 0)
-    {
-      /*
-       * If the threadClass has not been set, NSThread has not been
-       * initialised, and there is no default thread.  So we must
-       * initialise now ... which will make the current thread the default.
-       */
-      NSCAssert(entered_multi_threaded_state == NO,
-	NSInternalInconsistencyException);
-      thread = [NSThread currentThread];
-    }
-  else
-    {
-      /*
-       * Create the new thread object.
-       */
-      thread = (NSThread*)NSAllocateObject (threadClass, 0,
-					NSDefaultMallocZone ());
-      thread = [thread init];
-      objc_thread_set_data (thread);
-      ((NSThread_ivars *)thread)->_active = YES;
-    }
-
-  /*
-   * We post the notification after we register the thread.
-   * NB. Even if we are the default thread, we do this to register the app
-   * as being multi-threaded - this is so that, if this thread is unregistered
-   * later, it does not leave us with a bad default thread.
-   */
-  gnustep_base_thread_callback();
-
-  return YES;
+    return [NSThread _createThreadForCurrentPthread];
 }
-
 /**
  * <p>
  *   This function is provided to let threads started by some other
@@ -1384,16 +1279,5 @@ GSUnregisterCurrentThread (void)
 			object: thread
 		      userInfo: nil];
 
-      /*
-       * destroy the thread object.
-       */
-      DESTROY (thread);
-
-      objc_thread_set_data (NULL);
-
-      /*
-       * Make sure Objc runtime knows there is a thread less to manage
-       */
-      objc_thread_remove ();
     }
 }

@@ -1,11 +1,7 @@
-/** Mutual exclusion locking classes
-   Copyright (C) 1996,2003 Free Software Foundation, Inc.
+/** Control of executable units within a shared virtual memory space
+   Copyright (C) 1996-2000 Free Software Foundation, Inc.
 
-   Author:  Scott Christley <scottc@net-community.com>
-   Created: 1996
-   Author:  Richard Frith-Macdonald <rfm@gnu.org>
-
-   This file is part of the GNUstep Objective-C Library.
+   Original Author:  David Chisnall <csdavec@swan.ac.uk>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,723 +19,303 @@
    Boston, MA 02111 USA.
 
    <title>NSLock class reference</title>
-   $Date$ $Revision$
 */
 
-#include "config.h"
-#include <errno.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#include "GNUstepBase/preface.h"
+
+
+// This file uses some SUS'98 extensions, so we need to tell glibc not to hide
+// them.  Other platforms have more sensible libcs, which just default to being
+// standards-compliant.
+#define _XOPEN_SOURCE 500
 #include "Foundation/NSLock.h"
+#include <math.h>
+#include <errno.h>
 #include "Foundation/NSException.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSThread.h"
-#ifdef NeXT_RUNTIME
-#include "thr-mach.h"
-#endif
 
-#define _MUTEX     ((objc_mutex_t)_mutex)
-#define _CONDITION ((objc_condition_t)_condition)
+/**
+ * Methods shared between NSLock, NSRecursiveLock, and NSCondition
+ *
+ * Note: These methods currently throw exceptions when locks are incorrectly
+ * acquired.  This is compatible with earlier GNUstep behaviour.  In OS X 10.5
+ * and later, these will just NSLog a warning instead.  Throwing an exception
+ * is probably better behaviour, because it encourages developer to fix their
+ * code.  
+ */
+#define NSLOCKING_METHODS \
+- (void)lock\
+{\
+	int err = pthread_mutex_lock(&_mutex);\
+	if (EINVAL == err)\
+	{\
+		[NSException raise: NSLockException\
+					format: @"failed to unlock mutex"];\
+	}\
+	if (EDEADLK == err)\
+	{\
+		_NSLockError(self, _cmd);\
+	}\
+}\
+- (void)unlock\
+{\
+	if (0 != pthread_mutex_unlock(&_mutex))\
+	{\
+		[NSException raise: NSLockException\
+					format: @"failed to unlock mutex"];\
+	}\
+}\
+- (NSString*) description\
+{\
+	if (_name == nil)\
+	{\
+		return [super description];\
+	}\
+	return [NSString stringWithFormat: @"%@ '%@'",\
+		[super description], _name];\
+}\
+- (BOOL) tryLock\
+{\
+	int err = pthread_mutex_trylock(&_mutex);\
+	if (EDEADLK == err)\
+	{\
+		_NSLockError(self, _cmd);\
+		return YES;\
+	}\
+	return (0 == err);\
+}\
+- (BOOL) lockBeforeDate: (NSDate*)limit\
+{\
+	do\
+	{\
+		int err = pthread_mutex_trylock(&_mutex);\
+		if (EDEADLK == err)\
+		{\
+			_NSLockError(self, _cmd);\
+			return YES;\
+		}\
+		if (0 == err)\
+		{\
+			return YES;\
+		}\
+		sched_yield();\
+	} while([limit timeIntervalSinceNow] < 0);\
+	return NO;\
+}\
+NAME_METHODS
 
-extern void		GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval);
-extern NSTimeInterval	GSTimeNow();
-
-typedef struct {
-  NSTimeInterval	end;
-  NSTimeInterval	i0;
-  NSTimeInterval	i1;
-  NSTimeInterval	max;
-} GSSleepInfo;
-
-static void GSSleepInit(NSDate *limit, GSSleepInfo *context)
-{
-  context->end = [limit timeIntervalSinceReferenceDate];
-  context->i0 = 0.0;
-  context->i1 = 0.0001;		// Initial pause interval.
-  context->max = 0.25;		// Maximum pause interval.
+#define NAME_METHODS \
+- (void)setName:(NSString*)newName\
+{\
+	ASSIGNCOPY(_name, newName);\
+}\
+- (NSString*)name\
+{\
+	return _name;\
 }
 
 /**
- * <p>Using a pointer to a context structure initialised using GSSleepInit()
- * we either pause for a while and return YES or, if the limit date
- * has passed, return NO.
- * </p>
- * <p>The pause intervals start off very small, but rapidly increase
- * (following a fibonacci sequence) up to a maximum value.
- * </p>
- * <p>We use the GSSleepUntilIntervalSinceReferenceDate() function to
- * avoid objc runtime messaging overheads and overheads of creating and
- * destroying temporary date objects.
- * </p>
+ * OS X 10.5 compatibility function to allow debugging deadlock conditions.
+ *
+ * On OS X, this really deadlocks.  For now, we just continue, while logging
+ * the 'you are a numpty' warning.
  */
-static BOOL GSSleepOrFail(GSSleepInfo *context)
+void _NSLockError(id obj, SEL _cmd)
 {
-  NSTimeInterval	when = GSTimeNow();
-  NSTimeInterval	tmp;
+	NSLog(@"*** -[%@ %@]: deadlock (%@)", [obj class],
+			NSStringFromSelector(_cmd), obj);
+	NSLog(@"*** Break on _NSLockError() to debug.");
+}
 
-  if (when >= context->end)
-    {
-      return NO;
-    }
-  tmp = context->i0 + context->i1;
-  context->i0 = context->i1;
-  context->i1 = tmp;
-  if (tmp > context->max)
-    {
-      tmp = context->max;
-    }
-  when += tmp;
-  if (when > context->end)
-    {
-      when = context->end;
-    }
-  GSSleepUntilIntervalSinceReferenceDate(when);
-  return YES;		// Paused.
+/**
+ * Init method for an NSLock / NSRecursive lock.  Creates a mutex of the
+ * specified type.  Also adds the corresponding -finalize and -dealloc methods.
+ */
+#define INIT_LOCK_WITH_TYPE(lock_type) \
+- (id) init\
+{\
+	if (nil == (self = [super init])) { return nil; }\
+	pthread_mutexattr_t attr;\
+	pthread_mutexattr_init(&attr);\
+	pthread_mutexattr_settype(&attr, lock_type);\
+	if (0 != pthread_mutex_init(&_mutex, &attr))\
+	{\
+		[self release];\
+		return nil;\
+	}\
+	return self;\
+}\
+- (void) finalize\
+{\
+	pthread_mutex_destroy(&_mutex);\
+}\
+- (void) dealloc\
+{\
+  [self finalize];\
+  [_name release];\
+  [super dealloc];\
 }
 
 // Exceptions
 
 NSString *NSLockException = @"NSLockException";
-NSString *NSConditionLockException = @"NSConditionLockException";
-NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
-// Macros
 
-#define CHECK_RECURSIVE_LOCK(mutex)				\
-{								\
-  if ((mutex)->owner == objc_thread_id())			\
-    {								\
-      [NSException						\
-        raise: NSLockException 					\
-        format: @"Thread attempted to recursively lock"];	\
-      /* NOT REACHED */						\
-    }								\
-}
-
-#define CHECK_RECURSIVE_CONDITION_LOCK(mutex)			\
-{								\
-  if ((mutex)->owner == objc_thread_id())			\
-    {								\
-      [NSException						\
-        raise: NSConditionLockException 			\
-        format: @"Thread attempted to recursively lock"];	\
-      /* NOT REACHED */						\
-    }								\
-}
-
-// NSLock class
-// Simplest lock for protecting critical sections of code
-
-/**
- * An <code>NSLock</code> is used in multi-threaded applications to protect
- * critical pieces of code. While one thread holds a lock within a piece of
- * code, another thread cannot execute that code until the first thread has
- * given up its hold on the lock. The limitation of <code>NSLock</code> is
- * that you can only lock an <code>NSLock</code> once and it must be unlocked
- * before it can be acquired again.<br /> Other lock classes, notably
- * [NSRecursiveLock], have different restrictions.
- */
 @implementation NSLock
-
-// Designated initializer
-- (id) init
-{
-  self = [super init];
-  if (self != nil)
-    {
-      // Allocate the mutex from the runtime
-      _mutex = objc_mutex_allocate();
-      if (_mutex == 0)
-	{
-	  RELEASE(self);
-	  NSLog(@"Failed to allocate a mutex");
-	  return nil;
-	}
-    }
-  return self;
-}
-
-- (void) dealloc
-{
-  [self finalize];
-  [super dealloc];
-}
-
-- (NSString*) description
-{
-  if (_name == nil)
-    return [super description];
-  return [NSString stringWithFormat: @"%@ named '%@'",
-    [super description], _name];
-}
-
-- (void) finalize
-{
-  if (_mutex != 0)
-    {
-      objc_mutex_t	tmp = _MUTEX;
-
-      _mutex = 0;
-      // Ask the runtime to deallocate the mutex
-      // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(tmp) == -1)
-	{
-	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
-	}
-    }
-  DESTROY(_name);
-}
-
-- (NSString*) name
-{
-  return _name;
-}
-
-- (void) setName: (NSString*)name
-{
-  ASSIGNCOPY(_name, name);
-}
-
-/**
- * Attempts to acquire a lock, but returns immediately if the lock
- * cannot be acquired. It returns YES if the lock is acquired. It returns
- * NO if the lock cannot be acquired or if the current thread already has
- * the lock.
- */
-- (BOOL) tryLock
-{
-  /* Return NO if we're already locked */
-  if (_MUTEX->owner == objc_thread_id())
-    {	
-      return NO;
-    }
-
-  // Ask the runtime to acquire a lock on the mutex
-  if (objc_mutex_trylock(_MUTEX) == -1)
-    {
-      return NO;
-    }
-  return YES;
-}
-
-/**
- * Attempts to acquire a lock before the date limit passes. It returns YES
- * if it can. It returns NO if it cannot, or if the current thread already
- * has the lock (but it waits until the time limit is up before returning
- * NO).
- */
-- (BOOL) lockBeforeDate: (NSDate*)limit
-{
-  int		x;
-  GSSleepInfo	ctxt;
-
-  GSSleepInit(limit, &ctxt);
-
-  /* This is really the behavior of OpenStep, if the current thread has
-     the lock, we just block until the time limit is up. Very odd */
-  while (_MUTEX->owner == objc_thread_id()
-    || (x = objc_mutex_trylock(_MUTEX)) == -1)
-    {
-      if (GSSleepOrFail(&ctxt) == NO)
-	{
-	  return NO;
-	}
-    }
-  return YES;
-}
-
-/**
- * Attempts to acquire a lock, and waits until it can do so.
- */
-- (void) lock
-{
-  CHECK_RECURSIVE_LOCK(_MUTEX);
-
-  // Ask the runtime to acquire a lock on the mutex
-  // This will block
-  if (objc_mutex_lock(_MUTEX) == -1)
-    {
-      [NSException raise: NSLockException
-        format: @"failed to lock mutex"];
-      /* NOT REACHED */
-    }
-}
-
-- (void) unlock
-{
-  // Ask the runtime to release a lock on the mutex
-  if (objc_mutex_unlock(_MUTEX) == -1)
-    {
-      [NSException raise: NSLockException
-		  format: @"unlock: failed to unlock mutex"];
-      /* NOT REACHED */
-    }
-}
-
+// Use an error-checking lock.  This is marginally slower, but lets us throw
+// exceptions when incorrect locking occurs.
+INIT_LOCK_WITH_TYPE(PTHREAD_MUTEX_ERRORCHECK)
+NSLOCKING_METHODS
 @end
 
-
-// NSConditionLock
-// Allows locking and unlocking to be based upon an integer condition
+@implementation NSRecursiveLock
+INIT_LOCK_WITH_TYPE(PTHREAD_MUTEX_RECURSIVE);
+NSLOCKING_METHODS
+@end
+
+@implementation NSCondition
+- (id)init
+{
+	if (nil == (self = [super init])) { return nil; }
+	if (0 != pthread_cond_init(&_condition, NULL))
+	{
+		[self release];
+		return nil;
+	}
+	if (0 != pthread_mutex_init(&_mutex, NULL))
+	{
+		pthread_cond_destroy(&_condition);
+		[self release];
+		return nil;
+	}
+	return self;
+}
+- (void)finalize
+{
+	pthread_cond_destroy(&_condition);
+	pthread_mutex_destroy(&_mutex);
+}
+- (void)dealloc
+{
+	[self finalize];
+	[_name release];
+	[super dealloc];
+}
+- (void)wait
+{
+	pthread_cond_wait(&_condition, &_mutex);
+}
+- (BOOL)waitUntilDate: (NSDate*)limit
+{
+	NSTimeInterval t = [limit timeIntervalSinceReferenceDate];
+	double secs, subsecs;
+	struct timespec timeout;
+	// Split the float into seconds and fractions of a second
+	subsecs = modf(t, &secs);
+	timeout.tv_sec = secs;
+	// Convert fractions of a second to nanoseconds
+	timeout.tv_nsec = subsecs * 1e9;
+	return (0 == pthread_cond_timedwait(&_condition, &_mutex, &timeout));
+}
+- (void)signal
+{
+	pthread_cond_signal(&_condition);
+}
+- (void)broadcast;
+{
+	pthread_cond_broadcast(&_condition);
+}
+NSLOCKING_METHODS
+@end
 
 @implementation NSConditionLock
-
 - (id) init
 {
   return [self initWithCondition: 0];
 }
 
-// Designated initializer
-// Initialize lock with condition
 - (id) initWithCondition: (NSInteger)value
 {
-  self = [super init];
-  if (self != nil)
-    {
-      _condition_value = value;
-
-      // Allocate the mutex from the runtime
-      _condition = objc_condition_allocate ();
-      if (_condition == 0)
+	if (nil == (self = [super init])) { return nil; }
+	if (nil == (_condition = [NSCondition new]))
 	{
-	  NSLog(@"Failed to allocate a condition");
-	  RELEASE(self);
-	  return nil;
+		[self release];
+		return nil;
 	}
-      _mutex = objc_mutex_allocate ();
-      if (_mutex == 0)
-	{
-	  NSLog(@"Failed to allocate a mutex");
-	  RELEASE(self);
-	  return nil;
-	}
-    }
-  return self;
+	_condition_value = value;
+	return self;
 }
 
 - (void) dealloc
 {
-  [self finalize];
+  [_name release];
+  [_condition release];
   [super dealloc];
 }
 
-- (NSString*) description
-{
-  if (_name == nil)
-    return [super description];
-  return [NSString stringWithFormat: @"%@ named '%@'",
-    [super description], _name];
-}
-
-- (void) finalize
-{
-  if (_condition != 0)
-    {
-      objc_condition_t	tmp = _CONDITION;
-
-      _condition = 0;
-      // Ask the runtime to deallocate the condition
-      if (objc_condition_deallocate(tmp) == -1)
-	{
-	  NSWarnMLog(@"objc_condition_deallocate() failed for %@", self);
-	}
-    }
-  if (_mutex != 0)
-    {
-      objc_mutex_t	tmp = _MUTEX;
-
-      _mutex = 0;
-      // Ask the runtime to deallocate the mutex
-      // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(tmp) == -1)
-	{
-	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
-	}
-    }
-  DESTROY(_name);
-}
-
-// Return the current condition of the lock
 - (NSInteger) condition
 {
   return _condition_value;
 }
 
-// Acquiring and release the lock
 - (void) lockWhenCondition: (NSInteger)value
 {
-  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
-
-  if (objc_mutex_lock(_MUTEX) == -1)
-    {
-      [NSException raise: NSConditionLockException
-        format: @"lockWhenCondition: failed to lock mutex"];
-      /* NOT REACHED */
-    }
-
-  while (_condition_value != value)
-    {
-      if (objc_condition_wait(_CONDITION, _MUTEX) == -1)
-        {
-          [NSException raise: NSConditionLockException
-            format: @"objc_condition_wait failed"];
-          /* NOT REACHED */
-        }
-    }
-}
-
-- (NSString*) name
-{
-  return _name;
-}
-
-- (void) setName: (NSString*)name
-{
-  ASSIGNCOPY(_name, name);
+	[_condition lock];
+	while (value != _condition_value)
+	{
+		[_condition wait];
+	}
 }
 
 - (void) unlockWithCondition: (NSInteger)value
 {
-  int depth;
-
-  // First check to make sure we have the lock
-  depth = objc_mutex_trylock(_MUTEX);
-
-  // Another thread has the lock so abort
-  if (depth == -1)
-    {
-      [NSException raise: NSConditionLockException
-        format: @"unlockWithCondition: Tried to unlock someone else's lock"];
-      /* NOT REACHED */
-    }
-
-  // If the depth is only 1 then we just acquired
-  // the lock above, bogus unlock so abort
-  if (depth == 1)
-    {
-      [NSException raise: NSConditionLockException
-        format: @"unlockWithCondition: Unlock attempted without lock"];
-      /* NOT REACHED */
-    }
-
-  // This is a valid unlock so set the condition
-  _condition_value = value;
-
-  // wake up blocked threads
-  if (objc_condition_broadcast(_CONDITION) == -1)
-    {
-      [NSException raise: NSConditionLockException
-        format: @"unlockWithCondition: objc_condition_broadcast failed"];
-      /* NOT REACHED */
-    }
-
-  // and unlock twice
-  if ((objc_mutex_unlock(_MUTEX) == -1)
-    || (objc_mutex_unlock(_MUTEX) == -1))
-    {
-      [NSException raise: NSConditionLockException
-        format: @"unlockWithCondition: failed to unlock mutex"];
-      /* NOT REACHED */
-    }
-}
-
-- (BOOL) tryLock
-{
-  if ((_MUTEX)->owner == objc_thread_id())
-    {
-      NSDebugLog(@"WARNING: Thread attempted to recursively tryLock : %@", self);
-      return NO;
-    }
-  // Ask the runtime to acquire a lock on the mutex
-  if (objc_mutex_trylock(_MUTEX) == -1)
-    return NO;
-  else
-    return YES;
+	[_condition lock];
+	_condition_value = value;
+	[_condition broadcast];
+	[_condition unlock];
 }
 
 - (BOOL) tryLockWhenCondition: (NSInteger)value
 {
-  // tryLock message will check for recursive locks
-
-  // First can we even get the lock?
-  if (![self tryLock])
-    return NO;
-
-  // If we got the lock is it the right condition?
-  if (_condition_value == value)
-    return YES;
-  else
-    {
-      // Wrong condition so release the lock
-      [self unlock];
-      return NO;
-    }
+	return [self lockWhenCondition: value
+						beforeDate: [NSDate date]];
 }
 
-// Acquiring the lock with a date condition
 - (BOOL) lockBeforeDate: (NSDate*)limit
 {
-  GSSleepInfo	ctxt;
-
-  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
-
-  GSSleepInit(limit, &ctxt);
-
-  while (objc_mutex_trylock(_MUTEX) == -1)
-    {
-      if (GSSleepOrFail(&ctxt) == NO)
-	{
-	  return NO;
-	}
-    }
-  return YES;
+	return [_condition lockBeforeDate: limit];
 }
-
 
 - (BOOL) lockWhenCondition: (NSInteger)condition_to_meet
                 beforeDate: (NSDate*)limitDate
 {
-#ifndef HAVE_OBJC_CONDITION_TIMEDWAIT
-  GSSleepInfo	ctxt;
-
-  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
-
-  GSSleepInit(limitDate, &ctxt);
-
-  do
-    {
-      if (_condition_value == condition_to_meet)
+	[_condition lock];
+	if (condition_to_meet == _condition_value)
 	{
-	  while (objc_mutex_trylock(_MUTEX) == -1)
-	    {
-	      if (GSSleepOrFail(&ctxt) == NO)
-		{
-		  return NO;
-		}
-	    }
-	  if (_condition_value == condition_to_meet)
-	    {
-	      return YES;
-	    }
-	  if (objc_mutex_unlock(_MUTEX) == -1)
-	    {
-	      [NSException raise: NSConditionLockException
-			   format: @"%s failed to unlock mutex",
-			   GSNameFromSelector(_cmd)];
-	      /* NOT REACHED */
-	    }
+		return YES;
 	}
-    }
-  while (GSSleepOrFail(&ctxt) == YES);
-
-  return NO;
-
-#else
-  NSTimeInterval atimeinterval;
-  struct timespec endtime;
-
-  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
-
-  if (-1 == objc_mutex_lock(_MUTEX))
-    [NSException raise: NSConditionLockException
-		 format: @"lockWhenCondition: failed to lock mutex"];
-	
-  if (_condition_value == condition_to_meet)
-    return YES;
-
-  atimeinterval = [limitDate timeIntervalSince1970];
-  endtime.tv_sec =(NSUInteger)atimeinterval; // 941883028;//
-  endtime.tv_nsec = (NSUInteger)((atimeinterval - (float)endtime.tv_sec)
-				   * 1000000000.0);
-
-  while (_condition_value != condition_to_meet)
-    {
-      switch (objc_condition_timedwait(_CONDITION, _MUTEX, &endtime))
+	if ([_condition waitUntilDate: limitDate]
+		&&
+		(condition_to_meet == _condition_value))
 	{
-	  case 0:
-	    break;
-	  case EINTR:
-	    break;
-	  case ETIMEDOUT :
-	    [self unlock];
-	    return NO;
-	  default:
-	    [NSException raise: NSConditionLockException
-			 format: @"objc_condition_timedwait failed"];
-	    [self unlock];
-	    return NO;
+		return YES;
 	}
-    }
-  return YES;
-#endif /* HAVE__OBJC_CONDITION_TIMEDWAIT */
+	return NO;
 }
 
-// NSLocking protocol
-// These methods ignore the condition
+// NSLocking methods.  These aren't instantiated with the macro as they are
+// delegated to the NSCondition.
 - (void) lock
 {
-  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
-
-  // Ask the runtime to acquire a lock on the mutex
-  // This will block
-  if (objc_mutex_lock(_MUTEX) == -1)
-    {
-      [NSException raise: NSConditionLockException
-        format: @"lock: failed to lock mutex"];
-      /* NOT REACHED */
-    }
+	[_condition lock];
 }
 
 - (void) unlock
 {
-  // wake up blocked threads
-  if (objc_condition_broadcast(_CONDITION) == -1)
-    {
-      [NSException raise: NSConditionLockException
-        format: @"unlockWithCondition: objc_condition_broadcast failed"];
-      /* NOT REACHED */
-    }
-
-  // Ask the runtime to release a lock on the mutex
-  if (objc_mutex_unlock(_MUTEX) == -1)
-    {
-      [NSException raise: NSConditionLockException
-        format: @"unlock: failed to unlock mutex"];
-      /* NOT REACHED */
-    }
+	[_condition unlock];
 }
 
-@end
-
-
-
-/**
- * See [NSLock] for more information about what a lock is. A recursive
- * lock extends [NSLock] in that you can lock a recursive lock multiple
- * times. Each lock must be balanced by a corresponding unlock, and the
- * lock is not released for another thread to acquire until the last
- * unlock call is made (corresponding to the first lock message).
- */
-@implementation NSRecursiveLock
-
-/** <init />
- */
-- (id) init
-{
-  self = [super init];
-  if (self != nil)
-    {
-      // Allocate the mutex from the runtime
-      _mutex = objc_mutex_allocate();
-      if (_mutex == 0)
-	{
-	  NSLog(@"Failed to allocate a mutex");
-	  RELEASE(self);
-	  return nil;
-	}
-    }
-  return self;
-}
-
-- (void) dealloc
-{
-  [self finalize];
-  [super dealloc];
-}
-
-- (NSString*) description
-{
-  if (_name == nil)
-    return [super description];
-  return [NSString stringWithFormat: @"%@ named '%@'",
-    [super description], _name];
-}
-
-- (void) finalize
-{
-  if (_mutex != 0)
-    {
-      objc_mutex_t	tmp = _MUTEX;
-
-      _mutex = 0;
-      // Ask the runtime to deallocate the mutex
-      // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(tmp) == -1)
-	{
-	  NSWarnMLog(@"objc_mutex_deallocate() failed for %@", self);
-	}
-    }
-  DESTROY(_name);
-}
-
-- (NSString*) name
-{
-  return _name;
-}
-
-- (void) setName: (NSString*)name
-{
-  ASSIGNCOPY(_name, name);
-}
-
-/**
- * Attempts to acquire a lock, but returns NO immediately if the lock
- * cannot be acquired. It returns YES if the lock is acquired. Can be
- * called multiple times to make nested locks.
- */
 - (BOOL) tryLock
 {
-  // Ask the runtime to acquire a lock on the mutex
-  if (objc_mutex_trylock(_MUTEX) == -1)
-    return NO;
-  else
-    return YES;
+	return [_condition tryLock];
 }
-
-/**
- * Attempts to acquire a lock before the date limit passes. It returns
- * YES if it can. It returns NO if it cannot
- * (but it waits until the time limit is up before returning NO).
- */
-- (BOOL) lockBeforeDate: (NSDate*)limit
-{
-  GSSleepInfo	ctxt;
-
-  GSSleepInit(limit, &ctxt);
-  while (objc_mutex_trylock(_MUTEX) == -1)
-    {
-      if (GSSleepOrFail(&ctxt) == NO)
-	{
-	  return NO;
-	}
-    }
-  return YES;
-}
-
-// NSLocking protocol
-- (void) lock
-{
-  // Ask the runtime to acquire a lock on the mutex
-  // This will block
-  if (objc_mutex_lock(_MUTEX) == -1)
-    {
-      [NSException raise: NSRecursiveLockException
-        format: @"lock: failed to lock mutex"];
-      /* NOT REACHED */
-    }
-}
-
-- (void) unlock
-{
-  // Ask the runtime to release a lock on the mutex
-  if (objc_mutex_unlock(_MUTEX) == -1)
-    {
-      [NSException raise: NSRecursiveLockException
-        format: @"unlock: failed to unlock mutex"];
-      /* NOT REACHED */
-    }
-}
-
+NAME_METHODS
 @end
