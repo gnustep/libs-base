@@ -180,7 +180,10 @@ NSLOCKING_METHODS
 		[self release];
 		return nil;
 	}
-	if (0 != pthread_mutex_init(&_mutex, NULL))
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
+	if (0 != pthread_mutex_init(&_mutex, &attr))
 	{
 		pthread_cond_destroy(&_condition);
 		[self release];
