@@ -31,13 +31,13 @@
 
 #ifndef __NSLock_h_GNUSTEP_BASE_INCLUDE
 #define __NSLock_h_GNUSTEP_BASE_INCLUDE
-#import	<GNUstepBase/GSVersionMacros.h>
+#import  <GNUstepBase/GSVersionMacros.h>
 
-#import	<Foundation/NSObject.h>
+#import  <Foundation/NSObject.h>
 
 #include <pthread.h>
 
-#if	defined(__cplusplus)
+#if  defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -114,9 +114,9 @@ extern "C" {
 @interface NSCondition : NSObject <NSLocking>
 {
 @private
-	pthread_cond_t _condition;
-	pthread_mutex_t _mutex;
-	NSString *_name;
+  pthread_cond_t _condition;
+  pthread_mutex_t _mutex;
+  NSString *_name;
 }
 /**
  * Blocks atomically unlocks the receiver.  This method should only be called
@@ -124,28 +124,28 @@ extern "C" {
  * is sent either a -signal or -broadcast message from another thread.  At this
  * point, the calling thread will reacquire the lock.
  */
-- (void)wait;
+- (void) wait;
 /**
  * Blocks the calling thread and acquires the lock, in the same way as -wait.
  * Returns YES if the condition is signaled, or NO if the timeout is reached.
  */
-- (BOOL)waitUntilDate: (NSDate*)limit;
+- (BOOL) waitUntilDate: (NSDate*)limit;
 /**
  * Wakes a single thread that is waiting on this condition.
  */
-- (void)signal;
+- (void) signal;
 /**
  * Wakes all threads that are waiting on this condition.
  */
-- (void)broadcast;
+- (void) broadcast;
 /**
  * Sets the name used for debugging messages.
  */
-- (void)setName:(NSString*)newName;
+- (void) setName: (NSString*)newName;
 /**
  * Returns the name used for debugging messages.
  */
-- (NSString*)name;
+- (NSString*) name;
 @end
 
 /**
@@ -372,9 +372,9 @@ extern "C" {
 + (id) newLockAt: (id *)location;
 @end
 
-#endif	/* GS_API_NONE */
+#endif  /* GS_API_NONE */
 
-#if	defined(__cplusplus)
+#if  defined(__cplusplus)
 }
 #endif
 

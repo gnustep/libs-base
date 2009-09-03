@@ -1,3 +1,9 @@
+2009-09-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLock.m: Fix a few variable declarations to work with older
+	compilers.  Fix indentation/whitespace for coding standards consistency.
+	* Source/NSURLProtocol.m: Fix attempt to use deallocated stream.
+
 2009-09-01 David Chisnall <csdavec@swan.ac.uk>
 
 	* Source/NSLock.m
@@ -9,16 +15,17 @@
 	* Source/NSThread.m
 	Call pthread functions directly in NSThread instead of via the libobjc
 	abstraction layer.  Also fixed a few issues, such as GC not being
-	initialized properly for NSThread subclasses that override -main (Javaism
-	supported by OS X) and tidies up the code in several places, removing
-	premature optimizations, especially those that introduce a test for an
-	unlikely case at the start of a method and thus slow everything down.
+	initialized properly for NSThread subclasses that override -main
+	(Javaism supported by OS X) and tidies up the code in several places,
+	removing premature optimizations, especially those that introduce a
+	test for an unlikely case at the start of a method and thus slow
+	everything down.
 
 	As a result of this change, GNUstep now depends on an implementation of
 	POSIX threads.  This is included as standard on all modern UNIX systems,
 	and as an option on less-modern UNIX systems and non-UNIX systems,
-	including Windows.  If you are building GNUstep on Windows, please install
-	the pthreads-win32 package, available from:
+	including Windows.  If you are building GNUstep on Windows,
+	please install the pthreads-win32 package, available from:
 
 	http://sourceware.org/pthreads-win32/
 
