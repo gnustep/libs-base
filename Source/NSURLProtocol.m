@@ -1463,10 +1463,11 @@ static NSURLProtocol	*placeholder = nil;
     }
   if (event == NSStreamEventErrorOccurred)
     {
-      NSLog(@"An error %@ occurred on stream %@ of %@",
-	[stream streamError], stream, self);
+      NSError	*error = [[[stream streamError] retain] autorelease];
+
+      NSLog(@"An error %@ occurred on stream %@ of %@", error, stream, self);
       [self stopLoading];
-      [this->client URLProtocol: self didFailWithError: [stream streamError]];
+      [this->client URLProtocol: self didFailWithError: error];
     }
   else
     {
