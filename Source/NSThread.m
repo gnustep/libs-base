@@ -485,13 +485,6 @@ static NSThread *defaultThread;
 {
   if (self == [NSThread class])
     {
-      /*
-       * The objc runtime calls this callback AFTER creating a new thread -
-       * which is not correct for us, but does at least mean that we can tell
-       * if we have become multi-threaded due to a call to the runtime directly
-       * rather than via the NSThread class.
-       */
-      objc_set_thread_callback(gnustep_base_thread_callback);
 
       if (pthread_key_create(&thread_object_key, releaseThread))
       {
@@ -505,6 +498,14 @@ static NSThread *defaultThread;
       threadClass = self;
       [NSThread _createThreadForCurrentPthread];
       defaultThread = [NSThread currentThread];
+
+      /*
+       * The objc runtime calls this callback AFTER creating a new thread -
+       * which is not correct for us, but does at least mean that we can tell
+       * if we have become multi-threaded due to a call to the runtime directly
+       * rather than via the NSThread class.
+       */
+      objc_set_thread_callback(gnustep_base_thread_callback);
     }
 }
 
