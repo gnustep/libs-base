@@ -1,3 +1,7 @@
+2009-09-05 David Chisnall <csdavec@swan.ac.uk>
+
+	* Source/NSEnumberation.m: Added enumeration mutation callback.
+
 2009-09-03 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLock.m: Fix a few variable declarations to work with older
