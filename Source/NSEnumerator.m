@@ -29,6 +29,8 @@
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
+#include "Foundation/NSException.h"
+
 
 /**
  *  Simple class for iterating over a collection of objects, usually returned
@@ -96,3 +98,14 @@
   return len;
 }
 @end
+
+/**
+ * objc_enumerationMutation() is called whenever a collection mutates in the
+ * middle of fast enumeration.
+ */
+void objc_enumerationMutation(id obj)
+{
+	[NSException raise: NSGenericException 
+	               format: @"Collection %@ was mutated while being enumerated", 
+	                       obj];
+}
