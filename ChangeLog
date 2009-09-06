@@ -1,5 +1,15 @@
 2009-09-06 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSLock.m: Fix the ([-tryLock]) and [(-lockBeforeDate:])
+	implementations for NSLock and NSCondictionLock to return NO for
+	recursive locking.  Fix to only initialise mutex attributes once
+	(to avoid leaking a set of attributes with every lock created on
+	platforms where attributes need to be destroyed when no longer used).
+	Reorganise to make it easy to replace method implementations.
+	Fix for bug #25444 ... OSX compatibility change.
+
+2009-09-06 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSRunLoop.m: Fix for rare problem if someone changes the
 	system time backwards.
 	* configure.ac: Check for pthread.h and type sizes.  Insist on having

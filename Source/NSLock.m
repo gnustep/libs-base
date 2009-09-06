@@ -45,7 +45,39 @@
  * is probably better behaviour, because it encourages developer to fix their
  * code.  
  */
-#define NSLOCKING_METHODS \
+
+#define	MDEALLOC \
+- (void) dealloc\
+{\
+  [self finalize];\
+  [_name release];\
+  [super dealloc];\
+}
+#define	MDESCRIPTION \
+- (NSString*) description\
+{\
+  if (_name == nil)\
+    {\
+      return [super description];\
+    }\
+  return [NSString stringWithFormat: @"%@ '%@'",\
+    [super description], _name];\
+}
+#define MFINALIZE \
+- (void) finalize\
+{\
+  pthread_mutex_destroy(&_mutex);\
+}
+#define MNAME \
+- (void) setName: (NSString*)newName\
+{\
+  ASSIGNCOPY(_name, newName);\
+}\
+- (NSString*) name\
+{\
+  return _name;\
+}
+#define	MLOCK \
 - (void) lock\
 {\
   int err = pthread_mutex_lock(&_mutex);\
@@ -56,46 +88,15 @@
     }\
   if (EDEADLK == err)\
     {\
-	_NSLockError(self, _cmd);\
-    }\
-}\
-- (void) unlock\
-{\
-  if (0 != pthread_mutex_unlock(&_mutex))\
-    {\
-      [NSException raise: NSLockException\
-	    format: @"failed to unlock mutex"];\
-    }\
-}\
-- (NSString*) description\
-{\
-  if (_name == nil)\
-    {\
-      return [super description];\
-    }\
-  return [NSString stringWithFormat: @"%@ '%@'",\
-    [super description], _name];\
-}\
-- (BOOL) tryLock\
-{\
-  int err = pthread_mutex_trylock(&_mutex);\
-  if (EDEADLK == err)\
-    {\
       _NSLockError(self, _cmd);\
-      return YES;\
     }\
-  return (0 == err);\
-}\
+}
+#define	MLOCKBEFOREDATE \
 - (BOOL) lockBeforeDate: (NSDate*)limit\
 {\
   do\
     {\
       int err = pthread_mutex_trylock(&_mutex);\
-      if (EDEADLK == err)\
-	{\
-	  _NSLockError(self, _cmd);\
-	  return YES;\
-	}\
       if (0 == err)\
 	{\
 	  return YES;\
@@ -103,86 +104,162 @@
       sched_yield();\
     } while([limit timeIntervalSinceNow] < 0);\
   return NO;\
-}\
-NAME_METHODS
-
-#define NAME_METHODS \
-- (void) setName: (NSString*)newName\
-{\
-  ASSIGNCOPY(_name, newName);\
-}\
-- (NSString*) name\
-{\
-  return _name;\
 }
+#define	MTRYLOCK \
+- (BOOL) tryLock\
+{\
+  int err = pthread_mutex_trylock(&_mutex);\
+  return (0 == err) ? YES : NO;\
+}
+#define	MUNLOCK \
+- (void) unlock\
+{\
+  if (0 != pthread_mutex_unlock(&_mutex))\
+    {\
+      [NSException raise: NSLockException\
+	    format: @"failed to unlock mutex"];\
+    }\
+}
+
+static pthread_mutex_t deadlock;
+static pthread_mutexattr_t attr_normal;
+static pthread_mutexattr_t attr_reporting;
+static pthread_mutexattr_t attr_recursive;
 
 /**
  * OS X 10.5 compatibility function to allow debugging deadlock conditions.
- *
- * On OS X, this really deadlocks.  For now, we just continue, while logging
- * the 'you are a numpty' warning.
  */
 void _NSLockError(id obj, SEL _cmd)
 {
   NSLog(@"*** -[%@ %@]: deadlock (%@)", [obj class],
-      NSStringFromSelector(_cmd), obj);
+    NSStringFromSelector(_cmd), obj);
   NSLog(@"*** Break on _NSLockError() to debug.");
-}
-
-/**
- * Init method for an NSLock / NSRecursive lock.  Creates a mutex of the
- * specified type.  Also adds the corresponding -finalize and -dealloc methods.
- */
-#define INIT_LOCK_WITH_TYPE(lock_type) \
-- (id) init\
-{\
-  pthread_mutexattr_t attr;\
-  if (nil == (self = [super init]))\
-    {\
-      return nil;\
-    }\
-  pthread_mutexattr_init(&attr);\
-  pthread_mutexattr_settype(&attr, lock_type);\
-  if (0 != pthread_mutex_init(&_mutex, &attr))\
-    {\
-      [self release];\
-      return nil;\
-    }\
-  return self;\
-}\
-- (void) finalize\
-{\
-  pthread_mutex_destroy(&_mutex);\
-}\
-- (void) dealloc\
-{\
-  [self finalize];\
-  [_name release];\
-  [super dealloc];\
+  pthread_mutex_lock(&deadlock);
 }
 
 // Exceptions
 
 NSString *NSLockException = @"NSLockException";
 
-
 @implementation NSLock
-// Use an error-checking lock.  This is marginally slower, but lets us throw
-// exceptions when incorrect locking occurs.
-INIT_LOCK_WITH_TYPE(PTHREAD_MUTEX_ERRORCHECK)
-NSLOCKING_METHODS
+
++ (void) initialize
+{
+  static BOOL	beenHere = NO;
+
+  if (beenHere == NO)
+    {
+      beenHere = YES;
+
+      /* Initialise attributes for the different types of mutex.
+       * We do it once, since attributes can be shared between multiple
+       * mutexes.
+       * If we had a pthread_mutexattr_t instance for each mutex, we would
+       * either have to store it as an ivar of our NSLock (or similar), or
+       * we would potentially leak instances as we couldn't destroy them
+       * when destroying the NSLock.  I don't know if any implementation
+       * of pthreads actually allocates memory when you call the
+       * pthread_mutexattr_init function, but they are allowed to do so
+       * (and deallocate the memory in pthread_mutexattr_destroy).
+       */
+      pthread_mutexattr_init(&attr_normal);
+      pthread_mutexattr_settype(&attr_normal, PTHREAD_MUTEX_NORMAL);
+      pthread_mutexattr_init(&attr_reporting);
+      pthread_mutexattr_settype(&attr_reporting, PTHREAD_MUTEX_ERRORCHECK);
+      pthread_mutexattr_init(&attr_recursive);
+      pthread_mutexattr_settype(&attr_recursive, PTHREAD_MUTEX_RECURSIVE);
+
+      /* To emulate OSX behavior, we need to be able both to detect deadlocks
+       * (so we can log them), and also hang the thread when one occurs.
+       * the simple way to do that is to set up a locked mutex we can
+       * force a deadlock on.
+       */
+      pthread_mutex_init(&deadlock, &attr_normal);
+      pthread_mutex_lock(&deadlock);
+    }
+}
+
+MDEALLOC
+MDESCRIPTION
+MFINALIZE
+
+/* Use an error-checking lock.  This is marginally slower, but lets us throw
+ * exceptions when incorrect locking occurs.
+ */
+- (id) init
+{
+  if (nil != (self = [super init]))
+    {
+      if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
+	{
+	  [self release];
+	  self = nil;
+	}
+    }
+  return self;
+}
+
+MLOCK
+MLOCKBEFOREDATE
+MNAME
+MTRYLOCK
+MUNLOCK
 @end
 
 @implementation NSRecursiveLock
-INIT_LOCK_WITH_TYPE(PTHREAD_MUTEX_RECURSIVE);
-NSLOCKING_METHODS
+
++ (void) initialize
+{
+  [NSLock class];	// Ensure mutex attributes are set up.
+}
+
+MDEALLOC
+MDESCRIPTION
+MFINALIZE
+
+- (id) init
+{
+  if (nil != (self = [super init]))
+    {
+      if (0 != pthread_mutex_init(&_mutex, &attr_recursive))
+	{
+	  [self release];
+	  self = nil;
+	}
+    }
+  return self;
+}
+
+MLOCK
+MLOCKBEFOREDATE
+MNAME
+MTRYLOCK
+MUNLOCK
 @end
 
 @implementation NSCondition
-- (id)init
-{
-  pthread_mutexattr_t attr;
 
++ (void) initialize
+{
+  [NSLock class];	// Ensure mutex attributes are set up.
+}
+
+- (void) broadcast
+{
+  pthread_cond_broadcast(&_condition);
+}
+
+MDEALLOC
+MDESCRIPTION
+
+- (void) finalize
+{
+  pthread_cond_destroy(&_condition);
+  pthread_mutex_destroy(&_mutex);
+}
+
+- (id) init
+{
   if (nil == (self = [super init]))
     {
       return nil;
@@ -192,9 +269,7 @@ NSLOCKING_METHODS
       [self release];
       return nil;
     }
-  pthread_mutexattr_init(&attr);
-  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  if (0 != pthread_mutex_init(&_mutex, &attr))
+  if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
     {
       pthread_cond_destroy(&_condition);
       [self release];
@@ -203,18 +278,17 @@ NSLOCKING_METHODS
   return self;
 }
 
-- (void) finalize
+MLOCK
+MLOCKBEFOREDATE
+MNAME
+
+- (void) signal
 {
-  pthread_cond_destroy(&_condition);
-  pthread_mutex_destroy(&_mutex);
+  pthread_cond_signal(&_condition);
 }
 
-- (void) dealloc
-{
-  [self finalize];
-  [_name release];
-  [super dealloc];
-}
+MTRYLOCK
+MUNLOCK
 
 - (void) wait
 {
@@ -235,20 +309,27 @@ NSLOCKING_METHODS
   return (0 == pthread_cond_timedwait(&_condition, &_mutex, &timeout));
 }
 
-- (void) signal
-{
-  pthread_cond_signal(&_condition);
-}
-
-- (void) broadcast
-{
-  pthread_cond_broadcast(&_condition);
-}
-
-NSLOCKING_METHODS
 @end
 
 @implementation NSConditionLock
+
++ (void) initialize
+{
+  [NSLock class];	// Ensure mutex attributes are set up.
+}
+
+- (NSInteger) condition
+{
+  return _condition_value;
+}
+
+- (void) dealloc
+{
+  [_name release];
+  [_condition release];
+  [super dealloc];
+}
+
 - (id) init
 {
   return [self initWithCondition: 0];
@@ -269,16 +350,14 @@ NSLOCKING_METHODS
   return self;
 }
 
-- (void) dealloc
+- (void) lock
 {
-  [_name release];
-  [_condition release];
-  [super dealloc];
+  [_condition lock];
 }
 
-- (NSInteger) condition
+- (BOOL) lockBeforeDate: (NSDate*)limit
 {
-  return _condition_value;
+  return [_condition lockBeforeDate: limit];
 }
 
 - (void) lockWhenCondition: (NSInteger)value
@@ -288,24 +367,6 @@ NSLOCKING_METHODS
     {
       [_condition wait];
     }
-}
-
-- (void) unlockWithCondition: (NSInteger)value
-{
-  _condition_value = value;
-  [_condition broadcast];
-  [_condition unlock];
-}
-
-- (BOOL) tryLockWhenCondition: (NSInteger)value
-{
-  return [self lockWhenCondition: value
-		      beforeDate: [NSDate date]];
-}
-
-- (BOOL) lockBeforeDate: (NSDate*)limit
-{
-  return [_condition lockBeforeDate: limit];
 }
 
 - (BOOL) lockWhenCondition: (NSInteger)condition_to_meet
@@ -324,11 +385,17 @@ NSLOCKING_METHODS
   return NO;
 }
 
-// NSLocking methods.  These aren't instantiated with the macro as they are
-// delegated to the NSCondition.
-- (void) lock
+MNAME
+
+- (BOOL) tryLock
 {
-  [_condition lock];
+  return [_condition tryLock];
+}
+
+- (BOOL) tryLockWhenCondition: (NSInteger)value
+{
+  return [self lockWhenCondition: value
+		      beforeDate: [NSDate date]];
 }
 
 - (void) unlock
@@ -336,10 +403,11 @@ NSLOCKING_METHODS
   [_condition unlock];
 }
 
-- (BOOL) tryLock
+- (void) unlockWithCondition: (NSInteger)value
 {
-  return [_condition tryLock];
+  _condition_value = value;
+  [_condition broadcast];
+  [_condition unlock];
 }
 
-NAME_METHODS
 @end
