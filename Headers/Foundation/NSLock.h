@@ -32,10 +32,9 @@
 #ifndef __NSLock_h_GNUSTEP_BASE_INCLUDE
 #define __NSLock_h_GNUSTEP_BASE_INCLUDE
 #import  <GNUstepBase/GSVersionMacros.h>
+#import  <GNUstepBase/GSConfig.h>
 
 #import  <Foundation/NSObject.h>
-
-#include <pthread.h>
 
 #if  defined(__cplusplus)
 extern "C" {
@@ -59,21 +58,22 @@ extern "C" {
 @end
 
 /**
- * Simplest lock for protecting critical sections of code.
- *
- * An <code>NSLock</code> is used in multi-threaded applications to protect
+ * <p>Simplest lock for protecting critical sections of code.
+ * </p>
+ * <p>An <code>NSLock</code> is used in multi-threaded applications to protect
  * critical pieces of code. While one thread holds a lock within a piece of
  * code, another thread cannot execute that code until the first thread has
  * given up its hold on the lock. The limitation of <code>NSLock</code> is
  * that you can only lock an <code>NSLock</code> once and it must be unlocked
  * before it can be acquired again.<br /> Other lock classes, notably
  * [NSRecursiveLock], have different restrictions.
+ * </p>
  */
 @interface NSLock : NSObject <NSLocking>
 {
 @private
-  pthread_mutex_t  _mutex;
-  NSString        *_name;
+  gs_mutex_t	_mutex;
+  NSString	*_name;
 }
 
 /**
@@ -114,34 +114,40 @@ extern "C" {
 @interface NSCondition : NSObject <NSLocking>
 {
 @private
-  pthread_cond_t _condition;
-  pthread_mutex_t _mutex;
-  NSString *_name;
+  gs_cond_t	_condition;
+  gs_mutex_t	_mutex;
+  NSString	*_name;
 }
 /**
- * Blocks atomically unlocks the receiver.  This method should only be called
- * when the receiver is locked.  The caller will then block until the receiver
- * is sent either a -signal or -broadcast message from another thread.  At this
+ * Blocks and atomically unlocks the receiver.
+ * This method should only be called when the receiver is locked.
+ * The caller will then block until the receiver is sent either a -signal
+ * or -broadcast message from another thread.  At which
  * point, the calling thread will reacquire the lock.
  */
 - (void) wait;
+
 /**
  * Blocks the calling thread and acquires the lock, in the same way as -wait.
  * Returns YES if the condition is signaled, or NO if the timeout is reached.
  */
 - (BOOL) waitUntilDate: (NSDate*)limit;
+
 /**
- * Wakes a single thread that is waiting on this condition.
+ * Wakes wany one of the threads that are waiting on this condition.
  */
 - (void) signal;
+
 /**
  * Wakes all threads that are waiting on this condition.
  */
 - (void) broadcast;
+
 /**
  * Sets the name used for debugging messages.
  */
 - (void) setName: (NSString*)newName;
+
 /**
  * Returns the name used for debugging messages.
  */
@@ -247,7 +253,7 @@ extern "C" {
 @interface NSRecursiveLock : NSObject <NSLocking>
 {
 @private
-  pthread_mutex_t _mutex;
+  gs_mutex_t	_mutex;
   NSString      *_name;
 }
 
