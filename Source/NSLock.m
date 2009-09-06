@@ -27,13 +27,14 @@
 // them.  Other platforms have more sensible libcs, which just default to being
 // standards-compliant.
 #define _XOPEN_SOURCE 500
+#include <pthread.h>
+#import "GNUstepBase/GSConfig.h"
 #define	gs_cond_t	pthread_cond_t
 #define	gs_mutex_t	pthread_mutex_t
-#include <pthread.h>
-#include "Foundation/NSLock.h"
+#import "Foundation/NSLock.h"
 #include <math.h>
 #include <errno.h>
-#include "Foundation/NSException.h"
+#import "Foundation/NSException.h"
 
 /**
  * Methods shared between NSLock, NSRecursiveLock, and NSCondition
