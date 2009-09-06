@@ -940,7 +940,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
                       GSIArrayRemoveItemAtIndex(timers, i);
                     }
                 }
-              for (i = 0; recheck == NO && i < GSIArrayCount(timers); i++)
+              for (i = 0; i < GSIArrayCount(timers); i++)
                 {
                   NSDate    *d;
 
@@ -1025,6 +1025,27 @@ static inline BOOL timerInvalidated(NSTimer *t)
                        * the context.
                        */
                       recheck = YES;
+		      /* It's possible that the system time was changed
+		       * while we have been running, and that the timer
+		       * which just fired caused another timer to be
+		       * scheduled using a time in the past relative to
+		       * 'now'.  If we checked it again, we would fire it
+		       * again and could in this way end up repeatedly
+		       * firing a timer as fast as we possibly can until
+		       * the system time in in sync with 'now'.
+		       * To prevent this, we re-cache 'now' with the
+		       * current system time if that time is in the past.
+		       * We can't do that unconditionally though, because
+		       * doing so would defeat the whole point of caching
+		       * 'now' ... to prevent a repeated slow timed event
+		       * from continually firing.
+		       */
+		      ti = GSTimeNow();
+		      if (ti < now)
+			{
+			  now = ti;
+			}
+		      break;
                     }
                   else
                     {

@@ -854,11 +854,19 @@ if test $ac_cv_header_pthread_h = yes ; then
     LIBS="$saved_LIBS"
     CPPFLAGS="$saved_CPPFLAGS"
   fi
+else
+  AC_MSG_ERROR([Unable to find pthreads (needed for essential thread support).])
 fi
 AC_SUBST(HAVE_PTHREAD_H)
 if test x"$objc_threaded" = x"-pthread"; then
   LIBS="$LIBS -lpthread"
 fi
+AC_CHECK_SIZEOF(pthread_mutex_t)
+GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
+AC_SUBST(GS_SIZEOF_MUTEX_T)
+AC_CHECK_SIZEOF(pthread_cond_t)
+GS_SIZEOF_COND_T=$ac_cv_sizeof_pthread_cond_t
+AC_SUBST(GS_SIZEOF_COND_T)
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m

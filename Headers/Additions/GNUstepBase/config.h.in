@@ -504,6 +504,9 @@
 /* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
 
+/* The size of a `pthread_mutex_t', as computed by sizeof. */
+#undef SIZEOF_PTHREAD_MUTEX_T
+
 /* The size of a `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
 

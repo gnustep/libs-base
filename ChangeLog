@@ -1,6 +1,25 @@
+2009-09-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Fix for rare problem if someone changes the
+	system time backwards.
+	* configure.ac: Check for pthread.h and type sizes.  Insist on having
+	pthread.h in order to build, now that it is a requirement.
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: Declare abstract types.
+	* Source/NSLock.m: including pthread.h
+	* Headers/Foundation/NSLock.h: Avoid including pthread.h
+	Basically, insist on finding pthread.h at configure time, and get size
+	of essential types so we can avoid exposing them directly in our
+	public headers.  This should discourage developers from using things
+	they shouldn't, but it does not solve the issue that copies of the base
+	library built with different pthread implementations on the same
+	platform may have binary incompatible NSLock classes (with respect to
+	subclassing as the pthread specific ivars differ in size).  However
+	this is *really* unlikely to be an issue in practice.
+
 2009-09-05 David Chisnall <csdavec@swan.ac.uk>
 
-	* Source/NSEnumberation.m: Added enumeration mutation callback.
+	* Source/NSEnumeration.m: Added enumeration mutation callback.
 
 2009-09-03 Richard Frith-Macdonald <rfm@gnu.org>
 
