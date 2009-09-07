@@ -2878,9 +2878,11 @@ static void callEncoder (DOContext *ctxt)
   NSPortCoder		*rmc = nil;
   GSIMapNode		node = 0;
   NSDate		*timeout_date = nil;
-  NSTimeInterval	last_interval = 0.0001;
-  NSTimeInterval	delay_interval = last_interval;
+  NSTimeInterval	delay_interval = 0.0;
+  NSTimeInterval	last_interval;
+  NSTimeInterval	maximum_interval;
   NSDate		*delay_date = nil;
+  NSDate		*start_date = nil;
   NSRunLoop		*runLoop;
   BOOL			isLocked = NO;
 
@@ -2910,6 +2912,28 @@ static void callEncoder (DOContext *ctxt)
 	}
     }
 
+  if (_multipleThreads == YES)
+    {
+      /* Since multiple threads are using this connection, another
+       * thread may read the reply we are waiting for - so we must
+       * break out of the runloop frequently to check.  We do this
+       * by setting a small delay and increasing it each time round
+       * so that this semi-busy wait doesn't consume too much
+       * processor time (I hope).
+       * We set an upper limit on the delay to avoid responsiveness
+       * problems.
+       */
+      last_interval = 0.0001;
+      maximum_interval = 1.0;
+    }
+  else
+    {
+      /* As the connection is single threaded, we can wait indefinitely
+       * for a response ... but we recheck every five minutes anyway.
+       */
+      last_interval = maximum_interval = 300.0;
+    }
+
   NS_DURING
     {
       if (debug_connection > 5)
@@ -2920,81 +2944,61 @@ static void callEncoder (DOContext *ctxt)
 	&& (node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
 	&& node->value.obj == dummyObject)
 	{
+	  NSDate	*limit_date;
+
 	  M_UNLOCK(_queueGate); isLocked = NO;
-	  if (timeout_date == nil)
+	  if (start_date == nil)
 	    {
+	      start_date = [dateClass allocWithZone: NSDefaultMallocZone()];
+	      start_date = [start_date init];
 	      timeout_date = [dateClass allocWithZone: NSDefaultMallocZone()];
 	      timeout_date
 		= [timeout_date initWithTimeIntervalSinceNow: _replyTimeout];
 	    }
-	  if (_multipleThreads == YES)
+	  RELEASE(delay_date);
+	  delay_date = [dateClass allocWithZone: NSDefaultMallocZone()];
+	  if (delay_interval < maximum_interval)
 	    {
-	      NSDate		*limit_date;
-	      NSTimeInterval	next_interval;
+	      NSTimeInterval	next_interval = last_interval + delay_interval;
 
-	      /*
-	       * If multiple threads are using this connections, another
-	       * thread may read the reply we are waiting for - so we must
-	       * break out of the runloop frequently to check.  We do this
-	       * by setting a small delay and increasing it each time round
-	       * so that this semi-busy wait doesn't consume too much
-	       * processor time (I hope).
-	       * We set an upper limit on the delay to avoid responsiveness
-	       * problems.
-	       */
-	      RELEASE(delay_date);
-	      delay_date = [dateClass allocWithZone: NSDefaultMallocZone()];
-	      if (delay_interval < 1.0)
-		{
-		  next_interval = last_interval + delay_interval;
-		  last_interval = delay_interval;
-		  delay_interval = next_interval;
-		}
-	      delay_date
-		= [delay_date initWithTimeIntervalSinceNow: delay_interval];
+	      last_interval = delay_interval;
+	      delay_interval = next_interval;
+	    }
+	  delay_date
+	    = [delay_date initWithTimeIntervalSinceNow: delay_interval];
 
-	      /*
-	       * We must not set a delay date that is further in the future
-	       * than the timeout date for the response to be returned.
-	       */
-	      if ([timeout_date earlierDate: delay_date] == timeout_date)
-		{
-		  limit_date = timeout_date;
-		}
-	      else
-		{
-		  limit_date = delay_date;
-		}
-
-	      /*
-	       * If the runloop returns without having done anything, AND we
-	       * were waiting for the final timeout, then we must break out
-	       * of the loop.
-	       */
-	      if ([runLoop runMode: NSConnectionReplyMode
-			beforeDate: limit_date] == NO
-		|| [timeout_date timeIntervalSinceNow] <= 0.0)
-		{
-		  if (limit_date == timeout_date)
-		    {
-		      M_LOCK(_queueGate); isLocked = YES;
-		      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
-		      break;
-		    }
-		}
+	  /*
+	   * We must not set a delay date that is further in the future
+	   * than the timeout date for the response to be returned.
+	   */
+	  if ([timeout_date earlierDate: delay_date] == timeout_date)
+	    {
+	      limit_date = timeout_date;
 	    }
 	  else
 	    {
-	      /*
-	       * Normal operation - wait for data or for a timeout.
-	       */
-	      if ([runLoop runMode: NSConnectionReplyMode
-			beforeDate: timeout_date] == NO
-		|| [timeout_date timeIntervalSinceNow] <= 0.0)
+	      limit_date = delay_date;
+	    }
+
+	  /*
+	   * If the runloop returns without having done anything, AND we
+	   * were waiting for the final timeout, then we must break out
+	   * of the loop.
+	   */
+	  if ([runLoop runMode: NSConnectionReplyMode
+		    beforeDate: limit_date] == NO
+	    || [timeout_date timeIntervalSinceNow] <= 0.0)
+	    {
+	      if (limit_date == timeout_date)
 		{
 		  M_LOCK(_queueGate); isLocked = YES;
 		  node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
 		  break;
+		}
+	      else if (_multipleThreads == NO)
+		{
+		  NSLog(@"WARNING ... waiting for reply %u since %@ on %@",
+		    sn, start_date, self);
 		}
 	    }
 	  M_LOCK(_queueGate); isLocked = YES;
@@ -3009,6 +3013,7 @@ static void callEncoder (DOContext *ctxt)
 	  GSIMapRemoveKey(_replyMap, (GSIMapKey)sn);
 	}
       M_UNLOCK(_queueGate); isLocked = NO;
+      TEST_RELEASE(start_date);
       TEST_RELEASE(delay_date);
       TEST_RELEASE(timeout_date);
       if (rmc == nil)
