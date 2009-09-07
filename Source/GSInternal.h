@@ -85,8 +85,8 @@ DESTROY(_internal);
 
 #undef	internal
 #define	internal	((GSInternal*)_internal)
-#undef	GSIVr
-#define	GSIVar(X,Y)	(((X ## Internal*)_internal)->Y)
+#undef	GSIVar
+#define	GSIVar(X,Y)	(((GSInternal*)(X->_internal))->Y)
 
 #else	/* defined(__GNUC__) */
 
@@ -114,7 +114,7 @@ DESTROY(_internal);
 #undef	internal
 #define	internal	self
 #undef	GSIVar
-#define	GSIVar(X,Y)	(self->Y)
+#define	GSIVar(X,Y)	((X)->Y)
 
 #endif	/* defined(__GNUC__) */
 
