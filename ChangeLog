@@ -1,5 +1,13 @@
 2009-09-07 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSConnection.h:
+	* Source/NSConnection.m:
+	Remove ivars from public header.
+	Improve debug by reporting the connections's registered name and/or
+	the name of the remote port it is connecting to.
+
+2009-09-07 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSRunLoop.m:
 	* Source/GSRunLoopCtxt.h:
 	Add some logging to help debug problems where code is adding too

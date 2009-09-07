@@ -95,45 +95,7 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
 @interface NSConnection : NSObject
 {
 @private
-  BOOL			_isValid;
-  BOOL			_independentQueueing;
-  BOOL			_authenticateIn;
-  BOOL			_authenticateOut;
-  BOOL			_multipleThreads;
-  BOOL			_shuttingDown;
-  BOOL			_useKeepalive;
-  BOOL			_keepaliveWait;
-  NSPort		*_receivePort;
-  NSPort		*_sendPort;
-  unsigned		_requestDepth;
-  unsigned		_messageCount;
-  unsigned		_reqOutCount;
-  unsigned		_reqInCount;
-  unsigned		_repOutCount;
-  unsigned		_repInCount;
-#ifndef	_IN_CONNECTION_M
-#define	GSIMapTable	void*
-#endif
-  GSIMapTable		_localObjects;
-  GSIMapTable		_localTargets;
-  GSIMapTable		_remoteProxies;
-  GSIMapTable		_replyMap;
-#ifndef	_IN_CONNECTION_M
-#undef	GSIMapTable
-#endif
-  NSTimeInterval	_replyTimeout;
-  NSTimeInterval	_requestTimeout;
-  NSMutableArray	*_requestModes;
-  NSMutableArray	*_runLoops;
-  NSMutableArray	*_requestQueue;
-  id			_delegate;
-  NSRecursiveLock	*_refGate;
-  NSMutableArray	*_cachedDecoders;
-  NSMutableArray	*_cachedEncoders;
-  NSString		*_registeredName;
-  NSPortNameServer	*_nameServer;
-  int			_lastKeepalive;
-  void			*_reserved;		// For expansion
+  id	_internal;
 }
 
 + (NSArray*) allConnections;

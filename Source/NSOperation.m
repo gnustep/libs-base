@@ -144,7 +144,7 @@ GS_END_INTERNAL(NSOperation)
   [internal->dependencies removeObject: op];
 }
 
-- (NSArray *)dependencies
+- (NSArray *) dependencies
 {
   return [NSArray arrayWithArray: internal->dependencies];
 }
@@ -233,7 +233,7 @@ GS_END_INTERNAL(NSOperationQueue)
   NSEnumerator *en = [internal->operations objectEnumerator];
   id o = nil;
 
-  while ((o = [en nextObject]) != nil )
+  while ((o = [en nextObject]) != nil)
     {
       [o cancel];
     }
