@@ -62,8 +62,11 @@ typedef struct{
   void		*extra;		/** Copy of the RunLoop ivar.		*/
   NSString	*mode;		/** The mode for this context.		*/
   GSIArray	performers;	/** The actions to perform regularly.	*/
+  unsigned	maxPerformers;
   GSIArray	timers;		/** The timers set for the runloop mode */
+  unsigned	maxTimers;
   GSIArray	watchers;	/** The inputs set for the runloop mode */
+  unsigned	maxWatchers;
   NSTimer	*housekeeper;	/** Housekeeping timer for loop.	*/
 @private
 #if	defined(__MINGW32__)
