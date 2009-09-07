@@ -405,6 +405,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 {
   GSRunLoopCtxt	*context;
   GSIArray	watchers;
+  unsigned	i;
 
   context = NSMapGet(_contextMap, mode);
   if (context == nil)
@@ -415,6 +416,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
     }
   watchers = context->watchers;
   GSIArrayAddItem(watchers, (GSIArrayItem)((id)item));
+  i = GSIArrayCount(watchers);
+  if (i % 1000 == 0 && i > context->maxWatchers)
+    {
+      context->maxWatchers = i;
+      NSLog(@"WARNING ... there are %u watchers scheduled in mode %@ of %@",
+	i, mode, self);
+    }
 }
 
 - (void) _checkPerformers: (GSRunLoopCtxt*)context
@@ -840,6 +848,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
    * all each time -limitDateForMode: is called.
    */
   GSIArrayAddItem(timers, (GSIArrayItem)((id)timer));
+  i = GSIArrayCount(timers);
+  if (i % 1000 == 0 && i > context->maxTimers)
+    {
+      context->maxTimers = i;
+      NSLog(@"WARNING ... there are %u timers scheduled in mode %@ of %@",
+	i, mode, self);
+    }
 }
 
 
@@ -1483,6 +1498,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  if (i == end)
 	    {
 	      GSIArrayInsertItem(performers, (GSIArrayItem)((id)item), i);
+	    }
+	  i = GSIArrayCount(performers);
+	  if (i % 1000 == 0 && i > context->maxPerformers)
+	    {
+	      context->maxPerformers = i;
+	      NSLog(@"WARNING ... there are %u performers scheduled"
+		@" in mode %@ of %@", i, mode, self);
 	    }
 	}
       RELEASE(item);

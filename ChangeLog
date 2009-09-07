@@ -1,3 +1,10 @@
+2009-09-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m:
+	* Source/GSRunLoopCtxt.h:
+	Add some logging to help debug problems where code is adding too
+	many events into a run loop.
+
 2009-09-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLock.m: Fix the ([-tryLock]) and [(-lockBeforeDate:])
