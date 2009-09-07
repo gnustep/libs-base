@@ -1803,13 +1803,10 @@ static Class		tcpPortClass;
 - (NSString*) description
 {
   NSString	*desc;
-  NSArray	*names;
 
-  names = [[NSSocketPortNameServer sharedInstance] namesForPort: self];
   desc = [NSString stringWithFormat:
-    @"<%s %p %@ on IP %@,%d>",
+    @"<%s %p on IP %@,%d>",
     GSClassNameFromObject(self), self,
-    (([names count] == 0) ? (id)@"(<un-named>)" : (id)names), host,
     ((address == nil) ? (id)@"any" : (id)address), portNum];
   return desc;
 }

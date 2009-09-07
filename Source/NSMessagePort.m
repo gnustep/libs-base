@@ -1335,13 +1335,10 @@ typedef	struct {
 - (NSString*) description
 {
   NSString	*desc;
-  NSArray	*names;
 
-  names = [[NSMessagePortNameServer sharedInstance] namesForPort: self];
   desc = [NSString stringWithFormat:
-    @"<%s %p %@ with file name %s>",
-    GSClassNameFromObject(self), self,
-    ([names count] == 0) ? (id)@"<un-named>" : (id)names, [name bytes]];
+    @"<%s %p file name %s>",
+    GSClassNameFromObject(self), self, [name bytes]];
   return desc;
 }
 

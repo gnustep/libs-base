@@ -2936,6 +2936,8 @@ static void callEncoder (DOContext *ctxt)
 
   NS_DURING
     {
+      BOOL	warned = NO;
+
       if (debug_connection > 5)
 	NSLog(@"Waiting for reply sequence %d on %@",
 	  sn, self);
@@ -2985,21 +2987,20 @@ static void callEncoder (DOContext *ctxt)
 	   * were waiting for the final timeout, then we must break out
 	   * of the loop.
 	   */
-	  if ([runLoop runMode: NSConnectionReplyMode
+	  if (([runLoop runMode: NSConnectionReplyMode
 		    beforeDate: limit_date] == NO
+	    && (limit_date == timeout_date))
 	    || [timeout_date timeIntervalSinceNow] <= 0.0)
 	    {
-	      if (limit_date == timeout_date)
-		{
-		  M_LOCK(_queueGate); isLocked = YES;
-		  node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
-		  break;
-		}
-	      else if (_multipleThreads == NO)
-		{
-		  NSLog(@"WARNING ... waiting for reply %u since %@ on %@",
-		    sn, start_date, self);
-		}
+	      M_LOCK(_queueGate); isLocked = YES;
+	      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
+	      break;
+	    }
+	  else if (warned == NO && [start_date timeIntervalSinceNow] <= -300.0)
+	    {
+	      warned = YES;
+	      NSLog(@"WARNING ... waiting for reply %u since %@ on %@",
+		sn, start_date, self);
 	    }
 	  M_LOCK(_queueGate); isLocked = YES;
 	}
