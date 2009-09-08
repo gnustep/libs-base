@@ -73,12 +73,6 @@
   locked = -1;
 }
 
-- (void) dealloc
-{
-  [self finalize];
-  [super dealloc];
-}
-
 - (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
@@ -222,12 +216,6 @@
    * the superclass implementatins.
    */
   counter = -1;
-}
-
-- (void) dealloc
-{
-  [self finalize];
-  [super dealloc];
 }
 
 - (void) finalize
