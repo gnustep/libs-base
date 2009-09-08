@@ -838,16 +838,19 @@ if test $ac_cv_header_pthread_h = no ; then
   AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
 fi
 AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
+ismingw=no
+case "$target_os" in
+  mingw*)	ismingw=yes;;
+esac
 if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
 else
-  case "$target_os" in
-    mingw*)
-      AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no);;
-      if test $pthread_ok = yes ; then
-        LIBS="$LIBS -lpthreadGC2"
-      fi
-  esac
+  if test $ismingw = yes ; then
+    AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+    if test $pthread_ok = yes ; then
+      LIBS="$LIBS -lpthreadGC2"
+    fi
+  fi
 fi
 if test $pthread_ok = no ; then
   AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
