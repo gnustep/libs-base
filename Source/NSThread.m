@@ -288,35 +288,59 @@ inline static void objc_thread_add (void)
  */
 static BOOL	entered_multi_threaded_state = NO;
 
+static NSThread *defaultThread;
 static NSLock *thread_creation_lock;
-
-/**
- * Pthread cleanup call; used to free the current NSThread object when the
- * thread exits.
- */
-static void releaseThread(void *thread)
-{
-	[(NSThread*)thread release];
-}
 
 static pthread_key_t thread_object_key;
 
 /**
- * These functions are serious examples of premature optimisation.
+ * Pthread cleanup call.
+ *
+ * We should normally not get here ... because threads should exit properly
+ * and clean up, so that this function doesn't get called.  However if a
+ * thread terminates for some reason without calling the exit method, we
+ * can at least log it.
+ *
+ * We can't do anything more than that since at the point
+ * when this function is called, the thread specific data is no longer
+ * available, so the currentThread method will always fail and the
+ * repercussions of that would well be a crash.
+ *
+ * As a special case, we ignore the exit of the default thread ... that one
+ * will usually terminate without calling the exit method as it ends the
+ * whole process by returning from the 'main' function.
+ */
+static void exitedThread(void *thread)
+{
+  if (thread != defaultThread)
+    {
+      fprintf(stderr, "WARNING thread %p terminated without calling +exit!\n",
+        thread);
+    }
+}
+
+/**
+ * These functions needed because sending messages to classes is a seriously
+ * slow process with gcc and the gnu runtime.
  */
 inline NSThread*
 GSCurrentThread(void)
 {
-	return [NSThread currentThread];
+  if (defaultThread == nil)
+    {
+      [NSThread currentThread];
+    }
+  return (NSThread*)pthread_getspecific(thread_object_key);
 }
+
 NSMutableDictionary*
 GSDictionaryForThread(NSThread *t)
 {
-	if (nil == t)
-	{
-		t = [NSThread currentThread];
-	}
-	return [t threadDictionary];
+  if (nil == t)
+    {
+      t = GSCurrentThread();
+    }
+  return [t threadDictionary];
 }
 
 /**
@@ -410,21 +434,23 @@ static void setThreadForCurrentThread(NSThread *t)
 
   return stack;
 }
-+ (BOOL)_createThreadForCurrentPthread
+
++ (BOOL) _createThreadForCurrentPthread
 {
   NSThread	*t = pthread_getspecific(thread_object_key);
+
   if (t == nil)
     {
-	[thread_creation_lock lock];
-	t = pthread_getspecific(thread_object_key);
-	if (t == nil)
+      [thread_creation_lock lock];
+      t = pthread_getspecific(thread_object_key);
+      if (t == nil)
 	{
-	    t = [self new];
-	    pthread_setspecific(thread_object_key, t);
-	    [thread_creation_lock unlock];
-	    return YES;
+	  t = [self new];
+	  pthread_setspecific(thread_object_key, t);
+	  [thread_creation_lock unlock];
+	  return YES;
 	}
-	[thread_creation_lock unlock];
+      [thread_creation_lock unlock];
     }
   return NO;
 }
@@ -453,7 +479,7 @@ static void setThreadForCurrentThread(NSThread *t)
 
 + (void) exit
 {
-  NSThread		*t;
+  NSThread	*t;
 
   t = GSCurrentThread();
   if (t->_active == YES)
@@ -480,11 +506,11 @@ static void setThreadForCurrentThread(NSThread *t)
 #if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
       GC_unregister_my_thread();
 #endif
+      pthread_setspecific(thread_object_key, nil);
       pthread_exit(NULL);
     }
 }
 
-static NSThread *defaultThread;
 /*
  * Class initialization
  */
@@ -492,13 +518,12 @@ static NSThread *defaultThread;
 {
   if (self == [NSThread class])
     {
-
-      if (pthread_key_create(&thread_object_key, releaseThread))
-      {
-	[NSException raise: NSInternalInconsistencyException
-	            format: @"Unable to create thread key!"];
-      }
-	  thread_creation_lock = [NSLock new];
+      if (pthread_key_create(&thread_object_key, exitedThread))
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"Unable to create thread key!"];
+	}
+      thread_creation_lock = [NSLock new];
       /*
        * Ensure that the default thread exists.
        */
@@ -667,6 +692,7 @@ static NSThread *defaultThread;
 
 - (id) init
 {
+  init_autorelease_thread_vars(&_autorelease_vars);
   return self;
 }
 
@@ -1251,7 +1277,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
 BOOL
 GSRegisterCurrentThread (void)
 {
-    return [NSThread _createThreadForCurrentPthread];
+  return [NSThread _createThreadForCurrentPthread];
 }
 /**
  * <p>
@@ -1291,5 +1317,6 @@ GSUnregisterCurrentThread (void)
 			object: thread
 		      userInfo: nil];
 
+      pthread_setspecific(thread_object_key, nil);
     }
 }

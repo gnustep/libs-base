@@ -5,6 +5,9 @@
 	* config.mak.in:
 	* Source/GNUmakefile:
 	Attempt to tidy up config now that pthreads are mandatory.
+	* Source/NSThread.m:
+	Fix various bugs related to thread exit,  Prevent crashes at program
+	termination ...nastily obvious on mingw.
 
 2009-09-07 Richard Frith-Macdonald <rfm@gnu.org>
 
