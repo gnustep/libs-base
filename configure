@@ -12028,12 +12028,15 @@ else
   pthread_ok=no
 fi
 
+ismingw=no
+case "$target_os" in
+  mingw*)	ismingw=yes;;
+esac
 if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
 else
-  case "$target_os" in
-    mingw*)
-      echo "$as_me:$LINENO: checking for pthread_join in -lpthreadGC2" >&5
+  if test $ismingw = yes ; then
+    echo "$as_me:$LINENO: checking for pthread_join in -lpthreadGC2" >&5
 echo $ECHO_N "checking for pthread_join in -lpthreadGC2... $ECHO_C" >&6
 if test "${ac_cv_lib_pthreadGC2_pthread_join+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -12102,11 +12105,11 @@ if test $ac_cv_lib_pthreadGC2_pthread_join = yes; then
 else
   pthread_ok=no
 fi
-;;
-      if test $pthread_ok = yes ; then
-        LIBS="$LIBS -lpthreadGC2"
-      fi
-  esac
+
+    if test $pthread_ok = yes ; then
+      LIBS="$LIBS -lpthreadGC2"
+    fi
+  fi
 fi
 if test $pthread_ok = no ; then
   { { echo "$as_me:$LINENO: error: Unable to find pthread library (needed for thread support)." >&5
