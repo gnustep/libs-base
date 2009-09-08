@@ -145,6 +145,8 @@ static NSNotificationCenter *nc = nil;
  * to avoid objc messaging and object allocation/deallocation (NSDate)
  * overheads.<br />
  * Used to implement [NSThread+sleepUntilDate:]
+ * If the date is in the past, this function simply allows other threads
+ * (if any) to run.
  */
 void
 GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
@@ -154,6 +156,11 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 
   // delay is always the number of seconds we still need to wait
   delay = when - GSTimeNow();
+  if (delay <= 0)
+    {
+      sched_yield();
+      return;
+    }
 
 #ifdef	HAVE_NANOSLEEP
   // Avoid any possibility of overflow by sleeping in chunks.
@@ -555,6 +562,10 @@ static NSThread *defaultThread;
     {
       GSSleepUntilIntervalSinceReferenceDate(
         [NSDate timeIntervalSinceReferenceDate] + ti);
+    }
+  else
+    {
+      sched_yield();
     }
 }
 
