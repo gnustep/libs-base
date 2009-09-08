@@ -107,11 +107,7 @@ endif
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
   ifneq ($(OBJC_RUNTIME_LIB), gnugc)
     GNU_MFILES += objc-gnu2next.m
-    ifeq ($(HAVE_PTHREAD_H), yes)
-      GNU_MFILES += thr-pthread.m
-    else
-      GNU_MFILES += thr-mach.m
-    endif
+    GNU_MFILES += thr-pthread.m
   endif
 endif
 
