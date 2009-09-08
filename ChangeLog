@@ -8,6 +8,10 @@
 	* Source/NSThread.m:
 	Fix various bugs related to thread exit,  Prevent crashes at program
 	termination ...nastily obvious on mingw.
+	* Source/Additions/GSLock.m:
+	Remove -dealloc implementations which called -finalize, since the
+	superclass implementationd does that too, and finalizing twice is
+	a bad, bad thing.
 
 2009-09-07 Richard Frith-Macdonald <rfm@gnu.org>
 
