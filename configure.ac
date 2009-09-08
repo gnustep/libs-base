@@ -834,7 +834,22 @@ fi
 # Check for pthread.h 
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(pthread.h)
-if test $ac_cv_header_pthread_h = no ; then
+if test $ac_cv_header_pthread_h = yes ; then
+  AC_CHECK_SIZEOF(pthread_mutex_t,,[AC_INCLUDES_DEFAULT
+#include <pthread.h>])
+  GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
+  if test $ac_cv_sizeof_pthread_mutex_t = 0 ; then
+    AC_MSG_ERROR([Unable to find size of pthread_mutex_t (required).])
+  fi
+  AC_SUBST(GS_SIZEOF_MUTEX_T)
+  AC_CHECK_SIZEOF(pthread_cond_t,,[AC_INCLUDES_DEFAULT
+#include <pthread.h>])
+  if test $ac_cv_sizeof_pthread_cond_t = 0 ; then
+    AC_MSG_ERROR([Unable to find size of pthread_cond_t (required).])
+  fi
+  GS_SIZEOF_COND_T=$ac_cv_sizeof_pthread_cond_t
+  AC_SUBST(GS_SIZEOF_COND_T)
+else
   AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
 fi
 AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
@@ -855,12 +870,6 @@ fi
 if test $pthread_ok = no ; then
   AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
 fi
-AC_CHECK_SIZEOF(pthread_mutex_t)
-GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
-AC_SUBST(GS_SIZEOF_MUTEX_T)
-AC_CHECK_SIZEOF(pthread_cond_t)
-GS_SIZEOF_COND_T=$ac_cv_sizeof_pthread_cond_t
-AC_SUBST(GS_SIZEOF_COND_T)
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m
