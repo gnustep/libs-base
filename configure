@@ -310,7 +310,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all Source/pathconfig Source/mframe SSL"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_OBJC_SYNC_ENTER HAVE_PTHREAD_H GS_SIZEOF_MUTEX_T GS_SIZEOF_COND_T HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_OBJC_SYNC_ENTER GS_SIZEOF_MUTEX_T GS_SIZEOF_COND_T HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -11953,67 +11953,165 @@ fi
 
 done
 
-HAVE_PTHREAD_H=no
-if test $ac_cv_header_pthread_h = yes ; then
-  HAVE_PTHREAD_H=yes
-  if test x"$objc_threaded" != x""; then
-    saved_LIBS="$LIBS"
-    saved_CPPFLAGS="$CPPFLAGS"
-    LIBS="$LIBS $LIBOBJC"
-    CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
-    LIBS="$LIBS $objc_threaded"
-    LIBS="$LIBS $extra_LIBS"
-    if test "$cross_compiling" = yes; then
-  pthread_joinable=1
+if test $ac_cv_header_pthread_h = no ; then
+  { { echo "$as_me:$LINENO: error: Unable to find pthread.h (needed for thread support)." >&5
+echo "$as_me: error: Unable to find pthread.h (needed for thread support)." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+echo "$as_me:$LINENO: checking for pthread_join in -lpthread" >&5
+echo $ECHO_N "checking for pthread_join in -lpthread... $ECHO_C" >&6
+if test "${ac_cv_lib_pthread_pthread_join+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  cat >conftest.$ac_ext <<_ACEOF
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthread  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include "$srcdir/config/config.joinable.m"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char pthread_join ();
+int
+main ()
+{
+pthread_join ();
+  ;
+  return 0;
+}
 _ACEOF
-rm -f conftest$ac_exeext
+rm -f conftest.$ac_objext conftest$ac_exeext
 if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  pthread_joinable=1
+  ac_cv_lib_pthread_pthread_join=yes
 else
-  echo "$as_me: program exited with status $ac_status" >&5
-echo "$as_me: failed program was:" >&5
+  echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-( exit $ac_status )
-pthread_joinable=0
+ac_cv_lib_pthread_pthread_join=no
 fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
 fi
-    if test $pthread_joinable = 1; then
-
-cat >>confdefs.h <<\_ACEOF
-#define PTHREAD_JOINABLE 1
-_ACEOF
-
-    fi
-    LIBS="$saved_LIBS"
-    CPPFLAGS="$saved_CPPFLAGS"
-  fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_pthread_pthread_join" >&5
+echo "${ECHO_T}$ac_cv_lib_pthread_pthread_join" >&6
+if test $ac_cv_lib_pthread_pthread_join = yes; then
+  pthread_ok=yes
 else
-  { { echo "$as_me:$LINENO: error: Unable to find pthreads (needed for essential thread support)." >&5
-echo "$as_me: error: Unable to find pthreads (needed for essential thread support)." >&2;}
-   { (exit 1); exit 1; }; }
+  pthread_ok=no
 fi
 
-if test x"$objc_threaded" = x"-pthread"; then
+if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
+else
+  case "$target_os" in
+    mingw*)
+      echo "$as_me:$LINENO: checking for pthread_join in -lpthreadGC2" >&5
+echo $ECHO_N "checking for pthread_join in -lpthreadGC2... $ECHO_C" >&6
+if test "${ac_cv_lib_pthreadGC2_pthread_join+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthreadGC2  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char pthread_join ();
+int
+main ()
+{
+pthread_join ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_pthreadGC2_pthread_join=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_pthreadGC2_pthread_join=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_pthreadGC2_pthread_join" >&5
+echo "${ECHO_T}$ac_cv_lib_pthreadGC2_pthread_join" >&6
+if test $ac_cv_lib_pthreadGC2_pthread_join = yes; then
+  pthread_ok=yes
+else
+  pthread_ok=no
+fi
+;;
+      if test $pthread_ok = yes ; then
+        LIBS="$LIBS -lpthreadGC2"
+      fi
+  esac
+fi
+if test $pthread_ok = no ; then
+  { { echo "$as_me:$LINENO: error: Unable to find pthread library (needed for thread support)." >&5
+echo "$as_me: error: Unable to find pthread library (needed for thread support)." >&2;}
+   { (exit 1); exit 1; }; }
 fi
 echo "$as_me:$LINENO: checking for pthread_mutex_t" >&5
 echo $ECHO_N "checking for pthread_mutex_t... $ECHO_C" >&6
@@ -21115,7 +21213,6 @@ s,@DYNAMIC_LINKER@,$DYNAMIC_LINKER,;t t
 s,@NX_CONST_STRING_OBJCFLAGS@,$NX_CONST_STRING_OBJCFLAGS,;t t
 s,@NX_CONST_STRING_CLASS@,$NX_CONST_STRING_CLASS,;t t
 s,@HAVE_OBJC_SYNC_ENTER@,$HAVE_OBJC_SYNC_ENTER,;t t
-s,@HAVE_PTHREAD_H@,$HAVE_PTHREAD_H,;t t
 s,@GS_SIZEOF_MUTEX_T@,$GS_SIZEOF_MUTEX_T,;t t
 s,@GS_SIZEOF_COND_T@,$GS_SIZEOF_COND_T,;t t
 s,@HAVE_PTS_STREAM_MODULES@,$HAVE_PTS_STREAM_MODULES,;t t

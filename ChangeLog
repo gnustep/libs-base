@@ -1,3 +1,11 @@
+2009-09-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac:
+	* configure:
+	* config.mak.in:
+	* Source/GNUmakefile:
+	Attempt to tidy up config now that pthreads are mandatory.
+
 2009-09-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSConnection.h:

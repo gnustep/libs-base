@@ -834,32 +834,23 @@ fi
 # Check for pthread.h 
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(pthread.h)
-HAVE_PTHREAD_H=no
-if test $ac_cv_header_pthread_h = yes ; then
-  HAVE_PTHREAD_H=yes
-  if test x"$objc_threaded" != x""; then
-    saved_LIBS="$LIBS"
-    saved_CPPFLAGS="$CPPFLAGS"
-    LIBS="$LIBS $LIBOBJC"
-    CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
-    LIBS="$LIBS $objc_threaded"
-    LIBS="$LIBS $extra_LIBS"
-    AC_TRY_RUN([#include "$srcdir/config/config.joinable.m"],
-             pthread_joinable=1, pthread_joinable=0, 
-             pthread_joinable=1)
-    if test $pthread_joinable = 1; then
-      AC_DEFINE(PTHREAD_JOINABLE,1,
-        [Define if objc runtime creates joinable threads])
-    fi
-    LIBS="$saved_LIBS"
-    CPPFLAGS="$saved_CPPFLAGS"
-  fi
-else
-  AC_MSG_ERROR([Unable to find pthreads (needed for essential thread support).])
+if test $ac_cv_header_pthread_h = no ; then
+  AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
 fi
-AC_SUBST(HAVE_PTHREAD_H)
-if test x"$objc_threaded" = x"-pthread"; then
+AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
+if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
+else
+  case "$target_os" in
+    mingw*)
+      AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no);;
+      if test $pthread_ok = yes ; then
+        LIBS="$LIBS -lpthreadGC2"
+      fi
+  esac
+fi
+if test $pthread_ok = no ; then
+  AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
 fi
 AC_CHECK_SIZEOF(pthread_mutex_t)
 GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
