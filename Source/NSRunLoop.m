@@ -1058,6 +1058,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 		      ti = GSTimeNow();
 		      if (ti < now)
 			{
+			  fprintf(stderr, "WARNING, we appear to have jumped back in time %g seconds.\n", now - ti);
 			  now = ti;
 			}
 		      break;
