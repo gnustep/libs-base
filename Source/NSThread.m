@@ -90,6 +90,8 @@
 #define PTHREAD_MIN_PRIORITY 0
 #endif
 
+extern NSTimeInterval GSTimeNow(void);
+
 @interface NSAutoreleasePool (NSThread)
 + (void) _endThread: (NSThread*)thread;
 @end
@@ -151,12 +153,11 @@ static NSNotificationCenter *nc = nil;
 void
 GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 {
-  extern NSTimeInterval GSTimeNow(void);
   NSTimeInterval delay;
 
   // delay is always the number of seconds we still need to wait
   delay = when - GSTimeNow();
-  if (delay <= 0)
+  if (delay <= 0.0)
     {
       sched_yield();
       return;
@@ -583,15 +584,7 @@ static void setThreadForCurrentThread(NSThread *t)
 
 + (void) sleepForTimeInterval: (NSTimeInterval)ti
 {
-  if (ti > 0.0)
-    {
-      GSSleepUntilIntervalSinceReferenceDate(
-        [NSDate timeIntervalSinceReferenceDate] + ti);
-    }
-  else
-    {
-      sched_yield();
-    }
+  GSSleepUntilIntervalSinceReferenceDate(GSTimeNow() + ti);
 }
 
 /**
