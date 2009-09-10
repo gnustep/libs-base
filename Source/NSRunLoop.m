@@ -858,6 +858,35 @@ static inline BOOL timerInvalidated(NSTimer *t)
 }
 
 
+
+/* Ensure that the fire date has been updated either by the timeout handler
+ * updating it or by incrementing it ourselves.<br />
+ * Return YES if it was updated, NO if it was invalidated.
+ */
+static BOOL
+updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
+{
+  if (timerInvalidated(t) == YES)
+    {
+      return NO;
+    }
+  if (timerDate(t) == d)
+    {
+      NSTimeInterval	ti = [d timeIntervalSinceReferenceDate];
+      NSTimeInterval	increment = [t timeInterval];
+
+      ti += increment;
+      while (ti < now)
+	{
+	  ti += increment;
+	}
+      d = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: ti];
+      [t setFireDate: d];
+      RELEASE(d);
+    }
+  return YES;
+}
+
 /**
  * Fires timers whose fire date has passed, and checks timers and limit dates
  * for input sources, determining the earliest time that any future timeout
@@ -883,11 +912,12 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	  extern NSTimeInterval GSTimeNow(void);
 	  GSIArray		timers = context->timers;
 	  NSTimeInterval	now;
-          NSDate                *earliest = nil;
-          BOOL                  recheck = YES;
-          NSTimeInterval        ei = 0;
+          NSDate                *earliest;
+	  NSTimer		*et;
+	  NSDate		*d;
 	  NSTimer		*t;
 	  NSTimeInterval	ti;
+	  NSTimeInterval	ei;
           unsigned              i;
 
 	  /*
@@ -910,169 +940,107 @@ static inline BOOL timerInvalidated(NSTimer *t)
                 {
                   DESTROY(context->housekeeper);
                 }
-              else if ([timerDate(t) timeIntervalSinceReferenceDate] <= now)
+              else if ([(d=timerDate(t)) timeIntervalSinceReferenceDate] <= now)
                 {
-                  NSDate    *d = timerDate(t);
-
                   [t fire];
                   GSPrivateNotifyASAP();
                   IF_NO_GC([arp emptyPool]);
-
-                  /* Increment fire date unless timer is invalidated or the 
-                   * timeout handler has already updated it.
-                   */
-                  if (timerInvalidated(t) == NO && timerDate(t) == d)
-                    {
-                      ti = [d timeIntervalSinceReferenceDate];
-                      ti += [t timeInterval];
-                      while (ti < now)
-                        {
-                          ti += [t timeInterval];
-                        }
-                      d = [[NSDate alloc]
-                        initWithTimeIntervalSinceReferenceDate: ti];
-                      [t setFireDate: d];
-                      RELEASE(d);
-                    }
+		  updateTimer(t, d, now);
                 }
             }
 
 	  /*
-	   * Handle normal timers ... remove invalidated timers and fire any
+	   * Handle normal timers ... remove invalidated timers and fire one
 	   * whose date has passed.
 	   */
-          while (recheck == YES)
-            {
-              recheck = NO;
-              earliest = nil;
+	  earliest = nil;
+	  et = nil;
+	  i = GSIArrayCount(timers);
+	  while (i-- > 0)
+	    {
+	      t = GSIArrayItemAtIndex(timers, i).obj;
+	      if (timerInvalidated(t) == YES)
+		{
+		  GSIArrayRemoveItemAtIndex(timers, i);
+		}
+	      else
+		{
+		  d = timerDate(t);
+		  ti = [d timeIntervalSinceReferenceDate];
+		  if (earliest == nil || ti < ei)
+		    {
+		      earliest = d;
+		      ei = ti;
+		      et = t;
+		    }
+		}
+	    }
 
-              i = GSIArrayCount(timers);
-              while (i-- > 0)
-                {
-                  t = GSIArrayItemAtIndex(timers, i).obj;
-                  if (timerInvalidated(t) == YES)
-                    {
-                      GSIArrayRemoveItemAtIndex(timers, i);
-                    }
-                }
-              for (i = 0; i < GSIArrayCount(timers); i++)
-                {
-                  NSDate    *d;
-
-                  t = GSIArrayItemAtIndex(timers, i).obj;
-                  d = timerDate(t);
-                  ti = [d timeIntervalSinceReferenceDate];
-                  if (ti <= now)
-                    {
-                      /* When firing the timer we must remove it from
-                       * the loop so that if the -fire methods re-runs
-                       * the loop we do not get recursive entry into
-                       * the timer.  This appears to be the behavior
-                       * in MacOS-X also.
-                       */
-                      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
-                      [t fire];
-                      GSPrivateNotifyASAP();	/* Post notifications. */
-                      IF_NO_GC([arp emptyPool]);
-
-                      if (timerInvalidated(t) == YES)
-                        {
-                          /* The timer was invalidated, so we can
-                           * release it as we aren't putting it back
-                           * in the array.
-                           */
-                          RELEASE(t);
-                        }
-                      else
-                        {
-                          NSDate        *next = timerDate(t);
-                          BOOL          shouldSetFireDate = NO;
-
-                          if (next == d)
-                            {
-                              /* The timeout handler has not updated
-                               * the fire date, so we increment it.
-                               */
-                              shouldSetFireDate = YES;
-                              ti = [d timeIntervalSinceReferenceDate];
-                              ti += [t timeInterval];
-                            }
-                          else
-                            {
-                              ti = [next timeIntervalSinceReferenceDate];
-                              if (ti <= now)
-                                {
-                                  /* The timeout handler updated the fire
-                                   * date to some time in the past, so we
-                                   * need to override that value.
-                                   */
-                                  shouldSetFireDate = YES;
-                                }
-                            }
-
-                          if (shouldSetFireDate == YES)
-                            {
-                              NSTimeInterval    increment = [t timeInterval];
-
-                              /* First we ensure that the new fire date is
-                               * in the future, then we set it in the timer.
-                               */
-                              while (ti < now)
-                                {
-                                  ti += increment;
-                                }
-                              next = [[NSDate alloc]
-                                initWithTimeIntervalSinceReferenceDate: ti];
-                              [t setFireDate: next];
-                              RELEASE(next);
-                            }
-                          GSIArrayAddItemNoRetain(timers,
-                            (GSIArrayItem)((id)t));
-                        }
-
-                      /* As a timer was fired, it's possible that the
-                       * array of valid timers in this context has changed
-                       * so we must recheck the dates in case a timer we
-                       * already checked has had its start date set back
-                       * earlier than the point at which we checked it.
-                       * It's also possible that the incremented date of
-                       * a repeating timer is still the earliest date in
-                       * the context.
-                       */
-                      recheck = YES;
-		      /* It's possible that the system time was changed
-		       * while we have been running, and that the timer
-		       * which just fired caused another timer to be
-		       * scheduled using a time in the past relative to
-		       * 'now'.  If we checked it again, we would fire it
-		       * again and could in this way end up repeatedly
-		       * firing a timer as fast as we possibly can until
-		       * the system time in in sync with 'now'.
-		       * To prevent this, we re-cache 'now' with the
-		       * current system time if that time is in the past.
-		       * We can't do that unconditionally though, because
-		       * doing so would defeat the whole point of caching
-		       * 'now' ... to prevent a repeated slow timed event
-		       * from continually firing.
-		       */
-		      ti = GSTimeNow();
-		      if (ti < now)
-			{
-			  fprintf(stderr, "WARNING, we appear to have jumped back in time %g seconds.\n", now - ti);
-			  now = ti;
-			}
+	  /* If the earliest date is in the past, we should fire the timer.
+	   */
+	  if (et != nil && ei < now)
+	    {
+	      /* When firing the timer we must remove it from
+	       * the loop so that if the -fire methods re-runs
+	       * the loop we do not get recursive entry into
+	       * the timer.  This appears to be the behavior
+	       * in MacOS-X also.
+	       */
+	      i = GSIArrayCount(timers);
+	      while (i-- > 0)
+		{
+		  t = GSIArrayItemAtIndex(timers, i).obj;
+		  if (t == et)
+		    {
 		      break;
-                    }
-                  else
-                    {
-                      if (earliest == nil || ti < ei)
-                        {
-                          ei = ti;
-                          earliest = d;
-                        }
-                    }
-                }
-            }
+		    }
+		}
+	      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
+	      [et fire];
+	      GSPrivateNotifyASAP();	/* Post notifications. */
+	      IF_NO_GC([arp emptyPool]);
+	      if (updateTimer(et, earliest, now) == YES)
+		{
+		  /* Updated ... replace in array.
+		   */
+		  GSIArrayAddItemNoRetain(timers, (GSIArrayItem)((id)et));
+		}
+	      else
+		{
+		  /* The timer was invalidated, so we can
+		   * release it as we aren't putting it back
+		   * in the array.
+		   */
+		  RELEASE(et);
+		}
+	      earliest = nil;
+	    }
+
+	  /* Now, if we have no earliest date it may be because a timer fired,
+	   * in which case we must look again to see what the new earliest
+	   * date is.
+	   */
+	  if (earliest == nil && (i = GSIArrayCount(timers)) > 0)
+	    {
+	      while (i-- > 0)
+		{
+		  t = GSIArrayItemAtIndex(timers, i).obj;
+		  if (timerInvalidated(t) == YES)
+		    {
+		      GSIArrayRemoveItemAtIndex(timers, i);
+		    }
+		  else
+		    {
+		      d = timerDate(t);
+		      ti = [d timeIntervalSinceReferenceDate];
+		      if (earliest == nil || ti < ei)
+			{
+			  earliest = d;
+			  ei = ti;
+			}
+		    }
+		}
+	    }
 
           /* The earliest date of a valid timeout is copied into 'when'
            * and used as our limit date.
