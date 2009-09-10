@@ -5,7 +5,11 @@
 	method to only fire one timer (excluding the private housekeeping one).
 	Changing to only fire one timer actually allows the code to be simpler
 	so it's a good update in its own right, not just a OSX compatibility
-	tweak.
+	tweak.  I also made incrementing repeated timers a bit more robust,
+	checking that they provide a valid increment time interval and
+	removing them from the loop if they don't.
+	* Source/NSTimer.m: slightly tidy/clarify initialisation code and
+	documentation.
 
 2009-09-08 Richard Frith-Macdonald <rfm@gnu.org>
 

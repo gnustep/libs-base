@@ -69,22 +69,21 @@ static Class	NSDate_class;
   return nil;
 }
 
-/**
- * <init />
+/** <init />
  * Initialise the receive, a newly allocated NSTimer object.<br />
- * The fd argument specifies an initial fire date ... if it is not
- * supplied (a nil object) then the ti argument is used to create
- * a start date relative to the current time.<br />
  * The ti argument specifies the time (in seconds) between the firing.
  * If it is less than or equal to 0.0 then a small interval is chosen
  * automatically.<br />
+ * The fd argument specifies an initial fire date copied by the timer...
+ * if it is not supplied (a nil object) then the ti argument is used to
+ * create a start date relative to the current time.<br />
  * The f argument specifies whether the timer will fire repeatedly
  * or just once.<br />
  * If the selector argument is zero, then then object is an invocation
  * to be used when the timer fires.  otherwise, the object is sent the
  * message specified by the selector and with the timer as an argument.<br />
- * The fd, object and info arguments will be retained until the timer is
- * invalidated.<br />
+ * The object and info arguments will be retained until the timer is
+ * invalidated.
  */
 - (id) initWithFireDate: (NSDate*)fd
 	       interval: (NSTimeInterval)ti
@@ -93,26 +92,30 @@ static Class	NSDate_class;
 	       userInfo: (id)info
 		repeats: (BOOL)f
 {
-  if (ti <= 0)
+  if (ti <= 0.0)
     {
       ti = 0.0001;
     }
-  _interval = ti;
   if (fd == nil)
     {
       _date = [[NSDate_class allocWithZone: NSDefaultMallocZone()]
-        initWithTimeIntervalSinceNow: _interval];
+        initWithTimeIntervalSinceNow: ti];
     }
   else
     {
-      _date = [fd copy];
+      _date = [fd copyWithZone: NSDefaultMallocZone()];
     }
   _target = RETAIN(object);
   _selector = selector;
   _info = RETAIN(info);
-  _repeats = f;
-  if (_repeats == NO)
+  if (f == YES)
     {
+      _repeats = YES;
+      _interval = ti;
+    }
+  else
+    {
+      _repeats = NO;
       _interval = 0.0;
     }
   return self;
@@ -266,7 +269,6 @@ static Class	NSDate_class;
 - (void) invalidate
 {
   /* OPENSTEP allows this method to be called multiple times. */
-  //NSAssert(_invalidated == NO, NSInternalInconsistencyException);
   _invalidated = YES;
   if (_target != nil)
     {
