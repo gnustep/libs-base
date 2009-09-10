@@ -62,6 +62,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <math.h>
 #include <time.h>
 #include <limits.h>
 #include <string.h>		/* for memset() */
@@ -813,6 +814,20 @@ static inline BOOL timerInvalidated(NSTimer *t)
   GSIArray	timers;
   unsigned      i;
 
+  if ([timer isKindOfClass: [NSTimer class]] == NO
+    || [timer isProxy] == YES)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@] not a valid timer",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+  if ([mode isKindOfClass: [NSString class]] == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@] not a valid mode",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+
   NSDebugMLLog(@"NSRunLoop", @"add timer for %f in %@",
     [[timer fireDate] timeIntervalSinceReferenceDate], mode);
 
@@ -875,10 +890,38 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       NSTimeInterval	ti = [d timeIntervalSinceReferenceDate];
       NSTimeInterval	increment = [t timeInterval];
 
-      ti += increment;
-      while (ti < now)
+      if (increment <= 0.0)
 	{
-	  ti += increment;
+	  /* Should never get here ... unless a subclass is returning
+	   * a bad interval ... we return NO so that the timer gets
+	   * removed from the loop.
+	   */
+	  NSLog(@"WARNING timer %@ had bad interval ... removed", t);
+	  return NO;
+	}
+
+      ti += increment;	// Hopefully a single increment will do.
+
+      if (ti < now)
+	{
+	  NSTimeInterval	add;
+
+	  /* Just incrementing the date was insufficieint to bring it to
+	   * the current time, so we must have missed one or more fire
+	   * opportunities, or the fire date has been set on the timer.
+	   * If a fire date long ago has been set and the increment value
+	   * is really small, we might need to increment very many times
+	   * to get the new fire date.  To avoid looping for ages, we
+	   * calculate the number of increments needed and do them in one
+	   * go.
+	   */
+	  add = floor((now - ti) / increment);
+	  ti += (increment * add);
+	  if (ti < now)
+	    {
+	      add++;
+	      ti += increment;
+	    }
 	}
       d = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: ti];
       [t setFireDate: d];
