@@ -29,6 +29,10 @@
 #import "GSInvocation.h"
 #import <config.h>
 #import <objc/objc-api.h>
+// FIXME: We should be using the new interfaces, not exposing the old ones.
+#define __OBJC_LEGACY_GNU_MODE__
+#import <objc/runtime.h>
+#import <pthread.h>
 #import "cifframe.h"
 #import "mframe.h"
 #import "GSPrivate.h"
@@ -209,6 +213,66 @@ IMP gs_objc_msg_forward (SEL sel)
 {
   return gs_objc_msg_forward2 (nil, sel);
 }
+#ifdef __GNUSTEP_RUNTIME__
+pthread_key_t thread_slot_key;
+static struct objc_slot_t gs_objc_msg_forward3(id receiver, SEL op)
+{
+  /* The slot has its version set to 0, so it can not be cached.  This makes it
+   * safe to free it when the thread exits. */
+  Slot_t slot = pthread_getspecific(thread_slot_key);
+  if (NULL == slot)
+    {
+      slot = calloc(sizeof(struct objc_slot), 1);
+      pthread_setspecific(thread_slot_key, slot);
+    }
+  slot->method = gs_objc_msg_forward2(receiver, op);
+  return slot;
+}
+
+/** Hidden by legacy API define.  Declare it locally */
+BOOL class_isMetaClass(Class cls);
+BOOL class_respondsToSelector(Class cls, SEL sel);
+
+/**
+ * Runtime hook used to provide message redirections.  If lookup fails but this
+ * function returns non-nil then the lookup will be retried with the returned
+ * value.
+ *
+ * Note: Every message sent by this function MUST be understood by the
+ * receiver.  If this is not the case then there is a potential for infinite
+ * recursion.  
+ */
+static id gs_objc_proxy_lookup(id receiver, SEL op)
+{
+    /* FIXME: Should be isa, but legacy-compat mode makes it class_pointer */
+    Class cls = receiver->class_pointer;
+    BOOL resolved = NO;
+    /* Let the class try to add a method for this thing. */
+    if (class_isMetaClass(cls))
+      {
+        if (class_respondsToSelector(cls, @selector(resolveClassMethod:)))
+          {
+            resolved = [receiver resolveClassMethod: op];
+          }
+      }
+    else
+      {
+        if (class_respondsToSelector(cls->class_pointer, @selector(resolveInstanceMethod:)))
+          {
+            resolved = [class resolveInstanceMethod: op];
+          }
+      }
+    if (resolved)
+      {
+        return receiver;
+      }
+    if (class_respondsToSelector(cls, @selector(forwardingTargetForSelector:)))
+      {
+        return [receiver forwardingTargetForSelector: op]
+      }
+    return nil;
+}
+#endif
 
 + (void) load
 {
@@ -216,6 +280,11 @@ IMP gs_objc_msg_forward (SEL sel)
   __objc_msg_forward2 = gs_objc_msg_forward2;
 #else
   __objc_msg_forward = gs_objc_msg_forward;
+#endif
+#ifdef __GNUSTEP_RUNTIME__
+  pthread_key_create(&thread_slot_key, free);
+  objc_msg_forward3 = gs_objc_msg_forward3;
+  objc_proxy_lookup = gs_objc_proxy_lookup;
 #endif
 }
 
