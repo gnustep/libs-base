@@ -913,11 +913,11 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  GSIArray		timers = context->timers;
 	  NSTimeInterval	now;
           NSDate                *earliest;
-	  NSTimer		*et;
 	  NSDate		*d;
 	  NSTimer		*t;
 	  NSTimeInterval	ti;
 	  NSTimeInterval	ei;
+          unsigned              c;
           unsigned              i;
 
 	  /*
@@ -949,12 +949,53 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                 }
             }
 
-	  /*
-	   * Handle normal timers ... remove invalidated timers and fire one
-	   * whose date has passed.
+	  /* Remove invalidated timers.
+	   */
+	  i = GSIArrayCount(timers);
+	  while (i-- > 0)
+	    {
+	      t = GSIArrayItemAtIndex(timers, i).obj;
+	      if (timerInvalidated(t) == YES)
+		{
+		  GSIArrayRemoveItemAtIndex(timers, i);
+		}
+	    }
+
+	  /* Fire the oldest timer whose fire date has passed.
+	   */
+	  c = GSIArrayCount(timers);
+	  for (i = 0; i < c; i++)
+	    {
+	      t = GSIArrayItemAtIndex(timers, i).obj;
+	      d = timerDate(t);
+	      ti = [d timeIntervalSinceReferenceDate];
+	      if (ti < now)
+		{
+		  GSIArrayRemoveItemAtIndexNoRelease(timers, i);
+		  [t fire];
+		  GSPrivateNotifyASAP();	/* Post notifications. */
+		  IF_NO_GC([arp emptyPool]);
+		  if (updateTimer(t, d, now) == YES)
+		    {
+		      /* Updated ... replace in array.
+		       */
+		      GSIArrayAddItemNoRetain(timers, (GSIArrayItem)((id)t));
+		    }
+		  else
+		    {
+		      /* The timer was invalidated, so we can
+		       * release it as we aren't putting it back
+		       * in the array.
+		       */
+		      RELEASE(t);
+		    }
+		  break;
+		}
+	    }
+
+	  /* Now, find the earliest fire date.
 	   */
 	  earliest = nil;
-	  et = nil;
 	  i = GSIArrayCount(timers);
 	  while (i-- > 0)
 	    {
@@ -971,73 +1012,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		    {
 		      earliest = d;
 		      ei = ti;
-		      et = t;
-		    }
-		}
-	    }
-
-	  /* If the earliest date is in the past, we should fire the timer.
-	   */
-	  if (et != nil && ei < now)
-	    {
-	      /* When firing the timer we must remove it from
-	       * the loop so that if the -fire methods re-runs
-	       * the loop we do not get recursive entry into
-	       * the timer.  This appears to be the behavior
-	       * in MacOS-X also.
-	       */
-	      i = GSIArrayCount(timers);
-	      while (i-- > 0)
-		{
-		  t = GSIArrayItemAtIndex(timers, i).obj;
-		  if (t == et)
-		    {
-		      break;
-		    }
-		}
-	      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
-	      [et fire];
-	      GSPrivateNotifyASAP();	/* Post notifications. */
-	      IF_NO_GC([arp emptyPool]);
-	      if (updateTimer(et, earliest, now) == YES)
-		{
-		  /* Updated ... replace in array.
-		   */
-		  GSIArrayAddItemNoRetain(timers, (GSIArrayItem)((id)et));
-		}
-	      else
-		{
-		  /* The timer was invalidated, so we can
-		   * release it as we aren't putting it back
-		   * in the array.
-		   */
-		  RELEASE(et);
-		}
-	      earliest = nil;
-	    }
-
-	  /* Now, if we have no earliest date it may be because a timer fired,
-	   * in which case we must look again to see what the new earliest
-	   * date is.
-	   */
-	  if (earliest == nil && (i = GSIArrayCount(timers)) > 0)
-	    {
-	      while (i-- > 0)
-		{
-		  t = GSIArrayItemAtIndex(timers, i).obj;
-		  if (timerInvalidated(t) == YES)
-		    {
-		      GSIArrayRemoveItemAtIndex(timers, i);
-		    }
-		  else
-		    {
-		      d = timerDate(t);
-		      ti = [d timeIntervalSinceReferenceDate];
-		      if (earliest == nil || ti < ei)
-			{
-			  earliest = d;
-			  ei = ti;
-			}
 		    }
 		}
 	    }
