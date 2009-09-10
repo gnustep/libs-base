@@ -1,3 +1,12 @@
+2009-09-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: ([-limitDateForMode:]) on OSX it seems that only
+	one timer fires each time this method is invoked ... so I rewrote this
+	method to only fire one timer (excluding the private housekeeping one).
+	Changing to only fire one timer actually allows the code to be simpler
+	so it's a good update in its own right, not just a OSX compatibility
+	tweak.
+
 2009-09-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac:
