@@ -931,8 +931,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	   */
 	  now = GSTimeNow();
 
-	  /*
-	   * Fire housekeeping timer as necessary
+	  /* Fire housekeeping timer as necessary
 	   */
 	  if ((t = context->housekeeper) != nil)
             {
@@ -949,51 +948,50 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                 }
             }
 
-	  /* Remove invalidated timers.
-	   */
-	  i = GSIArrayCount(timers);
-	  while (i-- > 0)
-	    {
-	      t = GSIArrayItemAtIndex(timers, i).obj;
-	      if (timerInvalidated(t) == YES)
-		{
-		  GSIArrayRemoveItemAtIndex(timers, i);
-		}
-	    }
-
-	  /* Fire the oldest timer whose fire date has passed.
+	  /* Fire the oldest/first valid timer whose fire date has passed
+	   * and fire it.
+	   * We fire timers in the order in which they were added to the
+	   * run loop rather than in date order.  This prevents code
+	   * from blocking other timers by adding timers whose fire date
+	   * is some time in the past... we guarantee fair handling.
 	   */
 	  c = GSIArrayCount(timers);
 	  for (i = 0; i < c; i++)
 	    {
 	      t = GSIArrayItemAtIndex(timers, i).obj;
-	      d = timerDate(t);
-	      ti = [d timeIntervalSinceReferenceDate];
-	      if (ti < now)
+	      if (timerInvalidated(t) == NO)
 		{
-		  GSIArrayRemoveItemAtIndexNoRelease(timers, i);
-		  [t fire];
-		  GSPrivateNotifyASAP();	/* Post notifications. */
-		  IF_NO_GC([arp emptyPool]);
-		  if (updateTimer(t, d, now) == YES)
+		  d = timerDate(t);
+		  ti = [d timeIntervalSinceReferenceDate];
+		  if (ti < now)
 		    {
-		      /* Updated ... replace in array.
-		       */
-		      GSIArrayAddItemNoRetain(timers, (GSIArrayItem)((id)t));
+		      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
+		      [t fire];
+		      GSPrivateNotifyASAP();	/* Post notifications. */
+		      IF_NO_GC([arp emptyPool]);
+		      if (updateTimer(t, d, now) == YES)
+			{
+			  /* Updated ... replace in array.
+			   */
+			  GSIArrayAddItemNoRetain(timers,
+			    (GSIArrayItem)((id)t));
+			}
+		      else
+			{
+			  /* The timer was invalidated, so we can
+			   * release it as we aren't putting it back
+			   * in the array.
+			   */
+			  RELEASE(t);
+			}
+		      break;
 		    }
-		  else
-		    {
-		      /* The timer was invalidated, so we can
-		       * release it as we aren't putting it back
-		       * in the array.
-		       */
-		      RELEASE(t);
-		    }
-		  break;
 		}
 	    }
 
-	  /* Now, find the earliest fire date.
+	  /* Now, find the earliest remaining timer date while removing
+	   * any invalidated timers.  We iterate from the end of the
+	   * array to minimise the amount of array alteration needed.
 	   */
 	  earliest = nil;
 	  i = GSIArrayCount(timers);
