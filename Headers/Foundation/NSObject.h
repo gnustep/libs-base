@@ -234,6 +234,58 @@ extern "C" {
 - (id) self;
 - (Class) superclass;
 - (NSZone*) zone;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/**
+ * This method will be called when attempting to send a message a class that
+ * does not understand it.  The class may install a new method for the given
+ * selector and return YES, otherwise it should return NO.
+ *
+ * Note: This method is only reliable when using the GNUstep runtime.  If you
+ * require compatibility with the GCC runtime, you must also implement
+ * -forwardInvocation: with equivalent semantics.  This will be considerably
+ *  slower, but more portable.
+ */
++ (BOOL)resolveClassMethod:(SEL)name;
+/**
+ * This method will be called when attempting to send a message an instance
+ * that does not understand it.  The class may install a new method for the
+ * given selector and return YES, otherwise it should return NO.
+ *
+ * Note: This method is only reliable when using the GNUstep runtime.  If you
+ * require compatibility with the GCC runtime, you must also implement
+ * -forwardInvocation: with equivalent semantics.  This will be considerably
+ *  slower, but more portable.
+ */
++ (BOOL)resolveInstanceMethod:(SEL)name;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+/**
+ * If an object does not understand a message, it may delegate it to another
+ * object.  Returning nil indicates that forwarding should not take place.  The
+ * default implementation of this returns nil, but care should be taken when
+ * subclassing NSObject subclasses and overriding this method that
+ * the superclass implementation is called if returning nil.
+ *
+ * Note: This method is only reliable when using the GNUstep runtime and code
+ * compiled with clang.  If you require compatibility with GCC and the GCC
+ * runtime, you must also implement -forwardInvocation: with equivalent
+ * semantics.  This will be considerably slower, but more portable.
+ */
+- (id)forwardingTargetForSelector:(SEL)aSelector;
+/**
+ * Returns an auto-accessing proxy for the given object.  This proxy sends a
+ * -beginContentAccess message to the receiver when it is created and an
+ *  -endContentAccess message when it is destroyed.  This prevents an object
+ *  that implements the NSDiscardableContent protocol from having its contents
+ *  discarded for as long as the proxy exists.  
+ *
+ *  On systems using the GNUstep runtime, messages send to the proxy will be
+ *  slightly slower than direct messages.  With the GCC runtime, they will be
+ *  approximately two orders of magnitude slower.  The GNUstep runtime,
+ *  therefore, is strongly recommended for code calling this method.
+ */
+- (id)autoContentAccessingProxy;
+#endif
 @end
 
 /**

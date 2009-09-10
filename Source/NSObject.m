@@ -35,6 +35,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
+#include "GNUstepBase/GNUstep.h"
 #include <stdarg.h>
 #include "Foundation/NSObject.h"
 #include <objc/Protocol.h>
@@ -114,11 +115,18 @@ static Class	NSConstantStringClass;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 @end
 
+@interface GSContentAccessingProxy : NSProxy 
+{
+	NSObject<NSDiscardableContent> *object;
+}
+- (id)initWithObject: (id)anObject;
+@end
+
 /*
  * allocationLock is needed when running multi-threaded for 
  * protecting the map table of zombie information.
  */
-static objc_mutex_t allocationLock = NULL;
+static NSLock *allocationLock;
 
 BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
@@ -135,15 +143,9 @@ static void GSMakeZombie(NSObject *o)
   ((id)o)->class_pointer = zombieClass;
   if (NSDeallocateZombies == NO)
     {
-      if (allocationLock != 0)
-	{
-	  objc_mutex_lock(allocationLock);
-	}
+      [allocationLock lock];
       NSMapInsert(zombieMap, (void*)o, (void*)c);
-      if (allocationLock != 0)
-	{
-	  objc_mutex_unlock(allocationLock);
-	}
+      [allocationLock unlock];
     }
 }
 #endif
@@ -154,15 +156,9 @@ static void GSLogZombie(id o, SEL sel)
 
   if (NSDeallocateZombies == NO)
     {
-      if (allocationLock != 0)
-	{
-	  objc_mutex_lock(allocationLock);
-	}
+      [allocationLock lock];
       c = NSMapGet(zombieMap, (void*)o);
-      if (allocationLock != 0)
-	{
-	  objc_mutex_unlock(allocationLock);
-	}
+      [allocationLock unlock];
     }
   if (c == 0)
     {
@@ -339,9 +335,9 @@ GSAtomicDecrement(gsatomic_t X)
 #define LOCKMASK (LOCKCOUNT-1)
 #define ALIGNBITS 3
 
-static objc_mutex_t allocationLocks[LOCKCOUNT] = { 0 };
+static NSLock *allocationLocks[LOCKCOUNT] = { 0 };
 
-static inline objc_mutex_t GSAllocationLockForObject(id p)
+static inline NSLock *GSAllocationLockForObject(id p)
 {
   NSUInteger i = ((((NSUInteger)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
   return allocationLocks[i];
@@ -422,18 +418,18 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	  return YES;
 	}
 #else	/* GSATOMICREAD */
-      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+      NSLock *theLock = GSAllocationLockForObject(anObject);
 
-      objc_mutex_lock(theLock);
+      [theLock lock];
       if (((obj)anObject)[-1].retained == 0)
 	{
-	  objc_mutex_unlock(theLock);
+	  [theLock unlock];
 	  return YES;
 	}
       else
 	{
 	  ((obj)anObject)[-1].retained--;
-	  objc_mutex_unlock(theLock);
+	  [theLock unlock];
 	  return NO;
 	}
 #endif	/* GSATOMICREAD */
@@ -495,9 +491,9 @@ NSIncrementExtraRefCount(id anObject)
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
 	}
 #else	/* GSATOMICREAD */
-      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+      NSLock *theLock = GSAllocationLockForObject(anObject);
 
-      objc_mutex_lock(theLock);
+      [theLock lock];
       if (((obj)anObject)[-1].retained == UINT_MAX - 1)
 	{
 	  objc_mutex_unlock (theLock);
@@ -505,7 +501,7 @@ NSIncrementExtraRefCount(id anObject)
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
 	}
       ((obj)anObject)[-1].retained++;
-      objc_mutex_unlock (theLock);
+      [theLock lock];
 #endif	/* GSATOMICREAD */
     }
   else
@@ -875,10 +871,10 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
       for (i = 0; i < LOCKCOUNT; i++)
         {
-	  allocationLocks[i] = objc_mutex_allocate();
+	  allocationLocks[i] = [NSLock new];
 	}
 #endif
-      allocationLock = objc_mutex_allocate();
+      allocationLock = [NSLock new];
     }
 }
 
@@ -2018,6 +2014,22 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
   return self;
 }
 
++ (BOOL)resolveClassMethod:(SEL)name
+{
+	return NO;
+}
++ (BOOL)resolveInstanceMethod:(SEL)name;
+{
+	return NO;
+}
+- (id)forwardingTargetForSelector:(SEL)aSelector;
+{
+	return nil;
+}
+- (id)autoContentAccessingProxy
+{
+	return AUTORELEASE([[GSContentAccessingProxy alloc] initWithObject: self]);
+}
 @end
 
 
@@ -2455,16 +2467,39 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
 {
   Class	c;
 
-  if (allocationLock != 0)
-    {
-      objc_mutex_lock(allocationLock);
-    }
+  [allocationLock lock];
   c = NSMapGet(zombieMap, (void*)self);
-  if (allocationLock != 0)
-    {
-      objc_mutex_unlock(allocationLock);
-    }
+  [allocationLock unlock];
   return [c instanceMethodSignatureForSelector: aSelector];
 }
 @end
 
+@implementation GSContentAccessingProxy 
+- (id)initWithObject: (id)anObject
+{
+	ASSIGN(object, anObject);
+	[object beginContentAccess];
+	return self;
+}
+- (void)finalize
+{
+	[object endContentAccess];
+}
+- (void)dealloc
+{
+	[object endContentAccess];
+}
+- (id)forwardingTargetForSelector: (SEL)aSelector
+{
+	return object;
+}
+/* Support for legacy runtimes... */
+- (void) forwardInvocation: (NSInvocation*)anInvocation
+{
+	[anInvocation invokeWithTarget: object];
+}
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+	return [object methodSignatureForSelector: aSelector];
+}
+@end

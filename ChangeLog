@@ -1,3 +1,17 @@
+2009-09-10 David Chisnall <csdavec@swan.ac.uk>
+
+	* Source/GSFFIInvocation.m:
+	* Source/NSObject.m:
+	* Headers/Foundation/NSObject.h:
+	Added implementations of the hooks provided by the new runtime.  This
+	brings NSObject up to feature-parity with the OS X 10.5 implementation
+	when using the new runtime and up to feature-parity with the 10.6
+	implementation if you are using the new runtime and compiling with clang.
+
+	Also removes the objc_mutex_wibble stuff from NSObject in favour of just
+	using NSLocks (which, with the new implementation, are now faster than
+	using objc_mutex_stuff).
+
 2009-09-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: ([-limitDateForMode:]) on OSX it seems that only
