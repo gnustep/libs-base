@@ -1,3 +1,13 @@
+2009-09-11 David Chisnall <csdavec@swan.ac.uk>
+
+	* Source/NSException.m:
+	*Headers/Foundation/NSException.h:
+
+	Rewrote exception callstack generation to use the backtrace() and
+	backtrace_symbols() code.  Implemented the -callStackSymbols method from
+	10.5 using this.  For this to be enabled, the configure script will
+	require a small modification, which Gregory will add later.
+
 2009-09-10 David Chisnall <csdavec@swan.ac.uk>
 
 	* Source/GSFFIInvocation.m:

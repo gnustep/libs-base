@@ -123,6 +123,13 @@ extern "C" {
  * this value.
  */
 - (NSArray*) callStackReturnAddresses;
+/**
+ * Returns an array of the symbolic names of the call stack return addresses.  
+ * Note that, on some platforms, symbols are only exported in
+ * position-independent code and so these may only return numeric addresses for
+ * code in static libraries or the main application.  
+ */
+- (NSArray *)callStackSymbols;
 #endif
 
 /**
