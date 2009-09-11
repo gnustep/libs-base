@@ -56,13 +56,13 @@ Class GSStackTraceClass;
 
 @interface GSStackTrace : NSObject
 {
-	void **addresses;
-	NSArray *addressArray;
-	NSArray *symbols;
-	int count;
+  void	**addresses;
+  NSArray *addressArray;
+  NSArray *symbols;
+  int count;
 }
+- (NSArray*) addresses;
 - (NSArray*) symbols;
-- (NSArray*)addresses;
 @end
 @interface NSException (StackTracePrivate)
 - (GSStackTrace*)_callStack;
@@ -74,7 +74,7 @@ Class GSStackTraceClass;
 @implementation GSStackTrace : NSObject
 + (void)load
 {
-	GSStackTraceClass = self;
+  GSStackTraceClass = self;
 }
 + (GSStackTrace*) currentStack
 {
@@ -82,70 +82,74 @@ Class GSStackTraceClass;
 }
 - (void)finalize
 {
-	free(addresses);
+  free(addresses);
 }
 - (oneway void) dealloc
 {
-	free(addresses);
-	RELEASE(addressArray);
-	RELEASE(symbols);
-	[super dealloc];
+  free(addresses);
+  RELEASE(addressArray);
+  RELEASE(symbols);
+  [super dealloc];
 }
 
 - (NSString*) description
 {
-	NSMutableString *trace = [NSMutableString string];
-	NSEnumerator *e = [[self symbols] objectEnumerator];
-	int i;
-	id obj;
-	while ((obj = [e nextObject]))
-	{
-		[trace appendFormat: @"%d: %@", i++, obj];
-	}
-	return trace;
+  NSMutableString *trace = [NSMutableString string];
+  NSEnumerator *e = [[self symbols] objectEnumerator];
+  int i;
+  id obj;
+
+  while ((obj = [e nextObject]))
+    {
+      [trace appendFormat: @"%d: %@", i++, obj];
+    }
+  return trace;
 }
 
 - (NSArray*) symbols
 {
-	if (nil == symbols) 
+  if (nil == symbols) 
+    {
+      char	**strs = backtrace_symbols(addresses, count);
+      NSString	**symbolArray = alloca(count * sizeof(NSString*));
+      int i;
+
+      for (i = 0; i < count; i++)
 	{
-		char** strs = backtrace_symbols(addresses, count);
-		NSString **symbolArray = alloca(count * sizeof(NSString*));
-		int i;
-		for (i=0 ; i<count ; i++)
-		{
-			symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
-		}
-		symbols = [[NSArray alloc] initWithObjects: symbolArray
-		                                     count: count];
-		free(strs);
+	  symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
 	}
-	return symbols;
+      symbols = [[NSArray alloc] initWithObjects: symbolArray
+					   count: count];
+      free(strs);
+    }
+  return symbols;
 }
 
 - (NSArray*)addresses
 {
-	if (nil == addressArray)
+  if (nil == addressArray)
+    {
+      NSNumber **addrs = alloca(count * sizeof(NSString*));
+      int i;
+
+      for (i = 0; i < count; i++)
 	{
-		NSNumber **addrs = alloca(count * sizeof(NSString*));
-		int i;
-		for (i=0 ; i<count ; i++)
-		{
-			addrs[i] = [NSNumber numberWithUnsignedInteger: (NSUInteger)addresses[i]];
-		}
-		addressArray = [[NSArray alloc] initWithObjects: addrs
-		                                          count: count];
+	  addrs[i] = [NSNumber numberWithUnsignedInteger:
+	    (NSUInteger)addresses[i]];
 	}
-	return addressArray;
+      addressArray = [[NSArray alloc] initWithObjects: addrs
+						count: count];
+    }
+  return addressArray;
 }
 // grab the current stack 
 - (id) init
 {
-	if (nil == (self = [super init])) { return nil; }
-	addresses = calloc(sizeof(void*),1024);
-	count = backtrace(addresses, 1024);
-	addresses = realloc(addresses, count);
-	return self;
+  if (nil == (self = [super init])) { return nil; }
+  addresses = calloc(sizeof(void*),1024);
+  count = backtrace(addresses, 1024);
+  addresses = realloc(addresses, count);
+  return self;
 }
 
 @end
@@ -178,7 +182,7 @@ NSString* const NSRangeException
 
 static void _terminate()
 {
-  BOOL			shouldAbort;
+  BOOL	shouldAbort;
 
 #ifdef	DEBUG
   shouldAbort = YES;		// abort() by default.
@@ -206,7 +210,8 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   fflush(stderr);	/* NEEDED UNDER MINGW */
   if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
     {
-      fprintf(stderr, "Stack\n%s\n", [[[exception _callStack] description] lossyCString]);
+      fprintf(stderr, "Stack\n%s\n",
+	[[[exception _callStack] description] lossyCString]);
     }
   fflush(stderr);	/* NEEDED UNDER MINGW */
   RELEASE(pool);
@@ -298,13 +303,13 @@ callUncaughtHandler(id value)
 {
   return [_e_stack addresses];
 }
-- (NSArray *)callStackSymbols
+- (NSArray *) callStackSymbols
 {
-	return [_e_stack symbols];
+  return [_e_stack symbols];
 }
 - (GSStackTrace*)_callStack
 {
-	return _e_stack;
+  return _e_stack;
 }
 
 - (void) dealloc
