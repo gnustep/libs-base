@@ -40,6 +40,9 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSValue.h"
 #include <stdio.h>
+#ifdef HAVE_BACKTRACE
+#include <execinfo.h>
+#endif
 
 
 #define _e_info (((id*)_reserved)[0])
@@ -49,612 +52,105 @@ typedef struct { @defs(NSThread) } *TInfo;
 
 /* This is the GNU name for the CTOR list */
 
+Class GSStackTraceClass;
+
 @interface GSStackTrace : NSObject
 {
-  NSMutableArray *frames;
+	void **addresses;
+	NSArray *addressArray;
+	NSArray *symbols;
+	int count;
 }
-+ (GSStackTrace*) currentStack;
-
-- (NSString*) description;
-- (NSEnumerator*) enumerator;
-- (NSMutableArray*) frames;
-- (id) frameAt: (NSUInteger)index;
-- (NSUInteger) frameCount;
-- (id) initWithAddresses: (NSArray*)stack;
-- (NSEnumerator*) reverseEnumerator;
-
+- (NSArray*) symbols;
+- (NSArray*)addresses;
+@end
+@interface NSException (StackTracePrivate)
+- (GSStackTrace*)_callStack;
 @end
 
-#define	STACKSYMBOLS	1
-
-/*
- * Turn off STACKSYMBOLS if we don't have bfd support for it.
- */
-#if !(defined(HAVE_BFD_H) && defined(HAVE_LIBBFD) && defined(HAVE_LIBIBERTY))
-#if	defined(STACKSYMBOLS)
-#undef	STACKSYMBOLS
-#endif
-#endif
-
-/*
- * Turn off STACKSYMBOLS if we have NDEBUG defined ... if we are built
- * with NDEBUG then we are probably missing stackframe information etc.
- */
-#if defined(NDEBUG)
-#if	defined(STACKSYMBOLS)
-#undef	STACKSYMBOLS
-#endif
-#endif
-
-
-#if	defined(__MINGW32__)
-#if	defined(STACKSYMBOLS)
-static NSString *
-GSPrivateBaseAddress(void *addr, void **base)
-{
-  return nil;
-}
-#endif  /* STACKSYMBOLS */
-#else	/* __MINGW32__ */
-
-#ifndef GNU_SOURCE
-#define GNU_SOURCE
-#endif
-#ifndef __USE_GNU
-#define __USE_GNU
-#endif
-#include <dlfcn.h>
-
-#if	defined(STACKSYMBOLS)
-static NSString *
-GSPrivateBaseAddress(void *addr, void **base)
-{
-#ifdef HAVE_DLADDR
-  Dl_info     info;
-
-  if (!dladdr(addr, &info))
-    return nil;
-
-  *base = info.dli_fbase;
-
-  return [NSString stringWithUTF8String: info.dli_fname];
-#else
-  return nil;
-#endif
-}
-#endif  /* STACKSYMBOLS */
-#endif	/* __MINGW32__ */
-
-#if	defined(STACKSYMBOLS)
-
-// GSStackTrace inspired by  FYStackTrace.m
-// created by Wim Oudshoorn on Mon 11-Apr-2006
-// reworked by Lloyd Dupont @ NovaMind.com  on 4-May-2006
-
-#include <bfd.h>
-
-@class GSBinaryFileInfo;
-
-@interface GSFunctionInfo : NSObject
-{
-  void			*_address;
-  NSString		*_fileName;
-  NSString		*_functionName;
-  int			_lineNo;
-  GSBinaryFileInfo	*_module;
-}
-- (void*) address;
-- (NSString *) fileName;
-- (NSString *) function;
-- (id) initWithModule: (GSBinaryFileInfo*)module
-	      address: (void*)address 
-		 file: (NSString*)file 
-	     function: (NSString*)function 
-		 line: (NSInteger)lineNo;
-- (NSInteger) lineNumber;
-- (GSBinaryFileInfo*) module;
-
-@end
-
-
-@interface GSBinaryFileInfo : NSObject
-{
-  NSString	*_fileName;
-  bfd		*_abfd;
-  asymbol	**_symbols;
-  long		_symbolCount;
-}
-- (NSString *) fileName;
-- (GSFunctionInfo *) functionForAddress: (void*) address;
-- (id) initWithBinaryFile: (NSString *)fileName;
-- (id) init; // return info for the current executing process
-
-@end
-
-
-
-@implementation GSFunctionInfo
-
-- (void*) address
-{
-  return _address;
-}
-
-- (oneway void) dealloc
-{
-  DESTROY(_module);
-  DESTROY(_fileName);
-  DESTROY(_functionName);
-  [super dealloc];
-}
-
-- (NSString *) description
-{
-  return [NSString stringWithFormat: @"(%@: %p) %@  %@: %d",
-    [_module fileName], _address, _functionName, _fileName, _lineNo];
-}
-
-- (NSString *) fileName
-{
-  return _fileName;
-}
-
-- (NSString *) function
-{
-  return _functionName;
-}
-
-- (id) init
-{
-  [self release];
-  return nil;
-}
-
-- (id) initWithModule: (GSBinaryFileInfo*)module
-	      address: (void*)address 
-		 file: (NSString*)file 
-	     function: (NSString*)function 
-		 line: (NSInteger)lineNo
-{
-  _module = RETAIN(module);
-  _address = address;
-  _fileName = [file copy];
-  _functionName = [function copy];
-  _lineNo = lineNo;
-
-  return self;
-}
-
-- (NSInteger) lineNumber
-{
-  return _lineNo;
-}
-
-- (GSBinaryFileInfo *) module
-{
-  return _module;
-}
-
-@end
-
-
-
-@implementation GSBinaryFileInfo
-
-+ (GSBinaryFileInfo*) infoWithBinaryFile: (NSString *)fileName
-{
-  return [[[self alloc] initWithBinaryFile: fileName] autorelease];
-}
-
-+ (void) initialize
-{
-  static BOOL first = YES;
-
-  if (first == NO)
-    {
-      return;
-    }
-  first = NO;
-  bfd_init ();
-}
-
-- (oneway void) dealloc
-{
-  DESTROY(_fileName);
-  if (_abfd)
-    {
-      bfd_close (_abfd);
-      _abfd = NULL;
-    }
-  if (_symbols)
-    {
-      objc_free (_symbols);
-      _symbols = NULL;
-    }
-  [super dealloc];
-}
-
-- (NSString *) fileName
-{
-  return _fileName;
-}
-
-- (id) init
-{
-  NSString *processName;
-
-  processName = [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
-  return [self initWithBinaryFile: processName];
-}
-
-- (id) initWithBinaryFile: (NSString *)fileName
-{
-  int neededSpace;
-
-  // 1st initialize the bfd
-  if ([fileName length] == 0)
-    {
-      //NSLog (@"GSBinaryFileInfo: No File");
-      [self release];
-      return nil;
-    }
-  _fileName = [fileName copy];
-  _abfd = bfd_openr ([fileName cString], NULL);
-  if (!_abfd)
-    {
-      //NSLog (@"GSBinaryFileInfo: No Binary Info");
-      [self release];
-      return nil;
-    }
-  if (!bfd_check_format_matches (_abfd, bfd_object, NULL))
-    {
-      //NSLog (@"GSBinaryFileInfo: BFD format object error");
-      [self release];
-      return nil;
-    }
-
-  // second read the symbols from it
-  if (!(bfd_get_file_flags (_abfd) & HAS_SYMS))
-    {
-      //NSLog (@"GSBinaryFileInfo: BFD does not contain any symbols");
-      [self release];
-      return nil;
-    }
-
-  neededSpace = bfd_get_symtab_upper_bound (_abfd);
-  if (neededSpace < 0)
-    {
-      //NSLog (@"GSBinaryFileInfo: BFD error while deducing needed space");
-      [self release];
-      return nil;
-    }
-  if (neededSpace == 0)
-    {
-      //NSLog (@"GSBinaryFileInfo: BFD no space for symbols needed");
-      [self release];
-      return nil;
-    }
-  _symbols = objc_malloc (neededSpace);
-  if (!_symbols)
-    {
-      //NSLog (@"GSBinaryFileInfo: Can't allocate buffer");
-      [self release];
-      return nil;
-    }
-  _symbolCount = bfd_canonicalize_symtab (_abfd, _symbols);
-  if (_symbolCount < 0)
-    {
-      //NSLog (@"GSBinaryFileInfo: BFD error while reading symbols");
-      [self release];
-      return nil;
-    }
-
-  return self;
-}
-
-struct SearchAddressStruct
-{
-  void			*theAddress;
-  GSBinaryFileInfo	*module;
-  asymbol		**symbols;
-  GSFunctionInfo	*theInfo;
-};
-
-static void find_address (bfd *abfd, asection *section,
-  struct SearchAddressStruct *info)
-{
-  bfd_vma	address;
-  bfd_vma	vma;
-  unsigned	size;
-  const char	*fileName;
-  const char	*functionName;
-  unsigned	line = 0;
-
-  if (info->theInfo)
-    {
-      return;
-    }
-  if (!(bfd_get_section_flags (abfd, section) & SEC_ALLOC))
-    {
-      return;
-    }
-
-  address = (bfd_vma) (intptr_t)info->theAddress;
-
-  vma = bfd_get_section_vma (abfd, section);
-
-#if     defined(bfd_get_section_size)
-  size = bfd_get_section_size (section);        // recent
-#else                                
-  size = bfd_section_size (abfd, section);      // older version
-#endif                               
-     
-  if (address < vma || address >= vma + size)
-    {
-      return;
-    }
-
-  if (bfd_find_nearest_line (abfd, section, info->symbols,
-    address - vma, &fileName, &functionName, &line))
-    {
-      GSFunctionInfo	*fi;
-      NSString		*file = nil;
-      NSString		*func = nil;
-
-      if (fileName != 0)
-        {
-	  file = [NSString stringWithCString: fileName 
-	    encoding: [NSString defaultCStringEncoding]];
-	}
-      if (functionName != 0)
-        {
-	  func = [NSString stringWithCString: functionName 
-	    encoding: [NSString defaultCStringEncoding]];
-	}
-      fi = [GSFunctionInfo alloc];
-      fi = [fi initWithModule: info->module
-		      address: info->theAddress
-			 file: file
-		     function: func
-			 line: line];
-      [fi autorelease];
-      info->theInfo = fi;
-    }
-}
-
-- (GSFunctionInfo *) functionForAddress: (void*) address
-{
-  struct SearchAddressStruct searchInfo =
-    { address, self, _symbols, nil };
-
-  bfd_map_over_sections (_abfd,
-    (void (*) (bfd *, asection *, void *)) find_address, &searchInfo);
-  return searchInfo.theInfo;
-}
-
-@end
-
-static NSRecursiveLock		*modLock = nil;
-static NSMutableDictionary	*stackModules = nil;
-
-// initialize stack trace info
-static id
-GSLoadModule(NSString *fileName)
-{
-  GSBinaryFileInfo	*module = nil;
-
-  [modLock lock];
-
-  if (stackModules == nil)
-    {
-      NSEnumerator	*enumerator;
-      NSBundle		*bundle;
-
-      stackModules = [NSMutableDictionary new];
-
-      /*
-       * Try to ensure we have the main, base and gui library bundles.
-       */
-      [NSBundle mainBundle];
-      [NSBundle bundleForClass: [NSObject class]];
-      [NSBundle bundleForClass: NSClassFromString(@"NSView")];
-
-      /*
-       * Add file info for all bundles with code.
-       */
-      enumerator = [[NSBundle allBundles] objectEnumerator];
-      while ((bundle = [enumerator nextObject]) != nil)
-	{
-	  if ([bundle load] == YES)
-	    {
-	      GSLoadModule([bundle executablePath]);
-	    }
-	}
-    }
-
-  if ([fileName length] > 0)
-    {
-      module = [stackModules objectForKey: fileName];
-      if (module == nil);
-	{
-	  module = [GSBinaryFileInfo infoWithBinaryFile: fileName];
-	  if (module == nil)
-	    {
-	      module = (id)[NSNull null];
-	    }
-	  if ([stackModules objectForKey: fileName] == nil)
-	    {
-	      [stackModules setObject: module forKey: fileName];
-	    }
-	  else
-	    {
-	      module = [stackModules objectForKey: fileName];
-	    }
-	}
-    }
-  [modLock unlock];
-
-  if (module == (id)[NSNull null])
-    {
-      module = nil;
-    }
-  return module;
-}
-
-static NSArray*
-GSListModules()
-{
-  NSArray	*result;
-
-  GSLoadModule(nil);	// initialise
-  [modLock lock];
-  result = [stackModules allValues];
-  [modLock unlock];
-  return result;
-}
-
-#endif	/* STACKSYMBOLS */
+#ifdef HAVE_BACKTRACE
 
 
 @implementation GSStackTrace : NSObject
-
++ (void)load
+{
+	GSStackTraceClass = self;
+}
 + (GSStackTrace*) currentStack
 {
   return [[[GSStackTrace alloc] init] autorelease];
 }
-
+- (void)finalize
+{
+	free(addresses);
+}
 - (oneway void) dealloc
 {
-  DESTROY(frames);
-  [super dealloc];
+	free(addresses);
+	RELEASE(addressArray);
+	RELEASE(symbols);
+	[super dealloc];
 }
 
 - (NSString*) description
 {
-  NSMutableString *result = [NSMutableString string];
-  int i;
-  int n;
-
-  n = [frames count];
-  for (i = 0; i < n; i++)
-    {
-      id	line = [frames objectAtIndex: i];
-
-      [result appendFormat: @"%3d: %@\n", i, line];
-    }
-  return result;
+	NSMutableString *trace = [NSMutableString string];
+	NSEnumerator *e = [[self symbols] objectEnumerator];
+	int i;
+	id obj;
+	while ((obj = [e nextObject]))
+	{
+		[trace appendFormat: @"%d: %@", i++, obj];
+	}
+	return trace;
 }
 
-- (NSEnumerator*) enumerator
+- (NSArray*) symbols
 {
-  return [frames objectEnumerator];
+	if (nil == symbols) 
+	{
+		char** strs = backtrace_symbols(addresses, count);
+		NSString **symbolArray = alloca(count * sizeof(NSString*));
+		int i;
+		for (i=0 ; i<count ; i++)
+		{
+			symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
+		}
+		symbols = [[NSArray alloc] initWithObjects: symbolArray
+		                                     count: count];
+		free(strs);
+	}
+	return symbols;
 }
 
-- (id) frameAt: (NSUInteger)index
+- (NSArray*)addresses
 {
-  return [frames objectAtIndex: index];
+	if (nil == addressArray)
+	{
+		NSNumber **addrs = alloca(count * sizeof(NSString*));
+		int i;
+		for (i=0 ; i<count ; i++)
+		{
+			addrs[i] = [NSNumber numberWithUnsignedInteger: (NSUInteger)addresses[i]];
+		}
+		addressArray = [[NSArray alloc] initWithObjects: addrs
+		                                          count: count];
+	}
+	return addressArray;
 }
-
-- (NSUInteger) frameCount
-{
-  return [frames count];
-}
-
-- (NSMutableArray*) frames
-{
-  return frames;
-}
-
 // grab the current stack 
 - (id) init
 {
-  NSMutableArray        *stack = GSPrivateStackAddresses();
-
-  return [self initWithAddresses: stack];
-}
-
-- (id) initWithAddresses: (NSArray*)stack
-{
-#if	defined(STACKSYMBOLS)
-  int i;
-  int n;
-
-  n = [stack count];
-  frames = [[NSMutableArray alloc] initWithCapacity: n];
-
-  for (i = 0; i < n; i++)
-    {
-      GSFunctionInfo	*aFrame = nil;
-      void		*address = [[stack objectAtIndex: i] pointerValue];
-      void		*base;
-      NSString		*modulePath = GSPrivateBaseAddress(address, &base);
-      GSBinaryFileInfo	*bfi;
-
-      if (modulePath != nil && (bfi = GSLoadModule(modulePath)) != nil)
-        {
-	  aFrame = [bfi functionForAddress: (void*)(address - base)];
-	  if (aFrame == nil)
-	    {
-	      /* We know we have the right module be function lookup
-	       * failed ... perhaps we need to use the absolute
-	       * address rather than offest by 'base' in this case.
-	       */
-	      aFrame = [bfi functionForAddress: address];
-	    }
-//if (aFrame == nil) NSLog(@"BFI base for %@ (%p) is %p", modulePath, address, base);
-	}
-      else
-        {
-	  NSArray	*modules;
-	  int		j;
-	  int		m;
-
-//if (modulePath != nil) NSLog(@"BFI not found for %@ (%p)", modulePath, address);
-
-	  modules = GSListModules();
-	  m = [modules count];
-	  for (j = 0; j < m; j++)
-	    {
-	      bfi = [modules objectAtIndex: j];
-
-	      if ((id)bfi != (id)[NSNull null])
-		{
-		  aFrame = [bfi functionForAddress: address];
-		  if (aFrame != nil)
-		    {
-		      break;
-		    }
-		}
-	    }
-	}
-
-      // not found (?!), add an 'unknown' function
-      if (aFrame == nil)
-	{
-	  aFrame = [GSFunctionInfo alloc];
-	  [aFrame initWithModule: nil
-			 address: address 
-			    file: nil
-			function: nil
-			    line: 0];
-	  [aFrame autorelease];
-	}
-      [frames addObject: aFrame];
-    }
-#else
-  frames = [stack copy];
-#endif
-
-  return self;
-}
-
-- (NSEnumerator*) reverseEnumerator
-{
-  return [frames reverseObjectEnumerator];
+	if (nil == (self = [super init])) { return nil; }
+	addresses = calloc(sizeof(void*),1024);
+	count = backtrace(addresses, 1024);
+	addresses = realloc(addresses, count);
+	return self;
 }
 
 @end
 
+#endif
 
 NSString* const NSCharacterConversionException
   = @"NSCharacterConversionException";
@@ -710,12 +206,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   fflush(stderr);	/* NEEDED UNDER MINGW */
   if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
     {
-      id o = [exception callStackReturnAddresses];
-
-#if     defined(STACKSYMBOLS)
-      o = AUTORELEASE([[GSStackTrace alloc] initWithAddresses:  o]);
-#endif
-      fprintf(stderr, "Stack\n%s\n", [[o description] lossyCString]);
+      fprintf(stderr, "Stack\n%s\n", [[[exception _callStack] description] lossyCString]);
     }
   fflush(stderr);	/* NEEDED UNDER MINGW */
   RELEASE(pool);
@@ -742,12 +233,6 @@ callUncaughtHandler(id value)
 
 + (void) initialize
 {
-#if	defined(STACKSYMBOLS)
-  if (modLock == nil)
-    {
-      modLock = [NSRecursiveLock new];
-    }
-#endif	/* STACKSYMBOLS */
 #if	defined(_NATIVE_OBJC_EXCEPTIONS) && defined(HAVE_UNEXPECTED)
   objc_set_unexpected(callUncaughtHandler);
 #endif
@@ -791,24 +276,35 @@ callUncaughtHandler(id value)
 {
   ASSIGN(_e_name, name);
   ASSIGN(_e_reason, reason);
+  if (_reserved == 0)
+    {
+      _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
+    }
   if (userInfo != nil)
     {
-      if (_reserved == 0)
-        {
-          _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
-        }
       ASSIGN(_e_info, userInfo);
     }
+  _e_stack = [GSStackTraceClass new];
   return self;
+}
+- (id) init
+{
+  return [self initWithName: NSGenericException 
+                     reason: @"No reason" 
+                   userInfo: nil];
 }
 
 - (NSArray*) callStackReturnAddresses
 {
-  if (_reserved == 0)
-    {
-      return nil;
-    }
-  return _e_stack;
+  return [_e_stack addresses];
+}
+- (NSArray *)callStackSymbols
+{
+	return [_e_stack symbols];
+}
+- (GSStackTrace*)_callStack
+{
+	return _e_stack;
 }
 
 - (void) dealloc
@@ -835,12 +331,6 @@ callUncaughtHandler(id value)
   if (_reserved == 0)
     {
       _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
-    }
-
-  if (_e_stack == nil
-    && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", YES) == YES)
-    {
-      ASSIGN(_e_stack, GSPrivateStackAddresses());
     }
 
 #ifdef _NATIVE_OBJC_EXCEPTIONS
@@ -981,12 +471,6 @@ callUncaughtHandler(id value)
         {
           id    o = _e_stack;
 
-#if     defined(STACKSYMBOLS)
-          /* Convert stack information from an array of addresses
-           * to a stacktrace for display.
-           */
-          o = AUTORELEASE([[GSStackTrace alloc] initWithAddresses:  o]);
-#endif
           if (_e_info != nil)
             {
               result = [NSString stringWithFormat:
