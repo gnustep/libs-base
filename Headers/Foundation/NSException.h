@@ -117,19 +117,22 @@ extern "C" {
 	format: (NSString*)format
      arguments: (va_list)argList;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) && GS_API_VERSION(011501,GS_API_LATEST)
+#if OS_API_VERSION(100500,GS_API_LATEST) && GS_API_VERSION( 11501,GS_API_LATEST)
 /** Returns an array of the call stack return addresses at the point when
  * the exception was raised.  Re-raising the exception does not change
  * this value.
  */
 - (NSArray*) callStackReturnAddresses;
+#endif
+
+#if OS_API_VERSION(100600,GS_API_LATEST) && GS_API_VERSION( 11903,GS_API_LATEST)
 /**
  * Returns an array of the symbolic names of the call stack return addresses.  
  * Note that, on some platforms, symbols are only exported in
  * position-independent code and so these may only return numeric addresses for
  * code in static libraries or the main application.  
  */
-- (NSArray *)callStackSymbols;
+- (NSArray*) callStackSymbols;
 #endif
 
 /**

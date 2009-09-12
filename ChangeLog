@@ -1,3 +1,37 @@
+2009-09-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: Add optional diagnostics to detect system
+	time changes and warn about them.
+	* Source/NSException.m: Clean up to match coding standards.
+	Fix uninitialised variable bug.
+	* Source/NSObject.m: clean up and fix missing dealloc.
+	* Headers/Foundation/NSURLCredential.h:
+	* Headers/Foundation/NSHTTPCookieStorage.h:
+	* Headers/Foundation/NSException.h:
+	* Headers/Foundation/NSValueTransformer.h:
+	* Headers/Foundation/NSURLAuthenticationChallenge.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSStream.h:
+	* Headers/Foundation/NSThread.h:
+	* Headers/Foundation/NSHTTPCookie.h:
+	* Headers/Foundation/NSURLError.h:
+	* Headers/Foundation/NSURLProtectionSpace.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	* Headers/Foundation/NSURLRequest.h:
+	* Headers/Foundation/NSURLCredentialStorage.h:
+	* Headers/Foundation/NSInvocation.h:
+	* Headers/Foundation/NSURLResponse.h:
+	* Headers/Foundation/NSURLConnection.h:
+	* Headers/Foundation/NSIndexPath.h:
+	* Headers/Foundation/NSURLProtocol.h:
+	* Headers/Foundation/NSURLCache.h:
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	Fix up errors in version of feature addition to GNUstep. Some
+	GNUstep version constants had leading zeros so they were interpreted
+	as octal rather than decimal.
+
 2009-09-11 David Chisnall <csdavec@swan.ac.uk>
 
 	* Source/NSException.m:
@@ -16,7 +50,8 @@
 	Added implementations of the hooks provided by the new runtime.  This
 	brings NSObject up to feature-parity with the OS X 10.5 implementation
 	when using the new runtime and up to feature-parity with the 10.6
-	implementation if you are using the new runtime and compiling with clang.
+	implementation if you are using the new runtime and compiling with
+	clang.
 
 	Also removes the objc_mutex_wibble stuff from NSObject in favour of just
 	using NSLocks (which, with the new implementation, are now faster than

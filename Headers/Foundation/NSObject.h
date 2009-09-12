@@ -245,7 +245,8 @@ extern "C" {
  * -forwardInvocation: with equivalent semantics.  This will be considerably
  *  slower, but more portable.
  */
-+ (BOOL)resolveClassMethod:(SEL)name;
++ (BOOL) resolveClassMethod: (SEL)name;
+
 /**
  * This method will be called when attempting to send a message an instance
  * that does not understand it.  The class may install a new method for the
@@ -256,9 +257,23 @@ extern "C" {
  * -forwardInvocation: with equivalent semantics.  This will be considerably
  *  slower, but more portable.
  */
-+ (BOOL)resolveInstanceMethod:(SEL)name;
++ (BOOL) resolveInstanceMethod: (SEL)name;
 #endif
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+/**
+ * Returns an auto-accessing proxy for the given object.  This proxy sends a
+ * -beginContentAccess message to the receiver when it is created and an
+ * -endContentAccess message when it is destroyed.  This prevents an object
+ * that implements the NSDiscardableContent protocol from having its contents
+ * discarded for as long as the proxy exists.  
+ *
+ * On systems using the GNUstep runtime, messages send to the proxy will be
+ * slightly slower than direct messages.  With the GCC runtime, they will be
+ * approximately two orders of magnitude slower.  The GNUstep runtime,
+ * therefore, is strongly recommended for code calling this method.
+ */
+- (id) autoContentAccessingProxy;
+
 /**
  * If an object does not understand a message, it may delegate it to another
  * object.  Returning nil indicates that forwarding should not take place.  The
@@ -271,20 +286,8 @@ extern "C" {
  * runtime, you must also implement -forwardInvocation: with equivalent
  * semantics.  This will be considerably slower, but more portable.
  */
-- (id)forwardingTargetForSelector:(SEL)aSelector;
-/**
- * Returns an auto-accessing proxy for the given object.  This proxy sends a
- * -beginContentAccess message to the receiver when it is created and an
- *  -endContentAccess message when it is destroyed.  This prevents an object
- *  that implements the NSDiscardableContent protocol from having its contents
- *  discarded for as long as the proxy exists.  
- *
- *  On systems using the GNUstep runtime, messages send to the proxy will be
- *  slightly slower than direct messages.  With the GCC runtime, they will be
- *  approximately two orders of magnitude slower.  The GNUstep runtime,
- *  therefore, is strongly recommended for code calling this method.
- */
-- (id)autoContentAccessingProxy;
+- (id) forwardingTargetForSelector: (SEL)aSelector;
+
 #endif
 @end
 
@@ -459,6 +462,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 	      afterDelay: (NSTimeInterval)seconds
 		 inModes: (NSArray*)modes;
 @end
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /**
  * The NSDiscardableContent protocol is used by objects which encapsulate data
@@ -466,29 +470,33 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
  * constraints are typically, but not always, related memory.  
  */
 @protocol NSDiscardableContent
+
 /**
  * This method is called before any access to the object.  It returns YES if
  * the object's content is still valid.  The caller must call -endContentAccess
  * once for every call to -beginContentAccess;
  */
-- (BOOL)beginContentAccess;
+- (BOOL) beginContentAccess;
+
+/**
+ * Discards the contents of the object if it is not currently being edited.
+ */
+- (void) discardContentIfPossible;
+
 /**
  * This method indicates that the caller has finished accessing the contents of
  * the object adopting this protocol.  Every call to -beginContentAccess must
  * be be paired with a call to this method after the caller has finished
  * accessing the contents.
  */
-- (void)endContentAccess;
-/**
- * Discards the contents of the object if it is not currently being edited.
- */
-- (void)discardContentIfPossible;
+- (void) endContentAccess;
+
 /**
  * Returns YES if the contents of the object have been discarded, either via a
  * call to -discardContentIfPossible while the object is not in use, or by some
- * implementation-dependent mechanism.  
+ * implementation dependent mechanism.  
  */
-- (BOOL)isContentDiscarded;
+- (BOOL) isContentDiscarded;
 @end
 #endif
 #if	defined(__cplusplus)

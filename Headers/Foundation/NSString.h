@@ -252,7 +252,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 + (id) string;
 + (id) stringWithCharacters: (const unichar*)chars
 		     length: (NSUInteger)length;
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 + (id) stringWithCString: (const char*)byteString
 		encoding: (NSStringEncoding)encoding;
 #endif
@@ -264,7 +264,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 // Initializing Newly Allocated Strings
 - (id) init;
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 - (id) initWithBytes: (const void*)bytes
 	      length: (NSUInteger)length
 	    encoding: (NSStringEncoding)encoding;
@@ -367,7 +367,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (const char*) cString;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding;
 - (BOOL) getCString: (char*)buffer
 	  maxLength: (NSUInteger)maxLength
