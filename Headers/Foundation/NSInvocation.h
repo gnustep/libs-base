@@ -77,7 +77,7 @@ extern "C" {
 - (BOOL) argumentsRetained;
 - (void) retainArguments;
 
-#if OS_API_VERSION(GS_API_NONE,GS_API_NONE) && GS_API_VERSION(011101,GS_API_LATEST)
+#if OS_API_VERSION(GS_API_NONE,GS_API_NONE) && GS_API_VERSION( 11101,GS_API_LATEST)
 - (BOOL) targetRetained;
 - (void) retainArgumentsIncludingTarget: (BOOL)retainTargetFlag;
 #endif

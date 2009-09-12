@@ -29,7 +29,7 @@
  *	Check consistency of definitions for system compatibility.
  */
 #if	defined(STRICT_OPENSTEP)
-#define GS_OPENSTEP_V	010000
+#define GS_OPENSTEP_V	 10000
 #define	NO_GNUSTEP	1
 #elif	defined(STRICT_MACOS_X)
 #define GS_OPENSTEP_V	100000

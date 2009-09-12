@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 
 /**
  * Instances of this class represent a series of indexes into a hierarchy

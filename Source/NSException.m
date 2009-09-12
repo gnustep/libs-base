@@ -96,7 +96,7 @@ Class GSStackTraceClass;
 {
   NSMutableString *trace = [NSMutableString string];
   NSEnumerator *e = [[self symbols] objectEnumerator];
-  int i;
+  int i = 0;
   id obj;
 
   while ((obj = [e nextObject]))

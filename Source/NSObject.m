@@ -117,9 +117,9 @@ static Class	NSConstantStringClass;
 
 @interface GSContentAccessingProxy : NSProxy 
 {
-	NSObject<NSDiscardableContent> *object;
+  NSObject<NSDiscardableContent> *object;
 }
-- (id)initWithObject: (id)anObject;
+- (id) initWithObject: (id)anObject;
 @end
 
 /*
@@ -1991,14 +1991,14 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
   return self;
 }
 
-/**
- *  Returns the version number of the receiving class.  This will default to
- *  a number assigned by the Objective C compiler if [NSObject -setVersion] has
- *  not been called.
- */
-+ (NSInteger) version
++ (BOOL) resolveClassMethod: (SEL)name
 {
-  return class_get_version(self);
+  return NO;
+}
+
++ (BOOL) resolveInstanceMethod: (SEL)name;
+{
+  return NO;
 }
 
 /**
@@ -2014,21 +2014,24 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
   return self;
 }
 
-+ (BOOL)resolveClassMethod:(SEL)name
+/**
+ *  Returns the version number of the receiving class.  This will default to
+ *  a number assigned by the Objective C compiler if [NSObject -setVersion] has
+ *  not been called.
+ */
++ (NSInteger) version
 {
-	return NO;
+  return class_get_version(self);
 }
-+ (BOOL)resolveInstanceMethod:(SEL)name;
+
+- (id) autoContentAccessingProxy
 {
-	return NO;
+  return AUTORELEASE([[GSContentAccessingProxy alloc] initWithObject: self]);
 }
-- (id)forwardingTargetForSelector:(SEL)aSelector;
+
+- (id) forwardingTargetForSelector:(SEL)aSelector;
 {
-	return nil;
-}
-- (id)autoContentAccessingProxy
-{
-	return AUTORELEASE([[GSContentAccessingProxy alloc] initWithObject: self]);
+  return nil;
 }
 @end
 
@@ -2475,31 +2478,36 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
 @end
 
 @implementation GSContentAccessingProxy 
-- (id)initWithObject: (id)anObject
+- (void) dealloc
 {
-	ASSIGN(object, anObject);
-	[object beginContentAccess];
-	return self;
+  [object endContentAccess];
+  [super dealloc];
 }
-- (void)finalize
+
+- (void) finalize
 {
-	[object endContentAccess];
+  [object endContentAccess];
 }
-- (void)dealloc
+
+- (id) forwardingTargetForSelector: (SEL)aSelector
 {
-	[object endContentAccess];
-}
-- (id)forwardingTargetForSelector: (SEL)aSelector
-{
-	return object;
+  return object;
 }
 /* Support for legacy runtimes... */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-	[anInvocation invokeWithTarget: object];
+  [anInvocation invokeWithTarget: object];
 }
+
+- (id) initWithObject: (id)anObject
+{
+  ASSIGN(object, anObject);
+  [object beginContentAccess];
+  return self;
+}
+
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-	return [object methodSignatureForSelector: aSelector];
+  return [object methodSignatureForSelector: aSelector];
 }
 @end

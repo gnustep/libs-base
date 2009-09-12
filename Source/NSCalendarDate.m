@@ -289,26 +289,36 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 NSTimeInterval
 GSTimeNow(void)
 {
+  NSTimeInterval t;
 #if !defined(__MINGW32__)
-  NSTimeInterval interval;
   struct timeval tp;
 
   gettimeofday (&tp, NULL);
-  interval = -NSTimeIntervalSince1970;
-  interval += tp.tv_sec;
-  interval += (double)tp.tv_usec / 1000000.0;
-  return interval;
+  t = (NSTimeInterval)tp.tv_sec - NSTimeIntervalSince1970;
+  t += (NSTimeInterval)tp.tv_usec / (NSTimeInterval)1000000.0;
 #else
   SYSTEMTIME sys_time;
-  NSTimeInterval t;
   /*
    * Get current GMT time, convert to NSTimeInterval since reference date,
    */
   GetSystemTime(&sys_time);
   t = GSTime(sys_time.wDay, sys_time.wMonth, sys_time.wYear, sys_time.wHour,
     sys_time.wMinute, sys_time.wSecond, sys_time.wMilliseconds);
-  return t;
 #endif /* __MINGW32__ */
+
+#if	defined(DEBUG)
+{
+  static NSTimeInterval	old = 0.0;
+  if (t < old)
+    {
+      fprintf(stderr, "WARNING: system time changed by %g seconds\n",
+	t - old);
+    }
+  old = t;
+}
+#endif
+
+  return t;
 }
 
 /**
