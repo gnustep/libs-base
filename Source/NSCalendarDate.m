@@ -296,6 +296,39 @@ GSTimeNow(void)
   gettimeofday (&tp, NULL);
   t = (NSTimeInterval)tp.tv_sec - NSTimeIntervalSince1970;
   t += (NSTimeInterval)tp.tv_usec / (NSTimeInterval)1000000.0;
+#if	1
+/* This is a workaround for a bug on some SMP intel systems where the TSC
+ * clock information from the processors gets out of sync and causes a
+ * leap of 4398 seconds into the future for an instant, and then back.
+ * If we detect a time jump back (or forwards by that sort of amount)
+ * we refettch the system time.
+ */
+{
+  static int	old = 0;
+
+  if (old == 0)
+    {
+      old = tp.tv_sec;
+    }
+  else
+    {
+      int	diff = tp.tv_sec - old;
+
+      old = tp.tv_sec;
+      if (diff < 0 || diff > 3000)
+	{
+	  time_t	now = (time_t)tp.tv_sec;
+
+	  fprintf(stderr, "WARNING: system time changed by %d seconds: %s\n",
+	    diff, ctime(&now));
+	  /* Get time again ... should be OK now.
+	   */
+	  t = GSTimeNow();
+	}
+    }
+}
+#endif
+
 #else
   SYSTEMTIME sys_time;
   /*
@@ -305,18 +338,6 @@ GSTimeNow(void)
   t = GSTime(sys_time.wDay, sys_time.wMonth, sys_time.wYear, sys_time.wHour,
     sys_time.wMinute, sys_time.wSecond, sys_time.wMilliseconds);
 #endif /* __MINGW32__ */
-
-#if	defined(DEBUG)
-{
-  static NSTimeInterval	old = 0.0;
-  if (t < old)
-    {
-      fprintf(stderr, "WARNING: system time changed by %g seconds\n",
-	t - old);
-    }
-  old = t;
-}
-#endif
 
   return t;
 }
