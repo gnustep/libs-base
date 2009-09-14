@@ -678,6 +678,7 @@ static NSLock	*cached_proxies_gate = nil;
     }
 
   c = [[NSConnection alloc] initWithReceivePort: p sendPort: nil];
+  [c setRootObject: root];
   if ([c registerName: name withNameServer: server] == NO)
     {
       DESTROY(c);

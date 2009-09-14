@@ -1,3 +1,7 @@
+2009-09-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: fix for bug #27446
+
 2009-08-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFilehandle.m: backport changes from trunk to fix
