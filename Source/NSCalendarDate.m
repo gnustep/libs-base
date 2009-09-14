@@ -300,8 +300,9 @@ GSTimeNow(void)
 /* This is a workaround for a bug on some SMP intel systems where the TSC
  * clock information from the processors gets out of sync and causes a
  * leap of 4398 seconds into the future for an instant, and then back.
- * If we detect a time jump back (or forwards by that sort of amount)
- * we refettch the system time.
+ * If we detect a time jump back by more than the sort of small interval
+ * that ntpd might do (or forwards by a very large amount) we refetch the
+ * system time to make sure we don't have a temporary glitch.
  */
 {
   static int	old = 0;
@@ -315,7 +316,7 @@ GSTimeNow(void)
       int	diff = tp.tv_sec - old;
 
       old = tp.tv_sec;
-      if (diff < 0 || diff > 3000)
+      if (diff < -1 || diff > 3000)
 	{
 	  time_t	now = (time_t)tp.tv_sec;
 
