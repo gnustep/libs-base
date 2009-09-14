@@ -1,6 +1,7 @@
 2009-09-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Workaround for bug in some linux SMP systems
+	* Source/NSConnection.m: fix for bug #27446
 	
 2009-09-12 Richard Frith-Macdonald <rfm@gnu.org>
 
