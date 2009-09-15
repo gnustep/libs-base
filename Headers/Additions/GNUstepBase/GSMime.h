@@ -203,6 +203,7 @@ extern "C" {
     unsigned int	buggyQuotes:1;
     unsigned int	wantEndOfLine:1;
     unsigned int	excessData:1;
+    unsigned int	headersOnly:1;
   } flags;
   NSData		*boundary;	// Also overloaded to hold excess
   GSMimeDocument	*document;
@@ -237,6 +238,7 @@ extern "C" {
 - (NSString*) scanToken: (NSScanner*)scanner;
 - (void) setBuggyQuotes: (BOOL)flag;
 - (void) setDefaultCharset: (NSString*)aName;
+- (void) setHeadersOnly;
 - (void) setIsHttp;
 @end
 
