@@ -1416,12 +1416,21 @@ wordData(NSString *word)
    * If there is a zero content length, all parsing is complete,
    * not just header parsing.
    */
-  hdr = [document headerNamed: @"content-length"];
-  if (hdr != nil && [[hdr value] intValue] == 0)
+  if (flags.headersOnly == 1
+    || ((hdr = [document headerNamed: @"content-length"]) != nil
+      && [[hdr value] intValue] == 0))
     {
       [document setContent: @""];
       flags.inBody = 0;
       flags.complete = 1;
+      /* If we have more data after the headers ... it's excess and
+       * should become available as excess data.
+       */
+      if ([d length] > 0)
+	{
+          ASSIGNCOPY(boundary, d);
+	  flags.excessData = 1;
+	}
     }
 
   return NO;		// No more data needed
@@ -2093,6 +2102,14 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     }
 }
 
+/**
+ * Method to inform the parser that only the headers should be parsed
+ * and any remaining data be treated as excess
+ */
+- (void) setHeadersOnly
+{
+  flags.headersOnly = 1;
+}
 
 /**
  * Method to inform the parser that the data it is parsing is an HTTP
