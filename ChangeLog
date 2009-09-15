@@ -1,3 +1,10 @@
+2009-09-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSMime.h:
+	* Source/Additions/GSMime.m:
+	Add new -excess method to return any excess data left over from parsing.
+	Previously the code just used to NSLog() this data as a warning.
+
 2009-09-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Workaround for bug in some linux SMP systems
