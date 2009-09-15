@@ -1107,6 +1107,19 @@ wordData(NSString *word)
   return document;
 }
 
+/** If there was more data passed to the parser than actually needed to
+ * form the document, this method returns that excess data, othrwise it
+ * returns nil.
+ */
+- (NSData*) excess
+{
+  if (flags.excessData == 1)
+    {
+      return boundary;
+    }
+  return nil;
+}
+
 /**
  * This method may be called to tell the parser that it should not expect
  * to parse any headers, and that the data it will receive is body data.<br />
@@ -2401,7 +2414,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      rawBodyLength = expect;
 	      excess = [d subdataWithRange:
 		NSMakeRange(dLength, [d length] - dLength)];
-	      NSLog(@"Excess data ignored: %@", excess);
+	      ASSIGN(boundary, excess);
+	      flags.excessData = 1;
 	    }
 	  [self decodeData: d
 		 fromRange: NSMakeRange(0, dLength)

@@ -202,8 +202,9 @@ extern "C" {
     unsigned int	hadErrors:1;
     unsigned int	buggyQuotes:1;
     unsigned int	wantEndOfLine:1;
+    unsigned int	excessData:1;
   } flags;
-  NSData		*boundary;
+  NSData		*boundary;	// Also overloaded to hold excess
   GSMimeDocument	*document;
   GSMimeParser		*child;
   GSMimeCodingContext	*context;
@@ -219,6 +220,7 @@ extern "C" {
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData
 	withContext: (GSMimeCodingContext*)con;
+- (NSData*) excess;
 - (void) expectNoHeaders;
 - (BOOL) isComplete;
 - (BOOL) isHttp;
