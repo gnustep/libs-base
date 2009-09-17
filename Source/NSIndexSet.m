@@ -52,7 +52,14 @@ static void sanity(GSIArray array)
 	{
 	  NSRange	r = GSIArrayItemAtIndex(array, i).ext;
 
-	  NSCAssert(r.location >= last, @"Overlap ranges");
+	  if (i > 0)
+	    {
+	      NSCAssert(r.location > last, @"Overlap or touching ranges");
+	    }
+	  else
+	    {
+	      NSCAssert(r.location >= last, @"Overlap ranges");
+	    }
 	  NSCAssert(NSMaxRange(r) > r.location, @"Bad range length");
 	  last = NSMaxRange(r);
 	}
@@ -1226,6 +1233,22 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
 		{
 		  r.location -= amount;
 		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, c);
+		}
+	    }
+	  if (pos > 0)
+	    {
+	      c = GSIArrayCount(_array);
+	      if (pos < c)
+		{
+		  NSRange	r0 = GSIArrayItemAtIndex(_array, pos - 1).ext;
+		  NSRange	r1 = GSIArrayItemAtIndex(_array, pos).ext;
+
+	          if (NSMaxRange(r0) == r1.location)
+		    {
+		      r0.length += r1.length;
+		      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r0, pos - 1);
+		      GSIArrayRemoveItemAtIndex(_array, pos);
+		    }
 		}
 	    }
 	}
