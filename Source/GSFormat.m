@@ -1416,7 +1416,7 @@ NSDictionary *locale)
 	    {
 	      int temp = width;
 	      width = prec;
-	      PAD ('0');;
+	      PAD ('0');
 	      width = temp;
 	    }
 

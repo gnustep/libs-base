@@ -493,7 +493,7 @@ wordData(NSString *word)
    */
   if ([self atEnd] == YES && pos > 0)
     {
-      unsigned	len = pos - 1;;
+      unsigned	len = pos - 1;
 
       while (pos < 4)
 	{

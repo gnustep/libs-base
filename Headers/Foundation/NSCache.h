@@ -108,7 +108,7 @@ extern "C" {
  * advisory; caches may choose to disregard it temporarily or permanently.  A
  * limit of 0 is used to indicate no limit; this is the default.
  */
-- (void) setCountLimit: (NSUInteger)lim;;
+- (void) setCountLimit: (NSUInteger)lim;
 
 /**
  * Sets the delegate for this cache.  The delegate will be notified when an

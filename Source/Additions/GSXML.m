@@ -2773,7 +2773,7 @@ startElementFunction(void *ctx, const unsigned char *name,
   dict = [NSMutableDictionary dictionary];
   if (atts != NULL)
     {
-      int i = 0;;
+      int i = 0;
 
       while (atts[i] != NULL)
 	{
