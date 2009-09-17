@@ -330,7 +330,7 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
 		result->length++;
 	      }
 	    else
-	      result->exponent++;;
+	      result->exponent++;
 	  }
       }
     }

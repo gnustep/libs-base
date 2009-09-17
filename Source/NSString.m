@@ -1634,7 +1634,7 @@ handle_printf_atsign (FILE *stream,
  */
 - (NSString*) substringToIndex: (NSUInteger)index
 {
-  return [self substringWithRange: ((NSRange){0,index})];;
+  return [self substringWithRange: ((NSRange){0,index})];
 }
 
 /**
