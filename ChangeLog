@@ -1,3 +1,9 @@
+2009-09-17 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexSet.m:
+	([-shiftIndexesStartingAtIndex:by:]) fix to properly merge index
+	ranges when shifting left.
+
 2009-09-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSMime.h:
