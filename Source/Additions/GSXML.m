@@ -2576,7 +2576,7 @@ loadEntityFunction(void *ctx,
 		  if ([data length] > 0)
 		    {
 		      file = [@"/tmp" stringByAppendingPathComponent: local];
-		      [data writeToFile: local atomically: NO];
+		      [data writeToFile: file atomically: NO];
 		    }
 		}
 	    }
