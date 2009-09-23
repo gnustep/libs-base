@@ -1,3 +1,8 @@
+2009-09-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: OSX compatibility tweaks ... allows initialisation
+	using a string containing a simple path without any scheme.
+
 2009-09-17 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexSet.m:
