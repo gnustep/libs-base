@@ -254,6 +254,7 @@ fi
 #--------------------------------------------------------------------
 # Check if Objective-C is installed
 #--------------------------------------------------------------------
+AC_CHECK_HEADERS(objc/runtime.h)
 AC_CHECK_HEADERS(objc/objc.h)
 if test $ac_cv_header_objc_objc_h = no; then
   echo "Check to make sure you have a full installation of the GCC"
