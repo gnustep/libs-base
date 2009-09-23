@@ -664,6 +664,7 @@ static unsigned	urlAlign;
  * Initialised using aUrlString and aBaseUrl.  The value of aBaseUrl
  * may be nil, but aUrlString must be non-nil.<br />
  * Accepts RFC2732 style IPv6 host addresses.<br />
+ * Parses a string wihthout a scheme as a simple path.<br />
  * If the string cannot be parsed the method returns nil.
  */
 - (id) initWithString: (NSString*)aUrlString
@@ -762,25 +763,22 @@ static unsigned	urlAlign;
       /*
        * Set up scheme specific parsing options.
        */
-      if (buf->scheme == 0)
+      if (buf->scheme != 0)
         {
-	  DESTROY(self);	// Not a valid URL
-	  NS_VALRETURN(nil);
-	}
-
-      if (strcmp(buf->scheme, "file") == 0)
-	{
-	  usesFragments = NO;
-	  usesParameters = NO;
-	  usesQueries = NO;
-	  buf->isFile = YES;
-	}
-      else if (strcmp(buf->scheme, "mailto") == 0)
-	{
-	  usesFragments = NO;
-	  usesParameters = NO;
-	  usesQueries = NO;
-	}
+          if (strcmp(buf->scheme, "file") == 0)
+	    {
+	      usesFragments = NO;
+	      usesParameters = NO;
+	      usesQueries = NO;
+	      buf->isFile = YES;
+	    }
+	  else if (strcmp(buf->scheme, "mailto") == 0)
+	    {
+	      usesFragments = NO;
+	      usesParameters = NO;
+	      usesQueries = NO;
+	    }
+        }
 
       if (canBeGeneric == YES)
 	{
@@ -1253,11 +1251,17 @@ static unsigned	urlAlign;
 	{
 	  *tmp++ = '/';
 	}
-      strcpy(tmp, myData->path);
+      if (myData->path != 0)
+	{
+          strcpy(tmp, myData->path);
+	}
     }
   else if (_baseURL == nil)
     {
-      strcpy(tmp, myData->path);
+      if (myData->path != 0)
+	{
+          strcpy(tmp, myData->path);
+	}
     }
   else if (*myData->path == 0)
     {
@@ -1265,12 +1269,15 @@ static unsigned	urlAlign;
 	{
 	  *tmp++ = '/';
 	}
-      strcpy(tmp, baseData->path);
+      if (baseData->path != 0)
+	{
+          strcpy(tmp, baseData->path);
+	}
     }
   else
     {
       char	*start = baseData->path;
-      char	*end = strrchr(start, '/');
+      char	*end = (start == 0) ? 0 : strrchr(start, '/');
 
       if (end != 0)
 	{
@@ -1279,7 +1286,10 @@ static unsigned	urlAlign;
 	  tmp += end - start;
 	}
       *tmp++ = '/';
-      strcpy(tmp, myData->path);
+      if (myData->path != 0)
+	{
+          strcpy(tmp, myData->path);
+	}
     }
 
   unescape(buf, buf);
@@ -1311,14 +1321,18 @@ static unsigned	urlAlign;
 - (NSString*) fullPath
 {
   NSString	*path = nil;
+  unsigned int	len = 3;
 
-  /*
-   * If this scheme is from a URL without generic format, there is no path.
-   */
-  if (myData->isGeneric == YES)
+  if (_baseURL != nil && baseData->path != 0)
     {
-      unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
-	+ strlen(myData->path) + 3;
+      len += strlen(baseData->path);
+    }
+  if (myData->path != 0)
+    {
+      len += strlen(myData->path);
+    }
+  if (len > 3)
+    {
       char		buf[len];
       char		*ptr;
 
@@ -1489,14 +1503,18 @@ static unsigned	urlAlign;
 - (NSString*) path
 {
   NSString	*path = nil;
+  unsigned int	len = 3;
 
-  /*
-   * If this scheme is from a URL without generic format, there is no path.
-   */
-  if (myData->isGeneric == YES)
+  if (_baseURL != nil && baseData->path != 0)
     {
-      unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
-	+ strlen(myData->path) + 3;
+      len += strlen(baseData->path);
+    }
+  if (myData->path != 0)
+    {
+      len += strlen(myData->path);
+    }
+  if (len > 3)
+    {
       char		buf[len];
       char		*ptr;
       char		*tmp;
