@@ -1323,13 +1323,24 @@ static unsigned	urlAlign;
   NSString	*path = nil;
   unsigned int	len = 3;
 
-  if (_baseURL != nil && baseData->path != 0)
+  if (_baseURL != nil)
     {
-      len += strlen(baseData->path);
+      if (baseData->path && *baseData->path)
+        {
+          len += strlen(baseData->path);
+	}
+      else if (baseData->hasNoPath == NO)
+	{
+	  len++;
+	}
     }
-  if (myData->path != 0)
+  if (myData->path && *myData->path)
     {
       len += strlen(myData->path);
+    }
+  else if (myData->hasNoPath == NO)
+    {
+      len++;
     }
   if (len > 3)
     {
@@ -1505,13 +1516,24 @@ static unsigned	urlAlign;
   NSString	*path = nil;
   unsigned int	len = 3;
 
-  if (_baseURL != nil && baseData->path != 0)
+  if (_baseURL != nil)
     {
-      len += strlen(baseData->path);
+      if (baseData->path && *baseData->path)
+        {
+          len += strlen(baseData->path);
+	}
+      else if (baseData->hasNoPath == NO)
+	{
+	  len++;
+	}
     }
-  if (myData->path != 0)
+  if (myData->path && *myData->path)
     {
       len += strlen(myData->path);
+    }
+  else if (myData->hasNoPath == NO)
+    {
+      len++;
     }
   if (len > 3)
     {
