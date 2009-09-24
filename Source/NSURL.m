@@ -688,6 +688,11 @@ static unsigned	urlAlign;
 		  format: @"[%@ %@] bad base URL parameter",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
+  if ([aUrlString length] == 0)
+    {
+      RELEASE(self);
+      return nil;
+    }
   ASSIGNCOPY(_urlString, aUrlString);
   ASSIGN(_baseURL, [aBaseUrl absoluteURL]);
   NS_DURING
