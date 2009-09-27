@@ -1016,7 +1016,7 @@
     fileSystemRepresentation];
 
   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-  saAttr.bInheritHandle = TRUE;
+  saAttr.bInheritHandle = FALSE;
   saAttr.lpSecurityDescriptor = NULL;
 
   handle = CreateFileW(name,
@@ -1067,7 +1067,7 @@ done:
   int rc;
 
   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-  saAttr.bInheritHandle = TRUE;
+  saAttr.bInheritHandle = FALSE;
   saAttr.lpSecurityDescriptor = NULL;
 
   /*
@@ -1346,7 +1346,7 @@ done:
   NSAssert(handle == INVALID_HANDLE_VALUE, NSInternalInconsistencyException);
 
   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-  saAttr.bInheritHandle = TRUE;
+  saAttr.bInheritHandle = FALSE;
   saAttr.lpSecurityDescriptor = NULL;
 
   handle = CreateNamedPipeW([path fileSystemRepresentation],

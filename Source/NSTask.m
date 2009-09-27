@@ -1092,6 +1092,10 @@ quotedFromString(NSString *aString)
   NSDictionary		*env;
   NSMutableArray	*toClose;
   NSFileHandle		*hdl;
+  HANDLE		hIn;
+  HANDLE		hOut;
+  HANDLE		hErr;
+  id			last = nil;
 
   if (_hasLaunched)
     {
@@ -1163,51 +1167,100 @@ quotedFromString(NSString *aString)
   start_info.dwFlags |= STARTF_USESTDHANDLES;
 
   toClose = [NSMutableArray arrayWithCapacity: 3];
-  hdl = [self standardInput];
-  if ([hdl isKindOfClass: [NSPipe class]])
-    {
-      hdl = [(NSPipe*)hdl fileHandleForReading];
-      [toClose addObject: hdl];
-    }
-  start_info.hStdInput = [hdl nativeHandle];
 
-  hdl = [self standardOutput];
-  if ([hdl isKindOfClass: [NSPipe class]])
+  if (_standardInput == nil)
     {
-      hdl = [(NSPipe*)hdl fileHandleForWriting];
-      [toClose addObject: hdl];
+      start_info.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
     }
-  start_info.hStdOutput = [hdl nativeHandle];
-
-  hdl = [self standardError];
-  if ([hdl isKindOfClass: [NSPipe class]])
+  else
     {
-      hdl = [(NSPipe*)hdl fileHandleForWriting];
-      /*
-       * If we have the same pipe twice we don't want to close it twice
-       */
-      if ([toClose indexOfObjectIdenticalTo: hdl] == NSNotFound)
+      hdl = [self standardInput];
+      if ([hdl isKindOfClass: [NSPipe class]])
 	{
+	  hdl = [(NSPipe*)hdl fileHandleForReading];
 	  [toClose addObject: hdl];
 	}
+      start_info.hStdInput = [hdl nativeHandle];
     }
-  start_info.hStdError = [hdl nativeHandle];
+  hIn = start_info.hStdInput;
+
+  if (_standardOutput == nil)
+    {
+      start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    }
+  else
+    {
+      hdl = [self standardOutput];
+      if ([hdl isKindOfClass: [NSPipe class]])
+	{
+	  hdl = [(NSPipe*)hdl fileHandleForWriting];
+	  [toClose addObject: hdl];
+	}
+      start_info.hStdOutput = [hdl nativeHandle];
+    }
+  hOut = start_info.hStdOutput;
+
+  if (_standardError == nil)
+    {
+      start_info.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+    }
+  else
+    {
+      hdl = [self standardError];
+      if ([hdl isKindOfClass: [NSPipe class]])
+	{
+	  hdl = [(NSPipe*)hdl fileHandleForWriting];
+	  /*
+	   * If we have the same pipe twice we don't want to close it twice
+	   */
+	  if ([toClose indexOfObjectIdenticalTo: hdl] == NSNotFound)
+	    {
+	      [toClose addObject: hdl];
+	    }
+	}
+      start_info.hStdError = [hdl nativeHandle];
+    }
+  hErr = start_info.hStdError;
+
+  /* Make the handles inheritable only temporarily while launching the
+   * child task.  This section must be lock protected so we don't have
+   * another thread trying to launch at the same time and get handles
+   * inherited by the wrong threads.
+   */
+  [tasksLock lock];
+  SetHandleInformation(hIn, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+  SetHandleInformation(hOut, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+  SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
 
   result = CreateProcessW(wexecutable,
     w_args,
     NULL,      			/* proc attrs */
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
-//    CREATE_NO_WINDOW|DETACHED_PROCESS|CREATE_UNICODE_ENVIRONMENT,
-    CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT,
+    0
+//    |CREATE_NO_WINDOW
+/* One would have thought the the CREATE_NO_WINDOW flag should be used,
+ * but apparently this breaks for old 16bit applications/tools on XP.
+ */
+    |DETACHED_PROCESS
+    |CREATE_UNICODE_ENVIRONMENT,
     envp,			/* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,
     &procInfo);
-  NSZoneFree(NSDefaultMallocZone(), w_args);
   if (result == 0)
     {
-      NSLog(@"Error launching task: %@", lpath);
+      last = [NSError _last];
+    }
+  NSZoneFree(NSDefaultMallocZone(), w_args);
+  SetHandleInformation(hIn, HANDLE_FLAG_INHERIT, 0);
+  SetHandleInformation(hOut, HANDLE_FLAG_INHERIT, 0);
+  SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, 0);
+  [tasksLock unlock];
+
+  if (result == 0)
+    {
+      NSLog(@"Error launching task: %@ ... %@", lpath, last);
       return;
     }
 

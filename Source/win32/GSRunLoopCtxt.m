@@ -486,6 +486,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
 	if (watcher->_invalidated == NO)
 	  {
+	    NSDebugMLLog(@"NSRunLoop", @"trigger watcher %@", watcher);
 	    i = [contexts count];
 	    while (i-- > 0)
 	      {
@@ -511,6 +512,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   // if there are windows message
   if (wait_return == WAIT_OBJECT_0 + num_handles)
     {
+      NSDebugMLLog(@"NSRunLoop", @"processing windows messages");
       [self processAllWindowsMessages: num_winMsgs within: contexts];
       return NO;
     }
@@ -518,6 +520,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   // if there aren't events
   if (wait_return == WAIT_TIMEOUT)
     {
+      NSDebugMLLog(@"NSRunLoop", @"timeout without events");
       completed = YES;
       return NO;        
     }

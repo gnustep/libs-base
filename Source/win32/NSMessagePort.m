@@ -194,7 +194,7 @@ static Class		messagePortClass = 0;
 
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default
-      security.bInheritHandle = TRUE;
+      security.bInheritHandle = FALSE;
     }
 }
 
