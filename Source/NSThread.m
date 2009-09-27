@@ -803,6 +803,9 @@ static void *nsthreadLauncher(void* thread)
 
 - (void) start
 {
+  pthread_attr_t	attr;
+  pthread_t		thr;
+
   if (_active == YES)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -838,14 +841,14 @@ static void *nsthreadLauncher(void* thread)
   _active = YES;
 
   errno = 0;
-  pthread_t thr;
-  pthread_attr_t attr;
   pthread_attr_init(&attr);
-  // Create this thread detached, because we never use the return state from
-  // threads.
+  /* Create this thread detached, because we never use the return state from
+   * threads.
+   */
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  // Set the stack size when the thread is created.  Unlike the old setrlimit
-  // code, this actually works.
+  /* Set the stack size when the thread is created.  Unlike the old setrlimit
+   * code, this actually works.
+   */
   if (_stackSize > 0)
     {
       pthread_attr_setstacksize(&attr, _stackSize);
