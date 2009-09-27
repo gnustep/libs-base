@@ -105,7 +105,7 @@ static void clean_up_names(void)
 
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default
-      security.bInheritHandle = TRUE;
+      security.bInheritHandle = FALSE;
 
       registry = @"Software\\GNUstepNSMessagePort";
       rc = RegCreateKeyExW(

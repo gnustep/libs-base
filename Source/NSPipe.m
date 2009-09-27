@@ -87,7 +87,7 @@
       HANDLE readh, writeh;
 
       saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-      saAttr.bInheritHandle = TRUE;
+      saAttr.bInheritHandle = FALSE;
       saAttr.lpSecurityDescriptor = NULL;
 
       if (CreatePipe(&readh, &writeh, &saAttr, 0) != 0)

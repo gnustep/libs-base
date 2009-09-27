@@ -2003,68 +2003,99 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       [self postReadNotification];
     }
-  else if (operation == NSFileHandleDataAvailableNotification)
-    {
-      [self postReadNotification];
-    }
   else
     {
-      NSMutableData	*item;
-      int		length;
-      int		received = 0;
-      char		buf[READ_SIZE];
-
-      item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
-      /*
-       * We may have a maximum data size set...
+      /* If this is not a socket or a standard file, we assume it's a pipe
+       * and therefore we need to check to see if data really is available.
        */
-      if (readMax > 0)
-        {
-          length = (unsigned int)readMax - [item length];
-          if (length > (int)sizeof(buf))
-            {
+      if (NO == isSocket && NO == isStandardFile)
+	{
+	  HANDLE	h = (HANDLE)_get_osfhandle(descriptor);
+	  DWORD		bytes = 0;
+
+	  if (PeekNamedPipe(h, 0, 0, 0, &bytes, 0) == 0)
+	    {
+	      DWORD	e = GetLastError();
+
+              if (e != ERROR_BROKEN_PIPE && e != ERROR_HANDLE_EOF)
+		{
+	          NSLog(@"pipe peek problem %d, %@", e, [NSError _last]);
+	          return;
+		}
+	      /* In the case of a broken pipe, we fall through so that a read
+	       * attempt is performed allowing higer level code to notice the
+	       * problem and deal with it.
+	       */
+	    }
+	  else if (bytes == 0)
+	    {
+	      return;	// No data available yet.
+	    }
+	}
+
+      if (operation == NSFileHandleDataAvailableNotification)
+	{
+	  [self postReadNotification];
+	}
+      else
+	{
+	  NSMutableData	*item;
+	  int		length;
+	  int		received = 0;
+	  char		buf[READ_SIZE];
+
+	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
+	  /*
+	   * We may have a maximum data size set...
+	   */
+	  if (readMax > 0)
+	    {
+	      length = (unsigned int)readMax - [item length];
+	      if (length > (int)sizeof(buf))
+		{
+		  length = sizeof(buf);
+		}
+	    }
+	  else
+	    {
 	      length = sizeof(buf);
 	    }
-	}
-      else
-	{
-	  length = sizeof(buf);
-	}
 
-      received = [self read: buf length: length];
-      if (received == 0)
-        { // Read up to end of file.
-          [self postReadNotification];
-        }
-      else if (received < 0)
-        {
-          if (isSocket && (WSAGetLastError() != WSAEINTR
-	    && WSAGetLastError() != WSAEWOULDBLOCK))
-            {
-	      NSString	*s;
-
-	      s = [NSString stringWithFormat: @"Read attempt failed - %@",
-		[NSError _last]];
-	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
+	  received = [self read: buf length: length];
+	  if (received == 0)
+	    { // Read up to end of file.
 	      [self postReadNotification];
 	    }
-          else if (!isSocket && (GetLastError() != ERROR_NO_DATA))
-            {
-	      NSString	*s;
-
-	      s = [NSString stringWithFormat: @"Read attempt failed - %@",
-		[NSError _last]];
-	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
-	      [self postReadNotification];
-	    }
-	}
-      else
-	{
-	  [item appendBytes: buf length: received];
-	  if (readMax < 0 || (readMax > 0 && (int)[item length] == readMax))
+	  else if (received < 0)
 	    {
-	      // Read a single chunk of data
-	      [self postReadNotification];
+	      if (isSocket && (WSAGetLastError() != WSAEINTR
+		&& WSAGetLastError() != WSAEWOULDBLOCK))
+		{
+		  NSString	*s;
+
+		  s = [NSString stringWithFormat: @"Read attempt failed - %@",
+		    [NSError _last]];
+		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
+		  [self postReadNotification];
+		}
+	      else if (!isSocket && (GetLastError() != ERROR_NO_DATA))
+		{
+		  NSString	*s;
+
+		  s = [NSString stringWithFormat: @"Read attempt failed - %@",
+		    [NSError _last]];
+		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
+		  [self postReadNotification];
+		}
+	    }
+	  else
+	    {
+	      [item appendBytes: buf length: received];
+	      if (readMax < 0 || (readMax > 0 && (int)[item length] == readMax))
+		{
+		  // Read a single chunk of data
+		  [self postReadNotification];
+		}
 	    }
 	}
     }

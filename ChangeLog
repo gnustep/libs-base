@@ -1,3 +1,22 @@
+2009-09-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source\win32\GSFileHandle.m:
+	* Source\win32\NSMessagePort.m:
+	* Source\win32\GSRunLoopCtxt.m:
+	* Source\win32\NSStream.m:
+	* Source\win32\NSMessagePortNameServer.m:
+	* Source\NSPipe.m:
+	* Source\NSTask.m:
+	Fixes to try and improve subtask handling on windows.
+	1. change scheme to create all handles as not inheritable, and
+	just make the handles we want the child to have inheritable while
+	we are launching the child.
+	2. peek the data on pipes and refrain from notifying about data
+	availability if the pipe doesn't really have data.  This is horrid and
+	means we poll pipes ... but I can see no other way of implementing the
+	api on windows as I can find no way to get windows to tell use when
+	data is available.
+
 2009-09-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: OSX compatibility tweaks ... allows initialisation
