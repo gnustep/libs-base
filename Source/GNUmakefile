@@ -100,14 +100,12 @@ preface.m \
 mframe.m
 
 ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
-  GNU_MFILES += thr-pthread.m
   OBJC_LIBS += -lpthread
 endif
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
   ifneq ($(OBJC_RUNTIME_LIB), gnugc)
     GNU_MFILES += objc-gnu2next.m
-    GNU_MFILES += thr-pthread.m
   endif
 endif
 

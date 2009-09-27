@@ -154,24 +154,25 @@
 
 - (void) setObject: (id)obj forKey: (id)key cost: (NSUInteger)num
 {
-  _GSCachedObject *old = [_objects objectForKey: key];
+  _GSCachedObject *oldObject = [_objects objectForKey: key];
+  _GSCachedObject *newObject;
 
-  if (nil != old)
+  if (nil != oldObject)
     {
-      [self removeObjectForKey: old->key];
+      [self removeObjectForKey: oldObject->key];
     }
   [self _evictObjectsToMakeSpaceForObjectWithCost: num];
-  _GSCachedObject *new = [_GSCachedObject new];
+  newObject = [_GSCachedObject new];
   // Retained here, released when obj is dealloc'd
-  new->object = RETAIN(obj);
-  new->key = RETAIN(key);
-  new->cost = num;
+  newObject->object = RETAIN(obj);
+  newObject->key = RETAIN(key);
+  newObject->cost = num;
   if ([obj conformsToProtocol: @protocol(NSDiscardableContent)])
     {
-      new->isEvictable = YES;
-      [_accesses addObject: new];
+      newObject->isEvictable = YES;
+      [_accesses addObject: newObject];
     }
-  [_objects setObject: new forKey: key];
+  [_objects setObject: newObject forKey: key];
   RELEASE(obj);
   _totalCost += num;
 }
