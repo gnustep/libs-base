@@ -13,9 +13,9 @@
 	we are launching the child.
 	2. peek the data on pipes and refrain from notifying about data
 	availability if the pipe doesn't really have data.  This is horrid and
-	means we poll pipes ... but I can see no other way of implementing the
-	api on windows as I can find no way to get windows to tell use when
-	data is available.
+	means we poll pipes ... I guess we really need to be doing async
+	reads instead ... perhaps someone can do that based on the code in
+	Source/win32/NSMessagePort.m which already does it.
 
 2009-09-23 Richard Frith-Macdonald <rfm@gnu.org>
 
