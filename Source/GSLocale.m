@@ -51,6 +51,9 @@ GSSetLocaleC(int category, const char *loc)
   return setlocale(category, loc);
 }
 
+#define ToString(value) [NSString stringWithCString: (value) \
+encoding: GSPrivateNativeCStringEncoding()]
+
 /* Set the locale for libc functions from the supplied string or from
    the environment if not specified. This function should be called
    as soon as possible after the start of the program. Passing
@@ -78,13 +81,12 @@ GSSetLocale(int category, NSString *locale)
   locale = nil;
   if (clocale != 0)
     {
-      locale = [NSString stringWithUTF8String: clocale];
+      locale = ToString(clocale);
     }
   return locale;
 }
 
-#define GSLanginfo(value) [NSString stringWithCString: nl_langinfo (value) \
-encoding: GSPrivateNativeCStringEncoding()]
+#define GSLanginfo(value) ToString(nl_langinfo (value))
 
 
 /* Creates a locale dictionary from information provided by i18n functions.
@@ -164,33 +166,33 @@ GSDomainFromDefaultLocale(void)
   /* Currency Information */
   if (lconv->currency_symbol)
     {
-      [dict setObject: [NSString stringWithUTF8String: lconv->currency_symbol]
+      [dict setObject: ToString(lconv->currency_symbol)
 	       forKey: NSCurrencySymbol];
     }
   if (lconv->int_curr_symbol)
     {
-      [dict setObject: [NSString stringWithUTF8String: lconv->int_curr_symbol]
+      [dict setObject: ToString(lconv->int_curr_symbol)
 	       forKey: NSInternationalCurrencyString];
     }
   if (lconv->mon_decimal_point)
     {
-      [dict setObject: [NSString stringWithUTF8String: lconv->mon_decimal_point]
+      [dict setObject: ToString(lconv->mon_decimal_point)
 	       forKey: NSInternationalCurrencyString];
     }
   if (lconv->mon_thousands_sep)
     {
-      [dict setObject: [NSString stringWithUTF8String: lconv->mon_thousands_sep]
+      [dict setObject: ToString(lconv->mon_thousands_sep)
 	       forKey: NSInternationalCurrencyString];
     }
 
   if (lconv->decimal_point)
     {
-      [dict setObject: [NSString stringWithUTF8String: lconv->decimal_point]
+      [dict setObject: ToString(lconv->decimal_point)
 	       forKey: NSDecimalSeparator];
     }
   if (lconv->thousands_sep)
     {
-      [dict setObject: [NSString stringWithUTF8String: lconv->thousands_sep]
+      [dict setObject: ToString(lconv->thousands_sep)
 	       forKey: NSThousandsSeparator];
     }
 
