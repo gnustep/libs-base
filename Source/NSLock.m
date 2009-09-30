@@ -372,17 +372,16 @@ MUNLOCK
 - (BOOL) lockWhenCondition: (NSInteger)condition_to_meet
                 beforeDate: (NSDate*)limitDate
 {
+  BOOL ret;
   [_condition lock];
   if (condition_to_meet == _condition_value)
     {
       return YES;
     }
-  if ([_condition waitUntilDate: limitDate]
-    && (condition_to_meet == _condition_value))
-    {
-      return YES;
-    }
-  return NO;
+  ret = [_condition waitUntilDate: limitDate]
+    && (condition_to_meet == _condition_value);
+  [_condition unlock];
+  return ret;
 }
 
 MNAME
