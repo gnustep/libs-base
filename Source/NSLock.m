@@ -306,7 +306,14 @@ MUNLOCK
   timeout.tv_sec = secs;
   // Convert fractions of a second to nanoseconds
   timeout.tv_nsec = subsecs * 1e9;
-  return (0 == pthread_cond_timedwait(&_condition, &_mutex, &timeout));
+  if (0 == pthread_cond_timedwait(&_condition, &_mutex, &timeout))
+    {
+      return YES;
+    }
+  else
+    {
+      return NO;
+    }
 }
 
 @end
@@ -373,13 +380,21 @@ MUNLOCK
                 beforeDate: (NSDate*)limitDate
 {
   BOOL ret;
+
   [_condition lock];
   if (condition_to_meet == _condition_value)
     {
       return YES;
     }
-  ret = [_condition waitUntilDate: limitDate]
-    && (condition_to_meet == _condition_value);
+  if ([_condition waitUntilDate: limitDate]
+    && (condition_to_meet == _condition_value))
+    {
+      ret = YES;
+    }
+  else
+    {
+      ret = NO;
+    }
   [_condition unlock];
   return ret;
 }

@@ -1,3 +1,7 @@
+2009-09-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLock.m: Fix BOOL methods to return YES or NO.
+
 2009-09-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source\win32\GSFileHandle.m:
