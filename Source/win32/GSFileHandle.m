@@ -1085,10 +1085,25 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithNullDevice
 {
-  isNullDevice = YES;
-  isStandardFile = YES;
-  descriptor = -1;
-  return self;
+  int	d = _open("NUL", O_RDWR|O_BINARY);
+
+  if (d < 0)
+    {
+      RELEASE(self);
+      return nil;
+    }
+  else
+    {
+      self = [self initWithFileDescriptor: d closeOnDealloc: YES];
+      if (self != nil)
+	{
+	  connectOK = NO;
+	  acceptOK = NO;
+  	  isNullDevice = YES;
+  	  isStandardFile = YES;
+	}
+      return self;
+    }
 }
 
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
