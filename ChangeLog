@@ -1,6 +1,8 @@
 2009-09-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLock.m: Fix BOOL methods to return YES or NO.
+	* Source/win32/GSFileHandle.m: Implement nul device handle.
+	* Source/NSTask.m: Try to avoid annoying colsole window with mingw32
 
 2009-09-27 Richard Frith-Macdonald <rfm@gnu.org>
 

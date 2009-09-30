@@ -1222,6 +1222,11 @@ quotedFromString(NSString *aString)
     }
   hErr = start_info.hStdError;
 
+  /* Tell the system not to show a window for the subtask.
+   */
+  start_info.wShowWindow = SW_HIDE;
+  start_info.dwFlags |= STARTF_USESHOWWINDOW;
+
   /* Make the handles inheritable only temporarily while launching the
    * child task.  This section must be lock protected so we don't have
    * another thread trying to launch at the same time and get handles
@@ -1238,11 +1243,16 @@ quotedFromString(NSString *aString)
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
     0
-//    |CREATE_NO_WINDOW
+    |CREATE_NO_WINDOW
 /* One would have thought the the CREATE_NO_WINDOW flag should be used,
  * but apparently this breaks for old 16bit applications/tools on XP.
+ * So maybe we want to leave it out?
  */
-    |DETACHED_PROCESS
+//    |DETACHED_PROCESS
+/* We don't set the DETACHED_PROCESS flag as it actually means that the
+ * child task should get a new Console allocated ... and that means it
+ * will pop up a console window ... which looks really bad.
+ */
     |CREATE_UNICODE_ENVIRONMENT,
     envp,			/* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
