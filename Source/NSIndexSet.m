@@ -29,7 +29,6 @@
 #include	"Foundation/NSException.h"
 #include	"Foundation/NSZone.h"
 
-#define	GSI_ARRAY_TYPES	0
 #define	GSI_ARRAY_TYPE	NSRange
 
 #define	GSI_ARRAY_NO_RELEASE	1

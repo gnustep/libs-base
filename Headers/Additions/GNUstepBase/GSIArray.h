@@ -108,10 +108,10 @@ extern "C" {
 
 /*
  *	If there is no bitmask defined to supply the types that
- *	may be stored in the array, default to permitting all types.
+ *	may be stored in the array, default to none.
  */
 #ifndef	GSI_ARRAY_TYPES
-#define	GSI_ARRAY_TYPES	GSUNION_ALL
+#define	GSI_ARRAY_TYPES	0
 #endif
 
 #ifndef GSIArrayItem
