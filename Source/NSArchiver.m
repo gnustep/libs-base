@@ -29,6 +29,8 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
+#define	GSI_MAP_KTYPES	GSUNION_INT | GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS
+#define	GSI_MAP_VTYPES	GSUNION_INT | GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
