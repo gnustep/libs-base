@@ -79,6 +79,8 @@ typedef GSIMapNode_t *GSIMapNode;
 
 #define	GSI_MAP_TABLE_T	NSConcreteMapTable
 
+#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ
+#define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.k.hash(M, X.ptr) \
  : pointerFunctionsHash(&M->cb.pf.k, X.ptr))

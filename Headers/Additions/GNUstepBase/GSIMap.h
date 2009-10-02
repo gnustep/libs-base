@@ -127,10 +127,10 @@ extern "C" {
 
 /*
  *      If there is no bitmask defined to supply the types that
- *      may be used as keys in the  map, default to permitting all types.
+ *      may be used as keys in the map, default to none.
  */
 #ifndef GSI_MAP_KTYPES
-#define GSI_MAP_KTYPES        GSUNION_ALL
+#define GSI_MAP_KTYPES        0
 #endif
 
 /*
@@ -172,10 +172,10 @@ extern "C" {
 
 /*
  *      If there is no bitmask defined to supply the types that
- *      may be used as values in the  map, default to permitting all types.
+ *      may be used as values in the map, default to none.
  */
 #ifndef GSI_MAP_VTYPES
-#define GSI_MAP_VTYPES        GSUNION_ALL
+#define GSI_MAP_VTYPES        0
 #endif
 
 /*

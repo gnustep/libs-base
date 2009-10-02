@@ -55,6 +55,8 @@
 /*
  *	Setup for inline operation of string map tables.
  */
+#define	GSI_MAP_KTYPES	GSUNION_OBJ
+#define	GSI_MAP_VTYPES	GSUNION_INT
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	

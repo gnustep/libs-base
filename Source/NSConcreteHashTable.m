@@ -73,6 +73,7 @@ typedef GSIMapNode_t *GSIMapNode;
 @end
 
 #define	GSI_MAP_HAS_VALUE	0
+#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_TABLE_T	NSConcreteHashTable
 
 #define GSI_MAP_HASH(M, X)\

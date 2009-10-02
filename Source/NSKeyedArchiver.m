@@ -37,6 +37,8 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
+#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS | GSUNION_INT
+#define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_INT
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_HASH(M, X)	((X).uint)

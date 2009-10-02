@@ -1,3 +1,15 @@
+2009-10-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortCoder.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSConnection.m:
+	* Source/NSSerializer.m:
+	* Source/NSArchiver.m:
+	* Source/NSConcreteHashTable.m:
+	* Headers/Additions/GNUstepBase/GSIMap.h:
+	Explicitly specify types present in GSIUnion
+
 2009-09-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLock.m: Fix BOOL methods to return YES or NO.
