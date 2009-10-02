@@ -29,6 +29,7 @@
 #include	"Foundation/NSException.h"
 #include	"Foundation/NSZone.h"
 
+#define	GSI_ARRAY_TYPES	0
 #define	GSI_ARRAY_TYPE	NSRange
 
 #define	GSI_ARRAY_NO_RELEASE	1
@@ -1315,7 +1316,8 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
 
 - (id) _initWithBytes: (const void*)bytes length: (NSUInteger)length
 {
-  NSAssert(length % sizeof(NSRange) == 0, NSInvalidArgumentException);
+  NSAssert(length % sizeof(GSIArrayItem) == 0, NSInvalidArgumentException);
+  NSAssert(length % __alignof__(GSIArrayItem) == 0, NSInvalidArgumentException);
   length /= sizeof(NSRange);
   _data = NSZoneMalloc([self zone], sizeof(GSIArray_t));
   _array->ptr = (GSIArrayItem*)bytes;
