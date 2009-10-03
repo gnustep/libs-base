@@ -1,5 +1,13 @@
 2009-10-03 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSInvocation.h:
+	* Source/GSFFIInvocation.m:
+	* Source/NSInvocation.m:
+	Fix to always store return value in memory owned by the GSFFIInvocation
+	object.  Fix for bug #27233
+
+2009-10-03 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSConnection.m:
 	Don't allow the root object of a connection to be released simply
 	because the remote proxy is released ... the connection itsself

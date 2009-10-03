@@ -191,7 +191,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   /* Note: We malloc cframe here, but it's passed to GSFFIInvocationCallback
      where it becomes owned by the callback invocation, so we don't have to
      worry about freeing it */
-  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
+  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], 0);
   /* Autorelease the closure through GSAutoreleasedBuffer */
 
   memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
@@ -312,7 +312,23 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _cframe = cifframe_from_info(_info, _numArgs, &_retval);
+  _cframe = cifframe_from_info(_info, _numArgs, 0);
+
+  /* Make sure we have somewhere to store the return value if needed.
+   */
+  _retval = _retptr = 0;
+  if (_info[0].size > 0)
+    {
+      if (_info[0].size <= sizeof(_retbuf))
+	{
+	  _retval = _retbuf;
+	}
+      else
+	{
+	  _retptr = NSAllocateCollectable(_info[0].size, NSScannedOption);
+	  _retval = _retptr;
+	}
+    }
   return self;
 }
 
@@ -320,7 +336,6 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
    the callback. The cifframe was allocated by the forwarding function,
    but we own it now so we can free it */
 - (id) initWithCallback: (ffi_cif *)cif
-		returnp: (void *)retp
 		 values: (void **)vals
 		  frame: (cifframe_t *)frame
 	      signature: (NSMethodSignature*)aSignature
@@ -342,13 +357,23 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
       memcpy(((cifframe_t *)_cframe)->values[i], vals[i],
              ((cifframe_t *)_cframe)->arg_types[i]->size);
     }
-  _retval = retp;
-  return self;
-}
 
-- (void) _storeRetval
-{
-  _retval = _cframe + retval_offset_from_info (_info, _numArgs);
+  /* Make sure we have somewhere to store the return value if needed.
+   */
+  _retval = _retptr = 0;
+  if (_info[0].size > 0)
+    {
+      if (_info[0].size <= sizeof(_retbuf))
+	{
+	  _retval = _retbuf;
+	}
+      else
+	{
+	  _retptr = NSAllocateCollectable(_info[0].size, NSScannedOption);
+	  _retval = _retptr;
+	}
+    }
+  return self;
 }
 
 /*
@@ -564,9 +589,10 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
       selector = gs_find_best_typed_sel (selector);
 
       if (sel_get_type (selector) != 0)
-    {
-      sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
-    }
+	{
+	  sig = [NSMethodSignature signatureWithObjCTypes:
+	    sel_get_type(selector)];
+	}
     }
 
   if (sig == nil)
@@ -579,7 +605,6 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     }
 
   invocation = [[GSFFIInvocation alloc] initWithCallback: cif
-					returnp: retp
 					values: args
  					frame: user
 					signature: sig];
@@ -597,16 +622,12 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
    * so the line below is somewhat faster. */
   fwdInvMethod->method_imp (obj, fwdInvMethod->method_name, invocation);
 
-  /* Autorelease the invocation's return value (if it's an object) and
-     mark it as invalid, so it won't be released later. We have to do
-     this since the return value (retp) really belongs to the closure
-     not the invocation so it will be demallocd at the end of this call
-  */
-  if ([sig methodReturnType] && *[sig methodReturnType] == _C_ID
-    && ((NSInvocation_t *)invocation)->_validReturn == YES)
+  /* If we are returning a value, we must copy it from the invocation
+   * to the memory indicated by 'retp'.
+   */
+  if (retp != 0 && ((NSInvocation_t *)invocation)->_validReturn == YES)
     {
-      IF_NO_GC([*(id *)retp autorelease];)
-      ((NSInvocation_t *)invocation)->_validReturn = NO;
+      [invocation getReturnValue: retp];
     }
 
   /* We need to (re)encode the return type for it's trip back. */
