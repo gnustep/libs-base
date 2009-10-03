@@ -53,13 +53,6 @@
 #  endif
 #endif
 
-@interface      NSInvocation (Private)
-/* Tell the invocation to store return values locally rather than writing
- * themto the stack location specified when the invocation was produced
- */
-- (void) _storeRetval;
-@end
-
 @implementation GSCodeBuffer
 
 + (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size
@@ -342,8 +335,12 @@ _arg_addr(NSInvocation *inv, int index)
   if (_cframe)
     {
       NSZoneFree(NSDefaultMallocZone(), _cframe);
-      _retval = 0;	// Part of _cframe
     }
+  if (_retptr)
+    {
+      NSZoneFree(NSDefaultMallocZone(), _retptr);
+    }
+  _retval = 0;
 #else
   if (_cframe)
     {
@@ -1061,7 +1058,6 @@ _arg_addr(NSInvocation *inv, int index)
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
   invocation = anInvocation;
-  [invocation _storeRetval];
 }
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
@@ -1077,9 +1073,3 @@ _arg_addr(NSInvocation *inv, int index)
 }
 @end
 
-@implementation NSInvocation (Private)
-- (void) _storeRetval
-{
-  return;       // subclass should implemente where necessary
-}
-@end
