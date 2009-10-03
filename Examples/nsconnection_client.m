@@ -610,14 +610,14 @@ int main (int argc, char *argv[], char **env)
 	}
     }
 
-#if 0
+#if 1
   /* Check that we can retain the connection, release the proxy,
    * and then regain the proxy from the connection.
    */
   cobj = RETAIN([prx connectionForProxy]);
   RELEASE(arp);
   arp = [NSAutoreleasePool new];
-  prx = [cobj rootObject];
+  prx = [cobj rootProxy];
   AUTORELEASE(cobj);
 #else
   cobj = [prx connectionForProxy];
