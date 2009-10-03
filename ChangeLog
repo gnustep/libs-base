@@ -1,3 +1,12 @@
+2009-10-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m:
+	Don't allow the root object of a connection to be released simply
+	because the remote proxy is released ... the connection itsself
+	may have been retained at the remote end, and the code there may
+	call the -rootProxy method and start sending messages to it again.
+	Fix for bug #27128
+
 2009-10-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortCoder.m:

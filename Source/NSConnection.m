@@ -1656,7 +1656,7 @@ static NSLock	*cached_proxies_gate = nil;
    * If this is a server connection without a remote end, its root proxy
    * is the same as its root object.
    */
-  if (IreceivePort ==IsendPort)
+  if (IreceivePort == IsendPort)
     {
       return [self rootObject];
     }
@@ -2843,25 +2843,42 @@ static void callEncoder (DOContext *ctxt)
   for (pos = 0; pos < count; pos++)
     {
       unsigned		target;
-      NSDistantObject	*prox;
+      ProxyStruct	*prox;
 
       [rmc decodeValueOfObjCType: @encode(typeof(target)) at: &target];
 
-      prox = (NSDistantObject*)[self includesLocalTarget: target];
-      if (prox != nil)
+      prox = (ProxyStruct*)[self includesLocalTarget: target];
+      if (prox != 0)
 	{
 	  if (debug_connection > 3)
 	    NSLog(@"releasing object with target (0x%x) on (%@) counter %d",
-		target, self, ((ProxyStruct*)prox)->_counter);
-#if 1
-	  // FIXME thread safety
-	  if (--(((ProxyStruct*)prox)->_counter) == 0)
+		target, self, prox->_counter);
+	  M_LOCK(IrefGate);
+	  NS_DURING
 	    {
-	      [self removeLocalObject: prox];
+	      if (--(prox->_counter) == 0)
+		{
+		  id	rootObject = rootObjectForInPort(IreceivePort);
+
+		  if (rootObject == prox->_object)
+		    {
+		      /* Don't deallocate root object ...
+		       */
+		      prox->_counter = 0;
+		    }
+		  else
+		    {
+		      [self removeLocalObject: (id)prox];
+		    }
+		}
 	    }
-#else
-	  [self removeLocalObject: prox];
-#endif
+	  NS_HANDLER
+	    {
+	      M_UNLOCK(IrefGate);
+	      [localException raise];
+	    }
+	  NS_ENDHANDLER
+	  M_UNLOCK(IrefGate);
 	}
       else if (debug_connection > 3)
 	NSLog(@"releasing object with target (0x%x) on (%@) - nothing to do",
