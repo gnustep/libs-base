@@ -50,6 +50,7 @@ extern "C" {
   BOOL                  _targetRetained;
   BOOL			_validReturn;
   BOOL			_sendToSuper;
+  void			*_retptr;
 }
 
 /*

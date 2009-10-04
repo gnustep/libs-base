@@ -30,7 +30,6 @@
 @interface GSFFIInvocation : NSInvocation
 {
   uint8_t	_retbuf[32];	// Store return values of up to 32 bytes here.
-  void		*_retptr;	// Store bigger return values in here.
 }
 @end
 
