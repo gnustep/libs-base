@@ -42,11 +42,12 @@ typedef int smallret_t;
 #endif
 
 callframe_t *
-callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
+callframe_from_signature (NSMethodSignature *info, void **retval)
 {
   unsigned      size = sizeof(callframe_t);
   unsigned      align = __alignof(double);
   unsigned      offset = 0;
+  unsigned	numargs = [info numberOfArguments];
   void          *buf;
   int           i;
   callframe_t   *cframe;
@@ -65,8 +66,9 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
         }
       for (i = 0; i < numargs; i++)
         {
-          size += info[i+1].size;
+	  const char	*type = [info getArgumentTypeAtIndex: i];
 
+          size += objc_sizeof_type (type);
           if (size % align != 0)
             {
               size += (align - size % align);
@@ -81,15 +83,26 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
    */
   if (retval)
     {
-      unsigned	full = size;
-      unsigned	pos;
+      const char	*type = [info methodReturnType];
+      unsigned		full = size;
+      unsigned		pos;
+      unsigned		ret;
 
       if (full % align != 0)
 	{
 	  full += (align - full % align);
 	}
+      if (full % 8 != 0)
+	{
+	  full += (8 - full % 8);
+	}
       pos = full;
-      full += MAX(info[0].size, sizeof(smallret_t));
+      ret = MAX(objc_sizeof_type (type), sizeof(double));
+      /* The addition of a constant '8' is a fudge applied simply because
+       * some return values write beynd the end of the memory if the buffer
+       * is sized exactly ... don't know why.
+       */
+      full += ret + 8;
 #if	GS_WITH_GC
       cframe = buf = NSAllocateCollectable(full, NSScannedOption);
 #else
@@ -122,7 +135,7 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
         {
           cframe->args[i] = buf + offset;
 
-          offset += info[i+1].size;
+          offset += objc_sizeof_type ([info getArgumentTypeAtIndex: i]);
 
           if (offset % align != 0)
             {

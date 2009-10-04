@@ -103,12 +103,6 @@ ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
   OBJC_LIBS += -lpthread
 endif
 
-ifneq ($(OBJC_RUNTIME_LIB), gnu)
-  ifneq ($(OBJC_RUNTIME_LIB), gnugc)
-    GNU_MFILES += objc-gnu2next.m
-  endif
-endif
-
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   GNU_MFILES += libgnustep-base-entry.m
 endif
@@ -142,7 +136,6 @@ Unicode.h \
 GNUstep.h \
 behavior.h \
 preface.h \
-objc-gnu2next.h \
 
 GNU_HEADERS = $(ADD_HEADERS)
 

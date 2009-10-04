@@ -191,7 +191,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   /* Note: We malloc cframe here, but it's passed to GSFFIInvocationCallback
      where it becomes owned by the callback invocation, so we don't have to
      worry about freeing it */
-  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], 0);
+  cframe = cifframe_from_signature(sig);
   /* Autorelease the closure through GSAutoreleasedBuffer */
 
   memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
@@ -312,7 +312,7 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _cframe = cifframe_from_info(_info, _numArgs, 0);
+  _cframe = cifframe_from_signature(_sig);
 
   /* Make sure we have somewhere to store the return value if needed.
    */

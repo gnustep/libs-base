@@ -66,7 +66,6 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 #include "Foundation/NSConnection.h"
 #undef	_IN_CONNECTION_M
 
-#include <mframe.h>
 #if defined(USE_LIBFFI)
 #include "cifframe.h"
 #elif defined(USE_FFCALL)
@@ -1972,7 +1971,7 @@ static NSLock	*cached_proxies_gate = nil;
   BOOL		outParams;
   BOOL		needsResponse;
   const char	*type;
-  DOContext	ctxt;
+  unsigned	seq;
   NSRunLoop	*runLoop = GSRunLoopForThread(nil);
 
   if ([IrunLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
@@ -2005,13 +2004,10 @@ static NSLock	*cached_proxies_gate = nil;
   NSParameterAssert(type);
   NSParameterAssert(*type);
 
-  memset(&ctxt, 0, sizeof(ctxt));
-  ctxt.connection = self;
-
-  op = [self _makeOutRmc: 0 generate: (int*)&ctxt.seq reply: YES];
+  op = [self _makeOutRmc: 0 generate: (int*)&seq reply: YES];
 
   if (debug_connection > 4)
-    NSLog(@"building packet seq %d", ctxt.seq);
+    NSLog(@"building packet seq %d", seq);
 
   [inv setTarget: object];
   outParams = [inv encodeWithDistantCoder: op passPointers: NO];
@@ -2043,7 +2039,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   [self _sendOutRmc: op type: METHOD_REQUEST];
   NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%x",
-    GSNameFromSelector([inv selector]), ctxt.seq, (uintptr_t)self);
+    GSNameFromSelector([inv selector]), seq, (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2055,7 +2051,7 @@ static NSLock	*cached_proxies_gate = nil;
        * a response, we must check for it and scrap it if necessary.
        */
       M_LOCK(IrefGate);
-      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)ctxt.seq);
+      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)seq);
       if (node != 0 && node->value.obj != dummyObject)
 	{
 	  BOOL	is_exception = NO;
@@ -2069,7 +2065,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
 	  [self _doneInRmc: node->value.obj];
 	}
-      GSIMapRemoveKey(IreplyMap, (GSIMapKey)ctxt.seq);
+      GSIMapRemoveKey(IreplyMap, (GSIMapKey)seq);
       M_UNLOCK(IrefGate);
     }
   else
@@ -2086,7 +2082,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  [NSException raise: NSGenericException
 	    format: @"connection waiting for request was shut down"];
 	}
-      aRmc = [self _getReplyRmc: ctxt.seq];
+      aRmc = [self _getReplyRmc: seq];
  
       /*
        * Find out if the server is returning an exception instead
@@ -2483,11 +2479,10 @@ static NSLock	*cached_proxies_gate = nil;
 - (void) _service_forwardForProxy: (NSPortCoder*)aRmc
 {
   char		*forward_type = 0;
-  DOContext	ctxt;
-
-  memset(&ctxt, 0, sizeof(ctxt));
-  ctxt.connection = self;
-  ctxt.decoder = aRmc;
+  NSPortCoder	*decoder = nil;
+  NSPortCoder	*encoder = nil;
+  NSInvocation	*inv = nil;
+  unsigned	seq;
 
   /*
    * Make sure don't let exceptions caused by servicing the client's
@@ -2495,7 +2490,20 @@ static NSLock	*cached_proxies_gate = nil;
    */
   NS_DURING
     {
-      NSRunLoop	*runLoop = GSRunLoopForThread(nil);
+      NSRunLoop		*runLoop = GSRunLoopForThread(nil);
+      const char	*type;
+      const char	*tmptype;
+      const char	*etmptype;
+      id		tmp;
+      id		object;
+      SEL		selector;
+      GSMethod		meth = 0;
+      BOOL		is_exception = NO;
+      unsigned		flags;
+      int		argnum;
+      BOOL		out_parameters = NO;
+      NSMethodSignature	*sig;
+      const char	*encoded_types = forward_type;
 
       NSParameterAssert (IisValid);
       if ([IrunLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
@@ -2512,7 +2520,7 @@ static NSLock	*cached_proxies_gate = nil;
 	}
 
       /* Save this for later */
-      [aRmc decodeValueOfObjCType: @encode(int) at: &ctxt.seq];
+      [aRmc decodeValueOfObjCType: @encode(int) at: &seq];
 
       /*
        * Get the types that we're using, so that we know
@@ -2522,51 +2530,25 @@ static NSLock	*cached_proxies_gate = nil;
        * to do this.
        */
       [aRmc decodeValueOfObjCType: @encode(char*) at: &forward_type];
-      ctxt.type = forward_type;
 
       if (debug_connection > 1)
       NSLog(
 	@"Handling message (sig %s) RMC %d from %@",
-	ctxt.type, ctxt.seq, (uintptr_t)self);
+	forward_type, seq, (uintptr_t)self);
 
       IreqInCount++;	/* Handling an incoming request. */
-    {
-      /* The method type string obtained from the target's OBJC_METHOD
-	 structure for the selector we're sending. */
-      const char *type;
-      /* A pointer into the local variable TYPE string. */
-      const char *tmptype;
-      /* A pointer into the argument ENCODED_TYPES string. */
-      const char *etmptype;
-      /* The target object that will receive the message. */
-      id object;
-      /* The selector for the message we're sending to the TARGET. */
-      SEL selector;
-      /* The OBJECT's Method(_t) pointer for the SELECTOR. */
-      GSMethod meth = 0;
-      BOOL	is_exception = NO;
-      /* Type qualifier flags; see <objc/objc-api.h>. */
-      unsigned flags;
-      /* Which argument number are we processing now? */
-      int argnum;
-      /* Does the method have any arguments that are passed by reference?
-	 If so, we need to encode them, since the method may have changed them. */
-      BOOL out_parameters = NO;
-      NSInvocation *inv;
-      /* Signature information */
-      NSMethodSignature *sig;
-      const char *encoded_types = forward_type;
 
+      encoded_types = forward_type;
       etmptype = encoded_types;
 
-      ctxt.encoder = aRmc;
+      decoder = aRmc;
 
       /* Decode the object, (which is always the first argument to a method). */
-      [aRmc decodeValueOfObjCType: @encode(id) at: &object];
+      [decoder decodeValueOfObjCType: @encode(id) at: &object];
 
-      /* Decode the selector, (which is always the second argument to a method). */ 
+      /* Decode the selector, (which is the second argument to a method). */ 
       /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
-      [aRmc decodeValueOfObjCType: @encode(SEL) at: &selector];
+      [decoder decodeValueOfObjCType: @encode(SEL) at: &selector];
 
       /* Get the "selector type" for this method.  The "selector type" is
 	 a string that lists the return and argument types, and also
@@ -2617,7 +2599,6 @@ static NSLock	*cached_proxies_gate = nil;
 
       sig = [NSMethodSignature signatureWithObjCTypes: type];
       inv = [[NSInvocation alloc] initWithMethodSignature: sig];
-      ctxt.objToFree = inv;
 
       tmptype = objc_skip_argspec (type);
       etmptype = objc_skip_argspec (etmptype);
@@ -2674,7 +2655,7 @@ static NSLock	*cached_proxies_gate = nil;
 		if ((flags & _F_IN) || !(flags & _F_OUT))
 		  {
 		    datum = alloca (sizeof(char*));
-		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    [decoder decodeValueOfObjCType: tmptype at: datum];
 		    [inv setArgument: datum atIndex: argnum];
 		  }
 		break;
@@ -2699,7 +2680,7 @@ static NSLock	*cached_proxies_gate = nil;
 		if ((flags & _F_IN) || !(flags & _F_OUT))
 		  {
 		    datum = alloca (objc_sizeof_type (tmptype));
-		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    [decoder decodeValueOfObjCType: tmptype at: datum];
 		    [inv setArgument: &datum atIndex: argnum];
 		  }
 		break;
@@ -2708,11 +2689,11 @@ static NSLock	*cached_proxies_gate = nil;
 		datum = alloca (objc_sizeof_type (tmptype));
 		if (*tmptype == _C_ID)
 		  {
-		    *(id*)datum = [aRmc decodeObject];
+		    *(id*)datum = [decoder decodeObject];
 		  }
 		else
 		  {
-		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    [decoder decodeValueOfObjCType: tmptype at: datum];
 		  }
 		[inv setArgument: datum atIndex: argnum];
 	    }
@@ -2720,8 +2701,9 @@ static NSLock	*cached_proxies_gate = nil;
 
       /* Stop using the decoder.
        */
-      [self _doneInRmc: aRmc];
-      ctxt.decoder = nil;
+      tmp = decoder;
+      decoder = nil;
+      [self _doneInRmc: tmp];
 
       /* Invoke the method! */
       [inv invoke];
@@ -2732,6 +2714,9 @@ static NSLock	*cached_proxies_gate = nil;
        */
       if ([self isValid] == NO)
 	{
+	  tmp = inv;
+	  inv = nil;
+	  [tmp release];
 	  return;
 	}
 
@@ -2739,9 +2724,8 @@ static NSLock	*cached_proxies_gate = nil;
        * later use if/when we are called again.  We encode a flag to
        * say that this is not an exception.
        */
-      aRmc = [self _makeOutRmc: ctxt.seq generate: 0 reply: NO];
-      ctxt.encoder = aRmc;
-      [aRmc encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+      encoder = [self _makeOutRmc: seq generate: 0 reply: NO];
+      [encoder encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
 
       /* Encode the return value and pass-by-reference values, if there
 	 are any.  This logic must match exactly that in
@@ -2765,7 +2749,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    {
 	      int	dummy = 0;
 
-	      [aRmc encodeValueOfObjCType: @encode(int) at: (void*)&dummy];
+	      [encoder encodeValueOfObjCType: @encode(int) at: (void*)&dummy];
 	    }
 	  /* No return value to encode; do nothing. */
 	}
@@ -2785,7 +2769,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      datum = alloca (objc_sizeof_type (tmptype));
 	    }
 	  [inv getReturnValue: datum];
-	  [aRmc encodeValueOfObjCType: tmptype at: datum];
+	  [encoder encodeValueOfObjCType: tmptype at: datum];
 	}
 
 
@@ -2827,22 +2811,23 @@ static NSLock	*cached_proxies_gate = nil;
 			 it is a pass-by-reference argument.*/
 		      ++tmptype;
 		      [inv getArgument: &datum atIndex: argnum];
-		      [aRmc encodeValueOfObjCType: tmptype at: datum];
+		      [encoder encodeValueOfObjCType: tmptype at: datum];
 		    }
 		  else if (*tmptype == _C_CHARPTR)
 		    {
 		      datum = alloca (sizeof (char*));
 		      [inv getArgument: datum atIndex: argnum];
-		      [aRmc encodeValueOfObjCType: tmptype at: datum];
+		      [encoder encodeValueOfObjCType: tmptype at: datum];
 		    }
 		}
 	    }
 	}
-      ctxt.objToFree = nil;
-      [inv release];
-      [self _sendOutRmc: aRmc type: METHOD_REPLY];
-      ctxt.encoder = nil;
-    }
+      tmp = inv;
+      inv = nil;
+      [tmp release];
+      tmp = encoder;
+      encoder = nil;
+      [self _sendOutRmc: tmp type: METHOD_REPLY];
     }
   NS_HANDLER
     {
@@ -2858,25 +2843,19 @@ static NSLock	*cached_proxies_gate = nil;
 	    {
 	      NSPortCoder	*op;
 
-	      if (ctxt.datToFree != 0)
+	      if (inv != nil)
 		{
-		  NSZoneFree(NSDefaultMallocZone(), ctxt.datToFree);
-		  ctxt.datToFree = 0;
+		  [inv release];
 		}
-	      if (ctxt.objToFree != nil)
+	      if (decoder != nil)
 		{
-		  NSDeallocateObject(ctxt.objToFree);
-		  ctxt.objToFree = nil;
+		  [self _failInRmc: decoder];
 		}
-	      if (ctxt.decoder != nil)
+	      if (encoder != nil)
 		{
-		  [self _failInRmc: ctxt.decoder];
+		  [self _failOutRmc: encoder];
 		}
-	      if (ctxt.encoder != nil)
-		{
-		  [self _failOutRmc: ctxt.encoder];
-		}
-	      op = [self _makeOutRmc: ctxt.seq generate: 0 reply: NO];
+	      op = [self _makeOutRmc: seq generate: 0 reply: NO];
 	      [op encodeValueOfObjCType: @encode(BOOL)
 				     at: &is_exception];
 	      [op encodeBycopyObject: localException];

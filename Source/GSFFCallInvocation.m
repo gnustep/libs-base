@@ -546,7 +546,7 @@ static IMP gs_objc_msg_forward (SEL sel)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _cframe = callframe_from_info(_info, _numArgs, &_retval);
+  _cframe = callframe_from_signature(_sig, &_retval);
   return self;
 }
 

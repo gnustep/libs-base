@@ -121,7 +121,7 @@ cifframe_guess_struct_size(ffi_type *stype)
 
 
 cifframe_t *
-cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
+cifframe_from_signature (NSMethodSignature *info)
 {
   unsigned      size = sizeof(cifframe_t);
   unsigned      align = __alignof(double);
@@ -129,6 +129,7 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
   unsigned      offset = 0;
   void          *buf;
   int           i;
+  int		numargs = [info numberOfArguments];
   ffi_type      *rtype;
   ffi_type      *arg_types[numargs];
   cifframe_t    *cframe;
@@ -137,10 +138,10 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
      have custom ffi_types with are allocated separately. We should allocate
      them in our cifframe so we don't leak memory. Or maybe we could
      cache structure types? */
-  rtype = cifframe_type(info[0].type, NULL);
+  rtype = cifframe_type([info methodReturnType], NULL);
   for (i = 0; i < numargs; i++)
     {
-      arg_types[i] = cifframe_type(info[i+1].type, NULL);
+      arg_types[i] = cifframe_type([info getArgumentTypeAtIndex: i], NULL);
     }
 
   if (numargs > 0)
@@ -176,48 +177,11 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
         }
     }
 
-  /*
-   * If we need space allocated to store a return value,
-   * make room for it at the end of the cifframe so we
-   * only need to do a single malloc.
-   */
-  if (rtype && (rtype->size > 0 || rtype->elements != NULL))
-    {
-      unsigned	full = size;
-      unsigned	pos;
-
-      if (full % align != 0)
-	{
-	  full += (align - full % align);
-	}
-      pos = full;
-      if (rtype->elements)
-	full += cifframe_guess_struct_size(rtype);
-      else
-	full += MAX(rtype->size, sizeof(smallret_t));
-      /* HACK ... not sure why, but on my 64bit intel system adding a bit
-       * more to the buffer size prevents writing outside the allocated
-       * memory by the ffi stuff.
-       */
-      full += 64;
 #if	GS_WITH_GC
-      cframe = buf = NSAllocateCollectable(full, NSScannedOption);
+  cframe = buf = NSAllocateCollectable(size, NSScannedOption);
 #else
-      cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
+  cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), size, 1);
 #endif
-      if (cframe && retval)
-	{
-	  *retval = buf + pos;
-	}
-    }
-  else
-    {
-#if	GS_WITH_GC
-      cframe = buf = NSAllocateCollectable(size, NSScannedOption);
-#else
-      cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), size, 1);
-#endif
-    }
 
   if (cframe)
     {
