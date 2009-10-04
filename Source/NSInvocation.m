@@ -329,18 +329,12 @@ _arg_addr(NSInvocation *inv, int index)
   if (_cframe)
     {
       NSZoneFree(NSDefaultMallocZone(), _cframe);
-      _retval = 0;	// Part of _cframe
     }
 #elif defined(USE_FFCALL)
   if (_cframe)
     {
       NSZoneFree(NSDefaultMallocZone(), _cframe);
     }
-  if (_retptr)
-    {
-      NSZoneFree(NSDefaultMallocZone(), _retptr);
-    }
-  _retval = 0;
 #else
   if (_cframe)
     {
@@ -351,6 +345,10 @@ _arg_addr(NSInvocation *inv, int index)
       NSZoneFree(NSDefaultMallocZone(), _retval);
     }
 #endif
+  if (_retptr)
+    {
+      NSZoneFree(NSDefaultMallocZone(), _retptr);
+    }
   RELEASE(_sig);
   [super dealloc];
 }
