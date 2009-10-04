@@ -61,12 +61,4 @@ extern void *cifframe_arg_addr(cifframe_t *cframe, int index);
 extern BOOL cifframe_decode_arg (const char *type, void* buffer);
 extern BOOL cifframe_encode_arg (const char *type, void* buffer);
 
-extern void cifframe_do_call (DOContext *ctxt,
-		void(*decoder)(DOContext*),
-		void(*encoder)(DOContext*));
-extern void cifframe_build_return (NSInvocation *inv,
-		const char *type, 
-		BOOL out_parameters,
-		void(*decoder)(DOContext*),
-		DOContext* ctxt);
 #endif

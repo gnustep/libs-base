@@ -1,3 +1,13 @@
+2009-10-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/cifframe.h: Remove unused code
+	* Source/cifframe.m: ditto
+	* Source/callframe.h: ditto
+	* Source/callframe.m: ditto
+	* Source/NSConnection.m: Use NSInvocation functionality directly
+	rather than duplicated versions of the code in ffi/ffcall/mframe
+	specific files.  Should simplify things and make maintenance easier.
+
 2009-10-03 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSInvocation.h:
