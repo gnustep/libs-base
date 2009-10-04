@@ -52,7 +52,6 @@ typedef struct _cifframe_t {
 
 extern cifframe_t *cifframe_from_info (NSArgumentInfo *info, int numargs,
 					 void **retval);
-extern unsigned retval_offset_from_info (NSArgumentInfo *info, int numargs);
 
 extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, 
 			     int size);
