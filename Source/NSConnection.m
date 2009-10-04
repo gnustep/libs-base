@@ -1948,89 +1948,6 @@ static NSLock	*cached_proxies_gate = nil;
   RELEASE(arp);
 }
 
-static void retDecoder(DOContext *ctxt)
-{
-  NSPortCoder	*coder = ctxt->decoder;
-  const char	*type = ctxt->type;
-
-  if (type == 0)
-    {
-      if (coder != nil)
-	{
-	  ctxt->decoder = nil;
-	  [ctxt->connection _doneInReply: coder];
-	}
-      return;
-    }
-  /* If we didn't get the reply packet yet, get it now. */
-  if (coder == nil)
-    {
-      BOOL	is_exception;
-
-      if ([ctxt->connection isValid] == NO)
-	{
-	  [NSException raise: NSGenericException
-	    format: @"connection waiting for request was shut down"];
-	}
-      ctxt->decoder = [ctxt->connection _getReplyRmc: ctxt->seq];
-      coder = ctxt->decoder;
-      /*
-       * Find out if the server is returning an exception instead
-       * of the return values.
-       */
-      [coder decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-      if (is_exception == YES)
-	{
-	  /* Decode the exception object, and raise it. */
-	  id exc = [coder decodeObject];
-
-	  ctxt->decoder = nil;
-	  [ctxt->connection _doneInReply: coder];
-	  if (ctxt->datToFree != 0)
-	    {
-	      NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
-	      ctxt->datToFree = 0;
-	    }
-	  [exc raise];
-	}
-    }
-  if (*type == _C_ID)
-    {
-      *(id*)ctxt->datum = [coder decodeObject];
-    }
-  else
-    {
-      [coder decodeValueOfObjCType: type at: ctxt->datum];
-    }
-}
-
-#if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
-static void retEncoder (DOContext *ctxt)
-{
-  switch (*ctxt->type)
-    {
-    case _C_ID:
-      if (ctxt->flags & _F_BYCOPY)
-	{
-	  [ctxt->encoder encodeBycopyObject: *(id*)ctxt->datum];
-	}
-#ifdef	_F_BYREF
-      else if (ctxt->flags & _F_BYREF)
-	{
-	  [ctxt->encoder encodeByrefObject: *(id*)ctxt->datum];
-	}
-#endif
-      else
-	{
-	  [ctxt->encoder encodeObject: *(id*)ctxt->datum];
-	}
-      break;
-    default:
-      [ctxt->encoder encodeValueOfObjCType: ctxt->type at: ctxt->datum];
-    }
-}
-#endif
-
 /*
  * NSDistantObject's -forward:: method calls this to send the message
  * over the wire.
@@ -2039,148 +1956,9 @@ static void retEncoder (DOContext *ctxt)
 		    selector: (SEL)sel
                     argFrame: (arglist_t)argframe
 {
-#if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
-  BOOL		outParams;
-  BOOL		needsResponse;
-  const char	*type;
-  retval_t	retframe;
-  DOContext	ctxt;
-  NSRunLoop	*runLoop = GSRunLoopForThread(nil);
-
-  memset(&ctxt, 0, sizeof(ctxt));
-  ctxt.connection = self;
-
-  /* Encode the method on an RMC, and send it. */
-
-  NSParameterAssert (IisValid);
-
-  if ([IrunLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
-    {
-      if (ImultipleThreads == NO)
-	{
-	  [NSException raise: NSObjectInaccessibleException
-		      format: @"Forwarding message in wrong thread"];
-	}
-      else
-	{
-	  [self addRunLoop: runLoop];
-	}
-    }
-
-  /* get the method types from the selector */
-#if NeXT_RUNTIME
-  [NSException
-    raise: NSGenericException
-    format: @"Sorry, distributed objects does not work with NeXT runtime"];
-  /* type = [object selectorTypeForProxy: sel]; */
-#else
-  type = sel_get_type(sel);
-  if (type == 0 || *type == '\0')
-    {
-      type = [[object methodSignatureForSelector: sel] methodType];
-      if (type)
-	{
-	  sel_register_typed_name(GSNameFromSelector(sel), type);
-	}
-    }
-#endif
-  NSParameterAssert(type);
-  NSParameterAssert(*type);
-
-  ctxt.encoder = [self _makeOutRmc: 0 generate: (int*)&ctxt.seq reply: YES];
-
-  if (debug_connection > 4)
-    NSLog(@"building packet seq %d", ctxt.seq);
-
-  /* Send the types that we're using, so that the performer knows
-     exactly what qualifiers we're using.
-     If all selectors included qualifiers, and if I could make
-     sel_types_match() work the way I wanted, we wouldn't need to do
-     this. */
-  [ctxt.encoder encodeValueOfObjCType: @encode(char*) at: &type];
-
-  /* xxx This doesn't work with proxies and the NeXT runtime because
-     type may be a method_type from a remote machine with a
-     different architecture, and its argframe layout specifiers
-     won't be right for this machine! */
-  outParams = mframe_dissect_call (argframe, type, retEncoder, &ctxt);
-
-  if (outParams == YES)
-    {
-      needsResponse = YES;
-    }
-  else
-    {
-      int		flags;
-
-      needsResponse = NO;
-      flags = objc_get_type_qualifiers(type);
-      if ((flags & _F_ONEWAY) == 0)
-	{
-	  needsResponse = YES;
-	}
-      else
-	{
-	  const char	*tmptype = objc_skip_type_qualifiers(type);
-
-	  if (*tmptype != _C_VOID)
-	    {
-	      needsResponse = YES;
-	    }
-	}
-    }
-
-  [self _sendOutRmc: ctxt.encoder type: METHOD_REQUEST];
-  ctxt.encoder = nil;
-  NSDebugMLLog(@"NSConnection", @"Sent message (%s) RMX %d to 0x%x",
-    GSNameFromSelector(sel), ctxt.seq, (uintptr_t)self);
-
-  if (needsResponse == NO)
-    {
-      GSIMapNode	node;
-
-      /*
-       * Since we don't need a response, we can remove the placeholder from
-       * the IreplyMap.  However, in case the other end has already sent us
-       * a response, we must check for it and scrap it if necessary.
-       */
-      M_LOCK(IrefGate);
-      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)ctxt.seq);
-      if (node != 0 && node->value.obj != dummyObject)
-	{
-	  BOOL	is_exception = NO;
-
-	  [node->value.obj decodeValueOfObjCType: @encode(BOOL)
-					      at: &is_exception];
-	  if (is_exception == YES)
-	    NSLog(@"Got exception with %@", NSStringFromSelector(sel));
-	  else
-	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
-	  [self _doneInRmc: node->value.obj];
-	}
-      GSIMapRemoveKey(IreplyMap, (GSIMapKey)ctxt.seq);
-      M_UNLOCK(IrefGate);
-      retframe = alloca(sizeof(void*));	 /* Dummy value for void return. */
-    }
-  else
-    {
-      retframe = mframe_build_return (argframe, type, outParams,
-	retDecoder, &ctxt);
-      /* Make sure we processed all arguments, and dismissed the IP.
-	 IP is always set to -1 after being dismissed; the only places
-	 this is done is in this function DECODER().  IP will be nil
-	 if mframe_build_return() never called DECODER(), i.e. when
-	 we are just returning (void).*/
-      NSAssert(ctxt.decoder == nil, NSInternalInconsistencyException);
-    }
-  return retframe;
-#else
-  /* If we've got to here then something has gone badly wrong.  Most likely a
-   * mismatch between NSDistantObject and NSConnection implementations.
-   */
-  NSAssert(NO, @"Legacy forwardForProxy:selector:argFrame: method called when compiled with fcall/ffi."); 
-  return 0; // Not reached.
-#endif //!defined(USE_FFCALL) && !defined(USE_LIBFFI)
+[NSException raise: NSInternalInconsistencyException
+	    format: @"Obsolete method called"];
+  return 0;
 }
 
 /*
@@ -2296,20 +2074,12 @@ static void retEncoder (DOContext *ctxt)
     }
   else
     {
-#if 1
-      /* Which argument number are we processing now? */
-      int argnum;
-      /* Type qualifier flags; see <objc/objc-api.h>. */
-      int flags;
-      /* A pointer into the TYPE string. */
-      const char *tmptype;
-      /* Points at individual arguments. */
-      void *datum;
-      const char *rettype;
-      /* Signature information */
+      int		argnum;
+      int		flags;
+      const char	*tmptype;
+      void		*datum;
       NSPortCoder	*aRmc;
-
-      BOOL	is_exception;
+      BOOL		is_exception;
 
       if ([self isValid] == NO)
 	{
@@ -2335,7 +2105,6 @@ static void retEncoder (DOContext *ctxt)
       /* Get the return type qualifier flags, and the return type. */
       flags = objc_get_type_qualifiers(type);
       tmptype = objc_skip_type_qualifiers(type);
-      rettype = tmptype;
 
       /* Decode the return value and pass-by-reference values, if there
 	 are any.  OUT_PARAMETERS should be the value returned by
@@ -2345,9 +2114,6 @@ static void retEncoder (DOContext *ctxt)
 	/* xxx What happens with method declared "- (in char *) bar;" */
 	/* xxx Is this right?  Do we also have to check _F_ONEWAY? */
 	{
-	  /* ARGNUM == -1 signifies to DECODER() that this is the return
-	     value, not an argument. */
-
 	  /* If there is a return value, decode it, and put it in datum. */
 	  if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
 	    {	
@@ -2394,33 +2160,23 @@ static void retEncoder (DOContext *ctxt)
 		  if (*tmptype == _C_PTR
 		    && ((flags & _F_OUT) || !(flags & _F_IN)))
 		    {
+		      /* If the arg was myref, we obtain its address
+		       * and decode the data directly to it.
+		       */
 		      tmptype++;
-		      datum = alloca (objc_sizeof_type (tmptype));
-
+		      [inv getArgument: &datum atIndex: argnum];
 		      [aRmc decodeValueOfObjCType: tmptype at: datum];
-		      [inv setArgument: datum atIndex: argnum];
 		    }
 		  else if (*tmptype == _C_CHARPTR
 		    && ((flags & _F_OUT) || !(flags & _F_IN)))
 		    {
 		      [aRmc decodeValueOfObjCType: tmptype at: &datum];
-		      [inv setArgument: &datum atIndex: argnum];
+		      [inv setArgument: datum atIndex: argnum];
 		    }
 		}
 	    }
 	}
       [self _doneInReply: aRmc];
-#elif USE_LIBFFI
-      cifframe_build_return (inv, type, outParams, retDecoder, &ctxt);
-#elif defined(USE_FFCALL)
-      callframe_build_return (inv, type, outParams, retDecoder, &ctxt);
-#endif
-      /* Make sure we processed all arguments, and dismissed the IP.
-	 IP is always set to -1 after being dismissed; the only places
-	 this is done is in this function DECODER().  IP will be nil
-	 if mframe_build_return() never called DECODER(), i.e. when
-	 we are just returning (void).*/
-      NSAssert(ctxt.decoder == nil, NSInternalInconsistencyException);
     }
 }
 
@@ -2722,96 +2478,6 @@ static void retEncoder (DOContext *ctxt)
     }
 }
 
-static void callDecoder (DOContext *ctxt)
-{
-  const char	*type = ctxt->type;
-
-  /*
-   * We need this "dismiss" to happen here and not later so that Coder
-   * "-awake..." methods will get sent before the method using the
-   * objects is invoked.  We clear the 'decoder' field in the context to
-   * show that it is no longer valid.
-   */
-  if (type == 0)
-    {
-      NSPortCoder	*coder = ctxt->decoder;
-
-      ctxt->decoder = nil;
-      [ctxt->connection _doneInRmc: coder];
-      return;
-    }
-
-  /*
-   * The coder may have an optimised method for decoding objects
-   * so we use that one if we are expecting an object, otherwise
-   * we use thegeneric method.
-   */
-  if (*type == _C_ID)
-    {
-      *(id*)ctxt->datum = [ctxt->decoder decodeObject];
-    }
-  else
-    {
-      [ctxt->decoder decodeValueOfObjCType: type at: ctxt->datum];
-    }
-}
-
-static void callEncoder (DOContext *ctxt)
-{
-  const char		*type = ctxt->type;
-  NSPortCoder		*coder = ctxt->encoder;
-
-  if (coder == nil)
-    {
-      BOOL is_exception = NO;
-
-      /*
-       * It is possible that our connection died while the method was
-       * being called - in this case we mustn't try to send the result
-       * back to the remote application!
-       */
-      if ([ctxt->connection isValid] == NO)
-	{
-	  return;
-	}
-
-      /*
-       * We create a new coder object and set it in the context for
-       * later use if/when we are called again.  We encode a flag to
-       * say that this is not an exception.
-       */
-      ctxt->encoder = [ctxt->connection _makeOutRmc: ctxt->seq
-					   generate: 0
-					      reply: NO];
-      coder = ctxt->encoder;
-      [coder encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-    }
-
-  if (*type == _C_ID)
-    {
-      int	flags = ctxt->flags;
-
-      if (flags & _F_BYCOPY)
-	{
-	  [coder encodeBycopyObject: *(id*)ctxt->datum];
-	}
-#ifdef	_F_BYREF
-      else if (flags & _F_BYREF)
-	{
-	  [coder encodeByrefObject: *(id*)ctxt->datum];
-	}
-#endif
-      else
-	{
-	  [coder encodeObject: *(id*)ctxt->datum];
-	}
-    }
-  else
-    {
-      [coder encodeValueOfObjCType: type at: ctxt->datum];
-    }
-}
-
 
 /* NSConnection calls this to service the incoming method request. */
 - (void) _service_forwardForProxy: (NSPortCoder*)aRmc
@@ -2864,331 +2530,319 @@ static void callEncoder (DOContext *ctxt)
 	ctxt.type, ctxt.seq, (uintptr_t)self);
 
       IreqInCount++;	/* Handling an incoming request. */
-#if 1
-{
-  /* The method type string obtained from the target's OBJC_METHOD
-     structure for the selector we're sending. */
-  const char *type;
-  /* A pointer into the local variable TYPE string. */
-  const char *tmptype;
-  /* A pointer into the argument ENCODED_TYPES string. */
-  const char *etmptype;
-  /* The target object that will receive the message. */
-  id object;
-  /* The selector for the message we're sending to the TARGET. */
-  SEL selector;
-  /* The OBJECT's Method(_t) pointer for the SELECTOR. */
-  GSMethod meth = 0;
-  BOOL	is_exception = NO;
-  /* Type qualifier flags; see <objc/objc-api.h>. */
-  unsigned flags;
-  /* Which argument number are we processing now? */
-  int argnum;
-  /* Does the method have any arguments that are passed by reference?
-     If so, we need to encode them, since the method may have changed them. */
-  BOOL out_parameters = NO;
-  NSInvocation *inv;
-  /* Signature information */
-  NSMethodSignature *sig;
-  const char *encoded_types = forward_type;
-
-  etmptype = encoded_types;
-
-  ctxt.encoder = aRmc;
-
-  /* Decode the object, (which is always the first argument to a method). */
-  [aRmc decodeValueOfObjCType: @encode(id) at: &object];
-
-  /* Decode the selector, (which is always the second argument to a method). */ 
-  /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
-  [aRmc decodeValueOfObjCType: @encode(SEL) at: &selector];
-
-  /* Get the "selector type" for this method.  The "selector type" is
-     a string that lists the return and argument types, and also
-     indicates in which registers and where on the stack the arguments
-     should be placed before the method call.  The selector type
-     string we get here should have the same argument and return types
-     as the ENCODED_TYPES string, but it will have different register
-     and stack locations if the ENCODED_TYPES came from a machine of a
-     different architecture. */
-  if (GSObjCIsClass(object))
     {
-      meth = GSGetMethod(object, selector, NO, YES);
-    }
-  else if (GSObjCIsInstance(object))
-    {
-      meth = GSGetMethod(GSObjCClass(object), selector, YES, YES);
-    }
-  else
-    {
-      [NSException raise: NSInvalidArgumentException
-		   format: @"decoded object %p is invalid", object];
-    }
-  
-  if (meth != 0)
-    {
-      type = meth->method_types;
-    }
-  else
-    {
-      NSDebugLog(@"Local object <%p %s> doesn't implement: %s directly.  "
-		 @"Will search for arbitrary signature.",
-		 object,
-		 GSNameFromClass(GSObjCIsClass(object) 
-				 ? object : (id)GSObjCClass(object)),
-		 GSNameFromSelector(selector));
-      type = GSTypesFromSelector(selector);
-    }
+      /* The method type string obtained from the target's OBJC_METHOD
+	 structure for the selector we're sending. */
+      const char *type;
+      /* A pointer into the local variable TYPE string. */
+      const char *tmptype;
+      /* A pointer into the argument ENCODED_TYPES string. */
+      const char *etmptype;
+      /* The target object that will receive the message. */
+      id object;
+      /* The selector for the message we're sending to the TARGET. */
+      SEL selector;
+      /* The OBJECT's Method(_t) pointer for the SELECTOR. */
+      GSMethod meth = 0;
+      BOOL	is_exception = NO;
+      /* Type qualifier flags; see <objc/objc-api.h>. */
+      unsigned flags;
+      /* Which argument number are we processing now? */
+      int argnum;
+      /* Does the method have any arguments that are passed by reference?
+	 If so, we need to encode them, since the method may have changed them. */
+      BOOL out_parameters = NO;
+      NSInvocation *inv;
+      /* Signature information */
+      NSMethodSignature *sig;
+      const char *encoded_types = forward_type;
 
-  /* Make sure we successfully got the method type, and that its
-     types match the ENCODED_TYPES. */
-  NSCParameterAssert (type);
-  if (GSSelectorTypesMatch(encoded_types, type) == NO)
-    {
-      [NSException raise: NSInvalidArgumentException
-	format: @"NSConection types (%s / %s) missmatch for %s", 
-	encoded_types, type, GSNameFromSelector(selector)];
-    }
+      etmptype = encoded_types;
 
-  sig = [NSMethodSignature signatureWithObjCTypes: type];
-  inv = [[NSInvocation alloc] initWithMethodSignature: sig];
-  ctxt.objToFree = inv;
+      ctxt.encoder = aRmc;
 
-  tmptype = objc_skip_argspec (type);
-  etmptype = objc_skip_argspec (etmptype);
-  [inv setTarget: object];
+      /* Decode the object, (which is always the first argument to a method). */
+      [aRmc decodeValueOfObjCType: @encode(id) at: &object];
 
-  tmptype = objc_skip_argspec (tmptype);
-  etmptype = objc_skip_argspec (etmptype);
-  [inv setSelector: selector];
+      /* Decode the selector, (which is always the second argument to a method). */ 
+      /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
+      [aRmc decodeValueOfObjCType: @encode(SEL) at: &selector];
 
-
-  /* Step TMPTYPE and ETMPTYPE in lock-step through their
-     method type strings. */
-
-  for (tmptype = objc_skip_argspec (tmptype),
-       etmptype = objc_skip_argspec (etmptype), argnum = 2;
-       *tmptype != '\0';
-       tmptype = objc_skip_argspec (tmptype),
-       etmptype = objc_skip_argspec (etmptype), argnum++)
-    {
-      void	*datum;
-
-      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
-      flags = objc_get_type_qualifiers (etmptype);
-      /* Skip over the type qualifiers, so now TYPE is pointing directly
-	 at the char corresponding to the argument's type, as defined
-	 in <objc/objc-api.h> */
-      tmptype = objc_skip_type_qualifiers(tmptype);
-
-      /* Decide how, (or whether or not), to decode the argument
-	 depending on its FLAGS and TMPTYPE.  Only the first two cases
-	 involve parameters that may potentially be passed by
-	 reference, and thus only the first two may change the value
-	 of OUT_PARAMETERS.  *** Note: This logic must match exactly
-	 the code in cifframe_dissect_call(); that function should
-	 encode exactly what we decode here. *** */
-
-      switch (*tmptype)
+      /* Get the "selector type" for this method.  The "selector type" is
+	 a string that lists the return and argument types, and also
+	 indicates in which registers and where on the stack the arguments
+	 should be placed before the method call.  The selector type
+	 string we get here should have the same argument and return types
+	 as the ENCODED_TYPES string, but it will have different register
+	 and stack locations if the ENCODED_TYPES came from a machine of a
+	 different architecture. */
+      if (GSObjCIsClass(object))
 	{
-	  case _C_CHARPTR:
-	    /* Handle a (char*) argument. */
-	    /* If the char* is qualified as an OUT parameter, or if it
-	       not explicitly qualified as an IN parameter, then we will
-	       have to get this char* again after the method is run,
-	       because the method may have changed it.  Set
-	       OUT_PARAMETERS accordingly. */
-	    if ((flags & _F_OUT) || !(flags & _F_IN))
-	      out_parameters = YES;
-	    /* If the char* is qualified as an IN parameter, or not
-	       explicity qualified as an OUT parameter, then decode it.
-	       Note: the decoder allocates memory for holding the
-	       string, and it is also responsible for making sure that
-	       the memory gets freed eventually, (usually through the
-	       autorelease of NSData object). */
-	    if ((flags & _F_IN) || !(flags & _F_OUT))
-	      {
-		datum = alloca (sizeof(char*));
-	        [aRmc decodeValueOfObjCType: tmptype at: datum];
-		[inv setArgument: datum atIndex: argnum];
-	      }
-	    break;
-
-	  case _C_PTR:
-	    /* If the pointer's value is qualified as an OUT parameter,
-	       or if it not explicitly qualified as an IN parameter,
-	       then we will have to get the value pointed to again after
-	       the method is run, because the method may have changed
-	       it.  Set OUT_PARAMETERS accordingly. */
-	    if ((flags & _F_OUT) || !(flags & _F_IN))
-	      out_parameters = YES;
-
-	    /* Handle an argument that is a pointer to a non-char.  But
-	       (void*) and (anything**) is not allowed. */
-	    /* The argument is a pointer to something; increment TYPE
-		 so we can see what it is a pointer to. */
-	    tmptype++;
-	    /* If the pointer's value is qualified as an IN parameter,
-	       or not explicity qualified as an OUT parameter, then
-	       decode it. */
-	    if ((flags & _F_IN) || !(flags & _F_OUT))
-	      {
-		datum = alloca (objc_sizeof_type (tmptype));
-	        [aRmc decodeValueOfObjCType: tmptype at: datum];
-		[inv setArgument: &datum atIndex: argnum];
-	      }
-	    break;
-
-	  default:
-	    datum = alloca (objc_sizeof_type (tmptype));
-	    if (*tmptype == _C_ID)
-	      {
-	        *(id*)datum = [aRmc decodeObject];
-              }
-	    else
-	      {
-	        [aRmc decodeValueOfObjCType: tmptype at: datum];
-	      }
-	    [inv setArgument: datum atIndex: argnum];
+	  meth = GSGetMethod(object, selector, NO, YES);
 	}
-    }
-
-  /* Stop using the decoder.
-   */
-  [self _doneInRmc: aRmc];
-  ctxt.decoder = nil;
-
-  /* Invoke the method! */
-  [inv invoke];
-
-  /* It is possible that our connection died while the method was
-   * being called - in this case we mustn't try to send the result
-   * back to the remote application!
-   */
-  if ([self isValid] == NO)
-    {
-      return;
-    }
-
-  /* We create a new coder object and set it in the context for
-   * later use if/when we are called again.  We encode a flag to
-   * say that this is not an exception.
-   */
-  aRmc = [self _makeOutRmc: ctxt.seq generate: 0 reply: NO];
-  ctxt.encoder = aRmc;
-  [aRmc encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-
-  /* Encode the return value and pass-by-reference values, if there
-     are any.  This logic must match exactly that in
-     cifframe_build_return(). */
-  /* OUT_PARAMETERS should be true here in exactly the same
-     situations as it was true in cifframe_dissect_call(). */
-
-  /* Get the qualifier type of the return value. */
-  flags = objc_get_type_qualifiers (encoded_types);
-  /* Get the return type; store it our two temporary char*'s. */
-  etmptype = objc_skip_type_qualifiers (encoded_types);
-  tmptype = objc_skip_type_qualifiers (type);
-
-  /* Only encode return values if there is a non-void return value,
-     a non-oneway void return value, or if there are values that were
-     passed by reference. */
-
-  if (*tmptype == _C_VOID)
-    {
-      if ((flags & _F_ONEWAY) == 0)
+      else if (GSObjCIsInstance(object))
 	{
-	  int	dummy = 0;
-
-	  [aRmc encodeValueOfObjCType: @encode(int) at: (void*)&dummy];
-	}
-      /* No return value to encode; do nothing. */
-    }
-  else
-    {
-      void	*datum;
-
-      if (*tmptype == _C_PTR)
-	{
-	  /* The argument is a pointer to something; increment TYPE
-	     so we can see what it is a pointer to. */
-	  tmptype++;
-	  datum = alloca (objc_sizeof_type (tmptype));
+	  meth = GSGetMethod(GSObjCClass(object), selector, YES, YES);
 	}
       else
 	{
-	  datum = alloca (objc_sizeof_type (tmptype));
+	  [NSException raise: NSInvalidArgumentException
+		       format: @"decoded object %p is invalid", object];
 	}
-      [inv getReturnValue: datum];
-      [aRmc encodeValueOfObjCType: tmptype at: datum];
-    }
+      
+      if (meth != 0)
+	{
+	  type = meth->method_types;
+	}
+      else
+	{
+	  NSDebugLog(@"Local object <%p %s> doesn't implement: %s directly.  "
+		     @"Will search for arbitrary signature.",
+		     object,
+		     GSNameFromClass(GSObjCIsClass(object) 
+				     ? object : (id)GSObjCClass(object)),
+		     GSNameFromSelector(selector));
+	  type = GSTypesFromSelector(selector);
+	}
+
+      /* Make sure we successfully got the method type, and that its
+	 types match the ENCODED_TYPES. */
+      NSCParameterAssert (type);
+      if (GSSelectorTypesMatch(encoded_types, type) == NO)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"NSConection types (%s / %s) missmatch for %s", 
+	    encoded_types, type, GSNameFromSelector(selector)];
+	}
+
+      sig = [NSMethodSignature signatureWithObjCTypes: type];
+      inv = [[NSInvocation alloc] initWithMethodSignature: sig];
+      ctxt.objToFree = inv;
+
+      tmptype = objc_skip_argspec (type);
+      etmptype = objc_skip_argspec (etmptype);
+      [inv setTarget: object];
+
+      tmptype = objc_skip_argspec (tmptype);
+      etmptype = objc_skip_argspec (etmptype);
+      [inv setSelector: selector];
 
 
-  /* Encode the values returned by reference.  Note: this logic
-     must match exactly the code in cifframe_build_return(); that
-     function should decode exactly what we encode here. */
+      /* Step TMPTYPE and ETMPTYPE in lock-step through their
+	 method type strings. */
 
-  if (out_parameters)
-    {
-      /* Step through all the arguments, finding the ones that were
-	 passed by reference. */
       for (tmptype = objc_skip_argspec (tmptype),
-	     argnum = 0,
-	     etmptype = objc_skip_argspec (etmptype);
+	   etmptype = objc_skip_argspec (etmptype), argnum = 2;
 	   *tmptype != '\0';
 	   tmptype = objc_skip_argspec (tmptype),
-	     argnum++,
-	     etmptype = objc_skip_argspec (etmptype))
+	   etmptype = objc_skip_argspec (etmptype), argnum++)
 	{
+	  void	*datum;
+
 	  /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
-	  flags = objc_get_type_qualifiers(etmptype);
+	  flags = objc_get_type_qualifiers (etmptype);
 	  /* Skip over the type qualifiers, so now TYPE is pointing directly
 	     at the char corresponding to the argument's type, as defined
 	     in <objc/objc-api.h> */
-	  tmptype = objc_skip_type_qualifiers (tmptype);
+	  tmptype = objc_skip_type_qualifiers(tmptype);
 
-	  /* Decide how, (or whether or not), to encode the argument
-	     depending on its FLAGS and TMPTYPE. */
-	  if (((flags & _F_OUT) || !(flags & _F_IN))
-	    && (*tmptype == _C_PTR || *tmptype == _C_CHARPTR))
+	  /* Decide how, (or whether or not), to decode the argument
+	     depending on its FLAGS and TMPTYPE.  Only the first two cases
+	     involve parameters that may potentially be passed by
+	     reference, and thus only the first two may change the value
+	     of OUT_PARAMETERS.  *** Note: This logic must match exactly
+	     the code in cifframe_dissect_call(); that function should
+	     encode exactly what we decode here. *** */
+
+	  switch (*tmptype)
 	    {
-	      void	*datum;
+	      case _C_CHARPTR:
+		/* Handle a (char*) argument. */
+		/* If the char* is qualified as an OUT parameter, or if it
+		   not explicitly qualified as an IN parameter, then we will
+		   have to get this char* again after the method is run,
+		   because the method may have changed it.  Set
+		   OUT_PARAMETERS accordingly. */
+		if ((flags & _F_OUT) || !(flags & _F_IN))
+		  out_parameters = YES;
+		/* If the char* is qualified as an IN parameter, or not
+		   explicity qualified as an OUT parameter, then decode it.
+		   Note: the decoder allocates memory for holding the
+		   string, and it is also responsible for making sure that
+		   the memory gets freed eventually, (usually through the
+		   autorelease of NSData object). */
+		if ((flags & _F_IN) || !(flags & _F_OUT))
+		  {
+		    datum = alloca (sizeof(char*));
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    [inv setArgument: datum atIndex: argnum];
+		  }
+		break;
 
-	      if (*tmptype == _C_PTR)
+	      case _C_PTR:
+		/* If the pointer's value is qualified as an OUT parameter,
+		   or if it not explicitly qualified as an IN parameter,
+		   then we will have to get the value pointed to again after
+		   the method is run, because the method may have changed
+		   it.  Set OUT_PARAMETERS accordingly. */
+		if ((flags & _F_OUT) || !(flags & _F_IN))
+		  out_parameters = YES;
+
+		/* Handle an argument that is a pointer to a non-char.  But
+		   (void*) and (anything**) is not allowed. */
+		/* The argument is a pointer to something; increment TYPE
+		     so we can see what it is a pointer to. */
+		tmptype++;
+		/* If the pointer's value is qualified as an IN parameter,
+		   or not explicity qualified as an OUT parameter, then
+		   decode it. */
+		if ((flags & _F_IN) || !(flags & _F_OUT))
+		  {
+		    datum = alloca (objc_sizeof_type (tmptype));
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    [inv setArgument: &datum atIndex: argnum];
+		  }
+		break;
+
+	      default:
+		datum = alloca (objc_sizeof_type (tmptype));
+		if (*tmptype == _C_ID)
+		  {
+		    *(id*)datum = [aRmc decodeObject];
+		  }
+		else
+		  {
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		  }
+		[inv setArgument: datum atIndex: argnum];
+	    }
+	}
+
+      /* Stop using the decoder.
+       */
+      [self _doneInRmc: aRmc];
+      ctxt.decoder = nil;
+
+      /* Invoke the method! */
+      [inv invoke];
+
+      /* It is possible that our connection died while the method was
+       * being called - in this case we mustn't try to send the result
+       * back to the remote application!
+       */
+      if ([self isValid] == NO)
+	{
+	  return;
+	}
+
+      /* We create a new coder object and set it in the context for
+       * later use if/when we are called again.  We encode a flag to
+       * say that this is not an exception.
+       */
+      aRmc = [self _makeOutRmc: ctxt.seq generate: 0 reply: NO];
+      ctxt.encoder = aRmc;
+      [aRmc encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+
+      /* Encode the return value and pass-by-reference values, if there
+	 are any.  This logic must match exactly that in
+	 cifframe_build_return(). */
+      /* OUT_PARAMETERS should be true here in exactly the same
+	 situations as it was true in cifframe_dissect_call(). */
+
+      /* Get the qualifier type of the return value. */
+      flags = objc_get_type_qualifiers (encoded_types);
+      /* Get the return type; store it our two temporary char*'s. */
+      etmptype = objc_skip_type_qualifiers (encoded_types);
+      tmptype = objc_skip_type_qualifiers (type);
+
+      /* Only encode return values if there is a non-void return value,
+	 a non-oneway void return value, or if there are values that were
+	 passed by reference. */
+
+      if (*tmptype == _C_VOID)
+	{
+	  if ((flags & _F_ONEWAY) == 0)
+	    {
+	      int	dummy = 0;
+
+	      [aRmc encodeValueOfObjCType: @encode(int) at: (void*)&dummy];
+	    }
+	  /* No return value to encode; do nothing. */
+	}
+      else
+	{
+	  void	*datum;
+
+	  if (*tmptype == _C_PTR)
+	    {
+	      /* The argument is a pointer to something; increment TYPE
+		 so we can see what it is a pointer to. */
+	      tmptype++;
+	      datum = alloca (objc_sizeof_type (tmptype));
+	    }
+	  else
+	    {
+	      datum = alloca (objc_sizeof_type (tmptype));
+	    }
+	  [inv getReturnValue: datum];
+	  [aRmc encodeValueOfObjCType: tmptype at: datum];
+	}
+
+
+      /* Encode the values returned by reference.  Note: this logic
+	 must match exactly the code in cifframe_build_return(); that
+	 function should decode exactly what we encode here. */
+
+      if (out_parameters)
+	{
+	  /* Step through all the arguments, finding the ones that were
+	     passed by reference. */
+	  for (tmptype = objc_skip_argspec (tmptype),
+		 argnum = 0,
+		 etmptype = objc_skip_argspec (etmptype);
+	       *tmptype != '\0';
+	       tmptype = objc_skip_argspec (tmptype),
+		 argnum++,
+		 etmptype = objc_skip_argspec (etmptype))
+	    {
+	      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
+	      flags = objc_get_type_qualifiers(etmptype);
+	      /* Skip over the type qualifiers, so now TYPE is pointing directly
+		 at the char corresponding to the argument's type, as defined
+		 in <objc/objc-api.h> */
+	      tmptype = objc_skip_type_qualifiers (tmptype);
+
+	      /* Decide how, (or whether or not), to encode the argument
+		 depending on its FLAGS and TMPTYPE. */
+	      if (((flags & _F_OUT) || !(flags & _F_IN))
+		&& (*tmptype == _C_PTR || *tmptype == _C_CHARPTR))
 		{
-		  /* The argument is a pointer (to a non-char), and the
-		     pointer's value is qualified as an OUT parameter, or
-		     it not explicitly qualified as an IN parameter, then
-		     it is a pass-by-reference argument.*/
-		  ++tmptype;
-	          [inv getArgument: &datum atIndex: argnum];
-	          [aRmc encodeValueOfObjCType: tmptype at: datum];
-		}
-	      else if (*tmptype == _C_CHARPTR)
-		{
-		  datum = alloca (sizeof (char*));
-	          [inv getArgument: datum atIndex: argnum];
-	          [aRmc encodeValueOfObjCType: tmptype at: datum];
+		  void	*datum;
+
+		  if (*tmptype == _C_PTR)
+		    {
+		      /* The argument is a pointer (to a non-char), and the
+			 pointer's value is qualified as an OUT parameter, or
+			 it not explicitly qualified as an IN parameter, then
+			 it is a pass-by-reference argument.*/
+		      ++tmptype;
+		      [inv getArgument: &datum atIndex: argnum];
+		      [aRmc encodeValueOfObjCType: tmptype at: datum];
+		    }
+		  else if (*tmptype == _C_CHARPTR)
+		    {
+		      datum = alloca (sizeof (char*));
+		      [inv getArgument: datum atIndex: argnum];
+		      [aRmc encodeValueOfObjCType: tmptype at: datum];
+		    }
 		}
 	    }
 	}
+      ctxt.objToFree = nil;
+      [inv release];
+      [self _sendOutRmc: aRmc type: METHOD_REPLY];
+      ctxt.encoder = nil;
     }
-  ctxt.objToFree = nil;
-  [inv release];
-  [self _sendOutRmc: aRmc type: METHOD_REPLY];
-  ctxt.encoder = nil;
-}
-#elif defined(USE_LIBFFI)
-      cifframe_do_call (&ctxt, callDecoder, callEncoder);
-#elif defined(USE_FFCALL)
-      callframe_do_call (&ctxt, callDecoder, callEncoder);
-#else
-      mframe_do_call (&ctxt, callDecoder, callEncoder);
-#endif
-      if (ctxt.encoder != nil)
-	{
-	  [self _sendOutRmc: ctxt.encoder type: METHOD_REPLY];
-	}
     }
   NS_HANDLER
     {

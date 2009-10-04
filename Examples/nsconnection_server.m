@@ -291,8 +291,11 @@
 
 - (void) getObject: (id *)str
 {
+  static NSString *ret = @"hello";
   printf ("(%s) got object (%s)\n", GSNameFromSelector(_cmd),
     GSClassNameFromObject(*str));
+  *str = ret;
+  printf(" returning (%s)\n", [*str cString]);
   fflush(stdout);
 }
 
@@ -307,8 +310,9 @@
 
 - (void) getString: (char **)str
 {
+  static char *ret = "hello";
   printf ("(%s) got string (%s)", GSNameFromSelector(_cmd), *str);
-  (*str)[0] = 'N';
+  *str = ret;
   printf(" returning (%s)\n", *str);
   fflush(stdout);
 }

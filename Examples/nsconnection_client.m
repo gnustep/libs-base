@@ -93,6 +93,7 @@ int con_data (id prx)
   id obj;
   small_struct small = {12};
   foo ffoo = {'Z', 1234.5678, 99, "cow", 9876543};
+  foo bck;
 
   printf("Testing data sending\n");
 
@@ -214,11 +215,13 @@ int con_data (id prx)
 #if 1 || !defined(__MINGW32__)
   pool = [NSAutoreleasePool new];
   printf("Struct:\n");
+  memcpy(&bck, &ffoo, sizeof(bck));
   printf("  sending c='%c',d=%g,i=%d,s=%s,l=%ld",
     ffoo.c, ffoo.d, ffoo.i, ffoo.s, ffoo.l);
   ffoo = [prx sendStruct: ffoo];
   printf(" got c='%c',d=%g,i=%d,s=%s,l=%ld\n",
     ffoo.c, ffoo.d, ffoo.i, ffoo.s, ffoo.l);
+  memcpy(&ffoo, &bck, sizeof(bck));
   printf("  sending ptr to  c='%c',d=%g,i=%d,s=%s,l=%ld",
     ffoo.c, ffoo.d, ffoo.i, ffoo.s, ffoo.l);
   [prx getStruct: &ffoo];
