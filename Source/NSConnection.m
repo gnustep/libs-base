@@ -2296,7 +2296,121 @@ static void retEncoder (DOContext *ctxt)
     }
   else
     {
-#ifdef USE_LIBFFI
+#if 1
+      /* Which argument number are we processing now? */
+      int argnum;
+      /* Type qualifier flags; see <objc/objc-api.h>. */
+      int flags;
+      /* A pointer into the TYPE string. */
+      const char *tmptype;
+      /* Points at individual arguments. */
+      void *datum;
+      const char *rettype;
+      /* Signature information */
+      NSPortCoder	*aRmc;
+
+      BOOL	is_exception;
+
+      if ([self isValid] == NO)
+	{
+	  [NSException raise: NSGenericException
+	    format: @"connection waiting for request was shut down"];
+	}
+      aRmc = [self _getReplyRmc: ctxt.seq];
+ 
+      /*
+       * Find out if the server is returning an exception instead
+       * of the return values.
+       */
+      [aRmc decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+      if (is_exception == YES)
+	{
+	  /* Decode the exception object, and raise it. */
+	  id exc = [aRmc decodeObject];
+
+	  [self _doneInReply: aRmc];
+	  [exc raise];
+	}
+
+      /* Get the return type qualifier flags, and the return type. */
+      flags = objc_get_type_qualifiers(type);
+      tmptype = objc_skip_type_qualifiers(type);
+      rettype = tmptype;
+
+      /* Decode the return value and pass-by-reference values, if there
+	 are any.  OUT_PARAMETERS should be the value returned by
+	 cifframe_dissect_call(). */
+      if (outParams || *tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
+	/* xxx What happens with method declared "- (oneway) foo: (out int*)ip;" */
+	/* xxx What happens with method declared "- (in char *) bar;" */
+	/* xxx Is this right?  Do we also have to check _F_ONEWAY? */
+	{
+	  /* ARGNUM == -1 signifies to DECODER() that this is the return
+	     value, not an argument. */
+
+	  /* If there is a return value, decode it, and put it in datum. */
+	  if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
+	    {	
+	      switch (*tmptype)
+		{
+		  case _C_PTR:
+		    /* We are returning a pointer to something. */
+		    tmptype++;
+		    datum = alloca (objc_sizeof_type (tmptype));
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    break;
+
+		  case _C_VOID:
+		    datum = alloca (sizeof (int));
+		    [aRmc decodeValueOfObjCType: @encode(int) at: datum];
+		    break;
+
+		  default:
+		    datum = alloca (objc_sizeof_type (tmptype));
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    break;
+		}
+	    }
+	  [inv setReturnValue: datum];
+
+	  /* Decode the values returned by reference.  Note: this logic
+	     must match exactly the code in _service_forwardForProxy:
+	     */
+	  if (outParams)
+	    {
+	      /* Step through all the arguments, finding the ones that were
+		 passed by reference. */
+	      for (tmptype = objc_skip_argspec (tmptype), argnum = 0;
+	        *tmptype != '\0';
+	        tmptype = objc_skip_argspec (tmptype), argnum++)
+		{
+		  /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
+		  flags = objc_get_type_qualifiers(tmptype);
+		  /* Skip over the type qualifiers, so now TYPE is
+		     pointing directly at the char corresponding to the
+		     argument's type, as defined in <objc/objc-api.h> */
+		  tmptype = objc_skip_type_qualifiers(tmptype);
+
+		  if (*tmptype == _C_PTR
+		    && ((flags & _F_OUT) || !(flags & _F_IN)))
+		    {
+		      tmptype++;
+		      datum = alloca (objc_sizeof_type (tmptype));
+
+		      [aRmc decodeValueOfObjCType: tmptype at: datum];
+		      [inv setArgument: datum atIndex: argnum];
+		    }
+		  else if (*tmptype == _C_CHARPTR
+		    && ((flags & _F_OUT) || !(flags & _F_IN)))
+		    {
+		      [aRmc decodeValueOfObjCType: tmptype at: &datum];
+		      [inv setArgument: &datum atIndex: argnum];
+		    }
+		}
+	    }
+	}
+      [self _doneInReply: aRmc];
+#elif USE_LIBFFI
       cifframe_build_return (inv, type, outParams, retDecoder, &ctxt);
 #elif defined(USE_FFCALL)
       callframe_build_return (inv, type, outParams, retDecoder, &ctxt);
