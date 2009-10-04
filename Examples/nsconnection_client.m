@@ -91,7 +91,7 @@ int con_data (id prx)
   double dbl, dblr;
   char *str;
   id obj;
-  small_struct small = {12};
+  small_struct ss = {12};
   foo ffoo = {'Z', 1234.5678, 99, "cow", 9876543};
   foo bck;
 
@@ -204,12 +204,12 @@ int con_data (id prx)
 
   pool = [NSAutoreleasePool new];
   printf("Small Struct:\n");
-  //printf("  sending %x", small.z);
-  //small = [prx sendSmallStruct: small];
-  //printf(" got %x\n", small.z);
-  printf("  sending ptr to %x", small.z);
-  [prx getSmallStruct: &small];
-  printf(" got %x\n", small.z);
+  //printf("  sending %x", ss.z);
+  //ss = [prx sendSmallStruct: ss];
+  //printf(" got %x\n", ss.z);
+  printf("  sending ptr to %x", ss.z);
+  [prx getSmallStruct: &ss];
+  printf(" got %x\n", ss.z);
   [pool release];
 
 #if 1 || !defined(__MINGW32__)
