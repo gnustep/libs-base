@@ -1354,13 +1354,13 @@ AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of ffcall library],,
   enable_ffcall=$do_enable_libffcall)
 
-AC_ARG_ENABLE(do,
-  [  --disable-do			Compile even if DO-dependencies are not met],,
-  enable_do=yes)
+AC_ARG_ENABLE(invocations,
+  [  --disable-invocations		Compile even if invocation-dependencies are not met],,
+  enable_invocations=yes)
 
 # DO isn't used on apple-apple-apple
 if test $LIBRARY_COMBO = apple-apple-apple; then
-  enable_do=no
+  enable_invocations=no
 fi
 
 AC_ARG_WITH(ffi-include,
@@ -1484,12 +1484,13 @@ if test $ffi_ok = no; then
   echo "invocations and DO."
   echo "(This does not apply on apple-apple-apple systems where DO is"
   echo "not compatible with other GNUstep systems.)"
-  if test $enable_do = yes; then
+  if test $enable_invocations = yes; then
     echo
-    echo "You most likely do not want to build base without DO support. Many"
-    echo "things, including all applications, won't work at all without DO."
-    echo "If you really want to build -base without DO support, add --disable-do"
-    echo "to the configure arguments."
+    echo "You most likely do not want to build base without invocation support."
+    echo "Many things (including Distributed Objects and undo/redo), won't work"
+    echo "at all without invocations."
+    echo "If you really want to build -base without invocation support,"
+    echo "add --disable-invocations to the configure arguments."
     echo "For more information, read the GNUstep build guide, ffcall section:"
     echo "http://gnustep.made-it.com/BuildGuide/index.html"
     AC_MSG_ERROR([Incomplete support for ffi functionality.])
