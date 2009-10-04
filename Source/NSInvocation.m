@@ -32,7 +32,6 @@
 #include "GSInvocation.h"
 #include "config.h"
 #include "GSPrivate.h"
-#include <mframe.h>
 #if defined(USE_LIBFFI)
 #include "cifframe.h"
 #elif defined(USE_FFCALL)
@@ -228,22 +227,21 @@ _arg_addr(NSInvocation *inv, int index)
 }
 
 #else
+
 static inline void
 _get_arg(NSInvocation *inv, int index, void *buffer)
 {
-  mframe_get_arg((arglist_t)inv->_cframe, &inv->_info[index+1], buffer);
 }
 
 static inline void
 _set_arg(NSInvocation *inv, int index, void *buffer)
 {
-  mframe_set_arg((arglist_t)inv->_cframe, &inv->_info[index+1], buffer);
 }
 
 static inline void *
 _arg_addr(NSInvocation *inv, int index)
 {
-  return mframe_arg_addr((arglist_t)inv->_cframe, &inv->_info[index+1]);
+  return 0;
 }
 
 #endif
@@ -270,7 +268,7 @@ _arg_addr(NSInvocation *inv, int index)
 #elif defined(USE_FFCALL)
       NSInvocation_concrete_class = [GSFFCallInvocation class];
 #else
-      NSInvocation_concrete_class = [GSFrameInvocation class];
+      NSInvocation_concrete_class = [GSDummyInvocation class];
 #endif
     }
 }
@@ -306,14 +304,17 @@ _arg_addr(NSInvocation *inv, int index)
 	    {
 	      if (*_info[i].type == _C_CHARPTR)
 		{
-		  char	*str;
+		  char	*str = 0;
 
 		  _get_arg(self, i-1, &str);
-		  NSZoneFree(NSDefaultMallocZone(), str);
+		  if (str != 0)
+		    {
+		      NSZoneFree(NSDefaultMallocZone(), str);
+		    }
 		}
 	      else if (*_info[i].type == _C_ID)
 		{
-		  id	obj;
+		  id	obj = nil;
 
 		  _get_arg(self, i-1, &obj);
 		  RELEASE(obj);
@@ -334,15 +335,6 @@ _arg_addr(NSInvocation *inv, int index)
   if (_cframe)
     {
       NSZoneFree(NSDefaultMallocZone(), _cframe);
-    }
-#else
-  if (_cframe)
-    {
-      mframe_destroy_argframe([_sig methodType], (arglist_t)_cframe);
-    }
-  if (_retval)
-    {
-      NSZoneFree(NSDefaultMallocZone(), _retval);
     }
 #endif
   if (_retptr)
@@ -400,17 +392,7 @@ _arg_addr(NSInvocation *inv, int index)
 
   if (*_info[0].type != _C_VOID)
     {
-      int	length = _info[0].size;
-#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
-/* NOTE: This won't work unless -[NSMethodSignature methodReturnLength]
-   is also changed, but since mframe is depreciated, this should all
-   be removed in the near future anyway... */
-#if WORDS_BIGENDIAN
-      if (length < sizeof(void*))
-	length = sizeof(void*);
-#endif
-#endif
-      memcpy(buffer, _retval, length);
+      memcpy(buffer, _retval, _info[0].size);
     }
 }
 
@@ -512,18 +494,7 @@ _arg_addr(NSInvocation *inv, int index)
 
   if (*type != _C_VOID)
     {
-      int	length = _info[0].size;
-
-#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
-/* NOTE: This won't work unless -[NSMethodSignature methodReturnLength]
-   is also changed, but since mframe is depreciated, this should all
-   be removed in the near future anyway... */
-#if WORDS_BIGENDIAN
-      if (length < sizeof(void*))
-	length = sizeof(void*);
-#endif
-#endif
-      memcpy(_retval, buffer, length);
+      memcpy(_retval, buffer, _info[0].size);
     }
 
   RETAIN_RETURN_VALUE;
@@ -678,7 +649,7 @@ _arg_addr(NSInvocation *inv, int index)
     GSClassNameFromObject(self), \
     self, \
     _selector ? GSNameFromSelector(_selector) : "nil", \
-    _target ?   GSNameFromClass([_target class]) : "nil" \
+    _target ? GSNameFromClass([_target class]) : "nil" \
    );
 
   return [NSString stringWithUTF8String: buffer];
@@ -708,14 +679,6 @@ _arg_addr(NSInvocation *inv, int index)
 	{
 	  [aCoder encodeObject: *(id*)datum];
 	}
-#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
-#if     MFRAME_STRUCT_BYREF
-      else if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B)
-        {
-	  [aCoder encodeValueOfObjCType: type at: *(void**)datum];
-        }
-#endif
-#endif
       else
 	{
 	  [aCoder encodeValueOfObjCType: type at: datum];
@@ -752,18 +715,6 @@ _arg_addr(NSInvocation *inv, int index)
   for (i = 3; i <= _numArgs; i++)
     {
       datum = _arg_addr(self, i-1);
-#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
-#if     MFRAME_STRUCT_BYREF
-      {
-        const char      *t = _info[i].type;
-        if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
-          {
-	    *(void**)datum = GSAutoreleasedBuffer(_info[i].size);
-            datum = *(void**)datum;
-          }
-      }
-#endif
-#endif
       [aCoder decodeValueOfObjCType: _info[i].type at: datum];
     }
   _argsRetained = YES;
@@ -894,29 +845,11 @@ _arg_addr(NSInvocation *inv, int index)
 @end
 
 #if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
-#warning Using unreliable NSInvocation implementation.  It is strongly recommended that you use libffi.
-@implementation GSFrameInvocation
+#warning Using dummy NSInvocation implementation.  It is strongly recommended that you use libffi.
+@implementation GSDummyInvocation
 
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
-  self = [self initWithSelector: aSelector];
-  if (self)
-    {
-      [self setSelector: aSelector];
-      /*
-       *	Copy the _cframe we were given.
-       */
-      if (frame)
-	{
-	  unsigned int	i;
-
-	  mframe_get_arg(frame, &_info[1], &_target);
-	  for (i = 1; i <= _numArgs; i++)
-	    {
-	      mframe_cpy_arg((arglist_t)_cframe, frame, &_info[i]);
-	    }
-	}
-    }
   return self;
 }
 
@@ -925,104 +858,26 @@ _arg_addr(NSInvocation *inv, int index)
  */
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature
 {
-  if (aSignature == nil)
-    {
-      RELEASE(self);
-      return nil;
-    }
-  _sig = RETAIN(aSignature);
-  _numArgs = [aSignature numberOfArguments];
-  _info = [aSignature methodInfo];
-  _cframe = mframe_create_argframe([_sig methodType], &_retval);
-  if (_retval == 0 && _info[0].size > 0)
-    {
-      _retval = NSZoneMalloc(NSDefaultMallocZone(), _info[0].size);
-    }
   return self;
 }
-- (void)invokeWithTarget: (id)anObject
+
+- (void) invokeWithTarget: (id)anObject
 {
-  id		old_target;
-  retval_t	returned;
-  IMP		imp;
-  int		stack_argsize;
-
-
   CLEAR_RETURN_VALUE_IF_OBJECT;
   _validReturn = NO;
-
   /*
    *	A message to a nil object returns nil.
    */
   if (anObject == nil)
     {
       _validReturn = YES;
-      memset(_retval, '\0', _info[0].size);	/* Clear return value */
       return;
     }
-
-  NSAssert(_selector != 0, @"you must set the selector before invoking");
-
-  /*
-   *	Temporarily set new target and copy it (and the selector) into the
-   *	_cframe.
-   */
-  old_target = RETAIN(_target);
-  [self setTarget: anObject];
-
-  _set_arg(self, 0, &_target);
-  _set_arg(self, 1, &_selector);
-
-  if (_sendToSuper == YES)
-    {
-      Super	s;
-
-#ifndef NeXT_RUNTIME
-      s.self = _target;
-#else
-      s.receiver = _target;
-#endif
-      if (GSObjCIsInstance(_target))
-	s.class = GSObjCSuper(GSObjCClass(_target));
-      else
-	s.class = GSObjCSuper((Class)_target);
-      imp = objc_msg_lookup_super(&s, _selector);
-    }
-  else
-    {
-      GSMethod method;
-      method = GSGetMethod((GSObjCIsInstance(_target)
-			    ? (id)GSObjCClass(_target)
-			    : (id)_target),
-			   _selector,
-			   GSObjCIsInstance(_target),
-			   YES);
-      imp = method_get_imp(method);
-	/*
-	 * If fast lookup failed, we may be forwarding or something ...
-	 */
-      if (imp == 0)
-	imp = objc_msg_lookup(_target, _selector);
-    }
-  [self setTarget: old_target];
-  RELEASE(old_target);
-
-  stack_argsize = [_sig frameLength];
-
-  returned = __builtin_apply((void(*)(void))imp,
-    (arglist_t)_cframe, stack_argsize);
-  if (_info[0].size)
-    {
-      mframe_decode_return(_info[0].type, _retval, returned);
-    }
-
-  RETAIN_RETURN_VALUE;
-  _validReturn = YES;
 }
 
 - (void*) returnFrame: (arglist_t)argFrame
 {
-  return mframe_handle_return(_info[0].type, _retval, argFrame);
+  return 0;
 }
 @end
 #endif

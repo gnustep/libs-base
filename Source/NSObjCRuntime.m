@@ -30,7 +30,6 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSString.h"
-#include <mframe.h>
 #include <string.h>
 
 /**
@@ -140,12 +139,12 @@ NSStringFromClass(Class aClass)
 const char *
 NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
 {
-  NSArgumentInfo	info;
-  typePtr = mframe_next_arg(typePtr, &info, 0);
+  typePtr = objc_skip_offset (typePtr);
+  typePtr = objc_skip_type_qualifiers (typePtr);
   if (sizep)
-    *sizep = info.size;
+    *sizep = objc_sizeof_type (typePtr);
   if (alignp)
-    *alignp = info.align;
+    *alignp = objc_alignof_type (typePtr);
   return typePtr;
 }
 

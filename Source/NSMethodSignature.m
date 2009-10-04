@@ -127,7 +127,7 @@
   [super dealloc];
 }
 
-- (BOOL)isEqual:(id)other
+- (BOOL) isEqual: (id)other
 {
   BOOL isEqual = YES;
   if (other == nil)

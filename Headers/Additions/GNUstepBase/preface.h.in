@@ -27,7 +27,6 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <GNUstepBase/objc-gnu2next.h>
 
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
 #ifndef __WIN32__
