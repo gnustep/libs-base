@@ -17895,6 +17895,10 @@ else
   enable_libffi=$do_enable_libffi
 fi;
 
+if test $enable_libffi = no; then
+  do_enable_libffcall=yes
+fi
+
 # Check whether --enable-ffcall or --disable-ffcall was given.
 if test "${enable_ffcall+set}" = set; then
   enableval="$enable_ffcall"

@@ -30,6 +30,7 @@
    */
 
 #import "config.h"
+
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
@@ -65,12 +66,6 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 #define	_IN_CONNECTION_M
 #include "Foundation/NSConnection.h"
 #undef	_IN_CONNECTION_M
-
-#if defined(USE_LIBFFI)
-#include "cifframe.h"
-#elif defined(USE_FFCALL)
-#include "callframe.h"
-#endif
 
 #include "Foundation/NSPortCoder.h"
 #include "GNUstepBase/DistributedObjects.h"

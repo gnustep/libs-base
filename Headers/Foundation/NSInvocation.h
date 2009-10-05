@@ -41,11 +41,7 @@ extern "C" {
   id			_target;
   SEL			_selector;
   unsigned int		_numArgs;
-#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
-  NSArgumentInfo	*_info;
-#else
-  void			*_dummy;
-#endif
+  void			*_info;
   BOOL			_argsRetained;
   BOOL                  _targetRetained;
   BOOL			_validReturn;

@@ -1350,6 +1350,10 @@ AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
   enable_libffi=$do_enable_libffi)
 
+if test $enable_libffi = no; then
+  do_enable_libffcall=yes
+fi
+
 AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of ffcall library],,
   enable_ffcall=$do_enable_libffcall)

@@ -1,3 +1,24 @@
+2009-10-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: enable ffcall if ffi is disabled
+	* configure: Regenerate
+	* Source/mframe:delete
+	* Source/mframe.m: delete
+	* Source/GSInvocation.h:
+	* Source/GNUmakefile:
+	* Source/NSMethodSignature.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/GSFFIInvocation.m:
+	* Source/NSInvocation.m:
+	* Source/cifframe.m:
+	* Source/NSConnection.m:
+	* Source/callframe.m:
+	* Source/NSDistantObject.m:
+	* Headers/Foundation/NSMethodSignature.h:
+	* Headers/Foundation/NSInvocation.h:
+	Update for removal of mframe code.
+
 2009-10-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile:

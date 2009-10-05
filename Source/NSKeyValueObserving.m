@@ -44,6 +44,7 @@
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/Unicode.h"
 #import "GNUstepBase/GSLock.h"
+#import "GSInvocation.h"
 
 /*
  * IMPLEMENTATION NOTES
