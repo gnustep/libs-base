@@ -29,28 +29,408 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include <mframe.h>
 
 #include "Foundation/NSMethodSignature.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"
+#include "Foundation/NSCoder.h"
 
+#include "GSInvocation.h"
+
+/* The objc runtime library objc_skip_offset() is buggy on some compiler
+ * versions, so we use our own alternative implementation.
+ */
+static const char *
+skip_offset(const char *ptr)
+{
+  if (*ptr == '+' || *ptr == '-') ptr++;
+  while (isdigit(*ptr)) ptr++;
+  return ptr;
+}
+
+#define ROUND(V, A) \
+  ({ typeof(V) __v=(V); typeof(A) __a=(A); \
+     __a*((__v+__a-1)/__a); })
+
+/* Step through method encoding information extracting details.
+ * If outTypes is non-nul then we copy the qualified type into
+ * the buffer as a nul terminated string and use the values in
+ * this buffer for the qtype and type in info, rather than pointers
+ * to positions in typePtr
+ */
+static const char *
+next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
+{
+  NSArgumentInfo	local;
+  BOOL			flag;
+  BOOL			negative = NO;
+
+  if (info == 0)
+    {
+      info = &local;
+    }
+
+  info->qtype = typePtr;
+
+  /*
+   *	Skip past any type qualifiers - if the caller wants them, return them.
+   */
+  flag = YES;
+  info->qual = 0;
+  while (flag)
+    {
+      switch (*typePtr)
+	{
+	  case _C_CONST:  info->qual |= _F_CONST; break;
+	  case _C_IN:     info->qual |= _F_IN; break;
+	  case _C_INOUT:  info->qual |= _F_INOUT; break;
+	  case _C_OUT:    info->qual |= _F_OUT; break;
+	  case _C_BYCOPY: info->qual |= _F_BYCOPY; break;
+#ifdef	_C_BYREF
+	  case _C_BYREF:  info->qual |= _F_BYREF; break;
+#endif
+	  case _C_ONEWAY: info->qual |= _F_ONEWAY; break;
+#ifdef	_C_GCINVISIBLE
+	  case _C_GCINVISIBLE:  info->qual |= _F_GCINVISIBLE; break;
+#endif
+	  default: flag = NO;
+	}
+      if (flag)
+	{
+	  typePtr++;
+	}
+    }
+
+  info->type = typePtr;
+
+  /*
+   *	Scan for size and alignment information.
+   */
+  switch (*typePtr++)
+    {
+      case _C_ID:
+	info->size = sizeof(id);
+	info->align = __alignof__(id);
+	break;
+
+      case _C_CLASS:
+	info->size = sizeof(Class);
+	info->align = __alignof__(Class);
+	break;
+
+      case _C_SEL:
+	info->size = sizeof(SEL);
+	info->align = __alignof__(SEL);
+	break;
+
+      case _C_CHR:
+	info->size = sizeof(char);
+	info->align = __alignof__(char);
+	break;
+
+      case _C_UCHR:
+	info->size = sizeof(unsigned char);
+	info->align = __alignof__(unsigned char);
+	break;
+
+      case _C_SHT:
+	info->size = sizeof(short);
+	info->align = __alignof__(short);
+	break;
+
+      case _C_USHT:
+	info->size = sizeof(unsigned short);
+	info->align = __alignof__(unsigned short);
+	break;
+
+      case _C_INT:
+	info->size = sizeof(int);
+	info->align = __alignof__(int);
+	break;
+
+      case _C_UINT:
+	info->size = sizeof(unsigned int);
+	info->align = __alignof__(unsigned int);
+	break;
+
+      case _C_LNG:
+	info->size = sizeof(long);
+	info->align = __alignof__(long);
+	break;
+
+      case _C_ULNG:
+	info->size = sizeof(unsigned long);
+	info->align = __alignof__(unsigned long);
+	break;
+
+      case _C_LNG_LNG:
+	info->size = sizeof(long long);
+	info->align = __alignof__(long long);
+	break;
+
+      case _C_ULNG_LNG:
+	info->size = sizeof(unsigned long long);
+	info->align = __alignof__(unsigned long long);
+	break;
+
+      case _C_FLT:
+	info->size = sizeof(float);
+	info->align = __alignof__(float);
+	break;
+
+      case _C_DBL:
+	info->size = sizeof(double);
+	info->align = __alignof__(double);
+	break;
+
+      case _C_PTR:
+	info->size = sizeof(char*);
+	info->align = __alignof__(char*);
+	if (*typePtr == '?')
+	  {
+	    typePtr++;
+	  }
+	else
+	  {
+	    typePtr = objc_skip_typespec(typePtr);
+	  }
+	break;
+
+      case _C_ATOM:
+      case _C_CHARPTR:
+	info->size = sizeof(char*);
+	info->align = __alignof__(char*);
+	break;
+
+      case _C_ARY_B:
+	{
+	  int	length = atoi(typePtr);
+
+	  while (isdigit(*typePtr))
+	    {
+	      typePtr++;
+	    }
+	  typePtr = next_arg(typePtr, &local, 0);
+	  info->size = length * ROUND(local.size, local.align);
+	  info->align = local.align;
+	  typePtr++;	/* Skip end-of-array	*/
+	}
+	break;
+
+      case _C_STRUCT_B:
+	{
+	  unsigned int acc_size = 0;
+	  unsigned int def_align = objc_alignof_type(typePtr-1);
+	  unsigned int acc_align = def_align;
+	  const char	*ptr = typePtr;
+
+	  /*
+	   *	Skip "<name>=" stuff.
+	   */
+	  while (*ptr != _C_STRUCT_E && *ptr != '=') ptr++;
+	  if (*ptr == '=') typePtr = ptr;
+	  typePtr++;
+
+	  /*
+	   *	Base structure alignment on first element.
+	   */
+	  if (*typePtr != _C_STRUCT_E)
+	    {
+	      typePtr = next_arg(typePtr, &local, 0);
+	      if (typePtr == 0)
+		{
+		  return 0;		/* error	*/
+		}
+	      acc_size = ROUND(acc_size, local.align);
+	      acc_size += local.size;
+	      acc_align = MAX(local.align, def_align);
+	    }
+	  /*
+	   *	Continue accumulating structure size
+	   *	and adjust alignment if necessary
+	   */
+	  while (*typePtr != _C_STRUCT_E)
+	    {
+	      typePtr = next_arg(typePtr, &local, 0);
+	      if (typePtr == 0)
+		{
+		  return 0;		/* error	*/
+		}
+	      acc_size = ROUND(acc_size, local.align);
+	      acc_size += local.size;
+	      acc_align = MAX(local.align, acc_align);
+	    }
+	  /*
+	   * Size must be a multiple of alignment
+	   */
+	  if (acc_size % acc_align != 0)
+	    {
+	      acc_size += acc_align - acc_size % acc_align;
+	    }
+	  info->size = acc_size;
+	  info->align = acc_align;
+	  typePtr++;	/* Skip end-of-struct	*/
+	}
+	break;
+
+      case _C_UNION_B:
+	{
+	  unsigned int	max_size = 0;
+	  unsigned int	max_align = 0;
+
+	  /*
+	   *	Skip "<name>=" stuff.
+	   */
+	  while (*typePtr != _C_UNION_E)
+	    {
+	      if (*typePtr++ == '=')
+		{
+		  break;
+		}
+	    }
+	  while (*typePtr != _C_UNION_E)
+	    {
+	      typePtr = next_arg(typePtr, &local, 0);
+	      if (typePtr == 0)
+		{
+		  return 0;		/* error	*/
+		}
+	      max_size = MAX(max_size, local.size);
+	      max_align = MAX(max_align, local.align);
+	    }
+	  info->size = max_size;
+	  info->align = max_align;
+	  typePtr++;	/* Skip end-of-union	*/
+	}
+	break;
+
+      case _C_VOID:
+	info->size = 0;
+	info->align = __alignof__(char*);
+	break;
+
+      default:
+	return 0;
+    }
+
+  if (typePtr == 0)
+    {		/* Error condition.	*/
+      return 0;
+    }
+
+  /* Copy the type information into the buffer if provided.
+   */
+  if (outTypes != 0)
+    {
+      unsigned	len = typePtr - info->qtype;
+
+      strncpy(outTypes, info->qtype, len);
+      outTypes[len] = '\0';
+      info->qtype = outTypes;
+      info->type = objc_skip_type_qualifiers (outTypes);
+    }
+
+  /*
+   *	May tell the caller if the item is stored in a register.
+   */
+  if (*typePtr == '+')
+    {
+      typePtr++;
+      info->isReg = YES;
+    }
+  else
+    {
+      info->isReg = NO;
+    }
+  /*
+   * Cope with negative offsets.
+   */
+  if (*typePtr == '-')
+    {
+      typePtr++;
+      negative = YES;
+    }
+  /*
+   *	May tell the caller what the stack/register offset is for
+   *	this argument.
+   */
+  info->offset = 0;
+  while (isdigit(*typePtr))
+    {
+      info->offset = info->offset * 10 + (*typePtr++ - '0');
+    }
+  if (negative == YES)
+    {
+      info->offset = -info->offset;
+    }
+
+  return typePtr;
+}
 
 @implementation NSMethodSignature
 
-+ (NSMethodSignature*) signatureWithObjCTypes: (const char*)t
+- (id) _initWithObjCTypes: (const char*)t
 {
-  NSMethodSignature *newMs;
-
+  const char	*p = t;
+  
   if (t == 0 || *t == '\0')
     {
-      return nil;
+      [self release];
+      self = nil;
     }
-  newMs = AUTORELEASE([NSMethodSignature alloc]);
-  newMs->_methodTypes = mframe_build_signature(t, (int*)&newMs->_argFrameLength,
-    (int*)&newMs->_numArgs, 0);
+  else
+    {
+      const char	*q;
+      char		*args;
+      char		*ret;
 
-  return newMs;
+/* In case we have been given a method encoding string without offsets,
+ * we attempt to generate the frame size and offsets in a new copy of
+ * the types string.
+ */
+      ret = alloca((strlen(t)+1)*16);
+
+      /* Copy the return type (including qualifiers) with ehough room
+       * after it to store the frame size.
+       */
+      p = t;
+      p = objc_skip_typespec (p);
+      strncpy(ret, t, p - t);
+      ret[p - t] = '\0';
+      args = ret + (p - t) + 10;
+      *args = '\0';
+
+      /* Skip to the first arg type, taking note of where the qualifiers start.
+       */
+      p = skip_offset (p);
+      q = p;
+      p = objc_skip_type_qualifiers (p);
+      while (p && *p)
+	{
+	  int	size;
+
+	  _numArgs++;
+	  size = objc_promoted_size (p);
+	  p = objc_skip_typespec (p);
+	  strncat(args, q, p - q);
+	  sprintf(args + strlen(args), "%d", _argFrameLength);
+	  _argFrameLength += size;
+	  p = skip_offset (p);
+	  q = p;
+	  p = objc_skip_type_qualifiers (p);
+	}
+      sprintf(ret + strlen(ret), "%d", _argFrameLength);
+      _methodTypes = NSZoneMalloc(NSDefaultMallocZone(),
+	strlen(args) + strlen(ret) + 1);
+      strcpy((char*)_methodTypes, ret);
+      strcat((char*)_methodTypes, args);
+    }
+  return self;
+}
+
++ (NSMethodSignature*) signatureWithObjCTypes: (const char*)t
+{
+  return AUTORELEASE([[[self class] alloc] _initWithObjCTypes: t]);
 }
 
 - (NSArgumentInfo) argumentInfoAtIndex: (NSUInteger)index
@@ -60,11 +440,11 @@
       [NSException raise: NSInvalidArgumentException
 		  format: @"Index too high."];
     }
-  if (_info == 0)
+  if (_inf == 0)
     {
       [self methodInfo];
     }
-  return _info[index+1];
+  return _inf[index+1];
 }
 
 - (NSUInteger) frameLength
@@ -79,38 +459,38 @@
       [NSException raise: NSInvalidArgumentException
 		  format: @"Index too high."];
     }
-  if (_info == 0)
+  if (_inf == 0)
     {
       [self methodInfo];
     }
-  return _info[index+1].type;
+  return _inf[index+1].qtype;
 }
 
 - (BOOL) isOneway
 {
-  if (_info == 0)
+  if (_inf == 0)
     {
       [self methodInfo];
     }
-  return (_info[0].qual & _F_ONEWAY) ? YES : NO;
+  return (_inf[0].qual & _F_ONEWAY) ? YES : NO;
 }
 
 - (NSUInteger) methodReturnLength
 {
-  if (_info == 0)
+  if (_inf == 0)
     {
       [self methodInfo];
     }
-  return _info[0].size;
+  return _inf[0].size;
 }
 
 - (const char*) methodReturnType
 {
-  if (_info == 0)
+  if (_inf == 0)
     {
       [self methodInfo];
     }
-  return _info[0].type;
+  return _inf[0].qtype;
 }
 
 - (NSUInteger) numberOfArguments
@@ -122,8 +502,8 @@
 {
   if (_methodTypes)
     NSZoneFree(NSDefaultMallocZone(), (void*)_methodTypes);
-  if (_info)
-    NSZoneFree(NSDefaultMallocZone(), (void*)_info);
+  if (_inf)
+    NSZoneFree(NSDefaultMallocZone(), (void*)_inf);
   [super dealloc];
 }
 
@@ -167,7 +547,7 @@
 @implementation NSMethodSignature(GNUstep)
 - (NSArgumentInfo*) methodInfo
 {
-  if (_info == 0)
+  if (_inf == 0)
     {
       const char	*types = _methodTypes;
       char		*outTypes;
@@ -180,17 +560,17 @@
        */
       outTypes = NSZoneMalloc(NSDefaultMallocZone(),
 	sizeof(NSArgumentInfo)*(_numArgs+1) + strlen(types)*2);
-      _info = (NSArgumentInfo*)outTypes;
+      _info = (void*)outTypes;
       outTypes = outTypes + sizeof(NSArgumentInfo)*(_numArgs+1);
       /* Fill in the full argment information for each arg.
        */
       for (i = 0; i <= _numArgs; i++)
 	{
-	  types = mframe_next_arg(types, &_info[i], outTypes);
+	  types = next_arg(types, &_inf[i], outTypes);
 	  outTypes += strlen(outTypes) + 1;
 	}
     }
-  return _info;
+  return _inf;
 }
 
 - (const char*) methodType

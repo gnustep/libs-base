@@ -157,6 +157,8 @@ static Class   NSInvocation_concrete_class;
 
 
 
+#define	_inf	((NSArgumentInfo*)_info)
+
 /**
  * <p>The <code>NSInvocation</code> class implements a mechanism of constructing
  * messages (as <code>NSInvocation</code> instances), sending these to other
@@ -189,14 +191,14 @@ static inline void
 _get_arg(NSInvocation *inv, int index, void *buffer)
 {
   cifframe_get_arg((cifframe_t *)inv->_cframe, index, buffer,
-		   inv->_info[index+1].size);
+		   ((NSArgumentInfo*)inv->_info)[index+1].size);
 }
 
 static inline void
 _set_arg(NSInvocation *inv, int index, void *buffer)
 {
   cifframe_set_arg((cifframe_t *)inv->_cframe, index, buffer,
-		   inv->_info[index+1].size);
+		   ((NSArgumentInfo*)inv->_info)[index+1].size);
 }
 
 static inline void *
@@ -210,14 +212,14 @@ static inline void
 _get_arg(NSInvocation *inv, int index, void *buffer)
 {
   callframe_get_arg((callframe_t *)inv->_cframe, index, buffer,
-		    inv->_info[index+1].size);
+		    ((NSArgumentInfo*)inv->_info)[index+1].size);
 }
 
 static inline void
 _set_arg(NSInvocation *inv, int index, void *buffer)
 {
   callframe_set_arg((callframe_t *)inv->_cframe, index, buffer,
-		    inv->_info[index+1].size);
+		    ((NSArgumentInfo*)inv->_info)[index+1].size);
 }
 
 static inline void *
@@ -302,7 +304,7 @@ _arg_addr(NSInvocation *inv, int index)
 
 	  for (i = 3; i <= _numArgs; i++)
 	    {
-	      if (*_info[i].type == _C_CHARPTR)
+	      if (*_inf[i].type == _C_CHARPTR)
 		{
 		  char	*str = 0;
 
@@ -312,7 +314,7 @@ _arg_addr(NSInvocation *inv, int index)
 		      NSZoneFree(NSDefaultMallocZone(), str);
 		    }
 		}
-	      else if (*_info[i].type == _C_ID)
+	      else if (*_inf[i].type == _C_ID)
 		{
 		  id	obj = nil;
 
@@ -390,9 +392,9 @@ _arg_addr(NSInvocation *inv, int index)
 
   type = [_sig methodReturnType];
 
-  if (*_info[0].type != _C_VOID)
+  if (*_inf[0].type != _C_VOID)
     {
-      memcpy(buffer, _retval, _info[0].size);
+      memcpy(buffer, _retval, _inf[0].size);
     }
 }
 
@@ -433,8 +435,8 @@ _arg_addr(NSInvocation *inv, int index)
     }
   else
     {
-      int		i = index+1;	/* Allow for return type in '_info' */
-      const char	*type = _info[i].type;
+      int		i = index+1;	/* Allow for return type in '_inf' */
+      const char	*type = _inf[i].type;
 
       if (_argsRetained && (*type == _C_ID || *type == _C_CHARPTR))
 	{
@@ -488,13 +490,13 @@ _arg_addr(NSInvocation *inv, int index)
 {
   const char	*type;
 
-  type = _info[0].type;
+  type = _inf[0].type;
 
   CLEAR_RETURN_VALUE_IF_OBJECT;
 
   if (*type != _C_VOID)
     {
-      memcpy(_retval, buffer, _info[0].size);
+      memcpy(_retval, buffer, _inf[0].size);
     }
 
   RETAIN_RETURN_VALUE;
@@ -578,7 +580,7 @@ _arg_addr(NSInvocation *inv, int index)
 	}
       for (i = 3; i <= _numArgs; i++)
 	{
-	  if (*_info[i].type == _C_ID)
+	  if (*_inf[i].type == _C_ID)
 	    {
               id        old;
 
@@ -588,7 +590,7 @@ _arg_addr(NSInvocation *inv, int index)
 		  IF_NO_GC(RETAIN(old));
 		}
             }
-	  else if (*_info[i].type == _C_CHARPTR)
+	  else if (*_inf[i].type == _C_CHARPTR)
 	    {
 	      char      *str;
 
@@ -665,12 +667,12 @@ _arg_addr(NSInvocation *inv, int index)
 
   [aCoder encodeObject: _target];
 
-  [aCoder encodeValueOfObjCType: _info[2].type
+  [aCoder encodeValueOfObjCType: _inf[2].type
 			     at: &_selector];
 
   for (i = 3; i <= _numArgs; i++)
     {
-      const char	*type = _info[i].type;
+      const char	*type = _inf[i].type;
       void		*datum;
 
       datum = _arg_addr(self, i-1);
@@ -684,12 +686,12 @@ _arg_addr(NSInvocation *inv, int index)
 	  [aCoder encodeValueOfObjCType: type at: datum];
 	}
     }
-  if (*_info[0].type != _C_VOID)
+  if (*_inf[0].type != _C_VOID)
     {
       [aCoder encodeValueOfObjCType: @encode(BOOL) at: &_validReturn];
       if (_validReturn)
 	{
-	  [aCoder encodeValueOfObjCType: _info[0].type at: _retval];
+	  [aCoder encodeValueOfObjCType: _inf[0].type at: _retval];
 	}
     }
 }
@@ -715,15 +717,15 @@ _arg_addr(NSInvocation *inv, int index)
   for (i = 3; i <= _numArgs; i++)
     {
       datum = _arg_addr(self, i-1);
-      [aCoder decodeValueOfObjCType: _info[i].type at: datum];
+      [aCoder decodeValueOfObjCType: _inf[i].type at: datum];
     }
   _argsRetained = YES;
-  if (*_info[0].type != _C_VOID)
+  if (*_inf[0].type != _C_VOID)
     {
       [aCoder decodeValueOfObjCType: @encode(BOOL) at: &_validReturn];
       if (_validReturn)
         {
-          [aCoder decodeValueOfObjCType: _info[0].type at: _retval];
+          [aCoder decodeValueOfObjCType: _inf[0].type at: _retval];
         }
     }
   return self;

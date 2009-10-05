@@ -96,8 +96,7 @@ endif
 
 GNU_MFILES = \
 GSLocale.m \
-preface.m \
-mframe.m
+preface.m
 
 ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
   OBJC_LIBS += -lpthread
@@ -427,7 +426,6 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
 GENERATED_HFILES = \
 dynamic-load.h \
 $(HEADER_DIR_BASE)/preface.h \
-$(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 

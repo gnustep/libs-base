@@ -138,10 +138,12 @@ cifframe_from_signature (NSMethodSignature *info)
      have custom ffi_types with are allocated separately. We should allocate
      them in our cifframe so we don't leak memory. Or maybe we could
      cache structure types? */
-  rtype = cifframe_type([info methodReturnType], NULL);
+  rtype = cifframe_type(
+    objc_skip_type_qualifiers ([info methodReturnType]), NULL);
   for (i = 0; i < numargs; i++)
     {
-      arg_types[i] = cifframe_type([info getArgumentTypeAtIndex: i], NULL);
+      arg_types[i] = cifframe_type(
+	objc_skip_type_qualifiers([info getArgumentTypeAtIndex: i]), NULL);
     }
 
   if (numargs > 0)
@@ -478,6 +480,7 @@ cifframe_type(const char *typePtr, const char **advance)
 BOOL
 cifframe_decode_arg (const char *type, void* buffer)
 {
+  type = objc_skip_type_qualifiers (type);
   switch (*type)
     {
     case _C_CHR:
@@ -507,6 +510,7 @@ cifframe_decode_arg (const char *type, void* buffer)
 BOOL
 cifframe_encode_arg (const char *type, void* buffer)
 {
+  type = objc_skip_type_qualifiers (type);
   switch (*type)
     {
     case _C_CHR:

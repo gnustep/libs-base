@@ -38,6 +38,7 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSInvocation.h"
 #include <objc/Protocol.h>
+#include "GSInvocation.h"
 
 
 @interface NSDistantObject(GNUstepExtensions)
@@ -696,11 +697,6 @@ enum proxyLocation
 	    }
 	  return sig;
 	}
-      /*
-       * Simlarly, when we fetch a method signature from the remote end,
-       * we get a proxy, and when we build a local signature we need to
-       * ask the proxy for its types ... and must avoid recursion again.
-       */
       if (sel_eq(aSelector, @selector(methodType)))
 	{
 	  static	NSMethodSignature	*sig = nil;
@@ -757,31 +753,18 @@ enum proxyLocation
 
 	{
 	  id		m = nil;
-#if	defined(USE_FFCALL) || defined(USE_LIBFFI)
 	  id		inv;
 	  id		sig;
 
 	  DO_FORWARD_INVOCATION(methodSignatureForSelector:, aSelector);
-#else
-	  arglist_t	args;
-	  void		*retframe;
 
-	  id retframe_id (void *rframe)
-	    {
-	      __builtin_return (rframe);
-	    }
-
-	  /*
-	   *	No protocol - so try forwarding the message.
-	   */
-	  args = __builtin_apply_args();
-	  retframe = [self forward: _cmd : args];
-	  m = retframe_id(retframe);
-#endif
 	  if ([m isProxy] == YES)
 	    {
-	      const char	*types = [m methodType];
+	      const char	*types;
 
+	     types = [m methodType];
+	      /* Create a local method signature.
+	       */
 	      m = [NSMethodSignature signatureWithObjCTypes: types];
 	    }
 	  return m;
@@ -953,27 +936,13 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-#if	defined(USE_FFCALL) || defined(USE_LIBFFI)
-  BOOL m = NO;
-  id inv, sig;
+  BOOL		m = NO;
+  id		inv;
+  id		sig;
+
   DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
+
   return m;
-#else
-  arglist_t	args;
-  void		*retframe;
-
-  BOOL retframe_bool (void *rframe)
-    {
-      __builtin_return (rframe);
-    }
-
-  /*
-   *	Try forwarding the message.
-   */
-  args = __builtin_apply_args();
-  retframe = [self forward: _cmd : args];
-  return retframe_bool(retframe);
-#endif
 }
 
 - (id) replacementObjectForCoder: (NSCoder*)aCoder

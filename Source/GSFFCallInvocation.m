@@ -32,6 +32,8 @@
 #import <callback.h>
 #import "callframe.h"
 
+#import "GSInvocation.h"
+
 #ifndef INLINE
 #define INLINE inline
 #endif
@@ -545,7 +547,7 @@ static IMP gs_objc_msg_forward (SEL sel)
     }
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
-  _info = [aSignature methodInfo];
+  _info = (void*)[aSignature methodInfo];
   _cframe = callframe_from_signature(_sig, &_retval);
   return self;
 }
@@ -560,6 +562,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   unsigned int		i;
   av_alist		alist;
   NSInvocation_t	*inv = (NSInvocation_t*)_inv;
+  NSArgumentInfo	*info = (NSArgumentInfo*)inv->_info;
   void			*retval = inv->_retval;
 
   /* Do an av call starting with the return type */
@@ -569,7 +572,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	  _F(alist, imp, retval);	       		\
           break;
 
-  switch (*inv->_info[0].type)
+  switch (*info[0].type)
     {
       case _C_ID:
 	av_start_ptr(alist, imp, id, retval);
@@ -604,12 +607,13 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	{
 	  int split = 0;
 
-	  if (inv->_info[0].size > sizeof(long)
-	    && inv->_info[0].size <= 2*sizeof(long))
+	  if (info[0].size > sizeof(long)
+	    && info[0].size <= 2*sizeof(long))
 	    {
-	      split = gs_splittable(inv->_info[0].type);
+	      split = gs_splittable(info[0].type);
 	    }
-	  _av_start_struct(alist, imp, inv->_info[0].size, split, retval);
+	  _av_start_struct(alist, imp,
+	    info[0].size, split, retval);
 	  break;
 	}
       case _C_VOID:
@@ -617,7 +621,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	break;
       default:
 	NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented",
-	  inv->_info[0].type);
+	  info[0].type);
 	break;
     }
 
@@ -628,8 +632,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   /* Set the rest of the arguments */
   for (i = 2; i < inv->_numArgs; i++)
     {
-      const char	*type = inv->_info[i+1].type;
-      unsigned		size = inv->_info[i+1].size;
+      const char	*type = info[i+1].type;
+      unsigned		size = info[i+1].size;
       void              *datum;
 
       datum = callframe_arg_addr((callframe_t *)inv->_cframe, i);
@@ -696,7 +700,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	    CASE_TYPE(_C_DBL,  double, av_double)
 	
 	  case _C_STRUCT_B:
-	    _av_struct(alist, size, inv->_info[i+1].align, datum);
+	    _av_struct(alist, size,
+	      info[i+1].align, datum);
 	    break;
 	  default:
 	    NSCAssert1(0, @"GSFFCallInvocation: Type '%s' not implemented",
@@ -722,8 +727,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
    */
   if (anObject == nil)
     {
-      memset(_retval, '\0', _info[0].size);	/* Clear return value */
-      if (*_info[0].type != _C_VOID)
+      memset(_retval, '\0', _inf[0].size);	/* Clear return value */
+      if (*_inf[0].type != _C_VOID)
         {
           _validReturn = YES;
         }
@@ -740,8 +745,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   old_target = RETAIN(_target);
   [self setTarget: anObject];
 
-  callframe_set_arg((callframe_t *)_cframe, 0, &_target, _info[1].size);
-  callframe_set_arg((callframe_t *)_cframe, 1, &_selector, _info[2].size);
+  callframe_set_arg((callframe_t *)_cframe, 0, &_target, _inf[1].size);
+  callframe_set_arg((callframe_t *)_cframe, 1, &_selector, _inf[2].size);
 
   if (_sendToSuper == YES)
     {
@@ -1123,8 +1128,8 @@ GSInvocationCallback (void *callback_data, va_alist args)
 
   for (i = 0; i < _numArgs; i++)
     {
-      int		flags = _info[i+1].qual;
-      const char	*type = _info[i+1].type;
+      int		flags = _inf[i+1].qual;
+      const char	*type = _inf[i+1].type;
       void		*datum;
 
       if (i == 0)

@@ -36,7 +36,6 @@
 #endif
 #import <pthread.h>
 #import "cifframe.h"
-#import "mframe.h"
 #import "GSPrivate.h"
 
 #ifndef INLINE
@@ -304,6 +303,8 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
  */
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature
 {
+  int	i;
+
   if (aSignature == nil)
     {
       RELEASE(self);
@@ -317,15 +318,16 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
   /* Make sure we have somewhere to store the return value if needed.
    */
   _retval = _retptr = 0;
-  if (_info[0].size > 0)
+  i = objc_sizeof_type (objc_skip_type_qualifiers ([_sig methodReturnType]));
+  if (i > 0)
     {
-      if (_info[0].size <= sizeof(_retbuf))
+      if (i <= sizeof(_retbuf))
 	{
 	  _retval = _retbuf;
 	}
       else
 	{
-	  _retptr = NSAllocateCollectable(_info[0].size, NSScannedOption);
+	  _retptr = NSAllocateCollectable(i, NSScannedOption);
 	  _retval = _retptr;
 	}
     }
@@ -361,15 +363,16 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
   /* Make sure we have somewhere to store the return value if needed.
    */
   _retval = _retptr = 0;
-  if (_info[0].size > 0)
+  i = objc_sizeof_type (objc_skip_type_qualifiers ([_sig methodReturnType]));
+  if (i > 0)
     {
-      if (_info[0].size <= sizeof(_retbuf))
+      if (i <= sizeof(_retbuf))
 	{
 	  _retval = _retbuf;
 	}
       else
 	{
-	  _retptr = NSAllocateCollectable(_info[0].size, NSScannedOption);
+	  _retptr = NSAllocateCollectable(i, NSScannedOption);
 	  _retval = _retptr;
 	}
     }
@@ -395,18 +398,22 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 - (void) invokeWithTarget: (id)anObject
 {
   id		old_target;
+  const char	*type;
   IMP		imp;
 
   CLEAR_RETURN_VALUE_IF_OBJECT;
   _validReturn = NO;
-
+  type = objc_skip_type_qualifiers([_sig methodReturnType]);
+  
   /*
    *	A message to a nil object returns nil.
    */
   if (anObject == nil)
     {
       if (_retval)
-        memset(_retval, '\0', _info[0].size);	/* Clear return value */
+	{
+          memset(_retval, '\0', objc_sizeof_type (type));
+	}
       _validReturn = YES;
       return;
     }
@@ -420,8 +427,8 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   old_target = RETAIN(_target);
   [self setTarget: anObject];
 
-  cifframe_set_arg((cifframe_t *)_cframe, 0, &_target, _info[1].size);
-  cifframe_set_arg((cifframe_t *)_cframe, 1, &_selector, _info[2].size);
+  cifframe_set_arg((cifframe_t *)_cframe, 0, &_target, sizeof(id));
+  cifframe_set_arg((cifframe_t *)_cframe, 1, &_selector, sizeof(SEL));
 
   if (_sendToSuper == YES)
     {
@@ -459,8 +466,10 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   GSFFIInvokeWithTargetAndImp(self, anObject, imp);
 
   /* Decode the return value */
-  if (*_info[0].type != _C_VOID)
-    cifframe_decode_arg(_info[0].type, _retval);
+  if (*type != _C_VOID)
+    {
+      cifframe_decode_arg(type, _retval);
+    }
 
   RETAIN_RETURN_VALUE;
   _validReturn = YES;
@@ -649,8 +658,8 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 
   for (i = 0; i < _numArgs; i++)
     {
-      int		flags = _info[i+1].qual;
-      const char	*type = _info[i+1].type;
+      int		flags = _inf[i+1].qual;
+      const char	*type = _inf[i+1].type;
       void		*datum;
 
       if (i == 0)

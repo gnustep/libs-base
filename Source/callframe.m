@@ -68,6 +68,7 @@ callframe_from_signature (NSMethodSignature *info, void **retval)
         {
 	  const char	*type = [info getArgumentTypeAtIndex: i];
 
+	  type = objc_skip_type_qualifiers (type);
           size += objc_sizeof_type (type);
           if (size % align != 0)
             {
@@ -83,11 +84,13 @@ callframe_from_signature (NSMethodSignature *info, void **retval)
    */
   if (retval)
     {
-      const char	*type = [info methodReturnType];
+      const char	*type;
       unsigned		full = size;
       unsigned		pos;
       unsigned		ret;
 
+      type = [info methodReturnType];
+      type = objc_skip_type_qualifiers (type);
       if (full % align != 0)
 	{
 	  full += (align - full % align);
@@ -133,9 +136,12 @@ callframe_from_signature (NSMethodSignature *info, void **retval)
         }
       for (i = 0; i < cframe->nargs; i++)
         {
+	  const char	*type = [info getArgumentTypeAtIndex: i];
+
           cframe->args[i] = buf + offset;
 
-          offset += objc_sizeof_type ([info getArgumentTypeAtIndex: i]);
+	  type = objc_skip_type_qualifiers (type);
+          offset += objc_sizeof_type (type);
 
           if (offset % align != 0)
             {
