@@ -62,6 +62,15 @@
 @interface NSObject (MissingFromMacOSX)
 + (IMP) methodForSelector: (SEL)aSelector;
 @end
+#else
+
+#define	class_nextMethodList(aClass,anIterator) (({\
+  if (*(anIterator) == 0) \
+    *((struct objc_method_list**)(anIterator)) = (aClass)->methods; \
+  else \
+    *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
+}), *(anIterator))
+
 #endif
 
 #define BDBGPrintf(format, args...) \
