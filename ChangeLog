@@ -1,3 +1,7 @@
+2009-10-07  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add librt for sched_yield on solaris.
+
 2009-10-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: enable ffcall if ffi is disabled

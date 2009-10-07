@@ -872,6 +872,9 @@ if test $pthread_ok = no ; then
   AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
 fi
 
+# Typically need librt on Solaris for sched_yield
+AC_CHECK_LIB(rt, sched_yield)
+
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m
 #--------------------------------------------------------------------
