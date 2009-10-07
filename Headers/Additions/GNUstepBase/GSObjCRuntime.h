@@ -144,8 +144,6 @@ GS_EXPORT void
 GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
   const char *type, unsigned size, int offset);
 
-#include <GNUstepBase/objc-gnu2next.h>
-
 /*
  * This section includes runtime functions
  * to query and manipulate the ObjC runtime structures.
