@@ -126,7 +126,7 @@ static	NSIndexPath	*dummy = nil;
       NSHashRemove(shared, self);
       [lock unlock];
       NSZoneFree(NSDefaultMallocZone(), _indexes);
-      NSDeallocateObject(self);
+      [super dealloc];
     }
   GSNOSUPERDEALLOC;
 }

@@ -130,9 +130,9 @@ static Class	GSInlineArrayClass;
 	}
 #endif
       NSZoneFree([self zone], _contents_array);
+      _contents_array = 0;
     }
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 - (id) init
@@ -404,9 +404,9 @@ static Class	GSInlineArrayClass;
 	{
 	  [_contents_array[i] release];
 	}
+      _contents_array = 0;
     }
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 - (id) init
 {
@@ -932,10 +932,12 @@ static Class	GSInlineArrayClass;
 
 - (id) initWithArray: (GSArray*)anArray
 {
-  [super init];
-  array = anArray;
-  IF_NO_GC(RETAIN(array));
-  pos = 0;
+  if ((self = [super init]) != nil)
+    {
+      array = anArray;
+      IF_NO_GC(RETAIN(array));
+      pos = 0;
+    }
   return self;
 }
 
@@ -949,8 +951,7 @@ static Class	GSInlineArrayClass;
 - (void) dealloc
 {
   RELEASE(array);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 @end

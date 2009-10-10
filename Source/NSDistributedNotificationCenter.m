@@ -238,8 +238,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
     }
   RELEASE(_remote);
   RELEASE(_type);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 /**

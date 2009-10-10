@@ -1,3 +1,20 @@
+2009-10-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSString.h:
+	* Source/NSString.m:
+	* Source/GSString.m:
+	Remove obsolete immutable proxy method.
+	* Source/NSIndexPath.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSAttributedString.m:
+	* Source/GSArray.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFFIInvocation.m:
+	* Source/GSAttributedString.m:
+	* Source/NSConnection.m:
+	* Source/NSThread.m:
+	Replace unnecessary calls to NSDeallocateObject().
+
 2009-10-07  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add librt for sched_yield on solaris.

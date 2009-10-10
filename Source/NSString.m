@@ -107,12 +107,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 @end
 @class	GSMutableArray;
 @class	GSMutableDictionary;
-@class	NSImmutableString;
-@interface NSImmutableString : NSObject	// Help the compiler
-@end
-@class	GSImmutableString;
-@interface GSImmutableString : NSObject	// Help the compiler
-@end
 
 /*
  * Cache classes and method implementations for speed.
@@ -5064,34 +5058,6 @@ static NSFileManager *fm = nil;
 {
   NSRange range = {0, [self length]};
   [self replaceCharactersInRange: range withString: aString];
-}
-
-@end
-
-
-/**
- * GNUstep specific (non-standard) additions to the NSMutableString class.
- * The methods in this category are not available in MacOS-X
- */
-@implementation NSMutableString (GNUstep)
-
-/**
- * Returns a proxy to the receiver which will allow access to the
- * receiver as an NSString, but which will not allow any of the
- * extra NSMutableString methods to be used.  You can use this method
- * to provide other code with read-only access to a mutable string
- * you own.
- */
-- (NSString*) immutableProxy
-{
-  if ([self isKindOfClass: GSMutableStringClass])
-    {
-      return AUTORELEASE([[GSImmutableString alloc] initWithString: self]);
-    }
-  else
-    {
-      return AUTORELEASE([[NSImmutableString alloc] initWithString: self]);
-    }
 }
 
 @end

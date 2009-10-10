@@ -220,8 +220,7 @@ stringFromMsgType(int type)
 - (void) dealloc
 {
   RELEASE(obj);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 - (BOOL) countdown
