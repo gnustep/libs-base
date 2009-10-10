@@ -529,7 +529,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
   /* We should never get here */
-  NSDeallocateObject(self);
+  [self dealloc];
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Runtime incorrectly configured to pass argframes"];
   return nil;

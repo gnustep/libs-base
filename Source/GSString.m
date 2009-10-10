@@ -349,6 +349,8 @@ static void getCString_u(GSStr self, char *buffer, unsigned int maxLength,
 
 - (void) dealloc
 {
+  NSLog(@"Warning ... attempt to deallocate instance of %@ in zone %p",
+    NSStringFromClass([self class]), [self zone]);
   GSNOSUPERDEALLOC;	// Placeholders never get deallocated.
 }
 
@@ -2814,12 +2816,6 @@ transmute(GSStr self, NSString *aString)
   setup();
 }
 
-- (void) dealloc
-{
-  [self subclassResponsibility: _cmd];
-  GSNOSUPERDEALLOC;
-}
-
 - (id) initWithBytes: (const void*)chars
 	      length: (NSUInteger)length
 	    encoding: (NSStringEncoding)encoding
@@ -3190,24 +3186,21 @@ agree, create a new GSCInlineString otherwise.
 @implementation GSCBufferString
 - (void) dealloc
 {
-  if (_flags.owned && _contents.c != 0)
+  if (_contents.c != 0)
     {
-      NSZoneFree(NSZoneFromPointer(_contents.c), _contents.c);
+      if (_flags.owned)
+	{
+	  NSZoneFree(NSZoneFromPointer(_contents.c), _contents.c);
+        }
       _contents.c = 0;
     }
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 @end
 
 
 
 @implementation	GSCInlineString
-- (void) dealloc
-{
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
-}
 @end
 
 
@@ -3235,8 +3228,7 @@ agree, create a new GSCInlineString otherwise.
 - (void) dealloc
 {
   DESTROY(_parent);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 @end
 
@@ -3528,24 +3520,21 @@ agree, create a new GSUnicodeInlineString otherwise.
 @implementation	GSUnicodeBufferString
 - (void) dealloc
 {
-  if (_flags.owned && _contents.u != 0)
+  if (_contents.u != 0)
     {
-      NSZoneFree(NSZoneFromPointer(_contents.u), _contents.u);
+      if (_flags.owned)
+        {
+          NSZoneFree(NSZoneFromPointer(_contents.u), _contents.u);
+	}
       _contents.u = 0;
     }
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 @end
 
 
 
 @implementation	GSUnicodeInlineString
-- (void) dealloc
-{
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
-}
 @end
 
 
@@ -3574,8 +3563,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 - (void) dealloc
 {
   DESTROY(_parent);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 @end
 
@@ -3758,8 +3746,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
       self->_contents.c = 0;
       self->_zone = 0;
     }
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
@@ -4565,424 +4552,6 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     }
   else
     return _count;
-}
-
-@end
-
-
-
-@interface	NSImmutableString: NSString
-{
-  id	_parent;
-}
-- (id) initWithString: (NSString*)parent;
-@end
-
-@interface	GSImmutableString: NSImmutableString
-@end
-
-@implementation NSImmutableString
-
-- (BOOL) canBeConvertedToEncoding: (NSStringEncoding)enc
-{
-  return [_parent canBeConvertedToEncoding: enc];
-}
-
-- (unichar) characterAtIndex: (NSUInteger)index
-{
-  return [_parent characterAtIndex: index];
-}
-
-- (NSComparisonResult) compare: (NSString*)aString
-		       options: (NSUInteger)mask
-			 range: (NSRange)aRange
-{
-  return [_parent compare: aString options: mask range: aRange];
-}
-
-- (const char *) cString
-{
-  return [_parent cString];
-}
-
-- (const char *) cStringUsingEncoding
-{
-  return [_parent cStringUsingEncoding];
-}
-
-- (NSUInteger) cStringLength
-{
-  return [_parent cStringLength];
-}
-
-- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
-	 allowLossyConversion: (BOOL)flag
-{
-  return [_parent dataUsingEncoding: encoding allowLossyConversion: flag];
-}
-
-- (void) dealloc
-{
-  RELEASE(_parent);
-  [super dealloc];
-}
-
-- (id) copyWithZone: (NSZone*)z
-{
-  return [_parent copyWithZone: z];
-}
-
-- (id) mutableCopy
-{
-  return [_parent mutableCopy];
-}
-
-- (id) mutableCopyWithZone: (NSZone*)z
-{
-  return [_parent mutableCopyWithZone: z];
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  [_parent encodeWithCoder: aCoder];
-}
-
-- (NSStringEncoding) fastestEncoding
-{
-  return [_parent fastestEncoding];
-}
-
-- (void) getCharacters: (unichar*)buffer
-{
-  [_parent getCharacters: buffer];
-}
-
-- (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
-{
-  [_parent getCharacters: buffer range: aRange];
-}
-
-- (void) getCString: (char*)buffer
-{
-  [_parent getCString: buffer];
-}
-
-- (void) getCString: (char*)buffer
-	  maxLength: (NSUInteger)maxLength
-{
-  [_parent getCString: buffer maxLength: maxLength];
-}
-
-- (BOOL) getCString: (char*)buffer
-	  maxLength: (NSUInteger)maxLength
-	   encoding: (NSStringEncoding)encoding
-{
-  return [_parent getCString: buffer maxLength: maxLength encoding: encoding];
-}
-
-- (void) getCString: (char*)buffer
-	  maxLength: (NSUInteger)maxLength
-	      range: (NSRange)aRange
-     remainingRange: (NSRange*)leftoverRange
-{
-  [_parent getCString: buffer
-	    maxLength: maxLength
-		range: aRange
-       remainingRange: leftoverRange];
-}
-
-- (NSUInteger) hash
-{
-  return [_parent hash];
-}
-
-- (id) initWithString: (NSString*)parent
-{
-  _parent = RETAIN(parent);
-  return self;
-}
-
-- (BOOL) isEqual: (id)anObject
-{
-  return [_parent isEqual: anObject];
-}
-
-- (BOOL) isEqualToString: (NSString*)anObject
-{
-  return [_parent isEqualToString: anObject];
-}
-
-- (NSUInteger) length
-{
-  return [_parent length];
-}
-
-- (NSUInteger) lengthOfBytesUsingEncoding
-{
-  return [_parent lengthOfBytesUsingEncoding];
-}
-
-- (const char*) lossyCString
-{
-  return [_parent lossyCString];
-}
-
-- (NSUInteger) maximumLengthOfBytesUsingEncoding
-{
-  return [_parent maximumLengthOfBytesUsingEncoding];
-}
-
-- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
-{
-  return [_parent rangeOfComposedCharacterSequenceAtIndex: anIndex];
-}
-
-- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (NSUInteger)mask
-			      range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
-  return [_parent rangeOfCharacterFromSet: aSet options: mask range: aRange];
-}
-
-- (NSRange) rangeOfString: (NSString*)aString
-		  options: (NSUInteger)mask
-		    range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if (GSObjCIsInstance(aString) == NO)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] not a string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  return [_parent rangeOfString: aString options: mask range: aRange];
-}
-
-- (NSStringEncoding) smallestEncoding
-{
-  return [_parent smallestEncoding];
-}
-
-@end
-
-
-@implementation GSImmutableString
-
-+ (void) initialize
-{
-  setup();
-}
-
-- (BOOL) canBeConvertedToEncoding: (NSStringEncoding)enc
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return canBeConvertedToEncoding_u((GSStr)_parent, enc);
-  else
-    return canBeConvertedToEncoding_c((GSStr)_parent, enc);
-}
-
-- (unichar) characterAtIndex: (NSUInteger)index
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return characterAtIndex_u((GSStr)_parent, index);
-  else
-    return characterAtIndex_c((GSStr)_parent, index);
-}
-
-- (NSComparisonResult) compare: (NSString*)aString
-		       options: (NSUInteger)mask
-			 range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if (GSObjCIsInstance(aString) == NO)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] not a string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return compare_u((GSStr)_parent, aString, mask, aRange);
-  else
-    return compare_c((GSStr)_parent, aString, mask, aRange);
-}
-
-- (const char *) cString
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return cString_u((GSStr)_parent, externalEncoding);
-  else
-    return cString_c((GSStr)_parent, externalEncoding);
-}
-
-- (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return cString_u((GSStr)_parent, encoding);
-  else
-    return cString_c((GSStr)_parent, encoding);
-}
-
-- (NSUInteger) cStringLength
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return cStringLength_u((GSStr)_parent, externalEncoding);
-  else
-    return cStringLength_c((GSStr)_parent, externalEncoding);
-}
-
-- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
-	 allowLossyConversion: (BOOL)flag
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return dataUsingEncoding_u((GSStr)_parent, encoding, flag);
-  else
-    return dataUsingEncoding_c((GSStr)_parent, encoding, flag);
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  [_parent encodeWithCoder: aCoder];
-}
-
-- (NSStringEncoding) fastestEncoding
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return NSUnicodeStringEncoding;
-  else
-    return internalEncoding;
-}
-
-- (void) getCharacters: (unichar*)buffer
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    {
-      getCharacters_u((GSStr)_parent, buffer,
-	(NSRange){0, ((GSStr)_parent)->_count});
-    }
-  else
-    {
-      getCharacters_c((GSStr)_parent, buffer,
-	(NSRange){0, ((GSStr)_parent)->_count});
-    }
-}
-
-- (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
-  if (((GSStr)_parent)->_flags.wide == 1)
-    {
-      getCharacters_u((GSStr)_parent, buffer, aRange);
-    }
-  else
-    {
-      getCharacters_c((GSStr)_parent, buffer, aRange);
-    }
-}
-
-- (NSUInteger) hash
-{
-  if (((GSStr)_parent)->_flags.hash == 0)
-    {
-      ((GSStr)_parent)->_flags.hash = (*hashImp)((id)_parent, hashSel);
-    }
-  return ((GSStr)_parent)->_flags.hash;
-}
-
-- (BOOL) isEqual: (id)anObject
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return isEqual_u((GSStr)_parent, anObject);
-  else
-    return isEqual_c((GSStr)_parent, anObject);
-}
-
-- (BOOL) isEqualToString: (NSString*)anObject
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return isEqual_u((GSStr)_parent, anObject);
-  else
-    return isEqual_c((GSStr)_parent, anObject);
-}
-
-- (NSUInteger) length
-{
-  return ((GSStr)_parent)->_count;
-}
-
-- (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return cStringLength_u((GSStr)_parent, encoding);
-  else
-    return cStringLength_c((GSStr)_parent, encoding);
-}
-
-- (const char*) lossyCString
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return lossyCString_u((GSStr)_parent);
-  else
-    return lossyCString_c((GSStr)_parent);
-}
-
-- (NSUInteger) maximumLengthOfBytesUsingEncoding
-{
-  return [_parent maximumLengthOfBytesUsingEncoding];
-}
-
-- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return rangeOfSequence_u((GSStr)_parent, anIndex);
-  else
-    return rangeOfSequence_c((GSStr)_parent, anIndex);
-}
-
-- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (NSUInteger)mask
-			      range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return rangeOfCharacter_u((GSStr)_parent, aSet, mask, aRange);
-  else
-    return rangeOfCharacter_c((GSStr)_parent, aSet, mask, aRange);
-}
-
-- (NSRange) rangeOfString: (NSString*)aString
-		  options: (NSUInteger)mask
-		    range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, ((GSStr)_parent)->_count);
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if (GSObjCIsInstance(aString) == NO)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] not a string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if (((GSStr)_parent)->_flags.wide == 1)
-    return rangeOfString_u((GSStr)_parent, aString, mask, aRange);
-  else
-    return rangeOfString_c((GSStr)_parent, aString, mask, aRange);
-}
-
-- (NSStringEncoding) smallestEncoding
-{
-  if (((GSStr)_parent)->_flags.wide == 1)
-    {
-      return NSUnicodeStringEncoding;
-    }
-  else
-    {
-      return internalEncoding;
-    }
 }
 
 @end

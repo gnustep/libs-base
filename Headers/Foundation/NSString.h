@@ -807,10 +807,6 @@ extern struct objc_class _NSConstantStringClassReference;
 
 #if GS_API_VERSION(GS_API_NONE, 011700)
 
-@interface NSMutableString (GNUstep)
-- (NSString*) immutableProxy;
-@end
-
 /**
  * Provides some additional (non-standard) utility methods.
  */

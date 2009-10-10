@@ -999,8 +999,7 @@ static Class GSMutableAttributedStringClass;
 - (void) dealloc
 {
   RELEASE(_owner);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 - (NSUInteger) length

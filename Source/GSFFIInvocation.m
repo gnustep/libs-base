@@ -292,7 +292,7 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
   /* We should never get here */
-  NSDeallocateObject(self);
+  [self dealloc];
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Runtime incorrectly configured to pass argframes"];
   return nil;

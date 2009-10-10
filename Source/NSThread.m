@@ -679,8 +679,7 @@ static void setThreadForCurrentThread(NSThread *t)
 	}
     }
   DESTROY(_gcontext);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 - (id) init
