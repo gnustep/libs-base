@@ -1,3 +1,7 @@
+2009-10-11 Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Source/NSKeyValueObserving.m: add setters for common structures.
+
 2009-10-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSString.h:
