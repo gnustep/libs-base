@@ -132,6 +132,10 @@ static inline void setup()
 - (void) setterLongLong: (unsigned long long)val;
 #endif
 - (void) setterShort: (unsigned short)val;
+- (void) setterRange: (NSRange)val;
+- (void) setterPoint: (NSPoint)val;
+- (void) setterSize: (NSSize)val;
+- (void) setterRect: (NSRect)rect;
 @end
 
 /* An instance of this records all the information for a single observation.
@@ -533,6 +537,32 @@ replacementForClass(Class c)
                 imp = [[GSKVOSetter class]
                   instanceMethodForSelector: @selector(setter:)];
                 break;
+              case _C_STRUCT_B:
+                if (strcmp(@encode(NSRange), type) == 0)
+                  {
+                    imp = [[GSKVOSetter class]
+                      instanceMethodForSelector: @selector(setterRange:)];
+                  }
+                else if (strcmp(@encode(NSPoint), type) == 0)
+                  {
+                    imp = [[GSKVOSetter class]
+                      instanceMethodForSelector: @selector(setterPoint:)];
+                  }
+                else if (strcmp(@encode(NSSize), type) == 0)
+                  {
+                    imp = [[GSKVOSetter class]
+                      instanceMethodForSelector: @selector(setterSize:)];
+                  }
+                else if (strcmp(@encode(NSRect), type) == 0)
+                  {
+                    imp = [[GSKVOSetter class]
+                      instanceMethodForSelector: @selector(setterRect:)];
+                  }                           
+                else
+                  {
+                    imp = 0;
+                  }
+                break;
               default:
                 imp = 0;
                 break;
@@ -785,6 +815,102 @@ replacementForClass(Class c)
   void		(*imp)(id,SEL,unsigned short);
 
   imp = (void (*)(id,SEL,unsigned short))[c instanceMethodForSelector: _cmd];
+
+  key = newKey(_cmd);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [self willChangeValueForKey: key];
+      (*imp)(self, _cmd, val);
+      // post setting code here
+      [self didChangeValueForKey: key];
+    }
+  else
+    {
+      (*imp)(self, _cmd, val);
+    }
+  RELEASE(key);
+}
+
+- (void) setterRange: (NSRange)val
+{
+  NSString  *key;
+  Class     c = [self class];
+  void      (*imp)(id,SEL,NSRange);
+
+  imp = (void (*)(id,SEL,NSRange))[c instanceMethodForSelector: _cmd];
+
+  key = newKey(_cmd);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [self willChangeValueForKey: key];
+      (*imp)(self, _cmd, val);
+      // post setting code here
+      [self didChangeValueForKey: key];
+    }
+  else
+    {
+      (*imp)(self, _cmd, val);
+    }
+  RELEASE(key);
+}
+
+- (void) setterPoint: (NSPoint)val
+{
+  NSString  *key;
+  Class     c = [self class];
+  void      (*imp)(id,SEL,NSPoint);
+
+  imp = (void (*)(id,SEL,NSPoint))[c instanceMethodForSelector: _cmd];
+
+  key = newKey(_cmd);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [self willChangeValueForKey: key];
+      (*imp)(self, _cmd, val);
+      // post setting code here
+      [self didChangeValueForKey: key];
+    }
+  else
+    {
+      (*imp)(self, _cmd, val);
+    }
+  RELEASE(key);
+}
+
+- (void) setterSize: (NSSize)val
+{
+  NSString  *key;
+  Class     c = [self class];
+  void      (*imp)(id,SEL,NSSize);
+
+  imp = (void (*)(id,SEL,NSSize))[c instanceMethodForSelector: _cmd];
+
+  key = newKey(_cmd);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [self willChangeValueForKey: key];
+      (*imp)(self, _cmd, val);
+      // post setting code here
+      [self didChangeValueForKey: key];
+    }
+  else
+    {
+      (*imp)(self, _cmd, val);
+    }
+  RELEASE(key);
+}
+
+- (void) setterRect: (NSRect)val
+{
+  NSString  *key;
+  Class     c = [self class];
+  void      (*imp)(id,SEL,NSRect);
+
+  imp = (void (*)(id,SEL,NSRect))[c instanceMethodForSelector: _cmd];
 
   key = newKey(_cmd);
   if ([c automaticallyNotifiesObserversForKey: key] == YES)
