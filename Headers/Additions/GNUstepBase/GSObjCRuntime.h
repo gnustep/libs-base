@@ -97,6 +97,15 @@ extern "C" {
 #define _C_BYREF        'R'
 #define _C_ONEWAY       'V'
 #define _C_GCINVISIBLE  '!'
+#else
+
+#define	class_nextMethodList(aClass,anIterator) (({\
+  if (*(anIterator) == 0) \
+    *((struct objc_method_list**)(anIterator)) = (aClass)->methods; \
+  else \
+    *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
+}), *(anIterator))
+
 #endif
 
 #ifndef	NO_GNUSTEP
