@@ -80,7 +80,7 @@ main(int argc, char** argv, char **env)
   int			retval = 0;
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];

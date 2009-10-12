@@ -1,3 +1,25 @@
+2009-10-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Tools/gspath.m:
+	* Tools/plmerge.m:
+	* Tools/xmlparse.m:
+	* Tools/sfparse.m:
+	* Tools/plparse.m:
+	* Tools/pldes.m:
+	* Tools/defaults.m:
+	* Tools/plget.m:
+	* Tools/pl2link.m:
+	* Tools/gdnc.m:
+	* Tools/plser.m:
+	* Tools/autogsdoc.m:
+	* Tools/HTMLLinker.m:
+	* Tools/cvtenc.m:
+	Add function for easy process initialisation when the automatic
+	mechanisms don't work (eg calling ObjC code from within a C or C++
+	application).
+
 2009-10-11 Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/NSKeyValueObserving.m: add setters for common structures.

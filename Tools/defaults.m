@@ -135,7 +135,7 @@ main(int argc, char** argv, char **env)
   int derror = 0;
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   [NSObject enableDoubleReleaseCheck: YES];
   pool = [NSAutoreleasePool new];

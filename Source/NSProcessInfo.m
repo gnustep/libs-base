@@ -1362,6 +1362,16 @@ static void determineOperatingSystem()
 
 @end
 
+void
+GSInitializeProcess(int argc, char **argv, char **envp)
+{
+  [NSProcessInfo class];
+  [gnustep_global_lock lock];
+  fallbackInitialisation = YES;
+  _gnu_process_args(argc, argv, envp);
+  [gnustep_global_lock unlock];
+}
+
 @implementation	NSProcessInfo (GNUstep)
 
 static BOOL	debugTemporarilyDisabled = NO;
@@ -1370,10 +1380,7 @@ static BOOL	debugTemporarilyDisabled = NO;
                            count: (int)argc
                      environment: (char**)env
 {
-  [gnustep_global_lock lock];
-  fallbackInitialisation = YES;
-  _gnu_process_args(argc, argv, env);
-  [gnustep_global_lock unlock];
+  GSInitializeProcess(argc, argv, env);
 }
 
 - (BOOL) debugLoggingEnabled

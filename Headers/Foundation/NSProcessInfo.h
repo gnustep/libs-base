@@ -237,18 +237,24 @@ enum {
  */
 - (BOOL) setLogFile: (NSString*)path;
 
-/**
- * Fallback/override method. The developer must call this method to initialize
- * the NSProcessInfo system if none of the system-specific hacks to
- * auto-initialize it are working.<br />
- * It is also safe to call this method to override the effects
- * of the automatic initialisation, which some applications may need
- * to do when using GNUstep libraries embedded within other frameworks.
+/** Obsolete ... the GSInitializeProcess() function has the same effect and
+ * can be called more easily from other languages (particularly C).
  */
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env;
 @end
+
+/**
+ * Fallback/override function.<br />
+ * The developer must call this method to initialize
+ * the NSProcessInfo system if none of the system-specific hacks to
+ * auto-initialize it are working.<br />
+ * It is also safe to call this function to override the effects
+ * of the automatic initialisation, which some applications may need
+ * to do when using GNUstep libraries embedded within other frameworks.
+ */
+GS_EXPORT void GSInitializeProcess(int argc, char **argv, char **envp);
 
 /**
  * Function for rapid testing to see if a debug level is set.<br />

@@ -1059,7 +1059,7 @@ main(int argc, char** argv, char** env)
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   [NSObject enableDoubleReleaseCheck: YES];
   pInfo = [NSProcessInfo processInfo];
