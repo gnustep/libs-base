@@ -704,7 +704,7 @@ main(int argc, char **argv, char **env)
    */
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
 
 #if GS_WITH_GC == 0

@@ -1124,7 +1124,7 @@ int main (int argc, char** argv, char** env)
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
 
   /* Set up the cache.  */
