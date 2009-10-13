@@ -373,7 +373,7 @@ static inline void GSeq_uppercase(GSeq seq)
  * If a string comparison function is required, implement it.
  */
 #ifdef	GSEQ_STRCOMP
-static inline NSComparisonResult
+static NSComparisonResult
 GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 {
   GSEQ_ST	s = (GSEQ_ST)ss;
@@ -593,7 +593,7 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
  * If a string search function is required, implement it.
  */
 #ifdef	GSEQ_STRRANGE
-static inline NSRange
+static NSRange
 GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 {
   GSEQ_ST	s = (GSEQ_ST)ss;
