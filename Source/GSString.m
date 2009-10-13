@@ -213,11 +213,6 @@ typedef struct {
 #define	GSEQ_S	GSEQ_CS
 #include "GSeq.h"
 
-/*
- *	Include sequence handling code with instructions to generate search
- *	and compare functions for NSString objects.
- */
-#define	GSEQ_STRCOMP	strCompNsNs
 #define	GSEQ_STRRANGE	strRangeNsNs
 #define	GSEQ_O	GSEQ_NS
 #define	GSEQ_S	GSEQ_NS
