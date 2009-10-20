@@ -496,12 +496,12 @@ NSIncrementExtraRefCount(id anObject)
       [theLock lock];
       if (((obj)anObject)[-1].retained == UINT_MAX - 1)
 	{
-	  objc_mutex_unlock (theLock);
+	  [theLock unlock];
 	  [NSException raise: NSInternalInconsistencyException
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
 	}
       ((obj)anObject)[-1].retained++;
-      [theLock lock];
+      [theLock unlock];
 #endif	/* GSATOMICREAD */
     }
   else
