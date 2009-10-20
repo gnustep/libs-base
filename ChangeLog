@@ -1,3 +1,8 @@
+2009-10-20  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSObject.m (NSIncrementExtraRefCount): Properly release
+	allocation lock.
+
 2009-10-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m:
