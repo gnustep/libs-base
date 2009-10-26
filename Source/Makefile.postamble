@@ -146,6 +146,7 @@ $(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
 mframe.m_FILE_FILTER_OUT_FLAGS = -O%
 NSConnection.m_FILE_FILTER_OUT_FLAGS = -O%
 NSInvocation.m_FILE_FILTER_OUT_FLAGS = -O%
+libgnustep-base-entry.m_FILE_FILTER_OUT_FLAGS = -O%   # gcc 4.4 on mingw
 
 #
 # Make list of class names for DLL exports. Uses the actual classes from
