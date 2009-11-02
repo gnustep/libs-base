@@ -138,12 +138,10 @@ cifframe_from_signature (NSMethodSignature *info)
      have custom ffi_types with are allocated separately. We should allocate
      them in our cifframe so we don't leak memory. Or maybe we could
      cache structure types? */
-  rtype = cifframe_type(
-    objc_skip_type_qualifiers ([info methodReturnType]), NULL);
+  rtype = cifframe_type([info methodReturnType], NULL);
   for (i = 0; i < numargs; i++)
     {
-      arg_types[i] = cifframe_type(
-	objc_skip_type_qualifiers([info getArgumentTypeAtIndex: i]), NULL);
+      arg_types[i] = cifframe_type([info getArgumentTypeAtIndex: i], NULL);
     }
 
   if (numargs > 0)
@@ -255,39 +253,10 @@ cifframe_arg_addr(cifframe_t *cframe, int index)
 ffi_type *
 cifframe_type(const char *typePtr, const char **advance)
 {
-  BOOL flag;
   const char *type;
   ffi_type *ftype;
 
-  /*
-   *	Skip past any type qualifiers
-   */
-  flag = YES;
-  while (flag)
-    {
-      switch (*typePtr)
-	{
-	case _C_CONST:
-	case _C_IN:
-	case _C_INOUT:
-	case _C_OUT:
-	case _C_BYCOPY:
-#ifdef	_C_BYREF
-	case _C_BYREF:
-#endif
-	case _C_ONEWAY:
-#ifdef	_C_GCINVISIBLE
-	case _C_GCINVISIBLE:
-#endif
-	  break;
-	default: flag = NO;
-	}
-      if (flag)
-	{
-	  typePtr++;
-	}
-    }
-
+  typePtr = objc_skip_type_qualifiers (typePtr);
   type = typePtr;
 
   /*
@@ -368,6 +337,94 @@ cifframe_type(const char *typePtr, const char **advance)
 	const char *adv;
 	unsigned   align = __alignof(double);
 
+	/* Standard structures can be handled using cached type information.
+	 */
+	if (GSSelectorTypesMatch(typePtr, @encode(NSRange)))
+	  {
+	    static ffi_type	*elems[3];
+	    static ffi_type	stype = { 0 };
+
+	    if (stype.type == 0)
+	      {
+		if (*typePtr == _C_ULNG)
+		  {
+		    elems[0] = &gsffi_type_ulong;
+		  }
+#ifdef	_C_LNG_LNG
+		else if (*typePtr == _C_ULNG_LNG)
+		  {
+		    elems[0] = &gsffi_type_ulong_long;
+		  }
+#endif
+		else
+		  {
+		    elems[0] = &gsffi_type_uint;
+		  }
+		elems[1] = elems[0];
+		elems[2] = 0;
+		stype.elements = elems;
+		stype.type = FFI_TYPE_STRUCT;
+	      }
+	    ftype = &stype;
+	    typePtr = objc_skip_typespec (typePtr);
+	    break;
+	  }
+	else if (GSSelectorTypesMatch(typePtr, @encode(NSSize)))
+	  {
+	    static ffi_type	*elems[3];
+	    static ffi_type	stype = { 0 };
+
+	    if (stype.type == 0)
+	      {
+		if (*@encode(CGFloat) == _C_DBL)
+		  {
+		    elems[0] = &ffi_type_double;
+		  }
+		else
+		  {
+		    elems[0] = &ffi_type_float;
+		  }
+		elems[1] = elems[0];
+		elems[2] = 0;
+		stype.elements = elems;
+		stype.type = FFI_TYPE_STRUCT;
+	      }
+	    ftype = &stype;
+	    typePtr = objc_skip_typespec (typePtr);
+	    break;
+	  }
+	else if (GSSelectorTypesMatch(typePtr, @encode(NSRect)))
+	  {
+	    static ffi_type	*elems[3];
+	    static ffi_type	stype = { 0 };
+
+	    if (stype.type == 0)
+	      {
+		/* An NSRect is an NSPoint and an NSSize, but those
+	 	 * two structures are actually identical.
+		 */
+		elems[0] = cifframe_type(@encode(NSSize), NULL);
+		elems[1] = elems[0];
+		elems[2] = 0;
+		stype.elements = elems;
+		stype.type = FFI_TYPE_STRUCT;
+	      }
+	    ftype = &stype;
+	    typePtr = objc_skip_typespec (typePtr);
+	    break;
+	  }
+
+	/*
+	 *	Skip "<name>=" stuff.
+	 */
+	while (*typePtr != _C_STRUCT_E)
+	  {
+	    if (*typePtr++ == '=')
+	      {
+		break;
+	      }
+	  }
+
 	types = 0;
 	maxtypes = 4;
 	size = sizeof(ffi_type);
@@ -380,16 +437,6 @@ cifframe_type(const char *typePtr, const char **advance)
 	ftype->alignment = 0;
 	ftype->type = FFI_TYPE_STRUCT;
 	ftype->elements = (void*)ftype + size;
-	/*
-	 *	Skip "<name>=" stuff.
-	 */
-	while (*typePtr != _C_STRUCT_E)
-	  {
-	    if (*typePtr++ == '=')
-	      {
-		break;
-	      }
-	  }
 	/*
 	 *	Continue accumulating structure size.
 	 */
