@@ -46,7 +46,12 @@
 #if defined(__WIN32__)
 #include <w32api.h>
 #define _WIN32_WINNT Windows2000
+#if	!defined(WINVER)
 #define WINVER Windows2000
+#elif (WINVER < Windows2000)
+#undef	WINVER
+#define WINVER Windows2000
+#endif
 #include <windows.h>
 #define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)
 #endif
