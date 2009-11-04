@@ -1,3 +1,8 @@
+2009-11-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: ([-drain]) Copy undocumented OSX behavior
+	calling -release (suggested by Christopher James Elphinstone Chandler).
+
 2009-10-26  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Makefile.postamble: Add flag filter for

@@ -320,8 +320,9 @@ static IMP	initImp;
       imp = [collector methodForSelector: sel];
     }
   (*imp)(collector, sel);
+#else
+  [self release];
 #endif
-  return;
 }
 
 - (id) retain
