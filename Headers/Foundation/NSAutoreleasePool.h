@@ -222,7 +222,9 @@ typedef struct autorelease_array_list
 #if OS_API_VERSION(100400, GS_API_LATEST)
 /**
  * Intended to trigger a garbage collection run (if needed) when called in
- * a garbage collected environment, otherwise has no effect.
+ * a garbage collected environment.<br />
+ * In a non-garbage collected environment, this method implements the
+ * undocumented MacOS-X behavior, and releases the receiver.
  */
 - (void) drain;
 #endif
