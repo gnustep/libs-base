@@ -2838,7 +2838,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       paramName = [self scanName: scanner];
       if ([paramName length] == 0)
 	{
-	  NSLog(@"Invalid Mime %@ field (parameter name)", [info name]);
+	  NSLog(@"Invalid Mime %@ field (parameter name) at %@",
+	    [info name], [scanner string]);
 	  return NO;
 	}
 
