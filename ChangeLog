@@ -1,3 +1,11 @@
+2009-11-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Remove spurious semicolons
+	* Source/NSConnection.m: autogsdoc ignore confusing section
+	* Source/NSLock.m: autogsdoc ignore (just use header)
+	* Tools/AGSParser.m: add feature to ignore sections
+	* Tools/autogsdoc.m: document new ignore markup
+
 2009-11-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: ([-drain]) Copy undocumented OSX behavior

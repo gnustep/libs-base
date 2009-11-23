@@ -239,6 +239,8 @@ stringFromMsgType(int type)
 
 
 
+/** <ignore> */
+
 #define	GSInternal	NSConnectionInternal
 #include	"GSInternal.h"
 GS_BEGIN_INTERNAL(NSConnection)
@@ -311,6 +313,8 @@ GS_END_INTERNAL(NSConnection)
 #define	IregisteredName		(internal->_registeredName)
 #define	InameServer		(internal->_nameServer)
 #define	IlastKeepalive		(internal->_lastKeepalive)
+
+/** </ignore> */
 
 @interface NSConnection(Private)
 

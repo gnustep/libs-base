@@ -367,6 +367,12 @@
       BOOL	isDocumentation = NO;
       BOOL	skippedFirstLine = NO;
       NSRange	r;
+      BOOL	ignore = NO;
+
+
+      /* Jump back here if we have ignored data up to a new comment.
+       */
+comment:
 
       pos += 2;	/* Skip opening part */
 
@@ -501,9 +507,32 @@
 	  if (end > start)
 	    {
 	      NSString	*tmp;
+	      NSRange	r;
 
 	      tmp = [NSString stringWithCharacters: start length: end - start];
-	      [self appendComment: tmp to: nil];
+recheck:
+	      if (YES == ignore)
+		{
+	          r = [tmp rangeOfString: @"</ignore>"];
+		  if (r.length > 0)
+		    {
+		      tmp = [tmp substringFromIndex: NSMaxRange(r)];
+		      ignore = NO;
+		    }
+		}
+	      if (NO == ignore)
+		{
+	          r = [tmp rangeOfString: @"<ignore>"];
+		  if (r.length > 0)
+		    {
+		      [self appendComment: [tmp substringToIndex: r.location]
+				       to: nil];
+		      tmp = [tmp substringFromIndex: NSMaxRange(r)];
+		      ignore = YES;
+		      goto recheck;
+		    }
+		  [self appendComment: tmp to: nil];
+		}
 	    }
 
           /*
@@ -926,6 +955,38 @@
 		}
 	    }
 	  commentsRead = YES;
+	}
+      if (YES == ignore)
+	{
+	  while (pos < length)
+	    {
+	      switch (buffer[pos])
+		{
+		  case '\'':
+		  case '"':
+		    [self skipLiteral];
+		    break;
+
+		  case '/':
+		    if (pos + 1 < length)
+		      {
+			if (buffer[pos + 1] == '/')
+			  {
+			    [self skipRemainderOfLine];
+			  }
+			else if (buffer[pos + 1] == '*')
+			  {
+			    goto comment;
+			  }
+		      }
+		    pos++;
+		    break;
+
+		  default:
+		    pos++;
+		    break;
+		}
+	    }
 	}
     }
   return pos;
