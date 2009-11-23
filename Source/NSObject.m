@@ -1572,6 +1572,12 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
+  id target = [self forwardingTargetForSelector: [anInvocation selector]];
+  if (nil != target)
+  {
+	[anInvocation invokeWithTarget: target];
+	return;
+  }
   [self doesNotRecognizeSelector: [anInvocation selector]];
   return;
 }
