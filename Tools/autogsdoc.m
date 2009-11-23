@@ -86,7 +86,12 @@
       comment text is reformatted and then inserted into the output.<br />
       Where multiple comments are associated with the same item, they are
       joined together with a line break (&lt;br /&gt;) between each if
-      necessary.
+      necessary.<br />
+      Within a comment the special markup &lt;ignore&gt; and &lt;/ignore&gt;
+      may be used to tell autogsdoc to completely ignore the sourcecode
+      between these two pieces of markup (ie. the parser will skip from the
+      point just before it is told to start ignoring, to just after the point
+      where it is told to stop (or end of file if that occurs first).
     </p>
     <p>
       The tool can easily be used to document programs as well as libraries,

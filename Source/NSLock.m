@@ -19,8 +19,8 @@
    Boston, MA 02111 USA.
 
    <title>NSLock class reference</title>
+   <ignore> All autogsdoc markup is in the header
 */
-
 
 
 // This file uses some SUS'98 extensions, so we need to tell glibc not to hide
@@ -36,7 +36,7 @@
 #include <errno.h>
 #import "Foundation/NSException.h"
 
-/**
+/*
  * Methods shared between NSLock, NSRecursiveLock, and NSCondition
  *
  * Note: These methods currently throw exceptions when locks are incorrectly
@@ -126,7 +126,7 @@ static pthread_mutexattr_t attr_normal;
 static pthread_mutexattr_t attr_reporting;
 static pthread_mutexattr_t attr_recursive;
 
-/**
+/*
  * OS X 10.5 compatibility function to allow debugging deadlock conditions.
  */
 void _NSLockError(id obj, SEL _cmd)

@@ -1996,7 +1996,7 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
   return NO;
 }
 
-+ (BOOL) resolveInstanceMethod: (SEL)name;
++ (BOOL) resolveInstanceMethod: (SEL)name
 {
   return NO;
 }
@@ -2029,7 +2029,7 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
   return AUTORELEASE([[GSContentAccessingProxy alloc] initWithObject: self]);
 }
 
-- (id) forwardingTargetForSelector:(SEL)aSelector;
+- (id) forwardingTargetForSelector:(SEL)aSelector
 {
   return nil;
 }
