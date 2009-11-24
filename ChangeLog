@@ -1,3 +1,8 @@
+2009-11-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m: make better guess when forward2 is not
+	available in runtime.
+
 2009-11-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Remove spurious semicolons

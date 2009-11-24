@@ -164,6 +164,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 	 get the right one, though. What to do then? Perhaps it can be fixed up
 	 in the callback, but only under limited circumstances.
        */
+      sel = gs_find_best_typed_sel(sel);
       sel_type = sel_get_type (sel);
       if (sel_type)
 	{
@@ -172,6 +173,12 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
       else
 	{
 	  static NSMethodSignature *def = nil;
+
+#ifndef	NDEBUG
+          fprintf(stderr, "WARNING: Using default signature for %s ... "
+	    "you must be using an old/faulty version of the objective-c "
+	    "runtime library.\n", sel_get_name(sel));
+#endif
 
 	  /*
 	   * Default signature is for a method returning an object.
@@ -342,22 +349,23 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
 		  frame: (cifframe_t *)frame
 	      signature: (NSMethodSignature*)aSignature
 {
+  cifframe_t *f;
   int i;
 
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
   _cframe = frame;
-  ((cifframe_t *)_cframe)->cif = *cif;
+  f = (cifframe_t *)_cframe;
+  f->cif = *cif;
 
   /* Copy the arguments into our frame so that they are preserved
    * in the NSInvocation if the stack is changed before the
    * invocation is used.
    */
-  for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
+  for (i = 0; i < f->nargs; i++)
     {
-      memcpy(((cifframe_t *)_cframe)->values[i], vals[i],
-             ((cifframe_t *)_cframe)->arg_types[i]->size);
+      memcpy(f->values[i], vals[i], f->arg_types[i]->size);
     }
 
   /* Make sure we have somewhere to store the return value if needed.
