@@ -1574,6 +1574,9 @@ XString(NSString* obj, NSMutableData *output)
       unsigned	len;
       unsigned	rpos;
       unsigned	wpos;
+      BOOL	osx;
+
+      osx = GSPrivateDefaultsFlag(GSMacOSXCompatible);
 
       base = NSAllocateCollectable(sizeof(unichar) * end, 0);
       [obj getCharacters: base];
@@ -1598,7 +1601,14 @@ XString(NSString* obj, NSMutableData *output)
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
-		    len += 6;
+		    if (osx)
+		      {
+			len += 8;	// Illegal in XML
+		      }
+		    else
+		      {
+			len += 6;	// Non-standard escape
+		      }
 		  }
 		else
 		  {
@@ -1653,18 +1663,40 @@ XString(NSString* obj, NSMutableData *output)
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
-		    /* We need to be able to encode characters in a
-		     * property list which are illegal in XML (even
-		     * when encoded as numeric entities with the
-		     * &#...; format.  So we use the same \Uxxxx
-		     * format is in old style property lists.
-		     */
-		    map[wpos++] = '\\';
-		    map[wpos++] = 'U';
-		    map[wpos++] = hexdigits[(c>>12) & 0xf];
-		    map[wpos++] = hexdigits[(c>>8) & 0xf];
-		    map[wpos++] = hexdigits[(c>>4) & 0xf];
-		    map[wpos++] = hexdigits[c & 0xf];
+		    if (osx)
+		      {
+			/* Use XML style character entity references for
+			 * OSX compatibility, even though this is an
+			 * illegal character code and a standards complient
+			 * XML parser will barf when it tries to read it.
+			 * The OSX property list parser does not implement
+		         * the XML standard and accepts at least some
+			 * illegal characters.
+			 */
+			map[wpos++] = '&';
+			map[wpos++] = '#';
+			map[wpos++] = 'x';
+			map[wpos++] = hexdigits[(c>>12) & 0xf];
+			map[wpos++] = hexdigits[(c>>8) & 0xf];
+			map[wpos++] = hexdigits[(c>>4) & 0xf];
+			map[wpos++] = hexdigits[c & 0xf];
+			map[wpos++] = ';';
+		      }
+		    else
+		      {
+			/* We need to be able to encode characters in a
+			 * property list which are illegal in XML (even
+			 * when encoded as numeric entities with the
+			 * &#...; format.  So we use the same \Uxxxx
+			 * format is in old style property lists.
+			 */
+			map[wpos++] = '\\';
+			map[wpos++] = 'U';
+			map[wpos++] = hexdigits[(c>>12) & 0xf];
+			map[wpos++] = hexdigits[(c>>8) & 0xf];
+			map[wpos++] = hexdigits[(c>>4) & 0xf];
+			map[wpos++] = hexdigits[c & 0xf];
+		      }
 		  }
 		else
 		  {
