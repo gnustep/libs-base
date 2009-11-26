@@ -1545,7 +1545,7 @@ XString(NSString* obj, NSMutableData *output)
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
-		    len += 6;
+		    len += 8;
 		  }
 		else
 		  {
@@ -1600,12 +1600,14 @@ XString(NSString* obj, NSMutableData *output)
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
-		    map[wpos++] = '\\';
-		    map[wpos++] = 'U';
+		    map[wpos++] = '&';
+		    map[wpos++] = '#';
+		    map[wpos++] = 'x';
 		    map[wpos++] = hexdigits[(c>>12) & 0xf];
 		    map[wpos++] = hexdigits[(c>>8) & 0xf];
 		    map[wpos++] = hexdigits[(c>>4) & 0xf];
 		    map[wpos++] = hexdigits[c & 0xf];
+		    map[wpos++] = ';';
 		  }
 		else
 		  {

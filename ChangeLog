@@ -1,3 +1,9 @@
+2009-11-26  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSPropertyList.m (XString): Write out proper XML encoding
+	for control characters. Fixes a bug where menu positions in GUI
+	programs would appear not persistent.
+
 2009-11-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFIInvocation.m: make better guess when forward2 is not
