@@ -53,6 +53,13 @@
 
 @class  GSSloppyXMLParser;
 
+#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
+#define char2num(ch) \
+inrange(ch,'0','9') \
+? ((ch)-0x30) \
+: (inrange(ch,'a','f') \
+? ((ch)-0x57) : ((ch)-0x37))
+
 /*
  * Cache classes.
  */
@@ -102,6 +109,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   namespaceURI: (NSString *)namespaceURI
   qualifiedName: (NSString *)qName;
 - (id) result;
+- (void) unescape;
 @end
 
 @implementation GSXMLPListParser
@@ -230,6 +238,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     }
   else if ([elementName isEqualToString: @"key"] == YES)
     {
+      [self unescape];
       ASSIGNCOPY(key, value);
       [value setString: @""];
       return;
@@ -271,6 +280,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     {
       id	o;
 
+      [self unescape];
       if (opts == NSPropertyListMutableContainersAndLeaves)
         {
 	  o = [value mutableCopy];
@@ -343,6 +353,56 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   return plist;
 }
 
+- (void) unescape
+{
+  id	o;
+  NSRange	r;
+
+  /* Convert any \Uxxxx sequences to unicode characters.
+   */
+  r = NSMakeRange(0, [value length]);
+  while (r.length >= 6)
+    {
+      r = [value rangeOfString: @"\\U" options: NSLiteralSearch range: r];
+      if (r.length == 2 && [value length] >= r.location + 6)
+	{
+	  unichar	c;
+	  unichar	v;
+
+	  c = [value characterAtIndex: r.location + 2];
+	  if (isxdigit(c))
+	    {
+	      v = char2num(c);
+	      c = [value characterAtIndex: r.location + 3];
+	      if (isxdigit(c))
+		{
+		  v <<= 4;
+		  v |= char2num(c);
+		  c = [value characterAtIndex: r.location + 4];
+		  if (isxdigit(c))
+		    {
+		      v <<= 4;
+		      v |= char2num(c);
+		      c = [value characterAtIndex: r.location + 5];
+		      if (isxdigit(c))
+			{
+			  v <<= 4;
+			  v |= char2num(c);
+			  o = [NSString alloc];
+			  o = [o initWithCharacters: &v length: 1];
+			  r.length += 4;
+			  [value replaceCharactersInRange: r withString: o];
+			  [o release];
+			  r.location++;
+			  r.length = 0;
+			}
+		    }
+		}
+	    }
+	  r = NSMakeRange(NSMaxRange(r), [value length] - NSMaxRange(r));
+	}
+    }
+}
 @end
 
 
@@ -510,13 +570,6 @@ static void setupQuotables(void)
       RELEASE(s);
     }
 }
-
-#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
-#define char2num(ch) \
-inrange(ch,'0','9') \
-? ((ch)-0x30) \
-: (inrange(ch,'a','f') \
-? ((ch)-0x57) : ((ch)-0x37))
 
 typedef	struct	{
   const unsigned char	*ptr;
@@ -1545,7 +1598,7 @@ XString(NSString* obj, NSMutableData *output)
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
-		    len += 8;
+		    len += 6;
 		  }
 		else
 		  {
@@ -1600,14 +1653,18 @@ XString(NSString* obj, NSMutableData *output)
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
-		    map[wpos++] = '&';
-		    map[wpos++] = '#';
-		    map[wpos++] = 'x';
+		    /* We need to be able to encode characters in a
+		     * property list which are illegal in XML (even
+		     * when encoded as numeric entities with the
+		     * &#...; format.  So we use the same \Uxxxx
+		     * format is in old style property lists.
+		     */
+		    map[wpos++] = '\\';
+		    map[wpos++] = 'U';
 		    map[wpos++] = hexdigits[(c>>12) & 0xf];
 		    map[wpos++] = hexdigits[(c>>8) & 0xf];
 		    map[wpos++] = hexdigits[(c>>4) & 0xf];
 		    map[wpos++] = hexdigits[c & 0xf];
-		    map[wpos++] = ';';
 		  }
 		else
 		  {

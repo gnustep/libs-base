@@ -1,3 +1,13 @@
+2009-11-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Revert last change, which broke XML
+	generation by placing illegal character entities in the output.
+	Fix menu position problem by adding missing code to unescape
+	the \U escapes we put in the output when we read back in again.
+	NB. should check that we use character entities for all legal
+	characters and only use the escape mechanism for *really* illegal
+	ones (such as the menu location key).
+
 2009-11-26  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSPropertyList.m (XString): Write out proper XML encoding
