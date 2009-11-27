@@ -402,17 +402,17 @@ GSPrivateNativeCStringEncoding() GS_ATTRIB_PRIVATE;
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed at the first safe moment.
  */
-void GSPrivateNotifyASAP(void) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyASAP(NSString *mode) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed when the loop is idle.
  */
-void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyIdle(NSString *mode) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for determining whether
  * there are more queued notifications to be processed.
  */
-BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
+BOOL GSPrivateNotifyMore(NSString *mode) GS_ATTRIB_PRIVATE;
 
 /* Function to return the function for searching in a string for a range.
  */

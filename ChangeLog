@@ -1,3 +1,13 @@
+2009-11-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationQueue.m:
+	* Source/NSRunLoop.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/GSPrivate.h:
+	Pass current runloop mode to notification functions.  Next we need
+	to add code to use this information.
+
 2009-11-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Revert last change, which broke XML

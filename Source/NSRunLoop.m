@@ -985,7 +985,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
               else if ([(d=timerDate(t)) timeIntervalSinceReferenceDate] <= now)
                 {
                   [t fire];
-                  GSPrivateNotifyASAP();
+                  GSPrivateNotifyASAP(_currentMode);
                   IF_NO_GC([arp emptyPool]);
 		  updateTimer(t, d, now);
                 }
@@ -1010,7 +1010,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		    {
 		      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
 		      [t fire];
-		      GSPrivateNotifyASAP();	/* Post notifications. */
+		      GSPrivateNotifyASAP(_currentMode); /* Post notifications. */
 		      IF_NO_GC([arp emptyPool]);
 		      if (updateTimer(t, d, now) == YES)
 			{
@@ -1154,8 +1154,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  && GSIArrayCount(context->timers) == 0))
 	{
 	  NSDebugMLLog(@"NSRunLoop", @"no inputs or timers in mode %@", mode);
-	  GSPrivateNotifyASAP();
-	  GSPrivateNotifyIdle();
+	  GSPrivateNotifyASAP(_currentMode);
+	  GSPrivateNotifyIdle(_currentMode);
 	  /* Pause until the limit date or until we might have
 	   * a method to perform in this thread.
 	   */
@@ -1165,7 +1165,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	    {
 	      [self _checkPerformers: context];
 	    }
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(_currentMode);
 	  _currentMode = savedMode;
 	  RELEASE(arp);
 	  NS_VOIDRETURN;
@@ -1201,10 +1201,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	}
       if ([context pollUntil: timeout_ms within: _contextStack] == NO)
 	{
-	  GSPrivateNotifyIdle();
+	  GSPrivateNotifyIdle(_currentMode);
 	}
       [self _checkPerformers: context];
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(_currentMode);
       _currentMode = savedMode;
 
       /* Once a poll has been completed on a context, we can remove that
