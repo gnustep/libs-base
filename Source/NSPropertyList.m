@@ -2082,15 +2082,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    {
 	      if ([keys[i] isKindOfClass: NSStringClass] == NO)
 	        {
-	          if ([keys[i] isKindOfClass: NSNumberClass] == YES)
-		    {
-		      keys[i] = [keys[i] description];
-		    }
-		  else
-		    {
-		      [NSException raise: NSInvalidArgumentException
-		        format: @"Bad key in property list: '%@'", keys[i]];
-		    }
+		  [NSException raise: NSInvalidArgumentException
+		    format: @"Bad key (%@) in property list: '%@'",
+		    NSStringFromClass([keys[i] class]), keys[i]];
 		}
 	    }
 	}
