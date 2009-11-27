@@ -2211,7 +2211,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    {
 	      [dest appendBytes: iSizeString length: strlen(iSizeString)];
 	      [dest appendBytes: "<key>" length: 5];
-	      XString(keys[i], dest);
+	      XString([keys[i] description], dest);
 	      [dest appendBytes: "</key>\n" length: 7];
 	      [dest appendBytes: iSizeString length: strlen(iSizeString)];
 	      OAppend(plists[i], loc, level, step, x, dest);

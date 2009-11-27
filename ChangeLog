@@ -1,5 +1,11 @@
 2009-11-27 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPropertyList.m: When serializing 'xml' style property lists
+	call -description to ensure that dictionary keys are strings since no
+	other option is permitted in the dtd.
+
+2009-11-27 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNotificationQueue.m:
 	* Source/NSRunLoop.m:
 	* Source/unix/GSRunLoopCtxt.m:
