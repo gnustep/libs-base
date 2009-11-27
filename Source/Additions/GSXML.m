@@ -3484,7 +3484,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       SETCB(hasExternalSubset, hasExternalSubset);
       SETCB(getEntity, getEntity:);
       SETCB(entityDecl, entityDecl:type:public:system:content:);
-      SETCB(notationDecl, notationDecl:public:);
+      SETCB(notationDecl, notationDecl:public:system:);
       SETCB(attributeDecl, attributeDecl:name:type:typeDefValue:defaultValue:);
       SETCB(elementDecl, elementDecl:type:);
       SETCB(unparsedEntityDecl, unparsedEntityDecl:public:system:notationName:);

@@ -1,5 +1,14 @@
 2009-11-27 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSNotificationQueue.m: Rewrite queue handling to attempt to
+	fix bug #28104 by posting notifications matching the current run loop
+	mode and leaving others queued.
+	Also, change the meanining of a nil modes argument when enqueing a
+	notification to match OSX and assume NSDefaultRunLoopMode.
+	* Source/Additions/GSXML.m: Fix minor sax callback bug.
+
+2009-11-27 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPropertyList.m: When serializing 'xml' style property lists
 	call -description to ensure that dictionary keys are strings since no
 	other option is permitted in the dtd.
