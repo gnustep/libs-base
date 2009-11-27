@@ -176,8 +176,9 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 
 #ifndef	NDEBUG
           fprintf(stderr, "WARNING: Using default signature for %s ... "
-	    "you must be using an old/faulty version of the objective-c "
-	    "runtime library.\n", sel_get_name(sel));
+	    "either the method for that selector is not implemented by the "
+	    "receiver, or you must be using an old/faulty version of the "
+	    "Objective-C runtime library.\n", sel_get_name(sel));
 #endif
 
 	  /*
