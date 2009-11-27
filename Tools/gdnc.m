@@ -296,11 +296,11 @@ ihandler(int sig)
 
 - (id) connectionBecameInvalid: (NSNotification*)notification;
 
-- (void) postNotificationName: (NSString*)notificationName
-		       object: (NSString*)notificationObject
-		     userInfo: (NSData*)d
-	   deliverImmediately: (BOOL)deliverImmediately
-			  for: (id<GDNCClient>)client;
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)notificationObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+				 for: (id<GDNCClient>)client;
 
 - (void) removeObserver: (GDNCObserver*)observer;
 
@@ -693,11 +693,11 @@ ihandler(int sig)
   RELEASE(info);
 }
 
-- (void) postNotificationName: (NSString*)notificationName
-		       object: (NSString*)notificationObject
-		     userInfo: (NSData*)d
-	   deliverImmediately: (BOOL)deliverImmediately
-			  for: (id<GDNCClient>)client
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)notificationObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+				 for: (id<GDNCClient>)client
 {
   NSMutableArray	*observers = [NSMutableArray array];
   NSMutableArray	*byName;

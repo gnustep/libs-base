@@ -103,6 +103,7 @@ main(int argc, char *argv[], char **env)
 #endif
   pool = [[NSAutoreleasePool alloc] init];
 
+  [NSConnection setDebug: YES];
   [Tester startup];
   [[NSRunLoop currentRunLoop] run];
   [pool release];
