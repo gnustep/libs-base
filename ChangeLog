@@ -6,6 +6,8 @@
 	Also, change the meanining of a nil modes argument when enqueing a
 	notification to match OSX and assume NSDefaultRunLoopMode.
 	* Source/Additions/GSXML.m: Fix minor sax callback bug.
+	* Source/NSConnection.m: Don't send a response packet if the method
+	is oneway void return type and has no output parameters.
 
 2009-11-27 Richard Frith-Macdonald <rfm@gnu.org>
 

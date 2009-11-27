@@ -2715,15 +2715,8 @@ static NSLock	*cached_proxies_gate = nil;
 	  tmp = inv;
 	  inv = nil;
 	  [tmp release];
-	  return;
+	  NS_VOIDRETURN;
 	}
-
-      /* We create a new coder object and set it in the context for
-       * later use if/when we are called again.  We encode a flag to
-       * say that this is not an exception.
-       */
-      encoder = [self _makeOutRmc: seq generate: 0 reply: NO];
-      [encoder encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
 
       /* Encode the return value and pass-by-reference values, if there
 	 are any.  This logic must match exactly that in
@@ -2736,6 +2729,23 @@ static NSLock	*cached_proxies_gate = nil;
       /* Get the return type; store it our two temporary char*'s. */
       etmptype = objc_skip_type_qualifiers (encoded_types);
       tmptype = objc_skip_type_qualifiers (type);
+
+      /* If this is a oneway void with no out parameters, we don't need to
+       * send back any response.
+       */
+      if (*tmptype == _C_VOID && (flags & _F_ONEWAY) && !out_parameters)
+        {
+	  tmp = inv;
+	  inv = nil;
+	  [tmp release];
+	  NS_VOIDRETURN;
+	}
+
+      /* We create a new coder object and encode a flag to
+       * say that this is not an exception.
+       */
+      encoder = [self _makeOutRmc: seq generate: 0 reply: NO];
+      [encoder encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
 
       /* Only encode return values if there is a non-void return value,
 	 a non-oneway void return value, or if there are values that were
