@@ -2062,11 +2062,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  for (i = 0; i < numKeys; i++)
 	    {
 	      keys[i] = [keyArray objectAtIndex: i];
+	      plists[i] = [(NSDictionary*)obj objectForKey: keys[i]];
 	    }
 	}
       else
 	{
 	  [keyArray getObjects: keys];
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      plists[i] = (*myObj)(obj, objSel, keys[i]);
+	    }
 	}
 
       if (x == NSPropertyListXMLFormat_v1_0)
@@ -2088,6 +2093,10 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		    }
 		}
 	    }
+	}
+      else if (numKeys == 0)
+	{
+	  canCompare = NO;
 	}
       else
 	{
@@ -2159,8 +2168,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 			      badComparison = YES;
 			    }
 			  #endif
+
+			  /* Swap keys and values.
+			   */
 			  keys[d + stride] = b;
 			  keys[d] = a;
+		          a = plists[d + stride];
+		          b = plists[d];
+			  plists[d + stride] = b;
+			  plists[d] = a;
+
 			  if (stride > d)
 			    {
 			      break;
@@ -2189,21 +2206,6 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  #endif
 	}
 
-      if (isProxy == YES)
-	{
-	  for (i = 0; i < numKeys; i++)
-	    {
-	      plists[i] = [(NSDictionary*)obj objectForKey: keys[i]];
-	    }
-	}
-      else
-	{
-	  for (i = 0; i < numKeys; i++)
-	    {
-	      plists[i] = (*myObj)(obj, objSel, keys[i]);
-	    }
-	}
-
       if (x == NSPropertyListXMLFormat_v1_0)
 	{
 	  [dest appendBytes: "<dict>\n" length: 7];
@@ -2211,7 +2213,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    {
 	      [dest appendBytes: iSizeString length: strlen(iSizeString)];
 	      [dest appendBytes: "<key>" length: 5];
-	      XString([keys[i] description], dest);
+	      XString(keys[i], dest);
 	      [dest appendBytes: "</key>\n" length: 7];
 	      [dest appendBytes: iSizeString length: strlen(iSizeString)];
 	      OAppend(plists[i], loc, level, step, x, dest);
