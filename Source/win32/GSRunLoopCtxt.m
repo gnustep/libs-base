@@ -386,7 +386,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
     {
       wait_timeout = 0;
     }
@@ -506,7 +506,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSPrivateNotifyASAP();
+	GSPrivateNotifyASAP(mode);
     }
 
   // if there are windows message
@@ -569,7 +569,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 			       forMode: mode];
     }
 
-  GSPrivateNotifyASAP();
+  GSPrivateNotifyASAP(mode);
 
   completed = YES;
   return YES;

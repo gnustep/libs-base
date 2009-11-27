@@ -565,7 +565,8 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
  *	NSRunLoop.
  */
 
-static inline void notifyASAP(NSNotificationQueue *q)
+static inline void
+notifyASAP(NSNotificationQueue *q, NSString *mode)
 {
   NSNotificationQueueList	*list = ((accessQueue)q)->_asapQueue;
 
@@ -587,7 +588,7 @@ static inline void notifyASAP(NSNotificationQueue *q)
 }
 
 void
-GSPrivateNotifyASAP()
+GSPrivateNotifyASAP(NSString *mode)
 {
   NotificationQueueList	*item;
 
@@ -595,12 +596,13 @@ GSPrivateNotifyASAP()
     {
       if (item->queue)
 	{
-	  notifyASAP(item->queue);
+	  notifyASAP(item->queue, mode);
 	}
     }
 }
 
-static inline void notifyIdle(NSNotificationQueue *q)
+static inline void
+notifyIdle(NSNotificationQueue *q, NSString *mode)
 {
   NSNotificationQueueList	*list = ((accessQueue)q)->_idleQueue;
 
@@ -622,11 +624,11 @@ static inline void notifyIdle(NSNotificationQueue *q)
   /*
    *	Post all ASAP notifications.
    */
-  notifyASAP(q);
+  notifyASAP(q, mode);
 }
 
 void
-GSPrivateNotifyIdle()
+GSPrivateNotifyIdle(NSString *mode)
 {
   NotificationQueueList	*item;
 
@@ -634,13 +636,13 @@ GSPrivateNotifyIdle()
     {
       if (item->queue)
 	{
-	  notifyIdle(item->queue);
+	  notifyIdle(item->queue, mode);
 	}
     }
 }
 
 BOOL
-GSPrivateNotifyMore()
+GSPrivateNotifyMore(NSString *mode)
 {
   NotificationQueueList	*item;
 

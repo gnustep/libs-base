@@ -411,7 +411,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
     {
       milliseconds = 0;
     }
@@ -491,7 +491,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 				     extra: watcher->data
 				   forMode: mode];
 	}
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(mode);
     }
 
   /*
@@ -566,7 +566,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSPrivateNotifyASAP();
+	      GSPrivateNotifyASAP(mode);
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -598,7 +598,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSPrivateNotifyASAP();
+	      GSPrivateNotifyASAP(mode);
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -639,7 +639,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSPrivateNotifyASAP();
+	      GSPrivateNotifyASAP(mode);
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -837,7 +837,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
@@ -904,7 +904,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSPrivateNotifyASAP();
+	GSPrivateNotifyASAP(mode);
     }
 
   /*
@@ -965,7 +965,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: (void*)(intptr_t)fdIndex
 				       forMode: mode];
 	    }
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	  if (completed == YES)
 	    {
 	      break;
@@ -997,7 +997,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: (void*)(intptr_t)fdIndex
 				       forMode: mode];
 	    }
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	  if (completed == YES)
 	    {
 	      break;
@@ -1038,7 +1038,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					 extra: (void*)(intptr_t)fdIndex
 				       forMode: mode];
 	    }
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	  if (completed == YES)
 	    {
 	      break;
