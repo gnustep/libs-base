@@ -505,10 +505,10 @@ static NSLock	*cached_proxies_gate = nil;
  * </p>
  * <p>
  *   If <em>host</em> is <code>nil</code> or an empty string,
- *   the host is taken to be the local machine.
+ *   the host is taken to be the local machine.<br />
  *   If it is an asterisk ('*') then the nameserver checks all
  *   hosts on the local subnet (unless the nameserver is one
- *   that only manages local ports).
+ *   that only manages local ports).<br />
  *   In the GNUstep implementation, the local host is searched before
  *   any other hosts.
  * </p>
