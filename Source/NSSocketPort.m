@@ -1266,7 +1266,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents & FD_CONNECT)
     {
       [self receivedEventWrite];
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(mode);
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1277,7 +1277,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents & FD_READ)
     {
       [self receivedEventRead];
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(mode);
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1288,7 +1288,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents & FD_OOB)
     {
       [self receivedEventRead];
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(mode);
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1300,7 +1300,7 @@ static Class	runLoopClass;
     {
       readyToSend = YES;
       [self receivedEventWrite];
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(mode);
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1311,7 +1311,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents & FD_CLOSE)
     {
       [self receivedEventRead];
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(mode);
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);

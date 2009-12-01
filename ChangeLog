@@ -2,6 +2,9 @@
 
 	* Source/NSMessagePortNameServer.m: Tolerate '*' host name.
 	* Source/NSConnection.m: Clarify documentation slightly.
+	* NSSocketPort.m:
+	* win32/GSFileHandle.m:
+	Fixup missing notification changes.
 
 2009-11-27 Richard Frith-Macdonald <rfm@gnu.org>
 
