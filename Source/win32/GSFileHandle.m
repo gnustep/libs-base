@@ -2239,35 +2239,35 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  NSDebugMLLog(@"NSFileHandle", @"Connect on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_CONNECT;
 	  [self receivedEventWrite];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_ACCEPT)
 	{
 	  NSDebugMLLog(@"NSFileHandle", @"Accept on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_ACCEPT;
 	  [self receivedEventRead];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_WRITE)
 	{
 	  NSDebugMLLog(@"NSFileHandle", @"Write on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_WRITE;
 	  [self receivedEventWrite];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_READ)
 	{
 	  NSDebugMLLog(@"NSFileHandle", @"Read on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_READ;
 	  [self receivedEventRead];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_OOB)
 	{
 	  NSDebugMLLog(@"NSFileHandle", @"OOB on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_OOB;
 	  [self receivedEventRead];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_CLOSE)
 	{
@@ -2281,7 +2281,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    {
 	      [self receivedEventRead];
 	    }
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents)
 	{
@@ -2299,7 +2299,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  [self receivedEventRead];
 	}
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(mode);
     }
 }
 
