@@ -510,7 +510,9 @@ static NSLock	*cached_proxies_gate = nil;
  *   hosts on the local subnet (unless the nameserver is one
  *   that only manages local ports).<br />
  *   In the GNUstep implementation, the local host is searched before
- *   any other hosts.
+ *   any other hosts.<br />
+ *   NB. if the nameserver does not support connections to remote hosts
+ *   (the default situation) the host argeument should be omitted.
  * </p>
  * <p>
  *   If no NSConnection can be found for <em>name</em> and
