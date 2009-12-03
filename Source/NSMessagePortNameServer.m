@@ -57,6 +57,9 @@
 	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
 
+@interface NSProcessInfo (private)
++ (BOOL) _exists: (int)pid;
+@end
 
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;
@@ -116,10 +119,55 @@ static void clean_up_names(void)
 {
   if (self == [NSMessagePortNameServer class])
     {
+      NSFileManager	*mgr;
+      NSString		*path;
+      NSString		*pref;
+      NSString		*file;
+      NSEnumerator	*files;
+
       serverLock = [NSRecursiveLock new];
       portToNamesMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 			 NSObjectMapValueCallBacks, 0);
       atexit(clean_up_names);
+
+      /* It's possible that an old process, with the same process ID as
+       * this one, got forcibly killed or crashed so that clean_up_names
+       * was never called.
+       * To deal with that unlikely situation, we need to remove all such
+       * names which have been left over.
+       */
+      path = NSTemporaryDirectory();
+      path = [path stringByAppendingPathComponent: @"NSMessagePort"];
+      path = [path stringByAppendingPathComponent: @"names"];
+      pref = [NSString stringWithFormat: @"%i.",
+	[[NSProcessInfo processInfo] processIdentifier]];
+      mgr = [NSFileManager defaultManager];
+      files = [[mgr directoryContentsAtPath: path] objectEnumerator];
+      while ((file = [files nextObject]) != nil)
+	{
+          NSString	*old = [path stringByAppendingPathComponent: file];
+	  NSString	*port = [NSString stringWithContentsOfFile: old];
+
+	  if (YES == [port hasPrefix: pref])
+	    {
+	      NSDebugMLLog(@"NSMessagePort", @"Removing old name %@", old);
+	      [mgr removeFileAtPath: old handler: nil];
+	    }
+	  else
+	    {
+	      int	pid = [port intValue];
+
+	      if (pid > 0)
+		{
+		  if (NO == [NSProcessInfo _exists: pid])
+		    {
+		      NSDebugMLLog(@"NSMessagePort",
+		        @"Removing old name %@ for process %d", old, pid);
+		      [mgr removeFileAtPath: old handler: nil];
+		    }
+		}
+	    }
+	}
     }
 }
 

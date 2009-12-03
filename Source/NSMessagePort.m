@@ -91,6 +91,10 @@
 #include <sys/stropts.h>
 #endif
 
+@interface NSProcessInfo (private)
++ (BOOL) _exists: (int)pid;
+@end
+
 /*
  * Largest chunk of data possible in DO
  */
@@ -1120,12 +1124,56 @@ typedef	struct {
 {
   if (self == [NSMessagePort class])
     {
+      NSFileManager	*mgr;
+      NSString		*path;
+      NSString		*pref;
+      NSString		*file;
+      NSEnumerator	*files;
+
       messagePortClass = self;
       messagePortMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       messagePortLock = [GSLazyRecursiveLock new];
       atexit(clean_up_sockets);
+
+      /* It's possible that an old process, with the same process ID as
+       * this one, got forcibly killed or crashed so that clean_up_sockets
+       * was never called.
+       * To deal with that unlikely situation, we need to remove all such
+       * ports which have been left over.
+       */
+      path = NSTemporaryDirectory();
+      path = [path stringByAppendingPathComponent: @"NSMessagePort"];
+      path = [path stringByAppendingPathComponent: @"ports"];
+      pref = [NSString stringWithFormat: @"%i.",
+	[[NSProcessInfo processInfo] processIdentifier]];
+      mgr = [NSFileManager defaultManager];
+      files = [[mgr directoryContentsAtPath: path] objectEnumerator];
+      while ((file = [files nextObject]) != nil)
+	{
+          NSString	*old = [path stringByAppendingPathComponent: file];
+
+	  if (YES == [file hasPrefix: pref])
+	    {
+	      NSDebugMLLog(@"NSMessagePort", @"Removing old port %@", old);
+	      [mgr removeFileAtPath: old handler: nil];
+	    }
+	  else
+	    {
+	      int	pid = [file intValue];
+
+	      if (pid > 0)
+		{
+		  if (NO == [NSProcessInfo _exists: pid])
+		    {
+		      NSDebugMLLog(@"NSMessagePort",
+		        @"Removing old port %@ for process %d", old, pid);
+		      [mgr removeFileAtPath: old handler: nil];
+		    }
+		}
+	    }
+	}
     }
 }
 
