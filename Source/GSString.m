@@ -2811,6 +2811,15 @@ transmute(GSStr self, NSString *aString)
   setup();
 }
 
+- (NSUInteger) hash
+{
+  if (self->_flags.hash == 0)
+    {
+      self->_flags.hash = (*hashImp)((id)self, hashSel);
+    }
+  return self->_flags.hash;
+}
+
 - (id) initWithBytes: (const void*)chars
 	      length: (NSUInteger)length
 	    encoding: (NSStringEncoding)encoding
@@ -3032,15 +3041,6 @@ transmute(GSStr self, NSString *aString)
 {
   GS_RANGE_CHECK(aRange, _count);
   getCString_c((GSStr)self, buffer, maxLength, aRange, leftoverRange);
-}
-
-- (NSUInteger) hash
-{
-  if (self->_flags.hash == 0)
-    {
-      self->_flags.hash = (*hashImp)((id)self, hashSel);
-    }
-  return self->_flags.hash;
 }
 
 - (NSInteger) intValue
@@ -3359,15 +3359,6 @@ agree, create a new GSCInlineString otherwise.
   GS_RANGE_CHECK(aRange, _count);
 
   getCString_u((GSStr)self, buffer, maxLength, aRange, leftoverRange);
-}
-
-- (NSUInteger) hash
-{
-  if (self->_flags.hash == 0)
-    {
-      self->_flags.hash = (*hashImp)((id)self, hashSel);
-    }
-  return self->_flags.hash;
 }
 
 - (NSInteger) intValue
@@ -3872,15 +3863,6 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     {
       getCString_c((GSStr)self, buffer, maxLength, aRange, leftoverRange);
     }
-}
-
-- (NSUInteger) hash
-{
-  if (self->_flags.hash == 0)
-    {
-      self->_flags.hash = (*hashImp)((id)self, hashSel);
-    }
-  return self->_flags.hash;
 }
 
 - (id) init
