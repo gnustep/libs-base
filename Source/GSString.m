@@ -2808,7 +2808,7 @@ transmute(GSStr self, NSString *aString)
 
 	  if (self->_flags.wide)
 	    {
-	      register const char	*p = self->_contents.u;
+	      register const unichar	*p = self->_contents.u;
 
 	      while (index < len)
 		{
@@ -3613,6 +3613,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 + (void) initialize
 {
   setup();
+  GSObjCAddClassBehavior(self, [GSString class]);
 }
 
 - (void) appendFormat: (NSString*)format, ...
