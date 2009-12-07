@@ -1,3 +1,9 @@
+2009-12-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Use -hash from GSString rather than from NSString
+	to optimise hashing.  Fix string comparison error as pointed out by
+	Doug Simons.
+
 2009-12-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePortNameServer.m:
