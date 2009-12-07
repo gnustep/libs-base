@@ -302,7 +302,7 @@ setup(void)
 	[NSStringClass instanceMethodForSelector: equalSel];
       hashSel = @selector(hash);
       hashImp = (unsigned (*)(id, SEL))
-	[NSStringClass instanceMethodForSelector: hashSel];
+	[GSStringClass instanceMethodForSelector: hashSel];
 
       caiSel = @selector(characterAtIndex:);
       gcrSel = @selector(getCharacters:range:);
@@ -2113,7 +2113,7 @@ isEqual_c(GSStr self, id anObject)
 	return YES;
       return NO;
     }
-  else if (c == GSMutableStringClass)
+  else if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
     {
       GSStr	other = (GSStr)anObject;
       NSRange	r = {0, self->_count};
@@ -2142,26 +2142,6 @@ isEqual_c(GSStr self, id anObject)
 	    && memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
 	    return YES;
 	}
-      return NO;
-    }
-  else if (GSObjCIsKindOf(c, GSStringClass) == YES)
-    {
-      GSStr	other = (GSStr)anObject;
-
-      /*
-       * First see if the hash is the same - if not, we can't be equal.
-       */
-      if (self->_flags.hash == 0)
-        self->_flags.hash = (*hashImp)((id)self, hashSel);
-      if (other->_flags.hash == 0)
-        other->_flags.hash = (*hashImp)((id)other, hashSel);
-      if (self->_flags.hash != other->_flags.hash)
-	return NO;
-
-      if (other->_count == self->_count
-	&& memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
-	return YES;
-
       return NO;
     }
   else if (GSObjCIsKindOf(c, NSStringClass))
@@ -2201,7 +2181,7 @@ isEqual_u(GSStr self, id anObject)
 	return YES;
       return NO;
     }
-  else if (GSObjCIsKindOf(c, GSStringClass) == YES || c == GSMutableStringClass)
+  else if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
     {
       GSStr	other = (GSStr)anObject;
       NSRange	r = {0, self->_count};
@@ -2811,12 +2791,77 @@ transmute(GSStr self, NSString *aString)
   setup();
 }
 
+/*
+ * Return a 28-bit hash value for the string contents - this
+ * MUST match the algorithm used by the NSString base class.
+ */
 - (NSUInteger) hash
 {
   if (self->_flags.hash == 0)
     {
-      self->_flags.hash = (*hashImp)((id)self, hashSel);
+      unsigned	ret = 0;
+      unsigned	len = self->_count;
+
+      if (len > 0)
+	{
+	  register unsigned	index = 0;
+
+	  if (self->_flags.wide)
+	    {
+	      register const char	*p = self->_contents.u;
+
+	      while (index < len)
+		{
+		  ret = (ret << 5) + ret + p[index++];
+		}
+	    }
+	  else
+	    {
+	      register const unsigned char	*p = self->_contents.c;
+
+	      if (internalEncoding == NSISOLatin1StringEncoding)
+		{
+		  while (index < len)
+		    {
+		      ret = (ret << 5) + ret + p[index++];
+		    }
+		}
+	      else
+		{
+		  while (index < len)
+		    {
+		      unichar	u = p[index++];
+
+		      if (u > 127)
+			{
+			  unsigned char	c = (unsigned char)u;
+			  unsigned int	s = 1;
+			  unichar	*d = &u;
+
+			  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
+			}
+		      ret = (ret << 5) + ret + u;
+		    }
+		}
+	    }
+
+	  /*
+	   * The hash caching in our concrete string classes uses zero to denote
+	   * an empty cache value, so we MUST NOT return a hash of zero.
+	   */
+	  ret &= 0x0fffffff;
+	  if (ret == 0)
+	    {
+	      ret = 0x0fffffff;
+	    }
+	}
+      else
+	{
+	  ret = 0x0ffffffe;	/* Hash for an empty string.	*/
+	}
+      self->_flags.hash = ret;
     }
+
   return self->_flags.hash;
 }
 
@@ -4623,7 +4668,6 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 {
   return NSASCIIStringEncoding;
 }
-
 
 /*
  * Return a 28-bit hash value for the string contents - this
