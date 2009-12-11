@@ -1,3 +1,7 @@
+2009-12-11 01:44-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/synchronization.m: Corrected header text.  
+
 2009-12-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Use -hash from GSString rather than from NSString
