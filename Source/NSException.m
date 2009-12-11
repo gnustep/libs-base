@@ -101,7 +101,7 @@ Class GSStackTraceClass;
 
   while ((obj = [e nextObject]))
     {
-      [trace appendFormat: @"%d: %@", i++, obj];
+      [trace appendFormat: @"%d: %@\n", i++, obj];
     }
   return trace;
 }
