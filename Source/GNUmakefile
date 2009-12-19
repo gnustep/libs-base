@@ -106,11 +106,6 @@ ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   GNU_MFILES += libgnustep-base-entry.m
 endif
 
-ifeq ($(HAVE_OBJC_SYNC_ENTER), no)
-  GNU_MFILES += synchronization.m
-endif
-
-
 GNU_OTHER_SRCFILES = \
 win32-entry.m \
 win32-def.top \
@@ -275,6 +270,9 @@ NSZone.m \
 externs.m \
 objc-load.m 
 
+ifeq ($(HAVE_OBJC_SYNC_ENTER), no)
+  GNU_MFILES += synchronization.m
+endif
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
 BASE_MFILES += \
@@ -283,7 +281,7 @@ NSMessagePort.m \
 NSMessagePortNameServer.m
 
 ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
-BASE_MFILES += NSNetServices.m
+  BASE_MFILES += NSNetServices.m
 endif
 
 endif
