@@ -1,3 +1,10 @@
+2009-12-19 13:53-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/GNUmakefile: Add synchronization.m to GNU_MFILES
+	and correct some formatting.
+	* Source/synchronization.m: Fix @synchronize support on
+	Windows.   The __weak__ attribute doesn't work on Windows.
+
 2009-12-11 01:44-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/synchronization.m: Corrected header text.  

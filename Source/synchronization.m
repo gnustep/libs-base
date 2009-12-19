@@ -152,8 +152,12 @@ sync_add_node(id obj)
 /**
  * Add a lock for the object.
  */ 
+#ifndef __MINGW32__
 int
 __attribute__((weak))
+#else
+int
+#endif
 objc_sync_enter(id obj)
 {
   lock_node_t *node = NULL;
@@ -194,8 +198,12 @@ objc_sync_enter(id obj)
 /**
  * Remove a lock for the object.
  */
+#ifndef __MINGW32__
 int
 __attribute__((weak))
+#else
+int
+#endif
 objc_sync_exit(id obj)
 {
   lock_node_t *node = NULL;
