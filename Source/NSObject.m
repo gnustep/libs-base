@@ -893,6 +893,21 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
 #endif
 
 /**
+ * Semi-private function in libobjc2 that initialises the classes used for
+ * blocks.
+ */
+BOOL 
+objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
+
++ (void)load
+{
+  /* When NSObject is loaded, register it as the superclass of the block
+   * classes */
+  if (objc_create_block_classes_as_subclasses_of)
+    objc_create_block_classes_as_subclasses_of(self);
+}
+
+/**
  * This message is sent to a class once just before it is used for the first
  * time.  If class has a superclass, its implementation of +initialize is
  * called first.  You can implement +initialize in your own class if you need
@@ -2450,9 +2465,9 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
 
 
 @implementation	NSZombie
-- (Class) class
+- (Class) originalClass
 {
-  return object_get_class(self);
+  return NSMapGet(zombieMap, (void*)self);
 }
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
 {
