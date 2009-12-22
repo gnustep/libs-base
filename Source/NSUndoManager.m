@@ -1067,3 +1067,39 @@
 
 @end
 
+/*
+ * Category with auxiliary method to support coalescing undo actions
+ * for typing events in NSTextView. However, the implementation is
+ * not restricted to that purpose.
+ */
+@interface NSUndoManager(UndoCoalescing)
+- (BOOL) _canCoalesceUndoWithTarget: (id)target
+			   selector: (SEL)aSelector
+			     object: (id)anObject;
+@end
+
+@implementation NSUndoManager(UndoCoalescing)
+- (BOOL) _canCoalesceUndoWithTarget: (id)target
+			   selector: (SEL)aSelector
+			     object: (id)anObject
+{
+  if (_isUndoing == NO && _isRedoing == NO && [_undoStack count] > 0)
+    {
+      int      i;
+      NSArray *a = [[_undoStack lastObject] actions];
+
+      for (i = 0; i < [a count]; i++)
+        {
+	  NSInvocation *inv = [a objectAtIndex: i];
+	  if ([inv target] == target && [inv selector] == aSelector)
+	    {
+	      id object;
+	      [inv getArgument: &object atIndex: 2];
+	      if (object == anObject)
+		return YES;
+	    }
+	}
+    }
+  return NO;
+}
+@end

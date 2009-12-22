@@ -1,3 +1,9 @@
+2009-12-23  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSUndoManager.m (_canCoalesceUndoWithTarget:selector:object):
+	Auxiliary method to support coalescing undo operations in
+	NSTextView.
+
 2009-12-22 17:15-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSObject.m: Conditionally compile weak attribute for
