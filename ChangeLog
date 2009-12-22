@@ -1,3 +1,8 @@
+2009-12-22 17:15-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSObject.m: Conditionally compile weak attribute for
+	Windows since it is not supported by the win32 linker.
+
 2009-12-20 David Chisnall <theraven@gna.org>
 
 	* Source/NSObject.m: Set block superclass.
