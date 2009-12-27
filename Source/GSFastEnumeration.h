@@ -1,7 +1,8 @@
 
 #ifdef __clang__
 #define FOR_IN(type, var, collection) \
-	for (type var in collection)
+	for (type var in collection)\
+	{
 #define END_FOR_IN(collection) }
 #else
 
