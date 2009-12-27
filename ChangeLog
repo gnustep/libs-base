@@ -1,3 +1,7 @@
+2009-12-27 David Chisnall <theraven@gna.org>
+
+	* Headers/Additions/GNUstepBase/GSBlocks.h: Added block macros.
+
 2009-12-23  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSUndoManager.m (_canCoalesceUndoWithTarget:selector:object):
