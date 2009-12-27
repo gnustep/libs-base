@@ -54,6 +54,7 @@
 #import "Foundation/NSKeyedArchiver.h"
 #import "GNUstepBase/GSCategories.h"
 #import "GSPrivate.h"
+#import "GSFastEnumeration.h"
 
 static BOOL GSMacOSXCompatiblePropertyLists(void)
 {
@@ -1618,6 +1619,19 @@ compare(id elem1, id elem2, void* context)
 
   return result;
 }
+- (void)enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock
+{
+	NSUInteger count = 0;
+	BOOL shouldStop = NO;
+	FOR_IN (id, obj, self)
+		CALL_BLOCK(aBlock, obj, count++, &shouldStop);
+		if (shouldStop)
+		{
+			return;
+		}
+	END_FOR_IN(self)
+}
+
 @end
 
 

@@ -29,6 +29,7 @@
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSRange.h>
 #import <Foundation/NSEnumerator.h>
+#import <GNUstepBase/GSBlocks.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -115,6 +116,14 @@ extern "C" {
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 - (id) valueForKey: (NSString*)key;
 #endif
+DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, id, NSUInteger, BOOL*);
+/**
+ * Enumerate over the collection using the given block.  The first argument is
+ * the object and the second is the index in the array.  The final argument is
+ * a pointer to a BOOL indicating whether the enumeration should stop.  Setting
+ * this to YES will interrupt the enumeration.
+ */
+- (void)enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock;
 @end
 
 
