@@ -5,12 +5,12 @@
 	{
 #define END_FOR_IN(collection) }
 #else
-
+void objc_enumerationMutation(id);
 #define FOR_IN(type, var, c) \
 do\
 {\
 	type var;\
-	volatile NSFastEnumerationState gs_##c##_enumState = { 0 };\
+	NSFastEnumerationState gs_##c##_enumState = { 0 };\
 	id gs_##c##_items[16];\
 	unsigned long gs_##c##_limit = \
 		[c countByEnumeratingWithState: &gs_##c##_enumState \
@@ -30,9 +30,9 @@ do\
 
 #define END_FOR_IN(c) \
 			} while (gs_##c##counter < gs_##c##_limit);\
-		} while (gs_##c##_limit = [c countByEnumeratingWithState: &gs_##c##_enumState\
-		                                                 objects: gs_##c##_items\
-		                                                   count: 16]);\
+		} while ((gs_##c##_limit = [c countByEnumeratingWithState: &gs_##c##_enumState\
+		                                                  objects: gs_##c##_items\
+		                                                    count: 16]));\
 	}\
 } while(0);
 #endif
