@@ -1,5 +1,9 @@
 2009-12-27 David Chisnall <theraven@gna.org>
 
+	* Source/GSFastEnumeration.h: Added macros implementing for..in loops.
+
+2009-12-27 David Chisnall <theraven@gna.org>
+
 	* Headers/Additions/GNUstepBase/GSBlocks.h: Added block macros.
 
 2009-12-23  Wolfgang Lux  <wolfgang.lux@gmail.com>
