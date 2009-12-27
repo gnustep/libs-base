@@ -1619,19 +1619,122 @@ compare(id elem1, id elem2, void* context)
 
   return result;
 }
+
 - (void)enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock
+{
+	[self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
+}
+- (void)enumerateObjectsWithOptions: (NSEnumerationOptions)opts 
+						 usingBlock: (GSEnumeratorBlock)aBlock
 {
 	NSUInteger count = 0;
 	BOOL shouldStop = NO;
-	FOR_IN (id, obj, self)
+	id<NSFastEnumeration> enumerator = self;
+
+	/* If we are enumerating in reverse, use the reverse enumerator for fast
+	 * enumeration. */
+	if (opts & NSEnumerationReverse)
+	{
+		enumerator = [self reverseObjectEnumerator];
+	}
+
+	FOR_IN (id, obj, enumerator)
 		CALL_BLOCK(aBlock, obj, count++, &shouldStop);
 		if (shouldStop)
 		{
 			return;
 		}
-	END_FOR_IN(self)
+	END_FOR_IN(enumerator)
+}
+- (void)enumerateObjectsAtIndexes: (NSIndexSet*)indexSet
+						  options: (NSEnumerationOptions)opts
+					   usingBlock: (GSEnumeratorBlock)block
+{
+	[[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts 
+	                                                    usingBlock: block];
 }
 
+- (NSIndexSet *)indexesOfObjectsWithOptions: (NSEnumerationOptions)opts 
+								passingTest: (GSPredicateBlock)predicate
+{
+	/* TODO: Concurrency. */
+	NSMutableIndexSet *set = [NSMutableIndexSet indexSet];
+	BOOL shouldStop = NO;
+	id<NSFastEnumeration> enumerator = self;
+	NSUInteger count = 0;
+
+	/* If we are enumerating in reverse, use the reverse enumerator for fast
+	 * enumeration. */
+	if (opts & NSEnumerationReverse)
+	{
+		enumerator = [self reverseObjectEnumerator];
+	}
+
+	FOR_IN (id, obj, self)
+		if (CALL_BLOCK(predicate, obj, count, &shouldStop))
+		{
+			/* TODO: It would be more efficient to collect an NSRange and only
+			 * pass it to the index set when CALL_BLOCK returned NO. */
+			[set addIndex: count];
+		}
+		if (shouldStop)
+		{
+			return set;
+		}
+		count++;
+	END_FOR_IN(self)
+	return set;
+}
+- (NSIndexSet*)indexesOfObjectsPassingTest: (GSPredicateBlock)predicate
+{
+	return [self indexesOfObjectsWithOptions: 0 passingTest: predicate];
+}
+- (NSIndexSet*)indexesOfObjectsAtIndexes: (NSIndexSet*)indexSet
+								 options: (NSEnumerationOptions)opts
+							 passingTest: (GSPredicateBlock)predicate
+{
+	return [[self objectsAtIndexes: indexSet] indexesOfObjectsWithOptions: opts
+	                                                          passingTest: predicate];
+}
+- (NSUInteger)indexOfObjectWithOptions: (NSEnumerationOptions)opts 
+						   passingTest: (GSPredicateBlock)predicate
+{
+	/* TODO: Concurrency. */
+	id<NSFastEnumeration> enumerator = self;
+	BOOL shouldStop = NO;
+	NSUInteger count = 0;
+
+	/* If we are enumerating in reverse, use the reverse enumerator for fast
+	 * enumeration. */
+	if (opts & NSEnumerationReverse)
+	{
+		enumerator = [self reverseObjectEnumerator];
+	}
+
+	FOR_IN (id, obj, self)
+		if (CALL_BLOCK(predicate, obj, count, &shouldStop))
+		{
+			return count;
+		}
+		if (shouldStop)
+		{
+			return NSNotFound;
+		}
+		count++;
+	END_FOR_IN(self)
+	return NSNotFound;
+}
+- (NSUInteger)indexOfObjectPassingTest: (GSPredicateBlock)predicate
+{
+	return [self indexOfObjectWithOptions: 0 passingTest: predicate];
+}
+- (NSUInteger)indexOfObjectAtIndexes: (NSIndexSet*)indexSet
+							 options: (NSEnumerationOptions)opts
+						 passingTest: (GSPredicateBlock)predicate
+{
+	return [[self objectsAtIndexes: indexSet] indexOfObjectWithOptions: 0
+	                                                       passingTest: predicate];
+}
 @end
 
 

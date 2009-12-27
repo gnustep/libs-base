@@ -117,6 +117,7 @@ extern "C" {
 - (id) valueForKey: (NSString*)key;
 #endif
 DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, id, NSUInteger, BOOL*);
+DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 /**
  * Enumerate over the collection using the given block.  The first argument is
  * the object and the second is the index in the array.  The final argument is
@@ -124,6 +125,84 @@ DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, id, NSUInteger, BOOL*);
  * this to YES will interrupt the enumeration.
  */
 - (void)enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock;
+/**
+ * Enumerate over the collection using the given block.  The first argument is
+ * the object and the second is the index in the array.  The final argument is
+ * a pointer to a BOOL indicating whether the enumeration should stop.  Setting
+ * this to YES will interrupt the enumeration.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (void)enumerateObjectsWithOptions: (NSEnumerationOptions)opts 
+						 usingBlock: (GSEnumeratorBlock)aBlock;
+/**
+ * Enumerate over the specified indexes in the collection using the given
+ * block.  The first argument is the object and the second is the index in the
+ * array.  The final argument is a pointer to a BOOL indicating whether the
+ * enumeration should stop.  Setting this to YES will interrupt the
+ * enumeration.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (void)enumerateObjectsAtIndexes: (NSIndexSet*)indexSet
+						  options: (NSEnumerationOptions)opts
+					   usingBlock: (GSEnumeratorBlock)block;
+/**
+ * Returns the indexes of the objects in a collection that match the condition
+ * specified by the block.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (NSIndexSet *)indexesOfObjectsWithOptions: (NSEnumerationOptions)opts 
+								passingTest: (GSPredicateBlock)predicate;
+/**
+ * Returns the indexes of the objects in a collection that match the condition
+ * specified by the block.
+ */
+- (NSIndexSet*)indexesOfObjectsPassingTest: (GSPredicateBlock)predicate;
+/**
+ * Returns the indexes of the objects in a collection that match the condition
+ * specified by the block and are in the range specified by the index set.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (NSIndexSet*)indexesOfObjectsAtIndexes: (NSIndexSet*)indexSet
+								 options: (NSEnumerationOptions)opts
+							 passingTest: (GSPredicateBlock)predicate;
+/**
+ * Returns the index of the first object in the array that matches the
+ * condition specified by the block.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (NSUInteger)indexOfObjectWithOptions: (NSEnumerationOptions)opts 
+						   passingTest: (GSPredicateBlock)predicate;
+/**
+ * Returns the index of the first object in the array that matches the
+ * condition specified by the block.
+ */
+- (NSUInteger)indexOfObjectPassingTest: (GSPredicateBlock)predicate;
+/**
+ * Returns the index of the first object in the specified range in a collection
+ * that matches the condition specified by the block.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (NSUInteger)indexOfObjectAtIndexes: (NSIndexSet*)indexSet
+							 options: (NSEnumerationOptions)opts
+						 passingTest: (GSPredicateBlock)predicate;
 @end
 
 
