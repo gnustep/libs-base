@@ -28,17 +28,17 @@
 
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSRange.h>
+#import <Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-@class NSEnumerator;
 @class NSString;
 @class NSURL;
 @class NSIndexSet;
 
-@interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
 + (id) array;
 + (id) arrayWithArray: (NSArray*)array;
