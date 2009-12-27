@@ -1,5 +1,15 @@
 2009-12-27 David Chisnall <theraven@gna.org>
 
+	* Source/NSArray.m
+	* Headers/Foundation/NSArray.h
+	Added some block method implementations.
+
+	* Headers/Foundation/NSObjCRuntime.h
+	Added constants for enumeration.  
+
+	
+2009-12-27 David Chisnall <theraven@gna.org>
+
 	* Source/GSFastEnumeration.h: Added macros implementing for..in loops.
 
 2009-12-27 David Chisnall <theraven@gna.org>
