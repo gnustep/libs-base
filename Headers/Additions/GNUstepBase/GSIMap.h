@@ -28,6 +28,7 @@
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSGarbageCollector.h>
 #include <Foundation/NSZone.h>
 
@@ -927,6 +928,64 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
       ((_GSIE)enumerator)->node = next;
     }
   return node;
+}
+
+/**
+ * Used to implement fast enumeration methods in classes that use GSIMap for
+ * their data storaae.
+ */
+static INLINE NSUInteger 
+GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
+                                              NSFastEnumerationState *state,
+                                              id *stackbuf,
+                                              NSUInteger len)
+{
+  NSInteger count;
+  NSInteger i;
+
+  count = MIN(len, map->nodeCount - state->state);
+  /* We can store a GSIMapEnumerator inside the extra buffer in state on all
+   * platforms that don't suck beyond belief (i.e. everything except win64),
+   * but we can't on anything where long is 32 bits and pointers are 64 bits,
+   * so we have to construct it here to avoid breaking on that platform.
+   */
+  struct GSPartMapEnumerator
+    {
+      GSIMapNode node;
+      uintptr_t bucket;
+    };
+  GSIMapEnumerator_t enumerator;
+  /* Construct the real enumerator */
+  if (0 == state->state)
+    {
+        enumerator = GSIMapEnumeratorForMap(map);
+    }
+  else
+    {
+      enumerator.map = map;
+      enumerator.node = ((struct GSPartMapEnumerator*)&(state->extra))->node; 
+      enumerator.bucket = ((struct GSPartMapEnumerator*)&(state->extra))->bucket;
+    }
+  /* Get the next count objects and put them in the stack buffer. */
+  for (i=0 ; i<count ; i++)
+    {
+      GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
+      if (0 != node)
+        {
+          /* UGLY HACK: Lets this compile with any key type.  Fast enumeration
+           * will only work with things that are id-sized, however, so don't
+           * try using it with non-object collections.
+           */
+          stackbuf[i] = *(id*)&node->key;
+        }
+    }
+  /* Store the important bits of the enumerator in the caller. */
+  ((struct GSPartMapEnumerator*)&(state->extra))->node = enumerator.node;
+  ((struct GSPartMapEnumerator*)&(state->extra))->bucket = enumerator.bucket;
+  /* Update the rest of the state. */
+  state->state += count;
+  state->itemsPtr = stackbuf;
+  return count;
 }
 
 #if	GSI_MAP_HAS_VALUE

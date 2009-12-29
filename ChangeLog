@@ -3,16 +3,14 @@
 	* Source/GSDictionary.m
 	* Source/NSDictionary.m
 	* Headers/Foundation/NSDictionary.h
-
-	Added fast enumeration support to NSDictionary.
-
-2009-12-29 David Chisnall <theraven@gna.org>
-
+	Added fast enumeration support to GSDictionary, and GSMutableSet.
 	* Source/GSSet.m
+	* Source/GSCountedSet.m
 	* Source/NSSet.m
 	* Headers/Foundation/NSSet.h
-
-	Added fast enumeration support to NSSet.
+	Added fast enumeration support to GSSet, GSMutableSet, and GSCountedSet
+	* Headers/Additions/GNUstepBase/GSIMap.h
+	Added function for implementing fast enumeration with GSIMaps.
 
 2009-12-27 David Chisnall <theraven@gna.org>
 

@@ -50,6 +50,8 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 {
 @public
   GSIMapTable_t	map;
+@private
+  NSUInteger _version;
 }
 @end
 
@@ -127,6 +129,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 		  format: @"Tried to nil value to counted set"];
     }
 
+  _version++;
   node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
   if (node == 0)
     {
@@ -136,6 +139,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
     {
       node->value.uint++;
     }
+  _version++;
 }
 
 - (unsigned) count
@@ -296,8 +300,10 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 	{
 	  if (node->value.uint <= (unsigned int)level)
 	    {
+          _version++;
 	      GSIMapRemoveNodeFromMap(&map, bucket, node);
 	      GSIMapFreeNode(&map, node);
+          _version++;
 	    }
 	  bucket = GSIMapEnumeratorBucket(&enumerator);
 	  node = GSIMapEnumeratorNextNode(&enumerator);
@@ -308,7 +314,9 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 
 - (void) removeAllObjects
 {
+  _version++;
   GSIMapCleanMap(&map);
+  _version++;
 }
 
 /**
@@ -326,6 +334,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
       NSWarnMLog(@"attempt to remove nil object");
       return;
     }
+  _version++;
   bucket = GSIMapBucketForKey(&map, (GSIMapKey)anObject);
   if (bucket != 0)
     {
@@ -341,12 +350,14 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 	    }
 	}
     }
+  _version++;
 }
 
 - (id) unique: (id)anObject
 {
   GSIMapNode	node;
   id		result;
+  _version++;
 
   if (anObject == nil)
     {
@@ -372,6 +383,14 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 	}
 #endif
     }
+  _version++;
   return result;
+}
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+                                   objects: (id*)stackbuf
+                                     count: (NSUInteger)len
+{
+    state->mutationsPtr = (unsigned long *)&_version;
+    return GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
 }
 @end
