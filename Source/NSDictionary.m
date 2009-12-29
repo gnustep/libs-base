@@ -1105,6 +1105,13 @@ compareIt(id o1, id o2, void* context)
     }
   return o;
 }
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+                                   objects: (id*)stackbuf
+                                     count: (NSUInteger)len
+{
+    [self subclassResponsibility: _cmd];
+    return 0;
+}
 @end
 
 

@@ -1,5 +1,13 @@
 2009-12-29 David Chisnall <theraven@gna.org>
 
+	* Source/GSDictionary.m
+	* Source/NSDictionary.m
+	* Headers/Foundation/NSDictionary.h
+
+	Added fast enumeration support to NSDictionary.
+
+2009-12-29 David Chisnall <theraven@gna.org>
+
 	* Source/GSSet.m
 	* Source/NSSet.m
 	* Headers/Foundation/NSSet.h
