@@ -903,11 +903,11 @@ static Class NSMutableSet_concrete_class;
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-				   objects: (id*)stackbuf
-				     count: (NSUInteger)len
+                                   objects: (id*)stackbuf
+                                     count: (NSUInteger)len
 {
-	[self subclassResponsibility: _cmd];
-	return 0;
+    [self subclassResponsibility: _cmd];
+    return 0;
 }
 @end
 

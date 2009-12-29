@@ -27,14 +27,15 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObject.h>
+#import	<Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-@class NSArray, NSString, NSEnumerator, NSURL;
+@class NSArray, NSString, NSURL;
 
-@interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 + (id) dictionary;
 + (id) dictionaryWithContentsOfFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
