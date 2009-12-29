@@ -358,53 +358,8 @@ static SEL	objSel;
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-  NSInteger count;
-  NSInteger i;
-
-  /* This is cached in the caller at the start and compared at each
-   * iteration.   If it changes during the iteration then
-   * objc_enumerationMutation() will be called, throwing an exception.
-   */
-  state->mutationsPtr = (unsigned long *)self;
-  count = MIN(len, map.nodeCount - state->state);
-  /* We can store a GSIMapEnumerator inside the extra buffer in state on all
-   * platforms that don't suck beyond belief (i.e. everything except win64),
-   * but we can't on anything where long is 32 bits and pointers are 64 bits,
-   * so we have to construct it here to avoid breaking on that platform.
-   */
-  struct GSPartMapEnumerator
-    {
-      GSIMapNode node;
-      uintptr_t bucket;
-    };
-  GSIMapEnumerator_t enumerator;
-  /* Construct the real enumerator */
-  enumerator.map = &map;
-  if (0 == state->state)
-    {
-        enumerator = GSIMapEnumeratorForMap(&map);
-    }
-  else
-    {
-      enumerator.node = ((struct GSPartMapEnumerator*)&(state->extra))->node; 
-      enumerator.bucket = ((struct GSPartMapEnumerator*)&(state->extra))->bucket;
-    }
-  /* Get the next count objects and put them in the stack buffer. */
-  for (i=0 ; i<count ; i++)
-    {
-      GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
-      if (0 != node)
-        {
-          stackbuf[i] = node->key.obj;
-        }
-    }
-  /* Store the important bits of the enumerator in the caller. */
-  ((struct GSPartMapEnumerator*)&(state->extra))->node = enumerator.node;
-  ((struct GSPartMapEnumerator*)&(state->extra))->bucket = enumerator.bucket;
-  /* Update the rest of the state. */
-  state->state += count;
-  state->itemsPtr = stackbuf;
-  return count;
+    state->mutationsPtr = (unsigned long *)self;
+    return GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
 }
 
 @end
@@ -513,53 +468,8 @@ static SEL	objSel;
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-  NSInteger count;
-  NSInteger i;
-
-  /* This is cached in the caller at the start and compared at each
-   * iteration.   If it changes during the iteration then
-   * objc_enumerationMutation() will be called, throwing an exception.
-   */
-  state->mutationsPtr = (unsigned long *)&_version;
-  count = MIN(len, map.nodeCount - state->state);
-  /* We can store a GSIMapEnumerator inside the extra buffer in state on all
-   * platforms that don't suck beyond belief (i.e. everything except win64),
-   * but we can't on anything where long is 32 bits and pointers are 64 bits,
-   * so we have to construct it here to avoid breaking on that platform.
-   */
-  struct GSPartMapEnumerator
-    {
-      GSIMapNode node;
-      uintptr_t bucket;
-    };
-  GSIMapEnumerator_t enumerator;
-  /* Construct the real enumerator */
-  enumerator.map = &map;
-  if (0 == state->state)
-    {
-        enumerator = GSIMapEnumeratorForMap(&map);
-    }
-  else
-    {
-      enumerator.node = ((struct GSPartMapEnumerator*)&(state->extra))->node; 
-      enumerator.bucket = ((struct GSPartMapEnumerator*)&(state->extra))->bucket;
-    }
-  /* Get the next count objects and put them in the stack buffer. */
-  for (i=0 ; i<count ; i++)
-    {
-      GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
-      if (0 != node)
-        {
-          stackbuf[i] = node->key.obj;
-        }
-    }
-  /* Store the important bits of the enumerator in the caller. */
-  ((struct GSPartMapEnumerator*)&(state->extra))->node = enumerator.node;
-  ((struct GSPartMapEnumerator*)&(state->extra))->bucket = enumerator.bucket;
-  /* Update the rest of the state. */
-  state->state += count;
-  state->itemsPtr = stackbuf;
-  return count;
+    state->mutationsPtr = (unsigned long *)&_version;
+    return GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
 }
 @end
 
