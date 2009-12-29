@@ -31,6 +31,7 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObject.h>
+#import <Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -38,7 +39,7 @@ extern "C" {
 
 @class NSArray, NSString, NSEnumerator, NSDictionary;
 
-@interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
 + (id) set;
 + (id) setWithArray: (NSArray*)objects;

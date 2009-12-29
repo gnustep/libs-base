@@ -10,7 +10,7 @@
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+   _version 2 of the License, or (at your option) any later _version.
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -63,6 +63,8 @@ static SEL	memberSel;
 {
 @public
   GSIMapTable_t	map;
+@private
+  NSUInteger _version;
 }
 @end
 
@@ -521,6 +523,58 @@ static Class	mutableSetClass;
   return AUTORELEASE([[GSSetEnumerator alloc] initWithSet: self]);
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+  NSInteger count;
+  NSInteger i;
+
+  /* This is cached in the caller at the start and compared at each
+   * iteration.   If it changes during the iteration then
+   * objc_enumerationMutation() will be called, throwing an exception.
+   */
+  state->mutationsPtr = (unsigned long *)self;
+  count = MIN(len, map.nodeCount - state->state);
+  /* We can store a GSIMapEnumerator inside the extra buffer in state on all
+   * platforms that don't suck beyond belief (i.e. everything except win64),
+   * but we can't on anything where long is 32 bits and pointers are 64 bits,
+   * so we have to construct it here to avoid breaking on that platform.
+   */
+  struct GSPartMapEnumerator
+    {
+      GSIMapNode node;
+      uintptr_t bucket;
+    };
+  GSIMapEnumerator_t enumerator;
+  /* Construct the real enumerator */
+  enumerator.map = &map;
+  if (0 == state->state)
+    {
+        enumerator = GSIMapEnumeratorForMap(&map);
+    }
+  else
+    {
+      enumerator.node = ((struct GSPartMapEnumerator*)&(state->extra))->node; 
+      enumerator.bucket = ((struct GSPartMapEnumerator*)&(state->extra))->bucket;
+    }
+  /* Get the next count objects and put them in the stack buffer. */
+  for (i=0 ; i<count ; i++)
+    {
+      GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
+      if (0 != node)
+        {
+          stackbuf[i] = node->key.obj;
+        }
+    }
+  /* Store the important bits of the enumerator in the caller. */
+  ((struct GSPartMapEnumerator*)&(state->extra))->node = enumerator.node;
+  ((struct GSPartMapEnumerator*)&(state->extra))->bucket = enumerator.bucket;
+  /* Update the rest of the state. */
+  state->state += count;
+  state->itemsPtr = stackbuf;
+  return count;
+}
 @end
 
 @implementation GSMutableSet
@@ -546,6 +600,7 @@ static Class	mutableSetClass;
   if (node == 0)
     {
       GSIMapAddKey(&map, (GSIMapKey)anObject);
+      _version++;
     }
 }
 
@@ -570,12 +625,13 @@ static Class	mutableSetClass;
 	  if (node == 0)
 	    {
 	      GSIMapAddKey(&map, (GSIMapKey)anObject);
+          _version++;
 	    }
 	}
     }
 }
 
-/* Override version from GSSet */
+/* Override _version from GSSet */
 - (id) copyWithZone: (NSZone*)z
 {
   NSSet	*copy = [setClass allocWithZone: z];
@@ -672,6 +728,7 @@ static Class	mutableSetClass;
       while ((anObject = [e nextObject]) != nil)
 	{
 	  GSIMapRemoveKey(&map, (GSIMapKey)anObject);
+      _version++;
 	}
     }
 }
@@ -689,6 +746,7 @@ static Class	mutableSetClass;
       return;
     }
   GSIMapRemoveKey(&map, (GSIMapKey)anObject);
+  _version++;
 }
 
 - (void) unionSet: (NSSet*) other
@@ -711,12 +769,65 @@ static Class	mutableSetClass;
 	      if (node == 0)
 		{
 		  GSIMapAddKey(&map, (GSIMapKey)anObject);
+          _version++;
 		}
 	    }
 	}
     }
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+  NSInteger count;
+  NSInteger i;
+
+  /* This is cached in the caller at the start and compared at each
+   * iteration.   If it changes during the iteration then
+   * objc_enumerationMutation() will be called, throwing an exception.
+   */
+  state->mutationsPtr = (unsigned long *)&_version;
+  count = MIN(len, map.nodeCount - state->state);
+  /* We can store a GSIMapEnumerator inside the extra buffer in state on all
+   * platforms that don't suck beyond belief (i.e. everything except win64),
+   * but we can't on anything where long is 32 bits and pointers are 64 bits,
+   * so we have to construct it here to avoid breaking on that platform.
+   */
+  struct GSPartMapEnumerator
+    {
+      GSIMapNode node;
+      uintptr_t bucket;
+    };
+  GSIMapEnumerator_t enumerator;
+  /* Construct the real enumerator */
+  enumerator.map = &map;
+  if (0 == state->state)
+    {
+        enumerator = GSIMapEnumeratorForMap(&map);
+    }
+  else
+    {
+      enumerator.node = ((struct GSPartMapEnumerator*)&(state->extra))->node; 
+      enumerator.bucket = ((struct GSPartMapEnumerator*)&(state->extra))->bucket;
+    }
+  /* Get the next count objects and put them in the stack buffer. */
+  for (i=0 ; i<count ; i++)
+    {
+      GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
+      if (0 != node)
+        {
+          stackbuf[i] = node->key.obj;
+        }
+    }
+  /* Store the important bits of the enumerator in the caller. */
+  ((struct GSPartMapEnumerator*)&(state->extra))->node = enumerator.node;
+  ((struct GSPartMapEnumerator*)&(state->extra))->bucket = enumerator.bucket;
+  /* Update the rest of the state. */
+  state->state += count;
+  state->itemsPtr = stackbuf;
+  return count;
+}
 @end
 
 @interface	NSGSet : NSSet

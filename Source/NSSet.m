@@ -902,6 +902,13 @@ static Class NSMutableSet_concrete_class;
   return [s autorelease];
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+	[self subclassResponsibility: _cmd];
+	return 0;
+}
 @end
 
 
