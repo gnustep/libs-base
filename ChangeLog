@@ -1,3 +1,11 @@
+2009-12-29 David Chisnall <theraven@gna.org>
+
+	* Source/GSSet.m
+	* Source/NSSet.m
+	* Headers/Foundation/NSSet.h
+
+	Added fast enumeration support to NSSet.
+
 2009-12-27 David Chisnall <theraven@gna.org>
 
 	* Source/NSArray.m
