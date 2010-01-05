@@ -1,3 +1,16 @@
+2010-01-05 Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Headers/Foundation/NSCharacterSet.h
+	* Source/NSCharacterSet.m
+	* Source/NSCharacterSetData.h:
+	Implement +[NSCharacterSet newlineCharacterSet]. This includes
+	rebuilding NSCharacterSetData as described in the mkcharsets
+	README.
+	Note that the Apple docs count 0x000B (vertical tab) and 0x000C 
+	(form feed) as newline characters, and include them in
+	newlineCharacterSet and whitespaceAndNewlineCharacterSet, while
+	GNUstep does not at the moment.
+
 2009-12-29 David Chisnall <theraven@gna.org>
 
 	* Source/GSDictionary.m

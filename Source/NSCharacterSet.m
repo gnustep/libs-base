@@ -693,6 +693,13 @@ static Class concreteMutableClass = nil;
 		   number: 6];
 }
 
++ (NSCharacterSet*) newlineCharacterSet
+{
+  return [self _staticSet: newlineCharSet
+		   length: sizeof(newlineCharSet)
+		   number: 14];
+}
+
 + (NSCharacterSet*) nonBaseCharacterSet
 {
   return [self _staticSet: nonBaseCharSet
@@ -1024,6 +1031,11 @@ static Class concreteMutableClass = nil;
 }
 
 + (NSCharacterSet*) lowercaseLetterCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) newlineCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
