@@ -681,14 +681,23 @@ AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
-# This function needed by for handling uncaught exceptions
+# One of these is needed by for handling uncaught exceptions
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(for objc_set_unexpected() in runtime)
+AC_LINK_IFELSE([#include "$srcdir/config/config.set_unexpected.m"],
+	have_set_unexpected=yes, have_set_unexpected=no)
+if test $have_set_unexpected = yes; then
+  AC_DEFINE(HAVE_SET_UNEXPECTED,1,
+	    [Define if libobjc has the objc_set_unexpected() function])
+fi
+AC_MSG_RESULT($have_set_unexpected)
+
+AC_MSG_CHECKING(for _objc_unexpected_exception in runtime)
 AC_LINK_IFELSE([#include "$srcdir/config/config.unexpected.m"],
 	have_unexpected=yes, have_unexpected=no)
 if test $have_unexpected = yes; then
   AC_DEFINE(HAVE_UNEXPECTED,1,
-	    [Define if libobjc has the objc_set_unexpected() function])
+	    [Define if libobjc has the _objc_unexpected_exception callback])
 fi
 AC_MSG_RESULT($have_unexpected)
 

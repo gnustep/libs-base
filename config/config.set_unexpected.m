@@ -2,6 +2,6 @@
 
 int main (void)
 {
-  _objc_unexpected_exception = 0;
+  objc_set_unexpected(0);
   return 0;
 }
