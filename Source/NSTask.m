@@ -1633,27 +1633,29 @@ GSPrivateCheckTasks()
         }
       else if (result == _taskId || (result > 0 && errno == 0))
 	{
-	  if (WIFEXITED(_terminationStatus))
+	  int	status = [self terminationStatus];
+
+	  if (WIFEXITED(status))
 	    {
 #ifdef  WAITDEBUG
               NSLog(@"waitpid %d, termination status = %d",
-		_taskId, _terminationStatus);
+		_taskId, status);
 #endif
-              [self _terminatedChild: WEXITSTATUS(_terminationStatus)];
+              [self _terminatedChild: WEXITSTATUS(status)];
 	    }
-	  else if (WIFSIGNALED(_terminationStatus))
+	  else if (WIFSIGNALED(status))
 	    {
 #ifdef  WAITDEBUG
               NSLog(@"waitpid %d, termination status = %d",
-		_taskId, _terminationStatus);
+		_taskId, status);
 #endif
-              [self _terminatedChild: WTERMSIG(_terminationStatus)];
+              [self _terminatedChild: WTERMSIG(status)];
 	    }
 #ifdef  WAITDEBUG
           else
 	    {
 	      NSLog(@"waitpid %d, event status = %d",
-		_taskId, _terminationStatus);
+		_taskId, status);
 	    }
 #endif
 	}
