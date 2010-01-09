@@ -1,5 +1,12 @@
 2010-01-09 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSCharacterSetData.h:
+	* NSCharacterSets/newlineCharSet.dat:
+	Add VT ad FF as newline characters for OSX compatibility as suggested
+	by Eric.
+
+2010-01-09 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac:
 	* Source/NSException.m:
 	* Headers/Additions/GNUstepBase/config.h.in:
