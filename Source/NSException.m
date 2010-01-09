@@ -238,8 +238,13 @@ callUncaughtHandler(id value)
 
 + (void) initialize
 {
-#if	defined(_NATIVE_OBJC_EXCEPTIONS) && defined(HAVE_UNEXPECTED)
+#if	defined(_NATIVE_OBJC_EXCEPTIONS)
+#  if	defined(HAVE_UNEXPECTED)
+  _objc_unexpected_exception = callUncaughtHandler;
+#  endif
+#  if	defined(HAVE_SET_UNEXPECTED)
   objc_set_unexpected(callUncaughtHandler);
+#  endif
 #endif
   return;
 }

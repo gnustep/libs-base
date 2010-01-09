@@ -1,3 +1,15 @@
+2010-01-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac:
+	* Source/NSException.m:
+	* Headers/Additions/GNUstepBase/config.h.in:
+	* config/config.unexpected.m:
+	* config/config.set_unexpected.m:
+	* configure:
+	Modified to suppport native exceptions with libobjc2 which is missing
+	the objc_set_unexpected() function and just uses direct assignment of
+	a function pointer.
+
 2010-01-05 Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Headers/Foundation/NSCharacterSet.h
