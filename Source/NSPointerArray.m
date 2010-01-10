@@ -37,7 +37,6 @@
 #import "GSPrivate.h"
 #import "NSConcretePointerFunctions.h"
 
-@class	NSConcretePointerArray;
 
 static Class	abstractClass = Nil;
 static Class	concreteClass = Nil;
@@ -59,7 +58,7 @@ static Class	concreteClass = Nil;
   if (abstractClass == Nil)
     {
       abstractClass = [NSPointerArray class];
-      concreteClass = [NSConcretePointerArray class];
+      concreteClass = NSClassFromString(@"NSConcretePointerArray");
     }
 }
 

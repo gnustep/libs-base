@@ -39,7 +39,6 @@
 
 @implementation	NSHashTable
 
-@class	NSConcreteHashTable;
 
 static Class	abstractClass = 0;
 static Class	concreteClass = 0;
@@ -58,7 +57,7 @@ static Class	concreteClass = 0;
   if (abstractClass == 0)
     {
       abstractClass = [NSHashTable class];
-      concreteClass = [NSConcreteHashTable class];
+      concreteClass = NSClassFromString(@"NSConcreteHashTable");
     }
 }
 

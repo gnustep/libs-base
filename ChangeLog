@@ -1,3 +1,30 @@
+2010-01-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMapTable.m:
+	* Source/NSHashTable.m:
+	* Source/NSPropertyList.m:
+	* Source/NSScanner.m:
+	* Source/GSArray.m:
+	* Source/GSStream.m:
+	* Source/NSPredicate.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLResponse.m:
+	* Source/NSPointerArray.m:
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSMime.m:
+	* Source/NSData.m:
+	* Source/NSSerializer.m:
+	* Source/NSURLRequest.m:
+	* Source/GSFormat.m:
+	* Source/NSXMLParser.m:
+	* SSL/GSSSLHandle.m:
+	* Tools/sfparse.m:
+	* Tools/gdnc.m:
+	* Tools/gdomap.c:
+	* Tools/pl.m:
+	* config/config.loadtest.m:
+	Tweaks towards making base build/work better with clang
+
 2010-01-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCharacterSetData.h:

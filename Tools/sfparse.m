@@ -21,6 +21,7 @@
 #include "config.h"
 #include	<Foundation/NSArray.h>
 #include	<Foundation/NSData.h>
+#include	<Foundation/NSDictionary.h>
 #include	<Foundation/NSException.h>
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSProcessInfo.h>

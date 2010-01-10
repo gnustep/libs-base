@@ -38,8 +38,6 @@
 
 @implementation	NSMapTable
 
-@class	NSConcreteMapTable;
-
 static Class	abstractClass = 0;
 static Class	concreteClass = 0;
 
@@ -57,7 +55,7 @@ static Class	concreteClass = 0;
   if (abstractClass == 0)
     {
       abstractClass = [NSMapTable class];
-      concreteClass = [NSConcreteMapTable class];
+      concreteClass = NSClassFromString(@"NSConcreteMapTable");
     }
 }
 

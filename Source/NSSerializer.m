@@ -503,7 +503,7 @@ initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
 	      *c += 9;
 	      (*info->debImp)(d, debSel, &u, 1, c);
 	      NSLog(@"Serialised data version %d not supported ..."
-		@" try another version of GNUstep");
+		@" try another version of GNUstep", u);
 	      return NO;
 	    }
 	}

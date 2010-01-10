@@ -585,7 +585,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  NSLog(@"%@ %p %s Unexpected data (%*.*s) from remote!",
 	    NSStringFromSelector(_cmd), self, keepalive?"K":"",
-	    [d length], [d length], [d bytes]);
+	    (int)[d length], (int)[d length], [d bytes]);
 	}
       [nc removeObserver: self name: nil object: sock];
       [sock closeFile];

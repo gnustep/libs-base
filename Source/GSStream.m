@@ -37,6 +37,7 @@
 
 #import "GSStream.h"
 #import "GSPrivate.h"
+#import "GSSocketStream.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
   = @"NSStreamDataWrittenToMemoryStreamKey";
@@ -945,19 +946,17 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 @end
 
 
-@class  GSInetInputStream;
-@class  GSInet6InputStream;
-@class  GSInetOutputStream;
-@class  GSInet6OutputStream;
-@class  GSInetServerStream;
-@class  GSInet6ServerStream;
-@class  GSLocalServerStream;
-
 @implementation GSServerStream
+
+static Class	localServerClass = 0;
 
 + (void) initialize
 {
   GSMakeWeakPointer(self, "delegate");
+  if (localServerClass == 0)
+    {
+      localServerClass = NSClassFromString(@"LocalServerStream");
+    }
 }
 
 + (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port
@@ -973,7 +972,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 + (id) serverStreamToAddr: (NSString*)addr
 {
-  return AUTORELEASE([[GSLocalServerStream alloc] initToAddr: addr]);
+  return AUTORELEASE([[localServerClass alloc] initToAddr: addr]);
 }
 
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
@@ -989,7 +988,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 - (id) initToAddr: (NSString*)addr
 {
   RELEASE(self);
-  return [[GSLocalServerStream alloc] initToAddr: addr];
+  return [[localServerClass alloc] initToAddr: addr];
 }
 
 - (void) acceptWithInputStream: (NSInputStream **)inputStream 

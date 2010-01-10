@@ -934,7 +934,10 @@ typedef struct {
   NSRange	range;
   unsigned int	saveScanLocation = _scanLocation;
 
-  skipToNextField();
+  if (skipToNextField() == NO)
+    {
+      return NO;
+    }
   range.location = _scanLocation;
   range.length = [string length];
   if (range.location + range.length > myLength())
@@ -988,7 +991,10 @@ typedef struct {
   NSRange	found;
   unsigned int	saveScanLocation = _scanLocation;
 
-  skipToNextField();
+  if (skipToNextField() == NO)
+    {
+      return NO;
+    }
   range.location = _scanLocation;
   range.length = myLength() - _scanLocation;
   found = [_string rangeOfString: string
