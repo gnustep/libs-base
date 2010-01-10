@@ -955,7 +955,7 @@ static Class	localServerClass = 0;
   GSMakeWeakPointer(self, "delegate");
   if (localServerClass == 0)
     {
-      localServerClass = NSClassFromString(@"LocalServerStream");
+      localServerClass = NSClassFromString(@"GSLocalServerStream");
     }
 }
 
