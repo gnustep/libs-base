@@ -1471,7 +1471,7 @@ failure:
 	{
 	  att = [[mgr fileAttributesAtPath: path
 			      traverseLink: YES] mutableCopy];
-	  IF_NO_GC(TEST_AUTORELEASE(att));
+	  IF_NO_GC(AUTORELEASE(att));
 	}
 
 #if defined(__MINGW32__)

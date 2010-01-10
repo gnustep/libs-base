@@ -114,6 +114,13 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
 @implementation GSXMLPListParser
 
+static Class	theClass = 0;
+
++ (void) initialize
+{
+  theClass = NSClassFromString(@"GSSloppyXMLParser");
+}
+
 - (void) dealloc
 {
   RELEASE(key);
@@ -129,7 +136,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 {
   if ((self = [super init]) != nil)
     {
-      theParser = [[GSSloppyXMLParser alloc] initWithData: data];
+      theParser = [[theClass alloc] initWithData: data];
       [theParser setDelegate: self];
       opts = options;
     }

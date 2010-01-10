@@ -1489,7 +1489,7 @@ newLockAt(Class self, SEL _cmd, id *location)
 
       if (*location == nil)
 	{
-	  *location = [[self alloc] init];
+	  *location = [[(id)self alloc] init];
 	}
 
       [local_lock unlock];

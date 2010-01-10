@@ -1173,9 +1173,9 @@ NSDictionary *locale)
 	    int string_malloced;
       do
 	{
-	  const void *ptr;
-	  ptr = NOT_IN_JUMP_RANGE (spec) ? REF (form_unknown)
-	    : step4_jumps[CHAR_CLASS (spec)];
+	  void *ptr;
+	  ptr = NOT_IN_JUMP_RANGE (spec) ? (void*)REF (form_unknown)
+	    : (void*)step4_jumps[CHAR_CLASS (spec)];
 	  goto *ptr;
 	}
       while (0);

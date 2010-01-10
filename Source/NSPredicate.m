@@ -1410,9 +1410,9 @@
 
 - (id) _eval_count: (NSArray *)expressions
 {
-  if (_argc != 1)
-    ;  // error
-  return [NSNumber numberWithUnsignedInt: [[expressions objectAtIndex: 0] count]];
+  NSAssert(_argc == 1, NSInternalInconsistencyException);
+  return [NSNumber numberWithUnsignedInt:
+    [[expressions objectAtIndex: 0] count]];
 }
 
 - (id) _eval_avg: (NSArray *)expressions 

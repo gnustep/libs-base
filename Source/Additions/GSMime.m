@@ -2401,7 +2401,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       if ([d length] > 0)
 	{
 	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
-	    [d length], [d length], [d bytes]);
+	    (int)[d length], (int)[d length], [d bytes]);
 	}
       needsMore = NO;	/* Nothing more to do	*/
     }
@@ -2873,6 +2873,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
 static NSCharacterSet	*nonToken = nil;
 static NSCharacterSet	*tokenSet = nil;
+static Class		dictClass = 0;
 
 + (void) initialize
 {
@@ -2898,6 +2899,7 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  documentClass = [GSMimeDocument class];
 	}
+      dictClass = NSClassFromString(@"_GSMutableInsensitiveDictionary");
     }
 }
 
@@ -3494,7 +3496,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       if (params == nil)
 	{
-	  params = [_GSMutableInsensitiveDictionary new];
+	  params = [dictClass new];
 	}
       [params setObject: v forKey: k];
     }
@@ -3514,7 +3516,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       NSEnumerator	*e = [d keyEnumerator];
       NSString		*k;
 
-      m = [[_GSMutableInsensitiveDictionary alloc] initWithCapacity: c];
+      m = [[dictClass alloc] initWithCapacity: c];
       while ((k = [e nextObject]) != nil)
 	{
 	  [m setObject: [d objectForKey: k]

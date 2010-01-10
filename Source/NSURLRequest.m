@@ -354,6 +354,13 @@ typedef struct {
 
 @implementation NSMutableURLRequest (NSMutableHTTPURLRequest)
 
+static Class	dictClass = 0;
+
++ (void) initialize
+{
+  dictClass = NSClassFromString(@"_GSMutableInsensitiveDictionary");
+}
+
 - (void) addValue: (NSString *)value forHTTPHeaderField: (NSString *)field
 {
   NSString	*old = [self valueForHTTPHeaderField: field];
@@ -415,7 +422,7 @@ typedef struct {
 {
   if (this->headers == nil)
     {
-      this->headers = [_GSMutableInsensitiveDictionary new];
+      this->headers = [dictClass new];
     }
   [this->headers setObject: value forKey: field];
 }

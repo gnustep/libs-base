@@ -47,7 +47,16 @@ static SEL	oaiSel;
 static Class	GSArrayClass;
 #else
 static Class	GSInlineArrayClass;
-@class	GSInlineArray;
+/* This class stores objects inline in data beyond the end of the instance.
+ * However, when GC is enabled the object data is typed, and all data after
+ * the end of the class is ignored by the garbage collector (which would
+ * mean that objects in the array could be collected).
+ * We therefore do not provide the class ewhan GC is being used.
+ */
+@interface GSInlineArray : GSArray
+{
+}
+@end
 #endif
 
 @class	GSArray;
@@ -382,17 +391,6 @@ static Class	GSInlineArrayClass;
 @end
 
 #if	!GS_WITH_GC
-/* This class stores objects inline in data beyond the end of the instance.
- * However, when GC is enabled the object data is typed, and all data after
- * the end of the class is ignored by the garbage collector (which would
- * mean that objects in the array could be collected).
- * We therefore do not provide the class ewhan GC is being used.
- */
-@interface GSInlineArray : GSArray
-{
-}
-@end
-
 @implementation	GSInlineArray
 - (void) dealloc
 {

@@ -1198,8 +1198,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
       while (c != '\'');
       return NewUTF8STR(ap + 1, this->cp - ap - 2);
     }
+  /* strict XML requires quoting (?)
   if (!this->acceptHTML)
-    ;  // strict XML requires quoting (?)
+    ;
+  */
   while (!isspace(c) && c != '>' && c != '/' && c != '?' && c != '=' &&c != EOF)
     c = cget();
   this->cp--;  // go back to terminating character
