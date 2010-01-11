@@ -440,6 +440,7 @@ NSCreateMapTableWithZone(
   if (concreteClass == Nil)
     {
       [NSConcreteMapTable class];	// Force +initialize
+      NSCAssert(concreteClass != Nil, NSInternalInconsistencyException);
     }
   table = (GSIMapTable)[concreteClass allocWithZone: zone];
 
@@ -1133,7 +1134,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 + (void) initialize
 {
-  if (concreteClass == 0)
+  if (concreteClass == Nil)
     {
       concreteClass = [NSConcreteMapTable class];
     }
