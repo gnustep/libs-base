@@ -38,8 +38,7 @@
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return [[self class] allocWithZone: zone];
 }
 
 - (NSString*) editingStringForObjectValue: (id)anObject
@@ -49,7 +48,7 @@
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
+
 }
 
 - (BOOL) getObjectValue: (id*)anObject
@@ -62,8 +61,7 @@
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return [super init];
 }
 
 - (BOOL) isPartialStringValid: (NSString*)partialString
