@@ -2471,8 +2471,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 @implementation	NSZombie
 - (Class) class
 {
-  GSLogZombie(self, @selector(class));
-  return (Class)0;
+  return (Class)isa;
 }
 - (Class) originalClass
 {
