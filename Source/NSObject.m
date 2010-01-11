@@ -671,7 +671,7 @@ NSDeallocateObject(NSObject *anObject)
 void
 GSPrivateSwizzle(id o, Class c)
 {
-  if (o->class_pointer != c)
+  if ((Class)o->class_pointer != c)
     {
 #if	GS_WITH_GC
       /* We only do allocation counting for objects that can be
@@ -2469,6 +2469,11 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 
 @implementation	NSZombie
+- (Class) class
+{
+  GSLogZombie(self, @selector(class));
+  return (Class)0;
+}
 - (Class) originalClass
 {
   return NSMapGet(zombieMap, (void*)self);
