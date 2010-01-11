@@ -439,7 +439,7 @@ NSCreateMapTableWithZone(
 
   if (concreteClass == Nil)
     {
-      concreteClass = [NSConcreteMapTable class];
+      [NSConcreteMapTable class];	// Force +initialize
     }
   table = (GSIMapTable)[concreteClass allocWithZone: zone];
 
@@ -1133,7 +1133,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 + (void) initialize
 {
-  if (concreteClass == Nil)
+  if (concreteClass == 0)
     {
       concreteClass = [NSConcreteMapTable class];
     }

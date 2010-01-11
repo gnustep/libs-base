@@ -42,7 +42,7 @@
 #import "NSCallBacks.h"
 #import "GSPrivate.h"
 
-static Class	concreteClass = 0;
+static Class	concreteClass = Nil;
 
 /* Here is the interface for the concrete class as used by the functions.
  */
@@ -299,9 +299,9 @@ NSCreateHashTableWithZone(
 {
   GSIMapTable	table;
 
-  if (concreteClass == 0)
+  if (concreteClass == Nil)
     {
-      [NSConcreteHashTable class];
+      [NSConcreteHashTable class];	// Force +initialize
     }
   table = (GSIMapTable)[concreteClass allocWithZone: zone];
 
@@ -808,7 +808,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 + (void) initialize
 {
-  if (concreteClass == nil)
+  if (concreteClass == Nil)
     {
       concreteClass = [NSConcreteHashTable class];
     }
