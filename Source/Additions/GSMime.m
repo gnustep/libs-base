@@ -2869,11 +2869,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
 
 
+@interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
+@end
+
 @implementation	GSMimeHeader
 
 static NSCharacterSet	*nonToken = nil;
 static NSCharacterSet	*tokenSet = nil;
-static Class		dictClass = 0;
 
 + (void) initialize
 {
@@ -2899,7 +2901,6 @@ static Class		dictClass = 0;
 	{
 	  documentClass = [GSMimeDocument class];
 	}
-      dictClass = NSClassFromString(@"_GSMutableInsensitiveDictionary");
     }
 }
 
@@ -3496,7 +3497,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       if (params == nil)
 	{
-	  params = [dictClass new];
+	  params = [_GSMutableInsensitiveDictionary new];
 	}
       [params setObject: v forKey: k];
     }
@@ -3516,7 +3517,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       NSEnumerator	*e = [d keyEnumerator];
       NSString		*k;
 
-      m = [[dictClass alloc] initWithCapacity: c];
+      m = [[_GSMutableInsensitiveDictionary alloc] initWithCapacity: c];
       while ((k = [e nextObject]) != nil)
 	{
 	  [m setObject: [d objectForKey: k]

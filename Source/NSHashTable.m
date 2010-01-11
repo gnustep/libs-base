@@ -37,6 +37,9 @@
 #include "NSCallBacks.h"
 #include "GSPrivate.h"
 
+@interface	NSConcreteHashTable : NSHashTable
+@end
+
 @implementation	NSHashTable
 
 
@@ -57,7 +60,7 @@ static Class	concreteClass = 0;
   if (abstractClass == 0)
     {
       abstractClass = [NSHashTable class];
-      concreteClass = NSClassFromString(@"NSConcreteHashTable");
+      concreteClass = [NSConcreteHashTable class];
     }
 }
 
