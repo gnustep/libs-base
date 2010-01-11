@@ -945,18 +945,14 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @end
 
+@interface	GSLocalServerStream : GSServerStream
+@end
 
 @implementation GSServerStream
-
-static Class	localServerClass = 0;
 
 + (void) initialize
 {
   GSMakeWeakPointer(self, "delegate");
-  if (localServerClass == 0)
-    {
-      localServerClass = NSClassFromString(@"GSLocalServerStream");
-    }
 }
 
 + (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port
@@ -972,7 +968,7 @@ static Class	localServerClass = 0;
 
 + (id) serverStreamToAddr: (NSString*)addr
 {
-  return AUTORELEASE([[localServerClass alloc] initToAddr: addr]);
+  return AUTORELEASE([[GSLocalServerStream alloc] initToAddr: addr]);
 }
 
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
@@ -988,7 +984,7 @@ static Class	localServerClass = 0;
 - (id) initToAddr: (NSString*)addr
 {
   RELEASE(self);
-  return [[localServerClass alloc] initToAddr: addr];
+  return [[GSLocalServerStream alloc] initToAddr: addr];
 }
 
 - (void) acceptWithInputStream: (NSInputStream **)inputStream 

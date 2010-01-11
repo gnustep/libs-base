@@ -41,6 +41,16 @@
 static Class	abstractClass = Nil;
 static Class	concreteClass = Nil;
 
+@interface	NSConcretePointerArray : NSPointerArray
+{
+  PFInfo	_pf;
+  NSUInteger	_count;
+  void		**_contents;
+  unsigned	_capacity;
+  unsigned	_grow_factor;
+}
+@end
+
 
 @implementation NSPointerArray
 
@@ -58,7 +68,7 @@ static Class	concreteClass = Nil;
   if (abstractClass == Nil)
     {
       abstractClass = [NSPointerArray class];
-      concreteClass = NSClassFromString(@"NSConcretePointerArray");
+      concreteClass = [NSConcretePointerArray class];
     }
 }
 
@@ -200,16 +210,6 @@ static Class	concreteClass = Nil;
   return nil;
 }
 
-@end
-
-@interface	NSConcretePointerArray : NSPointerArray
-{
-  PFInfo	_pf;
-  NSUInteger	_count;
-  void		**_contents;
-  unsigned	_capacity;
-  unsigned	_grow_factor;
-}
 @end
 
 @implementation NSConcretePointerArray

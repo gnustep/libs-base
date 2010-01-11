@@ -50,14 +50,10 @@ typedef struct {
 #define	inst	((Internal*)(((priv*)o)->_NSURLResponseInternal))
 
 
+@interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
+@end
+
 @implementation	NSURLResponse (Private)
-
-static Class	dictClass = 0;
-
-+ (void) initialize
-{
-  dictClass = NSClassFromString(@"_GSMutableInsensitiveDictionary");
-}
 
 - (void) _setHeaders: (id)headers
 {
@@ -137,7 +133,7 @@ static Class	dictClass = 0;
 {
   if (this->headers == 0)
     {
-      this->headers = [dictClass new];
+      this->headers = [_GSMutableInsensitiveDictionary new];
     }
   [this->headers setObject: value forKey: field];
 }

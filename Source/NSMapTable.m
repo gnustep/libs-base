@@ -36,6 +36,9 @@
 #include "Foundation/NSDebug.h"
 #include "NSCallBacks.h"
 
+@interface	NSConcreteMapTable : NSMapTable
+@end
+
 @implementation	NSMapTable
 
 static Class	abstractClass = 0;
@@ -55,7 +58,7 @@ static Class	concreteClass = 0;
   if (abstractClass == 0)
     {
       abstractClass = [NSMapTable class];
-      concreteClass = NSClassFromString(@"NSConcreteMapTable");
+      concreteClass = [NSConcreteMapTable class];
     }
 }
 
