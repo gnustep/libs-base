@@ -1,3 +1,11 @@
+2010-01-11 Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Source/NSFormatter.m (-copyWithZone:, -initWithCoder:, 
+	-encodeWithCoder:): Removed the subclass responsability, in order to 
+	have subclasses automatically coding and copying compliant as Cocoa does.
+	You can also now safely call [super copyWithZone:/initWithCoder:] in a 
+	subclass.
+
 2010-01-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMapTable.m:
