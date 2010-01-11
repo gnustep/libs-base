@@ -41,7 +41,7 @@
 #import "NSConcretePointerFunctions.h"
 #import "NSCallBacks.h"
 
-static Class	concreteClass = 0;
+static Class	concreteClass = Nil;
 
 /* Here is the interface for the concrete class as used by the functions.
  */
@@ -437,9 +437,9 @@ NSCreateMapTableWithZone(
 {
   GSIMapTable	table;
 
-  if (concreteClass == 0)
+  if (concreteClass == Nil)
     {
-      [NSConcreteMapTable class];
+      concreteClass = [NSConcreteMapTable class];
     }
   table = (GSIMapTable)[concreteClass allocWithZone: zone];
 
@@ -1133,7 +1133,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 + (void) initialize
 {
-  if (concreteClass == nil)
+  if (concreteClass == Nil)
     {
       concreteClass = [NSConcreteMapTable class];
     }

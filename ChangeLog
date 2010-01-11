@@ -1,3 +1,8 @@
+2010-01-11  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSConcreteMapTable.m (NSCreateMapTableWithZone): Set the
+	concreteClass, when this isn't already set.
+
 2010-01-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMapTable.m:
