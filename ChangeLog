@@ -4,6 +4,7 @@
 	Always remove task from controlling terminal, not just when using
 	pseudo-terminals.  This is compatible with OSX behavior
 	(testcase added to the testsuite).
+	Also remove some redundant/duplicate code
 
 2010-01-11 Quentin Mathe <quentin.mathe@gmail.com>
 

@@ -84,6 +84,7 @@
 #include <sys/param.h>
 #endif
 
+
 /*
  *	If we are on a streams based system, we need to include stropts.h
  *	for definitions needed to set up slave pseudo-terminal stream.
@@ -102,6 +103,7 @@
 #ifndef	NOFILE
 #define	NOFILE	256
 #endif
+
 
 @interface	NSBundle(Private)
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
@@ -1334,11 +1336,25 @@ GSPrivateCheckTasks()
 
       do
 	{
-	  result = waitpid(-1, &status, WNOHANG);
-	  if (result > 0)
-	    {
-	      NSTask    *t;
+	  NSTask	*t;
 
+	  errno = 0;
+	  result = waitpid(-1, &status, WNOHANG);
+	  if (result < 0)
+	    {
+#if	defined(WAITDEBUG)
+	      [tasksLock lock];
+	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
+	      [tasksLock unlock];
+	      if (t != nil)
+		{
+	          NSLog(@"waitpid result %d, error %@",
+		    result, [NSError _last]);
+		}
+#endif
+	    }
+	  else if (result > 0)
+	    {
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
 	      IF_NO_GC(AUTORELEASE(RETAIN(t));)
@@ -1347,11 +1363,19 @@ GSPrivateCheckTasks()
 		{
 		  if (WIFEXITED(status))
 		    {
+#if	defined(WAITDEBUG)
+		      NSLog(@"waitpid %d, exit status = %d",
+			result, status);
+#endif
 		      [t _terminatedChild: WEXITSTATUS(status)];
 		      found = YES;
 		    }
 		  else if (WIFSIGNALED(status))
 		    {
+#if	defined(WAITDEBUG)
+		      NSLog(@"waitpid %d, termination status = %d",
+			result, status);
+#endif
 		      [t _terminatedChild: WTERMSIG(status)];
 		      found = YES;
 		    }
@@ -1361,6 +1385,12 @@ GSPrivateCheckTasks()
 			result);
 		    }
 		}
+#if	defined(WAITDEBUG)
+	      else
+		{
+		  NSLog(@"Received signal for unknown child %d", result);
+		}
+#endif
 	    }
 	}
       while (result > 0);
@@ -1636,54 +1666,7 @@ GSPrivateCheckTasks()
 
 - (void) _collectChild
 {
-  if (_hasCollected == NO)
-    {
-      int       result;
-
-      errno = 0;
-      result = waitpid(_taskId, &_terminationStatus, WNOHANG);
-      if (result < 0)
-        {
-          NSLog(@"waitpid %d, result %d, error %@",
-	    _taskId, result, [NSError _last]);
-          [self _terminatedChild: -1];
-        }
-      else if (result == _taskId || (result > 0 && errno == 0))
-	{
-	  int	status = [self terminationStatus];
-
-	  if (WIFEXITED(status))
-	    {
-#ifdef  WAITDEBUG
-              NSLog(@"waitpid %d, termination status = %d",
-		_taskId, status);
-#endif
-              [self _terminatedChild: WEXITSTATUS(status)];
-	    }
-	  else if (WIFSIGNALED(status))
-	    {
-#ifdef  WAITDEBUG
-              NSLog(@"waitpid %d, termination status = %d",
-		_taskId, status);
-#endif
-              [self _terminatedChild: WTERMSIG(status)];
-	    }
-#ifdef  WAITDEBUG
-          else
-	    {
-	      NSLog(@"waitpid %d, event status = %d",
-		_taskId, status);
-	    }
-#endif
-	}
-#ifdef  WAITDEBUG
-      else
-	{
-	  NSLog(@"waitpid %d, result %d, error %@",
-	    _taskId, result, [NSError _last]);
-	}
-#endif
-    }
+  GSPrivateCheckTasks();
 }
 
 - (BOOL) usePseudoTerminal
