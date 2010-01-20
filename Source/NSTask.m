@@ -1495,35 +1495,48 @@ GSPrivateCheckTasks()
     {
       int	i;
 
-      /*
-       * Make sure the task gets default signal setup.
+      /* Make sure the task gets default signal setup.
        */
       for (i = 0; i < 32; i++)
 	{
 	  signal(i, SIG_DFL);
 	}
 
-      /*
-       * Make sure task is run in it's own process group.
+      /* Make sure task is session leader in it's own process group
+       * and with no controlling terminal.
        * This allows us to use killpg() to put the task to sleep etc,
        * and have the signal effect forked children of the subtask.
        */
-#ifdef     HAVE_SETPGRP
-#ifdef	SETPGRP_VOID
+#if	defined(HAVE_SETSID)
+      setsid();
+#else
+#if	defined(HAVE_SETPGRP)
+#if	defined(SETPGRP_VOID)
       setpgrp();
 #else
       setpgrp(getpid(), getpid());
 #endif
 #else
+#if	defined(HAVE_SETPGID)
 #if defined(__MINGW32__)
       pid = (int)GetCurrentProcessId(),
 #else
       pid = (int)getpid();
 #endif
-#ifdef     HAVE_SETPGID
       setpgid(pid, pid);
-#endif
-#endif
+#endif	/* HAVE_SETPGID */
+#endif	/* HAVE_SETPGRP */
+      /* Detach from controlling terminal.
+       */
+#if	defined(TIOCNOTTY)
+      i = open("/dev/tty", O_RDWR);
+      if (i >= 0)
+	{
+	  (void)ioctl(i, TIOCNOTTY, 0);
+	  (void)close(i);
+	}
+#endif	/* TIOCNOTTY */
+#endif	/* HAVE_SETSID */
 
       if (_usePseudoTerminal == YES)
 	{
@@ -1535,21 +1548,7 @@ GSPrivateCheckTasks()
 	      exit(1);			/* Failed to open slave!	*/
 	    }
 
-	  /* Detach from controlling terminal.
-	   */
-#ifdef	HAVE_SETSID
-	  i = setsid();
-#endif
-#ifdef	TIOCNOTTY
-	  i = open("/dev/tty", O_RDWR);
-	  if (i >= 0)
-	    {
-	      (void)ioctl(i, TIOCNOTTY, 0);
-	      (void)close(i);
-	    }
-#endif
-	  /*
-	   * Set up stdin, stdout and stderr by duplicating descriptors as
+	  /* Set up stdin, stdout and stderr by duplicating descriptors as
 	   * necessary and closing the originals (to ensure we won't have a
 	   * pipe left with two write descriptors etc).
 	   */
@@ -1568,21 +1567,7 @@ GSPrivateCheckTasks()
 	}
       else
 	{
-	  /* Detach from controlling terminal.
-	   */
-#ifdef	HAVE_SETSID
-	  i = setsid();
-#endif
-#ifdef	TIOCNOTTY
-	  i = open("/dev/tty", O_RDWR);
-	  if (i >= 0)
-	    {
-	      (void)ioctl(i, TIOCNOTTY, 0);
-	      (void)close(i);
-	    }
-#endif
-	  /*
-	   * Set up stdin, stdout and stderr by duplicating descriptors as
+	  /* Set up stdin, stdout and stderr by duplicating descriptors as
 	   * necessary and closing the originals (to ensure we won't have a
 	   * pipe left with two write descriptors etc).
 	   */
