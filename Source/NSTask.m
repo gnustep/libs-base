@@ -1475,6 +1475,8 @@ GSPrivateCheckTasks()
 
       /*
        * Make sure task is run in it's own process group.
+       * This allows us to use killpg() to put the task to sleep etc,
+       * and have the signal effect forked children of the subtask.
        */
 #ifdef     HAVE_SETPGRP
 #ifdef	SETPGRP_VOID
@@ -1503,6 +1505,8 @@ GSPrivateCheckTasks()
 	      exit(1);			/* Failed to open slave!	*/
 	    }
 
+	  /* Detach from controlling terminal.
+	   */
 #ifdef	HAVE_SETSID
 	  i = setsid();
 #endif
@@ -1534,6 +1538,19 @@ GSPrivateCheckTasks()
 	}
       else
 	{
+	  /* Detach from controlling terminal.
+	   */
+#ifdef	HAVE_SETSID
+	  i = setsid();
+#endif
+#ifdef	TIOCNOTTY
+	  i = open("/dev/tty", O_RDWR);
+	  if (i >= 0)
+	    {
+	      (void)ioctl(i, TIOCNOTTY, 0);
+	      (void)close(i);
+	    }
+#endif
 	  /*
 	   * Set up stdin, stdout and stderr by duplicating descriptors as
 	   * necessary and closing the originals (to ensure we won't have a
