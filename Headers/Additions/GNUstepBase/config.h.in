@@ -286,6 +286,9 @@
 /* Define to 1 if you have the `setrlimit' function. */
 #undef HAVE_SETRLIMIT
 
+/* Define to 1 if you have the `setsid' function. */
+#undef HAVE_SETSID
+
 /* Define if libobjc has the objc_set_unexpected() function */
 #undef HAVE_SET_UNEXPECTED
 
