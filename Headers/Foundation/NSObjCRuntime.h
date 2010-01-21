@@ -41,25 +41,34 @@
 
 #if     defined(GS_64BIT_OLD)
 
+#if     !defined(NSINTEGER_DEFINED) 
 typedef	int	NSInteger;
 typedef	unsigned int	NSUInteger;
+#endif
+#if     !defined(CGFLOAT_DEFINED)
 typedef	float		CGFloat;
+#endif
 
 #else /* GS_64BIT_OLD */
 
+#if     !defined(NSINTEGER_DEFINED)
 typedef	intptr_t	NSInteger;
 typedef	uintptr_t	NSUInteger;
+#endif /* !defined(NSINTEGER_DEFINED) */
+#if     !defined(CGFLOAT_DEFINED)
 #if     GS_SIZEOF_VOIDP == 8
 #define CGFLOAT_IS_DBL  1
 typedef double          CGFloat;
 #else
 typedef float           CGFloat;
 #endif
+#endif /* !defined(CGFLOAT_DEFINED) */
 
 #endif /* GS_64BIT_OLD */
 
 
 #define NSINTEGER_DEFINED 1
+#define CGFLOAT_DEFINED 1
 
 #import	<GNUstepBase/GSObjCRuntime.h>
 
