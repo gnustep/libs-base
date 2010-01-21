@@ -1,3 +1,10 @@
+2010-01-21 Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Headers/Foundation/NSObjCRuntime.h: define CGFLOAT_DEFINED when
+	defining CGFloat.
+	Also check that NSINTEGER_DEFINED and CGFLOAT_DEFINED are undefined
+	before defining NSInterger and CGFloat.
+
 2010-01-21 16:20-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* install.sh: Add --with-installation-domain=SYSTEM to the script
