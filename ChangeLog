@@ -1,3 +1,14 @@
+2010-01-23 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSFFCallInvocation.m:
+	* Source/NSZone.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/GCObject.m:
+	* Source/synchronization.m:
+	* Source/GSPThread.h:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Updates for switch to using pthreads
+
 2010-01-21 Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Headers/Foundation/NSObjCRuntime.h: define CGFLOAT_DEFINED when

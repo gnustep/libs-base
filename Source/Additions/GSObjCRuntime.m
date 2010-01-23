@@ -58,6 +58,10 @@
 
 #include <string.h>
 
+#ifndef NeXT_RUNTIME
+#include <pthread.h>
+#endif
+
 #ifdef NeXT_Foundation_LIBRARY
 @interface NSObject (MissingFromMacOSX)
 + (IMP) methodForSelector: (SEL)aSelector;
@@ -66,59 +70,6 @@
 
 #define BDBGPrintf(format, args...) \
   do { if (behavior_debug) { fprintf(stderr, (format) , ## args); } } while (0)
-
-static objc_mutex_t local_lock = NULL;
-
-/* This class it intended soley for thread safe / +load safe
-   initialization of the local lock.
-   It's a root class so it won't trigger the initialization
-   of any other class.  */
-@interface _GSObjCRuntimeInitializer /* Root Class */
-{
-  Class isa;
-}
-+ (Class)class;
-@end
-@implementation _GSObjCRuntimeInitializer
-+ (void)initialize
-{
-  if (local_lock == NULL)
-    {
-      local_lock = objc_mutex_allocate();
-    }
-}
-+ (Class)class
-{
-  return self;
-}
-@end
-
-void
-GSAllocateMutexAt(objc_mutex_t *request)
-{
-  if (request == NULL)
-    {
-      /* This could be called very early in process
-	 initialization so many things may not have
-	 been setup correctly yet.  */
-      fprintf(stderr,
-	      "Error: GSAllocateMutexAt() called with NULL pointer.\n");
-      abort();
-    }
-
-  if (local_lock == NULL)
-    {
-      /* Initialize in a thread safe way.  */
-      [_GSObjCRuntimeInitializer class];
-    }
-
-  objc_mutex_lock(local_lock);
-  if (*request == NULL)
-    {
-      *request = objc_mutex_allocate();
-    }
-  objc_mutex_unlock(local_lock);
-}
 
 /**
  * This function is used to locate information about the instance
@@ -310,15 +261,10 @@ GSClassList(Class *buffer, unsigned int max, BOOL clearCache)
 #else
   static Class *cache = 0;
   static unsigned cacheClassCount = 0;
-  static volatile objc_mutex_t cache_lock = NULL;
+  static pthread_mutex_t cache_lock = PTHREAD_MUTEX_INITIALIZER;
   unsigned int num;
 
-  if (cache_lock == NULL)
-    {
-      GSAllocateMutexAt((void*)&cache_lock);
-    }
-
-  objc_mutex_lock(cache_lock);
+  pthread_mutex_lock(&cache_lock);
 
   if (clearCache)
     {
@@ -369,7 +315,7 @@ GSClassList(Class *buffer, unsigned int max, BOOL clearCache)
       num = (max > cacheClassCount) ? 0 : (cacheClassCount - max);
     }
 
-  objc_mutex_unlock(cache_lock);
+  pthread_mutex_unlock(&cache_lock);
 
 #endif
 
@@ -1267,26 +1213,22 @@ gs_find_protocol_named(const char *name)
 
 static GSIMapTable_t protocol_by_name;
 static BOOL protocol_by_name_init = NO;
-static volatile objc_mutex_t protocol_by_name_lock = NULL;
+static pthread_mutex_t protocol_by_name_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Not sure about the semantics of inlining
    functions with static variables.  */
 static void
 gs_init_protocol_lock(void)
 {
-  if (protocol_by_name_lock == NULL)
-    {
-      GSAllocateMutexAt((void *)&protocol_by_name_lock);
-      objc_mutex_lock(protocol_by_name_lock);
-      if (protocol_by_name_init == NO)
-	{
+  pthread_mutex_lock(&protocol_by_name_lock);
+  if (protocol_by_name_init == NO)
+  	{
 	  GSIMapInitWithZoneAndCapacity (&protocol_by_name,
 					 NSDefaultMallocZone(),
 					 128);
 	  protocol_by_name_init = YES;
 	}
-      objc_mutex_unlock(protocol_by_name_lock);
-    }
+  pthread_mutex_unlock(&protocol_by_name_lock);
 }
 
 void
@@ -1303,7 +1245,7 @@ GSRegisterProtocol(Protocol *proto)
       pcl p;
 
       p = (pcl)proto;
-      objc_mutex_lock(protocol_by_name_lock);
+      pthread_mutex_lock(&protocol_by_name_lock);
       node = GSIMapNodeForKey(&protocol_by_name,
 			      (GSIMapKey) p->protocol_name);
       if (node == 0)
@@ -1312,7 +1254,7 @@ GSRegisterProtocol(Protocol *proto)
 				(GSIMapKey) (void *) p->protocol_name,
 				(GSIMapVal) (void *) p);
 	}
-      objc_mutex_unlock(protocol_by_name_lock);
+      pthread_mutex_unlock(&protocol_by_name_lock);
     }
 }
 
@@ -1334,7 +1276,7 @@ GSProtocolFromName(const char *name)
     }
   else
     {
-      objc_mutex_lock(protocol_by_name_lock);
+      pthread_mutex_lock(&protocol_by_name_lock);
       node = GSIMapNodeForKey(&protocol_by_name, (GSIMapKey) name);
 
       if (node)
@@ -1353,7 +1295,7 @@ GSProtocolFromName(const char *name)
 				    (GSIMapVal) (void *) p);
 	    }
 	}
-      objc_mutex_unlock(protocol_by_name_lock);
+      pthread_mutex_unlock(&protocol_by_name_lock);
 
     }
 

@@ -32,6 +32,8 @@
 #import <callback.h>
 #import "callframe.h"
 
+#include <pthread.h>
+
 #import "GSInvocation.h"
 
 #ifndef INLINE
@@ -136,7 +138,7 @@ static GSIMapTable_t ff_callback_map;
 
 /* Lock that protects the ff_callback_map */
 
-static objc_mutex_t  ff_callback_map_lock = NULL;
+static pthread_mutex_t ff_callback_map_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Static pre-computed return type info */
 
@@ -477,7 +479,7 @@ static IMP gs_objc_msg_forward (SEL sel)
       GSIMapNode node;
 
       // Lock
-      objc_mutex_lock (ff_callback_map_lock);
+      pthread_mutex_lock (&ff_callback_map_lock);
 
       node = GSIMapNodeForKey (&ff_callback_map,
 	(GSIMapKey) ((void *) &returnInfo));
@@ -503,7 +505,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 	    (GSIMapVal) forwarding_callback);
 	}
       // Unlock
-      objc_mutex_unlock (ff_callback_map_lock);
+      pthread_mutex_unlock (&ff_callback_map_lock);
     }
   return forwarding_callback;
 }
@@ -511,8 +513,6 @@ static IMP gs_objc_msg_forward (SEL sel)
 + (void) load
 {
   int index;
-
-  ff_callback_map_lock = objc_mutex_allocate ();
 
   for (index = 0; index < STATIC_CALLBACK_LIST_SIZE; ++index)
     {
