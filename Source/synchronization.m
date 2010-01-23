@@ -22,17 +22,18 @@
    Boston, MA 02111 USA.
 */
 
+
 #include <stdlib.h>
 #include "objc/objc.h"
 #include "objc/objc-api.h"
-#include "objc/thr.h"
+#include "GSPThread.h"
 
 /*
  * Node structure...
  */
 typedef struct lock_node {
   id obj;
-  objc_mutex_t lock;
+  pthread_mutex_t lock;
   struct lock_node *next;
   struct lock_node *prev;
 } lock_node_t;
@@ -48,19 +49,7 @@ typedef enum {
 } sync_return_t;
 
 static lock_node_t *lock_list = NULL;
-static objc_mutex_t table_lock = NULL; 
-
-/**
- * Initialize the table lock.
- */
-static void
-sync_lock_init()
-{
-  if (table_lock == NULL)
-    {
-      table_lock = objc_mutex_allocate();
-    }
-}
+static pthread_mutex_t table_lock = PTHREAD_MUTEX_INITIALIZER; 
 
 /**
  * Find the node in the list.
@@ -97,9 +86,6 @@ sync_add_node(id obj)
 {
   lock_node_t *current = NULL;
 
-  // get the lock...
-  sync_lock_init();
-  
   // if the list hasn't been initialized, initialize it.
   if (lock_list == NULL)
     {
@@ -143,7 +129,7 @@ sync_add_node(id obj)
     {
       // add the object and it's lock
       current->obj = obj;
-      current->lock = objc_mutex_allocate();
+      GS_INIT_RECURSIVE_MUTEX(current->lock);
     }
 
   return current;
@@ -163,9 +149,7 @@ objc_sync_enter(id obj)
   lock_node_t *node = NULL;
   int status = 0;
 
-  // lock access to the table until we're done....
-  sync_lock_init();
-  objc_mutex_lock(table_lock);
+  pthread_mutex_lock(&table_lock);
 
   node = sync_find_node(obj);
   if (node == NULL)
@@ -174,15 +158,15 @@ objc_sync_enter(id obj)
       if (node == NULL)
 	{
 	  // unlock the table....
-	  objc_mutex_unlock(table_lock);  
+	  pthread_mutex_unlock(&table_lock);  
 	  return OBJC_SYNC_NOT_INITIALIZED;
 	}
     }
 
   // unlock the table....
-  objc_mutex_unlock(table_lock);  
+  pthread_mutex_unlock(&table_lock);  
 
-  status = objc_mutex_lock(node->lock);
+  status = pthread_mutex_lock(&(node->lock));
 
   // if the status is more than one, then another thread
   // has this section locked, so we abort.  A status of -1
@@ -209,22 +193,20 @@ objc_sync_exit(id obj)
   lock_node_t *node = NULL;
   int status = 0;
 
-  // lock access to the table until we're done....
-  sync_lock_init();
-  objc_mutex_lock(table_lock);
+  pthread_mutex_lock(&table_lock);
 
   node = sync_find_node(obj);
   if (node == NULL)
     {
       // unlock the table....
-      objc_mutex_unlock(table_lock);  
+      pthread_mutex_unlock(&table_lock);  
       return OBJC_SYNC_NOT_INITIALIZED;
     }
 
-  status = objc_mutex_unlock(node->lock);
+  status = pthread_mutex_unlock(&(node->lock));
 
   // unlock the table....
-  objc_mutex_unlock(table_lock);  
+  pthread_mutex_unlock(&table_lock);  
 
   // if the status is not zero, then we are not the sole
   // owner of this node.  Also if -1 is returned, this indicates and error

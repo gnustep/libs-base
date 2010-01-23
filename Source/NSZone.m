@@ -96,6 +96,7 @@
 #include "Foundation/NSZone.h"
 #include "Foundation/NSLock.h"
 #include "GSPrivate.h"
+#include "GSPThread.h"
 
 /**
  * Try to get more memory - the normal process has failed.
@@ -555,7 +556,7 @@ struct _ffree_free_link
 struct _ffree_zone_struct
 {
   NSZone common;
-  objc_mutex_t lock;
+  pthread_mutex_t lock;
   ff_block *blocks; // Linked list of blocks
   ff_link *segheadlist[MAX_SEG]; // Segregated list, holds heads
   ff_link *segtaillist[MAX_SEG]; // Segregated list, holds tails
@@ -710,7 +711,7 @@ chunkPrev(ff_block *ptr)
 struct _nfree_zone_struct
 {
   NSZone common;
-  objc_mutex_t lock;
+  pthread_mutex_t lock;
   /* Linked list of blocks in decreasing order of free space,
      except maybe for the first block. */
   nf_block *blocks;
@@ -791,7 +792,7 @@ fmalloc (NSZone *zone, size_t size)
   ff_block *chunkhead;
   void *result;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   bufsize = zptr->bufsize;
   while ((i < bufsize) && (chunksize > size_buf[i]))
     i++;
@@ -830,7 +831,7 @@ fmalloc (NSZone *zone, size_t size)
       chunkhead = get_chunk(zptr, chunksize);
       if (chunkhead == NULL)
         {
-          objc_mutex_unlock(zptr->lock);
+          pthread_mutex_unlock(&(zptr->lock));
           if (zone->name != nil)
             [NSException raise: NSMallocException
                         format: @"Zone %@ has run out of memory", zone->name];
@@ -849,7 +850,7 @@ fmalloc (NSZone *zone, size_t size)
   *((char*)chunkhead->next) = (char)42;
   chunkSetLive(chunkhead);
   result = chunkToPointer(chunkhead);
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return result;
 }
 
@@ -873,7 +874,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
   if (ptr == NULL)
     return fmalloc(zone, size);
   chunkhead = pointerToChunk(ptr);
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   realsize = chunkSize(chunkhead);
 
   NSAssert(chunkIsInUse(chunkhead), NSInternalInconsistencyException);
@@ -929,7 +930,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
           newchunk = get_chunk(zptr, chunksize);
           if (newchunk == NULL)
             {
-              objc_mutex_unlock(zptr->lock);
+              pthread_mutex_unlock(&(zptr->lock));
               if (zone->name != nil)
                 [NSException raise: NSMallocException
                             format: @"Zone %@ has run out of memory",
@@ -947,7 +948,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
   *((char*)chunkhead->next) = (char)42;
   chunkSetLive(chunkhead);
   result = chunkToPointer(chunkhead);
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return result;
 }
 
@@ -957,14 +958,14 @@ ffree (NSZone *zone, void *ptr)
 {
   ff_block *chunk;
   NSAssert(NSZoneFromPointer(ptr) == zone, NSInternalInconsistencyException);
-  objc_mutex_lock(((ffree_zone*)zone)->lock);
+  pthread_mutex_lock(&(((ffree_zone*)zone)->lock));
   chunk = pointerToChunk(ptr);
   if (chunkIsLive(chunk) == 0)
     [NSException raise: NSMallocException
 	        format: @"Attempt to free freed memory"];
   NSAssert(*((char*)chunk->next) == (char)42, NSInternalInconsistencyException);
   add_buf((ffree_zone*)zone, chunk);
-  objc_mutex_unlock(((ffree_zone*)zone)->lock);
+  pthread_mutex_unlock(&(((ffree_zone*)zone)->lock));
 }
 
 static BOOL
@@ -974,7 +975,7 @@ frecycle1(NSZone *zone)
   ff_block *block;
   ff_block *nextblock;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   flush_buf(zptr);
   block = zptr->blocks;
   while (block != NULL)
@@ -996,10 +997,10 @@ frecycle1(NSZone *zone)
 	}
       block = nextblock;
     }
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   if (zptr->blocks == 0)
     {
-      objc_mutex_deallocate(zptr->lock);
+      pthread_mutex_destroy(&(zptr->lock));
       return YES;
     }
   return NO;
@@ -1048,7 +1049,7 @@ fcheck (NSZone *zone)
   ffree_zone *zptr = (ffree_zone*)zone;
   ff_block *block;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   /* Check integrity of each block the zone owns. */
   block = zptr->blocks;
   while (block != NULL)
@@ -1141,11 +1142,11 @@ fcheck (NSZone *zone)
       if ((zptr->size_buf[i] != chunkSize(chunk)) || !chunkIsInUse(chunk))
         goto inconsistent;
     }
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return YES;
 
 inconsistent: // Jump here if an inconsistency was found.
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return NO;
 }
 
@@ -1156,7 +1157,7 @@ flookup (NSZone *zone, void *ptr)
   ff_block	*block;
   BOOL		found = NO;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   for (block = zptr->blocks; block != NULL; block = block->next)
     {
       if (ptr >= (void*)block && ptr < (void*)chunkNext(block))
@@ -1165,7 +1166,7 @@ flookup (NSZone *zone, void *ptr)
 	  break;
 	}
     }
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return found;
 }
 
@@ -1184,7 +1185,7 @@ fstats (NSZone *zone)
   stats.bytes_used = 0;
   stats.chunks_free = 0;
   stats.bytes_free = 0;
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   block = zptr->blocks;
   /* Go through each block. */
   while (block != NULL)
@@ -1219,7 +1220,7 @@ fstats (NSZone *zone)
       stats.bytes_used -= zptr->size_buf[i];
       stats.bytes_free += zptr->size_buf[i];
     }
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   /* Remove overhead. */
   stats.bytes_used -= FBSZ*stats.chunks_used;
   return stats;
@@ -1540,7 +1541,7 @@ nmalloc (NSZone *zone, size_t size)
   nf_block *block;
   size_t top;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   block = zptr->blocks;
   top = block->top;
   freesize = block->size-top;
@@ -1575,7 +1576,7 @@ nmalloc (NSZone *zone, size_t size)
           block = objc_malloc(blocksize);
           if (block == NULL)
             {
-              objc_mutex_unlock(zptr->lock);
+              pthread_mutex_unlock(&(zptr->lock));
               if (zone->name != nil)
                 [NSException raise: NSMallocException
                             format: @"Zone %@ has run out of memory",
@@ -1593,7 +1594,7 @@ nmalloc (NSZone *zone, size_t size)
       block->top += chunksize;
     }
   zptr->use++;
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return chunkhead;
 }
 
@@ -1604,7 +1605,7 @@ nrecycle1 (NSZone *zone)
 {
   nfree_zone *zptr = (nfree_zone*)zone;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   if (zptr->use == 0)
     {
       nf_block *nextblock;
@@ -1618,10 +1619,10 @@ nrecycle1 (NSZone *zone)
 	}
       zptr->blocks = 0;
     }
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   if (zptr->blocks == 0)
     {
-      objc_mutex_deallocate(zptr->lock);
+      pthread_mutex_destroy(&(zptr->lock));
       return YES;
     }
   return NO;
@@ -1658,7 +1659,7 @@ nrealloc (NSZone *zone, void *ptr, size_t size)
 
   if (ptr != 0)
     {
-      objc_mutex_lock(zptr->lock);
+      pthread_mutex_lock(&(zptr->lock));
       if (tmp)
 	{
 	  nf_block *block;
@@ -1678,7 +1679,7 @@ nrealloc (NSZone *zone, void *ptr, size_t size)
 	    }
 	}
       zptr->use--;
-      objc_mutex_unlock(zptr->lock);
+      pthread_mutex_unlock(&(zptr->lock));
     }
   return tmp;
 }
@@ -1694,9 +1695,9 @@ nfree (NSZone *zone, void *ptr)
 {
   nfree_zone *zptr = (nfree_zone*)zone;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   zptr->use--;
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
 }
 
 static void
@@ -1722,19 +1723,19 @@ ncheck (NSZone *zone)
   nfree_zone *zptr = (nfree_zone*)zone;
   nf_block *block;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   block = zptr->blocks;
   while (block != NULL)
     {
       if (block->size < block->top)
         {
-          objc_mutex_unlock(zptr->lock);
+          pthread_mutex_unlock(&(zptr->lock));
           return NO;
         }
       block = block->next;
     }
   /* FIXME: Do more checking? */
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return YES;
 }
 
@@ -1745,7 +1746,7 @@ nlookup (NSZone *zone, void *ptr)
   nf_block *block;
   BOOL found = NO;
 
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   for (block = zptr->blocks; block != NULL; block = block->next)
     {
       if (ptr >= (void*)block &&  ptr < ((void*)block)+block->size)
@@ -1754,7 +1755,7 @@ nlookup (NSZone *zone, void *ptr)
 	  break;
 	}
     }
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return found;
 }
 
@@ -1772,7 +1773,7 @@ nstats (NSZone *zone)
   stats.bytes_used = 0;
   stats.chunks_free = 0;
   stats.bytes_free = 0;
-  objc_mutex_lock(zptr->lock);
+  pthread_mutex_lock(&(zptr->lock));
   block = zptr->blocks;
   while (block != NULL)
     {
@@ -1793,7 +1794,7 @@ nstats (NSZone *zone)
         }
       block = block->next;
     }
-  objc_mutex_unlock(zptr->lock);
+  pthread_mutex_unlock(&(zptr->lock));
   return stats;
 }
 
@@ -1880,7 +1881,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       zone->common.stats = fstats;
       zone->common.gran = granularity;
       zone->common.name = nil;
-      zone->lock = objc_mutex_allocate();
+      GS_INIT_RECURSIVE_MUTEX(zone->lock);
       for (i = 0; i < MAX_SEG; i++)
         {
           zone->segheadlist[i] = NULL;
@@ -1890,7 +1891,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       zone->blocks = objc_malloc(startsize + 2*FBSZ);
       if (zone->blocks == NULL)
         {
-          objc_mutex_deallocate(zone->lock);
+          pthread_mutex_destroy(&(zone->lock));
           objc_free(zone);
           [NSException raise: NSMallocException
                        format: @"No memory to create zone"];
@@ -1935,12 +1936,12 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       zone->common.stats = nstats;
       zone->common.gran = granularity;
       zone->common.name = nil;
-      zone->lock = objc_mutex_allocate();
+      GS_INIT_RECURSIVE_MUTEX(zone->lock);
       zone->blocks = objc_malloc(startsize);
       zone->use = 0;
       if (zone->blocks == NULL)
         {
-          objc_mutex_deallocate(zone->lock);
+          pthread_mutex_destroy(&(zone->lock));
           objc_free(zone);
           [NSException raise: NSMallocException
                        format: @"No memory to create zone"];

@@ -40,6 +40,7 @@
 
 #include "GNUstepBase/GCObject.h"
 #include "GNUstepBase/GSCategories.h"
+#include <pthread.h>
 
 /*
  * The head of a linked list of all garbage collecting objects  is a
@@ -70,18 +71,25 @@ static BOOL	isCollecting = NO;
 
 #ifdef NeXT_RUNTIME
 static void *allocationLock = NULL;
-#define objc_mutex_allocate()	NULL
-#define objc_mutex_lock(lock)
-#define objc_mutex_unlock(lock)
+#define pthread_mutex_lock(lock)
+#define pthread_mutex_unlock(lock)
 #else
-static objc_mutex_t allocationLock = NULL;
+static pthread_mutex_t *allocationLock = NULL;
 #endif
 
 + (void) _becomeMultiThreaded: (NSNotification *)aNotification
 {
-  if (allocationLock == 0)
+  if (allocationLock == NULL)
     {
-      allocationLock = objc_mutex_allocate();
+#     ifndef NeXT_RUNTIME
+      allocationLock = malloc(sizeof(pthread_mutex_t));
+	  if (allocationLock == NULL)
+        {
+	      abort();
+		}
+	  
+	  pthread_mutex_init(allocationLock, NULL);
+#     endif
     }
 }
 
@@ -95,7 +103,7 @@ static objc_mutex_t allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      pthread_mutex_lock(allocationLock);
     }
   o->gc.next = allObjects;
   o->gc.previous = allObjects->gc.previous;
@@ -104,7 +112,7 @@ static objc_mutex_t allocationLock = NULL;
   o->gc.flags.refCount = 1;
   if (allocationLock != 0)
     {
-      objc_mutex_unlock(allocationLock);
+      pthread_mutex_unlock(allocationLock);
     }
 
   return o;
@@ -145,13 +153,13 @@ static objc_mutex_t allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      pthread_mutex_lock(allocationLock);
     }
   if (isCollecting == YES)
     {
       if (allocationLock != 0)
 	{
-	  objc_mutex_unlock(allocationLock);
+	  pthread_mutex_unlock(allocationLock);
 	}
       return;	// Don't allow recursion.
     }
@@ -211,7 +219,7 @@ static objc_mutex_t allocationLock = NULL;
   isCollecting = NO;
   if (allocationLock != 0)
     {
-      objc_mutex_unlock(allocationLock);
+      pthread_mutex_unlock(allocationLock);
     }
 }
 
@@ -261,7 +269,7 @@ static objc_mutex_t allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      pthread_mutex_lock(allocationLock);
     }
   // p = anObject->gc.previous;
   // n = anObject->gc.next;
@@ -273,7 +281,7 @@ static objc_mutex_t allocationLock = NULL;
   [n gcSetPreviousObject: p];
   if (allocationLock != 0)
     {
-      objc_mutex_unlock(allocationLock);
+      pthread_mutex_unlock(allocationLock);
     }
 }
 
@@ -288,7 +296,7 @@ static objc_mutex_t allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      pthread_mutex_lock(allocationLock);
     }
   o->gc.next = allObjects;
   o->gc.previous = allObjects->gc.previous;
@@ -297,7 +305,7 @@ static objc_mutex_t allocationLock = NULL;
   o->gc.flags.refCount = 1;
   if (allocationLock != 0)
     {
-      objc_mutex_unlock(allocationLock);
+      pthread_mutex_unlock(allocationLock);
     }
   return o;
 }
@@ -315,7 +323,7 @@ static objc_mutex_t allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      pthread_mutex_lock(allocationLock);
     }
   // p = anObject->gc.previous;
   // n = anObject->gc.next;
@@ -327,7 +335,7 @@ static objc_mutex_t allocationLock = NULL;
   [n gcSetPreviousObject: p];
   if (allocationLock != 0)
     {
-      objc_mutex_unlock(allocationLock);
+      pthread_mutex_unlock(allocationLock);
     }
   [super dealloc];
 }
@@ -410,7 +418,7 @@ static objc_mutex_t allocationLock = NULL;
 {
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      pthread_mutex_lock(allocationLock);
     }
   if (gc.flags.refCount > 0 && gc.flags.refCount-- == 1)
     {
@@ -419,7 +427,7 @@ static objc_mutex_t allocationLock = NULL;
     }
   if (allocationLock != 0)
     {
-      objc_mutex_unlock(allocationLock);
+      pthread_mutex_unlock(allocationLock);
     }
 }
 
@@ -430,12 +438,12 @@ static objc_mutex_t allocationLock = NULL;
 {
   if (allocationLock != 0)
     {
-      objc_mutex_lock(allocationLock);
+      pthread_mutex_lock(allocationLock);
     }
   gc.flags.refCount++;
   if (allocationLock != 0)
     {
-      objc_mutex_unlock(allocationLock);
+      pthread_mutex_unlock(allocationLock);
     }
   return self;
 }
