@@ -297,11 +297,11 @@ callUncaughtHandler(id value)
   _e_stack = [GSStackTraceClass new];
   return self;
 }
+
 - (id) init
 {
-  return [self initWithName: NSGenericException 
-                     reason: @"No reason" 
-                   userInfo: nil];
+  [self release];	// OSX behavior
+  return nil;
 }
 
 - (NSArray*) callStackReturnAddresses
