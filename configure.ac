@@ -795,18 +795,25 @@ dnl AC_REPLACE_FUNCS(recvfrom)
 #--------------------------------------------------------------------
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
-PASS_ARG=yes
+PASS_ARG=no
 AC_ARG_ENABLE(bfd,
-  [  --disable-bfd	Don't use bfd functions (stack traces, etc)],,
+  [  --enable-bfd
+	Enables the use of libbfd to provide symbolic stack traces.
+	Enabling this option provides support for symbolic stack traces
+	on platforms where the backtrace_symbols() function is not
+	available or does not work properly.
+	Enabling this option also has the effect of changing the license
+	of gnustep-base from LGPL to GPL since libbfd uses the GPL license],,
   enable_bfd=$PASS_ARG)
 
 if test $enable_bfd = yes; then
   AC_CHECK_HEADERS(bfd.h)
   AC_CHECK_LIB(iberty, dyn_string_append)
   AC_CHECK_LIB(bfd, bfd_openr)
+else
+  AC_CHECK_HEADERS(execinfo.h)
+  AC_CHECK_FUNCS(backtrace)
 fi
-AC_CHECK_HEADERS(execinfo.h)
-AC_CHECK_FUNCS(backtrace)
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
