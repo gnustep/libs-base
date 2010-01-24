@@ -717,6 +717,20 @@ static Class	doubleNumberClass;
   return RETAIN(self);
 }
 
+- (id) initWithBytes: (const void*)data objCType: (const char*)type
+{
+  if (GSObjCClass(self) == abstractClass)
+    {
+      Class	c = [abstractClass valueClassWithObjCType: type];
+
+      [self release];
+      self = (id)NSAllocateObject(c, 0, GSObjCZone(self));
+      return [self initWithBytes: data objCType: type];
+    }
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
 - (id) initWithChar: (signed char)value
 {
   RELEASE(self);
