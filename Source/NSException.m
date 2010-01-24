@@ -148,7 +148,7 @@ Class GSStackTraceClass;
   if (nil == (self = [super init])) { return nil; }
   addresses = calloc(sizeof(void*),1024);
   count = backtrace(addresses, 1024);
-  addresses = realloc(addresses, count);
+  addresses = realloc(addresses, sizeof(void*)*count);
   return self;
 }
 
