@@ -1,3 +1,13 @@
+2010-01-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Option for using libbfd for stack traces
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Source/NSException.m: Re-instate code for using libbfd to provide
+	symbolic stack traces (because the backtrace_symbols function doesn't
+	work on most platforms).  Add warning about the fact that this alters
+	the license of the library.
+
 2010-01-23 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GSFFCallInvocation.m:
