@@ -673,7 +673,7 @@ handle_printf_atsign (FILE *stream,
  */
 + (Class) constantStringClass
 {
-  return [NXConstantString class];
+  return [@"" class];
 }
 
 /**
