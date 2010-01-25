@@ -90,6 +90,26 @@ typedef struct { @defs(NSThread) } *TInfo;
 static NSString *
 GSPrivateBaseAddress(void *addr, void **base)
 {
+  MEMORY_BASIC_INFORMATION info;
+
+  /* Found a note saying that according to Matt Pietrek's "Under the Hood"
+   * column for the April 1997 issue of Microsoft Systems Journal, the
+   * allocation base returned by VirtualQuery can be used as the handle
+   * to obtain  module information for a loaded library.
+   */
+  if (VirtualQuery (addr, &info, sizeof(info)) != 0)
+    {
+      HMODULE	handle = (HMODULE) mbi.AllocationBase;
+      unichar	path[MAX_PATH+1];
+
+      if (GetModuleFileNameW(handle, path, sizeof(path)-1) != 0)
+	{
+	  path[sizeof(path)-1] = '\0';
+	  
+	  *base = info.BaseAddress;
+	  return [[NSString stringWithCharacters: path length: wcslen(path)]];
+	}
+    }
   return nil;
 }
 #endif  /* USE_BINUTILS */
@@ -632,7 +652,7 @@ GSListModules()
 	      aFrame = [bfi functionForAddress: (void*)(address - base)];
 	      if (aFrame == nil)
 		{
-		  /* We know we have the right module be function lookup
+		  /* We know we have the right module but function lookup
 		   * failed ... perhaps we need to use the absolute
 		   * address rather than offest by 'base' in this case.
 		   */
