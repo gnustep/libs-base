@@ -1,3 +1,9 @@
+2010-01-30  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m (GSBinaryPLParser -rootObject,
+	-initWithData:mutability:): Get root index from the binary
+	property list data and use this to return the root object.
+
 2010-01-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Option for using libbfd for stack traces

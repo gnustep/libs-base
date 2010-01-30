@@ -418,8 +418,9 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   NSData		*data;
   unsigned		offset_size;	// Number of bytes per table entry
   unsigned		index_size;	// Number of bytes per table entry
+  unsigned		object_count;	// Number of objects
+  unsigned		root_index;	// Index of root object
   unsigned		table_start;	// Start address of object table
-  unsigned		table_len;	// Length of object table
 }
 
 - (id) initWithData: (NSData*)plData
@@ -2676,9 +2677,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 }
 
 - (id) initWithData: (NSData*)plData
-	 mutability: (NSPropertyListMutabilityOptions)m;
+	 mutability: (NSPropertyListMutabilityOptions)m
 {
-  unsigned	length;
+  unsigned length;
 
   length = [plData length];
   if (length < 32)
@@ -2687,27 +2688,39 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   else
     {
-      unsigned char	postfix[32];
+      unsigned char postfix[32];
 
-      // FIXME: Get more of the details
-      [plData getBytes: postfix range: NSMakeRange(length-32, 32)];
+      [plData getBytes: postfix range: NSMakeRange(length - 32, 32)];
       offset_size = postfix[6];
       index_size = postfix[7];
+      // FIXME: Looks like the following are actually 8 byte values.
+      // But taking the lower 4 bytes is currently sufficient.
+      object_count = (postfix[12] << 24) + (postfix[13] << 16)
+	+ (postfix[14] << 8) + postfix[15];
+      root_index = (postfix[20] << 24) + (postfix[21] << 16)
+	+ (postfix[22] << 8) + postfix[23];
       table_start = (postfix[28] << 24) + (postfix[29] << 16)
 	+ (postfix[30] << 8) + postfix[31];
+
       if (offset_size < 1 || offset_size > 4)
 	{
-	  [NSException raise: NSGenericException
-		      format: @"Unknown table size %d", offset_size];
+	  unsigned saved = offset_size;
+
 	  DESTROY(self);	// Bad format
+	  [NSException raise: NSGenericException
+		      format: @"Unknown offset size %d", saved];
 	}
       else if (index_size < 1 || index_size > 4)
 	{
-	  unsigned	saved = offset_size;
+	  unsigned saved = index_size;
 
 	  DESTROY(self);	// Bad format
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", saved];
+	}
+      else if (root_index >= object_count)
+	{
+	  DESTROY(self);	// Bad format
 	}
       else if (table_start > length - 32)
 	{
@@ -2715,7 +2728,6 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	}
       else
 	{
-	  table_len = length - table_start - 32;
 	  ASSIGN(data, plData);
 	  _bytes = (const unsigned char*)[data bytes];
 	  mutability = m;
@@ -2727,7 +2739,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (unsigned long) offsetForIndex: (unsigned)index
 {
-  if (index > table_len)
+  if (index >= object_count)
     {
       [NSException raise: NSRangeException
 		   format: @"Object table index out of bounds %d.", index];
@@ -2853,7 +2865,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (id) rootObject
 {
-  return [self objectAtIndex: 0];
+  return [self objectAtIndex: root_index];
 }
 
 - (id) objectAtIndex: (NSUInteger)index
@@ -3430,6 +3442,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   meta[13] = (len >> 16) % 256;
   meta[14] = (len >> 8) % 256;
   meta[15] = len % 256;
+  // root index is always 0, no need to write it
   meta[28] = (table_start >> 24);
   meta[29] = (table_start >> 16) % 256;
   meta[30] = (table_start >> 8) % 256;
