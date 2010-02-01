@@ -313,7 +313,14 @@ static pthread_key_t thread_object_key;
  */
 static void exitedThread(void *thread)
 {
-  if (thread != defaultThread)
+  if (thread == defaultThread)
+    {
+      NSThread	*t = defaultThread;
+
+      defaultThread = nil;
+      [t dealloc];
+    }
+  else
     {
       fprintf(stderr, "WARNING thread %p terminated without calling +exit!\n",
         thread);
@@ -447,6 +454,7 @@ static void setThreadForCurrentThread(NSThread *t)
       if (t == nil)
 	{
 	  t = [self new];
+	  t->_active = YES;
 	  pthread_setspecific(thread_object_key, t);
 	  [thread_creation_lock unlock];
 	  return YES;
@@ -503,7 +511,7 @@ static void setThreadForCurrentThread(NSThread *t)
 		      userInfo: nil];
 
       [(GSRunLoopThreadInfo*)t->_runLoopInfo invalidate];
-
+      RELEASE(t);
 #if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
       GC_unregister_my_thread();
 #endif
@@ -632,12 +640,6 @@ static void setThreadForCurrentThread(NSThread *t)
 
 - (void) dealloc
 {
-  if (self == defaultThread)
-    {
-      [self retain];
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"Deallocating the default thread is not allowed!"];
-    }
   if (_active == YES)
     {
       [NSException raise: NSInternalInconsistencyException

@@ -1,3 +1,9 @@
+2010-02-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m:
+	* Source/NSThread.m:
+	Tweaks to try and get default thread correctly terminated on exit.
+
 2010-01-30  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m (GSBinaryPLParser -rootObject,
