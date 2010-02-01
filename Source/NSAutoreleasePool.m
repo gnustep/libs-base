@@ -385,14 +385,14 @@ static IMP	initImp;
    */
   while (_child != nil || _released_count > 0)
     {
-      volatile struct autorelease_array_list *released = _released_head;
+      volatile struct autorelease_array_list *released;
 
       /* If there are NSAutoreleasePool below us in the stack of
 	 NSAutoreleasePools, then deallocate them also.  The (only) way we
 	 could get in this situation (in correctly written programs, that
 	 don't release NSAutoreleasePools in weird ways), is if an
 	 exception threw us up the stack. */
-      if (_child != nil)
+      while (_child != nil)
 	{
 	  [_child dealloc];
 	}
@@ -401,6 +401,7 @@ static IMP	initImp;
        * so if we are doing "double_release_check"ing, then
        * autoreleaseCountForObject: won't find the object we are currently
        * releasing. */
+      released = _released_head;
       while (released != 0)
 	{
 	  id	*objects = (id*)(released->objects);
@@ -457,6 +458,7 @@ static IMP	initImp;
       NSZoneFree(NSDefaultMallocZone(), a);
       a = n;
     }
+  _released = _released_head = 0;
   [super dealloc];
 }
 
@@ -473,12 +475,25 @@ static IMP	initImp;
   NSAutoreleasePool *pool;
 
   tv = &(((TInfo)thread)->_autorelease_vars);
+
+  /* First release any objects in the pool... bearing in mind that
+   * releasing any object could cause other objects to be added to
+   * the pool.
+   */
+  pool = tv->current_pool;
+  while (pool)
+    {
+      [pool emptyPool];
+      pool = pool->_parent;
+    }
+
+  /* Now free the memory (we have finished usingthe pool).
+   */
   pool = tv->current_pool;
   while (pool)
     {
       NSAutoreleasePool *p = pool->_parent;
 
-      [pool emptyPool];
       [pool _reallyDealloc];
       pool = p;
     }
