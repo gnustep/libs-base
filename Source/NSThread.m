@@ -516,7 +516,16 @@ static void setThreadForCurrentThread(NSThread *t)
       GC_unregister_my_thread();
 #endif
       pthread_setspecific(thread_object_key, nil);
-      pthread_exit(NULL);
+      if (t == defaultThread || defaultThread == nil)
+	{
+	  /* For the default thread, we exit the process.
+	   */
+	  exit(0);
+	}
+      else
+	{
+          pthread_exit(NULL);
+	}
     }
 }
 
