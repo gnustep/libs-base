@@ -297,23 +297,29 @@ MUNLOCK
 
 - (BOOL) waitUntilDate: (NSDate*)limit
 {
-  NSTimeInterval t = [limit timeIntervalSinceReferenceDate];
+  NSTimeInterval t = [limit timeIntervalSince1970];
   double secs, subsecs;
   struct timespec timeout;
+  int retVal = 0;
 
   // Split the float into seconds and fractions of a second
   subsecs = modf(t, &secs);
   timeout.tv_sec = secs;
   // Convert fractions of a second to nanoseconds
   timeout.tv_nsec = subsecs * 1e9;
-  if (0 == pthread_cond_timedwait(&_condition, &_mutex, &timeout))
+  
+  retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
+  
+  if (retVal == 0)
     {
       return YES;
     }
-  else
+  else if (retVal == EINVAL)
     {
-      return NO;
-    }
+		NSLog(@"Invalid arguments to pthread_cond_timedwait");
+	}
+
+	return NO;
 }
 
 @end
@@ -379,24 +385,19 @@ MUNLOCK
 - (BOOL) lockWhenCondition: (NSInteger)condition_to_meet
                 beforeDate: (NSDate*)limitDate
 {
-  BOOL ret;
-
   [_condition lock];
   if (condition_to_meet == _condition_value)
     {
       return YES;
     }
-  if ([_condition waitUntilDate: limitDate]
-    && (condition_to_meet == _condition_value))
-    {
-      ret = YES;
+  while ([_condition waitUntilDate: limitDate]) {
+	if (condition_to_meet == _condition_value) {
+      return YES; // KEEP THE LOCK
     }
-  else
-    {
-      ret = NO;
-    }
-  [_condition unlock];
-  return ret;
+  }
+
+  //  we timed out and no longer have the lock
+  return NO;
 }
 
 MNAME
@@ -406,10 +407,18 @@ MNAME
   return [_condition tryLock];
 }
 
-- (BOOL) tryLockWhenCondition: (NSInteger)value
+- (BOOL) tryLockWhenCondition: (NSInteger)condition_to_meet
 {
-  return [self lockWhenCondition: value
-		      beforeDate: [NSDate date]];
+  if ([_condition tryLock]) {
+	if (condition_to_meet == _condition_value) {
+		return YES; // KEEP THE LOCK
+    }
+	else {
+		[_condition unlock];
+	}
+  }
+  
+  return NO; 
 }
 
 - (void) unlock
