@@ -220,14 +220,12 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
    */
   while (delay > 0)
     {
-#ifdef	HAVE_USLEEP
+#if	defined(__MINGW32__)
+      Sleep ((NSInteger)(delay*1000));
+#elif	defined(HAVE_USLEEP)
       usleep ((NSInteger)(delay*1000000));
 #else
-#if defined(__MINGW32__)
-      Sleep (delay*1000);
-#else
       sleep ((NSInteger)delay);
-#endif
 #endif
       delay = when - GSTimeNow();
     }

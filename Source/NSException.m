@@ -99,7 +99,7 @@ GSPrivateBaseAddress(void *addr, void **base)
    */
   if (VirtualQuery (addr, &info, sizeof(info)) != 0)
     {
-      HMODULE	handle = (HMODULE) mbi.AllocationBase;
+      HMODULE	handle = (HMODULE) info.AllocationBase;
       unichar	path[MAX_PATH+1];
 
       if (GetModuleFileNameW(handle, path, sizeof(path)-1) != 0)
@@ -107,7 +107,7 @@ GSPrivateBaseAddress(void *addr, void **base)
 	  path[sizeof(path)-1] = '\0';
 	  
 	  *base = info.BaseAddress;
-	  return [[NSString stringWithCharacters: path length: wcslen(path)]];
+	  return [NSString stringWithCharacters: path length: wcslen(path)];
 	}
     }
   return nil;

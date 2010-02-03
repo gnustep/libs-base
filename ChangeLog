@@ -1,3 +1,9 @@
+2010-02-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m:
+	Don't use usleep() on windows .. it performas a busy wait so the
+	Sleep() function is better.
+
 2010-02-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m:
