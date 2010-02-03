@@ -43,7 +43,7 @@
  * acquired.  This is compatible with earlier GNUstep behaviour.  In OS X 10.5
  * and later, these will just NSLog a warning instead.  Throwing an exception
  * is probably better behaviour, because it encourages developer to fix their
- * code.  
+ * code.
  */
 
 #define	MDEALLOC \
@@ -307,19 +307,19 @@ MUNLOCK
   timeout.tv_sec = secs;
   // Convert fractions of a second to nanoseconds
   timeout.tv_nsec = subsecs * 1e9;
-  
+
   retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
-  
+
   if (retVal == 0)
     {
       return YES;
     }
   else if (retVal == EINVAL)
     {
-		NSLog(@"Invalid arguments to pthread_cond_timedwait");
-	}
+      NSLog(@"Invalid arguments to pthread_cond_timedwait");
+    }
 
-	return NO;
+  return NO;
 }
 
 @end
@@ -390,11 +390,13 @@ MUNLOCK
     {
       return YES;
     }
-  while ([_condition waitUntilDate: limitDate]) {
-	if (condition_to_meet == _condition_value) {
-      return YES; // KEEP THE LOCK
+  while ([_condition waitUntilDate: limitDate])
+    {
+      if (condition_to_meet == _condition_value)
+	{
+	  return YES; // KEEP THE LOCK
+	}
     }
-  }
 
   //  we timed out and no longer have the lock
   return NO;
@@ -409,16 +411,18 @@ MNAME
 
 - (BOOL) tryLockWhenCondition: (NSInteger)condition_to_meet
 {
-  if ([_condition tryLock]) {
-	if (condition_to_meet == _condition_value) {
-		return YES; // KEEP THE LOCK
-    }
-	else {
-		[_condition unlock];
+  if ([_condition tryLock])
+    {
+      if (condition_to_meet == _condition_value)
+	{
+	  return YES; // KEEP THE LOCK
 	}
-  }
-  
-  return NO; 
+      else
+	{
+	  [_condition unlock];
+	}
+    }
+  return NO;
 }
 
 - (void) unlock
