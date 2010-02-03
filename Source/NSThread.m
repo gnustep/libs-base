@@ -221,15 +221,31 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
   while (delay > 0)
     {
 #if	defined(__MINGW32__)
+#if	defined(HAVE_USLEEP)
+      /* On windows usleep() seems to perform a busy wait ... so we only
+       * use it for short delays ... otherwise use the less accurate Sleep()
+       */
+      if (delay > 0.1)
+	{
+          Sleep ((NSInteger)(delay*1000));
+	}
+      else
+	{
+          usleep ((NSInteger)(delay*1000000));
+	}
+#else
       Sleep ((NSInteger)(delay*1000));
-#elif	defined(HAVE_USLEEP)
+#endif	/* HAVE_USLEEP */
+#else
+#if	defined(HAVE_USLEEP)
       usleep ((NSInteger)(delay*1000000));
 #else
       sleep ((NSInteger)delay);
-#endif
+#endif	/* HAVE_USLEEP */
+#endif	/* __MINGW__ */
       delay = when - GSTimeNow();
     }
-#endif
+#endif	/* HAVE_NANOSLEEP */
 }
 
 static NSArray *
