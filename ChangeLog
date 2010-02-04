@@ -1,5 +1,12 @@
 2010-02-04 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSOperation.h:
+	* Source/NSOperation.m:
+	Implement and document the NSOperation class.
+	As OSX 10.6 minus the objc2 specific 'block' methods.
+
+2010-02-04 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSLock.m: cleanup indentation etc, and apply fix suggested
 	by David Ayers
 
