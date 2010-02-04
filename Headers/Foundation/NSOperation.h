@@ -1,8 +1,9 @@
 /**Interface for NSOperation for GNUStep
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2009,2010 Free Software Foundation, Inc.
 
    Written by:  Gregory Casamento <greg.casamento@gmail.com>
-   Date: 2009
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
+   Date: 2009,2010
    
    This file is part of the GNUstep Base Library.
 
@@ -52,31 +53,123 @@ typedef NSInteger NSOperationQueuePriority;
   id	_internal;
 }
 
-// Initialization
-- (id) init;
+/** Adds a dependency to the receiver.<br />
+ * The receiver is not considered ready to execute until all of its
+ * dependencies have finished executing.<br />
+ * You must not add a particular object to the receiver more than once.<br />
+ * You must not create loops of dependencies (this would cause deadlock).<br />
+ */
+- (void) addDependency: (NSOperation *)op;
 
-// Executing the operation
-- (void) start;
-- (void) main;
-
-// Cancelling the operation
+/** Marks the operation as cancelled (causes subsequent calls to the
+ * -isCancelled method to return YES).<br />
+ * This does not directly cause the receiver to stop executing ... it is the
+ * responsibility of the receiver to call -isCancelled while executing and
+ * act accordingly.<br />
+ * If an operation in a queue is cancelled before it starts executing, it
+ * will be removed from the queue (though not necessarily immediately).<br />
+ * Calling this method on an object which has already finished executing
+ * has no effect.
+ */
 - (void) cancel;
 
-// Getting the operation status
-- (BOOL) isCancelled;
-- (BOOL) isExecuting;
-- (BOOL) isFinished;
-- (BOOL) isConcurrent;
-- (BOOL) isReady;
-
-// Managing dependencies
-- (void) addDependency: (NSOperation *)op;
-- (void) removeDependency: (NSOperation *)op;
+/** Returns all the dependencies of the receiver in the order in which they
+ * were added.
+ */
 - (NSArray *)dependencies;
 
-// Prioritization 
+/** This method should return YES if the -cancel method has been called.<br />
+ * NB. a cancelled operation may still be executing.
+ */
+- (BOOL) isCancelled;
+
+/** This method returns YES if the receiver handles its own environment or
+ * threading rather than expecting to run in an evironment set up elsewhere
+ * (eg, by an [NSOperationQueue] instance).<br />
+ * The default implementation returns NO.
+ */
+- (BOOL) isConcurrent;
+
+/** This method should return YES if the receiver is currently executing its
+ * -main method (even if -cancel has been called).
+ */
+- (BOOL) isExecuting;
+
+/** This method should return YES if the receiver has finished executing its
+ * -main method (irrespective of whether the execution completed due to
+ * cancellation, failure, or success).
+ */
+- (BOOL) isFinished;
+
+/** This method should return YES when the receiver is ready to begin
+ * executing.  That is, the receiver must have no dependencies which
+ * have not finished executing.<br />
+ * Also returns YES if the operation has been cancelled (even if there
+ * are unfinished dependencies).<br />
+ * An executing or finished operation is also considered to be ready.
+ */
+- (BOOL) isReady;
+
+/** <override-subclass/>
+ * This is the method which actually performs the operation ...
+ * the default implementation does nothing.<br />
+ * If you are writing a concurrent subclass, you should override -start
+ * instead of (or as well as) the -main method.
+ */
+- (void) main;
+
+/** Returns the priority set using the -setQueuePriority method, or
+ * NSOperationQueuePriorityNormal if no priority has been set.
+ */
 - (NSOperationQueuePriority) queuePriority;
+
+/** Removes a dependency from the receiver.
+ */
+- (void) removeDependency: (NSOperation *)op;
+
+/** Sets the priority for the receiver.  If the value supplied is not one of
+ * the predefined queue priorities, it is converted into the next available
+ * defined value moving towards NSOperationQueuePriorityNormal.
+ */
 - (void) setQueuePriority: (NSOperationQueuePriority)priority;
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/** Sets the thread priority to be used while executing then -main method.
+ * The priority change is implemented in the -start method, so if you are
+ * replacing -start you are responsible for managing this.<br />
+ * The valid range is 0.0 to 1.0
+ */
+- (void) setThreadPriority: (double)prio;
+#endif
+
+/** This method is called to start execution of the receiver.<br />
+ * <p>For concurrent operations, the subclass must override this method
+ * to set up the environment for the operation to execute, must execute the
+ * -main method, must ensure that -isExecuting and -isFinished return the
+ * correct values, and must manually call key-value-observing methods to
+ * notify observers of the state of those two properties.<br />
+ * The subclass implementation must NOT call the superclass implementation.
+ * </p>
+ * <p>For non-concurrent operations, the default implementation of this method
+ * performs all the work of setting up environment etc, and the subclass only
+ * needs to override the -main method.
+ * </p>
+ */
+- (void) start;
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/** Returns the thread priority to be used executing the -main method.
+ * The default is 0.5
+ */
+- (double) threadPriority;
+
+/** This method blocks the current thread until the receiver finishes.<br />
+ * Care must be taken to avoid deadlock ... you must not call this method
+ * from the same thread that the receiver started in.
+ */
+- (void) waitUntilFinished;
+#endif
+
 @end
 
 
@@ -96,16 +189,43 @@ enum {
   id	_internal;
 }
 
-// status
+/** Adds an operation to the receiver.
+ */
+- (void) addOperation: (NSOperation *)op;
+
+/** Cancels all outstanding operations in the queue.
+ */
+- (void) cancelAllOperations;
+
+/** Returns a flag indicating whether the queue is currently suspended.
+ */
 - (BOOL) isSuspended;
-- (void) setSuspended: (BOOL)flag;
+
+/** Returns the value set using the -setMaxConcurrentOperationCount:
+ * method, or NSOperationQueueDefaultMaxConcurrentOperationCount if
+ * none has been set.<br />
+ */
 - (NSInteger) maxConcurrentOperationCount;
+
+/** Returns all the operations currently in the queue.
+ */
+- (NSArray *) operations;
+
+/** Sets the number of concurrent operations permitted.<br />
+ * The default (NSOperationQueueDefaultMaxConcurrentOperationCount)
+ * means that the queue should decide how many it does based on
+ * system load etc.
+ */
 - (void) setMaxConcurrentOperationCount: (NSInteger)cnt;
 
-// operations
-- (void) addOperation: (NSOperation *) op;
-- (NSArray *) operations;
-- (void) cancelAllOperations;
+/** Marks the receiver as suspended ... while suspended an operation queue
+ * will not start any more operations.
+ */
+- (void) setSuspended: (BOOL)flag;
+
+/** Waits until all operations in the queue have finished (or been cancelled
+ * and removed from the queue).
+ */
 - (void) waitUntilAllOperationsAreFinished;
 @end
 
