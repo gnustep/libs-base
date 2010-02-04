@@ -397,8 +397,7 @@ MUNLOCK
 	  return YES; // KEEP THE LOCK
 	}
     }
-
-  //  we timed out and no longer have the lock
+  [_condition unlock];
   return NO;
 }
 

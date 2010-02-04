@@ -1,6 +1,6 @@
 2010-02-04 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSThread.m: cleanup indentation etc, and apply fix suggested
+	* Source/NSLock.m: cleanup indentation etc, and apply fix suggested
 	by David Ayers
 
 2010-02-04 Jonathan Gillaspie <jonathan.gillaspie@testplant.com>
