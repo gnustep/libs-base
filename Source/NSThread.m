@@ -327,14 +327,7 @@ static pthread_key_t thread_object_key;
  */
 static void exitedThread(void *thread)
 {
-  if (thread == defaultThread)
-    {
-      NSThread	*t = defaultThread;
-
-      defaultThread = nil;
-      [t dealloc];
-    }
-  else
+  if (thread != defaultThread)
     {
       fprintf(stderr, "WARNING thread %p terminated without calling +exit!\n",
         thread);
