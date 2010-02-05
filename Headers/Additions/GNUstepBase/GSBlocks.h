@@ -19,6 +19,9 @@ typedef retTy(^name)(argTys, ## __VA_ARGS__)
 /* Fall-back versions for when the compiler doesn't have native blocks support.
  */
 #else
+
+#if (GCC_VERSION >= 3000)
+
 #define DEFINE_BLOCK_TYPE(name, retTy, argTys, ...) \
 	typedef struct {\
 		void *isa;\
@@ -28,5 +31,21 @@ typedef retTy(^name)(argTys, ## __VA_ARGS__)
 	} *name
 #define CALL_BLOCK(block, args, ...) \
 	block->invoke(block, args, ## __VA_ARGS__)
+
+#else /* GCC_VERSION >= 3000 */
+
+#define DEFINE_BLOCK_TYPE(name, retTy, argTys, args...) \
+	typedef struct {\
+		void *isa;\
+		int flags;\
+		int reserved;\
+		retTy (*invoke)(void*, argTys, args);\
+	} *name
+#define CALL_BLOCK(block, args...) \
+	block->invoke(block, args)
+
+
+#endif /* GCC_VERSION >= 3000 */
+
 #endif
 
