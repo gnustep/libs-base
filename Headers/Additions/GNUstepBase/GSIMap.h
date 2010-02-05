@@ -943,7 +943,6 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
   NSInteger count;
   NSInteger i;
 
-  count = MIN(len, map->nodeCount - state->state);
   /* We can store a GSIMapEnumerator inside the extra buffer in state on all
    * platforms that don't suck beyond belief (i.e. everything except win64),
    * but we can't on anything where long is 32 bits and pointers are 64 bits,
@@ -955,6 +954,9 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
       uintptr_t bucket;
     };
   GSIMapEnumerator_t enumerator;
+
+  count = MIN(len, map->nodeCount - state->state);
+
   /* Construct the real enumerator */
   if (0 == state->state)
     {

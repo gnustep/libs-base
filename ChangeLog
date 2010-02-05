@@ -1,3 +1,8 @@
+2010-02-05 Riccardo Mottola <rmottola@users.sf.net>
+
+	* Headers/Additions/GNUstepBase/GSIMap.h: fixed c99-ism
+	* Headers/Additions/GNUstepBase/GSBlocks.h : provide gcc 2.95 variadic macro
+	
 2010-02-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSOperation.h:
