@@ -12,7 +12,13 @@
 
 2010-02-04 Jonathan Gillaspie <jonathan.gillaspie@testplant.com>
 
-	* Source/NSThread.m: condition lock fixes
+	* Source/NSLock.m: 
+	lockWhenCondition:beforeDate: 
+	  Switched to use timeIntervalSince1970. 
+	  added a loop to lockWhenCondition since pthread_cond_timedwait can return 
+	  to delay expiring. Hold the lock on a delayed acquire (and YES return).
+	tryLockWhenCondition: 
+	  No longer reports a deadlock when we already have the lock, now just returns NO.
 
 2010-02-03 Richard Frith-Macdonald <rfm@gnu.org>
 
