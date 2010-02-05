@@ -360,7 +360,7 @@ static NSArray	*empty = nil;
 - (void) start
 {
   CREATE_AUTORELEASE_POOL(pool);
-  NSException	*e = nil;
+  double	prio = [NSThread  threadPriority];
 
   [internal->lock lock];
   NS_DURING
@@ -393,24 +393,33 @@ static NSArray	*empty = nil;
       [self willChangeValueForKey: @"isExecuting"];
       internal->executing = YES;
       [self didChangeValueForKey: @"isExecuting"];
+    }
+  NS_HANDLER
+    {
+      [internal->lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [internal->lock unlock];
 
-      NS_DURING
+  NS_DURING
+    {
+      if (NO == [self isCancelled])
 	{
-	  if (NO == [self isCancelled])
-	    {
-	      double	prio = [NSThread  threadPriority];
-
-	      [NSThread setThreadPriority: internal->threadPriority];
-	      [self main];
-	      [NSThread setThreadPriority:  prio];
-	    }
+	  [NSThread setThreadPriority: internal->threadPriority];
+	  [self main];
 	}
-      NS_HANDLER
-	{
-	  e = localException;
-	}
-      NS_ENDHANDLER;
+    }
+  NS_HANDLER
+    {
+      [NSThread setThreadPriority:  prio];
+      [localException raise];
+    }
+  NS_ENDHANDLER;
 
+  [internal->lock lock];
+  NS_DURING
+    {
       /* Notify KVO system of changes to isExecuting and isFinished
        */
       [self willChangeValueForKey: @"isExecuting"];
@@ -424,17 +433,11 @@ static NSArray	*empty = nil;
     }
   NS_HANDLER
     {
-      if (e == nil)
-	{
-          e = localException;
-	}
+      [internal->lock unlock];
+      [localException raise];
     }
   NS_ENDHANDLER
   [internal->lock unlock];
-  if (e != nil)
-    {
-      [e raise];
-    }
   RELEASE(pool);
 }
 
