@@ -88,7 +88,7 @@ static NSArray	*empty = nil;
     }
   NS_DURING
     {
-      if (NO == [internal->dependencies containsObject: op])
+      if (NSNotFound == [internal->dependencies indexOfObjectIdenticalTo: op])
 	{
 	  [self willChangeValueForKey: @"dependencies"];
           [internal->dependencies addObject: op];
@@ -283,7 +283,7 @@ static NSArray	*empty = nil;
   [internal->lock lock];
   NS_DURING
     {
-      if (YES == [internal->dependencies containsObject: op])
+      if (NSNotFound != [internal->dependencies indexOfObjectIdenticalTo: op])
 	{
 	  [op removeObserver: self
 	          forKeyPath: @"isFinished"];
@@ -459,11 +459,38 @@ static NSArray	*empty = nil;
 #include	"GSInternal.h"
 GS_BEGIN_INTERNAL(NSOperationQueue)
   NSRecursiveLock	*lock;
+  NSConditionLock	*cond;
   NSMutableArray	*operations;
+  NSMutableArray	*waiting;
+  NSString		*name;
   BOOL			suspended;
-  NSInteger		count;
+  NSInteger		threads;	// number of threads allocated
+  NSInteger		idle;		// threads waiting for an op to do
+  NSInteger		count;		// max executing operations
 GS_END_INTERNAL(NSOperationQueue)
 
+
+@interface	NSOperationQueue (Private)
+- (void) observeValueForKeyPath: (NSString *)keyPath
+		       ofObject: (id)object
+                         change: (NSDictionary *)change
+                        context: (void *)context;
+- (void) _thread;
+- (void) _update;
+@end
+
+static NSInteger	maxThreads = 200;	// FIXME ... how many really?
+
+static NSComparisonResult
+sortFunc(id o1, id o2, void *ctxt)
+{
+  NSOperationQueuePriority p1 = [o1 queuePriority];
+  NSOperationQueuePriority p2 = [o2 queuePriority];
+  
+  if (p1 < p2) return NSOrderedDescending;
+  if (p1 > p2) return NSOrderedAscending;
+  return NSOrderedSame;
+}
 
 @implementation NSOperationQueue
 
@@ -476,24 +503,59 @@ GS_END_INTERNAL(NSOperationQueue)
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   [internal->lock lock];
-  if (NO == [internal->operations containsObject: op])
+  if (NSNotFound == [internal->operations indexOfObjectIdenticalTo: op]
+    && NO == [op isCancelled]
+    && NO == [op isExecuting]
+    && NO == [op isFinished])
     {
+      [op addObserver: self
+	   forKeyPath: @"isReady"
+	      options: NSKeyValueObservingOptionNew
+	      context: NULL];
+      [self willChangeValueForKey: @"operations"];
+      [self willChangeValueForKey: @"operationCount"];
       [internal->operations addObject: op];
-// FIXME ... start if we can
+      [self didChangeValueForKey: @"operationCount"];
+      [self didChangeValueForKey: @"operations"];
+      if (YES == [op isReady])
+	{
+	  [self observeValueForKeyPath: @"isReady"
+			      ofObject: op
+				change: nil
+			       context: nil];
+	}
     }
   [internal->lock unlock];
 }
 
 - (void) cancelAllOperations
 {
-  NSEnumerator *en;
-  id o;
+  NSUInteger	index;
+  NSOperation	*o;
+
+  [internal->cond lock];
+  while ((o = [internal->waiting lastObject]) != nil)
+    {
+      [o removeObserver: self
+	     forKeyPath: @"isReady"];
+      [o cancel];
+      [internal->waiting removeLastObject];
+    }
+  [internal->cond unlockWithCondition: 0];	// Nothing waiting to execute
 
   [internal->lock lock];
-  en = [internal->operations objectEnumerator];
-  while ((o = [en nextObject]) != nil)
+  index = [internal->operations count];
+  while (index-- > 0)
     {
-      [o cancel];
+      NSOperation	*o;
+
+      o = [internal->operations objectAtIndex: index];
+      if (NO == [o isCancelled])
+	{
+          [o removeObserver: self
+	         forKeyPath: @"isReady"];
+          [o cancel];
+	}
     }
   [internal->lock unlock];
 }
@@ -503,6 +565,9 @@ GS_END_INTERNAL(NSOperationQueue)
   if (_internal != nil)
     {
       [internal->operations release];
+      [internal->waiting release];
+      [internal->name release];
+      [internal->cond release];
       [internal->lock release];
       GS_DESTROY_INTERNAL(NSOperationQueue);
     }
@@ -517,6 +582,8 @@ GS_END_INTERNAL(NSOperationQueue)
       internal->suspended = NO;
       internal->count = NSOperationQueueDefaultMaxConcurrentOperationCount;
       internal->operations = [NSMutableArray new];
+      internal->waiting = [NSMutableArray new];
+      internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
       internal->lock = [NSRecursiveLock new];
     }
   return self;
@@ -532,6 +599,31 @@ GS_END_INTERNAL(NSOperationQueue)
   return internal->count;
 }
 
+- (NSString*) name
+{
+  NSString	*s;
+
+  [internal->lock lock];
+  if (internal->name == nil)
+    {
+      internal->name
+	= [[NSString alloc] initWithFormat: @"NSOperation %p", self];
+    }
+  s = [internal->name retain];
+  [internal->lock unlock];
+  return [s autorelease];
+}
+
+- (NSUInteger) operationCount
+{
+  NSUInteger	c;
+
+  [internal->lock lock];
+  c = [internal->operations count];
+  [internal->lock unlock];
+  return c;
+}
+
 - (NSArray *) operations
 {
   NSArray	*a;
@@ -544,16 +636,213 @@ GS_END_INTERNAL(NSOperationQueue)
 
 - (void) setMaxConcurrentOperationCount: (NSInteger)cnt
 {
-  internal->count = cnt;
+  if (cnt < 0
+    && cnt != NSOperationQueueDefaultMaxConcurrentOperationCount)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@-%@] cannot set negative (%d) count",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), cnt];
+    }
+  [internal->lock lock];
+  if (cnt != internal->count)
+    {
+      [self willChangeValueForKey: @"maxConcurrentOperationCount"];
+      internal->count = cnt;
+      [self didChangeValueForKey: @"maxConcurrentOperationCount"];
+      [self _update];
+    }
+  [internal->lock unlock];
+}
+
+- (void) setName: (NSString*)s
+{
+  if (s == nil) s = @"";
+  [internal->lock lock];
+  if (NO == [internal->name isEqual: s])
+    {
+      [self willChangeValueForKey: @"name"];
+      [internal->name release];
+      internal->name = [s copy];
+      [self didChangeValueForKey: @"name"];
+    }
+  [internal->lock unlock];
 }
 
 - (void) setSuspended: (BOOL)flag
 {
-  internal->suspended = flag;
+  [internal->lock lock];
+  if (flag != internal->suspended)
+    {
+      [self willChangeValueForKey: @"suspended"];
+      internal->suspended = flag;
+      [self didChangeValueForKey: @"suspended"];
+      [self _update];
+    }
+  [internal->lock unlock];
 }
 
 - (void) waitUntilAllOperationsAreFinished
 {
-  // not yet implemented...
+  NSOperation	*op;
+
+  [internal->lock lock];
+  while ((op = [internal->operations lastObject]) != nil)
+    {
+      [op retain];
+      [internal->lock unlock];
+      [op waitUntilFinished];
+      [op release];
+      [internal->lock lock];
+    }
+  [internal->lock unlock];
 }
 @end
+
+@implementation	NSOperationQueue (Private)
+
+- (void) observeValueForKeyPath: (NSString *)keyPath
+		       ofObject: (id)object
+                         change: (NSDictionary *)change
+                        context: (void *)context
+{
+  [internal->cond lock];
+  if (YES == [object isReady])
+    {
+      if ([internal->waiting indexOfObjectIdenticalTo: object] == NSNotFound)
+	{
+          [internal->waiting addObject: object];
+ 	}
+    }
+  else
+    {
+      NSUInteger	index;
+
+      index = [internal->waiting indexOfObjectIdenticalTo: object];
+      if (index != NSNotFound)
+	{
+          [internal->waiting removeObjectAtIndex: index];
+	}
+    }
+  if ([internal->waiting count] > 0)
+    {
+      [internal->cond unlockWithCondition: 1];
+      [internal->lock lock];
+      [self _update];
+      [internal->lock unlock];
+    }
+  else
+    {
+      [internal->cond unlockWithCondition: 0];
+    }
+}
+
+- (void) _thread
+{
+  [internal->lock lock];
+  while ([internal->operations count] > 0)
+    {
+      NSOperation	*op;
+      NSUInteger	index;
+
+      /* Unlock the queue while we are waiting for another operation
+       * to perform.
+       */
+      [internal->lock unlock];
+
+      /* Wait for an operation to become available.
+       */
+      [internal->cond lockWhenCondition: 1];
+      [internal->waiting sortUsingFunction: sortFunc context: 0];
+      op = [[internal->waiting lastObject] retain];
+      [internal->waiting removeLastObject];
+      if ([internal->waiting count] == 0)
+	{
+          [internal->cond unlockWithCondition: 0];
+	}
+      else
+	{
+          [internal->cond unlockWithCondition: 1];
+	}
+
+      /* Restore the queue lock so we can track the idle count.
+       */
+      [internal->lock lock];
+      if (YES == [op isReady])
+	{
+	  if (NO == [op isCancelled])
+	    {
+	      internal->idle--;
+
+	      /* Unlock the queue while the operation is executing.
+	       */
+	      [internal->lock unlock];
+	      [op start];
+	      [op waitUntilFinished];
+
+	      /* Lock the queue again to perform cleanup etc.
+	       */
+	      [internal->lock lock];
+	      internal->idle++;
+	    }
+	  [self willChangeValueForKey: @"operations"];
+	  [self willChangeValueForKey: @"operationCount"];
+	  [internal->operations removeObjectIdenticalTo: op];
+	  [self didChangeValueForKey: @"operationCount"];
+	  [self didChangeValueForKey: @"operations"];
+	}
+      [op release];
+
+      /* And now make sure we clean up any finished operations.
+       */
+      index = [internal->operations count];
+      while (index-- > 0)
+	{
+	  op = [internal->operations objectAtIndex: index];
+	  if (YES == [op isFinished])
+	    {
+	      [self willChangeValueForKey: @"operations"];
+	      [self willChangeValueForKey: @"operationCount"];
+	      [internal->operations removeObjectAtIndex: index];
+	      [self didChangeValueForKey: @"operationCount"];
+	      [self didChangeValueForKey: @"operations"];
+	    }
+	}
+    }
+  internal->idle--;
+  internal->threads--;
+  [internal->lock unlock];
+}
+
+/* NB.  This must only be called from a locked section of code!
+ * It's just to check to see if a new thread needs to be started.
+ */
+- (void) _update
+{
+  if (0 == internal->idle
+    && NO == [self isSuspended]
+    && [self maxConcurrentOperationCount] != 0
+    && [internal->waiting count] > 0)
+    {
+      NSInteger	count = internal->count;
+
+      if (count == NSOperationQueueDefaultMaxConcurrentOperationCount)
+	{
+	  count = maxThreads;	// Limit number of allowed threads
+	}
+      if (internal->threads < count)
+	{
+	  /* All threads are in use, but we don't have the maximum
+	   * number of threads, so we can create a new one for the
+	   * waiting operation.
+	   */
+	  internal->threads++;
+	  internal->idle++;
+	  [NSThread detachNewThreadSelector: @selector(_thread)
+				   toTarget: self
+				 withObject: nil];
+	}
+    }
+}
+
+@end
+
