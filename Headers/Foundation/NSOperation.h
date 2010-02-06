@@ -186,7 +186,6 @@ enum {
    NSOperationQueueDefaultMaxConcurrentOperationCount = -1
 };
 
-// NSOperationQueue
 @interface NSOperationQueue : NSObject
 {
 @private
@@ -211,7 +210,17 @@ enum {
  */
 - (NSInteger) maxConcurrentOperationCount;
 
-/** Returns all the operations currently in the queue.
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/** Return the name of this operation queue.
+ */
+- (NSString*) name;
+
+/** Return the number of operations in the queue at an instant.
+ */
+- (NSUInteger) operationCount;
+#endif
+
+/** Returns all the operations in the queue at an instant.
  */
 - (NSArray *) operations;
 
@@ -221,6 +230,12 @@ enum {
  * system load etc.
  */
 - (void) setMaxConcurrentOperationCount: (NSInteger)cnt;
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/** Sets the name for this operation queue.
+ */
+- (void) setName: (NSString*)s;
+#endif
 
 /** Marks the receiver as suspended ... while suspended an operation queue
  * will not start any more operations.
