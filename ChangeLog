@@ -1,7 +1,18 @@
+2010-02-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAttributedString.m: minor cosmetic change
+	* Source/GSAttributedString.m: Re-introduce proxy for -string
+	and comment to try to avoid it being accidentally removed again.
+	* Source/GSString.m: Fixups to work properly with string proxies.
+	* Source/NSException.m: Re-instate correct behavior and make the
+	comment about it more emphatic.
+
 2010-02-08 Jonathan Gillaspie <jonathan.gillaspie@testplant.com>
+
 	* Source/NSException.m
-	* Removed redundant call to _NSFoundationUncaughtExceptionHandler and added else blocks
-	to allow a set uncaught exception handler to NOT exit if capable of recovering.
+	* Removed redundant call to _NSFoundationUncaughtExceptionHandler
+	and added else blocks to allow a set uncaught exception handler
+	to NOT exit if capable of recovering.
 
 2010-02-08 Richard Frith-Macdonald <rfm@gnu.org>
 

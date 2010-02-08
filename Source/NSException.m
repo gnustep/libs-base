@@ -774,9 +774,7 @@ callUncaughtHandler(id value)
     {
       (*_NSUncaughtExceptionHandler)(value);
     }
-  else {
-    _NSFoundationUncaughtExceptionHandler(value);
-  }
+  _NSFoundationUncaughtExceptionHandler(value);
 }
 
 @implementation NSException
@@ -924,19 +922,20 @@ callUncaughtHandler(id value)
        */
       callUncaughtHandler(self);
 
-      /*
-       * The uncaught exception handler which is set has not
-       * exited, so we call the builtin handler, (undocumented
-       * behavior of MacOS-X).
-       * The standard handler is guaranteed to exit/abort.
+      /* The uncaught exception handler which is set has not exited,
+       * so we MUST call the builtin handler, (normal behavior of MacOS-X).
+       * The standard handler is guaranteed to exit/abort, which is the
+       * required behavioru for OSX compatibility.
+       * NB Cocoa's Exception Handling framework bypasses this behavior
+       * somehow ... if anyone contributes an implementation we could
+       * integrate it here.
        */
-      //_NSFoundationUncaughtExceptionHandler(self);
+      _NSFoundationUncaughtExceptionHandler(self);
     }
-  else {
-	thread->_exception_handler = handler->next;
-	handler->exception = self;
-	longjmp(handler->jumpState, 1);
-  }
+
+  thread->_exception_handler = handler->next;
+  handler->exception = self;
+  longjmp(handler->jumpState, 1);
 #endif
 }
 

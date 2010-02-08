@@ -72,6 +72,11 @@ extern "C" {
 
 //Retrieving character information
 - (NSUInteger) length;
+/** Returns the string content of the receiver.<br />
+ * NB. this is actually a proxy to the internal content (which may change)
+ * so if you need an immutable instance yu should copy the returned value,
+ * not jhust retain it.
+ */
 - (NSString*) string;					//Primitive method!
 
 //Retrieving attribute information
