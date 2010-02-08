@@ -52,7 +52,7 @@
 #endif
 #endif
 
-static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
+static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 
 #define _e_info (((id*)_reserved)[0])
 #define _e_stack (((id*)_reserved)[1])
