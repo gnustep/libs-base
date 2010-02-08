@@ -1,3 +1,10 @@
+2010-02-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSOperation.h:
+	* Source/NSOperation.m:
+	Complete implementation of NSOperationQueue (OSX 10.6 apart from the
+	methods using objc2 blocks).
+
 2010-02-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSOperation.h:
