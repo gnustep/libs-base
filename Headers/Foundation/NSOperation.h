@@ -191,10 +191,29 @@ enum {
 @private
   id	_internal;
 }
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/** If called from within the -main method of an operation which is
+ * currently being executed by a queue, this returns the queue instance
+ * in use.
+ */
++ (id) currentQueue;
+
+/** Returns the default queue on the main thread.
+ */
++ (id) mainQueue;
+#endif
 
 /** Adds an operation to the receiver.
  */
 - (void) addOperation: (NSOperation *)op;
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/** Adds multiple operations to the receiver and (optionally) waits for
+ * all the operations in the queue to finish.
+ */
+- (void) addOperations: (NSArray *)ops
+     waitUntilFinished: (BOOL)shouldWait;
+#endif
 
 /** Cancels all outstanding operations in the queue.
  */

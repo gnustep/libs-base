@@ -1532,7 +1532,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s: %p>",
-    GSClassNameFromObject(self), self];
+    GSNameFromClass([self class]), self];
 }
 
 /**
