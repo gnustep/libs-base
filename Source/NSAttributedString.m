@@ -157,7 +157,9 @@ static Class GSMutableAttributedStringClass;
       [aCoder  encodeObject: [self string] forKey: @"NSString"];
       if ([self length] > 0) 
 	{
-	  NSDictionary* attrs = [self attributesAtIndex: 0 effectiveRange: NULL];
+	  NSDictionary	*attrs;
+
+	  attrs = [self attributesAtIndex: 0 effectiveRange: NULL];
 
 	  [aCoder  encodeObject: attrs forKey: @"NSAttributes"];
 	}
@@ -523,7 +525,7 @@ static Class GSMutableAttributedStringClass;
     return NO;
 
   length = [otherString length];
-  if (length<=0)
+  if (length == 0)
     return YES;
 
   ownDictionary = [self attributesAtIndex: 0

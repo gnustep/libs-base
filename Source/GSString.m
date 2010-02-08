@@ -831,11 +831,11 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   if (string == nil)
     [NSException raise: NSInvalidArgumentException
 		format: @"-initWithString: given nil string"];
-  c = GSObjCClass(string);
-  if (GSObjCIsKindOf(c, NSStringClass) == NO)
+  if (NO == [string isKindOfClass: NSStringClass])	// may be proxy
     [NSException raise: NSInvalidArgumentException
 		format: @"-initWithString: given non-string object"];
 
+  c = GSObjCClass(string);
   length = [string length];
   if (GSObjCIsKindOf(c, GSCStringClass) == YES || c == NSConstantStringClass
     || (GSObjCIsKindOf(c, GSMutableStringClass) == YES
@@ -2144,7 +2144,7 @@ isEqual_c(GSStr self, id anObject)
 	}
       return NO;
     }
-  else if (GSObjCIsKindOf(c, NSStringClass))
+  else if (YES == [anObject isKindOfClass: NSStringClass]) // may be proxy
     {
       return (*equalImp)((id)self, equalSel, anObject);
     }
@@ -2211,7 +2211,7 @@ isEqual_u(GSStr self, id anObject)
 	}
       return NO;
     }
-  else if (GSObjCIsKindOf(c, NSStringClass))
+  else if (YES == [anObject isKindOfClass: NSStringClass]) // may be proxy
     {
       return (*equalImp)((id)self, equalSel, anObject);
     }
@@ -4767,7 +4767,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	}
       return NO;
     }
-  else if (GSObjCIsKindOf(c, NSStringClass))
+  else if (YES == [anObject isKindOfClass: NSStringClass]) // may be proxy
     {
       return (*equalImp)(self, equalSel, anObject);
     }
@@ -4817,7 +4817,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	}
       return NO;
     }
-  else if (GSObjCIsKindOf(c, NSStringClass))
+  else if (YES == [anObject isKindOfClass: NSStringClass]) // may be proxy
     {
       return (*equalImp)(self, equalSel, anObject);
     }

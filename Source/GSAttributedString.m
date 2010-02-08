@@ -52,7 +52,9 @@
 #import "Foundation/NSRange.h"
 #import "Foundation/NSDebug.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSInvocation.h"
 #import "Foundation/NSLock.h"
+#import "Foundation/NSProxy.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSZone.h"
@@ -60,6 +62,103 @@
 #define		SANITY_CHECKS	0
 
 static	NSDictionary	*blank;
+
+@interface GSAttributedStringProxy : NSProxy
+{
+  NSString	*string;
+}
+- (id) _initWithString: (NSString*)s;
+@end
+
+@implementation	GSAttributedStringProxy
+
+static Class NSObjectClass = nil;
+static Class NSStringClass = nil;
+
++ (void) initialize
+{
+  NSObjectClass = [NSObject class];
+  NSStringClass = [NSString class];
+}
+
+- (Class) class
+{
+  return NSStringClass;
+}
+
+- (void) dealloc
+{
+  [string release];
+  [super dealloc];
+}
+
+- (void) forwardInvocation: (NSInvocation*)anInvocation
+{
+  SEL	aSel = [anInvocation selector];
+
+  if (YES == [NSStringClass instancesRespondToSelector: aSel])
+    {
+      [anInvocation invokeWithTarget: string];
+    }
+  else
+    {
+      [NSException raise: NSGenericException
+	          format: @"NSString(instance) does not recognize %s",
+	aSel ? GSNameFromSelector(aSel) : "(null)"];
+    }
+}
+
+- (NSUInteger) hash
+{
+  return [string hash];
+}
+
+- (id) _initWithString: (NSString*)s
+{
+  string = [s retain];
+  return self;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  return [string isEqual: other];
+}
+
+- (BOOL) isMemberOfClass: (Class)c
+{
+  return (c == NSStringClass) ? YES : NO;
+}
+
+- (BOOL) isKindOfClass: (Class)c
+{
+  return (c == NSStringClass || c == NSObjectClass) ? YES : NO;
+}
+
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+  NSMethodSignature	*sig;
+
+  if (YES == [NSStringClass instancesRespondToSelector: aSelector])
+    {
+      sig = [string methodSignatureForSelector: aSelector];
+    }
+  else
+    {
+      sig = [super methodSignatureForSelector: aSelector];
+    }
+  return sig;
+}
+
+- (BOOL) respondsToSelector: (SEL)aSelector
+{
+  if (YES == [NSStringClass instancesRespondToSelector: aSelector])
+    {
+      return YES;
+    }
+  return [super respondsToSelector: aSelector];
+}
+
+@end
 
 @interface GSAttributedString : NSAttributedString
 {
@@ -79,6 +178,7 @@ static	NSDictionary	*blank;
 {
   NSMutableString	*_textChars;
   NSMutableArray	*_infoArray;
+  NSString		*_proxy;
 }
 
 - (id) initWithString: (NSString*)aString
@@ -591,7 +691,14 @@ SANITY();
 
 - (NSString*) string
 {
-  return AUTORELEASE([_textChars copy]);
+  /* NB. This method is SUPPOSED to return a proxy to the mutable string!
+   * This is a performance feature documented ifor OSX.
+   */
+  if (_proxy == nil)
+    {
+      _proxy = [[GSAttributedStringProxy alloc] _initWithString: _textChars];
+    }
+  return _proxy;
 }
 
 - (NSDictionary*) attributesAtIndex: (unsigned)index
@@ -881,6 +988,7 @@ SANITY();
 
 - (void) dealloc
 {
+  [_proxy release];
   RELEASE(_textChars);
   RELEASE(_infoArray);
   [super dealloc];
