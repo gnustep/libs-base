@@ -774,7 +774,9 @@ callUncaughtHandler(id value)
     {
       (*_NSUncaughtExceptionHandler)(value);
     }
-  _NSFoundationUncaughtExceptionHandler(value);
+  else {
+    _NSFoundationUncaughtExceptionHandler(value);
+  }
 }
 
 @implementation NSException
@@ -928,12 +930,13 @@ callUncaughtHandler(id value)
        * behavior of MacOS-X).
        * The standard handler is guaranteed to exit/abort.
        */
-      _NSFoundationUncaughtExceptionHandler(self);
+      //_NSFoundationUncaughtExceptionHandler(self);
     }
-
-  thread->_exception_handler = handler->next;
-  handler->exception = self;
-  longjmp(handler->jumpState, 1);
+  else {
+	thread->_exception_handler = handler->next;
+	handler->exception = self;
+	longjmp(handler->jumpState, 1);
+  }
 #endif
 }
 

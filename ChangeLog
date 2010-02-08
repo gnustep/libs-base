@@ -1,3 +1,8 @@
+2010-02-08 Jonathan Gillaspie <jonathan.gillaspie@testplant.com>
+	* Source/NSException.m
+	* Removed redundant call to _NSFoundationUncaughtExceptionHandler and added else blocks
+	to allow a set uncaught exception handler to NOT exit if capable of recovering.
+
 2010-02-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSOperation.h:
