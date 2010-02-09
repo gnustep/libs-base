@@ -222,29 +222,6 @@ typedef enum _NSGNUstepStringEncoding
 		 mode: (NSInteger)mode;
 @end
 
-@interface NSString (GSCategories)
-+ (id) stringWithFormat: (NSString*)format
-	      arguments: (va_list)argList;
-- (NSString*) stringByDeletingPrefix: (NSString*)prefix;
-- (NSString*) stringByDeletingSuffix: (NSString*)suffix;
-- (NSString*) stringByTrimmingLeadSpaces;
-- (NSString*) stringByTrimmingTailSpaces;
-- (NSString*) stringByTrimmingSpaces;
-- (NSString*) stringByReplacingString: (NSString*)replace
-                           withString: (NSString*)by;
-@end
-
-@interface NSMutableString (GSCategories)
-- (void) deleteSuffix: (NSString*)suffix;
-- (void) deletePrefix: (NSString*)prefix;
-- (NSString*) immutableProxy;
-- (void) replaceString: (NSString*)replace
-            withString: (NSString*)by;
-- (void) trimLeadSpaces;
-- (void) trimTailSpaces;
-- (void) trimSpaces;
-@end
-
 @interface NSNumber(GSCategories)
 + (NSValue*) valueFromString: (NSString *)string;
 @end

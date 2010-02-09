@@ -126,11 +126,14 @@ GSFunctions.h \
 GSMime.h \
 GSXML.h \
 GSLocale.h \
-NSTask+GS.h \
+NSMutableString+GNUstepBase.h \
+NSString+GNUstepBase.h \
+NSTask+GNUstepBase.h \
 Unicode.h \
 GNUstep.h \
 behavior.h \
 preface.h \
+Additions.h
 
 GNU_HEADERS = $(ADD_HEADERS)
 

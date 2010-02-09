@@ -1448,10 +1448,12 @@ static NSMapTable	*absolutes = 0;
 	    {
 	      /* This must be the time zone name */
 	      localZoneString = AUTORELEASE([localZoneString mutableCopy]);
-	      [(NSMutableString *)localZoneString deletePrefix: tzdir];
-	      if ([localZoneString hasPrefix: @"/"])
+	      [(NSMutableString*)localZoneString deleteCharactersInRange:
+		NSMakeRange(0, [tzdir length])];
+	      while ([localZoneString hasPrefix: @"/"])
 	        {
-	          [(NSMutableString *)localZoneString deletePrefix: @"/"];
+		  [(NSMutableString*)localZoneString deleteCharactersInRange:
+		    NSMakeRange(0, 1)];
 	        }
 	    }
 	  else

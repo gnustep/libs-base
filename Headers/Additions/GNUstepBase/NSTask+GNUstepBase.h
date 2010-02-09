@@ -21,14 +21,12 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   AutogsdocSource: Additions/GSCategories.m
-
 */
 
-#ifndef	INCLUDED_NSTASK_GS_H
-#define	INCLUDED_NSTASK_GS_H
+#ifndef	INCLUDED_NSTask_GNUstepBase_h
+#define	INCLUDED_NSTask_GNUstepBase_h
 
-@interface	NSTask (GSCategories)
+@interface	NSTask (GNUstepBase)
 /** Returns the launch path for a tool given the name of a tool.<br />
  * Locates the tool by looking in the standard directories and,
  * if not found there, looking in the PATH set in the environment.<br />
@@ -39,5 +37,5 @@
 + (NSString*) launchPathForTool: (NSString*)name;
 @end
 
-#endif	/* INCLUDED_NSTASK_GS */
+#endif	/* INCLUDED_NSTask_GNUstepBase_h */
 

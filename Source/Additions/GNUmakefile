@@ -1,7 +1,7 @@
 #
 #  src makefile for the GNUstep Base Library
 #
-#  Copyright (C) 1997 Free Software Foundation, Inc.
+#  Copyright (C) 199a-2010 Free Software Foundation, Inc.
 #
 #  Written by:	Scott Christley <scottc@net-community.com>
 #
@@ -42,6 +42,9 @@ Additions_OBJC_FILES =\
 	GSXML.m \
 	GSFunctions.m \
 	GSInsensitiveDictionary.m \
+	NSMutableString+GNUstepBase.m \
+	NSString+GNUstepBase.m \
+	NSTask+GNUstepBase.m \
 	behavior.m
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
