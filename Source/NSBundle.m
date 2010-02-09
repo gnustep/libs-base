@@ -52,6 +52,7 @@
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSValue.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #include "GSPrivate.h"
 

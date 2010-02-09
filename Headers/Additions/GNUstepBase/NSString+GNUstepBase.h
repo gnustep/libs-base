@@ -41,6 +41,7 @@ extern "C" {
  * Provides some additional (non-standard) utility methods.
  */
 @interface NSString (GNUstepBase)
+
 /**
  * Alternate way to invoke <code>stringWithFormat</code> if you have or wish
  * to build an explicit <code>va_list</code> structure.
@@ -87,6 +88,12 @@ extern "C" {
  */
 - (NSString*) stringByReplacingString: (NSString*)replace
 			   withString: (NSString*)by;
+
+/**
+ * An obsolete name for -substringWithRange: ... deprecated.
+ */
+- (NSString*) substringFromRange: (NSRange)aRange;
+
 @end
 
 #endif	/* OS_API_VERSION */

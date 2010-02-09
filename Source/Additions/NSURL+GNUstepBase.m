@@ -1,9 +1,8 @@
-/** Declaration of extension methods for base additions
+/* Implementation of extension methods to base additions
 
-   Copyright (C) 2003-2010 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
-   and:         Adam Fedor <fedor@gnu.org>
 
    This file is part of the GNUstep Base Library.
 
@@ -11,7 +10,7 @@
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -24,34 +23,34 @@
 
 */
 
-#ifndef	INCLUDED_NSMutableString_GNUstepBase_h
-#define	INCLUDED_NSMutableString_GNUstepBase_h
+#ifndef	GNUSTEP
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#include "config.h"
+#include "Foundation/Foundation.h"
+#include "GNUstepBase/NSURL+GNUstepBase.h"
 
-#if	defined(__cplusplus)
-extern "C" {
-#endif
+@implementation NSURL (GNUstepBase)
+- (NSString*) fullPath
+{
+  NSRange	r;
+  NSString	*s;
 
-#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
-
-@interface NSMutableString (GNUstepBase)
-- (void) deleteSuffix: (NSString*)suffix;
-- (void) deletePrefix: (NSString*)prefix;
-- (NSString*) immutableProxy;
-- (void) replaceString: (NSString*)replace
-            withString: (NSString*)by;
-- (void) trimLeadSpaces;
-- (void) trimTailSpaces;
-- (void) trimSpaces;
+  s = [self absoluteString];
+  if ((r = [s rangeOfString: @";"]).length > 0)
+    {
+      s = [s substringToIndex: r.location];
+    }
+  else if ((r = [s rangeOfString: @"?"]).length > 0)
+    {
+      s = [s substringToIndex: r.location];
+    }
+  r = [s rangeOfString: @"//"];
+  s = [s substringFromIndex: NSMaxRange(r)];
+  r = [s rangeOfString: @"/"];
+  s = [s substringFromIndex: r.location];
+  return s;
+}
 @end
 
-#endif	/* OS_API_VERSION */
-
-#if	defined(__cplusplus)
-}
 #endif
-
-#endif	/* INCLUDED_NSMutableString_GNUstepBase_h */
 

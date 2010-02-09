@@ -1,4 +1,4 @@
-/* Implementation of extension methods to NSMutableStrings
+/* Implementation of extension methods to base additions
 
    Copyright (C) 2010 Free Software Foundation, Inc.
 

@@ -78,6 +78,8 @@
 // For private method _decodePropertyListForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #include "GSPrivate.h"
 #ifdef HAVE_LIMITS_H
 #include <limits.h>

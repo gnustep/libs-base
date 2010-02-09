@@ -1,4 +1,4 @@
-/* Implementation of extension methods to NSStrings
+/* Implementation of extension methods for base additions
 
    Copyright (C) 2010 Free Software Foundation, Inc.
 
@@ -26,6 +26,7 @@
 #include <string.h>
 #include "Foundation/Foundation.h"
 #include "GNUstepBase/NSString+GNUstepBase.h"
+#include "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /* Test for ASCII whitespace which is safe for unicode characters */
 #define	space(C)	((C) > 127 ? NO : isspace(C))
@@ -44,6 +45,31 @@
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithFormat: format arguments: argList]);
 }
+
+#ifndef MAC_OS_X_VERSION_10_5
+/**
+ * Returns YES when scanning the receiver's text from left to right finds a
+ * digit in the range 1-9 or a letter in the set ('Y', 'y', 'T', 't').<br />
+ * Any trailing characters are ignored.<br />
+ * Any leading whitespace or zeros or signs are also ignored.<br />
+ * Returns NO if the above conditions are not met.
+ */
+- (BOOL) boolValue
+{
+  static NSCharacterSet *yes = nil;
+
+  if (yes == nil)
+    {
+      yes = RETAIN([NSCharacterSet characterSetWithCharactersInString:
+      @"123456789yYtT"]);
+    }
+  if ([self rangeOfCharacterFromSet: yes].length > 0)
+    {
+      return YES;
+    }
+  return NO;
+}
+#endif
 
 /**
  * Returns a string formed by removing the prefix string from the
@@ -193,6 +219,11 @@
     }
   else
     return self;
+}
+
+- (NSString*) substringFromRange:(NSRange)range
+{
+  return [self substringWithRange:range];
 }
 
 @end

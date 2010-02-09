@@ -1,4 +1,4 @@
-/* Implementation of extension methods to NSTask
+/* Implementation of extension methods for base additions
 
    Copyright (C) 2010 Free Software Foundation, Inc.
 

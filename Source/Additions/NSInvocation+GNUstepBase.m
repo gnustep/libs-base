@@ -1,6 +1,6 @@
-/** Declaration of additional methods for base additions
+/* Implementation of extension methods to base additions
 
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -10,7 +10,7 @@
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -22,20 +22,21 @@
    Boston, MA 02111 USA.
 
 */
+#include "config.h"
+#include "Foundation/Foundation.h"
+#include "GNUstepBase/NSInvocation+GNUstepBase.h"
 
-#ifndef	INCLUDED_NSTask_GNUstepBase_h
-#define	INCLUDED_NSTask_GNUstepBase_h
+@implementation NSInvocation(GSCompatibility)
+- (retval_t) returnFrame:(arglist_t)args
+{
+#warning (stephane@sente.ch) Not implemented
+  return (retval_t)[self notImplemented:_cmd];
+}
 
-@interface	NSTask (GNUstepBase)
-/** Returns the launch path for a tool given the name of a tool.<br />
- * Locates the tool by looking in the standard directories and,
- * if not found there, looking in the PATH set in the environment.<br />
- * On ms-windows, this also tries appending common executable path
- * extensions to the tool name in order to find it.<br />
- * Returns the path found, or nil if the tool could not be located.
- */
-+ (NSString*) launchPathForTool: (NSString*)name;
+- (id) initWithArgframe:(arglist_t)args selector:(SEL)selector
+{
+#warning (stephane@sente.ch) Not implemented
+  return [self notImplemented:_cmd];
+}
+
 @end
-
-#endif	/* INCLUDED_NSTask_GNUstepBase_h */
-

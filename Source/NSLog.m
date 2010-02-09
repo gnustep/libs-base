@@ -37,6 +37,7 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSThread.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>

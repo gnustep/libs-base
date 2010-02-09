@@ -24,8 +24,8 @@
 
 */
 
-#ifndef	INCLUDED_NSMutableString_GNUstepBase_h
-#define	INCLUDED_NSMutableString_GNUstepBase_h
+#ifndef	INCLUDED_NSProcessInfo_GNUstepBase_h
+#define	INCLUDED_NSProcessInfo_GNUstepBase_h
 
 #include <GNUstepBase/GSVersionMacros.h>
 #include <Foundation/Foundation.h>
@@ -36,15 +36,31 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
-@interface NSMutableString (GNUstepBase)
-- (void) deleteSuffix: (NSString*)suffix;
-- (void) deletePrefix: (NSString*)prefix;
-- (NSString*) immutableProxy;
-- (void) replaceString: (NSString*)replace
-            withString: (NSString*)by;
-- (void) trimLeadSpaces;
-- (void) trimTailSpaces;
-- (void) trimSpaces;
+@interface NSProcessInfo(GNUstepBase)
+
+/**
+ * Returns a indication of whether debug logging is enabled.
+ * This returns YES unless a call to -setDebugLoggingEnabled: has
+ * been used to turn logging off.
+ */
+- (BOOL) debugLoggingEnabled;
+
+/**
+ * This method returns a set of debug levels set using the
+ * --GNU-Debug=... command line option and/or the GNU-Debug
+ * user default.<br />
+ * You can modify this set to change the debug logging under
+ * your programs control ... but such modifications are not
+ * thread-safe.
+ */
+- (NSMutableSet*) debugSet;
+
+/**
+ * This method permits you to turn all debug logging on or off
+ * without modifying the set of debug levels in use.
+ */
+- (void) setDebugLoggingEnabled: (BOOL)flag;
+
 @end
 
 #endif	/* OS_API_VERSION */
@@ -53,5 +69,5 @@ extern "C" {
 }
 #endif
 
-#endif	/* INCLUDED_NSMutableString_GNUstepBase_h */
+#endif	/* INCLUDED_NSProcessInfo_GNUstepBase_h */
 

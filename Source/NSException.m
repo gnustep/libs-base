@@ -39,6 +39,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSValue.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 #include <stdio.h>
 
 #ifdef HAVE_BACKTRACE

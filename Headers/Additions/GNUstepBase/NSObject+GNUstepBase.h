@@ -24,8 +24,8 @@
 
 */
 
-#ifndef	INCLUDED_NSMutableString_GNUstepBase_h
-#define	INCLUDED_NSMutableString_GNUstepBase_h
+#ifndef	INCLUDED_NSObject_GNUstepBase_h
+#define	INCLUDED_NSObject_GNUstepBase_h
 
 #include <GNUstepBase/GSVersionMacros.h>
 #include <Foundation/Foundation.h>
@@ -36,15 +36,21 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
-@interface NSMutableString (GNUstepBase)
-- (void) deleteSuffix: (NSString*)suffix;
-- (void) deletePrefix: (NSString*)prefix;
-- (NSString*) immutableProxy;
-- (void) replaceString: (NSString*)replace
-            withString: (NSString*)by;
-- (void) trimLeadSpaces;
-- (void) trimTailSpaces;
-- (void) trimSpaces;
+@interface NSObject (GNUstepBase)
+- (id) notImplemented: (SEL)aSel;
+- (id) subclassResponsibility: (SEL)aSel;
+- (id) shouldNotImplement: (SEL)aSel;
+/**
+  WARNING: The -compare: method for NSObject is deprecated
+           due to subclasses declaring the same selector with 
+	   conflicting signatures.
+           Comparision of arbitrary objects is not just meaningless
+           but also dangerous as most concrete implementations
+           expect comparable objects as arguments often accessing
+	   instance variables directly.
+	   This method will be removed in a future release.
+*/
+- (NSComparisonResult) compare: (id)anObject;
 @end
 
 #endif	/* OS_API_VERSION */
@@ -53,5 +59,5 @@ extern "C" {
 }
 #endif
 
-#endif	/* INCLUDED_NSMutableString_GNUstepBase_h */
+#endif	/* INCLUDED_NSObject_GNUstepBase_h */
 

@@ -58,7 +58,7 @@
 #import	<Foundation/Foundation.h>
 #import	"GNUstepBase/GSMime.h"
 #import	"GNUstepBase/GSXML.h"
-#import	"GNUstepBase/GSCategories.h"
+#import	"GNUstepBase/NSString+GNUstepBase.h"
 #import	"GNUstepBase/Unicode.h"
 
 #include "../GSPrivate.h"

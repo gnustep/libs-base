@@ -24,8 +24,8 @@
 
 */
 
-#ifndef	INCLUDED_NSMutableString_GNUstepBase_h
-#define	INCLUDED_NSMutableString_GNUstepBase_h
+#ifndef	INCLUDED_NSInvocation_GNUstepBase_h
+#define	INCLUDED_NSInvocation_GNUstepBase_h
 
 #include <GNUstepBase/GSVersionMacros.h>
 #include <Foundation/Foundation.h>
@@ -36,15 +36,9 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
-@interface NSMutableString (GNUstepBase)
-- (void) deleteSuffix: (NSString*)suffix;
-- (void) deletePrefix: (NSString*)prefix;
-- (NSString*) immutableProxy;
-- (void) replaceString: (NSString*)replace
-            withString: (NSString*)by;
-- (void) trimLeadSpaces;
-- (void) trimTailSpaces;
-- (void) trimSpaces;
+@interface NSInvocation(GNUstepBase)
+- (retval_t) returnFrame:(arglist_t)args;
+- (id) initWithArgframe:(arglist_t)args selector:(SEL)selector;
 @end
 
 #endif	/* OS_API_VERSION */
@@ -53,5 +47,5 @@ extern "C" {
 }
 #endif
 
-#endif	/* INCLUDED_NSMutableString_GNUstepBase_h */
+#endif	/* INCLUDED_NSInvocation_GNUstepBase_h */
 
