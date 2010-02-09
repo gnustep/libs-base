@@ -553,6 +553,7 @@ static NSOperationQueue *mainQueue = nil;
      waitUntilFinished: (BOOL)shouldWait
 {
   NSUInteger	count;
+  NSUInteger	index;
 
   if (ops == nil || NO == [ops isKindOfClass: [NSArray class]])
     {
@@ -565,7 +566,6 @@ static NSOperationQueue *mainQueue = nil;
     {
       BOOL		invalidArg = NO;
       GS_BEGINITEMBUF(buf, count, id)
-      NSUInteger	index;
       NSUInteger	toAdd = count;
 
       [ops getObjects: buf];
