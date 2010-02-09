@@ -237,6 +237,7 @@ typedef enum _NSGNUstepStringEncoding
 @interface NSMutableString (GSCategories)
 - (void) deleteSuffix: (NSString*)suffix;
 - (void) deletePrefix: (NSString*)prefix;
+- (NSString*) immutableProxy;
 - (void) replaceString: (NSString*)replace
             withString: (NSString*)by;
 - (void) trimLeadSpaces;

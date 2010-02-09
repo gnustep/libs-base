@@ -878,6 +878,15 @@ extern struct objc_class _NSConstantStringClassReference;
 - (void) deletePrefix: (NSString*)prefix;
 
 /**
+ * Returns a proxy to the receiver which will allow access to the
+ * receiver as an NSString, but which will not allow any of the
+ * extra NSMutableString methods to be used.  You can use this method
+ * to provide other code with read-only access to a mutable string
+ * you own.
+ */
+- (NSString*) immutableProxy;
+
+/**
  * Replaces all occurrences of the string replace with the string by
  * in the receiver.<br />
  * Has no effect if replace does not occur within the

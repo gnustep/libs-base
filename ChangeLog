@@ -1,3 +1,13 @@
+2010-02-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSAttributedString.m:
+	* Source/Additions/GSCategories.m:
+	* Headers/Foundation/NSString.h:
+	* Headers/Additions/GNUstepBase/GSCategories.h:
+	Re-instated the immutableProxy mathod, but as a clean category on
+	NSMutableString in the additions library.
+	Use for the -string method of NSAttributedString
+
 2010-02-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAttributedString.m: minor cosmetic change

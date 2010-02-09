@@ -1126,6 +1126,189 @@ strerror_r(int eno, char *buf, int len)
 
 @end
 
+/* This private cass is used for the -immutableProxy method in the category
+ * on NSMutableString.
+ * It is needed for [NSAttributedString-string] and [NSTextStorage-string]
+ */
+@interface	GSImmutableString : NSString
+{
+  NSString	*_parent;
+}
+- (id) initWithString: (NSString*)parent;
+@end
+
+@implementation GSImmutableString
+
+- (BOOL) canBeConvertedToEncoding: (NSStringEncoding)enc
+{
+  return [_parent canBeConvertedToEncoding: enc];
+}
+
+- (unichar) characterAtIndex: (NSUInteger)index
+{
+  return [_parent characterAtIndex: index];
+}
+
+- (NSComparisonResult) compare: (NSString*)aString
+		       options: (NSUInteger)mask
+			 range: (NSRange)aRange
+{
+  return [_parent compare: aString options: mask range: aRange];
+}
+
+- (const char *) cString
+{
+  return [_parent cString];
+}
+
+- (const char *) cStringUsingEncoding: (NSStringEncoding)encoding
+{
+  return [_parent cStringUsingEncoding: encoding];
+}
+
+- (NSUInteger) cStringLength
+{
+  return [_parent cStringLength];
+}
+
+- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
+	 allowLossyConversion: (BOOL)flag
+{
+  return [_parent dataUsingEncoding: encoding allowLossyConversion: flag];
+}
+
+- (void) dealloc
+{
+  RELEASE(_parent);
+  [super dealloc];
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return [_parent copyWithZone: z];
+}
+
+- (id) mutableCopyWithZone: (NSZone*)z
+{
+  return [_parent mutableCopyWithZone: z];
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [_parent encodeWithCoder: aCoder];
+}
+
+- (NSStringEncoding) fastestEncoding
+{
+  return [_parent fastestEncoding];
+}
+
+- (void) getCharacters: (unichar*)buffer
+{
+  [_parent getCharacters: buffer];
+}
+
+- (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
+{
+  [_parent getCharacters: buffer range: aRange];
+}
+
+- (void) getCString: (char*)buffer
+{
+  [_parent getCString: buffer];
+}
+
+- (void) getCString: (char*)buffer
+	  maxLength: (NSUInteger)maxLength
+{
+  [_parent getCString: buffer maxLength: maxLength];
+}
+
+- (BOOL) getCString: (char*)buffer
+	  maxLength: (NSUInteger)maxLength
+	   encoding: (NSStringEncoding)encoding
+{
+  return [_parent getCString: buffer maxLength: maxLength encoding: encoding];
+}
+
+- (void) getCString: (char*)buffer
+	  maxLength: (NSUInteger)maxLength
+	      range: (NSRange)aRange
+     remainingRange: (NSRange*)leftoverRange
+{
+  [_parent getCString: buffer
+	    maxLength: maxLength
+		range: aRange
+       remainingRange: leftoverRange];
+}
+
+- (NSUInteger) hash
+{
+  return [_parent hash];
+}
+
+- (id) initWithString: (NSString*)parent
+{
+  _parent = RETAIN(parent);
+  return self;
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+  return [_parent isEqual: anObject];
+}
+
+- (BOOL) isEqualToString: (NSString*)anObject
+{
+  return [_parent isEqualToString: anObject];
+}
+
+- (NSUInteger) length
+{
+  return [_parent length];
+}
+
+- (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+{
+  return [_parent lengthOfBytesUsingEncoding: encoding];
+}
+
+- (const char*) lossyCString
+{
+  return [_parent lossyCString];
+}
+
+- (NSUInteger) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+{
+  return [_parent maximumLengthOfBytesUsingEncoding: encoding];
+}
+
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
+{
+  return [_parent rangeOfComposedCharacterSequenceAtIndex: anIndex];
+}
+
+- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
+			    options: (NSUInteger)mask
+			      range: (NSRange)aRange
+{
+  return [_parent rangeOfCharacterFromSet: aSet options: mask range: aRange];
+}
+
+- (NSRange) rangeOfString: (NSString*)aString
+		  options: (NSUInteger)mask
+		    range: (NSRange)aRange
+{
+  return [_parent rangeOfString: aString options: mask range: aRange];
+}
+
+- (NSStringEncoding) smallestEncoding
+{
+  return [_parent smallestEncoding];
+}
+
+@end
+
 /**
  * GNUstep specific (non-standard) additions to the NSString class.
  */
@@ -1319,6 +1502,18 @@ strerror_r(int eno, char *buf, int len)
   NSCAssert2([self hasPrefix: prefix],
     @"'%@' does not have the prefix '%@'", self, prefix);
   [self deleteCharactersInRange: NSMakeRange(0, [prefix length])];
+}
+
+/**
+ * Returns a proxy to the receiver which will allow access to the
+ * receiver as an NSString, but which will not allow any of the
+ * extra NSMutableString methods to be used.  You can use this method
+ * to provide other code with read-only access to a mutable string
+ * you own.
+ */
+- (NSString*) immutableProxy
+{
+  return AUTORELEASE([[GSImmutableString alloc] initWithString: self]);
 }
 
 /**
