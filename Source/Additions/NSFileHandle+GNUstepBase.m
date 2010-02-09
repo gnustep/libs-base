@@ -24,15 +24,10 @@
 */
 #include "config.h"
 #include "Foundation/Foundation.h"
+#include "GSNetwork.h"
 #include "GSPrivate.h"
 #include "GNUstepBase/NSFileHandle+GNUstepBase.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
 
 @implementation NSFileHandle(GNUstepBase)
 // From GSFileHandle.m
