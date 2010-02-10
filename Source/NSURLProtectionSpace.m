@@ -23,6 +23,7 @@
    */ 
 
 #import "GSURLPrivate.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 
 NSString * const NSURLProtectionSpaceFTPProxy = @"ftp";	
 NSString * const NSURLProtectionSpaceHTTPProxy = @"http";

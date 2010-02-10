@@ -22,10 +22,10 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSArray+GNUstepBase.h"
-#include "GSPrivate.h"
+#import "config.h"
+#import "Foundation/NSException.h"
+#import "GNUstepBase/NSArray+GNUstepBase.h"
+#import "GSPrivate.h"
 
 @implementation NSArray (GNUstepBase)
 

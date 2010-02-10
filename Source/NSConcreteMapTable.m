@@ -26,7 +26,7 @@
    $Date: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008) $ $Revision: 26606 $
    */
 
-#include "config.h"
+#import "config.h"
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDebug.h"
@@ -40,6 +40,7 @@
 
 #import "NSConcretePointerFunctions.h"
 #import "NSCallBacks.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 static Class	concreteClass = Nil;
 

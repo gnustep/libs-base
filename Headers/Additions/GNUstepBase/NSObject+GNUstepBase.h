@@ -27,8 +27,8 @@
 #ifndef	INCLUDED_NSObject_GNUstepBase_h
 #define	INCLUDED_NSObject_GNUstepBase_h
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -37,8 +37,29 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface NSObject (GNUstepBase)
+/**
+ * Message sent when an implementation wants to explicitly exclude a method
+ * (but cannot due to compiler constraint), and wants to make sure it is not
+ * called by mistake.  Default implementation raises an exception at runtime.
+ */
 - (id) notImplemented: (SEL)aSel;
+
+/**
+ * Message sent when an implementation wants to explicitly require a subclass
+ * to implement a method (but cannot at compile time since there is no
+ * <code>abstract</code> keyword in Objective-C).  Default implementation
+ * raises an exception at runtime to alert developer that he/she forgot to
+ * override a method.
+ */
 - (id) subclassResponsibility: (SEL)aSel;
+
+/**
+ * Message sent when an implementation wants to explicitly exclude a method
+ * (but cannot due to compiler constraint) and forbid that subclasses
+ * implement it.  Default implementation raises an exception at runtime.  If a
+ * subclass <em>does</em> implement this method, however, the superclass's
+ * implementation will not be called, so this is not a perfect mechanism.
+ */
 - (id) shouldNotImplement: (SEL)aSel;
 /**
   WARNING: The -compare: method for NSObject is deprecated

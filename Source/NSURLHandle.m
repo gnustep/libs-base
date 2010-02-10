@@ -32,6 +32,7 @@
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSFileManager.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 @class	GSFTPURLHandle;

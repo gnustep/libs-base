@@ -27,8 +27,8 @@
 #ifndef	INCLUDED_NSAttributedString_GNUstepBase_h
 #define	INCLUDED_NSAttributedString_GNUstepBase_h
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSAttributedString.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -37,6 +37,10 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface      NSAttributedString (GNUstepBase)
+/**
+ * Deprecated synonym for attributedSubstringFromRange:
+ * for consistency with NSString
+ */
 - (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange;
 @end
 

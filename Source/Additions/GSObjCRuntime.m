@@ -29,30 +29,30 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSArray.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSMethodSignature.h>
-#include <Foundation/NSNull.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSSet.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSValue.h>
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GNUstep.h"
+#import "GNUstepBase/GSCategories.h"
 
-#include "../GSPrivate.h"
+#import "../GSPrivate.h"
 
 #include <objc/Protocol.h>
 
@@ -1405,8 +1405,8 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 
 
 #ifndef NeXT_Foundation_LIBRARY
-#include	<Foundation/NSValue.h>
-#include	<Foundation/NSKeyValueCoding.h>
+#import	"Foundation/NSValue.h"
+#import	"Foundation/NSKeyValueCoding.h"
 #endif
 
 

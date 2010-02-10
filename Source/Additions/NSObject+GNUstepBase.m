@@ -22,9 +22,9 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSObject+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSException.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /**
  * Extension methods for the NSObject class

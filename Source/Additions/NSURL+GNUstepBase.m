@@ -25,9 +25,9 @@
 
 #ifndef	GNUSTEP
 
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSURL+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSString.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 
 @implementation NSURL (GNUstepBase)
 - (NSString*) fullPath

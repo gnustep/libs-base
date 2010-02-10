@@ -25,18 +25,19 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSPortNameServer.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSUserDefaults.h"
-#include "GSPrivate.h"
+#import "config.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSPortNameServer.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 @class NSMessagePort;

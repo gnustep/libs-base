@@ -24,17 +24,18 @@
  * $Date$ $Revision$
  */
 
-#include "config.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPointerFunctions.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSDebug.h"
-#include "NSCallBacks.h"
+#import "config.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPointerFunctions.h"
+#import "Foundation/NSZone.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSDebug.h"
+#import "NSCallBacks.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @interface	NSConcreteMapTable : NSMapTable
 @end

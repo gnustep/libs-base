@@ -48,14 +48,15 @@
  */
 
 #include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/Unicode.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/Unicode.h"
 
-#include "Foundation/NSAttributedString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSRange.h"
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSRange.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSAttributedString;
 @interface GSAttributedString : NSObject	// Help the compiler

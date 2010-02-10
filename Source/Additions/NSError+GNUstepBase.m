@@ -22,9 +22,14 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GSPrivate.h"
+#import "config.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "GSPrivate.h"
+
+#if !defined(__MINGW32__)
+#include <errno.h>
+#endif
 
 /**
  * GNUstep specific (non-standard) additions to the NSError class.
@@ -83,7 +88,6 @@ strerror_r(int eno, char *buf, int len)
  */
 + (NSError*) _last
 {
-  extern int	errno;
   int	eno;
 #if defined(__MINGW32__)
   eno = GetLastError();

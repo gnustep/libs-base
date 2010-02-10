@@ -138,7 +138,6 @@ NSMutableString+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
 NSObject+GNUstepBase.h \
 NSProcessInfo+GNUstepBase.h \
-NSRecursiveLock+GNUstepBase.h \
 NSString+GNUstepBase.h \
 NSTask+GNUstepBase.h \
 NSURL+GNUstepBase.h \

@@ -22,9 +22,9 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSCalendarDate+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "GNUstepBase/NSCalendarDate+GNUstepBase.h"
 
 /**
  * Extension methods for the NSCalendarDate class

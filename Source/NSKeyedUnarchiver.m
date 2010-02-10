@@ -50,7 +50,7 @@
 #include "GNUstepBase/GSIArray.h"
 
 #define	_IN_NSKEYEDUNARCHIVER_M	1
-#include <Foundation/NSKeyedArchiver.h>
+#include "Foundation/NSKeyedArchiver.h"
 #undef	_IN_NSKEYEDUNARCHIVER_M
 
 @interface NilMarker: NSObject

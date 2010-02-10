@@ -26,6 +26,15 @@
 #ifndef	INCLUDED_NSTask_GNUstepBase_h
 #define	INCLUDED_NSTask_GNUstepBase_h
 
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSTask.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
+
 @interface	NSTask (GNUstepBase)
 /** Returns the launch path for a tool given the name of a tool.<br />
  * Locates the tool by looking in the standard directories and,
@@ -36,6 +45,12 @@
  */
 + (NSString*) launchPathForTool: (NSString*)name;
 @end
+
+#endif	/* OS_API_VERSION */
+
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* INCLUDED_NSTask_GNUstepBase_h */
 

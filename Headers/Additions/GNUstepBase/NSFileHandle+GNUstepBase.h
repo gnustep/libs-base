@@ -27,8 +27,8 @@
 #ifndef	INCLUDED_NSFileHandle_GNUstepBase_h
 #define	INCLUDED_NSFileHandle_GNUstepBase_h
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSFileHandle.h>
 
 #if	defined(__cplusplus)
 extern "C" {

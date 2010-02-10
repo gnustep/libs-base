@@ -26,12 +26,14 @@
    $Date$ $Revision$
    */
 
-#include "Foundation/NSException.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSInvocation.h"
-#include "GSInvocation.h"
-#include "config.h"
-#include "GSPrivate.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSInvocation.h"
+#import "GSInvocation.h"
+#import "config.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+
 #if defined(USE_LIBFFI)
 #include "cifframe.h"
 #elif defined(USE_FFCALL)

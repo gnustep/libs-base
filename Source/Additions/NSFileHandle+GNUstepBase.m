@@ -22,11 +22,12 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GSNetwork.h"
-#include "GSPrivate.h"
-#include "GNUstepBase/NSFileHandle+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSHost.h"
+#import "GSNetwork.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/NSFileHandle+GNUstepBase.h"
 
 
 @implementation NSFileHandle(GNUstepBase)

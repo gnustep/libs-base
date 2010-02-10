@@ -27,19 +27,20 @@
 */
 
 #include "config.h"
-#include "GNUstepBase/GSLock.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSIndexSet.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
+#import "GNUstepBase/GSLock.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSIndexSet.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDebug.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #define	GNUSTEP_INDEX_CHARSET	1
 //#undef	GNUSTEP_INDEX_CHARSET

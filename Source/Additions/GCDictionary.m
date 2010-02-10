@@ -24,17 +24,17 @@
 
 */
 
-#include "config.h"
+#import "config.h"
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GNUstepBase/GCObject.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GCObject.h"
+#import "GNUstepBase/GSCategories.h"
 
 typedef struct {
   id	object;

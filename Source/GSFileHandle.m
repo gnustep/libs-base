@@ -43,6 +43,7 @@
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSDebug.h"
 #import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "../Tools/gdomap.h"
 

@@ -25,12 +25,13 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortMessage.h"
-#include "Foundation/NSObjCRuntime.h"
+#import "config.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortMessage.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation	NSPortMessage
 

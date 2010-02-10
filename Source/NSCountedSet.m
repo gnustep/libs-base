@@ -36,6 +36,7 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSCountedSet;
 @interface GSCountedSet : NSObject	// Help the compiler

@@ -76,7 +76,7 @@
 
    FIXME?: use leap seconds? */
 
-#include "config.h"
+#import "config.h"
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
 #include <limits.h>
@@ -106,6 +106,7 @@
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSDebug.h"
 #import "GNUstepBase/GSConfig.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 

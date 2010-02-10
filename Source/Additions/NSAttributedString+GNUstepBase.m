@@ -22,9 +22,10 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSAttributedString+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSException.h"
+#import "GNUstepBase/NSAttributedString+GNUstepBase.h"
 
 @implementation	NSAttributedString (GNUstepBase)
 - (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange

@@ -40,19 +40,22 @@
    </chapter>
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/Unicode.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/Unicode.h"
 
 
 #ifdef	HAVE_LIBXML
 
 // #undef	HAVE_LIBXML_SAX2_H
 
-#include "GNUstepBase/GSMime.h"
-#include "GNUstepBase/GSXML.h"
-#include <Foundation/Foundation.h>
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/GSXML.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSString.h"
 
 /* Avoid problems on systems where the xml headers use 'id'
  */
@@ -4100,12 +4103,12 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 #else
 
 #ifndef NeXT_Foundation_LIBRARY
-#include	<Foundation/NSObjCRuntime.h>
-#include	<Foundation/NSCoder.h>
-#include	<Foundation/NSInvocation.h>
-#include	<Foundation/NSString.h>
+#import	"Foundation/NSObjCRuntime.h"
+#import	"Foundation/NSCoder.h"
+#import	"Foundation/NSInvocation.h"
+#import	"Foundation/NSString.h"
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
 /*

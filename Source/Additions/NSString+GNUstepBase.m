@@ -22,11 +22,11 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
+#import "config.h"
 #include <string.h>
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSString+GNUstepBase.h"
-#include "GNUstepBase/NSMutableString+GNUstepBase.h"
+#import "Foundation/NSException.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /* Test for ASCII whitespace which is safe for unicode characters */
 #define	space(C)	((C) > 127 ? NO : isspace(C))

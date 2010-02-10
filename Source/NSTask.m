@@ -25,7 +25,7 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSObject.h"
 #import "Foundation/NSAutoreleasePool.h"
@@ -48,6 +48,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSDebug.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 
 #include <string.h>

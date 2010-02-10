@@ -27,8 +27,8 @@
 #ifndef	INCLUDED_NSNumber_GNUstepBase_h
 #define	INCLUDED_NSNumber_GNUstepBase_h
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSValue.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -37,6 +37,12 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface NSNumber(GNUstepBase)
+/**
+ * Parses string as a <code>double</code>, <code>int</code>, or <code>unsigned
+ * int</code> depending on what characters are present.  Uses
+ * <code>atof</code> and <code>atoi</code> which don't report errors, so be
+ * careful if the string might contain an invalid value.
+ */
 + (NSValue*) valueFromString: (NSString *)string;
 @end
 

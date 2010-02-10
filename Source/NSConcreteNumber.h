@@ -23,7 +23,7 @@
    Boston, MA 02111 USA.
 */
 
-#include <Foundation/NSValue.h>
+#import "Foundation/NSValue.h"
 
 @interface NSBoolNumber : NSNumber
 {

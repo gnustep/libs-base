@@ -23,9 +23,12 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSBundle+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSSet.h"
+#import "GNUstepBase/NSBundle+GNUstepBase.h"
 
 @implementation NSBundle(GNUstepBase)
 

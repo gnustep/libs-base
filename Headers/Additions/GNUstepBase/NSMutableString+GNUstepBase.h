@@ -27,8 +27,8 @@
 #ifndef	INCLUDED_NSMutableString_GNUstepBase_h
 #define	INCLUDED_NSMutableString_GNUstepBase_h
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSString.h>
 
 #if	defined(__cplusplus)
 extern "C" {

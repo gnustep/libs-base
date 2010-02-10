@@ -23,10 +23,9 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
+#import "config.h"
 #include <objc/objc-class.h>
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/GCObject.h"
+#import "GNUstepBase/GCObject.h"
 
 /* Avoid compiler warnings about internal method
 */

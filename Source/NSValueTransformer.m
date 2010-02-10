@@ -23,7 +23,13 @@
    Boston, MA 02111 USA.
    */ 
 
-#import "Foundation/Foundation.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSValueTransformer.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSLock.h"
 
 @interface NSNegateBooleanTransformer : NSValueTransformer

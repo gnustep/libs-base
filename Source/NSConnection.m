@@ -39,6 +39,7 @@
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSDebug.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /*
  *	Setup for inline operation of pointer map tables.

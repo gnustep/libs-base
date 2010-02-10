@@ -27,8 +27,8 @@
 #ifndef	INCLUDED_NSURL_GNUstepBase_h
 #define	INCLUDED_NSURL_GNUstepBase_h
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSURL.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -37,6 +37,8 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface NSURL (GNUstepBase)
+/** Returns the full path for this URL including any trailing slash.
+ */
 - (NSString*) fullPath;
 @end
 

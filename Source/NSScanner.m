@@ -32,12 +32,13 @@
 #define _GNU_SOURCE
 #endif
 
-#include "config.h"
-#include "GNUstepBase/Unicode.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSUserDefaults.h"
+#import "config.h"
+#import "GNUstepBase/Unicode.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #include <float.h>
 #include <limits.h>

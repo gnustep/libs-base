@@ -28,8 +28,8 @@
 #ifndef	INCLUDED_NSCalendarDate_GNUstepBase_h
 #define	INCLUDED_NSCalendarDate_GNUstepBase_h
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSCalendarDate.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -38,6 +38,16 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface NSCalendarDate (GNUstepBase)
+/**
+ * The ISO standard week of the year is based on the first week of the
+ * year being that week (starting on monday) for which the thursday
+ * is on or after the first of january.<br />
+ * This has the effect that, if january first is a friday, saturday or
+ * sunday, the days of that week (up to and including the sunday) are
+ * considered to be in week 53 of the preceding year. Similarly if the
+ * last day of the year is a monday tuesday or wednesday, these days are
+ * part of week 1 of the next year.
+ */
 - (NSInteger) weekOfYear;
 @end
 

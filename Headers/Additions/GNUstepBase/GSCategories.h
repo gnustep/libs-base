@@ -22,8 +22,6 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   AutogsdocSource: Additions/GSCategories.m
-
 */
 
 #ifndef	INCLUDED_GS_CATEGORIES_H

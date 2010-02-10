@@ -27,8 +27,8 @@
 #ifndef	INCLUDED_NSProcessInfo_GNUstepBase_h
 #define	INCLUDED_NSProcessInfo_GNUstepBase_h
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <Foundation/Foundation.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSProcessInfo.h>
 
 #if	defined(__cplusplus)
 extern "C" {

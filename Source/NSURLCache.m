@@ -23,6 +23,7 @@
    */ 
 
 #import "GSURLPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // FIXME ... locking and disk storage needed
 typedef struct {

@@ -46,6 +46,7 @@
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 #import "NSCallBacks.h"
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"

@@ -23,18 +23,19 @@
    Boston, MA 02111 USA.
    */ 
 
-#import <Foundation/NSError.h>
-#import <Foundation/NSHost.h>
-#import <Foundation/NSNotification.h>
-#import <Foundation/NSRunLoop.h>
-#import <Foundation/NSValue.h>
-#import <Foundation/NSDebug.h>
-
-#import "GNUstepBase/GSMime.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDebug.h"
 
 #import "GSPrivate.h"
 #import "GSURLPrivate.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 
 /* Define to 1 for experimental (net yet working) compression support
  */

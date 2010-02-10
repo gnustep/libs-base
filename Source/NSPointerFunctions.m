@@ -24,6 +24,7 @@
    */ 
 
 #import	"NSConcretePointerFunctions.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 static Class	abstractClass = Nil;
 static Class	concreteClass = Nil;

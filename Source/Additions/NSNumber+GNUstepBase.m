@@ -22,9 +22,8 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSNumber+GNUstepBase.h"
+#import "config.h"
+#import "GNUstepBase/NSNumber+GNUstepBase.h"
 
 /**
  * GNUstep specific (non-standard) additions to the NSNumber class.

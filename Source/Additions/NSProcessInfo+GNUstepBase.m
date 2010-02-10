@@ -24,9 +24,12 @@
 */
 
 
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSProcessInfo+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSString.h"
+#import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 
 @implementation NSProcessInfo(GNUstepBase)
 

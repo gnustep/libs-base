@@ -22,9 +22,9 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSInvocation+GNUstepBase.h"
+#import "config.h"
+#import "GNUstepBase/NSInvocation+GNUstepBase.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSInvocation(GSCompatibility)
 - (retval_t) returnFrame:(arglist_t)args

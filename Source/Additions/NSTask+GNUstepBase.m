@@ -22,9 +22,11 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSTask+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSProcessInfo.h"
+#import "GNUstepBase/NSTask+GNUstepBase.h"
 
 @implementation	NSTask (GSCategories)
 

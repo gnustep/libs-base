@@ -52,7 +52,7 @@
 #import "Foundation/NSIndexSet.h"
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
-#import "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSFastEnumeration.h"
 

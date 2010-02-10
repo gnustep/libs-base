@@ -22,10 +22,10 @@
    Boston, MA 02111 USA.
    */
 
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSError.h>
-#include	<Foundation/NSCoder.h>
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSError.h"
+#import	"Foundation/NSCoder.h"
 
 NSString* const NSFilePathErrorKey = @"NSFilePathErrorKey";
 NSString* const NSLocalizedDescriptionKey = @"NSLocalizedDescriptionKey";

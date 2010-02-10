@@ -22,8 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
-#include "Foundation/NSSet.h"
+#import "GSURLPrivate.h"
+#import "Foundation/NSSet.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSHTTPCookieManagerAcceptPolicyChangedNotification
   = @"NSHTTPCookieManagerAcceptPolicyChangedNotification";

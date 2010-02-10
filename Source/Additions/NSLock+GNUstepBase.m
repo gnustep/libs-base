@@ -22,10 +22,10 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSLock+GNUstepBase.h"
-#include "GNUstepBase/GSLock.h"
+#import "config.h"
+#import "Foundation/NSException.h"
+#import "GNUstepBase/NSLock+GNUstepBase.h"
+#import "GNUstepBase/GSLock.h"
 
 /**
  * GNUstep specific (non-standard) additions to the NSLock class.

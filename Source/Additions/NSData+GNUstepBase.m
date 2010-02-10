@@ -22,10 +22,12 @@
    Boston, MA 02111 USA.
 
 */
-#include "config.h"
-#include "Foundation/Foundation.h"
-#include "GNUstepBase/NSData+GNUstepBase.h"
-#include "GNUstepBase/NSString+GNUstepBase.h"
+#import "config.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSException.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 /**
  * Extension methods for the NSData class.
