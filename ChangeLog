@@ -1,3 +1,7 @@
+2010-02-11 07:37-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* install.sh: Removed configure.
+
 2010-02-09 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Source/NSOperation.m: Move declaration upwards to fix compile error.
@@ -42,6 +46,7 @@
 	Partial implementation of NSOperationQueue (OSX Leopard functionality
 	plus a little of Snow Leopard).
 
+>>>>>>> .r29544
 2010-02-05 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Headers/Additions/GNUstepBase/GSIMap.h: fixed c99-ism
