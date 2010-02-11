@@ -32,6 +32,7 @@
 */
 
 #include "config.h"
+#define	EXPOSE_NSThread_IVARS	1
 #include "GNUstepBase/preface.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

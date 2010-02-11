@@ -28,6 +28,7 @@
   */
 
 #import "config.h"
+#define	EXPOSE_NSHost_IVARS	1
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSHost.h"

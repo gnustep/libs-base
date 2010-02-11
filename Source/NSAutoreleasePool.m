@@ -27,6 +27,7 @@
    */
 
 #include "config.h"
+#define	EXPOSE_NSAutoreleasePool_IVARS	1
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSGarbageCollector.h"

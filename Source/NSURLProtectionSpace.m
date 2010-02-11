@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSURLProtectionSpace_IVARS	1
 #import "GSURLPrivate.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 

@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSURLConnection_IVARS	1
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSDebug.h"
 #import "GSURLPrivate.h"

@@ -77,6 +77,7 @@
    FIXME?: use leap seconds? */
 
 #import "config.h"
+#define	EXPOSE_NSTimeZone_IVARS	1
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
 #include <limits.h>

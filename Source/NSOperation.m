@@ -27,6 +27,8 @@
    */ 
 
 #import "config.h"
+#define	EXPOSE_NSOperation_IVARS	1
+#define	EXPOSE_NSOperationQueue_IVARS	1
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"

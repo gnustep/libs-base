@@ -32,6 +32,7 @@
 */
 
 #include "config.h"
+#define	EXPOSE_NSBundle_IVARS	1
 #include "GNUstepBase/preface.h"
 #include "objc-load.h"
 #include "Foundation/NSBundle.h"

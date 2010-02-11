@@ -26,6 +26,7 @@
    */
 
 #import "config.h"
+#define	EXPOSE_NSPortMessage_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"

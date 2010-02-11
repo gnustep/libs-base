@@ -23,6 +23,7 @@
    */ 
 
 
+#define	EXPOSE_NSURLDownload_IVARS	1
 #import "GSURLPrivate.h"
 
 @interface	GSURLDownload : NSObject <NSURLProtocolClient>

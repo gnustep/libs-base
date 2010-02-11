@@ -23,6 +23,7 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSURLProtocol_IVARS	1
 #import "Foundation/NSError.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSNotification.h"

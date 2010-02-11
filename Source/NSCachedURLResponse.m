@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSCachedURLResponse_VARS	1
 #include "GSURLPrivate.h"
 #include "Foundation/NSCoder.h"
 

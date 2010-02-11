@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */
 
+#define	EXPOSE_NSError_IVARS	1
 #import	"Foundation/NSDictionary.h"
 #import	"Foundation/NSString.h"
 #import	"Foundation/NSError.h"

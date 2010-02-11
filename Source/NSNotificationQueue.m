@@ -28,17 +28,18 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSThread.h"
+#import "config.h"
+#define	EXPOSE_NSNotificationQueue_IVARS	1
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSThread.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 /* NotificationQueueList by Richard Frith-Macdonald
    These objects are used to maintain lists of NSNotificationQueue objects.
    There is one list per NSThread, with the first object in the list stored

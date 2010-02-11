@@ -27,16 +27,17 @@
    $Date$ $Revision$
    */
 
-#include "Foundation/NSAttributedString.h"
-#include "Foundation/NSDecimalNumber.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSNumberFormatter.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSCharacterSet.h"
+#define	EXPOSE_NSNumberFormatter_IVARS	1
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSDecimalNumber.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSNumberFormatter.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSCharacterSet.h"
 
-#include "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/GSLocale.h"
 
 @implementation NSNumberFormatter
 

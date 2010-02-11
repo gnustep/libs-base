@@ -52,6 +52,9 @@
 */
 
 #import "config.h"
+#define	EXPOSE_GSMimeDocument_IVARS	1
+#define	EXPOSE_GSMimeHeader_IVARS	1
+#define	EXPOSE_GSMimeParser_IVARS	1
 
 #include <string.h>
 #include <ctype.h>

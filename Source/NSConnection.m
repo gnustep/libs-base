@@ -31,6 +31,8 @@
 
 #import "config.h"
 
+#define	EXPOSE_NSConnection_IVARS	1
+
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif

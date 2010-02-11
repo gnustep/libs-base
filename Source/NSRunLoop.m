@@ -29,26 +29,27 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSTimer.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSStream.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSInvocation.h"
-#include "GSRunLoopCtxt.h"
-#include "GSRunLoopWatcher.h"
-#include "GSStream.h"
+#import "config.h"
+#define	EXPOSE_NSRunLoop_IVARS	1
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSStream.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSInvocation.h"
+#import "GSRunLoopCtxt.h"
+#import "GSRunLoopWatcher.h"
+#import "GSStream.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>

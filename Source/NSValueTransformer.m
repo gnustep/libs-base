@@ -23,6 +23,7 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSValueTransformer_IVARS	1
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyedArchiver.h"

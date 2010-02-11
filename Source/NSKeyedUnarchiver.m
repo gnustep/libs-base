@@ -23,6 +23,8 @@
 
    */
 
+#import "config.h"
+#define	EXPOSE_NSKeyedUnarchiver_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
@@ -32,7 +34,6 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
-#import "config.h"
 
 /*
  *      Setup for inline operation of arrays.

@@ -33,6 +33,7 @@
 #endif
 
 #import "config.h"
+#define	EXPOSE_NSScanner_IVARS	1
 #import "GNUstepBase/Unicode.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSException.h"

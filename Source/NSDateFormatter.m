@@ -26,13 +26,14 @@
    */
 
 #include "config.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSFormatter.h"
-#include "Foundation/NSDateFormatter.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
+#define	EXPOSE_NSNSDateFormatter_IVARS	1
+#import "Foundation/NSDate.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSFormatter.h"
+#import "Foundation/NSDateFormatter.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSCoder.h"
 
 @implementation NSDateFormatter
 

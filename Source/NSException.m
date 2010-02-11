@@ -25,6 +25,7 @@
 */
 
 #import "config.h"
+#define	EXPOSE_NSException_IVARS	1
 #import "GSPrivate.h"
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSDebug.h"

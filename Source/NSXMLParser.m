@@ -26,6 +26,7 @@
    */
 
 #import "config.h"
+#define	EXPOSE_NSXMLParser_IVARS	1
 #import "Foundation/NSArray.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSEnumerator.h"

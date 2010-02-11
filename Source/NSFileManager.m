@@ -42,7 +42,8 @@
    which default to pre POSIX declaration.  */
 #define _POSIX_PTHREAD_SEMANTICS
 
-#include "config.h"
+#import "config.h"
+#define	EXPOSE_NSFileManager_IVARS	1
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"

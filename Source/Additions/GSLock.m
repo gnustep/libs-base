@@ -26,6 +26,7 @@
 */
 
 #import "config.h"
+#define	EXPOSE_GSLock_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"

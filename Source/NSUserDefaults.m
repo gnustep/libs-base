@@ -28,6 +28,7 @@
 */
 
 #include "config.h"
+#define	EXPOSE_NSUserDefaults_IVARS	1
 #include "GNUstepBase/preface.h"
 #include <sys/stat.h>
 #include <sys/types.h>

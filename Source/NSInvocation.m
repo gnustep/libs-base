@@ -26,11 +26,12 @@
    $Date$ $Revision$
    */
 
+#import "config.h"
+#define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSInvocation.h"
 #import "GSInvocation.h"
-#import "config.h"
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 

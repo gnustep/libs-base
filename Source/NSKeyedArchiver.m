@@ -23,6 +23,7 @@
 
    */
 
+#define	EXPOSE_NSKeyedArchiver_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSObject.h"
 #import "Foundation/NSData.h"

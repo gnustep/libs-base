@@ -26,6 +26,7 @@
    */
 
 #import "config.h"
+#define	EXPOSE_NSTask_IVARS	1
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSObject.h"
 #import "Foundation/NSAutoreleasePool.h"

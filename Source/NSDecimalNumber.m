@@ -30,13 +30,14 @@
 #define _ISOC99_SOURCE
 #include <math.h>
 
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDecimal.h"
-#include "Foundation/NSDecimalNumber.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortCoder.h"
+#define	EXPOSE_NSNSDecimalNumber_IVARS	1
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDecimal.h"
+#import "Foundation/NSDecimalNumber.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 #ifdef fpclassify
 #define GSIsNAN(n) (fpclassify(n) == FP_NAN)
