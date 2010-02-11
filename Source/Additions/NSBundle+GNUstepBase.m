@@ -24,6 +24,7 @@
 
 */
 #import "config.h"
+#import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPathUtilities.h"

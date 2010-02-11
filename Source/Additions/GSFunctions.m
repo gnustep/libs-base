@@ -30,6 +30,7 @@
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSFunctions.h"
 #ifndef NeXT_Foundation_LIBRARY
+#import "Foundation/NSArray.h"
 #import "Foundation/NSDebug.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
