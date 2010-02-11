@@ -1,5 +1,12 @@
 2010-02-11  Nicola Pero  <nicola.pero@meta-innovation.com>
 
+	* Source/Makefile.postamble: Removed obsolete manual dependency
+	rules.  Dependencies of object files on header files are
+	automatically computed by gnustep-make, so these rules were
+	superfluous.
+
+2010-02-11  Nicola Pero  <nicola.pero@meta-innovation.com>
+
 	* Source/GNUmakefile: Compile Additions as a subproject before the
 	two libraries that are built on top of it.  This will prevent
 	problems when libraries from the same GNUmakefile are built in
