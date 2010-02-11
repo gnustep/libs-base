@@ -481,8 +481,6 @@ libgnustep-baseadd_NEEDS_GUI = NO
 
 -include Makefile.preamble
 
--include GNUmakefile.local
-
 include $(GNUSTEP_MAKEFILES)/library.make
 include $(GNUSTEP_MAKEFILES)/resource-set.make
 

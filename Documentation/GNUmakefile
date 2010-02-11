@@ -116,8 +116,6 @@ REF_DOC_INSTALL_DIR = $(GNUSTEP_DOCUMENTATION)/Developer
 
 -include Makefile.preamble
 
--include GNUmakefile.local
-
 include $(GNUSTEP_MAKEFILES)/documentation.make
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 
