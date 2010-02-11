@@ -49,7 +49,6 @@ extern "C" {
   BOOL                   _childrenHaveMutated;
   NSString              *_URI;	
   NSInteger             _prefixIndex;
-  void			*_unused;
 #endif
 }
 

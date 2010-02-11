@@ -54,7 +54,6 @@ extern "C" {
   NSMutableDictionary   *_notations;
   NSMutableDictionary   *_attributes;
   NSString              *_original;
-  void			*_unused;
 #endif
 }
 

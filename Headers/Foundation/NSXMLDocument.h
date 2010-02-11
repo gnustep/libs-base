@@ -86,7 +86,6 @@ typedef NSUInteger NSXMLDocumentContentKind;
   NSString      		*_MIMEType;
   NSUInteger    		_fidelityMask;
   NSXMLDocumentContentKind	_contentKind;
-  void				*_unused;
 #endif
 }
 

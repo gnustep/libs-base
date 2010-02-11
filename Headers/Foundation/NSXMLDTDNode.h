@@ -82,7 +82,6 @@ typedef NSUInteger NSXMLDTDNodeKind;
   NSString              *_notationName;
   NSString              *_publicID;
   NSString              *_systemID;
-  void			*_unused;
 #endif
 }
 
