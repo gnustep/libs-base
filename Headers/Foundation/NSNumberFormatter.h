@@ -75,8 +75,10 @@ extern "C" {
  * of attributes for positive and negative numbers, and for specific cases
  * including 0, NaN, and nil... </p>
  */
-@interface NSNumberFormatter: NSFormatter
+@interface NSNumberFormatter : NSFormatter
 {
+#if	GS_EXPOSE(NSNumberFormatter)
+@private
   BOOL _hasThousandSeparators;
   BOOL _allowsFloats;
   BOOL _localizesFormat;
@@ -92,6 +94,8 @@ extern "C" {
   NSString *_positiveFormat;
   NSDictionary *_attributesForPositiveValues;
   NSDictionary *_attributesForNegativeValues;
+  void		*_unused;
+#endif
 }
 
 // Format

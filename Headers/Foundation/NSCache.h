@@ -38,13 +38,9 @@ extern "C" {
 @class NSMutableDictionary;
 @class NSMutableArray;
 
-#ifndef __has_feature
-#define __has_feature(x) 0
-#endif
-
 @interface NSCache : NSObject
 {
-#if !__has_feature(objc_nonfragile_abi) || defined(EXPOSE_GSCACHE_IVARS)
+#if GS_EXPOSE(NSCache)
   @private
   /** The maximum total cost of all cache objects. */
   NSUInteger _costLimit;
@@ -64,6 +60,7 @@ extern "C" {
   NSMutableArray *_accesses;
   /** Total number of accesses to objects */
   int64_t _totalAccesses;
+  void	*_unused;
 #endif
 }
 /** 

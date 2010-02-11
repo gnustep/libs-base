@@ -47,15 +47,15 @@
  * Instance variables are referenced using the 'internal->ivar' suntax or
  * the GSIV(classname,object,ivar) macro.
  *
- * If built with CLANG (assumed to support non-fragile instance variables)
+ * If built with CLANG, with support for non-fragile instance variables,
  * rather than GCC, the compiler/runtime can simply declare instance variables
  * within the implementation file so that they are not part of the public ABI,
  * in which case the macros here mostly reduce to nothing and the generated
  * code can be much more efficient.
  */
-#if	defined(__GNUC__)
+#if	!__has_feature(objc_nonfragile_abi)
 
-/* Code for GCC.
+/* Code for when we don't have non-fragine instance variables
  */
 
 /* Start declaration of internal ivars.
@@ -88,9 +88,9 @@ DESTROY(_internal);
 #undef	GSIVar
 #define	GSIVar(X,Y)	(((GSInternal*)(X->_internal))->Y)
 
-#else	/* defined(__GNUC__) */
+#else	/* !__has_feature(objc_nonfragile_abi) */
 
-/* Not GCC, so we assume this is CLANG with support for non-fragile ivars
+/* We have support for non-fragile ivars
  */
 
 #define	GS_BEGIN_INTERNAL(name) \
@@ -116,6 +116,6 @@ DESTROY(_internal);
 #undef	GSIVar
 #define	GSIVar(X,Y)	((X)->Y)
 
-#endif	/* defined(__GNUC__) */
+#endif	/* !__has_feature(objc_nonfragile_abi) */
 
 

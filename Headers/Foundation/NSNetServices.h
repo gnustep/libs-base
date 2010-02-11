@@ -126,10 +126,12 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 @interface NSNetService : NSObject
 {
+#if	GS_EXPOSE(NSNetService)
   @private
   void		* _netService;
   id		  _delegate;
   void		* _reserved;
+#endif
 }
 
 + (NSData *) dataFromTXTRecordDictionary: (NSDictionary *) txtDictionary;

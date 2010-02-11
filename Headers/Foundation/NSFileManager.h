@@ -196,7 +196,11 @@ typedef	uint32_t	OSType;
 
 @interface NSFileManager : NSObject
 {
+#if	GS_EXPOSE(NSFileManager)
+@private
   NSString	*_lastError;
+  void		*_unused;
+#endif
 }
 
 + (NSFileManager*) defaultManager;
@@ -361,6 +365,7 @@ typedef	uint32_t	OSType;
  */
 @interface NSDirectoryEnumerator : NSEnumerator
 {
+#if	GS_EXPOSE(NSDirectoryEnumerator)
 @private
   void *_stack; /* GSIArray */
   NSString *_topPath;
@@ -372,6 +377,8 @@ typedef	uint32_t	OSType;
     BOOL isFollowing: 1;
     BOOL justContents: 1;
   } _flags;
+  void	*_unused;
+#endif
 }
 - (NSDictionary*) directoryAttributes;
 - (NSDictionary*) fileAttributes;

@@ -43,12 +43,14 @@ typedef	struct {
 
 @interface NSAffineTransform : NSObject <NSCopying, NSCoding>
 {
+#if GS_EXPOSE(NSAffineTransform)
 @private
   NSAffineTransformStruct	_matrix;
   BOOL _isIdentity;	// special case: A=D=1 and B=C=0
   BOOL _isFlipY;	// special case: A=1 D=-1 and B=C=0
   BOOL _pad1;
   BOOL _pad2;
+#endif
 }
 
 + (NSAffineTransform*) transform;

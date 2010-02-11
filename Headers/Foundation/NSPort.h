@@ -74,8 +74,10 @@ extern "C" {
  */
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {
+#if	GS_EXPOSE(NSPort)
   BOOL		_is_valid;
   id		_delegate;
+#endif
 }
 
 /**
@@ -197,6 +199,7 @@ typedef SOCKET NSSocketNativeHandle;
  */
 @interface NSSocketPort : NSPort
 {
+#if	GS_EXPOSE(NSSocketPort)
   NSRecursiveLock	*myLock;
   NSHost		*host;		/* OpenStep host for this port.	*/
   NSString		*address;	/* Forced internet address.	*/
@@ -206,6 +209,8 @@ typedef SOCKET NSSocketNativeHandle;
 #if	defined(__MINGW32__)
   WSAEVENT              eventListener;
   NSMapTable            *events;
+#endif
+  void			*_unused;
 #endif
 }
 
@@ -268,7 +273,9 @@ typedef SOCKET NSSocketNativeHandle;
  */
 @interface NSMessagePort : NSPort
 {
+#if	GS_EXPOSE(NSMessagePort)
   void	*_internal;
+#endif
 }
 @end
 

@@ -34,9 +34,11 @@ extern "C" {
 
 @interface NSCalendarDate : NSDate
 {
+#if	GS_EXPOSE(NSCalendarDate)
   NSTimeInterval	_seconds_since_ref;
   NSString		*_calendar_format;
   NSTimeZone		*_time_zone;
+#endif
 }
 
 // Getting an NSCalendar Date

@@ -41,6 +41,7 @@ extern "C" {
  */
 @interface NSTimer : NSObject
 {
+#if	GS_EXPOSE(NSTimer)
 @private
   NSDate 	*_date;		/* Must be first - for NSRunLoop optimisation */
   BOOL		_invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
@@ -49,6 +50,8 @@ extern "C" {
   id		_target;
   SEL		_selector;
   id		_info;
+  void		*_unused;
+#endif
 }
 
 /* Creating timer objects. */

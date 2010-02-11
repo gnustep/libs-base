@@ -32,6 +32,8 @@
 #import "config.h"
 #include <math.h>
 
+#define	EXPOSE_NSAffineTransform_IVARS	1
+
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSString.h"

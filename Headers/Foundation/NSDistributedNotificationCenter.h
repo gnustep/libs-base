@@ -80,10 +80,13 @@ GS_EXPORT NSString* const GSNetworkNotificationCenterType;
 
 @interface	NSDistributedNotificationCenter : NSNotificationCenter
 {
+#if	GS_EXPOSE(NSDistributedNotificationCenter)
   NSRecursiveLock *_centerLock;	/* For thread safety.		*/
   NSString	*_type;		/* Type of notification center.	*/
   id		_remote;	/* Proxy for center.		*/
   BOOL		_suspended;	/* Is delivery suspended?	*/
+  void		*_unused;
+#endif
 }
 + (NSNotificationCenter*) defaultCenter;
 + (NSNotificationCenter*) notificationCenterForType: (NSString*)type;

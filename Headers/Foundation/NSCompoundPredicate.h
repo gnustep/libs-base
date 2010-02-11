@@ -44,8 +44,10 @@ typedef NSUInteger NSCompoundPredicateType;
 
 @interface NSCompoundPredicate : NSPredicate
 {
+#if	GS_EXPOSE(NSCompoundPredicate)
   NSCompoundPredicateType _type;
   NSArray	*_subs;
+#endif
 }
 
 + (NSPredicate *) andPredicateWithSubpredicates: (NSArray *)list;

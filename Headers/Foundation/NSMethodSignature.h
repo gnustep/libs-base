@@ -49,10 +49,13 @@ extern "C" {
  */
 @interface NSMethodSignature : NSObject
 {
+#if	GS_EXPOSE(NSMethodSignature)
+@private
   const char		*_methodTypes;
   NSUInteger		_argFrameLength;
   NSUInteger		_numArgs;
   void			*_info;
+#endif
 }
 
 /**

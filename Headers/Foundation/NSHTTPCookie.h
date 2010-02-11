@@ -65,8 +65,10 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
  */
 @interface NSHTTPCookie :  NSObject
 {
+#if	GS_EXPOSE(NSHTTPCookie)
 @private
   void	*_NSHTTPCookieInternal;
+#endif
 }
 
 /**

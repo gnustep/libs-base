@@ -121,12 +121,15 @@ extern "C" {
  */
 @interface	NSDecimalNumberHandler : NSObject <NSDecimalNumberBehaviors>
 {
+#if	GS_EXPOSE(NSDecimalNumberHandler)
   NSRoundingMode _roundingMode;
   short _scale;
   BOOL _raiseOnExactness;
   BOOL _raiseOnOverflow; 
   BOOL _raiseOnUnderflow;
   BOOL _raiseOnDivideByZero;
+  void	*_unused;
+#endif
 }
 
 /**
@@ -178,7 +181,9 @@ extern "C" {
  */
 @interface	NSDecimalNumber : NSNumber <NSDecimalNumberBehaviors>
 {
+#if	GS_EXPOSE(NSDecimalNumber)
   NSDecimal data;
+#endif
 }
 
 /**

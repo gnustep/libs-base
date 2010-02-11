@@ -45,8 +45,10 @@ extern "C" {
  */
 @interface NSURLConnection : NSObject
 {
+#if	GS_EXPOSE(NSURLConnection)
 @private
   void *_NSURLConnectionInternal;
+#endif
 }
 
 /**

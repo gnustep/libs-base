@@ -49,8 +49,10 @@ extern NSString *const NSURLCredentialStorageChangedNotification;
  */
 @interface NSURLCredentialStorage : NSObject
 {
+#if	GS_EXPOSE(NSURLCredentialStorage)
 @private
   void *_NSURLCredentialStorageInternal;
+#endif
 }
 
 /**

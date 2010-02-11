@@ -38,6 +38,7 @@
 
 @interface GSFileHandle : NSFileHandle <RunLoopEvents>
 {
+#if	GS_EXPOSE(GSFileHandle)
   int			descriptor;
   BOOL			closeOnDealloc;
   BOOL			isStandardFile;
@@ -61,6 +62,8 @@
 #endif
 #if	defined(__MINGW32__)
   WSAEVENT  		event;
+#endif
+  void			*_unused;
 #endif
 }
 

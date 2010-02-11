@@ -69,10 +69,13 @@ extern "C" {
 
 @interface      GSMimeHeader : NSObject <NSCopying>
 {
+#if	GS_EXPOSE(GSMimeCodingContext)
   NSString              *name;
   NSString              *value;
   NSMutableDictionary   *objects;
   NSMutableDictionary	*params;
+  void			*_unused;
+#endif
 }
 + (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag;
 + (NSString*) makeToken: (NSString*)t preservingCase: (BOOL)preserve;
@@ -105,8 +108,11 @@ extern "C" {
 
 @interface	GSMimeDocument : NSObject <NSCopying>
 {
+#if	GS_EXPOSE(GSMimeDocument)
   NSMutableArray	*headers;
   id			content;
+  void			*_unused;
+#endif
 }
 
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc;
@@ -186,6 +192,7 @@ extern "C" {
 
 @interface	GSMimeParser : NSObject
 {
+#if	GS_EXPOSE(GSMimeParser)
   NSMutableData		*data;
   unsigned char		*bytes;
   unsigned		dataEnd;
@@ -210,6 +217,8 @@ extern "C" {
   GSMimeParser		*child;
   GSMimeCodingContext	*context;
   NSStringEncoding	_defaultEncoding;
+  void			*_unused;
+#endif
 }
 
 + (GSMimeDocument*) documentFromData: (NSData*)mimeData;

@@ -71,9 +71,11 @@ extern "C" {
  */
 @interface NSLock : NSObject <NSLocking>
 {
+#if	GS_EXPOSE(NSLock)
 @private
   gs_mutex_t	_mutex;
   NSString	*_name;
+#endif
 }
 
 /**
@@ -113,10 +115,12 @@ extern "C" {
  */
 @interface NSCondition : NSObject <NSLocking>
 {
+#if	GS_EXPOSE(NSCondition)
 @private
   gs_cond_t	_condition;
   gs_mutex_t	_mutex;
   NSString	*_name;
+#endif
 }
 /**
  * Blocks and atomically unlocks the receiver.
@@ -161,10 +165,12 @@ extern "C" {
  */
 @interface NSConditionLock : NSObject <NSLocking>
 {
+#if	GS_EXPOSE(NSConditionLock)
 @private
   NSCondition *_condition;
   int   _condition_value;
   NSString      *_name;
+#endif
 }
 
 /**
@@ -252,9 +258,11 @@ extern "C" {
  */
 @interface NSRecursiveLock : NSObject <NSLocking>
 {
+#if	GS_EXPOSE(NSRecursiveLock)
 @private
   gs_mutex_t	_mutex;
   NSString      *_name;
+#endif
 }
 
 /**

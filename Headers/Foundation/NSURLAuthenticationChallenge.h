@@ -79,8 +79,10 @@ extern "C" {
  */
 @interface NSURLAuthenticationChallenge : NSObject
 {
+#if	GS_EXPOSE(NSURLAuthenticationChallenge)
 @private
   void	*_NSURLAuthenticationChallengeInternal;
+#endif
 }
 
 /**
