@@ -4,7 +4,14 @@
 	two libraries that are built on top of it.  This will prevent
 	problems when libraries from the same GNUmakefile are built in
 	parallel.
-	(GNUmakefile.local): Do not try including this non-existing file.
+
+	* Source/GNUmakefile (GNUmakefile.local): Do not try including
+	this non-existing file.
+	* Examples/GNUmakefile: Same change.
+	* NSTimeZones/GNUmakefile: Same change.
+	* Resources/GNUmakefile: Same change.
+	* SSL/GNUmakefile: Same change.
+	* Tools/GNUmakefile: Same change.
 	
 2010-02-11 07:37-EST Gregory John Casamento <greg.casamento@gmail.com>
 

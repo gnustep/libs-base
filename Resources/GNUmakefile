@@ -75,8 +75,6 @@ Languages/Korean
 LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases \
 	Languages/Locale.encodings
 
--include GNUmakefile.local
-
 include $(GNUSTEP_MAKEFILES)/resource-set.make
 
 -include GNUmakefile.postamble

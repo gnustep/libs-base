@@ -61,8 +61,6 @@ nsconnection_server_OBJC_FILES = nsconnection_server.m
 
 include Makefile.preamble
 
--include GNUmakefile.local
-
 include $(GNUSTEP_MAKEFILES)/test-tool.make
 
 include Makefile.postamble

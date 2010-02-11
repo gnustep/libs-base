@@ -83,8 +83,6 @@ endif
 
 -include Makefile.preamble
 
--include GNUmakefile.local
-
 include $(GNUSTEP_MAKEFILES)/bundle.make
 
 -include Makefile.postamble
