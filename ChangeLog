@@ -1,3 +1,11 @@
+2010-02-11  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* Source/GNUmakefile: Compile Additions as a subproject before the
+	two libraries that are built on top of it.  This will prevent
+	problems when libraries from the same GNUmakefile are built in
+	parallel.
+	(GNUmakefile.local): Do not try including this non-existing file.
+	
 2010-02-11 07:37-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* install.sh: Removed configure.
@@ -46,7 +54,6 @@
 	Partial implementation of NSOperationQueue (OSX Leopard functionality
 	plus a little of Snow Leopard).
 
->>>>>>> .r29544
 2010-02-05 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Headers/Additions/GNUstepBase/GSIMap.h: fixed c99-ism
