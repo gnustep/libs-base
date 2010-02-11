@@ -464,10 +464,17 @@ libbase-resources_RESOURCE_FILES = Info-gnustep.plist
 libgnustep-base_NEEDS_GUI = NO
 libgnustep-baseadd_NEEDS_GUI = NO
 
+# Build the Additions subproject first.  It can then be used in by
+# both gnustep-base and gnustep-baseadd (otherwise, if we ever build
+# gnustep-base and gnustep-baseadd in parallel, they'd both try to
+# build Additions as a subproject, causing concurrency issues).  If it
+# can be guaranteed that they'll never be built together, this could
+# be removed.
+SUBPROJECTS = Additions
+
 -include Makefile.preamble
 
--include GNUmakefile.local
-
+include $(GNUSTEP_MAKEFILES)/aggregate.make
 include $(GNUSTEP_MAKEFILES)/library.make
 include $(GNUSTEP_MAKEFILES)/resource-set.make
 
