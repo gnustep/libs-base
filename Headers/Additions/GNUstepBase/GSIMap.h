@@ -1030,6 +1030,7 @@ GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
     }
   map->freeNodes = node->nextInBucket;
   node->key = key;
+  node->value = value;
   GSI_MAP_RETAIN_KEY(map, node->key);
   GSI_MAP_RETAIN_VAL(map, node->value);
   node->nextInBucket = 0;
