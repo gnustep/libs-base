@@ -112,13 +112,9 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-$(GNUSTEP_OBJ_DIR)/objc-load${OEXT}: dynamic-load.h
-
 dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
-
-$(GNUSTEP_OBJ_DIR)/preface${OEXT}: $(HEADER_DIR_BASE)/preface.h
 
 #
 # The config.h file is specific to a target
