@@ -1,3 +1,25 @@
+2010-02-11  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* Source/Makefile.postamble: Removed obsolete manual dependency
+	rules.  Dependencies of object files on header files are
+	automatically computed by gnustep-make, so these rules were
+	superfluous.
+	* Source/GNUmakefile: Compile Additions as a subproject before the
+	two libraries that are built on top of it.  This will prevent
+	problems when libraries from the same GNUmakefile are built in
+	parallel.
+	* Source/GNUmakefile (GNUmakefile.local): Do not try including
+	this non-existing file.
+	* Examples/GNUmakefile: Same change.
+	* NSTimeZones/GNUmakefile: Same change.
+	* Resources/GNUmakefile: Same change.
+	* SSL/GNUmakefile: Same change.
+	* Tools/GNUmakefile: Same change.
+	
+2010-02-11 07:37-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* install.sh: Removed configure.
+
 2010-02-09 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Source/NSOperation.m: Move declaration upwards to fix compile error.
