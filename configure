@@ -18478,9 +18478,11 @@ fi
 rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 CPPFLAGS="$saved_CPPFLAGS"
-if test $non-fragile = yes; then
+if test $non_fragile = yes; then
 OBJCFLAGS += -fobjc-nonfragile-abi
 fi
+echo "$as_me:$LINENO: result: $non_fragile" >&5
+echo "${ECHO_T}$non_fragile" >&6
 
 echo "$as_me:$LINENO: checking FFI library usage" >&5
 echo $ECHO_N "checking FFI library usage... $ECHO_C" >&6
