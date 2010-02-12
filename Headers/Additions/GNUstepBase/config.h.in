@@ -1,8 +1,5 @@
 /* Headers/Additions/GNUstepBase/config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define if nested functions are broken on this compiler */
-#undef BROKEN_NESTED_FUNCTIONS
-
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
 
@@ -29,6 +26,9 @@
 
 /* Define to 1 if you have the <callback.h> header file. */
 #undef HAVE_CALLBACK_H
+
+/* Define to 1 if you have the `class_getProperty' function. */
+#undef HAVE_CLASS_GETPROPERTY
 
 /* Define to 1 if you have the `ctime' function. */
 #undef HAVE_CTIME
@@ -214,9 +214,6 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
-/* Define to 1 if you have the `objc_condition_timedwait' function. */
-#undef HAVE_OBJC_CONDITION_TIMEDWAIT
-
 /* Define if objc-api.h defines this function */
 #undef HAVE_OBJC_GET_UNINSTALLED_DTABLE
 
@@ -228,9 +225,6 @@
 
 /* Define to 1 if you have the `objc_sync_enter' function. */
 #undef HAVE_OBJC_SYNC_ENTER
-
-/* Define to 1 if you have the `objc_thread_add' function. */
-#undef HAVE_OBJC_THREAD_ADD
 
 /* Define to 1 if you have the `poll' function. */
 #undef HAVE_POLL
@@ -498,31 +492,31 @@
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
-/* The size of `double', as computed by sizeof. */
+/* The size of a `double', as computed by sizeof. */
 #undef SIZEOF_DOUBLE
 
-/* The size of `float', as computed by sizeof. */
+/* The size of a `float', as computed by sizeof. */
 #undef SIZEOF_FLOAT
 
-/* The size of `int', as computed by sizeof. */
+/* The size of a `int', as computed by sizeof. */
 #undef SIZEOF_INT
 
-/* The size of `long', as computed by sizeof. */
+/* The size of a `long', as computed by sizeof. */
 #undef SIZEOF_LONG
 
-/* The size of `long long', as computed by sizeof. */
+/* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
 
-/* The size of `pthread_cond_t', as computed by sizeof. */
+/* The size of a `pthread_cond_t', as computed by sizeof. */
 #undef SIZEOF_PTHREAD_COND_T
 
-/* The size of `pthread_mutex_t', as computed by sizeof. */
+/* The size of a `pthread_mutex_t', as computed by sizeof. */
 #undef SIZEOF_PTHREAD_MUTEX_T
 
-/* The size of `short', as computed by sizeof. */
+/* The size of a `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
 
-/* The size of `void*', as computed by sizeof. */
+/* The size of a `void*', as computed by sizeof. */
 #undef SIZEOF_VOIDP
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -550,5 +544,5 @@
 #undef inline
 #endif
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t

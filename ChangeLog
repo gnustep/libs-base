@@ -1,3 +1,12 @@
+2010-02-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Remove a couple of obsolete tests and add a couple for
+	new runtime features.
+	* config/config.objc_condition_timed_wait.c: remove
+	* config/config.non-fragile-ivars.m: add
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+
 2010-02-11  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Source/Makefile.postamble: Removed obsolete manual dependency
