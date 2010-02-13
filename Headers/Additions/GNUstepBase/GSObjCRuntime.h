@@ -103,6 +103,13 @@ extern "C" {
 
 #elif	defined(__GNUSTEP_RUNTIME__)
 
+#define	class_nextMethodList(aClass,anIterator) (({\
+  if (*(anIterator) == 0) \
+    *((struct objc_method_list**)(anIterator)) = (aClass)->methods; \
+  else \
+    *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
+}), *(anIterator))
+
 #else	/* Old GNU runtime */
 
 #define	class_getInstanceSize(C) class_get_instance_size(C)
