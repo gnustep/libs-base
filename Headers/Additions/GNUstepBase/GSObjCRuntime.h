@@ -29,10 +29,12 @@
 
 #ifndef __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
+
 #include <GNUstepBase/GSVersionMacros.h>
 
 #include <objc/objc.h>
 #include <objc/objc-api.h>
+#include <objc/runtime.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,7 +90,8 @@ extern "C" {
 #define nil		0
 #endif
 
-#ifdef NeXT_RUNTIME
+#if	defined(NeXT_RUNTIME)
+
 #define _C_CONST        'r'
 #define _C_IN           'n'
 #define _C_INOUT        'N'
@@ -97,7 +100,12 @@ extern "C" {
 #define _C_BYREF        'R'
 #define _C_ONEWAY       'V'
 #define _C_GCINVISIBLE  '!'
-#else
+
+#elif	defined(__GNUSTEP_RUNTIME__)
+
+#else	/* Old GNU runtime */
+
+#define	class_getInstanceSize(C) class_get_instance_size(C)
 
 #define	class_nextMethodList(aClass,anIterator) (({\
   if (*(anIterator) == 0) \
@@ -106,7 +114,11 @@ extern "C" {
     *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
 }), *(anIterator))
 
+#define	object_getClass(O) (O->isa)
+#define	object_setClass(O,C) (O->isa = C)
+
 #endif
+
 
 #ifndef	NO_GNUSTEP
 /*

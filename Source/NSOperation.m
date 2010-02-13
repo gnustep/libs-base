@@ -56,7 +56,7 @@ GS_END_INTERNAL(NSOperation)
 
 static NSArray	*empty = nil;
 
-@implementation NSOperation : NSObject
+@implementation NSOperation
 
 + (BOOL) automaticallyNotifiesObserversForKey: (NSString*)theKey
 {

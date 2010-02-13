@@ -22,7 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
-#define	EXPOSE_NSHTTPCookies_IVARS	1
+#define	EXPOSE_NSHTTPCookie_IVARS	1
 #import "GSURLPrivate.h"
 #import "Foundation/NSSet.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
@@ -46,11 +46,8 @@ typedef struct {
   NSDictionary	*_properties;
 } Internal;
  
-typedef struct {
-  @defs(NSHTTPCookie)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSHTTPCookieInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSHTTPCookieInternal))
+#define	this	((Internal*)(self->_NSHTTPCookieInternal))
+#define	inst	((Internal*)(o->_NSHTTPCookieInternal))
 
 @implementation NSHTTPCookie
 

@@ -42,7 +42,7 @@ extern "C" {
 @interface NSTimer : NSObject
 {
 #if	GS_EXPOSE(NSTimer)
-@private
+@public
   NSDate 	*_date;		/* Must be first - for NSRunLoop optimisation */
   BOOL		_invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
   BOOL		_repeats;

@@ -50,11 +50,8 @@ typedef struct {
   BOOL		isProxy;
 } Internal;
  
-typedef struct {
-  @defs(NSURLProtectionSpace)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLProtectionSpaceInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLProtectionSpaceInternal))
+#define	this	((Internal*)(self->_NSURLProtectionSpaceInternal))
+#define	inst	((Internal*)(o->_NSURLProtectionSpaceInternal))
 
 @implementation NSURLProtectionSpace
 

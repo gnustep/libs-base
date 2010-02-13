@@ -36,11 +36,8 @@ typedef struct {
   NSMutableDictionary	*memory;
 } Internal;
  
-typedef struct {
-  @defs(NSURLCache)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLCacheInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLCacheInternal))
+#define	this	((Internal*)(self->_NSURLCacheInternal))
+#define	inst	((Internal*)(o->_NSURLCacheInternal))
 
 
 static NSURLCache	*shared = nil;

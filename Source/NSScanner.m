@@ -89,9 +89,7 @@ static inline unichar myGetC(unsigned char c)
 /*
  * Hack for direct access to internals of an concrete string object.
  */
-typedef struct {
-  @defs(GSString)
-} *ivars;
+typedef GSString	*ivars;
 #define	myLength()	(((ivars)_string)->_count)
 #define	myUnicode(I)	(((ivars)_string)->_contents.u[I])
 #define	myChar(I)	myGetC((((ivars)_string)->_contents.c[I]))

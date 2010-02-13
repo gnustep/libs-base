@@ -61,7 +61,6 @@ extern NSString * const NSURLAuthenticationMethodHTTPDigest;
 @interface NSURLProtectionSpace : NSObject <NSCopying>
 {
 #if	GS_EXPOSE(NSURLProtectionSpace)
-@private
   void *_NSURLProtectionSpaceInternal;
 #endif
 }

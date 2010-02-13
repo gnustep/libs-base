@@ -47,7 +47,6 @@ extern "C" {
 @interface NSURLDownload : NSObject
 {
 #if	GS_EXPOSE(NSURLDownload)
-@private
   void *_NSURLDownloadInternal;
 #endif
 }

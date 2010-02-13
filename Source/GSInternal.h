@@ -53,7 +53,7 @@
  * in which case the macros here mostly reduce to nothing and the generated
  * code can be much more efficient.
  */
-#if	!__has_feature(objc_nonfragile_abi)
+#if	1 || !__has_feature(objc_nonfragile_abi)
 
 /* Code for when we don't have non-fragine instance variables
  */
@@ -93,15 +93,11 @@ DESTROY(_internal);
 /* We have support for non-fragile ivars
  */
 
-#define	GS_BEGIN_INTERNAL(name) \
-@interface	name \
-{
+#define	GS_BEGIN_INTERNAL(name) @interface name () {
 
 /* Finish declaration of internal ivars.
  */
-#define	GS_END_INTERNAL(name) \
-} \
-@end
+#define	GS_END_INTERNAL(name) } @end
 
 /* Create holder for internal ivars (nothing to do).
  */

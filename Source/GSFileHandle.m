@@ -25,7 +25,7 @@
 #define	_FILE_OFFSET_BITS 64
 
 #import "config.h"
-
+#define	EXPOSE_GSFileHandle_IVARS	1
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSObject.h"
 #import "Foundation/NSData.h"

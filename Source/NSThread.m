@@ -97,8 +97,6 @@ extern NSTimeInterval GSTimeNow(void);
 + (void) _endThread: (NSThread*)thread;
 @end
 
-typedef struct { @defs(NSThread) } NSThread_ivars;
-
 static Class threadClass = Nil;
 static NSNotificationCenter *nc = nil;
 
@@ -1049,16 +1047,16 @@ GSRunLoopInfoForThread(NSThread *aThread)
     {
       aThread = GSCurrentThread();
     }
-  if (((NSThread_ivars*)aThread)->_runLoopInfo == nil)
+  if (aThread->_runLoopInfo == nil)
     {
       [gnustep_global_lock lock];
-      if (((NSThread_ivars*)aThread)->_runLoopInfo == nil)
+      if (aThread->_runLoopInfo == nil)
         {
-          ((NSThread_ivars*)aThread)->_runLoopInfo = [GSRunLoopThreadInfo new];
+          aThread->_runLoopInfo = [GSRunLoopThreadInfo new];
 	}
       [gnustep_global_lock unlock];
     }
-  info = ((NSThread_ivars*)aThread)->_runLoopInfo;
+  info = aThread->_runLoopInfo;
   return info;
 }
 
@@ -1313,12 +1311,12 @@ GSUnregisterCurrentThread (void)
 
   thread = GSCurrentThread();
 
-  if (((NSThread_ivars *)thread)->_active == YES)
+  if (thread->_active == YES)
     {
       /*
        * Set the thread to be inactive to avoid any possibility of recursion.
        */
-      ((NSThread_ivars *)thread)->_active = NO;
+      thread->_active = NO;
 
       /*
        * Let observers know this thread is exiting.

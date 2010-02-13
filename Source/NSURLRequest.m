@@ -46,11 +46,8 @@ typedef struct {
 /* Defines to get easy access to internals from mutable/immutable
  * versions of the class and from categories.
  */
-typedef struct {
-  @defs(NSURLRequest)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLRequestInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLRequestInternal))
+#define	this	((Internal*)(self->_NSURLRequestInternal))
+#define	inst	((Internal*)(((NSURLRequest*)o)->_NSURLRequestInternal))
 
 @interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
 @end

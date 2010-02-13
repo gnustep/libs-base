@@ -222,7 +222,7 @@ enum proxyLocation
 	  {
 	    if (debug_proxy)
 	      {
-		NSLog(@"Local object is 0x%x (0x%x)\n",
+		NSLog(@"Local object is %p (%p)\n",
 		  (uintptr_t)o, (uintptr_t)o ? ((NSDO*)o)->_object : 0);
 	      }
 	    return RETAIN(((NSDO*)o)->_object);

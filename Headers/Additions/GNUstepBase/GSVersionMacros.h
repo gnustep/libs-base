@@ -196,6 +196,6 @@
 #define __has_feature(x) 0
 #endif
 #define	GS_EXPOSE(X)	\
-(!__has_feature(objc_nonfragile_abi) || defined(EXPOSE_##X##_IVARS))
+((!__has_feature(objc_nonfragile_abi) && !__has_feature(objc_nonfragile_abi2)) || defined(EXPOSE_##X##_IVARS))
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */

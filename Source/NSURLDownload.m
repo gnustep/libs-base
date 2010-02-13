@@ -40,11 +40,8 @@
 }
 @end
  
-typedef struct {
-  @defs(NSURLDownload)
-} priv;
-#define	this	((GSURLDownload*)(((priv*)self)->_NSURLDownloadInternal))
-#define	inst	((GSURLDownload*)(((priv*)o)->_NSURLDownloadInternal))
+#define	this	((GSURLDownload*)(self->_NSURLDownloadInternal))
+#define	inst	((GSURLDownload*)(o->_NSURLDownloadInternal))
 
 @implementation	NSURLDownload
 

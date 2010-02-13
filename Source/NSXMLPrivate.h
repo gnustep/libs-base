@@ -26,6 +26,11 @@
 #define	_INCLUDED_NSXMLPRIVATE_H
 
 #import "config.h"
+#define	EXPOSE_NSXMLDTD_IVARS	1
+#define	EXPOSE_NSXMLDTDNode_IVARS	1
+#define	EXPOSE_NSXMLDocument_IVARS	1
+#define	EXPOSE_NSXMLElement_IVARS	1
+#define	EXPOSE_NSXMLNode_IVARS	1
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"

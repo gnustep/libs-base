@@ -607,7 +607,7 @@ NewUTF8STR(const void *ptr, int len)
 			       length: len
 			     encoding: NSUTF8StringEncoding];
   if (s == nil)
-    NSLog(@"could not convert to UTF8 string! bytes=%08x len=%d", ptr, len);
+    NSLog(@"could not convert to UTF8 string! bytes=%p len=%d", ptr, len);
   return s;
 }
 
@@ -648,9 +648,8 @@ static SEL	foundCommentSel;
 
 #define EXTRA_DEBUG     0
 
-typedef struct { @defs(NSXMLParser) } *xp;
-#define _parser (((xp)self)->_parser)
-#define _handler (((xp)self)->_handler)
+#define _parser (self->_parser)
+#define _handler (self->_handler)
 #define	this	((NSXMLParserIvars*)_parser)
 #define	_del	((id)_handler)
 

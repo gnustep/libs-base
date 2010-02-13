@@ -24,6 +24,7 @@
    */ 
 
 #define	EXPOSE_NSValueTransformer_IVARS	1
+#import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyedArchiver.h"

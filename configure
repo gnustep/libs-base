@@ -725,6 +725,7 @@ HAVE_INET_PTON
 HAVE_INET_NTOP
 GS_PASS_ARGUMENTS
 GS_FAKE_MAIN
+OBJCFLAGS
 WITH_FFI
 XML2_CONFIG
 XML_CONFIG
@@ -18507,7 +18508,7 @@ fi
 CPPFLAGS="$saved_CPPFLAGS"
 
 saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $OBJCFLAGS  -fobjc-nonfragile-abi -x objective-c"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
 { echo "$as_me:$LINENO: checking for non-fragile-abi support" >&5
 echo $ECHO_N "checking for non-fragile-abi support... $ECHO_C" >&6; }
 if test "$cross_compiling" = yes; then
@@ -18556,6 +18557,7 @@ fi
 CPPFLAGS="$saved_CPPFLAGS"
 if test $non_fragile = yes; then
   OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+
 fi
 { echo "$as_me:$LINENO: result: $non_fragile" >&5
 echo "${ECHO_T}$non_fragile" >&6; }
@@ -21689,6 +21691,7 @@ HAVE_INET_PTON!$HAVE_INET_PTON$ac_delim
 HAVE_INET_NTOP!$HAVE_INET_NTOP$ac_delim
 GS_PASS_ARGUMENTS!$GS_PASS_ARGUMENTS$ac_delim
 GS_FAKE_MAIN!$GS_FAKE_MAIN$ac_delim
+OBJCFLAGS!$OBJCFLAGS$ac_delim
 WITH_FFI!$WITH_FFI$ac_delim
 XML2_CONFIG!$XML2_CONFIG$ac_delim
 XML_CONFIG!$XML_CONFIG$ac_delim
@@ -21714,7 +21717,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 38; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 39; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

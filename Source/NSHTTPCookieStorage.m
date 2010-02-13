@@ -39,11 +39,8 @@ typedef struct {
   NSMutableSet			*_cookies;
 } Internal;
  
-typedef struct {
-  @defs(NSHTTPCookieStorage)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSHTTPCookieStorageInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSHTTPCookieStorageInternal))
+#define	this	((Internal*)(self->_NSHTTPCookieStorageInternal))
+#define	inst	((Internal*)(o->_NSHTTPCookieStorageInternal))
 
 
 /* FIXME

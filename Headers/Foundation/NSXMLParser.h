@@ -70,7 +70,7 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 @interface NSXMLParser : NSObject
 {
 #if	GS_EXPOSE(NSXMLParser)
-@private
+@public
   void		*_parser;	// GSXMLParser
   void		*_handler;	// SAXHandler
   void		*_unused;

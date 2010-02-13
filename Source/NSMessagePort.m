@@ -23,6 +23,8 @@
    */
 
 #import "config.h"
+#define	EXPOSE_NSPort_IVARS	1
+#define	EXPOSE_NSMessagePort_IVARS	1
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"

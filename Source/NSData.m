@@ -241,7 +241,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 #endif
 	  if (tmp == 0)
 	    {
-	      NSLog(@"Malloc failed for file (%@) of length %d - %@", path,
+	      NSLog(@"Malloc failed for file (%@) of length %ld - %@", path,
 		fileLength + c, [NSError _last]);
 	      goto failure;
 	    }
@@ -258,7 +258,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 #endif
       if (tmp == 0)
 	{
-	  NSLog(@"Malloc failed for file (%@) of length %d - %@", path,
+	  NSLog(@"Malloc failed for file (%@) of length %ld - %@", path,
 	    fileLength, [NSError _last]);
 	  goto failure;
 	}

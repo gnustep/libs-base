@@ -174,11 +174,8 @@ typedef struct
   BOOL				_debug;
 } Internal;
  
-typedef struct {
-  @defs(NSURLConnection)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLConnectionInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLConnectionInternal))
+#define	this	((Internal*)(self->_NSURLConnectionInternal))
+#define	inst	((Internal*)(o->_NSURLConnectionInternal))
 
 @implementation	NSURLConnection
 

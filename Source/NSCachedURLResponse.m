@@ -22,7 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
-#define	EXPOSE_NSCachedURLResponse_VARS	1
+#define	EXPOSE_NSCachedURLResponse_IVARS	1
 #include "GSURLPrivate.h"
 #include "Foundation/NSCoder.h"
 
@@ -34,10 +34,7 @@ typedef struct {
   NSURLCacheStoragePolicy	storagePolicy;
 } Internal;
  
-typedef struct {
-  @defs(NSCachedURLResponse)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSCachedURLResponseInternal))
+#define	this	((Internal*)(self->_NSCachedURLResponseInternal))
 
 
 @implementation	NSCachedURLResponse

@@ -765,10 +765,6 @@ _find_main_bundle_for_tool(NSString *toolName)
 
  */
 
-typedef struct {
-    @defs(NSBundle)
-} *bptr;
-
 static void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
@@ -802,7 +798,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   /* Store classes (but don't store categories) */
-  [((bptr)_loadingBundle)->_bundleClasses addObject:
+  [(_loadingBundle)->_bundleClasses addObject:
     [NSValue valueWithPointer: (void*)theClass]];
 }
 

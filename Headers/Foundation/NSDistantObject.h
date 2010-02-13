@@ -38,7 +38,7 @@ extern "C" {
 @interface NSDistantObject : NSProxy <NSCoding>
 {
 #if	GS_EXPOSE(NSDistantObject)
-@private
+@public
   NSConnection	*_connection;
   id		_object;
   unsigned	_handle;

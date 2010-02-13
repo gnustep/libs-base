@@ -69,7 +69,7 @@ extern "C" {
 
 @interface      GSMimeHeader : NSObject <NSCopying>
 {
-#if	GS_EXPOSE(GSMimeCodingContext)
+#if	GS_EXPOSE(GSMimeHeader)
   NSString              *name;
   NSString              *value;
   NSMutableDictionary   *objects;

@@ -1436,13 +1436,14 @@ fi
 CPPFLAGS="$saved_CPPFLAGS"
 
 saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $OBJCFLAGS  -fobjc-nonfragile-abi -x objective-c"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
 AC_MSG_CHECKING(for non-fragile-abi support)
 AC_RUN_IFELSE([#include "$srcdir/config/config.non-fragile-ivars.m"],
 	non_fragile=yes, non_fragile=no)
 CPPFLAGS="$saved_CPPFLAGS"
 if test $non_fragile = yes; then
   OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+  AC_SUBST(OBJCFLAGS)
 fi
 AC_MSG_RESULT($non_fragile)
 

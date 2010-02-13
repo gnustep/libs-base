@@ -44,11 +44,8 @@ typedef struct {
   int			statusCode;
 } Internal;
  
-typedef struct {
-  @defs(NSURLResponse)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLResponseInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLResponseInternal))
+#define	this	((Internal*)(self->_NSURLResponseInternal))
+#define	inst	((Internal*)(o->_NSURLResponseInternal))
 
 
 @interface	_GSMutableInsensitiveDictionary : NSMutableDictionary

@@ -108,6 +108,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 @interface NSBundle : NSObject
 {
 #if	GS_EXPOSE(NSBundle)
+@public
   NSString		*_path;
   NSMutableArray	*_bundleClasses;
   Class			_principalClass;

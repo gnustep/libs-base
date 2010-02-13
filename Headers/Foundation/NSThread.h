@@ -52,7 +52,7 @@ extern "C" {
 @interface NSThread : NSObject
 {
 #if	GS_EXPOSE(NSThread)
-@private
+@public
   id			_target;
   id			_arg;
   SEL			_selector;

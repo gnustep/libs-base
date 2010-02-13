@@ -31,6 +31,7 @@
 
 #import "config.h"
 #define	EXPOSE_NSRunLoop_IVARS	1
+#define	EXPOSE_NSTimer_IVARS	1
 #import "GNUstepBase/preface.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSDate.h"
@@ -243,17 +244,13 @@ static NSDate	*theFuture = nil;
 #include "GNUstepBase/GSIArray.h"
 #endif
 
-typedef struct {
-  @defs(NSTimer)
-} *tvars;
-
 static inline NSDate *timerDate(NSTimer *t)
 {
-  return ((tvars)t)->_date;
+  return t->_date;
 }
 static inline BOOL timerInvalidated(NSTimer *t)
 {
-  return ((tvars)t)->_invalidated;
+  return t->_invalidated;
 }
 
 

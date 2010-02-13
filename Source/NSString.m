@@ -1086,7 +1086,7 @@ handle_printf_atsign (FILE *stream,
             arguments: (va_list)argList
 {
   unsigned char	buf[2048];
-  GSStr_t	f;
+  GSStr		f;
   unichar	fbuf[1024];
   unichar	*fmt = fbuf;
   size_t	len;
@@ -1109,48 +1109,49 @@ handle_printf_atsign (FILE *stream,
    * Now set up 'f' as a GSMutableString object whose initial buffer is
    * allocated on the stack.  The GSPrivateFormat function can write into it.
    */
-  f.isa = GSMutableStringClass;
-  f._zone = NSDefaultMallocZone();
-  f._contents.c = buf;
-  f._capacity = sizeof(buf);
-  f._count = 0;
-#if HAVE_WIDE_PRINTF_FUNCTION
-  f._flags.wide = 0;
-#endif	/* HAVE_WIDE_PRINTF_FUNCTION */
-  f._flags.owned = 0;
-  GSPrivateFormat(&f, fmt, argList, locale);
-  GSPrivateStrExternalize(&f);
+  f = (GSStr)alloca(class_getInstanceSize(GSMutableStringClass));
+  object_setClass(f, GSMutableStringClass);
+  f->_zone = NSDefaultMallocZone();
+  f->_contents.c = buf;
+  f->_capacity = sizeof(buf);
+  f->_count = 0;
+  f->_flags.wide = 0;
+  f->_flags.owned = 0;
+  f->_flags.unused = 0;
+  f->_flags.hash = 0;
+  GSPrivateFormat(f, fmt, argList, locale);
+  GSPrivateStrExternalize(f);
   if (fmt != fbuf)
     {
       NSZoneFree(NSDefaultMallocZone(), fmt);
     }
 
   /*
-   * Don't use noCopy because f._contents.u may be memory on the stack,
-   * and even if it wasn't f._capacity may be greater than f._count so
+   * Don't use noCopy because f->_contents.u may be memory on the stack,
+   * and even if it wasn't f->_capacity may be greater than f->_count so
    * we could be wasting quite a bit of space.  Better to accept a
    * performance hit due to copying data (and allocating/deallocating
    * the temporary buffer) for large strings.  For most strings, the
    * on-stack memory will have been used, so we will get better performance.
    */
 #if HAVE_WIDE_PRINTF_FUNCTION
-  if (f._flags.wide == 1)
+  if (f->_flags.wide == 1)
     {
-      self = [self initWithCharacters: f._contents.u length: f._count];
+      self = [self initWithCharacters: f->_contents.u length: f->_count];
     }
   else
 #endif	/* HAVE_WIDE_PRINTF_FUNCTION */
     {
-      self = [self initWithCString: (char*)f._contents.c length: f._count];
+      self = [self initWithCString: (char*)f->_contents.c length: f->_count];
     }
 
   /*
    * If the string had to grow beyond the initial buffer size, we must
    * release any allocated memory.
    */
-  if (f._flags.owned == 1)
+  if (f->_flags.owned == 1)
     {
-      NSZoneFree(f._zone, f._contents.c);
+      NSZoneFree(f->_zone, f->_contents.c);
     }
   return self;
 }

@@ -26,6 +26,10 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSComparisonPredicate_IVARS	1
+#define	EXPOSE_NSCompoundPredicate_IVARS	1
+#define	EXPOSE_NSExpression_IVARS	1
+
 #import "Foundation/NSComparisonPredicate.h"
 #import "Foundation/NSCompoundPredicate.h"
 #import "Foundation/NSExpression.h"
