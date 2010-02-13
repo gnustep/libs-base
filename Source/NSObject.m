@@ -555,7 +555,7 @@ GSIsFinalizable(Class c)
   return NO;
 }
 
-inline NSObject *
+inline id
 NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
   id	new;
@@ -601,7 +601,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 }
 
 inline void
-NSDeallocateObject(NSObject *anObject)
+NSDeallocateObject(id anObject)
 {
 }
 
@@ -615,7 +615,7 @@ GSObjCZone(NSObject *object)
   return ((obj)object)[-1].zone;
 }
 
-inline NSObject *
+inline id
 NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
   id	new;
@@ -640,7 +640,7 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 }
 
 inline void
-NSDeallocateObject(NSObject *anObject)
+NSDeallocateObject(id anObject)
 {
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {

@@ -298,7 +298,7 @@ extern "C" {
  * instance variables of the object.<br />
  * This function is used by the [NSObject+allocWithZone:] method.
  */
-GS_EXPORT NSObject *
+GS_EXPORT id
 NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone);
 
 /**
@@ -306,7 +306,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone);
  * This function is used by the [NSObject-dealloc] method.
  */
 GS_EXPORT void
-NSDeallocateObject(NSObject *anObject);
+NSDeallocateObject(id anObject);
 
 /**
  * Used to copy anObject.  This makes a bitwise copy of anObject to
