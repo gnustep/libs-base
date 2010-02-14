@@ -1,11 +1,8 @@
-/** NSNumber - Object encapsulation of numbers
+/** Implementation of NSNumber for GNUStep
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
-   Copyright (C) 1993, 1994, 1996, 2000 Free Software Foundation, Inc.
-
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
-   Created: Mar 1995
-   Rewrite: Richard Frith-Macdonald <rfm@gnu.org>
-   Date: Mar 2000
+   Written by:  David Chisnall
+   Date: February 2010
 
    This file is part of the GNUstep Base Library.
 
@@ -24,2819 +21,513 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   <title>NSNumber class reference</title>
-   $Date$ $Revision$
-*/
+   */
 
-#include <string.h>
-#import "config.h"
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSMapTable.h"
-#import "Foundation/NSThread.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSPortCoder.h"
-#import "Foundation/NSObjCRuntime.h"
 
-#import "NSConcreteNumber.h"
-#import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "Foundation/Foundation.h"
 
-@interface GSCachedBool : NSBoolNumber
-@end
-@interface GSCachedInt : NSIntNumber
-@end
-@implementation GSCachedBool
-- (id) copyWithZone: (NSZone*)zone
+/**
+ * NSNumber implementation.  This matches the behaviour of Apple's
+ * implementation.  Values in the range -1 to 12 inclusive are mapped to
+ * singletons.  All other values are mapped to the smallest signed value that
+ * will store them, unless they are greater than LONG_LONG_MAX, in which case
+ * they are stored in an unsigned long long.
+ */
+
+
+@interface NSSignedIntegerNumber : NSNumber @end
+
+@interface NSIntNumber : NSSignedIntegerNumber
 {
-  return RETAIN(self);
-}
-- (void) dealloc
-{
-  [NSException raise: NSGenericException
-	      format: @"Attempt to deallocate bool number owned by cache"];
-  GSNOSUPERDEALLOC;
+	@public
+	int value;
 }
 @end
-@implementation GSCachedInt
-- (id) copyWithZone: (NSZone*)zone
+@interface NSLongLongNumber : NSSignedIntegerNumber
 {
-  return RETAIN(self);
+	@public
+	long long int value;
 }
-- (void) dealloc
+@end
+@interface NSUnsignedLongLongNumber : NSNumber
 {
-  [NSException raise: NSGenericException
-	      format: @"Attempt to deallocate int number owned by cache"];
-  GSNOSUPERDEALLOC;
+	@public
+	unsigned long long int value;
 }
+@end
+// The value ivar in all of the concrete classes contains the real value.
+#define VALUE value
+
+#define COMPARE(value, other) \
+	if (value < other)\
+	{\
+		return NSOrderedAscending;\
+	}\
+	if (value > other)\
+	{\
+		return NSOrderedDescending;\
+	}\
+	return NSOrderedSame;
+
+@implementation NSSignedIntegerNumber
+- (NSComparisonResult)compare: (NSNumber*)aNumber
+{
+	if (aNumber == self) { return NSOrderedSame; }
+	if (aNumber == nil) 
+	{
+		[NSException raise: NSInvalidArgumentException
+		            format: @"nil argument for compare:"];
+	}
+
+
+	switch ([aNumber objCType][0])
+	{
+		// For cases smaller than or equal to an int, we could get the int
+		// value and compare.
+		case 'c':
+		case 'C':
+		case 's':
+		case 'S':
+		case 'i':
+		case 'I':
+		case 'l':
+		case 'L':
+		case 'q':
+		{
+			long long value = [self longLongValue];
+			long long other = [aNumber longLongValue];
+			COMPARE(value, other);
+		}
+		case 'Q':
+		{
+			//According to the C type promotion rules, we should cast this to
+			//an unsigned long long, however Apple's code does not do this.
+			//Instead, it performs a real comparison.
+			long long v = [self longLongValue];
+			// If this value is less than 0, then it is less than any value
+			// that can possibly be stored in an unsigned value.
+			if (v < 0)
+			{
+				return NSOrderedAscending;
+			}
+
+			unsigned long long other = [aNumber unsignedLongLongValue];
+			unsigned long long value = (unsigned long long)v;
+			COMPARE(value, other);
+		}
+		case 'f':
+		case 'd':
+		{
+			double other = [aNumber doubleValue];
+			double value = [self doubleValue];
+			COMPARE(value, other)
+		}
+		default:
+			[NSException raise: NSInvalidArgumentException
+			            format: @"unrecognised type for compare:"];
+	}
+	return 0; // Not reached.
+}
+@end
+@implementation NSIntNumber
+#define FORMAT @"%i"
+#include "NSNumberMethods.h"
+@end
+@implementation NSLongLongNumber
+#define FORMAT @"%lli"
+#include "NSNumberMethods.h"
+@end
+@implementation NSUnsignedLongLongNumber
+#define FORMAT @"%llu"
+#include "NSNumberMethods.h"
+- (NSComparisonResult)compare: (NSNumber*)aNumber
+{
+	if (aNumber == self) { return NSOrderedSame; }
+	if (aNumber == nil) 
+	{
+		[NSException raise: NSInvalidArgumentException
+		            format: @"nil argument for compare:"];
+	}
+
+
+	switch ([aNumber objCType][0])
+	{
+		// For cases smaller than or equal to an int, we could get the int
+		// value and compare.
+		case 'c':
+		case 'C':
+		case 's':
+		case 'S':
+		case 'i':
+		case 'I':
+		case 'l':
+		case 'L':
+		case 'q':
+		{
+			long long other = [aNumber longLongValue];
+			if (other < 0)
+			{
+				return NSOrderedDescending;
+			}
+			COMPARE(value, ((unsigned long long)other));
+		}
+		case 'Q':
+		{
+			unsigned long long other = [aNumber unsignedLongLongValue];
+			COMPARE(value, other);
+		}
+		case 'f':
+		case 'd':
+		{
+			double other = [aNumber doubleValue];
+			COMPARE(((double)value), other)
+		}
+		default:
+			[NSException raise: NSInvalidArgumentException
+			            format: @"unrecognised type for compare:"];
+	}
+	return 0; // Not reached.
+}
+@end
+
+/**
+ * Abstract superclass for floating point numbers.
+ */
+@interface NSFloatingPointNumber : NSNumber @end
+@implementation NSFloatingPointNumber 
+/* For floats, the type promotion rules say that we always promote to a
+ * floating point type, even if the other value is really an integer.
+ */
+- (BOOL)isEqualToNumber: (NSNumber*)aNumber
+{
+	return [self doubleValue] == [aNumber doubleValue];
+}
+- (NSComparisonResult)compare: (NSNumber*)aNumber
+{
+	if (aNumber == self) { return NSOrderedSame; }
+	if (aNumber == nil) 
+	{
+		[NSException raise: NSInvalidArgumentException
+		            format: @"nil argument for compare:"];
+	}
+	double other = [aNumber doubleValue];
+	double value = [self doubleValue];
+	COMPARE(value, other)
+}
+@end
+
+@interface NSFloatNumber : NSFloatingPointNumber
+{
+	@public
+	float value;
+}
+@end
+@implementation NSFloatNumber
+#define FORMAT @"%0.7g"
+#include "NSNumberMethods.h"
+@end
+@interface NSDoubleNumber : NSFloatingPointNumber
+{
+	@public
+	double value;
+}
+@end
+@implementation NSDoubleNumber
+#define FORMAT @"%0.16g"
+#include "NSNumberMethods.h"
 @end
 
 @implementation NSNumber
-
-static NSMapTable	*numberMap;
-static BOOL		multiThreaded = NO;
-static NSNumber		*boolN;
-static NSNumber		*boolY;
-static NSNumber		*smallIntegers[GS_SMALL * 2 + 1];
-static unsigned int	smallHashes[GS_SMALL * 2 + 1];
-
-/*
- * Cache info for each number class.
- * In a multi-threaded system we may waste some memory in order to get speed.
+/**
+ * Numbers from -1 to 12 inclusive that are reused.
  */
-GSNumberInfo*
-GSNumberInfoFromObject(NSNumber *o)
+static NSNumber *ReusedInstances[14];
+static Class NSNumberClass;
+static Class NSIntNumberClass;
+static Class NSLongLongNumberClass;
+static Class NSUnsignedLongLongNumberClass;
+static Class NSFloatNumberClass;
+static Class NSDoubleNumberClass;
++ (void)initialize
 {
-  Class		c;
-  GSNumberInfo	*info;
+	int i;
+	if ([NSNumber class] != self) { return; }
 
-  if (o == nil)
-    return 0;
-  c = GSObjCClass(o);
-  info = (GSNumberInfo*)NSMapGet (numberMap, (void*)c);
-  if (info == 0)
-    {
-      const char	*t = [o objCType];
-      int		order = -1;
+	NSNumberClass = self;
+	NSIntNumberClass = [NSIntNumber class];
+	NSLongLongNumberClass = [NSLongLongNumber class];
+	NSUnsignedLongLongNumberClass = [NSUnsignedLongLongNumber class];
+	NSFloatNumberClass = [NSFloatNumber class];
+	NSDoubleNumberClass = [NSDoubleNumber class];
 
-      if (strlen(t) != 1)
+	for (i=0 ; i<14 ; i++)
 	{
-	  NSLog(@"Invalid return value (%s) from [%@ objCType]", t, c);
+		NSIntNumber *n =
+			NSAllocateObject(NSIntNumberClass, 0, [self zone]);
+		n->value = i-1;
+		ReusedInstances[i] = n;
 	}
-      else
+}
+- (const char*)objCType
+{
+	// All concrete NSNumber types must implement this so we know which oen
+	// they are.
+	[self subclassResponsibility: _cmd];
+	return NULL; // Not reached
+}
+- (BOOL)isEqualToNumber: (NSNumber*)aNumber
+{
+	return [self compare: aNumber] == NSOrderedSame;
+}
+- (BOOL)isEqual: (id)anObject
+{
+	if ([anObject isKindOfClass: NSNumberClass])
 	{
-	  switch (*t)
-	    {
-	      case 'c':	order = 1;	break;
-	      case 'C':	order = 2;	break;
-	      case 's':	order = 3;	break;
-	      case 'S':	order = 4;	break;
-	      case 'i':	order = 5;	break;
-	      case 'I':	order = 6;	break;
-	      case 'l':	order = 7;	break;
-	      case 'L':	order = 8;	break;
-	      case 'q':	order = 9;	break;
-	      case 'Q':	order = 10;	break;
-	      case 'f':	order = 11;	break;
-	      case 'd':	order = 12;	break;
-	      default:
-		NSLog(@"Invalid return value (%s) from [%@ objCType]", t, c);
-		break;
-	    }
+		return [self isEqualToNumber: anObject];
 	}
-      info = (GSNumberInfo*)NSZoneMalloc(NSDefaultMallocZone(),
-	(sizeof(GSNumberInfo)));
-      info->typeLevel = order;
-
-      info->getValue = (void (*)(NSNumber*, SEL, void*))
-	[o methodForSelector: @selector(getValue:)];
-
-      if (multiThreaded == YES)
+	return [super isEqual: anObject];
+}
+- (BOOL)isEqualToValue: (NSValue*)aValue
+{
+	if ([aValue isKindOfClass: NSNumberClass])
 	{
-	  NSMapTable	*table;
-
-	  /*
-	   * Memory leak for efficiency - the old map table is never
-	   * deallocated, so we don't have to do any locking.
-	   */
-	  table = NSCopyMapTableWithZone(numberMap, NSDefaultMallocZone());
-	  NSMapInsert(table, (void*)c, (void*)info);
-	  numberMap = table;
+		return [self isEqualToNumber: (NSNumber*)aValue];
 	}
-      else
-	{
-	  NSMapInsert(numberMap, (void*)c, (void*)info);
-	}
-    }
-  return info;
-}
+	return NO;
 
-unsigned int
-GSPrivateSmallHash(int n)
+}
+- (unsigned)hash
 {
-  return smallHashes[n + GS_SMALL];
+	return (unsigned)[self doubleValue];
 }
-
-static Class	abstractClass;
-static Class	boolNumberClass;
-static Class	charNumberClass;
-static Class	uCharNumberClass;
-static Class	shortNumberClass;
-static Class	uShortNumberClass;
-static Class	intNumberClass;
-static Class	uIntNumberClass;
-static Class	integerNumberClass;
-static Class	uIntegerNumberClass;
-static Class	longNumberClass;
-static Class	uLongNumberClass;
-static Class	longLongNumberClass;
-static Class	uLongLongNumberClass;
-static Class	floatNumberClass;
-static Class	doubleNumberClass;
-
-+ (void) _becomeThreaded: (NSNotification*)notification
+- (NSString*)stringValue
 {
-  multiThreaded = YES;
+	return [self descriptionWithLocale: nil];
 }
-
-+ (void) initialize
+- (NSString*)descriptionWithLocale: (id)aLocale
 {
-  if (self == [NSNumber class])
-    {
-      BOOL	boolean;
-      int	integer;
-      unsigned	(*hasher)(NSNumber*, SEL);
-      GSNumberInfo	*info;
-      CREATE_AUTORELEASE_POOL(pool);
-
-      abstractClass = self;
-      hasher = (unsigned (*)(NSNumber*, SEL))
-	[self instanceMethodForSelector: @selector(hash)];
-
-      /*
-       * Create cache for per-subclass method implementations etc.
-       */
-      numberMap = NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
-	NSOwnedPointerMapValueCallBacks, 0);
-
-      /*
-       * cache standard subclass info.
-       */
-      boolNumberClass = [NSBoolNumber class];
-      info = GSNumberInfoFromObject(AUTORELEASE([boolNumberClass alloc]));
-      /*
-       * Set the typeLevel for a boolean to be '0'
-       */
-      info->typeLevel = 0;
-      charNumberClass = [NSCharNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([charNumberClass alloc]));
-      uCharNumberClass = [NSUCharNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([uCharNumberClass alloc]));
-      shortNumberClass = [NSShortNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([shortNumberClass alloc]));
-      uShortNumberClass = [NSUShortNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([uShortNumberClass alloc]));
-      intNumberClass = [NSIntNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([intNumberClass alloc]));
-      uIntNumberClass = [NSUIntNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([uIntNumberClass alloc]));
-      longNumberClass = [NSLongNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([longNumberClass alloc]));
-      uLongNumberClass = [NSULongNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([uLongNumberClass alloc]));
-      longLongNumberClass = [NSLongLongNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([longLongNumberClass alloc]));
-      uLongLongNumberClass = [NSULongLongNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([uLongLongNumberClass alloc]));
-      floatNumberClass = [NSFloatNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([floatNumberClass alloc]));
-      doubleNumberClass = [NSDoubleNumber class];
-      GSNumberInfoFromObject(AUTORELEASE([doubleNumberClass alloc]));
-
-      if (sizeof(NSInteger) == sizeof(int))
-	{
-	  integerNumberClass = intNumberClass;
-	  uIntegerNumberClass = uIntNumberClass;
-	}
-      else if (sizeof(NSInteger) == sizeof(long))
-	{
-	  integerNumberClass = longNumberClass;
-	  uIntegerNumberClass = uLongNumberClass;
-	}
-      else
-	{
-	  integerNumberClass = longLongNumberClass;
-	  uIntegerNumberClass = uLongLongNumberClass;
-	}
-
-      /*
-       * cache bool values.
-       */
-      boolN = (NSNumber*)NSAllocateObject([GSCachedBool class], 0,
-	NSDefaultMallocZone());
-      boolean = NO;
-      boolN = [boolN initWithBytes: &boolean objCType: NULL];
-
-      boolY = (NSNumber*)NSAllocateObject([GSCachedBool class], 0,
-	NSDefaultMallocZone());
-      boolean = YES;
-      boolY = [boolY initWithBytes: &boolean objCType: NULL];
-
-      /*
-       * cache small integer values.
-       */
-      for (integer = -GS_SMALL; integer <= GS_SMALL; integer++)
-	{
-	  NSNumber	*num;
-
-	  num = (NSNumber*)NSAllocateObject([GSCachedInt class], 0,
-	    NSDefaultMallocZone());
-	  num = [num initWithBytes: &integer objCType: NULL];
-	  smallIntegers[integer + GS_SMALL] = num;
-	  smallHashes[integer + GS_SMALL] = (*hasher)(num, @selector(hash));
-	}
-
-      /*
-       * Make sure we know if we are multi-threaded so that if the caches
-       * need to grow, we do it by copying and replacing without deleting
-       * an old cache that may be in use by another thread.
-       */
-      if ([NSThread isMultiThreaded])
-	{
-	  [self _becomeThreaded: nil];
-	}
-      else
-	{
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	       selector: @selector(_becomeThreaded:)
-		   name: NSWillBecomeMultiThreadedNotification
-		 object: nil];
-	}
-      RELEASE(pool);
-    }
+	[self subclassResponsibility: _cmd];
+	return nil; // Not reached
 }
-
-/* Returns the concrete class associated with the type encoding. Note
-   that we don't allow NSNumber to instantiate any class but its own
-   concrete subclasses (see check at end of method) */
-+ (Class) valueClassWithObjCType: (const char*)type
+- (NSComparisonResult)compare: (NSNumber*)aNumber
 {
-  Class theClass = Nil;
-
-  switch (*type)
-    {
-      case _C_CHR: 	return charNumberClass;
-      case _C_UCHR: 	return uCharNumberClass;
-      case _C_SHT: 	return shortNumberClass;
-      case _C_USHT: 	return uShortNumberClass;
-      case _C_INT: 	return intNumberClass;
-      case _C_UINT:	return uIntNumberClass;
-      case _C_LNG:	return longNumberClass;
-      case _C_ULNG:	return uLongNumberClass;
-#ifdef	_C_LNGLNG
-      case _C_LNGLNG:
-#else
-      case 'q':
-#endif
-	return longLongNumberClass;
-#ifdef	_C_ULNGLNG
-      case _C_ULNGLNG:
-#else
-      case 'Q':
-#endif
-	return uLongLongNumberClass;
-      case _C_FLT:	return floatNumberClass;
-      case _C_DBL:	return doubleNumberClass;
-      default:
-	break;
-    }
-
-  if (theClass == Nil && self == abstractClass)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Invalid number type"];
-	/* NOT REACHED */
-    }
-  else if (theClass == Nil)
-    {
-      theClass = [super valueClassWithObjCType: type];
-    }
-  return theClass;
+	[self subclassResponsibility: _cmd];
+	return 0; // Not reached
 }
-
-+ (NSNumber*) numberWithBool: (BOOL)value
-{
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value == NO)
-        {
-          return boolN;
-        }
-      else
-        {
-          return boolY;
-        }
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-                           initWithBool: value]);
-    }
+#define INTEGER_MACRO(type, ignored, name) \
+- (id)initWith ## name: (type)aValue \
+{\
+	[self release];\
+	return [[NSNumberClass numberWith ## name: aValue] retain];\
 }
+#include "GSNumberTypes.h"
 
-+ (NSNumber*) numberWithChar: (signed char)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL && value >= -GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(charNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithChar: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithDouble: (double)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      theObj = (NSNumber*)NSAllocateObject(doubleNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithDouble: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithFloat: (float)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      theObj = (NSNumber*)NSAllocateObject(floatNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithFloat: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithInt: (signed int)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL && value >= -GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(intNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithInt: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithInteger: (NSInteger)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL && value >= -GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(integerNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithInteger: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithLong: (signed long)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL && value >= -GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(longNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithLong: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithLongLong: (signed long long)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL && value >= -GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(longLongNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithLongLong: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithShort: (signed short)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL && value >= -GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(shortNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithShort: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithUnsignedChar: (unsigned char)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(uCharNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithUnsignedChar: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithUnsignedInt: (unsigned int)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(uIntNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithUnsignedInt: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithUnsignedInteger: (NSUInteger)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(uIntegerNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithUnsignedInteger: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithUnsignedLong: (unsigned long)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(uLongNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithUnsignedLong: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithUnsignedLongLong: (unsigned long long)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(uLongLongNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithUnsignedLongLong: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-+ (NSNumber*) numberWithUnsignedShort: (unsigned short)value
-{
-  NSNumber	*theObj = nil;
-
-  // if class is NSNumber, replace by appropriate object
-  if (self == abstractClass)
-    {
-      if (value <= GS_SMALL)
-        {
-          return smallIntegers[value + GS_SMALL];
-        }
-      theObj = (NSNumber*)NSAllocateObject(uShortNumberClass, 0,
-                                           NSDefaultMallocZone());
-      theObj = [theObj initWithBytes: &value objCType: NULL];
-    }
-  else // alloc class and init with object intWithXX method
-    {
-      theObj = [[self allocWithZone: NSDefaultMallocZone()]
-                 initWithUnsignedShort: value];
-    }
-
-  return AUTORELEASE(theObj);
-}
-
-/*
- * A moderately sane default init method - a zero value integer.
+/**
+ * Macro for checking whether this value is the same as one of the singleton
+ * instances.  
  */
-- (id) init
-{
-  return [self initWithInt: 0];
+#define CHECK_SINGLETON(aValue) \
+if (aValue >= -1 && aValue <=12)\
+{\
+	return ReusedInstances[aValue+1];\
 }
 
-- (id) initWithBool: (BOOL)value
++ (NSNumber*)numberWithBool: (BOOL)aValue
 {
-  RELEASE(self);
-  if (value == NO)
-    {
-      self = boolN;
-    }
-  else
-    {
-      self = boolY;
-    }
-  return RETAIN(self);
+	CHECK_SINGLETON(((signed char)aValue));
+	return [self numberWithInt: aValue]; // Not reached (BOOL is always 0 or 1)
 }
-
-- (id) initWithBytes: (const void*)data objCType: (const char*)type
++ (NSNumber*)numberWithChar: (signed char)aValue
 {
-  if (GSObjCClass(self) == abstractClass)
-    {
-      Class	c = [abstractClass valueClassWithObjCType: type];
-
-      [self release];
-      self = (id)NSAllocateObject(c, 0, GSObjCZone(self));
-      return [self initWithBytes: data objCType: type];
-    }
-  [self subclassResponsibility: _cmd];
-  return nil;
+	return [self numberWithInt: aValue];
 }
-
-- (id) initWithChar: (signed char)value
++ (NSNumber*)numberWithUnsignedChar: (unsigned char)aValue
 {
-  RELEASE(self);
-  if (value <= GS_SMALL && value >= -GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(charNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
+	return [self numberWithInt: aValue];
 }
-
-- (id) initWithDouble: (double)value
++ (NSNumber*)numberWithShort: (short)aValue
 {
-  RELEASE(self);
-  self = (NSNumber*)NSAllocateObject(doubleNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
+	return [self numberWithInt: aValue];
 }
-
-- (id) initWithFloat: (float)value
++ (NSNumber*)numberWithUnsignedShort: (unsigned short)aValue
 {
-  RELEASE(self);
-  self = (NSNumber*)NSAllocateObject(floatNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
+	return [self numberWithInt: aValue];
 }
-
-- (id) initWithInt: (signed int)value
++ (NSNumber*)numberWithInt: (int)aValue
 {
-  RELEASE(self);
-  if (value <= GS_SMALL && value >= -GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(intNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
+	CHECK_SINGLETON(aValue);
+	NSIntNumber *n =
+		NSAllocateObject(NSIntNumberClass, 0, [self zone]);
+	n->value = aValue;
+	return n;
 }
-
-- (id) initWithInteger: (NSInteger)value
++ (NSNumber*)numberWithUnsignedInt: (unsigned int)aValue
 {
-  RELEASE(self);
-  if (value <= GS_SMALL && value >= -GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(integerNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithLong: (signed long)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL && value >= -GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(longNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithLongLong: (signed long long)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL && value >= -GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(longLongNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithShort: (signed short)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL && value >= -GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(shortNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithUnsignedChar: (unsigned char)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(uCharNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithUnsignedInt: (unsigned int)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(uIntNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithUnsignedInteger: (NSUInteger)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(uIntegerNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithUnsignedLong: (unsigned long)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(uLongNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithUnsignedLongLong: (unsigned long long)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(uLongLongNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) initWithUnsignedShort: (unsigned short)value
-{
-  RELEASE(self);
-  if (value <= GS_SMALL)
-    {
-      return RETAIN(smallIntegers[value + GS_SMALL]);
-    }
-  self = (NSNumber*)NSAllocateObject(uShortNumberClass, 0,
-    NSDefaultMallocZone());
-  self = [self initWithBytes: &value objCType: NULL];
-  return self;
-}
-
-- (id) copyWithZone: (NSZone*)zone
-{
-  if (NSShouldRetainWithZone(self, zone))
-    return RETAIN(self);
-  else
-    return NSCopyObject(self, 0, zone);
-}
-
-- (NSString*) description
-{
-  return [self descriptionWithLocale: nil];
-}
-
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
-{
-  NSString	*result = nil;
-
-  if (GSObjCClass(self) == abstractClass)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"descriptionWithLocale: for abstract NSNumber"];
-    }
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
+	CHECK_SINGLETON(aValue);
+	if (aValue < (unsigned int)INT_MAX)
 	{
-	  case 0:
-	    return [self boolValue] ? @"1" : @"0";
-	    break;
-
-	  case 1:
-	    result = [[NSString alloc] initWithFormat: @"%i" locale: locale,
-	      (int)[self charValue]];
-	    break;
-
-	  case 2:
-	    result = [[NSString alloc] initWithFormat: @"%u" locale: locale,
-	      (unsigned int)[self unsignedCharValue]];
-	    break;
-
-	  case 3:
-	    result = [[NSString alloc] initWithFormat: @"%hi" locale: locale,
-	      [self shortValue]];
-	    break;
-
-	  case 4:
-	    result = [[NSString alloc] initWithFormat: @"%hu" locale: locale,
-	      [self unsignedShortValue]];
-	    break;
-
-	  case 5:
-	    result = [[NSString alloc] initWithFormat: @"%i" locale: locale,
-	      [self intValue]];
-	    break;
-
-	  case 6:
-	    result = [[NSString alloc] initWithFormat: @"%u" locale: locale,
-	      [self unsignedIntValue]];
-	    break;
-
-	  case 7:
-	    result = [[NSString alloc] initWithFormat: @"%li" locale: locale,
-	      [self longValue]];
-	    break;
-
-	  case 8:
-	    result = [[NSString alloc] initWithFormat: @"%lu" locale: locale,
-	      [self unsignedLongValue]];
-	    break;
-
-	  case 9:
-	    result = [[NSString alloc] initWithFormat: @"%lli" locale: locale,
-	      [self longLongValue]];
-	    break;
-
-	  case 10:
-	    result = [[NSString alloc] initWithFormat: @"%llu" locale: locale,
-	      [self unsignedLongLongValue]];
-	    break;
-
-	  case 11:
-	    result = [[NSString alloc] initWithFormat: @"%0.7g" locale: locale,
-	      (double)[self floatValue]];
-	    break;
-
-	  case 12:
-	    result = [[NSString alloc] initWithFormat: @"%0.16g" locale: locale,
-	      [self doubleValue]];
-	    break;
-
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for description"];
+		return [self numberWithInt: (int)aValue];
 	}
-    }
-  return AUTORELEASE(result);
+	return [self numberWithLongLong: aValue];
 }
-
-/* All the rest of these methods must be implemented by a subclass */
-- (BOOL) boolValue
++ (NSNumber*)numberWithLong: (long)aValue
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get boolValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
+	return [self numberWithLongLong: aValue];
+}
++ (NSNumber*)numberWithUnsignedLong: (unsigned long)aValue
+{
+	return [self numberWithUnsignedLongLong: aValue];
+}
++ (NSNumber*)numberWithLongLong: (long long)aValue
+{
+	CHECK_SINGLETON(aValue);
+	if (aValue < (long long)INT_MAX && aValue > (long long)INT_MIN)
 	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return (oData == 0) ? NO : YES;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
+		return [self numberWithInt: (int)aValue];
 	}
-    }
-  return NO;
+	NSLongLongNumber *n =
+		NSAllocateObject(NSLongLongNumberClass, 0, [self zone]);
+	n->value = aValue;
+	return n;
 }
-
-- (signed char) charValue
++ (NSNumber*)numberWithUnsignedLongLong: (unsigned long long)aValue
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get charValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
+	if (aValue < (unsigned long long)LLONG_MAX)
 	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
+		return [self numberWithLongLong: (long long)aValue];
 	}
-    }
-  return 0;
+	NSUnsignedLongLongNumber *n = 
+		NSAllocateObject(NSUnsignedLongLongNumberClass, 0, [self zone]);
+	n->value = aValue;
+	return n;
 }
-
-- (double) doubleValue
++ (NSNumber*)numberWithFloat: (float)aValue
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get doubleValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
+	NSFloatNumber *n = NSAllocateObject(NSFloatNumberClass, 0, [self zone]);
+	n->value = aValue;
+	return n;
+}
++ (NSNumber*)numberWithDouble: (double)aValue
+{
+	NSDoubleNumber *n = NSAllocateObject(NSDoubleNumberClass, 0, [self zone]);
+	n->value = aValue;
+	return n;
+}
++ (NSNumber*)numberWithInteger: (NSInteger)aValue
+{
+	// Compile time constant; the compiler will remove this conditional
+	if (sizeof(NSInteger) == sizeof(int))
 	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
+		return [self numberWithInt: aValue];
 	}
-    }
-  return 0;
+	return [self numberWithLongLong: aValue];
 }
-
-- (float) floatValue
++ (NSNumber*)numberWithUnsignedInteger: (NSUInteger)aValue
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get floatValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
+	// Compile time constant; the compiler will remove this conditional
+	if (sizeof(NSUInteger) == sizeof(unsigned int))
 	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
+		return [self numberWithUnsignedInt: aValue];
 	}
-    }
-  return 0;
+	return [self numberWithUnsignedLongLong: aValue];
 }
-
-- (signed int) intValue
+- (id)initWithBytes: (const void *)value objCType: (const char *)type
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get intValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
+	switch(type[0])
 	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
+		case 'c': return [self initWithInteger: *(char*)value];
+		case 'C': return [self initWithInteger: *(unsigned char*)value];
+		case 's': return [self initWithInteger: *(short*)value];
+		case 'S': return [self initWithInteger: *(unsigned short*)value];
+		case 'i': return [self initWithInteger: *(int*)value];
+		case 'I': return [self initWithInteger: *(unsigned int*)value];
+		case 'l': return [self initWithLong: *(long*)value];
+		case 'L': return [self initWithUnsignedLong: *(unsigned long*)value];
+		case 'q': return [self initWithLongLong: *(long long*)value];
+		case 'Q': 
+			return [self initWithUnsignedLongLong: *(unsigned long long*)value];
+		case 'f': return [self initWithFloat: *(float*)value];
+		case 'd': return [self initWithDouble: *(double*)value];
 	}
-    }
-  return 0;
+	return [super initWithBytes: value objCType: type];
 }
 
-- (NSInteger) integerValue
+- (void*)pointerValue
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get integerValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
+	return (void*)[self unsignedIntegerValue];
+}
 
-      switch (info->typeLevel)
+- (id)replacementObjectForPortCoder:(NSPortCoder *)encoder
+{
+	if ([encoder isBycopy])
 	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
+		return self;
 	}
-    }
-  return 0;
+	return [super replacementObjectForPortCoder:encoder];
 }
-
-- (signed long long) longLongValue
+- (Class)classForCoder
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get longLongValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
+	return NSNumberClass;
+}
+- (void)encodeWithCoder: (NSCoder*)coder
+{
+	const char *type = [self objCType];
+	[coder encodeValueOfObjCType: @encode(char) at: type];
+	// The most we currently store in an NSNumber is 8 bytes (double or long
+	// long), but we may add support for vectors or long doubles in future, so
+	// make this 16 bytes now so stuff doesn't break in fun and exciting ways
+	// later.
+	char buffer[16];
+	[self getValue: buffer];
+	[coder encodeValueOfObjCType: type at: buffer];
+}
+- (id)copyWithZone: (NSZone*)aZone
+{
+	if (NSShouldRetainWithZone(self, aZone))
 	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
+		return RETAIN(self);
 	}
-    }
-  return 0;
-}
-
-- (signed long) longValue
-{
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get longValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
+	else
 	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
+		return NSCopyObject(self, 0, aZone);
 	}
-    }
-  return 0;
 }
-
-- (signed short) shortValue
+- (id)initWithCoder: (NSCoder*)coder
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get shortValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
-	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
-	}
-    }
-  return 0;
+	char type[2] = {0};
+	[coder decodeValueOfObjCType: @encode(char) at: type];
+	char buffer[16];
+	[coder decodeValueOfObjCType: type at: buffer];
+	return [self initWithBytes: buffer objCType: type];
 }
-
-- (NSString*) stringValue
+- (NSString*)description
 {
-  return [self descriptionWithLocale: nil];
+	return [self stringValue];
 }
-
-- (unsigned char) unsignedCharValue
+// Return nil for an NSNumber that is allocated and initalized without
+// providing a real value.  Yes, this seems weird, but it is actually what
+// happens on OS X.
+- (id)init
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get unsignedCharrValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
-	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
-	}
-    }
-  return 0;
+	[self release];
+	return nil;
 }
-
-- (unsigned int) unsignedIntValue
-{
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get unsignedIntValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
-	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
-	}
-    }
-  return 0;
+// Stop the compiler complaining about unimplemented methods.  Throwing an
+// exception here matches OS X behaviour, although they throw an invalid
+// argument exception.
+#define INTEGER_MACRO(type, name, ignored) \
+- (type) name ## Value\
+{\
+	[self subclassResponsibility: _cmd];\
+	return (type)0;\
 }
-
-- (NSUInteger) unsignedIntegerValue
+#include "GSNumberTypes.h"
+- (NSDecimal)decimalValue
 {
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get unsignedIntegerValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
-	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
-	}
-    }
-  return 0;
-}
-
-- (unsigned long long) unsignedLongLongValue
-{
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get unsignedLongLongValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
-	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
-	}
-    }
-  return 0;
-}
-
-- (unsigned long) unsignedLongValue
-{
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get unsignedLongValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
-	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
-	}
-    }
-  return 0;
-}
-
-- (unsigned short) unsignedShortValue
-{
-  if (GSObjCClass(self) == abstractClass)
-    [NSException raise: NSInternalInconsistencyException
-		format: @"get unsignedShortValue from abstract NSNumber"];
-  else
-    {
-      GSNumberInfo	*info = GSNumberInfoFromObject(self);
-
-      switch (info->typeLevel)
-	{
-	  case 0:
-	    {
-	      BOOL	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 1:
-	    {
-	      signed char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 2:
-	    {
-	      unsigned char	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 3:
-	    {
-	      signed short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 4:
-	    {
-	      unsigned short	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 5:
-	    {
-	      signed int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 6:
-	    {
-	      unsigned int	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 7:
-	    {
-	      signed long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 8:
-	    {
-	      unsigned long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 9:
-	    {
-	      signed long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 10:
-	    {
-	      unsigned long long	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 11:
-	    {
-	      float	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  case 12:
-	    {
-	      double	oData;
-
-	      (*(info->getValue))(self, @selector(getValue:), &oData);
-	      return oData;
-	    }
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-			format: @"unknown number type value for get"];
-	}
-    }
-  return 0;
-}
-
-- (NSComparisonResult) compare: (NSNumber*)other
-{
-  double	otherValue;
-  double	myValue;
-
-  if (other == self)
-    {
-      return NSOrderedSame;
-    }
-  else if (other == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for compare:"];
-    }
-
-  myValue = [self doubleValue];
-  otherValue = [other doubleValue];
-
-  if (myValue == otherValue)
-    {
-      return NSOrderedSame;
-    }
-  else if (myValue < otherValue)
-    {
-      return  NSOrderedAscending;
-    }
-  else
-    {
-      return NSOrderedDescending;
-    }
-}
-
-/*
- * Because of the rule that two numbers which are the same according to
- * [-isEqual: ] must generate the same hash, we must generate the hash
- * from the most general representation of the number.
- * NB. Don't change this without changing the matching function in
- * NSConcreteNumber.m
- */
-- (unsigned) hash
-{
-  union {
-    double d;
-    unsigned char c[sizeof(double)];
-  } val;
-  unsigned	hash = 0;
-  unsigned	i;
-
-  val.d = [self doubleValue];
-  for (i = 0; i < sizeof(double); i++)
-    {
-      hash = (hash << 5) + hash + val.c[i];
-    }
-  return hash;
-}
-
-- (BOOL) isEqual: (id)o
-{
-  if (o == self)
-    {
-      return YES;
-    }
-  else if (o == nil)
-    {
-      return NO;
-    }
-  else if (GSObjCIsInstance(o) == YES
-    && GSObjCIsKindOf(GSObjCClass(o), abstractClass))
-    {
-      return [self isEqualToNumber: (NSNumber*)o];
-    }
-  else
-    {
-      return [super isEqual: o];
-    }
-}
-
-- (BOOL) isEqualToNumber: (NSNumber*)o
-{
-  if (o == self)
-    {
-      return YES;
-    }
-  else if (o == nil)
-    {
-      return NO;
-    }
-  else if ([self compare: o] == NSOrderedSame)
-    {
-      return YES;
-    }
-  return NO;
-}
-
-- (BOOL) isEqualToValue: (NSValue*)o
-{
-  if (o == self)
-    {
-      return YES;
-    }
-  else if (o == nil)
-    {
-      return NO;
-    }
-  else if (GSObjCIsInstance(o) == YES
-    && GSObjCIsKindOf(GSObjCClass(o), abstractClass))
-    {
-      return [self isEqualToNumber: (NSNumber*)o];
-    }
-  return NO;
-}
-
-/*
- * NSCoding
- */
-
-- (Class) classForCoder
-{
-  return abstractClass;
-}
-
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
-{
-  if ([aCoder isByref] == NO)
-    return self;
-  return [super replacementObjectForPortCoder: aCoder];
-}
-
-- (void) encodeWithCoder: (NSCoder*)coder
-{
-  const char	*t = [self objCType];
-
-  [coder encodeValueOfObjCType: @encode(signed char) at: t];
-  [coder encodeValueOfObjCType: t at: [self pointerValue]];
-}
-
-- (id) initWithCoder: (NSCoder*)coder
-{
-  char	t[2];
-  union	{
-    signed char	c;
-    unsigned char C;
-    signed short s;
-    unsigned short S;
-    signed int i;
-    unsigned int I;
-    signed long	l;
-    unsigned long L;
-    signed long long q;
-    unsigned long long Q;
-    float f;
-    double d;
-  } data;
-
-  [coder decodeValueOfObjCType: @encode(signed char) at: t];
-  t[1] = '\0';
-  [coder decodeValueOfObjCType: t at: &data];
-  switch (*t)
-    {
-      case 'c':	self = [self initWithChar: data.c];	break;
-      case 'C':	self = [self initWithUnsignedChar: data.C]; break;
-      case 's':	self = [self initWithShort: data.s]; break;
-      case 'S':	self = [self initWithUnsignedShort: data.S]; break;
-      case 'i':	self = [self initWithInt: data.i]; break;
-      case 'I':	self = [self initWithUnsignedInt: data.I]; break;
-      case 'l':	self = [self initWithLong: data.l]; break;
-      case 'L':	self = [self initWithUnsignedLong: data.L]; break;
-      case 'q':	self = [self initWithLongLong: data.q]; break;
-      case 'Q':	self = [self initWithUnsignedLongLong: data.Q]; break;
-      case 'f':	self = [self initWithFloat: data.f]; break;
-      case 'd':	self = [self initWithDouble: data.d]; break;
-      default:
-	DESTROY(self);
-	NSLog(@"Attempt to decode number with unknown ObjC type");
-    }
-  return self;
+	NSDecimalNumber *dn = 
+		[[NSDecimalNumber alloc] initWithString: [self stringValue]];
+	NSDecimal decimal = [dn decimalValue];
+	[dn release];
+	return decimal;
 }
 @end

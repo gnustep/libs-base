@@ -308,7 +308,7 @@ extern "C" {
  *   <desc>%0.16g</desc>
  * </deflist>
  */
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
+- (NSString*) descriptionWithLocale: (id)locale;
 
 /**
  * Compares receiver with otherNumber, using C type conversion if necessary,
