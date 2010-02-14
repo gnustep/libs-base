@@ -29,29 +29,29 @@
 
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#import	<GSBlocks.h>
-#import	<GSFileHandle.h>
-#import	<GSFunctions.h>
-#import	<GSLocale.h>
-#import	<GSLock.h>
-#import	<GSMime.h>
-#import	<GSXML.h>
-#import	<Unicode.h>
+#import	<GNUstepBase/GSBlocks.h>
+#import	<GNUstepBase/GSFileHandle.h>
+#import	<GNUstepBase/GSFunctions.h>
+#import	<GNUstepBase/GSLocale.h>
+#import	<GNUstepBase/GSLock.h>
+#import	<GNUstepBase/GSMime.h>
+#import	<GNUstepBase/GSXML.h>
+#import	<GNUstepBase/Unicode.h>
 
-#import	<NSArray+GNUstepBase.h>
-#import	<NSAttributedString+GNUstepBase.h>
-#import	<NSBundle+GNUstepBase.h>
-#import	<NSCalendarDate+GNUstepBase.h>
-#import	<NSData+GNUstepBase.h>
-#import	<NSFileHandle+GNUstepBase.h>
-#import	<NSInvocation+GNUstepBase.h>
-#import	<NSLock+GNUstepBase.h>
-#import	<NSMutableString+GNUstepBase.h>
-#import	<NSNumber+GNUstepBase.h>
-#import	<NSObject+GNUstepBase.h>
-#import	<NSProcessInfo+GNUstepBase.h>
-#import	<NSString+GNUstepBase.h>
-#import	<NSTask+GNUstepBase.h>
-#import	<NSURL+GNUstepBase.h>
+#import	<GNUstepBase/NSArray+GNUstepBase.h>
+#import	<GNUstepBase/NSAttributedString+GNUstepBase.h>
+#import	<GNUstepBase/NSBundle+GNUstepBase.h>
+#import	<GNUstepBase/NSCalendarDate+GNUstepBase.h>
+#import	<GNUstepBase/NSData+GNUstepBase.h>
+#import	<GNUstepBase/NSFileHandle+GNUstepBase.h>
+#import	<GNUstepBase/NSInvocation+GNUstepBase.h>
+#import	<GNUstepBase/NSLock+GNUstepBase.h>
+#import	<GNUstepBase/NSMutableString+GNUstepBase.h>
+#import	<GNUstepBase/NSNumber+GNUstepBase.h>
+#import	<GNUstepBase/NSObject+GNUstepBase.h>
+#import	<GNUstepBase/NSProcessInfo+GNUstepBase.h>
+#import	<GNUstepBase/NSString+GNUstepBase.h>
+#import	<GNUstepBase/NSTask+GNUstepBase.h>
+#import	<GNUstepBase/NSURL+GNUstepBase.h>
 
 #endif /* __Additions_h_GNUSTEP_BASE_INCLUDE */
