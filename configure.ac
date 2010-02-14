@@ -654,9 +654,9 @@ fi
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
-# If we have property support, we are using the objc 2 runtime
+# Check for ability to add a thread in runtime
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(class_getProperty)
+AC_CHECK_FUNCS(objc_thread_add)
 
 # Don't revert any Objective-C flags as they are used in the next test
 
