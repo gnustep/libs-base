@@ -39,7 +39,7 @@
 #import	"Foundation/NSPathUtilities.h"
 #import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSTask.h"
-#import	"GNUstepBase/NSTask+GS.h"
+#import	"GNUstepBase/NSTask+GNUstepBase.h"
 #import	"Foundation/NSDistributedNotificationCenter.h"
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSHost.h"

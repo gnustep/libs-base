@@ -42,7 +42,7 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSTask.h"
-#import "GNUstepBase/NSTask+GS.h"
+#import "GNUstepBase/NSTask+GNUstepBase.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSPathUtilities.h"
