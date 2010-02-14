@@ -34,7 +34,10 @@
 
 #include <objc/objc.h>
 #include <objc/objc-api.h>
+
+#if	defined(HAVE__OBJC_RUNTIME_H)
 #include <objc/runtime.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
