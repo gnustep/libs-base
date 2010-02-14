@@ -76,38 +76,40 @@
 
    FIXME?: use leap seconds? */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSLock.h"
+#import "config.h"
+#define	EXPOSE_NSTimeZone_IVARS	1
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSLock.h"
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/GSConfig.h"
-#include "GSPrivate.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSZone.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSDebug.h"
+#import "GNUstepBase/GSConfig.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GSPrivate.h"
 
 #ifdef HAVE_TZHEAD
 #include <tzfile.h>
@@ -1448,10 +1450,12 @@ static NSMapTable	*absolutes = 0;
 	    {
 	      /* This must be the time zone name */
 	      localZoneString = AUTORELEASE([localZoneString mutableCopy]);
-	      [(NSMutableString *)localZoneString deletePrefix: tzdir];
-	      if ([localZoneString hasPrefix: @"/"])
+	      [(NSMutableString*)localZoneString deleteCharactersInRange:
+		NSMakeRange(0, [tzdir length])];
+	      while ([localZoneString hasPrefix: @"/"])
 	        {
-	          [(NSMutableString *)localZoneString deletePrefix: @"/"];
+		  [(NSMutableString*)localZoneString deleteCharactersInRange:
+		    NSMakeRange(0, 1)];
 	        }
 	    }
 	  else

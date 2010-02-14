@@ -22,16 +22,17 @@
    Boston, MA 02111 USA.
    */
 
-#include "Foundation/NSSortDescriptor.h"
+#define	EXPOSE_NSSortDescriptor_IVARS	1
+#import "Foundation/NSSortDescriptor.h"
 
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSKeyValueCoding.h"
-#include "Foundation/NSString.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSString.h"
 
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GSPrivate.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GSPrivate.h"
 
 @implementation NSSortDescriptor
 

@@ -27,12 +27,13 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSTimer.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSInvocation.h"
+#import "config.h"
+#define	EXPOSE_NSTimer_IVARS	1
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSInvocation.h"
 
 @class	NSGDate;
 @interface NSGDate : NSObject	// Help the compiler

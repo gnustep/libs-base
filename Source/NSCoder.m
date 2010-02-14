@@ -26,12 +26,14 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSSerialization.h"
+#import "config.h"
+#define	EXPOSE_NSCoder_IVARS	1
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSSerialization.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSCoder
 
@@ -422,7 +424,7 @@
 
 
 
-#include	"GSPrivate.h"
+#import	"GSPrivate.h"
 
 @implementation	_NSKeyedCoderOldStyleArray
 - (const void*) bytes

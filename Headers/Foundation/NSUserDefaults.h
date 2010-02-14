@@ -213,8 +213,9 @@ GS_EXPORT NSString* const GSLocale;
 	- write docs : -(
 	*/
 
-@interface NSUserDefaults:  NSObject
+@interface NSUserDefaults : NSObject
 {
+#if	GS_EXPOSE(NSUserDefaults)
 @private
   NSMutableArray	*_searchList;    // Current search list;
   NSMutableDictionary	*_persDomains;   // Contains persistent defaults info;
@@ -226,6 +227,8 @@ GS_EXPORT NSString* const GSLocale;
   NSDate		*_lastSync;
   NSRecursiveLock	*_lock;
   NSDistributedLock	*_fileLock;
+  void			*_unused;
+#endif
 }
 
 /**

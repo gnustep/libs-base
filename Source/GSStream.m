@@ -24,20 +24,21 @@
 
 #include "config.h"
 
-#import <Foundation/NSArray.h>
-#import <Foundation/NSByteOrder.h>
-#import <Foundation/NSData.h>
-#import <Foundation/NSDebug.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSEnumerator.h>
-#import <Foundation/NSException.h>
-#import <Foundation/NSHost.h>
-#import <Foundation/NSRunLoop.h>
-#import <Foundation/NSValue.h>
+#import "Foundation/NSArray.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSValue.h"
 
 #import "GSStream.h"
 #import "GSPrivate.h"
 #import "GSSocketStream.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
   = @"NSStreamDataWrittenToMemoryStreamKey";

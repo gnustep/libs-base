@@ -162,13 +162,13 @@ static void GSLogZombie(id o, SEL sel)
     }
   if (c == 0)
     {
-      NSLog(@"Deallocated object (0x%x) sent %@",
+      NSLog(@"Deallocated object (%p) sent %@",
 	o, NSStringFromSelector(sel));
     }
   else
     {
-      NSLog(@"Deallocated %@ (0x%x) sent %@",
-	NSStringFromClass(c), o, NSStringFromSelector(sel));
+      NSLog(@"Deallocated %@ (%p) sent %@",
+	c, o, NSStringFromSelector(sel));
     }
   if (GSPrivateEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
     {

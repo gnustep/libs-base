@@ -37,6 +37,7 @@ function may be incorrect
 * Some functions are not implemented
 */
 #import "config.h"
+#define	EXPOSE_NSURL_IVARS	1
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDebug.h"

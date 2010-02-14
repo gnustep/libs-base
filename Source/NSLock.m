@@ -31,6 +31,10 @@
 #import "GNUstepBase/GSConfig.h"
 #define	gs_cond_t	pthread_cond_t
 #define	gs_mutex_t	pthread_mutex_t
+#define	EXPOSE_NSLock_IVARS	1
+#define	EXPOSE_NSRecursiveLock_IVARS	1
+#define	EXPOSE_NSCondition_IVARS	1
+#define	EXPOSE_NSConditionLock_IVARS	1
 #import "Foundation/NSLock.h"
 #include <math.h>
 #include <errno.h>
@@ -88,7 +92,7 @@
     }\
   if (EDEADLK == err)\
     {\
-      _NSLockError(self, _cmd);\
+      _NSLockError(self, _cmd, YES);\
     }\
 }
 #define	MLOCKBEFOREDATE \
@@ -129,12 +133,13 @@ static pthread_mutexattr_t attr_recursive;
 /*
  * OS X 10.5 compatibility function to allow debugging deadlock conditions.
  */
-void _NSLockError(id obj, SEL _cmd)
+void _NSLockError(id obj, SEL _cmd, BOOL stop)
 {
   NSLog(@"*** -[%@ %@]: deadlock (%@)", [obj class],
     NSStringFromSelector(_cmd), obj);
   NSLog(@"*** Break on _NSLockError() to debug.");
-  pthread_mutex_lock(&deadlock);
+  if (YES == stop)
+     pthread_mutex_lock(&deadlock);
 }
 
 // Exceptions
@@ -200,7 +205,25 @@ MFINALIZE
 }
 
 MLOCK
-MLOCKBEFOREDATE
+
+- (BOOL) lockBeforeDate: (NSDate*)limit
+{
+  do
+    {
+      int err = pthread_mutex_trylock(&_mutex);
+      if (0 == err)
+	{
+	  return YES;
+	}
+      if (EDEADLK == err)
+	{
+	  _NSLockError(self, _cmd, NO);
+	}
+      sched_yield();
+    } while([limit timeIntervalSinceNow] < 0);
+  return NO;
+}
+
 MNAME
 MTRYLOCK
 MUNLOCK

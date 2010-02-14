@@ -24,7 +24,7 @@
 
 #import "config.h"
 
-#define EXPOSE_GSCACHE_IVARS 1
+#define	EXPOSE_NSCache_IVARS	1
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCache.h"

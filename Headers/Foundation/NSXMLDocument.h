@@ -73,6 +73,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
  */
 @interface NSXMLDocument : NSXMLNode
 {
+#if	GS_EXPOSE(NSXMLDocument)
 @protected
   NSString      		*_encoding;
   NSString      		*_version;
@@ -80,12 +81,12 @@ typedef NSUInteger NSXMLDocumentContentKind;
   NSArray			*_children;
   BOOL          		_childrenHaveMutated;
   BOOL          		_standalone;
-  uint8_t       		_unused[sizeof(void*)-2];
   NSXMLElement  		*_rootElement;
   NSString      		*_URI;
   NSString      		*_MIMEType;
   NSUInteger    		_fidelityMask;
   NSXMLDocumentContentKind	_contentKind;
+#endif
 }
 
 + (Class) replacementClassForClass: (Class)cls;

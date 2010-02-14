@@ -22,15 +22,15 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSConfig.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSCoder.h"
-#include "NSConcreteNumber.h"
-#include "GSPrivate.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSConfig.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSCoder.h"
+#import "NSConcreteNumber.h"
+#import "GSPrivate.h"
 
 #define TYPE_ORDER 0
 #include "NSConcreteNumberTemplate.m"

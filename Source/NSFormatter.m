@@ -25,8 +25,9 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSFormatter.h"
+#import "config.h"
+#import "Foundation/NSFormatter.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSFormatter
 

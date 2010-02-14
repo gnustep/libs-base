@@ -107,6 +107,8 @@ GS_EXPORT NSString* const NSLoadedClasses;
 */
 @interface NSBundle : NSObject
 {
+#if	GS_EXPOSE(NSBundle)
+@public
   NSString		*_path;
   NSMutableArray	*_bundleClasses;
   Class			_principalClass;
@@ -116,6 +118,8 @@ GS_EXPORT NSString* const NSLoadedClasses;
   BOOL			_codeLoaded;
   unsigned		_version;
   NSString      	*_frameworkVersion;
+  void			*_unused;
+#endif
 }
 
 /** Return an array enumerating all the bundles in the application.  This

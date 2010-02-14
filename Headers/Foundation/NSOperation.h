@@ -49,8 +49,10 @@ typedef NSInteger NSOperationQueuePriority;
 
 @interface NSOperation : NSObject
 {
+#if	GS_EXPOSE(NSOperation)
 @private
   id	_internal;
+#endif
 }
 
 /** Adds a dependency to the receiver.<br />
@@ -188,8 +190,10 @@ enum {
 
 @interface NSOperationQueue : NSObject
 {
+#if	GS_EXPOSE(NSOperationQueue)
 @private
   id	_internal;
+#endif
 }
 #if OS_API_VERSION(100600, GS_API_LATEST)
 /** If called from within the -main method of an operation which is

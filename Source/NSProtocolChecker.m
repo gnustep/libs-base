@@ -28,6 +28,7 @@
    */
 
 #include "config.h"
+#define	EXPOSE_NSProtocolChecker_IVARS	1
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSProtocolChecker.h"
 #include "Foundation/NSException.h"

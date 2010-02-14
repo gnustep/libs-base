@@ -412,7 +412,9 @@ static Class	GSInlineArrayClass;
 }
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
-  _contents_array = (id*)&self[1];
+  _contents_array
+    = (id*)(((void*)self) + class_getInstanceSize([self class]));
+
   if (count > 0)
     {
       unsigned	i;
@@ -1148,7 +1150,8 @@ static Class	GSInlineArrayClass;
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
       a = (id)NSAllocateObject(GSInlineArrayClass,
 	sizeof(id)*c, GSObjCZone(self));
-      a->_contents_array = (id*)&a[1];
+      a->_contents_array
+        = (id*)(((void*)a) + class_getInstanceSize([a class]));
 #endif
       if (c > 0)
         {

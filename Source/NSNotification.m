@@ -25,11 +25,13 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSString.h"
+#import "config.h"
+#define	EXPOSE_NSNotification_IVARS	1
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSString.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSNotification;
 @interface GSNotification : NSObject	// Help the compiler

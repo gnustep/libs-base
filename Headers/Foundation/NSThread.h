@@ -51,7 +51,8 @@ extern "C" {
  */
 @interface NSThread : NSObject
 {
-@private
+#if	GS_EXPOSE(NSThread)
+@public
   id			_target;
   id			_arg;
   SEL			_selector;
@@ -65,7 +66,8 @@ extern "C" {
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
   void                  *_runLoopInfo;  // Per-thread runloop related info.
-  void                  *_reserved;     // For future expansion
+  void                  *_unused;     // For future expansion
+#endif
 }
 
 /**

@@ -23,19 +23,19 @@
    */
 
 
-#include "config.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSDebug.h"
+#import "config.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSDebug.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GSCategories.h"
 
 
 /*

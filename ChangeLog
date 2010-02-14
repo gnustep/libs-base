@@ -1,17 +1,40 @@
+2010-02-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	Major change merge back of 'reorg' branch into trunk.
+	The gross changes are:
+	1. reorganisation of categories for additional non OSX methods into
+	separate files in the Additions library.
+	2. changes to headers to hide instance variables if we are using
+	the non-fragile-abi with clang.
+	3. additions of a void* instance variable for future expansion to
+	almost all classes (avoid the fragile ivar issue).
+	4. various code changes to support the nonfragile-abi (the use of
+	@defs is no longer allowed).
+	NB. This revision breaks binary compatibility ... all code using base
+	needs to be rebuilt.  However, future releases of the base library
+	should all maintain abi compatibility with the first release based
+	on these changes (at least, as far as class instance size issues
+	are concerned).
+
+2010-02-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Remove a couple of obsolete tests and add a couple for
+	new runtime features.
+	* config/config.objc_condition_timed_wait.c: remove
+	* config/config.non-fragile-ivars.m: add
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+
 2010-02-11  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Source/Makefile.postamble: Removed obsolete manual dependency
 	rules.  Dependencies of object files on header files are
 	automatically computed by gnustep-make, so these rules were
 	superfluous.
-
-2010-02-11  Nicola Pero  <nicola.pero@meta-innovation.com>
-
 	* Source/GNUmakefile: Compile Additions as a subproject before the
 	two libraries that are built on top of it.  This will prevent
 	problems when libraries from the same GNUmakefile are built in
 	parallel.
-
 	* Source/GNUmakefile (GNUmakefile.local): Do not try including
 	this non-existing file.
 	* Examples/GNUmakefile: Same change.
@@ -89,12 +112,13 @@
 2010-02-04 Jonathan Gillaspie <jonathan.gillaspie@testplant.com>
 
 	* Source/NSLock.m: 
-	lockWhenCondition:beforeDate: 
-	  Switched to use timeIntervalSince1970. 
-	  added a loop to lockWhenCondition since pthread_cond_timedwait can return 
-	  to delay expiring. Hold the lock on a delayed acquire (and YES return).
-	tryLockWhenCondition: 
-	  No longer reports a deadlock when we already have the lock, now just returns NO.
+	([lockWhenCondition:beforeDate:])
+	Switched to use timeIntervalSince1970. 
+	added a loop to lockWhenCondition since pthread_cond_timedwait can
+	return to delay expiring. Hold the lock on a delayed acquire
+	(and YES return).
+	([tryLockWhenCondition:]) No longer reports a deadlock when we
+	already have the lock, now just returns NO.
 
 2010-02-03 Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -25,16 +25,18 @@
 
    */
 
-#include "config.h"
-#include <Foundation/NSArray.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSXMLParser.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSNull.h>
+#import "config.h"
+#define	EXPOSE_NSXMLParser_IVARS	1
+#import "Foundation/NSArray.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSXMLParser.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSNull.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 
@@ -605,7 +607,7 @@ NewUTF8STR(const void *ptr, int len)
 			       length: len
 			     encoding: NSUTF8StringEncoding];
   if (s == nil)
-    NSLog(@"could not convert to UTF8 string! bytes=%08x len=%d", ptr, len);
+    NSLog(@"could not convert to UTF8 string! bytes=%p len=%d", ptr, len);
   return s;
 }
 
@@ -646,9 +648,8 @@ static SEL	foundCommentSel;
 
 #define EXTRA_DEBUG     0
 
-typedef struct { @defs(NSXMLParser) } *xp;
-#define _parser (((xp)self)->_parser)
-#define _handler (((xp)self)->_handler)
+#define _parser (self->_parser)
+#define _handler (self->_handler)
 #define	this	((NSXMLParserIvars*)_parser)
 #define	_del	((id)_handler)
 

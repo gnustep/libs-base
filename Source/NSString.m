@@ -48,37 +48,40 @@
 #define _GNU_SOURCE
 #endif
 
-#include "config.h"
+#import "config.h"
 #include <stdio.h>
 #include <string.h>
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSDecimal.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSRange.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSURL.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/FoundationErrors.h"
-#include "Foundation/NSDebug.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSDecimal.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSRange.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/FoundationErrors.h"
+#import "Foundation/NSDebug.h"
 // For private method _decodePropertyListForKey:
-#include "Foundation/NSKeyedArchiver.h"
-#include "GNUstepBase/GSMime.h"
-#include "GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSPrivate.h"
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
@@ -1083,7 +1086,7 @@ handle_printf_atsign (FILE *stream,
             arguments: (va_list)argList
 {
   unsigned char	buf[2048];
-  GSStr_t	f;
+  GSStr		f;
   unichar	fbuf[1024];
   unichar	*fmt = fbuf;
   size_t	len;
@@ -1106,48 +1109,49 @@ handle_printf_atsign (FILE *stream,
    * Now set up 'f' as a GSMutableString object whose initial buffer is
    * allocated on the stack.  The GSPrivateFormat function can write into it.
    */
-  f.isa = GSMutableStringClass;
-  f._zone = NSDefaultMallocZone();
-  f._contents.c = buf;
-  f._capacity = sizeof(buf);
-  f._count = 0;
-#if HAVE_WIDE_PRINTF_FUNCTION
-  f._flags.wide = 0;
-#endif	/* HAVE_WIDE_PRINTF_FUNCTION */
-  f._flags.owned = 0;
-  GSPrivateFormat(&f, fmt, argList, locale);
-  GSPrivateStrExternalize(&f);
+  f = (GSStr)alloca(class_getInstanceSize(GSMutableStringClass));
+  object_setClass(f, GSMutableStringClass);
+  f->_zone = NSDefaultMallocZone();
+  f->_contents.c = buf;
+  f->_capacity = sizeof(buf);
+  f->_count = 0;
+  f->_flags.wide = 0;
+  f->_flags.owned = 0;
+  f->_flags.unused = 0;
+  f->_flags.hash = 0;
+  GSPrivateFormat(f, fmt, argList, locale);
+  GSPrivateStrExternalize(f);
   if (fmt != fbuf)
     {
       NSZoneFree(NSDefaultMallocZone(), fmt);
     }
 
   /*
-   * Don't use noCopy because f._contents.u may be memory on the stack,
-   * and even if it wasn't f._capacity may be greater than f._count so
+   * Don't use noCopy because f->_contents.u may be memory on the stack,
+   * and even if it wasn't f->_capacity may be greater than f->_count so
    * we could be wasting quite a bit of space.  Better to accept a
    * performance hit due to copying data (and allocating/deallocating
    * the temporary buffer) for large strings.  For most strings, the
    * on-stack memory will have been used, so we will get better performance.
    */
 #if HAVE_WIDE_PRINTF_FUNCTION
-  if (f._flags.wide == 1)
+  if (f->_flags.wide == 1)
     {
-      self = [self initWithCharacters: f._contents.u length: f._count];
+      self = [self initWithCharacters: f->_contents.u length: f->_count];
     }
   else
 #endif	/* HAVE_WIDE_PRINTF_FUNCTION */
     {
-      self = [self initWithCString: (char*)f._contents.c length: f._count];
+      self = [self initWithCString: (char*)f->_contents.c length: f->_count];
     }
 
   /*
    * If the string had to grow beyond the initial buffer size, we must
    * release any allocated memory.
    */
-  if (f._flags.owned == 1)
+  if (f->_flags.owned == 1)
     {
-      NSZoneFree(f._zone, f._contents.c);
+      NSZoneFree(f->_zone, f->_contents.c);
     }
   return self;
 }

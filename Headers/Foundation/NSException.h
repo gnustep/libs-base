@@ -83,10 +83,12 @@ extern "C" {
 */
 @interface NSException : NSObject <NSCoding, NSCopying>
 {    
+#if	GS_EXPOSE(NSException)
 @private
   NSString *_e_name;
   NSString *_e_reason;
   void *_reserved;
+#endif
 }
 
 /**

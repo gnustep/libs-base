@@ -23,14 +23,16 @@
 
    */
 
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSObject.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSScanner.h>
-#include <Foundation/NSValue.h>
+#define	EXPOSE_NSKeyedArchiver_IVARS	1
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSValue.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 @class	GSString;
 
@@ -61,7 +63,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 
 
 #define	_IN_NSKEYEDARCHIVER_M	1
-#include <Foundation/NSKeyedArchiver.h>
+#include "Foundation/NSKeyedArchiver.h"
 #undef	_IN_NSKEYEDARCHIVER_M
 
 /* Exceptions */

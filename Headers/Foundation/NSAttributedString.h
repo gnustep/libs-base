@@ -133,16 +133,6 @@ extern "C" {
 
 @end //NSMutableAttributedString
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-@interface      NSAttributedString (GSCategories)
-/**
- * Dep[recated synonym for attributedSubstringFromRange:
- * for consistency with NSString
- */
-- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange;
-@end
-#endif
-
 #endif /* GS_API_MACOSX */
 
 #if	defined(__cplusplus)

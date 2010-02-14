@@ -1,7 +1,7 @@
 #
 #  src makefile for the GNUstep Base Library
 #
-#  Copyright (C) 1997 Free Software Foundation, Inc.
+#  Copyright (C) 199a-2010 Free Software Foundation, Inc.
 #
 #  Written by:	Scott Christley <scottc@net-community.com>
 #
@@ -32,7 +32,6 @@ include ../../config.mak
 SUBPROJECT_NAME = Additions
 
 Additions_OBJC_FILES =\
-	GSCategories.m \
 	GSObjCRuntime.m \
 	GCObject.m \
 	GCArray.m \
@@ -42,6 +41,22 @@ Additions_OBJC_FILES =\
 	GSXML.m \
 	GSFunctions.m \
 	GSInsensitiveDictionary.m \
+	NSArray+GNUstepBase.m \
+	NSAttributedString+GNUstepBase.m \
+	NSBundle+GNUstepBase.m \
+	NSCalendarDate+GNUstepBase.m \
+	NSData+GNUstepBase.m \
+	NSError+GNUstepBase.m \
+	NSFileHandle+GNUstepBase.m \
+	NSInvocation+GNUstepBase.m \
+	NSLock+GNUstepBase.m \
+	NSMutableString+GNUstepBase.m \
+	NSNumber+GNUstepBase.m \
+	NSObject+GNUstepBase.m \
+	NSProcessInfo+GNUstepBase.m \
+	NSString+GNUstepBase.m \
+	NSTask+GNUstepBase.m \
+	NSURL+GNUstepBase.m \
 	behavior.m
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)

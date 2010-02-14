@@ -725,6 +725,7 @@ HAVE_INET_PTON
 HAVE_INET_NTOP
 GS_PASS_ARGUMENTS
 GS_FAKE_MAIN
+OBJCFLAGS
 WITH_FFI
 XML2_CONFIG
 XML_CONFIG
@@ -3317,69 +3318,6 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -Wl,-R/usr/pkg/lib -L/usr/pkg/lib";;
 esac
 
-#----------------------------------------------------------------
-# Find out if nested functions work on this machine
-#----------------------------------------------------------------
-{ echo "$as_me:$LINENO: checking whether nested functions work" >&5
-echo $ECHO_N "checking whether nested functions work... $ECHO_C" >&6; }
-
-if test "$cross_compiling" = yes; then
-  gcc_nested=1
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include "$srcdir/config/config.nested.c"
-_ACEOF
-rm -f conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
-  { (case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  gcc_nested=1
-else
-  echo "$as_me: program exited with status $ac_status" >&5
-echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-( exit $ac_status )
-gcc_nested=0
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
-fi
-
-
-if test $gcc_nested = 0; then
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-
-cat >>confdefs.h <<\_ACEOF
-#define BROKEN_NESTED_FUNCTIONS 1
-_ACEOF
-
-else
-  { echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; }
-fi
-
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
@@ -3488,6 +3426,7 @@ fi
 #--------------------------------------------------------------------
 # Check if Objective-C is installed
 #--------------------------------------------------------------------
+
 
 { echo "$as_me:$LINENO: checking for grep that handles long lines and -e" >&5
 echo $ECHO_N "checking for grep that handles long lines and -e... $ECHO_C" >&6; }
@@ -9135,13 +9074,10 @@ fi
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
-# This function needed by NSLock.m for conditioned wait
-# get_uninstalled_dtable used by behavior.m and objc-load.m
-# Thread functions used by NSThread
+# If we have property support, we are using the objc 2 runtime
 #--------------------------------------------------------------------
 
-
-for ac_func in objc_condition_timedwait objc_thread_add
+for ac_func in class_getProperty
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -9235,6 +9171,11 @@ fi
 done
 
 
+# Don't revert any Objective-C flags as they are used in the next test
+
+#--------------------------------------------------------------------
+# get_uninstalled_dtable used by behavior.m and objc-load.m
+#--------------------------------------------------------------------
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -18566,6 +18507,61 @@ if test $have_forward_hook = no; then
 fi
 CPPFLAGS="$saved_CPPFLAGS"
 
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
+{ echo "$as_me:$LINENO: checking for non-fragile-abi support" >&5
+echo $ECHO_N "checking for non-fragile-abi support... $ECHO_C" >&6; }
+if test "$cross_compiling" = yes; then
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
+   { (exit 1); exit 1; }; }
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#include "$srcdir/config/config.non-fragile-ivars.m"
+_ACEOF
+rm -f conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  non_fragile=yes
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+non_fragile=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+
+CPPFLAGS="$saved_CPPFLAGS"
+if test $non_fragile = yes; then
+  OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+
+fi
+{ echo "$as_me:$LINENO: result: $non_fragile" >&5
+echo "${ECHO_T}$non_fragile" >&6; }
+
 { echo "$as_me:$LINENO: checking FFI library usage" >&5
 echo $ECHO_N "checking FFI library usage... $ECHO_C" >&6; }
 WITH_FFI=none
@@ -21695,6 +21691,7 @@ HAVE_INET_PTON!$HAVE_INET_PTON$ac_delim
 HAVE_INET_NTOP!$HAVE_INET_NTOP$ac_delim
 GS_PASS_ARGUMENTS!$GS_PASS_ARGUMENTS$ac_delim
 GS_FAKE_MAIN!$GS_FAKE_MAIN$ac_delim
+OBJCFLAGS!$OBJCFLAGS$ac_delim
 WITH_FFI!$WITH_FFI$ac_delim
 XML2_CONFIG!$XML2_CONFIG$ac_delim
 XML_CONFIG!$XML_CONFIG$ac_delim
@@ -21720,7 +21717,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 38; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 39; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

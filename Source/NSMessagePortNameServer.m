@@ -23,22 +23,22 @@
    $Date$ $Revision$
    */
 
-#include "Foundation/NSPortNameServer.h"
+#import "Foundation/NSPortNameServer.h"
 
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDistributedLock.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSThread.h"
-#include "GNUstepBase/GSMime.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSDistributedLock.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSThread.h"
+#import "GNUstepBase/GSMime.h"
 
-#include "GSPortPrivate.h"
+#import "GSPortPrivate.h"
 
 #include <sys/stat.h>
 #include <unistd.h>

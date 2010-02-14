@@ -1,4 +1,4 @@
-/* GSVersionMacros.h - macros for managing API versioning
+/* GSVersionMacros.h - macros for managing API versioning and visibility
    Copyright (C) 2006 Free Software Foundation, Inc.
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
@@ -32,7 +32,7 @@
 #define GS_OPENSTEP_V	 10000
 #define	NO_GNUSTEP	1
 #elif	defined(STRICT_MACOS_X)
-#define GS_OPENSTEP_V	100000
+#define GS_OPENSTEP_V	100600
 #define	NO_GNUSTEP	1
 #else
 #undef	NO_GNUSTEP
@@ -180,5 +180,22 @@
  * denotes code present from the initial MacOS-X version onwards.
  */
 #define	GS_API_MACOSX	100000
+
+/* The following is for deciding whether private instance variables
+ * should be visible ... if we are building with a compiler which
+ * does not define __has_feature then we know we don't have non-fragile
+ * ivar support.
+ * In the header we bracket instance variable declarations in a
+ * '#if	GS_EXPOSE(classname) ... #endif' sequence, so that the variables
+ * will not be visible to code which uses the library.
+ * In the source file we define EXPOSE_classname_IVARS to be 1
+ * before including the header, so that the ivars are always available
+ * in the class source itsself
+ */
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+#define	GS_EXPOSE(X)	\
+((!__has_feature(objc_nonfragile_abi) && !__has_feature(objc_nonfragile_abi2)) || defined(EXPOSE_##X##_IVARS))
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */

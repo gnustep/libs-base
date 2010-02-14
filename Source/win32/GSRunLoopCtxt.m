@@ -6,18 +6,18 @@
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
 
-#include "config.h"
+#import "config.h"
 
-#include "GNUstepBase/preface.h"
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSStream.h>
-#include "../GSRunLoopCtxt.h"
-#include "../GSRunLoopWatcher.h"
-#include "../GSPrivate.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSStream.h"
+#import "../GSRunLoopCtxt.h"
+#import "../GSRunLoopWatcher.h"
+#import "../GSPrivate.h"
 
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;

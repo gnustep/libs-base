@@ -26,6 +26,7 @@
    */
 
 #import "config.h"
+#define	EXPOSE_NSUnarchiver_IVARS	1
 #include <string.h>
 #import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSDictionary.h"
@@ -43,14 +44,14 @@
 #include "GNUstepBase/GSIArray.h"
 
 #define	_IN_NSUNARCHIVER_M
-#include "Foundation/NSArchiver.h"
+#import "Foundation/NSArchiver.h"
 #undef	_IN_NSUNARCHIVER_M
 
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
 
 @class NSDataMalloc;
 @interface NSDataMalloc : NSObject	// Help the compiler

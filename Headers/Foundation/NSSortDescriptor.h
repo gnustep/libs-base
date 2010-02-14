@@ -44,9 +44,13 @@ extern "C" {
  */
 @interface NSSortDescriptor : NSObject <NSCopying, NSCoding>
 {
+#if	GS_EXPOSE(NSSortDescriptor)
+@private
   NSString *_key;
   BOOL	_ascending;
   SEL	_selector;
+  void	*_unused;
+#endif
 }
 
 /** Returns a flag indicating whether the sort descriptor sorts objects

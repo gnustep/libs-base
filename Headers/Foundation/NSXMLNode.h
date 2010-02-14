@@ -80,12 +80,15 @@ typedef NSUInteger NSXMLNodeKind;
  */
 @interface NSXMLNode : NSObject <NSCopying>
 {
+#if	GS_EXPOSE(NSXMLNode)
 @protected
   void		*_handle;
   NSXMLNodeKind _kind;
   NSXMLNode     *_parent;
   NSUInteger    _index;
   id            _objectValue;
+  void		*_unused;
+#endif
 }
 
 /**

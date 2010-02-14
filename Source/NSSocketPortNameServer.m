@@ -25,6 +25,7 @@
    */
 
 #import "config.h"
+#define	EXPOSE_NSSocketPortNameServer_IVARS	1
 #import "Foundation/NSString.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSByteOrder.h"

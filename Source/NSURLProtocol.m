@@ -23,17 +23,20 @@
    Boston, MA 02111 USA.
    */ 
 
-#import <Foundation/NSError.h>
-#import <Foundation/NSHost.h>
-#import <Foundation/NSNotification.h>
-#import <Foundation/NSRunLoop.h>
-#import <Foundation/NSValue.h>
-#import <Foundation/NSDebug.h>
-
-#import "GNUstepBase/GSMime.h"
+#define	EXPOSE_NSURLProtocol_IVARS	1
+#import "Foundation/NSError.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDebug.h"
 
 #import "GSPrivate.h"
 #import "GSURLPrivate.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 
 /* Define to 1 for experimental (net yet working) compression support
  */
@@ -274,11 +277,8 @@ typedef struct {
 #endif
 } Internal;
  
-typedef struct {
-  @defs(NSURLProtocol)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLProtocolInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLProtocolInternal))
+#define	this	((Internal*)(self->_NSURLProtocolInternal))
+#define	inst	((Internal*)(o->_NSURLProtocolInternal))
 
 static NSMutableArray	*registered = nil;
 static NSLock		*regLock = nil;

@@ -1,8 +1,9 @@
-/** Declaration of additional methods for NSTask
+/** Declaration of extension methods for base additions
 
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2003-2010 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
+   and:         Adam Fedor <fedor@gnu.org>
 
    This file is part of the GNUstep Base Library.
 
@@ -21,23 +22,36 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   AutogsdocSource: Additions/GSCategories.m
-
 */
 
-#ifndef	INCLUDED_NSTASK_GS_H
-#define	INCLUDED_NSTASK_GS_H
+#ifndef	INCLUDED_NSMutableString_GNUstepBase_h
+#define	INCLUDED_NSMutableString_GNUstepBase_h
 
-@interface	NSTask (GSCategories)
-/** Returns the launch path for a tool given the name of a tool.<br />
- * Locates the tool by looking in the standard directories and,
- * if not found there, looking in the PATH set in the environment.<br />
- * On ms-windows, this also tries appending common executable path
- * extensions to the tool name in order to find it.<br />
- * Returns the path found, or nil if the tool could not be located.
- */
-+ (NSString*) launchPathForTool: (NSString*)name;
+#import <GNUstepBase/GSVersionMacros.h>
+#import <Foundation/NSString.h>
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
+#if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
+
+@interface NSMutableString (GNUstepBase)
+- (void) deleteSuffix: (NSString*)suffix;
+- (void) deletePrefix: (NSString*)prefix;
+- (NSString*) immutableProxy;
+- (void) replaceString: (NSString*)replace
+            withString: (NSString*)by;
+- (void) trimLeadSpaces;
+- (void) trimTailSpaces;
+- (void) trimSpaces;
 @end
 
-#endif	/* INCLUDED_NSTASK_GS */
+#endif	/* OS_API_VERSION */
+
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif	/* INCLUDED_NSMutableString_GNUstepBase_h */
 

@@ -28,24 +28,25 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
+#define	EXPOSE_NSCalendarDate_IVARS	1
 #include <math.h>
-#include "Foundation/NSArray.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSUserDefaults.h"
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>

@@ -27,18 +27,19 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */ 
 
-#include "config.h"
-#include "Foundation/NSSpellServer.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSConnection.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSSet.h"
+#import "config.h"
+#define	EXPOSE_NSSpellServer_IVARS	1
+#import "Foundation/NSSpellServer.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSConnection.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSSet.h"
 
 NSString *const NSGrammarRange = @"NSGrammarRange";
 NSString *const NSGrammarUserDescription = @"NSGrammarUserDescription";

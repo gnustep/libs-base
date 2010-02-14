@@ -43,12 +43,14 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 
 @interface NSRunLoop : NSObject
 {
+#if	GS_EXPOSE(NSRunLoop)
   @private
   NSString		*_currentMode;
   NSMapTable		*_contextMap;
   NSMutableArray	*_contextStack;
   NSMutableArray	*_timedPerformers;
   void			*_extra;
+#endif
 }
 
 + (NSRunLoop*) currentRunLoop;

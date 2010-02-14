@@ -70,8 +70,10 @@ extern NSString * const NSHTTPCookieManagerCookiesChangedNotification;
 
 @interface NSHTTPCookieStorage :  NSObject
 {
+#if	GS_EXPOSE(NSHTTPCookieStorage)
 @private
   void	*_NSHTTPCookieStorageInternal;
+#endif
 }
 
 /**

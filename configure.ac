@@ -141,20 +141,6 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -Wl,-R/usr/pkg/lib -L/usr/pkg/lib";;
 esac
 
-#----------------------------------------------------------------
-# Find out if nested functions work on this machine
-#----------------------------------------------------------------
-AC_MSG_CHECKING(whether nested functions work)
-AC_TRY_RUN([#include "$srcdir/config/config.nested.c"],
-    gcc_nested=1, gcc_nested=0, gcc_nested=1)
-if test $gcc_nested = 0; then
-  AC_MSG_RESULT(no)
-  AC_DEFINE(BROKEN_NESTED_FUNCTIONS,1,
-            [Define if nested functions are broken on this compiler])
-else
-  AC_MSG_RESULT(yes)
-fi
-
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
@@ -668,12 +654,15 @@ fi
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
-# This function needed by NSLock.m for conditioned wait
-# get_uninstalled_dtable used by behavior.m and objc-load.m
-# Thread functions used by NSThread
+# If we have property support, we are using the objc 2 runtime
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(objc_condition_timedwait objc_thread_add)
+AC_CHECK_FUNCS(class_getProperty)
 
+# Don't revert any Objective-C flags as they are used in the next test
+
+#--------------------------------------------------------------------
+# get_uninstalled_dtable used by behavior.m and objc-load.m
+#--------------------------------------------------------------------
 AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h, 
 	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,1,
                   [ Define if objc-api.h defines this function]),)
@@ -1445,6 +1434,18 @@ if test $have_forward_hook = no; then
   enable_ffcall=no
 fi
 CPPFLAGS="$saved_CPPFLAGS"
+
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
+AC_MSG_CHECKING(for non-fragile-abi support)
+AC_RUN_IFELSE([#include "$srcdir/config/config.non-fragile-ivars.m"],
+	non_fragile=yes, non_fragile=no)
+CPPFLAGS="$saved_CPPFLAGS"
+if test $non_fragile = yes; then
+  OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+  AC_SUBST(OBJCFLAGS)
+fi
+AC_MSG_RESULT($non_fragile)
 
 AC_MSG_CHECKING(FFI library usage)
 WITH_FFI=none

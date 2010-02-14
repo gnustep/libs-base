@@ -23,6 +23,7 @@
    */ 
 
 
+#define	EXPOSE_NSURLDownload_IVARS	1
 #import "GSURLPrivate.h"
 
 @interface	GSURLDownload : NSObject <NSURLProtocolClient>
@@ -39,11 +40,8 @@
 }
 @end
  
-typedef struct {
-  @defs(NSURLDownload)
-} priv;
-#define	this	((GSURLDownload*)(((priv*)self)->_NSURLDownloadInternal))
-#define	inst	((GSURLDownload*)(((priv*)o)->_NSURLDownloadInternal))
+#define	this	((GSURLDownload*)(self->_NSURLDownloadInternal))
+#define	inst	((GSURLDownload*)(o->_NSURLDownloadInternal))
 
 @implementation	NSURLDownload
 

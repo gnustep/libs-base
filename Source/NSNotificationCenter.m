@@ -29,7 +29,8 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
+#import "config.h"
+#define	EXPOSE_NSNotificationCenter_IVARS	1
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"

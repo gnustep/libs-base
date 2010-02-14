@@ -22,8 +22,6 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   AutogsdocSource: Additions/GSCategories.m
-
 */
 
 #ifndef	INCLUDED_GS_CATEGORIES_H
@@ -206,65 +204,6 @@ typedef enum _NSGNUstepStringEncoding
    for both gnustep-base and gnustep-baseadd.
 */
 
-@interface NSCalendarDate (GSCategories)
-- (NSInteger) weekOfYear;
-@end
-
-@interface NSData (GSCategories)
-- (NSString*) hexadecimalRepresentation;
-- (id) initWithHexadecimalRepresentation: (NSString*)string;
-- (NSData*) md5Digest;
-- (BOOL) uudecodeInto: (NSMutableData*)decoded
-		 name: (NSString**)namePtr
-		 mode: (NSInteger*)modePtr;
-- (BOOL) uuencodeInto: (NSMutableData*)encoded
-		 name: (NSString*)name
-		 mode: (NSInteger)mode;
-@end
-
-@interface NSString (GSCategories)
-+ (id) stringWithFormat: (NSString*)format
-	      arguments: (va_list)argList;
-- (NSString*) stringByDeletingPrefix: (NSString*)prefix;
-- (NSString*) stringByDeletingSuffix: (NSString*)suffix;
-- (NSString*) stringByTrimmingLeadSpaces;
-- (NSString*) stringByTrimmingTailSpaces;
-- (NSString*) stringByTrimmingSpaces;
-- (NSString*) stringByReplacingString: (NSString*)replace
-                           withString: (NSString*)by;
-@end
-
-@interface NSMutableString (GSCategories)
-- (void) deleteSuffix: (NSString*)suffix;
-- (void) deletePrefix: (NSString*)prefix;
-- (NSString*) immutableProxy;
-- (void) replaceString: (NSString*)replace
-            withString: (NSString*)by;
-- (void) trimLeadSpaces;
-- (void) trimTailSpaces;
-- (void) trimSpaces;
-@end
-
-@interface NSNumber(GSCategories)
-+ (NSValue*) valueFromString: (NSString *)string;
-@end
-
-@interface NSObject (GSCategories)
-- notImplemented:(SEL)aSel;
-- (id) subclassResponsibility: (SEL)aSel;
-- (id) shouldNotImplement: (SEL)aSel;
-/*
-  WARNING: The -compare: method for NSObject is deprecated
-           due to subclasses declaring the same selector with 
-	   conflicting signatures.
-           Comparision of arbitrary objects is not just meaningless
-           but also dangerous as most concrete implementations
-           expect comparable objects as arguments often accessing
-	   instance variables directly.
-	   This method will be removed in a future release.
-*/
-- (NSComparisonResult) compare: (id)anObject;
-@end
 
 /* 
    GSCompatibility methods are implemented in
@@ -274,67 +213,6 @@ typedef enum _NSGNUstepStringEncoding
    corresponding source files of -base.
 */
 
-@interface NSArray (GSCompatibility)
-- (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
-- (NSUInteger) insertionPosition: (id)item
-		   usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
-		         context: (void *)context;
-- (NSUInteger) insertionPosition: (id)item
-		   usingSelector: (SEL)comp;
-@end
-
-@interface      NSAttributedString (GSCategories)
-- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange;
-@end
-
-@interface NSBundle(GSCompatibility)
-+ (NSString *) pathForLibraryResource: (NSString *)name
-                               ofType: (NSString *)ext
-                          inDirectory: (NSString *)bundlePath;
-@end
-
-@interface NSDistantObject (GSCompatibility)
-+ (void) setDebug: (NSInteger)val;
-@end
-
-@interface NSFileHandle(GSCompatibility)
-+ (id) fileHandleAsServerAtAddress: (NSString*)address
-                           service: (NSString*)service
-                          protocol: (NSString*)protocol;
-- (NSString*) socketAddress;
-@end
-
-// Used only in EOFault.m, -[EOFault forward::], for Object compatibility
-@interface NSInvocation(GSCompatibility)
-- (retval_t) returnFrame:(arglist_t)args;
-- (id) initWithArgframe:(arglist_t)args selector:(SEL)selector;
-@end
-
-@interface NSObject (GSCompatibility)
-+ (id) notImplemented:(SEL)selector;
-- (BOOL) isInstance;
-@end
-
-@interface NSString (GSCompatibility)
-- (BOOL) boolValue;
-- (NSString*) substringFromRange:(NSRange)range;
-@end
-
-@interface NSProcessInfo(GSCompatibility)
-- (NSMutableSet *) debugSet;
-@end
-
-@interface NSLock (GSCategories)
-+ (id) newLockAt: (id *)location;
-@end
-
-@interface NSRecursiveLock (GSCategories)
-+ (id)newLockAt:(id *)location;
-@end
-
-@interface NSURL (GSCategories)
-- (NSString*) fullPath;
-@end
 
 /* ------------------------------------------------------------------------
  * Functions

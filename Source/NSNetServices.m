@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSNetServices_IVARS	1
 #import "Foundation/NSNetServices.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"

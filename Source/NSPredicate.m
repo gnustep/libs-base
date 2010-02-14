@@ -26,22 +26,27 @@
    Boston, MA 02111 USA.
    */ 
 
-#include <Foundation/NSComparisonPredicate.h>
-#include <Foundation/NSCompoundPredicate.h>
-#include <Foundation/NSExpression.h>
-#include <Foundation/NSPredicate.h>
+#define	EXPOSE_NSComparisonPredicate_IVARS	1
+#define	EXPOSE_NSCompoundPredicate_IVARS	1
+#define	EXPOSE_NSExpression_IVARS	1
 
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSKeyValueCoding.h>
-#include <Foundation/NSNull.h>
-#include <Foundation/NSScanner.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSValue.h>
+#import "Foundation/NSComparisonPredicate.h"
+#import "Foundation/NSCompoundPredicate.h"
+#import "Foundation/NSExpression.h"
+#import "Foundation/NSPredicate.h"
 
-#include "GSPrivate.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
+
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #include <stdarg.h>
 // For pow()

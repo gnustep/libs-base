@@ -180,6 +180,7 @@ typedef struct autorelease_array_list
  */
 @interface NSAutoreleasePool : NSObject 
 {
+#if	GS_EXPOSE(NSAutoreleasePool)
   /* For re-setting the current pool when we are dealloc'ed. */
   NSAutoreleasePool *_parent;
   /* This pointer to our child pool is  necessary for co-existing
@@ -192,6 +193,8 @@ typedef struct autorelease_array_list
   unsigned _released_count;
   /* The method to add an object to this pool */
   void 	(*_addImp)(id, SEL, id);
+  void	*_unused;
+#endif
 }
 
 /**

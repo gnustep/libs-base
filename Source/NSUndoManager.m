@@ -24,15 +24,16 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSInvocation.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSUndoManager.h"
+#import "config.h"
+#define	EXPOSE_NSUndoManager_IVARS	1
+#import "Foundation/NSObject.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSUndoManager.h"
 
 
 /*

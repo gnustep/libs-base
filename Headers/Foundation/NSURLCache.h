@@ -56,8 +56,9 @@ typedef enum
  */
 @interface NSCachedURLResponse : NSObject <NSCoding, NSCopying>
 {
-@private
+#if	GS_EXPOSE(NSCachedURLResponse)
   void *_NSCachedURLResponseInternal;
+#endif
 }
 
 /**
@@ -101,8 +102,9 @@ typedef enum
 
 @interface NSURLCache : NSObject
 {
-@private
+#if	GS_EXPOSE(NSURLCache)
   void *_NSURLCacheInternal;
+#endif
 }
 
 /**

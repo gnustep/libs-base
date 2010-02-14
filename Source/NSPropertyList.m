@@ -48,6 +48,8 @@
 #import "Foundation/NSNull.h"
 #import "Foundation/NSXMLParser.h"
 #import "GNUstepBase/Unicode.h"
+#import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #import "GSPrivate.h"
 

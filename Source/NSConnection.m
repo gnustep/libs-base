@@ -31,6 +31,9 @@
 
 #import "config.h"
 
+#define	EXPOSE_NSConnection_IVARS	1
+#define	EXPOSE_NSDistantObject_IVARS	1
+
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
@@ -39,6 +42,7 @@
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSDebug.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -139,13 +143,6 @@ NSString * const NSObjectInaccessibleException =
   @"NSObjectInaccessibleException";
 NSString * const NSObjectNotAvailableException =
   @"NSObjectNotAvailableException";
-
-/*
- * Set up a type to permit us to have direct access into an NSDistantObject
- */
-typedef struct {
-  @defs(NSDistantObject)
-} ProxyStruct;
 
 /*
  * Cache various class pointers.
@@ -796,7 +793,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  NSDistantObject	*obj = [item obj];
 
 	  NSMapRemove(targetToCached,
-	    (void*)(uintptr_t)((ProxyStruct*)obj)->_handle);
+	    (void*)(uintptr_t)obj->_handle);
 	}
     }
   if ([cached_locals count] == 0)
@@ -2292,7 +2289,7 @@ static NSLock	*cached_proxies_gate = nil;
   rmc = [conn _makeInRmc: components];
   if (debug_connection > 5)
     {
-      NSLog(@"made rmc 0x%x for %d", rmc, type);
+      NSLog(@"made rmc %p for %d", rmc, type);
     }
 
   switch (type)
@@ -2913,11 +2910,11 @@ static NSLock	*cached_proxies_gate = nil;
   for (pos = 0; pos < count; pos++)
     {
       unsigned		target;
-      ProxyStruct	*prox;
+      NSDistantObject	*prox;
 
       [rmc decodeValueOfObjCType: @encode(typeof(target)) at: &target];
 
-      prox = (ProxyStruct*)[self includesLocalTarget: target];
+      prox = [self includesLocalTarget: target];
       if (prox != 0)
 	{
 	  if (debug_connection > 3)
@@ -2985,7 +2982,7 @@ static NSLock	*cached_proxies_gate = nil;
     }
   else
     {
-      ((ProxyStruct*)local)->_counter++;	// Vended on connection.
+      local->_counter++;	// Vended on connection.
     }
   M_UNLOCK(IrefGate);
 
@@ -3038,7 +3035,7 @@ static NSLock	*cached_proxies_gate = nil;
   [rmc decodeValueOfObjCType: @encode(unsigned) at: &target];
   [self _doneInRmc: rmc];
   p = [self includesLocalTarget: target];
-  o = (p != nil) ? ((ProxyStruct*)p)->_object : nil;
+  o = (p != nil) ? p->_object : nil;
 
   /* xxx We should make sure that TARGET is a valid object. */
   /* Not actually a Proxy, but we avoid the warnings "id" would have made. */
@@ -3249,7 +3246,7 @@ static NSLock	*cached_proxies_gate = nil;
   M_LOCK(IrefGate);
   if (debug_connection > 5)
     {
-      NSLog(@"done rmc 0x%x", c);
+      NSLog(@"done rmc %p", c);
     }
   if (cacheCoders == YES && IcachedDecoders != nil)
     {
@@ -3274,7 +3271,7 @@ static NSLock	*cached_proxies_gate = nil;
     }
   if (debug_connection > 5)
     {
-      NSLog(@"fail rmc 0x%x", c);
+      NSLog(@"fail rmc %p", c);
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
@@ -3492,15 +3489,15 @@ static NSLock	*cached_proxies_gate = nil;
   M_LOCK(IrefGate);
   NSParameterAssert (IisValid);
 
-  object = ((ProxyStruct*)anObj)->_object;
-  target = ((ProxyStruct*)anObj)->_handle;
+  object = anObj->_object;
+  target = anObj->_handle;
 
   /*
    * If there is no target allocated to the proxy, we add one.
    */
   if (target == 0)
     {
-      ((ProxyStruct*)anObj)->_handle = target = ++local_object_counter;
+      anObj->_handle = target = ++local_object_counter;
     }
 
   /*
@@ -3557,7 +3554,7 @@ static NSLock	*cached_proxies_gate = nil;
   GSIMapNode	node;
 
   M_LOCK(IrefGate);
-  anObj = ((ProxyStruct*)prox)->_object;
+  anObj = prox->_object;
   node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)anObj);
 
   /*
@@ -3567,7 +3564,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   if (node != 0 && node->value.obj == prox)
     {
-      target = ((ProxyStruct*)prox)->_handle;
+      target = prox->_handle;
 
       /*
        * If this proxy has been vended onwards to another process
@@ -3575,11 +3572,11 @@ static NSLock	*cached_proxies_gate = nil;
        * to the local object around for a while in case that other
        * process needs it.
        */
-      if ((((ProxyStruct*)prox)->_counter) != 0)
+      if ((prox->_counter) != 0)
 	{
 	  CachedLocalObject	*item;
 
-	  (((ProxyStruct*)prox)->_counter) = 0;
+	  (prox->_counter) = 0;
 	  M_LOCK(cached_proxies_gate);
 	  if (timer == nil)
 	    {
@@ -3689,7 +3686,7 @@ static NSLock	*cached_proxies_gate = nil;
 	   * Found in cache ... add to this connection as the object
 	   * is no longer in use by any connection.
 	   */
-	  ASSIGN(((ProxyStruct*)proxy)->_connection, self);
+	  ASSIGN(proxy->_connection, self);
 	  [self addLocalObject: proxy];
 	  NSMapRemove(targetToCached, (void*)(uintptr_t)target);
 	  if (debug_connection > 3)
@@ -3734,12 +3731,12 @@ static NSLock	*cached_proxies_gate = nil;
 		   * order to handle connection shutdown cleanly.
 		   */
 		  proxy = node->value.obj;
-		  local = RETAIN(((ProxyStruct*)proxy)->_object);
+		  local = RETAIN(proxy->_object);
 		  proxy = [NSDistantObject proxyWithLocal: local
 					       connection: self];
-		  nTarget = ((ProxyStruct*)proxy)->_handle;
+		  nTarget = proxy->_handle;
 		  GSIMapRemoveKey(IlocalTargets, (GSIMapKey)nTarget);
-		  ((ProxyStruct*)proxy)->_handle = target;
+		  proxy->_handle = target;
 		  GSIMapAddPair(IlocalTargets, (GSIMapKey)target,
 		    (GSIMapVal)((id)proxy));
 		}
@@ -3763,7 +3760,7 @@ static NSLock	*cached_proxies_gate = nil;
 - (void) vendLocal: (NSDistantObject*)aProxy
 {
   M_LOCK(IrefGate);
-  ((ProxyStruct*)aProxy)->_counter++;
+  aProxy->_counter++;
   M_UNLOCK(IrefGate);
 }
 
@@ -3834,7 +3831,7 @@ static NSLock	*cached_proxies_gate = nil;
       unsigned		count = 1;
       GSIMapNode	node;
 
-      target = ((ProxyStruct*)aProxy)->_handle;
+      target = aProxy->_handle;
       node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)target);
 
       /*
@@ -3843,7 +3840,7 @@ static NSLock	*cached_proxies_gate = nil;
        */
       if (node != 0 && node->value.obj == aProxy)
 	{
-	  count = ((ProxyStruct*)aProxy)->_counter;
+	  count = aProxy->_counter;
 	  GSIMapRemoveKey(IremoteProxies, (GSIMapKey)target);
 	  /*
 	   * Tell the remote application that we have removed our proxy and
@@ -3881,7 +3878,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSParameterAssert(aTarget > 0);
   NSParameterAssert(aProxy==nil || aProxy->isa == distantObjectClass);
   NSParameterAssert(aProxy==nil || [aProxy connectionForProxy] == self);
-  NSParameterAssert(aProxy==nil || aTarget == ((ProxyStruct*)aProxy)->_handle);
+  NSParameterAssert(aProxy==nil || aTarget == aProxy->_handle);
 
   M_LOCK(IrefGate);
   node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)aTarget);
@@ -3907,7 +3904,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   if (p != nil)
     {
-      ((ProxyStruct*)p)->_counter++;
+      p->_counter++;
     }
   M_UNLOCK(IrefGate);
   return p;

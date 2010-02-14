@@ -24,22 +24,23 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 
-#include <Foundation/NSData.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSByteOrder.h>
+#import "Foundation/NSData.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSByteOrder.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include "../GSPrivate.h"
-#include "../GSStream.h"
-#include "../GSSocketStream.h"
+#import "../GSPrivate.h"
+#import "../GSStream.h"
+#import "../GSSocketStream.h"
 
 #define	BUFFERSIZE	(BUFSIZ*64)
 

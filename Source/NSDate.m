@@ -27,24 +27,25 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSUserDefaults.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "config.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 #include <math.h>
 

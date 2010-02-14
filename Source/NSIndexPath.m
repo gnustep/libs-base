@@ -23,16 +23,17 @@
 
    */ 
 
-#include	"Foundation/NSObject.h"
-#include	"Foundation/NSByteOrder.h"
-#include	"Foundation/NSData.h"
-#include	"Foundation/NSException.h"
-#include	"Foundation/NSHashTable.h"
-#include	"Foundation/NSIndexPath.h"
-#include	"Foundation/NSKeyedArchiver.h"
-#include	"Foundation/NSLock.h"
-#include	"Foundation/NSZone.h"
-#include	"GNUstepBase/GSLock.h"
+#define	EXPOSE_NSIndexPath_IVARS	1
+#import	"Foundation/NSObject.h"
+#import	"Foundation/NSByteOrder.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSHashTable.h"
+#import	"Foundation/NSIndexPath.h"
+#import	"Foundation/NSKeyedArchiver.h"
+#import	"Foundation/NSLock.h"
+#import	"Foundation/NSZone.h"
+#import	"GNUstepBase/GSLock.h"
 
 static	NSLock		*lock = nil;
 static	NSHashTable	*shared = 0;
