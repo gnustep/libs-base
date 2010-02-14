@@ -27,15 +27,16 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
+#import "config.h"
+#define	EXPOSE_NSMethodSignature_IVARS	1
+#import "GNUstepBase/preface.h"
 
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSCoder.h"
 
-#include "GSInvocation.h"
+#import "GSInvocation.h"
 
 /* The objc runtime library objc_skip_offset() is buggy on some compiler
  * versions, so we use our own alternative implementation.

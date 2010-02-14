@@ -208,29 +208,6 @@ enum {
 @interface	NSProcessInfo (GNUstep)
 
 /**
- * Returns a indication of whether debug logging is enabled.
- * This returns YES unless a call to -setDebugLoggingEnabled: has
- * been used to turn logging off.
- */
-- (BOOL) debugLoggingEnabled;
-
-/**
- * This method returns a set of debug levels set using the
- * --GNU-Debug=... command line option and/or the GNU-Debug
- * user default.<br />
- * You can modify this set to change the debug logging under
- * your programs control ... but such modifications are not
- * thread-safe.
- */
-- (NSMutableSet*) debugSet;
-
-/**
- * This method permits you to turn all debug logging on or off
- * without modifying the set of debug levels in use.
- */
-- (void) setDebugLoggingEnabled: (BOOL)flag;
-
-/**
  * Set the file to which NSLog output should be directed.<br />
  * Returns YES on success, NO on failure.<br />
  * By default logging goes to standard error.

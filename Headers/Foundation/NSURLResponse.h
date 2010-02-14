@@ -46,8 +46,9 @@ extern "C" {
  */
 @interface NSURLResponse :  NSObject <NSCoding, NSCopying>
 {
-@private
+#if	GS_EXPOSE(NSURLResponse)
   void *_NSURLResponseInternal;
+#endif
 }
 
 /**

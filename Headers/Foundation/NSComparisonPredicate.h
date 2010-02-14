@@ -71,13 +71,16 @@ typedef enum _NSPredicateOperatorType
 
 @interface NSComparisonPredicate : NSPredicate
 {
+#if	GS_EXPOSE(NSComparisonPredicate)
   NSComparisonPredicateModifier	_modifier;
   SEL				_selector;
   NSUInteger			_options;
   NSPredicateOperatorType	_type;
+  void				*_unused;
   @public
   NSExpression			*_left;
   NSExpression			*_right;
+#endif
 }
 
 + (NSPredicate *) predicateWithLeftExpression: (NSExpression *)left

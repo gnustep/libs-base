@@ -21,9 +21,10 @@
    */
 
 #include	<Foundation/Foundation.h>
-#include        "AGSHtml.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "AGSHtml.h"
+#import "GNUstepBase/GNUstep.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /*
  * Define constants for use if we are built with apple Foundation

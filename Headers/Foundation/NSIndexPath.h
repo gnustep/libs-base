@@ -44,9 +44,13 @@ extern "C" {
  */
 @interface	NSIndexPath : NSObject <NSCopying, NSCoding>
 {
+#if	GS_EXPOSE(NSIndexPath)
+@private
   NSUInteger	_hash;
   NSUInteger	_length;
   NSUInteger	*_indexes;
+  void		*_unused;
+#endif
 }
 
 /**

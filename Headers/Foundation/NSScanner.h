@@ -39,6 +39,7 @@ extern "C" {
  */
 @interface NSScanner : NSObject <NSCopying>
 {
+#if	GS_EXPOSE(NSScanner)
 @private
   NSString		*_string;
   NSCharacterSet	*_charactersToBeSkipped;
@@ -48,6 +49,8 @@ extern "C" {
   unichar		_decimal;
   BOOL			_caseSensitive;
   BOOL			_isUnicode;
+  void			*_unused;
+#endif
 }
 
 /*

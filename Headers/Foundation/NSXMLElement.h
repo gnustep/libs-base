@@ -40,15 +40,16 @@ extern "C" {
  */
 @interface NSXMLElement : NSXMLNode
 {
+#if	GS_EXPOSE(NSXMLElement)
 @protected
   NSString              *_name;
   NSMutableArray        *_attributes;
   NSMutableArray        *_namespaces;
   NSArray               *_children;
   BOOL                   _childrenHaveMutated;
-  uint8_t               _unused[sizeof(void*)- 1];
   NSString              *_URI;	
   NSInteger             _prefixIndex;
+#endif
 }
 
 /**

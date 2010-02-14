@@ -22,7 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSURLCache_IVARS	1
 #import "GSURLPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // FIXME ... locking and disk storage needed
 typedef struct {
@@ -34,11 +36,8 @@ typedef struct {
   NSMutableDictionary	*memory;
 } Internal;
  
-typedef struct {
-  @defs(NSURLCache)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLCacheInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLCacheInternal))
+#define	this	((Internal*)(self->_NSURLCacheInternal))
+#define	inst	((Internal*)(o->_NSURLCacheInternal))
 
 
 static NSURLCache	*shared = nil;

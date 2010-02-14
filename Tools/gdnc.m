@@ -518,7 +518,7 @@ ihandler(int sig)
   NSConnection	*connection;
 
   if (debugging)
-    NSLog(@"Adding observer %lu for %@ %@",
+    NSLog(@"Adding observer %llu for %@ %@",
       anObserver, notificationName, anObject);
 
   connection = [(NSDistantObject*)client connectionForProxy];
@@ -801,7 +801,7 @@ ihandler(int sig)
 		{
 		  [obs->queue removeObjectAtIndex: 0];
   if (debugging)
-    NSLog(@"Posting to observer %lu with %@", obs->observer, n);
+    NSLog(@"Posting to observer %llu with %@", obs->observer, n);
 		  [obs->client->client postNotificationName: n->name
 						     object: n->object
 						   userInfo: n->info
@@ -824,7 +824,7 @@ ihandler(int sig)
 - (void) removeObserver: (GDNCObserver*)observer
 {
   if (debugging)
-    NSLog(@"Removing observer %lu for %@ %@",
+    NSLog(@"Removing observer %llu for %@ %@",
       observer->observer, observer->notificationName,
       observer->notificationObject);
 

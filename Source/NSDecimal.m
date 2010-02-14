@@ -31,10 +31,10 @@
 #if !defined(__APPLE__) || !defined(GNU_RUNTIME)
 #include <ctype.h>
 #endif
-#include "Foundation/NSDecimal.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSUserDefaults.h"
+#import "Foundation/NSDecimal.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSUserDefaults.h"
 
 #ifndef NAN
 #define NAN 0.0

@@ -28,18 +28,19 @@
 
 */
 
-#include "config.h"
+#import "config.h"
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSThread.h>
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSThread.h"
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
-#include "GNUstepBase/GCObject.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/GCObject.h"
+#import "GNUstepBase/GSCategories.h"
+
 #include <pthread.h>
 
 /*

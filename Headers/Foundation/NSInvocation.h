@@ -35,6 +35,7 @@ extern "C" {
 
 @interface NSInvocation : NSObject
 {
+#if	GS_EXPOSE(NSInvocation)
   NSMethodSignature	*_sig;
   void                  *_cframe;
   void			*_retval;
@@ -47,6 +48,8 @@ extern "C" {
   BOOL			_validReturn;
   BOOL			_sendToSuper;
   void			*_retptr;
+  void			*_unused;
+#endif
 }
 
 /*

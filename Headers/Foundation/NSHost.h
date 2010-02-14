@@ -39,9 +39,12 @@ extern "C" {
  */
 @interface NSHost : NSObject
 {
+#if	GS_EXPOSE(NSHost)
   @private
   NSSet	*_names;
   NSSet	*_addresses;
+  void *_unused;
+#endif
 }
 
 /**

@@ -43,10 +43,13 @@ GS_EXPORT NSString* const NSURLFileScheme;
 
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>
 {
+#if	GS_EXPOSE(NSURL)
+@private
   NSString	*_urlString;
   NSURL		*_baseURL;
   void		*_clients;
   void		*_data;
+#endif
 }
         
 + (id) fileURLWithPath: (NSString*)aPath;
@@ -118,12 +121,6 @@ GS_EXPORT NSString* const NSURLFileScheme;
 @end
 
 #endif	/* GS_API_MACOSX */
-
-@interface NSURL (GSCategories)
-/** Returns the full path for this URL including any trailing slash.
- */
-- (NSString*) fullPath;
-@end
 
 #if	defined(__cplusplus)
 }

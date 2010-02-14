@@ -126,11 +126,26 @@ GSFunctions.h \
 GSMime.h \
 GSXML.h \
 GSLocale.h \
-NSTask+GS.h \
+NSArray+GNUstepBase.h \
+NSAttributedString+GNUstepBase.h \
+NSBundle+GNUstepBase.h \
+NSCalendarDate+GNUstepBase.h \
+NSData+GNUstepBase.h \
+NSFileHandle+GNUstepBase.h \
+NSInvocation+GNUstepBase.h \
+NSLock+GNUstepBase.h \
+NSMutableString+GNUstepBase.h \
+NSNumber+GNUstepBase.h \
+NSObject+GNUstepBase.h \
+NSProcessInfo+GNUstepBase.h \
+NSString+GNUstepBase.h \
+NSTask+GNUstepBase.h \
+NSURL+GNUstepBase.h \
 Unicode.h \
 GNUstep.h \
 behavior.h \
 preface.h \
+Additions.h
 
 GNU_HEADERS = $(ADD_HEADERS)
 
@@ -471,7 +486,7 @@ libgnustep-baseadd_NEEDS_GUI = NO
 # can be guaranteed that they'll never be built together, this could
 # be removed.
 SUBPROJECTS = Additions
-
+ 	 
 -include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make

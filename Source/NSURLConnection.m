@@ -22,8 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
-#import <Foundation/NSRunLoop.h>
-#import <Foundation/NSDebug.h>
+#define	EXPOSE_NSURLConnection_IVARS	1
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSDebug.h"
 #import "GSURLPrivate.h"
 
 @interface _NSURLConnectionDataCollector : NSObject <NSURLProtocolClient>
@@ -173,11 +174,8 @@ typedef struct
   BOOL				_debug;
 } Internal;
  
-typedef struct {
-  @defs(NSURLConnection)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLConnectionInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLConnectionInternal))
+#define	this	((Internal*)(self->_NSURLConnectionInternal))
+#define	inst	((Internal*)(o->_NSURLConnectionInternal))
 
 @implementation	NSURLConnection
 

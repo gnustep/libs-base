@@ -27,6 +27,8 @@
    */
 
 #include "config.h"
+#define	EXPOSE_NSAutoreleasePool_IVARS	1
+#define	EXPOSE_NSThread_IVARS	1
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSGarbageCollector.h"
@@ -48,8 +50,7 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 #define BEGINNING_POOL_SIZE 32
 
 /* Easy access to the thread variables belonging to NSAutoreleasePool. */
-typedef struct { @defs(NSThread) } *TInfo;
-#define ARP_THREAD_VARS (&(((TInfo)GSCurrentThread())->_autorelease_vars))
+#define ARP_THREAD_VARS (&((GSCurrentThread())->_autorelease_vars))
 
 
 @interface NSAutoreleasePool (Private)
@@ -231,7 +232,7 @@ static IMP	initImp;
 
 + (void) addObject: (id)anObj
 {
-  TInfo		t = (TInfo)GSCurrentThread();
+  NSThread		*t = GSCurrentThread();
   NSAutoreleasePool	*pool;
 
   pool = t->_autorelease_vars.current_pool;
@@ -250,7 +251,7 @@ static IMP	initImp;
 
       if (anObj != nil)
 	{
-	  NSLog(@"autorelease called without pool for object (%x) "
+	  NSLog(@"autorelease called without pool for object (%p) "
 	    @"of class %@ in thread %@", anObj,
 	    NSStringFromClass([anObj class]), [NSThread currentThread]);
 	}
@@ -474,7 +475,7 @@ static IMP	initImp;
   struct autorelease_thread_vars *tv;
   NSAutoreleasePool *pool;
 
-  tv = &(((TInfo)thread)->_autorelease_vars);
+  tv = &((thread)->_autorelease_vars);
 
   /* First release any objects in the pool... bearing in mind that
    * releasing any object could cause other objects to be added to

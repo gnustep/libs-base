@@ -157,8 +157,12 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 
 @interface NSPipe : NSObject
 {
-   NSFileHandle*	readHandle;
-   NSFileHandle*	writeHandle;
+#if	GS_EXPOSE(NSPipe)
+@private
+  NSFileHandle	*_readHandle;
+  NSFileHandle	*_writeHandle;
+  void		*_unused;
+#endif
 }
 + (id) pipe;
 - (NSFileHandle*) fileHandleForReading;
@@ -172,19 +176,19 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 // GNUstep class extensions
 
 @interface NSFileHandle (GNUstepExtensions)
-+ (id) fileHandleAsServerAtAddress: (NSString*)address
-			   service: (NSString*)service
-			  protocol: (NSString*)protocol;
-+ (id) fileHandleAsClientAtAddress: (NSString*)address
-			   service: (NSString*)service
-			  protocol: (NSString*)protocol;
-+ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
-				       service: (NSString*)service
-				      protocol: (NSString*)protocol;
-+ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
-				       service: (NSString*)service
-				      protocol: (NSString*)protocol
-				      forModes: (NSArray*)modes;
++ (id) fileHandleAsServerAtAddress: (NSString*)a
+			   service: (NSString*)s
+			  protocol: (NSString*)p;
++ (id) fileHandleAsClientAtAddress: (NSString*)a
+			   service: (NSString*)s
+			  protocol: (NSString*)p;
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)a
+				       service: (NSString*)s
+				      protocol: (NSString*)p;
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)a
+				       service: (NSString*)s
+				      protocol: (NSString*)p
+				      forModes: (NSArray*)m;
 - (void) readDataInBackgroundAndNotifyLength: (unsigned)len;
 - (void) readDataInBackgroundAndNotifyLength: (unsigned)len
 				    forModes: (NSArray*)modes;

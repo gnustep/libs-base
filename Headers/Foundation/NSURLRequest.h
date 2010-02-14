@@ -84,8 +84,9 @@ typedef NSUInteger NSURLRequestCachePolicy;
  */
 @interface NSURLRequest : NSObject <NSCoding, NSCopying, NSMutableCopying>
 {
-@private
+#if	GS_EXPOSE(NSURLRequest)
   void *_NSURLRequestInternal;
+#endif
 }
 
 /*

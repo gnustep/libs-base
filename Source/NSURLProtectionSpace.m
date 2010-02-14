@@ -22,7 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
+#define	EXPOSE_NSURLProtectionSpace_IVARS	1
 #import "GSURLPrivate.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 
 NSString * const NSURLProtectionSpaceFTPProxy = @"ftp";	
 NSString * const NSURLProtectionSpaceHTTPProxy = @"http";
@@ -48,11 +50,8 @@ typedef struct {
   BOOL		isProxy;
 } Internal;
  
-typedef struct {
-  @defs(NSURLProtectionSpace)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLProtectionSpaceInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLProtectionSpaceInternal))
+#define	this	((Internal*)(self->_NSURLProtectionSpaceInternal))
+#define	inst	((Internal*)(o->_NSURLProtectionSpaceInternal))
 
 @implementation NSURLProtectionSpace
 

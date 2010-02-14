@@ -26,6 +26,8 @@
    */
 
 #import "config.h"
+#define	EXPOSE_NSArchiver_IVARS	1
+#define	EXPOSE_NSUnarchiver_IVARS	1
 /*
  *	Setup for inline operation of pointer map tables.
  */

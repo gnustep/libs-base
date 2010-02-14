@@ -28,33 +28,36 @@
 */
 
 #include "config.h"
+#define	EXPOSE_NSUserDefaults_IVARS	1
 #include "GNUstepBase/preface.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
 
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSArchiver.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSDistributedLock.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSPropertyList.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSTimer.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSLocale.h"
-#include "GNUstepBase/GSLock.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSDistributedLock.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSPropertyList.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDebug.h"
+#import "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #if	defined(__MINGW32__)
 @class	NSUserDefaultsWin32;

@@ -32,6 +32,7 @@
 */
 
 #include "config.h"
+#define	EXPOSE_NSBundle_IVARS	1
 #include "GNUstepBase/preface.h"
 #include "objc-load.h"
 #include "Foundation/NSBundle.h"
@@ -52,6 +53,7 @@
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSValue.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #include "GSPrivate.h"
 
@@ -763,10 +765,6 @@ _find_main_bundle_for_tool(NSString *toolName)
 
  */
 
-typedef struct {
-    @defs(NSBundle)
-} *bptr;
-
 static void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
@@ -800,7 +798,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   /* Store classes (but don't store categories) */
-  [((bptr)_loadingBundle)->_bundleClasses addObject:
+  [(_loadingBundle)->_bundleClasses addObject:
     [NSValue valueWithPointer: (void*)theClass]];
 }
 

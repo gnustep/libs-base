@@ -29,19 +29,20 @@
 */
 
 #include <string.h>
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSObjCRuntime.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSObjCRuntime.h"
 
-#include "NSConcreteNumber.h"
-#include "GSPrivate.h"
+#import "NSConcreteNumber.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @interface GSCachedBool : NSBoolNumber
 @end

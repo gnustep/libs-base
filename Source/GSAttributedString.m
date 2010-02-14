@@ -47,6 +47,7 @@
 #import "config.h"
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "Foundation/NSAttributedString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSRange.h"

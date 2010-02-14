@@ -115,10 +115,13 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  */
 @interface NSError : NSObject <NSCopying, NSCoding>
 {
+#if	GS_EXPOSE(NSError)
 @private
   int		_code;
   NSString	*_domain;
   NSDictionary	*_userInfo;
+  void		*_unused;
+#endif
 }
 
 /**

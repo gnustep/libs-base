@@ -52,6 +52,7 @@ extern "C" {
  */
 @interface NSKeyedArchiver : NSCoder
 {
+#if	GS_EXPOSE(NSKeyedArchiver)
 @private
   NSMutableData	*_data;		/* Data to write into.		*/
   id		_delegate;	/* Delegate controls operation.	*/
@@ -69,6 +70,8 @@ extern "C" {
   NSMutableDictionary	*_enc;	/* Object being encoded.	*/
   NSMutableArray	*_obj;	/* Array of objects.		*/
   NSPropertyListFormat	_format;
+  void			*_unused;
+#endif
 }
 
 /**
@@ -216,6 +219,7 @@ extern "C" {
  */
 @interface NSKeyedUnarchiver : NSCoder
 {
+#if	GS_EXPOSE(NSKeyedUnarchiver)
 @private
   NSDictionary	*_archive;
   id		_delegate;	/* Delegate controls operation.	*/
@@ -233,6 +237,8 @@ extern "C" {
 #undef	GSIArray
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
+  void		*_unused;
+#endif
 }
 
 /**

@@ -122,10 +122,6 @@ static Class	StringClass = 0;
 static Class	NumberClass = 0;
 
 typedef struct {
-  @defs(GSString)
-} *ivars;
-
-typedef struct {
   NSMutableData	*data;
   void		(*appImp)(NSData*,SEL,const void*,unsigned);
   void*		(*datImp)(NSMutableData*,SEL);		// Bytes pointer.

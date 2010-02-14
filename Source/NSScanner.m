@@ -32,12 +32,14 @@
 #define _GNU_SOURCE
 #endif
 
-#include "config.h"
-#include "GNUstepBase/Unicode.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSUserDefaults.h"
+#import "config.h"
+#define	EXPOSE_NSScanner_IVARS	1
+#import "GNUstepBase/Unicode.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #include <float.h>
 #include <limits.h>
@@ -87,9 +89,7 @@ static inline unichar myGetC(unsigned char c)
 /*
  * Hack for direct access to internals of an concrete string object.
  */
-typedef struct {
-  @defs(GSString)
-} *ivars;
+typedef GSString	*ivars;
 #define	myLength()	(((ivars)_string)->_count)
 #define	myUnicode(I)	(((ivars)_string)->_contents.u[I])
 #define	myChar(I)	myGetC((((ivars)_string)->_contents.c[I]))

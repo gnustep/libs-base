@@ -25,14 +25,15 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include <Foundation/NSException.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSThread.h>
-#include "GNUstepBase/GSLock.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "config.h"
+#define	EXPOSE_GSLock_IVARS	1
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSThread.h"
+#import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/GNUstep.h"
+#import "GNUstepBase/GSCategories.h"
 
 /**
  * This implements a class which, when used in single-threaded mode,

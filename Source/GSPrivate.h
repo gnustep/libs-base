@@ -161,6 +161,7 @@ typedef union {
  */
 @interface GSString : NSString
 {
+@public
   GSCharPtr _contents;
   unsigned int	_count;
   struct {
@@ -179,10 +180,8 @@ typedef union {
  */
 @interface GSMutableString : NSMutableString
 {
-  union {
-    unichar		*u;
-    unsigned char	*c;
-  } _contents;
+@public
+  GSCharPtr _contents;
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;
@@ -195,14 +194,7 @@ typedef union {
 }
 @end
 
-/*
- * Typedef for access to internals of concrete string objects.
- */
-typedef struct {
-  @defs(GSMutableString)
-} GSStr_t;
-typedef	GSStr_t	*GSStr;
-
+typedef	GSMutableString *GSStr;
 
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.

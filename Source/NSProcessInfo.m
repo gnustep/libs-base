@@ -103,20 +103,21 @@
 #undef id
 #endif
 
-#include "GNUstepBase/GSConfig.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/GSConfig.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSDebug.h"
+#import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #include "GSPrivate.h"
 
@@ -218,12 +219,10 @@ static unsigned int	_operatingSystem = 0;
 static NSString		*_operatingSystemName = nil;
 static NSString		*_operatingSystemVersion = nil;
 
-// Array of debug levels set.
-static NSMutableSet	*_debug_set = nil;
-
 // Flag to indicate that fallbackInitialisation was executed.
 static BOOL	fallbackInitialisation = NO;
 
+static NSMutableSet	*mySet = nil;
 /*************************************************************************
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
@@ -310,15 +309,14 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 {
   unichar **argvw = CommandLineToArgvW(GetCommandLineW(), &argc);
   NSString *str;
-  NSMutableSet *mySet;
   id obj_argv[argc];
   int added = 1;
-  
-  mySet = [NSMutableSet new];
   
   /* Copy the zero'th argument to the argument list */
   obj_argv[0] = arg0;
   
+  if (mySet == nil) mySet = [NSMutableSet new];
+
   for (i = 1; i < argc; i++)
     {
       str = [NSString stringWithCharacters: argvw[i] length: wcslen(argvw[i])];
@@ -334,23 +332,20 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     
   IF_NO_GC(RELEASE(_gnu_arguments));
   _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-  IF_NO_GC(RELEASE(_debug_set));
-  _debug_set = mySet;
   RELEASE(arg0);
 }
 #else
   if (argv)
     {
       NSString		*str;
-      NSMutableSet	*mySet;
       id		obj_argv[argc];
       int		added = 1;
       NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
-      mySet = [NSMutableSet new];
-
       /* Copy the zero'th argument to the argument list */
       obj_argv[0] = arg0;
+
+      if (mySet == nil) mySet = [NSMutableSet new];
 
       for (i = 1; i < argc; i++)
 	{
@@ -364,8 +359,6 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
       IF_NO_GC(RELEASE(_gnu_arguments));
       _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-      IF_NO_GC(RELEASE(_debug_set));
-      _debug_set = mySet;
       RELEASE(arg0);
     }
 #endif	
@@ -939,7 +932,23 @@ int main(int argc, char *argv[], char *env[])
   if (!_gnu_sharedProcessInfoObject)
     {
       _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
+      [gnustep_global_lock lock];
+      if (mySet != nil)
+	{
+	  NSEnumerator	*e = [mySet objectEnumerator];
+	  NSMutableSet	*s = [_gnu_sharedProcessInfoObject debugSet];
+	  id		o;
+
+	  while ((o = [e nextObject]) != nil)
+	    {
+              [s addObject: o];
+	    }
+	  [mySet release];
+	  mySet = nil;
+        }
+      [gnustep_global_lock unlock];
     }
+
   return _gnu_sharedProcessInfoObject;
 }
 
@@ -1374,42 +1383,11 @@ GSInitializeProcess(int argc, char **argv, char **envp)
 
 @implementation	NSProcessInfo (GNUstep)
 
-static BOOL	debugTemporarilyDisabled = NO;
-
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env
 {
   GSInitializeProcess(argc, argv, env);
-}
-
-- (BOOL) debugLoggingEnabled
-{
-  if (debugTemporarilyDisabled == YES)
-    {
-      return NO;
-    }
-  else
-    {
-      return YES;
-    }
-}
-
-- (NSMutableSet*) debugSet
-{
-  return _debug_set;
-}
-
-- (void) setDebugLoggingEnabled: (BOOL)flag
-{
-  if (flag == NO)
-    {
-      debugTemporarilyDisabled = YES;
-    }
-  else
-    {
-      debugTemporarilyDisabled = NO;
-    }
 }
 
 - (BOOL) setLogFile: (NSString*)path
@@ -1434,36 +1412,6 @@ static BOOL	debugTemporarilyDisabled = NO;
   return NO;
 }
 @end
-
-BOOL GSDebugSet(NSString *level)
-{
-  static IMP debugImp = 0;
-  static SEL debugSel;
-
-  if (debugTemporarilyDisabled == YES)
-    {
-      return NO;
-    }
-  if (debugImp == 0)
-    {
-      debugSel = @selector(member:);
-      if (_debug_set == nil)
-	{
-	  [[NSProcessInfo processInfo] debugSet];
-	}
-      debugImp = [_debug_set methodForSelector: debugSel];
-      if (debugImp == 0)
-	{
-	  fprintf(stderr, "Unable to set up with [NSProcessInfo-debugSet]\n");
-	  return NO;
-	}
-    }
-  if ((*debugImp)(_debug_set, debugSel, level) == nil)
-    {
-      return NO;
-    }
-  return YES;
-}
 
 BOOL
 GSPrivateEnvironmentFlag(const char *name, BOOL def)

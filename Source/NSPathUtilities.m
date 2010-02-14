@@ -74,7 +74,7 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSUserDefaults.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #include "GSPrivate.h"
 

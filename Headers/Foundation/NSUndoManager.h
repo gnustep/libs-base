@@ -82,21 +82,23 @@ GS_EXPORT NSString* const NSUndoManagerWillRedoChangeNotification;
  */
 GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 
-@interface NSUndoManager: NSObject
+@interface NSUndoManager : NSObject
 {
+#if	GS_EXPOSE(NSUndoManager)
 @private
-    NSMutableArray	*_redoStack;
-    NSMutableArray	*_undoStack;
-    id                  *_unused1;
-    id			_group;
-    id			_nextTarget;
-    NSArray		*_modes;
-    BOOL		_isRedoing;
-    BOOL		_isUndoing;
-    BOOL		_groupsByEvent;
-    BOOL		_runLoopGroupingPending;
-    unsigned		_disableCount;
-    unsigned		_levelsOfUndo;
+  NSMutableArray	*_redoStack;
+  NSMutableArray	*_undoStack;
+  id			*_unused1;
+  id			_group;
+  id			_nextTarget;
+  NSArray		*_modes;
+  BOOL			_isRedoing;
+  BOOL			_isUndoing;
+  BOOL			_groupsByEvent;
+  BOOL			_runLoopGroupingPending;
+  unsigned		_disableCount;
+  unsigned		_levelsOfUndo;
+#endif
 }
 
 - (void) beginUndoGrouping;

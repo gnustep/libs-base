@@ -31,6 +31,8 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
 
 
 static NSMutableDictionary	*domainMap = nil;

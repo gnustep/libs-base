@@ -25,6 +25,9 @@
    */
 
 #include "config.h"
+
+#define	EXPOSE_NSPipe_IVARS	1
+
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSObject.h"
 #include "Foundation/NSFileHandle.h"
@@ -57,8 +60,8 @@
 
 - (void) dealloc
 {
-  RELEASE(readHandle);
-  RELEASE(writeHandle);
+  RELEASE(_readHandle);
+  RELEASE(_writeHandle);
   [super dealloc];
 }
 
@@ -72,10 +75,10 @@
 
       if (pipe(p) == 0)
         {
-          readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]
-						     closeOnDealloc: YES];
-          writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]
+          _readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]
 						      closeOnDealloc: YES];
+          _writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]
+						       closeOnDealloc: YES];
         }
       else
 	{
@@ -92,10 +95,10 @@
 
       if (CreatePipe(&readh, &writeh, &saAttr, 0) != 0)
         {
-          readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh
-						   closeOnDealloc: YES];
-          writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
+          _readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh
 						    closeOnDealloc: YES];
+          _writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
+						     closeOnDealloc: YES];
         }
       else
 	{
@@ -112,7 +115,7 @@
  */
 - (NSFileHandle*) fileHandleForReading
 {
-  return readHandle;
+  return _readHandle;
 }
 
 /**
@@ -120,7 +123,7 @@
  */
 - (NSFileHandle*) fileHandleForWriting
 {
-  return writeHandle;
+  return _writeHandle;
 }
 
 @end

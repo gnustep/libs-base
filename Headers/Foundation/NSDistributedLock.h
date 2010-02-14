@@ -36,8 +36,11 @@ extern "C" {
 
 @interface NSDistributedLock : NSObject
 {
+#if	GS_EXPOSE(NSDistributedLock)
   NSString	*_lockPath;
   NSDate	*_lockTime;
+  void		*_unused;
+#endif
 }
 
 + (NSDistributedLock*) lockWithPath: (NSString*)aPath;

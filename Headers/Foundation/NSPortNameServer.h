@@ -45,8 +45,6 @@ extern "C" {
 @class	NSPort, NSString, NSMutableArray;
 
 @interface	NSPortNameServer : NSObject
-{
-}
 + (id) systemDefaultPortNameServer;
 - (NSPort*) portForName: (NSString*)name;
 - (NSPort*) portForName: (NSString*)name
@@ -58,8 +56,11 @@ extern "C" {
 
 @interface NSSocketPortNameServer : NSPortNameServer
 {
+#if	GS_EXPOSE(NSSocketPortNameServer)
   NSMapTable	*_portMap;	/* Registered ports information.	*/
   NSMapTable	*_nameMap;	/* Registered names information.	*/
+  void		*_unused;
+#endif
 }
 + (id) sharedInstance;
 - (NSPort*) portForName: (NSString*)name

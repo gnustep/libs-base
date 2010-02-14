@@ -22,8 +22,10 @@
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
-#include "Foundation/NSSet.h"
+#define	EXPOSE_NSHTTPCookieStorage_IVARS	1
+#import "GSURLPrivate.h"
+#import "Foundation/NSSet.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSHTTPCookieManagerAcceptPolicyChangedNotification
   = @"NSHTTPCookieManagerAcceptPolicyChangedNotification";
@@ -37,11 +39,8 @@ typedef struct {
   NSMutableSet			*_cookies;
 } Internal;
  
-typedef struct {
-  @defs(NSHTTPCookieStorage)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSHTTPCookieStorageInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSHTTPCookieStorageInternal))
+#define	this	((Internal*)(self->_NSHTTPCookieStorageInternal))
+#define	inst	((Internal*)(o->_NSHTTPCookieStorageInternal))
 
 
 /* FIXME

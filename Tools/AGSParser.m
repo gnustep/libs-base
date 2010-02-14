@@ -18,9 +18,10 @@
 
    */
 
-#include "AGSParser.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "AGSParser.h"
+#import "GNUstepBase/GNUstep.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /**
  *  The AGSParser class parses Objective-C header and source files

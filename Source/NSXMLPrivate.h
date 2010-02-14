@@ -25,8 +25,13 @@
 #ifndef	_INCLUDED_NSXMLPRIVATE_H
 #define	_INCLUDED_NSXMLPRIVATE_H
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
+#import "config.h"
+#define	EXPOSE_NSXMLDTD_IVARS	1
+#define	EXPOSE_NSXMLDTDNode_IVARS	1
+#define	EXPOSE_NSXMLDocument_IVARS	1
+#define	EXPOSE_NSXMLElement_IVARS	1
+#define	EXPOSE_NSXMLNode_IVARS	1
+#import "GNUstepBase/preface.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDebug.h"
@@ -40,6 +45,7 @@
 #import "Foundation/NSXMLDTDNode.h"
 #import "Foundation/NSXMLDTD.h"
 #import "Foundation/NSXMLElement.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #ifdef	HAVE_LIBXML
 

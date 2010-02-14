@@ -177,12 +177,15 @@ typedef NSUInteger NSURLHandleStatus;
 - (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender;
 @end
 
-@interface NSURLHandle: NSObject
+@interface NSURLHandle : NSObject
 {
+#if	GS_EXPOSE(NSURLHandle)
+@protected
   id			_data;
   NSMutableArray	*_clients;
   NSString		*_failure; 
   NSURLHandleStatus	_status;
+#endif
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)url;

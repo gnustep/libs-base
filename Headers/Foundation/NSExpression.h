@@ -50,7 +50,9 @@ typedef NSUInteger NSExpressionType;
 
 @interface NSExpression : NSObject <NSCoding, NSCopying>
 {
+#if	GS_EXPOSE(NSExpression)
   NSExpressionType _type;
+#endif
 }
 
 + (NSExpression *) expressionForConstantValue: (id)obj;

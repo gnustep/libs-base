@@ -27,8 +27,8 @@
 
 #import "GNUstepBase/preface.h"
 #import "GSRunLoopWatcher.h"
-#import <Foundation/NSException.h>
-#import <Foundation/NSPort.h>
+#import "Foundation/NSException.h"
+#import "Foundation/NSPort.h"
 
 @implementation	GSRunLoopWatcher
 

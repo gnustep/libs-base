@@ -118,8 +118,9 @@ extern "C" {
  */
 @interface NSURLProtocol : NSObject
 {
-@private
+#if	GS_EXPOSE(NSURLProtocol)
   void *_NSURLProtocolInternal;
+#endif
 }
 
 /**

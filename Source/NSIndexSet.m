@@ -23,11 +23,12 @@
 
    */
 
-#include        "Foundation/NSCoder.h"
-#include        "Foundation/NSData.h"
-#include	"Foundation/NSIndexSet.h"
-#include	"Foundation/NSException.h"
-#include	"Foundation/NSZone.h"
+#define	EXPOSE_NSIndexSet_IVARS	1
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import	"Foundation/NSIndexSet.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSZone.h"
 
 #define	GSI_ARRAY_TYPE	NSRange
 

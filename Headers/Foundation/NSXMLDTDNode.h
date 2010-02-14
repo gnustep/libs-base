@@ -75,12 +75,14 @@ typedef NSUInteger NSXMLDTDNodeKind;
  */
 @interface NSXMLDTDNode : NSXMLNode
 {
+#if	GS_EXPOSE(NSXMLDTDNode)
 @protected
   NSXMLDTDNodeKind      _DTDKind;
   NSString              *_name;
   NSString              *_notationName;
   NSString              *_publicID;
   NSString              *_systemID;
+#endif
 }
 
 /**

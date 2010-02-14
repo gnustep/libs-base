@@ -21,6 +21,10 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
+
+// FIXME: We should be using the new interfaces, not exposing the old ones.
+#	define __OBJC_LEGACY_GNU_MODE__
+
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
@@ -30,8 +34,6 @@
 #import <config.h>
 #import <objc/objc-api.h>
 #if HAVE_OBJC_RUNTIME_H
-// FIXME: We should be using the new interfaces, not exposing the old ones.
-#	define __OBJC_LEGACY_GNU_MODE__
 #	import <objc/runtime.h>
 #endif
 #import <pthread.h>

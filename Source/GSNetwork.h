@@ -57,6 +57,7 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #ifndef	AF_LOCAL
 #define	AF_LOCAL	AF_UNIX

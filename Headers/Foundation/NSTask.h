@@ -38,6 +38,8 @@ extern "C" {
 
 @interface NSTask : NSObject
 {
+#if	GS_EXPOSE(NSTask)
+@protected
   NSString	*_currentDirectoryPath;
   NSString	*_launchPath;
   NSArray	*_arguments;
@@ -51,6 +53,8 @@ extern "C" {
   BOOL		_hasTerminated;
   BOOL		_hasCollected;
   BOOL		_hasNotified;
+  void		*_unused;
+#endif
 }
 
 + (NSTask*) launchedTaskWithLaunchPath: (NSString*)path

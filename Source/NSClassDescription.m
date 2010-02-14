@@ -25,17 +25,17 @@
    $Date$ $Revision$
 */
 
-#include "Foundation/NSClassDescription.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSNotification.h"
+#import "Foundation/NSClassDescription.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSNotification.h"
 
 
 /**
  *  Each instance of this class provides descriptive information for an
  *  Objective C class.  This is used for key-value coding, a framework
  *  used in Cocoa for scripting with Objective-C objects.  Scripting is
- *  available in GNUstep using Guile, however that implementation does
+ *  available in GNUstep in many ways, however those implementations do
  *  not make use of class descriptions.  Therefore the primary purpose
  *  of this class is to smooth the process of porting between GNUstep
  *  and other OpenStep-derived systems.

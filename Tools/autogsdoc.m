@@ -599,14 +599,13 @@
 
 #include	<config.h>
 
-#include "AGSParser.h"
-#include "AGSOutput.h"
-#include "AGSIndex.h"
-#include "AGSHtml.h"
-#include "GNUstepBase/GNUstep.h"
-#ifdef NeXT_Foundation_LIBRARY
-#include "GNUstepBase/GSCategories.h"
-#endif
+#import "AGSParser.h"
+#import "AGSOutput.h"
+#import "AGSIndex.h"
+#import "AGSHtml.h"
+#import "GNUstepBase/GNUstep.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /** Invokes the autogsdoc tool. */
 int

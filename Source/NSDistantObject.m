@@ -26,19 +26,20 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/DistributedObjects.h"
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSInvocation.h"
+#import "config.h"
+#define	EXPOSE_NSDistantObject_IVARS	1
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/DistributedObjects.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSInvocation.h"
 #include <objc/Protocol.h>
-#include "GSInvocation.h"
+#import "GSInvocation.h"
 
 
 @interface NSDistantObject(GNUstepExtensions)
@@ -221,7 +222,7 @@ enum proxyLocation
 	  {
 	    if (debug_proxy)
 	      {
-		NSLog(@"Local object is 0x%x (0x%x)\n",
+		NSLog(@"Local object is %p (%p)\n",
 		  (uintptr_t)o, (uintptr_t)o ? ((NSDO*)o)->_object : 0);
 	      }
 	    return RETAIN(((NSDO*)o)->_object);

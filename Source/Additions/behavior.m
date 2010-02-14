@@ -18,7 +18,8 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 */
 
 /* A Behavior can be seen as a "Protocol with an implementation" or a
@@ -48,15 +49,15 @@
 
    */
 
-#include "config.h"
+#import "config.h"
 #include <stdio.h>
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/behavior.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/behavior.h"
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
 static BOOL class_is_kind_of(Class self, Class class);

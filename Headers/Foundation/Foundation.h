@@ -136,4 +136,8 @@
 #import	<Foundation/NSXMLParser.h>
 #import	<Foundation/NSZone.h>
 
+#if	!defined(NO_GNUSTEP)
+#import	<GNUstep/Additions.h>
+#endif
+
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */

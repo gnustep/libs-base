@@ -41,6 +41,7 @@ extern "C" {
  */
 @interface NSXMLDTD : NSXMLNode
 {
+#if	GS_EXPOSE(NSXMLDTD)
 @private
   NSString      *_name;
   NSString      *_publicID;
@@ -48,12 +49,12 @@ extern "C" {
   NSArray       *_children;
   BOOL          _childrenHaveMutated;
   BOOL          _modified;
-  uint8_t       _unused[sizeof(void*)-2];
   NSMutableDictionary   *_entities;
   NSMutableDictionary   *_elements;
   NSMutableDictionary   *_notations;
   NSMutableDictionary   *_attributes;
   NSString              *_original;
+#endif
 }
 
 /**

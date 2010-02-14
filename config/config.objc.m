@@ -14,6 +14,12 @@
 
 #include <objc/Object.h>
 
+@interface NSObject : Object
+@end
+
+@implementation NSObject
+@end
+
 @interface Test : Object
 +(int) testResult;
 @end

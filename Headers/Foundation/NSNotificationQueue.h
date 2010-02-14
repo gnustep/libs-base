@@ -109,10 +109,13 @@ struct _NSNotificationQueueList;
 
 @interface NSNotificationQueue : NSObject
 {
+#if	GS_EXPOSE(NSNotificationQueue)
+@private
   NSNotificationCenter			*_center;
   struct _NSNotificationQueueList	*_asapQueue;
   struct _NSNotificationQueueList	*_idleQueue;
   NSZone				*_zone;
+#endif
 }
 
 /* Creating Notification Queues */

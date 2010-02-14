@@ -25,22 +25,23 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSKeyValueCoding.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSDebug.h"
+#import "config.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSDebug.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/GSCategories.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSSet;
 @interface GSSet : NSObject	// Help the compiler

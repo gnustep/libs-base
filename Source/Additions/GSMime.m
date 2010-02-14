@@ -51,17 +51,33 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
+#import "config.h"
+#define	EXPOSE_GSMimeDocument_IVARS	1
+#define	EXPOSE_GSMimeHeader_IVARS	1
+#define	EXPOSE_GSMimeParser_IVARS	1
+
 #include <string.h>
 #include <ctype.h>
 
-#import	<Foundation/Foundation.h>
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSCharacterSet.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDebug.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSEnumerator.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSScanner.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSValue.h"
 #import	"GNUstepBase/GSMime.h"
 #import	"GNUstepBase/GSXML.h"
-#import	"GNUstepBase/GSCategories.h"
+#import	"GNUstepBase/NSData+GNUstepBase.h"
+#import	"GNUstepBase/NSString+GNUstepBase.h"
 #import	"GNUstepBase/Unicode.h"
 
-#include "../GSPrivate.h"
+#import "../GSPrivate.h"
 
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;

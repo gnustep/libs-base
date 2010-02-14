@@ -28,26 +28,27 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
+#import "config.h"
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSArray.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSPathUtilities.h>
+#import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSPathUtilities.h"
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
-#include "GNUstepBase/GSLock.h"
-#include "GNUstepBase/GSMime.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/Unicode.h"
+#import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSLock+GNUstepBase.h"
+#import "GNUstepBase/Unicode.h"
 
-#include "../GSPrivate.h"
+#import "../GSPrivate.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -51,8 +51,9 @@ typedef enum {
  */
 @interface NSURLCredential : NSObject <NSCopying>
 {
-@private
+#if	GS_EXPOSE(NSURLCredential)
   void *_NSURLCredentialInternal;
+#endif
 }
 
 /**

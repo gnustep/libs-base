@@ -45,7 +45,9 @@ extern "C" {
  */
 @interface	NSIndexSet : NSObject <NSCopying, NSMutableCopying, NSCoding>
 {
+#if	GS_EXPOSE(NSIndexSet)
   void	*_data;
+#endif
 }
 
 /**
