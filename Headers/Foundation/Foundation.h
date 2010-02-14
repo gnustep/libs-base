@@ -137,7 +137,7 @@
 #import	<Foundation/NSZone.h>
 
 #if	!defined(NO_GNUSTEP)
-#import	<GNUstep/Additions.h>
+#import	<GNUstepBase/Additions.h>
 #endif
 
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */

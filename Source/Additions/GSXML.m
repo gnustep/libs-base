@@ -53,9 +53,20 @@
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSXML.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSRunLoop.h"
 #import "Foundation/NSString.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSValue.h"
 
 /* Avoid problems on systems where the xml headers use 'id'
  */

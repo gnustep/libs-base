@@ -28,7 +28,6 @@
 #define	INCLUDED_GS_CATEGORIES_H
 #include "GNUstepBase/GSVersionMacros.h"
 
-#include <Foundation/Foundation.h>
 
 /* The following ifndef prevents the categories declared in this file being
  * seen in GNUstep code.  This is necessary because those category
@@ -56,6 +55,7 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @class NSMutableSet;
+@class NSString;
 
 
 /* ------------------------------------------------------------------------
