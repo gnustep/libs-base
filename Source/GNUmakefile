@@ -185,7 +185,6 @@ NSCopyObject.m \
 NSCountedSet.m \
 NSConcreteHashTable.m \
 NSConcreteMapTable.m \
-NSConcreteNumber.m \
 NSConnection.m \
 NSData.m \
 NSDate.m \
@@ -312,7 +311,6 @@ BASE_MFILES += GSFFCallInvocation.m
 endif
 
 BASE_OTHER_SRCFILES = \
-NSConcreteNumberTemplate.m \
 GSConcreteValueTemplate.m \
 GSTemplateValue.m \
 dld-load.h \
