@@ -20,18 +20,18 @@
 
    */
 
-#include "config.h"
+#import "config.h"
 #include <stdio.h>
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSUserDefaults.h"
 #ifdef NeXT_Foundation_LIBRARY
-#include <Foundation/Foundation.h>
-#include <GNUstepBase/GSCategories.h>
-#else
-#include <Foundation/NSArray.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSProcessInfo.h>
+#import "GNUstepBase/GSCategories.h"
 #endif
-#include <GNUstepBase/GSXML.h>
+#import "GNUstepBase/GSXML.h"
 
 @interface GSXMLParser (Loader)
 + (NSString*) loadEntity: (NSString*)publicId
