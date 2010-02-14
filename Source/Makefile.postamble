@@ -44,9 +44,9 @@ after-all:: Info-gnustep.plist
 # Things to do before installing
 before-install::
 	cp ../Headers/Foundation/Foundation.h \
-	../Headers/Foundation.Foundation.h.saved
-	cp ../Headers/Foundation/Foundation.h.install 
-	../Headers/Foundation.Foundation.h
+	../Headers/Foundation/Foundation.h.saved
+	cp ../Headers/Foundation/Foundation.h.install \
+	../Headers/Foundation/Foundation.h
 
 # Things to do after installing
 #
@@ -59,12 +59,7 @@ after-install::
 	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
 	cp ../Headers/Foundation/Foundation.h.saved \
-	../Headers/Foundation.Foundation.h
-	mv ../Headers/Foundation/Foundation.h \
-	../Headers/Foundation.Foundation.h.saved
-	cp ../Headers/Foundation/Foundation.h.install 
-	../Headers/Foundation.Foundation.h
-
+	../Headers/Foundation/Foundation.h
 	$(MKDIRS) $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h \
 	  $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
