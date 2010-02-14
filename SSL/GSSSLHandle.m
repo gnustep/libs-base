@@ -50,7 +50,12 @@
   #include <openssl/err.h>
   #undef id
 
-#include <Foundation/Foundation.h>
+#include <Foundation/NSDebug.h>
+#include <Foundation/NSFileHandle.h>
+#include <Foundation/NSFileManager.h>
+#include <Foundation/NSNotification.h>
+#include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSUserDefaults.h>
 
 #include <GNUstepBase/GSFileHandle.h>
 #include "GSPrivate.h"
