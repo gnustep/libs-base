@@ -27,9 +27,6 @@
 /* Define to 1 if you have the <callback.h> header file. */
 #undef HAVE_CALLBACK_H
 
-/* Define to 1 if you have the `class_getProperty' function. */
-#undef HAVE_CLASS_GETPROPERTY
-
 /* Define to 1 if you have the `ctime' function. */
 #undef HAVE_CTIME
 
@@ -225,6 +222,9 @@
 
 /* Define to 1 if you have the `objc_sync_enter' function. */
 #undef HAVE_OBJC_SYNC_ENTER
+
+/* Define to 1 if you have the `objc_thread_add' function. */
+#undef HAVE_OBJC_THREAD_ADD
 
 /* Define to 1 if you have the `poll' function. */
 #undef HAVE_POLL

@@ -124,8 +124,8 @@ extern "C" {
     *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
 }), *(anIterator))
 
-#define	object_getClass(O) ((Class)*(void**)O)
-#define	object_setClass(O,C) (*((Class**)O) = C)
+#define	object_getClass(O) ((Class)*(Class*)O)
+#define	object_setClass(O,C) (*((Class*)O) = C)
 
 #endif
 
