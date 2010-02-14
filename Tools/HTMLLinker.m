@@ -24,7 +24,13 @@
  * See the HTMLLinker.html file for documentation on how to use the tool.
  */
 
-#include <Foundation/Foundation.h>
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSUserDefaults.h"
 
 /* For convenience, cached for the whole tool.  */
 
