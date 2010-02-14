@@ -20,7 +20,10 @@
 
    */
 
-#import	<Foundation/Foundation.h>
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSString.h"
 #import "AGSIndex.h"
 #import "GNUstepBase/GNUstep.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"

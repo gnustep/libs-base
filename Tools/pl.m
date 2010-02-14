@@ -22,8 +22,16 @@
 
 */
 
-
-#import <Foundation/Foundation.h>
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSFileHandle.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSUserDefaults.h"
 
 void create_output(id propertyList)
 {

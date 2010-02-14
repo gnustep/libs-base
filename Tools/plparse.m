@@ -18,15 +18,16 @@
 
    */
 
-#include "config.h"
-#include	<Foundation/Foundation.h>
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSUserDefaults.h>
-#include	<Foundation/NSDebug.h>
-#include	<Foundation/NSAutoreleasePool.h>
+#import "config.h"
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSCharacterSet.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSDebug.h"
+#import	"Foundation/NSAutoreleasePool.h"
 
 /*
  * If there is any non-ascii characrer in the string,

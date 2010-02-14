@@ -18,8 +18,24 @@
 
    */
 
-#include	"config.h"
-#include	<Foundation/Foundation.h>
+#import	"config.h"
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSBundle.h"
+#import	"Foundation/NSConnection.h"
+#import	"Foundation/NSDistantObject.h"
+#import	"Foundation/NSDistributedNotificationCenter.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSHashTable.h"
+#import	"Foundation/NSHost.h"
+#import	"Foundation/NSNotification.h"
+#import	"Foundation/NSPort.h"
+#import	"Foundation/NSPortNameServer.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSRunLoop.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSTask.h"
+#import	"Foundation/NSUserDefaults.h"
 
 #include        <stdio.h>
 #include	<unistd.h>

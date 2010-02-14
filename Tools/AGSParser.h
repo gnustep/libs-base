@@ -29,7 +29,15 @@
 
    */
 
-#include <Foundation/Foundation.h>
+#include "Foundation/NSObject.h"
+#include "Foundation/NSString.h"
+
+@class	NSArray;
+@class	NSCharacterSet;
+@class	NSDictionary;
+@class	NSMutableArray;
+@class	NSMutableDictionary;
+@class	NSString;
 
 @interface	AGSParser : NSObject
 {

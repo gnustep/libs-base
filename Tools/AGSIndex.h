@@ -22,7 +22,13 @@
 
    */
 
-#include        <GNUstepBase/GSXML.h>
+#import "Foundation/NSObject.h"
+#import "GNUstepBase/GSXML.h"
+
+@class	NSDictionary;
+@class	NSMutableArray;
+@class	NSMutableDictionary;
+@class	NSString;
 
 @interface AGSIndex : NSObject
 {

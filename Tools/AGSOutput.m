@@ -20,6 +20,16 @@
 
    */
 
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSUserDefaults.h"
 #import "AGSOutput.h"
 #import "GNUstepBase/GNUstep.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"

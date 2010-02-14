@@ -17,18 +17,16 @@
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*/
 
-   */
-
-#include        <Foundation/Foundation.h>
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSAutoreleasePool.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSFileManager.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSString.h>
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSString.h"
 
 int
 main(int argc, char** argv, char **env)
