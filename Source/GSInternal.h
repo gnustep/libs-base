@@ -47,6 +47,8 @@
  * Instance variables are referenced using the 'internal->ivar' suntax or
  * the GSIV(classname,object,ivar) macro.
  *
+ * ARGH FIXME ... the following idea doesn't work ... need to rethink/rwrite.
+ *
  * If built with CLANG, with support for non-fragile instance variables,
  * rather than GCC, the compiler/runtime can simply declare instance variables
  * within the implementation file so that they are not part of the public ABI,
