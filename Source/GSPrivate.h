@@ -235,7 +235,7 @@ typedef enum {
 
 /* Get error information.
  */
-@interface	NSError (GSCategories)
+@interface	NSError (GNUstepBase)
 + (NSError*) _last;
 + (NSError*) _systemError: (long)number;
 @end

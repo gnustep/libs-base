@@ -527,8 +527,9 @@ static Class	mutableSetClass;
                                    objects: (id*)stackbuf
                                      count: (NSUInteger)len
 {
-    state->mutationsPtr = (unsigned long *)self;
-    return GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
+  state->mutationsPtr = (unsigned long *)self;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
 @end
 
@@ -735,8 +736,9 @@ static Class	mutableSetClass;
                                    objects: (id*)stackbuf
                                      count: (NSUInteger)len
 {
-    state->mutationsPtr = (unsigned long *)&_version;
-    return GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
+  state->mutationsPtr = (unsigned long *)&_version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
 @end
 

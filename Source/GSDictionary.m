@@ -354,14 +354,15 @@ static SEL	objSel;
     }
   return nil;
 }
+
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-    state->mutationsPtr = (unsigned long *)self;
-    return GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
+  state->mutationsPtr = (unsigned long *)self;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
-
 @end
 
 @implementation GSMutableDictionary
@@ -468,8 +469,9 @@ static SEL	objSel;
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-    state->mutationsPtr = (unsigned long *)&_version;
-    return GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
+  state->mutationsPtr = (unsigned long *)&_version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
 @end
 

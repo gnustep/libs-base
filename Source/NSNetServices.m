@@ -33,6 +33,7 @@
 #import "Foundation/NSStream.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSValue.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #if defined(_REENTRANT)
 #import "GNUstepBase/GSLock.h"
 #endif
