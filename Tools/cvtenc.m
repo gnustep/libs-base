@@ -29,7 +29,7 @@
 #import	"Foundation/NSFileHandle.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #ifdef NeXT_Foundation_LIBRARY
-#import "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/Additions.h"
 #endif
 
 #include	<ctype.h>

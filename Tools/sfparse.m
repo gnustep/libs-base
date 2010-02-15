@@ -18,18 +18,18 @@
 
    */
 
-#include "config.h"
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSUserDefaults.h>
-#include	<Foundation/NSDebug.h>
-#include	<Foundation/NSAutoreleasePool.h>
+#import "config.h"
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSDebug.h"
+#import	"Foundation/NSAutoreleasePool.h"
 #ifdef NeXT_Foundation_LIBRARY
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/Additions.h"
 #endif
 
 int

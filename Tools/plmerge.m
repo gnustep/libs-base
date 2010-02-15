@@ -28,8 +28,7 @@
 #import	"Foundation/NSProcessInfo.h"
 #import	"Foundation/NSString.h"
 #ifdef NeXT_Foundation_LIBRARY
-#import "GNUstepBase/GSCategories.h"
-#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/Additions.h"
 #endif
 
 
