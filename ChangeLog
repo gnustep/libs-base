@@ -1,3 +1,9 @@
+2010-02-15  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSAttributedString.m: Implement keyed decoding for
+	multiple attributes correctly.
+	Based on code by Nikolaus Schaller <hns@computer.org>.
+
 2010-02-14 David Chisnall <theraven@sucs.org>
 
 	Rewrote NSNumber implementation.
