@@ -386,11 +386,13 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
   _version++;
   return result;
 }
+
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
                                    objects: (id*)stackbuf
                                      count: (NSUInteger)len
 {
-    state->mutationsPtr = (unsigned long *)&_version;
-    return GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
+  state->mutationsPtr = (unsigned long *)&_version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
 @end

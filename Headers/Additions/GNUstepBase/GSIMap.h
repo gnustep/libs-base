@@ -932,7 +932,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 
 /**
  * Used to implement fast enumeration methods in classes that use GSIMap for
- * their data storaae.
+ * their data storage.
  */
 static INLINE NSUInteger 
 GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
@@ -965,11 +965,11 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
   else
     {
       enumerator.map = map;
-      enumerator.node = ((struct GSPartMapEnumerator*)&(state->extra))->node; 
-      enumerator.bucket = ((struct GSPartMapEnumerator*)&(state->extra))->bucket;
+      enumerator.node = ((struct GSPartMapEnumerator*)(state->extra))->node; 
+      enumerator.bucket = ((struct GSPartMapEnumerator*)(state->extra))->bucket;
     }
   /* Get the next count objects and put them in the stack buffer. */
-  for (i=0 ; i<count ; i++)
+  for (i = 0; i < count; i++)
     {
       GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
       if (0 != node)
@@ -978,12 +978,12 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
            * will only work with things that are id-sized, however, so don't
            * try using it with non-object collections.
            */
-          stackbuf[i] = *(id*)&node->key;
+          stackbuf[i] = *(id*)&node->key.bool;
         }
     }
   /* Store the important bits of the enumerator in the caller. */
-  ((struct GSPartMapEnumerator*)&(state->extra))->node = enumerator.node;
-  ((struct GSPartMapEnumerator*)&(state->extra))->bucket = enumerator.bucket;
+  ((struct GSPartMapEnumerator*)(state->extra))->node = enumerator.node;
+  ((struct GSPartMapEnumerator*)(state->extra))->bucket = enumerator.bucket;
   /* Update the rest of the state. */
   state->state += count;
   state->itemsPtr = stackbuf;

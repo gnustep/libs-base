@@ -54,99 +54,6 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
-@class NSMutableSet;
-@class NSString;
-
-
-/* ------------------------------------------------------------------------
- * Macros
- */
-
-// Following are also defined in base/Headers/Foundation/NSDebug.h
-#ifdef DEBUG
-#define NSDebugLLog(level, format, args...) \
-    do { if (GSDebugSet(level) == YES) \
-        NSLog(format , ## args); } while (0)
-
-#define NSDebugLog(format, args...) \
-    do { if (GSDebugSet(@"dflt") == YES) \
-        NSLog(format , ## args); } while (0)
-
-#define NSDebugFLLog(level, format, args...) \
-    do { if (GSDebugSet(level) == YES) { \
-        NSString *fmt = GSDebugFunctionMsg( \
-        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-        NSLog(fmt , ## args); }} while (0)
-
-#define NSDebugFLog(format, args...) \
-    do { if (GSDebugSet(@"dflt") == YES) { \
-        NSString *fmt = GSDebugFunctionMsg( \
-        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-        NSLog(fmt , ## args); }} while (0)
-
-#define NSDebugMLLog(level, format, args...) \
-    do { if (GSDebugSet(level) == YES) { \
-        NSString *fmt = GSDebugMethodMsg( \
-        self, _cmd, __FILE__, __LINE__, format); \
-        NSLog(fmt , ## args); }} while (0)
-
-#define NSDebugMLog(format, args...) \
-    do { if (GSDebugSet(@"dflt") == YES) { \
-        NSString *fmt = GSDebugMethodMsg( \
-        self, _cmd, __FILE__, __LINE__, format); \
-        NSLog(fmt , ## args); }} while (0)
-
-#else
-#define NSDebugLLog(level, format, args...)
-#define NSDebugLog(format, args...)
-#define NSDebugFLLog(level, format, args...)
-#define NSDebugFLog(format, args...)
-#define NSDebugMLLog(level, format, args...)
-#define NSDebugMLog(format, args...)
-#endif /* DEBUG */
-
-#define GSOnceFLog(format, args...) \
-  do { static BOOL beenHere = NO; if (beenHere == NO) {\
-    NSString *fmt = GSDebugFunctionMsg( \
-        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-    beenHere = YES; \
-    NSLog(fmt , ## args); }} while (0)
-
-#define GSOnceMLog(format, args...) \
-  do { static BOOL beenHere = NO; if (beenHere == NO) {\
-    NSString *fmt = GSDebugMethodMsg( \
-        self, _cmd, __FILE__, __LINE__, format); \
-    beenHere = YES; \
-    NSLog(fmt , ## args); }} while (0)
-
-#ifdef GSWARN
-#define NSWarnLog(format, args...) \
-    do { if (GSDebugSet(@"NoWarn") == NO) { \
-        NSLog(format , ## args); }} while (0)
-
-#define NSWarnFLog(format, args...) \
-    do { if (GSDebugSet(@"NoWarn") == NO) { \
-        NSString *fmt = GSDebugFunctionMsg( \
-        __PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-        NSLog(fmt , ## args); }} while (0)
-
-#define NSWarnMLog(format, args...) \
-    do { if (GSDebugSet(@"NoWarn") == NO) { \
-        NSString *fmt = GSDebugMethodMsg( \
-        self, _cmd, __FILE__, __LINE__, format); \
-        NSLog(fmt , ## args); }} while (0)
-#else
-#define NSWarnLog(format, args...)
-#define NSWarnFLog(format, args...)
-#define NSWarnMLog(format, args...)
-#endif /* GSWARN */
-
-#define GS_RANGE_CHECK(RANGE, SIZE) \
-  if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
-    [NSException raise: NSRangeException \
-                format: @"in %s, range { %u, %u } extends beyond size (%u)", \
-                  GSNameFromSelector(_cmd), RANGE.location, RANGE.length, SIZE]
-
 /* Taken from base/Headers/Foundation/NSString.h */
 typedef enum _NSGNUstepStringEncoding
 {
@@ -189,29 +96,6 @@ typedef enum _NSGNUstepStringEncoding
   GSEncodingUnusedLast
 } NSGNUstepStringEncoding;
 
-
-/* Taken from base/Headers/Foundation/NSLock.h */
-#define GS_INITIALIZED_LOCK(IDENT,CLASSNAME) \
-           (IDENT != nil ? IDENT : [CLASSNAME newLockAt: &IDENT])
-
-/* ------------------------------------------------------------------------
- * Class/Method Extensions
- */
-
-/* 
-   GSCategory extensions are implemented in 
-   Source/Additions/GSCategory.m
-   for both gnustep-base and gnustep-baseadd.
-*/
-
-
-/* 
-   GSCompatibility methods are implemented in
-   Source/Additions/GSCompatibility.m
-   for gnustep-baseadd only.
-   The implementations for gnustep-base reside in the
-   corresponding source files of -base.
-*/
 
 
 /* ------------------------------------------------------------------------
