@@ -16,8 +16,7 @@
    as an option to gcc.  If it doesn't work, it means your gcc doesn't
    support this option. */
 
-#include <objc/objc.h>
-#include <objc/Object.h>
+#include "objc-common.g"
 
 /* Define our custom constant string class */
 @interface FooConstantString : Object

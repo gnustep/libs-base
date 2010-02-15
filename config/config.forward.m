@@ -1,5 +1,5 @@
-#include <objc/objc.h>
-#include <objc/objc-api.h>
+
+#include "objc-common.g"
 
 int main (void)
 {

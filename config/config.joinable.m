@@ -3,8 +3,7 @@
  * joinable (which it shouldn't be) and this program returns 0.
  */
 
-#include <objc/thr.h>
-#include <objc/Object.h>
+#include "objc-common.g"
 #include <pthread.h>
 
 int
