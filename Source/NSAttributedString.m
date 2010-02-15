@@ -52,6 +52,7 @@
 #import "GNUstepBase/Unicode.h"
 
 #import "Foundation/NSAttributedString.h"
+#import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSPortCoder.h"
@@ -160,6 +161,7 @@ static Class GSMutableAttributedStringClass;
 	{
 	  NSDictionary	*attrs;
 
+          // FIXME: This doesn't handle the case of different attributes
 	  attrs = [self attributesAtIndex: 0 effectiveRange: NULL];
 
 	  [aCoder  encodeObject: attrs forKey: @"NSAttributes"];
@@ -189,9 +191,50 @@ static Class GSMutableAttributedStringClass;
   if ([aDecoder allowsKeyedCoding])
     {
       NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
-      NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
 
-      self = [self initWithString: string attributes: attributes];
+      if (![aDecoder containsValueForKey: @"NSAttributeInfo"])
+        {
+          NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          self = [self initWithString: string attributes: attributes];
+        }
+      else
+        {
+          NSArray *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          NSData *info = [aDecoder decodeObjectForKey: @"NSAttributeInfo"];
+          unsigned int pos = 0;
+          const unsigned char *p = [info bytes];
+          const unsigned char *end = p + [info length];
+          NSMutableAttributedString *m = [[NSMutableAttributedString alloc] 
+                                           initWithString: string 
+                                               attributes: nil];
+
+          while (p < end)
+            {
+              unsigned int idx;
+              unsigned int len;
+              NSRange r;
+
+              // FIXME: For huge strings we may need more bytes
+              len = *p++;
+              if (len & 0x8)
+                {
+                  len = (len - 128) + ((*p++) << 7);
+                }
+
+              idx = *p++;
+              if (idx & 0x8)
+                {
+                  idx = (idx - 128) + ((*p++) << 7);
+                }
+
+              r = NSMakeRange(pos, len);
+	      [m setAttributes: [attributes objectAtIndex: idx] range: r];
+              pos = NSMaxRange(r);
+            }
+          RELEASE(self);
+          self = [m copy];
+          RELEASE(m);
+        }
     }
   else
     {
@@ -646,9 +689,45 @@ static Class GSMutableAttributedStringClass;
   if ([aDecoder allowsKeyedCoding])
     {
       NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
-      NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
 
-      self = [self initWithString: string attributes: attributes];
+      if (![aDecoder containsValueForKey: @"NSAttributeInfo"])
+        {
+          NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          self = [self initWithString: string attributes: attributes];
+        }
+      else
+        {
+          NSArray *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          NSData *info = [aDecoder decodeObjectForKey: @"NSAttributeInfo"];
+          unsigned int pos = 0;
+          const unsigned char *p = [info bytes];
+          const unsigned char *end = p + [info length];
+
+	  self = [self initWithString: string attributes: nil];
+          while (p < end)
+            {
+              unsigned int idx;
+              unsigned int len;
+              NSRange r;
+
+              // FIXME: For huge strings we may need more bytes
+              len = *p++;
+              if (len & 0x8)
+                {
+                  len = (len - 128) + ((*p++) << 7);
+                }
+
+              idx = *p++;
+              if (idx & 0x8)
+                {
+                  idx = (idx - 128) + ((*p++) << 7);
+                }
+
+              r = NSMakeRange(pos, len);
+	      [self setAttributes: [attributes objectAtIndex: idx] range: r];
+              pos = NSMaxRange(r);
+            }
+        }
     }
   else
     {
