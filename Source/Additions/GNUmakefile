@@ -48,7 +48,6 @@ Additions_OBJC_FILES =\
 	NSData+GNUstepBase.m \
 	NSError+GNUstepBase.m \
 	NSFileHandle+GNUstepBase.m \
-	NSInvocation+GNUstepBase.m \
 	NSLock+GNUstepBase.m \
 	NSMutableString+GNUstepBase.m \
 	NSNumber+GNUstepBase.m \
