@@ -2,6 +2,8 @@
  * Fails to build or returns 1 if the feature is not availale.
  */
 
+#include "objc-common.g"
+
 int
 main()
 {
