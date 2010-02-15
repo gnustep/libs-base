@@ -185,7 +185,6 @@ NSCopyObject.m \
 NSCountedSet.m \
 NSConcreteHashTable.m \
 NSConcreteMapTable.m \
-NSConcreteNumber.m \
 NSConnection.m \
 NSData.m \
 NSDate.m \
