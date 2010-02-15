@@ -23,6 +23,7 @@
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSBundle.h"
 #import	"Foundation/NSConnection.h"
+#import	"Foundation/NSData.h"
 #import	"Foundation/NSDistantObject.h"
 #import	"Foundation/NSDistributedNotificationCenter.h"
 #import	"Foundation/NSException.h"

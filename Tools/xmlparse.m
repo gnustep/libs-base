@@ -20,8 +20,9 @@
 
    */
 
-#import "config.h"
 #include <stdio.h>
+
+#import "config.h"
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSPathUtilities.h"
@@ -29,9 +30,10 @@
 #import	"Foundation/NSString.h"
 #import	"Foundation/NSUserDefaults.h"
 #ifdef NeXT_Foundation_LIBRARY
-#import "GNUstepBase/GSCategories.h"
-#endif
+#import "GNUstepBase/Additions.h"
+#else
 #import "GNUstepBase/GSXML.h"
+#endif
 
 @interface GSXMLParser (Loader)
 + (NSString*) loadEntity: (NSString*)publicId
