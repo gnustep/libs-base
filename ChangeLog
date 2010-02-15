@@ -1,3 +1,8 @@
+2010-02-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	Various reorganisation tweaks.
+	Enable NSInteger/NSUInteger/CGFloat support at last.
+
 2010-02-15  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSAttributedString.m: Implement keyed decoding for
