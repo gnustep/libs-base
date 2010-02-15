@@ -156,7 +156,6 @@ NSBundle+GNUstepBase.h \
 NSCalendarDate+GNUstepBase.h \
 NSData+GNUstepBase.h \
 NSFileHandle+GNUstepBase.h \
-NSInvocation+GNUstepBase.h \
 NSLock+GNUstepBase.h \
 NSMutableString+GNUstepBase.h \
 NSNumber+GNUstepBase.h \

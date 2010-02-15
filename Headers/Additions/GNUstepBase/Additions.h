@@ -44,7 +44,6 @@
 #import	<GNUstepBase/NSCalendarDate+GNUstepBase.h>
 #import	<GNUstepBase/NSData+GNUstepBase.h>
 #import	<GNUstepBase/NSFileHandle+GNUstepBase.h>
-#import	<GNUstepBase/NSInvocation+GNUstepBase.h>
 #import	<GNUstepBase/NSLock+GNUstepBase.h>
 #import	<GNUstepBase/NSMutableString+GNUstepBase.h>
 #import	<GNUstepBase/NSNumber+GNUstepBase.h>
