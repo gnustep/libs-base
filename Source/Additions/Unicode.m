@@ -1490,7 +1490,7 @@ done:
 	}
     }
 #if	!GS_WITH_GC
-  else if (ptr != buf && ptr != *dst)
+  else if (ptr != buf && (dst == 0 || ptr != *dst))
     {
       NSZoneFree(zone, ptr);
     }

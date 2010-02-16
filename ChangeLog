@@ -1,3 +1,8 @@
+2010-02-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Additions/Unicode.m (GSToUnicode): Fix bug where
+	GSToUnicode attempted to read from a null pointer.
+
 2010-02-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	Various reorganisation tweaks.
