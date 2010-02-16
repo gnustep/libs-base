@@ -90,10 +90,12 @@ BOOL GSDebugSet(NSString *level)
       mySet = [NSMutableSet new];
       for (i = 0; i < argc; i++)
 	{
-	  NSString	*str = [[self arguments] objectAtIndex:i];
+	  NSString	*str = [[self arguments] objectAtIndex: i];
 
 	  if ([str hasPrefix: @"--GNU-Debug="])
-	    [mySet addObject: [str substringFromIndex: 12]];
+	    {
+	      [mySet addObject: [str substringFromIndex: 12]];
+	    }
 	}
       _debug_set = mySet;
     }
