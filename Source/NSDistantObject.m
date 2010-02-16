@@ -32,6 +32,7 @@
 #import "GNUstepBase/DistributedObjects.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "Foundation/NSDebug.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSPort.h"
 #import "Foundation/NSMethodSignature.h"
@@ -467,6 +468,7 @@ enum proxyLocation
 - (void) dealloc
 {
   [self finalize];
+  if (_sigs != 0) [(NSMutableDictionary*)_sigs release];
   [super dealloc];
 }
 
@@ -632,7 +634,7 @@ enum proxyLocation
 
   if (debug_proxy)
     NSLog(@"Created new local=0x%x object 0x%x target 0x%x connection 0x%x\n",
-	   (uintptr_t)self, (uintptr_t)_object, _handle, (uintptr_t)_connection);
+     (uintptr_t)self, (uintptr_t)_object, _handle, (uintptr_t)_connection);
 
   return self;
 }
@@ -752,6 +754,15 @@ enum proxyLocation
 	    return [NSMethodSignature signatureWithObjCTypes: types];
 	}
 
+      if (_sigs != 0)
+	{
+	  NSMutableDictionary	*d = (NSMutableDictionary*)_sigs;
+	  NSString		*s = NSStringFromSelector(aSelector);
+	  NSMethodSignature	*m = [d objectForKey: s];
+
+	  if (m != nil) return m;
+	}
+
 	{
 	  id		m = nil;
 	  id		inv;
@@ -763,10 +774,22 @@ enum proxyLocation
 	    {
 	      const char	*types;
 
-	     types = [m methodType];
+	      types = [m methodType];
 	      /* Create a local method signature.
 	       */
 	      m = [NSMethodSignature signatureWithObjCTypes: types];
+	    }
+	  if (m != nil)
+	    {
+	      NSMutableDictionary	*d = (NSMutableDictionary*)_sigs;
+	      NSString			*s = NSStringFromSelector(aSelector);
+
+	      if (d == nil)
+		{
+		  d = [NSMutableDictionary new];
+		  _sigs = (void*)d;
+		}
+	      [d setObject: m forKey: s];
 	    }
 	  return m;
 	}

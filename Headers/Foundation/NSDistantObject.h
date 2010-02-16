@@ -44,7 +44,7 @@ extern "C" {
   unsigned	_handle;
   Protocol	*_protocol;
   unsigned	_counter;
-  void		*_unused;
+  void		*_sigs;
 #endif
 }
 

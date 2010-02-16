@@ -1,3 +1,9 @@
+2010-02-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m:
+	Cache method signatures to avoid asking remote end for them
+	repeatedly.
+
 2010-02-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/Additions/Unicode.m (GSToUnicode): Fix bug where
