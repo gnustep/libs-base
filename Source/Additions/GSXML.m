@@ -77,6 +77,7 @@
 #include <libxml/entities.h>
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
+#include <libxml/catalog.h>
 #ifdef	HAVE_LIBXML_SAX2_H
 #include <libxml/SAX2.h>
 #else
@@ -84,6 +85,7 @@
 # define	xmlSAX2GetLineNumber	getLineNumber
 # define	xmlSAX2GetPublicId	getPublicId
 # define	xmlSAX2GetSystemId	getSystemId
+# define	xmlSAX2ResolveEntity 	resolveEntity
 #endif
 #include <libxml/HTMLparser.h>
 #include <libxml/xmlmemory.h>
@@ -154,6 +156,7 @@ setupCache()
     {
       cacheDone = YES;
       xmlMemSetup(objc_free, objc_malloc, objc_realloc, objc_strdup);
+      xmlInitializeCatalog();
 
 #if	HAVE_LIBXML_SAX2_H
       xmlDefaultSAXHandlerInit();
@@ -2417,9 +2420,7 @@ static xmlParserInputPtr
 loadEntityFunction(void *ctx,
   const unsigned char *eid, const unsigned char *url)
 {
-  extern xmlParserInputPtr	xmlNewInputFromFile();
   NSString			*file = nil;
-  xmlParserInputPtr		ret = 0;
   NSString			*entityId;
   NSString			*location;
   NSArray			*components;
@@ -2428,10 +2429,10 @@ loadEntityFunction(void *ctx,
   unsigned			index;
 
   NSCAssert(ctx, @"No Context");
-  if (url == 0)
-    return 0;
+  if (url == NULL)
+    return NULL;
 
-  entityId = (eid != 0) ? (id)UTF8Str(eid) : nil;
+  entityId = (eid != NULL) ? (id)UTF8Str(eid) : nil;
   location = UTF8Str(url);
   components = [location pathComponents];
   local = (NSMutableString *) [NSMutableString string];
@@ -2574,51 +2575,24 @@ loadEntityFunction(void *ctx,
 					       ofType: @""
 					  inDirectory: @"DTDs"];
 	    }
-	  if (file == nil)
-	    {
-	      NSURL	*aURL;
-
-	      aURL = [NSURL URLWithString: location];
-	      if ([aURL isFileURL] == YES)
-	        {
-		  file = [aURL path];
-		}
-	      else
-	        {
-		  NSData	*data = [aURL resourceDataUsingCache: NO];
-
-		  if ([data length] > 0)
-		    {
-		      file = [@"/tmp" stringByAppendingPathComponent: local];
-		      [data writeToFile: file atomically: NO];
-		    }
-		}
-	    }
 	}
     }
 
+  /*
+   * If we found the DTD somewhere, add it to the catalog.
+   */
   if ([file length] > 0)
     {
-      const char	*path;
-
-#if	defined(__MINGW32__)
-      /*
-       * The xmlNewInputFromFile() function requires an eight bit string
-       * but on a modern windows filesystem the file name could be unicode
-       * which can't be represented as a cString ... and may cause an
-       * exception ... nothing we can do about it really.
-       */
-      path = [file cString];
-#else
-      path = [file fileSystemRepresentation];
-#endif
-      ret = xmlNewInputFromFile((xmlParserCtxtPtr)ctx, path);
+      NSURL *theURL = [NSURL fileURLWithPath: file];
+      xmlCatalogAdd((const unsigned char*)"public", eid,
+        UTF8STRING([theURL absoluteString]));
     }
-  else
-    {
-      NSLog(@"don't know how to load entity '%s' id '%s'", url, eid);
-    }
-  return ret;
+    
+  /*
+   * A local DTD will now be in the catalog: The builtin entity resolver can
+   * take over.
+   */
+  return xmlSAX2ResolveEntity(ctx, eid, url);
 }
 
 

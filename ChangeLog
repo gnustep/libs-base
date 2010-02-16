@@ -1,3 +1,9 @@
+2010-02-16 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/Additions/GSXML.m:
+	Modify to use default catalog when GNUstep specific information
+	cannot be found.
+
 2010-02-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m:
