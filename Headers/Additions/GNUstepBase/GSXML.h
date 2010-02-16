@@ -206,6 +206,7 @@ extern "C" {
 		    withContentsOfURL: (NSURL*)url;
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
 			     withData: (NSData*)data;
++ (void) setDTDs: (NSString*)aPath;
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding;
 
 - (void) abortParsing;

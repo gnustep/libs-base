@@ -202,6 +202,7 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Additions/GNUstepBase \
 	-Declared GNUstepBase \
 	-Standards YES \
+	-DTDs ../Tools \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \
 	-MacrosTemplate Functions \

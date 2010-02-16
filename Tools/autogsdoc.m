@@ -809,6 +809,8 @@ main(int argc, char **argv, char **env)
     @"\t\tBOOL\t(NO)\n\tif YES, create documentation pages "
       @"for display in HTML frames",
     @"MakeFrames",
+    @"\t\tString\t(nil)\n\tIf set, look for DTDs in the given directory",
+    @"DTDs",
     nil];
   argSet = [NSSet setWithArray: [argsRecognized allKeys]];
   argsGiven = [[NSProcessInfo processInfo] arguments];
@@ -853,6 +855,10 @@ main(int argc, char **argv, char **env)
 
   mgr = [NSFileManager defaultManager];
 
+  if ([GSXMLParser respondsToSelector: @selector(setDTDs:)])
+    {
+      [GSXMLParser setDTDs: [defs stringForKey: @"DTDs"]];
+    }
 
   verbose = [defs boolForKey: @"Verbose"];
   warn = [defs boolForKey: @"Warn"];

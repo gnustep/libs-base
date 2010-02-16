@@ -1619,6 +1619,10 @@ static NSMapTable	*nodeNames = 0;
  */
 @implementation GSXMLParser
 
+/* To override location for DTDs
+ */
+static NSString	*dtdPath = nil;
+
 static NSString	*endMarker = @"At end of incremental parse";
 
 + (void) initialize
@@ -1775,6 +1779,15 @@ static NSString	*endMarker = @"At end of incremental parse";
 {
   return AUTORELEASE([[self alloc] initWithSAXHandler: handler
 					     withData: data]);
+}
+
+/** Sets a directory in which to look for DTDs when resolving external
+ * references.  Can be used whjen DTDs have not been installed in the
+ * normal locatioons.
+ */
++ (void) setDTDs: (NSString*)aPath
+{
+  ASSIGNCOPY(dtdPath, aPath);
 }
 
 /**
@@ -2541,16 +2554,28 @@ loadEntityFunction(void *ctx,
 					 range: r];
 	    }
 
+	  if (dtdPath != nil)
+	    {
+	      found = [dtdPath stringByAppendingPathComponent: name];
+	      found = [found stringByAppendingPathExtension: @"dtd"];
+	      if (![[NSFileManager defaultManager] fileExistsAtPath: found])
+		{
+		  found = nil;
+		}
+	    }
+	  if (found == nil)
+	    {
 #ifdef GNUSTEP
-	  found = [NSBundle pathForLibraryResource: name
-					    ofType: @"dtd"
-				       inDirectory: @"DTDs"];
+	      found = [NSBundle pathForLibraryResource: name
+						ofType: @"dtd"
+					   inDirectory: @"DTDs"];
 #else
-	  found = [[NSBundle bundleForClass: NSClassFromString(@"GSXMLNode")]
-			    pathForResource: name
-		                     ofType: @"dtd"
-		                inDirectory: @"DTDs"];
+	      found = [[NSBundle bundleForClass: [GSXMLNode class]
+				pathForResource: name
+					 ofType: @"dtd"
+				    inDirectory: @"DTDs"];
 #endif
+	    }
 	  if (found == nil)
 	    {
 	      NSLog(@"unable to find GNUstep DTD - '%@' for '%s'", name, eid);
@@ -2566,9 +2591,20 @@ loadEntityFunction(void *ctx,
        */
       if (file == nil)
 	{
-	  file = [[NSBundle mainBundle] pathForResource: local
-						 ofType: @""
-					    inDirectory: @"DTDs"];
+	  if (dtdPath != nil)
+	    {
+	      file = [dtdPath stringByAppendingPathComponent: local];
+	      if (![[NSFileManager defaultManager] fileExistsAtPath: local])
+		{
+		  file = nil;
+		}
+	    }
+	  if (file == nil)
+	    {
+	      file = [[NSBundle mainBundle] pathForResource: local
+						     ofType: @""
+					        inDirectory: @"DTDs"];
+	    }
 	  if (file == nil)
 	    {
 	      file = [NSBundle pathForLibraryResource: local
