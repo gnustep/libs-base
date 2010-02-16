@@ -1,3 +1,13 @@
+2010-02-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSXML.h:
+	* Source/Additions/GSXML.m: new method to allow an additional DTD
+	directory to be set for the parser.
+	* Tools/autogsdoc.m: Add flag to allow command line setting of extra
+	DTD directory.
+	* Source/DocMakefile: Set extra DTD directory to the Tools directory
+	so that gsdoc DTDs can be found even when they haven't been installed.
+
 2010-02-16 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/Additions/GSXML.m:
