@@ -2506,8 +2506,8 @@ loadEntityFunction(void *ctx,
       if ([entityId hasPrefix: @"-//GNUstep//DTD "] == YES)
 	{
 	  NSCharacterSet	*ws = [NSCharacterSet whitespaceCharacterSet];
+	  NSString		*found = nil;
 	  NSMutableString	*name;
-	  NSString		*found;
 	  unsigned		len;
 	  NSRange		r;
 
