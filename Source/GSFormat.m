@@ -40,18 +40,33 @@
 
 #include "config.h"
 
-/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
 
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
+#if	defined(HAVE_STDINT_H)
+#include	<stdint.h>
 #endif
+
+#if	defined(HAVE_LIMITS_H)
+#include	<limits.h>
+#endif
+
+#if !defined(HANDLE_LLONG_MAX) && defined(HANDLE_LONG_LONG_MAX)
+#define LLONG_MAX LONG_LONG_MAX
+#define LLONG_MIN LONG_LONG_MIN
+#define ULLONG_MAX ULONG_LONG_MAX
+#endif
+
+#if	defined(HANDLE_LLONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_llong_max defined without llong_max being defined
+#elif	defined(HANDLE_LONG_LONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_long_long_max defined without long_long_max being defined
+#endif
+
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
-#include <limits.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -102,26 +117,6 @@ typedef uint32_t wint_t;
 #endif
 #ifndef HAVE_UINTMAX_T
 typedef unsigned long long uintmax_t;
-#endif
-
-/* BSD and Solaris have this */
-#if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
-#define LONG_LONG_MAX LLONG_MAX
-#define LONG_LONG_MIN LLONG_MIN
-#define ULONG_LONG_MAX ULLONG_MAX
-#else
-/* Darwin 1.0 CPP can't handle this */
-#ifndef HANDLE_LONG_LONG_MAX
-#undef LONG_LONG_MAX
-#endif
-#endif
-
-#if	defined(HANDLE_LONG_LONG_MAX) && !defined(LONG_LONG_MAX)
-#error handle_long_long_max defined without long_long_max being defined
-#else
-#if	defined(HANDLE_LLONG_MAX) && !defined(LONG_LONG_MAX)
-#error handle_llong_max defined without llong_max being defined
-#endif
 #endif
 
 
@@ -638,8 +633,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
     case 'Z':
       /* ints are size_ts.  */
       NSCParameterAssert (sizeof (size_t) <= sizeof (unsigned long long int));
-#if defined(LONG_LONG_MAX)
-#if LONG_MAX != LONG_LONG_MAX
+#if defined(LLONG_MAX)
+#if LONG_MAX != LLONG_MAX
       spec->info.is_long_double = sizeof (size_t) > sizeof (unsigned long int);
 #endif
 #endif
@@ -647,8 +642,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
       break;
     case 't':
       NSCParameterAssert (sizeof (ptrdiff_t) <= sizeof (long long int));
-#if defined(LONG_LONG_MAX)
-#if LONG_MAX != LONG_LONG_MAX
+#if defined(LLONG_MAX)
+#if LONG_MAX != LLONG_MAX
       spec->info.is_long_double = (sizeof (ptrdiff_t) > sizeof (long int));
 #endif
 #endif
@@ -656,8 +651,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
       break;
     case 'j':
       NSCParameterAssert (sizeof (uintmax_t) <= sizeof (unsigned long long int));
-#if defined(LONG_LONG_MAX)
-#if LONG_MAX != LONG_LONG_MAX
+#if defined(LLONG_MAX)
+#if LONG_MAX != LLONG_MAX
       spec->info.is_long_double = (sizeof (uintmax_t)
 				   > sizeof (unsigned long int));
 #endif
@@ -684,8 +679,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
 	case 'o':
 	case 'X':
 	case 'x':
-#if defined(LONG_LONG_MAX)
-#if LONG_MAX != LONG_LONG_MAX
+#if defined(LLONG_MAX)
+#if LONG_MAX != LLONG_MAX
 	  if (spec->info.is_long_double)
 	    spec->data_arg_type = PA_INT|PA_FLAG_LONG_LONG;
 	  else
@@ -775,8 +770,8 @@ static inline void GSStrAppendUnichar(GSStr s, unichar u)
 /* For handling long_double and longlong we use the same flag.  If
    `long' and `long long' are effectively the same type define it to
    zero.  */
-#if defined(LONG_LONG_MAX)
-#if LONG_MAX == LONG_LONG_MAX
+#if defined(LLONG_MAX)
+#if LONG_MAX == LLONG_MAX
 # define is_longlong 0
 #else
 # define is_longlong is_long_double
@@ -1116,7 +1111,7 @@ NSDictionary *locale)
 	int left = specs[nspecs_done].info.left;
 	int showsign = specs[nspecs_done].info.showsign;
 	int group = specs[nspecs_done].info.group;
-#if defined(LONG_LONG_MAX) && (LONG_MAX != LONG_LONG_MAX)
+#if defined(LLONG_MAX) && (LONG_MAX != LLONG_MAX)
 	int is_long_double = specs[nspecs_done].info.is_long_double;
 #endif
 	int is_short = specs[nspecs_done].info.is_short;

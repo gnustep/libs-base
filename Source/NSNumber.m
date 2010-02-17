@@ -32,12 +32,27 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+
 #if	defined(HAVE_STDINT_H)
 #include	<stdint.h>
 #endif
+
 #if	defined(HAVE_LIMITS_H)
 #include	<limits.h>
 #endif
+
+#if !defined(HANDLE_LLONG_MAX) && defined(HANDLE_LONG_LONG_MAX)
+#define LLONG_MAX LONG_LONG_MAX
+#define LLONG_MIN LONG_LONG_MIN
+#define ULLONG_MAX ULONG_LONG_MAX
+#endif
+
+#if	defined(HANDLE_LLONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_llong_max defined without llong_max being defined
+#elif	defined(HANDLE_LONG_LONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_long_long_max defined without long_long_max being defined
+#endif
+
 
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDecimalNumber.h"
@@ -45,17 +60,11 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
-#define LONG_LONG_MAX LLONG_MAX
-#define LONG_LONG_MIN LLONG_MIN
-#define ULONG_LONG_MAX ULLONG_MAX
-#endif
-
 /*
  * NSNumber implementation.  This matches the behaviour of Apple's
  * implementation.  Values in the range -1 to 12 inclusive are mapped to
  * singletons.  All other values are mapped to the smallest signed value that
- * will store them, unless they are greater than LONG_LONG_MAX, in which case
+ * will store them, unless they are greater than LLONG_MAX, in which case
  * they are stored in an unsigned long long.
  */
 
@@ -484,7 +493,7 @@ if (aValue >= -1 && aValue <= 12)\
 {
   NSUnsignedLongLongNumber *n;
 
-  if (aValue < (unsigned long long) LONG_LONG_MAX)
+  if (aValue < (unsigned long long) LLONG_MAX)
     {
       return [self numberWithLongLong: (long long) aValue];
     }
