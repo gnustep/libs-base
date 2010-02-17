@@ -26,15 +26,15 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 #define	EXPOSE_NSAutoreleasePool_IVARS	1
 #define	EXPOSE_NSThread_IVARS	1
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSGarbageCollector.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSZone.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSGarbageCollector.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSZone.h"
 #include <limits.h>
 
 /* When this is `NO', autoreleased objects are never actually recorded

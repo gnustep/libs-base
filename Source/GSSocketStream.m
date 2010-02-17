@@ -22,7 +22,7 @@
 
    */
 
-#include "config.h"
+#import "config.h"
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSByteOrder.h"

@@ -54,8 +54,8 @@
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -119,7 +119,7 @@
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 @interface NSBundle (Private)
 + (NSString*) _gnustep_target_os;

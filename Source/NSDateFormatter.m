@@ -25,7 +25,7 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 #define	EXPOSE_NSNSDateFormatter_IVARS	1
 #import "Foundation/NSDate.h"
 #import "Foundation/NSCalendarDate.h"

@@ -25,10 +25,10 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSZone.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSZone.h"
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

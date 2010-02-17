@@ -125,7 +125,7 @@ typedef unsigned long long uintmax_t;
 #endif
 
 
-#include "GNUstepBase/Unicode.h"
+#import "GNUstepBase/Unicode.h"
 
 struct printf_info
 {

@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include "objc/objc.h"
 #include "objc/objc-api.h"
-#include "GSPThread.h"
+#import "GSPThread.h"
 
 /*
  * Node structure...

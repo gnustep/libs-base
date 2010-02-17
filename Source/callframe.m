@@ -23,17 +23,18 @@
    Boston, MA 02111 USA.
    */
 
-#include "config.h"
+#import "config.h"
+
 #include <stdlib.h>
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
 
 #include "callframe.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
-#include "GSInvocation.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDebug.h"
+#import "GSInvocation.h"
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;

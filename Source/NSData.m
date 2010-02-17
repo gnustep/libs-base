@@ -67,7 +67,7 @@
  *		
  */
 
-#include "config.h"
+#import "config.h"
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "Foundation/NSObjCRuntime.h"

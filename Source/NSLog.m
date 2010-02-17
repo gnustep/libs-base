@@ -25,18 +25,18 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSThread.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSThread.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #ifdef	HAVE_SYSLOG_H
@@ -69,7 +69,7 @@
 #include <unistd.h>
 #endif
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 extern NSThread	*GSCurrentThread();
 

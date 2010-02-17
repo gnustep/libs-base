@@ -63,7 +63,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 
 
 #define	_IN_NSKEYEDARCHIVER_M	1
-#include "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 #undef	_IN_NSKEYEDARCHIVER_M
 
 /* Exceptions */

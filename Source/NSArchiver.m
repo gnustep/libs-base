@@ -49,14 +49,14 @@
 #include "GNUstepBase/GSIMap.h"
 
 #define	_IN_NSARCHIVER_M
-#include "Foundation/NSArchiver.h"
+#import "Foundation/NSArchiver.h"
 #undef	_IN_NSARCHIVER_M
 
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
 
 typedef	unsigned char	uchar;
 

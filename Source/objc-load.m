@@ -30,7 +30,7 @@
 
 */
 
-#include "config.h"
+#import "config.h"
 
 #ifdef HAVE_DLADDR
 /* Define _GNU_SOURCE because that is required with GNU libc in order
@@ -48,11 +48,11 @@
 #endif
 
 #include "objc-load.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSException.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 /* include the interface to the dynamic linker */
 #include "dynamic-load.h"

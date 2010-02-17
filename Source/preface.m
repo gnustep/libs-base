@@ -23,7 +23,7 @@
 */
 
 #include <config.h>
-#include "GNUstepBase/preface.h"
+#import "GNUstepBase/preface.h"
 
 const char *gnustep_base_version = STRINGIFY (GNUSTEP_BASE_VERSION);
 

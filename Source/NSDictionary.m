@@ -26,7 +26,7 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"

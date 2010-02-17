@@ -22,7 +22,7 @@
    Boston, MA 02111 USA.
 */
 
-#include "NSXMLPrivate.h"
+#import "NSXMLPrivate.h"
 
 @implementation NSXMLNode
 

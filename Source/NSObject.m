@@ -33,29 +33,29 @@
 #define InterlockedDecrement	BadInterlockedDecrement
 #endif
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GNUstep.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GNUstep.h"
 #include <stdarg.h>
-#include "Foundation/NSObject.h"
+#import "Foundation/NSObject.h"
 #include <objc/Protocol.h>
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSInvocation.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSDistantObject.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSMapTable.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSDistantObject.h"
+#import "Foundation/NSZone.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSMapTable.h"
 #include <limits.h>
-#include "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/GSLocale.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -70,7 +70,7 @@
 #include <fenv.h>
 #endif
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 
 #ifndef NeXT_RUNTIME

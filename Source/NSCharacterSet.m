@@ -26,7 +26,7 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
+#import "config.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
@@ -45,7 +45,7 @@
 #define	GNUSTEP_INDEX_CHARSET	1
 //#undef	GNUSTEP_INDEX_CHARSET
 
-#include "NSCharacterSetData.h"
+#import "NSCharacterSetData.h"
 
 //PENDING: may want to make these less likely to conflict
 #define UNICODE_MAX	1114112

@@ -86,17 +86,17 @@
 
 #define IN_NSZONE_M 1
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
 #include <stddef.h>
 #include <string.h>
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSLock.h"
-#include "GSPrivate.h"
-#include "GSPThread.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSZone.h"
+#import "Foundation/NSLock.h"
+#import "GSPrivate.h"
+#import "GSPThread.h"
 
 /**
  * Try to get more memory - the normal process has failed.

@@ -24,7 +24,7 @@
    $Date$ $Revision$
 */
 
-#include "GNUstepBase/preface.h"
+#import "GNUstepBase/preface.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
