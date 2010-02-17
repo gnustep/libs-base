@@ -27,12 +27,39 @@
    $Date$ $Revision$
 */
 
-/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
+#import "config.h"
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
 
-#import "config.h"
+#if	defined(HAVE_STDINT_H)
+#include	<stdint.h>
+#endif
+
+#if	defined(HAVE_LIMITS_H)
+#include	<limits.h>
+#endif
+
+#if	defined(HAVE_FLOAT_H)
+#include	<float.h>
+#endif
+
+#if !defined(HANDLE_LLONG_MAX) && defined(HANDLE_LONG_LONG_MAX)
+#define LLONG_MAX LONG_LONG_MAX
+#define LLONG_MIN LONG_LONG_MIN
+#define ULLONG_MAX ULONG_LONG_MAX
+#endif
+
+#if	defined(HANDLE_LLONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_llong_max defined without llong_max being defined
+#elif	defined(HANDLE_LONG_LONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_long_long_max defined without long_long_max being defined
+#endif
+
+#include <math.h>
+#include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
+
 #define	EXPOSE_NSScanner_IVARS	1
 #import "GNUstepBase/Unicode.h"
 #import "Foundation/NSScanner.h"
@@ -41,18 +68,7 @@
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
 #import "GSPrivate.h"
-
-/* BSD and Solaris have this */
-#if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
-#define LONG_LONG_MAX LLONG_MAX
-#define LONG_LONG_MIN LLONG_MIN
-#define ULONG_LONG_MAX ULLONG_MAX
-#endif
 
 
 @class	GSCString;
@@ -557,16 +573,16 @@ typedef GSString	*ivars;
  * <br/>
  * Returns YES if anything is scanned, NO otherwise.
  * <br/>
- * On overflow, LONG_LONG_MAX or LONG_LONG_MIN is put into
+ * On overflow, LLONG_MAX or LLONG_MIN is put into
  * <em>longLongValue</em>
  * <br/>
  * Scans past any excess digits
  */
 - (BOOL) scanLongLong: (long long *)value
 {
-#if defined(LONG_LONG_MAX)
+#if defined(LLONG_MAX)
   unsigned long long		num = 0;
-  const unsigned long long	limit = ULONG_LONG_MAX / 10;
+  const unsigned long long	limit = ULLONG_MAX / 10;
   BOOL				negative = NO;
   BOOL				overflow = NO;
   BOOL				got_digits = NO;
@@ -621,21 +637,21 @@ typedef GSString	*ivars;
     {
       if (negative)
 	{
-	  if (overflow || (num > (unsigned long long)LONG_LONG_MIN))
-	    *value = LONG_LONG_MIN;
+	  if (overflow || (num > (unsigned long long)LLONG_MIN))
+	    *value = LLONG_MIN;
 	  else
 	    *value = -num;
 	}
       else
 	{
-	  if (overflow || (num > (unsigned long long)LONG_LONG_MAX))
-	    *value = LONG_LONG_MAX;
+	  if (overflow || (num > (unsigned long long)LLONG_MAX))
+	    *value = LLONG_MAX;
 	  else
 	    *value = num;
 	}
     }
   return YES;
-#else /* defined(LONG_LONG_MAX) */
+#else /* defined(LLONG_MAX) */
   /*
    * Provide compile-time warning and run-time exception.
    */
@@ -643,7 +659,7 @@ typedef GSString	*ivars;
   [NSException raise: NSGenericException
 	       format: @"Can't use long long variables."];
   return NO;
-#endif /* defined(LONG_LONG_MAX) */
+#endif /* defined(LLONG_MAX) */
 }
 
 /**
