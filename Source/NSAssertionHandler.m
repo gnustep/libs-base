@@ -25,13 +25,13 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSThread.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSThread.h"
 
 /**
  * <p>NSAssertionHandler objects are used to raise exceptions on behalf of

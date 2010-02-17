@@ -47,7 +47,7 @@
  *		attributes argument and use the values from the string.
  */
 
-#include "config.h"
+#import "config.h"
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/Unicode.h"
 

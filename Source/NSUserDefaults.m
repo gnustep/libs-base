@@ -27,9 +27,9 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
+#import "config.h"
 #define	EXPOSE_NSUserDefaults_IVARS	1
-#include "GNUstepBase/preface.h"
+#import "GNUstepBase/preface.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -67,7 +67,7 @@
 #include <locale.h>
 #endif
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */

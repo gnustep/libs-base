@@ -24,15 +24,15 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 
 #define	EXPOSE_NSPipe_IVARS	1
 
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSDebug.h"
-#include "GSPrivate.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSDebug.h"
+#import "GSPrivate.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

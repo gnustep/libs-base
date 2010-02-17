@@ -25,16 +25,16 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSInvocation.h"
-#include "Foundation/NSProxy.h"
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSDistantObject.h"
-#include "Foundation/NSPortCoder.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSProxy.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSDistantObject.h"
+#import "Foundation/NSPortCoder.h"
 
 #ifdef	HAVE_LIMITS_H
 /* For UINT_MAX */

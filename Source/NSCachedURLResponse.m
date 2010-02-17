@@ -23,8 +23,8 @@
    */ 
 
 #define	EXPOSE_NSCachedURLResponse_IVARS	1
-#include "GSURLPrivate.h"
-#include "Foundation/NSCoder.h"
+#import "GSURLPrivate.h"
+#import "Foundation/NSCoder.h"
 
 // Internal data storage
 typedef struct {

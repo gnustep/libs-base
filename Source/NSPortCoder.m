@@ -83,10 +83,10 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 
 
 #define	_IN_PORT_CODER_M
-#include "Foundation/NSPortCoder.h"
+#import "Foundation/NSPortCoder.h"
 #undef	_IN_PORT_CODER_M
 
-#include "GNUstepBase/DistributedObjects.h"
+#import "GNUstepBase/DistributedObjects.h"
 
 typedef	unsigned char	uchar;
 

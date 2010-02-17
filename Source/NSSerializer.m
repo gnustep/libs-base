@@ -25,24 +25,24 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSProxy.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSValue.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSProxy.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSValue.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 @class	GSDictionary;
 @class	GSMutableDictionary;

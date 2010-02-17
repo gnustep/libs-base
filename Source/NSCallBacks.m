@@ -29,11 +29,11 @@
 
 /**** Included Headers *******************************************************/
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "NSCallBacks.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSString.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "NSCallBacks.h"
+#import "Foundation/NSObject.h"
+#import "Foundation/NSString.h"
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

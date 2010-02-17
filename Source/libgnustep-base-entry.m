@@ -22,10 +22,10 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSString.h"
+#import "config.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSObjCRuntime.h"
+#import "Foundation/NSString.h"
 
 /* Only if using Microsoft's tools and libraries */
 #ifdef __MS_WIN32__

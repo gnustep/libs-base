@@ -97,9 +97,9 @@
 #include <stdio.h>
 #include <wchar.h>
 
-#include "GNUstepBase/Unicode.h"
+#import "GNUstepBase/Unicode.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 

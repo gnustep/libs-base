@@ -27,13 +27,13 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 #define	EXPOSE_NSProtocolChecker_IVARS	1
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSProtocolChecker.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSInvocation.h"
-#include "Foundation/NSMethodSignature.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSProtocolChecker.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSMethodSignature.h"
 #include <objc/Protocol.h>
 
 /**

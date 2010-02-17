@@ -27,19 +27,19 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "config.h"
 #include <stdio.h>
-#include "GSPrivate.h"
-#include "GNUstepBase/GSLock.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSValue.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/GSLock.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSValue.h"
 
 #if     HAVE_EXECINFO_H
 #include        <execinfo.h>

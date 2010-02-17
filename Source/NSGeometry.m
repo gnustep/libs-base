@@ -34,15 +34,15 @@
 
 /**** Included Headers *******************************************************/
 
-#include "config.h"
+#import "config.h"
 #include <math.h>
 #include <stdlib.h>
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSGeometry.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSNotification.h"
-#include "GSPrivate.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSGeometry.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSNotification.h"
+#import "GSPrivate.h"
 
 static Class	NSStringClass = 0;
 static Class	NSScannerClass = 0;

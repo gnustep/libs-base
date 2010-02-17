@@ -31,9 +31,9 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
+#import "config.h"
 #define	EXPOSE_NSThread_IVARS	1
-#include "GNUstepBase/preface.h"
+#import "GNUstepBase/preface.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -64,19 +64,19 @@
 #define NBLK_OPT     FNDELAY
 #endif
 
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSConnection.h"
-#include "Foundation/NSInvocation.h"
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSConnection.h"
+#import "Foundation/NSInvocation.h"
 
-#include "GSPrivate.h"
-#include "GSRunLoopCtxt.h"
+#import "GSPrivate.h"
+#import "GSRunLoopCtxt.h"
 
 #if	GS_WITH_GC
 #include	<gc.h>
