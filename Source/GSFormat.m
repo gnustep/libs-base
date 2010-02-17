@@ -58,7 +58,7 @@
 #define ULLONG_MAX ULONG_LONG_MAX
 #endif
 
-#if	defined(HANDLE_LLONG_MAX) && !defined(LONG_LONG_MAX)
+#if	defined(HANDLE_LLONG_MAX) && !defined(LLONG_MAX)
 #error handle_llong_max defined without llong_max being defined
 #elif	defined(HANDLE_LONG_LONG_MAX) && !defined(LONG_LONG_MAX)
 #error handle_long_long_max defined without long_long_max being defined
