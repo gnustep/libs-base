@@ -329,4 +329,8 @@ enum {
 }
 #endif
 
+#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSData+GNUstepBase.h>
+#endif
+
 #endif /* __NSData_h_GNUSTEP_BASE_INCLUDE */

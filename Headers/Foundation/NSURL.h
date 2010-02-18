@@ -126,5 +126,9 @@ GS_EXPORT NSString* const NSURLFileScheme;
 }
 #endif
 
+#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSURL+GNUstepBase.h>
+#endif
+
 #endif	/* __NSURL_h_GNUSTEP_BASE_INCLUDE */
 

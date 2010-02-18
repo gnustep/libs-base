@@ -139,5 +139,9 @@ extern "C" {
 }
 #endif
 
+#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSAttributedString+GNUstepBase.h>
+#endif
+
 #endif	/* __NSAttributedString_h_GNUSTEP_BASE_INCLUDE */
 

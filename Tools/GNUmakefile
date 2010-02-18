@@ -47,6 +47,9 @@ include $(GNUSTEP_MAKEFILES)/common.make
 -include ../config.mak
 -include ../Source/pathconfig/pathconfig.mak
 
+ADDITIONAL_CPPFLAGS = -DGNUSTEP_BASE_INTERNAL=1
+
+
 # DTDs to install
 dtddir = $(GNUSTEP_LIBRARY)/DTDs
 DTD_FILES = plist-0_9.dtd \
