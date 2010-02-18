@@ -1055,61 +1055,6 @@ AC_CHECK_FUNCS(sigsetjmp)
 # This type needed by GSFormat
 #--------------------------------------------------------------------
 AC_CHECK_TYPES([uintmax_t])
-
-AC_MSG_CHECKING([whether precompiler handles LONG_LONG_MAX])
-# We need to define _GNU_SOURCE for some systems to enable LONG_LONG_MAX
-AC_TRY_CPP([#ifndef _GNU_SOURCE
-	#define _GNU_SOURCE
-	#endif
-        #ifdef HAVE_STDINT_H
-	#include <stdint.h>
-	#endif
-	#include <limits.h>
-	#if defined(LONG_LONG_MAX)
-	#if LONG_MAX == LONG_LONG_MAX
-	#error long max equals long long max
-	#endif
-	#else
-	#error long long max not defined
-	#endif
-	], llmax=yes, llmax=no)
-if test $llmax = yes; then
-	AC_MSG_RESULT(yes)
-        AC_DEFINE(HANDLE_LONG_LONG_MAX,1,
-                  [Define if this constant is defined])
-else
-	AC_MSG_RESULT(no)
-fi
-
-#
-# Solaris and *BSD use LLONG_MAX instead
-#
-AC_MSG_CHECKING([whether we have LLONG_MAX])
-# We need to use the same header environment as the test above because we
-# will be using one or the other set of constants.
-AC_TRY_CPP([#ifndef _GNU_SOURCE
-	#define _GNU_SOURCE
-	#endif
-        #ifdef HAVE_STDINT_H
-	#include <stdint.h>
-	#endif
-	#include <limits.h>
-	#if defined(LLONG_MAX)
-	#if LONG_MAX == LLONG_MAX
-	#error long max equals long long max
-	#endif
-	#else
-	#error llong max not defined
-	#endif
-	], llmax=yes, llmax=no)
-
-if test $llmax = yes; then
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(HANDLE_LLONG_MAX,1,
-            [Define if this constant is defined])
-else
-  AC_MSG_RESULT(no)
-fi
 AC_CHECK_HEADERS(wchar.h)
 
 #--------------------------------------------------------------------
