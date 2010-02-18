@@ -33,7 +33,6 @@
 #import "Foundation/NSThread.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GNUstep.h"
-#import "GNUstepBase/GSCategories.h"
 
 /**
  * This implements a class which, when used in single-threaded mode,

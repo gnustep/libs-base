@@ -39,7 +39,6 @@
 #endif
 
 #import "GNUstepBase/GCObject.h"
-#import "GNUstepBase/GSCategories.h"
 
 #include <pthread.h>
 

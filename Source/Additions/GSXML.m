@@ -42,7 +42,6 @@
 
 #import "config.h"
 #import "GNUstepBase/preface.h"
-#import "GNUstepBase/GSCategories.h"
 #import "GNUstepBase/Unicode.h"
 
 

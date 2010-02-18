@@ -35,7 +35,6 @@
 #import "Foundation/NSKeyedArchiver.h"
 
 #import "GNUstepBase/GSObjCRuntime.h"
-#import "GNUstepBase/GSCategories.h"
 
 
 /*
