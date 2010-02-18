@@ -424,7 +424,7 @@ is a set of words learned by the spell service for that particular user.
 - (NSRange) _findMisspelledWordInString: (NSString *)stringToCheck
 			       language: (NSString *)language
 			   ignoredWords: (NSArray *)ignoredWords
-			      wordCount: (int *)wordCount
+			      wordCount: (int32_t *)wordCount
 			      countOnly: (BOOL)countOnly
 {
   NSRange r = NSMakeRange(0,0);

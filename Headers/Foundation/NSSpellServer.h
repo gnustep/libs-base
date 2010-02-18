@@ -111,7 +111,7 @@ GS_EXPORT NSString *const NSGrammarUserDescription;
 - (NSRange) spellServer: (NSSpellServer *)sender
 findMisspelledWordInString: (NSString *)stringToCheck
                   language: (NSString *)language
-                 wordCount: (NSInteger *)wordCount
+                 wordCount: (int32_t *)wordCount
                  countOnly: (BOOL)countOnly;
 
 /**

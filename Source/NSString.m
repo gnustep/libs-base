@@ -488,7 +488,7 @@ static const unichar byteOrderMarkSwapped = 0xFFFE;
 
 #if ! PRINTF_ATSIGN_VA_LIST
 static int
-arginfo_func (const struct printf_info *info, size_t n, NSInteger*argtypes)
+arginfo_func (const struct printf_info *info, size_t n, int *argtypes)
 {
   *argtypes = PA_POINTER;
   return 1;
