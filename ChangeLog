@@ -1,3 +1,14 @@
+2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: remove obsolete checks for integer limits constants
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* configure: regenerate
+	* Source/NSScanner.m:
+	* Source/NSNumber.m:
+	* Source/GSFormat.m:
+	New code to define LLONG_MAX,LLONG_MIN,ULLONG_MAX in terms of
+	__LONG_LONG_MAX__ where they are not found in the normal location.
+
 2010-02-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSXML.h:

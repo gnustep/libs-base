@@ -9,12 +9,6 @@
 /* Define if constructors are automatically loaded */
 #undef CON_AUTOLOAD
 
-/* Define if this constant is defined */
-#undef HANDLE_LLONG_MAX
-
-/* Define if this constant is defined */
-#undef HANDLE_LONG_LONG_MAX
-
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 

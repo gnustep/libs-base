@@ -29,28 +29,21 @@
 
 #import "config.h"
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
 #if	defined(HAVE_STDINT_H)
 #include	<stdint.h>
 #endif
-
 #if	defined(HAVE_LIMITS_H)
 #include	<limits.h>
 #endif
 
-#if !defined(HANDLE_LLONG_MAX) && defined(HANDLE_LONG_LONG_MAX)
-#define LLONG_MAX LONG_LONG_MAX
-#define LLONG_MIN LONG_LONG_MIN
-#define ULLONG_MAX ULONG_LONG_MAX
-#endif
-
-#if	defined(HANDLE_LLONG_MAX) && !defined(LLONG_MAX)
-#error handle_llong_max defined without llong_max being defined
-#elif	defined(HANDLE_LONG_LONG_MAX) && !defined(LONG_LONG_MAX)
-#error handle_long_long_max defined without long_long_max being defined
+#if	!defined(LLONG_MAX)
+#  if	defined(__LONG_LONG_MAX__)
+#    define LLONG_MAX __LONG_LONG_MAX__
+#    define LLONG_MIN	(-LLONG_MAX-1)
+#    define ULLONG_MAX	(LLONG_MAX * 2ULL + 1)
+#  else
+#    error Neither LLONG_MAX nor __LONG_LONG_MAX__ found
+#  endif
 #endif
 
 
