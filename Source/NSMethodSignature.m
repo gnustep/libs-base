@@ -402,6 +402,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       *args = '\0';
 
       /* Skip to the first arg type, taking note of where the qualifiers start.
+       * Assume that casting _argFrameLength to int will not lose information.
        */
       p = skip_offset (p);
       q = p;
@@ -414,13 +415,13 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	  size = objc_promoted_size (p);
 	  p = objc_skip_typespec (p);
 	  strncat(args, q, p - q);
-	  sprintf(args + strlen(args), "%d", _argFrameLength);
+	  sprintf(args + strlen(args), "%d", (int)_argFrameLength);
 	  _argFrameLength += size;
 	  p = skip_offset (p);
 	  q = p;
 	  p = objc_skip_type_qualifiers (p);
 	}
-      sprintf(ret + strlen(ret), "%d", _argFrameLength);
+      sprintf(ret + strlen(ret), "%d", (int)_argFrameLength);
       _methodTypes = NSZoneMalloc(NSDefaultMallocZone(),
 	strlen(args) + strlen(ret) + 1);
       strcpy((char*)_methodTypes, ret);

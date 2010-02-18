@@ -1,5 +1,14 @@
 2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSSpellServer.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSString.m:
+	* Headers/Foundation/NSSpellServer.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	Fix minor 64bit compatribility errors spotted by Fred.
+
+2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: remove obsolete checks for integer limits constants
 	* Headers/Additions/GNUstepBase/config.h.in: regenerate
 	* configure: regenerate
