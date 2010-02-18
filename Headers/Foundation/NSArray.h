@@ -271,4 +271,8 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 }
 #endif
 
+#if	!defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#import	<GNUstepBase/NSArray+GNUstepBase.h>
+#endif
+
 #endif /* __NSArray_h_GNUSTEP_BASE_INCLUDE */

@@ -1,5 +1,29 @@
 2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GNUmakefile:
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSCalendarDate.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/Foundation.h.install:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSAttributedString.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/Foundation/NSValue.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSTask.h:
+	* Tools/GNUmakefile:
+	Have standard foundation headers include any corresponding GNUstep
+	extension headers unless NO_GNUSTEP is defined (building code with
+	strict OSX compatibility) or GNUSTEP_BASE_INTERNAL is defined
+	(building the base library etc itsself, and needing to ensure we
+	don't accidentally include installed headers from a previous version).
+
+2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSSpellServer.m:
 	* Source/NSMethodSignature.m:
 	* Source/NSString.m:

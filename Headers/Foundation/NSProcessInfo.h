@@ -247,4 +247,8 @@ GS_EXPORT BOOL GSDebugSet(NSString *level);
 }
 #endif
 
+#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSProcessInfo+GNUstepBase.h>
+#endif
+
 #endif /* __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE */

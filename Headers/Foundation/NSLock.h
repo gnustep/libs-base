@@ -302,5 +302,9 @@ extern "C" {
 }
 #endif
 
+#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSLock+GNUstepBase.h>
+#endif
+
 #endif /* __NSLock_h_GNUSTEP_BASE_INCLUDE */
 
