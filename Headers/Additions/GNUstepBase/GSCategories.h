@@ -115,19 +115,7 @@ GS_EXPORT void NSDecimalFromComponents(NSDecimal *result,
 				       unsigned long long mantissa,
 				       short exponent, BOOL negative);
 
-GS_EXPORT BOOL GSDebugSet(NSString *level);
-
-GS_EXPORT NSThread *GSCurrentThread(void);
-GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary(void);
-
-GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file, 
-				     int line, NSString *fmt);
-GS_EXPORT NSString *GSDebugFunctionMsg(const char *func, const char *file,
-				       int line, NSString *fmt);
-
 #endif	/* OS_API_VERSION(GS_API_NONE,GS_API_NONE) */
-
-#include	<GNUstepBase/NSTask+GS.h>
 
 #if	defined(__cplusplus)
 }

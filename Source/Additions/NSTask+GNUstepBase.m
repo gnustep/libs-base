@@ -28,7 +28,7 @@
 #import "Foundation/NSProcessInfo.h"
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
-@implementation	NSTask (GSCategories)
+@implementation	NSTask (GNUstepBase)
 
 static	NSString*
 executablePath(NSFileManager *mgr, NSString *path)

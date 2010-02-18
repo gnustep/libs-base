@@ -50,7 +50,6 @@
 #endif
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/GNUstep.h"
-#import "GNUstepBase/GSCategories.h"
 
 #import "../GSPrivate.h"
 

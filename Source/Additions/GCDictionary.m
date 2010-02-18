@@ -34,7 +34,6 @@
 
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/GCObject.h"
-#import "GNUstepBase/GSCategories.h"
 
 typedef struct {
   id	object;

@@ -35,7 +35,7 @@
  * GNUstep specific (non-standard) additions to the NSError class.
  * Possibly to be made public
  */
-@implementation NSError(GSCategories)
+@implementation NSError(GNUstepBase)
 
 
 #if !defined(__MINGW32__)

@@ -29,7 +29,7 @@
 /**
  * Extension methods for the NSCalendarDate class
  */
-@implementation NSCalendarDate (GSCategories)
+@implementation NSCalendarDate (GNUstepBase)
 
 /**
  * The ISO standard week of the year is based on the first week of the

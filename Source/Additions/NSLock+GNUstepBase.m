@@ -88,14 +88,14 @@ newLockAt(Class self, SEL _cmd, id *location)
 }
 
 
-@implementation NSLock (GSCategories)
+@implementation NSLock (GNUstepBase)
 + (id) newLockAt: (id *)location
 {
   return newLockAt(self, _cmd, location);
 }
 @end
 
-@implementation NSRecursiveLock (GSCategories)
+@implementation NSRecursiveLock (GNUstepBase)
 + (id) newLockAt: (id *)location
 {
   return newLockAt(self, _cmd, location);
