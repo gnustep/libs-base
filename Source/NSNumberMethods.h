@@ -1,21 +1,21 @@
 #define INTEGER_MACRO(type, name, ignored) \
 - (type) name ## Value\
 {\
-	return (type)VALUE;\
+  return (type)VALUE;\
 }
 #include "GSNumberTypes.h"
-- (const char *)objCType
+- (const char *) objCType
 {
-	return @encode(typeof(VALUE));
+  return @encode(typeof(VALUE));
 }
-- (NSString*)descriptionWithLocale: (id)aLocale
+- (NSString*) descriptionWithLocale: (id)aLocale
 {
-	return [[[NSString alloc] initWithFormat: FORMAT
-	                                  locale: aLocale, VALUE] autorelease];
+  return [[[NSString alloc] initWithFormat: FORMAT
+				    locale: aLocale, VALUE] autorelease];
 }
-- (void)getValue: (void*)buffer
+- (void) getValue: (void*)buffer
 {
-	typeof(VALUE) *ptr = buffer;
-	*ptr = VALUE;
+  typeof(VALUE) *ptr = buffer;
+  *ptr = VALUE;
 }
 #undef FORMAT

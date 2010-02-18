@@ -834,34 +834,6 @@ GSDebugAllocationListRecordedObjects(Class c)
 }
 
 
-
-NSString*
-GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
-{
-  NSString *message;
-
-  message = [NSString stringWithFormat: @"File %s: %d. In %s %@",
-	file, line, func, fmt];
-  return message;
-}
-
-NSString*
-GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
-{
-  NSString	*message;
-  Class		cls = (Class)obj;
-  char		c = '+';
-
-  if ([obj isInstance] == YES)
-    {
-      c = '-';
-      cls = [obj class];
-    }
-  message = [NSString stringWithFormat: @"File %s: %d. In [%@ %c%@] %@",
-	file, line, NSStringFromClass(cls), c, NSStringFromSelector(sel), fmt];
-  return message;
-}
-
 #define _NS_FRAME_HACK(a) \
 case a: env->addr = __builtin_frame_address(a + 1); break;
 #define _NS_RETURN_HACK(a) \

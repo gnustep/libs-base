@@ -46,6 +46,7 @@ Additions_OBJC_FILES =\
 	NSBundle+GNUstepBase.m \
 	NSCalendarDate+GNUstepBase.m \
 	NSData+GNUstepBase.m \
+	NSDebug+GNUstepBase.m \
 	NSError+GNUstepBase.m \
 	NSFileHandle+GNUstepBase.m \
 	NSLock+GNUstepBase.m \
@@ -55,6 +56,7 @@ Additions_OBJC_FILES =\
 	NSProcessInfo+GNUstepBase.m \
 	NSString+GNUstepBase.m \
 	NSTask+GNUstepBase.m \
+	NSThread+GNUstepBase.m \
 	NSURL+GNUstepBase.m \
 	behavior.m
 

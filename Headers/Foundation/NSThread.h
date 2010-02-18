@@ -27,12 +27,17 @@
 #define __NSThread_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#import	<Foundation/NSDictionary.h>
-#import	<Foundation/NSDate.h>
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#import	"Foundation/NSAutoreleasePool.h" // for struct autorelease_thread_vars
+#import	"Foundation/NSException.h"	// for NSHandler
+#else
+#import	<Foundation/NSAutoreleasePool.h>
 #import	<Foundation/NSException.h>
-#import	<Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
+#endif
 
 @class  NSArray;
+@class	NSDate;
+@class	NSMutableDictionary;
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -372,11 +377,14 @@ GS_EXPORT NSString* const NSThreadWillExitNotification;
  */
 GS_EXPORT NSString* const NSThreadDidStartNotification;
 
-/*
- *	Get current thread and it's dictionary.
- */
-GS_EXPORT NSThread		*GSCurrentThread(void);
-GS_EXPORT NSMutableDictionary	*GSCurrentThreadDictionary(void);
+#endif
+
+#if	!defined(NO_GNUSTEP)
+#  if	defined(GNUSTEP_BASE_INTERNAL)
+#    import	"GNUstepBase/NSThread+GNUstepBase.h"
+#  else
+#    import	<GNUstepBase/NSThread+GNUstepBase.h>
+#  endif
 #endif
 
 #if	defined(__cplusplus)

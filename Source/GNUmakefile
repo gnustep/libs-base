@@ -120,6 +120,7 @@ NSAttributedString+GNUstepBase.h \
 NSBundle+GNUstepBase.h \
 NSCalendarDate+GNUstepBase.h \
 NSData+GNUstepBase.h \
+NSDebug+GNUstepBase.h \
 NSFileHandle+GNUstepBase.h \
 NSLock+GNUstepBase.h \
 NSMutableString+GNUstepBase.h \
@@ -128,6 +129,7 @@ NSObject+GNUstepBase.h \
 NSProcessInfo+GNUstepBase.h \
 NSString+GNUstepBase.h \
 NSTask+GNUstepBase.h \
+NSThread+GNUstepBase.h \
 NSURL+GNUstepBase.h \
 Unicode.h \
 GNUstep.h \

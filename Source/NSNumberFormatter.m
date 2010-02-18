@@ -651,7 +651,7 @@
     roundedNumber = [roundedNumber decimalNumberByMultiplyingBy:
       (NSDecimalNumber*)[NSDecimalNumber numberWithInt: -1]];
   intPart = (NSDecimalNumber*)
-    [NSDecimalNumber numberWithInt: [roundedNumber intValue]];
+    [NSDecimalNumber numberWithInt: (int)[roundedNumber doubleValue]];
   fracPart = [roundedNumber decimalNumberBySubtracting: intPart];
   intPartString
     = AUTORELEASE([[intPart descriptionWithLocale: locale] mutableCopy]);
