@@ -48,17 +48,20 @@
   #include <openssl/ssl.h>
   #include <openssl/rand.h>
   #include <openssl/err.h>
+  #include <openssl/crypto.h>
   #undef id
 
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSFileHandle.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSUserDefaults.h>
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSUserDefaults.h"
 
-#include <GNUstepBase/GSFileHandle.h>
-#include "GSPrivate.h"
+#import "GNUstepBase/GSFileHandle.h"
+#import "GSPrivate.h"
 
 #if defined(__MINGW32__)
 #include <winsock2.h>
@@ -112,6 +115,36 @@ sslError(int err)
 }
 
 
+static NSLock	**locks = 0;
+
+static void
+locking_function(int mode, int n, const char *file, int line) 
+{ 
+  if (mode & CRYPTO_LOCK)
+    { 
+      [locks[n] lock];
+    }
+  else
+    { 
+      [locks[n] unlock];
+    } 
+} 
+
+#if	defined(HAVE_CRYPTO_THREADID_SET_CALLBACK)
+static void
+threadid_function(CRYPTO_THREADID *ref) 
+{ 
+  CRYPTO_THREADID_set_pointer(ref, GSCurrentThread());
+} 
+#else
+static unsigned long
+threadid_function() 
+{ 
+  return (unsigned long) GSCurrentThread();
+} 
+#endif
+
+
 @interface	GSSSLHandle : GSFileHandle
 {
   SSL_CTX	*ctx;
@@ -141,8 +174,22 @@ static BOOL	permitSSLv2 = NO;
   if (self == [GSSSLHandle class])
     {
       NSUserDefaults	*defs;
+      unsigned		count;
 
       SSL_library_init();
+
+      count = CRYPTO_num_locks();
+      locks = (NSLock**)malloc(count * sizeof(NSLock*));
+      while (count-- > 0)
+	{
+	  locks[count] = [NSLock new];
+	}
+      CRYPTO_set_locking_callback(locking_function); 
+#if	defined(HAVE_CRYPTO_THREADID_SET_CALLBACK)
+      CRYPTO_THREADID_set_callback(threadid_function); 
+#else
+      CRYPTO_set_id_callback(threadid_function); 
+#endif
 
       /*
        * If there is no /dev/urandom for ssl to use, we must seed the

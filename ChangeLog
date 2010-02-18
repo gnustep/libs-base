@@ -1,5 +1,11 @@
 2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* SSL/configure.ac: Check for latest thread ID callback
+	* SSL/configure: regenerate
+	* SSL/GSSSLHandle.m: Add thread-safety support callbacks.
+
+2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GNUmakefile:
 	* Headers/Foundation/NSURL.h:
 	* Headers/Foundation/NSObject.h:
