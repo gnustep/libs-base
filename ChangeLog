@@ -1,5 +1,24 @@
 2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Additions/GNUstepBase/NSDebug+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSThread+GNUstepBase.h:
+	* Source/Additions/NSDebug+GNUstepBase.m:
+	* Source/Additions/NSThread+GNUstepBase.m:
+	* Headers/Additions/GNUstepBase/Additions.h:
+	* Headers/Foundation/Foundation.h:
+	* Headers/Foundation/NSDebug.h:
+	* Headers/Foundation/NSThread.h:
+	* Source/Additions/GNUmakefile:
+	* Source/DocMakefile:
+	* Source/GNUmakefile:
+	* Source/NSDebug.m:
+	* Source/NSOperation.m:
+	Move some gnustep specific extensions into additions library so they
+	can be used to port apps to OSX in future (when the additions library
+	builds on OSX again).
+
+2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* SSL/configure.ac: Check for latest thread ID callback
 	* SSL/configure: regenerate
 	* SSL/GSSSLHandle.m: Add thread-safety support callbacks.

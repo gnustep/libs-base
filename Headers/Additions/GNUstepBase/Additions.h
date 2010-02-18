@@ -43,6 +43,7 @@
 #import	<GNUstepBase/NSBundle+GNUstepBase.h>
 #import	<GNUstepBase/NSCalendarDate+GNUstepBase.h>
 #import	<GNUstepBase/NSData+GNUstepBase.h>
+#import	<GNUstepBase/NSDebug+GNUstepBase.h>
 #import	<GNUstepBase/NSFileHandle+GNUstepBase.h>
 #import	<GNUstepBase/NSLock+GNUstepBase.h>
 #import	<GNUstepBase/NSMutableString+GNUstepBase.h>
@@ -51,6 +52,7 @@
 #import	<GNUstepBase/NSProcessInfo+GNUstepBase.h>
 #import	<GNUstepBase/NSString+GNUstepBase.h>
 #import	<GNUstepBase/NSTask+GNUstepBase.h>
+#import	<GNUstepBase/NSThread+GNUstepBase.h>
 #import	<GNUstepBase/NSURL+GNUstepBase.h>
 
 #endif /* __Additions_h_GNUSTEP_BASE_INCLUDE */

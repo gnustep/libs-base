@@ -32,6 +32,7 @@
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"

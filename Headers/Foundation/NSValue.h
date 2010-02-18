@@ -357,25 +357,6 @@ extern "C" {
 + (Class) valueClassWithObjCType: (const char*)type;
 
 @end
-
-/**
- * Cache info for internal use by NSNumber concrete subclasses.
- * DO NOT USE.
- */
-typedef struct {
-  int		typeLevel;
-  void		(*getValue)(NSNumber*, SEL, void*);
-} GSNumberInfo;
-
-/** Internal method for caching. DO NOT USE. */
-GSNumberInfo	*GSNumberInfoFromObject(NSNumber *o);
-#define	GS_SMALL	16
-/**
- * Internal method: get cached values for integers in the range
- * - GS_SMALL to + GS_SMALL
- *   <br />DO NOT USE
- */
-unsigned	GSSmallHash(int n);
 #endif
 
 #if	defined(__cplusplus)
