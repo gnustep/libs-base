@@ -18,12 +18,12 @@
 
    */
 
-#import "config.h"
+#import "common.h"
+
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSPathUtilities.h"
 #import	"Foundation/NSProcessInfo.h"
-#import	"Foundation/NSString.h"
 #import	"Foundation/NSUserDefaults.h"
 
 

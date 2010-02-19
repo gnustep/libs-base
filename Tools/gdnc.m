@@ -18,7 +18,12 @@
 
    */
 
-#import	"config.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#import	"common.h"
+
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSBundle.h"
@@ -34,12 +39,9 @@
 #import	"Foundation/NSPortNameServer.h"
 #import	"Foundation/NSProcessInfo.h"
 #import	"Foundation/NSRunLoop.h"
-#import	"Foundation/NSString.h"
 #import	"Foundation/NSTask.h"
 #import	"Foundation/NSUserDefaults.h"
 
-#include        <stdio.h>
-#include	<unistd.h>
 
 #if	defined(__MINGW32__)
 #include	"process.h"

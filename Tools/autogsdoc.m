@@ -597,18 +597,19 @@
 
    */
 
-#import	<config.h>
+#include <stdlib.h>
 
-#import	<Foundation/NSArray.h>
-#import	<Foundation/NSAutoreleasePool.h>
-#import	<Foundation/NSDictionary.h>
-#import	<Foundation/NSEnumerator.h>
-#import	<Foundation/NSFileManager.h>
-#import	<Foundation/NSPathUtilities.h>
-#import	<Foundation/NSProcessInfo.h>
-#import	<Foundation/NSSet.h>
-#import	<Foundation/NSString.h>
-#import	<Foundation/NSUserDefaults.h>
+#import	"common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSEnumerator.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSSet.h"
+#import	"Foundation/NSUserDefaults.h"
 
 #import "AGSParser.h"
 #import "AGSOutput.h"

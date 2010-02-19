@@ -18,7 +18,10 @@
 
    */
 
-#import	"config.h"
+#include <stdlib.h>
+
+#import	"common.h"
+
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSData.h"
@@ -26,10 +29,7 @@
 #import	"Foundation/NSException.h"
 #import	"Foundation/NSFileManager.h"
 #import	"Foundation/NSProcessInfo.h"
-#import	"Foundation/NSString.h"
-#ifdef NeXT_Foundation_LIBRARY
 #import "GNUstepBase/Additions.h"
-#endif
 
 
 /** <p> This tool merges text property lists into a single property list.

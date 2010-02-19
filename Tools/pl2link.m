@@ -19,6 +19,10 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
+#include <stdlib.h>
+
+#import	"common.h"
+
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSData.h"
@@ -26,7 +30,6 @@
 #import	"Foundation/NSException.h"
 #import	"Foundation/NSFileManager.h"
 #import	"Foundation/NSProcessInfo.h"
-#import	"Foundation/NSString.h"
 
 int
 main(int argc, char** argv, char **env)

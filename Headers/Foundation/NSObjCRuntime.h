@@ -29,7 +29,6 @@
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
-#import	<GNUstepBase/preface.h>
 #import	<GNUstepBase/GSConfig.h>
 
 /* These typedefs must be in place before GSObjCRuntime.h is imported.

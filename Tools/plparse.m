@@ -18,16 +18,17 @@
 
    */
 
-#import "config.h"
+#include <stdlib.h>
+
+#import "common.h"
+
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSCharacterSet.h"
 #import	"Foundation/NSData.h"
 #import	"Foundation/NSDictionary.h"
 #import	"Foundation/NSException.h"
-#import	"Foundation/NSString.h"
 #import	"Foundation/NSProcessInfo.h"
 #import	"Foundation/NSUserDefaults.h"
-#import	"Foundation/NSDebug.h"
 #import	"Foundation/NSAutoreleasePool.h"
 
 /*

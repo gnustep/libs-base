@@ -28,9 +28,12 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <locale.h>
+#include <stdlib.h>
+
+#include <stdlib.h>
+
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSDictionary.h"
-#import	"Foundation/NSString.h"
 #import "GNUstepBase/GSLocale.h"
 
 #define MAXSTRING 100

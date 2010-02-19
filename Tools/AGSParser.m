@@ -18,6 +18,8 @@
 
    */
 
+#import "common.h"
+
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCharacterSet.h"
@@ -27,7 +29,6 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
 #import "AGSParser.h"
