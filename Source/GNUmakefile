@@ -280,9 +280,14 @@ NSZone.m \
 externs.m \
 objc-load.m 
 
-ifeq ($(HAVE_OBJC_SYNC_ENTER), no)
-  GNU_MFILES += synchronization.m
-endif
+# Not sure that the following is ever needed ...
+# we should have synchronisation support from the ObjC2 runtime or
+# we should have synchronisation support from the ObjC2 compatibility code or
+# we are without native exception and @synchronize support anyway.
+#
+#ifeq ($(HAVE_OBJC_SYNC_ENTER), no)
+#  GNU_MFILES += synchronization.m
+#endif
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
 BASE_MFILES += \

@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 @interface Fake
-+ (void)dealloc;
++ (void) dealloc;
 @end
 
 static pthread_mutex_t at_sync_init_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -34,7 +34,7 @@ findLockClass(id obj)
 	object.isa = class_getSuperclass(object.isa);
       } while (Nil != object.isa
 	&& objc_msg_lookup((id)&object, dealloc) != (IMP)deallocLockClass);
-  }
+    }
   if (Nil == object.isa)
     {
       return Nil;
