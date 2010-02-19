@@ -1,5 +1,20 @@
 2010-02-19 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: Add check for ObjC2 support in runtime.
+	* config.mak.in: define OBJC2RUNTIME to yes or no
+	* configure: regenerate
+	* Source/GNUmakefile: Build/link ObjectiveC2 compat code if needed
+	* Source/ObjectiveC2/Availability.h:
+	* Source/ObjectiveC2/runtime.c:
+	* Source/ObjectiveC2/GNUmakefile:
+	* Source/ObjectiveC2/properties.m:
+	* Source/ObjectiveC2/sync.m:
+	* Source/ObjectiveC2/blocks_runtime.m:
+	Attempt to build in ObjectiveC2 compatibility functions when we don't
+	have an ObjC2 runtime.
+
+2010-02-19 Richard Frith-Macdonald <rfm@gnu.org>
+
 	Simplify header imports with common headers handled in the correct
 	order.
 

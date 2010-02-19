@@ -65,8 +65,13 @@ ifneq ($(base),no)
 LIBRARY_NAME += libgnustep-base
 endif
 
-libgnustep-base_SUBPROJECTS = Additions
-libgnustep-baseadd_SUBPROJECTS = Additions
+ifeq ($(OBJC2RUNTIME),no)
+libgnustep-base_SUBPROJECTS = ObjectiveC2
+libgnustep-baseadd_SUBPROJECTS += Additions
+endif
+
+libgnustep-base_SUBPROJECTS += Additions
+libgnustep-baseadd_SUBPROJECTS += Additions
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 libgnustep-base_SUBPROJECTS+=win32
@@ -473,7 +478,10 @@ libgnustep-baseadd_NEEDS_GUI = NO
 # build Additions as a subproject, causing concurrency issues).  If it
 # can be guaranteed that they'll never be built together, this could
 # be removed.
-SUBPROJECTS = Additions
+ifeq ($(OBJC2RUNTIME),no)
+SUBPROJECTS = ObjectiveC2
+endif
+SUBPROJECTS += Additions
  	 
 -include Makefile.preamble
 

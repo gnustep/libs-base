@@ -8,40 +8,51 @@
 - (void)release;
 @end
 
-id objc_getProperty(id obj, SEL _cmd, ptrdiff_t offset, BOOL isAtomic)
+id
+objc_getProperty(id obj, SEL _cmd, ptrdiff_t offset, BOOL isAtomic)
 {
-	if (isAtomic)
+  char *addr;
+  id ret;
+
+  if (isAtomic)
+    {
+      @synchronized(obj)
 	{
-		@synchronized(obj) {
-			return objc_getProperty(obj, _cmd, offset, NO);
-		}
+	  return objc_getProperty(obj, _cmd, offset, NO);
 	}
-	char *addr = (char*)obj;
-	addr += offset;
-	id ret = *(id*)addr;
-	return [[ret retain] autorelease];
+    }
+  addr = (char*)obj;
+  addr += offset;
+  ret = *(id*)addr;
+  return [[ret retain] autorelease];
 }
 
-void objc_setProperty(id obj, SEL _cmd, ptrdiff_t offset, id arg, BOOL isAtomic, BOOL isCopy)
+void
+objc_setProperty(id obj, SEL _cmd, ptrdiff_t offset, id arg, BOOL isAtomic,
+  BOOL isCopy)
 {
-	if (isAtomic)
+  char *addr;
+  id old;
+
+  if (isAtomic)
+    {
+      @synchronized(obj)
 	{
-		@synchronized(obj) {
-			objc_setProperty(obj, _cmd, offset, arg, NO, isCopy);
-			return;
-		}
+	  objc_setProperty(obj, _cmd, offset, arg, NO, isCopy);
+	  return;
 	}
-	if (isCopy)
-	{
-		arg = [arg copy];
-	}
-	else
-	{
-		arg = [arg retain];
-	}
-	char *addr = (char*)obj;
-	addr += offset;
-	id old = *(id*)addr;
-	*(id*)addr = arg;
-	[old release];
+    }
+  if (isCopy)
+    {
+      arg = [arg copy];
+    }
+  else
+    {
+      arg = [arg retain];
+    }
+  addr = (char*)obj;
+  addr += offset;
+  old = *(id*)addr;
+  *(id*)addr = arg;
+  [old release];
 }
