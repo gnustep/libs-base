@@ -520,7 +520,7 @@ class_setIvarLayout(Class cls, const char *layout)
   memcpy(cls->ivars, list, listsize);
 }
 
-__attribute__((deprecated))
+OBJC_DEPRECATED
 Class
 class_setSuperclass(Class cls, Class newSuper)
 {

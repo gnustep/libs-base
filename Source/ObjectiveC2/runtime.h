@@ -3,10 +3,16 @@
 #include <sys/types.h>
 
 #ifdef ERROR_UNSUPPORTED_RUNTIME_FUNCTIONS
-#	define OBJC_GNU_RUNTIME_UNSUPPORTED(x) \
-		__attribute__((error(x " not supported by the GNU runtime")))
+#  define OBJC_GNU_RUNTIME_UNSUPPORTED(x) \
+ __attribute__((error(x " not supported by the GNU runtime")))
 #else
-#	define OBJC_GNU_RUNTIME_UNSUPPORTED(x)
+#  define OBJC_GNU_RUNTIME_UNSUPPORTED(x)
+#endif
+
+#if ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR >= 1))
+#  define OBJC_DEPRECATED __attribute__((deprecated))
+#else
+#  define OBJC_DEPRECATED
 #endif
 
 // Undo GNUstep substitutions
@@ -153,7 +159,7 @@ BOOL class_respondsToSelector(Class cls, SEL sel);
 
 void class_setIvarLayout(Class cls, const char *layout);
 
-__attribute__((deprecated))
+OBJC_DEPRECATED
 Class class_setSuperclass(Class cls, Class newSuper);
 
 void class_setVersion(Class theClass, int version);

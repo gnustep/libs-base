@@ -200,6 +200,16 @@ struct StackBlockClass {
   const char *types;
 };
 
+#if	defined(__MINGW32__)
+/* FIXME ... evil hack ... declare symbol to avoid linker error on windows
+ * where the compiler/linker doesn't support a weak reference.
+ * This obviously breaks the code below...
+ */
+#  if (__GNUC__ <= 3)
+void *_NSConcreteStackBlock;
+#  endif
+#endif
+
 
 /* Copy a block to the heap if it's still on the stack or
  * increments its retain count.
