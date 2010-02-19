@@ -1,5 +1,13 @@
 2010-02-19 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSConcreteNumber.h: Remove unused file
+	* Source/NSNumberMethods.h:
+	* Source/NSNumber.m:
+	* Source/GSNumberTypes.h:
+	Updates to match OSX behavior.
+
+2010-02-19 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Add check for ObjC2 support in runtime.
 	* config.mak.in: define OBJC2RUNTIME to yes or no
 	* configure: regenerate
