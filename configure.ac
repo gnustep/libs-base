@@ -658,6 +658,17 @@ fi
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(objc_thread_add)
 
+#--------------------------------------------------------------------
+# Check for ObjC2 support in runtime
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(objc_setProperty)
+if test $ac_cv_func_objc_setProperty = yes ; then
+  OBJC2RUNTIME=yes
+else
+  OBJC2RUNTIME=no
+fi
+AC_SUBST(OBJC2RUNTIME)
+
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------

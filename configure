@@ -310,7 +310,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all Source/pathconfig Source/mframe SSL"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS HAVE_OBJC_SYNC_ENTER GS_SIZEOF_MUTEX_T GS_SIZEOF_COND_T HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN OBJCFLAGS WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS OBJC2RUNTIME HAVE_OBJC_SYNC_ENTER GS_SIZEOF_MUTEX_T GS_SIZEOF_COND_T HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN OBJCFLAGS WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -8645,6 +8645,118 @@ _ACEOF
 
 fi
 done
+
+
+#--------------------------------------------------------------------
+# Check for ObjC2 support in runtime
+#--------------------------------------------------------------------
+
+for ac_func in objc_setProperty
+do
+as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $ac_func" >&5
+echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6
+if eval "test \"\${$as_ac_var+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+char (*f) () = $ac_func;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != $ac_func;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  eval "$as_ac_var=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+eval "$as_ac_var=no"
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_var'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_var'}'`" >&6
+if test `eval echo '${'$as_ac_var'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+if test $ac_cv_func_objc_setProperty = yes ; then
+  OBJC2RUNTIME=yes
+else
+  OBJC2RUNTIME=no
+fi
 
 
 # Don't revert any Objective-C flags as they are used in the next test
@@ -21401,6 +21513,7 @@ s,@_GSC_S_LNG_LNG@,$_GSC_S_LNG_LNG,;t t
 s,@DYNAMIC_LINKER@,$DYNAMIC_LINKER,;t t
 s,@NX_CONST_STRING_OBJCFLAGS@,$NX_CONST_STRING_OBJCFLAGS,;t t
 s,@NX_CONST_STRING_CLASS@,$NX_CONST_STRING_CLASS,;t t
+s,@OBJC2RUNTIME@,$OBJC2RUNTIME,;t t
 s,@HAVE_OBJC_SYNC_ENTER@,$HAVE_OBJC_SYNC_ENTER,;t t
 s,@GS_SIZEOF_MUTEX_T@,$GS_SIZEOF_MUTEX_T,;t t
 s,@GS_SIZEOF_COND_T@,$GS_SIZEOF_COND_T,;t t
