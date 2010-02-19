@@ -19,12 +19,14 @@
 
 */
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSArray.h>
+#include <stdlib.h>
+
+#import "common.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSArray.h"
 
 #include "make_strings.h"
 

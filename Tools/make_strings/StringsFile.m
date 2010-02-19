@@ -19,11 +19,11 @@
 
 */
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSDate.h>
+#import "common.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSDate.h"
 
 #include "StringsFile.h"
 

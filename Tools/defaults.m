@@ -18,20 +18,19 @@
 
    */
 
-#include "config.h"
-#include	<string.h>
-#include	<GNUstepBase/preface.h>
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSEnumerator.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSUserDefaults.h>
-#include	<Foundation/NSDebug.h>
-#include	<Foundation/NSAutoreleasePool.h>
-#include	<Foundation/NSPathUtilities.h>
+#include <stdlib.h>
+#include <string.h>
+
+#import "common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSEnumerator.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSPathUtilities.h"
 
 #define GSEXIT_SUCCESS EXIT_SUCCESS
 #define GSEXIT_FAILURE EXIT_FAILURE
