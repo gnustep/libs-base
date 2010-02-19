@@ -22,15 +22,11 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSZone.h"
-#import "Foundation/NSObjCRuntime.h"
-#import "GNUstepBase/preface.h"
 
 @interface GSValue : NSValue
 {

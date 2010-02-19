@@ -31,9 +31,8 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSThread_IVARS	1
-#import "GNUstepBase/preface.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -64,11 +63,9 @@
 #define NBLK_OPT     FNDELAY
 #endif
 
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSLock.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
 #import "Foundation/NSRunLoop.h"

@@ -27,7 +27,7 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 
 #if	defined(HAVE_STDINT_H)
 #include	<stdint.h>
@@ -56,7 +56,6 @@
 #import "GNUstepBase/Unicode.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 

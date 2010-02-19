@@ -23,7 +23,7 @@
    Boston, MA 02111 USA.
 
 */
-#import "config.h"
+#import "common.h"
 #include <objc/objc-class.h>
 #import "GNUstepBase/GCObject.h"
 

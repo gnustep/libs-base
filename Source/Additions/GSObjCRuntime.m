@@ -29,7 +29,7 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #import "GNUstepBase/preface.h"
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSArray.h"
@@ -41,9 +41,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSNull.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
 #else
 #import <Foundation/Foundation.h>

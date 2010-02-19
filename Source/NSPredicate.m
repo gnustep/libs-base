@@ -26,6 +26,8 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
 #define	EXPOSE_NSComparisonPredicate_IVARS	1
 #define	EXPOSE_NSCompoundPredicate_IVARS	1
 #define	EXPOSE_NSExpression_IVARS	1
@@ -42,7 +44,6 @@
 #import "Foundation/NSKeyValueCoding.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSScanner.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"

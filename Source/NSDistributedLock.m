@@ -25,14 +25,13 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #include <string.h>
 #define	EXPOSE_NSDistributedLock_IVARS	1
 #import "Foundation/NSDistributedLock.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSDebug.h"
 #import "GSPrivate.h"
 
 #include <fcntl.h>

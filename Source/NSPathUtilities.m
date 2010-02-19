@@ -58,19 +58,14 @@
    which default to pre POSIX declaration.  */
 #define _POSIX_PTHREAD_SEMANTICS
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #include "objc-load.h"
-#import "Foundation/NSObjCRuntime.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSUserDefaults.h"

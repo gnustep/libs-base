@@ -23,17 +23,14 @@
    Boston, MA 02111 USA.
    */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSSet.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSPortCoder.h"
-#import "Foundation/NSDebug.h"
-#import "Foundation/NSObjCRuntime.h"
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"

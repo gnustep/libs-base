@@ -25,10 +25,8 @@
    $Date$ $Revision$
    */
 
-#import	"config.h"
+#import	"common.h"
 #define	EXPOSE_NSNSDistributedNotificationCenter_IVARS	1
-#import	"GNUstepBase/preface.h"
-#import	"Foundation/NSObject.h"
 #import	"Foundation/NSConnection.h"
 #import	"Foundation/NSDistantObject.h"
 #import	"Foundation/NSException.h"
@@ -44,7 +42,6 @@
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSHost.h"
 #import	"Foundation/NSPortNameServer.h"
-#import	"Foundation/NSDebug.h"
 #import "Foundation/NSThread.h"
 #import	"../Tools/gdnc.h"
 

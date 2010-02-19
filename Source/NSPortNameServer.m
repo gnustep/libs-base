@@ -25,13 +25,11 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
-#import "Foundation/NSString.h"
+#import "common.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSPort.h"
 #import "Foundation/NSPortNameServer.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GSPortPrivate.h"

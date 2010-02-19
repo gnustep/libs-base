@@ -25,17 +25,15 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSThread.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSCountedSet;

@@ -54,8 +54,7 @@
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -104,7 +103,6 @@
 #endif
 
 #import "GNUstepBase/GSConfig.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSSet.h"
@@ -115,7 +113,6 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSLock.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 

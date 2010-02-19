@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
 #define	EXPOSE_NSHTTPCookie_IVARS	1
 #import "GSURLPrivate.h"
 #import "Foundation/NSSet.h"

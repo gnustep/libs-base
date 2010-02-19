@@ -21,7 +21,7 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
    */
 
-#include "config.h"
+#include "common.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"

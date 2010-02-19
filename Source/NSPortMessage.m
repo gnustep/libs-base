@@ -25,13 +25,12 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSPortMessage_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPortMessage.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation	NSPortMessage

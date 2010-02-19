@@ -25,7 +25,7 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSFormatter.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 

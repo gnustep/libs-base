@@ -25,8 +25,8 @@
    $Date$ $Revision$
    */
 
+#import "common.h"
 #import "Foundation/NSNull.h"
-#import "Foundation/NSString.h"
 
 /**
  * An object to use as a placeholder - in collections for instance.

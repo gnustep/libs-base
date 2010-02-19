@@ -47,8 +47,7 @@
  *		attributes argument and use the values from the string.
  */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "GNUstepBase/Unicode.h"
 
 #import "Foundation/NSAttributedString.h"

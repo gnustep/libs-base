@@ -1,3 +1,8 @@
+2010-02-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	Simplify header imports with common headers handled in the correct
+	order.
+
 2010-02-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/NSDebug+GNUstepBase.h:

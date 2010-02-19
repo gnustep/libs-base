@@ -27,9 +27,8 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSProtocolChecker_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSProtocolChecker.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSInvocation.h"

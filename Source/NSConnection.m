@@ -29,7 +29,7 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 
 #define	EXPOSE_NSConnection_IVARS	1
 #define	EXPOSE_NSDistantObject_IVARS	1
@@ -39,9 +39,7 @@
 #endif
 
 #import "Foundation/NSEnumerator.h"
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /*
@@ -81,7 +79,6 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
@@ -90,7 +87,6 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 #import "Foundation/NSPortMessage.h"
 #import "Foundation/NSPortNameServer.h"
 #import "Foundation/NSNotification.h"
-#import "Foundation/NSDebug.h"
 #import "GSInvocation.h"
 #import "GSPortPrivate.h"
 #import "GSPrivate.h"

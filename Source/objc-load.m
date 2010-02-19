@@ -30,7 +30,7 @@
 
 */
 
-#import "config.h"
+#import "common.h"
 
 #ifdef HAVE_DLADDR
 /* Define _GNU_SOURCE because that is required with GNU libc in order
@@ -48,8 +48,6 @@
 #endif
 
 #include "objc-load.h"
-#import "Foundation/NSString.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSException.h"
 
 #import "GSPrivate.h"

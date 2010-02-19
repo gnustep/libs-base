@@ -24,9 +24,8 @@
    $Date$ $Revision$
 */
 
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "Foundation/NSCharacterSet.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
@@ -37,9 +36,7 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSNull.h"
-#import "Foundation/NSObject.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/Unicode.h"

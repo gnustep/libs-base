@@ -67,22 +67,17 @@
  *		
  */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "GNUstepBase/GSObjCRuntime.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSRange.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSZone.h"
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #include <stdio.h>

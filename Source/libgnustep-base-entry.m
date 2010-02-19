@@ -22,10 +22,7 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSObjCRuntime.h"
-#import "Foundation/NSString.h"
+#import "common.h"
 
 /* Only if using Microsoft's tools and libraries */
 #ifdef __MS_WIN32__

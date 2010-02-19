@@ -25,7 +25,7 @@
 
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSXMLParser_IVARS	1
 #import "Foundation/NSArray.h"
 #import "Foundation/NSError.h"
@@ -34,7 +34,6 @@
 #import "Foundation/NSXMLParser.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSNull.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 

@@ -23,8 +23,8 @@
 
    */
 
+#import "common.h"
 #import	"Foundation/NSGarbageCollector.h"
-#import	"Foundation/NSZone.h"
 
 static NSGarbageCollector	*collector = nil;
 static unsigned			disabled = 0;

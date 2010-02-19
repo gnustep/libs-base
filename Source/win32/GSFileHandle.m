@@ -24,7 +24,7 @@
 
 #define	_FILE_OFFSET_BITS 64
 
-#include "config.h"
+#include "common.h"
 
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSObject.h"

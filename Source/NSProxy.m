@@ -25,14 +25,12 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSProxy.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSPortCoder.h"
 

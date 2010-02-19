@@ -27,17 +27,14 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDictionary.h"
-#import "Foundation/NSZone.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @interface	GSPlaceholderValue : NSValue

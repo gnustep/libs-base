@@ -23,7 +23,7 @@
    Boston, MA 02111 USA.
    */
 
-#import "config.h"
+#import "common.h"
 
 #include <stdlib.h>
 #ifdef HAVE_ALLOCA_H
@@ -33,7 +33,6 @@
 #include "cifframe.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "GSInvocation.h"
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))

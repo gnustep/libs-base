@@ -23,10 +23,9 @@
    $Date$ $Revision$
    */
 
+#import "common.h"
 #import "Foundation/NSPortNameServer.h"
-
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSDistributedLock.h"

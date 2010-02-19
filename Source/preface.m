@@ -22,8 +22,7 @@
    Boston, MA 02111 USA.
 */
 
-#include <config.h>
-#import "GNUstepBase/preface.h"
+#import <common.h>
 
 const char *gnustep_base_version = STRINGIFY (GNUSTEP_BASE_VERSION);
 

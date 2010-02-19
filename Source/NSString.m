@@ -48,12 +48,10 @@
 #define _GNU_SOURCE
 #endif
 
-#import "config.h"
+#import "common.h"
 #include <stdio.h>
 #include <string.h>
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSDecimal.h"
 #import "Foundation/NSArray.h"
@@ -74,7 +72,6 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/FoundationErrors.h"
-#import "Foundation/NSDebug.h"
 // For private method _decodePropertyListForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GNUstepBase/GSMime.h"

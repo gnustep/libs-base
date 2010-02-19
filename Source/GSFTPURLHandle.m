@@ -22,11 +22,10 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSData.h"
@@ -39,7 +38,6 @@
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSFileHandle.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/GSMime.h"
 #import "GSPrivate.h"
 

@@ -28,7 +28,7 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSCalendarDate_IVARS	1
 #include <math.h>
 #import "Foundation/NSArray.h"
@@ -38,10 +38,7 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSObjCRuntime.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/GSObjCRuntime.h"

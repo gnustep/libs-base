@@ -36,24 +36,20 @@ function may be incorrect
 * I've put 2 functions to make tests. You can add your own tests
 * Some functions are not implemented
 */
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSURL_IVARS	1
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSMapTable.h"
-#import "Foundation/NSObject.h"
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSRunLoop.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSZone.h"
 
 NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
 NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";

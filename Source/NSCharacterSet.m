@@ -26,7 +26,7 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
@@ -39,7 +39,6 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #define	GNUSTEP_INDEX_CHARSET	1

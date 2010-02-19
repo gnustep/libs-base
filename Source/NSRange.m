@@ -25,11 +25,10 @@
    $Date$ $Revision$
  */
 
-#import "config.h"
+#import "common.h"
 
 #define	IN_NSRANGE_M 1
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSRange.h"
 #import "Foundation/NSScanner.h"
 

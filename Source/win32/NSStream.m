@@ -21,7 +21,7 @@
    Boston, MA 02111 USA.
 
    */
-#include "config.h"
+#include "common.h"
 #include "GNUstepBase/preface.h"
 
 #import "Foundation/NSData.h"
@@ -34,7 +34,6 @@
 #import "Foundation/NSValue.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSByteOrder.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 

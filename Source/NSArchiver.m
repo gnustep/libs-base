@@ -25,7 +25,7 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSArchiver_IVARS	1
 #define	EXPOSE_NSUnarchiver_IVARS	1
 /*
@@ -52,11 +52,9 @@
 #import "Foundation/NSArchiver.h"
 #undef	_IN_NSARCHIVER_M
 
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 
 typedef	unsigned char	uchar;
 

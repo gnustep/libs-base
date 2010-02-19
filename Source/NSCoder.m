@@ -26,11 +26,9 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSCoder_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSSerialization.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"

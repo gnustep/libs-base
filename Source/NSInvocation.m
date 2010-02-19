@@ -26,7 +26,7 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"

@@ -23,6 +23,8 @@
    $Date$ $Revision$
    */
 
+#include "common.h"
+
 #include "Foundation/NSPortNameServer.h"
 
 #include "Foundation/NSAutoreleasePool.h"

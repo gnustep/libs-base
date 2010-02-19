@@ -23,7 +23,7 @@
 
    */ 
 
-#import	"Foundation/NSString.h"
+#import "common.h"
 #import	"NSConcretePointerFunctions.h"
 
 static void*

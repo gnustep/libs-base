@@ -28,14 +28,13 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSArray.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSPathUtilities.h"
 #else

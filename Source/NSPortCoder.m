@@ -33,17 +33,14 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSPortCoder_IVARS	1
-#import "Foundation/NSObjCRuntime.h"
-#import "Foundation/NSZone.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSPort.h"
-#import "Foundation/NSString.h"
 
 @class	NSMutableDataMalloc;
 @interface NSMutableDataMalloc : NSObject	// Help the compiler

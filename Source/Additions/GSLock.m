@@ -25,7 +25,7 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_GSLock_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"

@@ -22,6 +22,8 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
 #define	EXPOSE_NSURLRequest_IVARS	1
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"

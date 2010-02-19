@@ -34,11 +34,9 @@
 
 /**** Included Headers *******************************************************/
 
-#import "config.h"
+#import "common.h"
 #include <math.h>
 #include <stdlib.h>
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSGeometry.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSNotification.h"

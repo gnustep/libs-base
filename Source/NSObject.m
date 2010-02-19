@@ -33,26 +33,20 @@
 #define InterlockedDecrement	BadInterlockedDecrement
 #endif
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "GNUstepBase/GNUstep.h"
 #include <stdarg.h>
-#import "Foundation/NSObject.h"
 #include <objc/Protocol.h>
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSDistantObject.h"
-#import "Foundation/NSZone.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSNotification.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSMapTable.h"
 #include <limits.h>
 #import "GNUstepBase/GSLocale.h"

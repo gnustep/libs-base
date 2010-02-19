@@ -24,9 +24,8 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSSocketPortNameServer_IVARS	1
-#import "Foundation/NSString.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSException.h"
@@ -47,7 +46,6 @@
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSPortNameServer.h"
-#import "Foundation/NSDebug.h"
 
 #import "GSPortPrivate.h"
 

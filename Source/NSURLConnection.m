@@ -22,9 +22,10 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
 #define	EXPOSE_NSURLConnection_IVARS	1
 #import "Foundation/NSRunLoop.h"
-#import "Foundation/NSDebug.h"
 #import "GSURLPrivate.h"
 
 @interface _NSURLConnectionDataCollector : NSObject <NSURLProtocolClient>

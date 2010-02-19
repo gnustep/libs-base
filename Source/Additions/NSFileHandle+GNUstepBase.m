@@ -22,7 +22,7 @@
    Boston, MA 02111 USA.
 
 */
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSHost.h"
 #import "GSNetwork.h"
