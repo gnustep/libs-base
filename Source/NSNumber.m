@@ -400,6 +400,12 @@ static Class NSDoubleNumberClass;
 
 #include "GSNumberTypes.h"
 
+- (id) initWithBool: (BOOL)aValue
+{
+  [self release];
+  return [[NSNumberClass numberWithBool: aValue] retain];
+}
+
 /*
  * Macro for checking whether this value is the same as one of the singleton
  * instances.  
@@ -596,14 +602,8 @@ if (aValue >= -1 && aValue <= 12)\
 
 - (id) copyWithZone: (NSZone *) aZone
 {
-  if (NSShouldRetainWithZone (self, aZone))
-    {
-      return RETAIN (self);
-    }
-  else
-    {
-      return NSCopyObject (self, 0, aZone);
-    }
+  // OSX just returns the receive with no copy.
+  return RETAIN (self);
 }
 
 - (id) initWithCoder: (NSCoder *) coder
@@ -643,6 +643,13 @@ if (aValue >= -1 && aValue <= 12)\
 }
 
 #include "GSNumberTypes.h"
+
+- (BOOL) boolValue
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
 - (NSDecimal) decimalValue
 {
   NSDecimalNumber *dn;

@@ -4,6 +4,10 @@
   return (type)VALUE;\
 }
 #include "GSNumberTypes.h"
+- (BOOL) boolValue
+{
+  return (VALUE == 0) ? NO : YES;
+}
 - (const char *) objCType
 {
   return @encode(typeof(VALUE));
