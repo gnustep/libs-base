@@ -31,19 +31,15 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSBundle_IVARS	1
-#import "GNUstepBase/preface.h"
 #include "objc-load.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSLock.h"

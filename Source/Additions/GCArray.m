@@ -24,12 +24,11 @@
 
 */
 
-#import "config.h"
+#import "common.h"
 #include <string.h>
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSException.h"
 #import "Foundation/NSRange.h"
-#import "Foundation/NSString.h"
 #else
 #import <Foundation/Foundation.h>
 #endif

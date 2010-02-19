@@ -23,7 +23,7 @@
 
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSKeyedUnarchiver_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"

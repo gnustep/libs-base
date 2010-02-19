@@ -22,8 +22,7 @@
    Boston, MA 02111 USA.
 
 */
-#import "config.h"
-#import "Foundation/NSDebug.h"
+#import "common.h"
 #import "Foundation/NSException.h"
 #import "GNUstepBase/NSAttributedString+GNUstepBase.h"
 

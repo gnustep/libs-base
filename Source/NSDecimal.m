@@ -26,13 +26,13 @@
    $Date$ $Revision$
    */
 
+#import "common.h"
 #define _GNU_SOURCE
 #include <math.h>
 #if !defined(__APPLE__) || !defined(GNU_RUNTIME)
 #include <ctype.h>
 #endif
 #import "Foundation/NSDecimal.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSUserDefaults.h"
 

@@ -25,13 +25,12 @@
 // FIXME: We should be using the new interfaces, not exposing the old ones.
 #	define __OBJC_LEGACY_GNU_MODE__
 
+#import "common.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "GSInvocation.h"
-#import <config.h>
 #import <objc/objc-api.h>
 #if HAVE_OBJC_RUNTIME_H
 #	import <objc/runtime.h>

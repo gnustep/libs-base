@@ -25,17 +25,14 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSTask_IVARS	1
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSObject.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSEnumerator.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSFileManager.h"
@@ -47,7 +44,6 @@
 #import "Foundation/NSTask.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSLock.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"

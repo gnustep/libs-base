@@ -6,10 +6,9 @@
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
 
-#import "config.h"
+#import "common.h"
 
 #import "GNUstepBase/preface.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"

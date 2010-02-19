@@ -27,6 +27,8 @@
    $Date$ $Revision$
 */
 
+#import "common.h"
+
 #define	EXPOSE_NSURLHandle_IVARS	1
 #import "GSURLPrivate.h"
 

@@ -23,13 +23,12 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSHost.h"
@@ -39,7 +38,6 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSRunLoop.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSValue.h"

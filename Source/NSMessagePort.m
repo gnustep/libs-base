@@ -22,10 +22,9 @@
    Boston, MA 02111 USA.
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSPort_IVARS	1
 #define	EXPOSE_NSMessagePort_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSNotification.h"
@@ -40,7 +39,6 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSConnection.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSFileManager.h"

@@ -22,12 +22,12 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
 #define	EXPOSE_NSNetServices_IVARS	1
 #import "Foundation/NSNetServices.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSStream.h"

@@ -25,12 +25,10 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSProxy.h"
@@ -39,7 +37,6 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"

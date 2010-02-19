@@ -26,9 +26,7 @@
    $Date: 2010-02-17 11:47:06 +0000 (Wed, 17 Feb 2010) $ $Revision: 29657 $
    */
 
-#import "config.h"
-#import "Foundation/NSDebug.h"
-#import "Foundation/NSString.h"
+#import "common.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 
 NSString*

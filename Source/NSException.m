@@ -24,15 +24,12 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSException_IVARS	1
 #import "GSPrivate.h"
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSNull.h"

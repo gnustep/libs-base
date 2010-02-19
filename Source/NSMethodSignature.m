@@ -27,13 +27,11 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSMethodSignature_IVARS	1
-#import "GNUstepBase/preface.h"
 
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSCoder.h"
 
 #import "GSInvocation.h"

@@ -25,6 +25,7 @@
    $Date$ $Revision$
 */
 
+#import "common.h"
 #import "Foundation/NSClassDescription.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSMapTable.h"

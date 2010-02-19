@@ -22,8 +22,7 @@
    Boston, MA 02111 USA.
    */
 
-#import "config.h"
-#import "Foundation/NSString.h"
+#import "common.h"
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"

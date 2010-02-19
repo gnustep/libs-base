@@ -23,7 +23,7 @@
    $Date: 2010-02-17 11:47:06 +0000 (Wed, 17 Feb 2010) $ $Revision: 29657 $
 */
 
-#import "config.h"
+#import "common.h"
 
 #if	defined(__APPLE__)
 

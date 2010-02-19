@@ -25,9 +25,8 @@
    $Date: 2008-11-26 04:20:34 -0500 (Wed, 26 Nov 2008) $ $Revision: 27135 $
 */
 
-#import "Foundation/NSObject.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSString.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @interface NSObject (NSComparisonMethods)

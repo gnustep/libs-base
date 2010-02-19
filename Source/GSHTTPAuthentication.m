@@ -22,12 +22,12 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
 #import "GSURLPrivate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSMime.h"

@@ -27,7 +27,7 @@
    */
 
 
-#import "config.h"
+#import "common.h"
 
 #if	defined(HAVE_STDINT_H)
 #include	<stdint.h>

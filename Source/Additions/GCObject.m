@@ -28,11 +28,10 @@
 
 */
 
-#import "config.h"
+#import "common.h"
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSNotification.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSThread.h"
 #else
 #import <Foundation/Foundation.h>

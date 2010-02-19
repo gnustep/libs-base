@@ -22,6 +22,8 @@
    Boston, MA 02111 USA.
    */
 
+#import "common.h"
+
 #define	EXPOSE_NSSortDescriptor_IVARS	1
 #import "Foundation/NSSortDescriptor.h"
 
@@ -29,7 +31,6 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyValueCoding.h"
-#import "Foundation/NSString.h"
 
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GSPrivate.h"

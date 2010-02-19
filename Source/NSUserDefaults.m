@@ -27,9 +27,8 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSUserDefaults_IVARS	1
-#import "GNUstepBase/preface.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -53,7 +52,6 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/GSLocale.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"

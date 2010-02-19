@@ -27,7 +27,7 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSTimer_IVARS	1
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSDate.h"

@@ -29,10 +29,9 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSRunLoop_IVARS	1
 #define	EXPOSE_NSTimer_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSValue.h"
@@ -44,7 +43,6 @@
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSStream.h"
 #import "Foundation/NSThread.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSInvocation.h"
 #import "GSRunLoopCtxt.h"
 #import "GSRunLoopWatcher.h"

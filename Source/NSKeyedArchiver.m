@@ -23,9 +23,9 @@
 
    */
 
+#import "common.h"
 #define	EXPOSE_NSKeyedArchiver_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSObject.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSScanner.h"

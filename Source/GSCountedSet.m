@@ -22,14 +22,12 @@
    Boston, MA 02111 USA.
    */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSPortCoder.h"
-#import "Foundation/NSDebug.h"
 
 
 #define	GSI_MAP_RETAIN_VAL(M, X)	

@@ -51,7 +51,7 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_GSMimeDocument_IVARS	1
 #define	EXPOSE_GSMimeHeader_IVARS	1
 #define	EXPOSE_GSMimeParser_IVARS	1
@@ -63,12 +63,10 @@
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSCharacterSet.h"
 #import	"Foundation/NSData.h"
-#import	"Foundation/NSDebug.h"
 #import	"Foundation/NSDictionary.h"
 #import	"Foundation/NSEnumerator.h"
 #import	"Foundation/NSException.h"
 #import	"Foundation/NSScanner.h"
-#import	"Foundation/NSString.h"
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSValue.h"
 #import	"GNUstepBase/GSMime.h"

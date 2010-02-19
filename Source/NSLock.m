@@ -31,13 +31,17 @@
 #import "GNUstepBase/GSConfig.h"
 #define	gs_cond_t	pthread_cond_t
 #define	gs_mutex_t	pthread_mutex_t
+#include <math.h>
+#include <errno.h>
+
 #define	EXPOSE_NSLock_IVARS	1
 #define	EXPOSE_NSRecursiveLock_IVARS	1
 #define	EXPOSE_NSCondition_IVARS	1
 #define	EXPOSE_NSConditionLock_IVARS	1
+
+#import "common.h"
+
 #import "Foundation/NSLock.h"
-#include <math.h>
-#include <errno.h>
 #import "Foundation/NSException.h"
 
 /*

@@ -40,7 +40,7 @@
    </chapter>
 */
 
-#import "config.h"
+#import "common.h"
 #import "GNUstepBase/preface.h"
 #import "GNUstepBase/Unicode.h"
 
@@ -61,7 +61,6 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSRunLoop.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSURL.h"
@@ -4123,10 +4122,8 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 #else
 
 #ifndef NeXT_Foundation_LIBRARY
-#import	"Foundation/NSObjCRuntime.h"
 #import	"Foundation/NSCoder.h"
 #import	"Foundation/NSInvocation.h"
-#import	"Foundation/NSString.h"
 #else
 #import <Foundation/Foundation.h>
 #endif

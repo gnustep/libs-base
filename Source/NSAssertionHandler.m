@@ -25,12 +25,9 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSDictionary.h"
-#import "Foundation/NSObjCRuntime.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSThread.h"
 
 /**

@@ -23,14 +23,12 @@
    */
 
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPortCoder.h"
-#import "Foundation/NSDebug.h"
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 

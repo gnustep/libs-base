@@ -49,13 +49,11 @@
 
    */
 
-#import "config.h"
+#import "common.h"
 #include <stdio.h>
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/behavior.h"
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #else
 #import <Foundation/Foundation.h>
 #endif

@@ -26,17 +26,14 @@
    $Date: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008) $ $Revision: 26606 $
    */
 
-#import "config.h"
+#import "common.h"
 
 #import "Foundation/NSArray.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSMapTable.h"
-#import "Foundation/NSString.h"
-#import "Foundation/NSZone.h"
 
 #import "NSConcretePointerFunctions.h"
 #import "NSCallBacks.h"

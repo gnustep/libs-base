@@ -33,9 +33,7 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSString.h"
+#import "common.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
@@ -44,8 +42,6 @@
 #import "Foundation/NSRange.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSDebug.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSKeyedArchiver.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"

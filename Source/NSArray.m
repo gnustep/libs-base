@@ -30,12 +30,11 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSRange.h"
 #include <limits.h>
 #import "Foundation/NSException.h"
@@ -43,7 +42,6 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSLock.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSKeyValueCoding.h"

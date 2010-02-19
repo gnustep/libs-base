@@ -23,9 +23,8 @@
    $Date: 2009-02-23 20:42:32 +0000 (Mon, 23 Feb 2009) $ $Revision: 27962 $
 */
 
-#import "config.h"
+#import "common.h"
 
-#import "GNUstepBase/preface.h"
 #import "GSRunLoopWatcher.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPort.h"

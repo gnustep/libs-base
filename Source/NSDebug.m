@@ -27,14 +27,12 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #include <stdio.h>
 #import "GSPrivate.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"

@@ -25,12 +25,9 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSObject.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSBundle.h"

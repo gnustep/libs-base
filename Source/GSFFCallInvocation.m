@@ -21,12 +21,11 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
+#import "common.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
-#import "Foundation/NSDebug.h"
 #import "GSInvocation.h"
-#import <config.h>
 #import <objc/objc-api.h>
 #import <avcall.h>
 #import <callback.h>

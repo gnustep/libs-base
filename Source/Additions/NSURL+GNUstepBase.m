@@ -25,8 +25,7 @@
 
 #ifndef	GNUSTEP
 
-#import "config.h"
-#import "Foundation/NSString.h"
+#import "common.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
 @implementation NSURL (GNUstepBase)

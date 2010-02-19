@@ -29,17 +29,15 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #include <math.h>
 
 #define	EXPOSE_NSAffineTransform_IVARS	1
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSAffineTransform.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSDebug.h"
 
 /* Private definitions */
 #define A _matrix.m11

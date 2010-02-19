@@ -76,9 +76,8 @@
 
    FIXME?: use leap seconds? */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSTimeZone_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
 #include <limits.h>
 #include <stdio.h>
@@ -93,11 +92,8 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSLock.h"
-#import "Foundation/NSObject.h"
 #import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSZone.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSThread.h"
@@ -105,7 +101,6 @@
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSByteOrder.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/GSConfig.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"

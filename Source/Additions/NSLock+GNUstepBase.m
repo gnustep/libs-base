@@ -22,7 +22,7 @@
    Boston, MA 02111 USA.
 
 */
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSException.h"
 #import "GNUstepBase/NSLock+GNUstepBase.h"
 #import "GNUstepBase/GSLock.h"

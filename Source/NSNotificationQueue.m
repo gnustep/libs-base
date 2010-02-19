@@ -28,15 +28,13 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSNotificationQueue_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSNotificationQueue.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSThread.h"
 
 #import "GSPrivate.h"

@@ -26,17 +26,14 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSDebug.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSKeyValueCoding.h"
 #import "Foundation/NSUserDefaults.h"

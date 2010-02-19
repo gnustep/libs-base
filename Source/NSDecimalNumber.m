@@ -26,9 +26,13 @@
    $Date$ $Revision$
    */
 
+/* Need to include math.h with C99 option ... do before common.h
+ */
 #define _GNU_SOURCE
 #define _ISOC99_SOURCE
 #include <math.h>
+
+#import "common.h"
 
 #define	EXPOSE_NSNSDecimalNumber_IVARS	1
 #import "Foundation/NSCoder.h"

@@ -86,14 +86,10 @@
 
 #define IN_NSZONE_M 1
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #include <stddef.h>
 #include <string.h>
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
-#import "Foundation/NSZone.h"
 #import "Foundation/NSLock.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"

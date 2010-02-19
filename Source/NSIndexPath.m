@@ -23,8 +23,8 @@
 
    */ 
 
+#import "common.h"
 #define	EXPOSE_NSIndexPath_IVARS	1
-#import	"Foundation/NSObject.h"
 #import	"Foundation/NSByteOrder.h"
 #import	"Foundation/NSData.h"
 #import	"Foundation/NSException.h"
@@ -32,7 +32,6 @@
 #import	"Foundation/NSIndexPath.h"
 #import	"Foundation/NSKeyedArchiver.h"
 #import	"Foundation/NSLock.h"
-#import	"Foundation/NSZone.h"
 #import	"GNUstepBase/GSLock.h"
 
 static	NSLock		*lock = nil;

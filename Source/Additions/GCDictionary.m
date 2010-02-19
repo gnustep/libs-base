@@ -24,10 +24,9 @@
 
 */
 
-#import "config.h"
+#import "common.h"
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #else
 #import <Foundation/Foundation.h>
 #endif

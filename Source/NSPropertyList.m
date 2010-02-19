@@ -23,10 +23,9 @@
 
    */
 
-#import "config.h"
+#import "common.h"
 #include <string.h>
 #include <limits.h>
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSMime.h"
 
 #import "Foundation/NSArray.h"
@@ -40,11 +39,9 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSPropertyList.h"
 #import "Foundation/NSSerialization.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSXMLParser.h"
 #import "GNUstepBase/Unicode.h"

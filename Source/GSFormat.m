@@ -38,7 +38,7 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
+#include "common.h"
 
 #if	defined(HAVE_STDINT_H)
 #include	<stdint.h>
@@ -64,8 +64,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSException.h"
@@ -83,8 +81,6 @@
 #import "Foundation/NSURL.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSLock.h"
-#import "Foundation/NSZone.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/GSLocale.h"
 
 #import "GSPrivate.h"

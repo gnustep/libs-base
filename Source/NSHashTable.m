@@ -24,16 +24,12 @@
  * $Date$ $Revision$
  */
 
-#import "config.h"
-#import "Foundation/NSObject.h"
-#import "Foundation/NSString.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPointerFunctions.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSZone.h"
 #import "Foundation/NSHashTable.h"
-#import "Foundation/NSDebug.h"
 #import "NSCallBacks.h"
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"

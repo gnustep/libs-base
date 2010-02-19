@@ -27,18 +27,15 @@
    $Date$ $Revision$
   */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSHost_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSDebug.h"
 
 #if defined(__MINGW32__)
 #include <winsock2.h>

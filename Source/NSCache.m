@@ -22,7 +22,7 @@
    Boston, MA 02111 USA.
    */ 
 
-#import "config.h"
+#import "common.h"
 
 #define	EXPOSE_NSCache_IVARS	1
 
@@ -30,7 +30,6 @@
 #import "Foundation/NSCache.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
-#import "Foundation/NSString.h"
 
 /**
  * _GSCachedObject is effectively used as a structure containing the various

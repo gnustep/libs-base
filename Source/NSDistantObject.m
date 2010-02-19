@@ -26,18 +26,15 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSDistantObject_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/DistributedObjects.h"
 #import "GNUstepBase/GSObjCRuntime.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSPort.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSInvocation.h"
 #include <objc/Protocol.h>
 #import "GSInvocation.h"

@@ -25,9 +25,7 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSObject.h"
+#import "common.h"
 
 NSObject *NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone)
 {

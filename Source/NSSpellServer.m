@@ -27,7 +27,7 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */ 
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSSpellServer_IVARS	1
 #import "Foundation/NSSpellServer.h"
 #import "Foundation/NSDictionary.h"
@@ -37,7 +37,6 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSConnection.h"
 #import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSSet.h"
 

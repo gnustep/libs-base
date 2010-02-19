@@ -23,6 +23,7 @@
 
    */ 
 
+#import "common.h"
 #import	"NSConcretePointerFunctions.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 

@@ -24,21 +24,17 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyValueCoding.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSNull.h"
-#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSZone.h"
 
 /* For the NSKeyValueMutableArray and NSKeyValueMutableSet classes
  */

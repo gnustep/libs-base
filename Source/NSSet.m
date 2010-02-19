@@ -25,18 +25,15 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSKeyValueCoding.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSObjCRuntime.h"
-#import "Foundation/NSDebug.h"
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"

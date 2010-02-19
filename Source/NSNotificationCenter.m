@@ -29,13 +29,12 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSNotificationCenter_IVARS	1
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSThread.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/GSLock.h"
 
 static NSZone	*_zone = 0;

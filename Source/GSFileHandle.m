@@ -24,13 +24,10 @@
 
 #define	_FILE_OFFSET_BITS 64
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_GSFileHandle_IVARS	1
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSObject.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSFileHandle.h"
 #import "GNUstepBase/GSFileHandle.h"
 #import "Foundation/NSException.h"
@@ -41,7 +38,6 @@
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSDebug.h"
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 

@@ -23,14 +23,12 @@
 
    */ 
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import	"Foundation/NSPointerArray.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSKeyedArchiver.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"

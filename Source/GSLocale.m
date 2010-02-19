@@ -22,7 +22,7 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 */
-#import "config.h"
+#import "common.h"
 #import "GNUstepBase/GSLocale.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"

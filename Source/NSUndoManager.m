@@ -24,10 +24,8 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
+#import "common.h"
 #define	EXPOSE_NSUndoManager_IVARS	1
-#import "Foundation/NSObject.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSInvocation.h"
