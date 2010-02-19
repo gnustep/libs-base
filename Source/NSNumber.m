@@ -330,7 +330,7 @@ static Class NSDoubleNumberClass;
 
   for (i = 0; i < 14; i++)
     {
-      NSIntNumber *n = NSAllocateObject (NSIntNumberClass, 0,[self zone]);
+      NSIntNumber *n = NSAllocateObject (NSIntNumberClass, 0, 0);
 
       n->value = i - 1;
       ReusedInstances[i] = n;
@@ -403,7 +403,7 @@ static Class NSDoubleNumberClass;
 - (id) initWithBool: (BOOL)aValue
 {
   [self release];
-  return [[NSNumberClass numberWithBool: aValue] retain];
+  return [ReusedInstances[aValue ? 2 : 1] retain];\
 }
 
 /*
@@ -448,7 +448,7 @@ if (aValue >= -1 && aValue <= 12)\
   NSIntNumber *n;
 
   CHECK_SINGLETON (aValue);
-  n = NSAllocateObject (NSIntNumberClass, 0,[self zone]);
+  n = NSAllocateObject (NSIntNumberClass, 0, 0);
   n->value = aValue;
   return n;
 }
@@ -483,7 +483,7 @@ if (aValue >= -1 && aValue <= 12)\
     {
       return [self numberWithInt: (int) aValue];
     }
-  n = NSAllocateObject (NSLongLongNumberClass, 0,[self zone]);
+  n = NSAllocateObject (NSLongLongNumberClass, 0, 0);
   n->value = aValue;
   return n;
 }
@@ -496,14 +496,14 @@ if (aValue >= -1 && aValue <= 12)\
     {
       return [self numberWithLongLong: (long long) aValue];
     }
-  n = NSAllocateObject (NSUnsignedLongLongNumberClass, 0,[self zone]);
+  n = NSAllocateObject (NSUnsignedLongLongNumberClass, 0, 0);
   n->value = aValue;
   return n;
 }
 
 + (NSNumber *) numberWithFloat: (float)aValue
 {
-  NSFloatNumber *n = NSAllocateObject (NSFloatNumberClass, 0,[self zone]);
+  NSFloatNumber *n = NSAllocateObject (NSFloatNumberClass, 0, 0);
 
   n->value = aValue;
   return n;
@@ -511,7 +511,7 @@ if (aValue >= -1 && aValue <= 12)\
 
 + (NSNumber *) numberWithDouble: (double)aValue
 {
-  NSDoubleNumber *n = NSAllocateObject (NSDoubleNumberClass, 0,[self zone]);
+  NSDoubleNumber *n = NSAllocateObject (NSDoubleNumberClass, 0, 0);
 
   n->value = aValue;
   return n;
