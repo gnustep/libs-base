@@ -218,7 +218,7 @@ typedef	struct {
 
 #define	OBJC2RUNTIME @OBJC2RUNTIME@
 
-#import	<GNUstepBase/preface.h>
+#include <GNUstepBase/preface.h>
 
 #endif	/* included_GSConfig_h */
 

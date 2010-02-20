@@ -2,17 +2,23 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-#ifdef ERROR_UNSUPPORTED_RUNTIME_FUNCTIONS
+#if   defined(ERROR_UNSUPPORTED_RUNTIME_FUNCTIONS)
 #  define OBJC_GNU_RUNTIME_UNSUPPORTED(x) \
- __attribute__((error(x " not supported by the GNU runtime")))
+__attribute__((error(x " not supported by the GNU runtime")))
 #else
 #  define OBJC_GNU_RUNTIME_UNSUPPORTED(x)
 #endif
 
-#if ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR >= 1))
-#  define OBJC_DEPRECATED __attribute__((deprecated))
-#else
-#  define OBJC_DEPRECATED
+#if !defined(OBJC_DEPRECATED)
+#  if !defined(__DEPRECATE_DIRECT_ACCESS) || defined(__OBJC_LEGACY_GNU_MODE__) || defined(__OBJC_RUNTIME_INTERNAL__)
+#    define OBJC_DEPRECATED
+#  else
+#    if ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR >= 1))
+#      define OBJC_DEPRECATED __attribute__((deprecated))
+#    else
+#      define OBJC_DEPRECATED
+#    endif
+#  endif
 #endif
 
 // Undo GNUstep substitutions
