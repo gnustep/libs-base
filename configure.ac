@@ -663,9 +663,9 @@ AC_CHECK_FUNCS(objc_thread_add)
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(objc_setProperty)
 if test $ac_cv_func_objc_setProperty = yes ; then
-  OBJC2RUNTIME=yes
+  OBJC2RUNTIME=1
 else
-  OBJC2RUNTIME=no
+  OBJC2RUNTIME=0
 fi
 AC_SUBST(OBJC2RUNTIME)
 

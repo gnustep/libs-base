@@ -1,3 +1,14 @@
+2010-02-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Makefile.postamble:
+	* Source/GNUmakefile:
+	* configure.ac:
+	* configure:
+	* Headers/Additions/GNUstepBase/GSConfig.h.in:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Make runtime.h objc2 compatibility header available in installed
+	headers if we are using objc2 compatibility in base.
+
 2010-02-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConcreteNumber.h: Remove unused file

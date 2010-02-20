@@ -31,11 +31,12 @@
 #define __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
 #include <GNUstepBase/GSVersionMacros.h>
+#include <GNUstepBase/GSConfig.h>
 
 #include <objc/objc.h>
 #include <objc/objc-api.h>
 
-#if	defined(HAVE__OBJC_RUNTIME_H)
+#if	defined(HAVE_OBJC_RUNTIME_H)
 #include <objc/runtime.h>
 #endif
 

@@ -216,5 +216,9 @@ typedef	struct {
   uint8_t	dummy[@GS_SIZEOF_MUTEX_T@];
 } gs_mutex_t;
 
+#define	OBJC2RUNTIME @OBJC2RUNTIME@
+
+#import	<GNUstepBase/preface.h>
+
 #endif	/* included_GSConfig_h */
 

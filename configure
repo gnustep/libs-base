@@ -8753,9 +8753,9 @@ fi
 done
 
 if test $ac_cv_func_objc_setProperty = yes ; then
-  OBJC2RUNTIME=yes
+  OBJC2RUNTIME=1
 else
-  OBJC2RUNTIME=no
+  OBJC2RUNTIME=0
 fi
 
 
