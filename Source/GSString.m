@@ -45,7 +45,6 @@
 #import "Foundation/NSKeyedArchiver.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
-#include <limits.h>
 
 #import "GSPrivate.h"
 

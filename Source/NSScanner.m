@@ -29,12 +29,6 @@
 
 #import "common.h"
 
-#if	defined(HAVE_STDINT_H)
-#include	<stdint.h>
-#endif
-#if	defined(HAVE_LIMITS_H)
-#include	<limits.h>
-#endif
 #if	defined(HAVE_FLOAT_H)
 #include	<float.h>
 #endif

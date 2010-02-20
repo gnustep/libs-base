@@ -49,7 +49,6 @@
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include <stdarg.h>
 // For pow()
 #include <math.h>
 
