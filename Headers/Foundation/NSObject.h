@@ -459,7 +459,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 }
 #endif
 
-#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
 #import <GNUstepBase/NSObject+GNUstepBase.h>
 #endif
 

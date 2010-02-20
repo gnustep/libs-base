@@ -120,7 +120,7 @@ GS_EXPORT NSString* const NSTaskDidTerminateNotification;
 }
 #endif
 
-#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
 #import <GNUstepBase/NSTask+GNUstepBase.h>
 #endif
 

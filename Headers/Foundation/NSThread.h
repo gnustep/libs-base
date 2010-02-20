@@ -379,7 +379,7 @@ GS_EXPORT NSString* const NSThreadDidStartNotification;
 
 #endif
 
-#if	!defined(NO_GNUSTEP)
+#if	!NO_GNUSTEP
 #  if	defined(GNUSTEP_BASE_INTERNAL)
 #    import	"GNUstepBase/NSThread+GNUstepBase.h"
 #  else
