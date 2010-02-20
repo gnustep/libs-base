@@ -65,7 +65,7 @@ ifneq ($(base),no)
 LIBRARY_NAME += libgnustep-base
 endif
 
-ifeq ($(OBJC2RUNTIME),no)
+ifeq ($(OBJC2RUNTIME),0)
 libgnustep-base_SUBPROJECTS = ObjectiveC2
 libgnustep-baseadd_SUBPROJECTS += Additions
 endif
@@ -141,6 +141,12 @@ GNUstep.h \
 behavior.h \
 preface.h \
 Additions.h
+
+# If we are using ObjC2 compatibility, we need to include the runtime.h
+# header with all the additional headers.
+ifeq ($(OBJC2RUNTIME),0)
+ADD_HEADERS += runtime.h
+endif
 
 GNU_HEADERS = $(ADD_HEADERS)
 
@@ -438,8 +444,10 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
 GENERATED_HFILES = \
 dynamic-load.h \
 $(HEADER_DIR_BASE)/preface.h \
+$(HEADER_DIR_BASE)/runtime.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
+
 
 ifeq ($(HAVE_INET_PTON), no)
 GNU_CFILES += inet_pton.c
@@ -483,7 +491,7 @@ libgnustep-baseadd_NEEDS_GUI = NO
 # build Additions as a subproject, causing concurrency issues).  If it
 # can be guaranteed that they'll never be built together, this could
 # be removed.
-ifeq ($(OBJC2RUNTIME),no)
+ifeq ($(OBJC2RUNTIME),0)
 SUBPROJECTS = ObjectiveC2
 endif
 SUBPROJECTS += Additions

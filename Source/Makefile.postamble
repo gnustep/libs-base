@@ -95,6 +95,8 @@ before-uninstall::
 # Things to do after cleaning
 after-clean::
 	rm -f libgnustep-base.def
+	rm -f ../Headers/Additions/GNUstep/runtime.h
+	rm -f ../Headers/Foundation/Foundation.h.saved
 
 # Things to do before distcleaning
 # before-distclean::
@@ -139,6 +141,9 @@ $(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
 	-mv mframe/mframe.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/mframe.h
+
+$(HEADER_DIR_BASE)/runtime.h: ObjectiveC2/runtime.h
+	cp ObjectiveC2/runtime.h $(HEADER_DIR_BASE)
 
 #
 #       Files where optimisation breaks the code!
