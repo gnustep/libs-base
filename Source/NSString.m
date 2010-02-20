@@ -469,7 +469,6 @@ static const unichar byteOrderMarkSwapped = 0xFFFE;
 #ifdef HAVE_REGISTER_PRINTF_FUNCTION
 #include <stdio.h>
 #include <printf.h>
-#include <stdarg.h>
 
 /* <sattler@volker.cs.Uni-Magdeburg.DE>, with libc-5.3.9 thinks this
    flag PRINTF_ATSIGN_VA_LIST should be 0, but for me, with libc-5.0.9,

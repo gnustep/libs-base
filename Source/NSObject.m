@@ -35,7 +35,6 @@
 
 #import "common.h"
 #import "GNUstepBase/GNUstep.h"
-#include <stdarg.h>
 #include <objc/Protocol.h>
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSInvocation.h"

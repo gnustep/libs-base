@@ -28,6 +28,11 @@
 
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
+
+#include <stdarg.h>
+#include <stdint.h>
+#include <limits.h>
+
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<GNUstepBase/GSConfig.h>
 

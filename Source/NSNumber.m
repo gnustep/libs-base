@@ -29,13 +29,6 @@
 
 #import "common.h"
 
-#if	defined(HAVE_STDINT_H)
-#include	<stdint.h>
-#endif
-#if	defined(HAVE_LIMITS_H)
-#include	<limits.h>
-#endif
-
 #if	!defined(LLONG_MAX)
 #  if	defined(__LONG_LONG_MAX__)
 #    define LLONG_MAX __LONG_LONG_MAX__
