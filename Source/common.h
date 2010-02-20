@@ -6,8 +6,11 @@
 
 #import	"config.h"
 
-#import	"GNUstepBase/GSConfig.h"
+/* GNUstepBase/GSConfig.h includes <GNUstepBase/preface.h> so
+ * we import local versions first.
+ */
 #import	"GNUstepBase/preface.h"
+#import	"GNUstepBase/GSConfig.h"
 
 /* Foundation/NSObject.h imports <Foundation/NSZone.h> and
  * <Foundation/NSObjCRuntime.h> so we import local versions first.
