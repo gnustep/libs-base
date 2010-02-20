@@ -61,7 +61,7 @@ GS_EXPORT NSString* const NSGlobalDomain;
  */
 GS_EXPORT NSString* const NSRegistrationDomain;
 
-#ifndef NO_GNUSTEP
+#if	!NO_GNUSTEP
 /**
  *  User defaults domain for GNUstep config file and for any defaults
  *  stored in the GlobalDefaults.plist file alongside the config file.
@@ -179,7 +179,7 @@ GS_EXPORT NSString* const NSLanguageCode;
 
 /** Key for locale dictionary: formal name of language. */
 GS_EXPORT NSString* const NSFormalName;
-#ifndef NO_GNUSTEP
+#if	!NO_GNUSTEP
 /** Key for locale dictionary: name of locale. */
 GS_EXPORT NSString* const GSLocale;
 #endif

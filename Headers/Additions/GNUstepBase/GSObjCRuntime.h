@@ -131,7 +131,7 @@ extern "C" {
 #endif
 
 
-#ifndef	NO_GNUSTEP
+#if	!NO_GNUSTEP
 /*
  * Functions for accessing instance variables directly -
  * We can copy an ivar into arbitrary data,

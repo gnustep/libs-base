@@ -160,7 +160,7 @@ extern "C" {
 @end
 #endif
 
-#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
 #import <GNUstepBase/NSCalendarDate+GNUstepBase.h>
 #endif
 

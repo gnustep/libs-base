@@ -30,7 +30,7 @@
 
 #include <errno.h>
 
-#if	!defined(NO_GNUSTEP)
+#if	!NO_GNUSTEP
 #  if	defined(GNUSTEP_BASE_INTERNAL)
 #    import	"Foundation/NSObject.h"
 #    import	"GNUstepBase/NSDebug+GNUstepBase.h"

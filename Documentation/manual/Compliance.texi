@@ -25,17 +25,17 @@ constants will modify the API visible to software being compiled -
 
 @deffn preprocessor NO_GNUSTEP
     GNUstep specific extensions to the OpenStep and MacOS cocoa APIs are
-    excluded from the headers. 
+    excluded from the headers if this is defined to a non-zero value.
 @end deffn
 
 @deffn preprocessor STRICT_MACOS_X
     Only methods and classes that are part of the MacOS cocoa API are made
-available in the headers.
+available in the headers if this is defined.
 @end deffn
 
 @deffn preprocessor STRICT_OPENSTEP
     Only methods and classes that are part of the OpenStep specification are
-made available in the headers.
+made available in the headers if this is defined.
 @end deffn
 
 Note, these preprocessor constants are used in developer code (ie the code

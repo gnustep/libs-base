@@ -1,5 +1,32 @@
 2010-02-20 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSCalendarDate.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSAttributedString.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSThread.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSDebug.h:
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/Foundation/NSValue.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSTask.h:
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Modified the sense of the 'NO_GNUSTEP' preprocessor constant slightly.
+	It is now always defined (GSVersionMacros.h defines it to zero if it
+	was not defined externally).  A sbefore, defining it to 1 should prevent
+	the inclusion of GNUstep specific headers.
+	This change should make it easy for us to change the default behavior
+	at a later date.
+
+2010-02-20 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Makefile.postamble:
 	* Source/GNUmakefile:
 	* configure.ac:

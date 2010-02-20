@@ -25,17 +25,22 @@
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 #define __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 
-/*
- *	Check consistency of definitions for system compatibility.
+/* By default we defined NO_GNUSTEP to 0 so that we will include extensions.
+ */
+#if	!defined(NO_GNUSTEP)
+#  define	NO_GNUSTEP	0
+#endif
+
+/* Check consistency of definitions for system compatibility.
  */
 #if	defined(STRICT_OPENSTEP)
-#define GS_OPENSTEP_V	 10000
-#define	NO_GNUSTEP	1
+#  define	GS_OPENSTEP_V	 10000
+#  undef	NO_GNUSTEP
+#  define	NO_GNUSTEP	1
 #elif	defined(STRICT_MACOS_X)
-#define GS_OPENSTEP_V	100600
-#define	NO_GNUSTEP	1
-#else
-#undef	NO_GNUSTEP
+#  define	GS_OPENSTEP_V	100600
+#  undef	NO_GNUSTEP
+#  define	NO_GNUSTEP	1
 #endif
 
 /*

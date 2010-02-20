@@ -258,7 +258,7 @@ GS_EXPORT NSString * const GSFileHandleNotificationError;
 }
 #endif
 
-#if     !defined(NO_GNUSTEP) && !defined(GNUSTEP_BASE_INTERNAL)
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
 #import <GNUstepBase/NSFileHandle+GNUstepBase.h>
 #endif
 
