@@ -1648,34 +1648,8 @@ static void
 getCString_c(GSStr self, char *buffer, unsigned int maxLength,
   NSRange aRange, NSRange *leftoverRange)
 {
+  GSMutableString *o;
   int len;
-
-  /*
-   * If the internal and external encodings don't match, the simplest
-   * thing to do is widen the internal data to unicode and use the
-   * unicode function to get the cString.
-   */
-  if (externalEncoding != internalEncoding)
-    {
-      GSMutableString *o
-        = (GSMutableString*)alloca(class_getInstanceSize(GSMutableStringClass));
-      object_setClass(o, GSMutableStringClass);
-      o->_count = self->_count;
-      o->_flags.wide = 0;
-      o->_flags.owned = 0;
-      o->_flags.unused = 0;
-      o->_flags.hash = 0;
-      o->_capacity = self->_count;
-      o->_contents.c = self->_contents.c;
-      o->_zone = NSDefaultMallocZone();
-      GSStrWiden(o);
-      getCString_u(o, buffer, maxLength, aRange, leftoverRange);
-      if (o->_flags.owned == 1)
-        {
-          NSZoneFree(o->_zone, o->_contents.u);
-        }
-      return;
-    }
 
   if (maxLength > self->_count)
     {
@@ -1700,8 +1674,68 @@ getCString_c(GSStr self, char *buffer, unsigned int maxLength,
 	}
     }
 
-  memcpy(buffer, &self->_contents.c[aRange.location], len);
-  buffer[len] = '\0';
+  if (externalEncoding == internalEncoding)
+    {
+      memcpy(buffer, &self->_contents.c[aRange.location], len);
+      buffer[len] = '\0';
+      return;
+    }
+
+  if (isByteEncoding(internalEncoding))
+    {
+      if (externalEncoding == NSUTF8StringEncoding
+	|| isByteEncoding(externalEncoding))
+	{
+	  const unsigned char	*ptr = self->_contents.c + aRange.location;
+	  unsigned		i;
+
+	  /*
+	   * Maybe we actually contain ascii data, which can be
+	   * copied out directly.
+	   */
+	  for (i = 0; i < len; i++)
+	    {
+	      unsigned char	c = ptr[i];
+
+	      if (c > 127)
+		{
+		  break;
+		}
+	      buffer[i] = c;
+	    }
+	  if (i == len)
+	    {
+	      buffer[i] = '\0';
+	      return;
+	    }
+	  // Fall through to perform conversion to unicode and back
+	  if ([(id)self class] == NSConstantStringClass)
+	    {
+	      NSLog(@"Warning: non-ASCII character in string literal");
+	    }
+	}
+    }
+
+  /* As the internal and external encodings don't match, the simplest
+   * thing to do is widen the internal data to unicode and use the
+   * unicode function to get the cString.
+   */
+  o = (GSMutableString*)alloca(class_getInstanceSize(GSMutableStringClass));
+  object_setClass(o, GSMutableStringClass);
+  o->_count = self->_count;
+  o->_flags.wide = 0;
+  o->_flags.owned = 0;
+  o->_flags.unused = 0;
+  o->_flags.hash = 0;
+  o->_capacity = self->_count;
+  o->_contents.c = self->_contents.c;
+  o->_zone = NSDefaultMallocZone();
+  GSStrWiden(o);
+  getCString_u(o, buffer, maxLength, aRange, leftoverRange);
+  if (o->_flags.owned == 1)
+    {
+      NSZoneFree(o->_zone, o->_contents.u);
+    }
 }
 
 static void
