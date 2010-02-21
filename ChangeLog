@@ -1,3 +1,8 @@
+2010-02-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix incorrectly initialized zone ivar.
+	Foixes bug #28939
+
 2010-02-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSURL.h:
