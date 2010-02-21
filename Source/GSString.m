@@ -1667,7 +1667,7 @@ getCString_c(GSStr self, char *buffer, unsigned int maxLength,
       o->_flags.hash = 0;
       o->_capacity = self->_count;
       o->_contents.c = self->_contents.c;
-      o->_zone = 0;
+      o->_zone = NSDefaultMallocZone();
       GSStrWiden(o);
       getCString_u(o, buffer, maxLength, aRange, leftoverRange);
       if (o->_flags.owned == 1)
