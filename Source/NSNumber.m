@@ -443,7 +443,7 @@ if (aValue >= -1 && aValue <= 12)\
   CHECK_SINGLETON (aValue);
   n = NSAllocateObject (NSIntNumberClass, 0, 0);
   n->value = aValue;
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (NSNumber *) numberWithUnsignedInt: (unsigned int)aValue
@@ -478,7 +478,7 @@ if (aValue >= -1 && aValue <= 12)\
     }
   n = NSAllocateObject (NSLongLongNumberClass, 0, 0);
   n->value = aValue;
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (NSNumber *) numberWithUnsignedLongLong: (unsigned long long)aValue
@@ -491,7 +491,7 @@ if (aValue >= -1 && aValue <= 12)\
     }
   n = NSAllocateObject (NSUnsignedLongLongNumberClass, 0, 0);
   n->value = aValue;
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (NSNumber *) numberWithFloat: (float)aValue
@@ -499,7 +499,7 @@ if (aValue >= -1 && aValue <= 12)\
   NSFloatNumber *n = NSAllocateObject (NSFloatNumberClass, 0, 0);
 
   n->value = aValue;
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (NSNumber *) numberWithDouble: (double)aValue
@@ -507,7 +507,7 @@ if (aValue >= -1 && aValue <= 12)\
   NSDoubleNumber *n = NSAllocateObject (NSDoubleNumberClass, 0, 0);
 
   n->value = aValue;
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (NSNumber *) numberWithInteger: (NSInteger)aValue
