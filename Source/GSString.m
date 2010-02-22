@@ -2354,14 +2354,7 @@ static void GSStrMakeSpace(GSStr s, unsigned size)
 #if	GS_WITH_GC
 	  s->_zone = GSAtomicMallocZone();
 #else
-	  if (object_getClass(s) == 0)
-	    {
-	      s->_zone = NSDefaultMallocZone();
-	    }
-	  else
-	    {
-	      s->_zone = GSObjCZone((NSString*)s);
-	    }
+          s->_zone = GSObjCZone((NSString*)s);
 #endif
 	}
       if (s->_flags.wide == 1)
@@ -2422,14 +2415,7 @@ static void GSStrWiden(GSStr s)
 #if GS_WITH_GC
       s->_zone = GSAtomicMallocZone();
 #else
-      if (object_getClass(s) == 0)
-	{
-	  s->_zone = NSDefaultMallocZone();
-	}
-      else
-	{
-	  s->_zone = GSObjCZone((NSString*)s);
-	}
+      s->_zone = GSObjCZone((NSString*)s);
 #endif
     }
 
