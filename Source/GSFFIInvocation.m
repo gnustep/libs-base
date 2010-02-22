@@ -220,12 +220,13 @@ IMP gs_objc_msg_forward (SEL sel)
 }
 #ifdef __GNUSTEP_RUNTIME__
 pthread_key_t thread_slot_key;
-static struct objc_slot_t
+static struct objc_slot *
 gs_objc_msg_forward3(id receiver, SEL op)
 {
   /* The slot has its version set to 0, so it can not be cached.  This makes it
    * safe to free it when the thread exits. */
-  Slot_t slot = pthread_getspecific(thread_slot_key);
+  struct objc_slot *slot = pthread_getspecific(thread_slot_key);
+
   if (NULL == slot)
     {
       slot = calloc(sizeof(struct objc_slot), 1);
@@ -250,8 +251,7 @@ BOOL class_respondsToSelector(Class cls, SEL sel);
  */
 static id gs_objc_proxy_lookup(id receiver, SEL op)
 {
-  /* FIXME: Should be isa, but legacy-compat mode makes it class_pointer */
-  Class cls = receiver->class_pointer;
+  Class cls = object_getClass(receiver);
   BOOL resolved = NO;
 
   /* Let the class try to add a method for this thing. */
@@ -264,7 +264,8 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
     }
   else
     {
-      if (class_respondsToSelector(cls->class_pointer, @selector(resolveInstanceMethod:)))
+      if (class_respondsToSelector(cls->class_pointer,
+	@selector(resolveInstanceMethod:)))
 	{
 	  resolved = [cls resolveInstanceMethod: op];
 	}
@@ -275,7 +276,7 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
     }
   if (class_respondsToSelector(cls, @selector(forwardingTargetForSelector:)))
     {
-      return [receiver forwardingTargetForSelector: op]
+      return [receiver forwardingTargetForSelector: op];
     }
   return nil;
 }
