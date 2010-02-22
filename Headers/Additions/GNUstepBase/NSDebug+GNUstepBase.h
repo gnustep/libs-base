@@ -206,7 +206,7 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
  * has not already been called.<br />
  * Use this from inside a function.  Pass an NSString as a format,
  * followed by zero or more arguments for the format string.
- * Example: GSOnceMLog(@"This function is deprecated, use another");
+ * Example: GSOnceFLog(@"This function is deprecated, use another");
  */
 #define GSOnceFLog(format, args...) \
   do { static BOOL beenHere = NO; if (beenHere == NO) {\

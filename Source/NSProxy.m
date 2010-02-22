@@ -142,7 +142,7 @@ extern BOOL __objc_responds_to(id, SEL);
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  return get_imp(GSObjCClass((id)self), aSelector);
+  return get_imp(object_getClass((id)self), aSelector);
 }
 
 /**
@@ -209,7 +209,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 + (Class) superclass
 {
-  return GSObjCSuper(self);
+  return class_getSuperclass(self);
 }
 
 /**
@@ -296,7 +296,7 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   [NSException raise: NSInvalidArgumentException
 	      format: @"NSProxy should not implement '%s'",
-				GSNameFromSelector(_cmd)];
+				sel_getName(_cmd)];
 }
 
 /**
@@ -321,7 +321,7 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   [NSException raise: NSGenericException
     format: @"subclass %s should override %s", GSClassNameFromObject(self),
-    GSNameFromSelector(_cmd)];
+    sel_getName(_cmd)];
   return self;
 }
 
@@ -386,7 +386,7 @@ extern BOOL __objc_responds_to(id, SEL);
 - (id) notImplemented: (SEL)aSel
 {
   [NSException raise: NSGenericException
-	      format: @"NSProxy notImplemented %s", GSNameFromSelector(aSel)];
+	      format: @"NSProxy notImplemented %s", sel_getName(aSel)];
   return self;
 }
 
@@ -402,7 +402,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       return nil;
     }
-  mth = GSGetMethod(GSObjCClass(self), aSelector, YES, YES);
+  mth = GSGetMethod(object_getClass(self), aSelector, YES, YES);
   if (mth != 0)
     {
       const char	*types = mth->method_types;
@@ -425,7 +425,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				GSNameFromSelector(_cmd)];
+				sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -440,7 +440,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				GSNameFromSelector(_cmd)];
+				sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector, anObject);
@@ -456,7 +456,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				GSNameFromSelector(_cmd)];
+				sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector, anObject, anotherObject);
@@ -496,7 +496,7 @@ extern BOOL __objc_responds_to(id, SEL);
        * use get_imp() because NSDistantObject doesn't implement
        * methodForSelector:
        */
-      proxyImp = get_imp(GSObjCClass((id)proxyClass),
+      proxyImp = get_imp(object_getClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 

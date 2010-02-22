@@ -403,7 +403,7 @@ static NSStringEncoding	defaultEncoding;
   lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef __MINGW32__
-  if (GSObjCClass(attributes) == GSAttrDictionaryClass)
+  if (object_getClass(attributes) == GSAttrDictionaryClass)
     {
       num = ((GSAttrDictionary*)attributes)->statbuf.st_uid;
     }
@@ -467,7 +467,7 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-  if (GSObjCClass(attributes) == GSAttrDictionaryClass)
+  if (object_getClass(attributes) == GSAttrDictionaryClass)
     {
       num = ((GSAttrDictionary*)attributes)->statbuf.st_gid;
     }

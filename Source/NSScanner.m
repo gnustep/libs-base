@@ -202,7 +202,7 @@ typedef GSString	*ivars;
       aString = @"";
     }
 
-  c = GSObjCClass(aString);
+  c = object_getClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
     {
       _isUnicode = YES;

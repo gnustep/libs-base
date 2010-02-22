@@ -2102,14 +2102,14 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  lastClass = NSStringClass;
 	  for (i = 0; i < numKeys; i++)
 	    {
-	      if (GSObjCClass(keys[i]) == lastClass)
+	      if (object_getClass(keys[i]) == lastClass)
 		continue;
 	      if ([keys[i] isKindOfClass: NSStringClass] == NO)
 		{
 		  canCompare = NO;
 		  break;
 		}
-	      lastClass = GSObjCClass(keys[i]);
+	      lastClass = object_getClass(keys[i]);
 	    }
 	}
 
@@ -2149,7 +2149,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		      Class			x;
 		      NSComparisonResult	r;
 
-		      x = GSObjCClass(a);
+		      x = object_getClass(a);
 		      if (x != lastClass)
 			{
 			  lastClass = x;
@@ -2364,7 +2364,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       *str = AUTORELEASE([GSMutableString new]);
     }
-  else if (GSObjCClass(*str) != [GSMutableString class])
+  else if (object_getClass(*str) != [GSMutableString class])
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Illegal object (%@) at argument 0", *str];

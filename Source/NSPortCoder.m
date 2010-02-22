@@ -597,8 +597,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		  if (c == 0)
 		    {
 		      NSLog(@"[%s %s] decoded nil class",
-			GSNameFromClass([self class]),
-			GSNameFromSelector(_cmd));
+			class_getName([self class]),
+			sel_getName(_cmd));
 		    }
 		  obj = [c allocWithZone: _zone];
 		  GSIArrayAddItem(_objAry, (GSIArrayItem)obj);
@@ -712,7 +712,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      if (c == 0)
 		{
 		  NSLog(@"[%s %s] decoded nil class",
-		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
+		    class_getName([self class]), sel_getName(_cmd));
 		}
 	      classInfo = [GSClassInfo newWithClass: c andVersion: cver];
 	      GSIArrayAddItem(_clsAry, (GSIArrayItem)((id)classInfo));
@@ -1525,9 +1525,9 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      }
 	    while (done == NO)
 	      {
-		int		tmp = GSObjCVersion(c);
+		int		tmp = class_getVersion(c);
 		unsigned	version = tmp;
-		Class		s = GSObjCSuper(c);
+		Class		s = class_getSuperclass(c);
 
 		if (tmp < 0)
 		  {
@@ -2045,7 +2045,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
        * use get_imp() because NSDistantObject doesn't implement
        * methodForSelector:
        */
-      proxyImp = get_imp(GSObjCClass((id)proxyClass),
+      proxyImp = get_imp(object_getClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 

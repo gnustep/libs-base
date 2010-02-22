@@ -101,7 +101,7 @@ offset(NSTimeZone *tz, NSDate *d)
     }
   else
     {
-      Class	c = GSObjCClass(tz);
+      Class	c = object_getClass(tz);
 
       if (c == dstClass && dstOffIMP != 0)
 	{
@@ -133,7 +133,7 @@ abbrev(NSTimeZone *tz, NSDate *d)
     }
   else
     {
-      Class	c = GSObjCClass(tz);
+      Class	c = object_getClass(tz);
 
       if (c == dstClass && dstAbrIMP != 0)
 	{

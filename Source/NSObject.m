@@ -570,7 +570,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
     {
       new = NSZoneCalloc(zone, 1, size);
       NSLog(@"No garbage collection information for '%s'",
-	GSNameFromClass(aClass));
+	class_getName(aClass));
     }
   else
     {
@@ -603,7 +603,7 @@ NSDeallocateObject(id anObject)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
-  if (GSObjCClass(object) == NSConstantStringClass)
+  if (object_getClass(object) == NSConstantStringClass)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
 }
@@ -723,7 +723,7 @@ GSDescriptionForInstanceMethod(pcl self, SEL aSel)
 {
   int i;
   struct objc_protocol_list	*p_list;
-  const char			*name = GSNameFromSelector(aSel);
+  const char			*name = sel_getName(aSel);
   struct objc_method_description *result;
 
   if (self->instance_methods != 0)
@@ -754,7 +754,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   int i;
   struct objc_protocol_list	*p_list;
-  const char			*name = GSNameFromSelector(aSel);
+  const char			*name = sel_getName(aSel);
   struct objc_method_description *result;
 
   if (self->class_methods != 0)
@@ -1299,7 +1299,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (Class) superclass
 {
-  return GSObjCSuper(self);
+  return class_getSuperclass(self);
 }
 
 /**
@@ -1307,7 +1307,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (Class) superclass
 {
-  return GSObjCSuper(GSObjCClass(self));
+  return class_getSuperclass(object_getClass(self));
 }
 
 /**
@@ -1407,12 +1407,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   /*
-   *	If 'self' is an instance, GSObjCClass() will get the class,
+   *	If 'self' is an instance, object_getClass() will get the class,
    *	and get_imp() will get the instance method.
-   *	If 'self' is a class, GSObjCClass() will get the meta-class,
+   *	If 'self' is a class, object_getClass() will get the meta-class,
    *	and get_imp() will get the class method.
    */
-  return get_imp(GSObjCClass(self), aSelector);
+  return get_imp(object_getClass(self), aSelector);
 }
 
 /**
@@ -1452,7 +1452,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   selTypes = sel_get_type(aSelector);
-  c = (GSObjCIsInstance(self) ? GSObjCClass(self) : (Class)self);
+  c = (GSObjCIsInstance(self) ? object_getClass(self) : (Class)self);
   mth = GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
 
   if (mth == 0)
@@ -1525,7 +1525,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s: %p>",
-    GSNameFromClass([self class]), self];
+    class_getName([self class]), self];
 }
 
 /**
@@ -1560,7 +1560,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 	      format: @"%s(%s) does not recognize %s",
 	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSelector ? GSNameFromSelector(aSelector) : "(null)"];
+	       aSelector ? sel_getName(aSelector) : "(null)"];
 }
 
 - (retval_t) forward: (SEL)aSel : (arglist_t)argFrame
@@ -1750,7 +1750,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (BOOL) isKindOfClass: (Class)aClass
 {
-  Class class = GSObjCClass(self);
+  Class class = object_getClass(self);
 
   return GSObjCIsKindOf(class, aClass);
 }
@@ -1768,7 +1768,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (BOOL) isMemberOfClass: (Class)aClass
 {
-  return (GSObjCClass(self) == aClass) ? YES : NO;
+  return (object_getClass(self) == aClass) ? YES : NO;
 }
 
 /**
@@ -1804,12 +1804,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(GSObjCClass(self), aSelector);
+  msg = get_imp(object_getClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
 		   format: @"invalid selector passed to %s",
-		     GSNameFromSelector(_cmd)];
+		     sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -1829,12 +1829,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(GSObjCClass(self), aSelector);
+  msg = get_imp(object_getClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
 		   format: @"invalid selector passed to %s",
-		   GSNameFromSelector(_cmd)];
+		   sel_getName(_cmd)];
       return nil;
     }
 
@@ -1857,11 +1857,11 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(GSObjCClass(self), aSelector);
+  msg = get_imp(object_getClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
-		  format: @"invalid selector passed to %s", GSNameFromSelector(_cmd)];
+		  format: @"invalid selector passed to %s", sel_getName(_cmd)];
       return nil;
     }
 
@@ -2165,7 +2165,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 	       format: @"%s(%s) does not recognize %s",
 	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSel ? GSNameFromSelector(aSel) : "(null)"];
+	       aSel ? sel_getName(aSel) : "(null)"];
   return nil;
 }
 
@@ -2287,7 +2287,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 - (BOOL) isMemberOfClassNamed: (const char*)aClassName
 {
   return ((aClassName!=NULL)
-          &&!strcmp(GSNameFromClass(GSObjCClass(self)), aClassName));
+          &&!strcmp(class_getName(object_getClass(self)), aClassName));
 }
 
 + (struct objc_method_description *) descriptionForInstanceMethod: (SEL)aSel
@@ -2308,7 +2308,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
   return ((struct objc_method_description *)
 	  GSGetMethod((GSObjCIsInstance(self)
-		       ? GSObjCClass(self) : (Class)self),
+		       ? object_getClass(self) : (Class)self),
 		      aSel,
 		      GSObjCIsInstance(self),
 		      YES));

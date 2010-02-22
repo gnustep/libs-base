@@ -399,7 +399,7 @@ static	NSIndexPath	*dummy = nil;
     {
       return YES;
     }
-  if (other == nil || GSObjCIsKindOf(GSObjCClass(other), myClass) == NO)
+  if (other == nil || GSObjCIsKindOf(object_getClass(other), myClass) == NO)
     {
       return NO;
     }

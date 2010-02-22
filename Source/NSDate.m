@@ -110,7 +110,7 @@ otherTime(NSDate* other)
     [NSException raise: NSInvalidArgumentException format: @"other time nil"];
   if (GSObjCIsInstance(other) == NO)
     [NSException raise: NSInvalidArgumentException format: @"other time bad"];
-  c = GSObjCClass(other);
+  c = object_getClass(other);
   if (c == concreteClass || c == calendarClass)
     return ((NSGDate*)other)->_seconds_since_ref;
   else

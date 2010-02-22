@@ -293,7 +293,7 @@ static Class	mutableSetClass;
     }
 
   // Loop for all members in otherSet
-  c = GSObjCClass(otherSet);
+  c = object_getClass(otherSet);
   if (c == setClass || c == mutableSetClass)
     {
       GSIMapTable		m = &((GSSet*)otherSet)->map;
@@ -381,7 +381,7 @@ static Class	mutableSetClass;
     }
   else
     {
-      Class	c = GSObjCClass(other);
+      Class	c = object_getClass(other);
 
       if (c == setClass || c == mutableSetClass)
 	{

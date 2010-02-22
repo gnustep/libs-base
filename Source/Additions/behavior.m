@@ -197,7 +197,7 @@ behavior_class_add_methods (Class class, struct objc_method_list *methods)
 	    }
 
 	  if (!search_for_method_in_list(class,method->method_name)
-	    && !sel_eq(method->method_name, initialize_sel))
+	    && !sel_isEqual(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
 		 put the BEHAVIOR method in there.  Thus, behavior
@@ -249,7 +249,7 @@ search_for_method_in_list (Class class, SEL op)
 
           if (method->method_name)
             {
-              if (sel_eq(method->method_name, op))
+              if (sel_isEqual(method->method_name, op))
                 return method;
             }
         }
@@ -303,7 +303,7 @@ behavior_class_add_methods (Class class,
 	      fprintf(stderr, "   processing method [%s] ... ", name);
 	    }
 	  if (!search_for_method_in_list(class->methods, method->method_name)
-	      && !sel_eq(method->method_name, initialize_sel))
+	      && !sel_isEqual(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
 		 put the BEHAVIOR method in there.  Thus, behavior

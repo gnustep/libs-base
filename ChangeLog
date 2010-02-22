@@ -1,3 +1,45 @@
+2010-02-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexPath.m:
+	* Source/NSPortCoder.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSPropertyList.m:
+	* Source/GSConcreteValueTemplate.m:
+	* Source/NSScanner.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSSortDescriptor.m:
+	* Source/GSFFIInvocation.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSInvocation.m:
+	* Source/NSFileManager.m:
+	* Source/NSString.m:
+	* Source/NSObject.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/GSSet.m:
+	* Source/GSString.m:
+	* Source/NSConnection.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSData.m:
+	* Source/NSDate.m:
+	* Source/NSProxy.m:
+	* Source/NSObjCRuntime.m:
+	* Source/NSProtocolChecker.m:
+	* Source/GSValue.m:
+	* Source/NSSerializer.m:
+	* Source/NSCountedSet.m:
+	* Source/NSSet.m:
+	* Source/NSDistantObject.m:
+	* Source/NSArchiver.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSConcreteHashTable.m:
+	* Headers/Additions/GNUstepBase/NSDebug+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Deprecate some GS... runtime wrappers in favour of using the new
+	ObjC2 API where we have emulation for systems which are actually
+	usig the old API.  Work in progress.
+
 2010-02-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Fix incorrectly initialized zone ivar.

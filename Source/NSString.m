@@ -1962,7 +1962,7 @@ handle_printf_atsign (FILE *stream,
     }
   if (anObject != nil && GSObjCIsInstance(anObject) == YES)
     {
-      Class c = GSObjCClass(anObject);
+      Class c = object_getClass(anObject);
 
       if (c != nil)
 	{

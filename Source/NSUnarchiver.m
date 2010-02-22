@@ -744,7 +744,7 @@ static Class NSDataMallocClass;
 	      if (className == 0)
 		{
 		  NSLog(@"[%s %s] decoded nil class name",
-		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
+		    class_getName([self class]), sel_getName(_cmd));
 		  className = @"_NSUnarchiverUnknownClass";
 		}
 	      classInfo = [objDict objectForKey: className];
@@ -1230,7 +1230,7 @@ static Class NSDataMallocClass;
 {
   Class	c;
 
-  c = GSClassFromName([trueName cString]);
+  c = objc_lookUpClass([trueName cString]);
   if (c == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1282,7 +1282,7 @@ static Class NSDataMallocClass;
 {
   Class	c;
 
-  c = GSClassFromName([trueName cString]);
+  c = objc_lookUpClass([trueName cString]);
   if (c == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1377,7 +1377,7 @@ static Class NSDataMallocClass;
 
       TEST_RELEASE(data);
       data = RETAIN(anObject);
-      c = GSObjCClass(data);
+      c = object_getClass(data);
       if (src != self)
 	{
 	  src = data;

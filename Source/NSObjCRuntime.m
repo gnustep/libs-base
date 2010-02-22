@@ -69,7 +69,7 @@ NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
-    return [NSString stringWithUTF8String: GSNameFromSelector(aSelector)];
+    return [NSString stringWithUTF8String: sel_getName(aSelector)];
   return nil;
 }
 
@@ -108,7 +108,7 @@ NSClassFromString(NSString *aClassName)
       [aClassName getCString: buf
 		   maxLength: len + 1
 		    encoding: NSASCIIStringEncoding];
-      return GSClassFromName (buf);
+      return objc_lookUpClass (buf);
     }
   return (Class)0;
 }
@@ -121,7 +121,7 @@ NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
-    return [NSString stringWithUTF8String: (char*)GSNameFromClass(aClass)];
+    return [NSString stringWithUTF8String: (char*)class_getName(aClass)];
   return nil;
 }
 

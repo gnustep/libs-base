@@ -1991,7 +1991,7 @@ static NSLock	*cached_proxies_gate = nil;
       type = [[object methodSignatureForSelector: [inv selector]] methodType];
       if (type)
 	{
-	  sel_register_typed_name(GSNameFromSelector([inv selector]), type);
+	  sel_register_typed_name(sel_getName([inv selector]), type);
 	}
     }
   NSParameterAssert(type);
@@ -2032,7 +2032,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   [self _sendOutRmc: op type: METHOD_REQUEST];
   NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%x",
-    GSNameFromSelector([inv selector]), seq, (uintptr_t)self);
+    sel_getName([inv selector]), seq, (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2557,7 +2557,7 @@ static NSLock	*cached_proxies_gate = nil;
 	}
       else if (GSObjCIsInstance(object))
 	{
-	  meth = GSGetMethod(GSObjCClass(object), selector, YES, YES);
+	  meth = GSGetMethod(object_getClass(object), selector, YES, YES);
 	}
       else
 	{
@@ -2574,9 +2574,9 @@ static NSLock	*cached_proxies_gate = nil;
 	  NSDebugLog(@"Local object <%p %s> doesn't implement: %s directly.  "
 		     @"Will search for arbitrary signature.",
 		     object,
-		     GSNameFromClass(GSObjCIsClass(object) 
-				     ? object : (id)GSObjCClass(object)),
-		     GSNameFromSelector(selector));
+		     class_getName(GSObjCIsClass(object) 
+				     ? object : (id)object_getClass(object)),
+		     sel_getName(selector));
 	  type = GSTypesFromSelector(selector);
 	}
 
@@ -2587,7 +2587,7 @@ static NSLock	*cached_proxies_gate = nil;
 	{
 	  [NSException raise: NSInvalidArgumentException
 	    format: @"NSConection types (%s / %s) missmatch for %s", 
-	    encoded_types, type, GSNameFromSelector(selector)];
+	    encoded_types, type, sel_getName(selector)];
 	}
 
       sig = [NSMethodSignature signatureWithObjCTypes: type];

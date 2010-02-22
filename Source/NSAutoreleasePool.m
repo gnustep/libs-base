@@ -419,7 +419,7 @@ static IMP	initImp;
                     "nil object encountered in autorelease pool\n");
                   continue;
                 }
-	      c = GSObjCClass(anObject);
+	      c = object_getClass(anObject);
               if (c == 0)
                 {
                   [NSException raise: NSInternalInconsistencyException

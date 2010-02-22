@@ -309,7 +309,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	{
 	  GSTimedPerformer	*p = array[count];
 
-	  if (p->target == target && sel_eq(p->selector, aSelector)
+	  if (p->target == target && sel_isEqual(p->selector, aSelector)
 	    && (p->argument == arg || [p->argument isEqual: arg]))
 	    {
 	      [p invalidate];
@@ -1384,7 +1384,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	      GSRunLoopPerformer	*p;
 
 	      p = GSIArrayItemAtIndex(performers, count).obj;
-	      if (p->target == target && sel_eq(p->selector, aSelector)
+	      if (p->target == target && sel_isEqual(p->selector, aSelector)
 		&& (p->argument == argument || [p->argument isEqual: argument]))
 		{
 		  GSIArrayRemoveItemAtIndex(performers, count);
