@@ -1,3 +1,9 @@
+2010-02-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Additions/Unicode.m (GSToUnicode): Fix my own bug fix to
+	avoid potential null pointer dereferences, as that fix could lead
+	to attempts to free() memory on the stack.
+
 2010-02-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexPath.m:
