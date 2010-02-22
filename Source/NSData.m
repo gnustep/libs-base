@@ -3153,7 +3153,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (bytes == (void*)-1)
     {
       NSLog(@"[NSDataShared -initWithShmID:length:] shared memory "
-        @"attach failed - %s", [NSError _last]);
+        @"attach failed - %@", [NSError _last]);
       bytes = 0;
       RELEASE(self);	/* Unable to attach to memory. */
       return nil;
