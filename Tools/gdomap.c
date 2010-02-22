@@ -25,7 +25,7 @@
 /* Ported to mingw 07/12/00 by Bjorn Giesler <Bjoern.Giesler@gmx.de> */
 
 #include "config.h"
-#include "GNUstepBase/GSConfig.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
