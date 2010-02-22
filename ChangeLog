@@ -1,5 +1,12 @@
 2010-02-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
+	* Source/NSSpellServer.m (-isWordInUserDictionaries:caseSensitive:):
+	Make sure word is checked against the current list of ignored
+	words regardless of whether the user (already) has a set of
+	learned words in the current language.
+
+2010-02-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
 	* Source/Additions/Unicode.m (GSToUnicode): Fix my own bug fix to
 	avoid potential null pointer dereferences, as that fix could lead
 	to attempts to free() memory on the stack.

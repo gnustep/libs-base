@@ -301,6 +301,28 @@ GSSpellServerName(NSString *vendor, NSString *language)
 	  result = [word isEqualToString: dictWord];
 	}
     }
+  
+  return result;
+}
+
+// Checking User Dictionaries
+/** 
+Checks to see if the word is in the user's dictionary.  The user dictionary
+is a set of words learned by the spell service for that particular user
+combined with the set of ignored words in the current document.
+*/
+- (BOOL) isWordInUserDictionaries: (NSString *)word
+		    caseSensitive: (BOOL)flag
+{
+  NSSet *userDict = [self _openUserDictionary: _currentLanguage];
+  BOOL result = NO;
+
+  if (userDict)
+    {
+      result = [self _isWord: word
+	        inDictionary: userDict
+	       caseSensitive: flag];
+    }
 
   if (result == NO && _ignoredWords)
     {
@@ -323,27 +345,6 @@ GSSpellServerName(NSString *vendor, NSString *language)
 	      result = [word isEqualToString: iword];
 	    }
 	}      
-    }
-  
-  return result;
-}
-
-// Checking User Dictionaries
-/** 
-Checks to see if the word is in the user's dictionary.  The user dictionary
-is a set of words learned by the spell service for that particular user.
-*/
-- (BOOL) isWordInUserDictionaries: (NSString *)word
-		    caseSensitive: (BOOL)flag
-{
-  NSSet *userDict = [self _openUserDictionary: _currentLanguage];
-  BOOL result = NO;
-
-  if (userDict)
-    {
-      result = [self _isWord: word
-	        inDictionary: userDict
-	       caseSensitive: flag];
     }
 
   return result;
