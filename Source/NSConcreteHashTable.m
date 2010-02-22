@@ -143,22 +143,22 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
     {
       return NO;
     }
-  if (GSObjCClass(table1) != concreteClass
-    && GSObjCClass(table2) == concreteClass)
+  if (object_getClass(table1) != concreteClass
+    && object_getClass(table2) == concreteClass)
     {
       id	t = table1;
 
       table1 = table2;
       table2 = t;
     }
-  if (GSObjCClass(table1) == concreteClass)
+  if (object_getClass(table1) == concreteClass)
     {
       BOOL		result = YES;
       NSHashEnumerator	enumerator;
       GSIMapNode	n1;
 
       enumerator = NSEnumerateHashTable(table1);
-      if (GSObjCClass(table2) == concreteClass)
+      if (object_getClass(table2) == concreteClass)
 	{
           GSIMapTable	t2 = (GSIMapTable)table2;
 
@@ -371,7 +371,7 @@ NSEnumerateHashTable(NSHashTable *table)
       NSWarnFLog(@"Null table argument supplied");
       return v;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       return GSIMapEnumeratorForMap((GSIMapTable)table);
     }
@@ -408,7 +408,7 @@ NSHashGet(NSHashTable *table, const void *element)
       NSWarnFLog(@"Null table argument supplied");
       return 0;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapNode	n;
 
@@ -443,7 +443,7 @@ NSHashInsert(NSHashTable *table, const void *element)
       [NSException raise: NSInvalidArgumentException
                   format: @"Attempt to place null in hash table"];
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapTable   t = (GSIMapTable)table;
       GSIMapNode    n;
@@ -487,7 +487,7 @@ NSHashInsertIfAbsent(NSHashTable *table, const void *element)
       [NSException raise: NSInvalidArgumentException
                   format: @"Attempt to place null in hash table"];
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapTable   t = (GSIMapTable)table;
       GSIMapNode    n;
@@ -538,7 +538,7 @@ NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
       [NSException raise: NSInvalidArgumentException
                   format: @"Attempt to place null in hash table"];
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapTable   t = (GSIMapTable)table;
       GSIMapNode    n;
@@ -582,7 +582,7 @@ NSHashRemove(NSHashTable *table, const void *element)
       NSWarnFLog(@"Nul table argument supplied");
       return;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapTable	map = (GSIMapTable)table;
       GSIMapBucket	bucket;
@@ -658,7 +658,7 @@ NSResetHashTable(NSHashTable *table)
       NSWarnFLog(@"Nul table argument supplied");
       return;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       NSConcreteHashTable	*t = (NSConcreteHashTable*)table;
 

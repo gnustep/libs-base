@@ -1100,12 +1100,12 @@ failure:
 			      length: ni
 			    atCursor: cursor];
 	      name[ni] = '\0';
-	      c = GSClassFromName(name);
+	      c = objc_lookUpClass(name);
 	      if (c == 0)
 		{
 		  NSLog(@"[%s %s] can't find class - %s",
-		    GSNameFromClass([self class]),
-		    GSNameFromSelector(_cmd), name);
+		    class_getName([self class]),
+		    sel_getName(_cmd), name);
 		}
 	      *(Class*)data = c;
 	    }
@@ -2265,7 +2265,7 @@ failure:
 	}
       case _C_CLASS:
 	{
-	  const char  *name = *(Class*)data?GSNameFromClass(*(Class*)data):"";
+	  const char  *name = *(Class*)data?class_getName(*(Class*)data):"";
 	  uint16_t	ln = (uint16_t)strlen(name);
 	  uint16_t	ni;
 
@@ -2279,7 +2279,7 @@ failure:
 	}
       case _C_SEL:
 	{
-	  const char  *name = *(SEL*)data?GSNameFromSelector(*(SEL*)data):"";
+	  const char  *name = *(SEL*)data?sel_getName(*(SEL*)data):"";
 	  uint16_t	ln = (name == 0) ? 0 : (uint16_t)strlen(name);
 	  const char  *types = *(SEL*)data?GSTypesFromSelector(*(SEL*)data):"";
 	  uint16_t	lt = (types == 0) ? 0 : (uint16_t)strlen(types);
@@ -2762,12 +2762,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 	      getBytes((void*)name, bytes, ni, length, cursor);
 	      name[ni] = '\0';
-	      c = GSClassFromName(name);
+	      c = objc_lookUpClass(name);
 	      if (c == 0)
 		{
 		  NSLog(@"[%s %s] can't find class - %s",
-		    GSNameFromClass([self class]),
-		    GSNameFromSelector(_cmd), name);
+		    class_getName([self class]),
+		    sel_getName(_cmd), name);
 		}
 	      *(Class*)data = c;
 	    }
@@ -3572,7 +3572,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_CLASS:
 	{
-	  const char  *name = *(Class*)data?GSNameFromClass(*(Class*)data):"";
+	  const char  *name = *(Class*)data?class_getName(*(Class*)data):"";
 	  uint16_t	ln = (uint16_t)strlen(name);
 	  uint32_t	minimum = length + ln + sizeof(uint16_t);
 	  uint16_t	ni;
@@ -3593,7 +3593,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_SEL:
 	{
-	  const char  *name = *(SEL*)data?GSNameFromSelector(*(SEL*)data):"";
+	  const char  *name = *(SEL*)data?sel_getName(*(SEL*)data):"";
 	  uint16_t	ln = (name == 0) ? 0 : (uint16_t)strlen(name);
 	  const char  *types = *(SEL*)data?GSTypesFromSelector(*(SEL*)data):"";
 	  uint16_t	lt = (types == 0) ? 0 : (uint16_t)strlen(types);

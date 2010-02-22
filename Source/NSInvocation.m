@@ -653,8 +653,8 @@ _arg_addr(NSInvocation *inv, int index)
   snprintf (buffer, 1024, "<%s %p selector: %s target: %s>", \
     GSClassNameFromObject(self), \
     self, \
-    _selector ? GSNameFromSelector(_selector) : "nil", \
-    _target ? GSNameFromClass([_target class]) : "nil" \
+    _selector ? sel_getName(_selector) : "nil", \
+    _target ? class_getName([_target class]) : "nil" \
    );
 
   return [NSString stringWithUTF8String: buffer];
@@ -800,12 +800,12 @@ _arg_addr(NSInvocation *inv, int index)
   if (types == 0)
     {
       types
-        = sel_get_type(sel_get_any_typed_uid(GSNameFromSelector(aSelector)));
+        = sel_get_type(sel_get_any_typed_uid(sel_getName(aSelector)));
     }
   if (types == 0)
     {
       NSLog(@"Couldn't find encoding type for selector %s.",
-	   GSNameFromSelector(aSelector));
+	   sel_getName(aSelector));
       RELEASE(self);
       return nil;
     }

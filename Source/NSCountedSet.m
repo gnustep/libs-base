@@ -115,7 +115,7 @@ static Class NSCountedSet_concrete_class;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned	count;
-  Class		c = GSObjCClass(self);
+  Class		c = object_getClass(self);
 
   if (c == NSCountedSet_abstract_class)
     {

@@ -83,7 +83,7 @@
 
 - (unsigned) hash
 {
-  const char	*sel = GSNameFromSelector(_selector);
+  const char	*sel = sel_getName(_selector);
 
   return _ascending + GSPrivateHash(sel, strlen(sel), 16, YES) + [_key hash];
 }
@@ -136,7 +136,7 @@
     {
       return NO;
     }
-  if (!sel_eq(((NSSortDescriptor*)other)->_selector, _selector))
+  if (!sel_isEqual(((NSSortDescriptor*)other)->_selector, _selector))
     {
       return NO;
     }

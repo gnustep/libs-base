@@ -210,7 +210,7 @@ static Class NSMutableSet_concrete_class;
 {
   Class		c;
 
-  c = GSObjCClass(self);
+  c = object_getClass(self);
   if (c == NSSet_abstract_class)
     {
       RELEASE(self);

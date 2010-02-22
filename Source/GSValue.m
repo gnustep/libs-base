@@ -149,7 +149,7 @@ typeSize(const char* type)
 {
   if (aValue == nil)
     return NO;
-  if (GSObjCClass(aValue) != GSObjCClass(self))
+  if (object_getClass(aValue) != object_getClass(self))
     return NO;
   if (strcmp(objctype, ((GSValue*)aValue)->objctype) != 0)
     return NO;

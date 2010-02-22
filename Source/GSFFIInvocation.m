@@ -22,8 +22,6 @@
    Boston, MA 02111 USA.
    */
 
-// FIXME: We should be using the new interfaces, not exposing the old ones.
-#	define __OBJC_LEGACY_GNU_MODE__
 
 #import "common.h"
 #import "Foundation/NSException.h"
@@ -31,10 +29,7 @@
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSData.h"
 #import "GSInvocation.h"
-#import <objc/objc-api.h>
-#if HAVE_OBJC_RUNTIME_H
-#	import <objc/runtime.h>
-#endif
+#import "GNUstepBase/GSObjCRuntime.h"
 #import <pthread.h>
 #import "cifframe.h"
 #import "GSPrivate.h"
@@ -68,7 +63,7 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
   if (receiver)
     {
       return GSGetMethod((GSObjCIsInstance(receiver)
-                          ? GSObjCClass(receiver) : (Class)receiver),
+                          ? object_getClass(receiver) : (Class)receiver),
                          sel,
                          GSObjCIsInstance(receiver),
                          YES);
@@ -99,7 +94,7 @@ gs_find_best_typed_sel (SEL sel)
 {
   if (!sel_get_type (sel))
     {
-      const char *name = GSNameFromSelector(sel);
+      const char *name = sel_getName(sel);
 
       if (name)
 	{
@@ -225,7 +220,8 @@ IMP gs_objc_msg_forward (SEL sel)
 }
 #ifdef __GNUSTEP_RUNTIME__
 pthread_key_t thread_slot_key;
-static struct objc_slot_t gs_objc_msg_forward3(id receiver, SEL op)
+static struct objc_slot_t
+gs_objc_msg_forward3(id receiver, SEL op)
 {
   /* The slot has its version set to 0, so it can not be cached.  This makes it
    * safe to free it when the thread exits. */
@@ -254,33 +250,34 @@ BOOL class_respondsToSelector(Class cls, SEL sel);
  */
 static id gs_objc_proxy_lookup(id receiver, SEL op)
 {
-    /* FIXME: Should be isa, but legacy-compat mode makes it class_pointer */
-    Class cls = receiver->class_pointer;
-    BOOL resolved = NO;
-    /* Let the class try to add a method for this thing. */
-    if (class_isMetaClass(cls))
-      {
-        if (class_respondsToSelector(cls, @selector(resolveClassMethod:)))
-          {
-            resolved = [receiver resolveClassMethod: op];
-          }
-      }
-    else
-      {
-        if (class_respondsToSelector(cls->class_pointer, @selector(resolveInstanceMethod:)))
-          {
-            resolved = [class resolveInstanceMethod: op];
-          }
-      }
-    if (resolved)
-      {
-        return receiver;
-      }
-    if (class_respondsToSelector(cls, @selector(forwardingTargetForSelector:)))
-      {
-        return [receiver forwardingTargetForSelector: op]
-      }
-    return nil;
+  /* FIXME: Should be isa, but legacy-compat mode makes it class_pointer */
+  Class cls = receiver->class_pointer;
+  BOOL resolved = NO;
+
+  /* Let the class try to add a method for this thing. */
+  if (class_isMetaClass(cls))
+    {
+      if (class_respondsToSelector(cls, @selector(resolveClassMethod:)))
+	{
+	  resolved = [receiver resolveClassMethod: op];
+	}
+    }
+  else
+    {
+      if (class_respondsToSelector(cls->class_pointer, @selector(resolveInstanceMethod:)))
+	{
+	  resolved = [cls resolveInstanceMethod: op];
+	}
+    }
+  if (resolved)
+    {
+      return receiver;
+    }
+  if (class_respondsToSelector(cls, @selector(forwardingTargetForSelector:)))
+    {
+      return [receiver forwardingTargetForSelector: op]
+    }
+  return nil;
 }
 #endif
 
@@ -446,16 +443,16 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 
       s.self = _target;
       if (GSObjCIsInstance(_target))
-	s.class = GSObjCSuper(GSObjCClass(_target));
+	s.class = class_getSuperclass(object_getClass(_target));
       else
-	s.class = GSObjCSuper((Class)_target);
+	s.class = class_getSuperclass((Class)_target);
       imp = objc_msg_lookup_super(&s, _selector);
     }
   else
     {
       GSMethod method;
       method = GSGetMethod((GSObjCIsInstance(_target)
-                            ? (Class)GSObjCClass(_target)
+                            ? (Class)object_getClass(_target)
                             : (Class)_target),
                            _selector,
                            GSObjCIsInstance(_target),
@@ -555,7 +552,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 		           @" to forwardInvocation: for '%s'",
 		   GSClassNameFromObject(obj),
 		   GSObjCIsInstance(obj) ? "instance" : "class",
-		   selector ? GSNameFromSelector(selector) : "(null)"];
+		   selector ? sel_getName(selector) : "(null)"];
     }
 
   sig = nil;
@@ -579,7 +576,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 
       if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
 	{
-	  const char	*runtimeName = GSNameFromSelector(selector);
+	  const char	*runtimeName = sel_getName(selector);
 
 	  selector = sel_get_typed_uid (runtimeName, receiverTypes);
 	  if (selector == 0)
@@ -620,7 +617,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
                    format: @"Can not determine type information for %s[%s %s]",
                    GSObjCIsInstance(obj) ? "-" : "+",
 	 GSClassNameFromObject(obj),
-	 selector ? GSNameFromSelector(selector) : "(null)"];
+	 selector ? sel_getName(selector) : "(null)"];
     }
 
   invocation = [[GSFFIInvocation alloc] initWithCallback: cif

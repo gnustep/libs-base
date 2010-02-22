@@ -847,7 +847,7 @@ static Class concreteMutableClass = nil;
 
 - (id) init
 {
-  if (GSObjCClass(self) == abstractClass)
+  if (object_getClass(self) == abstractClass)
     {
       id	obj;
 
@@ -1124,7 +1124,7 @@ static Class concreteMutableClass = nil;
 
 - (id) init
 {
-  if (GSObjCClass(self) == abstractMutableClass)
+  if (object_getClass(self) == abstractMutableClass)
     {
       id	obj;
 
@@ -1138,7 +1138,7 @@ static Class concreteMutableClass = nil;
 
 - (id) initWithBitmap: (NSData*)bitmap
 {
-  if (GSObjCClass(self) == abstractMutableClass)
+  if (object_getClass(self) == abstractMutableClass)
     {
       id	obj;
 

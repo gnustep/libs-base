@@ -1,5 +1,5 @@
 /** Implementation of ObjC runtime additions for GNUStep
-   Copyright (C) 1995-2002 Free Software Foundation, Inc.
+   Copyright (C) 1995-2010 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: Aug 1995
@@ -67,6 +67,74 @@
 
 #define BDBGPrintf(format, args...) \
   do { if (behavior_debug) { fprintf(stderr, (format) , ## args); } } while (0)
+
+
+Class
+GSObjCClass(id obj)
+{
+  return object_getClass(obj);
+}
+Class GSObjCSuper(Class cls)
+{
+  return class_getSuperclass(cls);
+}
+BOOL
+GSObjCIsInstance(id obj)
+{
+  Class	c = object_getClass(obj);
+
+  if (c != Nil && class_isMetaClass(c) == NO)
+    return YES;
+  else
+    return NO;
+}
+BOOL
+GSObjCIsClass(Class cls)
+{
+  if (class_isMetaClass(object_getClass(cls)))
+    return YES; 
+  else
+    return NO;
+}
+BOOL
+GSObjCIsKindOf(Class cls, Class other)
+{
+  while (cls != Nil)
+    {
+      if (cls == other)
+	{
+	  return YES;
+	}
+      cls = class_getSuperclass(cls);
+    }
+  return NO;
+}
+Class
+GSClassFromName(const char *name)
+{
+  return objc_lookUpClass(name);
+}
+const char *
+GSNameFromClass(Class cls)
+{
+  return class_getName(cls);
+}
+const char *
+GSClassNameFromObject(id obj)
+{
+  return class_getName(object_getClass(obj));
+}
+const char *
+GSNameFromSelector(SEL sel)
+{
+  return sel_getName(sel);
+}
+int
+GSObjCVersion(Class cls)
+{
+  return class_getVersion(cls);
+}
+
 
 /**
  * This function is used to locate information about the instance
@@ -560,7 +628,7 @@ GSObjCAddMethods (Class cls, GSMethodList methods)
 		     GSNameFromSelector(method->method_name));
 
 	  if (!search_for_method_in_class(cls, method->method_name)
-	    && !sel_eq(method->method_name, initialize_sel))
+	    && !sel_isEqual(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
 		 put the BEHAVIOR method in there.  Thus, behavior
@@ -610,7 +678,7 @@ search_for_method_in_class (Class cls, SEL op)
 
           if (method->method_name)
             {
-              if (sel_eq(method->method_name, op))
+              if (sel_isEqual(method->method_name, op))
                 return method;
             }
         }
@@ -668,7 +736,7 @@ GSObjCAddMethods (Class cls, GSMethodList methods)
 	  BDBGPrintf("   processing method [%s] ... ", name);
 
 	  if (!search_for_method_in_list(cls->methods, method->method_name)
-	    && !sel_eq(method->method_name, initialize_sel))
+	    && !sel_isEqual(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
 		 put the BEHAVIOR method in there.  Thus, behavior
@@ -830,7 +898,7 @@ GSRemoveMethodFromList (GSMethodList list,
       sel = (SEL)GSNameFromSelector (sel);
     }
 #else
-  /* Insure that we always use sel_eq on non GNU Runtimes.  */
+  /* Insure that we always use sel_isEqual on non GNU Runtimes.  */
   isFree = NO;
 #endif
 
@@ -838,10 +906,10 @@ GSRemoveMethodFromList (GSMethodList list,
     {
       SEL  method_name = list->method_list[i].method_name;
 
-      /* For the GNU runtime we have use strcmp instead of sel_eq
+      /* For the GNU runtime we have use strcmp instead of sel_isEqual
 	 for free standing method lists.  */
       if ((isFree == YES && strcmp((char *)method_name, (char *)sel) == 0)
-          || (isFree == NO && sel_eq(method_name, sel)))
+          || (isFree == NO && sel_isEqual(method_name, sel)))
         {
 	  /* Found the list.  Now fill up the gap.  */
           for ((list->method_count)--; i < list->method_count; i++)
@@ -928,10 +996,10 @@ GSMethodFromList(GSMethodList list,
       GSMethod method = &list->method_list[i];
       SEL  method_name = method->method_name;
 
-      /* For the GNU runtime we have use strcmp instead of sel_eq
+      /* For the GNU runtime we have use strcmp instead of sel_isEqual
 	 for free standing method lists.  */
       if ((isFree == YES && strcmp((char *)method_name, (char *)sel) == 0)
-        || (isFree == NO && sel_eq(method_name, sel)))
+        || (isFree == NO && sel_isEqual(method_name, sel)))
 	{
 	  return method;
 	}

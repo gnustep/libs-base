@@ -146,7 +146,7 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 {
   Class	c;
 
-  c = GSObjCClass(d);
+  c = object_getClass(d);
   info->data = d;
   info->appImp = (void (*)(NSData*,SEL,const void*,unsigned))get_imp(c, appSel);
   info->datImp = (void* (*)(NSMutableData*,SEL))get_imp(c, datSel);
@@ -180,7 +180,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 		  format: @"Class (%@) in property list - expected instance",
 				[object description]];
     }
-  c = GSObjCClass(object);
+  c = object_getClass(object);
 
   if (GSObjCIsKindOf(c, StringClass)
       /*

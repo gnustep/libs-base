@@ -159,7 +159,7 @@ enum proxyLocation
 
 + (void) initialize
 {
-  if (self == GSClassFromName("GSDistantObjectPlaceHolder"))
+  if (self == objc_lookUpClass("GSDistantObjectPlaceHolder"))
     {
       distantObjectClass = [NSDistantObject class];
     }
@@ -403,7 +403,7 @@ enum proxyLocation
 {
   if (self == [NSDistantObject class])
     {
-      placeHolder = GSClassFromName("GSDistantObjectPlaceHolder");
+      placeHolder = objc_lookUpClass("GSDistantObjectPlaceHolder");
     }
 }
 
@@ -687,7 +687,7 @@ enum proxyLocation
        * signature of methodSignatureForSelector:, so we hack in
        * the signature required manually :-(
        */
-      if (sel_eq(aSelector, _cmd))
+      if (sel_isEqual(aSelector, _cmd))
 	{
 	  static	NSMethodSignature	*sig = nil;
 
@@ -697,7 +697,7 @@ enum proxyLocation
 	    }
 	  return sig;
 	}
-      if (sel_eq(aSelector, @selector(methodType)))
+      if (sel_isEqual(aSelector, @selector(methodType)))
 	{
 	  static	NSMethodSignature	*sig = nil;
 
@@ -720,7 +720,7 @@ enum proxyLocation
 	   * (implemented in NSObject.m) to examine the protocol contents
 	   * without sending any ObjectiveC message to it.
 	   */
-	  if ((uintptr_t)GSObjCClass(_protocol) == 0x2)
+	  if ((uintptr_t)object_getClass(_protocol) == 0x2)
 	    {
 	      extern struct objc_method_description*
 		GSDescriptionForInstanceMethod();
@@ -732,7 +732,7 @@ enum proxyLocation
 	    }
 	  if (mth == 0)
 	    {
-	      if ((uintptr_t)GSObjCClass(_protocol) == 0x2)
+	      if ((uintptr_t)object_getClass(_protocol) == 0x2)
 		{
 		  extern struct objc_method_description*
 		    GSDescriptionForClassMethod();
@@ -878,7 +878,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 {
   Class class;
 
-  for (class = self; class!=Nil; class = GSObjCSuper(class))
+  for (class = self; class!=Nil; class = class_getSuperclass(class))
     if (class==aClassObject)
       return YES;
   return NO;
@@ -911,7 +911,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 - (id) forward: (SEL)aSel :(arglist_t)frame
 {
   if (debug_proxy)
-    NSLog(@"NSDistantObject forwarding %s\n", GSNameFromSelector(aSel));
+    NSLog(@"NSDistantObject forwarding %s\n", sel_getName(aSel));
 
   if (![_connection isValid])
     [NSException

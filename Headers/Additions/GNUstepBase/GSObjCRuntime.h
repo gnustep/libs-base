@@ -36,8 +36,14 @@
 #include <objc/objc.h>
 #include <objc/objc-api.h>
 
-#if	defined(HAVE_OBJC_RUNTIME_H)
+#if	OBJC2RUNTIME
+/* We have a real ObjC2 runtime.
+ */
 #include <objc/runtime.h>
+#else
+/* We emulate an ObjC2 runtime.
+ */
+#include <GNUstepBase/runtime.h>
 #endif
 
 #ifdef __cplusplus
@@ -94,16 +100,33 @@ extern "C" {
 #define nil		0
 #endif
 
+#if	!defined(_C_CONST)
+#define _C_CONST        'r'
+#endif
+#if	!defined(_C_IN)
+#define _C_IN           'n'
+#endif
+#if	!defined(_C_INOUT)
+#define _C_INOUT        'N'
+#endif
+#if	!defined(_C_OUT)
+#define _C_OUT          'o'
+#endif
+#if	!defined(_C_BYCOPY)
+#define _C_BYCOPY       'O'
+#endif
+#if	!defined(_C_BYREF)
+#define _C_BYREF        'R'
+#endif
+#if	!defined(_C_ONEWAY)
+#define _C_ONEWAY       'V'
+#endif
+#if	!defined(_C_GCINVISIBLE)
+#define _C_GCINVISIBLE  '!'
+#endif
+
 #if	defined(NeXT_RUNTIME)
 
-#define _C_CONST        'r'
-#define _C_IN           'n'
-#define _C_INOUT        'N'
-#define _C_OUT          'o'
-#define _C_BYCOPY       'O'
-#define _C_BYREF        'R'
-#define _C_ONEWAY       'V'
-#define _C_GCINVISIBLE  '!'
 
 #elif	defined(__GNUSTEP_RUNTIME__)
 
@@ -116,7 +139,6 @@ extern "C" {
 
 #else	/* Old GNU runtime */
 
-#define	class_getInstanceSize(C) class_get_instance_size(C)
 
 #define	class_nextMethodList(aClass,anIterator) (({\
   if (*(anIterator) == 0) \
@@ -125,8 +147,6 @@ extern "C" {
     *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
 }), *(anIterator))
 
-#define	object_getClass(O) ((Class)*(Class*)O)
-#define	object_setClass(O,C) (*((Class*)O) = C)
 
 #endif
 
@@ -205,128 +225,53 @@ GS_EXPORT unsigned int
 GSClassList(Class *buffer, unsigned int max, BOOL clearCache);
 
 /**
- * GSObjCClass() return the class of an instance.
- * Returns a nul pointer if the argument is nil.
+ * GSObjCClass() is deprecated ... use object_getClass()
  */
-GS_STATIC_INLINE Class
-GSObjCClass(id obj)
-{
-  if (obj == nil)
-    return 0;
-  return obj->class_pointer;
-}
+GS_EXPORT Class GSObjCClass(id obj);
 
 /**
- * Returns the superclass of this.
+ * GSObjCSuper() is deprecated ... use class_getSuperclass()
  */
-GS_STATIC_INLINE Class
-GSObjCSuper(Class cls)
-{
-#ifndef NeXT_RUNTIME
-  if (cls != 0 && CLS_ISRESOLV (cls) == NO)
-    {
-      const char *name;
-      name = (const char *)cls->super_class;
-      if (name == NULL)
-	{
-	  return 0;
-	}
-      return objc_lookup_class (name);
-    }
-#endif
-  return class_get_super_class(cls);
-}
+GS_EXPORT Class GSObjCSuper(Class cls);
 
 /**
- * GSObjCIsInstance() tests to see if an id is an instance.
- * Returns NO if the argument is nil.
+ * GSObjCIsInstance() is deprecated ... use object_getClass()
+ * in conjunction with class_isMetaClass()
  */
-GS_STATIC_INLINE BOOL
-GSObjCIsInstance(id obj)
-{
-  if (obj == nil)
-    return NO;
-  return object_is_instance(obj);
-}
+GS_EXPORT BOOL GSObjCIsInstance(id obj);
 
 /**
- * GSObjCIsClass() tests to see if an id is a class.
- * Returns NO if the argument is nil.
+ * GSObjCIsClass() is deprecated ... use object_getClass()
+ * in conjunction with class_isMetaClass()
  */
-GS_STATIC_INLINE BOOL
-GSObjCIsClass(Class cls)
-{
-  if (cls == nil)
-    return NO;
-  return object_is_class(cls);
-}
+GS_EXPORT BOOL GSObjCIsClass(Class cls);
 
 /**
- * GSObjCIsKindOf() tests to see if a class inherits from another class
+ * Test to see if class inherits from another class
  * The argument to this function must NOT be nil.
  */
-GS_STATIC_INLINE BOOL
-GSObjCIsKindOf(Class cls, Class other)
-{
-  while (cls != Nil)
-    {
-      if (cls == other)
-	{
-	  return YES;
-	}
-      cls = GSObjCSuper(cls);
-    }
-  return NO;
-}
+GS_EXPORT BOOL GSObjCIsKindOf(Class cls, Class other);
 
 /**
- * Given a class name, return the corresponding class or
- * a nul pointer if the class cannot be found. <br />
- * If the argument is nil, return a nul pointer.
+ * GSClassFromName() is deprecated ... use objc_lookUpClass()
  */
-GS_STATIC_INLINE Class
-GSClassFromName(const char *name)
-{
-  if (name == 0)
-    return 0;
-  return objc_lookup_class(name);
-}
+GS_EXPORT Class GSClassFromName(const char *name);
 
 /**
- * Return the name of the supplied class, or a nul pointer if no class
- * was supplied.
+ * GSNameFromClass() is deprecated ... use class_getName()
  */
-GS_STATIC_INLINE const char *
-GSNameFromClass(Class cls)
-{
-  if (cls == 0)
-    return 0;
-  return class_get_class_name(cls);
-}
+GS_EXPORT const char *GSNameFromClass(Class cls);
 
 /**
- * Return the name of the object's class, or a nul pointer if no object
- * was supplied.
+ * GSClassNameFromObject() is deprecated ... use object_getClass()
+ * in conjunction with class_getName()
  */
-GS_STATIC_INLINE const char *
-GSClassNameFromObject(id obj)
-{
-  if (obj == 0)
-    return 0;
-  return object_get_class_name(obj);
-}
+GS_EXPORT const char *GSClassNameFromObject(id obj);
 
 /**
- * Return the name of the supplied selector, or a nul pointer if no selector
- * was supplied.
+ * GSNameFromSelector() is deprecated ... use sel_getName()
  */
-GS_STATIC_INLINE const char *
-GSNameFromSelector(SEL sel)
-{
-  if (sel == 0)
-    return 0;
-  return sel_get_name(sel);
-}
+GS_EXPORT const char *GSNameFromSelector(SEL sel);
 
 /**
  * Return a selector matching the specified name, or nil if no name is
@@ -653,13 +598,9 @@ GSRemoveMethodList(Class cls,
 
 
 /**
- * Returns the version number of this.
+ * GSObjCVersion() is deprecated ... use class_getVersion()
  */
-GS_STATIC_INLINE int
-GSObjCVersion(Class cls)
-{
-  return class_get_version(cls);
-}
+GS_EXPORT int GSObjCVersion(Class cls);
 
 #ifndef NeXT_Foundation_LIBRARY
 #include	<Foundation/NSZone.h>

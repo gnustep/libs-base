@@ -290,7 +290,7 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
   if (receiver)
     {
       return GSGetMethod((GSObjCIsInstance(receiver)
-			  ? GSObjCClass(receiver) : (Class)receiver),
+			  ? object_getClass(receiver) : (Class)receiver),
 			 sel,
 			 GSObjCIsInstance(receiver),
 			 YES);
@@ -321,7 +321,7 @@ gs_find_best_typed_sel (SEL sel)
 {
   if (!sel_get_type (sel))
     {
-      const char *name = GSNameFromSelector(sel);
+      const char *name = sel_getName(sel);
 
       if (name)
 	{
@@ -753,16 +753,16 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 
       s.self = _target;
       if (GSObjCIsInstance(_target))
-	s.class = GSObjCSuper(GSObjCClass(_target));
+	s.class = class_getSuperclass(object_getClass(_target));
       else
-	s.class = GSObjCSuper((Class)_target);
+	s.class = class_getSuperclass((Class)_target);
       imp = objc_msg_lookup_super(&s, _selector);
     }
   else
     {
       GSMethod method;
       method = GSGetMethod((GSObjCIsInstance(_target)
-                            ? (id)GSObjCClass(_target)
+                            ? (id)object_getClass(_target)
                             : (id)_target),
                            _selector,
                            GSObjCIsInstance(_target),
@@ -888,7 +888,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 		           @" to forwardInvocation: for '%s'",
 		   GSClassNameFromObject(obj),
 		   GSObjCIsInstance(obj) ? "instance" : "class",
-		   selector ? GSNameFromSelector(selector) : "(null)"];
+		   selector ? sel_getName(selector) : "(null)"];
     }
 
   sig = nil;
@@ -916,7 +916,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 
       if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
 	{
-	  const char	*runtimeName = GSNameFromSelector(selector);
+	  const char	*runtimeName = sel_getName(selector);
 
 	  selector = sel_get_typed_uid (runtimeName, receiverTypes);
 	  if (selector == 0)
@@ -956,7 +956,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
                    format: @"Can not determine type information for %s[%s %s]",
                    GSObjCIsInstance(obj) ? "-" : "+",
 	 GSClassNameFromObject(obj),
-	 selector ? GSNameFromSelector(selector) : "(null)"];
+	 selector ? sel_getName(selector) : "(null)"];
     }
 
   invocation = [[GSFFCallInvocation alloc] initWithMethodSignature: sig];

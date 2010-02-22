@@ -218,7 +218,7 @@ static inline void setup()
 
 - (Class) class
 {
-  return GSObjCSuper(GSObjCClass(self));
+  return class_getSuperclass(object_getClass(self));
 }
 
 - (void) setValue: (id)anObject forKey: (NSString*)aKey
@@ -299,7 +299,7 @@ static inline void setup()
 
 - (Class) superclass
 {
-  return GSObjCSuper(GSObjCSuper(GSObjCClass(self)));
+  return class_getSuperclass(class_getSuperclass(object_getClass(self)));
 }
 @end
 
@@ -309,7 +309,7 @@ static inline void setup()
  */
 static NSString *newKey(SEL _cmd)
 {
-  const char	*name = GSNameFromSelector(_cmd);
+  const char	*name = sel_getName(_cmd);
   unsigned	len = strlen(name);
   NSString	*key;
   unsigned	i;

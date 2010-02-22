@@ -221,8 +221,8 @@ NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
       return NO;
     }
 
-  if (GSObjCClass(table1) != concreteClass
-    && GSObjCClass(table2) == concreteClass)
+  if (object_getClass(table1) != concreteClass
+    && object_getClass(table2) == concreteClass)
     {
       id	t = table1;
 
@@ -230,7 +230,7 @@ NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
       table2 = t;
     }
 
-  if (GSObjCClass(table1) == concreteClass)
+  if (object_getClass(table1) == concreteClass)
     {
       NSConcreteMapTable	*c1 = (NSConcreteMapTable*)table1;
       GSIMapTable	t1 = (GSIMapTable)table1;
@@ -239,7 +239,7 @@ NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
       GSIMapNode	n1;
 
       enumerator = GSIMapEnumeratorForMap(t1);
-      if (GSObjCClass(table2) == concreteClass)
+      if (object_getClass(table2) == concreteClass)
 	{
 	  GSIMapTable	t2 = (GSIMapTable)table2;
     
@@ -356,7 +356,7 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
 #endif
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
 
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       NSMapEnumerator	enumerator;
 
@@ -393,7 +393,7 @@ NSCountMapTable(NSMapTable *table)
       NSWarnFLog(@"Null table argument supplied");
       return 0;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       return ((GSIMapTable)table)->nodeCount;
     }
@@ -518,7 +518,7 @@ NSEnumerateMapTable(NSMapTable *table)
       NSWarnFLog(@"Null table argument supplied");
       return v;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       return GSIMapEnumeratorForMap((GSIMapTable)table);
     }
@@ -563,7 +563,7 @@ NSMapGet(NSMapTable *table, const void *key)
       NSWarnFLog(@"Null table argument supplied");
       return 0;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapNode	n;
 
@@ -598,7 +598,7 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapTable	t = (GSIMapTable)table;
       GSIMapNode	n;
@@ -653,7 +653,7 @@ NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapTable	t = (GSIMapTable)table;
       GSIMapNode	n;
@@ -710,7 +710,7 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempt to place key-value in null table"];
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapTable	t = (GSIMapTable)table;
       GSIMapNode	n;
@@ -771,7 +771,7 @@ NSMapMember(NSMapTable *table, const void *key,
       NSWarnFLog(@"Null table argument supplied");
       return NO;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapNode	n;
 
@@ -811,7 +811,7 @@ NSMapRemove(NSMapTable *table, const void *key)
       NSWarnFLog(@"Null table argument supplied");
       return;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       if (((GSIMapTable)table)->nodeCount > 0)
 	{
@@ -928,7 +928,7 @@ NSResetMapTable(NSMapTable *table)
       NSWarnFLog(@"Null table argument supplied");
       return;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       if (((GSIMapTable)table)->nodeCount > 0)
 	{
@@ -956,7 +956,7 @@ NSStringFromMapTable(NSMapTable *table)
       NSWarnFLog(@"Null table argument supplied");
       return nil;
     }
-  if (GSObjCClass(table) == concreteClass)
+  if (object_getClass(table) == concreteClass)
     {
       GSIMapTable	t = (GSIMapTable)table;
       NSMutableString	*string;

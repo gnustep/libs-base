@@ -831,7 +831,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     [NSException raise: NSInvalidArgumentException
 		format: @"-initWithString: given non-string object"];
 
-  c = GSObjCClass(string);
+  c = object_getClass(string);
   length = [string length];
   if (GSObjCIsKindOf(c, GSCStringClass) == YES || c == NSConstantStringClass
     || (GSObjCIsKindOf(c, GSMutableStringClass) == YES
@@ -1215,7 +1215,7 @@ compare_c(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 {
   Class	c;
 
-  c = GSObjCClass(aString);
+  c = object_getClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
     return strCompCsUs((id)self, aString, mask, aRange);
@@ -1232,7 +1232,7 @@ compare_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 {
   Class	c;
 
-  c = GSObjCClass(aString);
+  c = object_getClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass)
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
     return strCompUsUs((id)self, aString, mask, aRange);
@@ -2139,7 +2139,7 @@ isEqual_c(GSStr self, id anObject)
     {
       return NO;
     }
-  c = GSObjCClass(anObject);
+  c = object_getClass(anObject);
   if (c == NSConstantStringClass)
     {
       GSStr	other = (GSStr)anObject;
@@ -2207,7 +2207,7 @@ isEqual_u(GSStr self, id anObject)
     {
       return NO;
     }
-  c = GSObjCClass(anObject);
+  c = object_getClass(anObject);
   if (c == NSConstantStringClass)
     {
       GSStr	other = (GSStr)anObject;
@@ -2617,11 +2617,11 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target)
 {
   Class	c;
 
-  c = GSObjCClass(receiver);
+  c = object_getClass(receiver);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || (c == GSMutableStringClass && ((GSStr)receiver)->_flags.wide == 1))
     {
-      c = GSObjCClass(target);
+      c = object_getClass(target);
       if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
         || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 1))
         return (GSRSFunc)strRangeUsUs;
@@ -2636,7 +2636,7 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target)
     || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
     {
-      c = GSObjCClass(target);
+      c = object_getClass(target);
       if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
         || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 1))
         return (GSRSFunc)strRangeCsUs;
@@ -2658,7 +2658,7 @@ rangeOfString_c(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 {
   Class	c;
 
-  c = GSObjCClass(aString);
+  c = object_getClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
     return strRangeCsUs((id)self, aString, mask, aRange);
@@ -2675,7 +2675,7 @@ rangeOfString_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 {
   Class	c;
 
-  c = GSObjCClass(aString);
+  c = object_getClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
     return strRangeUsUs((id)self, aString, mask, aRange);
@@ -2737,7 +2737,7 @@ transmute(GSStr self, NSString *aString)
 {
   GSStr	other = (GSStr)aString;
   BOOL	transmute = YES;
-  Class	c = GSObjCClass(aString);	// NB aString must not be nil
+  Class	c = object_getClass(aString);	// NB aString must not be nil
 
   if (self->_flags.wide == 1)
     {
@@ -4769,7 +4769,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     {
       return NO;
     }
-  c = GSObjCClass(anObject);
+  c = object_getClass(anObject);
 
   if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NSConstantStringClass
@@ -4819,7 +4819,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     {
       return NO;
     }
-  c = GSObjCClass(anObject);
+  c = object_getClass(anObject);
 
   if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NSConstantStringClass

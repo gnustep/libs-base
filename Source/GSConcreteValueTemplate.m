@@ -132,7 +132,7 @@
 - (BOOL) isEqual: (id)other
 {
   if (other != nil && GSObjCIsInstance(other) == YES
-    && GSObjCIsKindOf(GSObjCClass(other), GSObjCClass(self)))
+    && GSObjCIsKindOf(object_getClass(other), object_getClass(self)))
     {
       return [self isEqualToValue: other];
     }
@@ -144,7 +144,7 @@
   typedef __typeof__(data) _dt;
 
   if (aValue != nil && GSObjCIsInstance(aValue) == YES
-    && GSObjCIsKindOf(GSObjCClass(aValue), GSObjCClass(self)))
+    && GSObjCIsKindOf(object_getClass(aValue), object_getClass(self)))
     {
       _dt	val = [aValue TYPE_METHOD];
 #if TYPE_ORDER == 0

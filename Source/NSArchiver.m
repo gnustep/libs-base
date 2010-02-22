@@ -448,9 +448,9 @@ static Class	NSMutableDataMallocClass;
 	      }
 	    while (done == NO)
 	      {
-		int		tmp = GSObjCVersion(c);
+		int		tmp = class_getVersion(c);
 		unsigned	version = tmp;
-		Class		s = GSObjCSuper(c);
+		Class		s = class_getSuperclass(c);
 
 		if (tmp < 0)
 		  {
@@ -865,12 +865,12 @@ static Class	NSMutableDataMallocClass;
       GSIMapNode	node;
       Class		c;
 
-      c = GSClassFromName([trueName cString]);
+      c = objc_lookUpClass([trueName cString]);
       node = GSIMapNodeForKey(_namMap, (GSIMapKey)c);
       if (node)
 	{
 	  c = (Class)node->value.ptr;
-	  return [NSString stringWithUTF8String: GSNameFromClass(c)];
+	  return [NSString stringWithUTF8String: class_getName(c)];
 	}
     }
   return trueName;
@@ -891,13 +891,13 @@ static Class	NSMutableDataMallocClass;
   Class		tc;
   Class		ic;
 
-  tc = GSClassFromName([trueName cString]);
+  tc = objc_lookUpClass([trueName cString]);
   if (tc == 0)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Can't find class '%@'.", trueName];
     }
-  ic = GSClassFromName([inArchiveName cString]);
+  ic = objc_lookUpClass([inArchiveName cString]);
   if (ic == 0)
     {
       [NSException raise: NSInternalInconsistencyException
