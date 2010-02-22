@@ -1,3 +1,8 @@
+2010-02-23  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSNumber.m: Autorelease the values returned by the
+	numberWithXXX: methods.
+
 2010-02-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSSpellServer.m (-isWordInUserDictionaries:caseSensitive:):
