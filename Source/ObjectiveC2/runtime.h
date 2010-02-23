@@ -270,8 +270,18 @@ static const id self = nil;
 
 #endif
 
+#if (GCC_VERSION >= 3000)
+
 #define objc_msgSend(theReceiver, theSelector, ...) objc_msg_lookup(theReceiver, theSelector)(theReceiver, theSelector, ## __VA_ARGS__)
 #define objc_msgSendSuper(super, op, ...) objc_msg_lookup_super(super, op)(super->receiver, op, ## __VA_ARGS__)
+
+#else /* GCC_VERSION >= 3000 */
+
+#define objc_msgSend(theReceiver, theSelector, args...) objc_msg_lookup(theReceiver, theSelector)(theReceiver, theSelector, args)
+#define objc_msgSendSuper(super, op, args...) objc_msg_lookup_super(super, op)(super->receiver, op, args)
+
+#endif /* GCC_VERSION >= 3000 */
+
 
 const char *sel_getName(SEL sel);
 
