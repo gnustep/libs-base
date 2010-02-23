@@ -21,6 +21,7 @@
 #define objc_super gnu_objc_super
 #define objc_msg_lookup gnu_objc_msg_lookup 
 #define objc_msg_lookup_super gnu_objc_msg_lookup_super 
+typedef unsigned char GNU_BOOL;
 #define BOOL GNU_BOOL
 #define SEL GNU_SEL
 #define Protocol GNU_Protocol
