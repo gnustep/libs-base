@@ -57,6 +57,7 @@ initLockObject(id obj)
   Class lockClass;
   const char *types;
   pthread_mutex_t *lock;
+  pthread_mutexattr_t attr;
 
   snprintf(nameBuffer, 39, "hiddenlockClass%lld", lockClassId++);
   lockClass = objc_allocateClassPair(obj->isa, nameBuffer,
@@ -67,7 +68,6 @@ initLockObject(id obj)
   objc_registerClassPair(lockClass);
 
   lock = object_getIndexedIvars(lockClass);
-  pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
   pthread_mutex_init(lock, &attr);
