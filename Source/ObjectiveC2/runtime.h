@@ -44,30 +44,30 @@ typedef struct objc_class *Class;
 
 typedef struct objc_object
 {
-	Class isa;
+  Class isa;
 } *id;
 
 struct objc_super {
-	id receiver;
-#	if !defined(__cplusplus)  &&  !__OBJC2__
-	Class class;
-#	else
-	Class super_class;
-#	endif
+  id receiver;
+#  if !defined(__cplusplus)  &&  !__OBJC2__
+  Class class;
+#  else
+  Class super_class;
+#  endif
 };
 
 typedef id (*IMP)(id, SEL, ...);
 typedef struct objc_method *Method;
 
-#	ifdef STRICT_APPLE_COMPATIBILITY
+#  ifdef STRICT_APPLE_COMPATIBILITY
 typedef signed char BOOL;
-#	else
-#		ifdef __vxwords
+#  else
+#    ifdef __vxwords
 typedef  int BOOL
-#		else
+#    else
 typedef unsigned char BOOL;
-#		endif
-#	endif
+#    endif
+#  endif
 
 #else
 // Method in the GNU runtime is a struct, Method_t is the pointer
@@ -239,7 +239,7 @@ BOOL protocol_conformsToProtocol(Protocol *p, Protocol *other);
 
 OBJC_GNU_RUNTIME_UNSUPPORTED("Protocol introspection")
 struct objc_method_description *protocol_copyMethodDescriptionList(Protocol *p,
-	BOOL isRequiredMethod, BOOL isInstanceMethod, unsigned int *count);
+  BOOL isRequiredMethod, BOOL isInstanceMethod, unsigned int *count);
 
 OBJC_GNU_RUNTIME_UNSUPPORTED("Protocol introspection")
 objc_property_t *protocol_copyPropertyList(Protocol *p, unsigned int *count);
@@ -249,13 +249,13 @@ Protocol **protocol_copyProtocolList(Protocol *p, unsigned int *count);
 
 OBJC_GNU_RUNTIME_UNSUPPORTED("Protocol introspection")
 struct objc_method_description protocol_getMethodDescription(Protocol *p,
-	SEL aSel, BOOL isRequiredMethod, BOOL isInstanceMethod);
+  SEL aSel, BOOL isRequiredMethod, BOOL isInstanceMethod);
 
 const char *protocol_getName(Protocol *p);
 
 OBJC_GNU_RUNTIME_UNSUPPORTED("Protocol introspection")
 objc_property_t protocol_getProperty(Protocol *p, const char *name,
-	BOOL isRequiredProperty, BOOL isInstanceProperty);
+  BOOL isRequiredProperty, BOOL isInstanceProperty);
 
 BOOL protocol_isEqual(Protocol *p, Protocol *other);
 
