@@ -1,7 +1,3 @@
-2010-02-23 Richard Frith-Macdonald <rfm@gnu.org>
-
-	* Source/ObjectiveC2/runtime.c: fix to build with old gnustep runtime.
-
 2010-02-23  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSNumber.m: Autorelease the values returned by the
