@@ -34,7 +34,8 @@
 
 #import "common.h"
 
-#define	EXPOSE_NSNSDecimalNumber_IVARS	1
+#define	EXPOSE_NSDecimalNumber_IVARS	1
+#define	EXPOSE_NSDecimalNumberHandler_IVARS	1
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDecimal.h"
 #import "Foundation/NSDecimalNumber.h"

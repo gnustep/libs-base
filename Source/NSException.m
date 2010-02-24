@@ -26,6 +26,7 @@
 
 #import "common.h"
 #define	EXPOSE_NSException_IVARS	1
+#define	EXPOSE_NSThread_IVARS	1
 #import "GSPrivate.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSEnumerator.h"
@@ -56,8 +57,6 @@ static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 
 #define _e_info (((id*)_reserved)[0])
 #define _e_stack (((id*)_reserved)[1])
-
-typedef struct { @defs(NSThread) } *TInfo;
 
 /* This is the GNU name for the CTOR list */
 
@@ -895,7 +894,7 @@ callUncaughtHandler(id value)
 - (void) raise
 {
 #ifndef _NATIVE_OBJC_EXCEPTIONS
-  TInfo         thread;
+  NSThread      *thread;
   NSHandler	*handler;
 #endif
 
@@ -908,7 +907,7 @@ callUncaughtHandler(id value)
 #ifdef _NATIVE_OBJC_EXCEPTIONS
   @throw self;
 #else
-  thread = (TInfo)GSCurrentThread();
+  thread = GSCurrentThread();
   handler = thread->_exception_handler;
   if (handler == NULL)
     {
@@ -1083,9 +1082,9 @@ callUncaughtHandler(id value)
 void
 _NSAddHandler (NSHandler* handler)
 {
-  TInfo thread;
+  NSThread *thread;
 
-  thread = (TInfo)GSCurrentThread();
+  thread = GSCurrentThread();
 #if defined(__MINGW32__) && defined(DEBUG)
   if (thread->_exception_handler
     && IsBadReadPtr(thread->_exception_handler, sizeof(NSHandler)))
@@ -1100,9 +1099,9 @@ _NSAddHandler (NSHandler* handler)
 void
 _NSRemoveHandler (NSHandler* handler)
 {
-  TInfo         thread;
+  NSThread	*thread;
 
-  thread = (TInfo)GSCurrentThread();
+  thread = GSCurrentThread();
 #if defined(DEBUG)  
   if (thread->_exception_handler != handler)
     {

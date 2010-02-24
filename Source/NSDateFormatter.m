@@ -26,7 +26,7 @@
    */
 
 #import "common.h"
-#define	EXPOSE_NSNSDateFormatter_IVARS	1
+#define	EXPOSE_NSDateFormatter_IVARS	1
 #import "Foundation/NSDate.h"
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSTimeZone.h"

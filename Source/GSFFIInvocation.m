@@ -24,6 +24,7 @@
 
 
 #import "common.h"
+#define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
@@ -37,10 +38,6 @@
 #ifndef INLINE
 #define INLINE inline
 #endif
-
-typedef struct _NSInvocation_t {
-  @defs(NSInvocation)
-} NSInvocation_t;
 
 /* Function that implements the actual forwarding */
 typedef void (*ffi_closure_fun) (ffi_cif*,void*,void**,void*);
@@ -392,10 +389,8 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
  * routines (like the DO forwarding)
  */
 void
-GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
+GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
 {
-  NSInvocation_t	*inv = (NSInvocation_t*)_inv;
-
   /* Do it */
   ffi_call(inv->_cframe, (f_fun)imp, (inv->_retval),
 	   ((cifframe_t *)inv->_cframe)->values);
@@ -642,7 +637,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   /* If we are returning a value, we must copy it from the invocation
    * to the memory indicated by 'retp'.
    */
-  if (retp != 0 && ((NSInvocation_t *)invocation)->_validReturn == YES)
+  if (retp != 0 && invocation->_validReturn == YES)
     {
       [invocation getReturnValue: retp];
     }

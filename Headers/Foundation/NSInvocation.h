@@ -36,6 +36,7 @@ extern "C" {
 @interface NSInvocation : NSObject
 {
 #if	GS_EXPOSE(NSInvocation)
+@public
   NSMethodSignature	*_sig;
   void                  *_cframe;
   void			*_retval;

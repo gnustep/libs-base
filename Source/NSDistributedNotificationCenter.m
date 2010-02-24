@@ -26,7 +26,7 @@
    */
 
 #import	"common.h"
-#define	EXPOSE_NSNSDistributedNotificationCenter_IVARS	1
+#define	EXPOSE_NSDistributedNotificationCenter_IVARS	1
 #import	"Foundation/NSConnection.h"
 #import	"Foundation/NSDistantObject.h"
 #import	"Foundation/NSException.h"
