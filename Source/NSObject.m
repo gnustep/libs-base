@@ -709,36 +709,45 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 
 
 
-
+/* FIXME ... the following code is a hack for the gnu runtime only
+ */
 struct objc_method_description_list {
   int count;
   struct objc_method_description list[1];
 };
-typedef struct {
-  @defs(Protocol)
-} *pcl;
+
+/* Must have same layout as ivars of Protocol class
+ */
+struct protocol_class {
+  Class	isa;
+  char	*protocol_name;
+  struct objc_protocol_list *protocol_list;
+  struct objc_method_description_list *instance_methods;
+  struct objc_method_description_list *class_methods;
+};
 
 struct objc_method_description *
-GSDescriptionForInstanceMethod(pcl self, SEL aSel)
+GSDescriptionForInstanceMethod(Protocol *self, SEL aSel)
 {
+  struct protocol_class *pcl = (struct protocol_class*)self;
   int i;
   struct objc_protocol_list	*p_list;
   const char			*name = sel_getName(aSel);
   struct objc_method_description *result;
 
-  if (self->instance_methods != 0)
+  if (pcl->instance_methods != 0)
     {
-      for (i = 0; i < self->instance_methods->count; i++)
+      for (i = 0; i < pcl->instance_methods->count; i++)
 	{
-	  if (!strcmp ((char*)self->instance_methods->list[i].name, name))
-	    return &(self->instance_methods->list[i]);
+	  if (!strcmp ((char*)pcl->instance_methods->list[i].name, name))
+	    return &(pcl->instance_methods->list[i]);
 	}
     }
-  for (p_list = self->protocol_list; p_list != 0; p_list = p_list->next)
+  for (p_list = pcl->protocol_list; p_list != 0; p_list = p_list->next)
     {
       for (i = 0; i < p_list->count; i++)
 	{
-	  result = GSDescriptionForInstanceMethod((pcl)p_list->list[i], aSel);
+	  result = GSDescriptionForInstanceMethod(p_list->list[i], aSel);
 	  if (result)
 	    {
 	      return result;
@@ -750,26 +759,27 @@ GSDescriptionForInstanceMethod(pcl self, SEL aSel)
 }
 
 struct objc_method_description *
-GSDescriptionForClassMethod(pcl self, SEL aSel)
+GSDescriptionForClassMethod(Protocol *self, SEL aSel)
 {
+  struct protocol_class *pcl = (struct protocol_class*)self;
   int i;
   struct objc_protocol_list	*p_list;
   const char			*name = sel_getName(aSel);
   struct objc_method_description *result;
 
-  if (self->class_methods != 0)
+  if (pcl->class_methods != 0)
     {
-      for (i = 0; i < self->class_methods->count; i++)
+      for (i = 0; i < pcl->class_methods->count; i++)
 	{
-	  if (!strcmp ((char*)self->class_methods->list[i].name, name))
-	    return &(self->class_methods->list[i]);
+	  if (!strcmp ((char*)pcl->class_methods->list[i].name, name))
+	    return &(pcl->class_methods->list[i]);
 	}
     }
-  for (p_list = self->protocol_list; p_list != 0; p_list = p_list->next)
+  for (p_list = pcl->protocol_list; p_list != 0; p_list = p_list->next)
     {
       for (i = 0; i < p_list->count; i++)
 	{
-	  result = GSDescriptionForClassMethod((pcl)p_list->list[i], aSel);
+	  result = GSDescriptionForClassMethod(p_list->list[i], aSel);
 	  if (result)
 	    {
 	      return result;
@@ -784,12 +794,12 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
 - (struct objc_method_description *) descriptionForInstanceMethod:(SEL)aSel
 {
-  return GSDescriptionForInstanceMethod((pcl)self, aSel);
+  return GSDescriptionForInstanceMethod(self, aSel);
 }
 
 - (struct objc_method_description *) descriptionForClassMethod:(SEL)aSel;
 {
-  return GSDescriptionForClassMethod((pcl)self, aSel);
+  return GSDescriptionForClassMethod(self, aSel);
 }
 
 @end

@@ -44,6 +44,7 @@
 
 #import "common.h"
 #define	EXPOSE_NSFileManager_IVARS	1
+#define	EXPOSE_NSDirectoryEnumerator_IVARS	1
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSBundle.h"

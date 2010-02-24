@@ -669,6 +669,18 @@ else
 fi
 AC_SUBST(OBJC2RUNTIME)
 
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
+AC_MSG_CHECKING(for non-fragile-abi support)
+AC_RUN_IFELSE([#include "$srcdir/config/config.non-fragile-ivars.m"],
+	non_fragile=yes, non_fragile=no)
+CPPFLAGS="$saved_CPPFLAGS"
+if test $non_fragile = yes; then
+  OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+  AC_SUBST(OBJCFLAGS)
+fi
+AC_MSG_RESULT($non_fragile)
+
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
@@ -1390,18 +1402,6 @@ if test $have_forward_hook = no; then
   enable_ffcall=no
 fi
 CPPFLAGS="$saved_CPPFLAGS"
-
-saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
-AC_MSG_CHECKING(for non-fragile-abi support)
-AC_RUN_IFELSE([#include "$srcdir/config/config.non-fragile-ivars.m"],
-	non_fragile=yes, non_fragile=no)
-CPPFLAGS="$saved_CPPFLAGS"
-if test $non_fragile = yes; then
-  OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
-  AC_SUBST(OBJCFLAGS)
-fi
-AC_MSG_RESULT($non_fragile)
 
 AC_MSG_CHECKING(FFI library usage)
 WITH_FFI=none

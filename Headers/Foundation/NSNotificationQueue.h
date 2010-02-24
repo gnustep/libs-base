@@ -110,7 +110,7 @@ struct _NSNotificationQueueList;
 @interface NSNotificationQueue : NSObject
 {
 #if	GS_EXPOSE(NSNotificationQueue)
-@private
+@public
   NSNotificationCenter			*_center;
   struct _NSNotificationQueueList	*_asapQueue;
   struct _NSNotificationQueueList	*_idleQueue;

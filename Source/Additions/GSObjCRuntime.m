@@ -1190,9 +1190,6 @@ GSObjCGetInstanceVariableDefinition(Class cls, NSString *name)
   return GSCGetInstanceVariableDefinition(cls, [name cString]);
 }
 
-typedef struct {
-  @defs(Protocol)
-} *pcl;
 
 GS_STATIC_INLINE unsigned int
 gs_string_hash(const char *s)
@@ -1205,19 +1202,19 @@ gs_string_hash(const char *s)
   return val;
 }
 
-GS_STATIC_INLINE pcl
+GS_STATIC_INLINE Protocol *
 gs_find_protocol_named_in_protocol_list(const char *name,
-					struct objc_protocol_list *pcllist)
+  struct objc_protocol_list *pcllist)
 {
-  pcl p = NULL;
+  Protocol *p = NULL;
   size_t i;
 
   while (pcllist != NULL)
     {
-      for (i=0; i<pcllist->count; i++)
+      for (i = 0; i < pcllist->count; i++)
 	{
-	  p = (pcl)pcllist->list[i];
-	  if (strcmp(p->protocol_name, name) == 0)
+	  p = (Protocol*)pcllist->list[i];
+	  if (strcmp([p name], name) == 0)
 	    {
 	      return p;
 	    }
@@ -1227,10 +1224,10 @@ gs_find_protocol_named_in_protocol_list(const char *name,
   return NULL;
 }
 
-GS_STATIC_INLINE pcl
+GS_STATIC_INLINE Protocol *
 gs_find_protocol_named(const char *name)
 {
-  pcl p = NULL;
+  Protocol *p = NULL;
   Class cls;
 #ifdef NeXT_RUNTIME
   Class *clsList, *clsListStart;
@@ -1307,17 +1304,14 @@ GSRegisterProtocol(Protocol *proto)
   if (proto != nil)
     {
       GSIMapNode node;
-      pcl p;
 
-      p = (pcl)proto;
       pthread_mutex_lock(&protocol_by_name_lock);
-      node = GSIMapNodeForKey(&protocol_by_name,
-			      (GSIMapKey) p->protocol_name);
+      node = GSIMapNodeForKey(&protocol_by_name, (GSIMapKey) [proto name]);
       if (node == 0)
 	{
 	  GSIMapAddPairNoRetain(&protocol_by_name,
-				(GSIMapKey) (void *) p->protocol_name,
-				(GSIMapVal) (void *) p);
+	    (GSIMapKey) (void *) [proto name],
+	    (GSIMapVal) (void *) proto);
 	}
       pthread_mutex_unlock(&protocol_by_name_lock);
     }
@@ -1327,7 +1321,7 @@ Protocol *
 GSProtocolFromName(const char *name)
 {
   GSIMapNode node;
-  pcl p;
+  Protocol *p;
 
   if (protocol_by_name_init == NO)
     {
@@ -1356,15 +1350,15 @@ GSProtocolFromName(const char *name)
 	      /* Use the protocol's name to save us from allocating
 		 a copy of the parameter 'name'.  */
 	      GSIMapAddPairNoRetain(&protocol_by_name,
-				    (GSIMapKey) (void *) p->protocol_name,
-				    (GSIMapVal) (void *) p);
+		(GSIMapKey) (void *) [p name],
+		(GSIMapVal) (void *) p);
 	    }
 	}
       pthread_mutex_unlock(&protocol_by_name_lock);
 
     }
 
-  return (Protocol *)p;
+  return p;
 }
 
 
@@ -2360,13 +2354,15 @@ GSAutoreleasedBuffer(unsigned size)
   static Class	autorelease_class;
   static SEL	autorelease_sel;
   static IMP	autorelease_imp;
+  static int	instance_size;
   static int	offset;
   NSObject	*o;
 
   if (buffer_class == 0)
     {
       buffer_class = [GSAutoreleasedMemory class];
-      offset = buffer_class->instance_size % ALIGN;
+      instance_size = class_getInstanceSize(buffer_class);
+      offset = instance_size % ALIGN;
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
@@ -2374,7 +2370,7 @@ GSAutoreleasedBuffer(unsigned size)
   o = (NSObject*)NSAllocateObject(buffer_class,
     size + offset, NSDefaultMallocZone());
   (*autorelease_imp)(autorelease_class, autorelease_sel, o);
-  return ((void*)&o[1]) + offset;
+  return ((void*)o) + instance_size + offset;
 #endif
 }
 

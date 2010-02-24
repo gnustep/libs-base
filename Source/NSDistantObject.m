@@ -69,10 +69,6 @@ static int	debug_proxy = 0;
 static Class	placeHolder = 0;
 static Class	distantObjectClass = 0;
 
-typedef struct {
-  @defs(NSDistantObject)
-} NSDO;
-
 @interface Object (NSConformsToProtocolNamed)
 - (BOOL) _conformsToProtocolNamed: (char*)aName;
 @end
@@ -81,25 +77,24 @@ typedef struct {
 @end
 /*
  * Evil hack ... if a remote system wants to know if we conform
- * to a protocol we pretend we have a local protocol with the same name.
+ * to a protocol we usa a local protocol with the same name.
  */
-typedef struct {
-    @defs(Protocol)
-} Proto;
 @implementation Object (NSConformsToProtocolNamed)
 - (BOOL) _conformsToProtocolNamed: (char*)aName
 {
-  Proto	p;
-  p.protocol_name = (char*)aName;
-  return [self conformsTo: (Protocol*)&p];
+  Protocol	*p;
+
+  p = objc_getProtocol(aName);
+  return [self conformsTo: p];
 }
 @end
 @implementation NSObject (NSConformsToProtocolNamed)
 - (BOOL) _conformsToProtocolNamed: (char*)aName
 {
-  Proto	p;
-  p.protocol_name = (char*)aName;
-  return [self conformsToProtocol: (Protocol*)&p];
+  Protocol	*p;
+
+  p = objc_getProtocol(aName);
+  return [self conformsToProtocol: p];
 }
 @end
 
@@ -221,9 +216,9 @@ enum proxyLocation
 	    if (debug_proxy)
 	      {
 		NSLog(@"Local object is %p (%p)\n",
-		  (uintptr_t)o, (uintptr_t)o ? ((NSDO*)o)->_object : 0);
+		  (uintptr_t)o, (uintptr_t)o ? o->_object : 0);
 	      }
-	    return RETAIN(((NSDO*)o)->_object);
+	    return RETAIN(o->_object);
 	  }
 
       case PROXY_LOCAL_FOR_SENDER:

@@ -47,10 +47,6 @@
 static	NSString*	lkey = @"NotificationQueueListThreadKey";
 static	NSString*	qkey = @"NotificationQueueThreadKey";
 
-typedef struct {
-  @defs(NSNotificationQueue)
-} *accessQueue;
-
 
 @interface	NotificationQueueList : NSObject
 {
@@ -652,10 +648,10 @@ GSPrivateNotifyASAP(NSString *mode)
     {
       if (item->queue)
 	{
-	  notify(((accessQueue)item->queue)->_center,
-	    ((accessQueue)item->queue)->_asapQueue,
+	  notify(item->queue->_center,
+	    item->queue->_asapQueue,
 	    mode,
-	    ((accessQueue)item->queue)->_zone);
+	    item->queue->_zone);
 	}
     }
 }
@@ -669,10 +665,10 @@ GSPrivateNotifyIdle(NSString *mode)
     {
       if (item->queue)
 	{
-	  notify(((accessQueue)item->queue)->_center,
-	    ((accessQueue)item->queue)->_idleQueue,
+	  notify(item->queue->_center,
+	    item->queue->_idleQueue,
 	    mode,
-	    ((accessQueue)item->queue)->_zone);
+	    item->queue->_zone);
 	}
     }
 }
@@ -688,7 +684,7 @@ GSPrivateNotifyMore(NSString *mode)
 	{
           NSNotificationQueueRegistration	*r;
 
-	  r = ((accessQueue)item->queue)->_idleQueue->head;
+	  r = item->queue->_idleQueue->head;
 	  while (r != 0)
 	    {
 	      if (mode == nil || [r->modes indexOfObject: mode] != NSNotFound)

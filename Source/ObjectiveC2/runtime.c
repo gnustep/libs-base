@@ -507,7 +507,7 @@ class_replaceMethod(Class cls, SEL name, IMP imp, const char *types)
 BOOL
 class_respondsToSelector(Class cls, SEL sel)
 {
-  return __objc_responds_to(cls, sel);
+  return __objc_responds_to((id)&cls, sel);
 }
 
 void

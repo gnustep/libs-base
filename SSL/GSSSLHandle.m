@@ -51,6 +51,7 @@
   #include <openssl/crypto.h>
   #undef id
 
+#define	EXPOSE_GSFileHandle_IVARS	1
 #import "Foundation/NSDebug.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSFileManager.h"
