@@ -69,8 +69,10 @@
 #import	"Foundation/NSScanner.h"
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSValue.h"
+#import	"GNUstepBase/GSObjCRuntime.h"
 #import	"GNUstepBase/GSMime.h"
 #import	"GNUstepBase/GSXML.h"
+#import	"GNUstepBase/NSObject+GNUstepBase.h"
 #import	"GNUstepBase/NSData+GNUstepBase.h"
 #import	"GNUstepBase/NSDebug+GNUstepBase.h"
 #import	"GNUstepBase/NSString+GNUstepBase.h"
@@ -1565,7 +1567,7 @@ wordData(NSString *word)
 	  NSLog(@"Missing value for mime-version header");
 	  return NO;
 	}
-      if (sscanf([value lossyCString], "%d.%d", &majv, &minv) != 2)
+      if (sscanf([value UTF8String], "%d.%d", &majv, &minv) != 2)
 	{
 	  NSLog(@"Bad value for mime-version header (%@)", value);
 	  return NO;
@@ -4093,17 +4095,64 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)NSISOLatin1StringEncoding);
 	  NSMapInsert(charsets, (void*)@"csisolatin1",
 	    (void*)NSISOLatin1StringEncoding);
-
-	  // A couple of telecoms charsets
 	  NSMapInsert(charsets, (void*)@"ia5",
 	    (void*)NSASCIIStringEncoding);
-	  NSMapInsert(charsets, (void*)@"gsm0338",
-	    (void*)NSGSM0338StringEncoding);
-
 	  NSMapInsert(charsets, (void*)@"iso-8859-2",
 	    (void*)NSISOLatin2StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso8859-2",
 	    (void*)NSISOLatin2StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-symbol",
+	    (void*)NSSymbolStringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-symbol",
+	    (void*)NSSymbolStringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1250",
+	    (void*)NSWindowsCP1250StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1250",
+	    (void*)NSWindowsCP1250StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1251",
+	    (void*)NSWindowsCP1251StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1251",
+	    (void*)NSWindowsCP1251StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1252",
+	    (void*)NSWindowsCP1252StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1252",
+	    (void*)NSWindowsCP1252StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1253",
+	    (void*)NSWindowsCP1253StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1253",
+	    (void*)NSWindowsCP1253StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1254",
+	    (void*)NSWindowsCP1254StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1254",
+	    (void*)NSWindowsCP1254StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-10646-ucs-2",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso10646-ucs-2",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-16",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf16",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-10646-1",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso10646-1",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"jisx0201.1976",
+	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"jisx0201",
+	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"shift_JIS",
+	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-8",
+	    (void*)NSUTF8StringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf8",
+	    (void*)NSUTF8StringEncoding);
+	  NSMapInsert(charsets, (void*)@"apple-roman",
+	    (void*)NSMacOSRomanStringEncoding);
+
+#if     !defined(NeXT_Foundation_LIBRARY)
+	  NSMapInsert(charsets, (void*)@"gsm0338",
+	    (void*)NSGSM0338StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-3",
 	    (void*)NSISOLatin3StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso8859-3",
@@ -4152,66 +4201,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)NSISOLatin9StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso8859-15",
 	    (void*)NSISOLatin9StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-symbol",
-	    (void*)NSSymbolStringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-symbol",
-	    (void*)NSSymbolStringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1250",
-	    (void*)NSWindowsCP1250StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1250",
-	    (void*)NSWindowsCP1250StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1251",
-	    (void*)NSWindowsCP1251StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1251",
-	    (void*)NSWindowsCP1251StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1252",
-	    (void*)NSWindowsCP1252StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1252",
-	    (void*)NSWindowsCP1252StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1253",
-	    (void*)NSWindowsCP1253StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1253",
-	    (void*)NSWindowsCP1253StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1254",
-	    (void*)NSWindowsCP1254StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1254",
-	    (void*)NSWindowsCP1254StringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso-10646-ucs-2",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso10646-ucs-2",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"utf-16",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"utf16",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso-10646-1",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso10646-1",
-	    (void*)NSUnicodeStringEncoding);
 	  NSMapInsert(charsets, (void*)@"big5",
 	    (void*)NSBIG5StringEncoding);
-	  NSMapInsert(charsets, (void*)@"jisx0201.1976",
-	    (void*)NSShiftJISStringEncoding);
-	  NSMapInsert(charsets, (void*)@"jisx0201",
-	    (void*)NSShiftJISStringEncoding);
-	  NSMapInsert(charsets, (void*)@"shift_JIS",
-	    (void*)NSShiftJISStringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf-7",
 	    (void*)NSUTF7StringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf7",
 	    (void*)NSUTF7StringEncoding);
-	  NSMapInsert(charsets, (void*)@"utf-8",
-	    (void*)NSUTF8StringEncoding);
-	  NSMapInsert(charsets, (void*)@"utf8",
-	    (void*)NSUTF8StringEncoding);
-	  NSMapInsert(charsets, (void*)@"apple-roman",
-	    (void*)NSMacOSRomanStringEncoding);
 	  NSMapInsert(charsets, (void*)@"koi8-r",
 	    (void*)NSKOI8RStringEncoding);
-	  NSMapInsert(charsets, (void*)@"gb2312.1980",
-	    (void*)NSGB2312StringEncoding);
-	  NSMapInsert(charsets, (void*)@"gb2312",
-	    (void*)NSGB2312StringEncoding);
 	  NSMapInsert(charsets, (void*)@"ksc5601.1987",
 	    (void*)NSKoreanEUCStringEncoding);
 	  NSMapInsert(charsets, (void*)@"ksc5601",
@@ -4220,6 +4217,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)NSKoreanEUCStringEncoding);
 	  NSMapInsert(charsets, (void*)@"ksc5601",
 	    (void*)NSKoreanEUCStringEncoding);
+	  NSMapInsert(charsets, (void*)@"gb2312.1980",
+	    (void*)NSGB2312StringEncoding);
+	  NSMapInsert(charsets, (void*)@"gb2312",
+	    (void*)NSGB2312StringEncoding);
+#endif
 	}
       if (encodings == 0)
 	{
@@ -4241,6 +4243,25 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)@"iso-8859-1");
 	  NSMapInsert(encodings, (void*)NSISOLatin2StringEncoding,
 	    (void*)@"iso-8859-2");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1250StringEncoding,
+	    (void*)@"windows-1250");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1251StringEncoding,
+	    (void*)@"windows-1251");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1252StringEncoding,
+	    (void*)@"windows-1252");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1253StringEncoding,
+	    (void*)@"windows-1253");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1254StringEncoding,
+	    (void*)@"windows-1254");
+	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
+	    (void*)@"utf-16");
+	  NSMapInsert(encodings, (void*)NSShiftJISStringEncoding,
+	    (void*)@"shift_JIS");
+	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
+	    (void*)@"utf-8");
+	  NSMapInsert(encodings, (void*)NSMacOSRomanStringEncoding,
+	    (void*)@"apple-roman");
+#if     !defined(NeXT_Foundation_LIBRARY)
 	  NSMapInsert(encodings, (void*)NSISOLatin3StringEncoding,
 	    (void*)@"iso-8859-3");
 	  NSMapInsert(encodings, (void*)NSISOLatin4StringEncoding,
@@ -4265,36 +4286,19 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)@"iso-8859-14");
 	  NSMapInsert(encodings, (void*)NSISOLatin9StringEncoding,
 	    (void*)@"iso-8859-15");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1250StringEncoding,
-	    (void*)@"windows-1250");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1251StringEncoding,
-	    (void*)@"windows-1251");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1252StringEncoding,
-	    (void*)@"windows-1252");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1253StringEncoding,
-	    (void*)@"windows-1253");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1254StringEncoding,
-	    (void*)@"windows-1254");
-	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
-	    (void*)@"utf-16");
 	  NSMapInsert(encodings, (void*)NSBIG5StringEncoding,
 	    (void*)@"big5");
-	  NSMapInsert(encodings, (void*)NSShiftJISStringEncoding,
-	    (void*)@"shift_JIS");
 	  NSMapInsert(encodings, (void*)NSUTF7StringEncoding,
 	    (void*)@"utf-7");
-	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
-	    (void*)@"utf-8");
 	  NSMapInsert(encodings, (void*)NSGSM0338StringEncoding,
 	    (void*)@"gsm0338");
-	  NSMapInsert(encodings, (void*)NSMacOSRomanStringEncoding,
-	    (void*)@"apple-roman");
 	  NSMapInsert(encodings, (void*)NSKOI8RStringEncoding,
 	    (void*)@"koi8-r");
 	  NSMapInsert(encodings, (void*)NSGB2312StringEncoding,
 	    (void*)@"gb2312.1980");
 	  NSMapInsert(encodings, (void*)NSKoreanEUCStringEncoding,
 	    (void*)@"ksc5601.1987");
+#endif
 	}
     }
 }
@@ -5380,7 +5384,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 	      charset = [type parameterForKey: @"charset"];
 	      e = [documentClass encodingFromCharset: charset];
+#if     defined(NeXT_Foundation_LIBRARY)
+	      if (e != NSASCIIStringEncoding)
+#else
 	      if (e != NSASCIIStringEncoding && e != NSUTF7StringEncoding)
+#endif
 		{
 		  encoding = @"8bit";
 		  enc = [GSMimeHeader alloc];
