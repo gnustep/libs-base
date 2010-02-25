@@ -279,7 +279,7 @@ static Class	gcClass = 0;
 
       if (!keys[count] || !objects[count])
 	{
-	  [self release];
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Nil object added in dictionary"];
 	}

@@ -1217,13 +1217,13 @@ done:
 
 - (id) initWithData: (NSData *)data
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSDataInputStream alloc] initWithData: data];
 }
 
 - (id) initWithFileAtPath: (NSString *)path
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSFileInputStream alloc] initWithFileAtPath: path];
 }
 
@@ -1262,20 +1262,20 @@ done:
 
 - (id) initToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSBufferOutputStream alloc] initToBuffer: buffer capacity: capacity];
 }
 
 - (id) initToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSFileOutputStream alloc] initToFileAtPath: path
 					       append: shouldAppend];  
 }
 
 - (id) initToMemory
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSDataOutputStream alloc] init];
 }
 

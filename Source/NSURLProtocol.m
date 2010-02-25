@@ -156,7 +156,7 @@ static NSLock		*pairLock = nil;
 
 - (id) init
 {
-  [self release];
+  DESTROY(self);
   return nil;
 }
 
@@ -180,7 +180,7 @@ static NSLock		*pairLock = nil;
 	{
 	  /* Found a match ... remove from cache and return as self.
 	   */
-	  [self release];
+	  DESTROY(self);
 	  self = [pair retain];
 	  [pairCache removeObjectAtIndex: count];
 	  [pairLock unlock];
@@ -197,7 +197,7 @@ static NSLock		*pairLock = nil;
 		    outputStream: &op];
       if (ip == nil || op == nil)
 	{
-	  [self release];
+	  DESTROY(self);
 	  return nil;
 	}
       ssl = s;

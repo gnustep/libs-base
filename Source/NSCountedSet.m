@@ -119,7 +119,7 @@ static Class NSCountedSet_concrete_class;
 
   if (c == NSCountedSet_abstract_class)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSCountedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: aCoder];
     }

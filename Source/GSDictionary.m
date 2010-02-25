@@ -194,13 +194,13 @@ static SEL	objSel;
 
       if (keys[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil key"];
 	}
       if (objs[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil value"];
 	}
@@ -257,7 +257,7 @@ static SEL	objSel;
 	  k = [k copyWithZone: z];
 	  if (k == nil)
 	    {
-	      IF_NO_GC(AUTORELEASE(self));
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init dictionary with nil key"];
 	    }
@@ -271,7 +271,7 @@ static SEL	objSel;
 	    }
 	  if (o == nil)
 	    {
-	      IF_NO_GC(AUTORELEASE(self));
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init dictionary with nil value"];
 	    }
@@ -526,7 +526,7 @@ static SEL	objSel;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSDictionary class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
@@ -539,7 +539,7 @@ static SEL	objSel;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSMutableDictionary class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;

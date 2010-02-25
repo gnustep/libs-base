@@ -136,7 +136,7 @@ static Class	NSPort_concrete_class;
 
   if (obj != self)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = RETAIN(obj);
     }
   return self;

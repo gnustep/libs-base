@@ -157,7 +157,7 @@ static Class	gcClass = 0;
       _contents[_count] = RETAIN(objects[_count]);
       if (_contents[_count] == nil)
 	{
-	  [self release];
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Nil object to be added in array"];
 	}
@@ -309,7 +309,7 @@ static Class	gcClass = 0;
 	  _contents[_count] = RETAIN(objects[_count]);
 	  if (_contents[_count] == nil)
 	    {
-	      [self release];
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Nil object to be added in array"];
 	    }

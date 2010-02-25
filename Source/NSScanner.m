@@ -241,7 +241,7 @@ typedef GSString	*ivars;
     }
   else
     {
-      RELEASE(self);
+      DESTROY(self);
       NSLog(@"Scanner initialised with something not a string");
       return nil;
     }

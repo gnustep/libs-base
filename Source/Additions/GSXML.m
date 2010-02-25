@@ -423,7 +423,7 @@ static NSMapTable	*attrNames = 0;
 - (id) init
 {
   NSLog(@"GSXMLDocument: calling -init is not legal");
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 
@@ -641,7 +641,7 @@ static NSMapTable	*nsNames = 0;
 - (id) init
 {
   NSLog(@"GSXMLNamespace: calling -init is not legal");
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 
@@ -1093,7 +1093,7 @@ static NSMapTable	*nodeNames = 0;
 - (id) init
 {
   NSLog(@"GSXMLNode: calling -init is not legal");
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 
@@ -1980,13 +1980,13 @@ static NSString	*endMarker = @"At end of incremental parse";
   else
     {
       NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   [saxHandler _setParser: self];
   if ([self _initLibXML] == NO)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   return self;
@@ -2009,7 +2009,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   if (path == nil || [path isKindOfClass: NSString_class] == NO)
     {
       NSLog(@"Bad file path passed to initialize GSXMLParser");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   src = [path copy];
@@ -2034,7 +2034,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   if (url == nil || [url isKindOfClass: [NSURL class]] == NO)
     {
       NSLog(@"Bad NSURL passed to initialize GSXMLParser");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   src = [url copy];
@@ -2059,7 +2059,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   if (data == nil || [data isKindOfClass: [NSData class]] == NO)
     {
       NSLog(@"Bad NSData passed to initialize GSXMLParser");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   src = [data copy];
@@ -3014,7 +3014,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       if ([self _initLibXML] == NO)
         {
           NSLog(@"GSSAXHandler: out of memory\n");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
         }
     }
@@ -3594,7 +3594,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 @implementation GSXPathObject
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 
@@ -4163,14 +4163,14 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 {
   NSLog(@"Not built with libxml ... %@ unusable in %@",
     NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Not built with libxml ... %@ unusable in %@",
     NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 @end

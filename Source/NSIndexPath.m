@@ -313,7 +313,7 @@ static	NSIndexPath	*dummy = nil;
       [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &length];
       if (length == 0)
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  self = empty;
 	}
       else
@@ -386,7 +386,7 @@ static	NSIndexPath	*dummy = nil;
     }
   else
     {
-      RELEASE(self);
+      DESTROY(self);
       self = RETAIN(found);
     }
   [lock unlock];

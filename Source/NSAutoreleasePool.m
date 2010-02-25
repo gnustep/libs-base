@@ -319,7 +319,7 @@ static IMP	initImp;
     }
   (*imp)(collector, sel);
 #else
-  [self release];
+  DESTROY(self);
 #endif
 }
 

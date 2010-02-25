@@ -577,7 +577,7 @@ static NSLock			*placeholderLock;
     {
       NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
     }
-  RELEASE(self);
+  DESTROY(self);
   self = o;
   return self;
 }

@@ -130,7 +130,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      RELEASE(self);
+      DESTROY(self);
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
@@ -138,7 +138,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -157,7 +157,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
       NSLog(@"unable to bind to port %s:%d - %@",  inet_ntoa(sin.sin_addr),
 	    NSSwapBigShortToHost(sin.sin_port),  [NSError _last]);
       (void) close(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -165,7 +165,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
     {
       NSLog(@"unable to listen on port - %@",  [NSError _last]);
       (void) close(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -173,7 +173,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
     {
       NSLog(@"unable to get socket name - %@",  [NSError _last]);
       (void) close(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 

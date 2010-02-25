@@ -496,7 +496,7 @@ static Class NSDataMallocClass;
 	}
       NS_HANDLER
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  [localException raise];
 	}
       NS_ENDHANDLER

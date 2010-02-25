@@ -764,7 +764,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 - (id) init
 {
-  [self release];
+  DESTROY(self);
   return nil;
 }
 

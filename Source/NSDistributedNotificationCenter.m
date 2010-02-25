@@ -244,7 +244,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  */
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   [NSException raise: NSInternalInconsistencyException
     format: @"Should not call -init for NSDistributedNotificationCenter"];
   return nil;

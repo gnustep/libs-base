@@ -263,7 +263,7 @@ static Class	mutableSetClass;
 
       if (objs[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}
@@ -745,7 +745,7 @@ static Class	mutableSetClass;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSSet class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
@@ -758,7 +758,7 @@ static Class	mutableSetClass;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSMutableSet class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;

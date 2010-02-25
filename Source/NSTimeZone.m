@@ -470,7 +470,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 #if	defined(__MINGW32__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
-                  RELEASE(self);
+                  DESTROY(self);
                   return zone;
                 }
 #else
@@ -489,7 +489,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	  zone = [[GSTimeZone alloc] initWithName: name data: data];
 	}
     }
-  RELEASE(self);
+  DESTROY(self);
   return zone;
 }
 
@@ -657,7 +657,7 @@ static NSMapTable	*absolutes = 0;
     }
   if (anOffset > 64800)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   anOffset *= sign;
@@ -670,7 +670,7 @@ static NSMapTable	*absolutes = 0;
   if (z != nil)
     {
       IF_NO_GC(RETAIN(z));
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {

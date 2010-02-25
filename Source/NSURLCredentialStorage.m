@@ -110,7 +110,7 @@ static NSURLCredentialStorage	*storage = nil;
 // Should never be called.
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 

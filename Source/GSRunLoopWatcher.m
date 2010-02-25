@@ -56,7 +56,7 @@
       case ET_RPORT: 	type = aType;	break;
       case ET_TRIGGER: 	type = aType;	break;
       default: 
-	RELEASE(self);
+	DESTROY(self);
 	[NSException raise: NSInvalidArgumentException
 		    format: @"NSRunLoop - unknown event type"];
     }
@@ -68,7 +68,7 @@
 
   if (![anObj respondsToSelector: @selector(receivedEvent:type:extra:forMode:)])
     {
-      RELEASE(self);
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"RunLoop listener has no event handling method"];
     }

@@ -66,7 +66,7 @@ static Class	NSDate_class;
  */
 - (id) init
 {
-  [self release];
+  DESTROY(self);
   return nil;
 }
 

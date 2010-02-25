@@ -386,7 +386,7 @@ static Class		messagePortClass = 0;
   else
     {
       found = YES;
-      RELEASE(self);
+      DESTROY(self);
       self = p;
     }
 
@@ -460,7 +460,7 @@ static Class		messagePortClass = 0;
 	}
       M_UNLOCK(this->lock);
     }
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (BOOL) isEqual: (id)anObject
@@ -917,7 +917,7 @@ again:
 				      forMode: mode
 					  all: YES];
     }
-  RELEASE(self);
+  DESTROY(self);
 }
 
 
@@ -1131,7 +1131,7 @@ again:
 	}
     }
   M_UNLOCK(this->lock);
-  RELEASE(self);
+  DESTROY(self);
   RELEASE(h);
 
   return sent;

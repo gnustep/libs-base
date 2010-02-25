@@ -701,7 +701,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (s == nil)
     {
       NSLog(@"bad argument - service is nil");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -723,7 +723,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (getAddr(lhost, p, @"tcp", &lsin) == NO)
 	{
 	  NSLog(@"bad bind address specification");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
       p = @"tcp";
@@ -769,7 +769,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      RELEASE(self);
+      DESTROY(self);
       NSLog(@"bad address-service-protocol combination");
       return nil;
     }
@@ -793,7 +793,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (getAddr(shost, sport, p, &sin) == NO)
 	{
 	  NSLog(@"bad SOCKS host-port combination");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -801,7 +801,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   /*
@@ -817,7 +817,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(lsin.sin_addr),
 	    GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
 	  (void) closesocket(net);
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -836,7 +836,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      NSLog(@"unable to make connection to %s:%d - %@",
 		inet_ntoa(sin.sin_addr),
 		GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
-	      RELEASE(self);
+	      DESTROY(self);
 	      return nil;
 	    }
 	}
@@ -892,7 +892,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      RELEASE(self);
+      DESTROY(self);
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
@@ -900,7 +900,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -919,7 +919,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(sin.sin_addr),
 	GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
       (void) closesocket(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -927,7 +927,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSLog(@"unable to listen on port - %@", [NSError _last]);
       (void) closesocket(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -935,7 +935,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSLog(@"unable to get socket name - %@", [NSError _last]);
       (void) closesocket(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -960,7 +960,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -984,7 +984,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -1008,7 +1008,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -1028,7 +1028,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (fh_stderr != nil)
     {
       RETAIN(fh_stderr);
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {
@@ -1048,7 +1048,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (fh_stdin != nil)
     {
       RETAIN(fh_stdin);
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {
@@ -1068,7 +1068,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (fh_stdout != nil)
     {
       RETAIN(fh_stdout);
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {
@@ -1089,7 +1089,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else

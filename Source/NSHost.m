@@ -151,13 +151,13 @@ static NSMutableDictionary	*_hostCache = nil;
     {
       NSLog(@"Host '%@' init failed - perhaps the name/address is wrong or "
 	@"networking is not set up on your machine", name);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else if (name == nil && entry != (struct hostent*)NULL)
     {
       NSLog(@"Nil hostname supplied but network database entry is not empty");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -506,7 +506,7 @@ myHostName()
       host = [NSHost currentHost];
     }
   IF_NO_GC([host retain];)
-  RELEASE(self);
+  DESTROY(self);
   return host;
 }
 

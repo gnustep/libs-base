@@ -1,5 +1,79 @@
 2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSIndexPath.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURLCredential.m:
+	* Source/GSSocketStream.m:
+	* Source/NSURLHandle.m:
+	* Source/NSTimer.m:
+	* Source/NSScanner.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSSocketPort.m:
+	* Source/NSAttributedString.m:
+	* Source/NSRunLoop.m:
+	* Source/NSMethodSignature.m:
+	* Source/GSRunLoopWatcher.m:
+	* Source/GSArray.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSKeyValueMutableSet.m:
+	* Source/GSStream.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/unix/NSStream.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSDistributedLock.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLCredentialStorage.m:
+	* Source/NSPort.m:
+	* Source/GSFFIInvocation.m:
+	* Source/NSMessagePort.m:
+	* Source/GSDictionary.m:
+	* Source/win32/GSFileHandle.m:
+	* Source/win32/NSMessagePort.m:
+	* Source/win32/NSStream.m:
+	* Source/GSCountedSet.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSInvocation.m:
+	* Source/NSURLProtocol.m:
+	* Source/GSAttributedString.m:
+	* Source/NSKeyValueMutableArray.m:
+	* Source/NSException.m:
+	* Source/NSCopyObject.m:
+	* Source/NSURL.m:
+	* Source/NSObject.m:
+	* Source/NSString.m:
+	* Source/Additions/NSFileHandle+GNUstepBase.m:
+	* Source/Additions/GCDictionary.m:
+	* Source/Additions/GCArray.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/Additions/GSLock.m:
+	* Source/GSSet.m:
+	* Source/NSNotification.m:
+	* Source/NSNumber.m:
+	* Source/GSString.m:
+	* Source/NSConnection.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSThread.m:
+	* Source/NSData.m:
+	* Source/NSHost.m:
+	* Source/NSDate.m:
+	* Source/GSValue.m:
+	* Source/NSValue.m:
+	* Source/NSCountedSet.m:
+	* Source/GSFileHandle.m:
+	* Source/NSLock.m:
+	* Source/NSSet.m:
+	* Source/NSCharacterSet.m:
+	* SSL/GSSSLHandle.m:
+	Always DESTROY(self) rather than RELEASE(self) so that the pointer
+	is nil if/when another method is called from the method where self
+ 	was potentially deallocated.  This is so that the libobjc2 runtime
+	doesn't try dereferencing self when it points to a deallocated
+	object.
+
+2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac:
 	* configure:
 	* Headers/Additions/GNUstepBase/config.h.in:

@@ -549,6 +549,7 @@ static void setThreadForCurrentThread(NSThread *t)
        * Ensure that the default thread exists.
        */
       threadClass = self;
+
       [NSThread _createThreadForCurrentPthread];
       defaultThread = [NSThread currentThread];
 
@@ -868,7 +869,7 @@ static void *nsthreadLauncher(void* thread)
     }
   if (pthread_create(&thr, &attr, nsthreadLauncher, self))
     {
-      RELEASE(self);
+      DESTROY(self);
       [NSException raise: NSInternalInconsistencyException
                   format: @"Unable to detach thread (last error %@)",
                   [NSError _last]];
@@ -927,7 +928,7 @@ static void *nsthreadLauncher(void* thread)
 #ifdef __MINGW32__
   if ((event = CreateEvent(NULL, TRUE, FALSE, NULL)) == INVALID_HANDLE_VALUE)
     {
-      RELEASE(self);
+      DESTROY(self);
       [NSException raise: NSInternalInconsistencyException
         format: @"Failed to create event to handle perform in thread"];
     }
@@ -957,7 +958,7 @@ static void *nsthreadLauncher(void* thread)
     }
   else
     {
-      RELEASE(self);
+      DESTROY(self);
       [NSException raise: NSInternalInconsistencyException
         format: @"Failed to create pipe to handle perform in thread"];
     }

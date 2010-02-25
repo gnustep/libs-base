@@ -80,7 +80,7 @@ typeSize(const char* type)
   if (!value || !type)
     {
       NSLog(@"Tried to create NSValue with NULL value or NULL type");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -92,7 +92,7 @@ typeSize(const char* type)
       if (size < 0)
 	{
 	  NSLog(@"Tried to create NSValue with invalid Objective-C type");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
       if (size > 0)

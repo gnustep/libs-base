@@ -687,7 +687,7 @@ static unsigned	urlAlign;
     }
   if ([aUrlString length] == 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   ASSIGNCOPY(_urlString, aUrlString);
@@ -1872,7 +1872,7 @@ static unsigned	urlAlign;
       NSMapRemove((NSMapTable*)_clients, (void*)sender);
       [clientsLock unlock];
     }
-  RELEASE(self);
+  DESTROY(self);
 }
 
 @end

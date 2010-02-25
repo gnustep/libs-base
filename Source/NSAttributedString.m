@@ -230,7 +230,7 @@ static Class GSMutableAttributedStringClass;
 	      [m setAttributes: [attributes objectAtIndex: idx] range: r];
               pos = NSMaxRange(r);
             }
-          RELEASE(self);
+          DESTROY(self);
           self = [m copy];
           RELEASE(m);
         }
@@ -273,7 +273,7 @@ static Class GSMutableAttributedStringClass;
 		  [m setAttributes: attrs range: r];
 		  last = index;
 		}
-	      RELEASE(self);
+	      DESTROY(self);
 	      self = [m copy];
 	      RELEASE(m);
 	    }

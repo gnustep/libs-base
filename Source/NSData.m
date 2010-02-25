@@ -640,7 +640,7 @@ failure:
 {
 #ifdef	HAVE_MMAP
   NSZone	*z = GSObjCZone(self);
-  RELEASE(self);
+  DESTROY(self);
   self = [NSDataMappedFile allocWithZone: z];
   return [self initWithContentsOfMappedFile: path];
 #else
@@ -671,7 +671,7 @@ failure:
   if ([data isKindOfClass: [NSData class]] == NO)
     {
       NSLog(@"-initWithData: passed a non-data object");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   return [self initWithBytes: [data bytes] length: [data length]];
@@ -1917,7 +1917,7 @@ failure:
             {
               NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %u bytes",
                 l);
-              RELEASE(self);
+              DESTROY(self);
               return nil;
             }
           [aCoder decodeArrayOfObjCType: @encode(unsigned char) count: l at: b];
@@ -3016,7 +3016,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (thePath == 0)	
     {
       NSWarnMLog(@"Open (%@) attempt failed - bad path", path);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -3028,7 +3028,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (fd < 0)
     {
       NSWarnMLog(@"unable to open %@ - %@", path, [NSError _last]);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   /* Find size of file to be mapped. */
@@ -3037,7 +3037,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSWarnMLog(@"unable to seek to eof %@ - %@", path, [NSError _last]);
       close(fd);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   /* Position at start of file. */
@@ -3045,7 +3045,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSWarnMLog(@"unable to seek to sof %@ - %@", path, [NSError _last]);
       close(fd);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
@@ -3053,7 +3053,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSWarnMLog(@"mapping failed for %s - %@", path, [NSError _last]);
       close(fd);
-      RELEASE(self);
+      DESTROY(self);
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
       self = [self initWithContentsOfFile: path];
     }
@@ -3110,7 +3110,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  NSLog(@"[-initWithBytes:length:] shared mem get failed for %u - %@",
 	    bufferSize, [NSError _last]);
-	  RELEASE(self);
+	  DESTROY(self);
 	  self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
 	  return [self initWithBytes: aBuffer length: bufferSize];
 	}
@@ -3121,7 +3121,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	NSLog(@"[-initWithBytes:length:] shared mem attach failed for %u - %@",
 	  bufferSize, [NSError _last]);
 	bytes = 0;
-	RELEASE(self);
+	DESTROY(self);
 	self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
 	return [self initWithBytes: aBuffer length: bufferSize];
       }
@@ -3139,14 +3139,14 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSLog(@"[NSDataShared -initWithShmID:length:] shared memory "
         @"control failed - %@", [NSError _last]);
-      RELEASE(self);	/* Unable to access memory. */
+      DESTROY(self);	/* Unable to access memory. */
       return nil;
     }
   if (buf.shm_segsz < bufferSize)
     {
       NSLog(@"[NSDataShared -initWithShmID:length:] shared memory "
         @"segment too small");
-      RELEASE(self);	/* Memory segment too small. */
+      DESTROY(self);	/* Memory segment too small. */
       return nil;
     }
   bytes = shmat(shmid, 0, 0);
@@ -3155,7 +3155,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       NSLog(@"[NSDataShared -initWithShmID:length:] shared memory "
         @"attach failed - %@", [NSError _last]);
       bytes = 0;
-      RELEASE(self);	/* Unable to attach to memory. */
+      DESTROY(self);	/* Unable to attach to memory. */
       return nil;
     }
   length = bufferSize;
@@ -3299,7 +3299,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory "
 	    @"for %u bytes - %@", size, [NSError _last]);
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -3843,7 +3843,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "
 	@"get failed for %u - %@", bufferSize, [NSError _last]);
-      RELEASE(self);
+      DESTROY(self);
       self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
       return [self initWithCapacity: bufferSize];
     }
@@ -3854,7 +3854,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "
 	@"attach failed for %u - %@", bufferSize, [NSError _last]);
       bytes = 0;
-      RELEASE(self);
+      DESTROY(self);
       self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
       return [self initWithCapacity: bufferSize];
     }
@@ -3873,14 +3873,14 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory "
 	@"control failed - %@", [NSError _last]);
-      RELEASE(self);	/* Unable to access memory. */
+      DESTROY(self);	/* Unable to access memory. */
       return nil;
     }
   if (buf.shm_segsz < bufferSize)
     {
       NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory "
 	@"segment too small");
-      RELEASE(self);	/* Memory segment too small. */
+      DESTROY(self);	/* Memory segment too small. */
       return nil;
     }
   bytes = shmat(shmid, 0, 0);
@@ -3889,7 +3889,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory "
 	@"attach failed - %@", [NSError _last]);
       bytes = 0;
-      RELEASE(self);	/* Unable to attach to memory. */
+      DESTROY(self);	/* Unable to attach to memory. */
       return nil;
     }
   length = bufferSize;

@@ -1202,14 +1202,14 @@ handle_printf_atsign (FILE *stream,
   d = [[NSDataClass alloc] initWithContentsOfFile: path];
   if (d == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   len = [d length];
   if (len == 0)
     {
       RELEASE(d);
-      RELEASE(self);
+      DESTROY(self);
       return @"";
     }
   data_bytes = [d bytes];
@@ -1268,7 +1268,7 @@ handle_printf_atsign (FILE *stream,
   d = [[NSDataClass alloc] initWithContentsOfFile: path];
   if (d == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   *enc = _DefaultStringEncoding;
@@ -1276,7 +1276,7 @@ handle_printf_atsign (FILE *stream,
   if (len == 0)
     {
       RELEASE(d);
-      RELEASE(self);
+      DESTROY(self);
       return @"";
     }
   data_bytes = [d bytes];
@@ -1339,12 +1339,12 @@ handle_printf_atsign (FILE *stream,
   if (d == nil)
     {
       NSWarnMLog(@"Contents of URL '%@' are not readable", url);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   if (len == 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return @"";
     }
   data_bytes = [d bytes];

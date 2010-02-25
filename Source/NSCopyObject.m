@@ -31,6 +31,6 @@ NSObject *NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone)
 {
   id copy = NSAllocateObject(((id)anObject)->class_pointer, extraBytes, zone);
   memcpy(copy, anObject,
-	 ((id)anObject)->class_pointer->instance_size + extraBytes);
+    class_getInstanceSize(object_getClass(anObject)) + extraBytes);
   return copy;
 }

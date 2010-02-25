@@ -759,7 +759,7 @@ static NSMapTable	*globalClassMap = 0;
 - (id) init
 {
   Class c = [self class];
-  RELEASE(self);
+  DESTROY(self);
   [NSException raise: NSInvalidArgumentException
               format: @"-[%@ init]: cannot use -init for initialisation",
               NSStringFromClass(c)];

@@ -105,7 +105,7 @@ typedef struct {
 {
   if (user == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   if ((self = [super init]) != nil)

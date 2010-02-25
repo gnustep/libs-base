@@ -1436,7 +1436,7 @@ static Class	runLoopClass;
       sent = YES;
     }
   M_UNLOCK(myLock);
-  RELEASE(self);
+  DESTROY(self);
   NSDebugMLLog(@"GSTcpHandle",
     @"Message send 0x%x on 0x%x status %d", components, self, sent);
   return sent;
@@ -2042,7 +2042,7 @@ static Class		tcpPortClass;
 
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   self = [tcpPortClass new];
   return self;
 }
@@ -2100,7 +2100,7 @@ static Class		tcpPortClass;
 	  [super invalidate];
 	}
       M_UNLOCK(myLock);
-      RELEASE(self);
+      DESTROY(self);
     }
 }
 
@@ -2258,7 +2258,7 @@ static Class		tcpPortClass;
 	   * been retained - we must therefore release this port since the
 	   * handle no longer uses it.
 	   */
-	  IF_NO_GC(AUTORELEASE(self);)
+	  DESTROY(self);
 	}
       handle->sendPort = nil;
     }
@@ -2275,7 +2275,7 @@ static Class		tcpPortClass;
       [self invalidate];
     }
   M_UNLOCK(myLock);
-  RELEASE(self);
+  DESTROY(self);
 }
 
 /*

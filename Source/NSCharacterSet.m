@@ -853,7 +853,7 @@ static Class concreteMutableClass = nil;
 
       obj = [concreteClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: nil];
-      RELEASE(self);
+      DESTROY(self);
       self = obj;
     }
   return self;
@@ -1130,7 +1130,7 @@ static Class concreteMutableClass = nil;
 
       obj = [concreteMutableClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: nil];
-      RELEASE(self);
+      DESTROY(self);
       self = obj;
     }
   return self;
@@ -1144,7 +1144,7 @@ static Class concreteMutableClass = nil;
 
       obj = [concreteMutableClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: bitmap];
-      RELEASE(self);
+      DESTROY(self);
       self = obj;
     }
   return self;

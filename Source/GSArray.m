@@ -162,7 +162,7 @@ static Class	GSInlineArrayClass;
 #endif
       if (_contents_array == 0)
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
        }
 
@@ -171,7 +171,7 @@ static Class	GSInlineArrayClass;
 	  if ((_contents_array[i] = RETAIN(objects[i])) == nil)
 	    {
 	      _count = i;
-	      RELEASE(self);
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init array with nil to object"];
 	    }
@@ -422,7 +422,7 @@ static Class	GSInlineArrayClass;
 	  if ((_contents_array[i] = RETAIN(objects[i])) == nil)
 	    {
 	      _count = i;
-	      RELEASE(self);
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init array with nil object"];
 	    }
@@ -574,7 +574,7 @@ static Class	GSInlineArrayClass;
 	  if ((_contents_array[i] = RETAIN(objects[i])) == nil)
 	    {
 	      _count = i;
-	      RELEASE(self);
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init array with nil object"];
 	    }
@@ -1197,7 +1197,7 @@ static Class	GSInlineArrayClass;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSArray class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
@@ -1210,7 +1210,7 @@ static Class	GSInlineArrayClass;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSMutableArray class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;

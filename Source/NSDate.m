@@ -1029,7 +1029,7 @@ otherTime(NSDate* other)
       o = [concreteClass allocWithZone: NSDefaultMallocZone()];
       o = [o initWithTimeIntervalSinceReferenceDate: interval];
     }
-  RELEASE(self);
+  DESTROY(self);
   return o;
 }
 
@@ -1054,7 +1054,7 @@ otherTime(NSDate* other)
   d = [d initWithString: description];
   if (d == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -1074,7 +1074,7 @@ otherTime(NSDate* other)
   if (anotherDate == nil)
     {
       NSLog(@"initWithTimeInterval:sinceDate: given nil date");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   // Get the other date's time, add the secs and init thyself

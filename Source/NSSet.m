@@ -213,13 +213,13 @@ static Class NSMutableSet_concrete_class;
   c = object_getClass(self);
   if (c == NSSet_abstract_class)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: aCoder];
     }
   else if (c == NSMutableSet_abstract_class)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSMutableSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: aCoder];
     }

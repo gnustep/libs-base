@@ -1326,7 +1326,7 @@ replacementForClass(Class c)
       [observedObjectForForwarding removeObserver: self forKeyPath: 
         keyForForwarding];
     }
-  [self release];
+  DESTROY(self);
 }
 
 - (void) dealloc

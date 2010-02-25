@@ -237,7 +237,7 @@
 
   if (!canAdd || !canRemove)
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
 
@@ -427,7 +427,7 @@
 
   if (![anObject respondsToSelector: setSelector])
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
 

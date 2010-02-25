@@ -321,7 +321,7 @@ static Class		NSURLHandleClass = 0;
     @selector(URLHandleResourceDidCancelLoading:)
     withObject: self];
   [self endLoadInBackground];
-  IF_NO_GC([self release];)
+  IF_NO_GC(DESTROY(self);)
 }
 
 - (void) dealloc
@@ -710,7 +710,7 @@ static NSLock			*fileLock = nil;
   if ([url isFileURL] == NO)
     {
       NSLog(@"Attempt to init GSFileURLHandle with bad URL");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   path = [url path];
