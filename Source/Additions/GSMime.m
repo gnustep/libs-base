@@ -362,12 +362,12 @@ wordData(NSString *word)
   else
     {
       int		len = [charset length];
-      char		buf[len+1];
+      char		buf[len + 1];
       NSMutableData	*md;
 
       [charset getCString: buf
-		maxLength: len
-		 encoding: NSASCIIStringEncoding];
+		maxLength: len + 1
+		 encoding: NSISOLatin1StringEncoding];
       md = [NSMutableData dataWithCapacity: [d length]*4/3 + len + 8];
       d = [documentClass encodeBase64: d];
       [md appendBytes: "=?" length: 2];
@@ -1584,7 +1584,7 @@ wordData(NSString *word)
       DESTROY(boundary);
       if (tmp != nil)
 	{
-	  NSUInteger	l = [tmp length] + 2;
+	  NSUInteger	l = [tmp length];
 	  unsigned char	*b;
 
 #if	GS_WITH_GC
@@ -1595,8 +1595,8 @@ wordData(NSString *word)
 	  b[0] = '-';
 	  b[1] = '-';
 	  [tmp getCString: (char*)&b[2]
-		maxLength: l
-		 encoding: NSASCIIStringEncoding];
+		maxLength: l + 1
+		 encoding: NSISOLatin1StringEncoding];
 	  boundary = [[NSData alloc] initWithBytesNoCopy: b length: l + 2];
 	}
 
