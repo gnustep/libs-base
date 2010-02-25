@@ -311,5 +311,22 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  */
 #define GSLocalizedStaticString(key, comment) key
 
+/**
+ * To be used inside a method for making sure that a range does not specify
+ * anything outside the size of an array/string.  Raises exception if range
+ * extends beyond [0,size).
+ */
+#define GS_RANGE_CHECK(RANGE, SIZE) \
+  if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
+    [NSException raise: NSRangeException \
+                 format: @"in %s, range { %u, %u } extends beyond size (%u)", \
+		 GSNameFromSelector(_cmd), RANGE.location, RANGE.length, SIZE]
+
+/** Checks whether INDEX is strictly less than OVER (within C array space). */
+#define CHECK_INDEX_RANGE_ERROR(INDEX, OVER) \
+if (INDEX >= OVER) \
+  [NSException raise: NSRangeException \
+               format: @"in %s, index %d is out of range", \
+               GSNameFromSelector(_cmd), INDEX]
 
 #endif /* __GNUSTEP_GNUSTEP_H_INCLUDED_ */
