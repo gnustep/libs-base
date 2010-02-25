@@ -48,6 +48,10 @@
 
 #import "GSPrivate.h"
 
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 #import "GNUstepBase/Unicode.h"

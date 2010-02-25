@@ -88,6 +88,10 @@
 #include <stdio.h>
 #include <wchar.h>
 
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 #import "GNUstepBase/Unicode.h"
 
 #import "GSPrivate.h"

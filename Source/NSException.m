@@ -40,6 +40,10 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 #include <stdio.h>
 
 #ifdef HAVE_BACKTRACE
