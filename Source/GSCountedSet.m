@@ -242,7 +242,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 
       if (objs[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init counted set with nil value"];
 	}

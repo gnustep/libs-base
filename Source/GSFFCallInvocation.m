@@ -541,7 +541,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 {
   if (aSignature == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   _sig = RETAIN(aSignature);

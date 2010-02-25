@@ -201,7 +201,7 @@ MFINALIZE
     {
       if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
 	{
-	  [self release];
+	  DESTROY(self);
 	  self = nil;
 	}
     }
@@ -250,7 +250,7 @@ MFINALIZE
     {
       if (0 != pthread_mutex_init(&_mutex, &attr_recursive))
 	{
-	  [self release];
+	  DESTROY(self);
 	  self = nil;
 	}
     }
@@ -293,13 +293,13 @@ MDESCRIPTION
     }
   if (0 != pthread_cond_init(&_condition, NULL))
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
   if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
     {
       pthread_cond_destroy(&_condition);
-      [self release];
+      DESTROY(self);
       return nil;
     }
   return self;
@@ -383,7 +383,7 @@ MUNLOCK
     }
   if (nil == (_condition = [NSCondition new]))
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
   _condition_value = value;

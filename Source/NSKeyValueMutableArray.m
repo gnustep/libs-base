@@ -183,7 +183,7 @@
   if (!([anObject respondsToSelector: insert]
     && [anObject respondsToSelector: remove]))
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
   replace = NSSelectorFromString
@@ -317,7 +317,7 @@
 
   if (![anObject respondsToSelector: set])
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
 

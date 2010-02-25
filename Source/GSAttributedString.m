@@ -912,7 +912,7 @@ SANITY();
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSAttributedString class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
@@ -925,7 +925,7 @@ SANITY();
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSMutableAttributedString class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;

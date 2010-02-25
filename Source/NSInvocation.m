@@ -710,7 +710,7 @@ _arg_addr(NSInvocation *inv, int index)
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
   NSZoneFree(NSDefaultMallocZone(), (void*)types);
 
-  RELEASE(self);
+  DESTROY(self);
   self  = RETAIN([NSInvocation invocationWithMethodSignature: newSig]);
 
   [aCoder decodeValueOfObjCType: @encode(id) at: &_target];
@@ -806,7 +806,7 @@ _arg_addr(NSInvocation *inv, int index)
     {
       NSLog(@"Couldn't find encoding type for selector %s.",
 	   sel_getName(aSelector));
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   newSig = [NSMethodSignature signatureWithObjCTypes: types];

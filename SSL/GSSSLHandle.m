@@ -277,7 +277,7 @@ static BOOL	permitSSLv2 = NO;
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
       if (ssl == 0)
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  return NO;
 	}
       ret = SSL_accept(ssl);
@@ -306,7 +306,7 @@ static BOOL	permitSSLv2 = NO;
 	    {
 	      RELEASE(when);
 	      RELEASE(final);
-	      RELEASE(self);
+	      DESTROY(self);
 	      return NO;
 	    }
 	  ret = SSL_accept(ssl);
@@ -331,12 +331,12 @@ static BOOL	permitSSLv2 = NO;
 	      NSWarnLog(@"unable to accept SSL connection from %@:%@ - %@",
 		address, service, sslError(err));
 	    }
-	  RELEASE(self);
+	  DESTROY(self);
 	  return NO;
 	}
     }
   connected = YES;
-  RELEASE(self);
+  DESTROY(self);
   return YES;
 }
 
@@ -383,7 +383,7 @@ static BOOL	permitSSLv2 = NO;
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
       if (ssl == 0)
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  return NO;
 	}
       ret = SSL_connect(ssl);
@@ -412,7 +412,7 @@ static BOOL	permitSSLv2 = NO;
 	    {
 	      RELEASE(when);
 	      RELEASE(final);
-	      RELEASE(self);
+	      DESTROY(self);
 	      return NO;
 	    }
 	  ret = SSL_connect(ssl);
@@ -437,12 +437,12 @@ static BOOL	permitSSLv2 = NO;
 	      NSLog(@"unable to make SSL connection to %@:%@ - %@",
 		address, service, sslError(err));
 	    }
-	  RELEASE(self);
+	  DESTROY(self);
 	  return NO;
 	}
     }
   connected = YES;
-  RELEASE(self);
+  DESTROY(self);
   return YES;
 }
 

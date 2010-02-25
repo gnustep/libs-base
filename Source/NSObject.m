@@ -555,7 +555,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 
   NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
   gc_type = (GC_descr)aClass->gc_object_type;
-  size = aClass->instance_size + extraBytes;
+  size = class_getInstanceSize(aClass) + extraBytes;
   if (size % sizeof(void*) != 0)
     {
       /* Size must be a multiple of pointer size for the garbage collector
@@ -613,7 +613,7 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
   int	size;
 
   NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
-  size = aClass->instance_size + extraBytes + sizeof(struct obj_layout);
+  size = class_getInstanceSize(aClass) + extraBytes + sizeof(struct obj_layout);
   if (zone == 0)
     {
       zone = NSDefaultMallocZone();

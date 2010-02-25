@@ -84,7 +84,7 @@
 
   if ([NSThread isMultiThreaded] == YES)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSLock new];
     }
   else
@@ -229,7 +229,7 @@
 
   if ([NSThread isMultiThreaded] == YES)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSRecursiveLock new];
     }
   else

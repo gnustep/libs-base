@@ -387,7 +387,7 @@ static Class NSDoubleNumberClass;
 #define INTEGER_MACRO(type, ignored, name) \
 - (id) initWith ## name: (type)aValue \
 {\
-  [self release];\
+  DESTROY(self);\
   return [[NSNumberClass numberWith ## name: aValue] retain];\
 }
 
@@ -395,7 +395,7 @@ static Class NSDoubleNumberClass;
 
 - (id) initWithBool: (BOOL)aValue
 {
-  [self release];
+  DESTROY(self);
   return [ReusedInstances[aValue ? 2 : 1] retain];\
 }
 
@@ -620,7 +620,7 @@ if (aValue >= -1 && aValue <= 12)\
  */
 - (id) init
 {
-  [self release];
+  DESTROY(self);
   return nil;
 }
 

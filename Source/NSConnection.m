@@ -995,7 +995,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   if (conn != nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = RETAIN(conn);
       if (debug_connection > 2)
 	{
@@ -1163,7 +1163,7 @@ static NSLock	*cached_proxies_gate = nil;
       if ([del connection: parent shouldMakeNewConnection: self] == NO)
 	{
 	  M_UNLOCK(connection_table_gate);
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -1173,7 +1173,7 @@ static NSLock	*cached_proxies_gate = nil;
       if (![del makeNewConnection: self sender: parent])
 	{
 	  M_UNLOCK(connection_table_gate);
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -1373,7 +1373,7 @@ static NSLock	*cached_proxies_gate = nil;
       [[IsendPort conversation: IreceivePort] invalidate];
     }
 
-  RELEASE(self);
+  DESTROY(self);
 }
 
 /**

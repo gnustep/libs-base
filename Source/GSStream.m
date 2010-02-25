@@ -973,7 +973,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  RELEASE(self);
+  DESTROY(self);
   // try inet first, then inet6
   self = [[GSInetServerStream alloc] initToAddr: addr port: port];
   if (!self)
@@ -983,7 +983,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (id) initToAddr: (NSString*)addr
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSLocalServerStream alloc] initToAddr: addr];
 }
 

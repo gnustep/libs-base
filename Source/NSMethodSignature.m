@@ -374,7 +374,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   
   if (t == 0 || *t == '\0')
     {
-      [self release];
+      DESTROY(self);
       self = nil;
     }
   else

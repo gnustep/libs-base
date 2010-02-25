@@ -2644,7 +2644,7 @@ setNonBlocking(SOCKET fd)
 #else
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 #endif
@@ -2684,7 +2684,7 @@ setNonBlocking(SOCKET fd)
 #else
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 #endif
@@ -2750,7 +2750,7 @@ setNonBlocking(SOCKET fd)
 #else
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 #endif

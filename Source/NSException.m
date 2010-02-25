@@ -223,7 +223,7 @@ GSPrivateBaseAddress(void *addr, void **base)
 
 - (id) init
 {
-  [self release];
+  DESTROY(self);
   return nil;
 }
 
@@ -312,7 +312,7 @@ GSPrivateBaseAddress(void *addr, void **base)
   if ([fileName length] == 0)
     {
       //NSLog (@"GSBinaryFileInfo: No File");
-      [self release];
+      DESTROY(self);
       return nil;
     }
   _fileName = [fileName copy];
@@ -320,13 +320,13 @@ GSPrivateBaseAddress(void *addr, void **base)
   if (!_abfd)
     {
       //NSLog (@"GSBinaryFileInfo: No Binary Info");
-      [self release];
+      DESTROY(self);
       return nil;
     }
   if (!bfd_check_format_matches (_abfd, bfd_object, NULL))
     {
       //NSLog (@"GSBinaryFileInfo: BFD format object error");
-      [self release];
+      DESTROY(self);
       return nil;
     }
 
@@ -334,7 +334,7 @@ GSPrivateBaseAddress(void *addr, void **base)
   if (!(bfd_get_file_flags (_abfd) & HAS_SYMS))
     {
       //NSLog (@"GSBinaryFileInfo: BFD does not contain any symbols");
-      [self release];
+      DESTROY(self);
       return nil;
     }
 
@@ -342,27 +342,27 @@ GSPrivateBaseAddress(void *addr, void **base)
   if (neededSpace < 0)
     {
       //NSLog (@"GSBinaryFileInfo: BFD error while deducing needed space");
-      [self release];
+      DESTROY(self);
       return nil;
     }
   if (neededSpace == 0)
     {
       //NSLog (@"GSBinaryFileInfo: BFD no space for symbols needed");
-      [self release];
+      DESTROY(self);
       return nil;
     }
   _symbols = objc_malloc (neededSpace);
   if (!_symbols)
     {
       //NSLog (@"GSBinaryFileInfo: Can't allocate buffer");
-      [self release];
+      DESTROY(self);
       return nil;
     }
   _symbolCount = bfd_canonicalize_symtab (_abfd, _symbols);
   if (_symbolCount < 0)
     {
       //NSLog (@"GSBinaryFileInfo: BFD error while reading symbols");
-      [self release];
+      DESTROY(self);
       return nil;
     }
 
@@ -838,7 +838,7 @@ callUncaughtHandler(id value)
  */
 - (id) init
 {
-  [self release];
+  DESTROY(self);
   return nil;
 }
 

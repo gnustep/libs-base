@@ -2912,7 +2912,7 @@ transmute(GSStr self, NSString *aString)
   NSString	*c = NSStringFromClass([self class]);
   NSString	*s = NSStringFromSelector(_cmd);
 
-  RELEASE(self);
+  DESTROY(self);
   [NSException raise: NSInternalInconsistencyException
 	      format: @"[%@-%@] called on string already initialised", c, s];
   return nil;
@@ -3984,7 +3984,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	    {
 	      if (encoding == NSASCIIStringEncoding)
 		{
-		  RELEASE(self);
+		  DESTROY(self);
 		  if (shouldFree == YES)
 		    {
 		      NSZoneFree(NSZoneFromPointer(chars), chars);
@@ -4032,7 +4032,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
       if (GSToUnicode(&u, &l, (unsigned char*)chars, length, encoding,
 	_zone, 0) == NO)
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  if (shouldFree == YES)
 	    {
 	      NSZoneFree(NSZoneFromPointer(chars), chars);

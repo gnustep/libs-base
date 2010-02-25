@@ -1035,7 +1035,7 @@ static Class	runLoopClass;
       sent = YES;
     }
   M_UNLOCK(myLock);
-  RELEASE(self);
+  DESTROY(self);
   NSDebugMLLog(@"NSMessagePort_details",
     @"Message send 0x%x on 0x%x status %d", components, self, sent);
   return sent;
@@ -1571,7 +1571,7 @@ typedef	struct {
 
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   self = [messagePortClass new];
   return self;
 }
@@ -1612,7 +1612,7 @@ typedef	struct {
 	  [super invalidate];
 	}
       M_UNLOCK(myLock);
-      RELEASE(self);
+      DESTROY(self);
     }
 }
 
@@ -1742,7 +1742,7 @@ typedef	struct {
       [self invalidate];
     }
   M_UNLOCK(myLock);
-  RELEASE(self);
+  DESTROY(self);
 }
 
 /*

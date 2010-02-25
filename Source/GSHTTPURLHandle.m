@@ -555,7 +555,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   [sock writeInBackgroundAndNotify: buf];
   RELEASE(buf);
   RELEASE(s);
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (void) bgdRead: (NSNotification*) not
@@ -810,7 +810,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    }
 	}
     }
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (void) bgdTunnelRead: (NSNotification*) not
@@ -862,7 +862,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
   RELEASE(p);
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (void) loadInBackground
@@ -920,7 +920,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason:
 	[NSString stringWithFormat: @"Failed to connect: %@", e]];
-      RELEASE(self);
+      DESTROY(self);
       return;
     }
 
@@ -1002,7 +1002,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason: @"Failed proxy tunneling"];
-	  RELEASE(self);
+	  DESTROY(self);
 	  return;
 	}
     }
@@ -1018,7 +1018,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason:
 	    @"Failed to make ssl connect"];
-	  RELEASE(self);
+	  DESTROY(self);
 	  return;
 	}
     }
@@ -1060,7 +1060,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   [self bgdApply: s];
   RELEASE(s);
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (void) bgdWrite: (NSNotification*)notification
@@ -1102,7 +1102,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason:
 	[NSString stringWithFormat: @"Failed to write request: %@", e]];
-      RELEASE(self);
+      DESTROY(self);
       return;
     }
   else
@@ -1139,7 +1139,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       connectionState = reading;
     }
-  RELEASE(self);
+  DESTROY(self);
 }
 
 /**

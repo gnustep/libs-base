@@ -311,7 +311,7 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
 
   if (aSignature == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   _sig = RETAIN(aSignature);
