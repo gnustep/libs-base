@@ -24,8 +24,6 @@
  * See the HTMLLinker.html file for documentation on how to use the tool.
  */
 
-#include <stdlib.h>
-
 #import	"common.h"
 
 #import	"Foundation/NSArray.h"

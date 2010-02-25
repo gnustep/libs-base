@@ -38,6 +38,7 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
 #import "Foundation/NSValue.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "GSPrivate.h"
 

@@ -19,8 +19,6 @@
 
 */
 
-#include <stdlib.h>
-
 #import "common.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSAutoreleasePool.h"

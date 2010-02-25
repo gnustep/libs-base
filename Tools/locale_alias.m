@@ -23,14 +23,13 @@
 
 */
 
+#import	"common.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
 #include <ctype.h>
 #include <locale.h>
-#include <stdlib.h>
-
-#include <stdlib.h>
 
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSDictionary.h"

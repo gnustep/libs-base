@@ -55,6 +55,7 @@
 #import "GNUstepBase/GSLocale.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #if	defined(__MINGW32__)

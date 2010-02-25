@@ -64,7 +64,6 @@
 #endif
 #include <math.h>
 #include <time.h>
-#include <limits.h>
 #include <string.h>		/* for memset() */
 
 

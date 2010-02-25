@@ -60,6 +60,7 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
 #import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #include <string.h>
@@ -96,7 +97,6 @@
 /* determine filesystem max path length */
 
 #if defined(_POSIX_VERSION) || defined(__WIN32__)
-# include <limits.h>			/* for PATH_MAX */
 # if defined(__MINGW32__)
 #   include <sys/utime.h>
 # else

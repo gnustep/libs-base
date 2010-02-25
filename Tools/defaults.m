@@ -18,7 +18,6 @@
 
    */
 
-#include <stdlib.h>
 #include <string.h>
 
 #import "common.h"

@@ -48,7 +48,6 @@
 #include "../GSPortPrivate.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 
 extern __declspec(dllimport) int	errno;
 

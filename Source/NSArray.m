@@ -36,7 +36,6 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSRange.h"
-#include <limits.h>
 #import "Foundation/NSException.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSThread.h"
