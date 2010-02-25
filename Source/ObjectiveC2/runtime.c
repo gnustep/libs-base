@@ -68,7 +68,7 @@ void __objc_update_dispatch_table_for_class(Class);
  * Private runtime function for determining whether a class responds to a
  * selector.
  */
-BOOL __objc_responds_to(Class, SEL);
+BOOL __objc_responds_to(id, SEL);
 /**
  *  Runtime library constant for uninitialized dispatch table.
  */

@@ -1,5 +1,11 @@
 2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/ObjectiveC2/runtime.c:
+	* Source/ObjectiveC2/blocks_runtime.m:
+	Avoid compiler warnings.
+
+2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSAssertionHandler.m:
 	* Source/NSObject.m:
 	* Source/Additions/NSDebug+GNUstepBase.m:
