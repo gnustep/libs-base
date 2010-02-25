@@ -129,6 +129,76 @@ GSNameFromSelector(SEL sel)
 {
   return sel_getName(sel);
 }
+SEL
+GSSelectorFromName(const char *name)
+{
+  if (name == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      return sel_getUid(name);
+    }
+}
+SEL
+GSSelectorFromNameAndTypes(const char *name, const char *types)
+{
+  if (name == 0)
+    {
+      return 0;
+    }
+  else
+    {
+#if NeXT_RUNTIME
+      return sel_getUid(name);
+#else
+      SEL s;
+
+      if (types == 0)
+	{
+	  s = sel_get_any_typed_uid(name);
+	}
+      else
+	{
+	  s = sel_get_typed_uid(name, types);
+	}
+      if (s == 0)
+	{
+	  if (types == 0)
+	    {
+	      s = sel_register_name(name);
+	    }
+	  else
+	    {
+	      s = sel_register_typed_name(name, types);
+	    }
+	}
+      return s;
+#endif
+    }
+}
+const char *
+GSTypesFromSelector(SEL sel)
+{
+#if NeXT_RUNTIME
+  return 0;
+#else
+  if (sel == 0)
+    return 0;
+  return sel_get_type(sel);
+#endif
+}
+void
+GSFlushMethodCacheForClass (Class cls)
+{
+#if NeXT_RUNTIME
+#else
+  extern void __objc_update_dispatch_table_for_class (Class);
+  __objc_update_dispatch_table_for_class (cls);
+#endif
+  return;
+}
 int
 GSObjCVersion(Class cls)
 {
@@ -1026,7 +1096,7 @@ GSAddMethodList(Class cls,
   class_add_method_list(cls, list);
 }
 
-GS_STATIC_INLINE void
+static inline void
 gs_revert_selector_names_in_list(GSMethodList list)
 {
   int i;
@@ -1100,7 +1170,7 @@ GSRemoveMethodList(Class cls,
 }
 
 
-GS_STATIC_INLINE const char *
+static inline const char *
 gs_skip_type_qualifier_and_layout_info (const char *types)
 {
   while (*types == '+'
@@ -1191,7 +1261,7 @@ GSObjCGetInstanceVariableDefinition(Class cls, NSString *name)
 }
 
 
-GS_STATIC_INLINE unsigned int
+static inline unsigned int
 gs_string_hash(const char *s)
 {
   unsigned int val = 0;
@@ -1202,7 +1272,7 @@ gs_string_hash(const char *s)
   return val;
 }
 
-GS_STATIC_INLINE Protocol *
+static inline Protocol *
 gs_find_protocol_named_in_protocol_list(const char *name,
   struct objc_protocol_list *pcllist)
 {
@@ -1224,7 +1294,7 @@ gs_find_protocol_named_in_protocol_list(const char *name,
   return NULL;
 }
 
-GS_STATIC_INLINE Protocol *
+static inline Protocol *
 gs_find_protocol_named(const char *name)
 {
   Protocol *p = NULL;
