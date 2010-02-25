@@ -121,7 +121,7 @@ typedef	union {
 #if	defined(GSUNION_EXTRA)
   GSUNION_EXTRA	ext;
 #endif
-  BOOL		bool;	/* Guaranteed present */
+  BOOL		bl;	/* Guaranteed present */
 } GSUNION;
 
 #endif
