@@ -134,7 +134,7 @@ _GCDescribeObjects(NSMapTable *table, const GCInfo *objectStruct)
 }
 
 static const NSMapTableKeyCallBacks GCInfoMapKeyCallBacks = {
-  (unsigned(*)(NSMapTable *, const void *))_GCHashObject,
+  (NSUInteger(*)(NSMapTable *, const void *))_GCHashObject,
   (BOOL(*)(NSMapTable *, const void *, const void *))_GCCompareObjects,
   (void (*)(NSMapTable *, const void *))_GCRetainObjects,
   (void (*)(NSMapTable *, void *))_GCReleaseObjects,
