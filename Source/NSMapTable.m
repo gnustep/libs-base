@@ -133,14 +133,16 @@ static Class	concreteClass = 0;
 
 - (NSUInteger) count
 {
-  return (NSUInteger)[self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return (NSUInteger)0;
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-  return (NSUInteger)[self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return (NSUInteger)0;
 }
 
 - (NSDictionary*) dictionaryRepresentation
@@ -201,7 +203,7 @@ static Class	concreteClass = 0;
 
 - (void) removeAllObjects
 {
-  unsigned	count = [self count];
+  NSUInteger	count = [self count];
 
   if (count > 0)
     {

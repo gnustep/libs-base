@@ -1,5 +1,20 @@
 2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: Add test for socklen_t type
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Source/GSNetwork.h:
+	* Source/NSSocketPort.m: Fix for socklen_t
+	* Source/NSMapTable.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSConcreteHashTable.m:
+	* Headers/Foundation/NSHashTable.h:
+	* Headers/Foundation/NSMapTable.h:
+        Use NSUInteger values for OSX API compatibility
+
+2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/ObjectiveC2/runtime.c:
 	* Source/ObjectiveC2/blocks_runtime.m:
 	Avoid compiler warnings.

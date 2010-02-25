@@ -159,7 +159,7 @@ typedef struct _NSMapTableKeyCallBacks
    * NOTE: Elements with equal values must
    * have equal hash function values.
    */
-  unsigned (*hash)(NSMapTable *, const void *);
+  NSUInteger (*hash)(NSMapTable *, const void *);
 
   /**
    * Comparison function.  Must not modify either key.
@@ -242,12 +242,12 @@ GS_EXPORT const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks;
 GS_EXPORT NSMapTable *
 NSCreateMapTable(NSMapTableKeyCallBacks keyCallBacks,
                  NSMapTableValueCallBacks valueCallBacks,
-                 unsigned int capacity);
+                 NSUInteger capacity);
 
 GS_EXPORT NSMapTable *
 NSCreateMapTableWithZone(NSMapTableKeyCallBacks keyCallBacks,
                          NSMapTableValueCallBacks valueCallBacks,
-                         unsigned int capacity,
+                         NSUInteger capacity,
                          NSZone *zone);
 
 GS_EXPORT NSMapTable *
@@ -262,7 +262,7 @@ NSResetMapTable(NSMapTable *table);
 GS_EXPORT BOOL
 NSCompareMapTables(NSMapTable *table1, NSMapTable *table2);
 
-GS_EXPORT unsigned int
+GS_EXPORT NSUInteger
 NSCountMapTable(NSMapTable *table);
 
 GS_EXPORT BOOL

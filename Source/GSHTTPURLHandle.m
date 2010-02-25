@@ -69,7 +69,7 @@
  * in case the remote server is buggy and requires particular
  * captialisation of headers (some http software is faulty like that).
  */
-static unsigned int
+static NSUInteger
 _id_hash(void *table, NSString* o)
 {
   return [[o uppercaseString] hash];
@@ -81,7 +81,7 @@ _id_is_equal(void *table, NSString *o, NSString *p)
   return ([o caseInsensitiveCompare: p] == NSOrderedSame) ? YES : NO;
 }
 
-typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
+typedef NSUInteger (*NSMT_hash_func_t)(NSMapTable *, const void *);
 typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *, const void *);
 typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
 typedef void (*NSMT_release_func_t)(NSMapTable *, void *);

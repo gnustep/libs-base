@@ -802,6 +802,7 @@ fi
 # These headers/functions needed by GSTcpPort.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/socket.h netinet/in.h)
+AC_CHECK_TYPES([socklen_t])
 dnl AC_REPLACE_FUNCS(recvfrom)
 
 #--------------------------------------------------------------------

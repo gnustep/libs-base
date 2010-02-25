@@ -2150,7 +2150,7 @@ static Class		tcpPortClass;
 #endif
     {
       struct sockaddr_in	sockAddr;
-      size_t size = sizeof(sockAddr);
+      socklen_t size = sizeof(sockAddr);
 
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
       if (desc == INVALID_SOCKET)
