@@ -47,7 +47,6 @@
 #import <Foundation/Foundation.h>
 #endif
 #import "GNUstepBase/GSObjCRuntime.h"
-#import "GNUstepBase/GNUstep.h"
 
 #import "../GSPrivate.h"
 

@@ -12,6 +12,8 @@
 #import	"GNUstepBase/preface.h"
 #import	"GNUstepBase/GSConfig.h"
 
+#import	"GNUstepBase/GNUstep.h"
+
 /* Foundation/NSObject.h imports <Foundation/NSZone.h> and
  * <Foundation/NSObjCRuntime.h> so we import local versions first.
  */

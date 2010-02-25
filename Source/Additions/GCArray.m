@@ -35,7 +35,6 @@
 
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/GCObject.h"
-#import "GNUstepBase/GNUstep.h"
 
 @implementation GCArray
 

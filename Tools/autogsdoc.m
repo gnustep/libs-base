@@ -615,7 +615,6 @@
 #import "AGSOutput.h"
 #import "AGSIndex.h"
 #import "AGSHtml.h"
-#import "GNUstepBase/GNUstep.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
