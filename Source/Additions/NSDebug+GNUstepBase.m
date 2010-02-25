@@ -43,13 +43,13 @@ NSString*
 GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
 {
   NSString	*message;
-  Class		cls = (Class)obj;
-  char		c = '+';
+  Class		cls = [obj class];
+  char		c = '-';
 
-  if ([obj isInstance] == YES)
+  if (class_isMetaClass(cls))
     {
-      c = '-';
-      cls = [obj class];
+      cls = (Class)obj;
+      c = '+';
     }
   message = [NSString stringWithFormat: @"File %s: %d. In [%@ %c%@] %@",
 	file, line, NSStringFromClass(cls), c, NSStringFromSelector(sel), fmt];

@@ -365,11 +365,6 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 #if GS_API_VERSION(GS_API_NONE, 011700)
 @interface NSObject (GNUstep)
-- (BOOL) isInstance;
-- (id) makeImmutableCopyOnFail: (BOOL)force;
-- (Class) transmuteClassTo: (Class)aClassObject;
-+ (Class) autoreleaseClass;
-+ (void) setAutoreleaseClass: (Class)aClass;
 + (void) enableDoubleReleaseCheck: (BOOL)enable;
 - (id) read: (TypedStream*)aStream;
 - (id) write: (TypedStream*)aStream;

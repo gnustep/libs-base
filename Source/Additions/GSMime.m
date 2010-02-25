@@ -72,6 +72,7 @@
 #import	"GNUstepBase/GSMime.h"
 #import	"GNUstepBase/GSXML.h"
 #import	"GNUstepBase/NSData+GNUstepBase.h"
+#import	"GNUstepBase/NSDebug+GNUstepBase.h"
 #import	"GNUstepBase/NSString+GNUstepBase.h"
 #import	"GNUstepBase/Unicode.h"
 
@@ -213,7 +214,7 @@ decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
   else if (enc == WE_BASE64)
     {
       unsigned char	buf[4];
-      unsigned		pos = 0;
+      NSUInteger	pos = 0;
 
       while (*src && (src != end))
 	{
@@ -265,7 +266,7 @@ decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
 
       if (pos > 0)
 	{
-	  unsigned	i;
+	  NSUInteger	i;
 
 	  for (i = pos; i < 4; i++)
 	    buf[i] = '\0';
@@ -358,11 +359,13 @@ wordData(NSString *word)
     }
   else
     {
-      int		len = [charset cStringLength];
+      int		len = [charset length];
       char		buf[len+1];
       NSMutableData	*md;
 
-      [charset getCString: buf];
+      [charset getCString: buf
+		maxLength: len
+		 encoding: NSASCIIStringEncoding];
       md = [NSMutableData dataWithCapacity: [d length]*4/3 + len + 8];
       d = [documentClass encodeBase64: d];
       [md appendBytes: "=?" length: 2];
@@ -406,7 +409,7 @@ wordData(NSString *word)
 	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
-  unsigned	size = [dData length];
+  NSUInteger	size = [dData length];
 
   [dData setLength: size + length];
   memcpy([dData mutableBytes] + size, sData, length);
@@ -426,7 +429,7 @@ wordData(NSString *word)
 {
 @public
   unsigned char	buf[4];
-  unsigned	pos;
+  NSUInteger	pos;
 }
 @end
 @implementation	GSMimeBase64DecoderContext
@@ -434,7 +437,7 @@ wordData(NSString *word)
 	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
-  unsigned	size = [dData length];
+  NSUInteger	size = [dData length];
   unsigned char	*src = (unsigned char*)sData;
   unsigned char	*end = src + length;
   unsigned char	*beg;
@@ -507,7 +510,7 @@ wordData(NSString *word)
    */
   if ([self atEnd] == YES && pos > 0)
     {
-      unsigned	len = pos - 1;
+      NSUInteger	len = pos - 1;
 
       while (pos < 4)
 	{
@@ -526,7 +529,7 @@ wordData(NSString *word)
 {
 @public
   unsigned char	buf[4];
-  unsigned	pos;
+  NSUInteger	pos;
 }
 @end
 @implementation	GSMimeQuotedDecoderContext
@@ -534,7 +537,7 @@ wordData(NSString *word)
 	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
-  unsigned	size = [dData length];
+  NSUInteger	size = [dData length];
   unsigned char	*src = (unsigned char*)sData;
   unsigned char	*end = src + length;
   unsigned char	*beg;
@@ -592,7 +595,7 @@ wordData(NSString *word)
 {
 @public
   unsigned char	buf[8];
-  unsigned	pos;
+  NSUInteger	pos;
   enum {
     ChunkSize,		// Reading chunk size
     ChunkExt,		// Reading chunk extensions
@@ -602,7 +605,7 @@ wordData(NSString *word)
     ChunkFoot,		// Reading chunk footer after newline
     ChunkFootA		// Reading chunk footer
   } state;
-  unsigned	size;	// Size of buffer required.
+  NSUInteger	size;	// Size of buffer required.
   NSMutableData	*data;
 }
 @end
@@ -853,7 +856,7 @@ wordData(NSString *word)
 	   intoData: (NSMutableData*)dData
 	withContext: (GSMimeCodingContext*)con
 {
-  unsigned		len = [sData length];
+  NSUInteger		len = [sData length];
   BOOL			result = YES;
 
   if (dData == nil || [con isKindOfClass: [GSMimeCodingContext class]] == NO)
@@ -873,7 +876,7 @@ wordData(NSString *word)
   if ([con class] == [GSMimeChunkedDecoderContext class])
     {
       GSMimeChunkedDecoderContext	*ctxt;
-      unsigned			size = [dData length];
+      NSUInteger			size = [dData length];
       unsigned char		*beg;
       unsigned char		*dst;
       const char		*src;
@@ -922,8 +925,8 @@ wordData(NSString *word)
 		src++;
 		if (ctxt->state != ChunkSize)
 		  {
-		    unsigned int	val = 0;
-		    unsigned int	index;
+		    NSUInteger	val = 0;
+		    NSUInteger	index;
 
 		    for (index = 0; index < ctxt->pos; index++)
 		      {
@@ -1315,7 +1318,7 @@ wordData(NSString *word)
 {
   NSDictionary	*info;
   GSMimeHeader	*hdr;
-  unsigned	l = [d length];
+  NSUInteger	l = [d length];
 
   if (flags.complete == 1 || flags.inBody == 1)
     {
@@ -1579,18 +1582,20 @@ wordData(NSString *word)
       DESTROY(boundary);
       if (tmp != nil)
 	{
-	  unsigned int	l = [tmp cStringLength] + 2;
+	  NSUInteger	l = [tmp length] + 2;
 	  unsigned char	*b;
 
 #if	GS_WITH_GC
-	  b = NSAllocateCollectable(l + 1, 0);
+	  b = NSAllocateCollectable(l + 3, 0);
 #else
-	  b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
+	  b = NSZoneMalloc(NSDefaultMallocZone(), l + 3);
 #endif
 	  b[0] = '-';
 	  b[1] = '-';
-	  [tmp getCString: (char*)&b[2]];
-	  boundary = [[NSData alloc] initWithBytesNoCopy: b length: l];
+	  [tmp getCString: (char*)&b[2]
+		maxLength: l
+		 encoding: NSASCIIStringEncoding];
+	  boundary = [[NSData alloc] initWithBytesNoCopy: b length: l + 2];
 	}
 
       type = [info objectForKey: @"Type"];
@@ -1740,7 +1745,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       int	major;
       int	minor;
       int	status;
-      unsigned	count;
+      NSUInteger	count;
       NSArray	*hdrs;
 
       if ([scanner scanInt: &major] == NO || major < 0)
@@ -1928,7 +1933,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 - (NSString*) scanSpecial: (NSScanner*)scanner
 {
   NSCharacterSet	*specials;
-  unsigned		location;
+  NSUInteger		location;
   unichar		c;
 
   [self scanPastSpace: scanner];
@@ -1973,8 +1978,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   if ([scanner scanString: @"\"" intoString: 0] == YES)		// Quoted
     {
       NSString	*string = [scanner string];
-      unsigned	length = [string length];
-      unsigned	start = [scanner scanLocation];
+      NSUInteger	length = [string length];
+      NSUInteger	start = [scanner scanLocation];
       NSRange	r = NSMakeRange(start, length - start);
       BOOL	done = NO;
 
@@ -2366,7 +2371,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  */
 - (BOOL) _decodeBody: (NSData*)d
 {
-  unsigned	l = [d length];
+  NSUInteger	l = [d length];
   BOOL		needsMore = YES;
 
   rawBodyLength += l;
@@ -2435,7 +2440,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	}
       else
 	{
-	  unsigned	dLength = [d length];
+	  NSUInteger	dLength = [d length];
 
 	  if (expect > 0 && rawBodyLength > expect)
 	    {
@@ -2551,7 +2556,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     }
   else
     {
-      unsigned	int	bLength = [boundary length];
+      NSUInteger	bLength = [boundary length];
       unsigned char	*bBytes = (unsigned char*)[boundary bytes];
       unsigned char	bInit = bBytes[0];
       BOOL		done = NO;
@@ -2577,7 +2582,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		    || bytes[lineStart-1] == '\n')
 		    {
 		      BOOL	lastPart = NO;
-		      unsigned	eol;
+		      NSUInteger	eol;
 
 		      lineEnd = lineStart + bLength;
 		      eol = lineEnd;
@@ -2648,7 +2653,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  else
 	    {
 	      NSData	*d;
-	      unsigned	pos;
+	      NSUInteger	pos;
 
 	      /*
 	       * Found boundary at the end of a section.
@@ -2779,7 +2784,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	    }
 	  if (input < dataEnd || (c == '\n' && lineEnd == lineStart))
 	    {
-	      unsigned	length = lineEnd - lineStart;
+	      NSUInteger	length = lineEnd - lineStart;
 
 	      if (length == 0)
 	        {
@@ -2788,7 +2793,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		}
 	      else if ((c = bytes[input]) != '\r' && c != '\n' && isspace(c))
 	        {
-		  unsigned	diff = input - lineEnd;
+		  NSUInteger	diff = input - lineEnd;
 
 		  bytes[input] = ' ';
 		  memmove(&bytes[lineStart + diff], &bytes[lineStart], length);
@@ -2808,7 +2813,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     {
       if (lineEnd == lineStart)
 	{
-	  unsigned		lengthRemaining;
+	  NSUInteger		lengthRemaining;
 
 	  /*
 	   * Overwrite the header data with the body, ready to start
@@ -2926,8 +2931,8 @@ static NSCharacterSet	*tokenSet = nil;
 + (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag
 {
   NSRange	r;
-  unsigned	pos = 0;
-  unsigned	l = [v length];
+  NSUInteger	pos = 0;
+  NSUInteger	l = [v length];
 
   r = [v rangeOfCharacterFromSet: nonToken
 			 options: NSLiteralSearch
@@ -3072,7 +3077,7 @@ static NSCharacterSet	*tokenSet = nil;
       NSEnumerator	*e;
       NSString		*k;
 
-      m = [value mutableCopy];
+      m = [[value mutableCopy] autorelease];
       e = [params keyEnumerator];
       while ((k = [e nextObject]) != nil)
 	{
@@ -3084,8 +3089,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  [m appendString: @"="];
 	  [m appendString: v];
 	}
-      k = [m makeImmutableCopyOnFail: YES];
-      return AUTORELEASE(k);
+      return [m makeImmutableCopyOnFail: YES];
     }
   else
     {
@@ -3216,7 +3220,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  [m setObject: [params objectForKey: k] forKey: [k lowercaseString]];
 	}
     }
-  return [m makeImmutableCopyOnFail: NO];
+  return [m makeImmutableCopyOnFail: YES];
 }
 
 /**
@@ -3228,13 +3232,13 @@ static NSCharacterSet	*tokenSet = nil;
   return [self rawMimeDataPreservingCase: NO];
 }
 
-static unsigned
-appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
-  const char *bytes, unsigned size)
+static NSUInteger
+appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
+  const char *bytes, NSUInteger size)
 {
   if (offset + size > fold && size + 8 <= fold)
     {
-      unsigned  len = [m length];
+      NSUInteger  len = [m length];
 
       /* This would take the line beyond the folding limit,
        * so we fold at this point.
@@ -3268,12 +3272,12 @@ appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
   return offset;
 }
 
-static unsigned
-appendString(NSMutableData *m, unsigned offset, unsigned fold,
+static NSUInteger
+appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString *str, BOOL *ok)
 {
-  unsigned      pos = 0;
-  unsigned      size = [str length];
+  NSUInteger      pos = 0;
+  NSUInteger      size = [str length];
 
   *ok = YES;
   while (pos < size)
@@ -3348,8 +3352,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   NSString	*k;
   NSString	*n;
   NSData	*d;
-  unsigned      fold = 78;      // Maybe pass as a parameter in a later release?
-  unsigned      offset = 0;
+  NSUInteger	fold = 78;      // Maybe pass as a parameter in a later release?
+  NSUInteger	offset = 0;
   BOOL		conv = YES;
   BOOL          ok = YES;
 
@@ -3374,9 +3378,9 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     }
   else
     {
-      unsigned  l = [d length];
+      NSUInteger  l = [d length];
       char	buf[l];
-      unsigned	i = 0;
+      NSUInteger	i = 0;
 
       /*
        * Capitalise the header name.  However, the version header is a special
@@ -3524,7 +3528,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 - (void) setParameters: (NSDictionary*)d
 {
   NSMutableDictionary	*m = nil;
-  unsigned		c = [d count];
+  NSUInteger		c = [d count];
 
   if (c > 0)
     {
@@ -3604,14 +3608,14 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 + (NSString*) charsetForXml: (NSData*)xml
 {
-  unsigned int		length = [xml length];
+  NSUInteger		length = [xml length];
   const unsigned char	*ptr = (const unsigned char*)[xml bytes];
   const unsigned char	*end = ptr + length;
-  unsigned int		offset = 0;
-  unsigned int		size = 1;
+  NSUInteger		offset = 0;
+  NSUInteger		size = 1;
   unsigned char		quote = 0;
   unsigned char		buffer[30];
-  unsigned int		buflen = 0;
+  NSUInteger		buflen = 0;
   BOOL			found = NO;
 
   if (length < 4)
@@ -3785,7 +3789,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   unsigned char *result;
   unsigned char	*dst;
   unsigned char	buf[4];
-  unsigned	pos = 0;
+  NSUInteger	pos = 0;
 
   if (source == nil)
     {
@@ -3858,7 +3862,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 
   if (pos > 0)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = pos; i < 4; i++)
 	{
@@ -4352,7 +4356,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     || [name isEqualToString: @"content-type"] == YES
     || [name isEqualToString: @"subject"] == YES)
     {
-      unsigned	index = [self _indexOfHeaderNamed: name];
+      NSUInteger	index = [self _indexOfHeaderNamed: name];
 
       if (index != NSNotFound)
 	{
@@ -4360,7 +4364,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	}
       else if ([name isEqualToString: @"mime-version"] == YES)
 	{
-	  unsigned	tmp;
+	  NSUInteger	tmp;
 
 	  index = [headers count];
 	  tmp = [self _indexOfHeaderNamed: @"content-disposition"];
@@ -4872,7 +4876,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       if ([content isKindOfClass: [NSMutableArray class]] == YES)
 	{
-	  unsigned	count = [content count];
+	  NSUInteger	count = [content count];
 
 	  while (count-- > 0)
 	    {
@@ -4897,7 +4901,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 - (void) deleteHeader: (GSMimeHeader*)aHeader
 {
-  unsigned	count = [headers count];
+  NSUInteger	count = [headers count];
 
   while (count-- > 0)
     {
@@ -4914,7 +4918,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 - (void) deleteHeaderNamed: (NSString*)name
 {
-  unsigned	count = [headers count];
+  NSUInteger	count = [headers count];
 
   name = [name lowercaseString];
   while (count-- > 0)
@@ -4960,8 +4964,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 - (NSArray*) headersNamed: (NSString*)name
 {
-  unsigned		count = [headers count];
-  unsigned		index;
+  NSUInteger		count = [headers count];
+  NSUInteger		index;
   NSMutableArray	*array;
 
   name = [GSMimeHeader makeToken: name];
@@ -5121,8 +5125,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   NSData	*boundary = 0;
   BOOL		contentIsBinary = NO;
   BOOL		contentIs7bit = YES;
-  unsigned int	count;
-  unsigned int	i;
+  NSUInteger	count;
+  NSUInteger	i;
   CREATE_AUTORELEASE_POOL(arp);
 
   if (isOuter == YES)
@@ -5403,10 +5407,10 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	|| [encoding isEqualToString: @"8bit"] == YES)
 	{
 	  unsigned char	*bytes = (unsigned char*)[d bytes];
-	  unsigned	length = [d length];
+	  NSUInteger	length = [d length];
 	  BOOL		hadCarriageReturn = NO;
-	  unsigned 	lineLength = 0;
-	  unsigned	i;
+	  NSUInteger 	lineLength = 0;
+	  NSUInteger	i;
 
 	  for (i = 0; i < length; i++)
 	    {
@@ -5521,8 +5525,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       if ([[enc value] isEqualToString: @"base64"] == YES)
         {
 	  const char	*ptr;
-	  unsigned	len;
-	  unsigned	pos = 0;
+	  NSUInteger	len;
+	  NSUInteger	pos = 0;
 
 	  d = [documentClass encodeBase64: d];
 	  ptr = [d bytes];
@@ -5583,7 +5587,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       if (newContent != content)
 	{
-	  unsigned	c = [newContent count];
+	  NSUInteger	c = [newContent count];
 
 	  while (c-- > 0)
 	    {
@@ -5758,7 +5762,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 
   if (name != nil)
     {
-      unsigned	count = [headers count];
+      NSUInteger	count = [headers count];
 
       /*
        * Remove any existing headers with this name.
@@ -5807,8 +5811,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 - (NSUInteger) _indexOfHeaderNamed: (NSString*)name
 {
-  unsigned		count = [headers count];
-  unsigned		index;
+  NSUInteger	count = [headers count];
+  NSUInteger	index;
 
   for (index = 0; index < count; index++)
     {

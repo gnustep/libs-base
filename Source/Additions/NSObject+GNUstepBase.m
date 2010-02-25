@@ -40,9 +40,51 @@
   return nil;
 }
 
+- (NSComparisonResult) compare: (id)anObject
+{
+  NSLog(@"WARNING: The -compare: method for NSObject is deprecated.");
+
+  if (anObject == self)
+    {
+      return NSOrderedSame;
+    }
+  if (anObject == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		   format: @"nil argument for compare:"];
+    }
+  if ([self isEqual: anObject])
+    {
+      return NSOrderedSame;
+    }
+  /*
+   * Ordering objects by their address is pretty useless,
+   * so subclasses should override this is some useful way.
+   */
+  if ((id)self > anObject)
+    {
+      return NSOrderedDescending;
+    }
+  else
+    {
+      return NSOrderedAscending;
+    }
+}
+
 - (BOOL) isInstance
 {
-  return GSObjCIsInstance(self);
+  GSOnceMLog(@"Warning, the -isInstance method is deprecated. "
+    @"Use 'class_isMetaClass([self class]) ? NO : YES' instead");
+  return class_isMetaClass([self class]) ? NO : YES;
+}
+
+- (id) makeImmutableCopyOnFail: (BOOL)force
+{
+  if (force == YES)
+    {
+      return AUTORELEASE([self copy]);
+    }
+  return self;
 }
 
 - (id) notImplemented: (SEL)aSel
@@ -75,47 +117,6 @@
     GSObjCIsInstance(self) ? "instance" : "class",
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
   return nil;
-}
-
-/**
- * WARNING: The -compare: method for NSObject is deprecated
- *          due to subclasses declaring the same selector with
- *          conflicting signatures.
- *          Comparison of arbitrary objects is not just meaningless
- *          but also dangerous as most concrete implementations
- *          expect comparable objects as arguments often accessing
- *          instance variables directly.
- *          This method will be removed in a future release.
- */
-- (NSComparisonResult) compare: (id)anObject
-{
-  NSLog(@"WARNING: The -compare: method for NSObject is deprecated.");
-
-  if (anObject == self)
-    {
-      return NSOrderedSame;
-    }
-  if (anObject == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		   format: @"nil argument for compare:"];
-    }
-  if ([self isEqual: anObject])
-    {
-      return NSOrderedSame;
-    }
-  /*
-   * Ordering objects by their address is pretty useless,
-   * so subclasses should override this is some useful way.
-   */
-  if ((id)self > anObject)
-    {
-      return NSOrderedDescending;
-    }
-  else
-    {
-      return NSOrderedAscending;
-    }
 }
 
 @end

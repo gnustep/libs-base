@@ -37,6 +37,38 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface NSObject (GNUstepBase)
+
+/**
+  WARNING: The -compare: method for NSObject is deprecated
+           due to subclasses declaring the same selector with 
+	   conflicting signatures.
+           Comparision of arbitrary objects is not just meaningless
+           but also dangerous as most concrete implementations
+           expect comparable objects as arguments often accessing
+	   instance variables directly.
+	   This method will be removed in a future release.
+*/
+- (NSComparisonResult) compare: (id)anObject;
+
+/** For backward compatibility only ... use class_isMetaClass() on the
+ * class of the receiver instead.
+ */
+- (BOOL) isInstance;
+
+/**
+ * Transmutes the receiver into an immutable version of the same object
+ * and returns the result.<br />
+ * If the receiver is not a mutable object or cannot be simply transmuted,
+ * then this method either returns the receiver unchanged or,
+ * if the force flag is set to YES, returns an autoreleased copy of the
+ * receiver.<br />
+ * Mutable classes should override this default implementation.<br />
+ * This method is used in methods which are declared to return immutable
+ * objects (eg. an NSArray), but which create and build mutable ones
+ * internally.
+ */
+- (id) makeImmutableCopyOnFail: (BOOL)force;
+
 /**
  * Message sent when an implementation wants to explicitly exclude a method
  * (but cannot due to compiler constraint), and wants to make sure it is not
@@ -61,17 +93,7 @@ extern "C" {
  * implementation will not be called, so this is not a perfect mechanism.
  */
 - (id) shouldNotImplement: (SEL)aSel;
-/**
-  WARNING: The -compare: method for NSObject is deprecated
-           due to subclasses declaring the same selector with 
-	   conflicting signatures.
-           Comparision of arbitrary objects is not just meaningless
-           but also dangerous as most concrete implementations
-           expect comparable objects as arguments often accessing
-	   instance variables directly.
-	   This method will be removed in a future release.
-*/
-- (NSComparisonResult) compare: (id)anObject;
+
 @end
 
 #endif	/* OS_API_VERSION */

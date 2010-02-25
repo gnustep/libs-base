@@ -2199,25 +2199,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 @implementation NSObject (GNUstep)
 
-/* GNU Object class compatibility */
-
-/**
- * Called to change the class used for autoreleasing objects.
- */
-+ (void) setAutoreleaseClass: (Class)aClass
-{
-  autorelease_class = aClass;
-  autorelease_imp = [self instanceMethodForSelector: autorelease_sel];
-}
-
-/**
- * returns the class used to autorelease objects.
- */
-+ (Class) autoreleaseClass
-{
-  return autorelease_class;
-}
-
 /**
  * Enables runtime checking of retain/release/autorelease operations.<br />
  * <p>Whenever either -autorelease or -release is called, the contents of any
@@ -2285,12 +2266,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 - (BOOL) isClass
 {
-  return GSObjCIsClass((Class)self);
-}
-
-- (BOOL) isInstance
-{
-  return GSObjCIsInstance(self);
+  return class_isMetaClass(object_getClass(self));
 }
 
 - (BOOL) isMemberOfClassNamed: (const char*)aClassName
@@ -2321,47 +2297,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 		      aSel,
 		      GSObjCIsInstance(self),
 		      YES));
-}
-
-/**
- * Transmutes the receiver into an immutable version of the same object
- * and returns the result.<br />
- * If the receiver is not a mutable object or cannot be simply transmuted,
- * then this method either returns the receiver unchanged or,
- * if the force flag is set to YES, returns an autoreleased copy of the
- * receiver.<br />
- * Mutable classes should override this default implementation.<br />
- * This method is used in methods which are declared to return immutable
- * objects (eg. an NSArray), but which create and build mutable ones
- * internally.
- */
-- (id) makeImmutableCopyOnFail: (BOOL)force
-{
-  if (force == YES)
-    {
-      return AUTORELEASE([self copy]);
-    }
-  return self;
-}
-
-/**
- * Changes the class of the receiver (the 'isa' pointer) to be aClassObject,
- * but only if the receiver is an instance of a subclass of aClassObject
- * which has not added extra instance variables.<br />
- * Returns zero on failure, or the old class on success.
- */
-- (Class) transmuteClassTo: (Class)aClassObject
-{
-  if (GSObjCIsInstance(self) == YES)
-    if (class_is_class(aClassObject))
-      if (class_get_instance_size(aClassObject)==class_get_instance_size(isa))
-        if ([self isKindOfClass: aClassObject])
-          {
-            Class old_isa = isa;
-            isa = aClassObject;
-            return old_isa;
-          }
-  return 0;
 }
 
 + (NSInteger) streamVersion: (TypedStream*)aStream

@@ -1,3 +1,15 @@
+2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAssertionHandler.m:
+	* Source/NSObject.m:
+	* Source/Additions/NSDebug+GNUstepBase.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Additions/GNUstepBase/NSObject+GNUstepBase.h:
+	Remove a few old deprecated methods and move others to the
+	additions library.
+
 2010-02-23 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Source/ObjectiveC2/runtime.h: provide gcc-style macros
