@@ -82,8 +82,10 @@
 #define IN6ADDRSZ       16
 #endif
 
-#ifndef	socklen_t
-#define	socklen_t	uint32_t
+#if     !defined(HAVE_SOCKLEN_T)
+#  if   !defined(socklen_t)
+#    define	socklen_t	uint32_t
+#  endif
 #endif
 
 #endif

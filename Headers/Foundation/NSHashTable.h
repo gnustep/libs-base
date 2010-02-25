@@ -157,11 +157,11 @@ typedef struct { void *map; void *node; size_t bucket; } NSHashEnumerator;
 /** Callback functions for an NSHashTable.  See NSCreateHashTable() . <br />*/
 typedef struct _NSHashTableCallBacks
 {
-  /** <code>unsigned int (*hash)(NSHashTable *, const void *)</code> ...
+  /** <code>NSUInteger (*hash)(NSHashTable *, const void *)</code> ...
    *  Hashing function.  NOTE: Elements with equal values must have equal hash
    *  function values.  The default if NULL uses the pointer addresses
    *  directly. <br/>*/
-  unsigned int (*hash)(NSHashTable *, const void *);
+  NSUInteger (*hash)(NSHashTable *, const void *);
 
   /** <code>BOOL (*isEqual)(NSHashTable *, const void *, const void *)</code>
    *  ... Comparison function.  The default if NULL uses '<code>==</code>'.
@@ -192,11 +192,11 @@ GS_EXPORT const NSHashTableCallBacks NSPointerToStructHashCallBacks;
 
 GS_EXPORT NSHashTable *
 NSCreateHashTable(NSHashTableCallBacks callBacks,
-                  unsigned int capacity);
+                  NSUInteger capacity);
 
 GS_EXPORT NSHashTable *
 NSCreateHashTableWithZone(NSHashTableCallBacks callBacks,
-                          unsigned int capacity,
+                          NSUInteger capacity,
                           NSZone *zone);
 
 GS_EXPORT NSHashTable *
@@ -211,7 +211,7 @@ NSResetHashTable(NSHashTable *table);
 GS_EXPORT BOOL
 NSCompareHashTables(NSHashTable *table1, NSHashTable *table2);
 
-GS_EXPORT unsigned int
+GS_EXPORT NSUInteger
 NSCountHashTable(NSHashTable *table);
 
 GS_EXPORT void *

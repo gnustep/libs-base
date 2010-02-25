@@ -259,7 +259,7 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 /**
  * Returns the number of items in the table.
  */
-unsigned int
+NSUInteger
 NSCountHashTable(NSHashTable *table)
 {
   return [table count];
@@ -275,7 +275,7 @@ NSCountHashTable(NSHashTable *table)
 NSHashTable *
 NSCreateHashTable(
   NSHashTableCallBacks callBacks,
-  unsigned int capacity)
+  NSUInteger capacity)
 {
   return NSCreateHashTableWithZone(callBacks, capacity, NSDefaultMallocZone());
 }
@@ -292,7 +292,7 @@ NSCreateHashTable(
 NSHashTable *
 NSCreateHashTableWithZone(
   NSHashTableCallBacks k,
-  unsigned int capacity,
+  NSUInteger capacity,
   NSZone *zone)
 {
   GSIMapTable	table;
@@ -726,7 +726,7 @@ NSStringFromHashTable(NSHashTable *table)
 
 
 /* These are to increase readabilty locally. */
-typedef unsigned int (*NSHT_hash_func_t)(NSHashTable *, const void *);
+typedef NSUInteger (*NSHT_hash_func_t)(NSHashTable *, const void *);
 typedef BOOL (*NSHT_isEqual_func_t)(NSHashTable *, const void *, const void *);
 typedef void (*NSHT_retain_func_t)(NSHashTable *, const void *);
 typedef void (*NSHT_release_func_t)(NSHashTable *, void *);
@@ -855,7 +855,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 - (NSArray*) allObjects
 {
   NSHashEnumerator	enumerator;
-  unsigned		index;
+  NSUInteger		index;
   NSArray		*a;
   GS_BEGINITEMBUF(objects, nodeCount, id);
 

@@ -385,7 +385,7 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
 /**
  * Returns the number of key/value pairs in the table.
  */
-unsigned int
+NSUInteger
 NSCountMapTable(NSMapTable *table)
 {
   if (table == nil)
@@ -411,7 +411,7 @@ NSMapTable *
 NSCreateMapTable(
   NSMapTableKeyCallBacks keyCallBacks,
   NSMapTableValueCallBacks valueCallBacks,
-  unsigned int capacity)
+  NSUInteger capacity)
 {
   return NSCreateMapTableWithZone(keyCallBacks, valueCallBacks,
     capacity, NSDefaultMallocZone());
@@ -430,7 +430,7 @@ NSMapTable *
 NSCreateMapTableWithZone(
   NSMapTableKeyCallBacks k,
   NSMapTableValueCallBacks v,
-  unsigned int capacity,
+  NSUInteger capacity,
   NSZone *zone)
 {
   GSIMapTable	table;
@@ -1002,7 +1002,7 @@ NSStringFromMapTable(NSMapTable *table)
 
 
 /* These are to increase readabilty locally. */
-typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
+typedef NSUInteger (*NSMT_hash_func_t)(NSMapTable *, const void *);
 typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *, const void *);
 typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
 typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
