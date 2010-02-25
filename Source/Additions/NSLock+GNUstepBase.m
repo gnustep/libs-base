@@ -57,7 +57,7 @@ static GSLazyRecursiveLock *local_lock = nil;
 
 @end
 
-GS_STATIC_INLINE id
+static inline id
 newLockAt(Class self, SEL _cmd, id *location)
 {
   if (location == 0)
