@@ -229,7 +229,7 @@ static void DNSSD_API
                    const char			*hosttarget,
                    uint16_t			 port,
                    uint16_t			 txtLen,
-                   const char			*txtRecord,
+                   const unsigned char		*txtRecord,
                    void				*context);
 
 static void DNSSD_API
@@ -1174,7 +1174,7 @@ static void DNSSD_API
                    target: (const char *) hosttarget
                      port: (uint16_t) port
                    length: (uint16_t) txtLen
-                   record: (const char *) txtRecord
+                   record: (const unsigned char *) txtRecord
 {
   Service	*service;
   
@@ -3262,7 +3262,7 @@ ResolverCallback(DNSServiceRef sdRef,
                    const char *hosttarget,
                    uint16_t port,
                    uint16_t txtLen,
-                   const char *txtRecord,
+                   const unsigned char *txtRecord,
                    void *context)
 {
   // NSNetService
