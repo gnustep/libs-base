@@ -32,7 +32,6 @@
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
 #import "AGSParser.h"
-#import "GNUstepBase/GNUstep.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 

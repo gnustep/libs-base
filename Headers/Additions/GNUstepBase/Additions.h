@@ -28,6 +28,7 @@
 #define __Additions_h_GNUSTEP_BASE_INCLUDE
 
 #import	<GNUstepBase/GSVersionMacros.h>
+#import	<GNUstepBase/GNUstep.h>
 
 #import	<GNUstepBase/GSBlocks.h>
 #import	<GNUstepBase/GSFileHandle.h>

@@ -28,7 +28,6 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSUserDefaults.h"
 #import "AGSHtml.h"
-#import "GNUstepBase/GNUstep.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 

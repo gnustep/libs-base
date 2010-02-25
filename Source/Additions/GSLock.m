@@ -32,7 +32,6 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSThread.h"
 #import "GNUstepBase/GSLock.h"
-#import "GNUstepBase/GNUstep.h"
 
 /**
  * This implements a class which, when used in single-threaded mode,
