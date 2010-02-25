@@ -204,8 +204,6 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
  * where applicable.
  */
 
-#define GS_STATIC_INLINE static inline
-
 /**
  * Fills a nil terminated array of Class objects referenced by buffer
  * with max number of classes registered with the objc runtime.  
@@ -274,22 +272,10 @@ GS_EXPORT const char *GSClassNameFromObject(id obj);
 GS_EXPORT const char *GSNameFromSelector(SEL sel);
 
 /**
- * Return a selector matching the specified name, or nil if no name is
- * supplied.  The returned selector could be any one with the name.<br />
- * If no selector exists, returns nil.
+ * GSSelectorFromName() is deprecated ... use sel_getUid()
  */
-GS_STATIC_INLINE SEL
-GSSelectorFromName(const char *name)
-{
-  if (name == 0)
-    {
-      return 0;
-    }
-  else
-    {
-      return sel_get_uid(name);
-    }
-}
+GS_EXPORT SEL
+GSSelectorFromName(const char *name);
 
 /**
  * Return the selector for the specified name and types.  Returns a nul
@@ -297,53 +283,16 @@ GSSelectorFromName(const char *name)
  * argument is nul. <br />
  * Creates a new selector if necessary.
  */
-GS_STATIC_INLINE SEL
-GSSelectorFromNameAndTypes(const char *name, const char *types)
-{
-  if (name == 0)
-    {
-      return 0;
-    }
-  else
-    {
-      SEL s;
-
-      if (types == 0)
-	{
-	  s = sel_get_any_typed_uid(name);
-	}
-      else
-	{
-	  s = sel_get_typed_uid(name, types);
-	}
-      if (s == 0)
-	{
-	  if (types == 0)
-	    {
-	      s = sel_register_name(name);
-	    }
-	  else
-	    {
-	      s = sel_register_typed_name(name, types);
-	    }
-	}
-      return s;
-    }
-
-}
+GS_EXPORT SEL
+GSSelectorFromNameAndTypes(const char *name, const char *types);
 
 /**
  * Return the type information from the specified selector.
  * May return a nul pointer if the selector was a nul pointer or if it
  * was not typed.
  */
-GS_STATIC_INLINE const char *
-GSTypesFromSelector(SEL sel)
-{
-  if (sel == 0)
-    return 0;
-  return sel_get_type(sel);
-}
+GS_EXPORT const char *
+GSTypesFromSelector(SEL sel);
 
 /**
  * Compare only the type information ignoring qualifiers, the frame layout
@@ -409,12 +358,8 @@ GSGetMethod(Class cls, SEL sel,
  * Please follow potential changes (Name, parameters, ...) closely until
  * it stabilizes.
  */
-GS_STATIC_INLINE void
-GSFlushMethodCacheForClass (Class cls)
-{
-  extern void __objc_update_dispatch_table_for_class (Class);
-  __objc_update_dispatch_table_for_class (cls);
-}
+GS_EXPORT void
+GSFlushMethodCacheForClass (Class cls);
 
 /**
  * Returns the pointer to the instance variable structure
