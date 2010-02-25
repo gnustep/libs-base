@@ -478,7 +478,11 @@ static const unichar byteOrderMarkSwapped = 0xFFFE;
 
 #if ! PRINTF_ATSIGN_VA_LIST
 static int
-arginfo_func (const struct printf_info *info, size_t n, int *argtypes)
+arginfo_func (const struct printf_info *info, size_t n, int *argtypes
+#if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
+, int *size
+#endif
+)
 {
   *argtypes = PA_POINTER;
   return 1;
@@ -584,9 +588,8 @@ handle_printf_atsign (FILE *stream,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       placeholderLock = [NSLock new];
 
-#ifdef HAVE_REGISTER_PRINTF_FUNCTION
-      if (register_printf_function ('@',
-				    handle_printf_atsign,
+#if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
+      if (register_printf_specifier ('@', handle_printf_atsign,
 #if PRINTF_ATSIGN_VA_LIST
 				    0))
 #else
@@ -594,7 +597,16 @@ handle_printf_atsign (FILE *stream,
 #endif
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
-#endif /* HAVE_REGISTER_PRINTF_FUNCTION */
+#elif   defined(HAVE_REGISTER_PRINTF_FUNCTION)
+      if (register_printf_function ('@', handle_printf_atsign,
+#if PRINTF_ATSIGN_VA_LIST
+				    0))
+#else
+	                            arginfo_func))
+#endif
+	[NSException raise: NSGenericException
+		     format: @"register printf handling of %%@ failed"];
+#endif
     }
 }
 
