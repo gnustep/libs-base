@@ -48,7 +48,6 @@
 #import "GSPortPrivate.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -59,7 +58,6 @@
 #include <sys/un.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #include <errno.h>
-#include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>

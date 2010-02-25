@@ -25,7 +25,6 @@
 
 #import "common.h"
 #include <string.h>
-#include <limits.h>
 #import "GNUstepBase/GSMime.h"
 
 #import "Foundation/NSArray.h"
@@ -46,6 +45,7 @@
 #import "Foundation/NSXMLParser.h"
 #import "GNUstepBase/Unicode.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #import "GSPrivate.h"

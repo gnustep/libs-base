@@ -79,12 +79,6 @@
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

@@ -49,6 +49,7 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSValue.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #import "GSPrivate.h"

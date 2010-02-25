@@ -33,7 +33,6 @@
 #import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
-#include <limits.h>
 
 /* When this is `NO', autoreleased objects are never actually recorded
    in an NSAutoreleasePool, and are not sent a `release' message.

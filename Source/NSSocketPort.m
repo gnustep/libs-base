@@ -48,7 +48,6 @@
 #import "GSPrivate.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -62,7 +61,6 @@
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #endif /* !__MINGW32__ */
 #include <errno.h>
-#include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>

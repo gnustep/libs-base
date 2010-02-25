@@ -39,7 +39,6 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <objc/objc-api.h>
 #ifndef NeXT_RUNTIME
 # include <objc/objc-list.h>

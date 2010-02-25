@@ -1,5 +1,4 @@
-/** Implementation of GNUstep Distributed Notification Center
-   Copyright (C) 1998 Free Software Foundation, Inc.
+/* Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -18,11 +17,10 @@
 
    */
 
-#include <stdlib.h>
+#import	"common.h"
+
 #include <stdio.h>
 #include <unistd.h>
-
-#import	"common.h"
 
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"

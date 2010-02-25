@@ -36,7 +36,6 @@
 
 #import "common.h"
 #include <math.h>
-#include <stdlib.h>
 #import "Foundation/NSGeometry.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSNotification.h"

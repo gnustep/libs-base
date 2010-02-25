@@ -597,8 +597,6 @@
 
    */
 
-#include <stdlib.h>
-
 #import	"common.h"
 
 #import	"Foundation/NSArray.h"

@@ -19,8 +19,6 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#include <stdlib.h>
-
 #import	"common.h"
 
 #import	"Foundation/NSArray.h"
