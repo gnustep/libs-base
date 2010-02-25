@@ -124,7 +124,7 @@ static NSString *dict_key = @"NSAssertionHandler";
     [NSString
       stringWithFormat: @"%@:%d  Assertion failed in %@(%@), method %@.  %@",
       fileName, line, NSStringFromClass([object class]),
-      [object isInstance] ? @"instance" : @"class",
+      class_isMetaClass([object class]) ? @"class" : @"instance",
       NSStringFromSelector(aSelector), format];
   NSLogv(message, ap);
 
