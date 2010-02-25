@@ -978,7 +978,7 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
            * will only work with things that are id-sized, however, so don't
            * try using it with non-object collections.
            */
-          stackbuf[i] = *(id*)&node->key.bool;
+          stackbuf[i] = *(id*)&node->key.bl;
         }
     }
   /* Store the important bits of the enumerator in the caller. */
