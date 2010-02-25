@@ -36,6 +36,10 @@
 
 #import "GSInvocation.h"
 
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 /* The objc runtime library objc_skip_offset() is buggy on some compiler
  * versions, so we use our own alternative implementation.
  */
