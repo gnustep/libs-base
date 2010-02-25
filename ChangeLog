@@ -1,5 +1,13 @@
 2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac:
+	* configure:
+	* Headers/Additions/GNUstepBase/config.h.in:
+	* Source/NSString.m:
+        Update printf handling for very latest glibc
+
+2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Add test for socklen_t type
 	* configure: regenerate
 	* Headers/Additions/GNUstepBase/config.h.in: regenerate

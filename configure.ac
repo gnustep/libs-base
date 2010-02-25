@@ -1098,8 +1098,9 @@ else
 fi
 
 #--------------------------------------------------------------------
-# This function needed by NSString for handling of %@ printf directive.
+# This needed by NSString for handling of %@ printf directive.
 #--------------------------------------------------------------------
+AC_CHECK_FUNCS(register_printf_specifier)
 AC_CHECK_FUNC(register_printf_function, register_printf=1, 
 register_printf=0)
 if test $register_printf = 1; then
