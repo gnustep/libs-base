@@ -245,7 +245,7 @@ return NSOrderedSame;
  */
 - (BOOL) isEqualToNumber: (NSNumber*)aNumber
 {
-  return [self doubleValue] == [aNumber doubleValue];
+  return ([self doubleValue] == [aNumber doubleValue]) ? YES : NO;
 }
 
 - (NSComparisonResult) compare: (NSNumber*)aNumber
@@ -341,7 +341,7 @@ static Class NSDoubleNumberClass;
 
 - (BOOL) isEqualToNumber: (NSNumber*)aNumber
 {
-  return [self compare: aNumber] == NSOrderedSame;
+  return ([self compare: aNumber] == NSOrderedSame) ? YES : NO;
 }
 
 - (BOOL) isEqual: (id)anObject

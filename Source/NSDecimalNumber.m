@@ -617,6 +617,10 @@ static NSDecimalNumber *one;
 
 - (NSComparisonResult) compare: (NSNumber*)decimalNumber
 {
+  if (self == decimalNumber)
+    {
+      return NSOrderedSame;
+    }
   if ([decimalNumber isKindOfClass: NSDecimalNumberClass])
     {
       NSDecimal d1 = [self decimalValue];
