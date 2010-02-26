@@ -137,7 +137,11 @@ GSSelectorFromName(const char *name)
     }
   else
     {
+#if NeXT_RUNTIME
       return sel_getUid(name);
+#else
+      return sel_get_any_uid(name);	// return 0 if not found
+#endif
     }
 }
 SEL
