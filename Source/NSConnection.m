@@ -1278,7 +1278,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   [self setRequestMode: nil];
 
-  IF_NO_GC([self retain];)
+  IF_NO_GC(RETAIN(self);)
 
   if (debug_connection)
     {
@@ -1373,7 +1373,7 @@ static NSLock	*cached_proxies_gate = nil;
       [[IsendPort conversation: IreceivePort] invalidate];
     }
 
-  DESTROY(self);
+  RELEASE(self);
 }
 
 /**

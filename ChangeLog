@@ -1,3 +1,21 @@
+2010-02-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNetServices.m:
+	* Source/NSURLHandle.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSInvocation.m:
+	* Source/NSURL.m:
+	* Source/Additions/Makefile.preamble:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/Additions/GSFunctions.m:
+	* Source/Additions/NSAttributedString+GNUstepBase.m:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/NSConnection.m:
+	* Source/NSLock.m:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Alterations to build additions with NO_GNUSTEP defined ... after all,
+	they should be able to build like that on OSX with the Apple Foundation.
+
 2010-02-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexPath.m:

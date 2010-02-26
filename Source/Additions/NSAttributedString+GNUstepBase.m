@@ -25,6 +25,7 @@
 #import "common.h"
 #import "Foundation/NSException.h"
 #import "GNUstepBase/NSAttributedString+GNUstepBase.h"
+#import "GNUstepBase/NSDebug+GNUstepBase.h"
 
 @implementation	NSAttributedString (GNUstepBase)
 - (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange

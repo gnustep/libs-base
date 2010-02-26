@@ -321,7 +321,7 @@ static Class		NSURLHandleClass = 0;
     @selector(URLHandleResourceDidCancelLoading:)
     withObject: self];
   [self endLoadInBackground];
-  IF_NO_GC(DESTROY(self);)
+  IF_NO_GC(RELEASE(self);)
 }
 
 - (void) dealloc

@@ -711,7 +711,7 @@ _arg_addr(NSInvocation *inv, int index)
   NSZoneFree(NSDefaultMallocZone(), (void*)types);
 
   DESTROY(self);
-  self  = RETAIN([NSInvocation invocationWithMethodSignature: newSig]);
+  self = RETAIN([NSInvocation invocationWithMethodSignature: newSig]);
 
   [aCoder decodeValueOfObjCType: @encode(id) at: &_target];
 

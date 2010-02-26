@@ -1872,7 +1872,7 @@ static unsigned	urlAlign;
       NSMapRemove((NSMapTable*)_clients, (void*)sender);
       [clientsLock unlock];
     }
-  DESTROY(self);
+  RELEASE(self);
 }
 
 @end
