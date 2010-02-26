@@ -1046,7 +1046,7 @@ SEL
 sel_getUid(const char *selName)
 {
   if (selName == 0) return 0;
-  return sel_register_uid(selName);
+  return sel_get_uid(selName);
 }
 
 BOOL
