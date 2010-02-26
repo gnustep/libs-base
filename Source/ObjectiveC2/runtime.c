@@ -1038,12 +1038,14 @@ protocol_isEqual(Protocol *p, Protocol *other)
 const char *
 sel_getName(SEL sel)
 {
+  if (name == 0) return "<null selector>";
   return sel_get_name(sel);
 }
 
 SEL
 sel_getUid(const char *selName)
 {
+  if (selName == 0) return 0;
   return sel_get_uid(selName);
 }
 
@@ -1056,6 +1058,7 @@ sel_isEqual(SEL sel1, SEL sel2)
 SEL
 sel_registerName(const char *selName)
 {
+  if (selName == 0) return 0;
   return sel_register_name(selName);
 }
 
