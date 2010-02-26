@@ -65,6 +65,7 @@
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSURL.h"
+#import "Foundation/NSURLHandle.h"
 #import "Foundation/NSValue.h"
 
 /* Avoid problems on systems where the xml headers use 'id'
@@ -140,10 +141,10 @@ static BOOL cacheDone = NO;
 @end
 #endif
 
-static char * objc_strdup(const char *from)
+static char * xml_strdup(const char *from)
 {
   unsigned	len = (from == 0) ? 1 : (strlen(from) + 1);
-  char		*to = objc_malloc(len);
+  char		*to = malloc(len);
   strcpy(to, from);
   return to;
 }
@@ -154,7 +155,7 @@ setupCache()
   if (cacheDone == NO)
     {
       cacheDone = YES;
-      xmlMemSetup(objc_free, objc_malloc, objc_realloc, objc_strdup);
+      xmlMemSetup(free, malloc, realloc, xml_strdup);
       xmlInitializeCatalog();
 
 #if	HAVE_LIBXML_SAX2_H
@@ -403,7 +404,7 @@ static NSMapTable	*attrNames = 0;
   if (buf != 0 && length > 0)
     {
       string = UTF8StrLen(buf, length);
-      objc_free(buf);
+      free(buf);
     }
   return string;
 }
@@ -1841,13 +1842,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       case NSSymbolStringEncoding:
 	NSLog(@"NSSymbolStringEncoding not supported for XML");//??
 	break;
-      case NSISOCyrillicStringEncoding:
-	NSLog(@"NSISOCyrillicStringEncoding not supported for XML");//??
-	break;
-      case NSNonLossyASCIIStringEncoding:
-      case NSASCIIStringEncoding:
-      case GSUndefinedEncoding:
       default:
+	NSLog(@"Encoding not supported for XML");//??
 	xmlEncodingString = nil;
 	break;
     }
@@ -2569,10 +2565,10 @@ loadEntityFunction(void *ctx,
 						ofType: @"dtd"
 					   inDirectory: @"DTDs"];
 #else
-	      found = [[NSBundle bundleForClass: [GSXMLNode class]
-				pathForResource: name
-					 ofType: @"dtd"
-				    inDirectory: @"DTDs"];
+	      found = [[NSBundle bundleForClass: [GSXMLNode class]]
+		pathForResource: name
+		ofType: @"dtd"
+		inDirectory: @"DTDs"];
 #endif
 	    }
 	  if (found == nil)
@@ -2611,10 +2607,10 @@ loadEntityFunction(void *ctx,
 					       ofType: @""
 					  inDirectory: @"DTDs"];
 #else
-	      file = [[NSBundle bundleForClass: [GSXMLNode class]
-			       pathForResource: name
-					ofType: @"dtd"
-				   inDirectory: @"DTDs"];
+	      file = [[NSBundle bundleForClass: [GSXMLNode class]]
+		pathForResource: local
+		ofType: @""
+		inDirectory: @"DTDs"];
 #endif
 	    }
 	}
@@ -3051,7 +3047,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 {
   if (lib != NULL)
     {
-      objc_free(lib);
+      free(lib);
     }
   [super dealloc];
 }
@@ -3365,7 +3361,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  */
 - (BOOL) _initLibXML
 {
-  lib = (xmlSAXHandler*)objc_malloc(sizeof(xmlSAXHandler));
+  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
@@ -3485,7 +3481,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 
 - (BOOL) _initLibXML
 {
-  lib = (xmlSAXHandler*)objc_malloc(sizeof(xmlSAXHandler));
+  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
@@ -3550,7 +3546,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (BOOL) _initLibXML
 {
   isHtmlHandler = YES;
-  lib = (xmlSAXHandler*)objc_malloc(sizeof(htmlSAXHandler));
+  lib = (xmlSAXHandler*)malloc(sizeof(htmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
