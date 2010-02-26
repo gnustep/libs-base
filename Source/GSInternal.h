@@ -27,49 +27,43 @@
  * their code when the class implementation is changed in new versions of the
  * library.
  *
- * The public class MUST contain an instance variable 'id _internal;' to be
- * used as a pointer to a private class containing the ivars.
+ * The public class MUST contain a use of the GS_INTERNAL() macro with the
+ * class name as it's argument.
+ *
+ * Before including the header file containing the public class declaration,
+ * you must define GS_X_IVARS (where X is the class name) to be the
+ * list of actual instance variable declarations for the class.
  *
  * Before including this file, you must define 'GSInternal' to be the name
  * of your public class with * 'Internal' appended.
  * eg. if your class is called 'MyClass' then use the following define:
  * #define GSInternal MyClassInternal
  *
- * After including this file you can use the GS_BEGIN_INTERNAL() and
- * GS_END_INTERNAL() macros to bracket the declaration of the instance
- * variables.
+ * After including this file you can use the GS_PRIVATE_INTERNAL() macro
+ * to declare the private subclass used to hold real instance variables.
+ * The argument to this macro is the public class name (the GS_X_IVARS
+ * list must also be defined).
  *
  * You use GS_CREATE_INTERNAL() in your intialiser to create the object
  * holding the internal instance variables, and GS_DESTROY_INTERNAL() to
- * get rid of that object (only do this if '_internal' is not nil) in
- * your -dealloc method.
+ * get rid of that object  in your -dealloc method.
  *
  * Instance variables are referenced using the 'internal->ivar' suntax or
  * the GSIV(classname,object,ivar) macro.
  *
- * ARGH FIXME ... the following idea doesn't work ... need to rethink/rwrite.
- *
- * If built with CLANG, with support for non-fragile instance variables,
- * rather than GCC, the compiler/runtime can simply declare instance variables
- * within the implementation file so that they are not part of the public ABI,
- * in which case the macros here mostly reduce to nothing and the generated
- * code can be much more efficient.
  */
-#if	1 || !__has_feature(objc_nonfragile_abi)
+#if	!GS_NON_FRAGILE
 
-/* Code for when we don't have non-fragine instance variables
+/* Code for when we don't have non-fragile instance variables
  */
 
 /* Start declaration of internal ivars.
  */
-#define	GS_BEGIN_INTERNAL(name) \
+#define	GS_PRIVATE_INTERNAL(name) \
 @interface	name ## Internal : NSObject \
 { \
-  @public
-
-/* Finish declaration of internal ivars.
- */
-#define	GS_END_INTERNAL(name) \
+@public \
+GS_##name##_IVARS \
 } \
 @end \
 @implementation	name ## Internal \
@@ -80,29 +74,23 @@
 #define	GS_CREATE_INTERNAL(name) \
 _internal = [name ## Internal new];
 
-/* Create holder for internal ivars.
+/* Destroy holder for internal ivars.
  */
 #define	GS_DESTROY_INTERNAL(name) \
-DESTROY(_internal);
+if (_internal != 0) DESTROY(_internal);
 
 #undef	internal
 #define	internal	((GSInternal*)_internal)
 #undef	GSIVar
 #define	GSIVar(X,Y)	(((GSInternal*)(X->_internal))->Y)
 
-#else	/* !__has_feature(objc_nonfragile_abi) */
+#else	/* GS_NON_FRAGILE */
 
 /* We have support for non-fragile ivars
  */
 
-#define	GS_BEGIN_INTERNAL(name) @interface name () {
+#define	GS_PRIVATE_INTERNAL(name) 
 
-/* Finish declaration of internal ivars.
- */
-#define	GS_END_INTERNAL(name) } @end
-
-/* Create holder for internal ivars (nothing to do).
- */
 #define	GS_CREATE_INTERNAL(name)
 
 #define	GS_DESTROY_INTERNAL(name)
@@ -114,6 +102,6 @@ DESTROY(_internal);
 #undef	GSIVar
 #define	GSIVar(X,Y)	((X)->Y)
 
-#endif	/* !__has_feature(objc_nonfragile_abi) */
+#endif	/* GS_NON_FRAGILE */
 
 

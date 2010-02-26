@@ -49,10 +49,7 @@ typedef NSInteger NSOperationQueuePriority;
 
 @interface NSOperation : NSObject
 {
-#if	GS_EXPOSE(NSOperation)
-@private
-  id	_internal;
-#endif
+GS_INTERNAL(NSOperation)
 }
 
 /** Adds a dependency to the receiver.<br />
