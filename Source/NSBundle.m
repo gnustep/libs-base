@@ -1047,15 +1047,46 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if (isApplication == YES)
 	{
 	  s = [path lastPathComponent];
-	
-	  if ((([s hasSuffix: @".app"]  == NO)
-	    && ([s hasSuffix: @".debug"] == NO)
-	    && ([s hasSuffix: @".profile"] == NO))
-	    // GNUstep Web
-	    && (([s hasSuffix: @".gswa"] == NO)
-		&& ([s hasSuffix: @".woa"] == NO)))
+    
+	  if ([s hasSuffix: @".app"] == NO
+	    && [s hasSuffix: @".debug"] == NO
+	    && [s hasSuffix: @".profile"] == NO
+	    && [s hasSuffix: @".gswa"] == NO	// GNUstep Web
+	    && [s hasSuffix: @".woa"] == NO	// GNUstep Web
+	    )
 	    {
-	      isApplication = NO;
+	      /* Well known file extension ... app wrapper format.
+	       */
+	      isApplication = YES;
+	    }
+	  else
+	    {
+	      NSFileManager	*mgr = manager();
+	      BOOL		f;
+
+	      /* Might be an app wrapper with another extension...
+	       * Look for Info-gnustep.plist or Info.plist in a
+	       * Resources subdirectory.
+	       */
+	      s = [path stringByAppendingPathComponent: @"Resources"];
+	      if ([mgr fileExistsAtPath: s isDirectory: &f] == NO || f == NO)
+		{
+		  isApplication = NO;
+		}
+	      else
+		{
+		  NSString	*i;
+
+		  i = [s stringByAppendingPathComponent: @"Info-gnustep.plist"];
+		  if ([mgr isReadableFileAtPath: i] == NO)
+		    {
+		      i = [s stringByAppendingPathComponent: @"Info.plist"];
+		      if ([mgr isReadableFileAtPath: i] == NO)
+			{
+			  isApplication = NO;
+			}
+		    }
+		}
 	    }
 	}
 
