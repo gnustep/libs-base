@@ -24,6 +24,7 @@
 */
 
 #import "common.h"
+#import <Foundation/NSThread.h>
 
 #if	defined(__APPLE__)
 
