@@ -39,7 +39,7 @@
   /* FIXME: implement this better */
   const char *str;
 
-  str = [string cString];
+  str = [string UTF8String];
   if (strchr(str, '.') >= 0 || strchr(str, 'e') >= 0
       || strchr(str, 'E') >= 0)
     return [NSNumber numberWithDouble: atof(str)];
