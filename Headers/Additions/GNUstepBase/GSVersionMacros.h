@@ -206,10 +206,4 @@
 
 #define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
 
-#if	GS_NONFRAGILE
-#  define	GS_INTERNAL(X)	@public GS_##X##_IVARS
-#else
-#  define	GS_INTERNAL(X)	@private id _internal;
-#endif
-
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */

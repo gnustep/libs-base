@@ -27,8 +27,15 @@
  * their code when the class implementation is changed in new versions of the
  * library.
  *
- * The public class MUST contain a use of the GS_INTERNAL() macro with the
- * class name as it's argument.
+ * The public class MUST declare its instance variables using code of the
+ * form:
+ * #if	GS_NONFRAGILE
+ * #  if defined(GS_X_IVARS)
+ * @public GS_X_IVARS
+ * #  endif
+ * #else
+ * @private id _internal;
+ * #endif
  *
  * Before including the header file containing the public class declaration,
  * you must define GS_X_IVARS (where X is the class name) to be the
@@ -52,7 +59,7 @@
  * the GSIV(classname,object,ivar) macro.
  *
  */
-#if	!GS_NON_FRAGILE
+#if	!GS_NONFRAGILE
 
 /* Code for when we don't have non-fragile instance variables
  */
@@ -84,7 +91,7 @@ if (_internal != 0) DESTROY(_internal);
 #undef	GSIVar
 #define	GSIVar(X,Y)	(((GSInternal*)(X->_internal))->Y)
 
-#else	/* GS_NON_FRAGILE */
+#else	/* GS_NONFRAGILE */
 
 /* We have support for non-fragile ivars
  */
@@ -102,6 +109,6 @@ if (_internal != 0) DESTROY(_internal);
 #undef	GSIVar
 #define	GSIVar(X,Y)	((X)->Y)
 
-#endif	/* GS_NON_FRAGILE */
+#endif	/* GS_NONFRAGILE */
 
 

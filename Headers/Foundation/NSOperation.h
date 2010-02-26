@@ -49,7 +49,13 @@ typedef NSInteger NSOperationQueuePriority;
 
 @interface NSOperation : NSObject
 {
-GS_INTERNAL(NSOperation)
+#if	GS_NONFRAGILE
+#  if	defined(GS_NSOperation_IVARS)
+@public GS_NSOperation_IVARS
+#  endif
+#else
+@private id _internal;
+#endif
 }
 
 /** Adds a dependency to the receiver.<br />
@@ -187,9 +193,12 @@ enum {
 
 @interface NSOperationQueue : NSObject
 {
-#if	GS_EXPOSE(NSOperationQueue)
-@private
-  id	_internal;
+#if	GS_NONFRAGILE
+#  if	defined(GS_NSOperationQueue_IVARS)
+@public GS_NSOperationQueue_IVARS
+#  endif
+#else
+@private id _internal;
 #endif
 }
 #if OS_API_VERSION(100600, GS_API_LATEST)
