@@ -1,5 +1,9 @@
 2010-02-26 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSBundle.m: Apply suggested fix for bug #29012
+
+2010-02-26 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSOperation.m:
 	* Source/GSInternal.h:
 	* Source/NSConnection.m:
