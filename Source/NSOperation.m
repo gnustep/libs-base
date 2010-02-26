@@ -28,6 +28,8 @@
 
 #import "common.h"
 
+#import "Foundation/NSLock.h"
+
 #define	GS_NSOperation_IVARS \
   NSRecursiveLock *lock; \
   NSConditionLock *cond; \
@@ -57,7 +59,6 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSLock.h"
 #import "Foundation/NSKeyValueObserving.h"
 #import "Foundation/NSThread.h"
 #import "GSPrivate.h"
@@ -556,7 +557,7 @@ static NSOperationQueue *mainQueue = nil;
 - (void) addOperations: (NSArray *)ops
      waitUntilFinished: (BOOL)shouldWait
 {
-  NSUInteger	count;
+  NSUInteger	total;
   NSUInteger	index;
 
   if (ops == nil || NO == [ops isKindOfClass: [NSArray class]])
@@ -565,15 +566,15 @@ static NSOperationQueue *mainQueue = nil;
 		  format: @"[%@-%@] object is not an NSArray",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  count = [ops count];
-  if (count > 0)
+  total = [ops count];
+  if (total > 0)
     {
       BOOL		invalidArg = NO;
-      GS_BEGINITEMBUF(buf, count, id)
-      NSUInteger	toAdd = count;
+      GS_BEGINITEMBUF(buf, total, id)
+      NSUInteger	toAdd = total;
 
       [ops getObjects: buf];
-      for (index = 0; index < count; index++)
+      for (index = 0; index < total; index++)
 	{
 	  NSOperation	*op = buf[index];
 
@@ -594,7 +595,7 @@ static NSOperationQueue *mainQueue = nil;
           [internal->lock lock];
 	  [self willChangeValueForKey: @"operationCount"];
 	  [self willChangeValueForKey: @"operations"];
-	  for (index = 0; index < count; index++)
+	  for (index = 0; index < total; index++)
 	    {
 	      NSOperation	*op = buf[index];
 
@@ -621,7 +622,7 @@ static NSOperationQueue *mainQueue = nil;
 	    }
 	  [self didChangeValueForKey: @"operationCount"];
 	  [self didChangeValueForKey: @"operations"];
-	  for (index = 0; index < count; index++)
+	  for (index = 0; index < total; index++)
 	    {
 	      NSOperation	*op = buf[index];
 
@@ -684,15 +685,12 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) dealloc
 {
-  if (_internal != nil)
-    {
-      [internal->operations release];
-      [internal->waiting release];
-      [internal->name release];
-      [internal->cond release];
-      [internal->lock release];
-      GS_DESTROY_INTERNAL(NSOperationQueue);
-    }
+  [internal->operations release];
+  [internal->waiting release];
+  [internal->name release];
+  [internal->cond release];
+  [internal->lock release];
+  GS_DESTROY_INTERNAL(NSOperationQueue);
   [super dealloc];
 }
 
@@ -1036,13 +1034,13 @@ static NSOperationQueue *mainQueue = nil;
     && [self maxConcurrentOperationCount] != 0
     && [internal->waiting count] > 0)
     {
-      NSInteger	count = internal->count;
+      NSInteger	total = internal->count;
 
-      if (count == NSOperationQueueDefaultMaxConcurrentOperationCount)
+      if (total == NSOperationQueueDefaultMaxConcurrentOperationCount)
 	{
-	  count = maxThreads;	// Limit number of allowed threads
+	  total = maxThreads;	// Limit number of allowed threads
 	}
-      if (internal->threads < count)
+      if (internal->threads < total)
 	{
 	  /* All threads are in use, but we don't have the maximum
 	   * number of threads, so we can create a new one for the
