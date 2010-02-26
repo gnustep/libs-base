@@ -29,6 +29,8 @@
 #import "Foundation/NSSet.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 
+#include <stdio.h>
+
 @implementation NSProcessInfo(GNUstepBase)
 
 static NSMutableSet	*_debug_set = nil;
