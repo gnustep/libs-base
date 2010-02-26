@@ -1001,7 +1001,7 @@ static Class	runLoopClass;
 
   l = [runLoopClass currentRunLoop];
 
-  IF_NO_GC([self retain];)
+  IF_NO_GC(RETAIN(self);)
 
   [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
@@ -1035,9 +1035,9 @@ static Class	runLoopClass;
       sent = YES;
     }
   M_UNLOCK(myLock);
-  DESTROY(self);
   NSDebugMLLog(@"NSMessagePort_details",
     @"Message send 0x%x on 0x%x status %d", components, self, sent);
+  RELEASE(self);
   return sent;
 }
 
@@ -1580,7 +1580,7 @@ typedef	struct {
 {
   if ([self isValid] == YES)
     {
-      IF_NO_GC([self retain];)
+      IF_NO_GC(RETAIN(self);)
       M_LOCK(myLock);
 
       if ([self isValid] == YES)
@@ -1612,7 +1612,7 @@ typedef	struct {
 	  [super invalidate];
 	}
       M_UNLOCK(myLock);
-      DESTROY(self);
+      RELEASE(self);
     }
 }
 
@@ -1715,7 +1715,7 @@ typedef	struct {
 
 - (void) removeHandle: (GSMessageHandle*)handle
 {
-  IF_NO_GC([self retain];)
+  IF_NO_GC(RETAIN(self);)
   M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
@@ -1742,7 +1742,7 @@ typedef	struct {
       [self invalidate];
     }
   M_UNLOCK(myLock);
-  DESTROY(self);
+  RELEASE(self);
 }
 
 /*
