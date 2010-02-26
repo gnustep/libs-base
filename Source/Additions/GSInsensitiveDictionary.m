@@ -33,6 +33,7 @@
 #import "Foundation/NSKeyedArchiver.h"
 
 #import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSDebug+GNUstepBase.h"
 
 
 /*

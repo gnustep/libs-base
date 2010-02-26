@@ -150,8 +150,6 @@ extern "C" {
 
 #endif
 
-
-#if	!NO_GNUSTEP
 /*
  * Functions for accessing instance variables directly -
  * We can copy an ivar into arbitrary data,
@@ -744,8 +742,6 @@ GSLastErrorStr(long error_id) GS_ATTRIB_DEPRECATED;
   if (__objects != __buf) objc_free(__objects); \
 })
 
-
-#endif /* NO_GNUSTEP */
 
 #ifdef __cplusplus
 }

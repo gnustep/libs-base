@@ -3072,7 +3072,7 @@ static void DNSSD_API
 - (id) init
 {
   DESTROY(self);
-  return nil;
+  return self;
 }
 
 /**

@@ -202,7 +202,6 @@ MFINALIZE
       if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
 	{
 	  DESTROY(self);
-	  self = nil;
 	}
     }
   return self;
@@ -251,7 +250,6 @@ MFINALIZE
       if (0 != pthread_mutex_init(&_mutex, &attr_recursive))
 	{
 	  DESTROY(self);
-	  self = nil;
 	}
     }
   return self;
@@ -287,20 +285,17 @@ MDESCRIPTION
 
 - (id) init
 {
-  if (nil == (self = [super init]))
+  if (nil != (self = [super init]))
     {
-      return nil;
-    }
-  if (0 != pthread_cond_init(&_condition, NULL))
-    {
-      DESTROY(self);
-      return nil;
-    }
-  if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
-    {
-      pthread_cond_destroy(&_condition);
-      DESTROY(self);
-      return nil;
+      if (0 != pthread_cond_init(&_condition, NULL))
+	{
+	  DESTROY(self);
+	}
+      else if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
+	{
+	  pthread_cond_destroy(&_condition);
+	  DESTROY(self);
+	}
     }
   return self;
 }
@@ -377,16 +372,17 @@ MUNLOCK
 
 - (id) initWithCondition: (NSInteger)value
 {
-  if (nil == (self = [super init]))
+  if (nil != (self = [super init]))
     {
-      return nil;
+      if (nil == (_condition = [NSCondition new]))
+	{
+	  DESTROY(self);
+	}
+      else
+	{
+          _condition_value = value;
+	}
     }
-  if (nil == (_condition = [NSCondition new]))
-    {
-      DESTROY(self);
-      return nil;
-    }
-  _condition_value = value;
   return self;
 }
 

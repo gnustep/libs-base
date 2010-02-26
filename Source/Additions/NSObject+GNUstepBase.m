@@ -25,6 +25,7 @@
 #import "common.h"
 #import "Foundation/NSException.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSDebug+GNUstepBase.h"
 
 /**
  * Extension methods for the NSObject class
