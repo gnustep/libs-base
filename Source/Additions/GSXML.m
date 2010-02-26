@@ -61,6 +61,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSRunLoop.h"
+#import "Foundation/NSString.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSURL.h"
@@ -2563,7 +2564,7 @@ loadEntityFunction(void *ctx,
 	    }
 	  if (found == nil)
 	    {
-#ifdef GNUSTEP
+#ifndef NeXT_Foundation_LIBRARY
 	      found = [NSBundle pathForLibraryResource: name
 						ofType: @"dtd"
 					   inDirectory: @"DTDs"];
@@ -2605,9 +2606,16 @@ loadEntityFunction(void *ctx,
 	    }
 	  if (file == nil)
 	    {
+#ifndef NeXT_Foundation_LIBRARY
 	      file = [NSBundle pathForLibraryResource: local
 					       ofType: @""
 					  inDirectory: @"DTDs"];
+#else
+	      file = [[NSBundle bundleForClass: [GSXMLNode class]
+			       pathForResource: name
+					ofType: @"dtd"
+				   inDirectory: @"DTDs"];
+#endif
 	    }
 	}
     }

@@ -23,6 +23,10 @@
 
 */
 #import "common.h"
+
+#include <string.h>
+#include <ctype.h>
+
 #import "GNUstepBase/NSNumber+GNUstepBase.h"
 
 /**

@@ -29,6 +29,9 @@
 #import "GNUstepBase/NSData+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
+#include <string.h>
+#include <ctype.h>
+
 /**
  * Extension methods for the NSData class.
  */
