@@ -1038,7 +1038,7 @@ protocol_isEqual(Protocol *p, Protocol *other)
 const char *
 sel_getName(SEL sel)
 {
-  if (name == 0) return "<null selector>";
+  if (sel == 0) return "<null selector>";
   return sel_get_name(sel);
 }
 
