@@ -31,7 +31,41 @@
 
 #import "common.h"
 
-#define	EXPOSE_NSConnection_IVARS	1
+#define	GS_NSConnection_IVARS \
+  BOOL			_isValid; \
+  BOOL			_independentQueueing; \
+  BOOL			_authenticateIn; \
+  BOOL			_authenticateOut; \
+  BOOL			_multipleThreads; \
+  BOOL			_shuttingDown; \
+  BOOL			_useKeepalive; \
+  BOOL			_keepaliveWait; \
+  NSPort		*_receivePort; \
+  NSPort		*_sendPort; \
+  unsigned		_requestDepth; \
+  unsigned		_messageCount; \
+  unsigned		_reqOutCount; \
+  unsigned		_reqInCount; \
+  unsigned		_repOutCount; \
+  unsigned		_repInCount; \
+  GSIMapTable		_localObjects; \
+  GSIMapTable		_localTargets; \
+  GSIMapTable		_remoteProxies; \
+  GSIMapTable		_replyMap; \
+  NSTimeInterval	_replyTimeout; \
+  NSTimeInterval	_requestTimeout; \
+  NSMutableArray	*_requestModes; \
+  NSMutableArray	*_runLoops; \
+  NSMutableArray	*_requestQueue; \
+  id			_delegate; \
+  NSRecursiveLock	*_refGate; \
+  NSMutableArray	*_cachedDecoders; \
+  NSMutableArray	*_cachedEncoders; \
+  NSString		*_remoteName; \
+  NSString		*_registeredName; \
+  NSPortNameServer	*_nameServer; \
+  int			_lastKeepalive;
+
 #define	EXPOSE_NSDistantObject_IVARS	1
 
 #ifdef HAVE_ALLOCA_H
@@ -236,42 +270,7 @@ stringFromMsgType(int type)
 
 #define	GSInternal	NSConnectionInternal
 #include	"GSInternal.h"
-GS_BEGIN_INTERNAL(NSConnection)
-  BOOL			_isValid;
-  BOOL			_independentQueueing;
-  BOOL			_authenticateIn;
-  BOOL			_authenticateOut;
-  BOOL			_multipleThreads;
-  BOOL			_shuttingDown;
-  BOOL			_useKeepalive;
-  BOOL			_keepaliveWait;
-  NSPort		*_receivePort;
-  NSPort		*_sendPort;
-  unsigned		_requestDepth;
-  unsigned		_messageCount;
-  unsigned		_reqOutCount;
-  unsigned		_reqInCount;
-  unsigned		_repOutCount;
-  unsigned		_repInCount;
-  GSIMapTable		_localObjects;
-  GSIMapTable		_localTargets;
-  GSIMapTable		_remoteProxies;
-  GSIMapTable		_replyMap;
-  NSTimeInterval	_replyTimeout;
-  NSTimeInterval	_requestTimeout;
-  NSMutableArray	*_requestModes;
-  NSMutableArray	*_runLoops;
-  NSMutableArray	*_requestQueue;
-  id			_delegate;
-  NSRecursiveLock	*_refGate;
-  NSMutableArray	*_cachedDecoders;
-  NSMutableArray	*_cachedEncoders;
-  NSString		*_remoteName;
-  NSString		*_registeredName;
-  NSPortNameServer	*_nameServer;
-  int			_lastKeepalive;
-GS_END_INTERNAL(NSConnection)
-
+GS_PRIVATE_INTERNAL(NSConnection)
 
 #define	IisValid		(internal->_isValid)
 #define	IindependentQueueing	(internal->_independentQueueing)

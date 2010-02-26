@@ -27,8 +27,30 @@
    */ 
 
 #import "common.h"
-#define	EXPOSE_NSOperation_IVARS	1
-#define	EXPOSE_NSOperationQueue_IVARS	1
+
+#define	GS_NSOperation_IVARS \
+  NSRecursiveLock *lock; \
+  NSConditionLock *cond; \
+  NSOperationQueuePriority priority; \
+  double threadPriority; \
+  BOOL cancelled; \
+  BOOL concurrent; \
+  BOOL executing; \
+  BOOL finished; \
+  BOOL ready; \
+  NSMutableArray *dependencies;
+
+#define	GS_NSOperationQueue_IVARS \
+  NSRecursiveLock	*lock; \
+  NSConditionLock	*cond; \
+  NSMutableArray	*operations; \
+  NSMutableArray	*waiting; \
+  NSString		*name; \
+  BOOL			suspended; \
+  NSInteger		threads; \
+  NSInteger		idle; \
+  NSInteger		count;
+
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
@@ -42,18 +64,7 @@
 
 #define	GSInternal	NSOperationInternal
 #include	"GSInternal.h"
-GS_BEGIN_INTERNAL(NSOperation)
-  NSRecursiveLock *lock;
-  NSConditionLock *cond;
-  NSOperationQueuePriority priority;
-  double threadPriority;
-  BOOL cancelled;
-  BOOL concurrent;
-  BOOL executing;
-  BOOL finished;
-  BOOL ready;
-  NSMutableArray *dependencies;
-GS_END_INTERNAL(NSOperation)
+GS_PRIVATE_INTERNAL(NSOperation)
 
 static NSArray	*empty = nil;
 
@@ -459,17 +470,7 @@ static NSArray	*empty = nil;
 #undef	GSInternal
 #define	GSInternal	NSOperationQueueInternal
 #include	"GSInternal.h"
-GS_BEGIN_INTERNAL(NSOperationQueue)
-  NSRecursiveLock	*lock;
-  NSConditionLock	*cond;
-  NSMutableArray	*operations;
-  NSMutableArray	*waiting;
-  NSString		*name;
-  BOOL			suspended;
-  NSInteger		threads;	// number of threads allocated
-  NSInteger		idle;		// threads waiting for an op to do
-  NSInteger		count;		// max executing operations
-GS_END_INTERNAL(NSOperationQueue)
+GS_PRIVATE_INTERNAL(NSOperationQueue)
 
 
 @interface	NSOperationQueue (Private)

@@ -1,5 +1,17 @@
 2010-02-26 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSOperation.m:
+	* Source/GSInternal.h:
+	* Source/NSConnection.m:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSOperation.h:
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	Rework hiding of instance variables for big classes (lots of ivars)
+	where we expect the class lifetime to be long enough that it makes
+	sense to hod the ivars in a private subclass.
+
+2010-02-26 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNetServices.m:
 	* Source/NSURLHandle.m:
 	* Source/NSMethodSignature.m:

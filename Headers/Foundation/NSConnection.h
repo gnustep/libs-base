@@ -94,10 +94,7 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
  */
 @interface NSConnection : NSObject
 {
-#if	GS_EXPOSE(NSConnection)
-@private
-  id	_internal;
-#endif
+GS_INTERNAL(NSConnection)
 }
 
 + (NSArray*) allConnections;
