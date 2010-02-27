@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <sys/types.h>
+#include "Availability.h"
 
 #if   defined(ERROR_UNSUPPORTED_RUNTIME_FUNCTIONS)
 #  define OBJC_GNU_RUNTIME_UNSUPPORTED(x) \
@@ -199,7 +200,11 @@ const char * method_getTypeEncoding(Method method);
 
 IMP method_setImplementation(Method method, IMP imp);
 
-Class objc_allocateClassPair(Class superclass, const char *name, size_t extraBytes);
+Class
+objc_allocateClassPair(Class superclass, const char *name, size_t extraBytes);
+
+OBJC_NONPORTABLE
+Class objc_allocateMetaClass(Class superclass, size_t extraBytes);
 
 void objc_disposeClassPair(Class cls);
 

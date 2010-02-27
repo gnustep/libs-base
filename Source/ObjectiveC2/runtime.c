@@ -3,7 +3,7 @@
 /* Make glibc export strdup() */
 
 #if defined __GLIBC__
-  #define __USE_BSD 1
+#define __USE_BSD 1
 #endif
 
 #undef __objc_INCLUDE_GNU
@@ -19,8 +19,8 @@
 #define object_copy  gnu_object_copy
 #define object_dispose  gnu_object_dispose
 #define objc_super gnu_objc_super
-#define objc_msg_lookup gnu_objc_msg_lookup 
-#define objc_msg_lookup_super gnu_objc_msg_lookup_super 
+#define objc_msg_lookup gnu_objc_msg_lookup
+#define objc_msg_lookup_super gnu_objc_msg_lookup_super
 #define BOOL GNU_BOOL
 #define SEL GNU_SEL
 #define Protocol GNU_Protocol
@@ -37,11 +37,11 @@
 #include <objc/encoding.h>
 #undef Class
 #undef Protocol
-#undef SEL 
+#undef SEL
 #undef objc_msg_lookup
 #undef objc_msg_lookup_super
 #undef objc_super
-#undef Method 
+#undef Method
 #undef IMP
 #undef id
 #undef objc_object
@@ -90,9 +90,9 @@ class_getInstanceMethodNonrecursive(Class aClass, SEL aSelector)
   const char *types = sel_get_type(aSelector);
 
   for (methods = aClass->methods;
-    methods != NULL; methods = methods->method_next)
+       methods != NULL; methods = methods->method_next)
     {
-      int	i;
+      int i;
 
       for (i = 0; i < methods->method_count; i++)
 	{
@@ -100,8 +100,7 @@ class_getInstanceMethodNonrecursive(Class aClass, SEL aSelector)
 
 	  if (strcmp(sel_get_name(method->method_name), name) == 0)
 	    {
-	      if (NULL == types
-		|| strcmp(types, method->method_types) == 0)
+	      if (NULL == types || strcmp(types, method->method_types) == 0)
 		{
 		  return method;
 		}
@@ -134,10 +133,8 @@ objc_updateDtableForClassContainingMethod(Method m)
 
 BOOL
 class_addIvar(Class cls,
-  const char *name,
-  size_t size,
-  uint8_t alignment,
-  const char *types)
+	      const char *name,
+	      size_t size, uint8_t alignment, const char *types)
 {
   struct objc_ivar_list *ivarlist;
   Ivar ivar;
@@ -163,8 +160,9 @@ class_addIvar(Class cls,
     {
       ivarlist->ivar_count++;
       // objc_ivar_list contains one ivar.  Others follow it.
-      cls->ivars = objc_realloc(ivarlist, sizeof(struct objc_ivar_list) 
-	+ (ivarlist->ivar_count - 1) * sizeof(struct objc_ivar));
+      cls->ivars = objc_realloc(ivarlist, sizeof(struct objc_ivar_list)
+				+ (ivarlist->ivar_count -
+				   1) * sizeof(struct objc_ivar));
     }
 
   ivar = &cls->ivars->ivar_list[cls->ivars->ivar_count - 1];
@@ -183,9 +181,10 @@ class_addMethod(Class cls, SEL name, IMP imp, const char *types)
   const char *methodName = sel_get_name(name);
   struct objc_method_list *methods;
 
-  for (methods = cls->methods; methods != NULL; methods = methods->method_next)
+  for (methods = cls->methods; methods != NULL;
+       methods = methods->method_next)
     {
-      int	i;
+      int i;
 
       for (i = 0; i < methods->method_count; i++)
 	{
@@ -206,7 +205,7 @@ class_addMethod(Class cls, SEL name, IMP imp, const char *types)
   methods->method_list[0].method_name
     = sel_register_typed_name(methodName, types);
   methods->method_list[0].method_types = strdup(types);
-  methods->method_list[0].method_imp = (objc_imp_gnu)imp;
+  methods->method_list[0].method_imp = (objc_imp_gnu) imp;
 
   if (CLS_ISRESOLV(cls))
     {
@@ -217,7 +216,7 @@ class_addMethod(Class cls, SEL name, IMP imp, const char *types)
 }
 
 BOOL
-class_addProtocol(Class cls, Protocol *protocol)
+class_addProtocol(Class cls, Protocol * protocol)
 {
   struct objc_protocol_list *protocols;
 
@@ -240,19 +239,19 @@ class_addProtocol(Class cls, Protocol *protocol)
 }
 
 BOOL
-class_conformsToProtocol(Class cls, Protocol *protocol)
+class_conformsToProtocol(Class cls, Protocol * protocol)
 {
   struct objc_protocol_list *protocols;
 
   for (protocols = cls->protocols;
-    protocols != NULL; protocols = protocols->next)
+       protocols != NULL; protocols = protocols->next)
     {
-      int	i;
+      int i;
 
       for (i = 0; i < protocols->count; i++)
 	{
-	  if (strcmp(protocols->list[i]->protocol_name, 
-	    protocol->protocol_name) == 0)
+	  if (strcmp(protocols->list[i]->protocol_name,
+		     protocol->protocol_name) == 0)
 	    {
 	      return YES;
 	    }
@@ -298,7 +297,8 @@ class_copyMethodList(Class cls, unsigned int *outCount)
   Method *copyDest;
   struct objc_method_list *methods;
 
-  for (methods = cls->methods; methods != NULL; methods = methods->method_next)
+  for (methods = cls->methods; methods != NULL;
+       methods = methods->method_next)
     {
       count += methods->method_count;
     }
@@ -314,7 +314,8 @@ class_copyMethodList(Class cls, unsigned int *outCount)
   list = malloc(count * sizeof(struct objc_method *));
   copyDest = list;
 
-  for (methods = cls->methods; methods != NULL; methods = methods->method_next)
+  for (methods = cls->methods; methods != NULL;
+       methods = methods->method_next)
     {
       unsigned int i;
 
@@ -346,16 +347,16 @@ class_copyProtocolList(Class cls, unsigned int *outCount)
       *outCount = 0;
       return NULL;
     }
-  
-  protocols = calloc(listSize, sizeof(Protocol*) + 1);
+
+  protocols = calloc(listSize, sizeof(Protocol *) + 1);
   index = 0;
   for (list = protocolList; list != NULL; list = list->next)
     {
-      memcpy(&protocols[index], list->list, list->count * sizeof(Protocol*));
+      memcpy(&protocols[index], list->list, list->count * sizeof(Protocol *));
       index += list->count;
     }
   protocols[listSize] = NULL;
-  *outCount  = listSize + 1;
+  *outCount = listSize + 1;
   return protocols;
 }
 
@@ -393,7 +394,7 @@ class_getClassMethod(Class aClass, SEL aSelector)
 }
 
 Ivar
-class_getClassVariable(Class cls, const char* name)
+class_getClassVariable(Class cls, const char *name)
 {
   assert(0 && "Class variables not implemented");
   return NULL;
@@ -406,7 +407,7 @@ class_getInstanceSize(Class cls)
 }
 
 Ivar
-class_getInstanceVariable(Class cls, const char* name)
+class_getInstanceVariable(Class cls, const char *name)
 {
   struct objc_ivar_list *ivarlist = cls->ivars;
   int i;
@@ -433,21 +434,21 @@ class_getInstanceVariable(Class cls, const char* name)
 const char *
 class_getIvarLayout(Class cls)
 {
-  return (char*)cls->ivars;
+  return (char *) cls->ivars;
 }
 
 IMP
 class_getMethodImplementation(Class cls, SEL name)
 {
   struct objc_object_gnu obj = { cls };
-  return (IMP)objc_msg_lookup((id)&obj, name);
+  return (IMP) objc_msg_lookup((id) & obj, name);
 }
 
 IMP
 class_getMethodImplementation_stret(Class cls, SEL name)
 {
   struct objc_object_gnu obj = { cls };
-  return (IMP)objc_msg_lookup((id)&obj, name);
+  return (IMP) objc_msg_lookup((id) & obj, name);
 }
 
 const char *
@@ -498,8 +499,8 @@ class_replaceMethod(Class cls, SEL name, IMP imp, const char *types)
       class_addMethod(cls, name, imp, types);
       return NULL;
     }
-  old = (IMP)method->method_imp;
-  method->method_imp = (objc_imp_gnu)imp;
+  old = (IMP) method->method_imp;
+  method->method_imp = (objc_imp_gnu) imp;
   return old;
 }
 
@@ -507,21 +508,20 @@ class_replaceMethod(Class cls, SEL name, IMP imp, const char *types)
 BOOL
 class_respondsToSelector(Class cls, SEL sel)
 {
-  return __objc_responds_to((id)&cls, sel);
+  return __objc_responds_to((id) & cls, sel);
 }
 
 void
 class_setIvarLayout(Class cls, const char *layout)
 {
-  struct objc_ivar_list *list = (struct objc_ivar_list*)layout;
-  size_t listsize = sizeof(struct objc_ivar_list) + 
-      sizeof(struct objc_ivar) * (list->ivar_count - 1);
+  struct objc_ivar_list *list = (struct objc_ivar_list *) layout;
+  size_t listsize = sizeof(struct objc_ivar_list) +
+    sizeof(struct objc_ivar) * (list->ivar_count - 1);
   cls->ivars = malloc(listsize);
   memcpy(cls->ivars, list, listsize);
 }
 
-OBJC_DEPRECATED
-Class
+OBJC_DEPRECATED Class
 class_setSuperclass(Class cls, Class newSuper)
 {
   Class oldSuper = cls->super_class;
@@ -622,19 +622,17 @@ method_copyReturnType(Method method)
 void
 method_exchangeImplementations(Method m1, Method m2)
 {
-  IMP tmp = (IMP)m1->method_imp;
+  IMP tmp = (IMP) m1->method_imp;
 
   m1->method_imp = m2->method_imp;
-  m2->method_imp = (objc_imp_gnu)tmp;
+  m2->method_imp = (objc_imp_gnu) tmp;
   objc_updateDtableForClassContainingMethod(m1);
   objc_updateDtableForClassContainingMethod(m2);
 }
 
 void
-method_getArgumentType(Method method, 
-  unsigned int index,
-  char *dst,
-  size_t dst_len)
+method_getArgumentType(Method method,
+		       unsigned int index, char *dst, size_t dst_len)
 {
   const char *types;
   size_t length;
@@ -660,7 +658,7 @@ method_getArgumentType(Method method,
 IMP
 method_getImplementation(Method method)
 {
-  return (IMP)method->method_imp;
+  return (IMP) method->method_imp;
 }
 
 SEL
@@ -675,7 +673,7 @@ method_getNumberOfArguments(Method method)
   const char *types = method->method_types;
   unsigned int count = 0;
 
-  while('\0' != *types)
+  while ('\0' != *types)
     {
       types = objc_skip_argspec(types);
       count++;
@@ -710,9 +708,9 @@ method_getTypeEncoding(Method method)
 IMP
 method_setImplementation(Method method, IMP imp)
 {
-  IMP old = (IMP)method->method_imp;
+  IMP old = (IMP) method->method_imp;
 
-  method->method_imp = (objc_imp_gnu)old;
+  method->method_imp = (objc_imp_gnu) old;
   objc_updateDtableForClassContainingMethod(method);
   return old;
 }
@@ -720,18 +718,18 @@ method_setImplementation(Method method, IMP imp)
 id
 objc_getClass(const char *name)
 {
-  return (id)objc_get_class(name);
+  return (id) objc_get_class(name);
 }
 
 int
-objc_getClassList(Class *buffer, int bufferLen)
+objc_getClassList(Class * buffer, int bufferLen)
 {
   int count = 0;
 
   if (buffer == NULL)
     {
       void *state = NULL;
-      while(Nil != objc_next_class(&state))
+      while (Nil != objc_next_class(&state))
 	{
 	  count++;
 	}
@@ -754,8 +752,8 @@ objc_getClassList(Class *buffer, int bufferLen)
 id
 objc_getMetaClass(const char *name)
 {
-  Class cls = (Class)objc_getClass(name);
-  return cls == Nil ? nil : (id)cls->class_pointer;
+  Class cls = (Class) objc_getClass(name);
+  return cls == Nil ? nil : (id) cls->class_pointer;
 }
 
 id
@@ -774,7 +772,7 @@ id
 objc_lookUpClass(const char *name)
 {
   // TODO: Check these are the right way around.
-  return (id)objc_lookup_class(name);
+  return (id) objc_lookup_class(name);
 }
 
 static void
@@ -789,7 +787,7 @@ freeMethodLists(Class aClass)
 
       for (i = 0; i < methods->method_count; i++)
 	{
-	  free((void*)methods->method_list[i].method_types);
+	  free((void *) methods->method_list[i].method_types);
 	}
       current = methods;
       methods = methods->method_next;
@@ -812,8 +810,8 @@ freeIvarLists(Class aClass)
     {
       Ivar ivar = &ivarlist->ivar_list[i];
 
-      free((void*)ivar->ivar_type);
-      free((void*)ivar->ivar_name);
+      free((void *) ivar->ivar_type);
+      free((void *) ivar->ivar_name);
     }
   free(ivarlist);
 }
@@ -848,7 +846,7 @@ safe_remove_from_subclass_list(Class cls)
 void
 objc_disposeClassPair(Class cls)
 {
-  Class meta = ((id)cls)->isa;
+  Class meta = ((id) cls)->isa;
 
   // Remove from the runtime system so nothing tries updating the dtable
   // while we are freeing the class.
@@ -901,7 +899,7 @@ objc_allocateClassPair(Class superclass, const char *name, size_t extraBytes)
   newClass->class_pointer = metaClass;
   // Set the superclass pointer to the name.  The runtime will fix this when
   // the class links are resolved.
-  newClass->super_class = (Class)superclass->name;
+  newClass->super_class = (Class) superclass->name;
   newClass->name = strdup(name);
   newClass->info = _CLS_CLASS;
   newClass->dtable = __objc_uninstalled_dtable;
@@ -910,14 +908,30 @@ objc_allocateClassPair(Class superclass, const char *name, size_t extraBytes)
   return newClass;
 }
 
+Class
+objc_allocateMetaClass(Class superclass, size_t extraBytes)
+{
+  Class metaClass = calloc(1, sizeof(struct objc_class) + extraBytes);
+
+  // Initialize the metaclass
+  metaClass->class_pointer = superclass->class_pointer->class_pointer;
+  metaClass->super_class = superclass->class_pointer;
+  metaClass->name = strdup(superclass->name);
+  metaClass->info = _CLS_META;
+  metaClass->dtable = __objc_uninstalled_dtable;
+  metaClass->instance_size = sizeof(struct objc_class);
+
+  return metaClass;
+}
+
 void *
 object_getIndexedIvars(id obj)
 {
   if (class_isMetaClass(obj->isa))
     {
-      return ((char*)obj) + sizeof(struct objc_class);
+      return ((char *) obj) + sizeof(struct objc_class);
     }
-  return ((char*)obj) + obj->isa->instance_size;
+  return ((char *) obj) + obj->isa->instance_size;
 }
 
 Class
@@ -935,7 +949,7 @@ object_setClass(id obj, Class cls)
 {
   if (nil != obj)
     {
-      Class oldClass =  obj->isa;
+      Class oldClass = obj->isa;
 
       obj->isa = cls;
       return oldClass;
@@ -975,43 +989,44 @@ objectNew(id cls)
     {
       newSel = sel_get_uid("new");
     }
-  newIMP = (IMP)objc_msg_lookup((void*)cls, newSel);
-  return newIMP((id)cls, newSel);
+  newIMP = (IMP) objc_msg_lookup((void *) cls, newSel);
+  return newIMP((id) cls, newSel);
 }
 
 Protocol *
 objc_getProtocol(const char *name)
 {
   // Protocols are not centrally registered in the GNU runtime.
-  Protocol *protocol = (Protocol*)(objectNew(objc_getClass("Protocol")));
+  Protocol *protocol = (Protocol *) (objectNew(objc_getClass("Protocol")));
 
-  protocol->protocol_name = (char*)name;
+  protocol->protocol_name = (char *) name;
   return protocol;
 }
 
 BOOL
-protocol_conformsToProtocol(Protocol *p, Protocol *other)
+protocol_conformsToProtocol(Protocol * p, Protocol * other)
 {
   return NO;
 }
 
 struct objc_method_description *
-protocol_copyMethodDescriptionList(Protocol *p,
-  BOOL isRequiredMethod, BOOL isInstanceMethod, unsigned int *count)
+protocol_copyMethodDescriptionList(Protocol * p,
+				   BOOL isRequiredMethod,
+				   BOOL isInstanceMethod, unsigned int *count)
 {
   *count = 0;
   return NULL;
 }
 
 Protocol **
-protocol_copyProtocolList(Protocol *p, unsigned int *count)
+protocol_copyProtocolList(Protocol * p, unsigned int *count)
 {
   *count = 0;
   return NULL;
 }
 
 const char *
-protocol_getName(Protocol *p)
+protocol_getName(Protocol * p)
 {
   if (NULL != p)
     {
@@ -1021,14 +1036,13 @@ protocol_getName(Protocol *p)
 }
 
 BOOL
-protocol_isEqual(Protocol *p, Protocol *other)
+protocol_isEqual(Protocol * p, Protocol * other)
 {
   if (NULL == p || NULL == other)
     {
       return NO;
     }
-  if (p == other
-    || 0 == strcmp(p->protocol_name, other->protocol_name))
+  if (p == other || 0 == strcmp(p->protocol_name, other->protocol_name))
     {
       return YES;
     }
@@ -1038,14 +1052,16 @@ protocol_isEqual(Protocol *p, Protocol *other)
 const char *
 sel_getName(SEL sel)
 {
-  if (sel == 0) return "<null selector>";
+  if (sel == 0)
+    return "<null selector>";
   return sel_get_name(sel);
 }
 
 SEL
 sel_getUid(const char *selName)
 {
-  if (selName == 0) return 0;
+  if (selName == 0)
+    return 0;
   return sel_get_uid(selName);
 }
 
@@ -1058,7 +1074,7 @@ sel_isEqual(SEL sel1, SEL sel2)
 SEL
 sel_registerName(const char *selName)
 {
-  if (selName == 0) return 0;
+  if (selName == 0)
+    return 0;
   return sel_register_name(selName);
 }
-

@@ -1,5 +1,13 @@
 2010-02-27 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* runtime.c:
+	* sync.m:
+	* runtime.h:
+	Backport David's fixes for @synchronize(class), suitably modified to
+	build with older compilers.
+
+2010-02-27 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSObject.m: ([methodSignatureForSelector:]) remote the check
 	(and exception) to see if the sel types are the same as the signature
 	types, since this method is used precisesly when we think we may have
