@@ -42,7 +42,6 @@
 
 @interface NSDistantObject(GNUstepExtensions)
 - (Class) classForPortCoder;
-- (const char *) selectorTypeForProxy: (SEL)selector;
 - (id) forward: (SEL)aSel :(arglist_t)frame;
 - (void) finalize;
 @end
@@ -883,24 +882,6 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 
 /**
  * For backward compatibility ... do not use this method.<br />
- * Returns the type information ... the modern way of doing this is
- * with the -methodSignatureForSelector: method.
- */
-- (const char *) selectorTypeForProxy: (SEL)selector
-{
-#if NeXT_RUNTIME
-  /* This isn't what we want, unless the remote machine has
-     the same architecture as us. */
-  const char *t;
-  t = [_connection typeForSelector: selector remoteTarget: _handle];
-  return t;
-#else /* NeXT_runtime */
-  return sel_get_type (selector);
-#endif
-}
-
-/**
- * For backward compatibility ... do not use this method.<br />
  * Handle old fashioned forwarding to the proxy.
  */
 - (id) forward: (SEL)aSel :(arglist_t)frame
@@ -973,24 +954,6 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 @end
 
 
-@implementation NSObject (NSDistantObject)
-- (const char *) selectorTypeForProxy: (SEL)selector
-{
-#if NeXT_runtime
-  {
-    Method m = GSGetInstanceMethod(isa, selector);
-    if (m)
-      return m->method_types;
-    else
-      return NULL;
-  }
-#else
-  return sel_get_type (selector);
-#endif
-}
-
-@end
-
 @implementation Protocol (DistributedObjectsCoding)
 
 - (Class) classForPortCoder

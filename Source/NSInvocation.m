@@ -786,34 +786,6 @@ _arg_addr(NSInvocation *inv, int index)
 }
 
 /**
- * Tries to produce a method signature based on aSelector and uses that to
- * initialise self by calling the -initWithMethodSignature: method.<br />
- * If the argument type of aSelector cannot be determined, this releases self
- * and returns nil.
- */
-- (id) initWithSelector: (SEL)aSelector
-{
-  const char *types;
-  NSMethodSignature *newSig;
-
-  types = sel_get_type(aSelector);
-  if (types == 0)
-    {
-      types
-        = sel_get_type(sel_get_any_typed_uid(sel_getName(aSelector)));
-    }
-  if (types == 0)
-    {
-      NSLog(@"Couldn't find encoding type for selector %s.",
-	   sel_getName(aSelector));
-      DESTROY(self);
-      return nil;
-    }
-  newSig = [NSMethodSignature signatureWithObjCTypes: types];
-  return [self initWithMethodSignature: newSig];
-}
-
-/**
  * Internal use.<br />
  * Provides a return frame that the ObjectiveC runtime can use to
  * return the result of an invocation to a calling function.
