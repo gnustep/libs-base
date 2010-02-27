@@ -53,19 +53,32 @@ findLockClass(id obj)
 static inline Class
 initLockObject(id obj)
 {
-  char nameBuffer[40];
   Class lockClass;
   const char *types;
   pthread_mutex_t *lock;
   pthread_mutexattr_t attr;
 
-  snprintf(nameBuffer, 39, "hiddenlockClass%lld", lockClassId++);
-  lockClass = objc_allocateClassPair(obj->isa, nameBuffer,
-    sizeof(pthread_mutex_t));
+  if (class_isMetaClass(obj->isa))
+    {
+      lockClass = objc_allocateMetaClass(obj, sizeof(pthread_mutex_t));
+    }
+  else
+    {
+      char nameBuffer[40];
+
+      snprintf(nameBuffer, 39, "hiddenlockClass%lld", lockClassId++);
+      lockClass = objc_allocateClassPair(obj->isa, nameBuffer,
+	sizeof(pthread_mutex_t));
+    }
+
   types = method_getTypeEncoding(class_getInstanceMethod(obj->isa,
     @selector(dealloc)));
   class_addMethod(lockClass, @selector(dealloc), (IMP)deallocLockClass, types);
-  objc_registerClassPair(lockClass);
+
+  if (!class_isMetaClass(obj->isa))
+    {
+      objc_registerClassPair(lockClass);
+    }
 
   lock = object_getIndexedIvars(lockClass);
   pthread_mutexattr_init(&attr);
