@@ -1,3 +1,13 @@
+2010-02-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: ([methodSignatureForSelector:]) remote the check
+	(and exception) to see if the sel types are the same as the signature
+	types, since this method is used precisesly when we think we may have
+	a selector with the wrong type information (eg we are using KVC and
+	generated the selector name to access an ivar and the runtime gave us
+	a selector with the type infor for accessing an ivar of another class).
+	Should fix bug #29015
+
 2010-02-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Apply suggested fix for bug #29012
