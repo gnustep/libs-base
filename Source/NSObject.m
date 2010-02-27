@@ -1450,7 +1450,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  const char		*selTypes;
   const char		*types;
   struct objc_method	*mth;
   Class			c;
@@ -1459,7 +1458,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  selTypes = sel_get_type(aSelector);
   c = (GSObjCIsInstance(self) ? object_getClass(self) : (Class)self);
   mth = GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
 
@@ -1515,13 +1513,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   if (types == 0)
     {
       return nil;
-    }
-  else if (selTypes != 0 && GSSelectorTypesMatch(selTypes, types) == NO)
-    {
-      [NSException raise: NSInternalInconsistencyException
-	format: @"[%@%c%@] selector types (%s) don't match method types (%s)",
-	NSStringFromClass(c), (GSObjCIsInstance(self) ? '-' : '+'),
-	NSStringFromSelector(aSelector), selTypes, types];
     }
   return [NSMethodSignature signatureWithObjCTypes: types];
 }
