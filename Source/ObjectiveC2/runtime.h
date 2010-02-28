@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <sys/types.h>
-#include "Availability.h"
+#include "ObjectiveC2/Availability.h"
 
 #if   defined(ERROR_UNSUPPORTED_RUNTIME_FUNCTIONS)
 #  define OBJC_GNU_RUNTIME_UNSUPPORTED(x) \
