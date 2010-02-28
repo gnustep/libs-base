@@ -280,6 +280,12 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (id) initWithContentsOfFile: (NSString*)path
                  usedEncoding: (NSStringEncoding*)enc
                         error: (NSError**)error;
+- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
+                                       withString: (NSString*)by
+                                          options: (NSStringCompareOptions)opts
+                                            range: (NSRange)searchRange;
+- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
+                                       withString: (NSString*)by;
 #endif
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (NSUInteger)length

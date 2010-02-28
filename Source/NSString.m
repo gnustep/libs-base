@@ -1614,6 +1614,28 @@ handle_printf_atsign (FILE *stream,
   return array;
 }
 
+- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
+                                       withString: (NSString*)by
+                                          options: (NSStringCompareOptions)opts
+                                            range: (NSRange)searchRange
+{
+  id copy = [self mutableCopy];
+  [copy replaceOccurrencesOfString: replace
+                        withString: by
+                           options: opts
+                             range: searchRange];
+  return [copy makeImmutableCopyOnFail: NO];
+}
+- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
+                                       withString: (NSString*)by
+{
+  return [self 
+      stringByReplacingOccurrencesOfString: replace
+                                withString: by
+                                   options: 0
+                                     range: NSMakeRange(0, [self length])];
+}
+
 /**
  * Returns a substring of the receiver from character at the specified
  * index to the end of the string.<br />
