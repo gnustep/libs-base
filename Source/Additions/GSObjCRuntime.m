@@ -442,7 +442,7 @@ GSObjCFindVariable(id obj, const char *name,
 	}
       if (size != 0)
 	{
-	  *size = objc_sizeof_type(enc);
+	  *size = objc_sizeOfType(enc);
 	}
       if (offset != 0)
 	{
@@ -480,7 +480,7 @@ GSObjCFindVariable(id obj, const char *name,
   if (type)
     *type = ivar->ivar_type;
   if (size)
-    *size = objc_sizeof_type(ivar->ivar_type);
+    *size = objc_sizeOfType(ivar->ivar_type);
   if (offset)
     *offset = ivar->ivar_offset;
   return YES;
@@ -803,7 +803,7 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
 
           // align the ivar (i.e. put it on the first aligned address
           ivar->ivar_offset = iVarSize;
-          iVarSize += objc_sizeof_type(ivar->ivar_type); // add the ivar size
+          iVarSize += objc_sizeOfType(ivar->ivar_type); // add the ivar size
 	  ivar = ivar + 1;
         }
     }
