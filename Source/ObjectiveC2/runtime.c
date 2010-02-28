@@ -409,22 +409,25 @@ class_getInstanceSize(Class cls)
 Ivar
 class_getInstanceVariable(Class cls, const char *name)
 {
-  struct objc_ivar_list *ivarlist = cls->ivars;
-  int i;
-
-  if (NULL == ivarlist)
+  while (cls != Nil)
     {
-      return NULL;
-    }
+      struct objc_ivar_list *ivarlist = cls->ivars;
+      int i;
 
-  for (i = 0; i < ivarlist->ivar_count; i++)
-    {
-      Ivar ivar = &ivarlist->ivar_list[i];
-
-      if (strcmp(ivar->ivar_name, name) == 0)
+      if (NULL == ivarlist)
 	{
-	  return ivar;
+	  return NULL;
 	}
+      for (i = 0; i < ivarlist->ivar_count; i++)
+	{
+	  Ivar ivar = &ivarlist->ivar_list[i];
+
+	  if (strcmp(ivar->ivar_name, name) == 0)
+	    {
+	      return ivar;
+	    }
+	}
+      cls = class_getSuperclass(cls);
     }
   return NULL;
 }
