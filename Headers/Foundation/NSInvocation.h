@@ -49,6 +49,7 @@ extern "C" {
   BOOL			_validReturn;
   BOOL			_sendToSuper;
   void			*_retptr;
+#elif	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

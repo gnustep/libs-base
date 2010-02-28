@@ -50,6 +50,7 @@ extern "C" {
   NSPort		*_recv;
   NSPort		*_send;
   NSMutableArray	*_components;
+#elif	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

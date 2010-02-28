@@ -88,7 +88,6 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 @private
   NSMutableArray	*_redoStack;
   NSMutableArray	*_undoStack;
-  id			*_unused1;
   id			_group;
   id			_nextTarget;
   NSArray		*_modes;
@@ -98,6 +97,8 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
   BOOL			_runLoopGroupingPending;
   unsigned		_disableCount;
   unsigned		_levelsOfUndo;
+#elif	!GS_NONFRAGILE
+  void			*_unused;
 #endif
 }
 

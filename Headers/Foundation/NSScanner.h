@@ -49,6 +49,7 @@ extern "C" {
   unichar		_decimal;
   BOOL			_caseSensitive;
   BOOL			_isUnicode;
+#elif	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

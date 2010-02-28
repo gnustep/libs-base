@@ -87,6 +87,7 @@ typedef NSUInteger NSXMLNodeKind;
   NSXMLNode     *_parent;
   NSUInteger    _index;
   id            _objectValue;
+#elif	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

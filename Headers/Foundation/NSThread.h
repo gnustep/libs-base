@@ -71,6 +71,7 @@ extern "C" {
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
   void                  *_runLoopInfo;  // Per-thread runloop related info.
+#elif	!GS_NONFRAGILE
   void                  *_unused;     // For future expansion
 #endif
 }

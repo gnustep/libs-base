@@ -59,6 +59,7 @@ extern "C" {
 #if	GS_EXPOSE(NSSocketPortNameServer)
   NSMapTable	*_portMap;	/* Registered ports information.	*/
   NSMapTable	*_nameMap;	/* Registered names information.	*/
+#elif	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

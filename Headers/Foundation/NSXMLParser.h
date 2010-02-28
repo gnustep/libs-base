@@ -73,6 +73,7 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 @public
   void		*_parser;	// GSXMLParser
   void		*_handler;	// SAXHandler
+#elif	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

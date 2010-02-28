@@ -43,6 +43,7 @@ extern "C" {
   @private
   NSSet	*_names;
   NSSet	*_addresses;
+#elif	!GS_NONFRAGILE
   void *_unused;
 #endif
 }

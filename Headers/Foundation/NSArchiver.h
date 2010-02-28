@@ -69,6 +69,7 @@ extern "C" {
   unsigned	_startPos;	/* Where in data we started.	*/
   BOOL		_encodingRoot;
   BOOL		_initialPass;
+#elif	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }
@@ -175,6 +176,7 @@ extern "C" {
   NSZone		*zone;		/* Zone for allocating objs.	*/
   NSMutableDictionary	*objDict;	/* Class information store.	*/
   NSMutableArray	*objSave;
+#elif	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }
