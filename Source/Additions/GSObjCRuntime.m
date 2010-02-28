@@ -263,7 +263,6 @@ GSObjCMethodNames(id obj)
   NSMutableSet	*set;
   NSArray	*array;
   Class		 class;
-  GSMethodList	 methods;
 
   if (obj == nil)
     {
@@ -275,33 +274,24 @@ GSObjCMethodNames(id obj)
    */
   set = [[NSMutableSet alloc] initWithCapacity: 32];
 
-  class = GSObjCClass(obj);
+  class = object_getClass(obj);
 
-  while (class != nil)
+  while (class != Nil)
     {
-      void *iterator = 0;
+      unsigned	count;
+      Method	*meth = class_copyMethodList(class, &count);
 
-      while ((methods = class_nextMethodList(class, &iterator)))
+      while (count-- > 0)
 	{
-	  int i;
+	  NSString	*name;
 
-	  for (i = 0; i < methods->method_count; i++)
-	    {
-	      GSMethod method = &methods->method_list[i];
-
-	      if (method->method_name != 0)
-		{
-		  NSString	*name;
-                  const char *cName;
-
-                  cName = GSNameFromSelector(method->method_name);
-                  name = [[NSString alloc] initWithUTF8String: cName];
-		  [set addObject: name];
-		  RELEASE(name);
-		}
-	    }
+	  name = [[NSString alloc] initWithFormat: @"%s",
+	    method_getName(meth[count])];
+	  [set addObject: name];
+	  [name release];
 	}
-      class = class->super_class;
+      free(meth);
+      class = class_getSuperclass(class);
     }
 
   array = [set allObjects];
@@ -327,7 +317,7 @@ GSObjCVariableNames(id obj)
       return nil;
     }
   array = [NSMutableArray arrayWithCapacity: 16];
-  class = GSObjCClass(obj);
+  class = object_getClass(obj);
   while (class != nil)
     {
       ivars = class->ivars;
