@@ -52,7 +52,9 @@
 
 #include <objc/Protocol.h>
 
+#include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifndef NeXT_RUNTIME
 #include <pthread.h>
@@ -66,6 +68,211 @@
 
 #define BDBGPrintf(format, args...) \
   do { if (behavior_debug) { fprintf(stderr, (format) , ## args); } } while (0)
+
+
+GS_EXPORT unsigned
+objc_sizeOfType(const char *type)
+{
+#if	__APPLE__
+  /* Skip the variable name if any */
+  if (*type == '"')
+    {
+      for (type++; *type++ != '"';)
+	/* do nothing */;
+    }
+
+  switch (*type)
+    {
+#if	defined(_C_BOOL)
+      case _C_BOOL:
+	return sizeof (_Bool);
+	break;
+#endif
+
+      case _C_ID:
+	return sizeof (id);
+	break;
+
+      case _C_CLASS:
+	return sizeof (Class);
+	break;
+
+      case _C_SEL:
+	return sizeof (SEL);
+	break;
+
+      case _C_CHR:
+	return sizeof (char);
+	break;
+
+      case _C_UCHR:
+	return sizeof (unsigned char);
+	break;
+
+      case _C_SHT:
+	return sizeof (short);
+	break;
+
+      case _C_USHT:
+	return sizeof (unsigned short);
+	break;
+
+      case _C_INT:
+	return sizeof (int);
+	break;
+
+      case _C_UINT:
+	return sizeof (unsigned int);
+	break;
+
+      case _C_LNG:
+	return sizeof (long);
+	break;
+
+      case _C_ULNG:
+	return sizeof (unsigned long);
+	break;
+
+      case _C_LNG_LNG:
+	return sizeof (long long);
+	break;
+
+      case _C_ULNG_LNG:
+	return sizeof (unsigned long long);
+	break;
+
+      case _C_FLT:
+	return sizeof (float);
+	break;
+
+      case _C_DBL:
+	return sizeof (double);
+	break;
+
+      case _C_VOID:
+	return sizeof (void);
+	break;
+
+      case _C_PTR:
+      case _C_ATOM:
+      case _C_CHARPTR:
+	return sizeof (char *);
+	break;
+
+      case _C_ARY_B:
+	{
+	  int len = atoi (type + 1);
+	  while (isdigit ((unsigned char)*++type))
+	    ;
+	  return len * objc_aligned_size (type);
+	}
+	break;
+
+      case _C_BFLD:
+	{
+	  /* The new encoding of bitfields is: b 'position' 'type' 'size' */
+	  int position, size;
+	  int startByte, endByte;
+
+	  position = atoi (type + 1);
+	  while (isdigit ((unsigned char)*++type))
+	    ;
+	  size = atoi (type + 1);
+
+	  startByte = position / BITS_PER_UNIT;
+	  endByte = (position + size) / BITS_PER_UNIT;
+	  return endByte - startByte;
+	}
+
+      case _C_UNION_B:
+      case _C_STRUCT_B:
+	{
+	  struct objc_struct_layout layout;
+	  unsigned int size;
+
+	  objc_layout_structure (type, &layout);
+	  while (objc_layout_structure_next_member (&layout))
+	    /* do nothing */ ;
+	  objc_layout_finish_structure (&layout, &size, NULL);
+
+	  return size;
+	}
+	
+#if	defined(_C_COMPLEX)
+      case _C_COMPLEX:
+	{
+	  type++; /* Skip after the 'j'. */
+	  switch (*type)
+	    {
+	      case _C_CHR:
+		return sizeof (_Complex char);
+		break;
+
+	      case _C_UCHR:
+		return sizeof (_Complex unsigned char);
+		break;
+
+	      case _C_SHT:
+		return sizeof (_Complex short);
+		break;
+
+	      case _C_USHT:
+		return sizeof (_Complex unsigned short);
+		break;
+
+	      case _C_INT:
+		return sizeof (_Complex int);
+		break;
+
+	      case _C_UINT:
+		return sizeof (_Complex unsigned int);
+		break;
+
+	      case _C_LNG:
+		return sizeof (_Complex long);
+		break;
+
+	      case _C_ULNG:
+		return sizeof (_Complex unsigned long);
+		break;
+
+	      case _C_LNG_LNG:
+		return sizeof (_Complex long long);
+		break;
+
+	      case _C_ULNG_LNG:
+		return sizeof (_Complex unsigned long long);
+		break;
+
+	      case _C_FLT:
+		return sizeof (_Complex float);
+		break;
+
+	      case _C_DBL:
+		return sizeof (_Complex double);
+		break;
+	      
+	      default:
+		{
+		  fprintf(stderr,
+		    "objc_sizeOfType() unknown complex type %s\n", type);
+		  return 0;
+		}
+	    }
+	}
+#endif
+
+      default:
+	{
+	  fprintf(stderr,
+	    "objc_sizeOfType() unknown type %s\n", type);
+	  return 0;
+	}
+    }
+#else
+  return objc_sizeof_type(type);
+#endif
+}
 
 
 Class

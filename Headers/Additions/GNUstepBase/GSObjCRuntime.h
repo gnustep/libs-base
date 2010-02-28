@@ -150,6 +150,11 @@ extern "C" {
 
 #endif
 
+/** Returns the size of the data type described by the type encoding string.
+ */
+GS_EXPORT unsigned
+objc_sizeOfType(const char *type);
+
 /*
  * Functions for accessing instance variables directly -
  * We can copy an ivar into arbitrary data,
