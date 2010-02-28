@@ -916,8 +916,8 @@ objc_allocateMetaClass(Class superclass, size_t extraBytes)
   // Initialize the metaclass
   metaClass->class_pointer = superclass->class_pointer->class_pointer;
   metaClass->super_class = superclass->class_pointer;
-  metaClass->name = strdup(superclass->name);
-  metaClass->info = _CLS_META;
+  metaClass->name = "hidden class";
+  metaClass->info = _CLS_RESOLV | _CLS_INITIALIZED | _CLS_META;
   metaClass->dtable = __objc_uninstalled_dtable;
   metaClass->instance_size = sizeof(struct objc_class);
 
