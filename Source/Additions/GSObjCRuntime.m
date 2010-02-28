@@ -308,35 +308,42 @@ GSObjCMethodNames(id obj)
 NSArray *
 GSObjCVariableNames(id obj)
 {
-  NSMutableArray	*array;
-  Class			class;
-  struct objc_ivar_list	*ivars;
+  NSMutableSet	*set;
+  NSArray	*array;
+  Class		 class;
 
   if (obj == nil)
     {
       return nil;
     }
-  array = [NSMutableArray arrayWithCapacity: 16];
+  /*
+   * Add names to a set so methods declared in superclasses
+   * and then overridden do not appear more than once.
+   */
+  set = [[NSMutableSet alloc] initWithCapacity: 32];
+
   class = object_getClass(obj);
-  while (class != nil)
+
+  while (class != Nil)
     {
-      ivars = class->ivars;
-      if (ivars != 0)
+      unsigned	count;
+      Ivar	*ivar = class_copyIvarList(class, &count);
+
+      while (count-- > 0)
 	{
-	  int		i;
+	  NSString	*name;
 
-	  for (i = 0; i < ivars->ivar_count; i++)
-	    {
-	      NSString	*name;
-
-	      name = [[NSString alloc] initWithUTF8String:
-		ivars->ivar_list[i].ivar_name];
-	      [array addObject: name];
-	      RELEASE(name);
-	    }
+	  name = [[NSString alloc] initWithFormat: @"%s",
+	    ivar_getName(ivar[count])];
+	  [set addObject: name];
+	  [name release];
 	}
-      class = class->super_class;
+      free(ivar);
+      class = class_getSuperclass(class);
     }
+
+  array = [set allObjects];
+  RELEASE(set);
   return array;
 }
 
