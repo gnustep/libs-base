@@ -23,8 +23,8 @@
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *  OTHER DEALINGS IN THE SOFTWARE.
  */
-#import "blocks_runtime.h"
-#import "runtime.h"
+#import "ObjectiveC2/blocks_runtime.h"
+#import "ObjectiveC2/runtime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

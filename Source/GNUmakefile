@@ -142,12 +142,6 @@ behavior.h \
 preface.h \
 Additions.h
 
-# If we are using ObjC2 compatibility, we need to include the runtime.h
-# header with all the additional headers.
-ifeq ($(OBJC2RUNTIME),0)
-ADD_HEADERS += runtime.h
-endif
-
 GNU_HEADERS = $(ADD_HEADERS)
 
 # GNUStep source files
@@ -444,7 +438,6 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
 GENERATED_HFILES = \
 dynamic-load.h \
 $(HEADER_DIR_BASE)/preface.h \
-$(HEADER_DIR_BASE)/runtime.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 

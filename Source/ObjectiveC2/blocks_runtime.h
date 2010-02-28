@@ -2,7 +2,7 @@
  * Blocks Runtime
  */
 
-#include "Availability.h"
+#include "ObjectiveC2/Availability.h"
 #ifdef __cplusplus
 #define BLOCKS_EXPORT extern "C"
 #else

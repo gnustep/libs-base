@@ -43,7 +43,7 @@
 #else
 /* We emulate an ObjC2 runtime.
  */
-#include <GNUstepBase/runtime.h>
+#include <ObjectiveC2/runtime.h>
 #endif
 
 #ifdef __cplusplus
