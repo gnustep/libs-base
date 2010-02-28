@@ -210,6 +210,7 @@ typedef SOCKET NSSocketNativeHandle;
   WSAEVENT              eventListener;
   NSMapTable            *events;
 #endif
+#elif	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

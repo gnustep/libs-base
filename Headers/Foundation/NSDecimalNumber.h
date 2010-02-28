@@ -128,6 +128,7 @@ extern "C" {
   BOOL _raiseOnOverflow; 
   BOOL _raiseOnUnderflow;
   BOOL _raiseOnDivideByZero;
+#elif	!GS_NONFRAGILE
   void	*_unused;
 #endif
 }

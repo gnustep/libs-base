@@ -105,6 +105,7 @@ extern "C" {
 #if	GS_EXPOSE(NSDateFormatter)
   NSString	*_dateFormat;
   BOOL		_allowsNaturalLanguage;
+#elif	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

@@ -227,6 +227,7 @@ GS_EXPORT NSString* const GSLocale;
   NSDate		*_lastSync;
   NSRecursiveLock	*_lock;
   NSDistributedLock	*_fileLock;
+#elif	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

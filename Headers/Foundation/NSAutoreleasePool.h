@@ -193,6 +193,7 @@ typedef struct autorelease_array_list
   unsigned _released_count;
   /* The method to add an object to this pool */
   void 	(*_addImp)(id, SEL, id);
+#elif	!GS_NONFRAGILE
   void	*_unused;
 #endif
 }

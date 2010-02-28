@@ -161,6 +161,7 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 @private
   NSFileHandle	*_readHandle;
   NSFileHandle	*_writeHandle;
+#elif	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

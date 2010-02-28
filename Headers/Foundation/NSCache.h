@@ -60,6 +60,7 @@ extern "C" {
   NSMutableArray *_accesses;
   /** Total number of accesses to objects */
   int64_t _totalAccesses;
+#elif	!GS_NONFRAGILE
   void	*_unused;
 #endif
 }

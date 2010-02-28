@@ -118,6 +118,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
   BOOL			_codeLoaded;
   unsigned		_version;
   NSString      	*_frameworkVersion;
+#elif	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

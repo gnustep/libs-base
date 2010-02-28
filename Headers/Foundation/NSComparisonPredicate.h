@@ -76,11 +76,12 @@ typedef enum _NSPredicateOperatorType
   SEL				_selector;
   NSUInteger			_options;
   NSPredicateOperatorType	_type;
+#elif	!GS_NONFRAGILE
   void				*_unused;
+#endif
   @public
   NSExpression			*_left;
   NSExpression			*_right;
-#endif
 }
 
 + (NSPredicate *) predicateWithLeftExpression: (NSExpression *)left
