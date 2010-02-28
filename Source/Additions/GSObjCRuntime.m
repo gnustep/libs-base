@@ -169,6 +169,9 @@ objc_sizeOfType(const char *type)
 	break;
 
       case _C_BFLD:
+#if	!defined(BITS_PER_UNIT)
+#  define	BITS_PER_UNIT	(sizeof(int)*8)
+#endif
 	{
 	  /* The new encoding of bitfields is: b 'position' 'type' 'size' */
 	  int position, size;
