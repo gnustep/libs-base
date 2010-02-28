@@ -1,8 +1,8 @@
 2010-02-28 Thomas Gamper <icicle@cg.tuwien.ac.at>
 
-    * runtime.c:
-    Backport another one of David's fixes for @synchronize(class), all
-    necessary flags now are set in objc_allocateMetaClass.
+	* runtime.c:
+	Backport another one of David's fixes for @synchronize(class), all
+	necessary flags now are set in objc_allocateMetaClass.
 
 2010-02-27 Richard Frith-Macdonald <rfm@gnu.org>
 
