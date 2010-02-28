@@ -212,16 +212,8 @@ GSObjCFindVariable(id obj, const char *name,
   const char **type, unsigned int *size, int *offset)
 {
   Class		class = object_getClass(obj);
-  Ivar		ivar = 0;
+  Ivar		ivar = class_getInstanceVariable(class, name);
 
-  while (class != 0 && ivar == 0)
-    {
-      ivar = class_getInstanceVariable(class, name);
-      if (ivar == 0)
-	{
-	  class = class_getSuperclass(class);
-	}
-    }
   if (ivar == 0)
     {
       return NO;
