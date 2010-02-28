@@ -131,31 +131,20 @@ GSNameFromSelector(SEL sel)
 SEL
 GSSelectorFromName(const char *name)
 {
-  if (name == 0)
-    {
-      return 0;
-    }
-  else
-    {
-#if NeXT_RUNTIME
-      return sel_getUid(name);
-#else
-      return sel_get_any_uid(name);	// return 0 if not found
-#endif
-    }
+  return sel_getUid(name);
 }
 SEL
 GSSelectorFromNameAndTypes(const char *name, const char *types)
 {
+#if NeXT_RUNTIME
+  return sel_getUid(name);
+#else
   if (name == 0)
     {
       return 0;
     }
   else
     {
-#if NeXT_RUNTIME
-      return sel_getUid(name);
-#else
       SEL s;
 
       if (types == 0)
@@ -178,8 +167,8 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
 	    }
 	}
       return s;
-#endif
     }
+#endif
 }
 const char *
 GSTypesFromSelector(SEL sel)
@@ -218,14 +207,46 @@ GSObjCVersion(Class cls)
  */
 BOOL
 GSObjCFindVariable(id obj, const char *name,
-		   const char **type, unsigned int *size, int *offset)
+  const char **type, unsigned int *size, int *offset)
 {
-  Class			class;
+  Class		class = object_getClass(obj);
+#if 1
+  Ivar		ivar = 0;
+
+  while (class != 0 && ivar == 0)
+    {
+      ivar = class_getInstanceVariable(class, name);
+      if (ivar == 0)
+	{
+	  class = class_getSuperclass(class);
+	}
+    }
+  if (ivar == 0)
+    {
+      return NO;
+    }
+  else
+    {
+      const char	*enc = ivar_getTypeEncoding(ivar);
+
+      if (type != 0)
+	{
+	  *type = enc;
+	}
+      if (size != 0)
+	{
+	  *size = objc_sizeof_type(enc);
+	}
+      if (offset != 0)
+	{
+	  *offset = ivar_getOffset(ivar);
+	}
+      return YES;
+    }
+#else	/* OBSOLETE */
   struct objc_ivar_list	*ivars;
   struct objc_ivar	*ivar = 0;
 
-  if (obj == nil) return NO;
-  class = GSObjCClass(obj);
   while (class != nil && ivar == 0)
     {
       ivars = class->ivars;
@@ -256,6 +277,7 @@ GSObjCFindVariable(id obj, const char *name,
   if (offset)
     *offset = ivar->ivar_offset;
   return YES;
+#endif
 }
 
 /**
