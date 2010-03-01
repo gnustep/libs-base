@@ -91,7 +91,7 @@ GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
 GS_EXPORT Class		NSClassFromString(NSString *aClassName);
 GS_EXPORT NSString	*NSStringFromClass(Class aClass);
 GS_EXPORT const char	*NSGetSizeAndAlignment(const char *typePtr,
-  unsigned int *sizep, unsigned int *alignp);
+  NSUInteger *sizep, NSUInteger *alignp);
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /* Logging */
