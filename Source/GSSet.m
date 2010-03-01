@@ -578,7 +578,7 @@ static Class	mutableSetClass;
 	  if (node == 0)
 	    {
 	      GSIMapAddKey(&map, (GSIMapKey)anObject);
-          _version++;
+	      _version++;
 	    }
 	}
     }
@@ -681,7 +681,7 @@ static Class	mutableSetClass;
       while ((anObject = [e nextObject]) != nil)
 	{
 	  GSIMapRemoveKey(&map, (GSIMapKey)anObject);
-      _version++;
+	  _version++;
 	}
     }
 }
@@ -722,7 +722,7 @@ static Class	mutableSetClass;
 	      if (node == 0)
 		{
 		  GSIMapAddKey(&map, (GSIMapKey)anObject);
-          _version++;
+		  _version++;
 		}
 	    }
 	}
