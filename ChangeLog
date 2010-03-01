@@ -1,5 +1,13 @@
 2010-02-29 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Additions/GNUstepBase/behavior.h:
+	* Source/Additions/behavior.m:
+	* Source/Additions/GNUmakefile:
+	Remove obsolete, unused, and long deprecated code.
+	The functinality is still present in GSObjCRuntime.[hm]
+
+2010-02-29 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSObjCRuntime.h:
 	* Source/NSObjCRuntime.m:
 	Fix NSGetSizeAndAlignment() update argument types to match lates OSX
