@@ -804,13 +804,13 @@ gs_protocol_selector(const char *types)
     }
   while (*types != '\0')
     {
-      if (*types == '-')
+      if (*types == '+' || *types == '-')
 	{
 	  types++;
 	}
-      if (*types == '+' || isdigit(*types))
+      while(isdigit(*types))
 	{
-	  types = objc_skip_offset(types);
+	  types++;
 	}
       while (*types == _C_CONST || *types == _C_GCINVISIBLE)
 	{

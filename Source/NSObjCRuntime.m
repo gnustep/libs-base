@@ -137,12 +137,28 @@ const char *
 NSGetSizeAndAlignment(const char *typePtr,
   NSUInteger *sizep, NSUInteger *alignp)
 {
-  typePtr = objc_skip_offset (typePtr);
-  typePtr = objc_skip_type_qualifiers (typePtr);
-  if (sizep)
-    *sizep = objc_sizeof_type (typePtr);
-  if (alignp)
-    *alignp = objc_alignof_type (typePtr);
+  if (typePtr != NULL)
+    {
+      /* Skip any offset, but don't call objc_skip_offset() as that's buggy.
+       */
+      if (*typePtr == '+' || *typePtr == '-')
+	{
+	  typePtr++;
+	}
+      while (isdigit(*typePtr))
+	{
+	  typePtr++;
+	}
+      typePtr = objc_skip_type_qualifiers (typePtr);
+      if (sizep)
+	{
+          *sizep = objc_sizeof_type (typePtr);
+	}
+      if (alignp)
+	{
+          *alignp = objc_alignof_type (typePtr);
+	}
+    }
   return typePtr;
 }
 
