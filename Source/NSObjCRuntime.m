@@ -134,7 +134,8 @@ NSStringFromClass(Class aClass)
  * The function returns a pointer to the type information C string.
  */
 const char *
-NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
+NSGetSizeAndAlignment(const char *typePtr,
+  NSUInteger *sizep, NSUInteger *alignp)
 {
   typePtr = objc_skip_offset (typePtr);
   typePtr = objc_skip_type_qualifiers (typePtr);

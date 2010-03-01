@@ -1,3 +1,15 @@
+2010-02-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Source/NSObjCRuntime.m:
+	Fix NSGetSizeAndAlignment() update argument types to match lates OSX
+
+2010-02-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	Update header files with further changes for non-fragile-abi.
+	Also fixup some GSObjCRuntime.m functions for using the new runtime
+	API.
+
 2010-02-28 Thomas Gamper <icicle@cg.tuwien.ac.at>
 
 	* runtime.c:
