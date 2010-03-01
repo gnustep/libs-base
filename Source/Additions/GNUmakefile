@@ -58,7 +58,7 @@ Additions_OBJC_FILES =\
 	NSTask+GNUstepBase.m \
 	NSThread+GNUstepBase.m \
 	NSURL+GNUstepBase.m \
-	behavior.m
+
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
   ifneq ($(OBJC_RUNTIME_LIB), gnugc)
