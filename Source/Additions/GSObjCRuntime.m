@@ -231,7 +231,7 @@ GSObjCFindVariable(id obj, const char *name,
 	  NSUInteger	s;
 	  NSUInteger	a;
 
-	  NSGetSizeAndAlignment(enc,&s, &a);
+	  NSGetSizeAndAlignment(enc, &s, &a);
 	  *size = s;
 	}
       if (offset != 0)
