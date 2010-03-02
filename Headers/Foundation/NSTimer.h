@@ -50,7 +50,8 @@ extern "C" {
   id		_target;
   SEL		_selector;
   id		_info;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

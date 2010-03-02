@@ -41,7 +41,8 @@ extern "C" {
 @private
   Protocol *_myProtocol;
   NSObject *_myTarget;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void	*_unused;
 #endif
 }

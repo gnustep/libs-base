@@ -70,7 +70,8 @@ extern "C" {
   NSMutableDictionary	*_enc;	/* Object being encoded.	*/
   NSMutableArray	*_obj;	/* Array of objects.		*/
   NSPropertyListFormat	_format;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }
@@ -238,7 +239,8 @@ extern "C" {
 #undef	GSIArray
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

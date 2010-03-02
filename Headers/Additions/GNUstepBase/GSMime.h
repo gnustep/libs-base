@@ -74,7 +74,8 @@ extern "C" {
   NSString              *value;
   NSMutableDictionary   *objects;
   NSMutableDictionary	*params;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }
@@ -112,7 +113,8 @@ extern "C" {
 #if	GS_EXPOSE(GSMimeDocument)
   NSMutableArray	*headers;
   id			content;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }
@@ -219,7 +221,8 @@ extern "C" {
   GSMimeParser		*child;
   GSMimeCodingContext	*context;
   NSStringEncoding	_defaultEncoding;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

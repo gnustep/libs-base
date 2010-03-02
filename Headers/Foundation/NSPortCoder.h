@@ -93,7 +93,8 @@ extern "C" {
   unsigned		_cursor;	/* Position in data buffer.	*/
   unsigned		_version;	/* Version of archiver used.	*/
   NSZone		*_zone;		/* Zone for allocating objs.	*/
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

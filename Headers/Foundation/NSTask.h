@@ -53,7 +53,8 @@ extern "C" {
   BOOL		_hasTerminated;
   BOOL		_hasCollected;
   BOOL		_hasNotified;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

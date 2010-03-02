@@ -76,7 +76,8 @@ typedef enum _NSPredicateOperatorType
   SEL				_selector;
   NSUInteger			_options;
   NSPredicateOperatorType	_type;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void				*_unused;
 #endif
   @public
