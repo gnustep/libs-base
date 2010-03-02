@@ -63,7 +63,8 @@
 #if	defined(__MINGW32__)
   WSAEVENT  		event;
 #endif
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void			*_unused;
 #endif
 }

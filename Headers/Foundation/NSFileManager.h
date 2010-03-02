@@ -199,7 +199,8 @@ typedef	uint32_t	OSType;
 #if	GS_EXPOSE(NSFileManager)
 @private
   NSString	*_lastError;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }
@@ -378,7 +379,8 @@ typedef	uint32_t	OSType;
     BOOL isFollowing: 1;
     BOOL justContents: 1;
   } _flags;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void	*_unused;
 #endif
 }

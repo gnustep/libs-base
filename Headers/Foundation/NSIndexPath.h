@@ -49,7 +49,8 @@ extern "C" {
   NSUInteger	_hash;
   NSUInteger	_length;
   NSUInteger	*_indexes;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }

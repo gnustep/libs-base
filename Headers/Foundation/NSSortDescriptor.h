@@ -49,7 +49,8 @@ extern "C" {
   NSString *_key;
   BOOL	_ascending;
   SEL	_selector;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void	*_unused;
 #endif
 }

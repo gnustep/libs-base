@@ -39,7 +39,8 @@ extern "C" {
 #if	GS_EXPOSE(NSDistributedLock)
   NSString	*_lockPath;
   NSDate	*_lockTime;
-#elif	!GS_NONFRAGILE
+#endif
+#if	!GS_NONFRAGILE
   void		*_unused;
 #endif
 }
