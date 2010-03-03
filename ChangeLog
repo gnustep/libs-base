@@ -1,3 +1,9 @@
+2010-03-03 Doug Simons <dpsimons@testplant.com>
+
+	* Source/NSDate.m: Fix natural language date parsing to handle AM/PM.
+	* Source/NSCalendarDate.m: Fix to %I (12-hour clock) to show midnight
+	hour as 12, not 00. Skip over field widths while parsing in init.
+
 2010-03-03 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/ObjectiveC2/runtime.c: Bugfixes for getting superclass and
