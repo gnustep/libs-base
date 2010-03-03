@@ -132,11 +132,11 @@ objc_updateDtableForClassContainingMethod(Method m)
 
 
 BOOL
-class_addIvar(Class cls,
-	      const char *name,
-	      size_t size, uint8_t alignment, const char *types)
+class_addIvar(Class cls, const char *name,
+  size_t size, uint8_t alignment, const char *types)
 {
   struct objc_ivar_list *ivarlist;
+  unsigned off;
   Ivar ivar;
 
   if (CLS_ISRESOLV(cls) || CLS_ISMETA(cls))
@@ -169,7 +169,10 @@ class_addIvar(Class cls,
   ivar->ivar_name = strdup(name);
   ivar->ivar_type = strdup(types);
   // Round up the offset of the ivar so it is correctly aligned.
-  ivar->ivar_offset = cls->instance_size + (cls->instance_size % alignment);
+  off = cls->instance_size >> alignment;
+  if (off << alignment != cls->instance_size)
+    off = (off + 1) << alignment;
+  ivar->ivar_offset = off;
   // Increase the instance size to make space for this.
   cls->instance_size = ivar->ivar_offset + size;
   return YES;
@@ -470,7 +473,13 @@ class_getSuperclass(Class cls)
 {
   if (!CLS_ISRESOLV(cls))
     {
-      __objc_resolve_class_links();
+      /* This class is not yet resolved ... so lookup superclass by name.
+       * We need to allow for this case because we might doing a lookup in
+       * a class which has not yet been registered with the runtime and
+       * which might have ivars or methods added after this call (so we
+       * mustn't resolve this class now).
+       */
+      return (Class)objc_getClass((const char*)cls->super_class);
     }
   return cls->super_class;
 }
