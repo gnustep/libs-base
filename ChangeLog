@@ -1,4 +1,11 @@
-2010-02-29 Richard Frith-Macdonald <rfm@gnu.org>
+2010-03-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/runtime.c: Bugfixes for getting superclass and
+	for adding ivars to a class.
+	* Source/Additions/GSObjCRuntime.m: Rewrite class creation code in
+	terms of the new runtime api.
+
+2010-03-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/behavior.h:
 	* Source/Additions/behavior.m:
@@ -6,7 +13,7 @@
 	Remove obsolete, unused, and long deprecated code.
 	The functinality is still present in GSObjCRuntime.[hm]
 
-2010-02-29 Richard Frith-Macdonald <rfm@gnu.org>
+2010-03-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObjCRuntime.h:
 	* Source/NSObjCRuntime.m:

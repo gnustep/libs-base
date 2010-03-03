@@ -282,7 +282,10 @@ GSObjCMethodNames(id obj)
 	  [set addObject: name];
 	  [name release];
 	}
-      free(meth);
+      if (meth != NULL)
+	{
+          free(meth);
+        }
       class = class_getSuperclass(class);
     }
 
@@ -330,7 +333,10 @@ GSObjCVariableNames(id obj)
 	  [set addObject: name];
 	  [name release];
 	}
-      free(ivar);
+      if (ivar != NULL)
+	{
+          free(ivar);
+	}
       class = class_getSuperclass(class);
     }
 
@@ -389,7 +395,7 @@ GSClassList(Class *buffer, unsigned int max, BOOL clearCache)
     {
       if (cache)
 	{
-	  objc_free(cache);
+	  free(cache);
 	  cache = NULL;
 	}
       cacheClassCount = 0;
@@ -406,7 +412,7 @@ GSClassList(Class *buffer, unsigned int max, BOOL clearCache)
 	{
 	  cacheClassCount++;
 	}
-      cache = objc_malloc(sizeof(Class) * (cacheClassCount + 1));
+      cache = malloc(sizeof(Class) * (cacheClassCount + 1));
       /* Be extra careful as another thread may be loading classes.  */
       for (i = 0, iterator = 0, cls = objc_next_class(&iterator);
 	   i < cacheClassCount && cls != NULL;
@@ -462,10 +468,6 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
   Class		newClass;
   Class		classSuperClass;
   const char	*classNameCString;
-  const char	*superClassNameCString;
-  Class		newMetaClass;
-  Class		rootClass;
-  unsigned int	iVarSize;
   char		*tmp;
 
   NSCAssert(name, @"no name");
@@ -476,101 +478,43 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
   NSCAssert1(classSuperClass, @"No class named %@",superName);
   NSCAssert1(!NSClassFromString(name), @"A class %@ already exists", name);
 
-  classNameCString = [name cString];
-  tmp = objc_malloc(strlen(classNameCString) + 1);
+  classNameCString = [name UTF8String];
+  tmp = malloc(strlen(classNameCString) + 1);
   strcpy(tmp, classNameCString);
   classNameCString = tmp;
 
-  superClassNameCString = [superName cString];
-  tmp = objc_malloc(strlen(superClassNameCString) + 1);
-  strcpy(tmp, superClassNameCString);
-  superClassNameCString = tmp;
-
-  rootClass = classSuperClass;
-  while (rootClass->super_class != 0)
-    {
-      rootClass = rootClass->super_class;
-    }
-
-  /*
-   * Create new class and meta class structure storage
-   *
-   * From Nicola: NB: There is a trick here.
-   * The runtime system will look up the name in the following string,
-   * and replace it with a pointer to the actual superclass structure.
-   * This also means the type of pointer will change, that's why we
-   * need to cast it.
-   */
-  newMetaClass = objc_malloc(sizeof(struct objc_class));
-  memset(newMetaClass, 0, sizeof(struct objc_class));
-  newMetaClass->class_pointer = rootClass->class_pointer; // Points to root
-  newMetaClass->super_class = (Class)superClassNameCString;
-  newMetaClass->name = classNameCString;
-  newMetaClass->version = 0;
-  newMetaClass->info = _CLS_META; // this is a Meta Class
-
-
-  newClass = objc_malloc(sizeof(struct objc_class));
-  memset(newClass, 0, sizeof(struct objc_class));
-  newClass->class_pointer = newMetaClass; // Points to the class's meta class.
-  newClass->super_class = (Class)superClassNameCString;
-  newClass->name = classNameCString;
-  newClass->version = 0;
-  newClass->info = _CLS_CLASS; // this is a Class
-
-  // work on instances variables
-  iVarSize = classSuperClass->instance_size; // super class ivar size
+  newClass = objc_allocateClassPair(classSuperClass, classNameCString, 0);
   if ([iVars count] > 0)
     {
-      unsigned int	iVarsStructsSize;
-      struct objc_ivar	*ivar = NULL;
-      unsigned int	iVarsCount = [iVars count];
       NSEnumerator	*enumerator = [iVars keyEnumerator];
       NSString		*key;
 
-      // ivars list is 1 objc_ivar_list followed by (iVarsCount-1) ivar_list
-      iVarsStructsSize = sizeof(struct objc_ivar_list)
-	+ (iVarsCount-1)*sizeof(struct objc_ivar);
-
-      // Allocate for all ivars
-      newClass->ivars = (struct objc_ivar_list*)objc_malloc(iVarsStructsSize);
-      memset(newClass->ivars, 0, iVarsStructsSize);
-
-      // Set ivars count
-      newClass->ivars->ivar_count = iVarsCount;
-
-      // initialize each ivar
-      ivar = newClass->ivars->ivar_list; // 1st one
       while ((key = [enumerator nextObject]) != nil)
         {
-          const	char	*iVarName = [key cString];
-          const char	*iVarType = [[iVars objectForKey: key] cString];
-	  NSUInteger	a;
+          const	char	*iVarName = [key UTF8String];
+          const char	*iVarType = [[iVars objectForKey: key] UTF8String];
+	  uint8_t	iVarAlign = 0;
+	  size_t	iVarSize;
 	  NSUInteger	s;
+	  NSUInteger	a;
 
-          tmp = objc_malloc(strlen(iVarName) + 1);
-	  strcpy(tmp, iVarName);
-          ivar->ivar_name = tmp;
-          tmp =  objc_malloc(strlen(iVarType) + 1);
-	  strcpy(tmp, iVarType);
-          ivar->ivar_type = tmp;
-
-          // align the ivar (i.e. put it on the first aligned address
-          ivar->ivar_offset = iVarSize;
-	  NSGetSizeAndAlignment(ivar->ivar_type, &s, &a);
-          iVarSize += s; // add the ivar size
-	  ivar = ivar + 1;
-        }
+	  NSGetSizeAndAlignment(iVarType, &s, &a);
+	  // Convert size to number of bitshifts needed for alignment.
+	  iVarSize = 1;
+	  while (iVarSize < s)
+	    {
+	      iVarSize <<= 1;
+	      iVarAlign++;
+	    }
+	  // Record actual size
+	  iVarSize = s;
+	  if (NO
+	    == class_addIvar(newClass, iVarName, iVarSize, iVarAlign, iVarType))
+	    {
+	      NSLog(@"Error adding ivar '%s' of type '%s'", iVarName, iVarType);
+	    }
+	}
     }
-
-  /*
-   * Size in bytes of the class.  The sum of the class definition
-   * and all super class definitions.
-   */
-  newClass->instance_size = iVarSize;
-
-  // Meta Class instance size is superclass instance size.
-  newMetaClass->instance_size = classSuperClass->class_pointer->instance_size;
 
   return [NSValue valueWithPointer: newClass];
 }
@@ -617,10 +561,10 @@ GSObjCAddClasses(NSArray *classes)
   module = objc_calloc (1, sizeof (Module));
   module->version = OBJC_VERSION;
   module->size = sizeof (Module);
-  module->name = objc_malloc (strlen(c->name) + 15);
+  module->name = malloc (strlen(c->name) + 15);
   strcpy ((char*)module->name, "GNUstep-Proxy-");
   strcat ((char*)module->name, c->name);
-  module->symtab = objc_malloc(sizeof(Symtab) + numClasses * sizeof(void *));
+  module->symtab = malloc(sizeof(Symtab) + numClasses * sizeof(void *));
 
   symtab = module->symtab;
   symtab->sel_ref_cnt = 0;
@@ -673,7 +617,7 @@ GSObjCAddMethods (Class cls, GSMethodList methods)
       /* This is a little wasteful of memory, since not necessarily
 	 all methods will go in here. */
       new_list = (GSMethodList)
-	objc_malloc (sizeof(struct objc_method_list) +
+	malloc (sizeof(struct objc_method_list) +
 		     sizeof(struct objc_method[counter+1]));
       new_list->method_count = 0;
 
@@ -780,7 +724,7 @@ GSObjCAddMethods (Class cls, GSMethodList methods)
       /* This is a little wasteful of memory, since not necessarily
 	 all methods will go in here. */
       new_list = (GSMethodList)
-	objc_malloc (sizeof(struct objc_method_list) +
+	malloc (sizeof(struct objc_method_list) +
 		     sizeof(struct objc_method[counter+1]));
       new_list->method_count = 0;
       new_list->method_next = NULL;
@@ -896,7 +840,7 @@ GSAllocMethodList (unsigned int count)
 
   size = (sizeof (struct objc_method_list) +
           sizeof (struct objc_method[count]));
-  list = objc_malloc (size);
+  list = malloc (size);
   memset(list, 0, size);
 
   return list;
@@ -1292,7 +1236,7 @@ gs_find_protocol_named(const char *name)
 
   /* Setting the clearCache flag is a noop for the Apple runtime.  */
   num = GSClassList(NULL, 0, NO);
-  clsList = objc_malloc(sizeof(Class) * (num + 1));
+  clsList = malloc(sizeof(Class) * (num + 1));
   GSClassList(clsList, num, NO);
 
   clsListStart = clsList;
@@ -1302,7 +1246,7 @@ gs_find_protocol_named(const char *name)
       p = gs_find_protocol_named_in_protocol_list(name, cls->protocols);
     }
 
-  objc_free(clsListStart);
+  free(clsListStart);
 
 #else
   void *iterator = NULL;
