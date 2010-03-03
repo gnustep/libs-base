@@ -874,6 +874,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	{
 	  // Skip '%'
 	  formatIdx++;
+	  while (format[formatIdx] >= '0' && format[formatIdx] <= '9' && formatIdx < formatLen)
+	    formatIdx++; // skip field width
 
 	  switch (format[formatIdx])
 	    {
@@ -2111,7 +2113,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		v = info->hd;
 		if (twelve == YES)
 		  {
-		    if (info->hd == 12)
+		    if (info->hd == 12 || info->hd == 0)
 		      {
 			v = 12;
 		      }
