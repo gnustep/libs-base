@@ -286,6 +286,7 @@ class_copyIvarList(Class cls, unsigned int *outCount)
 
   list = malloc((count + 1) * sizeof(struct objc_ivar *));
   list[count] = NULL;
+  count = 0;
   for (index = 0; index < ivarlist->ivar_count; index++)
     {
       list[count++] = &ivarlist->ivar_list[index];
