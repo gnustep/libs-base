@@ -546,7 +546,7 @@ otherTime(NSDate* other)
 
   dtoIndex = 0;
   scanner = [NSScanner scannerWithString: string];
-  [scanner setCaseSensitive:NO];
+  [scanner setCaseSensitive: NO];
   [scanner scanUpToCharactersFromSet: digits intoString: 0];
   while ([scanner scanCharactersFromSet: digits intoString: &tmp] == YES)
     {
@@ -562,7 +562,7 @@ otherTime(NSDate* other)
       if (tmp && ([tmp characterAtIndex: 0] == (unichar)':'))
 	{
 	  BOOL	done = NO;
-	  BOOL checkForAMPM = NO;
+	  BOOL	checkForAMPM = NO;
 
 	  do
 	    {
@@ -642,7 +642,7 @@ otherTime(NSDate* other)
 		    {
 		      num = [tmp intValue];
 		      done = NO;
-		      if ([scanner scanString:@":" intoString: &tmp] == NO)
+		      if ([scanner scanString: @":" intoString: &tmp] == NO)
 			{
 			  tmp = nil;
 			}
@@ -650,21 +650,25 @@ otherTime(NSDate* other)
 		}
 	    }
 	  while (done == NO);
-	      if (checkForAMPM)
-		{
-		  NSArray	*ampm = [locale objectForKey: NSAMPMDesignation];
 
-		  if ([scanner scanString:[ampm objectAtIndex:0] intoString:NULL])
-		    {
-		      if (h == 12) // 12 AM means midnight
-			h = 0;
-		    }
-		  else if ([scanner scanString:[ampm objectAtIndex:1] intoString:NULL])
-		    {
-		      if (h < 12) // if PM add 12 to any hour less than 12
-			h += 12;
-		    }	  
+	  if (checkForAMPM)
+	    {
+	      NSArray	*ampm;
+
+	      ampm = [locale objectForKey: NSAMPMDesignation];
+	      if ([scanner scanString: [ampm objectAtIndex: 0]
+			   intoString: NULL])
+		{
+		  if (h == 12) // 12 AM means midnight
+		    h = 0;
 		}
+	      else if ([scanner scanString: [ampm objectAtIndex: 1]
+				intoString: NULL])
+		{
+		  if (h < 12) // if PM add 12 to any hour less than 12
+		    h += 12;
+		}	  
+	    }
 	}
       else
 	{

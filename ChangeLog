@@ -1,5 +1,11 @@
 2010-03-03 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDate.m: Fix last change to conform to coding standards.
+	* Source/NSCalendarDate.m: Fix last change to avoid attempts to
+	access beyond the end of the format string.
+
+2010-03-03 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/ObjectiveC2/runtime.c: Fix class data copying functions to
 	match OSX.
 	* Source/Additions/GSObjCRuntime.m: Implement adding classes using
