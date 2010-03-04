@@ -268,6 +268,7 @@ class_copyIvarList(Class cls, unsigned int *outCount)
 {
   struct objc_ivar_list *ivarlist = cls->ivars;
   unsigned int count = 0;
+  unsigned int index;
   Ivar *list;
 
   if (ivarlist != NULL)
@@ -285,8 +286,11 @@ class_copyIvarList(Class cls, unsigned int *outCount)
 
   list = malloc((count + 1) * sizeof(struct objc_ivar *));
   list[count] = NULL;
-  memcpy(list, ivarlist->ivar_list,
-    ivarlist->ivar_count * sizeof(struct objc_ivar *));
+  for (index = 0; index < ivarlist->ivar_count; index++)
+    {
+      list[count++] = &ivarlist->ivar_list[index];
+    }
+
   return list;
 }
 
@@ -315,9 +319,12 @@ class_copyMethodList(Class cls, unsigned int *outCount)
   count = 0;
   for (methods = cls->methods; methods != NULL; methods = methods->method_next)
     {
-      memcpy(&list[count], methods->method_list,
-	methods->method_count * sizeof(struct objc_method *));
-      count += methods->method_count;
+      unsigned int	index;
+
+      for (index = 0; index < methods->method_count; index++)
+	{
+          list[count++] = &methods->method_list[index];
+	}
     }
 
   return list;
