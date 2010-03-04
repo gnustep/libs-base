@@ -1,3 +1,8 @@
+2010-03-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueObserving.m: use class_addMethod() to add setters
+	to replacement class.
+
 2010-03-03 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDate.m: Fix last change to conform to coding standards.
