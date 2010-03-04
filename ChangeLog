@@ -1,3 +1,10 @@
+2010-03-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/runtime.c: Fix class data copying functions to
+	match OSX.
+	* Source/Additions/GSObjCRuntime.m: Implement adding classes using
+	new runtime functions.
+
 2010-03-03 Doug Simons <dpsimons@testplant.com>
 
 	* Source/NSDate.m: Fix natural language date parsing to handle AM/PM.

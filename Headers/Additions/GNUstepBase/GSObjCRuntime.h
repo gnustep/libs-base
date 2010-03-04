@@ -552,7 +552,7 @@ GS_EXPORT int GSObjCVersion(Class cls);
 #endif
 
 /**
- * Return the zone in which an object belongs, without using the zone method
+ * GSObjCZone() is deprecated ... use  -zone
  */
 GS_EXPORT NSZone *
 GSObjCZone(NSObject *obj);
