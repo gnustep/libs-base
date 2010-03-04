@@ -874,429 +874,433 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	{
 	  // Skip '%'
 	  formatIdx++;
-	  while (format[formatIdx] >= '0' && format[formatIdx] <= '9' && formatIdx < formatLen)
-	    formatIdx++; // skip field width
-
-	  switch (format[formatIdx])
+	  while (formatIdx < formatLen && isdigit(format[formatIdx]))
 	    {
-	      case '%':
-		// skip literal %
-		if (sourceIdx < sourceLen)
-		  {
-		    if (source[sourceIdx] != '%')
+	      formatIdx++; // skip field width
+	    }
+	  if (formatIdx < formatLen)
+	    {
+	      switch (format[formatIdx])
+		{
+		  case '%':
+		    // skip literal %
+		    if (sourceIdx < sourceLen)
+		      {
+			if (source[sourceIdx] != '%')
+			  {
+			    error = YES;
+			    NSDebugMLog(
+			      @"Expected literal '%%' but got '%c' parsing"
+			      @"'%@' using '%@'", source[sourceIdx],
+			      description, fmt);
+			  }
+			sourceIdx++;
+		      }
+		    else
 		      {
 			error = YES;
 			NSDebugMLog(
-			  @"Expected literal '%%' but got '%c' parsing"
+			  @"Expected literal '%%' but got end of string parsing"
 			  @"'%@' using '%@'", source[sourceIdx],
 			  description, fmt);
 		      }
-		    sourceIdx++;
-		  }
-		else
-		  {
-		    error = YES;
-		    NSDebugMLog(
-		      @"Expected literal '%%' but got end of string parsing"
-		      @"'%@' using '%@'", source[sourceIdx],
-		      description, fmt);
-		  }
-		break;
+		    break;
 
-	      case 'a':
-	        /* FIXME ... Should look for all values from the locale,
-		 * matching for longest values first, rather than (wrongly)
-		 * assuming a fixed length of three characters.
-		 */
-		tmpStr[0] = toupper(source[sourceIdx]);
-		if (sourceIdx < sourceLen)
-		  sourceIdx++;
-		tmpStr[1] = tolower(source[sourceIdx]);
-		if (sourceIdx < sourceLen)
-		  sourceIdx++;
-		tmpStr[2] = tolower(source[sourceIdx]);
-		if (sourceIdx < sourceLen)
-		  sourceIdx++;
-		tmpStr[3] = '\0';
-		{
-		  NSString	*currDay;
-		  NSArray	*dayNames;
-
-		  currDay = [[NSString alloc] initWithCString: tmpStr];
-		  dayNames = [locale objectForKey: NSShortWeekDayNameArray];
-		  for (tmpIdx = 0; tmpIdx < 7; tmpIdx++)
-		    {
-		      if ([[dayNames objectAtIndex: tmpIdx] isEqual:
-			currDay] == YES)
-			{
-			  break;
-			}
-		    }
-		  if (tmpIdx == 7)
-		    {
-		      error = YES;
-		      NSDebugMLog(@"Day of week '%@' not found in locale",
-			currDay);
-		    }
-		  else
-		    {
-		      dayOfWeek = tmpIdx;
-		      had |= hadw;
-		    }
-		  RELEASE(currDay);
-		}
-		break;
-
-	      case 'A':
-	        /* FIXME ... Should look for all values from the locale,
-		 * matching for longest values first, rather than (wrongly)
-		 * assuming the name contains only western letters.
-		 */
-	        tmpEnd = sizeof(tmpStr) - 1;
-		if (sourceLen - sourceIdx < tmpEnd)
-		  {
-		    tmpEnd = sourceLen - sourceIdx;
-		  }
-		for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
-		  {
-		    if (isalpha(source[sourceIdx + tmpIdx]))
-		      {
-			tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
-		      }
-		    else
-		      {
-			break;
-		      }
-		  }
-		tmpStr[tmpIdx] = '\0';
-		sourceIdx += tmpIdx;
-		{
-		  NSString	*currDay;
-		  NSArray	*dayNames;
-
-		  currDay = [[NSString alloc] initWithCString: tmpStr];
-		  dayNames = [locale objectForKey: NSWeekDayNameArray];
-		  for (tmpIdx = 0; tmpIdx < 7; tmpIdx++)
-		    {
-		      if ([[dayNames objectAtIndex: tmpIdx] isEqual:
-			currDay] == YES)
-			{
-			  break;
-			}
-		    }
-		  if (tmpIdx == 7)
-		    {
-		      error = YES;
-		      NSDebugMLog(@"Day of week '%@' not found in locale",
-			currDay);
-		    }
-		  else
-		    {
-		      dayOfWeek = tmpIdx;
-		      had |= hadw;
-		    }
-		  RELEASE(currDay);
-		}
-		break;
-
-	      case 'b':
-	        /* FIXME ... Should look for all values from the locale,
-		 * matching for longest values first, rather than (wrongly)
-		 * assuming a fixed length of three characters.
-		 */
-		tmpStr[0] = toupper(source[sourceIdx]);
-		if (sourceIdx < sourceLen)
-		  sourceIdx++;
-		tmpStr[1] = tolower(source[sourceIdx]);
-		if (sourceIdx < sourceLen)
-		  sourceIdx++;
-		tmpStr[2] = tolower(source[sourceIdx]);
-		if (sourceIdx < sourceLen)
-		  sourceIdx++;
-		tmpStr[3] = '\0';
-		{
-		  NSString	*currMonth;
-		  NSArray	*monthNames;
-
-		  currMonth = [[NSString alloc] initWithCString: tmpStr];
-		  monthNames = [locale objectForKey: NSShortMonthNameArray];
-
-		  for (tmpIdx = 0; tmpIdx < 12; tmpIdx++)
-		    {
-		      if ([[monthNames objectAtIndex: tmpIdx]
-				isEqual: currMonth] == YES)
-			{
-			  break;
-			}
-		    }
-		  if (tmpIdx == 12)
-		    {
-		      error = YES;
-		      NSDebugMLog(@"Month of year '%@' not found in locale",
-			currMonth);
-		    }
-		  else
-		    {
-		      month = tmpIdx+1;
-		      had |= hadM;
-		    }
-		  RELEASE(currMonth);
-		}
-		break;
-
-	      case 'B':
-	        /* FIXME ... Should look for all values from the locale,
-		 * matching for longest values first, rather than (wrongly)
-		 * assuming the name contains only western letters.
-		 */
-	        tmpEnd = sizeof(tmpStr) - 1;
-		if (sourceLen - sourceIdx < tmpEnd)
-		  {
-		    tmpEnd = sourceLen - sourceIdx;
-		  }
-		for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
-		  {
-		    if (isalpha(source[sourceIdx + tmpIdx]))
-		      {
-			tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
-		      }
-		    else
-		      {
-			break;
-		      }
-		  }
-		tmpStr[tmpIdx] = '\0';
-		sourceIdx += tmpIdx;
-		{
-		  NSString	*currMonth;
-		  NSArray	*monthNames;
-
-		  currMonth = [[NSString alloc] initWithCString: tmpStr];
-		  monthNames = [locale objectForKey: NSMonthNameArray];
-
-		  for (tmpIdx = 0; tmpIdx < 12; tmpIdx++)
-		    {
-		      if ([[monthNames objectAtIndex: tmpIdx]
-				isEqual: currMonth] == YES)
-			{
-			  break;
-			}
-		    }
-		  if (tmpIdx == 12)
-		    {
-		      error = YES;
-		      NSDebugMLog(@"Month of year '%@' not found in locale",
-			currMonth);
-		    }
-		  else
-		    {
-		      month = tmpIdx+1;
-		      had |= hadM;
-		    }
-		  RELEASE(currMonth);
-		}
-		break;
-
-	      case 'd': // fall through
-	      case 'e':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
-		day = atoi(tmpStr);
-		had |= hadD;
-		if (error == NO && day < 1)
-		  {
-		    error = YES;
-		    NSDebugMLog(@"Day of month is zero");
-		  }
-		break;
-
-	      case 'F':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
-		milliseconds = atoi(tmpStr);
-		break;
-
-	      case 'I': // fall through
-		twelveHrClock = YES;
-	      case 'H':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
-		hour = atoi(tmpStr);
-		had |= hadh;
-		break;
-
-	      case 'j':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
-		day = atoi(tmpStr);
-		had |= hadD;
-		break;
-
-	      case 'm':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
-		month = atoi(tmpStr);
-		had |= hadM;
-		if (error == NO && month < 1)
-		  {
-		    error = YES;
-		    NSDebugMLog(@"Month of year is zero");
-		  }
-		break;
-
-	      case 'M':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
-		min = atoi(tmpStr);
-		had |= hadm;
-		break;
-
-	      case 'p':
-	        /* FIXME ... Should look for all values from the locale,
-		 * matching for longest values first, rather than (wrongly)
-		 * assuming the name is always two uppercase letters.
-		 */
-		tmpStr[0] = toupper(source[sourceIdx]);
-		if (sourceIdx < sourceLen)
-		  sourceIdx++;
-		tmpStr[1] = toupper(source[sourceIdx]);
-		if (sourceIdx < sourceLen)
-		  sourceIdx++;
-		tmpStr[2] = '\0';
-		{
-		  NSString	*currAMPM;
-		  NSArray	*amPMNames;
-
-		  currAMPM = [NSString stringWithUTF8String: tmpStr];
-		  amPMNames = [locale objectForKey: NSAMPMDesignation];
-
-		  /*
-		   * The time addition is handled below because this
-		   * indicator only modifies the time on a 12hour clock.
-		   */
-		  if ([[amPMNames objectAtIndex: 1] isEqual:
-		    currAMPM] == YES)
-		    {
-		      ampm = YES;
-		    }
-		}
-		break;
-
-	      case 'S':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
-		sec = atoi(tmpStr);
-		had |= hads;
-		break;
-
-	      case 'w':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
-		dayOfWeek = atoi(tmpStr);
-		had |= hadw;
-		break;
-
-	      case 'W': // Fall through
-		weekStartsMonday = 1;
-	      case 'U':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
-		julianWeeks = atoi(tmpStr);
-		break;
-
-		//	case 'x':
-		//	break;
-
-		//	case 'X':
-		//	break;
-
-	      case 'y':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
-		year = atoi(tmpStr);
-		if (year >= 70)
-		  {
-		    year += 1900;
-		  }
-		else
-		  {
-		    year += 2000;
-		  }
-		had |= hadY;
-		break;
-
-	      case 'Y':
-		sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4, &error);
-		year = atoi(tmpStr);
-		had |= hadY;
-		break;
-
-	      case 'z':
-		{
-		  int	sign = 1;
-		  int	zone;
-		  int	found;
-
-		  if (source[sourceIdx] == '+')
-		    {
+		  case 'a':
+		    /* FIXME ... Should look for all values from the locale,
+		     * matching for longest values first, rather than (wrongly)
+		     * assuming a fixed length of three characters.
+		     */
+		    tmpStr[0] = toupper(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
 		      sourceIdx++;
-		    }
-		  else if (source[sourceIdx] == '-')
-		    {
-		      sign = -1;
+		    tmpStr[1] = tolower(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
 		      sourceIdx++;
-		    }
-		  found = getDigits(&source[sourceIdx], tmpStr, 4, &error);
-		  if (found > 0)
+		    tmpStr[2] = tolower(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[3] = '\0';
 		    {
-		      sourceIdx += found;
-		      zone = atoi(tmpStr);
-		      if (found == 2)
+		      NSString	*currDay;
+		      NSArray	*dayNames;
+
+		      currDay = [[NSString alloc] initWithCString: tmpStr];
+		      dayNames = [locale objectForKey: NSShortWeekDayNameArray];
+		      for (tmpIdx = 0; tmpIdx < 7; tmpIdx++)
 			{
-			  zone *= 100;	// Convert 2 digits to 4
+			  if ([[dayNames objectAtIndex: tmpIdx] isEqual:
+			    currDay] == YES)
+			    {
+			      break;
+			    }
 			}
-		      tz = [NSTimeZone timeZoneForSecondsFromGMT:
-			sign * ((zone / 100) * 60 + (zone % 100)) * 60];
-		    }
-		}
-		break;
-
-	      case 'Z':
-	        /* Can we assume a timezone name is always space terminated?
-		 */
-	        tmpEnd = sizeof(tmpStr) - 1;
-		if (sourceLen - sourceIdx < tmpEnd)
-		  {
-		    tmpEnd = sourceLen - sourceIdx;
-		  }
-		for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
-		  {
-		    if (!isspace(source[sourceIdx + tmpIdx]))
-		      {
-			tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
-		      }
-		    else
-		      {
-			break;
-		      }
-		  }
-		tmpStr[tmpIdx] = '\0';
-		sourceIdx += tmpIdx;
-		{
-		  NSString	*z = [NSString stringWithUTF8String: tmpStr];
-
-		  /* Abbreviations aren't one-to-one with time zone names
-		     so just look for the zone named after the abbreviation,
-		     then look up the abbreviation as a last resort */
-		  tz = [NSTimeZone timeZoneWithName: z];
-		  if (tz == nil)
-		    {
-		      tz = [NSTimeZone timeZoneWithAbbreviation: z];
-		      if (tz == nil)
+		      if (tmpIdx == 7)
 			{
 			  error = YES;
-			  NSDebugMLog(@"Time zone '%@' not found", z);
+			  NSDebugMLog(@"Day of week '%@' not found in locale",
+			    currDay);
+			}
+		      else
+			{
+			  dayOfWeek = tmpIdx;
+			  had |= hadw;
+			}
+		      RELEASE(currDay);
+		    }
+		    break;
+
+		  case 'A':
+		    /* FIXME ... Should look for all values from the locale,
+		     * matching for longest values first, rather than (wrongly)
+		     * assuming the name contains only western letters.
+		     */
+		    tmpEnd = sizeof(tmpStr) - 1;
+		    if (sourceLen - sourceIdx < tmpEnd)
+		      {
+			tmpEnd = sourceLen - sourceIdx;
+		      }
+		    for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
+		      {
+			if (isalpha(source[sourceIdx + tmpIdx]))
+			  {
+			    tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
+			  }
+			else
+			  {
+			    break;
+			  }
+		      }
+		    tmpStr[tmpIdx] = '\0';
+		    sourceIdx += tmpIdx;
+		    {
+		      NSString	*currDay;
+		      NSArray	*dayNames;
+
+		      currDay = [[NSString alloc] initWithCString: tmpStr];
+		      dayNames = [locale objectForKey: NSWeekDayNameArray];
+		      for (tmpIdx = 0; tmpIdx < 7; tmpIdx++)
+			{
+			  if ([[dayNames objectAtIndex: tmpIdx] isEqual:
+			    currDay] == YES)
+			    {
+			      break;
+			    }
+			}
+		      if (tmpIdx == 7)
+			{
+			  error = YES;
+			  NSDebugMLog(@"Day of week '%@' not found in locale",
+			    currDay);
+			}
+		      else
+			{
+			  dayOfWeek = tmpIdx;
+			  had |= hadw;
+			}
+		      RELEASE(currDay);
+		    }
+		    break;
+
+		  case 'b':
+		    /* FIXME ... Should look for all values from the locale,
+		     * matching for longest values first, rather than (wrongly)
+		     * assuming a fixed length of three characters.
+		     */
+		    tmpStr[0] = toupper(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[1] = tolower(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[2] = tolower(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[3] = '\0';
+		    {
+		      NSString	*currMonth;
+		      NSArray	*monthNames;
+
+		      currMonth = [[NSString alloc] initWithCString: tmpStr];
+		      monthNames = [locale objectForKey: NSShortMonthNameArray];
+
+		      for (tmpIdx = 0; tmpIdx < 12; tmpIdx++)
+			{
+			  if ([[monthNames objectAtIndex: tmpIdx]
+				    isEqual: currMonth] == YES)
+			    {
+			      break;
+			    }
+			}
+		      if (tmpIdx == 12)
+			{
+			  error = YES;
+			  NSDebugMLog(@"Month of year '%@' not found in locale",
+			    currMonth);
+			}
+		      else
+			{
+			  month = tmpIdx+1;
+			  had |= hadM;
+			}
+		      RELEASE(currMonth);
+		    }
+		    break;
+
+		  case 'B':
+		    /* FIXME ... Should look for all values from the locale,
+		     * matching for longest values first, rather than (wrongly)
+		     * assuming the name contains only western letters.
+		     */
+		    tmpEnd = sizeof(tmpStr) - 1;
+		    if (sourceLen - sourceIdx < tmpEnd)
+		      {
+			tmpEnd = sourceLen - sourceIdx;
+		      }
+		    for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
+		      {
+			if (isalpha(source[sourceIdx + tmpIdx]))
+			  {
+			    tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
+			  }
+			else
+			  {
+			    break;
+			  }
+		      }
+		    tmpStr[tmpIdx] = '\0';
+		    sourceIdx += tmpIdx;
+		    {
+		      NSString	*currMonth;
+		      NSArray	*monthNames;
+
+		      currMonth = [[NSString alloc] initWithCString: tmpStr];
+		      monthNames = [locale objectForKey: NSMonthNameArray];
+
+		      for (tmpIdx = 0; tmpIdx < 12; tmpIdx++)
+			{
+			  if ([[monthNames objectAtIndex: tmpIdx]
+				    isEqual: currMonth] == YES)
+			    {
+			      break;
+			    }
+			}
+		      if (tmpIdx == 12)
+			{
+			  error = YES;
+			  NSDebugMLog(@"Month of year '%@' not found in locale",
+			    currMonth);
+			}
+		      else
+			{
+			  month = tmpIdx+1;
+			  had |= hadM;
+			}
+		      RELEASE(currMonth);
+		    }
+		    break;
+
+		  case 'd': // fall through
+		  case 'e':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    day = atoi(tmpStr);
+		    had |= hadD;
+		    if (error == NO && day < 1)
+		      {
+			error = YES;
+			NSDebugMLog(@"Day of month is zero");
+		      }
+		    break;
+
+		  case 'F':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
+		    milliseconds = atoi(tmpStr);
+		    break;
+
+		  case 'I': // fall through
+		    twelveHrClock = YES;
+		  case 'H':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    hour = atoi(tmpStr);
+		    had |= hadh;
+		    break;
+
+		  case 'j':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
+		    day = atoi(tmpStr);
+		    had |= hadD;
+		    break;
+
+		  case 'm':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    month = atoi(tmpStr);
+		    had |= hadM;
+		    if (error == NO && month < 1)
+		      {
+			error = YES;
+			NSDebugMLog(@"Month of year is zero");
+		      }
+		    break;
+
+		  case 'M':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    min = atoi(tmpStr);
+		    had |= hadm;
+		    break;
+
+		  case 'p':
+		    /* FIXME ... Should look for all values from the locale,
+		     * matching for longest values first, rather than (wrongly)
+		     * assuming the name is always two uppercase letters.
+		     */
+		    tmpStr[0] = toupper(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[1] = toupper(source[sourceIdx]);
+		    if (sourceIdx < sourceLen)
+		      sourceIdx++;
+		    tmpStr[2] = '\0';
+		    {
+		      NSString	*currAMPM;
+		      NSArray	*amPMNames;
+
+		      currAMPM = [NSString stringWithUTF8String: tmpStr];
+		      amPMNames = [locale objectForKey: NSAMPMDesignation];
+
+		      /*
+		       * The time addition is handled below because this
+		       * indicator only modifies the time on a 12hour clock.
+		       */
+		      if ([[amPMNames objectAtIndex: 1] isEqual:
+			currAMPM] == YES)
+			{
+			  ampm = YES;
 			}
 		    }
-		}
-		break;
+		    break;
 
-	      default:
-	        error = YES;
-		NSLog(@"Invalid NSCalendar date, "
-		  @"specifier %c not recognized in format %@",
-		  format[formatIdx], fmt);
-		break;
+		  case 'S':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    sec = atoi(tmpStr);
+		    had |= hads;
+		    break;
+
+		  case 'w':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
+		    dayOfWeek = atoi(tmpStr);
+		    had |= hadw;
+		    break;
+
+		  case 'W': // Fall through
+		    weekStartsMonday = 1;
+		  case 'U':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
+		    julianWeeks = atoi(tmpStr);
+		    break;
+
+		    //	case 'x':
+		    //	break;
+
+		    //	case 'X':
+		    //	break;
+
+		  case 'y':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    year = atoi(tmpStr);
+		    if (year >= 70)
+		      {
+			year += 1900;
+		      }
+		    else
+		      {
+			year += 2000;
+		      }
+		    had |= hadY;
+		    break;
+
+		  case 'Y':
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4, &error);
+		    year = atoi(tmpStr);
+		    had |= hadY;
+		    break;
+
+		  case 'z':
+		    {
+		      int	sign = 1;
+		      int	zone;
+		      int	found;
+
+		      if (source[sourceIdx] == '+')
+			{
+			  sourceIdx++;
+			}
+		      else if (source[sourceIdx] == '-')
+			{
+			  sign = -1;
+			  sourceIdx++;
+			}
+		      found = getDigits(&source[sourceIdx], tmpStr, 4, &error);
+		      if (found > 0)
+			{
+			  sourceIdx += found;
+			  zone = atoi(tmpStr);
+			  if (found == 2)
+			    {
+			      zone *= 100;	// Convert 2 digits to 4
+			    }
+			  tz = [NSTimeZone timeZoneForSecondsFromGMT:
+			    sign * ((zone / 100) * 60 + (zone % 100)) * 60];
+			}
+		    }
+		    break;
+
+		  case 'Z':
+		    /* Can we assume a timezone name is always space terminated?
+		     */
+		    tmpEnd = sizeof(tmpStr) - 1;
+		    if (sourceLen - sourceIdx < tmpEnd)
+		      {
+			tmpEnd = sourceLen - sourceIdx;
+		      }
+		    for (tmpIdx = 0; tmpIdx < tmpEnd; tmpIdx++)
+		      {
+			if (!isspace(source[sourceIdx + tmpIdx]))
+			  {
+			    tmpStr[tmpIdx] = source[sourceIdx + tmpIdx];
+			  }
+			else
+			  {
+			    break;
+			  }
+		      }
+		    tmpStr[tmpIdx] = '\0';
+		    sourceIdx += tmpIdx;
+		    {
+		      NSString	*z = [NSString stringWithUTF8String: tmpStr];
+
+		      /* Abbreviations aren't one-to-one with time zone names
+			 so just look for the zone named after the abbreviation,
+			 then look up the abbreviation as a last resort */
+		      tz = [NSTimeZone timeZoneWithName: z];
+		      if (tz == nil)
+			{
+			  tz = [NSTimeZone timeZoneWithAbbreviation: z];
+			  if (tz == nil)
+			    {
+			      error = YES;
+			      NSDebugMLog(@"Time zone '%@' not found", z);
+			    }
+			}
+		    }
+		    break;
+
+		  default:
+		    error = YES;
+		    NSLog(@"Invalid NSCalendar date, "
+		      @"specifier %c not recognized in format %@",
+		      format[formatIdx], fmt);
+		    break;
+		}
 	    }
 	}
       formatIdx++;
