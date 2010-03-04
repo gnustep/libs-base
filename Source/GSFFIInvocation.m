@@ -297,6 +297,7 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
 {
   /* We should never get here */
   [self dealloc];
+  self = nil;
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Runtime incorrectly configured to pass argframes"];
   return nil;

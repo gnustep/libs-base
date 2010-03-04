@@ -1637,6 +1637,7 @@ IF_NO_GC(
   if (NSDecrementExtraRefCountWasZero(self))
     {
       [self dealloc];
+      self = nil;
     }
   [load_lock unlock];
 }
