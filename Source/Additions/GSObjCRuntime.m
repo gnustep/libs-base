@@ -523,66 +523,18 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
  * The classes argument is an array of NSValue objects containing pointers
  * to classes previously created by the GSObjCMakeClass() function.
  */
-#ifdef NeXT_RUNTIME
 void
 GSObjCAddClasses(NSArray *classes)
 {
-  unsigned int	numClasses = [classes count];
-  unsigned int	i;
-  for (i = 0; i < numClasses; i++)
-    {
-      objc_addClass((Class)[[classes objectAtIndex: i] pointerValue]);
-    }
-}
-#else
-/*
- *	NOTE - OBJC_VERSION needs to be defined to be the version of the
- *	Objective-C runtime you are using.  You can find this in the file
- *	'init.c' in the GNU objective-C runtime source.
- */
-#define	OBJC_VERSION	8
-
-void
-GSObjCAddClasses(NSArray *classes)
-{
-  void	__objc_exec_class (void* module);
-  void	__objc_resolve_class_links ();
-  Module_t	module;
-  Symtab_t	symtab;
-  unsigned int	numClasses = [classes count];
-  unsigned int	i;
-  Class		c;
-
-  NSCAssert(numClasses > 0, @"No classes (array is NULL)");
-
-  c = (Class)[[classes objectAtIndex: 0] pointerValue];
-
-  // Prepare a fake module containing only the new classes
-  module = objc_calloc (1, sizeof (Module));
-  module->version = OBJC_VERSION;
-  module->size = sizeof (Module);
-  module->name = malloc (strlen(c->name) + 15);
-  strcpy ((char*)module->name, "GNUstep-Proxy-");
-  strcat ((char*)module->name, c->name);
-  module->symtab = malloc(sizeof(Symtab) + numClasses * sizeof(void *));
-
-  symtab = module->symtab;
-  symtab->sel_ref_cnt = 0;
-  symtab->refs = 0;
-  symtab->cls_def_cnt = numClasses; // We are defining numClasses classes.
-  symtab->cat_def_cnt = 0; // But no categories
+  NSUInteger	numClasses = [classes count];
+  NSUInteger	i;
 
   for (i = 0; i < numClasses; i++)
     {
-      symtab->defs[i] = (Class)[[classes objectAtIndex: i] pointerValue];
+      objc_registerClassPair((Class)[[classes objectAtIndex: i] pointerValue]);
     }
-  symtab->defs[numClasses] = NULL; //null terminated list
-
-  // Insert our new class into the runtime.
-  __objc_exec_class (module);
-  __objc_resolve_class_links();
 }
-#endif
+
 
 
 static int behavior_debug = 0;
