@@ -439,7 +439,6 @@ replacementForClass(Class c)
 {
   if ([keys member: aKey] == nil)
     {
-      GSMethodList	m;
       NSMethodSignature	*sig;
       SEL		sel;
       IMP		imp;
@@ -450,8 +449,6 @@ replacementForClass(Class c)
       BOOL              found = NO;
       NSString		*tmp;
       unichar u;
-
-      m = GSAllocMethodList(2);
 
       suffix = [aKey substringFromIndex: 1];
       u = uni_toupper([aKey characterAtIndex: 0]);
@@ -568,14 +565,19 @@ replacementForClass(Class c)
 
           if (imp != 0)
             {
-              GSAppendMethodToList(m, sel, [sig methodType], imp, YES);
-              found = YES;
+	      if (class_addMethod(replacement, sel, imp, [sig methodType]))
+		{
+                  found = YES;
+		}
+	      else
+		{
+		  NSLog(@"Failed to add setter method for %s to %@",
+		    sel_getName(sel), class_getName(original));
+		}
             }
         }
       if (found == YES)
         {
-          GSAddMethodList(replacement, m, YES);
-          GSFlushMethodCacheForClass(replacement);
           [keys addObject: aKey];
         }
       else
