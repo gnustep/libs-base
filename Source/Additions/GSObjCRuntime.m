@@ -665,6 +665,7 @@ gs_string_hash(const char *s)
 #define GSI_MAP_VTYPES GSUNION_PTR
 
 #include "GNUstepBase/GSIMap.h"
+#include <pthread.h>
 
 static GSIMapTable_t protocol_by_name;
 static BOOL protocol_by_name_init = NO;
@@ -699,12 +700,13 @@ GSRegisterProtocol(Protocol *proto)
       GSIMapNode node;
 
       pthread_mutex_lock(&protocol_by_name_lock);
-      node = GSIMapNodeForKey(&protocol_by_name, (GSIMapKey) [proto name]);
+      node = GSIMapNodeForKey(&protocol_by_name,
+	(GSIMapKey)protocol_getName(proto));
       if (node == 0)
 	{
 	  GSIMapAddPairNoRetain(&protocol_by_name,
-	    (GSIMapKey) (void *) [proto name],
-	    (GSIMapVal) (void *) proto);
+	    (GSIMapKey)(void*)protocol_getName(proto),
+	    (GSIMapVal)(void*)proto);
 	}
       pthread_mutex_unlock(&protocol_by_name_lock);
     }
@@ -743,8 +745,8 @@ GSProtocolFromName(const char *name)
 	      /* Use the protocol's name to save us from allocating
 		 a copy of the parameter 'name'.  */
 	      GSIMapAddPairNoRetain(&protocol_by_name,
-		(GSIMapKey) (void *) [p name],
-		(GSIMapVal) (void *) p);
+	        (GSIMapKey)(void*)protocol_getName(p),
+		(GSIMapVal)(void*)p);
 	    }
 	}
       pthread_mutex_unlock(&protocol_by_name_lock);
@@ -789,24 +791,9 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
   NSCAssert(NO == class_isMetaClass(receiver), NSInvalidArgumentException);
   NSCAssert(NO == class_isMetaClass(behavior), NSInvalidArgumentException);
 
-  /* If necessary, increase instance_size of CLASS. */
-  if (class_getInstanceSize(receiver) < class_getInstanceSize(behavior))
-    {
-#if NeXT_RUNTIME
-        NSCAssert2(receiver->instance_size >= behavior->instance_size,
-          @"Trying to add behavior (%s) with instance size larger than class (%s)",
-          class_get_class_name(behavior), class_get_class_name(receiver));
-#else
-      NSCAssert(!receiver->subclass_list,
-	@"The behavior-addition code wants to increase the\n"
-	@"instance size of a class, but it cannot because you\n"
-	@"have subclassed the class.  There are two solutions:\n"
-	@"(1) Don't subclass it; (2) Add placeholder instance\n"
-	@"variables to the class, so the behavior-addition code\n"
-	@"will not have to increase the instance size\n");
-#endif
-      receiver->instance_size = behavior->instance_size;
-    }
+  NSCAssert2(class_getInstanceSize(receiver) < class_getInstanceSize(behavior),
+    @"Trying to add behavior (%s) with instance size larger than class (%s)",
+    class_getName(behavior), class_getName(receiver));
 
   BDBGPrintf("Adding behavior to class %s\n", class_getName(receiver));
   BDBGPrintf("  instance methods from %s\n", class_getName(behavior));
@@ -1666,10 +1653,10 @@ NSArray *GSObjCAllSubclassesOfClass(Class cls)
     }
   else
     {
-      Class aClass;
       NSMutableArray *result = [[NSMutableArray alloc] init];
 
 #ifdef GNU_RUNTIME
+      Class aClass;
       for (aClass = cls->subclass_list; aClass; aClass=aClass->sibling_class)
 	{
 	  if (CLS_ISMETA(aClass))
