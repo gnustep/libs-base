@@ -31,7 +31,6 @@
 #import	<GNUstepBase/GNUstep.h>
 
 #import	<GNUstepBase/GSBlocks.h>
-#import	<GNUstepBase/GSFileHandle.h>
 #import	<GNUstepBase/GSFunctions.h>
 #import	<GNUstepBase/GSLocale.h>
 #import	<GNUstepBase/GSLock.h>
