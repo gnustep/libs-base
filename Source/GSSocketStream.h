@@ -98,7 +98,7 @@ SOCKIVARS
 - (void) _setSock: (SOCKET)sock;
 
 /*
- * Set the socket addres from string information.
+ * Set the socket address from string information.
  */
 - (BOOL) _setSocketAddress: (NSString*)address
                       port: (NSInteger)port

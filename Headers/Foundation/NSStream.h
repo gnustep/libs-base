@@ -249,67 +249,6 @@ typedef NSUInteger NSStreamEvent;
 
 @end
 
-/**
- * the additional interface defined for gnustep
- */
-@interface NSStream (GNUstepExtensions)
-
-/**
- * Creates and returns by reference an NSInputStream object and
- * NSOutputStream object for a local socket or named pipe connection
- * with the specified path. To use them you need to open them and wait
- * on the NSStreamEventOpenCompleted event on one of them.
- */
-+ (void) getLocalStreamsToPath: (NSString *)path 
-		   inputStream: (NSInputStream **)inputStream 
-		  outputStream: (NSOutputStream **)outputStream;
-/**
- * Creates and returns by reference an NSInputStream object and NSOutputStream 
- * object for a anonymous local socket or pipe. Although you still need to
- * open them, the open will be instantaneous, and no NSStreamEventOpenCompleted
- * event will be delivered.
- */
-+ (void) pipeWithInputStream: (NSInputStream **)inputStream 
-                outputStream: (NSOutputStream **)outputStream;
-@end
-
-/**
- * GSServerStream is a subclass of NSStream that encapsulate a "server" stream;
- * that is a stream that binds to a socket and accepts incoming connections
- */
-@interface GSServerStream : NSStream
-
-/**
- * Createe a ip (ipv6) server stream
- */
-+ (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port;
-
-/**
- * Create a local (unix domain or named pipe) server stream
- */
-+ (id) serverStreamToAddr: (NSString*)addr;
-
-/**
- * This is the method that accepts a connection and generates two streams
- * as the server side inputStream and OutputStream.
- * Although you still need to open them, the open will be
- * instantanious, and no NSStreamEventOpenCompleted event will be delivered.
- */
-- (void) acceptWithInputStream: (NSInputStream **)inputStream 
-                  outputStream: (NSOutputStream **)outputStream;
-
-/**
- * the designated initializer for a ip (ipv6) server stream
- */
-- (id) initToAddr: (NSString*)addr port: (NSInteger)port;
-
-/**
- * the designated initializer for a local (unix domain or named pipe)
- * server stream
- */
-- (id) initToAddr: (NSString*)addr;
-
-@end
 
 GS_EXPORT NSString * const NSStreamDataWrittenToMemoryStreamKey;
 GS_EXPORT NSString * const NSStreamFileCurrentOffsetKey;
@@ -331,15 +270,6 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyVersion4;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion5;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
 
-/** May be used to read the local IP address of a tcp/ip network stream. */
-GS_EXPORT NSString * const GSStreamLocalAddressKey;
-/** May be used to read the local port of a tcp/ip network stream. */
-GS_EXPORT NSString * const GSStreamLocalPortKey;
-/** May be used to read the remote IP address of a tcp/ip network stream. */
-GS_EXPORT NSString * const GSStreamRemoteAddressKey;
-/** May be used to read the remote port of a tcp/ip network stream. */
-GS_EXPORT NSString * const GSStreamRemotePortKey;
-
 /**
  * Informal protocol for delegates of instance of the [NSStream] class.
  */
@@ -349,6 +279,10 @@ GS_EXPORT NSString * const GSStreamRemotePortKey;
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if	!NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import	<GNUstepBase/NSStream+GNUstepBase.h>
 #endif
 
 #endif	/* 100200 */
