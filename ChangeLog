@@ -1,3 +1,14 @@
+2010-03-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	* Source/Additions/GSObjCRuntime.m:
+	Old 'experimental/work-in-progress' functions mostly removed ...
+	GSAllocMethodList() GSAppendMethodToList() GSRemoveMethodFromList()
+	GSMethodListForSelector() GSMethodFromList() GSAddMethodList() 
+	GSRemoveMethodList()
+	Other functions rewritten in terms of the new runtime API and marked
+	as deprecated if they add nothing.
+
 2010-03-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueObserving.m: use class_addMethod() to add setters

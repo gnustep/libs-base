@@ -125,31 +125,6 @@ extern "C" {
 #define _C_GCINVISIBLE  '!'
 #endif
 
-#if	defined(NeXT_RUNTIME)
-
-
-#elif	defined(__GNUSTEP_RUNTIME__)
-
-#define	class_nextMethodList(aClass,anIterator) (({\
-  if (*(anIterator) == 0) \
-    *((struct objc_method_list**)(anIterator)) = (aClass)->methods; \
-  else \
-    *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
-}), *(anIterator))
-
-#else	/* Old GNU runtime */
-
-
-#define	class_nextMethodList(aClass,anIterator) (({\
-  if (*(anIterator) == 0) \
-    *((struct objc_method_list**)(anIterator)) = (aClass)->methods; \
-  else \
-    *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
-}), *(anIterator))
-
-
-#endif
-
 /*
  * Functions for accessing instance variables directly -
  * We can copy an ivar into arbitrary data,
@@ -167,10 +142,10 @@ GS_EXPORT void
 GSObjCSetVariable(id obj, int offset, unsigned int size, const void *data);
 
 GS_EXPORT NSArray *
-GSObjCMethodNames(id obj);
+GSObjCMethodNames(id obj, BOOL recurse);
 
 GS_EXPORT NSArray *
-GSObjCVariableNames(id obj);
+GSObjCVariableNames(id obj, BOOL recurse);
 
 GS_EXPORT void
 GSObjCAddClassBehavior(Class receiver, Class behavior);
@@ -180,6 +155,18 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars);
 
 GS_EXPORT void
 GSObjCAddClasses(NSArray *classes);
+
+/**
+ * Given a NULL terminated list of methods, add them to the class.<br />
+ * If the method already exists in a superclass, the new version overrides
+ * that one, but if the method already exists in the class itsself, the
+ * new one is quietly ignored (replace==NO) or replaced with the new
+ * version (if replace==YES).<br />
+ * To add class methods, cls should be the metaclass of the class to
+ * which the methods are being added.
+ */
+GS_EXPORT void
+GSObjCAddMethods(Class cls, Method *list, BOOL replace);
 
 /*
  * Functions for key-value encoding ... they access values in an object
@@ -203,19 +190,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
  */
 
 /**
- * Fills a nil terminated array of Class objects referenced by buffer
- * with max number of classes registered with the objc runtime.  
- * The provided buffer must be large enough to hold max + 1 Class objects.
- * If buffer is nil, the function returns the number of Class
- * objects that would be inserted if the buffer is large enough.
- * Otherwise returns the number of Class objects that did not fit
- * into the provided buffer.  This function keeps a cache of the class
- * list for future invocations when used with the GNU runtime.  If
- * clearCache is YES, this cache will be invalidated and rebuild.  The
- * flag has no effect for the NeXT runtime.
- * This function is provided as consistent API to both runtimes.  
- * In the case of the GNU runtime it is likely more efficient to use
- * objc_next_class() to iterate over the classes.
+ * Deprecated ... use objc_getClassList()
  */
 GS_EXPORT unsigned int
 GSClassList(Class *buffer, unsigned int max, BOOL clearCache);
@@ -325,9 +300,8 @@ GSRegisterProtocol(Protocol *proto);
  * are incompatible between the GNU and NeXT/Apple runtimes.
  * We introduce GSMethod, GSMethodList and GSIVar to allow portability.
  */
-typedef struct objc_method      *GSMethod;
-typedef struct objc_method_list *GSMethodList;
-typedef struct objc_ivar        *GSIVar;
+typedef Method	GSMethod;
+typedef Ivar	GSIVar;
 
 /**
  * Returns the pointer to the method structure
@@ -349,208 +323,29 @@ GSGetMethod(Class cls, SEL sel,
 	    BOOL searchSuperClasses);
 
 /**
- * Flushes the cached method dispatch table for the class.
- * Call this function after any manipulations in the method structures.<br/>
- * It should be safe to use this function in +load implementations.<br/>
- * This function should currently (June 2003) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.
+ * Deprecated .. does nothing.
  */
 GS_EXPORT void
 GSFlushMethodCacheForClass (Class cls);
 
 /**
- * Returns the pointer to the instance variable structure
- * for the instance variable name in the specified class.
- * This function searches the specified class and its superclasses.<br/>
- * It should be safe to use this function in +load implementations.<br/>
- * This function should currently (June 2003) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.
+ * Deprecated .. use class_getInstanceVariable()
  */
 GS_EXPORT GSIVar
 GSCGetInstanceVariableDefinition(Class cls, const char *name);
 
 /**
- * Returns the pointer to the instance variable structure
- * for the instance variable name in the specified class.
- * This function searches the specified class and its superclasses.<br/>
- * It is not necessarily safe to use this function
- * in +load implementations.<br/>
- * This function should currently (June 2003) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.
+ * Deprecated .. use class_getInstanceVariable()
  */
 GS_EXPORT GSIVar
 GSObjCGetInstanceVariableDefinition(Class cls, NSString *name);
-
-/**
- * <p>Returns a pointer to objc_malloc'ed memory large enough
- * to hold a struct objc_method_list with 'count' number of
- * struct objc_method entries.  The memory returned is
- * initialized with 0, including the method count and
- * next method list fields.  </p>
- * <p> This function is intended for use in conjunction with
- * GSAppendMethodToList() to fill the memory and GSAddMethodList()
- * to activate the method list.  </p>
- * <p>After method list manipulation you should call
- * GSFlushMethodCacheForClass() for the changes to take effect.</p>
- * <p><em>WARNING:</em> Manipulating the runtime structures
- * can be hazardous!</p>
- * <p>This function should currently (June 2004) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.</p>
- */
-GSMethodList
-GSAllocMethodList (unsigned int count);
-
-/**
- * <p>Inserts the method described by sel, types and imp
- * into the slot of the list's method_count incremented by 1.
- * This function does not and cannot check whether
- * the list provided has the necessary capacity.</p>
- * <p>The GNU runtime makes a difference between method lists
- * that are "free standing" and those that "attached" to classes.
- * For "free standing" method lists (e.g. created with GSAllocMethodList()
- * that have not been added to a class or those which have been removed
- * via GSRemoveMethodList()) isFree must be passed YES.
- * When manipulating "attached" method lists, specify NO.</p>
- * <p>This function is intended for use in conjunction with
- * GSAllocMethodList() to allocate the list and GSAddMethodList()
- * to activate the method list. </p>
- * <p>After method list manipulation you should call
- * GSFlushMethodCacheForClass() for the changes to take effect.</p>
- * <p><em>WARNING:</em> Manipulating the runtime structures
- * can be hazardous!</p>
- * <p>This function should currently (June 2004) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.</p>
- */
-void
-GSAppendMethodToList (GSMethodList list,
-		      SEL sel,
-		      const char *types,
-		      IMP imp,
-		      BOOL isFree);
-
-/**
- * <p>Removes the method identified by sel
- * from the method list moving the following methods up in the list,
- * leaving the last entry blank.  After this call, all references
- * of previous GSMethodFromList() calls with this list should be
- * considered invalid.  If the values they referenced are needed, they
- * must be copied to external buffers before this function is called.</p>
- * <p>Returns YES if the a matching method was found a removed,
- * NO otherwise.</p>
- * <p>The GNU runtime makes a difference between method lists
- * that are "free standing" and those that "attached" to classes.
- * For "free standing" method lists (e.g. created with GSAllocMethodList()
- * that have not been added to a class or those which have been removed
- * via GSRemoveMethodList()) isFree must be passed YES.
- * When manipulating "attached" method lists, specify NO.</p>
- * <p>After method list manipulation you should call
- * GSFlushMethodCacheForClass() for the changes to take effect.</p>
- * <p><em>WARNING:</em> Manipulating the runtime structures
- * can be hazardous!</p>
- * <p>This function should currently (June 2004) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.</p>
- */
-BOOL
-GSRemoveMethodFromList (GSMethodList list,
-			SEL sel,
-			BOOL isFree);
-
-/**
- * <p>Returns a method list of the class that contains the selector.
- * Depending on searchInstanceMethods either instance or class methods
- * are searched.
- * Returns NULL if none are found.
- * This function does not search the superclasses method lists.
- * Call this method with the address of a <code>void *</code>
- * pointing to NULL to obtain the first (active) method list
- * containing the selector.
- * Subsequent calls will return further method lists which contain the
- * selector.  If none are found, it returns NULL.
- * You may instead pass NULL as the iterator in which case the first
- * method list containing the selector will be returned.
- * Do not call it with an uninitialized iterator.
- * If either class or selector are NULL the function returns NULL.
- * If subsequent calls to this function with the same non-NULL iterator yet
- * different searchInstanceMethods value are called, the behavior
- * is undefined.</p>
- * <p>This function should currently (June 2004) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.</p>
- */
-GSMethodList
-GSMethodListForSelector(Class cls,
-			SEL selector,
-			void **iterator,
-			BOOL searchInstanceMethods);
-
-/**
- * <p>Returns the (first) GSMethod contained in the supplied list
- * that corresponds to sel.
- * Returns NULL if none is found.</p>
- * <p>The GNU runtime makes a difference between method lists
- * that are "free standing" and those that "attached" to classes.
- * For "free standing" method lists (e.g. created with GSAllocMethodList()
- * that have not been added to a class or those which have been removed
- * via GSRemoveMethodList()) isFree must be passed YES.
- * When manipulating "attached" method lists, specify NO.</p>
- */
-GSMethod
-GSMethodFromList(GSMethodList list,
-		 SEL sel,
-		 BOOL isFree);
-
-/**
- * <p>Add the method list to the class as the first list to be
- * searched during method invocation for the given class.
- * Depending on toInstanceMethods, this list will be added as 
- * an instance or a class method list.
- * If the list is in use by another class, behavior is undefined.
- * Create a new list with GSAllocMethodList() or use GSRemoveMethodList()
- * to remove a list before inserting it in a class.</p>
- * <p>After method list manipulation you should call
- * GSFlushMethodCacheForClass() for the changes to take effect.</p>
- * <p>This function should currently (June 2004) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.</p>
- */
-void
-GSAddMethodList(Class cls,
-		GSMethodList list,
-		BOOL toInstanceMethods);
-
-/**
- * <p>Removes the method list from the classes instance or class method
- * lists depending on fromInstanceMethods.
- * If the list is not part of the class, behavior is undefined.</p>
- * <p>After method list manipulation you should call
- * GSFlushMethodCacheForClass() for the changes to take effect.</p>
- * <p>This function should currently (June 2004) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.</p>
- */
-void
-GSRemoveMethodList(Class cls,
-		   GSMethodList list,
-		   BOOL fromInstanceMethods);
-
 
 /**
  * GSObjCVersion() is deprecated ... use class_getVersion()
  */
 GS_EXPORT int GSObjCVersion(Class cls);
 
-#ifndef NeXT_Foundation_LIBRARY
-#include	<Foundation/NSZone.h>
-#else
-#include <Foundation/Foundation.h>
-#endif
-
+#import <Foundation/NSZone.h>
 /**
  * GSObjCZone() is deprecated ... use  -zone
  */
