@@ -788,12 +788,41 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
   Method	*methods;
   Class behavior_super_class = class_getSuperclass(behavior);
 
-  NSCAssert(NO == class_isMetaClass(receiver), NSInvalidArgumentException);
-  NSCAssert(NO == class_isMetaClass(behavior), NSInvalidArgumentException);
+  if (YES == class_isMetaClass(receiver))
+    {
+      fprintf(stderr, "Trying to add behavior (%s) to meta class (%s)\n",
+	class_getName(behavior), class_getName(receiver));
+      abort();
+    }
+  if (YES == class_isMetaClass(behavior))
+    {
+      fprintf(stderr, "Trying to add meta class as behavior (%s) to (%s)\n",
+	class_getName(behavior), class_getName(receiver));
+      abort();
+    }
+  if (class_getInstanceSize(receiver) < class_getInstanceSize(behavior))
+    {
+      const char *b = class_getName(behavior);
+      const char *r = class_getName(receiver);
 
-  NSCAssert2(class_getInstanceSize(receiver) < class_getInstanceSize(behavior),
-    @"Trying to add behavior (%s) with instance size larger than class (%s)",
-    class_getName(behavior), class_getName(receiver));
+#ifdef NeXT_Foundation_LIBRARY
+      fprintf(stderr, "Trying to add behavior (%s) with instance "
+	"size larger than class (%s)\n", b, r);
+      abort();
+#else
+      /* As a special case we allow adding GSString/GSCString to the
+       * constant string class ... since we know the base library
+       * takes care not to access non-existent instance variables.
+       */
+      if ((strcmp(b, "GSCString") && strcmp(b, "GSString"))
+        || (strcmp(r, "NSConstantString") && strcmp(r, "NXConstantString")))
+	{
+	  fprintf(stderr, "Trying to add behavior (%s) with instance "
+	    "size larger than class (%s)\n", b, r);
+          abort();
+	}
+#endif
+    }
 
   BDBGPrintf("Adding behavior to class %s\n", class_getName(receiver));
   BDBGPrintf("  instance methods from %s\n", class_getName(behavior));
