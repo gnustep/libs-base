@@ -77,15 +77,6 @@ NSString * const NSStreamSOCKSProxyVersion5
 NSString * const NSStreamSOCKSProxyVersionKey
   = @"NSStreamSOCKSProxyVersionKey";
 
-NSString * const GSStreamLocalAddressKey
-  = @"GSStreamLocalAddressKey";
-NSString * const GSStreamLocalPortKey
-  = @"GSStreamLocalPortKey";
-NSString * const GSStreamRemoteAddressKey
-  = @"GSStreamRemoteAddressKey";
-NSString * const GSStreamRemotePortKey
-  = @"GSStreamRemotePortKey";
-
 
 /*
  * Determine the type of event to use when adding a stream to the run loop.

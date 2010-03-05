@@ -54,6 +54,7 @@ Additions_OBJC_FILES =\
 	NSNumber+GNUstepBase.m \
 	NSObject+GNUstepBase.m \
 	NSProcessInfo+GNUstepBase.m \
+	NSStream+GNUstepBase.m \
 	NSString+GNUstepBase.m \
 	NSTask+GNUstepBase.m \
 	NSThread+GNUstepBase.m \
