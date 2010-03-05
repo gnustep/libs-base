@@ -619,7 +619,7 @@ failure:
       return nil;
     }
 #else
-  if (readContentsOfFile(path, &fileBytes, &fileLength, GSObjCZone(self)) == NO)
+  if (readContentsOfFile(path, &fileBytes, &fileLength, [self zone]) == NO)
     {
       DESTROY(self);
       return nil;
@@ -639,7 +639,7 @@ failure:
 - (id) initWithContentsOfMappedFile: (NSString *)path
 {
 #ifdef	HAVE_MMAP
-  NSZone	*z = GSObjCZone(self);
+  NSZone	*z = [self zone];
   DESTROY(self);
   self = [NSDataMappedFile allocWithZone: z];
   return [self initWithContentsOfMappedFile: path];
@@ -1911,7 +1911,7 @@ failure:
 #if	GS_WITH_GC
           b = NSAllocateCollectable(l, 0);
 #else
-          b = NSZoneMalloc(GSObjCZone(self), l);
+          b = NSZoneMalloc([self zone], l);
 #endif
           if (b == 0)
             {
@@ -3292,7 +3292,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #if	GS_WITH_GC
       bytes = NSAllocateCollectable(size, 0);
 #else
-      zone = GSObjCZone(self);
+      zone = [self zone];
       bytes = NSZoneMalloc(zone, size);
 #endif
       if (bytes == 0)

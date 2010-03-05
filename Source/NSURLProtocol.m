@@ -442,7 +442,7 @@ static NSURLProtocol	*placeholder = nil;
     {
       if (isa != abstractClass)
 	{
-	  _NSURLProtocolInternal = NSZoneCalloc(GSObjCZone(self),
+	  _NSURLProtocolInternal = NSZoneCalloc([self zone],
 	    1, sizeof(Internal));
 	}
     }

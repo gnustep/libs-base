@@ -56,8 +56,6 @@ typedef float           CGFloat;
 #define NSINTEGER_DEFINED 1
 #define CGFLOAT_DEFINED 1
 
-#import	<GNUstepBase/GSObjCRuntime.h>
-
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -80,6 +78,8 @@ enum
 /** Bitfield used to specify options to control enumeration over collections.
  */
 typedef NSUInteger NSEnumerationOptions;
+
+#include <GNUstepBase/GSObjCRuntime.h>
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
 GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);

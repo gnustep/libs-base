@@ -97,10 +97,10 @@ typeSize(const char* type)
 	}
       if (size > 0)
 	{
-	  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
+	  data = (void *)NSZoneMalloc([self zone], size);
 	  memcpy(data, value, size);
 	}
-      objctype = (char *)NSZoneMalloc(GSObjCZone(self), strlen(type)+1);
+      objctype = (char *)NSZoneMalloc([self zone], strlen(type)+1);
       strcpy(objctype, type);
     }
   return self;
@@ -109,9 +109,9 @@ typeSize(const char* type)
 - (void) dealloc
 {
   if (objctype != 0)
-    NSZoneFree(GSObjCZone(self), objctype);
+    NSZoneFree([self zone], objctype);
   if (data != 0)
-    NSZoneFree(GSObjCZone(self), data);
+    NSZoneFree([self zone], data);
   [super dealloc];
 }
 

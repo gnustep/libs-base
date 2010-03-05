@@ -391,7 +391,7 @@ static NSLock			*placeholderLock;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
   size = objc_sizeof_type(objctype);
-  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
+  data = (void *)NSZoneMalloc([self zone], size);
   [self getValue: (void*)data];
   d = [NSMutableData new];
   [d serializeDataAt: data ofObjCType: objctype context: nil];
@@ -609,7 +609,7 @@ static NSLock			*placeholderLock;
 {
   Class		c = [abstractClass valueClassWithObjCType: type];
 
-  self = (id)NSAllocateObject(c, 0, GSObjCZone(self));
+  self = (id)NSAllocateObject(c, 0, [self zone]);
   return [self initWithBytes: data objCType: type];
 }
 

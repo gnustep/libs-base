@@ -1,5 +1,26 @@
 2010-03-05 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSArray.m:
+	* Source/GSDictionary.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSNotificationCenter.m:
+	* Source/GSAttributedString.m:
+	* Source/NSURL.m:
+	* Source/NSObject.m:
+	* Source/NSString.m:
+	* Source/Additions/NSAttributedString+GNUstepBase.m:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/GSString.m:
+	* Source/NSData.m:
+	* Source/GSValue.m:
+	* Source/NSValue.m:
+	* Source/NSArchiver.m:
+	* Source/NSURLConnection.m:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Remove reference to GSObjCZone and use -zone instead.
+
+2010-03-05 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
 	* Source/Additions/GSObjCRuntime.m:
 	Old 'experimental/work-in-progress' functions mostly removed ...

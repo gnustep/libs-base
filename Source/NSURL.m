@@ -1115,7 +1115,7 @@ static unsigned	urlAlign;
   if (_data != 0)
     {
       DESTROY(myData->absolute);
-      NSZoneFree(GSObjCZone(self), _data);
+      NSZoneFree([self zone], _data);
       _data = 0;
     }
   DESTROY(_urlString);

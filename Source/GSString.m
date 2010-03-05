@@ -485,7 +485,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 #if	GS_WITH_GC
 	  chars = NSAllocateCollectable(length, 0);
 #else
-	  chars = NSZoneMalloc(GSObjCZone(self), length);
+	  chars = NSZoneMalloc([self zone], length);
 #endif
 	  memcpy(chars, bytes, length);
 	}
@@ -595,7 +595,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
       if (GSPrivateIsCollectable(chars.c) == NO)
 	{
           me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
-	    GSObjCZone(self));
+	    [self zone]);
           me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
           me->_count = length;
           me->_flags.wide = 0;
@@ -605,7 +605,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
           return (id)me;
 	}
 #endif
-      me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, GSObjCZone(self));
+      me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, [self zone]);
       me->_contents.c = chars.c;
       me->_count = length;
       me->_flags.wide = 0;
@@ -622,7 +622,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
       unsigned	l = 0;
 
       if (GSToUnicode(&u, &l, chars.c, length, encoding,
-	GSObjCZone(self), 0) == NO)
+	[self zone], 0) == NO)
 	{
 	  if (flag == YES && chars.c != 0)
 	    {
@@ -653,7 +653,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     || (internalEncoding == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
       me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
-	GSObjCZone(self));
+	[self zone]);
       me->_contents.c = (unsigned char*)
         (((void*)me)+class_getInstanceSize(GSCInlineStringClass));
       me->_count = length;
@@ -677,7 +677,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
       if (GSPrivateIsCollectable(chars.u) == NO)
 	{
           me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass, length,
-	    GSObjCZone(self));
+	    [self zone]);
           me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
           me->_count = length;
           me->_flags.wide = 1;
@@ -688,7 +688,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 	}
 #endif
       me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass,
-	0, GSObjCZone(self));
+	0, [self zone]);
       me->_contents.u = chars.u;
       me->_count = length;
       me->_flags.wide = 1;
@@ -787,7 +787,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   if (f->_flags.wide == 1)
     {
       me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
-	f->_count*sizeof(unichar), GSObjCZone(self));
+	f->_count*sizeof(unichar), [self zone]);
       me->_contents.u = (unichar*)
         (((void*)me)+class_getInstanceSize(GSUnicodeInlineStringClass));
       me->_count = f->_count;
@@ -798,7 +798,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   else
     {
       me = (GSStr)NSAllocateObject(GSCInlineStringClass, f->_count,
-	GSObjCZone(self));
+	[self zone]);
       me->_contents.c = (unsigned char*)
         (((void*)me)+class_getInstanceSize(GSCInlineStringClass));
       me->_count = f->_count;
@@ -846,7 +846,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        * GSMutableString, we can copy the bytes directly into a GSCString.
        */
       me = (GSStr)NSAllocateObject(GSCInlineStringClass,
-	length, GSObjCZone(self));
+	length, [self zone]);
       me->_contents.c = (unsigned char*)
         (((void*)me)+class_getInstanceSize(GSCInlineStringClass));
       me->_count = length;
@@ -862,7 +862,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        * we can copy the bytes directly into a GSUnicodeString.
        */
       me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
-	length*sizeof(unichar), GSObjCZone(self));
+	length*sizeof(unichar), [self zone]);
       me->_contents.u = (unichar*)
         (((void*)me)+class_getInstanceSize(GSUnicodeInlineStringClass));
       me->_count = length;
@@ -878,7 +878,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        * having the string copy its content directly into our buffer.
        */
       me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
-	length*sizeof(unichar), GSObjCZone(self));
+	length*sizeof(unichar), [self zone]);
       me->_contents.u = (unichar*)
         (((void*)me)+class_getInstanceSize(GSUnicodeInlineStringClass));
       me->_count = length;
@@ -2358,7 +2358,7 @@ static void GSStrMakeSpace(GSStr s, unsigned size)
 #if	GS_WITH_GC
 	  s->_zone = GSAtomicMallocZone();
 #else
-          s->_zone = GSObjCZone((NSString*)s);
+          s->_zone = [(NSString*)s zone];
 #endif
 	}
       if (s->_flags.wide == 1)
@@ -2419,7 +2419,7 @@ static void GSStrWiden(GSStr s)
 #if GS_WITH_GC
       s->_zone = GSAtomicMallocZone();
 #else
-      s->_zone = GSObjCZone((NSString*)s);
+      s->_zone = [(NSString*)s zone];
 #endif
     }
 
@@ -2897,7 +2897,7 @@ transmute(GSStr self, NSString *aString)
 {
   if (length > 0)
     {
-      void	*tmp = NSZoneMalloc(GSObjCZone(self), length);
+      void	*tmp = NSZoneMalloc([self zone], length);
 
       memcpy(tmp, chars, length);
       chars = tmp;
@@ -3670,7 +3670,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 #if	GS_WITH_GC
       _zone = GSAtomicMallocZone();
 #else
-      _zone = GSObjCZone(self);
+      _zone = [self zone];
 #endif
     }
   GSPrivateFormat((GSStr)self, fmt, ap, nil);
@@ -3949,7 +3949,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 #if	GS_WITH_GC
   _zone = GSAtomicMallocZone();
 #else
-  _zone = GSObjCZone(self);
+  _zone = [self zone];
 #endif
 
   if (length > 0)
@@ -4118,7 +4118,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 #if	GS_WITH_GC
   _zone = GSAtomicMallocZone();
 #else
-  _zone = GSObjCZone(self);
+  _zone = [self zone];
 #endif
   _contents.c = NSZoneMalloc(_zone, capacity + 1);
   _flags.wide = 0;
