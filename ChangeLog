@@ -1,5 +1,12 @@
 2010-03-05 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSCompatibility.h:
+	* Source/Additions/GSCompatibility.m:
+	* Source/Additions/GSNextRuntime.m:
+	Remove obsolete OSX compatibility files.
+
+2010-03-05 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSArray.m:
 	* Source/GSDictionary.m:
 	* Source/NSURLProtocol.m:
