@@ -139,8 +139,6 @@ GNUstep.h \
 GSBlocks.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
-GSCategories.h \
-GSFileHandle.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \

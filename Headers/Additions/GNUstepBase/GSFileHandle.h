@@ -36,6 +36,11 @@
 #include <zlib.h>
 #endif
 
+/**
+ * DO NOT USE ... this header is here only for the SSL file handle support
+ * and is not intended to be used by anyone else ... it is subject to
+ * change or removal without warning.
+ */
 @interface GSFileHandle : NSFileHandle <RunLoopEvents>
 {
 #if	GS_EXPOSE(GSFileHandle)
@@ -63,9 +68,6 @@
 #if	defined(__MINGW32__)
   WSAEVENT  		event;
 #endif
-#endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
 #endif
 }
 

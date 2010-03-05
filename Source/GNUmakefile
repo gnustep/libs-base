@@ -109,7 +109,6 @@ ADD_HEADERS = \
 GSBlocks.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
-GSCategories.h \
 GSFileHandle.h \
 GSUnion.h \
 GSIArray.h \
