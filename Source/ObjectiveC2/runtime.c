@@ -994,6 +994,7 @@ objc_registerClassPair(Class cls)
   __objc_resolve_class_links();
 }
 
+/*
 static id
 objectNew(id cls)
 {
@@ -1007,15 +1008,39 @@ objectNew(id cls)
   newIMP = (IMP) objc_msg_lookup((void *) cls, newSel);
   return newIMP((id) cls, newSel);
 }
+*/
 
 Protocol *
 objc_getProtocol(const char *name)
 {
-  // Protocols are not centrally registered in the GNU runtime.
-  Protocol *protocol = (Protocol *) (objectNew(objc_getClass("Protocol")));
+  Protocol *p = NULL;
+  Class cls;
+  void *iterator = NULL;
 
-  protocol->protocol_name = (char *) name;
-  return protocol;
+  /* Protocols are not centrally registered in the GNU runtime.
+   * So we just find the first match we can.
+   */
+
+  while (p == NULL && (cls = objc_next_class(&iterator)))
+    {
+      struct objc_protocol_list *pcllist = cls->protocols;
+      size_t i;
+
+      while (pcllist != NULL)
+	{
+	  for (i = 0; i < pcllist->count; i++)
+	    {
+	      if (strcmp(pcllist->list[i]->protocol_name, name) == 0)
+		{
+		  p = (Protocol*)pcllist->list[i];
+		  break;
+		}
+	    }
+	  pcllist = pcllist->next;
+	}
+    }
+
+  return p;
 }
 
 BOOL

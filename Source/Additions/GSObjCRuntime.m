@@ -652,63 +652,6 @@ gs_string_hash(const char *s)
   return val;
 }
 
-static inline Protocol *
-gs_find_protocol_named_in_protocol_list(const char *name,
-  struct objc_protocol_list *pcllist)
-{
-  Protocol *p = NULL;
-  size_t i;
-
-  while (pcllist != NULL)
-    {
-      for (i = 0; i < pcllist->count; i++)
-	{
-	  p = (Protocol*)pcllist->list[i];
-	  if (strcmp([p name], name) == 0)
-	    {
-	      return p;
-	    }
-	}
-      pcllist = pcllist->next;
-    }
-  return NULL;
-}
-
-static inline Protocol *
-gs_find_protocol_named(const char *name)
-{
-  Protocol *p = NULL;
-  Class cls;
-#ifdef NeXT_RUNTIME
-  Class *clsList, *clsListStart;
-  unsigned int num;
-
-  /* Setting the clearCache flag is a noop for the Apple runtime.  */
-  num = GSClassList(NULL, 0, NO);
-  clsList = malloc(sizeof(Class) * (num + 1));
-  GSClassList(clsList, num, NO);
-
-  clsListStart = clsList;
-
-  while (p == NULL && (cls = *clsList++))
-    {
-      p = gs_find_protocol_named_in_protocol_list(name, cls->protocols);
-    }
-
-  free(clsListStart);
-
-#else
-  void *iterator = NULL;
-
-  while (p == NULL && (cls = objc_next_class(&iterator)))
-    {
-      p = gs_find_protocol_named_in_protocol_list(name, cls->protocols);
-    }
-
-#endif
-  return p;
-}
-
 #define GSI_MAP_HAS_VALUE 1
 #define GSI_MAP_RETAIN_KEY(M, X)
 #define GSI_MAP_RETAIN_VAL(M, X)
@@ -794,7 +737,7 @@ GSProtocolFromName(const char *name)
 	}
       else
 	{
-	  p = gs_find_protocol_named(name);
+	  p = objc_getProtocol(name);
 	  if (p)
 	    {
 	      /* Use the protocol's name to save us from allocating
