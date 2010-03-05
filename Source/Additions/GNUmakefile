@@ -60,14 +60,6 @@ Additions_OBJC_FILES =\
 	NSURL+GNUstepBase.m \
 
 
-ifneq ($(OBJC_RUNTIME_LIB), gnu)
-  ifneq ($(OBJC_RUNTIME_LIB), gnugc)
-    Additions_OBJC_FILES += GSNextRuntime.m
-  endif
-endif
-ifneq ($(FOUNDATION_LIB), gnu)
-Additions_OBJC_FILES += GSCompatibility.m
-endif
 Additions_OBJC_FILES += Unicode.m
 
 -include Makefile.preamble
