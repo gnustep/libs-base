@@ -29,8 +29,8 @@
 
    */
 
-#include "Foundation/NSObject.h"
-#include "Foundation/NSString.h"
+#import "Foundation/NSObject.h"
+#include <stdio.h>
 
 @class	NSArray;
 @class	NSCharacterSet;

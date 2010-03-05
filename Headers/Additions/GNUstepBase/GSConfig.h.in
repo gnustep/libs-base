@@ -4,7 +4,7 @@
    file GSConfig.h.in - changes/fixes need to be made to the original file,
    not to the GSConfig.h generated from it.
 
-   Copyright (C) 1998,1999 Free Software Foundation, Inc.
+   Copyright (C) 1998-2010 Free Software Foundation, Inc.
 
    Written by:  Richard frith-Macdonald <richard@brainstorm.co.uk>
 
@@ -28,6 +28,8 @@
 
 #ifndef	included_GSConfig_h
 #define	included_GSConfig_h
+
+#if !defined(NeXT_Foundation_LIBRARY)
 
 /* An alternate to GS_FAKE_MAIN which forces the user to call the 
    NSProcessInfo initialization in 'main', GS_FAKE_MAIN must also
@@ -81,7 +83,7 @@
 extern int gnustep_base_user_main (/* int argc, char *argv[] */);
 
 #endif	/* GS_FAKE_MAIN */
-
+#endif
 
 /*
  * Definition to specify if your processor stores words with the most
