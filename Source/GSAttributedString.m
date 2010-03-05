@@ -324,7 +324,7 @@ _setAttributesFrom(
   NSRange aRange,
   NSMutableArray *_infoArray)
 {
-  NSZone	*z = GSObjCZone(_infoArray);
+  NSZone	*z = [_infoArray zone];
   NSRange	range;
   NSDictionary	*attr;
   GSAttrInfo	*info;
@@ -459,7 +459,7 @@ _attributesAtIndexEffectiveRange(
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
-  NSZone	*z = GSObjCZone(self);
+  NSZone	*z = [self zone];
 
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
@@ -560,7 +560,7 @@ _attributesAtIndexEffectiveRange(
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
-  NSZone	*z = GSObjCZone(self);
+  NSZone	*z = [self zone];
 
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
@@ -629,7 +629,7 @@ SANITY();
   NSRange	effectiveRange;
   unsigned	afterRangeLoc, beginRangeLoc;
   NSDictionary	*attrs;
-  NSZone	*z = GSObjCZone(self);
+  NSZone	*z = [self zone];
   GSAttrInfo	*info;
 
   if (range.length == 0)

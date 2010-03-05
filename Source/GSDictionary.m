@@ -171,7 +171,7 @@ static SEL	objSel;
       [aCoder decodeValueOfObjCType: @encode(unsigned)
 	                         at: &count];
 
-      GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
+      GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
       while (count-- > 0)
         {
 	  (*imp)(aCoder, sel, type, &key);
@@ -187,7 +187,7 @@ static SEL	objSel;
 {
   unsigned int	i;
 
-  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
   for (i = 0; i < c; i++)
     {
       GSIMapNode	node;
@@ -226,7 +226,7 @@ static SEL	objSel;
 - (id) initWithDictionary: (NSDictionary*)other
 		copyItems: (BOOL)shouldCopy
 {
-  NSZone	*z = GSObjCZone(self);
+  NSZone	*z = [self zone];
   unsigned	c = [other count];
 
   GSIMapInitWithZoneAndCapacity(&map, z, c);
@@ -388,7 +388,7 @@ static SEL	objSel;
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), cap);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
 }
 

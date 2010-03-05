@@ -70,7 +70,7 @@ static Class concrete = 0;
   GSNotification	*n;
 
   n = (GSNotification*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  n->_name = [name copyWithZone: GSObjCZone(self)];
+  n->_name = [name copyWithZone: [self zone]];
   n->_object = TEST_RETAIN(object);
   n->_info = TEST_RETAIN(info);
   return AUTORELEASE(n);
@@ -85,7 +85,7 @@ static Class concrete = 0;
       return [self retain];
     }
   n = (GSNotification*)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
-  n->_name = [_name copyWithZone: GSObjCZone(self)];
+  n->_name = [_name copyWithZone: [self zone]];
   n->_object = TEST_RETAIN(_object);
   n->_info = TEST_RETAIN(_info);
   return n;
@@ -1214,7 +1214,7 @@ static NSNotificationCenter *default_center = nil;
   GSNotification	*notification;
 
   notification = (id)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
-  name = notification->_name = [name copyWithZone: GSObjCZone(self)];
+  name = notification->_name = [name copyWithZone: [self zone]];
   object = notification->_object = TEST_RETAIN(object);
   notification->_info = TEST_RETAIN(info);
   [self _postAndRelease: notification];

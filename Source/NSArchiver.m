@@ -107,7 +107,7 @@ static Class	NSMutableDataMallocClass;
 {
   NSMutableData	*d;
 
-  d = [[NSMutableDataMallocClass allocWithZone: GSObjCZone(self)] init];
+  d = [[NSMutableDataMallocClass allocWithZone: [self zone]] init];
   self = [self initForWritingWithMutableData: d];
   RELEASE(d);
   return self;

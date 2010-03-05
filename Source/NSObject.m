@@ -525,6 +525,7 @@ NSIncrementExtraRefCount(id anObject)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
+  GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
   /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
    */
   return NSDefaultMallocZone();
@@ -601,6 +602,7 @@ NSDeallocateObject(id anObject)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
+  GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
   if (object_getClass(object) == NSConstantStringClass)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
@@ -636,7 +638,7 @@ NSDeallocateObject(id anObject)
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
       obj	o = &((obj)anObject)[-1];
-      NSZone	*z = GSObjCZone(anObject);
+      NSZone	*z = o->zone;
 
       AREM(((id)anObject)->class_pointer, (id)anObject);
       if (NSZombieEnabled == YES)
@@ -701,7 +703,7 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
   return YES;
 #else
   return (!requestedZone || requestedZone == NSDefaultMallocZone()
-    || GSObjCZone(anObject) == requestedZone);
+    || [anObject zone] == requestedZone);
 #endif
 }
 
@@ -1986,7 +1988,13 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (NSZone*) zone
 {
-  return GSObjCZone(self);
+#if	GS_WITH_GC
+  /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
+   */
+  return NSDefaultMallocZone();
+#else
+  return (((obj)self)[-1]).zone;
+#endif
 }
 
 /**

@@ -900,7 +900,7 @@ handle_printf_atsign (FILE *stream,
 #if	GS_WITH_GC
       buf = NSAllocateCollectable(length, 0);
 #else
-      buf = NSZoneMalloc(GSObjCZone(self), length);
+      buf = NSZoneMalloc([self zone], length);
 #endif
       memcpy(buf, bytes, length);
       return [self initWithBytesNoCopy: buf
@@ -1023,7 +1023,7 @@ handle_printf_atsign (FILE *stream,
 
   if (length > 0)
     {
-      unichar	*s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
+      unichar	*s = NSZoneMalloc([self zone], sizeof(unichar)*length);
 
       [string getCharacters: s range: ((NSRange){0, length})];
       self = [self initWithCharactersNoCopy: s
@@ -1520,7 +1520,7 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	len = [self length];
   unsigned	otherLength = [aString length];
-  NSZone	*z = GSObjCZone(self);
+  NSZone	*z = [self zone];
   unichar	*s = NSZoneMalloc(z, (len+otherLength)*sizeof(unichar));
   NSString	*tmp;
 
@@ -1688,7 +1688,7 @@ handle_printf_atsign (FILE *stream,
 
   if (aRange.length == 0)
     return @"";
-  buf = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*aRange.length);
+  buf = NSZoneMalloc([self zone], sizeof(unichar)*aRange.length);
   [self getCharacters: buf range: aRange];
   ret = [[NSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: buf length: aRange.length freeWhenDone: YES];
@@ -2418,7 +2418,7 @@ handle_printf_atsign (FILE *stream,
   if (whitespaceBitmapRep == NULL)
     setupWhitespace();
 
-  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc([self zone], sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
   while (count < len)
     {
@@ -2482,7 +2482,7 @@ handle_printf_atsign (FILE *stream,
     {
       return IMMUTABLE(self);
     }
-  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc([self zone], sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
   for (count = start.location; count < len; count++)
     {
@@ -2519,7 +2519,7 @@ handle_printf_atsign (FILE *stream,
     {
       return IMMUTABLE(self);
     }
-  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc([self zone], sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
   for (count = start.location; count < len; count++)
     {
@@ -4631,7 +4631,7 @@ static NSFileManager *fm = nil;
 #if	GS_WITH_GC
 	  zone = GSAtomicMallocZone();
 #else
-	  zone = GSObjCZone(self);
+	  zone = [self zone];
 #endif
 	
 	  if (enc == NSUnicodeStringEncoding)

@@ -23,6 +23,7 @@
 
 */
 #import "common.h"
+#import "Foundation/NSDebug.h"
 #import "Foundation/NSException.h"
 #import "GNUstepBase/NSAttributedString+GNUstepBase.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"

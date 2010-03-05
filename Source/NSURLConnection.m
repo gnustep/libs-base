@@ -190,7 +190,7 @@ typedef struct
       o->_NSURLConnectionInternal
 	= NSAllocateCollectable(sizeof(Internal), NSScannedOption);
 #else
-      o->_NSURLConnectionInternal = NSZoneCalloc(GSObjCZone(self),
+      o->_NSURLConnectionInternal = NSZoneCalloc([self zone],
 	1, sizeof(Internal));
 #endif
     }

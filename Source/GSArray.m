@@ -1140,14 +1140,14 @@ static Class	GSInlineArrayClass;
       GSArray	*a;
 
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
-      a = (id)NSAllocateObject(GSArrayClass, 0, GSObjCZone(self));
+      a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
       a->_contents_array = NSAllocateCollectable(sizeof(id)*c, NSScannedOption);
 #else
       GSInlineArray	*a;
 
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
       a = (id)NSAllocateObject(GSInlineArrayClass,
-	sizeof(id)*c, GSObjCZone(self));
+	sizeof(id)*c, [self zone]);
       a->_contents_array
         = (id*)(((void*)a) + class_getInstanceSize([a class]));
 #endif
@@ -1165,10 +1165,10 @@ static Class	GSInlineArrayClass;
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
 #if	GS_WITH_GC
-  self = (id)NSAllocateObject(GSArrayClass, 0, GSObjCZone(self));
+  self = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
 #else
   self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count,
-    GSObjCZone(self));
+    [self zone]);
 #endif
   return [self initWithObjects: objects count: count];
 }

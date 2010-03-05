@@ -32,7 +32,6 @@
 #ifndef __Unicode_h_OBJECTS_INCLUDE
 #define __Unicode_h_OBJECTS_INCLUDE
 #include <GNUstepBase/GSVersionMacros.h>
-#include <GNUstepBase/GSObjCRuntime.h>
 
 #import <Foundation/NSString.h>	/* For standard string encodings */
 

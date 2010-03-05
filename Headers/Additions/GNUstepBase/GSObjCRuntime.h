@@ -47,42 +47,10 @@
 #include <ObjectiveC2/runtime.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdarg.h>
 
-#ifdef GNUSTEP_WITH_DLL
- 
-#if BUILD_libgnustep_base_DLL
-#
-# if defined(__MINGW32__)
-  /* On Mingw, the compiler will export all symbols automatically, so
-   * __declspec(dllexport) is not needed.
-   */
-#  define GS_EXPORT  extern
-#  define GS_DECLARE 
-# else
-#  define GS_EXPORT  __declspec(dllexport)
-#  define GS_DECLARE __declspec(dllexport)
-# endif
-#else
-#  define GS_EXPORT  extern __declspec(dllimport)
-#  define GS_DECLARE __declspec(dllimport)
-#endif
- 
-#else /* GNUSTEP_WITH[OUT]_DLL */
-
-#  define GS_EXPORT extern
-#  define GS_DECLARE 
-
-#endif
-
-#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
-#define GS_ATTRIB_DEPRECATED __attribute__ ((deprecated))
-#else
-#define GS_ATTRIB_DEPRECATED
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 @class	NSArray;
@@ -345,13 +313,6 @@ GSObjCGetInstanceVariableDefinition(Class cls, NSString *name);
  * GSObjCVersion() is deprecated ... use class_getVersion()
  */
 GS_EXPORT int GSObjCVersion(Class cls);
-
-#import <Foundation/NSZone.h>
-/**
- * GSObjCZone() is deprecated ... use  -zone
- */
-GS_EXPORT NSZone *
-GSObjCZone(NSObject *obj);
 
 /**
  * Quickly return autoreleased data storage area.

@@ -206,4 +206,40 @@
 
 #define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
 
+
+
+
+#if	defined(GNUSTEP_WITH_DLL)
+ 
+#if BUILD_libgnustep_base_DLL
+#
+# if defined(__MINGW32__)
+  /* On Mingw, the compiler will export all symbols automatically, so
+   * __declspec(dllexport) is not needed.
+   */
+#  define GS_EXPORT  extern
+#  define GS_DECLARE 
+# else
+#  define GS_EXPORT  __declspec(dllexport)
+#  define GS_DECLARE __declspec(dllexport)
+# endif
+#else
+#  define GS_EXPORT  extern __declspec(dllimport)
+#  define GS_DECLARE __declspec(dllimport)
+#endif
+ 
+#else /* GNUSTEP_WITH[OUT]_DLL */
+
+#  define GS_EXPORT extern
+#  define GS_DECLARE 
+
+#endif
+
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#define GS_ATTRIB_DEPRECATED __attribute__ ((deprecated))
+#else
+#define GS_ATTRIB_DEPRECATED
+#endif
+
+
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */
