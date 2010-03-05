@@ -33,6 +33,7 @@
 #include <GNUstepBase/GSVersionMacros.h>
 #include <GNUstepBase/GSConfig.h>
 
+#include <stdio.h>
 #include <objc/objc.h>
 #include <objc/objc-api.h>
 
