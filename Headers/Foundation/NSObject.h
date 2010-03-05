@@ -22,7 +22,6 @@
    Boston, MA 02111 USA.
 
    AutogsdocSource: NSObject.m
-   AutogsdocSource: Additions/GSCategories.m
    */ 
 
 #ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
