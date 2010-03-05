@@ -1026,7 +1026,7 @@ objc_getProtocol(const char *name)
       struct objc_protocol_list *pcllist = cls->protocols;
       size_t i;
 
-      while (pcllist != NULL)
+      while (p == NULL && pcllist != NULL)
 	{
 	  for (i = 0; i < pcllist->count; i++)
 	    {
