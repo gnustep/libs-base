@@ -116,8 +116,65 @@ GSObjCMethodNames(id obj, BOOL recurse);
 GS_EXPORT NSArray *
 GSObjCVariableNames(id obj, BOOL recurse);
 
+/**
+ * <p>A Behavior can be seen as a "Protocol with an implementation" or a
+ * "Class without any instance variables".  A key feature of behaviors
+ * is that they give a degree of multiple inheritance.
+ * </p>
+ * <p>Behavior methods, when added to a class, override the class's
+ * superclass methods, but not the class's methods.
+ * </p>
+ * <p>Whan a behavior class is added to a receiver class, not only are the
+ * methods defined in the behavior class added, but the methods from the
+ * behavior's class hierarchy are also added (unless already present).
+ * </p>
+ * <p>It's not the case that a class adding behaviors from another class
+ * must have "no instance vars".  The receiver class just has to have the
+ * same layout as the behavior class (optionally with some additional
+ * ivars after those of the behavior class).
+ * </p>
+ * <p>This function provides Behaviors without adding any new syntax to
+ * the Objective C language.  Simply define a class with the methods you
+ * want to add, then call this function with that class as the behavior
+ * argument.
+ * </p>
+ * <p>This function should be called in the +initialize method of the receiver.
+ * </p>
+ * <p>If you add several behaviors to a class, be aware that the order of
+ * the additions is significant.
+ * </p>
+ */
 GS_EXPORT void
 GSObjCAddClassBehavior(Class receiver, Class behavior);
+
+/**
+ * <p>An Override can be seen as a "category implemented as a separate class
+ * and manually added to the receiver class under program control, rather
+ * than automatically added by the compiler/runtime.
+ * </p>
+ * <p>Override methods, when added to a receiver class, replace the class's
+ * class's methods of the same name (or are added if the class did not define
+ * methods with that name).
+ * </p>
+ * <p>It's not the case that a class adding overrides from another class
+ * must have "no instance vars".  The receiver class just has to have the
+ * same layout as the override class (optionally with some additional
+ * ivars after those of the override class).
+ * </p>
+ * <p>This function provides overrides without adding any new syntax to
+ * the Objective C language.  Simply define a class with the methods you
+ * want to add, then call this function with that class as the override
+ * argument.
+ * </p>
+ * <p>This function should usually be called in the +initialize method
+ * of the receiver.
+ * </p>
+ * <p>If you add several overrides to a class, be aware that the order of
+ * the additions is significant.
+ * </p>
+ */
+GS_EXPORT void
+GSObjCAddClassOverride(Class receiver, Class override);
 
 GS_EXPORT NSValue *
 GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars);

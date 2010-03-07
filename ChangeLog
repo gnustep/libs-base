@@ -1,3 +1,11 @@
+2010-03-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Add function to add 'overrides' as a form of programmatically
+	controlled category similar to behaviors, giving an app control
+	over the order in which methods are added to a class.
+
 2010-03-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSCompatibility.h:
