@@ -1,3 +1,9 @@
+2010-03-07  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/GSArray.m: Re-add [GSMutableArray count]. Change all
+	method parameters from int or unsigned to NSUInteger to match
+	super classes.
+
 2010-03-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m:

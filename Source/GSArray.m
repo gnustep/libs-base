@@ -49,7 +49,7 @@ static Class	GSInlineArrayClass;
  * However, when GC is enabled the object data is typed, and all data after
  * the end of the class is ignored by the garbage collector (which would
  * mean that objects in the array could be collected).
- * We therefore do not provide the class ewhan GC is being used.
+ * We therefore do not provide the class when GC is being used.
  */
 @interface GSInlineArray : GSArray
 {
@@ -114,7 +114,7 @@ static Class	GSInlineArrayClass;
 
 + (id) allocWithZone: (NSZone*)zone
 {
-  GSArray	*array = (GSArray*)NSAllocateObject(self, 0, zone);
+  GSArray *array = (GSArray*)NSAllocateObject(self, 0, zone);
 
   return (id)array;
 }
@@ -148,11 +148,11 @@ static Class	GSInlineArrayClass;
 }
 
 /* This is the designated initializer for NSArray. */
-- (id) initWithObjects: (id*)objects count: (unsigned)count
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count
 {
   if (count > 0)
     {
-      unsigned	i;
+      unsigned i;
 
 #if	GS_WITH_GC
       _contents_array = NSAllocateCollectable(sizeof(id)*count,
@@ -235,17 +235,17 @@ static Class	GSInlineArrayClass;
   return self;
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return _count;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return _count;
 }
 
-- (unsigned) indexOfObject: anObject
+- (NSUInteger) indexOfObject: anObject
 {
   if (anObject == nil)
     return NSNotFound;
@@ -274,7 +274,7 @@ static Class	GSInlineArrayClass;
   return NSNotFound;
 }
 
-- (unsigned) indexOfObjectIdenticalTo: anObject
+- (NSUInteger) indexOfObjectIdenticalTo: anObject
 {
   unsigned i;
 
@@ -324,7 +324,7 @@ static Class	GSInlineArrayClass;
   return nil;
 }
 
-- (id) objectAtIndex: (unsigned)index
+- (id) objectAtIndex: (NSUInteger)index
 {
   if (index >= _count)
     {
@@ -343,7 +343,7 @@ static Class	GSInlineArrayClass;
     }
 }
 
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)argument
 {
   unsigned i;
 
@@ -408,7 +408,7 @@ static Class	GSInlineArrayClass;
 {
   return [self initWithObjects: 0 count: 0];
 }
-- (id) initWithObjects: (id*)objects count: (unsigned)count
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count
 {
   _contents_array
     = (id*)(((void*)self) + class_getInstanceSize([self class]));
@@ -473,6 +473,11 @@ static Class	GSInlineArrayClass;
   _version++;
 }
 
+- (NSUInteger) count
+{
+  return _count;
+}
+
 /**
  * Optimised code for copying
  */
@@ -488,8 +493,8 @@ static Class	GSInlineArrayClass;
   return [copy initWithObjects: _contents_array count: _count];
 }
 
-- (void) exchangeObjectAtIndex: (unsigned int)i1
-             withObjectAtIndex: (unsigned int)i2
+- (void) exchangeObjectAtIndex: (NSUInteger)i1
+             withObjectAtIndex: (NSUInteger)i2
 {
   _version++;
   if (i1 >= _count)
@@ -515,7 +520,7 @@ static Class	GSInlineArrayClass;
   return [self initWithCapacity: 0];
 }
 
-- (id) initWithCapacity: (unsigned)cap
+- (id) initWithCapacity: (NSUInteger)cap
 {
   if (cap == 0)
     {
@@ -562,7 +567,7 @@ static Class	GSInlineArrayClass;
   return self;
 }
 
-- (id) initWithObjects: (id*)objects count: (unsigned)count
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (self != nil && count > 0)
@@ -584,7 +589,7 @@ static Class	GSInlineArrayClass;
   return self;
 }
 
-- (void) insertObject: (id)anObject atIndex: (unsigned)index
+- (void) insertObject: (id)anObject atIndex: (NSUInteger)index
 {
   _version++;
   if (!anObject)
@@ -712,7 +717,7 @@ static Class	GSInlineArrayClass;
   _version++;
 }
 
-- (void) removeObjectAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (NSUInteger)index
 {
   id	obj;
 
@@ -1107,7 +1112,7 @@ static Class	GSInlineArrayClass;
   return self;		// placeholders never get released.
 }
 
-- (id) objectAtIndex: (unsigned)index
+- (id) objectAtIndex: (NSUInteger)index
 {
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Attempt to use uninitialised array"];
@@ -1162,7 +1167,7 @@ static Class	GSInlineArrayClass;
     }
 }
 
-- (id) initWithObjects: (id*)objects count: (unsigned)count
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count
 {
 #if	GS_WITH_GC
   self = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
@@ -1173,7 +1178,7 @@ static Class	GSInlineArrayClass;
   return [self initWithObjects: objects count: count];
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Attempt to use uninitialised array"];
