@@ -505,11 +505,16 @@ GSObjCAddMethods(Class cls, Method *list, BOOL replace)
       /* This will override a superclass method but will not replace a
        * method which already exists in the class itsself.
        */
-      if (NO == class_addMethod(cls, n, i, t) && YES == replace)
+      if (YES == class_addMethod(cls, n, i, t))
+	{
+          BDBGPrintf("    added %s\n", sel_getName(n));
+	}
+      else if (YES == replace)
 	{
 	  /* If we want to replace an existing implemetation ...
 	   */
 	  method_setImplementation(class_getInstanceMethod(cls, n), i);
+          BDBGPrintf("    replaced %s\n", sel_getName(n));
 	} 
     }
 }
@@ -805,17 +810,24 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 
   /* Add instance methods */
   methods = class_copyMethodList(behavior, &count);
-  if (methods != NULL)
+  if (methods == NULL)
+    {
+      BDBGPrintf("  none.\n");
+    }
+  else
     {
       GSObjCAddMethods (receiver, methods, NO);
       free(methods);
     }
 
   /* Add class methods */
-  BDBGPrintf("Adding class methods from %s\n",
-    class_getName(object_getClass(behavior)));
+  BDBGPrintf("  class methods from %s\n", class_getName(behavior));
   methods = class_copyMethodList(object_getClass(behavior), &count);
-  if (methods != NULL)
+  if (methods == NULL)
+    {
+      BDBGPrintf("  none.\n");
+    }
+  else
     {
       GSObjCAddMethods (object_getClass(receiver), methods, NO);
       free(methods);
