@@ -1,3 +1,7 @@
+2010-03-08 Roland Schwingel <roland.schwingel@onevision.de>
+
+	* Source/NSFileManager.m: implement fileSystemNumber for mswindows.
+
 2010-03-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m:
