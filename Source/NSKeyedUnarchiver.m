@@ -749,6 +749,17 @@ static NSMapTable	*globalClassMap = 0;
   return _delegate;
 }
 
+- (NSString*) description
+{
+  if (_archive == nil)
+    {
+      // For consistency with OSX
+      [NSException raise: NSInvalidArgumentException
+		  format: @"method sent to uninitialised unarchiver"];
+    }
+  return [super description];
+}
+
 - (void) finishDecoding
 {
   [_delegate unarchiverWillFinish: self];
