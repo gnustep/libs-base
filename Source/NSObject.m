@@ -995,13 +995,16 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       fedisableexcept(FE_INVALID);
 #endif
 
-
 #ifdef HAVE_LOCALE_H
       GSSetLocaleC(LC_ALL, "");		// Set up locale from environment.
 #endif
 
       // Create the global lock
       gnustep_global_lock = [NSRecursiveLock new];
+
+      // Behavior debugging
+      GSObjCBehaviorDebug(GSPrivateEnvironmentFlag("GNUSTEP_BEHAVIOR_DEBUG",
+	GSObjCBehaviorDebug(-1)));
 
       // Zombie management stuff.
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,

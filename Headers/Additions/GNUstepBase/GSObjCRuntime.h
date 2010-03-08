@@ -176,6 +176,10 @@ GSObjCAddClassBehavior(Class receiver, Class behavior);
 GS_EXPORT void
 GSObjCAddClassOverride(Class receiver, Class override);
 
+/** Turn on (YES), off (NO) or test (-1) behavior debugging.
+ */
+GS_EXPORT BOOL GSObjCBehaviorDebug(int setget);
+
 GS_EXPORT NSValue *
 GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars);
 

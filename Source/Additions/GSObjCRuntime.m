@@ -477,24 +477,36 @@ GSObjCAddClasses(NSArray *classes)
 
 
 
-static int behavior_debug = 0;
+static BOOL behavior_debug = NO;
 
-void
+BOOL
 GSObjCBehaviorDebug(int i)
 {
-  behavior_debug = i;
+  BOOL	old = behavior_debug;
+
+  if (i == YES)
+    {
+      behavior_debug = YES;
+    }
+  else if (i == NO)
+    {
+      behavior_debug = NO;
+    }
+  return old;
 }
 
 void
 GSObjCAddMethods(Class cls, Method *list, BOOL replace)
 {
   unsigned int	index = 0;
+  char		c;
   Method	m;
 
   if (cls == 0 || list == 0)
     {
       return;
     }
+  c = class_isMetaClass(cls) ? '+' : '-';
 
   while ((m = list[index++]) != NULL)
     {
@@ -507,15 +519,19 @@ GSObjCAddMethods(Class cls, Method *list, BOOL replace)
        */
       if (YES == class_addMethod(cls, n, i, t))
 	{
-          BDBGPrintf("    added %s\n", sel_getName(n));
+          BDBGPrintf("    added %c%s\n", c, sel_getName(n));
 	}
       else if (YES == replace)
 	{
 	  /* If we want to replace an existing implemetation ...
 	   */
 	  method_setImplementation(class_getInstanceMethod(cls, n), i);
-          BDBGPrintf("    replaced %s\n", sel_getName(n));
+          BDBGPrintf("    replaced %c%s\n", c, sel_getName(n));
 	} 
+      else
+	{
+          BDBGPrintf("    skipped %c%s\n", c, sel_getName(n));
+	}
     }
 }
 
@@ -806,13 +822,13 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
     }
 
   BDBGPrintf("Adding behavior to class %s\n", class_getName(receiver));
-  BDBGPrintf("  instance methods from %s\n", class_getName(behavior));
 
   /* Add instance methods */
   methods = class_copyMethodList(behavior, &count);
+  BDBGPrintf("  instance methods from %s %u\n", class_getName(behavior), count);
   if (methods == NULL)
     {
-      BDBGPrintf("  none.\n");
+      BDBGPrintf("    none.\n");
     }
   else
     {
@@ -821,11 +837,11 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
     }
 
   /* Add class methods */
-  BDBGPrintf("  class methods from %s\n", class_getName(behavior));
   methods = class_copyMethodList(object_getClass(behavior), &count);
+  BDBGPrintf("  class methods from %s %u\n", class_getName(behavior), count);
   if (methods == NULL)
     {
-      BDBGPrintf("  none.\n");
+      BDBGPrintf("    none.\n");
     }
   else
     {
@@ -868,21 +884,28 @@ GSObjCAddClassOverride(Class receiver, Class override)
     }
 
   BDBGPrintf("Adding override to class %s\n", class_getName(receiver));
-  BDBGPrintf("  instance methods from %s\n", class_getName(override));
 
   /* Add instance methods */
   methods = class_copyMethodList(override, &count);
-  if (methods != NULL)
+  BDBGPrintf("  instance methods from %s %u\n", class_getName(override), count);
+  if (methods == NULL)
+    {
+      BDBGPrintf("    none.\n");
+    }
+  else
     {
       GSObjCAddMethods (receiver, methods, YES);
       free(methods);
     }
 
   /* Add class methods */
-  BDBGPrintf("Adding class methods from %s\n",
-    class_getName(object_getClass(override)));
   methods = class_copyMethodList(object_getClass(override), &count);
-  if (methods != NULL)
+  BDBGPrintf("  class methods from %s %u\n", class_getName(override), count);
+  if (methods == NULL)
+    {
+      BDBGPrintf("    none.\n");
+    }
+  else
     {
       GSObjCAddMethods (object_getClass(receiver), methods, YES);
       free(methods);
