@@ -192,7 +192,7 @@
 #define	_CLOSEDIR(A)	_wclosedir(A)
 #define	_OPENDIR(A)	_wopendir(A)
 #define	_READDIR(A)	_wreaddir(A)
-#define	_RENAME(A,B)	_wrename(A,B)
+#define	_RENAME(A,B)	(MoveFileExW(A,B,MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)==0)?-1:0
 #define	_RMDIR(A)	_wrmdir(A)
 #define	_STAT(A,B)	_wstat(A,B)
 #define	_UTIME(A,B)	_wutime(A,B)
@@ -1778,9 +1778,18 @@ static NSStringEncoding	defaultEncoding;
   };
   DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
   DWORD TotalNumberClusters;
+  DWORD volumeSerialNumber = 0;
   const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
+  _CHAR volumePathName[128];
 
-  if (!GetDiskFreeSpaceW(lpath, &SectorsPerCluster,
+  if (!GetVolumePathNameW(lpath, volumePathName, 128))
+    {
+      return nil;
+    }
+  GetVolumeInformationW(volumePathName, NULL, 0, &volumeSerialNumber,
+    NULL, NULL, NULL, 0);
+
+  if (!GetDiskFreeSpaceW(volumePathName, &SectorsPerCluster,
     &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
     {
       return nil;
@@ -1797,7 +1806,7 @@ static NSStringEncoding	defaultEncoding;
   values[1] = [NSNumber numberWithUnsignedLongLong: freesize];
   values[2] = [NSNumber numberWithLong: LONG_MAX];
   values[3] = [NSNumber numberWithLong: LONG_MAX];
-  values[4] = [NSNumber numberWithUnsignedInt: 0];
+  values[4] = [NSNumber numberWithUnsignedInt: volumeSerialNumber];
 
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 
@@ -3227,7 +3236,18 @@ static NSSet	*fileKeys = nil;
 
 - (NSUInteger) fileSystemNumber
 {
+#if defined(__MINGW32__)
+  DWORD volumeSerialNumber = 0;
+  _CHAR volumePathName[128];
+  if (GetVolumePathNameW(_path,volumePathName,128))
+  {
+    GetVolumeInformationW(volumePathName,NULL,0,&volumeSerialNumber,NULL,NULL,NULL,0);
+  }
+
+  return (NSUInteger)volumeSerialNumber;
+#else
   return statbuf.st_dev;
+#endif
 }
 
 - (NSString*) fileType
