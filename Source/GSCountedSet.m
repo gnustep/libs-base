@@ -33,7 +33,7 @@
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define GSI_MAP_KTYPES	GSUNION_OBJ
-#define GSI_MAP_VTYPES	GSUNION_INT
+#define GSI_MAP_VTYPES	GSUNION_NSINT
 
 #if	GS_WITH_GC
 #include	<gc_typed.h>
@@ -131,21 +131,21 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
   node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
   if (node == 0)
     {
-      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(unsigned)1);
+      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(NSUInteger)1);
     }
   else
     {
-      node->value.uint++;
+      node->value.nsu++;
     }
   _version++;
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return map.nodeCount;
 }
 
-- (unsigned) countForObject: (id)anObject
+- (NSUInteger) countForObject: (id)anObject
 {
   if (anObject)
     {
@@ -153,7 +153,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 
       if (node)
 	{
-	  return node->value.uint;
+	  return node->value.nsu;
 	}
     }
   return 0;
@@ -181,13 +181,13 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
   while (node != 0)
     {
       (*imp1)(aCoder, sel1, node->key.obj);
-      (*imp2)(aCoder, sel2, type, &node->value.uint);
+      (*imp2)(aCoder, sel2, type, &node->value.nsu);
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
   GSIMapEndEnumerator(&enumerator);
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return map.nodeCount;
 }
@@ -198,7 +198,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 }
 
 /* Designated initialiser */
-- (id) initWithCapacity: (unsigned)cap
+- (id) initWithCapacity: (NSUInteger)cap
 {
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
@@ -227,9 +227,9 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
   return self;
 }
 
-- (id) initWithObjects: (id*)objs count: (unsigned)c
+- (id) initWithObjects: (id*)objs count: (NSUInteger)c
 {
-  unsigned int	i;
+  NSUInteger	i;
 
   self = [self initWithCapacity: c];
   if (self == nil)
@@ -249,11 +249,11 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
       node = GSIMapNodeForKey(&map, (GSIMapKey)objs[i]);
       if (node == 0)
 	{
-	  GSIMapAddPair(&map,(GSIMapKey)objs[i],(GSIMapVal)(unsigned)1);
+	  GSIMapAddPair(&map,(GSIMapKey)objs[i],(GSIMapVal)(NSUInteger)1);
         }
       else
 	{
-	  node->value.uint++;
+	  node->value.nsu++;
 	}
     }
   return self;
@@ -286,7 +286,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
  * of the GSIMap enumeration that, once enumerated, an object can be removed
  * from the map.  If GSIMap ever loses that characterstic, this will break.
  */
-- (void) purge: (int)level
+- (void) purge: (NSInteger)level
 {
   if (level > 0)
     {
@@ -296,12 +296,12 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 
       while (node != 0)
 	{
-	  if (node->value.uint <= (unsigned int)level)
+	  if (node->value.nsu <= (NSUInteger)level)
 	    {
-          _version++;
+	      _version++;
 	      GSIMapRemoveNodeFromMap(&map, bucket, node);
 	      GSIMapFreeNode(&map, node);
-          _version++;
+	      _version++;
 	    }
 	  bucket = GSIMapEnumeratorBucket(&enumerator);
 	  node = GSIMapEnumeratorNextNode(&enumerator);
@@ -341,7 +341,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
       node = GSIMapNodeForKeyInBucket(&map, bucket, (GSIMapKey)anObject);
       if (node != 0)
 	{
-	  if (--node->value.uint == 0)
+	  if (--node->value.nsu == 0)
 	    {
 	      GSIMapRemoveNodeFromMap(&map, bucket, node);
 	      GSIMapFreeNode(&map, node);
@@ -367,12 +367,12 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
   if (node == 0)
     {
       result = anObject;
-      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(unsigned)1);
+      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(NSUInteger)1);
     }
   else
     {
       result = node->key.obj;
-      node->value.uint++;
+      node->value.nsu++;
 #if	!GS_WITH_GC
       if (result != anObject)
 	{

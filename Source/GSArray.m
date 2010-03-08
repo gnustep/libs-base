@@ -473,11 +473,6 @@ static Class	GSInlineArrayClass;
   _version++;
 }
 
-- (NSUInteger) count
-{
-  return _count;
-}
-
 /**
  * Optimised code for copying
  */
