@@ -107,7 +107,7 @@ static SEL	objSel;
   return RETAIN(self);
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return map.nodeCount;
 }
@@ -143,7 +143,7 @@ static SEL	objSel;
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return map.nodeCount;
 }
@@ -183,9 +183,9 @@ static SEL	objSel;
 }
 
 /* Designated initialiser */
-- (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (unsigned)c
+- (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (NSUInteger)c
 {
-  unsigned int	i;
+  NSUInteger	i;
 
   GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
   for (i = 0; i < c; i++)
@@ -227,7 +227,7 @@ static SEL	objSel;
 		copyItems: (BOOL)shouldCopy
 {
   NSZone	*z = [self zone];
-  unsigned	c = [other count];
+  NSUInteger	c = [other count];
 
   GSIMapInitWithZoneAndCapacity(&map, z, c);
   if (c > 0)
@@ -236,7 +236,7 @@ static SEL	objSel;
       IMP		nxtObj = [e methodForSelector: nxtSel];
       IMP		otherObj = [other methodForSelector: objSel];
       BOOL		isProxy = [other isProxy];
-      unsigned		i;
+      NSUInteger	i;
 
       for (i = 0; i < c; i++)
 	{
@@ -293,7 +293,7 @@ static SEL	objSel;
 
 - (BOOL) isEqualToDictionary: (NSDictionary*)other
 {
-  unsigned	count;
+  NSUInteger	count;
 
   if (other == self)
     {
@@ -386,7 +386,7 @@ static SEL	objSel;
 }
 
 /* Designated initialiser */
-- (id) initWithCapacity: (unsigned)cap
+- (id) initWithCapacity: (NSUInteger)cap
 {
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;

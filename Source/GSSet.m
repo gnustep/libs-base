@@ -180,7 +180,7 @@ static Class	mutableSetClass;
   return RETAIN(self);
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return map.nodeCount;
 }
@@ -215,7 +215,7 @@ static Class	mutableSetClass;
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return map.nodeCount;
 }
@@ -252,7 +252,7 @@ static Class	mutableSetClass;
 }
 
 /* Designated initialiser */
-- (id) initWithObjects: (id*)objs count: (unsigned)c
+- (id) initWithObjects: (id*)objs count: (NSUInteger)c
 {
   unsigned i;
 
@@ -559,7 +559,7 @@ static Class	mutableSetClass;
 
 - (void) addObjectsFromArray: (NSArray*)array
 {
-  unsigned	count = [array count];
+  NSUInteger	count = [array count];
 
   while (count-- > 0)
     {
@@ -598,14 +598,14 @@ static Class	mutableSetClass;
 }
 
 /* Designated initialiser */
-- (id) initWithCapacity: (unsigned)cap
+- (id) initWithCapacity: (NSUInteger)cap
 {
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
 }
 
 - (id) initWithObjects: (id*)objects
-		 count: (unsigned)count
+		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
 
