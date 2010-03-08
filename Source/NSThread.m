@@ -977,6 +977,7 @@ static void *nsthreadLauncher(void* thread)
   if (event != INVALID_HANDLE_VALUE)
     {
       CloseHandle(event);
+      event = INVALID_HANDLE_VALUE;
     }
 #else
   if (inputFd >= 0)
