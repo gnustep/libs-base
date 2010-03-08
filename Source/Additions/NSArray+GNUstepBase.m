@@ -38,12 +38,12 @@
  */
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy
 {
-  unsigned	c = [array count];
+  NSUInteger	c = [array count];
   GS_BEGINIDBUF(objects, c);
 
   if ([array isProxy])
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < c; i++)
 	{
@@ -56,7 +56,7 @@
     }
   if (shouldCopy == YES)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < c; i++)
 	{
@@ -79,13 +79,13 @@
 }
 
 - (NSUInteger) insertionPosition: (id)item
-		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
-		       context: (void *)context
+		   usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		         context: (void *)context
 {
-  unsigned	count = [self count];
-  unsigned	upper = count;
-  unsigned	lower = 0;
-  unsigned	index;
+  NSUInteger	count = [self count];
+  NSUInteger	upper = count;
+  NSUInteger	lower = 0;
+  NSUInteger	index;
   SEL		oaiSel;
   IMP		oai;
 
@@ -136,12 +136,12 @@
 }
 
 - (NSUInteger) insertionPosition: (id)item
-		 usingSelector: (SEL)comp
+		   usingSelector: (SEL)comp
 {
-  unsigned	count = [self count];
-  unsigned	upper = count;
-  unsigned	lower = 0;
-  unsigned	index;
+  NSUInteger	count = [self count];
+  NSUInteger	upper = count;
+  NSUInteger	lower = 0;
+  NSUInteger	index;
   NSComparisonResult	(*imp)(id, SEL, id);
   SEL		oaiSel;
   IMP		oai;

@@ -62,7 +62,7 @@ static Class	GSInlineArrayClass;
 @interface GSArrayEnumerator : NSEnumerator
 {
   GSArray	*array;
-  unsigned	pos;
+  NSUInteger	pos;
 }
 - (id) initWithArray: (GSArray*)anArray;
 @end
@@ -71,12 +71,12 @@ static Class	GSInlineArrayClass;
 @end
 
 @interface GSMutableArray (GSArrayBehavior)
-- (void) _raiseRangeExceptionWithIndex: (unsigned)index from: (SEL)sel;
+- (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel;
 @end
 
 @implementation GSArray
 
-- (void) _raiseRangeExceptionWithIndex: (unsigned)index from: (SEL)sel
+- (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
 {
   NSDictionary *info;
   NSException  *exception;
@@ -129,7 +129,7 @@ static Class	GSInlineArrayClass;
   if (_contents_array)
     {
 #if	!GS_WITH_GC
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < _count; i++)
 	{
@@ -152,7 +152,7 @@ static Class	GSInlineArrayClass;
 {
   if (count > 0)
     {
-      unsigned i;
+      NSUInteger i;
 
 #if	GS_WITH_GC
       _contents_array = NSAllocateCollectable(sizeof(id)*count,
@@ -191,7 +191,7 @@ static Class	GSInlineArrayClass;
     {
       /* For performace we encode directly ... must exactly match the
        * superclass implemenation. */
-      [aCoder encodeValueOfObjCType: @encode(unsigned)
+      [aCoder encodeValueOfObjCType: @encode(NSUInteger)
 				 at: &_count];
       if (_count > 0)
 	{
@@ -212,7 +212,7 @@ static Class	GSInlineArrayClass;
     {
       /* for performance, we decode directly into memory rather than
        * using the superclass method. Must exactly match superclass. */
-      [aCoder decodeValueOfObjCType: @encode(unsigned)
+      [aCoder decodeValueOfObjCType: @encode(NSUInteger)
 				 at: &_count];
       if (_count > 0)
 	{
@@ -255,7 +255,7 @@ static Class	GSInlineArrayClass;
   if (_count > 1)
     {
       BOOL		(*imp)(id,SEL,id);
-      unsigned		i;
+      NSUInteger		i;
 
       imp = (BOOL (*)(id,SEL,id))[anObject methodForSelector: eqSel];
 
@@ -276,7 +276,7 @@ static Class	GSInlineArrayClass;
 
 - (NSUInteger) indexOfObjectIdenticalTo: anObject
 {
-  unsigned i;
+  NSUInteger i;
 
   for (i = 0; i < _count; i++)
     {
@@ -290,7 +290,7 @@ static Class	GSInlineArrayClass;
 
 - (BOOL) isEqualToArray: (NSArray*)otherArray
 {
-  unsigned i;
+  NSUInteger i;
 
   if (self == (id)otherArray)
     {
@@ -335,7 +335,7 @@ static Class	GSInlineArrayClass;
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector
 {
-  unsigned i;
+  NSUInteger i;
 
   for (i = 0; i < _count; i++)
     {
@@ -345,7 +345,7 @@ static Class	GSInlineArrayClass;
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: (id)argument
 {
-  unsigned i;
+  NSUInteger i;
 
   for (i = 0; i < _count; i++)
     {
@@ -355,7 +355,7 @@ static Class	GSInlineArrayClass;
 
 - (void) getObjects: (id*)aBuffer
 {
-  unsigned i;
+  NSUInteger i;
 
   for (i = 0; i < _count; i++)
     {
@@ -365,7 +365,7 @@ static Class	GSInlineArrayClass;
 
 - (void) getObjects: (id*)aBuffer range: (NSRange)aRange
 {
-  unsigned i, j = 0, e = aRange.location + aRange.length;
+  NSUInteger i, j = 0, e = aRange.location + aRange.length;
 
   GS_RANGE_CHECK(aRange, _count);
 
@@ -394,7 +394,7 @@ static Class	GSInlineArrayClass;
 {
   if (_contents_array)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < _count; i++)
 	{
@@ -415,7 +415,7 @@ static Class	GSInlineArrayClass;
 
   if (count > 0)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < count; i++)
 	{
@@ -542,9 +542,9 @@ static Class	GSInlineArrayClass;
     }
   else
     {
-	unsigned    count;
+	NSUInteger    count;
 
-	[aCoder decodeValueOfObjCType: @encode(unsigned)
+	[aCoder decodeValueOfObjCType: @encode(NSUInteger)
 			           at: &count];
 	if ((self = [self initWithCapacity: count]) == nil)
 	  {
@@ -567,7 +567,7 @@ static Class	GSInlineArrayClass;
   self = [self initWithCapacity: count];
   if (self != nil && count > 0)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < count; i++)
 	{
@@ -661,7 +661,7 @@ static Class	GSInlineArrayClass;
 
 - (void) removeObject: (id)anObject
 {
-  unsigned	index;
+  NSUInteger	index;
 
   _version++;
   if (anObject == nil)
@@ -682,7 +682,7 @@ static Class	GSInlineArrayClass;
 	{
 	  if ((*imp)(anObject, eqSel, _contents_array[index]) == YES)
 	    {
-	      unsigned	pos = index;
+	      NSUInteger	pos = index;
 #if	GS_WITH_GC == 0
 	      id	obj = _contents_array[index];
 
@@ -735,7 +735,7 @@ static Class	GSInlineArrayClass;
 
 - (void) removeObjectIdenticalTo: (id)anObject
 {
-  unsigned	index;
+  NSUInteger	index;
 
   _version++;
   if (anObject == nil)
@@ -751,7 +751,7 @@ static Class	GSInlineArrayClass;
 #if	GS_WITH_GC == 0
 	  id		obj = _contents_array[index];
 #endif
-	  unsigned	pos = index;
+	  NSUInteger	pos = index;
 
 	  while (++pos < _count)
 	    {
@@ -765,7 +765,7 @@ static Class	GSInlineArrayClass;
   _version++;
 }
 
-- (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
+- (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
   id	obj;
 
@@ -806,11 +806,11 @@ static Class	GSInlineArrayClass;
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
 #define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
                         // 3 is a fairly good choice (Sedgewick)
-  unsigned int	c;
-  unsigned int	d;
-  unsigned int	stride = 1;
+  NSUInteger	c;
+  NSUInteger	d;
+  NSUInteger	stride = 1;
   BOOL		found;
-  unsigned int	count = _count;
+  NSUInteger	count = _count;
 #ifdef	GSWARN
   BOOL		badComparison = NO;
 #endif
@@ -979,13 +979,13 @@ static Class	GSInlineArrayClass;
  *      added is 'less than' the item in the array, NSOrderedDescending
  *      if it is greater, and NSOrderedSame if it is equal.
  */
-- (unsigned) insertionPosition: (id)item
-		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
-		       context: (void *)context
+- (NSUInteger) insertionPosition: (id)item
+		   usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		         context: (void *)context
 {
-  unsigned	upper = _count;
-  unsigned	lower = 0;
-  unsigned	index;
+  NSUInteger	upper = _count;
+  NSUInteger	lower = 0;
+  NSUInteger	index;
 
   if (item == nil)
     {
@@ -1031,12 +1031,12 @@ static Class	GSInlineArrayClass;
   return index;
 }
 
-- (unsigned) insertionPosition: (id)item
-		 usingSelector: (SEL)comp
+- (NSUInteger) insertionPosition: (id)item
+		   usingSelector: (SEL)comp
 {
-  unsigned	upper = _count;
-  unsigned	lower = 0;
-  unsigned	index;
+  NSUInteger	upper = _count;
+  NSUInteger	lower = 0;
+  NSUInteger	index;
   NSComparisonResult	(*imp)(id, SEL, id);
 
   if (item == nil)
@@ -1135,17 +1135,17 @@ static Class	GSInlineArrayClass;
     }
   else
     {
-      unsigned	c;
+      NSUInteger	c;
 #if	GS_WITH_GC
       GSArray	*a;
 
-      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
+      [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &c];
       a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
       a->_contents_array = NSAllocateCollectable(sizeof(id)*c, NSScannedOption);
 #else
       GSInlineArray	*a;
 
-      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
+      [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &c];
       a = (id)NSAllocateObject(GSInlineArrayClass,
 	sizeof(id)*c, [self zone]);
       a->_contents_array

@@ -58,7 +58,7 @@ static Class	gcClass = 0;
 {
   GCArray *result;
   id *objects;
-  unsigned i, c = [self count];
+  NSUInteger i, c = [self count];
 
   if (NSShouldRetainWithZone(self, zone))
     {
@@ -248,7 +248,7 @@ static Class	gcClass = 0;
 {
   GCArray *result;
   id *objects;
-  unsigned i, c = [self count];
+  NSUInteger i, c = [self count];
 
   objects = NSZoneMalloc(zone, c * sizeof(id));
   /* FIXME: Check if malloc return 0 */
@@ -342,7 +342,7 @@ static Class	gcClass = 0;
 
   if (_count == _maxCount)
     {
-      unsigned	old = _maxCount;
+      NSUInteger	old = _maxCount;
       BOOL	*optr;
 
       if (_maxCount > 0)
