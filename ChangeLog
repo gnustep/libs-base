@@ -1,5 +1,15 @@
 2010-03-08 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSObject.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Documentation/Base.gsdoc:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Add GNUSTEP_BEHAVIOR_DEBUG enovironment variable to turn on logging
+	of the use of behaviors/overrides of class methds by a list of
+	methods from another class.
+
+2010-03-08 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSArray.m: Re-remove [GSMutableArray count] (GSMutableArray
 	uses the GSArray implementation).
 	* Source/GSDictionary.m:

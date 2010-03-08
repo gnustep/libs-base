@@ -388,6 +388,13 @@ notice and this notice are preserved.
 		or you want to use an alternative config file for some reason.
 	      </p>
 	    </desc>
+	    <term>GNUSTEP_BEHAVIOR_DEBUG</term>
+	    <desc>
+	      A boolean (YES or NO) which can be used to turn on debug
+	      logging (to stderr) of the GSObjCRuntime functions to
+	      add/override methods in a class using a list of methods
+	      from another class.
+	    </desc>
 	    <term>HOMEDRIVE</term>
 	    <desc>
 	      <p>
