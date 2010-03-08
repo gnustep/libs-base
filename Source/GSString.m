@@ -3791,9 +3791,9 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 - (void) dealloc
 {
-NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   if (_contents.c != 0)
     {
+NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
       NSZoneFree(self->_zone, self->_contents.c);
       self->_contents.c = 0;
       self->_zone = 0;
