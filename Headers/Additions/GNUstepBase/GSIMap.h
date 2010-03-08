@@ -27,10 +27,17 @@
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSGarbageCollector.h>
-#include <Foundation/NSZone.h>
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#import "Foundation/NSObject.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSGarbageCollector.h"
+#import "Foundation/NSZone.h"
+#else
+#import <Foundation/NSObject.h>
+#import <Foundation/NSEnumerator.h>
+#import <Foundation/NSGarbageCollector.h>
+#import <Foundation/NSZone.h>
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -160,7 +167,11 @@ extern "C" {
 /*
  *	Generate the union typedef
  */
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#include "GNUstepBase/GSUnion.h"
+#else
 #include <GNUstepBase/GSUnion.h>
+#endif
 
 
 #if (GSI_MAP_KTYPES) & GSUNION_OBJ
@@ -209,7 +220,11 @@ extern "C" {
 /*
  *	Generate the union typedef
  */
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#include "GNUstepBase/GSUnion.h"
+#else
 #include <GNUstepBase/GSUnion.h>
+#endif
 
 #if (GSI_MAP_VTYPES) & GSUNION_OBJ
 #define GSI_MAP_CLEAR_VAL(node)  node->value.obj = nil

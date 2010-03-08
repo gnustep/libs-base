@@ -25,10 +25,18 @@
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
+
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#import "Foundation/NSObject.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSGarbageCollector.h"
+#import "Foundation/NSZone.h"
+#else
 #import <Foundation/NSObject.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSGarbageCollector.h>
 #import <Foundation/NSZone.h>
+#endif
 
 /* To turn assertions on, define GSI_ARRAY_CHECKS */
 #define GSI_ARRAY_CHECKS 1
@@ -146,7 +154,11 @@ extern "C" {
 /*
  *	Generate the union typedef
  */
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#include "GNUstepBase/GSUnion.h"
+#else
 #include <GNUstepBase/GSUnion.h>
+#endif
 
 #endif /* #ifndef GSIArrayItem */
 
