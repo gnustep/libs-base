@@ -556,6 +556,17 @@ static NSDictionary *makeReference(unsigned ref)
   return _delegate;
 }
 
+- (NSString*) description
+{
+  if (_data == nil)
+    {
+      // For consistency with OSX
+      [NSException raise: NSInvalidArgumentException
+		  format: @"method sent to uninitialised archiver"];
+    }
+  return [super description];
+}
+
 - (void) encodeArrayOfObjCType: (const char*)aType
 			 count: (NSUInteger)aCount
 			    at: (const void*)address
