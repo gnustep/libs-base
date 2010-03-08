@@ -126,13 +126,13 @@ static SEL	objSel;
     }
   else
     {
-      NSUInteger	count = map.nodeCount;
+      unsigned	count = map.nodeCount;
       SEL		sel = @selector(encodeObject:);
       IMP		imp = [aCoder methodForSelector: sel];
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
       GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
 
-      [aCoder encodeValueOfObjCType: @encode(NSUInteger) at: &count];
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
       while (node != 0)
 	{
 	  (*imp)(aCoder, sel, node->key.obj);
@@ -161,14 +161,14 @@ static SEL	objSel;
     }
   else
     {
-      NSUInteger	count;
+      unsigned	count;
       id		key;
       id		value;
       SEL		sel = @selector(decodeValueOfObjCType:at:);
       IMP		imp = [aCoder methodForSelector: sel];
       const char	*type = @encode(id);
 
-      [aCoder decodeValueOfObjCType: @encode(NSUInteger)
+      [aCoder decodeValueOfObjCType: @encode(unsigned)
 	                         at: &count];
 
       GSIMapInitWithZoneAndCapacity(&map, [self zone], count);

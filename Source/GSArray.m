@@ -191,7 +191,7 @@ static Class	GSInlineArrayClass;
     {
       /* For performace we encode directly ... must exactly match the
        * superclass implemenation. */
-      [aCoder encodeValueOfObjCType: @encode(NSUInteger)
+      [aCoder encodeValueOfObjCType: @encode(unsigned)
 				 at: &_count];
       if (_count > 0)
 	{
@@ -212,7 +212,7 @@ static Class	GSInlineArrayClass;
     {
       /* for performance, we decode directly into memory rather than
        * using the superclass method. Must exactly match superclass. */
-      [aCoder decodeValueOfObjCType: @encode(NSUInteger)
+      [aCoder decodeValueOfObjCType: @encode(unsigned)
 				 at: &_count];
       if (_count > 0)
 	{
@@ -542,9 +542,9 @@ static Class	GSInlineArrayClass;
     }
   else
     {
-	NSUInteger    count;
+	unsigned    count;
 
-	[aCoder decodeValueOfObjCType: @encode(NSUInteger)
+	[aCoder decodeValueOfObjCType: @encode(unsigned)
 			           at: &count];
 	if ((self = [self initWithCapacity: count]) == nil)
 	  {
@@ -1135,17 +1135,17 @@ static Class	GSInlineArrayClass;
     }
   else
     {
-      NSUInteger	c;
+      unsigned	c;
 #if	GS_WITH_GC
       GSArray	*a;
 
-      [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &c];
+      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
       a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
       a->_contents_array = NSAllocateCollectable(sizeof(id)*c, NSScannedOption);
 #else
       GSInlineArray	*a;
 
-      [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &c];
+      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
       a = (id)NSAllocateObject(GSInlineArrayClass,
 	sizeof(id)*c, [self zone]);
       a->_contents_array

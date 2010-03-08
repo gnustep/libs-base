@@ -897,20 +897,19 @@ callUncaughtHandler(id value)
 
 - (void) raise
 {
-#ifndef _NATIVE_OBJC_EXCEPTIONS
-  NSThread      *thread;
-  NSHandler	*handler;
-#endif
-
   if (_reserved == 0)
     {
       _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
     }
   _e_stack = [GSStackTrace new];
 
-#ifdef _NATIVE_OBJC_EXCEPTIONS
+#if     defined(_NATIVE_OBJC_EXCEPTIONS)
   @throw self;
 #else
+{
+  NSThread      *thread;
+  NSHandler	*handler;
+
   thread = GSCurrentThread();
   handler = thread->_exception_handler;
   if (handler == NULL)
@@ -940,6 +939,7 @@ callUncaughtHandler(id value)
   thread->_exception_handler = handler->next;
   handler->exception = self;
   longjmp(handler->jumpState, 1);
+}
 #endif
 }
 

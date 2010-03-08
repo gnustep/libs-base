@@ -57,10 +57,10 @@ ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall \
 
 
 # Additional flags to pass to the Objective-C compiler
-ADDITIONAL_OBJCFLAGS =
+#£ADDITIONAL_OBJCFLAGS+=
 
 # Additional flags to pass to the C compiler
-ADDITIONAL_CFLAGS = 
+#ADDITIONAL_CFLAGS+= 
 
 # Additional include directories the compiler should search
 ADDITIONAL_INCLUDE_DIRS = \
@@ -69,7 +69,7 @@ ADDITIONAL_INCLUDE_DIRS = \
 	-I./$(GNUSTEP_TARGET_DIR)
 
 # Additional LDFLAGS to pass to the linker
-ADDITIONAL_LDFLAGS = 
+#ADDITIONAL_LDFLAGS+= 
 
 # Additional library directories the linker should search
 ADDITIONAL_LIB_DIRS = -L$(GNUSTEP_OBJ_DIR)
