@@ -463,7 +463,15 @@ class_getMethodImplementation_stret(Class cls, SEL name)
 const char *
 class_getName(Class cls)
 {
-  return class_get_class_name(cls);
+  if (cls == Nil)
+    {
+      return "nil";	// This is what OSX does.
+    }
+  if (CLS_ISCLASS(cls) || CLS_ISMETA(cls))
+    {
+      return cls->name;
+    }
+  return NULL;
 }
 
 void __objc_resolve_class_links(void);
