@@ -199,13 +199,13 @@ static Class	mutableSetClass;
     }
   else
     {
-      NSUInteger		count = map.nodeCount;
+      unsigned		count = map.nodeCount;
       SEL			sel = @selector(encodeObject:);
       IMP			imp = [aCoder methodForSelector: sel];
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
       GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
-      [aCoder encodeValueOfObjCType: @encode(NSUInteger) at: &count];
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
       while (node != 0)
 	{
 	  (*imp)(aCoder, sel, node->key.obj);
@@ -233,13 +233,13 @@ static Class	mutableSetClass;
     }
   else
     {
-      NSUInteger	count;
+      unsigned	count;
       id		value;
       SEL		sel = @selector(decodeValueOfObjCType:at:);
       IMP		imp = [aCoder methodForSelector: sel];
       const char	*type = @encode(id);
 
-      (*imp)(aCoder, sel, @encode(NSUInteger), &count);
+      (*imp)(aCoder, sel, @encode(unsigned), &count);
 
       GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
       while (count-- > 0)
