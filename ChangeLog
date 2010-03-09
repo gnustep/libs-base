@@ -1,3 +1,8 @@
+2010-03-10 Riccardo Mottola <rmottola@users.sf.net>
+
+	* /Source/ObjectiveC2/sync.m : use proper _XOPEN_SOURCE
+	instead of __USE_UNIX98 to enable needed thread features on glibc
+
 2010-03-08 Roland Schwingel <roland.schwingel@onevision.de>
 
 	* Source/NSFileManager.m: implement fileSystemNumber for mswindows.

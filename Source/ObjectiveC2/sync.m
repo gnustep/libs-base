@@ -1,9 +1,11 @@
-#include "ObjectiveC2/runtime.h"
-
 /* Ensure Unix98 compatible pthreads for glibc */
-#if defined __GLIBC__
-#  define __USE_UNIX98 1
+#if defined __linux__ || defined __hurd__
+#  ifndef _XOPEN_SOURCE
+#    define _XOPEN_SOURCE 600
+#  endif
 #endif
+
+#include "ObjectiveC2/runtime.h"
 
 #include <pthread.h>
 #include <stdio.h>
