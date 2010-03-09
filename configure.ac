@@ -482,8 +482,8 @@ else
   else
 #     128-bit ints not supported - but we need a dummy type for byte-swapping
 #     of 128-bit values arriving from another system.
-    GS_SINT128="struct { gsu8 a[16]; }"
-    GS_UINT128="struct { gsu8 a[16]; }"
+    GS_SINT128="struct { gsu8 a[[16]]; }"
+    GS_UINT128="struct { gsu8 a[[16]]; }"
     GS_HAVE_I128=0
   fi
 fi
