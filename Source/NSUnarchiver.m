@@ -188,7 +188,8 @@ static char	type_map[32] = {
   0
 };
 
-static inline void
+
+static inline BOOL
 typeCheck(char t1, char t2)
 {
   if (type_map[(t2 & _GSC_MASK)] != t1)
@@ -200,6 +201,35 @@ typeCheck(char t1, char t2)
  * can vary.
  */
       char	c = type_map[(t2 & _GSC_MASK)];
+      char      s1;
+      char      s2;
+
+      switch (t1)
+        {
+          case _C_INT:  s1 = _GSC_S_INT; break;
+          case _C_UINT:  s1 = _GSC_S_INT; break;
+          case _C_LNG:  s1 = _GSC_S_LNG; break;
+          case _C_ULNG:  s1 = _GSC_S_LNG; break;
+#ifdef	_C_LNG_LNG
+          case _C_LNG_LNG:  s1 = _GSC_S_LNG_LNG; break;
+          case _C_ULNG_LNG:  s1 = _GSC_S_LNG_LNG; break;
+#endif
+          default:      s1 = 0;
+        }
+
+      switch (t2)
+        {
+          case _C_INT:  s2 = _GSC_S_INT; break;
+          case _C_UINT:  s2 = _GSC_S_INT; break;
+          case _C_LNG:  s2 = _GSC_S_LNG; break;
+          case _C_ULNG:  s2 = _GSC_S_LNG; break;
+#ifdef	_C_LNG_LNG
+          case _C_LNG_LNG:  s2 = _GSC_S_LNG_LNG; break;
+          case _C_ULNG_LNG:  s2 = _GSC_S_LNG_LNG; break;
+#endif
+          default:      s2 = 0;
+        }
+
       if ((c == _C_INT || c == _C_LNG
 #ifdef	_C_LNG_LNG
 	|| c == _C_LNG_LNG
@@ -208,7 +238,8 @@ typeCheck(char t1, char t2)
 #ifdef	_C_LNG_LNG
 	|| t1 == _C_LNG_LNG
 #endif
-	)) return;
+	)) return s1 == s2 ? YES : NO;
+
       if ((c == _C_UINT || c == _C_ULNG
 #ifdef	_C_LNG_LNG
 	|| c == _C_ULNG_LNG
@@ -217,17 +248,19 @@ typeCheck(char t1, char t2)
 #ifdef	_C_LNG_LNG
 	|| t1 == _C_ULNG_LNG
 #endif
-	)) return;
+	)) return s1 == s2 ? YES : NO;
+
 /* HACK also allow float and double to be used interchangably as MacOS-X
  * intorduced CGFloat, which may be aither a float or a double.
  */
       if ((c == _C_FLT || c == _C_DBL) && (t1 == _C_FLT || t1 == _C_DBL))
-	return;
+	return NO;
 
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
 		    typeToName1(t1), typeToName2(t2)];
     }
+  return YES;
 }
 
 #define	PREFIX		"GNUstep archive"
@@ -951,8 +984,8 @@ static Class NSDataMallocClass;
 
       case _GSC_SHT:
       case _GSC_USHT:
-	typeCheck(*type, info & _GSC_MASK);
-	if ((info & _GSC_SIZE) == _GSC_S_SHT)
+	if (YES == typeCheck(*type, info & _GSC_MASK)
+	  && (info & _GSC_SIZE) == _GSC_S_SHT)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -961,8 +994,8 @@ static Class NSDataMallocClass;
 
       case _GSC_INT:
       case _GSC_UINT:
-	typeCheck(*type, info & _GSC_MASK);
-	if ((info & _GSC_SIZE) == _GSC_S_INT)
+	if (YES == typeCheck(*type, info & _GSC_MASK)
+	  &&  (info & _GSC_SIZE) == _GSC_S_INT)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -971,8 +1004,8 @@ static Class NSDataMallocClass;
 
       case _GSC_LNG:
       case _GSC_ULNG:
-	typeCheck(*type, info & _GSC_MASK);
-	if ((info & _GSC_SIZE) == _GSC_S_LNG)
+	if (YES == typeCheck(*type, info & _GSC_MASK)
+	  && (info & _GSC_SIZE) == _GSC_S_LNG)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -982,8 +1015,8 @@ static Class NSDataMallocClass;
 #ifdef	_C_LNG_LNG
       case _GSC_LNG_LNG:
       case _GSC_ULNG_LNG:
-	typeCheck(*type, info & _GSC_MASK);
-	if ((info & _GSC_SIZE) == _GSC_S_LNG_LNG)
+	if (YES == typeCheck(*type, info & _GSC_MASK)
+	  && (info & _GSC_SIZE) == _GSC_S_LNG_LNG)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -992,8 +1025,8 @@ static Class NSDataMallocClass;
 
 #endif
       case _GSC_FLT:
-	typeCheck(*type, _GSC_FLT);
-	if (*type == _C_FLT)
+	if (YES == typeCheck(*type, _GSC_FLT)
+	  && *type == _C_FLT)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	  }
@@ -1009,8 +1042,8 @@ static Class NSDataMallocClass;
 	return;
 
       case _GSC_DBL:
-	typeCheck(*type, _GSC_DBL);
-	if (*type == _C_DBL)
+	if (YES == typeCheck(*type, _GSC_DBL)
+	  && *type == _C_DBL)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	  }
@@ -1095,31 +1128,31 @@ static Class NSDataMallocClass;
 /*
  *	Now we copy from the 'bigval' to the destination location.
  */
-  switch (info & _GSC_MASK)
+  switch (*type)
     {
-      case _GSC_SHT:
+      case _C_SHT:
 	*(short*)address = (short)bigval;
 	return;
-      case _GSC_USHT:
+      case _C_USHT:
 	*(unsigned short*)address = (unsigned short)bigval;
 	return;
-      case _GSC_INT:
+      case _C_INT:
 	*(int*)address = (int)bigval;
 	return;
-      case _GSC_UINT:
+      case _C_UINT:
 	*(unsigned int*)address = (unsigned int)bigval;
 	return;
-      case _GSC_LNG:
+      case _C_LNG:
 	*(long*)address = (long)bigval;
 	return;
-      case _GSC_ULNG:
+      case _C_ULNG:
 	*(unsigned long*)address = (unsigned long)bigval;
 	return;
 #ifdef	_C_LNG_LNG
-      case _GSC_LNG_LNG:
+      case _C_LNG_LNG:
 	*(long long*)address = (long long)bigval;
 	return;
-      case _GSC_ULNG_LNG:
+      case _C_ULNG_LNG:
 	*(unsigned long long*)address = (unsigned long long)bigval;
 	return;
 #endif
