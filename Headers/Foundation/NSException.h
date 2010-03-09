@@ -318,7 +318,7 @@ NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler);
    It is illegal to exit the first block of code by any other means than
    NS_VALRETURN, NS_VOIDRETURN, or just falling out the bottom.
  */
-#ifdef _NATIVE_OBJC_EXCEPTIONS
+#if     defined(_NATIVE_OBJC_EXCEPTIONS)
 
 # define NS_DURING       @try {
 # define NS_HANDLER      } @catch (NSException * localException) {
