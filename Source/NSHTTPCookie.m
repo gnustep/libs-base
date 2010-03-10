@@ -41,10 +41,10 @@
 #define	EXPOSE_NSHTTPCookie_IVARS	1
 #import "GSURLPrivate.h"
 #import "Foundation/NSSet.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCalendarDate.h"
-#include "GNUstepBase/Unicode.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSCalendarDate.h"
+#import "GNUstepBase/Unicode.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSHTTPCookieComment = @"Comment";

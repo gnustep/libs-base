@@ -26,11 +26,11 @@
 #define	EXPOSE_NSHTTPCookieStorage_IVARS	1
 #import "GSURLPrivate.h"
 #import "Foundation/NSSet.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSDistributedNotificationCenter.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSDistributedNotificationCenter.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSHTTPCookieManagerAcceptPolicyChangedNotification

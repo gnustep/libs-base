@@ -323,7 +323,8 @@ static BOOL	permitSSLv2 = NO;
       RELEASE(final);
       if (err != SSL_ERROR_NONE)
 	{
-	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
+	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE
+	    && (err != SSL_ERROR_SYSCALL || errno != 0))
 	    {
 	      /*
 	       * Some other error ... not just a timeout or disconnect

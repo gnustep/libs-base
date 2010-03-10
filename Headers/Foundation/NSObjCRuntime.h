@@ -79,7 +79,7 @@ enum
  */
 typedef NSUInteger NSEnumerationOptions;
 
-#include <GNUstepBase/GSObjCRuntime.h>
+#import <GNUstepBase/GSObjCRuntime.h>
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
 GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);

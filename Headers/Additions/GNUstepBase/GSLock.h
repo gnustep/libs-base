@@ -29,12 +29,12 @@
 #define	INCLUDED_GS_LOCK_H
 
 #ifndef NeXT_Foundation_LIBRARY
-#include	<Foundation/NSLock.h>
+#import	<Foundation/NSLock.h>
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 
 #if	defined(__cplusplus)
 extern "C" {

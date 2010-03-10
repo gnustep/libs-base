@@ -26,10 +26,10 @@
 
 #ifndef __GSFunctions_h_GNUSTEP_BASE_INCLUDE
 #define __GSFunctions_h_GNUSTEP_BASE_INCLUDE
-#include "GNUstepBase/GNUstep.h"
+#import "GNUstepBase/GNUstep.h"
 
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 
 #if	defined(__cplusplus)
 extern "C" {

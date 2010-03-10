@@ -34,16 +34,16 @@
 
 #ifndef __GSXML_h_GNUSTEP_BASE_INCLUDE
 #define __GSXML_h_GNUSTEP_BASE_INCLUDE
-#include <GNUstepBase/GSVersionMacros.h>
+#import <GNUstepBase/GSVersionMacros.h>
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDictionary.h>
+#import <Foundation/NSObject.h>
+#import <Foundation/NSString.h>
+#import <Foundation/NSDictionary.h>
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
 #if	defined(__cplusplus)
@@ -463,8 +463,8 @@ extern "C" {
 
 
 
-#include	<Foundation/NSURLHandle.h>
-#include	<Foundation/NSURLConnection.h>
+#import	<Foundation/NSURLHandle.h>
+#import	<Foundation/NSURLConnection.h>
 
 @class	NSArray;
 @class	NSDictionary;
