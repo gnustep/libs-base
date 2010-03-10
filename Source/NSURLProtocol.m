@@ -1304,6 +1304,12 @@ static NSURLProtocol	*placeholder = nil;
 		  [m appendString: [d objectForKey: s]];
 		  [m appendString: @"\r\n"];
 		}
+	      if ([[this->request HTTPMethod] isEqual: @"POST"]
+		  && [d objectForKey: @"Content-Type"] == nil)
+		{
+		  /* On MacOSX, this is automatically added to POST methods */
+		  [m appendString: @"Content-Type: application/x-www-form-urlencoded\r\n"];
+		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
 		  id	p = [u port];
