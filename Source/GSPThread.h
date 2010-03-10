@@ -25,13 +25,17 @@
 
 /*
  * Since glibc does not enable Unix98 extensions by default, we need to tell it
- * to do so explicitly. Whether that support is switched on by _XOPEN_SOURCE or
- * by __USE_UNIX98 depends on whether <features.h> has already been included or
- * will be included by pthread.h. Hence both flags need to be set here. This
- * shouldn't be be a problem with other libcs.
+ * to do so explicitly. That support is switched on by _XOPEN_SOURCE and
+ * __USE_UNIX98 is an internal flag which can cause trouble if enabled alone.
+ * For safety we enable this only on linux and hurd where glibc is likely.
+ * We include features.h explicitely to avoid weird problems.
  */
-#define _XOPEN_SOURCE 500
-#define __USE_UNIX98
+#if defined __linux__ || defined __hurd__
+#  ifndef _XOPEN_SOURCE
+#    define _XOPEN_SOURCE 600
+#  endif
+#endif
+
 #include <pthread.h>
 
 /*
