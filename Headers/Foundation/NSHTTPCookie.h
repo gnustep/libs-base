@@ -43,8 +43,8 @@ extern "C" {
 extern NSString * const NSHTTPCookieComment; /** Obtain text of the comment */
 extern NSString * const NSHTTPCookieCommentURL; /** Obtain the comment URL */
 extern NSString * const NSHTTPCookieDiscard; /** Obtain the sessions discard setting */
-extern NSString * const NSHTTPCookieDomain; /** Obrain cookie domain */
-extern NSString * const NSHTTPCookieExpires; /** Obrain cookie expiry date */
+extern NSString * const NSHTTPCookieDomain; /** Obtain cookie domain */
+extern NSString * const NSHTTPCookieExpires; /** Obtain cookie expiry date */
 extern NSString * const NSHTTPCookieMaximumAge; /** Obtain maximum age (expiry) */
 extern NSString * const NSHTTPCookieName; /** Obtain name of cookie */
 extern NSString * const NSHTTPCookieOriginURL; /** Obtain cookie origin URL */
@@ -108,7 +108,7 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
 /**
  * Returns the domain to which the cookie should be sent.<br />
  * If there is a leading dot then subdomains should also receive the
- * coockie as specified in RFC 2965.
+ * cookie as specified in RFC 2965.
  */
 - (NSString *) domain;
 
