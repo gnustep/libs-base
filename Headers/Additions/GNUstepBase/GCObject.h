@@ -32,12 +32,12 @@
 #define __INCLUDED_GCOBJECT_H
 
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSObject.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSMapTable.h>
+#import <Foundation/NSObject.h>
+#import <Foundation/NSArray.h>
+#import <Foundation/NSDictionary.h>
+#import <Foundation/NSMapTable.h>
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
 #if	defined(__cplusplus)

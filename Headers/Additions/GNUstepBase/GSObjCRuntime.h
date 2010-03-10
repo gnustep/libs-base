@@ -30,8 +30,8 @@
 #ifndef __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __GSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
-#include <GNUstepBase/GSVersionMacros.h>
-#include <GNUstepBase/GSConfig.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <GNUstepBase/GSConfig.h>
 
 #include <stdio.h>
 #include <objc/objc.h>

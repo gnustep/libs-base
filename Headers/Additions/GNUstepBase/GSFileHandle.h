@@ -25,12 +25,12 @@
 #ifndef __GSFileHandle_h_GNUSTEP_BASE_INCLUDE
 #define __GSFileHandle_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSFileHandle.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSRunLoop.h>
+#import <Foundation/NSFileHandle.h>
+#import <Foundation/NSArray.h>
+#import <Foundation/NSDictionary.h>
+#import <Foundation/NSRunLoop.h>
 
-#include <GNUstepBase/GSConfig.h>
+#import <GNUstepBase/GSConfig.h>
 
 #if	USE_ZLIB
 #include <zlib.h>

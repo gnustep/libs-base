@@ -41,10 +41,10 @@
  *	The default action is to send a proxy.
  */
 
-#include <Foundation/NSConnection.h>
-#include <Foundation/NSDistantObject.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSPort.h>
+#import <Foundation/NSConnection.h>
+#import <Foundation/NSDistantObject.h>
+#import <Foundation/NSPortCoder.h>
+#import <Foundation/NSPort.h>
 
 /*
  *	Distributed Objects identifiers
