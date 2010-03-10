@@ -1304,11 +1304,18 @@ static NSURLProtocol	*placeholder = nil;
 		  [m appendString: [d objectForKey: s]];
 		  [m appendString: @"\r\n"];
 		}
+	      /* Use valueForHTTPHeaderField: to check for content-type
+	       * header as that does a case insensitive comparison and
+	       * we therefore won't end up adding a second header by
+	       * accident because the two header names differ in case.
+	       */
 	      if ([[this->request HTTPMethod] isEqual: @"POST"]
-		  && [d objectForKey: @"Content-Type"] == nil)
+	        && [this->request valueForHTTPHeaderField:
+		  @"Content-Type"] == nil)
 		{
 		  /* On MacOSX, this is automatically added to POST methods */
-		  [m appendString: @"Content-Type: application/x-www-form-urlencoded\r\n"];
+		  [m appendString:
+		    @"Content-Type: application/x-www-form-urlencoded\r\n"];
 		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
