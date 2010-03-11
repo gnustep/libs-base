@@ -37,9 +37,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS += \
--Wall \
--Wdeclaration-after-statement
+ADDITIONAL_CPPFLAGS += $(WARN_FLAGS)
 
 # Additional flags to pass to the Objective-C compiler
 #ADDITIONAL_OBJCFLAGS +=

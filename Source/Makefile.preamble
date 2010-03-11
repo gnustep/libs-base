@@ -39,9 +39,8 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall \
+ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) $(WARN_FLAGS) \
 -Wcast-align \
--Wdeclaration-after-statement \
 #-Wstrict-prototypes \
 #-Wpointer-arith \
 #-Wcast-qual \

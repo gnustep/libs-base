@@ -21,6 +21,7 @@
 PACKAGE_NAME = gnustep-base
 
 include $(GNUSTEP_MAKEFILES)/common.make
+-include ../../config.mak
 
 GNUSTEP_MAKEINFO_FLAGS = -D NO-TEXI2HTML
 

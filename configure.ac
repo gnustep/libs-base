@@ -1744,6 +1744,20 @@ AC_SUBST(INCLUDE_FLAGS)
 AC_SUBST(LDIR_FLAGS)
 
 #--------------------------------------------------------------------
+# Check for C99ism warnings
+#--------------------------------------------------------------------
+AC_PROG_CC_C99
+# If the compiler supports c99 then we assume it supports the option to
+# warn about declarations after statements.
+if test "no" = "$ac_cv_prog_cc_c99"; then
+  WARN_FLAGS=-Wall
+else
+  WARN_FLAGS="-Wall -Wdeclaration-after-statement"
+fi
+AC_SUBST(WARN_FLAGS)
+
+
+#--------------------------------------------------------------------
 # Configure flags from sub-configure runs, so they show up in our
 # help file.
 #--------------------------------------------------------------------
