@@ -801,8 +801,12 @@ callUncaughtHandler(id value)
     }
   NSLog(@"WARNING this copy of gnustep-base has been built with libbfd to provide symbolic stacktrace support. This means that the license of this copy of gnustep-base is GPL rather than the normal LGPL license (since libbfd is released under the GPL license).  If this is not what you want, please obtain a copy of gnustep-base which was not configured with the --enable-bfd option");
 #endif	/* USE_BINUTILS */
-#if	defined(_NATIVE_OBJC_EXCEPTIONS) && defined(HAVE_UNEXPECTED)
+#if	defined(_NATIVE_OBJC_EXCEPTIONS)
+#if     defined(HAVE_UNEXPECTED)
+  _objc_unexpected_exception = callUncaughtHandler;
+#elif   defined(HAVE_SET_UNEXPECTED)
   objc_set_unexpected(callUncaughtHandler);
+#endif
 #endif
   return;
 }

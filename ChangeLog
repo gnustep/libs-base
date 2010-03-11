@@ -1,3 +1,13 @@
+2010-03-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m:
+	* configure.ac:
+	* configure:
+	* Headers/Foundation/NSException.h:
+	* Headers/Additions/GNUstepBase/GSConfig.h.in:
+        Improve checks for native-objc-exception support and try to ensure that
+        user code is build with the same settings as base.
+
 2010-03-10  Adam Fedor  <fedor@mallory>
 
 	* Source/NSURLProtocol.m ([_NSHTTPURLProtocol -stream:stream:event]): 
