@@ -1,5 +1,25 @@
 2010-03-11 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure:
+	* config.mak.in:
+	* NSCharacterSets/GNUmakefile:
+	* Source/unix/Makefile.preamble:
+	* Source/win32/Makefile.preamble:
+	* Source/ObjectiveC2/Makefile.preamble:
+	* Source/Additions/Makefile.preamble:
+	* Source/Makefile.preamble:
+	* SSL/Makefile.preamble:
+	* configure.ac:
+	* Documentation/manual/GNUmakefile:
+	* Resources/GNUmakefile:
+	* Examples/Makefile.preamble:
+	* Examples/GNUmakefile:
+	* Tools/Makefile.preamble:
+	* Tools/make_strings/GNUmakefile.preamble:
+        Improve setting of warning flags.
+
+2010-03-11 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSException.m:
 	* configure.ac:
 	* configure:

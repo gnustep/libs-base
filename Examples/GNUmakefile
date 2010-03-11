@@ -45,6 +45,8 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES = ../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
+-include ../config.mak
+
 # The tools to be created
 TEST_TOOL_NAME = \
 	dictionary \
