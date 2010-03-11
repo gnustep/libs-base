@@ -650,6 +650,7 @@ LIBS
 build_alias
 host_alias
 target_alias
+BASE_NATIVE_OBJC_EXCEPTIONS
 build
 build_cpu
 build_vendor
@@ -1879,9 +1880,12 @@ fi
 exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
 if test -z "$exceptions"; then
   exceptions=no
+  BASE_NATIVE_OBJC_EXCEPTIONS=0
 else
   exceptions=yes
+  BASE_NATIVE_OBJC_EXCEPTIONS=1
 fi
+
 
 if test -z "$GNUSTEP_MAKEFILES"; then
   { { echo "$as_me:$LINENO: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&5
@@ -9406,37 +9410,49 @@ echo "${ECHO_T}$have_set_unexpected" >&6; }
 
 { echo "$as_me:$LINENO: checking for _objc_unexpected_exception in runtime" >&5
 echo $ECHO_N "checking for _objc_unexpected_exception in runtime... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
+if test "$cross_compiling" = yes; then
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
+   { (exit 1); exit 1; }; }
+else
+  cat >conftest.$ac_ext <<_ACEOF
 #include "$srcdir/config/config.unexpected.m"
 _ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
+rm -f conftest$ac_exeext
 if { (ac_try="$ac_link"
 case "(($ac_try" in
   *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
   *) ac_try_echo=$ac_try;;
 esac
 eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
+  (eval "$ac_link") 2>&5
   ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
   have_unexpected=yes
 else
-  echo "$as_me: failed program was:" >&5
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	have_unexpected=no
+( exit $ac_status )
+have_unexpected=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
+
 if test $have_unexpected = yes; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -9446,6 +9462,16 @@ _ACEOF
 fi
 { echo "$as_me:$LINENO: result: $have_unexpected" >&5
 echo "${ECHO_T}$have_unexpected" >&6; }
+
+if test "$exceptions" = "yes"; then
+  if test $have_set_unexpected = no; then
+    if test $have_unexpected = no; then
+      { { echo "$as_me:$LINENO: error: Your objective-c runtime library does not appear to support any mechanism to set a handler for uncaught native exceptions.  Please upgrade your runtime or re-install gnustep-make without native-objc-exceptions!" >&5
+echo "$as_me: error: Your objective-c runtime library does not appear to support any mechanism to set a handler for uncaught native exceptions.  Please upgrade your runtime or re-install gnustep-make without native-objc-exceptions!" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+  fi
+fi
 
 # Don't revert any Objective-C flags as they are used in the next test
 
@@ -21705,6 +21731,7 @@ LIBS!$LIBS$ac_delim
 build_alias!$build_alias$ac_delim
 host_alias!$host_alias$ac_delim
 target_alias!$target_alias$ac_delim
+BASE_NATIVE_OBJC_EXCEPTIONS!$BASE_NATIVE_OBJC_EXCEPTIONS$ac_delim
 build!$build$ac_delim
 build_cpu!$build_cpu$ac_delim
 build_vendor!$build_vendor$ac_delim
@@ -21764,7 +21791,6 @@ OBJC2RUNTIME!$OBJC2RUNTIME$ac_delim
 OBJCFLAGS!$OBJCFLAGS$ac_delim
 HAVE_OBJC_SYNC_ENTER!$HAVE_OBJC_SYNC_ENTER$ac_delim
 GS_SIZEOF_MUTEX_T!$GS_SIZEOF_MUTEX_T$ac_delim
-GS_SIZEOF_COND_T!$GS_SIZEOF_COND_T$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -21806,6 +21832,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+GS_SIZEOF_COND_T!$GS_SIZEOF_COND_T$ac_delim
 HAVE_PTS_STREAM_MODULES!$HAVE_PTS_STREAM_MODULES$ac_delim
 INCLUDE_STDINT!$INCLUDE_STDINT$ac_delim
 DEFINE_INT8_T!$DEFINE_INT8_T$ac_delim
@@ -21848,7 +21875,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 40; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 41; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

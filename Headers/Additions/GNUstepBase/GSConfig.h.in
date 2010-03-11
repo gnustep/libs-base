@@ -219,6 +219,7 @@ typedef	struct {
 } gs_mutex_t;
 
 #define	OBJC2RUNTIME @OBJC2RUNTIME@
+#define BASE_NATIVE_OBJC_EXCEPTIONS     @BASE_NATIVE_OBJC_EXCEPTIONS@
 
 #import <GNUstepBase/preface.h>
 

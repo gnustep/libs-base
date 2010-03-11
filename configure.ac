@@ -47,9 +47,12 @@ fi
 exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
 if test -z "$exceptions"; then
   exceptions=no
+  BASE_NATIVE_OBJC_EXCEPTIONS=0
 else
   exceptions=yes
+  BASE_NATIVE_OBJC_EXCEPTIONS=1
 fi
+AC_SUBST(BASE_NATIVE_OBJC_EXCEPTIONS)
 
 if test -z "$GNUSTEP_MAKEFILES"; then
   AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
@@ -705,13 +708,21 @@ fi
 AC_MSG_RESULT($have_set_unexpected)
 
 AC_MSG_CHECKING(for _objc_unexpected_exception in runtime)
-AC_LINK_IFELSE([#include "$srcdir/config/config.unexpected.m"],
+AC_RUN_IFELSE([#include "$srcdir/config/config.unexpected.m"],
 	have_unexpected=yes, have_unexpected=no)
 if test $have_unexpected = yes; then
   AC_DEFINE(HAVE_UNEXPECTED,1,
 	    [Define if libobjc has the _objc_unexpected_exception callback])
 fi
 AC_MSG_RESULT($have_unexpected)
+
+if test "$exceptions" = "yes"; then
+  if test $have_set_unexpected = no; then
+    if test $have_unexpected = no; then
+      AC_MSG_ERROR([Your objective-c runtime library does not appear to support any mechanism to set a handler for uncaught native exceptions.  Please upgrade your runtime or re-install gnustep-make without native-objc-exceptions!])
+    fi
+  fi
+fi
 
 # Don't revert any Objective-C flags as they are used in the next test
 
