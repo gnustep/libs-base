@@ -1,3 +1,9 @@
+2010-03-11 12:14-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/GNUmakefile: Remove reference to synchonization.m.
+	* Source/synchronization.m: Remove, since ObjectiveC2 has been
+	merged.
+
 2010-03-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure:
