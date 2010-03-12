@@ -345,7 +345,7 @@ static NSMapTable	*globalClassMap = 0;
 
 - (Class) classForClassName: (NSString*)aString
 {
-  return (Class)NSMapGet(_clsMap, (void*)aString);
+  return _clsMap == 0 ? Nil : (Class)NSMapGet(_clsMap, (void*)aString);
 }
 
 - (BOOL) containsValueForKey: (NSString*)aKey
@@ -806,8 +806,6 @@ static NSMapTable	*globalClassMap = 0;
 	  _objects = [_archive objectForKey: @"$objects"];
 	  _keyMap = [_archive objectForKey: @"$top"];
 
-	  _clsMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
-	    NSNonOwnedPointerMapValueCallBacks, 0);
 #if	GS_WITH_GC
 	  _objMap = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
 #else
@@ -831,10 +829,18 @@ static NSMapTable	*globalClassMap = 0;
 {
   if (aString == nil)
     {
-      NSMapRemove(_clsMap, (void*)aString);
+      if (_clsMap != 0)
+	{
+          NSMapRemove(_clsMap, (void*)aString);
+	}
     }
   else
     {
+      if (_clsMap == 0)
+	{
+	  _clsMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	    NSNonOwnedPointerMapValueCallBacks, 0);
+	}
       NSMapInsert(_clsMap, (void*)aString, (void*)aClass);
     }
 }
