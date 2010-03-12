@@ -29,7 +29,9 @@
 */
 
 #import "common.h"
-#ifndef NeXT_Foundation_LIBRARY
+#if	defined(NeXT_Foundation_LIBRARY)
+#import <Foundation/Foundation.h>
+#else
 #import "Foundation/NSArray.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSDictionary.h"
@@ -37,8 +39,6 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSPathUtilities.h"
-#else
-#import <Foundation/Foundation.h>
 #endif
 
 #import "GNUstepBase/GSLock.h"

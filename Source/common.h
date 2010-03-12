@@ -6,6 +6,14 @@
 
 #import	"config.h"
 
+/* If this is included in a file in the Additions subdirectory, and we are
+ * building for use with the NeXT/Apple Foundation, then we need to import
+ * the native headers in preference to any of our own.
+ */
+#if	defined(NeXT_Foundation_LIBRARY)
+#import	<Foundation/Foundation.h>
+#endif
+
 /* GNUstepBase/GSConfig.h includes <GNUstepBase/preface.h> so
  * we import local versions first.
  */
