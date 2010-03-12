@@ -24,6 +24,7 @@
 */
 
 #import "common.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSStream+GNUstepBase.h"
 
 /* Code used in GNUstepBase
@@ -41,6 +42,7 @@ NSString * const GSStreamRemotePortKey
 /* The remaining code is specific to the Apple Foundation
  */
 #if	!defined(GNUSTEP)
+
 @implementation NSStream (GNUstepBase)
 
 + (void) getLocalStreamsToPath: (NSString *)path 
@@ -55,9 +57,10 @@ NSString * const GSStreamRemotePortKey
 {
   [self notImplemented: _cmd];
 }
+
 @end
 
-@implememntation GSServerStream
+@implementation GSServerStream
 
 + (id) allocWithZone: (NSZone*)z
 {
@@ -77,7 +80,7 @@ NSString * const GSStreamRemotePortKey
 - (void) acceptWithInputStream: (NSInputStream **)inputStream 
                   outputStream: (NSOutputStream **)outputStream
 {
-  return [self notImplemented: _cmd];
+  [self notImplemented: _cmd];
 }
 
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port
