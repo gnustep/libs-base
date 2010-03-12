@@ -1,3 +1,9 @@
+2010-03-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedArchiver.m:
+	Create _+clsMap lazily so it's there for subclasses even if the
+	initialiser was not called.
+
 2010-03-11 12:14-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/GNUmakefile: Remove reference to synchonization.m.
