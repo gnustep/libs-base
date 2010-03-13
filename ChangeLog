@@ -1,3 +1,12 @@
+2010-03-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Note use of nonfragile abi
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: save nonfragile abi state
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	Fix check for nonfragile-abi state, and raise an error if the current
+	compile doesn't atch the state used to build the base library.
+
 2010-03-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedArchiver.m:

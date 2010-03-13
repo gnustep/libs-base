@@ -681,7 +681,11 @@ CPPFLAGS="$saved_CPPFLAGS"
 if test $non_fragile = yes; then
   OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
   AC_SUBST(OBJCFLAGS)
+  GS_NONFRAGILE=1
+else
+  GS_NONFRAGILE=0
 fi
+AC_SUBST(GS_NONFRAGILE)
 AC_MSG_RESULT($non_fragile)
 
 # Don't revert any Objective-C flags as they are used in the next test

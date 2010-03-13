@@ -708,6 +708,7 @@ NX_CONST_STRING_OBJCFLAGS
 NX_CONST_STRING_CLASS
 OBJC2RUNTIME
 OBJCFLAGS
+GS_NONFRAGILE
 HAVE_OBJC_SYNC_ENTER
 GS_SIZEOF_MUTEX_T
 GS_SIZEOF_COND_T
@@ -9332,7 +9333,11 @@ CPPFLAGS="$saved_CPPFLAGS"
 if test $non_fragile = yes; then
   OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
 
+  GS_NONFRAGILE=1
+else
+  GS_NONFRAGILE=0
 fi
+
 { echo "$as_me:$LINENO: result: $non_fragile" >&5
 echo "${ECHO_T}$non_fragile" >&6; }
 
@@ -22004,8 +22009,8 @@ NX_CONST_STRING_OBJCFLAGS!$NX_CONST_STRING_OBJCFLAGS$ac_delim
 NX_CONST_STRING_CLASS!$NX_CONST_STRING_CLASS$ac_delim
 OBJC2RUNTIME!$OBJC2RUNTIME$ac_delim
 OBJCFLAGS!$OBJCFLAGS$ac_delim
+GS_NONFRAGILE!$GS_NONFRAGILE$ac_delim
 HAVE_OBJC_SYNC_ENTER!$HAVE_OBJC_SYNC_ENTER$ac_delim
-GS_SIZEOF_MUTEX_T!$GS_SIZEOF_MUTEX_T$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -22047,6 +22052,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+GS_SIZEOF_MUTEX_T!$GS_SIZEOF_MUTEX_T$ac_delim
 GS_SIZEOF_COND_T!$GS_SIZEOF_COND_T$ac_delim
 HAVE_PTS_STREAM_MODULES!$HAVE_PTS_STREAM_MODULES$ac_delim
 INCLUDE_STDINT!$INCLUDE_STDINT$ac_delim
@@ -22091,7 +22097,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 42; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 43; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
