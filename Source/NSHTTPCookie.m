@@ -183,7 +183,8 @@ static NSRange GSRangeOfCookie(NSString *string);
 	    if ([dict objectForKey: NSHTTPCookieDomain] == nil)
 	      [dict setObject: defaultDomain forKey: NSHTTPCookieDomain];
 	    cookie = [NSHTTPCookie cookieWithProperties: dict];
-	    [a addObject: cookie];
+	    if (cookie)
+	      [a addObject: cookie];
 	  }
       if ([field length] <= NSMaxRange(range))
 	break;
@@ -231,7 +232,7 @@ static NSRange GSRangeOfCookie(NSString *string);
   while ((ck = [ckenum nextObject]))
     {
       NSString *str;
-      str = [NSString stringWithFormat: @"$@=$@", [ck name], [ck value]];
+      str = [NSString stringWithFormat: @"%@=%@", [ck name], [ck value]];
       if (field)
 	field = [field stringByAppendingFormat: @"; %@", str];
       else
@@ -273,18 +274,28 @@ static NSRange GSRangeOfCookie(NSString *string);
   return [this->_properties objectForKey: NSHTTPCookieExpires];
 }
 
+- (BOOL) _isValidProperty: (NSString *)prop
+{
+  return ([prop length]
+	  && [prop rangeOfString: @"\n"].location == NSNotFound);
+}
+
 - (id) initWithProperties: (NSDictionary *)properties
 {
   NSMutableDictionary *rawProps;
   if ((self = [super init]) == nil)
     return nil;
 
-  /* Parse a few values.  Based on Mac OS X tests.
-     FIXME: Probably needs more checking. */
-  if ([properties objectForKey: NSHTTPCookiePath] == nil)
-    return nil;
-  if ([properties objectForKey: NSHTTPCookieDomain] == nil)
-    return nil;
+  /* Check a few values.  Based on Mac OS X tests. */
+  if (![self _isValidProperty: [properties objectForKey: NSHTTPCookiePath]] 
+      || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieDomain]]
+      || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieName]]
+      || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieValue]]
+      )
+    {
+      [self release];
+      return nil;
+    }
 
   rawProps = [[properties mutableCopy] autorelease];
   if ([rawProps objectForKey: @"Created"] == nil)
