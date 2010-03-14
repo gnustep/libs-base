@@ -899,6 +899,51 @@ callUncaughtHandler(id value)
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  CREATE_AUTORELEASE_POOL(pool);
+  NSString      *result;
+
+  if (_e_name == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Atttempt to use uninitialised NSException"];
+    }
+  if (_reserved != 0)
+    {
+      if (_e_stack != nil
+        && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
+        {
+          if (_e_info != nil)
+            {
+              result = [NSString stringWithFormat:
+                @"%@ NAME:%@ REASON:%@ INFO:%@ STACK:%@",
+                [super description], _e_name, _e_reason, _e_info, _e_stack];
+            }
+          else
+            {
+              result = [NSString stringWithFormat:
+                @"%@ NAME:%@ REASON:%@ STACK:%@",
+                [super description], _e_name, _e_reason, _e_stack];
+            }
+        }
+      else
+        {
+          result = [NSString stringWithFormat:
+            @"%@ NAME:%@ REASON:%@ INFO:%@",
+            [super description], _e_name, _e_reason, _e_info];
+        }
+    }
+  else
+    {
+      result = [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
+        [super description], _e_name, _e_reason];
+    }
+  IF_NO_GC([result retain];)
+  IF_NO_GC(DESTROY(pool);)
+  return AUTORELEASE(result);
+}
+
 - (void) raise
 {
   if (_reserved == 0)
@@ -1029,46 +1074,6 @@ callUncaughtHandler(id value)
                                          reason: [self reason]
                                        userInfo: [self userInfo]];
     }
-}
-
-- (NSString*) description
-{
-  CREATE_AUTORELEASE_POOL(pool);
-  NSString      *result;
-
-  if (_reserved != 0)
-    {
-      if (_e_stack != nil
-        && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
-        {
-          if (_e_info != nil)
-            {
-              result = [NSString stringWithFormat:
-                @"%@ NAME:%@ REASON:%@ INFO:%@ STACK:%@",
-                [super description], _e_name, _e_reason, _e_info, _e_stack];
-            }
-          else
-            {
-              result = [NSString stringWithFormat:
-                @"%@ NAME:%@ REASON:%@ STACK:%@",
-                [super description], _e_name, _e_reason, _e_stack];
-            }
-        }
-      else
-        {
-          result = [NSString stringWithFormat:
-            @"%@ NAME:%@ REASON:%@ INFO:%@",
-            [super description], _e_name, _e_reason, _e_info];
-        }
-    }
-  else
-    {
-      result = [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
-        [super description], _e_name, _e_reason];
-    }
-  IF_NO_GC([result retain];)
-  IF_NO_GC(DESTROY(pool);)
-  return AUTORELEASE(result);
 }
 
 @end
