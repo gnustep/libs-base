@@ -1,3 +1,8 @@
+2010-03-14  Adam Fedor  <fedor@mallory>
+
+	* Source/NSHTTPCookie.m (+requestHeaderFieldsWithCookies:): 
+	Correct format syntax.
+
 2010-03-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Note use of nonfragile abi
