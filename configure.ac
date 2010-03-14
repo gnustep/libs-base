@@ -1343,12 +1343,8 @@ AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
   enable_libffi=$do_enable_libffi)
 
-if test $enable_libffi = no; then
-  do_enable_libffcall=yes
-fi
-
 AC_ARG_ENABLE(ffcall,
-  [  --enable-ffcall  		Enable use of ffcall library],,
+  [  --enable-ffcall  		Enable use of the deprecated ffcall library],,
   enable_ffcall=$do_enable_libffcall)
 
 AC_ARG_ENABLE(invocations,
@@ -1361,7 +1357,7 @@ if test $LIBRARY_COMBO = apple-apple-apple; then
 fi
 
 AC_ARG_WITH(ffi-include,
-[  --with-ffi-include=PATH       Include path for ffi (ffcall/libffi) headers],
+[  --with-ffi-include=PATH       Include path for ffi headers],
     ffi_incdir="$withval", ffi_incdir="no")
 if test ${ffi_incdir} != "no"; then
     CPPFLAGS="$CPPFLAGS -I${ffi_incdir}"
@@ -1369,7 +1365,7 @@ if test ${ffi_incdir} != "no"; then
 fi
 
 AC_ARG_WITH(ffi-library,
-[  --with-ffi-library=PATH       Library path for ffi (ffcall/libffi) libs],
+[  --with-ffi-library=PATH       Library path for ffi libs],
     ffi_libdir="$withval", ffi_libdir="no")
 if test ${ffi_libdir} != "no"; then
 GS_ADD_LIBRARY_PATH([${ffi_libdir}])
@@ -1443,9 +1439,7 @@ elif test $enable_ffcall = yes; then
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(ffcall)
   fi
-  if test $do_broken_libffcall = yes; then
-    AC_MSG_WARN([ffcall may be broken on this system ... try enabling ffi])
-  fi
+  AC_MSG_WARN([ffcall is broken on some systems and is deprecated ... try enabling ffi])
 else
   ffi_ok=no
 fi
@@ -1456,10 +1450,6 @@ if test $enable_ffcall = yes -a $ffi_ok = yes; then
 	  have_working_trampoline=yes, have_working_trampoline=no, 
 	  have_working_trampoline=yes)
   AC_MSG_RESULT($have_working_trampoline)
-  # Don't enforce this. Sometimes things work fine anyway...
-  #if test $have_working_trampoline = no; then
-  #  ffi_ok=no
-  #fi
 fi
 
 if test $ffi_ok = no; then
@@ -1477,7 +1467,7 @@ if test $ffi_ok = no; then
     echo "or you have ffcall but gnustep-make is configured to use native exceptions"
     echo "(native exceptions are not compatible with ffcall)."
   fi
-  echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
+  echo "GNUstep requires libffi (or ffcall) and proper libobjc hooks to do"
   echo "invocations and DO."
   echo "(This does not apply on apple-apple-apple systems where DO is"
   echo "not compatible with other GNUstep systems.)"

@@ -1348,7 +1348,7 @@ Optional Features:
   --enable-pass-arguments	Force user main call to NSProcessInfo initialize
   --enable-fake-main  		Force redefine of user main function
   --enable-libffi  		Enable use of libffi library
-  --enable-ffcall  		Enable use of ffcall library
+  --enable-ffcall  		Enable use of the deprecated ffcall library
   --disable-invocations		Compile even if invocation-dependencies are not met
   --disable-xml			Compile even if XML-dependencies are not met
   --disable-xmltest		Do not try to compile and run a test XML program
@@ -1383,8 +1383,8 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-include-flags=FLAGS    Specify all include flags at once
   --with-library-flags=FLAGS    Specify all library flags at once
-  --with-ffi-include=PATH       Include path for ffi (ffcall/libffi) headers
-  --with-ffi-library=PATH       Library path for ffi (ffcall/libffi) libs
+  --with-ffi-include=PATH       Include path for ffi headers
+  --with-ffi-library=PATH       Library path for ffi libs
   --with-libiconv-library=PATH  Library path for libiconv libraries
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
@@ -18289,10 +18289,6 @@ else
 fi
 
 
-if test $enable_libffi = no; then
-  do_enable_libffcall=yes
-fi
-
 # Check whether --enable-ffcall was given.
 if test "${enable_ffcall+set}" = set; then
   enableval=$enable_ffcall;
@@ -18841,10 +18837,8 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
     { echo "$as_me:$LINENO: result: ffcall" >&5
 echo "${ECHO_T}ffcall" >&6; }
   fi
-  if test $do_broken_libffcall = yes; then
-    { echo "$as_me:$LINENO: WARNING: ffcall may be broken on this system ... try enabling ffi" >&5
-echo "$as_me: WARNING: ffcall may be broken on this system ... try enabling ffi" >&2;}
-  fi
+  { echo "$as_me:$LINENO: WARNING: ffcall is broken on some systems and is deprecated ... try enabling ffi" >&5
+echo "$as_me: WARNING: ffcall is broken on some systems and is deprecated ... try enabling ffi" >&2;}
 else
   ffi_ok=no
 fi
@@ -18893,10 +18887,6 @@ fi
 
   { echo "$as_me:$LINENO: result: $have_working_trampoline" >&5
 echo "${ECHO_T}$have_working_trampoline" >&6; }
-  # Don't enforce this. Sometimes things work fine anyway...
-  #if test $have_working_trampoline = no; then
-  #  ffi_ok=no
-  #fi
 fi
 
 if test $ffi_ok = no; then
@@ -18915,7 +18905,7 @@ echo "${ECHO_T}none" >&6; }
     echo "or you have ffcall but gnustep-make is configured to use native exceptions"
     echo "(native exceptions are not compatible with ffcall)."
   fi
-  echo "GNUstep requires ffcall or libffi and proper libobjc hooks to do"
+  echo "GNUstep requires libffi (or ffcall) and proper libobjc hooks to do"
   echo "invocations and DO."
   echo "(This does not apply on apple-apple-apple systems where DO is"
   echo "not compatible with other GNUstep systems.)"
