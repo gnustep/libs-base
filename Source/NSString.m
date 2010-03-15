@@ -4611,8 +4611,18 @@ static NSFileManager *fm = nil;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSString *string = (NSString*)[(NSKeyedUnarchiver*)aCoder
-			     _decodePropertyListForKey: @"NS.string"];
+      NSString *string = nil;
+
+      if ([aCoder containsValueForKey: @"NS.string"])
+          {
+            string = (NSString*)[(NSKeyedUnarchiver*)aCoder
+                                    _decodePropertyListForKey: @"NS.string"];
+          }
+      else if ([aCoder containsValueForKey: @"NS.bytes"])
+        {
+          string = (NSString*)[(NSKeyedUnarchiver*)aCoder
+                                    decodeObjectForKey: @"NS.bytes"];
+        }
 
       self = [self initWithString: string];
     }
