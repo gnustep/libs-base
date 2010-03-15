@@ -52,13 +52,13 @@
 #endif
 
 #ifndef	ASSIGN
-#define	ASSIGN(object,value)	(object = value)
+#define	ASSIGN(object,value)	((object) = (value))
 #endif
 #ifndef	ASSIGNCOPY
-#define	ASSIGNCOPY(object,value)	(object = [value copy])
+#define	ASSIGNCOPY(object,value)	((object) = [(id)(value) copy])
 #endif
 #ifndef	DESTROY
-#define	DESTROY(object) 	(object = nil)
+#define	DESTROY(object) 	((object) = nil)
 #endif
 
 #ifndef	CREATE_AUTORELEASE_POOL
@@ -77,21 +77,21 @@
 /**
  *	Basic retain operation ... calls [NSObject-retain]
  */
-#define	RETAIN(object)		[object retain]
+#define	RETAIN(object)		[(id)(object) retain]
 #endif
 
 #ifndef	RELEASE
 /**
  *	Basic release operation ... calls [NSObject-release]
  */
-#define	RELEASE(object)		[object release]
+#define	RELEASE(object)		[(id)(object) release]
 #endif
 
 #ifndef	AUTORELEASE
 /**
  *	Basic autorelease operation ... calls [NSObject-autorelease]
  */
-#define	AUTORELEASE(object)	[object autorelease]
+#define	AUTORELEASE(object)	[(id)(object) autorelease]
 #endif
 
 #ifndef	TEST_RETAIN
@@ -126,7 +126,7 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  */
 #define	ASSIGN(object,value)	({\
   id __object = (id)(object); \
-  object = [((id)value) retain]; \
+  (object) = [(id)(value) retain]; \
   [__object release]; \
 })
 #endif
@@ -138,7 +138,7 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  */
 #define	ASSIGNCOPY(object,value)	({\
   id __object = (id)(object); \
-  object = [((id)value) copy];\
+  (object) = [(id)(value) copy];\
   [__object release]; \
 })
 #endif
@@ -152,8 +152,8 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  *	to reference the object being released through the variable.
  */
 #define	DESTROY(object) 	({ \
-  id __o = object; \
-  object = nil; \
+  id __o = (id)(object); \
+  (object) = nil; \
   [__o release]; \
 })
 #endif
