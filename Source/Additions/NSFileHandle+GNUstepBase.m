@@ -29,6 +29,10 @@
 #import "GSPrivate.h"
 #import "GNUstepBase/NSFileHandle+GNUstepBase.h"
 
+/* Not defined on Solaris 2.7 */
+#ifndef INADDR_NONE
+#define INADDR_NONE     -1
+#endif
 
 @implementation NSFileHandle(GNUstepBase)
 // From GSFileHandle.m
