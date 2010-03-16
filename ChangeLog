@@ -1,3 +1,9 @@
+2010-03-16 Vincent Richomme <forumer@smartmobili.com>
+
+	* Source/Additions/NSFileHandle+GNUstepBase.m:
+	* Tools/gdomap.c:
+	Minor tweaks porting to mingw64
+
 2010-03-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCharacterSet.m: Optimise for cases when huge ranges of

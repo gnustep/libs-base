@@ -130,7 +130,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 #endif
   int    net;
   struct sockaddr_in    sin;
-  unsigned int		size = sizeof(sin);
+  socklen_t		size = sizeof(sin);
 
   if (getAddr(a, s, p, &sin) == NO)
     {
@@ -200,7 +200,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 - (NSString*) socketAddress
 {
   struct sockaddr_in    sin;
-  unsigned int    size = sizeof(sin);
+  socklen_t    size = sizeof(sin);
 
   if (getsockname([self fileDescriptor], (struct sockaddr*)&sin,  &size) < 0)
     {
