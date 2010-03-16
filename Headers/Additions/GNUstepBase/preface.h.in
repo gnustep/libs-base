@@ -45,7 +45,7 @@
 
 #if defined(__WIN32__)
 #include <w32api.h>
-#ifndef _WIN32_WINNT Windows2000
+#ifndef _WIN32_WINNT
 #define _WIN32_WINNT Windows2000
 #endif
 #if	!defined(WINVER)
