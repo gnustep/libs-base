@@ -88,7 +88,7 @@ static NSLock			*placeholderLock;
   if (self == [NSValue class])
     {
       abstractClass = self;
-      [abstractClass setVersion: 2];	// Version 2
+      [abstractClass setVersion: 3];	// Version 3
       concreteClass = [GSValue class];
       nonretainedObjectValueClass = [GSNonretainedObjectValue class];
       pointValueClass = [GSPointValue class];
@@ -390,6 +390,35 @@ static NSLock			*placeholderLock;
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
+  if (strncmp("{_NSSize=", objctype, 9) == 0)
+    {
+      NSSize    v = [self sizeValue];
+
+      [coder encodeValueOfObjCType: objctype at: &v];
+      return;
+    }
+  else if (strncmp("{_NSPoint=", objctype, 10) == 0)
+    {
+      NSPoint    v = [self pointValue];
+
+      [coder encodeValueOfObjCType: objctype at: &v];
+      return;
+    }
+  else if (strncmp("{_NSRect=", objctype, 9) == 0)
+    {
+      NSRect    v = [self rectValue];
+
+      [coder encodeValueOfObjCType: objctype at: &v];
+      return;
+    }
+  else if (strncmp("{_NSRange=", objctype, 10) == 0)
+    {
+      NSRange    v = [self rangeValue];
+
+      [coder encodeValueOfObjCType: objctype at: &v];
+      return;
+    }
+
   size = objc_sizeof_type(objctype);
   data = (void *)NSZoneMalloc([self zone], size);
   [self getValue: (void*)data];
@@ -429,10 +458,55 @@ static NSLock			*placeholderLock;
   [coder decodeArrayOfObjCType: @encode(signed char)
 			 count: size
 			    at: (void*)objctype];
-  c = [abstractClass valueClassWithObjCType: objctype];
+  if (strncmp("{_NSSize=", objctype, 9) == 0)
+    c = [abstractClass valueClassWithObjCType: @encode(NSSize)];
+  else if (strncmp("{_NSPoint=", objctype, 10) == 0)
+    c = [abstractClass valueClassWithObjCType: @encode(NSPoint)];
+  else if (strncmp("{_NSRect=", objctype, 9) == 0)
+    c = [abstractClass valueClassWithObjCType: @encode(NSRect)];
+  else if (strncmp("{_NSRange=", objctype, 10) == 0)
+    c = [abstractClass valueClassWithObjCType: @encode(NSRange)];
+  else
+    c = [abstractClass valueClassWithObjCType: objctype];
   o = [c allocWithZone: [coder objectZone]];
 
   ver = [coder versionForClassName: @"NSValue"];
+  if (ver > 2)
+    {
+      if (c == pointValueClass)
+        {
+          NSPoint	v;
+
+          [coder decodeValueOfObjCType: @encode(NSPoint) at: &v];
+          DESTROY(self);
+          return [o initWithBytes: &v objCType: @encode(NSPoint)];
+        }
+      else if (c == sizeValueClass)
+        {
+          NSSize	v;
+
+          [coder decodeValueOfObjCType: @encode(NSSize) at: &v];
+          DESTROY(self);
+          return [o initWithBytes: &v objCType: @encode(NSSize)];
+        }
+      else if (c == rangeValueClass)
+        {
+          NSRange	v;
+
+          [coder decodeValueOfObjCType: @encode(NSRange) at: &v];
+          DESTROY(self);
+          return [o initWithBytes: &v objCType: @encode(NSRange)];
+        }
+      else if (c == rectValueClass)
+        {
+          NSRect	v;
+
+          [coder decodeValueOfObjCType: @encode(NSRect) at: &v];
+          DESTROY(self);
+          return [o initWithBytes: &v objCType: @encode(NSRect)];
+        }
+    }
+
   if (ver < 2)
     {
       if (ver < 1)
