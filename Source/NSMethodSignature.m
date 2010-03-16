@@ -36,6 +36,9 @@
 
 #import "GSInvocation.h"
 
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
