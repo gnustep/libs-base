@@ -1,3 +1,8 @@
+2010-03-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSet.m: Optimise for cases when huge ranges of
+	characters are added to a set (as suggested by Fred).
+
 2010-03-15  Adam Fedor  <fedor@mallory>
 
 	Source/Additions/NSFileHandle+GNUstepBase.m: Define INADDR_NONE
@@ -5,7 +10,8 @@
 
 2010-03-15  Fred Kiefer <FredKiefer@gmx.de>
 
-	* Source/NSString.m (-initWithCoder:): Handle format used for XIB encoding.
+	* Source/NSString.m (-initWithCoder:): Handle format used for
+	XIB encoding.
 
 2010-03-14  Adam Fedor  <fedor@mallory>
 

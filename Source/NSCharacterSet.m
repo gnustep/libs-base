@@ -254,26 +254,61 @@
 
 - (void) addCharactersInRange: (NSRange)aRange
 {
-  unsigned i;
+  NSUInteger	i;
+  NSUInteger	m;
+  NSUInteger	b;
 
-  if (NSMaxRange(aRange) > UNICODE_MAX)
+  m = NSMaxRange(aRange);
+  if (m > UNICODE_MAX)
     {
       [NSException raise:NSInvalidArgumentException
 	  format:@"Specified range exceeds character set"];
       /* NOT REACHED */
     }
-
-  for (i = aRange.location; i < NSMaxRange(aRange); i++)
+  else if (m < 1)
     {
-      unsigned	byte = i/8;
+      return;
+    }
 
-      while (byte >= _length)
+  /* Make space if needed.
+   */
+  b = (m - 1) / 8;
+  if (b >= _length)
+    {
+      while (b >= _length)
 	{
-	  [_obj setLength: _length + BITMAP_SIZE];
 	  _length += BITMAP_SIZE;
-	  _data = [_obj mutableBytes];
 	}
-      SETBIT(_data[byte], i % 8);
+      [_obj setLength: _length];
+      _data = [_obj mutableBytes];
+    }
+
+  /* Fill the first byte in the range.
+   */
+  i = aRange.location;
+  b = i / 8;
+  while (i % 8 != 0 && i < m)
+    {
+      SETBIT(_data[b], i % 8);
+      i++;
+    }
+
+  /* Set any complete bytes in the range.
+   */
+  b = (m - i) / 8;
+  if (b > 0)
+    {
+      memset(&_data[i / 8], 0xff, b);
+      i += b * 8;
+    }
+
+  /* Partial set of any bits needed in the last byte.
+   */
+  b = i / 8;
+  while (i < m)
+    {
+      SETBIT(_data[b], i % 8);
+      i++;
     }
   _known = 0;	// Invalidate cache
 }
@@ -314,10 +349,13 @@
 		+ (second - 0xdc00) + 0x0010000;
 	    }
 	  byte = letter/8;
-	  while (byte >= _length)
+	  if (byte >= _length)
 	    {
-	      [_obj setLength: _length + BITMAP_SIZE];
-	      _length += BITMAP_SIZE;
+	      while (byte >= _length)
+		{
+		  _length += BITMAP_SIZE;
+		}
+	      [_obj setLength: _length];
 	      _data = [_obj mutableBytes];
 	    }
 	  SETBIT(_data[byte], letter % 8);
