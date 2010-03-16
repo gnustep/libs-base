@@ -43,6 +43,7 @@
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
 #ifdef __MINGW32__
+#include <stdint.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <wininet.h>
@@ -397,7 +398,7 @@ typedef struct {
   int s;
 #endif /* __MINGW32__ */
   struct sockaddr_in	addr;	/* Address of process making request.	*/
-  unsigned int		pos;	/* Position reading data.		*/
+  socklen_t		pos;	/* Position reading data.		*/
   union {
     gdo_req		r;
     unsigned char	b[GDO_REQ_SIZE];
@@ -2209,7 +2210,7 @@ static void
 handle_accept()
 {
   struct sockaddr_in	sa;
-  unsigned		len = sizeof(sa);
+  socklen_t		len = sizeof(sa);
   int			desc;
 
   desc = accept(tcp_desc, (void*)&sa, &len);
@@ -2496,7 +2497,7 @@ handle_read(int desc)
   while (ri->pos < GDO_REQ_SIZE && done == 0)
     {
 #ifdef __MINGW32__
-      r = recv(desc, &ptr[ri->pos],
+      r = recv(desc, (char *)&ptr[ri->pos],
 	GDO_REQ_SIZE - ri->pos, 0);
 #else
       r = read(desc, &ptr[ri->pos],
@@ -2541,14 +2542,14 @@ handle_recv()
   RInfo	*ri;
   uptr	ptr;
   struct sockaddr_in* addr;
-  unsigned len = sizeof(struct sockaddr_in);
+  socklen_t len = sizeof(struct sockaddr_in);
   int	r;
 
   ri = getRInfo(udp_desc, 0);
   addr = &(ri->addr);
   ptr = ri->buf.b;
 
-  r = recvfrom(udp_desc, ptr, GDO_REQ_SIZE, 0, (void*)addr, &len);
+  r = recvfrom(udp_desc, (char *)ptr, GDO_REQ_SIZE, 0, (void*)addr, &len);
   if (r == GDO_REQ_SIZE)
     {
       udp_read++;
@@ -3256,8 +3257,8 @@ handle_send()
     {
       int	r;
 
-      r = sendto(udp_desc, &entry->dat[entry->pos], entry->len - entry->pos,
-			0, (void*)&entry->addr, sizeof(entry->addr));
+      r = sendto(udp_desc, (const char *)&entry->dat[entry->pos], 
+      entry->len - entry->pos, 0, (void*)&entry->addr, sizeof(entry->addr));
       /*
        *	'r' is the number of bytes sent. This should be the number
        *	of bytes we asked to send, or -1 to indicate failure.
@@ -3451,7 +3452,7 @@ tryRead(int desc, int tim, unsigned char* dat, int len)
       else if (len > 0)
 	{
 #ifdef __MINGW32__
-	  rval = recv(desc, &dat[pos], len - pos, 0);
+	  rval = recv(desc, (char *)&dat[pos], len - pos, 0);
 #else
 	  rval = read(desc, &dat[pos], len - pos);
 #endif
@@ -3557,7 +3558,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
       else if (len > 0)
 	{
 #ifdef __MINGW32__ /* FIXME: Is this correct? */
-	  rval = send(desc, &dat[pos], len - pos, 0);
+	  rval = send(desc, (const char*)&dat[pos], len - pos, 0);
 #else
 	  void	(*ifun)();
 
