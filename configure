@@ -651,6 +651,7 @@ build_alias
 host_alias
 target_alias
 BASE_NATIVE_OBJC_EXCEPTIONS
+BASE_NONFRAGILE_ABI
 build
 build_cpu
 build_vendor
@@ -709,6 +710,7 @@ NX_CONST_STRING_CLASS
 OBJC2RUNTIME
 OBJCFLAGS
 GS_NONFRAGILE
+GS_MIXEDABI
 HAVE_OBJC_SYNC_ENTER
 GS_SIZEOF_MUTEX_T
 GS_SIZEOF_COND_T
@@ -1336,6 +1338,10 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-mixedabi
+	    Enables the use both fragile and nonfragile ABI (base built using
+	    the nonfragile ABI, but in a way permitting linking with other
+	    modules built using the fragile ABI.
   --enable-bfd
 	Enables the use of libbfd to provide symbolic stack traces.
 	Enabling this option provides support for symbolic stack traces
@@ -1886,6 +1892,16 @@ if test -z "$exceptions"; then
 else
   exceptions=yes
   BASE_NATIVE_OBJC_EXCEPTIONS=1
+fi
+
+
+nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
+if test -z "$nonfragile"; then
+  nonfragile=no
+  BASE_NONFRAGILE_ABI=0
+else
+  nonfragile=yes
+  BASE_NONFRAGILE_ABI=1
 fi
 
 
@@ -9282,11 +9298,14 @@ else
 fi
 
 
-saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
-{ echo "$as_me:$LINENO: checking for non-fragile-abi support" >&5
+GS_NONFRAGILE=0
+GS_MIXEDABI=0
+if test "$nonfragile" = "yes"; then
+  saved_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
+  { echo "$as_me:$LINENO: checking for non-fragile-abi support" >&5
 echo $ECHO_N "checking for non-fragile-abi support... $ECHO_C" >&6; }
-if test "$cross_compiling" = yes; then
+  if test "$cross_compiling" = yes; then
   { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
 See \`config.log' for more details." >&5
 echo "$as_me: error: cannot run test program while cross compiling
@@ -9329,17 +9348,28 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$a
 fi
 
 
-CPPFLAGS="$saved_CPPFLAGS"
-if test $non_fragile = yes; then
-  OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+  CPPFLAGS="$saved_CPPFLAGS"
+  if test $non_fragile = yes; then
+    OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
 
-  GS_NONFRAGILE=1
+    GS_NONFRAGILE=1
+    # Check whether --enable-mixedabi was given.
+if test "${enable_mixedabi+set}" = set; then
+  enableval=$enable_mixedabi;
 else
-  GS_NONFRAGILE=0
+  enable_mixedabi=$PASS_ARG
 fi
 
-{ echo "$as_me:$LINENO: result: $non_fragile" >&5
+    if test $enable_mixedabi = yes; then
+      GS_MIXEDABI=1
+    fi
+  fi
+  { echo "$as_me:$LINENO: result: $non_fragile" >&5
 echo "${ECHO_T}$non_fragile" >&6; }
+fi
+
+
+
 
 # Don't revert any Objective-C flags as they are used in the next test
 
@@ -21942,6 +21972,7 @@ build_alias!$build_alias$ac_delim
 host_alias!$host_alias$ac_delim
 target_alias!$target_alias$ac_delim
 BASE_NATIVE_OBJC_EXCEPTIONS!$BASE_NATIVE_OBJC_EXCEPTIONS$ac_delim
+BASE_NONFRAGILE_ABI!$BASE_NONFRAGILE_ABI$ac_delim
 build!$build$ac_delim
 build_cpu!$build_cpu$ac_delim
 build_vendor!$build_vendor$ac_delim
@@ -22000,7 +22031,6 @@ NX_CONST_STRING_CLASS!$NX_CONST_STRING_CLASS$ac_delim
 OBJC2RUNTIME!$OBJC2RUNTIME$ac_delim
 OBJCFLAGS!$OBJCFLAGS$ac_delim
 GS_NONFRAGILE!$GS_NONFRAGILE$ac_delim
-HAVE_OBJC_SYNC_ENTER!$HAVE_OBJC_SYNC_ENTER$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -22042,6 +22072,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+GS_MIXEDABI!$GS_MIXEDABI$ac_delim
+HAVE_OBJC_SYNC_ENTER!$HAVE_OBJC_SYNC_ENTER$ac_delim
 GS_SIZEOF_MUTEX_T!$GS_SIZEOF_MUTEX_T$ac_delim
 GS_SIZEOF_COND_T!$GS_SIZEOF_COND_T$ac_delim
 HAVE_PTS_STREAM_MODULES!$HAVE_PTS_STREAM_MODULES$ac_delim
@@ -22087,7 +22119,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 43; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 45; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

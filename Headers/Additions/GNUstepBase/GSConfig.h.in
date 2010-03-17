@@ -221,6 +221,7 @@ typedef	struct {
 #define	OBJC2RUNTIME @OBJC2RUNTIME@
 #define BASE_NATIVE_OBJC_EXCEPTIONS     @BASE_NATIVE_OBJC_EXCEPTIONS@
 #define GS_NONFRAGILE     @GS_NONFRAGILE@
+#define GS_MIXEDABI     @GS_MIXEDABI@
 
 #import <GNUstepBase/preface.h>
 
