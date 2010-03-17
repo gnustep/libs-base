@@ -66,7 +66,11 @@
 #import	"Foundation/NSDictionary.h"
 #import	"Foundation/NSEnumerator.h"
 #import	"Foundation/NSException.h"
+#import	"Foundation/NSHost.h"
+#import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSScanner.h"
+#import	"Foundation/NSStream.h"
+#import	"Foundation/NSTimer.h"
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSValue.h"
 #import	"GNUstepBase/GSObjCRuntime.h"
@@ -76,6 +80,7 @@
 #import	"GNUstepBase/NSData+GNUstepBase.h"
 #import	"GNUstepBase/NSDebug+GNUstepBase.h"
 #import	"GNUstepBase/NSString+GNUstepBase.h"
+#import	"GNUstepBase/NSMutableString+GNUstepBase.h"
 #import	"GNUstepBase/Unicode.h"
 
 #import "../GSPrivate.h"
@@ -5834,5 +5839,1016 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   return NSNotFound;
 }
 
+@end
+
+
+typedef	enum	{
+  TP_IDLE,
+  TP_OPEN,
+  TP_INTRO,
+  TP_HELO,
+  TP_AUTH,
+  TP_MESG,
+  TP_FROM,
+  TP_TO,
+  TP_DATA,
+  TP_BODY
+} CState;
+
+NSString *
+eventText(NSStreamEvent e)
+{
+  if (e == NSStreamEventNone)
+    return @"NSStreamEventNone";
+  if (e == NSStreamEventOpenCompleted)
+    return @"NSStreamEventOpenCompleted";
+  if (e == NSStreamEventHasBytesAvailable)
+    return @"NSStreamEventHasBytesAvailable";
+  if (e == NSStreamEventHasSpaceAvailable)
+    return @"NSStreamEventHasSpaceAvailable";
+  if (e == NSStreamEventErrorOccurred)
+    return @"NSStreamEventErrorOccurred";
+  if (e == NSStreamEventEndEncountered)
+    return @"NSStreamEventEndEncountered";
+  return @"unknown event";
+}
+
+NSString *
+statusText(NSStreamStatus s)
+{
+  if (s == NSStreamStatusNotOpen) return @"NSStreamStatusNotOpen";
+  if (s == NSStreamStatusOpening) return @"NSStreamStatusOpening";
+  if (s == NSStreamStatusOpen) return @"NSStreamStatusOpen";
+  if (s == NSStreamStatusReading) return @"NSStreamStatusReading";
+  if (s == NSStreamStatusWriting) return @"NSStreamStatusWriting";
+  if (s == NSStreamStatusAtEnd) return @"NSStreamStatusAtEnd";
+  if (s == NSStreamStatusClosed) return @"NSStreamStatusClosed";
+  if (s == NSStreamStatusError) return @"NSStreamStatusError";
+  return @"unknown status";
+}
+
+/*
+ * Convert 8bit/binary data parts to base64 encoding for old mail
+ * software which can't handle 8bit data.
+ */
+static void makeBase64(GSMimeDocument *doc)
+{
+  id	o = [doc content];
+
+  if ([o isKindOfClass: [NSArray class]] == YES)
+    {
+      NSEnumerator	*e = [o objectEnumerator];
+
+      while ((doc = [e nextObject]) != nil)
+	{
+	  makeBase64(doc);
+	}
+    }
+  else
+    {
+      GSMimeHeader	*h = [doc headerNamed: @"content-transfer-encoding"];
+      NSString		*v = [h value];
+
+      if ([v isEqual: @"binary"] == YES || [v isEqual: @"8bit"] == YES)
+	{
+	  [h setValue: @"base64"];
+	}
+    }
+}
+
+
+/** Informal protocol for delegates of the GSMimeSMTPClient class.
+ * The default implementations of these methods do nothing.
+ */
+@interface	NSObject (GSMimeSMTPClient)
+- (void) mimeFailed: (GSMimeDocument*)doc;	/* Problem sending this */
+- (void) mimeSent: (GSMimeDocument*)doc;	/* Sent successfully */
+- (void) mimeUnsent: (GSMimeDocument*)doc;	/* Aborted (not sent) */
+@end
+
+@implementation	NSObject (GSMimeSMTPClient)
+- (void) mimeFailed: (GSMimeDocument*)doc { return; }
+- (void) mimeSent: (GSMimeDocument*)doc { return; }
+- (void) mimeUnsent: (GSMimeDocument*)doc { return; }
+@end
+
+@interface	GSMimeSMTPClient : NSObject
+{
+  id			delegate;	/** Delagate for send */
+  NSString		*hostname;	/** Host of SMTP server */
+  NSString		*port;		/** Port of SMTP server */
+  NSString		*username;	/** Name for SMTP authentication */
+  NSTimer		*timer;		/** Timeout for reconnect */
+  GSMimeDocument	*current;	/** First item on queue (if sending) */
+  NSMutableArray	*queue;		/** GSMimeDocuments to be sent. */
+  NSMutableArray	*pending;	/** packets waiting to write. */
+  NSInputStream		*istream;	/** stream from gateway */
+  NSOutputStream	*ostream;	/** stream to gateway */
+  NSMutableData		*wdata;		/** buffer being written */
+  NSMutableData		*rdata;		/** buffer being read */
+  NSMutableString	*reply;		/** reply line coming in */
+  unsigned		woffset;	/** bytes written so far */
+  BOOL			readable;	/** has data for reading */
+  BOOL			writable;	/** has data for writing */
+  CState                cState; 
+}
+
+/** Add the message to the queue of emails to be sent by the receiver.
+ */
+- (void) send: (GSMimeDocument*)message;
+
+/** Set the delegate to receive callback methods indicating when a message
+ * is sent, failed, or removed from the queue unsent.
+ */
+- (void) setDelegate: (id)d;
+
+/** Set the host for the SMTP server.  If this is not set (or is set to nil)
+ * then the GSMimeSMTPClientHost user default is used.  If the host is nil
+ * or an empty string then 'localhost' is used.
+ */
+- (void) setHostname: (NSString*)s;
+
+/** Set the port for the SMTP server.  If this is not set (or is set to nil)
+ * then the GSMimeSMTPClientPort user default is used.  If the port is not an
+ * integer in the 1-65535 range, then '25' (the default SMTP port) is used.
+ */
+- (void) setPort: (NSString*)s;
+
+/** Set the username for authentication to the SMTP server.
+ * If this is not set (or is set to nil) then the GSMimeSMTPClientUsername user
+ * default is used.  If the username is nil or an empty string then authentication
+ * is not attempted.
+ */
+- (void) setUsername: (NSString*)s;
+
+/** returns the receivers current state.
+ */
+- (CState) state;
+
+/** Returns a string describing the receiver's current state
+ */
+- (NSString*) stateDesc;
+
+@end
+
+@interface	GSMimeSMTPClient (Private)
+- (void) abort;
+- (void) doMsg;
+- (void) performIO;
+- (void) recvData: (NSData*)m;
+- (void) sendData: (NSData*)m;
+- (void) shutdown;
+- (void) startup;
+- (void) timer: (NSTimeInterval)s;
+@end
+
+
+@implementation	GSMimeSMTPClient
+
+/* Shuts the connection down, fails any message in progress, anbd discards all
+ * queued messages as 'unsent'
+ */
+- (void) abort
+{
+  NSUInteger	c;
+
+  [self shutdown];
+  [timer invalidate];
+  timer = nil;
+
+  /* For any message not yet sent, we inform the delegate of the failure
+   */
+  c = [queue count];
+  while (c-- > 0)
+    {
+      GSMimeDocument	*d = [queue objectAtIndex: c];
+
+      [delegate mimeUnsent: d];
+    }
+  [queue removeAllObjects];
+}
+
+- (void) dealloc
+{
+  [self abort];
+  DESTROY(reply);
+  DESTROY(wdata);
+  DESTROY(rdata);
+  DESTROY(pending);
+  DESTROY(queue);
+  DESTROY(username);
+  DESTROY(port);
+  DESTROY(hostname);
+  [super dealloc];
+}
+
+- (id) init
+{
+  if ((self = [super init]) != 0)
+    {
+      queue = [NSMutableArray new];
+    }
+  return self;
+}
+
+/** Does low level writing and reading of data.
+ */
+- (void) performIO
+{
+  NS_DURING
+    {
+      RETAIN(self);             // Make sure we don't get released until done.
+
+      /* First perform all reads ... so we process incoming data,
+       */
+      while (readable == YES && cState != TP_OPEN)
+        {
+          uint8_t       buf[BUFSIZ];
+          int   	length;
+
+          /* Try to fill the buffer, then process any data we have.
+           */
+          length = [istream read: buf maxLength: sizeof(buf)];
+          if (length > 0)
+            {
+              uint8_t   *ptr;
+              int       i;
+
+              if (rdata == nil)
+                {
+                  rdata = [[NSMutableData alloc] initWithBytes: buf
+                                                        length: length];
+                }
+              else
+                {
+                  [rdata appendBytes: buf length: length];
+                  length = [rdata length];
+                }
+              ptr = [rdata mutableBytes];
+              for (i = 0; i < length; i++)
+                {
+                  if (ptr[i] == '\n')
+                    {
+                      NSData    *d;
+
+                      i++;
+                      if (i == length)
+                        {
+                          d = [rdata autorelease];
+                          rdata = nil;
+                        }
+                      else
+                        {
+                          d = [NSData dataWithBytes: ptr length: i];
+                          memcpy(ptr, ptr + i, length - i);
+                          length -= i;
+                          [rdata setLength: length];
+                          ptr = [rdata mutableBytes];
+                          i = -1;
+                        }
+                      [self recvData: d];
+                    }
+                }
+            }
+          else
+            {
+              readable = NO;	// Can't read more right now.
+              if (length == 0)
+                {
+                  NSLog(@"EOF on input stream ... terminating");
+                  [self abort];
+                }
+              else if ([istream streamStatus] == NSStreamStatusError)
+                {
+                  NSLog(@"Error on input stream ... terminating");
+                  [self abort];
+                }
+            }
+        }
+
+      /* Perform write operations after read operations, so that we are able
+       * to write any packets resulting from the incoming data as a single
+       * block of outgoing data if possible.
+       */
+      while (writable == YES && [pending count] > 0)
+        {
+          uint8_t   *wbytes = [wdata mutableBytes];
+          unsigned  wlength = [wdata length];
+          int       result;
+
+          result = [ostream write: wbytes + woffset
+                        maxLength: wlength - woffset];
+          if (result > 0)
+            {
+              NSData    *d = [pending objectAtIndex: 0];
+              unsigned  dlength = [d length];
+
+              woffset += result;
+              if (woffset >= dlength)
+                {
+                  unsigned      total = 0;
+
+                  while (woffset >= total + dlength)
+                    {
+                      NSDebugMLLog(@"GSMime", @"%@ Write: %@", self, d);
+                      [pending removeObjectAtIndex: 0];
+                      total += dlength;
+                      if ([pending count] > 0)
+                        {
+                          d = [pending objectAtIndex: 0];
+                          dlength = [d length];
+                        }
+                    }
+                  if (total < wlength)
+                    {
+                      memcpy(wbytes, wbytes + total, wlength - total);
+                    }
+                  [wdata setLength: wlength - total];
+                  woffset -= total;
+                }
+              /* If we have finished sending everything, and we are in
+               * the process of shutting down, we call -shutdown again
+               * to complete the process.
+               */
+              if ([pending count] == 0 && cState != TP_IDLE)
+                {
+                  [self shutdown];
+                }
+            }
+          else
+            {
+              writable = NO;	// Can't write more right now.
+              if (result == 0)
+                {
+                  NSLog(@"EOF on output stream ... terminating");
+                  [self abort];
+                }
+              else if ([ostream streamStatus] == NSStreamStatusError)
+                {
+                  NSLog(@"Error on output stream ... terminating");
+                  [self abort];
+                }
+            }
+        }
+
+      RELEASE(self);
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Exception handling stream event: %@", localException);
+      RELEASE(self);
+    }
+  NS_ENDHANDLER
+}
+
+/** Initiates sending of the next message (or the next stage of the
+ * current message).
+ */
+- (void) doMsg
+{
+  if ([queue count] > 0)
+    {
+      NSString		*tmp;
+
+      current = [queue objectAtIndex: 0];
+
+      if (cState == TP_IDLE)
+	{
+	  [self startup];
+	}
+      else if (cState == TP_MESG)
+	{
+	  NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+	  /* Allow 'DefaultOriginator' to specify the default
+	   * originator to be used.
+	   */
+	  NSString *defaultOriginator;
+
+	  defaultOriginator = [defs stringForKey: @"DefaultOriginator"];
+	  if ([defaultOriginator isKindOfClass: [NSString class]] == NO)
+	    {
+	      defaultOriginator = [NSString stringWithFormat: @"GSMimeSMTPClient@%@",
+		[[NSHost currentHost] name]];
+	    }
+	  tmp = [[current headerNamed: @"from"] value];
+	  if ([tmp length] == 0)
+	    {
+	      tmp = defaultOriginator;
+	    }
+	  else
+	    {
+	      /* Short hack - allow to use 'IgnoreOriginator' to ignore
+		 the originator */
+	      NSString *val = [defs stringForKey: @"IgnoreOriginator"];
+
+	      if (val != nil
+		&& [val isKindOfClass: [NSString class]] == YES
+		&& [val isEqualToString: @"YES"])
+		{
+		  tmp = defaultOriginator;
+		}
+	    }
+
+	  tmp = [NSString stringWithFormat: @"MAIL FROM: %@\r\n", tmp];
+	  NSDebugMLLog(@"GSMime", @"Initiating new mail message - %@", tmp);
+	  cState = TP_FROM;
+	  [self timer: 20.0];
+	  [self sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	}
+      else if (cState == TP_FROM)
+	{
+	  tmp = [[current headerNamed: @"to"] value];
+	  tmp = [NSString stringWithFormat: @"RCPT TO: <%@>\r\n", tmp];
+	  NSDebugMLLog(@"GSMime", @"Destination - %@", tmp);
+	  cState = TP_TO;
+	  [self timer: 20.0];
+	  [self sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+        }
+      else if (cState == TP_TO)
+	{
+	  cState = TP_DATA;
+          tmp = @"DATA\r\n";
+	  [self timer: 20.0];
+	  [self sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	}
+      else if (cState == TP_DATA)
+	{
+	  NSMutableData	*md;
+	  NSData	*data;
+	  const char	*ibuf;
+	  char		*obuf;
+	  BOOL		sol = YES;
+	  unsigned	ilen;
+	  unsigned	olen;
+	  unsigned	osiz;
+	  unsigned	ipos = 0;
+	  unsigned	opos = 0;
+
+	  cState = TP_BODY;
+
+          makeBase64(current);
+          data = [current rawMimeData];
+
+	  /*
+	   * Any line in the message which begins with a dot must have
+	   * that dot escaped by another dot.
+	   */
+	  ilen = [data length];
+	  olen = ilen + 5;	// Allow for CR-LF-.-CR-LF termination
+	  osiz = olen + 10;	// Allow some expansion to escape dots
+
+	  md = [[NSMutableData alloc] initWithLength: osiz];
+	  ibuf = [data bytes];
+	  obuf = [md mutableBytes];
+
+	  while (ipos < ilen)
+	    {
+	      char	c = ibuf[ipos++];
+
+	      if (c == '\n')
+	      	{
+		  sol = YES;
+		}
+	      else
+	        {
+		  if (c == '.' && sol == YES)
+		    {
+		      obuf[opos++] = '.';	// Extra dot acts as an escape
+		      if (olen++ == osiz)	// Lengthen to allow for dot
+			{
+			  osiz += 16;
+			  [md setLength: osiz];
+			  obuf = [md mutableBytes];
+			}
+		    }
+		  sol = NO;
+		}
+	      obuf[opos++] = c;
+	    }
+	  obuf[opos++] = '\r';
+	  obuf[opos++] = '\n';
+	  /*
+	   * Now terminate the message with a line consisting of a dot.
+	   */
+	  obuf[opos++] = '.';
+	  obuf[opos++] = '\r';
+	  obuf[opos++] = '\n';
+	  [md setLength: opos];
+	  [self timer: 60.0];
+	  [self sendData: md];
+	  RELEASE(md);
+        }
+      else
+	{
+	  NSLog(@"doMsg called in unexpected state.");
+	  [self shutdown];
+	}
+    }
+  else
+    {
+      [self shutdown];
+    }
+}
+
+/** Receives a chunk of data from the input stream and performs state
+ * transitions based on the current state and the information received
+ * from the SMTP server.
+ */
+- (void) recvData: (NSData*)m
+{
+  unsigned int		c = 0;
+  NSMutableString	*s = nil;
+
+  if ([queue count] > 0)
+    {
+      current = [queue objectAtIndex: 0];
+    }
+
+  NSDebugMLLog(@"GSMime", @"%@ recvData: %@", self, m);
+
+  if (m != nil)
+    {
+      unichar	sep;
+
+      /*
+       * Get this reply line and check it is of the correct format.
+       */
+      s = [[NSMutableString alloc] initWithData: m
+				       encoding: NSASCIIStringEncoding];
+      [s trimSpaces];
+      if ([s length] <= 4)
+	{
+	  NSLog(@"Server made short response ... %@", s);
+	  RELEASE(s);
+	  [self shutdown];
+	  return;
+	}
+      sep = [s characterAtIndex: 3];
+      if (sep != ' ' && sep != '-')
+	{
+	  NSLog(@"Server made illegal response ... %@", s);
+	  [self shutdown];
+	  return;
+	}
+
+      /*
+       * Accumulate multiline replies in the 'reply' ivar.
+       */
+      if ([reply length] == 0)
+	{
+	  ASSIGN(reply, s);
+	}
+      else
+	{
+	  [s replaceCharactersInRange: NSMakeRange(0, 4) withString: @" "];
+	  [reply appendString: s];
+	}
+      RELEASE(s);
+      if (sep == '-')
+	{
+	  return;	// Continuation line ... wait for more.
+	}
+
+      /*
+       * Got end of reply ... move from ivar to local variable ready for
+       * accumulating the next reply.
+       */
+      c = [reply intValue];
+      s = AUTORELEASE(reply);
+      reply = nil;
+    }
+
+  switch (cState)
+    {
+      case TP_INTRO:
+	if (c == 220)
+	  {
+	    NSString	*tmp;
+
+	    tmp = [NSString stringWithFormat: @"HELO %@\r\n",
+	      [[NSHost currentHost] name]];
+	    NSDebugMLLog(@"GSMime", @"Intro OK - sending helo");
+	    cState = TP_HELO;
+	    [self timer: 30.0];
+	    [self sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	  }
+	else
+	  {
+	    NSLog(@"Server went away ... %@", s);
+	    [self shutdown];
+	  }
+	break;
+
+      case TP_HELO:
+	if (c == 250)
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged HELO");
+	    if ([username length] == 0)
+	      {
+		cState = TP_MESG;
+		[self doMsg];
+	      }
+	    else
+	      {
+		NSString	*tmp;
+
+		tmp = [NSString stringWithFormat: @"AUTH PLAIN %@\r\n",
+		  [GSMimeDocument encodeBase64String: username]];
+		NSDebugMLLog(@"GSMime", @"Helo OK - sending auth");
+		cState = TP_AUTH;
+	        [self timer: 30.0];
+                [self sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	      }
+	  }
+	else
+	  {
+	    NSLog(@"Server nacked helo ... %@", s);
+	    [self shutdown];
+	  }
+	break;
+
+      case TP_AUTH:
+	if (c == 250)
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged AUTH");
+	    cState = TP_MESG;
+	    [self doMsg];
+	  }
+	else
+	  {
+	    NSLog(@"Server nacked auth ... %@", s);
+	    [self shutdown];
+	  }
+	break;
+
+      case TP_FROM:
+	if (c != 250)
+	  {
+	    NSLog(@"Server nacked FROM... %@", s);
+	    [self shutdown];
+	  }
+	else
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged FROM");
+	    [self doMsg];
+	  }
+	break;
+
+      case TP_TO:
+	if (c != 250)
+	  {
+	    NSLog(@"Server nacked TO... %@", s);
+	    [self shutdown];
+	  }
+	else
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged TO");
+	    [self doMsg];
+	  }
+	break;
+
+      case TP_DATA:
+	if (c != 354)
+	  {
+	    NSLog(@"Server nacked DATA... %@", s);
+	    [self shutdown];
+	  }
+	else
+	  {
+	    [self doMsg];
+	  }
+	break;
+
+      case TP_BODY:
+	if (c != 250)
+	  {
+	    NSLog(@"Server nacked body ... %@", s);
+	    [self shutdown];
+	  }
+	else
+	  {
+            cState = TP_MESG;
+	    if (current != nil)
+	      {
+		GSMimeDocument	*d = [current retain];
+
+		current = nil;
+		[queue removeObjectAtIndex: 0];
+		[delegate mimeSent: d];
+		[d release];
+	      }
+            [self doMsg];
+	  }
+	break;
+
+      case TP_MESG:
+	NSLog(@"Unknown response from SMTP system. - %@", s);
+	[self shutdown];
+	break;
+
+      default:
+        NSLog(@"system in unexpected state.");
+        [self shutdown];
+	break;
+    }
+}
+
+/** Add a chunk of data to the output stream.
+ */
+- (void) sendData: (NSData*)m
+{
+  NSDebugMLLog(@"GSMime", @"%@ sendData: %@", self, m);
+  if (pending == nil)
+    {
+      pending = [NSMutableArray new];
+    }
+  [pending addObject: m];
+  if (wdata == nil)
+    {
+      wdata = [m mutableCopy];
+    }
+  else
+    {
+      [wdata appendData: m];
+    }
+  if ([pending count] > 0 && writable == YES)
+    {
+      [self performIO];
+    }
+}
+
+- (void) send: (GSMimeDocument*)message
+{
+  [queue addObject: message];
+  if (cState == TP_IDLE)
+    {
+      if (timer != nil)
+	{
+	  [timer invalidate];
+	  timer = nil;
+	}
+      [self startup];
+    }
+  else if (cState == TP_MESG)
+    {
+      [self doMsg];
+    }
+}
+
+- (void) setDelegate: (id)d
+{
+  delegate = d;
+}
+
+- (void) setHostname: (NSString*)s
+{
+  ASSIGNCOPY(hostname, s);
+}
+
+- (void) setPort: (NSString*)s
+{
+  ASSIGNCOPY(port, s);
+}
+
+- (void) setUsername: (NSString*)s
+{
+  ASSIGNCOPY(username, s);
+}
+
+/** Shuts down the connection to the SMTP server and fails any message
+ * currently in progress.  If there are queued messages, this sets a
+ * timer to reconnect.
+ */
+- (void) shutdown
+{
+  [istream removeFromRunLoop: [NSRunLoop currentRunLoop]
+		     forMode: NSDefaultRunLoopMode];
+  [ostream removeFromRunLoop: [NSRunLoop currentRunLoop]
+		     forMode: NSDefaultRunLoopMode];
+  [istream setDelegate: nil];
+  [ostream setDelegate: nil];
+  [istream close];
+  [ostream close];
+
+  DESTROY(istream);
+  DESTROY(ostream);
+
+  [wdata setLength: 0];
+  woffset = 0;
+  readable = NO;
+  writable = NO;
+  cState = TP_IDLE;
+
+  [pending removeAllObjects];
+  if (current != nil)
+    {
+      GSMimeDocument	*d = [current retain];
+
+      [queue removeObjectAtIndex: 0];
+      current = nil;
+      [delegate mimeFailed: d];
+      [d release];
+    }
+  if ([queue count] > 0)
+    {
+      [self timer: 10.0];	// Try connecting again in 10 seconds
+    }
+}
+
+/** If the receiver is in an idle state, this method initiates a connection
+ * to the SMTP server.
+ */
+- (void) startup
+{
+  if (cState == TP_IDLE)
+    {
+      NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+      NSHost    	*h;
+      NSString		*n = hostname;
+      NSString		*p = port;
+
+      /* Need to start up ...
+       */
+      if (n == nil)
+	{
+	  n = [defs stringForKey: @"GSMimeSMTPClientHost"];
+	  if ([n length] == 0)
+	    {
+	      n = @"localhost";
+	    }
+	}
+      h = [NSHost hostWithName: n];
+      if (h == nil)
+        {
+          istream = nil;
+          ostream = nil;
+          NSLog(@"Unable to find host %@", n);
+          [self shutdown];
+	  return;
+        }
+
+      if (p == nil)
+	{
+	  int	pnum;
+
+	  p = [defs stringForKey: @"GSMimeSMTPClientPort"];
+	  if ((pnum = [p intValue]) <= 0 || pnum > 65535)
+	    {
+	      p = @"25";
+	      pnum = 25;
+	    }
+          [NSStream getStreamsToHost: h
+                                port: pnum
+                         inputStream: &istream
+                        outputStream: &ostream];
+          RETAIN(istream);
+          RETAIN(ostream);
+          if (istream == nil || ostream == nil)
+            {
+              NSLog(@"Unable to connect to %@:%@", n, p);
+              [self shutdown];
+	      return;
+            }
+        }
+
+      [istream setDelegate: self];
+      [ostream setDelegate: self];
+
+      [istream scheduleInRunLoop: [NSRunLoop currentRunLoop]
+			 forMode: NSDefaultRunLoopMode];
+      [ostream scheduleInRunLoop: [NSRunLoop currentRunLoop]
+			 forMode: NSDefaultRunLoopMode];
+
+      cState = TP_OPEN;
+      [self timer: 30.0];	// Allow 30 seconds for login
+      [istream open];
+      [ostream open];
+    }
+}
+
+- (CState) state
+{
+  return cState;
+}
+
+- (NSString*) stateDesc
+{
+  switch (cState)
+    {
+      case TP_OPEN:	return @"waiting for connection to SMTP server";
+      case TP_INTRO:	return @"waiting for initial prompt from SMTP server";
+      case TP_HELO:	return @"waiting for SMTP server HELO completion";
+      case TP_AUTH:	return @"waiting for SMTP server AUTH response";
+      case TP_FROM:	return @"waiting for ack of FROM command";
+      case TP_TO:	return @"waiting for ack of TO command";
+      case TP_DATA:	return @"waiting for ack of DATA command";
+      case TP_BODY:	return @"waiting for ack of message body";
+      case TP_MESG:	return @"waiting for message to send";
+      case TP_IDLE:	return @"idle ... not connected to SMTP server";
+    }
+  return @"idle ... not connected to SMTP server";
+}
+
+/** Handler for stream events ... 
+ */
+- (void) stream: (NSStream*)aStream handleEvent: (NSStreamEvent)anEvent
+{
+  NSStreamStatus	sStatus = [aStream streamStatus];
+
+  if (aStream == istream)
+    {
+      NSDebugMLLog(@"GSMime", @"%@ istream event %@ in %@",
+	self, eventText(anEvent), statusText(sStatus));
+      if (anEvent == NSStreamEventHasBytesAvailable)
+        {
+	  readable = YES;
+	}
+    }
+  else
+    {
+      NSDebugMLLog(@"GSMime", @"%@ ostream event %@ in %@",
+	self, eventText(anEvent), statusText(sStatus));
+      if (anEvent == NSStreamEventHasSpaceAvailable)
+        {
+	  writable = YES;
+	}
+    }
+
+  if (anEvent == NSStreamEventEndEncountered)
+    {
+      [self shutdown];
+      return;
+    }
+  if (anEvent == NSStreamEventErrorOccurred)
+    {
+      [self shutdown];
+      return;
+    }
+
+  if (anEvent == NSStreamEventOpenCompleted)
+    {
+      cState = TP_INTRO;
+    }
+
+  [self performIO];
+}
+
+/** Handles a timeout.
+ * Behavior depends on the state of the connection.
+ */
+- (void) timeout: (NSTimer*)t
+{
+  if (timer == t)
+    {
+      timer = nil;
+    }
+  if (cState == TP_IDLE)
+    {
+      /* Not connected.
+       */
+      if ([queue count] > 0)
+	{
+          [self startup];	// Try connecting
+	}
+    }
+  else if (cState == TP_OPEN)
+    {
+      [self shutdown];
+    }
+  else if (cState == TP_MESG)
+    {
+      /* Already connected to server.
+       */
+      if ([queue count] == 0)
+	{
+	  [self shutdown];	// Nothing to send ... disconnect
+	}
+      else
+	{
+	  [self doMsg];		// Send the next message
+	}
+    }
+  else
+    {
+      NSDebugMLLog(@"GSMime", @"%@ timeout at %@", self, [self stateDesc]);
+      [self shutdown];
+    }
+}
+
+/* A convenience method to set the receivers timer to go off after the
+ * specified interval.  Cancels previous timer (if any).
+ */
+- (void) timer: (NSTimeInterval)s
+{
+  if (timer != nil)
+    {
+      [timer invalidate];
+    }
+  timer = [NSTimer scheduledTimerWithTimeInterval: s
+					   target: self
+					 selector: @selector(timeout:)
+					 userInfo: nil
+					  repeats: NO];
+}
 @end
 

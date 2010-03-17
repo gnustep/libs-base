@@ -1,5 +1,10 @@
 2010-03-17 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSMime.m:
+	Added preliminary/experimental code for SMTP send.
+
+2010-03-17 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure:
 	* configure.ac:
 	* Headers/Additions/GNUstepBase/GSConfig.h.in:
