@@ -607,6 +607,9 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  *     %j   day of year as a decimal number
  *   </item>
  *   <item>
+ *     %k   same as %H without leading zero (leading space is used instead)
+ *   </item>
+ *   <item>
  *     %m   month as decimal number
  *   </item>
  *   <item>
@@ -654,6 +657,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  * If no second is specified in the format, 0 is assumed.<br />
  * If no millisecond is specified in the format, 0 is assumed.<br />
  * If no timezone is specified in the format, the local timezone is assumed.
+ * <p>If GSMacOSXCompatible is YES, the %k specifier is not recognized.</p>
  * <p>NB. Where the format calls for a numeric value and the string contains
  * fewer digits than expected, the value will be accepted and left padded
  * with zeros to the expected size.<br />
@@ -1117,6 +1121,15 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		    milliseconds = atoi(tmpStr);
 		    break;
 
+		  case 'k':
+		    // GNUstep extension, not available in Cocoa
+		    if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
+		      {
+			error = YES;
+			NSLog(@"Invalid NSCalendar date, "
+			      @"specifier %c not recognized in format %@",
+			      format[formatIdx], fmt);
+		      }
 		  case 'I': // fall through
 		    twelveHrClock = YES;
 		  case 'H':
@@ -1866,6 +1879,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
       BOOL	mname = NO;
       BOOL	dname = NO;
       BOOL	twelve = NO;
+      BOOL	hspc = NO;
       char	fldfmt[8];
       int	fmtlen = 0;
       int	width = 0;
@@ -2113,6 +2127,9 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		// is it the hour
 	      case 'I':
 		twelve = YES;
+	      case 'k':
+		if (twelve == NO)
+		  hspc = YES;
 	      case 'H':
 		v = info->hd;
 		if (twelve == YES)
@@ -2128,12 +2145,27 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		  }
 		if (fmtlen == 1) // no format width specified; supply default
 		  {
-		    fldfmt[fmtlen++] = '0';
-		    fldfmt[fmtlen++] = '2';
+		    if (hspc == YES)
+		      fldfmt[fmtlen++] = '2'; // ensure a leading space
+		    else
+		      {
+			fldfmt[fmtlen++] = '0';
+			fldfmt[fmtlen++] = '2';
+		      }
+
 		  }
 		fldfmt[fmtlen++] = 'd';
 		fldfmt[fmtlen++] = 0;
-		outputValueWithFormat(v, fldfmt, info);
+		if (GSPrivateDefaultsFlag(GSMacOSXCompatible)
+		    && hspc == YES)
+		  {
+		    Grow(info, 2);
+		    info->t[info->offset++] = '%';
+		    info->t[info->offset++] = f[i-1];
+		    break;
+		  }
+		else
+		  outputValueWithFormat(v, fldfmt, info);
 		break;
 
 		// is it the minute
@@ -2291,6 +2323,9 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
  *     %j   day of year as a decimal number
  *   </item>
  *   <item>
+ *     %k   same as %H with leading space instead of zero
+ *   </item>
+ *   <item>
  *     %m   month as decimal number
  *   </item>
  *   <item>
@@ -2333,6 +2368,9 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
  *     %%   literal % character
  *   </item>
  * </list>
+ *
+ * <p>NB.  If GSMacOSCompatible is set to YES, the %k specifier is not
+ * recognized.</p>
  */
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				     locale: (NSDictionary*)locale
