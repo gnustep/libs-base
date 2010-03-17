@@ -589,10 +589,10 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  *     %c   same as '%X %x'
  *   </item>
  *   <item>
- *     %d   day of month as decimal number
+ *     %d   day of month as a two digit decimal number
  *   </item>
  *   <item>
- *     %e   same as %d without leading zero (you get a leading space instead)
+ *     %e   same as %d without leading zero
  *   </item>
  *   <item>
  *     %F   milliseconds as a decimal number
@@ -2305,10 +2305,10 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
  *     %B   full month name according to locale
  *   </item>
  *   <item>
- *     %d   day of month as decimal number (leading zero)
+ *     %d   day of month as two digit decimal number (leading zero)
  *   </item>
  *   <item>
- *     %e   day of month as decimal number (leading space)
+ *     %e   day of month as decimal number (without leading zero)
  *   </item>
  *   <item>
  *     %F   milliseconds (000 to 999)
