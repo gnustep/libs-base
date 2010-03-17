@@ -54,6 +54,16 @@ else
 fi
 AC_SUBST(BASE_NATIVE_OBJC_EXCEPTIONS)
 
+nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
+if test -z "$nonfragile"; then
+  nonfragile=no
+  BASE_NONFRAGILE_ABI=0
+else
+  nonfragile=yes
+  BASE_NONFRAGILE_ABI=1
+fi
+AC_SUBST(BASE_NONFRAGILE_ABI)
+
 if test -z "$GNUSTEP_MAKEFILES"; then
   AC_MSG_ERROR([You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!])
 fi
@@ -672,21 +682,34 @@ else
 fi
 AC_SUBST(OBJC2RUNTIME)
 
-saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
-AC_MSG_CHECKING(for non-fragile-abi support)
-AC_RUN_IFELSE([#include "$srcdir/config/config.non-fragile-ivars.m"],
-	non_fragile=yes, non_fragile=no)
-CPPFLAGS="$saved_CPPFLAGS"
-if test $non_fragile = yes; then
-  OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
-  AC_SUBST(OBJCFLAGS)
-  GS_NONFRAGILE=1
-else
-  GS_NONFRAGILE=0
+GS_NONFRAGILE=0
+GS_MIXEDABI=0
+if test "$nonfragile" = "yes"; then
+  saved_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
+  AC_MSG_CHECKING(for non-fragile-abi support)
+  AC_RUN_IFELSE([#include "$srcdir/config/config.non-fragile-ivars.m"],
+    non_fragile=yes, non_fragile=no)
+  CPPFLAGS="$saved_CPPFLAGS"
+  if test $non_fragile = yes; then
+    OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+    AC_SUBST(OBJCFLAGS)
+    GS_NONFRAGILE=1
+    AC_ARG_ENABLE(mixedabi,
+      [  --enable-mixedabi
+	    Enables the use both fragile and nonfragile ABI (base built using
+	    the nonfragile ABI, but in a way permitting linking with other
+	    modules built using the fragile ABI.],,
+      enable_mixedabi=$PASS_ARG)
+    if test $enable_mixedabi = yes; then
+      GS_MIXEDABI=1
+    fi
+  fi
+  AC_MSG_RESULT($non_fragile)
 fi
 AC_SUBST(GS_NONFRAGILE)
-AC_MSG_RESULT($non_fragile)
+AC_SUBST(GS_MIXEDABI)
+
 
 # Don't revert any Objective-C flags as they are used in the next test
 

@@ -1,11 +1,21 @@
 2010-03-17 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure:
+	* configure.ac:
+	* Headers/Additions/GNUstepBase/GSConfig.h.in:
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	Add experimental --enable-mixedabi configure option for building
+	with the nonfragile abi, but able to link with other code which
+	is built with the fragile abi.
+
+2010-03-17 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSConnection.m: Fix for memory leak ... autorelease
 	objects returned by method in remote process because the invocation
-	won't do it for us (we call -setReturnValue: which will have the invocation
-	retain the object, so when it releases it again later the retain count is
-	the same as at the point when we decoded the object, and another release
-	is needed).
+	won't do it for us (we call -setReturnValue: which will have the
+	invocation retain the object, so when it releases it again later
+	the retain count is the same as at the point when we decoded the
+	object, and another release is needed).
 	I'm not certain this fix is right, but it seems ok.
 
 2010-03-13  Yavor Doganov  <yavor@gnu.org>  (tiny change)

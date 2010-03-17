@@ -193,6 +193,10 @@
 #import <GNUstepBase/GSConfig.h>
 #endif
 
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
 /* The following is for deciding whether private instance variables
  * should be visible ... if we are building with a compiler which
  * does not define __has_feature then we know we don't have non-fragile
@@ -204,18 +208,20 @@
  * before including the header, so that the ivars are always available
  * in the class source itsself
  */
-#ifndef __has_feature
-#define __has_feature(x) 0
-#endif
 
-#if (__has_feature(objc_nonfragile_abi) || __has_feature(objc_nonfragile_abi2))
-#if	!GS_NONFRAGILE
-#error "You are now using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
-#endif
+#if	GS_MIXEDABI
+#  undef	GS_NONFRAGILE
+#  define	GS_NONFRAGILE	0	/* Mixed is treated as fragile */
 #else
-#if	GS_NONFRAGILE
-#error "Your gnustep-base was configured for the objc-nonfragile-abi but you are not using it now."
-#endif
+#  if (__has_feature(objc_nonfragile_abi)||__has_feature(objc_nonfragile_abi2))
+#    if	!GS_NONFRAGILE
+#      error "You are now using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+#    endif
+#  else
+#    if	GS_NONFRAGILE
+#      error "Your gnustep-base was configured for the objc-nonfragile-abi but you are not using it now."
+#    endif
+#  endif
 #endif
 
 #define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
