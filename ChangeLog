@@ -1,3 +1,10 @@
+2010-03-13  Yavor Doganov  <yavor@gnu.org>  (tiny change)
+
+        * Source/NSCalendarDate.m (outputValueWithFormat)
+        ([-initWithString:calendarFormat:locale:]): Recognize %k as
+        conversion format specifier.
+        ([-descriptionWithCalendarFormat:locale:]): Update docstring.
+
 2010-03-17 Anibal Rindisbacher <anibal784@gmail.com>
 
 	* Headers/Additions/GNUstep/GNUstep.h: Tidy up casts
