@@ -32,33 +32,33 @@
 #if	GS_WITH_GC
 
 #ifndef	RETAIN
-#define	RETAIN(object)		((id)object)
+#define	RETAIN(object)		(object)
 #endif
 #ifndef	RELEASE
 #define	RELEASE(object)		
 #endif
 #ifndef	AUTORELEASE
-#define	AUTORELEASE(object)	((id)object)
+#define	AUTORELEASE(object)	(object)
 #endif
 
 #ifndef	TEST_RETAIN
-#define	TEST_RETAIN(object)	((id)object)
+#define	TEST_RETAIN(object)	(object)
 #endif
 #ifndef	TEST_RELEASE
 #define	TEST_RELEASE(object)
 #endif
 #ifndef	TEST_AUTORELEASE
-#define	TEST_AUTORELEASE(object)	((id)object)
+#define	TEST_AUTORELEASE(object)	(object)
 #endif
 
 #ifndef	ASSIGN
-#define	ASSIGN(object,value)	((object) = (value))
+#define	ASSIGN(object,value)	object = (value)
 #endif
 #ifndef	ASSIGNCOPY
-#define	ASSIGNCOPY(object,value)	((object) = [(id)(value) copy])
+#define	ASSIGNCOPY(object,value)	object = [(value) copy]
 #endif
 #ifndef	DESTROY
-#define	DESTROY(object) 	((object) = nil)
+#define	DESTROY(object) 	object = nil
 #endif
 
 #ifndef	CREATE_AUTORELEASE_POOL
@@ -77,21 +77,21 @@
 /**
  *	Basic retain operation ... calls [NSObject-retain]
  */
-#define	RETAIN(object)		[(id)(object) retain]
+#define	RETAIN(object)		[(object) retain]
 #endif
 
 #ifndef	RELEASE
 /**
  *	Basic release operation ... calls [NSObject-release]
  */
-#define	RELEASE(object)		[(id)(object) release]
+#define	RELEASE(object)		[(object) release]
 #endif
 
 #ifndef	AUTORELEASE
 /**
  *	Basic autorelease operation ... calls [NSObject-autorelease]
  */
-#define	AUTORELEASE(object)	[(id)(object) autorelease]
+#define	AUTORELEASE(object)	[(object) autorelease]
 #endif
 
 #ifndef	TEST_RETAIN
@@ -100,7 +100,7 @@
  *	objective-c method if the receiver is not nil.
  */
 #define	TEST_RETAIN(object)	({\
-id __object = (id)(object); (__object != nil) ? [__object retain] : nil; })
+id __object = (object); (__object != nil) ? [__object retain] : nil; })
 #endif
 #ifndef	TEST_RELEASE
 /**
@@ -108,7 +108,7 @@ id __object = (id)(object); (__object != nil) ? [__object retain] : nil; })
  *	objective-c method if the receiver is not nil.
  */
 #define	TEST_RELEASE(object)	({\
-id __object = (id)(object); if (__object != nil) [__object release]; })
+id __object = (object); if (__object != nil) [__object release]; })
 #endif
 #ifndef	TEST_AUTORELEASE
 /**
@@ -116,7 +116,7 @@ id __object = (id)(object); if (__object != nil) [__object release]; })
  *	objective-c method if the receiver is not nil.
  */
 #define	TEST_AUTORELEASE(object)	({\
-id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
+id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
 #endif
 
 #ifndef	ASSIGN
@@ -125,8 +125,8 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  *	appropriate retain and release operations.
  */
 #define	ASSIGN(object,value)	({\
-  id __object = (id)(object); \
-  (object) = [(id)(value) retain]; \
+  id __object = object; \
+  object = [(value) retain]; \
   [__object release]; \
 })
 #endif
@@ -137,8 +137,8 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  *	with release of the original.
  */
 #define	ASSIGNCOPY(object,value)	({\
-  id __object = (id)(object); \
-  (object) = [(id)(value) copy];\
+  id __object = object; \
+  object = [(value) copy];\
   [__object release]; \
 })
 #endif
@@ -152,8 +152,8 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  *	to reference the object being released through the variable.
  */
 #define	DESTROY(object) 	({ \
-  id __o = (id)(object); \
-  (object) = nil; \
+  id __o = object; \
+  object = nil; \
   [__o release]; \
 })
 #endif
@@ -164,7 +164,7 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  * an autorelease pool object.
  */
 #define	CREATE_AUTORELEASE_POOL(X)	\
-  NSAutoreleasePool *(X) = [NSAutoreleasePool new]
+  NSAutoreleasePool *X = [NSAutoreleasePool new]
 #endif
 
 #ifndef RECREATE_AUTORELEASE_POOL
@@ -174,7 +174,7 @@ id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
  */
 #define RECREATE_AUTORELEASE_POOL(X)  \
   DESTROY(X);\
-  (X) = [NSAutoreleasePool new]
+  X = [NSAutoreleasePool new]
 #endif
 
 #define	IF_NO_GC(X)	X

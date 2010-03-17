@@ -1,3 +1,7 @@
+2010-03-17 Anibal Rindisbacher <anibal784@gmail.com>
+
+	* Headers/Additions/GNUstep/GNUstep.h: Tidy up casts
+
 2010-03-16 Vincent Richomme <forumer@smartmobili.com>
 
 	* Source/Additions/NSFileHandle+GNUstepBase.m:
