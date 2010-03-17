@@ -2105,11 +2105,18 @@ static NSLock	*cached_proxies_gate = nil;
 	/* xxx What happens with method declared "- (in char *) bar;" */
 	/* xxx Is this right?  Do we also have to check _F_ONEWAY? */
 	{
+	  id	obj;
+
 	  /* If there is a return value, decode it, and put it in datum. */
 	  if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
 	    {	
 	      switch (*tmptype)
 		{
+		  case _C_ID:
+		    datum = &obj;
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    [obj autorelease];
+		    break;
 		  case _C_PTR:
 		    /* We are returning a pointer to something. */
 		    tmptype++;
@@ -2151,7 +2158,7 @@ static NSLock	*cached_proxies_gate = nil;
 		  if (*tmptype == _C_PTR
 		    && ((flags & _F_OUT) || !(flags & _F_IN)))
 		    {
-		      /* If the arg was myref, we obtain its address
+		      /* If the arg was byref, we obtain its address
 		       * and decode the data directly to it.
 		       */
 		      tmptype++;
