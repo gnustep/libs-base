@@ -257,6 +257,125 @@ extern "C" {
 - (void) setIsHttp;
 @end
 
+
+/** The error domain for the GSMime system.
+ */
+GS_EXPORT NSString* const GSMimeErrorDomain;
+
+/** The error codes used in the GSMimeErrorDomain
+ */
+typedef enum {
+  GSMimeSMTPAbort,
+  GSMimeSMTPTimeout,
+  GSMimeSMTPCommsEnd,
+  GSMimeSMTPCommsError,
+  GSMimeSMTPServerResponse
+} GSMimeErrorCode;
+
+@class	NSError;
+@class	NSStream;
+@class	NSTimer;
+
+/** The GSMimeSMTPClient class provides the ability to send EMails
+ * ([GSMimeDocument] instances) via an SMTP server.
+ */
+@interface	GSMimeSMTPClient : NSObject
+{
+#if	GS_NONFRAGILE
+#  if	defined(GS_GSMimeSMTPClient_IVARS)
+@public GS_GSMimeSMTPClient_IVARS
+#  endif
+#else
+@private id _internal;
+#endif
+}
+
+/** Shut down any message send in progress and abort any queued messages.
+ */
+- (void) abort;
+
+/** Returns the current delegate.
+ */
+- (id) delegate;
+
+/** Tries to flush any queued messages to the SMTP server, completing by the
+ * specified limit date.<br />
+ * If limit is nil then a date in the distant future is used.<br />
+ * If the queue is emptied in time, this method returns YES, otherwise it
+ * returns NO.
+ */ 
+- (BOOL) flush: (NSDate*)limit;
+
+/** Returns the last error encountered, or nil if there is none recorded.
+ */
+- (NSError*) lastError;
+
+/** Add the message to the queue of emails to be sent by the receiver.
+ */
+- (void) send: (GSMimeDocument*)message;
+
+/** Set the delegate to receive callback methods indicating when a message
+ * is sent, failed, or removed from the queue unsent.
+ */
+- (void) setDelegate: (id)d;
+
+/** Set the host for the SMTP server.  If this is not set (or is set to nil)
+ * then the GSMimeSMTPClientHost user default is used.  If the host is nil
+ * or an empty string then 'localhost' is used.
+ */
+- (void) setHostname: (NSString*)s;
+
+/** Set the host for the SMTP client to identify itsself to the server.
+ * If this is not set (or is set to nil) then the GSMimeSMTPClientIdentity
+ * user default is used.  If the identity is nil or an empty string then
+ * a name of the current host is use.
+ */
+- (void) setIdentity: (NSString*)s;
+
+/** Set the originator for any emails sent by the SMTP client.<br />
+ * This overrides the value in the 'from' header of an email.<br />
+ * If this is not set (or is set to nil) then the GSMimeSMTPClientOriginator
+ * user default is used.  If the originator is nil or an empty string then
+ * the value in the 'from' header of the email is used.
+ */
+- (void) setOriginator: (NSString*)s;
+
+/** Set the port for the SMTP server.  If this is not set (or is set to nil)
+ * then the GSMimeSMTPClientPort user default is used.  If the port is not an
+ * integer in the 1-65535 range, then '25' (the default SMTP port) is used.
+ */
+- (void) setPort: (NSString*)s;
+
+/** Set the username for authentication to the SMTP server.
+ * If this is not set (or is set to nil) then the GSMimeSMTPClientUsername user
+ * default is used.  If the username is nil or an empty string then authentication
+ * is not attempted.
+ */
+- (void) setUsername: (NSString*)s;
+
+/** returns the receivers current state.
+ */
+- (int) state;
+
+/** Returns a string describing the receiver's current state
+ */
+- (NSString*) stateDesc;
+
+@end
+
+/** Informal protocol for delegates of the GSMimeSMTPClient class.
+ * The default implementations of these methods do nothing.
+ */
+@interface	NSObject (GSMimeSMTPClient)
+- (void) smtpClient: (GSMimeSMTPClient*)client
+	 mimeFailed: (GSMimeDocument*)doc;	/* Failed to send */
+- (void) smtpClient: (GSMimeSMTPClient*)client
+	 mimeSent: (GSMimeDocument*)doc;	/* Sent successfully */
+- (void) smtpClient: (GSMimeSMTPClient*)client
+	 mimeUnsent: (GSMimeDocument*)doc;	/* Aborted (not sent) */
+@end
+
+
 #if	defined(__cplusplus)
 }
 #endif
