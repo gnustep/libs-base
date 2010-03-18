@@ -1,5 +1,12 @@
 2010-03-18 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSMime.m:
+	* Headers/Additions/GNUstepBase/GSMime.h:
+	GSMimeSMTPClient code to send emails now working ... but still very
+	experimental.
+
+2010-03-18 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac:
 	* config.mak.in:
 	* Source/ObjectiveC2/GNUmakefile:
