@@ -197,7 +197,7 @@ static NSDecimalNumber *one;
   // Reuse the handler from the class NSDecimalNumberHandler
   // Might give interessting result on this class as behavior may came
   // from a different class
-  ASSIGN(handler, behavior);
+  ASSIGN(handler, (id)behavior);
 }
 
 + (NSDecimalNumber*) maximumDecimalNumber
