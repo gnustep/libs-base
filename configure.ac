@@ -672,6 +672,17 @@ fi
 AC_CHECK_FUNCS(objc_thread_add)
 
 #--------------------------------------------------------------------
+# Check for thread synchronisation support in runtime
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(objc_sync_enter)
+if test $ac_cv_func_objc_sync_enter = yes ; then
+  OBJCSYNC=1
+else
+  OBJCSYNC=0
+fi
+AC_SUBST(OBJCSYNC)
+
+#--------------------------------------------------------------------
 # Check for ObjC2 support in runtime
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(objc_setProperty)

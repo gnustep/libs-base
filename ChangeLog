@@ -1,3 +1,11 @@
+2010-03-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac:
+	* config.mak.in:
+	* Source/ObjectiveC2/GNUmakefile:
+	Only build objc synchronisation compatibility code if it is not
+	already in runtime.
+
 2010-03-17 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:

@@ -34,7 +34,11 @@ SUBPROJECT_NAME = ObjectiveC2
 ObjectiveC2_OBJC_FILES = \
 	blocks_runtime.m\
 	properties.m\
-	sync.m
+
+
+ifeq ($(OBJCSYNC), 0)
+ObjectiveC2_OBJC_FILES += sync.m
+endif
 
 ObjectiveC2_C_FILES = \
 	runtime.c
