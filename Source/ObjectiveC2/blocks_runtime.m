@@ -200,7 +200,7 @@ struct StackBlockClass {
   const char *types;
 };
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__) || defined(__MINGW64__)
 /* FIXME ... evil hack ... declare symbol to avoid linker error on windows
  * where the compiler/linker doesn't support a weak reference.
  * This obviously breaks the code below...

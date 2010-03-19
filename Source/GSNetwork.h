@@ -38,7 +38,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#if     defined(__MINGW__)
+#if     defined(__MINGW32__) || defined(__MINGW64__)
 
 #include <io.h>
 #include <winsock2.h>
