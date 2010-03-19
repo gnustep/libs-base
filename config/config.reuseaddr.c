@@ -5,7 +5,7 @@
   are permitted in any medium without royalty provided the copyright
   notice and this notice are preserved.
 */
-#if defined(__MINGW__)
+#if defined(__MINGW32__) || defined(__MINGW64__)
 #include <windows.h>
 #include <winsock2.h>
 #else
