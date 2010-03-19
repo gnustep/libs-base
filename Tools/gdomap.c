@@ -48,7 +48,7 @@
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 #include <stdint.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -62,13 +62,13 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include <sys/file.h>
-#ifdef	HAVE_TIME_H
+#if	defined(HAVE_TIME_H)
 #include <time.h>
 #endif
-#ifdef	HAVE_PWD_H
+#if	defined(HAVE_PWD_H)
 #include <pwd.h>
 #endif
-#ifdef	HAVE_GRP_H
+#if	defined(HAVE_GRP_H)
 #include <grp.h>
 #endif
 
@@ -79,7 +79,7 @@
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
-#ifdef	__POSIX_SOURCE
+#if	defined(__POSIX_SOURCE)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -100,14 +100,14 @@
 #endif /* !__MINGW__ */
 
 
-#ifdef	HAVE_SYSLOG_H
+#if	defined(HAVE_SYSLOG_H)
 #include <syslog.h>
 #endif
 
 #if	HAVE_STRERROR
   #define	lastErr()	strerror(errno)
 #else
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 static	errbuf[BUFSIZ];
   #define	lastErr()	(sprintf(errbuf, "WSAGetLastError()=%d", WSAGetLastError()), errbuf)
 #else
@@ -202,7 +202,7 @@ static void	queue_probe(struct in_addr* to, struct in_addr *from,
 
 char *xgethostname (void);
 
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 #ifndef HAVE_GETOPT
 /* A simple implementation of getopt() */
 
@@ -276,7 +276,7 @@ getopt(int argc, char **argv, char *options)
 static char	ebuf[2048];
 
 
-#ifdef HAVE_SYSLOG
+#if	defined(HAVE_SYSLOG)
 
 static int	log_priority;
 
@@ -398,7 +398,7 @@ static fd_set	write_fds;	/* Descriptors which are writable.	*/
    Bjoern Giesler <Bjoern.Giesler@gmx.de> to work on Win32. */
 
 typedef struct {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   SOCKET s;
 #else
   int s;
@@ -412,7 +412,7 @@ typedef struct {
 } RInfo;		/* State of reading each request.	*/
 
 typedef struct {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   SOCKET s;
 #else
   int s;
@@ -430,7 +430,7 @@ static unsigned _wInfoCapacity = 0;
 static unsigned _wInfoCount = 0;
 
 static void
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 delRInfo(SOCKET s)
 #else
 delRInfo(int s)
@@ -462,7 +462,7 @@ delRInfo(int s)
 
 
 static RInfo *
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 getRInfo(SOCKET s, int make)
 #else
 getRInfo(int s, int make)
@@ -504,7 +504,7 @@ getRInfo(int s, int make)
 }
 
 static void
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 delWInfo(SOCKET s)
 #else
 delWInfo(int s)
@@ -536,7 +536,7 @@ delWInfo(int s)
 
 
 static WInfo *
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 getWInfo(SOCKET s, int make)
 #else
 getWInfo(int s, int make)
@@ -987,7 +987,7 @@ prb_tim(time_t when)
 static void
 clear_chan(int desc)
 {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   if (desc != INVALID_SOCKET)
 #else
   if (desc >= 0 && desc < FD_SETSIZE)
@@ -1003,7 +1003,7 @@ clear_chan(int desc)
       else
 	{
 	  FD_CLR(desc, &read_fds);
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  closesocket(desc);
 #else
 	  close(desc);
@@ -1107,7 +1107,7 @@ dump_tables()
 static void
 init_iface()
 {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   INTERFACE_INFO InterfaceList[20];
   unsigned long nBytesReturned;
   int i, countActive, nNumInterfaces;
@@ -1215,7 +1215,7 @@ init_iface()
     }
   closesocket(desc);
 #else
-#ifdef	SIOCGIFCONF
+#if	defined(SIOCGIFCONF)
   struct ifconf	ifc;
   struct ifreq	ifreq;
   void		*final;
@@ -1293,7 +1293,7 @@ init_iface()
   for (ifr_ptr = ifc.ifc_req; ifr_ptr < final;)
     {
       ifreq = *(struct ifreq*)ifr_ptr;
-#ifdef HAVE_SA_LEN
+#if	defined(HAVE_SA_LEN)
       ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_addr) 
 	+ ROUND(ifreq.ifr_addr.sa_len, sizeof(struct ifreq*));
 #else
@@ -1315,13 +1315,13 @@ init_iface()
 	    {
 	      broadcast = 1;
 	    }
-#ifdef IFF_POINTOPOINT
+#if	defined(IFF_POINTOPOINT)
 	  if (ifreq.ifr_flags & IFF_POINTOPOINT)
 	    {
 	      pointopoint = 1;
 	    }
 #endif
-#ifdef IFF_LOOPBACK
+#if	defined(IFF_LOOPBACK)
 	  if (ifreq.ifr_flags & IFF_LOOPBACK)
 	    {
 	      loopback = 1;
@@ -1349,7 +1349,7 @@ init_iface()
 	      addr[interfaces] =
 		((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
 	      bcok[interfaces] = (broadcast | pointopoint);
-#ifdef IFF_POINTOPOINT
+#if	defined(IFF_POINTOPOINT)
 	      if (pointopoint)
 		{
 		  if (ioctl(desc, SIOCGIFDSTADDR, (char*)&ifreq) < 0)
@@ -1616,7 +1616,7 @@ init_my_port()
    *	this should be the default port, since we should have registered
    *	this with the appropriate authority and have it reserved for us.
    */
-#ifdef	GDOMAP_PORT_OVERRIDE
+#if	defined(GDOMAP_PORT_OVERRIDE)
   my_port = htons(GDOMAP_PORT_OVERRIDE);
 #else
   my_port = htons(GDOMAP_PORT);
@@ -1675,7 +1675,7 @@ init_ports()
 {
   int		r;
   struct sockaddr_in	sa;
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   unsigned long dummy;
 #endif /* __MINGW__ */
 
@@ -1686,7 +1686,7 @@ init_ports()
    */
 
   udp_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   if (udp_desc == INVALID_SOCKET)
 #else
   if (udp_desc < 0)
@@ -1712,7 +1712,8 @@ init_ports()
   if ((setsockopt
     (udp_desc,SOL_SOCKET,SO_EXCLUSIVEADDRUSE,(char*)&r,sizeof(r)))<0)
     {
-      snprintf(ebuf, sizeof(ebuf), "Unable to set 'exclusive-use' on UDP socket");
+      snprintf(ebuf, sizeof(ebuf),
+	"Unable to set 'exclusive-use' on UDP socket");
       gdomap_log(LOG_WARNING);
     }
 #endif
@@ -1740,7 +1741,7 @@ init_ports()
 	  gdomap_log(LOG_WARNING);
 	}
     }
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   dummy = 1;
   if (ioctlsocket(udp_desc, FIONBIO, &dummy) < 0)
     {
@@ -1794,7 +1795,7 @@ init_ports()
    *	Now we do the TCP socket.
    */
   tcp_desc = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   if (tcp_desc == INVALID_SOCKET)
 #else
   if (tcp_desc < 0)
@@ -1840,7 +1841,7 @@ init_ports()
     }
 #endif
 
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   dummy = 1;
   if (ioctlsocket(tcp_desc, FIONBIO, &dummy) < 0)
     {
@@ -2223,7 +2224,7 @@ handle_accept()
   if (desc >= 0)
     {
       RInfo		*ri;
-#ifdef __MINGW__
+#if	defined(__MINGW__)
       unsigned long	dummy = 1;
 #else
       int		r;
@@ -2243,7 +2244,7 @@ handle_accept()
       /*
        *	Ensure that the connection is non-blocking.
        */
-#ifdef __MINGW__
+#if	defined(__MINGW__)
       if (ioctlsocket(desc, FIONBIO, &dummy) < 0)
 	{
 	  if (debug)
@@ -2284,7 +2285,7 @@ handle_accept()
   else if (debug)
     {
       snprintf(ebuf, sizeof(ebuf), "accept failed - errno %d",
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	WSAGetLastError());
 #else
 	errno);
@@ -2412,7 +2413,7 @@ handle_io()
 	  /*
 	   *	Got some descriptor activity - deal with it.
 	   */
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  /* read file descriptors */
 	  for (i = 0; i < rfds.fd_count; i++)
 	    {
@@ -2502,12 +2503,10 @@ handle_read(int desc)
 
   while (ri->pos < GDO_REQ_SIZE && done == 0)
     {
-#ifdef __MINGW__
-      r = recv(desc, (char *)&ptr[ri->pos],
-	GDO_REQ_SIZE - ri->pos, 0);
+#if	defined(__MINGW__)
+      r = recv(desc, (char *)&ptr[ri->pos], GDO_REQ_SIZE - ri->pos, 0);
 #else
-      r = read(desc, &ptr[ri->pos],
-	GDO_REQ_SIZE - ri->pos);
+      r = read(desc, &ptr[ri->pos], GDO_REQ_SIZE - ri->pos);
 #endif
       if (r > 0)
 	{
@@ -2524,7 +2523,7 @@ handle_read(int desc)
       tcp_read++;
       handle_request(desc);
     }
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   else if (WSAGetLastError() != WSAEWOULDBLOCK || nothingRead == 1)
 #else
   else if (errno != EWOULDBLOCK || nothingRead == 1)
@@ -2779,7 +2778,7 @@ handle_request(int desc)
 		      *(unsigned long*)wi->buf = port;
 		    }
 		}
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	      /* closesocket(sock); */
 #else
 	      close(sock);
@@ -2893,7 +2892,7 @@ handle_request(int desc)
 		      m = 0;
 		    }
 		}
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	      closesocket(sock);
 #else
 	      close(sock);
@@ -3039,7 +3038,7 @@ handle_request(int desc)
 	      snprintf(ebuf, sizeof(ebuf), "Probe from '%s'", inet_ntoa(sin));
 	      gdomap_log(LOG_DEBUG);
 	    }
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  if (IN_CLASSA(sin.s_addr))
 	    {
 	      net = sin.s_addr & IN_CLASSA_NET;
@@ -3178,7 +3177,7 @@ handle_request(int desc)
 		"Probe reply from '%s'", inet_ntoa(sin));
 	      gdomap_log(LOG_DEBUG);
 	    }
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  if (IN_CLASSA(sin.s_addr))
 	    {
 	      net = sin.s_addr & IN_CLASSA_NET;
@@ -3281,7 +3280,7 @@ handle_send()
        */
       if (entry->pos != entry->len)
 	{
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
 	  if (errno != EWOULDBLOCK)
@@ -3346,7 +3345,7 @@ handle_write(int desc)
   ptr = wi->buf;
   len = wi->len;
 
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   r = send(desc, &ptr[wi->pos], len - wi->pos, 0);
 #else
   r = write(desc, &ptr[wi->pos], len - wi->pos);
@@ -3457,14 +3456,14 @@ tryRead(int desc, int tim, unsigned char* dat, int len)
 	}
       else if (len > 0)
 	{
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  rval = recv(desc, (char *)&dat[pos], len - pos, 0);
 #else
 	  rval = read(desc, &dat[pos], len - pos);
 #endif
 	  if (rval < 0)
 	    {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	      if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
 	      if (errno != EWOULDBLOCK)
@@ -3563,7 +3562,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 	}
       else if (len > 0)
 	{
-#ifdef __MINGW__ /* FIXME: Is this correct? */
+#if	defined(__MINGW__) /* FIXME: Is this correct? */
 	  rval = send(desc, (const char*)&dat[pos], len - pos, 0);
 #else
 	  void	(*ifun)();
@@ -3579,7 +3578,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 
 	  if (rval <= 0)
 	    {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	      if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
 	      if (errno != EWOULDBLOCK)
@@ -3619,7 +3618,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   unsigned long	port = *p;
   gdo_req		msg;
   struct sockaddr_in sin;
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   unsigned long dummy;
 #endif /* __MINGW__ */
 
@@ -3629,7 +3628,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       return 1;	/* Couldn't create socket.	*/
     }
 
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   dummy = 1;
   if (ioctlsocket(desc, FIONBIO, &dummy) < 0)
     {
@@ -3662,7 +3661,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   memcpy(&sin, addr, sizeof(sin));
   if (connect(desc, (struct sockaddr*)&sin, sizeof(sin)) != 0)
     {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
       if (WSAGetLastError() == WSAEWOULDBLOCK)
 #else
       if (errno == EINPROGRESS)
@@ -3672,7 +3671,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  if (e == -2)
 	    {
 	      e = errno;
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	      closesocket(desc);
 #else
 	      close(desc);
@@ -3683,7 +3682,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  else if (e == -1)
 	    {
 	      e = errno;
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	      closesocket(desc);
 #else
 	      close(desc);
@@ -3695,7 +3694,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       else
 	{
 	  e = errno;
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  closesocket(desc);
 #else
 	  close(desc);
@@ -3719,7 +3718,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   e = tryWrite(desc, 10, (uptr)&msg, GDO_REQ_SIZE);
   if (e != GDO_REQ_SIZE)
     {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
       e = WSAGetLastError();
       closesocket(desc);
       WSASetLastError(e);
@@ -3733,7 +3732,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   e = tryRead(desc, 3, (uptr)&port, 4);
   if (e != 4)
     {
-#ifdef __MINGW__
+#if	defined(__MINGW__)
       e = WSAGetLastError();
       closesocket(desc);
       WSASetLastError(e);
@@ -3758,7 +3757,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       if (tryRead(desc, 3, b, len) != len)
 	{
 	  free(b);
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  e = WSAGetLastError();
 	  closesocket(desc);
 	  WSASetLastError(e);
@@ -3784,7 +3783,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       if (tryRead(desc, 3, b, len) != len)
 	{
 	  free(b);
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 	  e = WSAGetLastError();
 	  closesocket(desc);
 	  WSASetLastError(e);
@@ -3816,7 +3815,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
     }
 
   *p = (unsigned short)port;
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   closesocket(desc);
 #else
   close(desc);
@@ -4281,7 +4280,7 @@ static void do_help(int argc, char **argv, char *options)
   exit(EXIT_SUCCESS);
 }
 
-#ifdef __MINGW__
+#if	defined(__MINGW__)
 static char*
 quoteArg(const char *arg)
 {
@@ -4383,9 +4382,9 @@ main(int argc, char** argv)
   const char	*lookupf = 0;
   int		donamesf = 0;
 
-#ifdef	HAVE_SYSLOG
+#if	defined(HAVE_SYSLOG)
   /* Initially, gdomap_log errors to stderr as well as to syslogd. */
-#ifdef SYSLOG_4_2
+#if	defined(SYSLOG_4_2)
   openlog ("gdomap", LOG_NDELAY);
   log_priority = LOG_DAEMON;
 #else
@@ -4393,7 +4392,7 @@ main(int argc, char** argv)
 #endif
 #endif
 
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   WORD wVersionRequested;
   WSADATA wsaData;
 
@@ -4405,7 +4404,7 @@ main(int argc, char** argv)
    *	Would use inet_aton(), but older systems don't have it.
    */
   loopback.s_addr = inet_addr("127.0.0.1");
-#ifdef __MINGW__
+#if	defined(__MINGW__)
   class_a_net = IN_CLASSA_NET;
   class_a_mask.s_addr = class_a_net;
   class_b_net = IN_CLASSB_NET;
@@ -4686,7 +4685,7 @@ printf(
       exit (0);
     }
 
-#ifdef __MINGW__ /* On Win32, we don't fork */
+#if	defined(__MINGW__) /* On Win32, we don't fork */
   if (nofork == 0)
     {
       char	**a = malloc((argc+2) * sizeof(char*));
@@ -4727,7 +4726,7 @@ printf(
 	    /*
 	     *	Try to run in background.
 	     */
-#ifdef	NeXT
+#if	defined(NeXT)
 	    setpgrp(0, getpid());
 #else
 	    setsid();
@@ -4864,8 +4863,8 @@ printf(
   int gid = -2;
 #endif
 
-#ifdef	HAVE_PWD_H
-#ifdef	HAVE_GETPWNAM
+#if	defined(HAVE_PWD_H)
+#if	defined(HAVE_GETPWNAM)
   struct passwd *pw = getpwnam("nobody");
 
   if (pw != 0)
@@ -5060,15 +5059,15 @@ xgethostname (void)
   char *buf;
   int err;
 
-#ifdef MAXHOSTNAMELEN
+#if	defined(MAXHOSTNAMELEN)
   size = MAXHOSTNAMELEN;
   addnull = 1;
 #else /* MAXHOSTNAMELEN */
-#ifdef _SC_HOST_NAME_MAX
+#if	defined(_SC_HOST_NAME_MAX)
   size = sysconf (_SC_HOST_NAME_MAX);
   addnull = 1;
 #endif /* _SC_HOST_NAME_MAX */
-#ifdef INTERNET_MAX_HOST_NAME_LENGTH
+#if	defined(INTERNET_MAX_HOST_NAME_LENGTH)
   size = INTERNET_MAX_HOST_NAME_LENGTH;
   addnull = 1;
 #endif
