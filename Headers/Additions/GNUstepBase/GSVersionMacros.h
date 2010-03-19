@@ -233,7 +233,7 @@
  
 #if BUILD_libgnustep_base_DLL
 #
-# if defined(__MINGW32__)
+# if defined(__MINGW__)
   /* On Mingw, the compiler will export all symbols automatically, so
    * __declspec(dllexport) is not needed.
    */

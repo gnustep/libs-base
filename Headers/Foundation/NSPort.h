@@ -33,7 +33,7 @@
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSMapTable.h>
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #include	<winsock2.h>
 #include	<wininet.h>
 #else
@@ -206,7 +206,7 @@ typedef SOCKET NSSocketNativeHandle;
   uint16_t		portNum;	/* TCP port in host byte order.	*/
   SOCKET		listener;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEVENT              eventListener;
   NSMapTable            *events;
 #endif

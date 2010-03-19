@@ -484,7 +484,7 @@ int main(int argc, char *argv[], char **env)
   NSPortNameServer *ns;
   NSPort *port;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-#ifndef __MINGW32__
+#if	!defined(__MINGW__)
   extern int optind;
   extern char *optarg;
 #endif

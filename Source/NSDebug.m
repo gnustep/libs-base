@@ -852,7 +852,7 @@ case a: env->addr = __builtin_return_address(a + 1); break;
 #include <signal.h>
 #include <setjmp.h>
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #ifndef SIGBUS
 #define SIGBUS  SIGILL
 #endif

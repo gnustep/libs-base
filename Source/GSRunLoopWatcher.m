@@ -45,7 +45,7 @@
   data = item;
   switch (aType)
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       case ET_HANDLE:   type = aType;   break;
       case ET_WINMSG:   type = aType;   break;
 #else

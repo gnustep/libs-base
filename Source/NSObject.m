@@ -190,7 +190,7 @@ static void GSLogZombie(id o, SEL sel)
 #undef	GSATOMICREAD
 #endif
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #ifndef _WIN64
 #undef InterlockedIncrement
 #undef InterlockedDecrement
@@ -899,14 +899,14 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
  * Semi-private function in libobjc2 that initialises the classes used for
  * blocks.
  */
-#ifndef __MINGW32__
+#ifndef __MINGW__
 BOOL 
 objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 #endif
 
 + (void)load
 {
-#ifndef __MINGW32__
+#ifndef __MINGW__
   /* When NSObject is loaded, register it as the superclass of the block
    * classes */
   if (objc_create_block_classes_as_subclasses_of)
@@ -933,13 +933,13 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       GC_set_warn_proc(GSGarbageCollectorLog);
 #endif
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
       {
         // See libgnustep-base-entry.m
         extern void gnustep_base_socket_init(void);	
         gnustep_base_socket_init();	
       }
-#else /* __MINGW32__ */
+#else /* __MINGW__ */
 
 #ifdef	SIGPIPE
     /*
@@ -981,7 +981,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       }
 #endif /* HAVE_SIGACTION */
 #endif /* SIGPIPE */
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
 #if	GS_WITH_GC
       finalize_sel = @selector(finalize);

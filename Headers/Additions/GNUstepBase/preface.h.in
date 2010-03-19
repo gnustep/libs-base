@@ -29,18 +29,18 @@
 #include <stdarg.h>
 
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
-#ifndef __WIN32__
-#define __WIN32__
-#endif
+#  if	!defined(__WIN32__)
+#    define __WIN32__
+#  endif
 #endif
 
-#ifdef __MINGW32__
-#ifndef __MINGW__
-#define __MINGW__
-#endif
-#ifndef __WIN32__
-#define __WIN32__
-#endif
+#if	defined(__MINGW32__)
+#  if	!defined(__MINGW__)
+#    define __MINGW__
+#  endif
+#  if	!defined(__WIN32__)
+#    define __WIN32__
+#  endif
 #endif
 
 #if defined(__WIN32__)

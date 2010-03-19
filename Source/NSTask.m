@@ -119,12 +119,12 @@ static BOOL	hadChildSignal = NO;
 static void handleSignal(int sig)
 {
   hadChildSignal = YES;
-#ifndef __MINGW32__
+#ifndef __MINGW__
   signal(SIGCHLD, handleSignal);
 #endif
 }
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 @interface NSConcreteWindowsTask : NSTask
 {
 @public
@@ -264,7 +264,7 @@ pty_slave(const char* name)
         }
       [gnustep_global_lock unlock];
 
-#ifndef __MINGW32__
+#ifndef __MINGW__
       signal(SIGCHLD, handleSignal);
 #endif
     }
@@ -359,7 +359,7 @@ pty_slave(const char* name)
       return;
     }
 
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGINT);
 #else
@@ -427,7 +427,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGCONT);
 #else
@@ -618,7 +618,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGSTOP);
 #else
@@ -650,7 +650,7 @@ pty_slave(const char* name)
     }
 
   _hasTerminated = YES;
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGTERM);
 #else
@@ -751,7 +751,7 @@ pty_slave(const char* name)
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
   lpath = [full_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
   if ([mgr isExecutableFileAtPath: lpath] == NO
     && [mgr isExecutableFileAtPath:
     (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -760,7 +760,7 @@ pty_slave(const char* name)
 #endif
     {
       lpath = [arch_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
       if ([mgr isExecutableFileAtPath: lpath] == NO
 	&& [mgr isExecutableFileAtPath:
 	(lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -769,7 +769,7 @@ pty_slave(const char* name)
 #endif
 	{
 	  lpath = [base_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
 	  if ([mgr isExecutableFileAtPath: lpath] == NO
 	    && [mgr isExecutableFileAtPath:
 	    (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -788,7 +788,7 @@ pty_slave(const char* name)
 		}
 	      if (lpath != nil)
 		{
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
 		  if ([mgr isExecutableFileAtPath: lpath] == NO
 		    && [mgr isExecutableFileAtPath:
 		    (lpath = [lpath stringByAppendingPathExtension: @"exe"])]
@@ -816,7 +816,7 @@ pty_slave(const char* name)
 	}
       lpath = [lpath stringByStandardizingPath];
     }
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
   /** We need this to be native windows format, and some of the standardisation
    * above may have left unix style separators in the string.
    */
@@ -919,7 +919,7 @@ pty_slave(const char* name)
 
 @end
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 @implementation NSConcreteWindowsTask
 
 BOOL
@@ -1517,7 +1517,7 @@ GSPrivateCheckTasks()
 #endif
 #else
 #if	defined(HAVE_SETPGID)
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       pid = (int)GetCurrentProcessId(),
 #else
       pid = (int)getpid();

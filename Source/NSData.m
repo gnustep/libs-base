@@ -137,7 +137,7 @@ static IMP	appendImp;
 static BOOL
 readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   const unichar	*thePath = 0;
 #else
   const char	*thePath = 0;
@@ -147,7 +147,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   int		c;
   long		fileLength;
 	
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   thePath = (const unichar*)[path fileSystemRepresentation];
 #else
   thePath = [path fileSystemRepresentation];
@@ -158,7 +158,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       return NO;
     }
 	
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   theFile = _wfopen(thePath, L"rb");
 #else
   theFile = fopen(thePath, "rb");
@@ -1295,7 +1295,7 @@ failure:
              options: (NSUInteger)writeOptionsMask
                error: (NSError **)errorPtr
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   NSUInteger	length = [path length];
   unichar	wthePath[length + 100];
   unichar	wtheRealPath[length + 100];
@@ -1312,7 +1312,7 @@ failure:
     {
       useAuxiliaryFile = YES;
     }
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   [path getCharacters: wtheRealPath];
   wtheRealPath[length] = L'\0';
   error_BadPath = (length <= 0);
@@ -1366,7 +1366,7 @@ failure:
       /* Use the path name of the destination file as a prefix for the
        * mktemp() call so that we can be sure that both files are on
        * the same filesystem and the subsequent rename() will work. */
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       wcscpy(wthePath, wtheRealPath);
       wcscat(wthePath, L"XXXXXX");
       if (_wmktemp(wthePath) == 0)
@@ -1388,7 +1388,7 @@ failure:
     }
   else
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       wcscpy(wthePath,wtheRealPath);
 #else
       strcpy(thePath, theRealPath);
@@ -1396,7 +1396,7 @@ failure:
     }
 
   /* Open the file (whether temp or real) for writing. */
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   theFile = _wfopen(wthePath, L"wb");
 #else
   theFile = fopen(thePath, "wb");
@@ -1407,7 +1407,7 @@ failure:
     {
       /* Something went wrong; we weren't
        * even able to open the file. */
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       NSWarnMLog(@"Open (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
 	  [NSError _last]);
@@ -1425,7 +1425,7 @@ failure:
   if (c < (int)[self length])        /* We failed to write everything for
                                  * some reason. */
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       NSWarnMLog(@"Fwrite (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
 	[NSError _last]);
@@ -1442,7 +1442,7 @@ failure:
                                  * closing the file, but we got here,
                                  * so we need to deal with it. */
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       NSWarnMLog(@"Fclose (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
 	[NSError _last]);
@@ -1459,7 +1459,7 @@ failure:
     {
       NSFileManager		*mgr = [NSFileManager defaultManager];
       NSMutableDictionary	*att = nil;
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       NSUInteger		perm;
 #endif
 
@@ -1470,7 +1470,7 @@ failure:
 	  IF_NO_GC(AUTORELEASE(att));
 	}
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       /* To replace the existing file on windows, it must be writable.
        */
       perm = [att filePosixPermissions];
@@ -1539,7 +1539,7 @@ failure:
 #endif
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %@",
 	    [NSString stringWithCharacters: wthePath
 				    length: wcslen(wthePath)],
@@ -1572,7 +1572,7 @@ failure:
 		path);
 	    }
 	}
-#ifndef __MINGW32__
+#ifndef __MINGW__
       else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
 	{
 	  att = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -1595,7 +1595,7 @@ failure:
    */
   if (useAuxiliaryFile)
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       _wunlink(wthePath);
 #else
       unlink(thePath);
@@ -3007,7 +3007,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   int		fd;
 	
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   const unichar	*thePath = (const unichar*)[path filesystemRepresentation];
 #else
   const char	*thePath = [path fileSystemRepresentation];
@@ -3020,7 +3020,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       return nil;
     }
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   fd = _wopen(thePath, _O_RDONLY);
 #else
   fd = open(thePath, O_RDONLY);

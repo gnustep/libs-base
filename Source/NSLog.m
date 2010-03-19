@@ -108,7 +108,7 @@ _NSLog_standard_printf_handler (NSString* message)
   NSData	*d;
   const char	*buf;
   unsigned	len;
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   LPCWSTR	null_terminated_buf;
 #else
 #if	defined(HAVE_SYSLOG)
@@ -139,7 +139,7 @@ _NSLog_standard_printf_handler (NSString* message)
       len = [d length];
     }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   null_terminated_buf = UNISTR(message);
 
   OutputDebugStringW(null_terminated_buf);
@@ -184,7 +184,7 @@ _NSLog_standard_printf_handler (NSString* message)
 #else
   write(_NSLogDescriptor, buf, len);
 #endif
-#endif // __MINGW32__
+#endif // __MINGW__
 }
 
 /**
@@ -294,7 +294,7 @@ NSLogv (NSString* format, va_list args)
 
   if (pid == 0)
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       pid = (int)GetCurrentProcessId();
 #else
       pid = (int)getpid();

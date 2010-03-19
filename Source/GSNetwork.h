@@ -38,7 +38,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#if     defined(__MINGW32__)
+#if     defined(__MINGW__)
 
 #include <io.h>
 #include <winsock2.h>
@@ -72,7 +72,7 @@
 #define GSNETERROR      errno
 #define GSWOULDBLOCK    (errno == EINPROGRESS)
 
-#endif  /* __MINGW32__ */
+#endif  /* __MINGW__ */
 
 #ifndef INADDRSZ
 #define INADDRSZ        4

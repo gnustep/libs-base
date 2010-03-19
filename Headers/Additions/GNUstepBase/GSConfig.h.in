@@ -199,7 +199,7 @@ typedef	gsuaddr gsaddr;
 /*
  * Native character type for use in systemcalls etc.
  */
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #define	GSNativeChar	uint16_t
 #else
 #define	GSNativeChar	char

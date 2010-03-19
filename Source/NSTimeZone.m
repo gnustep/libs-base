@@ -203,7 +203,7 @@ typedef struct {
 }
 @end
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 @interface	GSWindowsTimeZone : NSTimeZone
 {
 @public
@@ -467,7 +467,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	      fileName = [NSTimeZoneClass _getTimeZoneFile: name];
 	      if (fileName == nil
 		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName])
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
                   DESTROY(self);
@@ -481,7 +481,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 #endif
 	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  if (!data)
 	    zone = [[GSWindowsTimeZone alloc] initWithName: name data: data];
 	  else
@@ -1028,7 +1028,7 @@ static NSMapTable	*absolutes = 0;
       path = _time_zone_path (ABBREV_MAP, nil);
       if (path != nil)
 	{
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  unichar	mode[3];
 
 	  mode[0] = 'r';
@@ -1468,7 +1468,7 @@ static NSMapTable	*absolutes = 0;
 	}
 #endif
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       /*
        * Try to get timezone from windows system call.
        */
@@ -1559,7 +1559,7 @@ static NSMapTable	*absolutes = 0;
       path = _time_zone_path (REGIONS_FILE, nil);
       if (path != nil)
 	{
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  unichar	mode[3];
 
 	  mode[0] = 'r';
@@ -2105,7 +2105,7 @@ static NSString *zoneDirs[] = {
 @end
 
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 /* Timezone information data as stored in the registry */
 typedef struct TZI_format {
 	LONG       Bias;
@@ -2540,7 +2540,7 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
   return [self name];
 }
 @end
-#endif // __MINGW32__
+#endif // __MINGW__
 
 
 @implementation	GSTimeZone

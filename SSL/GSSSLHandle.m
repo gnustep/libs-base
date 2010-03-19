@@ -31,7 +31,7 @@
 #endif
 #endif
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #ifndef __WIN32__
 #define __WIN32__
 #endif
@@ -64,7 +64,7 @@
 #import "GNUstepBase/GSFileHandle.h"
 #import "GSPrivate.h"
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 #include <winsock2.h>
 #else
 #include <time.h>
@@ -74,7 +74,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
 #include <sys/file.h>
 #include <sys/stat.h>

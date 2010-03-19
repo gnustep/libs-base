@@ -202,7 +202,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
   while (delay > 30.0*60.0)
     {
       // sleep 30 minutes
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       Sleep (30*60*1000);
 #else
       sleep (30*60);
@@ -216,7 +216,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
    */
   while (delay > 0)
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #if	defined(HAVE_USLEEP)
       /* On windows usleep() seems to perform a busy wait ... so we only
        * use it for short delays ... otherwise use the less accurate Sleep()
@@ -901,7 +901,7 @@ static void *nsthreadLauncher(void* thread)
 {
   [lock lock];
   [performers addObject: performer];
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   if (SetEvent(event) == 0)
     {
       NSLog(@"Set event failed - %@", [NSError _last]);
@@ -925,7 +925,7 @@ static void *nsthreadLauncher(void* thread)
 
 - (id) init
 {
-#ifdef __MINGW32__
+#ifdef __MINGW__
   if ((event = CreateEvent(NULL, TRUE, FALSE, NULL)) == INVALID_HANDLE_VALUE)
     {
       DESTROY(self);
@@ -973,7 +973,7 @@ static void *nsthreadLauncher(void* thread)
   [lock lock];
   [performers makeObjectsPerformSelector: @selector(invalidate)];
   [performers removeAllObjects];
-#ifdef __MINGW32__
+#ifdef __MINGW__
   if (event != INVALID_HANDLE_VALUE)
     {
       CloseHandle(event);
@@ -1001,7 +1001,7 @@ static void *nsthreadLauncher(void* thread)
   unsigned int	c;
 
   [lock lock];
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   if (event != INVALID_HANDLE_VALUE)
     {
       if (ResetEvent(event) == 0)

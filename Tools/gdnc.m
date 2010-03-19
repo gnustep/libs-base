@@ -41,7 +41,7 @@
 #import	"Foundation/NSUserDefaults.h"
 
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #include	"process.h"
 #endif
 
@@ -1160,7 +1160,7 @@ main(int argc, char** argv, char** env)
 #endif
 	signal(sym, ihandler);
       }
-#ifndef __MINGW32__
+#ifndef __MINGW__
     signal(SIGPIPE, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
@@ -1182,7 +1182,7 @@ main(int argc, char** argv, char** env)
      */
     [[NSFileHandle fileHandleWithStandardInput] closeFile];
     [[NSFileHandle fileHandleWithStandardOutput] closeFile];
-#ifndef __MINGW32__
+#ifndef __MINGW__
     if (debugging == NO)
       {
 	[[NSFileHandle fileHandleWithStandardError] closeFile];
