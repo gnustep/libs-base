@@ -73,7 +73,7 @@
     {
 #if     defined(HAVE_MMAP)
       munmap(buffer, size);
-#elif   defined(__MINGW32__)
+#elif   defined(__MINGW__)
       VirtualFree(buffer, 0, MEM_RELEASE);
 #else
       free(buffer);
@@ -100,7 +100,7 @@
     MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 #endif  /* HAVE_MPROTECT */
   if (buffer == (void*)-1) buffer = (void*)0;
-#elif   defined(__MINGW32__)
+#elif   defined(__MINGW__)
   buffer = VirtualAlloc(NULL, _size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 #else
   buffer = malloc(_size);
@@ -125,7 +125,7 @@
  */
 - (void) protect
 {
-#if   defined(__MINGW32__)
+#if   defined(__MINGW__)
   DWORD old;
   if (VirtualProtect(buffer, size, PAGE_EXECUTE, &old) == 0)
     {

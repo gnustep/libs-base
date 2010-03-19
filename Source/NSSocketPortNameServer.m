@@ -49,7 +49,7 @@
 
 #import "GSPortPrivate.h"
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #include <winsock2.h>
 #include <wininet.h>
 #else

@@ -1296,7 +1296,7 @@ static unsigned	urlAlign;
 
   unescape(buf, buf);
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   /* On windows a file URL path may be of the form C:\xxx (ie we should
    * not insert the leading slash).
    * Also the vertical bar symbol may have been used instead of the

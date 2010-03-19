@@ -28,7 +28,7 @@
 
 #include <ffi.h>
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 /*
  * Avoid conflicts when other headers try to define UINT32 and UINT64
  */

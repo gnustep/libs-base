@@ -287,7 +287,7 @@ NSTimeInterval
 GSTimeNow(void)
 {
   NSTimeInterval t;
-#if !defined(__MINGW32__)
+#if !defined(__MINGW__)
   struct timeval tp;
 
   gettimeofday (&tp, NULL);
@@ -335,7 +335,7 @@ GSTimeNow(void)
   GetSystemTime(&sys_time);
   t = GSTime(sys_time.wDay, sys_time.wMonth, sys_time.wYear, sys_time.wHour,
     sys_time.wMinute, sys_time.wSecond, sys_time.wMilliseconds);
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
   return t;
 }

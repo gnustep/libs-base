@@ -30,19 +30,19 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>		/* for gethostname() */
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#endif /* !__MINGW32__ */
+#endif /* !__MINGW__ */
 #include <errno.h>
 #include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #include <stdint.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -91,7 +91,7 @@
 #if	defined(__svr4__)
 #include <sys/stropts.h>
 #endif
-#endif /* !__MINGW32__ */
+#endif /* !__MINGW__ */
 
 
 #ifdef	HAVE_SYSLOG_H
@@ -101,7 +101,7 @@
 #if	HAVE_STRERROR
   #define	lastErr()	strerror(errno)
 #else
-#ifdef __MINGW32__
+#ifdef __MINGW__
 static	errbuf[BUFSIZ];
   #define	lastErr()	(sprintf(errbuf, "WSAGetLastError()=%d", WSAGetLastError()), errbuf)
 #else
@@ -143,7 +143,7 @@ static	errbuf[BUFSIZ];
 	 __a*((__v+__a-1)/__a); })
 
 typedef	unsigned char	*uptr;
-#ifndef __MINGW32__
+#ifndef __MINGW__
 static int	is_daemon = 0;		/* Currently running as daemon.	 */
 #endif
 static int	debug = 0;		/* Extra debug gdomap_logging.	 */
@@ -175,7 +175,7 @@ struct in_addr	class_c_mask;
  *	Predeclare some of the functions used.
  */
 static void	dump_stats();
-#ifndef __MINGW32__
+#ifndef __MINGW__
 static void	dump_tables();
 #endif
 static void	handle_accept();
@@ -196,7 +196,7 @@ static void	queue_probe(struct in_addr* to, struct in_addr *from,
 
 char *xgethostname (void);
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #ifndef HAVE_GETOPT
 /* A simple implementation of getopt() */
 
@@ -392,11 +392,11 @@ static fd_set	write_fds;	/* Descriptors which are writable.	*/
    Bjoern Giesler <Bjoern.Giesler@gmx.de> to work on Win32. */
 
 typedef struct {
-#ifdef __MINGW32__
+#ifdef __MINGW__
   SOCKET s;
 #else
   int s;
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
   struct sockaddr_in	addr;	/* Address of process making request.	*/
   socklen_t		pos;	/* Position reading data.		*/
   union {
@@ -406,11 +406,11 @@ typedef struct {
 } RInfo;		/* State of reading each request.	*/
 
 typedef struct {
-#ifdef __MINGW32__
+#ifdef __MINGW__
   SOCKET s;
 #else
   int s;
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
   int	len;		/* Length of data to be written.	*/
   int	pos;		/* Amount of data already written.	*/
   char*	buf;		/* Buffer for data.			*/
@@ -424,11 +424,11 @@ static unsigned _wInfoCapacity = 0;
 static unsigned _wInfoCount = 0;
 
 static void
-#ifdef __MINGW32__
+#ifdef __MINGW__
 delRInfo(SOCKET s)
 #else
 delRInfo(int s)
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 {
   unsigned int	i;
 
@@ -456,7 +456,7 @@ delRInfo(int s)
 
 
 static RInfo *
-#ifdef __MINGW32__
+#ifdef __MINGW__
 getRInfo(SOCKET s, int make)
 #else
 getRInfo(int s, int make)
@@ -498,11 +498,11 @@ getRInfo(int s, int make)
 }
 
 static void
-#ifdef __MINGW32__
+#ifdef __MINGW__
 delWInfo(SOCKET s)
 #else
 delWInfo(int s)
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 {
   unsigned int	i;
 
@@ -530,7 +530,7 @@ delWInfo(int s)
 
 
 static WInfo *
-#ifdef __MINGW32__
+#ifdef __MINGW__
 getWInfo(SOCKET s, int make)
 #else
 getWInfo(int s, int make)
@@ -981,7 +981,7 @@ prb_tim(time_t when)
 static void
 clear_chan(int desc)
 {
-#ifdef __MINGW32__
+#ifdef __MINGW__
   if (desc != INVALID_SOCKET)
 #else
   if (desc >= 0 && desc < FD_SETSIZE)
@@ -997,7 +997,7 @@ clear_chan(int desc)
       else
 	{
 	  FD_CLR(desc, &read_fds);
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  closesocket(desc);
 #else
 	  close(desc);
@@ -1053,7 +1053,7 @@ dump_stats()
   gdomap_log(LOG_INFO);
 }
 
-#ifndef __MINGW32__
+#ifndef __MINGW__
 static void
 dump_tables()
 {
@@ -1101,7 +1101,7 @@ dump_tables()
 static void
 init_iface()
 {
-#ifdef __MINGW32__
+#ifdef __MINGW__
   INTERFACE_INFO InterfaceList[20];
   unsigned long nBytesReturned;
   int i, countActive, nNumInterfaces;
@@ -1669,9 +1669,9 @@ init_ports()
 {
   int		r;
   struct sockaddr_in	sa;
-#ifdef __MINGW32__
+#ifdef __MINGW__
   unsigned long dummy;
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
   /*
    *	Now we set up the sockets to accept incoming connections and set
@@ -1680,7 +1680,7 @@ init_ports()
    */
 
   udp_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-#ifdef __MINGW32__
+#ifdef __MINGW__
   if (udp_desc == INVALID_SOCKET)
 #else
   if (udp_desc < 0)
@@ -1734,7 +1734,7 @@ init_ports()
 	  gdomap_log(LOG_WARNING);
 	}
     }
-#ifdef __MINGW32__
+#ifdef __MINGW__
   dummy = 1;
   if (ioctlsocket(udp_desc, FIONBIO, &dummy) < 0)
     {
@@ -1742,7 +1742,7 @@ init_ports()
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
-#else /* !__MINGW32__ */
+#else /* !__MINGW__ */
   if ((r = fcntl(udp_desc, F_GETFL, 0)) >= 0)
     {
       r |= NBLK_OPT;
@@ -1788,7 +1788,7 @@ init_ports()
    *	Now we do the TCP socket.
    */
   tcp_desc = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-#ifdef __MINGW32__
+#ifdef __MINGW__
   if (tcp_desc == INVALID_SOCKET)
 #else
   if (tcp_desc < 0)
@@ -1834,7 +1834,7 @@ init_ports()
     }
 #endif
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
   dummy = 1;
   if (ioctlsocket(tcp_desc, FIONBIO, &dummy) < 0)
     {
@@ -1842,7 +1842,7 @@ init_ports()
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
-#else /* !__MINGW32__ */
+#else /* !__MINGW__ */
   if ((r = fcntl(tcp_desc, F_GETFL, 0)) >= 0)
     {
       r |= NBLK_OPT;
@@ -1859,7 +1859,7 @@ init_ports()
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
   memset(&sa, '\0', sizeof(sa));
   sa.sin_family = AF_INET;
@@ -1900,7 +1900,7 @@ init_ports()
   FD_SET(tcp_desc, &read_fds);
   FD_SET(udp_desc, &read_fds);
 
-#ifndef __MINGW32__
+#ifndef __MINGW__
   /*
    *	Turn off pipe signals so we don't get interrupted if we attempt
    *	to write a response to a process which has died.
@@ -1910,7 +1910,7 @@ init_ports()
    *	Enable table dumping to /tmp/gdomap.dump
    */
   signal(SIGUSR1, dump_tables);
-#endif /* !__MINGW32__  */
+#endif /* !__MINGW__  */
 }
 
 
@@ -2217,11 +2217,11 @@ handle_accept()
   if (desc >= 0)
     {
       RInfo		*ri;
-#ifdef __MINGW32__
+#ifdef __MINGW__
       unsigned long	dummy = 1;
 #else
       int		r;
-#endif /* !__MINGW32__ */
+#endif /* !__MINGW__ */
 
       FD_SET(desc, &read_fds);
       ri = getRInfo(desc, 1);
@@ -2237,7 +2237,7 @@ handle_accept()
       /*
        *	Ensure that the connection is non-blocking.
        */
-#ifdef __MINGW32__
+#ifdef __MINGW__
       if (ioctlsocket(desc, FIONBIO, &dummy) < 0)
 	{
 	  if (debug)
@@ -2248,7 +2248,7 @@ handle_accept()
 	    }
 	  clear_chan(desc);
 	}
-#else /* !__MINGW32__ */
+#else /* !__MINGW__ */
       if ((r = fcntl(desc, F_GETFL, 0)) >= 0)
 	{
 	  r |= NBLK_OPT;
@@ -2273,16 +2273,16 @@ handle_accept()
 	    }
 	  clear_chan(desc);
 	}
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
     }
   else if (debug)
     {
       snprintf(ebuf, sizeof(ebuf), "accept failed - errno %d",
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	WSAGetLastError());
 #else
 	errno);
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
       gdomap_log(LOG_DEBUG);
     }
 }
@@ -2406,7 +2406,7 @@ handle_io()
 	  /*
 	   *	Got some descriptor activity - deal with it.
 	   */
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  /* read file descriptors */
 	  for (i = 0; i < rfds.fd_count; i++)
 	    {
@@ -2438,7 +2438,7 @@ handle_io()
 		  handle_write(wfds.fd_array[i]);
 		}
 	    }
-#else /* !__MINGW32__ */
+#else /* !__MINGW__ */
 	  for (i = 0; i < FD_SETSIZE; i++)
 	    {
 	      if (FD_ISSET(i, &rfds))
@@ -2472,7 +2472,7 @@ handle_io()
 		    }
 		}
 	    }
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 	}
     }
 }
@@ -2496,7 +2496,7 @@ handle_read(int desc)
 
   while (ri->pos < GDO_REQ_SIZE && done == 0)
     {
-#ifdef __MINGW32__
+#ifdef __MINGW__
       r = recv(desc, (char *)&ptr[ri->pos],
 	GDO_REQ_SIZE - ri->pos, 0);
 #else
@@ -2518,7 +2518,7 @@ handle_read(int desc)
       tcp_read++;
       handle_request(desc);
     }
-#ifdef __MINGW32__
+#ifdef __MINGW__
   else if (WSAGetLastError() != WSAEWOULDBLOCK || nothingRead == 1)
 #else
   else if (errno != EWOULDBLOCK || nothingRead == 1)
@@ -2773,7 +2773,7 @@ handle_request(int desc)
 		      *(unsigned long*)wi->buf = port;
 		    }
 		}
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	      /* closesocket(sock); */
 #else
 	      close(sock);
@@ -2858,7 +2858,7 @@ handle_request(int desc)
 		  memset(&sa, '\0', sizeof(sa));
 		  sa.sin_family = AF_INET;
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 		  /* COMMENT:  (3 Nov 2004 by Wim Oudshoorn):
 		     The comment below might be true.  But
 		     using addr[0].s_addr has on windows 2003 server
@@ -2878,7 +2878,7 @@ handle_request(int desc)
 		  sa.sin_addr.s_addr = htonl(INADDR_ANY);
 #else
  		  sa.sin_addr.s_addr = htonl(INADDR_ANY);
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 		  sa.sin_port = htons(p);
 		  result = bind(sock, (void*)&sa, sizeof(sa));
 		  if (result == 0)
@@ -2887,7 +2887,7 @@ handle_request(int desc)
 		      m = 0;
 		    }
 		}
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	      closesocket(sock);
 #else
 	      close(sock);
@@ -3033,7 +3033,7 @@ handle_request(int desc)
 	      snprintf(ebuf, sizeof(ebuf), "Probe from '%s'", inet_ntoa(sin));
 	      gdomap_log(LOG_DEBUG);
 	    }
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  if (IN_CLASSA(sin.s_addr))
 	    {
 	      net = sin.s_addr & IN_CLASSA_NET;
@@ -3172,7 +3172,7 @@ handle_request(int desc)
 		"Probe reply from '%s'", inet_ntoa(sin));
 	      gdomap_log(LOG_DEBUG);
 	    }
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  if (IN_CLASSA(sin.s_addr))
 	    {
 	      net = sin.s_addr & IN_CLASSA_NET;
@@ -3275,7 +3275,7 @@ handle_send()
        */
       if (entry->pos != entry->len)
 	{
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
 	  if (errno != EWOULDBLOCK)
@@ -3340,7 +3340,7 @@ handle_write(int desc)
   ptr = wi->buf;
   len = wi->len;
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
   r = send(desc, &ptr[wi->pos], len - wi->pos, 0);
 #else
   r = write(desc, &ptr[wi->pos], len - wi->pos);
@@ -3451,14 +3451,14 @@ tryRead(int desc, int tim, unsigned char* dat, int len)
 	}
       else if (len > 0)
 	{
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  rval = recv(desc, (char *)&dat[pos], len - pos, 0);
 #else
 	  rval = read(desc, &dat[pos], len - pos);
 #endif
 	  if (rval < 0)
 	    {
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	      if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
 	      if (errno != EWOULDBLOCK)
@@ -3557,7 +3557,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 	}
       else if (len > 0)
 	{
-#ifdef __MINGW32__ /* FIXME: Is this correct? */
+#ifdef __MINGW__ /* FIXME: Is this correct? */
 	  rval = send(desc, (const char*)&dat[pos], len - pos, 0);
 #else
 	  void	(*ifun)();
@@ -3573,7 +3573,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 
 	  if (rval <= 0)
 	    {
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	      if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
 	      if (errno != EWOULDBLOCK)
@@ -3613,9 +3613,9 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   unsigned long	port = *p;
   gdo_req		msg;
   struct sockaddr_in sin;
-#ifdef __MINGW32__
+#ifdef __MINGW__
   unsigned long dummy;
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
   *p = 0;
   if (desc < 0)
@@ -3623,7 +3623,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       return 1;	/* Couldn't create socket.	*/
     }
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
   dummy = 1;
   if (ioctlsocket(desc, FIONBIO, &dummy) < 0)
     {
@@ -3632,7 +3632,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       WSASetLastError(e);
       return 2;	/* Couldn't set non-blocking.	*/
     }
-#else /* !__MINGW32__ */
+#else /* !__MINGW__ */
   if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
     {
       e |= NBLK_OPT;
@@ -3651,12 +3651,12 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       errno = e;
       return 2;	/* Couldn't set non-blocking.	*/
     }
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
   memcpy(&sin, addr, sizeof(sin));
   if (connect(desc, (struct sockaddr*)&sin, sizeof(sin)) != 0)
     {
-#ifdef __MINGW32__
+#ifdef __MINGW__
       if (WSAGetLastError() == WSAEWOULDBLOCK)
 #else
       if (errno == EINPROGRESS)
@@ -3666,7 +3666,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  if (e == -2)
 	    {
 	      e = errno;
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	      closesocket(desc);
 #else
 	      close(desc);
@@ -3677,7 +3677,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  else if (e == -1)
 	    {
 	      e = errno;
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	      closesocket(desc);
 #else
 	      close(desc);
@@ -3689,7 +3689,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       else
 	{
 	  e = errno;
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  closesocket(desc);
 #else
 	  close(desc);
@@ -3713,7 +3713,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   e = tryWrite(desc, 10, (uptr)&msg, GDO_REQ_SIZE);
   if (e != GDO_REQ_SIZE)
     {
-#ifdef __MINGW32__
+#ifdef __MINGW__
       e = WSAGetLastError();
       closesocket(desc);
       WSASetLastError(e);
@@ -3727,7 +3727,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
   e = tryRead(desc, 3, (uptr)&port, 4);
   if (e != 4)
     {
-#ifdef __MINGW32__
+#ifdef __MINGW__
       e = WSAGetLastError();
       closesocket(desc);
       WSASetLastError(e);
@@ -3752,7 +3752,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       if (tryRead(desc, 3, b, len) != len)
 	{
 	  free(b);
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  e = WSAGetLastError();
 	  closesocket(desc);
 	  WSASetLastError(e);
@@ -3778,7 +3778,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       if (tryRead(desc, 3, b, len) != len)
 	{
 	  free(b);
-#ifdef __MINGW32__
+#ifdef __MINGW__
 	  e = WSAGetLastError();
 	  closesocket(desc);
 	  WSASetLastError(e);
@@ -3810,7 +3810,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
     }
 
   *p = (unsigned short)port;
-#ifdef __MINGW32__
+#ifdef __MINGW__
   closesocket(desc);
 #else
   close(desc);
@@ -4275,7 +4275,7 @@ static void do_help(int argc, char **argv, char *options)
   exit(EXIT_SUCCESS);
 }
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 static char*
 quoteArg(const char *arg)
 {
@@ -4387,7 +4387,7 @@ main(int argc, char** argv)
 #endif
 #endif
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
   WORD wVersionRequested;
   WSADATA wsaData;
 
@@ -4399,7 +4399,7 @@ main(int argc, char** argv)
    *	Would use inet_aton(), but older systems don't have it.
    */
   loopback.s_addr = inet_addr("127.0.0.1");
-#ifdef __MINGW32__
+#ifdef __MINGW__
   class_a_net = IN_CLASSA_NET;
   class_a_mask.s_addr = class_a_net;
   class_b_net = IN_CLASSB_NET;
@@ -4680,7 +4680,7 @@ printf(
       exit (0);
     }
 
-#ifdef __MINGW32__ /* On Win32, we don't fork */
+#ifdef __MINGW__ /* On Win32, we don't fork */
   if (nofork == 0)
     {
       char	**a = malloc((argc+2) * sizeof(char*));
@@ -4778,7 +4778,7 @@ printf(
       gdomap_log(LOG_DEBUG);
     }
 
-#endif /* !__MINGW32__ */
+#endif /* !__MINGW__ */
 
   init_my_port();	/* Determine port to listen on.		*/
   init_ports();		/* Create ports to handle requests.	*/
@@ -4825,7 +4825,7 @@ printf(
     {
       FILE	*fptr;
 
-#ifndef __MINGW32__
+#ifndef __MINGW__
       if (getuid () == 0)
 #endif
 	{
@@ -4843,7 +4843,7 @@ printf(
 	  fclose(fptr);
 	  chmod(pidfile, 0644);
 	}
-#ifndef __MINGW32__
+#ifndef __MINGW__
       else
 	{
 	  snprintf(ebuf, sizeof(ebuf),
@@ -4853,7 +4853,7 @@ printf(
 #endif
     }
 {
-#ifndef __MINGW32__
+#ifndef __MINGW__
   int uid = -2;
   int gid = -2;
 #endif
@@ -4874,7 +4874,7 @@ printf(
   /*
    * As another level of paranoia - restrict this process to /tmp
    */
-#ifndef __MINGW32__
+#ifndef __MINGW__
   if (chdir("/tmp") < 0)
     {
       snprintf(ebuf, sizeof(ebuf), "Unable to change directory to /tmp");
@@ -4892,10 +4892,10 @@ printf(
 	}
       chdir("/");
     }
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 #endif /* __svr4__ */
 
-#ifndef __MINGW32__
+#ifndef __MINGW__
   /*
    * Try to become a 'safe' user now that we have
    * done everything that needs root priv.
@@ -4929,7 +4929,7 @@ printf(
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 }
 
   init_probe();	/* Probe other name servers on net.	*/

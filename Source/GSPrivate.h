@@ -252,7 +252,7 @@ typedef enum {
   NSRunLoop             *loop;
   NSLock                *lock;
   NSMutableArray        *performers;
-#ifdef __MINGW32__
+#ifdef __MINGW__
   HANDLE	        event;
 #else
   int                   inputFd;

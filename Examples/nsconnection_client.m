@@ -212,7 +212,7 @@ int con_data (id prx)
   printf(" got %x\n", ss.z);
   [pool release];
 
-#if 1 || !defined(__MINGW32__)
+#if 1 || !defined(__MINGW__)
   pool = [NSAutoreleasePool new];
   printf("Struct:\n");
   memcpy(&bck, &ffoo, sizeof(bck));
@@ -507,7 +507,7 @@ int main (int argc, char *argv[], char **env)
   NSAutoreleasePool	*arp;
   NSPortNameServer	*ns;
   Auth *auth;
-#ifndef __MINGW32__
+#if	!defined(__MINGW__)
   extern int optind;
   extern char *optarg;
 #endif

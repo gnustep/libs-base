@@ -99,7 +99,7 @@ static int
 objc_initialize_loading(FILE *errorStream)
 {
   NSString	*path;
-#ifdef    __MINGW32__
+#ifdef    __MINGW__
   const unichar *fsPath;
 #else  
   const char *fsPath;
@@ -142,7 +142,7 @@ objc_load_callback(Class class, struct objc_category * category)
     }
 }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #define	FSCHAR	unichar
 #else
 #define	FSCHAR	char
@@ -252,7 +252,7 @@ GSPrivateUnloadModule(FILE *errorStream,
 }
 
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 NSString *
 GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {

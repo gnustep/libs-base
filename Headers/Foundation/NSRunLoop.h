@@ -121,7 +121,7 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
  * using NSStream, at which point this API will be redundant.
  */
 typedef	enum {
-#ifdef __MINGW32__
+#ifdef __MINGW__
     ET_HANDLE,	/* Watch for an I/O event on a handle.		*/
     ET_RPORT,	/* Watch for message arriving on port.		*/
     ET_WINMSG,	/* Watch for a message on a window handle.	*/

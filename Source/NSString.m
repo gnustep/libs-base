@@ -3153,7 +3153,7 @@ handle_printf_atsign (FILE *stream,
 
 static NSFileManager *fm = nil;
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 - (const GSNativeChar*) fileSystemRepresentation
 {
   if (fm == nil)
@@ -3883,7 +3883,7 @@ static NSFileManager *fm = nil;
 
 - (NSString*) stringByResolvingSymlinksInPath
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   return IMMUTABLE(self);
 #else
   #ifndef PATH_MAX
@@ -4050,7 +4050,7 @@ static NSFileManager *fm = nil;
     }
   return [[NSFileManager defaultManager]
    stringWithFileSystemRepresentation: newBuf length: strlen(newBuf)];
-#endif  /* (__MINGW32__) */
+#endif  /* (__MINGW__) */
 }
 
 - (NSString*) stringByStandardizingPath
@@ -4161,7 +4161,7 @@ static NSFileManager *fm = nil;
    *	For absolute paths, we must resolve symbolic links or (on MINGW)
    *	remove '/../' sequences and their matching parent directories.
    */
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   /* Condense `/../' */
   r = (NSRange){root, l-root};
   while ((r = [s rangeOfString: @".." options: 0 range: r]).length == 2)
@@ -4331,7 +4331,7 @@ static NSFileManager *fm = nil;
    */
   if (c == pathSepChar())
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       if (GSPathHandlingUnix() == YES)
 	{
 	  return YES;

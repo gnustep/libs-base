@@ -58,7 +58,7 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 @class	NSUserDefaultsWin32;
 #endif
 
@@ -517,7 +517,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   NS_DURING
     {
       // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       {
         NSString	*path = GSDefaultsRootForUser(NSUserName());
         NSRange	r = [path rangeOfString: @":REGISTRY:"];
@@ -758,7 +758,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 	    {
 	      currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
 	    }
-#ifdef __MINGW32__
+#ifdef __MINGW__
           if (currLang == nil && locale != nil)
 	    {
 	      /* Check for language as the first part of the locale string */
@@ -877,7 +877,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     }
 
   r = [path rangeOfString: @":INTERNAL:"];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if (r.length == 0)
     {
       r = [path rangeOfString: @":REGISTRY:"];

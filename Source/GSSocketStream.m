@@ -65,7 +65,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 #ifdef	AF_INET6
     case AF_INET6:      return sizeof(struct sockaddr_in6);
 #endif
-#ifndef	__MINGW32__
+#ifndef	__MINGW__
     case AF_LOCAL:       return sizeof(struct sockaddr_un);
 #endif
     default:            return 0;
@@ -1236,7 +1236,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 static inline BOOL
 socketError(int result)
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   return (result == SOCKET_ERROR) ? YES : NO;
 #else
   return (result < 0) ? YES : NO;
@@ -1246,7 +1246,7 @@ socketError(int result)
 static inline BOOL
 socketWouldBlock()
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   int   e = WSAGetLastError();
   return (e == WSAEWOULDBLOCK || e == WSAEINPROGRESS) ? YES : NO;
 #else
@@ -1258,7 +1258,7 @@ socketWouldBlock()
 static void
 setNonBlocking(SOCKET fd)
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   unsigned long dummy = 1;
 
   if (ioctlsocket(fd, FIONBIO, &dummy) == SOCKET_ERROR)
@@ -1298,7 +1298,7 @@ setNonBlocking(SOCKET fd)
       _sibling = nil;
       _closing = NO;
       _passive = NO;
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       _loopID = WSA_INVALID_EVENT;
 #else
       _loopID = (void*)(intptr_t)-1;
@@ -1505,7 +1505,7 @@ setNonBlocking(SOCKET fd)
         }
 #endif
 
-#ifndef	__MINGW32__
+#ifndef	__MINGW__
       case AF_LOCAL:
 	{
 	  struct sockaddr_un	peer;
@@ -1539,7 +1539,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _setLoopID: (void *)ref
 {
-#if	!defined(__MINGW32__)
+#if	!defined(__MINGW__)
   _sock = (SOCKET)(intptr_t)ref;        // On gnu/linux _sock is _loopID
 #endif
   _loopID = ref;
@@ -1570,7 +1570,7 @@ setNonBlocking(SOCKET fd)
    * monitored, and on mswindows systems we create an event object to be
    * monitored (the socket events are assoociated with this object later).
    */
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   _loopID = CreateEvent(NULL, NO, NO, NULL);
 #else
   _loopID = (void*)(intptr_t)sock;      // On gnu/linux _sock is _loopID
@@ -1666,7 +1666,7 @@ setNonBlocking(SOCKET fd)
            * indication of opened
            */
           [self _setStatus: NSStreamStatusOpening];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
 	  if (NSCountMapTable(_loops) > 0)
@@ -1700,7 +1700,7 @@ setNonBlocking(SOCKET fd)
     }
 
  open_ok:
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
@@ -1721,7 +1721,7 @@ setNonBlocking(SOCKET fd)
       return;
     }
   [_handler bye];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
       /*
@@ -1790,7 +1790,7 @@ setNonBlocking(SOCKET fd)
     }
   else
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       readLen = recv([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
       readLen = read([self _sock], buffer, len);
@@ -1844,7 +1844,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _dispatch
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   AUTORELEASE(RETAIN(self));
   /*
    * Windows only permits a single event to be associated with a socket
@@ -1999,7 +1999,7 @@ setNonBlocking(SOCKET fd)
 #endif
 }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   *trigger = YES;
@@ -2037,7 +2037,7 @@ setNonBlocking(SOCKET fd)
       return 0;
     }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   writeLen = send([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
   writeLen = write([self _sock], buffer, (socklen_t) len);
@@ -2138,7 +2138,7 @@ setNonBlocking(SOCKET fd)
            * indication of opened
            */
           [self _setStatus: NSStreamStatusOpening];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
 	  if (NSCountMapTable(_loops) > 0)
@@ -2172,7 +2172,7 @@ setNonBlocking(SOCKET fd)
     }
 
  open_ok: 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
@@ -2195,7 +2195,7 @@ setNonBlocking(SOCKET fd)
       return;
     }
   [_handler bye];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
       /*
@@ -2250,7 +2250,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _dispatch
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   AUTORELEASE(RETAIN(self));
   /*
    * Windows only permits a single event to be associated with a socket
@@ -2403,7 +2403,7 @@ setNonBlocking(SOCKET fd)
 #endif
 }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   *trigger = YES;
@@ -2506,7 +2506,7 @@ setNonBlocking(SOCKET fd)
       [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
@@ -2514,7 +2514,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if (_loopID != WSA_INVALID_EVENT)
     {
       WSACloseEvent(_loopID);
@@ -2582,7 +2582,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _dispatch
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSANETWORKEVENTS events;
   
   if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)

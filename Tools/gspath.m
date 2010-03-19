@@ -76,7 +76,7 @@ main(int argc, char** argv, char **env)
       NSString	*name = [[args objectAtIndex: 1] lowercaseString];
       NSString	*sep;
 
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
       sep = @";";
 #else
       sep = @":";

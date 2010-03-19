@@ -1,3 +1,57 @@
+2010-03-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.reuseaddr.c:
+	* Examples/nsconnection_client.m:
+	* Examples/nsconnection_server.m:
+	* Headers/Additions/GNUstepBase/GSConfig.h.in:
+	* Headers/Additions/GNUstepBase/GSFileHandle.h:
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	* Headers/Additions/GNUstepBase/preface.h.in:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Source/Additions/NSError+GNUstepBase.m:
+	* Source/Additions/NSTask+GNUstepBase.m:
+	* Source/cifframe.h:
+	* Source/GSFileHandle.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSNetwork.h:
+	* Source/GSPortPrivate.h:
+	* Source/GSPrivate.h:
+	* Source/GSRunLoopCtxt.h:
+	* Source/GSRunLoopWatcher.m:
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/NSBundle.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSDebug.m:
+	* Source/NSException.m:
+	* Source/NSFileManager.m:
+	* Source/NSHost.m:
+	* Source/NSInvocation.m:
+	* Source/NSLog.m:
+	* Source/NSObject.m:
+	* Source/NSPage.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSPipe.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSString.m:
+	* Source/NSTask.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURL.m:
+	* Source/NSUserDefaults.m:
+	* Source/objc-load.m:
+	* Source/ObjectiveC2/blocks_runtime.m:
+	* SSL/GSSSLHandle.m:
+	* Tools/gdnc.m:
+	* Tools/gdomap.c:
+	* Tools/gspath.m:
+	Use __MINGW__ rather than __MINGW32__ for windows tests.
+
 2010-03-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:

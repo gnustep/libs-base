@@ -119,7 +119,7 @@ static NSString	*gnustep_is_flattened =
   nil;
 #endif
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 
 #include	<lmaccess.h>
 
@@ -712,7 +712,7 @@ GNUstepConfig(NSDictionary *newConfig)
                       if (([attributes filePosixPermissions]
                         & (0022 & ATTRMASK)) != 0)
                         {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
                           fprintf(stderr,
                             "The file '%S' is writable by someone other than"
                             " its owner (permissions 0%lo).\nIgnoring it.\n",
@@ -1009,7 +1009,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
   
       if ([userName isEqual: fileOwner] == NO)
 	{
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 	  fprintf(stderr, "The file '%S' is owned by '%s' but we expect it"
 	    " to be the personal config file of '%s'.\nIgnoring it.\n",
 	    [fileName fileSystemRepresentation],
@@ -1025,7 +1025,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
     }
   if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       fprintf(stderr, "The file '%S' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
 	[fileName fileSystemRepresentation],
@@ -1315,7 +1315,7 @@ GSSetUserName(NSString *aName)
 NSString *
 NSUserName(void)
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   if (theUserName == nil)
     {
       /* Use the LOGNAME environment variable if set. */
@@ -1411,7 +1411,7 @@ NSHomeDirectoryForUser(NSString *loginName)
 {
   NSString	*s = nil;
 
-#if !defined(__MINGW32__)
+#if !defined(__MINGW__)
 #if     defined(HAVE_GETPWNAM_R)
   struct passwd pw;
   struct passwd *p;
@@ -1484,7 +1484,7 @@ NSFullUserName(void)
   if (theFullUserName == nil)
     {
       NSString	*userName = nil;
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       struct _USER_INFO_2	*userInfo;
 
       if (NetUserGetInfo(NULL, (unichar*)[NSUserName() cStringUsingEncoding:
@@ -1559,7 +1559,7 @@ GSDefaultsRootForUser(NSString *userName)
 	  defaultsDir = @GNUSTEP_TARGET_USER_DEFAULTS_DIR;
 	}
     }
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if ([defaultsDir rangeOfString: @":REGISTRY:"].length > 0)
     {
       return defaultsDir;	// Just use windows registry.
@@ -1594,7 +1594,7 @@ NSTemporaryDirectory(void)
   int		perm;
   int		owner;
   BOOL		flag;
-#if	!defined(__MINGW32__)
+#if	!defined(__MINGW__)
   int		uid;
 #else
   unichar buffer[1024];
@@ -1623,7 +1623,7 @@ NSTemporaryDirectory(void)
 	    {
 #if	defined(__CYGWIN__)
 	      baseTempDirName = @"/cygdrive/c/";
-#elif	defined(__MINGW32__)
+#elif	defined(__MINGW__)
 	      baseTempDirName = @"C:\\";
 #elif   defined(__APPLE__)
 	      /*
@@ -1662,9 +1662,9 @@ NSTemporaryDirectory(void)
   perm = perm & 0777;
 
 // Mateu Batle: secure temporary directories don't work in MinGW
-#ifndef __MINGW32__
+#ifndef __MINGW__
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   uid = owner;
 #else
 #ifdef HAVE_GETEUID
@@ -1734,7 +1734,7 @@ NSOpenStepRootDirectory(void)
 
 #if	defined(__CYGWIN__)
   root = @"/cygdrive/c/";
-#elif	defined(__MINGW32__)
+#elif	defined(__MINGW__)
   root = @"C:\\";
 #else
   root = @"/";

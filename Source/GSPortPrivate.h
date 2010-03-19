@@ -33,7 +33,7 @@
 - (BOOL) removePort: (NSPort*)port forName: (NSString*)name;
 @end
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 @interface NSMessagePort(Private)
 + (id) newWithName: (NSString*)name;
 - (id) initWithName: (NSString*)name;
@@ -52,7 +52,7 @@
 - (void) addHandle: (GSMessageHandle*)handle forSend: (BOOL)send;
 - (void) removeHandle: (GSMessageHandle*)handle;
 @end
-#endif	/* __MINGW32__ */
+#endif	/* __MINGW__ */
 
 @class	GSTcpHandle;
 

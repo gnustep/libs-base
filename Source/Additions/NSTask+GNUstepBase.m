@@ -33,7 +33,7 @@
 static	NSString*
 executablePath(NSFileManager *mgr, NSString *path)
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   NSString	*tmp;
 
   if ([mgr isExecutableFileAtPath: path])
@@ -99,7 +99,7 @@ executablePath(NSFileManager *mgr, NSString *path)
 
   env = [[NSProcessInfo processInfo] environment];
   pathlist = [env objectForKey:@"PATH"];
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 /* Windows 2000 and perhaps others have "Path" not "PATH" */
   if (pathlist == nil)
     {

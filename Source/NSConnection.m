@@ -1257,7 +1257,7 @@ static NSLock	*cached_proxies_gate = nil;
   /*
    * Make sure we are not registered.
    */
-#if	!defined(__MINGW32__)
+#if	!defined(__MINGW__)
   if ([IreceivePort isKindOfClass: [NSMessagePort class]])
     {
       [self registerName: nil
@@ -1764,7 +1764,7 @@ static NSLock	*cached_proxies_gate = nil;
 - (void) setRootObject: (id)anObj
 {
   setRootObjectForInPort(anObj, IreceivePort);
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   /* On ms-windows, the operating system does not inform us when the remote
    * client of a message port goes away ... so we need to enable keepalive
    * to detect that condition.
