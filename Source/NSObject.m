@@ -1,5 +1,5 @@
 /** Implementation of NSObject for GNUStep
-   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1994-2010 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: August 1994
@@ -306,6 +306,41 @@ GSAtomicDecrement(gsatomic_t X)
     return *X;
 }
 
+#elif defined(__mips__)
+
+typedef int32_t volatile *gsatomic_t;
+
+#define	GSATOMICREAD(X)	(*(X))
+
+static __inline__ int
+GSAtomicIncrement(gsatomic_t X)
+{
+  int tmp;
+
+  __asm__ __volatile__ (
+    "   .set  mips2  \n"
+    "0: ll    %0, %1 \n"
+    "   addiu %0, 1  \n"
+    "   sc    %0, %1 \n"
+    "   beqz  %0, 0b  \n"
+    :"=&r" (tmp), "=m" (*X));
+    return *X;
+}
+
+static __inline__ int
+GSAtomicDecrement(gsatomic_t X)
+{
+  int tmp;
+
+  __asm__ __volatile__ (
+    "   .set  mips2  \n"
+    "0: ll    %0, %1 \n"
+    "   addiu %0, -1 \n"
+    "   sc    %0, %1 \n"
+    "   beqz  %0, 0b  \n"
+    :"=&r" (tmp), "=m" (*X));
+    return *X;
+}
 #endif
 
 #if	!defined(GSATOMICREAD)
