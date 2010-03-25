@@ -1,5 +1,5 @@
 /** Control of executable units within a shared virtual memory space
-   Copyright (C) 1996-2000 Free Software Foundation, Inc.
+   Copyright (C) 1996-2010 Free Software Foundation, Inc.
 
    Original Author:  David Chisnall <csdavec@swan.ac.uk>
 
@@ -26,7 +26,7 @@
 // This file uses some SUS'98 extensions, so we need to tell glibc not to hide
 // them.  Other platforms have more sensible libcs, which just default to being
 // standards-compliant.
-#if defined __linux__ || defined __hurd__
+#if defined __linux__ || defined __GNU__
 #  ifndef _XOPEN_SOURCE
 #    define _XOPEN_SOURCE 600
 #  endif

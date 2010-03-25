@@ -1,3 +1,11 @@
+2010-03-25 Riccardo Mottola <rmottola@users.sf.net>
+
+	* Source/GSPThread.h
+	* Source/NSZone.m
+	* Source/ObjectiveC2/sync.m
+	* Source/NSLock.m:
+	change defines for GNU/HURD
+
 2010-03-23 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Source/NSObject.m: Atomic increment and decrement functions for mips
