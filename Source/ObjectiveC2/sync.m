@@ -102,7 +102,9 @@ deallocLockClass(id obj, SEL _cmd)
 
   pthread_mutex_destroy(lock);
   // Free the class
+#ifndef __MINGW32__
   objc_disposeClassPair(lockClass);
+#endif
   // Reset the class then call the real -dealloc
   obj->isa = realClass;
   [obj dealloc];
