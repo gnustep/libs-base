@@ -1,3 +1,8 @@
+2010-03-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSException.h:
+	Fix typos in last change (spotted by Eddie McCreary).
+
 2010-03-03 Doug Simons <doug.simons@testplant.com>
 
 	* Source/ObjectiveC2/sync.m: Avoid crash on Windows.

@@ -34,12 +34,12 @@
 #import	<GNUstepBase/GSConfig.h>
 
 #if     defined(_NATIVE_OBJC_EXCEPTIONS)
-#define USER_NATIVE_OBC_EXCEPTIONS       1
+#define USER_NATIVE_OBJC_EXCEPTIONS       1
 #else
-#define USER_NATIVE_OBC_EXCEPTIONS       0
+#define USER_NATIVE_OBJC_EXCEPTIONS       0
 #endif
 #if     BASE_NATIVE_OBJC_EXCEPTIONS != USER_NATIVE_OBJC_EXCEPTIONS
-#error  The current setting for native-objc-exceptions does not match that of gnuste-base ... please correct this.
+#error  The current setting for native-objc-exceptions does not match that of gnustep-base ... please correct this.
 #endif
 
 #import	<Foundation/NSString.h>
