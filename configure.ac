@@ -707,11 +707,10 @@ if test "$nonfragile" = "yes"; then
     AC_SUBST(OBJCFLAGS)
     GS_NONFRAGILE=1
     AC_ARG_ENABLE(mixedabi,
-      [  --enable-mixedabi
-	    Enables the use both fragile and nonfragile ABI (base built using
-	    the nonfragile ABI, but in a way permitting linking with other
-	    modules built using the fragile ABI.],,
-      enable_mixedabi=$PASS_ARG)
+      [  --disable-mixedabi
+	    Disables the cmbined use of fragile and nonfragile ABI so that base
+	    can be built taking full advantage of the nonfragile ABI.],,
+      enable_mixedabi=yes)
     if test $enable_mixedabi = yes; then
       GS_MIXEDABI=1
     fi
