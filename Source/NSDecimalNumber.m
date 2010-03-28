@@ -498,6 +498,22 @@ static NSDecimalNumber *one;
     }
 }
 
+- (id) initWithInteger: (NSInteger)value
+{
+  if (value < 0)
+    {
+      return [self initWithMantissa: -value
+			   exponent: 0
+			 isNegative: YES];
+    }
+  else
+    {
+      return [self initWithMantissa: value
+			   exponent: 0
+			 isNegative: NO];
+    }
+}
+
 - (id) initWithLong: (signed long)value
 {
   if (value < 0)
@@ -553,7 +569,14 @@ static NSDecimalNumber *one;
 		     isNegative: NO];
 }
 
-- (id) initWithUnsignedInt: (NSUInteger)value
+- (id) initWithUnsignedInt: (unsigned int)value
+{
+  return [self initWithMantissa: value
+		       exponent: 0
+		     isNegative: NO];
+}
+
+- (id) initWithUnsignedInteger: (NSUInteger)value
 {
   return [self initWithMantissa: value
 		       exponent: 0
@@ -599,9 +622,79 @@ static NSDecimalNumber *one;
   return decimal;
 }
 
+- (BOOL) boolValue
+{
+  return (BOOL)NSDecimalDouble(&data);
+}
+
 - (double) doubleValue
 {
   return NSDecimalDouble(&data);
+}
+
+- (float) floatValue
+{
+  return (float)NSDecimalDouble(&data);
+}
+
+- (char) charValue
+{
+  return (char)NSDecimalDouble(&data);
+}
+
+- (int) intValue
+{
+  return (int)NSDecimalDouble(&data);
+}
+
+- (NSInteger) integerValue
+{
+  return (NSInteger)NSDecimalDouble(&data);
+}
+
+- (long) longValue
+{
+  return (long)NSDecimalDouble(&data);
+}
+
+- (long long) longLongValue
+{
+  return (long long)NSDecimalDouble(&data);
+}
+
+- (short) shortValue
+{
+  return (short)NSDecimalDouble(&data);
+}
+
+- (unsigned char) unsignedCharValue
+{
+  return (unsigned char)NSDecimalDouble(&data);
+}
+
+- (unsigned int) unsignedIntValue
+{
+  return (unsigned int)NSDecimalDouble(&data);
+}
+
+- (NSUInteger) unsignedIntegerValue
+{
+  return (NSUInteger)NSDecimalDouble(&data);
+}
+
+- (unsigned long) unsignedLongValue
+{
+  return (unsigned long)NSDecimalDouble(&data);
+}
+
+- (unsigned long long) unsignedLongLongValue
+{
+  return (unsigned long long)NSDecimalDouble(&data);
+}
+
+- (unsigned short) unsignedShortValue
+{
+  return (unsigned short)NSDecimalDouble(&data);
 }
 
 /**
