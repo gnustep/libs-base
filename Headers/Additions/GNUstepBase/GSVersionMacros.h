@@ -213,9 +213,11 @@
 #  undef	GS_NONFRAGILE
 #  define	GS_NONFRAGILE	0	/* Mixed is treated as fragile */
 #else
-#  if (__has_feature(objc_nonfragile_abi)||__has_feature(objc_nonfragile_abi2))
+#  if (__has_feature(objc_nonfragile_abi))
 #    if	!GS_NONFRAGILE
-#      error "You are now using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+#      if	defined(GNUSTEP_BASE_INTERNAL)
+#        error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+#      endif
 #    endif
 #  else
 #    if	GS_NONFRAGILE
