@@ -624,7 +624,7 @@ static NSDecimalNumber *one;
 
 - (BOOL) boolValue
 {
-  return (BOOL)NSDecimalDouble(&data);
+  return NSDecimalDouble(&data) == 0.0 ? NO : YES;
 }
 
 - (double) doubleValue
