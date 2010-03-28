@@ -1,3 +1,7 @@
+2010-03-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDecimalNumber.m: override getter methods of superclass
+
 2010-03-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSException.h:
