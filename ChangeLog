@@ -1,3 +1,14 @@
+2010-03-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.ffi.c: add test for libffi functionality
+	* configure.ac: use new test
+	* configure: regenerate
+	Greg had the good idea of testing libffi version to make sure it
+	works ... unfortunately I couldn't see an easy way to test the
+	version, so I added a test for functionality adapted from the
+	test case I made for the libffi people to demonstrate a bug in
+	passing floats on 64bit intel.
+
 2010-03-28 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDecimalNumber.m: override getter methods of superclass

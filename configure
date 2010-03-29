@@ -18865,56 +18865,61 @@ _ACEOF
 
   WITH_FFI=libffi
   LIBS="-lffi $LIBS"
+  if test "$cross_compiling" = yes; then
+  ffi_ok="no"
+else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <ffi.h>
-int
-main ()
-{
-
-  ;
-  return 0;
-}
+#include "$srcdir/config/config.ffi.c"
 _ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
+rm -f conftest$ac_exeext
 if { (ac_try="$ac_link"
 case "(($ac_try" in
   *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
   *) ac_try_echo=$ac_try;;
 esac
 eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
+  (eval "$ac_link") 2>&5
   ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ffi_ok="yes"
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  :
 else
-  echo "$as_me: failed program was:" >&5
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ffi_ok="no"
+( exit $ac_status )
+ffi_ok="yes"
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
+
   if test $ffi_ok = yes; then
     { echo "$as_me:$LINENO: result: libffi" >&5
 echo "${ECHO_T}libffi" >&6; }
-  fi
-  if test $do_broken_libffi = yes; then
-    { echo "$as_me:$LINENO: WARNING: ffi may be broken on this system ... try enabling ffcall" >&5
+    if test $do_broken_libffi = yes; then
+      { echo "$as_me:$LINENO: WARNING: ffi may be broken on this system ... try enabling ffcall" >&5
 echo "$as_me: WARNING: ffi may be broken on this system ... try enabling ffcall" >&2;}
+    fi
+  else
+    { { echo "$as_me:$LINENO: error: The ffi library (libffi) does not appear to be working.  Perhaps it's missing or you need a more recent version.  Version 3.0.9 or later should work, and you can find a link to it n the list of packages for download at http://www.gnustep.org/resources/sources.html" >&5
+echo "$as_me: error: The ffi library (libffi) does not appear to be working.  Perhaps it's missing or you need a more recent version.  Version 3.0.9 or later should work, and you can find a link to it n the list of packages for download at http://www.gnustep.org/resources/sources.html" >&2;}
+   { (exit 1); exit 1; }; }
   fi
 elif test $enable_ffcall = yes; then
 
