@@ -1456,12 +1456,14 @@ if test $enable_libffi = yes; then
             [Define if using the libffi library for invocations])
   WITH_FFI=libffi
   LIBS="-lffi $LIBS"
-  AC_TRY_LINK([#include <ffi.h>], ,ffi_ok="yes", ffi_ok="no")
+  AC_TRY_RUN([#include "$srcdir/config/config.ffi.c"],,ffi_ok="yes",ffi_ok="no")
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(libffi)
-  fi
-  if test $do_broken_libffi = yes; then
-    AC_MSG_WARN([ffi may be broken on this system ... try enabling ffcall])
+    if test $do_broken_libffi = yes; then
+      AC_MSG_WARN([ffi may be broken on this system ... try enabling ffcall])
+    fi
+  else
+    AC_MSG_ERROR([The ffi library (libffi) does not appear to be working.  Perhaps it's missing or you need a more recent version.  Version 3.0.9 or later should work, and you can find a link to it n the list of packages for download at http://www.gnustep.org/resources/sources.html])
   fi
 elif test $enable_ffcall = yes; then
   AC_DEFINE(USE_FFCALL,1,
