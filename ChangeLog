@@ -1,3 +1,9 @@
+2010-04-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/cifframe.m (cifframe_type): Fix the defunct test for the
+	standard structure types. The failure to detect those types was
+	causing a substantial space leak in some gui applications.
+
 2010-03-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/config.ffi.c: add test for libffi functionality

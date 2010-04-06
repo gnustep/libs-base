@@ -340,8 +340,13 @@ cifframe_type(const char *typePtr, const char **advance)
 	unsigned   align = __alignof(double);
 
 	/* Standard structures can be handled using cached type information.
+	   Since the switch statement has already skipped the _C_STRUCT_B
+	   character, we must use typePtr-1 below to successfully match the
+	   type encoding with one of the standard type encodings. The same
+	   holds for skipping past the whole structure type's encoding with
+	   objc_skip_typespec.
 	 */
-	if (GSSelectorTypesMatch(typePtr, @encode(NSRange)))
+	if (GSSelectorTypesMatch(typePtr - 1, @encode(NSRange)))
 	  {
 	    static ffi_type	*elems[3];
 	    static ffi_type	stype = { 0 };
@@ -368,10 +373,10 @@ cifframe_type(const char *typePtr, const char **advance)
 		stype.type = FFI_TYPE_STRUCT;
 	      }
 	    ftype = &stype;
-	    typePtr = objc_skip_typespec (typePtr);
+	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
-	else if (GSSelectorTypesMatch(typePtr, @encode(NSSize)))
+	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSSize)))
 	  {
 	    static ffi_type	*elems[3];
 	    static ffi_type	stype = { 0 };
@@ -392,10 +397,10 @@ cifframe_type(const char *typePtr, const char **advance)
 		stype.type = FFI_TYPE_STRUCT;
 	      }
 	    ftype = &stype;
-	    typePtr = objc_skip_typespec (typePtr);
+	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
-	else if (GSSelectorTypesMatch(typePtr, @encode(NSRect)))
+	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSRect)))
 	  {
 	    static ffi_type	*elems[3];
 	    static ffi_type	stype = { 0 };
@@ -412,7 +417,7 @@ cifframe_type(const char *typePtr, const char **advance)
 		stype.type = FFI_TYPE_STRUCT;
 	      }
 	    ftype = &stype;
-	    typePtr = objc_skip_typespec (typePtr);
+	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
 
