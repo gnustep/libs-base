@@ -1016,15 +1016,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stderr != nil)
     {
-      IF_NO_GC([fh_stderr retain];)
-      DESTROY(self);
+      ASSIGN(self, fh_stderr);
     }
   else
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
-      fh_stderr = self;
     }
-  self = fh_stderr;
   if (self)
     {
       readOK = NO;
@@ -1036,15 +1033,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdin != nil)
     {
-      IF_NO_GC([fh_stdin retain];)
-      DESTROY(self);
+      ASSIGN(self, fh_stdin);
     }
   else
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
-      fh_stdin = self;
     }
-  self = fh_stdin;
   if (self)
     {
       writeOK = NO;
@@ -1056,15 +1050,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdout != nil)
     {
-      IF_NO_GC([fh_stdout retain];)
-      DESTROY(self);
+      ASSIGN(self, fh_stdout);
     }
   else
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
-      fh_stdout = self;
     }
-  self = fh_stdout;
   if (self)
     {
       readOK = NO;
