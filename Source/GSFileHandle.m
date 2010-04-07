@@ -1077,7 +1077,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
   self = [super init];
-  if (self != nil)
+  if (nil == self)
+    {
+      if (YES == flag)
+	{
+	  close(desc);
+	}
+    }
+  else
     {
       struct stat	sbuf;
       int		e;
