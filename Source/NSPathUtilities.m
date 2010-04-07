@@ -1445,10 +1445,15 @@ NSHomeDirectoryForUser(NSString *loginName)
        * for the user on Windows NT;
        * For OPENSTEP compatibility (and because USERPROFILE is usually
        * unusable because it contains spaces), we use HOMEPATH in
-       * preference to USERPROFILE.
+       * preference to USERPROFILE, except when MINGW has set HOMEPATH to '\'
+       * which isn't very useful, so we prefer USERPROFILE in that case.
        */
       s = [e objectForKey: @"HOMEPATH"];
-      if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
+      if ([s isEqualToString:@"\\"] && [e objectForKey: @"USERPROFILE"] != nil)
+        {
+          s = [e objectForKey: @"USERPROFILE"];
+        }
+      else if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
         {
           s = [[e objectForKey: @"HOMEDRIVE"] stringByAppendingString: s];
         }
