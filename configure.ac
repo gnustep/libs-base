@@ -123,6 +123,19 @@ if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then
   GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_ROOT/Library/Libraries"
 fi
 
+if test x"$GNUSTEP_IS_FLATTENED" = x"no"; then
+  GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
+  GNUSTEP_LOCAL_HEADERS="$GNUSTEP_LOCAL_HEADERS/$LIBRARY_COMBO"
+  # FIXME ... check that gnustep-make exports target cpu and os
+  if test x"$GNUSTEP_TARGET_CPU" = x""; then
+    GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_LIBRARIES/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
+    GNUSTEP_LOCAL_LIBRARIES="$GNUSTEP_LOCAL_LIBRARIES/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
+  else
+    GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_LIBRARIES/$GNUSTEP_TARGET_CPU/$GNUSTEP_TARGET_OS/$LIBRARY_COMBO"
+    GNUSTEP_LOCAL_LIBRARIES="$GNUSTEP_LOCAL_LIBRARIES/$GNUSTEP_TARGET_CPU/$GNUSTEP_TARGET_OS/$LIBRARY_COMBO"
+  fi
+fi
+
 #
 # Add standard library and header directories for configure to use to locate
 # plain C developer headers/libraries which haver been installed in the
@@ -1425,7 +1438,9 @@ if test $have_libffi = no; then
   enable_libffi=no
   # If we don't have libffi but do have ffcall, use ffcall
   if test $have_ffcall = yes; then
-    enable_ffcall=yes
+    if test $enable_ffcall = no; then
+      AC_MSG_WARN([ffi support seems to be missing on this system ... please install a recent libffi or perhaps try enabling ffcall])
+    fi
   fi
 fi
 
