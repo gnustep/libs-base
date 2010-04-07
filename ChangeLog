@@ -1,3 +1,7 @@
+2010-04-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Fix for bug #29291 based on suggestion by Niels Grewe
+
 2010-04-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/cifframe.m (cifframe_type): Fix the defunct test for the
