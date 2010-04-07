@@ -1484,7 +1484,7 @@ GSPrivateCheckTasks()
     }
   edesc = [hdl fileDescriptor];
 
-  pid = fork();
+  pid = vfork();
   if (pid < 0)
     {
       [NSException raise: NSInvalidArgumentException
