@@ -164,7 +164,6 @@ NSString+GNUstepBase.h \
 NSTask+GNUstepBase.h \
 NSThread+GNUstepBase.h \
 NSURL+GNUstepBase.h \
-behavior.h \
 Unicode.h \
 GCObject.h \
 
