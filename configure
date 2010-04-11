@@ -1353,7 +1353,7 @@ Optional Features:
   --enable-procfs-psinfo         Use /proc/%pid% to get info
   --enable-pass-arguments	Force user main call to NSProcessInfo initialize
   --enable-fake-main  		Force redefine of user main function
-  --enable-libffi  		Enable use of libffi library
+  --disable-libffi  		Disable use of libffi library
   --enable-ffcall  		Enable use of the deprecated ffcall library
   --disable-invocations		Compile even if invocation-dependencies are not met
   --disable-xml			Compile even if XML-dependencies are not met
@@ -19055,7 +19055,7 @@ echo "${ECHO_T}none" >&6; }
     echo "your system's security policy is blocking some parts of ffcall"
     echo "we recommend installing libffi instead."
   else
-    echo "You do not have either ffcall or libffi installed, or configure needs"
+    echo "You do not have either ffcall or libffi installed/enabled, or configure needs"
     echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them,"
     echo "or you have ffcall but gnustep-make is configured to use native exceptions"
     echo "(native exceptions are not compatible with ffcall)."

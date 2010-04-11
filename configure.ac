@@ -1386,7 +1386,7 @@ if test "$exceptions" = "yes"; then
 fi
 
 AC_ARG_ENABLE(libffi,
-  [  --enable-libffi  		Enable use of libffi library],,
+  [  --disable-libffi  		Disable use of libffi library],,
   enable_libffi=$do_enable_libffi)
 
 AC_ARG_ENABLE(ffcall,
@@ -1512,7 +1512,7 @@ if test $ffi_ok = no; then
     echo "your system's security policy is blocking some parts of ffcall"
     echo "we recommend installing libffi instead."
   else
-    echo "You do not have either ffcall or libffi installed, or configure needs"
+    echo "You do not have either ffcall or libffi installed/enabled, or configure needs"
     echo "--with-ffi-include and/or --with-ffi-library flags so GNUstep can find them,"
     echo "or you have ffcall but gnustep-make is configured to use native exceptions"
     echo "(native exceptions are not compatible with ffcall)."
