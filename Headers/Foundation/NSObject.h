@@ -230,7 +230,8 @@ extern "C" {
  * You can implement +initialize in your own class if you need to.
  * NSObject's implementation handles essential root object and base
  * library initialization.<br />
- * Don't call [super initialize] in your implementation of +initialize.
+ * It should be safe to call [super initialize] in your implementation
+ * of +initialize.
  */
 + (void) initialize;
 + (IMP) instanceMethodForSelector: (SEL)aSelector;
