@@ -1,3 +1,10 @@
+2010-04-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m:
+	* Headers/Foundation/NSObject.h: Document behavior of +load and
+	+initialize to preserve information I'm sure I once knew but had
+	forgotten.  Obscure details.
+
 2010-04-07 Doug Simons <doug.simons@testplant.com>
 
 	* Source/NSPathUtilities.m: Prefer USERPROFILE for the

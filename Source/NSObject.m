@@ -949,13 +949,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 #endif
 }
 
-/**
- * This message is sent to a class once just before it is used for the first
- * time.  If class has a superclass, its implementation of +initialize is
- * called first.  You can implement +initialize in your own class if you need
- * to.  NSObject's implementation handles essential root object and base
- * library initialization.
- */
 + (void) initialize
 {
   if (self == [NSObject class])
