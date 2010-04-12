@@ -187,6 +187,50 @@ extern "C" {
 + (id) alloc;
 + (Class) class;
 + (NSString*) description;
+
+/**
+ * This method is automatically invoked on any class which implements it
+ * when the class is loaded into the runtime.<br />
+ * It is also invoked on any category where the method is implemented
+ * when that category is loaded into the runtime.<br />
+ * The +load method is called directly by the runtime and you should never
+ * send a +load message to a class yourself.<br />
+ * This method is called <em>before</em> the +initialize message is sent
+ * to the class, so you cannot depend on class initialisation having been
+ * performed, or upon other classes existing (apart from superclasses of
+ * the receiver, since +load is sent to superclasses before it is sent to
+ * their subclasses).<br />
+ * As a gross generalisation, it is safe to call use C code, including
+ * most ObjectiveC runtime functions within +load, but attempting to send
+ * messages to ObjectiveC objects is likely to fail.<br />
+ * In GNUstep, this method is implemented for NSObject to perform some
+ * initialisation for the base library.<br />
+ * Don't call [super load] in your implementation.
+ */
++ (void) load;
+
+/**
+ * This message is automatically sent to a class by the runtime.  It is
+ * sent once for each class, just before the class is used for the first
+ * time (excluding any automatic call to +load by the runtime).<br />
+ * The message is sent in a thread-safe manner ... other threads may not
+ * call methods of the class until +initialize has finished executing.<br />
+ * If the class has a superclass, its implementation of +initialize is
+ * called first.<br />
+ * If the class does not implement +initialize then the implementation
+ * in the closest superclass is called.  This means that +initialize may
+ * be called more than once, and the recommended way to handle this by
+ * using the
+ * <code>
+ * if (self == [classname class])
+ * </code>
+ * conditional to check whether the method is being called for a subclass.<br />
+ * You should never call +initialize yourself ... let the runtime do it.<br />
+ * You can implement +initialize in your own class if you need to.
+ * NSObject's implementation handles essential root object and base
+ * library initialization.<br />
+ * Don't call [super initialize] in your implementation.
+ */
 + (void) initialize;
 + (IMP) instanceMethodForSelector: (SEL)aSelector;
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector;
