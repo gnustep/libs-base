@@ -219,7 +219,7 @@ extern "C" {
  * If the class has a superclass, its implementation of +initialize is
  * called first.<br />
  * If the class does not implement +initialize then the implementation
- * in the closest superclass is called.  This means that +initialize may
+ * in the closest superclass may be called.  This means that +initialize may
  * be called more than once, and the recommended way to handle this by
  * using the
  * <code>
