@@ -1,3 +1,9 @@
+2010-04-12 Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Rewritten test for -Wdeclaration-after-statement
+	to be more accurate.
+	* configure: Regenerated.
+	
 2010-04-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m:
