@@ -1788,16 +1788,23 @@ AC_SUBST(INCLUDE_FLAGS)
 AC_SUBST(LDIR_FLAGS)
 
 #--------------------------------------------------------------------
-# Check for C99ism warnings
+# Check for -Wdeclaration-after-statement
 #--------------------------------------------------------------------
-AC_PROG_CC_C99
-# If the compiler supports c99 then we assume it supports the option to
-# warn about declarations after statements.
-if test "no" = "$ac_cv_prog_cc_c99"; then
-  WARN_FLAGS=-Wall
-else
+AC_MSG_CHECKING(whether the compiler supports -Wdeclaration-after-statement)
+
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wdeclaration-after-statement"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM()],HAS_W_DECL_AFTER_STATEMENT=yes,HAS_W_DECL_AFTER_STATEMENT=no)
+CFLAGS="$saved_CFLAGS"
+
+AC_MSG_RESULT($HAS_W_DECL_AFTER_STATEMENT)
+
+if test x"$HAS_W_DECL_AFTER_STATEMENT" = x"yes"; then
   WARN_FLAGS="-Wall -Wdeclaration-after-statement"
+else
+  WARN_FLAGS=-Wall
 fi
+
 AC_SUBST(WARN_FLAGS)
 
 
