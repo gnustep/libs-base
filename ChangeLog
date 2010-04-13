@@ -1,5 +1,12 @@
 2010-04-13 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSArray.m: ([-initWithContentsOfFile:]) added ugly OSX
+	compatibility hack ... return the mutable array deserialized from
+	the property list rather than an instance of the same class as
+	the receiver.  The original GNUstep behavior made more sense.
+
+2010-04-13 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNotificationQueue.m: Fix error traversing queue.
 	Reverse direction of links in queue to be intuitive/consistent
 	with other linked lists.
