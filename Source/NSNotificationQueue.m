@@ -125,13 +125,11 @@ currentList(void)
 
   if (list->queue == q)
     {
-      NSMutableDictionary	*d;
+      NSMutableDictionary	*d = GSCurrentThreadDictionary();
+      NotificationQueueList	*tmp = list->next;
 
-      d = GSCurrentThreadDictionary();
-      if (list->next)
+      if (tmp != nil)
         {
-	  NotificationQueueList	*tmp = list->next;
-
           [d setObject: tmp forKey: lkey];
 	  RELEASE(tmp);			/* retained in dictionary.	*/
         }
@@ -184,8 +182,8 @@ typedef struct _NSNotificationQueueList
  * Queue functions
  *
  *  Queue             Elem              Elem              Elem
- *    head ---------> prev -----------> prev -----------> prev --> nil
- *            nil <-- next <----------- next <----------- next
+ *    head ---------> next -----------> next -----------> next --> nil
+ *            nil <-- prev <----------- prev <----------- prev
  *    tail --------------------------------------------->
  */
 
@@ -193,29 +191,29 @@ static inline void
 remove_from_queue_no_release(NSNotificationQueueList *queue,
   NSNotificationQueueRegistration *item)
 {
-  if (item->prev)
-    {
-      item->prev->next = item->next;
-    }
-  else
-    {
-      queue->tail = item->next;
-      if (item->next)
-	{
-	  item->next->prev = NULL;
-	}
-    }
-
   if (item->next)
     {
       item->next->prev = item->prev;
     }
   else
     {
-      queue->head = item->prev;
+      queue->tail = item->prev;
       if (item->prev)
 	{
 	  item->prev->next = NULL;
+	}
+    }
+
+  if (item->prev)
+    {
+      item->prev->next = item->next;
+    }
+  else
+    {
+      queue->head = item->next;
+      if (item->next)
+	{
+	  item->next->prev = NULL;
 	}
     }
 }
@@ -253,12 +251,12 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
   item->object = [notification object];
   item->modes = [modes copyWithZone: [modes zone]];
 
-  item->prev = NULL;
-  item->next = queue->tail;
+  item->next = NULL;
+  item->prev = queue->tail;
   queue->tail = item;
-  if (item->next)
+  if (item->prev)
     {
-      item->next->prev = item;
+      item->prev->next = item;
     }
   if (!queue->head)
     {
@@ -411,7 +409,7 @@ static NSArray	*defaultMode = nil;
 			 coalesceMask: (NSUInteger)coalesceMask
 {
   NSNotificationQueueRegistration	*item;
-  NSNotificationQueueRegistration	*next;
+  NSNotificationQueueRegistration	*prev;
   id					name   = [notification name];
   id					object = [notification object];
 
@@ -421,9 +419,9 @@ static NSArray	*defaultMode = nil;
       /*
        * find in ASAP notification in queue matching both
        */
-      for (item = _asapQueue->tail; item; item = next)
+      for (item = _asapQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           //PENDING: should object comparison be '==' instead of isEqual?!
           if ((object == item->object) && [name isEqual: item->name])
 	    {
@@ -433,9 +431,9 @@ static NSArray	*defaultMode = nil;
       /*
        * find in idle notification in queue matching both
        */
-      for (item = _idleQueue->tail; item; item = next)
+      for (item = _idleQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if ((object == item->object) && [name isEqual: item->name])
 	    {
               remove_from_queue(_idleQueue, item, _zone);
@@ -447,9 +445,9 @@ static NSArray	*defaultMode = nil;
       /*
        * find in ASAP notification in queue matching name
        */
-      for (item = _asapQueue->tail; item; item = next)
+      for (item = _asapQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if ([name isEqual: item->name])
 	    {
               remove_from_queue(_asapQueue, item, _zone);
@@ -458,9 +456,9 @@ static NSArray	*defaultMode = nil;
       /*
        * find in idle notification in queue matching name
        */
-      for (item = _idleQueue->tail; item; item = next)
+      for (item = _idleQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if ([name isEqual: item->name])
 	    {
               remove_from_queue(_idleQueue, item, _zone);
@@ -472,9 +470,9 @@ static NSArray	*defaultMode = nil;
       /*
        * find in ASAP notification in queue matching sender
        */
-      for (item = _asapQueue->tail; item; item = next)
+      for (item = _asapQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if (object == item->object)
 	    {
               remove_from_queue(_asapQueue, item, _zone);
@@ -483,9 +481,9 @@ static NSArray	*defaultMode = nil;
       /*
        * find in idle notification in queue matching sender
        */
-      for (item = _idleQueue->tail; item; item = next)
+      for (item = _idleQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if (object == item->object)
 	    {
               remove_from_queue(_idleQueue, item, _zone);
@@ -611,7 +609,7 @@ notify(NSNotificationCenter *center, NSNotificationQueueList *list,
 	    }
 	  ptr[pos++] = item;
 	}
-      item = item->next;
+      item = item->next;	// head --> tail uses next link
     }
   len = pos;	// Number of items found
 
@@ -691,6 +689,7 @@ GSPrivateNotifyMore(NSString *mode)
 		{
 		  return YES;
 		}
+	      r = r->next;
 	    }
 	}
     }
