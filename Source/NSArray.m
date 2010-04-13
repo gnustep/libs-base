@@ -796,7 +796,12 @@ static SEL	rlSel;
       RELEASE(myString);
       if ([result isKindOfClass: NSArrayClass])
 	{
-	  self = [self initWithArray: result];
+	  //self = [self initWithArray: result];
+	  /* OSX appears to always return a mutable array rather than
+	   * the class of the receiver.
+	   */
+	  RELEASE(self);
+	  self = RETAIN(result);
 	}
       else
 	{
