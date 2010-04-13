@@ -25,6 +25,7 @@
 #define	_FILE_OFFSET_BITS 64
 
 #import "common.h"
+#define	EXPOSE_NSFileHandle_IVARS	1
 #define	EXPOSE_GSFileHandle_IVARS	1
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
