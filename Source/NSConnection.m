@@ -79,6 +79,20 @@
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
+/* Skip past an argument and also any offset information before the next.
+ */
+static inline const char *
+skip_argspec(const char *ptr)
+{
+  if (ptr != NULL)
+    {
+      ptr = NSGetSizeAndAlignment(ptr, NULL, NULL);
+      if (*ptr == '+') ptr++;
+      while (isdigit(*ptr)) ptr++;
+    }
+  return ptr;
+}
+
 /*
  *	Setup for inline operation of pointer map tables.
  */
@@ -2144,9 +2158,9 @@ static NSLock	*cached_proxies_gate = nil;
 	    {
 	      /* Step through all the arguments, finding the ones that were
 		 passed by reference. */
-	      for (tmptype = objc_skip_argspec (tmptype), argnum = 0;
+	      for (tmptype = skip_argspec (tmptype), argnum = 0;
 	        *tmptype != '\0';
-	        tmptype = objc_skip_argspec (tmptype), argnum++)
+	        tmptype = skip_argspec (tmptype), argnum++)
 		{
 		  /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
 		  flags = objc_get_type_qualifiers(tmptype);
@@ -2602,23 +2616,23 @@ static NSLock	*cached_proxies_gate = nil;
       sig = [NSMethodSignature signatureWithObjCTypes: type];
       inv = [[NSInvocation alloc] initWithMethodSignature: sig];
 
-      tmptype = objc_skip_argspec (type);
-      etmptype = objc_skip_argspec (etmptype);
+      tmptype = skip_argspec (type);
+      etmptype = skip_argspec (etmptype);
       [inv setTarget: object];
 
-      tmptype = objc_skip_argspec (tmptype);
-      etmptype = objc_skip_argspec (etmptype);
+      tmptype = skip_argspec (tmptype);
+      etmptype = skip_argspec (etmptype);
       [inv setSelector: selector];
 
 
       /* Step TMPTYPE and ETMPTYPE in lock-step through their
 	 method type strings. */
 
-      for (tmptype = objc_skip_argspec (tmptype),
-	   etmptype = objc_skip_argspec (etmptype), argnum = 2;
+      for (tmptype = skip_argspec (tmptype),
+	   etmptype = skip_argspec (etmptype), argnum = 2;
 	   *tmptype != '\0';
-	   tmptype = objc_skip_argspec (tmptype),
-	   etmptype = objc_skip_argspec (etmptype), argnum++)
+	   tmptype = skip_argspec (tmptype),
+	   etmptype = skip_argspec (etmptype), argnum++)
 	{
 	  void	*datum;
 
@@ -2793,13 +2807,13 @@ static NSLock	*cached_proxies_gate = nil;
 	{
 	  /* Step through all the arguments, finding the ones that were
 	     passed by reference. */
-	  for (tmptype = objc_skip_argspec (tmptype),
+	  for (tmptype = skip_argspec (tmptype),
 		 argnum = 0,
-		 etmptype = objc_skip_argspec (etmptype);
+		 etmptype = skip_argspec (etmptype);
 	       *tmptype != '\0';
-	       tmptype = objc_skip_argspec (tmptype),
+	       tmptype = skip_argspec (tmptype),
 		 argnum++,
-		 etmptype = objc_skip_argspec (etmptype))
+		 etmptype = skip_argspec (etmptype))
 	    {
 	      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
 	      flags = objc_get_type_qualifiers(etmptype);
