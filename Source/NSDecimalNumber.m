@@ -637,7 +637,7 @@ static NSDecimalNumber *one;
   return (float)NSDecimalDouble(&data);
 }
 
-- (char) charValue
+- (signed char) charValue
 {
   return (char)NSDecimalDouble(&data);
 }
