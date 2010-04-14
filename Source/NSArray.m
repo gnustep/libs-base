@@ -796,12 +796,16 @@ static SEL	rlSel;
       RELEASE(myString);
       if ([result isKindOfClass: NSArrayClass])
 	{
-	  //self = [self initWithArray: result];
 	  /* OSX appears to always return a mutable array rather than
 	   * the class of the receiver.
+	   * GNUstep behavior is to initialize the receiver with the
+	   * contents of the array in the property list ... which seems
+	   * much more sane, and importantly means that the jigs java
+	   * bridge can work with this method (the java bridge has
+	   * problems with initialisers which return a result other
+	   * than the original receiver).
 	   */
-	  RELEASE(self);
-	  self = RETAIN(result);
+	  self = [self initWithArray: result];
 	}
       else
 	{
