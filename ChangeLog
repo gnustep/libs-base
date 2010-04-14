@@ -1,3 +1,11 @@
+2010-04-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/runtime.c: work around buggy objc_skip_argspec()
+	* Source/NSConnection.m: work around buggy objc_skip_argspec()
+	* Source/NSObjCRuntime.m: Fix NSGetSizeAndAlignment() so it's OSX
+	compatible and can be used to replace objc_skip_argspec() (as that
+	function calls objc_skip_offset() which can skip a character too far).
+
 2010-04-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: ([-initWithContentsOfFile:]) added ugly OSX

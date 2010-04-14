@@ -129,9 +129,10 @@ NSStringFromClass(Class aClass)
  * When provided with a C string containing encoded type information,
  * this method extracts size and alignment information for the specified
  * type into the buffers pointed to by sizep and alignp.<br />
- * If either sizep or alignp is a nil pointer, the corresponding data is
+ * If either sizep or alignp is a null pointer, the corresponding data is
  * not extracted.<br />
- * The function returns a pointer to the type information C string.
+ * The function returns a pointer into the type information C string
+ * immediately after the decoded information.
  */
 const char *
 NSGetSizeAndAlignment(const char *typePtr,
@@ -158,6 +159,7 @@ NSGetSizeAndAlignment(const char *typePtr,
 	{
           *alignp = objc_alignof_type (typePtr);
 	}
+      typePtr = objc_skip_typespec (typePtr);
     }
   return typePtr;
 }

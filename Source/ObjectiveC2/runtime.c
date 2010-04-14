@@ -78,6 +78,23 @@ extern struct sarray *__objc_uninstalled_dtable;
  */
 extern objc_mutex_t __objc_runtime_mutex;
 
+/* objc_skip_argspec() is often buggy as it calls the buggy objc_skip_offset()
+ * so we use a local version.
+ */
+static inline const char *
+skip_argspec(const char *types)
+{
+  if (types && *types)
+    {
+      types = objc_skip_typespec(types);
+      if (*types == '+')
+	types++;
+      while (isdigit(*types))
+	types++;
+    }
+  return types;
+}
+
 /** 
  * Looks up the instance method in a specific class, without recursing into
  * superclasses.
@@ -585,7 +602,7 @@ ivar_getTypeEncoding(Ivar ivar)
 static size_t
 lengthOfTypeEncoding(const char *types)
 {
-  const char *end = objc_skip_argspec(types);
+  const char *end = skip_argspec(types);
   size_t length;
 
   end--;
@@ -615,7 +632,7 @@ findParameterStart(const char *types, unsigned int index)
 
   for (i = 0; i < index; i++)
     {
-      types = objc_skip_argspec(types);
+      types = skip_argspec(types);
       if ('\0' == *types)
 	{
 	  return NULL;
@@ -698,7 +715,7 @@ method_getNumberOfArguments(Method method)
 
   while ('\0' != *types)
     {
-      types = objc_skip_argspec(types);
+      types = skip_argspec(types);
       count++;
     }
   return count - 1;
