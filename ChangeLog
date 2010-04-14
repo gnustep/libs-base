@@ -1,7 +1,3 @@
-2010-04-14 Richard Frith-Macdonald <rfm@gnu.org>
-
-	* Revert last change ... it broke the method for use in jigs.
-
 2010-04-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: ([-initWithContentsOfFile:]) added ugly OSX
