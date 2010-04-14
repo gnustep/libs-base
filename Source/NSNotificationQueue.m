@@ -289,7 +289,7 @@ static NSArray	*defaultMode = nil;
 {
   if (defaultMode == nil)
     {
-      defaultMode = [[NSArray alloc] initWithObjects: &NSDefaultRunLoopMode
+      defaultMode = [[NSArray alloc] initWithObjects: (id*)&NSDefaultRunLoopMode
 					       count: 1];
     }
 }
