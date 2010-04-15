@@ -2178,6 +2178,10 @@ static NSLock	*cached_proxies_gate = nil;
 		      tmptype++;
 		      [inv getArgument: &datum atIndex: argnum];
 		      [aRmc decodeValueOfObjCType: tmptype at: datum];
+		      if (*tmptype == _C_ID)
+			{
+			  [*(id*)datum autorelease];
+			}
 		    }
 		  else if (*tmptype == _C_CHARPTR
 		    && ((flags & _F_OUT) || !(flags & _F_IN)))
