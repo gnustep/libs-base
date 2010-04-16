@@ -433,10 +433,39 @@ gnustep_base_thread_callback(void)
 
 @implementation NSThread
 
-static void setThreadForCurrentThread(NSThread *t)
+static void
+setThreadForCurrentThread(NSThread *t)
 {
   pthread_setspecific(thread_object_key, t);
   gnustep_base_thread_callback();
+}
+
+static void
+unregisterActiveThread(NSThread *thread)
+{
+  if (thread->_active == YES)
+    {
+      /*
+       * Set the thread to be inactive to avoid any possibility of recursion.
+       */
+      thread->_active = NO;
+      thread->_finished = YES;
+
+      /*
+       * Let observers know this thread is exiting.
+       */
+      if (nc == nil)
+	{
+	  nc = RETAIN([NSNotificationCenter defaultCenter]);
+	}
+      [nc postNotificationName: NSThreadWillExitNotification
+			object: thread
+		      userInfo: nil];
+
+      [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
+      [thread  release];
+      pthread_setspecific(thread_object_key, nil);
+    }
 }
 
 + (NSArray*) callStackReturnAddresses
@@ -496,29 +525,8 @@ static void setThreadForCurrentThread(NSThread *t)
   t = GSCurrentThread();
   if (t->_active == YES)
     {
-      /*
-       * Set the thread to be inactive to avoid any possibility of recursion.
-       */
-      t->_active = NO;
-      t->_finished = YES;
+      unregisterActiveThread (t);
 
-      /*
-       * Let observers know this thread is exiting.
-       */
-      if (nc == nil)
-	{
-	  nc = RETAIN([NSNotificationCenter defaultCenter]);
-	}
-      [nc postNotificationName: NSThreadWillExitNotification
-			object: t
-		      userInfo: nil];
-
-      [(GSRunLoopThreadInfo*)t->_runLoopInfo invalidate];
-      RELEASE(t);
-#if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
-      GC_unregister_my_thread();
-#endif
-      pthread_setspecific(thread_object_key, nil);
       if (t == defaultThread || defaultThread == nil)
 	{
 	  /* For the default thread, we exit the process.
@@ -1300,34 +1308,12 @@ GSRegisterCurrentThread (void)
  *   Calling this function causes a
  *   <code>NSThreadWillExitNotification</code>
  *   to be sent out, and destroys the GNUstep NSThread object
- *   associated with the thread.
+ *   associated with the thread (like [NSThread+exit]) but does
+ *   not exit the underlying thread.
  * </p>
  */
 void
 GSUnregisterCurrentThread (void)
 {
-  NSThread *thread;
-
-  thread = GSCurrentThread();
-
-  if (thread->_active == YES)
-    {
-      /*
-       * Set the thread to be inactive to avoid any possibility of recursion.
-       */
-      thread->_active = NO;
-
-      /*
-       * Let observers know this thread is exiting.
-       */
-      if (nc == nil)
-	{
-	  nc = RETAIN([NSNotificationCenter defaultCenter]);
-	}
-      [nc postNotificationName: NSThreadWillExitNotification
-			object: thread
-		      userInfo: nil];
-
-      pthread_setspecific(thread_object_key, nil);
-    }
+  unregisterActiveThread(GSCurrentThread());
 }

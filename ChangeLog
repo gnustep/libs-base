@@ -1,7 +1,12 @@
+2010-04-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Fix unregistering of threads to properly clean
+	up and deallocate, avoiding descriptor and memory leak.
+
 2010-04-15 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSConnection.m: when decoding a pointer to an object, autorelease
-	the object to avoid a leak.
+	* Source/NSConnection.m: when decoding a pointer to an object,
+	autorelease the object to avoid a leak.
 
 2010-04-14 Richard Frith-Macdonald <rfm@gnu.org>
 
