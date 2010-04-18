@@ -67,7 +67,7 @@
 
 # Things to do after distcleaning
 after-distclean::
-	rm -rf $(GNUSTEP_TARGET_DIR)/config.h config.status config.log config.cache TAGS config.mak config.h
+	rm -rf config.status config.log config.cache TAGS config.mak config.h
 
 # Things to do before checking
 # before-check::
@@ -75,21 +75,20 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-config.mak: config.mak.in config.status
-	./config.status
-	-touch config.mak
-
-#
-# The config.h file is specific to a target
-#
-$(GNUSTEP_TARGET_DIR)/config.h: config.status
-	./config.status
-	-touch config.h
-ifneq ($(GNUSTEP_TARGET_DIR), .)
-	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
-	-mv config.h $(GNUSTEP_TARGET_DIR)
-endif
-
-# Run configure manually if you need to pass any options
-config.status:
+config.mak: config.mak.in
 	./configure
+
+config.h: config.h.in
+	./configure
+
+# PS: the config.h file is specific to the target that was configured.
+# At the moment, we use a single config.h file in ./, so if you want
+# to change target, you have to reconfigure the SSL bundle, which
+# would remove the configuration for the previous target and create a
+# configuration for the new target.
+#
+# A possible improvement would be to have configure store each
+# config.h file in a target-specific directory so that when you
+# reconfigure for a different target, you don't lose the configuration
+# for the previous target.  It doesn't seem to help much though as you
+# still have to configure and build multiple times.

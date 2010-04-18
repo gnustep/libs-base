@@ -52,7 +52,7 @@ ADDITIONAL_CFLAGS =
 # include config.h from gnustep-base instead of the 
 # one in this directory.  It is required to find
 # GSPrivate.h on non-flattened though.
-ADDITIONAL_INCLUDE_DIRS = -I./$(GNUSTEP_TARGET_DIR) \
+ADDITIONAL_INCLUDE_DIRS = -I. \
  -I../Source/$(GNUSTEP_TARGET_DIR) -I../Source \
  -I../Headers/Additions -I../Headers
 

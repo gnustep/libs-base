@@ -1,5 +1,12 @@
 2010-04-18   Nicola Pero <nicola.pero@meta-innovation.com>
 
+	Fixed inefficiencies in building the SSL bundle.
+	* SSL/Makefile.postable: Do not create GNUSTEP_TARGET_DIR/config.h
+	from config.h; do not depend on config.status.
+	* SSL/Makefile.preamble: Corresponding updates to includes.
+
+2010-04-18   Nicola Pero <nicola.pero@meta-innovation.com>
+
 	Fixed bug 25356 ("make ignoring installation domain configuration
 	on windows").
 	* configure.ac: Moved the path configuration here so that it is
