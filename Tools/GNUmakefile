@@ -45,7 +45,6 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 -include ../Version
 -include ../config.mak
--include ../Source/pathconfig/pathconfig.mak
 
 ADDITIONAL_CPPFLAGS = -DGNUSTEP_BASE_INTERNAL=1
 

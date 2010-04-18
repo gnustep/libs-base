@@ -1,5 +1,35 @@
 2010-04-18   Nicola Pero <nicola.pero@meta-innovation.com>
 
+	Fixed bug 25356 ("make ignoring installation domain configuration
+	on windows").
+	* configure.ac: Moved the path configuration here so that it is
+	executed at the right time.  Removed duplicated code for all the
+	path config options.  (AC_CONFIG_SUBDIRS): Removed
+	Source/pathconfig.
+	* configure: Regenerated.
+	* config.mak.in: Merged code from
+	Source/pathconfig/pathconfig.mak.in.
+	* Source/pathconfig: Removed.
+	* GNUmakefile: Do not include
+	Source/pathconfig/pathconfig.mak.
+	* Documentation/GNUmakefile: Same change.
+	* NSTimeZones/GNUmakefile: Same change.
+	* Source/GNUmakefile: Same change.
+	* SSL/GNUmakefile: Same change.
+	* Tools/GNUmakefile: Same change.
+	* Source/Makefile.postamble (after-distclean): Do not remove
+	files in pathconfig/.
+	* Source/NSPathUtilities.m: Do not include pathconfig.h.
+	* GNUmakefile: Include config.mak after common.make.
+	
+	* configure.ac: Exit immediately if GNUSTEP_MAKEFILES can not be
+	determined.
+	* configure.ac: Fixed determining GNUSTEP_LOCAL_HEADERS and
+	GNUSTEP_LOCAL_LIBRARIES when adding them to CPPFLAGS and LDFLAGS.
+	Add GNUSTEP_NETWORK_HEADERS and GNUSTEP_NETWORK_LIBRARIES as well.
+	
+2010-04-18   Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* configure.ac (AC_CONFIG_SUBDIRS): Fixed list of subdirs by
 	removing Source/mframe, which no longer exists.
 	* configure: Regenerated.
