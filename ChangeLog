@@ -1,3 +1,9 @@
+2010-04-18   Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac (AC_CONFIG_SUBDIRS): Fixed list of subdirs by
+	removing Source/mframe, which no longer exists.
+	* configure: Regenerated.
+	
 2010-04-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Fix unregistering of threads to properly clean
