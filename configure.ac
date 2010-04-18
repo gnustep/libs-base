@@ -1902,7 +1902,7 @@ AC_ARG_ENABLE(importing-config-file,
     result="no"
   )
 
-AC_CONFIG_SUBDIRS(Source/pathconfig Source/mframe SSL)
+AC_CONFIG_SUBDIRS(Source/pathconfig SSL)
 
 #--------------------------------------------------------------------
 # Record the version
