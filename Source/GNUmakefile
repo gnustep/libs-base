@@ -47,7 +47,6 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
--include pathconfig/pathconfig.mak
 
 # Interface version changes with each minor release
 libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
@@ -479,7 +478,7 @@ ifeq ($(OBJC2RUNTIME),0)
 SUBPROJECTS = ObjectiveC2
 endif
 SUBPROJECTS += Additions
- 	 
+
 -include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make

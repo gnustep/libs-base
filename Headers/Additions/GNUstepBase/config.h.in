@@ -9,6 +9,159 @@
 /* Define if constructors are automatically loaded */
 #undef CON_AUTOLOAD
 
+/* Built in default value for GNUstep config file */
+#undef GNUSTEP_TARGET_CONFIG_FILE
+
+/* Built in default value for GNUstep local apps */
+#undef GNUSTEP_TARGET_LOCAL_ADMIN_APPS
+
+/* Built in default value for GNUstep local tools */
+#undef GNUSTEP_TARGET_LOCAL_ADMIN_TOOLS
+
+/* Built in default value for GNUstep local apps */
+#undef GNUSTEP_TARGET_LOCAL_APPS
+
+/* Built in default value for GNUstep local documentation */
+#undef GNUSTEP_TARGET_LOCAL_DOC
+
+/* Built in default value for GNUstep local info documentation */
+#undef GNUSTEP_TARGET_LOCAL_DOC_INFO
+
+/* Built in default value for GNUstep local manpages documentation */
+#undef GNUSTEP_TARGET_LOCAL_DOC_MAN
+
+/* Built in default value for GNUstep local headers */
+#undef GNUSTEP_TARGET_LOCAL_HEADERS
+
+/* Built in default value for GNUstep local libraries */
+#undef GNUSTEP_TARGET_LOCAL_LIBRARIES
+
+/* Built in default value for GNUstep local library */
+#undef GNUSTEP_TARGET_LOCAL_LIBRARY
+
+/* Built in default value for GNUstep local tools */
+#undef GNUSTEP_TARGET_LOCAL_TOOLS
+
+/* Built in default value for GNUstep Local Users directory */
+#undef GNUSTEP_TARGET_LOCAL_USERS_DIR
+
+/* Built in default value for GNUstep local web apps */
+#undef GNUSTEP_TARGET_LOCAL_WEB_APPS
+
+/* Built in default value for GNUstep Makefiles */
+#undef GNUSTEP_TARGET_MAKEFILES
+
+/* Built in default value for GNUstep network apps */
+#undef GNUSTEP_TARGET_NETWORK_ADMIN_APPS
+
+/* Built in default value for GNUstep system tools */
+#undef GNUSTEP_TARGET_NETWORK_ADMIN_TOOLS
+
+/* Built in default value for GNUstep network apps */
+#undef GNUSTEP_TARGET_NETWORK_APPS
+
+/* Built in default value for GNUstep network documentation */
+#undef GNUSTEP_TARGET_NETWORK_DOC
+
+/* Built in default value for GNUstep network info documentation */
+#undef GNUSTEP_TARGET_NETWORK_DOC_INFO
+
+/* Built in default value for GNUstep network manpages documentation */
+#undef GNUSTEP_TARGET_NETWORK_DOC_MAN
+
+/* Built in default value for GNUstep network headers */
+#undef GNUSTEP_TARGET_NETWORK_HEADERS
+
+/* Built in default value for GNUstep network libraries */
+#undef GNUSTEP_TARGET_NETWORK_LIBRARIES
+
+/* Built in default value for GNUstep network library */
+#undef GNUSTEP_TARGET_NETWORK_LIBRARY
+
+/* Built in default value for GNUstep network tools */
+#undef GNUSTEP_TARGET_NETWORK_TOOLS
+
+/* Built in default value for GNUstep Network Users directory */
+#undef GNUSTEP_TARGET_NETWORK_USERS_DIR
+
+/* Built in default value for GNUstep network web apps */
+#undef GNUSTEP_TARGET_NETWORK_WEB_APPS
+
+/* Built in default value for GNUstep system apps */
+#undef GNUSTEP_TARGET_SYSTEM_ADMIN_APPS
+
+/* Built in default value for GNUstep system tools */
+#undef GNUSTEP_TARGET_SYSTEM_ADMIN_TOOLS
+
+/* Built in default value for GNUstep system apps */
+#undef GNUSTEP_TARGET_SYSTEM_APPS
+
+/* Built in default value for GNUstep system documentation */
+#undef GNUSTEP_TARGET_SYSTEM_DOC
+
+/* Built in default value for GNUstep system info documentation */
+#undef GNUSTEP_TARGET_SYSTEM_DOC_INFO
+
+/* Built in default value for GNUstep system manpages documentation */
+#undef GNUSTEP_TARGET_SYSTEM_DOC_MAN
+
+/* Built in default value for GNUstep system headers */
+#undef GNUSTEP_TARGET_SYSTEM_HEADERS
+
+/* Built in default value for GNUstep system libraries */
+#undef GNUSTEP_TARGET_SYSTEM_LIBRARIES
+
+/* Built in default value for GNUstep system library */
+#undef GNUSTEP_TARGET_SYSTEM_LIBRARY
+
+/* Built in default value for GNUstep system tools */
+#undef GNUSTEP_TARGET_SYSTEM_TOOLS
+
+/* Built in default value for GNUstep System Users directory */
+#undef GNUSTEP_TARGET_SYSTEM_USERS_DIR
+
+/* Built in default value for GNUstep web apps */
+#undef GNUSTEP_TARGET_SYSTEM_WEB_APPS
+
+/* Built in default value for GNUstep user config file */
+#undef GNUSTEP_TARGET_USER_CONFIG_FILE
+
+/* Built in default value for GNUstep user defaults directory */
+#undef GNUSTEP_TARGET_USER_DEFAULTS_DIR
+
+/* Built in default value for GNUstep user_dir admin apps */
+#undef GNUSTEP_TARGET_USER_DIR_ADMIN_APPS
+
+/* Built in default value for GNUstep user_dir tools */
+#undef GNUSTEP_TARGET_USER_DIR_ADMIN_TOOLS
+
+/* Built in default value for GNUstep user_dir apps */
+#undef GNUSTEP_TARGET_USER_DIR_APPS
+
+/* Built in default value for GNUstep user_dir documentation */
+#undef GNUSTEP_TARGET_USER_DIR_DOC
+
+/* Built in default value for GNUstep user_dir info documentation */
+#undef GNUSTEP_TARGET_USER_DIR_DOC_INFO
+
+/* Built in default value for GNUstep user_dir manpages documentation */
+#undef GNUSTEP_TARGET_USER_DIR_DOC_MAN
+
+/* Built in default value for GNUstep user_dir headers */
+#undef GNUSTEP_TARGET_USER_DIR_HEADERS
+
+/* Built in default value for GNUstep user_dir libraries */
+#undef GNUSTEP_TARGET_USER_DIR_LIBRARIES
+
+/* Built in default value for GNUstep user_dir library */
+#undef GNUSTEP_TARGET_USER_DIR_LIBRARY
+
+/* Built in default value for GNUstep user_dir tools */
+#undef GNUSTEP_TARGET_USER_DIR_TOOLS
+
+/* Built in default value for GNUstep user_dir web apps */
+#undef GNUSTEP_TARGET_USER_DIR_WEB_APPS
+
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 
@@ -474,6 +627,9 @@
 /* Define if your system needs to have short/int word aligned */
 #undef NEED_WORD_ALIGNMENT
 
+/* Disable GNUSTEP_CONFIG_FILE environment variable */
+#undef OPTION_NO_ENVIRONMENT
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -495,31 +651,31 @@
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
-/* The size of `double', as computed by sizeof. */
+/* The size of a `double', as computed by sizeof. */
 #undef SIZEOF_DOUBLE
 
-/* The size of `float', as computed by sizeof. */
+/* The size of a `float', as computed by sizeof. */
 #undef SIZEOF_FLOAT
 
-/* The size of `int', as computed by sizeof. */
+/* The size of a `int', as computed by sizeof. */
 #undef SIZEOF_INT
 
-/* The size of `long', as computed by sizeof. */
+/* The size of a `long', as computed by sizeof. */
 #undef SIZEOF_LONG
 
-/* The size of `long long', as computed by sizeof. */
+/* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
 
-/* The size of `pthread_cond_t', as computed by sizeof. */
+/* The size of a `pthread_cond_t', as computed by sizeof. */
 #undef SIZEOF_PTHREAD_COND_T
 
-/* The size of `pthread_mutex_t', as computed by sizeof. */
+/* The size of a `pthread_mutex_t', as computed by sizeof. */
 #undef SIZEOF_PTHREAD_MUTEX_T
 
-/* The size of `short', as computed by sizeof. */
+/* The size of a `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
 
-/* The size of `void*', as computed by sizeof. */
+/* The size of a `void*', as computed by sizeof. */
 #undef SIZEOF_VOIDP
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -547,5 +703,5 @@
 #undef inline
 #endif
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t

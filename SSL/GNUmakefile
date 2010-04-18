@@ -48,7 +48,6 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
 -include ../config.mak
--include ../Source/pathconfig/pathconfig.mak
 -include config.mak
 
 srcdir = .

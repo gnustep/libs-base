@@ -309,8 +309,8 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subdirs_all="$ac_subdirs_all Source/pathconfig SSL"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BASE_NATIVE_OBJC_EXCEPTIONS BASE_NONFRAGILE_ABI build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS OBJCSYNC OBJC2RUNTIME OBJCFLAGS GS_NONFRAGILE GS_MIXEDABI HAVE_OBJC_SYNC_ENTER GS_SIZEOF_MUTEX_T GS_SIZEOF_COND_T HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS WARN_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
+ac_subdirs_all="$ac_subdirs_all SSL"
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BASE_NATIVE_OBJC_EXCEPTIONS BASE_NONFRAGILE_ABI build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os GNUSTEP_BASE_DOMAIN GNUSTEP_BASE_RELATIVE_PATHS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS OBJCSYNC OBJC2RUNTIME OBJCFLAGS GS_NONFRAGILE GS_MIXEDABI HAVE_OBJC_SYNC_ENTER GS_SIZEOF_MUTEX_T GS_SIZEOF_COND_T HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS WARN_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -846,6 +846,26 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-environment-config-file
+                                Disables the use of the GNUSTEP_CONFIG_FILE
+				environment variable to specify/override
+				the location of the GNUstep config file
+				at runtime.  This option is occasionally
+				useful to disable the environment variable
+				for sites which wish to 'lock down' users
+				to always work with a specific system-wide
+				configuration.  On unix-like systems the
+				default is for this option to be enabled.
+				It is disabled by default on windows systems
+				so that the base library will not use a
+				config file intended for the gnustep-make
+				system (and containing unix-style paths
+				which cannot be used by widnows apps).
+				Normally this should be left at its default
+				setting.
+  --disable-importing-config-file
+                                Disable importing of an existing GNUstep config
+				file and use inbuilt defaults instead.
   --disable-mixedabi
 	    Disables the cmbined use of fragile and nonfragile ABI so that base
 	    can be built taking full advantage of the nonfragile ABI.
@@ -870,54 +890,10 @@ Optional Features:
   --disable-tlstest		Do not try to compile and run a test TLS program
   --disable-zeroconf		Disable NSNetServices support
   --disable-openssl		Disable support for openssl in URL classes
-  --disable-environment-config-file
-                                Disables the use of the GNUSTEP_CONFIG_FILE
-				environment variable to specify/override
-				the location of the GNUstep config file
-				at runtime.  This option is occasionally
-				useful to disable the environment variable
-				for sites which wish to 'lock down' users
-				to always work with a specific system-wide
-				configuration.  On unix-like systems the
-				default is for this option to be enabled.
-				It is disabled by default on windows systems
-				so that the base library will not use a
-				config file intended for the gnustep-make
-				system (and containing unix-style paths
-				which cannot be used by widnows apps).
-				Normally this should be left at its default
-				setting.
-  --disable-importing-config-file
-                                Disable importing of an existing GNUstep config
-				file and use inbuilt defaults instead.
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-include-flags=FLAGS    Specify all include flags at once
-  --with-library-flags=FLAGS    Specify all library flags at once
-  --with-ffi-include=PATH       Include path for ffi headers
-  --with-ffi-library=PATH       Library path for ffi libs
-  --with-libiconv-library=PATH  Library path for libiconv libraries
-  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
-  --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
-  --with-gmp-include=PATH  include path for gmp headers
-  --with-gmp-library=PATH  library path for gmp libraries
-  --with-openssl-include=PATH  include path for openssl headers
-  --with-openssl-library=PATH  library path for openssl libraries
-  --with-installation-domain=DOMAIN
-				Specify the domain (SYSTEM, LOCAL,
-				NETWORK or USER) into which
-				gnustep-base will be installed.
-				Whenever relative paths are hardcoded
-				into gnustep-base (at the moment, this
-				happens only on MinGW) this option
-				must be used and must match the domain
-				where you will be installing
-				gnustep-base.
-				If this is not specified, the output of
-				gnustep-config --installation-domain-for=gnustep-base
-				(which should normally be LOCAL) is used.
   --with-config-file=PATH       Specify path to the GNUstep config file.
 				This is the location to be used by the base
 				library to locate path information at
@@ -947,6 +923,30 @@ Optional Packages:
 				is found at runtime.  If this is not specified
 				then the path from --with-config-file or from
 				the gnustep-make package is used.
+  --with-installation-domain=DOMAIN
+				Specify the domain (SYSTEM, LOCAL,
+				NETWORK or USER) into which
+				gnustep-base will be installed.
+				Whenever relative paths are hardcoded
+				into gnustep-base (at the moment, this
+				happens only on MinGW) this option
+				must be used and must match the domain
+				where you will be installing
+				gnustep-base.
+				If this is not specified, the output of
+				gnustep-config --installation-domain-for=gnustep-base
+				(which should normally be LOCAL) is used.
+  --with-include-flags=FLAGS    Specify all include flags at once
+  --with-library-flags=FLAGS    Specify all library flags at once
+  --with-ffi-include=PATH       Include path for ffi headers
+  --with-ffi-library=PATH       Library path for ffi libs
+  --with-libiconv-library=PATH  Library path for libiconv libraries
+  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
+  --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
+  --with-gmp-include=PATH  include path for gmp headers
+  --with-gmp-library=PATH  library path for gmp libraries
+  --with-openssl-include=PATH  include path for openssl headers
+  --with-openssl-library=PATH  library path for openssl libraries
 
 Some influential environment variables:
   CC          C compiler command
@@ -1402,6 +1402,12 @@ if test -z "$GNUSTEP_MAKEFILES"; then
   GNUSTEP_MAKEFILES=`gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5`
 fi
 
+if test -z "$GNUSTEP_MAKEFILES"; then
+  { { echo "$as_me:$LINENO: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&5
+echo "$as_me: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
 # If LIBRARY_COMBO is undefined, try to use gnustep-config to determine it.
 if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
@@ -1426,12 +1432,6 @@ else
   BASE_NONFRAGILE_ABI=1
 fi
 
-
-if test -z "$GNUSTEP_MAKEFILES"; then
-  { { echo "$as_me:$LINENO: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&5
-echo "$as_me: error: You must have the gnustep-make package installed and set up the GNUSTEP_MAKEFILES environment variable to contain the path to the makefiles directory before configuring!" >&2;}
-   { (exit 1); exit 1; }; }
-fi
 
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
@@ -1566,6 +1566,1005 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
+#---------------------------------------------------------------------
+# Location of the GNUstep.conf config file (--with-config-file)
+#---------------------------------------------------------------------
+echo "$as_me:$LINENO: checking for GNUstep configuration file to use at runtime" >&5
+echo $ECHO_N "checking for GNUstep configuration file to use at runtime... $ECHO_C" >&6
+GNUSTEP_CONFIG_FILE=""
+
+# This requires gnustep-make > 1.13.0 to work.  For gnustep-make =
+# 1.13.0 we would have to parse
+# $CURRENT_GNUSTEP_MAKEFILES/$obj_dir/config.make, but $obj_dir is not defined
+# yet at this stage in config, not sure if it's worth trying to make
+# it work.  For gnustep-make < 1.13.0 we would have to parse
+# $CURRENT_GNUSTEP_MAKEFILES/config.make.
+GNUSTEP_MAKE_CONFIG=`(grep '^GNUSTEP_CONFIG_FILE *=' $CURRENT_GNUSTEP_MAKEFILES/config-noarch.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/') 2>&5`
+
+# So, for backwards compatiblity, we try the plain config.make too.
+# This should work with gnustep-make < 1.13.0, and with 1.13.0 too if
+# they haven't deleted the file.
+if test "$GNUSTEP_MAKE_CONFIG"  = ""; then
+  GNUSTEP_MAKE_CONFIG=`(grep '^GNUSTEP_CONFIG_FILE *=' $CURRENT_GNUSTEP_MAKEFILES/config.make | sed -e 's/GNUSTEP_CONFIG_FILE *= *\(.*\)/\1/') 2>&5`
+fi
+
+
+# Check whether --with-config-file or --without-config-file was given.
+if test "${with_config_file+set}" = set; then
+  withval="$with_config_file"
+  result="$withval"
+else
+  result="no"
+
+fi;
+if test "$result" != "no"
+then
+  GNUSTEP_CONFIG_FILE="$result"
+fi
+if test "$GNUSTEP_CONFIG_FILE" = ""; then
+  case "$target_os" in
+    mingw*)
+      GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
+    *)
+      GNUSTEP_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
+  esac
+fi
+echo "$as_me:$LINENO: result: $GNUSTEP_CONFIG_FILE" >&5
+echo "${ECHO_T}$GNUSTEP_CONFIG_FILE" >&6
+
+#-----------------------------------------------------------------
+# Whether the GNUstep.conf file path can be set in the environment
+# By default this is enabled on unix, but disabled on mswindows
+# since the normal setup on mswindows is to have the config file
+# located with the base library dll for runtime configuration and
+# use the environment variable to control the developer config file
+# location (used by gnustep-make when building).
+#-----------------------------------------------------------------
+case "$target_os" in
+    mingw*)	enable_env_config=no;;
+    *)		enable_env_config=yes;;
+esac
+echo "$as_me:$LINENO: checking whether the GNUstep.conf file path can be set in the environment" >&5
+echo $ECHO_N "checking whether the GNUstep.conf file path can be set in the environment... $ECHO_C" >&6
+# Check whether --enable-environment-config-file or --disable-environment-config-file was given.
+if test "${enable_environment_config_file+set}" = set; then
+  enableval="$enable_environment_config_file"
+  ac_cv_environment_config_file=$enableval
+else
+  ac_cv_environment_config_file=$enable_env_config
+fi;
+if test "$ac_cv_environment_config_file" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define OPTION_NO_ENVIRONMENT 0
+_ACEOF
+
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+else
+
+cat >>confdefs.h <<\_ACEOF
+#define OPTION_NO_ENVIRONMENT 1
+_ACEOF
+
+  echo "$as_me:$LINENO: result: no: disabled from the command-line" >&5
+echo "${ECHO_T}no: disabled from the command-line" >&6
+fi
+
+#--------------------------------------------------------------------
+# We are not trying to determine the default GNUstep paths to be
+# used at runtime.  So all GNUSTEP_xxx variables from now on are to be
+# considered as 'runtime' ones.  They refer to paths that might not
+# make any sense now, but might make sense once gnustep-base is
+# installed in its final location.
+#---------------------------------------------------------------------
+
+#
+# Set 'standard' defaults for values from configuration file.
+#
+case "$target_os" in
+  *)
+    GNUSTEP_SYSTEM_ROOT=/usr/GNUstep/System
+    GNUSTEP_LOCAL_ROOT=/usr/GNUstep/Local
+    GNUSTEP_NETWORK_ROOT=/usr/GNUstep/Local
+    GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
+    GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+    ;;
+esac
+
+#---------------------------------------------------------------------
+# Now read/import the existing configuration file, if any
+#---------------------------------------------------------------------
+
+# Reading/importing an existing configuration file is good as it means
+# the built-in default paths in the code will match those of your
+# installation (or of the config file you specify).
+# It can be annoying in certain cases though; this option lets you
+# turn it off.
+echo "$as_me:$LINENO: checking if we should import an existing configuration file now" >&5
+echo $ECHO_N "checking if we should import an existing configuration file now... $ECHO_C" >&6
+# Check whether --enable-importing-config-file or --disable-importing-config-file was given.
+if test "${enable_importing_config_file+set}" = set; then
+  enableval="$enable_importing_config_file"
+  ac_cv_importing_config_file=$enableval
+else
+  ac_cv_importing_config_file="yes"
+fi;
+if test "$ac_cv_importing_config_file" = "no"; then
+  echo "$as_me:$LINENO: result: no: disabled from the command-line" >&5
+echo "${ECHO_T}no: disabled from the command-line" >&6
+else
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+fi
+
+
+if test "$ac_cv_importing_config_file" = "yes" ;
+then
+  echo "$as_me:$LINENO: checking for default GNUstep configuration file to use" >&5
+echo $ECHO_N "checking for default GNUstep configuration file to use... $ECHO_C" >&6
+
+# Check whether --with-default-config or --without-default-config was given.
+if test "${with_default_config+set}" = set; then
+  withval="$with_default_config"
+  result="$withval"
+else
+  result="no"
+
+fi;
+  if test "$result" != "no"
+  then
+    GNUSTEP_DEFAULT_CONFIG="$result"
+  fi
+  if test "$GNUSTEP_DEFAULT_CONFIG" = ""; then
+    # No file to import has been specified.  We need to read the paths
+    # from somewhere though!  GNUstep.sh might not have been sourced,
+    # so at this stage we have no knowledge of what the paths must be.
+    # The only place that we can read them from is the gnustep-make
+    # GNUstep.conf file.
+    # So we fall back to useing the make settings for the built-in ones.
+    # However, on mingw these will be msys style paths, and we don't
+    # want that ... so later on we convert these to portable relative
+    # paths based on the directory in which the base library will be
+    # installed.
+    GNUSTEP_DEFAULT_CONFIG="$GNUSTEP_MAKE_CONFIG"
+  fi
+  echo "$as_me:$LINENO: result: $GNUSTEP_DEFAULT_CONFIG" >&5
+echo "${ECHO_T}$GNUSTEP_DEFAULT_CONFIG" >&6
+
+  #
+  # Only try importing if the default config file has been specified.
+  #
+  if test "$GNUSTEP_DEFAULT_CONFIG" != ""; then
+    #
+    # Use the default config file to override standard values.
+    #
+    if test ! -f "$GNUSTEP_DEFAULT_CONFIG"; then
+      echo "$as_me:$LINENO: result: fail: file \"$GNUSTEP_DEFAULT_CONFIG\" does not exist" >&5
+echo "${ECHO_T}fail: file \"$GNUSTEP_DEFAULT_CONFIG\" does not exist" >&6
+
+      # Ohoh ... things are not going well.  We are asked to import
+      # a config file that doesn't exist.  So all paths might be unset
+      # and who knows what we'll end up hardcoding into gnustep-base.
+      # It looks like we need to make sure the user knows what they
+      # are doing, as there is a high chance they don't and might end
+      # up with a confused/non-working system.  As far as we know, the
+      # system might be already screwed.  If they don't want to import
+      # a config file (eg, they don't have one and they don't care about
+      # the hardcoded paths) they should just say so. ;-)
+      { { echo "$as_me:$LINENO: error: Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option" >&5
+echo "$as_me: error: Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option" >&2;}
+   { (exit 1); exit 1; }; }
+
+    else
+      echo "$as_me:$LINENO: result: trying to import \"$GNUSTEP_DEFAULT_CONFIG\"" >&5
+echo "${ECHO_T}trying to import \"$GNUSTEP_DEFAULT_CONFIG\"" >&6
+      { echo "$as_me:$LINENO: If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option" >&5
+echo "$as_me: If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option" >&6;}
+      . "$GNUSTEP_DEFAULT_CONFIG"
+    fi
+  fi
+fi
+
+# Now we have the problem of what to do if some of the paths were not
+# set by GNUstep.conf (eg, old gnustep-make), or if no config file was
+# read, or if the config file was corrupt.  We decide that the most
+# likely case is an old gnustep-make, so by default we configure the
+# other paths basing on GNUSTEP_*_ROOT.
+
+# TODO/FIXME: We should really have better checks once the situation
+# has stabilized.  This is a reasonable hack for now.
+
+if test x"$GNUSTEP_MAKEFILES" = x""; then GNUSTEP_MAKEFILES=$GNUSTEP_SYSTEM_ROOT/Library/Makefiles; fi
+
+if test x"$GNUSTEP_SYSTEM_USERS_DIR" = x""; then GNUSTEP_SYSTEM_USERS_DIR=/home; fi
+if test x"$GNUSTEP_NETWORK_USERS_DIR" = x""; then GNUSTEP_NETWORK_USERS_DIR=/home; fi
+if test x"$GNUSTEP_LOCAL_USERS_DIR" = x""; then GNUSTEP_LOCAL_USERS_DIR=/home; fi
+
+if test x"$GNUSTEP_SYSTEM_APPS" = x""; then GNUSTEP_SYSTEM_APPS=$GNUSTEP_SYSTEM_ROOT/Applications; fi
+if test x"$GNUSTEP_SYSTEM_ADMIN_APPS" = x""; then GNUSTEP_SYSTEM_ADMIN_APPS=$GNUSTEP_SYSTEM_ROOT/Applications/Admin; fi
+if test x"$GNUSTEP_SYSTEM_WEB_APPS" = x""; then GNUSTEP_SYSTEM_WEB_APPS=$GNUSTEP_SYSTEM_ROOT/WebApplications; fi
+if test x"$GNUSTEP_SYSTEM_TOOLS" = x""; then GNUSTEP_SYSTEM_TOOLS=$GNUSTEP_SYSTEM_ROOT/Tools; fi
+if test x"$GNUSTEP_SYSTEM_ADMIN_TOOLS" = x""; then GNUSTEP_SYSTEM_ADMIN_TOOLS=$GNUSTEP_SYSTEM_ROOT/Tools/Admin; fi
+if test x"$GNUSTEP_SYSTEM_LIBRARY" = x""; then GNUSTEP_SYSTEM_LIBRARY=$GNUSTEP_SYSTEM_ROOT/Library; fi
+if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then GNUSTEP_SYSTEM_LIBRARIES=$GNUSTEP_SYSTEM_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_SYSTEM_HEADERS" = x""; then GNUSTEP_SYSTEM_HEADERS=$GNUSTEP_SYSTEM_LIBRARY/Headers; fi
+if test x"$GNUSTEP_SYSTEM_DOC" = x""; then GNUSTEP_SYSTEM_DOC=$GNUSTEP_SYSTEM_LIBRARY/Documentation; fi
+if test x"$GNUSTEP_SYSTEM_DOC_MAN" = x""; then GNUSTEP_SYSTEM_DOC_MAN=$GNUSTEP_SYSTEM_LIBRARY/Documentation/man; fi
+if test x"$GNUSTEP_SYSTEM_DOC_INFO" = x""; then GNUSTEP_SYSTEM_DOC_INFO=$GNUSTEP_SYSTEM_LIBRARY/Documentation/info; fi
+
+if test x"$GNUSTEP_NETWORK_APPS" = x""; then GNUSTEP_NETWORK_APPS=$GNUSTEP_NETWORK_ROOT/Applications; fi
+if test x"$GNUSTEP_NETWORK_ADMIN_APPS" = x""; then GNUSTEP_NETWORK_ADMIN_APPS=$GNUSTEP_NETWORK_ROOT/Applications/Admin; fi
+if test x"$GNUSTEP_NETWORK_WEB_APPS" = x""; then GNUSTEP_NETWORK_APPS=$GNUSTEP_NETWORK_ROOT/WebApplications; fi
+if test x"$GNUSTEP_NETWORK_TOOLS" = x""; then GNUSTEP_NETWORK_TOOLS=$GNUSTEP_NETWORK_ROOT/Tools; fi
+if test x"$GNUSTEP_NETWORK_ADMIN_TOOLS" = x""; then GNUSTEP_NETWORK_ADMIN_TOOLS=$GNUSTEP_NETWORK_ROOT/Tools/Admin; fi
+if test x"$GNUSTEP_NETWORK_LIBRARY" = x""; then GNUSTEP_NETWORK_LIBRARY=$GNUSTEP_NETWORK_ROOT/Library; fi
+if test x"$GNUSTEP_NETWORK_LIBRARIES" = x""; then GNUSTEP_NETWORK_LIBRARIES=$GNUSTEP_NETWORK_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_NETWORK_HEADERS" = x""; then GNUSTEP_NETWORK_HEADERS=$GNUSTEP_NETWORK_LIBRARY/Headers; fi
+if test x"$GNUSTEP_NETWORK_DOC" = x""; then GNUSTEP_NETWORK_DOC=$GNUSTEP_NETWORK_LIBRARY/Documentation; fi
+if test x"$GNUSTEP_NETWORK_DOC_MAN" = x""; then GNUSTEP_NETWORK_DOC_MAN=$GNUSTEP_NETWORK_LIBRARY/Documentation/man; fi
+if test x"$GNUSTEP_NETWORK_DOC_INFO" = x""; then GNUSTEP_NETWORK_DOC_INFO=$GNUSTEP_NETWORK_LIBRARY/Documentation/info; fi
+
+if test x"$GNUSTEP_LOCAL_APPS" = x""; then GNUSTEP_LOCAL_APPS=$GNUSTEP_LOCAL_ROOT/Applications; fi
+if test x"$GNUSTEP_LOCAL_ADMIN_APPS" = x""; then GNUSTEP_LOCAL_ADMIN_APPS=$GNUSTEP_LOCAL_ROOT/Applications/Admin; fi
+if test x"$GNUSTEP_LOCAL_WEB_APPS" = x""; then GNUSTEP_LOCAL_APPS=$GNUSTEP_LOCAL_ROOT/WebApplications; fi
+if test x"$GNUSTEP_LOCAL_TOOLS" = x""; then GNUSTEP_LOCAL_TOOLS=$GNUSTEP_LOCAL_ROOT/Tools; fi
+if test x"$GNUSTEP_LOCAL_ADMIN_TOOLS" = x""; then GNUSTEP_LOCAL_ADMIN_TOOLS=$GNUSTEP_LOCAL_ROOT/Tools/Admin; fi
+if test x"$GNUSTEP_LOCAL_LIBRARY" = x""; then GNUSTEP_LOCAL_LIBRARY=$GNUSTEP_LOCAL_ROOT/Library; fi
+if test x"$GNUSTEP_LOCAL_LIBRARIES" = x""; then GNUSTEP_LOCAL_LIBRARIES=$GNUSTEP_LOCAL_LIBRARY/Libraries; fi
+if test x"$GNUSTEP_LOCAL_HEADERS" = x""; then GNUSTEP_LOCAL_HEADERS=$GNUSTEP_LOCAL_LIBRARY/Headers; fi
+if test x"$GNUSTEP_LOCAL_DOC" = x""; then GNUSTEP_LOCAL_DOC=$GNUSTEP_LOCAL_LIBRARY/Documentation; fi
+if test x"$GNUSTEP_LOCAL_DOC_MAN" = x""; then GNUSTEP_LOCAL_DOC_MAN=$GNUSTEP_LOCAL_LIBRARY/Documentation/man; fi
+if test x"$GNUSTEP_LOCAL_DOC_INFO" = x""; then GNUSTEP_LOCAL_DOC_INFO=$GNUSTEP_LOCAL_LIBRARY/Documentation/info; fi
+
+if test x"$GNUSTEP_USER_DIR_APPS" = x""; then GNUSTEP_USER_DIR_APPS=$GNUSTEP_USER_DIR/Applications; fi
+if test x"$GNUSTEP_USER_DIR_ADMIN_APPS" = x""; then GNUSTEP_USER_DIR_ADMIN_APPS=$GNUSTEP_USER_DIR/Applications/Admin; fi
+if test x"$GNUSTEP_USER_DIR_WEB_APPS" = x""; then GNUSTEP_USER_DIR_APPS=$GNUSTEP_USER_DIR/WebApplications; fi
+if test x"$GNUSTEP_USER_DIR_TOOLS" = x""; then GNUSTEP_USER_DIR_TOOLS=$GNUSTEP_USER_DIR/Tools; fi
+if test x"$GNUSTEP_USER_DIR_ADMIN_TOOLS" = x""; then GNUSTEP_USER_DIR_ADMIN_TOOLS=$GNUSTEP_USER_DIR/Tools/Admin; fi
+if test x"$GNUSTEP_USER_DIR_LIBRARY" = x""; then GNUSTEP_USER_DIR_LIBRARY=$GNUSTEP_USER_DIR/Library; fi
+if test x"$GNUSTEP_USER_DIR_LIBRARIES" = x""; then GNUSTEP_USER_DIR_LIBRARIES=$GNUSTEP_USER_DIR/Libraries; fi
+if test x"$GNUSTEP_USER_DIR_HEADERS" = x""; then GNUSTEP_USER_DIR_HEADERS=$GNUSTEP_USER_DIR/Headers; fi
+if test x"$GNUSTEP_USER_DIR_DOC" = x""; then GNUSTEP_USER_DIR_DOC=$GNUSTEP_USER_DIR/Documentation; fi
+if test x"$GNUSTEP_USER_DIR_DOC_MAN" = x""; then GNUSTEP_USER_DIR_DOC_MAN=$GNUSTEP_USER_DIR/Documentation/man; fi
+if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNUSTEP_USER_DIR/Documentation/info; fi
+
+echo "$as_me:$LINENO: checking for GNUstep-base installation domain" >&5
+echo $ECHO_N "checking for GNUstep-base installation domain... $ECHO_C" >&6
+
+# Check whether --with-installation-domain or --without-installation-domain was given.
+if test "${with_installation_domain+set}" = set; then
+  withval="$with_installation_domain"
+  result="$withval"
+else
+  result="no"
+
+fi;
+if test "$result" = "no"
+then
+  # Check if gnustep-config supports the option
+  # --installation-domain-for, and use it if available.  That option
+  # will automatically use the shell variable GNUSTEP_INSTALLATION_DOMAIN or
+  # the installation-domains.conf files (or the LOCAL default) as appropriate.
+  # Otherwise, if that option is not available just fall back to
+  # using GNUSTEP_INSTALLATION_DOMAIN or (if that was not defiend) LOCAL.
+  if (gnustep-config --help | grep installation-domain) >&5 2>&5
+  then
+    result=`gnustep-config --installation-domain-for=gnustep-base 2>&5`
+  else
+    { echo "$as_me:$LINENO: WARNING: The 'gnustep-config' script was not found or out of date." >&5
+echo "$as_me: WARNING: The 'gnustep-config' script was not found or out of date." >&2;}
+    result=$GNUSTEP_INSTALLATION_DOMAIN
+    if test "$result" = ""
+    then
+      # This case was added on December 2008 and is only for backwards
+      # compatibility with older versions of gnustep-make.
+      result=LOCAL
+    fi
+  fi
+fi
+case "$result" in
+  SYSTEM)
+    echo "$as_me:$LINENO: result: SYSTEM" >&5
+echo "${ECHO_T}SYSTEM" >&6
+    GNUSTEP_BASE_PATH="$GNUSTEP_SYSTEM_TOOLS";;
+  LOCAL)
+    echo "$as_me:$LINENO: result: LOCAL" >&5
+echo "${ECHO_T}LOCAL" >&6
+    GNUSTEP_BASE_PATH="$GNUSTEP_LOCAL_TOOLS";;
+  NETWORK)
+    echo "$as_me:$LINENO: result: NETWORK" >&5
+echo "${ECHO_T}NETWORK" >&6
+    GNUSTEP_BASE_PATH="$GNUSTEP_NETWORK_TOOLS";;
+  USER)
+    echo "$as_me:$LINENO: result: USER" >&5
+echo "${ECHO_T}USER" >&6
+    GNUSTEP_BASE_PATH="$GNUSTEP_USER_TOOLS";;
+  *)
+    { { echo "$as_me:$LINENO: error: Unknown installation domain '$result' (it should be SYSTEM, LOCAL, NETWORK or USER).  Please run configure again with the option --with-installation-domain=LOCAL (or whatever domain you want to install into)." >&5
+echo "$as_me: error: Unknown installation domain '$result' (it should be SYSTEM, LOCAL, NETWORK or USER).  Please run configure again with the option --with-installation-domain=LOCAL (or whatever domain you want to install into)." >&2;}
+   { (exit 1); exit 1; }; }
+    exit 1;;
+esac
+# We store GNUSTEP_BASE_DOMAIN in config.mak so that we can check
+# at runtime and make sure it is consistent with the
+# GNUSTEP_INSTALLATION_DOMAIN that is used at runtime.
+GNUSTEP_BASE_DOMAIN=$result
+
+
+#
+# If we are on mingw, we now want to convert the paths to relative
+# paths (relative to libgnustep-base.dll).
+#
+case "$target_os" in
+  mingw*)
+    # TODO: Improve this hack.
+    # According to Wikipedia, this is the default for Windows 2000,
+    # Windows XP and Windows Server 2003.  For Windows Vista this will
+    # change to C:\Users.  The directory name needs to be localized though
+    # (and the disk may need changing as well ?).
+    GNUSTEP_SYSTEM_USERS_DIR="C:\Documents and Settings"
+    GNUSTEP_NETWORK_USERS_DIR="C:\Documents and Settings"
+    GNUSTEP_LOCAL_USERS_DIR="C:\Documents and Settings"
+
+    # TODO: It would be nice to use the 'short' output of
+    # relative_path.sh, but older versions of relative_path.sh
+    # did not support specifying the type of output and
+    # would abort if they were given more than 2 parameters,
+    # so we can not use the 'short' option if we want gnustep-base
+    # to work with older versions of gnustep-make.
+    # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
+    # two years after it has been released ?), we could switch to the
+    # 'short' output though.
+    GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
+    GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
+    GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS`
+    GNUSTEP_SYSTEM_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_TOOLS`
+    GNUSTEP_SYSTEM_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_TOOLS`
+    GNUSTEP_SYSTEM_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARY`
+    GNUSTEP_SYSTEM_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARIES`
+    GNUSTEP_SYSTEM_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_HEADERS`
+    GNUSTEP_SYSTEM_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC`
+    GNUSTEP_SYSTEM_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_MAN`
+    GNUSTEP_SYSTEM_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_INFO`
+
+    GNUSTEP_NETWORK_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_APPS`
+    GNUSTEP_NETWORK_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_APPS`
+    GNUSTEP_NETWORK_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_WEB_APPS`
+    GNUSTEP_NETWORK_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_TOOLS`
+    GNUSTEP_NETWORK_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_TOOLS`
+    GNUSTEP_NETWORK_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARY`
+    GNUSTEP_NETWORK_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARIES`
+    GNUSTEP_NETWORK_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_HEADERS`
+    GNUSTEP_NETWORK_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC`
+    GNUSTEP_NETWORK_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_MAN`
+    GNUSTEP_NETWORK_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_INFO`
+
+    GNUSTEP_LOCAL_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_APPS`
+    GNUSTEP_LOCAL_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_APPS`
+    GNUSTEP_LOCAL_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_WEB_APPS`
+    GNUSTEP_LOCAL_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_TOOLS`
+    GNUSTEP_LOCAL_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_TOOLS`
+    GNUSTEP_LOCAL_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARY`
+    GNUSTEP_LOCAL_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARIES`
+    GNUSTEP_LOCAL_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_HEADERS`
+    GNUSTEP_LOCAL_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC`
+    GNUSTEP_LOCAL_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_MAN`
+    GNUSTEP_LOCAL_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_INFO`
+# It would be nice to now store this stuff into a ./GNUstep.conf file
+# installed with gnustep-base.dll.  This would clarify.
+    ;;
+esac
+
+GNUSTEP_BASE_RELATIVE_PATHS=no
+
+# Now, check if any of the paths is a relative path.
+for path in \
+ "$GNUSTEP_SYSTEM_APPS" "$GNUSTEP_SYSTEM_ADMIN_APPS" "$GNUSTEP_SYSTEM_WEB_APPS" \
+ "$GNUSTEP_SYSTEM_TOOLS" "$GNUSTEP_SYSTEM_ADMIN_TOOLS" \
+ "$GNUSTEP_SYSTEM_LIBRARY" "$GNUSTEP_SYSTEM_LIBRARIES" "$GNUSTEP_SYSTEM_HEADERS" \
+ "$GNUSTEP_SYSTEM_DOC" "$GNUSTEP_SYSTEM_DOC_MAN" "$GNUSTEP_SYSTEM_DOC_INFO" \
+ "$GNUSTEP_NETWORK_APPS" "$GNUSTEP_NETWORK_ADMIN_APPS" "$GNUSTEP_NETWORK_WEB_APPS" \
+ "$GNUSTEP_NETWORK_TOOLS" "$GNUSTEP_NETWORK_ADMIN_TOOLS" \
+ "$GNUSTEP_NETWORK_LIBRARY" "$GNUSTEP_NETWORK_LIBRARIES" "$GNUSTEP_NETWORK_HEADERS" \
+ "$GNUSTEP_NETWORK_DOC" "$GNUSTEP_NETWORK_DOC_MAN" "$GNUSTEP_NETWORK_DOC_INFO" \
+ "$GNUSTEP_LOCAL_APPS" "$GNUSTEP_LOCAL_ADMIN_APPS" "$GNUSTEP_LOCAL_WEB_APPS" \
+ "$GNUSTEP_LOCAL_TOOLS" "$GNUSTEP_LOCAL_ADMIN_TOOLS" \
+ "$GNUSTEP_LOCAL_LIBRARY" "$GNUSTEP_LOCAL_LIBRARIES" "$GNUSTEP_LOCAL_HEADERS" \
+ "$GNUSTEP_LOCAL_DOC" "$GNUSTEP_LOCAL_DOC_MAN" "$GNUSTEP_LOCAL_DOC_INFO"; do
+case "$path" in
+  ./*)  GNUSTEP_BASE_RELATIVE_PATHS=yes ;;
+  ../*) GNUSTEP_BASE_RELATIVE_PATHS=yes ;;
+esac
+done
+
+echo "$as_me:$LINENO: checking if we are hardcoding any relative paths in gnustep-base" >&5
+echo $ECHO_N "checking if we are hardcoding any relative paths in gnustep-base... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_BASE_RELATIVE_PATHS" >&5
+echo "${ECHO_T}$GNUSTEP_BASE_RELATIVE_PATHS" >&6
+
+
+#
+# Now, we want to print out the paths that we're going to hardcode
+# into gnustep-base.  This is to help users in finding
+# misconfigurations.
+#
+{ echo "$as_me:$LINENO: We store the following filesystem layout into gnustep-base, to be used when no config file is found" >&5
+echo "$as_me: We store the following filesystem layout into gnustep-base, to be used when no config file is found" >&6;}
+echo "$as_me:$LINENO: checking for Makefiles directory" >&5
+echo $ECHO_N "checking for Makefiles directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_MAKEFILES" >&5
+echo "${ECHO_T}$GNUSTEP_MAKEFILES" >&6
+echo "$as_me:$LINENO: checking for user defaults directory" >&5
+echo $ECHO_N "checking for user defaults directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DEFAULTS_DIR" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DEFAULTS_DIR" >&6
+echo "$as_me:$LINENO: checking for user config file" >&5
+echo $ECHO_N "checking for user config file... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_CONFIG_FILE" >&5
+echo "${ECHO_T}$GNUSTEP_USER_CONFIG_FILE" >&6
+
+echo "$as_me:$LINENO: checking for System Applications directory" >&5
+echo $ECHO_N "checking for System Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_APPS" >&6
+echo "$as_me:$LINENO: checking for System Admin Applications directory" >&5
+echo $ECHO_N "checking for System Admin Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_ADMIN_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_ADMIN_APPS" >&6
+echo "$as_me:$LINENO: checking for System Web Applications directory" >&5
+echo $ECHO_N "checking for System Web Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_WEB_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_WEB_APPS" >&6
+echo "$as_me:$LINENO: checking for System Tools directory" >&5
+echo $ECHO_N "checking for System Tools directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_TOOLS" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_TOOLS" >&6
+echo "$as_me:$LINENO: checking for System Admin Tools directory" >&5
+echo $ECHO_N "checking for System Admin Tools directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_ADMIN_TOOLS" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_ADMIN_TOOLS" >&6
+echo "$as_me:$LINENO: checking for System Library directory" >&5
+echo $ECHO_N "checking for System Library directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_LIBRARY" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_LIBRARY" >&6
+echo "$as_me:$LINENO: checking for System Libraries directory" >&5
+echo $ECHO_N "checking for System Libraries directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_LIBRARIES" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_LIBRARIES" >&6
+echo "$as_me:$LINENO: checking for System Headers directory" >&5
+echo $ECHO_N "checking for System Headers directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_HEADERS" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_HEADERS" >&6
+echo "$as_me:$LINENO: checking for System Documentation directory" >&5
+echo $ECHO_N "checking for System Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_DOC" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_DOC" >&6
+echo "$as_me:$LINENO: checking for System Info Documentation directory" >&5
+echo $ECHO_N "checking for System Info Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_DOC_INFO" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_DOC_INFO" >&6
+echo "$as_me:$LINENO: checking for System Man Documentation directory" >&5
+echo $ECHO_N "checking for System Man Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_DOC_MAN" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_DOC_MAN" >&6
+
+echo "$as_me:$LINENO: checking for Network Applications directory" >&5
+echo $ECHO_N "checking for Network Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_APPS" >&6
+echo "$as_me:$LINENO: checking for Network Admin Applications directory" >&5
+echo $ECHO_N "checking for Network Admin Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_ADMIN_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_ADMIN_APPS" >&6
+echo "$as_me:$LINENO: checking for Network Web Applications directory" >&5
+echo $ECHO_N "checking for Network Web Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_WEB_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_WEB_APPS" >&6
+echo "$as_me:$LINENO: checking for Network Tools directory" >&5
+echo $ECHO_N "checking for Network Tools directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_TOOLS" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_TOOLS" >&6
+echo "$as_me:$LINENO: checking for Network Admin Tools directory" >&5
+echo $ECHO_N "checking for Network Admin Tools directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_ADMIN_TOOLS" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_ADMIN_TOOLS" >&6
+echo "$as_me:$LINENO: checking for Network Library directory" >&5
+echo $ECHO_N "checking for Network Library directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_LIBRARY" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_LIBRARY" >&6
+echo "$as_me:$LINENO: checking for Network Libraries directory" >&5
+echo $ECHO_N "checking for Network Libraries directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_LIBRARIES" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_LIBRARIES" >&6
+echo "$as_me:$LINENO: checking for Network Headers directory" >&5
+echo $ECHO_N "checking for Network Headers directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_HEADERS" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_HEADERS" >&6
+echo "$as_me:$LINENO: checking for Network Documentation directory" >&5
+echo $ECHO_N "checking for Network Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_DOC" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_DOC" >&6
+echo "$as_me:$LINENO: checking for Network Info Documentation directory" >&5
+echo $ECHO_N "checking for Network Info Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_DOC_INFO" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_DOC_INFO" >&6
+echo "$as_me:$LINENO: checking for Network Man Documentation directory" >&5
+echo $ECHO_N "checking for Network Man Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_DOC_MAN" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_DOC_MAN" >&6
+
+echo "$as_me:$LINENO: checking for Local Applications directory" >&5
+echo $ECHO_N "checking for Local Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_APPS" >&6
+echo "$as_me:$LINENO: checking for Local Admin Applications directory" >&5
+echo $ECHO_N "checking for Local Admin Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_ADMIN_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_ADMIN_APPS" >&6
+echo "$as_me:$LINENO: checking for Local Web Applications directory" >&5
+echo $ECHO_N "checking for Local Web Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_WEB_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_WEB_APPS" >&6
+echo "$as_me:$LINENO: checking for Local Tools directory" >&5
+echo $ECHO_N "checking for Local Tools directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_TOOLS" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_TOOLS" >&6
+echo "$as_me:$LINENO: checking for Local Admin Tools directory" >&5
+echo $ECHO_N "checking for Local Admin Tools directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_ADMIN_TOOLS" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_ADMIN_TOOLS" >&6
+echo "$as_me:$LINENO: checking for Local Library directory" >&5
+echo $ECHO_N "checking for Local Library directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_LIBRARY" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_LIBRARY" >&6
+echo "$as_me:$LINENO: checking for Local Libraries directory" >&5
+echo $ECHO_N "checking for Local Libraries directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_LIBRARIES" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_LIBRARIES" >&6
+echo "$as_me:$LINENO: checking for Local Headers directory" >&5
+echo $ECHO_N "checking for Local Headers directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_HEADERS" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_HEADERS" >&6
+echo "$as_me:$LINENO: checking for Local Documentation directory" >&5
+echo $ECHO_N "checking for Local Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_DOC" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_DOC" >&6
+echo "$as_me:$LINENO: checking for Local Info Documentation directory" >&5
+echo $ECHO_N "checking for Local Info Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_DOC_INFO" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_DOC_INFO" >&6
+echo "$as_me:$LINENO: checking for Local Man Documentation directory" >&5
+echo $ECHO_N "checking for Local Man Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_DOC_MAN" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_DOC_MAN" >&6
+
+echo "$as_me:$LINENO: checking for User Applications directory" >&5
+echo $ECHO_N "checking for User Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_APPS" >&6
+echo "$as_me:$LINENO: checking for User Admin Applications directory" >&5
+echo $ECHO_N "checking for User Admin Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_ADMIN_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_ADMIN_APPS" >&6
+echo "$as_me:$LINENO: checking for User Web Applications directory" >&5
+echo $ECHO_N "checking for User Web Applications directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_WEB_APPS" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_WEB_APPS" >&6
+echo "$as_me:$LINENO: checking for User Tools directory" >&5
+echo $ECHO_N "checking for User Tools directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_TOOLS" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_TOOLS" >&6
+echo "$as_me:$LINENO: checking for User Admin Tools directory" >&5
+echo $ECHO_N "checking for User Admin Tools directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_ADMIN_TOOLS" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_ADMIN_TOOLS" >&6
+echo "$as_me:$LINENO: checking for User Library directory" >&5
+echo $ECHO_N "checking for User Library directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_LIBRARY" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_LIBRARY" >&6
+echo "$as_me:$LINENO: checking for User Libraries directory" >&5
+echo $ECHO_N "checking for User Libraries directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_LIBRARIES" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_LIBRARIES" >&6
+echo "$as_me:$LINENO: checking for User Headers directory" >&5
+echo $ECHO_N "checking for User Headers directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_HEADERS" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_HEADERS" >&6
+echo "$as_me:$LINENO: checking for User Documentation directory" >&5
+echo $ECHO_N "checking for User Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_DOC" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_DOC" >&6
+echo "$as_me:$LINENO: checking for User Info Documentation directory" >&5
+echo $ECHO_N "checking for User Info Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_DOC_INFO" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_DOC_INFO" >&6
+echo "$as_me:$LINENO: checking for User Man Documentation directory" >&5
+echo $ECHO_N "checking for User Man Documentation directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_USER_DIR_DOC_MAN" >&5
+echo "${ECHO_T}$GNUSTEP_USER_DIR_DOC_MAN" >&6
+
+echo "$as_me:$LINENO: checking for System User directory" >&5
+echo $ECHO_N "checking for System User directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_SYSTEM_USERS_DIR" >&5
+echo "${ECHO_T}$GNUSTEP_SYSTEM_USERS_DIR" >&6
+echo "$as_me:$LINENO: checking for Network User directory" >&5
+echo $ECHO_N "checking for Network User directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_NETWORK_USERS_DIR" >&5
+echo "${ECHO_T}$GNUSTEP_NETWORK_USERS_DIR" >&6
+echo "$as_me:$LINENO: checking for Local User directory" >&5
+echo $ECHO_N "checking for Local User directory... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $GNUSTEP_LOCAL_USERS_DIR" >&5
+echo "${ECHO_T}$GNUSTEP_LOCAL_USERS_DIR" >&6
+
+#
+# Set the default configuration file values in config.h to be hard-coded
+# into NSPathUtilities.m
+#
+GNUSTEP_MAKEFILES=`echo $GNUSTEP_MAKEFILES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_MAKEFILES "$GNUSTEP_MAKEFILES"
+_ACEOF
+
+GNUSTEP_USER_DEFAULTS_DIR=`echo $GNUSTEP_USER_DEFAULTS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DEFAULTS_DIR "$GNUSTEP_USER_DEFAULTS_DIR"
+_ACEOF
+
+GNUSTEP_USER_CONFIG_FILE=`echo $GNUSTEP_USER_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_CONFIG_FILE "$GNUSTEP_USER_CONFIG_FILE"
+_ACEOF
+
+GNUSTEP_CONFIG_FILE=`echo $GNUSTEP_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_CONFIG_FILE "$GNUSTEP_CONFIG_FILE"
+_ACEOF
+
+
+#
+# SYSTEM domain paths
+#
+GNUSTEP_SYSTEM_APPS=`echo $GNUSTEP_SYSTEM_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_APPS "$GNUSTEP_SYSTEM_APPS"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_ADMIN_APPS=`echo $GNUSTEP_SYSTEM_ADMIN_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_ADMIN_APPS "$GNUSTEP_SYSTEM_ADMIN_APPS"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_WEB_APPS=`echo $GNUSTEP_SYSTEM_WEB_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_WEB_APPS "$GNUSTEP_SYSTEM_WEB_APPS"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_TOOLS=`echo $GNUSTEP_SYSTEM_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_TOOLS "$GNUSTEP_SYSTEM_TOOLS"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_ADMIN_TOOLS=`echo $GNUSTEP_SYSTEM_ADMIN_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_ADMIN_TOOLS "$GNUSTEP_SYSTEM_ADMIN_TOOLS"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_LIBRARY=`echo $GNUSTEP_SYSTEM_LIBRARY|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_LIBRARY "$GNUSTEP_SYSTEM_LIBRARY"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_LIBRARIES=`echo $GNUSTEP_SYSTEM_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_LIBRARIES "$GNUSTEP_SYSTEM_LIBRARIES"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_HEADERS=`echo $GNUSTEP_SYSTEM_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_HEADERS "$GNUSTEP_SYSTEM_HEADERS"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_DOC=`echo $GNUSTEP_SYSTEM_DOC|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_DOC "$GNUSTEP_SYSTEM_DOC"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_DOC_MAN=`echo $GNUSTEP_SYSTEM_DOC_MAN|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_DOC_MAN "$GNUSTEP_SYSTEM_DOC_MAN"
+_ACEOF
+
+
+GNUSTEP_SYSTEM_DOC_INFO=`echo $GNUSTEP_SYSTEM_DOC_INFO|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_DOC_INFO "$GNUSTEP_SYSTEM_DOC_INFO"
+_ACEOF
+
+
+#
+# NETWORK domain paths
+#
+GNUSTEP_NETWORK_APPS=`echo $GNUSTEP_NETWORK_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_APPS "$GNUSTEP_NETWORK_APPS"
+_ACEOF
+
+
+GNUSTEP_NETWORK_ADMIN_APPS=`echo $GNUSTEP_NETWORK_ADMIN_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_ADMIN_APPS "$GNUSTEP_NETWORK_ADMIN_APPS"
+_ACEOF
+
+
+GNUSTEP_NETWORK_WEB_APPS=`echo $GNUSTEP_NETWORK_WEB_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_WEB_APPS "$GNUSTEP_NETWORK_WEB_APPS"
+_ACEOF
+
+
+GNUSTEP_NETWORK_TOOLS=`echo $GNUSTEP_NETWORK_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_TOOLS "$GNUSTEP_NETWORK_TOOLS"
+_ACEOF
+
+
+GNUSTEP_NETWORK_ADMIN_TOOLS=`echo $GNUSTEP_NETWORK_ADMIN_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_ADMIN_TOOLS "$GNUSTEP_NETWORK_ADMIN_TOOLS"
+_ACEOF
+
+
+GNUSTEP_NETWORK_LIBRARY=`echo $GNUSTEP_NETWORK_LIBRARY|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_LIBRARY "$GNUSTEP_NETWORK_LIBRARY"
+_ACEOF
+
+
+GNUSTEP_NETWORK_LIBRARIES=`echo $GNUSTEP_NETWORK_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_LIBRARIES "$GNUSTEP_NETWORK_LIBRARIES"
+_ACEOF
+
+
+GNUSTEP_NETWORK_HEADERS=`echo $GNUSTEP_NETWORK_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_HEADERS "$GNUSTEP_NETWORK_HEADERS"
+_ACEOF
+
+
+GNUSTEP_NETWORK_DOC=`echo $GNUSTEP_NETWORK_DOC|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_DOC "$GNUSTEP_NETWORK_DOC"
+_ACEOF
+
+
+GNUSTEP_NETWORK_DOC_MAN=`echo $GNUSTEP_NETWORK_DOC_MAN|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_DOC_MAN "$GNUSTEP_NETWORK_DOC_MAN"
+_ACEOF
+
+
+GNUSTEP_NETWORK_DOC_INFO=`echo $GNUSTEP_NETWORK_DOC_INFO|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_DOC_INFO "$GNUSTEP_NETWORK_DOC_INFO"
+_ACEOF
+
+
+#
+# LOCAL domain paths
+#
+GNUSTEP_LOCAL_APPS=`echo $GNUSTEP_LOCAL_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_APPS "$GNUSTEP_LOCAL_APPS"
+_ACEOF
+
+
+GNUSTEP_LOCAL_ADMIN_APPS=`echo $GNUSTEP_LOCAL_ADMIN_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_ADMIN_APPS "$GNUSTEP_LOCAL_ADMIN_APPS"
+_ACEOF
+
+
+GNUSTEP_LOCAL_WEB_APPS=`echo $GNUSTEP_LOCAL_WEB_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_WEB_APPS "$GNUSTEP_LOCAL_WEB_APPS"
+_ACEOF
+
+
+GNUSTEP_LOCAL_TOOLS=`echo $GNUSTEP_LOCAL_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_TOOLS "$GNUSTEP_LOCAL_TOOLS"
+_ACEOF
+
+
+GNUSTEP_LOCAL_ADMIN_TOOLS=`echo $GNUSTEP_LOCAL_ADMIN_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_ADMIN_TOOLS "$GNUSTEP_LOCAL_ADMIN_TOOLS"
+_ACEOF
+
+
+GNUSTEP_LOCAL_LIBRARY=`echo $GNUSTEP_LOCAL_LIBRARY|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_LIBRARY "$GNUSTEP_LOCAL_LIBRARY"
+_ACEOF
+
+
+GNUSTEP_LOCAL_LIBRARIES=`echo $GNUSTEP_LOCAL_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_LIBRARIES "$GNUSTEP_LOCAL_LIBRARIES"
+_ACEOF
+
+
+GNUSTEP_LOCAL_HEADERS=`echo $GNUSTEP_LOCAL_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_HEADERS "$GNUSTEP_LOCAL_HEADERS"
+_ACEOF
+
+
+GNUSTEP_LOCAL_DOC=`echo $GNUSTEP_LOCAL_DOC|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_DOC "$GNUSTEP_LOCAL_DOC"
+_ACEOF
+
+
+GNUSTEP_LOCAL_DOC_MAN=`echo $GNUSTEP_LOCAL_DOC_MAN|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_DOC_MAN "$GNUSTEP_LOCAL_DOC_MAN"
+_ACEOF
+
+
+GNUSTEP_LOCAL_DOC_INFO=`echo $GNUSTEP_LOCAL_DOC_INFO|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_DOC_INFO "$GNUSTEP_LOCAL_DOC_INFO"
+_ACEOF
+
+
+#
+# USER_DIR domain paths
+#
+GNUSTEP_USER_DIR_APPS=`echo $GNUSTEP_USER_DIR_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_APPS "$GNUSTEP_USER_DIR_APPS"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_ADMIN_APPS=`echo $GNUSTEP_USER_DIR_ADMIN_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_ADMIN_APPS "$GNUSTEP_USER_DIR_ADMIN_APPS"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_WEB_APPS=`echo $GNUSTEP_USER_DIR_WEB_APPS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_WEB_APPS "$GNUSTEP_USER_DIR_WEB_APPS"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_TOOLS=`echo $GNUSTEP_USER_DIR_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_TOOLS "$GNUSTEP_USER_DIR_TOOLS"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_ADMIN_TOOLS=`echo $GNUSTEP_USER_DIR_ADMIN_TOOLS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_ADMIN_TOOLS "$GNUSTEP_USER_DIR_ADMIN_TOOLS"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_LIBRARY=`echo $GNUSTEP_USER_DIR_LIBRARY|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_LIBRARY "$GNUSTEP_USER_DIR_LIBRARY"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_LIBRARIES=`echo $GNUSTEP_USER_DIR_LIBRARIES|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_LIBRARIES "$GNUSTEP_USER_DIR_LIBRARIES"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_HEADERS=`echo $GNUSTEP_USER_DIR_HEADERS|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_HEADERS "$GNUSTEP_USER_DIR_HEADERS"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_DOC=`echo $GNUSTEP_USER_DIR_DOC|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_DOC "$GNUSTEP_USER_DIR_DOC"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_DOC_MAN=`echo $GNUSTEP_USER_DIR_DOC_MAN|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_DOC_MAN "$GNUSTEP_USER_DIR_DOC_MAN"
+_ACEOF
+
+
+GNUSTEP_USER_DIR_DOC_INFO=`echo $GNUSTEP_USER_DIR_DOC_INFO|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_USER_DIR_DOC_INFO "$GNUSTEP_USER_DIR_DOC_INFO"
+_ACEOF
+
+
+GNUSTEP_TARGET_SYSTEM_USERS_DIR=`echo $GNUSTEP_TARGET_SYSTEM_USERS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_SYSTEM_USERS_DIR "$GNUSTEP_TARGET_SYSTEM_USERS_DIR"
+_ACEOF
+
+GNUSTEP_TARGET_NETWORK_USERS_DIR=`echo $GNUSTEP_TARGET_NETWORK_USERS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_NETWORK_USERS_DIR "$GNUSTEP_TARGET_NETWORK_USERS_DIR"
+_ACEOF
+
+GNUSTEP_TARGET_LOCAL_USERS_DIR=`echo $GNUSTEP_TARGET_LOCAL_USERS_DIR|sed -e 's/\\\\/\\\\\\\\/g'`
+
+cat >>confdefs.h <<_ACEOF
+#define GNUSTEP_TARGET_LOCAL_USERS_DIR "$GNUSTEP_TARGET_LOCAL_USERS_DIR"
+_ACEOF
+
+
 #
 # Now load the values to be used in locating libraries etc used when
 # building the base library ... as supplied by the gnustep-make package
@@ -1579,6 +2578,10 @@ test -n "$target_alias" &&
 #
 unset GNUSTEP_SYSTEM_HEADERS
 unset GNUSTEP_SYSTEM_LIBRARIES
+unset GNUSTEP_NETWORK_HEADERS
+unset GNUSTEP_NETWORK_LIBRARIES
+unset GNUSTEP_LOCAL_HEADERS
+unset GNUSTEP_LOCAL_LIBRARIES
 GNUSTEP_MAKEFILES="$CURRENT_GNUSTEP_MAKEFILES"
 GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
 . "$CURRENT_GNUSTEP_MAKEFILES/GNUstep.sh"
@@ -1594,15 +2597,36 @@ if test x"$GNUSTEP_SYSTEM_LIBRARIES" = x""; then
   GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_ROOT/Library/Libraries"
 fi
 
+if test x"$GNUSTEP_NETWORK_HEADERS" = x""; then
+  GNUSTEP_NETWORK_HEADERS="$GNUSTEP_NETWORK_ROOT/Library/Headers"
+fi
+
+if test x"$GNUSTEP_NETWORK_LIBRARIES" = x""; then
+  GNUSTEP_NETWORK_LIBRARIES="$GNUSTEP_NETWORK_ROOT/Library/Libraries"
+fi
+
+if test x"$GNUSTEP_LOCAL_HEADERS" = x""; then
+  GNUSTEP_LOCAL_HEADERS="$GNUSTEP_LOCAL_ROOT/Library/Headers"
+fi
+
+if test x"$GNUSTEP_LOCAL_LIBRARIES" = x""; then
+  GNUSTEP_LOCAL_LIBRARIES="$GNUSTEP_LOCAL_ROOT/Library/Libraries"
+fi
+
 if test x"$GNUSTEP_IS_FLATTENED" = x"no"; then
   GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
+  GNUSTEP_NETWORK_HEADERS="$GNUSTEP_NETWORK_HEADERS/$LIBRARY_COMBO"
   GNUSTEP_LOCAL_HEADERS="$GNUSTEP_LOCAL_HEADERS/$LIBRARY_COMBO"
-  # FIXME ... check that gnustep-make exports target cpu and os
+  # FIXME: Cross-compiling should read the target from the configure
+  # options and use it.   GNUSTEP_TARGET_* variables do not exist in
+  # this context (so "$GNUSTEP_TARGET_CPU" will always be "")
   if test x"$GNUSTEP_TARGET_CPU" = x""; then
     GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_LIBRARIES/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
+    GNUSTEP_NETWORK_LIBRARIES="$GNUSTEP_NETWORK_LIBRARIES/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
     GNUSTEP_LOCAL_LIBRARIES="$GNUSTEP_LOCAL_LIBRARIES/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
   else
     GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_LIBRARIES/$GNUSTEP_TARGET_CPU/$GNUSTEP_TARGET_OS/$LIBRARY_COMBO"
+    GNUSTEP_NETWORK_LIBRARIES="$GNUSTEP_NETWORK_LIBRARIES/$GNUSTEP_TARGET_CPU/$GNUSTEP_TARGET_OS/$LIBRARY_COMBO"
     GNUSTEP_LOCAL_LIBRARIES="$GNUSTEP_LOCAL_LIBRARIES/$GNUSTEP_TARGET_CPU/$GNUSTEP_TARGET_OS/$LIBRARY_COMBO"
   fi
 fi
@@ -1612,8 +2636,8 @@ fi
 # plain C developer headers/libraries which haver been installed in the
 # GNUstep hierarchy.
 #
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS -I$GNUSTEP_LOCAL_HEADERS"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES -L$GNUSTEP_LOCAL_LIBRARIES"
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_LOCAL_HEADERS"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_LOCAL_LIBRARIES"
 
 #--------------------------------------------------------------------
 # Find the compiler
@@ -21164,50 +22188,9 @@ else
   openssl_libdir="no"
 fi;
 
-# Check whether --with-installation-domain or --without-installation-domain was given.
-if test "${with_installation_domain+set}" = set; then
-  withval="$with_installation_domain"
-  result="$withval"
-else
-  result="no"
-
-fi;
-
-# Check whether --with-config-file or --without-config-file was given.
-if test "${with_config_file+set}" = set; then
-  withval="$with_config_file"
-  result="$withval"
-else
-  result="no"
-
-fi;
-# Check whether --enable-environment-config-file or --disable-environment-config-file was given.
-if test "${enable_environment_config_file+set}" = set; then
-  enableval="$enable_environment_config_file"
-  ac_cv_environment_config_file=$enableval
-else
-  ac_cv_environment_config_file=$enable_env_config
-fi;
-# Check whether --enable-importing-config-file or --disable-importing-config-file was given.
-if test "${enable_importing_config_file+set}" = set; then
-  enableval="$enable_importing_config_file"
-  ac_cv_importing_config_file=$enableval
-else
-  ac_cv_importing_config_file="yes"
-fi;
-
-# Check whether --with-default-config or --without-default-config was given.
-if test "${with_default_config+set}" = set; then
-  withval="$with_default_config"
-  result="$withval"
-else
-  result="no"
-
-fi;
 
 
-
-subdirs="$subdirs Source/pathconfig SSL"
+subdirs="$subdirs SSL"
 
 
 #--------------------------------------------------------------------
@@ -21858,6 +22841,8 @@ s,@target@,$target,;t t
 s,@target_cpu@,$target_cpu,;t t
 s,@target_vendor@,$target_vendor,;t t
 s,@target_os@,$target_os,;t t
+s,@GNUSTEP_BASE_DOMAIN@,$GNUSTEP_BASE_DOMAIN,;t t
+s,@GNUSTEP_BASE_RELATIVE_PATHS@,$GNUSTEP_BASE_RELATIVE_PATHS,;t t
 s,@CC@,$CC,;t t
 s,@CFLAGS@,$CFLAGS,;t t
 s,@LDFLAGS@,$LDFLAGS,;t t
