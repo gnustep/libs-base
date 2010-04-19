@@ -353,12 +353,14 @@ cifframe_type(const char *typePtr, const char **advance)
 
 	    if (stype.type == 0)
 	      {
-		if (*typePtr == _C_ULNG)
+                const char      *t = @encode(NSUInteger);
+
+		if (*t == _C_ULNG)
 		  {
 		    elems[0] = &gsffi_type_ulong;
 		  }
 #ifdef	_C_LNG_LNG
-		else if (*typePtr == _C_ULNG_LNG)
+		else if (*t == _C_ULNG_LNG)
 		  {
 		    elems[0] = &gsffi_type_ulong_long;
 		  }
