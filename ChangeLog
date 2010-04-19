@@ -1,3 +1,9 @@
+2010-04-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/cifframe.m (cifframe_type): Fix the cached information
+	for the NSRange type.  Was causing incorrect forwarding of NSRange
+        arguments on 64bit systems.
+
 2010-04-18   Nicola Pero <nicola.pero@meta-innovation.com>
 
 	Fixed inefficiencies in building the SSL bundle.
