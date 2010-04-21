@@ -1055,16 +1055,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    && [s hasSuffix: @".woa"] == NO	// GNUstep Web
 	    )
 	    {
-	      /* Well known file extension ... app wrapper format.
-	       */
-	      isApplication = YES;
-	    }
-	  else
-	    {
 	      NSFileManager	*mgr = manager();
 	      BOOL		f;
 
-	      /* Might be an app wrapper with another extension...
+	      /* Not one of the common extensions, but
+	       * might be an app wrapper with another extension...
 	       * Look for Info-gnustep.plist or Info.plist in a
 	       * Resources subdirectory.
 	       */
