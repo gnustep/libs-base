@@ -1,3 +1,8 @@
+2010-04-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ([mainBundle]) Fix error determining whether
+	the bundle is an app or not ... was breaking lookup of tool resources.
+
 2010-04-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/cifframe.m (cifframe_type): Fix the cached information
