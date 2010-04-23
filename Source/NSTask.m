@@ -1238,7 +1238,7 @@ quotedFromString(NSString *aString)
   SetHandleInformation(hOut, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
   SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
 
-  result = CreateProcessW(wexecutable,
+  result = CreateProcessW(NULL, //wexecutable,
     w_args,
     NULL,      			/* proc attrs */
     NULL,      			/* thread attrs */

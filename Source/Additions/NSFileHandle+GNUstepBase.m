@@ -23,6 +23,9 @@
 
 */
 #import "common.h"
+
+#if	defined(NeXT_Foundation_LIBRARY)
+
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSHost.h"
 #import "GSNetwork.h"
@@ -44,23 +47,28 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct addrinfo **ai, stru
   const char        *cPortn = NULL;
   int                e = 0;
 
-  if (!svc) {
-    NSLog(@"service is nil.");
-    
-    return NO;
-  }
+  if (!svc)
+    {
+      NSLog(@"service is nil.");
+      
+      return NO;
+    }
 
   hints->ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
   hints->ai_protocol = IPPROTO_IP; // accept any
 
-  if (pcl) {
-    if ([pcl isEqualToString:@"tcp"]) {
-      hints->ai_protocol = IPPROTO_TCP;
-      hints->ai_socktype = SOCK_STREAM;
-    } else if ([pcl isEqualToString:@"udp"]) {
-      hints->ai_protocol = IPPROTO_UDP;
-    } 
-  }
+  if (pcl)
+    {
+      if ([pcl isEqualToString:@"tcp"])
+	{
+	  hints->ai_protocol = IPPROTO_TCP;
+	  hints->ai_socktype = SOCK_STREAM;
+	}
+      else if ([pcl isEqualToString:@"udp"])
+	{
+	  hints->ai_protocol = IPPROTO_UDP;
+	} 
+    }
 
   /*
    *    If we were given a hostname, we use any address for that host.
@@ -68,16 +76,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct addrinfo **ai, stru
    *    a null (any address).
    */
   if (name)
-  {
-    NSHost*        host = [NSHost hostWithName: name];
-    
-    if (host != nil)
     {
-      name = [host address];
-      NSLog(@"host address '%@'", name);
-      cHostn = [name cStringUsingEncoding:NSASCIIStringEncoding];
+      NSHost*        host = [NSHost hostWithName: name];
+      
+      if (host != nil)
+	{
+	  name = [host address];
+	  NSLog(@"host address '%@'", name);
+	  cHostn = [name cStringUsingEncoding:NSASCIIStringEncoding];
+	}
     }
-  }
   
   cPortn = [svc cStringUsingEncoding:NSASCIIStringEncoding];
   
@@ -87,17 +95,18 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct addrinfo **ai, stru
                                            //&ai
   e = getaddrinfo (cHostn, cPortn, hints, ai);
 
-  if (e != 0) {
-    NSLog(@"getaddrinfo: %s", gai_strerror (e));
-    return NO;
-  }
+  if (e != 0)
+    {
+      NSLog(@"getaddrinfo: %s", gai_strerror (e));
+      return NO;
+    }
 
   return YES;
 }
 
 - (id) initAsServerAtAddress: (NSString*)a
-                           service: (NSString*)s
-                          protocol: (NSString*)p
+		     service: (NSString*)s
+		    protocol: (NSString*)p
 {
 #ifndef    BROKEN_SO_REUSEADDR
   int    status = 1;
@@ -190,45 +199,46 @@ cleanup:
   socklen_t    size = sizeof(sstore);
   
   if (getsockname([self fileDescriptor], (struct sockaddr*)&sstore,  &size) < 0)
-  {
-    NSLog(@"unable to get socket name - %@",  [NSError _last]);
-    return nil;
-  }
+    {
+      NSLog(@"unable to get socket name - %@",  [NSError _last]);
+      return nil;
+    }
   
   sadr = (struct sockaddr *) &sstore;
   
-  switch (sadr->sa_family) {
-    case AF_INET6:
+  switch (sadr->sa_family)
     {
-      
-      char straddr[INET6_ADDRSTRLEN];
-      struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)&sstore;
-      
-      inet_ntop(AF_INET6, &(addr6->sin6_addr), straddr, 
-                sizeof(straddr));
-      
-      return [NSString stringWithCString:straddr 
-                                encoding:NSASCIIStringEncoding];
-      break;
+      case AF_INET6:
+	{
+	  char straddr[INET6_ADDRSTRLEN];
+	  struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)&sstore;
+	  
+	  inet_ntop(AF_INET6, &(addr6->sin6_addr), straddr, 
+		    sizeof(straddr));
+	  
+	  return [NSString stringWithCString: straddr 
+				    encoding: NSASCIIStringEncoding];
+	  break;
+	}
+      case AF_INET:
+	{
+	  
+	  struct sockaddr_in * addr4 = (struct sockaddr_in*) &sstore;
+	  
+	  char *address = inet_ntoa(addr4->sin_addr);
+	  
+	  return [NSString stringWithCString: address 
+				    encoding: NSASCIIStringEncoding];
+	  break;
+	} 
+      default:
+	break;
     }
-    case AF_INET:
-    {
-      
-      struct sockaddr_in * addr4 = (struct sockaddr_in*) &sstore;
-      
-      char *address = inet_ntoa(addr4->sin_addr);
-      
-      return [NSString stringWithCString:address 
-                                encoding:NSASCIIStringEncoding];
-      break;
-    } 
-    default:
-      break;
-  }
   
   return nil;
 }
 
 @end
 
+#endif	/* defined(NeXT_Foundation_LIBRARY) */
 
