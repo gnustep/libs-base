@@ -38,17 +38,29 @@
 // From GSFileHandle.m
 
 static BOOL
-getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
+getAddr(NSString* name, NSString* svc, NSString* pcl, struct addrinfo **ai, struct addrinfo *hints)
 {
-  const char        *proto = "tcp";
-  struct servent    *sp;
+  const char        *cHostn = NULL;
+  const char        *cPortn = NULL;
+  int                e = 0;
 
-  if (pcl)
-    {
-      proto = [pcl lossyCString];
-    }
-  memset(sin, '\0', sizeof(*sin));
-  sin->sin_family = AF_INET;
+  if (!svc) {
+    NSLog(@"service is nil.");
+    
+    return NO;
+  }
+
+  hints->ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
+  hints->ai_protocol = IPPROTO_IP; // accept any
+
+  if (pcl) {
+    if ([pcl isEqualToString:@"tcp"]) {
+      hints->ai_protocol = IPPROTO_TCP;
+      hints->ai_socktype = SOCK_STREAM;
+    } else if ([pcl isEqualToString:@"udp"]) {
+      hints->ai_protocol = IPPROTO_UDP;
+    } 
+  }
 
   /*
    *    If we were given a hostname, we use any address for that host.
@@ -56,69 +68,31 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
    *    a null (any address).
    */
   if (name)
+  {
+    NSHost*        host = [NSHost hostWithName: name];
+    
+    if (host != nil)
     {
-      NSHost*        host = [NSHost hostWithName: name];
+      name = [host address];
+      NSLog(@"host address '%@'", name);
+      cHostn = [name cStringUsingEncoding:NSASCIIStringEncoding];
+    }
+  }
+  
+  cPortn = [svc cStringUsingEncoding:NSASCIIStringEncoding];
+  
+  // getaddrinfo() returns zero on success or one of the error codes listed in
+  // gai_strerror(3) if an error occurs.
+  NSLog(@"cPortn '%s'", cPortn);
+                                           //&ai
+  e = getaddrinfo (cHostn, cPortn, hints, ai);
 
-      if (host != nil)
-        {
-	  name = [host address];
-        }
-#ifndef    HAVE_INET_ATON
-      sin->sin_addr.s_addr = inet_addr([name lossyCString]);
-      if (sin->sin_addr.s_addr == INADDR_NONE)
-#else
-	if (inet_aton([name lossyCString], &sin->sin_addr) == 0)
-#endif
-	  {
-	    return NO;
-	  }
-    }
-  else
-    {
-      sin->sin_addr.s_addr = NSSwapHostIntToBig(INADDR_ANY);
-    }
-  if (svc == nil)
-    {
-      sin->sin_port = 0;
-      return YES;
-    }
-  else if ((sp = getservbyname([svc lossyCString], proto)) == 0)
-    {
-      const char*     ptr = [svc lossyCString];
-      int             val = atoi(ptr);
+  if (e != 0) {
+    NSLog(@"getaddrinfo: %s", gai_strerror (e));
+    return NO;
+  }
 
-      while (isdigit(*ptr))
-	{
-	  ptr++;
-	}
-      if (*ptr == '\0' && val <= 0xffff)
-	{
-	  unsigned short       v = val;
-
-	  sin->sin_port = NSSwapHostShortToBig(v);
-	  return YES;
-	}
-      else if (strcmp(ptr, "gdomap") == 0)
-	{
-	  unsigned short       v;
-#ifdef    GDOMAP_PORT_OVERRIDE
-	  v = GDOMAP_PORT_OVERRIDE;
-#else
-	  v = 538;    // IANA allocated port
-#endif
-	  sin->sin_port = NSSwapHostShortToBig(v);
-	  return YES;
-	}
-      else
-	{
-	  return NO;
-	}
-    }
-  else
-    {
-      sin->sin_port = sp->s_port;
-      return YES;
-    }
+  return YES;
 }
 
 - (id) initAsServerAtAddress: (NSString*)a
@@ -129,19 +103,24 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
   int    status = 1;
 #endif
   int    net;
-  struct sockaddr_in    sin;
-  socklen_t		size = sizeof(sin);
+  struct addrinfo *ai;
+  struct addrinfo hints;
+  memset (&hints, '\0', sizeof (hints));
 
-  if (getAddr(a, s, p, &sin) == NO)
+  if (getAddr(a, s, p, &ai, &hints) == NO)
     {
       DESTROY(self);
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
 
-  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+  if ((net = socket (ai->ai_family, ai->ai_socktype,
+                     ai->ai_protocol)) < 0)
     {
-      NSLog(@"unable to create socket - %@", [NSError _last]);
+      NSLog(@"unable to create socket ai_family: %@ socktype:%@ protocol:%d - %@", (ai->ai_family == PF_INET6 ? @"PF_INET6":@"PF_INET"),
+            (ai->ai_socktype == SOCK_STREAM ? @"SOCK_STREAM":@"whatever"),
+            ai->ai_protocol,            
+            [NSError _last]);
       DESTROY(self);
       return nil;
     }
@@ -156,34 +135,40 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
   setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status,  sizeof(status));
 #endif
 
-  if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
+  if (bind(net, ai->ai_addr, ai->ai_addrlen) != 0)
     {
-      NSLog(@"unable to bind to port %s:%d - %@",  inet_ntoa(sin.sin_addr),
-	    NSSwapBigShortToHost(sin.sin_port),  [NSError _last]);
-      (void) close(net);
-      DESTROY(self);
-      return nil;
+      NSLog(@"unable to bind to port %@", [NSError _last]);
+      goto cleanup;
     }
 
   if (listen(net, 5) < 0)
     {
       NSLog(@"unable to listen on port - %@",  [NSError _last]);
-      (void) close(net);
-      DESTROY(self);
-      return nil;
+      goto cleanup;
     }
 
-  if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
-    {
-      NSLog(@"unable to get socket name - %@",  [NSError _last]);
-      (void) close(net);
-      DESTROY(self);
-      return nil;
-    }
+  // 	struct sockaddr_storeage sstore;
+  // 	int slen = sizeof(ss);
 
+
+//  if (getsockname(net,(struct sockaddr *)&sstore, &slen) < 0)
+//    {
+//      NSLog(@"unable to get socket name - %@",  [NSError _last]);
+//      goto cleanup;
+//    }
+
+  freeaddrinfo (ai);
+  
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
 
   return self;
+  
+cleanup:
+  (void) close(net);
+  freeaddrinfo (ai);
+  DESTROY(self);
+  
+  return nil;
 }
 
 + (id) fileHandleAsServerAtAddress: (NSString*)address
@@ -199,17 +184,49 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 
 - (NSString*) socketAddress
 {
-  struct sockaddr_in    sin;
-  socklen_t    size = sizeof(sin);
-
-  if (getsockname([self fileDescriptor], (struct sockaddr*)&sin,  &size) < 0)
+  struct sockaddr_storage    sstore;
+  struct sockaddr            *sadr;
+  
+  socklen_t    size = sizeof(sstore);
+  
+  if (getsockname([self fileDescriptor], (struct sockaddr*)&sstore,  &size) < 0)
+  {
+    NSLog(@"unable to get socket name - %@",  [NSError _last]);
+    return nil;
+  }
+  
+  sadr = (struct sockaddr *) &sstore;
+  
+  switch (sadr->sa_family) {
+    case AF_INET6:
     {
-      NSLog(@"unable to get socket name - %@",  [NSError _last]);
-      return nil;
+      
+      char straddr[INET6_ADDRSTRLEN];
+      struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)&sstore;
+      
+      inet_ntop(AF_INET6, &(addr6->sin6_addr), straddr, 
+                sizeof(straddr));
+      
+      return [NSString stringWithCString:straddr 
+                                encoding:NSASCIIStringEncoding];
+      break;
     }
-
-  return [[[NSString alloc] initWithCString:  (char*)inet_ntoa(sin.sin_addr)]
-	   autorelease];
+    case AF_INET:
+    {
+      
+      struct sockaddr_in * addr4 = (struct sockaddr_in*) &sstore;
+      
+      char *address = inet_ntoa(addr4->sin_addr);
+      
+      return [NSString stringWithCString:address 
+                                encoding:NSASCIIStringEncoding];
+      break;
+    } 
+    default:
+      break;
+  }
+  
+  return nil;
 }
 
 @end

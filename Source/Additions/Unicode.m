@@ -307,7 +307,7 @@ static void GSSetupEncodingTable(void)
 		    }
 		}
 	    }
-	  encTable = objc_malloc((encTableSize+1)*sizeof(struct _strenc_ *));
+	  encTable = NSZoneMalloc(NSDefaultMallocZone(),(encTableSize+1)*sizeof(struct _strenc_ *));
 	  memset(encTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
 
 	  /*
@@ -331,13 +331,13 @@ static void GSSetupEncodingTable(void)
 		  /*
 		   * See if we can do a lossy conversion.
 		   */
-		  lossy = objc_malloc(strlen(entry->iconv) + 12);
+		  lossy = NSZoneMalloc(NSDefaultMallocZone(),strlen(entry->iconv) + 12);
 		  strcpy(lossy, entry->iconv);
 		  strcat(lossy, "//TRANSLIT");
 		  c = iconv_open(UNICODE_ENC, entry->iconv);
 		  if (c == (iconv_t)-1)
 		    {
-		      objc_free(lossy);
+		      NSZoneFree(NSDefaultMallocZone(),lossy);
 		    }
 		  else
 		    {
@@ -2521,7 +2521,7 @@ GSPrivateAvailableEncodings()
 	   * This is also the place where we determine the name we use
 	   * for iconv to support unicode.
 	   */
-	  encodings = objc_malloc(sizeof(NSStringEncoding) * (encTableSize+1));
+	  encodings = NSZoneMalloc(NSDefaultMallocZone(),sizeof(NSStringEncoding) * (encTableSize+1));
 	  pos = 0;
 	  for (i = 0; i < encTableSize+1; i++)
 	    {

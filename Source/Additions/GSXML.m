@@ -48,6 +48,7 @@
 #ifdef	HAVE_LIBXML
 
 // #undef	HAVE_LIBXML_SAX2_H
+#import "GNUstepBase/GSObjCRuntime.h"
 
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSXML.h"

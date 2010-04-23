@@ -547,7 +547,7 @@ GSLastErrorStr(long error_id) GS_ATTRIB_DEPRECATED;
   if (__count > __max) \
     { \
       unsigned int	__tmp; \
-      __objects = (id*)objc_malloc(__count*sizeof(id)); \
+      __objects = (id*)NSZoneMalloc(NSDefaultMallocZone(),__count*sizeof(id)); \
       va_start(__ap, firstObject); \
       __objects[0] = firstObject; \
       for (__tmp = 1; __tmp < __count; __tmp++) \
@@ -557,7 +557,7 @@ GSLastErrorStr(long error_id) GS_ATTRIB_DEPRECATED;
       va_end(__ap); \
     } \
   code; \
-  if (__objects != __buf) objc_free(__objects); \
+  if (__objects != __buf) NSZoneFree (NSDefaultMallocZone(),__objects); \
 })
 
 
