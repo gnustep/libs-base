@@ -1,3 +1,16 @@
+2010-04-22 David Wetzel <dave@turbocat.de>
+
+    * Source/Additions/Unicode.m: replace objc_malloc with NSZoneMalloc
+    and objc_free with NSZoneFree
+
+    * Source/Additions/NSFileHandle+GNUstepBase.m: should work with ipv6
+    (The old code does fail on Snow Leopard, even with ipv4 addresses.)    
+
+    * Source/Additions/GSXML.m: added GSObjCRuntime.h
+    * Headers/Additions/GNUstepBase/GSObjCRuntime.h: 
+    replace objc_malloc with NSZoneMalloc and objc_free with NSZoneFree
+
+
 2010-04-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: ([mainBundle]) Fix error determining whether
