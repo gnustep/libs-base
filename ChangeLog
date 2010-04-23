@@ -1,3 +1,7 @@
+2010-04-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/NSFileHandle+GNUstepBase.m: fix to only build on OSX
+
 2010-04-22 David Wetzel <dave@turbocat.de>
 
     * Source/Additions/Unicode.m: replace objc_malloc with NSZoneMalloc
