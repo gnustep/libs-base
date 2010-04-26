@@ -244,7 +244,7 @@ GSAtomicDecrement(gsatomic_t X)
  return *X;
 }
 
-#elif defined(__PPC__)
+#elif defined(__PPC__) || defined(__POWERPC__)
 
 typedef int32_t volatile *gsatomic_t;
 
@@ -255,11 +255,11 @@ GSAtomicIncrement(gsatomic_t X)
 {
   int tmp;
   __asm__ __volatile__ (
-    "incmodified:"
+    "0:"
     "lwarx %0,0,%1 \n"
     "addic %0,%0,1 \n"
     "stwcx. %0,0,%1 \n"
-    "bne- incmodified \n"
+    "bne- 0b \n"
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");
@@ -271,11 +271,11 @@ GSAtomicDecrement(gsatomic_t X)
 {
   int tmp;
   __asm__ __volatile__ (
-    "decmodified:"
+    "0:"
     "lwarx %0,0,%1 \n"
     "addic %0,%0,-1 \n"
     "stwcx. %0,0,%1 \n"
-    "bne- decmodified \n"
+    "bne- 0b \n"
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");

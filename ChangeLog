@@ -1,3 +1,11 @@
+2010-04-26  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSObject.m (GSAtomicIncrement, GSAtomicDecrement): Use
+	local labels in PowerPC assembler code to avoid a compile error
+	when this code is inlined more than once. In addition, use the
+	optimized assembler definitions also on PowerPC machines running
+	Darwin/Mac OS X.
+
 2010-04-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSFileHandle+GNUstepBase.m: fix to only build on OSX
