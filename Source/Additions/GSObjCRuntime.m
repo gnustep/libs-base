@@ -1742,21 +1742,25 @@ NSArray *GSObjCAllSubclassesOfClass(Class cls)
     }
   else
     {
-      NSMutableArray *result = [[NSMutableArray alloc] init];
+      NSMutableArray	*result;
+      Class		*classes;
+      int 		numClasses;
+      int		i;
 
-#ifdef GNU_RUNTIME
-      Class aClass;
-      for (aClass = cls->subclass_list; aClass; aClass=aClass->sibling_class)
+      numClasses = objc_getClassList(NULL, 0);
+      classes = NSZoneMalloc(NSDefaultMallocZone(), numClasses*sizeof(Class));
+      result = [NSMutableArray array];
+      for (i = 0; i < numClasses; i++)
 	{
-	  if (CLS_ISMETA(aClass))
-	    continue;
-	  [result addObject:aClass];
-	  [result addObjectsFromArray: GSObjCAllSubclassesOfClass(aClass)];
+	  Class	c = classes[i];
+
+	  if (YES == GSObjCIsKindOf(cls, c) && cls != c)
+	    {
+	      [result addObject: c];
+	    }
 	}
-#else
-#warning not implemented for the NeXT_RUNTIME
-#endif
-      return AUTORELEASE(result);
+      NSZoneFree(NSDefaultMallocZone(), classes);
+      return result;
     }
 }
 
@@ -1770,20 +1774,25 @@ NSArray *GSObjCDirectSubclassesOfClass(Class cls)
     }
   else
     {
-      NSMutableArray *result=[[NSMutableArray alloc] init];
-      Class aClass;
+      NSMutableArray	*result;
+      Class		*classes;
+      int 		numClasses;
+      int		i;
 
-#ifdef GNU_RUNTIME
-      for (aClass = cls->subclass_list;aClass;aClass=aClass->sibling_class)
+      numClasses = objc_getClassList(NULL, 0);
+      classes = NSZoneMalloc(NSDefaultMallocZone(), numClasses*sizeof(Class));
+      result = [NSMutableArray array];
+      for (i = 0; i < numClasses; i++)
 	{
-	  if (CLS_ISMETA(aClass))
-	    continue;
-	  [result addObject:aClass];
+	  Class	c = classes[i];
+
+	  if (class_getSuperclass(c) == cls)
+	    {
+	      [result addObject: c];
+	    }
 	}
-#else
-#warning not implemented for the NeXT_RUNTIME
-#endif
-      return AUTORELEASE(result);
+      NSZoneFree(NSDefaultMallocZone(), classes);
+      return result;
     }
 }
 
