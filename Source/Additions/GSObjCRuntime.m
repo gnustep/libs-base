@@ -1749,6 +1749,7 @@ NSArray *GSObjCAllSubclassesOfClass(Class cls)
 
       numClasses = objc_getClassList(NULL, 0);
       classes = NSZoneMalloc(NSDefaultMallocZone(), numClasses*sizeof(Class));
+      objc_getClassList(classes, numClasses);
       result = [NSMutableArray array];
       for (i = 0; i < numClasses; i++)
 	{
@@ -1781,6 +1782,7 @@ NSArray *GSObjCDirectSubclassesOfClass(Class cls)
 
       numClasses = objc_getClassList(NULL, 0);
       classes = NSZoneMalloc(NSDefaultMallocZone(), numClasses*sizeof(Class));
+      objc_getClassList(classes, numClasses);
       result = [NSMutableArray array];
       for (i = 0; i < numClasses; i++)
 	{
