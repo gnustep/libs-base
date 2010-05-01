@@ -1755,7 +1755,7 @@ NSArray *GSObjCAllSubclassesOfClass(Class cls)
 	{
 	  Class	c = classes[i];
 
-	  if (YES == GSObjCIsKindOf(cls, c) && cls != c)
+	  if (YES == GSObjCIsKindOf(c, cls) && cls != c)
 	    {
 	      [result addObject: c];
 	    }

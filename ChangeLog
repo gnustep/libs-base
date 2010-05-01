@@ -1,3 +1,9 @@
+2010-05-01  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Additions/GSObjCRuntime.m (GSObjCAllSubclassesOfClass):
+	Fix bug in previous change that made GSObjCAllSubclassesOfClass
+	return all superclasses instead of all subclasses.
+
 2010-04-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m:
