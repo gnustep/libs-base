@@ -808,6 +808,21 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
+ * Load contents of file at path into a new string using the
+ * -initWithContentsOfFile:encoding:error: method.
+ */
++ (id) stringWithContentsOfFile: (NSString*)path
+                       encoding: (NSStringEncoding)enc
+                          error: (NSError**)error
+{
+   NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfFile: path encoding: enc error: error];
+  return AUTORELEASE(obj);
+}
+
+/**
  * Load contents of given URL into a new string.  Will interpret contents as
  * containing direct unicode if it begins with the unicode byte order mark,
  * else converts to unicode using default C string encoding.
@@ -818,6 +833,28 @@ handle_printf_atsign (FILE *stream,
 
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithContentsOfURL: url];
+  return AUTORELEASE(obj);
+}
+
++ (id) stringWithContentsOfURL: (NSURL*)url
+                 usedEncoding: (NSStringEncoding*)enc
+                        error: (NSError**)error
+{
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfURL: url usedEncoding: enc error: error];
+  return AUTORELEASE(obj);
+}
+
++ (id) stringWithContentsOfURL: (NSURL*)url
+                       encoding: (NSStringEncoding)enc
+                          error: (NSError**)error
+{
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfURL: url encoding: enc error: error];
   return AUTORELEASE(obj);
 }
 
@@ -1318,6 +1355,40 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+- (id) initWithContentsOfFile: (NSString*)path
+                     encoding: (NSStringEncoding)enc
+                        error: (NSError**)error
+{
+  NSData		*d;
+  unsigned int		len;
+
+  d = [[NSDataClass alloc] initWithContentsOfFile: path];
+  if (d == nil)
+    {
+      DESTROY(self);
+      return nil;
+    }
+  len = [d length];
+  if (len == 0)
+    {
+      RELEASE(d);
+      DESTROY(self);
+      return @"";
+    }
+  self = [self initWithData: d encoding: enc];
+  RELEASE(d);
+  if (self == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
+    }
+  return self;
+}
+
 /**
  * <p>Initialises the receiver with the contents of the given URL.
  * </p>
@@ -1375,6 +1446,94 @@ handle_printf_atsign (FILE *stream,
   if (self == nil)
     {
       NSWarnMLog(@"Contents of URL '%@' are not string data", url);
+    }
+  return self;
+}
+
+- (id) initWithContentsOfURL: (NSURL*)url
+                usedEncoding: (NSStringEncoding*)enc
+                       error: (NSError**)error
+{
+  NSData		*d;
+  unsigned int		len;
+  const unsigned char	*data_bytes;
+
+  d = [[NSDataClass alloc] dataWithContentsOfURL: url];
+  if (d == nil)
+    {
+      DESTROY(self);
+      return nil;
+    }
+  *enc = _DefaultStringEncoding;
+  len = [d length];
+  if (len == 0)
+    {
+      RELEASE(d);
+      DESTROY(self);
+      return @"";
+    }
+  data_bytes = [d bytes];
+  if ((data_bytes != NULL) && (len >= 2))
+    {
+      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      if ((data_ucs2chars[0] == byteOrderMark)
+	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
+	{
+	  /* somebody set up us the BOM! */
+	  *enc = NSUnicodeStringEncoding;
+	}
+      else if (len >= 3
+	&& data_bytes[0] == 0xEF
+	&& data_bytes[1] == 0xBB
+	&& data_bytes[2] == 0xBF)
+	{
+	  *enc = NSUTF8StringEncoding;
+	}
+    }
+  self = [self initWithData: d encoding: *enc];
+  RELEASE(d);
+  if (self == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
+    }
+  return self;
+}
+
+- (id) initWithContentsOfURL: (NSURL*)url
+                    encoding: (NSStringEncoding)enc
+                       error: (NSError**)error
+{
+  NSData		*d;
+  unsigned int		len;
+
+  d = [[NSDataClass alloc] dataWithContentsOfURL: url];
+  if (d == nil)
+    {
+      DESTROY(self);
+      return nil;
+    }
+  len = [d length];
+  if (len == 0)
+    {
+      RELEASE(d);
+      DESTROY(self);
+      return @"";
+    }
+  self = [self initWithData: d encoding: enc];
+  RELEASE(d);
+  if (self == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
     }
   return self;
 }

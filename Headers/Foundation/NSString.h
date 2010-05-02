@@ -273,13 +273,33 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 		  encoding: (NSStringEncoding)encoding 
 	      freeWhenDone: (BOOL)flag;
 #endif
-#if OS_API_VERSION(100500,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST)
 + (id) stringWithContentsOfFile: (NSString*)path
                    usedEncoding: (NSStringEncoding*)enc
                           error: (NSError**)error;
 - (id) initWithContentsOfFile: (NSString*)path
                  usedEncoding: (NSStringEncoding*)enc
                         error: (NSError**)error;
++ (id) stringWithContentsOfFile: (NSString*)path
+                       encoding: (NSStringEncoding)enc
+                          error: (NSError**)error;
+- (id) initWithContentsOfFile: (NSString*)path
+                     encoding: (NSStringEncoding)enc
+                        error: (NSError**)error;
++ (id) stringWithContentsOfURL: (NSURL*)url
+                  usedEncoding: (NSStringEncoding*)enc
+                         error: (NSError**)error;
+- (id) initWithContentsOfURL: (NSURL*)url
+                usedEncoding: (NSStringEncoding*)enc
+                       error: (NSError**)error;
++ (id) stringWithContentsOfURL: (NSURL*)url
+                      encoding: (NSStringEncoding)enc
+                         error: (NSError**)error;
+- (id) initWithContentsOfURL: (NSURL*)url
+                    encoding: (NSStringEncoding)enc
+                       error: (NSError**)error;
+#endif
+#if OS_API_VERSION(100500,GS_API_LATEST)
 - (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
                                        withString: (NSString*)by
                                           options: (NSStringCompareOptions)opts

@@ -1,3 +1,9 @@
+2010-05-02  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSString.h,
+	* Source/NSString.m: Add a few missing 10.4 initWithContentsOfXXX:
+	methods. Fixes part of bug report #29736.
+
 2010-05-01  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/Additions/GSObjCRuntime.m (GSObjCAllSubclassesOfClass):
