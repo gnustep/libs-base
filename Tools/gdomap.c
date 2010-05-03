@@ -1434,6 +1434,7 @@ load_iface(const char* from)
 {
   FILE	*fptr = fopen(from, "rt");
   char	buf[128];
+  int	line = 0;
   int	num_iface = 0;
 
   if (fptr == 0)
@@ -1448,6 +1449,7 @@ load_iface(const char* from)
     {
       char	*ptr = buf;
 
+      line++;
       /*
        *	Strip leading white space.
        */
@@ -1514,6 +1516,7 @@ load_iface(const char* from)
       char	*ptr = buf;
       char	*msk;
 
+      line++;
       /*
        *	Strip leading white space.
        */
@@ -1586,12 +1589,14 @@ load_iface(const char* from)
 	}
       if (addr[interfaces].s_addr == (uint32_t)-1)
 	{
-	  snprintf(ebuf, sizeof(ebuf), "'%s' is not as valid address", buf);
+	  snprintf(ebuf, sizeof(ebuf), "line %d of '%s' without valid address",
+	    line, from);
 	  gdomap_log(LOG_ERR);
 	}
       else if (mask[interfaces].s_addr == (uint32_t)-1)
 	{
-	  snprintf(ebuf, sizeof(ebuf), "'%s' is not as valid netmask", ptr);
+	  snprintf(ebuf, sizeof(ebuf), "line %d of '%s' without valid netmask",
+	    line, from);
 	  gdomap_log(LOG_ERR);
 	}
       else
@@ -4546,19 +4551,21 @@ printf(
 	  case 'c':
 	    {
 	      FILE	*fptr = fopen(optarg, "rt");
+	      int	line = 0;
 	      char	buf[128];
 
 	      if (fptr == 0)
 		{
 		  fprintf(stderr, "Unable to open probe config - '%s'\n",
-			      optarg);
+		    optarg);
 		  exit(EXIT_FAILURE);
 		}
 	      while (fgets(buf, sizeof(buf), fptr) != 0)
 		{
-		  char	*ptr = buf;
+		  char		*ptr = buf;
 		  plentry	*prb;
 
+		  line++;
 		  /*
 		   *	Strip leading white space.
 		   */
@@ -4604,7 +4611,9 @@ printf(
 		  prb->addr.s_addr = inet_addr(buf);
 		  if (prb->addr.s_addr == (uint32_t)-1)
 		    {
-		      fprintf(stderr, "'%s' is not as valid address\n", buf);
+		      fprintf(stderr,
+			"line %d of '%s' is not a valid address\n",
+			line, optarg);
 		      free(prb);
 		    }
 		  else
@@ -4625,7 +4634,7 @@ printf(
 			      if (tmp->addr.s_addr == prb->addr.s_addr)
 				{
 				  fprintf(stderr, "'%s' repeat in '%s'\n",
-					      buf, optarg);
+				    buf, optarg);
 				  free(prb);
 				  break;
 				}
