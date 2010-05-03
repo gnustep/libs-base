@@ -4723,8 +4723,8 @@ static NSFileManager *fm = nil;
       if (error != 0)
         {
           *error = [NSError errorWithDomain: NSCocoaErrorDomain
-                                       code: NSFileReadCorruptFileError
-                                   userInfo: nil];
+	    code: NSFileWriteInapplicableStringEncodingError
+	    userInfo: nil];
         }
       return NO;
     }
@@ -4758,8 +4758,8 @@ static NSFileManager *fm = nil;
       if (error != 0)
         {
           *error = [NSError errorWithDomain: NSCocoaErrorDomain
-                                       code: NSFileReadCorruptFileError
-                                   userInfo: nil];
+	    code: NSFileWriteInapplicableStringEncodingError
+	    userInfo: nil];
         }
       return NO;
     }
