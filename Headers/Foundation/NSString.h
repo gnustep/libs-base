@@ -298,6 +298,14 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (id) initWithContentsOfURL: (NSURL*)url
                     encoding: (NSStringEncoding)enc
                        error: (NSError**)error;
+- (BOOL) writeToFile: (NSString*)path
+	  atomically: (BOOL)atomically
+	    encoding: (NSStringEncoding)enc
+	       error: (NSError**)error;
+- (BOOL) writeToURL: (NSURL*)url
+	 atomically: (BOOL)atomically
+	   encoding: (NSStringEncoding)enc
+	      error: (NSError**)error;
 #endif
 #if OS_API_VERSION(100500,GS_API_LATEST)
 - (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace

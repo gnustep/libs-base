@@ -837,8 +837,8 @@ handle_printf_atsign (FILE *stream,
 }
 
 + (id) stringWithContentsOfURL: (NSURL*)url
-                 usedEncoding: (NSStringEncoding*)enc
-                        error: (NSError**)error
+                  usedEncoding: (NSStringEncoding*)enc
+                         error: (NSError**)error
 {
   NSString	*obj;
 
@@ -848,8 +848,8 @@ handle_printf_atsign (FILE *stream,
 }
 
 + (id) stringWithContentsOfURL: (NSURL*)url
-                       encoding: (NSStringEncoding)enc
-                          error: (NSError**)error
+                      encoding: (NSStringEncoding)enc
+                         error: (NSError**)error
 {
   NSString	*obj;
 
@@ -4700,6 +4700,72 @@ static NSFileManager *fm = nil;
       d = [self dataUsingEncoding: NSUnicodeStringEncoding];
     }
   return [d writeToFile: filename atomically: useAuxiliaryFile];
+}
+
+/**
+ * Writes contents out to file at filename, using the default C string encoding
+ * unless this would result in information loss, otherwise straight unicode.
+ * The '<code>atomically</code>' option if set will cause the contents to be
+ * written to a temp file, which is then closed and renamed to filename.  Thus,
+ * an incomplete file at filename should never result.<br />
+ * If there is a problem and error is not NULL, the cause of the problem is
+ * returned in *error.
+ */
+- (BOOL) writeToFile: (NSString*)path
+	  atomically: (BOOL)atomically
+	    encoding: (NSStringEncoding)enc
+	       error: (NSError**)error
+{
+  id	d = [self dataUsingEncoding: enc];
+
+  if (d == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
+      return NO;
+    }
+  return [d writeToFile: path
+	        options: atomically ? NSAtomicWrite : 0
+		  error: error];
+}
+
+/**
+ * Writes contents out to anURL, using the default C string encoding
+ * unless this would result in information loss, otherwise straight unicode.
+ * See [NSURLHandle-writeData:] on which URL types are supported.
+ * The '<code>atomically</code>' option is only heeded if the URL is a
+ * <code>file://</code> URL; see -writeToFile:atomically: .<br />
+ * If there is a problem and error is not NULL, the cause of the problem is
+ * returned in *error.
+ */
+- (BOOL) writeToURL: (NSURL*)anURL
+	 atomically: (BOOL)atomically
+	    encoding: (NSStringEncoding)enc
+	       error: (NSError**)error
+{
+  id	d = [self dataUsingEncoding: enc];
+
+  if (d == nil)
+    {
+      d = [self dataUsingEncoding: NSUnicodeStringEncoding];
+    }
+  if (d == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
+      return NO;
+    }
+  return [d writeToURL: anURL
+	       options: atomically ? NSAtomicWrite : 0
+		 error: error];
 }
 
 /**
