@@ -1,5 +1,11 @@
 2010-05-03  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Tools/gdomap.c: security updates.
+	* Tools/Makefile.postamble: make warning messages a bit clearer and
+	more informative about gdomap being best started at system boot.
+
+2010-05-03  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSString.h,
 	* Source/NSString.m: Add 10.4 write methods.
 	Fixes part of bug report #29736.
