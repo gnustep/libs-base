@@ -900,7 +900,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (debug)
     NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
 
-  path = [[u fullPath] stringByTrimmingSpaces];
+  path = [[[u fullPath] stringByTrimmingSpaces]
+    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
   if ([path length] == 0)
     {
       path = @"/";
@@ -1487,7 +1488,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      method = @"GET";
 	    }
 	}
-      path = [[u fullPath] stringByTrimmingSpaces];
+      path = [[[u fullPath] stringByTrimmingSpaces]
+        stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
       if ([path length] == 0)
 	{
 	  path = @"/";

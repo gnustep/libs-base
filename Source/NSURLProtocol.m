@@ -1275,7 +1275,8 @@ static NSURLProtocol	*placeholder = nil;
 	      [m appendString: [this->request HTTPMethod]];
 	      [m appendString: @" "];
 	      u = [this->request URL];
-	      s = [u fullPath];
+	      s = [[u fullPath] stringByAddingPercentEscapesUsingEncoding:
+		NSUTF8StringEncoding];
 	      if ([s hasPrefix: @"/"] == NO)
 	        {
 		  [m appendString: @"/"];
