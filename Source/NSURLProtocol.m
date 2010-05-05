@@ -1269,8 +1269,8 @@ static NSURLProtocol	*placeholder = nil;
 	      m = [[NSMutableString alloc] initWithCapacity: 1024];
 
 	      /* The request line is of the form:
-	       * method /path#fragment?query HTTP/version
-	       * where the fragment and query parts may be missing
+	       * method /path?query HTTP/version
+	       * where the query part may be missing
 	       */
 	      [m appendString: [this->request HTTPMethod]];
 	      [m appendString: @" "];
@@ -1282,12 +1282,6 @@ static NSURLProtocol	*placeholder = nil;
 		  [m appendString: @"/"];
 		}
 	      [m appendString: s];
-	      s = [u fragment];
-	      if ([s length] > 0)
-	        {
-		  [m appendString: @"#"];
-		  [m appendString: s];
-		}
 	      s = [u query];
 	      if ([s length] > 0)
 	        {
