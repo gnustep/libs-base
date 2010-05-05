@@ -65,16 +65,18 @@ after-install::
 	if [ "`$(WHOAMI)`" != "root" ]; then \
 	  echo ""; \
 	  echo "************************************************************"; \
-	  echo "FAILED gdomap installation - please re-run this as root ..."; \
-	  echo "NOTE: gdomap MUST be installed owned by root and with"; \
-	  echo "the 's-bit' set unless you defined 'GDOMAP_PORT_OVERRIDE' in"; \
+	  echo "WARNING: gdomap has not been made setuid to root ..."; \
+	  echo "NOTE: Unless gdomap is started as root at system boot time,"; \
+	  echo "it MUST either be installed owned by root and with the"; \
+	  echo "'s-bit' or you must have defined 'GDOMAP_PORT_OVERRIDE' in"; \
 	  echo "gdomap.h before compiling gdomap.c and NSPortNameServer.m"; \
-	  echo "in which case you should install it by hand."; \
-	  echo "If you have installed by hand, ignore this message."; \
+	  echo "If either of those cases applies, ignore this message."; \
 	  echo "************************************************************"; \
 	  echo ""; \
 	else \
 	  echo "Making gdomap in $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR) setuid to root"; \
+	  echo "WARNING: if possible, you should remove the setuid flag and"; \
+	  echo "WARNING: have gdomap started as root at machine boot time."; \
 	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR); \
 	fi; \
 	echo "************************************************************"; \
