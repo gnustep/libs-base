@@ -1066,6 +1066,13 @@ dump_tables()
   FILE	*fptr;
 
   soft_int++;
+  if (access(".", W_OK) != 0)
+    {
+      snprintf(ebuf, sizeof(ebuf),
+	"Failed to access gdomap.dump file for output\n");
+      gdomap_log(LOG_ERR);
+      return;
+    }
   fptr = fopen("gdomap.dump", "w");
   if (fptr != 0)
     {
@@ -1432,11 +1439,19 @@ init_iface()
 static void
 load_iface(const char* from)
 {
-  FILE	*fptr = fopen(from, "rt");
+  FILE	*fptr;
   char	buf[128];
   int	line = 0;
   int	num_iface = 0;
 
+  if (access(from, R_OK) != 0)
+    {
+      snprintf(ebuf, sizeof(ebuf),
+	"Unable to access address config - '%s'", from);
+      gdomap_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
+    }
+  fptr = fopen(from, "rt");
   if (fptr == 0)
     {
       snprintf(ebuf, sizeof(ebuf),
@@ -4550,10 +4565,17 @@ printf(
 
 	  case 'c':
 	    {
-	      FILE	*fptr = fopen(optarg, "rt");
+	      FILE	*fptr;
 	      int	line = 0;
 	      char	buf[128];
 
+	      if (access(optarg, R_OK) != 0)
+		{
+		  fprintf(stderr, "Unable to access probe config - '%s'\n",
+		    optarg);
+		  exit(EXIT_FAILURE);
+		}
+	      fptr = fopen(optarg, "rt");
 	      if (fptr == 0)
 		{
 		  fprintf(stderr, "Unable to open probe config - '%s'\n",
