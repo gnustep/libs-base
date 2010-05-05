@@ -1,4 +1,11 @@
-2010-05-03  Richard Frith-Macdonald <rfm@gnu.org>
+2010-05-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLProtocol.m:
+	Fix for bug #29764 ... add percent escapes to the path when generating
+	the URI in the HTTP request.
+
+2010-05-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Tools/gdomap.c: security updates.
 	* Tools/Makefile.postamble: make warning messages a bit clearer and
