@@ -332,6 +332,15 @@ gdomap_log (int prio)
 void
 gdomap_log (int prio)
 {
+  if (in_config)
+    {
+#ifndef __MINGW__
+      if (geteuid () != getuid ())
+        {
+	  strcpy(ebuf, "problem with config file");
+	}
+#endif
+    }
   write (2, ebuf, strlen (ebuf));
   write (2, "\n", 1);
   if (prio == LOG_CRIT)
