@@ -1,3 +1,8 @@
+2010-05-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Limit config files to containing a thousand entries
+	for safety/security.
+
 2010-05-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:

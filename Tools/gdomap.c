@@ -152,6 +152,7 @@ typedef	unsigned char	*uptr;
 #ifndef __MINGW__
 static int	is_daemon = 0;		/* Currently running as daemon.	 */
 #endif
+static int	in_config = 0;		/* Reading config file.	 */
 static int	debug = 0;		/* Extra debug gdomap_logging.	 */
 static int	nobcst = 0;		/* turn off broadcast probing.	 */
 static int	nofork = 0;		/* turn off fork() for debugging. */
@@ -283,6 +284,15 @@ static int	log_priority;
 static void
 gdomap_log (int prio)
 {
+  if (in_config)
+    {
+#ifndef __MINGW__
+      if (geteuid () != getuid ())
+        {
+	  strcpy(ebuf, "problem with config file");
+	}
+#endif
+    }
   if (is_daemon)
     {
       syslog (log_priority | prio, "%s", ebuf);
@@ -1444,6 +1454,7 @@ load_iface(const char* from)
   int	line = 0;
   int	num_iface = 0;
 
+  in_config = 1;
   if (access(from, R_OK) != 0)
     {
       snprintf(ebuf, sizeof(ebuf),
@@ -1504,7 +1515,12 @@ load_iface(const char* from)
 	{
 	  continue;
 	}
-      num_iface++;
+      if (num_iface++ > 1000)
+	{
+          snprintf(ebuf, sizeof(ebuf), "Too many network interfaces found");
+          gdomap_log(LOG_CRIT);
+          exit(EXIT_FAILURE);
+	}
     }
   fseek(fptr, 0, 0);
 
@@ -1604,15 +1620,17 @@ load_iface(const char* from)
 	}
       if (addr[interfaces].s_addr == (uint32_t)-1)
 	{
-	  snprintf(ebuf, sizeof(ebuf), "line %d of '%s' without valid address",
-	    line, from);
-	  gdomap_log(LOG_ERR);
+	  snprintf(ebuf, sizeof(ebuf), "line %d of '%s' bad address (%s)",
+	    line, from, buf);
+	  gdomap_log(LOG_CRIT);
+	  exit(EXIT_FAILURE);
 	}
       else if (mask[interfaces].s_addr == (uint32_t)-1)
 	{
-	  snprintf(ebuf, sizeof(ebuf), "line %d of '%s' without valid netmask",
-	    line, from);
-	  gdomap_log(LOG_ERR);
+	  snprintf(ebuf, sizeof(ebuf), "line %d of '%s' bad netmask (%s)",
+	    line, from, ptr);
+	  gdomap_log(LOG_CRIT);
+	  exit(EXIT_FAILURE);
 	}
       else
 	{
@@ -1620,6 +1638,7 @@ load_iface(const char* from)
 	}
     }
   fclose(fptr);
+  in_config = 0;
 }
 
 /*
@@ -4567,19 +4586,25 @@ printf(
 	    {
 	      FILE	*fptr;
 	      int	line = 0;
+	      int	count = 0;
 	      char	buf[128];
 
+	      in_config = 1;
 	      if (access(optarg, R_OK) != 0)
 		{
-		  fprintf(stderr, "Unable to access probe config - '%s'\n",
+		  snprintf(ebuf, sizeof(ebuf),
+		    "Unable to access probe config - '%s'\n",
 		    optarg);
+		  gdomap_log(LOG_CRIT);
 		  exit(EXIT_FAILURE);
 		}
 	      fptr = fopen(optarg, "rt");
 	      if (fptr == 0)
 		{
-		  fprintf(stderr, "Unable to open probe config - '%s'\n",
+		  snprintf(ebuf, sizeof(ebuf),
+		    "Unable to open probe config - '%s'\n",
 		    optarg);
+		  gdomap_log(LOG_CRIT);
 		  exit(EXIT_FAILURE);
 		}
 	      while (fgets(buf, sizeof(buf), fptr) != 0)
@@ -4628,15 +4653,24 @@ printf(
 		      continue;
 		    }
 
+		  if (count++ > 1000)
+		    {
+		      snprintf(ebuf, sizeof(ebuf),
+			"Too many probe configurations found");
+		      gdomap_log(LOG_CRIT);
+		      exit(EXIT_FAILURE);
+		    }
 		  prb = (plentry*)malloc(sizeof(plentry));
 		  memset((char*)prb, '\0', sizeof(plentry));
 		  prb->addr.s_addr = inet_addr(buf);
 		  if (prb->addr.s_addr == (uint32_t)-1)
 		    {
-		      fprintf(stderr,
-			"line %d of '%s' is not a valid address\n",
-			line, optarg);
+		      snprintf(ebuf, sizeof(ebuf),
+			"line %d of '%s' (%s) is not a valid address\n",
+			line, optarg, buf);
 		      free(prb);
+		      gdomap_log(LOG_CRIT);
+		      exit(EXIT_FAILURE);
 		    }
 		  else
 		    {
@@ -4655,9 +4689,12 @@ printf(
 			    {
 			      if (tmp->addr.s_addr == prb->addr.s_addr)
 				{
-				  fprintf(stderr, "'%s' repeat in '%s'\n",
+				  snprintf(ebuf, sizeof(ebuf),
+				    "'%s' repeat in '%s'\n",
 				    buf, optarg);
 				  free(prb);
+				  gdomap_log(LOG_CRIT);
+				  exit(EXIT_FAILURE);
 				  break;
 				}
 			      tmp = tmp->next;
@@ -4670,6 +4707,7 @@ printf(
 		    }
 		}
 	      fclose(fptr);
+	      in_config = 0;
 	    }
 	    break;
 
