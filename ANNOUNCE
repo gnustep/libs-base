@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.19.1, is now available.
+The GNUstep Base Library, version 1.20.0, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -18,22 +18,23 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version `1.19.1'
+   	ftp.gnustep.org
+
+   	pub/daily-snapshots
+
+1.2 Noteworthy changes in version `1.20.0'
 ==========================================
 
-   * New Mac OS X methods for writing data in NSData
-
-   * New classes NSHashTable and NSMapTable
-
-   * Garbage collection now works again and is much improved.
-
-   * Method return types and arguments have been changed for Mac OS X
-     10.5
+This is a stable release. There have been major changes and
+reorganizations to support, among other things, the new non-fragile ABI
+from clang. These changes, although they break binary compatibility
+with previous releases, should allow all future releases to maintain
+compatibility.
 
 1.3 Where can you get it?  How can you compile it?
 ==================================================
 
-The gnustep-base-1.19.1.tar.gz distribution file has been placed at
+The gnustep-base-1.20.0.tar.gz distribution file has been placed at
 `ftp://ftp.gnustep.org/pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page

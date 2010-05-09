@@ -29,6 +29,54 @@ notice and this notice are preserved.
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.20.0</heading>
+        <p>This is a stable release. There have been major changes
+	  and reorganizations to support, among other things, the new
+	  non-fragile ABI from clang. These changes, although they
+	  break binary compatibility with previous releases, should allow 
+	  all future releases to maintain compatibility.
+	</p>
+	<deflist>
+	  <term>Objective-C 2</term>
+          <desc>
+	    Add compatibility code for Objective-C 2.0 when it is not provided
+	    by the compiler or objc library. Some runtime wrappers for 
+	    Objective-C have been deprecated in favour of new 2.0 API.
+          </desc>
+	  <term>Additions library</term>
+          <desc>
+	    Reorganized so all GNUstep extensions are in the Additions
+	    library files.
+          </desc>
+	  <term>Mac OS X Compatibility</term>
+          <desc>
+	    Various improvements for compatibility including use of 
+	    NSInteger/NSUInteger/CGFloat
+          </desc>
+	  <term>non-fragile ABI</term>
+          <desc>
+	    Support added for this ABI from clang includes additions of
+	    an extra ivar for future expansion and hiding of ivars in some
+	    classes.
+          </desc>
+	  <term>NSOperation</term>
+          <desc>
+	    Complete NSOperation and NSOperationQueue 
+	    (compatibile with 10.6 apart from blocks).
+          </desc>
+	  <term>Fast Enumeration</term>
+          <desc>
+	    Support was added.
+          </desc>
+	  <term>NSLock</term>
+          <desc>
+	    Complete rewrite of NSLock so they are faster, more complete and
+	    OS X-compatible. NSLock now depends on POSIX threads.
+          </desc>
+	</deflist>
+      </section>
+
+      <section>
 	<heading>Version 1.19.3</heading>
         <p>This is a new unstable snapshot release of the base library
 	almost identical to 1.19.2 but containing a bugfix for the
