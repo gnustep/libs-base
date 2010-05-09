@@ -1,3 +1,7 @@
+2010-05-08  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.20.0
+
 2010-05-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Limit config files to containing a thousand entries

@@ -11,13 +11,21 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.20.0}
+
+This is a stable release. There have been major changes
+and reorganizations to support, among other things, the new
+non-fragile ABI from clang. These changes, although they
+break binary compatibility with previous releases, should allow 
+all future releases to maintain compatibility.
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.19.3}
 
 @itemize @bullet
 @item Bugfix to work around OSX behavior of [NSURL-path]
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.19.2}
 
