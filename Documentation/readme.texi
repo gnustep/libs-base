@@ -10,7 +10,8 @@ notifications, notification dispatchers, moments in time, network ports,
 remote object messaging support (distributed objects), and event loops.
 
 It provides functionality that aims to implement the non-graphical
-portion of the OpenStep standard (the Foundation library).  
+portion of the Apple's Cocoa frameworks (the Foundation library) which
+came from the OpenStep standard.
 
 @section Initial reading
 
