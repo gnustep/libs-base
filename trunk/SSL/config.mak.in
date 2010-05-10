@@ -1,0 +1,8 @@
+#
+# Extra make variables for SSL bundle
+#
+
+HAVE_OPENSSL=@HAVE_OPENSSL@
+SSLLIBS=@SSLLIBS@
+SSLFLAGS=@SSLFLAGS@
+
