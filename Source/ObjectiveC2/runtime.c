@@ -103,8 +103,6 @@ static Method
 class_getInstanceMethodNonrecursive(Class aClass, SEL aSelector)
 {
   struct objc_method_list *methods;
-  const char *name = sel_get_name(aSelector);
-  const char *types = sel_get_type(aSelector);
 
   for (methods = aClass->methods;
        methods != NULL; methods = methods->method_next)
@@ -115,16 +113,10 @@ class_getInstanceMethodNonrecursive(Class aClass, SEL aSelector)
 	{
 	  Method_t method = &methods->method_list[i];
 
-	  if (strcmp(sel_get_name(method->method_name), name) == 0)
-	    {
-	      if (NULL == types || strcmp(types, method->method_types) == 0)
+	  if (method->method_name->sel_id == aSelector->sel_id)
 		{
 		  return method;
 		}
-	      // Return NULL if the method exists with this name but has the 
-	      // wrong types
-	      return NULL;
-	    }
 	}
     }
   return NULL;
