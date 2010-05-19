@@ -1,3 +1,8 @@
+2010-05-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: GSObjCMethodNames() fix for
+	bug #29910
+
 2010-05-10  Adam Fedor  <fedor@gnu.org>
 
 	* Fix typos, clarify unstable release documentation

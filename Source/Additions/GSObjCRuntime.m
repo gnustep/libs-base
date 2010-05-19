@@ -273,7 +273,7 @@ GSObjCMethodNames(id obj, BOOL recurse)
 	  NSString	*name;
 
 	  name = [[NSString alloc] initWithFormat: @"%s",
-	    method_getName(meth[count])];
+	    sel_getName(method_getName(meth[count]))];
 	  [set addObject: name];
 	  [name release];
 	}
