@@ -1,3 +1,10 @@
+2010-05-21 Riccardo Mottola <rmottola@users.sf.net>
+
+	* Source/inet_pton.c
+	Source/ObjectiveC2/runtime.h
+	Headers/Foundation/NSObjCRuntime.h:
+	Guarded stdint.h inclusion.
+
 2010-05-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m: GSObjCMethodNames() fix for
