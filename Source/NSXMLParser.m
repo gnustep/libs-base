@@ -36,6 +36,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSNull.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/GSMime.h"
 
 NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 
@@ -723,13 +724,37 @@ static SEL	foundCommentSel;
       self = [super init];
       if (self)
 	{
+	  NSStringEncoding	enc;
+
 	  _parser = NSZoneMalloc([self zone], sizeof(NSXMLParserIvars));
 	  memset(_parser, '\0', sizeof(NSXMLParserIvars));
-	  this->data = [data copy];
+	  /* Determine character encoding and convert to utf-8 if needed.
+	   */
+	  enc = [GSMimeDocument encodingFromCharset:
+	    [GSMimeDocument charsetForXml: data]];
+	  if (enc == NSUTF8StringEncoding || enc == NSASCIIStringEncoding)
+	    {
+	      this->data = [data copy];
+	    }
+	  else
+	    {
+	      NSString	*tmp;
+
+	      tmp = [[NSString alloc] initWithData: data encoding: enc];
+	      data = [[tmp dataUsingEncoding: NSUTF8StringEncoding] retain];
+	      [tmp release];
+	    }
 	  this->tagPath = [[NSMutableArray alloc] init];
 	  this->namespaces = [[NSMutableArray alloc] init];
 	  this->cp = [this->data bytes];
 	  this->cend = this->cp + [this->data length];
+	  /* If the data contained utf-8 with a BOM, we must skip it.
+	   */
+	  if ((this->cend - this->cp) > 2 && this->cp[0] == 0xef
+	    && this->cp[1] == 0xbb && this->cp[2] == 0xbf)
+	    {
+	      this->cp += 3;	// Skip BOM
+	    }
 	}
     }
   return self;
