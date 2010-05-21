@@ -1,3 +1,8 @@
+2010-05-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSMime.h: Expose xml charset method.
+	* Source/NSXMLParser.m: Determine correct charset when parsing.
+
 2010-05-21 Riccardo Mottola <rmottola@users.sf.net>
 
 	* Source/inet_pton.c

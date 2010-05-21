@@ -119,6 +119,7 @@ extern "C" {
 #endif
 }
 
++ (NSString*) charsetForXml: (NSData*)xml;
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc;
 
 /**
