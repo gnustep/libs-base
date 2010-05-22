@@ -1,9 +1,4 @@
-#include "config.h"
-
-#ifdef  HAVE_STDINT_H
 #include <stdint.h>
-#endif
-
 #include <stddef.h>
 #include <sys/types.h>
 #include "ObjectiveC2/Availability.h"
