@@ -1,8 +1,9 @@
 2010-05-25  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSPropertyList.m: ([-parser;foundChartacters:]) don't trim
+	* Source/NSPropertyList.m: ([-parser:foundCharacters:]) don't trim
 	the supplied string ... we need to retain whitespace around entities
-	in value test.
+	in value test.  If inside a <string> element, treat ignorable
+	whitespace as normal whitespace.
 	* Source/NSXMLParser.m: Add support for ignorable whitespace so that
 	it doesn't get handed to the delegate as normal characters.
 
