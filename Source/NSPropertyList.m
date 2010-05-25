@@ -139,13 +139,9 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 }
 
 - (void) parser: (NSXMLParser *)parser
-  foundCharacters: (NSString *)string
+foundCharacters: (NSString *)string
 {
-  string = [string stringByTrimmingSpaces];
-  if ([string length] > 0)
-    {
-      [value appendString: string];
-    }
+  [value appendString: string];
 }
 
 - (void) parser: (NSXMLParser *)parser
