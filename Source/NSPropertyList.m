@@ -87,6 +87,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   NSString				*key;
   BOOL					inArray;
   BOOL					inDictionary;
+  BOOL					inString;
   BOOL					parsed;
   BOOL					success;
   id					plist;
@@ -145,6 +146,15 @@ foundCharacters: (NSString *)string
 }
 
 - (void) parser: (NSXMLParser *)parser
+foundIgnorableWhitespace: (NSString *)string
+{
+  if (YES == inString)
+    {
+      [value appendString: string];
+    }
+}
+
+- (void) parser: (NSXMLParser *)parser
   didStartElement: (NSString *)elementName
   namespaceURI: (NSString *)namespaceURI
   qualifiedName: (NSString *)qualifiedName
@@ -182,6 +192,10 @@ foundCharacters: (NSString *)string
       inArray = YES;
       inDictionary = NO;
     }
+  else if ([elementName isEqualToString: @"string"] == YES)
+    {
+      inString = YES;
+    }
 }
 
 - (void) parser: (NSXMLParser *)parser
@@ -191,11 +205,12 @@ foundCharacters: (NSString *)string
 {
   BOOL	inContainer = NO;
 
+  inString = NO;
   if ([elementName isEqualToString: @"dict"] == YES)
     {
       inContainer = YES;
     }
-  if ([elementName isEqualToString: @"array"] == YES)
+  else if ([elementName isEqualToString: @"array"] == YES)
     {
       inContainer = YES;
     }

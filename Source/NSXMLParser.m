@@ -1314,25 +1314,25 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			      p--;
 			    }
 			}
-		      if (p < this->cp - 1 && this->foundIgnorable != 0)
-			{
-			  /* Process data as ignorable whitespace
-			   */
-			  s = NewUTF8STR(p, this->cp - p - 1);
-			  (*this->foundIgnorable)(_del,
-			    foundIgnorableSel, self, s);
-			  [s release];
-			}
 		    }
                   if (p - vp > 0 && this->foundCharacters != 0)
                     {
-		      /* Process remaining data as characters
+		      /* Process initial data as characters
 		       */
 		      s = NewUTF8STR(vp, p - vp);
                       (*this->foundCharacters)(_del,
 			foundCharactersSel, self, s);
 		      [s release];
                     }
+		  if (p < this->cp - 1 && this->foundIgnorable != 0)
+		    {
+		      /* Process data as ignorable whitespace
+		       */
+		      s = NewUTF8STR(p, this->cp - p - 1);
+		      (*this->foundIgnorable)(_del,
+			foundIgnorableSel, self, s);
+		      [s release];
+		    }
                   vp = this->cp;
                 }
             }
