@@ -1,3 +1,9 @@
+2010-05-28  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Source/NSKeyValueCoding.m: Added missing support to ValueForKey() as 
+	described in Apple Key-Value-Coding guide. -isKey is now treated as a
+	KVC-compliant getter, and _isKey and isKey as KVC-compliant ivars.
+
 2010-05-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: ([-parser:foundCharacters:]) don't trim
