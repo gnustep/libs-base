@@ -178,7 +178,15 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	  sel = GSSelectorFromName(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
-	      sel = 0;
+              buf[4] = hi;
+              buf[3] = 's';
+              buf[2] = 'i';
+              name = &buf[2];	// isKey
+              sel = GSSelectorFromName(name);
+              if (sel == 0 || [self respondsToSelector: sel] == NO)
+                {
+                  sel = 0;
+                }
 	    }
 	}
 
@@ -202,11 +210,27 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	    {
 	      buf[4] = lo;
 	      buf[3] = '_';
-	      name = &buf[3];	// _key
+	      name = &buf[3];		// _key
 	      if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
 		{
-		  name = &buf[4];	// key
-		  GSObjCFindVariable(self, name, &type, &size, &off);
+                  buf[4] = hi;
+                  buf[3] = 's';
+                  buf[2] = 'i';
+                  buf[1] = '_';
+                  name = &buf[1];	// _isKey
+		  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+                    {
+                       buf[4] = lo;
+                       name = &buf[4];		// key
+		       if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+                         {
+                            buf[4] = hi;
+                            buf[3] = 's';
+                            buf[2] = 'i';
+                            name = &buf[2];	// isKey
+                            GSObjCFindVariable(self, name, &type, &size, &off);
+                         }
+                    }
 		}
 	    }
 	}
