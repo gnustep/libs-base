@@ -1,5 +1,9 @@
 2010-05-29  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* NSData.m: Attempted fix for bug #29920
+
+2010-05-29  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* NSConcreteHashTable.m:
 	* NSHashTable.m: In ([-allObjects]) fix buffer overrun (bug #29980).
 	* Source/NSXMLParser.m: Fix off-by-one error handling whitespace.
