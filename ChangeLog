@@ -1,3 +1,11 @@
+2010-05-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSConcreteHashTable.m:
+	* NSHashTable.m: In ([-allObjects]) fix buffer overrun (bug #29980).
+	* Source/NSXMLParser.m: Fix off-by-one error handling whitespace.
+	* Headers/Additions/GNUstepBase/GSMime.h: Revert xml charset method.
+	* Source/NSURL.m: Allow a URL made from an empty string (OSX compat).
+
 2010-05-28  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Source/NSKeyValueCoding.m: Added missing support to ValueForKey() as 

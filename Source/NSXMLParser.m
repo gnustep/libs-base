@@ -38,6 +38,10 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSMime.h"
 
+@interface GSMimeDocument (internal)
++ (NSString*) charsetForXml: (NSData*)xml;
+@end
+
 NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 
 static  NSNull  *null = nil;
@@ -1357,7 +1361,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			  foundIgnorableSel, self, s);
 			[s release];
 		      }
-		    vp = this->cp;
+		    vp = this->cp - 1;
 		  }
 		/* We have read non-space data, so whitespace is no longer
 		 * ignorable, and the buffer no loinger contains only space.
