@@ -22,23 +22,23 @@
 
    */
 
-#include "config.h"
+#import "common.h"
 
-#import <Foundation/NSArray.h>
-#import <Foundation/NSByteOrder.h>
-#import <Foundation/NSData.h>
-#import <Foundation/NSDebug.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSEnumerator.h>
-#import <Foundation/NSException.h>
-#import <Foundation/NSHost.h>
-#import <Foundation/NSLock.h>
-#import <Foundation/NSRunLoop.h>
-#import <Foundation/NSValue.h>
+#import "Foundation/NSArray.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
 #import "GSStream.h"
 #import "GSSocketStream.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #ifndef SHUT_RD
 # ifdef  SD_RECEIVE
@@ -65,7 +65,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 #ifdef	AF_INET6
     case AF_INET6:      return sizeof(struct sockaddr_in6);
 #endif
-#ifndef	__MINGW32__
+#ifndef	__MINGW__
     case AF_LOCAL:       return sizeof(struct sockaddr_un);
 #endif
     default:            return 0;
@@ -103,13 +103,19 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 - (void) bye;           /* Close down the handled session.   */
 - (BOOL) handshake;     /* A handshake/hello is in progress. */
 - (void) hello;         /* Start up the session handshake.   */
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len;
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len;
 @end
 
 
 @implementation GSStreamHandler
+
++ (void) initialize
+{
+  GSMakeWeakPointer(self, "istream");
+  GSMakeWeakPointer(self, "ostream");
+}
 
 + (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
 {
@@ -150,7 +156,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
   return ostream;
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -161,7 +167,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
   [self subclassResponsibility: _cmd];
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -403,6 +409,14 @@ static gnutls_anon_client_credentials_t anoncred;
               output: (GSSocketOutputStream*)o
 {
   NSString      *proto = [i propertyForKey: NSStreamSocketSecurityLevelKey];
+  BOOL		server = NO;
+
+/* FIXME
+  if ([[o propertyForKey: NSStreamSocketCertificateServerKey] boolValue] == YES)
+    {
+      server = YES;
+    }
+ */
 
   if (GSDebugSet(@"NSStream") == YES)
     {
@@ -415,6 +429,7 @@ static gnutls_anon_client_credentials_t anoncred;
 
   if ([[o propertyForKey: NSStreamSocketSecurityLevelKey] isEqual: proto] == NO)
     {
+      NSLog(@"NSStreamSocketSecurityLevel on input stream does not match output stream");
       DESTROY(self);
       return nil;
     }
@@ -427,7 +442,7 @@ static gnutls_anon_client_credentials_t anoncred;
   else if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv2] == YES)
     {
       proto = NSStreamSocketSecurityLevelSSLv2;
-      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv1 is insecure ..."
+      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
         @" not implemented");
       DESTROY(self);
       return nil;
@@ -464,7 +479,15 @@ static gnutls_anon_client_credentials_t anoncred;
 
   /* Initialise session and set default priorities foir key exchange.
    */
-  gnutls_init (&session, GNUTLS_CLIENT);
+  if (server)
+    {
+      gnutls_init (&session, GNUTLS_SERVER);
+      /* FIXME ... need to set up DH information and key/certificate. */
+    }
+  else
+    {
+      gnutls_init (&session, GNUTLS_CLIENT);
+    }
   gnutls_set_default_priority (session);
 
   if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
@@ -524,7 +547,7 @@ static gnutls_anon_client_credentials_t anoncred;
   return ostream;
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return gnutls_record_recv (session, buffer, len);
 }
@@ -576,7 +599,7 @@ static gnutls_anon_client_credentials_t anoncred;
     }
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return gnutls_record_send (session, buffer, len);
 }
@@ -797,7 +820,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  address = [[NSString alloc] initWithUTF8String:
 	    (char*)inet_ntoa(addr->sin_addr)];
 	  port = [[NSString alloc] initWithFormat: @"%d",
-	    (int)GSSwapBigI16ToHost(addr->sin_port)];
+	    (NSInteger)GSSwapBigI16ToHost(addr->sin_port)];
 
           /* Now reconfigure the streams so they will actually connect
            * to the socks proxy server.
@@ -812,7 +835,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
   return self;
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return [istream _read: buffer maxLength: len];
 }
@@ -1202,7 +1225,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
     }
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return [ostream _write: buffer maxLength: len];
 }
@@ -1213,7 +1236,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 static inline BOOL
 socketError(int result)
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   return (result == SOCKET_ERROR) ? YES : NO;
 #else
   return (result < 0) ? YES : NO;
@@ -1223,7 +1246,7 @@ socketError(int result)
 static inline BOOL
 socketWouldBlock()
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   int   e = WSAGetLastError();
   return (e == WSAEWOULDBLOCK || e == WSAEINPROGRESS) ? YES : NO;
 #else
@@ -1235,7 +1258,7 @@ socketWouldBlock()
 static void
 setNonBlocking(SOCKET fd)
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   unsigned long dummy = 1;
 
   if (ioctlsocket(fd, FIONBIO, &dummy) == SOCKET_ERROR)
@@ -1264,10 +1287,6 @@ setNonBlocking(SOCKET fd)
   [_sibling _setSibling: nil];
   _sibling = nil;
   DESTROY(_handler);
-  if (_address != 0)
-    {
-      NSZoneFree(NSDefaultMallocZone(), _address);
-    }
   [super dealloc];
 }
 
@@ -1279,31 +1298,32 @@ setNonBlocking(SOCKET fd)
       _sibling = nil;
       _closing = NO;
       _passive = NO;
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       _loopID = WSA_INVALID_EVENT;
 #else
       _loopID = (void*)(intptr_t)-1;
 #endif
       _sock = INVALID_SOCKET;
       _handler = nil;
+      _address.s.sa_family = AF_UNSPEC;
     }
   return self;
 }
 
 - (struct sockaddr*) _address
 {
-  return (struct sockaddr*)_address;
+  return &_address.s;
 }
 
 - (id) propertyForKey: (NSString *)key
 {
   id	result = [super propertyForKey: key];
 
-  if (result == nil && _address != 0)
+  if (result == nil && _address.s.sa_family != AF_UNSPEC)
     {
       SOCKET    s = [self _sock];
 
-      switch (_address->sa_family)
+      switch (_address.s.sa_family)
         {
           case AF_INET:
             {
@@ -1402,7 +1422,7 @@ setNonBlocking(SOCKET fd)
   return result;
 }
 
-- (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return -1;
@@ -1432,8 +1452,8 @@ setNonBlocking(SOCKET fd)
 }
 
 - (BOOL) _setSocketAddress: (NSString*)address
-                      port: (int)port
-                    family: (int)family
+                      port: (NSInteger)port
+                    family: (NSInteger)family
 {
   uint16_t	p = (uint16_t)port;
 
@@ -1485,7 +1505,7 @@ setNonBlocking(SOCKET fd)
         }
 #endif
 
-#ifndef	__MINGW32__
+#ifndef	__MINGW__
       case AF_LOCAL:
 	{
 	  struct sockaddr_un	peer;
@@ -1514,23 +1534,12 @@ setNonBlocking(SOCKET fd)
 
 - (void) _setAddress: (struct sockaddr*)address
 {
-  if (_address != 0
-    && GSPrivateSockaddrLength(_address) != GSPrivateSockaddrLength(address))
-    {
-      NSZoneFree(NSDefaultMallocZone(), _address);
-      _address = 0;
-    }
-  if (_address == 0)
-    {
-      _address = (struct sockaddr*)
-	NSZoneMalloc(NSDefaultMallocZone(), GSPrivateSockaddrLength(address));
-    }
-  memcpy(_address, address, GSPrivateSockaddrLength(address));
+  memcpy(&_address.s, address, GSPrivateSockaddrLength(address));
 }
 
 - (void) _setLoopID: (void *)ref
 {
-#if	!defined(__MINGW32__)
+#if	!defined(__MINGW__)
   _sock = (SOCKET)(intptr_t)ref;        // On gnu/linux _sock is _loopID
 #endif
   _loopID = ref;
@@ -1561,7 +1570,7 @@ setNonBlocking(SOCKET fd)
    * monitored, and on mswindows systems we create an event object to be
    * monitored (the socket events are assoociated with this object later).
    */
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   _loopID = CreateEvent(NULL, NO, NO, NULL);
 #else
   _loopID = (void*)(intptr_t)sock;      // On gnu/linux _sock is _loopID
@@ -1578,7 +1587,7 @@ setNonBlocking(SOCKET fd)
   return _sock;
 }
 
-- (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) _write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return -1;
@@ -1591,6 +1600,7 @@ setNonBlocking(SOCKET fd)
 
 + (void) initialize
 {
+  GSMakeWeakPointer(self, "_sibling");
   if (self == [GSSocketInputStream class])
     {
       GSObjCAddClassBehavior(self, [GSSocketStream class]);
@@ -1622,7 +1632,7 @@ setNonBlocking(SOCKET fd)
             {
               [GSSOCKS tryInput: self output: _sibling];
             }
-          s = socket(_address->sa_family, SOCK_STREAM, 0);
+          s = socket(_address.s.sa_family, SOCK_STREAM, 0);
           if (BADSOCKET(s))
             {
               [self _recordError];
@@ -1639,8 +1649,8 @@ setNonBlocking(SOCKET fd)
         {
           [GSTLS tryInput: self output: _sibling];
         }
-      result = connect([self _sock], _address,
-        GSPrivateSockaddrLength(_address));
+      result = connect([self _sock], &_address.s,
+        GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
           if (!socketWouldBlock())
@@ -1656,7 +1666,7 @@ setNonBlocking(SOCKET fd)
            * indication of opened
            */
           [self _setStatus: NSStreamStatusOpening];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
 	  if (NSCountMapTable(_loops) > 0)
@@ -1690,7 +1700,7 @@ setNonBlocking(SOCKET fd)
     }
 
  open_ok:
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
@@ -1711,7 +1721,7 @@ setNonBlocking(SOCKET fd)
       return;
     }
   [_handler bye];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
       /*
@@ -1745,7 +1755,7 @@ setNonBlocking(SOCKET fd)
   _sock = INVALID_SOCKET;
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   if (buffer == 0)
     {
@@ -1764,7 +1774,7 @@ setNonBlocking(SOCKET fd)
     return [_handler read: buffer maxLength: len];
 }
 
-- (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   int readLen;
 
@@ -1780,7 +1790,7 @@ setNonBlocking(SOCKET fd)
     }
   else
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       readLen = recv([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
       readLen = read([self _sock], buffer, len);
@@ -1834,7 +1844,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _dispatch
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   AUTORELEASE(RETAIN(self));
   /*
    * Windows only permits a single event to be associated with a socket
@@ -1953,7 +1963,7 @@ setNonBlocking(SOCKET fd)
       int result;
       socklen_t len = sizeof(error);
 
-      AUTORELEASE(RETAIN(self));
+      IF_NO_GC([[self retain] autorelease];)
       [self _unschedule];
       result = getsockopt([self _sock], SOL_SOCKET, SO_ERROR, &error, &len);
 
@@ -1989,7 +1999,7 @@ setNonBlocking(SOCKET fd)
 #endif
 }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   *trigger = YES;
@@ -2004,13 +2014,14 @@ setNonBlocking(SOCKET fd)
 
 + (void) initialize
 {
+  GSMakeWeakPointer(self, "_sibling");
   if (self == [GSSocketOutputStream class])
     {
       GSObjCAddClassBehavior(self, [GSSocketStream class]);
     }
 }
 
-- (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) _write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   int writeLen;
 
@@ -2026,7 +2037,7 @@ setNonBlocking(SOCKET fd)
       return 0;
     }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   writeLen = send([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
   writeLen = write([self _sock], buffer, (socklen_t) len);
@@ -2092,7 +2103,7 @@ setNonBlocking(SOCKET fd)
             {
               [GSSOCKS tryInput: _sibling output: self];
             }
-          s = socket(_address->sa_family, SOCK_STREAM, 0);
+          s = socket(_address.s.sa_family, SOCK_STREAM, 0);
           if (BADSOCKET(s))
             {
               [self _recordError];
@@ -2110,8 +2121,8 @@ setNonBlocking(SOCKET fd)
           [GSTLS tryInput: _sibling output: self];
         }
 
-      result = connect([self _sock], _address,
-        GSPrivateSockaddrLength(_address));
+      result = connect([self _sock], &_address.s,
+        GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
           if (!socketWouldBlock())
@@ -2127,7 +2138,7 @@ setNonBlocking(SOCKET fd)
            * indication of opened
            */
           [self _setStatus: NSStreamStatusOpening];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
 	  if (NSCountMapTable(_loops) > 0)
@@ -2161,7 +2172,7 @@ setNonBlocking(SOCKET fd)
     }
 
  open_ok: 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
@@ -2184,7 +2195,7 @@ setNonBlocking(SOCKET fd)
       return;
     }
   [_handler bye];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
       /*
@@ -2218,7 +2229,7 @@ setNonBlocking(SOCKET fd)
   _sock = INVALID_SOCKET;
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   if (buffer == 0)
     {
@@ -2239,7 +2250,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _dispatch
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   AUTORELEASE(RETAIN(self));
   /*
    * Windows only permits a single event to be associated with a socket
@@ -2356,7 +2367,7 @@ setNonBlocking(SOCKET fd)
       socklen_t len = sizeof(error);
       int result;
 
-      AUTORELEASE(RETAIN(self));
+      IF_NO_GC([[self retain] autorelease];)
       [self _schedule];
       result
 	= getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
@@ -2392,7 +2403,7 @@ setNonBlocking(SOCKET fd)
 #endif
 }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   *trigger = YES;
@@ -2414,6 +2425,7 @@ setNonBlocking(SOCKET fd)
 
 + (void) initialize
 {
+  GSMakeWeakPointer(self, "_sibling");
   if (self == [GSSocketServerStream class])
     {
       GSObjCAddClassBehavior(self, [GSSocketStream class]);
@@ -2447,7 +2459,7 @@ setNonBlocking(SOCKET fd)
       return;
     }
 
-  s = socket(_address->sa_family, SOCK_STREAM, 0);
+  s = socket(_address.s.sa_family, SOCK_STREAM, 0);
   if (BADSOCKET(s))
     {
       [self _recordError];
@@ -2460,9 +2472,9 @@ setNonBlocking(SOCKET fd)
     }
 
 #ifndef	BROKEN_SO_REUSEADDR
-  if (_address->sa_family == AF_INET
+  if (_address.s.sa_family == AF_INET
 #ifdef  AF_INET6
-    || _address->sa_family == AF_INET6
+    || _address.s.sa_family == AF_INET6
 #endif
   )
     {
@@ -2479,7 +2491,8 @@ setNonBlocking(SOCKET fd)
     }
 #endif
 
-  bindReturn = bind([self _sock], _address, GSPrivateSockaddrLength(_address));
+  bindReturn = bind([self _sock],
+    &_address.s, GSPrivateSockaddrLength(&_address.s));
   if (socketError(bindReturn))
     {
       [self _recordError];
@@ -2493,7 +2506,7 @@ setNonBlocking(SOCKET fd)
       [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
@@ -2501,7 +2514,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if (_loopID != WSA_INVALID_EVENT)
     {
       WSACloseEvent(_loopID);
@@ -2569,7 +2582,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _dispatch
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSANETWORKEVENTS events;
   
   if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
@@ -2599,7 +2612,7 @@ setNonBlocking(SOCKET fd)
 
 @implementation GSInetInputStream
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2616,7 +2629,7 @@ setNonBlocking(SOCKET fd)
 @implementation GSInet6InputStream
 #if	defined(AF_INET6)
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2629,9 +2642,9 @@ setNonBlocking(SOCKET fd)
 }
 
 #else
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 #endif
@@ -2639,7 +2652,7 @@ setNonBlocking(SOCKET fd)
 
 @implementation GSInetOutputStream
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2656,7 +2669,7 @@ setNonBlocking(SOCKET fd)
 @implementation GSInet6OutputStream
 #if	defined(AF_INET6)
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2669,9 +2682,9 @@ setNonBlocking(SOCKET fd)
 }
 
 #else
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 #endif
@@ -2689,7 +2702,7 @@ setNonBlocking(SOCKET fd)
   return [GSInetOutputStream class];
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ((self = [super init]) != nil)
     {
@@ -2719,7 +2732,7 @@ setNonBlocking(SOCKET fd)
   return [GSInet6OutputStream class];
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
   if ([super init] != nil)
     {
@@ -2735,9 +2748,9 @@ setNonBlocking(SOCKET fd)
   return self;
 }
 #else
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 #endif

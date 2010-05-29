@@ -107,6 +107,8 @@ GS_EXPORT NSString* const NSLoadedClasses;
 */
 @interface NSBundle : NSObject
 {
+#if	GS_EXPOSE(NSBundle)
+@public
   NSString		*_path;
   NSMutableArray	*_bundleClasses;
   Class			_principalClass;
@@ -116,6 +118,10 @@ GS_EXPORT NSString* const NSLoadedClasses;
   BOOL			_codeLoaded;
   unsigned		_version;
   NSString      	*_frameworkVersion;
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 
 /** Return an array enumerating all the bundles in the application.  This
@@ -271,8 +277,8 @@ GS_EXPORT NSString* const NSLoadedClasses;
    the bundle.
    </p>
    <p>
-   If ext is nil or empty, then the first file with name and any
-   extension is returned.
+   If ext is nil or empty, then the first file exactly matching name
+   (ie with no extension) is returned.
    </p>
 */
 - (NSString*) pathForResource: (NSString*)name
@@ -567,6 +573,10 @@ GS_EXPORT NSString* const NSLoadedClasses;
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSBundle+GNUstepBase.h>
 #endif
 
 #endif	/* __NSBundle_h_GNUSTEP_BASE_INCLUDE */

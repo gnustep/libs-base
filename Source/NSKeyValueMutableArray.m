@@ -23,6 +23,7 @@
    $Date: 2007-06-08 04: 04: 14 -0400 (Fri, 08 Jun 2007) $ $Revision: 25230 $
    */
 
+#import "common.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSIndexSet.h"
 #import "Foundation/NSKeyValueObserving.h"
@@ -182,7 +183,7 @@
   if (!([anObject respondsToSelector: insert]
     && [anObject respondsToSelector: remove]))
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
   replace = NSSelectorFromString
@@ -316,7 +317,7 @@
 
   if (![anObject respondsToSelector: set])
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
 

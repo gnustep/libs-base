@@ -1,9 +1,33 @@
-#import "config.h"
+/** 
+   Copyright (C) 2008-2009 Free Software Foundation, Inc.
 
-#import "GNUstepBase/preface.h"
+   By: Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+   This file is part of the GNUstep Base Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+
+   $Date: 2009-02-23 20:42:32 +0000 (Mon, 23 Feb 2009) $ $Revision: 27962 $
+*/
+
+#import "common.h"
+
 #import "GSRunLoopWatcher.h"
-#import <Foundation/NSException.h>
-#import <Foundation/NSPort.h>
+#import "Foundation/NSException.h"
+#import "Foundation/NSPort.h"
 
 @implementation	GSRunLoopWatcher
 
@@ -21,7 +45,7 @@
   data = item;
   switch (aType)
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       case ET_HANDLE:   type = aType;   break;
       case ET_WINMSG:   type = aType;   break;
 #else
@@ -32,7 +56,7 @@
       case ET_RPORT: 	type = aType;	break;
       case ET_TRIGGER: 	type = aType;	break;
       default: 
-	RELEASE(self);
+	DESTROY(self);
 	[NSException raise: NSInvalidArgumentException
 		    format: @"NSRunLoop - unknown event type"];
     }
@@ -44,7 +68,7 @@
 
   if (![anObj respondsToSelector: @selector(receivedEvent:type:extra:forMode:)])
     {
-      RELEASE(self);
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"RunLoop listener has no event handling method"];
     }

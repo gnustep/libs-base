@@ -31,34 +31,46 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
+#import "common.h"
+#define	EXPOSE_NSBundle_IVARS	1
 #include "objc-load.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSValue.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSValue.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <string.h>
+
+static NSFileManager	*
+manager()
+{
+  static NSFileManager	*mgr = nil;
+
+  if (mgr == nil)
+    {
+      mgr = RETAIN([NSFileManager defaultManager]);
+    }
+  return mgr;
+}
+
 
 @interface NSObject (PrivateFrameworks)
 + (NSString*) frameworkEnv;
@@ -142,7 +154,7 @@ static NSString	*library_combo =
 static NSString*
 AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 {
-  NSFileManager	*mgr;
+  NSFileManager	*mgr = manager();
   NSDictionary	*env;
   NSString	*pathlist;
   NSString	*prefix;
@@ -154,7 +166,6 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
       return path;
     }
 
-  mgr = [NSFileManager defaultManager];
   env = [[NSProcessInfo processInfo] environment];
   pathlist = [env objectForKey:@"PATH"];
 
@@ -163,7 +174,7 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
     {
       pathlist = [env objectForKey:@"Path"];
     }
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   patharr = [pathlist componentsSeparatedByString:@";"];
 #else
   patharr = [pathlist componentsSeparatedByString:@":"];
@@ -232,7 +243,7 @@ GSPrivateExecutablePath()
       if (beenHere == NO)
 	{
 #ifdef PROCFS_EXE_LINK
-	  executablePath = [[NSFileManager defaultManager]
+	  executablePath = [manager()
 	    pathContentOfSymbolicLinkAtPath:
               [NSString stringWithUTF8String: PROCFS_EXE_LINK]];
 
@@ -256,7 +267,7 @@ GSPrivateExecutablePath()
 	      executablePath = AbsolutePathOfExecutable(executablePath, YES);
 	    }
 
-	  RETAIN(executablePath);
+	  IF_NO_GC([executablePath retain];)
 	  beenHere = YES;
 	}
       [load_lock unlock];
@@ -268,7 +279,7 @@ GSPrivateExecutablePath()
 static BOOL
 bundle_directory_readable(NSString *path)
 {
-  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSFileManager	*mgr = manager();
   BOOL		directory;
 
   if ([mgr fileExistsAtPath: path isDirectory: &directory] == NO
@@ -278,18 +289,11 @@ bundle_directory_readable(NSString *path)
   return [mgr isReadableFileAtPath: path];
 }
 
-static BOOL
-bundle_file_readable(NSString *path)
-{
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  return [mgr isReadableFileAtPath: path];
-}
-
 /* Get the object file that should be located in the bundle of the same name */
 static NSString *
 bundle_object_name(NSString *path, NSString* executable)
 {
-  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSFileManager	*mgr = manager();
   NSString	*name, *path0, *path1, *path2;
 
   if (executable)
@@ -315,7 +319,7 @@ bundle_object_name(NSString *path, NSString* executable)
   path = [path stringByAppendingPathComponent: gnustep_target_dir];
   path1 = [path stringByAppendingPathComponent: name];
   path = [path stringByAppendingPathComponent: library_combo];
-  path2 = [path stringByAppendingPathComponent: executable];
+  path2 = [path stringByAppendingPathComponent: name];
 
   if ([mgr isReadableFileAtPath: path2] == YES)
     return path2;
@@ -323,7 +327,7 @@ bundle_object_name(NSString *path, NSString* executable)
     return path1;
   else if ([mgr isReadableFileAtPath: path0] == YES)
     return path0;
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   /* If we couldn't find the binary, and we are on windows, and the name
    * has no path extension, then let's try looking for a dll.
    */
@@ -355,37 +359,13 @@ _bundle_resource_path(NSString *primary, NSString* bundlePath, NSString *lang)
   return primary;
 }
 
-/* Find the first directory entry with a given name (with any extension) */
-static NSString *
-_bundle_name_first_match(NSString* directory, NSString* name)
-{
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  NSEnumerator	*filelist;
-  NSString	*path;
-  NSString	*match;
-  NSString	*cleanname;
-
-  /* name might have a directory in it also, so account for this */
-  path = [[directory stringByAppendingPathComponent: name]
-    stringByDeletingLastPathComponent];
-  cleanname = [[name lastPathComponent] stringByDeletingPathExtension];
-  filelist = [[mgr directoryContentsAtPath: path] objectEnumerator];
-  while ((match = [filelist nextObject]))
-    {
-      if ([cleanname isEqual: [match stringByDeletingPathExtension]])
-	return [path stringByAppendingPathComponent: match];
-    }
-
-  return nil;
-}
-
 /* Try to locate name framework in standard places
    which are like /Library/Frameworks/(name).framework */
 static inline NSString *
 _find_framework(NSString *name)
 {                
   NSArray	*paths;
-  NSFileManager *file_mgr = [NSFileManager defaultManager];
+  NSFileManager *file_mgr = manager();
   NSString	*file_name = [name stringByAppendingPathExtension:@"framework"];
   NSString	*file_path;
   NSString	*path;
@@ -423,7 +403,7 @@ _find_main_bundle_for_tool(NSString *toolName)
   NSEnumerator *enumerator;
   NSString *path;
   NSString *tail;
-  NSFileManager *fm = [NSFileManager defaultManager];
+  NSFileManager *fm = manager();
 
   /*
    * Eliminate any base path or extensions.
@@ -612,7 +592,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 	  /* On windows, the library (dll) is in the Tools area rather than
 	   * in the framework, so we can adjust the path here.
 	   */
@@ -646,7 +626,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 		  if (bundlePath)
 		    bundle = [[self alloc] initWithPath: bundlePath];
 		}
-#if !defined(__MINGW32__)
+#if !defined(__MINGW__)
 	    }
 #endif
 
@@ -705,7 +685,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	  NSValue *value;
 	  Class    class = NSClassFromString(*fmClasses);
 
-	  value = [NSValue valueWithNonretainedObject: class];
+	  value = [NSValue valueWithPointer: (void*)class];
 	
 	  [bundle->_bundleClasses addObject: value];
 	
@@ -740,8 +720,8 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    {
 	      for (j = 0; j < [l count]; j++)
 		{
-		  if ([[l objectAtIndex: j] nonretainedObjectValue]
-		     == [[b objectAtIndex:i] nonretainedObjectValue])
+		  if ([[l objectAtIndex: j] pointerValue]
+		     == [[b objectAtIndex:i] pointerValue])
 		    {
 		      [l removeObjectAtIndex:j];
 		    }
@@ -782,10 +762,6 @@ _find_main_bundle_for_tool(NSString *toolName)
 
  */
 
-typedef struct {
-    @defs(NSBundle)
-} *bptr;
-
 static void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
@@ -814,13 +790,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	}
 
       [_loadingFrameworks
-	addObject: [NSValue valueWithNonretainedObject: (id)theClass]];
+	addObject: [NSValue valueWithPointer: (void*)theClass]];
       return;
     }
 
   /* Store classes (but don't store categories) */
-  [((bptr)_loadingBundle)->_bundleClasses addObject:
-    [NSValue valueWithNonretainedObject: (id)theClass]];
+  [(_loadingBundle)->_bundleClasses addObject:
+    [NSValue valueWithPointer: (void*)theClass]];
 }
 
 
@@ -834,6 +810,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       NSString	   *str;
 
       _emptyTable = RETAIN([NSDictionary dictionary]);
+
+      /* Initialise manager here so it's thread-safe.
+       */
+      manager();
 
       /* Need to make this recursive since both mainBundle and
        * initWithPath: want to lock the thread.
@@ -866,8 +846,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	library_combo = RETAIN(str);
       
-      _launchDirectory = RETAIN([[NSFileManager defaultManager]
-				  currentDirectoryPath]);
+      _launchDirectory = RETAIN([manager() currentDirectoryPath]);
       
       _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
 					      version: _base_version]);
@@ -1068,15 +1047,41 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if (isApplication == YES)
 	{
 	  s = [path lastPathComponent];
-	
-	  if ((([s hasSuffix: @".app"]  == NO)
-	    && ([s hasSuffix: @".debug"] == NO)
-	    && ([s hasSuffix: @".profile"] == NO))
-	    // GNUstep Web
-	    && (([s hasSuffix: @".gswa"] == NO)
-		&& ([s hasSuffix: @".woa"] == NO)))
+    
+	  if ([s hasSuffix: @".app"] == NO
+	    && [s hasSuffix: @".debug"] == NO
+	    && [s hasSuffix: @".profile"] == NO
+	    && [s hasSuffix: @".gswa"] == NO	// GNUstep Web
+	    && [s hasSuffix: @".woa"] == NO	// GNUstep Web
+	    )
 	    {
-	      isApplication = NO;
+	      NSFileManager	*mgr = manager();
+	      BOOL		f;
+
+	      /* Not one of the common extensions, but
+	       * might be an app wrapper with another extension...
+	       * Look for Info-gnustep.plist or Info.plist in a
+	       * Resources subdirectory.
+	       */
+	      s = [path stringByAppendingPathComponent: @"Resources"];
+	      if ([mgr fileExistsAtPath: s isDirectory: &f] == NO || f == NO)
+		{
+		  isApplication = NO;
+		}
+	      else
+		{
+		  NSString	*i;
+
+		  i = [s stringByAppendingPathComponent: @"Info-gnustep.plist"];
+		  if ([mgr isReadableFileAtPath: i] == NO)
+		    {
+		      i = [s stringByAppendingPathComponent: @"Info.plist"];
+		      if ([mgr isReadableFileAtPath: i] == NO)
+			{
+			  isApplication = NO;
+			}
+		    }
+		}
 	    }
 	}
 
@@ -1177,8 +1182,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       j = [bundleClasses count];
       for (i = 0; i < j && found == NO; i++)
 	{
-	  if ([[bundleClasses objectAtIndex: i]
-	    nonretainedObjectValue] == aClass)
+	  if ([[bundleClasses objectAtIndex: i] pointerValue] == (void*)aClass)
 	    found = YES;
 	}
 
@@ -1228,7 +1232,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		= [[NSMutableArray alloc] initWithCapacity: 2];
 	    }
 	  [bundle->_bundleClasses addObject:
-	    [NSValue valueWithNonretainedObject: aClass]];
+	    [NSValue valueWithPointer: (void*)aClass]];
 	}
     }
   [load_lock unlock];
@@ -1249,10 +1253,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (_byIdentifier)
     {
       bundle = (NSBundle *)NSMapGet(_byIdentifier, identifier);
+IF_NO_GC(
       if (bundle != nil)
 	{
-	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  [bundle retain]; /* retain - look as if we were alloc'ed */
 	}
+)
     }
   [load_lock unlock];
   return AUTORELEASE(bundle);
@@ -1281,7 +1287,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names, "
 	@"given '%@'", path);
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       if ([path length] > 0 &&
 	([path characterAtIndex: 0]=='/' || [path characterAtIndex: 0]=='\\'))
 	{
@@ -1292,7 +1298,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	   * that it's a path on the current filesystem, and append it
 	   * to the filesystem root.
 	   */
-	  root = [[NSFileManager defaultManager] currentDirectoryPath];
+	  root = [manager() currentDirectoryPath];
 	  length = [root length];
 	  root = [root stringByDeletingLastPathComponent];
 	  while ([root length] != length)
@@ -1306,11 +1312,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	{
 	  /* Try appending to the current working directory.
 	   */
-	  path = [[[NSFileManager defaultManager] currentDirectoryPath]
+	  path = [[manager() currentDirectoryPath]
 	    stringByAppendingPathComponent: path];
 	}
 #else
-      path = [[[NSFileManager defaultManager] currentDirectoryPath]
+      path = [[manager() currentDirectoryPath]
         stringByAppendingPathComponent: path];
 #endif
     }
@@ -1328,7 +1334,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       if (bundle != nil)
 	{
-	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  IF_NO_GC([bundle retain];)
 	  [load_lock unlock];
 	  [self dealloc];
 	  return bundle;
@@ -1380,7 +1386,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       if (bundle != nil)
 	{
-	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  IF_NO_GC([bundle retain];)
 	  [load_lock unlock];
 	  [self dealloc];
 	  return bundle;
@@ -1404,7 +1410,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
        * dynamically loaded code, so we want to prevent a bundle
        * being loaded twice.
        */
-      RETAIN(self);
+      IF_NO_GC([self retain];)
       return;
     }
   if (_path != nil)
@@ -1470,7 +1476,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       for (i = 0; i < j  &&  found == NO; i++)
 	{
-	  Class c = [[_bundleClasses objectAtIndex: i] nonretainedObjectValue];
+	  Class c = (Class)[[_bundleClasses objectAtIndex: i] pointerValue];
 
 	  if (c == theClass)
 	    {
@@ -1518,8 +1524,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       [load_lock lock];
       if (_principalClass == nil && [_bundleClasses count] > 0)
 	{
-	  _principalClass = [[_bundleClasses objectAtIndex: 0]
-	    nonretainedObjectValue];
+	  _principalClass = (Class)[[_bundleClasses objectAtIndex: 0]
+	    pointerValue];
 	}
       [load_lock unlock];
     }
@@ -1580,7 +1586,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       classEnumerator = [_loadingFrameworks objectEnumerator];
       while ((class = [classEnumerator nextObject]) != nil)
 	{
-	  [NSBundle _addFrameworkFromClass: [class nonretainedObjectValue]];
+	  [NSBundle _addFrameworkFromClass: (Class)[class pointerValue]];
 	}
 
       /* After we load code from a bundle, we retain the bundle until
@@ -1589,7 +1595,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	 We need it to answer calls like bundleForClass:; also, users
 	 normally want all loaded bundles to appear when they call
 	 +allBundles.  */
-      RETAIN (self);
+      IF_NO_GC([self retain];)
       _loadingBundle = nil;
 
       DESTROY(_loadingFrameworks);
@@ -1600,7 +1606,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       while ((class = [classEnumerator nextObject]) != nil)
 	{
 	  [classNames addObject:
-	    NSStringFromClass([class nonretainedObjectValue])];
+	    NSStringFromClass((Class)[class pointerValue])];
 	}
 
       [load_lock unlock];
@@ -1626,6 +1632,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (NSDecrementExtraRefCountWasZero(self))
     {
       [self dealloc];
+      self = nil;
     }
   [load_lock unlock];
 }
@@ -1669,99 +1676,73 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return array;
 }
 
-+ (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext	
-		    inRootPath: (NSString *)rootPath
-		   inDirectory: (NSString *)subPath
-		   withVersion: (int)version
++ (NSString *) _pathForResource: (NSString *)name
+			 ofType: (NSString *)ext	
+		     inRootPath: (NSString *)rootPath
+		    inDirectory: (NSString *)subPath
 {
-  NSString *path, *fullpath;
-  NSEnumerator* pathlist;
+  NSFileManager	*mgr = manager();
+  NSString	*path;
+  NSEnumerator	*pathlist;
 
   if (name == nil)
     {
       name = @"";
     }
-
-  pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
-		    subPath: subPath] objectEnumerator];
-  fullpath = nil;
-  while ((path = [pathlist nextObject]))
+  if ([ext length] == 0)
     {
-      if (!bundle_directory_readable(path))
-	continue;
-
-      if (ext && [ext length] != 0)
-	{
-	  fullpath = [path stringByAppendingPathComponent:
-			     [NSString stringWithFormat: @"%@.%@", name, ext]];
-	  if (bundle_file_readable(fullpath))
-	    {
-	      if (gnustep_target_os)
-		{
-		  NSString* platpath;
-		  platpath = [path stringByAppendingPathComponent:
-		    [NSString stringWithFormat: @"%@-%@.%@",
-		    name, gnustep_target_os, ext]];
-		  if (bundle_file_readable(platpath))
-		    fullpath = platpath;
-		}
-	    }
-	  else
-	    {
-	      fullpath = nil;
-	    }
-	}
-      else
-	{
-	  fullpath = _bundle_name_first_match(path, name);
-	  if (fullpath && gnustep_target_os)
-	    {
-	      NSString	*platpath;
-
-	      platpath = _bundle_name_first_match(path,
-		[NSString stringWithFormat: @"%@-%@",
-		name, gnustep_target_os]);
-	      if (platpath != nil)
-		fullpath = platpath;
-	    }
-	}
-      if (fullpath != nil)
-	break;
+      ext = nil;
     }
 
-  return fullpath;
+  pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
+    subPath: subPath] objectEnumerator];
+  while ((path = [pathlist nextObject]) != nil)
+    {
+      if (bundle_directory_readable(path))
+	{
+	  path = [path stringByAppendingPathComponent: name];
+	  if (ext != nil)
+	    {
+	      path = [path stringByAppendingPathExtension: ext];
+	    }
+	  if ([mgr isReadableFileAtPath: path])
+	    {
+	      return path;
+	    }
+	}
+    }
+
+  return nil;
+}
+
+
++ (NSString *) pathForResource: (NSString *)name
+			ofType: (NSString *)ext	
+		   inDirectory: (NSString *)bundlePath
+		   withVersion: (int)version
+{
+  return [self _pathForResource: name
+			 ofType: ext
+		     inRootPath: bundlePath
+		    inDirectory: nil];
 }
 
 + (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)ext	
 		   inDirectory: (NSString *)bundlePath
-		   withVersion: (int) version
 {
-    return [self pathForResource: name
-		 ofType: ext
-		 inRootPath: bundlePath
-		 inDirectory: nil
-		 withVersion: version];
-}
-
-+ (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext	
-		   inDirectory: (NSString *)bundlePath
-{
-    return [self pathForResource: name
-		 ofType: ext
-		 inRootPath: bundlePath
-		 inDirectory: nil
-		 withVersion: 0];
+  return [self _pathForResource: name
+			 ofType: ext
+		     inRootPath: bundlePath
+		    inDirectory: nil];
 }
 
 - (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)ext
 {
   return [self pathForResource: name
-	       ofType: ext
-	       inDirectory: nil];
+			ofType: ext
+		   inDirectory: nil];
 }
 
 - (NSString *) pathForResource: (NSString *)name
@@ -1770,19 +1751,18 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSString *rootPath;
 
-#if !defined(__MINGW32__)
+#if !defined(__MINGW__)
   if (_frameworkVersion)
     rootPath = [NSString stringWithFormat:@"%@/Versions/%@", [self bundlePath],
-			 _frameworkVersion];
+      _frameworkVersion];
   else
 #endif
     rootPath = [self bundlePath];
 
-  return [NSBundle pathForResource: name
-		   ofType: ext
-		   inRootPath: rootPath
-		   inDirectory: subPath
-		   withVersion: _version];
+  return [NSBundle _pathForResource: name
+			     ofType: ext
+			 inRootPath: rootPath
+		        inDirectory: subPath];
 }
 
 + (NSArray*) _pathsForResourcesOfType: (NSString*)extension
@@ -1793,7 +1773,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSString *path;
   NSMutableArray *resources;
   NSEnumerator *pathlist;
-  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSFileManager	*mgr = manager();
 
   pathlist = [[NSBundle _bundleResourcePathsWithRootPath: bundlePath
 			subPath: subPath] objectEnumerator];
@@ -1896,8 +1876,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    }
 	}
     }
-  RETAIN(result);
-  DESTROY(arp);
+  IF_NO_GC([result retain]; DESTROY(arp);)
   return AUTORELEASE(result);
 }
 
@@ -1910,9 +1889,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray
 			       forPreferences: (NSArray *)preferencesArray
 {
-  NSString *locale;
-  NSMutableArray* array;
-  NSEnumerator* enumerate;
+  NSString	*locale;
+  NSMutableArray	*array;
+  NSEnumerator	*enumerate;
 
   array = [NSMutableArray arrayWithCapacity: 2];
   enumerate = [preferencesArray objectEnumerator];
@@ -1995,8 +1974,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 }
 
 - (NSString *) localizedStringForKey: (NSString *)key	
-			       value: (NSString *)value
-			       table: (NSString *)tableName
+                               value: (NSString *)value
+                               table: (NSString *)tableName
 {
   NSDictionary	*table;
   NSString	*newString = nil;
@@ -2029,107 +2008,107 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       tablePath = [self pathForResource: tableName ofType: @"strings"];
       if (tablePath != nil)
-	{
-	  NSStringEncoding	encoding;
-	  NSString		*tableContent;
-	  NSData		*tableData;
-	  const unsigned char	*bytes;
-	  unsigned		length;
-
-	  tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
-	  bytes = [tableData bytes];
-	  length = [tableData length];
-	  /*
-	   * A localisation file can be ...
-	   * UTF16 with a leading BOM,
-	   * UTF8 with a leading BOM,
-	   * or ASCII (the original standard) with \U escapes.
-	   */
-	  if (length > 2
-	    && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
-	      || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
-	    {
-	      encoding = NSUnicodeStringEncoding;
-	    }
-	  else if (length > 2
-	    && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
-	    {
-	      encoding = NSUTF8StringEncoding;
-	    }
-	  else
-	    {
-	      encoding = NSASCIIStringEncoding;
-	    }
-	  tableContent = [[NSString alloc] initWithData: tableData
-					       encoding: encoding];
-	  if (tableContent == nil && encoding == NSASCIIStringEncoding)
-	    {
-	      encoding = [NSString defaultCStringEncoding];
-	      tableContent = [[NSString alloc] initWithData: tableData
-						   encoding: encoding];
-	      if (tableContent != nil)
-		{
-		  NSWarnMLog (@"Localisation file %@ not in portable encoding"
-		    @" so I'm using the default encoding for the current"
-		    @" system, which may not display messages correctly.\n"
-		    @"The file should be ASCII (using \\U escapes for unicode"
-		    @" characters) or Unicode (UTF16 or UTF8) with a leading "
-		    @"byte-order-marker.\n", tablePath);
-		}
-	    }
-	  if (tableContent == nil)
-	    {
-	      NSWarnMLog(@"Failed to load strings file %@ - bad character"
-		@" encoding", tablePath);
-	    }
-	  else
-	    {
-	      NS_DURING
-		{
-		  table = [tableContent propertyListFromStringsFileFormat];
-		}
-	      NS_HANDLER
-		{
-		  NSWarnMLog(@"Failed to parse strings file %@ - %@",
-		    tablePath, localException);
-		}
-	      NS_ENDHANDLER
-	    }
-	  RELEASE(tableData);
-	  RELEASE(tableContent);
-	}
+        {
+          NSStringEncoding	encoding;
+          NSString		*tableContent;
+          NSData		*tableData;
+          const unsigned char	*bytes;
+          unsigned		length;
+          
+          tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
+          bytes = [tableData bytes];
+          length = [tableData length];
+          /*
+           * A localisation file can be ...
+           * UTF16 with a leading BOM,
+           * UTF8 with a leading BOM,
+           * or ASCII (the original standard) with \U escapes.
+           */
+          if (length > 2
+              && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
+                  || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
+            {
+              encoding = NSUnicodeStringEncoding;
+            }
+          else if (length > 2
+                   && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            {
+              encoding = NSUTF8StringEncoding;
+            }
+          else
+            {
+              encoding = NSASCIIStringEncoding;
+            }
+          tableContent = [[NSString alloc] initWithData: tableData
+                                           encoding: encoding];
+          if (tableContent == nil && encoding == NSASCIIStringEncoding)
+            {
+              encoding = [NSString defaultCStringEncoding];
+              tableContent = [[NSString alloc] initWithData: tableData
+                                               encoding: encoding];
+              if (tableContent != nil)
+                {
+                  NSWarnMLog (@"Localisation file %@ not in portable encoding"
+                              @" so I'm using the default encoding for the current"
+                              @" system, which may not display messages correctly.\n"
+                              @"The file should be ASCII (using \\U escapes for unicode"
+                              @" characters) or Unicode (UTF16 or UTF8) with a leading "
+                              @"byte-order-marker.\n", tablePath);
+                }
+            }
+          if (tableContent == nil)
+            {
+              NSWarnMLog(@"Failed to load strings file %@ - bad character"
+                         @" encoding", tablePath);
+            }
+          else
+            {
+              NS_DURING
+                {
+                  table = [tableContent propertyListFromStringsFileFormat];
+                }
+              NS_HANDLER
+                {
+                  NSWarnMLog(@"Failed to parse strings file %@ - %@",
+                             tablePath, localException);
+                }
+              NS_ENDHANDLER
+            }
+          RELEASE(tableData);
+          RELEASE(tableContent);
+        }
       else
-	{
-	  NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
-	    tableName);
-	}
+        {
+          NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
+                       tableName);
+        }
       /*
        * If we couldn't found and parsed the strings table, we put it in
        * the cache of strings tables in this bundle, otherwise we will just
        * be keeping the empty table in the cache so we don't keep retrying.
        */
       if (table != nil)
-	[_localizations setObject: table forKey: tableName];
+        [_localizations setObject: table forKey: tableName];
     }
 
   if (key == nil || (newString = [table objectForKey: key]) == nil)
     {
       NSString	*show = [[NSUserDefaults standardUserDefaults]
-			 objectForKey: NSShowNonLocalizedStrings];
+                            objectForKey: NSShowNonLocalizedStrings];
       if (show && [show isEqual: @"YES"])
         {
-	  /* It would be bad to localize this string! */
-	  NSLog(@"Non-localized string: %@\n", newString);
-	  newString = [key uppercaseString];
-	}
+          /* It would be bad to localize this string! */
+          NSLog(@"Non-localized string: %@\n", key);
+          newString = [key uppercaseString];
+        }
       else
-	{
-	  newString = value;
-	  if (newString == nil || [newString isEqualToString: @""] == YES)
-	    newString = key;
-	}
+        {
+          newString = value;
+          if (newString == nil || [newString isEqualToString: @""] == YES)
+            newString = key;
+        }
       if (newString == nil)
-	newString = @"";
+        newString = @"";
     }
 
   return newString;
@@ -2173,7 +2152,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   object = [[self infoDictionary] objectForKey: @"NSExecutable"];
   if (object == nil || [object length] == 0)
     {
-      return nil;
+      object = [[self infoDictionary] objectForKey: @"CFBundleExecutable"];
+      if(object == nil || [object length] == 0)
+	  {
+	    return nil;
+	  }
     }
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
@@ -2188,7 +2171,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       mangledName = [mangledName stringByReplacingString: @"+" 
 				 withString: @"_1"];
 
-#if !defined(__MINGW32__)
+#if !defined(__MINGW__)
       path = [_path stringByAppendingPathComponent:@"Versions/Current"];
 #else
       path = _path;
@@ -2216,7 +2199,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
-#if !defined(__MINGW32__)
+#if !defined(__MINGW__)
       return [_path stringByAppendingPathComponent:
 		      [NSString stringWithFormat:@"Versions/%@/Resources",
 				version]];
@@ -2267,7 +2250,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
-#if !defined(__MINGW32__)
+#if !defined(__MINGW__)
       return [_path stringByAppendingPathComponent:
                       [NSString stringWithFormat:@"Versions/%@/PlugIns",
                       version]];
@@ -2319,7 +2302,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSArray *paths;
   NSEnumerator *enumerator;
   NSString *path;
-  NSFileManager *fm = [NSFileManager defaultManager];
+  NSFileManager *fm = manager();
   NSRange	r;
 
   if ([libraryName length] == 0)
@@ -2331,7 +2314,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
    */
   libraryName = [libraryName lastPathComponent];
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   /* A dll is usually of the form 'xxx-maj_min.dll'
    * so we can extract the version info and use it.
    */

@@ -38,18 +38,21 @@ extern "C" {
 @class NSMutableDictionary;
 @class NSString;
 
-typedef enum _NSExpressionType
+enum
 {
   NSConstantValueExpressionType=0,
   NSEvaluatedObjectExpressionType,
   NSVariableExpressionType,
   NSKeyPathExpressionType,
   NSFunctionExpressionType
-} NSExpressionType;
+};
+typedef NSUInteger NSExpressionType;
 
 @interface NSExpression : NSObject <NSCoding, NSCopying>
 {
+#if	GS_EXPOSE(NSExpression)
   NSExpressionType _type;
+#endif
 }
 
 + (NSExpression *) expressionForConstantValue: (id)obj;

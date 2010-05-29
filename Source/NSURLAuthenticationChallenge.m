@@ -1,7 +1,7 @@
 /* Implementation for NSURLAuthenticationChallenge for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,6 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
+#define	EXPOSE_NSURLAuthenticationChallenge_IVARS	1
 #import "GSURLPrivate.h"
 #import "Foundation/NSError.h"
 
@@ -91,7 +94,7 @@ typedef struct {
 
 - (id) initWithProtectionSpace: (NSURLProtectionSpace *)space
 	    proposedCredential: (NSURLCredential *)credential
-	  previousFailureCount: (int)previousFailureCount
+	  previousFailureCount: (NSInteger)previousFailureCount
 	       failureResponse: (NSURLResponse *)response
 			 error: (NSError *)error
 			sender: (id<NSURLAuthenticationChallengeSender>)sender
@@ -108,7 +111,7 @@ typedef struct {
   return self;
 }
 
-- (int) previousFailureCount
+- (NSInteger) previousFailureCount
 {
   return this->previousFailureCount;
 }

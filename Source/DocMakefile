@@ -84,6 +84,8 @@ NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
 NSPathUtilities.h \
+NSPointerFunctions.h \
+NSPointerArray.h \
 NSPortCoder.h \
 NSPort.h \
 NSPortMessage.h \
@@ -120,6 +122,12 @@ NSURLResponse.h \
 NSUserDefaults.h \
 NSValue.h \
 NSValueTransformer.h \
+NSXMLDocument.h \
+NSXMLDTD.h \
+NSXMLDTDNode.h \
+NSXMLElement.h \
+NSXMLNode.h \
+NSXMLNodeOptions.h \
 NSXMLParser.h \
 NSZone.h
 
@@ -128,16 +136,34 @@ NSZone.h
 BaseAdditions_AGSDOC_FILES = \
 ../Documentation/BaseAdditions.gsdoc \
 GNUstep.h \
-GSCategories.h \
-GSIArray.h \
-GSIMap.h \
-GSLock.h \
-GSMime.h \
+GSBlocks.h \
+GSVersionMacros.h \
 GSObjCRuntime.h \
 GSUnion.h \
-GSVersionMacros.h \
+GSIArray.h \
+GSIMap.h \
+GCObject.h \
+GSLock.h \
+GSFunctions.h \
+GSMime.h \
 GSXML.h \
-behavior.h \
+GSLocale.h \
+NSArray+GNUstepBase.h \
+NSAttributedString+GNUstepBase.h \
+NSBundle+GNUstepBase.h \
+NSCalendarDate+GNUstepBase.h \
+NSData+GNUstepBase.h \
+NSDebug+GNUstepBase.h \
+NSFileHandle+GNUstepBase.h \
+NSLock+GNUstepBase.h \
+NSMutableString+GNUstepBase.h \
+NSNumber+GNUstepBase.h \
+NSObject+GNUstepBase.h \
+NSProcessInfo+GNUstepBase.h \
+NSString+GNUstepBase.h \
+NSTask+GNUstepBase.h \
+NSThread+GNUstepBase.h \
+NSURL+GNUstepBase.h \
 Unicode.h \
 GCObject.h \
 
@@ -166,6 +192,7 @@ Base_AGSDOC_FLAGS = \
 	GS_RANGE_SCOPE=extern;GS_RANGE_ATTR="";\
 	GS_ZONE_SCOPE=extern;GS_ZONE_ATTR="";\
 	INLINE=inline;\
+	WINAPI="";\
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
@@ -174,6 +201,7 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Additions/GNUstepBase \
 	-Declared GNUstepBase \
 	-Standards YES \
+	-DTDs ../Tools \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \
 	-MacrosTemplate Functions \

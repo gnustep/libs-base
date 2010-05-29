@@ -37,8 +37,14 @@ extern "C" {
 
 @interface NSProtocolChecker : NSProxy
 {
+#if	GS_EXPOSE(NSProtocolChecker)
+@private
   Protocol *_myProtocol;
   NSObject *_myTarget;
+#endif
+#if	!GS_NONFRAGILE
+  void	*_unused;
+#endif
 }
 
 // Creating a checker

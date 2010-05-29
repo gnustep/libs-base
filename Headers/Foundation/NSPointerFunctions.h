@@ -45,7 +45,7 @@ enum {
   NSPointerFunctionsStrongMemory = (0<<0),
 
   /** Garbage collected weak references */
-  NSPointerFunctionsZeroingWeakgMemory = (1<<0),
+  NSPointerFunctionsZeroingWeakMemory = (1<<0),
 
   /** Non-GC memory */
   NSPointerFunctionsOpaqueMemory = (2<<0),
@@ -86,7 +86,7 @@ enum {
   NSPointerFunctionsIntegerPersonality = (5<<8),
 
 
-  /** Request the memory aquire function to allocate/copy items.
+  /** Request the memory acquire function to allocate/copy items.
    */
   NSPointerFunctionsCopyIn = (1<<16)
 };
@@ -103,9 +103,9 @@ typedef	NSUInteger NSPointerFunctionsOptions;
 - (id) initWithOptions: (NSPointerFunctionsOptions)options;
 
 - (void* (*)(const void *item,
-  NSUInteger (*size)(const void *item), BOOL shouldCopy)) aquireFunction;
+  NSUInteger (*size)(const void *item), BOOL shouldCopy)) acquireFunction;
 
-- (NSString (*)(const void *item)) descriptionFunction;
+- (NSString *(*)(const void *item)) descriptionFunction;
 
 - (NSUInteger (*)(const void *item,
   NSUInteger (*size)(const void *item))) hashFunction;
@@ -119,7 +119,7 @@ typedef	NSUInteger NSPointerFunctionsOptions;
 - (void) setAcquireFunction: (void* (*)(const void *item,
   NSUInteger (*size)(const void *item), BOOL shouldCopy))func;
 
-- (void) setDescriptionFunction: (NSString (*)(const void *item))func;
+- (void) setDescriptionFunction: (NSString *(*)(const void *item))func;
 
 - (void) setHashFunction: (NSUInteger (*)(const void *item,
   NSUInteger (*size)(const void *item)))func;
@@ -127,8 +127,8 @@ typedef	NSUInteger NSPointerFunctionsOptions;
 - (void) setIsEqualFunction: (BOOL (*)(const void *item1, const void *item2,
   NSUInteger (*size)(const void *item)))func;
 
-- (void) setRelinquishFunction: (NSUInteger (*)(const void *item,
-  NSUInteger (*size)(const void *item)))func;
+- (void) setRelinquishFunction: (void (*)(const void *item,
+  NSUInteger (*size)(const void *item))) func;
 
 - (void) setSizeFunction: (NSUInteger (*)(const void *item))func;
 
@@ -140,7 +140,7 @@ typedef	NSUInteger NSPointerFunctionsOptions;
 
 - (BOOL) usesStrongWriteBarrier;
 
-- (BOOL) usesWeak ReadAndWriteBarriers;
+- (BOOL) usesWeakReadAndWriteBarriers;
 
 @end
 

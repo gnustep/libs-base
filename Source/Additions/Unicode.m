@@ -28,28 +28,27 @@
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSArray.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSPathUtilities.h>
+#import "common.h"
+#if	defined(NeXT_Foundation_LIBRARY)
+#import <Foundation/Foundation.h>
 #else
-#include <Foundation/Foundation.h>
+#import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSPathUtilities.h"
 #endif
 
-#include "GNUstepBase/GSLock.h"
-#include "GNUstepBase/GSMime.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/Unicode.h"
+#import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSLock+GNUstepBase.h"
+#import "GNUstepBase/Unicode.h"
 
-#include "../GSPrivate.h"
+#import "../GSPrivate.h"
+
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #if HAVE_LANGINFO_CODESET
@@ -308,7 +307,7 @@ static void GSSetupEncodingTable(void)
 		    }
 		}
 	    }
-	  encTable = objc_malloc((encTableSize+1)*sizeof(struct _strenc_ *));
+	  encTable = NSZoneMalloc(NSDefaultMallocZone(),(encTableSize+1)*sizeof(struct _strenc_ *));
 	  memset(encTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
 
 	  /*
@@ -332,13 +331,13 @@ static void GSSetupEncodingTable(void)
 		  /*
 		   * See if we can do a lossy conversion.
 		   */
-		  lossy = objc_malloc(strlen(entry->iconv) + 12);
+		  lossy = NSZoneMalloc(NSDefaultMallocZone(),strlen(entry->iconv) + 12);
 		  strcpy(lossy, entry->iconv);
 		  strcat(lossy, "//TRANSLIT");
 		  c = iconv_open(UNICODE_ENC, entry->iconv);
 		  if (c == (iconv_t)-1)
 		    {
-		      objc_free(lossy);
+		      NSZoneFree(NSDefaultMallocZone(),lossy);
 		    }
 		  else
 		    {
@@ -771,6 +770,62 @@ GSUnicode(const unichar *chars, unsigned length,
   return i;
 }
 
+#if	GS_WITH_GC
+
+#define	GROW() \
+if (dst == 0) \
+  { \
+    /* \
+     * Data is just being discarded anyway, so we can \
+     * reset the offset into the local buffer on the \
+     * stack and pretend the buffer has grown. \
+     */ \
+    ptr = buf - dpos; \
+    bsize = dpos + BUFSIZ; \
+    if (extra != 0) \
+      { \
+	bsize--; \
+      } \
+  } \
+else if (zone == 0) \
+  { \
+    result = NO; /* No buffer growth possible ... fail. */ \
+    goto done; \
+  } \
+else \
+  { \
+    unsigned	grow = slen; \
+\
+    if (grow < bsize + BUFSIZ) \
+      { \
+	grow = bsize + BUFSIZ; \
+      } \
+    grow *= sizeof(unichar); \
+\
+    if (ptr == buf || ptr == *dst) \
+      { \
+	unichar	*tmp; \
+\
+	tmp = NSAllocateCollectable(grow + extra, 0); \
+	if (tmp != 0) \
+	  { \
+	    memcpy(tmp, ptr, bsize * sizeof(unichar)); \
+	  } \
+	ptr = tmp; \
+      } \
+    else \
+      { \
+	ptr = NSReallocateCollectable(ptr, grow + extra, 0); \
+      } \
+    if (ptr == 0) \
+      { \
+	return NO;	/* Not enough memory */ \
+      } \
+    bsize = grow / sizeof(unichar); \
+  }
+
+#else	/* GS_WITH_GC */
+
 #define	GROW() \
 if (dst == 0) \
   { \
@@ -818,11 +873,12 @@ else \
       } \
     if (ptr == 0) \
       { \
-	result = NO;	/* Not enough memory */ \
-	break; \
+	return NO;	/* Not enough memory */ \
       } \
     bsize = grow / sizeof(unichar); \
   }
+
+#endif	/* GS_WITH_GC */
 
 /**
  * Function to convert from 8-bit data to 16-bit unicode characters.
@@ -852,7 +908,10 @@ else \
  * allocate a buffer to return data in.
  * If this is nul, the function will fail if the originally supplied buffer
  * is not big enough (unless dst is a null pointer ... indicating that
- * converted data is to be discarded).
+ * converted data is to be discarded).<br />
+ * If the library is built for garbage collecting, the zone argument is used
+ * only as a marker to say whether the function may allocate memory (zone
+ * is non-null) or not (zone is null).
  * </p>
  * The options argument controls some special behavior.
  * <list>
@@ -1020,31 +1079,123 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
-	while (spos < slen)
+	if (dst == 0)
 	  {
-	    unichar	c = (unichar)((unc)src[spos++]);
+	    /* Just counting bytes, and we know there is exactly one
+	     * unicode codepoint needed for each ascii character.
+	     */
+	    dpos += slen;
+	  }
+        else
+	  {
+	    /* Because we know that each ascii chartacter is exactly
+	     * one unicode character, we can check the destination
+	     * buffer size and allocate more space in one go, before
+	     * entering the loop where we deal with each character.
+	     */
+	    if (dpos + slen + (extra ? 1 : 0) > bsize)
+	      {
+		if (zone == 0)
+		  {
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
+		  }
+		else
+		  {
+		    unsigned	grow = (dpos + slen) * sizeof(unichar);
+		    unichar	*tmp;
 
-	    if (c > 127)
-	      {
-		result = NO;	// Non-ascii data found in input.
-		goto done;
+#if	GS_WITH_GC
+		    tmp = NSAllocateCollectable(grow + extra, 0);
+#else
+		    tmp = NSZoneMalloc(zone, grow + extra);
+#endif
+		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
+		      {
+			memcpy(tmp, ptr, bsize * sizeof(unichar));
+		      }
+#if	!GS_WITH_GC
+		    if (ptr != buf && ptr != *dst)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+#endif
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			return NO;	/* Not enough memory */
+		      }
+		    bsize = grow / sizeof(unichar);
+		  }
 	      }
-	    if (dpos >= bsize)
+	    while (spos < slen)
 	      {
-		GROW();
+		unichar	c = (unichar)((unc)src[spos++]);
+
+		if (c > 127)
+		  {
+		    result = NO;	// Non-ascii data found in input.
+		    goto done;
+		  }
+		ptr[dpos++] = c;
 	      }
-	    ptr[dpos++] = c;
 	  }
 	break;
 
       case NSISOLatin1StringEncoding:
-	while (spos < slen)
+	if (dst == 0)
 	  {
-	    if (dpos >= bsize)
+	    /* Just counting bytes, and we know there is exactly one
+	     * unicode codepoint needed for each latin1 character.
+	     */
+	    dpos += slen;
+	  }
+        else
+	  {
+	    /* Because we know that each latin1 chartacter is exactly
+	     * one unicode character, we can check the destination
+	     * buffer size and allocate more space in one go, before
+	     * entering the loop where we deal with each character.
+	     */
+	    if (dpos + slen + (extra ? 1 : 0) > bsize)
 	      {
-		GROW();
+		if (zone == 0)
+		  {
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
+		  }
+		else
+		  {
+		    unsigned	grow = (dpos + slen) * sizeof(unichar);
+		    unichar	*tmp;
+
+#if	GS_WITH_GC
+		    tmp = NSAllocateCollectable(grow + extra, 0);
+#else
+		    tmp = NSZoneMalloc(zone, grow + extra);
+#endif
+		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
+		      {
+			memcpy(tmp, ptr, bsize * sizeof(unichar));
+		      }
+#if	!GS_WITH_GC
+		    if (ptr != buf && ptr != *dst)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+#endif
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			return NO;	/* Not enough memory */
+		      }
+		    bsize = grow / sizeof(unichar);
+		  }
 	      }
-	    ptr[dpos++] = (unichar)((unc)src[spos++]);
+	    while (spos < slen)
+	      {
+		ptr[dpos++] = (unichar)((unc)src[spos++]);
+	      }
 	  }
 	break;
 
@@ -1081,23 +1232,69 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 #endif
 
 tables:
-	while (spos < slen)
+	if (dst == 0)
 	  {
-	    unc c = (unc)src[spos];
+	    /* Just counting bytes, and we know there is exactly one
+	     * unicode codepoint needed for each character.
+	     */
+	    dpos += slen;
+	  }
+        else
+	  {
+	    /* Because we know that each character in the table is exactly
+	     * one unicode character, we can check the destination
+	     * buffer size and allocate more space in one go, before
+	     * entering the loop where we deal with each character.
+	     */
+	    if (dpos + slen + (extra ? 1 : 0) > bsize)
+	      {
+		if (zone == 0)
+		  {
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
+		  }
+		else
+		  {
+		    unsigned	grow = (dpos + slen) * sizeof(unichar);
+		    unichar	*tmp;
 
-	    if (dpos >= bsize)
-	      {
-		GROW();
+#if	GS_WITH_GC
+		    tmp = NSAllocateCollectable(grow + extra, 0);
+#else
+		    tmp = NSZoneMalloc(zone, grow + extra);
+#endif
+		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
+		      {
+			memcpy(tmp, ptr, bsize * sizeof(unichar));
+		      }
+#if	!GS_WITH_GC
+		    if (ptr != buf && ptr != *dst)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+#endif
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			return NO;	/* Not enough memory */
+		      }
+		    bsize = grow / sizeof(unichar);
+		  }
 	      }
-	    if (c < base)
+	    while (spos < slen)
 	      {
-		ptr[dpos++] = c;
+		unc c = (unc)src[spos];
+
+		if (c < base)
+		  {
+		    ptr[dpos++] = c;
+		  }
+		else
+		  {
+		    ptr[dpos++] = table[c - base];
+		  }
+		spos++;
 	      }
-	    else
-	      {
-		ptr[dpos++] = table[c - base];
-	      }
-	    spos++;
 	  }
 	break;
 
@@ -1110,7 +1307,6 @@ tables:
 	      {
 		GROW();
 	      }
-
 	    ptr[dpos] = GSM0338_char_to_uni_table[c];
 	    if (c == 0x1b && spos < slen)
 	      {
@@ -1217,9 +1413,9 @@ tables:
 done:
 
   /*
-   * Post conversion ... set output values.
+   * Post conversion ... terminate if needed, and set output values.
    */
-  if (extra != 0)
+  if (extra != 0 && dst != 0)
     {
       ptr[dpos] = (unichar)0;
     }
@@ -1234,12 +1430,17 @@ done:
 	  /*
 	   * Temporary string was requested ... make one.
 	   */
+#if	GS_WITH_GC
+	  r = NSAllocateCollectable(bytes, 0);
+	  memcpy(r, ptr, bytes);
+#else
 	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
-	  if (ptr != buf && (dst == 0 || ptr != *dst))
+	  if (ptr != buf && ptr != *dst)
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
+#endif
 	  ptr = r;
 	  *dst = ptr;
 	}
@@ -1255,7 +1456,11 @@ done:
 	    {
 	      unichar	*tmp;
 
+#if	GS_WITH_GC
+	      tmp = NSAllocateCollectable(bytes, 0);
+#else
 	      tmp = NSZoneMalloc(zone, bytes);
+#endif
 	      if (tmp != 0)
 		{
 		  memcpy(tmp, ptr, bytes);
@@ -1264,7 +1469,11 @@ done:
 	    }
 	  else
 	    {
+#if	GS_WITH_GC
+	      ptr = NSReallocateCollectable(ptr, bytes, 0);
+#else
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
+#endif
 	    }
 	  *dst = ptr;
 	}
@@ -1278,10 +1487,12 @@ done:
 	  *dst = ptr;
 	}
     }
+#if	!GS_WITH_GC
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
+#endif
 
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
@@ -1291,6 +1502,61 @@ done:
 
 #undef	GROW
 
+
+#if	GS_WITH_GC 
+
+#define	GROW() \
+if (dst == 0) \
+  { \
+    /* \
+     * Data is just being discarded anyway, so we can \
+     * reset the offset into the local buffer on the \
+     * stack and pretend the buffer has grown. \
+     */ \
+    ptr = buf - dpos; \
+    bsize = dpos + BUFSIZ; \
+    if (extra != 0) \
+      { \
+	bsize--; \
+      } \
+  } \
+else if (zone == 0) \
+  { \
+    result = NO; /* No buffer growth possible ... fail. */ \
+    goto done; \
+  } \
+else \
+  { \
+    unsigned	grow = slen; \
+\
+    if (grow < bsize + BUFSIZ) \
+      { \
+	grow = bsize + BUFSIZ; \
+      } \
+\
+    if (ptr == buf || ptr == *dst) \
+      { \
+	unsigned char	*tmp; \
+\
+	tmp = NSAllocateCollectable(grow + extra, 0); \
+	if (tmp != 0) \
+	  { \
+	    memcpy(tmp, ptr, bsize); \
+	  } \
+	ptr = tmp; \
+      } \
+    else \
+      { \
+	ptr = NSReallocateCollectable(ptr, grow + extra, 0); \
+      } \
+    if (ptr == 0) \
+      { \
+	return NO;	/* Not enough memory */ \
+      } \
+    bsize = grow; \
+  }
+
+#else	/* GS_WITH_GC */
 
 #define	GROW() \
 if (dst == 0) \
@@ -1338,12 +1604,12 @@ else \
       } \
     if (ptr == 0) \
       { \
-	result = NO;	/* Not enough memory */ \
-	break; \
+	return NO;	/* Not enough memory */ \
       } \
     bsize = grow; \
   }
 
+#endif	/* GS_WITH_GC */
 
 static inline int chop(unichar c, _ucc_ *table, int hi)
 {
@@ -1397,7 +1663,10 @@ static inline int chop(unichar c, _ucc_ *table, int hi)
  * allocate a buffer to return data in.
  * If this is nul, the function will fail if the originally supplied buffer
  * is not big enough (unless dst is a null pointer ... indicating that
- * converted data is to be discarded).
+ * converted data is to be discarded).<br />
+ * If the library is built for garbage collecting, the zone argument is used
+ * only as a marker to say whether the function may allocate memory (zone
+ * is non-null) or not (zone is null).
  * </p>
  * The options argument controls some special behavior.
  * <list>
@@ -1509,127 +1778,249 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
     {
       case NSUTF8StringEncoding:
 	{
-	  while (spos < slen)
+	  if (swapped == YES)
 	    {
-	      unichar 		u1, u2;
-	      unsigned long	u;
-	      int		sl = 0;
-
-	      /* get first unichar */
-	      u1 = src[spos++];
-	      if (swapped == YES)
+	      while (spos < slen)
 		{
+		  unichar 	u1, u2;
+		  unsigned char	reversed[8];
+		  unsigned long	u;
+		  int		sl;
+		  int		i;
+
+		  /* get first unichar */
+		  u1 = src[spos++];
 		  u1 = (((u1 & 0xff00) >> 8) + ((u1 & 0x00ff) << 8));
-		}
-	      // 0xfeff is a zero-width-no-break-space inside text (not a BOM).
-	      if (u1 == 0xfffe				// unexpected BOM
-	        || u1 == 0xffff				// not a character
-		|| (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
-		|| (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
-	        {
-		  if (strict)
-		    {
-		      result = NO;
-		      goto done;
-                    }
-		  continue;	// Skip invalid character.
-	        }
 
-	      /* possibly get second character and calculate 'u' */
-	      if ((u1 >= 0xd800) && (u1 < 0xdc00))
-                {
-	  	  if (spos >= slen)
-                    {
-		      if (strict)
+		  /* Fast track ... if this is actually an ascii character
+		   * it just converts straight to utf-8
+		   */
+		  if (u1 <= 0x7f)
+		    {
+		      if (dpos >= bsize)
 			{
-			  result = NO;
-			  goto done;
+			  GROW();
 			}
-		      continue;	// At end.
-                    }
-
-	          /* get second unichar */
-	          u2 = src[spos++];
-	          if (swapped == YES)
-		    {
-		      u2 = (((u2 & 0xff00) >> 8) + ((u2 & 0x00ff) << 8));
+		      ptr[dpos++] = (unsigned char)u1;
+		      continue;
 		    }
 
-	          if ((u2 < 0xdc00) && (u2 > 0xdfff))
-                    {
-		      spos--;
+		  // 0xfeff is a zero-width-no-break-space inside text
+		  if (u1 == 0xfffe			// unexpected BOM
+		    || u1 == 0xffff			// not a character
+		    || (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
+		    || (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
+		    {
 		      if (strict)
 			{
 			  result = NO;
 			  goto done;
 			}
-		      continue;		// Skip bad half of surrogate pair.
-                    }
+		      continue;	// Skip invalid character.
+		    }
 
-                  /* make the full value */
-		  u = ((unsigned long)(u1 - 0xd800) * 0x400)
-		    + (u2 - 0xdc00) + 0x10000;
-                }
-              else
-		{
-		  u = u1;
-		}
+		  /* possibly get second character and calculate 'u' */
+		  if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		    {
+		      if (spos >= slen)
+			{
+			  if (strict)
+			    {
+			      result = NO;
+			      goto done;
+			    }
+			  continue;	// At end.
+			}
 
-              /* calculate the sequence length */
-              if (u <= 0x7f)
-		{
-		  sl = 1;
-		}
-              else if (u <= 0x7ff)
-		{
-		  sl = 2;
-		}
-              else if (u <= 0xffff)
-		{
-		  sl = 3;
-		}
-              else if (u <= 0x1fffff)
-		{
-		  sl = 4;
-		}
-              else if (u <= 0x3ffffff)
-		{
-		  sl = 5;
-		}
-              else
-		{
-		  sl = 6;
-		}
+		      /* get second unichar */
+		      u2 = src[spos++];
+		      u2 = (((u2 & 0xff00) >> 8) + ((u2 & 0x00ff) << 8));
 
-              /* make sure we have enough space for it */
-	      while (dpos + sl >= bsize)
-		{
-		  GROW();
-		}
+		      if ((u2 < 0xdc00) && (u2 > 0xdfff))
+			{
+			  spos--;
+			  if (strict)
+			    {
+			      result = NO;
+			      goto done;
+			    }
+			  continue;	// Skip bad half of surrogate pair.
+			}
 
-	      if (sl == 1)
-                {
-	          ptr[dpos++] = u & 0x7f;
-                }
-              else
-                {
-                  int		i;
-                  unsigned char	reversed[8];
+		      /* make the full value */
+		      u = ((unsigned long)(u1 - 0xd800) * 0x400)
+			+ (u2 - 0xdc00) + 0x10000;
+		    }
+		  else
+		    {
+		      u = u1;
+		    }
 
-                  /* split value into reversed array */
-                  for (i = 0; i < sl; i++)
-                    {
-                      reversed[i] = (u & 0x3f);
-                      u = u >> 6;
-                    }
+		  /* calculate the sequence length
+		   * a length of 1 was dealt with earlier
+		   */
+		  if (u <= 0x7ff)
+		    {
+		      sl = 2;
+		    }
+		  else if (u <= 0xffff)
+		    {
+		      sl = 3;
+		    }
+		  else if (u <= 0x1fffff)
+		    {
+		      sl = 4;
+		    }
+		  else if (u <= 0x3ffffff)
+		    {
+		      sl = 5;
+		    }
+		  else
+		    {
+		      sl = 6;
+		    }
 
-	          ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
-                  /* add bytes into the output sequence */
-                  for (i = sl - 2; i >= 0; i--)
+		  /* make sure we have enough space for it */
+		  while (dpos + sl >= bsize)
+		    {
+		      GROW();
+		    }
+
+		  /* split value into reversed array */
+		  for (i = 0; i < sl; i++)
+		    {
+		      reversed[i] = (u & 0x3f);
+		      u = u >> 6;
+		    }
+
+		  ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
+		  /* add bytes into the output sequence */
+		  for (i = sl - 2; i >= 0; i--)
 		    {
 		      ptr[dpos++] = reversed[i] | 0x80;
 		    }
-                }
+		}
+	    }
+	  else
+	    {
+	      while (spos < slen)
+		{
+		  unichar 	u1, u2;
+		  unsigned char	reversed[8];
+		  unsigned long	u;
+		  int		sl;
+		  int		i;
+
+		  /* get first unichar */
+		  u1 = src[spos++];
+
+		  /* Fast track ... if this is actually an ascii character
+		   * it just converts straight to utf-8
+		   */
+		  if (u1 <= 0x7f)
+		    {
+		      if (dpos >= bsize)
+			{
+			  GROW();
+			}
+		      ptr[dpos++] = (unsigned char)u1;
+		      continue;
+		    }
+
+		  // 0xfeff is a zero-width-no-break-space inside text
+		  if (u1 == 0xfffe			// unexpected BOM
+		    || u1 == 0xffff			// not a character
+		    || (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
+		    || (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
+		    {
+		      if (strict)
+			{
+			  result = NO;
+			  goto done;
+			}
+		      continue;	// Skip invalid character.
+		    }
+
+		  /* possibly get second character and calculate 'u' */
+		  if ((u1 >= 0xd800) && (u1 < 0xdc00))
+		    {
+		      if (spos >= slen)
+			{
+			  if (strict)
+			    {
+			      result = NO;
+			      goto done;
+			    }
+			  continue;	// At end.
+			}
+
+		      /* get second unichar */
+		      u2 = src[spos++];
+
+		      if ((u2 < 0xdc00) && (u2 > 0xdfff))
+			{
+			  spos--;
+			  if (strict)
+			    {
+			      result = NO;
+			      goto done;
+			    }
+			  continue;	// Skip bad half of surrogate pair.
+			}
+
+		      /* make the full value */
+		      u = ((unsigned long)(u1 - 0xd800) * 0x400)
+			+ (u2 - 0xdc00) + 0x10000;
+		    }
+		  else
+		    {
+		      u = u1;
+		    }
+
+		  /* calculate the sequence length
+		   * a length of 1 was dealt with earlier
+		   */
+		  if (u <= 0x7ff)
+		    {
+		      sl = 2;
+		    }
+		  else if (u <= 0xffff)
+		    {
+		      sl = 3;
+		    }
+		  else if (u <= 0x1fffff)
+		    {
+		      sl = 4;
+		    }
+		  else if (u <= 0x3ffffff)
+		    {
+		      sl = 5;
+		    }
+		  else
+		    {
+		      sl = 6;
+		    }
+
+		  /* make sure we have enough space for it */
+		  while (dpos + sl >= bsize)
+		    {
+		      GROW();
+		    }
+
+		  /* split value into reversed array */
+		  for (i = 0; i < sl; i++)
+		    {
+		      reversed[i] = (u & 0x3f);
+		      u = u >> 6;
+		    }
+
+		  ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
+		  /* add bytes into the output sequence */
+		  for (i = sl - 2; i >= 0; i--)
+		    {
+		      ptr[dpos++] = reversed[i] | 0x80;
+		    }
+		}
 	    }
         }
         break;
@@ -1645,53 +2036,120 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	goto bases;
 
 bases:
-	if (strict == NO)
+	if (dst == 0)
 	  {
-	    while (spos < slen)
+	    /* Just counting bytes, and we know there is exactly one
+	     * unicode codepoint needed for each character.
+	     */
+	    dpos = slen;
+	  }
+        else
+	  {
+	    /* Because we know that each ascii chartacter is exactly
+	     * one unicode character, we can check the destination
+	     * buffer size and allocate more space in one go, before
+	     * entering the loop where we deal with each character.
+	     */
+	    if (slen > bsize)
 	      {
-		unichar	u = src[spos++];
-
-		if (swapped == YES)
+		if (zone == 0)
 		  {
-		    u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
-		  }
-		
-		if (dpos >= bsize)
-		  {
-		    GROW();
-		  }
-		if (u < base)
-		  {
-		    ptr[dpos++] = (unsigned char)u;
+		    result = NO; /* No buffer growth possible ... fail. */
+		    goto done;
 		  }
 		else
 		  {
-		    ptr[dpos++] =  '?';
+		    uint8_t	*tmp;
+
+#if	GS_WITH_GC
+		    tmp = NSAllocateCollectable(slen, 0);
+#else
+		    tmp = NSZoneMalloc(zone, slen);
+		    if (ptr != buf && ptr != *dst)
+		      {
+			NSZoneFree(zone, ptr);
+		      }
+#endif
+		    ptr = tmp;
+		    if (ptr == 0)
+		      {
+			return NO;	/* Not enough memory */
+		      }
+		    bsize = slen;
+		  }
+	      }
+	  }
+	if (strict == NO)
+	  {
+	    if (swapped == YES)
+	      {
+		while (spos < slen)
+		  {
+		    unichar	u = src[spos++];
+
+		    u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		    if (u < base)
+		      {
+			ptr[dpos++] = (unsigned char)u;
+		      }
+		    else
+		      {
+			ptr[dpos++] =  '?';
+		      }
+		  }
+	      }
+	    else
+	      {
+		while (spos < slen)
+		  {
+		    unichar	u = src[spos++];
+
+		    if (u < base)
+		      {
+			ptr[dpos++] = (unsigned char)u;
+		      }
+		    else
+		      {
+			ptr[dpos++] =  '?';
+		      }
 		  }
 	      }
 	  }
 	else
 	  {
-	    while (spos < slen)
+	    if (swapped == YES)
 	      {
-		unichar	u = src[spos++];
+		while (spos < slen)
+		  {
+		    unichar	u = src[spos++];
 
-		if (swapped == YES)
-		  {
 		    u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+		    if (u < base)
+		      {
+			ptr[dpos++] = (unsigned char)u;
+		      }
+		    else
+		      {
+			result = NO;
+			goto done;
+		      }
 		  }
-		if (dpos >= bsize)
+	      }
+	    else
+	      {
+		while (spos < slen)
 		  {
-		    GROW();
-		  }
-		if (u < base)
-		  {
-		    ptr[dpos++] = (unsigned char)u;
-		  }
-		else
-		  {
-		    result = NO;
-		    goto done;
+		    unichar	u = src[spos++];
+
+		    if (u < base)
+		      {
+			ptr[dpos++] = (unsigned char)u;
+		      }
+		    else
+		      {
+			result = NO;
+			goto done;
+		      }
 		  }
 	      }
 	  }
@@ -1969,12 +2427,17 @@ iconv_start:
 	  /*
 	   * Temporary string was requested ... make one.
 	   */
+#if	GS_WITH_GC
+	  r = NSAllocateCollectable(bytes, 0);
+	  memcpy(r, ptr, bytes);
+#else
 	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
-	  if (ptr != buf && (dst == 0 || ptr != *dst))
+	  if (ptr != buf && ptr != *dst)
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
+#endif
 	  ptr = r;
 	  *dst = ptr;
 	}
@@ -1990,7 +2453,11 @@ iconv_start:
 	    {
 	      unsigned char	*tmp;
 
+#if	GS_WITH_GC
+	      tmp = NSAllocateCollectable(bytes, 0);
+#else
 	      tmp = NSZoneMalloc(zone, bytes);
+#endif
 	      if (tmp != 0)
 		{
 		  memcpy(tmp, ptr, bytes);
@@ -1999,7 +2466,11 @@ iconv_start:
 	    }
 	  else
 	    {
+#if	GS_WITH_GC
+	      ptr = NSReallocateCollectable(ptr, bytes, 0);
+#else
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
+#endif
 	    }
 	  *dst = ptr;
 	}
@@ -2013,10 +2484,12 @@ iconv_start:
 	  *dst = ptr;
 	}
     }
-  else if (ptr != buf && dst != 0 && ptr != *dst)
+#if	!GS_WITH_GC
+  else if (ptr != buf && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
+#endif
 
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
@@ -2048,7 +2521,7 @@ GSPrivateAvailableEncodings()
 	   * This is also the place where we determine the name we use
 	   * for iconv to support unicode.
 	   */
-	  encodings = objc_malloc(sizeof(NSStringEncoding) * (encTableSize+1));
+	  encodings = NSZoneMalloc(NSDefaultMallocZone(),sizeof(NSStringEncoding) * (encTableSize+1));
 	  pos = 0;
 	  for (i = 0; i < encTableSize+1; i++)
 	    {

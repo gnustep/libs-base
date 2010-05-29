@@ -25,13 +25,10 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSThread.h"
+#import "common.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSThread.h"
 
 /**
  * <p>NSAssertionHandler objects are used to raise exceptions on behalf of
@@ -89,7 +86,7 @@ static NSString *dict_key = @"NSAssertionHandler";
  */
 - (void) handleFailureInFunction: (NSString*)functionName
 			    file: (NSString*)fileName
-		      lineNumber: (int)line
+		      lineNumber: (NSInteger)line
 		     description: (NSString*)format,...
 {
   id		message;
@@ -116,7 +113,7 @@ static NSString *dict_key = @"NSAssertionHandler";
 - (void) handleFailureInMethod: (SEL) aSelector
                         object: object
                           file: (NSString *) fileName
-                    lineNumber: (int) line
+                    lineNumber: (NSInteger) line
                    description: (NSString *) format,...
 {
   id		message;
@@ -127,7 +124,7 @@ static NSString *dict_key = @"NSAssertionHandler";
     [NSString
       stringWithFormat: @"%@:%d  Assertion failed in %@(%@), method %@.  %@",
       fileName, line, NSStringFromClass([object class]),
-      [object isInstance] ? @"instance" : @"class",
+      class_isMetaClass([object class]) ? @"class" : @"instance",
       NSStringFromSelector(aSelector), format];
   NSLogv(message, ap);
 

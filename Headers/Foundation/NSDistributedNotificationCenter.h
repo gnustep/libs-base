@@ -50,12 +50,13 @@ extern "C" {
 }
  </example>
  */
-typedef enum {
+enum {
   NSNotificationSuspensionBehaviorDrop = 1,
   NSNotificationSuspensionBehaviorCoalesce = 2,
   NSNotificationSuspensionBehaviorHold = 3,
   NSNotificationSuspensionBehaviorDeliverImmediately = 4
-} NSNotificationSuspensionBehavior;
+};
+typedef NSUInteger NSNotificationSuspensionBehavior;
 
 /**
  *  Type for [NSDistributedNotificationCenter+notificationCenterForType:] -
@@ -79,10 +80,15 @@ GS_EXPORT NSString* const GSNetworkNotificationCenterType;
 
 @interface	NSDistributedNotificationCenter : NSNotificationCenter
 {
+#if	GS_EXPOSE(NSDistributedNotificationCenter)
   NSRecursiveLock *_centerLock;	/* For thread safety.		*/
   NSString	*_type;		/* Type of notification center.	*/
   id		_remote;	/* Proxy for center.		*/
   BOOL		_suspended;	/* Is delivery suspended?	*/
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 + (NSNotificationCenter*) defaultCenter;
 + (NSNotificationCenter*) notificationCenterForType: (NSString*)type;

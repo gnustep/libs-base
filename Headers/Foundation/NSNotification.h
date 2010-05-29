@@ -42,8 +42,6 @@ extern "C" {
 @class NSLock;
 
 @interface NSNotification : NSObject <NSCopying, NSCoding>
-{
-}
 
 /* Creating a Notification Object */
 + (NSNotification*) notificationWithName: (NSString*)name
@@ -63,9 +61,12 @@ extern "C" {
 
 
 
-@interface NSNotificationCenter : NSObject <GCFinalization>
+@interface NSNotificationCenter : NSObject
 {
+#if	GS_EXPOSE(NSNotificationCenter)
+@private
   void	*_table;
+#endif
 }
 
 + (NSNotificationCenter*) defaultCenter;

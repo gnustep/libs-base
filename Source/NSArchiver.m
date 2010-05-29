@@ -25,10 +25,14 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
+#define	EXPOSE_NSArchiver_IVARS	1
+#define	EXPOSE_NSUnarchiver_IVARS	1
 /*
  *	Setup for inline operation of pointer map tables.
  */
+#define	GSI_MAP_KTYPES	GSUNION_INT | GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS
+#define	GSI_MAP_VTYPES	GSUNION_INT | GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
@@ -36,18 +40,21 @@
 #define	GSI_MAP_HASH(M, X)	((X).uint)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
+#if	GS_WITH_GC
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)NSAllocateCollectable(X * sizeof(GSIMapNode_t), 0)
+#endif
+
 
 #include "GNUstepBase/GSIMap.h"
 
 #define	_IN_NSARCHIVER_M
-#include "Foundation/NSArchiver.h"
+#import "Foundation/NSArchiver.h"
 #undef	_IN_NSARCHIVER_M
 
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
 
 typedef	unsigned char	uchar;
 
@@ -100,7 +107,7 @@ static Class	NSMutableDataMallocClass;
 {
   NSMutableData	*d;
 
-  d = [[NSMutableDataMallocClass allocWithZone: GSObjCZone(self)] init];
+  d = [[NSMutableDataMallocClass allocWithZone: [self zone]] init];
   self = [self initForWritingWithMutableData: d];
   RELEASE(d);
   return self;
@@ -137,7 +144,12 @@ static Class	NSMutableDataMallocClass;
       /*
        *	Set up map tables.
        */
+#if	GS_WITH_GC
+      _clsMap = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*6,
+	NSScannedOption);
+#else
       _clsMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*6);
+#endif
       _cIdMap = &_clsMap[1];
       _uIdMap = &_clsMap[2];
       _ptrMap = &_clsMap[3];
@@ -234,9 +246,10 @@ static Class	NSMutableDataMallocClass;
 }
 
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)count
+			 count: (NSUInteger)count
 			    at: (const void*)buf
 {
+  unsigned      c = count;
   unsigned	i;
   unsigned	offset = 0;
   unsigned	size = objc_sizeof_type(type);
@@ -269,9 +282,9 @@ static Class	NSMutableDataMallocClass;
       if (_initialPass == NO)
 	{
 	  (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-	  (*_serImp)(_dst, serSel, &count, @encode(unsigned), nil);
+	  (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
 	}
-      for (i = 0; i < count; i++)
+      for (i = 0; i < c; i++)
 	{
 	  (*_eValImp)(self, eValSel, type, (char*)buf + offset);
 	  offset += size;
@@ -280,10 +293,10 @@ static Class	NSMutableDataMallocClass;
   else if (_initialPass == NO)
     {
       (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-      (*_serImp)(_dst, serSel, &count, @encode(unsigned), nil);
+      (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
 
       (*_tagImp)(_dst, tagSel, info);
-      for (i = 0; i < count; i++)
+      for (i = 0; i < c; i++)
 	{
 	  (*_serImp)(_dst, serSel, (char*)buf + offset, type, nil);
 	  offset += size;
@@ -302,7 +315,7 @@ static Class	NSMutableDataMallocClass;
 
       case _C_ARY_B:
 	{
-	  int		count = atoi(++type);
+	  unsigned	count = atoi(++type);
 
 	  while (isdigit(*type))
 	    {
@@ -435,9 +448,9 @@ static Class	NSMutableDataMallocClass;
 	      }
 	    while (done == NO)
 	      {
-		int		tmp = GSObjCVersion(c);
+		int		tmp = class_getVersion(c);
 		unsigned	version = tmp;
-		Class		s = GSObjCSuper(c);
+		Class		s = class_getSuperclass(c);
 
 		if (tmp < 0)
 		  {
@@ -852,12 +865,12 @@ static Class	NSMutableDataMallocClass;
       GSIMapNode	node;
       Class		c;
 
-      c = GSClassFromName([trueName cString]);
+      c = objc_lookUpClass([trueName cString]);
       node = GSIMapNodeForKey(_namMap, (GSIMapKey)c);
       if (node)
 	{
 	  c = (Class)node->value.ptr;
-	  return [NSString stringWithUTF8String: GSNameFromClass(c)];
+	  return [NSString stringWithUTF8String: class_getName(c)];
 	}
     }
   return trueName;
@@ -878,13 +891,13 @@ static Class	NSMutableDataMallocClass;
   Class		tc;
   Class		ic;
 
-  tc = GSClassFromName([trueName cString]);
+  tc = objc_lookUpClass([trueName cString]);
   if (tc == 0)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Can't find class '%@'.", trueName];
     }
-  ic = GSClassFromName([inArchiveName cString]);
+  ic = objc_lookUpClass([inArchiveName cString]);
   if (ic == 0)
     {
       [NSException raise: NSInternalInconsistencyException

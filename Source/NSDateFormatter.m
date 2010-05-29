@@ -25,14 +25,14 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSFormatter.h"
-#include "Foundation/NSDateFormatter.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
+#import "common.h"
+#define	EXPOSE_NSDateFormatter_IVARS	1
+#import "Foundation/NSDate.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSFormatter.h"
+#import "Foundation/NSDateFormatter.h"
+#import "Foundation/NSCoder.h"
 
 @implementation NSDateFormatter
 

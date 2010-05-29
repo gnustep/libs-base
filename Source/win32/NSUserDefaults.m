@@ -1,13 +1,15 @@
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSProcessInfo.h>
+#import "common.h"
+
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSProcessInfo.h"
 
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])

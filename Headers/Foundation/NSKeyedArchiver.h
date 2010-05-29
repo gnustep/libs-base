@@ -52,6 +52,7 @@ extern "C" {
  */
 @interface NSKeyedArchiver : NSCoder
 {
+#if	GS_EXPOSE(NSKeyedArchiver)
 @private
   NSMutableData	*_data;		/* Data to write into.		*/
   id		_delegate;	/* Delegate controls operation.	*/
@@ -69,6 +70,10 @@ extern "C" {
   NSMutableDictionary	*_enc;	/* Object being encoded.	*/
   NSMutableArray	*_obj;	/* Array of objects.		*/
   NSPropertyListFormat	_format;
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 
 /**
@@ -121,7 +126,7 @@ extern "C" {
  * and associates the encoded value with aKey.
  */
 - (void) encodeBytes: (const uint8_t*)aPointer
-	      length: (unsigned)length
+	      length: (NSUInteger)length
 	      forKey: (NSString*)aKey;
 
 /**
@@ -216,6 +221,7 @@ extern "C" {
  */
 @interface NSKeyedUnarchiver : NSCoder
 {
+#if	GS_EXPOSE(NSKeyedUnarchiver)
 @private
   NSDictionary	*_archive;
   id		_delegate;	/* Delegate controls operation.	*/
@@ -233,6 +239,10 @@ extern "C" {
 #undef	GSIArray
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 
 /**
@@ -298,7 +308,7 @@ extern "C" {
  * -encodeBytes:length:forKey:
  */
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (unsigned*)length;
+		      returnedLength: (NSUInteger*)length;
 
 /**
  * Returns a double value associated with aKey.  This value must previously

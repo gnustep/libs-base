@@ -128,13 +128,14 @@ GS_EXPORT NSString * const GSHTTPPropertyPasswordKey;
 }
 </example>
  */
-typedef enum
+enum
 {
   NSURLHandleNotLoaded = 0,
   NSURLHandleLoadSucceeded,
   NSURLHandleLoadInProgress,
   NSURLHandleLoadFailed
-} NSURLHandleStatus;
+};
+typedef NSUInteger NSURLHandleStatus;
 
 /**
  * A protocol to which clients of a handle must conform in order to
@@ -176,12 +177,15 @@ typedef enum
 - (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender;
 @end
 
-@interface NSURLHandle: NSObject
+@interface NSURLHandle : NSObject
 {
+#if	GS_EXPOSE(NSURLHandle)
+@protected
   id			_data;
   NSMutableArray	*_clients;
   NSString		*_failure; 
   NSURLHandleStatus	_status;
+#endif
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)url;

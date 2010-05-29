@@ -24,7 +24,14 @@
  * See the HTMLLinker.html file for documentation on how to use the tool.
  */
 
-#include <Foundation/Foundation.h>
+#import	"common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
 
 /* For convenience, cached for the whole tool.  */
 
@@ -1046,7 +1053,7 @@ build_relocation_table_for_directory (NSString *dir)
       NSMutableDictionary *relocationTable;
       
       relocationTable = [NSMutableDictionary new];
-      AUTORELEASE (relocationTable);
+      IF_NO_GC ([relocationTable autorelease];)
 
       e = [HTMLDirectoryEnumerator alloc];
       e = [e initWithBasePath: dir];
@@ -1124,7 +1131,7 @@ int main (int argc, char** argv, char** env)
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
 
   /* Set up the cache.  */

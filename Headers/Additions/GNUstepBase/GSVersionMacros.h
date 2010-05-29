@@ -1,4 +1,4 @@
-/* GSVersionMacros.h - macros for managing API versioning
+/* GSVersionMacros.h - macros for managing API versioning and visibility
    Copyright (C) 2006 Free Software Foundation, Inc.
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
@@ -25,17 +25,22 @@
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 #define __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 
-/*
- *	Check consistency of definitions for system compatibility.
+/* By default we defined NO_GNUSTEP to 0 so that we will include extensions.
+ */
+#if	!defined(NO_GNUSTEP)
+#  define	NO_GNUSTEP	0
+#endif
+
+/* Check consistency of definitions for system compatibility.
  */
 #if	defined(STRICT_OPENSTEP)
-#define GS_OPENSTEP_V	010000
-#define	NO_GNUSTEP	1
+#  define	GS_OPENSTEP_V	 10000
+#  undef	NO_GNUSTEP
+#  define	NO_GNUSTEP	1
 #elif	defined(STRICT_MACOS_X)
-#define GS_OPENSTEP_V	100000
-#define	NO_GNUSTEP	1
-#else
-#undef	NO_GNUSTEP
+#  define	GS_OPENSTEP_V	100600
+#  undef	NO_GNUSTEP
+#  define	NO_GNUSTEP	1
 #endif
 
 /*
@@ -51,6 +56,7 @@
 #define	MAC_OS_X_VERSION_10_3	100300
 #define	MAC_OS_X_VERSION_10_4	100400
 #define	MAC_OS_X_VERSION_10_5	100500
+#define	MAC_OS_X_VERSION_10_6	100600
 #endif	/* MAC_OS_X_VERSION_10_0 */
 
 #ifndef	GS_OPENSTEP_V
@@ -179,5 +185,83 @@
  * denotes code present from the initial MacOS-X version onwards.
  */
 #define	GS_API_MACOSX	100000
+
+
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#import "GNUstepBase/GSConfig.h"
+#else
+#import <GNUstepBase/GSConfig.h>
+#endif
+
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
+/* The following is for deciding whether private instance variables
+ * should be visible ... if we are building with a compiler which
+ * does not define __has_feature then we know we don't have non-fragile
+ * ivar support.
+ * In the header we bracket instance variable declarations in a
+ * '#if	GS_EXPOSE(classname) ... #endif' sequence, so that the variables
+ * will not be visible to code which uses the library.
+ * In the source file we define EXPOSE_classname_IVARS to be 1
+ * before including the header, so that the ivars are always available
+ * in the class source itsself
+ */
+
+#if	GS_MIXEDABI
+#  undef	GS_NONFRAGILE
+#  define	GS_NONFRAGILE	0	/* Mixed is treated as fragile */
+#else
+#  if (__has_feature(objc_nonfragile_abi))
+#    if	!GS_NONFRAGILE
+#      if	defined(GNUSTEP_BASE_INTERNAL)
+#        error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+#      endif
+#    endif
+#  else
+#    if	GS_NONFRAGILE
+#      error "Your gnustep-base was configured for the objc-nonfragile-abi but you are not using it now."
+#    endif
+#  endif
+#endif
+
+#define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
+
+
+
+
+#if	defined(GNUSTEP_WITH_DLL)
+ 
+#if BUILD_libgnustep_base_DLL
+#
+# if defined(__MINGW__)
+  /* On Mingw, the compiler will export all symbols automatically, so
+   * __declspec(dllexport) is not needed.
+   */
+#  define GS_EXPORT  extern
+#  define GS_DECLARE 
+# else
+#  define GS_EXPORT  __declspec(dllexport)
+#  define GS_DECLARE __declspec(dllexport)
+# endif
+#else
+#  define GS_EXPORT  extern __declspec(dllimport)
+#  define GS_DECLARE __declspec(dllimport)
+#endif
+ 
+#else /* GNUSTEP_WITH[OUT]_DLL */
+
+#  define GS_EXPORT extern
+#  define GS_DECLARE 
+
+#endif
+
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#define GS_ATTRIB_DEPRECATED __attribute__ ((deprecated))
+#else
+#define GS_ATTRIB_DEPRECATED
+#endif
+
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */

@@ -54,8 +54,7 @@
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
+#import "common.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -65,7 +64,6 @@
 #endif /* HAVE_STRERROR */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #ifdef HAVE_WINDOWS_H
@@ -103,22 +101,21 @@
 #undef id
 #endif
 
-#include "GNUstepBase/GSConfig.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/GSConfig.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSLock.h"
+#import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 @interface NSBundle (Private)
 + (NSString*) _gnustep_target_os;
@@ -218,12 +215,10 @@ static unsigned int	_operatingSystem = 0;
 static NSString		*_operatingSystemName = nil;
 static NSString		*_operatingSystemVersion = nil;
 
-// Array of debug levels set.
-static NSMutableSet	*_debug_set = nil;
-
 // Flag to indicate that fallbackInitialisation was executed.
 static BOOL	fallbackInitialisation = NO;
 
+static NSMutableSet	*mySet = nil;
 /*************************************************************************
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
@@ -248,7 +243,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
   else
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       unichar	*buffer;
       int	buffer_size = 0;
       int	needed_size = 0;
@@ -290,7 +285,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   /* Getting the process name */
   IF_NO_GC(RELEASE(_gnu_processName));
   _gnu_processName = [arg0 lastPathComponent];
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   /* On windows we remove any .exe extension for consistency with app names
    * under unix
    */
@@ -306,19 +301,18 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   IF_NO_GC(RETAIN(_gnu_processName));
 
   /* Copy the argument list */
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 {
   unichar **argvw = CommandLineToArgvW(GetCommandLineW(), &argc);
   NSString *str;
-  NSMutableSet *mySet;
   id obj_argv[argc];
   int added = 1;
-  
-  mySet = [NSMutableSet new];
   
   /* Copy the zero'th argument to the argument list */
   obj_argv[0] = arg0;
   
+  if (mySet == nil) mySet = [NSMutableSet new];
+
   for (i = 1; i < argc; i++)
     {
       str = [NSString stringWithCharacters: argvw[i] length: wcslen(argvw[i])];
@@ -334,23 +328,20 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     
   IF_NO_GC(RELEASE(_gnu_arguments));
   _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-  IF_NO_GC(RELEASE(_debug_set));
-  _debug_set = mySet;
   RELEASE(arg0);
 }
 #else
   if (argv)
     {
       NSString		*str;
-      NSMutableSet	*mySet;
       id		obj_argv[argc];
       int		added = 1;
       NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
-      mySet = [NSMutableSet new];
-
       /* Copy the zero'th argument to the argument list */
       obj_argv[0] = arg0;
+
+      if (mySet == nil) mySet = [NSMutableSet new];
 
       for (i = 1; i < argc; i++)
 	{
@@ -364,8 +355,6 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
       IF_NO_GC(RELEASE(_gnu_arguments));
       _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-      IF_NO_GC(RELEASE(_debug_set));
-      _debug_set = mySet;
       RELEASE(arg0);
     }
 #endif	
@@ -376,7 +365,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*values = [NSMutableArray new];
     NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
     if (fallbackInitialisation == NO)
       {
 	unichar	*base;
@@ -572,7 +561,7 @@ static char	**_gnu_noobjc_env = NULL;
   
   // Read commandline
   proc_file_name = (char*)objc_malloc(sizeof(char) * 2048);
-  sprintf(proc_file_name, "/proc/%d/psinfo", (int) getpid());
+  sprintf(proc_file_name, "/proc/%d/psinfo", (int)getpid());
   
   ifp = fopen(proc_file_name, "r");
   if (ifp == NULL)
@@ -681,7 +670,7 @@ static char	**_gnu_noobjc_env = NULL;
 
   // Read commandline
   proc_file_name = (char *)objc_malloc(sizeof(char) * 2048);
-  sprintf(proc_file_name, "/proc/%d/cmdline", (int) getpid());
+  sprintf(proc_file_name, "/proc/%d/cmdline", (int)getpid());
 
   /*
    * We read the /proc file thrice.
@@ -863,7 +852,7 @@ _gnu_noobjc_free_vars(void)
 }
 #else /*! HAVE_PROCFS !HAVE_LOAD_METHOD !HAVE_KVM_ENV */
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
 + (void) initialize
 {
@@ -900,7 +889,7 @@ int main(int argc, char *argv[], char *env[])
          sizeof(_NSConstantStringClassReference));
 #endif
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   WSADATA lpWSAData;
 
   // Initialize Windows Sockets
@@ -909,7 +898,7 @@ int main(int argc, char *argv[], char *env[])
       printf("Could not startup Windows Sockets\n");
       exit(1);
     }
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
 #ifdef __MS_WIN__
   _MB_init_runtime();
@@ -921,7 +910,7 @@ int main(int argc, char *argv[], char *env[])
   return gnustep_base_user_main(argc, argv, env);
 }
 #endif /* !GS_PASS_ARGUMENTS */
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
 #endif /* HAS_LOAD_METHOD && HAS_PROCFS */
 
@@ -939,7 +928,23 @@ int main(int argc, char *argv[], char *env[])
   if (!_gnu_sharedProcessInfoObject)
     {
       _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
+      [gnustep_global_lock lock];
+      if (mySet != nil)
+	{
+	  NSEnumerator	*e = [mySet objectEnumerator];
+	  NSMutableSet	*s = [_gnu_sharedProcessInfoObject debugSet];
+	  id		o;
+
+	  while ((o = [e nextObject]) != nil)
+	    {
+              [s addObject: o];
+	    }
+	  [mySet release];
+	  mySet = nil;
+        }
+      [gnustep_global_lock unlock];
     }
+
   return _gnu_sharedProcessInfoObject;
 }
 
@@ -947,7 +952,7 @@ int main(int argc, char *argv[], char *env[])
 {
   if (pid > 0)
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       HANDLE        h = OpenProcess(PROCESS_QUERY_INFORMATION,0,pid);
       if (h == NULL && GetLastError() != ERROR_ACCESS_DENIED)
         {
@@ -991,7 +996,7 @@ int main(int argc, char *argv[], char *env[])
       pid = [self processIdentifier];
       start = (unsigned long)GSTimeNow();
       host = [[self hostName] stringByReplacingString: @"." withString: @"_"];
-      RETAIN(host);
+      IF_NO_GC(RETAIN(host);)
     }
   count = counter++;
   [gnustep_global_lock unlock];
@@ -1018,7 +1023,7 @@ static void determineOperatingSystem()
       NSString	*os = nil;
       BOOL	parseOS = YES;
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       OSVERSIONINFOW	osver;
 
       osver.dwOSVersionInfoSize = sizeof(osver);
@@ -1060,7 +1065,7 @@ static void determineOperatingSystem()
 	    }
 	}
 #endif	/* HAVE_SYS_UTSNAME_H */
-#endif	/* __MINGW32__ */
+#endif	/* __MINGW__ */
 
       if (_operatingSystemVersion == nil)
         {
@@ -1147,7 +1152,7 @@ static void determineOperatingSystem()
     }
 }
 
-- (unsigned int) operatingSystem
+- (NSUInteger) operatingSystem
 {
   if (_operatingSystem == 0)
     {
@@ -1178,7 +1183,7 @@ static void determineOperatingSystem()
 {
   int	pid;
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   pid = (int)GetCurrentProcessId();
 #else
   pid = (int)getpid();
@@ -1208,7 +1213,7 @@ static void determineOperatingSystem()
 
   if (beenHere == NO)
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       SYSTEM_INFO info;
 
       GetSystemInfo(&info);
@@ -1264,7 +1269,7 @@ static void determineOperatingSystem()
 
 - (NSUInteger) activeProcessorCount
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   SYSTEM_INFO info;
   int	index;
   int	count = 0;
@@ -1305,7 +1310,7 @@ static void determineOperatingSystem()
 
   if (beenHere == NO)
     {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       MEMORYSTATUSEX memory;
 
       memory.dwLength = sizeof(memory);
@@ -1362,47 +1367,23 @@ static void determineOperatingSystem()
 
 @end
 
-@implementation	NSProcessInfo (GNUstep)
+void
+GSInitializeProcess(int argc, char **argv, char **envp)
+{
+  [NSProcessInfo class];
+  [gnustep_global_lock lock];
+  fallbackInitialisation = YES;
+  _gnu_process_args(argc, argv, envp);
+  [gnustep_global_lock unlock];
+}
 
-static BOOL	debugTemporarilyDisabled = NO;
+@implementation	NSProcessInfo (GNUstep)
 
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env
 {
-  [gnustep_global_lock lock];
-  fallbackInitialisation = YES;
-  _gnu_process_args(argc, argv, env);
-  [gnustep_global_lock unlock];
-}
-
-- (BOOL) debugLoggingEnabled
-{
-  if (debugTemporarilyDisabled == YES)
-    {
-      return NO;
-    }
-  else
-    {
-      return YES;
-    }
-}
-
-- (NSMutableSet*) debugSet
-{
-  return _debug_set;
-}
-
-- (void) setDebugLoggingEnabled: (BOOL)flag
-{
-  if (flag == NO)
-    {
-      debugTemporarilyDisabled = YES;
-    }
-  else
-    {
-      debugTemporarilyDisabled = NO;
-    }
+  GSInitializeProcess(argc, argv, env);
 }
 
 - (BOOL) setLogFile: (NSString*)path
@@ -1410,7 +1391,7 @@ static BOOL	debugTemporarilyDisabled = NO;
   extern int	_NSLogDescriptor;
   int		desc;
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   desc = _wopen([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
 #else
   desc = open([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
@@ -1427,31 +1408,6 @@ static BOOL	debugTemporarilyDisabled = NO;
   return NO;
 }
 @end
-
-BOOL GSDebugSet(NSString *level)
-{
-  static IMP debugImp = 0;
-  static SEL debugSel;
-
-  if (debugTemporarilyDisabled == YES)
-    {
-      return NO;
-    }
-  if (debugImp == 0)
-    {
-      debugSel = @selector(member:);
-      if (_debug_set == nil)
-	{
-	  [[NSProcessInfo processInfo] debugSet];
-	}
-      debugImp = [_debug_set methodForSelector: debugSel];
-    }
-  if ((*debugImp)(_debug_set, debugSel, level) == nil)
-    {
-      return NO;
-    }
-  return YES;
-}
 
 BOOL
 GSPrivateEnvironmentFlag(const char *name, BOOL def)

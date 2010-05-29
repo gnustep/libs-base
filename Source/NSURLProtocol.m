@@ -1,8 +1,9 @@
 /* Implementation for NSURLProtocol for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
+   Parts (FTP and About in particular) based on later code by Nikolaus Schaller
    
    This file is part of the GNUstep Base Library.
 
@@ -22,16 +23,21 @@
    Boston, MA 02111 USA.
    */ 
 
-#import <Foundation/NSError.h>
-#import <Foundation/NSHost.h>
-#import <Foundation/NSNotification.h>
-#import <Foundation/NSRunLoop.h>
-#import <Foundation/NSValue.h>
+#import "common.h"
 
-#import "GNUstepBase/GSMime.h"
+#define	EXPOSE_NSURLProtocol_IVARS	1
+#import "Foundation/NSError.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
 #import "GSURLPrivate.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 
 /* Define to 1 for experimental (net yet working) compression support
  */
@@ -128,10 +134,18 @@ static NSLock		*pairLock = nil;
 
 - (void) dealloc
 {
-  [ip release];
-  [op release];
-  [host release];
-  [expires release];
+  [ip setDelegate: nil];
+  [op setDelegate: nil];
+  [ip removeFromRunLoop: [NSRunLoop currentRunLoop]
+		forMode: NSDefaultRunLoopMode];
+  [op removeFromRunLoop: [NSRunLoop currentRunLoop]
+		forMode: NSDefaultRunLoopMode];
+  [ip close];
+  [op close];
+  DESTROY(ip);
+  DESTROY(op);
+  DESTROY(host);
+  DESTROY(expires);
   [super dealloc];
 }
 
@@ -142,7 +156,7 @@ static NSLock		*pairLock = nil;
 
 - (id) init
 {
-  [self release];
+  DESTROY(self);
   return nil;
 }
 
@@ -166,7 +180,7 @@ static NSLock		*pairLock = nil;
 	{
 	  /* Found a match ... remove from cache and return as self.
 	   */
-	  [self release];
+	  DESTROY(self);
 	  self = [pair retain];
 	  [pairCache removeObjectAtIndex: count];
 	  [pairLock unlock];
@@ -183,7 +197,7 @@ static NSLock		*pairLock = nil;
 		    outputStream: &op];
       if (ip == nil || op == nil)
 	{
-	  [self release];
+	  DESTROY(self);
 	  return nil;
 	}
       ssl = s;
@@ -241,6 +255,7 @@ static NSLock		*pairLock = nil;
   NSURLCredential		*_credential;
   NSHTTPURLResponse		*_response;
 }
+- (void) setDebug: (BOOL)flag;
 @end
 
 @interface _NSHTTPSURLProtocol : _NSHTTPURLProtocol
@@ -263,11 +278,8 @@ typedef struct {
 #endif
 } Internal;
  
-typedef struct {
-  @defs(NSURLProtocol)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLProtocolInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLProtocolInternal))
+#define	this	((Internal*)(self->_NSURLProtocolInternal))
+#define	inst	((Internal*)(o->_NSURLProtocolInternal))
 
 static NSMutableArray	*registered = nil;
 static NSLock		*regLock = nil;
@@ -330,6 +342,28 @@ static NSURLProtocol	*placeholder = nil;
   return NO;
 }
 
++(Class) _classToHandleRequest:(NSURLRequest *)request
+{
+  Class protoClass = nil;
+  int count;
+  [regLock lock];
+
+  count = [registered count];
+  while (count-- > 0)
+    {
+      Class	proto = [registered objectAtIndex: count];
+
+      if ([proto canInitWithRequest: request] == YES)
+	{
+	  protoClass = proto;
+	  break;
+	}
+    }
+  [regLock unlock];
+  return protoClass;
+}
+
+
 + (void) setProperty: (id)value
 	      forKey: (NSString *)key
 	   inRequest: (NSMutableURLRequest *)request
@@ -364,10 +398,21 @@ static NSURLProtocol	*placeholder = nil;
   if (this != 0)
     {
       [self stopLoading];
-      RELEASE(this->input);
-      RELEASE(this->output);
-      RELEASE(this->cachedResponse);
-      RELEASE(this->request);
+      if (this->input != nil)
+	{
+	  [this->input setDelegate: nil];
+	  [this->output setDelegate: nil];
+	  [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
+				 forMode: NSDefaultRunLoopMode];
+	  [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
+				  forMode: NSDefaultRunLoopMode];
+          [this->input close];
+          [this->output close];
+          DESTROY(this->input);
+          DESTROY(this->output);
+	}
+      DESTROY(this->cachedResponse);
+      DESTROY(this->request);
 #if	USE_ZLIB
       if (this->compressing == YES)
 	{
@@ -377,7 +422,7 @@ static NSURLProtocol	*placeholder = nil;
 	{
 	  inflateEnd(&this->z);
 	}
-      RELEASE(this->compressed);
+      DESTROY(this->compressed);
 #endif
       NSZoneFree([self zone], this);
       _NSURLProtocolInternal = 0;
@@ -397,7 +442,7 @@ static NSURLProtocol	*placeholder = nil;
     {
       if (isa != abstractClass)
 	{
-	  _NSURLProtocolInternal = NSZoneCalloc(GSObjCZone(self),
+	  _NSURLProtocolInternal = NSZoneCalloc([self zone],
 	    1, sizeof(Internal));
 	}
     }
@@ -524,12 +569,9 @@ static NSURLProtocol	*placeholder = nil;
   [super dealloc];
 }
 
-- (void) _schedule
+- (void) setDebug: (BOOL)flag
 {
-  [this->input scheduleInRunLoop: [NSRunLoop currentRunLoop]
-			 forMode: NSDefaultRunLoopMode];
-  [this->output scheduleInRunLoop: [NSRunLoop currentRunLoop]
-			  forMode: NSDefaultRunLoopMode];
+  _debug = flag;
 }
 
 - (void) startLoading
@@ -568,12 +610,12 @@ static NSURLProtocol	*placeholder = nil;
   _statusCode = 0;	/* No status returned yet.	*/
   _isLoading = YES;
   _complete = NO;
-  _debug = NO;
+  _debug = GSDebugSet(@"NSHTTPURLProtocol");
 
   /* Perform a redirect if the path is empty.
    * As per MacOs-X documentation.
    */
-  if ([[[this->request URL] path] length] == 0)
+  if ([[[this->request URL] fullPath] length] == 0)
     {
       NSString		*s = [[this->request URL] absoluteString];
       NSURL		*url;
@@ -652,7 +694,8 @@ static NSURLProtocol	*placeholder = nil;
 	{
 	  if (_debug == YES)
 	    {
-	      NSLog(@"did not create streams for %@:%@", host, [url port]);
+	      NSLog(@"%@ did not create streams for %@:%@",
+		self, host, [url port]);
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError:
@@ -664,8 +707,10 @@ static NSURLProtocol	*placeholder = nil;
 		nil]]];
 	  return;
 	}
-      RETAIN(this->input);
-      RETAIN(this->output);
+#if	!GS_WITH_GC
+      [this->input retain];
+      [this->output retain];
+#endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
@@ -675,31 +720,31 @@ static NSURLProtocol	*placeholder = nil;
         }
       [this->input setDelegate: self];
       [this->output setDelegate: self];
-      [self _schedule];
+      [this->input scheduleInRunLoop: [NSRunLoop currentRunLoop]
+			     forMode: NSDefaultRunLoopMode];
+      [this->output scheduleInRunLoop: [NSRunLoop currentRunLoop]
+			      forMode: NSDefaultRunLoopMode];
       [this->input open];
       [this->output open];
     }
-}
-
-- (void) _unschedule
-{
-  [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
-			 forMode: NSDefaultRunLoopMode];
-  [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
-			  forMode: NSDefaultRunLoopMode];
 }
 
 - (void) stopLoading
 {
   if (_debug == YES)
     {
-      NSLog(@"stopLoading: %@", self);
+      NSLog(@"%@ stopLoading", self);
     }
   _isLoading = NO;
   DESTROY(_writeData);
   if (this->input != nil)
     {
-      [self _unschedule];
+      [this->input setDelegate: nil];
+      [this->output setDelegate: nil];
+      [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
+			     forMode: NSDefaultRunLoopMode];
+      [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
+			      forMode: NSDefaultRunLoopMode];
       [this->input close];
       [this->output close];
       DESTROY(this->input);
@@ -729,7 +774,7 @@ static NSURLProtocol	*placeholder = nil;
 	  e = [stream streamError];
 	  if (_debug)
 	    {
-	      NSLog(@"receive error %@", e);
+	      NSLog(@"%@ receive error %@", self, e);
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError: e];
@@ -738,7 +783,8 @@ static NSURLProtocol	*placeholder = nil;
     }
   if (_debug)
     {
-      NSLog(@"Read %d bytes: '%*.*s'", readCount, readCount, readCount, buffer);
+      NSLog(@"%@ read %d bytes: '%*.*s'",
+	self, readCount, readCount, readCount, buffer);
     }
 
   if (_parser == nil)
@@ -752,7 +798,7 @@ static NSURLProtocol	*placeholder = nil;
     {
       if (_debug == YES)
 	{
-	  NSLog(@"HTTP parse failure - %@", _parser);
+	  NSLog(@"%@ HTTP parse failure - %@", self, _parser);
 	}
       e = [NSError errorWithDomain: @"parse error"
 			      code: 0
@@ -1013,7 +1059,7 @@ static NSURLProtocol	*placeholder = nil;
 		      auth = [authentication
 			authorizationForAuthentication: hdr
 			method: [this->request HTTPMethod]
-			path: [url path]];
+			path: [url fullPath]];
 		    }
 
 		  if (auth == nil)
@@ -1072,9 +1118,14 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	    }
 
-	  [self _unschedule];
+	  [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
+				 forMode: NSDefaultRunLoopMode];
+	  [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
+				  forMode: NSDefaultRunLoopMode];
 	  if (_shouldClose == YES)
 	    {
+	      [this->input setDelegate: nil];
+	      [this->output setDelegate: nil];
 	      [this->input close];
 	      [this->output close];
 	      DESTROY(this->input);
@@ -1141,7 +1192,7 @@ static NSURLProtocol	*placeholder = nil;
 	   */
 	  if (_debug == YES)
 	    {
-	      NSLog(@"HTTP response not received - %@", _parser);
+	      NSLog(@"%@ HTTP response not received - %@", self, _parser);
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError:
@@ -1156,7 +1207,7 @@ static NSURLProtocol	*placeholder = nil;
 {
   /* Make sure no action triggered by anything else destroys us prematurely.
    */
-  AUTORELEASE(RETAIN(self));
+  IF_NO_GC([[self retain] autorelease];)
 
 #if 0
   NSLog(@"stream: %@ handleEvent: %x for: %@", stream, event, self);
@@ -1174,7 +1225,7 @@ static NSURLProtocol	*placeholder = nil;
 	  case NSStreamEventOpenCompleted: 
 	    if (_debug == YES)
 	      {
-		NSLog(@"HTTP input stream opened");
+		NSLog(@"%@ HTTP input stream opened", self);
 	      }
 	    return;
 
@@ -1197,7 +1248,7 @@ static NSURLProtocol	*placeholder = nil;
 
 	      if (_debug == YES)
 	        {
-	          NSLog(@"HTTP output stream opened");
+	          NSLog(@"%@ HTTP output stream opened", self);
 	        }
 	      DESTROY(_writeData);
 	      _writeOffset = 0;
@@ -1218,24 +1269,19 @@ static NSURLProtocol	*placeholder = nil;
 	      m = [[NSMutableString alloc] initWithCapacity: 1024];
 
 	      /* The request line is of the form:
-	       * method /path#fragment?query HTTP/version
-	       * where the fragment and query parts may be missing
+	       * method /path?query HTTP/version
+	       * where the query part may be missing
 	       */
 	      [m appendString: [this->request HTTPMethod]];
 	      [m appendString: @" "];
 	      u = [this->request URL];
-	      s = [u path];
+	      s = [[u fullPath] stringByAddingPercentEscapesUsingEncoding:
+		NSUTF8StringEncoding];
 	      if ([s hasPrefix: @"/"] == NO)
 	        {
 		  [m appendString: @"/"];
 		}
 	      [m appendString: s];
-	      s = [u fragment];
-	      if ([s length] > 0)
-	        {
-		  [m appendString: @"#"];
-		  [m appendString: s];
-		}
 	      s = [u query];
 	      if ([s length] > 0)
 	        {
@@ -1253,9 +1299,36 @@ static NSURLProtocol	*placeholder = nil;
 		  [m appendString: [d objectForKey: s]];
 		  [m appendString: @"\r\n"];
 		}
+	      /* Use valueForHTTPHeaderField: to check for content-type
+	       * header as that does a case insensitive comparison and
+	       * we therefore won't end up adding a second header by
+	       * accident because the two header names differ in case.
+	       */
+	      if ([[this->request HTTPMethod] isEqual: @"POST"]
+	        && [this->request valueForHTTPHeaderField:
+		  @"Content-Type"] == nil)
+		{
+		  /* On MacOSX, this is automatically added to POST methods */
+		  [m appendString:
+		    @"Content-Type: application/x-www-form-urlencoded\r\n"];
+		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
-		  [m appendFormat: @"Host: %@\r\n", [u host]];
+		  id	p = [u port];
+		  id	h = [u host];
+
+		  if (h == nil)
+		    {
+		      h = @"";	// Must send an empty host header
+		    }
+		  if (p == nil)
+		    {
+		      [m appendFormat: @"Host: %@\r\n", h];
+		    }
+		  else
+		    {
+		      [m appendFormat: @"Host: %@:%@\r\n", h, p];
+		    }
 		}
 	      if (l >= 0 && [this->request
 	        valueForHTTPHeaderField: @"Content-Length"] == nil)
@@ -1284,7 +1357,7 @@ static NSURLProtocol	*placeholder = nil;
 		    {
 		      if (_debug == YES)
 		        {
-			  NSLog(@"Wrote %d bytes: '%*.*s'", written,
+			  NSLog(@"%@ wrote %d bytes: '%*.*s'", self, written,
 			    written, written, bytes + _writeOffset);
 			}
 		      _writeOffset += written;
@@ -1325,8 +1398,8 @@ static NSURLProtocol	*placeholder = nil;
 			{
 			  if (_debug == YES)
 			    {
-			      NSLog(@"error reading from HTTPBody stream %@",
-				[NSError _last]);
+			      NSLog(@"%@ error reading from HTTPBody stream %@",
+				self, [NSError _last]);
 			    }
 			  [self stopLoading];
 			  [this->client URLProtocol: self didFailWithError:
@@ -1342,8 +1415,8 @@ static NSURLProtocol	*placeholder = nil;
 			    {
 			      if (_debug == YES)
 				{
-				  NSLog(@"Wrote %d bytes: '%*.*s'", written,
-				    written, written, buffer);
+				  NSLog(@"%@ wrote %d bytes: '%*.*s'", self,
+				    written, written, written, buffer);
 				}
 			      len -= written;
 			      if (len > 0)
@@ -1375,7 +1448,7 @@ static NSURLProtocol	*placeholder = nil;
 		{
 		  if (_debug)
 		    {
-		      NSLog(@"request sent");
+		      NSLog(@"%@ request sent", self);
 		    }
 		  if (_shouldClose == YES)
 		    {
@@ -1392,9 +1465,24 @@ static NSURLProtocol	*placeholder = nil;
 	    break;
 	}
     }
-  NSLog(@"An error %@ occurred on the event %08x of stream %@ of %@", [stream streamError], event, stream, self);
-  [self stopLoading];
-  [this->client URLProtocol: self didFailWithError: [stream streamError]];
+  else
+    {
+      NSLog(@"Unexpected event %d occurred on stream %@ not being used by %@",
+	event, stream, self);
+    }
+  if (event == NSStreamEventErrorOccurred)
+    {
+      NSError	*error = [[[stream streamError] retain] autorelease];
+
+      NSLog(@"An error %@ occurred on stream %@ of %@", error, stream, self);
+      [self stopLoading];
+      [this->client URLProtocol: self didFailWithError: error];
+    }
+  else
+    {
+      NSLog(@"Unexpected event %d ignored on stream %@ of %@",
+	event, stream, self);
+    }
 }
 
 - (void) useCredential: (NSURLCredential*)credential
@@ -1454,8 +1542,10 @@ static NSURLProtocol	*placeholder = nil;
 			    userInfo: nil]];
 	  return;
 	}
-      RETAIN(this->input);
-      RETAIN(this->output);
+#if	!GS_WITH_GC
+      [this->input retain];
+      [this->output retain];
+#endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
@@ -1479,6 +1569,8 @@ static NSURLProtocol	*placeholder = nil;
 {
   if (this->input)
     {
+      [this->input setDelegate: nil];
+      [this->output setDelegate: nil];
       [this->input removeFromRunLoop: [NSRunLoop currentRunLoop]
 			     forMode: NSDefaultRunLoopMode];
       [this->output removeFromRunLoop: [NSRunLoop currentRunLoop]
@@ -1520,9 +1612,23 @@ static NSURLProtocol	*placeholder = nil;
       NSLog(@"An event occurred on the output stream.");
   	// if successfully opened, send out FTP request header
     }
-  NSLog(@"An error %@ occurred on the event %08x of stream %@ of %@",
-    [stream streamError], event, stream, self);
-  [this->client URLProtocol: self didFailWithError: [stream streamError]];
+  else
+    {
+      NSLog(@"Unexpected event %d occurred on stream %@ not being used by %@",
+	event, stream, self);
+    }
+  if (event == NSStreamEventErrorOccurred)
+    {
+      NSLog(@"An error %@ occurred on stream %@ of %@",
+	[stream streamError], stream, self);
+      [self stopLoading];
+      [this->client URLProtocol: self didFailWithError: [stream streamError]];
+    }
+  else
+    {
+      NSLog(@"Unexpected event %d ignored on stream %@ of %@",
+	event, stream, self);
+    }
 }
 
 @end
@@ -1596,7 +1702,7 @@ static NSURLProtocol	*placeholder = nil;
   NSURLResponse	*r;
   NSData	*data = [NSData data];	// no data
 
-  // we could pass different content depending on the [url path]
+  // we could pass different content depending on the url path
   r = [[NSURLResponse alloc] initWithURL: [this->request URL]
 				MIMEType: @"text/html"
 		   expectedContentLength: 0

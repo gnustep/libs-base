@@ -26,17 +26,23 @@
    $Date$ $Revision$
    */
 
+/* Need to include math.h with C99 option ... do before common.h
+ */
 #define _GNU_SOURCE
 #define _ISOC99_SOURCE
 #include <math.h>
 
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDecimal.h"
-#include "Foundation/NSDecimalNumber.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortCoder.h"
+#import "common.h"
 
-#include "GSPrivate.h"
+#define	EXPOSE_NSDecimalNumber_IVARS	1
+#define	EXPOSE_NSDecimalNumberHandler_IVARS	1
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDecimal.h"
+#import "Foundation/NSDecimalNumber.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
+
+#import "GSPrivate.h"
 
 #ifdef fpclassify
 #define GSIsNAN(n) (fpclassify(n) == FP_NAN)
@@ -191,7 +197,7 @@ static NSDecimalNumber *one;
   // Reuse the handler from the class NSDecimalNumberHandler
   // Might give interessting result on this class as behavior may came
   // from a different class
-  ASSIGN(handler, behavior);
+  ASSIGN(handler, (id)behavior);
 }
 
 + (NSDecimalNumber*) maximumDecimalNumber
@@ -354,8 +360,16 @@ static NSDecimalNumber *one;
 	  {
 	    NSString *s;
 	    float v = *(float *)value;
-	    if (GSIsNAN(v)) return notANumber;
-	    if (GSIsInf(v)) return (v < 0.0) ? minNumber : maxNumber;
+	    if (GSIsNAN(v))
+	      {
+		DESTROY(self);
+		return RETAIN(notANumber);
+	      }
+	    if (GSIsInf(v))
+	      {
+		DESTROY(self);
+		return (v < 0.0) ? RETAIN(minNumber) : RETAIN(maxNumber);
+	      }
 	    s = [[NSString alloc] initWithFormat: @"%g"
 				  locale: GSPrivateDefaultLocale(), (double)v];
 	    self = [self initWithString: s];
@@ -368,8 +382,16 @@ static NSDecimalNumber *one;
 	  {
 	    NSString *s;
 	    double v = *(double *)value;
-	    if (GSIsNAN(v)) return notANumber;
-	    if (GSIsInf(v)) return (v < 0.0) ? minNumber : maxNumber;
+	    if (GSIsNAN(v))
+	      {
+		DESTROY(self);
+		return RETAIN(notANumber);
+	      }
+	    if (GSIsInf(v))
+	      {
+		DESTROY(self);
+		return (v < 0.0) ? RETAIN(minNumber) : RETAIN(maxNumber);
+	      }
 	    s = [[NSString alloc] initWithFormat: @"%g"
 				  locale: GSPrivateDefaultLocale(), v];
 	    self = [self initWithString: s];
@@ -460,7 +482,23 @@ static NSDecimalNumber *one;
   return [self initWithBytes: &d objCType: "d"];
 }
 
-- (id) initWithInt: (signed int)value
+- (id) initWithInt: (int)value
+{
+  if (value < 0)
+    {
+      return [self initWithMantissa: -value
+			   exponent: 0
+			 isNegative: YES];
+    }
+  else
+    {
+      return [self initWithMantissa: value
+			   exponent: 0
+			 isNegative: NO];
+    }
+}
+
+- (id) initWithInteger: (NSInteger)value
 {
   if (value < 0)
     {
@@ -538,6 +576,13 @@ static NSDecimalNumber *one;
 		     isNegative: NO];
 }
 
+- (id) initWithUnsignedInteger: (NSUInteger)value
+{
+  return [self initWithMantissa: value
+		       exponent: 0
+		     isNegative: NO];
+}
+
 - (id) initWithUnsignedLong: (unsigned long)value
 {
   return [self initWithMantissa: value
@@ -577,9 +622,79 @@ static NSDecimalNumber *one;
   return decimal;
 }
 
+- (BOOL) boolValue
+{
+  return NSDecimalDouble(&data) == 0.0 ? NO : YES;
+}
+
 - (double) doubleValue
 {
   return NSDecimalDouble(&data);
+}
+
+- (float) floatValue
+{
+  return (float)NSDecimalDouble(&data);
+}
+
+- (signed char) charValue
+{
+  return (char)NSDecimalDouble(&data);
+}
+
+- (int) intValue
+{
+  return (int)NSDecimalDouble(&data);
+}
+
+- (NSInteger) integerValue
+{
+  return (NSInteger)NSDecimalDouble(&data);
+}
+
+- (long) longValue
+{
+  return (long)NSDecimalDouble(&data);
+}
+
+- (long long) longLongValue
+{
+  return (long long)NSDecimalDouble(&data);
+}
+
+- (short) shortValue
+{
+  return (short)NSDecimalDouble(&data);
+}
+
+- (unsigned char) unsignedCharValue
+{
+  return (unsigned char)NSDecimalDouble(&data);
+}
+
+- (unsigned int) unsignedIntValue
+{
+  return (unsigned int)NSDecimalDouble(&data);
+}
+
+- (NSUInteger) unsignedIntegerValue
+{
+  return (NSUInteger)NSDecimalDouble(&data);
+}
+
+- (unsigned long) unsignedLongValue
+{
+  return (unsigned long)NSDecimalDouble(&data);
+}
+
+- (unsigned long long) unsignedLongLongValue
+{
+  return (unsigned long long)NSDecimalDouble(&data);
+}
+
+- (unsigned short) unsignedShortValue
+{
+  return (unsigned short)NSDecimalDouble(&data);
 }
 
 /**
@@ -595,6 +710,10 @@ static NSDecimalNumber *one;
 
 - (NSComparisonResult) compare: (NSNumber*)decimalNumber
 {
+  if (self == decimalNumber)
+    {
+      return NSOrderedSame;
+    }
   if ([decimalNumber isKindOfClass: NSDecimalNumberClass])
     {
       NSDecimal d1 = [self decimalValue];
@@ -753,13 +872,13 @@ static NSDecimalNumber *one;
   return [NSDecimalNumber decimalNumberWithDecimal: result];
 }
 
-- (NSDecimalNumber*) decimalNumberByRaisingToPower: (unsigned)power
+- (NSDecimalNumber*) decimalNumberByRaisingToPower: (NSUInteger)power
 {
   return [self decimalNumberByRaisingToPower: power
 				withBehavior: [isa defaultBehavior]];
 }
 
-- (NSDecimalNumber*) decimalNumberByRaisingToPower: (unsigned)power
+- (NSDecimalNumber*) decimalNumberByRaisingToPower: (NSUInteger)power
   withBehavior: (id <NSDecimalNumberBehaviors>)behavior
 {
   NSDecimal result;
@@ -851,8 +970,8 @@ static NSDecimalNumber *one;
   double num;
   NSDecimalNumber *dnum;
   num = [self doubleValue];
-  dnum = [[NSDecimalNumber alloc] initWithBytes: &num objCType: "d"];
-  AUTORELEASE(dnum);
+  dnum
+    = AUTORELEASE([[NSDecimalNumber alloc] initWithBytes: &num objCType: "d"]);
   return [dnum decimalValue];
 }
 @end

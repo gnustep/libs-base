@@ -29,18 +29,75 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
+
+#define	GS_NSConnection_IVARS \
+  BOOL			_isValid; \
+  BOOL			_independentQueueing; \
+  BOOL			_authenticateIn; \
+  BOOL			_authenticateOut; \
+  BOOL			_multipleThreads; \
+  BOOL			_shuttingDown; \
+  BOOL			_useKeepalive; \
+  BOOL			_keepaliveWait; \
+  NSPort		*_receivePort; \
+  NSPort		*_sendPort; \
+  unsigned		_requestDepth; \
+  unsigned		_messageCount; \
+  unsigned		_reqOutCount; \
+  unsigned		_reqInCount; \
+  unsigned		_repOutCount; \
+  unsigned		_repInCount; \
+  GSIMapTable		_localObjects; \
+  GSIMapTable		_localTargets; \
+  GSIMapTable		_remoteProxies; \
+  GSIMapTable		_replyMap; \
+  NSTimeInterval	_replyTimeout; \
+  NSTimeInterval	_requestTimeout; \
+  NSMutableArray	*_requestModes; \
+  NSMutableArray	*_runLoops; \
+  NSMutableArray	*_requestQueue; \
+  id			_delegate; \
+  NSRecursiveLock	*_refGate; \
+  NSMutableArray	*_cachedDecoders; \
+  NSMutableArray	*_cachedEncoders; \
+  NSString		*_remoteName; \
+  NSString		*_registeredName; \
+  NSPortNameServer	*_nameServer; \
+  int			_lastKeepalive;
+
+#define	EXPOSE_NSDistantObject_IVARS	1
+
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
 
 #import "Foundation/NSEnumerator.h"
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+
+/* Skip past an argument and also any offset information before the next.
+ */
+static inline const char *
+skip_argspec(const char *ptr)
+{
+  if (ptr != NULL)
+    {
+      ptr = NSGetSizeAndAlignment(ptr, NULL, NULL);
+      if (*ptr == '+') ptr++;
+      while (isdigit(*ptr)) ptr++;
+    }
+  return ptr;
+}
 
 /*
  *	Setup for inline operation of pointer map tables.
  */
+#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_INT
+#define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
@@ -48,43 +105,42 @@
 #define	GSI_MAP_HASH(M, X)	((X).uint ^ ((X).uint >> 3))
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
+#if	GS_WITH_GC
+// FIXME ... 
+#include	<gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
+
 
 #include "GNUstepBase/GSIMap.h"
 
 #define	_IN_CONNECTION_M
-#include "Foundation/NSConnection.h"
+#import "Foundation/NSConnection.h"
 #undef	_IN_CONNECTION_M
 
-#include <mframe.h>
-#if defined(USE_LIBFFI)
-#include "cifframe.h"
-#elif defined(USE_FFCALL)
-#include "callframe.h"
-#endif
+#import "Foundation/NSPortCoder.h"
+#import "GNUstepBase/DistributedObjects.h"
 
-#include "Foundation/NSPortCoder.h"
-#include "GNUstepBase/DistributedObjects.h"
-
-#include "Foundation/NSHashTable.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSPortMessage.h"
-#include "Foundation/NSPortNameServer.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSDebug.h"
-#include "GSInvocation.h"
-#include "GSPortPrivate.h"
-#include "GSPrivate.h"
+#import "Foundation/NSHashTable.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSPortMessage.h"
+#import "Foundation/NSPortNameServer.h"
+#import "Foundation/NSNotification.h"
+#import "GSInvocation.h"
+#import "GSPortPrivate.h"
+#import "GSPrivate.h"
 
 
 static inline NSRunLoop *
@@ -111,8 +167,8 @@ GSRunLoopForThread(NSThread *aThread)
 - (NSMutableArray*) _components;
 @end
 
-@interface NSConnection (GNUstepExtensions) <GCFinalization>
-- (void) gcFinalize;
+@interface NSConnection (GNUstepExtensions)
+- (void) finalize;
 - (retval_t) forwardForProxy: (NSDistantObject*)object 
 		    selector: (SEL)sel 
 		    argFrame: (arglist_t)argframe;
@@ -134,13 +190,6 @@ NSString * const NSObjectInaccessibleException =
   @"NSObjectInaccessibleException";
 NSString * const NSObjectNotAvailableException =
   @"NSObjectNotAvailableException";
-
-/*
- * Set up a type to permit us to have direct access into an NSDistantObject
- */
-typedef struct {
-  @defs(NSDistantObject)
-} ProxyStruct;
 
 /*
  * Cache various class pointers.
@@ -215,8 +264,7 @@ stringFromMsgType(int type)
 - (void) dealloc
 {
   RELEASE(obj);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 - (BOOL) countdown
@@ -235,7 +283,50 @@ stringFromMsgType(int type)
 
 
 
-@interface NSConnection (Private)
+/** <ignore> */
+
+#define	GSInternal	NSConnectionInternal
+#include	"GSInternal.h"
+GS_PRIVATE_INTERNAL(NSConnection)
+
+#define	IisValid		(internal->_isValid)
+#define	IindependentQueueing	(internal->_independentQueueing)
+#define	IauthenticateIn		(internal->_authenticateIn)
+#define	IauthenticateOut	(internal->_authenticateOut)
+#define	ImultipleThreads	(internal->_multipleThreads)
+#define	IshuttingDown		(internal->_shuttingDown)
+#define	IuseKeepalive		(internal->_useKeepalive)
+#define	IkeepaliveWait		(internal->_keepaliveWait)
+#define	IreceivePort		(internal->_receivePort)
+#define	IsendPort		(internal->_sendPort)
+#define	IrequestDepth		(internal->_requestDepth)
+#define	ImessageCount		(internal->_messageCount)
+#define	IreqOutCount		(internal->_reqOutCount)
+#define	IreqInCount		(internal->_reqInCount)
+#define	IrepOutCount		(internal->_repOutCount)
+#define	IrepInCount		(internal->_repInCount)
+#define	IlocalObjects		(internal->_localObjects)
+#define	IlocalTargets		(internal->_localTargets)
+#define	IremoteProxies		(internal->_remoteProxies)
+#define	IreplyMap		(internal->_replyMap)
+#define	IreplyTimeout		(internal->_replyTimeout)
+#define	IrequestTimeout		(internal->_requestTimeout)
+#define	IrequestModes		(internal->_requestModes)
+#define	IrunLoops		(internal->_runLoops)
+#define	IrequestQueue		(internal->_requestQueue)
+#define	Idelegate		(internal->_delegate)
+#define	IrefGate		(internal->_refGate)
+#define	IcachedDecoders		(internal->_cachedDecoders)
+#define	IcachedEncoders		(internal->_cachedEncoders)
+#define	IremoteName		(internal->_remoteName)
+#define	IregisteredName		(internal->_registeredName)
+#define	InameServer		(internal->_nameServer)
+#define	IlastKeepalive		(internal->_lastKeepalive)
+
+/** </ignore> */
+
+@interface NSConnection(Private)
+
 - (void) handlePortMessage: (NSPortMessage*)msg;
 - (void) _runInNewThread;
 + (void) setDebug: (int)val;
@@ -264,8 +355,6 @@ stringFromMsgType(int type)
 + (void) _threadWillExit: (NSNotification*)notification;
 @end
 
-#define _proxiesGate _refGate
-#define _queueGate _refGate
 
 
 /* class defaults */
@@ -298,7 +387,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
 	   * We don't want this connection to be destroyed by another thread
 	   * between now and when it's returned from this function and used!
 	   */
-	  AUTORELEASE(RETAIN(c));
+	  IF_NO_GC([[c retain] autorelease];)
 	  break;
 	}
     }
@@ -386,7 +475,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       c = [self allocWithZone: NSDefaultMallocZone()];
       c = [c initWithReceivePort: r sendPort: s];
-      AUTORELEASE(c);
+      IF_NO_GC([c autorelease];)
     }
   return c;
 }
@@ -425,12 +514,14 @@ static NSLock	*cached_proxies_gate = nil;
  * </p>
  * <p>
  *   If <em>host</em> is <code>nil</code> or an empty string,
- *   the host is taken to be the local machine.
+ *   the host is taken to be the local machine.<br />
  *   If it is an asterisk ('*') then the nameserver checks all
  *   hosts on the local subnet (unless the nameserver is one
- *   that only manages local ports).
+ *   that only manages local ports).<br />
  *   In the GNUstep implementation, the local host is searched before
- *   any other hosts.
+ *   any other hosts.<br />
+ *   NB. if the nameserver does not support connections to remote hosts
+ *   (the default situation) the host argeument should be omitted.
  * </p>
  * <p>
  *   If no NSConnection can be found for <em>name</em> and
@@ -483,6 +574,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      con = [self connectionWithReceivePort: recvPort
 					   sendPort: sendPort];
 	    }
+	  ASSIGNCOPY(GSIVar(con, _remoteName), n);
 	}
     }
   return con;
@@ -545,6 +637,17 @@ static NSLock	*cached_proxies_gate = nil;
     {
       NSNotificationCenter	*nc;
 
+      GSMakeWeakPointer(self, "delegate");
+
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * FIXME
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
       connectionClass = self;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];
@@ -702,7 +805,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  NSDistantObject	*obj = [item obj];
 
 	  NSMapRemove(targetToCached,
-	    (void*)(uintptr_t)((ProxyStruct*)obj)->_handle);
+	    (void*)(uintptr_t)obj->_handle);
 	}
     }
   if ([cached_locals count] == 0)
@@ -719,23 +822,23 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) addRequestMode: (NSString*)mode
 {
-  M_LOCK(_refGate);
+  M_LOCK(IrefGate);
   if ([self isValid] == YES)
     {
-      if ([_requestModes containsObject: mode] == NO)
+      if ([IrequestModes containsObject: mode] == NO)
 	{
-	  unsigned	c = [_runLoops count];
+	  unsigned	c = [IrunLoops count];
 
 	  while (c-- > 0)
 	    {
-	      NSRunLoop	*loop = [_runLoops objectAtIndex: c];
+	      NSRunLoop	*loop = [IrunLoops objectAtIndex: c];
 
-	      [_receivePort addConnection: self toRunLoop: loop forMode: mode];
+	      [IreceivePort addConnection: self toRunLoop: loop forMode: mode];
 	    }
-	  [_requestModes addObject: mode];
+	  [IrequestModes addObject: mode];
 	}
     }
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 }
 
 /**
@@ -744,30 +847,34 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) addRunLoop: (NSRunLoop*)loop
 {
-  M_LOCK(_refGate);
+  M_LOCK(IrefGate);
   if ([self isValid] == YES)
     {
-      if ([_runLoops indexOfObjectIdenticalTo: loop] == NSNotFound)
+      if ([IrunLoops indexOfObjectIdenticalTo: loop] == NSNotFound)
 	{
-	  unsigned		c = [_requestModes count];
+	  unsigned		c = [IrequestModes count];
 
 	  while (c-- > 0)
 	    {
-	      NSString	*mode = [_requestModes objectAtIndex: c];
+	      NSString	*mode = [IrequestModes objectAtIndex: c];
 
-	      [_receivePort addConnection: self toRunLoop: loop forMode: mode];
+	      [IreceivePort addConnection: self toRunLoop: loop forMode: mode];
 	    }
-	  [_runLoops addObject: loop];
+	  [IrunLoops addObject: loop];
 	}
     }
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 }
 
 - (void) dealloc
 {
   if (debug_connection)
     NSLog(@"deallocating %@", self);
-  [self gcFinalize];
+  [self finalize];
+  if (internal != nil)
+    {
+      GS_DESTROY_INTERNAL(NSConnection);
+    }
   [super dealloc];
 }
 
@@ -776,13 +883,15 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (id) delegate
 {
-  return GS_GC_UNHIDE(_delegate);
+  return GS_GC_UNHIDE(Idelegate);
 }
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"%@ recv: 0x%x send 0x%x",
-    [super description], (uintptr_t)[self receivePort], (uintptr_t)[self sendPort]];
+  return [NSString stringWithFormat: @"%@ local: '%@',%@ remote '%@',%@",
+    [super description],
+    IregisteredName ? (id)IregisteredName : (id)@"", [self receivePort],
+    IremoteName ? (id)IremoteName : (id)@"", [self sendPort]];
 }
 
 /**
@@ -794,7 +903,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) enableMultipleThreads
 {
-  _multipleThreads = YES;
+  ImultipleThreads = YES;
 }
 
 /**
@@ -804,7 +913,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (BOOL) independentConversationQueueing
 {
-  return _independentQueueing;
+  return IindependentQueueing;
 }
 
 /**
@@ -869,8 +978,9 @@ static NSLock	*cached_proxies_gate = nil;
   NSConnection		*conn;
   NSRunLoop		*loop;
   id			del;
-  NSZone		*z = NSDefaultMallocZone();
+  NSZone		*z;
 
+  z = NSDefaultMallocZone();
   /*
    * If the receive port is nil, deallocate connection and return nil.
    */
@@ -901,7 +1011,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   if (conn != nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = RETAIN(conn);
       if (debug_connection > 2)
 	{
@@ -910,6 +1020,10 @@ static NSLock	*cached_proxies_gate = nil;
 	}
       return self;
     }
+
+  /* Create our private data structure.
+   */
+  GS_CREATE_INTERNAL(NSConnection);
 
   /*
    * The parent connection is the one whose send and receive ports are
@@ -925,60 +1039,87 @@ static NSLock	*cached_proxies_gate = nil;
 
   M_LOCK(connection_table_gate);
 
-  _isValid = YES;
-  _receivePort = RETAIN(r);
-  _sendPort = RETAIN(s);
-  _messageCount = 0;
-  _repOutCount = 0;
-  _reqOutCount = 0;
-  _repInCount = 0;
-  _reqInCount = 0;
+  IisValid = YES;
+  IreceivePort = RETAIN(r);
+  IsendPort = RETAIN(s);
+  ImessageCount = 0;
+  IrepOutCount = 0;
+  IreqOutCount = 0;
+  IrepInCount = 0;
+  IreqInCount = 0;
 
   /*
    * These arrays cache NSPortCoder objects
    */
   if (cacheCoders == YES)
     {
-      _cachedDecoders = [NSMutableArray new];
-      _cachedEncoders = [NSMutableArray new];
+      IcachedDecoders = [NSMutableArray new];
+      IcachedEncoders = [NSMutableArray new];
     }
 
   /*
    * This is used to queue up incoming NSPortMessages representing requests
    * that can't immediately be dealt with.
    */
-  _requestQueue = [NSMutableArray new];
+  IrequestQueue = [NSMutableArray new];
 
   /*
    * This maps request sequence numbers to the NSPortCoder objects representing
    * replies arriving from the remote connection.
    */
-  _replyMap = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
-  GSIMapInitWithZoneAndCapacity(_replyMap, z, 4);
+#if	GS_WITH_GC
+  IreplyMap
+    = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
+  IreplyMap = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
+#endif
+  GSIMapInitWithZoneAndCapacity(IreplyMap, z, 4);
 
   /*
    * This maps (void*)obj to (id)obj.  The obj's are retained.
    * We use this instead of an NSHashTable because we only care about
    * the object's address, and don't want to send the -hash message to it.
    */
-  _localObjects = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
-  GSIMapInitWithZoneAndCapacity(_localObjects, z, 4);
+#if	GS_WITH_GC
+  IlocalObjects
+    = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
+  IlocalObjects
+    = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
+#endif
+  GSIMapInitWithZoneAndCapacity(IlocalObjects, z, 4);
 
   /*
    * This maps handles for local objects to their local proxies.
    */
-  _localTargets = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
-  GSIMapInitWithZoneAndCapacity(_localTargets, z, 4);
+#if	GS_WITH_GC
+  IlocalTargets
+    = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
+  IlocalTargets
+    = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
+#endif
+  GSIMapInitWithZoneAndCapacity(IlocalTargets, z, 4);
 
   /*
    * This maps targets to remote proxies.
    */
-  _remoteProxies = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
-  GSIMapInitWithZoneAndCapacity(_remoteProxies, z, 4);
+#if	GS_WITH_GC
+  IremoteProxies
+    = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
+    NSScannedOption);
+#else
+  IremoteProxies
+    = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
+#endif
+  GSIMapInitWithZoneAndCapacity(IremoteProxies, z, 4);
 
-  _requestDepth = 0;
-  _delegate = nil;
-  _refGate = [GSLazyRecursiveLock new];
+  IrequestDepth = 0;
+  Idelegate = nil;
+  IrefGate = [GSLazyRecursiveLock new];
 
   /*
    * Some attributes are inherited from the parent if possible.
@@ -987,44 +1128,46 @@ static NSLock	*cached_proxies_gate = nil;
     {
       unsigned	count;
 
-      _multipleThreads = parent->_multipleThreads;
-      _independentQueueing = parent->_independentQueueing;
-      _replyTimeout = parent->_replyTimeout;
-      _requestTimeout = parent->_requestTimeout;
-      _runLoops = [parent->_runLoops mutableCopy];
-      count = [parent->_requestModes count];
-      _requestModes = [[NSMutableArray alloc] initWithCapacity: count];
+      ImultipleThreads = GSIVar(parent, _multipleThreads);
+      IindependentQueueing = GSIVar(parent, _independentQueueing);
+      IreplyTimeout = GSIVar(parent, _replyTimeout);
+      IrequestTimeout = GSIVar(parent, _requestTimeout);
+      IrunLoops = [GSIVar(parent, _runLoops) mutableCopy];
+      count = [GSIVar(parent, _requestModes) count];
+      IrequestModes
+	= [[NSMutableArray alloc] initWithCapacity: count];
       while (count-- > 0)
 	{
-	  [self addRequestMode: [parent->_requestModes objectAtIndex: count]];
+	  [self addRequestMode:
+	    [GSIVar(parent, _requestModes) objectAtIndex: count]];
 	}
-      if (parent->_useKeepalive == YES)
+      if (GSIVar(parent, _useKeepalive) == YES)
 	{
 	  [self _enableKeepalive];
 	}
     }
   else
     {
-      _multipleThreads = NO;
-      _independentQueueing = NO;
-      _replyTimeout = 1.0E12;
-      _requestTimeout = 1.0E12;
+      ImultipleThreads = NO;
+      IindependentQueueing = NO;
+      IreplyTimeout = 1.0E12;
+      IrequestTimeout = 1.0E12;
       /*
        * Set up request modes array and make sure the receiving port
        * is added to the run loop to get data.
        */
       loop = GSRunLoopForThread(nil);
-      _runLoops = [[NSMutableArray alloc] initWithObjects: &loop count: 1];
-      _requestModes = [[NSMutableArray alloc] initWithCapacity: 2];
+      IrunLoops = [[NSMutableArray alloc] initWithObjects: &loop count: 1];
+      IrequestModes = [[NSMutableArray alloc] initWithCapacity: 2];
       [self addRequestMode: NSDefaultRunLoopMode];
       [self addRequestMode: NSConnectionReplyMode];
-      _useKeepalive = NO;
+      IuseKeepalive = NO;
 
       /*
        * If we have no parent, we must handle incoming packets on our
        * receive port ourself - so we set ourself up as the port delegate.
        */
-      [_receivePort setDelegate: self];
+      [IreceivePort setDelegate: self];
     }
 
   /* Ask the delegate for permission, (OpenStep-style and GNUstep-style). */
@@ -1036,7 +1179,7 @@ static NSLock	*cached_proxies_gate = nil;
       if ([del connection: parent shouldMakeNewConnection: self] == NO)
 	{
 	  M_UNLOCK(connection_table_gate);
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -1046,7 +1189,7 @@ static NSLock	*cached_proxies_gate = nil;
       if (![del makeNewConnection: self sender: parent])
 	{
 	  M_UNLOCK(connection_table_gate);
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -1098,27 +1241,27 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) invalidate
 {
-  M_LOCK(_refGate);
-  if (_isValid == NO)
+  M_LOCK(IrefGate);
+  if (IisValid == NO)
     {
-      M_UNLOCK(_refGate);
+      M_UNLOCK(IrefGate);
       return;
     }
-  if (_shuttingDown == NO)
+  if (IshuttingDown == NO)
     {
-      _shuttingDown = YES;
+      IshuttingDown = YES;
       /*
        * Not invalidated as a result of a shutdown from the other end,
        * so tell the other end it must shut down.
        */
       //[self _shutdown];
     }
-  _isValid = NO;
+  IisValid = NO;
   M_LOCK(connection_table_gate);
   NSHashRemove(connection_table, self);
   M_UNLOCK(connection_table_gate);
 
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 
   /*
    * Don't need notifications any more - so remove self as observer.
@@ -1128,15 +1271,15 @@ static NSLock	*cached_proxies_gate = nil;
   /*
    * Make sure we are not registered.
    */
-#if	!defined(__MINGW32__)
-  if ([_receivePort isKindOfClass: [NSMessagePort class]])
+#if	!defined(__MINGW__)
+  if ([IreceivePort isKindOfClass: [NSMessagePort class]])
     {
       [self registerName: nil
 	  withNameServer: [NSMessagePortNameServer sharedInstance]];
     }
   else
 #endif
-  if ([_receivePort isKindOfClass: [NSSocketPort class]])
+  if ([IreceivePort isKindOfClass: [NSSocketPort class]])
     {
       [self registerName: nil
 	  withNameServer: [NSSocketPortNameServer sharedInstance]];
@@ -1151,7 +1294,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   [self setRequestMode: nil];
 
-  RETAIN(self);
+  IF_NO_GC(RETAIN(self);)
 
   if (debug_connection)
     {
@@ -1179,16 +1322,16 @@ static NSLock	*cached_proxies_gate = nil;
    *	these proxies in case they are keeping us retained when we
    *	might otherwise de deallocated.
    */
-  M_LOCK(_proxiesGate);
-  if (_localTargets != 0)
+  M_LOCK(IrefGate);
+  if (IlocalTargets != 0)
     {
       NSMutableArray		*targets;
-      unsigned	 		i = _localTargets->nodeCount;
+      unsigned	 		i = IlocalTargets->nodeCount;
       GSIMapEnumerator_t	enumerator;
       GSIMapNode 		node;
 
       targets = [[NSMutableArray alloc] initWithCapacity: i];
-      enumerator = GSIMapEnumeratorForMap(_localTargets);
+      enumerator = GSIMapEnumeratorForMap(IlocalTargets);
       node = GSIMapEnumeratorNextNode(&enumerator);
       while (node != 0)
 	{
@@ -1200,22 +1343,22 @@ static NSLock	*cached_proxies_gate = nil;
 	  [self removeLocalObject: [targets objectAtIndex: i]];
 	}
       RELEASE(targets);
-      GSIMapEmptyMap(_localTargets);
-      NSZoneFree(_localTargets->zone, (void*)_localTargets);
-      _localTargets = 0;
+      GSIMapEmptyMap(IlocalTargets);
+      NSZoneFree(IlocalTargets->zone, (void*)IlocalTargets);
+      IlocalTargets = 0;
     }
-  if (_remoteProxies != 0)
+  if (IremoteProxies != 0)
     {
-      GSIMapEmptyMap(_remoteProxies);
-      NSZoneFree(_remoteProxies->zone, (void*)_remoteProxies);
-      _remoteProxies = 0;
+      GSIMapEmptyMap(IremoteProxies);
+      NSZoneFree(IremoteProxies->zone, (void*)IremoteProxies);
+      IremoteProxies = 0;
     }
-  if (_localObjects != 0)
+  if (IlocalObjects != 0)
     {
       GSIMapEnumerator_t	enumerator;
       GSIMapNode 		node;
 
-      enumerator = GSIMapEnumeratorForMap(_localObjects);
+      enumerator = GSIMapEnumeratorForMap(IlocalObjects);
       node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
@@ -1223,27 +1366,27 @@ static NSLock	*cached_proxies_gate = nil;
 	  RELEASE(node->key.obj);
 	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
-      GSIMapEmptyMap(_localObjects);
-      NSZoneFree(_localObjects->zone, (void*)_localObjects);
-      _localObjects = 0;
+      GSIMapEmptyMap(IlocalObjects);
+      NSZoneFree(IlocalObjects->zone, (void*)IlocalObjects);
+      IlocalObjects = 0;
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
 
   /*
    * If we are invalidated, we shouldn't be receiving any event and
    * should not need to be in any run loops.
    */
-  while ([_runLoops count] > 0)
+  while ([IrunLoops count] > 0)
     {
-      [self removeRunLoop: [_runLoops lastObject]];
+      [self removeRunLoop: [IrunLoops lastObject]];
     }
 
   /*
    * Invalidate the current conversation so we don't leak.
    */
-  if ([_sendPort isValid] == YES)
+  if ([IsendPort isValid] == YES)
     {
-      [[_sendPort conversation: _receivePort] invalidate];
+      [[IsendPort conversation: IreceivePort] invalidate];
     }
 
   RELEASE(self);
@@ -1255,7 +1398,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (BOOL) isValid
 {
-  return _isValid;
+  return IisValid;
 }
 
 /**
@@ -1267,17 +1410,17 @@ static NSLock	*cached_proxies_gate = nil;
 {
   NSMutableArray	*c;
 
-  /* Don't assert (_isValid); */
-  M_LOCK(_proxiesGate);
-  if (_localObjects != 0)
+  /* Don't assert (IisValid); */
+  M_LOCK(IrefGate);
+  if (IlocalObjects != 0)
     {
       GSIMapEnumerator_t	enumerator;
       GSIMapNode 		node;
 
-      enumerator = GSIMapEnumeratorForMap(_localObjects);
+      enumerator = GSIMapEnumeratorForMap(IlocalObjects);
       node = GSIMapEnumeratorNextNode(&enumerator);
 
-      c = [NSMutableArray arrayWithCapacity: _localObjects->nodeCount];
+      c = [NSMutableArray arrayWithCapacity: IlocalObjects->nodeCount];
       while (node != 0)
 	{
 	  [c addObject: node->key.obj];
@@ -1288,7 +1431,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       c = [NSArray array];
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
   return c;
 }
 
@@ -1299,7 +1442,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (BOOL) multipleThreadsEnabled
 {
-  return _multipleThreads;
+  return ImultipleThreads;
 }
 
 /**
@@ -1307,7 +1450,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (NSPort*) receivePort
 {
-  return _receivePort;
+  return IreceivePort;
 }
 
 /**
@@ -1335,16 +1478,16 @@ static NSLock	*cached_proxies_gate = nil;
 
   if (name != nil)
     {
-      result = [svr registerPort: _receivePort forName: name];
+      result = [svr registerPort: IreceivePort forName: name];
     }
   if (result == YES)
     {
-      if (_registeredName != nil)
+      if (IregisteredName != nil)
 	{
-	  [_nameServer removePort: _receivePort forName: _registeredName];
+	  [InameServer removePort: IreceivePort forName: IregisteredName];
 	}
-      ASSIGN(_registeredName, name);
-      ASSIGN(_nameServer, svr);
+      ASSIGN(IregisteredName, name);
+      ASSIGN(InameServer, svr);
     }
   return result;
 }
@@ -1379,17 +1522,17 @@ static NSLock	*cached_proxies_gate = nil;
 {
   NSMutableArray	*c;
 
-  /* Don't assert (_isValid); */
-  M_LOCK(_proxiesGate);
-  if (_remoteProxies != 0)
+  /* Don't assert (IisValid); */
+  M_LOCK(IrefGate);
+  if (IremoteProxies != 0)
     {
       GSIMapEnumerator_t	enumerator;
       GSIMapNode 		node;
 
-      enumerator = GSIMapEnumeratorForMap(_remoteProxies);
+      enumerator = GSIMapEnumeratorForMap(IremoteProxies);
       node = GSIMapEnumeratorNextNode(&enumerator);
 
-      c = [NSMutableArray arrayWithCapacity: _remoteProxies->nodeCount];
+      c = [NSMutableArray arrayWithCapacity: IremoteProxies->nodeCount];
       while (node != 0)
 	{
 	  [c addObject: node->key.obj];
@@ -1400,7 +1543,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       c = [NSMutableArray array];
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
   return c;
 }
 
@@ -1409,22 +1552,22 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) removeRequestMode: (NSString*)mode
 {
-  M_LOCK(_refGate);
-  if (_requestModes != nil && [_requestModes containsObject: mode])
+  M_LOCK(IrefGate);
+  if (IrequestModes != nil && [IrequestModes containsObject: mode])
     {
-      unsigned	c = [_runLoops count];
+      unsigned	c = [IrunLoops count];
 
       while (c-- > 0)
 	{
-	  NSRunLoop	*loop = [_runLoops objectAtIndex: c];
+	  NSRunLoop	*loop = [IrunLoops objectAtIndex: c];
 
-	  [_receivePort removeConnection: self
+	  [IreceivePort removeConnection: self
 			     fromRunLoop: loop
 				 forMode: mode];
 	}
-      [_requestModes removeObject: mode];
+      [IrequestModes removeObject: mode];
     }
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 }
 
 /**
@@ -1432,27 +1575,27 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) removeRunLoop: (NSRunLoop*)loop
 {
-  M_LOCK(_refGate);
-  if (_runLoops != nil)
+  M_LOCK(IrefGate);
+  if (IrunLoops != nil)
     {
-      unsigned	pos = [_runLoops indexOfObjectIdenticalTo: loop];
+      unsigned	pos = [IrunLoops indexOfObjectIdenticalTo: loop];
 
       if (pos != NSNotFound)
 	{
-	  unsigned	c = [_requestModes count];
+	  unsigned	c = [IrequestModes count];
 
 	  while (c-- > 0)
 	    {
-	      NSString	*mode = [_requestModes objectAtIndex: c];
+	      NSString	*mode = [IrequestModes objectAtIndex: c];
 
-	      [_receivePort removeConnection: self
-				 fromRunLoop: [_runLoops objectAtIndex: pos]
+	      [IreceivePort removeConnection: self
+				 fromRunLoop: [IrunLoops objectAtIndex: pos]
 				     forMode: mode];
 	    }
-	  [_runLoops removeObjectAtIndex: pos];
+	  [IrunLoops removeObjectAtIndex: pos];
 	}
     }
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 }
 
 /**
@@ -1464,7 +1607,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (NSTimeInterval) replyTimeout
 {
-  return _replyTimeout;
+  return IreplyTimeout;
 }
 
 /**
@@ -1475,9 +1618,9 @@ static NSLock	*cached_proxies_gate = nil;
 {
   NSArray	*c;
 
-  M_LOCK(_refGate);
-  c = AUTORELEASE([_requestModes copy]);
-  M_UNLOCK(_refGate);
+  M_LOCK(IrefGate);
+  c = AUTORELEASE([IrequestModes copy]);
+  M_UNLOCK(IrefGate);
   return c;
 }
 
@@ -1489,7 +1632,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (NSTimeInterval) requestTimeout
 {
-  return _requestTimeout;
+  return IrequestTimeout;
 }
 
 /**
@@ -1499,7 +1642,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (id) rootObject
 {
-  return rootObjectForInPort(_receivePort);
+  return rootObjectForInPort(IreceivePort);
 }
 
 /**
@@ -1514,14 +1657,14 @@ static NSLock	*cached_proxies_gate = nil;
   NSDistantObject	*newProxy = nil;
   int			seq_num;
 
-  NSParameterAssert(_receivePort);
-  NSParameterAssert(_isValid);
+  NSParameterAssert(IreceivePort);
+  NSParameterAssert(IisValid);
 
   /*
    * If this is a server connection without a remote end, its root proxy
    * is the same as its root object.
    */
-  if (_receivePort == _sendPort)
+  if (IreceivePort == IsendPort)
     {
       return [self rootObject];
     }
@@ -1551,7 +1694,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (NSPort*) sendPort
 {
-  return _sendPort;
+  return IsendPort;
 }
 
 /**
@@ -1561,10 +1704,10 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) setDelegate: (id)anObj
 {
-  _delegate = GS_GC_HIDE(anObj);
-  _authenticateIn =
+  Idelegate = GS_GC_HIDE(anObj);
+  IauthenticateIn =
     [anObj respondsToSelector: @selector(authenticateComponents:withData:)];
-  _authenticateOut =
+  IauthenticateOut =
     [anObj respondsToSelector: @selector(authenticationDataForComponents:)];
 }
 
@@ -1577,7 +1720,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) setIndependentConversationQueueing: (BOOL)flag
 {
-  _independentQueueing = flag;
+  IindependentQueueing = flag;
 }
 
 /**
@@ -1590,7 +1733,7 @@ static NSLock	*cached_proxies_gate = nil;
 - (void) setReplyTimeout: (NSTimeInterval)to
 {
   if (to <= 0.0 || to > 1.0E12) to = 1.0E12;
-  _replyTimeout = to;
+  IreplyTimeout = to;
 }
 
 /**
@@ -1599,24 +1742,24 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) setRequestMode: (NSString*)mode
 {
-  M_LOCK(_refGate);
-  if (_requestModes != nil)
+  M_LOCK(IrefGate);
+  if (IrequestModes != nil)
     {
-      while ([_requestModes count] > 0
-	&& [_requestModes objectAtIndex: 0] != mode)
+      while ([IrequestModes count] > 0
+	&& [IrequestModes objectAtIndex: 0] != mode)
 	{
-	  [self removeRequestMode: [_requestModes objectAtIndex: 0]];
+	  [self removeRequestMode: [IrequestModes objectAtIndex: 0]];
 	}
-      while ([_requestModes count] > 1)
+      while ([IrequestModes count] > 1)
 	{
-	  [self removeRequestMode: [_requestModes objectAtIndex: 1]];
+	  [self removeRequestMode: [IrequestModes objectAtIndex: 1]];
 	}
-      if (mode != nil && [_requestModes count] == 0)
+      if (mode != nil && [IrequestModes count] == 0)
 	{
 	  [self addRequestMode: mode];
 	}
     }
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 }
 
 /**
@@ -1626,7 +1769,7 @@ static NSLock	*cached_proxies_gate = nil;
 - (void) setRequestTimeout: (NSTimeInterval)to
 {
   if (to <= 0.0 || to > 1.0E12) to = 1.0E12;
-  _requestTimeout = to;
+  IrequestTimeout = to;
 }
 
 /**
@@ -1634,13 +1777,13 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) setRootObject: (id)anObj
 {
-  setRootObjectForInPort(anObj, _receivePort);
-#if	defined(__MINGW32__)
+  setRootObjectForInPort(anObj, IreceivePort);
+#if	defined(__MINGW__)
   /* On ms-windows, the operating system does not inform us when the remote
    * client of a message port goes away ... so we need to enable keepalive
    * to detect that condition.
    */
-  if ([_receivePort isKindOfClass: [NSMessagePort class]])
+  if ([IreceivePort isKindOfClass: [NSMessagePort class]])
     {
       [self _enableKeepalive];
     }
@@ -1686,36 +1829,36 @@ static NSLock	*cached_proxies_gate = nil;
 
   d = [NSMutableDictionary dictionaryWithCapacity: 8];
 
-  M_LOCK(_refGate);
+  M_LOCK(IrefGate);
 
   /*
    *	These are in OPENSTEP 4.2
    */
-  o = [NSNumber numberWithUnsignedInt: _repInCount];
+  o = [NSNumber numberWithUnsignedInt: IrepInCount];
   [d setObject: o forKey: NSConnectionRepliesReceived];
-  o = [NSNumber numberWithUnsignedInt: _repOutCount];
+  o = [NSNumber numberWithUnsignedInt: IrepOutCount];
   [d setObject: o forKey: NSConnectionRepliesSent];
-  o = [NSNumber numberWithUnsignedInt: _reqInCount];
+  o = [NSNumber numberWithUnsignedInt: IreqInCount];
   [d setObject: o forKey: NSConnectionRequestsReceived];
-  o = [NSNumber numberWithUnsignedInt: _reqOutCount];
+  o = [NSNumber numberWithUnsignedInt: IreqOutCount];
   [d setObject: o forKey: NSConnectionRequestsSent];
 
   /*
    *	These are GNUstep extras
    */
   o = [NSNumber numberWithUnsignedInt:
-    _localTargets ? _localTargets->nodeCount : 0];
+    IlocalTargets ? IlocalTargets->nodeCount : 0];
   [d setObject: o forKey: NSConnectionLocalCount];
   o = [NSNumber numberWithUnsignedInt:
-    _remoteProxies ? _remoteProxies->nodeCount : 0];
+    IremoteProxies ? IremoteProxies->nodeCount : 0];
   [d setObject: o forKey: NSConnectionProxyCount];
   o = [NSNumber numberWithUnsignedInt:
-    _replyMap ? _replyMap->nodeCount : 0];
+    IreplyMap ? IreplyMap->nodeCount : 0];
   [d setObject: o forKey: @"NSConnectionReplyQueue"];
-  o = [NSNumber numberWithUnsignedInt: [_requestQueue count]];
+  o = [NSNumber numberWithUnsignedInt: [IrequestQueue count]];
   [d setObject: o forKey: @"NSConnectionRequestQueue"];
 
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 
   return d;
 }
@@ -1743,7 +1886,7 @@ static NSLock	*cached_proxies_gate = nil;
   return conn;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   CREATE_AUTORELEASE_POOL(arp);
 
@@ -1753,41 +1896,41 @@ static NSLock	*cached_proxies_gate = nil;
   [self invalidate];
 
   /* Remove rootObject from root_object_map if this is last connection */
-  if (_receivePort != nil && existingConnection(_receivePort, nil) == nil)
+  if (IreceivePort != nil && existingConnection(IreceivePort, nil) == nil)
     {
-      setRootObjectForInPort(nil, _receivePort);
+      setRootObjectForInPort(nil, IreceivePort);
     }
 
   /* Remove receive port from run loop. */
   [self setRequestMode: nil];
 
-  DESTROY(_requestModes);
-  DESTROY(_runLoops);
+  DESTROY(IrequestModes);
+  DESTROY(IrunLoops);
 
   /*
    * Finished with ports - releasing them may generate a notification
    * If we are the receive port delagate, try to shift responsibility.
    */
-  if ([_receivePort delegate] == self)
+  if ([IreceivePort delegate] == self)
     {
-      NSConnection	*root = existingConnection(_receivePort, _receivePort);
+      NSConnection	*root = existingConnection(IreceivePort, IreceivePort);
 
       if (root == nil)
 	{
-	  root =  existingConnection(_receivePort, nil);
+	  root =  existingConnection(IreceivePort, nil);
 	}
-      [_receivePort setDelegate: root];
+      [IreceivePort setDelegate: root];
     }
-  DESTROY(_receivePort);
-  DESTROY(_sendPort);
+  DESTROY(IreceivePort);
+  DESTROY(IsendPort);
 
-  DESTROY(_requestQueue);
-  if (_replyMap != 0)
+  DESTROY(IrequestQueue);
+  if (IreplyMap != 0)
     {
       GSIMapEnumerator_t	enumerator;
       GSIMapNode 		node;
 
-      enumerator = GSIMapEnumeratorForMap(_replyMap);
+      enumerator = GSIMapEnumeratorForMap(IreplyMap);
       node = GSIMapEnumeratorNextNode(&enumerator);
 
       while (node != 0)
@@ -1798,97 +1941,19 @@ static NSLock	*cached_proxies_gate = nil;
 	    }
 	  node = GSIMapEnumeratorNextNode(&enumerator);
 	}
-      GSIMapEmptyMap(_replyMap);
-      NSZoneFree(_replyMap->zone, (void*)_replyMap);
-      _replyMap = 0;
+      GSIMapEmptyMap(IreplyMap);
+      NSZoneFree(IreplyMap->zone, (void*)IreplyMap);
+      IreplyMap = 0;
     }
 
-  DESTROY(_cachedDecoders);
-  DESTROY(_cachedEncoders);
+  DESTROY(IcachedDecoders);
+  DESTROY(IcachedEncoders);
 
-  DESTROY(_refGate);
+  DESTROY(IremoteName);
+
+  DESTROY(IrefGate);
+
   RELEASE(arp);
-}
-
-static void retDecoder(DOContext *ctxt)
-{
-  NSPortCoder	*coder = ctxt->decoder;
-  const char	*type = ctxt->type;
-
-  if (type == 0)
-    {
-      if (coder != nil)
-	{
-	  ctxt->decoder = nil;
-	  [ctxt->connection _doneInReply: coder];
-	}
-      return;
-    }
-  /* If we didn't get the reply packet yet, get it now. */
-  if (coder == nil)
-    {
-      BOOL	is_exception;
-
-      if ([ctxt->connection isValid] == NO)
-	{
-	  [NSException raise: NSGenericException
-	    format: @"connection waiting for request was shut down"];
-	}
-      ctxt->decoder = [ctxt->connection _getReplyRmc: ctxt->seq];
-      coder = ctxt->decoder;
-      /*
-       * Find out if the server is returning an exception instead
-       * of the return values.
-       */
-      [coder decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-      if (is_exception == YES)
-	{
-	  /* Decode the exception object, and raise it. */
-	  id exc = [coder decodeObject];
-
-	  ctxt->decoder = nil;
-	  [ctxt->connection _doneInReply: coder];
-	  if (ctxt->datToFree != 0)
-	    {
-	      NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
-	      ctxt->datToFree = 0;
-	    }
-	  [exc raise];
-	}
-    }
-  if (*type == _C_ID)
-    {
-      *(id*)ctxt->datum = [coder decodeObject];
-    }
-  else
-    {
-      [coder decodeValueOfObjCType: type at: ctxt->datum];
-    }
-}
-
-static void retEncoder (DOContext *ctxt)
-{
-  switch (*ctxt->type)
-    {
-    case _C_ID:
-      if (ctxt->flags & _F_BYCOPY)
-	{
-	  [ctxt->encoder encodeBycopyObject: *(id*)ctxt->datum];
-	}
-#ifdef	_F_BYREF
-      else if (ctxt->flags & _F_BYREF)
-	{
-	  [ctxt->encoder encodeByrefObject: *(id*)ctxt->datum];
-	}
-#endif
-      else
-	{
-	  [ctxt->encoder encodeObject: *(id*)ctxt->datum];
-	}
-      break;
-    default:
-      [ctxt->encoder encodeValueOfObjCType: ctxt->type at: ctxt->datum];
-    }
 }
 
 /*
@@ -1899,140 +1964,9 @@ static void retEncoder (DOContext *ctxt)
 		    selector: (SEL)sel
                     argFrame: (arglist_t)argframe
 {
-  BOOL		outParams;
-  BOOL		needsResponse;
-  const char	*type;
-  retval_t	retframe;
-  DOContext	ctxt;
-  NSRunLoop	*runLoop = GSRunLoopForThread(nil);
-
-  memset(&ctxt, 0, sizeof(ctxt));
-  ctxt.connection = self;
-
-  /* Encode the method on an RMC, and send it. */
-
-  NSParameterAssert (_isValid);
-
-  if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
-    {
-      if (_multipleThreads == NO)
-	{
-	  [NSException raise: NSObjectInaccessibleException
-		      format: @"Forwarding message in wrong thread"];
-	}
-      else
-	{
-	  [self addRunLoop: runLoop];
-	}
-    }
-
-  /* get the method types from the selector */
-#if NeXT_RUNTIME
-  [NSException
-    raise: NSGenericException
-    format: @"Sorry, distributed objects does not work with NeXT runtime"];
-  /* type = [object selectorTypeForProxy: sel]; */
-#else
-  type = sel_get_type(sel);
-  if (type == 0 || *type == '\0')
-    {
-      type = [[object methodSignatureForSelector: sel] methodType];
-      if (type)
-	{
-	  sel_register_typed_name(GSNameFromSelector(sel), type);
-	}
-    }
-#endif
-  NSParameterAssert(type);
-  NSParameterAssert(*type);
-
-  ctxt.encoder = [self _makeOutRmc: 0 generate: (int*)&ctxt.seq reply: YES];
-
-  if (debug_connection > 4)
-    NSLog(@"building packet seq %d", ctxt.seq);
-
-  /* Send the types that we're using, so that the performer knows
-     exactly what qualifiers we're using.
-     If all selectors included qualifiers, and if I could make
-     sel_types_match() work the way I wanted, we wouldn't need to do
-     this. */
-  [ctxt.encoder encodeValueOfObjCType: @encode(char*) at: &type];
-
-  /* xxx This doesn't work with proxies and the NeXT runtime because
-     type may be a method_type from a remote machine with a
-     different architecture, and its argframe layout specifiers
-     won't be right for this machine! */
-  outParams = mframe_dissect_call (argframe, type, retEncoder, &ctxt);
-
-  if (outParams == YES)
-    {
-      needsResponse = YES;
-    }
-  else
-    {
-      int		flags;
-
-      needsResponse = NO;
-      flags = objc_get_type_qualifiers(type);
-      if ((flags & _F_ONEWAY) == 0)
-	{
-	  needsResponse = YES;
-	}
-      else
-	{
-	  const char	*tmptype = objc_skip_type_qualifiers(type);
-
-	  if (*tmptype != _C_VOID)
-	    {
-	      needsResponse = YES;
-	    }
-	}
-    }
-
-  [self _sendOutRmc: ctxt.encoder type: METHOD_REQUEST];
-  ctxt.encoder = nil;
-  NSDebugMLLog(@"NSConnection", @"Sent message (%s) RMX %d to 0x%x",
-    GSNameFromSelector(sel), ctxt.seq, (uintptr_t)self);
-
-  if (needsResponse == NO)
-    {
-      GSIMapNode	node;
-
-      /*
-       * Since we don't need a response, we can remove the placeholder from
-       * the _replyMap.  However, in case the other end has already sent us
-       * a response, we must check for it and scrap it if necessary.
-       */
-      M_LOCK(_refGate);
-      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)ctxt.seq);
-      if (node != 0 && node->value.obj != dummyObject)
-	{
-	  BOOL	is_exception = NO;
-
-	  [node->value.obj decodeValueOfObjCType: @encode(BOOL)
-					      at: &is_exception];
-	  if (is_exception == YES)
-	    NSLog(@"Got exception with %@", NSStringFromSelector(sel));
-	  else
-	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
-	  [self _doneInRmc: node->value.obj];
-	}
-      GSIMapRemoveKey(_replyMap, (GSIMapKey)ctxt.seq);
-      M_UNLOCK(_refGate);
-      retframe = alloca(sizeof(void*));	 /* Dummy value for void return. */
-    }
-  else
-    {
-      retframe = mframe_build_return (argframe, type, outParams,
-	retDecoder, &ctxt);
-      /* Make sure we processed all arguments, and dismissed the IP.
-	 IP is always set to -1 after being dismissed; the only places
-	 this is done is in this function DECODER().  IP will be nil
-	 if mframe_build_return() never called DECODER(), i.e. when
-	 we are just returning (void).*/
-      NSAssert(ctxt.decoder == nil, NSInternalInconsistencyException);
-    }
-  return retframe;
+[NSException raise: NSInternalInconsistencyException
+	    format: @"Obsolete method called"];
+  return 0;
 }
 
 /*
@@ -2046,12 +1980,12 @@ static void retEncoder (DOContext *ctxt)
   BOOL		outParams;
   BOOL		needsResponse;
   const char	*type;
-  DOContext	ctxt;
+  unsigned	seq;
   NSRunLoop	*runLoop = GSRunLoopForThread(nil);
 
-  if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
+  if ([IrunLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
     {
-      if (_multipleThreads == NO)
+      if (ImultipleThreads == NO)
 	{
 	  [NSException raise: NSObjectInaccessibleException
 		      format: @"Forwarding message in wrong thread"];
@@ -2064,7 +1998,7 @@ static void retEncoder (DOContext *ctxt)
 
   /* Encode the method on an RMC, and send it. */
 
-  NSParameterAssert (_isValid);
+  NSParameterAssert (IisValid);
 
   /* get the method types from the selector */
   type = [[inv methodSignature] methodType];
@@ -2073,19 +2007,16 @@ static void retEncoder (DOContext *ctxt)
       type = [[object methodSignatureForSelector: [inv selector]] methodType];
       if (type)
 	{
-	  sel_register_typed_name(GSNameFromSelector([inv selector]), type);
+	  sel_register_typed_name(sel_getName([inv selector]), type);
 	}
     }
   NSParameterAssert(type);
   NSParameterAssert(*type);
 
-  memset(&ctxt, 0, sizeof(ctxt));
-  ctxt.connection = self;
-
-  op = [self _makeOutRmc: 0 generate: (int*)&ctxt.seq reply: YES];
+  op = [self _makeOutRmc: 0 generate: (int*)&seq reply: YES];
 
   if (debug_connection > 4)
-    NSLog(@"building packet seq %d", ctxt.seq);
+    NSLog(@"building packet seq %d", seq);
 
   [inv setTarget: object];
   outParams = [inv encodeWithDistantCoder: op passPointers: NO];
@@ -2117,7 +2048,7 @@ static void retEncoder (DOContext *ctxt)
 
   [self _sendOutRmc: op type: METHOD_REQUEST];
   NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%x",
-    GSNameFromSelector([inv selector]), ctxt.seq, (uintptr_t)self);
+    sel_getName([inv selector]), seq, (uintptr_t)self);
 
   if (needsResponse == NO)
     {
@@ -2125,11 +2056,11 @@ static void retEncoder (DOContext *ctxt)
 
       /*
        * Since we don't need a response, we can remove the placeholder from
-       * the _replyMap.  However, in case the other end has already sent us
+       * the IreplyMap.  However, in case the other end has already sent us
        * a response, we must check for it and scrap it if necessary.
        */
-      M_LOCK(_refGate);
-      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)ctxt.seq);
+      M_LOCK(IrefGate);
+      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)seq);
       if (node != 0 && node->value.obj != dummyObject)
 	{
 	  BOOL	is_exception = NO;
@@ -2143,22 +2074,125 @@ static void retEncoder (DOContext *ctxt)
 	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
 	  [self _doneInRmc: node->value.obj];
 	}
-      GSIMapRemoveKey(_replyMap, (GSIMapKey)ctxt.seq);
-      M_UNLOCK(_refGate);
+      GSIMapRemoveKey(IreplyMap, (GSIMapKey)seq);
+      M_UNLOCK(IrefGate);
     }
   else
     {
-#ifdef USE_LIBFFI
-      cifframe_build_return (inv, type, outParams, retDecoder, &ctxt);
-#elif defined(USE_FFCALL)
-      callframe_build_return (inv, type, outParams, retDecoder, &ctxt);
-#endif
-      /* Make sure we processed all arguments, and dismissed the IP.
-	 IP is always set to -1 after being dismissed; the only places
-	 this is done is in this function DECODER().  IP will be nil
-	 if mframe_build_return() never called DECODER(), i.e. when
-	 we are just returning (void).*/
-      NSAssert(ctxt.decoder == nil, NSInternalInconsistencyException);
+      int		argnum;
+      int		flags;
+      const char	*tmptype;
+      void		*datum;
+      NSPortCoder	*aRmc;
+      BOOL		is_exception;
+
+      if ([self isValid] == NO)
+	{
+	  [NSException raise: NSGenericException
+	    format: @"connection waiting for request was shut down"];
+	}
+      aRmc = [self _getReplyRmc: seq];
+ 
+      /*
+       * Find out if the server is returning an exception instead
+       * of the return values.
+       */
+      [aRmc decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+      if (is_exception == YES)
+	{
+	  /* Decode the exception object, and raise it. */
+	  id exc = [aRmc decodeObject];
+
+	  [self _doneInReply: aRmc];
+	  [exc raise];
+	}
+
+      /* Get the return type qualifier flags, and the return type. */
+      flags = objc_get_type_qualifiers(type);
+      tmptype = objc_skip_type_qualifiers(type);
+
+      /* Decode the return value and pass-by-reference values, if there
+	 are any.  OUT_PARAMETERS should be the value returned by
+	 cifframe_dissect_call(). */
+      if (outParams || *tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
+	/* xxx What happens with method declared "- (oneway) foo: (out int*)ip;" */
+	/* xxx What happens with method declared "- (in char *) bar;" */
+	/* xxx Is this right?  Do we also have to check _F_ONEWAY? */
+	{
+	  id	obj;
+
+	  /* If there is a return value, decode it, and put it in datum. */
+	  if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
+	    {	
+	      switch (*tmptype)
+		{
+		  case _C_ID:
+		    datum = &obj;
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    [obj autorelease];
+		    break;
+		  case _C_PTR:
+		    /* We are returning a pointer to something. */
+		    tmptype++;
+		    datum = alloca (objc_sizeof_type (tmptype));
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    break;
+
+		  case _C_VOID:
+		    datum = alloca (sizeof (int));
+		    [aRmc decodeValueOfObjCType: @encode(int) at: datum];
+		    break;
+
+		  default:
+		    datum = alloca (objc_sizeof_type (tmptype));
+		    [aRmc decodeValueOfObjCType: tmptype at: datum];
+		    break;
+		}
+	    }
+	  [inv setReturnValue: datum];
+
+	  /* Decode the values returned by reference.  Note: this logic
+	     must match exactly the code in _service_forwardForProxy:
+	     */
+	  if (outParams)
+	    {
+	      /* Step through all the arguments, finding the ones that were
+		 passed by reference. */
+	      for (tmptype = skip_argspec (tmptype), argnum = 0;
+	        *tmptype != '\0';
+	        tmptype = skip_argspec (tmptype), argnum++)
+		{
+		  /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
+		  flags = objc_get_type_qualifiers(tmptype);
+		  /* Skip over the type qualifiers, so now TYPE is
+		     pointing directly at the char corresponding to the
+		     argument's type, as defined in <objc/objc-api.h> */
+		  tmptype = objc_skip_type_qualifiers(tmptype);
+
+		  if (*tmptype == _C_PTR
+		    && ((flags & _F_OUT) || !(flags & _F_IN)))
+		    {
+		      /* If the arg was byref, we obtain its address
+		       * and decode the data directly to it.
+		       */
+		      tmptype++;
+		      [inv getArgument: &datum atIndex: argnum];
+		      [aRmc decodeValueOfObjCType: tmptype at: datum];
+		      if (*tmptype == _C_ID)
+			{
+			  [*(id*)datum autorelease];
+			}
+		    }
+		  else if (*tmptype == _C_CHARPTR
+		    && ((flags & _F_OUT) || !(flags & _F_IN)))
+		    {
+		      [aRmc decodeValueOfObjCType: tmptype at: &datum];
+		      [inv setArgument: datum atIndex: argnum];
+		    }
+		}
+	    }
+	}
+      [self _doneInReply: aRmc];
     }
 }
 
@@ -2169,8 +2203,8 @@ static void retEncoder (DOContext *ctxt)
   int	seq_num;
   NSData *data;
 
-  NSParameterAssert(_receivePort);
-  NSParameterAssert (_isValid);
+  NSParameterAssert(IreceivePort);
+  NSParameterAssert (IisValid);
   op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
   [op encodeValueOfObjCType: ":" at: &sel];
   [op encodeValueOfObjCType: @encode(unsigned) at: &target];
@@ -2257,7 +2291,7 @@ static void retEncoder (DOContext *ctxt)
       NSLog(@"  connection is %@", conn);
     }
 
-  if (conn->_authenticateIn == YES
+  if (GSIVar(conn, _authenticateIn) == YES
     && (type == METHOD_REQUEST || type == METHOD_REPLY))
     {
       NSData	*d;
@@ -2278,7 +2312,7 @@ static void retEncoder (DOContext *ctxt)
   rmc = [conn _makeInRmc: components];
   if (debug_connection > 5)
     {
-      NSLog(@"made rmc 0x%x for %d", rmc, type);
+      NSLog(@"made rmc %p for %d", rmc, type);
     }
 
   switch (type)
@@ -2304,32 +2338,34 @@ static void retEncoder (DOContext *ctxt)
 	 * If REPLY_DEPTH is non-zero, we may still want to service it now
 	 * if independent_queuing is NO.
 	 */
-	M_LOCK(conn->_queueGate);
-	if (conn->_requestDepth == 0 || conn->_independentQueueing == NO)
+	M_LOCK(GSIVar(conn, _refGate));
+	if (GSIVar(conn, _requestDepth) == 0
+	  || GSIVar(conn, _independentQueueing) == NO)
 	  {
-	    conn->_requestDepth++;
-	    M_UNLOCK(conn->_queueGate);
+	    GSIVar(conn, _requestDepth)++;
+	    M_UNLOCK(GSIVar(conn, _refGate));
 	    [conn _service_forwardForProxy: rmc];	// Catches exceptions
-	    M_LOCK(conn->_queueGate);
-	    conn->_requestDepth--;
+	    M_LOCK(GSIVar(conn, _refGate));
+	    GSIVar(conn, _requestDepth)--;
 	  }
 	else
 	  {
-	    [conn->_requestQueue addObject: rmc];
+	    [GSIVar(conn, _requestQueue) addObject: rmc];
 	  }
 	/*
 	 * Service any requests that were queued while we
 	 * were waiting for replies.
 	 */
-	while (conn->_requestDepth == 0 && [conn->_requestQueue count] > 0)
+	while (GSIVar(conn, _requestDepth) == 0
+	  && [GSIVar(conn, _requestQueue) count] > 0)
 	  {
-	    rmc = [conn->_requestQueue objectAtIndex: 0];
-	    [conn->_requestQueue removeObjectAtIndex: 0];
-	    M_UNLOCK(conn->_queueGate);
+	    rmc = [GSIVar(conn, _requestQueue) objectAtIndex: 0];
+	    [GSIVar(conn, _requestQueue) removeObjectAtIndex: 0];
+	    M_UNLOCK(GSIVar(conn, _refGate));
 	    [conn _service_forwardForProxy: rmc];	// Catches exceptions
-	    M_LOCK(conn->_queueGate);
+	    M_LOCK(GSIVar(conn, _refGate));
 	  }
-	M_UNLOCK(conn->_queueGate);
+	M_UNLOCK(GSIVar(conn, _refGate));
 	break;
 
       /*
@@ -2346,17 +2382,17 @@ static void retEncoder (DOContext *ctxt)
 	  GSIMapNode	node;
 
 	  [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
-	  if (type == ROOTPROXY_REPLY && conn->_keepaliveWait == YES
-	    && sequence == conn->_lastKeepalive)
+	  if (type == ROOTPROXY_REPLY && GSIVar(conn, _keepaliveWait) == YES
+	    && sequence == GSIVar(conn, _lastKeepalive))
 	    {
-	      conn->_keepaliveWait = NO;
+	      GSIVar(conn, _keepaliveWait) = NO;
 	      NSDebugMLLog(@"NSConnection", @"Handled keepalive %d on %@",
 		sequence, conn);
 	      [self _doneInRmc: rmc];
 	      break;
 	    }
-	  M_LOCK(conn->_queueGate);
-	  node = GSIMapNodeForKey(conn->_replyMap, (GSIMapKey)sequence);
+	  M_LOCK(GSIVar(conn, _refGate));
+	  node = GSIMapNodeForKey(GSIVar(conn, _replyMap), (GSIMapKey)sequence);
 	  if (node == 0)
 	    {
 	      NSDebugMLLog(@"NSConnection", @"Ignoring reply RMC %d on %@",
@@ -2376,7 +2412,7 @@ static void retEncoder (DOContext *ctxt)
 	      [self _doneInRmc: node->value.obj];
 	      node->value.obj = rmc;
 	    }
-	  M_UNLOCK(conn->_queueGate);
+	  M_UNLOCK(GSIVar(conn, _refGate));
 	}
 	break;
 
@@ -2418,14 +2454,14 @@ static void retEncoder (DOContext *ctxt)
 {
   if ([self isValid])
     {
-      if (_keepaliveWait == NO)
+      if (IkeepaliveWait == NO)
 	{
 	  NSPortCoder	*op;
 
 	  /* Send out a root proxy request to ping the other end.
 	   */
-	  op = [self _makeOutRmc: 0 generate: &_lastKeepalive reply: NO];
-	  _keepaliveWait = YES;
+	  op = [self _makeOutRmc: 0 generate: &IlastKeepalive reply: NO];
+	  IkeepaliveWait = YES;
 	  [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
 	}
       else
@@ -2441,9 +2477,9 @@ static void retEncoder (DOContext *ctxt)
  */
 - (void) _enableKeepalive
 {
-  _useKeepalive = YES;	/* Set so that child connections will inherit. */
-  _keepaliveWait = NO;
-  if (_receivePort != _sendPort)
+  IuseKeepalive = YES;	/* Set so that child connections will inherit. */
+  IkeepaliveWait = NO;
+  if (IreceivePort !=IsendPort)
     {
       /* If this is not a listening connection, we actually enable the
        * keepalive timing (usng the regular housekeeping notifications)
@@ -2458,106 +2494,15 @@ static void retEncoder (DOContext *ctxt)
     }
 }
 
-static void callDecoder (DOContext *ctxt)
-{
-  const char	*type = ctxt->type;
-
-  /*
-   * We need this "dismiss" to happen here and not later so that Coder
-   * "-awake..." methods will get sent before the method using the
-   * objects is invoked.  We clear the 'decoder' field in the context to
-   * show that it is no longer valid.
-   */
-  if (type == 0)
-    {
-      NSPortCoder	*coder = ctxt->decoder;
-
-      ctxt->decoder = nil;
-      [ctxt->connection _doneInRmc: coder];
-      return;
-    }
-
-  /*
-   * The coder may have an optimised method for decoding objects
-   * so we use that one if we are expecting an object, otherwise
-   * we use thegeneric method.
-   */
-  if (*type == _C_ID)
-    {
-      *(id*)ctxt->datum = [ctxt->decoder decodeObject];
-    }
-  else
-    {
-      [ctxt->decoder decodeValueOfObjCType: type at: ctxt->datum];
-    }
-}
-
-static void callEncoder (DOContext *ctxt)
-{
-  const char		*type = ctxt->type;
-  NSPortCoder		*coder = ctxt->encoder;
-
-  if (coder == nil)
-    {
-      BOOL is_exception = NO;
-
-      /*
-       * It is possible that our connection died while the method was
-       * being called - in this case we mustn't try to send the result
-       * back to the remote application!
-       */
-      if ([ctxt->connection isValid] == NO)
-	{
-	  return;
-	}
-
-      /*
-       * We create a new coder object and set it in the context for
-       * later use if/when we are called again.  We encode a flag to
-       * say that this is not an exception.
-       */
-      ctxt->encoder = [ctxt->connection _makeOutRmc: ctxt->seq
-					   generate: 0
-					      reply: NO];
-      coder = ctxt->encoder;
-      [coder encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-    }
-
-  if (*type == _C_ID)
-    {
-      int	flags = ctxt->flags;
-
-      if (flags & _F_BYCOPY)
-	{
-	  [coder encodeBycopyObject: *(id*)ctxt->datum];
-	}
-#ifdef	_F_BYREF
-      else if (flags & _F_BYREF)
-	{
-	  [coder encodeByrefObject: *(id*)ctxt->datum];
-	}
-#endif
-      else
-	{
-	  [coder encodeObject: *(id*)ctxt->datum];
-	}
-    }
-  else
-    {
-      [coder encodeValueOfObjCType: type at: ctxt->datum];
-    }
-}
-
 
 /* NSConnection calls this to service the incoming method request. */
 - (void) _service_forwardForProxy: (NSPortCoder*)aRmc
 {
   char		*forward_type = 0;
-  DOContext	ctxt;
-
-  memset(&ctxt, 0, sizeof(ctxt));
-  ctxt.connection = self;
-  ctxt.decoder = aRmc;
+  NSPortCoder	*decoder = nil;
+  NSPortCoder	*encoder = nil;
+  NSInvocation	*inv = nil;
+  unsigned	seq;
 
   /*
    * Make sure don't let exceptions caused by servicing the client's
@@ -2565,12 +2510,25 @@ static void callEncoder (DOContext *ctxt)
    */
   NS_DURING
     {
-      NSRunLoop	*runLoop = GSRunLoopForThread(nil);
+      NSRunLoop		*runLoop = GSRunLoopForThread(nil);
+      const char	*type;
+      const char	*tmptype;
+      const char	*etmptype;
+      id		tmp;
+      id		object;
+      SEL		selector;
+      GSMethod		meth = 0;
+      BOOL		is_exception = NO;
+      unsigned		flags;
+      int		argnum;
+      BOOL		out_parameters = NO;
+      NSMethodSignature	*sig;
+      const char	*encoded_types = forward_type;
 
-      NSParameterAssert (_isValid);
-      if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
+      NSParameterAssert (IisValid);
+      if ([IrunLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
 	{
-	  if (_multipleThreads == YES)
+	  if (ImultipleThreads == YES)
 	    {
 	      [self addRunLoop: runLoop];
 	    }
@@ -2582,7 +2540,7 @@ static void callEncoder (DOContext *ctxt)
 	}
 
       /* Save this for later */
-      [aRmc decodeValueOfObjCType: @encode(int) at: &ctxt.seq];
+      [aRmc decodeValueOfObjCType: @encode(int) at: &seq];
 
       /*
        * Get the types that we're using, so that we know
@@ -2592,26 +2550,314 @@ static void callEncoder (DOContext *ctxt)
        * to do this.
        */
       [aRmc decodeValueOfObjCType: @encode(char*) at: &forward_type];
-      ctxt.type = forward_type;
 
       if (debug_connection > 1)
       NSLog(
 	@"Handling message (sig %s) RMC %d from %@",
-	ctxt.type, ctxt.seq, (uintptr_t)self);
+	forward_type, seq, (uintptr_t)self);
 
-      _reqInCount++;	/* Handling an incoming request. */
+      IreqInCount++;	/* Handling an incoming request. */
 
-#if defined(USE_LIBFFI)
-      cifframe_do_call (&ctxt, callDecoder, callEncoder);
-#elif defined(USE_FFCALL)
-      callframe_do_call (&ctxt, callDecoder, callEncoder);
-#else
-      mframe_do_call (&ctxt, callDecoder, callEncoder);
-#endif
-      if (ctxt.encoder != nil)
+      encoded_types = forward_type;
+      etmptype = encoded_types;
+
+      decoder = aRmc;
+
+      /* Decode the object, (which is always the first argument to a method). */
+      [decoder decodeValueOfObjCType: @encode(id) at: &object];
+
+      /* Decode the selector, (which is the second argument to a method). */ 
+      /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
+      [decoder decodeValueOfObjCType: @encode(SEL) at: &selector];
+
+      /* Get the "selector type" for this method.  The "selector type" is
+	 a string that lists the return and argument types, and also
+	 indicates in which registers and where on the stack the arguments
+	 should be placed before the method call.  The selector type
+	 string we get here should have the same argument and return types
+	 as the ENCODED_TYPES string, but it will have different register
+	 and stack locations if the ENCODED_TYPES came from a machine of a
+	 different architecture. */
+      if (GSObjCIsClass(object))
 	{
-	  [self _sendOutRmc: ctxt.encoder type: METHOD_REPLY];
+	  meth = GSGetMethod(object, selector, NO, YES);
 	}
+      else if (GSObjCIsInstance(object))
+	{
+	  meth = GSGetMethod(object_getClass(object), selector, YES, YES);
+	}
+      else
+	{
+	  [NSException raise: NSInvalidArgumentException
+		       format: @"decoded object %p is invalid", object];
+	}
+      
+      if (meth != 0)
+	{
+	  type = meth->method_types;
+	}
+      else
+	{
+	  NSDebugLog(@"Local object <%p %s> doesn't implement: %s directly.  "
+		     @"Will search for arbitrary signature.",
+		     object,
+		     class_getName(GSObjCIsClass(object) 
+				     ? object : (id)object_getClass(object)),
+		     sel_getName(selector));
+	  type = GSTypesFromSelector(selector);
+	}
+
+      /* Make sure we successfully got the method type, and that its
+	 types match the ENCODED_TYPES. */
+      NSCParameterAssert (type);
+      if (GSSelectorTypesMatch(encoded_types, type) == NO)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"NSConection types (%s / %s) missmatch for %s", 
+	    encoded_types, type, sel_getName(selector)];
+	}
+
+      sig = [NSMethodSignature signatureWithObjCTypes: type];
+      inv = [[NSInvocation alloc] initWithMethodSignature: sig];
+
+      tmptype = skip_argspec (type);
+      etmptype = skip_argspec (etmptype);
+      [inv setTarget: object];
+
+      tmptype = skip_argspec (tmptype);
+      etmptype = skip_argspec (etmptype);
+      [inv setSelector: selector];
+
+
+      /* Step TMPTYPE and ETMPTYPE in lock-step through their
+	 method type strings. */
+
+      for (tmptype = skip_argspec (tmptype),
+	   etmptype = skip_argspec (etmptype), argnum = 2;
+	   *tmptype != '\0';
+	   tmptype = skip_argspec (tmptype),
+	   etmptype = skip_argspec (etmptype), argnum++)
+	{
+	  void	*datum;
+
+	  /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
+	  flags = objc_get_type_qualifiers (etmptype);
+	  /* Skip over the type qualifiers, so now TYPE is pointing directly
+	     at the char corresponding to the argument's type, as defined
+	     in <objc/objc-api.h> */
+	  tmptype = objc_skip_type_qualifiers(tmptype);
+
+	  /* Decide how, (or whether or not), to decode the argument
+	     depending on its FLAGS and TMPTYPE.  Only the first two cases
+	     involve parameters that may potentially be passed by
+	     reference, and thus only the first two may change the value
+	     of OUT_PARAMETERS.  *** Note: This logic must match exactly
+	     the code in cifframe_dissect_call(); that function should
+	     encode exactly what we decode here. *** */
+
+	  switch (*tmptype)
+	    {
+	      case _C_CHARPTR:
+		/* Handle a (char*) argument. */
+		/* If the char* is qualified as an OUT parameter, or if it
+		   not explicitly qualified as an IN parameter, then we will
+		   have to get this char* again after the method is run,
+		   because the method may have changed it.  Set
+		   OUT_PARAMETERS accordingly. */
+		if ((flags & _F_OUT) || !(flags & _F_IN))
+		  out_parameters = YES;
+		/* If the char* is qualified as an IN parameter, or not
+		   explicity qualified as an OUT parameter, then decode it.
+		   Note: the decoder allocates memory for holding the
+		   string, and it is also responsible for making sure that
+		   the memory gets freed eventually, (usually through the
+		   autorelease of NSData object). */
+		if ((flags & _F_IN) || !(flags & _F_OUT))
+		  {
+		    datum = alloca (sizeof(char*));
+		    [decoder decodeValueOfObjCType: tmptype at: datum];
+		    [inv setArgument: datum atIndex: argnum];
+		  }
+		break;
+
+	      case _C_PTR:
+		/* If the pointer's value is qualified as an OUT parameter,
+		   or if it not explicitly qualified as an IN parameter,
+		   then we will have to get the value pointed to again after
+		   the method is run, because the method may have changed
+		   it.  Set OUT_PARAMETERS accordingly. */
+		if ((flags & _F_OUT) || !(flags & _F_IN))
+		  out_parameters = YES;
+
+		/* Handle an argument that is a pointer to a non-char.  But
+		   (void*) and (anything**) is not allowed. */
+		/* The argument is a pointer to something; increment TYPE
+		     so we can see what it is a pointer to. */
+		tmptype++;
+		/* If the pointer's value is qualified as an IN parameter,
+		   or not explicity qualified as an OUT parameter, then
+		   decode it. */
+		if ((flags & _F_IN) || !(flags & _F_OUT))
+		  {
+		    datum = alloca (objc_sizeof_type (tmptype));
+		    [decoder decodeValueOfObjCType: tmptype at: datum];
+		    [inv setArgument: &datum atIndex: argnum];
+		  }
+		break;
+
+	      default:
+		datum = alloca (objc_sizeof_type (tmptype));
+		if (*tmptype == _C_ID)
+		  {
+		    *(id*)datum = [decoder decodeObject];
+		  }
+		else
+		  {
+		    [decoder decodeValueOfObjCType: tmptype at: datum];
+		  }
+		[inv setArgument: datum atIndex: argnum];
+	    }
+	}
+
+      /* Stop using the decoder.
+       */
+      tmp = decoder;
+      decoder = nil;
+      [self _doneInRmc: tmp];
+
+      /* Invoke the method! */
+      [inv invoke];
+
+      /* It is possible that our connection died while the method was
+       * being called - in this case we mustn't try to send the result
+       * back to the remote application!
+       */
+      if ([self isValid] == NO)
+	{
+	  tmp = inv;
+	  inv = nil;
+	  [tmp release];
+	  NS_VOIDRETURN;
+	}
+
+      /* Encode the return value and pass-by-reference values, if there
+	 are any.  This logic must match exactly that in
+	 cifframe_build_return(). */
+      /* OUT_PARAMETERS should be true here in exactly the same
+	 situations as it was true in cifframe_dissect_call(). */
+
+      /* Get the qualifier type of the return value. */
+      flags = objc_get_type_qualifiers (encoded_types);
+      /* Get the return type; store it our two temporary char*'s. */
+      etmptype = objc_skip_type_qualifiers (encoded_types);
+      tmptype = objc_skip_type_qualifiers (type);
+
+      /* If this is a oneway void with no out parameters, we don't need to
+       * send back any response.
+       */
+      if (*tmptype == _C_VOID && (flags & _F_ONEWAY) && !out_parameters)
+        {
+	  tmp = inv;
+	  inv = nil;
+	  [tmp release];
+	  NS_VOIDRETURN;
+	}
+
+      /* We create a new coder object and encode a flag to
+       * say that this is not an exception.
+       */
+      encoder = [self _makeOutRmc: seq generate: 0 reply: NO];
+      [encoder encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+
+      /* Only encode return values if there is a non-void return value,
+	 a non-oneway void return value, or if there are values that were
+	 passed by reference. */
+
+      if (*tmptype == _C_VOID)
+	{
+	  if ((flags & _F_ONEWAY) == 0)
+	    {
+	      int	dummy = 0;
+
+	      [encoder encodeValueOfObjCType: @encode(int) at: (void*)&dummy];
+	    }
+	  /* No return value to encode; do nothing. */
+	}
+      else
+	{
+	  void	*datum;
+
+	  if (*tmptype == _C_PTR)
+	    {
+	      /* The argument is a pointer to something; increment TYPE
+		 so we can see what it is a pointer to. */
+	      tmptype++;
+	      datum = alloca (objc_sizeof_type (tmptype));
+	    }
+	  else
+	    {
+	      datum = alloca (objc_sizeof_type (tmptype));
+	    }
+	  [inv getReturnValue: datum];
+	  [encoder encodeValueOfObjCType: tmptype at: datum];
+	}
+
+
+      /* Encode the values returned by reference.  Note: this logic
+	 must match exactly the code in cifframe_build_return(); that
+	 function should decode exactly what we encode here. */
+
+      if (out_parameters)
+	{
+	  /* Step through all the arguments, finding the ones that were
+	     passed by reference. */
+	  for (tmptype = skip_argspec (tmptype),
+		 argnum = 0,
+		 etmptype = skip_argspec (etmptype);
+	       *tmptype != '\0';
+	       tmptype = skip_argspec (tmptype),
+		 argnum++,
+		 etmptype = skip_argspec (etmptype))
+	    {
+	      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
+	      flags = objc_get_type_qualifiers(etmptype);
+	      /* Skip over the type qualifiers, so now TYPE is pointing directly
+		 at the char corresponding to the argument's type, as defined
+		 in <objc/objc-api.h> */
+	      tmptype = objc_skip_type_qualifiers (tmptype);
+
+	      /* Decide how, (or whether or not), to encode the argument
+		 depending on its FLAGS and TMPTYPE. */
+	      if (((flags & _F_OUT) || !(flags & _F_IN))
+		&& (*tmptype == _C_PTR || *tmptype == _C_CHARPTR))
+		{
+		  void	*datum;
+
+		  if (*tmptype == _C_PTR)
+		    {
+		      /* The argument is a pointer (to a non-char), and the
+			 pointer's value is qualified as an OUT parameter, or
+			 it not explicitly qualified as an IN parameter, then
+			 it is a pass-by-reference argument.*/
+		      ++tmptype;
+		      [inv getArgument: &datum atIndex: argnum];
+		      [encoder encodeValueOfObjCType: tmptype at: datum];
+		    }
+		  else if (*tmptype == _C_CHARPTR)
+		    {
+		      datum = alloca (sizeof (char*));
+		      [inv getArgument: datum atIndex: argnum];
+		      [encoder encodeValueOfObjCType: tmptype at: datum];
+		    }
+		}
+	    }
+	}
+      tmp = inv;
+      inv = nil;
+      [tmp release];
+      tmp = encoder;
+      encoder = nil;
+      [self _sendOutRmc: tmp type: METHOD_REPLY];
     }
   NS_HANDLER
     {
@@ -2619,7 +2865,7 @@ static void callEncoder (DOContext *ctxt)
 	NSLog(@"forwarding exception for (%@) - %@", self, localException);
 
       /* Send the exception back to the client. */
-      if (_isValid == YES)
+      if (IisValid == YES)
 	{
 	  BOOL is_exception = YES;
 
@@ -2627,25 +2873,19 @@ static void callEncoder (DOContext *ctxt)
 	    {
 	      NSPortCoder	*op;
 
-	      if (ctxt.datToFree != 0)
+	      if (inv != nil)
 		{
-		  NSZoneFree(NSDefaultMallocZone(), ctxt.datToFree);
-		  ctxt.datToFree = 0;
+		  [inv release];
 		}
-	      if (ctxt.objToFree != nil)
+	      if (decoder != nil)
 		{
-		  NSDeallocateObject(ctxt.objToFree);
-		  ctxt.objToFree = nil;
+		  [self _failInRmc: decoder];
 		}
-	      if (ctxt.decoder != nil)
+	      if (encoder != nil)
 		{
-		  [self _failInRmc: ctxt.decoder];
+		  [self _failOutRmc: encoder];
 		}
-	      if (ctxt.encoder != nil)
-		{
-		  [self _failOutRmc: ctxt.encoder];
-		}
-	      op = [self _makeOutRmc: ctxt.seq generate: 0 reply: NO];
+	      op = [self _makeOutRmc: seq generate: 0 reply: NO];
 	      [op encodeValueOfObjCType: @encode(BOOL)
 				     at: &is_exception];
 	      [op encodeBycopyObject: localException];
@@ -2664,12 +2904,12 @@ static void callEncoder (DOContext *ctxt)
 
 - (void) _service_rootObject: (NSPortCoder*)rmc
 {
-  id		rootObject = rootObjectForInPort(_receivePort);
+  id		rootObject = rootObjectForInPort(IreceivePort);
   int		sequence;
   NSPortCoder	*op;
 
-  NSParameterAssert(_receivePort);
-  NSParameterAssert(_isValid);
+  NSParameterAssert(IreceivePort);
+  NSParameterAssert(IisValid);
   NSParameterAssert([rmc connection] == self);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
@@ -2685,7 +2925,7 @@ static void callEncoder (DOContext *ctxt)
   unsigned int	pos;
   int		sequence;
 
-  NSParameterAssert (_isValid);
+  NSParameterAssert (IisValid);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
   [rmc decodeValueOfObjCType: @encode(typeof(count)) at: &count];
@@ -2697,21 +2937,38 @@ static void callEncoder (DOContext *ctxt)
 
       [rmc decodeValueOfObjCType: @encode(typeof(target)) at: &target];
 
-      prox = (NSDistantObject*)[self includesLocalTarget: target];
-      if (prox != nil)
+      prox = [self includesLocalTarget: target];
+      if (prox != 0)
 	{
 	  if (debug_connection > 3)
 	    NSLog(@"releasing object with target (0x%x) on (%@) counter %d",
-		target, self, ((ProxyStruct*)prox)->_counter);
-#if 1
-	  // FIXME thread safety
-	  if (--(((ProxyStruct*)prox)->_counter) == 0)
+		target, self, prox->_counter);
+	  M_LOCK(IrefGate);
+	  NS_DURING
 	    {
-	      [self removeLocalObject: prox];
+	      if (--(prox->_counter) == 0)
+		{
+		  id	rootObject = rootObjectForInPort(IreceivePort);
+
+		  if (rootObject == prox->_object)
+		    {
+		      /* Don't deallocate root object ...
+		       */
+		      prox->_counter = 0;
+		    }
+		  else
+		    {
+		      [self removeLocalObject: (id)prox];
+		    }
+		}
 	    }
-#else
-	  [self removeLocalObject: prox];
-#endif
+	  NS_HANDLER
+	    {
+	      M_UNLOCK(IrefGate);
+	      [localException raise];
+	    }
+	  NS_ENDHANDLER
+	  M_UNLOCK(IrefGate);
 	}
       else if (debug_connection > 3)
 	NSLog(@"releasing object with target (0x%x) on (%@) - nothing to do",
@@ -2728,7 +2985,7 @@ static void callEncoder (DOContext *ctxt)
   NSDistantObject	*local;
   NSString		*response = nil;
 
-  NSParameterAssert (_isValid);
+  NSParameterAssert (IisValid);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
   op = [self _makeOutRmc: sequence generate: 0 reply: NO];
@@ -2740,7 +2997,7 @@ static void callEncoder (DOContext *ctxt)
     NSLog(@"looking to retain local object with target (0x%x) on (%@)",
       target, self);
 
-  M_LOCK(_proxiesGate);
+  M_LOCK(IrefGate);
   local = [self locateLocalTarget: target];
   if (local == nil)
     {
@@ -2748,9 +3005,9 @@ static void callEncoder (DOContext *ctxt)
     }
   else
     {
-      ((ProxyStruct*)local)->_counter++;	// Vended on connection.
+      local->_counter++;	// Vended on connection.
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
 
   [op encodeObject: response];
   [self _sendOutRmc: op type: RETAIN_REPLY];
@@ -2758,8 +3015,8 @@ static void callEncoder (DOContext *ctxt)
 
 - (void) _shutdown
 {
-  NSParameterAssert(_receivePort);
-  NSParameterAssert (_isValid);
+  NSParameterAssert(IreceivePort);
+  NSParameterAssert (IisValid);
   NS_DURING
     {
       NSPortCoder	*op;
@@ -2774,8 +3031,8 @@ static void callEncoder (DOContext *ctxt)
 
 - (void) _service_shutdown: (NSPortCoder*)rmc
 {
-  NSParameterAssert (_isValid);
-  _shuttingDown = YES;		// Prevent shutdown being sent back to other end
+  NSParameterAssert (IisValid);
+  IshuttingDown = YES;		// Prevent shutdown being sent back to other end
   [self _doneInRmc: rmc];
   [self invalidate];
 }
@@ -2791,8 +3048,8 @@ static void callEncoder (DOContext *ctxt)
   const char	*type;
   struct objc_method* m;
 
-  NSParameterAssert(_receivePort);
-  NSParameterAssert (_isValid);
+  NSParameterAssert(IreceivePort);
+  NSParameterAssert (IisValid);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
   op = [self _makeOutRmc: sequence generate: 0 reply: NO];
@@ -2801,7 +3058,7 @@ static void callEncoder (DOContext *ctxt)
   [rmc decodeValueOfObjCType: @encode(unsigned) at: &target];
   [self _doneInRmc: rmc];
   p = [self includesLocalTarget: target];
-  o = (p != nil) ? ((ProxyStruct*)p)->_object : nil;
+  o = (p != nil) ? p->_object : nil;
 
   /* xxx We should make sure that TARGET is a valid object. */
   /* Not actually a Proxy, but we avoid the warnings "id" would have made. */
@@ -2829,11 +3086,19 @@ static void callEncoder (DOContext *ctxt)
   NSPortCoder		*rmc = nil;
   GSIMapNode		node = 0;
   NSDate		*timeout_date = nil;
-  NSTimeInterval	last_interval = 0.0001;
-  NSTimeInterval	delay_interval = last_interval;
+  NSTimeInterval	delay_interval = 0.0;
+  NSTimeInterval	last_interval;
+  NSTimeInterval	maximum_interval;
   NSDate		*delay_date = nil;
-  NSRunLoop		*runLoop = GSRunLoopForThread(nil);
+  NSDate		*start_date = nil;
+  NSRunLoop		*runLoop;
   BOOL			isLocked = NO;
+
+  if (IisValid == NO)
+    {
+      [NSException raise: NSObjectInaccessibleException
+		  format: @"Connection has been invalidated"];
+    }
 
   /*
    * If we have sent out a request on a run loop that we don't already
@@ -2841,9 +3106,10 @@ static void callEncoder (DOContext *ctxt)
    * enabled, we must add the run loop of the new thread so that we can
    * get the reply in this thread.
    */
-  if ([_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
+  runLoop = GSRunLoopForThread(nil);
+  if ([IrunLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
     {
-      if (_multipleThreads == YES)
+      if (ImultipleThreads == YES)
 	{
 	  [self addRunLoop: runLoop];
 	}
@@ -2854,94 +3120,97 @@ static void callEncoder (DOContext *ctxt)
 	}
     }
 
+  if (ImultipleThreads == YES)
+    {
+      /* Since multiple threads are using this connection, another
+       * thread may read the reply we are waiting for - so we must
+       * break out of the runloop frequently to check.  We do this
+       * by setting a small delay and increasing it each time round
+       * so that this semi-busy wait doesn't consume too much
+       * processor time (I hope).
+       * We set an upper limit on the delay to avoid responsiveness
+       * problems.
+       */
+      last_interval = 0.0001;
+      maximum_interval = 1.0;
+    }
+  else
+    {
+      /* As the connection is single threaded, we can wait indefinitely
+       * for a response ... but we recheck every five minutes anyway.
+       */
+      last_interval = maximum_interval = 300.0;
+    }
+
   NS_DURING
     {
+      BOOL	warned = NO;
+
       if (debug_connection > 5)
 	NSLog(@"Waiting for reply sequence %d on %@",
 	  sn, self);
-      M_LOCK(_queueGate); isLocked = YES;
-      while (_isValid == YES
-	&& (node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
+      M_LOCK(IrefGate); isLocked = YES;
+      while (IisValid == YES
+	&& (node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)sn)) != 0
 	&& node->value.obj == dummyObject)
 	{
-	  M_UNLOCK(_queueGate); isLocked = NO;
-	  if (timeout_date == nil)
+	  NSDate	*limit_date;
+
+	  M_UNLOCK(IrefGate); isLocked = NO;
+	  if (start_date == nil)
 	    {
+	      start_date = [dateClass allocWithZone: NSDefaultMallocZone()];
+	      start_date = [start_date init];
 	      timeout_date = [dateClass allocWithZone: NSDefaultMallocZone()];
 	      timeout_date
-		= [timeout_date initWithTimeIntervalSinceNow: _replyTimeout];
+		= [timeout_date initWithTimeIntervalSinceNow: IreplyTimeout];
 	    }
-	  if (_multipleThreads == YES)
+	  RELEASE(delay_date);
+	  delay_date = [dateClass allocWithZone: NSDefaultMallocZone()];
+	  if (delay_interval < maximum_interval)
 	    {
-	      NSDate		*limit_date;
-	      NSTimeInterval	next_interval;
+	      NSTimeInterval	next_interval = last_interval + delay_interval;
 
-	      /*
-	       * If multiple threads are using this connections, another
-	       * thread may read the reply we are waiting for - so we must
-	       * break out of the runloop frequently to check.  We do this
-	       * by setting a small delay and increasing it each time round
-	       * so that this semi-busy wait doesn't consume too much
-	       * processor time (I hope).
-	       * We set an upper limit on the delay to avoid responsiveness
-	       * problems.
-	       */
-	      RELEASE(delay_date);
-	      delay_date = [dateClass allocWithZone: NSDefaultMallocZone()];
-	      if (delay_interval < 1.0)
-		{
-		  next_interval = last_interval + delay_interval;
-		  last_interval = delay_interval;
-		  delay_interval = next_interval;
-		}
-	      delay_date
-		= [delay_date initWithTimeIntervalSinceNow: delay_interval];
+	      last_interval = delay_interval;
+	      delay_interval = next_interval;
+	    }
+	  delay_date
+	    = [delay_date initWithTimeIntervalSinceNow: delay_interval];
 
-	      /*
-	       * We must not set a delay date that is further in the future
-	       * than the timeout date for the response to be returned.
-	       */
-	      if ([timeout_date earlierDate: delay_date] == timeout_date)
-		{
-		  limit_date = timeout_date;
-		}
-	      else
-		{
-		  limit_date = delay_date;
-		}
-
-	      /*
-	       * If the runloop returns without having done anything, AND we
-	       * were waiting for the final timeout, then we must break out
-	       * of the loop.
-	       */
-	      if ([runLoop runMode: NSConnectionReplyMode
-			beforeDate: limit_date] == NO
-		|| [timeout_date timeIntervalSinceNow] <= 0.0)
-		{
-		  if (limit_date == timeout_date)
-		    {
-		      M_LOCK(_queueGate); isLocked = YES;
-		      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
-		      break;
-		    }
-		}
+	  /*
+	   * We must not set a delay date that is further in the future
+	   * than the timeout date for the response to be returned.
+	   */
+	  if ([timeout_date earlierDate: delay_date] == timeout_date)
+	    {
+	      limit_date = timeout_date;
 	    }
 	  else
 	    {
-	      /*
-	       * Normal operation - wait for data or for a timeout.
-	       */
-	      if ([runLoop runMode: NSConnectionReplyMode
-			beforeDate: timeout_date] == NO
-		|| [timeout_date timeIntervalSinceNow] <= 0.0)
-		{
-		  M_LOCK(_queueGate); isLocked = YES;
-		  node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
-		  break;
-		}
+	      limit_date = delay_date;
 	    }
-	  M_LOCK(_queueGate); isLocked = YES;
+
+	  /*
+	   * If the runloop returns without having done anything, AND we
+	   * were waiting for the final timeout, then we must break out
+	   * of the loop.
+	   */
+	  if (([runLoop runMode: NSConnectionReplyMode
+		    beforeDate: limit_date] == NO
+	    && (limit_date == timeout_date))
+	    || [timeout_date timeIntervalSinceNow] <= 0.0)
+	    {
+	      M_LOCK(IrefGate); isLocked = YES;
+	      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)sn);
+	      break;
+	    }
+	  else if (warned == NO && [start_date timeIntervalSinceNow] <= -300.0)
+	    {
+	      warned = YES;
+	      NSLog(@"WARNING ... waiting for reply %u since %@ on %@",
+		sn, start_date, self);
+	    }
+	  M_LOCK(IrefGate); isLocked = YES;
 	}
       if (node == 0)
 	{
@@ -2950,9 +3219,10 @@ static void callEncoder (DOContext *ctxt)
       else
 	{
 	  rmc = node->value.obj;
-	  GSIMapRemoveKey(_replyMap, (GSIMapKey)sn);
+	  GSIMapRemoveKey(IreplyMap, (GSIMapKey)sn);
 	}
-      M_UNLOCK(_queueGate); isLocked = NO;
+      M_UNLOCK(IrefGate); isLocked = NO;
+      TEST_RELEASE(start_date);
       TEST_RELEASE(delay_date);
       TEST_RELEASE(timeout_date);
       if (rmc == nil)
@@ -2962,7 +3232,7 @@ static void callEncoder (DOContext *ctxt)
 	}
       if (rmc == dummyObject)
 	{
-	  if (_isValid == YES)
+	  if (IisValid == YES)
 	    {
 	      [NSException raise: NSPortTimeoutException
 			  format: @"timed out waiting for reply"];
@@ -2978,7 +3248,7 @@ static void callEncoder (DOContext *ctxt)
     {
       if (isLocked == YES)
 	{
-	  M_UNLOCK(_queueGate);
+	  M_UNLOCK(IrefGate);
 	}
       [localException raise];
     }
@@ -2991,23 +3261,23 @@ static void callEncoder (DOContext *ctxt)
 - (void) _doneInReply: (NSPortCoder*)c
 {
   [self _doneInRmc: c];
-  _repInCount++;
+  IrepInCount++;
 }
 
 - (void) _doneInRmc: (NSPortCoder*)c
 {
-  M_LOCK(_refGate);
+  M_LOCK(IrefGate);
   if (debug_connection > 5)
     {
-      NSLog(@"done rmc 0x%x", c);
+      NSLog(@"done rmc %p", c);
     }
-  if (cacheCoders == YES && _cachedDecoders != nil)
+  if (cacheCoders == YES && IcachedDecoders != nil)
     {
-      [_cachedDecoders addObject: c];
+      [IcachedDecoders addObject: c];
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 }
 
 /*
@@ -3016,19 +3286,19 @@ static void callEncoder (DOContext *ctxt)
  */
 - (void) _failInRmc: (NSPortCoder*)c
 {
-  M_LOCK(_refGate);
-  if (cacheCoders == YES && _cachedDecoders != nil
-    && [_cachedDecoders indexOfObjectIdenticalTo: c] == NSNotFound)
+  M_LOCK(IrefGate);
+  if (cacheCoders == YES && IcachedDecoders != nil
+    && [IcachedDecoders indexOfObjectIdenticalTo: c] == NSNotFound)
     {
-      [_cachedDecoders addObject: c];
+      [IcachedDecoders addObject: c];
     }
   if (debug_connection > 5)
     {
-      NSLog(@"fail rmc 0x%x", c);
+      NSLog(@"fail rmc %p", c);
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 }
 
 /*
@@ -3037,15 +3307,15 @@ static void callEncoder (DOContext *ctxt)
  */
 - (void) _failOutRmc: (NSPortCoder*)c
 {
-  M_LOCK(_refGate);
-  if (cacheCoders == YES && _cachedEncoders != nil
-    && [_cachedEncoders indexOfObjectIdenticalTo: c] == NSNotFound)
+  M_LOCK(IrefGate);
+  if (cacheCoders == YES && IcachedEncoders != nil
+    && [IcachedEncoders indexOfObjectIdenticalTo: c] == NSNotFound)
     {
-      [_cachedEncoders addObject: c];
+      [IcachedEncoders addObject: c];
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 }
 
 - (NSPortCoder*) _makeInRmc: (NSMutableArray*)components
@@ -3053,24 +3323,23 @@ static void callEncoder (DOContext *ctxt)
   NSPortCoder	*coder;
   unsigned	count;
 
-  NSParameterAssert(_isValid);
+  NSParameterAssert(IisValid);
 
-  M_LOCK(_refGate);
-  if (cacheCoders == YES && _cachedDecoders != nil
-    && (count = [_cachedDecoders count]) > 0)
+  M_LOCK(IrefGate);
+  if (cacheCoders == YES && IcachedDecoders != nil
+    && (count = [IcachedDecoders count]) > 0)
     {
-      coder = [_cachedDecoders objectAtIndex: --count];
-      RETAIN(coder);
-      [_cachedDecoders removeObjectAtIndex: count];
+      coder = RETAIN([IcachedDecoders objectAtIndex: --count]);
+      [IcachedDecoders removeObjectAtIndex: count];
     }
   else
     {
       coder = [recvCoderClass allocWithZone: NSDefaultMallocZone()];
     }
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 
-  coder = [coder initWithReceivePort: _receivePort
-			    sendPort: _sendPort
+  coder = [coder initWithReceivePort: IreceivePort
+			    sendPort:IsendPort
 			  components: components];
   return coder;
 }
@@ -3081,7 +3350,7 @@ static void callEncoder (DOContext *ctxt)
  * sno		Is the seqence number to encode into the coder.
  * ret		If non-null, generate a new sequence number and return it
  *		here.  Ignore the sequence number passed in sno.
- * rep		If this flag is YES, add a placeholder to the _replyMap
+ * rep		If this flag is YES, add a placeholder to the IreplyMap
  *		so we handle an incoming reply for this sequence number.
  */
 - (NSPortCoder*) _makeOutRmc: (int)sno generate: (int*)ret reply: (BOOL)rep
@@ -3089,15 +3358,15 @@ static void callEncoder (DOContext *ctxt)
   NSPortCoder	*coder;
   unsigned	count;
 
-  NSParameterAssert(_isValid);
+  NSParameterAssert(IisValid);
 
-  M_LOCK(_refGate);
+  M_LOCK(IrefGate);
   /*
    * Generate a new sequence number if required.
    */
   if (ret != 0)
     {
-      sno = _messageCount++;
+      sno = ImessageCount++;
       *ret = sno;
     }
   /*
@@ -3105,26 +3374,25 @@ static void callEncoder (DOContext *ctxt)
    */
   if (rep == YES)
     {
-      GSIMapAddPair(_replyMap, (GSIMapKey)sno, (GSIMapVal)dummyObject);
+      GSIMapAddPair(IreplyMap, (GSIMapKey)sno, (GSIMapVal)dummyObject);
     }
   /*
    * Locate or create an rmc
    */
-  if (cacheCoders == YES && _cachedEncoders != nil
-    && (count = [_cachedEncoders count]) > 0)
+  if (cacheCoders == YES && IcachedEncoders != nil
+    && (count = [IcachedEncoders count]) > 0)
     {
-      coder = [_cachedEncoders objectAtIndex: --count];
-      RETAIN(coder);
-      [_cachedEncoders removeObjectAtIndex: count];
+      coder = RETAIN([IcachedEncoders objectAtIndex: --count]);
+      [IcachedEncoders removeObjectAtIndex: count];
     }
   else
     {
       coder = [sendCoderClass allocWithZone: NSDefaultMallocZone()];
     }
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 
-  coder = [coder initWithReceivePort: _receivePort
-			    sendPort: _sendPort
+  coder = [coder initWithReceivePort: IreceivePort
+			    sendPort:IsendPort
 			  components: nil];
   [coder encodeValueOfObjCType: @encode(int) at: &sno];
   NSDebugMLLog(@"NSConnection", 
@@ -3139,7 +3407,7 @@ static void callEncoder (DOContext *ctxt)
   BOOL			raiseException = NO;
   NSMutableArray	*components = [c _components];
 
-  if (_authenticateOut == YES
+  if (IauthenticateOut == YES
     && (msgid == METHOD_REQUEST || msgid == METHOD_REPLY))
     {
       NSData	*d;
@@ -3177,32 +3445,32 @@ static void callEncoder (DOContext *ctxt)
   NSDebugMLLog(@"NSConnection", 
     @"Sending %@ on %@", stringFromMsgType(msgid), self);
 
-  limit = [dateClass dateWithTimeIntervalSinceNow: _requestTimeout];
-  sent = [_sendPort sendBeforeDate: limit
+  limit = [dateClass dateWithTimeIntervalSinceNow: IrequestTimeout];
+  sent = [IsendPort sendBeforeDate: limit
 			     msgid: msgid
 			components: components
-			      from: _receivePort
-			  reserved: [_sendPort reservedSpaceLength]];
+			      from: IreceivePort
+			  reserved: [IsendPort reservedSpaceLength]];
 
-  M_LOCK(_refGate);
+  M_LOCK(IrefGate);
 
   /*
    * We replace the coder we have just used in the cache, and tell it not to
    * retain this connection any more.
    */
-  if (cacheCoders == YES && _cachedEncoders != nil)
+  if (cacheCoders == YES && IcachedEncoders != nil)
     {
-      [_cachedEncoders addObject: c];
+      [IcachedEncoders addObject: c];
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
-  M_UNLOCK(_refGate);
+  M_UNLOCK(IrefGate);
 
   if (sent == NO)
     {
       NSString	*text = stringFromMsgType(msgid);
 
-      if ([_sendPort isValid] == NO)
+      if ([IsendPort isValid] == NO)
 	{
 	  text = [text stringByAppendingFormat: @" - port was invalidated"];
 	}
@@ -3220,10 +3488,10 @@ static void callEncoder (DOContext *ctxt)
       switch (msgid)
 	{
 	  case METHOD_REQUEST:
-	    _reqOutCount++;		/* Sent a request.	*/
+	    IreqOutCount++;		/* Sent a request.	*/
 	    break;
 	  case METHOD_REPLY:
-	    _repOutCount++;		/* Sent back a reply. */
+	    IrepOutCount++;		/* Sent back a reply. */
 	    break;
 	  default:
 	    break;
@@ -3241,37 +3509,37 @@ static void callEncoder (DOContext *ctxt)
   unsigned		target;
   GSIMapNode    	node;
 
-  M_LOCK(_proxiesGate);
-  NSParameterAssert (_isValid);
+  M_LOCK(IrefGate);
+  NSParameterAssert (IisValid);
 
-  object = ((ProxyStruct*)anObj)->_object;
-  target = ((ProxyStruct*)anObj)->_handle;
+  object = anObj->_object;
+  target = anObj->_handle;
 
   /*
    * If there is no target allocated to the proxy, we add one.
    */
   if (target == 0)
     {
-      ((ProxyStruct*)anObj)->_handle = target = ++local_object_counter;
+      anObj->_handle = target = ++local_object_counter;
     }
 
   /*
-   * Record the value in the _localObjects map, retaining it.
+   * Record the value in the IlocalObjects map, retaining it.
    */
-  node = GSIMapNodeForKey(_localObjects, (GSIMapKey)object);
+  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)object);
   NSAssert(node == 0, NSInternalInconsistencyException);
-  node = GSIMapNodeForKey(_localTargets, (GSIMapKey)target);
+  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)target);
   NSAssert(node == 0, NSInternalInconsistencyException);
 
-  RETAIN(anObj);
-  GSIMapAddPair(_localObjects, (GSIMapKey)object, (GSIMapVal)((id)anObj));
-  GSIMapAddPair(_localTargets, (GSIMapKey)target, (GSIMapVal)((id)anObj));
+  IF_NO_GC([anObj retain];)
+  GSIMapAddPair(IlocalObjects, (GSIMapKey)object, (GSIMapVal)((id)anObj));
+  GSIMapAddPair(IlocalTargets, (GSIMapKey)target, (GSIMapVal)((id)anObj));
 
   if (debug_connection > 2)
     NSLog(@"add local object (0x%x) target (0x%x) "
 	  @"to connection (%@)", (uintptr_t)object, target, self);
 
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
 }
 
 - (NSDistantObject*) retainOrAddLocal: (NSDistantObject*)proxy
@@ -3280,17 +3548,16 @@ static void callEncoder (DOContext *ctxt)
   GSIMapNode		node;
   NSDistantObject	*p;
 
-  /* Don't assert (_isValid); */
-  M_LOCK(_proxiesGate);
-  node = GSIMapNodeForKey(_localObjects, (GSIMapKey)object);
+  /* Don't assert (IisValid); */
+  M_LOCK(IrefGate);
+  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)object);
   if (node == 0)
     {
       p = nil;
     }
   else
     {
-      p = node->value.obj;
-      RETAIN(p);
+      p = RETAIN(node->value.obj);
       DESTROY(proxy);
     }
   if (p == nil && proxy != nil)
@@ -3298,7 +3565,7 @@ static void callEncoder (DOContext *ctxt)
       p = proxy;
       [self addLocalObject: p];
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
   return p;
 }
 
@@ -3309,9 +3576,9 @@ static void callEncoder (DOContext *ctxt)
   unsigned	val = 0;
   GSIMapNode	node;
 
-  M_LOCK(_proxiesGate);
-  anObj = ((ProxyStruct*)prox)->_object;
-  node = GSIMapNodeForKey(_localObjects, (GSIMapKey)anObj);
+  M_LOCK(IrefGate);
+  anObj = prox->_object;
+  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)anObj);
 
   /*
    * The NSDistantObject concerned may not belong to this connection,
@@ -3320,7 +3587,7 @@ static void callEncoder (DOContext *ctxt)
    */
   if (node != 0 && node->value.obj == prox)
     {
-      target = ((ProxyStruct*)prox)->_handle;
+      target = prox->_handle;
 
       /*
        * If this proxy has been vended onwards to another process
@@ -3328,11 +3595,11 @@ static void callEncoder (DOContext *ctxt)
        * to the local object around for a while in case that other
        * process needs it.
        */
-      if ((((ProxyStruct*)prox)->_counter) != 0)
+      if ((prox->_counter) != 0)
 	{
 	  CachedLocalObject	*item;
 
-	  (((ProxyStruct*)prox)->_counter) = 0;
+	  (prox->_counter) = 0;
 	  M_LOCK(cached_proxies_gate);
 	  if (timer == nil)
 	    {
@@ -3352,21 +3619,21 @@ static void callEncoder (DOContext *ctxt)
 	}
 
       /*
-       * Remove the proxy from _localObjects and release it.
+       * Remove the proxy from IlocalObjects and release it.
        */
-      GSIMapRemoveKey(_localObjects, (GSIMapKey)anObj);
+      GSIMapRemoveKey(IlocalObjects, (GSIMapKey)anObj);
       RELEASE(prox);
 
       /*
        * Remove the target info too - no release required.
        */
-      GSIMapRemoveKey(_localTargets, (GSIMapKey)target);
+      GSIMapRemoveKey(IlocalTargets, (GSIMapKey)target);
 
       if (debug_connection > 2)
 	NSLog(@"removed local object (0x%x) target (0x%x) "
 	  @"from connection (%@) (ref %d)", (uintptr_t)anObj, target, self, val);
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
 }
 
 - (void) _release_target: (unsigned)target count: (unsigned)number
@@ -3378,7 +3645,7 @@ static void callEncoder (DOContext *ctxt)
        *	for the targets in the specified list since we don't have
        *	proxies for them any more.
        */
-      if (_receivePort != nil && _isValid == YES && number > 0)
+      if (IreceivePort != nil && IisValid == YES && number > 0)
 	{
 	  id		op;
 	  unsigned 	i;
@@ -3412,13 +3679,13 @@ static void callEncoder (DOContext *ctxt)
   NSDistantObject	*proxy = nil;
   GSIMapNode		node;
 
-  M_LOCK(_proxiesGate);
+  M_LOCK(IrefGate);
 
   /*
    * Try a quick lookup to see if the target references a local object
    * belonging to the receiver ... usually it should.
    */
-  node = GSIMapNodeForKey(_localTargets, (GSIMapKey)target);
+  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)target);
   if (node != 0)
     {
       proxy = node->value.obj;
@@ -3442,7 +3709,7 @@ static void callEncoder (DOContext *ctxt)
 	   * Found in cache ... add to this connection as the object
 	   * is no longer in use by any connection.
 	   */
-	  ASSIGN(((ProxyStruct*)proxy)->_connection, self);
+	  ASSIGN(proxy->_connection, self);
 	  [self addLocalObject: proxy];
 	  NSMapRemove(targetToCached, (void*)(uintptr_t)target);
 	  if (debug_connection > 3)
@@ -3467,8 +3734,9 @@ static void callEncoder (DOContext *ctxt)
 	{
 	  if (c != self && [c isValid] == YES)
 	    {
-	      M_LOCK(c->_proxiesGate);
-	      node = GSIMapNodeForKey(c->_localTargets, (GSIMapKey)target);
+	      M_LOCK(GSIVar(c, _refGate));
+	      node = GSIMapNodeForKey(GSIVar(c, _localTargets),
+		(GSIMapKey)target);
 	      if (node != 0)
 		{
 		  id		local;
@@ -3486,23 +3754,23 @@ static void callEncoder (DOContext *ctxt)
 		   * order to handle connection shutdown cleanly.
 		   */
 		  proxy = node->value.obj;
-		  local = RETAIN(((ProxyStruct*)proxy)->_object);
+		  local = RETAIN(proxy->_object);
 		  proxy = [NSDistantObject proxyWithLocal: local
 					       connection: self];
-		  nTarget = ((ProxyStruct*)proxy)->_handle;
-		  GSIMapRemoveKey(_localTargets, (GSIMapKey)nTarget);
-		  ((ProxyStruct*)proxy)->_handle = target;
-		  GSIMapAddPair(_localTargets, (GSIMapKey)target,
+		  nTarget = proxy->_handle;
+		  GSIMapRemoveKey(IlocalTargets, (GSIMapKey)nTarget);
+		  proxy->_handle = target;
+		  GSIMapAddPair(IlocalTargets, (GSIMapKey)target,
 		    (GSIMapVal)((id)proxy));
 		}
-	      M_UNLOCK(c->_proxiesGate);
+	      M_UNLOCK(GSIVar(c, _refGate));
 	    }
 	}
       NSEndHashTableEnumeration(&enumerator);
       M_UNLOCK(connection_table_gate);
     }
 
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
 
   if (proxy == nil)
     {
@@ -3514,9 +3782,9 @@ static void callEncoder (DOContext *ctxt)
 
 - (void) vendLocal: (NSDistantObject*)aProxy
 {
-  M_LOCK(_proxiesGate);
-  ((ProxyStruct*)aProxy)->_counter++;
-  M_UNLOCK(_proxiesGate);
+  M_LOCK(IrefGate);
+  aProxy->_counter++;
+  M_UNLOCK(IrefGate);
 }
 
 - (void) acquireProxyForTarget: (unsigned)target
@@ -3524,9 +3792,9 @@ static void callEncoder (DOContext *ctxt)
   NSDistantObject	*found;
   GSIMapNode		node;
 
-  /* Don't assert (_isValid); */
-  M_LOCK(_proxiesGate);
-  node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
+  /* Don't assert (IisValid); */
+  M_LOCK(IrefGate);
+  node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)target);
   if (node == 0)
     {
       found = nil;
@@ -3535,7 +3803,7 @@ static void callEncoder (DOContext *ctxt)
     {
       found = node->value.obj;
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
   if (found == nil)
     {
       NS_DURING
@@ -3544,7 +3812,7 @@ static void callEncoder (DOContext *ctxt)
 	   * Tell the remote app that it must retain the local object
 	   * for the target on this connection.
 	   */
-	  if (_receivePort && _isValid)
+	  if (IreceivePort && IisValid)
 	    {
 	      NSPortCoder	*op;
 	      id	ip;
@@ -3579,15 +3847,15 @@ static void callEncoder (DOContext *ctxt)
 
 - (void) removeProxy: (NSDistantObject*)aProxy
 {
-  M_LOCK(_proxiesGate);
-  if (_isValid == YES)
+  M_LOCK(IrefGate);
+  if (IisValid == YES)
     {
       unsigned		target;
       unsigned		count = 1;
       GSIMapNode	node;
 
-      target = ((ProxyStruct*)aProxy)->_handle;
-      node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
+      target = aProxy->_handle;
+      node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)target);
 
       /*
        * Only remove if the proxy for the target is the same as the
@@ -3595,8 +3863,8 @@ static void callEncoder (DOContext *ctxt)
        */
       if (node != 0 && node->value.obj == aProxy)
 	{
-	  count = ((ProxyStruct*)aProxy)->_counter;
-	  GSIMapRemoveKey(_remoteProxies, (GSIMapKey)target);
+	  count = aProxy->_counter;
+	  GSIMapRemoveKey(IremoteProxies, (GSIMapKey)target);
 	  /*
 	   * Tell the remote application that we have removed our proxy and
 	   * it can release it's local object.
@@ -3604,7 +3872,7 @@ static void callEncoder (DOContext *ctxt)
 	  [self _release_target: target count: count];
 	}
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
 }
 
 
@@ -3629,28 +3897,27 @@ static void callEncoder (DOContext *ctxt)
   NSDistantObject	*p;
   GSIMapNode		node;
 
-  /* Don't assert (_isValid); */
+  /* Don't assert (IisValid); */
   NSParameterAssert(aTarget > 0);
   NSParameterAssert(aProxy==nil || aProxy->isa == distantObjectClass);
   NSParameterAssert(aProxy==nil || [aProxy connectionForProxy] == self);
-  NSParameterAssert(aProxy==nil || aTarget == ((ProxyStruct*)aProxy)->_handle);
+  NSParameterAssert(aProxy==nil || aTarget == aProxy->_handle);
 
-  M_LOCK(_proxiesGate);
-  node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)aTarget);
+  M_LOCK(IrefGate);
+  node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)aTarget);
   if (node == 0)
     {
       p = nil;
     }
   else
     {
-      p = node->value.obj;
-      RETAIN(p);
+      p = RETAIN(node->value.obj);
       DESTROY(aProxy);
     }
   if (p == nil && aProxy != nil)
     {
       p = aProxy;
-      GSIMapAddPair(_remoteProxies, (GSIMapKey)aTarget, (GSIMapVal)((id)p));
+      GSIMapAddPair(IremoteProxies, (GSIMapKey)aTarget, (GSIMapVal)((id)p));
     }
   /*
    * Whether this is a new proxy or an existing proxy, this method is
@@ -3660,9 +3927,9 @@ static void callEncoder (DOContext *ctxt)
    */
   if (p != nil)
     {
-      ((ProxyStruct*)p)->_counter++;
+      p->_counter++;
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
   return p;
 }
 
@@ -3671,9 +3938,9 @@ static void callEncoder (DOContext *ctxt)
   NSDistantObject	*ret;
   GSIMapNode		node;
 
-  /* Don't assert (_isValid); */
-  M_LOCK(_proxiesGate);
-  node = GSIMapNodeForKey(_localObjects, (GSIMapKey)anObj);
+  /* Don't assert (IisValid); */
+  M_LOCK(IrefGate);
+  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)anObj);
   if (node == 0)
     {
       ret = nil;
@@ -3682,7 +3949,7 @@ static void callEncoder (DOContext *ctxt)
     {
       ret = node->value.obj;
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
   return ret;
 }
 
@@ -3691,9 +3958,9 @@ static void callEncoder (DOContext *ctxt)
   NSDistantObject	*ret;
   GSIMapNode		node;
 
-  /* Don't assert (_isValid); */
-  M_LOCK(_proxiesGate);
-  node = GSIMapNodeForKey(_localTargets, (GSIMapKey)target);
+  /* Don't assert (IisValid); */
+  M_LOCK(IrefGate);
+  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)target);
   if (node == 0)
     {
       ret = nil;
@@ -3702,7 +3969,7 @@ static void callEncoder (DOContext *ctxt)
     {
       ret = node->value.obj;
     }
-  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(IrefGate);
   return ret;
 }
 
@@ -3725,7 +3992,7 @@ static void callEncoder (DOContext *ctxt)
  */
 - (void) _portIsInvalid: (NSNotification*)notification
 {
-  if (_isValid)
+  if (IisValid)
     {
       id port = [notification object];
 
@@ -3739,7 +4006,7 @@ static void callEncoder (DOContext *ctxt)
 	  except from our own ports; this is how we registered ourselves
 	  with the NSNotificationCenter in
 	  +newForInPort: outPort: ancestorConnection. */
-      NSParameterAssert (port == _receivePort || port == _sendPort);
+      NSParameterAssert (port == IreceivePort || port == IsendPort);
 
       [self invalidate];
     }

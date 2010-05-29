@@ -1,7 +1,7 @@
 /* Implementation for GSHTTPAuthentication for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,15 +22,17 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
 #import "GSURLPrivate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
 
 
 static NSMutableDictionary	*domainMap = nil;
@@ -49,12 +51,17 @@ static GSMimeParser		*mimeParser = nil;
   unsigned		slen = [self length];
   unsigned		dlen = slen * 2;
   const unsigned char	*src = (const unsigned char *)[self bytes];
-  char			*dst = (char*)NSZoneMalloc(NSDefaultMallocZone(), dlen);
+  char			*dst;
   unsigned		spos = 0;
   unsigned		dpos = 0;
   NSData		*data;
   NSString		*string;
 
+#if	GS_WITH_GC
+  dst = (char*)NSAllocateCollectable(dlen, 0);
+#else
+  dst = (char*)NSZoneMalloc(NSDefaultMallocZone(), dlen);
+#endif
   while (spos < slen)
     {
       unsigned char	c = src[spos++];
@@ -135,7 +142,7 @@ static GSMimeParser		*mimeParser = nil;
 	      RELEASE(authentication);
 	    }
 	}
-      AUTORELEASE(RETAIN(authentication));
+      IF_NO_GC([[authentication retain] autorelease];)
     }
   NS_HANDLER
     {

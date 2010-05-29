@@ -23,6 +23,8 @@
 
    */
 
+#import "common.h"
+#define	EXPOSE_NSKeyedUnarchiver_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
@@ -32,20 +34,24 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
-#import "config.h"
 
 /*
  *      Setup for inline operation of arrays.
  */
-#define GSI_ARRAY_RETAIN(A, X)	RETAIN((X).obj)
-#define GSI_ARRAY_RELEASE(A, X)	RELEASE((X).obj)
+#if	GS_WITH_GC
+#define GSI_ARRAY_RETAIN(A, X)
+#define GSI_ARRAY_RELEASE(A, X)
+#else
+#define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
+#define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
+#endif
 #define GSI_ARRAY_TYPES GSUNION_OBJ
 
 
 #include "GNUstepBase/GSIArray.h"
 
 #define	_IN_NSKEYEDUNARCHIVER_M	1
-#include <Foundation/NSKeyedArchiver.h>
+#import "Foundation/NSKeyedArchiver.h"
 #undef	_IN_NSKEYEDUNARCHIVER_M
 
 @interface NilMarker: NSObject
@@ -59,7 +65,7 @@
 NSString * const NSInvalidUnarchiveOperationException
   = @"NSInvalidUnarchiveOperationException";
 
-static NSMapTable	globalClassMap = 0;
+static NSMapTable	*globalClassMap = 0;
 
 #define	GETVAL \
   id		o; \
@@ -274,6 +280,8 @@ static NSMapTable	globalClassMap = 0;
 
 + (void) initialize
 {
+  GSMakeWeakPointer(self, "delegate");
+
   if (globalClassMap == 0)
     {
       globalClassMap =
@@ -337,7 +345,7 @@ static NSMapTable	globalClassMap = 0;
 
 - (Class) classForClassName: (NSString*)aString
 {
-  return (Class)NSMapGet(_clsMap, (void*)aString);
+  return _clsMap == 0 ? Nil : (Class)NSMapGet(_clsMap, (void*)aString);
 }
 
 - (BOOL) containsValueForKey: (NSString*)aKey
@@ -417,7 +425,7 @@ static NSMapTable	globalClassMap = 0;
 }
 
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (unsigned*)length
+		      returnedLength: (NSUInteger*)length
 {
   NSString	*oldKey = aKey;
   GETVAL
@@ -607,8 +615,8 @@ static NSMapTable	globalClassMap = 0;
 {
   NSPoint	p;
 
-  [self decodeValueOfObjCType: @encode(float) at: &p.x];
-  [self decodeValueOfObjCType: @encode(float) at: &p.y];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &p.x];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &p.y];
   return p;
 }
 
@@ -616,10 +624,10 @@ static NSMapTable	globalClassMap = 0;
 {
   NSRect	r;
 
-  [self decodeValueOfObjCType: @encode(float) at: &r.origin.x];
-  [self decodeValueOfObjCType: @encode(float) at: &r.origin.y];
-  [self decodeValueOfObjCType: @encode(float) at: &r.size.width];
-  [self decodeValueOfObjCType: @encode(float) at: &r.size.height];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.origin.x];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.origin.y];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.size.width];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.size.height];
   return r;
 }
 
@@ -627,8 +635,8 @@ static NSMapTable	globalClassMap = 0;
 {
   NSSize	s;
 
-  [self decodeValueOfObjCType: @encode(float) at: &s.width];
-  [self decodeValueOfObjCType: @encode(float) at: &s.height];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &s.width];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &s.height];
   return s;
 }
 
@@ -741,6 +749,17 @@ static NSMapTable	globalClassMap = 0;
   return _delegate;
 }
 
+- (NSString*) description
+{
+  if (_archive == nil)
+    {
+      // For consistency with OSX
+      [NSException raise: NSInvalidArgumentException
+		  format: @"method sent to uninitialised unarchiver"];
+    }
+  return [super description];
+}
+
 - (void) finishDecoding
 {
   [_delegate unarchiverWillFinish: self];
@@ -751,7 +770,7 @@ static NSMapTable	globalClassMap = 0;
 - (id) init
 {
   Class c = [self class];
-  RELEASE(self);
+  DESTROY(self);
   [NSException raise: NSInvalidArgumentException
               format: @"-[%@ init]: cannot use -init for initialisation",
               NSStringFromClass(c)];
@@ -773,13 +792,6 @@ static NSMapTable	globalClassMap = 0;
 	errorDescription: &error];
       if (_archive == nil)
 	{
-#ifndef	HAVE_LIBXML
-	  if (format == NSPropertyListXMLFormat_v1_0)
-	    {
-	      NSLog(@"Unable to parse XML archive as the base "
-		@"library was not configured with libxml2 support.");
-	    }
-#endif
 	  DESTROY(self);
 	}
       else
@@ -787,16 +799,18 @@ static NSMapTable	globalClassMap = 0;
 	  unsigned	count;
 	  unsigned	i;
 
-	  RETAIN(_archive);
+	  IF_NO_GC(RETAIN(_archive);)
 	  _archiverClass = [_archive objectForKey: @"$archiver"];
 	  _version = [_archive objectForKey: @"$version"];
 
 	  _objects = [_archive objectForKey: @"$objects"];
 	  _keyMap = [_archive objectForKey: @"$top"];
 
-	  _clsMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
-	    NSNonOwnedPointerMapValueCallBacks, 0);
+#if	GS_WITH_GC
+	  _objMap = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
 	  _objMap = NSZoneMalloc(_zone, sizeof(GSIArray_t));
+#endif
 	  count = [_objects count];
 	  GSIArrayInitWithZoneAndCapacity(_objMap, _zone, count);
 	  // Add marker for nil object
@@ -815,10 +829,18 @@ static NSMapTable	globalClassMap = 0;
 {
   if (aString == nil)
     {
-      NSMapRemove(_clsMap, (void*)aString);
+      if (_clsMap != 0)
+	{
+          NSMapRemove(_clsMap, (void*)aString);
+	}
     }
   else
     {
+      if (_clsMap == 0)
+	{
+	  _clsMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	    NSNonOwnedPointerMapValueCallBacks, 0);
+	}
       NSMapInsert(_clsMap, (void*)aString, (void*)aClass);
     }
 }

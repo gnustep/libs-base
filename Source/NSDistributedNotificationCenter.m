@@ -1,5 +1,5 @@
 /**
-   Copyright (C) 1998-2003 Free Software Foundation, Inc.
+   Copyright (C) 1998-2009 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -25,9 +25,8 @@
    $Date$ $Revision$
    */
 
-#import	"config.h"
-#import	"GNUstepBase/preface.h"
-#import	"Foundation/NSObject.h"
+#import	"common.h"
+#define	EXPOSE_NSDistributedNotificationCenter_IVARS	1
 #import	"Foundation/NSConnection.h"
 #import	"Foundation/NSDistantObject.h"
 #import	"Foundation/NSException.h"
@@ -38,12 +37,11 @@
 #import	"Foundation/NSPathUtilities.h"
 #import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSTask.h"
-#import	"GNUstepBase/NSTask+GS.h"
+#import	"GNUstepBase/NSTask+GNUstepBase.h"
 #import	"Foundation/NSDistributedNotificationCenter.h"
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSHost.h"
 #import	"Foundation/NSPortNameServer.h"
-#import	"Foundation/NSDebug.h"
 #import "Foundation/NSThread.h"
 #import	"../Tools/gdnc.h"
 
@@ -55,7 +53,7 @@
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
 		     selector: (NSString*)aSelector
-			   to: (NSUInteger)observer;
+			   to: (uint64_t)observer;
 @end
 
 /**
@@ -238,8 +236,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
     }
   RELEASE(_remote);
   RELEASE(_type);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
 /**
@@ -247,7 +244,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  */
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   [NSException raise: NSInternalInconsistencyException
     format: @"Should not call -init for NSDistributedNotificationCenter"];
   return nil;
@@ -339,12 +336,12 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)_remote addObserver: (NSUInteger)anObserver
-				   selector: NSStringFromSelector(aSelector)
-				       name: notificationName
-				     object: anObject
-			 suspensionBehavior: suspensionBehavior
-					for: (id<GDNCClient>)self];
+      [(id<GDNCProtocol>)_remote addObserver: (uint64_t)(uintptr_t)anObserver
+				    selector: NSStringFromSelector(aSelector)
+				        name: notificationName
+				      object: anObject
+			  suspensionBehavior: suspensionBehavior
+					 for: (id<GDNCClient>)self];
     }
   NS_HANDLER
     {
@@ -465,10 +462,10 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)_remote removeObserver: (NSUInteger)anObserver
-					  name: notificationName
-					object: anObject
-					   for: (id<GDNCClient>)self];
+      [(id<GDNCProtocol>)_remote removeObserver: (uint64_t)(uintptr_t)anObserver
+					   name: notificationName
+					 object: anObject
+					    for: (id<GDNCClient>)self];
     }
   NS_HANDLER
     {
@@ -519,7 +516,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  * in the source where the '@protocol()' directive is used.
  */
 @interface NSDistributedNotificationCenterDummy : NSObject <GDNCProtocol>
-- (void) addObserver: (NSUInteger)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
@@ -531,7 +528,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		  deliverImmediately: (BOOL)deliverImmediately
 			         for: (id<GDNCClient>)client;
 - (void) registerClient: (id<GDNCClient>)client;
-- (void) removeObserver: (NSUInteger)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationname
 		 object: (NSString*)anObject
 		    for: (id<GDNCClient>)client;
@@ -541,7 +538,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 @end
 
 @implementation NSDistributedNotificationCenterDummy
-- (void) addObserver: (NSUInteger)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
@@ -559,7 +556,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 - (void) registerClient: (id<GDNCClient>)client
 {
 }
-- (void) removeObserver: (NSUInteger)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationname
 		 object: (NSString*)anObject
 		    for: (id<GDNCClient>)client
@@ -744,8 +741,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	      _remote = [NSConnection
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
-              RETAIN(_remote);
-              DESTROY(pool);
+              IF_NO_GC([_remote retain];)
+              IF_NO_GC(DESTROY(pool);)
 	    }
 	  if (_remote == nil)
 	    {
@@ -755,10 +752,12 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		@"I attempted to start it at '%@'\n", cmd];
 	    }
 	}
+#if	!GS_WITH_GC
       else
         {
-          RETAIN(_remote);
+          [_remote retain];
         }
+#endif
 
       c = [_remote connectionForProxy];
       [_remote setProtocolForProxy: p];
@@ -802,11 +801,11 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
 		     selector: (NSString*)aSelector
-			   to: (NSUInteger)observer
+			   to: (uint64_t)observer
 {
   id			userInfo;
   NSNotification	*notification;
-  id			recipient = (id)observer;
+  id			recipient = (id)(uintptr_t)observer;
 
   userInfo = [NSUnarchiver unarchiveObjectWithData: info];
   notification = [NSNotification notificationWithName: name

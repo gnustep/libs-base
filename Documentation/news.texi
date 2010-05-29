@@ -11,15 +11,48 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
-@section Noteworthy changes in version @samp{1.18.0}
+@section Noteworthy changes in version @samp{1.20.0}
 
-@itemize @bullet
-@item Many new OSX 10.5 methods and stubs and general 10.5 compatibility
-@item Changes to build on 64bit Windows
-@item Support for @@synchronize
-@end itemize
+This is a stable release. There have been major changes
+and reorganizations to support, among other things, the new
+non-fragile ABI from clang. These changes, although they
+break binary compatibility with previous releases, should allow 
+all future releases to maintain compatibility.
 
 @ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{1.19.3}
+
+@itemize @bullet
+@item Bugfix to work around OSX behavior of [NSURL-path]
+@end itemize
+
+@section Noteworthy changes in version @samp{1.19.2}
+
+@itemize @bullet
+@item Various OSX compatibility improvements.
+@item String handling performance improvements.
+@item Several minor bugfixes.
+@end itemize
+
+@section Noteworthy changes in version @samp{1.19.1}
+
+@itemize @bullet
+@item New Mac OS X methods for writing data in NSData
+@item New classes NSHashTable and NSMapTable
+@item Garbage collection now works again and is much improved.
+@item Method return types and arguments have been changed for Mac OS X 10.5
+@end itemize
+
+@section Noteworthy changes in version @samp{1.19.0}
+
+@itemize @bullet
+@item Support for native objective-c exceptions
+@item Connection keepalive for ms-windows
+@item Path utitlites fix for ms-windows
+@item Changes to build on 64bit ms-windows
+@item Support for @@synchronize
+@end itemize
 
 @section Noteworthy changes in version @samp{1.15.3}
 

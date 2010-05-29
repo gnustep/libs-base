@@ -56,12 +56,12 @@ enum {
 
 + (id) data;
 + (id) dataWithBytes: (const void*)bytes
-	      length: (unsigned int)length;
+	      length: (NSUInteger)length;
 + (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length;
+		    length: (NSUInteger)length;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) dataWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree;
 #endif
 + (id) dataWithContentsOfFile: (NSString*)path;
@@ -71,12 +71,12 @@ enum {
 #endif
 + (id) dataWithData: (NSData*)data;
 - (id) initWithBytes: (const void*)aBuffer
-	      length: (unsigned int)bufferSize;
+	      length: (NSUInteger)bufferSize;
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize;
+		    length: (NSUInteger)bufferSize;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree;
 #endif
 - (id) initWithContentsOfFile: (NSString*)path;
@@ -92,7 +92,7 @@ enum {
 - (NSString*) description;
 - (void) getBytes: (void*)buffer;
 - (void) getBytes: (void*)buffer
-	   length: (unsigned int)length;
+	   length: (NSUInteger)length;
 - (void) getBytes: (void*)buffer
 	    range: (NSRange)aRange;
 - (NSData*) subdataWithRange: (NSRange)aRange;
@@ -100,14 +100,25 @@ enum {
 // Querying a Data Object
 
 - (BOOL) isEqualToData: (NSData*)other;
-- (unsigned int) length;
+- (NSUInteger) length;
 
-// Storing Data
-
+/**
+ * <p>Writes a copy of the data encapsulated by the receiver to a file
+ * at path.  If the useAuxiliaryFile flag is YES, this writes to a
+ * temporary file and then renames that to the file at path, thus
+ * ensuring that path exists and does not contain partially written
+ * data at any point.
+ * </p>
+ * <p>On success returns YES, on failure returns NO.
+ * </p>
+ */
 - (BOOL) writeToFile: (NSString*)path
 	  atomically: (BOOL)useAuxiliaryFile;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+/**
+ * Writes a copy of the contents of the receiver to the specified URL.
+ */
 - (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)flag;
 #endif
 
@@ -131,11 +142,23 @@ enum {
 		 atIndex: (unsigned int)index;
 
 #if OS_API_VERSION(100400,GS_API_LATEST) 
-/** Not implemented */
+/**
+ * <p>Writes a copy of the data encapsulated by the receiver to a file
+ * at path.  If the NSAtomicWrite option is set, this writes to a
+ * temporary file and then renames that to the file at path, thus
+ * ensuring that path exists and does not contain partially written
+ * data at any point.
+ * </p>
+ * <p>On success returns YES, on failure returns NO.
+ * </p>
+ */
 - (BOOL) writeToFile: (NSString *)path
              options: (NSUInteger)writeOptionsMask
                error: (NSError **)errorPtr;
-/** Not implemented */
+
+/**
+ * Writes a copy of the contents of the receiver to the specified URL.
+ */
 - (BOOL) writeToURL: (NSURL *)url
             options: (NSUInteger)writeOptionsMask
               error: (NSError **)errorPtr;
@@ -143,75 +166,6 @@ enum {
 @end
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-
-/**
- * Extension methods for the NSData class- mainly conversion utilities.
- */
-@interface NSData (GSCategories)
-
-/**
- * Returns an NSString object containing an ASCII hexadecimal representation
- * of the receiver.  This means that the returned object will contain
- * exactly twice as many characters as there are bytes as the receiver,
- * as each byte in the receiver is represented by two hexadecimal digits.<br />
- * The high order four bits of each byte is encoded before the low
- * order four bits.  Capital letters 'A' to 'F' are used to represent
- * values from 10 to 15.<br />
- * If you need the hexadecimal representation as raw byte data, use code
- * like -
- * <example>
- *   hexData = [[sourceData hexadecimalRepresentation]
- *     dataUsingEncoding: NSASCIIStringEncoding];
- * </example>
- */
-- (NSString*) hexadecimalRepresentation;
-
-/**
- * Initialises the receiver with the supplied string data which contains
- * a hexadecimal coding of the bytes.  The parsing of the string is
- * fairly tolerant, ignoring whitespace and permitting both upper and
- * lower case hexadecimal digits (the -hexadecimalRepresentation method
- * produces a string using only uppercase digits with no white space).<br />
- * If the string does not contain one or more pairs of hexadecimal digits
- * then an exception is raised. 
- */
-- (id) initWithHexadecimalRepresentation: (NSString*)string;
-
-/**
- * Creates an MD5 digest of the information stored in the receiver and
- * returns it as an autoreleased 16 byte NSData object.<br />
- * If you need to produce a digest of string information, you need to
- * decide what character encoding is to be used and convert your string
- * to a data object of that encoding type first using the
- * [NSString-dataUsingEncoding:] method -
- * <example>
- *   myDigest = [[myString dataUsingEncoding: NSUTF8StringEncoding] md5Digest];
- * </example>
- * If you need to use the digest in a human readable form, you will
- * probably want it to be seen as 32 hexadecimal digits, and can do that
- * using the -hexadecimalRepresentation method.
- */
-- (NSData*) md5Digest;
-
-/**
- * Decodes the source data from uuencoded and return the result.<br />
- * Returns the encoded file name in namePtr if it is not null.
- * Returns the encoded file mode in modePtr if it is not null.
- */
-- (BOOL) uudecodeInto: (NSMutableData*)decoded
-		 name: (NSString**)namePtr
-		 mode: (int*)modePtr;
-
-/**
- * Encode the source data to uuencoded.<br />
- * Uses the supplied name as the filename in the encoded data,
- * and says that the file mode is as specified.<br />
- * If no name is supplied, uses <code>untitled</code> as the name.
- */
-- (BOOL) uuencodeInto: (NSMutableData*)encoded
-		 name: (NSString*)name
-		 mode: (int)mode;
-@end
 
 /*
  *	We include special support for coding/decoding - adding methods for
@@ -284,8 +238,8 @@ enum {
 #define	_GSC_CID	0x17	/* Class encoded as id	*/
 
 @interface NSData (GNUstepExtensions)
-+ (id) dataWithShmID: (int)anID length: (unsigned int) length;
-+ (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int) length;
++ (id) dataWithShmID: (int)anID length: (NSUInteger) length;
++ (id) dataWithSharedBytes: (const void*)bytes length: (NSUInteger) length;
 
 /*
  *	-deserializeTypeTag:andCrossRef:atCursor:
@@ -300,21 +254,21 @@ enum {
 
 @interface NSMutableData :  NSData
 
-+ (id) dataWithCapacity: (unsigned int)numBytes;
-+ (id) dataWithLength: (unsigned int)length;
-- (id) initWithCapacity: (unsigned int)capacity;
-- (id) initWithLength: (unsigned int)length;
++ (id) dataWithCapacity: (NSUInteger)numBytes;
++ (id) dataWithLength: (NSUInteger)length;
+- (id) initWithCapacity: (NSUInteger)capacity;
+- (id) initWithLength: (NSUInteger)length;
 
 // Adjusting Capacity
 
-- (void) increaseLengthBy: (unsigned int)extraLength;
-- (void) setLength: (unsigned int)size;
+- (void) increaseLengthBy: (NSUInteger)extraLength;
+- (void) setLength: (NSUInteger)size;
 - (void*) mutableBytes;
 
 // Appending Data
 
 - (void) appendBytes: (const void*)aBuffer
-	      length: (unsigned int)bufferSize;
+	      length: (NSUInteger)bufferSize;
 - (void) appendData: (NSData*)other;
 
 // Modifying Data
@@ -324,7 +278,7 @@ enum {
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
-		      length: (unsigned int)length;
+		      length: (NSUInteger)length;
 #endif
 - (void) resetBytesInRange: (NSRange)aRange;
 - (void) setData: (NSData*)data;
@@ -353,8 +307,8 @@ enum {
  *	Capacity management - GNUstep gives you control over the size of
  *	the data buffer as well as the 'length' of valid data in it.
  */
-- (unsigned int) capacity;
-- (id) setCapacity: (unsigned int)newCapacity;
+- (NSUInteger) capacity;
+- (id) setCapacity: (NSUInteger)newCapacity;
 
 - (int) shmID;	/* Shared memory ID for data buffer (if any)	*/
 
@@ -373,6 +327,10 @@ enum {
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSData+GNUstepBase.h>
 #endif
 
 #endif /* __NSData_h_GNUSTEP_BASE_INCLUDE */

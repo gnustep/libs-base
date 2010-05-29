@@ -25,11 +25,12 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSString.h"
+#import "common.h"
+#define	EXPOSE_NSNotification_IVARS	1
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDictionary.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSNotification;
 @interface GSNotification : NSObject	// Help the compiler
@@ -116,7 +117,7 @@ static Class	concreteClass = 0;
     {
       NSZone	*z = [self zone];
 
-      RELEASE(self);
+      DESTROY(self);
       self = (id)NSAllocateObject (concreteClass, 0, z);
     }
   return self;
@@ -180,7 +181,7 @@ static Class	concreteClass = 0;
   RELEASE(name);
   RELEASE(object);
   RELEASE(info);
-  RELEASE(self);
+  DESTROY(self);
   return RETAIN(n);
 }
 

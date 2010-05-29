@@ -21,7 +21,7 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
    */
 
-#include "config.h"
+#include "common.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
@@ -48,7 +48,6 @@
 #include "../GSPortPrivate.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 
 extern __declspec(dllimport) int	errno;
 
@@ -194,7 +193,7 @@ static Class		messagePortClass = 0;
 
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default
-      security.bInheritHandle = TRUE;
+      security.bInheritHandle = FALSE;
     }
 }
 
@@ -233,7 +232,7 @@ static Class		messagePortClass = 0;
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   [super dealloc];
 }
 
@@ -246,7 +245,7 @@ static Class		messagePortClass = 0;
   return desc;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   internal	*this;
 
@@ -387,7 +386,7 @@ static Class		messagePortClass = 0;
   else
     {
       found = YES;
-      RELEASE(self);
+      DESTROY(self);
       self = p;
     }
 
@@ -872,7 +871,11 @@ again:
 	}
       else if ((errno = GetLastError()) != ERROR_IO_PENDING)
 	{
-	  NSLog(@"unable to write to mailslot '%@' - %@",
+	  /* This is probably an end of file
+	   * eg. when the process at the other end has terminated.
+	   */
+	  NSDebugMLog(@"NSMessagePort",
+	    @"unable to write to mailslot '%@' - %@",
 	    this->name, [NSError _last]);
 	  [self invalidate];
 	}
@@ -1128,8 +1131,8 @@ again:
 	}
     }
   M_UNLOCK(this->lock);
-  RELEASE(self);
   RELEASE(h);
+  RELEASE(self);
 
   return sent;
 }

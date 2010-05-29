@@ -27,18 +27,18 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */ 
 
-#include "config.h"
-#include "Foundation/NSSpellServer.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSConnection.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSSet.h"
+#import "common.h"
+#define	EXPOSE_NSSpellServer_IVARS	1
+#import "Foundation/NSSpellServer.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSConnection.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSSet.h"
 
 NSString *const NSGrammarRange = @"NSGrammarRange";
 NSString *const NSGrammarUserDescription = @"NSGrammarUserDescription";
@@ -122,7 +122,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
   connection = [[NSConnection alloc] init];
   if (connection)
     {
-      RETAIN(connection);
+      IF_NO_GC(RETAIN(connection);)
       [connection setRootObject: self];
       result = [connection registerName: serverName];
     }
@@ -150,7 +150,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
 - (void) setDelegate: (id)anObject
 {
   /* FIXME - we should not retain the delegate ! */
-  RETAIN(anObject);
+  IF_NO_GC(RETAIN(anObject);)
   ASSIGN(_delegate, anObject);
 }
 
@@ -301,6 +301,28 @@ GSSpellServerName(NSString *vendor, NSString *language)
 	  result = [word isEqualToString: dictWord];
 	}
     }
+  
+  return result;
+}
+
+// Checking User Dictionaries
+/** 
+Checks to see if the word is in the user's dictionary.  The user dictionary
+is a set of words learned by the spell service for that particular user
+combined with the set of ignored words in the current document.
+*/
+- (BOOL) isWordInUserDictionaries: (NSString *)word
+		    caseSensitive: (BOOL)flag
+{
+  NSSet *userDict = [self _openUserDictionary: _currentLanguage];
+  BOOL result = NO;
+
+  if (userDict)
+    {
+      result = [self _isWord: word
+	        inDictionary: userDict
+	       caseSensitive: flag];
+    }
 
   if (result == NO && _ignoredWords)
     {
@@ -323,27 +345,6 @@ GSSpellServerName(NSString *vendor, NSString *language)
 	      result = [word isEqualToString: iword];
 	    }
 	}      
-    }
-  
-  return result;
-}
-
-// Checking User Dictionaries
-/** 
-Checks to see if the word is in the user's dictionary.  The user dictionary
-is a set of words learned by the spell service for that particular user.
-*/
-- (BOOL) isWordInUserDictionaries: (NSString *)word
-		    caseSensitive: (BOOL)flag
-{
-  NSSet *userDict = [self _openUserDictionary: _currentLanguage];
-  BOOL result = NO;
-
-  if (userDict)
-    {
-      result = [self _isWord: word
-	        inDictionary: userDict
-	       caseSensitive: flag];
     }
 
   return result;
@@ -423,7 +424,7 @@ is a set of words learned by the spell service for that particular user.
 - (NSRange) _findMisspelledWordInString: (NSString *)stringToCheck
 			       language: (NSString *)language
 			   ignoredWords: (NSArray *)ignoredWords
-			      wordCount: (int *)wordCount
+			      wordCount: (int32_t *)wordCount
 			      countOnly: (BOOL)countOnly
 {
   NSRange r = NSMakeRange(0,0);

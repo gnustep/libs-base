@@ -1,7 +1,7 @@
 /* Implementation for NSURLCredential for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,6 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
+#define	EXPOSE_NSURLCredential_IVARS	1
 #import "GSURLPrivate.h"
 
 // Internal data storage
@@ -91,7 +94,7 @@ typedef struct {
   return this->hasPassword;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [this->user hash];
 }
@@ -102,7 +105,7 @@ typedef struct {
 {
   if (user == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   if ((self = [super init]) != nil)

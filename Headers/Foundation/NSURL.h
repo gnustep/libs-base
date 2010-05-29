@@ -43,10 +43,13 @@ GS_EXPORT NSString* const NSURLFileScheme;
 
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>
 {
+#if	GS_EXPOSE(NSURL)
+@private
   NSString	*_urlString;
   NSURL		*_baseURL;
   void		*_clients;
   void		*_data;
+#endif
 }
         
 + (id) fileURLWithPath: (NSString*)aPath;
@@ -121,6 +124,10 @@ GS_EXPORT NSString* const NSURLFileScheme;
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSURL+GNUstepBase.h>
 #endif
 
 #endif	/* __NSURL_h_GNUSTEP_BASE_INCLUDE */

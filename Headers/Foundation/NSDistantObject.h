@@ -37,12 +37,15 @@ extern "C" {
 
 @interface NSDistantObject : NSProxy <NSCoding>
 {
-@private
+#if	GS_EXPOSE(NSDistantObject)
+@public
   NSConnection	*_connection;
   id		_object;
   unsigned	_handle;
   Protocol	*_protocol;
   unsigned	_counter;
+  void		*_sigs;
+#endif
 }
 
 + (NSDistantObject*) proxyWithLocal: (id)anObject

@@ -18,8 +18,13 @@
 
    */
 
-#include "config.h"
-#include <Foundation/Foundation.h>
+#import "common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
 
 
 /**
@@ -52,7 +57,7 @@ main(int argc, char** argv, char **env)
   NSArray		*args;
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];
@@ -71,7 +76,7 @@ main(int argc, char** argv, char **env)
       NSString	*name = [[args objectAtIndex: 1] lowercaseString];
       NSString	*sep;
 
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
       sep = @";";
 #else
       sep = @":";

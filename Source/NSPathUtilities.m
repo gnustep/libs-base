@@ -58,25 +58,20 @@
    which default to pre POSIX declaration.  */
 #define _POSIX_PTHREAD_SEMANTICS
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
+#import "common.h"
 #include "objc-load.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSUserDefaults.h"
-#include "GNUstepBase/GSCategories.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>		// for getuid()
@@ -122,7 +117,7 @@ static NSString	*gnustep_is_flattened =
   nil;
 #endif
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 
 #include	<lmaccess.h>
 
@@ -715,18 +710,18 @@ GNUstepConfig(NSDictionary *newConfig)
                       if (([attributes filePosixPermissions]
                         & (0022 & ATTRMASK)) != 0)
                         {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
                           fprintf(stderr,
                             "The file '%S' is writable by someone other than"
                             " its owner (permissions 0%lo).\nIgnoring it.\n",
                             [defs fileSystemRepresentation],
-                            [attributes filePosixPermissions]);
+                            (long)[attributes filePosixPermissions]);
 #else
                           fprintf(stderr,
                             "The file '%s' is writable by someone other than"
                             " its owner (permissions 0%lo).\nIgnoring it.\n",
                             [defs fileSystemRepresentation],
-                            [attributes filePosixPermissions]);
+                            (long)[attributes filePosixPermissions]);
 #endif
                           d = nil;
                         }
@@ -1012,7 +1007,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
   
       if ([userName isEqual: fileOwner] == NO)
 	{
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 	  fprintf(stderr, "The file '%S' is owned by '%s' but we expect it"
 	    " to be the personal config file of '%s'.\nIgnoring it.\n",
 	    [fileName fileSystemRepresentation],
@@ -1028,16 +1023,16 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
     }
   if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       fprintf(stderr, "The file '%S' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
 	[fileName fileSystemRepresentation],
-        [attributes filePosixPermissions]);
+        (long)[attributes filePosixPermissions]);
 #else
       fprintf(stderr, "The file '%s' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
 	[fileName fileSystemRepresentation],
-        [attributes filePosixPermissions]);
+        (long)[attributes filePosixPermissions]);
 #endif
       return NO;
     }
@@ -1318,7 +1313,7 @@ GSSetUserName(NSString *aName)
 NSString *
 NSUserName(void)
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   if (theUserName == nil)
     {
       /* Use the LOGNAME environment variable if set. */
@@ -1414,7 +1409,7 @@ NSHomeDirectoryForUser(NSString *loginName)
 {
   NSString	*s = nil;
 
-#if !defined(__MINGW32__)
+#if !defined(__MINGW__)
 #if     defined(HAVE_GETPWNAM_R)
   struct passwd pw;
   struct passwd *p;
@@ -1448,10 +1443,15 @@ NSHomeDirectoryForUser(NSString *loginName)
        * for the user on Windows NT;
        * For OPENSTEP compatibility (and because USERPROFILE is usually
        * unusable because it contains spaces), we use HOMEPATH in
-       * preference to USERPROFILE.
+       * preference to USERPROFILE, except when MINGW has set HOMEPATH to '\'
+       * which isn't very useful, so we prefer USERPROFILE in that case.
        */
       s = [e objectForKey: @"HOMEPATH"];
-      if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
+      if ([s isEqualToString:@"\\"] && [e objectForKey: @"USERPROFILE"] != nil)
+        {
+          s = [e objectForKey: @"USERPROFILE"];
+        }
+      else if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
         {
           s = [[e objectForKey: @"HOMEDRIVE"] stringByAppendingString: s];
         }
@@ -1487,7 +1487,7 @@ NSFullUserName(void)
   if (theFullUserName == nil)
     {
       NSString	*userName = nil;
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       struct _USER_INFO_2	*userInfo;
 
       if (NetUserGetInfo(NULL, (unichar*)[NSUserName() cStringUsingEncoding:
@@ -1562,7 +1562,7 @@ GSDefaultsRootForUser(NSString *userName)
 	  defaultsDir = @GNUSTEP_TARGET_USER_DEFAULTS_DIR;
 	}
     }
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if ([defaultsDir rangeOfString: @":REGISTRY:"].length > 0)
     {
       return defaultsDir;	// Just use windows registry.
@@ -1597,7 +1597,7 @@ NSTemporaryDirectory(void)
   int		perm;
   int		owner;
   BOOL		flag;
-#if	!defined(__MINGW32__)
+#if	!defined(__MINGW__)
   int		uid;
 #else
   unichar buffer[1024];
@@ -1626,7 +1626,7 @@ NSTemporaryDirectory(void)
 	    {
 #if	defined(__CYGWIN__)
 	      baseTempDirName = @"/cygdrive/c/";
-#elif	defined(__MINGW32__)
+#elif	defined(__MINGW__)
 	      baseTempDirName = @"C:\\";
 #elif   defined(__APPLE__)
 	      /*
@@ -1665,9 +1665,9 @@ NSTemporaryDirectory(void)
   perm = perm & 0777;
 
 // Mateu Batle: secure temporary directories don't work in MinGW
-#ifndef __MINGW32__
+#ifndef __MINGW__
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   uid = owner;
 #else
 #ifdef HAVE_GETEUID
@@ -1737,7 +1737,7 @@ NSOpenStepRootDirectory(void)
 
 #if	defined(__CYGWIN__)
   root = @"/cygdrive/c/";
-#elif	defined(__MINGW32__)
+#elif	defined(__MINGW__)
   root = @"C:\\";
 #else
   root = @"/";
@@ -2114,6 +2114,6 @@ if (domainMask & mask) \
         }
     }
 
-  AUTORELEASE (paths);
+  IF_NO_GC(AUTORELEASE (paths);)
   return paths;
 }

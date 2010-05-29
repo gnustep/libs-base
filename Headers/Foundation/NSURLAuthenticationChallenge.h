@@ -26,7 +26,7 @@
 #define __NSURLAuthenticationChallenge_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -79,8 +79,9 @@ extern "C" {
  */
 @interface NSURLAuthenticationChallenge : NSObject
 {
-@private
+#if	GS_EXPOSE(NSURLAuthenticationChallenge)
   void	*_NSURLAuthenticationChallengeInternal;
+#endif
 }
 
 /**
@@ -116,7 +117,7 @@ extern "C" {
  */
 - (id) initWithProtectionSpace: (NSURLProtectionSpace *)space
 	    proposedCredential: (NSURLCredential *)credential
-	  previousFailureCount: (int)previousFailureCount
+	  previousFailureCount: (NSInteger)previousFailureCount
 	       failureResponse: (NSURLResponse *)response
 			 error: (NSError *)error
 			sender: (id<NSURLAuthenticationChallengeSender>)sender;
@@ -124,7 +125,7 @@ extern "C" {
 /**
  * Returns the count of failed authentication attempts.
  */
-- (int) previousFailureCount;
+- (NSInteger) previousFailureCount;
 
 /**
  * Returns a proposed credential to answer the challenge.<br />

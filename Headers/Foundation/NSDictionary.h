@@ -27,14 +27,15 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObject.h>
+#import	<Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-@class NSArray, NSString, NSEnumerator, NSURL;
+@class NSArray, NSString, NSURL;
 
-@interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 + (id) dictionary;
 + (id) dictionaryWithContentsOfFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -45,18 +46,18 @@ extern "C" {
 + (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 + (id) dictionaryWithObjects: (id*)objects
 		     forKeys: (id*)keys
-		       count: (unsigned)count;
+		       count: (NSUInteger)count;
 + (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...;
 
 - (NSArray*) allKeys;
 - (NSArray*) allKeysForObject: (id)anObject;
 - (NSArray*) allValues;
-- (unsigned) count;						// Primitive
+- (NSUInteger) count;						// Primitive
 - (NSString*) description;
 - (NSString*) descriptionInStringsFileFormat;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
-			     indent: (unsigned int)level;
+			     indent: (NSUInteger)level;
 
 - (id) init;
 - (id) initWithContentsOfFile: (NSString*)path;
@@ -69,7 +70,7 @@ extern "C" {
 - (id) initWithObjectsAndKeys: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
-		 count: (unsigned)count;			// Primitive
+		 count: (NSUInteger)count;			// Primitive
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
 
 - (NSEnumerator*) keyEnumerator;				// Primitive
@@ -87,10 +88,10 @@ extern "C" {
 
 @interface NSMutableDictionary: NSDictionary
 
-+ (id) dictionaryWithCapacity: (unsigned)numItems;
++ (id) dictionaryWithCapacity: (NSUInteger)numItems;
 
 - (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary;
-- (id) initWithCapacity: (unsigned)numItems;			// Primitive
+- (id) initWithCapacity: (NSUInteger)numItems;			// Primitive
 - (void) removeAllObjects;
 - (void) removeObjectForKey: (id)aKey;				// Primitive
 - (void) removeObjectsForKeys: (NSArray*)keyArray;

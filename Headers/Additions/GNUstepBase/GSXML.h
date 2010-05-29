@@ -34,16 +34,16 @@
 
 #ifndef __GSXML_h_GNUSTEP_BASE_INCLUDE
 #define __GSXML_h_GNUSTEP_BASE_INCLUDE
-#include <GNUstepBase/GSVersionMacros.h>
+#import <GNUstepBase/GSVersionMacros.h>
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDictionary.h>
+#import <Foundation/NSObject.h>
+#import <Foundation/NSString.h>
+#import <Foundation/NSDictionary.h>
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
 #if	defined(__cplusplus)
@@ -119,15 +119,15 @@ extern "C" {
   id	_parent;
 }
 
-+ (NSString*) descriptionFromType: (int)type;
-+ (int) typeFromDescription: (NSString*)desc;
++ (NSString*) descriptionFromType: (NSInteger)type;
++ (NSInteger) typeFromDescription: (NSString*)desc;
 
 - (NSString*) href;
 
 - (void*) lib;
 - (GSXMLNamespace*) next;
 - (NSString*) prefix;
-- (int) type;
+- (NSInteger) type;
 - (NSString*) typeDescription;
 
 @end
@@ -140,8 +140,8 @@ extern "C" {
   id	_parent;
 }
 
-+ (NSString*) descriptionFromType: (int)type;
-+ (int) typeFromDescription: (NSString*)desc;
++ (NSString*) descriptionFromType: (NSInteger)type;
++ (NSInteger) typeFromDescription: (NSString*)desc;
 
 - (NSDictionary*) attributes;
 - (NSString*) content;
@@ -177,7 +177,7 @@ extern "C" {
 - (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:
   (SEL)keyTransformSel;
 - (void) setObject: (NSString*)value forKey:(NSString*)key;
-- (int) type;
+- (NSInteger) type;
 - (NSString*) typeDescription;
 - (void) setNamespace: (GSXMLNamespace *)space;
 
@@ -206,13 +206,14 @@ extern "C" {
 		    withContentsOfURL: (NSURL*)url;
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
 			     withData: (NSData*)data;
++ (void) setDTDs: (NSString*)aPath;
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding;
 
 - (void) abortParsing;
-- (int) columnNumber;
+- (NSInteger) columnNumber;
 - (GSXMLDocument*) document;
 - (BOOL) doValidityChecking: (BOOL)yesno;
-- (int) errNo;
+- (NSInteger) errNo;
 - (BOOL) getWarnings: (BOOL)yesno;
 - (id) initWithSAXHandler: (GSSAXHandler*)handler;
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
@@ -223,7 +224,7 @@ extern "C" {
 		 withData: (NSData*)data;
 
 - (BOOL) keepBlanks: (BOOL)yesno;
-- (int) lineNumber;
+- (NSInteger) lineNumber;
 - (NSString*) messages;
 - (BOOL) parse;
 - (BOOL) parse: (NSData*)data;
@@ -256,8 +257,8 @@ extern "C" {
 /** <override-dummy /> */
 - (void) attributeDecl: (NSString*)nameElement
                   name: (NSString*)name
-                  type: (int)type
-          typeDefValue: (int)defType
+                  type: (NSInteger)type
+          typeDefValue: (NSInteger)defType
           defaultValue: (NSString*)value;
 /** <override-dummy /> */
 - (void) characters: (NSString*)name;
@@ -267,7 +268,7 @@ extern "C" {
 - (void) comment: (NSString*) value;
 /** <override-dummy /> */
 - (void) elementDecl: (NSString*)name
-		type: (int)type;
+		type: (NSInteger)type;
 /** <override-dummy /> */
 - (void) endDocument;
 /** <override-dummy /> */
@@ -278,35 +279,35 @@ extern "C" {
 	       href: (NSString*)href;
 /** <override-dummy /> */
 - (void) entityDecl: (NSString*)name
-               type: (int)type
+               type: (NSInteger)type
              public: (NSString*)publicId
              system: (NSString*)systemId
             content: (NSString*)content;
 - (void) error: (NSString*)e;
 - (void) error: (NSString*)e
-     colNumber: (int)colNumber
-    lineNumber: (int)lineNumber;
+     colNumber: (NSInteger)colNumber
+    lineNumber: (NSInteger)lineNumber;
 - (BOOL) externalSubset: (NSString*)name
              externalID: (NSString*)externalID
                systemID: (NSString*)systemID;
 - (void) fatalError: (NSString*)e;
 - (void) fatalError: (NSString*)e
-          colNumber: (int)colNumber
-         lineNumber: (int)lineNumber;
+          colNumber: (NSInteger)colNumber
+         lineNumber: (NSInteger)lineNumber;
 - (void*) getEntity: (NSString*)name;
 - (void*) getParameterEntity: (NSString*)name;
 /** <override-dummy /> */
 - (void) globalNamespace: (NSString*)name
 		    href: (NSString*)href
 		  prefix: (NSString*)prefix;
-- (int) hasExternalSubset;
-- (int) hasInternalSubset;
+- (NSInteger) hasExternalSubset;
+- (NSInteger) hasInternalSubset;
 /** <override-dummy /> */
 - (void) ignoreWhitespace: (NSString*)ch;
 - (BOOL) internalSubset: (NSString*)name
              externalID: (NSString*)externalID
                systemID: (NSString*)systemID;
-- (int) isStandalone;
+- (NSInteger) isStandalone;
 - (NSString*) loadEntity: (NSString*)publicId
 		      at: (NSString*)location;
 /** <override-dummy /> */
@@ -340,8 +341,8 @@ extern "C" {
 	       notationName: (NSString*)notation;
 - (void) warning: (NSString*)e;
 - (void) warning: (NSString*)e
-       colNumber: (int)colNumber
-      lineNumber: (int)lineNumber;
+       colNumber: (NSInteger)colNumber
+      lineNumber: (NSInteger)lineNumber;
 
 @end
 
@@ -432,11 +433,11 @@ extern "C" {
  * For XPath queries returning a node set.
  */
 @interface GSXPathNodeSet : GSXPathObject
-- (unsigned int) count;
-- (unsigned int) length;
+- (NSUInteger) count;
+- (NSUInteger) length;
 
 /** Please note that index starts from 0.  */
-- (GSXMLNode *) nodeAtIndex: (unsigned)index;
+- (GSXMLNode *) nodeAtIndex: (NSUInteger)index;
 @end
 
 @interface GSXMLDocument (XSLT)
@@ -462,8 +463,8 @@ extern "C" {
 
 
 
-#include	<Foundation/NSURLHandle.h>
-#include	<Foundation/NSURLConnection.h>
+#import	<Foundation/NSURLHandle.h>
+#import	<Foundation/NSURLConnection.h>
 
 @class	NSArray;
 @class	NSDictionary;
@@ -571,7 +572,8 @@ extern "C" {
  * as a string.<br />
  * This method is intended for use by applications acting as XMLRPC servers.
  */
-- (NSString*) buildResponseWithFaultCode: (int)code andString: (NSString*)s;
+- (NSString*) buildResponseWithFaultCode: (NSInteger)code
+                               andString: (NSString*)s;
 
 /**
  * Builds an XMLRPC response with the specified array of parameters and
@@ -624,7 +626,7 @@ extern "C" {
  */
 - (id) makeMethodCall: (NSString*)method
 	       params: (NSArray*)params
-	      timeout: (int)seconds;
+	      timeout: (NSInteger)seconds;
 
 /**
  * Parses XML data containing an XMLRPC method call.<br />
@@ -681,7 +683,7 @@ extern "C" {
  */
 - (BOOL) sendMethodCall: (NSString*)method
 		 params: (NSArray*)params
-		timeout: (int)seconds;
+		timeout: (NSInteger)seconds;
 
 /**
  * Specify whether to generate compact XML (omit indentation and other white

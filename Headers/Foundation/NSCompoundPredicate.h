@@ -34,17 +34,20 @@
 extern "C" {
 #endif
 
-typedef enum _NSCompoundPredicateType
+enum
 {
   NSNotPredicateType = 0,
   NSAndPredicateType,
   NSOrPredicateType
-} NSCompoundPredicateType;
+};
+typedef NSUInteger NSCompoundPredicateType;
 
 @interface NSCompoundPredicate : NSPredicate
 {
+#if	GS_EXPOSE(NSCompoundPredicate)
   NSCompoundPredicateType _type;
   NSArray	*_subs;
+#endif
 }
 
 + (NSPredicate *) andPredicateWithSubpredicates: (NSArray *)list;

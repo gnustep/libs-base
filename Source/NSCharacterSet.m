@@ -26,25 +26,25 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "GNUstepBase/GSLock.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSIndexSet.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
+#import "common.h"
+#import "GNUstepBase/GSLock.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSIndexSet.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-//#define	GNUSTEP_INDEX_CHARSET	1
-#undef	GNUSTEP_INDEX_CHARSET
+#define	GNUSTEP_INDEX_CHARSET	1
+//#undef	GNUSTEP_INDEX_CHARSET
 
-#include "NSCharacterSetData.h"
+#import "NSCharacterSetData.h"
 
 //PENDING: may want to make these less likely to conflict
 #define UNICODE_MAX	1114112
@@ -254,26 +254,61 @@
 
 - (void) addCharactersInRange: (NSRange)aRange
 {
-  unsigned i;
+  NSUInteger	i;
+  NSUInteger	m;
+  NSUInteger	b;
 
-  if (NSMaxRange(aRange) > UNICODE_MAX)
+  m = NSMaxRange(aRange);
+  if (m > UNICODE_MAX)
     {
       [NSException raise:NSInvalidArgumentException
 	  format:@"Specified range exceeds character set"];
       /* NOT REACHED */
     }
-
-  for (i = aRange.location; i < NSMaxRange(aRange); i++)
+  else if (m < 1)
     {
-      unsigned	byte = i/8;
+      return;
+    }
 
-      while (byte >= _length)
+  /* Make space if needed.
+   */
+  b = (m - 1) / 8;
+  if (b >= _length)
+    {
+      while (b >= _length)
 	{
-	  [_obj setLength: _length + BITMAP_SIZE];
 	  _length += BITMAP_SIZE;
-	  _data = [_obj mutableBytes];
 	}
-      SETBIT(_data[byte], i % 8);
+      [_obj setLength: _length];
+      _data = [_obj mutableBytes];
+    }
+
+  /* Fill the first byte in the range.
+   */
+  i = aRange.location;
+  b = i / 8;
+  while (i % 8 != 0 && i < m)
+    {
+      SETBIT(_data[b], i % 8);
+      i++;
+    }
+
+  /* Set any complete bytes in the range.
+   */
+  b = (m - i) / 8;
+  if (b > 0)
+    {
+      memset(&_data[i / 8], 0xff, b);
+      i += b * 8;
+    }
+
+  /* Partial set of any bits needed in the last byte.
+   */
+  b = i / 8;
+  while (i < m)
+    {
+      SETBIT(_data[b], i % 8);
+      i++;
     }
   _known = 0;	// Invalidate cache
 }
@@ -314,10 +349,13 @@
 		+ (second - 0xdc00) + 0x0010000;
 	    }
 	  byte = letter/8;
-	  while (byte >= _length)
+	  if (byte >= _length)
 	    {
-	      [_obj setLength: _length + BITMAP_SIZE];
-	      _length += BITMAP_SIZE;
+	      while (byte >= _length)
+		{
+		  _length += BITMAP_SIZE;
+		}
+	      [_obj setLength: _length];
 	      _data = [_obj mutableBytes];
 	    }
 	  SETBIT(_data[byte], letter % 8);
@@ -693,6 +731,13 @@ static Class concreteMutableClass = nil;
 		   number: 6];
 }
 
++ (NSCharacterSet*) newlineCharacterSet
+{
+  return [self _staticSet: newlineCharSet
+		   length: sizeof(newlineCharSet)
+		   number: 14];
+}
+
 + (NSCharacterSet*) nonBaseCharacterSet
 {
   return [self _staticSet: nonBaseCharSet
@@ -840,13 +885,13 @@ static Class concreteMutableClass = nil;
 
 - (id) init
 {
-  if (GSObjCClass(self) == abstractClass)
+  if (object_getClass(self) == abstractClass)
     {
       id	obj;
 
       obj = [concreteClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: nil];
-      RELEASE(self);
+      DESTROY(self);
       self = obj;
     }
   return self;
@@ -1028,6 +1073,11 @@ static Class concreteMutableClass = nil;
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
++ (NSCharacterSet*) newlineCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
 + (NSCharacterSet*) nonBaseCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
@@ -1112,13 +1162,13 @@ static Class concreteMutableClass = nil;
 
 - (id) init
 {
-  if (GSObjCClass(self) == abstractMutableClass)
+  if (object_getClass(self) == abstractMutableClass)
     {
       id	obj;
 
       obj = [concreteMutableClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: nil];
-      RELEASE(self);
+      DESTROY(self);
       self = obj;
     }
   return self;
@@ -1126,13 +1176,13 @@ static Class concreteMutableClass = nil;
 
 - (id) initWithBitmap: (NSData*)bitmap
 {
-  if (GSObjCClass(self) == abstractMutableClass)
+  if (object_getClass(self) == abstractMutableClass)
     {
       id	obj;
 
       obj = [concreteMutableClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: bitmap];
-      RELEASE(self);
+      DESTROY(self);
       self = obj;
     }
   return self;

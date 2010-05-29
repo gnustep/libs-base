@@ -20,18 +20,15 @@
 
    */
 
-#include "config.h"
 #include <stdio.h>
-#ifdef NeXT_Foundation_LIBRARY
-#include <Foundation/Foundation.h>
-#include <GNUstepBase/GSCategories.h>
-#else
-#include <Foundation/NSArray.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSProcessInfo.h>
-#endif
-#include <GNUstepBase/GSXML.h>
+
+#import "common.h"
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
+#import "GNUstepBase/Additions.h"
 
 @interface GSXMLParser (Loader)
 + (NSString*) loadEntity: (NSString*)publicId
@@ -73,7 +70,7 @@ main(int argc, char **argv, char **env)
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
 
 #ifndef HAVE_LIBXML

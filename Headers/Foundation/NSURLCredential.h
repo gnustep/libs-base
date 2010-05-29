@@ -26,7 +26,7 @@
 #define __NSURLCredential_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -51,8 +51,9 @@ typedef enum {
  */
 @interface NSURLCredential : NSObject <NSCopying>
 {
-@private
+#if	GS_EXPOSE(NSURLCredential)
   void *_NSURLCredentialInternal;
+#endif
 }
 
 /**

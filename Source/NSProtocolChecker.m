@@ -27,12 +27,12 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSProtocolChecker.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSInvocation.h"
-#include "Foundation/NSMethodSignature.h"
+#import "common.h"
+#define	EXPOSE_NSProtocolChecker_IVARS	1
+#import "Foundation/NSProtocolChecker.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSMethodSignature.h"
 #include <objc/Protocol.h>
 
 /**
@@ -89,7 +89,7 @@
        */
       if (GSObjCIsInstance(_myTarget))
 	{
-	  if ((uintptr_t)GSObjCClass(_myProtocol) == 0x2)
+	  if ((uintptr_t)object_getClass(_myProtocol) == 0x2)
 	    {
 	      mth = GSDescriptionForInstanceMethod(_myProtocol, aSelector);
 	    }
@@ -100,7 +100,7 @@
 	}
       else
 	{
-	  if ((uintptr_t)GSObjCClass(_myProtocol) == 0x2)
+	  if ((uintptr_t)object_getClass(_myProtocol) == 0x2)
 	    {
 	      mth = GSDescriptionForClassMethod(_myProtocol, aSelector);
 	    }
@@ -196,14 +196,14 @@
    * signature of methodSignatureForSelector:, so we hack in
    * the signature required manually :-(
    */
-  if (sel_eq(aSelector, _cmd))
+  if (sel_isEqual(aSelector, _cmd))
     {
       static	NSMethodSignature	*sig = nil;
 
       if (sig == nil)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
-	  RETAIN(sig);
+	  IF_NO_GC(RETAIN(sig);)
 	}
       return sig;
     }
@@ -225,7 +225,7 @@
       return [NSMethodSignature signatureWithObjCTypes: types];
     }
 
-  c = GSObjCClass(self);
+  c = object_getClass(self);
   mth = GSGetMethod(c, aSelector, YES, YES);
   if (mth == 0)
     {

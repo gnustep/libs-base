@@ -25,24 +25,22 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSProxy.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSValue.h"
+#import "common.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSProxy.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSValue.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 @class	GSDictionary;
 @class	GSMutableDictionary;
@@ -55,6 +53,8 @@
 /*
  *	Setup for inline operation of string map tables.
  */
+#define	GSI_MAP_KTYPES	GSUNION_OBJ
+#define	GSI_MAP_VTYPES	GSUNION_INT
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
@@ -62,6 +62,11 @@
 #define	GSI_MAP_HASH(M, X)	[(X).obj hash]
 #define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToString: (Y).obj]
 #define	GSI_MAP_NOCLEAN	1
+
+#if	GS_WITH_GC
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)NSAllocateCollectable(X * sizeof(GSIMapNode_t), 0)
+#endif
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -115,10 +120,6 @@ static Class	StringClass = 0;
 static Class	NumberClass = 0;
 
 typedef struct {
-  @defs(GSString)
-} *ivars;
-
-typedef struct {
   NSMutableData	*data;
   void		(*appImp)(NSData*,SEL,const void*,unsigned);
   void*		(*datImp)(NSMutableData*,SEL);		// Bytes pointer.
@@ -146,7 +147,7 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 {
   Class	c;
 
-  c = GSObjCClass(d);
+  c = object_getClass(d);
   info->data = d;
   info->appImp = (void (*)(NSData*,SEL,const void*,unsigned))get_imp(c, appSel);
   info->datImp = (void* (*)(NSMutableData*,SEL))get_imp(c, datSel);
@@ -180,7 +181,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 		  format: @"Class (%@) in property list - expected instance",
 				[object description]];
     }
-  c = GSObjCClass(object);
+  c = object_getClass(object);
 
   if (GSObjCIsKindOf(c, StringClass)
       /*
@@ -496,7 +497,7 @@ initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
 	      *c += 9;
 	      (*info->debImp)(d, debSel, &u, 1, c);
 	      NSLog(@"Serialised data version %d not supported ..."
-		@" try another version of GNUstep");
+		@" try another version of GNUstep", u);
 	      return NO;
 	    }
 	}
@@ -555,7 +556,11 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  char		*b;
 	
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
+#if	GS_WITH_GC
+	  b = NSAllocateCollectable(size, 0);
+#else
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size);
+#endif
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = [[StringClass alloc] initWithBytesNoCopy: b
 						length: size - 1
@@ -586,7 +591,11 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  unichar	*b;
 	
 	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
+#if	GS_WITH_GC
+	  b = NSAllocateCollectable(size*sizeof(unichar), 0);
+#else
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size*sizeof(unichar));
+#endif
 	  (*info->debImp)(info->data, debSel, b, size*sizeof(unichar),
 	    info->cursor);
 	  s = [[StringClass alloc] initWithBytesNoCopy: b
@@ -684,7 +693,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 			   * rather than simply releasing as the key may
 			   * be referred to by a cross-reference later.
 			   */
-			  AUTORELEASE(k);
+			  IF_NO_GC(AUTORELEASE(k);)
 			  RELEASE(o);
 			}
 		    }

@@ -21,23 +21,27 @@
    Boston, MA 02111 USA.
 
    */
+
+#import "common.h"
+
 #include <unistd.h>
 #include <errno.h>
 
-#include <Foundation/NSData.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSByteOrder.h>
+#import "Foundation/NSData.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSByteOrder.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include "../GSPrivate.h"
-#include "../GSStream.h"
-#include "../GSSocketStream.h"
+#import "../GSPrivate.h"
+#import "../GSStream.h"
+#import "../GSSocketStream.h"
 
 /** 
  * The concrete subclass of NSInputStream that reads from a file
@@ -104,7 +108,7 @@
   [super dealloc];
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   int readLen;
 
@@ -139,7 +143,7 @@
   return readLen;
 }
 
-- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
+- (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
 {
   return NO;
 }
@@ -240,7 +244,7 @@
   [super dealloc];
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   int writeLen;
 
@@ -349,7 +353,7 @@
 @implementation NSStream
 
 + (void) getStreamsToHost: (NSHost *)host 
-                     port: (int)port 
+                     port: (NSInteger)port 
               inputStream: (NSInputStream **)inputStream 
              outputStream: (NSOutputStream **)outputStream
 {
@@ -501,7 +505,7 @@
   return AUTORELEASE([[GSFileInputStream alloc] initWithFileAtPath: path]);
 }
 
-- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
+- (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
 {
   [self subclassResponsibility: _cmd];
   return NO;
@@ -515,17 +519,17 @@
 
 - (id) initWithData: (NSData *)data
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSDataInputStream alloc] initWithData: data];
 }
 
 - (id) initWithFileAtPath: (NSString *)path
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSFileInputStream alloc] initWithFileAtPath: path];
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return -1;
@@ -535,7 +539,7 @@
 
 @implementation NSOutputStream
 
-+ (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
++ (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity
 {
   return AUTORELEASE([[GSBufferOutputStream alloc] 
     initToBuffer: buffer capacity: capacity]);  
@@ -558,26 +562,26 @@
   return NO;
 }
 
-- (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
+- (id) initToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSBufferOutputStream alloc] initToBuffer: buffer capacity: capacity];
 }
 
 - (id) initToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSFileOutputStream alloc] initToFileAtPath: path
 					       append: shouldAppend];  
 }
 
 - (id) initToMemory
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSDataOutputStream alloc] init];
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return -1;  

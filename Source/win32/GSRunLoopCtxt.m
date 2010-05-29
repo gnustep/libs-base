@@ -6,18 +6,17 @@
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
 
-#include "config.h"
+#import "common.h"
 
-#include "GNUstepBase/preface.h"
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSStream.h>
-#include "../GSRunLoopCtxt.h"
-#include "../GSRunLoopWatcher.h"
-#include "../GSPrivate.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSStream.h"
+#import "../GSRunLoopCtxt.h"
+#import "../GSRunLoopWatcher.h"
+#import "../GSPrivate.h"
 
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
@@ -147,23 +146,32 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   self = [super init];
   if (self != nil)
     {
-      NSZone	*z = [self zone];
+      NSZone	*z;
 
       mode = [theMode copy];
       extra = e;
+#if	GS_WITH_GC
+      z = (NSZone*)1;
+      performers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      timers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      watchers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      _trigger = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
+      z = [self zone];
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
       timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
+      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
+#endif
+      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
+      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
+      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
 
       handleMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
       winMsgMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
-      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
   return self;
 }
@@ -377,7 +385,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
     {
       wait_timeout = 0;
     }
@@ -477,6 +485,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
 	if (watcher->_invalidated == NO)
 	  {
+	    NSDebugMLLog(@"NSRunLoop", @"trigger watcher %@", watcher);
 	    i = [contexts count];
 	    while (i-- > 0)
 	      {
@@ -496,12 +505,13 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSPrivateNotifyASAP();
+	GSPrivateNotifyASAP(mode);
     }
 
   // if there are windows message
   if (wait_return == WAIT_OBJECT_0 + num_handles)
     {
+      NSDebugMLLog(@"NSRunLoop", @"processing windows messages");
       [self processAllWindowsMessages: num_winMsgs within: contexts];
       return NO;
     }
@@ -509,6 +519,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   // if there aren't events
   if (wait_return == WAIT_TIMEOUT)
     {
+      NSDebugMLLog(@"NSRunLoop", @"timeout without events");
       completed = YES;
       return NO;        
     }
@@ -527,6 +538,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   if (handle == threadInfo->event)
     {
       watcher = nil;
+      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
       [threadInfo fire];
     }
   else
@@ -556,10 +568,26 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 			       forMode: mode];
     }
 
-  GSPrivateNotifyASAP();
+  GSPrivateNotifyASAP(mode);
 
   completed = YES;
   return YES;
+}
+
++ (BOOL) awakenedBefore: (NSDate*)when
+{
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
+  int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
+  HANDLE		h = threadInfo->event;
+
+  if (WaitForMultipleObjects(1, &h, NO, milliseconds) != WAIT_TIMEOUT)
+    {
+      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo fire];
+      return YES;
+    }
+  return NO;
 }
 
 @end

@@ -25,22 +25,19 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSKeyValueCoding.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSDebug.h"
+#import "common.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSException.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSSet;
 @interface GSSet : NSObject	// Help the compiler
@@ -113,7 +110,7 @@ static Class NSMutableSet_concrete_class;
  *  New set containing (unique elements of) objects.
  */
 + (id) setWithObjects: (id*)objects
-	        count: (unsigned)count
+	        count: (NSUInteger)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: objects count: count]);
@@ -162,7 +159,7 @@ static Class NSMutableSet_concrete_class;
 /**
  * Returns the number of objects stored in the set.
  */
-- (unsigned) count
+- (NSUInteger) count
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -213,16 +210,16 @@ static Class NSMutableSet_concrete_class;
 {
   Class		c;
 
-  c = GSObjCClass(self);
+  c = object_getClass(self);
   if (c == NSSet_abstract_class)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: aCoder];
     }
   else if (c == NSMutableSet_abstract_class)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSMutableSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: aCoder];
     }
@@ -317,7 +314,7 @@ static Class NSMutableSet_concrete_class;
  * other initialisers work.
  */
 - (id) initWithObjects: (id*)objects
-		 count: (unsigned)count
+		 count: (NSUInteger)count
 {
   self = [self init];
   return self;
@@ -480,7 +477,7 @@ static Class NSMutableSet_concrete_class;
   return (([self member: anObject]) ? YES : NO);
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [self count];
 }
@@ -902,6 +899,13 @@ static Class NSMutableSet_concrete_class;
   return [s autorelease];
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+                                   objects: (id*)stackbuf
+                                     count: (NSUInteger)len
+{
+    [self subclassResponsibility: _cmd];
+    return 0;
+}
 @end
 
 
@@ -922,7 +926,7 @@ static Class NSMutableSet_concrete_class;
 /**
  *  New autoreleased instance with given capacity.
  */
-+ (id) setWithCapacity: (unsigned)numItems
++ (id) setWithCapacity: (NSUInteger)numItems
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithCapacity: numItems]);
@@ -955,7 +959,7 @@ static Class NSMutableSet_concrete_class;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithCapacity: (unsigned)numItems
+- (id) initWithCapacity: (NSUInteger)numItems
 {
   self = [self init];
   return self;
@@ -979,7 +983,7 @@ static Class NSMutableSet_concrete_class;
 }
 
 - (id) initWithObjects: (id*)objects
-		 count: (unsigned)count
+		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (self != nil)
@@ -1074,7 +1078,7 @@ static Class NSMutableSet_concrete_class;
     }
   else
     {
-      RETAIN(other);	// In case it's held by us
+      IF_NO_GC([other retain];)	// In case it's held by us
       [self removeAllObjects];
       [self unionSet: other];
       RELEASE(other);

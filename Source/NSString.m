@@ -48,43 +48,37 @@
 #define _GNU_SOURCE
 #endif
 
-#include "config.h"
+#import "common.h"
 #include <stdio.h>
 #include <string.h>
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSDecimal.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSRange.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSURL.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/FoundationErrors.h"
-#include "Foundation/NSDebug.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSDecimal.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSRange.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/FoundationErrors.h"
 // For private method _decodePropertyListForKey:
-#include "Foundation/NSKeyedArchiver.h"
-#include "GNUstepBase/GSMime.h"
-#include "GSPrivate.h"
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
+#import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSPrivate.h"
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -94,9 +88,16 @@
 #include <stdio.h>
 #include <wchar.h>
 
-#include "GNUstepBase/Unicode.h"
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
 
-#include "GSPrivate.h"
+#import "GNUstepBase/Unicode.h"
+
+#import "GSPrivate.h"
 
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
@@ -107,12 +108,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 @end
 @class	GSMutableArray;
 @class	GSMutableDictionary;
-@class	NSImmutableString;
-@interface NSImmutableString : NSObject	// Help the compiler
-@end
-@class	GSImmutableString;
-@interface GSImmutableString : NSObject	// Help the compiler
-@end
 
 /*
  * Cache classes and method implementations for speed.
@@ -351,7 +346,6 @@ pathSepString()
  * 'C:/'		absolute root for a drive on windows
  * 'C:'			if entire path is 'C:' or 'C:relativepath'
  * '//host/share/'	absolute root for a host and share on windows
- * '//host/share'	if entire path is '//host/share'
  * '~/'			home directory for user
  * '~'			if entire path is '~'
  * '~username/'		home directory for user
@@ -440,6 +434,9 @@ static unsigned rootOf(NSString *s, unsigned l)
 			       */
 			      if (range.location > pos)
 				{
+				  /* OK ... we have the '//host/share/'
+				   * format, so this is a valid UNC path.
+				   */
 				  root = NSMaxRange(range);
 				}
 			    }
@@ -453,7 +450,7 @@ static unsigned rootOf(NSString *s, unsigned l)
 }
 
 
-/* Convert a high-low surrogate pair into Unicode scalar code-point */
+/* Convert a high-low surrogate pair into Unicode scalar code-poNSInteger*/
 static inline uint32_t
 surrogatePairValue(unichar high, unichar low)
 {
@@ -473,7 +470,6 @@ static const unichar byteOrderMarkSwapped = 0xFFFE;
 #ifdef HAVE_REGISTER_PRINTF_FUNCTION
 #include <stdio.h>
 #include <printf.h>
-#include <stdarg.h>
 
 /* <sattler@volker.cs.Uni-Magdeburg.DE>, with libc-5.3.9 thinks this
    flag PRINTF_ATSIGN_VA_LIST should be 0, but for me, with libc-5.0.9,
@@ -489,7 +485,11 @@ static const unichar byteOrderMarkSwapped = 0xFFFE;
 
 #if ! PRINTF_ATSIGN_VA_LIST
 static int
-arginfo_func (const struct printf_info *info, size_t n, int *argtypes)
+arginfo_func (const struct printf_info *info, size_t n, int *argtypes
+#if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
+, int *size
+#endif
+)
 {
   *argtypes = PA_POINTER;
   return 1;
@@ -595,9 +595,8 @@ handle_printf_atsign (FILE *stream,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       placeholderLock = [NSLock new];
 
-#ifdef HAVE_REGISTER_PRINTF_FUNCTION
-      if (register_printf_function ('@',
-				    handle_printf_atsign,
+#if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
+      if (register_printf_specifier ('@', handle_printf_atsign,
 #if PRINTF_ATSIGN_VA_LIST
 				    0))
 #else
@@ -605,7 +604,16 @@ handle_printf_atsign (FILE *stream,
 #endif
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
-#endif /* HAVE_REGISTER_PRINTF_FUNCTION */
+#elif   defined(HAVE_REGISTER_PRINTF_FUNCTION)
+      if (register_printf_function ('@', handle_printf_atsign,
+#if PRINTF_ATSIGN_VA_LIST
+				    0))
+#else
+	                            arginfo_func))
+#endif
+	[NSException raise: NSGenericException
+		     format: @"register printf handling of %%@ failed"];
+#endif
     }
 }
 
@@ -677,7 +685,7 @@ handle_printf_atsign (FILE *stream,
  */
 + (Class) constantStringClass
 {
-  return [NXConstantString class];
+  return [@"" class];
 }
 
 /**
@@ -704,7 +712,7 @@ handle_printf_atsign (FILE *stream,
  * Create a string of unicode characters.
  */
 + (id) stringWithCharacters: (const unichar*)chars
-		     length: (unsigned int)length
+		     length: (NSUInteger)length
 {
   NSString	*obj;
 
@@ -749,7 +757,7 @@ handle_printf_atsign (FILE *stream,
  * (Characters will be converted to unicode representation internally.)
  */
 + (id) stringWithCString: (const char*)byteString
-		  length: (unsigned int)length
+		  length: (NSUInteger)length
 {
   NSString	*obj;
 
@@ -800,6 +808,21 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
+ * Load contents of file at path into a new string using the
+ * -initWithContentsOfFile:encoding:error: method.
+ */
++ (id) stringWithContentsOfFile: (NSString*)path
+                       encoding: (NSStringEncoding)enc
+                          error: (NSError**)error
+{
+   NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfFile: path encoding: enc error: error];
+  return AUTORELEASE(obj);
+}
+
+/**
  * Load contents of given URL into a new string.  Will interpret contents as
  * containing direct unicode if it begins with the unicode byte order mark,
  * else converts to unicode using default C string encoding.
@@ -810,6 +833,28 @@ handle_printf_atsign (FILE *stream,
 
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithContentsOfURL: url];
+  return AUTORELEASE(obj);
+}
+
++ (id) stringWithContentsOfURL: (NSURL*)url
+                  usedEncoding: (NSStringEncoding*)enc
+                         error: (NSError**)error
+{
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfURL: url usedEncoding: enc error: error];
+  return AUTORELEASE(obj);
+}
+
++ (id) stringWithContentsOfURL: (NSURL*)url
+                      encoding: (NSStringEncoding)enc
+                         error: (NSError**)error
+{
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfURL: url encoding: enc error: error];
   return AUTORELEASE(obj);
 }
 
@@ -878,7 +923,7 @@ handle_printf_atsign (FILE *stream,
  * is released and nil is returned.
  */
 - (id) initWithBytes: (const void*)bytes
-	      length: (unsigned int)length
+	      length: (NSUInteger)length
 	    encoding: (NSStringEncoding)encoding
 {
   if (length == 0)
@@ -890,8 +935,13 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      void	*buf = NSZoneMalloc(GSObjCZone(self), length);
+      void	*buf;
 
+#if	GS_WITH_GC
+      buf = NSAllocateCollectable(length, 0);
+#else
+      buf = NSZoneMalloc([self zone], length);
+#endif
       memcpy(buf, bytes, length);
       return [self initWithBytesNoCopy: buf
 				length: length
@@ -916,7 +966,7 @@ handle_printf_atsign (FILE *stream,
  * this initialiser in order to have all other functionality.</p>
  */
 - (id) initWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length
+		    length: (NSUInteger)length
 		  encoding: (NSStringEncoding)encoding
 	      freeWhenDone: (BOOL)flag
 {
@@ -930,7 +980,7 @@ handle_printf_atsign (FILE *stream,
  *  this instance is deallocated.</p>
  */
 - (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
+			 length: (NSUInteger)length
 		   freeWhenDone: (BOOL)flag
 {
   return [self initWithBytesNoCopy: chars
@@ -944,7 +994,7 @@ handle_printf_atsign (FILE *stream,
  *  of null bytes.  Copies the string and frees copy when deallocated.</p>
  */
 - (id) initWithCharacters: (const unichar*)chars
-		   length: (unsigned int)length
+		   length: (NSUInteger)length
 {
   return [self initWithBytes: chars
 		      length: length * sizeof(unichar)
@@ -958,7 +1008,7 @@ handle_printf_atsign (FILE *stream,
  *  when this instance is deallocated.</p>
  */
 - (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
+		      length: (NSUInteger)length
 		freeWhenDone: (BOOL)flag
 {
   return [self initWithBytesNoCopy: byteString
@@ -985,7 +1035,7 @@ handle_printf_atsign (FILE *stream,
  *  presence of null bytes.  Characters converted to unicode based on the
  *  default C encoding.  Copies the string.</p>
  */
-- (id) initWithCString: (const char*)byteString  length: (unsigned int)length
+- (id) initWithCString: (const char*)byteString  length: (NSUInteger)length
 {
   return [self initWithBytes: byteString
 		      length: length
@@ -1013,7 +1063,7 @@ handle_printf_atsign (FILE *stream,
 
   if (length > 0)
     {
-      unichar	*s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
+      unichar	*s = NSZoneMalloc([self zone], sizeof(unichar)*length);
 
       [string getCharacters: s range: ((NSRange){0, length})];
       self = [self initWithCharactersNoCopy: s
@@ -1082,7 +1132,7 @@ handle_printf_atsign (FILE *stream,
             arguments: (va_list)argList
 {
   unsigned char	buf[2048];
-  GSStr_t	f;
+  GSStr		f;
   unichar	fbuf[1024];
   unichar	*fmt = fbuf;
   size_t	len;
@@ -1096,7 +1146,7 @@ handle_printf_atsign (FILE *stream,
   len = [format length];
   if (len >= 1024)
     {
-      fmt = objc_malloc((len+1)*sizeof(unichar));
+      fmt = NSZoneMalloc(NSDefaultMallocZone(), (len+1)*sizeof(unichar));
     }
   [format getCharacters: fmt range: ((NSRange){0, len})];
   fmt[len] = '\0';
@@ -1105,48 +1155,49 @@ handle_printf_atsign (FILE *stream,
    * Now set up 'f' as a GSMutableString object whose initial buffer is
    * allocated on the stack.  The GSPrivateFormat function can write into it.
    */
-  f.isa = GSMutableStringClass;
-  f._zone = NSDefaultMallocZone();
-  f._contents.c = buf;
-  f._capacity = sizeof(buf);
-  f._count = 0;
-#if HAVE_WIDE_PRINTF_FUNCTION
-  f._flags.wide = 0;
-#endif	/* HAVE_WIDE_PRINTF_FUNCTION */
-  f._flags.free = 0;
-  GSPrivateFormat(&f, fmt, argList, locale);
-  GSPrivateStrExternalize(&f);
+  f = (GSStr)alloca(class_getInstanceSize(GSMutableStringClass));
+  object_setClass(f, GSMutableStringClass);
+  f->_zone = NSDefaultMallocZone();
+  f->_contents.c = buf;
+  f->_capacity = sizeof(buf);
+  f->_count = 0;
+  f->_flags.wide = 0;
+  f->_flags.owned = 0;
+  f->_flags.unused = 0;
+  f->_flags.hash = 0;
+  GSPrivateFormat(f, fmt, argList, locale);
+  GSPrivateStrExternalize(f);
   if (fmt != fbuf)
     {
-      objc_free(fmt);
+      NSZoneFree(NSDefaultMallocZone(), fmt);
     }
 
   /*
-   * Don't use noCopy because f._contents.u may be memory on the stack,
-   * and even if it wasn't f._capacity may be greater than f._count so
+   * Don't use noCopy because f->_contents.u may be memory on the stack,
+   * and even if it wasn't f->_capacity may be greater than f->_count so
    * we could be wasting quite a bit of space.  Better to accept a
    * performance hit due to copying data (and allocating/deallocating
    * the temporary buffer) for large strings.  For most strings, the
    * on-stack memory will have been used, so we will get better performance.
    */
 #if HAVE_WIDE_PRINTF_FUNCTION
-  if (f._flags.wide == 1)
+  if (f->_flags.wide == 1)
     {
-      self = [self initWithCharacters: f._contents.u length: f._count];
+      self = [self initWithCharacters: f->_contents.u length: f->_count];
     }
   else
 #endif	/* HAVE_WIDE_PRINTF_FUNCTION */
     {
-      self = [self initWithCString: (char*)f._contents.c length: f._count];
+      self = [self initWithCString: (char*)f->_contents.c length: f->_count];
     }
 
   /*
    * If the string had to grow beyond the initial buffer size, we must
    * release any allocated memory.
    */
-  if (f._flags.free == 1)
+  if (f->_flags.owned == 1)
     {
-      NSZoneFree(f._zone, f._contents.c);
+      NSZoneFree(f->_zone, f->_contents.c);
     }
   return self;
 }
@@ -1195,14 +1246,14 @@ handle_printf_atsign (FILE *stream,
   d = [[NSDataClass alloc] initWithContentsOfFile: path];
   if (d == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   len = [d length];
   if (len == 0)
     {
       RELEASE(d);
-      RELEASE(self);
+      DESTROY(self);
       return @"";
     }
   data_bytes = [d bytes];
@@ -1261,7 +1312,7 @@ handle_printf_atsign (FILE *stream,
   d = [[NSDataClass alloc] initWithContentsOfFile: path];
   if (d == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   *enc = _DefaultStringEncoding;
@@ -1269,7 +1320,7 @@ handle_printf_atsign (FILE *stream,
   if (len == 0)
     {
       RELEASE(d);
-      RELEASE(self);
+      DESTROY(self);
       return @"";
     }
   data_bytes = [d bytes];
@@ -1291,6 +1342,40 @@ handle_printf_atsign (FILE *stream,
 	}
     }
   self = [self initWithData: d encoding: *enc];
+  RELEASE(d);
+  if (self == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
+    }
+  return self;
+}
+
+- (id) initWithContentsOfFile: (NSString*)path
+                     encoding: (NSStringEncoding)enc
+                        error: (NSError**)error
+{
+  NSData		*d;
+  unsigned int		len;
+
+  d = [[NSDataClass alloc] initWithContentsOfFile: path];
+  if (d == nil)
+    {
+      DESTROY(self);
+      return nil;
+    }
+  len = [d length];
+  if (len == 0)
+    {
+      RELEASE(d);
+      DESTROY(self);
+      return @"";
+    }
+  self = [self initWithData: d encoding: enc];
   RELEASE(d);
   if (self == nil)
     {
@@ -1332,12 +1417,12 @@ handle_printf_atsign (FILE *stream,
   if (d == nil)
     {
       NSWarnMLog(@"Contents of URL '%@' are not readable", url);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   if (len == 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return @"";
     }
   data_bytes = [d bytes];
@@ -1365,11 +1450,99 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+- (id) initWithContentsOfURL: (NSURL*)url
+                usedEncoding: (NSStringEncoding*)enc
+                       error: (NSError**)error
+{
+  NSData		*d;
+  unsigned int		len;
+  const unsigned char	*data_bytes;
+
+  d = [[NSDataClass alloc] dataWithContentsOfURL: url];
+  if (d == nil)
+    {
+      DESTROY(self);
+      return nil;
+    }
+  *enc = _DefaultStringEncoding;
+  len = [d length];
+  if (len == 0)
+    {
+      RELEASE(d);
+      DESTROY(self);
+      return @"";
+    }
+  data_bytes = [d bytes];
+  if ((data_bytes != NULL) && (len >= 2))
+    {
+      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      if ((data_ucs2chars[0] == byteOrderMark)
+	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
+	{
+	  /* somebody set up us the BOM! */
+	  *enc = NSUnicodeStringEncoding;
+	}
+      else if (len >= 3
+	&& data_bytes[0] == 0xEF
+	&& data_bytes[1] == 0xBB
+	&& data_bytes[2] == 0xBF)
+	{
+	  *enc = NSUTF8StringEncoding;
+	}
+    }
+  self = [self initWithData: d encoding: *enc];
+  RELEASE(d);
+  if (self == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
+    }
+  return self;
+}
+
+- (id) initWithContentsOfURL: (NSURL*)url
+                    encoding: (NSStringEncoding)enc
+                       error: (NSError**)error
+{
+  NSData		*d;
+  unsigned int		len;
+
+  d = [[NSDataClass alloc] dataWithContentsOfURL: url];
+  if (d == nil)
+    {
+      DESTROY(self);
+      return nil;
+    }
+  len = [d length];
+  if (len == 0)
+    {
+      RELEASE(d);
+      DESTROY(self);
+      return @"";
+    }
+  self = [self initWithData: d encoding: enc];
+  RELEASE(d);
+  if (self == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadCorruptFileError
+                                   userInfo: nil];
+        }
+    }
+  return self;
+}
+
 /**
  * Returns the number of Unicode characters in this string, including the
  * individual characters of composed character sequences,
  */
-- (unsigned int) length
+- (NSUInteger) length
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -1381,7 +1554,7 @@ handle_printf_atsign (FILE *stream,
  * Returns unicode character at index.  <code>unichar</code> is an unsigned
  * short.  Thus, a 16-bit character is returned.
  */
-- (unichar) characterAtIndex: (unsigned int)index
+- (unichar) characterAtIndex: (NSUInteger)index
 {
   [self subclassResponsibility: _cmd];
   return (unichar)0;
@@ -1410,11 +1583,11 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	l = [self length];
   unsigned	i;
-  unichar	(*caiImp)(NSString*, SEL, unsigned int);
+  unichar	(*caiImp)(NSString*, SEL, NSUInteger);
 
   GS_RANGE_CHECK(aRange, l);
 
-  caiImp = (unichar (*)(NSString*,SEL,unsigned))
+  caiImp = (unichar (*)(NSString*,SEL,NSUInteger))
     [self methodForSelector: caiSel];
 
   for (i = 0; i < aRange.length; i++)
@@ -1481,7 +1654,7 @@ handle_printf_atsign (FILE *stream,
 				   length: dpos
 				 encoding: NSASCIIStringEncoding];
       NSZoneFree(NSDefaultMallocZone(), dst);
-      AUTORELEASE(s);
+      IF_NO_GC([s autorelease];)
     }
   return s;
 }
@@ -1509,7 +1682,7 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	len = [self length];
   unsigned	otherLength = [aString length];
-  NSZone	*z = GSObjCZone(self);
+  NSZone	*z = [self zone];
   unichar	*s = NSZoneMalloc(z, (len+otherLength)*sizeof(unichar));
   NSString	*tmp;
 
@@ -1603,6 +1776,28 @@ handle_printf_atsign (FILE *stream,
   return array;
 }
 
+- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
+                                       withString: (NSString*)by
+                                          options: (NSStringCompareOptions)opts
+                                            range: (NSRange)searchRange
+{
+  id copy = [self mutableCopy];
+  [copy replaceOccurrencesOfString: replace
+                        withString: by
+                           options: opts
+                             range: searchRange];
+  return [copy makeImmutableCopyOnFail: NO];
+}
+- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
+                                       withString: (NSString*)by
+{
+  return [self 
+      stringByReplacingOccurrencesOfString: replace
+                                withString: by
+                                   options: 0
+                                     range: NSMakeRange(0, [self length])];
+}
+
 /**
  * Returns a substring of the receiver from character at the specified
  * index to the end of the string.<br />
@@ -1612,7 +1807,7 @@ handle_printf_atsign (FILE *stream,
  * If the supplied index is greater than or equal to the length of the
  * receiver an exception is raised.
  */
-- (NSString*) substringFromIndex: (unsigned int)index
+- (NSString*) substringFromIndex: (NSUInteger)index
 {
   return [self substringWithRange: ((NSRange){index, [self length]-index})];
 }
@@ -1625,9 +1820,9 @@ handle_printf_atsign (FILE *stream,
  * If the supplied index is greater than the length of the receiver
  * an exception is raised.
  */
-- (NSString*) substringToIndex: (unsigned int)index
+- (NSString*) substringToIndex: (NSUInteger)index
 {
-  return [self substringWithRange: ((NSRange){0,index})];;
+  return [self substringWithRange: ((NSRange){0,index})];
 }
 
 /**
@@ -1655,7 +1850,7 @@ handle_printf_atsign (FILE *stream,
 
   if (aRange.length == 0)
     return @"";
-  buf = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*aRange.length);
+  buf = NSZoneMalloc([self zone], sizeof(unichar)*aRange.length);
   [self getCharacters: buf range: aRange];
   ret = [[NSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: buf length: aRange.length freeWhenDone: YES];
@@ -1689,7 +1884,7 @@ handle_printf_atsign (FILE *stream,
  * string).
  */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (unsigned int)mask
+			    options: (NSUInteger)mask
 {
   NSRange all = NSMakeRange(0, [self length]);
 
@@ -1708,7 +1903,7 @@ handle_printf_atsign (FILE *stream,
  * string).  Search only carried out within aRange.
  */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (unsigned int)mask
+			    options: (NSUInteger)mask
 			      range: (NSRange)aRange
 {
   unsigned int	i;
@@ -1716,7 +1911,7 @@ handle_printf_atsign (FILE *stream,
   unsigned int	stop;
   int		step;
   NSRange	range;
-  unichar	(*cImp)(id, SEL, unsigned int);
+  unichar	(*cImp)(id, SEL, NSUInteger);
   BOOL		(*mImp)(id, SEL, unichar);
 
   i = [self length];
@@ -1733,7 +1928,7 @@ handle_printf_atsign (FILE *stream,
   range.location = NSNotFound;
   range.length = 0;
 
-  cImp = (unichar(*)(id,SEL,unsigned int))
+  cImp = (unichar(*)(id,SEL,NSUInteger))
     [self methodForSelector: caiSel];
   mImp = (BOOL(*)(id,SEL,unichar))
     [aSet methodForSelector: cMemberSel];
@@ -1774,7 +1969,7 @@ handle_printf_atsign (FILE *stream,
  * set to the range of the whole of the receiver.
  */
 - (NSRange) rangeOfString: (NSString*)string
-		  options: (unsigned int)mask
+		  options: (NSUInteger)mask
 {
   NSRange	all = NSMakeRange(0, [self length]);
 
@@ -1808,7 +2003,7 @@ handle_printf_atsign (FILE *stream,
  * string.  Options should be OR'd together using <code>'|'</code>.
  */
 - (NSRange) rangeOfString: (NSString *)aString
-		  options: (unsigned int)mask
+		  options: (NSUInteger)mask
 		    range: (NSRange)aRange
 {
   GS_RANGE_CHECK(aRange, [self length]);
@@ -1825,7 +2020,7 @@ handle_printf_atsign (FILE *stream,
   return NSMakeRange(0, 0);     // FIXME
 }
 
-- (unsigned int) indexOfString: (NSString *)substring
+- (NSUInteger) indexOfString: (NSString *)substring
 {
   NSRange range = {0, [self length]};
 
@@ -1833,8 +2028,8 @@ handle_printf_atsign (FILE *stream,
   return range.length ? range.location : NSNotFound;
 }
 
-- (unsigned int) indexOfString: (NSString*)substring
-		     fromIndex: (unsigned int)index
+- (NSUInteger) indexOfString: (NSString*)substring
+		     fromIndex: (NSUInteger)index
 {
   NSRange range = {index, [self length] - index};
 
@@ -1849,18 +2044,18 @@ handle_printf_atsign (FILE *stream,
  * character sequence anIndex (note indices start from 0), returns the full
  * range of this sequence.
  */
-- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
   unsigned	start;
   unsigned	end;
   unsigned	length = [self length];
   unichar	ch;
-  unichar	(*caiImp)(NSString*, SEL, unsigned int);
+  unichar	(*caiImp)(NSString*, SEL, NSUInteger);
   NSCharacterSet *nbSet = [NSCharacterSet nonBaseCharacterSet];
 
   if (anIndex >= length)
     [NSException raise: NSRangeException format:@"Invalid location."];
-  caiImp = (unichar (*)(NSString*,SEL,unsigned))
+  caiImp = (unichar (*)(NSString*,SEL,NSUInteger))
     [self methodForSelector: caiSel];
 
   for (start = anIndex; start > 0; start--)
@@ -1900,7 +2095,7 @@ handle_printf_atsign (FILE *stream,
  * sequences may be used to express the same character.</p>
  */
 - (NSComparisonResult) compare: (NSString*)aString
-		       options: (unsigned int)mask
+		       options: (NSUInteger)mask
 {
   return [self compare: aString options: mask
 		 range: ((NSRange){0, [self length]})];
@@ -1917,7 +2112,7 @@ handle_printf_atsign (FILE *stream,
  */
 // xxx Should implement full POSIX.2 collate
 - (NSComparisonResult) compare: (NSString*)aString
-		       options: (unsigned int)mask
+		       options: (NSUInteger)mask
 			 range: (NSRange)aRange
 {
   GS_RANGE_CHECK(aRange, [self length]);
@@ -1961,7 +2156,7 @@ handle_printf_atsign (FILE *stream,
     }
   if (anObject != nil && GSObjCIsInstance(anObject) == YES)
     {
-      Class c = GSObjCClass(anObject);
+      Class c = object_getClass(anObject);
 
       if (c != nil)
 	{
@@ -1993,7 +2188,7 @@ handle_printf_atsign (FILE *stream,
  * for other purposes in a bitfield in the concrete string subclasses, so we
  * must not use the full unsigned integer.
  */
-- (unsigned int) hash
+- (NSUInteger) hash
 {
   unsigned	ret = 0;
   unsigned	len = [self length];
@@ -2051,7 +2246,7 @@ handle_printf_atsign (FILE *stream,
  *  the same character.
  */
 - (NSString*) commonPrefixWithString: (NSString*)aString
-			     options: (unsigned int)mask
+			     options: (NSUInteger)mask
 {
   if (mask & NSLiteralSearch)
     {
@@ -2094,12 +2289,12 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      unichar	(*scImp)(NSString*, SEL, unsigned int);
-      unichar	(*ocImp)(NSString*, SEL, unsigned int);
+      unichar	(*scImp)(NSString*, SEL, NSUInteger);
+      unichar	(*ocImp)(NSString*, SEL, NSUInteger);
       void	(*sgImp)(NSString*, SEL, unichar*, NSRange) = 0;
       void	(*ogImp)(NSString*, SEL, unichar*, NSRange) = 0;
-      NSRange	(*srImp)(NSString*, SEL, unsigned int) = 0;
-      NSRange	(*orImp)(NSString*, SEL, unsigned int) = 0;
+      NSRange	(*srImp)(NSString*, SEL, NSUInteger) = 0;
+      NSRange	(*orImp)(NSString*, SEL, NSUInteger) = 0;
       BOOL	gotRangeImps = NO;
       BOOL	gotFetchImps = NO;
       NSRange	sRange;
@@ -2114,9 +2309,9 @@ handle_printf_atsign (FILE *stream,
       if (!oLength)
 	return IMMUTABLE(aString);
 
-      scImp = (unichar (*)(NSString*,SEL,unsigned))
+      scImp = (unichar (*)(NSString*,SEL,NSUInteger))
 	[self methodForSelector: caiSel];
-      ocImp = (unichar (*)(NSString*,SEL,unsigned))
+      ocImp = (unichar (*)(NSString*,SEL,NSUInteger))
 	[aString methodForSelector: caiSel];
 
       while ((sIndex < sLength) && (oIndex < oLength))
@@ -2195,8 +2390,8 @@ handle_printf_atsign (FILE *stream,
  */
 - (NSRange) lineRangeForRange: (NSRange)aRange
 {
-  unsigned startIndex;
-  unsigned lineEndIndex;
+  NSUInteger startIndex;
+  NSUInteger lineEndIndex;
 
   [self getLineStart: &startIndex
                  end: &lineEndIndex
@@ -2227,14 +2422,14 @@ handle_printf_atsign (FILE *stream,
  * arguments to be null pointers (in which case no value is returned in that
  * argument).
  */
-- (void) getLineStart: (unsigned int *)startIndex
-                  end: (unsigned int *)lineEndIndex
-          contentsEnd: (unsigned int *)contentsEndIndex
+- (void) getLineStart: (NSUInteger*)startIndex
+                  end: (NSUInteger*)lineEndIndex
+          contentsEnd: (NSUInteger*)contentsEndIndex
 	     forRange: (NSRange)aRange
 {
   unichar	thischar;
   unsigned	start, end, len, termlen;
-  unichar	(*caiImp)(NSString*, SEL, unsigned int);
+  unichar	(*caiImp)(NSString*, SEL, NSUInteger);
 
   len = [self length];
   GS_RANGE_CHECK(aRange, len);
@@ -2357,6 +2552,10 @@ handle_printf_atsign (FILE *stream,
                   forRange: (NSRange)range
 {
   // FIXME
+  [self getLineStart: startPtr
+        end: parEndPtr
+        contentsEnd: contentsEndPtr
+        forRange: range];
 }
 
 // Changing Case
@@ -2381,7 +2580,7 @@ handle_printf_atsign (FILE *stream,
   if (whitespaceBitmapRep == NULL)
     setupWhitespace();
 
-  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc([self zone], sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
   while (count < len)
     {
@@ -2445,7 +2644,7 @@ handle_printf_atsign (FILE *stream,
     {
       return IMMUTABLE(self);
     }
-  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc([self zone], sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
   for (count = start.location; count < len; count++)
     {
@@ -2482,7 +2681,7 @@ handle_printf_atsign (FILE *stream,
     {
       return IMMUTABLE(self);
     }
-  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+  s = NSZoneMalloc([self zone], sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
   for (count = start.location; count < len; count++)
     {
@@ -2545,7 +2744,7 @@ handle_printf_atsign (FILE *stream,
     }
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  AUTORELEASE(m);
+  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -2581,7 +2780,7 @@ handle_printf_atsign (FILE *stream,
     {
       [m appendBytes: "" length: 1];
     }
-  AUTORELEASE(m);
+  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -2590,7 +2789,7 @@ handle_printf_atsign (FILE *stream,
  * specified encoding (without adding a nul character terminator).<br />
  * Returns 0 if the conversion is not possible.
  */
-- (unsigned) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+- (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
 {
   NSData	*d;
 
@@ -2603,7 +2802,7 @@ handle_printf_atsign (FILE *stream,
  * specified encoding (without adding a nul character terminator).  This may
  * be larger than the actual number of bytes needed.
  */
-- (unsigned) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding
+- (NSUInteger) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding
 {
   if (encoding == NSUnicodeStringEncoding)
     return [self length] * 2;
@@ -2628,7 +2827,7 @@ handle_printf_atsign (FILE *stream,
          allowLossyConversion: YES];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  AUTORELEASE(m);
+  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -2646,7 +2845,7 @@ handle_printf_atsign (FILE *stream,
          allowLossyConversion: NO];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  AUTORELEASE(m);
+  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -2656,7 +2855,7 @@ handle_printf_atsign (FILE *stream,
  *  information loss, the results are unpredictable.  Check
  *  -canBeConvertedToEncoding: first.
  */
-- (unsigned int) cStringLength
+- (NSUInteger) cStringLength
 {
   NSData	*d;
 
@@ -2681,7 +2880,7 @@ handle_printf_atsign (FILE *stream,
  * Use -getCString:maxLength:encoding: instead.
  */
 - (void) getCString: (char*)buffer
-	  maxLength: (unsigned int)maxLength
+	  maxLength: (NSUInteger)maxLength
 {
   [self getCString: buffer maxLength: maxLength
 	     range: ((NSRange){0, [self length]})
@@ -2707,7 +2906,7 @@ handle_printf_atsign (FILE *stream,
  * twelve if NSUnicodeStringEncoding is requested. 
  */
 - (BOOL) getCString: (char*)buffer
-	  maxLength: (unsigned int)maxLength
+	  maxLength: (NSUInteger)maxLength
 	   encoding: (NSStringEncoding)encoding
 {
   if (encoding == NSUnicodeStringEncoding)
@@ -2752,7 +2951,7 @@ handle_printf_atsign (FILE *stream,
  * Use -getCString:maxLength:encoding: instead.
  */
 - (void) getCString: (char*)buffer
-	  maxLength: (unsigned int)maxLength
+	  maxLength: (NSUInteger)maxLength
 	      range: (NSRange)aRange
      remainingRange: (NSRange*)leftoverRange
 {
@@ -2773,27 +2972,33 @@ handle_printf_atsign (FILE *stream,
 
 // Getting Numeric Values
 
-// xxx Should we use NSScanner here ?
-
-/**
- * Returns YES when scanning the receiver's text from left to right finds a
- * digit in the range 1-9 or a letter in the set ('Y', 'y', 'T', 't').<br />
- * Any trailing characters are ignored.<br />
- * Any leading whitespace or zeros or signs are also ignored.<br />
- * Returns NO if the above conditions are not met.
- */
 - (BOOL) boolValue
 {
-  static NSCharacterSet *yes = nil;
+  unsigned	length = [self length];
 
-  if (yes == nil)
+  if (length > 0)
     {
-      yes = RETAIN([NSCharacterSet characterSetWithCharactersInString:
-      @"123456789yYtT"]);
-    }
-  if ([self rangeOfCharacterFromSet: yes].length > 0)
-    {
-      return YES;
+      unsigned	index;
+      SEL	sel = @selector(characterAtIndex:);
+      unichar	(*imp)() = (unichar (*)())[self methodForSelector: sel];
+
+      for (index = 0; index < length; index++)
+	{
+	  unichar	c = (*imp)(self, sel, index);
+
+	  if (c > 'y')
+	    {
+	      break;
+	    }
+          if (strchr("123456789yYtT", c) != 0)
+	    {
+	      return YES;
+	    }
+	  if (!isspace(c) && c != '0' && c != '-' && c != '+')
+	    {
+	      break;
+	    }
+	}
     }
   return NO;
 }
@@ -2988,7 +3193,7 @@ handle_printf_atsign (FILE *stream,
        */
       if (len >= 4096)
 	{
-	  u = objc_malloc(len * sizeof(unichar));
+	  u = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
 	}
       [self getCharacters: u];
       if (flag == NO)
@@ -3010,7 +3215,7 @@ handle_printf_atsign (FILE *stream,
 	}
       if (u != buf)
 	{
-	  objc_free(u);
+	  NSZoneFree(NSDefaultMallocZone(), u);
 	}
     }
   return d;
@@ -3034,10 +3239,10 @@ handle_printf_atsign (FILE *stream,
   return NSUnicodeStringEncoding;
 }
 
-- (unsigned int) completePathIntoString: (NSString**)outputName
-			  caseSensitive: (BOOL)flag
-		       matchesIntoArray: (NSArray**)outputArray
-			    filterTypes: (NSArray*)filterTypes
+- (NSUInteger) completePathIntoString: (NSString**)outputName
+                        caseSensitive: (BOOL)flag
+                     matchesIntoArray: (NSArray**)outputArray
+                          filterTypes: (NSArray*)filterTypes
 {
   NSString		*basePath = [self stringByDeletingLastPathComponent];
   NSString		*lastComp = [self lastPathComponent];
@@ -3107,7 +3312,7 @@ handle_printf_atsign (FILE *stream,
 
 static NSFileManager *fm = nil;
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 - (const GSNativeChar*) fileSystemRepresentation
 {
   if (fm == nil)
@@ -3118,7 +3323,7 @@ static NSFileManager *fm = nil;
 }
 
 - (BOOL) getFileSystemRepresentation: (GSNativeChar*)buffer
-			   maxLength: (unsigned int)size
+			   maxLength: (NSUInteger)size
 {
   const unichar	*ptr;
   unsigned	i;
@@ -3159,7 +3364,7 @@ static NSFileManager *fm = nil;
 }
 
 - (BOOL) getFileSystemRepresentation: (GSNativeChar*)buffer
-			   maxLength: (unsigned int)size
+			   maxLength: (NSUInteger)size
 {
   const char* ptr;
 
@@ -3230,7 +3435,14 @@ static NSFileManager *fm = nil;
 
 - (NSRange) paragraphRangeForRange: (NSRange)range
 {
-  return NSMakeRange(0, 0);     // FIXME
+  NSUInteger startIndex;
+  NSUInteger endIndex;
+
+  [self getParagraphStart: &startIndex
+        end: &endIndex
+        contentsEnd: NULL
+        forRange: range];
+  return NSMakeRange(startIndex, endIndex - startIndex);
 }
 
 - (NSString*) pathExtension
@@ -3655,9 +3867,9 @@ static NSFileManager *fm = nil;
  * as required).  The first character from padString to be appended
  * is specified by padIndex.<br />
  */
-- (NSString*) stringByPaddingToLength: (unsigned int)newLength
+- (NSString*) stringByPaddingToLength: (NSUInteger)newLength
 			   withString: (NSString*)padString
-		      startingAtIndex: (unsigned int)padIndex
+		      startingAtIndex: (NSUInteger)padIndex
 {
   unsigned	length = [self length];
   unsigned	padLength;
@@ -3830,7 +4042,7 @@ static NSFileManager *fm = nil;
 
 - (NSString*) stringByResolvingSymlinksInPath
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   return IMMUTABLE(self);
 #else
   #ifndef PATH_MAX
@@ -3997,14 +4209,14 @@ static NSFileManager *fm = nil;
     }
   return [[NSFileManager defaultManager]
    stringWithFileSystemRepresentation: newBuf length: strlen(newBuf)];
-#endif  /* (__MINGW32__) */
+#endif  /* (__MINGW__) */
 }
 
 - (NSString*) stringByStandardizingPath
 {
   NSMutableString	*s;
   NSRange		r;
-  unichar		(*caiImp)(NSString*, SEL, unsigned int);
+  unichar		(*caiImp)(NSString*, SEL, NSUInteger);
   unsigned int		l = [self length];
   unichar		c;
   unsigned		root;
@@ -4108,7 +4320,7 @@ static NSFileManager *fm = nil;
    *	For absolute paths, we must resolve symbolic links or (on MINGW)
    *	remove '/../' sequences and their matching parent directories.
    */
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   /* Condense `/../' */
   r = (NSRange){root, l-root};
   while ((r = [s rangeOfString: @".." options: 0 range: r]).length == 2)
@@ -4173,7 +4385,7 @@ static NSFileManager *fm = nil;
     }
   if (length > 0)
     {
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      unichar	(*caiImp)(NSString*, SEL, NSUInteger);
       BOOL	(*mImp)(id, SEL, unichar);
       unichar	letter;
 
@@ -4219,7 +4431,7 @@ static NSFileManager *fm = nil;
   if (len > 0)
     {
       unsigned int	count = 0;
-      unichar	(*caiImp)(NSString*, SEL, unsigned int);
+      unichar	(*caiImp)(NSString*, SEL, NSUInteger);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (count < len)
@@ -4278,7 +4490,7 @@ static NSFileManager *fm = nil;
    */
   if (c == pathSepChar())
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       if (GSPathHandlingUnix() == YES)
 	{
 	  return YES;
@@ -4438,7 +4650,7 @@ static NSFileManager *fm = nil;
  * IGNORE the locale.</em></p>
  */
 - (NSComparisonResult) compare: (NSString *)string
-		       options: (unsigned int)mask
+		       options: (NSUInteger)mask
 			 range: (NSRange)compareRange
 			locale: (NSDictionary *)dict
 {
@@ -4491,6 +4703,72 @@ static NSFileManager *fm = nil;
 }
 
 /**
+ * Writes contents out to file at filename, using the default C string encoding
+ * unless this would result in information loss, otherwise straight unicode.
+ * The '<code>atomically</code>' option if set will cause the contents to be
+ * written to a temp file, which is then closed and renamed to filename.  Thus,
+ * an incomplete file at filename should never result.<br />
+ * If there is a problem and error is not NULL, the cause of the problem is
+ * returned in *error.
+ */
+- (BOOL) writeToFile: (NSString*)path
+	  atomically: (BOOL)atomically
+	    encoding: (NSStringEncoding)enc
+	       error: (NSError**)error
+{
+  id	d = [self dataUsingEncoding: enc];
+
+  if (d == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+	    code: NSFileWriteInapplicableStringEncodingError
+	    userInfo: nil];
+        }
+      return NO;
+    }
+  return [d writeToFile: path
+	        options: atomically ? NSAtomicWrite : 0
+		  error: error];
+}
+
+/**
+ * Writes contents out to anURL, using the default C string encoding
+ * unless this would result in information loss, otherwise straight unicode.
+ * See [NSURLHandle-writeData:] on which URL types are supported.
+ * The '<code>atomically</code>' option is only heeded if the URL is a
+ * <code>file://</code> URL; see -writeToFile:atomically: .<br />
+ * If there is a problem and error is not NULL, the cause of the problem is
+ * returned in *error.
+ */
+- (BOOL) writeToURL: (NSURL*)anURL
+	 atomically: (BOOL)atomically
+	    encoding: (NSStringEncoding)enc
+	       error: (NSError**)error
+{
+  id	d = [self dataUsingEncoding: enc];
+
+  if (d == nil)
+    {
+      d = [self dataUsingEncoding: NSUnicodeStringEncoding];
+    }
+  if (d == nil)
+    {
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+	    code: NSFileWriteInapplicableStringEncodingError
+	    userInfo: nil];
+        }
+      return NO;
+    }
+  return [d writeToURL: anURL
+	       options: atomically ? NSAtomicWrite : 0
+		 error: error];
+}
+
+/**
  * Writes contents out to anURL, using the default C string encoding
  * unless this would result in information loss, otherwise straight unicode.
  * See [NSURLHandle-writeData:] on which URL types are supported.
@@ -4539,7 +4817,7 @@ static NSFileManager *fm = nil;
     {
       unsigned	count = [self length];
 
-      [aCoder encodeValueOfObjCType: @encode(unsigned int) at: &count];
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
       if (count > 0)
 	{
 	  NSStringEncoding	enc = NSUnicodeStringEncoding;
@@ -4561,8 +4839,18 @@ static NSFileManager *fm = nil;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSString *string = (NSString*)[(NSKeyedUnarchiver*)aCoder
-			     _decodePropertyListForKey: @"NS.string"];
+      NSString *string = nil;
+
+      if ([aCoder containsValueForKey: @"NS.string"])
+          {
+            string = (NSString*)[(NSKeyedUnarchiver*)aCoder
+                                    _decodePropertyListForKey: @"NS.string"];
+          }
+      else if ([aCoder containsValueForKey: @"NS.bytes"])
+        {
+          string = (NSString*)[(NSKeyedUnarchiver*)aCoder
+                                    decodeObjectForKey: @"NS.bytes"];
+        }
 
       self = [self initWithString: string];
     }
@@ -4570,7 +4858,7 @@ static NSFileManager *fm = nil;
     {
       unsigned	count;
 	
-      [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &count];
+      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
 
       if (count > 0)
         {
@@ -4581,7 +4869,7 @@ static NSFileManager *fm = nil;
 #if	GS_WITH_GC
 	  zone = GSAtomicMallocZone();
 #else
-	  zone = GSObjCZone(self);
+	  zone = [self zone];
 #endif
 	
 	  if (enc == NSUnicodeStringEncoding)
@@ -4600,7 +4888,11 @@ static NSFileManager *fm = nil;
 	    {
 	      unsigned char	*chars;
 	
+#if	GS_WITH_GC
+	      chars = NSAllocateCollectable(count+1, 0);
+#else
 	      chars = NSZoneMalloc(zone, count+1);
+#endif
 	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 		                      count: count
 				         at: chars];
@@ -4783,7 +5075,7 @@ static NSFileManager *fm = nil;
 /**
  * Constructs an empty string with initial buffer size of capacity.
  */
-+ (NSMutableString*) stringWithCapacity: (unsigned int)capacity
++ (NSMutableString*) stringWithCapacity: (NSUInteger)capacity
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: capacity]);
@@ -4794,7 +5086,7 @@ static NSFileManager *fm = nil;
  */
 // Inefficient implementation.
 + (id) stringWithCharacters: (const unichar*)characters
-		     length: (unsigned int)length
+		     length: (NSUInteger)length
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCharacters: characters length: length]);
@@ -4828,7 +5120,7 @@ static NSFileManager *fm = nil;
  * (Characters will be converted to unicode representation internally.)
  */
 + (id) stringWithCString: (const char*)byteString
-		  length: (unsigned int)length
+		  length: (NSUInteger)length
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
@@ -4854,14 +5146,14 @@ static NSFileManager *fm = nil;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithCapacity: (unsigned int)capacity
+- (id) initWithCapacity: (NSUInteger)capacity
 {
   self = [self init];
   return self;
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
+			 length: (NSUInteger)length
 		   freeWhenDone: (BOOL)flag
 {
   if ((self = [self initWithCapacity: length]) != nil && length > 0)
@@ -4879,7 +5171,7 @@ static NSFileManager *fm = nil;
 }
 
 - (id) initWithCStringNoCopy: (char*)chars
-		      length: (unsigned int)length
+		      length: (NSUInteger)length
 		freeWhenDone: (BOOL)flag
 {
   if ((self = [self initWithCapacity: length]) != nil && length > 0)
@@ -4943,7 +5235,7 @@ static NSFileManager *fm = nil;
 /**
  * Modifies this instance by inserting aString at loc.
  */
-- (void) insertString: (NSString*)aString atIndex: (unsigned int)loc
+- (void) insertString: (NSString*)aString atIndex: (NSUInteger)loc
 {
   NSRange range = {loc, 0};
   [self replaceCharactersInRange: range withString: aString];
@@ -4970,10 +5262,10 @@ static NSFileManager *fm = nil;
  * Raises NSRangeException if part of searchRange is beyond the end
  * of the receiver.
  */
-- (unsigned int) replaceOccurrencesOfString: (NSString*)replace
-				 withString: (NSString*)by
-				    options: (unsigned int)opts
-				      range: (NSRange)searchRange
+- (NSUInteger) replaceOccurrencesOfString: (NSString*)replace
+                               withString: (NSString*)by
+                                  options: (NSUInteger)opts
+                                    range: (NSRange)searchRange
 {
   NSRange	range;
   unsigned int	count = 0;
@@ -5036,34 +5328,6 @@ static NSFileManager *fm = nil;
 {
   NSRange range = {0, [self length]};
   [self replaceCharactersInRange: range withString: aString];
-}
-
-@end
-
-
-/**
- * GNUstep specific (non-standard) additions to the NSMutableString class.
- * The methods in this category are not available in MacOS-X
- */
-@implementation NSMutableString (GNUstep)
-
-/**
- * Returns a proxy to the receiver which will allow access to the
- * receiver as an NSString, but which will not allow any of the
- * extra NSMutableString methods to be used.  You can use this method
- * to provide other code with read-only access to a mutable string
- * you own.
- */
-- (NSString*) immutableProxy
-{
-  if ([self isKindOfClass: GSMutableStringClass])
-    {
-      return AUTORELEASE([[GSImmutableString alloc] initWithString: self]);
-    }
-  else
-    {
-      return AUTORELEASE([[NSImmutableString alloc] initWithString: self]);
-    }
 }
 
 @end

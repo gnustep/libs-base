@@ -21,16 +21,19 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
+#import "common.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
-#import "Foundation/NSDebug.h"
 #import "GSInvocation.h"
-#import <config.h>
 #import <objc/objc-api.h>
 #import <avcall.h>
 #import <callback.h>
 #import "callframe.h"
+
+#include <pthread.h>
+
+#import "GSInvocation.h"
 
 #ifndef INLINE
 #define INLINE inline
@@ -134,7 +137,7 @@ static GSIMapTable_t ff_callback_map;
 
 /* Lock that protects the ff_callback_map */
 
-static objc_mutex_t  ff_callback_map_lock = NULL;
+static pthread_mutex_t ff_callback_map_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Static pre-computed return type info */
 
@@ -287,7 +290,7 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
   if (receiver)
     {
       return GSGetMethod((GSObjCIsInstance(receiver)
-			  ? GSObjCClass(receiver) : (Class)receiver),
+			  ? object_getClass(receiver) : (Class)receiver),
 			 sel,
 			 GSObjCIsInstance(receiver),
 			 YES);
@@ -318,7 +321,7 @@ gs_find_best_typed_sel (SEL sel)
 {
   if (!sel_get_type (sel))
     {
-      const char *name = GSNameFromSelector(sel);
+      const char *name = sel_getName(sel);
 
       if (name)
 	{
@@ -475,7 +478,7 @@ static IMP gs_objc_msg_forward (SEL sel)
       GSIMapNode node;
 
       // Lock
-      objc_mutex_lock (ff_callback_map_lock);
+      pthread_mutex_lock (&ff_callback_map_lock);
 
       node = GSIMapNodeForKey (&ff_callback_map,
 	(GSIMapKey) ((void *) &returnInfo));
@@ -501,7 +504,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 	    (GSIMapVal) forwarding_callback);
 	}
       // Unlock
-      objc_mutex_unlock (ff_callback_map_lock);
+      pthread_mutex_unlock (&ff_callback_map_lock);
     }
   return forwarding_callback;
 }
@@ -509,8 +512,6 @@ static IMP gs_objc_msg_forward (SEL sel)
 + (void) load
 {
   int index;
-
-  ff_callback_map_lock = objc_mutex_allocate ();
 
   for (index = 0; index < STATIC_CALLBACK_LIST_SIZE; ++index)
     {
@@ -527,7 +528,8 @@ static IMP gs_objc_msg_forward (SEL sel)
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
   /* We should never get here */
-  NSDeallocateObject(self);
+  [self dealloc];
+  self = nil;
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Runtime incorrectly configured to pass argframes"];
   return nil;
@@ -540,13 +542,13 @@ static IMP gs_objc_msg_forward (SEL sel)
 {
   if (aSignature == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
-  _info = [aSignature methodInfo];
-  _cframe = callframe_from_info(_info, _numArgs, &_retval);
+  _info = (void*)[aSignature methodInfo];
+  _cframe = callframe_from_signature(_sig, &_retval);
   return self;
 }
 
@@ -560,6 +562,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   unsigned int		i;
   av_alist		alist;
   NSInvocation_t	*inv = (NSInvocation_t*)_inv;
+  NSArgumentInfo	*info = (NSArgumentInfo*)inv->_info;
   void			*retval = inv->_retval;
 
   /* Do an av call starting with the return type */
@@ -569,7 +572,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	  _F(alist, imp, retval);	       		\
           break;
 
-  switch (*inv->_info[0].type)
+  switch (*info[0].type)
     {
       case _C_ID:
 	av_start_ptr(alist, imp, id, retval);
@@ -604,12 +607,13 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	{
 	  int split = 0;
 
-	  if (inv->_info[0].size > sizeof(long)
-	    && inv->_info[0].size <= 2*sizeof(long))
+	  if (info[0].size > sizeof(long)
+	    && info[0].size <= 2*sizeof(long))
 	    {
-	      split = gs_splittable(inv->_info[0].type);
+	      split = gs_splittable(info[0].type);
 	    }
-	  _av_start_struct(alist, imp, inv->_info[0].size, split, retval);
+	  _av_start_struct(alist, imp,
+	    info[0].size, split, retval);
 	  break;
 	}
       case _C_VOID:
@@ -617,7 +621,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	break;
       default:
 	NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented",
-	  inv->_info[0].type);
+	  info[0].type);
 	break;
     }
 
@@ -628,8 +632,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   /* Set the rest of the arguments */
   for (i = 2; i < inv->_numArgs; i++)
     {
-      const char	*type = inv->_info[i+1].type;
-      unsigned		size = inv->_info[i+1].size;
+      const char	*type = info[i+1].type;
+      unsigned		size = info[i+1].size;
       void              *datum;
 
       datum = callframe_arg_addr((callframe_t *)inv->_cframe, i);
@@ -696,7 +700,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	    CASE_TYPE(_C_DBL,  double, av_double)
 	
 	  case _C_STRUCT_B:
-	    _av_struct(alist, size, inv->_info[i+1].align, datum);
+	    _av_struct(alist, size,
+	      info[i+1].align, datum);
 	    break;
 	  default:
 	    NSCAssert1(0, @"GSFFCallInvocation: Type '%s' not implemented",
@@ -722,8 +727,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
    */
   if (anObject == nil)
     {
-      memset(_retval, '\0', _info[0].size);	/* Clear return value */
-      if (*_info[0].type != _C_VOID)
+      memset(_retval, '\0', _inf[0].size);	/* Clear return value */
+      if (*_inf[0].type != _C_VOID)
         {
           _validReturn = YES;
         }
@@ -740,8 +745,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   old_target = RETAIN(_target);
   [self setTarget: anObject];
 
-  callframe_set_arg((callframe_t *)_cframe, 0, &_target, _info[1].size);
-  callframe_set_arg((callframe_t *)_cframe, 1, &_selector, _info[2].size);
+  callframe_set_arg((callframe_t *)_cframe, 0, &_target, _inf[1].size);
+  callframe_set_arg((callframe_t *)_cframe, 1, &_selector, _inf[2].size);
 
   if (_sendToSuper == YES)
     {
@@ -749,16 +754,16 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 
       s.self = _target;
       if (GSObjCIsInstance(_target))
-	s.class = GSObjCSuper(GSObjCClass(_target));
+	s.class = class_getSuperclass(object_getClass(_target));
       else
-	s.class = GSObjCSuper((Class)_target);
+	s.class = class_getSuperclass((Class)_target);
       imp = objc_msg_lookup_super(&s, _selector);
     }
   else
     {
       GSMethod method;
       method = GSGetMethod((GSObjCIsInstance(_target)
-                            ? (id)GSObjCClass(_target)
+                            ? (id)object_getClass(_target)
                             : (id)_target),
                            _selector,
                            GSObjCIsInstance(_target),
@@ -800,13 +805,13 @@ gs_protocol_selector(const char *types)
     }
   while (*types != '\0')
     {
-      if (*types == '-')
+      if (*types == '+' || *types == '-')
 	{
 	  types++;
 	}
-      if (*types == '+' || isdigit(*types))
+      while(isdigit(*types))
 	{
-	  types = objc_skip_offset(types);
+	  types++;
 	}
       while (*types == _C_CONST || *types == _C_GCINVISIBLE)
 	{
@@ -884,7 +889,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 		           @" to forwardInvocation: for '%s'",
 		   GSClassNameFromObject(obj),
 		   GSObjCIsInstance(obj) ? "instance" : "class",
-		   selector ? GSNameFromSelector(selector) : "(null)"];
+		   selector ? sel_getName(selector) : "(null)"];
     }
 
   sig = nil;
@@ -912,7 +917,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 
       if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
 	{
-	  const char	*runtimeName = GSNameFromSelector(selector);
+	  const char	*runtimeName = sel_getName(selector);
 
 	  selector = sel_get_typed_uid (runtimeName, receiverTypes);
 	  if (selector == 0)
@@ -952,7 +957,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
                    format: @"Can not determine type information for %s[%s %s]",
                    GSObjCIsInstance(obj) ? "-" : "+",
 	 GSClassNameFromObject(obj),
-	 selector ? GSNameFromSelector(selector) : "(null)"];
+	 selector ? sel_getName(selector) : "(null)"];
     }
 
   invocation = [[GSFFCallInvocation alloc] initWithMethodSignature: sig];
@@ -1123,8 +1128,8 @@ GSInvocationCallback (void *callback_data, va_alist args)
 
   for (i = 0; i < _numArgs; i++)
     {
-      int		flags = _info[i+1].qual;
-      const char	*type = _info[i+1].type;
+      int		flags = _inf[i+1].qual;
+      const char	*type = _inf[i+1].type;
       void		*datum;
 
       if (i == 0)

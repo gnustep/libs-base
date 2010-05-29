@@ -23,6 +23,8 @@
    $Date$ $Revision$
    */
 
+#include "common.h"
+
 #include "Foundation/NSPortNameServer.h"
 
 #include "Foundation/NSAutoreleasePool.h"
@@ -50,7 +52,7 @@ extern __declspec(dllimport) int	errno;
 
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;
-static NSMapTable portToNamesMap;
+static NSMapTable *portToNamesMap;
 static NSString	*registry;
 static HKEY	key;
 
@@ -76,7 +78,7 @@ static void clean_up_names(void)
       [defaultServer removePort: port];
     }
   NSEndMapTableEnumeration(&mEnum);
-  DESTROY(arp);
+  IF_NO_GC([arp release]);
   RegCloseKey(key);
   if (unknownThread == YES)
     {
@@ -105,7 +107,7 @@ static void clean_up_names(void)
 
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default
-      security.bInheritHandle = TRUE;
+      security.bInheritHandle = FALSE;
 
       registry = @"Software\\GNUstepNSMessagePort";
       rc = RegCreateKeyExW(

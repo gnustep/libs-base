@@ -24,15 +24,14 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSInvocation.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSUndoManager.h"
+#import "common.h"
+#define	EXPOSE_NSUndoManager_IVARS	1
+#import "Foundation/NSArray.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSUndoManager.h"
 
 
 /*
@@ -498,7 +497,7 @@
  * groupings which can be nested, not the number of of groups on either
  * the undo or redo stack.
  */
-- (int) groupingLevel
+- (NSInteger) groupingLevel
 {
   PrivateUndoGroup	*g = (PrivateUndoGroup*)_group;
   int			level = 0;
@@ -1067,3 +1066,39 @@
 
 @end
 
+/*
+ * Category with auxiliary method to support coalescing undo actions
+ * for typing events in NSTextView. However, the implementation is
+ * not restricted to that purpose.
+ */
+@interface NSUndoManager(UndoCoalescing)
+- (BOOL) _canCoalesceUndoWithTarget: (id)target
+			   selector: (SEL)aSelector
+			     object: (id)anObject;
+@end
+
+@implementation NSUndoManager(UndoCoalescing)
+- (BOOL) _canCoalesceUndoWithTarget: (id)target
+			   selector: (SEL)aSelector
+			     object: (id)anObject
+{
+  if (_isUndoing == NO && _isRedoing == NO && [_undoStack count] > 0)
+    {
+      int      i;
+      NSArray *a = [[_undoStack lastObject] actions];
+
+      for (i = 0; i < [a count]; i++)
+        {
+	  NSInvocation *inv = [a objectAtIndex: i];
+	  if ([inv target] == target && [inv selector] == aSelector)
+	    {
+	      id object;
+	      [inv getArgument: &object atIndex: 2];
+	      if (object == anObject)
+		return YES;
+	    }
+	}
+    }
+  return NO;
+}
+@end

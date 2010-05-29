@@ -25,18 +25,19 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSPortNameServer.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSUserDefaults.h"
-#include "GSPrivate.h"
+#import "common.h"
+#define	EXPOSE_NSPort_IVARS	1
+#import "Foundation/NSException.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSPortNameServer.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 @class NSMessagePort;
@@ -81,6 +82,8 @@ static Class	NSPort_concrete_class;
     {
       NSUserDefaults	*defs;
 
+      GSMakeWeakPointer(self, "delegate");
+
       NSPort_abstract_class = self;
       NSPort_concrete_class = [NSMessagePort class];
 
@@ -101,7 +104,7 @@ static Class	NSPort_concrete_class;
     return AUTORELEASE([self new]);
 }
 
-+ (NSPort*) portWithMachPort: (int)machPort
++ (NSPort*) portWithMachPort: (NSInteger)machPort
 {
   return AUTORELEASE([[self alloc] initWithMachPort: machPort]);
 }
@@ -133,13 +136,13 @@ static Class	NSPort_concrete_class;
 
   if (obj != self)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = RETAIN(obj);
     }
   return self;
 }
 
-- (id) initWithMachPort: (int)machPort
+- (id) initWithMachPort: (NSInteger)machPort
 {
   [self shouldNotImplement: _cmd];
   return nil;
@@ -165,7 +168,7 @@ static Class	NSPort_concrete_class;
   return _is_valid;
 }
 
-- (int) machPort
+- (NSInteger) machPort
 {
   [self shouldNotImplement: _cmd];
   return 0;
@@ -219,7 +222,7 @@ static Class	NSPort_concrete_class;
   [aLoop removePort: self forMode: aMode];
 }
 
-- (unsigned) reservedSpaceLength
+- (NSUInteger) reservedSpaceLength
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -228,7 +231,7 @@ static Class	NSPort_concrete_class;
 - (BOOL) sendBeforeDate: (NSDate*)when
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
-               reserved: (unsigned) length
+               reserved: (NSUInteger)length
 {
   return [self sendBeforeDate: when
 			msgid: 0
@@ -238,10 +241,10 @@ static Class	NSPort_concrete_class;
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (int)msgid
+		  msgid: (NSInteger)msgid
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
-               reserved: (unsigned)length
+               reserved: (NSUInteger)length
 {
   [self subclassResponsibility: _cmd];
   return YES;

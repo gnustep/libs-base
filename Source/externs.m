@@ -22,13 +22,12 @@
    Boston, MA 02111 USA.
    */
 
-#include "config.h"
-#include "Foundation/NSString.h"
+#import "common.h"
 
-#include "Foundation/NSArray.h"
-#include "Foundation/NSException.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSException.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 /*
  PENDING some string constants are scattered about in the class impl

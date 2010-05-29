@@ -1,7 +1,7 @@
 /* Implementation for NSURLConnection for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,9 +22,11 @@
    Boston, MA 02111 USA.
    */ 
 
-#import <Foundation/NSRunLoop.h>
-#import "GSURLPrivate.h"
+#import "common.h"
 
+#define	EXPOSE_NSURLConnection_IVARS	1
+#import "Foundation/NSRunLoop.h"
+#import "GSURLPrivate.h"
 
 @interface _NSURLConnectionDataCollector : NSObject <NSURLProtocolClient>
 {
@@ -111,6 +113,13 @@ redirectResponse: (NSURLResponse*)redirectResponse
   _done = YES;
 }
 
+- (void) connection: (NSURLConnection *)connection
+   didFailWithError: (NSError *)error
+{
+  *_error = error;
+  _done = YES;
+}
+
 - (void) URLProtocol: (NSURLProtocol*)proto
   didReceiveResponse: (NSURLResponse*)response
   cacheStoragePolicy: (NSURLCacheStoragePolicy)policy
@@ -123,10 +132,29 @@ redirectResponse: (NSURLResponse*)redirectResponse
   _done = YES;
 }
 
+- (void) connectionDidFinishLoading: (NSURLConnection *)connection
+{
+  _done = YES;
+}
+
+
 - (void) URLProtocol: (NSURLProtocol*)proto
 	 didLoadData: (NSData*)data
 {
-  if (_data != nil)
+  if (_data == nil)
+    {
+      _data = [data mutableCopy];
+    }
+  else
+    {
+      [_data appendData: data];
+    }
+}
+
+- (void) connection: (NSURLConnection *)connection
+     didReceiveData: (NSData *)data
+{
+  if (_data == nil)
     {
       _data = [data mutableCopy];
     }
@@ -144,13 +172,11 @@ typedef struct
   NSURLRequest			*_request;
   NSURLProtocol			*_protocol;
   id				_delegate;	// Not retained
+  BOOL				_debug;
 } Internal;
  
-typedef struct {
-  @defs(NSURLConnection)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLConnectionInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLConnectionInternal))
+#define	this	((Internal*)(self->_NSURLConnectionInternal))
+#define	inst	((Internal*)(o->_NSURLConnectionInternal))
 
 @implementation	NSURLConnection
 
@@ -160,15 +186,20 @@ typedef struct {
 
   if (o != nil)
     {
-      o->_NSURLConnectionInternal = NSZoneCalloc(GSObjCZone(self),
+#if	GS_WITH_GC
+      o->_NSURLConnectionInternal
+	= NSAllocateCollectable(sizeof(Internal), NSScannedOption);
+#else
+      o->_NSURLConnectionInternal = NSZoneCalloc([self zone],
 	1, sizeof(Internal));
+#endif
     }
   return o;
 }
 
 + (BOOL) canHandleRequest: (NSURLRequest *)request
 {
-  return [NSURLProtocol canInitWithRequest: request];
+  return ([NSURLProtocol _classToHandleRequest: request] != nil);
 }
 
 + (NSURLConnection *) connectionWithRequest: (NSURLRequest *)request
@@ -178,6 +209,12 @@ typedef struct {
 
   o = [o initWithRequest: request delegate: delegate];
   return AUTORELEASE(o);
+}
+
+- (void) cancel
+{
+  [this->_protocol stopLoading];
+  DESTROY(this->_protocol);
 }
 
 - (void) dealloc
@@ -192,10 +229,12 @@ typedef struct {
   [super dealloc];
 }
 
-- (void) cancel
+- (void) finalize
 {
-  [this->_protocol stopLoading];
-  DESTROY(this->_protocol);
+  if (this != 0)
+    {
+      [self cancel];
+    }
 }
 
 - (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate
@@ -209,6 +248,7 @@ typedef struct {
 	cachedResponse: nil
 	client: (id<NSURLProtocolClient>)self];
       [this->_protocol startLoading];
+      this->_debug = GSDebugSet(@"NSURLConnection");
     }
   return self;
 }
@@ -222,15 +262,18 @@ typedef struct {
 - (void) connection: (NSURLConnection *)connection
   didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
+  return;
 }
 
 - (void) connection: (NSURLConnection *)connection
    didFailWithError: (NSError *)error
 {
+  return;
 }
 
 - (void) connectionDidFinishLoading: (NSURLConnection *)connection
 {
+  return;
 }
 
 - (void) connection: (NSURLConnection *)connection
@@ -243,11 +286,13 @@ typedef struct {
 - (void) connection: (NSURLConnection *)connection
      didReceiveData: (NSData *)data
 {
+  return;
 }
 
 - (void) connection: (NSURLConnection *)connection
  didReceiveResponse: (NSURLResponse *)response
 {
+  return;
 }
 
 - (NSCachedURLResponse *) connection: (NSURLConnection *)connection
@@ -347,17 +392,30 @@ typedef struct {
   wasRedirectedToRequest: (NSURLRequest *)request
   redirectResponse: (NSURLResponse *)redirectResponse
 {
+  if (this->_debug)
+    {
+      NSLog(@"%@ tell delegate %@ about redirect to %@ as a result of %@",
+        self, this->_delegate, request, redirectResponse);
+    }
   request = [this->_delegate connection: self
 			willSendRequest: request
 		       redirectResponse: redirectResponse];
   if (this->_protocol == nil)
     {
+      if (this->_debug)
+	{
+          NSLog(@"%@ delegate cancelled request", self);
+	}
       /* Our protocol is nil, so we have been cancelled by the delegate.
        */
       return;
     }
   if (request != nil)
     {
+      if (this->_debug)
+	{
+          NSLog(@"%@ delegate allowed redirect to %@", self, request);
+	}
       /* Follow the redirect ... stop the old load and start a new one.
        */
       [this->_protocol stopLoading];
@@ -368,6 +426,10 @@ typedef struct {
 	cachedResponse: nil
 	client: (id<NSURLProtocolClient>)self];
       [this->_protocol startLoading];
+    }
+  else if (this->_debug)
+    {
+      NSLog(@"%@ delegate cancelled redirect", self);
     }
 }
 

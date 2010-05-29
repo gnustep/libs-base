@@ -22,20 +22,25 @@
    Boston, MA 02111 USA.
    */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSPortCoder.h"
-#import "Foundation/NSDebug.h"
 
 
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define GSI_MAP_KTYPES	GSUNION_OBJ
-#define GSI_MAP_VTYPES	GSUNION_INT
+#define GSI_MAP_VTYPES	GSUNION_NSINT
+
+#if	GS_WITH_GC
+#include	<gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -43,6 +48,8 @@
 {
 @public
   GSIMapTable_t	map;
+@private
+  NSUInteger _version;
 }
 @end
 
@@ -93,6 +100,14 @@
 {
   if (self == [GSCountedSet class])
     {
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * Only the pointer to the key needs to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
     }
 }
 
@@ -112,23 +127,25 @@
 		  format: @"Tried to nil value to counted set"];
     }
 
+  _version++;
   node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
   if (node == 0)
     {
-      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(unsigned)1);
+      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(NSUInteger)1);
     }
   else
     {
-      node->value.uint++;
+      node->value.nsu++;
     }
+  _version++;
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return map.nodeCount;
 }
 
-- (unsigned) countForObject: (id)anObject
+- (NSUInteger) countForObject: (id)anObject
 {
   if (anObject)
     {
@@ -136,7 +153,7 @@
 
       if (node)
 	{
-	  return node->value.uint;
+	  return node->value.nsu;
 	}
     }
   return 0;
@@ -164,13 +181,13 @@
   while (node != 0)
     {
       (*imp1)(aCoder, sel1, node->key.obj);
-      (*imp2)(aCoder, sel2, type, &node->value.uint);
+      (*imp2)(aCoder, sel2, type, &node->value.nsu);
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
   GSIMapEndEnumerator(&enumerator);
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return map.nodeCount;
 }
@@ -181,7 +198,7 @@
 }
 
 /* Designated initialiser */
-- (id) initWithCapacity: (unsigned)cap
+- (id) initWithCapacity: (NSUInteger)cap
 {
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
@@ -191,7 +208,7 @@
 {
   unsigned	count;
   id		value;
-  unsigned	valcnt;
+  NSUInteger	valcnt;
   SEL		sel = @selector(decodeValueOfObjCType:at:);
   IMP		imp = [aCoder methodForSelector: sel];
   const char	*utype = @encode(unsigned);
@@ -210,9 +227,9 @@
   return self;
 }
 
-- (id) initWithObjects: (id*)objs count: (unsigned)c
+- (id) initWithObjects: (id*)objs count: (NSUInteger)c
 {
-  unsigned int	i;
+  NSUInteger	i;
 
   self = [self initWithCapacity: c];
   if (self == nil)
@@ -225,18 +242,18 @@
 
       if (objs[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init counted set with nil value"];
 	}
       node = GSIMapNodeForKey(&map, (GSIMapKey)objs[i]);
       if (node == 0)
 	{
-	  GSIMapAddPair(&map,(GSIMapKey)objs[i],(GSIMapVal)(unsigned)1);
+	  GSIMapAddPair(&map,(GSIMapKey)objs[i],(GSIMapVal)(NSUInteger)1);
         }
       else
 	{
-	  node->value.uint++;
+	  node->value.nsu++;
 	}
     }
   return self;
@@ -269,7 +286,7 @@
  * of the GSIMap enumeration that, once enumerated, an object can be removed
  * from the map.  If GSIMap ever loses that characterstic, this will break.
  */
-- (void) purge: (int)level
+- (void) purge: (NSInteger)level
 {
   if (level > 0)
     {
@@ -279,10 +296,12 @@
 
       while (node != 0)
 	{
-	  if (node->value.uint <= (unsigned int)level)
+	  if (node->value.nsu <= (NSUInteger)level)
 	    {
+	      _version++;
 	      GSIMapRemoveNodeFromMap(&map, bucket, node);
 	      GSIMapFreeNode(&map, node);
+	      _version++;
 	    }
 	  bucket = GSIMapEnumeratorBucket(&enumerator);
 	  node = GSIMapEnumeratorNextNode(&enumerator);
@@ -293,7 +312,9 @@
 
 - (void) removeAllObjects
 {
+  _version++;
   GSIMapCleanMap(&map);
+  _version++;
 }
 
 /**
@@ -311,6 +332,7 @@
       NSWarnMLog(@"attempt to remove nil object");
       return;
     }
+  _version++;
   bucket = GSIMapBucketForKey(&map, (GSIMapKey)anObject);
   if (bucket != 0)
     {
@@ -319,19 +341,21 @@
       node = GSIMapNodeForKeyInBucket(&map, bucket, (GSIMapKey)anObject);
       if (node != 0)
 	{
-	  if (--node->value.uint == 0)
+	  if (--node->value.nsu == 0)
 	    {
 	      GSIMapRemoveNodeFromMap(&map, bucket, node);
 	      GSIMapFreeNode(&map, node);
 	    }
 	}
     }
+  _version++;
 }
 
 - (id) unique: (id)anObject
 {
   GSIMapNode	node;
   id		result;
+  _version++;
 
   if (anObject == nil)
     {
@@ -343,12 +367,12 @@
   if (node == 0)
     {
       result = anObject;
-      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(unsigned)1);
+      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(NSUInteger)1);
     }
   else
     {
       result = node->key.obj;
-      node->value.uint++;
+      node->value.nsu++;
 #if	!GS_WITH_GC
       if (result != anObject)
 	{
@@ -357,6 +381,16 @@
 	}
 #endif
     }
+  _version++;
   return result;
+}
+
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+                                   objects: (id*)stackbuf
+                                     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)&_version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
 @end

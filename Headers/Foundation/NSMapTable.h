@@ -1,11 +1,12 @@
 /* NSMapTable interface for GNUStep.
- * Copyright (C) 1994, 1995, 1996, 2002  Free Software Foundation, Inc.
+ * Copyright (C) 1994, 1995, 1996, 2002, 2009  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Tue Dec 13 00:05:02 EST 1994
  * Updated: Thu Mar 21 15:12:42 EST 1996
  * Serial: 96.03.21.05
  * Modified by: Richard Frith-Macdonald <rfm@gnu.org>
+ * Updated: March 2009
  * 
  * This file is part of the GNUstep Base Library.
  * 
@@ -34,6 +35,8 @@
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSString.h>
 #import	<Foundation/NSArray.h>
+#import	<Foundation/NSEnumerator.h>
+#import	<Foundation/NSPointerFunctions.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -41,10 +44,103 @@ extern "C" {
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-/**
- * Map table type ... an opaque pointer to a data structure.
+enum {
+  NSMapTableStrongMemory
+    = NSPointerFunctionsStrongMemory,
+  NSMapTableZeroingWeakMemory
+    = NSPointerFunctionsZeroingWeakMemory,
+  NSMapTableCopyIn
+    = NSPointerFunctionsCopyIn,
+  NSMapTableObjectPointerPersonality
+    = NSPointerFunctionsObjectPointerPersonality
+};
+
+typedef NSUInteger NSMapTableOptions;
+
+@interface NSMapTable : NSObject <NSCopying, NSCoding, NSFastEnumeration>
+
+/** Return a map table initialised using the specified options for
+ * keys and values.
  */
-typedef void *NSMapTable;
++ (id) mapTableWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
+		 valueOptions: (NSPointerFunctionsOptions)valueOptions;
+
+/** Convenience method for creating a map table to store object values
+ * using object keys.
+ */
++ (id) mapTableWithStrongToStrongObjects;
+
+/** Convenience method for creating a map table to store non-retained
+ * object values with retained object keys.
+ */
++ (id) mapTableWithStrongToWeakObjects;
+
+/** Convenience method for creating a map table to store retained
+ * object values with non-retained object keys.
+ */
++ (id) mapTableWithWeakToStrongObjects;
+
+/** Convenience method for creating a map table to store non-retained
+ * object values with non-retained object keys.
+ */
++ (id) mapTableWithWeakToWeakObjects;
+
+/** Initialiser using option bitmasks to describe the keys and values.
+ */
+- (id) initWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
+	     valueOptions: (NSPointerFunctionsOptions)valueOptions
+	         capacity: (NSUInteger)initialCapacity;
+
+/** Initialiser using full pointer function information to describe
+ * the keys and values.
+ */
+- (id) initWithKeyPointerFunctions: (NSPointerFunctions*)keyFunctions
+	     valuePointerFunctions: (NSPointerFunctions*)valueFunctions
+			  capacity: (NSUInteger)initialCapacity;
+
+/** Return the number of items stored in the map.
+ */
+- (NSUInteger) count;
+
+/** Return a dictionary containing the keys and values in the receiver.
+ */
+- (NSDictionary*) dictionaryRepresentation;
+
+/** Return an enumerator able to enumerate the keys in the receiver.
+ */
+- (NSEnumerator*) keyEnumerator;
+
+/** Return an NSPointerFunctions value describind the functions used by the
+ * receiver to handle keys.
+ */
+- (NSPointerFunctions*) keyPointerFunctions;
+
+/** Return an enumerator able to enumerate the values in the receiver.
+ */
+- (NSEnumerator*) objectEnumerator;
+
+/** Return the object stored under the specified key.
+ */
+- (id) objectForKey: (id)aKey;
+
+/** Empty the receiver of all stored values.
+ */
+- (void) removeAllObjects;
+
+/** Remove the object stored under the specified key.
+ */
+- (void) removeObjectForKey: (id)aKey;
+
+/** Store the object under the specified key, replacing any object which
+ * was previously stored under that key.
+ */
+- (void) setObject: (id)anObject forKey: (id)aKey;
+
+/** Return an NSPointerFunctions value describind the functions used by the
+ * receiver to handle values.
+ */
+- (NSPointerFunctions*) valuePointerFunctions;
+@end
 
 /**
  * Type for enumerating.<br />
@@ -63,7 +159,7 @@ typedef struct _NSMapTableKeyCallBacks
    * NOTE: Elements with equal values must
    * have equal hash function values.
    */
-  unsigned (*hash)(NSMapTable *, const void *);
+  NSUInteger (*hash)(NSMapTable *, const void *);
 
   /**
    * Comparison function.  Must not modify either key.
@@ -146,12 +242,12 @@ GS_EXPORT const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks;
 GS_EXPORT NSMapTable *
 NSCreateMapTable(NSMapTableKeyCallBacks keyCallBacks,
                  NSMapTableValueCallBacks valueCallBacks,
-                 unsigned int capacity);
+                 NSUInteger capacity);
 
 GS_EXPORT NSMapTable *
 NSCreateMapTableWithZone(NSMapTableKeyCallBacks keyCallBacks,
                          NSMapTableValueCallBacks valueCallBacks,
-                         unsigned int capacity,
+                         NSUInteger capacity,
                          NSZone *zone);
 
 GS_EXPORT NSMapTable *
@@ -166,7 +262,7 @@ NSResetMapTable(NSMapTable *table);
 GS_EXPORT BOOL
 NSCompareMapTables(NSMapTable *table1, NSMapTable *table2);
 
-GS_EXPORT unsigned int
+GS_EXPORT NSUInteger
 NSCountMapTable(NSMapTable *table);
 
 GS_EXPORT BOOL

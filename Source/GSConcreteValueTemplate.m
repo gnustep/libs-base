@@ -90,7 +90,17 @@
    * Ensure that the version encoded is that used by the abstract class.
    */
   [self setVersion: [super version]];
+#if TYPE_ORDER == 0 && GS_WITH_GC
+  GSMakeWeakPointer(self, "data");
+#endif
 }
+
+#if TYPE_ORDER == 0 && GS_WITH_GC
+- (void) finalize
+{
+  GSAssignZeroingWeakPointer((void**)&data, (void*)nil);
+}
+#endif
 
 // Allocating and Initializing
 
@@ -99,7 +109,11 @@
 {
   typedef __typeof__(data) _dt;
   self = [super init];
+#if TYPE_ORDER == 0 && GS_WITH_GC
+  GSAssignZeroingWeakPointer((void**)&data, (void*)(*(id*)value));
+#else
   data = *(_dt *)value;
+#endif
   return self;
 }
 
@@ -118,7 +132,7 @@
 - (BOOL) isEqual: (id)other
 {
   if (other != nil && GSObjCIsInstance(other) == YES
-    && GSObjCIsKindOf(GSObjCClass(other), GSObjCClass(self)))
+    && GSObjCIsKindOf(object_getClass(other), object_getClass(self)))
     {
       return [self isEqualToValue: other];
     }
@@ -130,7 +144,7 @@
   typedef __typeof__(data) _dt;
 
   if (aValue != nil && GSObjCIsInstance(aValue) == YES
-    && GSObjCIsKindOf(GSObjCClass(aValue), GSObjCClass(self)))
+    && GSObjCIsKindOf(object_getClass(aValue), object_getClass(self)))
     {
       _dt	val = [aValue TYPE_METHOD];
 #if TYPE_ORDER == 0
@@ -168,7 +182,7 @@
   return NO;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
 #if TYPE_ORDER == 0
   return [data hash];
@@ -185,7 +199,7 @@
     hash += val.c[i];
   return hash;
 #elif TYPE_ORDER == 2
-  return (unsigned)(uintptr_t)data;
+  return (NSUInteger)(uintptr_t)data;
 #elif TYPE_ORDER == 3
   return (data.length ^ data.location);
 #elif TYPE_ORDER == 4

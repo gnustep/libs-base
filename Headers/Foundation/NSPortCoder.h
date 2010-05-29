@@ -50,6 +50,7 @@ extern "C" {
 // around, so maybe the docs should be changed..
 @interface NSPortCoder : NSCoder
 {
+#if	GS_EXPOSE(NSPortCoder)
 @private
   NSMutableArray	*_comp;
   NSConnection		*_conn;
@@ -92,6 +93,10 @@ extern "C" {
   unsigned		_cursor;	/* Position in data buffer.	*/
   unsigned		_version;	/* Version of archiver used.	*/
   NSZone		*_zone;		/* Zone for allocating objs.	*/
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 
 /**

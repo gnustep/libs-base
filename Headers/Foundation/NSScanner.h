@@ -39,15 +39,20 @@ extern "C" {
  */
 @interface NSScanner : NSObject <NSCopying>
 {
+#if	GS_EXPOSE(NSScanner)
 @private
   NSString		*_string;
   NSCharacterSet	*_charactersToBeSkipped;
   BOOL			(*_skipImp)(NSCharacterSet*, SEL, unichar);
   NSDictionary		*_locale;
-  unsigned int		_scanLocation;
+  NSUInteger		_scanLocation;
   unichar		_decimal;
   BOOL			_caseSensitive;
   BOOL			_isUnicode;
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 
 /*
@@ -65,8 +70,8 @@ extern "C" {
 /*
  * Configuring an NSScanner
  */
-- (unsigned) scanLocation;
-- (void) setScanLocation: (unsigned int)anIndex;
+- (NSUInteger) scanLocation;
+- (void) setScanLocation: (NSUInteger)anIndex;
 
 - (BOOL) caseSensitive;
 - (void) setCaseSensitive: (BOOL)flag;

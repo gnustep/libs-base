@@ -23,6 +23,15 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+  ifeq ($(GNUSTEP_MAKEFILES),)
+    $(warning )
+    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
+    $(warning Perhaps gnustep-make is not properly installed,)
+    $(warning so gnustep-config is not in your PATH.)
+    $(warning )
+    $(warning Your PATH is currently $(PATH))
+    $(warning )
+  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -34,8 +43,11 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-include ../Version
-include ../config.mak
+-include ../Version
+-include ../config.mak
+
+ADDITIONAL_CPPFLAGS = -DGNUSTEP_BASE_INTERNAL=1
+
 
 # DTDs to install
 dtddir = $(GNUSTEP_LIBRARY)/DTDs
@@ -102,8 +114,6 @@ autogsdoc_DOC_INSTALL_DIR = Developer/Tools
 AUTOGSDOC=./$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc
 
 include Makefile.preamble
-
--include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/tool.make
 include $(GNUSTEP_MAKEFILES)/ctool.make

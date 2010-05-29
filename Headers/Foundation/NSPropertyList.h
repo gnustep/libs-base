@@ -39,46 +39,47 @@ extern "C" {
 
 @class NSData, NSString;
 
+enum {
+  NSPropertyListImmutable = 0,
+  NSPropertyListMutableContainers,
+  NSPropertyListMutableContainersAndLeaves
+};
 /**
  * Describes the mutability to use when generating objects during
  * deserialisation of a property list.
+ * <list>
+ * <item><strong>NSPropertyListImmutable</strong>
+ * all objects in created list are immutable</item>
+ * <item><strong>NSPropertyListMutableContainers</strong>
+ * dictionaries, arrays, strings and data objects are mutable</item>
+ * </list>
  */
-typedef enum {
-  NSPropertyListImmutable = 0,
-/** <strong>NSPropertyListImmutable</strong>
- * all objects in created list are immutable
- */
-  NSPropertyListMutableContainers,
-/** <strong>NSPropertyListMutableContainers</strong>
- * dictionaries and arrays are mutable
- */
-  NSPropertyListMutableContainersAndLeaves
-/** <strong>NSPropertyListMutableContainersAndLeaves</strong>
- * dictionaries, arrays, strings and data objects are mutable
- */
-} NSPropertyListMutabilityOptions;
+typedef NSUInteger NSPropertyListMutabilityOptions;
 
-/**
- * Specifies the serialisation format for a serialised property list.
- */
-typedef enum {
+enum {
   NSPropertyListOpenStepFormat = 1,
-/** <strong>NSPropertyListOpenStepFormat</strong>
- * the most human-readable format */
   NSPropertyListXMLFormat_v1_0 = 100,
-/** <strong>NSPropertyListXMLFormat_v1_0</strong>
- * portable and readable */
   NSPropertyListBinaryFormat_v1_0 = 200,
-/** <strong>NSPropertyListBinaryFormat_v1_0</strong>
- * the standard format on macos-x */
 
   NSPropertyListGNUstepFormat = 1000,
-/** <strong>NSPropertyListGNUstepFormat</strong>
- * extension of OpenStep format */
   NSPropertyListGNUstepBinaryFormat,
-/** <strong>NSPropertyListGNUstepBinaryFormat</strong>
- * efficient, hardware independent */
-} NSPropertyListFormat;
+};
+/**
+ * Specifies the serialisation format for a serialised property list.
+ * <list>
+ * <item><strong>NSPropertyListOpenStepFormat</strong>
+ * the most human-readable format</item>
+ * <item><strong>NSPropertyListXMLFormat_v1_0</strong>
+ * portable and readable</item>
+ * <item><strong>NSPropertyListBinaryFormat_v1_0</strong>
+ * the standard format on macos-x</item>
+ * <item><strong>NSPropertyListGNUstepFormat</strong>
+ * extension of OpenStep format</item>
+ * <item><strong>NSPropertyListGNUstepBinaryFormat</strong>
+ * efficient, hardware independent</item>
+ * </list>
+ */
+typedef NSUInteger NSPropertyListFormat;
 
 /**
  * <p>The NSPropertyListSerialization class provides facilities for

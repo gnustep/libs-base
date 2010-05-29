@@ -32,6 +32,17 @@
 unsigned
 GSPrivateSockaddrLength(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
 
+typedef	union {
+  struct sockaddr	s;
+  struct sockaddr_in	i4;
+#ifdef	AF_INET6
+  struct sockaddr_in	i6;
+#endif
+#ifndef	__MINGW__
+  struct sockaddr_un	u;
+#endif
+} sockaddr_any;
+
 #define	SOCKIVARS \
 { \
   id            _sibling;       /* For bidirectional traffic.  	*/\
@@ -39,7 +50,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
   BOOL		_closing;	/* Must close on next failure.	*/\
   SOCKET        _sock;          /* Needed for ms-windows.       */\
   id            _handler;       /* TLS/SOCKS handler.           */\
-  struct sockaddr *_address;	/* Socket address info.		*/\
+  sockaddr_any	_address;	/* Socket address info.		*/\
 }
 
 /* The semi-abstract GSSocketStream class is not intended to be subclassed
@@ -87,11 +98,11 @@ SOCKIVARS
 - (void) _setSock: (SOCKET)sock;
 
 /*
- * Set the socket addres from string information.
+ * Set the socket address from string information.
  */
 - (BOOL) _setSocketAddress: (NSString*)address
-                      port: (int)port
-                    family: (int)family;
+                      port: (NSInteger)port
+                    family: (NSInteger)family;
 
 /* Return the socket
  */
@@ -110,15 +121,15 @@ SOCKIVARS
 @interface GSSocketInputStream (AddedBehaviors)
 - (struct sockaddr*) _address;
 - (void) _setAddress: (struct sockaddr*)address;
-- (int) _read: (uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
 - (void) _setPassive: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (BOOL) _setSocketAddress: (NSString*)address
-                      port: (int)port
-                    family: (int)family;
+                      port: (NSInteger)port
+                    family: (NSInteger)family;
 - (SOCKET) _sock;
 @end
 
@@ -127,7 +138,7 @@ SOCKIVARS
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr port: (int)port;
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port;
 
 @end
 
@@ -137,7 +148,7 @@ SOCKIVARS
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr port: (int)port;
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port;
 
 @end
 
@@ -158,10 +169,10 @@ SOCKIVARS
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (BOOL) _setSocketAddress: (NSString*)address
-                      port: (int)port
-                    family: (int)family;
+                      port: (NSInteger)port
+                    family: (NSInteger)family;
 - (SOCKET) _sock;
-- (int) _write: (const uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) _write: (const uint8_t *)buffer maxLength: (NSUInteger)len;
 @end
 
 @interface GSInetOutputStream : GSSocketOutputStream
@@ -169,7 +180,7 @@ SOCKIVARS
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr port: (int)port;
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port;
 
 @end
 
@@ -178,7 +189,7 @@ SOCKIVARS
 /**
  * the designated initializer
  */
-- (id) initToAddr: (NSString*)addr port: (int)port;
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port;
 
 @end
 
@@ -214,8 +225,8 @@ SOCKIVARS
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (BOOL) _setSocketAddress: (NSString*)address
-                      port: (int)port
-                    family: (int)family;
+                      port: (NSInteger)port
+                    family: (NSInteger)family;
 - (SOCKET) _sock;
 @end
 

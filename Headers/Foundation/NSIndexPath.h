@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 
 /**
  * Instances of this class represent a series of indexes into a hierarchy
@@ -44,20 +44,26 @@ extern "C" {
  */
 @interface	NSIndexPath : NSObject <NSCopying, NSCoding>
 {
-  unsigned	_hash;
-  unsigned	_length;
-  unsigned	*_indexes;
+#if	GS_EXPOSE(NSIndexPath)
+@private
+  NSUInteger	_hash;
+  NSUInteger	_length;
+  NSUInteger	*_indexes;
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 
 /**
  * Return a path containing the single value anIndex.
  */
-+ (id) indexPathWithIndex: (unsigned)anIndex;
++ (id) indexPathWithIndex: (NSUInteger)anIndex;
 
 /**
  * Return a path containing all the indexes in the supplied array.
  */
-+ (id) indexPathWithIndexes: (unsigned*)indexes length: (unsigned)length;
++ (id) indexPathWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
 
 /**
  * Compares other with the receiver.<br />
@@ -71,18 +77,18 @@ extern "C" {
 /**
  * Copies all index values from the receiver into aBuffer.
  */
-- (void) getIndexes: (unsigned*)aBuffer;
+- (void) getIndexes: (NSUInteger*)aBuffer;
 
 /**
  * Return the index at the specified position or NSNotFound if there
  * is no index at the specified position.
  */
-- (unsigned) indexAtPosition: (unsigned)position;
+- (NSUInteger) indexAtPosition: (NSUInteger)position;
 
 /**
  * Return path formed by adding anIndex to the receiver.
  */
-- (NSIndexPath *) indexPathByAddingIndex: (unsigned)anIndex;
+- (NSIndexPath *) indexPathByAddingIndex: (NSUInteger)anIndex;
 
 /**
  * Return path formed by removing the last index from the receiver.
@@ -93,18 +99,18 @@ extern "C" {
  * Returns the shared instance containing the specified index, creating it
  * and destroying the receiver if necessary.
  */
-- (id) initWithIndex: (unsigned)anIndex;
+- (id) initWithIndex: (NSUInteger)anIndex;
 
 /** <init />
  * Returns the shared instance containing the specified index array,
  * creating it and destroying the receiver if necessary.
  */
-- (id) initWithIndexes: (unsigned*)indexes length: (unsigned)length;
+- (id) initWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
 
 /**
  * Returns the number of index values present in the receiver.
  */
-- (unsigned) length;
+- (NSUInteger) length;
 
 @end
 

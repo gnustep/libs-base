@@ -22,10 +22,11 @@
    Boston, MA 02111 USA.
    */
 
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSError.h>
-#include	<Foundation/NSCoder.h>
+#import "common.h"
+#define	EXPOSE_NSError_IVARS	1
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSError.h"
+#import	"Foundation/NSCoder.h"
 
 NSString* const NSFilePathErrorKey = @"NSFilePathErrorKey";
 NSString* const NSLocalizedDescriptionKey = @"NSLocalizedDescriptionKey";
@@ -50,7 +51,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
 @implementation	NSError
 
 + (id) errorWithDomain: (NSString*)aDomain
-		  code: (int)aCode
+		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary
 {
   NSError	*e = [self allocWithZone: NSDefaultMallocZone()];
@@ -59,7 +60,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
   return AUTORELEASE(e);
 }
 
-- (int) code
+- (NSInteger) code
 {
   return _code;
 }
@@ -133,7 +134,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
 }
 
 - (id) initWithDomain: (NSString*)aDomain
-		 code: (int)aCode
+		 code: (NSInteger)aCode
 	     userInfo: (NSDictionary*)aDictionary
 {
   if (aDomain == nil)

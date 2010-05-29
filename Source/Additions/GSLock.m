@@ -25,14 +25,13 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include <Foundation/NSException.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSThread.h>
-#include "GNUstepBase/GSLock.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "common.h"
+#define	EXPOSE_GSLock_IVARS	1
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSThread.h"
+#import "GNUstepBase/GSLock.h"
 
 /**
  * This implements a class which, when used in single-threaded mode,
@@ -73,16 +72,10 @@
   locked = -1;
 }
 
-- (void) dealloc
-{
-  [self gcFinalize];
-  [super dealloc];
-}
-
-- (void) gcFinalize
+- (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
-  [super gcFinalize];
+  [super finalize];
 }
 
 - (id) init
@@ -91,7 +84,7 @@
 
   if ([NSThread isMultiThreaded] == YES)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSLock new];
     }
   else
@@ -224,16 +217,10 @@
   counter = -1;
 }
 
-- (void) dealloc
-{
-  [self gcFinalize];
-  [super dealloc];
-}
-
-- (void) gcFinalize
+- (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
-  [super gcFinalize];
+  [super finalize];
 }
 
 - (id) init
@@ -242,7 +229,7 @@
 
   if ([NSThread isMultiThreaded] == YES)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSRecursiveLock new];
     }
   else

@@ -180,6 +180,7 @@ typedef struct autorelease_array_list
  */
 @interface NSAutoreleasePool : NSObject 
 {
+#if	GS_EXPOSE(NSAutoreleasePool)
   /* For re-setting the current pool when we are dealloc'ed. */
   NSAutoreleasePool *_parent;
   /* This pointer to our child pool is  necessary for co-existing
@@ -192,6 +193,10 @@ typedef struct autorelease_array_list
   unsigned _released_count;
   /* The method to add an object to this pool */
   void 	(*_addImp)(id, SEL, id);
+#endif
+#if	!GS_NONFRAGILE
+  void	*_unused;
+#endif
 }
 
 /**
@@ -220,9 +225,11 @@ typedef struct autorelease_array_list
 - (id) autorelease;
 
 #if OS_API_VERSION(100400, GS_API_LATEST)
-/** Acts like the -release method.<br/>
- * Intended to trigger a garbage collection run if in a garbage collected
- * environment.
+/**
+ * Intended to trigger a garbage collection run (if needed) when called in
+ * a garbage collected environment.<br />
+ * In a non-garbage collected environment, this method implements the
+ * undocumented MacOS-X behavior, and releases the receiver.
  */
 - (void) drain;
 #endif

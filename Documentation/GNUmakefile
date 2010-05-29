@@ -23,6 +23,15 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+  ifeq ($(GNUSTEP_MAKEFILES),)
+    $(warning )
+    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
+    $(warning Perhaps gnustep-make is not properly installed,)
+    $(warning so gnustep-config is not in your PATH.)
+    $(warning )
+    $(warning Your PATH is currently $(PATH))
+    $(warning )
+  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -34,8 +43,8 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-include ../Version
-include ../config.mak
+-include ../Version
+-include ../config.mak
 
 # The documents to be generated
 DOCUMENT_NAME = coding-standards
@@ -47,7 +56,7 @@ SUBPROJECTS = manual General
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
-INSTALL NEWS CODING-STANDARDS README ANNOUNCE
+INSTALL NEWS README ANNOUNCE
 
 TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE
 
@@ -105,8 +114,6 @@ BASE_MAKE_LOADED=yes
 REF_DOC_INSTALL_DIR = $(GNUSTEP_DOCUMENTATION)/Developer
 
 -include Makefile.preamble
-
--include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
 include $(GNUSTEP_MAKEFILES)/aggregate.make

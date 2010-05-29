@@ -26,15 +26,15 @@
    $Date$ $Revision$
    */
 
+#import "common.h"
 #define _GNU_SOURCE
 #include <math.h>
 #if !defined(__APPLE__) || !defined(GNU_RUNTIME)
 #include <ctype.h>
 #endif
-#include "Foundation/NSDecimal.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSUserDefaults.h"
+#import "Foundation/NSDecimal.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSUserDefaults.h"
 
 #ifndef NAN
 #define NAN 0.0
@@ -330,7 +330,7 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
 		result->length++;
 	      }
 	    else
-	      result->exponent++;;
+	      result->exponent++;
 	  }
       }
     }
@@ -378,7 +378,7 @@ GSDecimalNormalize(GSDecimal *n1, GSDecimal *n2, NSRoundingMode mode)
 	  l = MIN(NSDecimalMaxDigit - n1->length, n1->exponent - n2->exponent);
 	  for (i = 0; i < l; i++)
 	    {
-		n1->cMantissa[(int)n1->length] = 0;
+		n1->cMantissa[(NSInteger)n1->length] = 0;
 		n1->length++;
 	    }
 	  n1->exponent = n2->exponent;
@@ -751,7 +751,7 @@ NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *rr,
 }
 
 NSCalculationError
-NSDecimalPower(NSDecimal *result, const NSDecimal *n, unsigned power, NSRoundingMode mode)
+NSDecimalPower(NSDecimal *result, const NSDecimal *n, NSUInteger power, NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
   unsigned int e = power;
@@ -1120,7 +1120,7 @@ NSSimpleCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
 }
 
 void
-NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale,
+NSDecimalRound(NSDecimal *result, const NSDecimal *number, NSInteger scale,
 	       NSRoundingMode mode)
 {
   GSDecimal m;
@@ -1320,7 +1320,7 @@ NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
 }
 
 void
-NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale,
+NSDecimalRound(NSDecimal *result, const NSDecimal *number, NSInteger scale,
 	       NSRoundingMode mode)
 {
   NSDecimalCopy(result, number);
@@ -1565,7 +1565,7 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
 	  if (n1.exponent)
 	    {
               // Put back zeros removed by compacting
-	      n1.cMantissa[(int)n1.length] = 0;
+	      n1.cMantissa[(NSInteger)n1.length] = 0;
 	      n1.length++;
 	      n1.exponent--;
 	    }
@@ -1577,7 +1577,7 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
 		  if (n1.length || l->cMantissa[used])
 		    {
 		      // only add 0 if there is already something
-		      n1.cMantissa[(int)n1.length] = l->cMantissa[used];
+		      n1.cMantissa[(NSInteger)n1.length] = l->cMantissa[used];
 		      n1.length++;
 		    }
 		  used++;
@@ -1591,7 +1591,7 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
 		      break;
 		    }
 		  // Borrow one digit
-		  n1.cMantissa[(int)n1.length] = 0;
+		  n1.cMantissa[(NSInteger)n1.length] = 0;
 		  n1.length++;
 		  result->exponent--;
 		}

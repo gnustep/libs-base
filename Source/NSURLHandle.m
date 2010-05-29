@@ -27,11 +27,15 @@
    $Date$ $Revision$
 */
 
+#import "common.h"
+
+#define	EXPOSE_NSURLHandle_IVARS	1
 #import "GSURLPrivate.h"
 
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSFileManager.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 @class	GSFTPURLHandle;
@@ -252,10 +256,10 @@ static Class		NSURLHandleClass = 0;
 {
   id	o = client;
 
-  RETAIN(o);
+  IF_NO_GC([o retain];)
   [_clients removeObjectIdenticalTo: o];
   [_clients addObject: o];
-  RELEASE(o);
+  IF_NO_GC([o release];)
 }
 
 /**
@@ -312,12 +316,12 @@ static Class		NSURLHandleClass = 0;
  */
 - (void) cancelLoadInBackground
 {
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   [_clients makeObjectsPerformSelector:
     @selector(URLHandleResourceDidCancelLoading:)
     withObject: self];
   [self endLoadInBackground];
-  RELEASE(self);
+  IF_NO_GC(RELEASE(self);)
 }
 
 - (void) dealloc
@@ -631,7 +635,7 @@ static NSLock			*fileLock = nil;
       NS_DURING
 	{
 	  obj = [fileCache objectForKey: path];
-	  AUTORELEASE(RETAIN(obj));
+	  IF_NO_GC([[obj retain] autorelease];)
 	}
       NS_HANDLER
 	{
@@ -706,7 +710,7 @@ static NSLock			*fileLock = nil;
   if ([url isFileURL] == NO)
     {
       NSLog(@"Attempt to init GSFileURLHandle with bad URL");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   path = [url path];
@@ -723,7 +727,7 @@ static NSLock			*fileLock = nil;
 	  if (obj != nil)
 	    {
 	      DESTROY(self);
-	      RETAIN(obj);
+	      IF_NO_GC([obj retain];)
 	    }
 	}
       NS_HANDLER

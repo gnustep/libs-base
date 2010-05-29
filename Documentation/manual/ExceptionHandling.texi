@@ -86,16 +86,20 @@ For instance:
     @{
       FileHandle *handle = [self getFileHandle: filename];
       parse = [parser parseFile: handle];
+      if (parse == nil)
+        @{
+          NS_VALUERETURN(nil);
+        @}
     @}
   NS_HANDLER
     @{
       if ([[localException name] isEqualToString: MyFileNotFoundException])
         @{
-          NS_VALUERETURN([self readDataFile: fallbackFilename]);
+          return [self readDataFile: fallbackFilename];
         @}
       else if ([[localException name] isEqualToString: NSParseErrorException])
         @{
-          NS_VALUERETURN([self readDataFileInOldFormat: filename]);
+          return [self readDataFileInOldFormat: filename];
         @}
       else
         @{
@@ -113,13 +117,18 @@ occur, the code in the @code{NS_HANDLER} block is jumped to.  Information on
 the error is passed to this code in the @code{localException} variable, which
 is an instance of @code{NSException}.  The handler code examines the name of
 the exception to determine if it can implement a work-around.  In the first
-two cases, an alternative approach is available, and so the
-@code{NS_VALUERETURN} macro is used to return an alternative value to the
+two cases, an alternative approach is available, and so an alternative value 
+is returned.
+
+If the file is found but the parse simply produces a nil parse tree, the
+@code{NS_VALUERETURN} macro is used to return nil to the
 @code{readDataFile:} caller.  Note that it is @i{not} allowed to simply write
-``@code{return x;}'' inside an exception handler, owing to the nature of the
+``@code{return nil;}'' inside the NS_DURING block, owing to the nature of the
 behind-the-scenes C constructs implementing the mechanism (the @code{setjmp()}
 and @code{longjmp()} functions).  If you are in a void function not returning
-a value, you may use simply ``@code{NS_VOIDRETURN}'' instead.  Finally, notice
+a value, you may use simply ``@code{NS_VOIDRETURN}'' instead.
+
+Finally, notice
 that in the third case above the handler does not recognize the exception
 type, so it passes it one level up to the caller by calling @code{-raise} on
 the exception object.

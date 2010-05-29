@@ -27,24 +27,22 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSUserDefaults.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "common.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 #include <math.h>
 
@@ -112,7 +110,7 @@ otherTime(NSDate* other)
     [NSException raise: NSInvalidArgumentException format: @"other time nil"];
   if (GSObjCIsInstance(other) == NO)
     [NSException raise: NSInvalidArgumentException format: @"other time bad"];
-  c = GSObjCClass(other);
+  c = object_getClass(other);
   if (c == concreteClass || c == calendarClass)
     return ((NSGDate*)other)->_seconds_since_ref;
   else
@@ -548,6 +546,7 @@ otherTime(NSDate* other)
 
   dtoIndex = 0;
   scanner = [NSScanner scannerWithString: string];
+  [scanner setCaseSensitive: NO];
   [scanner scanUpToCharactersFromSet: digits intoString: 0];
   while ([scanner scanCharactersFromSet: digits intoString: &tmp] == YES)
     {
@@ -563,6 +562,7 @@ otherTime(NSDate* other)
       if (tmp && ([tmp characterAtIndex: 0] == (unichar)':'))
 	{
 	  BOOL	done = NO;
+	  BOOL	checkForAMPM = NO;
 
 	  do
 	    {
@@ -585,6 +585,7 @@ otherTime(NSDate* other)
 		      m = 0;
 		      s = 0;
 		      hadHour = YES;
+		      checkForAMPM = YES;
 		    }
 		}
 	      else if (hadMinute == NO)
@@ -641,8 +642,7 @@ otherTime(NSDate* other)
 		    {
 		      num = [tmp intValue];
 		      done = NO;
-		      if ([scanner scanUpToCharactersFromSet: digits
-						  intoString: &tmp] == NO)
+		      if ([scanner scanString: @":" intoString: &tmp] == NO)
 			{
 			  tmp = nil;
 			}
@@ -650,6 +650,25 @@ otherTime(NSDate* other)
 		}
 	    }
 	  while (done == NO);
+
+	  if (checkForAMPM)
+	    {
+	      NSArray	*ampm;
+
+	      ampm = [locale objectForKey: NSAMPMDesignation];
+	      if ([scanner scanString: [ampm objectAtIndex: 0]
+			   intoString: NULL])
+		{
+		  if (h == 12) // 12 AM means midnight
+		    h = 0;
+		}
+	      else if ([scanner scanString: [ampm objectAtIndex: 1]
+				intoString: NULL])
+		{
+		  if (h < 12) // if PM add 12 to any hour less than 12
+		    h += 12;
+		}	  
+	    }
 	}
       else
 	{
@@ -1031,7 +1050,7 @@ otherTime(NSDate* other)
       o = [concreteClass allocWithZone: NSDefaultMallocZone()];
       o = [o initWithTimeIntervalSinceReferenceDate: interval];
     }
-  RELEASE(self);
+  DESTROY(self);
   return o;
 }
 
@@ -1056,7 +1075,7 @@ otherTime(NSDate* other)
   d = [d initWithString: description];
   if (d == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -1076,7 +1095,7 @@ otherTime(NSDate* other)
   if (anotherDate == nil)
     {
       NSLog(@"initWithTimeInterval:sinceDate: given nil date");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   // Get the other date's time, add the secs and init thyself

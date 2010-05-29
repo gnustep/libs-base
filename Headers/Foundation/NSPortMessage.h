@@ -44,10 +44,16 @@ extern "C" {
  */
 @interface	NSPortMessage : NSObject
 {
+#if	GS_EXPOSE(NSPortMessage)
+@private
   unsigned		_msgid;
   NSPort		*_recv;
   NSPort		*_send;
   NSMutableArray	*_components;
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 /**
  * OpenStep compatibility.

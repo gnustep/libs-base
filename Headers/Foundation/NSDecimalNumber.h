@@ -121,12 +121,17 @@ extern "C" {
  */
 @interface	NSDecimalNumberHandler : NSObject <NSDecimalNumberBehaviors>
 {
+#if	GS_EXPOSE(NSDecimalNumberHandler)
   NSRoundingMode _roundingMode;
   short _scale;
   BOOL _raiseOnExactness;
   BOOL _raiseOnOverflow; 
   BOOL _raiseOnUnderflow;
   BOOL _raiseOnDivideByZero;
+#endif
+#if	!GS_NONFRAGILE
+  void	*_unused;
+#endif
 }
 
 /**
@@ -178,7 +183,9 @@ extern "C" {
  */
 @interface	NSDecimalNumber : NSNumber <NSDecimalNumberBehaviors>
 {
+#if	GS_EXPOSE(NSDecimalNumber)
   NSDecimal data;
+#endif
 }
 
 /**
@@ -362,33 +369,35 @@ extern "C" {
  *  behavior for rounding/precision/error handling.
  */
 - (NSDecimalNumber *)decimalNumberByMultiplyingByPowerOf10:(short)power 
-					      withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+  withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Raises self to given positive integer power and returns new result, using
  *  +defaultBehavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByRaisingToPower:(unsigned)power;
+- (NSDecimalNumber *)decimalNumberByRaisingToPower:(NSUInteger)power;
 
 /**
  *  Raises self to given positive integer power and returns new result, using
  *  given behavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberByRaisingToPower:(unsigned)power 
-				      withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber *)decimalNumberByRaisingToPower:(NSUInteger)power 
+  withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Subtracts decimalNumber from self and returns new result, using
  *  +defaultBehavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberBySubtracting:(NSDecimalNumber *)decimalNumber;
+- (NSDecimalNumber *)decimalNumberBySubtracting:
+  (NSDecimalNumber *)decimalNumber;
 
 /**
  *  Subtracts decimalNumber from self and returns new result, using given
  *  behavior for rounding/precision/error handling.
  */
-- (NSDecimalNumber *)decimalNumberBySubtracting:(NSDecimalNumber *)decimalNumber 
-				   withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
+- (NSDecimalNumber *)decimalNumberBySubtracting:
+  (NSDecimalNumber *)decimalNumber 
+  withBehavior:(id <NSDecimalNumberBehaviors>)behavior;
 
 /**
  *  Returns rounded version of underlying decimal.

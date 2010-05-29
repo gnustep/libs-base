@@ -42,6 +42,7 @@ extern "C" {
 
 @interface NSArchiver : NSCoder
 {
+#if	GS_EXPOSE(NSArchiver)
 @private
   NSMutableData	*_data;		/* Data to write into.		*/
   id		_dst;		/* Serialization destination.	*/
@@ -68,6 +69,10 @@ extern "C" {
   unsigned	_startPos;	/* Where in data we started.	*/
   BOOL		_encodingRoot;
   BOOL		_initialPass;
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 
 /* Initializing an archiver */
@@ -150,6 +155,7 @@ extern "C" {
 
 @interface NSUnarchiver : NSCoder
 {
+#if	GS_EXPOSE(NSUnarchiver)
 @private
   NSData		*data;		/* Data to write into.		*/
   Class			dataClass;	/* What sort of data is it?	*/
@@ -171,6 +177,10 @@ extern "C" {
   NSZone		*zone;		/* Zone for allocating objs.	*/
   NSMutableDictionary	*objDict;	/* Class information store.	*/
   NSMutableArray	*objSave;
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 
 /* Initializing an unarchiver */

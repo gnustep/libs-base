@@ -29,8 +29,8 @@
 
 /* These are not defined in older Mac OS X systems */
 #ifndef NSINTEGER_DEFINED
-typedef int NSInteger;
-typedef unsigned int NSUInteger;
+typedef intptr_t NSInteger;
+typedef uintptr_t NSUInteger;
 #define NSINTEGER_DEFINED 1
 #endif
 
@@ -51,8 +51,9 @@ typedef unsigned int NSUInteger;
 #define	GSUNION_16B	0x0200
 #define	GSUNION_32B	0x0400
 #define	GSUNION_64B	0x0800
+#define	GSUNION_NSINT	0x1000
 
-#define	GSUNION_ALL	0x0fff
+#define	GSUNION_ALL	0x1fff
 
 #endif	/* GSUNION_OBJ */
 
@@ -96,6 +97,10 @@ typedef	union {
   long 		slng;
   unsigned long	ulng;
 #endif
+#if	((GSUNION_TYPES) & GSUNION_NSINT)
+  NSInteger 	nsi;
+  NSUInteger	nsu;
+#endif
 #if	((GSUNION_TYPES) & GSUNION_PTR)
   void		*ptr;
   const void	*cptr;
@@ -121,6 +126,7 @@ typedef	union {
 #if	defined(GSUNION_EXTRA)
   GSUNION_EXTRA	ext;
 #endif
+  BOOL		bl;	/* Guaranteed present */
 } GSUNION;
 
 #endif

@@ -25,10 +25,10 @@
 
 #ifndef __NSUserDefaults_h_OBJECTS_INCLUDE
 #define __NSUserDefaults_h_OBJECTS_INCLUDE
-#include <GNUstepBase/GSVersionMacros.h>
+#import <GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
+#import <Foundation/NSObject.h>
+#import <Foundation/NSString.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -61,7 +61,7 @@ GS_EXPORT NSString* const NSGlobalDomain;
  */
 GS_EXPORT NSString* const NSRegistrationDomain;
 
-#ifndef NO_GNUSTEP
+#if	!NO_GNUSTEP
 /**
  *  User defaults domain for GNUstep config file and for any defaults
  *  stored in the GlobalDefaults.plist file alongside the config file.
@@ -179,7 +179,7 @@ GS_EXPORT NSString* const NSLanguageCode;
 
 /** Key for locale dictionary: formal name of language. */
 GS_EXPORT NSString* const NSFormalName;
-#ifndef NO_GNUSTEP
+#if	!NO_GNUSTEP
 /** Key for locale dictionary: name of locale. */
 GS_EXPORT NSString* const GSLocale;
 #endif
@@ -213,8 +213,9 @@ GS_EXPORT NSString* const GSLocale;
 	- write docs : -(
 	*/
 
-@interface NSUserDefaults:  NSObject
+@interface NSUserDefaults : NSObject
 {
+#if	GS_EXPOSE(NSUserDefaults)
 @private
   NSMutableArray	*_searchList;    // Current search list;
   NSMutableDictionary	*_persDomains;   // Contains persistent defaults info;
@@ -226,6 +227,10 @@ GS_EXPORT NSString* const GSLocale;
   NSDate		*_lastSync;
   NSRecursiveLock	*_lock;
   NSDistributedLock	*_fileLock;
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 
 /**
@@ -331,7 +336,7 @@ GS_EXPORT NSString* const GSLocale;
  * and returns its integer value or 0 if it is not representable
  * as an integer.
  */
-- (int) integerForKey: (NSString*)defaultName;
+- (NSInteger) integerForKey: (NSString*)defaultName;
 
 /**
  * Looks up a value for a specified default using.
@@ -381,13 +386,14 @@ GS_EXPORT NSString* const GSLocale;
  * Calls -setObject:forKey: to make the change by storing an intege
  * [NSNumber] instance.
  */
-- (void) setInteger: (int)value forKey: (NSString*)defaultName;
+- (void) setInteger: (NSInteger)value forKey: (NSString*)defaultName;
 
 /**
- * Sets an object value for defaultName in the application domain.<br />
+ * Sets a copy of an object value for defaultName in the
+ * application domain.<br />
  * The defaultName must be a non-empty string.<br />
- * The value must be an instance of one of the [NSString-propertyList]
- * classes.<br />
+ * The value to be copied into the domain must be an instance
+ * of one of the [NSString-propertyList] classes.<br />
  * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
  * if this is the first change to a persistent-domain since the
  * last -synchronize.

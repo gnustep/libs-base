@@ -25,14 +25,14 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "common.h"
 #include <string.h>
-#include "Foundation/NSDistributedLock.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDebug.h"
-#include "GSPrivate.h"
+#define	EXPOSE_NSDistributedLock_IVARS	1
+#import "Foundation/NSDistributedLock.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
+#import "GSPrivate.h"
 
 #include <fcntl.h>
 
@@ -132,27 +132,27 @@ static NSFileManager	*mgr = nil;
   if ([mgr fileExistsAtPath: lockDir isDirectory: &isDirectory] == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is missing\n", aPath);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   if (isDirectory == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is not a directory\n",
 	_lockPath);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   if ([mgr isWritableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not writable\n", _lockPath);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   if ([mgr isExecutableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not accessible\n",
 		_lockPath);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   return self;

@@ -35,21 +35,24 @@ extern "C" {
 
 @interface NSInvocation : NSObject
 {
+#if	GS_EXPOSE(NSInvocation)
+@public
   NSMethodSignature	*_sig;
   void                  *_cframe;
   void			*_retval;
   id			_target;
   SEL			_selector;
   unsigned int		_numArgs;
-#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
-  NSArgumentInfo	*_info;
-#else
-  void			*_dummy;
-#endif
+  void			*_info;
   BOOL			_argsRetained;
   BOOL                  _targetRetained;
   BOOL			_validReturn;
   BOOL			_sendToSuper;
+  void			*_retptr;
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 
 /*
@@ -61,11 +64,11 @@ extern "C" {
  *	Accessing message elements.
  */
 - (void) getArgument: (void*)buffer
-	     atIndex: (int)index;
+	     atIndex: (NSInteger)index;
 - (void) getReturnValue: (void*)buffer;
 - (SEL) selector;
 - (void) setArgument: (void*)buffer
-	     atIndex: (int)index;
+	     atIndex: (NSInteger)index;
 - (void) setReturnValue: (void*)buffer;
 - (void) setSelector: (SEL)aSelector;
 - (void) setTarget: (id)anObject;
@@ -77,7 +80,7 @@ extern "C" {
 - (BOOL) argumentsRetained;
 - (void) retainArguments;
 
-#if OS_API_VERSION(GS_API_NONE,GS_API_NONE) && GS_API_VERSION(011101,GS_API_LATEST)
+#if OS_API_VERSION(GS_API_NONE,GS_API_NONE) && GS_API_VERSION( 11101,GS_API_LATEST)
 - (BOOL) targetRetained;
 - (void) retainArgumentsIncludingTarget: (BOOL)retainTargetFlag;
 #endif
@@ -119,8 +122,6 @@ extern "C" {
 + (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy;
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
-- (id) initWithSelector: (SEL)aSelector;
-- (id) initWithTarget: (id)anObject selector: (SEL)aSelector, ...;
 - (void*) returnFrame: (arglist_t)argFrame;
 @end
 

@@ -36,8 +36,10 @@
 extern "C" {
 #endif
 
-@interface NSTask : NSObject <GCFinalization>
+@interface NSTask : NSObject
 {
+#if	GS_EXPOSE(NSTask)
+@protected
   NSString	*_currentDirectoryPath;
   NSString	*_launchPath;
   NSArray	*_arguments;
@@ -51,6 +53,10 @@ extern "C" {
   BOOL		_hasTerminated;
   BOOL		_hasCollected;
   BOOL		_hasNotified;
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 
 + (NSTask*) launchedTaskWithLaunchPath: (NSString*)path
@@ -114,6 +120,10 @@ GS_EXPORT NSString* const NSTaskDidTerminateNotification;
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSTask+GNUstepBase.h>
 #endif
 
 #endif /* __NSTask_h_GNUSTEP_BASE_INCLUDE */

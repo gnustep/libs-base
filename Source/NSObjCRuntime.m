@@ -25,12 +25,8 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSString.h"
-#include <mframe.h>
+#import "common.h"
+#import "Foundation/NSException.h"
 #include <string.h>
 
 /**
@@ -73,7 +69,7 @@ NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
-    return [NSString stringWithUTF8String: GSNameFromSelector(aSelector)];
+    return [NSString stringWithUTF8String: sel_getName(aSelector)];
   return nil;
 }
 
@@ -112,7 +108,7 @@ NSClassFromString(NSString *aClassName)
       [aClassName getCString: buf
 		   maxLength: len + 1
 		    encoding: NSASCIIStringEncoding];
-      return GSClassFromName (buf);
+      return objc_lookUpClass (buf);
     }
   return (Class)0;
 }
@@ -125,7 +121,7 @@ NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
-    return [NSString stringWithUTF8String: (char*)GSNameFromClass(aClass)];
+    return [NSString stringWithUTF8String: (char*)class_getName(aClass)];
   return nil;
 }
 
@@ -133,19 +129,38 @@ NSStringFromClass(Class aClass)
  * When provided with a C string containing encoded type information,
  * this method extracts size and alignment information for the specified
  * type into the buffers pointed to by sizep and alignp.<br />
- * If either sizep or alignp is a nil pointer, the corresponding data is
+ * If either sizep or alignp is a null pointer, the corresponding data is
  * not extracted.<br />
- * The function returns a pointer to the type information C string.
+ * The function returns a pointer into the type information C string
+ * immediately after the decoded information.
  */
 const char *
-NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
+NSGetSizeAndAlignment(const char *typePtr,
+  NSUInteger *sizep, NSUInteger *alignp)
 {
-  NSArgumentInfo	info;
-  typePtr = mframe_next_arg(typePtr, &info, 0);
-  if (sizep)
-    *sizep = info.size;
-  if (alignp)
-    *alignp = info.align;
+  if (typePtr != NULL)
+    {
+      /* Skip any offset, but don't call objc_skip_offset() as that's buggy.
+       */
+      if (*typePtr == '+' || *typePtr == '-')
+	{
+	  typePtr++;
+	}
+      while (isdigit(*typePtr))
+	{
+	  typePtr++;
+	}
+      typePtr = objc_skip_type_qualifiers (typePtr);
+      if (sizep)
+	{
+          *sizep = objc_sizeof_type (typePtr);
+	}
+      if (alignp)
+	{
+          *alignp = objc_alignof_type (typePtr);
+	}
+      typePtr = objc_skip_typespec (typePtr);
+    }
   return typePtr;
 }
 

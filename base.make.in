@@ -42,11 +42,6 @@ ifeq ($(FOUNDATION_LIB),gnu)
   FND_LIBS = -lgnustep-base
   FND_DEFINE = -DGNUSTEP_BASE_LIBRARY=1
   GNUSTEP_DEFINE = -DGNUSTEP
-  # If gc=yes was passed, use the appropriate library and defines
-  ifeq ($(gc), yes)
-    AUXILIARY_CPPFLAGS += -DGS_WITH_GC=1
-    AUXILIARY_INCLUDE_DIRS += -I/usr/include/gc
-  endif
 endif
 
   GNUSTEP_BASE_HAVE_GNUTLS=@HAVE_GNUTLS@

@@ -23,17 +23,19 @@
    Boston, MA 02111 USA.
    */
 
-#include "config.h"
-#include <stdlib.h>
+#import "common.h"
+
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
 
 #include "cifframe.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
-#include "GSInvocation.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSData.h"
+#import "GSInvocation.h"
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;
@@ -121,7 +123,7 @@ cifframe_guess_struct_size(ffi_type *stype)
 
 
 cifframe_t *
-cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
+cifframe_from_signature (NSMethodSignature *info)
 {
   unsigned      size = sizeof(cifframe_t);
   unsigned      align = __alignof(double);
@@ -129,6 +131,7 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
   unsigned      offset = 0;
   void          *buf;
   int           i;
+  int		numargs = [info numberOfArguments];
   ffi_type      *rtype;
   ffi_type      *arg_types[numargs];
   cifframe_t    *cframe;
@@ -137,10 +140,10 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
      have custom ffi_types with are allocated separately. We should allocate
      them in our cifframe so we don't leak memory. Or maybe we could
      cache structure types? */
-  rtype = cifframe_type(info[0].type, NULL);
+  rtype = cifframe_type([info methodReturnType], NULL);
   for (i = 0; i < numargs; i++)
     {
-      arg_types[i] = cifframe_type(info[i+1].type, NULL);
+      arg_types[i] = cifframe_type([info getArgumentTypeAtIndex: i], NULL);
     }
 
   if (numargs > 0)
@@ -176,35 +179,11 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
         }
     }
 
-  /*
-   * If we need space allocated to store a return value,
-   * make room for it at the end of the cifframe so we
-   * only need to do a single malloc.
-   */
-  if (rtype && (rtype->size > 0 || rtype->elements != NULL))
-    {
-      unsigned	full = size;
-      unsigned	pos;
-
-      if (full % align != 0)
-	{
-	  full += (align - full % align);
-	}
-      pos = full;
-      if (rtype->elements)
-	full += cifframe_guess_struct_size(rtype);
-      else
-	full += MAX(rtype->size, sizeof(smallret_t));
-      cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
-      if (cframe && retval)
-	{
-	  *retval = buf + pos;
-	}
-    }
-  else
-    {
-      cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), size, 1);
-    }
+#if	GS_WITH_GC
+  cframe = buf = NSAllocateCollectable(size, NSScannedOption);
+#else
+  cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), size, 1);
+#endif
 
   if (cframe)
     {
@@ -246,75 +225,6 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
   return cframe;
 }
 
-/* NB. this must match the code in cifframe_from_info() so that it
- * returns the offset for the returne value in the cframe.
- */
-unsigned
-retval_offset_from_info (NSArgumentInfo *info, int numargs)
-{
-  unsigned      size = sizeof(cifframe_t);
-  unsigned      align = __alignof(double);
-  unsigned      type_offset = 0;
-  unsigned      offset = 0;
-  int           i;
-  ffi_type      *arg_types[numargs];
-  ffi_type      *rtype;
-
-  /* FIXME: in cifframe_type, return values/arguments that are structures
-     have custom ffi_types with are allocated separately. We should allocate
-     them in our cifframe so we don't leak memory. Or maybe we could
-     cache structure types? */
-  rtype = cifframe_type(info[0].type, NULL);
-  if (rtype == 0 || (rtype->size == 0 && rtype->elements == NULL))
-    {
-      return 0;
-    }
-
-  for (i = 0; i < numargs; i++)
-    {
-      arg_types[i] = cifframe_type(info[i+1].type, NULL);
-    }
-
-  if (numargs > 0)
-    {
-      if (size % align != 0)
-        {
-          size += align - (size % align);
-        }
-      type_offset = size;
-      /* Make room to copy the arg_types */
-      size += sizeof(ffi_type *) * numargs;
-      if (size % align != 0)
-        {
-          size += align - (size % align);
-        }
-      offset = size;
-      size += numargs * sizeof(void*);
-      if (size % align != 0)
-        {
-          size += (align - (size % align));
-        }
-      for (i = 0; i < numargs; i++)
-        {
-          if (arg_types[i]->elements)
-            size += cifframe_guess_struct_size(arg_types[i]);
-          else
-            size += arg_types[i]->size;
-
-          if (size % align != 0)
-            {
-              size += (align - size % align);
-            }
-        }
-    }
-
-  if (size % align != 0)
-    {
-      size += (align - size % align);
-    }
-  return size;
-}
-
 void
 cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, int size)
 {
@@ -345,39 +255,10 @@ cifframe_arg_addr(cifframe_t *cframe, int index)
 ffi_type *
 cifframe_type(const char *typePtr, const char **advance)
 {
-  BOOL flag;
   const char *type;
   ffi_type *ftype;
 
-  /*
-   *	Skip past any type qualifiers
-   */
-  flag = YES;
-  while (flag)
-    {
-      switch (*typePtr)
-	{
-	case _C_CONST:
-	case _C_IN:
-	case _C_INOUT:
-	case _C_OUT:
-	case _C_BYCOPY:
-#ifdef	_C_BYREF
-	case _C_BYREF:
-#endif
-	case _C_ONEWAY:
-#ifdef	_C_GCINVISIBLE
-	case _C_GCINVISIBLE:
-#endif
-	  break;
-	default: flag = NO;
-	}
-      if (flag)
-	{
-	  typePtr++;
-	}
-    }
-
+  typePtr = objc_skip_type_qualifiers (typePtr);
   type = typePtr;
 
   /*
@@ -458,18 +339,90 @@ cifframe_type(const char *typePtr, const char **advance)
 	const char *adv;
 	unsigned   align = __alignof(double);
 
-	types = 0;
-	maxtypes = 4;
-	size = sizeof(ffi_type);
-	if (size % align != 0)
+	/* Standard structures can be handled using cached type information.
+	   Since the switch statement has already skipped the _C_STRUCT_B
+	   character, we must use typePtr-1 below to successfully match the
+	   type encoding with one of the standard type encodings. The same
+	   holds for skipping past the whole structure type's encoding with
+	   objc_skip_typespec.
+	 */
+	if (GSSelectorTypesMatch(typePtr - 1, @encode(NSRange)))
 	  {
-	    size += (align - (size % align));
+	    static ffi_type	*elems[3];
+	    static ffi_type	stype = { 0 };
+
+	    if (stype.type == 0)
+	      {
+                const char      *t = @encode(NSUInteger);
+
+		if (*t == _C_ULNG)
+		  {
+		    elems[0] = &gsffi_type_ulong;
+		  }
+#ifdef	_C_LNG_LNG
+		else if (*t == _C_ULNG_LNG)
+		  {
+		    elems[0] = &gsffi_type_ulong_long;
+		  }
+#endif
+		else
+		  {
+		    elems[0] = &gsffi_type_uint;
+		  }
+		elems[1] = elems[0];
+		elems[2] = 0;
+		stype.elements = elems;
+		stype.type = FFI_TYPE_STRUCT;
+	      }
+	    ftype = &stype;
+	    typePtr = objc_skip_typespec (typePtr - 1);
+	    break;
 	  }
-	ftype = objc_malloc(size + maxtypes*sizeof(ffi_type));
-	ftype->size = 0;
-	ftype->alignment = 0;
-	ftype->type = FFI_TYPE_STRUCT;
-	ftype->elements = (void*)ftype + size;
+	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSSize)))
+	  {
+	    static ffi_type	*elems[3];
+	    static ffi_type	stype = { 0 };
+
+	    if (stype.type == 0)
+	      {
+		if (*@encode(CGFloat) == _C_DBL)
+		  {
+		    elems[0] = &ffi_type_double;
+		  }
+		else
+		  {
+		    elems[0] = &ffi_type_float;
+		  }
+		elems[1] = elems[0];
+		elems[2] = 0;
+		stype.elements = elems;
+		stype.type = FFI_TYPE_STRUCT;
+	      }
+	    ftype = &stype;
+	    typePtr = objc_skip_typespec (typePtr - 1);
+	    break;
+	  }
+	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSRect)))
+	  {
+	    static ffi_type	*elems[3];
+	    static ffi_type	stype = { 0 };
+
+	    if (stype.type == 0)
+	      {
+		/* An NSRect is an NSPoint and an NSSize, but those
+	 	 * two structures are actually identical.
+		 */
+		elems[0] = cifframe_type(@encode(NSSize), NULL);
+		elems[1] = elems[0];
+		elems[2] = 0;
+		stype.elements = elems;
+		stype.type = FFI_TYPE_STRUCT;
+	      }
+	    ftype = &stype;
+	    typePtr = objc_skip_typespec (typePtr - 1);
+	    break;
+	  }
+
 	/*
 	 *	Skip "<name>=" stuff.
 	 */
@@ -480,6 +433,19 @@ cifframe_type(const char *typePtr, const char **advance)
 		break;
 	      }
 	  }
+
+	types = 0;
+	maxtypes = 4;
+	size = sizeof(ffi_type);
+	if (size % align != 0)
+	  {
+	    size += (align - (size % align));
+	  }
+	ftype = objc_malloc(size + (maxtypes+1)*sizeof(ffi_type));
+	ftype->size = 0;
+	ftype->alignment = 0;
+	ftype->type = FFI_TYPE_STRUCT;
+	ftype->elements = (void*)ftype + size;
 	/*
 	 *	Continue accumulating structure size.
 	 */
@@ -492,7 +458,9 @@ cifframe_type(const char *typePtr, const char **advance)
 	    if (types >= maxtypes)
 	      {
 		maxtypes *=2;
-		ftype = objc_realloc(ftype, size + maxtypes*sizeof(ffi_type));
+		ftype = objc_realloc(ftype,
+                  size + (maxtypes+1)*sizeof(ffi_type));
+	        ftype->elements = (void*)ftype + size;
 	      }
 	  }
 	ftype->elements[types] = NULL;
@@ -558,14 +526,6 @@ cifframe_type(const char *typePtr, const char **advance)
   return ftype;
 }
 
-
-/* Ugly hack to make it easier to invoke a method from outside
-   an NSInvocation class. Hopefully simplication of NSConnection
-   could remove this hack */
-typedef struct _NSInvocation_t {
-  @defs(NSInvocation)
-} NSInvocation_t;
-
 /*-------------------------------------------------------------------------*/
 /* Functions for handling sending and receiving messages accross a
    connection
@@ -576,6 +536,7 @@ typedef struct _NSInvocation_t {
 BOOL
 cifframe_decode_arg (const char *type, void* buffer)
 {
+  type = objc_skip_type_qualifiers (type);
   switch (*type)
     {
     case _C_CHR:
@@ -605,6 +566,7 @@ cifframe_decode_arg (const char *type, void* buffer)
 BOOL
 cifframe_encode_arg (const char *type, void* buffer)
 {
+  type = objc_skip_type_qualifiers (type);
   switch (*type)
     {
     case _C_CHR:
@@ -629,606 +591,5 @@ cifframe_encode_arg (const char *type, void* buffer)
       return NO;
     }
   return YES;
-}
-
-/* cifframe_do_call()
-
-   This function decodes the arguments of method call, builds a
-   cifframe, and invokes the method using GSFFIInvokeWithTargetAndImp
-   then it encodes the return value and any pass-by-reference arguments.
-
-   An entry, ctxt->type should be a string that describes the return value
-   and arguments.  It's argument types and argument type qualifiers
-   should match exactly those that were used when the arguments were
-   encoded. cifframe_do_call() uses this information to determine
-   which variable types it should decode.
-
-   The type info is used to get the types and type qualifiers, but not
-   to get the register and stack locations---we get that information
-   from the selector type of the SEL that is decoded as the second
-   argument.  In this way, the type info may come from a machine
-   of a different architecture.  Having the original type info is
-   good, just in case the machine running cifframe_do_call() has some
-   slightly different qualifiers.  Using different qualifiers for
-   encoding and decoding could lead to massive confusion.
-
-
-   DECODER should be a pointer to a function that obtains the method's
-   argument values.  For example:
-
-     void my_decoder (DOContext *ctxt)
-
-     CTXT contains the context information for the item to decode.
-
-     cifframe_do_call() calls this function once for each of the methods
-     arguments.  The DECODER function should place the ARGNUM'th
-     argument's value at the memory location ctxt->datum.
-     cifframe_do_call() calls this function once with ctxt->datum 0,
-     and ctxt->type 0 to denote completion of decoding.
-
-
-     If DECODER malloc's new memory in the course of doing its
-     business, then DECODER is responsible for making sure that the
-     memory will get free eventually.  For example, if DECODER uses
-     -decodeValueOfCType:at:withName: to decode a char* string, you
-     should remember that -decodeValueOfCType:at:withName: malloc's
-     new memory to hold the string, and DECODER should autorelease the
-     malloc'ed pointer, using the NSData class.
-
-
-   ENCODER should be a pointer to a function that records the method's
-   return value and pass-by-reference values.  For example:
-
-     void my_encoder (DOContext *ctxt)
-
-     CTXT contains the context information for the item to encode.
-
-     cifframe_do_call() calls this function after the method has been
-     run---once for the return value, and once for each of the
-     pass-by-reference parameters.  The ENCODER function should place
-     the value at memory location ctxt->datum wherever the user wants to
-     record the ARGNUM'th return value.
-
-*/
-
-void
-cifframe_do_call (DOContext *ctxt,
-		void(*decoder)(DOContext*),
-		void(*encoder)(DOContext*))
-{
-  /* The method type string obtained from the target's OBJC_METHOD
-     structure for the selector we're sending. */
-  const char *type;
-  /* A pointer into the local variable TYPE string. */
-  const char *tmptype;
-  /* A pointer into the argument ENCODED_TYPES string. */
-  const char *etmptype;
-  /* The target object that will receive the message. */
-  id object;
-  /* The selector for the message we're sending to the TARGET. */
-  SEL selector;
-  /* The OBJECT's Method(_t) pointer for the SELECTOR. */
-  GSMethod meth = 0;
-  /* The OBJECT's implementation of the SELECTOR. */
-  IMP method_implementation;
-  /* Type qualifier flags; see <objc/objc-api.h>. */
-  unsigned flags;
-  /* Which argument number are we processing now? */
-  int argnum;
-  /* The cif information for calling the method */
-  cifframe_t *cframe;
-  /* Does the method have any arguments that are passed by reference?
-     If so, we need to encode them, since the method may have changed them. */
-  BOOL out_parameters = NO;
-  /* A dummy invocation to pass to the function that invokes our method */
-  NSInvocation_t *inv;
-  /* Signature information */
-  NSMethodSignature *sig;
-  void	*retval;
-  const char *encoded_types = ctxt->type;
-
-  /* Decode the object, (which is always the first argument to a method),
-     into the local variable OBJECT. */
-  ctxt->type = @encode(id);
-  ctxt->datum = &object;
-  (*decoder) (ctxt);
-  NSCParameterAssert (object);
-
-  /* Decode the selector, (which is always the second argument to a
-     method), into the local variable SELECTOR. */
-  /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
-  ctxt->type = @encode(SEL);
-  ctxt->datum = &selector;
-  (*decoder) (ctxt);
-  NSCParameterAssert (selector);
-
-  /* Get the "selector type" for this method.  The "selector type" is
-     a string that lists the return and argument types, and also
-     indicates in which registers and where on the stack the arguments
-     should be placed before the method call.  The selector type
-     string we get here should have the same argument and return types
-     as the ENCODED_TYPES string, but it will have different register
-     and stack locations if the ENCODED_TYPES came from a machine of a
-     different architecture. */
-  if (GSObjCIsClass(object))
-    {
-      meth = GSGetMethod(object, selector, NO, YES);
-    }
-  else if (GSObjCIsInstance(object))
-    {
-      meth = GSGetMethod(GSObjCClass(object), selector, YES, YES);
-    }
-  else
-    {
-      [NSException raise: NSInvalidArgumentException
-		   format: @"decoded object %p is invalid", object];
-    }
-  
-  if (meth != 0)
-    {
-      type = meth->method_types;
-    }
-  else
-    {
-      NSDebugLog(@"Local object <%p %s> doesn't implement: %s directly.  "
-		 @"Will search for arbitrary signature.",
-		 object,
-		 GSNameFromClass(GSObjCIsClass(object) 
-				 ? object : (id)GSObjCClass(object)),
-		 GSNameFromSelector(selector));
-      type = GSTypesFromSelector(selector);
-    }
-
-  /* Make sure we successfully got the method type, and that its
-     types match the ENCODED_TYPES. */
-  NSCParameterAssert (type);
-  if (GSSelectorTypesMatch(encoded_types, type) == NO)
-    {
-      [NSException raise: NSInvalidArgumentException
-	format: @"cifframe_do_call types (%s / %s) missmatch for %s", 
-	encoded_types, type, GSNameFromSelector(selector)];
-    }
-
-  /* Build the cif frame */
-  sig = [NSMethodSignature signatureWithObjCTypes: type];
-  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments],
-			       &retval);
-  ctxt->datToFree = cframe;
-
-  /* Put OBJECT and SELECTOR into the ARGFRAME. */
-
-  /* Initialize our temporary pointers into the method type strings. */
-  tmptype = objc_skip_argspec (type);
-  etmptype = objc_skip_argspec (encoded_types);
-  NSCParameterAssert (*tmptype == _C_ID);
-  /* Put the target object there. */
-  cifframe_set_arg(cframe, 0, &object, sizeof(id));
-  /* Get a pointer into ARGFRAME, pointing to the location where the
-     second argument is to be stored. */
-  tmptype = objc_skip_argspec (tmptype);
-  etmptype = objc_skip_argspec(etmptype);
-  NSCParameterAssert (*tmptype == _C_SEL);
-  /* Put the selector there. */
-  cifframe_set_arg(cframe, 1, &selector, sizeof(SEL));
-
-
-  /* Decode arguments after OBJECT and SELECTOR, and put them into the
-     ARGFRAME.  Step TMPTYPE and ETMPTYPE in lock-step through their
-     method type strings. */
-
-  for (tmptype = objc_skip_argspec (tmptype),
-       etmptype = objc_skip_argspec (etmptype), argnum = 2;
-       *tmptype != '\0';
-       tmptype = objc_skip_argspec (tmptype),
-       etmptype = objc_skip_argspec (etmptype), argnum++)
-    {
-      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
-      flags = objc_get_type_qualifiers (etmptype);
-      /* Skip over the type qualifiers, so now TYPE is pointing directly
-	 at the char corresponding to the argument's type, as defined
-	 in <objc/objc-api.h> */
-      tmptype = objc_skip_type_qualifiers(tmptype);
-
-      /*
-       * Setup information in context.
-       */
-      ctxt->datum = cifframe_arg_addr(cframe, argnum);
-      ctxt->type = tmptype;
-      ctxt->flags = flags;
-
-      /* Decide how, (or whether or not), to decode the argument
-	 depending on its FLAGS and TMPTYPE.  Only the first two cases
-	 involve parameters that may potentially be passed by
-	 reference, and thus only the first two may change the value
-	 of OUT_PARAMETERS.  *** Note: This logic must match exactly
-	 the code in cifframe_dissect_call(); that function should
-	 encode exactly what we decode here. *** */
-
-      switch (*tmptype)
-	{
-
-	case _C_CHARPTR:
-	  /* Handle a (char*) argument. */
-	  /* If the char* is qualified as an OUT parameter, or if it
-	     not explicitly qualified as an IN parameter, then we will
-	     have to get this char* again after the method is run,
-	     because the method may have changed it.  Set
-	     OUT_PARAMETERS accordingly. */
-	  if ((flags & _F_OUT) || !(flags & _F_IN))
-	    out_parameters = YES;
-	  /* If the char* is qualified as an IN parameter, or not
-	     explicity qualified as an OUT parameter, then decode it.
-	     Note: the decoder allocates memory for holding the
-	     string, and it is also responsible for making sure that
-	     the memory gets freed eventually, (usually through the
-	     autorelease of NSData object). */
-	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    (*decoder) (ctxt);
-
-	  break;
-
-	case _C_PTR:
-	  /* If the pointer's value is qualified as an OUT parameter,
-	     or if it not explicitly qualified as an IN parameter,
-	     then we will have to get the value pointed to again after
-	     the method is run, because the method may have changed
-	     it.  Set OUT_PARAMETERS accordingly. */
-	  if ((flags & _F_OUT) || !(flags & _F_IN))
-	    out_parameters = YES;
-
-	  /* Handle an argument that is a pointer to a non-char.  But
-	     (void*) and (anything**) is not allowed. */
-	  /* The argument is a pointer to something; increment TYPE
-	       so we can see what it is a pointer to. */
-	  tmptype++;
-	  ctxt->type = tmptype;
-	  /* Allocate some memory to be pointed to, and to hold the
-	     value.  Note that it is allocated on the stack, and
-	     methods that want to keep the data pointed to, will have
-	     to make their own copies. */
-	  *(void**)ctxt->datum = alloca (objc_sizeof_type (tmptype));
-	  ctxt->datum = *(void**)ctxt->datum;
-	  /* If the pointer's value is qualified as an IN parameter,
-	     or not explicity qualified as an OUT parameter, then
-	     decode it. */
-	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    (*decoder) (ctxt);
-	  break;
-
-	default:
-	  /* Handle arguments of all other types. */
-	  /* NOTE FOR OBJECTS: Unlike [Decoder decodeObjectAt:..],
-	     this function does not generate a reference to the
-	     object; the object may be autoreleased; if the method
-	     wants to keep a reference to the object, it will have to
-	     -retain it. */
-	  (*decoder) (ctxt);
-	}
-    }
-  /* End of the for () loop that enumerates the method's arguments. */
-  ctxt->type = 0;
-  ctxt->datum = 0;
-  (*decoder) (ctxt);
-
-
-  /* Invoke the method! */
-
-  /* Find the target object's implementation of this selector. */
-  method_implementation = objc_msg_lookup (object, selector);
-  NSCParameterAssert (method_implementation);
-  /* Do it!  Send the message to the target, and get the return value
-     in retval.  We need to encode any pass-by-reference info */
-  inv = (NSInvocation_t *)NSAllocateObject([NSInvocation class], 0,
-					   NSDefaultMallocZone());
-  inv->_retval = retval;
-  inv->_selector = selector;
-  inv->_cframe = cframe;
-  inv->_info = [sig methodInfo];
-  inv->_numArgs = [sig numberOfArguments];
-  ctxt->objToFree = (id)inv;
-  GSFFIInvokeWithTargetAndImp((NSInvocation *)inv, object,
-				 method_implementation);
-  ctxt->objToFree = nil;
-  NSDeallocateObject((NSInvocation *)inv);
-
-  /* Encode the return value and pass-by-reference values, if there
-     are any.  This logic must match exactly that in
-     cifframe_build_return(). */
-  /* OUT_PARAMETERS should be true here in exactly the same
-     situations as it was true in cifframe_dissect_call(). */
-
-  /* Get the qualifier type of the return value. */
-  flags = objc_get_type_qualifiers (encoded_types);
-  /* Get the return type; store it our two temporary char*'s. */
-  etmptype = objc_skip_type_qualifiers (encoded_types);
-  tmptype = objc_skip_type_qualifiers (type);
-
-  /* Only encode return values if there is a non-void return value,
-     a non-oneway void return value, or if there are values that were
-     passed by reference. */
-
-  ctxt->flags = flags;
-
-  /* If there is a return value, encode it. */
-  if (*tmptype == _C_VOID)
-    {
-      if ((flags & _F_ONEWAY) == 0)
-	{
-	  int	dummy = 0;
-
-	  ctxt->type = @encode(int);
-	  ctxt->datum = (void*)&dummy;
-	  (*encoder) (ctxt);
-	}
-      /* No return value to encode; do nothing. */
-    }
-  else
-    {
-      if (*tmptype == _C_PTR)
-	{
-	  /* The argument is a pointer to something; increment TYPE
-	     so we can see what it is a pointer to. */
-	  tmptype++;
-	  ctxt->type = tmptype;
-	  ctxt->datum = *(void**)retval;
-	}
-      else
-	{
-	  cifframe_decode_arg(tmptype, retval);
-	  ctxt->type = tmptype;
-	  ctxt->datum = retval;
-	}
-      /* Encode the value that was pointed to. */
-      (*encoder) (ctxt);
-    }
-
-
-  /* Encode the values returned by reference.  Note: this logic
-     must match exactly the code in cifframe_build_return(); that
-     function should decode exactly what we encode here. */
-
-  if (out_parameters)
-    {
-      /* Step through all the arguments, finding the ones that were
-	 passed by reference. */
-      for (tmptype = objc_skip_argspec (tmptype),
-	     argnum = 0,
-	     etmptype = objc_skip_argspec (etmptype);
-	   *tmptype != '\0';
-	   tmptype = objc_skip_argspec (tmptype),
-	     argnum++,
-	     etmptype = objc_skip_argspec (etmptype))
-	{
-	  /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
-	  flags = objc_get_type_qualifiers(etmptype);
-	  /* Skip over the type qualifiers, so now TYPE is pointing directly
-	     at the char corresponding to the argument's type, as defined
-	     in <objc/objc-api.h> */
-	  tmptype = objc_skip_type_qualifiers (tmptype);
-
-	  /* Decide how, (or whether or not), to encode the argument
-	     depending on its FLAGS and TMPTYPE. */
-	  if (((flags & _F_OUT) || !(flags & _F_IN))
-	    && (*tmptype == _C_PTR || *tmptype == _C_CHARPTR))
-	    {
-	      ctxt->flags = flags;
-	      ctxt->datum = cifframe_arg_addr(cframe, argnum);
-
-	      if (*tmptype == _C_PTR)
-		{
-		  /* The argument is a pointer (to a non-char), and the
-		     pointer's value is qualified as an OUT parameter, or
-		     it not explicitly qualified as an IN parameter, then
-		     it is a pass-by-reference argument.*/
-		  ctxt->type = ++tmptype;
-		  ctxt->datum = *(void**)ctxt->datum;
-		}
-	      else if (*tmptype == _C_CHARPTR)
-		{
-		  ctxt->type = tmptype;
-		  /* The argument is a pointer char string, and the
-		     pointer's value is qualified as an OUT parameter, or
-		     it not explicitly qualified as an IN parameter, then
-		     it is a pass-by-reference argument. */
-		}
-	      (*encoder) (ctxt);
-	    }
-	}
-    }
-
-  NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
-  ctxt->datToFree = 0;
-
-  return;
-}
-
-/* cifframe_build_return()
-
-   This function decodes the values returned from a method call,
-   sets up the invocation with the return value, and updates the
-   pass-by-reference arguments.
-
-   The callback function is finally called with the 'type' set to a null pointer
-   to tell it that the return value and all return parameters have been
-   dealt with.  This permits the function to do any tidying up necessary.  */
-
-void
-cifframe_build_return (NSInvocation *inv,
-		     const char *type,
-		     BOOL out_parameters,
-		     void(*decoder)(DOContext *ctxt),
-		     DOContext *ctxt)
-{
-  /* Which argument number are we processing now? */
-  int argnum;
-  /* Type qualifier flags; see <objc/objc-api.h>. */
-  int flags;
-  /* A pointer into the TYPE string. */
-  const char *tmptype;
-  /* Points at individual arguments. */
-  void *datum;
-  const char *rettype;
-  /* A pointer to the memory holding the return value of the method. */
-  void *retval;
-  /* Storage for the argument information */
-  cifframe_t *cframe;
-  /* Signature information */
-  NSMethodSignature *sig;
-
-  /* Build the cif frame */
-  sig = [NSMethodSignature signatureWithObjCTypes: type];
-  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments],
-			       &retval);
-  ctxt->datToFree = cframe;
-
-  /* Get the return type qualifier flags, and the return type. */
-  flags = objc_get_type_qualifiers(type);
-  tmptype = objc_skip_type_qualifiers(type);
-  rettype = tmptype;
-
-  /* Decode the return value and pass-by-reference values, if there
-     are any.  OUT_PARAMETERS should be the value returned by
-     cifframe_dissect_call(). */
-  if (out_parameters || *tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
-    /* xxx What happens with method declared "- (oneway) foo: (out int*)ip;" */
-    /* xxx What happens with method declared "- (in char *) bar;" */
-    /* xxx Is this right?  Do we also have to check _F_ONEWAY? */
-    {
-      /* ARGNUM == -1 signifies to DECODER() that this is the return
-         value, not an argument. */
-
-      /* If there is a return value, decode it, and put it in retval. */
-      if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
-	{	
-	  ctxt->type = tmptype;
-	  ctxt->datum = retval;
-	  ctxt->flags = flags;
-
-	  switch (*tmptype)
-	    {
-	    case _C_PTR:
-	      {
-		unsigned retLength;
-
-		/* We are returning a pointer to something. */
-		/* Increment TYPE so we can see what it is a pointer to. */
-		tmptype++;
-		retLength = objc_sizeof_type(tmptype);
-		/* Allocate memory to hold the value we're pointing to. */
-		*(void**)retval =
-		  NSZoneCalloc(NSDefaultMallocZone(), retLength, 1);
-		/* We are responsible for making sure this memory gets free'd
-		   eventually.  Ask NSData class to autorelease it. */
-		[NSData dataWithBytesNoCopy: *(void**)retval
-				     length: retLength];
-		ctxt->type = tmptype;
-		ctxt->datum = *(void**)retval;
-		/* Decode the return value into the memory we allocated. */
-		(*decoder) (ctxt);
-	      }
-	      break;
-
-	    case _C_STRUCT_B:
-	    case _C_UNION_B:
-	    case _C_ARY_B:
-	      /* Decode the return value into the memory we allocated. */
-	      (*decoder) (ctxt);
-	      break;
-
-	    case _C_FLT:
-	    case _C_DBL:
-	      (*decoder) (ctxt);
-	      break;
-
-	    case _C_VOID:
-		{
-		  ctxt->type = @encode(int);
-		  ctxt->flags = 0;
-		  (*decoder) (ctxt);
-		}
-		break;
-
-	    default:
-		(*decoder) (ctxt);
-	    }
-	}
-      [inv setReturnValue: retval];
-
-      /* Decode the values returned by reference.  Note: this logic
-	 must match exactly the code in cifframe_do_call(); that
-	 function should decode exactly what we encode here. */
-
-      if (out_parameters)
-	{
-	  /* Step through all the arguments, finding the ones that were
-	     passed by reference. */
-      for (tmptype = objc_skip_argspec (tmptype), argnum = 0;
-	   *tmptype != '\0';
-	   tmptype = objc_skip_argspec (tmptype), argnum++)
-	    {
-	      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
-	      flags = objc_get_type_qualifiers(tmptype);
-	      /* Skip over the type qualifiers, so now TYPE is
-		 pointing directly at the char corresponding to the
-		 argument's type, as defined in <objc/objc-api.h> */
-	      tmptype = objc_skip_type_qualifiers(tmptype);
-
-	      /* Decide how, (or whether or not), to encode the
-		 argument depending on its FLAGS and TMPTYPE. */
-	      datum = cifframe_arg_addr(cframe, argnum);
-
-	      ctxt->type = tmptype;
-	      ctxt->datum = datum;
-	      ctxt->flags = flags;
-
-	      if (*tmptype == _C_PTR
-		  && ((flags & _F_OUT) || !(flags & _F_IN)))
-		{
-		  void *ptr;
-		  /* The argument is a pointer (to a non-char), and
-		     the pointer's value is qualified as an OUT
-		     parameter, or it not explicitly qualified as an
-		     IN parameter, then it is a pass-by-reference
-		     argument.*/
-		  tmptype++;
-		  ctxt->type = tmptype;
-
-		  /* Use the original pointer to find the buffer
-		   * to store the returned data */
-		  [inv getArgument: &ptr atIndex: argnum];
-		  ctxt->datum = ptr;
-
-		  (*decoder) (ctxt);
-		}
-	      else if (*tmptype == _C_CHARPTR
-		&& ((flags & _F_OUT) || !(flags & _F_IN)))
-		{
-		  /* The argument is a pointer char string, and the
-		     pointer's value is qualified as an OUT parameter,
-		     or it not explicitly qualified as an IN
-		     parameter, then it is a pass-by-reference
-		     argument.  Encode it.*/
-		  /* xxx Perhaps we could save time and space by
-		     saving a copy of the string before the method
-		     call, and then comparing it to this string; if it
-		     didn't change, don't bother to send it back
-		     again. */
-		  (*decoder) (ctxt);
-		  [inv setArgument: datum atIndex: argnum];
-		}
-	    }
-	}
-      ctxt->type = 0;
-      ctxt->datum = 0;
-      (*decoder) (ctxt);	/* Tell it we have finished.	*/
-    }
-
-  if (ctxt->datToFree != 0)
-    {
-      NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
-      ctxt->datToFree = 0;
-    }
-
-  return;
 }
 

@@ -33,7 +33,7 @@
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSMapTable.h>
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #include	<winsock2.h>
 #include	<wininet.h>
 #else
@@ -74,8 +74,10 @@ extern "C" {
  */
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {
+#if	GS_EXPOSE(NSPort)
   BOOL		_is_valid;
   id		_delegate;
+#endif
 }
 
 /**
@@ -91,7 +93,7 @@ extern "C" {
 /**
  * NSMachPort compatibility method.
  */
-+ (NSPort*) portWithMachPort: (int)machPort;
++ (NSPort*) portWithMachPort: (NSInteger)machPort;
 
 /**
  *  Returns the object that received messages will be passed off to.
@@ -112,12 +114,12 @@ extern "C" {
 /**
  * NSMachPort compatibility method.
  */
-- (id) initWithMachPort: (int)machPort;
+- (id) initWithMachPort: (NSInteger)machPort;
 
 /**
  * NSMachPort compatibility.
  */
-- (int) machPort;
+- (NSInteger) machPort;
 
 /**
  * Mark port as invalid, deregister with listeners and cease further network
@@ -151,16 +153,16 @@ extern "C" {
  * Returns amount of space used for header info at beginning of messages.
  * Subclasses should override (this implementation returns 0).
  */
-- (unsigned) reservedSpaceLength;
+- (NSUInteger) reservedSpaceLength;
 
 /**
  * Internal method for sending message, for use by subclasses.
  */
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (int)msgid
+		  msgid: (NSInteger)msgid
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
-	       reserved: (unsigned)length;
+	       reserved: (NSUInteger)length;
 
 /**
  * Internal method for sending message, for use by subclasses.
@@ -168,7 +170,7 @@ extern "C" {
 - (BOOL) sendBeforeDate: (NSDate*)when
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
-	       reserved: (unsigned)length;
+	       reserved: (NSUInteger)length;
 #endif
 @end
 
@@ -195,17 +197,22 @@ typedef SOCKET NSSocketNativeHandle;
  *
  *  <p>Note that this class is incompatible with the latest OS X version.</p>
  */
-@interface NSSocketPort : NSPort <GCFinalization>
+@interface NSSocketPort : NSPort
 {
+#if	GS_EXPOSE(NSSocketPort)
   NSRecursiveLock	*myLock;
   NSHost		*host;		/* OpenStep host for this port.	*/
   NSString		*address;	/* Forced internet address.	*/
   uint16_t		portNum;	/* TCP port in host byte order.	*/
   SOCKET		listener;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEVENT              eventListener;
   NSMapTable            *events;
+#endif
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
 #endif
 }
 
@@ -266,9 +273,11 @@ typedef SOCKET NSSocketNativeHandle;
  *  which can be used for interthread/interprocess communications
  *  on the same host, but not between different hosts.
  */
-@interface NSMessagePort : NSPort <GCFinalization>
+@interface NSMessagePort : NSPort
 {
+#if	GS_EXPOSE(NSMessagePort)
   void	*_internal;
+#endif
 }
 @end
 

@@ -27,19 +27,17 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "common.h"
 #include <stdio.h>
-#include "GSPrivate.h"
-#include "GNUstepBase/GSLock.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSValue.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/GSLock.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSValue.h"
 
 #if     HAVE_EXECINFO_H
 #include        <execinfo.h>
@@ -834,34 +832,6 @@ GSDebugAllocationListRecordedObjects(Class c)
 }
 
 
-
-NSString*
-GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
-{
-  NSString *message;
-
-  message = [NSString stringWithFormat: @"File %s: %d. In %s %@",
-	file, line, func, fmt];
-  return message;
-}
-
-NSString*
-GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
-{
-  NSString	*message;
-  Class		cls = (Class)obj;
-  char		c = '+';
-
-  if ([obj isInstance] == YES)
-    {
-      c = '-';
-      cls = [obj class];
-    }
-  message = [NSString stringWithFormat: @"File %s: %d. In [%@ %c%@] %@",
-	file, line, NSStringFromClass(cls), c, NSStringFromSelector(sel), fmt];
-  return message;
-}
-
 #define _NS_FRAME_HACK(a) \
 case a: env->addr = __builtin_frame_address(a + 1); break;
 #define _NS_RETURN_HACK(a) \
@@ -882,7 +852,7 @@ case a: env->addr = __builtin_return_address(a + 1); break;
 #include <signal.h>
 #include <setjmp.h>
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #ifndef SIGBUS
 #define SIGBUS  SIGILL
 #endif
@@ -927,7 +897,7 @@ recover(int sig)
 }
 
 void *
-NSFrameAddress(int offset)
+NSFrameAddress(NSUInteger offset)
 {
   jbuf_type     *env;
 
@@ -987,7 +957,7 @@ NSFrameAddress(int offset)
   return env->addr;
 }
 
-unsigned NSCountFrames(void)
+NSUInteger NSCountFrames(void)
 {
   jbuf_type	*env;
 
@@ -1051,7 +1021,7 @@ done:
 }
 
 void *
-NSReturnAddress(int offset)
+NSReturnAddress(NSUInteger offset)
 {
   jbuf_type	*env;
 

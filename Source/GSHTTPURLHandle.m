@@ -23,13 +23,12 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSHost.h"
@@ -39,12 +38,13 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSRunLoop.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 #import "NSCallBacks.h"
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"
@@ -69,7 +69,7 @@
  * in case the remote server is buggy and requires particular
  * captialisation of headers (some http software is faulty like that).
  */
-static unsigned int
+static NSUInteger
 _id_hash(void *table, NSString* o)
 {
   return [[o uppercaseString] hash];
@@ -81,7 +81,7 @@ _id_is_equal(void *table, NSString *o, NSString *p)
   return ([o caseInsensitiveCompare: p] == NSOrderedSame) ? YES : NO;
 }
 
-typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
+typedef NSUInteger (*NSMT_hash_func_t)(NSMapTable *, const void *);
 typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *, const void *);
 typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
 typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
@@ -104,6 +104,7 @@ static NSString	*httpVersion = @"1.1";
   BOOL			tunnel;
   BOOL			debug;
   BOOL			keepalive;
+  BOOL			returnAll;
   unsigned char		challenged;
   NSFileHandle          *sock;
   NSURL                 *url;
@@ -242,7 +243,7 @@ static void debugRead(GSHTTPURLHandle *handle, NSData *data)
 #endif
   if (d >= 0)
     {
-      s = [NSString stringWithFormat: @"\nRead for %x at %@ %u bytes - '",
+      s = [NSString stringWithFormat: @"\nRead for %p at %@ %u bytes - '",
 	handle, [NSDate date], [data length]];
       write(d, [s cString], [s cStringLength]);
       write(d, [data bytes], [data length]);
@@ -266,7 +267,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 #endif
   if (d >= 0)
     {
-      s = [NSString stringWithFormat: @"\nWrite for %x at %@ %u bytes - '",
+      s = [NSString stringWithFormat: @"\nWrite for %p at %@ %u bytes - '",
 	handle, [NSDate date], [data length]];
       write(d, [s cString], [s cStringLength]);
       write(d, [data bytes], [data length]);
@@ -291,7 +292,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
         {
 	  [urlOrder removeObjectIdenticalTo: obj];
 	  [urlOrder addObject: obj];
-          AUTORELEASE(RETAIN(obj));
+          IF_NO_GC([[obj retain] autorelease];)
 	}
       [urlLock unlock];
       //NSLog(@"Found handle %@", obj);
@@ -310,9 +311,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       debugFile = [NSString stringWithFormat: @"%@/GSHTTP.%d",
 			     NSTemporaryDirectory(),
 			     [[NSProcessInfo processInfo] processIdentifier]];
-      RETAIN(debugFile);
+      IF_NO_GC([debugFile retain];)
 
-#if	!defined(__MINGW32__)
+#if	!defined(__MINGW__)
       sslClass = [NSFileHandle sslClass];
 #endif
     }
@@ -376,7 +377,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      [urlOrder removeObjectAtIndex: 0];
 	    }
 	  [urlLock unlock];
-	  //NSLog(@"Cache handle %@ for '%@'", self, page);
+	  //NSLog(@"Cache handle %p for '%@'", self, page);
 	}
     }
   return self;
@@ -404,8 +405,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*version;
   NSMapEnumerator       enumerator;
 
-  RETAIN(self);
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  IF_NO_GC([self retain];)
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
 
   s = [basic mutableCopy];
   if ([[u query] length] > 0)
@@ -422,7 +424,22 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if ((id)NSMapGet(wProperties, (void*)@"Host") == nil)
     {
-      NSMapInsert(wProperties, (void*)@"Host", (void*)[u host]);
+      id	p = [u port];
+      id	h = [u host];
+
+      if (h == nil)
+	{
+	  h = @"";	// Must use an empty host header
+	}
+      if (p == nil)
+	{
+          NSMapInsert(wProperties, (void*)@"Host", (void*)h);
+	}
+      else
+	{
+          NSMapInsert(wProperties, (void*)@"Host",
+	    (void*)[NSString stringWithFormat: @"%@:%@", h, p]);
+	}
     }
 
   if ([wData length] > 0)
@@ -494,7 +511,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 	  auth = [authentication authorizationForAuthentication: nil
 							 method: method
-							   path: [u path]];
+							   path: [u fullPath]];
 	  /* If authentication is nil then auth will also be nil
 	   */
 	  if (auth != nil)
@@ -538,7 +555,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   [sock writeInBackgroundAndNotify: buf];
   RELEASE(buf);
   RELEASE(s);
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (void) bgdRead: (NSNotification*) not
@@ -549,9 +566,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSRange		r;
   unsigned		readCount;
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
 
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
   readCount = [d length];
@@ -565,9 +583,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
        */
       if (debug == YES && [d length] != 0)
 	{
-	  NSLog(@"%@ %s Unexpected data (%*.*s) from remote!",
-	    NSStringFromSelector(_cmd), keepalive?"K":"",
-	    [d length], [d length], [d bytes]);
+	  NSLog(@"%@ %p %s Unexpected data (%*.*s) from remote!",
+	    NSStringFromSelector(_cmd), self, keepalive?"K":"",
+	    (int)[d length], (int)[d length], [d bytes]);
 	}
       [nc removeObserver: self name: nil object: sock];
       [sock closeFile];
@@ -591,12 +609,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  GSMimeHeader	*info;
 	  NSString	*enc;
 	  NSString	*len;
-	  NSString	*status;
+	  int		status;
 	  float		ver;
 
 	  info = [document headerNamed: @"http"];
 	  ver = [[info value] floatValue];
-	  status = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  status = [[info objectForKey: NSHTTPPropertyStatusCodeKey] intValue];
 	  len = [[document headerNamed: @"content-length"] value];
 	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
 	  if (enc == nil)
@@ -604,7 +622,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      enc = [[document headerNamed: @"transfer-encoding"] value];
 	    }
 
-	  if ([status isEqual: @"204"] || [status isEqual: @"304"])
+	  if (status == 204 || status == 304)
 	    {
 	      complete = YES;	// No body expected.
 	    }
@@ -621,6 +639,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  GSMimeHeader	*info;
 	  NSString	*val;
+	  NSNumber	*num;
 	  float		ver;
 	  int		code;
 
@@ -640,8 +659,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * Retrieve essential keys from document
 	   */
 	  info = [document headerNamed: @"http"];
-	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-	  code = [val intValue];
+	  num = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  code = [num intValue];
 	  if (code == 401 && self->challenged < 2)
 	    {
 	      GSMimeHeader	*ah;
@@ -709,7 +728,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
-		    path: [url path]];
+		    path: [url fullPath]];
 		  if (auth != nil)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
@@ -718,9 +737,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    }
 		}
 	    }
-	  if (val != nil)
+	  if (num != nil)
 	    {
-	      [pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
+	      [pageInfo setObject: num forKey: NSHTTPPropertyStatusCodeKey];
 	    }
 	  val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
 	  if (val != nil)
@@ -741,7 +760,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  bodyPos = 0;
 	  DESTROY(wData);
 	  NSResetMapTable(wProperties);
-	  if (code >= 200 && code < 300)
+	  if (returnAll || (code >= 200 && code < 300))
 	    {
 	      [self didLoadBytes: [d subdataWithRange: r]
 		    loadComplete: YES];
@@ -791,7 +810,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    }
 	}
     }
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (void) bgdTunnelRead: (NSNotification*) not
@@ -801,8 +820,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSData		*d;
   GSMimeParser		*p = [GSMimeParser new];
 
-  RETAIN(self);
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  IF_NO_GC([self retain];)
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(self, d);
 
@@ -815,15 +835,16 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       GSMimeHeader	*info;
       NSString		*val;
+      NSNumber		*num;
 
       [p parse: nil];
       info = [[p mimeDocument] headerNamed: @"http"];
       val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
       if (val != nil)
 	[pageInfo setObject: val forKey: NSHTTPPropertyServerHTTPVersionKey];
-      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-      if (val != nil)
-	[pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
+      num = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+      if (num != nil)
+	[pageInfo setObject: num forKey: NSHTTPPropertyStatusCodeKey];
       val = [info objectForKey: NSHTTPPropertyStatusReasonKey];
       if (val != nil)
 	[pageInfo setObject: val forKey: NSHTTPPropertyStatusReasonKey];
@@ -841,7 +862,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
   RELEASE(p);
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (void) loadInBackground
@@ -875,10 +896,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*method;
   NSString		*path;
 
-  RETAIN(self);
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  IF_NO_GC([self retain];)
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
 
-  path = [[u path] stringByTrimmingSpaces];
+  path = [[[u fullPath] stringByTrimmingSpaces]
+    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
   if ([path length] == 0)
     {
       path = @"/";
@@ -898,7 +921,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason:
 	[NSString stringWithFormat: @"Failed to connect: %@", e]];
-      RELEASE(self);
+      DESTROY(self);
       return;
     }
 
@@ -922,7 +945,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSTimeInterval	limit = 0.01;
       NSData		*buf;
       NSDate		*when;
-      NSString		*status;
+      int		status;
       NSString		*version;
 
       version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
@@ -945,7 +968,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
        * Set up default status for if connection is lost.
        */
       [pageInfo setObject: @"1.0" forKey: NSHTTPPropertyServerHTTPVersionKey];
-      [pageInfo setObject: @"503" forKey: NSHTTPPropertyStatusCodeKey];
+      [pageInfo setObject: [NSNumber numberWithInt: 503]
+		   forKey: NSHTTPPropertyStatusCodeKey];
       [pageInfo setObject: @"Connection dropped by proxy server"
 		   forKey: NSHTTPPropertyStatusReasonKey];
 
@@ -974,12 +998,12 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       RELEASE(when);
 
-      status = [pageInfo objectForKey: NSHTTPPropertyStatusCodeKey];
-      if ([status isEqual: @"200"] == NO)
+      status = [[pageInfo objectForKey: NSHTTPPropertyStatusCodeKey] intValue];
+      if (status != 200)
 	{
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason: @"Failed proxy tunneling"];
-	  RELEASE(self);
+	  DESTROY(self);
 	  return;
 	}
     }
@@ -995,7 +1019,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason:
 	    @"Failed to make ssl connect"];
-	  RELEASE(self);
+	  DESTROY(self);
 	  return;
 	}
     }
@@ -1037,7 +1061,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   [self bgdApply: s];
   RELEASE(s);
-  RELEASE(self);
+  DESTROY(self);
 }
 
 - (void) bgdWrite: (NSNotification*)notification
@@ -1046,8 +1070,9 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary    	*userInfo = [notification userInfo];
   NSString        	*e;
 
-  RETAIN(self);
-  if (debug) NSLog(@"%@ %s", NSStringFromSelector(_cmd), keepalive?"K":"");
+  IF_NO_GC([self retain];)
+  if (debug)
+    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
@@ -1065,18 +1090,20 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  DESTROY(sock);
 	  connectionState = idle;
 	  if (debug)
-	    NSLog(@"%@ restart on new connection", NSStringFromSelector(_cmd));
+	    NSLog(@"%@ %p restart on new connection",
+	      NSStringFromSelector(_cmd), self);
 	  [self _tryLoadInBackground: u];
 	  return;
 	}
-      NSLog(@"Failed to write command to socket - %@", e);
+      NSLog(@"Failed to write command to socket - %@ %p %s",
+	e, self, keepalive?"K":"");
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason:
 	[NSString stringWithFormat: @"Failed to write request: %@", e]];
-      RELEASE(self);
+      DESTROY(self);
       return;
     }
   else
@@ -1113,7 +1140,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       connectionState = reading;
     }
-  RELEASE(self);
+  DESTROY(self);
 }
 
 /**
@@ -1184,6 +1211,11 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) setDebug: (BOOL)flag
 {
   debug = flag;
+}
+
+- (void) setReturnAll: (BOOL)flag
+{
+  returnAll = flag;
 }
 
 - (void) _tryLoadInBackground: (NSURL*)fromURL
@@ -1259,7 +1291,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       
       if (debug)
         {
-	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
+	  NSLog(@"%@ %p check for reusable socket",
+	    NSStringFromSelector(_cmd), self);
 	}
       [nc addObserver: self
 	     selector: @selector(bgdRead:)
@@ -1280,7 +1313,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
       if (debug)
         {
-	  NSLog(@"%@ check for reusable socket", NSStringFromSelector(_cmd));
+	  NSLog(@"%@ %p check for reusable socket",
+	    NSStringFromSelector(_cmd), self);
 	}
       if (fd >= 0)
         {
@@ -1306,11 +1340,13 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  if (sock == nil)
 	    {
-	      NSLog(@"%@ socket closed by remote", NSStringFromSelector(_cmd));
+	      NSLog(@"%@ %p socket closed by remote",
+		NSStringFromSelector(_cmd), self);
 	    }
 	  else
 	    {
-	      NSLog(@"%@ socket is still open", NSStringFromSelector(_cmd));
+	      NSLog(@"%@ %p socket is still open",
+		NSStringFromSelector(_cmd), self);
 	    }
 	}
     }
@@ -1410,7 +1446,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    host, port, [NSError _last]]];
 	  return;
 	}
-      RETAIN(sock);
+      IF_NO_GC([sock retain];)
       nc = [NSNotificationCenter defaultCenter];
       [nc addObserver: self
 	     selector: @selector(bgdConnect:)
@@ -1419,8 +1455,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       connectionState = connecting;
       if (debug)
         {
-          NSLog(@"%@ start connect to %@:%@",
-	    NSStringFromSelector(_cmd), host, port);
+          NSLog(@"%@ %p start connect to %@:%@",
+	    NSStringFromSelector(_cmd), self, host, port);
 	}
     }
   else
@@ -1452,7 +1488,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      method = @"GET";
 	    }
 	}
-      path = [[u path] stringByTrimmingSpaces];
+      path = [[[u fullPath] stringByTrimmingSpaces]
+        stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
       if ([path length] == 0)
 	{
 	  path = @"/";
@@ -1509,7 +1546,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     || [propertyKey isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%@ with invalid key", NSStringFromSelector(_cmd)];
+        format: @"%@ %p with invalid key", NSStringFromSelector(_cmd), self];
     }
   if ([propertyKey hasPrefix: @"GSHTTPProperty"]
     || [propertyKey hasPrefix: @"NSHTTPProperty"])

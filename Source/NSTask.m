@@ -25,29 +25,28 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSTask.h"
-#include "Foundation/NSTimer.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDebug.h"
-#include "GSPrivate.h"
+#import "common.h"
+#define	EXPOSE_NSTask_IVARS	1
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSTask.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSLock.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSPrivate.h"
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -84,6 +83,7 @@
 #include <sys/param.h>
 #endif
 
+
 /*
  *	If we are on a streams based system, we need to include stropts.h
  *	for definitions needed to set up slave pseudo-terminal stream.
@@ -103,6 +103,7 @@
 #define	NOFILE	256
 #endif
 
+
 @interface	NSBundle(Private)
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
 + (NSString*) _gnustep_target_cpu;
@@ -118,12 +119,12 @@ static BOOL	hadChildSignal = NO;
 static void handleSignal(int sig)
 {
   hadChildSignal = YES;
-#ifndef __MINGW32__
+#ifndef __MINGW__
   signal(SIGCHLD, handleSignal);
 #endif
 }
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 @interface NSConcreteWindowsTask : NSTask
 {
 @public
@@ -263,7 +264,7 @@ pty_slave(const char* name)
         }
       [gnustep_global_lock unlock];
 
-#ifndef __MINGW32__
+#ifndef __MINGW__
       signal(SIGCHLD, handleSignal);
 #endif
     }
@@ -285,7 +286,7 @@ pty_slave(const char* name)
   return AUTORELEASE(task);
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   [tasksLock lock];
   NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
@@ -294,7 +295,7 @@ pty_slave(const char* name)
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
   RELEASE(_arguments);
   RELEASE(_environment);
   RELEASE(_launchPath);
@@ -358,7 +359,7 @@ pty_slave(const char* name)
       return;
     }
 
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGINT);
 #else
@@ -426,7 +427,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGCONT);
 #else
@@ -617,7 +618,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGSTOP);
 #else
@@ -649,7 +650,7 @@ pty_slave(const char* name)
     }
 
   _hasTerminated = YES;
-#ifndef __MINGW32__
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGTERM);
 #else
@@ -750,7 +751,7 @@ pty_slave(const char* name)
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
   lpath = [full_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
   if ([mgr isExecutableFileAtPath: lpath] == NO
     && [mgr isExecutableFileAtPath:
     (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -759,7 +760,7 @@ pty_slave(const char* name)
 #endif
     {
       lpath = [arch_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
       if ([mgr isExecutableFileAtPath: lpath] == NO
 	&& [mgr isExecutableFileAtPath:
 	(lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -768,7 +769,7 @@ pty_slave(const char* name)
 #endif
 	{
 	  lpath = [base_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
 	  if ([mgr isExecutableFileAtPath: lpath] == NO
 	    && [mgr isExecutableFileAtPath:
 	    (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -787,7 +788,7 @@ pty_slave(const char* name)
 		}
 	      if (lpath != nil)
 		{
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
 		  if ([mgr isExecutableFileAtPath: lpath] == NO
 		    && [mgr isExecutableFileAtPath:
 		    (lpath = [lpath stringByAppendingPathExtension: @"exe"])]
@@ -815,7 +816,7 @@ pty_slave(const char* name)
 	}
       lpath = [lpath stringByStandardizingPath];
     }
-#ifdef	__MINGW32__
+#ifdef	__MINGW__
   /** We need this to be native windows format, and some of the standardisation
    * above may have left unix style separators in the string.
    */
@@ -918,7 +919,7 @@ pty_slave(const char* name)
 
 @end
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 @implementation NSConcreteWindowsTask
 
 BOOL
@@ -954,9 +955,9 @@ GSPrivateCheckTasks()
   return found;
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
-  [super gcFinalize];
+  [super finalize];
   if (wThread != NULL)
     {
       CloseHandle(wThread);
@@ -1092,6 +1093,10 @@ quotedFromString(NSString *aString)
   NSDictionary		*env;
   NSMutableArray	*toClose;
   NSFileHandle		*hdl;
+  HANDLE		hIn;
+  HANDLE		hOut;
+  HANDLE		hErr;
+  id			last = nil;
 
   if (_hasLaunched)
     {
@@ -1163,51 +1168,110 @@ quotedFromString(NSString *aString)
   start_info.dwFlags |= STARTF_USESTDHANDLES;
 
   toClose = [NSMutableArray arrayWithCapacity: 3];
-  hdl = [self standardInput];
-  if ([hdl isKindOfClass: [NSPipe class]])
-    {
-      hdl = [(NSPipe*)hdl fileHandleForReading];
-      [toClose addObject: hdl];
-    }
-  start_info.hStdInput = [hdl nativeHandle];
 
-  hdl = [self standardOutput];
-  if ([hdl isKindOfClass: [NSPipe class]])
+  if (_standardInput == nil)
     {
-      hdl = [(NSPipe*)hdl fileHandleForWriting];
-      [toClose addObject: hdl];
+      start_info.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
     }
-  start_info.hStdOutput = [hdl nativeHandle];
-
-  hdl = [self standardError];
-  if ([hdl isKindOfClass: [NSPipe class]])
+  else
     {
-      hdl = [(NSPipe*)hdl fileHandleForWriting];
-      /*
-       * If we have the same pipe twice we don't want to close it twice
-       */
-      if ([toClose indexOfObjectIdenticalTo: hdl] == NSNotFound)
+      hdl = [self standardInput];
+      if ([hdl isKindOfClass: [NSPipe class]])
 	{
+	  hdl = [(NSPipe*)hdl fileHandleForReading];
 	  [toClose addObject: hdl];
 	}
+      start_info.hStdInput = [hdl nativeHandle];
     }
-  start_info.hStdError = [hdl nativeHandle];
+  hIn = start_info.hStdInput;
+
+  if (_standardOutput == nil)
+    {
+      start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    }
+  else
+    {
+      hdl = [self standardOutput];
+      if ([hdl isKindOfClass: [NSPipe class]])
+	{
+	  hdl = [(NSPipe*)hdl fileHandleForWriting];
+	  [toClose addObject: hdl];
+	}
+      start_info.hStdOutput = [hdl nativeHandle];
+    }
+  hOut = start_info.hStdOutput;
+
+  if (_standardError == nil)
+    {
+      start_info.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+    }
+  else
+    {
+      hdl = [self standardError];
+      if ([hdl isKindOfClass: [NSPipe class]])
+	{
+	  hdl = [(NSPipe*)hdl fileHandleForWriting];
+	  /*
+	   * If we have the same pipe twice we don't want to close it twice
+	   */
+	  if ([toClose indexOfObjectIdenticalTo: hdl] == NSNotFound)
+	    {
+	      [toClose addObject: hdl];
+	    }
+	}
+      start_info.hStdError = [hdl nativeHandle];
+    }
+  hErr = start_info.hStdError;
+
+  /* Tell the system not to show a window for the subtask.
+   */
+  start_info.wShowWindow = SW_HIDE;
+  start_info.dwFlags |= STARTF_USESHOWWINDOW;
+
+  /* Make the handles inheritable only temporarily while launching the
+   * child task.  This section must be lock protected so we don't have
+   * another thread trying to launch at the same time and get handles
+   * inherited by the wrong threads.
+   */
+  [tasksLock lock];
+  SetHandleInformation(hIn, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+  SetHandleInformation(hOut, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+  SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
 
   result = CreateProcessW(wexecutable,
     w_args,
     NULL,      			/* proc attrs */
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
-//    CREATE_NO_WINDOW|DETACHED_PROCESS|CREATE_UNICODE_ENVIRONMENT,
-    CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT,
+    0
+    |CREATE_NO_WINDOW
+/* One would have thought the the CREATE_NO_WINDOW flag should be used,
+ * but apparently this breaks for old 16bit applications/tools on XP.
+ * So maybe we want to leave it out?
+ */
+//    |DETACHED_PROCESS
+/* We don't set the DETACHED_PROCESS flag as it actually means that the
+ * child task should get a new Console allocated ... and that means it
+ * will pop up a console window ... which looks really bad.
+ */
+    |CREATE_UNICODE_ENVIRONMENT,
     envp,			/* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,
     &procInfo);
-  NSZoneFree(NSDefaultMallocZone(), w_args);
   if (result == 0)
     {
-      NSLog(@"Error launching task: %@", lpath);
+      last = [NSError _last];
+    }
+  NSZoneFree(NSDefaultMallocZone(), w_args);
+  SetHandleInformation(hIn, HANDLE_FLAG_INHERIT, 0);
+  SetHandleInformation(hOut, HANDLE_FLAG_INHERIT, 0);
+  SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, 0);
+  [tasksLock unlock];
+
+  if (result == 0)
+    {
+      NSLog(@"Error launching task: %@ ... %@", lpath, last);
       return;
     }
 
@@ -1271,24 +1335,46 @@ GSPrivateCheckTasks()
 
       do
 	{
-	  result = waitpid(-1, &status, WNOHANG);
-	  if (result > 0)
-	    {
-	      NSTask    *t;
+	  NSTask	*t;
 
+	  errno = 0;
+	  result = waitpid(-1, &status, WNOHANG);
+	  if (result < 0)
+	    {
+#if	defined(WAITDEBUG)
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
-	      AUTORELEASE(RETAIN(t));
+	      [tasksLock unlock];
+	      if (t != nil)
+		{
+	          NSLog(@"waitpid result %d, error %@",
+		    result, [NSError _last]);
+		}
+#endif
+	    }
+	  else if (result > 0)
+	    {
+	      [tasksLock lock];
+	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
+	      IF_NO_GC(AUTORELEASE(RETAIN(t));)
 	      [tasksLock unlock];
 	      if (t != nil)
 		{
 		  if (WIFEXITED(status))
 		    {
+#if	defined(WAITDEBUG)
+		      NSLog(@"waitpid %d, exit status = %d",
+			result, status);
+#endif
 		      [t _terminatedChild: WEXITSTATUS(status)];
 		      found = YES;
 		    }
 		  else if (WIFSIGNALED(status))
 		    {
+#if	defined(WAITDEBUG)
+		      NSLog(@"waitpid %d, termination status = %d",
+			result, status);
+#endif
 		      [t _terminatedChild: WTERMSIG(status)];
 		      found = YES;
 		    }
@@ -1298,6 +1384,12 @@ GSPrivateCheckTasks()
 			result);
 		    }
 		}
+#if	defined(WAITDEBUG)
+	      else
+		{
+		  NSLog(@"Received signal for unknown child %d", result);
+		}
+#endif
 	    }
 	}
       while (result > 0);
@@ -1392,7 +1484,7 @@ GSPrivateCheckTasks()
     }
   edesc = [hdl fileDescriptor];
 
-  pid = fork();
+  pid = vfork();
   if (pid < 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1402,33 +1494,48 @@ GSPrivateCheckTasks()
     {
       int	i;
 
-      /*
-       * Make sure the task gets default signal setup.
+      /* Make sure the task gets default signal setup.
        */
       for (i = 0; i < 32; i++)
 	{
 	  signal(i, SIG_DFL);
 	}
 
-      /*
-       * Make sure task is run in it's own process group.
+      /* Make sure task is session leader in it's own process group
+       * and with no controlling terminal.
+       * This allows us to use killpg() to put the task to sleep etc,
+       * and have the signal effect forked children of the subtask.
        */
-#ifdef     HAVE_SETPGRP
-#ifdef	SETPGRP_VOID
+#if	defined(HAVE_SETSID)
+      setsid();
+#else
+#if	defined(HAVE_SETPGRP)
+#if	defined(SETPGRP_VOID)
       setpgrp();
 #else
       setpgrp(getpid(), getpid());
 #endif
 #else
-#if defined(__MINGW32__)
+#if	defined(HAVE_SETPGID)
+#if defined(__MINGW__)
       pid = (int)GetCurrentProcessId(),
 #else
       pid = (int)getpid();
 #endif
-#ifdef     HAVE_SETPGID
       setpgid(pid, pid);
-#endif
-#endif
+#endif	/* HAVE_SETPGID */
+#endif	/* HAVE_SETPGRP */
+      /* Detach from controlling terminal.
+       */
+#if	defined(TIOCNOTTY)
+      i = open("/dev/tty", O_RDWR);
+      if (i >= 0)
+	{
+	  (void)ioctl(i, TIOCNOTTY, 0);
+	  (void)close(i);
+	}
+#endif	/* TIOCNOTTY */
+#endif	/* HAVE_SETSID */
 
       if (_usePseudoTerminal == YES)
 	{
@@ -1440,19 +1547,7 @@ GSPrivateCheckTasks()
 	      exit(1);			/* Failed to open slave!	*/
 	    }
 
-#ifdef	HAVE_SETSID
-	  i = setsid();
-#endif
-#ifdef	TIOCNOTTY
-	  i = open("/dev/tty", O_RDWR);
-	  if (i >= 0)
-	    {
-	      (void)ioctl(i, TIOCNOTTY, 0);
-	      (void)close(i);
-	    }
-#endif
-	  /*
-	   * Set up stdin, stdout and stderr by duplicating descriptors as
+	  /* Set up stdin, stdout and stderr by duplicating descriptors as
 	   * necessary and closing the originals (to ensure we won't have a
 	   * pipe left with two write descriptors etc).
 	   */
@@ -1471,8 +1566,7 @@ GSPrivateCheckTasks()
 	}
       else
 	{
-	  /*
-	   * Set up stdin, stdout and stderr by duplicating descriptors as
+	  /* Set up stdin, stdout and stderr by duplicating descriptors as
 	   * necessary and closing the originals (to ensure we won't have a
 	   * pipe left with two write descriptors etc).
 	   */
@@ -1556,52 +1650,7 @@ GSPrivateCheckTasks()
 
 - (void) _collectChild
 {
-  if (_hasCollected == NO)
-    {
-      int       result;
-
-      errno = 0;
-      result = waitpid(_taskId, &_terminationStatus, WNOHANG);
-      if (result < 0)
-        {
-          NSLog(@"waitpid %d, result %d, error %@",
-	    _taskId, result, [NSError _last]);
-          [self _terminatedChild: -1];
-        }
-      else if (result == _taskId || (result > 0 && errno == 0))
-	{
-	  if (WIFEXITED(_terminationStatus))
-	    {
-#ifdef  WAITDEBUG
-              NSLog(@"waitpid %d, termination status = %d",
-		_taskId, _terminationStatus);
-#endif
-              [self _terminatedChild: WEXITSTATUS(_terminationStatus)];
-	    }
-	  else if (WIFSIGNALED(_terminationStatus))
-	    {
-#ifdef  WAITDEBUG
-              NSLog(@"waitpid %d, termination status = %d",
-		_taskId, _terminationStatus);
-#endif
-              [self _terminatedChild: WTERMSIG(_terminationStatus)];
-	    }
-#ifdef  WAITDEBUG
-          else
-	    {
-	      NSLog(@"waitpid %d, event status = %d",
-		_taskId, _terminationStatus);
-	    }
-#endif
-	}
-#ifdef  WAITDEBUG
-      else
-	{
-	  NSLog(@"waitpid %d, result %d, error %@",
-	    _taskId, result, [NSError _last]);
-	}
-#endif
-    }
+  GSPrivateCheckTasks();
 }
 
 - (BOOL) usePseudoTerminal

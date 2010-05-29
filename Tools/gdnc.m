@@ -1,5 +1,4 @@
-/** Implementation of GNUstep Distributed Notification Center
-   Copyright (C) 1998 Free Software Foundation, Inc.
+/* Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -18,13 +17,31 @@
 
    */
 
-#include	"config.h"
-#include	<Foundation/Foundation.h>
+#import	"common.h"
 
-#include        <stdio.h>
-#include	<unistd.h>
+#include <stdio.h>
+#include <unistd.h>
 
-#if	defined(__MINGW32__)
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSBundle.h"
+#import	"Foundation/NSConnection.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDistantObject.h"
+#import	"Foundation/NSDistributedNotificationCenter.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSHashTable.h"
+#import	"Foundation/NSHost.h"
+#import	"Foundation/NSNotification.h"
+#import	"Foundation/NSPort.h"
+#import	"Foundation/NSPortNameServer.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSRunLoop.h"
+#import	"Foundation/NSTask.h"
+#import	"Foundation/NSUserDefaults.h"
+
+
+#if	defined(__MINGW__)
 #include	"process.h"
 #endif
 
@@ -42,18 +59,17 @@
 static BOOL	debugging = NO;
 static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
 static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
-static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
 
 static int	log_priority = LOG_DEBUG;
 
 static void
-gdnc_log (int prio)
+gdnc_log (int prio, const char *ebuf)
 {
   if (is_daemon)
     {
-      syslog (log_priority | prio, ebuf);
+      syslog (log_priority | prio, "%s", ebuf);
     }
   else if (prio == LOG_INFO)
     {
@@ -87,8 +103,8 @@ gdnc_log (int prio)
 #define LOG_ERR		1
 #define LOG_INFO	0
 #define LOG_WARNING	0
-void
-gdnc_log (int prio)
+static void
+gdnc_log (int prio, const char *ebuf)
 {
   write (2, ebuf, strlen (ebuf));
   write (2, "\n", 1);
@@ -161,14 +177,14 @@ ihandler(int sig)
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
-                                  to: (NSUInteger)observer;
+                                  to: (uint64_t)observer;
 @end
 @implementation	NSDistributedNotificationCenterGDNCDummy
 - (oneway void) postNotificationName: (NSString*)name
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
-                                  to: (NSUInteger)observer
+                                  to: (uint64_t)observer
 {
   return;
 }
@@ -247,7 +263,7 @@ ihandler(int sig)
 @interface	GDNCObserver : NSObject
 {
 @public
-  NSUInteger		observer;
+  uint64_t		observer;
   NSString		*notificationName;
   NSString		*notificationObject;
   NSString		*selector;
@@ -285,7 +301,7 @@ ihandler(int sig)
   NSMutableDictionary	*observersForObjects;
 }
 
-- (void) addObserver: (NSUInteger)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
@@ -297,17 +313,17 @@ ihandler(int sig)
 
 - (id) connectionBecameInvalid: (NSNotification*)notification;
 
-- (void) postNotificationName: (NSString*)notificationName
-		       object: (NSString*)notificationObject
-		     userInfo: (NSData*)d
-	   deliverImmediately: (BOOL)deliverImmediately
-			  for: (id<GDNCClient>)client;
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)notificationObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+				 for: (id<GDNCClient>)client;
 
 - (void) removeObserver: (GDNCObserver*)observer;
 
 - (void) removeObserversForClients: (NSMapTable*)clients;
 
-- (void) removeObserver: (NSUInteger)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client;
@@ -506,7 +522,7 @@ ihandler(int sig)
   return self;
 }
 
-- (void) addObserver: (NSUInteger)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
@@ -519,7 +535,7 @@ ihandler(int sig)
   NSConnection	*connection;
 
   if (debugging)
-    NSLog(@"Adding observer %lu for %@ %@",
+    NSLog(@"Adding observer %llu for %@ %@",
       anObserver, notificationName, anObject);
 
   connection = [(NSDistantObject*)client connectionForProxy];
@@ -694,11 +710,11 @@ ihandler(int sig)
   RELEASE(info);
 }
 
-- (void) postNotificationName: (NSString*)notificationName
-		       object: (NSString*)notificationObject
-		     userInfo: (NSData*)d
-	   deliverImmediately: (BOOL)deliverImmediately
-			  for: (id<GDNCClient>)client
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)notificationObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+				 for: (id<GDNCClient>)client
 {
   NSMutableArray	*observers = [NSMutableArray array];
   NSMutableArray	*byName;
@@ -802,7 +818,7 @@ ihandler(int sig)
 		{
 		  [obs->queue removeObjectAtIndex: 0];
   if (debugging)
-    NSLog(@"Posting to observer %lu with %@", obs->observer, n);
+    NSLog(@"Posting to observer %llu with %@", obs->observer, n);
 		  [obs->client->client postNotificationName: n->name
 						     object: n->object
 						   userInfo: n->info
@@ -825,7 +841,7 @@ ihandler(int sig)
 - (void) removeObserver: (GDNCObserver*)observer
 {
   if (debugging)
-    NSLog(@"Removing observer %lu for %@ %@",
+    NSLog(@"Removing observer %llu for %@ %@",
       observer->observer, observer->notificationName,
       observer->notificationObject);
 
@@ -870,7 +886,7 @@ ihandler(int sig)
     }
 }
 
-- (void) removeObserver: (NSUInteger)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client
@@ -1060,7 +1076,7 @@ main(int argc, char** argv, char** env)
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   [NSObject enableDoubleReleaseCheck: YES];
   pInfo = [NSProcessInfo processInfo];
@@ -1121,7 +1137,7 @@ main(int argc, char** argv, char** env)
 	}
       NS_HANDLER
 	{
-	  gdnc_log(LOG_CRIT);
+	  gdnc_log(LOG_CRIT, [[localException description] UTF8String]);
 	  DESTROY(t);
 	}
       NS_ENDHANDLER
@@ -1144,7 +1160,7 @@ main(int argc, char** argv, char** env)
 #endif
 	signal(sym, ihandler);
       }
-#ifndef __MINGW32__
+#ifndef __MINGW__
     signal(SIGPIPE, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
@@ -1166,7 +1182,7 @@ main(int argc, char** argv, char** env)
      */
     [[NSFileHandle fileHandleWithStandardInput] closeFile];
     [[NSFileHandle fileHandleWithStandardOutput] closeFile];
-#ifndef __MINGW32__
+#ifndef __MINGW__
     if (debugging == NO)
       {
 	[[NSFileHandle fileHandleWithStandardError] closeFile];

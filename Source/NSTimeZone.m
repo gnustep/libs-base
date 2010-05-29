@@ -76,38 +76,33 @@
 
    FIXME?: use leap seconds? */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSLock.h"
-#include <limits.h>
+#import "common.h"
+#define	EXPOSE_NSTimeZone_IVARS	1
+#import "GNUstepBase/GSLock.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/GSConfig.h"
-#include "GSPrivate.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSByteOrder.h"
+#import "GNUstepBase/GSConfig.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GSPrivate.h"
 
 #ifdef HAVE_TZHEAD
 #include <tzfile.h>
@@ -208,7 +203,7 @@ typedef struct {
 }
 @end
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 @interface	GSWindowsTimeZone : NSTimeZone
 {
 @public
@@ -252,10 +247,10 @@ decode (const void *ptr)
 #if defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4
 #if NEED_WORD_ALIGNMENT
   int value;
-  memcpy(&value, ptr, sizeof(int));
+  memcpy(&value, ptr, sizeof(NSInteger));
   return value;
 #else
-  return *(const int *) ptr;
+  return *(const NSInteger*) ptr;
 #endif
 #else /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
   const unsigned char *p = ptr;
@@ -292,7 +287,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   int		offset; // Offset from UTC in seconds.
 }
 
-- (id) initWithOffset: (int)anOffset name: (NSString*)aName;
+- (id) initWithOffset: (NSInteger)anOffset name: (NSString*)aName;
 @end
 
 @interface NSLocalTimeZone : NSTimeZone
@@ -308,7 +303,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 - (id) initWithTimeZone: (NSTimeZone*)aZone
 	     withAbbrev: (NSString*)anAbbrev
-	     withOffset: (int)anOffset
+	     withOffset: (NSInteger)anOffset
 		withDST: (BOOL)isDST;
 @end
 
@@ -379,7 +374,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   if (zone == nil)
     {
       unichar	c;
-      unsigned	i;
+      int	i;
 
       if ((length == 3
 	&& ([name isEqualToString: @"GMT"] == YES
@@ -472,10 +467,10 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	      fileName = [NSTimeZoneClass _getTimeZoneFile: name];
 	      if (fileName == nil
 		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName])
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
-                  RELEASE(self);
+                  DESTROY(self);
                   return zone;
                 }
 #else
@@ -486,7 +481,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 #endif
 	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  if (!data)
 	    zone = [[GSWindowsTimeZone alloc] initWithName: name data: data];
 	  else
@@ -494,7 +489,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	  zone = [[GSTimeZone alloc] initWithName: name data: data];
 	}
     }
-  RELEASE(self);
+  DESTROY(self);
   return zone;
 }
 
@@ -567,12 +562,12 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   return self;
 }
 
-- (int) secondsFromGMT
+- (NSInteger) secondsFromGMT
 {
   return [[NSTimeZoneClass defaultTimeZone] secondsFromGMT];
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   return [[NSTimeZoneClass defaultTimeZone] secondsFromGMTForDate: aDate];
 }
@@ -634,7 +629,7 @@ static NSMapTable	*absolutes = 0;
   [aCoder encodeObject: name];
 }
 
-- (id) initWithOffset: (int)anOffset name: (NSString*)aName
+- (id) initWithOffset: (NSInteger)anOffset name: (NSString*)aName
 {
   GSAbsTimeZone	*z;
   int		extra;
@@ -662,7 +657,7 @@ static NSMapTable	*absolutes = 0;
     }
   if (anOffset > 64800)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   anOffset *= sign;
@@ -675,7 +670,7 @@ static NSMapTable	*absolutes = 0;
   if (z != nil)
     {
       IF_NO_GC(RETAIN(z));
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {
@@ -729,7 +724,7 @@ static NSMapTable	*absolutes = 0;
   return name;
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   return offset;
 }
@@ -769,7 +764,7 @@ static NSMapTable	*absolutes = 0;
 
 - (id) initWithTimeZone: (NSTimeZone*)aZone
 	     withAbbrev: (NSString*)anAbbrev
-	     withOffset: (int)anOffset
+	     withOffset: (NSInteger)anOffset
 		withDST: (BOOL)isDST
 {
   timeZone = RETAIN(aZone);
@@ -804,12 +799,12 @@ static NSMapTable	*absolutes = 0;
   return [timeZone timeZoneDetailForDate: date];
 }
 
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   return offset;
 }
 
-- (int) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
 {
   return offset;
 }
@@ -871,12 +866,12 @@ static NSMapTable	*absolutes = 0;
   return self;
 }
 
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   return zone->offset;
 }
 
-- (int) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
 {
   return zone->offset;
 }
@@ -1033,7 +1028,7 @@ static NSMapTable	*absolutes = 0;
       path = _time_zone_path (ABBREV_MAP, nil);
       if (path != nil)
 	{
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  unichar	mode[3];
 
 	  mode[0] = 'r';
@@ -1432,24 +1427,28 @@ static NSMapTable	*absolutes = 0;
 		{
 		  tzdir = [tzdir stringByDeletingLastPathComponent];
 		}
-	      if ([tzdir length] > 2)
-		{
-		  RETAIN(tzdir);
-		}
-	      else
+	      if ([tzdir length] <= 2)
 	        {
 		  localZoneString = tzdir = nil;
 		}
+#if	!GS_WITH_GC
+	      else
+		{
+		  [tzdir retain];
+		}
+#endif
 	    }
 #endif
 	  if (localZoneString != nil && [localZoneString hasPrefix: tzdir])
 	    {
 	      /* This must be the time zone name */
 	      localZoneString = AUTORELEASE([localZoneString mutableCopy]);
-	      [(NSMutableString *)localZoneString deletePrefix: tzdir];
-	      if ([localZoneString hasPrefix: @"/"])
+	      [(NSMutableString*)localZoneString deleteCharactersInRange:
+		NSMakeRange(0, [tzdir length])];
+	      while ([localZoneString hasPrefix: @"/"])
 	        {
-	          [(NSMutableString *)localZoneString deletePrefix: @"/"];
+		  [(NSMutableString*)localZoneString deleteCharactersInRange:
+		    NSMakeRange(0, 1)];
 	        }
 	    }
 	  else
@@ -1469,7 +1468,7 @@ static NSMapTable	*absolutes = 0;
 	}
 #endif
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       /*
        * Try to get timezone from windows system call.
        */
@@ -1560,7 +1559,7 @@ static NSMapTable	*absolutes = 0;
       path = _time_zone_path (REGIONS_FILE, nil);
       if (path != nil)
 	{
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  unichar	mode[3];
 
 	  mode[0] = 'r';
@@ -1621,7 +1620,7 @@ static NSMapTable	*absolutes = 0;
 			     to be in this directory, but initWithName:data:
 			     will do this anyway and log a message if not. */
 			  zone = [[self alloc] initWithName: name data: data];
-			  AUTORELEASE(zone);
+			  IF_NO_GC([zone autorelease];)
 			}
 		      if (zone != nil)
 			{
@@ -1684,7 +1683,7 @@ static NSMapTable	*absolutes = 0;
  * Time zones with an offset of more than +/- 18 hours  are disallowed,
  * and nil is returned.
  */
-+ (NSTimeZone*) timeZoneForSecondsFromGMT: (int)seconds
++ (NSTimeZone*) timeZoneForSecondsFromGMT: (NSInteger)seconds
 {
   NSTimeZone	*zone;
 
@@ -1900,7 +1899,7 @@ static NSMapTable	*absolutes = 0;
  * from Greenwich Mean Time at the current date and time.<br />
  * Invokes -secondsFromGMTForDate:
  */
-- (int) secondsFromGMT
+- (NSInteger) secondsFromGMT
 {
   return [self secondsFromGMTForDate: [NSDate date]];
 }
@@ -1911,7 +1910,7 @@ static NSMapTable	*absolutes = 0;
  * If the time zone uses daylight savings time, the returned value
  * will vary at different times of year.
  */
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   NSTimeZoneDetail	*detail;
   int			offset;
@@ -2010,7 +2009,7 @@ static NSMapTable	*absolutes = 0;
 /**
  * DEPRECATED: Class is no longer used.
  */
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -2106,7 +2105,7 @@ static NSString *zoneDirs[] = {
 @end
 
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 /* Timezone information data as stored in the registry */
 typedef struct TZI_format {
 	LONG       Bias;
@@ -2137,8 +2136,8 @@ lastDayOfGregorianMonth(int month, int year)
 
 /* IMPORT from NSCalendar date */
 void
-GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
-  int *hour, int *minute, int *second, int *mil);
+GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
+  NSInteger*hour, NSInteger*minute, NSInteger*second, NSInteger*mil);
 
 
 @implementation GSWindowsTimeZone
@@ -2401,7 +2400,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 	}
     }
 
-  dow = ((int)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
+  dow = ((NSInteger)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
   if (dow < 0)
     dow += 7;
 
@@ -2491,7 +2490,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
     }
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   if ([self isDaylightSavingTimeForDate: aDate])
     return -Bias*60 - DaylightBias*60;
@@ -2541,7 +2540,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   return [self name];
 }
 @end
-#endif // __MINGW32__
+#endif // __MINGW__
 
 
 @implementation	GSTimeZone
@@ -2821,7 +2820,7 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
   return timeZoneName;
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
 

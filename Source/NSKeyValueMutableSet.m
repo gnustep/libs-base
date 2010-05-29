@@ -23,6 +23,7 @@
    $Date: 2007-06-08 04:04:14 -0400 (Fri, 08 Jun 2007) $ $Revision: 25230 $
    */
 
+#import "common.h"
 #import "Foundation/NSInvocation.h"
 
 @interface NSKeyValueMutableSet : NSMutableSet
@@ -236,7 +237,7 @@
 
   if (!canAdd || !canRemove)
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
 
@@ -426,7 +427,7 @@
 
   if (![anObject respondsToSelector: setSelector])
     {
-      [self release];
+      DESTROY(self);
       return nil;
     }
 

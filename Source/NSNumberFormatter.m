@@ -27,16 +27,17 @@
    $Date$ $Revision$
    */
 
-#include "Foundation/NSAttributedString.h"
-#include "Foundation/NSDecimalNumber.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSNumberFormatter.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSCharacterSet.h"
+#import "common.h"
+#define	EXPOSE_NSNumberFormatter_IVARS	1
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSDecimalNumber.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSNumberFormatter.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSCharacterSet.h"
 
-#include "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/GSLocale.h"
 
 @implementation NSNumberFormatter
 
@@ -102,17 +103,17 @@
 {
   NSNumberFormatter	*c = (NSNumberFormatter*) NSCopyObject(self, 0, zone);
 
-  RETAIN(c->_negativeFormat);
-  RETAIN(c->_positiveFormat);
-  RETAIN(c->_attributesForPositiveValues);
-  RETAIN(c->_attributesForNegativeValues);
-  RETAIN(c->_maximum);
-  RETAIN(c->_minimum);
-  RETAIN(c->_roundingBehavior);
-  RETAIN(c->_roundingBehavior);
-  RETAIN(c->_attributedStringForNil);
-  RETAIN(c->_attributedStringForNotANumber);
-  RETAIN(c->_attributedStringForZero);
+  IF_NO_GC(RETAIN(c->_negativeFormat);)
+  IF_NO_GC(RETAIN(c->_positiveFormat);)
+  IF_NO_GC(RETAIN(c->_attributesForPositiveValues);)
+  IF_NO_GC(RETAIN(c->_attributesForNegativeValues);)
+  IF_NO_GC(RETAIN(c->_maximum);)
+  IF_NO_GC(RETAIN(c->_minimum);)
+  IF_NO_GC(RETAIN(c->_roundingBehavior);)
+  IF_NO_GC(RETAIN(c->_roundingBehavior);)
+  IF_NO_GC(RETAIN(c->_attributedStringForNil);)
+  IF_NO_GC(RETAIN(c->_attributedStringForNotANumber);)
+  IF_NO_GC(RETAIN(c->_attributedStringForZero);)
 
   return c;
 }
@@ -650,7 +651,7 @@
     roundedNumber = [roundedNumber decimalNumberByMultiplyingBy:
       (NSDecimalNumber*)[NSDecimalNumber numberWithInt: -1]];
   intPart = (NSDecimalNumber*)
-    [NSDecimalNumber numberWithInt: [roundedNumber intValue]];
+    [NSDecimalNumber numberWithInt: (int)[roundedNumber doubleValue]];
   fracPart = [roundedNumber decimalNumberBySubtracting: intPart];
   intPartString
     = AUTORELEASE([[intPart descriptionWithLocale: locale] mutableCopy]);

@@ -35,11 +35,22 @@ extern "C" {
 @class  NSLocale;
 @class	NSString;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+enum {
+  NSTimeZoneNameStyleStandard,
+  NSTimeZoneNameStyleShortStandard,
+  NSTimeZoneNameStyleDaylightSaving,
+  NSTimeZoneNameStyleShortDaylightSaving
+};
+typedef NSInteger NSTimeZoneNameStyle;
+GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
+#endif
+
 @interface NSTimeZone : NSObject
 
 //Creating and Initializing an NSTimeZone
 + (NSTimeZone*) localTimeZone;
-+ (NSTimeZone*) timeZoneForSecondsFromGMT: (int)seconds;
++ (NSTimeZone*) timeZoneForSecondsFromGMT: (NSInteger)seconds;
 + (NSTimeZone*) timeZoneWithName: (NSString*)aTimeZoneName;
 
 //Managing Time Zones
@@ -72,8 +83,8 @@ extern "C" {
 - (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate;
 - (BOOL) isEqualToTimeZone: (NSTimeZone*)aTimeZone;
 - (NSString*) name;
-- (int) secondsFromGMT;
-- (int) secondsFromGMTForDate: (NSDate*)aDate;
+- (NSInteger) secondsFromGMT;
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate;
 #endif
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
@@ -86,17 +97,8 @@ extern "C" {
 /** Not implemented */
 - (NSDate *) nextDaylightSavingTimeTransition;
 
-enum {
-  NSTimeZoneNameStyleStandard,
-  NSTimeZoneNameStyleShortStandard,
-  NSTimeZoneNameStyleDaylightSaving,
-  NSTimeZoneNameStyleShortDaylightSaving
-};
-typedef NSInteger NSTimeZoneNameStyle;
 - (NSString *)localizedName: (NSTimeZoneNameStyle)style
                      locale: (NSLocale *)locale;
-GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
-
 #endif
 
 #if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
@@ -118,7 +120,7 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 @interface NSTimeZoneDetail : NSTimeZone
 - (BOOL) isDaylightSavingTimeZone;
 - (NSString*) timeZoneAbbreviation;
-- (int) timeZoneSecondsFromGMT;
+- (NSInteger) timeZoneSecondsFromGMT;
 @end
 #endif
 

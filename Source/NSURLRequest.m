@@ -1,7 +1,7 @@
 /* Implementation for NSURLRequest for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,6 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
+#define	EXPOSE_NSURLRequest_IVARS	1
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"
 
@@ -45,11 +48,11 @@ typedef struct {
 /* Defines to get easy access to internals from mutable/immutable
  * versions of the class and from categories.
  */
-typedef struct {
-  @defs(NSURLRequest)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLRequestInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLRequestInternal))
+#define	this	((Internal*)(self->_NSURLRequestInternal))
+#define	inst	((Internal*)(((NSURLRequest*)o)->_NSURLRequestInternal))
+
+@interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
+@end
 
 @implementation	NSURLRequest
 
@@ -162,7 +165,7 @@ typedef struct {
   return self;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [this->URL hash];
 }

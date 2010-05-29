@@ -28,7 +28,7 @@
 
 #include <ffi.h>
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 /*
  * Avoid conflicts when other headers try to define UINT32 and UINT64
  */
@@ -50,9 +50,7 @@ typedef struct _cifframe_t {
   void **values;
 } cifframe_t;
 
-extern cifframe_t *cifframe_from_info (NSArgumentInfo *info, int numargs,
-					 void **retval);
-extern unsigned retval_offset_from_info (NSArgumentInfo *info, int numargs);
+extern cifframe_t *cifframe_from_signature (NSMethodSignature *info);
 
 extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, 
 			     int size);
@@ -62,12 +60,4 @@ extern void *cifframe_arg_addr(cifframe_t *cframe, int index);
 extern BOOL cifframe_decode_arg (const char *type, void* buffer);
 extern BOOL cifframe_encode_arg (const char *type, void* buffer);
 
-extern void cifframe_do_call (DOContext *ctxt,
-		void(*decoder)(DOContext*),
-		void(*encoder)(DOContext*));
-extern void cifframe_build_return (NSInvocation *inv,
-		const char *type, 
-		BOOL out_parameters,
-		void(*decoder)(DOContext*),
-		DOContext* ctxt);
 #endif

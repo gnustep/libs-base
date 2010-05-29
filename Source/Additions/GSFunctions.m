@@ -19,17 +19,25 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    <title>NSPathUtilities function reference</title>
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSFunctions.h"
-#include "GNUstepBase/GSCategories.h"
-#include "Foundation/Foundation.h"
+#import "common.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/GSFunctions.h"
+#import "GNUstepBase/NSDebug+GNUstepBase.h"
+#ifndef NeXT_Foundation_LIBRARY
+#import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#else
+#import <Foundation/Foundation.h>
+#endif
 
 NSString *
 GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension)

@@ -18,20 +18,16 @@
 
    */
 
-#include 	"config.h"
-#include        <Foundation/Foundation.h>
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSAutoreleasePool.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSFileManager.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSString.h>
-#ifdef NeXT_Foundation_LIBRARY
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/GSObjCRuntime.h"
-#endif
+#import	"common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSProcessInfo.h"
+#import "GNUstepBase/Additions.h"
 
 
 /** <p> This tool merges text property lists into a single property list.
@@ -48,7 +44,7 @@ main(int argc, char** argv, char **env)
   unsigned		i;
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   pool = [NSAutoreleasePool new];
   procinfo = [NSProcessInfo processInfo];

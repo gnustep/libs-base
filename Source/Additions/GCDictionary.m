@@ -24,17 +24,15 @@
 
 */
 
-#include "config.h"
+#import "common.h"
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSException.h"
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GNUstepBase/GCObject.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GCObject.h"
 
 typedef struct {
   id	object;
@@ -103,9 +101,11 @@ _GCCompareObjects(NSMapTable *table, const GCInfo *o1, const GCInfo *o2)
 static void
 _GCRetainObjects(NSMapTable *table, const void *ptr)
 {
+#if	!GS_WITH_GC
   GCInfo	*objectStruct = (GCInfo*)ptr;
 
-  RETAIN(objectStruct->object);
+  [objectStruct->object retain];
+#endif
 }
 
 static void
@@ -134,7 +134,7 @@ _GCDescribeObjects(NSMapTable *table, const GCInfo *objectStruct)
 }
 
 static const NSMapTableKeyCallBacks GCInfoMapKeyCallBacks = {
-  (unsigned(*)(NSMapTable *, const void *))_GCHashObject,
+  (NSUInteger(*)(NSMapTable *, const void *))_GCHashObject,
   (BOOL(*)(NSMapTable *, const void *, const void *))_GCCompareObjects,
   (void (*)(NSMapTable *, const void *))_GCRetainObjects,
   (void (*)(NSMapTable *, void *))_GCReleaseObjects,
@@ -168,7 +168,7 @@ static Class	gcClass = 0;
   return [[GCDictionary allocWithZone: zone] initWithDictionary: self];
 }
 
-- (unsigned int) count
+- (NSUInteger) count
 {
   return NSCountMapTable(_map);
 }
@@ -237,7 +237,7 @@ static Class	gcClass = 0;
 {
   id		keys = [dictionary keyEnumerator];
   id		key;
-  unsigned int	size = ([dictionary count] * 4) / 3;
+  NSUInteger	size = ([dictionary count] * 4) / 3;
   NSZone	*z = NSDefaultMallocZone();
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
@@ -264,9 +264,9 @@ static Class	gcClass = 0;
 
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
-		 count: (unsigned int)count
+		 count: (NSUInteger)count
 {
-  unsigned int	size = (count * 4) / 3;
+  NSUInteger	size = (count * 4) / 3;
   NSZone	*z = NSDefaultMallocZone();
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
@@ -279,7 +279,7 @@ static Class	gcClass = 0;
 
       if (!keys[count] || !objects[count])
 	{
-	  [self release];
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Nil object added in dictionary"];
 	}
@@ -366,9 +366,9 @@ static Class	gcClass = 0;
   return [self initWithCapacity: 0];
 }
 
-- (id) initWithCapacity: (unsigned int)aNumItems
+- (id) initWithCapacity: (NSUInteger)aNumItems
 {
-  unsigned int	size = (aNumItems * 4) / 3;
+  NSUInteger	size = (aNumItems * 4) / 3;
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
     GCInfoValueCallBacks, size, [self zone]);

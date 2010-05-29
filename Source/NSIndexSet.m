@@ -23,14 +23,14 @@
 
    */
 
-#include        "Foundation/NSCoder.h"
-#include        "Foundation/NSData.h"
-#include	"Foundation/NSIndexSet.h"
-#include	"Foundation/NSException.h"
-#include	"Foundation/NSZone.h"
+#import "common.h"
+#define	EXPOSE_NSIndexSet_IVARS	1
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import	"Foundation/NSIndexSet.h"
+#import	"Foundation/NSException.h"
 
 #define	GSI_ARRAY_TYPE	NSRange
-#define GSI_ARRAY_TYPES	GSI_ARRAY_EXTRA
 
 #define	GSI_ARRAY_NO_RELEASE	1
 #define	GSI_ARRAY_NO_RETAIN	1
@@ -45,15 +45,22 @@ static void sanity(GSIArray array)
 {
   if (array != 0)
     {
-      unsigned	c = GSIArrayCount(array);
-      unsigned	i;
-      unsigned	last = 0;
+      NSUInteger	c = GSIArrayCount(array);
+      NSUInteger	i;
+      NSUInteger	last = 0;
 
       for (i = 0; i < c; i++)
 	{
 	  NSRange	r = GSIArrayItemAtIndex(array, i).ext;
 
-	  NSCAssert(r.location >= last, @"Overlap ranges");
+	  if (i > 0)
+	    {
+	      NSCAssert(r.location > last, @"Overlap or touching ranges");
+	    }
+	  else
+	    {
+	      NSCAssert(r.location >= last, @"Overlap ranges");
+	    }
 	  NSCAssert(NSMaxRange(r) > r.location, @"Bad range length");
 	  last = NSMaxRange(r);
 	}
@@ -71,11 +78,11 @@ static void sanity(GSIArray array)
  * index greater than the argument (or a position beyond the end of the
  * array).
  */
-static unsigned posForIndex(GSIArray array, unsigned index)
+static NSUInteger posForIndex(GSIArray array, NSUInteger index)
 {
-  unsigned int	upper = GSIArrayCount(array);
-  unsigned int	lower = 0;
-  unsigned int	pos;
+  NSUInteger	upper = GSIArrayCount(array);
+  NSUInteger	lower = 0;
+  NSUInteger	pos;
 
   /*
    *	Binary search for an item equal to the one to be inserted.
@@ -117,7 +124,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return AUTORELEASE(o);
 }
 
-+ (id) indexSetWithIndex: (unsigned int)anIndex
++ (id) indexSetWithIndex: (NSUInteger)anIndex
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
 
@@ -133,9 +140,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return AUTORELEASE(o);
 }
 
-- (BOOL) containsIndex: (unsigned int)anIndex
+- (BOOL) containsIndex: (NSUInteger)anIndex
 {
-  unsigned	pos;
+  NSUInteger	pos;
   NSRange	r;
 
   if (_array == 0 || GSIArrayCount(_array) == 0
@@ -149,11 +156,11 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (BOOL) containsIndexes: (NSIndexSet*)aSet
 {
-  unsigned	count = _other ? GSIArrayCount(_other) : 0;
+  NSUInteger	count = _other ? GSIArrayCount(_other) : 0;
 
   if (count > 0)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < count; i++)
 	{
@@ -170,7 +177,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (BOOL) containsIndexesInRange: (NSRange)aRange
 {
-  unsigned	pos;
+  NSUInteger	pos;
   NSRange	r;
 
   if (NSNotFound - aRange.length < aRange.location)
@@ -211,7 +218,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
 }
 
-- (unsigned int) count
+- (NSUInteger) count
 {
   if (_array == 0 || GSIArrayCount(_array) == 0)
     {
@@ -219,9 +226,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      unsigned	count = GSIArrayCount(_array);
-      unsigned	total = 0;
-      unsigned	i = 0;
+      NSUInteger	count = GSIArrayCount(_array);
+      NSUInteger	total = 0;
+      NSUInteger	i = 0;
 
       while (i < count)
 	{
@@ -240,9 +247,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      unsigned	count = GSIArrayCount(_array);
-      unsigned	total = 0;
-      unsigned	i = 0;
+      NSUInteger	count = GSIArrayCount(_array);
+      NSUInteger	total = 0;
+      NSUInteger	i = 0;
 
       while (i < count)
 	{
@@ -270,8 +277,8 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 - (NSString*) description
 {
   NSMutableString	*m;
-  unsigned		c = (_array == 0) ? 0 : GSIArrayCount(_array);
-  unsigned		i;
+  NSUInteger		c = (_array == 0) ? 0 : GSIArrayCount(_array);
+  NSUInteger		i;
 
   if (c == 0)
     {
@@ -300,7 +307,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  unsigned rangeCount = 0;
+  NSUInteger rangeCount = 0;
 
   if (_array != 0)
     {
@@ -313,7 +320,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      [aCoder encodeValueOfObjCType: @encode(unsigned int)
+      [aCoder encodeValueOfObjCType: @encode(NSUInteger)
                                  at: &rangeCount];
     }
   
@@ -333,21 +340,21 @@ static unsigned posForIndex(GSIArray array, unsigned index)
         }
       else
         {
-          [aCoder encodeValueOfObjCType: @encode(unsigned int)
+          [aCoder encodeValueOfObjCType: @encode(NSUInteger)
                                      at: &r.location];
-          [aCoder encodeValueOfObjCType: @encode(unsigned int)
+          [aCoder encodeValueOfObjCType: @encode(NSUInteger)
                                      at: &r.length];
         }
     }
   else
     {
       NSMutableData     *m = [NSMutableData dataWithCapacity: rangeCount*2];
-      unsigned          i;
+      NSUInteger          i;
 
       for (i = 0; i < rangeCount; i++)
         {
           NSRange	r;
-          unsigned      v;
+          NSUInteger    v;
           uint8_t       b;
       
           r = GSIArrayItemAtIndex(_array, i).ext;
@@ -393,7 +400,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
 }
 
-- (unsigned int) firstIndex
+- (NSUInteger) firstIndex
 {
   if (_array == 0 || GSIArrayCount(_array) == 0)
     {
@@ -402,12 +409,12 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return GSIArrayItemAtIndex(_array, 0).ext.location;
 }
 
-- (unsigned int) getIndexes: (unsigned int*)aBuffer
-		   maxCount: (unsigned int)aCount
-	       inIndexRange: (NSRangePointer)aRange
+- (NSUInteger) getIndexes: (NSUInteger*)aBuffer
+                 maxCount: (NSUInteger)aCount
+             inIndexRange: (NSRangePointer)aRange
 {
-  unsigned	pos;
-  unsigned	i = 0;
+  NSUInteger	pos;
+  NSUInteger	i = 0;
   NSRange	r;
   NSRange	fullRange;
 
@@ -440,7 +447,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       r = GSIArrayItemAtIndex(_array, pos).ext;
       if (aRange->location < r.location)
 	{
-	  unsigned	skip = r.location - aRange->location;
+	  NSUInteger	skip = r.location - aRange->location;
 
 	  if (skip > aRange->length)
 	    {
@@ -466,14 +473,14 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return i;
 }
 
-- (unsigned int) hash
+- (NSUInteger) hash
 {
   return [self count];
 }
 
-- (unsigned int) indexGreaterThanIndex: (unsigned int)anIndex
+- (NSUInteger) indexGreaterThanIndex: (NSUInteger)anIndex
 {
-  unsigned	pos;
+  NSUInteger	pos;
   NSRange	r;
 
   if (anIndex++ == NSNotFound)
@@ -493,9 +500,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return r.location;
 }
 
-- (unsigned int) indexGreaterThanOrEqualToIndex: (unsigned int)anIndex
+- (NSUInteger) indexGreaterThanOrEqualToIndex: (NSUInteger)anIndex
 {
-  unsigned	pos;
+  NSUInteger	pos;
   NSRange	r;
 
   if (anIndex == NSNotFound)
@@ -515,9 +522,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return r.location;
 }
 
-- (unsigned int) indexLessThanIndex: (unsigned int)anIndex
+- (NSUInteger) indexLessThanIndex: (NSUInteger)anIndex
 {
-  unsigned	pos;
+  NSUInteger	pos;
   NSRange	r;
 
   if (anIndex-- == 0)
@@ -542,9 +549,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return NSMaxRange(r) - 1;
 }
 
-- (unsigned int) indexLessThanOrEqualToIndex: (unsigned int)anIndex
+- (NSUInteger) indexLessThanOrEqualToIndex: (NSUInteger)anIndex
 {
-  unsigned	pos;
+  NSUInteger	pos;
   NSRange	r;
 
   if (_array == 0 || GSIArrayCount(_array) == 0
@@ -572,7 +579,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned rangeCount = 0;
+  NSUInteger rangeCount = 0;
 
   if ([aCoder allowsKeyedCoding])
     {
@@ -583,7 +590,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      [aCoder decodeValueOfObjCType: @encode(unsigned int)
+      [aCoder decodeValueOfObjCType: @encode(NSUInteger)
                                  at: &rangeCount];
     }
 
@@ -593,8 +600,8 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else if (rangeCount == 1)
     {
-      unsigned len = 0;
-      unsigned loc = 0;
+      NSUInteger len = 0;
+      NSUInteger loc = 0;
       
       if ([aCoder allowsKeyedCoding])
         {
@@ -609,9 +616,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
         }
       else
         {
-          [aCoder decodeValueOfObjCType: @encode(unsigned int)
+          [aCoder decodeValueOfObjCType: @encode(NSUInteger)
                                      at: &loc];
-          [aCoder decodeValueOfObjCType: @encode(unsigned int)
+          [aCoder decodeValueOfObjCType: @encode(NSUInteger)
                                      at: &len];
         }
       self = [self initWithIndexesInRange: NSMakeRange(loc, len)];
@@ -621,8 +628,8 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       NSMutableIndexSet *other = [NSMutableIndexSet new];
       NSData            *data = nil;
       const uint8_t     *bytes;
-      unsigned          length;
-      unsigned          index = 0;
+      NSUInteger        length;
+      NSUInteger        index = 0;
 
       if ([aCoder allowsKeyedCoding])
         {
@@ -640,9 +647,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       while (index < length)
         {
           NSRange       range;
-          unsigned      offset;
-          unsigned      value;
-          unsigned      next;
+          NSUInteger    offset;
+          NSUInteger    value;
+          NSUInteger    next;
 
           for (offset = 0; index + offset < length; offset++)
             {
@@ -698,7 +705,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return self;
 }
 
-- (id) initWithIndex: (unsigned int)anIndex
+- (id) initWithIndex: (NSUInteger)anIndex
 {
   if (anIndex == NSNotFound)
     {
@@ -721,8 +728,14 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	}
       else
 	{
+#if	GS_WITH_GC
+	  _data = (GSIArray)NSAllocateCollectable(sizeof(GSIArray_t),
+	    NSScannedOption);
+	  GSIArrayInitWithZoneAndCapacity(_array, 0, 1);
+#else
 	  _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
 	  GSIArrayInitWithZoneAndCapacity(_array, [self zone], 1);
+#endif
 	  GSIArrayAddItem(_array, (GSIArrayItem)aRange);
 	}
     }
@@ -737,14 +750,20 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      unsigned count = _other ? GSIArrayCount(_other) : 0;
+      NSUInteger count = _other ? GSIArrayCount(_other) : 0;
 
       if (count > 0)
 	{
-	  unsigned	i;
+	  NSUInteger i;
 
+#if	GS_WITH_GC
+	  _data = (GSIArray)NSAllocateCollectable(sizeof(GSIArray_t),
+	    NSScannedOption);
+	  GSIArrayInitWithZoneAndCapacity(_array, 0, 1);
+#else
 	  _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
 	  GSIArrayInitWithZoneAndCapacity(_array, [self zone], count);
+#endif
 	  for (i = 0; i < count; i++)
 	    {
 	      GSIArrayAddItem(_array, GSIArrayItemAtIndex(_other, i));
@@ -756,8 +775,8 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (BOOL) intersectsIndexesInRange: (NSRange)aRange
 {
-  unsigned	p1;
-  unsigned	p2;
+  NSUInteger	p1;
+  NSUInteger	p2;
 
   if (NSNotFound - aRange.length < aRange.location)
     {
@@ -802,7 +821,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (BOOL) isEqualToIndexSet: (NSIndexSet*)aSet
 {
-  unsigned	count = _other ? GSIArrayCount(_other) : 0;
+  NSUInteger	count = _other ? GSIArrayCount(_other) : 0;
 
   if (count != (_array ? GSIArrayCount(_array) : 0))
     {
@@ -810,7 +829,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   if (count > 0)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < count; i++)
 	{
@@ -826,7 +845,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return YES;
 }
 
-- (unsigned int) lastIndex
+- (NSUInteger) lastIndex
 {
   if (_array == 0 || GSIArrayCount(_array) == 0)
     {
@@ -850,18 +869,18 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 #undef	_other
 #define	_other	((GSIArray)(((NSMutableIndexSet*)aSet)->_data))
 
-- (void) addIndex: (unsigned int)anIndex
+- (void) addIndex: (NSUInteger)anIndex
 {
   [self addIndexesInRange: NSMakeRange(anIndex, 1)];
 }
 
 - (void) addIndexes: (NSIndexSet*)aSet
 {
-  unsigned	count = _other ? GSIArrayCount(_other) : 0;
+  NSUInteger	count = _other ? GSIArrayCount(_other) : 0;
 
   if (count > 0)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < count; i++)
 	{
@@ -874,7 +893,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) addIndexesInRange: (NSRange)aRange
 {
-  unsigned	pos;
+  NSUInteger	pos;
 
   if (NSNotFound - aRange.length < aRange.location)
     {
@@ -888,8 +907,14 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   if (_array == 0)
     {
+#if	GS_WITH_GC
+      _data = (GSIArray)NSAllocateCollectable(sizeof(GSIArray_t),
+	NSScannedOption);
+      GSIArrayInitWithZoneAndCapacity(_array, 0, 1);
+#else
       _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(_array, [self zone], 1);
+#endif
     }
 
   pos = posForIndex(_array, aRange.location);
@@ -974,18 +999,18 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
 }
 
-- (void) removeIndex: (unsigned int)anIndex
+- (void) removeIndex: (NSUInteger)anIndex
 {
   [self removeIndexesInRange: NSMakeRange(anIndex, 1)];
 }
 
 - (void) removeIndexes: (NSIndexSet*)aSet
 {
-  unsigned	count = _other ? GSIArrayCount(_other) : 0;
+  NSUInteger	count = _other ? GSIArrayCount(_other) : 0;
 
   if (count > 0)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = 0; i < count; i++)
 	{
@@ -998,7 +1023,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) removeIndexesInRange: (NSRange)aRange
 {
-  unsigned	pos;
+  NSUInteger	pos;
   NSRange	r;
 
   if (NSNotFound - aRange.length < aRange.location)
@@ -1109,12 +1134,12 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   SANITY();
 }
 
-- (void) shiftIndexesStartingAtIndex: (unsigned int)anIndex by: (int)amount
+- (void) shiftIndexesStartingAtIndex: (NSUInteger)anIndex by: (NSInteger)amount
 {
   if (amount != 0 && _array != 0 && GSIArrayCount(_array) > 0)
     {
-      unsigned	c;
-      unsigned	pos;
+      NSUInteger	c;
+      NSUInteger	pos;
 
       if (amount > 0)
 	{
@@ -1211,6 +1236,22 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, c);
 		}
 	    }
+	  if (pos > 0)
+	    {
+	      c = GSIArrayCount(_array);
+	      if (pos < c)
+		{
+		  NSRange	r0 = GSIArrayItemAtIndex(_array, pos - 1).ext;
+		  NSRange	r1 = GSIArrayItemAtIndex(_array, pos).ext;
+
+	          if (NSMaxRange(r0) == r1.location)
+		    {
+		      r0.length += r1.length;
+		      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r0, pos - 1);
+		      GSIArrayRemoveItemAtIndex(_array, pos);
+		    }
+		}
+	    }
 	}
     }
   SANITY();
@@ -1221,9 +1262,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 @implementation	NSIndexSet (NSCharacterSet)
 /* Extra method to let NSCharacterSet play with index sets more efficiently.
  */
-- (unsigned int) _gapGreaterThanIndex: (unsigned int)anIndex
+- (NSUInteger) _gapGreaterThanIndex: (NSUInteger)anIndex
 {
-  unsigned	pos;
+  NSUInteger	pos;
   NSRange	r;
 
   if (anIndex++ == NSNotFound)
@@ -1273,9 +1314,10 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   [super dealloc];
 }
 
-- (id) _initWithBytes: (const void*)bytes length: (unsigned)length
+- (id) _initWithBytes: (const void*)bytes length: (NSUInteger)length
 {
-  NSAssert(length % sizeof(NSRange) == 0, NSInvalidArgumentException);
+  NSAssert(length % sizeof(GSIArrayItem) == 0, NSInvalidArgumentException);
+  NSAssert(length % __alignof__(GSIArrayItem) == 0, NSInvalidArgumentException);
   length /= sizeof(NSRange);
   _data = NSZoneMalloc([self zone], sizeof(GSIArray_t));
   _array->ptr = (GSIArrayItem*)bytes;

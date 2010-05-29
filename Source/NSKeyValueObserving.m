@@ -24,7 +24,7 @@
    $Date$ $Revision$
 */
 
-#include "GNUstepBase/preface.h"
+#import "common.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
@@ -36,13 +36,13 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSNull.h"
-#import "Foundation/NSObject.h"
 #import "Foundation/NSSet.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/Unicode.h"
 #import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSInvocation.h"
 
 /*
  * IMPLEMENTATION NOTES
@@ -130,6 +130,10 @@ static inline void setup()
 - (void) setterLongLong: (unsigned long long)val;
 #endif
 - (void) setterShort: (unsigned short)val;
+- (void) setterRange: (NSRange)val;
+- (void) setterPoint: (NSPoint)val;
+- (void) setterSize: (NSSize)val;
+- (void) setterRect: (NSRect)rect;
 @end
 
 /* An instance of this records all the information for a single observation.
@@ -137,7 +141,7 @@ static inline void setup()
 @interface	GSKVOObservation : NSObject
 {
 @public
-  NSObject      *observer;      // Not retained
+  NSObject      *observer;      // Not retained (zeroing weak pointer)
   void          *context;
   int           options;
 }
@@ -214,7 +218,7 @@ static inline void setup()
 
 - (Class) class
 {
-  return GSObjCSuper(GSObjCClass(self));
+  return class_getSuperclass(object_getClass(self));
 }
 
 - (void) setValue: (id)anObject forKey: (NSString*)aKey
@@ -295,7 +299,7 @@ static inline void setup()
 
 - (Class) superclass
 {
-  return GSObjCSuper(GSObjCSuper(GSObjCClass(self)));
+  return class_getSuperclass(class_getSuperclass(object_getClass(self)));
 }
 @end
 
@@ -305,7 +309,7 @@ static inline void setup()
  */
 static NSString *newKey(SEL _cmd)
 {
-  const char	*name = GSNameFromSelector(_cmd);
+  const char	*name = sel_getName(_cmd);
   unsigned	len = strlen(name);
   NSString	*key;
   unsigned	i;
@@ -435,7 +439,6 @@ replacementForClass(Class c)
 {
   if ([keys member: aKey] == nil)
     {
-      GSMethodList	m;
       NSMethodSignature	*sig;
       SEL		sel;
       IMP		imp;
@@ -446,8 +449,6 @@ replacementForClass(Class c)
       BOOL              found = NO;
       NSString		*tmp;
       unichar u;
-
-      m = GSAllocMethodList(2);
 
       suffix = [aKey substringFromIndex: 1];
       u = uni_toupper([aKey characterAtIndex: 0]);
@@ -472,7 +473,8 @@ replacementForClass(Class c)
             }
 
           /*
-           * A setter must take three arguments (self, _cmd, value)
+           * A setter must take three arguments (self, _cmd, value).
+           * The return value (if any) is ignored.
            */
           if ([sig numberOfArguments] != 3)
             {
@@ -530,6 +532,32 @@ replacementForClass(Class c)
                 imp = [[GSKVOSetter class]
                   instanceMethodForSelector: @selector(setter:)];
                 break;
+              case _C_STRUCT_B:
+                if (strcmp(@encode(NSRange), type) == 0)
+                  {
+                    imp = [[GSKVOSetter class]
+                      instanceMethodForSelector: @selector(setterRange:)];
+                  }
+                else if (strcmp(@encode(NSPoint), type) == 0)
+                  {
+                    imp = [[GSKVOSetter class]
+                      instanceMethodForSelector: @selector(setterPoint:)];
+                  }
+                else if (strcmp(@encode(NSSize), type) == 0)
+                  {
+                    imp = [[GSKVOSetter class]
+                      instanceMethodForSelector: @selector(setterSize:)];
+                  }
+                else if (strcmp(@encode(NSRect), type) == 0)
+                  {
+                    imp = [[GSKVOSetter class]
+                      instanceMethodForSelector: @selector(setterRect:)];
+                  }                           
+                else
+                  {
+                    imp = 0;
+                  }
+                break;
               default:
                 imp = 0;
                 break;
@@ -537,28 +565,33 @@ replacementForClass(Class c)
 
           if (imp != 0)
             {
-              GSAppendMethodToList(m, sel, [sig methodType], imp, YES);
-              found = YES;
+	      if (class_addMethod(replacement, sel, imp, [sig methodType]))
+		{
+                  found = YES;
+		}
+	      else
+		{
+		  NSLog(@"Failed to add setter method for %s to %@",
+		    sel_getName(sel), class_getName(original));
+		}
             }
         }
       if (found == YES)
         {
-          GSAddMethodList(replacement, m, YES);
-          GSFlushMethodCacheForClass(replacement);
           [keys addObject: aKey];
         }
       else
         {
-          NSMapTable depKeys = NSMapGet(dependentKeyTable, original);
+          NSMapTable *depKeys = NSMapGet(dependentKeyTable, original);
 
           if (depKeys)
             {
               NSMapEnumerator enumerator = NSEnumerateMapTable(depKeys);
               NSString *mainKey;
-              NSHashTable dependents;
+              NSHashTable *dependents;
 
               while (NSNextMapEnumeratorPair(&enumerator, (void **)(&mainKey),
-                &dependents))
+                (void**)&dependents))
                 {
                   NSHashEnumerator dependentKeyEnum;
                   NSString *dependentKey;
@@ -583,7 +616,8 @@ replacementForClass(Class c)
 
           if (!found)
             {
-              NSLog(@"class %@ not KVC complient for %@", original, aKey);
+              NSDebugLLog(@"KVC", @"class %@ not KVC complient for %@",
+		original, aKey);
               /*
               [NSException raise: NSInvalidArgumentException
                            format: @"class not KVC complient for %@", aKey];
@@ -797,10 +831,116 @@ replacementForClass(Class c)
     }
   RELEASE(key);
 }
+
+- (void) setterRange: (NSRange)val
+{
+  NSString  *key;
+  Class     c = [self class];
+  void      (*imp)(id,SEL,NSRange);
+
+  imp = (void (*)(id,SEL,NSRange))[c instanceMethodForSelector: _cmd];
+
+  key = newKey(_cmd);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [self willChangeValueForKey: key];
+      (*imp)(self, _cmd, val);
+      // post setting code here
+      [self didChangeValueForKey: key];
+    }
+  else
+    {
+      (*imp)(self, _cmd, val);
+    }
+  RELEASE(key);
+}
+
+- (void) setterPoint: (NSPoint)val
+{
+  NSString  *key;
+  Class     c = [self class];
+  void      (*imp)(id,SEL,NSPoint);
+
+  imp = (void (*)(id,SEL,NSPoint))[c instanceMethodForSelector: _cmd];
+
+  key = newKey(_cmd);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [self willChangeValueForKey: key];
+      (*imp)(self, _cmd, val);
+      // post setting code here
+      [self didChangeValueForKey: key];
+    }
+  else
+    {
+      (*imp)(self, _cmd, val);
+    }
+  RELEASE(key);
+}
+
+- (void) setterSize: (NSSize)val
+{
+  NSString  *key;
+  Class     c = [self class];
+  void      (*imp)(id,SEL,NSSize);
+
+  imp = (void (*)(id,SEL,NSSize))[c instanceMethodForSelector: _cmd];
+
+  key = newKey(_cmd);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [self willChangeValueForKey: key];
+      (*imp)(self, _cmd, val);
+      // post setting code here
+      [self didChangeValueForKey: key];
+    }
+  else
+    {
+      (*imp)(self, _cmd, val);
+    }
+  RELEASE(key);
+}
+
+- (void) setterRect: (NSRect)val
+{
+  NSString  *key;
+  Class     c = [self class];
+  void      (*imp)(id,SEL,NSRect);
+
+  imp = (void (*)(id,SEL,NSRect))[c instanceMethodForSelector: _cmd];
+
+  key = newKey(_cmd);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [self willChangeValueForKey: key];
+      (*imp)(self, _cmd, val);
+      // post setting code here
+      [self didChangeValueForKey: key];
+    }
+  else
+    {
+      (*imp)(self, _cmd, val);
+    }
+  RELEASE(key);
+}
 @end
 
 
 @implementation	GSKVOObservation
+#if	GS_WITH_GC
++ (void) initialize
+{
+  GSMakeWeakPointer(self, "observer");
+}
+- (void) finalize
+{
+  GSAssignZeroingWeakPointer((void**)&observer, nil);
+}
+#endif
 @end
 
 @implementation	GSKVOPathInfo
@@ -953,17 +1093,26 @@ replacementForClass(Class c)
       o = [pathInfo->observations objectAtIndex: count];
       if (o->observer == anObserver)
         {
-          o->observer = anObserver;
           o->context = aContext;
           o->options = options;
           observation = o;
         }
+#if	GS_WITH_GC
+      else if (o->observer == nil)
+	{
+	  /* The observer for thsi observation must have been collected.
+	   */
+	  [pathInfo->observations removeObjectAtIndex: count];
+	  continue;
+	}
+#endif
       pathInfo->allOptions |= o->options;
     }
   if (observation == nil)
     {
       observation = [GSKVOObservation new];
-      observation->observer = anObserver;
+      GSAssignZeroingWeakPointer((void**)&observation->observer,
+	(void*)anObserver);
       observation->context = aContext;
       observation->options = options;
       [pathInfo->observations addObject: observation];
@@ -1047,7 +1196,7 @@ replacementForClass(Class c)
           GSKVOObservation      *o;
 
           o = [pathInfo->observations objectAtIndex: count];
-          if (o->observer == anObserver)
+          if (o->observer == anObserver || o->observer == nil)
             {
               [pathInfo->observations removeObjectAtIndex: count];
               if ([pathInfo->observations count] == 0)
@@ -1085,6 +1234,14 @@ replacementForClass(Class c)
               context = o->context;
               break;
             }
+#if	GS_WITH_GC
+	  else if (o->observer == nil)
+	    {
+	      /* The observer for thsi observation must have been collected.
+	       */
+	      [pathInfo->observations removeObjectAtIndex: count];
+	    }
+#endif
 	}
     }
   [iLock unlock];
@@ -1171,7 +1328,7 @@ replacementForClass(Class c)
       [observedObjectForForwarding removeObserver: self forKeyPath: 
         keyForForwarding];
     }
-  [self release];
+  DESTROY(self);
 }
 
 - (void) dealloc
@@ -1363,7 +1520,7 @@ replacementForClass(Class c)
        * turn off key-value-observing for it.
        */
       isa = [self class];
-      AUTORELEASE(info);
+      IF_NO_GC(AUTORELEASE(info);)
       [self setObservationInfo: nil];
     }
   [kvoLock unlock];
@@ -1443,11 +1600,11 @@ replacementForClass(Class c)
 
 - (void) willChangeValueForDependentsOfKey: (NSString *)aKey
 {
-  NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
+  NSMapTable *keys = NSMapGet(dependentKeyTable, [self class]);
 
   if (keys != nil)
     {
-      NSHashTable       dependents = NSMapGet(keys, aKey);
+      NSHashTable       *dependents = NSMapGet(keys, aKey);
 
       if (dependents != 0)
         {
@@ -1466,11 +1623,11 @@ replacementForClass(Class c)
 
 - (void) didChangeValueForDependentsOfKey: (NSString *)aKey
 {
-  NSMapTable keys = NSMapGet(dependentKeyTable, [self class]);
+  NSMapTable *keys = NSMapGet(dependentKeyTable, [self class]);
 
   if (keys != nil)
     {
-      NSHashTable dependents = NSMapGet(keys, aKey);
+      NSHashTable *dependents = NSMapGet(keys, aKey);
 
       if (dependents != nil)
         {
@@ -1776,7 +1933,7 @@ replacementForClass(Class c)
 + (void) setKeys: (NSArray*)triggerKeys
 triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
 {
-  NSMapTable    affectingKeys;
+  NSMapTable    *affectingKeys;
   NSEnumerator  *enumerator;
   NSString      *affectingKey;
 
@@ -1791,7 +1948,8 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
   enumerator = [triggerKeys objectEnumerator];
   while ((affectingKey = [enumerator nextObject]))
     {
-      NSHashTable dependentKeys = NSMapGet(affectingKeys, affectingKey);
+      NSHashTable *dependentKeys = NSMapGet(affectingKeys, affectingKey);
+
       if (!dependentKeys)
         {
           dependentKeys = NSCreateHashTable(NSObjectHashCallBacks, 10);
@@ -1808,7 +1966,7 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
   setup();
   [kvoLock lock];
   info = NSMapGet(infoTable, (void*)self);
-  AUTORELEASE(RETAIN((id)info));
+  IF_NO_GC(AUTORELEASE(RETAIN((id)info));)
   [kvoLock unlock];
   return info;
 }

@@ -23,10 +23,8 @@
 
    */
 
-#import "config.h"
+#import "common.h"
 #include <string.h>
-#include <limits.h>
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSMime.h"
 
 #import "Foundation/NSArray.h"
@@ -40,18 +38,26 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSPropertyList.h"
 #import "Foundation/NSSerialization.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSXMLParser.h"
 #import "GNUstepBase/Unicode.h"
+#import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
 @class  GSSloppyXMLParser;
+
+#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
+#define char2num(ch) \
+inrange(ch,'0','9') \
+? ((ch)-0x30) \
+: (inrange(ch,'a','f') \
+? ((ch)-0x57) : ((ch)-0x37))
 
 /*
  * Cache classes.
@@ -81,6 +87,8 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   NSString				*key;
   BOOL					inArray;
   BOOL					inDictionary;
+  BOOL					parsed;
+  BOOL					success;
   id					plist;
   NSPropertyListMutabilityOptions	opts;
 }
@@ -100,6 +108,10 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   namespaceURI: (NSString *)namespaceURI
   qualifiedName: (NSString *)qName;
 - (id) result;
+- (void) unescape;
+@end
+
+@interface	GSSloppyXMLParser : NSXMLParser
 @end
 
 @implementation GSXMLPListParser
@@ -119,7 +131,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 {
   if ((self = [super init]) != nil)
     {
-      stack = [[NSMutableArray alloc] initWithCapacity: 10];
       theParser = [[GSSloppyXMLParser alloc] initWithData: data];
       [theParser setDelegate: self];
       opts = options;
@@ -133,10 +144,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   string = [string stringByTrimmingSpaces];
   if ([string length] > 0)
     {
-      if (value == nil)
-        {
-          value = [[NSMutableString alloc] initWithCapacity: 50];
-        }
       [value appendString: string];
     }
 }
@@ -233,15 +240,9 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     }
   else if ([elementName isEqualToString: @"key"] == YES)
     {
-      if (value == nil)
-	{
-	  ASSIGN(key, @"");
-	}
-      else
-	{
-          ASSIGN(key, [value makeImmutableCopyOnFail: NO]);
-          DESTROY(value);
-	}
+      [self unescape];
+      ASSIGNCOPY(key, value);
+      [value setString: @""];
       return;
     }
   else if ([elementName isEqualToString: @"data"])
@@ -281,27 +282,14 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     {
       id	o;
 
+      [self unescape];
       if (opts == NSPropertyListMutableContainersAndLeaves)
         {
-	  if (value == nil)
-	    {
-	      o = [NSMutableString string];
-	    }
-	  else
-	    {
-	      o = value;
-	    }
+	  o = [value mutableCopy];
 	}
       else
         {
-	  if (value == nil)
-	    {
-	      o = @"";
-	    }
-	  else
-	    {
-	      o = [value makeImmutableCopyOnFail: NO];
-	    }
+	  o = [value copy];
 	}
       ASSIGN(plist, o);
     }
@@ -323,7 +311,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
     }
   else if ([elementName isEqualToString: @"plist"])
     {
-      DESTROY(value);
+      [value setString: @""];
       return;
     }
   else // invalid tag
@@ -347,12 +335,19 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
       [(NSMutableDictionary*)[stack lastObject] setObject: plist forKey: key];
       DESTROY(key);
     }
-  DESTROY(value);
+  [value setString: @""];
 }
 
 - (BOOL) parse
 {
-  return [theParser parse];
+  if (parsed == NO)
+    {
+      parsed = YES;
+      stack = [[NSMutableArray alloc] initWithCapacity: 10];
+      value = [[NSMutableString alloc] initWithCapacity: 50];
+      success = [theParser parse];
+    }
+  return success;
 }
 
 - (id) result
@@ -360,6 +355,56 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   return plist;
 }
 
+- (void) unescape
+{
+  id	o;
+  NSRange	r;
+
+  /* Convert any \Uxxxx sequences to unicode characters.
+   */
+  r = NSMakeRange(0, [value length]);
+  while (r.length >= 6)
+    {
+      r = [value rangeOfString: @"\\U" options: NSLiteralSearch range: r];
+      if (r.length == 2 && [value length] >= r.location + 6)
+	{
+	  unichar	c;
+	  unichar	v;
+
+	  c = [value characterAtIndex: r.location + 2];
+	  if (isxdigit(c))
+	    {
+	      v = char2num(c);
+	      c = [value characterAtIndex: r.location + 3];
+	      if (isxdigit(c))
+		{
+		  v <<= 4;
+		  v |= char2num(c);
+		  c = [value characterAtIndex: r.location + 4];
+		  if (isxdigit(c))
+		    {
+		      v <<= 4;
+		      v |= char2num(c);
+		      c = [value characterAtIndex: r.location + 5];
+		      if (isxdigit(c))
+			{
+			  v <<= 4;
+			  v |= char2num(c);
+			  o = [NSString alloc];
+			  o = [o initWithCharacters: &v length: 1];
+			  r.length += 4;
+			  [value replaceCharactersInRange: r withString: o];
+			  [o release];
+			  r.location++;
+			  r.length = 0;
+			}
+		    }
+		}
+	    }
+	  r = NSMakeRange(NSMaxRange(r), [value length] - NSMaxRange(r));
+	}
+    }
+}
 @end
 
 
@@ -372,14 +417,15 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   NSData		*data;
   unsigned		offset_size;	// Number of bytes per table entry
   unsigned		index_size;	// Number of bytes per table entry
+  unsigned		object_count;	// Number of objects
+  unsigned		root_index;	// Index of root object
   unsigned		table_start;	// Start address of object table
-  unsigned		table_len;	// Length of object table
 }
 
 - (id) initWithData: (NSData*)plData
 	 mutability: (NSPropertyListMutabilityOptions)m;
 - (id) rootObject;
-- (id) objectAtIndex: (unsigned)index;
+- (id) objectAtIndex: (NSUInteger)index;
 
 @end
 
@@ -527,18 +573,6 @@ static void setupQuotables(void)
       RELEASE(s);
     }
 }
-
-#ifdef	HAVE_LIBXML
-#import	"GNUstepBase/GSXML.h"
-static int      XML_ELEMENT_NODE;
-#endif
-
-#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
-#define char2num(ch) \
-inrange(ch,'0','9') \
-? ((ch)-0x30) \
-: (inrange(ch,'a','f') \
-? ((ch)-0x57) : ((ch)-0x37))
 
 typedef	struct	{
   const unsigned char	*ptr;
@@ -730,7 +764,7 @@ static inline id parseQuotedString(pldata* pld)
 	  return nil;
 	}
       length = temp_length - shrink;
-      chars = NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * length);
+      chars = NSAllocateCollectable(sizeof(unichar) * length, 0);
       escaped = 0;
       hex = NO;
       for (j = 0, k = 0; j < temp_length; j++)
@@ -852,7 +886,7 @@ static inline id parseUnquotedString(pldata *pld)
     }
 
   length = pld->pos - start;
-  chars = NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar) * length);
+  chars = NSAllocateCollectable(sizeof(unichar) * length, 0);
   for (i = 0; i < length; i++)
     {
       chars[i] = pld->ptr[start + i];
@@ -1186,217 +1220,6 @@ static id parsePlItem(pldata* pld)
   return result;
 }
 
-#ifdef	HAVE_LIBXML
-static GSXMLNode*
-elementNode(GSXMLNode* node)
-{
-  while (node != nil)
-    {
-      if ([node type] == XML_ELEMENT_NODE)
-        {
-          break;
-        }
-      node = [node next];
-    }
-  return node;
-}
-
-static id
-nodeToObject(GSXMLNode* node, NSPropertyListMutabilityOptions o, NSString **e)
-{
-  CREATE_AUTORELEASE_POOL(arp);
-  id		result = nil;
-
-  node = elementNode(node);
-  if (node != nil)
-    {
-      NSString	*name;
-      NSString	*content;
-      GSXMLNode	*children;
-      BOOL	isKey = NO;
-
-      name = [node name];
-      children = [node firstChild];
-      content = [children content];
-      children = elementNode(children);
-
-      isKey = [name isEqualToString: @"key"];
-      if (isKey == YES || [name isEqualToString: @"string"] == YES)
-	{
-	  if (content == nil)
-	    {
-	      content = @"";
-	    }
-	  else
-	    {
-	      NSRange	r;
-
-	      r = [content rangeOfString: @"\\"];
-	      if (r.length == 1)
-		{
-		  unsigned	len = [content length];
-		  unichar	buf[len];
-		  unsigned	pos = r.location;
-
-		  [content getCharacters: buf];
-		  while (pos < len)
-		    {
-		      if (++pos < len)
-			{
-			  if ((buf[pos] == 'u' || buf[pos] == 'U')
-			    && (len >= pos + 4))
-			    {
-			      unichar	val = 0;
-			      unsigned	i;
-			      BOOL	ok = YES;
-
-			      for (i = 1; i < 5; i++)
-				{
-				  unichar	c = buf[pos + i];
-
-				  if (c >= '0' && c <= '9')
-				    {
-				      val = (val << 4) + c - '0';
-				    }
-				  else if (c >= 'A' && c <= 'F')
-				    {
-				      val = (val << 4) + c - 'A' + 10;
-				    }
-				  else if (c >= 'a' && c <= 'f')
-				    {
-				      val = (val << 4) + c - 'a' + 10;
-				    }
-				  else
-				    {
-				      ok = NO;
-				    }
-				}
-			      if (ok == YES)
-				{
-				  len -= 5;
-				  memcpy(&buf[pos], &buf[pos+5],
-				    (len - pos) * sizeof(unichar));
-				  buf[pos - 1] = val;
-				}
-			    }
-			  while (pos < len && buf[pos] != '\\')
-			    {
-			      pos++;
-			    }
-			}
-		    }
-		  if (isKey == NO
-		    && o == NSPropertyListMutableContainersAndLeaves)
-		    {
-		      content = [NSMutableString stringWithCharacters: buf
-							       length: len];
-		    }
-		  else
-		    {
-		      content = [NSString stringWithCharacters: buf
-							length: len];
-		    }
-		}
-	    }
-	  result = content;
-	}
-      else if ([name isEqualToString: @"true"])
-	{
-	  result = [NSNumber numberWithBool: YES];
-	}
-      else if ([name isEqualToString: @"false"])
-	{
-	  result = [NSNumber numberWithBool: NO];
-	}
-      else if ([name isEqualToString: @"integer"])
-	{
-	  if (content == nil)
-	    {
-	      content = @"0";
-	    }
-	  result = [NSNumber numberWithInt: [content intValue]];
-	}
-      else if ([name isEqualToString: @"real"])
-	{
-	  if (content == nil)
-	    {
-	      content = @"0.0";
-	    }
-	  result = [NSNumber numberWithDouble: [content doubleValue]];
-	}
-      else if ([name isEqualToString: @"date"])
-	{
-	  if (content == nil)
-	    {
-	      content = @"";
-	    }
-	  if ([content hasSuffix: @"Z"] == YES && [content length] == 20)
-	    {
-	      result = [NSCalendarDate dateWithString: content
-				       calendarFormat: @"%Y-%m-%dT%H:%M:%SZ"];
-	    }
-	  else
-	    {
-	      result = [NSCalendarDate dateWithString: content
-				       calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
-	    }
-	}
-      else if ([name isEqualToString: @"data"])
-	{
-	  result = [GSMimeDocument decodeBase64:
-		       [content dataUsingEncoding: NSASCIIStringEncoding]];
-	  if (o == NSPropertyListMutableContainersAndLeaves)
-	    {
-	      result = AUTORELEASE([result mutableCopy]);
-	    }
-	}
-      // container class
-      else if ([name isEqualToString: @"array"])
-	{
-	  NSMutableArray	*container = [plArray array];
-
-	  while (children != nil)
-	    {
-	      id	val;
-
-	      val = nodeToObject(children, o, e);
-	      [container addObject: val];
-	      children = [children nextElement];
-	    }
-	  result = container;
-	  if (o == NSPropertyListImmutable)
-	    {
-	      [result makeImmutableCopyOnFail: NO];
-	    }
-	}
-      else if ([name isEqualToString: @"dict"])
-	{
-	  NSMutableDictionary	*container = [plDictionary dictionary];
-
-	  while (children != nil)
-	    {
-	      NSString	*key;
-	      id	val;
-
-	      key = nodeToObject(children, o, e);
-	      children = [children nextElement];
-	      val = nodeToObject(children, o, e);
-	      children = [children nextElement];
-	      [container setObject: val forKey: key];
-	    }
-	  result = container;
-	  if (o == NSPropertyListImmutable)
-	    {
-	      [result makeImmutableCopyOnFail: NO];
-	    }
-	}
-    }
-  RETAIN(result);
-  RELEASE(arp);
-  return AUTORELEASE(result);
-}
-#endif
-
 id
 GSPropertyListFromStringsFormat(NSString *string)
 {
@@ -1614,7 +1437,7 @@ PString(NSString *obj, NSMutableData *output)
 	}
       else
 	{
-	  ustring = NSZoneMalloc(NSDefaultMallocZone(), length*sizeof(unichar));
+	  ustring = NSAllocateCollectable(sizeof(unichar) * length, 0);
 	}
       end = &ustring[length];
       [obj getCharacters: ustring];
@@ -1754,8 +1577,11 @@ XString(NSString* obj, NSMutableData *output)
       unsigned	len;
       unsigned	rpos;
       unsigned	wpos;
+      BOOL	osx;
 
-      base = NSZoneMalloc(NSDefaultMallocZone(), end * sizeof(unichar));
+      osx = GSPrivateDefaultsFlag(GSMacOSXCompatible);
+
+      base = NSAllocateCollectable(sizeof(unichar) * end, 0);
       [obj getCharacters: base];
       for (len = rpos = 0; rpos < end; rpos++)
 	{
@@ -1778,7 +1604,14 @@ XString(NSString* obj, NSMutableData *output)
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
-		    len += 6;
+		    if (osx)
+		      {
+			len += 8;	// Illegal in XML
+		      }
+		    else
+		      {
+			len += 6;	// Non-standard escape
+		      }
 		  }
 		else
 		  {
@@ -1787,7 +1620,7 @@ XString(NSString* obj, NSMutableData *output)
 		break;
 	    }
 	}
-      map = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+      map = NSAllocateCollectable(sizeof(unichar) * len, 0);
       for (wpos = rpos = 0; rpos < end; rpos++)
 	{
 	  c = base[rpos];
@@ -1833,12 +1666,40 @@ XString(NSString* obj, NSMutableData *output)
 		if ((c < 0x20 && (c != 0x09 && c != 0x0A && c != 0x0D))
 		  || (c > 0xD7FF && c < 0xE000) || c > 0xFFFD)
 		  {
-		    map[wpos++] = '\\';
-		    map[wpos++] = 'U';
-		    map[wpos++] = hexdigits[(c>>12) & 0xf];
-		    map[wpos++] = hexdigits[(c>>8) & 0xf];
-		    map[wpos++] = hexdigits[(c>>4) & 0xf];
-		    map[wpos++] = hexdigits[c & 0xf];
+		    if (osx)
+		      {
+			/* Use XML style character entity references for
+			 * OSX compatibility, even though this is an
+			 * illegal character code and a standards complient
+			 * XML parser will barf when it tries to read it.
+			 * The OSX property list parser does not implement
+		         * the XML standard and accepts at least some
+			 * illegal characters.
+			 */
+			map[wpos++] = '&';
+			map[wpos++] = '#';
+			map[wpos++] = 'x';
+			map[wpos++] = hexdigits[(c>>12) & 0xf];
+			map[wpos++] = hexdigits[(c>>8) & 0xf];
+			map[wpos++] = hexdigits[(c>>4) & 0xf];
+			map[wpos++] = hexdigits[c & 0xf];
+			map[wpos++] = ';';
+		      }
+		    else
+		      {
+			/* We need to be able to encode characters in a
+			 * property list which are illegal in XML (even
+			 * when encoded as numeric entities with the
+			 * &#...; format.  So we use the same \Uxxxx
+			 * format is in old style property lists.
+			 */
+			map[wpos++] = '\\';
+			map[wpos++] = 'U';
+			map[wpos++] = hexdigits[(c>>12) & 0xf];
+			map[wpos++] = hexdigits[(c>>8) & 0xf];
+			map[wpos++] = hexdigits[(c>>4) & 0xf];
+			map[wpos++] = hexdigits[c & 0xf];
+		      }
 		  }
 		else
 		  {
@@ -2204,11 +2065,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  for (i = 0; i < numKeys; i++)
 	    {
 	      keys[i] = [keyArray objectAtIndex: i];
+	      plists[i] = [(NSDictionary*)obj objectForKey: keys[i]];
 	    }
 	}
       else
 	{
 	  [keyArray getObjects: keys];
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      plists[i] = (*myObj)(obj, objSel, keys[i]);
+	    }
 	}
 
       if (x == NSPropertyListXMLFormat_v1_0)
@@ -2220,9 +2086,14 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      if ([keys[i] isKindOfClass: NSStringClass] == NO)
 	        {
 		  [NSException raise: NSInvalidArgumentException
-		    format: @"Bad key in property list: '%@'", keys[i]];
+		    format: @"Bad key (%@) in property list: '%@'",
+		    NSStringFromClass([keys[i] class]), keys[i]];
 		}
 	    }
+	}
+      else if (numKeys == 0)
+	{
+	  canCompare = NO;
 	}
       else
 	{
@@ -2231,14 +2102,14 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  lastClass = NSStringClass;
 	  for (i = 0; i < numKeys; i++)
 	    {
-	      if (GSObjCClass(keys[i]) == lastClass)
+	      if (object_getClass(keys[i]) == lastClass)
 		continue;
 	      if ([keys[i] isKindOfClass: NSStringClass] == NO)
 		{
 		  canCompare = NO;
 		  break;
 		}
-	      lastClass = GSObjCClass(keys[i]);
+	      lastClass = object_getClass(keys[i]);
 	    }
 	}
 
@@ -2278,7 +2149,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		      Class			x;
 		      NSComparisonResult	r;
 
-		      x = GSObjCClass(a);
+		      x = object_getClass(a);
 		      if (x != lastClass)
 			{
 			  lastClass = x;
@@ -2294,8 +2165,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 			      badComparison = YES;
 			    }
 			  #endif
+
+			  /* Swap keys and values.
+			   */
 			  keys[d + stride] = b;
 			  keys[d] = a;
+		          a = plists[d + stride];
+		          b = plists[d];
+			  plists[d + stride] = b;
+			  plists[d] = a;
+
 			  if (stride > d)
 			    {
 			      break;
@@ -2322,21 +2201,6 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      NSWarnFLog(@"Detected bad return value from comparison");
 	    }
 	  #endif
-	}
-
-      if (isProxy == YES)
-	{
-	  for (i = 0; i < numKeys; i++)
-	    {
-	      plists[i] = [(NSDictionary*)obj objectForKey: keys[i]];
-	    }
-	}
-      else
-	{
-	  for (i = 0; i < numKeys; i++)
-	    {
-	      plists[i] = (*myObj)(obj, objSel, keys[i]);
-	    }
 	}
 
       if (x == NSPropertyListXMLFormat_v1_0)
@@ -2423,13 +2287,6 @@ static BOOL	classInitialized = NO;
     {
       classInitialized = YES;
 
-#if	HAVE_LIBXML
-      /*
-       * Cache XML node information.
-       */
-      XML_ELEMENT_NODE = [GSXMLNode typeFromDescription: @"XML_ELEMENT_NODE"];
-#endif
-
       NSStringClass = [NSString class];
       NSMutableStringClass = [NSMutableString class];
       NSDataClass = [NSData class];
@@ -2507,7 +2364,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       *str = AUTORELEASE([GSMutableString new]);
     }
-  else if (GSObjCClass(*str) != [GSMutableString class])
+  else if (object_getClass(*str) != [GSMutableString class])
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Illegal object (%@) at argument 0", *str];
@@ -2647,46 +2504,18 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	{
 	  case NSPropertyListXMLFormat_v1_0:
 	    {
-#if	HAVE_LIBXML
-	      GSXMLParser	*parser;
-	      GSXMLNode		*node;
+	      GSXMLPListParser *parser;
 
-	      parser = [GSXMLParser parser];
-	      [parser substituteEntities: YES];
-	      [parser doValidityChecking: YES];
-              [parser saveMessages: YES];
-	      if ([parser parse: data] == NO || [parser parse: nil] == NO)
+	      parser = [GSXMLPListParser alloc];
+	      parser = AUTORELEASE([parser initWithData: data
+					     mutability: anOption]);
+	      if ([parser parse] == YES)
 		{
-		  error = @"failed to parse as valid XML matching DTD";
+		  result = AUTORELEASE(RETAIN([parser result]));
 		}
-	      node = [[parser document] root];
-	      if (error == nil && [[node name] isEqualToString: @"plist"] == NO)
+	      else if (error == nil)
 		{
 		  error = @"failed to parse as XML property list";
-		}
-	      if (error == nil)
-		{
-		  result = nodeToObject([node firstChild], anOption, &error);
-		}
-#endif
-	      /* The libxml based parser is stricter than the fallback
-	       * parser, so if parsing failed using that, we can try again.
-	       */
-	      if (result == nil)
-	        {
-		  GSXMLPListParser *parser;
-
-		  parser = [GSXMLPListParser alloc];
-		  parser = AUTORELEASE([parser initWithData: data
-						 mutability: anOption]);
-		  if ([parser parse] == YES)
-		    {
-		      result = AUTORELEASE(RETAIN([parser result]));
-		    }
-		  else if (error == nil)
-		    {
-		      error = @"failed to parse as XML property list";
-		    }
 		}
 	    }
 	    break;
@@ -2847,9 +2676,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 }
 
 - (id) initWithData: (NSData*)plData
-	 mutability: (NSPropertyListMutabilityOptions)m;
+	 mutability: (NSPropertyListMutabilityOptions)m
 {
-  unsigned	length;
+  unsigned length;
 
   length = [plData length];
   if (length < 32)
@@ -2858,27 +2687,39 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   else
     {
-      unsigned char	postfix[32];
+      unsigned char postfix[32];
 
-      // FIXME: Get more of the details
-      [plData getBytes: postfix range: NSMakeRange(length-32, 32)];
+      [plData getBytes: postfix range: NSMakeRange(length - 32, 32)];
       offset_size = postfix[6];
       index_size = postfix[7];
+      // FIXME: Looks like the following are actually 8 byte values.
+      // But taking the lower 4 bytes is currently sufficient.
+      object_count = (postfix[12] << 24) + (postfix[13] << 16)
+	+ (postfix[14] << 8) + postfix[15];
+      root_index = (postfix[20] << 24) + (postfix[21] << 16)
+	+ (postfix[22] << 8) + postfix[23];
       table_start = (postfix[28] << 24) + (postfix[29] << 16)
 	+ (postfix[30] << 8) + postfix[31];
+
       if (offset_size < 1 || offset_size > 4)
 	{
-	  [NSException raise: NSGenericException
-		      format: @"Unknown table size %d", offset_size];
+	  unsigned saved = offset_size;
+
 	  DESTROY(self);	// Bad format
+	  [NSException raise: NSGenericException
+		      format: @"Unknown offset size %d", saved];
 	}
       else if (index_size < 1 || index_size > 4)
 	{
-	  unsigned	saved = offset_size;
+	  unsigned saved = index_size;
 
 	  DESTROY(self);	// Bad format
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", saved];
+	}
+      else if (root_index >= object_count)
+	{
+	  DESTROY(self);	// Bad format
 	}
       else if (table_start > length - 32)
 	{
@@ -2886,7 +2727,6 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	}
       else
 	{
-	  table_len = length - table_start - 32;
 	  ASSIGN(data, plData);
 	  _bytes = (const unsigned char*)[data bytes];
 	  mutability = m;
@@ -2898,7 +2738,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (unsigned long) offsetForIndex: (unsigned)index
 {
-  if (index > table_len)
+  if (index >= object_count)
     {
       [NSException raise: NSRangeException
 		   format: @"Object table index out of bounds %d.", index];
@@ -3024,10 +2864,10 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (id) rootObject
 {
-  return [self objectAtIndex: 0];
+  return [self objectAtIndex: root_index];
 }
 
-- (id) objectAtIndex: (unsigned)index
+- (id) objectAtIndex: (NSUInteger)index
 {
   unsigned char	next;
   unsigned counter = [self offsetForIndex: index];
@@ -3159,7 +2999,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       char *buffer;
 
       len = [self readCountAt: &counter];
-      buffer = NSZoneMalloc(NSDefaultMallocZone(), len+1);
+      buffer = NSAllocateCollectable(len + 1, 0);
       [data getBytes: buffer range: NSMakeRange(counter, len)];
       buffer[len] = '\0';
       if (mutability == NSPropertyListMutableContainersAndLeaves)
@@ -3204,7 +3044,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unichar	*buffer;
 
       len = [self readCountAt: &counter];
-      buffer = NSZoneMalloc(NSDefaultMallocZone(), sizeof(unichar)*len);
+      buffer = NSAllocateCollectable(sizeof(unichar) * len, 0);
       [data getBytes: buffer range: NSMakeRange(counter, sizeof(unichar)*len)];
 
       for (i = 0; i < len; i++)
@@ -3273,7 +3113,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       id	*objects;
 
       len = [self readCountAt: &counter];
-      objects = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id) * len);
+      objects = NSAllocateCollectable(sizeof(id) * len, NSScannedOption);
 
       for (i = 0; i < len; i++)
         {
@@ -3338,8 +3178,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       id	*values;
 
       len = [self readCountAt: &counter];
-      keys = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*len);
-      values = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*len);
+      keys = NSAllocateCollectable(sizeof(id) * len * 2, NSScannedOption);
+      values = keys + len;
       for (i = 0; i < len; i++)
         {
 	  int oid = [self readObjectIndexAt: &counter];
@@ -3367,7 +3207,6 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 					       forKeys: keys
 						 count: len];
 	}
-      NSZoneFree(NSDefaultMallocZone(), values);
       NSZoneFree(NSDefaultMallocZone(), keys);
     }
   else
@@ -3602,6 +3441,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   meta[13] = (len >> 16) % 256;
   meta[14] = (len >> 8) % 256;
   meta[15] = len % 256;
+  // root index is always 0, no need to write it
   meta[28] = (table_start >> 24);
   meta[29] = (table_start >> 16) % 256;
   meta[30] = (table_start >> 8) % 256;

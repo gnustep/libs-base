@@ -1,7 +1,8 @@
-#include <objc/objc-api.h>
+
+#include "objc-common.g"
 
 int main (void)
 {
-  objc_set_unexpected(0);
+  _objc_unexpected_exception = 0;
   return 0;
 }

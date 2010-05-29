@@ -23,7 +23,16 @@
    Boston, MA 02111 USA.
    */ 
 
-#import "Foundation/Foundation.h"
+#import "common.h"
+
+#define	EXPOSE_NSValueTransformer_IVARS	1
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSValueTransformer.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSLock.h"
 
 @interface NSNegateBooleanTransformer : NSValueTransformer
@@ -91,7 +100,7 @@ static GSLazyLock *lock = nil;
 
   [lock lock];
   transformer = [registry objectForKey: name];
-  RETAIN(transformer);
+  IF_NO_GC([transformer retain];)
   [lock unlock];
   return AUTORELEASE(transformer);
 }

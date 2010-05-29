@@ -24,8 +24,8 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
-#import "Foundation/NSString.h"
+#import "common.h"
+#define	EXPOSE_NSSocketPortNameServer_IVARS	1
 #import "Foundation/NSData.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSException.h"
@@ -41,16 +41,15 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSTask.h"
-#import "GNUstepBase/NSTask+GS.h"
+#import "GNUstepBase/NSTask+GNUstepBase.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSPortNameServer.h"
-#import "Foundation/NSDebug.h"
 
 #import "GSPortPrivate.h"
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #include <winsock2.h>
 #include <wininet.h>
 #else
@@ -1195,7 +1194,7 @@ typedef enum {
       NSMutableSet	*known = (NSMutableSet*)NSMapGet(_portMap, port);
       NSString		*name;
 
-      RETAIN(known);
+      IF_NO_GC(RETAIN(known);)
       while ((name = [known anyObject]) != nil)
 	{
 	  if ([self removePortForName: name] == NO)

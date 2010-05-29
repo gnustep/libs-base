@@ -20,10 +20,14 @@
 
    */
 
-#include	<Foundation/Foundation.h>
-#include        "AGSIndex.h"
-#include 	"GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import	"common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSDictionary.h"
+#import "AGSIndex.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 static int      XML_ELEMENT_NODE;
 static int      XML_TEXT_NODE;

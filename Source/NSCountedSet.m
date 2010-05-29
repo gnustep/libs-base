@@ -25,17 +25,16 @@
    $Date$ $Revision$
    */
 
-#import "config.h"
+#import "common.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSThread.h"
-#import "Foundation/NSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSCountedSet;
 @interface GSCountedSet : NSObject	// Help the compiler
@@ -97,7 +96,7 @@ static Class NSCountedSet_concrete_class;
  * specified object (as determined by the [-isEqual:] method) has
  * been added to the set and not removed from it.
  */
-- (unsigned int) countForObject: (id)anObject
+- (NSUInteger) countForObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -116,11 +115,11 @@ static Class NSCountedSet_concrete_class;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned	count;
-  Class		c = GSObjCClass(self);
+  Class		c = object_getClass(self);
 
   if (c == NSCountedSet_abstract_class)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSCountedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: aCoder];
     }
@@ -209,7 +208,7 @@ static Class NSCountedSet_concrete_class;
   return self;
 }
 
-- (void) purge: (int)level
+- (void) purge: (NSInteger)level
 {
   if (level > 0)
     {
@@ -232,7 +231,7 @@ static Class NSCountedSet_concrete_class;
 	    {
 	      unsigned	c = (*cImp)(self, @selector(countForObject:), obj);
 
-	      if (c <= (unsigned int)level)
+	      if (c <= (NSUInteger)level)
 		{
 		  while (c-- > 0)
 		    {
@@ -270,7 +269,7 @@ static Class NSCountedSet_concrete_class;
  * purge the set even when uniquing is turned off.
  */
 void
-GSUPurge(unsigned count)
+GSUPurge(NSUInteger count)
 {
   if (uniqueLock != nil)
     {
@@ -292,10 +291,10 @@ GSUPurge(unsigned count)
  * alter the set even when uniquing is turned off.
  */
 id
-GSUSet(id anObject, unsigned count)
+GSUSet(id anObject, NSUInteger count)
 {
   id		found;
-  unsigned	i;
+  NSUInteger	i;
 
   if (uniqueLock != nil)
     {

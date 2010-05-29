@@ -19,12 +19,12 @@
 
 */
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSArray.h>
+#import "common.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSArray.h"
 
 #include "make_strings.h"
 
@@ -89,6 +89,23 @@ static int isname(unsigned char ch)
   be any reason to).
 
 */
+
+#define add_arg_ch(ch)\
+    {\
+      if (arg_len[num_args]+1>=arg_size[num_args])\
+	{\
+	  arg_size[num_args]+=512;\
+	  args[num_args]=realloc(args[num_args],arg_size[num_args]);\
+	  if (!args[num_args])\
+	    {\
+	      NSLog(@"out of memory!\n");\
+	      exit(1);\
+	    }\
+	}\
+      args[num_args][arg_len[num_args]++]=ch;\
+      args[num_args][arg_len[num_args]]=0;\
+    }
+
 static int ParseFile(const char *filename,NSMutableDictionary *tables)
 {
   FILE *f;
@@ -120,21 +137,6 @@ static int ParseFile(const char *filename,NSMutableDictionary *tables)
 
   int depth=0;
 
-  void add_arg_ch(int ch)
-    {
-      if (arg_len[num_args]+1>=arg_size[num_args])
-	{
-	  arg_size[num_args]+=512;
-	  args[num_args]=realloc(args[num_args],arg_size[num_args]);
-	  if (!args[num_args])
-	    {
-	      NSLog(@"out of memory!\n");
-	      exit(1);
-	    }
-	}
-      args[num_args][arg_len[num_args]++]=ch;
-      args[num_args][arg_len[num_args]]=0;
-    }
 
 
   filenamestr = [NSString stringWithCString: filename

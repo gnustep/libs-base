@@ -22,16 +22,19 @@
    Boston, MA 02111 USA.
    */
 
-#include "Foundation/NSSortDescriptor.h"
+#import "common.h"
 
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSKeyValueCoding.h"
-#include "Foundation/NSString.h"
+#define	EXPOSE_NSSortDescriptor_IVARS	1
+#import "Foundation/NSSortDescriptor.h"
 
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GSPrivate.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyValueCoding.h"
+
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSPrivate.h"
 
 @implementation NSSortDescriptor
 
@@ -81,7 +84,7 @@
 
 - (unsigned) hash
 {
-  const char	*sel = GSNameFromSelector(_selector);
+  const char	*sel = sel_getName(_selector);
 
   return _ascending + GSPrivateHash(sel, strlen(sel), 16, YES) + [_key hash];
 }
@@ -134,7 +137,7 @@
     {
       return NO;
     }
-  if (!sel_eq(((NSSortDescriptor*)other)->_selector, _selector))
+  if (!sel_isEqual(((NSSortDescriptor*)other)->_selector, _selector))
     {
       return NO;
     }

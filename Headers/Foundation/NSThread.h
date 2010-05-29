@@ -27,12 +27,17 @@
 #define __NSThread_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#import	<Foundation/NSDictionary.h>
-#import	<Foundation/NSDate.h>
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#import	"Foundation/NSAutoreleasePool.h" // for struct autorelease_thread_vars
+#import	"Foundation/NSException.h"	// for NSHandler
+#else
+#import	<Foundation/NSAutoreleasePool.h>
 #import	<Foundation/NSException.h>
-#import	<Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
+#endif
 
 @class  NSArray;
+@class	NSDate;
+@class	NSMutableDictionary;
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -51,12 +56,13 @@ extern "C" {
  */
 @interface NSThread : NSObject
 {
-@private
+#if	GS_EXPOSE(NSThread)
+@public
   id			_target;
   id			_arg;
   SEL			_selector;
   NSString              *_name;
-  unsigned              _stackSize;
+  NSUInteger            _stackSize;
   BOOL			_cancelled;
   BOOL			_active;
   BOOL			_finished;
@@ -65,7 +71,10 @@ extern "C" {
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
   void                  *_runLoopInfo;  // Per-thread runloop related info.
-  void                  *_reserved;     // For future expansion
+#endif
+#if	!GS_NONFRAGILE
+  void                  *_unused;     // For future expansion
+#endif
 }
 
 /**
@@ -114,13 +123,13 @@ extern "C" {
 - (NSMutableDictionary*) threadDictionary;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) \
-  && GS_API_VERSION(010200,GS_API_LATEST)
+  && GS_API_VERSION( 10200,GS_API_LATEST)
 + (void) setThreadPriority: (double)pri;
 + (double) threadPriority;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) \
-  && GS_API_VERSION(011501,GS_API_LATEST)
+  && GS_API_VERSION( 11501,GS_API_LATEST)
 
 /** Returns an array of the call stack return addresses.
  */
@@ -190,11 +199,11 @@ extern "C" {
 
 /** Sets the size of the receiver's stack.
  */
-- (void) setStackSize: (unsigned)stackSize;
+- (void) setStackSize: (NSUInteger)stackSize;
 
 /** Returns the size of the receiver's stack.
  */
-- (unsigned) stackSize;
+- (NSUInteger) stackSize;
 
 /** Starts the receiver executing.
  */
@@ -370,11 +379,14 @@ GS_EXPORT NSString* const NSThreadWillExitNotification;
  */
 GS_EXPORT NSString* const NSThreadDidStartNotification;
 
-/*
- *	Get current thread and it's dictionary.
- */
-GS_EXPORT NSThread		*GSCurrentThread(void);
-GS_EXPORT NSMutableDictionary	*GSCurrentThreadDictionary(void);
+#endif
+
+#if	!NO_GNUSTEP
+#  if	defined(GNUSTEP_BASE_INTERNAL)
+#    import	"GNUstepBase/NSThread+GNUstepBase.h"
+#  else
+#    import	<GNUstepBase/NSThread+GNUstepBase.h>
+#  endif
 #endif
 
 #if	defined(__cplusplus)

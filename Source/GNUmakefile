@@ -25,6 +25,15 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+  ifeq ($(GNUSTEP_MAKEFILES),)
+    $(warning )
+    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
+    $(warning Perhaps gnustep-make is not properly installed,)
+    $(warning so gnustep-config is not in your PATH.)
+    $(warning )
+    $(warning Your PATH is currently $(PATH))
+    $(warning )
+  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -55,8 +64,13 @@ ifneq ($(base),no)
 LIBRARY_NAME += libgnustep-base
 endif
 
-libgnustep-base_SUBPROJECTS = Additions
-libgnustep-baseadd_SUBPROJECTS = Additions
+ifeq ($(OBJC2RUNTIME),0)
+libgnustep-base_SUBPROJECTS = ObjectiveC2
+libgnustep-baseadd_SUBPROJECTS += Additions
+endif
+
+libgnustep-base_SUBPROJECTS += Additions
+libgnustep-baseadd_SUBPROJECTS += Additions
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 libgnustep-base_SUBPROJECTS+=win32
@@ -64,53 +78,26 @@ else
 libgnustep-base_SUBPROJECTS+=unix
 endif
 
-ifeq ($(GNUSTEP_TARGET_OS), mingw32)
-
 DEFS= -DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
 	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
 	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
 	-DGNUSTEP_IS_FLATTENED=\"$(GNUSTEP_IS_FLATTENED)\" \
-	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
-
-else
-
-DEFS= -DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
-	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
-	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
-	-DGNUSTEP_IS_FLATTENED=\"$(GNUSTEP_IS_FLATTENED)\" \
-	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
-
-endif
+	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\" \
+	-DGNUSTEP_BASE_INTERNAL=1
 
 # The GNU source files
 
 GNU_MFILES = \
 GSLocale.m \
-preface.m \
-mframe.m
+preface.m
 
 ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
-GNU_MFILES += thr-pthread.m
-OBJC_LIBS += -lpthread
-endif
-
-ifneq ($(OBJC_RUNTIME_LIB), gnu)
-GNU_MFILES += objc-gnu2next.m
-ifeq ($(HAVE_PTHREAD_H), yes)
-GNU_MFILES += thr-pthread.m
-else
-GNU_MFILES += thr-mach.m
-endif
+  OBJC_LIBS += -lpthread
 endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
-GNU_MFILES += libgnustep-base-entry.m
+  GNU_MFILES += libgnustep-base-entry.m
 endif
-
-ifeq ($(HAVE_OBJC_SYNC_ENTER), no)
-GNU_MFILES += synchronization.m
-endif
-
 
 GNU_OTHER_SRCFILES = \
 win32-entry.m \
@@ -118,9 +105,9 @@ win32-def.top \
 libgnustep-base.def
 
 ADD_HEADERS = \
+GSBlocks.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
-GSCategories.h \
 GSFileHandle.h \
 GSUnion.h \
 GSIArray.h \
@@ -131,12 +118,28 @@ GSFunctions.h \
 GSMime.h \
 GSXML.h \
 GSLocale.h \
-NSTask+GS.h \
+NSArray+GNUstepBase.h \
+NSAttributedString+GNUstepBase.h \
+NSBundle+GNUstepBase.h \
+NSCalendarDate+GNUstepBase.h \
+NSData+GNUstepBase.h \
+NSDebug+GNUstepBase.h \
+NSFileHandle+GNUstepBase.h \
+NSLock+GNUstepBase.h \
+NSMutableString+GNUstepBase.h \
+NSNumber+GNUstepBase.h \
+NSObject+GNUstepBase.h \
+NSProcessInfo+GNUstepBase.h \
+NSStream+GNUstepBase.h \
+NSString+GNUstepBase.h \
+NSTask+GNUstepBase.h \
+NSThread+GNUstepBase.h \
+NSURL+GNUstepBase.h \
 Unicode.h \
 GNUstep.h \
 behavior.h \
 preface.h \
-objc-gnu2next.h \
+Additions.h
 
 GNU_HEADERS = $(ADD_HEADERS)
 
@@ -165,6 +168,7 @@ NSAssertionHandler.m \
 NSAttributedString.m \
 NSAutoreleasePool.m \
 NSBundle.m \
+NSCache.m \
 NSCachedURLResponse.m \
 NSCalendarDate.m \
 NSCallBacks.m \
@@ -173,7 +177,8 @@ NSClassDescription.m \
 NSCoder.m \
 NSCopyObject.m \
 NSCountedSet.m \
-NSConcreteNumber.m \
+NSConcreteHashTable.m \
+NSConcreteMapTable.m \
 NSConnection.m \
 NSData.m \
 NSDate.m \
@@ -191,6 +196,7 @@ NSException.m \
 NSFileHandle.m \
 NSFileManager.m \
 NSFormatter.m \
+NSGarbageCollector.m \
 NSGeometry.m \
 NSHashTable.m \
 NSHost.m \
@@ -215,9 +221,14 @@ NSNumber.m \
 NSNumberFormatter.m \
 NSObjCRuntime.m \
 NSObject.m \
+NSObject+NSComparisonMethods.m \
+NSOperation.m \
 NSPage.m \
 NSPathUtilities.m \
 NSPipe.m \
+NSPointerArray.m \
+NSPointerFunctions.m \
+NSConcretePointerFunctions.m \
 NSPort.m \
 NSPortCoder.m \
 NSPortMessage.m \
@@ -258,11 +269,15 @@ NSURLHandle.m \
 NSUserDefaults.m \
 NSValue.m \
 NSValueTransformer.m \
+NSXMLDocument.m \
+NSXMLDTD.m \
+NSXMLDTDNode.m \
+NSXMLElement.m \
+NSXMLNode.m \
 NSXMLParser.m \
 NSZone.m \
 externs.m \
 objc-load.m 
-
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
 BASE_MFILES += \
@@ -271,7 +286,7 @@ NSMessagePort.m \
 NSMessagePortNameServer.m
 
 ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
-BASE_MFILES += NSNetServices.m
+  BASE_MFILES += NSNetServices.m
 endif
 
 endif
@@ -286,7 +301,6 @@ BASE_MFILES += GSFFCallInvocation.m
 endif
 
 BASE_OTHER_SRCFILES = \
-NSConcreteNumberTemplate.m \
 GSConcreteValueTemplate.m \
 GSTemplateValue.m \
 dld-load.h \
@@ -307,6 +321,7 @@ NSAttributedString.h \
 NSAutoreleasePool.h \
 NSBundle.h \
 NSByteOrder.h \
+NSCache.h\
 NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \
@@ -332,6 +347,7 @@ NSExpression.h \
 NSFileHandle.h \
 NSFileManager.h \
 NSFormatter.h \
+NSGarbageCollector.h \
 NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
@@ -353,7 +369,10 @@ NSNull.h \
 NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
+NSOperation.h \
 NSPathUtilities.h \
+NSPointerArray.h \
+NSPointerFunctions.h \
 NSPortCoder.h \
 NSPort.h \
 NSPortMessage.h \
@@ -394,6 +413,12 @@ NSUserDefaults.h \
 NSUtilities.h \
 NSValue.h \
 NSValueTransformer.h \
+NSXMLDocument.h \
+NSXMLDTD.h \
+NSXMLDTDNode.h \
+NSXMLElement.h \
+NSXMLNode.h \
+NSXMLNodeOptions.h \
 NSXMLParser.h \
 NSZone.h
 
@@ -403,9 +428,9 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
 GENERATED_HFILES = \
 dynamic-load.h \
 $(HEADER_DIR_BASE)/preface.h \
-$(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
+
 
 ifeq ($(HAVE_INET_PTON), no)
 GNU_CFILES += inet_pton.c
@@ -443,10 +468,20 @@ libbase-resources_RESOURCE_FILES = Info-gnustep.plist
 libgnustep-base_NEEDS_GUI = NO
 libgnustep-baseadd_NEEDS_GUI = NO
 
+# Build the Additions subproject first.  It can then be used in by
+# both gnustep-base and gnustep-baseadd (otherwise, if we ever build
+# gnustep-base and gnustep-baseadd in parallel, they'd both try to
+# build Additions as a subproject, causing concurrency issues).  If it
+# can be guaranteed that they'll never be built together, this could
+# be removed.
+ifeq ($(OBJC2RUNTIME),0)
+SUBPROJECTS = ObjectiveC2
+endif
+SUBPROJECTS += Additions
+
 -include Makefile.preamble
 
--include GNUmakefile.local
-
+include $(GNUSTEP_MAKEFILES)/aggregate.make
 include $(GNUSTEP_MAKEFILES)/library.make
 include $(GNUSTEP_MAKEFILES)/resource-set.make
 

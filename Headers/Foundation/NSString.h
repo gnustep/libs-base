@@ -29,10 +29,17 @@
  systems) requires some care.  A modern operating system uses the concept
  of a single root to the filesystem, but mswindows has multiple filesystems
  with no common root, so code must be aware of this.  There is also the
- more minor issue that windows uses a backslash as a separator between
- the components of a path and unix-like systems use a forward slash.
+ more minor issue that windows often uses a backslash as a separator between
+ the components of a path and unix-like systems always use forward slash.<br />
+ On windows there is also the issue that two styles of path are used,
+ most commonly with a drive letter and a path on that drive
+ (eg. 'C:\directory\file') but also UNC paths
+ (eg. '//host/share/directory/file') so path handling functions must deal
+ with both formats.
  </p>
  <p>GNUstep has three path handling modes, 'gnustep', 'unix', and 'windows'.
+ The mode defaults to 'gnustep' but may be set using the GSPathHandling()
+ function.<br />
  You should probably stick to using the default 'gnustep' mode in which the
  path handling methods cope with both unix and windows style paths in
  portable and tolerant manner:<br />
@@ -45,7 +52,11 @@
  The path handling methods add forward slashes when building new paths
  internally or when standardising paths, so those path strings provide
  a portable representation (as long as they are relative paths, not including
- system specific roots).
+ system specific roots).<br />
+ An important case to note is that on windows a path which looks at first
+ glance like an absolute path may actually be a relative one.<br />
+ 'C:file' is a relative path because it specifies  a file on the C drive
+ but does not say what directory it is in.
  </p>
 </chapter>
  */ 
@@ -240,46 +251,80 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 + (id) string;
 + (id) stringWithCharacters: (const unichar*)chars
-		     length: (unsigned int)length;
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+		     length: (NSUInteger)length;
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 + (id) stringWithCString: (const char*)byteString
 		encoding: (NSStringEncoding)encoding;
 #endif
 + (id) stringWithCString: (const char*)byteString
-		  length: (unsigned int)length;
+		  length: (NSUInteger)length;
 + (id) stringWithCString: (const char*)byteString;
 + (id) stringWithFormat: (NSString*)format,...;
 + (id) stringWithContentsOfFile:(NSString *)path;
 
 // Initializing Newly Allocated Strings
 - (id) init;
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 - (id) initWithBytes: (const void*)bytes
-	      length: (unsigned int)length
+	      length: (NSUInteger)length
 	    encoding: (NSStringEncoding)encoding;
 - (id) initWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length
+		    length: (NSUInteger)length
 		  encoding: (NSStringEncoding)encoding 
 	      freeWhenDone: (BOOL)flag;
 #endif
-#if OS_API_VERSION(100500,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST)
 + (id) stringWithContentsOfFile: (NSString*)path
                    usedEncoding: (NSStringEncoding*)enc
                           error: (NSError**)error;
 - (id) initWithContentsOfFile: (NSString*)path
                  usedEncoding: (NSStringEncoding*)enc
                         error: (NSError**)error;
++ (id) stringWithContentsOfFile: (NSString*)path
+                       encoding: (NSStringEncoding)enc
+                          error: (NSError**)error;
+- (id) initWithContentsOfFile: (NSString*)path
+                     encoding: (NSStringEncoding)enc
+                        error: (NSError**)error;
++ (id) stringWithContentsOfURL: (NSURL*)url
+                  usedEncoding: (NSStringEncoding*)enc
+                         error: (NSError**)error;
+- (id) initWithContentsOfURL: (NSURL*)url
+                usedEncoding: (NSStringEncoding*)enc
+                       error: (NSError**)error;
++ (id) stringWithContentsOfURL: (NSURL*)url
+                      encoding: (NSStringEncoding)enc
+                         error: (NSError**)error;
+- (id) initWithContentsOfURL: (NSURL*)url
+                    encoding: (NSStringEncoding)enc
+                       error: (NSError**)error;
+- (BOOL) writeToFile: (NSString*)path
+	  atomically: (BOOL)atomically
+	    encoding: (NSStringEncoding)enc
+	       error: (NSError**)error;
+- (BOOL) writeToURL: (NSURL*)url
+	 atomically: (BOOL)atomically
+	   encoding: (NSStringEncoding)enc
+	      error: (NSError**)error;
+#endif
+#if OS_API_VERSION(100500,GS_API_LATEST)
+- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
+                                       withString: (NSString*)by
+                                          options: (NSStringCompareOptions)opts
+                                            range: (NSRange)searchRange;
+- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
+                                       withString: (NSString*)by;
 #endif
 - (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
+			 length: (NSUInteger)length
 		   freeWhenDone: (BOOL)flag;
 - (id) initWithCharacters: (const unichar*)chars
-		   length: (unsigned int)length;
+		   length: (NSUInteger)length;
 - (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
+		      length: (NSUInteger)length
 	        freeWhenDone: (BOOL)flag;
 - (id) initWithCString: (const char*)byteString
-	        length: (unsigned int)length;
+	        length: (NSUInteger)length;
 - (id) initWithCString: (const char*)byteString;
 - (id) initWithString: (NSString*)string;
 - (id) initWithFormat: (NSString*)format, ...;
@@ -291,10 +336,10 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (id) init;
 
 // Getting a String's Length
-- (unsigned int) length;
+- (NSUInteger) length;
 
 // Accessing Characters
-- (unichar) characterAtIndex: (unsigned int)index;
+- (unichar) characterAtIndex: (NSUInteger)index;
 - (void) getCharacters: (unichar*)buffer;
 - (void) getCharacters: (unichar*)buffer
 		 range: (NSRange)aRange;
@@ -305,26 +350,26 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 // Dividing Strings into Substrings
 - (NSArray*) componentsSeparatedByString: (NSString*)separator;
-- (NSString*) substringFromIndex: (unsigned int)index;
+- (NSString*) substringFromIndex: (NSUInteger)index;
 - (NSString*) substringFromRange: (NSRange)aRange;
-- (NSString*) substringToIndex: (unsigned int)index;
+- (NSString*) substringToIndex: (NSUInteger)index;
 
 // Finding Ranges of Characters and Substrings
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet;
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (unsigned int)mask;
+			    options: (NSUInteger)mask;
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (unsigned int)mask
+			    options: (NSUInteger)mask
 			      range: (NSRange)aRange;
 - (NSRange) rangeOfString: (NSString*)string;
 - (NSRange) rangeOfString: (NSString*)string
-		  options: (unsigned int)mask;
+		  options: (NSUInteger)mask;
 - (NSRange) rangeOfString: (NSString*)aString
-		  options: (unsigned int)mask
+		  options: (NSUInteger)mask
 		    range: (NSRange)aRange;
 
 // Determining Composed Character Sequences
-- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex;
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex;
 
 // Converting String Contents into a Property List
 - (id)propertyList;
@@ -333,19 +378,19 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 // Identifying and Comparing Strings
 - (NSComparisonResult) compare: (NSString*)aString;
 - (NSComparisonResult) compare: (NSString*)aString	
-		       options: (unsigned int)mask;
+		       options: (NSUInteger)mask;
 - (NSComparisonResult) compare: (NSString*)aString
-		       options: (unsigned int)mask
+		       options: (NSUInteger)mask
 			 range: (NSRange)aRange;
 - (BOOL) hasPrefix: (NSString*)aString;
 - (BOOL) hasSuffix: (NSString*)aString;
 - (BOOL) isEqual: (id)anObject;
 - (BOOL) isEqualToString: (NSString*)aString;
-- (unsigned int) hash;
+- (NSUInteger) hash;
 
 // Getting a Shared Prefix
 - (NSString*) commonPrefixWithString: (NSString*)aString
-			     options: (unsigned int)mask;
+			     options: (NSUInteger)mask;
 
 // Changing Case
 - (NSString*) capitalizedString;
@@ -356,24 +401,24 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (const char*) cString;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding;
 - (BOOL) getCString: (char*)buffer
-	  maxLength: (unsigned int)maxLength
+	  maxLength: (NSUInteger)maxLength
 	   encoding: (NSStringEncoding)encoding;
 - (id) initWithCString: (const char*)byteString
 	      encoding: (NSStringEncoding)encoding;
-- (unsigned) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
-- (unsigned) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
+- (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
+- (NSUInteger) maximumLengthOfBytesUsingEncoding: (NSStringEncoding)encoding;
 #endif
 
 #endif
-- (unsigned int) cStringLength;
+- (NSUInteger) cStringLength;
 - (void) getCString: (char*)buffer;
 - (void) getCString: (char*)buffer
-	  maxLength: (unsigned int)maxLength;
+	  maxLength: (NSUInteger)maxLength;
 - (void) getCString: (char*)buffer
-	  maxLength: (unsigned int)maxLength
+	  maxLength: (NSUInteger)maxLength
 	      range: (NSRange)aRange
      remainingRange: (NSRange*)leftoverRange;
 
@@ -401,10 +446,10 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  * completions.  Returns 0 if no match found, else a positive number that is
  * only accurate if outputArray was non-nil.
  */
-- (unsigned int) completePathIntoString: (NSString**)outputName
-			  caseSensitive: (BOOL)flag
-		       matchesIntoArray: (NSArray**)outputArray
-			    filterTypes: (NSArray*)filterTypes;
+- (NSUInteger) completePathIntoString: (NSString**)outputName
+			caseSensitive: (BOOL)flag
+		     matchesIntoArray: (NSArray**)outputArray
+			  filterTypes: (NSArray*)filterTypes;
 
 /**
  * Converts the receiver to a C string path expressed in the character
@@ -432,7 +477,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  * perform the conversion.
  */
 - (BOOL) getFileSystemRepresentation: (GSNativeChar*)buffer
-			   maxLength: (unsigned int)size;
+			   maxLength: (NSUInteger)size;
 
 /**
  * Returns a string containing the last path component of the receiver.<br />
@@ -530,17 +575,17 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  * without alteration.<br />
  * See -lastPathComponent for a definition of a path component.
  * <example>
- *   @"hello/there" produces @"hello"
- *   @"hello" produces @""
- *   @"/hello" produces @"/"
- *   @"/" produces @"/"
- *   @"C:file" produces @"C:"
- *   @"C:" produces @"C:"
- *   @"C:/file" produces @"C:/"
- *   @"C:/" produces @"C:/"
- *   @"//host/share/file" produces @"//host/share/"
- *   @"//host/share/" produces @"//host/share/"
- *   @"//host/share" produces @"//host"
+ *   @"hello/there" produces @"hello" (a relative path)
+ *   @"hello" produces @"" (a relative path)
+ *   @"/hello" produces @"/" (an absolute unix path)
+ *   @"/" produces @"/" (an absolute unix path)
+ *   @"C:file" produces @"C:" (a relative windows path)
+ *   @"C:" produces @"C:" (a relative windows path)
+ *   @"C:/file" produces @"C:/" (an absolute windows path)
+ *   @"C:/" produces @"C:/" (an absolute windows path)
+ *   @"//host/share/file" produces @"//host/share/" (a UNC path)
+ *   @"//host/share/" produces @"//host/share/" (a UNC path)
+ *   @"//path/file" produces @"//path" (an absolute Unix path)
  * </example>
  */
 - (NSString*) stringByDeletingLastPathComponent;
@@ -661,7 +706,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
 - (NSComparisonResult) compare: (NSString*)string 
-		       options: (unsigned int)mask 
+		       options: (NSUInteger)mask 
 			 range: (NSRange)compareRange 
 			locale: (NSDictionary*)dict;
 - (NSComparisonResult) localizedCompare: (NSString *)string;
@@ -672,16 +717,16 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (double) doubleValue;
 + (NSStringEncoding*) availableStringEncodings;
 + (NSString*) localizedNameOfStringEncoding: (NSStringEncoding)encoding;
-- (void) getLineStart: (unsigned int *)startIndex
-                  end: (unsigned int *)lineEndIndex
-          contentsEnd: (unsigned int *)contentsEndIndex
+- (void) getLineStart: (NSUInteger *)startIndex
+                  end: (NSUInteger *)lineEndIndex
+          contentsEnd: (NSUInteger *)contentsEndIndex
              forRange: (NSRange)aRange;
 - (NSRange) lineRangeForRange: (NSRange)aRange;
 - (const char*) lossyCString;
 - (NSString*) stringByAddingPercentEscapesUsingEncoding: (NSStringEncoding)e;
-- (NSString*) stringByPaddingToLength: (unsigned int)newLength
+- (NSString*) stringByPaddingToLength: (NSUInteger)newLength
 			   withString: (NSString*)padString
-		      startingAtIndex: (unsigned int)padIndex;
+		      startingAtIndex: (NSUInteger)padIndex;
 - (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e;
 - (NSString*) stringByTrimmingCharactersInSet: (NSCharacterSet*)aSet;
 - (const char *)UTF8String;
@@ -698,6 +743,14 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 #endif
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
+/**
+ * Returns YES when scanning the receiver's text from left to right
+ * finds an initial digit in the range 1-9 or a letter in the set
+ * ('Y', 'y', 'T', 't').<br />
+ * Any trailing characters are ignored.<br />
+ * Any leading whitespace or zeros or signs are also ignored.<br />
+ * Returns NO if the above conditions are not met.
+ */
 - (BOOL) boolValue;
 - (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)separator;
 - (NSInteger) integerValue;
@@ -723,27 +776,27 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 // Creating Temporary Strings
 + (id) string;
 + (id) stringWithCharacters: (const unichar*)characters
-		     length: (unsigned int)length;
+		     length: (NSUInteger)length;
 + (id) stringWithCString: (const char*)byteString
-		  length: (unsigned int)length;
+		  length: (NSUInteger)length;
 + (id) stringWithCString: (const char*)byteString;
 + (id) stringWithFormat: (NSString*)format,...;
 + (id) stringWithContentsOfFile: (NSString*)path;
-+ (NSMutableString*) stringWithCapacity: (unsigned int)capacity;
++ (NSMutableString*) stringWithCapacity: (NSUInteger)capacity;
 
 // Initializing Newly Allocated Strings
-- (id) initWithCapacity: (unsigned int)capacity;
+- (id) initWithCapacity: (NSUInteger)capacity;
 
 // Modify A String
 - (void) appendFormat: (NSString*)format, ...;
 - (void) appendString: (NSString*)aString;
 - (void) deleteCharactersInRange: (NSRange)range;
-- (void) insertString: (NSString*)aString atIndex: (unsigned int)loc;
+- (void) insertString: (NSString*)aString atIndex: (NSUInteger)loc;
 - (void) replaceCharactersInRange: (NSRange)range 
 		       withString: (NSString*)aString;
-- (unsigned int) replaceOccurrencesOfString: (NSString*)replace
+- (NSUInteger) replaceOccurrencesOfString: (NSString*)replace
 				 withString: (NSString*)by
-				    options: (unsigned int)opts
+				    options: (NSUInteger)opts
 				      range: (NSRange)searchRange;
 - (void) setString: (NSString*)aString;
 
@@ -786,114 +839,13 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 extern struct objc_class _NSConstantStringClassReference;
 #endif
 
-#if GS_API_VERSION(GS_API_NONE, 011700)
-
-@interface NSMutableString (GNUstep)
-- (NSString*) immutableProxy;
-@end
-
-/**
- * Provides some additional (non-standard) utility methods.
- */
-@interface NSString (GSCategories)
-/**
- * Alternate way to invoke <code>stringWithFormat</code> if you have or wish
- * to build an explicit <code>va_list</code> structure.
- */
-+ (id) stringWithFormat: (NSString*)format
-	      arguments: (va_list)argList;
-
-/**
- * Returns a string formed by removing the prefix string from the
- * receiver.  Raises an exception if the prefix is not present.
- */
-- (NSString*) stringByDeletingPrefix: (NSString*)prefix;
-
-/**
- * Returns a string formed by removing the suffix string from the
- * receiver.  Raises an exception if the suffix is not present.
- */
-- (NSString*) stringByDeletingSuffix: (NSString*)suffix;
-
-/**
- * Returns a string formed by removing leading white space from the
- * receiver.
- */
-- (NSString*) stringByTrimmingLeadSpaces;
-
-/**
- * Returns a string formed by removing trailing white space from the
- * receiver.
- */
-- (NSString*) stringByTrimmingTailSpaces;
-
-/**
- * Returns a string formed by removing both leading and trailing
- * white space from the receiver.
- */
-- (NSString*) stringByTrimmingSpaces;
-
-/**
- * Returns a string in which any (and all) occurrences of
- * replace in the receiver have been replaced with by.
- * Returns the receiver if replace
- * does not occur within the receiver.  NB. an empty string is
- * not considered to exist within the receiver.
- */
-- (NSString*) stringByReplacingString: (NSString*)replace
-			   withString: (NSString*)by;
-@end
-
-
-/**
- * GNUstep specific (non-standard) additions to the NSMutableString class.
- */
-@interface NSMutableString (GSCategories)
-
-/**
- * Removes the specified suffix from the string.  Raises an exception
- * if the suffix is not present.
- */
-- (void) deleteSuffix: (NSString*)suffix;
-
-/**
- * Removes the specified prefix from the string.  Raises an exception
- * if the prefix is not present.
- */
-- (void) deletePrefix: (NSString*)prefix;
-
-/**
- * Replaces all occurrences of the string replace with the string by
- * in the receiver.<br />
- * Has no effect if replace does not occur within the
- * receiver.  NB. an empty string is not considered to exist within
- * the receiver.<br />
- * Calls - replaceOccurrencesOfString:withString:options:range: passing
- * zero for the options and a range from 0 with the length of the receiver.
- */
-- (void) replaceString: (NSString*)replace
-	    withString: (NSString*)by;
-
-/**
- * Removes all leading white space from the receiver.
- */
-- (void) trimLeadSpaces;
-
-/**
- * Removes all trailing white space from the receiver.
- */
-- (void) trimTailSpaces;
-
-/**
- * Removes all leading or trailing white space from the receiver.
- */
-- (void) trimSpaces;
-@end
-
-#endif	/* GS_API_NONE */
-
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSString+GNUstepBase.h>
+#import <GNUstepBase/NSMutableString+GNUstepBase.h>
 #endif
 
 #endif /* __NSString_h_GNUSTEP_BASE_INCLUDE */

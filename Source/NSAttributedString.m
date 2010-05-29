@@ -47,15 +47,16 @@
  *		attributes argument and use the values from the string.
  */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/Unicode.h"
+#import "common.h"
+#import "GNUstepBase/Unicode.h"
 
-#include "Foundation/NSAttributedString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSRange.h"
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSRange.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSAttributedString;
 @interface GSAttributedString : NSObject	// Help the compiler
@@ -152,19 +153,35 @@ static Class GSMutableAttributedStringClass;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  NSRange		r = NSMakeRange(0, 0);
-  unsigned		index = NSMaxRange(r);
-  unsigned		length = [self length];
-  NSString		*string = [self string];
-  NSDictionary		*attrs;
-
-  [aCoder encodeObject: string];
-  while (index < length)
+  if ([aCoder allowsKeyedCoding])
     {
-      attrs = [self attributesAtIndex: index effectiveRange: &r];
-      index = NSMaxRange(r);
-      [aCoder encodeValueOfObjCType: @encode(unsigned int) at: &index];
-      [aCoder encodeObject: attrs];
+      [aCoder  encodeObject: [self string] forKey: @"NSString"];
+      if ([self length] > 0) 
+	{
+	  NSDictionary	*attrs;
+
+          // FIXME: This doesn't handle the case of different attributes
+	  attrs = [self attributesAtIndex: 0 effectiveRange: NULL];
+
+	  [aCoder  encodeObject: attrs forKey: @"NSAttributes"];
+	}
+    }
+  else
+    {
+      NSRange		r = NSMakeRange(0, 0);
+      unsigned		index = NSMaxRange(r);
+      unsigned		length = [self length];
+      NSString		*string = [self string];
+      NSDictionary	*attrs;
+
+      [aCoder encodeObject: string];
+      while (index < length)
+	{
+	  attrs = [self attributesAtIndex: index effectiveRange: &r];
+	  index = NSMaxRange(r);
+	  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &index];
+	  [aCoder encodeObject: attrs];
+	}
     }
 }
 
@@ -173,9 +190,50 @@ static Class GSMutableAttributedStringClass;
   if ([aDecoder allowsKeyedCoding])
     {
       NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
-      NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
 
-      self = [self initWithString: string attributes: attributes];
+      if (![aDecoder containsValueForKey: @"NSAttributeInfo"])
+        {
+          NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          self = [self initWithString: string attributes: attributes];
+        }
+      else
+        {
+          NSArray *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          NSData *info = [aDecoder decodeObjectForKey: @"NSAttributeInfo"];
+          unsigned int pos = 0;
+          const unsigned char *p = [info bytes];
+          const unsigned char *end = p + [info length];
+          NSMutableAttributedString *m = [[NSMutableAttributedString alloc] 
+                                           initWithString: string 
+                                               attributes: nil];
+
+          while (p < end)
+            {
+              unsigned int idx;
+              unsigned int len;
+              NSRange r;
+
+              // FIXME: For huge strings we may need more bytes
+              len = *p++;
+              if (len & 0x8)
+                {
+                  len = (len - 128) + ((*p++) << 7);
+                }
+
+              idx = *p++;
+              if (idx & 0x8)
+                {
+                  idx = (idx - 128) + ((*p++) << 7);
+                }
+
+              r = NSMakeRange(pos, len);
+	      [m setAttributes: [attributes objectAtIndex: idx] range: r];
+              pos = NSMaxRange(r);
+            }
+          DESTROY(self);
+          self = [m copy];
+          RELEASE(m);
+        }
     }
   else
     {
@@ -188,10 +246,10 @@ static Class GSMutableAttributedStringClass;
 	}
       else
         {
-	  unsigned		index;
+	  unsigned	index;
 	  NSDictionary	*attrs;
 	
-	  [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
+	  [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
 	  attrs = [aDecoder decodeObject];
 	  if (index == length)
 	    {
@@ -208,14 +266,14 @@ static Class GSMutableAttributedStringClass;
 	      [m setAttributes: attrs range: r];
 	      while (index < length)
 	        {
-		  [aDecoder decodeValueOfObjCType: @encode(unsigned int)
+		  [aDecoder decodeValueOfObjCType: @encode(unsigned)
 			 		       at: &index];
 		  attrs = [aDecoder decodeObject];
 		  r = NSMakeRange(last, index - last);
 		  [m setAttributes: attrs range: r];
 		  last = index;
 		}
-	      RELEASE(self);
+	      DESTROY(self);
 	      self = [m copy];
 	      RELEASE(m);
 	    }
@@ -306,7 +364,7 @@ static Class GSMutableAttributedStringClass;
 /**
  *  Return length of the underlying string.
  */
-- (unsigned int) length
+- (NSUInteger) length
 {
   return [[self string] length];
 }
@@ -327,7 +385,7 @@ static Class GSMutableAttributedStringClass;
  *  and values still hold.  This may not be the maximum range, depending
  *  on the implementation.
  */
-- (NSDictionary*) attributesAtIndex: (unsigned int)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 		     effectiveRange: (NSRange*)aRange
 {
   [self subclassResponsibility: _cmd];/* Primitive method! */
@@ -339,7 +397,7 @@ static Class GSMutableAttributedStringClass;
  *  is non-nil, this gets filled with the range over which the attribute-value
  *  set is the same as at index, clipped to rangeLimit.
  */
-- (NSDictionary*) attributesAtIndex: (unsigned int)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 	      longestEffectiveRange: (NSRange*)aRange
 			    inRange: (NSRange)rangeLimit
 {
@@ -394,7 +452,7 @@ static Class GSMutableAttributedStringClass;
  *  may not be the maximum range, depending on the implementation.
  */
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (unsigned int)index
+	 atIndex: (NSUInteger)index
   effectiveRange: (NSRange*)aRange
 {
   NSDictionary *tmpDictionary;
@@ -424,7 +482,7 @@ static Class GSMutableAttributedStringClass;
  *  applies, clipped to rangeLimit.
  */
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (unsigned int)index
+	 atIndex: (NSUInteger)index
   longestEffectiveRange: (NSRange*)aRange
 	 inRange: (NSRange)rangeLimit
 {
@@ -510,7 +568,7 @@ static Class GSMutableAttributedStringClass;
     return NO;
 
   length = [otherString length];
-  if (length<=0)
+  if (length == 0)
     return YES;
 
   ownDictionary = [self attributesAtIndex: 0
@@ -627,42 +685,89 @@ static Class GSMutableAttributedStringClass;
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
-  NSString	*string = [aDecoder decodeObject];
-  unsigned	length = [string length];
-
-  if (length == 0)
+  if ([aDecoder allowsKeyedCoding])
     {
-      self = [self initWithString: string attributes: nil];
+      NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
+
+      if (![aDecoder containsValueForKey: @"NSAttributeInfo"])
+        {
+          NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          self = [self initWithString: string attributes: attributes];
+        }
+      else
+        {
+          NSArray *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          NSData *info = [aDecoder decodeObjectForKey: @"NSAttributeInfo"];
+          unsigned int pos = 0;
+          const unsigned char *p = [info bytes];
+          const unsigned char *end = p + [info length];
+
+	  self = [self initWithString: string attributes: nil];
+          while (p < end)
+            {
+              unsigned int idx;
+              unsigned int len;
+              NSRange r;
+
+              // FIXME: For huge strings we may need more bytes
+              len = *p++;
+              if (len & 0x8)
+                {
+                  len = (len - 128) + ((*p++) << 7);
+                }
+
+              idx = *p++;
+              if (idx & 0x8)
+                {
+                  idx = (idx - 128) + ((*p++) << 7);
+                }
+
+              r = NSMakeRange(pos, len);
+	      [self setAttributes: [attributes objectAtIndex: idx] range: r];
+              pos = NSMaxRange(r);
+            }
+        }
     }
   else
     {
-      unsigned		index;
-      NSDictionary	*attrs;
+      NSString	*string = [aDecoder decodeObject];
+      unsigned	length = [string length];
 
-      [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
-      attrs = [aDecoder decodeObject];
-      if (index == length)
+      if (length == 0)
 	{
-	  self = [self initWithString: string attributes: attrs];
+	  self = [self initWithString: string attributes: nil];
 	}
       else
 	{
-	  NSRange	r = NSMakeRange(0, index);
-	  unsigned	last = index;
+	  unsigned	index;
+	  NSDictionary	*attrs;
 
-	  self = [self initWithString: string attributes: nil];
-	  [self setAttributes: attrs range: r];
-	  while (index < length)
+	  [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
+	  attrs = [aDecoder decodeObject];
+	  if (index == length)
 	    {
-	      [aDecoder decodeValueOfObjCType: @encode(unsigned int)
-					   at: &index];
-	      attrs = [aDecoder decodeObject];
-	      r = NSMakeRange(last, index - last);
+	      self = [self initWithString: string attributes: attrs];
+	    }
+	  else
+	    {
+	      NSRange	r = NSMakeRange(0, index);
+	      unsigned	last = index;
+	      
+	      self = [self initWithString: string attributes: nil];
 	      [self setAttributes: attrs range: r];
-	      last = index;
+	      while (index < length)
+		{
+		  [aDecoder decodeValueOfObjCType: @encode(unsigned)
+					   at: &index];
+		  attrs = [aDecoder decodeObject];
+		  r = NSMakeRange(last, index - last);
+		  [self setAttributes: attrs range: r];
+		  last = index;
+		}
 	    }
 	}
     }
+
   return self;
 }
 
@@ -865,7 +970,7 @@ static Class GSMutableAttributedStringClass;
  *  Inserts attributed string within this one, preserving attributes.
  */
 - (void) insertAttributedString: (NSAttributedString*)attributedString
-			atIndex: (unsigned int)index
+			atIndex: (NSUInteger)index
 {
   [self replaceCharactersInRange: NSMakeRange(index,0)
 	    withAttributedString: attributedString];
@@ -975,16 +1080,15 @@ static Class GSMutableAttributedStringClass;
 - (void) dealloc
 {
   RELEASE(_owner);
-  NSDeallocateObject(self);
-  GSNOSUPERDEALLOC;
+  [super dealloc];
 }
 
-- (unsigned int) length
+- (NSUInteger) length
 {
   return [[_owner string] length];
 }
 
-- (unichar) characterAtIndex: (unsigned int)index
+- (unichar) characterAtIndex: (NSUInteger)index
 {
   return [[_owner string] characterAtIndex: index];
 }
@@ -1004,7 +1108,7 @@ static Class GSMutableAttributedStringClass;
   return [[_owner string] cString];
 }
 
-- (unsigned int) cStringLength
+- (NSUInteger) cStringLength
 {
   return [[_owner string] cStringLength];
 }
@@ -1019,7 +1123,7 @@ static Class GSMutableAttributedStringClass;
   return [[_owner string] smallestEncoding];
 }
 
-- (int) _baseLength
+- (NSInteger) _baseLength
 {
   return [[_owner string] _baseLength];
 }

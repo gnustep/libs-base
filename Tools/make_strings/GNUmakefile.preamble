@@ -40,7 +40,7 @@
 ADDITIONAL_CPPFLAGS += 
 
 # Additional flags to pass to the Objective-C compiler
-ADDITIONAL_OBJCFLAGS += -Wall
+ADDITIONAL_OBJCFLAGS += $(WARN_FLAGS)
 
 # Additional flags to pass to the C compiler
 #ADDITIONAL_CFLAGS += 

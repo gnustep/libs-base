@@ -18,9 +18,22 @@
 
    */
 
-#include "AGSParser.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "common.h"
+
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSValue.h"
+#import "AGSParser.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /**
  *  The AGSParser class parses Objective-C header and source files
@@ -367,6 +380,12 @@
       BOOL	isDocumentation = NO;
       BOOL	skippedFirstLine = NO;
       NSRange	r;
+      BOOL	ignore = NO;
+
+
+      /* Jump back here if we have ignored data up to a new comment.
+       */
+comment:
 
       pos += 2;	/* Skip opening part */
 
@@ -501,9 +520,32 @@
 	  if (end > start)
 	    {
 	      NSString	*tmp;
+	      NSRange	r;
 
 	      tmp = [NSString stringWithCharacters: start length: end - start];
-	      [self appendComment: tmp to: nil];
+recheck:
+	      if (YES == ignore)
+		{
+	          r = [tmp rangeOfString: @"</ignore>"];
+		  if (r.length > 0)
+		    {
+		      tmp = [tmp substringFromIndex: NSMaxRange(r)];
+		      ignore = NO;
+		    }
+		}
+	      if (NO == ignore)
+		{
+	          r = [tmp rangeOfString: @"<ignore>"];
+		  if (r.length > 0)
+		    {
+		      [self appendComment: [tmp substringToIndex: r.location]
+				       to: nil];
+		      tmp = [tmp substringFromIndex: NSMaxRange(r)];
+		      ignore = YES;
+		      goto recheck;
+		    }
+		  [self appendComment: tmp to: nil];
+		}
 	    }
 
           /*
@@ -927,6 +969,38 @@
 	    }
 	  commentsRead = YES;
 	}
+      if (YES == ignore)
+	{
+	  while (pos < length)
+	    {
+	      switch (buffer[pos])
+		{
+		  case '\'':
+		  case '"':
+		    [self skipLiteral];
+		    break;
+
+		  case '/':
+		    if (pos + 1 < length)
+		      {
+			if (buffer[pos + 1] == '/')
+			  {
+			    [self skipRemainderOfLine];
+			  }
+			else if (buffer[pos + 1] == '*')
+			  {
+			    goto comment;
+			  }
+		      }
+		    pos++;
+		    break;
+
+		  default:
+		    pos++;
+		    break;
+		}
+	    }
+	}
     }
   return pos;
 }
@@ -1055,7 +1129,7 @@
 	@"unsigned",
 	@"volatile",
 	nil];
-      RETAIN(qualifiers);
+      IF_NO_GC([qualifiers retain];)
       keep = [NSSet setWithObjects:
 	@"const",
 	@"long",
@@ -1064,7 +1138,7 @@
 	@"unsigned",
 	@"volatile",
 	nil];
-      RETAIN(keep);
+      IF_NO_GC([keep retain];)
     }
 
   a = [NSMutableArray array];
@@ -1103,7 +1177,7 @@
 		  pos++;
 		  [self skipSpaces];
 		}
-	      DESTROY(arp);
+	      IF_NO_GC(DESTROY(arp);)
 	      return nil;
 	    }
 
@@ -2573,7 +2647,7 @@ fail:
 
   itemName = nil;
   RELEASE(arp);
-  AUTORELEASE(method);
+  IF_NO_GC([method autorelease];)
   return method;
 
 fail:
@@ -3251,7 +3325,7 @@ fail:
   unitName = nil;
   DESTROY(comment);
   RELEASE(arp);
-  AUTORELEASE(dict);
+  IF_NO_GC([dict autorelease];)
   return dict;
 
 fail:
@@ -3698,8 +3772,8 @@ fail:
   pos = 0;
   lines = [[NSArray alloc] initWithArray: a];
   RELEASE(arp);
-  AUTORELEASE(lines);
-  AUTORELEASE(data);
+  IF_NO_GC([lines autorelease];)
+  IF_NO_GC([data autorelease];)
 }
 
 /**

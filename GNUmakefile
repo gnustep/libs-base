@@ -25,24 +25,28 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+  ifeq ($(GNUSTEP_MAKEFILES),)
+    $(warning )
+    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
+    $(warning Perhaps gnustep-make is not properly installed,)
+    $(warning so gnustep-config is not in your PATH.)
+    $(warning )
+    $(warning Your PATH is currently $(PATH))
+    $(warning )
+  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
--include config.mak
-ifeq ($(GNUSTEP_INSTALLATION_DOMAIN),)
-  GNUSTEP_INSTALLATION_DOMAIN := LOCAL
-endif
-ifeq ($(GNUSTEP_BASE_DOMAIN),)
-  GNUSTEP_BASE_DOMAIN := LOCAL
-endif
-
 GNUSTEP_CORE_SOFTWARE = YES
 export GNUSTEP_CORE_SOFTWARE
 RPM_DISABLE_RELOCATABLE = YES
 PACKAGE_NEEDS_CONFIGURE = YES
+
+PACKAGE_NAME = gnustep-base
+export PACKAGE_NAME
 
 SVN_MODULE_NAME = base
 SVN_BASE_URL = svn+ssh://svn.gna.org/svn/gnustep/libs
@@ -55,9 +59,7 @@ GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ./Version
-
-PACKAGE_NAME = gnustep-base
-export PACKAGE_NAME
+-include config.mak
 
 #
 # The list of subproject directories

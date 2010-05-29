@@ -92,6 +92,14 @@ extern "C" {
  */
 + (NSCharacterSet*) lowercaseLetterCharacterSet;
 
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+/**
+ * Returns a character set containing the newline characters, values 
+ * 0x000A and 0x000D and nextline 0x0085 character.
+ */
++ (NSCharacterSet*) newlineCharacterSet;
+#endif
+
 /**
  *  Returns a character set containing characters for diacritical marks, which
  *  are usually only rendered in conjunction with another character.

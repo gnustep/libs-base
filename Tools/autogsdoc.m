@@ -86,7 +86,12 @@
       comment text is reformatted and then inserted into the output.<br />
       Where multiple comments are associated with the same item, they are
       joined together with a line break (&lt;br /&gt;) between each if
-      necessary.
+      necessary.<br />
+      Within a comment the special markup &lt;ignore&gt; and &lt;/ignore&gt;
+      may be used to tell autogsdoc to completely ignore the sourcecode
+      between these two pieces of markup (ie. the parser will skip from the
+      point just before it is told to start ignoring, to just after the point
+      where it is told to stop (or end of file if that occurs first).
     </p>
     <p>
       The tool can easily be used to document programs as well as libraries,
@@ -592,16 +597,25 @@
 
    */
 
-#include	<config.h>
+#import	"common.h"
 
-#include "AGSParser.h"
-#include "AGSOutput.h"
-#include "AGSIndex.h"
-#include "AGSHtml.h"
-#include "GNUstepBase/GNUstep.h"
-#ifdef NeXT_Foundation_LIBRARY
-#include "GNUstepBase/GSCategories.h"
-#endif
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSEnumerator.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSSet.h"
+#import	"Foundation/NSUserDefaults.h"
+
+#import "AGSParser.h"
+#import "AGSOutput.h"
+#import "AGSIndex.h"
+#import "AGSHtml.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /** Invokes the autogsdoc tool. */
 int
@@ -704,7 +718,7 @@ main(int argc, char **argv, char **env)
    */
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
 
 #if GS_WITH_GC == 0
@@ -794,6 +808,8 @@ main(int argc, char **argv, char **env)
     @"\t\tBOOL\t(NO)\n\tif YES, create documentation pages "
       @"for display in HTML frames",
     @"MakeFrames",
+    @"\t\tString\t(nil)\n\tIf set, look for DTDs in the given directory",
+    @"DTDs",
     nil];
   argSet = [NSSet setWithArray: [argsRecognized allKeys]];
   argsGiven = [[NSProcessInfo processInfo] arguments];
@@ -838,6 +854,10 @@ main(int argc, char **argv, char **env)
 
   mgr = [NSFileManager defaultManager];
 
+  if ([GSXMLParser respondsToSelector: @selector(setDTDs:)])
+    {
+      [GSXMLParser setDTDs: [defs stringForKey: @"DTDs"]];
+    }
 
   verbose = [defs boolForKey: @"Verbose"];
   warn = [defs boolForKey: @"Warn"];
@@ -1270,7 +1290,7 @@ main(int argc, char **argv, char **env)
 		  if (sDate == nil || [d earlierDate: sDate] == sDate)
 		    {
 		      sDate = d;
-		      AUTORELEASE(RETAIN(sDate));
+		      IF_NO_GC([[sDate retain] autorelease];)
 		    }
 		}
 	      if (verbose == YES)
@@ -1298,7 +1318,7 @@ main(int argc, char **argv, char **env)
 		  if (gDate == nil || [d laterDate: gDate] == gDate)
 		    {
 		      gDate = d;
-		      AUTORELEASE(RETAIN(gDate));
+		      IF_NO_GC([[gDate retain] autorelease];)
 		    }
 		}
 	      if (verbose == YES)
@@ -1497,7 +1517,7 @@ main(int argc, char **argv, char **env)
 	    {
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
 	      gDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
+	      IF_NO_GC([[gDate retain] autorelease];)
 	    }
 
 	  /*
@@ -1603,7 +1623,7 @@ main(int argc, char **argv, char **env)
 	  systemProjects = @"";
 	}
       projects = [[defs dictionaryForKey: @"Projects"] mutableCopy];
-      AUTORELEASE(projects);
+      IF_NO_GC([projects autorelease];)
 
       /*
        * Merge any system project references.
@@ -1964,10 +1984,10 @@ main(int argc, char **argv, char **env)
 	       */
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
 	      gDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
+	      IF_NO_GC([[gDate retain] autorelease];)
 	      attrs = [mgr fileAttributesAtPath: htmlfile traverseLink: YES];
 	      hDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(hDate));
+	      IF_NO_GC([[hDate retain] autorelease];)
 	    }
 
 	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)

@@ -27,30 +27,33 @@
    $Date$ $Revision$
 */
 
-/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
+#import "common.h"
+
+#if	defined(HAVE_FLOAT_H)
+#include	<float.h>
 #endif
 
-#include "config.h"
-#include "GNUstepBase/Unicode.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSUserDefaults.h"
+#if	!defined(LLONG_MAX)
+#  if	defined(__LONG_LONG_MAX__)
+#    define LLONG_MAX __LONG_LONG_MAX__
+#    define LLONG_MIN	(-LLONG_MAX-1)
+#    define ULLONG_MAX	(LLONG_MAX * 2ULL + 1)
+#  else
+#    error Neither LLONG_MAX nor __LONG_LONG_MAX__ found
+#  endif
+#endif
 
-#include <float.h>
-#include <limits.h>
 #include <math.h>
 #include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
-#include "GSPrivate.h"
 
-/* BSD and Solaris have this */
-#if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
-#define LONG_LONG_MAX LLONG_MAX
-#define LONG_LONG_MIN LLONG_MIN
-#define ULONG_LONG_MAX ULLONG_MAX
-#endif
+#define	EXPOSE_NSScanner_IVARS	1
+#import "GNUstepBase/Unicode.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+
+#import "GSPrivate.h"
 
 
 @class	GSCString;
@@ -87,9 +90,7 @@ static inline unichar myGetC(unsigned char c)
 /*
  * Hack for direct access to internals of an concrete string object.
  */
-typedef struct {
-  @defs(GSString)
-} *ivars;
+typedef GSString	*ivars;
 #define	myLength()	(((ivars)_string)->_count)
 #define	myUnicode(I)	(((ivars)_string)->_contents.u[I])
 #define	myChar(I)	myGetC((((ivars)_string)->_contents.c[I]))
@@ -201,7 +202,7 @@ typedef struct {
       aString = @"";
     }
 
-  c = GSObjCClass(aString);
+  c = object_getClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
     {
       _isUnicode = YES;
@@ -240,7 +241,7 @@ typedef struct {
     }
   else
     {
-      RELEASE(self);
+      DESTROY(self);
       NSLog(@"Scanner initialised with something not a string");
       return nil;
     }
@@ -339,7 +340,7 @@ typedef struct {
   if (value)
     {
       if (overflow
-	|| (num > (negative ? (unsigned int)INT_MIN : (unsigned int)INT_MAX)))
+	|| (num > (negative ? (NSUInteger)INT_MIN : (NSUInteger)INT_MAX)))
 	*value = negative ? INT_MIN: INT_MAX;
       else if (negative)
 	*value = -num;
@@ -373,8 +374,8 @@ typedef struct {
  * Scan an unsigned int of the given radix into value.
  * Internal version used by scanRadixUnsignedInt: and scanHexInt: .
  */
-- (BOOL) scanUnsignedInt_: (unsigned int *)value
-		    radix: (unsigned int)radix
+- (BOOL) scanUnsignedInt_: (unsigned int*)value
+		    radix: (NSUInteger)radix
 		gotDigits: (BOOL)gotDigits
 {
   unsigned int	num = 0;
@@ -462,7 +463,7 @@ typedef struct {
  * <br/>
  * Scans past any excess digits
  */
-- (BOOL) scanRadixUnsignedInt: (unsigned int *)value
+- (BOOL) scanRadixUnsignedInt: (unsigned int*)value
 {
   unsigned int	radix;
   BOOL		gotDigits = NO;
@@ -512,7 +513,7 @@ typedef struct {
  * <br/>
  * Scans past any excess digits
  */
-- (BOOL) scanHexInt: (unsigned int *)value
+- (BOOL) scanHexInt: (unsigned int*)value
 {
   unsigned int saveScanLocation = _scanLocation;
 
@@ -557,16 +558,16 @@ typedef struct {
  * <br/>
  * Returns YES if anything is scanned, NO otherwise.
  * <br/>
- * On overflow, LONG_LONG_MAX or LONG_LONG_MIN is put into
+ * On overflow, LLONG_MAX or LLONG_MIN is put into
  * <em>longLongValue</em>
  * <br/>
  * Scans past any excess digits
  */
 - (BOOL) scanLongLong: (long long *)value
 {
-#if defined(LONG_LONG_MAX)
+#if defined(LLONG_MAX)
   unsigned long long		num = 0;
-  const unsigned long long	limit = ULONG_LONG_MAX / 10;
+  const unsigned long long	limit = ULLONG_MAX / 10;
   BOOL				negative = NO;
   BOOL				overflow = NO;
   BOOL				got_digits = NO;
@@ -621,21 +622,21 @@ typedef struct {
     {
       if (negative)
 	{
-	  if (overflow || (num > (unsigned long long)LONG_LONG_MIN))
-	    *value = LONG_LONG_MIN;
+	  if (overflow || (num > (unsigned long long)LLONG_MIN))
+	    *value = LLONG_MIN;
 	  else
 	    *value = -num;
 	}
       else
 	{
-	  if (overflow || (num > (unsigned long long)LONG_LONG_MAX))
-	    *value = LONG_LONG_MAX;
+	  if (overflow || (num > (unsigned long long)LLONG_MAX))
+	    *value = LLONG_MAX;
 	  else
 	    *value = num;
 	}
     }
   return YES;
-#else /* defined(LONG_LONG_MAX) */
+#else /* defined(LLONG_MAX) */
   /*
    * Provide compile-time warning and run-time exception.
    */
@@ -643,7 +644,7 @@ typedef struct {
   [NSException raise: NSGenericException
 	       format: @"Can't use long long variables."];
   return NO;
-#endif /* defined(LONG_LONG_MAX) */
+#endif /* defined(LLONG_MAX) */
 }
 
 /**
@@ -934,7 +935,10 @@ typedef struct {
   NSRange	range;
   unsigned int	saveScanLocation = _scanLocation;
 
-  skipToNextField();
+  if (skipToNextField() == NO)
+    {
+      return NO;
+    }
   range.location = _scanLocation;
   range.length = [string length];
   if (range.location + range.length > myLength())
@@ -988,7 +992,10 @@ typedef struct {
   NSRange	found;
   unsigned int	saveScanLocation = _scanLocation;
 
-  skipToNextField();
+  if (skipToNextField() == NO)
+    {
+      return NO;
+    }
   range.location = _scanLocation;
   range.length = myLength() - _scanLocation;
   found = [_string rangeOfString: string
@@ -1020,7 +1027,7 @@ typedef struct {
  * scanning the string.  This is the position at which the next scan
  * operation will begin.
  */
-- (unsigned) scanLocation
+- (NSUInteger) scanLocation
 {
   return _scanLocation;
 }
@@ -1031,7 +1038,7 @@ typedef struct {
  * Raises an NSRangeException if index is beyond the end of the
  * scanned string.
  */
-- (void) setScanLocation: (unsigned int)anIndex
+- (void) setScanLocation: (NSUInteger)anIndex
 {
   if (_scanLocation <= myLength())
     _scanLocation = anIndex;
@@ -1219,7 +1226,7 @@ GSScanInt(unichar *buf, unsigned length, int *result)
   if (result)
     {
       if (overflow
-	|| (num > (negative ? (unsigned int)INT_MIN : (unsigned int)INT_MAX)))
+	|| (num > (negative ? (NSUInteger)INT_MIN : (NSUInteger)INT_MAX)))
 	*result = negative ? INT_MIN: INT_MAX;
       else if (negative)
 	*result = -num;
@@ -1230,7 +1237,7 @@ GSScanInt(unichar *buf, unsigned length, int *result)
 }
 
 /**
- * Scan in a double value in the standard locale ('.' as decimal point).<br />
+ * Scan in a double value in the standard locale ('.' as decimal poNSInteger).<br />
  * Return YES on success, NO on failure.<br />
  * The value pointed to by result is unmodified on failure.<br />
  * No value is returned in result if it is a null pointer.
@@ -1247,7 +1254,7 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
   unsigned	pos = 0;
 
   /* Skip whitespace */
-  while (pos < length && isspace((int)buf[pos]))
+  while (pos < length && isspace((NSInteger)buf[pos]))
     {
       pos++;
     }

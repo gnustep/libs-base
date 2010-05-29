@@ -35,9 +35,9 @@ extern "C" {
 @interface NSProxy <NSObject>
 {
 @public
-    Class		isa;
+    Class	isa;
 @private
-    unsigned int	_retain_count;
+    NSUInteger	_retain_count;
 }
 
 + (id) alloc;
@@ -55,7 +55,7 @@ extern "C" {
 + (void) release;
 + (BOOL) respondsToSelector: (SEL)aSelector;
 + (id) retain;
-+ (unsigned int) retainCount;
++ (NSUInteger) retainCount;
 
 - (id) autorelease;
 - (Class) class;
@@ -63,7 +63,7 @@ extern "C" {
 - (void) dealloc;
 - (NSString*) description;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (unsigned int) hash;
+- (NSUInteger) hash;
 - (id) init;
 - (BOOL) isEqual: (id)anObject;
 - (BOOL) isKindOfClass: (Class)aClass;
@@ -73,7 +73,7 @@ extern "C" {
 - (void) release;
 - (BOOL) respondsToSelector: (SEL)aSelector;
 - (id) retain;
-- (unsigned int) retainCount;
+- (NSUInteger) retainCount;
 - (id) self;
 - (Class) superclass;
 - (NSZone*) zone;

@@ -51,17 +51,64 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
+#import "common.h"
+#define	EXPOSE_GSMimeDocument_IVARS	1
+#define	EXPOSE_GSMimeHeader_IVARS	1
+#define	EXPOSE_GSMimeParser_IVARS	1
+#define	EXPOSE_GSMimeSMTPClient_IVARS	1
+
+
+#define	GS_GSMimeSMTPClient_IVARS \
+  id			delegate;\
+  NSString		*hostname;\
+  NSString		*identity;\
+  NSString		*originator;\
+  NSString		*port;\
+  NSString		*username;\
+  NSTimer		*timer;\
+  GSMimeDocument	*current;\
+  NSMutableArray	*queue;\
+  NSMutableArray	*pending;\
+  NSInputStream		*istream;\
+  NSOutputStream	*ostream;\
+  NSMutableData		*wdata;\
+  NSMutableData		*rdata;\
+  NSMutableString	*reply;\
+  NSError		*lastError;\
+  unsigned		woffset;\
+  BOOL			readable;\
+  BOOL			writable;\
+  int			cState;\
+
+
 #include <string.h>
 #include <ctype.h>
 
-#import	<Foundation/Foundation.h>
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSCharacterSet.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSEnumerator.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSHost.h"
+#import	"Foundation/NSRunLoop.h"
+#import	"Foundation/NSScanner.h"
+#import	"Foundation/NSStream.h"
+#import	"Foundation/NSTimer.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSValue.h"
+#import	"GNUstepBase/GSObjCRuntime.h"
 #import	"GNUstepBase/GSMime.h"
 #import	"GNUstepBase/GSXML.h"
-#import	"GNUstepBase/GSCategories.h"
+#import	"GNUstepBase/NSObject+GNUstepBase.h"
+#import	"GNUstepBase/NSData+GNUstepBase.h"
+#import	"GNUstepBase/NSDebug+GNUstepBase.h"
+#import	"GNUstepBase/NSString+GNUstepBase.h"
+#import	"GNUstepBase/NSMutableString+GNUstepBase.h"
 #import	"GNUstepBase/Unicode.h"
 
-#include "../GSPrivate.h"
+#import "../GSPrivate.h"
 
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
@@ -199,7 +246,7 @@ decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
   else if (enc == WE_BASE64)
     {
       unsigned char	buf[4];
-      unsigned		pos = 0;
+      NSUInteger	pos = 0;
 
       while (*src && (src != end))
 	{
@@ -251,7 +298,7 @@ decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
 
       if (pos > 0)
 	{
-	  unsigned	i;
+	  NSUInteger	i;
 
 	  for (i = pos; i < 4; i++)
 	    buf[i] = '\0';
@@ -344,11 +391,13 @@ wordData(NSString *word)
     }
   else
     {
-      int		len = [charset cStringLength];
-      char		buf[len+1];
+      int		len = [charset length];
+      char		buf[len + 1];
       NSMutableData	*md;
 
-      [charset getCString: buf];
+      [charset getCString: buf
+		maxLength: len + 1
+		 encoding: NSISOLatin1StringEncoding];
       md = [NSMutableData dataWithCapacity: [d length]*4/3 + len + 8];
       d = [documentClass encodeBase64: d];
       [md appendBytes: "=?" length: 2];
@@ -389,10 +438,10 @@ wordData(NSString *word)
  * Return YES on success, NO if there is an error.
  */
 - (BOOL) decodeData: (const void*)sData
-	     length: (unsigned)length
+	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
-  unsigned	size = [dData length];
+  NSUInteger	size = [dData length];
 
   [dData setLength: size + length];
   memcpy([dData mutableBytes] + size, sData, length);
@@ -412,15 +461,15 @@ wordData(NSString *word)
 {
 @public
   unsigned char	buf[4];
-  unsigned	pos;
+  NSUInteger	pos;
 }
 @end
 @implementation	GSMimeBase64DecoderContext
 - (BOOL) decodeData: (const void*)sData
-	     length: (unsigned)length
+	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
-  unsigned	size = [dData length];
+  NSUInteger	size = [dData length];
   unsigned char	*src = (unsigned char*)sData;
   unsigned char	*end = src + length;
   unsigned char	*beg;
@@ -493,7 +542,7 @@ wordData(NSString *word)
    */
   if ([self atEnd] == YES && pos > 0)
     {
-      unsigned	len = pos - 1;;
+      NSUInteger	len = pos - 1;
 
       while (pos < 4)
 	{
@@ -512,15 +561,15 @@ wordData(NSString *word)
 {
 @public
   unsigned char	buf[4];
-  unsigned	pos;
+  NSUInteger	pos;
 }
 @end
 @implementation	GSMimeQuotedDecoderContext
 - (BOOL) decodeData: (const void*)sData
-	     length: (unsigned)length
+	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
-  unsigned	size = [dData length];
+  NSUInteger	size = [dData length];
   unsigned char	*src = (unsigned char*)sData;
   unsigned char	*end = src + length;
   unsigned char	*beg;
@@ -578,7 +627,7 @@ wordData(NSString *word)
 {
 @public
   unsigned char	buf[8];
-  unsigned	pos;
+  NSUInteger	pos;
   enum {
     ChunkSize,		// Reading chunk size
     ChunkExt,		// Reading chunk extensions
@@ -588,7 +637,7 @@ wordData(NSString *word)
     ChunkFoot,		// Reading chunk footer after newline
     ChunkFootA		// Reading chunk footer
   } state;
-  unsigned	size;	// Size of buffer required.
+  NSUInteger	size;	// Size of buffer required.
   NSMutableData	*data;
 }
 @end
@@ -618,7 +667,7 @@ wordData(NSString *word)
 
 @implementation	GSMimeUUCodingContext
 - (BOOL) decodeData: (const void*)sData
-	     length: (unsigned)length
+	     length: (NSUInteger)length
 	   intoData: (NSMutableData*)dData
 {
   [super decodeData: sData length: length intoData: dData];
@@ -662,6 +711,11 @@ wordData(NSString *word)
  *   [GSMimeParser-mimeDocument] method returns the
  *   resulting parsed document.
  * </p>
+ * <p>If you need to parse faulty documents (eg where a faulty mail client
+ *   has produced an email which does not conform to the MIME standards), you
+ *   should look at the -setBuggyQuotes: and -setDefaultCharset: methods, which
+ *   are designed to cope with the most common faults.
+ * </p>
  */
 @implementation	GSMimeParser
 
@@ -681,7 +735,7 @@ wordData(NSString *word)
   if ([parser isComplete] == YES)
     {
       newDocument = [parser mimeDocument];
-      RETAIN(newDocument);
+      IF_NO_GC(RETAIN(newDocument);)
     }
   RELEASE(parser);
   return AUTORELEASE(newDocument);
@@ -834,7 +888,7 @@ wordData(NSString *word)
 	   intoData: (NSMutableData*)dData
 	withContext: (GSMimeCodingContext*)con
 {
-  unsigned		len = [sData length];
+  NSUInteger		len = [sData length];
   BOOL			result = YES;
 
   if (dData == nil || [con isKindOfClass: [GSMimeCodingContext class]] == NO)
@@ -854,7 +908,7 @@ wordData(NSString *word)
   if ([con class] == [GSMimeChunkedDecoderContext class])
     {
       GSMimeChunkedDecoderContext	*ctxt;
-      unsigned			size = [dData length];
+      NSUInteger			size = [dData length];
       unsigned char		*beg;
       unsigned char		*dst;
       const char		*src;
@@ -903,8 +957,8 @@ wordData(NSString *word)
 		src++;
 		if (ctxt->state != ChunkSize)
 		  {
-		    unsigned int	val = 0;
-		    unsigned int	index;
+		    NSUInteger	val = 0;
+		    NSUInteger	index;
 
 		    for (index = 0; index < ctxt->pos; index++)
 		      {
@@ -1102,6 +1156,19 @@ wordData(NSString *word)
   return document;
 }
 
+/** If there was more data passed to the parser than actually needed to
+ * form the document, this method returns that excess data, othrwise it
+ * returns nil.
+ */
+- (NSData*) excess
+{
+  if (flags.excessData == 1)
+    {
+      return boundary;
+    }
+  return nil;
+}
+
 /**
  * This method may be called to tell the parser that it should not expect
  * to parse any headers, and that the data it will receive is body data.<br />
@@ -1283,7 +1350,7 @@ wordData(NSString *word)
 {
   NSDictionary	*info;
   GSMimeHeader	*hdr;
-  unsigned	l = [d length];
+  NSUInteger	l = [d length];
 
   if (flags.complete == 1 || flags.inBody == 1)
     {
@@ -1366,12 +1433,12 @@ wordData(NSString *word)
   info = [[document headersNamed: @"http"] lastObject];
   if (info != nil && flags.isHttp == 1)
     {
-      NSString	*val;
+      NSNumber	*num;
 
-      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-      if (val != nil)
+      num = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+      if (num != nil)
         {
-          int	v = [val intValue];
+          int	v = [num intValue];
 
           if (v >= 100 && v < 200)
             {
@@ -1398,12 +1465,21 @@ wordData(NSString *word)
    * If there is a zero content length, all parsing is complete,
    * not just header parsing.
    */
-  hdr = [document headerNamed: @"content-length"];
-  if (hdr != nil && [[hdr value] intValue] == 0)
+  if (flags.headersOnly == 1
+    || ((hdr = [document headerNamed: @"content-length"]) != nil
+      && [[hdr value] intValue] == 0))
     {
       [document setContent: @""];
       flags.inBody = 0;
       flags.complete = 1;
+      /* If we have more data after the headers ... it's excess and
+       * should become available as excess data.
+       */
+      if ([d length] > 0)
+	{
+          ASSIGNCOPY(boundary, d);
+	  flags.excessData = 1;
+	}
     }
 
   return NO;		// No more data needed
@@ -1454,7 +1530,7 @@ wordData(NSString *word)
  *   <term>NSHTTPPropertyServerHTTPVersionKey</term>
  *   <desc>The full HTTP protocol version number</desc>
  *   <term>NSHTTPPropertyStatusCodeKey</term>
- *   <desc>The HTTP status code</desc>
+ *   <desc>The HTTP status code (numeric)</desc>
  *   <term>NSHTTPPropertyStatusReasonKey</term>
  *   <desc>The text message (if any) after the status code</desc>
  * </deflist>
@@ -1521,7 +1597,7 @@ wordData(NSString *word)
 	  NSLog(@"Missing value for mime-version header");
 	  return NO;
 	}
-      if (sscanf([value lossyCString], "%d.%d", &majv, &minv) != 2)
+      if (sscanf([value UTF8String], "%d.%d", &majv, &minv) != 2)
 	{
 	  NSLog(@"Bad value for mime-version header (%@)", value);
 	  return NO;
@@ -1538,13 +1614,20 @@ wordData(NSString *word)
       DESTROY(boundary);
       if (tmp != nil)
 	{
-	  unsigned int	l = [tmp cStringLength] + 2;
-	  unsigned char	*b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
+	  NSUInteger	l = [tmp length];
+	  unsigned char	*b;
 
+#if	GS_WITH_GC
+	  b = NSAllocateCollectable(l + 3, 0);
+#else
+	  b = NSZoneMalloc(NSDefaultMallocZone(), l + 3);
+#endif
 	  b[0] = '-';
 	  b[1] = '-';
-	  [tmp getCString: (char*)&b[2]];
-	  boundary = [[NSData alloc] initWithBytesNoCopy: b length: l];
+	  [tmp getCString: (char*)&b[2]
+		maxLength: l + 1
+		 encoding: NSISOLatin1StringEncoding];
+	  boundary = [[NSData alloc] initWithBytesNoCopy: b length: l + 2];
 	}
 
       type = [info objectForKey: @"Type"];
@@ -1694,27 +1777,27 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       int	major;
       int	minor;
       int	status;
-      unsigned	count;
+      NSUInteger	count;
       NSArray	*hdrs;
 
       if ([scanner scanInt: &major] == NO || major < 0)
 	{
-	  NSLog(@"Bad value for http major version");
+	  NSLog(@"Bad value for http major version in %@", [scanner string]);
 	  return NO;
 	}
       if ([scanner scanString: @"." intoString: 0] == NO)
 	{
-	  NSLog(@"Bad format for http version");
+	  NSLog(@"Bad format for http version in %@", [scanner string]);
 	  return NO;
 	}
       if ([scanner scanInt: &minor] == NO || minor < 0)
 	{
-	  NSLog(@"Bad value for http minor version");
+	  NSLog(@"Bad value for http minor version in %@", [scanner string]);
 	  return NO;
 	}
       if ([scanner scanInt: &status] == NO || status < 0)
 	{
-	  NSLog(@"Bad value for http status");
+	  NSLog(@"Bad value for http status in %@", [scanner string]);
 	  return NO;
 	}
       [info setObject: [NSStringClass stringWithFormat: @"%d", minor]
@@ -1723,7 +1806,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       forKey: @"HttpVersion"];
       [info setObject: [NSStringClass stringWithFormat: @"%d", major]
 	       forKey: NSHTTPPropertyServerHTTPVersionKey];
-      [info setObject: [NSStringClass stringWithFormat: @"%d", status]
+      [info setObject: [NSNumber numberWithInt: status]
 	       forKey: NSHTTPPropertyStatusCodeKey];
       [self scanPastSpace: scanner];
       value = [[scanner string] substringFromIndex: [scanner scanLocation]];
@@ -1751,7 +1834,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       value = [self scanToken: scanner];
       if ([value length] == 0)
 	{
-	  NSLog(@"Bad value for content-transfer-encoding header");
+	  NSLog(@"Bad value for content-transfer-encoding header in %@",
+	    [scanner string]);
 	  return NO;
 	}
       value = [value lowercaseString];
@@ -1764,7 +1848,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       type = [self scanName: scanner];
       if ([type length] == 0)
 	{
-	  NSLog(@"Invalid Mime content-type");
+	  NSLog(@"Invalid Mime content-type in %@", [scanner string]);
 	  return NO;
 	}
       type = [type lowercaseString];
@@ -1774,7 +1858,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  subtype = [self scanName: scanner];
 	  if ([subtype length] == 0)
 	    {
-	      NSLog(@"Invalid Mime content-type (subtype)");
+	      NSLog(@"Invalid Mime content-type (subtype) in %@",
+		[scanner string]);
 	      return NO;
 	    }
 	  subtype = [subtype lowercaseString];
@@ -1880,7 +1965,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 - (NSString*) scanSpecial: (NSScanner*)scanner
 {
   NSCharacterSet	*specials;
-  unsigned		location;
+  NSUInteger		location;
   unichar		c;
 
   [self scanPastSpace: scanner];
@@ -1925,8 +2010,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   if ([scanner scanString: @"\"" intoString: 0] == YES)		// Quoted
     {
       NSString	*string = [scanner string];
-      unsigned	length = [string length];
-      unsigned	start = [scanner scanLocation];
+      NSUInteger	length = [string length];
+      NSUInteger	start = [scanner scanLocation];
       NSRange	r = NSMakeRange(start, length - start);
       BOOL	done = NO;
 
@@ -2049,10 +2134,15 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     }
 }
 
-/**
- * Method to inform the parser that body parts with no content-type
+/** This is a method to inform the parser that body parts with no content-type
  * header (which are treated as text/plain) should use the specified
- * characterset rather than the default (us-ascii)
+ * characterset rather than the default (us-ascii).<br />
+ * This also controls the parsing of headers ... in a legal MIME document
+ * these must consst solely of us-ascii characters, but setting a different
+ * default characterset (such as latin1) will permit many illegal header
+ * lines (produced by faulty mail clients) to be parsed.<br />
+ * HTTP requests use headers in the latin1 characterset,  so this is the
+ * header line characterset used most commonly by faulty clients.
  */
 - (void) setDefaultCharset: (NSString*)aName
 {
@@ -2063,6 +2153,14 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     }
 }
 
+/**
+ * Method to inform the parser that only the headers should be parsed
+ * and any remaining data be treated as excess
+ */
+- (void) setHeadersOnly
+{
+  flags.headersOnly = 1;
+}
 
 /**
  * Method to inform the parser that the data it is parsing is an HTTP
@@ -2305,7 +2403,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  */
 - (BOOL) _decodeBody: (NSData*)d
 {
-  unsigned	l = [d length];
+  NSUInteger	l = [d length];
   BOOL		needsMore = YES;
 
   rawBodyLength += l;
@@ -2340,7 +2438,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  expect = 0;
 	}
       context = [self contextFor: hdr];
-      RETAIN(context);
+      IF_NO_GC([context retain];)
       NSDebugMLLog(@"GSMime", @"Parse body expects %u bytes", expect);
     }
 
@@ -2354,7 +2452,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       if ([d length] > 0)
 	{
 	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
-	    [d length], [d length], [d bytes]);
+	    (int)[d length], (int)[d length], [d bytes]);
 	}
       needsMore = NO;	/* Nothing more to do	*/
     }
@@ -2374,7 +2472,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	}
       else
 	{
-	  unsigned	dLength = [d length];
+	  NSUInteger	dLength = [d length];
 
 	  if (expect > 0 && rawBodyLength > expect)
 	    {
@@ -2384,7 +2482,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      rawBodyLength = expect;
 	      excess = [d subdataWithRange:
 		NSMakeRange(dLength, [d length] - dLength)];
-	      NSLog(@"Excess data ignored: %@", excess);
+	      ASSIGN(boundary, excess);
+	      flags.excessData = 1;
 	    }
 	  [self decodeData: d
 		 fromRange: NSMakeRange(0, dLength)
@@ -2489,7 +2588,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     }
   else
     {
-      unsigned	int	bLength = [boundary length];
+      NSUInteger	bLength = [boundary length];
       unsigned char	*bBytes = (unsigned char*)[boundary bytes];
       unsigned char	bInit = bBytes[0];
       BOOL		done = NO;
@@ -2515,7 +2614,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		    || bytes[lineStart-1] == '\n')
 		    {
 		      BOOL	lastPart = NO;
-		      unsigned	eol;
+		      NSUInteger	eol;
 
 		      lineEnd = lineStart + bLength;
 		      eol = lineEnd;
@@ -2586,7 +2685,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  else
 	    {
 	      NSData	*d;
-	      unsigned	pos;
+	      NSUInteger	pos;
 
 	      /*
 	       * Found boundary at the end of a section.
@@ -2662,7 +2761,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       */
 	      lineStart += bLength;
 	      sectionStart = lineStart;
-	      memcpy(bytes, &bytes[sectionStart], dataEnd - sectionStart);
+	      memmove(bytes, &bytes[sectionStart], dataEnd - sectionStart);
 	      dataEnd -= sectionStart;
 	      [data setLength: dataEnd];
 	      bytes = (unsigned char*)[data mutableBytes];
@@ -2717,7 +2816,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	    }
 	  if (input < dataEnd || (c == '\n' && lineEnd == lineStart))
 	    {
-	      unsigned	length = lineEnd - lineStart;
+	      NSUInteger	length = lineEnd - lineStart;
 
 	      if (length == 0)
 	        {
@@ -2726,8 +2825,9 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		}
 	      else if ((c = bytes[input]) != '\r' && c != '\n' && isspace(c))
 	        {
-		  unsigned	diff = input - lineEnd;
+		  NSUInteger	diff = input - lineEnd;
 
+		  bytes[input] = ' ';
 		  memmove(&bytes[lineStart + diff], &bytes[lineStart], length);
 		  lineStart += diff;
 		  lineEnd += diff;
@@ -2745,7 +2845,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     {
       if (lineEnd == lineStart)
 	{
-	  unsigned		lengthRemaining;
+	  NSUInteger		lengthRemaining;
 
 	  /*
 	   * Overwrite the header data with the body, ready to start
@@ -2754,7 +2854,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  lengthRemaining = dataEnd - input;
 	  if (lengthRemaining > 0)
 	    {
-	      memcpy(bytes, &bytes[input], lengthRemaining);
+	      memmove(bytes, &bytes[input], lengthRemaining);
 	    }
 	  dataEnd = lengthRemaining;
 	  [data setLength: lengthRemaining];
@@ -2789,7 +2889,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       paramName = [self scanName: scanner];
       if ([paramName length] == 0)
 	{
-	  NSLog(@"Invalid Mime %@ field (parameter name)", [info name]);
+	  NSLog(@"Invalid Mime %@ field (parameter name) at %@",
+	    [info name], [scanner string]);
 	  return NO;
 	}
 
@@ -2818,6 +2919,9 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 @end
 
 
+
+@interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
+@end
 
 @implementation	GSMimeHeader
 
@@ -2859,8 +2963,8 @@ static NSCharacterSet	*tokenSet = nil;
 + (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag
 {
   NSRange	r;
-  unsigned	pos = 0;
-  unsigned	l = [v length];
+  NSUInteger	pos = 0;
+  NSUInteger	l = [v length];
 
   r = [v rangeOfCharacterFromSet: nonToken
 			 options: NSLiteralSearch
@@ -3005,7 +3109,7 @@ static NSCharacterSet	*tokenSet = nil;
       NSEnumerator	*e;
       NSString		*k;
 
-      m = [value mutableCopy];
+      m = [[value mutableCopy] autorelease];
       e = [params keyEnumerator];
       while ((k = [e nextObject]) != nil)
 	{
@@ -3017,8 +3121,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  [m appendString: @"="];
 	  [m appendString: v];
 	}
-      k = [m makeImmutableCopyOnFail: YES];
-      return AUTORELEASE(k);
+      return [m makeImmutableCopyOnFail: YES];
     }
   else
     {
@@ -3149,7 +3252,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  [m setObject: [params objectForKey: k] forKey: [k lowercaseString]];
 	}
     }
-  return [m makeImmutableCopyOnFail: NO];
+  return [m makeImmutableCopyOnFail: YES];
 }
 
 /**
@@ -3161,20 +3264,20 @@ static NSCharacterSet	*tokenSet = nil;
   return [self rawMimeDataPreservingCase: NO];
 }
 
-static unsigned
-appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
-  const char *bytes, unsigned size)
+static NSUInteger
+appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
+  const char *bytes, NSUInteger size)
 {
   if (offset + size > fold && size + 8 <= fold)
     {
-      unsigned  len = [m length];
+      NSUInteger  len = [m length];
 
       /* This would take the line beyond the folding limit,
        * so we fold at this point.
        * If we already have space at the end of the line,
        * we remove it because the wrapping counts as a space.
        */
-      if (len > 0 && ((unsigned char*)[m bytes])[len - 1] == ' ')
+      if (len > 0 && isspace(((unsigned char*)[m bytes])[len - 1]))
         {
           [m setLength: --len];
         }
@@ -3201,12 +3304,12 @@ appendBytes(NSMutableData *m, unsigned offset, unsigned fold,
   return offset;
 }
 
-static unsigned
-appendString(NSMutableData *m, unsigned offset, unsigned fold,
+static NSUInteger
+appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString *str, BOOL *ok)
 {
-  unsigned      pos = 0;
-  unsigned      size = [str length];
+  NSUInteger      pos = 0;
+  NSUInteger      size = [str length];
 
   *ok = YES;
   while (pos < size)
@@ -3281,8 +3384,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   NSString	*k;
   NSString	*n;
   NSData	*d;
-  unsigned      fold = 78;      // Maybe pass as a parameter in a later release?
-  unsigned      offset = 0;
+  NSUInteger	fold = 78;      // Maybe pass as a parameter in a later release?
+  NSUInteger	offset = 0;
   BOOL		conv = YES;
   BOOL          ok = YES;
 
@@ -3307,9 +3410,9 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     }
   else
     {
-      unsigned  l = [d length];
+      NSUInteger  l = [d length];
       char	buf[l];
-      unsigned	i = 0;
+      NSUInteger	i = 0;
 
       /*
        * Capitalise the header name.  However, the version header is a special
@@ -3457,7 +3560,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 - (void) setParameters: (NSDictionary*)d
 {
   NSMutableDictionary	*m = nil;
-  unsigned		c = [d count];
+  NSUInteger		c = [d count];
 
   if (c > 0)
     {
@@ -3513,7 +3616,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 
 
 @interface GSMimeDocument (Private)
-- (unsigned) _indexOfHeaderNamed: (NSString*)name;
+- (NSUInteger) _indexOfHeaderNamed: (NSString*)name;
 @end
 
 /**
@@ -3537,14 +3640,14 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 + (NSString*) charsetForXml: (NSData*)xml
 {
-  unsigned int		length = [xml length];
+  NSUInteger		length = [xml length];
   const unsigned char	*ptr = (const unsigned char*)[xml bytes];
   const unsigned char	*end = ptr + length;
-  unsigned int		offset = 0;
-  unsigned int		size = 1;
+  NSUInteger		offset = 0;
+  NSUInteger		size = 1;
   unsigned char		quote = 0;
   unsigned char		buffer[30];
-  unsigned int		buflen = 0;
+  NSUInteger		buflen = 0;
   BOOL			found = NO;
 
   if (length < 4)
@@ -3673,7 +3776,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	      tmp = [[NSString alloc] initWithBytes: buffer
 		length: buflen
 		encoding: NSASCIIStringEncoding];
-	      AUTORELEASE(tmp);
+	      IF_NO_GC([tmp autorelease];)
 	      return [tmp lowercaseString];
 	    }
 	  buflen = 0;
@@ -3718,7 +3821,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   unsigned char *result;
   unsigned char	*dst;
   unsigned char	buf[4];
-  unsigned	pos = 0;
+  NSUInteger	pos = 0;
 
   if (source == nil)
     {
@@ -3733,7 +3836,11 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   src = (const unsigned char*)[source bytes];
   end = &src[length];
 
+#if	GS_WITH_GC
+  result = (unsigned char*)NSAllocateCollectable(declen, 0);
+#else
   result = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), declen);
+#endif
   dst = result;
 
   while ((src != end) && *src != '\0')
@@ -3787,7 +3894,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 
   if (pos > 0)
     {
-      unsigned	i;
+      NSUInteger	i;
 
       for (i = pos; i < 4; i++)
 	{
@@ -3821,7 +3928,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       r = [r initWithData: d encoding: NSASCIIStringEncoding];
-      AUTORELEASE(r);
+      IF_NO_GC([r autorelease];)
     }
   return r;
 }
@@ -3859,7 +3966,11 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     }
   destlen = 4 * ((length + 2) / 3);
   sBuf = (unsigned char*)[source bytes];
+#if	GS_WITH_GC
+  dBuf = NSAllocateCollectable(destlen, 0);
+#else
   dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
+#endif
 
   destlen = encodebase64(dBuf, sBuf, length);
 
@@ -3882,7 +3993,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       r = [r initWithData: d encoding: NSASCIIStringEncoding];
-      AUTORELEASE(r);
+      IF_NO_GC([r autorelease];)
     }
   return r;
 }
@@ -4014,17 +4125,64 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	    (void*)NSISOLatin1StringEncoding);
 	  NSMapInsert(charsets, (void*)@"csisolatin1",
 	    (void*)NSISOLatin1StringEncoding);
-
-	  // A couple of telecoms charsets
 	  NSMapInsert(charsets, (void*)@"ia5",
 	    (void*)NSASCIIStringEncoding);
-	  NSMapInsert(charsets, (void*)@"gsm0338",
-	    (void*)NSGSM0338StringEncoding);
-
 	  NSMapInsert(charsets, (void*)@"iso-8859-2",
 	    (void*)NSISOLatin2StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso8859-2",
 	    (void*)NSISOLatin2StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-symbol",
+	    (void*)NSSymbolStringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-symbol",
+	    (void*)NSSymbolStringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1250",
+	    (void*)NSWindowsCP1250StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1250",
+	    (void*)NSWindowsCP1250StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1251",
+	    (void*)NSWindowsCP1251StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1251",
+	    (void*)NSWindowsCP1251StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1252",
+	    (void*)NSWindowsCP1252StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1252",
+	    (void*)NSWindowsCP1252StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1253",
+	    (void*)NSWindowsCP1253StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1253",
+	    (void*)NSWindowsCP1253StringEncoding);
+	  NSMapInsert(charsets, (void*)@"microsoft-cp1254",
+	    (void*)NSWindowsCP1254StringEncoding);
+	  NSMapInsert(charsets, (void*)@"windows-1254",
+	    (void*)NSWindowsCP1254StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-10646-ucs-2",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso10646-ucs-2",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-16",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf16",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-10646-1",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso10646-1",
+	    (void*)NSUnicodeStringEncoding);
+	  NSMapInsert(charsets, (void*)@"jisx0201.1976",
+	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"jisx0201",
+	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"shift_JIS",
+	    (void*)NSShiftJISStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-8",
+	    (void*)NSUTF8StringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf8",
+	    (void*)NSUTF8StringEncoding);
+	  NSMapInsert(charsets, (void*)@"apple-roman",
+	    (void*)NSMacOSRomanStringEncoding);
+
+#if     !defined(NeXT_Foundation_LIBRARY)
+	  NSMapInsert(charsets, (void*)@"gsm0338",
+	    (void*)NSGSM0338StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-3",
 	    (void*)NSISOLatin3StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso8859-3",
@@ -4073,66 +4231,14 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	    (void*)NSISOLatin9StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso8859-15",
 	    (void*)NSISOLatin9StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-symbol",
-	    (void*)NSSymbolStringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-symbol",
-	    (void*)NSSymbolStringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1250",
-	    (void*)NSWindowsCP1250StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1250",
-	    (void*)NSWindowsCP1250StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1251",
-	    (void*)NSWindowsCP1251StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1251",
-	    (void*)NSWindowsCP1251StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1252",
-	    (void*)NSWindowsCP1252StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1252",
-	    (void*)NSWindowsCP1252StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1253",
-	    (void*)NSWindowsCP1253StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1253",
-	    (void*)NSWindowsCP1253StringEncoding);
-	  NSMapInsert(charsets, (void*)@"microsoft-cp1254",
-	    (void*)NSWindowsCP1254StringEncoding);
-	  NSMapInsert(charsets, (void*)@"windows-1254",
-	    (void*)NSWindowsCP1254StringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso-10646-ucs-2",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso10646-ucs-2",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"utf-16",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"utf16",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso-10646-1",
-	    (void*)NSUnicodeStringEncoding);
-	  NSMapInsert(charsets, (void*)@"iso10646-1",
-	    (void*)NSUnicodeStringEncoding);
 	  NSMapInsert(charsets, (void*)@"big5",
 	    (void*)NSBIG5StringEncoding);
-	  NSMapInsert(charsets, (void*)@"jisx0201.1976",
-	    (void*)NSShiftJISStringEncoding);
-	  NSMapInsert(charsets, (void*)@"jisx0201",
-	    (void*)NSShiftJISStringEncoding);
-	  NSMapInsert(charsets, (void*)@"shift_JIS",
-	    (void*)NSShiftJISStringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf-7",
 	    (void*)NSUTF7StringEncoding);
 	  NSMapInsert(charsets, (void*)@"utf7",
 	    (void*)NSUTF7StringEncoding);
-	  NSMapInsert(charsets, (void*)@"utf-8",
-	    (void*)NSUTF8StringEncoding);
-	  NSMapInsert(charsets, (void*)@"utf8",
-	    (void*)NSUTF8StringEncoding);
-	  NSMapInsert(charsets, (void*)@"apple-roman",
-	    (void*)NSMacOSRomanStringEncoding);
 	  NSMapInsert(charsets, (void*)@"koi8-r",
 	    (void*)NSKOI8RStringEncoding);
-	  NSMapInsert(charsets, (void*)@"gb2312.1980",
-	    (void*)NSGB2312StringEncoding);
-	  NSMapInsert(charsets, (void*)@"gb2312",
-	    (void*)NSGB2312StringEncoding);
 	  NSMapInsert(charsets, (void*)@"ksc5601.1987",
 	    (void*)NSKoreanEUCStringEncoding);
 	  NSMapInsert(charsets, (void*)@"ksc5601",
@@ -4141,6 +4247,11 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	    (void*)NSKoreanEUCStringEncoding);
 	  NSMapInsert(charsets, (void*)@"ksc5601",
 	    (void*)NSKoreanEUCStringEncoding);
+	  NSMapInsert(charsets, (void*)@"gb2312.1980",
+	    (void*)NSGB2312StringEncoding);
+	  NSMapInsert(charsets, (void*)@"gb2312",
+	    (void*)NSGB2312StringEncoding);
+#endif
 	}
       if (encodings == 0)
 	{
@@ -4162,6 +4273,25 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	    (void*)@"iso-8859-1");
 	  NSMapInsert(encodings, (void*)NSISOLatin2StringEncoding,
 	    (void*)@"iso-8859-2");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1250StringEncoding,
+	    (void*)@"windows-1250");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1251StringEncoding,
+	    (void*)@"windows-1251");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1252StringEncoding,
+	    (void*)@"windows-1252");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1253StringEncoding,
+	    (void*)@"windows-1253");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1254StringEncoding,
+	    (void*)@"windows-1254");
+	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
+	    (void*)@"utf-16");
+	  NSMapInsert(encodings, (void*)NSShiftJISStringEncoding,
+	    (void*)@"shift_JIS");
+	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
+	    (void*)@"utf-8");
+	  NSMapInsert(encodings, (void*)NSMacOSRomanStringEncoding,
+	    (void*)@"apple-roman");
+#if     !defined(NeXT_Foundation_LIBRARY)
 	  NSMapInsert(encodings, (void*)NSISOLatin3StringEncoding,
 	    (void*)@"iso-8859-3");
 	  NSMapInsert(encodings, (void*)NSISOLatin4StringEncoding,
@@ -4186,36 +4316,19 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	    (void*)@"iso-8859-14");
 	  NSMapInsert(encodings, (void*)NSISOLatin9StringEncoding,
 	    (void*)@"iso-8859-15");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1250StringEncoding,
-	    (void*)@"windows-1250");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1251StringEncoding,
-	    (void*)@"windows-1251");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1252StringEncoding,
-	    (void*)@"windows-1252");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1253StringEncoding,
-	    (void*)@"windows-1253");
-	  NSMapInsert(encodings, (void*)NSWindowsCP1254StringEncoding,
-	    (void*)@"windows-1254");
-	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
-	    (void*)@"utf-16");
 	  NSMapInsert(encodings, (void*)NSBIG5StringEncoding,
 	    (void*)@"big5");
-	  NSMapInsert(encodings, (void*)NSShiftJISStringEncoding,
-	    (void*)@"shift_JIS");
 	  NSMapInsert(encodings, (void*)NSUTF7StringEncoding,
 	    (void*)@"utf-7");
-	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
-	    (void*)@"utf-8");
 	  NSMapInsert(encodings, (void*)NSGSM0338StringEncoding,
 	    (void*)@"gsm0338");
-	  NSMapInsert(encodings, (void*)NSMacOSRomanStringEncoding,
-	    (void*)@"apple-roman");
 	  NSMapInsert(encodings, (void*)NSKOI8RStringEncoding,
 	    (void*)@"koi8-r");
 	  NSMapInsert(encodings, (void*)NSGB2312StringEncoding,
 	    (void*)@"gb2312.1980");
 	  NSMapInsert(encodings, (void*)NSKoreanEUCStringEncoding,
 	    (void*)@"ksc5601.1987");
+#endif
 	}
     }
 }
@@ -4277,7 +4390,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     || [name isEqualToString: @"content-type"] == YES
     || [name isEqualToString: @"subject"] == YES)
     {
-      unsigned	index = [self _indexOfHeaderNamed: name];
+      NSUInteger	index = [self _indexOfHeaderNamed: name];
 
       if (index != NSNotFound)
 	{
@@ -4285,7 +4398,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	}
       else if ([name isEqualToString: @"mime-version"] == YES)
 	{
-	  unsigned	tmp;
+	  NSUInteger	tmp;
 
 	  index = [headers count];
 	  tmp = [self _indexOfHeaderNamed: @"content-disposition"];
@@ -4753,7 +4866,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       enc = [documentClass encodingFromCharset: charset];
       s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       s = [s initWithData: content encoding: enc];
-      AUTORELEASE(s);
+      IF_NO_GC([s autorelease];)
     }
   return s;
 }
@@ -4797,7 +4910,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       if ([content isKindOfClass: [NSMutableArray class]] == YES)
 	{
-	  unsigned	count = [content count];
+	  NSUInteger	count = [content count];
 
 	  while (count-- > 0)
 	    {
@@ -4822,7 +4935,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 - (void) deleteHeader: (GSMimeHeader*)aHeader
 {
-  unsigned	count = [headers count];
+  NSUInteger	count = [headers count];
 
   while (count-- > 0)
     {
@@ -4839,7 +4952,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 - (void) deleteHeaderNamed: (NSString*)name
 {
-  unsigned	count = [headers count];
+  NSUInteger	count = [headers count];
 
   name = [name lowercaseString];
   while (count-- > 0)
@@ -4885,8 +4998,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  */
 - (NSArray*) headersNamed: (NSString*)name
 {
-  unsigned		count = [headers count];
-  unsigned		index;
+  NSUInteger		count = [headers count];
+  NSUInteger		index;
   NSMutableArray	*array;
 
   name = [GSMimeHeader makeToken: name];
@@ -5046,8 +5159,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   NSData	*boundary = 0;
   BOOL		contentIsBinary = NO;
   BOOL		contentIs7bit = YES;
-  unsigned int	count;
-  unsigned int	i;
+  NSUInteger	count;
+  NSUInteger	i;
   CREATE_AUTORELEASE_POOL(arp);
 
   if (isOuter == YES)
@@ -5301,7 +5414,11 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 
 	      charset = [type parameterForKey: @"charset"];
 	      e = [documentClass encodingFromCharset: charset];
+#if     defined(NeXT_Foundation_LIBRARY)
+	      if (e != NSASCIIStringEncoding)
+#else
 	      if (e != NSASCIIStringEncoding && e != NSUTF7StringEncoding)
+#endif
 		{
 		  encoding = @"8bit";
 		  enc = [GSMimeHeader alloc];
@@ -5328,10 +5445,10 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 	|| [encoding isEqualToString: @"8bit"] == YES)
 	{
 	  unsigned char	*bytes = (unsigned char*)[d bytes];
-	  unsigned	length = [d length];
+	  NSUInteger	length = [d length];
 	  BOOL		hadCarriageReturn = NO;
-	  unsigned 	lineLength = 0;
-	  unsigned	i;
+	  NSUInteger 	lineLength = 0;
+	  NSUInteger	i;
 
 	  for (i = 0; i < length; i++)
 	    {
@@ -5446,8 +5563,8 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       if ([[enc value] isEqualToString: @"base64"] == YES)
         {
 	  const char	*ptr;
-	  unsigned	len;
-	  unsigned	pos = 0;
+	  NSUInteger	len;
+	  NSUInteger	pos = 0;
 
 	  d = [documentClass encodeBase64: d];
 	  ptr = [d bytes];
@@ -5508,7 +5625,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
     {
       if (newContent != content)
 	{
-	  unsigned	c = [newContent count];
+	  NSUInteger	c = [newContent count];
 
 	  while (c-- > 0)
 	    {
@@ -5620,7 +5737,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
       hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
       [hdr setObject: type forKey: @"Type"];
       [hdr setObject: subtype forKey: @"Subtype"];
-      AUTORELEASE(hdr);
+      IF_NO_GC([hdr autorelease];)
     }
   else
     {
@@ -5683,7 +5800,7 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
 
   if (name != nil)
     {
-      unsigned	count = [headers count];
+      NSUInteger	count = [headers count];
 
       /*
        * Remove any existing headers with this name.
@@ -5730,10 +5847,10 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
  * NB. The supplied name <em>must</em> be lowercase.<br />
  * This method is for internal use
  */
-- (unsigned) _indexOfHeaderNamed: (NSString*)name
+- (NSUInteger) _indexOfHeaderNamed: (NSString*)name
 {
-  unsigned		count = [headers count];
-  unsigned		index;
+  NSUInteger	count = [headers count];
+  NSUInteger	index;
 
   for (index = 0; index < count; index++)
     {
@@ -5747,5 +5864,1074 @@ appendString(NSMutableData *m, unsigned offset, unsigned fold,
   return NSNotFound;
 }
 
+@end
+
+
+NSString* const GSMimeErrorDomain = @"GSMimeErrorDomain";
+
+typedef	enum	{
+  TP_IDLE,
+  TP_OPEN,
+  TP_INTRO,
+  TP_HELO,
+  TP_AUTH,
+  TP_MESG,
+  TP_FROM,
+  TP_TO,
+  TP_DATA,
+  TP_BODY
+} CState;
+
+NSString *
+eventText(NSStreamEvent e)
+{
+  if (e == NSStreamEventNone)
+    return @"NSStreamEventNone";
+  if (e == NSStreamEventOpenCompleted)
+    return @"NSStreamEventOpenCompleted";
+  if (e == NSStreamEventHasBytesAvailable)
+    return @"NSStreamEventHasBytesAvailable";
+  if (e == NSStreamEventHasSpaceAvailable)
+    return @"NSStreamEventHasSpaceAvailable";
+  if (e == NSStreamEventErrorOccurred)
+    return @"NSStreamEventErrorOccurred";
+  if (e == NSStreamEventEndEncountered)
+    return @"NSStreamEventEndEncountered";
+  return @"unknown event";
+}
+
+NSString *
+statusText(NSStreamStatus s)
+{
+  if (s == NSStreamStatusNotOpen) return @"NSStreamStatusNotOpen";
+  if (s == NSStreamStatusOpening) return @"NSStreamStatusOpening";
+  if (s == NSStreamStatusOpen) return @"NSStreamStatusOpen";
+  if (s == NSStreamStatusReading) return @"NSStreamStatusReading";
+  if (s == NSStreamStatusWriting) return @"NSStreamStatusWriting";
+  if (s == NSStreamStatusAtEnd) return @"NSStreamStatusAtEnd";
+  if (s == NSStreamStatusClosed) return @"NSStreamStatusClosed";
+  if (s == NSStreamStatusError) return @"NSStreamStatusError";
+  return @"unknown status";
+}
+
+/*
+ * Convert 8bit/binary data parts to base64 encoding for old mail
+ * software which can't handle 8bit data.
+ */
+static void makeBase64(GSMimeDocument *doc)
+{
+  id	o = [doc content];
+
+  if ([o isKindOfClass: [NSArray class]] == YES)
+    {
+      NSEnumerator	*e = [o objectEnumerator];
+
+      while ((doc = [e nextObject]) != nil)
+	{
+	  makeBase64(doc);
+	}
+    }
+  else
+    {
+      GSMimeHeader	*h = [doc headerNamed: @"content-transfer-encoding"];
+      NSString		*v = [h value];
+
+      if ([v isEqual: @"binary"] == YES || [v isEqual: @"8bit"] == YES)
+	{
+	  [h setValue: @"base64"];
+	}
+    }
+}
+
+@interface	GSMimeSMTPClient (Private)
+- (NSError*) _commsEnd;
+- (NSError*) _commsError;
+- (void) _doMessage;
+- (NSString*) _identity;
+- (void) _performIO;
+- (void) _recvData: (NSData*)m;
+- (NSError*) _response: (NSString*)r;
+- (void) _sendData: (NSData*)m;
+- (void) _shutdown: (NSError*)e;
+- (void) _startup;
+- (void) _timer: (NSTimeInterval)s;
+@end
+
+#define	GSInternal	GSMimeSMTPClientInternal
+#include	"GSInternal.h"
+GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
+
+@implementation	NSObject (GSMimeSMTPClient)
+- (void) smtpClient: (GSMimeSMTPClient*)client
+	 mimeFailed: (GSMimeDocument*)doc
+{
+  return;
+}
+- (void) smtpClient: (GSMimeSMTPClient*)client
+	 mimeSent: (GSMimeDocument*)doc
+{
+  return;
+}
+- (void) smtpClient: (GSMimeSMTPClient*)client
+	 mimeUnsent: (GSMimeDocument*)doc
+{
+  return;
+}
+@end
+
+
+@implementation	GSMimeSMTPClient
+
+/* Shuts the connection down, fails any message in progress, anbd discards all
+ * queued messages as 'unsent'
+ */
+- (void) abort
+{
+  NSUInteger	c;
+  NSError	*e;
+  NSDictionary	*d;
+
+  d = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSString stringWithFormat: @"Abort while %@", [self stateDesc]],
+    NSLocalizedDescriptionKey,
+    nil];
+  e = [NSError errorWithDomain: GSMimeErrorDomain
+			  code: GSMimeSMTPAbort
+		      userInfo: d];
+
+  [self _shutdown: e];
+  [internal->timer invalidate];
+  internal->timer = nil;
+
+  /* For any message not yet sent, we inform the delegate of the failure
+   */
+  c = [internal->queue count];
+  while (c-- > 0)
+    {
+      GSMimeDocument	*d = [internal->queue objectAtIndex: c];
+
+      [internal->delegate smtpClient: self mimeUnsent: d];
+    }
+  [internal->queue removeAllObjects];
+}
+
+- (void) dealloc
+{
+  [self abort];
+  if (internal != nil)
+    {
+      DESTROY(internal->reply);
+      DESTROY(internal->wdata);
+      DESTROY(internal->rdata);
+      DESTROY(internal->pending);
+      DESTROY(internal->queue);
+      DESTROY(internal->username);
+      DESTROY(internal->port);
+      DESTROY(internal->hostname);
+      DESTROY(internal->identity);
+      DESTROY(internal->originator);
+      DESTROY(internal->lastError);
+      GS_DESTROY_INTERNAL(GSMimeSMTPClient);
+    }
+  [super dealloc];
+}
+
+- (id) delegate
+{
+  return internal->delegate;
+}
+
+- (BOOL) flush: (NSDate*)limit
+{
+  if (limit == nil)
+    {
+      limit = [NSDate distantFuture];
+    }
+  while ([internal->queue count] > 0)
+    {
+      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode beforeDate: limit];
+    }
+  return [internal->queue count] == 0 ? YES : NO;
+}
+
+- (id) init
+{
+  if ((self = [super init]) != 0)
+    {
+      GS_CREATE_INTERNAL(GSMimeSMTPClient);
+      internal->queue = [NSMutableArray new];
+    }
+  return self;
+}
+
+- (NSError*) lastError
+{
+  return internal->lastError;
+}
+
+- (void) send: (GSMimeDocument*)message
+{
+  [internal->queue addObject: message];
+  if (internal->cState == TP_IDLE)
+    {
+      if (internal->timer != nil)
+	{
+	  [internal->timer invalidate];
+	  internal->timer = nil;
+	}
+      [self _startup];
+    }
+  else if (internal->cState == TP_MESG)
+    {
+      [self _doMessage];
+    }
+}
+
+- (void) setDelegate: (id)d
+{
+  internal->delegate = d;
+}
+
+- (void) setHostname: (NSString*)s
+{
+  ASSIGNCOPY(internal->hostname, s);
+}
+
+- (void) setIdentity: (NSString*)s
+{
+  ASSIGNCOPY(internal->identity, s);
+}
+
+- (void) setOriginator: (NSString*)s
+{
+  ASSIGNCOPY(internal->originator, s);
+}
+
+- (void) setPort: (NSString*)s
+{
+  ASSIGNCOPY(internal->port, s);
+}
+
+- (void) setUsername: (NSString*)s
+{
+  ASSIGNCOPY(internal->username, s);
+}
+
+- (int) state
+{
+  return internal->cState;
+}
+
+- (NSString*) stateDesc
+{
+  switch (internal->cState)
+    {
+      case TP_OPEN:	return @"waiting for connection to SMTP server";
+      case TP_INTRO:	return @"waiting for initial prompt from SMTP server";
+      case TP_HELO:	return @"waiting for SMTP server HELO completion";
+      case TP_AUTH:	return @"waiting for SMTP server AUTH response";
+      case TP_FROM:	return @"waiting for ack of FROM command";
+      case TP_TO:	return @"waiting for ack of TO command";
+      case TP_DATA:	return @"waiting for ack of DATA command";
+      case TP_BODY:	return @"waiting for ack of message body";
+      case TP_MESG:	return @"waiting for message to send";
+      case TP_IDLE:	return @"idle ... not connected to SMTP server";
+    }
+  return @"idle ... not connected to SMTP server";
+}
+
+/** Handler for stream events ... 
+ */
+- (void) stream: (NSStream*)aStream handleEvent: (NSStreamEvent)anEvent
+{
+  NSStreamStatus	sStatus = [aStream streamStatus];
+
+  if (aStream == internal->istream)
+    {
+      NSDebugMLLog(@"GSMime", @"%@ istream event %@ in %@",
+	self, eventText(anEvent), statusText(sStatus));
+      if (anEvent == NSStreamEventHasBytesAvailable)
+        {
+	  internal->readable = YES;
+	}
+    }
+  else
+    {
+      NSDebugMLLog(@"GSMime", @"%@ ostream event %@ in %@",
+	self, eventText(anEvent), statusText(sStatus));
+      if (anEvent == NSStreamEventHasSpaceAvailable)
+        {
+	  internal->writable = YES;
+	}
+    }
+
+  if (anEvent == NSStreamEventEndEncountered)
+    {
+      [self _shutdown: [self _commsEnd]];
+      return;
+    }
+  if (anEvent == NSStreamEventErrorOccurred)
+    {
+      [self _shutdown: [self _commsError]];
+      return;
+    }
+
+  if (anEvent == NSStreamEventOpenCompleted)
+    {
+      internal->cState = TP_INTRO;
+    }
+
+  [self _performIO];
+}
+
+@end
+
+@implementation	GSMimeSMTPClient (Private)
+
+- (NSError*) _commsEnd
+{
+  NSError	*e;
+  NSDictionary	*d;
+
+  d = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSString stringWithFormat: @"End of input while %@", [self stateDesc]],
+    NSLocalizedDescriptionKey,
+    nil];
+  e = [NSError errorWithDomain: GSMimeErrorDomain
+			  code: GSMimeSMTPCommsEnd
+		      userInfo: d];
+  return e;
+}
+
+- (NSError*) _commsError
+{
+  NSError	*e;
+  NSDictionary	*d;
+
+  d = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSString stringWithFormat: @"Error on I/O while %@", [self stateDesc]],
+    NSLocalizedDescriptionKey,
+    nil];
+  e = [NSError errorWithDomain: GSMimeErrorDomain
+			  code: GSMimeSMTPCommsError
+		      userInfo: d];
+  return e;
+}
+
+/** Initiates sending of the next message (or the next stage of the
+ * current message).
+ */
+- (void) _doMessage
+{
+  if ([internal->queue count] > 0)
+    {
+      NSString		*tmp;
+
+      internal->current = [internal->queue objectAtIndex: 0];
+
+      if (internal->cState == TP_IDLE)
+	{
+	  [self _startup];
+	}
+      else if (internal->cState == TP_MESG)
+	{
+	  NSString	*from = internal->originator;
+
+	  DESTROY(internal->lastError);
+	  if (from == nil)
+	    {
+	      from = [[NSUserDefaults standardUserDefaults]
+		stringForKey: @"GSMimeSMTPClientOriginator"];
+	    }
+	  if ([from length] == 0)
+	    {
+	      from = [[internal->current headerNamed: @"from"] value];
+	    }
+	  if ([from length] == 0)
+	    {
+	      /* If we have no sender address ... use postmaster.
+	       */
+	      from = [NSString stringWithFormat: @"postmaster@%@", [self _identity]];
+	    }
+
+	  tmp = [NSString stringWithFormat: @"MAIL FROM: %@\r\n", from];
+	  NSDebugMLLog(@"GSMime", @"Initiating new mail message - %@", tmp);
+	  internal->cState = TP_FROM;
+	  [self _timer: 20.0];
+	  [self _sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	}
+      else if (internal->cState == TP_FROM)
+	{
+	  tmp = [[internal->current headerNamed: @"to"] value];
+	  tmp = [NSString stringWithFormat: @"RCPT TO: <%@>\r\n", tmp];
+	  NSDebugMLLog(@"GSMime", @"Destination - %@", tmp);
+	  internal->cState = TP_TO;
+	  [self _timer: 20.0];
+	  [self _sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+        }
+      else if (internal->cState == TP_TO)
+	{
+	  internal->cState = TP_DATA;
+          tmp = @"DATA\r\n";
+	  [self _timer: 20.0];
+	  [self _sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	}
+      else if (internal->cState == TP_DATA)
+	{
+	  NSMutableData	*md;
+	  NSData	*data;
+	  const char	*ibuf;
+	  char		*obuf;
+	  BOOL		sol = YES;
+	  unsigned	ilen;
+	  unsigned	olen;
+	  unsigned	osiz;
+	  unsigned	ipos = 0;
+	  unsigned	opos = 0;
+
+	  internal->cState = TP_BODY;
+
+          makeBase64(internal->current);
+          data = [internal->current rawMimeData];
+
+	  /*
+	   * Any line in the message which begins with a dot must have
+	   * that dot escaped by another dot.
+	   */
+	  ilen = [data length];
+	  olen = ilen + 5;	// Allow for CR-LF-.-CR-LF termination
+	  osiz = olen + 10;	// Allow some expansion to escape dots
+
+	  md = [[NSMutableData alloc] initWithLength: osiz];
+	  ibuf = [data bytes];
+	  obuf = [md mutableBytes];
+
+	  while (ipos < ilen)
+	    {
+	      char	c = ibuf[ipos++];
+
+	      if (c == '\n')
+	      	{
+		  sol = YES;
+		}
+	      else
+	        {
+		  if (c == '.' && sol == YES)
+		    {
+		      obuf[opos++] = '.';	// Extra dot acts as an escape
+		      if (olen++ == osiz)	// Lengthen to allow for dot
+			{
+			  osiz += 16;
+			  [md setLength: osiz];
+			  obuf = [md mutableBytes];
+			}
+		    }
+		  sol = NO;
+		}
+	      obuf[opos++] = c;
+	    }
+	  obuf[opos++] = '\r';
+	  obuf[opos++] = '\n';
+	  /*
+	   * Now terminate the message with a line consisting of a dot.
+	   */
+	  obuf[opos++] = '.';
+	  obuf[opos++] = '\r';
+	  obuf[opos++] = '\n';
+	  [md setLength: opos];
+	  [self _timer: 60.0];
+	  [self _sendData: md];
+	  RELEASE(md);
+        }
+      else
+	{
+	  NSLog(@"_doMessage called in unexpected state.");
+	  [self _shutdown: nil];
+	}
+    }
+  else
+    {
+      [self _shutdown: nil];
+    }
+}
+
+- (NSString*) _identity
+{
+  NSString	*tmp = internal->identity;
+
+  if (tmp == nil)
+    {
+      tmp = [[NSUserDefaults standardUserDefaults]
+	stringForKey: @"GSMimeSMTPClientIdentity"];
+    }
+  if ([tmp length] == 0)
+    {
+      tmp = [[NSHost currentHost] name];
+    }
+  return tmp;
+}
+
+/** Does low level writing and reading of data.
+ */
+- (void) _performIO
+{
+  NS_DURING
+    {
+      RETAIN(self);             // Make sure we don't get released until done.
+
+      /* First perform all reads ... so we process incoming data,
+       */
+      while (internal->readable == YES && internal->cState != TP_OPEN)
+        {
+          uint8_t       buf[BUFSIZ];
+          int   	length;
+
+          /* Try to fill the buffer, then process any data we have.
+           */
+          length = [internal->istream read: buf maxLength: sizeof(buf)];
+          if (length > 0)
+            {
+              uint8_t   *ptr;
+              int       i;
+
+              if (internal->rdata == nil)
+                {
+                  internal->rdata = [[NSMutableData alloc] initWithBytes: buf
+								  length: length];
+                }
+              else
+                {
+                  [internal->rdata appendBytes: buf length: length];
+                  length = [internal->rdata length];
+                }
+              ptr = [internal->rdata mutableBytes];
+              for (i = 0; i < length; i++)
+                {
+                  if (ptr[i] == '\n')
+                    {
+                      NSData    *d;
+
+                      i++;
+                      if (i == length)
+                        {
+                          d = [internal->rdata autorelease];
+                          internal->rdata = nil;
+                        }
+                      else
+                        {
+                          d = [NSData dataWithBytes: ptr length: i];
+                          memcpy(ptr, ptr + i, length - i);
+                          length -= i;
+                          [internal->rdata setLength: length];
+                          ptr = [internal->rdata mutableBytes];
+                          i = -1;
+                        }
+                      [self _recvData: d];
+                    }
+                }
+            }
+          else
+            {
+              internal->readable = NO;	// Can't read more right now.
+              if (length == 0)
+                {
+                  NSLog(@"EOF on input stream ... terminating");
+                  [self _shutdown: [self _commsEnd]];
+                }
+              else if ([internal->istream streamStatus] == NSStreamStatusError)
+                {
+                  NSLog(@"Error on input stream ... terminating");
+                  [self _shutdown: [self _commsError]];
+                }
+            }
+        }
+
+      /* Perform write operations after read operations, so that we are able
+       * to write any packets resulting from the incoming data as a single
+       * block of outgoing data if possible.
+       */
+      while (internal->writable == YES && [internal->pending count] > 0)
+        {
+          uint8_t   *wbytes = [internal->wdata mutableBytes];
+          unsigned  wlength = [internal->wdata length];
+          int       result;
+
+          result = [internal->ostream write: wbytes + internal->woffset
+				  maxLength: wlength - internal->woffset];
+          if (result > 0)
+            {
+              NSData    *d = [internal->pending objectAtIndex: 0];
+              unsigned  dlength = [d length];
+
+              internal->woffset += result;
+              if (internal->woffset >= dlength)
+                {
+                  unsigned      total = 0;
+
+                  while (internal->woffset >= total + dlength)
+                    {
+                      NSDebugMLLog(@"GSMime", @"%@ Write: %@", self, d);
+                      [internal->pending removeObjectAtIndex: 0];
+                      total += dlength;
+                      if ([internal->pending count] > 0)
+                        {
+                          d = [internal->pending objectAtIndex: 0];
+                          dlength = [d length];
+                        }
+                    }
+                  if (total < wlength)
+                    {
+                      memcpy(wbytes, wbytes + total, wlength - total);
+                    }
+                  [internal->wdata setLength: wlength - total];
+                  internal->woffset -= total;
+                }
+            }
+          else
+            {
+              internal->writable = NO;	// Can't write more right now.
+              if (result == 0)
+                {
+                  NSLog(@"EOF on output stream ... terminating");
+                  [self _shutdown: [self _commsEnd]];
+                }
+              else if ([internal->ostream streamStatus] == NSStreamStatusError)
+                {
+                  NSLog(@"Error on output stream ... terminating");
+                  [self _shutdown: [self _commsError]];
+                }
+            }
+        }
+
+      RELEASE(self);
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Exception handling stream event: %@", localException);
+      RELEASE(self);
+    }
+  NS_ENDHANDLER
+}
+
+/** Receives a chunk of data from the input stream and performs state
+ * transitions based on the current state and the information received
+ * from the SMTP server.
+ */
+- (void) _recvData: (NSData*)m
+{
+  unsigned int		c = 0;
+  NSMutableString	*s = nil;
+
+  if ([internal->queue count] > 0)
+    {
+      internal->current = [internal->queue objectAtIndex: 0];
+    }
+
+  NSDebugMLLog(@"GSMime", @"%@ _recvData: %@", self, m);
+
+  if (m != nil)
+    {
+      unichar	sep;
+
+      /*
+       * Get this reply line and check it is of the correct format.
+       */
+      s = [[NSMutableString alloc] initWithData: m
+				       encoding: NSASCIIStringEncoding];
+      [s trimSpaces];
+      if ([s length] <= 4)
+	{
+	  NSLog(@"Server made short response ... %@", s);
+	  RELEASE(s);
+	  [self _shutdown: [self _response: @"short data"]];
+	  return;
+	}
+      sep = [s characterAtIndex: 3];
+      if (sep != ' ' && sep != '-')
+	{
+	  NSLog(@"Server made illegal response ... %@", s);
+	  [self _shutdown: [self _response: @"bad format"]];
+	  return;
+	}
+
+      /*
+       * Accumulate multiline replies in the 'reply' ivar.
+       */
+      if ([internal->reply length] == 0)
+	{
+	  ASSIGN(internal->reply, s);
+	}
+      else
+	{
+	  [s replaceCharactersInRange: NSMakeRange(0, 4) withString: @" "];
+	  [internal->reply appendString: s];
+	}
+      RELEASE(s);
+      if (sep == '-')
+	{
+	  return;	// Continuation line ... wait for more.
+	}
+
+      /*
+       * Got end of reply ... move from ivar to local variable ready for
+       * accumulating the next reply.
+       */
+      c = [internal->reply intValue];
+      s = AUTORELEASE(internal->reply);
+      internal->reply = nil;
+    }
+
+  switch (internal->cState)
+    {
+      case TP_INTRO:
+	if (c == 220)
+	  {
+	    NSString	*tmp;
+
+	    tmp = [NSString stringWithFormat: @"HELO %@\r\n", [self _identity]];
+	    NSDebugMLLog(@"GSMime", @"Intro OK - sending helo");
+	    internal->cState = TP_HELO;
+	    [self _timer: 30.0];
+	    [self _sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	  }
+	else
+	  {
+	    NSLog(@"Server went away ... %@", s);
+	    [self _shutdown: [self _response: s]];
+	  }
+	break;
+
+      case TP_HELO:
+	if (c == 250)
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged HELO");
+	    if ([internal->username length] == 0)
+	      {
+		internal->cState = TP_MESG;
+		[self _doMessage];
+	      }
+	    else
+	      {
+		NSString	*tmp;
+
+		tmp = [NSString stringWithFormat: @"AUTH PLAIN %@\r\n",
+		  [GSMimeDocument encodeBase64String: internal->username]];
+		NSDebugMLLog(@"GSMime", @"Helo OK - sending auth");
+		internal->cState = TP_AUTH;
+	        [self _timer: 30.0];
+                [self _sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	      }
+	  }
+	else
+	  {
+	    NSLog(@"Server nacked helo ... %@", s);
+	    [self _shutdown: [self _response: s]];
+	  }
+	break;
+
+      case TP_AUTH:
+	if (c == 250)
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged AUTH");
+	    internal->cState = TP_MESG;
+	    [self _doMessage];
+	  }
+	else
+	  {
+	    NSLog(@"Server nacked auth ... %@", s);
+	    [self _shutdown: [self _response: s]];
+	  }
+	break;
+
+      case TP_FROM:
+	if (c != 250)
+	  {
+	    NSLog(@"Server nacked FROM... %@", s);
+	    [self _shutdown: [self _response: s]];
+	  }
+	else
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged FROM");
+	    [self _doMessage];
+	  }
+	break;
+
+      case TP_TO:
+	if (c != 250)
+	  {
+	    NSLog(@"Server nacked TO... %@", s);
+	    [self _shutdown: [self _response: s]];
+	  }
+	else
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged TO");
+	    [self _doMessage];
+	  }
+	break;
+
+      case TP_DATA:
+	if (c != 354)
+	  {
+	    NSLog(@"Server nacked DATA... %@", s);
+	    [self _shutdown: [self _response: s]];
+	  }
+	else
+	  {
+	    [self _doMessage];
+	  }
+	break;
+
+      case TP_BODY:
+	if (c != 250)
+	  {
+	    NSLog(@"Server nacked body ... %@", s);
+	    [self _shutdown: [self _response: s]];
+	  }
+	else
+	  {
+            internal->cState = TP_MESG;
+	    if (internal->current != nil)
+	      {
+		GSMimeDocument	*d = [internal->current retain];
+
+		internal->current = nil;
+		[internal->queue removeObjectAtIndex: 0];
+		[internal->delegate smtpClient: self mimeSent: d];
+		[d release];
+	      }
+            [self _doMessage];
+	  }
+	break;
+
+      case TP_MESG:
+	NSLog(@"Unknown response from SMTP system. - %@", s);
+	[self _shutdown: [self _response: s]];
+	break;
+
+      default:
+        NSLog(@"system in unexpected state.");
+        [self _shutdown: [self _response: s]];
+	break;
+    }
+}
+
+- (NSError*) _response: (NSString*)r
+{
+  NSError	*e;
+  NSDictionary	*d;
+  NSString	*s;
+
+  s = [NSString stringWithFormat: @"Unexpected response form server while %@: %@",
+    [self stateDesc], r];
+
+  d = [NSDictionary dictionaryWithObjectsAndKeys:
+    s, NSLocalizedDescriptionKey,
+    nil];
+  e = [NSError errorWithDomain: GSMimeErrorDomain
+			  code: GSMimeSMTPServerResponse
+		      userInfo: d];
+  return e;
+}
+
+/** Add a chunk of data to the output stream.
+ */
+- (void) _sendData: (NSData*)m
+{
+  NSDebugMLLog(@"GSMime", @"%@ _sendData: %@", self, m);
+  if (internal->pending == nil)
+    {
+      internal->pending = [NSMutableArray new];
+    }
+  [internal->pending addObject: m];
+  if (internal->wdata == nil)
+    {
+      internal->wdata = [m mutableCopy];
+    }
+  else
+    {
+      [internal->wdata appendData: m];
+    }
+  if ([internal->pending count] > 0 && internal->writable == YES)
+    {
+      [self _performIO];
+    }
+}
+
+/** Shuts down the connection to the SMTP server and fails any message
+ * currently in progress.  If there are queued messages, this sets a
+ * timer to reconnect.
+ */
+- (void) _shutdown: (NSError*)e
+{
+  [internal->istream removeFromRunLoop: [NSRunLoop currentRunLoop]
+			       forMode: NSDefaultRunLoopMode];
+  [internal->ostream removeFromRunLoop: [NSRunLoop currentRunLoop]
+			       forMode: NSDefaultRunLoopMode];
+  [internal->istream setDelegate: nil];
+  [internal->ostream setDelegate: nil];
+  [internal->istream close];
+  [internal->ostream close];
+
+  DESTROY(internal->istream);
+  DESTROY(internal->ostream);
+
+  [internal->wdata setLength: 0];
+  internal->woffset = 0;
+  internal->readable = NO;
+  internal->writable = NO;
+  internal->cState = TP_IDLE;
+
+  [internal->pending removeAllObjects];
+  ASSIGN(internal->lastError, e);
+  if (internal->current != nil)
+    {
+      GSMimeDocument	*d = [internal->current retain];
+
+      [internal->queue removeObjectAtIndex: 0];
+      internal->current = nil;
+      [internal->delegate smtpClient: self mimeFailed: d];
+      [d release];
+    }
+  if ([internal->queue count] > 0)
+    {
+      [self _timer: 10.0];	// Try connecting again in 10 seconds
+    }
+}
+
+/** If the receiver is in an idle state, this method initiates a connection
+ * to the SMTP server.
+ */
+- (void) _startup
+{
+  if (internal->cState == TP_IDLE)
+    {
+      NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+      NSHost    	*h;
+      NSString		*n = internal->hostname;
+      NSString		*p = internal->port;
+
+      DESTROY(internal->lastError);
+      /* Need to start up ...
+       */
+      if (n == nil)
+	{
+	  n = [defs stringForKey: @"GSMimeSMTPClientHost"];
+	  if ([n length] == 0)
+	    {
+	      n = @"localhost";
+	    }
+	}
+      h = [NSHost hostWithName: n];
+      if (h == nil)
+        {
+          internal->istream = nil;
+          internal->ostream = nil;
+          NSLog(@"Unable to find host %@", n);
+          [self _shutdown: nil];
+	  return;
+        }
+
+      if (p == nil)
+	{
+	  int	pnum;
+
+	  p = [defs stringForKey: @"GSMimeSMTPClientPort"];
+	  if ((pnum = [p intValue]) <= 0 || pnum > 65535)
+	    {
+	      p = @"25";
+	      pnum = 25;
+	    }
+          [NSStream getStreamsToHost: h
+                                port: pnum
+                         inputStream: &internal->istream
+                        outputStream: &internal->ostream];
+          RETAIN(internal->istream);
+          RETAIN(internal->ostream);
+          if (internal->istream == nil || internal->ostream == nil)
+            {
+              NSLog(@"Unable to connect to %@:%@", n, p);
+              [self _shutdown: nil];
+	      return;
+            }
+        }
+
+      [internal->istream setDelegate: self];
+      [internal->ostream setDelegate: self];
+
+      [internal->istream scheduleInRunLoop: [NSRunLoop currentRunLoop]
+				   forMode: NSDefaultRunLoopMode];
+      [internal->ostream scheduleInRunLoop: [NSRunLoop currentRunLoop]
+				   forMode: NSDefaultRunLoopMode];
+
+      internal->cState = TP_OPEN;
+      [self _timer: 30.0];	// Allow 30 seconds for login
+      [internal->istream open];
+      [internal->ostream open];
+    }
+}
+
+/** Handles a timeout.
+ * Behavior depends on the state of the connection.
+ */
+- (void) _timeout: (NSTimer*)t
+{
+  if (internal->timer == t)
+    {
+      internal->timer = nil;
+    }
+  if (internal->cState == TP_IDLE)
+    {
+      /* Not connected.
+       */
+      if ([internal->queue count] > 0)
+	{
+          [self _startup];	// Try connecting
+	}
+    }
+  else if (internal->cState == TP_MESG)
+    {
+      /* Already connected to server.
+       */
+      if ([internal->queue count] == 0)
+	{
+	  [self _shutdown: nil];	// Nothing to send ... disconnect
+	}
+      else
+	{
+	  [self _doMessage];		// Send the next message
+	}
+    }
+  else
+    {
+      NSError		*e;
+      NSDictionary	*d;
+
+      d = [NSDictionary dictionaryWithObjectsAndKeys:
+	[NSString stringWithFormat: @"Timeout while %@", [self stateDesc]],
+	NSLocalizedDescriptionKey,
+	nil];
+      e = [NSError errorWithDomain: GSMimeErrorDomain
+			      code: GSMimeSMTPTimeout
+			  userInfo: d];
+      NSDebugMLLog(@"GSMime", @"%@ timeout at %@", self, [self stateDesc]);
+      [self _shutdown: e];
+    }
+}
+
+/* A convenience method to set the receivers timer to go off after the
+ * specified interval.  Cancels previous timer (if any).
+ */
+- (void) _timer: (NSTimeInterval)s
+{
+  if (internal->timer != nil)
+    {
+      [internal->timer invalidate];
+    }
+  internal->timer = [NSTimer scheduledTimerWithTimeInterval: s
+						     target: self
+						   selector: @selector(_timeout:)
+						   userInfo: nil
+						    repeats: NO];
+}
 @end
 

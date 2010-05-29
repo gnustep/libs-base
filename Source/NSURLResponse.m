@@ -1,7 +1,7 @@
 /* Implementation for NSURLResponse for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,6 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
+#define	EXPOSE_NSURLResponse_IVARS	1
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"
 
@@ -43,14 +46,15 @@ typedef struct {
   int			statusCode;
 } Internal;
  
-typedef struct {
-  @defs(NSURLResponse)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLResponseInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLResponseInternal))
+#define	this	((Internal*)(self->_NSURLResponseInternal))
+#define	inst	((Internal*)(o->_NSURLResponseInternal))
 
+
+@interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
+@end
 
 @implementation	NSURLResponse (Private)
+
 - (void) _setHeaders: (id)headers
 {
   NSEnumerator	*e;
@@ -120,7 +124,7 @@ typedef struct {
   v = [contentType parameterForKey: @"charset"];
   ASSIGNCOPY(this->textEncodingName, v);
 }
-- (void) _setStatusCode: (int)code text: (NSString*)text
+- (void) _setStatusCode: (NSInteger)code text: (NSString*)text
 {
   this->statusCode = code;
   ASSIGNCOPY(this->statusText, text);
@@ -233,7 +237,7 @@ typedef struct {
  */
 - (id) initWithURL: (NSURL *)URL
   MIMEType: (NSString *)MIMEType
-  expectedContentLength: (int)length
+  expectedContentLength: (NSInteger)length
   textEncodingName: (NSString *)name
 {
   if ((self = [super init]) != nil)
@@ -279,7 +283,7 @@ typedef struct {
       p = AUTORELEASE([GSMimeParser new]);
       h = [[GSMimeHeader alloc] initWithName: @"content-displosition"
 				       value: disp];
-      AUTORELEASE(h);
+      IF_NO_GC([h autorelease];)
       sc = [NSScanner scannerWithString: [h value]];
       if ([p scanHeaderBody: sc into: h] == YES)
         {
@@ -320,7 +324,7 @@ typedef struct {
 
 @implementation NSHTTPURLResponse
 
-+ (NSString *) localizedStringForStatusCode: (int)statusCode
++ (NSString *) localizedStringForStatusCode: (NSInteger)statusCode
 {
 // FIXME ... put real responses in here
   return [NSString stringWithFormat: @"%d", statusCode];
@@ -331,7 +335,7 @@ typedef struct {
   return AUTORELEASE([this->headers copy]);
 }
 
-- (int) statusCode
+- (NSInteger) statusCode
 {
   return this->statusCode;
 }

@@ -82,21 +82,25 @@ GS_EXPORT NSString* const NSUndoManagerWillRedoChangeNotification;
  */
 GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 
-@interface NSUndoManager: NSObject
+@interface NSUndoManager : NSObject
 {
+#if	GS_EXPOSE(NSUndoManager)
 @private
-    NSMutableArray	*_redoStack;
-    NSMutableArray	*_undoStack;
-    id                  *_unused1;
-    id			_group;
-    id			_nextTarget;
-    NSArray		*_modes;
-    BOOL		_isRedoing;
-    BOOL		_isUndoing;
-    BOOL		_groupsByEvent;
-    BOOL		_runLoopGroupingPending;
-    unsigned		_disableCount;
-    unsigned		_levelsOfUndo;
+  NSMutableArray	*_redoStack;
+  NSMutableArray	*_undoStack;
+  id			_group;
+  id			_nextTarget;
+  NSArray		*_modes;
+  BOOL			_isRedoing;
+  BOOL			_isUndoing;
+  BOOL			_groupsByEvent;
+  BOOL			_runLoopGroupingPending;
+  unsigned		_disableCount;
+  unsigned		_levelsOfUndo;
+#endif
+#if	!GS_NONFRAGILE
+  void			*_unused;
+#endif
 }
 
 - (void) beginUndoGrouping;
@@ -106,12 +110,12 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 - (void) enableUndoRegistration;
 - (void) endUndoGrouping;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (int) groupingLevel;
+- (NSInteger) groupingLevel;
 - (BOOL) groupsByEvent;
 - (BOOL) isRedoing;
 - (BOOL) isUndoing;
 - (BOOL) isUndoRegistrationEnabled;
-- (unsigned int) levelsOfUndo;
+- (NSUInteger) levelsOfUndo;
 - (id) prepareWithInvocationTarget: (id)target;
 - (void) redo;
 - (NSString*) redoActionName;
@@ -125,7 +129,7 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 - (NSArray*) runLoopModes;
 - (void) setActionName: (NSString*)name;
 - (void) setGroupsByEvent: (BOOL)flag;
-- (void) setLevelsOfUndo: (unsigned)num;
+- (void) setLevelsOfUndo: (NSUInteger)num;
 - (void) setRunLoopModes: (NSArray*)newModes;
 - (void) undo;
 - (NSString*) undoActionName;

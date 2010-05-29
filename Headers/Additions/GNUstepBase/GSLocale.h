@@ -27,11 +27,11 @@
 #define __GSLocale_H_
 
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSString.h>
+#import <Foundation/NSString.h>
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
-#include "GSObjCRuntime.h"
+#import "GSObjCRuntime.h"
 
 #if	defined(__cplusplus)
 extern "C" {

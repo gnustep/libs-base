@@ -1,7 +1,7 @@
 /* Implementation for NSURLProtectionSpace for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,7 +22,11 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
+#define	EXPOSE_NSURLProtectionSpace_IVARS	1
 #import "GSURLPrivate.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 
 NSString * const NSURLProtectionSpaceFTPProxy = @"ftp";	
 NSString * const NSURLProtectionSpaceHTTPProxy = @"http";
@@ -48,11 +52,8 @@ typedef struct {
   BOOL		isProxy;
 } Internal;
  
-typedef struct {
-  @defs(NSURLProtectionSpace)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLProtectionSpaceInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLProtectionSpaceInternal))
+#define	this	((Internal*)(self->_NSURLProtectionSpaceInternal))
+#define	inst	((Internal*)(o->_NSURLProtectionSpaceInternal))
 
 @implementation NSURLProtectionSpace
 
@@ -108,7 +109,7 @@ typedef struct {
   [super dealloc];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [[self host] hash] + [self port]
     + [[self realm] hash] + [[self protocol] hash]
@@ -121,7 +122,7 @@ typedef struct {
 }
 
 - (id) initWithHost: (NSString *)host
-	       port: (int)port
+	       port: (NSInteger)port
 	   protocol: (NSString *)protocol
 	      realm: (NSString *)realm
 authenticationMethod: (NSString *)authenticationMethod
@@ -158,7 +159,7 @@ authenticationMethod: (NSString *)authenticationMethod
 }
 
 - (id) initWithProxyHost: (NSString *)host
-		    port: (int)port
+		    port: (NSInteger)port
 		    type: (NSString *)type
 		   realm: (NSString *)realm
     authenticationMethod: (NSString *)authenticationMethod
@@ -250,7 +251,7 @@ authenticationMethod: (NSString *)authenticationMethod
   return this->isProxy;
 }
 
-- (int) port
+- (NSInteger) port
 {
   return this->port;
 }

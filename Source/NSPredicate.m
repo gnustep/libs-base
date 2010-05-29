@@ -26,31 +26,31 @@
    Boston, MA 02111 USA.
    */ 
 
-#include <Foundation/NSComparisonPredicate.h>
-#include <Foundation/NSCompoundPredicate.h>
-#include <Foundation/NSExpression.h>
-#include <Foundation/NSPredicate.h>
+#import "common.h"
 
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSKeyValueCoding.h>
-#include <Foundation/NSNull.h>
-#include <Foundation/NSScanner.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSValue.h>
+#define	EXPOSE_NSComparisonPredicate_IVARS	1
+#define	EXPOSE_NSCompoundPredicate_IVARS	1
+#define	EXPOSE_NSExpression_IVARS	1
 
-#include "GSPrivate.h"
+#import "Foundation/NSComparisonPredicate.h"
+#import "Foundation/NSCompoundPredicate.h"
+#import "Foundation/NSExpression.h"
+#import "Foundation/NSPredicate.h"
 
-#include <stdarg.h>
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSValue.h"
+
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+
 // For pow()
 #include <math.h>
-
-#define	NIMP	  [NSException raise: NSGenericException \
-  format: @"%s(%s) has not implemented %s",\
-  GSClassNameFromObject(self), GSObjCIsInstance(self) ? "instance" : "class",\
-  GSNameFromSelector(_cmd)]
 
 @interface GSPredicateScanner : NSScanner
 {
@@ -189,13 +189,13 @@
               case 'c':
                 ptr++;
                 [arr addObject: [NSNumber numberWithChar:
-                  (char)va_arg(args, int)]];
+                  (char)va_arg(args, NSInteger)]];
                 break;
 
               case 'C':
                 ptr++;
                 [arr addObject: [NSNumber numberWithShort:
-                  (short)va_arg(args, int)]];
+                  (short)va_arg(args, NSInteger)]];
                 break;
 
               case 'd':
@@ -203,7 +203,7 @@
               case 'i':
                 ptr++;
                 [arr addObject: [NSNumber numberWithInt:
-                  va_arg(args, int)]];
+                  va_arg(args, NSInteger)]];
                 break;
 
               case 'o':
@@ -214,7 +214,7 @@
               case 'X':
                 ptr++;
                 [arr addObject: [NSNumber numberWithUnsignedInt:
-                  va_arg(args, unsigned int)]];
+                  va_arg(args, NSUInteger)]];
                 break;
 
               case 'e':
@@ -235,12 +235,12 @@
                     if (c == 'i')
                       {
                         [arr addObject: [NSNumber numberWithShort:
-                          (short)va_arg(args, int)]];
+                          (short)va_arg(args, NSInteger)]];
                       }
                     if (c == 'u')
                       {
                         [arr addObject: [NSNumber numberWithUnsignedShort:
-                          (unsigned short)va_arg(args, int)]];
+                          (unsigned short)va_arg(args, NSInteger)]];
                       }
                   }
                 break;
@@ -621,7 +621,7 @@
                               rightExpression: (NSExpression *)right
                                      modifier: (NSComparisonPredicateModifier)modifier
                                          type: (NSPredicateOperatorType)type
-                                      options: (unsigned)opts
+                                      options: (NSUInteger)opts
 {
   return AUTORELEASE([[self alloc] initWithLeftExpression: left 
                                           rightExpression: right
@@ -648,7 +648,7 @@
               rightExpression: (NSExpression *)right
                      modifier: (NSComparisonPredicateModifier)modifier
                          type: (NSPredicateOperatorType)type
-                      options: (unsigned)opts
+                      options: (NSUInteger)opts
 {
   if ((self = [super init]) != nil)
     {
@@ -683,7 +683,7 @@
   return _left;
 }
 
-- (unsigned) options
+- (NSUInteger) options
 {
   return _options;
 }
@@ -1415,9 +1415,9 @@
 
 - (id) _eval_count: (NSArray *)expressions
 {
-  if (_argc != 1)
-    ;  // error
-  return [NSNumber numberWithUnsignedInt: [[expressions objectAtIndex: 0] count]];
+  NSAssert(_argc == 1, NSInternalInconsistencyException);
+  return [NSNumber numberWithUnsignedInt:
+    [[expressions objectAtIndex: 0] count]];
 }
 
 - (id) _eval_avg: (NSArray *)expressions 
@@ -1530,6 +1530,48 @@
           [self removeObjectAtIndex: count];
         }
     }
+}
+
+@end
+
+@implementation NSSet (NSPredicate)
+
+- (NSSet *) filteredSetUsingPredicate: (NSPredicate *)predicate
+{
+  NSMutableSet	*result;
+  NSEnumerator	*e = [self objectEnumerator];
+  id		object;
+
+  result = [NSMutableSet setWithCapacity: [self count]];
+  while ((object = [e nextObject]) != nil)
+    {
+      if ([predicate evaluateWithObject: object] == YES)
+        {
+          [result addObject: object];  // passes filter
+        }
+    }
+  return [result makeImmutableCopyOnFail: NO];
+}
+
+@end
+
+@implementation NSMutableSet (NSPredicate)
+
+- (void) filterUsingPredicate: (NSPredicate *)predicate
+{
+  NSMutableSet	*rejected;
+  NSEnumerator	*e = [self objectEnumerator];
+  id		object;
+
+  rejected = [NSMutableSet setWithCapacity: [self count]];
+  while ((object = [e nextObject]) != nil)
+    {
+      if ([predicate evaluateWithObject: object] == NO)
+        {
+          [rejected addObject: object];
+        }
+    }
+  [self minusSet: rejected];
 }
 
 @end

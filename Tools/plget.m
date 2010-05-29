@@ -18,17 +18,16 @@
 
    */
 
-#include "config.h"
-#include	<Foundation/Foundation.h>
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSUserDefaults.h>
-#include	<Foundation/NSDebug.h>
-#include	<Foundation/NSFileHandle.h>
-#include	<Foundation/NSAutoreleasePool.h>
+#import "common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSFileHandle.h"
+#import	"Foundation/NSAutoreleasePool.h"
 
 
 /** <p> This tool extracts a string value from a dictionary in a property
@@ -51,9 +50,8 @@ main(int argc, char** argv, char **env)
   int			count;
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
-  pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {

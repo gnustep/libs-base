@@ -1,7 +1,7 @@
 /* Implementation for NSURLCredentialStorage for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,6 +22,9 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
+#define	EXPOSE_NSURLCredentialStorage_IVARS	1
 #import "GSURLPrivate.h"
 
 NSString *const NSURLCredentialStorageChangedNotification
@@ -107,7 +110,7 @@ static NSURLCredentialStorage	*storage = nil;
 // Should never be called.
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 

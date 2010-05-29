@@ -1,7 +1,7 @@
 /* Implementation for NSCachedURLResponse for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,8 +22,10 @@
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
-#include "Foundation/NSCoder.h"
+#import "common.h"
+#define	EXPOSE_NSCachedURLResponse_IVARS	1
+#import "GSURLPrivate.h"
+#import "Foundation/NSCoder.h"
 
 // Internal data storage
 typedef struct {
@@ -33,10 +35,7 @@ typedef struct {
   NSURLCacheStoragePolicy	storagePolicy;
 } Internal;
  
-typedef struct {
-  @defs(NSCachedURLResponse)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSCachedURLResponseInternal))
+#define	this	((Internal*)(self->_NSCachedURLResponseInternal))
 
 
 @implementation	NSCachedURLResponse

@@ -22,16 +22,18 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+#define	EXPOSE_NSNetServices_IVARS	1
 #import "Foundation/NSNetServices.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSStream.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSValue.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #if defined(_REENTRANT)
 #import "GNUstepBase/GSLock.h"
 #endif
@@ -227,7 +229,7 @@ static void DNSSD_API
                    const char			*hosttarget,
                    uint16_t			 port,
                    uint16_t			 txtLen,
-                   const char			*txtRecord,
+                   const unsigned char		*txtRecord,
                    void				*context);
 
 static void DNSSD_API
@@ -370,7 +372,7 @@ static void DNSSD_API
  *
  */
 
-- (void) searchForDomain: (int) aFlag
+- (void) searchForDomain: (NSInteger) aFlag
 {
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
   Browser		*browser;
@@ -1172,7 +1174,7 @@ static void DNSSD_API
                    target: (const char *) hosttarget
                      port: (uint16_t) port
                    length: (uint16_t) txtLen
-                   record: (const char *) txtRecord
+                   record: (const unsigned char *) txtRecord
 {
   Service	*service;
   
@@ -1899,7 +1901,7 @@ static void DNSSD_API
 - (id) initWithDomain: (NSString *) domain
                  type: (NSString *) type
                  name: (NSString *) name
-                 port: (int) port
+                 port: (NSInteger) port
 {
   INTERNALTRACE;
   
@@ -2341,6 +2343,7 @@ static void DNSSD_API
 
 - (void) publishWithOptions: (NSNetServiceOptions)options
 {
+  [self notImplemented: _cmd];
 }
 
 /**
@@ -3069,7 +3072,7 @@ static void DNSSD_API
 - (id) init
 {
   DESTROY(self);
-  return nil;
+  return self;
 }
 
 /**
@@ -3259,7 +3262,7 @@ ResolverCallback(DNSServiceRef sdRef,
                    const char *hosttarget,
                    uint16_t port,
                    uint16_t txtLen,
-                   const char *txtRecord,
+                   const unsigned char *txtRecord,
                    void *context)
 {
   // NSNetService

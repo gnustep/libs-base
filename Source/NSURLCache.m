@@ -1,7 +1,7 @@
 /* Implementation for NSURLCache for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -22,7 +22,11 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
+
+#define	EXPOSE_NSURLCache_IVARS	1
 #import "GSURLPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // FIXME ... locking and disk storage needed
 typedef struct {
@@ -34,11 +38,8 @@ typedef struct {
   NSMutableDictionary	*memory;
 } Internal;
  
-typedef struct {
-  @defs(NSURLCache)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLCacheInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLCacheInternal))
+#define	this	((Internal*)(self->_NSURLCacheInternal))
+#define	inst	((Internal*)(o->_NSURLCacheInternal))
 
 
 static NSURLCache	*shared = nil;
@@ -101,23 +102,23 @@ static NSURLCache	*shared = nil;
   return [this->memory objectForKey: request];
 }
 
-- (unsigned) currentDiskUsage
+- (NSUInteger) currentDiskUsage
 {
   return this->diskUsage;
 }
 
-- (unsigned) currentMemoryUsage
+- (NSUInteger) currentMemoryUsage
 {
   return this->memoryUsage;
 }
 
-- (unsigned) diskCapacity
+- (NSUInteger) diskCapacity
 {
   return this->diskCapacity;
 }
 
-- (id) initWithMemoryCapacity: (unsigned)memoryCapacity
-		 diskCapacity: (unsigned)diskCapacity
+- (id) initWithMemoryCapacity: (NSUInteger)memoryCapacity
+		 diskCapacity: (NSUInteger)diskCapacity
 		     diskPath: (NSString *)path
 {
   if ((self = [super init]) != nil)
@@ -132,7 +133,7 @@ static NSURLCache	*shared = nil;
   return self;
 }
 
-- (unsigned) memoryCapacity
+- (NSUInteger) memoryCapacity
 {
   return this->memoryCapacity;
 }
@@ -157,13 +158,15 @@ static NSURLCache	*shared = nil;
     }
 }
 
-- (void) setDiskCapacity: (unsigned)diskCapacity
+- (void) setDiskCapacity: (NSUInteger)diskCapacity
 {
+  [self notImplemented: _cmd];
   // FIXME
 }
 
-- (void) setMemoryCapacity: (unsigned)memoryCapacity
+- (void) setMemoryCapacity: (NSUInteger)memoryCapacity
 {
+  [self notImplemented: _cmd];
   // FIXME
 }
 

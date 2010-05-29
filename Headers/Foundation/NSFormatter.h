@@ -46,8 +46,7 @@ extern "C" {
  *  applications.
  */
 @interface	NSFormatter : NSObject <NSCopying, NSCoding>
-{
-}
+
 /**
  *  This method calls [-stringForObjectValue:] then marks up the string with
  *  attributes if it should be displayed specially.  For example, in an

@@ -26,7 +26,7 @@
 #define __NSURLCache_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -56,8 +56,9 @@ typedef enum
  */
 @interface NSCachedURLResponse : NSObject <NSCoding, NSCopying>
 {
-@private
+#if	GS_EXPOSE(NSCachedURLResponse)
   void *_NSCachedURLResponseInternal;
+#endif
 }
 
 /**
@@ -101,8 +102,9 @@ typedef enum
 
 @interface NSURLCache : NSObject
 {
-@private
+#if	GS_EXPOSE(NSURLCache)
   void *_NSURLCacheInternal;
+#endif
 }
 
 /**
@@ -137,32 +139,32 @@ typedef enum
  * Returns the current size (butes) of the data stored in the on-disk
  * cache.
  */
-- (unsigned) currentDiskUsage;
+- (NSUInteger) currentDiskUsage;
 
 /**
  * Returns the current size (butes) of the data stored in the in-memory
  * cache.
  */
-- (unsigned) currentMemoryUsage;
+- (NSUInteger) currentMemoryUsage;
 
 /**
  * Returns the disk capacity (in bytes) of the cache.
  */
-- (unsigned) diskCapacity;
+- (NSUInteger) diskCapacity;
 
 /**
  * Returns the receiver initialised with the specified capacities
  * (in bytes) and using the specified location on disk for persistent
  * storage.
  */
-- (id) initWithMemoryCapacity: (unsigned)memoryCapacity
-		 diskCapacity: (unsigned)diskCapacity
+- (id) initWithMemoryCapacity: (NSUInteger)memoryCapacity
+		 diskCapacity: (NSUInteger)diskCapacity
 		     diskPath: (NSString *)path;
 
 /**
  * Returns the memory capacity (in bytes) of the cache.
  */
-- (unsigned) memoryCapacity;
+- (NSUInteger) memoryCapacity;
 
 /**
  * Empties the cache.
@@ -178,12 +180,12 @@ typedef enum
 /**
  * Sets the disk capacity (in bytes) truncating cache contents if necessary.
  */
-- (void) setDiskCapacity: (unsigned)diskCapacity;
+- (void) setDiskCapacity: (NSUInteger)diskCapacity;
 
 /**
  * Sets the memory capacity (in bytes) truncating cache contents if necessary.
  */
-- (void) setMemoryCapacity: (unsigned)memoryCapacity;
+- (void) setMemoryCapacity: (NSUInteger)memoryCapacity;
 
 /**
  * Stores cachedResponse in the cache, keyed on request.<br />

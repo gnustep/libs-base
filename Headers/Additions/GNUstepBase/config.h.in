@@ -1,8 +1,5 @@
 /* Headers/Additions/GNUstepBase/config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define if nested functions are broken on this compiler */
-#undef BROKEN_NESTED_FUNCTIONS
-
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
 
@@ -165,14 +162,11 @@
 /* Built in default value for GNUstep user_dir web apps */
 #undef GNUSTEP_TARGET_USER_DIR_WEB_APPS
 
-/* Define if this constant is defined */
-#undef HANDLE_LLONG_MAX
-
-/* Define if this constant is defined */
-#undef HANDLE_LONG_LONG_MAX
-
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
+
+/* Define to 1 if you have the `backtrace' function. */
+#undef HAVE_BACKTRACE
 
 /* Define to 1 if you have the <bfd.h> header file. */
 #undef HAVE_BFD_H
@@ -193,11 +187,23 @@
 /* Define to 1 if you have the <dns_sd.h> header file. */
 #undef HAVE_DNS_SD_H
 
+/* Define to 1 if you have the <execinfo.h> header file. */
+#undef HAVE_EXECINFO_H
+
 /* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
 
 /* Define if libobjc has the __objc_msg_forward2 function */
 #undef HAVE_FORWARD2
+
+/* Define if GC_allow_register_threads function is available */
+#undef HAVE_GC_ALLOW_REGISTER_THREADS
+
+/* Define to 1 if you have the <gc.h> header file. */
+#undef HAVE_GC_H
+
+/* Define if GC_register_my_thread function is available */
+#undef HAVE_GC_REGISTER_MY_THREAD
 
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
@@ -304,6 +310,9 @@
 /* Define to 1 if you have the `nsl' library (-lnsl). */
 #undef HAVE_LIBNSL
 
+/* Define to 1 if you have the `rt' library (-lrt). */
+#undef HAVE_LIBRT
+
 /* Define if libxml available */
 #undef HAVE_LIBXML
 
@@ -349,14 +358,17 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
-/* Define to 1 if you have the `objc_condition_timedwait' function. */
-#undef HAVE_OBJC_CONDITION_TIMEDWAIT
-
 /* Define if objc-api.h defines this function */
 #undef HAVE_OBJC_GET_UNINSTALLED_DTABLE
 
 /* Define to 1 if you have the <objc/objc.h> header file. */
 #undef HAVE_OBJC_OBJC_H
+
+/* Define to 1 if you have the <objc/runtime.h> header file. */
+#undef HAVE_OBJC_RUNTIME_H
+
+/* Define to 1 if you have the `objc_setProperty' function. */
+#undef HAVE_OBJC_SETPROPERTY
 
 /* Define to 1 if you have the `objc_sync_enter' function. */
 #undef HAVE_OBJC_SYNC_ENTER
@@ -403,6 +415,9 @@
 /* Define if you have the register_printf_function function */
 #undef HAVE_REGISTER_PRINTF_FUNCTION
 
+/* Define to 1 if you have the `register_printf_specifier' function. */
+#undef HAVE_REGISTER_PRINTF_SPECIFIER
+
 /* Define to 1 if you have the `rint' function. */
 #undef HAVE_RINT
 
@@ -418,6 +433,12 @@
 /* Define to 1 if you have the `setrlimit' function. */
 #undef HAVE_SETRLIMIT
 
+/* Define to 1 if you have the `setsid' function. */
+#undef HAVE_SETSID
+
+/* Define if libobjc has the objc_set_unexpected() function */
+#undef HAVE_SET_UNEXPECTED
+
 /* Define to 1 if you have the `shmctl' function. */
 #undef HAVE_SHMCTL
 
@@ -426,6 +447,12 @@
 
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
+
+/* Define to 1 if you have the `sigsetjmp' function. */
+#undef HAVE_SIGSETJMP
+
+/* Define to 1 if the system has the type `socklen_t'. */
+#undef HAVE_SOCKLEN_T
 
 /* Define to 1 if you have the `statvfs' function. */
 #undef HAVE_STATVFS
@@ -561,7 +588,7 @@
 /* Define to 1 if the system has the type `uintmax_t'. */
 #undef HAVE_UINTMAX_T
 
-/* Define if libobjc has the objc_set_unexpected() function */
+/* Define if libobjc has the _objc_unexpected_exception callback */
 #undef HAVE_UNEXPECTED
 
 /* Define to 1 if you have the <unistd.h> header file. */
@@ -621,9 +648,6 @@
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
 
-/* Define if objc runtime creates joinable threads */
-#undef PTHREAD_JOINABLE
-
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
@@ -641,6 +665,12 @@
 
 /* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
+
+/* The size of a `pthread_cond_t', as computed by sizeof. */
+#undef SIZEOF_PTHREAD_COND_T
+
+/* The size of a `pthread_mutex_t', as computed by sizeof. */
+#undef SIZEOF_PTHREAD_MUTEX_T
 
 /* The size of a `short', as computed by sizeof. */
 #undef SIZEOF_SHORT

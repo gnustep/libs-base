@@ -24,7 +24,7 @@
 
 #define	_FILE_OFFSET_BITS 64
 
-#include "config.h"
+#include "common.h"
 
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSObject.h"
@@ -93,7 +93,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
  * Encapsulates low level read operation to get data from the operating
  * system.
  */
-- (int) read: (void*)buf length: (NSUInteger)len
+- (NSInteger) read: (void*)buf length: (NSUInteger)len
 {
 #if	USE_ZLIB
   if (gzDescriptor != 0)
@@ -133,7 +133,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
  * Encapsulates low level write operation to send data to the operating
  * system.
  */
-- (int) write: (const void*)buf length: (NSUInteger)len
+- (NSInteger) write: (const void*)buf length: (NSUInteger)len
 {
 #if	USE_ZLIB
   if (gzDescriptor != 0)
@@ -248,14 +248,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   RELEASE(service);
   RELEASE(protocol);
 
-  [self gcFinalize];
+  [self finalize];
 
   RELEASE(readInfo);
   RELEASE(writeInfo);
   [super dealloc];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   if (self == fh_stdin)
     fh_stdin = nil;
@@ -701,7 +701,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (s == nil)
     {
       NSLog(@"bad argument - service is nil");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -723,7 +723,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (getAddr(lhost, p, @"tcp", &lsin) == NO)
 	{
 	  NSLog(@"bad bind address specification");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
       p = @"tcp";
@@ -769,7 +769,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      RELEASE(self);
+      DESTROY(self);
       NSLog(@"bad address-service-protocol combination");
       return nil;
     }
@@ -793,7 +793,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (getAddr(shost, sport, p, &sin) == NO)
 	{
 	  NSLog(@"bad SOCKS host-port combination");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -801,7 +801,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   /*
@@ -817,7 +817,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(lsin.sin_addr),
 	    GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
 	  (void) closesocket(net);
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
     }
@@ -836,7 +836,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      NSLog(@"unable to make connection to %s:%d - %@",
 		inet_ntoa(sin.sin_addr),
 		GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
-	      RELEASE(self);
+	      DESTROY(self);
 	      return nil;
 	    }
 	}
@@ -892,7 +892,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      RELEASE(self);
+      DESTROY(self);
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
@@ -900,7 +900,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -919,7 +919,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(sin.sin_addr),
 	GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
       (void) closesocket(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -927,7 +927,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSLog(@"unable to listen on port - %@", [NSError _last]);
       (void) closesocket(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -935,7 +935,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSLog(@"unable to get socket name - %@", [NSError _last]);
       (void) closesocket(net);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -960,7 +960,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -984,7 +984,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -1008,7 +1008,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -1028,7 +1028,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (fh_stderr != nil)
     {
       RETAIN(fh_stderr);
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {
@@ -1048,7 +1048,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (fh_stdin != nil)
     {
       RETAIN(fh_stdin);
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {
@@ -1068,7 +1068,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (fh_stdout != nil)
     {
       RETAIN(fh_stdout);
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {
@@ -1085,10 +1085,25 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithNullDevice
 {
-  isNullDevice = YES;
-  isStandardFile = YES;
-  descriptor = -1;
-  return self;
+  int	d = _open("NUL", O_RDWR|O_BINARY);
+
+  if (d < 0)
+    {
+      DESTROY(self);
+      return nil;
+    }
+  else
+    {
+      self = [self initWithFileDescriptor: d closeOnDealloc: YES];
+      if (self != nil)
+	{
+	  connectOK = NO;
+	  acceptOK = NO;
+  	  isNullDevice = YES;
+  	  isStandardFile = YES;
+	}
+      return self;
+    }
 }
 
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
@@ -1120,16 +1135,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
  	  if (GetFileType(h) == FILE_TYPE_PIPE)
 	    {
-	      /* If we can't get named pipe ino, we assume this is a socket.
+	      /* If we can't get named pipe info, we assume this is a socket.
 	       */
 	      if (GetNamedPipeInfo(h, 0, 0, 0, 0) == 0)
 		{
 		  isSocket = YES;
 		}
-	    }
-	  else
-	    {
-	      NSLog(@"Not a pipe");
 	    }
 	}
 
@@ -2007,68 +2018,99 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       [self postReadNotification];
     }
-  else if (operation == NSFileHandleDataAvailableNotification)
-    {
-      [self postReadNotification];
-    }
   else
     {
-      NSMutableData	*item;
-      int		length;
-      int		received = 0;
-      char		buf[READ_SIZE];
-
-      item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
-      /*
-       * We may have a maximum data size set...
+      /* If this is not a socket or a standard file, we assume it's a pipe
+       * and therefore we need to check to see if data really is available.
        */
-      if (readMax > 0)
-        {
-          length = (unsigned int)readMax - [item length];
-          if (length > (int)sizeof(buf))
-            {
+      if (NO == isSocket && NO == isStandardFile)
+	{
+	  HANDLE	h = (HANDLE)_get_osfhandle(descriptor);
+	  DWORD		bytes = 0;
+
+	  if (PeekNamedPipe(h, 0, 0, 0, &bytes, 0) == 0)
+	    {
+	      DWORD	e = GetLastError();
+
+              if (e != ERROR_BROKEN_PIPE && e != ERROR_HANDLE_EOF)
+		{
+	          NSLog(@"pipe peek problem %d, %@", e, [NSError _last]);
+	          return;
+		}
+	      /* In the case of a broken pipe, we fall through so that a read
+	       * attempt is performed allowing higer level code to notice the
+	       * problem and deal with it.
+	       */
+	    }
+	  else if (bytes == 0)
+	    {
+	      return;	// No data available yet.
+	    }
+	}
+
+      if (operation == NSFileHandleDataAvailableNotification)
+	{
+	  [self postReadNotification];
+	}
+      else
+	{
+	  NSMutableData	*item;
+	  int		length;
+	  int		received = 0;
+	  char		buf[READ_SIZE];
+
+	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
+	  /*
+	   * We may have a maximum data size set...
+	   */
+	  if (readMax > 0)
+	    {
+	      length = (unsigned int)readMax - [item length];
+	      if (length > (int)sizeof(buf))
+		{
+		  length = sizeof(buf);
+		}
+	    }
+	  else
+	    {
 	      length = sizeof(buf);
 	    }
-	}
-      else
-	{
-	  length = sizeof(buf);
-	}
 
-      received = [self read: buf length: length];
-      if (received == 0)
-        { // Read up to end of file.
-          [self postReadNotification];
-        }
-      else if (received < 0)
-        {
-          if (isSocket && (WSAGetLastError() != WSAEINTR
-	    && WSAGetLastError() != WSAEWOULDBLOCK))
-            {
-	      NSString	*s;
-
-	      s = [NSString stringWithFormat: @"Read attempt failed - %@",
-		[NSError _last]];
-	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
+	  received = [self read: buf length: length];
+	  if (received == 0)
+	    { // Read up to end of file.
 	      [self postReadNotification];
 	    }
-          else if (!isSocket && (GetLastError() != ERROR_NO_DATA))
-            {
-	      NSString	*s;
-
-	      s = [NSString stringWithFormat: @"Read attempt failed - %@",
-		[NSError _last]];
-	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
-	      [self postReadNotification];
-	    }
-	}
-      else
-	{
-	  [item appendBytes: buf length: received];
-	  if (readMax < 0 || (readMax > 0 && (int)[item length] == readMax))
+	  else if (received < 0)
 	    {
-	      // Read a single chunk of data
-	      [self postReadNotification];
+	      if (isSocket && (WSAGetLastError() != WSAEINTR
+		&& WSAGetLastError() != WSAEWOULDBLOCK))
+		{
+		  NSString	*s;
+
+		  s = [NSString stringWithFormat: @"Read attempt failed - %@",
+		    [NSError _last]];
+		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
+		  [self postReadNotification];
+		}
+	      else if (!isSocket && (GetLastError() != ERROR_NO_DATA))
+		{
+		  NSString	*s;
+
+		  s = [NSString stringWithFormat: @"Read attempt failed - %@",
+		    [NSError _last]];
+		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
+		  [self postReadNotification];
+		}
+	    }
+	  else
+	    {
+	      [item appendBytes: buf length: received];
+	      if (readMax < 0 || (readMax > 0 && (int)[item length] == readMax))
+		{
+		  // Read a single chunk of data
+		  [self postReadNotification];
+		}
 	    }
 	}
     }
@@ -2197,35 +2239,35 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  NSDebugMLLog(@"NSFileHandle", @"Connect on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_CONNECT;
 	  [self receivedEventWrite];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_ACCEPT)
 	{
 	  NSDebugMLLog(@"NSFileHandle", @"Accept on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_ACCEPT;
 	  [self receivedEventRead];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_WRITE)
 	{
 	  NSDebugMLLog(@"NSFileHandle", @"Write on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_WRITE;
 	  [self receivedEventWrite];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_READ)
 	{
 	  NSDebugMLLog(@"NSFileHandle", @"Read on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_READ;
 	  [self receivedEventRead];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_OOB)
 	{
 	  NSDebugMLLog(@"NSFileHandle", @"OOB on %x", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_OOB;
 	  [self receivedEventRead];
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_CLOSE)
 	{
@@ -2239,7 +2281,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    {
 	      [self receivedEventRead];
 	    }
-	  GSPrivateNotifyASAP();
+	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents)
 	{
@@ -2257,7 +2299,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  [self receivedEventRead];
 	}
-      GSPrivateNotifyASAP();
+      GSPrivateNotifyASAP(mode);
     }
 }
 

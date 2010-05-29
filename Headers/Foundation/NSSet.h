@@ -31,6 +31,7 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObject.h>
+#import <Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -38,7 +39,7 @@ extern "C" {
 
 @class NSArray, NSString, NSEnumerator, NSDictionary;
 
-@interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
 + (id) set;
 + (id) setWithArray: (NSArray*)objects;
@@ -46,14 +47,14 @@ extern "C" {
 + (id) setWithObjects: (id)firstObject, ...;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) setWithObjects: (id*)objects
-		count: (unsigned)count;
+		count: (NSUInteger)count;
 #endif
 + (id) setWithSet: (NSSet*)aSet;
 
 - (NSArray*) allObjects;
 - (id) anyObject;
 - (BOOL) containsObject: (id)anObject;
-- (unsigned) count;
+- (NSUInteger) count;
 - (NSString*) description;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale;
 
@@ -61,7 +62,7 @@ extern "C" {
 - (id) initWithArray: (NSArray*)other;
 - (id) initWithObjects: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects
-		 count: (unsigned)count;
+		 count: (NSUInteger)count;
 - (id) initWithSet: (NSSet*)other;
 - (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag;
 
@@ -87,11 +88,11 @@ extern "C" {
 
 @interface NSMutableSet: NSSet
 
-+ (id) setWithCapacity: (unsigned)numItems;
++ (id) setWithCapacity: (NSUInteger)numItems;
 
 - (void) addObject: (id)anObject;
 - (void) addObjectsFromArray: (NSArray*)array;
-- (id) initWithCapacity: (unsigned)numItems;
+- (id) initWithCapacity: (NSUInteger)numItems;
 - (void) intersectSet: (NSSet*)other;
 - (void) minusSet: (NSSet*)other;
 - (void) removeAllObjects;
@@ -104,7 +105,7 @@ extern "C" {
 
 @interface NSCountedSet : NSMutableSet
 
-- (unsigned int) countForObject: (id)anObject;
+- (NSUInteger) countForObject: (id)anObject;
 
 @end
 
@@ -125,7 +126,7 @@ extern "C" {
  *   been added once - and are therefore simply wasting space.
  * </p>
  */
-- (void) purge: (int)level;
+- (void) purge: (NSInteger)level;
 
 /**
  * <p>
@@ -175,13 +176,13 @@ id	GSUnique(id anObject);
  * set by removing any objec whose count is less than or equal to that given.
  *
  */
-void	GSUPurge(unsigned count);
+void	GSUPurge(NSUInteger count);
 
 /*
  * GSUSet() can be used to artificially set the count for a particular object
  * Setting the count to zero will remove the object from the global set.
  */
-id	GSUSet(id anObject, unsigned count);
+id	GSUSet(id anObject, NSUInteger count);
 
 #endif	/* GS_API_NONE */
 

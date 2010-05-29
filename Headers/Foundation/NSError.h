@@ -115,10 +115,15 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  */
 @interface NSError : NSObject <NSCopying, NSCoding>
 {
+#if	GS_EXPOSE(NSError)
 @private
   int		_code;
   NSString	*_domain;
   NSDictionary	*_userInfo;
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 
 /**
@@ -126,14 +131,14 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  * -initWithDomain:code:userInfo:
  */
 + (id) errorWithDomain: (NSString*)aDomain
-		  code: (int)aCode
+		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary;
 
 /**
  * Return the error code ... which is not globally unique, just unique for
  * a particular domain.
  */
-- (int) code;
+- (NSInteger) code;
 
 /**
  * Return the domain for this instance.
@@ -145,7 +150,7 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  * The domain must be non-nil.
  */
 - (id) initWithDomain: (NSString*)aDomain
-		 code: (int)aCode
+		 code: (NSInteger)aCode
 	     userInfo: (NSDictionary*)aDictionary;
 
 /**

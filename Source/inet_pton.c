@@ -19,9 +19,8 @@
 
 #include "config.h"
 
-#include "GNUstepBase/GSConfig.h"
-
 #include <ctype.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/param.h>
 #include <errno.h>

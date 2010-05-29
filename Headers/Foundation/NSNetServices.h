@@ -33,8 +33,17 @@
 extern "C" {
 #endif
 
-typedef enum
+enum
 {
+  NSNetServicesUnknownError		= -72000L,
+  NSNetServicesCollisionError		= -72001L,
+  NSNetServicesNotFoundError		= -72002L,
+  NSNetServicesActivityInProgress	= -72003L,
+  NSNetServicesBadArgumentError		= -72004L,
+  NSNetServicesCancelledError		= -72005L,
+  NSNetServicesInvalidError		= -72006L,
+  NSNetServicesTimeoutError		= -72007L
+};
   /**
    * <list>
    *   <item>
@@ -80,15 +89,7 @@ typedef enum
    *   </item>
    * </list>
    */
-  NSNetServicesUnknownError		= -72000L,
-  NSNetServicesCollisionError		= -72001L,
-  NSNetServicesNotFoundError		= -72002L,
-  NSNetServicesActivityInProgress	= -72003L,
-  NSNetServicesBadArgumentError		= -72004L,
-  NSNetServicesCancelledError		= -72005L,
-  NSNetServicesInvalidError		= -72006L,
-  NSNetServicesTimeoutError		= -72007L
-} NSNetServicesError;
+typedef NSUInteger NSNetServicesError;
 
 enum {
   NSNetServiceNoAutoRename = 1 << 0
@@ -125,10 +126,12 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 @interface NSNetService : NSObject
 {
+#if	GS_EXPOSE(NSNetService)
   @private
   void		* _netService;
   id		  _delegate;
   void		* _reserved;
+#endif
 }
 
 + (NSData *) dataFromTXTRecordDictionary: (NSDictionary *) txtDictionary;
@@ -140,7 +143,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 - (id) initWithDomain: (NSString *) domain
                  type: (NSString *) type
                  name: (NSString *) name
-                 port: (int) port;
+                 port: (NSInteger) port;
 
 - (void) removeFromRunLoop: (NSRunLoop *) aRunLoop
                    forMode: (NSString *) mode;

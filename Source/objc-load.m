@@ -30,7 +30,7 @@
 
 */
 
-#include "config.h"
+#import "common.h"
 
 #ifdef HAVE_DLADDR
 /* Define _GNU_SOURCE because that is required with GNU libc in order
@@ -39,7 +39,6 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <objc/objc-api.h>
 #ifndef NeXT_RUNTIME
 # include <objc/objc-list.h>
@@ -48,11 +47,9 @@
 #endif
 
 #include "objc-load.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSException.h"
+#import "Foundation/NSException.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 
 /* include the interface to the dynamic linker */
 #include "dynamic-load.h"
@@ -102,7 +99,7 @@ static int
 objc_initialize_loading(FILE *errorStream)
 {
   NSString	*path;
-#ifdef    __MINGW32__
+#ifdef    __MINGW__
   const unichar *fsPath;
 #else  
   const char *fsPath;
@@ -145,7 +142,7 @@ objc_load_callback(Class class, struct objc_category * category)
     }
 }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #define	FSCHAR	unichar
 #else
 #define	FSCHAR	char
@@ -255,7 +252,7 @@ GSPrivateUnloadModule(FILE *errorStream,
 }
 
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 NSString *
 GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {

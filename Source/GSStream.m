@@ -22,21 +22,22 @@
 
    */
 
-#include "config.h"
+#import "common.h"
 
-#import <Foundation/NSArray.h>
-#import <Foundation/NSByteOrder.h>
-#import <Foundation/NSData.h>
-#import <Foundation/NSDebug.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSEnumerator.h>
-#import <Foundation/NSException.h>
-#import <Foundation/NSHost.h>
-#import <Foundation/NSRunLoop.h>
-#import <Foundation/NSValue.h>
+#import "Foundation/NSArray.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSValue.h"
 
 #import "GSStream.h"
 #import "GSPrivate.h"
+#import "GSSocketStream.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
   = @"NSStreamDataWrittenToMemoryStreamKey";
@@ -76,15 +77,6 @@ NSString * const NSStreamSOCKSProxyVersion5
 NSString * const NSStreamSOCKSProxyVersionKey
   = @"NSStreamSOCKSProxyVersionKey";
 
-NSString * const GSStreamLocalAddressKey
-  = @"GSStreamLocalAddressKey";
-NSString * const GSStreamLocalPortKey
-  = @"GSStreamLocalPortKey";
-NSString * const GSStreamRemoteAddressKey
-  = @"GSStreamRemoteAddressKey";
-NSString * const GSStreamRemotePortKey
-  = @"GSStreamRemotePortKey";
-
 
 /*
  * Determine the type of event to use when adding a stream to the run loop.
@@ -97,7 +89,7 @@ NSString * const GSStreamRemotePortKey
  */
 static RunLoopEventType typeForStream(NSStream *aStream)
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   if ([aStream _loopID] == (void*)aStream)
     {
       return ET_TRIGGER;
@@ -143,6 +135,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @implementation GSStream
 
++ (void) initialize
+{
+  GSMakeWeakPointer(self, "delegate");
+}
+
 - (void) close
 {
   if (_currentStatus == NSStreamStatusNotOpen)
@@ -151,19 +148,25 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     }
   [self _unschedule];
   [self _setStatus: NSStreamStatusClosed];
-  /* We don't want to send any events the the delegate after the
+  /* We don't want to send any events to the delegate after the
    * stream has been closed.
    */
   _delegateValid = NO;
 }
 
-- (void) dealloc
+- (void) finalize
 {
   if (_currentStatus != NSStreamStatusNotOpen
     && _currentStatus != NSStreamStatusClosed)
     {
       [self close];
     }
+  GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
+}
+
+- (void) dealloc
+{
+  [self finalize];
   if (_loops != 0)
     {
       NSFreeMapTable(_loops);
@@ -270,17 +273,30 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) setDelegate: (id)delegate
 {
-  if (delegate)
+  if ([self streamStatus] == NSStreamStatusClosed
+    || [self streamStatus] == NSStreamStatusError)
     {
-      _delegate = delegate;
+      _delegateValid = NO;
+      GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
     }
   else
     {
-      _delegate = self;
-    }
-  if ([self streamStatus] != NSStreamStatusClosed
-    && [self streamStatus] != NSStreamStatusError)
-    {
+      if (delegate == nil)
+	{
+	  _delegate = self;
+	}
+      if (delegate == self)
+	{
+	  if (_delegate != nil && _delegate != self)
+	    {
+              GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
+	    }
+	  _delegate = delegate;
+	}
+      else
+	{
+          GSAssignZeroingWeakPointer((void**)&_delegate, (void*)delegate);
+	}
       /* We don't want to send any events the the delegate after the
        * stream has been closed.
        */
@@ -337,7 +353,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return;
 }
 
-- (void) _resetEvents: (int)mask
+- (void) _resetEvents: (NSUInteger)mask
 {
   return;
 }
@@ -398,7 +414,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   _currentStatus = NSStreamStatusError;
 }
 
-- (void) _resetEvents: (int)mask
+- (void) _resetEvents: (NSUInteger)mask
 {
   _events &= ~mask;
 }
@@ -626,6 +642,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSInputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
+      GSMakeWeakPointer(self, "delegate");
     }
 }
 
@@ -658,6 +675,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSOutputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
+      GSMakeWeakPointer(self, "delegate");
     }
 }
 
@@ -696,7 +714,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   [super dealloc];
 }
 
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   unsigned long dataSize;
   unsigned long copySize;
@@ -741,7 +759,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return copySize;
 }
 
-- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
+- (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
 {
   unsigned long dataSize = [_data length];
 
@@ -781,7 +799,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @implementation GSBufferOutputStream
 
-- (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
+- (id) initToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity
 {
   if ((self = [super init]) != nil)
     {
@@ -792,7 +810,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return self;
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   if (buffer == 0)
     {
@@ -864,7 +882,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   [super dealloc];
 }
 
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   if (buffer == 0)
     {
@@ -918,18 +936,17 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @end
 
-
-@class  GSInetInputStream;
-@class  GSInet6InputStream;
-@class  GSInetOutputStream;
-@class  GSInet6OutputStream;
-@class  GSInetServerStream;
-@class  GSInet6ServerStream;
-@class  GSLocalServerStream;
+@interface	GSLocalServerStream : GSServerStream
+@end
 
 @implementation GSServerStream
 
-+ (id) serverStreamToAddr: (NSString*)addr port: (int)port
++ (void) initialize
+{
+  GSMakeWeakPointer(self, "delegate");
+}
+
++ (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port
 {
   GSServerStream *s;
 
@@ -945,9 +962,9 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return AUTORELEASE([[GSLocalServerStream alloc] initToAddr: addr]);
 }
 
-- (id) initToAddr: (NSString*)addr port: (int)port
+- (id) initToAddr: (NSString*)addr port: (NSInteger)port
 {
-  RELEASE(self);
+  DESTROY(self);
   // try inet first, then inet6
   self = [[GSInetServerStream alloc] initToAddr: addr port: port];
   if (!self)
@@ -957,7 +974,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (id) initToAddr: (NSString*)addr
 {
-  RELEASE(self);
+  DESTROY(self);
   return [[GSLocalServerStream alloc] initToAddr: addr];
 }
 

@@ -23,19 +23,17 @@
    */
 
 
-#include "config.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSDebug.h"
+#import "common.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSDebug+GNUstepBase.h"
 
 
 /*
@@ -95,7 +93,7 @@ static SEL	objSel;
   return RETAIN(self);
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return map.nodeCount;
 }
@@ -114,13 +112,13 @@ static SEL	objSel;
     }
   else
     {
-      unsigned		count = map.nodeCount;
+      NSUInteger	count = map.nodeCount;
       SEL		sel = @selector(encodeObject:);
       IMP		imp = [aCoder methodForSelector: sel];
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
       GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
 
-      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+      [aCoder encodeValueOfObjCType: @encode(NSUInteger) at: &count];
       while (node != 0)
 	{
 	  (*imp)(aCoder, sel, node->key.obj);
@@ -131,7 +129,7 @@ static SEL	objSel;
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return map.nodeCount;
 }
@@ -149,17 +147,17 @@ static SEL	objSel;
     }
   else
     {
-      unsigned	count;
+      NSUInteger	count;
       id		key;
       id		value;
       SEL		sel = @selector(decodeValueOfObjCType:at:);
       IMP		imp = [aCoder methodForSelector: sel];
       const char	*type = @encode(id);
 
-      [aCoder decodeValueOfObjCType: @encode(unsigned)
+      [aCoder decodeValueOfObjCType: @encode(NSUInteger)
 	                         at: &count];
 
-      GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
+      GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
       while (count-- > 0)
         {
 	  (*imp)(aCoder, sel, type, &key);
@@ -171,24 +169,24 @@ static SEL	objSel;
 }
 
 /* Designated initialiser */
-- (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (unsigned)c
+- (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (NSUInteger)c
 {
-  unsigned int	i;
+  NSUInteger	i;
 
-  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
   for (i = 0; i < c; i++)
     {
       GSIMapNode	node;
 
       if (keys[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil key"];
 	}
       if (objs[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil value"];
 	}
@@ -214,18 +212,17 @@ static SEL	objSel;
 - (id) initWithDictionary: (NSDictionary*)other
 		copyItems: (BOOL)shouldCopy
 {
-  NSZone	*z = GSObjCZone(self);
-  unsigned	c = [other count];
+  NSZone	*z = [self zone];
+  NSUInteger	c = [other count];
 
   GSIMapInitWithZoneAndCapacity(&map, z, c);
-
   if (c > 0)
     {
       NSEnumerator	*e = [other keyEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
       IMP		otherObj = [other methodForSelector: objSel];
       BOOL		isProxy = [other isProxy];
-      unsigned		i;
+      NSUInteger	i;
 
       for (i = 0; i < c; i++)
 	{
@@ -246,7 +243,7 @@ static SEL	objSel;
 	  k = [k copyWithZone: z];
 	  if (k == nil)
 	    {
-	      IF_NO_GC(AUTORELEASE(self));
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init dictionary with nil key"];
 	    }
@@ -260,7 +257,7 @@ static SEL	objSel;
 	    }
 	  if (o == nil)
 	    {
-	      IF_NO_GC(AUTORELEASE(self));
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init dictionary with nil value"];
 	    }
@@ -282,7 +279,7 @@ static SEL	objSel;
 
 - (BOOL) isEqualToDictionary: (NSDictionary*)other
 {
-  unsigned	count;
+  NSUInteger	count;
 
   if (other == self)
     {
@@ -367,9 +364,9 @@ static SEL	objSel;
 }
 
 /* Designated initialiser */
-- (id) initWithCapacity: (unsigned)cap
+- (id) initWithCapacity: (NSUInteger)cap
 {
-  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), cap);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
 }
 

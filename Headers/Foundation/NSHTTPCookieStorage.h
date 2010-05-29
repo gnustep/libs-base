@@ -26,7 +26,7 @@
 #define __NSHTTPCookieStorage_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -38,17 +38,18 @@ extern "C" {
 @class NSHTTPCookie;
 @class NSURL;
 
+enum {
+  NSHTTPCookieAcceptPolicyAlways,
+  NSHTTPCookieAcceptPolicyNever,
+  NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain
+};
 /**
  * NSHTTPCookieAcceptPolicyAlways Accept all cookies
  * NSHTTPCookieAcceptPolicyNever Reject all cookies
  * NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain Accept cookies
  * only from the main document domain
  */
-typedef enum {
-  NSHTTPCookieAcceptPolicyAlways,
-  NSHTTPCookieAcceptPolicyNever,
-  NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain
-} NSHTTPCookieAcceptPolicy;
+typedef NSUInteger NSHTTPCookieAcceptPolicy;
 
 /**
  * Posted to the distributed notification center when the cookie
@@ -69,8 +70,10 @@ extern NSString * const NSHTTPCookieManagerCookiesChangedNotification;
 
 @interface NSHTTPCookieStorage :  NSObject
 {
+#if	GS_EXPOSE(NSHTTPCookieStorage)
 @private
   void	*_NSHTTPCookieStorageInternal;
+#endif
 }
 
 /**

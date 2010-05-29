@@ -25,9 +25,18 @@
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSZone.h>
+
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#import "Foundation/NSObject.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSGarbageCollector.h"
+#import "Foundation/NSZone.h"
+#else
+#import <Foundation/NSObject.h>
+#import <Foundation/NSException.h>
+#import <Foundation/NSGarbageCollector.h>
+#import <Foundation/NSZone.h>
+#endif
 
 /* To turn assertions on, define GSI_ARRAY_CHECKS */
 #define GSI_ARRAY_CHECKS 1
@@ -107,10 +116,10 @@ extern "C" {
 
 /*
  *	If there is no bitmask defined to supply the types that
- *	may be stored in the array, default to permitting all types.
+ *	may be stored in the array, default to none.
  */
 #ifndef	GSI_ARRAY_TYPES
-#define	GSI_ARRAY_TYPES	GSUNION_ALL
+#define	GSI_ARRAY_TYPES	0
 #endif
 
 #ifndef GSIArrayItem
@@ -145,7 +154,11 @@ extern "C" {
 /*
  *	Generate the union typedef
  */
+#if	defined(GNUSTEP_BASE_INTERNAL)
+#include "GNUstepBase/GSUnion.h"
+#else
 #include <GNUstepBase/GSUnion.h>
+#endif
 
 #endif /* #ifndef GSIArrayItem */
 
@@ -194,14 +207,23 @@ GSIArrayGrow(GSIArray array)
 	}
       next = array->cap + array->old;
       size = next*sizeof(GSIArrayItem);
+#if	GS_WITH_GC
+      tmp = NSAllocateCollectable(size, array->zone ? NSScannedOption : 0);
+#else
       tmp = NSZoneMalloc(array->zone, size);
+#endif
       memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
     }
   else
     {
       next = array->cap + array->old;
       size = next*sizeof(GSIArrayItem);
+#if	GS_WITH_GC
+      tmp = NSReallocateCollectable(array->ptr, size,
+	array->zone ? NSScannedOption : 0);
+#else
       tmp = NSZoneRealloc(array->zone, array->ptr, size);
+#endif
     }
 
   if (tmp == 0)
@@ -231,12 +253,21 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
       /*
        * Statically initialised buffer ... copy into new heap buffer.
        */
+#if	GS_WITH_GC
+      tmp = NSAllocateCollectable(size, array->zone ? NSScannedOption : 0);
+#else
       tmp = NSZoneMalloc(array->zone, size);
+#endif
       memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
     }
   else
     {
+#if	GS_WITH_GC
+      tmp = NSReallocateCollectable(array->ptr, size,
+	array->zone ? NSScannedOption : 0);
+#else
       tmp = NSZoneRealloc(array->zone, array->ptr, size);
+#endif
     }
 
   if (tmp == 0)
@@ -433,7 +464,12 @@ GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
+#if	!defined(GS_NO_RELEASE)
+#if	GS_WITH_GC
+  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
   GSI_ARRAY_RELEASE(array, tmp);
+#endif
 }
 
 static INLINE void
@@ -442,8 +478,13 @@ GSIArrayRemoveLastItem(GSIArray array)
 #ifdef	GSI_ARRAY_CHECKS
   NSCAssert(array->count, NSInvalidArgumentException);
 #endif
-  GSI_ARRAY_RELEASE(array, array->ptr[array->count-1]);
   array->count--;
+#if	!defined(GS_NO_RELEASE)
+  GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#if	GS_WITH_GC
+  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
+#endif
 }
 
 static INLINE void
@@ -457,6 +498,9 @@ GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
+#if	GS_WITH_GC && !defined(GS_NO_RELEASE)
+  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
 }
 
 static INLINE void
@@ -505,6 +549,7 @@ GSIArrayClear(GSIArray array)
 {
   if (array->ptr)
     {
+#if	!GS_WITH_GC
       /*
        * Only free memory if it was dynamically initialised (old > 0)
        */
@@ -512,6 +557,7 @@ GSIArrayClear(GSIArray array)
 	{
 	  NSZoneFree(array->zone, (void*)array->ptr);
 	}
+#endif
       array->ptr = 0;
       array->cap = 0;
     }
@@ -526,6 +572,9 @@ GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
       while (array->count-- > index)
 	{
 	  GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#if	GS_WITH_GC
+  	  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
 	}
 #endif
       array->count = index;
@@ -539,6 +588,9 @@ GSIArrayRemoveAllItems(GSIArray array)
   while (array->count--)
     {
       GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+#if	GS_WITH_GC
+      array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
+#endif
     }
 #endif
   array->count = 0;
@@ -563,7 +615,12 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
   array->cap = capacity;
   array->old = capacity/2;
   size = capacity*sizeof(GSIArrayItem);
+#if	GS_WITH_GC
+  array->ptr = (GSIArrayItem*)NSAllocateCollectable(size,
+    array->zone ? NSScannedOption : 0);
+#else
   array->ptr = (GSIArrayItem*)NSZoneMalloc(zone, size);
+#endif
   return array;
 }
 
@@ -584,9 +641,14 @@ GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
 {
   unsigned int i;
   GSIArray new;
-  new = NSZoneMalloc(zone, sizeof(GSIArray_t));
-  GSIArrayInitWithZoneAndCapacity(new, zone, array->count);
 
+#if	GS_WITH_GC
+  new = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
+  new = NSZoneMalloc(zone, sizeof(GSIArray_t));
+#endif
+
+  GSIArrayInitWithZoneAndCapacity(new, zone, array->count);
   for (i = 0; i < array->count; i++)
     {
       GSI_ARRAY_RETAIN(array, array->ptr[i]);

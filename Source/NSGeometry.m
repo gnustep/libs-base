@@ -34,21 +34,19 @@
 
 /**** Included Headers *******************************************************/
 
-#include "config.h"
+#import "common.h"
 #include <math.h>
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSGeometry.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSNotification.h"
-#include "GSPrivate.h"
+#import "Foundation/NSGeometry.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSNotification.h"
+#import "GSPrivate.h"
 
 static Class	NSStringClass = 0;
 static Class	NSScannerClass = 0;
 static SEL	scanFloatSel;
 static SEL	scanStringSel;
 static SEL	scannerSel;
-static BOOL	(*scanFloatImp)(NSScanner*, SEL, float*);
+static BOOL	(*scanFloatImp)(NSScanner*, SEL, CGFloat*);
 static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
 
@@ -59,10 +57,17 @@ setupCache(void)
     {
       NSStringClass = [NSString class];
       NSScannerClass = [NSScanner class];
-      scanFloatSel = @selector(scanFloat:);
+      if (sizeof(CGFloat) == sizeof(double))
+        {
+          scanFloatSel = @selector(scanDouble:);
+        }
+      else
+        {
+          scanFloatSel = @selector(scanFloat:);
+        }
       scanStringSel = @selector(scanString:intoString:);
       scannerSel = @selector(scannerWithString:);
-      scanFloatImp = (BOOL (*)(NSScanner*, SEL, float*))
+      scanFloatImp = (BOOL (*)(NSScanner*, SEL, CGFloat*))
 	[NSScannerClass instanceMethodForSelector: scanFloatSel];
       scanStringImp = (BOOL (*)(NSScanner*, SEL, NSString*, NSString**))
 	[NSScannerClass instanceMethodForSelector: scanStringSel];
@@ -100,7 +105,7 @@ void
 NSDivideRect(NSRect aRect,
              NSRect *slice,
              NSRect *remainder,
-             float amount,
+             CGFloat amount,
              NSRectEdge edge)
 {
   static NSRect sRect;
@@ -386,5 +391,111 @@ NSRectFromString(NSString* string)
 	  return NSMakeRect(0, 0, 0, 0);
 	}
     }
+}
+
+/* Tests for equality of floats/doubles.
+ * WARNING assumes the values are in the standard IEEE format ...
+ * this may not be true on all systems, though afaik it is the case
+ * on all systems we target.
+ *
+ * We use integer arithmetic for speed, assigning the float/double
+ * to an integer of the same size and then converting any negative
+ * values to twos-complement integer values so that a simple integer
+ * comparison can be done.
+ *
+ * MAX_ULP specified the number of Units in the Last Place by which
+ * the two values may differ and still be considered equal.  A value
+ * of zero means that the two numbers must be identical.
+ *
+ * The way that infinity is represented means that it will be considered
+ * equal to MAX_FLT (or MAX_DBL) unless we are doing an exact comparison
+ * with MAX_ULP set to zero.
+ *
+ * The implementation will also treat two NaN values as being equal, which
+ * is technically wrong ... but is it worth adding a check for that?
+ */
+#define	MAX_ULP	0
+static inline BOOL
+almostEqual(CGFloat A, CGFloat B)
+{
+#if	MAX_ULP == 0
+  return (A == B) ? YES : NO;
+#else	/* MAX_UPL == 0 */
+#if	defined(CGFLOAT_IS_DBL)
+  union {int64_t i; double d;} valA, valB;
+
+  valA.d = A;
+  valB.d = B;
+#if	GS_SIZEOF_LONG == 8
+  if (valA.i < 0)
+    {
+      valA.i = 0x8000000000000000L - valA.i;
+    }
+  if (valB.i < 0)
+    {
+      valB.i = 0x8000000000000000L - valB.i;
+    }
+  if (labs(valA.i - valB.i) <= MAX_ULP)
+    {
+      return YES;
+    }
+#else	/* GS_SIZEOF_LONG == 8 */
+  if (valA.i < 0)
+    {
+      valA.i = 0x8000000000000000LL - valA.i;
+    }
+  if (valB.i < 0)
+    {
+      valB.i = 0x8000000000000000LL - valB.i;
+    }
+  if (llabs(valA.i - valB.i) <= MAX_ULP)
+    {
+      return YES;
+    }
+#endif	/* GS_SIZEOF_LONG == 8 */
+  return NO;
+#else	/* DEFINED(CGFLOAT_IS_DBL) */
+  union {int32_t i; float f;} valA, valB;
+
+  valA.f = A;
+  if (valA.i < 0)
+    {
+      valA.i = 0x80000000 - valA.i;
+    }
+  valB.f = B;
+  if (valB.i < 0)
+    {
+      valB.i = 0x80000000 - valB.i;
+    }
+  if (abs(valA.i - valB.i) <= MAX_ULP)
+    {
+      return YES;
+    }
+  return NO;
+#endif	/* DEFINED(CGFLOAT_IS_DBL) */
+#endif	/* MAX_UPL == 0 */
+}
+
+BOOL
+NSEqualRects(NSRect aRect, NSRect bRect)
+{
+  return (almostEqual(NSMinX(aRect), NSMinX(bRect))
+    && almostEqual(NSMinY(aRect), NSMinY(bRect))
+    && almostEqual(NSWidth(aRect), NSWidth(bRect))
+    && almostEqual(NSHeight(aRect), NSHeight(bRect))) ? YES : NO;
+}
+
+BOOL
+NSEqualSizes(NSSize aSize, NSSize bSize)
+{
+  return (almostEqual(aSize.width, bSize.width)
+    && almostEqual(aSize.height, bSize.height)) ? YES : NO;
+}
+
+BOOL
+NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
+{
+  return (almostEqual(aPoint.x, bPoint.x)
+    && almostEqual(aPoint.y, bPoint.y)) ? YES : NO;
 }
 

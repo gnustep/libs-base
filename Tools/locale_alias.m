@@ -23,13 +23,17 @@
 
 */
 
+#import	"common.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
 #include <ctype.h>
 #include <locale.h>
-#include <Foundation/Foundation.h>
-#include <GNUstepBase/GSLocale.h>
+
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSDictionary.h"
+#import "GNUstepBase/GSLocale.h"
 
 #define MAXSTRING 100
 

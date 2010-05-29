@@ -41,14 +41,16 @@ extern "C" {
  */
 GS_EXPORT NSString * const NSDefaultRunLoopMode;
 
-@interface NSRunLoop : NSObject <GCFinalization>
+@interface NSRunLoop : NSObject
 {
+#if	GS_EXPOSE(NSRunLoop)
   @private
   NSString		*_currentMode;
   NSMapTable		*_contextMap;
   NSMutableArray	*_contextStack;
   NSMutableArray	*_timedPerformers;
   void			*_extra;
+#endif
 }
 
 + (NSRunLoop*) currentRunLoop;
@@ -88,7 +90,7 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 - (void) performSelector: (SEL)aSelector
 		  target: (id)target
 		argument: (id)argument
-		   order: (unsigned int)order
+		   order: (NSUInteger)order
 		   modes: (NSArray*)modes;
 
 - (void) removePort: (NSPort*)port
@@ -119,7 +121,7 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
  * using NSStream, at which point this API will be redundant.
  */
 typedef	enum {
-#ifdef __MINGW32__
+#ifdef __MINGW__
     ET_HANDLE,	/* Watch for an I/O event on a handle.		*/
     ET_RPORT,	/* Watch for message arriving on port.		*/
     ET_WINMSG,	/* Watch for a message on a window handle.	*/
@@ -133,6 +135,17 @@ typedef	enum {
 #endif
 } RunLoopEventType;
 @protocol RunLoopEvents
+/* This is the message sent back to a watcher when an event is observed
+ * by the run loop.
+ * The 'data', 'type' and 'mode' arguments are the same as the arguments
+ * passed to the -addEvent:type:watcher:forMode: method.
+ * The 'extra' argument varies.  For an ET_TRIGGER event, it is the same
+ * as the 'data' argument.  For other events on unix it is the file
+ * descriptor associated with the event (which may be the same as the
+ * 'data' argument, but is not in the case of ET_RPORT).
+ * For windows it will be the handle or the windows message assciated
+ * with the event.
+ */ 
 - (void) receivedEvent: (void*)data
 		  type: (RunLoopEventType)type
 		 extra: (void*)extra

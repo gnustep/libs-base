@@ -25,10 +25,12 @@
    $Date$ $Revision$
 */
 
-#import "config.h"
-#import "GNUstepBase/preface.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+
 
 /**
  *  Simple class for iterating over a collection of objects, usually returned
@@ -74,4 +76,36 @@
   return nil;
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+  IMP nextObject = [self methodForSelector: @selector(nextObject)];
+  int i;
+
+  state->itemsPtr = stackbuf;
+  state->mutationsPtr = (unsigned long*)self;
+  for (i = 0; i < len; i++)
+    {
+      id next = nextObject(self, @selector(nextObject));
+
+      if (nil == next)
+	{
+	  return i;
+	}
+      *(stackbuf+i) = next;
+    }
+  return len;
+}
 @end
+
+/**
+ * objc_enumerationMutation() is called whenever a collection mutates in the
+ * middle of fast enumeration.
+ */
+void objc_enumerationMutation(id obj)
+{
+	[NSException raise: NSGenericException 
+	               format: @"Collection %@ was mutated while being enumerated", 
+	                       obj];
+}

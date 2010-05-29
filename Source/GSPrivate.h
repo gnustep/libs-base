@@ -70,11 +70,7 @@
   unsigned	_count;
   unsigned	_capacity;
   int		_grow_factor;
-}
-@end
-
-@interface GSInlineArray : GSArray
-{
+  int		_version;
 }
 @end
 
@@ -165,11 +161,12 @@ typedef union {
  */
 @interface GSString : NSString
 {
+@public
   GSCharPtr _contents;
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	free: 1;	// Set if the instance owns the
+    unsigned int	owned: 1;	// Set if the instance owns the
 					// _contents buffer
     unsigned int	unused: 2;
     unsigned int	hash: 28;
@@ -183,30 +180,21 @@ typedef union {
  */
 @interface GSMutableString : NSMutableString
 {
-  union {
-    unichar		*u;
-    unsigned char	*c;
-  } _contents;
+@public
+  GSCharPtr _contents;
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;
-    unsigned int	free: 1;
+    unsigned int	owned: 1;
     unsigned int	unused: 2;
     unsigned int	hash: 28;
   } _flags;
-  NSZone	*_zone;
   unsigned int	_capacity;
+  NSZone	*_zone;
 }
 @end
 
-/*
- * Typedef for access to internals of concrete string objects.
- */
-typedef struct {
-  @defs(GSMutableString)
-} GSStr_t;
-typedef	GSStr_t	*GSStr;
-
+typedef	GSMutableString *GSStr;
 
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
@@ -237,17 +225,17 @@ typedef enum {
   NSData	*_d;	// Only valid after initWithCoder:
 }
 - (const void*) bytes;
-- (unsigned) count;
+- (NSUInteger) count;
 - (void) encodeWithCoder: (NSCoder*)aCoder;
 - (id) initWithCoder: (NSCoder*)aCoder;
-- (id) initWithObjCType: (const char*)t count: (int)c at: (const void*)a;
-- (unsigned) size;
+- (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a;
+- (NSUInteger) size;
 - (const char*) type;
 @end
 
 /* Get error information.
  */
-@interface	NSError (GSCategories)
+@interface	NSError (GNUstepBase)
 + (NSError*) _last;
 + (NSError*) _systemError: (long)number;
 @end
@@ -264,7 +252,7 @@ typedef enum {
   NSRunLoop             *loop;
   NSLock                *lock;
   NSMutableArray        *performers;
-#ifdef __MINGW32__
+#ifdef __MINGW__
   HANDLE	        event;
 #else
   int                   inputFd;
@@ -406,17 +394,17 @@ GSPrivateNativeCStringEncoding() GS_ATTRIB_PRIVATE;
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed at the first safe moment.
  */
-void GSPrivateNotifyASAP(void) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyASAP(NSString *mode) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed when the loop is idle.
  */
-void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyIdle(NSString *mode) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for determining whether
  * there are more queued notifications to be processed.
  */
-BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
+BOOL GSPrivateNotifyMore(NSString *mode) GS_ATTRIB_PRIVATE;
 
 /* Function to return the function for searching in a string for a range.
  */
@@ -505,18 +493,30 @@ GSPrivateUnloadModule(FILE *errorStream,
   void (*unloadCallback)(Class, struct objc_category *)) GS_ATTRIB_PRIVATE;
 
 
-/* Memory to use to put executabel code in.
+/* Memory to use to put executable code in.
  */
 @interface      GSCodeBuffer : NSObject
 {
   unsigned      size;
   void          *buffer;
 }
-+ (GSCodeBuffer*) memoryWithSize: (unsigned)_size;
++ (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size;
 - (void*) buffer;
-- (id) initWithSize: (unsigned)_size;
+- (id) initWithSize: (NSUInteger)_size;
 - (void) protect;
 @end
+
+/* Function to safely change the class of an object by 'isa' swizzling
+ * wile maintaining allocation accounting and finalization in a GC world.
+ */
+void
+GSPrivateSwizzle(id o, Class c) GS_ATTRIB_PRIVATE;
+
+BOOL
+GSPrivateIsCollectable(const void *ptr) GS_ATTRIB_PRIVATE;
+
+NSZone*
+GSAtomicMallocZone (void);
 
 #endif /* _GSPrivate_h_ */
 

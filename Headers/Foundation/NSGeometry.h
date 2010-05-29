@@ -52,15 +52,15 @@ extern "C" {
 
 /**
 <example>{
-  float x;
-  float y;
+  CGFloat x;
+  CGFloat y;
 }</example>
  <p>Represents a 2-d cartesian position.</p> */
 typedef struct _NSPoint NSPoint;
 struct _NSPoint
 {
-  float x;
-  float y;
+  CGFloat x;
+  CGFloat y;
 };
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -72,15 +72,15 @@ typedef NSPoint *NSPointPointer;
 
 /**
 <example>{
-  float width;
-  float height;
+  CGFloat width;
+  CGFloat height;
 }</example>
  <p>Floating point rectangle size.</p> */
 typedef struct _NSSize NSSize;
 struct _NSSize
 {
-  float width;
-  float height;
+  CGFloat width;
+  CGFloat height;
 };
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -111,6 +111,13 @@ typedef NSRect *NSRectArray;
 typedef NSRect *NSRectPointer;
 #endif
 
+enum
+{
+  NSMinXEdge = 0,
+  NSMinYEdge = 1,
+  NSMaxXEdge = 2,
+  NSMaxYEdge = 3
+};
 /** Sides of a rectangle.
 <example>
 {
@@ -121,13 +128,7 @@ typedef NSRect *NSRectPointer;
 }
 </example>
  */
-typedef enum _NSRectEdge
-{
-  NSMinXEdge = 0,
-  NSMinYEdge = 1,
-  NSMaxXEdge = 2,
-  NSMaxYEdge = 3
-} NSRectEdge;
+typedef NSUInteger NSRectEdge;
 
 /** Point at 0,0 */
 static const NSPoint NSZeroPoint __attribute__((unused)) = {0.0,0.0};
@@ -156,11 +157,11 @@ static const NSSize NSZeroSize __attribute__((unused)) = {0.0,0.0};
 /** Create Basic Structures... **/
 
 GS_GEOM_SCOPE NSPoint
-NSMakePoint(float x, float y) GS_GEOM_ATTR;
+NSMakePoint(CGFloat x, CGFloat y) GS_GEOM_ATTR;
 
 /** Returns an NSPoint having x-coordinate X and y-coordinate Y. */
 GS_GEOM_SCOPE NSPoint
-NSMakePoint(float x, float y)
+NSMakePoint(CGFloat x, CGFloat y)
 {
   NSPoint point;
 
@@ -170,11 +171,11 @@ NSMakePoint(float x, float y)
 }
 
 GS_GEOM_SCOPE NSSize
-NSMakeSize(float w, float h) GS_GEOM_ATTR;
+NSMakeSize(CGFloat w, CGFloat h) GS_GEOM_ATTR;
 
 /** Returns an NSSize having width w and height h. */
 GS_GEOM_SCOPE NSSize
-NSMakeSize(float w, float h)
+NSMakeSize(CGFloat w, CGFloat h)
 {
   NSSize size;
 
@@ -184,11 +185,11 @@ NSMakeSize(float w, float h)
 }
 
 GS_GEOM_SCOPE NSRect
-NSMakeRect(float x, float y, float w, float h) GS_GEOM_ATTR;
+NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h) GS_GEOM_ATTR;
 
 /** Returns an NSRect having point of origin (x, y) and size {w, h}. */
 GS_GEOM_SCOPE NSRect
-NSMakeRect(float x, float y, float w, float h)
+NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h)
 {
   NSRect rect;
 
@@ -201,81 +202,81 @@ NSMakeRect(float x, float y, float w, float h)
 
 /** Get a Rectangle's Coordinates... **/
 
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMaxX(NSRect aRect) GS_GEOM_ATTR;
 
 /** Returns the greatest x-coordinate value still inside aRect. */
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMaxX(NSRect aRect)
 {
   return aRect.origin.x + aRect.size.width;
 }
 
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMaxY(NSRect aRect) GS_GEOM_ATTR;
 
 /** Returns the greatest y-coordinate value still inside aRect. */
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMaxY(NSRect aRect)
 {
   return aRect.origin.y + aRect.size.height;
 }
 
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMidX(NSRect aRect) GS_GEOM_ATTR;
 
 /** Returns the x-coordinate of aRect's middle point. */
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMidX(NSRect aRect)
 {
   return aRect.origin.x + (aRect.size.width / 2.0);
 }
 
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMidY(NSRect aRect) GS_GEOM_ATTR;
 
 /** Returns the y-coordinate of aRect's middle point. */
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMidY(NSRect aRect)
 {
   return aRect.origin.y + (aRect.size.height / 2.0);
 }
 
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMinX(NSRect aRect) GS_GEOM_ATTR;
 
 /** Returns the least x-coordinate value still inside aRect. */
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMinX(NSRect aRect)
 {
   return aRect.origin.x;
 }
 
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMinY(NSRect aRect) GS_GEOM_ATTR;
 
 /** Returns the least y-coordinate value still inside aRect. */
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSMinY(NSRect aRect)
 {
   return aRect.origin.y;
 }
 
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSWidth(NSRect aRect) GS_GEOM_ATTR;
 
 /** Returns aRect's width. */
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSWidth(NSRect aRect)
 {
   return aRect.size.width;
 }
 
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSHeight(NSRect aRect) GS_GEOM_ATTR;
 
 /** Returns aRect's height. */
-GS_GEOM_SCOPE float
+GS_GEOM_SCOPE CGFloat
 NSHeight(NSRect aRect)
 {
   return aRect.size.height;
@@ -295,12 +296,12 @@ NSIsEmptyRect(NSRect aRect)
 /** Modify a Copy of a Rectangle... **/
 
 GS_GEOM_SCOPE NSRect
-NSOffsetRect(NSRect aRect, float dx, float dy) GS_GEOM_ATTR;
+NSOffsetRect(NSRect aRect, CGFloat dx, CGFloat dy) GS_GEOM_ATTR;
 
 /** Returns the rectangle obtained by translating aRect
  * horizontally by dx and vertically by dy. */
 GS_GEOM_SCOPE NSRect
-NSOffsetRect(NSRect aRect, float dx, float dy)
+NSOffsetRect(NSRect aRect, CGFloat dx, CGFloat dy)
 {
   NSRect rect = aRect;
 
@@ -310,13 +311,16 @@ NSOffsetRect(NSRect aRect, float dx, float dy)
 }
 
 GS_GEOM_SCOPE NSRect
-NSInsetRect(NSRect aRect, float dX, float dY) GS_GEOM_ATTR;
+NSInsetRect(NSRect aRect, CGFloat dX, CGFloat dY) GS_GEOM_ATTR;
 
 /** Returns the rectangle obtained by moving each of aRect's
  * horizontal sides inward by dy and each of aRect's vertical
- * sides inward by dx. */
+ * sides inward by dx.<br />
+ * NB. For MacOS-X compatability, this is permitted to return
+ * a rectanglew with nagative width or height, strange as that seems.
+ */
 GS_GEOM_SCOPE NSRect
-NSInsetRect(NSRect aRect, float dX, float dY)
+NSInsetRect(NSRect aRect, CGFloat dX, CGFloat dY)
 {
   NSRect rect;
 
@@ -334,7 +338,7 @@ GS_EXPORT void
 NSDivideRect(NSRect aRect,
              NSRect *slice,
              NSRect *remainder,
-             float amount,
+             CGFloat amount,
              NSRectEdge edge);
 
 /** Returns a rectangle obtained by expanding aRect minimally
@@ -420,41 +424,18 @@ NSIntersectionRect (NSRect aRect, NSRect bRect)
 
 /** Test geometric relationships... **/
 
-GS_GEOM_SCOPE BOOL
+/** Returns 'YES' iff aRect's and bRect's origin and size are the same. */
+GS_EXPORT BOOL
 NSEqualRects(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
-/** Returns 'YES' iff aRect's and bRect's origin and size are the same. */
-GS_GEOM_SCOPE BOOL
-NSEqualRects(NSRect aRect, NSRect bRect)
-{
-  return ((NSMinX(aRect) == NSMinX(bRect))
-          && (NSMinY(aRect) == NSMinY(bRect))
-          && (NSWidth(aRect) == NSWidth(bRect))
-          && (NSHeight(aRect) == NSHeight(bRect))) ? YES : NO;
-}
-
-GS_GEOM_SCOPE BOOL
-NSEqualSizes(NSSize aSize, NSSize bSize) GS_GEOM_ATTR;
-
 /** Returns 'YES' iff aSize's and bSize's width and height are the same. */
-GS_GEOM_SCOPE BOOL
-NSEqualSizes(NSSize aSize, NSSize bSize)
-{
-  return ((aSize.width == bSize.width)
-          && (aSize.height == bSize.height)) ? YES : NO;
-}
-
-GS_GEOM_SCOPE BOOL
-NSEqualPoints(NSPoint aPoint, NSPoint bPoint) GS_GEOM_ATTR;
+GS_EXPORT BOOL
+NSEqualSizes(NSSize aSize, NSSize bSize) GS_GEOM_ATTR;
 
 /** Returns 'YES' iff aPoint's and bPoint's x- and y-coordinates
  * are the same. */
-GS_GEOM_SCOPE BOOL
-NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
-{
-  return ((aPoint.x == bPoint.x)
-          && (aPoint.y == bPoint.y)) ? YES : NO;
-}
+GS_EXPORT BOOL
+NSEqualPoints(NSPoint aPoint, NSPoint bPoint) GS_GEOM_ATTR;
 
 GS_GEOM_SCOPE BOOL
 NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped) GS_GEOM_ATTR;

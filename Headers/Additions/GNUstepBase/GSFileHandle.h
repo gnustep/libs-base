@@ -25,19 +25,25 @@
 #ifndef __GSFileHandle_h_GNUSTEP_BASE_INCLUDE
 #define __GSFileHandle_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSFileHandle.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSRunLoop.h>
+#import <Foundation/NSFileHandle.h>
+#import <Foundation/NSArray.h>
+#import <Foundation/NSDictionary.h>
+#import <Foundation/NSRunLoop.h>
 
-#include <GNUstepBase/GSConfig.h>
+#import <GNUstepBase/GSConfig.h>
 
 #if	USE_ZLIB
 #include <zlib.h>
 #endif
 
-@interface GSFileHandle : NSFileHandle <RunLoopEvents, GCFinalization>
+/**
+ * DO NOT USE ... this header is here only for the SSL file handle support
+ * and is not intended to be used by anyone else ... it is subject to
+ * change or removal without warning.
+ */
+@interface GSFileHandle : NSFileHandle <RunLoopEvents>
 {
+#if	GS_EXPOSE(GSFileHandle)
   int			descriptor;
   BOOL			closeOnDealloc;
   BOOL			isStandardFile;
@@ -59,8 +65,9 @@
 #if	USE_ZLIB
   gzFile		gzDescriptor;
 #endif
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   WSAEVENT  		event;
+#endif
 #endif
 }
 
@@ -92,7 +99,7 @@
 - (void) setNonBlocking: (BOOL)flag;
 - (void) postReadNotification;
 - (void) postWriteNotification;
-- (int) read: (void*)buf length: (int)len;
+- (NSInteger) read: (void*)buf length: (NSUInteger)len;
 - (void) receivedEvent: (void*)data
 		  type: (RunLoopEventType)type
 	         extra: (void*)extra
@@ -101,7 +108,7 @@
 - (BOOL) useCompression;
 - (void) watchReadDescriptorForModes: (NSArray*)modes;
 - (void) watchWriteDescriptor;
-- (int) write: (const void*)buf length: (int)len;
+- (NSInteger) write: (const void*)buf length: (NSUInteger)len;
 
 @end
 

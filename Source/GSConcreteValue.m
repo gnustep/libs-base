@@ -22,13 +22,10 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSObjCRuntime.h"
-#import "GNUstepBase/preface.h"
 
 #define TYPE_ORDER 0
 #include "GSConcreteValueTemplate.m"

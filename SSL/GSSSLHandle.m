@@ -31,7 +31,7 @@
 #endif
 #endif
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #ifndef __WIN32__
 #define __WIN32__
 #endif
@@ -48,14 +48,23 @@
   #include <openssl/ssl.h>
   #include <openssl/rand.h>
   #include <openssl/err.h>
+  #include <openssl/crypto.h>
   #undef id
 
-#include <Foundation/Foundation.h>
+#define	EXPOSE_GSFileHandle_IVARS	1
+#import "Foundation/NSDebug.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSUserDefaults.h"
 
-#include <GNUstepBase/GSFileHandle.h>
-#include "GSPrivate.h"
+#import "GNUstepBase/GSFileHandle.h"
+#import "GSPrivate.h"
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 #include <winsock2.h>
 #else
 #include <time.h>
@@ -65,7 +74,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
-#endif /* __MINGW32__ */
+#endif /* __MINGW__ */
 
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -107,7 +116,37 @@ sslError(int err)
 }
 
 
-@interface	GSSSLHandle : GSFileHandle <GCFinalization>
+static NSLock	**locks = 0;
+
+static void
+locking_function(int mode, int n, const char *file, int line) 
+{ 
+  if (mode & CRYPTO_LOCK)
+    { 
+      [locks[n] lock];
+    }
+  else
+    { 
+      [locks[n] unlock];
+    } 
+} 
+
+#if	defined(HAVE_CRYPTO_THREADID_SET_CALLBACK)
+static void
+threadid_function(CRYPTO_THREADID *ref) 
+{ 
+  CRYPTO_THREADID_set_pointer(ref, GSCurrentThread());
+} 
+#else
+static unsigned long
+threadid_function() 
+{ 
+  return (unsigned long) GSCurrentThread();
+} 
+#endif
+
+
+@interface	GSSSLHandle : GSFileHandle
 {
   SSL_CTX	*ctx;
   SSL		*ssl;
@@ -136,8 +175,22 @@ static BOOL	permitSSLv2 = NO;
   if (self == [GSSSLHandle class])
     {
       NSUserDefaults	*defs;
+      unsigned		count;
 
       SSL_library_init();
+
+      count = CRYPTO_num_locks();
+      locks = (NSLock**)malloc(count * sizeof(NSLock*));
+      while (count-- > 0)
+	{
+	  locks[count] = [NSLock new];
+	}
+      CRYPTO_set_locking_callback(locking_function); 
+#if	defined(HAVE_CRYPTO_THREADID_SET_CALLBACK)
+      CRYPTO_THREADID_set_callback(threadid_function); 
+#else
+      CRYPTO_set_id_callback(threadid_function); 
+#endif
 
       /*
        * If there is no /dev/urandom for ssl to use, we must seed the
@@ -150,7 +203,6 @@ static BOOL	permitSSLv2 = NO;
 	  inf = [[[NSProcessInfo processInfo] globallyUniqueString] UTF8String];
 	  RAND_seed(inf, strlen(inf));
 	}
-
       defs = [NSUserDefaults standardUserDefaults];
       permitSSLv2 = [defs boolForKey: @"GSPermitSSLv2"];
       [[NSNotificationCenter defaultCenter]
@@ -167,13 +219,13 @@ static BOOL	permitSSLv2 = NO;
   [super closeFile];
 }
 
-- (void) gcFinalize
+- (void) finalize
 {
   [self sslDisconnect];
-  [super gcFinalize];
+  [super finalize];
 }
 
-- (int) read: (void*)buf length: (int)len
+- (int) read: (void*)buf length: (NSUInteger)len
 {
   if (connected)
     {
@@ -217,7 +269,7 @@ static BOOL	permitSSLv2 = NO;
    * Set non-blocking so accept won't hang if remote end goes wrong.
    */
   [self setNonBlocking: YES];
-  RETAIN(self);		// Don't get destroyed during runloop
+  IF_NO_GC([self retain];)		// Don't get destroyed during runloop
   loop = [NSRunLoop currentRunLoop];
   ret = SSL_set_fd(ssl, descriptor);
   if (ret == 1)
@@ -225,7 +277,7 @@ static BOOL	permitSSLv2 = NO;
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
       if (ssl == 0)
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  return NO;
 	}
       ret = SSL_accept(ssl);
@@ -254,7 +306,7 @@ static BOOL	permitSSLv2 = NO;
 	    {
 	      RELEASE(when);
 	      RELEASE(final);
-	      RELEASE(self);
+	      DESTROY(self);
 	      return NO;
 	    }
 	  ret = SSL_accept(ssl);
@@ -271,7 +323,8 @@ static BOOL	permitSSLv2 = NO;
       RELEASE(final);
       if (err != SSL_ERROR_NONE)
 	{
-	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
+	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE
+	    && (err != SSL_ERROR_SYSCALL || errno != 0))
 	    {
 	      /*
 	       * Some other error ... not just a timeout or disconnect
@@ -279,12 +332,12 @@ static BOOL	permitSSLv2 = NO;
 	      NSWarnLog(@"unable to accept SSL connection from %@:%@ - %@",
 		address, service, sslError(err));
 	    }
-	  RELEASE(self);
+	  DESTROY(self);
 	  return NO;
 	}
     }
   connected = YES;
-  RELEASE(self);
+  DESTROY(self);
   return YES;
 }
 
@@ -319,7 +372,7 @@ static BOOL	permitSSLv2 = NO;
     {
       ssl = SSL_new(ctx);
     }
-  RETAIN(self);		// Don't get destroyed during runloop
+  IF_NO_GC([self retain];)		// Don't get destroyed during runloop
   /*
    * Set non-blocking so accept won't hang if remote end goes wrong.
    */
@@ -331,7 +384,7 @@ static BOOL	permitSSLv2 = NO;
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
       if (ssl == 0)
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  return NO;
 	}
       ret = SSL_connect(ssl);
@@ -360,7 +413,7 @@ static BOOL	permitSSLv2 = NO;
 	    {
 	      RELEASE(when);
 	      RELEASE(final);
-	      RELEASE(self);
+	      DESTROY(self);
 	      return NO;
 	    }
 	  ret = SSL_connect(ssl);
@@ -385,12 +438,12 @@ static BOOL	permitSSLv2 = NO;
 	      NSLog(@"unable to make SSL connection to %@:%@ - %@",
 		address, service, sslError(err));
 	    }
-	  RELEASE(self);
+	  DESTROY(self);
 	  return NO;
 	}
     }
   connected = YES;
-  RELEASE(self);
+  DESTROY(self);
   return YES;
 }
 
@@ -463,7 +516,7 @@ static BOOL	permitSSLv2 = NO;
     }
 }
 
-- (int) write: (const void*)buf length: (int)len
+- (int) write: (const void*)buf length: (NSUInteger)len
 {
   if (connected)
     {

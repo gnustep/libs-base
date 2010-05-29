@@ -26,7 +26,7 @@
 #define __NSHTTPCookie_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -43,8 +43,8 @@ extern "C" {
 extern NSString * const NSHTTPCookieComment; /** Obtain text of the comment */
 extern NSString * const NSHTTPCookieCommentURL; /** Obtain the comment URL */
 extern NSString * const NSHTTPCookieDiscard; /** Obtain the sessions discard setting */
-extern NSString * const NSHTTPCookieDomain; /** Obrain cookie domain */
-extern NSString * const NSHTTPCookieExpires; /** Obrain cookie expiry date */
+extern NSString * const NSHTTPCookieDomain; /** Obtain cookie domain */
+extern NSString * const NSHTTPCookieExpires; /** Obtain cookie expiry date */
 extern NSString * const NSHTTPCookieMaximumAge; /** Obtain maximum age (expiry) */
 extern NSString * const NSHTTPCookieName; /** Obtain name of cookie */
 extern NSString * const NSHTTPCookieOriginURL; /** Obtain cookie origin URL */
@@ -65,8 +65,10 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
  */
 @interface NSHTTPCookie :  NSObject
 {
+#if	GS_EXPOSE(NSHTTPCookie)
 @private
   void	*_NSHTTPCookieInternal;
+#endif
 }
 
 /**
@@ -106,7 +108,7 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
 /**
  * Returns the domain to which the cookie should be sent.<br />
  * If there is a leading dot then subdomains should also receive the
- * coockie as specified in RFC 2965.
+ * cookie as specified in RFC 2965.
  */
 - (NSString *) domain;
 
@@ -243,7 +245,7 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
  * Returns 0 for an unversioned Netscape style cookie or a
  * positive integer for a versioned cookie.
  */
-- (unsigned) version;
+- (NSUInteger) version;
 
 @end
 

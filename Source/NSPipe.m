@@ -24,12 +24,12 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSDebug.h"
-#include "GSPrivate.h"
+#import "common.h"
+
+#define	EXPOSE_NSPipe_IVARS	1
+
+#import "Foundation/NSFileHandle.h"
+#import "GSPrivate.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -57,8 +57,8 @@
 
 - (void) dealloc
 {
-  RELEASE(readHandle);
-  RELEASE(writeHandle);
+  RELEASE(_readHandle);
+  RELEASE(_writeHandle);
   [super dealloc];
 }
 
@@ -67,15 +67,15 @@
   self = [super init];
   if (self != nil)
     {
-#ifndef __MINGW32__
+#ifndef __MINGW__
       int	p[2];
 
       if (pipe(p) == 0)
         {
-          readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]
-						     closeOnDealloc: YES];
-          writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]
+          _readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]
 						      closeOnDealloc: YES];
+          _writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]
+						       closeOnDealloc: YES];
         }
       else
 	{
@@ -87,15 +87,15 @@
       HANDLE readh, writeh;
 
       saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-      saAttr.bInheritHandle = TRUE;
+      saAttr.bInheritHandle = FALSE;
       saAttr.lpSecurityDescriptor = NULL;
 
       if (CreatePipe(&readh, &writeh, &saAttr, 0) != 0)
         {
-          readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh
-						   closeOnDealloc: YES];
-          writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
+          _readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh
 						    closeOnDealloc: YES];
+          _writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
+						     closeOnDealloc: YES];
         }
       else
 	{
@@ -112,7 +112,7 @@
  */
 - (NSFileHandle*) fileHandleForReading
 {
-  return readHandle;
+  return _readHandle;
 }
 
 /**
@@ -120,7 +120,7 @@
  */
 - (NSFileHandle*) fileHandleForWriting
 {
-  return writeHandle;
+  return _writeHandle;
 }
 
 @end

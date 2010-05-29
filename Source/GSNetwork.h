@@ -38,7 +38,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#if     defined(__MINGW32__)
+#if     defined(__MINGW32__) || defined(__MINGW64__)
 
 #include <io.h>
 #include <winsock2.h>
@@ -57,6 +57,7 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #ifndef	AF_LOCAL
 #define	AF_LOCAL	AF_UNIX
@@ -71,7 +72,7 @@
 #define GSNETERROR      errno
 #define GSWOULDBLOCK    (errno == EINPROGRESS)
 
-#endif  /* __MINGW32__ */
+#endif  /* __MINGW__ */
 
 #ifndef INADDRSZ
 #define INADDRSZ        4
@@ -81,8 +82,10 @@
 #define IN6ADDRSZ       16
 #endif
 
-#ifndef	socklen_t
-#define	socklen_t	uint32_t
+#if     !defined(HAVE_SOCKLEN_T)
+#  if   !defined(socklen_t)
+#    define	socklen_t	uint32_t
+#  endif
 #endif
 
 #endif

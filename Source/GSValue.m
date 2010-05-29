@@ -22,15 +22,11 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSZone.h"
-#import "Foundation/NSObjCRuntime.h"
-#import "GNUstepBase/preface.h"
 
 @interface GSValue : NSValue
 {
@@ -84,7 +80,7 @@ typeSize(const char* type)
   if (!value || !type)
     {
       NSLog(@"Tried to create NSValue with NULL value or NULL type");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -96,15 +92,15 @@ typeSize(const char* type)
       if (size < 0)
 	{
 	  NSLog(@"Tried to create NSValue with invalid Objective-C type");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
       if (size > 0)
 	{
-	  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
+	  data = (void *)NSZoneMalloc([self zone], size);
 	  memcpy(data, value, size);
 	}
-      objctype = (char *)NSZoneMalloc(GSObjCZone(self), strlen(type)+1);
+      objctype = (char *)NSZoneMalloc([self zone], strlen(type)+1);
       strcpy(objctype, type);
     }
   return self;
@@ -113,9 +109,9 @@ typeSize(const char* type)
 - (void) dealloc
 {
   if (objctype != 0)
-    NSZoneFree(GSObjCZone(self), objctype);
+    NSZoneFree([self zone], objctype);
   if (data != 0)
-    NSZoneFree(GSObjCZone(self), data);
+    NSZoneFree([self zone], data);
   [super dealloc];
 }
 
@@ -153,7 +149,7 @@ typeSize(const char* type)
 {
   if (aValue == nil)
     return NO;
-  if (GSObjCClass(aValue) != GSObjCClass(self))
+  if (object_getClass(aValue) != object_getClass(self))
     return NO;
   if (strcmp(objctype, ((GSValue*)aValue)->objctype) != 0)
     return NO;

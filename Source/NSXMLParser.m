@@ -4,6 +4,8 @@
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: May 2004
 
+   SloppyParser additions based on code by Nikolaus Schaller
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -23,16 +25,17 @@
 
    */
 
-#include "config.h"
-#include <Foundation/NSArray.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSXMLParser.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSNull.h>
+#import "common.h"
+#define	EXPOSE_NSXMLParser_IVARS	1
+#import "Foundation/NSArray.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSXMLParser.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSNull.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 
@@ -48,7 +51,7 @@ static  NSNull  *null = nil;
 @interface      GSSloppyXMLParser : NSXMLParser
 @end
 
-#include <Additions/GNUstepBase/GSXML.h>
+#include <GNUstepBase/GSXML.h>
 
 @interface	NSXMLSAXHandler : GSSAXHandler
 {
@@ -65,6 +68,12 @@ static  NSNull  *null = nil;
 @end
 
 @implementation	NSXMLSAXHandler
+
++ (void) initialize
+{
+  GSMakeWeakPointer(self, "_delegate");
+  GSMakeWeakPointer(self, "_owner");
+}
 
 - (void) dealloc
 {
@@ -537,12 +546,12 @@ static  NSNull  *null = nil;
 @end
 
 @implementation NSXMLParser (NSXMLParserLocatorAdditions)
-- (int) columnNumber
+- (NSInteger) columnNumber
 {
   return [myParser columnNumber];
 }
 
-- (int) lineNumber
+- (NSInteger) lineNumber
 {
   return [myParser lineNumber];
 }
@@ -588,7 +597,8 @@ static  NSNull  *null = nil;
 
 @end
 
-static NSString *UTF8STR(const void *ptr, int len)
+static inline NSString *
+NewUTF8STR(const void *ptr, int len)
 {
   NSString	*s;
 
@@ -596,8 +606,8 @@ static NSString *UTF8STR(const void *ptr, int len)
 			       length: len
 			     encoding: NSUTF8StringEncoding];
   if (s == nil)
-    NSLog(@"could not convert to UTF8 string! bytes=%08x len=%d", ptr, len);
-  return AUTORELEASE(s);
+    NSLog(@"could not convert to UTF8 string! bytes=%p len=%d", ptr, len);
+  return s;
 }
 
 typedef struct NSXMLParserIvarsType
@@ -615,16 +625,31 @@ typedef struct NSXMLParserIvarsType
   BOOL shouldReportNamespacePrefixes;
   BOOL shouldResolveExternalEntities;
   BOOL acceptHTML;			// be lazy with bad tag nesting
+  IMP	didEndElement;
+  IMP	didEndMappingPrefix;
+  IMP	didStartElement;
+  IMP	didStartMappingPrefix;
+  IMP	foundCDATA;
+  IMP	foundCharacters;
+  IMP	foundComment;
+  
 } NSXMLParserIvars;
+
+static SEL	didEndElementSel = 0;
+static SEL	didEndMappingPrefixSel;
+static SEL	didStartElementSel;
+static SEL	didStartMappingPrefixSel;
+static SEL	foundCDATASel;
+static SEL	foundCharactersSel;
+static SEL	foundCommentSel;
 
 @implementation SloppyXMLParser
 
 #define EXTRA_DEBUG     0
 
-typedef struct { @defs(NSXMLParser) } *xp;
-#define _parser (((xp)self)->_parser)
-#define _handler (((xp)self)->_handler)
-#define	this		((NSXMLParserIvars*)_parser)
+#define _parser (self->_parser)
+#define _handler (self->_handler)
+#define	this	((NSXMLParserIvars*)_parser)
 #define	_del	((id)_handler)
 
 + (void) initialize
@@ -633,6 +658,23 @@ typedef struct { @defs(NSXMLParser) } *xp;
     {
       null = RETAIN([NSNull null]);
     }
+  if (didEndElementSel == 0)
+    {
+      didEndElementSel
+	= @selector(parser:didEndElement:namespaceURI:qualifiedName:);
+      didEndMappingPrefixSel
+        = @selector(parser:didEndMappingPrefix:);
+      didStartElementSel
+= @selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:);
+      didStartMappingPrefixSel
+	= @selector(parser:didStartMappingPrefix:toURI:);
+      foundCDATASel
+	= @selector(parser:foundCDATA:);
+      foundCharactersSel
+	= @selector(parser:foundCharacters:);
+      foundCommentSel
+	= @selector(parser:foundComment:);
+    }
 }
 
 - (void) abortParsing
@@ -640,7 +682,7 @@ typedef struct { @defs(NSXMLParser) } *xp;
   this->abort = YES;
 }
 
-- (int) columnNumber
+- (NSInteger) columnNumber
 {
   return this->column;
 }
@@ -693,14 +735,85 @@ typedef struct { @defs(NSXMLParser) } *xp;
   return self;
 }
 
-- (int) lineNumber
+- (NSInteger) lineNumber
 {
   return this->line;
 }
 
 - (void) setDelegate: (id)delegate
 {
-  _handler = delegate;
+  if (_handler != delegate)
+    {
+      _handler = delegate;
+
+      if ([_del respondsToSelector: didEndElementSel])
+	{
+	  this->didEndElement = [_del methodForSelector: didEndElementSel];
+	}
+      else
+	{
+	  this->didEndElement = 0;
+	}
+
+      if ([_del respondsToSelector: didEndMappingPrefixSel])
+	{
+	  this->didEndMappingPrefix
+	    = [_del methodForSelector: didEndMappingPrefixSel];
+	}
+      else
+	{
+	  this->didEndMappingPrefix = 0;
+	}
+
+      if ([_del respondsToSelector: didStartElementSel])
+	{
+	  this->didStartElement = [_del methodForSelector: didStartElementSel];
+	}
+      else
+	{
+	  this->didStartElement = 0;
+	}
+
+      if ([_del respondsToSelector: didStartMappingPrefixSel])
+	{
+	  this->didStartMappingPrefix
+	    = [_del methodForSelector: didStartMappingPrefixSel];
+	}
+      else
+	{
+	  this->didStartMappingPrefix = 0;
+	}
+
+      if ([_del respondsToSelector: foundCDATASel])
+	{
+	  this->foundCDATA
+	    = [_del methodForSelector: foundCDATASel];
+	}
+      else
+	{
+	  this->foundCDATA = 0;
+	}
+
+      if ([_del respondsToSelector: foundCharactersSel])
+	{
+	  this->foundCharacters
+	    = [_del methodForSelector: foundCharactersSel];
+	}
+      else
+	{
+	  this->foundCharacters = 0;
+	}
+
+      if ([_del respondsToSelector: foundCommentSel])
+	{
+	  this->foundComment
+	    = [_del methodForSelector: foundCommentSel];
+	}
+      else
+	{
+	  this->foundComment = 0;
+	}
+    }
 }
 
 - (NSError *) parserError
@@ -715,17 +828,26 @@ typedef struct { @defs(NSXMLParser) } *xp;
 
 #define cget() ((this->cp < this->cend)?(this->column++, *this->cp++): -1)
 
-- (BOOL) _parseError: (NSString *)message
+- (BOOL) _parseError: (NSString *)message code: (NSInteger)code
 {
 #if EXTRA_DEBUG
   NSLog(@"XML parseError: %@", message);
 #endif
-  NSError *err = nil;
+  NSDictionary *info = nil;
 
-  ASSIGN(this->error, err);
-  this->abort = YES;  // break look
+  [this->error release];
+  if (message != nil)
+    {
+      info = [[NSDictionary alloc] initWithObjectsAndKeys:
+	message, NSLocalizedFailureReasonErrorKey, nil];
+    }
+  this->error = [[NSError alloc] initWithDomain: NSXMLParserErrorDomain
+					   code: code
+				       userInfo: info];
+  [info release];
+  this->abort = YES;
   if ([_del respondsToSelector: @selector(parser:parseErrorOccurred:)])
-    [_del parser: self parseErrorOccurred: this->error];  // pass error
+    [_del parser: self parseErrorOccurred: this->error];
   return NO;
 }
 
@@ -753,8 +875,7 @@ typedef struct { @defs(NSXMLParser) } *xp;
 {
   NSString      *tag = [this->tagPath lastObject];
 
-  if ([_del respondsToSelector:
-    @selector(parser:didEndElement:namespaceURI:qualifiedName:)])
+  if (this->didEndElement != 0)
     {
       NSString  *qualified = nil;
       NSString  *uri = nil;
@@ -772,16 +893,13 @@ typedef struct { @defs(NSXMLParser) } *xp;
             }
           uri = [self _uriForPrefix: p];
         }
-      [_del parser: self
-        didEndElement: tag
-        namespaceURI: uri
-        qualifiedName: qualified];
+      (*this->didEndElement)(_del,
+	didEndElementSel, self, tag, uri, qualified);
     }
 
   if (this->shouldReportNamespacePrefixes)
     {
-      if ([_del respondsToSelector:
-        @selector(parser:didEndMappingPrefix:)])
+      if (this->didEndMappingPrefix != 0)
         {
           id    d = [this->namespaces lastObject];
 
@@ -792,7 +910,8 @@ typedef struct { @defs(NSXMLParser) } *xp;
 
               while ((k = [e nextObject]) != nil)
                 {
-                  [_del parser: self didEndMappingPrefix: k];
+                  (*this->didEndMappingPrefix)(_del,
+		    didEndMappingPrefixSel, self, k);
                 }
             }
         }
@@ -845,15 +964,6 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #endif
 	  return;
 	}
-      else if ([tag isEqualToString: @"!CDATA"])
-	{
-          // pass through as NSData
-          // parser: foundCDATA:   
-#if EXTRA_DEBUG
-NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-#endif
-          return;
-	}
       else
         {
           NSMutableDictionary   *ns = nil;
@@ -879,10 +989,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 {
                   if (ns == nil)
                     {
-                      ns = [NSMutableDictionary dictionary];
+                      ns = [NSMutableDictionary new];
                       if (this->shouldProcessNamespaces)
                         {
-                          attr = AUTORELEASE([attributes mutableCopy]);
+                          attr = [attributes mutableCopy];
                         }
                     }
                   uri = [attributes objectForKey: k];
@@ -893,12 +1003,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                     }
                   if (this->shouldReportNamespacePrefixes)
                     {
-                      if ([_del respondsToSelector:
-                        @selector(parser:didStartMappingPrefix:toURI:)])
+                      if (this->didStartMappingPrefix != 0)
                         {
-                          [_del parser: self
-                            didStartMappingPrefix: prefix
-                            toURI: uri];
+			  (*this->didStartMappingPrefix)(_del,
+			    didStartMappingPrefixSel, self, prefix, uri);
                         }
                     }
                   if (attr != nil)
@@ -911,9 +1019,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
           [this->tagPath addObject: tag];
           [this->namespaces addObject: ((ns == nil) ? (id)null : (id)ns)];
 
-          if ([_del respondsToSelector:
-  @selector(parser:didStartElement:namespaceURI:qualifiedName:attributes:)])
-            {
+	  if (this->didStartElement != 0)
+	    {
               if (this->shouldProcessNamespaces)
                 {
                   NSRange   r = [tag rangeOfString: @":"];
@@ -932,12 +1039,11 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                   qualified = nil;
                   uri = nil;
                 }
-              [_del parser: self
-                didStartElement: tag
-                namespaceURI: uri
-                qualifiedName: qualified
-                attributes: attributes];
+	      (*this->didStartElement)(_del,
+		didStartElementSel, self, tag, uri, qualified, attributes);
             }
+	  if (ns != nil) [ns release];
+	  if (attr != nil) [attr release];
         }
     }
   else
@@ -960,17 +1066,16 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	{
 	  [self _parseError: [NSString stringWithFormat:
 	    @"tag nesting error (</%@> expected, </%@> found)",
-	    [this->tagPath lastObject], tag]];
+	    [this->tagPath lastObject], tag]
+	    code: NSXMLParserNotWellBalancedError];
 	  return;
 	}
-
       [self _closeLastTag];
     }
 }
 
-- (NSString *) _entity
+- (BOOL) _parseEntity: (NSString**)result
 {
-// parse &xxx; sequence
   int c;
   const unsigned char *ep = this->cp;  // should be position behind &
   int len;
@@ -982,76 +1087,125 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
   } while (c != EOF && c != '<' && c != ';');
 
   if (c != ';')
-    return nil; // invalid sequence - end of file or missing ; before next tag
+    {
+      // invalid sequence - end of file or missing ; before next tag
+      return NO;
+    }
   len = this->cp - ep - 1;
+
   if (*ep == '#')
     {
-// &#ddd; or &#xhh;
+      // &#ddd; or &#xhh;
       // !!! ep+1 is not 0-terminated - but by ;!!
-    if (sscanf((char *)ep+1, "x%x;", &val))
-      return [NSString stringWithFormat: @"%C", val];  // &#xhh; hex value
-    else if (sscanf((char *)ep+1, "%d;", &val))
-      return [NSString stringWithFormat: @"%C", val];  // &ddd; decimal value
+      if (sscanf((char *)ep+1, "x%x;", &val))
+	{
+	  // &#xhh; hex value
+	  if (result != 0)
+	    {
+	      *result = [[NSString alloc] initWithFormat: @"%C", val];
+	    }
+	  return YES;
+	}
+      else if (sscanf((char *)ep+1, "%d;", &val))
+	{
+	  // &ddd; decimal value
+	  if (result != 0)
+	    {
+	      *result = [[NSString alloc] initWithFormat: @"%C", val];
+	    }
+	  return YES;
+	}
     }
   else
     {
-// the five predefined entities
-    if (len == 3 && strncmp((char *)ep, "amp", len) == 0)
-      return @"&";
-    if (len == 2 && strncmp((char *)ep, "lt", len) == 0)
-      return @"<";
-    if (len == 2 && strncmp((char *)ep, "gt", len) == 0)
-      return @">";
-    if (len == 4 && strncmp((char *)ep, "quot", len) == 0)
-      return @"\"";
-    if (len == 4 && strncmp((char *)ep, "apos", len) == 0)
-      return @"'";
+      // the five predefined entities
+      if (len == 3 && strncmp((char *)ep, "amp", len) == 0)
+	{
+	  if (result != 0) *result = @"&";
+	  return YES;
+	}
+      else if (len == 2 && strncmp((char *)ep, "lt", len) == 0)
+	{
+	  if (result != 0) *result = @"<";
+	  return YES;
+	}
+      else if (len == 2 && strncmp((char *)ep, "gt", len) == 0)
+	{
+	  if (result != 0) *result = @">";
+	  return YES;
+	}
+      else if (len == 4 && strncmp((char *)ep, "quot", len) == 0)
+	{
+	  if (result != 0) *result = @"\"";
+	  return YES;
+	}
+      else if (len == 4 && strncmp((char *)ep, "apos", len) == 0)
+	{
+	  if (result != 0) *result = @"'";
+	  return YES;
+	}
     }
-  entity = UTF8STR(ep, len);
+  entity = NewUTF8STR(ep, len);
+
 #if 1
   NSLog(@"NSXMLParser: unrecognized entity: &%@;", entity);
 #endif
 //  entity=[entitiesTable objectForKey: entity];  // look up string in entity translation table
-  if (!entity)
-    entity=@"&??;";  // unknown entity
-  return entity;
+
+  if (entity == nil)
+    {
+      entity = @"&??;";  // unknown entity
+    }
+  if (result != 0)
+    {
+      *result = entity;
+    }
+  return YES;
 }
 
-- (NSString *) _qarg
+- (NSString *) _newQarg
 {
 // get argument (might be quoted)
   const unsigned char *ap = --this->cp;  // argument start pointer
   int c = cget();  // refetch first character
 
 #if EXTRA_DEBUG
-  NSLog(@"_qarg: %02x %c", c, isprint(c)?c: ' ');
+  NSLog(@"_newQarg: %02x %c", c, isprint(c)?c: ' ');
 #endif
   if (c == '\"')
     {
-// quoted argument
-      do {
-        c = cget();
-        if (c == EOF)
-          return nil;  // unterminated!
-      } while (c != '\"');
-    return UTF8STR(ap + 1, this->cp - ap - 2);
+      do
+	{
+	  c = cget();
+	  if (c == EOF)
+	    {
+	      return nil;  // unterminated!
+	    }
+	}
+      while (c != '\"');
+      return NewUTF8STR(ap + 1, this->cp - ap - 2);
     }
   if (c == '\'')
     {
-// apostrophed argument
-    do {
-      c = cget();
-      if (c == EOF)
-        return nil;  // unterminated!
-    } while (c != '\'');
-    return UTF8STR(ap + 1, this->cp - ap - 2);
+      do
+	{
+	  c = cget();
+	  if (c == EOF)
+	    {
+	      return nil;  // unterminated!
+	    }
+	}
+      while (c != '\'');
+      return NewUTF8STR(ap + 1, this->cp - ap - 2);
     }
+  /* strict XML requires quoting (?)
   if (!this->acceptHTML)
-    ;  // strict XML requires quoting (?)
+    ;
+  */
   while (!isspace(c) && c != '>' && c != '/' && c != '?' && c != '=' &&c != EOF)
     c = cget();
   this->cp--;  // go back to terminating character
-  return UTF8STR(ap, this->cp - ap);
+  return NewUTF8STR(ap, this->cp - ap);
 }
 
 - (BOOL) parse
@@ -1065,7 +1219,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
       || strncmp((char *)this->cp, "<?xml ", 6) != 0))
     {
       // not a valid XML document start
-      return [self _parseError: @"missing <?xml > preamble"];
+      return [self _parseError: @"missing <?xml > preamble"
+	code: NSXMLParserDocumentStartError];
     }
   c = cget();  // get first character
   while (!this->abort)
@@ -1095,11 +1250,14 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                   /* check for whitespace only - might set/reset
                    * a flag to indicate so
                    */
-                  if ([_del respondsToSelector:
-                    @selector(parser:foundCharacters:)])
+                  if (this->foundCharacters != 0)
                     {
-                      [_del parser: self foundCharacters:
-                        UTF8STR(vp, this->cp - vp - 1)];
+		      NSString	*s;
+
+		      s = NewUTF8STR(vp, this->cp - vp - 1);
+                      (*this->foundCharacters)(_del,
+			foundCharactersSel, self, s);
+		      [s release];
                     }
                   vp = this->cp;
                 }
@@ -1120,17 +1278,17 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                     {
                       /* strict XML nesting error
                        */
-                      return [self _parseError: @"unexpected end of file"];
+                      return [self _parseError: @"unexpected end of file"
+			code: NSXMLParserNotWellBalancedError];
                     }
                 while ([this->tagPath count] > 0)
                   {
                     // lazily close all open tags
-                  if ([_del respondsToSelector:
-                  @selector(parser:didEndElement:namespaceURI:qualifiedName:)])
+                    if (this->didEndElement != 0)
                       {
-                        [_del parser: self
-                          didEndElement: [this->tagPath lastObject]
-                          namespaceURI: nil qualifiedName: nil];
+                        (*this->didEndElement)(_del,
+			  didEndElementSel, self,
+                          [this->tagPath lastObject], nil, nil);
                       }
                     [this->tagPath removeLastObject];  // pop from stack
                   }
@@ -1148,16 +1306,19 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
           case '&': 
             {
-              NSString  *entity = [self _entity];
+              NSString  *entity;
 
-              if (!entity)
+              if ([self _parseEntity: &entity] == NO)
                 {
-                  return [self _parseError: @"empty entity name"];
+                  return [self _parseError: @"empty entity name"
+		    code: NSXMLParserEntityRefAtEOFError];
                 }
-              if ([_del respondsToSelector: @selector(parser:foundCharacters:)])
-                {
-                  [_del parser: self foundCharacters: entity];
+	      if (this->foundCharacters != 0)
+		{
+		  (*this->foundCharacters)(_del,
+		    foundCharactersSel, self, entity);
                 }
+	      [entity release];
               vp = this->cp;  // next value sequence starts here
               c = cget();  // first character behind ;
               continue;
@@ -1176,19 +1337,53 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                   /* start of comment skip all characters until "-->"
                    */
                   this->cp += 3;
+		  tp = this->cp;
                   while (this->cp < this->cend-3
                     && strncmp((char *)this->cp, "-->", 3) != 0)
                     {
                       this->cp++;  // search
                     }
-                  /* if _del responds to parser: foundComment: 
-                   * convert to string (tp+4 ... cp)
-                   */
-                  this->cp+=3;    // might go beyond cend but does not care
-                  vp = this->cp;    // value might continue
-                  c = cget();  // get first character behind comment
+		  if (this->foundComment != 0)
+		    {
+		      NSString	*c = NewUTF8STR(tp, this->cp - tp);
+
+		      (*this->foundComment)(_del,
+			foundCommentSel, self, c);
+		      [c release];
+		    }
+                  this->cp += 3;	// might go beyond cend ... ok
+                  vp = this->cp;	// value might continue
+                  c = cget();		// get first character after comment
                   continue;
                 }
+              if (this->cp < this->cend-8
+                && strncmp((char *)this->cp, "![CDATA[", 8) == 0)
+		{
+                  /* start of CDATA skip all characters until "]>"
+                   */
+                  this->cp += 8;
+		  tp = this->cp;
+                  while (this->cp < this->cend-3
+                    && strncmp((char *)this->cp, "]]>", 3) != 0)
+                    {
+                      this->cp++;  // search
+                    }
+		  if (this->foundCDATA != 0)
+		    {
+		      NSData	*d;
+
+		      d = [[NSData alloc] initWithBytes: tp
+						 length: this->cp - tp];
+		      (*this->foundCDATA)(_del,
+			foundCDATASel, self, d);
+		      [d release];
+		    }
+                  this->cp += 3;	// might go beyond cend ... ok
+                  vp = this->cp;	// value might continue
+                  c = cget();		// get first character after CDATA
+                  continue;
+                }
+
               c = cget(); // get first character of tag
               if (c == '/')
                 {
@@ -1207,6 +1402,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                    * and quoted string constants...
                    */
                 }
+
               while (c != EOF && !isspace(c)
                 && c != '>' && c != '/'  && c != '?')
                 {
@@ -1214,16 +1410,16 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 }
               if (*tp == '/')
                 {
-                  tag = UTF8STR(tp + 1, this->cp - tp - 2);
+                  tag = NewUTF8STR(tp + 1, this->cp - tp - 2);
                 }
               else
                 {
-                  tag = UTF8STR(tp, this->cp - tp - 1);
+                  tag = NewUTF8STR(tp, this->cp - tp - 1);
                 }
 #if EXTRA_DEBUG
               NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c: ' ');
 #endif
-              parameters = [NSMutableDictionary dictionaryWithCapacity: 5];
+              parameters = [[NSMutableDictionary alloc] initWithCapacity: 5];
               while (isspace(c))
                 {
                   c = cget();
@@ -1236,7 +1432,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       c = cget();
                       if (c != '>')
                         {
-                          return [self _parseError: @"<tag/ is missing the >"];
+                          return [self _parseError: @"<tag/ is missing the >"
+			    code: NSXMLParserGTRequiredError];
                         }
                       [self _processTag: tag
                                   isEnd: NO
@@ -1252,7 +1449,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       if (c != '>')
                         {
                           return [self _parseError:
-                            @"<?tag ...? is missing the >"];
+                            @"<?tag ...? is missing the >"
+			    code: NSXMLParserGTRequiredError];
                         }
                       // process
                       [self _processTag: tag
@@ -1274,33 +1472,42 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                     }
                   /* get next argument (eats up to /, ?, >, =, space)
                    */
-                  arg = [self _qarg];
+                  arg = [self _newQarg];
 #if EXTRA_DEBUG
                   NSLog(@"arg=%@", arg);
 #endif
                   if (!this->acceptHTML && [arg length] == 0)
                     {
-                      return [self _parseError: @"empty attribute name"];
+                      return [self _parseError: @"empty attribute name"
+			code: NSXMLParserAttributeNotStartedError];
                     }
                   c = cget();  // get delimiting character
                   if (c == '=')
                     {
+		      NSString	*val;
+
                       // explicit assignment
                       c = cget();  // skip =
-                      [parameters setObject: [self _qarg] forKey: arg];
+		      val = [self _newQarg];
+                      [parameters setObject: val forKey: arg];
+		      [val release];
                       c = cget();  // get character behind qarg value
                     }
                   else  // implicit
                     {
                       [parameters setObject: @"" forKey: arg];
                     }
+		  [arg release];
                 }
+	      [parameters release];
+	      [tag release];
               vp = this->cp;    // prepare for next value
               c = cget();  // skip > and fetch next character
             }
         }
     }
-  return [self _parseError: @"this->aborted"];  // this->aborted
+  return [self _parseError: @"aborted"
+    code: NSXMLParserDelegateAbortedParseError];
 }
 
 - (BOOL) acceptsHTML

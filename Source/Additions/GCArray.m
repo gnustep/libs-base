@@ -24,19 +24,17 @@
 
 */
 
-#include "config.h"
+#import "common.h"
 #include <string.h>
 #ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSException.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSException.h"
+#import "Foundation/NSRange.h"
 #else
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #endif
 
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GNUstepBase/GCObject.h"
-#include "GNUstepBase/GNUstep.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GCObject.h"
 
 @implementation GCArray
 
@@ -60,7 +58,7 @@ static Class	gcClass = 0;
 {
   GCArray *result;
   id *objects;
-  unsigned i, c = [self count];
+  NSUInteger i, c = [self count];
 
   if (NSShouldRetainWithZone(self, zone))
     {
@@ -80,14 +78,14 @@ static Class	gcClass = 0;
   return result;
 }
 
-- (unsigned int) count
+- (NSUInteger) count
 {
   return _count;
 }
 
 - (void) dealloc
 {
-  unsigned int	c = _count;
+  NSUInteger	c = _count;
 
   [GCObject gcObjectWillBeDeallocated: (GCObject*)self];
   if ([GCObject gcIsCollecting])
@@ -114,7 +112,7 @@ static Class	gcClass = 0;
 
 - (void) gcDecrementRefCountOfContainedObjects
 {
-  unsigned int	c = _count;
+  NSUInteger	c = _count;
 
   gc.flags.visited = 0;
   while (c-- > 0)
@@ -134,7 +132,7 @@ static Class	gcClass = 0;
     }
   else
     {
-      unsigned int	c = _count;
+      NSUInteger	c = _count;
 
       gc.flags.visited = 1;
       while (c-- > 0)
@@ -149,7 +147,7 @@ static Class	gcClass = 0;
     }
 }
 
-- (id) initWithObjects: (id*)objects count: (unsigned int)count
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count
 {
   _contents = NSZoneMalloc([self zone], count * (sizeof(id) + sizeof(BOOL)));
   _isGCObject = (BOOL*)&_contents[count];
@@ -159,7 +157,7 @@ static Class	gcClass = 0;
       _contents[_count] = RETAIN(objects[_count]);
       if (_contents[_count] == nil)
 	{
-	  [self release];
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Nil object to be added in array"];
 	}
@@ -174,7 +172,7 @@ static Class	gcClass = 0;
 
 - (id) initWithArray: (NSArray*)anotherArray
 {
-  unsigned int	count = [anotherArray count];
+  NSUInteger	count = [anotherArray count];
 
   _contents = NSZoneMalloc([self zone], count * (sizeof(id) + sizeof(BOOL)));
   _isGCObject = (BOOL*)&_contents[count];
@@ -208,7 +206,7 @@ static Class	gcClass = 0;
     return [[GCMutableArray allocWithZone: zone] initWithArray: self];
 }
 
-- (id) objectAtIndex: (unsigned int)index
+- (id) objectAtIndex: (NSUInteger)index
 {
   if (index >= _count)
     {
@@ -250,7 +248,7 @@ static Class	gcClass = 0;
 {
   GCArray *result;
   id *objects;
-  unsigned i, c = [self count];
+  NSUInteger i, c = [self count];
 
   objects = NSZoneMalloc(zone, c * sizeof(id));
   /* FIXME: Check if malloc return 0 */
@@ -272,7 +270,7 @@ static Class	gcClass = 0;
 
 - (id) initWithArray: (NSArray*)anotherArray
 {
-  unsigned int	count = [anotherArray count];
+  NSUInteger	count = [anotherArray count];
 
   self = [self initWithCapacity: count];
   if (self != nil)
@@ -287,7 +285,7 @@ static Class	gcClass = 0;
   return self;
 }
 
-- (id) initWithCapacity: (unsigned int)aNumItems
+- (id) initWithCapacity: (NSUInteger)aNumItems
 {
   if (aNumItems < 1)
     {
@@ -301,7 +299,7 @@ static Class	gcClass = 0;
   return self;
 }
 
-- (id) initWithObjects: (id *)objects count: (unsigned int)count
+- (id) initWithObjects: (id *)objects count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (self != nil)
@@ -311,7 +309,7 @@ static Class	gcClass = 0;
 	  _contents[_count] = RETAIN(objects[_count]);
 	  if (_contents[_count] == nil)
 	    {
-	      [self release];
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Nil object to be added in array"];
 	    }
@@ -325,9 +323,9 @@ static Class	gcClass = 0;
   return self;
 }
 
-- (void) insertObject: (id)anObject atIndex: (unsigned int)index
+- (void) insertObject: (id)anObject atIndex: (NSUInteger)index
 {
-  unsigned int i;
+  NSUInteger i;
 
   if (anObject == nil)
     {
@@ -344,7 +342,7 @@ static Class	gcClass = 0;
 
   if (_count == _maxCount)
     {
-      unsigned	old = _maxCount;
+      NSUInteger	old = _maxCount;
       BOOL	*optr;
 
       if (_maxCount > 0)
@@ -381,14 +379,14 @@ static Class	gcClass = 0;
   [self removeObjectsInRange: NSMakeRange(0, _count)];
 }
 
-- (void) removeObjectAtIndex: (unsigned int)index
+- (void) removeObjectAtIndex: (NSUInteger)index
 {
   [self removeObjectsInRange: NSMakeRange(index, 1)];
 }
 
 - (void) removeObjectsInRange: (NSRange)range
 {
-  unsigned int	i;
+  NSUInteger	i;
 
   if (NSMaxRange(range) > _count)
     {
@@ -413,7 +411,7 @@ static Class	gcClass = 0;
   _count -= range.length;
 }
 
-- (void) replaceObjectAtIndex: (unsigned int)index  withObject: (id)anObject
+- (void) replaceObjectAtIndex: (NSUInteger)index  withObject: (id)anObject
 {
   if (anObject == nil)
     {

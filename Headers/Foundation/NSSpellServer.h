@@ -55,6 +55,7 @@ GS_EXPORT NSString *const NSGrammarUserDescription;
 
 @interface NSSpellServer : NSObject
 {
+#if	GS_EXPOSE(NSSpellServer)
 @private
   id _delegate;
   BOOL _caseSensitive; 
@@ -63,6 +64,7 @@ GS_EXPORT NSString *const NSGrammarUserDescription;
   NSString *_currentLanguage;
   NSArray *_ignoredWords;
   void *_reserved;
+#endif
 }
 
 // Checking in Your Service 
@@ -109,7 +111,7 @@ GS_EXPORT NSString *const NSGrammarUserDescription;
 - (NSRange) spellServer: (NSSpellServer *)sender
 findMisspelledWordInString: (NSString *)stringToCheck
                   language: (NSString *)language
-                 wordCount: (int *)wordCount
+                 wordCount: (int32_t *)wordCount
                  countOnly: (BOOL)countOnly;
 
 /**

@@ -22,11 +22,10 @@
    Boston, MA 02111 USA.
 */
 
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSData.h"
@@ -39,7 +38,6 @@
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSFileHandle.h"
-#import "Foundation/NSDebug.h"
 #import "GNUstepBase/GSMime.h"
 #import "GSPrivate.h"
 
@@ -485,6 +483,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
   NSFileHandle          *dHandle;
   NSURL                 *url;
   NSData		*wData;
+  NSString		*term;
   enum {
     idle,
     cConnect,		// Establishing control connection
@@ -529,7 +528,7 @@ static NSLock			*urlLock = nil;
 // NSLog(@"Lookup for handle for '%@'", page);
       [urlLock lock];
       obj = [urlCache objectForKey: page];
-      AUTORELEASE(RETAIN(obj));
+      IF_NO_GC([[obj retain] autorelease];)
       [urlLock unlock];
 // NSLog(@"Found handle %@", obj);
     }
@@ -553,6 +552,7 @@ static NSLock			*urlLock = nil;
     }
   RELEASE(url);
   RELEASE(wData);
+  RELEASE(term);
   [super dealloc];
 }
 
@@ -598,14 +598,46 @@ static NSLock			*urlLock = nil;
 
       text = [info objectForKey: GSTelnetTextKey];
 // NSLog(@"Ctl: %@", text);
-      /*
-       * Find first reply line which is not a continuation of another.
+      /* Find first reply line which is not a continuation of another.
        */
       enumerator = [text objectEnumerator];
       while ((line = [enumerator nextObject]) != nil)
 	{
-	  if ([line length] > 4 && [line characterAtIndex: 3] != '-')
+	  if (term == nil)
 	    {
+	      if ([line length] > 4)
+		{
+		  char	buf[4];	
+
+		  buf[0] = (char)[line characterAtIndex: 0];
+		  buf[1] = (char)[line characterAtIndex: 1];
+		  buf[2] = (char)[line characterAtIndex: 2];
+		  buf[3] = (char)[line characterAtIndex: 3];
+		  if (isdigit(buf[0]) && isdigit(buf[1]) && isdigit(buf[2]))
+		    {
+		      if (buf[3] == '-')
+			{
+			  /* Got start of a multiline block ...
+			   * set the terminator we need to look for.
+			   */
+			  buf[3] = ' ';
+			  term = [[NSString alloc]
+			    initWithCString: buf length: 4];
+			}
+		      else if (buf[3] == ' ')
+			{
+			  /* Found single line response.
+			   */
+			  break;
+			}
+		    }
+		}
+	    }
+	  else if ([line hasPrefix: term] == YES)
+	    {
+	      /* Found end of a multiline response.
+	       */
+	      DESTROY(term);
 	      break;
 	    }
 	}
@@ -729,7 +761,7 @@ static NSLock			*urlLock = nil;
 		  dHandle = [NSFileHandle
 		    fileHandleAsClientInBackgroundAtAddress: h service: p
 		    protocol: @"tcp"];
-		  RETAIN(dHandle);
+      		  IF_NO_GC([dHandle retain];)
 		  nc = [NSNotificationCenter defaultCenter];
 		  [nc addObserver: self
 			 selector: @selector(_data:)

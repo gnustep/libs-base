@@ -26,7 +26,7 @@
 #define __NSURLRequest_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -41,6 +41,13 @@ extern "C" {
 @class NSString;
 @class NSURL;
 
+enum
+{
+  NSURLRequestUseProtocolCachePolicy,
+  NSURLRequestReloadIgnoringCacheData,
+  NSURLRequestReturnCacheDataElseLoad,
+  NSURLRequestReturnCacheDataDontLoad,
+};
 /**
  * <deflist>
  *   <term>NSURLRequestUseProtocolCachePolicy</term>
@@ -67,13 +74,7 @@ extern "C" {
  *   </desc>
  * </deflist>
  */
-typedef enum
-{
-  NSURLRequestUseProtocolCachePolicy,
-  NSURLRequestReloadIgnoringCacheData,
-  NSURLRequestReturnCacheDataElseLoad,
-  NSURLRequestReturnCacheDataDontLoad,
-} NSURLRequestCachePolicy;
+typedef NSUInteger NSURLRequestCachePolicy;
 
 
 /**
@@ -83,8 +84,9 @@ typedef enum
  */
 @interface NSURLRequest : NSObject <NSCoding, NSCopying, NSMutableCopying>
 {
-@private
+#if	GS_EXPOSE(NSURLRequest)
   void *_NSURLRequestInternal;
+#endif
 }
 
 /*

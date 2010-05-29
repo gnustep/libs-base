@@ -141,7 +141,7 @@ enum {
  * <item>GSCygwinOperatingSystem - cygwin unix-like environment</item>
  * </list>
  */
-- (unsigned int) operatingSystem;
+- (NSUInteger) operatingSystem;
 
 /**
  * Return a human readable string representing the operating system type.<br />
@@ -208,47 +208,30 @@ enum {
 @interface	NSProcessInfo (GNUstep)
 
 /**
- * Returns a indication of whether debug logging is enabled.
- * This returns YES unless a call to -setDebugLoggingEnabled: has
- * been used to turn logging off.
- */
-- (BOOL) debugLoggingEnabled;
-
-/**
- * This method returns a set of debug levels set using the
- * --GNU-Debug=... command line option and/or the GNU-Debug
- * user default.<br />
- * You can modify this set to change the debug logging under
- * your programs control ... but such modifications are not
- * thread-safe.
- */
-- (NSMutableSet*) debugSet;
-
-/**
- * This method permits you to turn all debug logging on or off
- * without modifying the set of debug levels in use.
- */
-- (void) setDebugLoggingEnabled: (BOOL)flag;
-
-/**
  * Set the file to which NSLog output should be directed.<br />
  * Returns YES on success, NO on failure.<br />
  * By default logging goes to standard error.
  */
 - (BOOL) setLogFile: (NSString*)path;
 
-/**
- * Fallback/override method. The developer must call this method to initialize
- * the NSProcessInfo system if none of the system-specific hacks to
- * auto-initialize it are working.<br />
- * It is also safe to call this method to override the effects
- * of the automatic initialisation, which some applications may need
- * to do when using GNUstep libraries embedded within other frameworks.
+/** Obsolete ... the GSInitializeProcess() function has the same effect and
+ * can be called more easily from other languages (particularly C).
  */
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env;
 @end
+
+/**
+ * Fallback/override function.<br />
+ * The developer must call this method to initialize
+ * the NSProcessInfo system if none of the system-specific hacks to
+ * auto-initialize it are working.<br />
+ * It is also safe to call this function to override the effects
+ * of the automatic initialisation, which some applications may need
+ * to do when using GNUstep libraries embedded within other frameworks.
+ */
+GS_EXPORT void GSInitializeProcess(int argc, char **argv, char **envp);
 
 /**
  * Function for rapid testing to see if a debug level is set.<br />
@@ -262,6 +245,10 @@ GS_EXPORT BOOL GSDebugSet(NSString *level);
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSProcessInfo+GNUstepBase.h>
 #endif
 
 #endif /* __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE */

@@ -33,11 +33,7 @@
 #
 
 # Things to do before compiling
-before-all::
-	if [ $(GNUSTEP_BASE_DOMAIN) != $(GNUSTEP_INSTALLATION_DOMAIN) ]; \
-	then \
-	  GNUSTEP_INSTALLATION_DOMAIN=$(GNUSTEP_INSTALLATION_DOMAIN) ./config.status --recheck; \
-	fi 
+#before-all::
 
 # Things to do after compiling
 # after-all::
@@ -97,4 +93,3 @@ base.make: base.make.in
 
 config.mak: config.mak.in
 	./configure
-

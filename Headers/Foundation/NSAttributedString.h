@@ -71,19 +71,24 @@ extern "C" {
 - (id) initWithString: (NSString*)aString attributes: (NSDictionary*)attributes;
 
 //Retrieving character information
-- (unsigned int) length;
+- (NSUInteger) length;
+/** Returns the string content of the receiver.<br />
+ * NB. this is actually a proxy to the internal content (which may change)
+ * so if you need an immutable instance yu should copy the returned value,
+ * not jhust retain it.
+ */
 - (NSString*) string;					//Primitive method!
 
 //Retrieving attribute information
-- (NSDictionary*) attributesAtIndex: (unsigned int)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 		     effectiveRange: (NSRange*)aRange;	//Primitive method!
-- (NSDictionary*) attributesAtIndex: (unsigned int)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 	      longestEffectiveRange: (NSRange*)aRange
 			    inRange: (NSRange)rangeLimit;
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (unsigned int)index
+	 atIndex: (NSUInteger)index
   effectiveRange: (NSRange*)aRange;
-- (id) attribute: (NSString*)attributeName atIndex: (unsigned int)index
+- (id) attribute: (NSString*)attributeName atIndex: (NSUInteger)index
   longestEffectiveRange: (NSRange*)aRange inRange: (NSRange)rangeLimit;
 
 //Comparing attributed strings
@@ -115,7 +120,7 @@ extern "C" {
 //Changing characters and attributes
 - (void) appendAttributedString: (NSAttributedString*)attributedString;
 - (void) insertAttributedString: (NSAttributedString*)attributedString
-			atIndex: (unsigned int)index;
+			atIndex: (NSUInteger)index;
 - (void) replaceCharactersInRange: (NSRange)aRange
 	     withAttributedString: (NSAttributedString*)attributedString;
 - (void) replaceCharactersInRange: (NSRange)aRange
@@ -128,20 +133,14 @@ extern "C" {
 
 @end //NSMutableAttributedString
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-@interface      NSAttributedString (GSCategories)
-/**
- * Dep[recated synonym for attributedSubstringFromRange:
- * for consistency with NSString
- */
-- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange;
-@end
-#endif
-
 #endif /* GS_API_MACOSX */
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSAttributedString+GNUstepBase.h>
 #endif
 
 #endif	/* __NSAttributedString_h_GNUSTEP_BASE_INCLUDE */

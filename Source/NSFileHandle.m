@@ -25,15 +25,14 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSBundle.h"
-#include "GNUstepBase/GSFileHandle.h"
+#import "common.h"
+#define	EXPOSE_NSFileHandle_IVARS	1
+#import "Foundation/NSData.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSBundle.h"
+#import "GNUstepBase/GSFileHandle.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // GNUstep Notification names
 

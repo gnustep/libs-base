@@ -36,22 +36,20 @@ function may be incorrect
 * I've put 2 functions to make tests. You can add your own tests
 * Some functions are not implemented
 */
-#import "config.h"
+#import "common.h"
+#define	EXPOSE_NSURL_IVARS	1
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSDebug.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSMapTable.h"
-#import "Foundation/NSObject.h"
+#import "Foundation/NSPortCoder.h"
 #import "Foundation/NSRunLoop.h"
-#import "Foundation/NSString.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSValue.h"
-#import "Foundation/NSZone.h"
 
 NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
 NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
@@ -142,7 +140,11 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
       len += strlen(rel->fragment) + 1;		// #fragment
     }
 
-  ptr = buf = (char*)NSZoneMalloc(GSAtomicMallocZone(), len);
+#if	GS_WITH_GC
+  ptr = buf = (char*)NSAllocateCollectable(len, 0);
+#else
+  ptr = buf = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
+#endif
 
   if (rel->scheme != 0)
     {
@@ -620,10 +622,15 @@ static unsigned	urlAlign;
  */
 - (id) initFileURLWithPath: (NSString*)aPath
 {
-  BOOL	flag = NO;
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  BOOL		flag = NO;
 
-  if ([[NSFileManager defaultManager] fileExistsAtPath: aPath
-    isDirectory: &flag] == YES)
+  if ([aPath isAbsolutePath] == NO)
+    {
+      aPath = [[mgr currentDirectoryPath]
+	stringByAppendingPathComponent: aPath];
+    }
+  if ([mgr fileExistsAtPath: aPath isDirectory: &flag] == YES)
     {
       if ([aPath isAbsolutePath] == NO)
 	{
@@ -635,7 +642,7 @@ static unsigned	urlAlign;
 	}
     }
   self = [self initWithScheme: NSURLFileScheme
-			 host: nil
+			 host: @"localhost"
 			 path: aPath];
   return self;
 }
@@ -654,6 +661,7 @@ static unsigned	urlAlign;
  * Initialised using aUrlString and aBaseUrl.  The value of aBaseUrl
  * may be nil, but aUrlString must be non-nil.<br />
  * Accepts RFC2732 style IPv6 host addresses.<br />
+ * Parses a string wihthout a scheme as a simple path.<br />
  * If the string cannot be parsed the method returns nil.
  */
 - (id) initWithString: (NSString*)aUrlString
@@ -677,6 +685,11 @@ static unsigned	urlAlign;
 		  format: @"[%@ %@] bad base URL parameter",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
+  if ([aUrlString length] == 0)
+    {
+      DESTROY(self);
+      return nil;
+    }
   ASSIGNCOPY(_urlString, aUrlString);
   ASSIGN(_baseURL, [aBaseUrl absoluteURL]);
   NS_DURING
@@ -693,7 +706,11 @@ static unsigned	urlAlign;
       BOOL	canBeGeneric = YES;
 
       size += sizeof(parsedURL) + urlAlign + 1;
-      buf = _data = (parsedURL*)NSZoneMalloc(GSAtomicMallocZone(), size);
+#if	GS_WITH_GC
+      buf = _data = (parsedURL*)NSAllocateCollectable(size, 0);
+#else
+      buf = _data = (parsedURL*)NSZoneMalloc(NSDefaultMallocZone(), size);
+#endif
       memset(buf, '\0', size);
       start = end = ptr = (char*)&buf[1];
       [_urlString getCString: start
@@ -748,25 +765,22 @@ static unsigned	urlAlign;
       /*
        * Set up scheme specific parsing options.
        */
-      if (buf->scheme == 0)
+      if (buf->scheme != 0)
         {
-	  DESTROY(self);	// Not a valid URL
-	  NS_VALRETURN(nil);
-	}
-
-      if (strcmp(buf->scheme, "file") == 0)
-	{
-	  usesFragments = NO;
-	  usesParameters = NO;
-	  usesQueries = NO;
-	  buf->isFile = YES;
-	}
-      else if (strcmp(buf->scheme, "mailto") == 0)
-	{
-	  usesFragments = NO;
-	  usesParameters = NO;
-	  usesQueries = NO;
-	}
+          if (strcmp(buf->scheme, "file") == 0)
+	    {
+	      usesFragments = NO;
+	      usesParameters = NO;
+	      usesQueries = NO;
+	      buf->isFile = YES;
+	    }
+	  else if (strcmp(buf->scheme, "mailto") == 0)
+	    {
+	      usesFragments = NO;
+	      usesParameters = NO;
+	      usesQueries = NO;
+	    }
+        }
 
       if (canBeGeneric == YES)
 	{
@@ -1101,7 +1115,7 @@ static unsigned	urlAlign;
   if (_data != 0)
     {
       DESTROY(myData->absolute);
-      NSZoneFree(GSObjCZone(self), _data);
+      NSZoneFree([self zone], _data);
       _data = 0;
     }
   DESTROY(_urlString);
@@ -1139,7 +1153,7 @@ static unsigned	urlAlign;
   [aCoder encodeObject: _baseURL];
 }
 
-- (unsigned int) hash
+- (NSUInteger) hash
 {
   return [[self absoluteString] hash];
 }
@@ -1226,6 +1240,119 @@ static unsigned	urlAlign;
       fragment = [NSString stringWithUTF8String: myData->fragment];
     }
   return fragment;
+}
+
+- (char*) _path: (char*)buf
+{
+  char		*ptr = buf;
+  char		*tmp = buf;
+
+  if (myData->pathIsAbsolute == YES)
+    {
+      if (myData->hasNoPath == NO)
+	{
+	  *tmp++ = '/';
+	}
+      if (myData->path != 0)
+	{
+          strcpy(tmp, myData->path);
+	}
+    }
+  else if (_baseURL == nil)
+    {
+      if (myData->path != 0)
+	{
+          strcpy(tmp, myData->path);
+	}
+    }
+  else if (*myData->path == 0)
+    {
+      if (baseData->hasNoPath == NO)
+	{
+	  *tmp++ = '/';
+	}
+      if (baseData->path != 0)
+	{
+          strcpy(tmp, baseData->path);
+	}
+    }
+  else
+    {
+      char	*start = baseData->path;
+      char	*end = (start == 0) ? 0 : strrchr(start, '/');
+
+      if (end != 0)
+	{
+	  *tmp++ = '/';
+	  strncpy(tmp, start, end - start);
+	  tmp += end - start;
+	}
+      *tmp++ = '/';
+      if (myData->path != 0)
+	{
+          strcpy(tmp, myData->path);
+	}
+    }
+
+  unescape(buf, buf);
+
+#if	defined(__MINGW__)
+  /* On windows a file URL path may be of the form C:\xxx (ie we should
+   * not insert the leading slash).
+   * Also the vertical bar symbol may have been used instead of the
+   * colon, so we need to convert that.
+   */
+  if (myData->isFile == YES)
+    {
+      if (ptr[1] && isalpha(ptr[1]))
+	{
+	  if (ptr[2] == ':' || ptr[2] == '|')
+	    {
+	      if (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\')
+		{
+		  ptr[2] = ':';
+		  ptr++;
+		}
+	    }
+	}
+    }
+#endif
+  return ptr;
+}
+
+- (NSString*) fullPath
+{
+  NSString	*path = nil;
+  unsigned int	len = 3;
+
+  if (_baseURL != nil)
+    {
+      if (baseData->path && *baseData->path)
+        {
+          len += strlen(baseData->path);
+	}
+      else if (baseData->hasNoPath == NO)
+	{
+	  len++;
+	}
+    }
+  if (myData->path && *myData->path)
+    {
+      len += strlen(myData->path);
+    }
+  else if (myData->hasNoPath == NO)
+    {
+      len++;
+    }
+  if (len > 3)
+    {
+      char		buf[len];
+      char		*ptr;
+
+      ptr = [self _path: buf];
+      path = [NSString stringWithUTF8String: ptr];
+    }
+  return path;
 }
 
 /**
@@ -1389,83 +1516,43 @@ static unsigned	urlAlign;
 - (NSString*) path
 {
   NSString	*path = nil;
+  unsigned int	len = 3;
 
-  /*
-   * If this scheme is from a URL without generic format, there is no path.
-   */
-  if (myData->isGeneric == YES)
+  if (_baseURL != nil)
     {
-      unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
-	+ strlen(myData->path) + 3;
+      if (baseData->path && *baseData->path)
+        {
+          len += strlen(baseData->path);
+	}
+      else if (baseData->hasNoPath == NO)
+	{
+	  len++;
+	}
+    }
+  if (myData->path && *myData->path)
+    {
+      len += strlen(myData->path);
+    }
+  else if (myData->hasNoPath == NO)
+    {
+      len++;
+    }
+  if (len > 3)
+    {
       char		buf[len];
-      char		*ptr = buf;
-      char		*tmp = buf;
+      char		*ptr;
+      char		*tmp;
 
-      if (myData->pathIsAbsolute == YES)
-	{
-	  if (myData->hasNoPath == NO)
-	    {
-	      *tmp++ = '/';
-	    }
-	  strcpy(tmp, myData->path);
-	}
-      else if (_baseURL == nil)
-	{
-	  strcpy(tmp, myData->path);
-	}
-      else if (*myData->path == 0)
-	{
-	  if (baseData->hasNoPath == NO)
-	    {
-	      *tmp++ = '/';
-	    }
-	  strcpy(tmp, baseData->path);
-	}
-      else
-	{
-	  char	*start = baseData->path;
-	  char	*end = strrchr(start, '/');
+      ptr = [self _path: buf];
 
-	  if (end != 0)
-	    {
-	      *tmp++ = '/';
-	      strncpy(tmp, start, end - start);
-	      tmp += end - start;
-	    }
-	  *tmp++ = '/';
-	  strcpy(tmp, myData->path);
-	}
-
-      unescape(buf, buf);
       /* Remove any trailing '/' from the path for MacOS-X compatibility.
        */
-      tmp = buf + strlen(buf) - 1;
-      if (tmp > buf && *tmp == '/')
+      tmp = ptr + strlen(ptr) - 1;
+      if (tmp > ptr && *tmp == '/')
 	{
 	  *tmp = '\0';
 	}
 
-#if	defined(__MINGW32__)
-      /* On windows a file URL path may be of the form C:\xxx (ie we should
-       * not insert the leading slash).
-       * Also the vertical bar symbol may have been used instead of the
-       * colon, so we need to convert that.
-       */
-      if (myData->isFile == YES)
-	{
-          if (ptr[1] && isalpha(ptr[1]))
-	    {
-	      if (ptr[2] == ':' || ptr[2] == '|')
-		{
-		  if (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\')
-		    {
-		      ptr[2] = ':';
-		      ptr++;
-		    }
-		}
-	    }
-	}
-#endif
       path = [NSString stringWithUTF8String: ptr];
     }
   return path;
@@ -1543,6 +1630,15 @@ static unsigned	urlAlign;
 - (NSString*) relativeString
 {
   return _urlString;
+}
+
+/* Encode bycopy unless explicitly requested otherwise.
+ */
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  if ([aCoder isByref] == NO)
+    return self;
+  return [super replacementObjectForPortCoder: aCoder];
 }
 
 /**
@@ -1681,7 +1777,7 @@ static unsigned	urlAlign;
       if (c != 0)
 	{
 	  handle = [[c alloc] initWithURL: self cached: shouldUseCache];
-	  AUTORELEASE(handle);
+	  IF_NO_GC([handle autorelease];)
 	}
     }
   return handle;
@@ -1764,7 +1860,7 @@ static unsigned	urlAlign;
 {
   id	c = clientForHandle(_clients, sender);
 
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   [sender removeClient: self];
   if (c != nil)
     {

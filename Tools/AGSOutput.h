@@ -22,7 +22,12 @@
 
    */
 
-#include <Foundation/Foundation.h>
+#include "Foundation/NSObject.h"
+
+@class	NSArray;
+@class	NSCharacterSet;
+@class	NSDictionary;
+@class	NSMutableArray;
 
 @interface	AGSOutput : NSObject
 {

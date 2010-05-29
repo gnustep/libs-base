@@ -22,7 +22,11 @@
 
    */
 
-#include        "AGSIndex.h"
+#import "Foundation/NSObject.h"
+#import "AGSIndex.h"
+
+@class	NSMutableString;
+@class	NSString;
 
 @interface AGSHtml : NSObject
 {

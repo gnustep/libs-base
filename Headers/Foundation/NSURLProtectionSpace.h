@@ -26,7 +26,7 @@
 #define __NSURLProtectionSpace_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -60,8 +60,9 @@ extern NSString * const NSURLAuthenticationMethodHTTPDigest;
  */
 @interface NSURLProtectionSpace : NSObject <NSCopying>
 {
-@private
+#if	GS_EXPOSE(NSURLProtectionSpace)
   void *_NSURLProtectionSpaceInternal;
+#endif
 }
 
 /**
@@ -80,7 +81,7 @@ extern NSString * const NSURLAuthenticationMethodHTTPDigest;
  * within the host, for others it may be nil.
  */
 - (id) initWithHost: (NSString *)host
-	       port: (int)port
+	       port: (NSInteger)port
 	   protocol: (NSString *)protocol
 	      realm: (NSString *)realm
 authenticationMethod: (NSString *)authenticationMethod;
@@ -91,7 +92,7 @@ authenticationMethod: (NSString *)authenticationMethod;
  * host and a protocol.
  */
 - (id) initWithProxyHost: (NSString *)host
-		    port: (int)port
+		    port: (NSInteger)port
 		    type: (NSString *)type
 		   realm: (NSString *)realm
     authenticationMethod: (NSString *)authenticationMethod;
@@ -105,7 +106,7 @@ authenticationMethod: (NSString *)authenticationMethod;
 /**
  * Returns the port set for this receiver or zero if none was set.
  */
-- (int) port;
+- (NSInteger) port;
 
 /**
  * Returns the protocol of the receiver or nil if it is a proxy.

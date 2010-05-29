@@ -42,25 +42,26 @@
    which default to pre POSIX declaration.  */
 #define _POSIX_PTHREAD_SEMANTICS
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSValue.h"
-#include "GSPrivate.h"
+#import "common.h"
+#define	EXPOSE_NSFileManager_IVARS	1
+#define	EXPOSE_NSDirectoryEnumerator_IVARS	1
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSBundle.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSValue.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -84,7 +85,7 @@
 #  include <windows.h>
 #endif
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 #include <stdio.h>
 #include <tchar.h>
 #include <wchar.h>
@@ -96,8 +97,7 @@
 /* determine filesystem max path length */
 
 #if defined(_POSIX_VERSION) || defined(__WIN32__)
-# include <limits.h>			/* for PATH_MAX */
-# if defined(__MINGW32__)
+# if defined(__MINGW__)
 #   include <sys/utime.h>
 # else
 #   include <utime.h>
@@ -186,13 +186,13 @@
  * Macros to handle unichar filesystem support.
  */
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 
 #define	_CHMOD(A,B)	_wchmod(A,B)
 #define	_CLOSEDIR(A)	_wclosedir(A)
 #define	_OPENDIR(A)	_wopendir(A)
 #define	_READDIR(A)	_wreaddir(A)
-#define	_RENAME(A,B)	_wrename(A,B)
+#define	_RENAME(A,B)	(MoveFileExW(A,B,MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)==0)?-1:0
 #define	_RMDIR(A)	_wrmdir(A)
 #define	_STAT(A,B)	_wstat(A,B)
 #define	_UTIME(A,B)	_wutime(A,B)
@@ -238,12 +238,15 @@
  */
 @interface	GSAttrDictionary : NSDictionary
 {
+@public
   struct _STATB	statbuf;
   _CHAR		_path[0];
 }
 + (NSDictionary*) attributesAt: (const _CHAR*)lpath
 		  traverseLink: (BOOL)traverse;
 @end
+
+static Class	GSAttrDictionaryClass = 0;
 
 /*
  * We also need a special enumerator class to enumerate the dictionary.
@@ -342,6 +345,7 @@ static NSStringEncoding	defaultEncoding;
 + (void) initialize
 {
   defaultEncoding = [NSString defaultCStringEncoding];
+  GSAttrDictionaryClass = [GSAttrDictionary class];
 }
 
 - (void) dealloc
@@ -372,7 +376,7 @@ static NSStringEncoding	defaultEncoding;
     {
       bundleClass = [NSBundle class];
     }
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   return SetCurrentDirectoryW(lpath) == TRUE ? YES : NO;
 #else
   return (chdir(lpath) == 0) ? YES : NO;
@@ -399,8 +403,17 @@ static NSStringEncoding	defaultEncoding;
     }
   lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
-#ifndef __MINGW32__
-  num = [attributes fileOwnerAccountID];
+#ifndef __MINGW__
+  if (object_getClass(attributes) == GSAttrDictionaryClass)
+    {
+      num = ((GSAttrDictionary*)attributes)->statbuf.st_uid;
+    }
+  else
+    {
+      NSNumber	*tmpNum = [attributes fileOwnerAccountID];
+
+      num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
+    }
   if (num != NSNotFound)
     {
       if (chown(lpath, num, -1) != 0)
@@ -455,7 +468,16 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-  num = [attributes fileGroupOwnerAccountID];
+  if (object_getClass(attributes) == GSAttrDictionaryClass)
+    {
+      num = ((GSAttrDictionary*)attributes)->statbuf.st_gid;
+    }
+  else
+    {
+      NSNumber	*tmpNum = [attributes fileGroupOwnerAccountID];
+
+      num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
+    }
   if (num != NSNotFound)
     {
       if (chown(lpath, -1, num) != 0)
@@ -506,7 +528,7 @@ static NSStringEncoding	defaultEncoding;
 	  ASSIGN(_lastError, str);
 	}
     }
-#endif	/* __MINGW32__ */
+#endif	/* __MINGW__ */
 
   num = [attributes filePosixPermissions];
   if (num != NSNotFound)
@@ -718,7 +740,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   NSEnumerator	*paths = [[path pathComponents] objectEnumerator];
   NSString	*subPath;
   NSString	*completePath = nil;
@@ -734,7 +756,7 @@ static NSStringEncoding	defaultEncoding;
   if ([path length] == 0)
     return NO;
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   while ((subPath = [paths nextObject]))
     {
       BOOL isDir = NO;
@@ -769,7 +791,7 @@ static NSStringEncoding	defaultEncoding;
    * If there is no file owner specified, and we are running setuid to
    * root, then we assume we need to change ownership to correct user.
    */
-  if (attributes == nil || ([attributes fileOwnerAccountID] == NSNotFound
+  if (attributes == nil || ([attributes fileOwnerAccountID] == nil
     && [attributes fileOwnerAccountName] == nil))
     {
       if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
@@ -876,7 +898,7 @@ static NSStringEncoding	defaultEncoding;
 		 contents: (NSData*)contents
 	       attributes: (NSDictionary*)attributes
 {
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
   HANDLE fh;
   DWORD	written = 0;
@@ -892,7 +914,7 @@ static NSStringEncoding	defaultEncoding;
   if ([path length] == 0)
     return NO;
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   fh = CreateFileW(lpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
     FILE_ATTRIBUTE_NORMAL, 0);
   if (fh == INVALID_HANDLE_VALUE)
@@ -932,7 +954,7 @@ static NSStringEncoding	defaultEncoding;
    * If there is no file owner specified, and we are running setuid to
    * root, then we assume we need to change ownership to correct user.
    */
-  if (attributes == nil || ([attributes fileOwnerAccountID] == NSNotFound
+  if (attributes == nil || ([attributes fileOwnerAccountID] == nil
     && [attributes fileOwnerAccountName] == nil))
     {
       if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
@@ -968,7 +990,7 @@ static NSStringEncoding	defaultEncoding;
 {
   NSString *currentDir = nil;
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   int len = GetCurrentDirectoryW(0, 0);
   if (len > 0)
     {
@@ -1321,7 +1343,7 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       DWORD res;
 
       res = GetFileAttributesW(lpath);
@@ -1351,7 +1373,7 @@ static NSStringEncoding	defaultEncoding;
 
   if (!is_dir)
     {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       if (DeleteFileW(lpath) == FALSE)
 #else
       if (unlink(lpath) < 0)
@@ -1434,7 +1456,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
     {
       DWORD res;
 
@@ -1488,7 +1510,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
     {
       DWORD res;
 
@@ -1524,7 +1546,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
     {
       DWORD res;
 
@@ -1565,7 +1587,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
     {
       DWORD res;
 
@@ -1612,7 +1634,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
       // TODO - handle directories
     {
       DWORD res;
@@ -1721,7 +1743,7 @@ static NSStringEncoding	defaultEncoding;
 {
   NSDictionary	*d;
 
-  d = [GSAttrDictionary attributesAt:
+  d = [GSAttrDictionaryClass attributesAt:
     [self fileSystemRepresentationWithPath: path] traverseLink: flag];
   return d;
 }
@@ -1744,7 +1766,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   unsigned long long totalsize, freesize;
   id  values[5];
   id	keys[5] = {
@@ -1756,9 +1778,18 @@ static NSStringEncoding	defaultEncoding;
   };
   DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
   DWORD TotalNumberClusters;
+  DWORD volumeSerialNumber = 0;
   const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
+  _CHAR volumePathName[128];
 
-  if (!GetDiskFreeSpaceW(lpath, &SectorsPerCluster,
+  if (!GetVolumePathNameW(lpath, volumePathName, 128))
+    {
+      return nil;
+    }
+  GetVolumeInformationW(volumePathName, NULL, 0, &volumeSerialNumber,
+    NULL, NULL, NULL, 0);
+
+  if (!GetDiskFreeSpaceW(volumePathName, &SectorsPerCluster,
     &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
     {
       return nil;
@@ -1775,7 +1806,7 @@ static NSStringEncoding	defaultEncoding;
   values[1] = [NSNumber numberWithUnsignedLongLong: freesize];
   values[2] = [NSNumber numberWithLong: LONG_MAX];
   values[3] = [NSNumber numberWithLong: LONG_MAX];
-  values[4] = [NSNumber numberWithUnsignedInt: 0];
+  values[4] = [NSNumber numberWithUnsignedInt: volumeSerialNumber];
 
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 
@@ -1903,11 +1934,6 @@ static NSStringEncoding	defaultEncoding;
   return [path lastPathComponent];
 }
 
-/**
- * Returns an enumerator which can be used to return each item with
- * the directory at path in turn.<br />
- * The enumeration is recursive ... following all nested subdirectories.
- */
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path
 {
   return AUTORELEASE([[NSDirectoryEnumerator alloc]
@@ -1997,7 +2023,7 @@ static NSStringEncoding	defaultEncoding;
 #endif
 }
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 - (const GSNativeChar*) fileSystemRepresentationWithPath: (NSString*)path
 {
   if (path != nil && [path rangeOfString: @"/"].length > 0)
@@ -2008,7 +2034,7 @@ static NSStringEncoding	defaultEncoding;
     (const GSNativeChar*)[path cStringUsingEncoding: NSUnicodeStringEncoding];
 }
 - (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
-					  length: (unsigned int)len
+					  length: (NSUInteger)len
 {
   return [NSString stringWithCharacters: string length: len];
 }
@@ -2019,7 +2045,7 @@ static NSStringEncoding	defaultEncoding;
     (const GSNativeChar*)[path cStringUsingEncoding: defaultEncoding];
 }
 - (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
-					  length: (unsigned int)len
+					  length: (NSUInteger)len
 {
   return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
     initWithBytes: string length: len encoding: defaultEncoding]);
@@ -2059,16 +2085,6 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #include "GNUstepBase/GSIArray.h"
 
 
-/**
- *  <p>This is a subclass of <code>NSEnumerator</code> which provides a full
- *  listing of all the files beneath a directory and its subdirectories.
- *  Instances can be obtained through [NSFileManager-enumeratorAtPath:],
- *  or through an initializer in this class.  (For compatibility with OS X,
- *  use the <code>NSFileManager</code> method.)</p>
- *
- *  <p>This implementation is optimized and performance should be comparable
- *  to the speed of standard Unix tools for large directories.</p>
- */
 @implementation NSDirectoryEnumerator
 /*
  * The Objective-C interface hides a traditional C implementation.
@@ -2082,8 +2098,6 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
     }
 }
-
-// Initializing
 
 /**
  *  Initialize instance to enumerate contents at path, which should be a
@@ -2107,7 +2121,11 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   self = [super init];
 
   _mgr = RETAIN(mgr);
+#if	GS_WITH_GC
+  _stack = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
   _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
+#endif
   GSIArrayInitWithZoneAndCapacity(_stack, [self zone], 64);
 
   _flags.isRecursive = recurse;
@@ -2216,7 +2234,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
       if (dirbuf)
 	{
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 	  /* Skip "." and ".." directory entries */
 	  if (wcscmp(dirbuf->d_name, L".") == 0
 	    || wcscmp(dirbuf->d_name, L"..") == 0)
@@ -2239,9 +2257,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    stringWithFileSystemRepresentation: dirbuf->d_name
 	    length: strlen(dirbuf->d_name)];
 #endif
-	  returnFileName = [dir.path stringByAppendingPathComponent:
-	    returnFileName];
-	  RETAIN(returnFileName);
+	  returnFileName = RETAIN([dir.path stringByAppendingPathComponent:
+	    returnFileName]);
 
 	  /* TODO - can this one can be removed ? */
 	  if (!_flags.justContents)
@@ -2252,7 +2269,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    {
 	      // Do not follow links
 #ifdef S_IFLNK
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #warning "lstat does not support unichars"
 #else
 	      if (!_flags.isFollowing)
@@ -2341,17 +2358,17 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 /**
  *  Returns HFS creator attribute (OS X).
  */
-- (int) fileHFSCreatorCode
+- (OSType) fileHFSCreatorCode
 {
-  return [[self objectForKey: NSFileHFSCreatorCode] intValue];
+  return [[self objectForKey: NSFileHFSCreatorCode] unsignedLongValue];
 }
 
 /**
  *  Returns HFS type code attribute (OS X).
  */
-- (int) fileHFSTypeCode
+- (OSType) fileHFSTypeCode
 {
-  return [[self objectForKey: NSFileHFSTypeCode] intValue];
+  return [[self objectForKey: NSFileHFSTypeCode] unsignedLongValue];
 }
 
 /**
@@ -2402,18 +2419,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 }
 
 /**
- * Return the numeric value of the NSFileOwnerAccountID attribute
- * in the dictionary, or NSNotFound if the attribute is not present.
+ * Return an NSNumber with the numeric value of the NSFileOwnerAccountID attribute
+ * in the dictionary, or nil if the attribute is not present.
  */
-- (unsigned long) fileOwnerAccountID
+- (NSNumber*) fileOwnerAccountID
 {
-  NSNumber	*n = [self objectForKey: NSFileOwnerAccountID];
-
-  if (n == nil)
-    {
-      return NSNotFound;
-    }
-  return [n unsignedIntValue];
+  return [self objectForKey: NSFileOwnerAccountID];
 }
 
 /**
@@ -2425,18 +2436,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 }
 
 /**
- * Return the numeric value of the NSFileGroupOwnerAccountID attribute
- * in the dictionary, or NSNotFound if the attribute is not present.
+ * Return an NSNumber with the numeric value of the NSFileGroupOwnerAccountID attribute
+ * in the dictionary, or nil if the attribute is not present.
  */
-- (unsigned long) fileGroupOwnerAccountID
+- (NSNumber*) fileGroupOwnerAccountID
 {
-  NSNumber	*n = [self objectForKey: NSFileGroupOwnerAccountID];
-
-  if (n == nil)
-    {
-      return NSNotFound;
-    }
-  return [n unsignedIntValue];
+  return [self objectForKey: NSFileGroupOwnerAccountID];
 }
 
 /**
@@ -2451,7 +2456,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
  * Return the file posix permissions attribute (or NSNotFound if
  * the attribute is not present in the dictionary).
  */
-- (unsigned long) filePosixPermissions
+- (NSUInteger) filePosixPermissions
 {
   NSNumber	*n = [self objectForKey: NSFilePosixPermissions];
 
@@ -2459,14 +2464,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
       return NSNotFound;
     }
-  return [n unsignedLongValue];
+  return [n unsignedIntegerValue];
 }
 
 /**
  * Return the file system number attribute (or NSNotFound if
  * the attribute is not present in the dictionary).
  */
-- (unsigned long) fileSystemNumber
+- (NSUInteger) fileSystemNumber
 {
   NSNumber	*n = [self objectForKey: NSFileSystemNumber];
 
@@ -2474,14 +2479,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
       return NSNotFound;
     }
-  return [n unsignedLongValue];
+  return [n unsignedIntegerValue];
 }
 
 /**
  * Return the file system file identification number attribute
  * or NSNotFound if the attribute is not present in the dictionary).
  */
-- (unsigned long) fileSystemFileNumber
+- (NSUInteger) fileSystemFileNumber
 {
   NSNumber	*n = [self objectForKey: NSFileSystemFileNumber];
 
@@ -2489,7 +2494,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
       return NSNotFound;
     }
-  return [n unsignedLongValue];
+  return [n unsignedIntegerValue];
 }
 @end
 
@@ -2499,7 +2504,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    toFile: (NSString*)destination
 	   handler: (id)handler
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
   if (CopyFileW([self fileSystemRepresentationWithPath: source],
     [self fileSystemRepresentationWithPath: destination], NO))
     {
@@ -2861,7 +2866,7 @@ static NSSet	*fileKeys = nil;
   d = (GSAttrDictionary*)NSAllocateObject(self, (l+1)*sizeof(_CHAR),
     NSDefaultMallocZone());
 
-#if defined(S_IFLNK) && !defined(__MINGW32__)
+#if defined(S_IFLNK) && !defined(__MINGW__)
   if (traverse == NO)
     {
       if (lstat(lpath, &d->statbuf) != 0)
@@ -2909,7 +2914,7 @@ static NSSet	*fileKeys = nil;
 	NSFileSystemNumber,
 	NSFileType,
 	nil];
-      RETAIN(fileKeys);
+      IF_NO_GC([fileKeys retain];)
     }
 }
 
@@ -2935,16 +2940,16 @@ static NSSet	*fileKeys = nil;
   return NO;
 }
 
-- (unsigned long) fileGroupOwnerAccountID
+- (NSNumber*) fileGroupOwnerAccountID
 {
-  return statbuf.st_gid;
+  return [NSNumber numberWithInt: statbuf.st_gid];
 }
 
 - (NSString*) fileGroupOwnerAccountName
 {
   NSString	*group = @"UnknownGroup";
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   DWORD		returnCode = 0;
   PSID		sidOwner;
   BOOL		result = TRUE;
@@ -3062,12 +3067,12 @@ static NSSet	*fileKeys = nil;
   return group;
 }
 
-- (int) fileHFSCreatorCode
+- (OSType) fileHFSCreatorCode
 {
   return 0;
 }
 
-- (int) fileHFSTypeCode
+- (OSType) fileHFSTypeCode
 {
   return 0;
 }
@@ -3087,21 +3092,21 @@ static NSSet	*fileKeys = nil;
   return [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
 }
 
-- (unsigned long) filePosixPermissions
+- (NSUInteger) filePosixPermissions
 {
   return (statbuf.st_mode & ~S_IFMT);
 }
 
-- (unsigned long) fileOwnerAccountID
+- (NSNumber*) fileOwnerAccountID
 {
-  return statbuf.st_uid;
+  return [NSNumber numberWithInt: statbuf.st_uid];
 }
 
 - (NSString*) fileOwnerAccountName
 {
   NSString	*owner = @"UnknownUser";
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
   DWORD		returnCode = 0;
   PSID		sidOwner;
   BOOL		result = TRUE;
@@ -3224,14 +3229,25 @@ static NSSet	*fileKeys = nil;
   return statbuf.st_size;
 }
 
-- (unsigned long) fileSystemFileNumber
+- (NSUInteger) fileSystemFileNumber
 {
   return statbuf.st_ino;
 }
 
-- (unsigned long) fileSystemNumber
+- (NSUInteger) fileSystemNumber
 {
+#if defined(__MINGW__)
+  DWORD volumeSerialNumber = 0;
+  _CHAR volumePathName[128];
+  if (GetVolumePathNameW(_path,volumePathName,128))
+  {
+    GetVolumeInformationW(volumePathName,NULL,0,&volumeSerialNumber,NULL,NULL,NULL,0);
+  }
+
+  return (NSUInteger)volumeSerialNumber;
+#else
   return statbuf.st_dev;
+#endif
 }
 
 - (NSString*) fileType
@@ -3280,11 +3296,11 @@ static NSSet	*fileKeys = nil;
       if (key == NSFileGroupOwnerAccountName)
 	return [self fileGroupOwnerAccountName];
       if (key == NSFileGroupOwnerAccountID)
-	return [NSNumber numberWithInt: [self fileGroupOwnerAccountID]];
+	return [self fileGroupOwnerAccountID];
       if (key == NSFileHFSCreatorCode)
-	return [NSNumber numberWithInt: [self fileHFSCreatorCode]];
+	return [NSNumber numberWithUnsignedLong: [self fileHFSCreatorCode]];
       if (key == NSFileHFSTypeCode)
-	return [NSNumber numberWithInt: [self fileHFSTypeCode]];
+	return [NSNumber numberWithUnsignedLong: [self fileHFSTypeCode]];
       if (key == NSFileImmutable)
 	return [NSNumber numberWithBool: [self fileIsImmutable]];
       if (key == NSFileModificationDate)
@@ -3292,7 +3308,7 @@ static NSSet	*fileKeys = nil;
       if (key == NSFileOwnerAccountName)
 	return [self fileOwnerAccountName];
       if (key == NSFileOwnerAccountID)
-	return [NSNumber numberWithInt: [self fileOwnerAccountID]];
+	return [self fileOwnerAccountID];
       if (key == NSFilePosixPermissions)
 	return [NSNumber numberWithUnsignedInt: [self filePosixPermissions]];
       if (key == NSFileReferenceCount)

@@ -23,22 +23,21 @@
    $Date$ $Revision$
    */
 
-#include "Foundation/NSPortNameServer.h"
+#import "common.h"
+#import "Foundation/NSPortNameServer.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSDistributedLock.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSThread.h"
+#import "GNUstepBase/GSMime.h"
 
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSDistributedLock.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSThread.h"
-#include "GNUstepBase/GSMime.h"
-
-#include "GSPortPrivate.h"
+#import "GSPortPrivate.h"
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -57,6 +56,9 @@
 	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
 
+@interface NSProcessInfo (private)
++ (BOOL) _exists: (int)pid;
+@end
 
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;
@@ -74,7 +76,7 @@ Since we _have_to_ deal with this anyway, we handle it in -removePort: and
 -removePort:forName:, and we don't bother removing entries in the map when
 unregistering a name not for a specific port.
 */
-static NSMapTable portToNamesMap;
+static NSMapTable *portToNamesMap;
 
 
 @interface NSMessagePortNameServer (private)
@@ -97,7 +99,7 @@ static void clean_up_names(void)
       [defaultServer removePort: port];
     }
   NSEndMapTableEnumeration(&mEnum);
-  DESTROY(arp);
+  IF_NO_GC(DESTROY(arp);)
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
@@ -116,10 +118,55 @@ static void clean_up_names(void)
 {
   if (self == [NSMessagePortNameServer class])
     {
+      NSFileManager	*mgr;
+      NSString		*path;
+      NSString		*pref;
+      NSString		*file;
+      NSEnumerator	*files;
+
       serverLock = [NSRecursiveLock new];
       portToNamesMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 			 NSObjectMapValueCallBacks, 0);
       atexit(clean_up_names);
+
+      /* It's possible that an old process, with the same process ID as
+       * this one, got forcibly killed or crashed so that clean_up_names
+       * was never called.
+       * To deal with that unlikely situation, we need to remove all such
+       * names which have been left over.
+       */
+      path = NSTemporaryDirectory();
+      path = [path stringByAppendingPathComponent: @"NSMessagePort"];
+      path = [path stringByAppendingPathComponent: @"names"];
+      pref = [NSString stringWithFormat: @"%i.",
+	[[NSProcessInfo processInfo] processIdentifier]];
+      mgr = [NSFileManager defaultManager];
+      files = [[mgr directoryContentsAtPath: path] objectEnumerator];
+      while ((file = [files nextObject]) != nil)
+	{
+          NSString	*old = [path stringByAppendingPathComponent: file];
+	  NSString	*port = [NSString stringWithContentsOfFile: old];
+
+	  if (YES == [port hasPrefix: pref])
+	    {
+	      NSDebugMLLog(@"NSMessagePort", @"Removing old name %@", old);
+	      [mgr removeFileAtPath: old handler: nil];
+	    }
+	  else
+	    {
+	      int	pid = [port intValue];
+
+	      if (pid > 0)
+		{
+		  if (NO == [NSProcessInfo _exists: pid])
+		    {
+		      NSDebugMLLog(@"NSMessagePort",
+		        @"Removing old name %@ for process %d", old, pid);
+		      [mgr removeFileAtPath: old handler: nil];
+		    }
+		}
+	    }
+	}
     }
 }
 
@@ -206,7 +253,7 @@ static void clean_up_names(void)
       data = [GSMimeDocument encodeBase64: data];
       name = [[NSString alloc] initWithData: data
 				   encoding: NSASCIIStringEncoding];
-      AUTORELEASE(name);
+      IF_NO_GC([name autorelease];)
     }
   [serverLock lock];
   if (!base_path)
@@ -323,13 +370,16 @@ static void clean_up_names(void)
 
   if ([host length] > 0)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to contact a named host using a "
+      NSLog(@"Attempt to contact a named host using a "
 	@"message port name server.  This name server can only be used "
 	@"to contact processes owned by the same user on the local host "
-	@"(host name must be an empty string).  To contact processes "
+	@"(host name must be nil or an empty string).  To contact processes "
 	@"owned by other users or on other hosts you must use an instance "
-	@"of the NSSocketPortNameServer class."];
+	@"of the NSSocketPortNameServer class.");
+      if (NO == [host isEqualToString: @"*"])
+	{
+          return nil;
+        }
     }
 
   path = [[self class] _pathForName: name];

@@ -22,8 +22,17 @@
 
 */
 
+#import	"common.h"
 
-#import <Foundation/Foundation.h>
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSFileHandle.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
 
 void create_output(id propertyList)
 {
@@ -72,7 +81,7 @@ id process_plist(NSData *inputData)
   NS_DURING
       propertyList = [string propertyList];
   NS_HANDLER
-      NSLog([localException description]);
+      NSLog(@"%@", localException);
   NS_ENDHANDLER
 
   // return the results

@@ -69,9 +69,14 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
  */
 @interface NSXMLParser : NSObject
 {
-@private
+#if	GS_EXPOSE(NSXMLParser)
+@public
   void		*_parser;	// GSXMLParser
   void		*_handler;	// SAXHandler
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 
 /**
@@ -154,12 +159,12 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /**
  * Returns the current column number of the document being parsed.
  */
-- (int) columnNumber;
+- (NSInteger) columnNumber;
 
 /**
  * Returns the current line number of the document being parsed.
  */
-- (int) lineNumber;
+- (NSInteger) lineNumber;
 
 /**
  * Returns the public identifier of the external entity in the
@@ -308,7 +313,7 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /*
  * Provide the same error codes as MacOS-X, even if we don't use them all.
  */
-typedef enum {
+enum {
   NSXMLParserInternalError = 1,
   NSXMLParserOutOfMemoryError = 2,
   NSXMLParserDocumentStartError = 3,
@@ -402,7 +407,8 @@ typedef enum {
   NSXMLParserURIFragmentError = 92,
   NSXMLParserNoDTDError = 94,
   NSXMLParserDelegateAbortedParseError = 512
-} NSXMLParserError;
+};
+typedef NSUInteger NSXMLParserError;
 
 #if	defined(__cplusplus)
 }

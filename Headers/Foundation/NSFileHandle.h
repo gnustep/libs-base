@@ -157,8 +157,14 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 
 @interface NSPipe : NSObject
 {
-   NSFileHandle*	readHandle;
-   NSFileHandle*	writeHandle;
+#if	GS_EXPOSE(NSPipe)
+@private
+  NSFileHandle	*_readHandle;
+  NSFileHandle	*_writeHandle;
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 + (id) pipe;
 - (NSFileHandle*) fileHandleForReading;
@@ -172,19 +178,19 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 // GNUstep class extensions
 
 @interface NSFileHandle (GNUstepExtensions)
-+ (id) fileHandleAsServerAtAddress: (NSString*)address
-			   service: (NSString*)service
-			  protocol: (NSString*)protocol;
-+ (id) fileHandleAsClientAtAddress: (NSString*)address
-			   service: (NSString*)service
-			  protocol: (NSString*)protocol;
-+ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
-				       service: (NSString*)service
-				      protocol: (NSString*)protocol;
-+ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
-				       service: (NSString*)service
-				      protocol: (NSString*)protocol
-				      forModes: (NSArray*)modes;
++ (id) fileHandleAsServerAtAddress: (NSString*)a
+			   service: (NSString*)s
+			  protocol: (NSString*)p;
++ (id) fileHandleAsClientAtAddress: (NSString*)a
+			   service: (NSString*)s
+			  protocol: (NSString*)p;
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)a
+				       service: (NSString*)s
+				      protocol: (NSString*)p;
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)a
+				       service: (NSString*)s
+				      protocol: (NSString*)p
+				      forModes: (NSArray*)m;
 - (void) readDataInBackgroundAndNotifyLength: (unsigned)len;
 - (void) readDataInBackgroundAndNotifyLength: (unsigned)len
 				    forModes: (NSArray*)modes;
@@ -202,16 +208,22 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 
 /**
  * Where OpenSSL is available, you can use the subclass returned by +sslClass
- * to handle SSL connections.
- *   The -sslAccept method is used to do SSL handshake and start an
- *   encrypted session on a channel where the connection was initiated
- *   from the far end.
- *   The -sslConnect method is used to do SSL handshake and start an
- *   encrypted session on a channel where the connection was initiated
- *   from the near end..
- *   The -sslDisconnect method is used to end the encrypted session.
- *   The -sslSetCertificate:privateKey:PEMpasswd: method is used to
- *   establish a client certificate before starting an encrypted session.
+ * to handle SSL connections.<br />
+ * The -sslAccept method is used to do SSL handshake and start an
+ * encrypted session on a channel where the connection was initiated
+ * from the far end.<br />
+ * The -sslConnect method is used to do SSL handshake and start an
+ * encrypted session on a channel where the connection was initiated
+ * from the near end.<br />
+ * The -sslDisconnect method is used to end the encrypted session.
+ * The -sslSetCertificate:privateKey:PEMpasswd: method is used to
+ * establish a client certificate before starting an encrypted session.<br />
+ * NB. Some of these methods may block while performing I/O on the network
+ * connection, (though they should run the current runloop while doing so)
+ * so you should structure your code to handle that.  In particular, if you
+ * are writing a server application, you should initiate a background accept
+ * to allow another incoming connection <em>before</em> you perform an
+ * -sslAccept on a connection you have just accepted.
  */
 @interface NSFileHandle (GNUstepOpenSSL)
 + (Class) sslClass;
@@ -246,6 +258,10 @@ GS_EXPORT NSString * const GSFileHandleNotificationError;
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSFileHandle+GNUstepBase.h>
 #endif
 
 #endif /* __NSFileHandle_h_GNUSTEP_BASE_INCLUDE */

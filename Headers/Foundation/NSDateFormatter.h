@@ -102,8 +102,13 @@ extern "C" {
  */
 @interface NSDateFormatter : NSFormatter <NSCoding, NSCopying>
 {
+#if	GS_EXPOSE(NSDateFormatter)
   NSString	*_dateFormat;
   BOOL		_allowsNaturalLanguage;
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
+#endif
 }
 
 /* Initializing an NSDateFormatter */
