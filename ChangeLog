@@ -1,11 +1,15 @@
+2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: Update to latest zone info.
+
 2010-05-29  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* NSData.m: Attempted fix for bug #29920
+	* Source/NSData.m: Attempted fix for bug #29920
 
 2010-05-29  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* NSConcreteHashTable.m:
-	* NSHashTable.m: In ([-allObjects]) fix buffer overrun (bug #29980).
+	* Source/NSConcreteHashTable.m:
+	* Source/NSHashTable.m: In ([-allObjects]) fix buf overrun (bug #29980).
 	* Source/NSXMLParser.m: Fix off-by-one error handling whitespace.
 	* Headers/Additions/GNUstepBase/GSMime.h: Revert xml charset method.
 	* Source/NSURL.m: Allow a URL made from an empty string (OSX compat).
