@@ -1,3 +1,9 @@
+2010-05-30  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSAttributedString.m (-initWithCoder:, -encodeWithCoder:):
+	Fix keyed archiving and unarchiving of (mutable) attributed
+	strings with multiple attribute ranges.
+
 2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: Update to latest zone info.
