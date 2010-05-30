@@ -1016,11 +1016,21 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       finalize_imp = get_imp(self, finalize_sel);
 #endif
 
-#if defined(__FreeBSD__) && defined(__i386__)
+#if (defined(__FreeBSD__) || defined(__OpenBSD__)) && defined(__i386__)
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
       // problems on *BSD)
       // Note this only works on x86
+#  if defined(FE_INVALID)
       fedisableexcept(FE_INVALID);
+#  else
+      {
+        volatile short cw;
+
+        __asm__ volatile ("fstcw (%0)" : : "g" (&cw));
+        cw |= 1; /* Mask 'invalid' exception */
+        __asm__ volatile ("fldcw (%0)" : : "g" (&cw));
+      }
+#  endif
 #endif
 
 #ifdef HAVE_LOCALE_H
