@@ -151,19 +151,70 @@ static Class GSMutableAttributedStringClass;
   return NSAttributedStringClass;
 }
 
+static void
+appendUIntData(NSMutableData *d, NSUInteger i)
+{
+  unsigned int aux = i;
+  unsigned int len = 1;
+
+  while (aux >= 128)
+    {
+      aux /= 128;
+      len++;
+    }
+
+  {
+    unsigned char *p, buf[len];
+
+    p = buf;
+    while (i >= 128)
+      {
+	*p++ = (i & 0x7f) + 128;
+	i /= 128;
+      }
+    *p = i;
+
+     [d appendBytes: buf length: len];
+  }
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   if ([aCoder allowsKeyedCoding])
     {
+      NSUInteger length = [self length];
+
       [aCoder  encodeObject: [self string] forKey: @"NSString"];
-      if ([self length] > 0) 
+      if (length > 0) 
 	{
+	  NSRange range;
 	  NSDictionary	*attrs;
 
-          // FIXME: This doesn't handle the case of different attributes
-	  attrs = [self attributesAtIndex: 0 effectiveRange: NULL];
+	  attrs = [self attributesAtIndex: 0 effectiveRange: &range];
+	  if (range.length == length)
+	    {
+	      [aCoder encodeObject: attrs forKey: @"NSAttributes"];
+	    }
+	  else
+	    {
+	      NSUInteger i = 0;
+	      NSUInteger pos = 0;
+	      NSMutableArray *attrs = [NSMutableArray arrayWithCapacity: 1];
+	      NSMutableData *info = [NSMutableData dataWithCapacity: 2];
 
-	  [aCoder  encodeObject: attrs forKey: @"NSAttributes"];
+	      while (pos < length)
+		{
+		  [attrs addObject: [self attributesAtIndex: pos
+					     effectiveRange: &range]];
+		  appendUIntData(info, range.length);
+		  appendUIntData(info, i++);
+		  pos = NSMaxRange(range);
+		}
+	      [aCoder encodeObject: [[attrs copy] autorelease]
+			    forKey: @"NSAttributes"];
+	      [aCoder encodeObject: [[info copy] autorelease]
+			    forKey: @"NSAttributeInfo"];
+	    }
 	}
     }
   else
@@ -211,20 +262,24 @@ static Class GSMutableAttributedStringClass;
             {
               unsigned int idx;
               unsigned int len;
+	      unsigned int shift;
               NSRange r;
 
-              // FIXME: For huge strings we may need more bytes
-              len = *p++;
-              if (len & 0x8)
-                {
-                  len = (len - 128) + ((*p++) << 7);
-                }
+	      len = shift = 0;
+	      while (*p & 0x80)
+		{
+		  len += (*p++ - 128) << shift;
+		  shift += 7;
+		}
+	      len += *p++ << shift;
 
-              idx = *p++;
-              if (idx & 0x8)
-                {
-                  idx = (idx - 128) + ((*p++) << 7);
-                }
+	      idx = shift = 0;
+	      while (*p & 0x80)
+		{
+		  idx += (*p++ - 128) << shift;
+		  shift += 7;
+		}
+	      idx += *p++ << shift;
 
               r = NSMakeRange(pos, len);
 	      [m setAttributes: [attributes objectAtIndex: idx] range: r];
@@ -707,20 +762,24 @@ static Class GSMutableAttributedStringClass;
             {
               unsigned int idx;
               unsigned int len;
+	      unsigned int shift;
               NSRange r;
 
-              // FIXME: For huge strings we may need more bytes
-              len = *p++;
-              if (len & 0x8)
-                {
-                  len = (len - 128) + ((*p++) << 7);
-                }
+	      len = shift = 0;
+	      while (*p & 0x80)
+		{
+		  len += (*p++ - 128) << shift;
+		  shift += 7;
+		}
+	      len += *p++ << shift;
 
-              idx = *p++;
-              if (idx & 0x8)
-                {
-                  idx = (idx - 128) + ((*p++) << 7);
-                }
+	      idx = shift = 0;
+	      while (*p & 0x80)
+		{
+		  idx += (*p++ - 128) << shift;
+		  shift += 7;
+		}
+	      idx += *p++ << shift;
 
               r = NSMakeRange(pos, len);
 	      [self setAttributes: [attributes objectAtIndex: idx] range: r];
