@@ -1,3 +1,8 @@
+2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.h:
+	Floating point fix for openbsd suggested by Sebastian Reitenbach
+
 2010-05-30  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSAttributedString.m (-initWithCoder:, -encodeWithCoder:):
