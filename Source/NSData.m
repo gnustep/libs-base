@@ -169,7 +169,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       NSDebugFLog(@"Open (%@) attempt failed - %@", path, [NSError _last]);
       goto failure;
     }
-	
+
   /*
    *	Seek to the end of the file.
    */
@@ -203,7 +203,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 	[NSError _last]);
       goto failure;
     }
-	
+
+  clearerr(theFile);
   if (fileLength == 0)
     {
       unsigned char	buf[BUFSIZ];
@@ -246,6 +247,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
     }
   else
     {
+      long	offset = 0;
+
 #if	GS_WITH_GC
       tmp = NSAllocateCollectable(fileLength, 0);
 #else
@@ -258,15 +261,28 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 	  goto failure;
 	}
 	    
-      c = fread(tmp, 1, fileLength, theFile);
-      if (c != (int)fileLength)
+      while (offset < fileLength
+	&& (c = fread(tmp + offset, 1, fileLength - offset, theFile)) != 0)
 	{
-	  NSWarnFLog(@"read of file (%@) contents failed - %@", path,
-	    [NSError _last]);
-	  goto failure;
+	  offset += c;
+	}
+      if (offset < fileLength)
+	{
+          fileLength = offset;
+#if	GS_WITH_GC
+	  tmp = NSReallocateCollectable(tmp, fileLength, 0);
+#else
+	  tmp = NSZoneRealloc(zone, tmp, fileLength);
+#endif
 	}
     }
-	
+  if (ferror(theFile))
+    {
+      NSWarnFLog(@"read of file (%@) contents failed - %@", path,
+        [NSError _last]);
+      goto failure;
+    }
+
   *buf = tmp;
   *len = fileLength;
   fclose(theFile);

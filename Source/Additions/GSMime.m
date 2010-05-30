@@ -3822,6 +3822,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   unsigned char	*dst;
   unsigned char	buf[4];
   NSUInteger	pos = 0;
+  int		pad = 0;
 
   if (source == nil)
     {
@@ -3870,6 +3871,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       else if  (c == '=')
 	{
 	  c = -1;
+	  pad++;
 	}
       else if (c == '-')
 	{
@@ -3895,19 +3897,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (pos > 0)
     {
       NSUInteger	i;
+      unsigned char	tail[3];
 
       for (i = pos; i < 4; i++)
 	{
 	  buf[i] = '\0';
 	}
-      pos--;
-      if (pos > 0)
-	{
-	  unsigned char	tail[3];
-	  decodebase64(tail, buf);
-	  memcpy(dst, tail, pos);
-	  dst += pos;
-	}
+      decodebase64(tail, buf);
+      memcpy(dst, tail, 3 - pad);
+      dst += 3 - pad;
     }
   return AUTORELEASE([[NSData allocWithZone: NSDefaultMallocZone()]
     initWithBytesNoCopy: result length: dst - result]);

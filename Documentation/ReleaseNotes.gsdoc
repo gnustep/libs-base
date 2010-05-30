@@ -28,6 +28,31 @@ notice and this notice are preserved.
 	changes and other information that might help developers and users
 	migrate to using a newer version of the library.
       </p>
+
+      <section>
+	<heading>Version 1.20.1</heading>
+        <p>This is a stable bugfix release. The changes in this release
+	are a timezone handling update to the latest zone information, and
+	various minor bug fixes and portibility updates.
+	</p>
+	<deflist>
+	  <term>NSData</term>
+          <desc>Improve reading of non-standard files.</desc>
+	  <term>NSHashTable</term>
+          <desc>Fix minor buffer overrun.</desc>
+	  <term>NSKeyValueCoding</term>
+          <desc>Fix -isKey for KVC compliance.</desc>
+	  <term>NSPropertyList</term>
+          <desc>Fix whitespace handling in XML property lists.</desc>
+	  <term>NSTimeZone</term>
+          <desc>Update to latest zone ifnormation.</desc>
+	  <term>GSObjCMethodNames</term>
+          <desc>Fix broken implementation.</desc>
+	  <term>ObjectiveC2 compatibility</term>
+          <desc>Bugfix for selector lookup issue.</desc>
+	</deflist>
+      </section>
+
       <section>
 	<heading>Version 1.20.0</heading>
         <p>This is a stable release. There have been major changes

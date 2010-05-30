@@ -120,14 +120,6 @@ version.texi: ../Version
 	if [ $(GNUSTEP_BASE_FTP_DIRECTORY) ]; then \
 	  echo '@set GNUSTEP-BASE-FTP-DIRECTORY $(GNUSTEP_BASE_FTP_DIRECTORY)' \
 		>> version.texi; fi
-	if [ $(GNUSTEP_BASE_SNAP_FTP_MACHINE) ]; then \
-	  echo '@set GNUSTEP-BASE-SNAP-FTP-MACHINE \
-		$(GNUSTEP_BASE_SNAP_FTP_MACHINE)' \
-		>> version.texi; fi
-	if [ $(GNUSTEP_BASE_SNAP_FTP_DIRECTORY) ]; then \
-	  echo '@set GNUSTEP-BASE-SNAP-FTP-DIRECTORY \
-		$(GNUSTEP_BASE_SNAP_FTP_DIRECTORY)' \
-		>> version.texi; fi
 
 regenerate: $(DOCUMENT_TEXT_NAME)
 	mv $(TOP_DOC_FILES) ..

@@ -861,12 +861,13 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
   enumerator = NSEnumerateHashTable(self);
   index = 0;
-  while ((objects[index] = NSNextHashEnumeratorItem(&enumerator)) != nil)
+  while (index < nodeCount
+    && (objects[index] = NSNextHashEnumeratorItem(&enumerator)) != nil)
     {
       index++;
     }
   NSEndHashTableEnumeration(&enumerator);
-  a = [[[NSArray alloc] initWithObjects: objects count: nodeCount] autorelease];
+  a = [[[NSArray alloc] initWithObjects: objects count: index] autorelease];
   GS_ENDITEMBUF();
   return a;
 }

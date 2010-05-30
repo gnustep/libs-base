@@ -36,6 +36,11 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSNull.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/GSMime.h"
+
+@interface GSMimeDocument (internal)
++ (NSString*) charsetForXml: (NSData*)xml;
+@end
 
 NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 
@@ -621,6 +626,8 @@ typedef struct NSXMLParserIvarsType
   int line;				// current line (counts from 0)
   int column;				// current column (counts from 0)
   BOOL abort;				// abort parse loop
+  BOOL ignorable;			// whitespace is ignorable
+  BOOL whitespace;			// had only whitespace in current data
   BOOL shouldProcessNamespaces;
   BOOL shouldReportNamespacePrefixes;
   BOOL shouldResolveExternalEntities;
@@ -632,6 +639,7 @@ typedef struct NSXMLParserIvarsType
   IMP	foundCDATA;
   IMP	foundCharacters;
   IMP	foundComment;
+  IMP	foundIgnorable;
   
 } NSXMLParserIvars;
 
@@ -642,6 +650,7 @@ static SEL	didStartMappingPrefixSel;
 static SEL	foundCDATASel;
 static SEL	foundCharactersSel;
 static SEL	foundCommentSel;
+static SEL	foundIgnorableSel;
 
 @implementation SloppyXMLParser
 
@@ -674,6 +683,8 @@ static SEL	foundCommentSel;
 	= @selector(parser:foundCharacters:);
       foundCommentSel
 	= @selector(parser:foundComment:);
+      foundIgnorableSel
+	= @selector(parser:foundIgnorableWhitespace:);
     }
 }
 
@@ -723,13 +734,37 @@ static SEL	foundCommentSel;
       self = [super init];
       if (self)
 	{
+	  NSStringEncoding	enc;
+
 	  _parser = NSZoneMalloc([self zone], sizeof(NSXMLParserIvars));
 	  memset(_parser, '\0', sizeof(NSXMLParserIvars));
-	  this->data = [data copy];
+	  /* Determine character encoding and convert to utf-8 if needed.
+	   */
+	  enc = [GSMimeDocument encodingFromCharset:
+	    [GSMimeDocument charsetForXml: data]];
+	  if (enc == NSUTF8StringEncoding || enc == NSASCIIStringEncoding)
+	    {
+	      this->data = [data copy];
+	    }
+	  else
+	    {
+	      NSString	*tmp;
+
+	      tmp = [[NSString alloc] initWithData: data encoding: enc];
+	      data = [[tmp dataUsingEncoding: NSUTF8StringEncoding] retain];
+	      [tmp release];
+	    }
 	  this->tagPath = [[NSMutableArray alloc] init];
 	  this->namespaces = [[NSMutableArray alloc] init];
 	  this->cp = [this->data bytes];
 	  this->cend = this->cp + [this->data length];
+	  /* If the data contained utf-8 with a BOM, we must skip it.
+	   */
+	  if ((this->cend - this->cp) > 2 && this->cp[0] == 0xef
+	    && this->cp[1] == 0xbb && this->cp[2] == 0xbf)
+	    {
+	      this->cp += 3;	// Skip BOM
+	    }
 	}
     }
   return self;
@@ -812,6 +847,16 @@ static SEL	foundCommentSel;
       else
 	{
 	  this->foundComment = 0;
+	}
+
+      if ([_del respondsToSelector: foundIgnorableSel])
+	{
+	  this->foundIgnorable
+	    = [_del methodForSelector: foundIgnorableSel];
+	}
+      else
+	{
+	  this->foundIgnorable = 0;
 	}
     }
 }
@@ -1222,6 +1267,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
       return [self _parseError: @"missing <?xml > preamble"
 	code: NSXMLParserDocumentStartError];
     }
+  /* Start by accumulating ignorable whitespace.
+   */
+  this->ignorable = YES;
+  this->whitespace = YES;
   c = cget();  // get first character
   while (!this->abort)
     {
@@ -1239,26 +1288,55 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
             this->column = 0;
 	    break;
 
+          case '<':
+	    /* Whitespace immediately before an element is always ignorable.
+	     */
+	    this->ignorable = YES; /* Fall through to push out data */
           case EOF: 
-          case '<': 
           case '&': 
             {
               /* push out any characters that have been collected so far
                */
               if (this->cp - vp > 1)
                 {
-                  /* check for whitespace only - might set/reset
-                   * a flag to indicate so
-                   */
-                  if (this->foundCharacters != 0)
-                    {
-		      NSString	*s;
+		  const unsigned char	*p;
+		  NSString		*s;
 
-		      s = NewUTF8STR(vp, this->cp - vp - 1);
+		  p = this->cp - 1;
+		  if (YES == this->ignorable)
+		    {
+		      if (YES == this->whitespace)
+			{
+			  p = vp;	// all whitespace
+			}
+		      else
+			{
+			  /* step through trailing whitespace (if any)
+			   */
+			  while (p > vp && isspace(p[-1]))
+			    {
+			      p--;
+			    }
+			}
+		    }
+                  if (p - vp > 0 && this->foundCharacters != 0)
+                    {
+		      /* Process initial data as characters
+		       */
+		      s = NewUTF8STR(vp, p - vp);
                       (*this->foundCharacters)(_del,
 			foundCharactersSel, self, s);
 		      [s release];
                     }
+		  if (p < this->cp - 1 && this->foundIgnorable != 0)
+		    {
+		      /* Process data as ignorable whitespace
+		       */
+		      s = NewUTF8STR(p, this->cp - p - 1);
+		      (*this->foundIgnorable)(_del,
+			foundIgnorableSel, self, s);
+		      [s release];
+		    }
                   vp = this->cp;
                 }
             }
@@ -1267,6 +1345,30 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
       switch(c)
         {
           default: 
+	    if (YES == this->whitespace && !isspace(c))
+	      {
+		if (YES == this->ignorable && this->cp - vp > 1)
+		  {
+		    /* We have accumulated ignorable whitespace ...
+		     * push it out.
+		     */
+		    if (this->foundIgnorable != 0)
+		      {
+			NSString	*s;
+
+			s = NewUTF8STR(vp, this->cp - vp - 1);
+			(*this->foundIgnorable)(_del,
+			  foundIgnorableSel, self, s);
+			[s release];
+		      }
+		    vp = this->cp - 1;
+		  }
+		/* We have read non-space data, so whitespace is no longer
+		 * ignorable, and the buffer no loinger contains only space.
+		 */
+		this->ignorable = NO;
+		this->whitespace = NO;
+	      }
             c = cget();  // just collect until we push out (again)
             continue;
 
@@ -1308,6 +1410,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
             {
               NSString  *entity;
 
+	      /* After any entity, whitespace is no longer ignorable, but
+	       * we will have an empty buffer to accumulate it.
+	       */
+	      this->ignorable = NO;
+	      this->whitespace = YES;
+
               if ([self _parseEntity: &entity] == NO)
                 {
                   return [self _parseError: @"empty entity name"
@@ -1330,6 +1438,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
               NSMutableDictionary       *parameters;
               NSString                  *arg;
               const unsigned char       *tp = this->cp;  // tag pointer
+
+	      /* After processing a tag, whitespace will be ignorable and
+	       * we can start accumulating it in our buffer.
+	       */
+	      this->ignorable = YES;
+	      this->whitespace = YES;
 
               if (this->cp < this->cend-3
                 && strncmp((char *)this->cp, "!--", 3) == 0)

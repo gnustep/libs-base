@@ -20,7 +20,10 @@
 #include "config.h"
 
 #include <ctype.h>
+#ifdef  HAVE_STDINT_H
 #include <stdint.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/param.h>
 #include <errno.h>

@@ -662,6 +662,7 @@ static unsigned	urlAlign;
  * may be nil, but aUrlString must be non-nil.<br />
  * Accepts RFC2732 style IPv6 host addresses.<br />
  * Parses a string wihthout a scheme as a simple path.<br />
+ * Parses an empty string as an empty path.<br />
  * If the string cannot be parsed the method returns nil.
  */
 - (id) initWithString: (NSString*)aUrlString
@@ -684,11 +685,6 @@ static unsigned	urlAlign;
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@ %@] bad base URL parameter",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-    }
-  if ([aUrlString length] == 0)
-    {
-      DESTROY(self);
-      return nil;
     }
   ASSIGNCOPY(_urlString, aUrlString);
   ASSIGN(_baseURL, [aBaseUrl absoluteURL]);

@@ -112,11 +112,11 @@ static Class	concreteClass = 0;
 
   enumerator = [self objectEnumerator];
   index = 0;
-  while ((objects[index] = [enumerator nextObject]) != nil)
+  while (index < nodeCount && (objects[index] = [enumerator nextObject]) != nil)
     {
       index++;
     }
-  a = [[[NSArray alloc] initWithObjects: objects count: nodeCount] autorelease];
+  a = [[[NSArray alloc] initWithObjects: objects count: index] autorelease];
   GS_ENDITEMBUF();
   return a;
 }
