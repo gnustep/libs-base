@@ -1,5 +1,12 @@
 2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSMime.m: ([+encodingFromCharset:])
+	Experimental extension to support NSStringEncoding symbolic constants
+	in string form, in addition to more common characterset names
+	(primarily for gdl2/gsweb).
+
+2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSString.m:
 	* Source/Additions/NSString+GNUstepBase.m:
 	* Headers/Foundation/NSString.h:
