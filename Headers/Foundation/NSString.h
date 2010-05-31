@@ -730,6 +730,14 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e;
 - (NSString*) stringByTrimmingCharactersInSet: (NSCharacterSet*)aSet;
 - (const char *)UTF8String;
+
+/**
+ * Returns an NSStringEncoding from the given name or 
+ * GSUndefinedEncoding / 0 if not found.
+ */
+
++ (NSStringEncoding) encodingNamed:(NSString*) encName;
+
 #endif
 
 #if OS_API_VERSION(100300,GS_API_LATEST) 
