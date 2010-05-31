@@ -1,3 +1,10 @@
+2010-05-30  David Wetzel <dave@turbocat.de>
+    * Source/NSString.m
+    * Source/Additions/NSString+GNUstepBase.m
+    * Headers/Foundation/NSString.h
+    * Headers/Additions/GNUstepBase/NSString+GNUstepBase.h
+    added encodingNamed:
+    
 2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.h:
