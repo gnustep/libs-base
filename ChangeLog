@@ -1,9 +1,24 @@
+2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m:
+	* Source/Additions/NSString+GNUstepBase.m:
+	* Headers/Foundation/NSString.h:
+	* Headers/Additions/GNUstepBase/NSString+GNUstepBase.h:
+	Revert last change ... there's no such method as +encodingNamed:
+	in OSX/OpenStep, so it definitely shouldn't be in NSString.[hm]
+	I think we can debate whether to add it to the additions library,
+	though I'm not sure that it's actually a generally useful addition
+	(if I understand correctly, it's used only in gdl2/gsweb and ought
+	probably to be a category there ... assuming that there's really
+	no existing/standard mechanism to do the job).
+
 2010-05-30  David Wetzel <dave@turbocat.de>
-    * Source/NSString.m
-    * Source/Additions/NSString+GNUstepBase.m
-    * Headers/Foundation/NSString.h
-    * Headers/Additions/GNUstepBase/NSString+GNUstepBase.h
-    added encodingNamed:
+
+	* Source/NSString.m
+	* Source/Additions/NSString+GNUstepBase.m
+	* Headers/Foundation/NSString.h
+	* Headers/Additions/GNUstepBase/NSString+GNUstepBase.h
+	added encodingNamed:
     
 2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
