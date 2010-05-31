@@ -93,14 +93,6 @@ extern "C" {
  */
 - (NSString*) substringFromRange: (NSRange)aRange;
 
-/**
- * Returns an NSStringEncoding from the given name or 
- * GSUndefinedEncoding / 0 if not found.
- */
-
-+ (NSStringEncoding) encodingNamed:(NSString*) encName;
-
-
 @end
 
 #endif	/* OS_API_VERSION */
