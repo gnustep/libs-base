@@ -2,6 +2,8 @@
 
 	* Source/NSTimeZone.m: add diagnostic to report the source of the
 	timezone name when we can't create the local timezone.
+	Use tzset()/tzname in preference to the name of the default timezone
+	file ... in case of evil systems where the file has the wrong name.
 
 2010-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
