@@ -3,6 +3,7 @@
 	* Source/Additions/NSPropertyList+GNUstepBase.m:
 	New category to replace property list write functionality no longer
 	present in OSX.
+	* base.make.in: Link with base additions library on OSX
 
 2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
