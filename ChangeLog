@@ -1,5 +1,10 @@
 2010-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSTimeZone.m: add diagnostic to report the source of the
+	timezone name when we can't create the local timezone.
+
+2010-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/NSPropertyList+GNUstepBase.m:
 	New category to replace property list write functionality no longer
 	present in OSX.
