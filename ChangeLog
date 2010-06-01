@@ -1,3 +1,9 @@
+2010-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/NSPropertyList+GNUstepBase.m:
+	New category to replace property list write functionality no longer
+	present in OSX.
+
 2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: ([+encodingFromCharset:])
