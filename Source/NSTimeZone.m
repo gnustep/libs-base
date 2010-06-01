@@ -1362,6 +1362,7 @@ static NSMapTable	*absolutes = 0;
   if (systemTimeZone == nil)
     {
       NSString	*localZoneString = nil;
+      NSString	*localZoneSource = nil;
 
       /*
        * setup default value in case something goes wrong.
@@ -1371,6 +1372,7 @@ static NSMapTable	*absolutes = 0;
       /*
        * Try to get timezone from user defaults database
        */
+      localZoneSource = _(@"NSUserDefaults: 'Local Time Zone'");
       localZoneString = [[NSUserDefaults standardUserDefaults]
 	stringForKey: LOCALDBKEY];
 
@@ -1379,6 +1381,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = _(@"environment variable: 'GNUSTEP_TZ'");
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"GNUSTEP_TZ"];
 	}
@@ -1388,6 +1391,8 @@ static NSMapTable	*absolutes = 0;
       if (localZoneString == nil)
 	{
 	  NSString	*f = _time_zone_path(LOCAL_TIME_FILE, nil);
+
+          localZoneSource = [NSString stringWithFormat: @"file: '%@'", f];
 	  if (f != nil)
 	    {
 	      localZoneString = [NSString stringWithContentsOfFile: f];
@@ -1399,6 +1404,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = _(@"environment variable: 'TZ'");
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"TZ"];
 	}
@@ -1410,6 +1416,8 @@ static NSMapTable	*absolutes = 0;
 #if defined(HAVE_TZHEAD) && defined(TZDEFAULT)
 	  tzdir = RETAIN([NSString stringWithUTF8String: TZDIR]);
 	  localZoneString = [NSString stringWithUTF8String: TZDEFAULT];
+          localZoneSource = [NSString stringWithFormat: @"file: '%@'",
+	    localZoneString];
 	  localZoneString = [localZoneString stringByResolvingSymlinksInPath];
 #else
 	  NSFileManager *dflt = [NSFileManager defaultManager];
@@ -1417,6 +1425,8 @@ static NSMapTable	*absolutes = 0;
           if ([dflt fileExistsAtPath: SYSTEM_TIME_FILE])
 	    {
 	      localZoneString = SYSTEM_TIME_FILE;
+	      localZoneSource = [NSString stringWithFormat: @"file: '%@'",
+	        localZoneString];
 	      localZoneString
 		= [localZoneString stringByResolvingSymlinksInPath];
 	      /* Guess what tzdir is */
@@ -1462,6 +1472,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = @"function: 'tzset()/tzname'";
 	  tzset();
 	  if (tzname[0] != NULL && *tzname[0] != '\0')
 	    localZoneString = [NSString stringWithUTF8String: tzname[0]];
@@ -1476,6 +1487,7 @@ static NSMapTable	*absolutes = 0;
       	TIME_ZONE_INFORMATION tz;
       	DWORD DST = GetTimeZoneInformation(&tz);
 
+        localZoneSource = @"function: 'GetTimeZoneInformation()'";
       	if (DST == TIME_ZONE_ID_DAYLIGHT)
 	  {
 	    localZoneString = [NSString stringWithCharacters: tz.DaylightName
@@ -1493,6 +1505,11 @@ static NSMapTable	*absolutes = 0;
 	{
 	  NSDebugLLog (@"NSTimeZone", @"Using zone %@", localZoneString);
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
+	  if (zone == nil)
+	    {
+              NSLog(@"Unable to create time zone for name: '%@' (source '%@').",
+		localZoneString, localZoneSource);
+	    }
 	}
       else
 	{
