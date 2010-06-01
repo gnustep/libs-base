@@ -534,15 +534,11 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   SEL			selector;
   GSFFIInvocation	*invocation;
   NSMethodSignature	*sig;
-  GSMethod              fwdInvMethod;
 
   obj      = *(id *)args[0];
   selector = *(SEL *)args[1];
 
-  fwdInvMethod = gs_method_for_receiver_and_selector
-    (obj, @selector (forwardInvocation:));
-
-  if (!fwdInvMethod)
+  if (!class_respondsToSelector(obj->class_pointer, @selector(forwardInvocation:)))
     {
       [NSException raise: NSInvalidArgumentException
 		   format: @"GSFFIInvocation: Class '%s'(%s) does not respond"
@@ -625,15 +621,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   [invocation setTarget: obj];
   [invocation setSelector: selector];
 
-  /*
-   * Now do it.
-   * The next line is equivalent to
-   *
-   *   [obj forwardInvocation: invocation];
-   *
-   * but we have already the GSMethod for forwardInvocation
-   * so the line below is somewhat faster. */
-  fwdInvMethod->method_imp (obj, fwdInvMethod->method_name, invocation);
+  [obj forwardInvocation: invocation];
 
   /* If we are returning a value, we must copy it from the invocation
    * to the memory indicated by 'retp'.
