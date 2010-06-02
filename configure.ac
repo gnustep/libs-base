@@ -2636,6 +2636,36 @@ fi
 
 AC_SUBST(WARN_FLAGS)
 
+#--------------------------------------------------------------------
+# Check if we should install gdomap as setuid
+#--------------------------------------------------------------------
+AC_MSG_CHECKING([if we should install gdomap as setuid])
+AC_ARG_ENABLE(setuid-gdomap,[
+  --disable-setuid-gdomap       Disable installing gdomap as a setuid
+                                executable.  By default, it is
+                                installed as a setuid program, so that
+                                it can be started up automatically
+                                by any user at any time.  Use this
+                                option if you are happy starting
+                                gdomap manually at startup (typically
+                                by adding 'gdomap -p' to your
+                                /etc/rc.local or equivalent start up
+                                script), in which case you don't need
+                                gdomap to be setuid and can use a more
+                                secure setup where it isn't setuid.
+],
+  ac_cv_setuid_gdomap=$enableval,
+  ac_cv_setuid_gdomap="yes")
+
+if test "$ac_cv_setuid_gdomap" = "yes"; then
+  AC_MSG_RESULT(yes);
+  GNUSTEP_INSTALL_GDOMAP_AS_SETUID="yes"
+else
+  AC_MSG_RESULT(no);
+  GNUSTEP_INSTALL_GDOMAP_AS_SETUID="no"
+fi
+
+AC_SUBST(GNUSTEP_INSTALL_GDOMAP_AS_SETUID)
 
 #--------------------------------------------------------------------
 # Configure flags from sub-configure runs, so they show up in our

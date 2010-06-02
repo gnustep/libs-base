@@ -1,3 +1,14 @@
+2010-06-02  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Added --disable-setuid-gdomap option to disable
+	installing gdomap as setuid.
+	* configure: Regenerated.
+	* config.mak.in (GNUSTEP_INSTALL_GDOMAP_AS_SETUID): New variable.
+	* Tools/Makefile.postamble:
+	(after-install): Instal gdomap as setuid only if
+	GNUSTEP_INSTALL_GDOMAP_AS_SETUID is set to 'yes'.  Updated
+	messages for the changes and generally tidied messages up.
+
 2010-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: add diagnostic to report the source of the
