@@ -485,7 +485,6 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
                 }
 #else
 		{
-		  NSLog(@"Unknown time zone name `%@'.", name);
 		  return nil;
 		}
 #endif
