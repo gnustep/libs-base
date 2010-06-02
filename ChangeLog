@@ -1,3 +1,9 @@
+2010-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: revert change of order of sources for zone
+	info since tzname does not appear to be more reliable than filename.
+	Allof timezone to be specified as an abbreviation rather than a name.
+	
 2010-06-02  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Added --disable-setuid-gdomap option to disable

@@ -47,8 +47,8 @@
     2) the GNUSTEP_TZ environment variable
     3) the file LOCAL_TIME_FILE in _time_zone_path()
     4) the TZ environment variable
-    5) tzset() & tznam[] for platforms which have it
-    6) TZDEFAULT defined in tzfile.h on platforms which have it
+    5) TZDEFAULT defined in tzfile.h on platforms which have it
+    6) tzset() & tznam[] for platforms which have it
     7) Windows registry, for Win32 systems
     8) or the fallback time zone (which is UTC)
    with the ones listed first having precedence.
@@ -895,8 +895,8 @@ static NSMapTable	*absolutes = 0;
  *  2) the GNUSTEP_TZ environment variable<br/ >
  *  3) the file "localtime" in System/Library/Libraries/Resources/NSTimeZone<br/ >
  *  4) the TZ environment variable<br/ >
- *  5) tzset and tznam on platforms which have it<br/ >
- *  6) The system zone settings (typically in /etc/localtime)<br/ >
+ *  5) The system zone settings (typically in /etc/localtime)<br/ >
+ *  6) tzset and tznam on platforms which have it<br/ >
  *  7) Windows registry, on Win32 systems<br/ >
  *  8) or the fallback time zone (which is UTC)<br/ >
  * </p>
@@ -1418,18 +1418,6 @@ static NSMapTable	*absolutes = 0;
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"TZ"];
 	}
-#if HAVE_TZSET
-      /*
-       * Try to get timezone from tzset and tzname
-       */
-      if (localZoneString == nil)
-	{
-          localZoneSource = @"function: 'tzset()/tzname'";
-	  tzset();
-	  if (tzname[0] != NULL && *tzname[0] != '\0')
-	    localZoneString = [NSString stringWithUTF8String: tzname[0]];
-	}
-#endif
       if (localZoneString == nil)
         {
           /* Get the zone name from the localtime file, assuming the file
@@ -1488,6 +1476,18 @@ static NSMapTable	*absolutes = 0;
 	      localZoneString = nil;
 	    }
         }
+#if HAVE_TZSET
+      /*
+       * Try to get timezone from tzset and tzname
+       */
+      if (localZoneString == nil)
+	{
+          localZoneSource = @"function: 'tzset()/tzname'";
+	  tzset();
+	  if (tzname[0] != NULL && *tzname[0] != '\0')
+	    localZoneString = [NSString stringWithUTF8String: tzname[0]];
+	}
+#endif
 
 #if	defined(__MINGW__)
       /*
@@ -1515,6 +1515,10 @@ static NSMapTable	*absolutes = 0;
 	{
 	  NSDebugLLog (@"NSTimeZone", @"Using zone %@", localZoneString);
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
+	  if (zone == nil)
+	    {
+	      zone = [[self timeZoneWithAbbreviation: localZoneString] retain];
+	    }
 	  if (zone == nil)
 	    {
               NSLog(@"Unable to create time zone for name: '%@' (source '%@').",
