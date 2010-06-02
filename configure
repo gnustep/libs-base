@@ -310,7 +310,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all SSL"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BASE_NATIVE_OBJC_EXCEPTIONS BASE_NONFRAGILE_ABI build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os GNUSTEP_BASE_DOMAIN GNUSTEP_BASE_RELATIVE_PATHS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS OBJCSYNC OBJC2RUNTIME OBJCFLAGS GS_NONFRAGILE GS_MIXEDABI HAVE_OBJC_SYNC_ENTER GS_SIZEOF_MUTEX_T GS_SIZEOF_COND_T HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS WARN_FLAGS subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS BASE_NATIVE_OBJC_EXCEPTIONS BASE_NONFRAGILE_ABI build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os GNUSTEP_BASE_DOMAIN GNUSTEP_BASE_RELATIVE_PATHS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP WHOAMI EGREP OBJC_WITH_GC GS_WORDS_BIGENDIAN GS_SINT8 GS_UINT8 ac_cv_sizeof_short ac_cv_sizeof_int ac_cv_sizeof_long ac_cv_sizeof_long_long ac_cv_sizeof_float ac_cv_sizeof_double ac_cv_sizeof_voidp GS_SADDR GS_UADDR GS_SINT16 GS_UINT16 GS_SINT32 GS_UINT32 GS_SINT64 GS_UINT64 GS_HAVE_I64 GS_SINT128 GS_UINT128 GS_HAVE_I128 GS_FLT32 GS_FLT64 _GSC_S_SHT _GSC_S_INT _GSC_S_LNG _GSC_S_LNG_LNG DYNAMIC_LINKER NX_CONST_STRING_OBJCFLAGS NX_CONST_STRING_CLASS OBJCSYNC OBJC2RUNTIME OBJCFLAGS GS_NONFRAGILE GS_MIXEDABI HAVE_OBJC_SYNC_ENTER GS_SIZEOF_MUTEX_T GS_SIZEOF_COND_T HAVE_PTS_STREAM_MODULES INCLUDE_STDINT DEFINE_INT8_T DEFINE_UINT8_T DEFINE_INT16_T DEFINE_UINT16_T DEFINE_INT32_T DEFINE_UINT32_T DEFINE_INT64_T DEFINE_UINT64_T DEFINE_INTPTR_T DEFINE_UINTPTR_T USE_ZLIB HAVE_INET_PTON HAVE_INET_NTOP GS_PASS_ARGUMENTS GS_FAKE_MAIN WITH_FFI XML2_CONFIG XML_CONFIG XML_CFLAGS XML_LIBS HAVE_LIBXSLT HAVE_LIBXML TLS_CONFIG TLS_CFLAGS TLS_LIBS HAVE_GNUTLS HAVE_MDNS USE_GMP INCLUDE_FLAGS LDIR_FLAGS WARN_FLAGS GNUSTEP_INSTALL_GDOMAP_AS_SETUID subdirs VERSION MAJOR_VERSION MINOR_VERSION SUBMINOR_VERSION GCC_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -889,6 +889,20 @@ Optional Features:
   --disable-tls			Disable use of GNUTLS
   --disable-tlstest		Do not try to compile and run a test TLS program
   --disable-zeroconf		Disable NSNetServices support
+
+  --disable-setuid-gdomap       Disable installing gdomap as a setuid
+                                executable.  By default, it is
+                                installed as a setuid program, so that
+                                it can be started up automatically
+                                by any user at any time.  Use this
+                                option if you are happy starting
+                                gdomap manually at startup (typically
+                                by adding 'gdomap -p' to your
+                                /etc/rc.local or equivalent start up
+                                script), in which case you don't need
+                                gdomap to be setuid and can use a more
+                                secure setup where it isn't setuid.
+
   --disable-openssl		Disable support for openssl in URL classes
 
 Optional Packages:
@@ -22159,6 +22173,30 @@ fi
 
 
 
+#--------------------------------------------------------------------
+# Check if we should install gdomap as setuid
+#--------------------------------------------------------------------
+echo "$as_me:$LINENO: checking if we should install gdomap as setuid" >&5
+echo $ECHO_N "checking if we should install gdomap as setuid... $ECHO_C" >&6
+# Check whether --enable-setuid-gdomap or --disable-setuid-gdomap was given.
+if test "${enable_setuid_gdomap+set}" = set; then
+  enableval="$enable_setuid_gdomap"
+  ac_cv_setuid_gdomap=$enableval
+else
+  ac_cv_setuid_gdomap="yes"
+fi;
+
+if test "$ac_cv_setuid_gdomap" = "yes"; then
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6;
+  GNUSTEP_INSTALL_GDOMAP_AS_SETUID="yes"
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6;
+  GNUSTEP_INSTALL_GDOMAP_AS_SETUID="no"
+fi
+
+
 
 #--------------------------------------------------------------------
 # Configure flags from sub-configure runs, so they show up in our
@@ -22926,6 +22964,7 @@ s,@USE_GMP@,$USE_GMP,;t t
 s,@INCLUDE_FLAGS@,$INCLUDE_FLAGS,;t t
 s,@LDIR_FLAGS@,$LDIR_FLAGS,;t t
 s,@WARN_FLAGS@,$WARN_FLAGS,;t t
+s,@GNUSTEP_INSTALL_GDOMAP_AS_SETUID@,$GNUSTEP_INSTALL_GDOMAP_AS_SETUID,;t t
 s,@subdirs@,$subdirs,;t t
 s,@VERSION@,$VERSION,;t t
 s,@MAJOR_VERSION@,$MAJOR_VERSION,;t t

@@ -50,7 +50,7 @@ after-install::
 	for file in $(MAN1_PAGES) __done; do \
 	  if [ $$file != __done ]; then \
 	    $(INSTALL_DATA) $$file $(GNUSTEP_DOC_MAN)/man1/$$file; \
-	    which gzip && rm -f $(GNUSTEP_DOC_MAN)/man1/$$file.gz \
+	    which gzip > /dev/null && rm -f $(GNUSTEP_DOC_MAN)/man1/$$file.gz \
 		&& gzip -9 $(GNUSTEP_DOC_MAN)/man1/$$file; \
 	  fi; \
 	done; \
@@ -59,26 +59,22 @@ after-install::
 	fi; \
 	for file in $(MAN8_PAGES); do \
 	  $(INSTALL_DATA) $$file $(GNUSTEP_DOC_MAN)/man8/$$file; \
-	    which gzip && rm -f $(GNUSTEP_DOC_MAN)/man8/$$file.gz \
+	    which gzip > /dev/null && rm -f $(GNUSTEP_DOC_MAN)/man8/$$file.gz \
 		&& gzip -9 $(GNUSTEP_DOC_MAN)/man8/$$file; \
-	done; \
-	if [ "`$(WHOAMI)`" != "root" ]; then \
-	  echo ""; \
-	  echo "************************************************************"; \
-	  echo "WARNING: gdomap has not been made setuid to root ..."; \
-	  echo "NOTE: Unless gdomap is started as root at system boot time,"; \
-	  echo "it MUST either be installed owned by root and with the"; \
-	  echo "'s-bit' or you must have defined 'GDOMAP_PORT_OVERRIDE' in"; \
-	  echo "gdomap.h before compiling gdomap.c and NSPortNameServer.m"; \
-	  echo "If either of those cases applies, ignore this message."; \
-	  echo "************************************************************"; \
-	  echo ""; \
-	else \
-	  echo "Making gdomap in $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR) setuid to root"; \
-	  echo "WARNING: if possible, you should remove the setuid flag and"; \
-	  echo "WARNING: have gdomap started as root at machine boot time."; \
-	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR); \
-	fi; \
+	done$(END_ECHO)
+ifeq ($(GNUSTEP_INSTALL_GDOMAP_AS_SETUID),no)
+	$(ECHO_NOTHING)echo ""; \
+	echo "Note: gdomap has not been made setuid to root, so you must"; \
+	echo "start it up as root.  Most often this is done at system boot"; \
+	echo "by executing 'gdomap -p' in the startup scripts."; \
+	echo ""$(END_ECHO)
+else
+	$(ECHO_NOTHING)echo ""; \
+	echo "WARNING: Making gdomap in $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR) setuid to root"; \
+	echo "WARNING: if possible, you should remove the setuid flag and"; \
+	echo "WARNING: have gdomap started by root at machine boot time."; \
+	echo ""; \
+	$(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR); \
 	echo "************************************************************"; \
 	echo "WARNING: if gdomap is started automatically, it will probe"; \
 	echo "all machines on your network periodically so that it can make"; \
@@ -88,7 +84,8 @@ after-install::
 	echo "remote systems should be probed), and you should add this"; \
 	echo "startup command to your system boot scripts!"; \
 	echo "************************************************************"; \
-	$(END_ECHO)
+	echo ""$(END_ECHO)
+endif
 
 # Things to do before uninstalling
 before-uninstall::
