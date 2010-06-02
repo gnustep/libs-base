@@ -462,11 +462,21 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	{
 	  if (data == nil)
 	    {
-	      NSString		*fileName;
+	      NSString	*fileName;
+	      BOOL	isDir;
 
 	      fileName = [NSTimeZoneClass _getTimeZoneFile: name];
 	      if (fileName == nil
-		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName])
+		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName
+		isDirectory: &isDir] || YES == isDir)
+		{
+		  data = nil;
+		}
+	      else
+		{
+	          data = [NSData dataWithContentsOfFile: fileName];
+		}
+	      if (nil == data)
 #if	defined(__MINGW__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
@@ -479,7 +489,6 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 		  return nil;
 		}
 #endif
-	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
 #if	defined(__MINGW__)
 	  if (!data)
