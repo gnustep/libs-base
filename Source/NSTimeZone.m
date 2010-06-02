@@ -1372,7 +1372,8 @@ static NSMapTable	*absolutes = 0;
       /*
        * Try to get timezone from user defaults database
        */
-      localZoneSource = _(@"NSUserDefaults: 'Local Time Zone'");
+      localZoneSource = [NSString stringWithFormat:
+	@"NSUserDefaults: '%@'", LOCALDBKEY];
       localZoneString = [[NSUserDefaults standardUserDefaults]
 	stringForKey: LOCALDBKEY];
 
@@ -1509,6 +1510,11 @@ static NSMapTable	*absolutes = 0;
 	    {
               NSLog(@"Unable to create time zone for name: '%@' (source '%@').",
 		localZoneString, localZoneSource);
+	      if ([localZoneSource hasPrefix: @"file"]
+	        || [localZoneSource hasPrefix: @"function"])
+		{
+                  NSLog(@"It seems that your operating system does not have a valid timzone names configured ... please correct that or override by setting the '%@' user default to a timezone name (such as 'Europe/London' or 'America/Chicago')", LOCALDBKEY);
+		}
 	    }
 	}
       else
