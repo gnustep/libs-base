@@ -1525,7 +1525,7 @@ static NSMapTable	*absolutes = 0;
 	      if ([localZoneSource hasPrefix: @"file"]
 	        || [localZoneSource hasPrefix: @"function"])
 		{
-                  NSLog(@"It seems that your operating system does not have a valid timzone names configured ... please correct that or override by setting the '%@' user default to a timezone name (such as 'Europe/London' or 'America/Chicago')", LOCALDBKEY);
+                  NSLog(@"It seems that your operating system does not have a valid timezone name configured (it could be that some other software has set a, possibly ambiguous, timezone abbreviation rather than a name) ... please correct that or override by setting the '%@' user default to a timezone name (such as 'Europe/London' or 'America/Chicago').  See '%@' for a the standard timezones.", LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
 		}
 	    }
 	}
@@ -2077,6 +2077,7 @@ static NSString *zoneDirs[] = {
 {
   static BOOL	beenHere = NO;
   NSString	*dir = nil;
+  BOOL		isDir;
 
   if (beenHere == NO && tzdir == nil)
     {
@@ -2112,7 +2113,8 @@ static NSString *zoneDirs[] = {
   /* Use the system zone info if possible, otherwise, use our installed
      info.  */
   if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
-    [tzdir stringByAppendingPathComponent: name]] == YES)
+    [tzdir stringByAppendingPathComponent: name] isDirectory: &isDir] == YES
+    && isDir == NO)
     {
       dir = tzdir;
     }
