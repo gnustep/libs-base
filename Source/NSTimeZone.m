@@ -1516,18 +1516,49 @@ static NSMapTable	*absolutes = 0;
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
 	  if (zone == nil)
 	    {
-	      zone = [[self timeZoneWithAbbreviation: localZoneString] retain];
-	    }
-	  if (zone == nil)
-	    {
-              NSLog(@"Unable to create time zone for name: '%@' (source '%@').",
-		localZoneString, localZoneSource);
+	      if (zone == nil)
+		{
+		  GSPrintf(stderr,
+@"\nUnable to create time zone for name: '%@'\n"
+@"(source '%@').\n", localZoneString, localZoneSource);
+		}
 	      if ([localZoneSource hasPrefix: @"file"]
 	        || [localZoneSource hasPrefix: @"function"])
 		{
-                  NSLog(@"It seems that your operating system does not have a valid timezone name configured (it could be that some other software has set a, possibly ambiguous, timezone abbreviation rather than a name) ... please correct that or override by setting a timezone name (such as 'Europe/London' or 'America/Chicago').");
+                  GSPrintf(stderr,
+@"\nIt seems that your operating system does not have a valid timezone name\n"
+@"configured (it could be that some other software has set a, possibly\n"
+@"ambiguous, timezone abbreviation rather than a name) ... please correct\n"
+@"that or override by setting a timezone name (such as 'Europe/London'\n"
+@"or 'America/Chicago').\n");
 		}
-	      NSLog(@"You can override the timezone name by setting the '%@' user default.  See '%@' for the standard timezones such as 'GB-Eire' or 'Africa/Nairobi'.", LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
+	      GSPrintf(stderr,
+@"\nYou can override the timezone name by setting the '%@'\n"
+@"NSUserDefault via the 'defaults' command line utility, a Preferences\n"
+@"application, or some other utility.\n"
+@"eg \"defaults write NSGlobalDomain '%@' 'Africa/Nairobi'\"\n"
+@"See '%@'\n"
+@"for the standard timezones such as 'GB-Eire' or 'America/Chicago'.\n",
+LOCALDBKEY, LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
+	      zone = [[self timeZoneWithAbbreviation: localZoneString] retain];
+	      if (zone != nil)
+		{
+		  NSInteger	s;
+		  char		sign = '+';
+
+		  s = [zone secondsFromGMT];
+		  if (s < 0)
+		    {
+		      sign = '-';
+		      s = -s;
+		    }
+	          GSPrintf(stderr,
+@"\nSucceeded in treating '%@' as a timezone abbreviation,\n"
+@"but abbreviations do not uniquely represent timezones, so this may\n"
+@"not have found the timezone you were expecting.  The timezone found\n"
+@"was '%@' (currently UTC%c%02d%02d)\n\n",
+localZoneString, [zone name], sign, s/3600, (s/60)%60);
+		}
 	    }
 	}
       else
