@@ -1525,8 +1525,9 @@ static NSMapTable	*absolutes = 0;
 	      if ([localZoneSource hasPrefix: @"file"]
 	        || [localZoneSource hasPrefix: @"function"])
 		{
-                  NSLog(@"It seems that your operating system does not have a valid timezone name configured (it could be that some other software has set a, possibly ambiguous, timezone abbreviation rather than a name) ... please correct that or override by setting the '%@' user default to a timezone name (such as 'Europe/London' or 'America/Chicago').  See '%@' for a the standard timezones.", LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
+                  NSLog(@"It seems that your operating system does not have a valid timezone name configured (it could be that some other software has set a, possibly ambiguous, timezone abbreviation rather than a name) ... please correct that or override by setting a timezone name (such as 'Europe/London' or 'America/Chicago').");
 		}
+	      NSLog(@"You can override the timezone name by setting the '%@' user default.  See '%@' for the standard timezones such as 'GB-Eire' or 'Africa/Nairobi'.", LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
 	    }
 	}
       else
