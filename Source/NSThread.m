@@ -567,7 +567,11 @@ unregisterActiveThread(NSThread *thread)
        * if we have become multi-threaded due to a call to the runtime directly
        * rather than via the NSThread class.
        */
+#if defined(__GNUSTEP_RUNTIME__) || defined(__NEXT_RUNTIME__)
+      gnustep_base_thread_callback();
+#else
       objc_set_thread_callback(gnustep_base_thread_callback);
+#endif
     }
 }
 
