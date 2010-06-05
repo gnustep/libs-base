@@ -1,3 +1,8 @@
+2010-06-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/Makefile.postamble: Fix breakage of instalation of gdomap
+	(was installing setuid to wrong user ID!).
+
 2010-06-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: revert change of order of sources for zone
