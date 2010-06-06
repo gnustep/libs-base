@@ -1066,22 +1066,26 @@ BOOL class_conformsToProtocol(Class cls, Protocol *protocol)
 {
 	struct objc_protocol_list *protocols;
 
-	for (protocols = cls->protocols;
-		protocols != NULL ; protocols = protocols->next)
+	while (cls)
 	{
-		int i;
-		for (i=0 ; i<protocols->count ; i++)
+		for (protocols = cls->protocols;
+			protocols != NULL ; protocols = protocols->next)
 		{
-			Protocol *p1 = (Protocol*)protocols->list[i];
-			if (strcmp(p1->protocol_name, protocol->protocol_name) == 0)
+			int i;
+			for (i=0 ; i<protocols->count ; i++)
 			{
-				return YES;
-			}
-			if (protocol_conformsToProtocol(p1, protocol))
-			{
-				return YES;
+				Protocol *p1 = (Protocol*)protocols->list[i];
+				if (strcmp(p1->protocol_name, protocol->protocol_name) == 0)
+				{
+					return YES;
+				}
+				if (protocol_conformsToProtocol(p1, protocol))
+				{
+					return YES;
+				}
 			}
 		}
+		cls = cls ->super_class;
 	}
 	return NO;
 }
