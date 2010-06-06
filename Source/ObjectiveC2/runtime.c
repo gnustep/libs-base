@@ -250,28 +250,6 @@ class_addProtocol(Class cls, Protocol * protocol)
   return YES;
 }
 
-BOOL
-class_conformsToProtocol(Class cls, Protocol * protocol)
-{
-  struct objc_protocol_list *protocols;
-
-  for (protocols = cls->protocols;
-       protocols != NULL; protocols = protocols->next)
-    {
-      int i;
-
-      for (i = 0; i < protocols->count; i++)
-	{
-	  if (strcmp(protocols->list[i]->protocol_name,
-		     protocol->protocol_name) == 0)
-	    {
-	      return YES;
-	    }
-	}
-    }
-  return NO;
-}
-
 Ivar *
 class_copyIvarList(Class cls, unsigned int *outCount)
 {
@@ -1060,10 +1038,52 @@ objc_getProtocol(const char *name)
   return p;
 }
 
-BOOL
-protocol_conformsToProtocol(Protocol * p, Protocol * other)
+BOOL protocol_conformsToProtocol(Protocol *p1, Protocol *p2)
 {
-  return NO;
+	struct objc_protocol_list *list = p1->protocol_list;
+	// A protocol trivially conforms to itself
+	if (strcmp(p1->protocol_name, p2->protocol_name) == 0) { return YES; }
+
+	for (list = p1->protocol_list ; list != NULL ; list = list->next)
+	{
+		int i;
+		for (i=0 ; i<list->count ; i++)
+		{
+			if (strcmp(list->list[i]->protocol_name, p2->protocol_name) == 0)
+			{
+				return YES;
+			}
+			if (protocol_conformsToProtocol((Protocol*)list->list[i], p2))
+			{
+				return YES;
+			}
+		}
+	}
+	return NO;
+}
+
+BOOL class_conformsToProtocol(Class cls, Protocol *protocol)
+{
+	struct objc_protocol_list *protocols;
+
+	for (protocols = cls->protocols;
+		protocols != NULL ; protocols = protocols->next)
+	{
+		int i;
+		for (i=0 ; i<protocols->count ; i++)
+		{
+			Protocol *p1 = (Protocol*)protocols->list[i];
+			if (strcmp(p1->protocol_name, protocol->protocol_name) == 0)
+			{
+				return YES;
+			}
+			if (protocol_conformsToProtocol(p1, protocol))
+			{
+				return YES;
+			}
+		}
+	}
+	return NO;
 }
 
 struct objc_method_description *
