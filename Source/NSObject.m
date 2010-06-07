@@ -1390,35 +1390,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  struct objc_protocol_list* proto_list;
-
-  if (aProtocol == 0)
-    {
-      return NO;
-    }
-  for (proto_list = ((struct objc_class*)self)->protocols;
-       proto_list; proto_list = proto_list->next)
-    {
-      NSUInteger i;
-
-      for (i = 0; i < proto_list->count; i++)
-	{
-	  /* xxx We should add conformsToProtocol to Protocol class. */
-	  if ([proto_list->list[i] conformsTo: aProtocol])
-	    {
-	      return YES;
-	    }
-	}
-    }
-
-  if ([self superclass])
-    {
-      return [[self superclass] conformsToProtocol: aProtocol];
-    }
-  else
-    {
-      return NO;
-    }
+  return class_conformsToProtocol(self, aProtocol);
 }
 
 /**
@@ -1427,7 +1399,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  return [[self class] conformsToProtocol: aProtocol];
+  return class_conformsToProtocol([self class], aProtocol);
 }
 
 /**
@@ -2115,6 +2087,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (id) error: (const char *)aString, ...
 {
+#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 #define FMT "error: %s (%s)\n%s\n"
   char fmt[(strlen((char*)FMT)+strlen((char*)GSClassNameFromObject(self))
             +((aString!=NULL)?strlen((char*)aString):0)+8)];
@@ -2127,8 +2100,9 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   /* xxx What should `code' argument be?  Current 0. */
   objc_verror (self, 0, fmt, ap);
   va_end(ap);
-  return nil;
 #undef FMT
+#endif
+  return nil;
 }
 
 /*
@@ -2340,7 +2314,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 + (NSInteger) streamVersion: (TypedStream*)aStream
 {
-#ifndef NeXT_RUNTIME
+#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
   if (aStream->mode == OBJC_READONLY)
     return objc_get_stream_class_version (aStream, self);
   else
