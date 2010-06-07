@@ -122,13 +122,14 @@ cifframe_guess_struct_size(ffi_type *stype)
 }
 
 
-cifframe_t *
+void *
 cifframe_from_signature (NSMethodSignature *info)
 {
   unsigned      size = sizeof(cifframe_t);
   unsigned      align = __alignof(double);
   unsigned      type_offset = 0;
   unsigned      offset = 0;
+  void		*result;
   void          *buf;
   int           i;
   int		numargs = [info numberOfArguments];
@@ -180,9 +181,11 @@ cifframe_from_signature (NSMethodSignature *info)
     }
 
 #if	GS_WITH_GC
-  cframe = buf = NSAllocateCollectable(size, NSScannedOption);
+  cframe = buf = result = NSAllocateCollectable(size, NSScannedOption);
 #else
-  cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), size, 1);
+  result = (void*)[NSMutableData dataWithCapacity: size];
+  [(NSMutableData*)result setLength: size];
+  cframe = buf = [(NSMutableData*)result mutableBytes];
 #endif
 
   if (cframe)
@@ -196,8 +199,7 @@ cifframe_from_signature (NSMethodSignature *info)
   if (ffi_prep_cif (&cframe->cif, FFI_DEFAULT_ABI, cframe->nargs,
 		   rtype, cframe->arg_types) != FFI_OK)
     {
-      objc_free(cframe);
-      cframe = NULL;
+      cframe = result = NULL;
     }
 
   if (cframe)
@@ -222,7 +224,7 @@ cifframe_from_signature (NSMethodSignature *info)
         }
     }
 
-  return cframe;
+  return result;
 }
 
 void
