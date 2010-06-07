@@ -147,7 +147,9 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   NSMethodSignature     *sig;
   GSCodeBuffer          *memory;
 
-  if (class_respondsToSelector(receiver->isa, sel))
+  if (class_respondsToSelector(receiver->isa, sel) ||
+     (class_respondsToSelector(receiver->isa, @selector(respondsToSelector:))
+           && [receiver respondsToSelector: sel]))
     {
       sig = [receiver methodSignatureForSelector: sel];
     }
