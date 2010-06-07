@@ -2175,33 +2175,12 @@ handle_printf_atsign (FILE *stream,
  */
 - (BOOL) isEqualToString: (NSString*)aString
 {
-  NSUInteger len;
-  unichar selfBuffer[32];
-  unichar otherBuffer[32];
-  NSRange r = {0, 32};
-
   if ([self hash] != [aString hash])
     return NO;
-
-  len = [self length];
-  if (len != [aString length])
-    return NO;
-
-  while (r.location < len)
-    {
-      if (r.location + r.length > len)
-        {
-          r.length = len - r.location;
-        }
-      [self getCharacters: selfBuffer range: r];
-      [aString getCharacters: otherBuffer range: r];
-      if (memcmp(selfBuffer, otherBuffer, r.length) != 0)
-      {
-        return NO;
-      }
-      r.location += r.length;
-    }
-  return YES;
+  if (strCompNsNs(self, aString, 0, (NSRange){0, [self length]})
+    == NSOrderedSame)
+    return YES;
+  return NO;
 }
 
 /**
