@@ -334,7 +334,11 @@ _arg_addr(NSInvocation *inv, int index)
 #if	defined(USE_LIBFFI)
   if (_cframe)
     {
-      NSZoneFree(NSDefaultMallocZone(), _cframe);
+      /* If we get here then we are not using GC, so the _frame instance
+       * variable points to a mutable data object containing _cframe and
+       * we can release it.
+       */
+      [((GSFFIInvocation*)self)->_frame release];
     }
 #elif defined(USE_FFCALL)
   if (_cframe)

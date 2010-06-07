@@ -141,6 +141,7 @@ gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 
 static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 {
+  void			*frame;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
   NSMethodSignature     *sig;
@@ -183,7 +184,6 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 	    "receiver, or you must be using an old/faulty version of the "
 	    "Objective-C runtime library.\n", sel_get_name(sel));
 #endif
-
 	  /*
 	   * Default signature is for a method returning an object.
 	   */
@@ -198,10 +198,15 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   NSCAssert1(sig, @"No signature for selector %@", NSStringFromSelector(sel));
 
   /* Construct the frame and closure. */
-  /* Note: We malloc cframe here, but it's passed to GSFFIInvocationCallback
+  /* Note: We obtain cframe here, but it's passed to GSFFIInvocationCallback
      where it becomes owned by the callback invocation, so we don't have to
-     worry about freeing it */
-  cframe = cifframe_from_signature(sig);
+     worry about ownership */
+  frame = cifframe_from_signature(sig);
+#if	GS_WITH_GC
+  cframe = frame;
+#else
+  cframe = [(NSMutableData*)frame mutableBytes];
+#endif
   /* Autorelease the closure through GSAutoreleasedBuffer */
 
   memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
@@ -211,7 +216,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
       [NSException raise: NSMallocException format: @"Allocating closure"];
     }
   if (ffi_prep_closure(cclosure, &(cframe->cif),
-    GSFFIInvocationCallback, cframe) != FFI_OK)
+    GSFFIInvocationCallback, frame) != FFI_OK)
     {
       [NSException raise: NSGenericException format: @"Preping closure"];
     }
@@ -328,7 +333,14 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
+#if	GS_WITH_GC
+  _frame = nil;
   _cframe = cifframe_from_signature(_sig);
+#else
+  _frame = (NSMutableData*)cifframe_from_signature(_sig);
+  [_frame retain];
+  _cframe = [_frame mutableBytes];
+#endif
 
   /* Make sure we have somewhere to store the return value if needed.
    */
@@ -354,7 +366,7 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
    but we own it now so we can free it */
 - (id) initWithCallback: (ffi_cif *)cif
 		 values: (void **)vals
-		  frame: (cifframe_t *)frame
+		  frame: (void *)frame
 	      signature: (NSMethodSignature*)aSignature
 {
   cifframe_t *f;
@@ -363,7 +375,14 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
+#if	GS_WITH_GC
+  _frame = nil;
   _cframe = frame;
+#else
+  _frame = (NSMutableData*)frame;
+  [_frame retain];
+  _cframe = [_frame mutableBytes];
+#endif
   f = (cifframe_t *)_cframe;
   f->cif = *cif;
 
@@ -548,7 +567,8 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   obj      = *(id *)args[0];
   selector = *(SEL *)args[1];
 
-  if (!class_respondsToSelector(obj->class_pointer, @selector(forwardInvocation:)))
+  if (!class_respondsToSelector(obj->class_pointer,
+    @selector(forwardInvocation:)))
     {
       [NSException raise: NSInvalidArgumentException
 		   format: @"GSFFIInvocation: Class '%s'(%s) does not respond"

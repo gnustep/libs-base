@@ -27,6 +27,8 @@
 
 #include <Foundation/NSInvocation.h>
 
+@class	NSMutableData;
+
 typedef struct	{
   int		offset;
   unsigned	size;
@@ -39,7 +41,9 @@ typedef struct	{
 
 @interface GSFFIInvocation : NSInvocation
 {
+@public
   uint8_t	_retbuf[32];	// Store return values of up to 32 bytes here.
+  NSMutableData	*_frame;
 }
 @end
 

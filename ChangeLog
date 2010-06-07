@@ -1,5 +1,18 @@
 2010-06-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSInvocation.h:
+	* Source/GSFFIInvocation.m:
+	* Source/NSInvocation.m:
+	* Source/cifframe.h:
+	* Source/cifframe.m:
+	Rework memory management for frame used in FFI invocation so that
+	the memory has a retain count and multiple invocations can use the
+	same frame since it looks like the way FFI works, if you cache the
+	method implementation of a proxy, the same frame memory is re-used
+	in multiple invocations.
+
+2010-06-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFFIInvocation.m: Fix breakage caused by David's changes.
 	* Source/ObjectiveC2/runtime.m: Fix handling of nul arguments in
 	class_sespondsToSelector().

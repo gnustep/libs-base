@@ -50,7 +50,7 @@ typedef struct _cifframe_t {
   void **values;
 } cifframe_t;
 
-extern cifframe_t *cifframe_from_signature (NSMethodSignature *info);
+extern void *cifframe_from_signature (NSMethodSignature *info);
 
 extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, 
 			     int size);
