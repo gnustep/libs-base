@@ -22,8 +22,6 @@
    Boston, MA 02111 USA.
    */
 
-#define class_pointer isa
-
 #import "common.h"
 #define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
@@ -147,21 +145,18 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   ffi_closure           *cclosure;
   NSMethodSignature     *sig;
   GSCodeBuffer          *memory;
+  Class			c;
 
-  if (class_respondsToSelector(receiver->isa, sel) ||
-     (class_respondsToSelector(receiver->isa, @selector(respondsToSelector:))
-           && [receiver respondsToSelector: sel]))
+  c = object_getClass(receiver);
+  if (class_respondsToSelector(c, sel)
+    || (class_respondsToSelector(c, @selector(respondsToSelector:))
+      && [receiver respondsToSelector: sel]))
     {
       sig = [receiver methodSignatureForSelector: sel];
     }
   else
     {
-      [NSException raise: NSInvalidArgumentException
-		   format: @"GSFFIInvocation: Class '%s'(%s) does not respond"
-		           @" to forwardInvocation: for '%s'",
-		   GSClassNameFromObject(receiver),
-		   GSObjCIsInstance(receiver) ? "instance" : "class",
-		   sel ? sel_getName(sel) : "(null)"];
+      sig = nil;
     }
 
   if (sig == nil)
