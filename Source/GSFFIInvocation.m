@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */
 
+#define class_pointer isa
 
 #import "common.h"
 #define	EXPOSE_NSInvocation_IVARS	1
