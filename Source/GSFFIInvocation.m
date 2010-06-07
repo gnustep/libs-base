@@ -147,7 +147,19 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   NSMethodSignature     *sig;
   GSCodeBuffer          *memory;
 
-  sig = [receiver methodSignatureForSelector: sel];
+  if (class_respondsToSelector(receiver->isa, sel))
+    {
+      sig = [receiver methodSignatureForSelector: sel];
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+		   format: @"GSFFIInvocation: Class '%s'(%s) does not respond"
+		           @" to forwardInvocation: for '%s'",
+		   GSClassNameFromObject(receiver),
+		   GSObjCIsInstance(receiver) ? "instance" : "class",
+		   sel ? sel_getName(sel) : "(null)"];
+    }
 
   if (sig == nil)
     {
