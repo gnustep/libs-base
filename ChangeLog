@@ -1,3 +1,9 @@
+2010-06-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m: Fix breakage caused by David's changes.
+	* Source/ObjectiveC2/runtime.m: Fix handling of nul arguments in
+	class_sespondsToSelector().
+	
 2010-06-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/Makefile.postamble: Fix breakage of instalation of gdomap
