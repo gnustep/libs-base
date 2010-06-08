@@ -149,9 +149,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   Class			c;
 
   c = object_getClass(receiver);
-  if (class_respondsToSelector(c, sel)
-    || (class_respondsToSelector(c, @selector(respondsToSelector:))
-      && [receiver respondsToSelector: sel]))
+  if (class_respondsToSelector(c, @selector(methodSignatureForSelector:)))
     {
       sig = [receiver methodSignatureForSelector: sel];
     }

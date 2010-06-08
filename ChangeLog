@@ -1,6 +1,12 @@
 2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFIInvocation.m:
+	Further fixup to earlier invocation breakage ... my previous attempt
+	didn't cover all cases.
+
+2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m:
 	* Source/cifframe.h:
 	* Source/cifframe.m:
 	Removed distinction between GC and non-GC code.
