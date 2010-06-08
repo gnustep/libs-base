@@ -1,3 +1,10 @@
+2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m:
+	* Source/cifframe.h:
+	* Source/cifframe.m:
+	Removed distinction between GC and non-GC code.
+
 2010-06-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSInvocation.h:

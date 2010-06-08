@@ -141,7 +141,7 @@ gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 
 static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 {
-  void			*frame;
+  NSMutableData		*frame;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
   NSMethodSignature     *sig;
@@ -202,11 +202,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
      where it becomes owned by the callback invocation, so we don't have to
      worry about ownership */
   frame = cifframe_from_signature(sig);
-#if	GS_WITH_GC
-  cframe = frame;
-#else
-  cframe = [(NSMutableData*)frame mutableBytes];
-#endif
+  cframe = [frame mutableBytes];
   /* Autorelease the closure through GSAutoreleasedBuffer */
 
   memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
@@ -333,14 +329,9 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-#if	GS_WITH_GC
-  _frame = nil;
-  _cframe = cifframe_from_signature(_sig);
-#else
-  _frame = (NSMutableData*)cifframe_from_signature(_sig);
+  _frame = cifframe_from_signature(_sig);
   [_frame retain];
   _cframe = [_frame mutableBytes];
-#endif
 
   /* Make sure we have somewhere to store the return value if needed.
    */
