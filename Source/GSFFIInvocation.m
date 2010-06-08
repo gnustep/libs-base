@@ -148,6 +148,15 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   GSCodeBuffer          *memory;
   Class			c;
 
+  /* Take care here ... the receiver may be nil (old runtimes) or may be
+   * a proxy which implements a method by forwarding it (so calling the
+   * method might cause recursion).  However, any sane proxy ought to at
+   * least implement -methodSignatureForSelector: in such a way that it
+   * won't cause infinite recursion, so we check for that method being
+   * implemented and call it.
+   * NB. object_getClass() and class_respondsToSelector() should both
+   * return NULL when given NULL arguments, so they are safe to use.
+   */
   c = object_getClass(receiver);
   if (class_respondsToSelector(c, @selector(methodSignatureForSelector:)))
     {
