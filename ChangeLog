@@ -1,5 +1,10 @@
 2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURL.m:
+	Return nil for -path if initialised with empty string ... OSX compat.
+
+2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFFIInvocation.m:
 	Further fixup to earlier invocation breakage ... my previous attempt
 	didn't cover all cases.

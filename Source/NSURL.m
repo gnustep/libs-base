@@ -1082,6 +1082,10 @@ static unsigned	urlAlign;
        * Store the path.
        */
       buf->path = start;
+      if (0 == base && '\0' == *buf->path && NO == buf->pathIsAbsolute)
+	{
+	  buf->hasNoPath = YES;
+	}
       if (legal(buf->path, reserved) == NO)
 	{
 	  [NSException raise: NSInvalidArgumentException
