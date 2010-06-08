@@ -443,7 +443,7 @@ foundIgnorableWhitespace: (NSString *)string
 @interface BinaryPLGenerator : NSObject
 {
   NSMutableData *dest;
-  NSMutableArray *objectList;
+  NSMapTable 	*objectList;
   NSMutableArray *objectsToDoList;
   id root;
 
@@ -3231,6 +3231,28 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 @end
 
+/* Test two items for equality ... boith are objects.
+ * If either is an NSNumber, we insist that they are the same class
+ * so that numbers with the same numeric value but different classes
+ * are not treated as the same number (that confuses OSXs decoding).
+ */
+static BOOL
+isEqualFunc(const void *item1, const void *item2,
+  NSUInteger (*size)(const void *item))
+{
+  id	o1 = (id)item1;
+  id	o2 = (id)item2;
+
+  if ([o1 isKindOfClass: [NSNumber class]]
+    || [o2 isKindOfClass: [NSNumber class]])
+    {
+      if ([o1 class] != [o2 class])
+	{
+	  return NO;
+	}
+    }
+  return [o1 isEqual: o2];
+}
 
 @implementation BinaryPLGenerator
 
@@ -3270,6 +3292,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (void) setup
 {
+  NSPointerFunctions	*k;
+  NSPointerFunctions	*v;
+
   [dest setLength: 0];
   if (index_size == 1)
     {
@@ -3288,13 +3313,20 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       table_size = UINT_MAX;
     }
 
-  table = objc_malloc(table_size * sizeof(int));
+  table = NSZoneMalloc(0, table_size * sizeof(int));
 
   objectsToDoList = [[NSMutableArray alloc] init];
-  objectList = [[NSMutableArray alloc] init];
+  k = [NSPointerFunctions pointerFunctionsWithOptions:
+    NSPointerFunctionsObjectPersonality];
+  [k setIsEqualFunction: isEqualFunc];
+  v = [NSPointerFunctions pointerFunctionsWithOptions:
+    NSPointerFunctionsIntegerPersonality|NSPointerFunctionsOpaqueMemory];
+  objectList = [[NSMapTable alloc] initWithKeyPointerFunctions: k
+					 valuePointerFunctions: v
+						      capacity: 1000];
 
   [objectsToDoList addObject: root];
-  [objectList addObject: root];
+  [objectList setObject: (id)1 forKey: root];
 }
 
 - (void) cleanup
@@ -3303,7 +3335,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   DESTROY(objectList);
   if (table != NULL)
     {
-      objc_free(table);
+      NSZoneFree(0, table);
       table = NULL;
     }
 }
@@ -3325,14 +3357,15 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (void) markOffset: (unsigned int) offset for: (id)object
 {
-  unsigned int oid;
+  int oid;
 
-  oid = [objectList indexOfObject: object];
-  if (oid == NSNotFound)
+  oid = (int)(NSInteger)[objectList objectForKey: object];
+  if (oid <= 0)
     {
       [NSException raise: NSGenericException
 		   format: @"Unknown object %@.", object];
     }
+  oid--;
   if (oid >= table_size)
     {
       [NSException raise: NSRangeException
@@ -3380,7 +3413,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   len = [objectList count];
   size = offset_size * len;
 
-  buffer = objc_malloc(size);
+  buffer = NSZoneMalloc(0, size);
 
   if (offset_size == 1)
     {
@@ -3430,7 +3463,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
 
   [dest appendBytes: buffer length: size];
-  objc_free(buffer);
+  NSZoneFree(0, buffer);
 }
 
 - (void) writeMetaData
@@ -3463,17 +3496,17 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 - (unsigned int) indexForObject: (id)object
 {
-  unsigned int index;
+  int index;
 
-  index = [objectList indexOfObject: object];
-  if (index == NSNotFound)
+  index = (int)[objectList objectForKey: object];
+  if (index <= 0)
     {
       index = [objectList count];
-      [objectList addObject: object];
+      [objectList setObject: (id)(++index) forKey: object];
       [objectsToDoList addObject: object];
     }
 
-  return index;
+  return index - 1;
 }
 
 - (void) storeIndex: (unsigned int)index
@@ -3618,7 +3651,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 	  code = 0x6F;
 	  [dest appendBytes: &code length: 1];
-	  buffer = objc_malloc(sizeof(unichar)*(len + 1));
+	  buffer = NSZoneMalloc(0, sizeof(unichar)*(len + 1));
 	  [self storeCount: len];
 	  [string getCharacters: buffer];
 	  for (i = 0; i < len; i++)
@@ -3626,7 +3659,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	      buffer[i] = NSSwapHostShortToBig(buffer[i]);
 	    }
 	  [dest appendBytes: buffer length: sizeof(unichar)*len];
-	  objc_free(buffer);
+	  NSZoneFree(0, buffer);
 	}
     }
 }

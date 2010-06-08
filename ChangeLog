@@ -1,5 +1,11 @@
 2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPropertyList.m: When encoding OSX binary property list,
+	try to differentiate between integer and float items which have the
+	same numeric value (bug #30040).
+
+2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURL.m:
 	Return nil for -path if initialised with empty string ... OSX compat.
 
