@@ -1,3 +1,13 @@
+2010-06-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for gcrypt library for TLS
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: Remove unused declaration
+	* Source/NSProcessInfo.m: log and exit rather than raising exception on
+	failure to call internal method to set up argv/envp.
+	* Source/Additions/GSMime.m: Rewrite header parsing to avoid copying
+	email body unnecessarily.
+
 2010-06-09  Yavor Doganov
 
 	*Source/ObjectiveC2/sync.m: Fix test for defining _XOPEN_SOURCE

@@ -2529,6 +2529,13 @@ if test $enable_tls = yes; then
     LIBS="$TLS_LIBS $LIBS"
     HAVE_GNUTLS=1
     AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
+    AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
+    if test "$have_gcrypt" = "no"; then
+      AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
+      HAVE_GNUTLS=0
+    else
+      LIBS="$TLS_LIBS -lgcrypt $LIBS"
+    fi
     AC_CHECK_FUNCS(gnutls_transport_set_errno)
     if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
       AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
