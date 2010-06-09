@@ -1,3 +1,7 @@
+2010-06-09  Yavor Doganov
+
+	*Source/ObjectiveC2/sync.m: Fix test for defining _XOPEN_SOURCE
+
 2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: When encoding OSX binary property list,
