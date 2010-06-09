@@ -1,3 +1,8 @@
+2010-06-09  David Wetzel <dave@turbocat.de>
+	* Source/Additions/GSXML.m:
+	check for NULL string
+	stringWithUTF8String: raises on OSX if you feed it with a NULL string.
+	
 2010-06-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for gcrypt library for TLS
