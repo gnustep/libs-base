@@ -183,7 +183,7 @@ typedef	enum {
  *	Purpose -	Decode text with BASE64 or QUOTED-PRINTABLE codes.
  */
 static unsigned char*
-decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
+decodeWord(unsigned char *dst, const unsigned char *src, const unsigned char *end, WE enc)
 {
   int	c;
 
@@ -312,7 +312,7 @@ decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
   else
     {
       NSLog(@"Unsupported encoding type");
-      return end;
+      return dst;
     }
 }
 
@@ -689,7 +689,6 @@ wordData(NSString *word)
 @interface GSMimeParser (Private)
 - (BOOL) _decodeBody: (NSData*)data;
 - (NSString*) _decodeHeader;
-- (BOOL) _unfoldHeader;
 - (BOOL) _scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info;
 @end
 
@@ -1084,24 +1083,17 @@ wordData(NSString *word)
 	       */
 	      while (flags.inBody == 0)
 		{
-		  if ([self _unfoldHeader] == NO)
+		  NSString	*header;
+
+		  header = [self _decodeHeader];
+		  if (header == nil)
 		    {
 		      break;
 		    }
-		  if (flags.inBody == 0)
+		  if ([self parseHeader: header] == NO)
 		    {
-		      NSString		*header;
-
-		      header = [self _decodeHeader];
-		      if (header == nil)
-			{
-			  break;
-			}
-		      if ([self parseHeader: header] == NO)
-			{
-			  flags.hadErrors = 1;
-			  break;
-			}
+		      flags.hadErrors = 1;
+		      break;
 		    }
 		}
 
@@ -1237,8 +1229,8 @@ wordData(NSString *word)
   self = [super init];
   if (self != nil)
     {
-      data = [[NSMutableData alloc] init];
       document = [[documentClass alloc] init];
+      data = [NSMutableData new];
       _defaultEncoding = NSASCIIStringEncoding;
     }
   return self;
@@ -1346,10 +1338,141 @@ wordData(NSString *word)
     }
 }
 
+- (void) _append: (NSData*)d
+{
+  if (data == nil)
+    {
+      data = [d copy];
+    }
+  else
+    {
+      NSMutableData	*m;
+
+      if ([d isKindOfClass: [NSMutableData class]])
+	{
+	  m = (NSMutableData*)data;
+	}
+      else
+	{
+	  m = [[NSMutableData alloc]
+	    initWithCapacity: [data length] + [d length]];
+	  [m appendData: data];
+	  [data release];
+	  data = m;
+	}
+      [m appendData: d];
+    }
+  bytes = (unsigned char*)[data bytes];
+  dataEnd = [data length];
+}
+
+/* Scan the provided data for an empty line (a CRLF immediately followed
+ * by another CRLF).  Return the range of the empty line or a zero length
+ * range at index NSNotFound.<br />
+ * Permits a bare LF as a line terminator for maximum compatibility.<br />
+ * Also checks for an empty line overlapping the existing data and the
+ * new data.
+ */
+- (NSRange) _endOfHeaders: (NSData*)newData
+{
+  unsigned		nl = [newData length];
+
+  if (nl > 0)
+    {
+      unsigned int		ol = [data length];
+      const unsigned char	*np = (const unsigned char*)[newData bytes];
+
+      if (ol > 0)
+	{
+	  const unsigned char	*op = (const unsigned char*)[data bytes];
+
+	  if (np[0] == '\r' && nl > 1 && np[1] == '\n')
+	    {
+	      /* We have a CRLF in the new data, so we check for a
+	       * newline at the end of the old data
+	       */
+	      if (op[ol-1] == '\n')
+		{
+		  return NSMakeRange(0, 2);
+		}
+	    }
+	  else if (np[0] == '\n')
+	    {
+	      if (op[ol-1] == '\n')
+		{
+		  /* LF in old and LF in new data ... empty line.
+		   */
+		  return NSMakeRange(0, 1);
+		}
+	      else if (op[ol-1] == '\r')
+		{
+		  /* We have a newline crossing the boundary of old and
+		   * new data (CR in the old data and LF in new data).
+		   */
+		  if (ol > 1 && op[ol-2] == '\n')
+		    {
+		      return NSMakeRange(0, 1);
+		    }
+		  else if (nl > 1)
+		    {
+		      if (np[1] == '\n')
+			{
+			  return NSMakeRange(0, 2);
+			}
+		      else if (nl > 2 && np[1] == '\r' && np[2] == '\n')
+			{
+			  return NSMakeRange(0, 3);
+			}
+		    }
+		}
+	    }
+	}
+
+      if (nl >= 2)
+	{
+	  unsigned int	i;
+
+          for (i = 0; i < nl; i++)
+	    {
+	      if (np[i] == '\r')
+		{
+		  unsigned	l = (nl - i);
+
+		  if (l >= 4 && np[i+1] == '\n' && np[i+2] == '\r'
+		    && np[i+3] == '\n')
+		    {
+		      return NSMakeRange(i, 4);
+		    }
+		  if (l >= 3 && np[i+1] == '\n' && np[i+2] == '\n')
+		    {
+		      return NSMakeRange(i, 3);
+		    }
+		}
+	      else if (np[i] == '\n')
+		{
+		  unsigned	l = (nl - i);
+
+		  if (l >= 3 && np[i+1] == '\r' && np[i+2] == '\n')
+		    {
+		      return NSMakeRange(i, 3);
+		    }
+		  if (l >= 2 && np[i+1] == '\n')
+		    {
+		      return NSMakeRange(i, 2);
+		    }
+		}
+	    }
+	}
+    }
+
+  return NSMakeRange(NSNotFound, 0);
+}
+
 - (BOOL) parseHeaders: (NSData*)d remaining: (NSData**)body
 {
   NSDictionary	*info;
   GSMimeHeader	*hdr;
+  NSRange	r;
   NSUInteger	l = [d length];
 
   if (flags.complete == 1 || flags.inBody == 1)
@@ -1362,17 +1485,13 @@ wordData(NSString *word)
     }
   if (l == 0)
     {
-      /* Add a CRLF to either end the current header line or act as
-       * the blank linme terminating the headers.
+      NSData	*dummy = nil;
+
+      /* Add an empty line to the end of the current headers to force 
+       * completion of header parsing.
        */
-      if ([self parseHeaders: [NSData dataWithBytes: "\r\n" length: 2]
-                   remaining: body] == YES)
-        {
-          /* Still in headers ... so we add a CRLF to terminate them.
-           */
-          [self parseHeaders: [NSData dataWithBytes: "\r\n" length: 2]
-                   remaining: body];
-	}
+      [self parseHeaders: [NSData dataWithBytes: "\r\n\r\n" length: 4]
+	       remaining: &dummy];
       flags.wantEndOfLine = 0;
       flags.inBody = 0;
       flags.complete = 1;	/* Finished parsing	*/
@@ -1381,49 +1500,54 @@ wordData(NSString *word)
 
   NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
 
-  [data appendBytes: [d bytes] length: [d length]];
-  bytes = (unsigned char*)[data mutableBytes];
-  dataEnd = [data length];
+  r = [self _endOfHeaders: d];
+  if (r.location == NSNotFound)
+    {
+      [self _append: d];	/* Accumulate headers.	*/
+    }
+  else
+    {
+      NSUInteger	i = NSMaxRange(r);
+
+      [self _append: [d subdataWithRange: NSMakeRange(0, i)]];
+      d = [d subdataWithRange: NSMakeRange(i, l - i)];
+      if (body != 0)
+	{
+	  *body = d;
+	}
+      l -= i;
+    }
 
   while (flags.inBody == 0)
     {
-      if ([self _unfoldHeader] == NO)
-        {
-          return YES;	/* Needs more data to fill line.	*/
-        }
-      if (flags.inBody == 0)
-        {
-          NSString		*header;
+      NSString		*header;
 
-          header = [self _decodeHeader];
-          if (header == nil)
-            {
-              flags.hadErrors = 1;
-              return NO;	/* Couldn't handle words.	*/
-            }
-          if ([self parseHeader: header] == NO)
-            {
-              flags.hadErrors = 1;
-              return NO;	/* Header not parsed properly.	*/
-            }
-        }
-      else
-        {
-          NSDebugMLLog(@"GSMime", @"Parsed end of headers", "");
-        }
+      header = [self _decodeHeader];
+      if (header == nil)
+	{
+	  if (1 == flags.hadErrors)
+	    {
+	      return NO;	/* Couldn't handle words.	*/
+	    }
+	  else if (0 == flags.inBody)
+	    {
+	      return YES;	/* need more data */
+	    }
+	}
+      else if ([self parseHeader: header] == NO)
+	{
+	  flags.hadErrors = 1;
+	  return NO;	/* Header not parsed properly.	*/
+	}
     }
 
   /*
    * All headers have been parsed, so we empty our internal buffer
-   * (which we will now use to store decoded data) and place unused
-   * information back in the incoming data object to act as input.
+   * (which we will now use to store decoded data)
    */
-  d = AUTORELEASE([data copy]);
-  if (body != 0)
-    {
-      *body = d;
-    }
   [data setLength: 0];
+  bytes = 0;
+  input = 0;
 
   /*
    * We have finished parsing the headers, but we may have http
@@ -2193,13 +2317,64 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   child->_defaultEncoding = _defaultEncoding;
 }
 
+static const unsigned char *
+unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
+{
+  BOOL	startOfLine = YES;
+
+  *folded = NO;
+
+  if (src >= end)
+    {
+      /* Not enough data to tell whether this is a header end or
+       * just a folded header ... need to get more input.
+       */
+      return 0;
+    }
+
+  while (src < end && isspace(*src))
+    {
+      if (*src == '\r' || *src == '\n')
+	{
+	  if (YES == startOfLine)
+	    {
+	      return src;	// Pointer to line after headers
+	    }
+	  if (*src == '\r')
+	    {
+	      if (src + 1 >= end)
+		{
+		  return 0;		// Need more data (linefeed expected)
+		}
+	      if (src[1] == '\n')
+		{
+	          src++;		// Step past carriage return
+		}
+	    }
+	  /* Step after end of line and look for fold (leading whitespace)
+	   * or blank line (end of headers), or new data.
+	   */
+	  src++;
+	  startOfLine = YES;
+	  continue;
+	}
+      src++;
+      startOfLine = NO;
+    }
+  if (src >= end)
+    {
+      return 0;	// Need more data
+    }
+  if (NO == startOfLine)
+    {
+      *folded = YES;
+    }
+  return src;	// Pointer to first non-space data
+}
+
 /*
  * This method takes the raw data of an unfolded header line, and handles
- * Method to inform the parser that the data it is parsing is an HTTP
- * document rather than true MIME.  This method is called internally
- * if the parser detects an HTTP response line at the start of the
- * headers it is parsing.
- * RFC2047 word encoding in the header is handled by creating a
+ * RFC2047 word encoding in the header by creating a
  * string containing the decoded words.
  * Strictly speaking, the header should be plain ASCII data with escapes
  * for non-ascii characters, but for the sake of fault tolerance, we also
@@ -2212,189 +2387,175 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   NSStringEncoding	enc;
   WE			encoding;
   unsigned char		c;
-  unsigned char		*src, *dst, *beg;
   NSMutableString	*hdr = [NSMutableString string];
   NSString		*s;
+  const unsigned char	*beg = &bytes[input];
+  const unsigned char	*end = &bytes[dataEnd];
+  const unsigned char	*src = beg;
 
-  /*
-   * Remove any leading or trailing space - there shouldn't be any.
-   */
-  while (lineStart < lineEnd && isspace(bytes[lineStart]))
+  while (src < end)
     {
-      lineStart++;
-    }
-  while (lineEnd > lineStart && isspace(bytes[lineEnd-1]))
-    {
-      lineEnd--;
-    }
-
-  /*
-   * Perform quoted text substitution.
-   */
-  bytes[lineEnd] = '\0';
-  dst = src = beg = &bytes[lineStart];
-  while (*src != 0)
-    {
-      if ((src[0] == '=') && (src[1] == '?'))
+      if (src[0] == '\n'
+        || (src[0] == '\r' && src+1 < end && src[1] == '\n')
+        || (src[0] == '=' && src+1 < end && src[1] == '?'))
 	{
-	  unsigned char	*tmp;
-
-	  if (dst > beg)
+	  /* Append any accumulated text to the header.
+	   */
+	  if (src > beg)
 	    {
 	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-              if (flags.isHttp == 1)
-                {
-                  s = [s initWithBytes: beg
-                                length: dst - beg
-                              encoding: NSISOLatin1StringEncoding];
-                }
-              else
-                {
-                  s = [s initWithBytes: beg
-                                length: dst - beg
-                              encoding: NSASCIIStringEncoding];
-                }
+	      if (flags.isHttp == 1)
+		{
+		  s = [s initWithBytes: beg
+				length: src - beg
+			      encoding: NSISOLatin1StringEncoding];
+		}
+	      else
+		{
+		  s = [s initWithBytes: beg
+				length: src - beg
+			      encoding: NSASCIIStringEncoding];
+		}
 	      if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
-	        {
+		{
 		  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		  s = [s initWithBytes: beg
-				length: dst - beg
+				length: src - beg
 			      encoding: _defaultEncoding];
 		  if (s == nil && _defaultEncoding != NSUTF8StringEncoding)
 		    {
 		      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		      s = [s initWithBytes: beg
-				    length: dst - beg
+				    length: src - beg
 				  encoding: NSUTF8StringEncoding];
 		    }
 		}
 	      [hdr appendString: s];
 	      RELEASE(s);
-	      dst = beg;
 	    }
 
-	  if (src[3] == '\0')
+	  if ('=' == src[0])
 	    {
-	      dst[0] = '=';
-	      dst[1] = '?';
-	      dst[2] = '\0';
-	      NSLog(@"Bad encoded word - character set missing");
-	      break;
-	    }
+	      const unsigned char	*tmp;
 
-	  src += 2;
-	  tmp = src;
-	  src = (unsigned char*)strchr((char*)src, '?');
-	  if (src == 0)
-	    {
-	      NSLog(@"Bad encoded word - character set terminator missing");
-	      break;
-	    }
-	  *src = '\0';
+	      src += 2;
+	      tmp = src;
+	      while (tmp < end && *tmp != '?' && !isspace(*tmp))
+		{
+		  tmp++;
+		}
+	      if (tmp >= end) return nil;
+	      if (*tmp != '?')
+		{
+		  NSLog(@"Bad encoded word - character set terminator missing");
+		  break;
+		}
 
-	  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-	  s = [s initWithUTF8String: (const char *)tmp];
-	  enc = [documentClass encodingFromCharset: s];
-	  RELEASE(s);
+	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+	      s = [s initWithBytes: src
+			    length: tmp - src
+			  encoding: NSUTF8StringEncoding];
+	      enc = [documentClass encodingFromCharset: s];
+	      RELEASE(s);
 
-	  src++;
-	  if (*src == 0)
-	    {
-	      NSLog(@"Bad encoded word - content type missing");
-	      break;
-	    }
-	  c = tolower(*src);
-	  if (c == 'b')
-	    {
-	      encoding = WE_BASE64;
-	    }
-	  else if (c == 'q')
-	    {
-	      encoding = WE_QUOTED;
+	      src = tmp + 1;
+	      if (src >= end) return nil;
+	      c = tolower(*src);
+	      if (c == 'b')
+		{
+		  encoding = WE_BASE64;
+		}
+	      else if (c == 'q')
+		{
+		  encoding = WE_QUOTED;
+		}
+	      else
+		{
+		  NSLog(@"Bad encoded word - content type unknown");
+		  break;
+		}
+	      src++;
+	      if (src >= end) return nil;
+	      if (*src != '?')
+		{
+		  NSLog(@"Bad encoded word - content type terminator missing");
+		  break;
+		}
+	      src++;
+	      if (src >= end) return nil;
+	      tmp = src;
+	      while (tmp < end && *tmp != '?' && !isspace(*tmp))
+		{
+		  tmp++;
+		}
+	      if (tmp+1 >= end) return nil;
+	      if (tmp[0] != '?' || tmp[1] != '=')
+		{
+		  NSLog(@"Bad encoded word - data terminator missing");
+		  break;
+		}
+	      /* If the data part is not empty, decode it and append to header.
+	       */
+	      if (tmp > src)
+		{
+		  unsigned char	buf[tmp - src];
+		  unsigned char	*ptr;
+
+		  ptr = decodeWord(buf, src, tmp, encoding);
+		  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+		  s = [s initWithBytes: buf
+				length: ptr - buf
+			      encoding: enc];
+		  [hdr appendString: s];
+		  RELEASE(s);
+		}
+	      /* Point past end to continue parsing.
+	       */
+	      src = tmp + 2;
+	      beg = src;
+	      continue;
 	    }
 	  else
 	    {
-	      NSLog(@"Bad encoded word - content type unknown");
-	      break;
+	      BOOL	folded;
+
+	      if (src[0] == '\r')
+		src++;
+	      src++;
+	      if ([hdr length] == 0)
+		{
+		  /* Nothing in this header ... it's the empty line
+		   * between headers and body.
+		   */
+		  flags.inBody = 1;
+		  input = src - bytes;
+		  return nil;
+		}
+	      src = unfold(src, end, &folded);
+	      if (src == 0)
+		{
+		  return nil;	// need more data
+		}
+	      if (NO == folded)
+		{
+		  /* End of line ... return this header.
+		   */
+		  input = src - bytes;
+		  return hdr;
+		}
+	      /* Folded line ... add space at fold and continue parsing.
+	       */
+	      [hdr appendString: @" "];
+	      beg = src;
+	      continue;
 	    }
-	  src = (unsigned char*)strchr((char*)src, '?');
-	  if (src == 0)
-	    {
-	      NSLog(@"Bad encoded word - content type terminator missing");
-	      break;
-	    }
-	  src++;
-	  if (*src == 0)
-	    {
-	      NSLog(@"Bad encoded word - data missing");
-	      break;
-	    }
-	  tmp = (unsigned char*)strchr((char*)src, '?');
-	  if (tmp == 0)
-	    {
-	      NSLog(@"Bad encoded word - data terminator missing");
-	      break;
-	    }
-	  dst = decodeWord(dst, src, tmp, encoding);
-	  tmp++;
-	  src = tmp;
-	  if (*tmp != '=')
-	    {
-	      NSLog(@"Bad encoded word - encoded word terminator missing");
-	      dst = beg;	// Don't append to string.
-	      break;
-	    }
-	  if (dst > beg)
-	    {
-	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-	      s = [s initWithBytes: beg
-			    length: dst - beg
-			  encoding: enc];
-	      [hdr appendString: s];
-	      RELEASE(s);
-	      dst = beg;
-	    }
-	}
-      else
-	{
-	  *dst++ = *src;
 	}
       src++;
     }
-  if (dst > beg)
-    {
-      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-      if (flags.isHttp == 1)
-        {
-          s = [s initWithBytes: beg
-                        length: dst - beg
-                      encoding: NSISOLatin1StringEncoding];
-        }
-      else
-        {
-          s = [s initWithBytes: beg
-                        length: dst - beg
-                      encoding: NSASCIIStringEncoding];
-        }
-      if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
-	{
-	  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-	  s = [s initWithBytes: beg
-			length: dst - beg
-		      encoding: _defaultEncoding];
-	  if (s == nil && _defaultEncoding != NSUTF8StringEncoding)
-	    {
-	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-	      s = [s initWithBytes: beg
-			    length: dst - beg
-			  encoding: NSUTF8StringEncoding];
-	    }
-	}
-      [hdr appendString: s];
-      RELEASE(s);
-      dst = beg;
-    }
-  return hdr;
+
+  /* Need more data.
+   */
+  return nil;
 }
 
 /*
@@ -2785,98 +2946,6 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	}
     }
   return needsMore;
-}
-
-- (BOOL) _unfoldHeader
-{
-  char		c;
-  BOOL		unfoldingComplete = NO;
-
-  lineStart = lineEnd = input;
-  NSDebugMLLog(@"GSMimeH", @"entry: input:%u dataEnd:%u lineStart:%u '%*.*s'",
-    input, dataEnd, lineStart, dataEnd - input, dataEnd - input, &bytes[input]);
-  /*
-   * RFC822 lets header fields break across lines, with continuation
-   * lines beginning with whitespace.  This is called folding - and the
-   * first thing we need to do is unfold any folded lines into a single
-   * unfolded line (lineStart to lineEnd).
-   */
-  while (input < dataEnd && unfoldingComplete == NO)
-    {
-      if ((c = bytes[input]) != '\r' && c != '\n')
-        {
-	  input++;
-	}
-      else
-        {
-	  lineEnd = input++;
-	  if (input < dataEnd && c == '\r' && bytes[input] == '\n')
-	    {
-	      c = bytes[input++];
-	    }
-	  if (input < dataEnd || (c == '\n' && lineEnd == lineStart))
-	    {
-	      NSUInteger	length = lineEnd - lineStart;
-
-	      if (length == 0)
-	        {
-		  /* An empty line cannot be folded.	*/
-		  unfoldingComplete = YES;
-		}
-	      else if ((c = bytes[input]) != '\r' && c != '\n' && isspace(c))
-	        {
-		  NSUInteger	diff = input - lineEnd;
-
-		  bytes[input] = ' ';
-		  memmove(&bytes[lineStart + diff], &bytes[lineStart], length);
-		  lineStart += diff;
-		  lineEnd += diff;
-		}
-	      else
-	        {
-		  /* No folding ... done.	*/
-		  unfoldingComplete = YES;
-		}
-	    }
-	}
-    }
-
-  if (unfoldingComplete == YES)
-    {
-      if (lineEnd == lineStart)
-	{
-	  NSUInteger		lengthRemaining;
-
-	  /*
-	   * Overwrite the header data with the body, ready to start
-	   * parsing the body data.
-	   */
-	  lengthRemaining = dataEnd - input;
-	  if (lengthRemaining > 0)
-	    {
-	      memmove(bytes, &bytes[input], lengthRemaining);
-	    }
-	  dataEnd = lengthRemaining;
-	  [data setLength: lengthRemaining];
-	  bytes = (unsigned char*)[data mutableBytes];
-	  sectionStart = 0;
-	  lineStart = 0;
-	  lineEnd = 0;
-	  input = 0;
-	  flags.inBody = 1;
-	}
-    }
-  else
-    {
-      input = lineStart;	/* Reset to try again with more data.	*/
-    }
-
-  NSDebugMLLog(@"GSMimeH", @"exit: inBody:%d unfoldingComplete: %d "
-    @"input:%u dataEnd:%u lineStart:%u '%*.*s'", flags.inBody,
-    unfoldingComplete,
-    input, dataEnd, lineStart, lineEnd - lineStart, lineEnd - lineStart,
-    &bytes[lineStart]);
-  return unfoldingComplete;
 }
 
 - (BOOL) _scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info

@@ -844,8 +844,11 @@ _gnu_noobjc_free_vars(void)
   if (self == [NSProcessInfo class]
     && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {
-      NSAssert(_gnu_noobjc_argv && _gnu_noobjc_env,
-	_GNU_MISSING_MAIN_FUNCTION_CALL);
+      if(_gnu_noobjc_argv == 0 || _gnu_noobjc_env == 0)
+	{
+          _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
+          exit(1);
+	}
       _gnu_process_args(_gnu_noobjc_argc, _gnu_noobjc_argv, _gnu_noobjc_env);
       _gnu_noobjc_free_vars();
     }
@@ -879,6 +882,17 @@ extern char **__libc_argv;
 #else
 #ifndef GS_PASS_ARGUMENTS
 #undef main
+int gnustep_base_user_main () __attribute__((weak));
+int gnustep_base_user_main (int argc, char *argv[], char *env[])
+{
+  fprintf(stderr, "\nGNUSTEP Internal Error:\n"
+"The GNUstep function to establish the argv and environment variables could\n"
+"not find the main function of your program.\n"
+"Perhaps your program failed to #include <Foundation/NSObject.h> or\n"
+"<Foundation/Foundation.h>?\n"
+"If that is not the case, Please report the error to bug-gnustep@gnu.org.\n");
+  exit(1);
+}
 int main(int argc, char *argv[], char *env[])
 {
 #ifdef NeXT_RUNTIME
@@ -921,8 +935,7 @@ int main(int argc, char *argv[], char *env[])
   if (!(_gnu_processName && _gnu_arguments && _gnu_environment))
     {
       _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
-      [NSException raise: NSInternalInconsistencyException
-	          format: _GNU_MISSING_MAIN_FUNCTION_CALL];
+      exit(1);
     }
 
   if (!_gnu_sharedProcessInfoObject)
