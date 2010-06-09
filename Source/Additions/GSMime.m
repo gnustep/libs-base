@@ -687,8 +687,10 @@ wordData(NSString *word)
 
 
 @interface GSMimeParser (Private)
-- (BOOL) _decodeBody: (NSData*)data;
+- (void) _child;
+- (BOOL) _decodeBody: (NSData*)d;
 - (NSString*) _decodeHeader;
+- (NSRange) _endOfHeaders: (NSData*)newData;
 - (BOOL) _scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info;
 @end
 
@@ -1338,136 +1340,6 @@ wordData(NSString *word)
     }
 }
 
-- (void) _append: (NSData*)d
-{
-  if (data == nil)
-    {
-      data = [d copy];
-    }
-  else
-    {
-      NSMutableData	*m;
-
-      if ([d isKindOfClass: [NSMutableData class]])
-	{
-	  m = (NSMutableData*)data;
-	}
-      else
-	{
-	  m = [[NSMutableData alloc]
-	    initWithCapacity: [data length] + [d length]];
-	  [m appendData: data];
-	  [data release];
-	  data = m;
-	}
-      [m appendData: d];
-    }
-  bytes = (unsigned char*)[data bytes];
-  dataEnd = [data length];
-}
-
-/* Scan the provided data for an empty line (a CRLF immediately followed
- * by another CRLF).  Return the range of the empty line or a zero length
- * range at index NSNotFound.<br />
- * Permits a bare LF as a line terminator for maximum compatibility.<br />
- * Also checks for an empty line overlapping the existing data and the
- * new data.
- */
-- (NSRange) _endOfHeaders: (NSData*)newData
-{
-  unsigned		nl = [newData length];
-
-  if (nl > 0)
-    {
-      unsigned int		ol = [data length];
-      const unsigned char	*np = (const unsigned char*)[newData bytes];
-
-      if (ol > 0)
-	{
-	  const unsigned char	*op = (const unsigned char*)[data bytes];
-
-	  if (np[0] == '\r' && nl > 1 && np[1] == '\n')
-	    {
-	      /* We have a CRLF in the new data, so we check for a
-	       * newline at the end of the old data
-	       */
-	      if (op[ol-1] == '\n')
-		{
-		  return NSMakeRange(0, 2);
-		}
-	    }
-	  else if (np[0] == '\n')
-	    {
-	      if (op[ol-1] == '\n')
-		{
-		  /* LF in old and LF in new data ... empty line.
-		   */
-		  return NSMakeRange(0, 1);
-		}
-	      else if (op[ol-1] == '\r')
-		{
-		  /* We have a newline crossing the boundary of old and
-		   * new data (CR in the old data and LF in new data).
-		   */
-		  if (ol > 1 && op[ol-2] == '\n')
-		    {
-		      return NSMakeRange(0, 1);
-		    }
-		  else if (nl > 1)
-		    {
-		      if (np[1] == '\n')
-			{
-			  return NSMakeRange(0, 2);
-			}
-		      else if (nl > 2 && np[1] == '\r' && np[2] == '\n')
-			{
-			  return NSMakeRange(0, 3);
-			}
-		    }
-		}
-	    }
-	}
-
-      if (nl >= 2)
-	{
-	  unsigned int	i;
-
-          for (i = 0; i < nl; i++)
-	    {
-	      if (np[i] == '\r')
-		{
-		  unsigned	l = (nl - i);
-
-		  if (l >= 4 && np[i+1] == '\n' && np[i+2] == '\r'
-		    && np[i+3] == '\n')
-		    {
-		      return NSMakeRange(i, 4);
-		    }
-		  if (l >= 3 && np[i+1] == '\n' && np[i+2] == '\n')
-		    {
-		      return NSMakeRange(i, 3);
-		    }
-		}
-	      else if (np[i] == '\n')
-		{
-		  unsigned	l = (nl - i);
-
-		  if (l >= 3 && np[i+1] == '\r' && np[i+2] == '\n')
-		    {
-		      return NSMakeRange(i, 3);
-		    }
-		  if (l >= 2 && np[i+1] == '\n')
-		    {
-		      return NSMakeRange(i, 2);
-		    }
-		}
-	    }
-	}
-    }
-
-  return NSMakeRange(NSNotFound, 0);
-}
-
 - (BOOL) parseHeaders: (NSData*)d remaining: (NSData**)body
 {
   NSDictionary	*info;
@@ -1503,13 +1375,17 @@ wordData(NSString *word)
   r = [self _endOfHeaders: d];
   if (r.location == NSNotFound)
     {
-      [self _append: d];	/* Accumulate headers.	*/
+      [data appendData: d];
+      bytes = (unsigned char*)[data bytes];
+      dataEnd = [data length];
     }
   else
     {
       NSUInteger	i = NSMaxRange(r);
 
-      [self _append: [d subdataWithRange: NSMakeRange(0, i)]];
+      [data appendBytes: [d bytes] length: i];
+      bytes = (unsigned char*)[data bytes];
+      dataEnd = [data length];
       d = [d subdataWithRange: NSMakeRange(i, l - i)];
       if (body != 0)
 	{
@@ -2300,6 +2176,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 @end
 
 @implementation	GSMimeParser (Private)
+
 /*
  * Make a new child to parse a subsidiary document
  */
@@ -2315,6 +2192,427 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
    * Tell child parser the default encoding to use.
    */
   child->_defaultEncoding = _defaultEncoding;
+}
+
+/*
+ * Return YES if more data is needed, NO if the body has been completely
+ * parsed.
+ */
+- (BOOL) _decodeBody: (NSData*)d
+{
+  NSUInteger	l = [d length];
+  BOOL		needsMore = YES;
+
+  rawBodyLength += l;
+
+  if (context == nil)
+    {
+      GSMimeHeader	*hdr;
+
+      expect = 0;
+      /*
+       * Check for expected content length.
+       */
+      hdr = [document headerNamed: @"content-length"];
+      if (hdr != nil)
+	{
+	  expect = [[hdr value] intValue];
+	}
+
+      /*
+       * Set up context for decoding data.
+       */
+      hdr = [document headerNamed: @"transfer-encoding"];
+      if (hdr == nil)
+	{
+	  hdr = [document headerNamed: @"content-transfer-encoding"];
+	}
+      else if ([[[hdr value] lowercaseString] isEqualToString: @"chunked"])
+	{
+	  /*
+	   * Chunked transfer encoding overrides any content length spec.
+	   */
+	  expect = 0;
+	}
+      context = [self contextFor: hdr];
+      IF_NO_GC([context retain];)
+      NSDebugMLLog(@"GSMime", @"Parse body expects %u bytes", expect);
+    }
+
+  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
+  // NSDebugMLLog(@"GSMime", @"Boundary - '%*.*s'", [boundary length], [boundary length], [boundary bytes]);
+
+  if ([context atEnd] == YES)
+    {
+      flags.inBody = 0;
+      flags.complete = 1;
+      if ([d length] > 0)
+	{
+	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
+	    (int)[d length], (int)[d length], [d bytes]);
+	}
+      needsMore = NO;	/* Nothing more to do	*/
+    }
+  else if (boundary == nil)
+    {
+      GSMimeHeader	*typeInfo;
+      NSString		*type;
+
+      typeInfo = [document headerNamed: @"content-type"];
+      type = [typeInfo objectForKey: @"Type"];
+      if ([type isEqualToString: @"multipart"] == YES)
+	{
+	  NSLog(@"multipart decode attempt without boundary");
+	  flags.inBody = 0;
+	  flags.complete = 1;
+	  needsMore = NO;
+	}
+      else
+	{
+	  NSUInteger	dLength = [d length];
+
+	  if (expect > 0 && rawBodyLength > expect)
+	    {
+	      NSData	*excess;
+
+	      dLength -= (rawBodyLength - expect);
+	      rawBodyLength = expect;
+	      excess = [d subdataWithRange:
+		NSMakeRange(dLength, [d length] - dLength)];
+	      ASSIGN(boundary, excess);
+	      flags.excessData = 1;
+	    }
+	  [self decodeData: d
+		 fromRange: NSMakeRange(0, dLength)
+		  intoData: data
+	       withContext: context];
+
+	  if ([context atEnd] == YES
+	    || (expect > 0 && rawBodyLength >= expect))
+	    {
+	      NSString	*subtype = [typeInfo objectForKey: @"Subtype"];
+
+	      flags.inBody = 0;
+	      flags.complete = 1;
+
+	      NSDebugMLLog(@"GSMime", @"Parse body complete", "");
+	      /*
+	       * If no content type is supplied, we assume text ... unless
+	       * we have something that's known to be a file.
+	       */
+	      if (type == nil)
+		{
+		  if ([document contentFile] != nil)
+		    {
+		      type = @"application";
+		      subtype= @"octet-stream";
+		    }
+		  else
+		    {
+		      type = @"text";
+		      subtype= @"plain";
+		    }
+		}
+
+	      if ([type isEqualToString: @"text"] == YES
+		&& [subtype isEqualToString: @"xml"] == NO)
+		{
+		  NSStringEncoding	stringEncoding = _defaultEncoding;
+		  NSString		*string;
+
+		  if (typeInfo == nil)
+		    {
+		      typeInfo = [GSMimeHeader new];
+		      [typeInfo setName: @"content-type"];
+		      [typeInfo setValue: @"text/plain"];
+		      [typeInfo setObject: type forKey: @"Type"];
+		      [typeInfo setObject: subtype forKey: @"Subtype"];
+		      [document setHeader: typeInfo];
+		      RELEASE(typeInfo);
+		    }
+		  else
+		    {
+		      NSString	*charset;
+
+		      charset = [typeInfo parameterForKey: @"charset"];
+		      if (charset != nil)
+			{
+			  stringEncoding
+			    = [documentClass encodingFromCharset: charset];
+			}
+		    }
+
+		  /*
+		   * Ensure that the charset reflects the encoding used.
+		   */
+		  if (stringEncoding != NSASCIIStringEncoding)
+		    {
+		      NSString	*charset;
+
+		      charset = [documentClass charsetFromEncoding:
+			stringEncoding];
+		      [typeInfo setParameter: charset
+				      forKey: @"charset"];
+		    }
+
+		  /*
+		   * Assume that content type is best represented as NSString.
+		   */
+		  string = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+		  string = [string initWithData: data
+				       encoding: stringEncoding];
+		  if (string == nil)
+		    {
+		      [document setContent: data];	// Can't make string
+		    }
+		  else
+		    {
+		      [document setContent: string];
+		      RELEASE(string);
+		    }
+		}
+	      else
+		{
+		  /*
+		   * Assume that any non-text content type is best
+		   * represented as NSData.
+		   */
+		  [document setContent: data];
+		}
+	      needsMore = NO;
+	    }
+	}
+    }
+  else
+    {
+      NSUInteger		bLength;
+      const unsigned char	*bBytes;
+      unsigned char		bInit;
+      const unsigned char	*buf;
+      NSUInteger		len;
+      BOOL			done = NO;
+      BOOL			endedFinalPart = NO;
+
+      bLength = [boundary length];
+      bBytes = (const unsigned char*)[boundary bytes];
+      bInit = bBytes[0];
+
+      /* If we already have buffered data, append the new information
+       * so we have a single buffer to scan.
+       */
+      if ([data length] > 0)
+	{
+	  [data appendData: d];
+	  bytes = (unsigned char*)[data mutableBytes];
+	  dataEnd = [data length];
+	  d = data;
+	}
+      buf = (const unsigned char*)[d bytes];
+      len = [d length];
+
+      while (done == NO)
+	{
+	  BOOL	found = NO;
+
+	  /*
+	   * Search data for the next boundary.
+	   */
+	  while (len - lineStart >= bLength)
+	    {
+	      if (buf[lineStart] == bInit
+		&& memcmp(&buf[lineStart], bBytes, bLength) == 0)
+		{
+		  if (lineStart == 0 || buf[lineStart-1] == '\r'
+		    || buf[lineStart-1] == '\n')
+		    {
+		      BOOL		lastPart = NO;
+		      NSUInteger	eol;
+
+		      lineEnd = lineStart + bLength;
+		      eol = lineEnd;
+		      if (lineEnd + 2 <= len && buf[lineEnd] == '-'
+			&& buf[lineEnd+1] == '-')
+			{
+			  eol += 2;
+			  lastPart = YES;
+			}
+		      /*
+		       * Ignore space/tab characters after boundary marker
+		       * and before crlf.  Strictly this is wrong ... but
+		       * at least one mailer generates bogus whitespace here.
+		       */
+		      while (eol < len
+			&& (buf[eol] == ' ' || buf[eol] == '\t'))
+			{
+			  eol++;
+			}
+		      if (eol < len && buf[eol] == '\r')
+			{
+			  eol++;
+			}
+		      if (eol < len && buf[eol] == '\n')
+			{
+			  flags.wantEndOfLine = 0;
+			  found = YES;
+			  endedFinalPart = lastPart;
+			}
+		      else
+			{
+			  flags.wantEndOfLine = 1;
+			}
+		      break;
+		    }
+		}
+	      lineStart++;
+	    }
+	  if (found == NO)
+	    {
+	      /* Need more data ... so, if we have none buffered we must
+	       * buffer any unused data, otherwise we can copy data within
+	       * the buffer.
+	       */
+	      if ([data length] == 0)
+		{
+		  [data appendBytes: buf + sectionStart
+			     length: len - sectionStart];
+		  sectionStart = lineStart = 0;
+		  bytes = (unsigned char*)[data mutableBytes];
+		  dataEnd = [data length];
+		}
+	      else if (sectionStart > 0)
+		{
+		  len -= sectionStart;
+		  memcpy(bytes, buf + sectionStart, len);
+		  sectionStart = lineStart = 0;
+		  [data setLength: len];
+		  dataEnd = len;
+		}
+	      done = YES;	/* Needs more data.	*/
+	    }
+	  else if (child == nil)
+	    {
+	      NSString	*cset;
+	
+	      /*
+	       * Found boundary at the start of the first section.
+	       * Set sectionStart to point immediately after boundary.
+	       */
+	      lineStart += bLength;
+	      sectionStart = lineStart;
+
+	      /*
+	       * If we have an explicit character set for the multipart
+	       * document, we set it as the default characterset inherited
+	       * by any child documents.
+	       */
+	      cset = [[document headerNamed: @"content-type"]
+		parameterForKey: @"charset"];
+	      if (cset != nil)
+		{
+		  [self setDefaultCharset: cset];
+		}
+
+	      [self _child];
+	    }
+	  else
+	    {
+	      NSData		*childBody;
+	      NSUInteger	pos;
+
+	      /*
+	       * Found boundary at the end of a section.
+	       * Skip past line terminator for boundary at start of section
+	       * or past marker for end of multipart document.
+	       */
+	      if (buf[sectionStart] == '-' && sectionStart < len
+		&& buf[sectionStart+1] == '-')
+		{
+		  sectionStart += 2;
+		}
+	      if (buf[sectionStart] == '\r')
+		{
+		  sectionStart++;
+		}
+	      if (buf[sectionStart] == '\n')
+		{
+		  sectionStart++;
+		}
+
+	      /*
+	       * Create data object for this section and pass it to the
+	       * child parser to deal with.  NB. As lineStart points to
+	       * the start of the end boundary, we need to step back to
+	       * before the end of line introducing it in order to have
+	       * the correct length of body data for the child document.
+	       */
+	      pos = lineStart;
+	      if (pos > 0 && buf[pos-1] == '\n')
+		{
+		  pos--;
+		}
+	      if (pos > 0 && buf[pos-1] == '\r')
+		{
+		  pos--;
+		}
+	      childBody = [d subdataWithRange:
+		NSMakeRange(sectionStart, pos - sectionStart)];
+	      if ([child parse: childBody] == YES)
+		{
+		  /*
+		   * The parser wants more data, so pass a nil data item
+		   * to tell it that it has had all there is.
+		   */
+		  [child parse: nil];
+		}
+	      if ([child isComplete] == YES)
+		{
+		  GSMimeDocument	*doc;
+
+		  /*
+		   * Store the document produced by the child, and
+		   * create a new parser for the next section.
+	           */
+		  doc = [child mimeDocument];
+		  if (doc != nil)
+		    {
+		      [document addContent: doc];
+		    }
+		  [self _child];
+		}
+	      else
+		{
+		  /*
+		   * Section failed to decode properly!
+		   */
+		  NSLog(@"Failed to decode section of multipart");
+		  [self _child];
+		}
+
+	      /*
+	       * Update parser data.
+	       */
+	      lineStart += bLength;
+	      sectionStart = lineStart;
+	      if (endedFinalPart == YES)
+		{
+		  lineStart = sectionStart = 0;
+		  [data setLength: 0];
+		  done = YES;
+		}
+	    }
+	}
+      /*
+       * Check to see if we have reached content length or ended multipart
+       * document.
+       */
+      if (endedFinalPart == YES || (expect > 0 && rawBodyLength >= expect))
+	{
+	  flags.complete = 1;
+	  flags.inBody = 0;
+	  needsMore = NO;
+	}
+    }
+  return needsMore;
 }
 
 static const unsigned char *
@@ -2558,394 +2856,106 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
   return nil;
 }
 
-/*
- * Return YES if more data is needed, NO if the body has been completely
- * parsed.
+/* Scan the provided data for an empty line (a CRLF immediately followed
+ * by another CRLF).  Return the range of the empty line or a zero length
+ * range at index NSNotFound.<br />
+ * Permits a bare LF as a line terminator for maximum compatibility.<br />
+ * Also checks for an empty line overlapping the existing data and the
+ * new data.
  */
-- (BOOL) _decodeBody: (NSData*)d
+- (NSRange) _endOfHeaders: (NSData*)newData
 {
-  NSUInteger	l = [d length];
-  BOOL		needsMore = YES;
+  unsigned		nl = [newData length];
 
-  rawBodyLength += l;
-
-  if (context == nil)
+  if (nl > 0)
     {
-      GSMimeHeader	*hdr;
+      unsigned int		ol = [data length];
+      const unsigned char	*np = (const unsigned char*)[newData bytes];
 
-      expect = 0;
-      /*
-       * Check for expected content length.
-       */
-      hdr = [document headerNamed: @"content-length"];
-      if (hdr != nil)
+      if (ol > 0)
 	{
-	  expect = [[hdr value] intValue];
-	}
+	  const unsigned char	*op = (const unsigned char*)[data bytes];
 
-      /*
-       * Set up context for decoding data.
-       */
-      hdr = [document headerNamed: @"transfer-encoding"];
-      if (hdr == nil)
-	{
-	  hdr = [document headerNamed: @"content-transfer-encoding"];
-	}
-      else if ([[[hdr value] lowercaseString] isEqualToString: @"chunked"])
-	{
-	  /*
-	   * Chunked transfer encoding overrides any content length spec.
-	   */
-	  expect = 0;
-	}
-      context = [self contextFor: hdr];
-      IF_NO_GC([context retain];)
-      NSDebugMLLog(@"GSMime", @"Parse body expects %u bytes", expect);
-    }
-
-  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
-  // NSDebugMLLog(@"GSMime", @"Boundary - '%*.*s'", [boundary length], [boundary length], [boundary bytes]);
-
-  if ([context atEnd] == YES)
-    {
-      flags.inBody = 0;
-      flags.complete = 1;
-      if ([d length] > 0)
-	{
-	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
-	    (int)[d length], (int)[d length], [d bytes]);
-	}
-      needsMore = NO;	/* Nothing more to do	*/
-    }
-  else if (boundary == nil)
-    {
-      GSMimeHeader	*typeInfo;
-      NSString		*type;
-
-      typeInfo = [document headerNamed: @"content-type"];
-      type = [typeInfo objectForKey: @"Type"];
-      if ([type isEqualToString: @"multipart"] == YES)
-	{
-	  NSLog(@"multipart decode attempt without boundary");
-	  flags.inBody = 0;
-	  flags.complete = 1;
-	  needsMore = NO;
-	}
-      else
-	{
-	  NSUInteger	dLength = [d length];
-
-	  if (expect > 0 && rawBodyLength > expect)
+	  if (np[0] == '\r' && nl > 1 && np[1] == '\n')
 	    {
-	      NSData	*excess;
-
-	      dLength -= (rawBodyLength - expect);
-	      rawBodyLength = expect;
-	      excess = [d subdataWithRange:
-		NSMakeRange(dLength, [d length] - dLength)];
-	      ASSIGN(boundary, excess);
-	      flags.excessData = 1;
-	    }
-	  [self decodeData: d
-		 fromRange: NSMakeRange(0, dLength)
-		  intoData: data
-	       withContext: context];
-
-	  if ([context atEnd] == YES
-	    || (expect > 0 && rawBodyLength >= expect))
-	    {
-	      NSString	*subtype = [typeInfo objectForKey: @"Subtype"];
-
-	      flags.inBody = 0;
-	      flags.complete = 1;
-
-	      NSDebugMLLog(@"GSMime", @"Parse body complete", "");
-	      /*
-	       * If no content type is supplied, we assume text ... unless
-	       * we have something that's known to be a file.
+	      /* We have a CRLF in the new data, so we check for a
+	       * newline at the end of the old data
 	       */
-	      if (type == nil)
+	      if (op[ol-1] == '\n')
 		{
-		  if ([document contentFile] != nil)
-		    {
-		      type = @"application";
-		      subtype= @"octet-stream";
-		    }
-		  else
-		    {
-		      type = @"text";
-		      subtype= @"plain";
-		    }
+		  return NSMakeRange(0, 2);
 		}
-
-	      if ([type isEqualToString: @"text"] == YES
-		&& [subtype isEqualToString: @"xml"] == NO)
+	    }
+	  else if (np[0] == '\n')
+	    {
+	      if (op[ol-1] == '\n')
 		{
-		  NSStringEncoding	stringEncoding = _defaultEncoding;
-		  NSString		*string;
-
-		  if (typeInfo == nil)
+		  /* LF in old and LF in new data ... empty line.
+		   */
+		  return NSMakeRange(0, 1);
+		}
+	      else if (op[ol-1] == '\r')
+		{
+		  /* We have a newline crossing the boundary of old and
+		   * new data (CR in the old data and LF in new data).
+		   */
+		  if (ol > 1 && op[ol-2] == '\n')
 		    {
-		      typeInfo = [GSMimeHeader new];
-		      [typeInfo setName: @"content-type"];
-		      [typeInfo setValue: @"text/plain"];
-		      [typeInfo setObject: type forKey: @"Type"];
-		      [typeInfo setObject: subtype forKey: @"Subtype"];
-		      [document setHeader: typeInfo];
-		      RELEASE(typeInfo);
+		      return NSMakeRange(0, 1);
 		    }
-		  else
+		  else if (nl > 1)
 		    {
-		      NSString	*charset;
-
-		      charset = [typeInfo parameterForKey: @"charset"];
-		      if (charset != nil)
+		      if (np[1] == '\n')
 			{
-			  stringEncoding
-			    = [documentClass encodingFromCharset: charset];
+			  return NSMakeRange(0, 2);
+			}
+		      else if (nl > 2 && np[1] == '\r' && np[2] == '\n')
+			{
+			  return NSMakeRange(0, 3);
 			}
 		    }
-
-		  /*
-		   * Ensure that the charset reflects the encoding used.
-		   */
-		  if (stringEncoding != NSASCIIStringEncoding)
-		    {
-		      NSString	*charset;
-
-		      charset = [documentClass charsetFromEncoding:
-			stringEncoding];
-		      [typeInfo setParameter: charset
-				      forKey: @"charset"];
-		    }
-
-		  /*
-		   * Assume that content type is best represented as NSString.
-		   */
-		  string = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-		  string = [string initWithData: data
-				       encoding: stringEncoding];
-		  if (string == nil)
-		    {
-		      [document setContent: data];	// Can't make string
-		    }
-		  else
-		    {
-		      [document setContent: string];
-		      RELEASE(string);
-		    }
 		}
-	      else
+	    }
+	}
+
+      if (nl >= 2)
+	{
+	  unsigned int	i;
+
+          for (i = 0; i < nl; i++)
+	    {
+	      if (np[i] == '\r')
 		{
-		  /*
-		   * Assume that any non-text content type is best
-		   * represented as NSData.
-		   */
-		  [document setContent: data];
+		  unsigned	l = (nl - i);
+
+		  if (l >= 4 && np[i+1] == '\n' && np[i+2] == '\r'
+		    && np[i+3] == '\n')
+		    {
+		      return NSMakeRange(i, 4);
+		    }
+		  if (l >= 3 && np[i+1] == '\n' && np[i+2] == '\n')
+		    {
+		      return NSMakeRange(i, 3);
+		    }
 		}
-	      needsMore = NO;
+	      else if (np[i] == '\n')
+		{
+		  unsigned	l = (nl - i);
+
+		  if (l >= 3 && np[i+1] == '\r' && np[i+2] == '\n')
+		    {
+		      return NSMakeRange(i, 3);
+		    }
+		  if (l >= 2 && np[i+1] == '\n')
+		    {
+		      return NSMakeRange(i, 2);
+		    }
+		}
 	    }
 	}
     }
-  else
-    {
-      NSUInteger	bLength = [boundary length];
-      unsigned char	*bBytes = (unsigned char*)[boundary bytes];
-      unsigned char	bInit = bBytes[0];
-      BOOL		done = NO;
-      BOOL		endedFinalPart = NO;
 
-      [data appendBytes: [d bytes] length: [d length]];
-      bytes = (unsigned char*)[data mutableBytes];
-      dataEnd = [data length];
-
-      while (done == NO)
-	{
-	  BOOL	found = NO;
-
-	  /*
-	   * Search our data for the next boundary.
-	   */
-	  while (dataEnd - lineStart >= bLength)
-	    {
-	      if (bytes[lineStart] == bInit
-		&& memcmp(&bytes[lineStart], bBytes, bLength) == 0)
-		{
-		  if (lineStart == 0 || bytes[lineStart-1] == '\r'
-		    || bytes[lineStart-1] == '\n')
-		    {
-		      BOOL	lastPart = NO;
-		      NSUInteger	eol;
-
-		      lineEnd = lineStart + bLength;
-		      eol = lineEnd;
-		      if (lineEnd + 2 <= dataEnd && bytes[lineEnd] == '-'
-			&& bytes[lineEnd+1] == '-')
-			{
-			  eol += 2;
-			  lastPart = YES;
-			}
-		      /*
-		       * Ignore space/tab characters after boundry marker
-		       * and before crlf.  Strictly this is wrong ... but
-		       * at least one mailer generates bogus whitespace here.
-		       */
-		      while (eol < dataEnd
-			&& (bytes[eol] == ' ' || bytes[eol] == '\t'))
-			{
-			  eol++;
-			}
-		      if (eol < dataEnd && bytes[eol] == '\r')
-			{
-			  eol++;
-			}
-		      if (eol < dataEnd && bytes[eol] == '\n')
-			{
-			  flags.wantEndOfLine = 0;
-			  found = YES;
-			  endedFinalPart = lastPart;
-			}
-		      else
-			{
-			  flags.wantEndOfLine = 1;
-			}
-		      break;
-		    }
-		}
-	      lineStart++;
-	    }
-	  if (found == NO)
-	    {
-	      done = YES;	/* Needs more data.	*/
-	    }
-	  else if (child == nil)
-	    {
-	      NSString	*cset;
-	
-	      /*
-	       * Found boundary at the start of the first section.
-	       * Set sectionStart to point immediately after boundary.
-	       */
-	      lineStart += bLength;
-	      sectionStart = lineStart;
-
-	      /*
-	       * If we have an explicit character set for the multipart
-	       * document, we set it as the default characterset inherited
-	       * by any child documents.
-	       */
-	      cset = [[document headerNamed: @"content-type"]
-		parameterForKey: @"charset"];
-	      if (cset != nil)
-		{
-		  [self setDefaultCharset: cset];
-		}
-
-	      [self _child];
-	    }
-	  else
-	    {
-	      NSData	*d;
-	      NSUInteger	pos;
-
-	      /*
-	       * Found boundary at the end of a section.
-	       * Skip past line terminator for boundary at start of section
-	       * or past marker for end of multipart document.
-	       */
-	      if (bytes[sectionStart] == '-' && sectionStart < dataEnd
-		&& bytes[sectionStart+1] == '-')
-		{
-		  sectionStart += 2;
-		}
-	      if (bytes[sectionStart] == '\r')
-		{
-		  sectionStart++;
-		}
-	      if (bytes[sectionStart] == '\n')
-		{
-		  sectionStart++;
-		}
-
-	      /*
-	       * Create data object for this section and pass it to the
-	       * child parser to deal with.  NB. As lineStart points to
-	       * the start of the end boundary, we need to step back to
-	       * before the end of line introducing it in order to have
-	       * the correct length of body data for the child document.
-	       */
-	      pos = lineStart;
-	      if (pos > 0 && bytes[pos-1] == '\n')
-		{
-		  pos--;
-		}
-	      if (pos > 0 && bytes[pos-1] == '\r')
-		{
-		  pos--;
-		}
-	      d = [NSData dataWithBytes: &bytes[sectionStart]
-				 length: pos - sectionStart];
-	      if ([child parse: d] == YES)
-		{
-		  /*
-		   * The parser wants more data, so pass a nil data item
-		   * to tell it that it has had all there is.
-		   */
-		  [child parse: nil];
-		}
-	      if ([child isComplete] == YES)
-		{
-		  GSMimeDocument	*doc;
-
-		  /*
-		   * Store the document produced by the child, and
-		   * create a new parser for the next section.
-	           */
-		  doc = [child mimeDocument];
-		  if (doc != nil)
-		    {
-		      [document addContent: doc];
-		    }
-		  [self _child];
-		}
-	      else
-		{
-		  /*
-		   * Section failed to decode properly!
-		   */
-		  NSLog(@"Failed to decode section of multipart");
-		  [self _child];
-		}
-
-	      /*
-	       * Update parser data.
-	       */
-	      lineStart += bLength;
-	      sectionStart = lineStart;
-	      memmove(bytes, &bytes[sectionStart], dataEnd - sectionStart);
-	      dataEnd -= sectionStart;
-	      [data setLength: dataEnd];
-	      bytes = (unsigned char*)[data mutableBytes];
-	      lineStart -= sectionStart;
-	      sectionStart = 0;
-	      if (endedFinalPart == YES)
-		{
-		  done = YES;
-		}
-	    }
-	}
-      /*
-       * Check to see if we have reached content length or ended multipart
-       * document.
-       */
-      if (endedFinalPart == YES || (expect > 0 && rawBodyLength >= expect))
-	{
-	  flags.complete = 1;
-	  flags.inBody = 0;
-	  needsMore = NO;
-	}
-    }
-  return needsMore;
+  return NSMakeRange(NSNotFound, 0);
 }
 
 - (BOOL) _scanHeaderParameters: (NSScanner*)scanner into: (GSMimeHeader*)info

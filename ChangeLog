@@ -6,7 +6,8 @@
 	* Source/NSProcessInfo.m: log and exit rather than raising exception on
 	failure to call internal method to set up argv/envp.
 	* Source/Additions/GSMime.m: Rewrite header parsing to avoid copying
-	email body unnecessarily.
+	email body unnecessarily.  Also attempt to parse multipart body
+	without copying too much.
 
 2010-06-09  Yavor Doganov
 
