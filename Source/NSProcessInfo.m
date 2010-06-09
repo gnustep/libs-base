@@ -882,6 +882,14 @@ extern char **__libc_argv;
 #else
 #ifndef GS_PASS_ARGUMENTS
 #undef main
+/* The gnustep_base_user_main function is declared 'weak' so that the linker
+ * should actually use the one compiled as the program's 'main' function.
+ * The internal version gets called only if the program does not implement
+ * the function (ie the prgram was compiled with the wrong version of
+ * GSConfig.h included/imported).  The other possible reason for the internal
+ * function to be called would be a compiler/linker issue (eg 'weak' not
+ * supported).
+ */
 int gnustep_base_user_main () __attribute__((weak));
 int gnustep_base_user_main (int argc, char *argv[], char *env[])
 {
@@ -889,7 +897,8 @@ int gnustep_base_user_main (int argc, char *argv[], char *env[])
 "The GNUstep function to establish the argv and environment variables could\n"
 "not find the main function of your program.\n"
 "Perhaps your program failed to #include <Foundation/NSObject.h> or\n"
-"<Foundation/Foundation.h>?\n"
+"<Foundation/Foundation.h> (or included/imported a different version of the\n"
+"header from the one supplied with this copy of the gnustep-base library)?\n"
 "If that is not the case, Please report the error to bug-gnustep@gnu.org.\n");
   exit(1);
 }
