@@ -1,5 +1,5 @@
 /* Ensure Unix98 compatible pthreads for glibc */
-#if defined __linux__ || defined __GLIBC__
+#if defined __linux__ || defined __GNU__ || defined __GLIBC__
 #  ifndef _XOPEN_SOURCE
 #    define _XOPEN_SOURCE 600
 #  endif
