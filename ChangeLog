@@ -1,5 +1,11 @@
 2010-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSSocketPortNameServer.m: Improve automated gdomap startup log
+	* configure.ac: Don't install gdomap setuid by default.
+	* configure: regenerate
+
+2010-06-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSString.m: Raise exception if a null pointer is passed to
 	+stringWithUTF8String: for compatibility with OSX.
 	* Source/Additions/GSMime.m: Alter hash and isEqual implementations
