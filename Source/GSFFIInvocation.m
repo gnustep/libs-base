@@ -373,14 +373,9 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-#if	GS_WITH_GC
-  _frame = nil;
-  _cframe = frame;
-#else
   _frame = (NSMutableData*)frame;
   [_frame retain];
   _cframe = [_frame mutableBytes];
-#endif
   f = (cifframe_t *)_cframe;
   f->cif = *cif;
 
