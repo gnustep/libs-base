@@ -25,6 +25,10 @@ notice and this notice are preserved.
           the network.
       </p>
       <p>
+	  If you are packaging GNUstep for inclusion in a software distribution
+	  you may want to skip to the final section of this document.
+      </p>
+      <p>
           Usually the gdomap daemon is started at system boot time and binds
           itself to port 538.  (See the GNUstep Build Guide for a sample
           startup script.)  It expects to receive fixed-size request packets
@@ -307,6 +311,36 @@ notice and this notice are preserved.
                   sent.
               </desc>
           </deflist>
+      </section>
+
+      <section>
+          <heading>Notes for Packagers</heading>
+
+	  <p>
+	    The gdomap process is a system daemon used to coordinate
+	    services between different machines.  As such it should be
+	    started (as root) at system boot time (if inter-host messaging
+	    is desired), and you need to write the appropriate startup
+	    scripts for your system and put them in place when the
+	    package is installed.<br />
+	    Alternatively you may install gdomap setuid to run as root,
+	    and GNUstep programs will launch it on demand ... but this
+	    is not recommended as it provides lass control than when
+	    you write a proper startup script.
+	  </p>
+
+	  <p>
+	    The default operation of gdomap is to probe the hosts on the
+	    local network to find other machines with copies of gdomap
+	    running, so that all the machines on the network can be kept
+	    informed of the seervices provided by GNUstep servers.<br />
+	    This probing may be considered unfriendly by other users of
+	    the LAN, so it is usually better to provide a configuration
+	    file specifying the IP addresses of machines to be probed,
+	    and start up gdomap at boot time with the command line option
+	    to tell it to read the file.
+	  </p>
+
       </section>
 
     </chapter>
