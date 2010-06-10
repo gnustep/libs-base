@@ -1,3 +1,7 @@
+2010-06-10 Riccardo Mottola
+
+	* Source/ObjectiveC2/sync.m: Attempt of fixing test for defining _XOPEN_SOURCE again
+
 2010-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPortNameServer.m: Improve automated gdomap startup log
