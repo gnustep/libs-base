@@ -2,6 +2,9 @@
 
 	* Source/NSString.m: Raise exception if a null pointer is passed to
 	+stringWithUTF8String: for compatibility with OSX.
+	* Source/Additions/GSMime.m: Alter hash and isEqual implementations
+	for headers and document so that copies are equal to the original
+	and can be stored and looked up in maps.
 
 2010-06-09  David Wetzel <dave@turbocat.de>
 
