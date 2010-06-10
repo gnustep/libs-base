@@ -32,24 +32,57 @@ notice and this notice are preserved.
       <section>
 	<heading>Version 1.20.1</heading>
         <p>This is a stable bugfix release. The changes in this release
-	are a timezone handling update to the latest zone information, and
-	various minor bug fixes and portibility updates.
+	are a timezone handling update to the latest zone information,
+	various minor bug fixes and portibility updates, some small
+	cleanups and optimisations, a few tweaks to help packagers,
+	and finally an alteration to the additions library on OSX to
+	add a category to re-enable serialisation of property lists
+	in the more readable and compact OpenStep format (something the
+	most recent versions of OSX lost).
 	</p>
 	<deflist>
+	  <term>NSAttributedString</term>
+          <desc>Fixes for keyed archiving/unarchiving.</desc>
 	  <term>NSData</term>
           <desc>Improve reading of non-standard files.</desc>
 	  <term>NSHashTable</term>
           <desc>Fix minor buffer overrun.</desc>
+	  <term>NSInvocation</term>
+          <desc>Fix for problem with FFI when caching the method implementation
+	  of a proxy.
+	  </desc>
 	  <term>NSKeyValueCoding</term>
           <desc>Fix -isKey for KVC compliance.</desc>
 	  <term>NSPropertyList</term>
-          <desc>Fix whitespace handling in XML property lists.</desc>
+          <desc>Fix whitespace handling in XML property lists.<br />
+	  Allow OpenStep style property lists to be written on OSX.
+	  </desc>
 	  <term>NSTimeZone</term>
-          <desc>Update to latest zone ifnormation.</desc>
+          <desc>Update to latest zone information.<br />
+	  Update list of timezone abbreviations.<br />
+	  Improve diagnostics when no timezone is set.</desc>
 	  <term>GSObjCMethodNames</term>
           <desc>Fix broken implementation.</desc>
 	  <term>ObjectiveC2 compatibility</term>
-          <desc>Bugfix for selector lookup issue.</desc>
+          <desc>Bugfix for selector lookup issue.<br />
+	    Working implementation of checks for conformance to protocols.
+	  </desc>
+	  <term>Installation of gdomap</term>
+	  <desc>The installation process used to install gdomap setuid to
+	  root by default (for developers/hackers) and packagers were
+	  supposed to change that to not be setid, and start gdomap as root
+	  at system boot time. But packagers weren't doing that.
+	  The installation is now changed to install non-setuid by default
+	  giving packagers more of an incentive to start gdomap properly.
+	  </desc>
+	  <term>Update of fake-main mechanism</term>
+	  <desc>The fake-main mechanism for obtaining program arguments and
+	  environment requires the library to link to the gnustep_user_main
+	  function in any program which uses it.  This caused problems where
+	  a distribution packaging system refuses to allow unresolved link
+	  symbols in a library.  The code was reworked to use a weak reference
+	  to a local function, avoiding this problem.
+	  </desc>
 	</deflist>
       </section>
 
