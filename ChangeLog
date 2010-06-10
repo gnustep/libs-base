@@ -1,9 +1,227 @@
+2010-06-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPortNameServer.m: Improve automated gdomap startup log
+	* configure.ac: Don't install gdomap setuid by default.
+	* configure: regenerate
+
+2010-06-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Raise exception if a null pointer is passed to
+	+stringWithUTF8String: for compatibility with OSX.
+	* Source/Additions/GSMime.m: Alter hash and isEqual implementations
+	for headers and document so that copies are equal to the original
+	and can be stored and looked up in maps.
+
+2010-06-09  David Wetzel <dave@turbocat.de>
+
+	* Source/Additions/GSXML.m:
+	check for NULL string
+	stringWithUTF8String: raises on OSX if you feed it with a NULL string.
+	
+2010-06-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for gcrypt library for TLS
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: Remove unused declaration
+	* Source/NSProcessInfo.m: log and exit rather than raising exception on
+	failure to call internal method to set up argv/envp.
+	* Source/Additions/GSMime.m: Rewrite header parsing to avoid copying
+	email body unnecessarily.  Also attempt to parse multipart body
+	without copying too much.
+
+2010-06-09  Yavor Doganov
+
+	*Source/ObjectiveC2/sync.m: Fix test for defining _XOPEN_SOURCE
+
+2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: When encoding OSX binary property list,
+	try to differentiate between integer and float items which have the
+	same numeric value (bug #30040).
+
+2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m:
+	Return nil for -path if initialised with empty string ... OSX compat.
+
+2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m:
+	Further fixup to earlier invocation breakage ... my previous attempt
+	didn't cover all cases.
+
+2010-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m:
+	* Source/cifframe.h:
+	* Source/cifframe.m:
+	Removed distinction between GC and non-GC code.
+
+2010-06-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSInvocation.h:
+	* Source/GSFFIInvocation.m:
+	* Source/NSInvocation.m:
+	* Source/cifframe.h:
+	* Source/cifframe.m:
+	Rework memory management for frame used in FFI invocation so that
+	the memory has a retain count and multiple invocations can use the
+	same frame since it looks like the way FFI works, if you cache the
+	method implementation of a proxy, the same frame memory is re-used
+	in multiple invocations.
+
+2010-06-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m: Fix breakage caused by David's changes.
+	* Source/ObjectiveC2/runtime.m: Fix handling of nul arguments in
+	class_sespondsToSelector().
+	
+2010-06-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/Makefile.postamble: Fix breakage of instalation of gdomap
+	(was installing setuid to wrong user ID!).
+
+2010-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: revert change of order of sources for zone
+	info since tzname does not appear to be more reliable than filename.
+	Allof timezone to be specified as an abbreviation rather than a name.
+	
+2010-06-02  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Added --disable-setuid-gdomap option to disable
+	installing gdomap as setuid.
+	* configure: Regenerated.
+	* config.mak.in (GNUSTEP_INSTALL_GDOMAP_AS_SETUID): New variable.
+	* Tools/Makefile.postamble:
+	(after-install): Instal gdomap as setuid only if
+	GNUSTEP_INSTALL_GDOMAP_AS_SETUID is set to 'yes'.  Updated
+	messages for the changes and generally tidied messages up.
+
+2010-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: add diagnostic to report the source of the
+	timezone name when we can't create the local timezone.
+	Use tzset()/tzname in preference to the name of the default timezone
+	file ... in case of evil systems where the file has the wrong name.
+
+2010-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/NSPropertyList+GNUstepBase.m:
+	New category to replace property list write functionality no longer
+	present in OSX.
+	* base.make.in: Link with base additions library on OSX
+
 2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
 
-	Backport bugfixes (by self and Quentin Mathe <quentin.mathe@gmail.com>
-	and Riccardo Mottola <rmottola@users.sf.net>) since 1.20.0
-	Update to latest timezone information.
-	Prepare release notes for next release.
+	* Source/Additions/GSMime.m: ([+encodingFromCharset:])
+	Experimental extension to support NSStringEncoding symbolic constants
+	in string form, in addition to more common characterset names
+	(primarily for gdl2/gsweb).
+
+2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m:
+	* Source/Additions/NSString+GNUstepBase.m:
+	* Headers/Foundation/NSString.h:
+	* Headers/Additions/GNUstepBase/NSString+GNUstepBase.h:
+	Revert last change ... there's no such method as +encodingNamed:
+	in OSX/OpenStep, so it definitely shouldn't be in NSString.[hm]
+	I think we can debate whether to add it to the additions library,
+	though I'm not sure that it's actually a generally useful addition
+	(if I understand correctly, it's used only in gdl2/gsweb and ought
+	probably to be a category there ... assuming that there's really
+	no existing/standard mechanism to do the job).
+
+2010-05-30  David Wetzel <dave@turbocat.de>
+
+	* Source/NSString.m
+	* Source/Additions/NSString+GNUstepBase.m
+	* Headers/Foundation/NSString.h
+	* Headers/Additions/GNUstepBase/NSString+GNUstepBase.h
+	added encodingNamed:
+    
+2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.h:
+	Floating point fix for openbsd suggested by Sebastian Reitenbach
+
+2010-05-30  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSAttributedString.m (-initWithCoder:, -encodeWithCoder:):
+	Fix keyed archiving and unarchiving of (mutable) attributed
+	strings with multiple attribute ranges.
+
+2010-05-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: Update to latest zone info.
+
+2010-05-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Attempted fix for bug #29920
+
+2010-05-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcreteHashTable.m:
+	* Source/NSHashTable.m: In ([-allObjects]) fix buf overrun (bug #29980).
+	* Source/NSXMLParser.m: Fix off-by-one error handling whitespace.
+	* Headers/Additions/GNUstepBase/GSMime.h: Revert xml charset method.
+	* Source/NSURL.m: Allow a URL made from an empty string (OSX compat).
+
+2010-05-28  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Source/NSKeyValueCoding.m: Added missing support to ValueForKey() as 
+	described in Apple Key-Value-Coding guide. -isKey is now treated as a
+	KVC-compliant getter, and _isKey and isKey as KVC-compliant ivars.
+
+2010-05-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: ([-parser:foundCharacters:]) don't trim
+	the supplied string ... we need to retain whitespace around entities
+	in value test.  If inside a <string> element, treat ignorable
+	whitespace as normal whitespace.
+	* Source/NSXMLParser.m: Add support for ignorable whitespace so that
+	it doesn't get handed to the delegate as normal characters.
+
+2010-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObjCRuntime.h:
+	Remove include of stdint.h ... already included by GSConfig.h
+	* Source/ObjectiveC2/runtime.h:
+	Revert 'guarding' of stdint.h inclusion to get things to compile
+	again ... we *require* stdint.h to be present.
+	I guess on any system old enough not to have it, the solution
+	would be to generate and install our own version.
+
+2010-05-21 Riccardo Mottola <rmottola@users.sf.net>
+
+	* Source/ObjectiveC2/runtime.h:
+	correctly import config.h
+
+2010-05-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSMime.h: Expose xml charset method.
+	* Source/NSXMLParser.m: Determine correct charset when parsing.
+
+2010-05-21 Riccardo Mottola <rmottola@users.sf.net>
+
+	* Source/inet_pton.c
+	Source/ObjectiveC2/runtime.h
+	Headers/Foundation/NSObjCRuntime.h:
+	Guarded stdint.h inclusion.
+
+2010-05-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: GSObjCMethodNames() fix for
+	bug #29910
+
+2010-05-10  Adam Fedor  <fedor@gnu.org>
+
+	* Fix typos, clarify unstable release documentation
+
+2010-05-08  Adam Fedor  <fedor@gnu.org>
+
+	* Unstable Version 1.21.0
 
 2010-05-08  Adam Fedor  <fedor@gnu.org>
 

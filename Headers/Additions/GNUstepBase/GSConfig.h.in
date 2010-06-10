@@ -80,7 +80,6 @@
  */
 
 #define main gnustep_base_user_main
-extern int gnustep_base_user_main (/* int argc, char *argv[] */);
 
 #endif	/* GS_FAKE_MAIN */
 #endif

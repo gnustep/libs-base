@@ -42,6 +42,12 @@ ifeq ($(FOUNDATION_LIB),gnu)
   FND_LIBS = -lgnustep-base
   FND_DEFINE = -DGNUSTEP_BASE_LIBRARY=1
   GNUSTEP_DEFINE = -DGNUSTEP
+else
+#
+# Not using the GNUstep foundation ... must be Apple's
+# So we need to use the base additions library.
+#
+  FND_LIBS = -lgnustep-baseadd -framework Foundation
 endif
 
   GNUSTEP_BASE_HAVE_GNUTLS=@HAVE_GNUTLS@

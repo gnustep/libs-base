@@ -462,11 +462,21 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	{
 	  if (data == nil)
 	    {
-	      NSString		*fileName;
+	      NSString	*fileName;
+	      BOOL	isDir;
 
 	      fileName = [NSTimeZoneClass _getTimeZoneFile: name];
 	      if (fileName == nil
-		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName])
+		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName
+		isDirectory: &isDir] || YES == isDir)
+		{
+		  data = nil;
+		}
+	      else
+		{
+	          data = [NSData dataWithContentsOfFile: fileName];
+		}
+	      if (nil == data)
 #if	defined(__MINGW__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
@@ -475,11 +485,9 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
                 }
 #else
 		{
-		  NSLog(@"Unknown time zone name `%@'.", name);
 		  return nil;
 		}
 #endif
-	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
 #if	defined(__MINGW__)
 	  if (!data)
@@ -1362,6 +1370,7 @@ static NSMapTable	*absolutes = 0;
   if (systemTimeZone == nil)
     {
       NSString	*localZoneString = nil;
+      NSString	*localZoneSource = nil;
 
       /*
        * setup default value in case something goes wrong.
@@ -1371,6 +1380,8 @@ static NSMapTable	*absolutes = 0;
       /*
        * Try to get timezone from user defaults database
        */
+      localZoneSource = [NSString stringWithFormat:
+	@"NSUserDefaults: '%@'", LOCALDBKEY];
       localZoneString = [[NSUserDefaults standardUserDefaults]
 	stringForKey: LOCALDBKEY];
 
@@ -1379,6 +1390,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = _(@"environment variable: 'GNUSTEP_TZ'");
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"GNUSTEP_TZ"];
 	}
@@ -1388,6 +1400,8 @@ static NSMapTable	*absolutes = 0;
       if (localZoneString == nil)
 	{
 	  NSString	*f = _time_zone_path(LOCAL_TIME_FILE, nil);
+
+          localZoneSource = [NSString stringWithFormat: @"file: '%@'", f];
 	  if (f != nil)
 	    {
 	      localZoneString = [NSString stringWithContentsOfFile: f];
@@ -1399,6 +1413,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = _(@"environment variable: 'TZ'");
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"TZ"];
 	}
@@ -1410,6 +1425,8 @@ static NSMapTable	*absolutes = 0;
 #if defined(HAVE_TZHEAD) && defined(TZDEFAULT)
 	  tzdir = RETAIN([NSString stringWithUTF8String: TZDIR]);
 	  localZoneString = [NSString stringWithUTF8String: TZDEFAULT];
+          localZoneSource = [NSString stringWithFormat:
+	    @"file (TZDEFAULT): '%@'", localZoneString];
 	  localZoneString = [localZoneString stringByResolvingSymlinksInPath];
 #else
 	  NSFileManager *dflt = [NSFileManager defaultManager];
@@ -1417,6 +1434,8 @@ static NSMapTable	*absolutes = 0;
           if ([dflt fileExistsAtPath: SYSTEM_TIME_FILE])
 	    {
 	      localZoneString = SYSTEM_TIME_FILE;
+	      localZoneSource = [NSString stringWithFormat:
+		@"file (SYSTEM_TIME_FILE): '%@'", localZoneString];
 	      localZoneString
 		= [localZoneString stringByResolvingSymlinksInPath];
 	      /* Guess what tzdir is */
@@ -1462,6 +1481,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = @"function: 'tzset()/tzname'";
 	  tzset();
 	  if (tzname[0] != NULL && *tzname[0] != '\0')
 	    localZoneString = [NSString stringWithUTF8String: tzname[0]];
@@ -1476,6 +1496,7 @@ static NSMapTable	*absolutes = 0;
       	TIME_ZONE_INFORMATION tz;
       	DWORD DST = GetTimeZoneInformation(&tz);
 
+        localZoneSource = @"function: 'GetTimeZoneInformation()'";
       	if (DST == TIME_ZONE_ID_DAYLIGHT)
 	  {
 	    localZoneString = [NSString stringWithCharacters: tz.DaylightName
@@ -1493,6 +1514,52 @@ static NSMapTable	*absolutes = 0;
 	{
 	  NSDebugLLog (@"NSTimeZone", @"Using zone %@", localZoneString);
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
+	  if (zone == nil)
+	    {
+	      if (zone == nil)
+		{
+		  GSPrintf(stderr,
+@"\nUnable to create time zone for name: '%@'\n"
+@"(source '%@').\n", localZoneString, localZoneSource);
+		}
+	      if ([localZoneSource hasPrefix: @"file"]
+	        || [localZoneSource hasPrefix: @"function"])
+		{
+                  GSPrintf(stderr,
+@"\nIt seems that your operating system does not have a valid timezone name\n"
+@"configured (it could be that some other software has set a, possibly\n"
+@"ambiguous, timezone abbreviation rather than a name) ... please correct\n"
+@"that or override by setting a timezone name (such as 'Europe/London'\n"
+@"or 'America/Chicago').\n");
+		}
+	      GSPrintf(stderr,
+@"\nYou can override the timezone name by setting the '%@'\n"
+@"NSUserDefault via the 'defaults' command line utility, a Preferences\n"
+@"application, or some other utility.\n"
+@"eg \"defaults write NSGlobalDomain '%@' 'Africa/Nairobi'\"\n"
+@"See '%@'\n"
+@"for the standard timezones such as 'GB-Eire' or 'America/Chicago'.\n",
+LOCALDBKEY, LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
+	      zone = [[self timeZoneWithAbbreviation: localZoneString] retain];
+	      if (zone != nil)
+		{
+		  NSInteger	s;
+		  char		sign = '+';
+
+		  s = [zone secondsFromGMT];
+		  if (s < 0)
+		    {
+		      sign = '-';
+		      s = -s;
+		    }
+	          GSPrintf(stderr,
+@"\nSucceeded in treating '%@' as a timezone abbreviation,\n"
+@"but abbreviations do not uniquely represent timezones, so this may\n"
+@"not have found the timezone you were expecting.  The timezone found\n"
+@"was '%@' (currently UTC%c%02d%02d)\n\n",
+localZoneString, [zone name], sign, s/3600, (s/60)%60);
+		}
+	    }
 	}
       else
 	{
@@ -2042,6 +2109,7 @@ static NSString *zoneDirs[] = {
 {
   static BOOL	beenHere = NO;
   NSString	*dir = nil;
+  BOOL		isDir;
 
   if (beenHere == NO && tzdir == nil)
     {
@@ -2077,7 +2145,8 @@ static NSString *zoneDirs[] = {
   /* Use the system zone info if possible, otherwise, use our installed
      info.  */
   if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
-    [tzdir stringByAppendingPathComponent: name]] == YES)
+    [tzdir stringByAppendingPathComponent: name] isDirectory: &isDir] == YES
+    && isDir == NO)
     {
       dir = tzdir;
     }

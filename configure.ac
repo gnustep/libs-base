@@ -2529,6 +2529,13 @@ if test $enable_tls = yes; then
     LIBS="$TLS_LIBS $LIBS"
     HAVE_GNUTLS=1
     AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
+    AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
+    if test "$have_gcrypt" = "no"; then
+      AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
+      HAVE_GNUTLS=0
+    else
+      LIBS="$TLS_LIBS -lgcrypt $LIBS"
+    fi
     AC_CHECK_FUNCS(gnutls_transport_set_errno)
     if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
       AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
@@ -2636,6 +2643,32 @@ fi
 
 AC_SUBST(WARN_FLAGS)
 
+#--------------------------------------------------------------------
+# Check if we should install gdomap as setuid
+#--------------------------------------------------------------------
+AC_MSG_CHECKING([if we should install gdomap as setuid])
+AC_ARG_ENABLE(setuid-gdomap,[
+  --enable-setuid-gdomap        Enable installing gdomap as a setuid
+                                executable.  By default, it is installed
+                                as a normal program intended to be started
+				by root at system boot time, but it can
+                                also be started up automatically
+                                by any user at any time.  Use this
+                                option if you are happy having the program
+                                started automatically on demand.
+],
+  ac_cv_setuid_gdomap=$enableval,
+  ac_cv_setuid_gdomap="no")
+
+if test "$ac_cv_setuid_gdomap" = "yes"; then
+  AC_MSG_RESULT(yes);
+  GNUSTEP_INSTALL_GDOMAP_AS_SETUID="yes"
+else
+  AC_MSG_RESULT(no);
+  GNUSTEP_INSTALL_GDOMAP_AS_SETUID="no"
+fi
+
+AC_SUBST(GNUSTEP_INSTALL_GDOMAP_AS_SETUID)
 
 #--------------------------------------------------------------------
 # Configure flags from sub-configure runs, so they show up in our

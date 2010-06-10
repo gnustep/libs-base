@@ -61,7 +61,15 @@ after-install::
 	  $(INSTALL_DATA) $$file $(GNUSTEP_DOC_MAN)/man8/$$file; \
 	    which gzip && rm -f $(GNUSTEP_DOC_MAN)/man8/$$file.gz \
 		&& gzip -9 $(GNUSTEP_DOC_MAN)/man8/$$file; \
-	done; \
+	done$(END_ECHO)
+ifeq ($(GNUSTEP_INSTALL_GDOMAP_AS_SETUID),no)
+	$(ECHO_NOTHING)echo ""; \
+	echo "Note: gdomap has not been made setuid to root, so you must"; \
+	echo "start it up as root.  Most often this is done at system boot"; \
+	echo "by executing 'gdomap -p' in the startup scripts."; \
+	echo ""$(END_ECHO)
+else
+	$(ECHO_NOTHING)echo ""; \
 	if [ "`$(WHOAMI)`" != "root" ]; then \
 	  echo ""; \
 	  echo "************************************************************"; \
@@ -89,6 +97,7 @@ after-install::
 	echo "startup command to your system boot scripts!"; \
 	echo "************************************************************"; \
 	$(END_ECHO)
+endif
 
 # Things to do before uninstalling
 before-uninstall::
