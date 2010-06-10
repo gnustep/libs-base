@@ -1,4 +1,10 @@
+2010-06-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Raise exception if a null pointer is passed to
+	+stringWithUTF8String: for compatibility with OSX.
+
 2010-06-09  David Wetzel <dave@turbocat.de>
+
 	* Source/Additions/GSXML.m:
 	check for NULL string
 	stringWithUTF8String: raises on OSX if you feed it with a NULL string.
