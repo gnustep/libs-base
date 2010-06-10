@@ -512,7 +512,7 @@ wordData(NSString *word)
 	}
       else if  (cc == '=')
 	{
-	  [self setAtEnd: YES];
+          [self setAtEnd: YES];
 	  cc = -1;
 	}
       else if (cc == '-')
@@ -3208,6 +3208,11 @@ static NSCharacterSet	*tokenSet = nil;
     }
 }
 
+- (NSUInteger) hash
+{
+  return [[self name] hash];
+}
+
 - (id) init
 {
   return [self initWithName: @"unknown" value: @"none" parameters: nil];
@@ -3236,6 +3241,31 @@ static NSCharacterSet	*tokenSet = nil;
   [self setValue: v];
   [self setParameters: p];
   return self;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  if (other == self)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSMimeHeader class]])
+    {
+      return NO;
+    }
+  if (NO == [[self name] isEqual: [other name]])
+    {
+      return NO;
+    }
+  if (NO == [[self value] isEqual: [other value]])
+    {
+      return NO;
+    }
+  if (NO == [[self parameters] isEqual: [other parameters]])
+    {
+      return NO;
+    }
+  return YES;
 }
 
 /**
@@ -5142,6 +5172,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   return desc;
 }
 
+- (NSUInteger) hash
+{
+  return [[self content] hash];
+}
+
 /**
  * This method returns the first header whose name equals the supplied argument.
  */
@@ -5187,6 +5222,27 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       headers = [NSMutableArray new];
     }
   return self;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  if (other == self)
+    {
+      return YES;
+    }
+  if (NO == [other isKindOfClass: [GSMimeDocument class]])
+    {
+      return NO;
+    }
+  if (NO == [[self allHeaders] isEqual: [other allHeaders]])
+    {
+      return NO;
+    }
+  if (NO == [[self content] isEqual: [other content]])
+    {
+      return NO;
+    }
+  return YES;
 }
 
 /**
