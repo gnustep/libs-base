@@ -42,8 +42,8 @@ gdomap \- GNUstep Distributed Objects name server
 The gdomap daemon is used by GNUstep programs to look up distributed objects of
 processes running on the local machine as well as across the network.  This
 manual page explains the usage of gdomap.  For design and implementation
-information, please see the HTML documentation installed in
-$GNUSTEP_SYSTEM_DOC, under Command-line Tools.
+information (nad special notes for packagers), please see the HTML
+documentation installed in $GNUSTEP_SYSTEM_DOC, under Command-line Tools.
 .P
 Usually the gdomap daemon is started at system boot time and binds itself to
 port 538. See the 
@@ -51,7 +51,7 @@ port 538. See the
 for a sample startup script.
 
 .P
-Gdomap normally probes every machine on the local network to see if there
+By default gdomap probes every machine on the local network to see if there
 is a copy of gdomap running on it.  This is done for class-C networks and
 subnets of class-C networks.  If your host is on a class-B or class-A net
 then the default behaviour is to treat it as a class-C net and probe only
