@@ -197,6 +197,10 @@ typedef enum {
 	  NSLog(@"NSSocketPortNameServer attempting to start gdomap on local host\n"
 @"This will take a few seconds.\n"
 @"Trying to launch gdomap from %@ or a machine/operating-system subdirectory.\n"
+#if	!defined(GDOMAP_PORT_OVERRIDE)
+@"On systems other than mswindows, this will only work if the gdomap program\n"
+@"was installed setuid to root.\n"
+#endif
 @"It is recommended that you start up gdomap at login time or (better) when\n"
 @"your computer is started instead.",
 [launchCmd stringByDeletingLastPathComponent]);

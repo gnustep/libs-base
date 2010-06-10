@@ -2648,21 +2648,17 @@ AC_SUBST(WARN_FLAGS)
 #--------------------------------------------------------------------
 AC_MSG_CHECKING([if we should install gdomap as setuid])
 AC_ARG_ENABLE(setuid-gdomap,[
-  --disable-setuid-gdomap       Disable installing gdomap as a setuid
-                                executable.  By default, it is
-                                installed as a setuid program, so that
-                                it can be started up automatically
+  --enable-setuid-gdomap        Enable installing gdomap as a setuid
+                                executable.  By default, it is installed
+                                as a normal program intended to be started
+				by root at system boot time, but it can
+                                also be started up automatically
                                 by any user at any time.  Use this
-                                option if you are happy starting
-                                gdomap manually at startup (typically
-                                by adding 'gdomap -p' to your
-                                /etc/rc.local or equivalent start up
-                                script), in which case you don't need
-                                gdomap to be setuid and can use a more
-                                secure setup where it isn't setuid.
+                                option if you are happy having the program
+                                started automatically on demand.
 ],
   ac_cv_setuid_gdomap=$enableval,
-  ac_cv_setuid_gdomap="yes")
+  ac_cv_setuid_gdomap="no")
 
 if test "$ac_cv_setuid_gdomap" = "yes"; then
   AC_MSG_RESULT(yes);
