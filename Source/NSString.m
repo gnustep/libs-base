@@ -767,12 +767,16 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Create a string based on the given UTF-8 string, null-terminated.
+ * Create a string based on the given UTF-8 string, null-terminated.<br />
+ * Raises NSInvalidArgumentException if given NULL pointer.
  */
 + (id) stringWithUTF8String: (const char *)bytes
 {
   NSString	*obj;
 
+  if (NULL == bytes)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[NSString+stringWithUTF8String:]: NULL cString"];
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithUTF8String: bytes];
   return AUTORELEASE(obj);
