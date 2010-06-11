@@ -1,5 +1,8 @@
-2010-06-10 Riccardo Mottola
+2010-06-11 Riccardo Mottola
 
+	* Source/NSZone.m
+	* Source/GSPThread.h
+	* Source/NSLock.m
 	* Source/ObjectiveC2/sync.m: Attempt of fixing test for defining
 	_XOPEN_SOURCE again
 

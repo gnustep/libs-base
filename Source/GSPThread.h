@@ -30,7 +30,7 @@
  * For safety we enable this only on linux and hurd where glibc is likely.
  * We include features.h explicitely to avoid weird problems.
  */
-#if defined __linux__ || defined __GNU__
+#if defined __linux__ || defined __GNU__ || defined __GLIBC__
 #  ifndef _XOPEN_SOURCE
 #    define _XOPEN_SOURCE 600
 #  endif

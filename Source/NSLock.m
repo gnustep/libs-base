@@ -26,7 +26,7 @@
 // This file uses some SUS'98 extensions, so we need to tell glibc not to hide
 // them.  Other platforms have more sensible libcs, which just default to being
 // standards-compliant.
-#if defined __linux__ || defined __GNU__
+#if defined __linux__ || defined __GNU__ || defined __GLIBC__
 #  ifndef _XOPEN_SOURCE
 #    define _XOPEN_SOURCE 600
 #  endif
