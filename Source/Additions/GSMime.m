@@ -2554,8 +2554,15 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		{
 		  pos--;
 		}
-	      childBody = [d subdataWithRange:
-		NSMakeRange(sectionStart, pos - sectionStart)];
+	      /* Since we know the child can't modify it, and we know
+	       * that we aren't going to change the buffer while the
+	       * child is using it, we can safely pass a data object
+	       * which simply references the memory in our own buffer.
+	       */
+	      childBody = [[NSData alloc]
+		initWithBytesNoCopy: (void*)(buf + sectionStart)
+			     length: pos - sectionStart
+		       freeWhenDone: NO];
 	      if ([child parse: childBody] == YES)
 		{
 		  /*
@@ -2564,6 +2571,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		   */
 		  [child parse: nil];
 		}
+	      [childBody release];
 	      if ([child isComplete] == YES)
 		{
 		  GSMimeDocument	*doc;
