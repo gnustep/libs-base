@@ -244,6 +244,14 @@ extern "C" {
 - (BOOL) isInHeaders;
 - (GSMimeDocument*) mimeDocument;
 - (BOOL) parse: (NSData*)d;
+/** Parses headers from the supplied data returning YES if more data is
+ * needed before the end of thge headers are reached.<br />
+ * If body is not NULL and the end of the headers were reached leaving
+ * some unused data, that remaining data is returned.<br />
+ * NB. The returned data is a reference to part of the original memory
+ * buffer provided in d, so you must copy it if you intend to use it after
+ * modifying or deallocating the original data.
+ */
 - (BOOL) parseHeaders: (NSData*)d remaining: (NSData**)body;
 - (BOOL) parseHeader: (NSString*)aHeader;
 - (BOOL) scanHeaderBody: (NSScanner*)scanner into: (GSMimeHeader*)info;

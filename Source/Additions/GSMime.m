@@ -1357,13 +1357,11 @@ wordData(NSString *word)
     }
   if (l == 0)
     {
-      NSData	*dummy = nil;
-
       /* Add an empty line to the end of the current headers to force 
        * completion of header parsing.
        */
       [self parseHeaders: [NSData dataWithBytes: "\r\n\r\n" length: 4]
-	       remaining: &dummy];
+	       remaining: 0];
       flags.wantEndOfLine = 0;
       flags.inBody = 0;
       flags.complete = 1;	/* Finished parsing	*/
@@ -1386,7 +1384,16 @@ wordData(NSString *word)
       [data appendBytes: [d bytes] length: i];
       bytes = (unsigned char*)[data bytes];
       dataEnd = [data length];
-      d = [d subdataWithRange: NSMakeRange(i, l - i)];
+      if (l > i)
+	{
+	  d = [[[NSData alloc] initWithBytesNoCopy: (void*)([d bytes] + i)
+					    length: l - i
+				      freeWhenDone: NO] autorelease];
+	}
+      else
+	{
+	  d = nil;
+	}
       if (body != 0)
 	{
 	  *body = d;
