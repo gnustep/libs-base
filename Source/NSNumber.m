@@ -411,6 +411,11 @@ if (aValue >= -1 && aValue <= 12)\
 
 + (NSNumber *) numberWithBool: (BOOL)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(BOOL)] autorelease];
+    }
   CHECK_SINGLETON (((signed char) aValue));
   return [self numberWithInt: aValue];
   // Not reached (BOOL is always 0 or 1)
@@ -418,27 +423,53 @@ if (aValue >= -1 && aValue <= 12)\
 
 + (NSNumber *) numberWithChar: (signed char)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(char)] autorelease];
+    }
   return [self numberWithInt: aValue];
 }
 
 + (NSNumber *) numberWithUnsignedChar: (unsigned char)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(unsigned char)] autorelease];
+    }
   return [self numberWithInt: aValue];
 }
 
 + (NSNumber *) numberWithShort: (short)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(short)] autorelease];
+    }
   return [self numberWithInt: aValue];
 }
 
 + (NSNumber *) numberWithUnsignedShort: (unsigned short)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(unsigned short)] autorelease];
+    }
   return [self numberWithInt: aValue];
 }
 
 + (NSNumber *) numberWithInt: (int)aValue
 {
   NSIntNumber *n;
+
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(int)] autorelease];
+    }
 
   CHECK_SINGLETON (aValue);
   n = NSAllocateObject (NSIntNumberClass, 0, 0);
@@ -448,8 +479,13 @@ if (aValue >= -1 && aValue <= 12)\
 
 + (NSNumber *) numberWithUnsignedInt: (unsigned int)aValue
 {
-  CHECK_SINGLETON (aValue);
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(unsigned int)] autorelease];
+    }
 
+  CHECK_SINGLETON (aValue);
   if (aValue < (unsigned int) INT_MAX)
     {
       return [self numberWithInt: (int)aValue];
@@ -459,11 +495,21 @@ if (aValue >= -1 && aValue <= 12)\
 
 + (NSNumber *) numberWithLong: (long)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(long)] autorelease];
+    }
   return [self numberWithLongLong: aValue];
 }
 
 + (NSNumber *) numberWithUnsignedLong: (unsigned long)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(unsigned long)] autorelease];
+    }
   return [self numberWithUnsignedLongLong: aValue];
 }
 
@@ -471,6 +517,11 @@ if (aValue >= -1 && aValue <= 12)\
 {
   NSLongLongNumber *n;
 
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(long long)] autorelease];
+    }
   CHECK_SINGLETON (aValue);
   if (aValue < (long long)INT_MAX && aValue > (long long)INT_MIN)
     {
@@ -485,6 +536,11 @@ if (aValue >= -1 && aValue <= 12)\
 {
   NSUnsignedLongLongNumber *n;
 
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(unsigned long long)] autorelease];
+    }
   if (aValue < (unsigned long long) LLONG_MAX)
     {
       return [self numberWithLongLong: (long long) aValue];
@@ -496,22 +552,39 @@ if (aValue >= -1 && aValue <= 12)\
 
 + (NSNumber *) numberWithFloat: (float)aValue
 {
-  NSFloatNumber *n = NSAllocateObject (NSFloatNumberClass, 0, 0);
+  NSFloatNumber *n;
 
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(float)] autorelease];
+    }
+  n = NSAllocateObject (NSFloatNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
 }
 
 + (NSNumber *) numberWithDouble: (double)aValue
 {
-  NSDoubleNumber *n = NSAllocateObject (NSDoubleNumberClass, 0, 0);
+  NSDoubleNumber *n;
 
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(double)] autorelease];
+    }
+  n = NSAllocateObject (NSDoubleNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
 }
 
 + (NSNumber *) numberWithInteger: (NSInteger)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(NSInteger)] autorelease];
+    }
   // Compile time constant; the compiler will remove this conditional
   if (sizeof (NSInteger) == sizeof (int))
     {
@@ -522,6 +595,11 @@ if (aValue >= -1 && aValue <= 12)\
 
 + (NSNumber *) numberWithUnsignedInteger: (NSUInteger)aValue
 {
+  if (self != NSNumberClass)
+    {
+      return [[[self alloc] initWithBytes: (const void *)&aValue
+        objCType: @encode(NSUInteger)] autorelease];
+    }
   // Compile time constant; the compiler will remove this conditional
   if (sizeof (NSUInteger) == sizeof (unsigned int))
     {
