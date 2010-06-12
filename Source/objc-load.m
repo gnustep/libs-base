@@ -32,12 +32,6 @@
 
 #import "common.h"
 
-#ifdef HAVE_DLADDR
-/* Define _GNU_SOURCE because that is required with GNU libc in order
- * to have dladdr() available.  */
-# define _GNU_SOURCE
-#endif
-
 #include <stdio.h>
 #include <objc/objc-api.h>
 #ifndef NeXT_RUNTIME

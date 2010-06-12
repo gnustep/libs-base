@@ -32,6 +32,7 @@ builtin(include, config/codeset.m4)dnl
 builtin(include, config/addlibrarypath.m4)dnl
 
 AC_INIT
+AC_PREREQ([2.60])
 AC_CONFIG_SRCDIR([Source/NSArray.m])
 
 # If GNUSTEP_MAKEFILES is undefined, try to use gnustep-config to determine it.
@@ -978,6 +979,7 @@ LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GN
 #--------------------------------------------------------------------
 AC_PROG_CC
 AC_PROG_CPP
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 

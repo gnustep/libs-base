@@ -1,3 +1,21 @@
+2010-06-12  Yavor Doganov
+
+	* Source/NSZone.m:
+	* Source/GSPThread.h:
+	* Source/objc-load.h:
+	* Source/objc-load.m:
+	* Source/NSException.m:
+	* Source/ObjectiveC2/sync.m:
+	* Source/NSString.m:
+	* Source/NSDecimalNumber.m:
+	* Source/NSDecimal.m:
+	* Source/NSLock.m:
+	* configure.ac: Use autoconf AC_USE_SYSTEM_EXTENSIONS
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerate
+	Simplification of source code by using autoconf to enable extensions
+	for Unix98 thread handling etc.
+
 2010-06-11 Riccardo Mottola
 
 	* Source/NSZone.m
