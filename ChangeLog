@@ -1,3 +1,7 @@
+2010-06-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumber.m: Fix breakage of +numberWith... in subclasses.
+
 2010-06-12  Yavor Doganov
 
 	* Source/NSZone.m:
