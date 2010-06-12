@@ -27,7 +27,6 @@
    */
 
 #import "common.h"
-#define _GNU_SOURCE
 #include <math.h>
 #if !defined(__APPLE__) || !defined(GNU_RUNTIME)
 #include <ctype.h>

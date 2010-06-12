@@ -43,11 +43,6 @@
    Limited choice of default encodings.
 */
 
-/* Needed for visiblity of fwprintf prototype.  */
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
 #import "common.h"
 #include <stdio.h>
 #include <string.h>
