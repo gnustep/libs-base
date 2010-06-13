@@ -86,16 +86,6 @@
 
 #define IN_NSZONE_M 1
 
-/* we define _XOPEN_SOURCE to get all the necessary pthread attributes
- * and we need to define it here and not just in GSPThread.h because
- * GLIBC is so picky with defines */
-#if defined __linux__ || defined __GNU__
-#  ifndef _XOPEN_SOURCE
-#    define _XOPEN_SOURCE 600
-#  endif
-#endif
-
-
 #import "common.h"
 #include <stddef.h>
 #include <string.h>
