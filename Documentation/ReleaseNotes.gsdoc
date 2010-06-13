@@ -44,13 +44,17 @@ notice and this notice are preserved.
 	  <term>NSAttributedString</term>
           <desc>Fixes for keyed archiving/unarchiving.</desc>
 	  <term>NSData</term>
-          <desc>Improve reading of non-standard files.</desc>
+          <desc>Improve reading of non-standard files (eg /proc filesystem).
+	  </desc>
 	  <term>NSHashTable</term>
           <desc>Fix minor buffer overrun.</desc>
 	  <term>NSInvocation</term>
           <desc>Fix for problem with FFI when caching the method implementation
 	  of a proxy.
 	  </desc>
+	  <term>NSNumber</term>
+          <desc>Fix the +numberWith... methods to work for subclasses of
+	  NSNumber rather than creating instances of the default class.</desc>
 	  <term>NSKeyValueCoding</term>
           <desc>Fix -isKey for KVC compliance.</desc>
 	  <term>NSPropertyList</term>
