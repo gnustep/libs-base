@@ -76,6 +76,12 @@
 #elif   defined(__MINGW__)
       VirtualFree(buffer, 0, MEM_RELEASE);
 #else
+#if     defined(HAVE_MPROTECT)
+  if (mprotect(buffer,sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE) == -1)
+    {
+      NSLog(@"Failed to protect memory as writable: %@", [NSError _last]);
+    }
+#endif
       free(buffer);
 #endif
     }
@@ -103,7 +109,9 @@
 #elif   defined(__MINGW__)
   buffer = VirtualAlloc(NULL, _size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 #else
-  buffer = malloc(_size);
+//  buffer = malloc(_size);
+  NSAssert(_size < sysconf(_SC_PAGESIZE), @"Tried to allocate more than one page.");
+  buffer = valloc(sysconf(_SC_PAGESIZE));
 #endif  /* HAVE_MMAP */
 
   if (buffer == (void*)0)
@@ -132,7 +140,7 @@
       NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
     }
 #elif     defined(HAVE_MPROTECT)
-  if (mprotect(buffer, size, PROT_READ|PROT_EXEC) == -1)
+  if (mprotect(buffer,sysconf(_SC_PAGESIZE), PROT_READ|PROT_EXEC) == -1)
     {
       NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
     }
