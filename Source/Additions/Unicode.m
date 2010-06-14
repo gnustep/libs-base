@@ -1488,7 +1488,7 @@ done:
 	}
     }
 #if	!GS_WITH_GC
-  else if (ptr != buf && dst != 0 && ptr != *dst)
+  else if (ptr != buf && (dst == 0 || ptr != *dst))
     {
       NSZoneFree(zone, ptr);
     }
@@ -2485,7 +2485,7 @@ iconv_start:
 	}
     }
 #if	!GS_WITH_GC
-  else if (ptr != buf && ptr != *dst)
+  else if (ptr != buf && (dst == 0 || ptr != *dst))
     {
       NSZoneFree(zone, ptr);
     }
