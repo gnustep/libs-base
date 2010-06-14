@@ -1,3 +1,7 @@
+2010-06-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Fix indirect through null pointer.
+
 2010-06-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNumber.m: Fix breakage of +numberWith... in subclasses.
