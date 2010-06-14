@@ -1,3 +1,8 @@
+2010-06-15 Riccardo Mottola
+
+	* Source/NSInvocation:
+	Protect page-aligned and unprotect before freeing.
+
 2010-06-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Fix indirect through null pointer.
