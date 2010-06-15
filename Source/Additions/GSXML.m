@@ -2955,7 +2955,7 @@ warningFunction(void *ctx, const unsigned char *msg, ...)
   int		colNumber = -1;
 
   va_start(args, msg);
-  estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
+  estr = [NSString stringWithFormat: UTF8Str(msg) arguments: args];
   va_end(args);
 
   NSCAssert(ctx,@"No Context");
@@ -2975,7 +2975,7 @@ errorFunction(void *ctx, const unsigned char *msg, ...)
   int		colNumber = -1;
 
   va_start(args, msg);
-  estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
+  estr = [NSString stringWithFormat: UTF8Str(msg) arguments: args];
   va_end(args);
   NSCAssert(ctx,@"No Context");
   lineNumber = xmlSAX2GetLineNumber(ctx);
@@ -2994,7 +2994,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   int		colNumber = -1;
 
   va_start(args, msg);
-  estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
+  estr = [NSString stringWithFormat: UTF8Str(msg) arguments: args];
   va_end(args);
   NSCAssert(ctx, @"No Context");
   lineNumber = xmlSAX2GetLineNumber(ctx);
