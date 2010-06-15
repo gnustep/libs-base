@@ -45,6 +45,10 @@
 #include <sys/mman.h>
 #endif
 
+#if     defined(HAVE_UNISTD_H)
+#import <unistd.h>
+#endif
+
 #if     defined(HAVE_MMAP)
 #  if   !defined(MAP_ANONYMOUS)
 #    if defined(MAP_ANON)
