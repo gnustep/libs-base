@@ -81,10 +81,10 @@
       VirtualFree(buffer, 0, MEM_RELEASE);
 #else
 #if     defined(HAVE_MPROTECT)
-  if (mprotect(buffer,sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE) == -1)
-    {
-      NSLog(@"Failed to protect memory as writable: %@", [NSError _last]);
-    }
+      if (mprotect(buffer,sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE) == -1)
+	{
+	  NSLog(@"Failed to protect memory as writable: %@", [NSError _last]);
+	}
 #endif
       free(buffer);
 #endif
