@@ -1,3 +1,8 @@
+2010-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSInvocation: For portability, use NSPageSize() to find
+	size for page alignment.
+
 2010-06-15 Riccardo Mottola
 
 	* Source/NSInvocation:
