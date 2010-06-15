@@ -3498,11 +3498,11 @@ isEqualFunc(const void *item1, const void *item2,
 {
   int index;
 
-  index = (int)[objectList objectForKey: object];
+  index = (int)(intptr_t)[objectList objectForKey: object];
   if (index <= 0)
     {
       index = [objectList count];
-      [objectList setObject: (id)(++index) forKey: object];
+      [objectList setObject: (id)(intptr_t)(++index) forKey: object];
       [objectsToDoList addObject: object];
     }
 
