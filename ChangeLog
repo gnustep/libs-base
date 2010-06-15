@@ -2,6 +2,10 @@
 
 	* Source/NSInvocation: For portability, use NSPageSize() to find
 	size for page alignment.
+	* Source/NSString.m: Raise exception on pul pointer passed to
+	+stringWithCString:encoding: as per OSX.
+	* Source/Additions/GSXML.m: Fix minor memory leak
+	* Source/NSArray.m: ([-valueForKey:]) for for @count
 
 2010-06-15 Riccardo Mottola
 

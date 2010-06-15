@@ -741,6 +741,9 @@ handle_printf_atsign (FILE *stream,
 {
   NSString	*obj;
 
+  if (NULL == byteString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString+stringWithCString:encoding:]: NULL cString"];
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithCString: byteString encoding: encoding];
   return AUTORELEASE(obj);
@@ -1025,7 +1028,7 @@ handle_printf_atsign (FILE *stream,
 	      encoding: (NSStringEncoding)encoding
 {
   return [self initWithBytes: byteString
-		      length: strlen(byteString)
+		      length: (byteString ? strlen(byteString) : 0)
 		    encoding: encoding];
 }
 
