@@ -5144,15 +5144,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (void) deleteHeader: (GSMimeHeader*)aHeader
 {
-  NSUInteger	count = [headers count];
-
-  while (count-- > 0)
-    {
-      if ([aHeader isEqual: [headers objectAtIndex: count]] == YES)
-	{
-	  [headers removeObjectAtIndex: count];
-	}
-    }
+  [headers removeObjectIdenticalTo: aHeader];
 }
 
 /**
