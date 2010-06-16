@@ -1461,35 +1461,42 @@ fi
 # See if we are using a compiler which allows us to change the class
 # to be used for constant strings by using the -fconstant-string-class
 # option.  If that is the case, we change it to NSConstantString.
+# Unless we are building for the apple runtime (ie only building base
+# additions library and not implementing a constant string class).
 #---------------------------------------------------------------------
-strclass_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS -fconstant-string-class=FooConstantString"
-AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
-AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
-  AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
-  objc_compiler_supports_constant_string_class=yes,
-  objc_compiler_supports_constant_string_class=no,
-  objc_compiler_supports_constant_string_class=no)
-)
-if test $objc_compiler_supports_constant_string_class = yes; then
-  NX_CONST_STRING_OBJCFLAGS="-fconstant-string-class=NSConstantString"
-  NX_CONST_STRING_CLASS=NSConstantString
-  AC_MSG_RESULT(yes)
+if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
+  NX_CONST_STRING_OBJCFLAGS=""
+  NX_CONST_STRING_CLASS=NXConstantString
 else
-  AC_MSG_RESULT(no)
-  AC_ARG_ENABLE(nxconstantstring,
-      [  --enable-nxconstantstring
-	    Enables the use of the NXConstantString class for old compilers.],,
-      enable_nxconstantstring=no)
-  if test $enable_nxconstantstring = yes; then
-    NX_CONST_STRING_OBJCFLAGS=""
-    NX_CONST_STRING_CLASS=NXConstantString
-    AC_MSG_WARN([You have enabled the use of NXConstantString as the string class in gnustep-base.  The objective-c runtime library typically implements its own class of the same name, so you must either enforce a link order which ensures that the gnustep-base implementation is used, or (better) you must remove the class from the runtime library!])
+  strclass_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS -fconstant-string-class=FooConstantString"
+  AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
+  AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
+    AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
+    objc_compiler_supports_constant_string_class=yes,
+    objc_compiler_supports_constant_string_class=no,
+    objc_compiler_supports_constant_string_class=no)
+  )
+  if test $objc_compiler_supports_constant_string_class = yes; then
+    NX_CONST_STRING_OBJCFLAGS="-fconstant-string-class=NSConstantString"
+    NX_CONST_STRING_CLASS=NSConstantString
+    AC_MSG_RESULT(yes)
   else
-    AC_MSG_ERROR([Your compiler does not appear to implement the -fconstant-string-class option needed for support of strings.  Please check for a more recent version or consider using --enable-nxconstantstring])
+    AC_MSG_RESULT(no)
+    AC_ARG_ENABLE(nxconstantstring,
+        [  --enable-nxconstantstring
+	    Enables the use of the NXConstantString class for old compilers.],,
+        enable_nxconstantstring=no)
+    if test $enable_nxconstantstring = yes; then
+      NX_CONST_STRING_OBJCFLAGS=""
+      NX_CONST_STRING_CLASS=NXConstantString
+      AC_MSG_WARN([You have enabled the use of NXConstantString as the string class in gnustep-base.  The objective-c runtime library typically implements its own class of the same name, so you must either enforce a link order which ensures that the gnustep-base implementation is used, or (better) you must remove the class from the runtime library!])
+    else
+      AC_MSG_ERROR([Your compiler does not appear to implement the -fconstant-string-class option needed for support of strings.  Please check for a more recent version or consider using --enable-nxconstantstring])
+    fi
   fi
+  CPPFLAGS="$strclass_CPPFLAGS"
 fi
-CPPFLAGS="$strclass_CPPFLAGS"
 
 AC_SUBST(NX_CONST_STRING_OBJCFLAGS)
 AC_SUBST(NX_CONST_STRING_CLASS)
