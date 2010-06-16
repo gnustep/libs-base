@@ -156,38 +156,45 @@ NSRealMemoryAvailable ()
 
 /**
  * Allocate memory for this process and return a pointer to it (or a null
- * pointer on failure).
+ * pointer on failure). The allocated memory is page aligned and the
+ * actual size of memory allocated is a multiple of the page size.
  */
 void *
 NSAllocateMemoryPages (NSUInteger bytes)
 {
+  NSUInteger size = NSRoundUpToMultipleOfPageSize (bytes);
   void *where;
 #if __mach__
   kern_return_t r;
-  r = vm_allocate (mach_task_self(), &where, (vm_size_t) bytes, 1);
+  r = vm_allocate (mach_task_self(), &where, (vm_size_t) size, 1);
   if (r != KERN_SUCCESS)
     return NULL;
   return where;
+#elif	HAVE_POSIX_MEMALIGN
+  if (posix_memalign(&where, NSPageSize(), size) != 0)
+    return NULL;
 #else
-  where = objc_valloc (bytes);
+  where = valloc (size);
   if (where == NULL)
     return NULL;
+#endif
   memset (where, 0, bytes);
   return where;
-#endif
 }
 
 /**
  * Deallocate memory which was previously allocated using the
- * NSAllocateMemoryPages() function.
+ * NSAllocateMemoryPages() function.<br />
+ * The bytes argument should be the same as the value passed
+ * to the NSAllocateMemoryPages() function.
  */
 void
 NSDeallocateMemoryPages (void *ptr, NSUInteger bytes)
 {
 #if __mach__
-  vm_deallocate (mach_task_self (), ptr, bytes);
+  vm_deallocate (mach_task_self (), ptr, NSRoundUpToMultipleOfPageSize (bytes));
 #else
-  objc_free (ptr);
+  free (ptr);
 #endif
 }
 
