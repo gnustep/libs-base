@@ -20220,6 +20220,11 @@ else
 fi
 
 
+if test $enable_ffcall = yes; then
+  { $as_echo "$as_me:$LINENO: WARNING: ffcall has been enabled ... this is deprecated ... please install and use a recent libffi if possible" >&5
+$as_echo "$as_me: WARNING: ffcall has been enabled ... this is deprecated ... please install and use a recent libffi if possible" >&2;}
+fi
+
 # Check whether --enable-invocations was given.
 if test "${enable_invocations+set}" = set; then
   enableval=$enable_invocations;
@@ -20569,8 +20574,8 @@ if test $have_libffi = no; then
   # If we don't have libffi but do have ffcall, use ffcall
   if test $have_ffcall = yes; then
     if test $enable_ffcall = no; then
-      { $as_echo "$as_me:$LINENO: WARNING: ffi support seems to be missing on this system ... please install a recent libffi or perhaps try enabling ffcall" >&5
-$as_echo "$as_me: WARNING: ffi support seems to be missing on this system ... please install a recent libffi or perhaps try enabling ffcall" >&2;}
+      { $as_echo "$as_me:$LINENO: WARNING: ffi support seems to be missing on this system ... please install a recent libffi" >&5
+$as_echo "$as_me: WARNING: ffi support seems to be missing on this system ... please install a recent libffi" >&2;}
     fi
   fi
 fi

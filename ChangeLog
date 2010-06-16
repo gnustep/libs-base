@@ -4,6 +4,7 @@
 	* configure: regenerate
 	Don't allow build if compiler doesn't let us set the constant string
 	class ... unless explicitly overridden (add warning).
+	Explicitly deprecate ffcall
 
 2010-06-15  Richard Frith-Macdonald <rfm@gnu.org>
 

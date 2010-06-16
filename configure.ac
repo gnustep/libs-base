@@ -2233,6 +2233,10 @@ AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of the deprecated ffcall library],,
   enable_ffcall=$do_enable_libffcall)
 
+if test $enable_ffcall = yes; then
+  AC_MSG_WARN([ffcall has been enabled ... this is deprecated ... please install and use a recent libffi if possible])
+fi
+
 AC_ARG_ENABLE(invocations,
   [  --disable-invocations		Compile even if invocation-dependencies are not met],,
   enable_invocations=yes)
@@ -2279,7 +2283,7 @@ if test $have_libffi = no; then
   # If we don't have libffi but do have ffcall, use ffcall
   if test $have_ffcall = yes; then
     if test $enable_ffcall = no; then
-      AC_MSG_WARN([ffi support seems to be missing on this system ... please install a recent libffi or perhaps try enabling ffcall])
+      AC_MSG_WARN([ffi support seems to be missing on this system ... please install a recent libffi])
     fi
   fi
 fi
