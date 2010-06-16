@@ -1516,6 +1516,63 @@ static NSMapTable	*absolutes = 0;
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
 	  if (zone == nil)
 	    {
+	      NSArray	*possibleZoneNames;
+
+	      /*
+		It is not guaranteed on some systems (e.g., Ubuntu) that 
+		SYSTEM_TIME_FILE is a symlink. This file is more probably 
+		a copy of a zoneinfo file. The above time zone detecting 
+		approach can lead to the situation when we can only know 
+		about the time zone abbreviation (localZoneString) and 
+		(for some time zone abbreviations) the corresponding list 
+		of possible time zone names (e.g. SAMT is valid for
+		Pacific/Samoa, Pacific/Pago_Pago, Pacific/Apia,
+		Asia/Samarkand, Europe/Samara, US/Samoa).
+		In such a case the time zone can be selected 
+		from the list by comparing the content of SYSTEM_TIME_FILE 
+		and the content of zoneinfo files corresponding to the items 
+		of that list.
+	       */
+	      possibleZoneNames = [[self abbreviationMap]
+		objectForKey: localZoneString];
+	      if (possibleZoneNames != nil)
+		{
+		  NSEnumerator	*en = [possibleZoneNames objectEnumerator];
+		  NSString	*zoneName;
+		  NSFileManager *dflt = [NSFileManager defaultManager];
+		  
+		  while ((zoneName = [en nextObject]) != nil)
+		    {
+		      NSString	*fileName = [self _getTimeZoneFile: zoneName];
+
+		      if (fileName != nil
+			&& [dflt contentsEqualAtPath: fileName 
+					     andPath: SYSTEM_TIME_FILE])
+			{
+			  zone = [[self timeZoneWithName: zoneName] retain];
+
+			  if (zone != nil)
+			    {
+			      GSPrintf(stderr,
+@"\nIt seems that your operating system does not have a valid timezone name\n"
+@"configured and is using an abbreviation instead.  By comparing timezone\n"
+@"file data it is has been possible to find the actual timezone used, but\n"
+@"doing that is a slow process.\n"
+@"\nYou can avoid slowness of this time zone detecting approach\n"
+@"by setting the environment variable TZ='%@'\n"
+@"Or You can override the timezone name by setting the '%@'\n"
+@"NSUserDefault via the 'defaults' command line utility, a Preferences\n"
+@"application, or some other utility.\n"
+@"eg \"defaults write NSGlobalDomain '%@' '%@'\"\n\n",
+zoneName, LOCALDBKEY, LOCALDBKEY, zoneName);
+			      break;
+			    }
+			}
+		    }
+		}
+	    }
+	  if (zone == nil)
+	    {
 	      if (zone == nil)
 		{
 		  GSPrintf(stderr,
