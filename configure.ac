@@ -1840,7 +1840,7 @@ AC_CHECK_HEADERS(getopt.h)
 #--------------------------------------------------------------------
 # This function needed by NSPage.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(valloc)
+AC_CHECK_FUNCS(posix_memalign valloc)
 
 #--------------------------------------------------------------------
 # This function needed by Time.m

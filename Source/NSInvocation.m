@@ -87,7 +87,7 @@
 	  NSLog(@"Failed to protect memory as writable: %@", [NSError _last]);
 	}
 #endif
-      free(buffer);
+      NSDeallocateMemoryPages(buffer, NSPageSize());
 #endif
     }
   [super dealloc];
@@ -95,6 +95,8 @@
 
 - (id) initWithSize: (NSUInteger)_size
 {
+  NSAssert(_size > 0, @"Tried to allocate zero length buffer.");
+  NSAssert(_size <= NSPageSize(), @"Tried to allocate more than one page.");
 #if     defined(HAVE_MMAP)
 #if     defined(HAVE_MPROTECT)
   /* We have mprotect, so we create memory as writable and change it to
@@ -114,9 +116,7 @@
 #elif   defined(__MINGW__)
   buffer = VirtualAlloc(NULL, _size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 #else
-//  buffer = malloc(_size);
-  NSAssert(_size < NSPageSize(), @"Tried to allocate more than one page.");
-  buffer = valloc(NSPageSize());
+  buffer = NSAllocateMemoryPages(NSPageSize());
 #endif  /* HAVE_MMAP */
 
   if (buffer == (void*)0)
