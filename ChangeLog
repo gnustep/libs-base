@@ -1,3 +1,8 @@
+2010-06-16  Sergey Golovin
+
+	* Source/NSTimeZone.m: find timezone from localtime file when it's
+	a copy rather than a link to a file whose name is a timezone name.
+
 2010-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: better control over constant string class
