@@ -1458,7 +1458,7 @@ fi
 # Don't revert any Objective-C flags as they are used in the next test
 
 #---------------------------------------------------------------------
-# Guess if we are using a compiler which allows us to change the class
+# See if we are using a compiler which allows us to change the class
 # to be used for constant strings by using the -fconstant-string-class
 # option.  If that is the case, we change it to NSConstantString.
 #---------------------------------------------------------------------
@@ -1476,9 +1476,18 @@ if test $objc_compiler_supports_constant_string_class = yes; then
   NX_CONST_STRING_CLASS=NSConstantString
   AC_MSG_RESULT(yes)
 else
-  NX_CONST_STRING_OBJCFLAGS=""
-  NX_CONST_STRING_CLASS=NXConstantString
   AC_MSG_RESULT(no)
+  AC_ARG_ENABLE(nxconstantstring,
+      [  --enable-nxconstantstring
+	    Enables the use of the NXConstantString class for old compilers.],,
+      enable_nxconstantstring=no)
+  if test $enable_nxconstantstring = yes; then
+    NX_CONST_STRING_OBJCFLAGS=""
+    NX_CONST_STRING_CLASS=NXConstantString
+    AC_MSG_WARN([You have enabled the use of NXConstantString as the string class in gnustep-base.  The objective-c runtime library typically implements its own class of the same name, so you must either enforce a link order which ensures that the gnustep-base implementation is used, or (better) you must remove the class from the runtime library!])
+  else
+    AC_MSG_ERROR([Your compiler does not appear to implement the -fconstant-string-class option needed for support of strings.  Please check for a more recent version or consider using --enable-nxconstantstring])
+  fi
 fi
 CPPFLAGS="$strclass_CPPFLAGS"
 
@@ -1552,7 +1561,7 @@ if test "$nonfragile" = "yes"; then
     GS_NONFRAGILE=1
     AC_ARG_ENABLE(mixedabi,
       [  --disable-mixedabi
-	    Disables the cmbined use of fragile and nonfragile ABI so that base
+	    Disables the combined use of fragile and nonfragile ABI so that base
 	    can be built taking full advantage of the nonfragile ABI.],,
       enable_mixedabi=yes)
     if test $enable_mixedabi = yes; then
@@ -2224,6 +2233,10 @@ AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of the deprecated ffcall library],,
   enable_ffcall=$do_enable_libffcall)
 
+if test $enable_ffcall = yes; then
+  AC_MSG_WARN([ffcall has been enabled ... this is deprecated ... please install and use a recent libffi if possible])
+fi
+
 AC_ARG_ENABLE(invocations,
   [  --disable-invocations		Compile even if invocation-dependencies are not met],,
   enable_invocations=yes)
@@ -2270,7 +2283,7 @@ if test $have_libffi = no; then
   # If we don't have libffi but do have ffcall, use ffcall
   if test $have_ffcall = yes; then
     if test $enable_ffcall = no; then
-      AC_MSG_WARN([ffi support seems to be missing on this system ... please install a recent libffi or perhaps try enabling ffcall])
+      AC_MSG_WARN([ffi support seems to be missing on this system ... please install a recent libffi])
     fi
   fi
 fi

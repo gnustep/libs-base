@@ -790,6 +790,7 @@ enable_environment_config_file
 enable_importing_config_file
 with_default_config
 with_installation_domain
+enable_nxconstantstring
 enable_mixedabi
 enable_bfd
 enable_procfs
@@ -1472,8 +1473,10 @@ Optional Features:
   --disable-importing-config-file
                                 Disable importing of an existing GNUstep config
 				file and use inbuilt defaults instead.
+  --enable-nxconstantstring
+	    Enables the use of the NXConstantString class for old compilers.
   --disable-mixedabi
-	    Disables the cmbined use of fragile and nonfragile ABI so that base
+	    Disables the combined use of fragile and nonfragile ABI so that base
 	    can be built taking full advantage of the nonfragile ABI.
   --enable-bfd
 	Enables the use of libbfd to provide symbolic stack traces.
@@ -10259,7 +10262,7 @@ fi
 # Don't revert any Objective-C flags as they are used in the next test
 
 #---------------------------------------------------------------------
-# Guess if we are using a compiler which allows us to change the class
+# See if we are using a compiler which allows us to change the class
 # to be used for constant strings by using the -fconstant-string-class
 # option.  If that is the case, we change it to NSConstantString.
 #---------------------------------------------------------------------
@@ -10326,10 +10329,25 @@ if test $objc_compiler_supports_constant_string_class = yes; then
   { $as_echo "$as_me:$LINENO: result: yes" >&5
 $as_echo "yes" >&6; }
 else
-  NX_CONST_STRING_OBJCFLAGS=""
-  NX_CONST_STRING_CLASS=NXConstantString
   { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
+  # Check whether --enable-nxconstantstring was given.
+if test "${enable_nxconstantstring+set}" = set; then
+  enableval=$enable_nxconstantstring;
+else
+  enable_nxconstantstring=no
+fi
+
+  if test $enable_nxconstantstring = yes; then
+    NX_CONST_STRING_OBJCFLAGS=""
+    NX_CONST_STRING_CLASS=NXConstantString
+    { $as_echo "$as_me:$LINENO: WARNING: You have enabled the use of NXConstantString as the string class in gnustep-base.  The objective-c runtime library typically implements its own class of the same name, so you must either enforce a link order which ensures that the gnustep-base implementation is used, or (better) you must remove the class from the runtime library!" >&5
+$as_echo "$as_me: WARNING: You have enabled the use of NXConstantString as the string class in gnustep-base.  The objective-c runtime library typically implements its own class of the same name, so you must either enforce a link order which ensures that the gnustep-base implementation is used, or (better) you must remove the class from the runtime library!" >&2;}
+  else
+    { { $as_echo "$as_me:$LINENO: error: Your compiler does not appear to implement the -fconstant-string-class option needed for support of strings.  Please check for a more recent version or consider using --enable-nxconstantstring" >&5
+$as_echo "$as_me: error: Your compiler does not appear to implement the -fconstant-string-class option needed for support of strings.  Please check for a more recent version or consider using --enable-nxconstantstring" >&2;}
+   { (exit 1); exit 1; }; }
+  fi
 fi
 CPPFLAGS="$strclass_CPPFLAGS"
 
@@ -20202,6 +20220,11 @@ else
 fi
 
 
+if test $enable_ffcall = yes; then
+  { $as_echo "$as_me:$LINENO: WARNING: ffcall has been enabled ... this is deprecated ... please install and use a recent libffi if possible" >&5
+$as_echo "$as_me: WARNING: ffcall has been enabled ... this is deprecated ... please install and use a recent libffi if possible" >&2;}
+fi
+
 # Check whether --enable-invocations was given.
 if test "${enable_invocations+set}" = set; then
   enableval=$enable_invocations;
@@ -20551,8 +20574,8 @@ if test $have_libffi = no; then
   # If we don't have libffi but do have ffcall, use ffcall
   if test $have_ffcall = yes; then
     if test $enable_ffcall = no; then
-      { $as_echo "$as_me:$LINENO: WARNING: ffi support seems to be missing on this system ... please install a recent libffi or perhaps try enabling ffcall" >&5
-$as_echo "$as_me: WARNING: ffi support seems to be missing on this system ... please install a recent libffi or perhaps try enabling ffcall" >&2;}
+      { $as_echo "$as_me:$LINENO: WARNING: ffi support seems to be missing on this system ... please install a recent libffi" >&5
+$as_echo "$as_me: WARNING: ffi support seems to be missing on this system ... please install a recent libffi" >&2;}
     fi
   fi
 fi
