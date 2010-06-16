@@ -3304,8 +3304,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Called when a fatal error message needs to be output.
  */
 - (void) fatalError: (NSString*)e
-       colNumber: (NSInteger)colNumber
-      lineNumber: (NSInteger)lineNumber
+          colNumber: (NSInteger)colNumber
+         lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
     lineNumber, colNumber, e];
