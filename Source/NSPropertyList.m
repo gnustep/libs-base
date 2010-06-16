@@ -3359,7 +3359,7 @@ isEqualFunc(const void *item1, const void *item2,
 {
   int oid;
 
-  oid = (int)(NSInteger)[objectList objectForKey: object];
+  oid = (NSInteger)[objectList objectForKey: object];
   if (oid <= 0)
     {
       [NSException raise: NSGenericException
@@ -3494,11 +3494,11 @@ isEqualFunc(const void *item1, const void *item2,
   [dest appendBytes: meta length: 32];
 }
 
-- (unsigned int) indexForObject: (id)object
+- (NSInteger) indexForObject: (id)object
 {
-  int index;
+  NSInteger index;
 
-  index = (int)[objectList objectForKey: object];
+  index = (NSInteger)[objectList objectForKey: object];
   if (index <= 0)
     {
       index = [objectList count];
@@ -3509,7 +3509,7 @@ isEqualFunc(const void *item1, const void *item2,
   return index - 1;
 }
 
-- (void) storeIndex: (unsigned int)index
+- (void) storeIndex: (NSInteger)index
 {
   if (index_size == 1)
     {
@@ -3795,7 +3795,7 @@ isEqualFunc(const void *item1, const void *item2,
   for (i = 0; i < len; i++)
     {
       id obj;
-      unsigned int oid;
+      NSInteger oid;
 
       obj = [array objectAtIndex: i];
       oid = [self indexForObject: obj];
@@ -3863,7 +3863,7 @@ isEqualFunc(const void *item1, const void *item2,
       for (i = 0; i < len; i++)
         {
 	  id obj;
-	  unsigned int oid;
+	  NSInteger oid;
 
 	  obj = [keys objectAtIndex: i];
 	  oid = [self indexForObject: obj];
@@ -3873,7 +3873,7 @@ isEqualFunc(const void *item1, const void *item2,
       for (i = 0; i < len; i++)
         {
 	  id obj;
-	  unsigned int oid;
+	  NSInteger oid;
 
 	  obj = [objects objectAtIndex: i];
 	  oid = [self indexForObject: obj];
