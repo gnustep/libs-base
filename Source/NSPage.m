@@ -164,7 +164,9 @@ NSAllocateMemoryPages (NSUInteger bytes)
 {
   NSUInteger size = NSRoundUpToMultipleOfPageSize (bytes);
   void *where;
-#if __mach__
+#if defined(__MINGW__)
+  where = VirtualAlloc(NULL, size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+#elif __mach__
   kern_return_t r;
   r = vm_allocate (mach_task_self(), &where, (vm_size_t) size, 1);
   if (r != KERN_SUCCESS)
@@ -191,7 +193,9 @@ NSAllocateMemoryPages (NSUInteger bytes)
 void
 NSDeallocateMemoryPages (void *ptr, NSUInteger bytes)
 {
-#if __mach__
+#if defined(__MINGW__)
+  VirtualFree(ptr, 0, MEM_RELEASE);
+#elif __mach__
   vm_deallocate (mach_task_self (), ptr, NSRoundUpToMultipleOfPageSize (bytes));
 #else
   free (ptr);
