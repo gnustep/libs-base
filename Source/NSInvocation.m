@@ -30,6 +30,7 @@
 #define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSZone.h"
 #import "GSInvocation.h"
@@ -78,10 +79,8 @@
     {
 #if     defined(HAVE_MMAP)
       munmap(buffer, size);
-#elif   defined(__MINGW__)
-      VirtualFree(buffer, 0, MEM_RELEASE);
 #else
-#if     defined(HAVE_MPROTECT)
+#if     !defined(__MINGW__) && defined(HAVE_MPROTECT)
       if (mprotect(buffer, NSPageSize(), PROT_READ|PROT_WRITE) == -1)
 	{
 	  NSLog(@"Failed to protect memory as writable: %@", [NSError _last]);
@@ -113,8 +112,6 @@
     MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 #endif  /* HAVE_MPROTECT */
   if (buffer == (void*)-1) buffer = (void*)0;
-#elif   defined(__MINGW__)
-  buffer = VirtualAlloc(NULL, _size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 #else
   buffer = NSAllocateMemoryPages(NSPageSize());
 #endif  /* HAVE_MMAP */
