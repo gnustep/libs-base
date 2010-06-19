@@ -1,3 +1,8 @@
+2010-06-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Remove inappropriate warning (when library
+	used without resources).
+
 2010-06-16  Sergey Golovin
 
 	* Source/NSTimeZone.m: find timezone from localtime file when it's
