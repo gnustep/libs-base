@@ -588,14 +588,14 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
          */
         NSFileManager *fm = [NSFileManager defaultManager];
         NSString *tail = [[[[[@"Libraries" 
-			       stringByAppendingPathComponent: @"gnustep-base"]
-			      stringByAppendingPathComponent: @"Versions"]
-			     stringByAppendingPathComponent: 
-			       OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
-			    stringByAppendingPathComponent: @"Resources"]
-		           stringByAppendingPathComponent: @"Languages"];
-        NSArray *paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
-							      NSAllDomainsMask, YES);
+	  stringByAppendingPathComponent: @"gnustep-base"]
+	  stringByAppendingPathComponent: @"Versions"]
+	  stringByAppendingPathComponent: 
+	  OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
+	  stringByAppendingPathComponent: @"Resources"]
+	  stringByAppendingPathComponent: @"Languages"];
+        NSArray *paths = NSSearchPathForDirectoriesInDomains
+	  (NSLibraryDirectory, NSAllDomainsMask, YES);
         
         added_lang = NO;
         added_locale = NO;
@@ -603,8 +603,8 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
         while ((lang = [enumerator nextObject]))
           {
 	    NSDictionary	*dict = nil;
-	    NSString	*path = nil;
-	    NSEnumerator *pathEnumerator = [paths objectEnumerator];
+	    NSString		*path = nil;
+	    NSEnumerator	*pathEnumerator = [paths objectEnumerator];
 
 	    while ((path = [pathEnumerator nextObject]) != nil)
 	      {
@@ -664,15 +664,12 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 		        dict = GSDomainFromDefaultLocale ();
 		        if (dict != nil)
 		          {
-			    [sharedDefaults setVolatileDomain: dict forName: lang];
+			    [sharedDefaults setVolatileDomain: dict
+						      forName: lang];
 			
 			    /* We do not set added_lang to YES here
-			     * because we want the improper installation
-			     * warning to be printed below if our own
-			     * English language dictionary is not found,
-			     * and we want the basic hardcoded defaults to
-			     * be used in that case.  (FIXME: Review this
-			     * decision).
+			     * because we want the basic hardcoded defaults
+			     * to be used in that case.
 			     */
 		          }
 		      }
@@ -683,9 +680,10 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     
       if (added_lang == NO)
         {
-          /* Ack! We should never get here.  */
-          NSWarnMLog(@"Improper installation: No language locale found");
-    
+          /* No language information found ... probably because the base
+	   * library is being used 'standalone' without resources.
+	   * We need to use hard-coded defaults.
+	   */
           /* FIXME - should we set this as volatile domain for English ? */
           [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
         }
@@ -1442,7 +1440,7 @@ static BOOL isPlistObject(id o)
       if (dict != nil)
         {
           [NSException raise: NSInvalidArgumentException
-		      format: @"a volatile domain called %@ exists", domainName];
+	    format: @"a volatile domain called %@ exists", domainName];
         }
       domain = [domain mutableCopy];
       [_persDomains setObject: domain forKey: domainName];
@@ -1840,13 +1838,13 @@ NSLog(@"Creating empty user defaults database");
       if (dict != nil)
         {
           [NSException raise: NSInvalidArgumentException
-		      format: @"a persistent domain called %@ exists", domainName];
+	    format: @"a persistent domain called %@ exists", domainName];
         }
       dict = [_tempDomains objectForKey: domainName];
       if (dict != nil)
         {
           [NSException raise: NSInvalidArgumentException
-		      format: @"the volatile domain %@ already exists", domainName];
+	    format: @"the volatile domain %@ already exists", domainName];
         }
 
       DESTROY(_dictionaryRep);

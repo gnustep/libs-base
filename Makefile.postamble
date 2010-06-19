@@ -88,8 +88,6 @@ after-distclean::
 # why we can't guess what the ./configure arguments were last time
 # ./configure was called - make distclean cleans the sources
 # completely, wiping out any memory of specific configuration.
-base.make: base.make.in Version configure
+config.mak base.make: config.mak.in base.make.in Version configure
 	./configure
 
-config.mak: config.mak.in configure
-	./configure
