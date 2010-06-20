@@ -1,3 +1,7 @@
+2010-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version 1.20.1
+
 2010-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Remove inappropriate warning (when library
