@@ -34,6 +34,7 @@ SUBPROJECT_NAME = ObjectiveC2
 ObjectiveC2_OBJC_FILES = \
 	blocks_runtime.m\
 	properties.m\
+	NSBlocks.m
 
 
 ifeq ($(OBJCSYNC), 0)
