@@ -631,11 +631,14 @@ notice and this notice are preserved.
 	    Firstly, variables in the configuration file which define
 	    paths, are expected to by full path specifications, except
 	    for the special case in which they begin with dot-slash (./)
-            or dot-dot-slash (../).
+            or dot-dot-slash (../).<br />
 	    In this case the path from the variable is appended to the
 	    path of the directory containing the configuration file
 	    (or the path specified to contain the configuration file if no
-	    configuration file exists) to form the value used.
+	    configuration file exists) to form the value used.<br />
+	    So, if you configure other paths relative to the configuration
+	    file, you can relocate everything when you move the
+	    configuration file.
 	  </p>
 	  <p>
 	    Secondly, If the value of the path built in to the base library
@@ -643,7 +646,11 @@ notice and this notice are preserved.
 	    the GNUSTEP_CONFIG_FILE environment variable unless that option
 	    was disabled when the base library was configured)
 	    begins with a dot-slash (./) or dot-dot-slash (../) then the path
-            used for that file is made relative to the base library.
+            used for that file is made relative to the base library.<br />
+	    The base library contains code to determine its own location,
+	    so this allows it to locate the configuration file, and by
+	    reading the configuration file it determines where all other
+	    resources are located.
 	  </p>
 	  <p>
 	    So you can bundle the whole lot together in one directory,
@@ -659,7 +666,7 @@ notice and this notice are preserved.
 	    <em>not</em> read it, and will use the builtin default values.<br />
 	    To do this, you would configure using the options
 	    <code>--with-config-file=not-used/</code> and
-	    <code>--with-default-file=myConfig</code> where <em>myConfig</em>
+	    <code>--with-default-config=myConfig</code> where <em>myConfig</em>
 	    is a file containing the paths you want to use relative to the
 	    location the base library gets installed in.<br />
 	    The paths from that file will be built in to the base library
