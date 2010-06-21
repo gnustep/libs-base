@@ -657,21 +657,29 @@ notice and this notice are preserved.
 	    and configure various relative paths in that directory, then
 	    move the directory around wherever you like.
 	  </p>
+	</subsect>
+	<subsect>
+	  <heading>Lock-Down</heading>
 	  <p>
 	    If you wish to <em>lock down</em> a production system for
-	    distribution as a relocatable package, so it can be installed
-	    anywhere, but users can't accidentally change the config file
-	    and mess up paths, you can specify the config file name as
+	    distribution so that users can't change the config
+	    file and mess up paths, you can specify the config file name as
 	    a path with a trailing slash so that the base library will
 	    <em>not</em> read it, and will use the builtin default values.<br />
-	    To do this, you would configure using the options
-	    <code>--with-config-file=not-used/</code> and
+	    To do this, you would configure using options like
+	    <code>--disable-environment-config-file</code> with
+	    <code>--with-config-file=/not-used/</code> and
 	    <code>--with-default-config=myConfig</code> where <em>myConfig</em>
-	    is a file containing the paths you want to use relative to the
-	    location the base library gets installed in.<br />
+	    is a file containing the paths you want to use in the locked down
+	    system.<br />
 	    The paths from that file will be built in to the base library
 	    as defaults, and library will use them rather than attempting
-	    to read a config file at runtime.
+	    to read a config file at runtime.<br />
+	    You can lock down a relocatable system by using this procedure
+	    with './' as the config file path and relative paths in myConfig...
+	    a user could then move the entire package around, but would not
+	    be able to edit a configuration file to alter the paths within
+	    the pacakge.
 	  </p>
 	</subsect>
 	<subsect>
