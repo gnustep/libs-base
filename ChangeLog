@@ -1,3 +1,8 @@
+2010-06-22  David Wetzel <dave@turbocat.de>
+	* Headers/Foundation/NSFileManager.h
+	* Source/NSFileManager.m
+	add attributesOfItemAtPath:error:
+	
 2010-06-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
