@@ -1,3 +1,8 @@
+2010-06-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	Include header for ObjC2 blocks support if the compiler had that.
+
 2010-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Version 1.21.1
