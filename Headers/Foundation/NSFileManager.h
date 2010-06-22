@@ -210,6 +210,11 @@ typedef	uint32_t	OSType;
 
 + (NSFileManager*) defaultManager;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (NSDictionary *) attributesOfItemAtPath: (NSString*)path
+				    error: (NSError**)error;
+#endif
+
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path;
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes
 		       atPath: (NSString*)path;
@@ -248,8 +253,6 @@ typedef	uint32_t	OSType;
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path
 			  traverseLink: (BOOL)flag;
-
-- (NSDictionary *)attributesOfItemAtPath:(NSString *)path error:(NSError **)error;
 
 - (BOOL) fileExistsAtPath: (NSString*)path;
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
