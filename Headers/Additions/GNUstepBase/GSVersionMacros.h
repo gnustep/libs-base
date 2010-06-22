@@ -228,6 +228,15 @@
 
 #define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
 
+/* Include the appropriate header for ObjC2 blocks support if it is in use.
+ */
+#if __has_feature(blocks)
+#  if	OBJC2RUNTIME
+#    include <objc/blocks_runtime.h>
+#  else
+#    include <ObjectiveC2/blocks_runtime.h>
+#  endif
+#endif
 
 
 
