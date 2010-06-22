@@ -1820,17 +1820,18 @@ static NSStringEncoding	defaultEncoding;
  *   <item>[NSDictionary-fileSystemFileNumber]</item>
  * </list>
  */
-- (NSDictionary *)attributesOfItemAtPath:(NSString *)path error:(NSError **)error
+- (NSDictionary*) attributesOfItemAtPath: (NSString*)path
+				   error: (NSError**)error
 {
   NSDictionary	*d;
   
   d = [GSAttrDictionaryClass attributesAt:
-       [self fileSystemRepresentationWithPath: path] traverseLink: NO];
+    [self fileSystemRepresentationWithPath: path] traverseLink: NO];
   
   if (error != NULL)
-  {
-    *error = [NSError _last];
-  }
+    {
+      *error = [NSError _last];
+    }
   
   return d;
 }
