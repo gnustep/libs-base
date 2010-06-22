@@ -248,6 +248,9 @@ typedef	uint32_t	OSType;
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path
 			  traverseLink: (BOOL)flag;
+
+- (NSDictionary *)attributesOfItemAtPath:(NSString *)path error:(NSError **)error;
+
 - (BOOL) fileExistsAtPath: (NSString*)path;
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
