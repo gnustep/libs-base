@@ -1165,6 +1165,10 @@ static unsigned	urlAlign;
 
   [aCoder decodeValueOfObjCType: @encode(id) at: &rel];
   [aCoder decodeValueOfObjCType: @encode(id) at: &base];
+  if (nil == rel)
+    {
+      rel = @"";
+    }
   self = [self initWithString: rel relativeToURL: base];
   RELEASE(rel);
   RELEASE(base);

@@ -1693,6 +1693,14 @@ IF_NO_GC(
     {
       ext = nil;
     }
+  if (ext == nil)
+    {
+      ext = [name pathExtension];
+      if (ext != nil)
+	{
+	  name = [name stringByDeletingPathExtension];
+	}
+    }
 
   pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
     subPath: subPath] objectEnumerator];
@@ -1855,6 +1863,14 @@ IF_NO_GC(
   NSString	*result = nil;
   NSArray	*array;
 
+  if ([ext length] == 0)
+    {
+      ext = [name pathExtension];
+      if (ext != nil)
+	{
+	  name = [name stringByDeletingPathExtension];
+	}
+    }
   array = [self pathsForResourcesOfType: ext
                             inDirectory: subPath
                         forLocalization: localizationName];
