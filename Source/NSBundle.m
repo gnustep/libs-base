@@ -1855,6 +1855,14 @@ IF_NO_GC(
   NSString	*result = nil;
   NSArray	*array;
 
+  if ([ext length] == 0)
+    {
+      ext = [name pathExtension];
+      if (ext != nil)
+	{
+	  name = [name stringByDeletingPathExtension];
+	}
+    }
   array = [self pathsForResourcesOfType: ext
                             inDirectory: subPath
                         forLocalization: localizationName];
