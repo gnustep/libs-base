@@ -1693,14 +1693,6 @@ IF_NO_GC(
     {
       ext = nil;
     }
-  if (ext == nil)
-    {
-      ext = [name pathExtension];
-      if (ext != nil)
-	{
-	  name = [name stringByDeletingPathExtension];
-	}
-    }
 
   pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
     subPath: subPath] objectEnumerator];
