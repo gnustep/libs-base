@@ -71,12 +71,31 @@ NSString * const NSPersianCalendar = @"NSPersianCalendar";
 NSString * const NSIndianCalendar = @"NSIndianCalendar";
 NSString * const NSISO8601Calendar = @"NSISO8601Calendar";
 
+static NSLocale *autoupdatingLocale = nil;
+static NSLocale *currentLocale = nil;
+static NSLocale *systemLocale = nil;
+static NSMutableDictionary *allLocales = nil;
+static NSRecursiveLock *classLock = nil;
+
+#if	!defined(HAVE_UCI)
+# if	HAVE_UNICODE_ULOC_H
+#   define	HAVE_UCI	1
+# else
+#   define	HAVE_UCI	0
+# endif
+#endif
+
 #if	HAVE_UNICODE_ULOC_H
+# include <unicode/uloc.h>
+#endif
+#if	HAVE_UNICODE_ULOCDATA_H
+# include <unicode/ulocdata.h>
+#endif
+#if	HAVE_UNICODE_UCURR_H
+# include <unicode/ucurr.h>
+#endif
 
-#include <unicode/uloc.h>
-#include <unicode/ulocdata.h>
-#include <unicode/ucurr.h>
-
+#if	HAVE_UCI
 //
 // ICU Component Keywords
 //
@@ -129,13 +148,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   RELEASE (currencies);
   return result;
 }
-
-
-static NSLocale *autoupdatingLocale = nil;
-static NSLocale *currentLocale = nil;
-static NSLocale *systemLocale = nil;
-static NSMutableDictionary *allLocales = nil;
-static NSRecursiveLock *classLock = nil;
+#endif
 
 @implementation NSLocale
 
@@ -164,20 +177,33 @@ static NSRecursiveLock *classLock = nil;
 
 + (NSArray *) availableLocaleIdentifiers
 {
-  NSArray *result;
-  NSMutableArray *available = [[NSMutableArray alloc] initWithCapacity: 10];
-  int32_t i;
-  int32_t count = uloc_countAvailable ();
-  
-  for (i = 1 ; i <= count ; ++i)
+  static NSArray	*available = nil;
+
+#if	HAVE_ICU
+  if (nil == available)
     {
-      const char *localeID = uloc_getAvailable (i);
-      [available addObject: [NSString stringWithCString: localeID]];
-    }
+      [classLock lock];
+      if (nil == available)
+	{
+	  NSMutableArray	*array;
+	  int32_t 		i;
+	  int32_t 		count = uloc_countAvailable ();
+
+	  array = [[NSMutableArray alloc] initWithCapacity: count];
   
-  result = [NSArray arrayWithArray: available];
-  RELEASE(available);
-  return result;
+	  for (i = 1; i <= count; ++i)
+	    {
+	      const char *localeID = uloc_getAvailable (i);
+
+	      [array addObject: [NSString stringWithCString: localeID]];
+	    }
+	  available = [[NSArray alloc] initWithArray: array];
+	  [array release];
+	}
+      [classLock unlock];
+    }
+#endif
+  return [[available copy] autorelease];
 }
 
 + (NSString *) canonicalLanguageIdentifierFromString: (NSString *) string
@@ -195,6 +221,7 @@ static NSRecursiveLock *classLock = nil;
 + (NSLocaleLanguageDirection) characterDirectionForLanguage:
     (NSString *)isoLangCode
 {
+#if	HAVE_ICU
   ULayoutType result;
   UErrorCode status = U_ZERO_ERROR;
   
@@ -203,10 +230,14 @@ static NSRecursiveLock *classLock = nil;
     return NSLocaleLanguageDirectionUnknown;
   
   return _ICUToNSLocaleOrientation (result);
+#else
+  return NSLocaleLanguageDirectionLeftToRight;	// FIXME
+#endif
 }
 
 + (NSDictionary *) componentsFromLocaleIdentifier: (NSString *) string
 {
+#if	HAVE_ICU
   char buffer[ULOC_LANG_CAPACITY];
   int32_t strLength;
   UErrorCode error = U_ZERO_ERROR;
@@ -253,6 +284,9 @@ static NSRecursiveLock *classLock = nil;
   result = [NSDictionary dictionaryWithDictionary: tmpDict];
   RELEASE(tmpDict);
   return result;
+#else
+  return nil;	// FIXME
+#endif
 }
 
 + (id) currentLocale
@@ -262,59 +296,90 @@ static NSRecursiveLock *classLock = nil;
   [classLock lock];
   if (nil == currentLocale)
     {
+#if	HAVE_ICU
       const char *cLocaleId = uloc_getDefault ();
       NSString *localeId = [NSString stringWithCString: cLocaleId];
       currentLocale = [[NSLocale alloc] initWithLocaleIdentifier: localeId];
+#endif
     }
-  
   result = RETAIN(currentLocale);
   [classLock unlock];
   return AUTORELEASE(result);
-
 }
 
 + (NSArray *) commonISOCurrencyCodes
 {
+#if	HAVE_ICU
   return _currencyCodesWithType (UCURR_COMMON | UCURR_NON_DEPRECATED);
+#else
+  return nil;	// FIXME
+#endif
 }
 
 + (NSArray *) ISOCurrencyCodes
 {
+#if	HAVE_ICU
   return _currencyCodesWithType (UCURR_ALL);
+#else
+  return nil;	// FIXME
+#endif
 }
 
 + (NSArray *) ISOCountryCodes
 {
-  NSArray *result;
-  NSMutableArray *countries = [[NSMutableArray alloc] initWithCapacity: 10];
-  const char *const *codes = uloc_getISOCountries ();
-  while (codes != NULL)
+  static NSArray	*countries = nil;
+
+  if (nil == countries)
     {
-      [countries addObject: [NSString stringWithCString: *codes]];
-      ++codes;
+      [classLock lock];
+      if (nil == countries)
+	{
+#if	HAVE_ICU
+	  NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
+	  const char *const *codes = uloc_getISOCountries ();
+
+	  while (codes != NULL)
+	    {
+	      [array addObject: [NSString stringWithCString: *codes]];
+	      ++codes;
+	    }
+	  countries = [[NSArray alloc] initWithArray: array];
+	  [array release];
+#endif
+	}
     }
-  result = [NSArray arrayWithArray: countries];
-  RELEASE(countries);
-  return result;
+  return [[countries copy] autorelease];
 }
 
 + (NSArray *) ISOLanguageCodes
 {
-  NSArray *result;
-  NSMutableArray *languages = [[NSMutableArray alloc] initWithCapacity: 10];
-  const char *const *codes = uloc_getISOCountries ();
-  while (codes != NULL)
+  static NSArray	*languages = nil;
+
+  if (nil == languages)
     {
-      [languages addObject: [NSString stringWithCString: *codes]];
-      ++codes;
+      [classLock lock];
+      if (nil == languages)
+	{
+#if	HAVE_ICU
+	  NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
+	  const char *const *codes = uloc_getISOCountries ();
+
+	  while (codes != NULL)
+	    {
+	      [array addObject: [NSString stringWithCString: *codes]];
+	      ++codes;
+	    }
+	  languages = [[NSArray alloc] initWithArray: array];
+	  [array release];
+#endif
+	}
     }
-  result = [NSArray arrayWithArray: languages];
-  RELEASE(languages);
-  return result;
+  return [[languages copy] autorelease];
 }
 
 + (NSLocaleLanguageDirection) lineDirectionForLanguage: (NSString *) isoLangCode
 {
+#if	HAVE_ICU
   ULayoutType result;
   UErrorCode status = U_ZERO_ERROR;
   
@@ -323,6 +388,9 @@ static NSRecursiveLock *classLock = nil;
     return NSLocaleLanguageDirectionUnknown;
   
   return _ICUToNSLocaleOrientation (result);
+#else
+  return NSLocaleLanguageDirectionTopToBottom;	// FIXME
+#endif
 }
 
 + (NSArray *) preferredLanguages
@@ -348,6 +416,7 @@ static NSRecursiveLock *classLock = nil;
 
 + (NSString *) localeIdentifierFromComponents: (NSDictionary *) dict
 {
+#if	HAVE_ICU
   char buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status = U_ZERO_ERROR;
   const char *language = [[dict objectForKey: NSLocaleLanguageCode] cString];
@@ -375,10 +444,14 @@ static NSRecursiveLock *classLock = nil;
     }
   
   return [NSString stringWithCString: buffer];
+#else
+  return nil;	// FIXME
+#endif
 }
 
 + (NSString *) localeIdentifierFromWindowsLocaleCode: (uint32_t) lcid
 {
+#if	HAVE_ICU
   char buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status = U_ZERO_ERROR;
   
@@ -388,15 +461,23 @@ static NSRecursiveLock *classLock = nil;
     return nil;
   
   return [NSString stringWithCString: buffer length: (NSUInteger)length];
+#else
+  return nil;	// FIXME
+#endif
 }
 
 + (uint32_t) windowsLocaleCodeFromLocaleIdentifier: (NSString *)localeIdentifier
 {
+#if	HAVE_ICU
   return uloc_getLCID ([localeIdentifier cString]);
+#else
+  return 0;	// FIXME
+#endif
 }
 
 - (NSString *) displayNameForKey: (id) key value: (id) value
 {
+#if	HAVE_ICU
   int32_t length;
   unichar buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status;
@@ -409,39 +490,49 @@ static NSRecursiveLock *classLock = nil;
     return nil;
   
   return [NSString stringWithCharacters: buffer length: (NSUInteger)length];
+#else
+  return nil;	// FIXME
+#endif
 }
 
-- (id) initWithLocaleIdentifier: (NSString *) string
+- (id) initWithLocaleIdentifier: (NSString*)string
 {
-  NSLocale *newLocale;
-  NSString *localeId;
-  int32_t length;
+  NSLocale	*newLocale;
+  NSString	*localeId;
+#if	HAVE_ICU
+  int32_t	length;
   char cLocaleId[ULOC_FULLNAME_CAPACITY];
   UErrorCode error = U_ZERO_ERROR;
   
   length = uloc_canonicalize ([string cString], cLocaleId,
     ULOC_FULLNAME_CAPACITY, &error);
   if (U_FAILURE(error))
-    return nil;
-  localeId = [[NSString alloc] initWithCString: cLocaleId length: length];
-  
-  if (nil == allLocales)
     {
-      newLocale = [allLocales objectForKey: localeId];
-      if (newLocale)
-        {
-          RELEASE(self);
-          return newLocale;
-        }
+      [self release];
+      return nil;
     }
-  else
+  localeId = [NSString stringWithCString: cLocaleId length: length];
+#else
+  localeId = string;
+#endif
+  
+  [classLock lock];
+  if (nil == allLocales)
     {
       allLocales = [[NSMutableDictionary alloc] initWithCapacity: 0];
     }
-  
-  _localeId = localeId;
-  _components = [[NSMutableDictionary alloc] initWithCapacity: 0];
-  [allLocales setObject: self forKey: localeId];
+  newLocale = [allLocales objectForKey: localeId];
+  if (nil == newLocale)
+    {
+      _localeId = [localeId copy];
+      [allLocales setObject: self forKey: localeId];
+    }
+  else
+    {
+      [self release];
+      self = [newLocale retain];
+    }
+  [classLock unlock]; 
   
   return self;
 }
@@ -462,12 +553,15 @@ static NSRecursiveLock *classLock = nil;
   if ((result = [_components objectForKey: key]))
     return result;
   
-  [_components addEntriesFromDictionary:
-    [NSLocale componentsFromLocaleIdentifier: [self localeIdentifier]]];
-  if ((result = [_components objectForKey: key]))
-    return result;
-  
+  if ([_components count] == 0)
+    {
+      [_components addEntriesFromDictionary:
+	[NSLocale componentsFromLocaleIdentifier: [self localeIdentifier]]];
+      if ((result = [_components objectForKey: key]))
+	return result;
+    }
   // FIXME: look up other keywords with uloc_getKeywordValue().
+  
   return nil;
 }
 
@@ -501,5 +595,3 @@ static NSRecursiveLock *classLock = nil;
 
 @end
 
-#else
-#endif
