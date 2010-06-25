@@ -1,5 +1,11 @@
 2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	Implement NSInteger methods and add range checking when decoding.
+
+2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSLocale.m
 	* Headers/Additions/GNUstepBase/config.h.in
 	* config/icu.m4
