@@ -25,6 +25,7 @@
 #import "common.h"
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSUserDefaults.h"
@@ -569,25 +570,21 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 {
   RELEASE(_localeId);
   RELEASE(_components);
-
   [super dealloc];
 }
 
-//
-// NSCoding
-//
-- (void) encodeWithCoder: (NSCoder *) encoder
+- (void) encodeWithCoder: (NSCoder*)encoder
 {
+  [encoder encodeObject: _localeId];
 }
 
-- (id) initWithCoder: (NSCoder *) decoder
+- (id) initWithCoder: (NSCoder*)decoder
 {
-  return nil;
+  NSString	*s = [decoder decodeObject];
+
+  return [self initWithLocaleIdentifier: s];
 }
 
-//
-// NSCopying
-//
 - (id) copyWithZone: (NSZone *) zone
 {
   return RETAIN(self);
