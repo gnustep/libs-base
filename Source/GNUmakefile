@@ -209,6 +209,7 @@ NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
 NSKeyValueObserving.m \
+NSLocale.m \
 NSLock.m \
 NSLog.m \
 NSMapTable.m \
@@ -359,6 +360,7 @@ NSInvocation.h \
 NSKeyedArchiver.h \
 NSKeyValueCoding.h \
 NSKeyValueObserving.h \
+NSLocale.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \

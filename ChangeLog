@@ -1,3 +1,17 @@
+2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/Foundation.h: add NSLocale
+	* Headers/Foundation/NSLocale.h: rewrite/document
+	* Source/GNUmakefile: add NSLocale
+	* Source/NSLocale.m: fixup headers and disable temporarily (so that
+	base will still build)
+
+2010-06-25  Stef Bidi <stefanbidi@gmail.com>
+
+	* Headers/Foundation/NSLocale.h
+	* Source/NSLocale.m
+	Partial NSLocale implementation wrapping ICU
+
 2010-06-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: When looking up paths, if no extension is provided
