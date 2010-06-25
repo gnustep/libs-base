@@ -492,48 +492,45 @@ static NSMapTable	*globalClassMap = 0;
 
 - (int) decodeIntForKey: (NSString*)aKey
 {
-  NSString	*oldKey = aKey;
-  GETVAL
-  if (o != nil)
-    {
-      if ([o isKindOfClass: [NSNumber class]] == YES)
-	{
-	  long long	l = [o longLongValue];
+  int64_t	i = [self decodeInt64ForKey: aKey];
 
-	  return l;
-	}
-      else
-	{
-	  [NSException raise: NSInvalidUnarchiveOperationException
-		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
-	    oldKey, o];
-	}
+#if	(INT_MAX < INT64_MAX)
+  if (i > INT_MAX || i < INT_MIN)
+    {
+      [NSException raise: NSRangeException
+	          format: @"[%@ +%@]: value for key(%@) is out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aKey];
     }
-  return 0;
+#endif
+  return (int)i;
+}
+
+- (int) decodeIntegerForKey: (NSString*)aKey
+{
+  int64_t	i = [self decodeInt64ForKey: aKey];
+
+#if	(INTPTR_MAX < INT64_MAX)
+  if (i > INTPTR_MAX || i < INTPTR_MIN)
+    {
+      [NSException raise: NSRangeException
+	          format: @"[%@ +%@]: value for key(%@) is out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aKey];
+    }
+#endif
+  return (NSInteger)i;
 }
 
 - (int32_t) decodeInt32ForKey: (NSString*)aKey
 {
-  NSString	*oldKey = aKey;
-  GETVAL
-  if (o != nil)
-    {
-      if ([o isKindOfClass: [NSNumber class]] == YES)
-	{
-	  long long	l = [o longLongValue];
+  int64_t	i = [self decodeInt64ForKey: aKey];
 
-	  return l;
-	}
-      else
-	{
-	  [NSException raise: NSInvalidUnarchiveOperationException
-		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
-	    oldKey, o];
-	}
+  if (i > INT32_MAX || i < INT32_MIN)
+    {
+      [NSException raise: NSRangeException
+	          format: @"[%@ +%@]: value for key(%@) is out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aKey];
     }
-  return 0;
+  return (int32_t)i;
 }
 
 - (int64_t) decodeInt64ForKey: (NSString*)aKey
