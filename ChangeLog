@@ -1,5 +1,15 @@
 2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSLocale.m
+	* Headers/Additions/GNUstepBase/config.h.in
+	* config/icu.m4
+	* configure.ac
+	* configure
+	* config.mak.in
+	Autoconf support for ICU
+
+2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/Foundation.h: add NSLocale
 	* Headers/Foundation/NSLocale.h: rewrite/document
 	* Source/GNUmakefile: add NSLocale
