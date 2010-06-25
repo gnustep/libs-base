@@ -1149,8 +1149,16 @@ static unsigned	urlAlign;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [aCoder encodeObject: _urlString];
-  [aCoder encodeObject: _baseURL];
+  if ([aCoder allowsKeyedCoding])
+    {
+      [aCoder encodeObject: _baseURL forKey: @"NS.base"];
+      [aCoder encodeObject: _urlString forKey: @"NS.relative"];
+    }
+  else
+    {
+      [aCoder encodeObject: _urlString];
+      [aCoder encodeObject: _baseURL];
+    }
 }
 
 - (NSUInteger) hash
@@ -1163,15 +1171,21 @@ static unsigned	urlAlign;
   NSURL		*base;
   NSString	*rel;
 
-  [aCoder decodeValueOfObjCType: @encode(id) at: &rel];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &base];
+  if ([aCoder allowsKeyedCoding])
+    {
+      base = [aCoder decodeObjectForKey: @"NS.base"];
+      rel = [aCoder decodeObjectForKey: @"NS.relative"];
+    }
+  else
+    {
+      rel = [aCoder decodeObject];
+      base = [aCoder decodeObject];
+    }
   if (nil == rel)
     {
       rel = @"";
     }
   self = [self initWithString: rel relativeToURL: base];
-  RELEASE(rel);
-  RELEASE(base);
   return self;
 }
 

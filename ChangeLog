@@ -1,5 +1,12 @@
 2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURL.m: Implement keyed coding
+	* Source/NSBundle.m: When fetching a localised resource for a specific
+	language, ignore the language list in the user preferences, and just
+	look for that language asn for unlocalised data.
+
+2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSKeyedArchiver.m:
 	* Source/NSKeyedUnarchiver.m:
 	Implement NSInteger methods and add range checking when decoding.
