@@ -71,7 +71,7 @@ NSString * const NSPersianCalendar = @"NSPersianCalendar";
 NSString * const NSIndianCalendar = @"NSIndianCalendar";
 NSString * const NSISO8601Calendar = @"NSISO8601Calendar";
 
-#if	HAVE_ICU
+#if	HAVE_UNICODE_ULOC_H
 
 #include <unicode/uloc.h>
 #include <unicode/ulocdata.h>

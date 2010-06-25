@@ -30,6 +30,7 @@ builtin(include, config/pathxml.m4)dnl
 builtin(include, config/pathtls.m4)dnl
 builtin(include, config/codeset.m4)dnl
 builtin(include, config/addlibrarypath.m4)dnl
+builtin(include, config/icu.m4)dnl
 
 AC_INIT
 AC_PREREQ([2.60])
@@ -2599,6 +2600,24 @@ if test $enable_zeroconf = yes; then
   fi
 fi
 AC_SUBST(HAVE_MDNS)
+
+#--------------------------------------------------------------------
+# Check for International Components for Unicode
+#--------------------------------------------------------------------
+HAVE_ICU=0
+AC_ARG_ENABLE(icu,
+  [  --disable-icu		Disable International Components for Unicode],,
+  enable_icu=yes)
+
+if test $enable_icu = yes; then
+  AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
+  if test "$have_icu" = "yes"; then
+    AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucurr.h)
+    LIBS="$LIBS $ICU_LIBS"
+    HAVE_ICU=1
+  fi
+fi
+AC_SUBST(HAVE_ICU)
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
