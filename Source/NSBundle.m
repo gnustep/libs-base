@@ -1646,33 +1646,53 @@ IF_NO_GC(
      <rootPath>/<bundlePath>
      <rootPath>/<bundlePath>/<language.lproj>
 */
-+ (NSArray *) _bundleResourcePathsWithRootPath: (NSString *)rootPath
-				       subPath: (NSString *)subPath
++ (NSArray *) _bundleResourcePathsWithRootPath: (NSString*)rootPath
+				       subPath: (NSString*)subPath
+				  localization: (NSString*)localization
 {
-  NSString* primary;
-  NSString* language;
-  NSArray* languages;
-  NSMutableArray* array;
-  NSEnumerator* enumerate;
+  NSString		*primary;
+  NSString		*language;
+  NSArray		*languages;
+  NSMutableArray	*array;
+  NSEnumerator		*enumerate;
 
   array = [NSMutableArray arrayWithCapacity: 8];
   languages = [NSUserDefaults userLanguages];
 
   primary = [rootPath stringByAppendingPathComponent: @"Resources"];
   [array addObject: _bundle_resource_path(primary, subPath, nil)];
-  /* This matches OS X behavior, which only searches languages that
-     are in the user's preference. Don't use -preferredLocalizations - 
-     that would cause a recursive loop.  */
-  enumerate = [languages objectEnumerator];
-  while ((language = [enumerate nextObject]))
-    [array addObject: _bundle_resource_path(primary, subPath, language)];
-
+  /* If we have been asked for a specific localization, we add it.
+   */
+  if (localization != nil)
+    {
+      [array addObject: _bundle_resource_path(primary, subPath, localization)];
+    }
+  else
+    {
+      /* This matches OS X behavior, which only searches languages that
+       * are in the user's preference. Don't use -preferredLocalizations - 
+       * that would cause a recursive loop.
+       */
+      enumerate = [languages objectEnumerator];
+      while ((language = [enumerate nextObject]))
+	{
+	  [array addObject: _bundle_resource_path(primary, subPath, language)];
+	}
+    }
   primary = rootPath;
   [array addObject: _bundle_resource_path(primary, subPath, nil)];
-  enumerate = [languages objectEnumerator];
-  while ((language = [enumerate nextObject]))
-    [array addObject: _bundle_resource_path(primary, subPath, language)];
-
+  if (localization != nil)
+    {
+      [array addObject: _bundle_resource_path(primary, subPath, localization)];
+    }
+  else
+    {
+      enumerate = [languages objectEnumerator];
+      while ((language = [enumerate nextObject]))
+	{
+	  [array addObject: _bundle_resource_path(primary, subPath, language)];
+	}
+    }
   return array;
 }
 
@@ -1695,7 +1715,7 @@ IF_NO_GC(
     }
 
   pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
-    subPath: subPath] objectEnumerator];
+    subPath: subPath localization: nil] objectEnumerator];
   while ((path = [pathlist nextObject]) != nil)
     {
       if (bundle_directory_readable(path))
@@ -1767,7 +1787,8 @@ IF_NO_GC(
 
 + (NSArray*) _pathsForResourcesOfType: (NSString*)extension
 		      inRootDirectory: (NSString*)bundlePath
-		       inSubDirectory: (NSString *)subPath
+		       inSubDirectory: (NSString*)subPath
+			 localization: (NSString*)localization
 {
   BOOL allfiles;
   NSString *path;
@@ -1776,7 +1797,7 @@ IF_NO_GC(
   NSFileManager	*mgr = manager();
 
   pathlist = [[NSBundle _bundleResourcePathsWithRootPath: bundlePath
-			subPath: subPath] objectEnumerator];
+    subPath: subPath localization: localization] objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
   allfiles = (extension == nil || [extension length] == 0);
 
@@ -1801,15 +1822,17 @@ IF_NO_GC(
 {
   return [self _pathsForResourcesOfType: extension
 			inRootDirectory: bundlePath
-			 inSubDirectory: nil];
+			 inSubDirectory: nil
+			   localization: nil];
 }
 
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
 			  inDirectory: (NSString *)subPath
 {
   return [[self class] _pathsForResourcesOfType: extension
-			inRootDirectory: [self bundlePath]
-			 inSubDirectory: subPath];
+				inRootDirectory: [self bundlePath]
+				 inSubDirectory: subPath
+				   localization: nil];
 }
 
 - (NSArray*) pathsForResourcesOfType: (NSString*)extension
@@ -1822,8 +1845,10 @@ IF_NO_GC(
   NSString        *path = nil;
 
   result = [NSMutableArray array];
-  paths = [self pathsForResourcesOfType: extension
-                            inDirectory: subPath];
+  paths = [[self class] _pathsForResourcesOfType: extension
+				 inRootDirectory: [self bundlePath]
+				  inSubDirectory: subPath
+				    localization: localizationName];
 
   enumerator = [paths objectEnumerator];
   while ((path = [enumerator nextObject]) != nil)
