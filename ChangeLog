@@ -1,9 +1,10 @@
 2010-06-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Remove the Object(NSObjectCompat) category as the
-	use ogf the Object class is *really* obsolete, and also there appears
+	use of the Object class is *really* obsolete, and also there appears
 	to be an objc runtime bug whaich adds the category methods to NSZombie
 	even though NSZombie is not a subclass of Object.
+	* Tools/gdomap.c: Avoid strange hang when trying to register on port 0
 
 2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
