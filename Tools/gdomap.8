@@ -39,10 +39,12 @@ gdomap \- GNUstep Distributed Objects name server
 
 .SH DESCRIPTION
 .B gdomap
-The gdomap daemon is used by GNUstep programs to look up distributed objects of
-processes running on the local machine as well as across the network.  This
+The gdomap daemon is used by GNUstep programs to look up distributed objects
+of processes running across the network (and between different user accounts
+on a single machine).  The deamon is NOT used for lookup where two processes
+belonging to the same user are using a host-local connection.  This
 manual page explains the usage of gdomap.  For design and implementation
-information (nad special notes for packagers), please see the HTML
+information (and special notes for packagers), please see the HTML
 documentation installed in $GNUSTEP_SYSTEM_DOC, under Command-line Tools.
 .P
 Usually the gdomap daemon is started at system boot time and binds itself to
