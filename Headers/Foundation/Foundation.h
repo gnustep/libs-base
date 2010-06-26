@@ -78,7 +78,6 @@
 #import	<Foundation/NSKeyedArchiver.h>
 #import	<Foundation/NSKeyValueCoding.h>
 #import	<Foundation/NSKeyValueObserving.h>
-#import	<Foundation/NSLocale.h>
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSMapTable.h>
 #import	<Foundation/NSMethodSignature.h>

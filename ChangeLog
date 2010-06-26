@@ -1,3 +1,10 @@
+2010-06-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Implement methods from the Object(NSObjectCompat)
+	category for NSZombie.  This is a workaround for what seems to be an
+	objc runtime bug (that category is being added to NSZombie even though
+	NSZombie is not a subclass of Object).
+
 2010-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Implement keyed coding

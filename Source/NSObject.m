@@ -2423,6 +2423,14 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 {
   return (Class)isa;
 }
+- (void) dealloc
+{
+  GSLogZombie(self, _cmd);
+}
+- (void) description
+{
+  GSLogZombie(self, _cmd);
+}
 - (Class) originalClass
 {
   return NSMapGet(zombieMap, (void*)self);
@@ -2454,6 +2462,20 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   c = NSMapGet(zombieMap, (void*)self);
   [allocationLock unlock];
   return [c instanceMethodSignatureForSelector: aSelector];
+}
+- (void) release
+{
+  GSLogZombie(self, _cmd);
+}
+- (BOOL) respondsToSelector: (SEL)aSel
+{
+  GSLogZombie(self, _cmd);
+  return NO;
+}
+- (id) retain
+{
+  GSLogZombie(self, _cmd);
+  return self;
 }
 @end
 
