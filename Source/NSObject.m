@@ -2361,75 +2361,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 @end
 
-/*
- * Stuff for compatibility with 'Object' derived classes.
- */
-@interface	Object (NSObjectCompat)
-+ (NSString*) description;
-+ (void) release;
-+ (id) retain;
-- (NSString*) className;
-- (NSString*) description;
-- (void) release;
-- (BOOL) respondsToSelector: (SEL)aSel;
-- (id) retain;
-@end
-
-@implementation	Object (NSObjectCompat)
-+ (NSString*) description
-{
-  return NSStringFromClass(self);
-}
-+ (void) release
-{
-  return;
-}
-+ (id) retain
-{
-  return self;
-}
-- (NSString*) className
-{
-  return NSStringFromClass([self class]);
-}
-- (NSString*) description
-{
-  return [NSString stringWithFormat: @"<%s: %p>",
-    GSClassNameFromObject(self), self];
-}
-- (BOOL) isProxy
-{
-  return NO;
-}
-- (void) release
-{
-  return;
-}
-- (BOOL) respondsToSelector: (SEL)aSelector
-{
-  /* Object implements -respondsTo: */
-  return [self respondsTo: aSelector];
-}
-- (id) retain
-{
-  return self;
-}
-@end
-
 
 
 @implementation	NSZombie
 - (Class) class
 {
   return (Class)isa;
-}
-- (void) dealloc
-{
-  GSLogZombie(self, _cmd);
-}
-- (void) description
-{
-  GSLogZombie(self, _cmd);
 }
 - (Class) originalClass
 {
@@ -2462,20 +2399,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   c = NSMapGet(zombieMap, (void*)self);
   [allocationLock unlock];
   return [c instanceMethodSignatureForSelector: aSelector];
-}
-- (void) release
-{
-  GSLogZombie(self, _cmd);
-}
-- (BOOL) respondsToSelector: (SEL)aSel
-{
-  GSLogZombie(self, _cmd);
-  return NO;
-}
-- (id) retain
-{
-  GSLogZombie(self, _cmd);
-  return self;
 }
 @end
 
