@@ -1,3 +1,9 @@
+2010-06-28  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Tools/autogsdoc.m: Improved to search for .m files among the 
+	command-line arguments in addition to the current directory and 
+	documentation directory.
+
 2010-06-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Remove the Object(NSObjectCompat) category as the
