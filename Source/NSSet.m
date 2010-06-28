@@ -946,7 +946,7 @@ static Class NSMutableSet_concrete_class;
 
 - (Class) classForCoder
 {
-  return NSMutableSet_concrete_class;
+  return NSMutableSet_abstract_class;
 }
 
 /** <init /> <override-subclass />
