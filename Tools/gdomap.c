@@ -3960,7 +3960,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
    */
   if (host && host[0] == '*' && host[1] == '\0')
     {
-	multi = 1;
+      multi = 1;
     }
   /*
    *	If no host name is given, we use the name of the local host.
@@ -4073,10 +4073,10 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       if (op == GDO_REGISTER)
 	{
 	  port = (unsigned short)pnum;
-	  if (port == 0)
+	  if (port == 0 || htons(port) == p)
 	    {
 	      snprintf(ebuf, sizeof(ebuf),
-	        "attempted registration with bad port.");
+	        "attempted registration with bad port (%d).", port);
 	      gdomap_log(LOG_ERR);
 	      return -1;
 	    }
