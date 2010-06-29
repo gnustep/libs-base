@@ -509,8 +509,12 @@ static NSMapTable	*globalClassMap = 0;
 {
   int64_t	i = [self decodeInt64ForKey: aKey];
 
-#if	(INTPTR_MAX < INT64_MAX)
-  if (i > INTPTR_MAX || i < INTPTR_MIN)
+/* Older Solaris systems define INTPTR_MAX incorrectly ... so we use the
+ * void pointer size we determined at configure time to decide whether
+ * we need to check for overflow.
+ */
+#if	(GS_SIZEOF_VOIDP < 8)
+  if (i > INT32_MAX || i < INT32_MIN)
     {
       [NSException raise: NSRangeException
 	          format: @"[%@ +%@]: value for key(%@) is out of range",
