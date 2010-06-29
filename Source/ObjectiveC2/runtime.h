@@ -1,6 +1,5 @@
-#include <stdint.h>
+#include <inttypes.h>
 #include <stddef.h>
-#include <sys/types.h>
 #include "ObjectiveC2/Availability.h"
 
 #if   defined(ERROR_UNSUPPORTED_RUNTIME_FUNCTIONS)
