@@ -1,5 +1,8 @@
-#include <inttypes.h>
+#ifndef __OBJECTIVEC2_RUNTIME_H_INCLUDED__
+#define __OBJECTIVEC2_RUNTIME_H_INCLUDED__
+#include <stdint.h>
 #include <stddef.h>
+#include <sys/types.h>
 #include "ObjectiveC2/Availability.h"
 
 #if   defined(ERROR_UNSUPPORTED_RUNTIME_FUNCTIONS)
@@ -22,7 +25,7 @@ __attribute__((error(x " not supported by the GNU runtime")))
 #endif
 
 // Undo GNUstep substitutions
-#ifdef class_setVersion 
+#ifdef class_setVersion
 #undef class_setVersion
 #endif
 #ifdef class_getClassMethod
@@ -86,7 +89,7 @@ typedef struct objc_protocol Protocol;
 #ifndef YES
 #define YES ((BOOL)1)
 #endif
-#ifndef NO 
+#ifndef NO
 #define NO ((BOOL)0)
 #endif
 
@@ -263,7 +266,7 @@ objc_property_t protocol_getProperty(Protocol *p, const char *name,
 
 BOOL protocol_isEqual(Protocol *p, Protocol *other);
 
-// Only enable support for object planes when 
+// Only enable support for object planes when
 // -fobjc-sender-dependent-dispatch is specified
 #ifdef __OBJC_SENDER_AWARE_DISPATCH__
 
@@ -294,3 +297,5 @@ SEL sel_getUid(const char *selName);
 BOOL sel_isEqual(SEL sel1, SEL sel2);
 
 SEL sel_registerName(const char *selName);
+
+#endif // __OBJECTIVEC2_RUNTIME_H_INCLUDED
