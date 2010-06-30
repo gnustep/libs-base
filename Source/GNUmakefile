@@ -146,6 +146,7 @@ GNU_HEADERS = $(ADD_HEADERS)
 # GNUStep source files
 
 BASE_MFILES = \
+CXXException.m\
 GSArray.m \
 GSAttributedString.m \
 GSConcreteValue.m \
