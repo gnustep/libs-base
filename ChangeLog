@@ -1,3 +1,10 @@
+2010-01-07  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GNUmakefile
+	* Source/Makefile.postamble:
+	Fix makefile to copy common.h into $GNUSTEP_TARGET_DIR so that it is
+	found when building with a non-flattened namespace.
+
 2010-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/CXXException.m: Fixup to get base to compile again.
