@@ -1,3 +1,10 @@
+2010-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/CXXException.m: Fixup to get base to compile again.
+	I think this API needs improving ... this should be an NSException
+	subclass or category, and catching it should be transparent to the
+	developer.
+
 2010-06-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedUnarchiver.m: Workaround for buggy inttypes.h on older
