@@ -1,3 +1,9 @@
+2010-07-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Addictions/NSError+GNUstepBase.m:
+	Declare _XOPEN_SOURCE so that glibc gives us the correct version of
+	the strerror_r function.
+
 2010-01-07  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GNUmakefile
