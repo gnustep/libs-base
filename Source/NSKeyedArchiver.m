@@ -632,6 +632,13 @@ static NSDictionary *makeReference(unsigned ref)
   [_enc setObject: [NSNumber  numberWithInt: anInteger] forKey: aKey];
 }
 
+- (void) encodeInteger: (NSInteger)anInteger forKey: (NSString*)aKey
+{
+  CHECKKEY
+
+  [_enc setObject: [NSNumber  numberWithInteger: anInteger] forKey: aKey];
+}
+
 - (void) encodeInt32: (int32_t)anInteger forKey: (NSString*)aKey
 {
   CHECKKEY

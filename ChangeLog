@@ -1,3 +1,13 @@
+2010-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Backport bugfixes from trunk ...
+	Fix error in NSBundle lookup of localized resources
+	Fix unimplemented methods and lack of range checks in keyed archving.
+	Fix NSURL for keyed coding.
+	Fix NSZombie handling of -release
+	Fix class of mutable sets when coding
+	Fix problem with glibc strerror_r
+
 2010-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version 1.20.1

@@ -137,6 +137,11 @@ $(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
 	-mv mframe/mframe.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/mframe.h
 
+$(GNUSTEP_TARGET_DIR)/common.h: common.h
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
+	cp common.h $(GNUSTEP_TARGET_DIR)/common.h
+	-touch $(GNUSTEP_TARGET_DIR)/common.h
+
 #
 #       Files where optimisation breaks the code!
 #       These have to filter the optimisation flag out.
