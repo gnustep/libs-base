@@ -2407,7 +2407,7 @@ handle_io()
 		      if (rval < 0 && errno == EBADF)
 			{
 			  clear_chan(i);
-			  if (i == tcp_desc)
+			  if (i == tcp_desc || i == udp_desc)
 			    {
 			      snprintf(ebuf, sizeof(ebuf),
 				"Fatal error on socket.");
@@ -2833,10 +2833,9 @@ handle_request(int desc)
 #endif
 	    }
 	}
-      else if (port == 0)
+      else if (port != 0)
 	{	/* Port not provided!	*/
-	  snprintf(ebuf, sizeof(ebuf), "port not provided in request");
-	  gdomap_log(LOG_ERR);
+	  *(unsigned long*)wi->buf = 0;
 	}
       else
 	{		/* Use port provided in request.	*/
@@ -3961,7 +3960,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
    */
   if (host && host[0] == '*' && host[1] == '\0')
     {
-	multi = 1;
+      multi = 1;
     }
   /*
    *	If no host name is given, we use the name of the local host.
@@ -4074,6 +4073,13 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       if (op == GDO_REGISTER)
 	{
 	  port = (unsigned short)pnum;
+	  if (port == 0 || htons(port) == p)
+	    {
+	      snprintf(ebuf, sizeof(ebuf),
+	        "attempted registration with bad port (%d).", port);
+	      gdomap_log(LOG_ERR);
+	      return -1;
+	    }
 	}
       rval = tryHost(op, len, (unsigned char*)name, ptype, &sin, &port, 0);
       if (rval != 0 && host == local_hostname)
