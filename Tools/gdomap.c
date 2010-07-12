@@ -2611,6 +2611,7 @@ handle_recv()
 	{
 	  snprintf(ebuf, sizeof(ebuf),
 	    "recvfrom %s", inet_ntoa(addr->sin_addr));
+	  gdomap_log(LOG_DEBUG);
 	}
       if (is_local_host(addr->sin_addr) == 1)
 	{
@@ -2762,6 +2763,11 @@ handle_request(int desc)
 	   *	Special case - we already have this name registered for this
 	   *	port - so everything is already ok.
 	   */
+	  if (debug)
+	    {
+	      snprintf(ebuf, sizeof(ebuf), "Already registered ... success");
+	      gdomap_log(LOG_DEBUG);
+	    }
 	  *(unsigned long*)wi->buf = htonl(port);
 	}
       else if (m != 0)
@@ -2833,12 +2839,22 @@ handle_request(int desc)
 #endif
 	    }
 	}
-      else if (port != 0)
+      else if (port == 0)
 	{	/* Port not provided!	*/
+	  if (debug)
+	    {
+	      snprintf(ebuf, sizeof(ebuf), "Port not provided in request!");
+	      gdomap_log(LOG_DEBUG);
+	    }
 	  *(unsigned long*)wi->buf = 0;
 	}
       else
 	{		/* Use port provided in request.	*/
+	  if (debug)
+	    {
+	      snprintf(ebuf, sizeof(ebuf), "Registered on port %lu", port);
+	      gdomap_log(LOG_DEBUG);
+	    }
 	  m = map_add(buf, size, port, ptype);
 	  port = htonl(m->port);
 	  *(unsigned long*)wi->buf = port;

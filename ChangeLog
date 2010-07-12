@@ -1,3 +1,7 @@
+2010-07-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Fix logic error in recnt mod.  Add some debug.
+
 2010-07-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Addictions/NSError+GNUstepBase.m:
