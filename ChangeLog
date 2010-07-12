@@ -1,3 +1,7 @@
+2010-07-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: backport bugfix and diagnostics
+
 2010-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Backport bugfixes from trunk ...
