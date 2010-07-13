@@ -1,3 +1,8 @@
+2010-07-13 Niels Grewe <niels.grewe@halbordnung.de>
+	* Source/NSNetServices.m: Replace with the new version.
+	* Source/GSNetServices.h: Add missing header.
+	Add code missing from the previous patch.
+
 2010-03-27 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* configure.ac: Add check for avahi-client.
