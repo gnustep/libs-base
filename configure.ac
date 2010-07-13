@@ -2585,22 +2585,45 @@ AC_SUBST(HAVE_GNUTLS)
 # Check for NSNetServices
 #--------------------------------------------------------------------
 HAVE_MDNS=0
+HAVE_AVAHI=0
 AC_ARG_ENABLE(zeroconf,
   [  --disable-zeroconf		Disable NSNetServices support],,
   enable_zeroconf=yes)
-
+AC_ARG_WITH(zeroconf-api,
+  [  --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)],
+  zeroconf_api="$withval", zeroconf_api="any")
 if test $enable_zeroconf = yes; then
-  AC_CHECK_HEADERS(dns_sd.h, have_mdns=yes, have_mdns=no)
-  if test "$have_mdns" = "yes"; then
-    AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
+  if test "$zeroconf_api" = "any" || test "$zeroconf_api" = "mdns"; then
+    AC_CHECK_HEADERS(dns_sd.h, have_mdns=yes, have_mdns=no)
     if test "$have_mdns" = "yes"; then
-      LIBS="-ldns_sd $LIBS"
-      HAVE_MDNS=1
+      AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
+      if test "$have_mdns" = "yes"; then
+        MDNS_LIBS="-ldns_sd"
+        HAVE_MDNS=1
+      fi
     fi
+  fi
+  if test "$zeroconf_api" = "any" || test "$zeroconf_api" = "avahi"; then
+    AC_CHECK_HEADERS(avahi-client/client.h, have_avahi=yes, have_avahi=no)
+    if test "$have_avahi" = "yes"; then
+      AC_CHECK_LIB(avahi-client, avahi_client_new, have_avahi=yes, have_avahi=no)
+      if test "$have_avahi" = "yes"; then
+        AVAHI_LIBS="-lavahi-common -lavahi-client"
+        HAVE_AVAHI=1
+      fi
+    fi
+  fi
+  # If we have both APIs, perfer Avahi, because the mDNS API is most certainly the compatability one
+  if test "$have_avahi" = "yes" && test "$have_mdns" = "yes"; then
+    LIBS="$AVAHI_LIBS $LIBS"
+    HAVE_MDNS=0
+  else
+    # One of those will be empty.
+    LIBS="$AVAHI_LIBS $MDNS_LIBS $LIBS"
   fi
 fi
 AC_SUBST(HAVE_MDNS)
-
+AC_SUBST(HAVE_AVAHI)
 #--------------------------------------------------------------------
 # Check for International Components for Unicode
 #--------------------------------------------------------------------
