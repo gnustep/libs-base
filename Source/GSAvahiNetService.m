@@ -642,10 +642,11 @@ GSAvahiEntryGroupStateChanged(AvahiEntryGroup *group,
 - (void) netService: (NSNetService*)service
  didUpdateAddresses: (NSArray*)addresses
 {
-  if ([_delegate respondsToSelector: @selector(netService:didUpdateAddresses:)])
+  if ([[self delegate] respondsToSelector:
+    @selector(netService:didUpdateAddresses:)])
     {
-      [_delegate netService: service
-         didUpdateAddresses: addresses];
+      [[self delegate] netService: service
+	       didUpdateAddresses: addresses];
     }
 }
 
@@ -660,7 +661,7 @@ didUpdateRecordData: (id)data
     }
   theSelector = NSSelectorFromString([NSString stringWithFormat:
     @"netService:didUpdate%@RecordData:", rrType]);
-  if ([_delegate respondsToSelector: theSelector])
+  if ([[self delegate] respondsToSelector: theSelector])
     {
       if (([rrType isEqualToString: @"TXT"])
         && [data isKindOfClass: [NSArray class]])
@@ -671,16 +672,16 @@ didUpdateRecordData: (id)data
            */
            data = [(NSArray*)data lastObject];
         }
-      [_delegate performSelector: theSelector
-                     withObject: service
-                     withObject: data];
+      [[self delegate] performSelector: theSelector
+			    withObject: service
+			    withObject: data];
     }
-  else if ([_delegate respondsToSelector:
+  else if ([[self delegate] respondsToSelector:
     @selector(netService:didUpdateRecordData:forRecordType:)])
     {
-      [_delegate netService: service
-        didUpdateRecordData: data
-              forRecordType: rrType];
+      [[self delegate] netService: service
+	      didUpdateRecordData: data
+		    forRecordType: rrType];
     }
 }
 
@@ -691,11 +692,11 @@ didUpdateRecordData: (id)data
   SEL theSelector = NSSelectorFromString([NSString stringWithFormat:
     @"netService:didNotMonitor%@RecordData:", rrType]);
 
-  if ([_delegate respondsToSelector: theSelector])
+  if ([[self delegate] respondsToSelector: theSelector])
     {
-      [_delegate performSelector: theSelector
-                      withObject: service
-                      withObject: errorDict];
+      [[self delegate] performSelector: theSelector
+			    withObject: service
+			    withObject: errorDict];
     }
 }
 
