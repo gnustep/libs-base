@@ -28,6 +28,7 @@
 #import "GNUstepBase/NSNetServices+GNUstepBase.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDebug.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSString.h"
