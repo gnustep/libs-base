@@ -120,7 +120,8 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  * <p>
  *   [NSNetService] lets you publish a network service in a domain using
  *   multicast DNS. Additionally, it lets you resolve a network service that
- *   was discovered by [NSNetServiceBrowser].
+ *   was discovered by [NSNetServiceBrowser]. This class is an abstract
+ *   superclass for concrete implementations of its functionality.
  * </p>
  */
 
@@ -128,9 +129,9 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 {
 #if	GS_EXPOSE(NSNetService)
   @private
-  void		* _netService;
-  id		  _delegate;
-  void		* _reserved;
+  void		*_netService;
+  id		_delegate;
+  void		*_reserved;
 #endif
 }
 
@@ -151,9 +152,8 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
                    forMode: (NSString *) mode;
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
-/** Not implemented */
 - (NSInteger)port;
-/** Not implemented */
+
 - (void) publishWithOptions: (NSNetServiceOptions)options;
 #endif
 
@@ -207,15 +207,19 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  * <p>
  *   Each [NSNetServiceBrowser] performs one search at a time. So in order
  *   to perform multiple searches simultaneously, create multiple instances.
+ *   This class is an abstract superclass for concrete implementations of its
+ *   functionality.
  * </p>
  */
 
 @interface NSNetServiceBrowser : NSObject
 {
+#if	GS_EXPOSE(NSNetServiceBrowser)
   @private
-  void		* _netServiceBrowser;
-  id		  _delegate;
-  void		* _reserved;
+  void		*_netServiceBrowser;
+  id		_delegate;
+  void		*_reserved;
+#endif
 }
 
 - (id) init;
@@ -450,6 +454,9 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 @end
 
+#if	!NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import	<GNUstepBase/NSNetServices+GNUstepBase.h>
+#endif
 #if	defined(__cplusplus)
 }
 #endif

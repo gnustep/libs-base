@@ -1,3 +1,32 @@
+2010-03-27 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Add check for avahi-client.
+	* configure: Regenerate
+	* base.make.in: Add build-variables for Avahi.
+	* Source/GNUmakefile: Add avahi-based NSNetServices to build
+	* Source/GSAvahiRunLoopIntegration.h:
+	* Source/GSAvahiRunLoopIntegration.m:
+	* Source/GSAvahiClient.h:
+	* Source/GSAvahiClient.m:
+	* Source/GSAvahiNetService.m:
+	* Source/GSAvahiNetServiceBrowser.m: Add avahi-based NSNetServices
+	implementation
+	* Source/GSMDNSNetServies.m: Move mDNS-implementation to this file
+	* Source/GSNetServices.h: New private header for NSNetServices
+	* Source/NSNetServices.m: Abstract superclasses
+	* Headers/Foundation/NSNetServices.h: Adopt to new class structure
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: Add zeroconf related
+	variables.
+	* Header/Additions/GNUstepBase/Additions.h: 
+	* Headers/Additions/GNUstepBase/NSNetServices+GNUstepBase.h: Add header
+	with extensions for the avahi-based NSNetService class.
+	Implement NSNetService and NSNetServiceBrowser on top of the
+	avahi-client API. Both classes are now abstract superclasses of the
+	concrete implementations based on the mDNSResponder or avahi-client
+	APIs. The API to be used can be configured with the
+	--with-zeroconf-api=API (mdns, avahi, or any) configure-switch. If both
+	APIs are available, the avahi API will be preferred.
+
 2010-07-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Fix logic error in recnt mod.  Add some debug.

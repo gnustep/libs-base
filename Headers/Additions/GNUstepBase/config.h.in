@@ -168,6 +168,9 @@
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 
+/* Define to 1 if you have the <avahi-client/client.h> header file. */
+#undef HAVE_AVAHI_CLIENT_CLIENT_H
+
 /* Define to 1 if you have the `backtrace' function. */
 #undef HAVE_BACKTRACE
 

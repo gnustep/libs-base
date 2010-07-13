@@ -221,7 +221,8 @@ typedef	struct {
 #define BASE_NATIVE_OBJC_EXCEPTIONS     @BASE_NATIVE_OBJC_EXCEPTIONS@
 #define GS_NONFRAGILE     @GS_NONFRAGILE@
 #define GS_MIXEDABI     @GS_MIXEDABI@
-
+#define GS_USE_AVAHI @HAVE_AVAHI@
+#define GS_USE_MDNS @HAVE_MDNS@
 #import <GNUstepBase/preface.h>
 
 #endif	/* included_GSConfig_h */

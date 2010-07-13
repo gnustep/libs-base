@@ -47,6 +47,7 @@
 #import	<GNUstepBase/NSFileHandle+GNUstepBase.h>
 #import	<GNUstepBase/NSLock+GNUstepBase.h>
 #import	<GNUstepBase/NSMutableString+GNUstepBase.h>
+#import	<GNUstepBase/NSNetServices+GNUstepBase.h>
 #import	<GNUstepBase/NSNumber+GNUstepBase.h>
 #import	<GNUstepBase/NSObject+GNUstepBase.h>
 #import	<GNUstepBase/NSProcessInfo+GNUstepBase.h>
