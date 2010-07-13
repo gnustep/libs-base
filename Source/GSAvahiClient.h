@@ -27,37 +27,39 @@
 @interface GSAvahiClient: NSObject
 {
   id _delegate;
+  void *_unused;
+  void *_reserved;
   GSAvahiRunLoopContext *ctx;
   void *_client;
   NSRecursiveLock *_lock;
 }
 
 
-+ (int)netServicesErrorForAvahiError: (int)errNo;
++ (int) netServicesErrorForAvahiError: (int)errNo;
 
 
-- (void*)client;
+- (void*) client;
 
-- (id)initWithRunLoop: (NSRunLoop*)rl
-              forMode: (NSString*)mode;
+- (id) initWithRunLoop: (NSRunLoop*)rl
+               forMode: (NSString*)mode;
 
-- (void)setupClientWithFlags: (int)flags
-              andReportError: (int*)error;
+- (void) setupClientWithFlags: (int)flags
+               andReportError: (int*)error;
 
-- (void)setState: (int)theState
-       forClient: (void*)cl;
+- (void) setState: (int)theState
+        forClient: (void*)cl;
 
-- (void)scheduleInRunLoop: (NSRunLoop*)rl
-                  forMode: (NSString*)mode;
+- (void) scheduleInRunLoop: (NSRunLoop*)rl
+                   forMode: (NSString*)mode;
 
-- (void)removeFromRunLoop: (NSRunLoop*)rl
-                  forMode: (NSString*)mode;
+- (void) removeFromRunLoop: (NSRunLoop*)rl
+                   forMode: (NSString*)mode;
 
-- (void)handleError: (int)errNo;
+- (void) handleError: (int)errNo;
 
-- (void)setDelegate: (id)delegate;
+- (void) setDelegate: (id)delegate;
 
-- (id)delegate;
+- (id) delegate;
 
-- (NSDictionary*)errorDictWithErrorCode: (int) error;
+- (NSDictionary*) errorDictWithErrorCode: (int) error;
 @end

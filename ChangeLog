@@ -1,3 +1,11 @@
+2010-07-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSNetServices.h:
+	* Source/GSAvahiClient.h:
+	* Source/GSNetServices.h:
+	* Source/GSAvahiNetService.m:
+	Attempt to get ahavi code working without breaking ABI.
+
 2010-07-13 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Foundation/NSNetServices.h: Update to a version working with
