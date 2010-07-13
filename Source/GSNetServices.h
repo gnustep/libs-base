@@ -33,10 +33,6 @@
  * NSNetService using the mDNSResponder API.
  */
 @interface GSMDNSNetService : NSNetService
-{
-  void *_netService;
-  void *_reserved;
-}
 @end
 
 
@@ -44,10 +40,6 @@
  * NSNetServiceBrowser using the mDNSResponder API.
  */
 @interface GSMDNSNetServiceBrowser : NSNetServiceBrowser
-{
-  void *_netServiceBrowser;
-  void *_reserved;
-}
 @end
 
 // Subclasses using Avahi:
