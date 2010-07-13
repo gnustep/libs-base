@@ -3,24 +3,24 @@
 
    Written by:  Niels Grewe <niels.grewe@halbordnung.de>
    Date: March 2010
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+   */
 
 #import "common.h"
 #define	EXPOSE_NSNetServices_IVARS	1
@@ -33,6 +33,10 @@
  * NSNetService using the mDNSResponder API.
  */
 @interface GSMDNSNetService : NSNetService
+{
+  void *_netService;
+  void *_reserved;
+}
 @end
 
 
@@ -40,6 +44,10 @@
  * NSNetServiceBrowser using the mDNSResponder API.
  */
 @interface GSMDNSNetServiceBrowser : NSNetServiceBrowser
+{
+  void *_netServiceBrowser;
+  void *_reserved;
+}
 @end
 
 // Subclasses using Avahi:
@@ -101,6 +109,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
   NSMapTable *_browsers;
   NSMapTable *_browserTimeouts;
   NSTimer *_timer;
+  id _reserved;
 }
 
 /**
@@ -130,5 +139,6 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
   GSAvahiBrowserType _type;
   BOOL _hasFirstEvent;
   NSMutableDictionary *_services;
+  id _reserved;
 }
 @end
