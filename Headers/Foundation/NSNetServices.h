@@ -3,24 +3,24 @@
 
    Written by:  Chris B. Vetter
    Date: 2006
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+   */
 
 #ifndef __NSNetServices_h_GNUSTEP_BASE_INCLUDE
 #define __NSNetServices_h_GNUSTEP_BASE_INCLUDE
@@ -127,12 +127,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 @interface NSNetService : NSObject
 {
-#if	GS_EXPOSE(NSNetService)
-  @private
-  void		*_netService;
   id		_delegate;
-  void		*_reserved;
-#endif
 }
 
 + (NSData *) dataFromTXTRecordDictionary: (NSDictionary *) txtDictionary;
@@ -151,7 +146,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 - (void) scheduleInRunLoop: (NSRunLoop *) aRunLoop
                    forMode: (NSString *) mode;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(100500,GS_API_LATEST)
 - (NSInteger)port;
 
 - (void) publishWithOptions: (NSNetServiceOptions)options;
@@ -214,12 +209,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 @interface NSNetServiceBrowser : NSObject
 {
-#if	GS_EXPOSE(NSNetServiceBrowser)
-  @private
-  void		*_netServiceBrowser;
   id		_delegate;
-  void		*_reserved;
-#endif
 }
 
 - (id) init;

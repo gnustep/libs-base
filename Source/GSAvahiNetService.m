@@ -3,24 +3,24 @@
 
    Written by:  Niels Grewe <niels.grewe@halbordnung.de>
    Date: March 2010
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+   */
 
 #import "GSNetServices.h"
 #import "GSAvahiClient.h"
@@ -406,7 +406,7 @@ GSAvahiServiceResolverEvent(
         break;
 
       case AVAHI_RESOLVER_FOUND:
-      
+
         [service avahiResolver: resolver
           foundServiceWithName: NSStringIfNotNull(name)
 	  type: NSStringIfNotNull(type)
@@ -642,7 +642,6 @@ GSAvahiEntryGroupStateChanged(AvahiEntryGroup *group,
 - (void) netService: (NSNetService*)service
  didUpdateAddresses: (NSArray*)addresses
 {
-  id _delegate = [self delegate];
   if ([_delegate respondsToSelector: @selector(netService:didUpdateAddresses:)])
     {
       [_delegate netService: service
@@ -655,7 +654,6 @@ didUpdateRecordData: (id)data
       forRecordType: (NSString*)rrType
 {
   SEL theSelector = NULL;
-  id _delegate = [self delegate];
   if ([rrType isEqualToString: @"A"] || [rrType isEqualToString: @"AAAA"])
     {
       [self netService: service didUpdateAddresses: [self addresses]];
@@ -667,7 +665,7 @@ didUpdateRecordData: (id)data
       if (([rrType isEqualToString: @"TXT"])
         && [data isKindOfClass: [NSArray class]])
         {
-          /* 
+          /*
            * Legacy case for TXT records (user code will always expect NSData,
            * not NSArray).
            */
@@ -690,7 +688,6 @@ didUpdateRecordData: (id)data
       didNotMonitor: (NSDictionary*)errorDict
       forRecordType: (NSString*)rrType
 {
-  id _delegate = [self delegate];
   SEL theSelector = NSSelectorFromString([NSString stringWithFormat:
     @"netService:didNotMonitor%@RecordData:", rrType]);
 
@@ -981,7 +978,7 @@ didUpdateRecordData: (id)data
       [_lock unlock];
       return NO;
     }
-  
+
   if (_entryGroup == NULL)
     {
       if (0 != [self createEntryGroup])
@@ -994,7 +991,7 @@ didUpdateRecordData: (id)data
   /* Try adding the service to the entry group until we find an unused name
    * for it (but only if NSNetServiceNoAutoRename is not set).
    */
-  while (AVAHI_ERR_COLLISION == (ret = [self addServiceEntry]) 
+  while (AVAHI_ERR_COLLISION == (ret = [self addServiceEntry])
     && !(options & NSNetServiceNoAutoRename))
     {
       char *newName = avahi_alternative_service_name([[self infoObjectForKey:
@@ -1034,7 +1031,7 @@ didUpdateRecordData: (id)data
       [self commitEntryGroup];
       return;
     }
-  
+
   if (NO == [self addServiceRecordWithOptions: options])
     {
       [self handleError: avahi_client_errno((AvahiClient*)_client)];
@@ -1057,7 +1054,7 @@ didUpdateRecordData: (id)data
       domain = [NSString stringWithUTF8String:
 	avahi_client_get_domain_name((AvahiClient*)_client)];
     }
-  full = [NSString stringWithFormat: @"%@.%@.%@", [self name], 
+  full = [NSString stringWithFormat: @"%@.%@.%@", [self name],
                                              [self type], domain];
   if ((unichar)'.' != [full characterAtIndex: ([full length] - 1)])
     {
@@ -1100,7 +1097,7 @@ didUpdateRecordData: (id)data
                                                                    0,
                                          GSAvahiServiceResolverEvent,
                                                         (void*)self);
-      
+
       if (NULL == _resolver)
         {
           [self handleError: avahi_client_errno((AvahiClient*)_client)];
@@ -1117,7 +1114,7 @@ didUpdateRecordData: (id)data
                                      selector: @selector(didTimeout:)
                                      userInfo: nil
                                       repeats: NO] retain];
-      
+
       [[ctx runLoop] addTimer: _timer
                       forMode: [ctx mode]];
     }
@@ -1133,7 +1130,7 @@ didUpdateRecordData: (id)data
 - (void) stopWithError: (BOOL)hadError
              forRRCode: (NSInteger)rrCode
 {
-  /* 
+  /*
    * If an RRCode was set (a value of zero possibly indicating an unknown
    * RRCode, fo which we won't do anything), we only clean up the
    * corresponding browser.
@@ -1264,7 +1261,7 @@ didUpdateRecordData: (id)data
       // The browser was successfully created, we add it to the mapTable.
       NSMapInsert(_browsers, (void*)(uintptr_t)code, browser);
       // Set the proper state if the new browser is responsible for a state
-      // change. 
+      // change.
       if (_serviceState == GSNetServiceResolved)
         {
           _serviceState = GSNetServiceRecordBrowsing;
@@ -1291,7 +1288,7 @@ didUpdateRecordData: (id)data
     }
   if (0 == NSCountMapTable(_browsers))
     {
-      _serviceState = GSNetServiceResolved; 
+      _serviceState = GSNetServiceResolved;
     }
   [_lock unlock];
 }
@@ -1445,7 +1442,7 @@ didUpdateRecordData: (id)data
     {
       [self setInfoObject: txtRecord forKey: @"TXT"];
     }
-  
+
   if (address)
     {
       [self addAddressData: address];
@@ -1782,7 +1779,7 @@ didUpdateRecordData: (id)data
       case (GSNetServicePublished):
         break;
     }
-  
+
   // Ret will still be 0 at this point, so we can reuse the variable:
   ret = avahi_entry_group_update_service_txt_strlst(
     (AvahiEntryGroup*)_entryGroup,
@@ -1820,7 +1817,7 @@ didUpdateRecordData: (id)data
 
 - (BOOL) addRecordData: (NSData*)data
          forRecordType: (NSString*)type
-               withTTL: (NSUInteger)ttl 
+               withTTL: (NSUInteger)ttl
 {
   int rrCode = RRCodeFromNSString(type);
   int ret = 0;
@@ -1925,19 +1922,19 @@ didUpdateRecordData: (id)data
 
 - (void) dealloc
 {
-  /* 
+  /*
    * Obtain the super-class lock so that nothing fishy can happen while
    * we clean up:
    */
   [_lock lock];
 
-  /* 
+  /*
    * Unset the delegate. We might have been gone away because the delegate
    * didn't need us anymore, so there's a reasonable chance that it has also
    * been deallocated.
    */
   [self setDelegate: nil];
-  
+
   /*
    * Call -stop to cleanup all avahi-related resources.
    */

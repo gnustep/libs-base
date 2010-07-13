@@ -1,5 +1,14 @@
 2010-07-13 Niels Grewe <niels.grewe@halbordnung.de>
 
+	* Headers/Foundation/NSNetServices.h: Update to a version working with
+	both mDNSResponder and Avahi.
+	* Source/GSAvahiNetService.m: Fix leftover duplicate variables.
+	* Source/GSNetServices.h: Revert to r30954, but add padding ivars to
+	the Avahi classes.
+	Make Avahi-NSNetServices work again.
+
+2010-07-13 Niels Grewe <niels.grewe@halbordnung.de>
+
 	* Source/NSNetServices.m: Replace with the new version.
 	* Source/GSNetServices.h: Add missing header.
 	Add code missing from the previous patch.
