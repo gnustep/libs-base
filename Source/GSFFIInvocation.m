@@ -299,15 +299,16 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
 
 + (void) load
 {
+#ifdef __GNUSTEP_RUNTIME__
+  pthread_key_create(&thread_slot_key, free);
+  objc_msg_forward3 = gs_objc_msg_forward3;
+  objc_proxy_lookup = gs_objc_proxy_lookup;
+#else
 #if	HAVE_FORWARD2
   __objc_msg_forward2 = gs_objc_msg_forward2;
 #else
   __objc_msg_forward = gs_objc_msg_forward;
 #endif
-#ifdef __GNUSTEP_RUNTIME__
-  pthread_key_create(&thread_slot_key, free);
-  objc_msg_forward3 = gs_objc_msg_forward3;
-  objc_proxy_lookup = gs_objc_proxy_lookup;
 #endif
 }
 

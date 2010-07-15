@@ -272,7 +272,7 @@ commonModes(void)
   return modes;
 }
 
-#if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME)
+#if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 /* We need to access these private vars in the objc runtime - because
    the objc runtime's API is not enough powerful for the GNUstep
    extensions we want to add.  */
