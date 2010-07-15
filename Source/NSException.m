@@ -40,6 +40,10 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
+#ifdef __GNUSTEP_RUNTIME__
+#include <objc/hooks.h>
+#endif
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif

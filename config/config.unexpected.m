@@ -1,5 +1,5 @@
 
-#include "objc-common.g"
+extern void (*_objc_unexpected_exception)(id);
 
 int main (void)
 {
