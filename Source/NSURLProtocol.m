@@ -1474,7 +1474,6 @@ static NSURLProtocol	*placeholder = nil;
     {
       NSError	*error = [[[stream streamError] retain] autorelease];
 
-      NSLog(@"An error %@ occurred on stream %@ of %@", error, stream, self);
       [self stopLoading];
       [this->client URLProtocol: self didFailWithError: error];
     }
