@@ -1,3 +1,12 @@
+2010-07-17  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Tools/autogsdoc.m:
+	* Tools/AGSParser.m:
+	Added the ability to generate paragraph markup. Turned off by default.
+	For each paragraph break ('\n\n' sequence) and when no incompatible 
+	elements exist in the scanned paragraph, <p> tags can be automatically 
+	inserted (more explanations in -canWrapWithParagraphMarkup: doc).
+
 2010-07-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSNetServices.h:
