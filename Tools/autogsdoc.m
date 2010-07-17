@@ -810,6 +810,9 @@ main(int argc, char **argv, char **env)
     @"MakeFrames",
     @"\t\tString\t(nil)\n\tIf set, look for DTDs in the given directory",
     @"DTDs",
+    @"\t\tBOOL\t(NO)\n\tif YES, wrap paragraphs delimited by \\n\\n in "
+      @"<p> tags when possible",
+    @"GenerateParagraphMarkup",
     nil];
   argSet = [NSSet setWithArray: [argsRecognized allKeys]];
   argsGiven = [[NSProcessInfo processInfo] arguments];

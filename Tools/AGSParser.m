@@ -28,8 +28,9 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
-#import "Foundation/NSSet.h"
 #import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
 #import "AGSParser.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -355,6 +356,103 @@
   return output;
 }
 
+/* When the paragraph string contains a GSDoc block element which is not a text 
+element (in the GSDoc DTD sense), we return NO, otherwise we return YES. 
+
+A GSDoc or HTML paragraph content is limited to text elements (see GSDoc DTD).
+e.g. 'list' or 'example' cannot belong to a 'p' element.
+
+Any other non-block elements are considered valid. Whether or not they can be 
+embedded within a paragraph in the final output is the doc writer 
+responsability.
+ 
+For 'item' and 'answer' which can contain arbitrary block elements, explicit 
+'p' tags should be used, because we won't wrap 'patata' and 'patati' as two 
+paragraphs in the example below:
+<list>
+<item>patata
+
+patati</item>
+</list> */
+- (BOOL) canWrapWithParagraphMarkup: (NSString *)para
+{
+  NSScanner *scanner = [NSScanner scannerWithString: para];
+  NSSet *blockTags = [NSSet setWithObjects: @"list", @"enum", @"item", 
+    @"deflist", @"term", @"qalist", @"question", @"answer", 
+    @"p", @"example", @"embed", @"index", nil]; 
+  NSMutableCharacterSet *skippedChars = 
+    (id)[NSMutableCharacterSet punctuationCharacterSet];
+
+  /* Set up the scanner to treat opening and closing tags in the same way.
+     Punctuation character set includes '/' but not '<' and '>' */
+  [skippedChars formUnionWithCharacterSet: [scanner charactersToBeSkipped]];
+  [scanner setCharactersToBeSkipped: AUTORELEASE([skippedChars copy])];
+
+  while ([scanner scanUpToString: @"<" intoString: NULL] 
+      && [scanner scanString: @"<" intoString: NULL])
+    {
+      NSString *tag = @"";
+      BOOL foundBlockTag = NO;
+     
+      [scanner scanUpToString: @">" intoString: &tag];
+      foundBlockTag = [blockTags containsObject: tag];
+
+      if (foundBlockTag)
+        return NO;
+    }
+
+   return YES;
+}
+
+// NOTE: We could be able to eliminate that if -parseComment processes the 
+// first comment tags before calling -generateParagraphMarkups:
+- (BOOL) shouldInsertParagraphMarkupInFirstComment: (NSString *)aComment
+{
+  NSArray *firstCommentTags = [NSArray arrayWithObjects: @"<title>", 
+    @"<abstract>", @"<author>", @"<copy>", @"<version>", @"<date>", 
+    @"Author:", @"By:", @"Copyright (C)", @"Revision:", @"Date:", nil];
+   NSEnumerator *e = [firstCommentTags objectEnumerator];
+   NSString *tag = nil;
+
+   while ((tag = [e nextObject]) != nil)
+     {
+       if ([aComment rangeOfString: tag 
+                           options: NSCaseInsensitiveSearch].location != NSNotFound)
+         {
+            return NO;
+         }
+     }
+
+  return YES;
+}
+
+- (NSString *) generateParagraphMarkupForString: (NSString *)aComment
+{
+  NSMutableString *formattedComment = [NSMutableString stringWithCapacity: [aComment length] + 100];
+  NSArray *paras = [aComment componentsSeparatedByString: @"\n\n"];
+  NSEnumerator *e = [paras objectEnumerator];
+  NSString *para = nil;
+  BOOL isFirstComment = (commentsRead == NO);
+
+  if (isFirstComment 
+   && ![self shouldInsertParagraphMarkupInFirstComment: aComment])
+    {
+      return aComment;
+    }
+
+  while ((para = [e nextObject]) != nil)
+    {
+      NSString *newPara = para;
+
+      if ([self canWrapWithParagraphMarkup: para])
+        newPara = [NSString stringWithFormat: @"<p>%@</p>", para];
+
+      [formattedComment appendString: newPara];
+    }
+
+  return formattedComment;
+}
+
 /**
  * In spite of its trivial name, this is one of the key methods -
  * it parses and skips past comments, but it also recognizes special
@@ -519,10 +617,23 @@ comment:
 	   */
 	  if (end > start)
 	    {
-	      NSString	*tmp;
-	      NSRange	r;
+	      NSString 		*tmp;
+	      NSRange		r;
+              NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
 
 	      tmp = [NSString stringWithCharacters: start length: end - start];
+
+              /* 
+               * If the comment does not contain block markup already and we 
+               * were asked to generate it, we insert <p> tags to get an 
+               * explicit paragraph structure.
+               */
+              if ([defs boolForKey: @"GenerateParagraphMarkup"])
+                {
+                  // FIXME: Should follow <ignore> processing and be called 
+                  // just before using -appendComment:to:
+                  tmp = [self generateParagraphMarkupForString: tmp]; 
+                }
 recheck:
 	      if (YES == ignore)
 		{
