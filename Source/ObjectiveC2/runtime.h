@@ -292,6 +292,8 @@ static const id self = nil;
 
 const char *sel_getName(SEL sel);
 
+const char *sel_getType_np(SEL sel);
+
 SEL sel_getUid(const char *selName);
 
 BOOL sel_isEqual(SEL sel1, SEL sel2);

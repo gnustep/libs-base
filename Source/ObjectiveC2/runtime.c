@@ -95,7 +95,7 @@ skip_argspec(const char *types)
   return types;
 }
 
-/** 
+/**
  * Looks up the instance method in a specific class, without recursing into
  * superclasses.
  */
@@ -1138,6 +1138,14 @@ sel_getName(SEL sel)
   if (sel == 0)
     return "<null selector>";
   return sel_get_name(sel);
+}
+
+const char *
+sel_getType_np(SEL sel)
+{
+  if (sel == 0)
+    return "";
+  return sel_get_type(sel);
 }
 
 SEL
