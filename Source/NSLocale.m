@@ -1,10 +1,10 @@
 /* NSLocale.m
-   
+
    Copyright (C) 2010 Free Software Foundation, Inc.
-   
+
    Written by: Stefan Bidigaray
    Date: June, 2010
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -17,8 +17,8 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; see the file COPYING.LIB.
-   If not, see <http://www.gnu.org/licenses/> or write to the 
-   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+   If not, see <http://www.gnu.org/licenses/> or write to the
+   Free Software Foundation, 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
 */
 
@@ -126,11 +126,11 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   NSMutableArray *currencies = [[NSMutableArray alloc] initWithCapacity: 10];
   UErrorCode error = U_ZERO_ERROR;
   UErrorCode status = U_ZERO_ERROR;
-  char *currCode;
+  const char *currCode;
   UEnumeration *codes = ucurr_openISOCurrencies (currType, &error);
   if (U_FAILURE(error))
     return nil;
-  
+
   do
     {
       int32_t strLength;
@@ -143,7 +143,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
       [currencies addObject: [NSString stringWithCString: currCode
                                                   length: strLength]];
     } while (NULL != currCode);
-  
+
   uenum_close (codes);
   result = [NSArray arrayWithArray: currencies];
   RELEASE (currencies);
@@ -165,12 +165,12 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 {
   // FIXME
   NSLocale *result;
-  
+
   [classLock lock];
   if (nil == autoupdatingLocale)
     {
     }
-  
+
   result = RETAIN(autoupdatingLocale);
   [classLock unlock];
   return AUTORELEASE(result);
@@ -180,7 +180,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 {
   static NSArray	*available = nil;
 
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   if (nil == available)
     {
       [classLock lock];
@@ -191,7 +191,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 	  int32_t 		count = uloc_countAvailable ();
 
 	  array = [[NSMutableArray alloc] initWithCapacity: count];
-  
+
 	  for (i = 1; i <= count; ++i)
 	    {
 	      const char *localeID = uloc_getAvailable (i);
@@ -222,14 +222,14 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 + (NSLocaleLanguageDirection) characterDirectionForLanguage:
     (NSString *)isoLangCode
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   ULayoutType result;
   UErrorCode status = U_ZERO_ERROR;
-  
+
   result = uloc_getCharacterOrientation ([isoLangCode cString], &status);
   if (U_FAILURE(status) || ULOC_LAYOUT_UNKNOWN == result)
     return NSLocaleLanguageDirectionUnknown;
-  
+
   return _ICUToNSLocaleOrientation (result);
 #else
   return NSLocaleLanguageDirectionLeftToRight;	// FIXME
@@ -238,14 +238,14 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 + (NSDictionary *) componentsFromLocaleIdentifier: (NSString *) string
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   char buffer[ULOC_LANG_CAPACITY];
   int32_t strLength;
   UErrorCode error = U_ZERO_ERROR;
   NSDictionary *result;
   NSMutableDictionary *tmpDict =
     [[NSMutableDictionary alloc] initWithCapacity: 5];
-  
+
   strLength =
     uloc_getLanguage ([string cString], buffer, ULOC_LANG_CAPACITY, &error);
   if (U_SUCCESS(error))
@@ -254,7 +254,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
                   forKey: NSLocaleLanguageCode];
     }
   error = U_ZERO_ERROR;
-  
+
   strLength =
     uloc_getCountry ([string cString], buffer, ULOC_COUNTRY_CAPACITY, &error);
   if (U_SUCCESS(error))
@@ -263,7 +263,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
                   forKey: NSLocaleCountryCode];
     }
   error = U_ZERO_ERROR;
-  
+
   strLength =
     uloc_getScript ([string cString], buffer, ULOC_SCRIPT_CAPACITY, &error);
   if (U_SUCCESS(error))
@@ -272,7 +272,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
                   forKey: NSLocaleScriptCode];
     }
   error = U_ZERO_ERROR;
-  
+
   strLength =
     uloc_getVariant ([string cString], buffer, ULOC_LANG_CAPACITY, &error);
   if (U_SUCCESS(error))
@@ -281,7 +281,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
                   forKey: NSLocaleVariantCode];
     }
   error = U_ZERO_ERROR;
-  
+
   result = [NSDictionary dictionaryWithDictionary: tmpDict];
   RELEASE(tmpDict);
   return result;
@@ -293,11 +293,11 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 + (id) currentLocale
 {
   NSLocale *result;
-  
+
   [classLock lock];
   if (nil == currentLocale)
     {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
       const char *cLocaleId = uloc_getDefault ();
       NSString *localeId = [NSString stringWithCString: cLocaleId];
       currentLocale = [[NSLocale alloc] initWithLocaleIdentifier: localeId];
@@ -310,7 +310,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 + (NSArray *) commonISOCurrencyCodes
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   return _currencyCodesWithType (UCURR_COMMON | UCURR_NON_DEPRECATED);
 #else
   return nil;	// FIXME
@@ -319,7 +319,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 + (NSArray *) ISOCurrencyCodes
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   return _currencyCodesWithType (UCURR_ALL);
 #else
   return nil;	// FIXME
@@ -335,7 +335,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
       [classLock lock];
       if (nil == countries)
 	{
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
 	  NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
 	  const char *const *codes = uloc_getISOCountries ();
 
@@ -361,7 +361,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
       [classLock lock];
       if (nil == languages)
 	{
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
 	  NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
 	  const char *const *codes = uloc_getISOCountries ();
 
@@ -380,14 +380,14 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 + (NSLocaleLanguageDirection) lineDirectionForLanguage: (NSString *) isoLangCode
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   ULayoutType result;
   UErrorCode status = U_ZERO_ERROR;
-  
+
   result = uloc_getLineOrientation ([isoLangCode cString], &status);
   if (U_FAILURE(status) || ULOC_LAYOUT_UNKNOWN == result)
     return NSLocaleLanguageDirectionUnknown;
-  
+
   return _ICUToNSLocaleOrientation (result);
 #else
   return NSLocaleLanguageDirectionTopToBottom;	// FIXME
@@ -404,12 +404,12 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 {
   // FIXME
   NSLocale *result;
-  
+
   [classLock lock];
   if (nil == systemLocale)
     {
     }
-  
+
   result = RETAIN(systemLocale);
   [classLock unlock];
   return AUTORELEASE(result);
@@ -417,7 +417,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 + (NSString *) localeIdentifierFromComponents: (NSDictionary *) dict
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   char buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status = U_ZERO_ERROR;
   const char *language = [[dict objectForKey: NSLocaleLanguageCode] cString];
@@ -426,13 +426,13 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   const char *variant = [[dict objectForKey: NSLocaleVariantCode] cString];
   const char *calendar = [[dict objectForKey: NSLocaleCalendar] cString];
   const char *collation = [[dict objectForKey: NSLocaleCollationIdentifier] cString];
-  
+
 #define __TEST_CODE(x) (x ? "_" : ""), (x ? x : "")
   snprintf (buffer, ULOC_FULLNAME_CAPACITY, "%s%s%s%s%s%s%s",
     (language ? language : ""), __TEST_CODE(script),
     __TEST_CODE(country), __TEST_CODE(variant));
 #undef __TEST_CODE
-  
+
   if (calendar)
     {
       uloc_setKeywordValue (ICUCalendarKeyword, calendar, buffer,
@@ -443,7 +443,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
       uloc_setKeywordValue (ICUCollationKeyword, collation, buffer,
         ULOC_FULLNAME_CAPACITY, &status);
     }
-  
+
   return [NSString stringWithCString: buffer];
 #else
   return nil;	// FIXME
@@ -452,15 +452,15 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 + (NSString *) localeIdentifierFromWindowsLocaleCode: (uint32_t) lcid
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   char buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status = U_ZERO_ERROR;
-  
+
   int32_t length =
     uloc_getLocaleForLCID (lcid, buffer, ULOC_FULLNAME_CAPACITY, &status);
   if (U_FAILURE(status))
     return nil;
-  
+
   return [NSString stringWithCString: buffer length: (NSUInteger)length];
 #else
   return nil;	// FIXME
@@ -469,7 +469,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 + (uint32_t) windowsLocaleCodeFromLocaleIdentifier: (NSString *)localeIdentifier
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   return uloc_getLCID ([localeIdentifier cString]);
 #else
   return 0;	// FIXME
@@ -478,18 +478,18 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 - (NSString *) displayNameForKey: (id) key value: (id) value
 {
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   int32_t length;
   unichar buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status;
   const char *locale = [[self localeIdentifier] cString];
-  
+
   length = uloc_getDisplayKeywordValue (locale, [key cString],
     [value cString], (UChar *)buffer, sizeof(buffer)/sizeof(unichar),
     &status);
   if (U_FAILURE(status))
     return nil;
-  
+
   return [NSString stringWithCharacters: buffer length: (NSUInteger)length];
 #else
   return nil;	// FIXME
@@ -500,11 +500,11 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 {
   NSLocale	*newLocale;
   NSString	*localeId;
-#if	HAVE_ICU
+#if	GS_USE_ICU == 1
   int32_t	length;
   char cLocaleId[ULOC_FULLNAME_CAPACITY];
   UErrorCode error = U_ZERO_ERROR;
-  
+
   length = uloc_canonicalize ([string cString], cLocaleId,
     ULOC_FULLNAME_CAPACITY, &error);
   if (U_FAILURE(error))
@@ -516,7 +516,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 #else
   localeId = string;
 #endif
-  
+
   [classLock lock];
   if (nil == allLocales)
     {
@@ -533,8 +533,8 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
       [self release];
       self = [newLocale retain];
     }
-  [classLock unlock]; 
-  
+  [classLock unlock];
+
   return self;
 }
 
@@ -547,13 +547,13 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 {
   // FIXME: this is really messy...
   id result;
-  
+
   if (key == NSLocaleIdentifier)
     return _localeId;
-  
+
   if ((result = [_components objectForKey: key]))
     return result;
-  
+
   if ([_components count] == 0)
     {
       [_components addEntriesFromDictionary:
@@ -562,7 +562,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 	return result;
     }
   // FIXME: look up other keywords with uloc_getKeywordValue().
-  
+
   return nil;
 }
 

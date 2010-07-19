@@ -1,3 +1,12 @@
+2010-07-19  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Additions/GNUstepBase/GSConfig.h: Define GS_USE_ICU when
+	  the configure script indicates libicu availablity.
+	* Headers/Foundation/Foundation.h: Import NSLocale.h
+	* Source/NSLocale.m: Change tests to use GS_USE_ICU.
+	Make sure that the parts of NSLocale relying on ICU actually get built
+	when libicu is available.
+
 2010-07-17  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Tools/autogsdoc.m:
