@@ -247,11 +247,11 @@ static NSStringEncoding internalEncoding = NSISOLatin1StringEncoding;
  * initialized, and caches classes and some method implementations.
  */
 static void
-setup(void)
+setup(BOOL rerun)
 {
   static BOOL	beenHere = NO;
 
-  if (beenHere == NO)
+  if (!beenHere || rerun)
     {
       beenHere = YES;
 
@@ -325,7 +325,7 @@ static void getCString_u(GSStr self, char *buffer, unsigned int maxLength,
 @implementation GSPlaceholderString
 + (void) initialize
 {
-  setup();
+  setup(NO);
 }
 
 - (id) autorelease
@@ -2817,7 +2817,11 @@ transmute(GSStr self, NSString *aString)
 
 + (void) initialize
 {
-  setup();
+  setup(NO);
+}
++ (void) reinitialize
+{
+  setup(YES);
 }
 
 /*
@@ -3637,7 +3641,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 + (void) initialize
 {
-  setup();
+  setup(NO);
   GSObjCAddClassBehavior(self, [GSString class]);
 }
 
