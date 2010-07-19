@@ -1,3 +1,9 @@
+2010-07-19  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/ObjectiveC2/runtime.c:
+	* Source/ObjectiveC2/runtime.h:
+	Add sel_getType_np(), which just calls sel_get_type().
+
 2010-07-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: User domain handling improvements.
