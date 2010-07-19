@@ -2179,6 +2179,13 @@ handle_printf_atsign (FILE *stream,
 {
   if ([self hash] != [aString hash])
     return NO;
+
+  // Note: This is entirely wrong, stupid, and breaks the spirit of
+  // Objective-C.  Unfortunately, it's What Apple Does, so we are stuck with
+  // it.
+  if ([aString isProxy] || ![aString isKindOfClass: [self class]])
+    return NO;
+
   if (strCompNsNs(self, aString, 0, (NSRange){0, [self length]})
     == NSOrderedSame)
     return YES;
