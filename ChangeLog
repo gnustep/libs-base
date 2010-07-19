@@ -1,3 +1,15 @@
+2010-07-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: User domain handling improvements.
+	Match gnustep-make in allowing absolute paths to be specified for the
+	user domain directories rather than always treating user domain paths
+	as being within the user's home directory.
+	Also, add support for simple field substitution into the path:
+	'%u' --> user name
+	'%i' --> user id
+	'%%' --> '%'
+	* Documentation/Base.gsdoc: Document the new behavior.
+
 2010-07-19  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Additions/GNUstepBase/GSConfig.h: Define GS_USE_ICU when
