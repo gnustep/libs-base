@@ -31,7 +31,7 @@
 
 #if !defined(NeXT_Foundation_LIBRARY)
 
-/* An alternate to GS_FAKE_MAIN which forces the user to call the 
+/* An alternate to GS_FAKE_MAIN which forces the user to call the
    NSProcessInfo initialization in 'main', GS_FAKE_MAIN must also
    be undefined. */
 #if @GS_PASS_ARGUMENTS@
@@ -223,6 +223,7 @@ typedef	struct {
 #define GS_MIXEDABI     @GS_MIXEDABI@
 #define GS_USE_AVAHI @HAVE_AVAHI@
 #define GS_USE_MDNS @HAVE_MDNS@
+#define GS_USE_ICU @HAVE_ICU@
 #import <GNUstepBase/preface.h>
 
 #endif	/* included_GSConfig_h */
