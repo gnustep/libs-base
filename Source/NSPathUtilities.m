@@ -119,6 +119,7 @@ static NSString	*gnustep_is_flattened =
 
 #if	defined(__MINGW__)
 
+#include	<sddl.h>
 #include	<lmaccess.h>
 
 /*
@@ -946,6 +947,7 @@ static void InitialisePathUtilities(void)
 	unichar buf[1024];
 	SID_NAME_USE use;
         SID sid;
+	LPTSTR str;
 	DWORD n = 1024;
 
 	if (GetUserNameW(buf, &n) == 0 || buf[0] == '\0')
@@ -954,12 +956,17 @@ static void InitialisePathUtilities(void)
 			format: @"Unable to determine current user name"];
 	  }
 	n = sizeof(SID);
-	if (LookupAccountName(0, buf, &sid, &n, NULL, 0, &use) == 0)
+	if (LookupAccountNameW(0, buf, &sid, &n, NULL, 0, &use) == 0)
 	  {
 	    [NSException raise: NSInternalInconsistencyException
 			format: @"Unable to determine current account"];
 	  }
-        gnustepUserID = [[NSString alloc] initWithFormat: @"%ld", (long)sid];
+	if (ConvertSidToStringSid(&sid, &str) == 0)
+	  {
+	    [NSException raise: NSInternalInconsistencyException
+			format: @"Unable to get current user ID string"];
+	  }
+        gnustepUserID = [[NSString alloc] initWithUTF8String: str];
       }
 #else
       gnustepUserID = [[NSString alloc] initWithFormat: @"%ld", (long)getuid()];
