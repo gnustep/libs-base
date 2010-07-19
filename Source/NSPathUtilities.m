@@ -138,6 +138,8 @@ static NSString	*gnustep_is_flattened =
 static NSString	*gnustepConfigPath = nil;
 
 static NSString *gnustepUserHome = nil;
+static NSString *gnustepUserID = nil;
+static NSString *gnustepUserName = nil;
 static NSString *gnustepUserDefaultsDir = nil;
 
 static NSString *theUserName = nil;             /* The user's login name */
@@ -236,8 +238,29 @@ static void ShutdownPathUtilities(void);
     }\
 })
 
+/* Grab a path from the config file, making it relative to the config
+ * file location if it begins with './' or '../', and checking that the
+ * result is an absolute path.
+ */
 #define ASSIGN_PATH(var, dictionary, key) ({\
   id val = getPathConfig(dictionary, key);\
+  if (val != nil)\
+    {\
+      RELEASE(var);\
+      var = RETAIN(val);\
+      [dictionary removeObjectForKey: key];\
+    }\
+})
+
+/* Like ASSIGN_PATH(), but permits the result to be a relative path as that
+ * is what we normally use (the path is within the user's home directory).
+ */
+#define ASSIGN_USER(var, dictionary, key) ({\
+  id val = [dictionary objectForKey: key];\
+  if (val != nil)\
+    {\
+      val = getPath(val);\
+    }\
   if (val != nil)\
     {\
       RELEASE(var);\
@@ -262,6 +285,77 @@ static void ShutdownPathUtilities(void);
     }\
   })
 
+/* The user domain paths are normally located within the user's home directory,
+ * but if they are specified as absolute paths they can be anywhere you like.
+ *
+ */
+#define ASSIGN_USER_PATH(var, val) ({\
+  if (nil == var) \
+    {\
+      ASSIGN(var, ([val isAbsolutePath] ? substUser(val) : \
+        [gnustepUserHome stringByAppendingPathComponent: substUser(val)]));\
+    }\
+  })
+
+/* For user domain paths, we allow '%u' as the username, '%i' as the userid,
+ * and '%%' as a '%' in cases where it would otherwise be treated as a
+ * username  or userid.
+ */
+static NSString*
+substUser(NSString *str)
+{
+  if (str != nil && [str rangeOfString: @"%"].length > 0)
+    {
+      NSMutableString	*m = [[str mutableCopy] autorelease];
+      int		l = [m length];
+      int		i = 0;
+      BOOL		percent = NO;
+
+      while (i < l)
+	{
+          unichar	c = [m characterAtIndex: i];
+
+	  if (YES == percent)
+	    {
+	      NSString	*s;
+
+	      if (c == '%')
+		{
+		  s = @"%";		// Escaped percent
+		}
+	      else if (c == 'i')
+		{
+		  s = gnustepUserID;	// User ID
+		}
+	      else if (c == 'u')
+		{
+		  s = gnustepUserName;	// User name
+		}
+	      else
+		{
+		  s = nil;		// No substitution
+		}
+	      if (s != nil)
+		{
+		  int	diff = [s length] - 2;
+
+		  [m replaceCharactersInRange: NSMakeRange(i-1, 2)
+				   withString: s];
+		  l += diff;
+		  i += diff;
+		}
+	      percent = NO;
+	    }
+	  else if (c == '%')
+	    {
+	      percent = YES;
+	    }
+	  i++;
+	}
+      str = m;
+    }
+  return str;
+}
 
 /* Get a full path string */
 static inline NSString *
@@ -302,8 +396,8 @@ getPathConfig(NSDictionary *dict, NSString *key)
 	      unichar	buf[3];
 
 	      [path getCharacters: buf range: NSMakeRange(0, 3)];
-	      if ((buf[0] == '/' || bug[0] == '\\') && isalpha(buf[1])
-		&& (buf[2] == '/' || bug[2] == '\\'))
+	      if ((buf[0] == '/' || buf[0] == '\\') && isalpha(buf[1])
+		&& (buf[2] == '/' || buf[2] == '\\'))
 		{
 		  path = [NSString stringWithFormat: @"%c:%@", (char)buf[1],
 		    [path substringFromindex: 2]];
@@ -370,27 +464,27 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_PATH(gnustepLocalDocumentationMan, c, @"GNUSTEP_LOCAL_DOC_MAN");
   ASSIGN_PATH(gnustepLocalDocumentationInfo, c, @"GNUSTEP_LOCAL_DOC_INFO");
 
-  ASSIGN_IF_SET(gnustepUserDirApps, c, @"GNUSTEP_USER_DIR_APPS");
+  ASSIGN_USER(gnustepUserDirApps, c, @"GNUSTEP_USER_DIR_APPS");
   TEST_ASSIGN(gnustepUserDirApps, @GNUSTEP_TARGET_USER_DIR_APPS);
-  ASSIGN_IF_SET(gnustepUserDirAdminApps, c, @"GNUSTEP_USER_DIR_ADMIN_APPS");
+  ASSIGN_USER(gnustepUserDirAdminApps, c, @"GNUSTEP_USER_DIR_ADMIN_APPS");
   TEST_ASSIGN(gnustepUserDirAdminApps, @GNUSTEP_TARGET_USER_DIR_ADMIN_APPS);
-  ASSIGN_IF_SET(gnustepUserDirWebApps, c, @"GNUSTEP_USER_DIR_WEB_APPS");
+  ASSIGN_USER(gnustepUserDirWebApps, c, @"GNUSTEP_USER_DIR_WEB_APPS");
   TEST_ASSIGN(gnustepUserDirWebApps, @GNUSTEP_TARGET_USER_DIR_WEB_APPS);
-  ASSIGN_IF_SET(gnustepUserDirTools, c, @"GNUSTEP_USER_DIR_TOOLS");
+  ASSIGN_USER(gnustepUserDirTools, c, @"GNUSTEP_USER_DIR_TOOLS");
   TEST_ASSIGN(gnustepUserDirTools, @GNUSTEP_TARGET_USER_DIR_TOOLS);
-  ASSIGN_IF_SET(gnustepUserDirAdminTools, c, @"GNUSTEP_USER_DIR_ADMIN_TOOLS");
+  ASSIGN_USER(gnustepUserDirAdminTools, c, @"GNUSTEP_USER_DIR_ADMIN_TOOLS");
   TEST_ASSIGN(gnustepUserDirAdminTools, @GNUSTEP_TARGET_USER_DIR_ADMIN_TOOLS);
-  ASSIGN_IF_SET(gnustepUserDirLibrary, c, @"GNUSTEP_USER_DIR_LIBRARY");
+  ASSIGN_USER(gnustepUserDirLibrary, c, @"GNUSTEP_USER_DIR_LIBRARY");
   TEST_ASSIGN(gnustepUserDirLibrary, @GNUSTEP_TARGET_USER_DIR_LIBRARY);
-  ASSIGN_IF_SET(gnustepUserDirLibraries, c, @"GNUSTEP_USER_DIR_LIBRARIES");
+  ASSIGN_USER(gnustepUserDirLibraries, c, @"GNUSTEP_USER_DIR_LIBRARIES");
   TEST_ASSIGN(gnustepUserDirLibraries, @GNUSTEP_TARGET_USER_DIR_LIBRARIES);
-  ASSIGN_IF_SET(gnustepUserDirHeaders, c, @"GNUSTEP_USER_DIR_HEADERS");
+  ASSIGN_USER(gnustepUserDirHeaders, c, @"GNUSTEP_USER_DIR_HEADERS");
   TEST_ASSIGN(gnustepUserDirHeaders, @GNUSTEP_TARGET_USER_DIR_HEADERS);
-  ASSIGN_IF_SET(gnustepUserDirDocumentation, c, @"GNUSTEP_USER_DIR_DOC");
+  ASSIGN_USER(gnustepUserDirDocumentation, c, @"GNUSTEP_USER_DIR_DOC");
   TEST_ASSIGN(gnustepUserDirDocumentation, @GNUSTEP_TARGET_USER_DIR_DOC);
-  ASSIGN_IF_SET(gnustepUserDirDocumentationMan, c, @"GNUSTEP_USER_DIR_DOC_MAN");
+  ASSIGN_USER(gnustepUserDirDocumentationMan, c, @"GNUSTEP_USER_DIR_DOC_MAN");
   TEST_ASSIGN(gnustepUserDirDocumentationMan, @GNUSTEP_TARGET_USER_DIR_DOC_MAN);
-  ASSIGN_IF_SET(gnustepUserDirDocumentationInfo, c, @"GNUSTEP_USER_DIR_DOC_INFO");
+  ASSIGN_USER(gnustepUserDirDocumentationInfo, c, @"GNUSTEP_USER_DIR_DOC_INFO");
   TEST_ASSIGN(gnustepUserDirDocumentationInfo, @GNUSTEP_TARGET_USER_DIR_DOC_INFO);
 
   /*
@@ -486,41 +580,17 @@ static void ExtractValuesFromConfig(NSDictionary *config)
    * Set the GNUSTEP_USER_xxx variables from the user home and the
    * GNUSTEP_USER_DIR_xxx variables.
    */
-  ASSIGN(gnustepUserApps,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirApps]);
-
-  ASSIGN(gnustepUserAdminApps,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirAdminApps]);
-
-  ASSIGN(gnustepUserWebApps,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirWebApps]);
-
-  ASSIGN(gnustepUserTools,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirTools]);
-
-  ASSIGN(gnustepUserAdminTools,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirAdminTools]);
-
-  ASSIGN(gnustepUserLibrary,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirLibrary]);
-
-  ASSIGN(gnustepUserLibraries,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirLibraries]);
-
-  ASSIGN(gnustepUserHeaders,
-    [gnustepUserHome stringByAppendingPathComponent: gnustepUserDirHeaders]);
-
-  ASSIGN(gnustepUserDocumentation,
-    [gnustepUserHome stringByAppendingPathComponent: 
-		       gnustepUserDocumentation]);
-
-  ASSIGN(gnustepUserDocumentationMan,
-    [gnustepUserHome stringByAppendingPathComponent: 
-		       gnustepUserDocumentationMan]);
-
-  ASSIGN(gnustepUserDocumentationInfo,
-    [gnustepUserHome stringByAppendingPathComponent: 
-		       gnustepUserDocumentationInfo]);
+  ASSIGN_USER_PATH(gnustepUserApps, gnustepUserDirApps);
+  ASSIGN_USER_PATH(gnustepUserAdminApps, gnustepUserDirAdminApps);
+  ASSIGN_USER_PATH(gnustepUserWebApps, gnustepUserDirWebApps);
+  ASSIGN_USER_PATH(gnustepUserTools, gnustepUserDirTools);
+  ASSIGN_USER_PATH(gnustepUserAdminTools, gnustepUserDirAdminTools);
+  ASSIGN_USER_PATH(gnustepUserLibrary, gnustepUserDirLibrary);
+  ASSIGN_USER_PATH(gnustepUserLibraries, gnustepUserDirLibraries);
+  ASSIGN_USER_PATH(gnustepUserHeaders, gnustepUserDirHeaders);
+  ASSIGN_USER_PATH(gnustepUserDocumentation, gnustepUserDocumentation);
+  ASSIGN_USER_PATH(gnustepUserDocumentationMan, gnustepUserDocumentationMan);
+  ASSIGN_USER_PATH(gnustepUserDocumentationInfo, gnustepUserDocumentationInfo);
 
   /*
    * Try to ensure that essential user directories exist.
@@ -867,14 +937,36 @@ static void InitialisePathUtilities(void)
   /* Set up our root paths */
   NS_DURING
     {
-      NSString			*userName;
       NSMutableDictionary	*config;
 
       [gnustep_global_lock lock];
-      userName = NSUserName();
+      gnustepUserName = [NSUserName() copy];
+#if defined(__MINGW__)
+      {
+	unichar buf[1024];
+	SID_NAME_USE use;
+        SID sid;
+	DWORD n = 1024;
+
+	if (GetUserNameW(buf, &n) == 0 || buf[0] == '\0')
+	  {
+	    [NSException raise: NSInternalInconsistencyException
+			format: @"Unable to determine current user name"];
+	  }
+	n = sizeof(SID);
+	if (LookupAccountName(0, buf, &sid, &n, NULL, 0, &use) == 0)
+	  {
+	    [NSException raise: NSInternalInconsistencyException
+			format: @"Unable to determine current account"];
+	  }
+        gnustepUserID = [[NSString alloc] initWithFormat: @"%ld", (long)sid];
+      }
+#else
+      gnustepUserID = [[NSString alloc] initWithFormat: @"%ld", (long)getuid()];
+#endif
       config = GNUstepConfig(nil);
-      GNUstepUserConfig(config, userName);
-      ASSIGNCOPY(gnustepUserHome, NSHomeDirectoryForUser(userName));
+      GNUstepUserConfig(config, gnustepUserName);
+      gnustepUserHome = [NSHomeDirectoryForUser(gnustepUserName) copy];
       ExtractValuesFromConfig(config);
 
       [gnustep_global_lock unlock];
@@ -894,6 +986,8 @@ static void InitialisePathUtilities(void)
 static void ShutdownPathUtilities(void)
 {
   DESTROY(gnustepUserHome);
+  DESTROY(gnustepUserID);
+  DESTROY(gnustepUserName);
   DESTROY(gnustepUserDefaultsDir);
 
   DESTROY(gnustepMakefiles);
