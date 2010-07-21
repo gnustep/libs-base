@@ -944,27 +944,35 @@ static void InitialisePathUtilities(void)
       gnustepUserName = [NSUserName() copy];
 #if defined(__MINGW__)
       {
+        union {
+	  SID	sid;
+	  char	dummy[1024];
+	} s;
+	LPTSTR	str;
 	unichar buf[1024];
+	unichar dom[1024];
 	SID_NAME_USE use;
-        SID sid;
-	LPTSTR str;
-	DWORD n = 1024;
+	DWORD bsize = 1024;
+	DWORD ssize = 1024;
 
-	if (GetUserNameW(buf, &n) == 0 || buf[0] == '\0')
+	if (GetUserNameW(buf, &bsize) == 0 || buf[0] == '\0')
 	  {
 	    [NSException raise: NSInternalInconsistencyException
-			format: @"Unable to determine current user name"];
+			format: @"Unable to determine current user name: %@",
+	      [NSError _last]];
 	  }
-	n = sizeof(SID);
-	if (LookupAccountNameW(0, buf, &sid, &n, NULL, 0, &use) == 0)
+	bsize = 1024;
+	if (LookupAccountNameW(0, buf, &s.sid, &ssize, dom, &bsize, &use) == 0)
 	  {
 	    [NSException raise: NSInternalInconsistencyException
-			format: @"Unable to determine current account"];
+			format: @"Unable to determine current account: %@",
+	      [NSError _last]];
 	  }
-	if (ConvertSidToStringSid(&sid, &str) == 0)
+	if (ConvertSidToStringSid(&s.sid, &str) == 0)
 	  {
 	    [NSException raise: NSInternalInconsistencyException
-			format: @"Unable to get current user ID string"];
+			format: @"Unable to get current user ID string: %@",
+	      [NSError _last]];
 	  }
         gnustepUserID = [[NSString alloc] initWithUTF8String: str];
       }
