@@ -653,7 +653,7 @@ handle_printf_atsign (FILE *stream,
 	  return obj;
 	}
     }
-  else if (GSObjCIsKindOf(self, GSStringClass) == YES)
+  else if ([self isKindOfClass: GSStringClass] == YES)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Called +allocWithZone: on private string class"];
@@ -2158,14 +2158,9 @@ handle_printf_atsign (FILE *stream,
     }
   if (anObject != nil && GSObjCIsInstance(anObject) == YES)
     {
-      Class c = object_getClass(anObject);
-
-      if (c != nil)
+      if ([anObject isKindOfClass: NSStringClass])
 	{
-	  if (GSObjCIsKindOf(c, NSStringClass))
-	    {
-	      return [self isEqualToString: anObject];
-	    }
+	  return [self isEqualToString: anObject];
 	}
     }
   return NO;
@@ -2178,12 +2173,6 @@ handle_printf_atsign (FILE *stream,
 - (BOOL) isEqualToString: (NSString*)aString
 {
   if ([self hash] != [aString hash])
-    return NO;
-
-  // Note: This is entirely wrong, stupid, and breaks the spirit of
-  // Objective-C.  Unfortunately, it's What Apple Does, so we are stuck with
-  // it.
-  if ([aString isProxy] || ![aString isKindOfClass: [self class]])
     return NO;
 
   if (strCompNsNs(self, aString, 0, (NSRange){0, [self length]})
