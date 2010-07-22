@@ -1,3 +1,17 @@
+2010-07-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Change to use ([-isKindOfClass:]) in a couple
+	of places. Revert David's last change entirely ... in the svn log
+	he said: 'Do the same stupid thing Apple does (return NO), rather
+	than the stupid thing we were doing (segfault), when passing a proxy
+	as the argument to [NSString isEqualToString:]', but this comment
+	seems to be almost entirely wrong as:
+	1. we don't segfault (on my machines ... perhaps we do on other
+	systems but if so we should find the underlying bug and fix it)
+	2. Apple (OSX Snow Leopard) doesn't behave that way ... the testsuite
+	(NSProxy test00.m) shows it behaving the saem way as GNUstep.
+	3. The change also broke string subclasses (bug #30511)
+
 2010-07-19  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/ObjectiveC2/runtime.c:
