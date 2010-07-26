@@ -1,3 +1,11 @@
+2010-07-26  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* Source/NSBundle.m ([+_addFrameworkFromClass:]): Added support
+	for class lists of frameworks with a relative path.  If the
+	framework path is relative, convert it to absolute by prepending
+	the launch directory to it, since that must be how the dynamic
+	linker located the framework to load it.
+
 2010-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Change to use ([-isKindOfClass:]) in a couple

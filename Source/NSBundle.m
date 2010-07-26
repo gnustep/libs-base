@@ -556,11 +556,24 @@ _find_main_bundle_for_tool(NSString *toolName)
 	{
 	  NSString *pathComponent;
 
+	  /* bundlePath should really be an absolute path; we
+	   * recommend you use only absolute paths in LD_LIBRARY_PATH.
+	   *
+	   * If it isn't, we try to survive the situation; we assume
+	   * it's relative to the launch directory.  That's how the
+	   * dynamic linker would have found it after all.  This is
+	   * fragile though, so please use absolute paths.
+	   */
+	  if ([bundlePath isAbsolutePath] == NO)
+	    {
+	      bundlePath = [_launchDirectory 
+			     stringByAppendingPathComponent: bundlePath];
+
+	    }
+	  
 	  /* Dereference symlinks, and standardize path.  This will
 	   * only work properly if the original bundlePath is
-	   * absolute.  This should normally be the case if, as
-	   * recommended, you use only absolute paths in
-	   * LD_LIBRARY_PATH.
+	   * absolute.  
 	   */
 	  bundlePath = [bundlePath stringByStandardizingPath];
 
@@ -607,7 +620,8 @@ _find_main_bundle_for_tool(NSString *toolName)
 		[NSString stringWithFormat: @"%@%@", name, @".framework"]];
 	    }
 #else
-	  /* There are no Versions on MinGW.  Skip the Versions check here.  */
+	  /* There are no Versions on MinGW.  So the version check is only
+	   * done on non-MinGW.  */
 	  /* version name */
 	  bundlePath = [bundlePath stringByDeletingLastPathComponent];
 
@@ -686,7 +700,6 @@ _find_main_bundle_for_tool(NSString *toolName)
 	  Class    class = NSClassFromString(*fmClasses);
 
 	  value = [NSValue valueWithPointer: (void*)class];
-	
 	  [bundle->_bundleClasses addObject: value];
 	
 	  fmClasses++;
