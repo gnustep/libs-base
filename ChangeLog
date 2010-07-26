@@ -1,5 +1,13 @@
 2010-07-26  Nicola Pero  <nicola.pero@meta-innovation.com>
 
+	* Documentation/GNUmakefile (REF_DOC_INSTALL_DIR): Use
+	GNUSTEP_DOC, not GNUSTEP_DOCUMENTATION, which has been deprecated
+	for over 3 years.
+	* Documentation/Makefile.postamble (after-uninstall): Rewritten to
+	be more accurate.
+
+2010-07-26  Nicola Pero  <nicola.pero@meta-innovation.com>
+
 	* Source/NSBundle.m ([+_addFrameworkFromClass:]): Added support
 	for class lists of frameworks with a relative path.  If the
 	framework path is relative, convert it to absolute by prepending

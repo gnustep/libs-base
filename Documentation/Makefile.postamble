@@ -81,7 +81,10 @@ endif
 
 # Things to do after uninstalling
 after-uninstall::
-	rm -rf $(REF_DOC_INSTALL_DIR)
+	rm -rf $(REF_DOC_INSTALL_DIR)/Base/Reference
+	rm -rf $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference
+	rm -rf $(REF_DOC_INSTALL_DIR)/Tools/Reference
+	-rmdir $(REF_DOC_INSTALL_DIR)
 
 # Things to do before cleaning
 # before-clean::
