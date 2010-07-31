@@ -66,6 +66,7 @@
   BOOL		verbose;
   BOOL		warn;
   BOOL		standards;
+  BOOL          inUnclosedExample;
   NSDictionary		*wordMap;
   NSString		*declared;	/** Where classes were declared. */
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */

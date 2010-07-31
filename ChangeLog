@@ -1,3 +1,12 @@
+2010-07-31  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	(-canWrapWithParagraphMarkup:, -generateParagraphMarkupForString:):
+	Tweaked paragraph generation to ignore \n\n sequences inside <example> 
+	markup.
+	(-parseDeclaration): Added enum documentation parsing.
+
 2010-07-26  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Documentation/GNUmakefile (REF_DOC_INSTALL_DIR): Use
