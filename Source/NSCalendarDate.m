@@ -682,6 +682,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   int		sec = 0;
   NSTimeZone	*tz = nil;
   BOOL		ampm = NO;
+  BOOL		isPM = NO;
   BOOL		twelveHrClock = NO;
   int		julianWeeks = -1, weekStartsMonday = 0, dayOfWeek = -1;
   const char	*source;
@@ -1184,11 +1185,16 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		       * The time addition is handled below because this
 		       * indicator only modifies the time on a 12hour clock.
 		       */
-		      if ([[amPMNames objectAtIndex: 1] isEqual:
-			currAMPM] == YES)
-			{
-			  ampm = YES;
-			}
+                      if ([[amPMNames objectAtIndex: 0] isEqual:currAMPM])
+                        {
+                          ampm = YES;
+                          isPM = NO;
+                        }
+                      else if ([[amPMNames objectAtIndex: 1] isEqual:currAMPM])
+                        {
+                          ampm = YES;
+                          isPM = YES;
+                        }
 		    }
 		    break;
 
@@ -1294,16 +1300,24 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		      /* Abbreviations aren't one-to-one with time zone names
 			 so just look for the zone named after the abbreviation,
 			 then look up the abbreviation as a last resort */
-		      tz = [NSTimeZone timeZoneWithName: z];
-		      if (tz == nil)
-			{
-			  tz = [NSTimeZone timeZoneWithAbbreviation: z];
-			  if (tz == nil)
+		      if ([z length] > 0)
+		        {
+		          tz = [NSTimeZone timeZoneWithName: z];
+		          if (tz == nil)
 			    {
-			      error = YES;
-			      NSDebugMLog(@"Time zone '%@' not found", z);
+			      tz = [NSTimeZone timeZoneWithAbbreviation: z];
+			      if (tz == nil)
+			        {
+			          error = YES;
+			          NSDebugMLog(@"Time zone '%@' not found", z);
+			        }
 			    }
-			}
+		        }
+                      else
+                        {
+                           error = YES;
+                           NSDebugMLog(@"Time zone not given");
+                        }
 		    }
 		    break;
 
@@ -1328,12 +1342,16 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	}
 
       if (twelveHrClock == YES)
-	{
-	  if (ampm == YES && hour != 12)
-	    {
-	      hour += 12;
-	    }
-	}
+        {
+          if (ampm == YES && isPM == YES && hour != 12)
+            {
+              hour += 12;
+            }
+          else if (ampm == YES && isPM == NO && hour == 12)
+            {
+              hour = 0; // 12 AM
+            }
+        }
 
       if (julianWeeks != -1)
 	{
