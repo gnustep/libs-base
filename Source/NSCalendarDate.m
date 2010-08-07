@@ -1167,6 +1167,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		     * matching for longest values first, rather than (wrongly)
 		     * assuming the name is always two uppercase letters.
 		     */
+		    twelveHrClock = YES;
 		    tmpStr[0] = toupper(source[sourceIdx]);
 		    if (sourceIdx < sourceLen)
 		      sourceIdx++;
