@@ -228,7 +228,6 @@ pty_slave(const char* name)
 
 @interface NSTask (Private)
 - (NSString *) _fullLaunchPath;
-- (void) _sendNotification;
 - (void) _collectChild;
 - (void) _terminatedChild: (int)status;
 @end
@@ -259,8 +258,22 @@ pty_slave(const char* name)
       if (tasksLock == nil)
         {
           tasksLock = [NSRecursiveLock new];
+	  /* The activeTasks map contains all task objects corresponding
+	   * to running subtasks, and retains them until the subtask
+	   * actually terminates.
+	   * The previous implementation stored non-retained objects and
+	   * the -finalize method removed them from the table, but this
+	   * caused a thread safety issue event though table access was
+	   * lock protected:
+	   * If thread1 releases the task at the same time that the subtask
+	   * dies and is 'reaped' by thread2, then there is a window such
+	   * that thread1 can enter -dealloc while thread2 is retaining the
+	   * object in an NSNotification.  Then thread1 completes deallocation
+	   * while thread2 performs the notification.  Then thread2 tries to
+	   * release the object ... but it's already deallocated.
+	   */
           activeTasks = NSCreateMapTable(NSIntMapKeyCallBacks,
-                NSNonOwnedPointerMapValueCallBacks, 0);
+                NSObjectMapValueCallBacks, 0);
         }
       [gnustep_global_lock unlock];
 
@@ -288,9 +301,7 @@ pty_slave(const char* name)
 
 - (void) finalize
 {
-  [tasksLock lock];
-  NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
-  [tasksLock unlock];
+  return;
 }
 
 - (void) dealloc
@@ -880,8 +891,20 @@ pty_slave(const char* name)
   return val;
 }
 
-- (void) _sendNotification
+- (void) _collectChild
 {
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) _terminatedChild: (int)status
+{
+  [tasksLock lock];
+  IF_NO_GC([[self retain] autorelease];)
+  NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
+  [tasksLock unlock];
+  _terminationStatus = status;
+  _hasCollected = YES;
+  _hasTerminated = YES;
   if (_hasNotified == NO)
     {
       NSNotification	*n;
@@ -895,25 +918,6 @@ pty_slave(const char* name)
 		    postingStyle: NSPostASAP
 		    coalesceMask: NSNotificationNoCoalescing
 			forModes: nil];
-    }
-}
-
-- (void) _collectChild
-{
-  [self subclassResponsibility: _cmd];
-}
-
-- (void) _terminatedChild: (int)status
-{
-  [tasksLock lock];
-  NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
-  [tasksLock unlock];
-  _terminationStatus = status;
-  _hasCollected = YES;
-  _hasTerminated = YES;
-  if (_hasNotified == NO)
-    {
-      [self _sendNotification];
     }
 }
 
@@ -1005,7 +1009,9 @@ static DWORD WINAPI _threadFunction(LPVOID t)
       NSConcreteWindowsTask	*task;
 
       [tasksLock lock];
-      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks, (void*)(intptr_t) taskId);
+      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks,
+	(void*)(intptr_t) taskId);
+      IF_NO_GC([[task retain] autorelease];)
       [tasksLock unlock];
       if (task == nil)
 	{
@@ -1344,6 +1350,7 @@ GSPrivateCheckTasks()
 #if	defined(WAITDEBUG)
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
+	      IF_NO_GC([[t retain] autorelease];)
 	      [tasksLock unlock];
 	      if (t != nil)
 		{
@@ -1356,7 +1363,7 @@ GSPrivateCheckTasks()
 	    {
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
-	      IF_NO_GC(AUTORELEASE(RETAIN(t));)
+	      IF_NO_GC([[t retain] autorelease];)
 	      [tasksLock unlock];
 	      if (t != nil)
 		{
