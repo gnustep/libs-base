@@ -717,7 +717,7 @@ enum proxyLocation
 	  if ((uintptr_t)object_getClass(_protocol) == 0x2)
 	    {
 	      extern struct objc_method_description*
-		GSDescriptionForInstanceMethod();
+		GSDescriptionForInstanceMethod(Protocol *self, SEL aSel);
 	      mth = GSDescriptionForInstanceMethod(_protocol, aSelector);
 	    }
 	  else
@@ -729,7 +729,7 @@ enum proxyLocation
 	      if ((uintptr_t)object_getClass(_protocol) == 0x2)
 		{
 		  extern struct objc_method_description*
-		    GSDescriptionForClassMethod();
+		    GSDescriptionForClassMethod(Protocol *self, SEL aSel);
 		  mth = GSDescriptionForClassMethod(_protocol, aSelector);
 		}
 	      else
