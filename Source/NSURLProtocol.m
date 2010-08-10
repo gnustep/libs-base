@@ -916,7 +916,8 @@ static NSURLProtocol	*placeholder = nil;
 	       * it should be cached.
 	       */
 	      policy = [this->request cachePolicy];
-	      if (policy == NSURLRequestUseProtocolCachePolicy)
+	      if (policy
+		== (NSURLCacheStoragePolicy)NSURLRequestUseProtocolCachePolicy)
 		{
 		  if ([self isKindOfClass: [_NSHTTPSURLProtocol class]] == YES)
 		    {
@@ -1074,7 +1075,8 @@ static NSURLProtocol	*placeholder = nil;
 		       * it should be cached.
 		       */
 		      policy = [this->request cachePolicy];
-		      if (policy == NSURLRequestUseProtocolCachePolicy)
+		      if (policy == (NSURLCacheStoragePolicy)
+			NSURLRequestUseProtocolCachePolicy)
 			{
 			  if ([self isKindOfClass: [_NSHTTPSURLProtocol class]])
 			    {

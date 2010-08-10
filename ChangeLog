@@ -1,3 +1,14 @@
+2010-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m:
+	* Source/NSURLProtocol.m:
+	* Source/GSAttributedString.m:
+	* Source/ObjectiveC2/properties.m:
+	* Source/NSProtocolChecker.m:
+	* Source/NSDistantObject.m:
+	* Tools/gdomap.c:
+	Functionless changes to avoid compiler warnings reported by Fred.
+
 2010-08-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: Fix for %p AM/PM parsing to implicitly set

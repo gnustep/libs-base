@@ -51,7 +51,7 @@ objc_getProperty(id obj, SEL _cmd, ptrdiff_t offset, BOOL isAtomic)
 
   if (isAtomic)
     {
-      id	result;
+      id	result = nil;
 
       SYNCBEG(obj)
 	result = objc_getProperty(obj, _cmd, offset, NO);
