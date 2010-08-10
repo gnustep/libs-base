@@ -1,5 +1,9 @@
 2010-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSTask.m: thread-safety fix.
+
+2010-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSRunLoop.m:
 	* Source/NSURLProtocol.m:
 	* Source/GSAttributedString.m:
