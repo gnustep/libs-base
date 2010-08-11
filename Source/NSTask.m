@@ -258,19 +258,27 @@ pty_slave(const char* name)
       if (tasksLock == nil)
         {
           tasksLock = [NSRecursiveLock new];
-	  /* The activeTasks map contains all task objects corresponding
-	   * to running subtasks, and retains them until the subtask
+	  /* The activeTasks map contains the NSTask objects corresponding
+	   * to running subtasks, and retains them until the subprocess
 	   * actually terminates.
 	   * The previous implementation stored non-retained objects and
 	   * the -finalize method removed them from the table, but this
-	   * caused a thread safety issue event though table access was
+	   * caused a thread safety issue even though table access was
 	   * lock protected:
-	   * If thread1 releases the task at the same time that the subtask
-	   * dies and is 'reaped' by thread2, then there is a window such
-	   * that thread1 can enter -dealloc while thread2 is retaining the
-	   * object in an NSNotification.  Then thread1 completes deallocation
-	   * while thread2 performs the notification.  Then thread2 tries to
-	   * release the object ... but it's already deallocated.
+	   * If thread t1 releases the task at the same time that the subtask
+	   * dies and is 'reaped' by t2, then there is a window such
+	   * that t1 can enter -dealloc while t2 is dealing with
+	   * subprocess termination notification.
+	   * So t1 completes deallocation while t2 performs
+	   * the notification, and then t2 tries to release the object...
+	   * t1: enter dealloc
+	   * t2: lookup task in activeTasks and retain/autorelease it
+	   * t2: create NSNotification (retaining task)
+	   * t2: post notification
+	   * t1: remove task from activeTasks
+	   * t1: release memory occupied by task object.
+	   * t2: complete notification ... attempt to release task object
+	   * but it's already deallocated.
 	   */
           activeTasks = NSCreateMapTable(NSIntMapKeyCallBacks,
                 NSObjectMapValueCallBacks, 0);
