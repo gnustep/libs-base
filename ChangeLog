@@ -1,3 +1,10 @@
+2010-08-12  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Resources/Languages/Locale.aliases: Added many languages which
+	were missing from the list.  Data taken from
+	gettext-0.18.1.1/gettext-tools/doc/ISO_639 and
+	gettext-0.18.1.1/gettext-tools/doc/ISO_639-2.
+
 2010-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: thread-safety fix.
