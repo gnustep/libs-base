@@ -131,7 +131,7 @@ GS_EXPORT NSString* const NSDecimalDigits;
 /** Key for locale dictionary: array of strings for AM and PM. */
 GS_EXPORT NSString* const NSAMPMDesignation;
 
-#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+#if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 
 /**
  *  Array of arrays of NSStrings, first member of each specifying a time,
@@ -242,7 +242,7 @@ GS_EXPORT NSString* const GSLocale;
  */
 + (NSUserDefaults*) standardUserDefaults;
 
-#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+#if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 /**
  * Resets the shared user defaults object to reflect the current
  * user ID.  Needed by setuid processes which change the user they
@@ -269,7 +269,7 @@ GS_EXPORT NSString* const GSLocale;
 + (void) setUserLanguages: (NSArray*)languages;
 #endif
 
-#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+#if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 /**
  * Adds the domain names aName to the search list of the receiver.<br />
  * The domain is added after the application domain.<br />
@@ -352,7 +352,7 @@ GS_EXPORT NSString* const GSLocale;
  */
 - (void) removeObjectForKey: (NSString*)defaultName;
 
-#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+#if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 /**
  * Removes the named domain from the search list of the receiver.<br />
  * Suites may be added using the -addSuiteNamed: method.

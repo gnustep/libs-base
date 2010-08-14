@@ -1,3 +1,9 @@
+2010-08-13  Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Headers/Foundation/NSLocale.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	Fix typo (GSAPI_LAST -> GS_API_LATEST)
+
 2010-08-12  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Resources/Languages/Locale.aliases: Added many languages which
