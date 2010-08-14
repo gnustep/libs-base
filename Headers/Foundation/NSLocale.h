@@ -27,7 +27,7 @@
 
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GSAPI_LAST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 
 #import <Foundation/NSObject.h>
 
@@ -103,7 +103,7 @@ GS_EXPORT NSString * const NSISO8601Calendar;
 #endif
 }
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GSAPI_LAST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /** Returns a version of the current locale which automatically updates
  *  when locale settngs are changed.
  */
@@ -129,7 +129,7 @@ GS_EXPORT NSString * const NSISO8601Calendar;
 + (NSLocaleLanguageDirection) characterDirectionForLanguage:
   (NSString *)isoLangCode;
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GSAPI_LAST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /** Returns a list of available ISO currency code strings.
  */
 + (NSArray *) commonISOCurrencyCodes;
@@ -168,13 +168,13 @@ GS_EXPORT NSString * const NSISO8601Calendar;
  */
 + (NSString *) localeIdentifierFromComponents: (NSDictionary*)dict;
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GSAPI_LAST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /** Returns the standard locale identifier for the windows locale code.
  */
 + (NSString *) localeIdentifierFromWindowsLocaleCode: (uint32_t)lcid;
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GSAPI_LAST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /** Returns an array of preferred languages.  Sorted from most preferred to
  *  leave preferred.
  */
@@ -185,7 +185,7 @@ GS_EXPORT NSString * const NSISO8601Calendar;
  */
 + (id) systemLocale;
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GSAPI_LAST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /** Returns the windows locale code corresponding to the staqndard locale
  * identifier.
  */
@@ -220,6 +220,6 @@ GS_EXPORT NSString * const NSISO8601Calendar;
 }
 #endif
 
-#endif /* OS_API_VERSION(MAC_OS_X_VERSION_10_4, GSAPI_LAST)	*/
+#endif /* OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)	*/
 
 #endif /* __NSLocale_h_GNUSTEPBASE_INCLUDE */
