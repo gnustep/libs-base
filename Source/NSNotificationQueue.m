@@ -197,11 +197,8 @@ remove_from_queue_no_release(NSNotificationQueueList *queue,
     }
   else
     {
+      NSCAssert(queue->tail == item, @"tail item not at tail of queue!");
       queue->tail = item->prev;
-      if (item->prev)
-	{
-	  item->prev->next = NULL;
-	}
     }
 
   if (item->prev)
@@ -210,11 +207,8 @@ remove_from_queue_no_release(NSNotificationQueueList *queue,
     }
   else
     {
+      NSCAssert(queue->head == item, @"head item not at head of queue!");
       queue->head = item->next;
-      if (item->next)
-	{
-	  item->next->prev = NULL;
-	}
     }
 }
 
@@ -615,19 +609,21 @@ notify(NSNotificationCenter *center, NSNotificationQueueList *list,
 
   if (len > 0)
     {
+      NSMutableArray	*ma = [NSMutableArray arrayWithCapacity: len];
+
       for (pos = 0; pos < len; pos++)
 	{
-	  NSNotification	*notification;
-
 	  item = ptr[pos];
-	  notification = RETAIN(item->notification);
+	  [ma addObject: item->notification];
 	  remove_from_queue(list, item, zone);
-	  [center postNotification: notification];
-	  RELEASE(notification);
 	}
       if (allocated)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), ptr);
+	}
+      for (pos = 0; pos < len; pos++)
+	{
+	  [center postNotification: [ma objectAtIndex: pos]];
 	}
     }
 }

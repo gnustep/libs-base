@@ -1,3 +1,16 @@
+2010-08-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSNotificationQueue.m: remove_from_queue_no_release()
+	Add assertions instead of existing hack when removing an item
+	from a corrupted list.
+	
+2010-08-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationQueue.m: notify() .. buffer notifications
+	in a mutable array and remove from list before posting them.
+	Prevents re-entrancy problems and avoids memory leak when an exception
+	occurs during posting.
+
 2010-08-13  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Headers/Foundation/NSLocale.h:
