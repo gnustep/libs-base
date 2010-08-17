@@ -3,6 +3,8 @@
 	* Source/NSObject.m:
 	* Source/NSDistantObject.m:
 	Return nil from (methodSignatureForSelector:) if the selector is null.
+	* Source/NSObjcRuntime.m:
+	Register new selector as needed.
 
 2010-08-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
