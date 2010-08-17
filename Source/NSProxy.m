@@ -147,7 +147,7 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   struct objc_method	*mth;
 
-  if (aSelector == 0)
+  if (0 == aSelector)
     {
       return nil;
     }
@@ -393,7 +393,7 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   struct objc_method	*mth;
 
-  if (aSelector == 0)
+  if (0 == aSelector)
     {
       return nil;
     }

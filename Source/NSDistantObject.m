@@ -669,6 +669,10 @@ enum proxyLocation
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
+  if (0 == aSelector)
+    {
+      return nil;
+    }
   if (_object != nil)
     {
       return [_object methodSignatureForSelector: aSelector];

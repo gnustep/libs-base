@@ -1,3 +1,9 @@
+2010-08-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m:
+	* Source/NSDistantObject.m:
+	Return nil from (methodSignatureForSelector:) if the selector is null.
+
 2010-08-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSNotificationQueue.m: remove_from_queue_no_release()
