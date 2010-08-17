@@ -567,8 +567,8 @@ notify(NSNotificationCenter *center, NSNotificationQueueList *list,
   NSString *mode, NSZone *zone)
 {
   BOOL					allocated = NO;
-  NSNotificationQueueRegistration	*buf[100];
-  NSNotificationQueueRegistration	**ptr = buf;
+  void					*buf[100];
+  void					**ptr = buf;
   unsigned				len = sizeof(buf) / sizeof(*buf);
   unsigned				pos = 0;
   NSNotificationQueueRegistration	*item = list->head;
@@ -607,23 +607,28 @@ notify(NSNotificationCenter *center, NSNotificationQueueList *list,
     }
   len = pos;	// Number of items found
 
+  /* Posting a notification catches exceptions, so it's OK to use
+   * retain/release of objects here as we won't get an exception
+   * causing a leak.
+   */
   if (len > 0)
     {
-      NSMutableArray	*ma = [NSMutableArray arrayWithCapacity: len];
-
       for (pos = 0; pos < len; pos++)
 	{
 	  item = ptr[pos];
-	  [ma addObject: item->notification];
+	  ptr[pos] = RETAIN(item->notification);
 	  remove_from_queue(list, item, zone);
+	}
+      for (pos = 0; pos < len; pos++)
+	{
+	  NSNotification	*n = (NSNotification*)ptr[pos];
+
+	  [center postNotification: n];
+	  RELEASE(n);
 	}
       if (allocated)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), ptr);
-	}
-      for (pos = 0; pos < len; pos++)
-	{
-	  [center postNotification: [ma objectAtIndex: pos]];
 	}
     }
 }
