@@ -613,12 +613,21 @@ notify(NSNotificationCenter *center, NSNotificationQueueList *list,
    */
   if (len > 0)
     {
+      /* First, we make a note of each notification while removing the
+       * corresponding list item from the queue ... so that when we get
+       * round to posting the notifications we will not get problems
+       * with another notif() trying to use the same items.
+       */
       for (pos = 0; pos < len; pos++)
 	{
 	  item = ptr[pos];
 	  ptr[pos] = RETAIN(item->notification);
 	  remove_from_queue(list, item, zone);
 	}
+
+      /* Now that we no longer need to worry about r-entrancy,
+       * we step through our notifications, posting each one in turn.
+       */
       for (pos = 0; pos < len; pos++)
 	{
 	  NSNotification	*n = (NSNotification*)ptr[pos];
@@ -626,6 +635,7 @@ notify(NSNotificationCenter *center, NSNotificationQueueList *list,
 	  [center postNotification: n];
 	  RELEASE(n);
 	}
+
       if (allocated)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), ptr);
