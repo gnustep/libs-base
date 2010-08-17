@@ -7,9 +7,9 @@
 2010-08-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNotificationQueue.m: notify() .. buffer notifications
-	in a mutable array and remove from list before posting them.
-	Prevents re-entrancy problems and avoids memory leak when an exception
-	occurs during posting.
+	and remove from list before posting them.
+	Prevents re-entrancy problems where another call to notify() could
+	post (and remove from the list) notifications.
 
 2010-08-13  Eric Wasylishen <ewasylishen@gmail.com>
 
