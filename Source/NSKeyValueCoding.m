@@ -101,11 +101,11 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
 
       name = &buf[1];	// setKey:
       type = NULL;
-      sel = GSSelectorFromName(name);
+      sel = sel_getUid(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
 	  name = buf;	// _setKey:
-	  sel = GSSelectorFromName(name);
+	  sel = sel_getUid(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
 	      sel = 0;
@@ -170,19 +170,19 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       buf[4] = hi;
 
       name = &buf[1];	// getKey
-      sel = GSSelectorFromName(name);
+      sel = sel_getUid(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
 	  buf[4] = lo;
 	  name = &buf[4];	// key
-	  sel = GSSelectorFromName(name);
+	  sel = sel_getUid(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
               buf[4] = hi;
               buf[3] = 's';
               buf[2] = 'i';
               name = &buf[2];	// isKey
-              sel = GSSelectorFromName(name);
+              sel = sel_getUid(name);
               if (sel == 0 || [self respondsToSelector: sel] == NO)
                 {
                   sel = 0;
@@ -194,13 +194,13 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	{
 	  buf[4] = hi;
 	  name = buf;	// _getKey
-	  sel = GSSelectorFromName(name);
+	  sel = sel_getUid(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
 	      buf[4] = lo;
 	      buf[3] = '_';
 	      name = &buf[3];	// _key
-	      sel = GSSelectorFromName(name);
+	      sel = sel_getUid(name);
 	      if (sel == 0 || [self respondsToSelector: sel] == NO)
 		{
 		  sel = 0;
@@ -486,7 +486,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	{
 	  name[8] = toupper(name[8]);
 	}
-      sel = GSSelectorFromName(name);
+      sel = sel_getUid(name);
       if (sel != 0 && [self respondsToSelector: sel] == YES)
 	{
 	  imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel];
@@ -623,13 +623,13 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       buf[4] = hi;
 
       name = buf;	// _getKey
-      sel = GSSelectorFromName(name);
+      sel = sel_getUid(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
 	  buf[3] = '_';
 	  buf[4] = lo;
 	  name = &buf[3]; // _key
-	  sel = GSSelectorFromName(name);
+	  sel = sel_getUid(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
 	      sel = 0;
@@ -651,12 +651,12 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	      buf[3] = 't';
 	      buf[4] = hi;
 	      name = &buf[1]; // getKey
-	      sel = GSSelectorFromName(name);
+	      sel = sel_getUid(name);
 	      if (sel == 0 || [self respondsToSelector: sel] == NO)
 		{
 		  buf[4] = lo;
 		  name = &buf[4];	// key
-		  sel = GSSelectorFromName(name);
+		  sel = sel_getUid(name);
 		  if (sel == 0 || [self respondsToSelector: sel] == NO)
 		    {
 		      sel = 0;
@@ -710,7 +710,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
       name = buf;	// _setKey:
       type = NULL;
-      sel = GSSelectorFromName(name);
+      sel = sel_getUid(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
 	  sel = 0;
@@ -732,7 +732,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	      buf[4] = hi;
 	      buf[3] = 't';
 	      name = &buf[1];		// setKey:
-	      sel = GSSelectorFromName(name);
+	      sel = sel_getUid(name);
 	      if (sel == 0 || [self respondsToSelector: sel] == NO)
 		{
 		  sel = 0;
@@ -827,11 +827,11 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
       name = &buf[1];	// setKey:
       type = NULL;
-      sel = GSSelectorFromName(name);
+      sel = sel_getUid(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
 	  name = buf;	// _setKey:
-	  sel = GSSelectorFromName(name);
+	  sel = sel_getUid(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
 	      sel = 0;
