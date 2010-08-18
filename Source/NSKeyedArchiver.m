@@ -587,7 +587,9 @@ static NSDictionary *makeReference(unsigned ref)
   [_enc setObject: [NSNumber  numberWithBool: aBool] forKey: aKey];
 }
 
-- (void) encodeBytes: (const uint8_t*)aPointer length: (NSUInteger)length forKey: (NSString*)aKey
+- (void) encodeBytes: (const uint8_t*)aPointer
+	      length: (NSUInteger)length
+	      forKey: (NSString*)aKey
 {
   CHECKKEY
 
