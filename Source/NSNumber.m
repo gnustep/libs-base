@@ -3,7 +3,9 @@
 
    Written by:  David Chisnall
    Partial rewrite:  Richard Frith-Macdonld <rfm@gnu.org>
-    (to compile on gnu/linux and mswindows, to meet coding/style standards)
+    (to compile on gnu/linux and mswindows,
+    to meet coding/style standards,
+    to restore lost functionality)
    
    Date: February 2010
 
@@ -52,6 +54,8 @@
  * singletons.  All other values are mapped to the smallest signed value that
  * will store them, unless they are greater than LLONG_MAX, in which case
  * they are stored in an unsigned long long.
+ * Booleans are handled as a special case since some stuff (notably interface
+ * builder (nib) archives) needs to differentiate between booleans and integers.
  */
 
 @interface NSSignedIntegerNumber : NSNumber
@@ -62,6 +66,12 @@
 @public
   int value;
 }
+@end
+
+/* Some code needs to differentiate between booleans and other NSNumber
+ * instances, so we need a special subclass to permit that.
+ */
+@interface NSBoolNumber : NSIntNumber
 @end
 
 @interface NSLongLongNumber : NSSignedIntegerNumber
@@ -167,6 +177,13 @@ return NSOrderedSame;
 @implementation NSIntNumber
 #define FORMAT @"%i"
 #include "NSNumberMethods.h"
+@end
+
+@implementation	NSBoolNumber
+- (const char *) objCType
+{
+  return @encode(BOOL);
+}
 @end
 
 @implementation NSLongLongNumber
@@ -294,16 +311,20 @@ return NSOrderedSame;
 
 @implementation NSNumber
 
-/*
- * Numbers from -1 to 12 inclusive that are reused.
- */
-static NSNumber *ReusedInstances[14];
 static Class NSNumberClass;
+static Class NSBoolNumberClass;
 static Class NSIntNumberClass;
 static Class NSLongLongNumberClass;
 static Class NSUnsignedLongLongNumberClass;
 static Class NSFloatNumberClass;
 static Class NSDoubleNumberClass;
+
+/*
+ * Numbers from -1 to 12 inclusive that are reused.
+ */
+static NSNumber *ReusedInstances[14];
+static NSBoolNumber *boolY;		// Boolean YES (integer 1)
+static NSBoolNumber *boolN;		// Boolean NO (integer 0)
 
 + (void) initialize
 {
@@ -315,11 +336,17 @@ static Class NSDoubleNumberClass;
     }
 
   NSNumberClass = self;
+  NSBoolNumberClass = [NSBoolNumber class];
   NSIntNumberClass = [NSIntNumber class];
   NSLongLongNumberClass = [NSLongLongNumber class];
   NSUnsignedLongLongNumberClass = [NSUnsignedLongLongNumber class];
   NSFloatNumberClass = [NSFloatNumber class];
   NSDoubleNumberClass = [NSDoubleNumber class];
+
+  boolY = NSAllocateObject (NSBoolNumberClass, 0, 0);
+  boolY->value = 1;
+  boolN = NSAllocateObject (NSBoolNumberClass, 0, 0);
+  boolN->value = 0;
 
   for (i = 0; i < 14; i++)
     {
@@ -332,7 +359,7 @@ static Class NSDoubleNumberClass;
 
 - (const char *) objCType
 {
-  /* All concrete NSNumber types must implement this so we know which oen
+  /* All concrete NSNumber types must implement this so we know which one
    * they are.
    */
   [self subclassResponsibility: _cmd];
@@ -396,7 +423,7 @@ static Class NSDoubleNumberClass;
 - (id) initWithBool: (BOOL)aValue
 {
   DESTROY(self);
-  return [ReusedInstances[aValue ? 2 : 1] retain];\
+  return [(aValue == 0 ? boolN : boolY) retain];\
 }
 
 /*
@@ -416,9 +443,11 @@ if (aValue >= -1 && aValue <= 12)\
       return [[[self alloc] initWithBytes: (const void *)&aValue
         objCType: @encode(BOOL)] autorelease];
     }
-  CHECK_SINGLETON (((signed char) aValue));
-  return [self numberWithInt: aValue];
-  // Not reached (BOOL is always 0 or 1)
+  if (0 == aValue)
+    {
+      return boolN;
+    }
+  return boolY;
 }
 
 + (NSNumber *) numberWithChar: (signed char)aValue

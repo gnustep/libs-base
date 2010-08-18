@@ -1,3 +1,8 @@
+2010-08-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumber.m: Modifications to permit generation of NIBs that
+	OSX can read again ... functionality was lost in recent rewrite.
+
 2010-08-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m:
