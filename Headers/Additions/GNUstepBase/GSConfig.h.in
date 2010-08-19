@@ -216,6 +216,8 @@ typedef	struct {
 typedef	struct {
   uint8_t	dummy[@GS_SIZEOF_MUTEX_T@];
 } gs_mutex_t;
+#define	GS_ALIGNOF_COND_T @GS_ALIGNOF_COND_T@
+#define	GS_ALIGNOF_MUTEX_T @GS_ALIGNOF_MUTEX_T@
 
 #define	OBJC2RUNTIME @OBJC2RUNTIME@
 #define BASE_NATIVE_OBJC_EXCEPTIONS     @BASE_NATIVE_OBJC_EXCEPTIONS@

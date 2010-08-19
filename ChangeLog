@@ -1,3 +1,10 @@
+2010-08-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check alignment of pthread types
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: Record alignment
+	* Headers/Foundation/NSLock.h: Use alignment.
+
 2010-08-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNumber.m: Modifications to permit generation of NIBs that
