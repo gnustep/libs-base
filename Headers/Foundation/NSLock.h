@@ -73,7 +73,7 @@ extern "C" {
 {
 #if	GS_EXPOSE(NSLock)
 @private
-  gs_mutex_t	_mutex	__attribute__((aligned(GS_ALIGNOF_MUTEX_T)));
+  gs_mutex_t	_mutex;
   NSString	*_name;
 #endif
 }
@@ -117,8 +117,8 @@ extern "C" {
 {
 #if	GS_EXPOSE(NSCondition)
 @private
-  gs_cond_t	_condition	__attribute__((aligned(GS_ALIGNOF_COND_T)));
-  gs_mutex_t	_mutex	__attribute__((aligned(GS_ALIGNOF_MUTEX_T)));
+  gs_cond_t	_condition;
+  gs_mutex_t	_mutex;
   NSString	*_name;
 #endif
 }
@@ -260,7 +260,7 @@ extern "C" {
 {
 #if	GS_EXPOSE(NSRecursiveLock)
 @private
-  gs_mutex_t	_mutex	__attribute__((aligned(GS_ALIGNOF_MUTEX_T)));
+  gs_mutex_t	_mutex;
   NSString      *_name;
 #endif
 }
