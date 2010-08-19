@@ -3,7 +3,6 @@
 	* configure.ac: Check alignment of pthread types
 	* configure: Regenerate
 	* Headers/Additions/GNUstepBase/GSConfig.h.in: Record alignment
-	* Headers/Foundation/NSLock.h: Use alignment.
 
 2010-08-18  Richard Frith-Macdonald <rfm@gnu.org>
 
