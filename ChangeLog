@@ -1,3 +1,12 @@
+2010-08-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/runtime.c: Made objc_disposeClassPair() a no-op
+	if the class pair is already registered .. to prevent it from causing
+	crashes. Made objc_registerClassPair() log error if there is already
+	a class of the name.
+	* Source/ObjectiveC2/sync.m: Replace with Greg's implementation
+	(reported as working though I haven't tested it).
+
 2010-08-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check alignment of pthread types
