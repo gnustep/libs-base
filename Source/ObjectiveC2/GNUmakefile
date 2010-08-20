@@ -37,7 +37,7 @@ ObjectiveC2_OBJC_FILES = \
 	NSBlocks.m
 
 
-ifeq ($(OBJCSYNC), 0)
+ifneq ($(OBJCSYNC), 1)
 ObjectiveC2_OBJC_FILES += sync.m
 endif
 
