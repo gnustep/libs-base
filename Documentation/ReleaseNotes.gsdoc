@@ -30,6 +30,45 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.20.2</heading>
+        <p>This is a stable bugfix release. The changes in this release
+	are a rewrite of the netservices code to use libavahi if available,
+	additional languages added, and various bug fixes and portability
+	updates.
+	</p>
+	<deflist>
+	  <term>NSBundle</term>
+          <desc>Fix for loading frameworks with relative paths.<br />
+	  Fix error in lookup of localized resources.
+	  </desc>
+	  <term>NSCalendarDate</term>
+          <desc>Fix AM/PM parsing to treat 12 AM as midnight, and to return
+	  nil if the format requires a timezone and none is supplied.
+	  </desc>
+	  <term>NSkeyedArchiver</term>
+          <desc>Implement missing methods and add range checks.</desc>
+	  <term>NSMutableSet</term>
+          <desc>Fix for use the correct class when coding.</desc>
+	  <term>NSNetServices</term>
+          <desc>Implement using avahi if available<br />
+	  <term>NSNotificationQueue</term>
+          <desc>Fix for rare loss of notifications.</desc>
+	  <term>NSNumber</term>
+          <desc>Fixes for storing booleans in keyed archives.</desc>
+	  <term>NSPathUtilities</term>
+          <desc>Fix to support absolute paths in the user domain.</desc>
+	  <term>NSTask</term>
+          <desc>Fix for thread safety issue on task termination.</desc>
+	  <term>NSURL</term>
+          <desc>Implement keyed archiving.</desc>
+	  <term>NSZombie</term>
+          <desc>Improve handling of -release.</desc>
+	  <term>autogdoc</term>
+          <desc>Support paragraph markup generation on pairs of newlines.</desc>
+	</deflist>
+      </section>
+
+      <section>
 	<heading>Version 1.20.1</heading>
         <p>This is a stable bugfix release. The changes in this release
 	are a timezone handling update to the latest zone information,

@@ -2067,9 +2067,9 @@ init_probe()
       int		elen = 0;
       struct in_addr	*other;
       struct in_addr	sin;
-      int		high;
-      int		low;
-      unsigned long	net;
+      int		high = 0;
+      int		low = 0;
+      unsigned long	net = 0;
       int		j;
       struct in_addr	b;
 

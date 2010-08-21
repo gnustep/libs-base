@@ -197,11 +197,8 @@ remove_from_queue_no_release(NSNotificationQueueList *queue,
     }
   else
     {
+      NSCAssert(queue->tail == item, @"tail item not at tail of queue!");
       queue->tail = item->prev;
-      if (item->prev)
-	{
-	  item->prev->next = NULL;
-	}
     }
 
   if (item->prev)
@@ -210,11 +207,8 @@ remove_from_queue_no_release(NSNotificationQueueList *queue,
     }
   else
     {
+      NSCAssert(queue->head == item, @"head item not at head of queue!");
       queue->head = item->next;
-      if (item->next)
-	{
-	  item->next->prev = NULL;
-	}
     }
 }
 
@@ -573,8 +567,8 @@ notify(NSNotificationCenter *center, NSNotificationQueueList *list,
   NSString *mode, NSZone *zone)
 {
   BOOL					allocated = NO;
-  NSNotificationQueueRegistration	*buf[100];
-  NSNotificationQueueRegistration	**ptr = buf;
+  void					*buf[100];
+  void					**ptr = buf;
   unsigned				len = sizeof(buf) / sizeof(*buf);
   unsigned				pos = 0;
   NSNotificationQueueRegistration	*item = list->head;
@@ -613,18 +607,35 @@ notify(NSNotificationCenter *center, NSNotificationQueueList *list,
     }
   len = pos;	// Number of items found
 
+  /* Posting a notification catches exceptions, so it's OK to use
+   * retain/release of objects here as we won't get an exception
+   * causing a leak.
+   */
   if (len > 0)
     {
+      /* First, we make a note of each notification while removing the
+       * corresponding list item from the queue ... so that when we get
+       * round to posting the notifications we will not get problems
+       * with another notif() trying to use the same items.
+       */
       for (pos = 0; pos < len; pos++)
 	{
-	  NSNotification	*notification;
-
 	  item = ptr[pos];
-	  notification = RETAIN(item->notification);
+	  ptr[pos] = RETAIN(item->notification);
 	  remove_from_queue(list, item, zone);
-	  [center postNotification: notification];
-	  RELEASE(notification);
 	}
+
+      /* Now that we no longer need to worry about r-entrancy,
+       * we step through our notifications, posting each one in turn.
+       */
+      for (pos = 0; pos < len; pos++)
+	{
+	  NSNotification	*n = (NSNotification*)ptr[pos];
+
+	  [center postNotification: n];
+	  RELEASE(n);
+	}
+
       if (allocated)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), ptr);

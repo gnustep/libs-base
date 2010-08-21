@@ -284,11 +284,19 @@ BASE_MFILES += \
 GSFileHandle.m \
 NSMessagePort.m \
 NSMessagePortNameServer.m
-
-ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
-  BASE_MFILES += NSNetServices.m
 endif
 
+ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
+  BASE_MFILES += NSNetServices.m \
+                 GSMDNSNetServices.m
+endif
+
+ifeq ($(GNUSTEP_BASE_HAVE_AVAHI), 1)
+  BASE_MFILES += NSNetServices.m \
+                 GSAvahiNetService.m \
+                 GSAvahiNetServiceBrowser.m \
+                 GSAvahiClient.m \
+                 GSAvahiRunLoopIntegration.m
 endif
 
 ifeq ($(WITH_FFI),libffi)

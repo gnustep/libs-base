@@ -1,3 +1,107 @@
+2010-08-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/ObjectiveC2/runtime.c: Made objc_disposeClassPair() a no-op
+        if the class pair is already registered .. to prevent it from causing
+        crashes. Made objc_registerClassPair() log error if there is already
+        a class of the name.
+        * Source/ObjectiveC2/sync.m: Replace with Greg's implementation
+        (reported as working though I haven't tested it).
+
+2010-08-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Check alignment of pthread types
+        * configure: Regenerate
+        * Headers/Additions/GNUstepBase/GSConfig.h.in: Record alignment
+
+2010-08-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSNumber.m: Modifications to permit generation of NIBs that
+        OSX can read again ... functionality was lost in recent rewrite.
+
+2010-08-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSObject.m:
+        * Source/NSDistantObject.m:
+        Return nil from (methodSignatureForSelector:) if the selector is null.
+        * Source/NSObjcRuntime.m:
+        Register new selector as needed.
+
+2010-08-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+        * Source/NSNotificationQueue.m: remove_from_queue_no_release()
+        Add assertions instead of existing hack when removing an item
+        from a corrupted list.
+
+2010-08-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSNotificationQueue.m: notify() .. buffer notifications
+        and remove from list before posting them.
+        Prevents re-entrancy problems where another call to notify() could
+        post (and remove from the list) notifications.
+
+2010-08-12  Nicola Pero <nicola.pero@meta-innovation.com>
+
+        * Resources/Languages/Locale.aliases: Added many languages which
+        were missing from the list.  Data taken from
+        gettext-0.18.1.1/gettext-tools/doc/ISO_639 and
+        gettext-0.18.1.1/gettext-tools/doc/ISO_639-2.
+
+2010-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSTask.m: thread-safety fix.
+
+2010-08-06 Doug Simons <doug.simons@testplant.com>
+
+        * Source/NSCalendarDate.m: Fix to AM/PM parsing to recognize
+        12 AM as midnight, not noon. When format calls for a time zone,
+        return nil if no time zone is given (the same as Cocoa).
+
+2010-07-26  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+        * Documentation/GNUmakefile (REF_DOC_INSTALL_DIR): Use
+        GNUSTEP_DOC, not GNUSTEP_DOCUMENTATION, which has been deprecated
+        for over 3 years.
+        * Documentation/Makefile.postamble (after-uninstall): Rewritten to
+        be more accurate.
+
+2010-07-26  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+        * Source/NSBundle.m ([+_addFrameworkFromClass:]): Added support
+        for class lists of frameworks with a relative path.  If the
+        framework path is relative, convert it to absolute by prepending
+        the launch directory to it, since that must be how the dynamic
+        linker located the framework to load it.
+
+2010-07-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSPathUtilities.m: User domain handling improvements.
+        Match gnustep-make in allowing absolute paths to be specified for the
+        user domain directories rather than always treating user domain paths
+        as being within the user's home directory. 
+        Also, add support for simple field substitution into the path:
+        '%u' --> user name
+        '%i' --> user id
+        '%%' --> '%'
+        * Documentation/Base.gsdoc: Document the new behavior.
+
+2010-07-17  Quentin Mathe <quentin.mathe@gmail.com>
+
+        * Tools/autogsdoc.m:
+        * Tools/AGSParser.m:
+        Added the ability to generate paragraph markup. Turned off by default.
+        For each paragraph break ('\n\n' sequence) and when no incompatible
+        elements exist in the scanned paragraph, <p> tags can be automatically
+        inserted (more explanations in -canWrapWithParagraphMarkup: doc).
+
+2010-03-27 Niels Grewe <niels.grewe@halbordnung.de>
+
+        Implement NSNetService and NSNetServiceBrowser on top of the
+        avahi-client API. Both classes are now abstract superclasses of the
+        concrete implementations based on the mDNSResponder or avahi-client
+        APIs. The API to be used can be configured with the
+        --with-zeroconf-api=API (mdns, avahi, or any) configure-switch. If both
+        APIs are available, the avahi API will be preferred.
+
 2010-07-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: backport bugfix and diagnostics

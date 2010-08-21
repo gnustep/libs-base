@@ -74,8 +74,10 @@
 
 - (struct objc_method_description*) _methodDescription: (SEL)aSelector
 {
-  extern struct objc_method_description	*GSDescriptionForInstanceMethod();
-  extern struct objc_method_description	*GSDescriptionForClassMethod();
+  extern struct objc_method_description
+    *GSDescriptionForInstanceMethod(Protocol *self, SEL aSel);
+  extern struct objc_method_description
+    *GSDescriptionForClassMethod(Protocol *self, SEL aSel);
 
   if (_myProtocol != nil && _myTarget != nil)
     {

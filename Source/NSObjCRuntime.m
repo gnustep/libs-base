@@ -74,7 +74,7 @@ NSStringFromSelector(SEL aSelector)
 }
 
 /**
- * Returns the selector whose name is supplied in the
+ * Returns (creating if necessary) the selector whose name is supplied in the
  * aSelectorName argument, or 0 if a nil string is supplied.
  */
 SEL
@@ -88,7 +88,7 @@ NSSelectorFromString(NSString *aSelectorName)
       [aSelectorName getCString: buf
 		      maxLength: len + 1
 		       encoding: NSASCIIStringEncoding];
-      return GSSelectorFromName (buf);
+      return sel_registerName (buf);
     }
   return (SEL)0;
 }

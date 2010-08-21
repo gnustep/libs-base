@@ -810,6 +810,9 @@ main(int argc, char **argv, char **env)
     @"MakeFrames",
     @"\t\tString\t(nil)\n\tIf set, look for DTDs in the given directory",
     @"DTDs",
+    @"\t\tBOOL\t(NO)\n\tif YES, wrap paragraphs delimited by \\n\\n in "
+      @"<p> tags when possible",
+    @"GenerateParagraphMarkup",
     nil];
   argSet = [NSSet setWithArray: [argsRecognized allKeys]];
   argsGiven = [[NSProcessInfo processInfo] arguments];
@@ -1229,6 +1232,7 @@ main(int argc, char **argv, char **env)
 	  NSString		*hfile = [sFiles objectAtIndex: i];
 	  NSString		*gsdocfile;
 	  NSString		*file;
+	  NSString              *sourceName = nil;
 	  NSMutableArray	*a;
 	  NSDictionary		*attrs;
 	  NSDate		*sDate = nil;
@@ -1383,7 +1387,24 @@ main(int argc, char **argv, char **env)
 		    }
 		  [projectRefs setOutputs: a forHeader: hfile];
 		}
+
 	      a = [parser sources];
+              /*
+               * Collect any matching .m files provided as autogsdoc arguments 
+               * for the current header (hfile).
+               */
+              sourceName = [[hfile lastPathComponent] 
+                stringByDeletingPathExtension];
+              sourceName = [sourceName stringByAppendingPathExtension: @"m"];
+              for (j = 0; j < [sFiles count]; j++)
+                {
+                  NSString *sourcePath = [sFiles objectAtIndex: j];
+                  if ([sourcePath hasSuffix: sourceName] 
+                   && [mgr isReadableFileAtPath: sourcePath])
+                    {
+                      [a addObject: sourcePath];
+                    }
+                }
 	      if ([a count] > 0)
 		{
 		  [projectRefs setSources: a forHeader: hfile];

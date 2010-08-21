@@ -1461,7 +1461,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 /**
  * Returns the method signature describing how the receiver would handle
  * a message with aSelector.
- * <br />Raises NSInvalidArgumentException if given a null selector.
+ * <br />Returns nil if given a null selector.
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
@@ -1469,9 +1469,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   struct objc_method	*mth;
   Class			c;
 
-  if (aSelector == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+  if (0 == aSelector)
+    {
+      return nil;
+    }
 
   c = (GSObjCIsInstance(self) ? object_getClass(self) : (Class)self);
   mth = GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
@@ -2395,6 +2396,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 {
   Class	c;
 
+  if (0 == aSelector)
+    {
+      return nil;
+    }
   [allocationLock lock];
   c = NSMapGet(zombieMap, (void*)self);
   [allocationLock unlock];

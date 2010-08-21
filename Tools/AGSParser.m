@@ -28,8 +28,9 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
-#import "Foundation/NSSet.h"
 #import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
 #import "AGSParser.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -355,6 +356,148 @@
   return output;
 }
 
+/* When the paragraph string contains a GSDoc block element which is not a text 
+element (in the GSDoc DTD sense), we return NO, otherwise we return YES. 
+
+A GSDoc or HTML paragraph content is limited to text elements (see GSDoc DTD).
+e.g. 'list' or 'example' cannot belong to a 'p' element.
+
+Any other non-block elements are considered valid. Whether or not they can be 
+embedded within a paragraph in the final output is the doc writer 
+responsability.
+ 
+For 'item' and 'answer' which can contain arbitrary block elements, explicit 
+'p' tags should be used, because we won't wrap 'patata' and 'patati' as two 
+paragraphs in the example below:
+<list>
+<item>patata
+
+patati</item>
+</list>
+
+When <example> starts a paragraph, \n\n sequence are allowed in the example. 
+In the example below, bla<example> or bla\n<example> wouldn't be handled 
+correctly unlike: 
+bla
+
+<example>
+patati
+
+patata
+</example> */
+- (BOOL) canWrapWithParagraphMarkup: (NSString *)para
+{
+  NSScanner *scanner = [NSScanner scannerWithString: para];
+  NSSet *blockTags = [NSSet setWithObjects: @"list", @"enum", @"item", 
+    @"deflist", @"term", @"qalist", @"question", @"answer", 
+    @"p", @"example", @"embed", @"index", nil]; 
+  NSMutableCharacterSet *skippedChars = 
+    (id)[NSMutableCharacterSet punctuationCharacterSet];
+
+  if (inUnclosedExample)
+    {
+        /* We don't need to check block element presence within an example, 
+           since an example content is limited to PCDATA. */
+        [scanner scanUpToString: @"</example>" intoString: NULL];
+        if ([scanner scanString: @"</example>" intoString: NULL])
+          {
+            inUnclosedExample = NO;
+          }
+          return NO;
+    }
+
+  /* Set up the scanner to treat opening and closing tags in the same way.
+     Punctuation character set includes '/' but not '<' and '>' */
+  [skippedChars formUnionWithCharacterSet: [scanner charactersToBeSkipped]];
+  [scanner setCharactersToBeSkipped: AUTORELEASE([skippedChars copy])];
+
+  while (![scanner isAtEnd])
+    {
+      NSString *tag = @"";
+      BOOL foundBlockTag = NO;
+   
+      [scanner scanUpToString: @"<" intoString: NULL];
+      if (![scanner scanString: @"<" intoString: NULL])
+        return YES;
+
+      [scanner scanUpToString: @">" intoString: &tag];
+      foundBlockTag = [blockTags containsObject: tag];
+
+      if (foundBlockTag)
+      {
+        /* When the first block tag is <example> and the example is unclosed in 
+           the current paragraph, we stop to insert <p> tags in the next 
+           paragraphs until we reach </example> */
+        if ([tag isEqualToString: @"example"])
+          {
+            [scanner setCharactersToBeSkipped: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            [scanner scanUpToString: @"</example>" intoString: NULL];
+            inUnclosedExample = ([scanner scanString: @"</example>" intoString: NULL] == NO);
+          }
+
+        return NO;
+      }
+    }
+
+   return YES;
+}
+
+// NOTE: We could be able to eliminate that if -parseComment processes the 
+// first comment tags before calling -generateParagraphMarkups:
+- (BOOL) shouldInsertParagraphMarkupInFirstComment: (NSString *)aComment
+{
+  NSArray *firstCommentTags = [NSArray arrayWithObjects: @"<title>", 
+    @"<abstract>", @"<author>", @"<copy>", @"<version>", @"<date>", 
+    @"Author:", @"By:", @"Copyright (C)", @"Revision:", @"Date:", nil];
+   NSEnumerator *e = [firstCommentTags objectEnumerator];
+   NSString *tag = nil;
+
+   while ((tag = [e nextObject]) != nil)
+     {
+       if ([aComment rangeOfString: tag 
+                           options: NSCaseInsensitiveSearch].location != NSNotFound)
+         {
+            return NO;
+         }
+     }
+
+  return YES;
+}
+
+- (NSString *) generateParagraphMarkupForString: (NSString *)aComment
+{
+  NSMutableString *formattedComment = [NSMutableString stringWithCapacity: [aComment length] + 100];
+  NSArray *paras = [aComment componentsSeparatedByString: @"\n\n"];
+  NSEnumerator *e = [paras objectEnumerator];
+  NSString *para = nil;
+  BOOL isFirstComment = (commentsRead == NO);
+
+  if (isFirstComment 
+   && ![self shouldInsertParagraphMarkupInFirstComment: aComment])
+    {
+      return aComment;
+    }
+
+  while ((para = [e nextObject]) != nil)
+    {
+      NSString *newPara = para;
+      /* -canWrapWithParagraph: can change its value */
+      BOOL wasInUnclosedExample = inUnclosedExample;
+
+      if ([self canWrapWithParagraphMarkup: para])
+      {
+        newPara = [NSString stringWithFormat: @"<p>%@</p>", para];
+      }
+      else if (wasInUnclosedExample)
+      {
+        newPara = [NSString stringWithFormat: @"\n\n%@", para];
+      }
+      [formattedComment appendString: newPara];
+    }
+
+  return formattedComment;
+}
+
 /**
  * In spite of its trivial name, this is one of the key methods -
  * it parses and skips past comments, but it also recognizes special
@@ -519,10 +662,23 @@ comment:
 	   */
 	  if (end > start)
 	    {
-	      NSString	*tmp;
-	      NSRange	r;
+	      NSString 		*tmp;
+	      NSRange		r;
+              NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
 
 	      tmp = [NSString stringWithCharacters: start length: end - start];
+
+              /* 
+               * If the comment does not contain block markup already and we 
+               * were asked to generate it, we insert <p> tags to get an 
+               * explicit paragraph structure.
+               */
+              if ([defs boolForKey: @"GenerateParagraphMarkup"])
+                {
+                  // FIXME: Should follow <ignore> processing and be called 
+                  // just before using -appendComment:to:
+                  tmp = [self generateParagraphMarkupForString: tmp]; 
+                }
 recheck:
 	      if (YES == ignore)
 		{
@@ -1206,6 +1362,7 @@ recheck:
     || [s isEqualToString: @"union"] == YES
     || [s isEqualToString: @"enum"] == YES)
     {
+      BOOL isEnum = [s isEqualToString: @"enum"];
       NSString	*tmp = s;
 
       s = [self parseIdentifier];
@@ -1223,9 +1380,91 @@ recheck:
 	   */
 	  [d setObject: s forKey: @"Name"];
 	}
-      if ([self parseSpace] < length && buffer[pos] == '{')
+      /* We parse enum comment of the form:
+         <introComment> enum { field1, <comment1> field2 <comment2> } bla; */
+      if (isEnum && [self parseSpace] < length && buffer[pos] == '{')
 	{
-	  [self skipBlock];
+          NSString *ident;
+          NSString *introComment;
+          NSMutableString *fieldComments = [NSMutableString string];
+          BOOL foundFieldComment = NO;
+
+          /* We want to be able to parse new comments while retaining the 
+             originally parsed comment for the enum/union/struct. */
+          introComment = [comment copy];
+          DESTROY(comment);
+
+          pos++; /* Skip '{' */
+
+          [fieldComments appendString: @"<deflist>"];
+
+          // TODO: We should put the parsed field into the doc index and 
+          // let AGSOutput generate the deflist.
+           while (buffer[pos] != '}')
+            {
+              ident = [self parseIdentifier];
+              /* Discard any comment parsed before the identifier */
+              if (comment != nil)
+                {
+                  [self log: @"Ignoring comment before first field %@ in %@", 
+                    comment, ident, s];
+                  DESTROY(comment);
+                }
+
+              /* Skip the left-hand side such as ' = aValue'
+
+                 Four combinations can be parsed:
+                 - fieldDecl,
+                 - fieldDelc, <comment> 
+                 - fieldDecl }
+                 - fieldDelc <comment> } */
+              while (buffer[pos] != ',' && buffer[pos] != '}')
+                {
+                  BOOL foundComment = (buffer[pos] == '/' && buffer[pos + 1] == '*');
+
+                  if (foundComment)
+                    break;
+
+                  pos++;
+                }
+              if (buffer[pos] == ',')
+                  pos++;
+
+              [self parseSpace]; /* Parse doc comment into 'comment' ivar */
+
+              [fieldComments appendString: @"<term><em>"];
+              if (comment != nil)
+                foundFieldComment = YES;
+
+              if (ident != nil)
+                {
+                  [fieldComments appendString: ident];
+                  [fieldComments appendString: @"</em></term>"];
+                  [fieldComments appendString: @"<desc>"];
+                  // NOTE: We could add a 'Description forthcoming' if nil
+                  if (comment != nil)
+                    {
+                      [fieldComments appendString: comment];
+                    }
+                  [fieldComments appendString: @"</desc>\n"];
+                }
+              DESTROY(comment);
+            }
+
+          [fieldComments appendString: @"</deflist>"];
+
+          /* Restore the comment as initially parsed before -parseDeclaration 
+             was called and add the comments parsed per field into a deflist. */
+          ASSIGN(comment, introComment);
+          if (foundFieldComment)
+            {
+              NSString *enumComment = 
+                [comment stringByAppendingFormat: @"\n\n%@", fieldComments];
+
+              ASSIGN(comment, enumComment);
+            }
+
+          pos++; /* Skip '}' */
 	}
       [a addObject: s];
       s = nil;

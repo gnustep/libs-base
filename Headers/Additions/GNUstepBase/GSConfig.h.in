@@ -31,7 +31,7 @@
 
 #if !defined(NeXT_Foundation_LIBRARY)
 
-/* An alternate to GS_FAKE_MAIN which forces the user to call the 
+/* An alternate to GS_FAKE_MAIN which forces the user to call the
    NSProcessInfo initialization in 'main', GS_FAKE_MAIN must also
    be undefined. */
 #if @GS_PASS_ARGUMENTS@
@@ -212,16 +212,18 @@ typedef	gsuaddr gsaddr;
  */
 typedef	struct {
   uint8_t	dummy[@GS_SIZEOF_COND_T@];
-} gs_cond_t;
+} gs_cond_t	__attribute__((aligned (@GS_ALIGNOF_COND_T@)));
 typedef	struct {
   uint8_t	dummy[@GS_SIZEOF_MUTEX_T@];
-} gs_mutex_t;
+} gs_mutex_t	__attribute__((aligned (@GS_ALIGNOF_MUTEX_T@)));
 
 #define	OBJC2RUNTIME @OBJC2RUNTIME@
 #define BASE_NATIVE_OBJC_EXCEPTIONS     @BASE_NATIVE_OBJC_EXCEPTIONS@
 #define GS_NONFRAGILE     @GS_NONFRAGILE@
 #define GS_MIXEDABI     @GS_MIXEDABI@
-
+#define GS_USE_AVAHI @HAVE_AVAHI@
+#define GS_USE_MDNS @HAVE_MDNS@
+#define GS_USE_ICU @HAVE_ICU@
 #import <GNUstepBase/preface.h>
 
 #endif	/* included_GSConfig_h */

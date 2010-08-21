@@ -95,7 +95,7 @@ skip_argspec(const char *types)
   return types;
 }
 
-/** 
+/**
  * Looks up the instance method in a specific class, without recursing into
  * superclasses.
  */
@@ -858,14 +858,37 @@ safe_remove_from_subclass_list(Class cls)
 void
 objc_disposeClassPair(Class cls)
 {
-  Class meta = ((id) cls)->isa;
+  Class meta;
 
-  // Remove from the runtime system so nothing tries updating the dtable
-  // while we are freeing the class.
-  objc_mutex_lock(__objc_runtime_mutex);
-  safe_remove_from_subclass_list(meta);
-  safe_remove_from_subclass_list(cls);
-  objc_mutex_unlock(__objc_runtime_mutex);
+  if (cls == 0)
+    {
+      return;
+    }
+  meta = ((id) cls)->isa;
+
+  if (objc_lookUpClass (class_getName (cls)) == (id)cls)
+    {
+      fprintf(stderr, "*** ERROR *** function objc_disposeClassPair() called "
+	"on registered class pair '%s'\n", class_getName(cls));
+      return;
+    /*
+       The runtime provides no mechanism to remove a class.
+       The following code essentially frees the memory used by a class without
+       fully removing it ... which obviously tends to cause random crashes
+       later on if anything tries to use the class or to traverse data
+       structures containing the class.
+       Indeed, it's hard to see how this function could ever be made to work
+       (what if there are subclasses of the class being removed, or if
+       there are instances of the class?) even with changes to the runtime.
+      
+      // Remove from the runtime system so nothing tries updating the dtable
+      // while we are freeing the class.
+      objc_mutex_lock(__objc_runtime_mutex);
+      safe_remove_from_subclass_list(meta);
+      safe_remove_from_subclass_list(cls);
+      objc_mutex_unlock(__objc_runtime_mutex);
+    */
+    }
 
   // Free the method and ivar lists.
   freeMethodLists(cls);
@@ -981,9 +1004,28 @@ void __objc_resolve_class_links(void);
 void
 objc_registerClassPair(Class cls)
 {
-  Class metaClass = cls->class_pointer;
+  Class metaClass;
+  Class	existing;
+
+  if (Nil == cls)
+    {
+      fprintf(stderr, "*** ERROR *** function objc_registerClassPair() called "
+	"on Nil class pair '%s'\n", class_getName(cls));
+    }
+  existing = (Class)objc_lookUpClass (class_getName (cls));
+  if (existing == cls)
+    {
+      return;	// Already registered
+    }
+  if (Nil == existing)
+    {
+      fprintf(stderr, "*** ERROR *** function objc_registerClassPair() called "
+	"for class pair with name ('%s') of existing class.\n",
+	class_getName(cls));
+    }
 
   // Initialize the dispatch table for the class and metaclass.
+  metaClass = cls->class_pointer;
   __objc_update_dispatch_table_for_class(metaClass);
   __objc_update_dispatch_table_for_class(cls);
   __objc_add_class_to_hash(cls);
@@ -1138,6 +1180,14 @@ sel_getName(SEL sel)
   if (sel == 0)
     return "<null selector>";
   return sel_get_name(sel);
+}
+
+const char *
+sel_getType_np(SEL sel)
+{
+  if (sel == 0)
+    return "";
+  return sel_get_type(sel);
 }
 
 SEL

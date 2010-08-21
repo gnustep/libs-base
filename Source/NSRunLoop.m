@@ -958,6 +958,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
           unsigned              c;
           unsigned              i;
 
+	  ei = 0.0;	// Only needed to avoid compiler warning
+
 	  /*
 	   * Save current time so we don't keep redoing system call to
 	   * get it and so that we check timer fire dates against a known
@@ -1005,7 +1007,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		    {
 		      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
 		      [t fire];
-		      GSPrivateNotifyASAP(_currentMode); /* Post notifications. */
+		      GSPrivateNotifyASAP(_currentMode);
 		      IF_NO_GC([arp emptyPool]);
 		      if (updateTimer(t, d, now) == YES)
 			{

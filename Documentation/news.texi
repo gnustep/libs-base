@@ -11,13 +11,19 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.20.2}
+
+This is a stable bugfix release. There are no major changes or binary
+incompatibilities, but this release does include a rewrite of NSNetServices
+to be based on AVAHI, and various bugfixes and portability improvements.
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.20.1}
 
 This is a stable bugfix release. There are no major changes or binary
 incompatibilities, but this release does include an update of timezone
 handling to include the latest zone information.
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.20.0}
 

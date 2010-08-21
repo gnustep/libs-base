@@ -517,39 +517,90 @@ notice and this notice are preserved.
 	    of no name.<br />
 	    System paths are defined by the following:
 	  </p>
-	    <deflist>
-	      <term>GNUSTEP_SYSTEM_ROOT</term>
-	      <desc>
-		Obsolete.
-		Used to specify the GNUstep system root directory ... all
-		system libraries, tools, applications, headers, resources
-		in general are located relative to this.
-	      </desc>
-	      <term>GNUSTEP_NETWORK_ROOT</term>
-	      <desc>
-		Obsolete.  Used to specify the GNUstep root directory for local
-		(non-system) resources that are intended to be shared
-		across a local network.  Typically this is an NFS exported
-		directory shared by many machines.  It provides an
-		alternative to GNUSTEP_LOCAL_ROOT but is usually defined
-		to the same value.
-	      </desc>
-	      <term>GNUSTEP_LOCAL_ROOT</term>
-	      <desc>
-		Obsolete.  Used to specify the GNUstep root directory for local
-		(non-system) resources.  Typically all locally produced
-		or contributed software is installed relative to this.
-	      </desc>
-	    </deflist>
+	  <deflist>
+	    <term>GNUSTEP_SYSTEM_APPS</term>
+	    <desc>This is where System GUI Applications get installed.<br />
+	    Traditionally it is /usr/GNUstep/System/Applications.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_ADMIN_APPS</term>
+	    <desc>This is where System GUI Applications that only the
+	    Administrator can use get installed.<br />
+	    Traditionally it is /usr/GNUstep/System/Applications/Admin.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_WEB_APPS</term>
+	    <desc>This is where System Web Applications (GSWeb, SOPE) get
+	    installed.<br />
+	    Traditionally it is /usr/GNUstep/System/Library/WebApplications.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_TOOLS</term>
+	    <desc>This is where System Command-Line Tools get installed.<br />
+	    Traditionally it is /usr/GNUstep/System/Tools.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_ADMIN_TOOLS</term>
+	    <desc>This is where System Command-Line Tools that only the
+	    Administrator can use get installed.  Important: this
+	    should not be in the PATH of normal users.<br />
+	    Traditionally it is /usr/GNUstep/System/Tools/Admin.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_LIBRARY</term>
+	    <desc>This is where System resources get installed.
+	    This directory will contain a lot of executable code
+	    since *step traditionally likes to
+	    bundle executables and resources together.<br />
+	    Traditionally it is /usr/GNUstep/System/Library.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_HEADERS</term>
+	    <desc>This is where System headers get installed.  They are the
+	    library .h headers.<br />
+	    Traditionally it is /usr/GNUstep/System/Library/Headers.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_LIBRARIES</term>
+	    <desc>This is where System libraries get installed.
+	    By libraries we mean the shared/static object files that
+	    you can link into programs.<br />
+	    Traditionally it is /usr/GNUstep/System/Library/Libraries.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_DOC</term>
+	    <desc>This is where System documentation get installed.
+	    This is known not to contain any executable, so we keep
+	    it separate.<br />
+	    Traditionally it is /usr/GNUstep/System/Library/Documentation.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_DOC_MAN</term>
+	    <desc>This is where System man pages get installed.<br />
+	    Traditionally it is
+	    /usr/GNUstep/System/Library/Documentation/man.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_DOC_INFO</term>
+	    <desc>This is where System info pages get installed.<br />
+	    Traditionally it is
+	    /usr/GNUstep/System/Library/Documentation/info.
+	    </desc>
+	  </deflist>
 	  <p>
-	    Paths for each user are defined by the following:
+	    In addition to the above SYSTEM domain paths, there are
+	    corresponding LOCAL, NETWORK, and USER domain paths (with the
+	    same names except for replacing 'SYSTEM' with 'LOCAL', 'NETWORK',
+	    or 'USER'.<br />
+	    All these paths must be absolute, except for the USER domain
+	    paths which, if not absolute, are considered to be with the
+	    user's home directory.<br />
+	    NB. as a special case a path may begin with './' or '../' when
+	    it is to be resolved to an absolute path relative to the
+	    location of the GNUstep configuration file.
+	    So while such paths appear to be relative, they actually produce
+	    absolute locations at runtime since the location of the
+	    configuration file is known.<br />
+	    Finally, for paths in the USER domain only, a limited substitution
+	    into the path is performed at runtime as follows:<br />
+	    '%u' is replaced by the user name<br />
+	    '%i' is replaced by the user ID<br />
+	    '%%' is replaced by a single '%'<br />
+	  </p>
+	  <p>
+	    Other paths for each user are defined by the following:
 	  </p>
 	  <deflist>
-	    <term>GNUSTEP_USER_DIR</term>
-	    <desc>Obsolete.
-	    Path for user specific GNUstep resources (eg. 'GNUstep').
-	    Relative to the user's home directory.
-	    </desc>
 	    <term>GNUSTEP_USER_CONFIG_FILE</term>
 	    <desc>Name of user configuration file (eg. '.GNUstep.conf')
 	    relative to the user's home directory.<br />
@@ -558,7 +609,7 @@ notice and this notice are preserved.
 	    </desc>
 	    <term>GNUSTEP_USER_DEFAULTS_DIR</term>
 	    <desc>Name of directory for user defaults files.
-	    Relative to the user's home directory.<br />
+	    Always relative to the user's home directory except:<br />
 	    On mswindows this may be set to be ':REGISTRY:' to have defaults
 	    stored in the windows registry rather than in the standard file
 	    format.<br />
@@ -631,11 +682,14 @@ notice and this notice are preserved.
 	    Firstly, variables in the configuration file which define
 	    paths, are expected to by full path specifications, except
 	    for the special case in which they begin with dot-slash (./)
-            or dot-dot-slash (../).
+            or dot-dot-slash (../).<br />
 	    In this case the path from the variable is appended to the
 	    path of the directory containing the configuration file
 	    (or the path specified to contain the configuration file if no
-	    configuration file exists) to form the value used.
+	    configuration file exists) to form the value used.<br />
+	    So, if you configure other paths relative to the configuration
+	    file, you can relocate everything when you move the
+	    configuration file.
 	  </p>
 	  <p>
 	    Secondly, If the value of the path built in to the base library
@@ -643,28 +697,40 @@ notice and this notice are preserved.
 	    the GNUSTEP_CONFIG_FILE environment variable unless that option
 	    was disabled when the base library was configured)
 	    begins with a dot-slash (./) or dot-dot-slash (../) then the path
-            used for that file is made relative to the base library.
+            used for that file is made relative to the base library.<br />
+	    The base library contains code to determine its own location,
+	    so this allows it to locate the configuration file, and by
+	    reading the configuration file it determines where all other
+	    resources are located.
 	  </p>
 	  <p>
 	    So you can bundle the whole lot together in one directory,
 	    and configure various relative paths in that directory, then
 	    move the directory around wherever you like.
 	  </p>
+	</subsect>
+	<subsect>
+	  <heading>Lock-Down</heading>
 	  <p>
 	    If you wish to <em>lock down</em> a production system for
-	    distribution as a relocatable package, so it can be installed
-	    anywhere, but users can't accidentally change the config file
-	    and mess up paths, you can specify the config file name as
+	    distribution so that users can't change the config
+	    file and mess up paths, you can specify the config file name as
 	    a path with a trailing slash so that the base library will
 	    <em>not</em> read it, and will use the builtin default values.<br />
-	    To do this, you would configure using the options
-	    <code>--with-config-file=not-used/</code> and
-	    <code>--with-default-file=myConfig</code> where <em>myConfig</em>
-	    is a file containing the paths you want to use relative to the
-	    location the base library gets installed in.<br />
+	    To do this, you would configure using options like
+	    <code>--disable-environment-config-file</code> with
+	    <code>--with-config-file=/not-used/</code> and
+	    <code>--with-default-config=myConfig</code> where <em>myConfig</em>
+	    is a file containing the paths you want to use in the locked down
+	    system.<br />
 	    The paths from that file will be built in to the base library
 	    as defaults, and library will use them rather than attempting
-	    to read a config file at runtime.
+	    to read a config file at runtime.<br />
+	    You can lock down a relocatable system by using this procedure
+	    with './' as the config file path and relative paths in myConfig...
+	    a user could then move the entire package around, but would not
+	    be able to edit a configuration file to alter the paths within
+	    the pacakge.
 	  </p>
 	</subsect>
 	<subsect>
