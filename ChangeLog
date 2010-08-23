@@ -1,3 +1,8 @@
+2010-08-23  Riccardo Mottola (patch by Yavor Doganov)
+
+	* configure.ac: Include pthread.h in check program
+	* configure: Regenerate
+	
 2010-08-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/ObjectiveC2/runtime.c: Made objc_disposeClassPair() a no-op
