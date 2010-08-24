@@ -1,3 +1,11 @@
+2010-08-24  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/GSFileHandle.m (-initWithStandardError,
+	-initWithStandardInput, -initWithStandardOutput): Restore lost
+	assignments which ensure that only one file handle exists for each
+	of the standard channels. This fixes a bug where a run loop might
+	unexpectedly stop watching the standard channels.
+
 2010-08-23  Riccardo Mottola (patch by Yavor Doganov)
 
 	* configure.ac: Include pthread.h in check program

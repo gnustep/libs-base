@@ -1022,6 +1022,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
+      fh_stderr = self;
     }
   if (self)
     {
@@ -1039,6 +1040,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
+      fh_stdin = self;
     }
   if (self)
     {
@@ -1056,6 +1058,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
+      fh_stdout = self;
     }
   if (self)
     {
