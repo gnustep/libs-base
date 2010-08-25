@@ -1,3 +1,7 @@
+2010-08-25  Jonathan Gillaspie  <jonathan.gillaspie@testplant.com>
+
+	* Source/Objective2/sync.m:  Removed weak declarations
+
 2010-08-24  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSFileHandle.m (-initWithStandardError,
