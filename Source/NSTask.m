@@ -1009,35 +1009,43 @@ GSPrivateCheckTasks()
  */
 static DWORD WINAPI _threadFunction(LPVOID t)
 {
-  DWORD	milliseconds = 60000;
-  int	taskId = [(NSTask*)t processIdentifier];
+  DWORD			milliseconds = 60000;
+  int			taskId;
+  NSConcreteWindowsTask	*task;
 
-  for (;;)
+  GSRegisterCurrentThread();
+  taskId = [(NSTask*)t processIdentifier];
+  [tasksLock lock];
+  task = (NSConcreteWindowsTask*)NSMapGet(activeTasks,
+    (void*)(intptr_t) taskId);
+  [task retain];
+  [tasksLock unlock];
+  if (task != nil)
     {
-      NSConcreteWindowsTask	*task;
-
-      [tasksLock lock];
-      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks,
-	(void*)(intptr_t) taskId);
-      IF_NO_GC([[task retain] autorelease];)
-      [tasksLock unlock];
-      if (task == nil)
+      for (;;)
 	{
-	  return 0;	// Task gone away.
-	}
-      switch (WaitForSingleObject(task->procInfo.hProcess, milliseconds))
-	{
-	  case WAIT_OBJECT_0:
-	    handleSignal(0);	// Signal child process state change.
-	    return 0;
+	  NSConcreteWindowsTask	*present;
 
-	  case WAIT_TIMEOUT:
-	    break;		// Timeout ... retry
-
-	  default:
-	    return 0;		// Error ... stop watching.
+	  [tasksLock lock];
+	  present = (NSConcreteWindowsTask*)NSMapGet(activeTasks,
+	    (void*)(intptr_t) taskId);
+	  [tasksLock unlock];
+	  if (present == nil)
+	    {
+	      [task release];
+	      break;	// Task gone away.
+	    }
+	  if (WaitForSingleObject(task->procInfo.hProcess, milliseconds)
+	    != WAIT_TIMEOUT)
+	    {
+	      [task release];
+	      handleSignal(0);	// Signal child process state change.
+	      break;
+	    }
 	}
     }
+  GSUnregisterCurrentThread();
+  return 0;
 }
 
 
