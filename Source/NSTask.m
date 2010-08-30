@@ -46,6 +46,7 @@
 #import "Foundation/NSLock.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSThread+GNUstepBase.h"
 #import "GSPrivate.h"
 
 #include <string.h>
