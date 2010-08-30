@@ -919,10 +919,11 @@ static void *nsthreadLauncher(void* thread)
       NSLog(@"Set event failed - %@", [NSError _last]);
     }
 #else
-  if (write(outputFd, "0", 1) != 1)
-    {
-      NSLog(@"Write to pipe failed - %@", [NSError _last]);
-    }
+  /* The write could concievably fail if the pipe is full, but in that
+   * case we don't care since the other thread should be woken to handle
+   * reading anyway.
+   */
+  write(outputFd, "0", 1);
 #endif
   [lock unlock];
 }
@@ -957,6 +958,20 @@ static void *nsthreadLauncher(void* thread)
 	{
 	  e |= NBLK_OPT;
 	  if (fcntl(inputFd, F_SETFL, e) < 0)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"Failed to set non block flag for perform in thread"];
+	    }
+	}
+      else
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"Failed to get non block flag for perform in thread"];
+	}
+      if ((e = fcntl(outputFd, F_GETFL, 0)) >= 0)
+	{
+	  e |= NBLK_OPT;
+	  if (fcntl(outputFd, F_SETFL, e) < 0)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
 		format: @"Failed to set non block flag for perform in thread"];
@@ -1024,10 +1039,17 @@ static void *nsthreadLauncher(void* thread)
 #else
   if (inputFd >= 0)
     {
-      if (read(inputFd, &c, 1) != 1)
-        {
-          NSLog(@"Read pipe failed - %@", [NSError _last]);
-        }
+      char	buf[BUFSIZ];
+
+      /* We don't care how much we read.  If there have been multiple
+       * performers queued then there will be multiple bytes available,
+       * but we always handle all available performers, so we can also
+       * read all available bytes.
+       * The descriptor is non-blocking ... so it's safe to ask for more
+       * bytes than are available.
+       */
+      while (read(inputFd, buf, sizeof(buf)) > 0)
+	;
     }
 #endif
 
