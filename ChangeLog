@@ -1,3 +1,20 @@
+2010-08-25  Jonathan Gillaspie  <jonathan.gillaspie@testplant.com>
+
+        * Source/Objective2/sync.m:  Removed weak declarations
+
+2010-08-24  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+        * Source/GSFileHandle.m (-initWithStandardError,
+        -initWithStandardInput, -initWithStandardOutput): Restore lost
+        assignments which ensure that only one file handle exists for each
+        of the standard channels. This fixes a bug where a run loop might
+        unexpectedly stop watching the standard channels.
+
+2010-08-23  Riccardo Mottola (patch by Yavor Doganov)
+
+        * configure.ac: Include pthread.h in check program
+        * configure: Regenerate
+
 2010-08-20  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/ObjectiveC2/runtime.c: Made objc_disposeClassPair() a no-op

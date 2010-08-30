@@ -161,7 +161,6 @@ sync_add_node(id obj)
  * Add a lock for the object.
  */ 
 int
-__attribute__((weak))
 objc_sync_enter(id obj)
 {
   lock_node_t *node = NULL;
@@ -203,7 +202,6 @@ objc_sync_enter(id obj)
  * Remove a lock for the object.
  */
 int
-__attribute__((weak))
 objc_sync_exit(id obj)
 {
   lock_node_t *node = NULL;

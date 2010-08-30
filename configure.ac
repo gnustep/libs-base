@@ -1788,14 +1788,14 @@ if test $ac_cv_header_pthread_h = yes ; then
   fi
   GS_SIZEOF_COND_T=$ac_cv_sizeof_pthread_cond_t
   AC_SUBST(GS_SIZEOF_COND_T)
-  AC_CHECK_ALIGNOF(pthread_mutex_t,,[AC_INCLUDES_DEFAULT
+  AC_CHECK_ALIGNOF(pthread_mutex_t,[AC_INCLUDES_DEFAULT
 #include <pthread.h>])
   GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_pthread_mutex_t
   if test $ac_cv_alignof_pthread_mutex_t = 0 ; then
     AC_MSG_ERROR([Unable to find align of pthread_mutex_t (required).])
   fi
   AC_SUBST(GS_ALIGNOF_MUTEX_T)
-  AC_CHECK_ALIGNOF(pthread_cond_t,,[AC_INCLUDES_DEFAULT
+  AC_CHECK_ALIGNOF(pthread_cond_t,[AC_INCLUDES_DEFAULT
 #include <pthread.h>])
   if test $ac_cv_alignof_pthread_cond_t = 0 ; then
     AC_MSG_ERROR([Unable to find align of pthread_cond_t (required).])
