@@ -919,11 +919,17 @@ static void *nsthreadLauncher(void* thread)
       NSLog(@"Set event failed - %@", [NSError _last]);
     }
 #else
-  /* The write could concievably fail if the pipe is full, but in that
-   * case we don't care since the other thread should be woken to handle
-   * reading anyway.
+  /* The write could concievably fail if the pipe is full.
+   * In that case we need to release the lock teporarily to allow the other
+   * thread to consume data from the pipe.  It's possible that the thread
+   * and its runloop might stop during that ... so we need to check that
+   * outputFd is still valid.
    */
-  write(outputFd, "0", 1);
+  while (outputFd >= 0 && write(outputFd, "0", 1) != 1)
+    {
+      [lock unlock];
+      [lock lock];
+    }
 #endif
   [lock unlock];
 }
