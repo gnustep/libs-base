@@ -1,3 +1,8 @@
+2010-08-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/cvtenc.m: Add -Unicode option
+	* Tools/cvtenc.1: update
+
 2010-08-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: try to make inter-thread notification via
