@@ -1,3 +1,10 @@
+2010-08-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSThread.m: try to make inter-thread notification via
+        pipe more robust.
+        * Source/NSTask.m: make windows thread waiting for task into an
+        NSThread so that any thread-dependent code can work.
+
 2010-08-25  Jonathan Gillaspie  <jonathan.gillaspie@testplant.com>
 
         * Source/Objective2/sync.m:  Removed weak declarations

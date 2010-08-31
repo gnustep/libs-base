@@ -42,6 +42,7 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
 #import "Foundation/NSTask.h"
+#import "Foundation/NSThread.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSLock.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -1004,42 +1005,6 @@ GSPrivateCheckTasks()
   TerminateProcess(procInfo.hProcess, 10);
 }
 
-/*
- * Wait for child process completion.
- */
-static DWORD WINAPI _threadFunction(LPVOID t)
-{
-  DWORD	milliseconds = 60000;
-  int	taskId = [(NSTask*)t processIdentifier];
-
-  for (;;)
-    {
-      NSConcreteWindowsTask	*task;
-
-      [tasksLock lock];
-      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks,
-	(void*)(intptr_t) taskId);
-      IF_NO_GC([[task retain] autorelease];)
-      [tasksLock unlock];
-      if (task == nil)
-	{
-	  return 0;	// Task gone away.
-	}
-      switch (WaitForSingleObject(task->procInfo.hProcess, milliseconds))
-	{
-	  case WAIT_OBJECT_0:
-	    handleSignal(0);	// Signal child process state change.
-	    return 0;
-
-	  case WAIT_TIMEOUT:
-	    break;		// Timeout ... retry
-
-	  default:
-	    return 0;		// Error ... stop watching.
-	}
-    }
-}
-
 
 static NSString*
 endSlashesDoubledFromString(NSString *aString)
@@ -1092,9 +1057,53 @@ quotedFromString(NSString *aString)
   return resultString;
 }
 
+
+/* Wait for child process completion.  The task object is retained by the
+ * current thread until it exits, but may be removed from the table of
+ * active tasks by another thread, so we must check that it's still
+ * active at intervals. 
+ */
+- (void) _windowsTaskWatcher
+{
+  void			*taskId = (void*)(intptr_t)[self processIdentifier];
+
+  for (;;)
+    {
+      NSConcreteWindowsTask	*task;
+
+      /* Check that this task is still active.
+       */
+      [tasksLock lock];
+      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks, taskId);
+      [tasksLock unlock];
+      if (task != self)
+	{
+	  /* Task has been reaped by another thread ... so we can exit.
+	   */
+	  [NSThread exit];
+	}
+
+      /* Wait for up to 1 minute (60,000 milliseconds) to get a notification
+       * of an event from the subprocess.
+       */
+      if (WaitForSingleObject(procInfo.hProcess, (DWORD)60000)
+	!= WAIT_TIMEOUT)
+	{
+          /* The subprocess has terminated or failed in some way ...
+	   * Set flag so child task can be reaped, then exit since this
+	   * thread no longer needs to watch for events.
+	   */
+	  handleSignal(0);
+	  [NSThread exit];
+	}
+
+      /* Timed out ... repeat wait attempt.
+       */
+    }
+}
+
 - (void) launch
 {
-  DWORD			tid;
   STARTUPINFOW		start_info;
   NSString      	*lpath;
   NSString      	*arg;
@@ -1296,10 +1305,13 @@ quotedFromString(NSString *aString)
   [tasksLock lock];
   NSMapInsert(activeTasks, (void*)(intptr_t) _taskId, (void*)self);
   [tasksLock unlock];
+
   /*
    * Create thread to watch for termination of process.
    */
-  wThread = CreateThread(NULL, 0, _threadFunction, (LPVOID)self, 0, &tid);
+  [NSThread detachNewThreadSelector: @selector(_windowsTaskWatcher)
+			   totarget: self
+			 withObject: nil];
 
   /*
    *	Close the ends of any pipes used by the child.

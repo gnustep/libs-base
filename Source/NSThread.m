@@ -272,7 +272,7 @@ commonModes(void)
   return modes;
 }
 
-#if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME)
+#if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 /* We need to access these private vars in the objc runtime - because
    the objc runtime's API is not enough powerful for the GNUstep
    extensions we want to add.  */
@@ -919,9 +919,16 @@ static void *nsthreadLauncher(void* thread)
       NSLog(@"Set event failed - %@", [NSError _last]);
     }
 #else
-  if (write(outputFd, "0", 1) != 1)
+  /* The write could concievably fail if the pipe is full.
+   * In that case we need to release the lock teporarily to allow the other
+   * thread to consume data from the pipe.  It's possible that the thread
+   * and its runloop might stop during that ... so we need to check that
+   * outputFd is still valid.
+   */
+  while (outputFd >= 0 && write(outputFd, "0", 1) != 1)
     {
-      NSLog(@"Write to pipe failed - %@", [NSError _last]);
+      [lock unlock];
+      [lock lock];
     }
 #endif
   [lock unlock];
@@ -957,6 +964,20 @@ static void *nsthreadLauncher(void* thread)
 	{
 	  e |= NBLK_OPT;
 	  if (fcntl(inputFd, F_SETFL, e) < 0)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"Failed to set non block flag for perform in thread"];
+	    }
+	}
+      else
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"Failed to get non block flag for perform in thread"];
+	}
+      if ((e = fcntl(outputFd, F_GETFL, 0)) >= 0)
+	{
+	  e |= NBLK_OPT;
+	  if (fcntl(outputFd, F_SETFL, e) < 0)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
 		format: @"Failed to set non block flag for perform in thread"];
@@ -1024,10 +1045,17 @@ static void *nsthreadLauncher(void* thread)
 #else
   if (inputFd >= 0)
     {
-      if (read(inputFd, &c, 1) != 1)
-        {
-          NSLog(@"Read pipe failed - %@", [NSError _last]);
-        }
+      char	buf[BUFSIZ];
+
+      /* We don't care how much we read.  If there have been multiple
+       * performers queued then there will be multiple bytes available,
+       * but we always handle all available performers, so we can also
+       * read all available bytes.
+       * The descriptor is non-blocking ... so it's safe to ask for more
+       * bytes than are available.
+       */
+      while (read(inputFd, buf, sizeof(buf)) > 0)
+	;
     }
 #endif
 
