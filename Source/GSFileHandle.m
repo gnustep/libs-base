@@ -243,14 +243,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void) dealloc
 {
-  RELEASE(address);
-  RELEASE(service);
-  RELEASE(protocol);
+  DESTROY(address);
+  DESTROY(service);
+  DESTROY(protocol);
 
   [self finalize];
 
-  RELEASE(readInfo);
-  RELEASE(writeInfo);
+  DESTROY(readInfo);
+  DESTROY(writeInfo);
   [super dealloc];
 }
 
@@ -273,6 +273,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (gzDescriptor != 0)
     {
       gzclose(gzDescriptor);
+      gzDescriptor = 0;
     }
 #endif
   if (descriptor != -1)
@@ -1023,10 +1024,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
       fh_stderr = self;
-    }
-  if (self)
-    {
-      readOK = NO;
+      if (self)
+	{
+	  readOK = NO;
+	}
     }
   return self;
 }
@@ -1041,10 +1042,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
       fh_stdin = self;
-    }
-  if (self)
-    {
-      writeOK = NO;
+      if (self)
+	{
+	  writeOK = NO;
+	}
     }
   return self;
 }
@@ -1059,10 +1060,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
       fh_stdout = self;
-    }
-  if (self)
-    {
-      readOK = NO;
+      if (self)
+	{
+	  readOK = NO;
+	}
     }
   return self;
 }
@@ -1810,9 +1811,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if ([writeInfo count] > 0)
     {
-      NSMutableDictionary*	info = [writeInfo objectAtIndex: 0];
+      NSMutableDictionary	*info = [writeInfo objectAtIndex: 0];
 
-      modes=(NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
+      modes = [info objectForKey: NSFileHandleNotificationMonitorModes];
     }
 
   if (modes && [modes count])

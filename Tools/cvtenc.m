@@ -139,7 +139,7 @@ main(int argc, char** argv, char **env)
     {
       NSString	*file = [args objectAtIndex: i];
 
-      if ([file hasPrefix: @"-"] == YES)
+      if ([file hasPrefix: @"-"] == YES && NO == [file isEqual: @"-"])
 	{
 	  i++;
 	  continue;
@@ -149,7 +149,15 @@ main(int argc, char** argv, char **env)
 	{
 	  NSData	*myData;
 
-	  myData = [[NSData alloc] initWithContentsOfFile: file];
+          if (YES == [file isEqual: @"-"])
+	    {
+	      myData = [[[NSFileHandle fileHandleWithStandardInput]
+		readDataToEndOfFile] retain];
+	    }
+	  else
+	    {
+	      myData = [[NSData alloc] initWithContentsOfFile: file];
+	    }
 	  if (myData == nil)
 	    {
 	      NSLog(@"File read operation failed for %@.", file);
@@ -299,10 +307,12 @@ main(int argc, char** argv, char **env)
 		  else
 		    {
 		      NSFileHandle	*out;
+		      CREATE_AUTORELEASE_POOL(arp);
 
 		      out = [NSFileHandle fileHandleWithStandardOutput];
 		      [out writeData: myData];
 		      [out synchronizeFile];
+		      RELEASE(arp);
 		    }
 		}
 	    }
