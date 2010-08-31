@@ -1,6 +1,6 @@
 2010-08-31  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Tools/cvtenc.m: Add -Unicode option
+	* Tools/cvtenc.m: Add -Unicode option.  Fix to allow reading from stdin
 	* Tools/cvtenc.1: update
 
 2010-08-30  Richard Frith-Macdonald <rfm@gnu.org>
