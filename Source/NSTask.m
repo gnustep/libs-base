@@ -1310,7 +1310,7 @@ quotedFromString(NSString *aString)
    * Create thread to watch for termination of process.
    */
   [NSThread detachNewThreadSelector: @selector(_windowsTaskWatcher)
-			   totarget: self
+			   toTarget: self
 			 withObject: nil];
 
   /*
