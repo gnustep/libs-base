@@ -16,9 +16,10 @@ cvtenc \- file encoding converter
 .SH DESCRIPTION
 .P
 Converts a file encoded in a specified or default non-unicode encoding to
-unicode, or, if the file is already in unicode, converts it to a specified
-or default non-unicode encoding.  The converted text is printed to standard
-out.
+unicode (UTF16), or, if the file is already in unicode, converts it to a
+specified or default non-unicode encoding.
+The converted text is printed to standard out.
+If the filename is a hyphen then this tool reads from standard input.
 
 .SH OPTIONS
 .IP "\fB\-Encoding\fR \fI encoding\fR" 4
@@ -34,11 +35,18 @@ escape sequences (as in property lists).
 Specify '-EscapeOut YES' (the default is 'NO') to generate \\u escape
 sequences (as in property lists) in the output.  Note, this might produce
 unexpected results for some encodings.
+.IP "\fB\-Unicode\fR \fIIN|OUT\fR" 4
+Specify '-Unicode IN' (or '-Unicode OUT') to control the direction of
+conversion rather than having the tool guess it on the basis of the content
+it reads.  Using '-Unicode IN' means that the tool reads UTF16 data and
+writes C-String data, while using '-Unicode OUT' merans that the tool reads
+C-String data and writes UTF16 data.
 
 
 .SH HISTORY
 .RS 0
 Written in 2002.
+Minr update in 2010.
 .P
 This manual page first appeared in gnustep-base 1.9.2 (March 2004).
 .P

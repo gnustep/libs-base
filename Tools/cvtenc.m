@@ -28,6 +28,8 @@
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSFileHandle.h"
 #import	"Foundation/NSAutoreleasePool.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/GSMime.h"
 #ifdef NeXT_Foundation_LIBRARY
 #import "GNUstepBase/Additions.h"
 #endif
@@ -83,7 +85,7 @@ main(int argc, char** argv, char **env)
     {
       enc = [NSString defaultCStringEncoding];
     }
-  else
+  else if (0 == (enc = [GSMimeDocument encodingFromCharset: n]))
     {
       const NSStringEncoding	*e;
       NSMutableString	*names;
@@ -94,7 +96,7 @@ main(int argc, char** argv, char **env)
 	{
 	  NSString	*name = [NSString localizedNameOfStringEncoding: *e];
 
-	  [names appendFormat: @"  %@\n", name];
+	  [names appendFormat: @"  '%@'\n", name];
 	  if ([n isEqual: name] == YES)
 	    {
 	      enc = *e;
@@ -105,10 +107,32 @@ main(int argc, char** argv, char **env)
       if (enc == 0)
 	{
 	  NSLog(@"defaults: unable to find encoding '%@'!\n"
-	    @"Known encoding names are -\n%@", n, names);
+	    @"Localised encoding names are -\n%@", n, names);
 	  [pool release];
 	  exit(EXIT_SUCCESS);
 	}
+    }
+
+  n = [[NSUserDefaults standardUserDefaults] stringForKey: @"Unicode"];
+  n = [[n stringByTrimmingSpaces] lowercaseString];
+  if ([n length] > 0)
+    {
+      if ([n isEqual: @"in"] || [n isEqual: @"i"])
+	{
+	  n = @"i";
+	}
+      else if ([n isEqual: @"out"] || [n isEqual: @"o"])
+	{
+	  n = @"o";
+	}
+      else
+	{
+	  n = nil;
+	}
+    }
+  else
+    {
+      n = nil;
     }
 
   for (i = 1; found == NO && i < [args count]; i++)
@@ -138,13 +162,30 @@ main(int argc, char** argv, char **env)
 	      NSStringEncoding	oEnc;
 	      NSString		*myString;
 
-	      if (l > 1 && (*b == 0xFFFE || *b == 0xFEFF))
+	      if (nil == n)
 		{
+		  if (l > 1 && (*b == 0xFFFE || *b == 0xFEFF))
+		    {
+		      iEnc = NSUnicodeStringEncoding;
+		      oEnc = enc;
+		    }
+		  else
+		    {
+		      iEnc = enc;
+		      oEnc = NSUnicodeStringEncoding;
+		    }
+		}
+	      else if ([n isEqualToString: @"i"])
+		{
+		  /* Unicode (UTF16) in
+		   */
 		  iEnc = NSUnicodeStringEncoding;
 		  oEnc = enc;
 		}
 	      else
 		{
+		  /* Unicode (UTF16) out
+		   */
 		  iEnc = enc;
 		  oEnc = NSUnicodeStringEncoding;
 		}
@@ -277,13 +318,20 @@ main(int argc, char** argv, char **env)
     {
       NSLog(@"\nThis utility expects a filename as an argument.\n"
 	@"It reads the file, and writes it to STDOUT after converting it\n"
-	@"to unicode from C string encoding or vice versa.\n"
-	@"You can supply a '-Encoding name' option to specify the C string\n"
+	@"to unicode (UTF16) from C-string encoding or vice versa.\n"
+	@"You can use '-' as the filename argument to read from STDIN.\n"
+	@"You can supply a '-Encoding name' option to specify the C-string\n"
 	@"encoding to be used, if you don't want to use the default.\n"
+	@"If you supply an unknown encoding the tool will print a list\n"
+	@"of all the known encodings.\n"
 	@"You can supply a '-EscapeIn YES' option to specify that input\n"
 	@"should be parsed for \\U escape sequences (as in property lists).\n"
 	@"You can supply a '-EscapeOut YES' option to specify that output\n"
-	@"should be ascii with \\U escape sequences (for property lists).\n");
+	@"should be ascii with \\U escape sequences (for property lists).\n"
+	@"You can supply a '-Unicode in/out' option to specify that the\n"
+	@"conversion is from/to unicode (UTF16).  This suppresses the normal\n"
+	@"behavior of guessing the direction of conversion from the content\n"
+	@"of the incoming data.\n");
     }
   [pool release];
   return 0;
