@@ -222,7 +222,9 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
     }
 #endif /* not __ELF__ */
 
+#ifndef __GNUSTEP_RUNTIME__
   __objc_resolve_class_links(); /* fill in subclass_list and sibling_class */
+#endif
   _objc_load_callback = 0;
   _objc_load_load_callback = 0;
   return 0;
