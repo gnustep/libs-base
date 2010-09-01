@@ -59,6 +59,9 @@ notice and this notice are preserved.
           <desc>Fix to support absolute paths in the user domain.</desc>
 	  <term>NSTask</term>
           <desc>Fix for thread safety issue on task termination.</desc>
+	  <term>NSThread</term>
+          <desc>Fix for deadlock when asked to perform too many operations
+	  in another thread.</desc>
 	  <term>NSURL</term>
           <desc>Implement keyed archiving.</desc>
 	  <term>NSZombie</term>
