@@ -130,7 +130,7 @@ enum proxyLocation
 + (id) initWithCoder: (NSCoder*)aCoder;
 + (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection;
 + (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection;
-+ (void) autorelease;
++ (id) autorelease;
 + (void) release;
 + (id) retain;
 + (BOOL) respondsToSelector: (SEL)sel;
@@ -138,8 +138,9 @@ enum proxyLocation
 
 @implementation	GSDistantObjectPlaceHolder
 
-+ (void) autorelease
++ (id) autorelease
 {
+  return self;
 }
 
 + (void) release
