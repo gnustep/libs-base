@@ -1465,8 +1465,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  const char		*types;
-  struct objc_method	*mth;
+  const char		*types = NULL;
   Class			c;
 
   if (0 == aSelector)
@@ -1475,14 +1474,14 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     }
 
   c = (GSObjCIsInstance(self) ? object_getClass(self) : (Class)self);
-  mth = GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
 
-  if (mth == 0)
+  // Do a fast lookup to see if the method is implemented at all.  If it isn't,
+  // we can give up without doing a very expensive linear search through every
+  // method list in the class hierarchy.
+  if (!class_respondsToSelector(c, aSelector))
     {
       return nil; // Method not implemented
     }
-  types = mth->method_types;
-
   /*
    * If there are protocols that this class conforms to,
    * the method may be listed in a protocol with more
@@ -1524,6 +1523,19 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 	    }
 	  protocols = protocols->next;
 	}
+    }
+
+  if (types == 0)
+    {
+#ifdef __GNUSTEP_RUNTIME__
+      struct objc_slot* objc_get_slot(Class cls, SEL selector);
+      struct objc_slot *slot = objc_get_slot(c, aSelector);
+      types = slot->types;
+#else
+      struct objc_method *mth = 
+	  GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
+      types = mth->method_types;
+#endif
     }
 
   if (types == 0)
