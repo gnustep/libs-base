@@ -1,3 +1,13 @@
+2010-09-02 David Chisnall <theraven@gna.org>
+
+	* Source/NSObject.m
+
+	Improve the efficiency of NSObject's methodSignatureForSelector by:
+
+	- Moving the linear search over all of the method lists in the class hierarchy to the end.  If we found the type info in the protocol list, we were throwing this info away.  Doing something expensive and then discarding the result is generally not a good idea.
+
+	- Replacing the linear search of the method lists with a dtable lookup on libobjc2.  The type info for methods is part of the slot, so we only need to do the expensive search at all on the old runtime.  With libobjc2, type info lookup costs as little as IMP lookup, so doing things the slow way is not required.
+
 2010-08-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/cvtenc.m: Add -Unicode option.  Fix to allow reading from stdin
