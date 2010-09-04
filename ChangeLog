@@ -1,3 +1,8 @@
+2010-09-04 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* config/config.non-fragile-ivars.m: Remove useless include of
+	objc-common.g (__has_feature is a built-in clang macro).
+
 2010-09-02 David Chisnall <theraven@gna.org>
 
 	* Source/NSObject.m
