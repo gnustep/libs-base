@@ -1,3 +1,8 @@
+2010-09-07 Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Headers/Additions/GNUstepBase/preface.h.in: Remove include of
+	objc/sarray.h
+
 2010-09-04 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* config/config.non-fragile-ivars.m: Remove useless include of
