@@ -29,7 +29,6 @@
 
 #import	<Foundation/NSObjCRuntime.h>
 #import <objc/objc.h>
-#import <objc/typedstream.h>
 #import	<Foundation/NSZone.h>
 
 #ifndef	GS_WITH_GC
@@ -411,8 +410,6 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 #if GS_API_VERSION(GS_API_NONE, 011700)
 @interface NSObject (GNUstep)
 + (void) enableDoubleReleaseCheck: (BOOL)enable;
-- (id) read: (TypedStream*)aStream;
-- (id) write: (TypedStream*)aStream;
 @end
 #endif
 

@@ -1,3 +1,21 @@
+2010-09-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h:
+	* Source/NSObject.m:
+	Remove old TypedStream methods
+	* Source/NSFileManager.m:
+	Warn if filesystem support is not available.
+
+2010-09-07 Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Headers/Additions/GNUstepBase/preface.h.in: Remove include of
+	objc/sarray.h
+
+2010-09-04 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* config/config.non-fragile-ivars.m: Remove useless include of
+	objc-common.g (__has_feature is a built-in clang macro).
+	
 2010-08-30  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSThread.m: try to make inter-thread notification via

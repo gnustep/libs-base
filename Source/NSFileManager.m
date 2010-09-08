@@ -1749,6 +1749,94 @@ static NSStringEncoding	defaultEncoding;
 }
 
 /**
+ * If a file (or directory etc) exists at the specified path, and can be
+ * queried for its attributes, this method returns a dictionary containing
+ * the various attributes of that file.  Otherwise nil is returned.<br />
+ * If an error occurs, error describes the problem.
+ * Pass NULL if you do not want error information.
+ * <p>
+ *   The dictionary keys for attributes are -
+ * </p>
+ * <deflist>
+ *   <term><code>NSFileAppendOnly</code></term>
+ *   <desc>NSNumber ... boolean</desc>
+ *   <term><code>NSFileCreationDate</code></term>
+ *   <desc>NSDate when the file was created (if supported)</desc>
+ *   <term><code>NSFileDeviceIdentifier</code></term>
+ *   <desc>NSNumber (identifies the device on which the file is stored)</desc>
+ *   <term><code>NSFileExtensionHidden</code></term>
+ *   <desc>NSNumber ... boolean</desc>
+ *   <term><code>NSFileGroupOwnerAccountName</code></term>
+ *   <desc>NSString name of the file group</desc>
+ *   <term><code>NSFileGroupOwnerAccountID</code></term>
+ *   <desc>NSNumber ID of the file group</desc>
+ *   <term><code>NSFileHFSCreatorCode</code></term>
+ *   <desc>NSNumber not used</desc>
+ *   <term><code>NSFileHFSTypeCode</code></term>
+ *   <desc>NSNumber not used</desc>
+ *   <term><code>NSFileImmutable</code></term>
+ *   <desc>NSNumber ... boolean</desc>
+ *   <term><code>NSFileModificationDate</code></term>
+ *   <desc>NSDate when the file was last modified</desc>
+ *   <term><code>NSFileOwnerAccountName</code></term>
+ *   <desc>NSString name of the file owner</desc>
+ *   <term><code>NSFileOwnerAccountID</code></term>
+ *   <desc>NSNumber ID of the file owner</desc>
+ *   <term><code>NSFilePosixPermissions</code></term>
+ *   <desc>NSNumber posix access permissions mask</desc>
+ *   <term><code>NSFileReferenceCount</code></term>
+ *   <desc>NSNumber number of links to this file</desc>
+ *   <term><code>NSFileSize</code></term>
+ *   <desc>NSNumber size of the file in bytes</desc>
+ *   <term><code>NSFileSystemFileNumber</code></term>
+ *   <desc>NSNumber the identifier for the file on the filesystem</desc>
+ *   <term><code>NSFileSystemNumber</code></term>
+ *   <desc>NSNumber the filesystem on which the file is stored</desc>
+ *   <term><code>NSFileType</code></term>
+ *   <desc>NSString the type of file</desc>
+ * </deflist>
+ * <p>
+ *   The [NSDictionary] class also has a set of convenience accessor methods
+ *   which enable you to get at file attribute information more efficiently
+ *   than using the keys above to extract it.  You should generally
+ *   use the accessor methods where they are available.
+ * </p>
+ * <list>
+ *   <item>[NSDictionary-fileCreationDate]</item>
+ *   <item>[NSDictionary-fileExtensionHidden]</item>
+ *   <item>[NSDictionary-fileHFSCreatorCode]</item>
+ *   <item>[NSDictionary-fileHFSTypeCode]</item>
+ *   <item>[NSDictionary-fileIsAppendOnly]</item>
+ *   <item>[NSDictionary-fileIsImmutable]</item>
+ *   <item>[NSDictionary-fileSize]</item>
+ *   <item>[NSDictionary-fileType]</item>
+ *   <item>[NSDictionary-fileOwnerAccountName]</item>
+ *   <item>[NSDictionary-fileOwnerAccountID]</item>
+ *   <item>[NSDictionary-fileGroupOwnerAccountName]</item>
+ *   <item>[NSDictionary-fileGroupOwnerAccountID]</item>
+ *   <item>[NSDictionary-fileModificationDate]</item>
+ *   <item>[NSDictionary-filePosixPermissions]</item>
+ *   <item>[NSDictionary-fileSystemNumber]</item>
+ *   <item>[NSDictionary-fileSystemFileNumber]</item>
+ * </list>
+ */
+- (NSDictionary*) attributesOfItemAtPath: (NSString*)path
+				   error: (NSError**)error
+{
+  NSDictionary	*d;
+  
+  d = [GSAttrDictionaryClass attributesAt:
+    [self fileSystemRepresentationWithPath: path] traverseLink: NO];
+  
+  if (error != NULL)
+    {
+      *error = [NSError _last];
+    }
+  
+  return d;
+}
+
+/**
  * Returns a dictionary containing the filesystem attributes for the
  * specified path (or nil if the path is not valid).<br />
  * <deflist>
@@ -1869,7 +1957,7 @@ static NSStringEncoding	defaultEncoding;
 
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 #else
-  NSDebugMLLog(@"NSFileManager", @"no support for filesystem attributes");
+  NSLog(@"NSFileManager", @"no support for filesystem attributes");
   return nil;
 #endif
 #endif /* MINGW */

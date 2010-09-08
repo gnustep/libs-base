@@ -2313,50 +2313,24 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 		      YES));
 }
 
-+ (NSInteger) streamVersion: (TypedStream*)aStream
++ (NSInteger) streamVersion: (void*)aStream
 {
-#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
-  if (aStream->mode == OBJC_READONLY)
-    return objc_get_stream_class_version (aStream, self);
-  else
-#endif
-    return class_get_version (self);
+  GSOnceMLog(@"[NSObject+streamVersion:] is deprecated ... do not use");
+  return class_get_version (self);
 }
-
-//NOTE: original comments included the following excerpt, however it is
-//      probably not relevant now since the implementations are stubbed out.
-//  Subclasses should extend these, by calling
-//  [super read/write: aStream] before doing their own archiving.  These
-//  methods are private, in the sense that they should only be called from
-//  subclasses.
-
-/**
- * Originally used to read the instance variables declared in this
- * particular part of the object from a stream.  Currently stubbed out.
- */
-- (id) read: (TypedStream*)aStream
+- (id) read: (void*)aStream
 {
-  // [super read: aStream];
+  GSOnceMLog(@"[NSObject-read:] is deprecated ... do not use");
   return self;
 }
-
-/**
- * Originally used to write the instance variables declared in this
- * particular part of the object to a stream.  Currently stubbed out.
- */
-- (id) write: (TypedStream*)aStream
+- (id) write: (void*)aStream
 {
-  // [super write: aStream];
+  GSOnceMLog(@"[NSObject-write:] is deprecated ... do not use");
   return self;
 }
-
-/**
- * Originally used before [NSCoder] and related classes existed.  Currently
- * stubbed out.
- */
 - (id) awake
 {
-  // [super awake];
+  GSOnceMLog(@"[NSObject-awake] is deprecated ... do not use");
   return self;
 }
 
