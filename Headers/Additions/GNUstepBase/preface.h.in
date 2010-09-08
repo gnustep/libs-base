@@ -81,8 +81,6 @@
  #include <objc/objc.h>
  #include <objc/objc-api.h>
  #include <objc/encoding.h>
- /* #include <objc/sarray.h> */
- /* #include <objc/objc-list.h> */
 #endif
 
 /*
