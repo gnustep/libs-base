@@ -777,6 +777,34 @@ GSProtocolFromName(const char *name)
   return p;
 }
 
+struct objc_method_description
+GSProtocolGetMethodDescriptionRecursive(Protocol *aProtocol, SEL aSel, BOOL isRequired, BOOL isInstance)
+{
+  struct objc_method_description desc;
+
+  desc = protocol_getMethodDescription(aProtocol, aSel, isRequired, isInstance);
+  if (desc.name == NULL && desc.types == NULL)
+    {
+      Protocol **list;
+      unsigned int count;
+      list = protocol_copyProtocolList(aProtocol, &count);
+      if (list != NULL)
+        {
+          unsigned int i;
+          for (i = 0; i < count; i++)
+            {
+              desc = GSProtocolGetMethodDescriptionRecursive(list[i], aSel, isRequired, isInstance);
+              if (desc.name != NULL || desc.types != NULL)
+                {
+                  return desc;
+                }
+            }
+          free(list);
+        }
+    }
+
+  return desc;
+}
 
 void
 GSObjCAddClassBehavior(Class receiver, Class behavior)

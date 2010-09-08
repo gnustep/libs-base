@@ -1082,6 +1082,12 @@ objc_getProtocol(const char *name)
   return p;
 }
 
+Protocol **objc_copyProtocolList(unsigned int *count)
+{
+  *count = 0;
+  return NULL;
+}
+
 BOOL protocol_conformsToProtocol(Protocol *p1, Protocol *p2)
 {
 	struct objc_protocol_list *list = p1->protocol_list;
@@ -1134,20 +1140,81 @@ BOOL class_conformsToProtocol(Class cls, Protocol *protocol)
 	return NO;
 }
 
+struct objc_method_description_list {
+  int count;
+  struct objc_method_description list[1];
+};
+
 struct objc_method_description *
 protocol_copyMethodDescriptionList(Protocol * p,
 				   BOOL isRequiredMethod,
 				   BOOL isInstanceMethod, unsigned int *count)
 {
-  *count = 0;
-  return NULL;
+	struct objc_method_description *output = NULL;
+	unsigned int outputCount = 0;
+	struct objc_method_description_list *methods;
+
+	if (isInstanceMethod)
+	{
+		methods = p->instance_methods;
+	}
+	else
+	{
+		methods = p->class_methods;
+	}
+
+
+	if (methods != NULL)
+	{
+		int i;
+		outputCount = methods->count;
+		output = malloc(outputCount * sizeof(struct objc_method_description));
+
+		for (i=0 ; i<methods->count; i++)
+		{
+			output[i] = methods->list[i];
+			// HACK: the name field of the objc_method_description struct 
+			// is supposed to be a selector, but testing reveals it is a string
+			output[i].name = sel_registerName((const char *) output[i].name);
+		}
+	}
+
+	*count = outputCount;
+	return output;
 }
 
 Protocol **
 protocol_copyProtocolList(Protocol * p, unsigned int *count)
 {
-  *count = 0;
-  return NULL;
+	Protocol **output = NULL;
+	unsigned int outputCount = 0;
+	struct objc_protocol_list *list;
+
+	for (list = p->protocol_list ; list != NULL ; list = list->next)
+	{
+		int i;
+		for (i=0 ; i<list->count ; i++)
+		{
+			outputCount++;
+		}
+	}
+
+	if (outputCount > 0)
+	{
+		output = malloc(outputCount * sizeof(Protocol *));
+	}
+
+	for (list = p->protocol_list ; list != NULL ; list = list->next)
+	{
+		int i;
+		for (i=0 ; i<list->count ; i++)
+		{
+			output[i] = (Protocol*)list->list[i];
+		}
+	}
+
+	*count = outputCount;
+	return output;
 }
 
 const char *
@@ -1159,6 +1226,45 @@ protocol_getName(Protocol * p)
     }
   return NULL;
 }
+
+struct objc_method_description protocol_getMethodDescription(Protocol *p,
+  SEL aSel, BOOL isRequiredMethod, BOOL isInstanceMethod)
+{
+  struct objc_method_description output = {NULL, NULL};
+
+  if (p != NULL)
+    {
+      struct objc_method_description_list *methods;
+      const char *name = sel_getName(aSel);
+      int i;
+
+      if (isInstanceMethod)
+	{
+          methods = p->instance_methods;
+	}
+      else
+	{
+	  methods = p->class_methods;
+	}
+
+      if (methods != NULL)
+	{
+	  for (i = 0; i < methods->count; i++)
+	    {
+	      if (!strcmp((char*)methods->list[i].name, name))
+		{
+		  output = methods->list[i];
+		  // HACK: the name field of the objc_method_description struct 
+		  // is supposed to be a selector, but testing reveals it is a string
+		  output.name = sel_registerName((const char *) output.name);
+		  break;
+		}
+	    }
+	}
+    }
+  return output;
+}
+
 
 BOOL
 protocol_isEqual(Protocol * p, Protocol * other)
