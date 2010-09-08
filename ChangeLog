@@ -1,3 +1,14 @@
+2010-09-08  Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Source/ObjectiveC2/runtime.h:
+	* Source/ObjectiveC2/runtime.m:
+	Implement protocol_copyMethodDescriptionList, protocol_copyProtocolList,
+	protocol_getMethodDescription, as well as a dummy version of
+	objc_copyProtocolList.
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	* Source/Additions/GSObjCRuntime.m:
+	Implement a convenience method, GSProtocolGetMethodDescriptionRecursive
+
 2010-09-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h:

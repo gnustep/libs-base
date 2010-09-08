@@ -323,6 +323,16 @@ GSProtocolFromName(const char *name);
 GS_EXPORT void
 GSRegisterProtocol(Protocol *proto);
 
+/**
+ * A variant of protocol_getMethodDescription which recursively searches
+ * parent protocols if the requested selector isn't found in the given
+ * protocol.
+ *
+ * Returns a {NULL, NULL} structure if the requested selector couldn't be
+ * found.
+ */
+GS_EXPORT struct objc_method_description
+GSProtocolGetMethodDescriptionRecursive(Protocol *aProtocol, SEL aSel, BOOL isRequired, BOOL isInstance);
 
 /*
  * Unfortunately the definition of the symbols
