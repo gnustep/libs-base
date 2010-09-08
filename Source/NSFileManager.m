@@ -1957,7 +1957,7 @@ static NSStringEncoding	defaultEncoding;
 
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 #else
-  NSDebugMLLog(@"NSFileManager", @"no support for filesystem attributes");
+  NSLog(@"NSFileManager", @"no support for filesystem attributes");
   return nil;
 #endif
 #endif /* MINGW */
