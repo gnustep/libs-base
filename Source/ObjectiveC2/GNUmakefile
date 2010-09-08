@@ -42,11 +42,13 @@ ObjectiveC2_OBJC_FILES += sync.m
 endif
 
 ObjectiveC2_C_FILES = \
+	caps.c\
 	runtime.c
 
 ObjectiveC2_HEADER_FILES = \
 	Availability.h\
 	blocks_runtime.h\
+	capabilities.h\
 	runtime.h
 
 ifeq ($(CC), clang)
