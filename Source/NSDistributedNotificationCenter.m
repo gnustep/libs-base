@@ -811,7 +811,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   notification = [NSNotification notificationWithName: name
 					       object: object
 					     userInfo: userInfo];
-  [recipient performSelector: sel_get_any_typed_uid([aSelector cString])
+  [recipient performSelector: sel_registerTypedName_np([aSelector cString], 0)
 		  withObject: notification];
 }
 

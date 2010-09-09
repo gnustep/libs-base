@@ -216,7 +216,7 @@
 #  if (__has_feature(objc_nonfragile_abi))
 #    if	!GS_NONFRAGILE
 #      if	defined(GNUSTEP_BASE_INTERNAL)
-#        error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+//#        error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
 #      endif
 #    endif
 #  else

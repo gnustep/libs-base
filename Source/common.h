@@ -38,3 +38,14 @@
 #import	"Foundation/NSString.h"
 #import	"Foundation/NSDebug.h"
 
+#include <string.h>
+#include <ctype.h>
+
+#if defined(__GNUSTEP_RUNTIME__) || defined(NeXT_RUNTIME)
+#define objc_malloc(x) malloc(x)
+#define objc_realloc(p, s) realloc(p, s)
+#define objc_free(x) free(x)
+#endif
+
+// Semi-private GNU[step] runtime function.  
+IMP get_imp(Class, SEL);

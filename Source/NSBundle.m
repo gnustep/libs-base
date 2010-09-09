@@ -873,7 +873,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       handle = objc_open_main_module(stderr);
       printf("%08x\n", handle);
 #endif
-#if NeXT_RUNTIME
+#if NeXT_RUNTIME || defined(__GNUSTEP_RUNTIME__)
       {
 	int i, numClasses = 0, newNumClasses = objc_getClassList(NULL, 0);
 	Class *classes = NULL;

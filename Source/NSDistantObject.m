@@ -68,17 +68,18 @@ static Class	placeHolder = 0;
 static Class	distantObjectClass = 0;
 
 @interface Object (NSConformsToProtocolNamed)
-- (BOOL) _conformsToProtocolNamed: (char*)aName;
+- (BOOL) _conformsToProtocolNamed: (const char*)aName;
 @end
 @interface NSObject (NSConformsToProtocolNamed)
-- (BOOL) _conformsToProtocolNamed: (char*)aName;
+- (BOOL) _conformsToProtocolNamed: (const char*)aName;
 @end
 /*
  * Evil hack ... if a remote system wants to know if we conform
  * to a protocol we usa a local protocol with the same name.
  */
+#ifndef __GNUSTEP_RUNTIME__
 @implementation Object (NSConformsToProtocolNamed)
-- (BOOL) _conformsToProtocolNamed: (char*)aName
+- (BOOL) _conformsToProtocolNamed: (const char*)aName
 {
   Protocol	*p;
 
@@ -86,8 +87,9 @@ static Class	distantObjectClass = 0;
   return [self conformsTo: p];
 }
 @end
+#endif
 @implementation NSObject (NSConformsToProtocolNamed)
-- (BOOL) _conformsToProtocolNamed: (char*)aName
+- (BOOL) _conformsToProtocolNamed: (const char*)aName
 {
   Protocol	*p;
 
@@ -215,7 +217,7 @@ enum proxyLocation
 	    if (debug_proxy)
 	      {
 		NSLog(@"Local object is %p (%p)\n",
-		  (uintptr_t)o, (uintptr_t)o ? o->_object : 0);
+		  (void*)(uintptr_t)o, (void*)(uintptr_t)o ? o->_object : 0);
 	      }
 	    return RETAIN(o->_object);
 	  }
@@ -873,7 +875,7 @@ enum proxyLocation
     }
   else
     {
-      return [(id)self _conformsToProtocolNamed: (char*)[aProtocol name]];
+      return [(id)self _conformsToProtocolNamed: protocol_getName(aProtocol)];
     }
 }
 
@@ -904,7 +906,7 @@ enum proxyLocation
 
 - (Class) classForPortCoder
 {
-  return [self class];
+  return isa;
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc;

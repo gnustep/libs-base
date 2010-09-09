@@ -93,14 +93,14 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
 static INLINE SEL
 gs_find_best_typed_sel (SEL sel)
 {
-  if (!sel_get_type (sel))
+  if (!sel_getType_np(sel))
     {
       const char *name = sel_getName(sel);
 
       if (name)
 	{
-	  SEL tmp_sel = sel_get_any_typed_uid (name);
-	  if (sel_get_type (tmp_sel))
+	  SEL tmp_sel = sel_getUid(name);
+	  if (sel_getType_np(tmp_sel))
 	    return tmp_sel;
 	}
     }
@@ -121,7 +121,7 @@ static INLINE SEL
 gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 {
 	// FIXME: libobjc2 contains a much more sane way of doing this
-  if (sel_get_type (sel))
+  if (sel_getType_np(sel))
     return sel;
 
   if (receiver)
@@ -182,7 +182,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 	 in the callback, but only under limited circumstances.
        */
       sel = gs_find_best_typed_sel(sel);
-      sel_type = sel_get_type (sel);
+      sel_type = sel_getType_np(sel);
       if (sel_type)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
@@ -195,7 +195,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
           fprintf(stderr, "WARNING: Using default signature for %s ... "
 	    "either the method for that selector is not implemented by the "
 	    "receiver, or you must be using an old/faulty version of the "
-	    "Objective-C runtime library.\n", sel_get_name(sel));
+	    "Objective-C runtime library.\n", sel_getName(sel));
 #endif
 	  /*
 	   * Default signature is for a method returning an object.
@@ -568,9 +568,9 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     }
 
   sig = nil;
-  if (gs_protocol_selector(sel_get_type(selector)) == YES)
+  if (gs_protocol_selector(sel_getType_np(selector)) == YES)
     {
-      sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
+      sig = [NSMethodSignature signatureWithObjCTypes: sel_getType_np(selector)];
     }
   if (sig == nil)
     {
@@ -584,17 +584,13 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   if (sig != nil)
     {
       const char	*receiverTypes = [sig methodType];
-      const char	*runtimeTypes = sel_get_type (selector);
+      const char	*runtimeTypes = sel_getType_np(selector);
 
       if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
 	{
 	  const char	*runtimeName = sel_getName(selector);
 
-	  selector = sel_get_typed_uid (runtimeName, receiverTypes);
-	  if (selector == 0)
-	    {
-	      selector = sel_register_typed_name (runtimeName, receiverTypes);
-	    }
+	  selector = sel_registerTypedName_np(runtimeName, receiverTypes);
 	  if (runtimeTypes != 0)
 	    {
 	      /*
@@ -616,10 +612,10 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       selector = gs_find_best_typed_sel (selector);
 
-      if (sel_get_type (selector) != 0)
+      if (sel_getType_np(selector) != 0)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes:
-	    sel_get_type(selector)];
+	    sel_getType_np(selector)];
 	}
     }
 

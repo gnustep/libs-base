@@ -1400,7 +1400,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
    * used by the Distributed Objects system, which the
    * runtime does not maintain in classes.
    */
-  int count;
+  unsigned int count;
   Protocol **protocols = class_copyProtocolList(isa, &count);
   if (NULL != protocols)
     {
@@ -1467,7 +1467,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (void) poseAsClass: (Class)aClassObject
 {
+#ifdef __GNUSTEP_RUNTIME__
+  [NSException raise: NSInternalInconsistencyException
+              format: @"Class posing is not supported"];
+#else
   class_pose_as(self, aClassObject);
+#endif
   /*
    *	We may have replaced a class in the cache, or may have replaced one
    *	which had cached methods, so we must rebuild the cache.
