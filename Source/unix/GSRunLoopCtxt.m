@@ -384,19 +384,19 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  int port_fd_array[port_fd_count];
 
 		  if ([port respondsToSelector:
-		    @selector(getFds:count:)])
+			      @selector(getFds:count:)])
 		    {
 		      [port getFds: port_fd_array
 			     count: &port_fd_count];
-		    }
-		  NSDebugMLLog(@"NSRunLoop",
-		    @"listening to %d port handles\n", port_fd_count);
-		  while (port_fd_count--)
-		    {
-		      fd = port_fd_array[port_fd_count];
-		      setPollfd(fd, POLLIN, self);
-		      NSMapInsert(_rfdMap, 
-			(void*)(intptr_t)port_fd_array[port_fd_count], info);
+		      NSDebugMLLog(@"NSRunLoop",
+				   @"listening to %d port handles\n", port_fd_count);
+		      while (port_fd_count--)
+			{
+			  fd = port_fd_array[port_fd_count];
+			  setPollfd(fd, POLLIN, self);
+			  NSMapInsert(_rfdMap, 
+				      (void*)(intptr_t)port_fd_array[port_fd_count], info);
+			}
 		    }
 		}
 		break;
