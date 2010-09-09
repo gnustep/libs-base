@@ -493,7 +493,7 @@ _GSDebugAllocationList(BOOL difference)
 	}
       if (val != 0)
 	{
-	  pos += 11 + strlen(the_table[i].class->name);
+	  pos += 11 + strlen(class_getName(the_table[i].class));
 	}
     }
   if (pos == 0)
@@ -539,7 +539,7 @@ _GSDebugAllocationList(BOOL difference)
 
 	  if (val != 0)
 	    {
-	      sprintf(&buf[pos], "%d\t%s\n", val, the_table[i].class->name);
+	      sprintf(&buf[pos], "%d\t%s\n", val, class_getName(the_table[i].class));
 	      pos += strlen(&buf[pos]);
 	    }
 	}
@@ -587,7 +587,7 @@ _GSDebugAllocationListAll(void)
 
       if (val != 0)
 	{
-	  pos += 11 + strlen(the_table[i].class->name);
+	  pos += 11 + strlen(class_getName(the_table[i].class));
 	}
     }
   if (pos == 0)
@@ -619,7 +619,7 @@ _GSDebugAllocationListAll(void)
 
 	  if (val != 0)
 	    {
-	      sprintf(&buf[pos], "%d\t%s\n", val, the_table[i].class->name);
+	      sprintf(&buf[pos], "%d\t%s\n", val, class_getName(the_table[i].class));
 	      pos += strlen(&buf[pos]);
 	    }
 	}

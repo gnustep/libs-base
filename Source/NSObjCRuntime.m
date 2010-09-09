@@ -37,7 +37,7 @@ NSString *
 NSStringFromProtocol(Protocol *aProtocol)
 {
   if (aProtocol != (Protocol*)0)
-    return [NSString stringWithUTF8String: (const char*)[aProtocol name]];
+    return [NSString stringWithUTF8String: protocol_getName(aProtocol)];
   return nil;
 }
 

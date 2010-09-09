@@ -22,6 +22,8 @@
    Boston, MA 02111 USA.
    */
 
+#define class_pointer isa
+
 #import "common.h"
 #define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
@@ -68,7 +70,7 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
                          YES);
     }
 
-  return METHOD_NULL;
+  return 0;
 }
 
 
@@ -118,6 +120,7 @@ gs_find_best_typed_sel (SEL sel)
 static INLINE SEL
 gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 {
+	// FIXME: libobjc2 contains a much more sane way of doing this
   if (sel_get_type (sel))
     return sel;
 
@@ -135,7 +138,7 @@ gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
          if we have an implementation.
       */
       if (method)
-	sel = method->method_name;
+	sel = method_getName(method);
     }
   return gs_find_best_typed_sel (sel);
 }
@@ -269,7 +272,7 @@ BOOL class_respondsToSelector(Class cls, SEL sel);
  */
 static id gs_objc_proxy_lookup(id receiver, SEL op)
 {
-  Class cls = object_getClass(receiver);
+  id cls = object_getClass(receiver);
   BOOL resolved = NO;
 
   /* Let the class try to add a method for this thing. */
@@ -316,15 +319,6 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
 #endif
 }
 
-- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
-{
-  /* We should never get here */
-  [self dealloc];
-  self = nil;
-  [NSException raise: NSInternalInconsistencyException
-	      format: @"Runtime incorrectly configured to pass argframes"];
-  return nil;
-}
 
 /*
  *	This is the designated initialiser.
@@ -463,14 +457,15 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
 
   if (_sendToSuper == YES)
     {
-      Super	s;
-
-      s.self = _target;
+      Class cls; 
       if (GSObjCIsInstance(_target))
-	s.class = class_getSuperclass(object_getClass(_target));
+	cls = class_getSuperclass(object_getClass(_target));
       else
-	s.class = class_getSuperclass((Class)_target);
-      imp = objc_msg_lookup_super(&s, _selector);
+	cls = class_getSuperclass((Class)_target);
+      {
+        struct objc_super	s = {_target, cls};
+        imp = objc_msg_lookup_super(&s, _selector);
+      }
     }
   else
     {
@@ -481,7 +476,7 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
                            _selector,
                            GSObjCIsInstance(_target),
                            YES);
-      imp = method_get_imp(method);
+      imp = method_getImplementation(method);
       /*
        * If fast lookup failed, we may be forwarding or something ...
        */
@@ -506,10 +501,6 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
   _validReturn = YES;
 }
 
-- (void*) returnFrame: (arglist_t)argFrame
-{
-  return _retval;
-}
 @end
 
 /*

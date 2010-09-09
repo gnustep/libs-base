@@ -29,7 +29,10 @@
 
 NSObject *NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone)
 {
-  id copy = NSAllocateObject(((id)anObject)->class_pointer, extraBytes, zone);
+  // Note: The cast to Class* and dereference gets the isa pointer.  This is
+  // ugly, but is required because the old GNU runtime calls this
+  // class_pointer, rather than isa, just to be different.
+  id copy = NSAllocateObject((*(Class*)anObject), extraBytes, zone);
   memcpy(copy, anObject,
     class_getInstanceSize(object_getClass(anObject)) + extraBytes);
   return copy;

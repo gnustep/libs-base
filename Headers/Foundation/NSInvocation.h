@@ -120,9 +120,7 @@ extern "C" {
 + (id) _newProxyForInvocation: (id)target;
 + (id) _newProxyForMessage: (id)target;
 + (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy;
-- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
-- (void*) returnFrame: (arglist_t)argFrame;
 @end
 
 /**

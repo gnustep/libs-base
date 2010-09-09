@@ -512,21 +512,24 @@ _find_main_bundle_for_tool(NSString *toolName)
   NSString	**fmClasses;
   NSString	*bundlePath = nil;
   unsigned int	len;
+  const char *frameworkClassName;
 
   if (frameworkClass == Nil)
     {
       return;
     }
 
-  len = strlen (frameworkClass->name);
+  frameworkClassName = class_getName(frameworkClass);
+
+  len = strlen (frameworkClassName);
 
   if (len > 12 * sizeof(char)
-      && !strncmp ("NSFramework_", frameworkClass->name, 12))
+      && !strncmp ("NSFramework_", frameworkClassName, 12))
     {
       /* The name of the framework.  */
       NSString *name;
 
-      name = [NSString stringWithUTF8String: &frameworkClass->name[12]];
+      name = [NSString stringWithUTF8String: &frameworkClassName[12]];
       /* Important - gnustep-make mangles framework names to encode
        * them as ObjC class names.  Here we need to demangle them.  We
        * apply the reverse transformations in the reverse order.
@@ -778,6 +781,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 static void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
+  const char *className;
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);
   NSCAssert(_loadingFrameworks, NSInternalInconsistencyException);
 
@@ -786,11 +790,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       return;
     }
+  className = class_getName(theClass);
 
   /* Don't store the internal NSFramework_xxx class into the list of
      bundle classes, but store the linked frameworks in _loadingFrameworks  */
-  if (strlen (theClass->name) > 12   &&  !strncmp ("NSFramework_",
-						   theClass->name, 12))
+  if (strlen (className) > 12   &&  !strncmp ("NSFramework_",
+						   className, 12))
     {
       if (_currentFrameworkName)
 	{
@@ -798,7 +803,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 	  frameworkName = [_currentFrameworkName cString];
 
-	  if (!strcmp(theClass->name, frameworkName))
+	  if (!strcmp(className, frameworkName))
 	    return;
 	}
 
@@ -890,10 +895,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	
 	while ((class = objc_next_class(&state)))
 	  {
-	    unsigned int len = strlen (class->name);
+	    const char *className = class_getName(class);
+	    unsigned int len = strlen (className);
 	    
 	    if (len > sizeof("NSFramework_")
-		&& !strncmp("NSFramework_", class->name, 12))
+		&& !strncmp("NSFramework_", className, 12))
 	      {
 		[self _addFrameworkFromClass: class];
 	      }
@@ -1208,7 +1214,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (bundle == nil)
     {
       /* Is it in the main bundle or a library? */
-      if (class_is_class(aClass))
+      if (!class_isMetaClass(aClass))
         {
 	  NSString	*lib;
 

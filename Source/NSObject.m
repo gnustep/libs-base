@@ -25,6 +25,10 @@
    $Date$ $Revision$
    */
 
+// Make sure that class_pointer in the old runtime's definition of id is
+// renamed isa, and so are all uses.
+#define class_pointer isa
+
 /* On some versions of mingw we need to work around bad function declarations
  * by defining them away and doing the declarations ourself later.
  */
@@ -101,7 +105,6 @@ static Class	NSConstantStringClass;
   Class	isa;
 }
 - (Class) class;
-- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 @end
@@ -589,7 +592,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
   int	size;
   GC_descr	gc_type;
 
-  NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
+  NSCAssert((!class_isMetaClass(aClass)), @"Bad class for new object");
   gc_type = (GC_descr)aClass->gc_object_type;
   size = class_getInstanceSize(aClass) + extraBytes;
   if (size % sizeof(void*) != 0)
@@ -649,7 +652,7 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
   id	new;
   int	size;
 
-  NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
+  NSCAssert((!class_isMetaClass(aClass)), @"Bad class for new object");
   size = class_getInstanceSize(aClass) + extraBytes + sizeof(struct obj_layout);
   if (zone == 0)
     {
@@ -670,7 +673,7 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 inline void
 NSDeallocateObject(id anObject)
 {
-  if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
+  if ((anObject!=nil) && !class_isMetaClass(((id)anObject)->class_pointer))
     {
       obj	o = &((obj)anObject)[-1];
       NSZone	*z = o->zone;
@@ -743,101 +746,6 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 }
 
 
-
-/* FIXME ... the following code is a hack for the gnu runtime only
- */
-struct objc_method_description_list {
-  int count;
-  struct objc_method_description list[1];
-};
-
-/* Must have same layout as ivars of Protocol class
- */
-struct protocol_class {
-  Class	isa;
-  char	*protocol_name;
-  struct objc_protocol_list *protocol_list;
-  struct objc_method_description_list *instance_methods;
-  struct objc_method_description_list *class_methods;
-};
-
-struct objc_method_description *
-GSDescriptionForInstanceMethod(Protocol *self, SEL aSel)
-{
-  struct protocol_class *pcl = (struct protocol_class*)self;
-  int i;
-  struct objc_protocol_list	*p_list;
-  const char			*name = sel_getName(aSel);
-  struct objc_method_description *result;
-
-  if (pcl->instance_methods != 0)
-    {
-      for (i = 0; i < pcl->instance_methods->count; i++)
-	{
-	  if (!strcmp ((char*)pcl->instance_methods->list[i].name, name))
-	    return &(pcl->instance_methods->list[i]);
-	}
-    }
-  for (p_list = pcl->protocol_list; p_list != 0; p_list = p_list->next)
-    {
-      for (i = 0; i < p_list->count; i++)
-	{
-	  result = GSDescriptionForInstanceMethod(p_list->list[i], aSel);
-	  if (result)
-	    {
-	      return result;
-	    }
-	}
-    }
-
-  return NULL;
-}
-
-struct objc_method_description *
-GSDescriptionForClassMethod(Protocol *self, SEL aSel)
-{
-  struct protocol_class *pcl = (struct protocol_class*)self;
-  int i;
-  struct objc_protocol_list	*p_list;
-  const char			*name = sel_getName(aSel);
-  struct objc_method_description *result;
-
-  if (pcl->class_methods != 0)
-    {
-      for (i = 0; i < pcl->class_methods->count; i++)
-	{
-	  if (!strcmp ((char*)pcl->class_methods->list[i].name, name))
-	    return &(pcl->class_methods->list[i]);
-	}
-    }
-  for (p_list = pcl->protocol_list; p_list != 0; p_list = p_list->next)
-    {
-      for (i = 0; i < p_list->count; i++)
-	{
-	  result = GSDescriptionForClassMethod(p_list->list[i], aSel);
-	  if (result)
-	    {
-	      return result;
-	    }
-	}
-    }
-
-  return NULL;
-}
-
-@implementation	Protocol (Fixup)
-
-- (struct objc_method_description *) descriptionForInstanceMethod:(SEL)aSel
-{
-  return GSDescriptionForInstanceMethod(self, aSel);
-}
-
-- (struct objc_method_description *) descriptionForClassMethod:(SEL)aSel;
-{
-  return GSDescriptionForClassMethod(self, aSel);
-}
-
-@end
 
 /**
  * <p>
@@ -1202,7 +1110,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (Class) class
 {
-  return object_get_class(self);
+  return object_getClass(self);
 }
 
 /**
@@ -1455,7 +1363,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   mth = GSGetMethod(self, aSelector, YES, YES);
   if (mth == 0)
     return nil;
-  return [NSMethodSignature signatureWithObjCTypes:mth->method_types];
+  return [NSMethodSignature signatureWithObjCTypes: method_getTypeEncoding(mth)];
 }
 
 /**
@@ -1492,37 +1400,26 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
    * used by the Distributed Objects system, which the
    * runtime does not maintain in classes.
    */
-  if (c->protocols != 0)
+  int count;
+  Protocol **protocols = class_copyProtocolList(isa, &count);
+  if (NULL != protocols)
     {
-      struct objc_protocol_list	*protocols = c->protocols;
-      BOOL			found = NO;
+      struct objc_method_description mth;
+      for (int i=0 ; i<count ; i++)
+        {
+          mth = GSProtocolGetMethodDescriptionRecursive(protocols[i],
+                  aSelector, YES, YES);
+          if (NULL == mth.types)
+            {
+              // Search for class method
+              mth = GSProtocolGetMethodDescriptionRecursive(protocols[i],
+                      aSelector, YES, NO);
+              // FIXME: We should probably search optional methods here too.
+            }
 
-      while (found == NO && protocols != 0)
-	{
-	  NSUInteger	i = 0;
-
-	  while (found == NO && i < protocols->count)
-	    {
-	      Protocol				*p;
-	      struct objc_method_description	*pmth;
-
-	      p = protocols->list[i++];
-	      if (c == (Class)self)
-		{
-		  pmth = [p descriptionForClassMethod: aSelector];
-		}
-	      else
-		{
-		  pmth = [p descriptionForInstanceMethod: aSelector];
-		}
-	      if (pmth != 0)
-		{
-		  types = pmth->types;
-		  found = YES;
-		}
-	    }
-	  protocols = protocols->next;
-	}
+          if (NULL != mth.types) { break; }
+        }
+      free(protocols);
     }
 
   if (types == 0)
@@ -1588,20 +1485,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
 	       aSelector ? sel_getName(aSelector) : "(null)"];
-}
-
-- (retval_t) forward: (SEL)aSel : (arglist_t)argFrame
-{
-  NSInvocation *inv;
-
-  if (aSel == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-
-  inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
-						  selector: aSel]);
-  [self forwardInvocation: inv];
-  return [inv returnFrame: argFrame];
 }
 
 /**
@@ -2062,7 +1945,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 	        format: @"%s +setVersion: may not set a negative version",
 			GSClassNameFromObject(self)];
-  class_set_version(self, aVersion);
+  class_setVersion(self, aVersion);
   return self;
 }
 
@@ -2073,7 +1956,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (NSInteger) version
 {
-  return class_get_version(self);
+  return class_getVersion(self);
 }
 
 - (id) autoContentAccessingProxy
@@ -2155,15 +2038,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   return [self conformsToProtocol: aProtocol];
 }
 
-- (retval_t) performv: (SEL)aSel :(arglist_t)argFrame
-{
-  if (aSel == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-
-  return objc_msg_sendv(self, aSel, argFrame);
-}
-
 + (IMP) instanceMethodFor: (SEL)aSel
 {
   return [self instanceMethodForSelector:aSel];
@@ -2180,7 +2054,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   mth = GSGetMethod(self, aSelector, YES, YES);
   if (mth == 0)
     return nil;
-  return [NSMethodSignature signatureWithObjCTypes:mth->method_types];
+  return [NSMethodSignature signatureWithObjCTypes: method_getTypeEncoding(mth)];
 }
 
 - (IMP) methodFor: (SEL)aSel
@@ -2328,7 +2202,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 + (NSInteger) streamVersion: (void*)aStream
 {
   GSOnceMLog(@"[NSObject+streamVersion:] is deprecated ... do not use");
-  return class_get_version (self);
+  return class_getVersion (self);
 }
 - (id) read: (void*)aStream
 {
@@ -2358,15 +2232,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 - (Class) originalClass
 {
   return NSMapGet(zombieMap, (void*)self);
-}
-- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
-{
-  if (aSel == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-
-  GSLogZombie(self, aSel);
-  return 0;
 }
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {

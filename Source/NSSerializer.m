@@ -137,11 +137,6 @@ static SEL	lenSel;
 static SEL	serSel;
 static SEL	setSel;
 
-/* Compatibility methods from NEXTSTEP (Implemented in NSObject) */
-@interface NSObject (Serializer)
-- (retval_t) performv: (SEL)aSel :(arglist_t)argFrame;
-@end
-
 static void
 initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 {
@@ -791,17 +786,6 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   endDeserializerInfo(&info);
   RELEASE(plist);
   [super dealloc];
-}
-
-- forward: (SEL)aSel :(arglist_t)frame
-{
-  if (plist == nil && info.data != nil)
-    {
-      plist = deserializeFromInfo(&info);
-      RELEASE(info.data);
-      info.data = nil;
-    }
-  return [plist performv: aSel :frame];
 }
 
 - (BOOL) isEqual: (id)other

@@ -773,18 +773,6 @@ _arg_addr(NSInvocation *inv, int index)
  * create invocations.
  */
 @implementation NSInvocation (MacroSetup)
-/**
- * Internal use.<br />
- * Initialises the receiver with a known selector and argument list
- * as supplied to the forward:: method by the ObjectiveC runtime
- * when it is unable to locate an implementation for the selector
- * in a class.
- */
-- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
-{
-  [self subclassResponsibility: _cmd];
-  return nil;
-}
 
 /** <init /><override-subclass />
  * Initialised an invocation instance which can be used to send messages to
@@ -804,11 +792,6 @@ _arg_addr(NSInvocation *inv, int index)
  * Provides a return frame that the ObjectiveC runtime can use to
  * return the result of an invocation to a calling function.
  */
-- (void*) returnFrame: (arglist_t)argFrame
-{
-  [self subclassResponsibility: _cmd];
-  return NULL;
-}
 
 + (id) _newProxyForInvocation: (id)target
 {
@@ -839,10 +822,6 @@ _arg_addr(NSInvocation *inv, int index)
 #warning Using dummy NSInvocation implementation.  It is strongly recommended that you use libffi.
 @implementation GSDummyInvocation
 
-- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
-{
-  return self;
-}
 
 /*
  *	This is the de_signated initialiser.
@@ -866,10 +845,6 @@ _arg_addr(NSInvocation *inv, int index)
     }
 }
 
-- (void*) returnFrame: (arglist_t)argFrame
-{
-  return 0;
-}
 @end
 #endif
 
@@ -885,19 +860,6 @@ _arg_addr(NSInvocation *inv, int index)
 - (NSInvocation*) _invocation
 {
   return invocation;
-}
-- (retval_t) forward: (SEL)aSel : (arglist_t)argFrame
-{
-  NSInvocation	*inv;
-
-  if (aSel == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-
-  inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
-						  selector: aSel]);
-  [self forwardInvocation: inv];
-  return [inv returnFrame: argFrame];
 }
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {

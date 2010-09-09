@@ -54,6 +54,10 @@
 
 #include "Foundation/NSArray.h"
 
+#ifdef __GNUSTEP_RUNTIME__
+struct objc_category;
+typedef struct objc_category* Category;
+#endif
 
 @interface GSArray : NSArray
 {
