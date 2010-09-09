@@ -1146,7 +1146,7 @@ typedef GSString	*ivars;
 {
   NSScanner	*n = [[self class] allocWithZone: zone];
 
-  [n initWithString: _string];
+  n = [n initWithString: _string];
   [n setCharactersToBeSkipped: _charactersToBeSkipped];
   [n setLocale: _locale];
   [n setScanLocation: _scanLocation];
