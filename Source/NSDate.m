@@ -1142,7 +1142,7 @@ otherTime(NSDate* other)
 				   timeZone: (NSTimeZone*)timeZone
 {
   NSCalendarDate *d = [calendarClass alloc];
-  [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
+  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
   [d setCalendarFormat: formatString];
   [d setTimeZone: timeZone];
   return AUTORELEASE(d);
@@ -1157,7 +1157,7 @@ otherTime(NSDate* other)
   // Easiest to just have NSCalendarDate do the work for us
   NSString *s;
   NSCalendarDate *d = [calendarClass alloc];
-  [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
+  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
   s = [d description];
   RELEASE(d);
   return s;
@@ -1176,7 +1176,7 @@ otherTime(NSDate* other)
   NSCalendarDate *d = [calendarClass alloc];
   id f;
 
-  [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
+  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
   if (!format)
     f = [d calendarFormat];
   else
@@ -1198,7 +1198,7 @@ otherTime(NSDate* other)
   // Easiest to just have NSCalendarDate do the work for us
   NSString *s;
   NSCalendarDate *d = [calendarClass alloc];
-  [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
+  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
   s = [d descriptionWithLocale: locale];
   RELEASE(d);
   return s;
