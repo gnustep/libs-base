@@ -1,5 +1,10 @@
 2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
 
+	* Source/NSProtocolChecker.m: Replace a -[Protocol name] with
+	protocol_getName()
+	
+2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
+
 	* Source/NSDistantObject.m: #ifdef to disable category
 	on Object was forgotten around the interface
 	
