@@ -5,8 +5,11 @@
 
 #include <objc/Object.h>
 
-#ifndef NeXT_RUNTIME
-#include <objc/NXConstStr.h>
+#ifdef __GNUSTEP_RUNTIME__
+#include <objc/hooks.h>
+#endif
+
+#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 @implementation NXConstantString
 - (const char*) cString
 {
@@ -23,7 +26,8 @@
  * for runtime implementations which won't link without them.
  */
 
-@interface NSObject : Object
+@interface NSObject 
+ id isa;
 @end
 @implementation NSObject
 @end
