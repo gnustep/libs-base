@@ -1299,9 +1299,7 @@ sel_getType_np(SEL sel)
 SEL
 sel_getUid(const char *selName)
 {
-  if (selName == 0)
-    return 0;
-  return sel_get_uid(selName);
+  return sel_registerName(selName);
 }
 
 BOOL
