@@ -39,6 +39,9 @@
 #else
 # include <objc/objc-load.h>
 #endif
+#ifdef __GNUSTEP_RUNTIME__
+# include <objc/hooks.h>
+#endif
 
 #include "objc-load.h"
 #import "Foundation/NSException.h"
@@ -249,6 +252,9 @@ GSPrivateUnloadModule(FILE *errorStream,
 
 
 #ifdef __MINGW__
+// FIXME: We can probably get rid of this now - MinGW should include a working
+// dladdr() wrapping this function, so we no longer need a Windows-only code
+// path
 NSString *
 GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {
@@ -264,13 +270,27 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
     }
   return s;
 }
+#elif LINKER_GETSYMBOL 
+NSString *GSPrivateSymbolPath(Class theClass, Category *theCategory)
+{
+	void *addr = (NULL == theCategory) ? (void*)theClass : (void*)theCategory;
+	Dl_info info;
+	// This is correct: dladdr() does the opposite thing to all other UNIX
+	// functions.
+	if (0 == dladdr(addr, &info))
+	{
+		return nil;
+	}
+	return [NSString stringWithUTF8String: info.dli_fname];
+}
 #else
 NSString *
 GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {
   const char *ret;
   char        buf[125], *p = buf;
-  int         len = strlen(theClass->name);
+  const char *className = class_getName(theClass);
+  int         len = strlen(className);
 
   if (theCategory == NULL)
     {
@@ -286,8 +306,7 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
 	}
 
       memcpy(p, "__objc_class_name_", sizeof(char)*18);
-      memcpy(&p[18*sizeof(char)], theClass->name,
-	     strlen(theClass->name) + 1);
+	  memcpy(&p[18*sizeof(char)], className, strlen(className) + 1);
     }
   else
     {
