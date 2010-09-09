@@ -1317,3 +1317,29 @@ sel_registerName(const char *selName)
     return 0;
   return sel_register_name(selName);
 }
+
+SEL sel_registerTypedName_np(const char *selName, const char *types)
+{
+  SEL s;
+
+  if (types == 0)
+    {
+      s = sel_get_any_typed_uid(name);
+    }
+  else
+    {
+      s = sel_get_typed_uid(name, types);
+    }
+  if (s == 0)
+    {
+      if (types == 0)
+        {
+          s = sel_register_name(name);
+        }
+      else
+        {
+          s = sel_register_typed_name(name, types);
+        }
+    }
+  return s;
+}
