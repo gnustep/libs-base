@@ -1,3 +1,9 @@
+2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Source/ObjectiveC2/runtime.c:
+	Change sel_getUid to call sel_registerName, in line with OS X behaviour since
+	10.0
+
 2010-09-02 9avid Chisnall <theraven@gna.org>
 
 	* Source/NSBundle.m
