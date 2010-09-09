@@ -1375,6 +1375,8 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 {
   const char		*types = NULL;
   Class			c;
+  unsigned int count;
+  Protocol **protocols;
 
   if (0 == aSelector)
     {
@@ -1400,12 +1402,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
    * used by the Distributed Objects system, which the
    * runtime does not maintain in classes.
    */
-  unsigned int count;
-  Protocol **protocols = class_copyProtocolList(isa, &count);
+  protocols = class_copyProtocolList(isa, &count);
   if (NULL != protocols)
     {
       struct objc_method_description mth;
-      for (int i=0 ; i<count ; i++)
+      int i;
+      for (i=0 ; i<count ; i++)
         {
           mth = GSProtocolGetMethodDescriptionRecursive(protocols[i],
                   aSelector, YES, YES);
