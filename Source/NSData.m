@@ -81,7 +81,6 @@
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #include <stdio.h>
-#include <string.h>		/* for memset() */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
 #endif
@@ -1161,28 +1160,17 @@ failure:
 
 	      if (lt)
 		{
-		  sel = sel_get_typed_uid(name, types);
+		  sel = sel_registerTypedName_np(name, types);
 		}
 	      else
 		{
-		  sel = sel_get_any_typed_uid(name);
+		  sel = sel_registerTypedName_np(name, 0);
 		}
 	      if (sel == 0)
 		{
-		  if (lt)
-		    {
-		      sel = sel_register_typed_name(name, types);
-		    }
-		  else
-		    {
-		      sel = sel_register_name(name);
-		    }
-		  if (sel == 0)
-		    {
 		      [NSException raise: NSInternalInconsistencyException
 				  format: @"can't make sel with name '%s' "
 					      @"and types '%s'", name, types];
-		    }
 		}
 	      *(SEL*)data = sel;
 	    }
@@ -2815,28 +2803,17 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 	      if (lt)
 		{
-		  sel = sel_get_typed_uid(name, types);
+		  sel = sel_registerTypedName_np(name, types);
 		}
 	      else
 		{
-		  sel = sel_get_any_typed_uid(name);
+		  sel = sel_registerName(name);
 		}
 	      if (sel == 0)
 		{
-		  if (lt)
-		    {
-		      sel = sel_register_typed_name(name, types);
-		    }
-		  else
-		    {
-		      sel = sel_register_name(name);
-		    }
-		  if (sel == 0)
-		    {
 		      [NSException raise: NSInternalInconsistencyException
 				  format: @"can't make sel with name '%s' "
 					      @"and types '%s'", name, types];
-		    }
 		}
 	      *(SEL*)data = sel;
 	    }

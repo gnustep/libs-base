@@ -147,28 +147,7 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
     }
   else
     {
-      SEL s;
-
-      if (types == 0)
-	{
-	  s = sel_get_any_typed_uid(name);
-	}
-      else
-	{
-	  s = sel_get_typed_uid(name, types);
-	}
-      if (s == 0)
-	{
-	  if (types == 0)
-	    {
-	      s = sel_register_name(name);
-	    }
-	  else
-	    {
-	      s = sel_register_typed_name(name, types);
-	    }
-	}
-      return s;
+      return sel_registerTypedName_np(name, types);
     }
 #endif
 }
@@ -180,7 +159,7 @@ GSTypesFromSelector(SEL sel)
 #else
   if (sel == 0)
     return 0;
-  return sel_get_type(sel);
+  return sel_getType_np(sel);
 #endif
 }
 void
