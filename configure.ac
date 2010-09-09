@@ -1420,10 +1420,8 @@ AC_SUBST(_GSC_S_LNG_LNG)
 # Setup dynamic linking 
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()
-if test x"$ac_cv_lib_dl_dladdr" = xyes; then
-  AC_DEFINE([HAVE_DLADDR], 1,
-            [Define if you have the dladdr function in the dl library])
-fi
+# NOTE: libdl should be in LIBS now if it's available.
+AC_CHECK_FUNCS(dladdr)
 
 #--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
