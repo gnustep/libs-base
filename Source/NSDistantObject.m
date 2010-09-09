@@ -67,9 +67,11 @@ static int	debug_proxy = 0;
 static Class	placeHolder = 0;
 static Class	distantObjectClass = 0;
 
+#ifndef __GNUSTEP_RUNTIME__
 @interface Object (NSConformsToProtocolNamed)
 - (BOOL) _conformsToProtocolNamed: (const char*)aName;
 @end
+#endif
 @interface NSObject (NSConformsToProtocolNamed)
 - (BOOL) _conformsToProtocolNamed: (const char*)aName;
 @end
