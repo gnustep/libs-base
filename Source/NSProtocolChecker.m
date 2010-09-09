@@ -98,13 +98,13 @@
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"<%s -%@> not declared",
-	    [_myProtocol name], NSStringFromSelector([anInvocation selector])];
+	    protocol_getName(_myProtocol), NSStringFromSelector([anInvocation selector])];
 	}
       else
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"<%s +%@> not declared",
-	    [_myProtocol name], NSStringFromSelector([anInvocation selector])];
+	    protocol_getName(_myProtocol), NSStringFromSelector([anInvocation selector])];
 	}
     }
   [anInvocation invokeWithTarget: _myTarget];
