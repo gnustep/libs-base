@@ -1,5 +1,10 @@
 2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
 
+	* Source/ObjectiveC2/runtime.c: fix a typo
+	* Source/NSObject.m: c90 compatibliity
+	
+2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
+
 	* Source/ObjectiveC2/runtime.c:
 	Change sel_getUid to call sel_registerName, in line with OS X behaviour since
 	10.0
