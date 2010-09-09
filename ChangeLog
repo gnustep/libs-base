@@ -1,6 +1,8 @@
 2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix retain/release bugs spotted by clang.
+	* Source/GSFFIInvocation.m: Revert one line in order to get lookup
+	of types working again so that proxies can still be used.
 
 2010-09-10  Adam Fedor  <fedor@gnu.org>
 
