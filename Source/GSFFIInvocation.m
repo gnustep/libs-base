@@ -90,6 +90,12 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
  * return types between all equivalent selectors.
  */
 
+/* 
+ * Find the best selector type information we can when we don't know
+ * the receiver (unfortunately most installed gcc/objc systems still
+ * (2010) don't let us know the receiver when forwarding).  This can
+ * never be more than a guess, but in practice it usually works.
+ */
 static INLINE SEL
 gs_find_best_typed_sel (SEL sel)
 {
@@ -99,7 +105,7 @@ gs_find_best_typed_sel (SEL sel)
 
       if (name)
 	{
-	  SEL tmp_sel = sel_getUid(name);
+	  SEL tmp_sel = sel_get_any_typed_uid(name);
 	  if (sel_getType_np(tmp_sel))
 	    return tmp_sel;
 	}
