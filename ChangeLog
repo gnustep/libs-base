@@ -1,3 +1,7 @@
+2010-09-10  Riccardo Mottola
+
+	* Source/unix/GSRunLoopCtxt.m: only access array if port responds to selector, or it is not initialized.
+	
 2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix retain/release bugs spotted by clang.
