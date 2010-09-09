@@ -42,7 +42,6 @@
 
 @interface NSDistantObject(GNUstepExtensions)
 - (Class) classForPortCoder;
-- (id) forward: (SEL)aSel :(arglist_t)frame;
 - (void) finalize;
 @end
 
@@ -162,7 +161,7 @@ enum proxyLocation
 
 + (BOOL) respondsToSelector: (SEL)sel
 {
-  return GSGetMethod(self, sel, NO, YES) != (GSMethod)0;
+  return class_getClassMethod(self, sel) != NULL;
 }
 
 + (id) initWithCoder: (NSCoder*)aCoder
@@ -709,45 +708,17 @@ enum proxyLocation
 
       if (_protocol != nil)
 	{
-	  const char	*types = 0;
+	  struct objc_method_description mth;
+	  mth = GSProtocolGetMethodDescriptionRecursive(_protocol, aSelector, YES, YES);
 
-	  struct objc_method_description* mth;
+	  if (mth.name == NULL && mth.types == NULL)
+	    {
+	      // Search for class method
+	      mth = GSProtocolGetMethodDescriptionRecursive(_protocol, aSelector, YES, NO);
+	    }
 
-	  /* Older gcc versions may not initialise Protocol objects properly
-	   * so we have an evil hack which checks for a known bad value of
-	   * the class pointer, and uses an internal function
-	   * (implemented in NSObject.m) to examine the protocol contents
-	   * without sending any ObjectiveC message to it.
-	   */
-	  if ((uintptr_t)object_getClass(_protocol) == 0x2)
-	    {
-	      extern struct objc_method_description*
-		GSDescriptionForInstanceMethod(Protocol *self, SEL aSel);
-	      mth = GSDescriptionForInstanceMethod(_protocol, aSelector);
-	    }
-	  else
-	    {
-	      mth = [_protocol descriptionForInstanceMethod: aSelector];
-	    }
-	  if (mth == 0)
-	    {
-	      if ((uintptr_t)object_getClass(_protocol) == 0x2)
-		{
-		  extern struct objc_method_description*
-		    GSDescriptionForClassMethod(Protocol *self, SEL aSel);
-		  mth = GSDescriptionForClassMethod(_protocol, aSelector);
-		}
-	      else
-		{
-		  mth = [_protocol descriptionForClassMethod: aSelector];
-		}
-	    }
-	  if (mth != 0)
-	    {
-	      types = mth->types;
-	    }
-	  if (types)
-	    return [NSMethodSignature signatureWithObjCTypes: types];
+	  if (mth.types)
+	    return [NSMethodSignature signatureWithObjCTypes: mth.types];
 	}
 
       if (_sigs != 0)
@@ -873,42 +844,12 @@ enum proxyLocation
     }
 }
 
-static inline BOOL class_is_kind_of (Class self, Class aClassObject)
-{
-  Class class;
-
-  for (class = self; class!=Nil; class = class_getSuperclass(class))
-    if (class==aClassObject)
-      return YES;
-  return NO;
-}
 
 
 
-/**
- * For backward compatibility ... do not use this method.<br />
- * Handle old fashioned forwarding to the proxy.
- */
-- (id) forward: (SEL)aSel :(arglist_t)frame
-{
-  if (debug_proxy)
-    NSLog(@"NSDistantObject forwarding %s\n", sel_getName(aSel));
-
-  if (![_connection isValid])
-    [NSException
-	   raise: NSGenericException
-	  format: @"Trying to send message to an invalid Proxy.\n"
-      @"You should request NSConnectionDidDieNotification's and\n"
-      @"release all references to the proxy's of invalid Connections."];
-
-  return [_connection forwardForProxy: self
-			     selector: aSel
-			     argFrame: frame];
-}
-
 - (Class) classForCoder
 {
-  return object_get_class (self);
+  return object_getClass(self);
 }
 
 /**
@@ -916,7 +857,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
  */
 - (Class) classForPortCoder
 {
-  return object_get_class (self);
+  return object_getClass(self);
 }
 
 /**
@@ -928,7 +869,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 {
   if (_protocol != nil)
     {
-      return [_protocol conformsTo: aProtocol];
+      return protocol_conformsToProtocol(_protocol, aProtocol);
     }
   else
     {

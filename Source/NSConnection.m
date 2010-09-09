@@ -169,9 +169,6 @@ GSRunLoopForThread(NSThread *aThread)
 
 @interface NSConnection (GNUstepExtensions)
 - (void) finalize;
-- (retval_t) forwardForProxy: (NSDistantObject*)object 
-		    selector: (SEL)sel 
-		    argFrame: (arglist_t)argframe;
 - (void) forwardInvocation: (NSInvocation *)inv 
 		  forProxy: (NSDistantObject*)object;
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
@@ -1957,19 +1954,6 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /*
- * NSDistantObject's -forward:: method calls this to send the message
- * over the wire.
- */
-- (retval_t) forwardForProxy: (NSDistantObject*)object
-		    selector: (SEL)sel
-                    argFrame: (arglist_t)argframe
-{
-[NSException raise: NSInternalInconsistencyException
-	    format: @"Obsolete method called"];
-  return 0;
-}
-
-/*
  * NSDistantObject's -forwardInvocation: method calls this to send the message
  * over the wire.
  */
@@ -2594,7 +2578,7 @@ static NSLock	*cached_proxies_gate = nil;
       
       if (meth != 0)
 	{
-	  type = meth->method_types;
+	  type = method_getTypeEncoding(meth);
 	}
       else
 	{
@@ -3067,7 +3051,7 @@ static NSLock	*cached_proxies_gate = nil;
      version of the method types that has the type qualifiers in it.
      Search the protocols list. */
   if (m)
-    type = m->method_types;
+    type = method_getTypeEncoding(m);
   else
     type = "";
   [op encodeValueOfObjCType: @encode(char*) at: &type];

@@ -28,6 +28,7 @@
    */
 
 #import "common.h"
+#include <objc/encoding.h>
 #define	EXPOSE_NSMethodSignature_IVARS	1
 
 #import "Foundation/NSMethodSignature.h"

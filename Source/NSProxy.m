@@ -154,7 +154,7 @@ extern BOOL __objc_responds_to(id, SEL);
   mth = GSGetMethod(self, aSelector, NO, YES);
   if (mth != 0)
     {
-      const char	*types = mth->method_types;
+      const char	*types = method_getTypeEncoding(mth);
 
       if (types != 0)
 	{
@@ -231,7 +231,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 - (Class) class
 {
-  return object_get_class(self);
+  return object_getClass(self);
 }
 
 /**
@@ -269,19 +269,6 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   return [NSString stringWithFormat: @"<%s %lx>",
 	GSClassNameFromObject(self), (size_t)self];
-}
-
-/**
- * Calls the -forwardInvocation: method and returns the result.
- */
-- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
-{
-  NSInvocation *inv;
-
-  inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
-						  selector: aSel]);
-  [self forwardInvocation: inv];
-  return [inv returnFrame: argFrame];
 }
 
 /** <override-subclass />
@@ -400,7 +387,7 @@ extern BOOL __objc_responds_to(id, SEL);
   mth = GSGetMethod(object_getClass(self), aSelector, YES, YES);
   if (mth != 0)
     {
-      const char	*types = mth->method_types;
+      const char	*types = method_getTypeEncoding(mth);
 
       if (types != 0)
 	{
@@ -561,7 +548,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 - (Class) superclass
 {
-  return object_get_super_class(self);
+  return class_getSuperclass(isa);
 }
 
 /**

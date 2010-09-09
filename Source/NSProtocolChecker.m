@@ -72,48 +72,15 @@
   [super dealloc];
 }
 
-- (struct objc_method_description*) _methodDescription: (SEL)aSelector
+- (const char *) _protocolTypeForSelector: (SEL)aSel
 {
-  extern struct objc_method_description
-    *GSDescriptionForInstanceMethod(Protocol *self, SEL aSel);
-  extern struct objc_method_description
-    *GSDescriptionForClassMethod(Protocol *self, SEL aSel);
-
-  if (_myProtocol != nil && _myTarget != nil)
+  struct objc_method_description desc;
+  desc = GSProtocolGetMethodDescriptionRecursive(_myProtocol, aSel, YES, YES);
+  if (desc.name == NULL && desc.types == NULL)
     {
-      struct objc_method_description* mth;
-
-      /* Older gcc versions may not initialise Protocol objects properly
-       * so we have an evil hack which checks for a known bad value of
-       * the class pointer, and uses an internal function
-       * (implemented in NSObject.m) to examine the protocol contents
-       * without sending any ObjectiveC message to it.
-       */
-      if (GSObjCIsInstance(_myTarget))
-	{
-	  if ((uintptr_t)object_getClass(_myProtocol) == 0x2)
-	    {
-	      mth = GSDescriptionForInstanceMethod(_myProtocol, aSelector);
-	    }
-	  else
-	    {
-	      mth = [_myProtocol descriptionForInstanceMethod: aSelector];
-	    }
-	}
-      else
-	{
-	  if ((uintptr_t)object_getClass(_myProtocol) == 0x2)
-	    {
-	      mth = GSDescriptionForClassMethod(_myProtocol, aSelector);
-	    }
-	  else
-	    {
-	      mth = [_myProtocol descriptionForClassMethod: aSelector];
-	    }
-	}
-      return mth;
+      desc = GSProtocolGetMethodDescriptionRecursive(_myProtocol, aSel, YES, NO);
     }
-  return 0;
+  return desc.types;
 }
 
 /**
@@ -125,7 +92,7 @@
 {
   const char	*type;
 
-  if ([self _methodDescription: [anInvocation selector]] == 0)
+  if ([self _protocolTypeForSelector: [anInvocation selector]] == NULL)
     {
       if (GSObjCIsInstance(_myTarget))
 	{
@@ -184,105 +151,17 @@
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  const char		*types;
-  struct objc_method	*mth;
-  Class			c;
-
-  if (aSelector == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-
-  /*
-   * Evil hack to prevent recursion - if we are asking a remote
-   * object for a method signature, we can't ask it for the
-   * signature of methodSignatureForSelector:, so we hack in
-   * the signature required manually :-(
-   */
-  if (sel_isEqual(aSelector, _cmd))
-    {
-      static	NSMethodSignature	*sig = nil;
-
-      if (sig == nil)
-	{
-	  sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
-	  IF_NO_GC(RETAIN(sig);)
-	}
-      return sig;
-    }
-
   if (_myProtocol != nil)
     {
-      const char			*types = 0;
-      struct objc_method_description	*desc;
-
-      desc = [self _methodDescription: aSelector];
-      if (desc != 0)
-	{
-	  types = desc->types;
-	}
-      if (types == 0)
+      const char *types = [self _protocolTypeForSelector: aSelector];
+      if (types == NULL)
 	{
 	  return nil;
 	}
       return [NSMethodSignature signatureWithObjCTypes: types];
     }
 
-  c = object_getClass(self);
-  mth = GSGetMethod(c, aSelector, YES, YES);
-  if (mth == 0)
-    {
-      return nil; // Method not implemented
-    }
-  types = mth->method_types;
-
-  /*
-   * If there are protocols that this class conforms to,
-   * the method may be listed in a protocol with more
-   * detailed type information than in the class itself
-   * and we must therefore use the information from the
-   * protocol.
-   * This is because protocols also carry information
-   * used by the Distributed Objects system, which the
-   * runtime does not maintain in classes.
-   */
-  if (c->protocols != 0)
-    {
-      struct objc_protocol_list	*protocols = c->protocols;
-      BOOL			found = NO;
-
-      while (found == NO && protocols != 0)
-	{
-	  unsigned	i = 0;
-
-	  while (found == NO && i < protocols->count)
-	    {
-	      Protocol				*p;
-	      struct objc_method_description	*pmth;
-
-	      p = protocols->list[i++];
-	      if (c == (Class)self)
-		{
-		  pmth = [p descriptionForClassMethod: aSelector];
-		}
-	      else
-		{
-		  pmth = [p descriptionForInstanceMethod: aSelector];
-		}
-	      if (pmth != 0)
-		{
-		  types = pmth->types;
-		  found = YES;
-		}
-	    }
-	  protocols = protocols->next;
-	}
-    }
-
-  if (types == 0)
-    {
-      return nil;
-    }
-  return [NSMethodSignature signatureWithObjCTypes: types];
+  return [super methodSignatureForSelector: aSelector];
 }
 
 /**
