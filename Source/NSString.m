@@ -1460,7 +1460,7 @@ handle_printf_atsign (FILE *stream,
   unsigned int		len;
   const unsigned char	*data_bytes;
 
-  d = [[NSDataClass alloc] dataWithContentsOfURL: url];
+  d = [NSDataClass dataWithContentsOfURL: url];
   if (d == nil)
     {
       DESTROY(self);
@@ -1470,7 +1470,6 @@ handle_printf_atsign (FILE *stream,
   len = [d length];
   if (len == 0)
     {
-      RELEASE(d);
       DESTROY(self);
       return @"";
     }
@@ -1493,7 +1492,6 @@ handle_printf_atsign (FILE *stream,
 	}
     }
   self = [self initWithData: d encoding: *enc];
-  RELEASE(d);
   if (self == nil)
     {
       if (error != 0)
@@ -1513,7 +1511,7 @@ handle_printf_atsign (FILE *stream,
   NSData		*d;
   unsigned int		len;
 
-  d = [[NSDataClass alloc] dataWithContentsOfURL: url];
+  d = [NSDataClass dataWithContentsOfURL: url];
   if (d == nil)
     {
       DESTROY(self);
@@ -1522,12 +1520,10 @@ handle_printf_atsign (FILE *stream,
   len = [d length];
   if (len == 0)
     {
-      RELEASE(d);
       DESTROY(self);
       return @"";
     }
   self = [self initWithData: d encoding: enc];
-  RELEASE(d);
   if (self == nil)
     {
       if (error != 0)
@@ -2257,7 +2253,6 @@ handle_printf_atsign (FILE *stream,
       unichar a2[aLength+1];
       unichar *s2 = a2;
 
-      u = s1;
       [self getCharacters: s1 range: ((NSRange){0, length})];
       s1[length] = (unichar)0;
       [aString getCharacters: s2 range: ((NSRange){0, aLength})];

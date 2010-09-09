@@ -1,3 +1,7 @@
+2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Fix retain/release bugs spotted by clang.
+
 2010-09-10  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Check for dladdr without requiring -ldl
@@ -11,8 +15,8 @@
 2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/ObjectiveC2/runtime.c:
-	Change sel_getUid to call sel_registerName, in line with OS X behaviour since
-	10.0
+	Change sel_getUid to call sel_registerName, in line with OS X
+	behaviour since 10.0
 
 2010-09-02 9avid Chisnall <theraven@gna.org>
 
@@ -35,19 +39,44 @@
 	* Headers/Foundation/NSInvocation.h
 	* Headers/Additions/GNUstepBase/DistributedObjects.h
 
-	A huge blob of changes to make -base build with libobjc2, without using the old libobjc2 headers.
+	A huge blob of changes to make -base build with libobjc2, without
+	using the old libobjc2 headers.
 
-	Most of these changes involve simply removing direct manipulation of any runtime structures and replacing them with runtime function calls.  For example class->name becomes class_getName(class) and so on.
+	Most of these changes involve simply removing direct manipulation
+	of any runtime structures and replacing them with runtime function
+	calls.  For example class->name becomes class_getName(class) and so on.
 
-	libobjc2, like the Apple runtime, the NeXT runtime, and every version of the Objective-C spec, calls the class pointer in id isa.  A few files now have #define class_pointer isa at the top.  This line replaces class_pointer in the old GNU libobjc headers with isa so either class_pointer or isa can be used for accessing the class of an object.  Note: object_getClass() should be used in most cases because, in some future version of the runtime, this will skip things like lock classes and other hidden classes (e.g. KVO classes).
+	libobjc2, like the Apple runtime, the NeXT runtime, and every
+	version of the Objective-C spec, calls the class pointer in id isa.
+	A few files now have #define class_pointer isa at the top.
+	This line replaces class_pointer in the old GNU libobjc headers
+	with isa so either class_pointer or isa can be used for accessing
+	the class of an object.  Note: object_getClass() should be used
+	in most cases because, in some future version of the runtime,
+	this will skip things like lock classes and other hidden classes
+	(e.g. KVO classes).
 
-	All of the old forwarding stuff has been removed.  Most of this stuff followed convoluted code paths that ended with an exception.  A few simply broke in exciting ways.  Hopefully no one has used them for the last ten years or so, but we can bring them back with some #ifndef stuff if they're really needed by anyone.
+	All of the old forwarding stuff has been removed.  Most of this
+	stuff followed convoluted code paths that ended with an exception.
+	A few simply broke in exciting ways.  Hopefully no one has used
+	them for the last ten years or so, but we can bring them back
+	with some #ifndef stuff if they're really needed by anyone.
 
-	There is currently a bug in configure, which prevents dladdr() from being detected, so you need to manually tweak config.h to build - I have not fixed the fall-back code in objc-load.m to work with libobjc2, I just added a new version that uses the loader's functionality directly.  
+	There is currently a bug in configure, which prevents dladdr() from
+	being detected, so you need to manually tweak config.h to build -
+	I have not fixed the fall-back code in objc-load.m to work with
+	libobjc2, I just added a new version that uses the loader's
+	functionality directly.  
 
-	Although -base now builds, it builds with a lot of warnings.  <string.h> is missing from a lot of files, so memcpy() and strlen() generate implicit function declaration warnings.  
+	Although -base now builds, it builds with a lot of warnings.
+	<string.h> is missing from a lot of files, so memcpy() and strlen()
+	generate implicit function declaration warnings.  
 
-	Additionally, libobjc2 does still provide the sel_{get,register}_*() functions, but they're wrappers around the newer API ones.  These are deprecated and are not exposed in the headers.  Although they work, we should be replacing them with the libobjc2 versions as soon as possible.
+	Additionally, libobjc2 does still provide the sel_{get,register}_*()
+	functions, but they're wrappers around the newer API ones.  These are
+	deprecated and are not exposed in the headers.  Although they work,
+	we should be replacing them with the libobjc2 versions as soon as
+	possible.
 
 	This incorporates a patch by Eric.
 
