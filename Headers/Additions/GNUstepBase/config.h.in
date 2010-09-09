@@ -3,6 +3,12 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* The normal alignment of `pthread_cond_t', in bytes. */
+#undef ALIGNOF_PTHREAD_COND_T
+
+/* The normal alignment of `pthread_mutex_t', in bytes. */
+#undef ALIGNOF_PTHREAD_MUTEX_T
+
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
 
@@ -187,7 +193,7 @@
    */
 #undef HAVE_DIRENT_H
 
-/* Define if you have the dladdr function in the dl library */
+/* Define to 1 if you have the `dladdr' function. */
 #undef HAVE_DLADDR
 
 /* Define to 1 if you have the <dns_sd.h> header file. */
@@ -659,6 +665,9 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION

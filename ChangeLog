@@ -1,3 +1,8 @@
+2010-09-10  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Check for dladdr without requiring -ldl
+	* configure, Headers/Additions/GNUstepBase/config.h.in: Regen
+
 2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/ObjectiveC2/runtime.c: fix a typo
