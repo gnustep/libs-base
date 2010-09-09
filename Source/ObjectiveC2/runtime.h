@@ -299,4 +299,6 @@ BOOL sel_isEqual(SEL sel1, SEL sel2);
 
 SEL sel_registerName(const char *selName);
 
+SEL sel_registerTypedName_np(const char *selName, const char *types);
+
 #endif // __OBJECTIVEC2_RUNTIME_H_INCLUDED
