@@ -11,6 +11,11 @@
 	* Source/ObjectiveC2/runtime.c: Fix class_getMethodImplementation()
 	and class_getMethodImplementation_stret() so that they don't cause
 	a crash when used with proxies.
+	* Source/NSKeyValueCoding.m:
+	* Source/cifframe.m:
+	* Source/Additions/GSLock.m:
+	* Source/NSDate.m:
+	Tweaks to avoid clang static analyser warnings.
 
 2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
 
@@ -26,7 +31,7 @@
 
 	* Source/unix/GSRunLoopCtxt.m: only access array if port responds
 	to selector, or it is not initialized
-	* Source/NSDate.m,
+	* Source/NSDate.m:
 	* Source/NSScanner.m: use init return value
 	
 2010-09-09  Richard Frith-Macdonald <rfm@gnu.org>
