@@ -249,7 +249,7 @@ typedef SOCKET NSSocketNativeHandle;
  * This is a callback method used by the NSRunLoop class to determine which
  * descriptors to watch for the port.
  */
-- (void) getFds: (int*)fds count: (int*)count;
+- (void) getFds: (NSInteger*)fds count: (NSInteger*)count;
 
 /**
  *  Delegates processing of a message.
