@@ -380,22 +380,23 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	      case ET_RPORT: 
 		{
 		  id port = info->receiver;
-		  int port_fd_count = 128; // FIXME 
-		  int port_fd_array[port_fd_count];
 
-		  if ([port respondsToSelector:
-			      @selector(getFds:count:)])
+		  if ([port respondsToSelector: @selector(getFds:count:)])
 		    {
+		      int port_fd_count = 128; // FIXME 
+		      int port_fd_array[port_fd_count];
+
 		      [port getFds: port_fd_array
 			     count: &port_fd_count];
 		      NSDebugMLLog(@"NSRunLoop",
-				   @"listening to %d port handles\n", port_fd_count);
+			@"listening to %d port handles\n", port_fd_count);
 		      while (port_fd_count--)
 			{
 			  fd = port_fd_array[port_fd_count];
 			  setPollfd(fd, POLLIN, self);
 			  NSMapInsert(_rfdMap, 
-				      (void*)(intptr_t)port_fd_array[port_fd_count], info);
+			    (void*)(intptr_t)port_fd_array[port_fd_count],
+			    info);
 			}
 		    }
 		}
