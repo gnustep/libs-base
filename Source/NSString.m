@@ -4727,7 +4727,7 @@ static NSFileManager *fm = nil;
 }
 
 /**
- * Writes contents out to anURL, using the default C string encoding
+ * Writes contents out to url, using the default C string encoding
  * unless this would result in information loss, otherwise straight unicode.
  * See [NSURLHandle-writeData:] on which URL types are supported.
  * The '<code>atomically</code>' option is only heeded if the URL is a
@@ -4735,7 +4735,7 @@ static NSFileManager *fm = nil;
  * If there is a problem and error is not NULL, the cause of the problem is
  * returned in *error.
  */
-- (BOOL) writeToURL: (NSURL*)anURL
+- (BOOL) writeToURL: (NSURL*)url
 	 atomically: (BOOL)atomically
 	    encoding: (NSStringEncoding)enc
 	       error: (NSError**)error
@@ -4756,19 +4756,19 @@ static NSFileManager *fm = nil;
         }
       return NO;
     }
-  return [d writeToURL: anURL
+  return [d writeToURL: url
 	       options: atomically ? NSAtomicWrite : 0
 		 error: error];
 }
 
 /**
- * Writes contents out to anURL, using the default C string encoding
+ * Writes contents out to url, using the default C string encoding
  * unless this would result in information loss, otherwise straight unicode.
  * See [NSURLHandle-writeData:] on which URL types are supported.
  * The '<code>atomically</code>' option is only heeded if the URL is a
  * <code>file://</code> URL; see -writeToFile:atomically: .
  */
-- (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)atomically
+- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)atomically
 {
   id	d = [self dataUsingEncoding: _DefaultStringEncoding];
 
@@ -4776,7 +4776,7 @@ static NSFileManager *fm = nil;
     {
       d = [self dataUsingEncoding: NSUnicodeStringEncoding];
     }
-  return [d writeToURL: anURL atomically: atomically];
+  return [d writeToURL: url atomically: atomically];
 }
 
 /* NSCopying Protocol */

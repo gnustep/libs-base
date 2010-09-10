@@ -713,7 +713,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string;
 - (BOOL) writeToFile: (NSString*)filename
 	  atomically: (BOOL)useAuxiliaryFile;
-- (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)atomically;
+- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)atomically;
 - (double) doubleValue;
 + (NSStringEncoding*) availableStringEncodings;
 + (NSString*) localizedNameOfStringEncoding: (NSStringEncoding)encoding;
