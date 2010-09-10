@@ -433,18 +433,23 @@ class_getIvarLayout(Class cls)
   return (char *) cls->ivars;
 }
 
+/* For the next two functions ...
+ * It would be nice to use objc_msg_lookup(), but we can't because that
+ * requires an instance rather than a class as its argument.  Trying to
+ * pass the address of the class as if it was an instance won't work since 
+ * the instance variables will be missing and any forwarding callback used
+ * by a proxy may try to use the instance variables and crash/fail in
+ * interesting ways.
+ */ 
 IMP
 class_getMethodImplementation(Class cls, SEL name)
 {
-  struct objc_object_gnu obj = { cls };
-  return (IMP) objc_msg_lookup((id) & obj, name);
+  return (IMP) get_imp(cls, name);
 }
-
 IMP
 class_getMethodImplementation_stret(Class cls, SEL name)
 {
-  struct objc_object_gnu obj = { cls };
-  return (IMP) objc_msg_lookup((id) & obj, name);
+  return (IMP) get_imp(cls, name);
 }
 
 const char *
