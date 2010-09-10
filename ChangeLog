@@ -1,13 +1,16 @@
 2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* NSSocketPort.m:
-	* unix/GSRunLoopCtxt.m:
-	* NSPort.m:
-	* NSMessagePort.m:
-	* win32/GSRunLoopCtxt.m:
+	* Source/NSSocketPort.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/NSPort.m:
+	* Source/NSMessagePort.m:
+	* Source/win32/GSRunLoopCtxt.m:
 	Remove redundant check for responding to getFds:count: since it's
 	always true.  Fix usage of method to correspond to prototype
 	(NSInteger arguments rather than int arguments).
+	* Source/ObjectiveC2/runtime.c: Fix class_getMethodImplementation()
+	and class_getMethodImplementation_stret() so that they don't cause
+	a crash when used with proxies.
 
 2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
 
