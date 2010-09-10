@@ -469,7 +469,8 @@ otherTime(NSDate* other)
 		      modYear += adjective;
 		      hadYear = YES;
 		    }
-		  else if ([tmp caseInsensitiveCompare: mname] == NSOrderedSame)
+		  else if (mname != nil
+		    && [tmp caseInsensitiveCompare: mname] == NSOrderedSame)
 		    {
 		      modMonth += adjective;
 		      hadMonth = YES;
@@ -1158,9 +1159,9 @@ otherTime(NSDate* other)
   NSString *s;
   NSCalendarDate *d = [calendarClass alloc];
   d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
-  s = [d description];
+  s = [[d description] retain];
   RELEASE(d);
-  return s;
+  return [s autorelease];
 }
 
 /**
@@ -1184,9 +1185,9 @@ otherTime(NSDate* other)
   if (aTimeZone)
     [d setTimeZone: aTimeZone];
 
-  s = [d descriptionWithCalendarFormat: f locale: l];
+  s = [[d descriptionWithCalendarFormat: f locale: l] retain];
   RELEASE(d);
-  return s;
+  return [s autorelease];
 }
 
 /**
@@ -1199,9 +1200,9 @@ otherTime(NSDate* other)
   NSString *s;
   NSCalendarDate *d = [calendarClass alloc];
   d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
-  s = [d descriptionWithLocale: locale];
+  s = [[d descriptionWithLocale: locale] retain];
   RELEASE(d);
-  return s;
+  return [s autorelease];
 }
 
 /**

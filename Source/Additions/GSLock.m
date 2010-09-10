@@ -87,17 +87,14 @@
       DESTROY(self);
       self = [NSLock new];
     }
-  else
+  else if (self != nil)
     {
-      if (self != nil)
-	{
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	    selector: @selector(_becomeThreaded:)
-	    name: NSWillBecomeMultiThreadedNotification
-	    object: nil];
-	}
       locked = NO;
+      [[NSNotificationCenter defaultCenter]
+	addObserver: self
+	selector: @selector(_becomeThreaded:)
+	name: NSWillBecomeMultiThreadedNotification
+	object: nil];
     }
   return self;
 }

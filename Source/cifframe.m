@@ -190,37 +190,35 @@ cifframe_from_signature (NSMethodSignature *info)
       cframe->arg_types = buf + type_offset;
       memcpy(cframe->arg_types, arg_types, sizeof(ffi_type *) * numargs);
       cframe->values = buf + offset;
+
+      if (ffi_prep_cif (&cframe->cif, FFI_DEFAULT_ABI, cframe->nargs,
+	rtype, cframe->arg_types) != FFI_OK)
+	{
+	  cframe = NULL;
+	  result = NULL;
+	}
+      else
+	{
+	  /* Set values locations. This must be done after ffi_prep_cif so
+	     that any structure sizes get calculated first. */
+	  offset += numargs * sizeof(void*);
+	  if (offset % align != 0)
+	    {
+	      offset += align - (offset % align);
+	    }
+	  for (i = 0; i < cframe->nargs; i++)
+	    {
+	      cframe->values[i] = buf + offset;
+
+	      offset += arg_types[i]->size;
+
+	      if (offset % align != 0)
+		{
+		  offset += (align - offset % align);
+		}
+	    }
+	}
     }
-
-  if (ffi_prep_cif (&cframe->cif, FFI_DEFAULT_ABI, cframe->nargs,
-		   rtype, cframe->arg_types) != FFI_OK)
-    {
-      cframe = NULL;
-      result = NULL;
-    }
-
-  if (cframe)
-    {
-      /* Set values locations. This must be done after ffi_prep_cif so
-         that any structure sizes get calculated first. */
-      offset += numargs * sizeof(void*);
-      if (offset % align != 0)
-        {
-          offset += align - (offset % align);
-        }
-      for (i = 0; i < cframe->nargs; i++)
-        {
-          cframe->values[i] = buf + offset;
-
-          offset += arg_types[i]->size;
-
-          if (offset % align != 0)
-            {
-              offset += (align - offset % align);
-            }
-        }
-    }
-
   return result;
 }
 

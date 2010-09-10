@@ -82,7 +82,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
 {
   SEL		sel = 0;
   const char	*type = 0;
-  int		off;
+  int		off = 0;
 
   if (size > 0)
     {
@@ -153,7 +153,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
 static id ValueForKey(NSObject *self, const char *key, unsigned size)
 {
   SEL		sel = 0;
-  int		off;
+  int		off = 0;
   const char	*type = NULL;
 
   if (size > 0)
@@ -218,11 +218,11 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
                   buf[2] = 'i';
                   buf[1] = '_';
                   name = &buf[1];	// _isKey
-		  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+		  if (!GSObjCFindVariable(self, name, &type, &size, &off))
                     {
                        buf[4] = lo;
                        name = &buf[4];		// key
-		       if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+		       if (!GSObjCFindVariable(self, name, &type, &size, &off))
                          {
                             buf[4] = hi;
                             buf[3] = 's';
