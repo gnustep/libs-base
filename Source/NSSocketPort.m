@@ -1828,7 +1828,7 @@ static Class		tcpPortClass;
  * descriptors to watch for the port.
  */
 #if	defined(__MINGW__)
-- (void) getFds: (int*)fds count: (int*)count
+- (void) getFds: (NSInteger*)fds count: (NSInteger*)count
 {
   NSMapEnumerator	me;
   void			*event;
@@ -1872,7 +1872,7 @@ static Class		tcpPortClass;
   M_UNLOCK(myLock);
 }
 #else
-- (void) getFds: (int*)fds count: (int*)count
+- (void) getFds: (NSInteger*)fds count: (NSInteger*)count
 {
   NSMapEnumerator	me;
   void			*sock;

@@ -18,6 +18,8 @@
 #import "../GSRunLoopWatcher.h"
 #import "../GSPrivate.h"
 
+#define	FDCOUNT	128
+
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
 static SEL	wRetSel;
@@ -346,24 +348,17 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	      case ET_RPORT:
 		{
 		  id port = info->receiver;
-		  int port_handle_count = 128; // #define this constant
-		  int port_handle_array[port_handle_count];
-		  if ([port respondsToSelector: @selector(getFds:count:)])
-		    {
-		      [port getFds: port_handle_array
-			     count: &port_handle_count];
-		    }
-		  else
-		    {
-		      NSLog(@"pollUntil - Impossible get win32 Handles");
-		      abort();
-		    }
+		  NSInteger port_handle_count = FDCOUNT;
+		  NSInteger port_handle_array[FDCOUNT];
+
+		  [port getFds: port_handle_array count: &port_handle_count];
 		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port handles",
 		    port_handle_count);
 		  while (port_handle_count--)
 		    {
 		      NSMapInsert(handleMap, 
-			(void*)(size_t) port_handle_array[port_handle_count], info);
+			(void*)(size_t) port_handle_array[port_handle_count],
+			info);
 		      num_handles++;
 		    }
 		}

@@ -252,3 +252,13 @@ static Class	NSPort_concrete_class;
 
 @end
 
+/*
+ * This is a callback method used by the NSRunLoop class to determine which
+ * descriptors to watch for the port.  Subclasses override it.
+ */
+@implementation	NSPort (GNUstep)
+- (void) getFds: (NSInteger*)fds count: (NSInteger*)count
+{
+  *count = 0;
+}
+@end

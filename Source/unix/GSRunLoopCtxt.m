@@ -31,6 +31,8 @@
 #include <unistd.h>
 #endif
 
+#define	FDCOUNT	128
+
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
 static SEL	wRetSel;
@@ -380,24 +382,18 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	      case ET_RPORT: 
 		{
 		  id port = info->receiver;
+		  NSInteger port_fd_count = FDCOUNT;
+		  NSInteger port_fd_array[FDCOUNT];
 
-		  if ([port respondsToSelector: @selector(getFds:count:)])
+		  [port getFds: port_fd_array count: &port_fd_count];
+		  NSDebugMLLog(@"NSRunLoop",
+		    @"listening to %d port handles\n", port_fd_count);
+		  while (port_fd_count--)
 		    {
-		      int port_fd_count = 128; // FIXME 
-		      int port_fd_array[port_fd_count];
-
-		      [port getFds: port_fd_array
-			     count: &port_fd_count];
-		      NSDebugMLLog(@"NSRunLoop",
-			@"listening to %d port handles\n", port_fd_count);
-		      while (port_fd_count--)
-			{
-			  fd = port_fd_array[port_fd_count];
-			  setPollfd(fd, POLLIN, self);
-			  NSMapInsert(_rfdMap, 
-			    (void*)(intptr_t)port_fd_array[port_fd_count],
-			    info);
-			}
+		      fd = port_fd_array[port_fd_count];
+		      setPollfd(fd, POLLIN, self);
+		      NSMapInsert(_rfdMap, 
+			(void*)(intptr_t)port_fd_array[port_fd_count], info);
 		    }
 		}
 		break;
@@ -800,15 +796,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	      case ET_RPORT: 
 		{
 		  id port = info->receiver;
-		  int port_fd_count = 128; // xxx #define this constant
-		  int port_fd_array[port_fd_count];
+		  NSInteger port_fd_count = FDCOUNT;
+		  NSInteger port_fd_array[FDCOUNT];
 
-		  if ([port respondsToSelector:
-		    @selector(getFds:count:)])
-		    {
-		      [port getFds: port_fd_array
-			     count: &port_fd_count];
-		    }
+		  [port getFds: port_fd_array count: &port_fd_count];
 		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port sockets",
 		    port_fd_count);
 		  while (port_fd_count--)

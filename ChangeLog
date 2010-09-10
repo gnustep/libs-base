@@ -1,3 +1,14 @@
+2010-09-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSSocketPort.m:
+	* unix/GSRunLoopCtxt.m:
+	* NSPort.m:
+	* NSMessagePort.m:
+	* win32/GSRunLoopCtxt.m:
+	Remove redundant check for responding to getFds:count: since it's
+	always true.  Fix usage of method to correspond to prototype
+	(NSInteger arguments rather than int arguments).
+
 2010-09-09  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/NSProtocolChecker.m: Replace a -[Protocol name] with
@@ -10,8 +21,8 @@
 	
 2010-09-10  Riccardo Mottola
 
-	* Source/unix/GSRunLoopCtxt.m: only access array if port responds to selector, or it is not initialized
-	
+	* Source/unix/GSRunLoopCtxt.m: only access array if port responds
+	to selector, or it is not initialized
 	* Source/NSDate.m,
 	* Source/NSScanner.m: use init return value
 	
