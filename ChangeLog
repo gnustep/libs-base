@@ -1,4 +1,4 @@
-2010-09-11  Richard Frith-Macdonald <rfm@gnu.org>
+2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSSocketPort.m:
 	* unix/GSRunLoopCtxt.m:
@@ -19,20 +19,20 @@
 	* Source/NSDistantObject.m: #ifdef to disable category
 	on Object was forgotten around the interface
 	
-2010-09-10  Riccardo Mottola
+2010-09-09  Riccardo Mottola
 
 	* Source/unix/GSRunLoopCtxt.m: only access array if port responds
 	to selector, or it is not initialized
 	* Source/NSDate.m,
 	* Source/NSScanner.m: use init return value
 	
-2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+2010-09-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix retain/release bugs spotted by clang.
 	* Source/GSFFIInvocation.m: Revert one line in order to get lookup
 	of types working again so that proxies can still be used.
 
-2010-09-10  Adam Fedor  <fedor@gnu.org>
+2010-09-09  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Check for dladdr without requiring -ldl
 	* configure, Headers/Additions/GNUstepBase/config.h.in: Regen
