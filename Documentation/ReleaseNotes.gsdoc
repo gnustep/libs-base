@@ -57,6 +57,8 @@ notice and this notice are preserved.
           <desc>Fixes for storing booleans in keyed archives.</desc>
 	  <term>NSPathUtilities</term>
           <desc>Fix to support absolute paths in the user domain.</desc>
+	  <term>NSString</term>
+          <desc>Fix memory management issue loading from URL.</desc>
 	  <term>NSTask</term>
           <desc>Fix for thread safety issue on task termination.</desc>
 	  <term>NSThread</term>

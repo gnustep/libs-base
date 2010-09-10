@@ -1,3 +1,8 @@
+2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: backport fixes for initialisation from URL.
+	* Version 1.20.2 release
+
 2010-09-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h:
