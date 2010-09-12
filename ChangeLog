@@ -1,3 +1,7 @@
+2010-09-12  Riccardo Mottola
+
+	* Source/GSAttributedString: Removed dead assignments and unused variable attrs.
+	
 2010-09-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSConcreteValueTemplate.m:
