@@ -191,7 +191,7 @@
     double d;
     unsigned char c[sizeof(double)];
   } val;
-  unsigned      hash = 0;
+  NSUInteger	hash = 0;
   unsigned int	i;
 
   val.d = data.x + data.y;
@@ -207,7 +207,7 @@
     double d;
     unsigned char c[sizeof(double)];
   } val;
-  unsigned      hash = 0;
+  NSUInteger	hash = 0;
   unsigned int	i;
 
   val.d = data.origin.x + data.origin.y + data.size.width + data.size.height;
@@ -219,7 +219,7 @@
     double d;
     unsigned char c[sizeof(double)];
   } val;
-  unsigned      hash = 0;
+  NSUInteger	hash = 0;
   unsigned int	i;
 
   val.d = data.width + data.height;

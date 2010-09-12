@@ -389,7 +389,7 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
   return NO;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return (unsigned)[self doubleValue];
 }

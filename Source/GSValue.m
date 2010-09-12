@@ -133,7 +133,7 @@ typeSize(const char* type)
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   unsigned	size = typeSize(objctype);
   unsigned	hash = 0;

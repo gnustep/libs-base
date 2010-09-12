@@ -82,7 +82,7 @@
   [super dealloc];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   const char	*sel = sel_getName(_selector);
 

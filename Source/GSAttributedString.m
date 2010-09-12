@@ -512,7 +512,7 @@ _attributesAtIndexEffectiveRange(
 
 
 // The superclass implementation is correct but too slow
-- (unsigned int) length
+- (NSUInteger) length
 {
   return [_textChars length];
 }
@@ -901,7 +901,7 @@ SANITY();
 }
 
 // The superclass implementation is correct but too slow
-- (unsigned int) length
+- (NSUInteger) length
 {
   return [_textChars length];
 }
