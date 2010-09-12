@@ -1564,7 +1564,7 @@ typedef	struct {
   [d handlePortMessage: m];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [name hash];
 }

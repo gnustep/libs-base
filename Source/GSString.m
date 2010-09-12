@@ -237,7 +237,7 @@ static BOOL	(*convertImp)(id, SEL, NSStringEncoding);
 static SEL	equalSel;
 static BOOL	(*equalImp)(id, SEL, id);
 static SEL	hashSel;
-static unsigned (*hashImp)(id, SEL);
+static NSUInteger (*hashImp)(id, SEL);
 
 static NSStringEncoding externalEncoding = 0;
 static NSStringEncoding internalEncoding = NSISOLatin1StringEncoding;
@@ -3121,7 +3121,7 @@ transmute(GSStr self, NSString *aString)
   getCString_c((GSStr)self, buffer, maxLength, aRange, leftoverRange);
 }
 
-- (NSInteger) intValue
+- (int) intValue
 {
   return intValue_c((GSStr)self);
 }
@@ -3221,7 +3221,7 @@ transmute(GSStr self, NSString *aString)
 }
 
 // private method for Unicode level 3 implementation
-- (NSInteger) _baseLength
+- (int) _baseLength
 {
   return _count;
 }
@@ -3437,7 +3437,7 @@ agree, create a new GSCInlineString otherwise.
   getCString_u((GSStr)self, buffer, maxLength, aRange, leftoverRange);
 }
 
-- (NSInteger) intValue
+- (int) intValue
 {
   return intValue_u((GSStr)self);
 }
@@ -3537,7 +3537,7 @@ agree, create a new GSCInlineString otherwise.
 }
 
 // private method for Unicode level 3 implementation
-- (NSInteger) _baseLength
+- (int) _baseLength
 {
   unsigned int count = 0;
   unsigned int blen = 0;
@@ -4183,7 +4183,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   return self;
 }
 
-- (NSInteger) intValue
+- (int) intValue
 {
   if (_flags.wide == 1)
     return intValue_u((GSStr)self);
@@ -4584,7 +4584,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 }
 
 // private method for Unicode level 3 implementation
-- (NSInteger) _baseLength
+- (int) _baseLength
 {
   if (_flags.wide == 1)
     {

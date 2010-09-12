@@ -1,3 +1,17 @@
+2010-09-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSConcreteValueTemplate.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSortDescriptor.m:
+	* Source/NSMessagePort.m:
+	* Source/GSAttributedString.m:
+	* Source/NSNumber.m:
+	* Source/GSString.m:
+	* Source/NSHost.m:
+	* Source/NSDate.m:
+	* Source/GSValue.m:
+	Fix return types.
+
 2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPort.m:
