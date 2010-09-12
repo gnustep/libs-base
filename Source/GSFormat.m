@@ -1861,7 +1861,6 @@ NSDictionary *locale)
 	       NSString into a unicode string.  */
 	    NSRange r;
 
-	    len = [dsc length];
 	    if (prec >= 0 && prec < (int)len) len = prec;
 
 	    /* Allocate dynamically an array which definitely is long

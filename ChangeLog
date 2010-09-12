@@ -1,6 +1,7 @@
 2010-09-12  Riccardo Mottola
 
-	* Source/GSAttributedString: Removed dead assignments and unused variable attrs.
+	* Source/GSAttributedString.m: Removed dead assignments and unused variable attrs.
+	* Source/GSFormant.m: Removed useless len recalculation.
 	
 2010-09-12  Richard Frith-Macdonald <rfm@gnu.org>
 
