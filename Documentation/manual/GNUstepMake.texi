@@ -114,7 +114,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 OBJC_PROGRAM_NAME = simple
 
 # Objective-C files requiring compilation
-simple_OBJC_FILES = simple.m
+simple_OBJC_FILES = source.m
 
 -include GNUmakefile.preamble
 
