@@ -3006,7 +3006,7 @@ static NSSet	*fileKeys = nil;
     }
 }
 
-- (unsigned int) count
+- (NSUInteger) count
 {
   return [fileKeys count];
 }

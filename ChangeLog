@@ -1,3 +1,11 @@
+2010-09-15  Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Source/NSMessagePort.m:
+	* Source/NSFileManager.m:
+	* Source/NSCharacterSet.m: Fix some method type mismatches. Generally when
+	a private subclass overrides a public method taking a NSUInteger with
+	a method taking an "unsigned" parameter.
+
 2010-09-12  Riccardo Mottola
 
 	* Source/GSAttributedString.m: Removed dead assignments and unused variable attrs.
