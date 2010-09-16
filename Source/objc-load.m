@@ -58,7 +58,7 @@ static BOOL	dynamic_loaded;
 static void (*_objc_load_load_callback)(Class, struct objc_category *) = 0;
 
 /* List of modules we have loaded (by handle) */
-#ifndef NeXT_RUNTIME
+#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 static struct objc_list *dynamic_handles = NULL;
 #endif
 
@@ -189,7 +189,10 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
       _objc_load_callback = 0;
       return 1;
     }
+
+#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
   dynamic_handles = list_cons(handle, dynamic_handles);
+#endif
 
   /* If there are any undefined symbols, we can't load the bundle */
   if (objc_check_undefineds(errorStream))
