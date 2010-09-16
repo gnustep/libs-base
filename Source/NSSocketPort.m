@@ -2286,16 +2286,16 @@ static Class		tcpPortClass;
  * the start can be written directly without having to copy data to another
  * buffer etc.
  */
-- (unsigned int) reservedSpaceLength
+- (NSUInteger) reservedSpaceLength
 {
   return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (int)msgId
+		  msgid: (NSInteger)msgId
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
-               reserved: (unsigned)length
+               reserved: (NSUInteger)length
 {
   BOOL		sent = NO;
   GSTcpHandle	*h;

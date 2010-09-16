@@ -291,7 +291,7 @@ static  NSNull  *null = nil;
  * An entity definition has been parsed.
  */
 - (void) entityDecl: (NSString*)name
-	       type: (int)type
+	       type: (NSInteger)type
 	     public: (NSString*)publicId
 	     system: (NSString*)systemId
 	    content: (NSString*)content
@@ -300,8 +300,8 @@ static  NSNull  *null = nil;
 
 - (void) attributeDecl: (NSString*)nameElement
 		  name: (NSString*)name
-		  type: (int)type
-	  typeDefValue: (int)defType
+		  type: (NSInteger)type
+	  typeDefValue: (NSInteger)defType
 	  defaultValue: (NSString*)value
 {
   [_delegate parser: _owner
@@ -312,7 +312,7 @@ static  NSNull  *null = nil;
 }
 
 - (void) elementDecl: (NSString*)name
-		type: (int)type
+		type: (NSInteger)type
 {
   [_delegate parser: _owner
     foundElementDeclarationWithName: name
@@ -373,30 +373,30 @@ static  NSNull  *null = nil;
   [self error: e];
 }
 - (void) warning: (NSString*)e
-       colNumber: (int)colNumber
-      lineNumber: (int)lineNumber
+       colNumber: (NSInteger)colNumber
+      lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
-    lineNumber, colNumber, e];
+    (int)lineNumber, (int)colNumber, e];
   [self warning: e];
 }
 - (void) error: (NSString*)e
-     colNumber: (int)colNumber
-    lineNumber: (int)lineNumber
+     colNumber: (NSInteger)colNumber
+    lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
-    lineNumber, colNumber, e];
+    (int)lineNumber, (int)colNumber, e];
   [self error: e];
 }
 - (void) fatalError: (NSString*)e
-       colNumber: (int)colNumber
-      lineNumber: (int)lineNumber
+       colNumber: (NSInteger)colNumber
+      lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
-    lineNumber, colNumber, e];
+    (int)lineNumber, (int)colNumber, e];
   [self fatalError: e];
 }
-- (int) hasInternalSubset
+- (NSInteger) hasInternalSubset
 {
   return 0;
 }
@@ -406,7 +406,7 @@ static  NSNull  *null = nil;
 {
   return NO;
 }
-- (int) hasExternalSubset
+- (NSInteger) hasExternalSubset
 {
   return 0;
 }

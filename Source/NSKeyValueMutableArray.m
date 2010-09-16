@@ -130,7 +130,7 @@
   return self;
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   if (array == nil)
     {
@@ -139,7 +139,7 @@
   return [array count];
 }
 
-- (id) objectAtIndex: (unsigned)index
+- (id) objectAtIndex: (NSUInteger)index
 {
   if (array == nil)
     {
@@ -220,7 +220,7 @@
   [super dealloc];
 }
 
-- (void) removeObjectAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (NSUInteger)index
 {
   NSIndexSet *indexes = nil;
 
@@ -241,7 +241,7 @@
     }
 }
 
-- (void) insertObject: (id)anObject atIndex: (unsigned)index
+- (void) insertObject: (id)anObject atIndex: (NSUInteger)index
 {
   NSIndexSet *indexes = nil;
 
@@ -263,7 +263,7 @@
     }
 }
 
-- (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
+- (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
   NSIndexSet *indexes = nil;
   BOOL triggerNotifications = !otherChangeInProgress;
@@ -331,7 +331,7 @@
   return self;
 }
 
-- (void) removeObjectAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (NSUInteger)index
 {
   NSIndexSet *indexes = nil;
   NSMutableArray *temp;
@@ -358,7 +358,7 @@
     }
 }
 
-- (void) insertObject: (id)anObject atIndex: (unsigned)index
+- (void) insertObject: (id)anObject atIndex: (NSUInteger)index
 {
   NSIndexSet *indexes = nil;
   NSMutableArray *temp;
@@ -385,7 +385,7 @@
     }
 }
 
-- (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
+- (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
   NSIndexSet *indexes = nil;
   NSMutableArray *temp;
@@ -469,7 +469,7 @@
              forKey: key];
 }
 
-- (void) removeObjectAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (NSUInteger)index
 {
   NSIndexSet *indexes = [NSIndexSet indexSetWithIndex: index];
 
@@ -482,7 +482,7 @@
              forKey: key];
 }
 
-- (void) insertObject: (id)anObject atIndex: (unsigned)index
+- (void) insertObject: (id)anObject atIndex: (NSUInteger)index
 {
   NSIndexSet *indexes = [NSIndexSet indexSetWithIndex: index];
 
@@ -508,7 +508,7 @@
              forKey: key];
 }
 
-- (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
+- (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
   NSIndexSet *indexes = [NSIndexSet indexSetWithIndex: index];
 

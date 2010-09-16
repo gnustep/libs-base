@@ -425,7 +425,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 }
 
 - (void) decodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)expected
+			 count: (NSUInteger)expected
 			    at: (void*)buf
 {
   unsigned int	i;
@@ -1089,7 +1089,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 }
 
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)count
+			 count: (NSUInteger)count
 			    at: (const void*)buf
 {
   unsigned	i;
