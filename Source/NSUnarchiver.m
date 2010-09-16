@@ -521,7 +521,7 @@ static Class NSDataMallocClass;
 }
 
 - (void) decodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)expected
+			 count: (NSUInteger)expected
 			    at: (void*)buf
 {
   unsigned int	i;

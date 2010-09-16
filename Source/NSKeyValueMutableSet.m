@@ -132,7 +132,7 @@
   return self;
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   if (set == nil)
     {
@@ -583,7 +583,7 @@
   return self;
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return [set count];
 }

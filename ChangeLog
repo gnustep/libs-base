@@ -1,5 +1,19 @@
 2010-09-15  Eric Wasylishen <ewasylishen@gmail.com>
 
+	* Source/GSSocketStream.m:
+	* Source/NSPortCoder.m:
+	* Source/NSSocketPort.m:
+	* Source/NSAttributedString.m:
+	* Source/NSKeyValueMutableSet.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSUnarchiver.m:
+	* Source/GSAttributedString.m:
+	* Source/NSKeyValueMutableArray.m:
+	* Source/NSXMLParser.m: Fix more unsigned int / ints that should
+	be NSUInteger/NSInteger
+
+2010-09-15  Eric Wasylishen <ewasylishen@gmail.com>
+
 	* Source/objc-load.m: Don't compile the dynamic_handles code with libobjc2.
 	Note that this appears to be dead code anyway, so maybe it should be removed
 	altogether?

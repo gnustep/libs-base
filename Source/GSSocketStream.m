@@ -1837,7 +1837,7 @@ setNonBlocking(SOCKET fd)
   return readLen;
 }
 
-- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
+- (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
 {
   return NO;
 }

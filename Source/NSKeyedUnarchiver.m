@@ -377,7 +377,7 @@ static NSMapTable	*globalClassMap = 0;
 }
 
 - (void) decodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)expected
+			 count: (NSUInteger)expected
 			    at: (void*)buf
 {
   id	 o = [self decodeObject];
@@ -505,7 +505,7 @@ static NSMapTable	*globalClassMap = 0;
   return (int)i;
 }
 
-- (int) decodeIntegerForKey: (NSString*)aKey
+- (NSInteger) decodeIntegerForKey: (NSString*)aKey
 {
   int64_t	i = [self decodeInt64ForKey: aKey];
 

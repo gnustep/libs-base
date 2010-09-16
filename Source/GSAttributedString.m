@@ -71,7 +71,7 @@ static	NSDictionary	*blank;
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes;
 - (NSString*) string;
-- (NSDictionary*) attributesAtIndex: (unsigned)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 		     effectiveRange: (NSRange*)aRange;
 
 @end
@@ -86,7 +86,7 @@ static	NSDictionary	*blank;
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes;
 - (NSString*) string;
-- (NSDictionary*) attributesAtIndex: (unsigned)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 		     effectiveRange: (NSRange*)aRange;
 - (void) setAttributes: (NSDictionary*) attributes
 		 range: (NSRange)range;
@@ -496,7 +496,7 @@ _attributesAtIndexEffectiveRange(
   return AUTORELEASE([_textChars copyWithZone: NSDefaultMallocZone()]);
 }
 
-- (NSDictionary*) attributesAtIndex: (unsigned)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 		     effectiveRange: (NSRange*)aRange
 {
   return _attributesAtIndexEffectiveRange(
@@ -603,7 +603,7 @@ SANITY();
   return _textProxy;
 }
 
-- (NSDictionary*) attributesAtIndex: (unsigned)index
+- (NSDictionary*) attributesAtIndex: (NSUInteger)index
 		     effectiveRange: (NSRange*)aRange
 {
   unsigned	dummy;
