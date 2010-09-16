@@ -1,5 +1,11 @@
 2010-09-15  Eric Wasylishen <ewasylishen@gmail.com>
 
+	* Source/objc-load.m: Don't compile the dynamic_handles code with libobjc2.
+	Note that this appears to be dead code anyway, so maybe it should be removed
+	altogether?
+
+2010-09-15  Eric Wasylishen <ewasylishen@gmail.com>
+
 	* Source/NSMessagePort.m:
 	* Source/NSFileManager.m:
 	* Source/NSCharacterSet.m: Fix some method type mismatches. Generally when
