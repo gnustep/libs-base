@@ -1,5 +1,13 @@
 2010-09-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
+	* Source/NSBundle.m (+bundleForLibrary:version:): Use proper
+	suffix for dynamic libraries on Darwin (.dylib instead of .so).
+
+	* Source/NSTask.m (-launch): Use fork instead of vfork on Darwin,
+	since setsid will fail while the child process is in the vfork.
+
+2010-09-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
 	* Source/NSObject.m (-methodSignatureForSelector:): Fix bug were
 	this method would return an incorrect result or crash when asking
 	a class object for the signature of one of its class methods.

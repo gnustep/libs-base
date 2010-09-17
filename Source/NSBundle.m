@@ -2387,6 +2387,42 @@ IF_NO_GC(
 	    }
 	}
     }
+#elif defined(__APPLE__)
+  /* A .dylib is usually of the form 'libxxx.maj.min.sub.dylib',
+   * but GNUstep-make installs them with 'libxxx.dylib.maj.min.sub'.
+   * For maximum compatibility with support both forms here.
+   */
+  if ([[libraryName pathExtension] isEqual: @"dylib"])
+    {
+      NSString	*s = [libraryName stringByDeletingPathExtension];
+      NSArray	*a = [s componentsSeparatedByString: @"."];
+
+      if ([a count] > 1)
+	{
+	  libraryName = [a objectAtIndex: 0];
+	  if (interfaceVersion == nil && [a count] >= 3)
+	    {
+	      interfaceVersion = [NSString stringWithFormat: @"%@.%@",
+		[a objectAtIndex: 1], [a objectAtIndex: 2]];
+	    }
+	}
+    }
+  else
+    {
+      r = [libraryName rangeOfString: @".dylib."];
+      if (r.length > 0)
+	{
+	  NSString *s = [libraryName substringFromIndex: NSMaxRange(r)];
+	  NSArray  *a = [s componentsSeparatedByString: @"."];
+
+	  libraryName = [libraryName substringToIndex: r.location];
+	  if (interfaceVersion == nil && [a count] >= 2)
+	    {
+	      interfaceVersion = [NSString stringWithFormat: @"%@.%@",
+		[a objectAtIndex: 0], [a objectAtIndex: 1]];
+	    }
+	}
+    }
 #else
   /* A .so is usually of the form 'libxxx.so.maj.min.sub'
    * so we can extract the version info and use it.
