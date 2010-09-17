@@ -1,3 +1,9 @@
+2010-09-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSObject.m (-methodSignatureForSelector:): Fix bug were
+	this method would return an incorrect result or crash when asking
+	a class object for the signature of one of its class methods.
+
 2010-09-15  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/GSSocketStream.m:

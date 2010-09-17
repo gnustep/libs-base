@@ -1388,7 +1388,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   // Do a fast lookup to see if the method is implemented at all.  If it isn't,
   // we can give up without doing a very expensive linear search through every
   // method list in the class hierarchy.
-  if (!class_respondsToSelector(c, aSelector))
+  if (!class_respondsToSelector(object_getClass(self), aSelector))
     {
       return nil; // Method not implemented
     }
