@@ -1428,7 +1428,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     {
 #ifdef __GNUSTEP_RUNTIME__
       struct objc_slot* objc_get_slot(Class cls, SEL selector);
-      struct objc_slot *slot = objc_get_slot(c, aSelector);
+      struct objc_slot *slot = objc_get_slot(isa, aSelector);
       types = slot->types;
 #else
       struct objc_method *mth = 
