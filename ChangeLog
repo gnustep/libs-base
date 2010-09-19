@@ -1,3 +1,8 @@
+2010-09-19  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Headers/Additions/GNUstepBase/preface.h.in:
+	Added standard C headers included by CoreFoundation.h. 
+
 2010-09-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSBundle.m (+bundleForLibrary:version:): Use proper
