@@ -675,13 +675,13 @@ method_getArgumentType(Method method,
 IMP
 method_getImplementation(Method method)
 {
-  return (IMP) method->method_imp;
+  return method ? (IMP) method->method_imp : (IMP) 0;
 }
 
 SEL
 method_getName(Method method)
 {
-  return method->method_name;
+  return method ? method->method_name : (SEL) 0;
 }
 
 unsigned

@@ -1,3 +1,10 @@
+2010-09-20  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/ObjectiveC2/runtime.c (method_getImplementation,
+	method_getName): Fix unchecked pointer dereferences, which could
+	cause crashes when attempting to invoke a selector which is not
+	implemented by the target.
+
 2010-09-19  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Headers/Additions/GNUstepBase/preface.h.in:
