@@ -1,3 +1,8 @@
+2010-09-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSet.m: Build using the faster but more memory
+	hungry implementation.  Add comments to say why we are doing so.
+
 2010-09-20  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/ObjectiveC2/runtime.c (method_getImplementation,
@@ -40,17 +45,18 @@
 
 2010-09-15  Eric Wasylishen <ewasylishen@gmail.com>
 
-	* Source/objc-load.m: Don't compile the dynamic_handles code with libobjc2.
-	Note that this appears to be dead code anyway, so maybe it should be removed
-	altogether?
+	* Source/objc-load.m: Don't compile the dynamic_handles code with
+	libobjc2.
+	Note that this appears to be dead code anyway, so maybe it should
+	be removed altogether?
 
 2010-09-15  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/NSMessagePort.m:
 	* Source/NSFileManager.m:
-	* Source/NSCharacterSet.m: Fix some method type mismatches. Generally when
-	a private subclass overrides a public method taking a NSUInteger with
-	a method taking an "unsigned" parameter.
+	* Source/NSCharacterSet.m: Fix some method type mismatches.
+	Generally when a private subclass overrides a public method
+	taking a NSUInteger with a method taking an "unsigned" parameter.
 
 2010-09-12  Riccardo Mottola
 
