@@ -59,6 +59,9 @@
 #ifndef NeXT_RUNTIME
 #include <pthread.h>
 #endif
+#ifdef __GNUSTEP_RUNTIME__
+struct objc_slot* objc_get_slot(Class, SEL);
+#endif
 
 #ifdef NeXT_Foundation_LIBRARY
 @interface NSObject (MissingFromMacOSX)
@@ -1032,6 +1035,18 @@ case encoding: \
         }
       }
   default:
+#ifdef __GNUSTEP_RUNTIME__
+	{
+		Class cls = [self class];
+		struct objc_slot *type_slot = objc_get_slot(cls, @selector(retain));
+		SEL typed = sel_registerTypedName_np(sel_getName(sel), type_slot->types);
+		struct objc_slot *slot = objc_get_slot(cls, typed);
+		if (strcmp(slot->types, type_slot->types) == 0)
+		{
+			return slot->method(self, typed);
+		}
+	}
+#endif
     return [self valueForUndefinedKey: [NSString stringWithUTF8String: key]];
   }
 }
