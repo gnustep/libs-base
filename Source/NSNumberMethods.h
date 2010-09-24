@@ -1,4 +1,4 @@
-#define INTEGER_MACRO(type, name, ignored) \
+#define INTEGER_MACRO(encoding, type, name, ignored) \
 - (type) name ## Value\
 {\
   return (type)VALUE;\
