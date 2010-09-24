@@ -3117,7 +3117,7 @@ transmute(GSStr self, NSString *aString)
   getCString_c((GSStr)self, buffer, maxLength, aRange, leftoverRange);
 }
 
-- (NSInteger) intValue
+- (int) intValue
 {
   return intValue_c((GSStr)self);
 }
@@ -3433,7 +3433,7 @@ agree, create a new GSCInlineString otherwise.
   getCString_u((GSStr)self, buffer, maxLength, aRange, leftoverRange);
 }
 
-- (NSInteger) intValue
+- (int) intValue
 {
   return intValue_u((GSStr)self);
 }
@@ -4179,7 +4179,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   return self;
 }
 
-- (NSInteger) intValue
+- (int) intValue
 {
   if (_flags.wide == 1)
     return intValue_u((GSStr)self);

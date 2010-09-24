@@ -1303,7 +1303,7 @@ otherTime(NSDate* other)
   return self;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return (unsigned)[self timeIntervalSinceReferenceDate];
 }
@@ -1459,7 +1459,7 @@ otherTime(NSDate* other)
   return self;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return (unsigned)_seconds_since_ref;
 }

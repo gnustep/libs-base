@@ -2030,9 +2030,9 @@ static Class		tcpPortClass;
   [d handlePortMessage: m];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
-  return (unsigned)portNum;
+  return (NSUInteger)portNum;
 }
 
 - (NSHost*) host

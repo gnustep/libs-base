@@ -1,3 +1,17 @@
+2010-09-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSet.m: Build using the faster but more memory
+	hungry implementation.  Backported change from trunk.
+	* Source/NSSocketPort.m:
+	* Source/NSSortDescriptor.m:
+	* Source/NSMessagePort.m:
+	* Source/NSNumber.m:
+	* Source/GSString.m:
+	* Source/NSHost.m:
+	* Source/NSDate.m:
+	* Source/GSValue.m:
+	Backport method argument type fixes from trunk
+
 2010-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: backport fixes for initialisation from URL.
