@@ -411,7 +411,7 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
   return 0;			// Not reached
 }
 
-#define INTEGER_MACRO(type, ignored, name) \
+#define INTEGER_MACRO(encoding,type, ignored, name) \
 - (id) initWith ## name: (type)aValue \
 {\
   DESTROY(self);\
@@ -735,7 +735,7 @@ if (aValue >= -1 && aValue <= 12)\
  * exception here matches OS X behaviour, although they throw an invalid
  * argument exception.
  */
-#define INTEGER_MACRO(type, name, ignored) \
+#define INTEGER_MACRO(encoding, type, name, ignored) \
 - (type) name ## Value\
 {\
   [self subclassResponsibility: _cmd];\
