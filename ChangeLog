@@ -1,3 +1,9 @@
+2010-09-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimer.m: ([-fire]) make firing more robust by retaining
+	the target so it cannot be deallocated while we are performing a
+	method on it.  Do nothing if timer is already invalidated.
+
 2010-09-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCharacterSet.m: Build using the faster but more memory

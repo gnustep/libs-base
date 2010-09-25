@@ -224,36 +224,51 @@ static Class	NSDate_class;
  */
 - (void) fire
 {
-  if (_selector == 0)
+  id	target;
+
+  /* We retain the target so it won't be deallocated while we are using it
+   * (if this timer gets invalidated while we are firing).
+   */
+  target = [_target retain];
+
+  /* We check that we have not been invalidated before we fire.
+   */
+  if (NO == _invalidated)
     {
-      NS_DURING
+      if (_selector == 0)
 	{
-	  [(NSInvocation*)_target invoke];
+	  NS_DURING
+	    {
+	      [(NSInvocation*)target invoke];
+	    }
+	  NS_HANDLER
+	    {
+	      NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+	        @"raised during posting of timer with target %p "
+		@"and selector '%@'",
+		[localException name], [localException reason], target,
+		NSStringFromSelector([target selector]));
+	    }
+	  NS_ENDHANDLER
 	}
-      NS_HANDLER
+      else
 	{
-	  NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-	   @"raised during posting of timer with target %p and selector '%@'",
-	    [localException name], [localException reason], _target,
-	    NSStringFromSelector([_target selector]));
+	  NS_DURING
+	    {
+	      [target performSelector: _selector withObject: self];
+	    }
+	  NS_HANDLER
+	    {
+	      NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+		@"raised during posting of timer with target %p and "
+		@"selector '%@'",
+		[localException name], [localException reason], target,
+		NSStringFromSelector(_selector));
+	    }
+	  NS_ENDHANDLER
 	}
-      NS_ENDHANDLER
     }
-  else
-    {
-      NS_DURING
-	{
-	  [_target performSelector: _selector withObject: self];
-	}
-      NS_HANDLER
-	{
-	  NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-	    @"raised during posting of timer with target %p and selector '%@'",
-	    [localException name], [localException reason], _target,
-	    NSStringFromSelector(_selector));
-	}
-      NS_ENDHANDLER
-    }
+  [target release];
 
   if (_repeats == NO)
     {
