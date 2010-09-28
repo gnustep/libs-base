@@ -1,3 +1,9 @@
+2010-09-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: implement lowercaseString and uppercaseString
+	for improved performance.
+	* Source/Additions/GSMime.m: optimise header searches
+
 2010-09-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimer.m: ([-fire]) make firing more robust by retaining

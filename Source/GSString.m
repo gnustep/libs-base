@@ -2824,6 +2824,12 @@ transmute(GSStr self, NSString *aString)
   setup(YES);
 }
 
+- (id) copyWithZone: (NSZone*)z
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
 /*
  * Return a 28-bit hash value for the string contents - this
  * MUST match the algorithm used by the NSString base class.
@@ -2980,10 +2986,84 @@ transmute(GSStr self, NSString *aString)
 		      freeWhenDone: flag];
 }
 
-- (id) copyWithZone: (NSZone*)z
+- (id) lowercaseString
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  if (_flags.wide == 1)
+    {
+      GSUnicodeInlineString	*o;
+      unsigned			i;
+
+      o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
+	_count * sizeof(unichar), NSDefaultMallocZone());
+      o->_contents.u = (unichar*)
+        (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
+      i = o->_count = _count;
+      while (i-- > 0)
+	{
+          o->_contents.u[i] = uni_tolower(_contents.u[i]);
+	}
+      o->_flags.wide = 1;
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      return [(id)o autorelease];
+    }
+  else
+    {
+      GSCInlineString	*o;
+      unsigned		i;
+
+      o = (typeof(o))NSAllocateObject(GSCInlineStringClass,
+	_count, NSDefaultMallocZone());
+      o->_contents.c = (unsigned char*)
+        (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
+      i = o->_count = _count;
+      while (i-- > 0)
+	{
+          o->_contents.c[i] = tolower(_contents.c[i]);
+	}
+      o->_flags.wide = 0;
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      return [(id)o autorelease];
+    }
+}
+
+- (id) uppercaseString
+{
+  if (_flags.wide == 1)
+    {
+      GSUnicodeInlineString	*o;
+      unsigned			i;
+
+      o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
+	_count * sizeof(unichar), NSDefaultMallocZone());
+      o->_contents.u = (unichar*)
+        (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
+      i = o->_count = _count;
+      while (i-- > 0)
+	{
+          o->_contents.u[i] = uni_toupper(_contents.u[i]);
+	}
+      o->_flags.wide = 1;
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      return [(id)o autorelease];
+    }
+  else
+    {
+      GSCInlineString	*o;
+      unsigned		i;
+
+      o = (typeof(o))NSAllocateObject(GSCInlineStringClass,
+	_count, NSDefaultMallocZone());
+      o->_contents.c = (unsigned char*)
+        (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
+      i = o->_count = _count;
+      while (i-- > 0)
+	{
+          o->_contents.c[i] = toupper(_contents.c[i]);
+	}
+      o->_flags.wide = 0;
+      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      return [(id)o autorelease];
+    }
 }
 
 @end
