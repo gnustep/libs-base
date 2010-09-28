@@ -119,6 +119,11 @@ static	Class		NSArrayClass = 0;
 static	Class		NSStringClass = 0;
 static	Class		documentClass = 0;
 
+@interface GSMimeDocument (Private)
+- (GSMimeHeader*) _lastHeaderNamed: (NSString*)name;
+- (NSUInteger) _indexOfHeaderNamed: (NSString*)name;
+@end
+
 /*
  *	Name -		decodebase64()
  *	Purpose -	Convert 4 bytes in base64 encoding to 3 bytes raw data.
@@ -1342,7 +1347,7 @@ wordData(NSString *word)
 
 - (BOOL) parseHeaders: (NSData*)d remaining: (NSData**)body
 {
-  NSDictionary	*info;
+  GSMimeHeader	*info;
   GSMimeHeader	*hdr;
   NSRange	r;
   NSUInteger	l = [d length];
@@ -1437,7 +1442,7 @@ wordData(NSString *word)
    * continuation header(s), in which case, we must start parsing
    * headers again.
    */
-  info = [[document headersNamed: @"http"] lastObject];
+  info = [document _lastHeaderNamed: @"http"];
   if (info != nil && flags.isHttp == 1)
     {
       NSNumber	*num;
@@ -3739,10 +3744,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 
 
-@interface GSMimeDocument (Private)
-- (NSUInteger) _indexOfHeaderNamed: (NSString*)name;
-@end
-
 /**
  * <p>
  *   This class is intended to provide a wrapper for MIME messages
@@ -5155,14 +5156,24 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   NSUInteger	count = [headers count];
 
-  name = [name lowercaseString];
-  while (count-- > 0)
+  if (count > 0)
     {
-      GSMimeHeader	*info = [headers objectAtIndex: count];
+      IMP	imp1;
+      IMP	imp2;
 
-      if ([name isEqualToString: [info name]] == YES)
+      name = [name lowercaseString];
+
+      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp2 = [name methodForSelector: @selector(isEqualToString:)];
+      while (count-- > 0)
 	{
-	  [headers removeObjectAtIndex: count];
+	  GSMimeHeader	*info;
+
+	  info = (*imp1)(headers, @selector(objectAtIndex:), count);
+	  if ((*imp2)(name, @selector(isEqualToString:), [info name]))
+	    {
+	      [headers removeObjectAtIndex: count];
+	    }
 	}
     }
 }
@@ -5189,11 +5200,24 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (GSMimeHeader*) headerNamed: (NSString*)name
 {
-  NSArray	*a = [self headersNamed: name];
+  NSUInteger	count = [headers count];
 
-  if ([a count] > 0)
+  if (count > 0)
     {
-      return [a objectAtIndex: 0];
+      NSUInteger	index;
+      IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      IMP	imp2 = [name methodForSelector: @selector(isEqualToString:)];
+
+      for (index = 0; index < count; index++)
+	{
+	  GSMimeHeader	*info;
+
+	  info = (*imp1)(headers, @selector(objectAtIndex:), index);
+	  if ((*imp2)(name, @selector(isEqualToString:), [info name]))
+	    {
+	      return info;
+	    }
+	}
     }
   return nil;
 }
@@ -5204,22 +5228,32 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSArray*) headersNamed: (NSString*)name
 {
-  NSUInteger		count = [headers count];
-  NSUInteger		index;
-  NSMutableArray	*array;
+  NSUInteger	count;
 
   name = [GSMimeHeader makeToken: name];
-  array = [NSMutableArray array];
-  for (index = 0; index < count; index++)
+  count = [headers count];
+  if (count > 0)
     {
-      GSMimeHeader	*info = [headers objectAtIndex: index];
+      NSUInteger	index;
+      NSMutableArray	*array;
+      IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      IMP	imp2 = [name methodForSelector: @selector(isEqualToString:)];
 
-      if ([name isEqualToString: [info name]] == YES)
+      array = [NSMutableArray array];
+
+      for (index = 0; index < count; index++)
 	{
-	  [array addObject: info];
+	  GSMimeHeader	*info;
+
+	  info = (*imp1)(headers, @selector(objectAtIndex:), index);
+	  if ((*imp2)(name, @selector(isEqualToString:), [info name]))
+	    {
+	      [array addObject: info];
+	    }
 	}
+      return array;
     }
-  return array;
+  return [NSArray array];
 }
 
 - (id) init
@@ -6023,25 +6057,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (void) setHeader: (GSMimeHeader*)info
 {
-  NSString	*name = [info name];
-
-  if (name != nil)
-    {
-      NSUInteger	count = [headers count];
-
-      /*
-       * Remove any existing headers with this name.
-       */
-      while (count-- > 0)
-	{
-	  GSMimeHeader	*tmp = [headers objectAtIndex: count];
-
-	  if ([name isEqualToString: [tmp name]] == YES)
-	    {
-	      [headers removeObjectAtIndex: count];
-	    }
-	}
-    }
+  [self deleteHeaderNamed: [info name]];
   [self addHeader: info];
 }
 
@@ -6077,18 +6093,48 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 - (NSUInteger) _indexOfHeaderNamed: (NSString*)name
 {
   NSUInteger	count = [headers count];
-  NSUInteger	index;
 
-  for (index = 0; index < count; index++)
+  if (count > 0)
     {
-      GSMimeHeader	*hdr = [headers objectAtIndex: index];
+      NSUInteger	index;
+      IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      IMP	imp2 = [name methodForSelector: @selector(isEqualToString:)];
 
-      if ([name isEqualToString: [hdr name]] == YES)
+      for (index = 0; index < count; index++)
 	{
-	  return index;
+	  GSMimeHeader	*info;
+
+	  info = (*imp1)(headers, @selector(objectAtIndex:), index);
+	  if ((*imp2)(name, @selector(isEqualToString:), [info name]))
+	    {
+	      return index;
+	    }
 	}
     }
   return NSNotFound;
+}
+
+- (GSMimeHeader*) _lastHeaderNamed: (NSString*)name
+{
+  NSUInteger	count = [headers count];
+
+  if (count > 0)
+    {
+      IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      IMP	imp2 = [name methodForSelector: @selector(isEqualToString:)];
+
+      while (count-- > 0)
+	{
+	  GSMimeHeader	*info;
+
+	  info = (*imp1)(headers, @selector(objectAtIndex:), count);
+	  if ((*imp2)(name, @selector(isEqualToString:), [info name]))
+	    {
+	      return info;
+	    }
+	}
+    }
+  return nil;
 }
 
 @end
