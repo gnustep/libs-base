@@ -113,41 +113,6 @@ gs_find_best_typed_sel (SEL sel)
   return sel;
 }
 
-/*
- * Take the receiver into account for finding the best
- * selector.  That is, we look if the receiver
- * implements the selector and the implementation
- * selector has type info.  If both conditions
- * are satisfied, return this selector.
- *
- * In all other cases fallback
- * to gs_find_best_typed_sel ().
- */
-static INLINE SEL
-gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
-{
-	// FIXME: libobjc2 contains a much more sane way of doing this
-  if (sel_getType_np(sel))
-    return sel;
-
-  if (receiver)
-    {
-      GSMethod method;
-
-      method = gs_method_for_receiver_and_selector (receiver, sel);
-      /* CHECKME:  Can we assume that:
-	 (a) method_name is a selector (compare libobjc header files)
-	 (b) this selector IS really typed?
-	 At the moment I assume (a) but not (b)
-         not assuming (b) is the reason for
-         calling gs_find_best_typed_sel () even
-         if we have an implementation.
-      */
-      if (method)
-	sel = method_getName(method);
-    }
-  return gs_find_best_typed_sel (sel);
-}
 
 @implementation GSFFIInvocation
 
