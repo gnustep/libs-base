@@ -1,3 +1,9 @@
+2010-09-28  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/GSFFIInvocation.m: Remove dead code
+	(gs_find_by_receiver_best_typed_sel was static inline and never
+	called anywhere)
+
 2010-09-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: implement lowercaseString and uppercaseString
