@@ -1,5 +1,9 @@
 2010-09-28  Eric Wasylishen  <ewasylishen@gmail.com>
 
+	* Source/objc-load.m: Don't include objc-list with libobjc2
+
+2010-09-28  Eric Wasylishen  <ewasylishen@gmail.com>
+
 	* Source/GSFFIInvocation.m: Remove dead code
 	(gs_find_by_receiver_best_typed_sel was static inline and never
 	called anywhere)
