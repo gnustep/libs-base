@@ -34,9 +34,9 @@
 
 #include <stdio.h>
 #include <objc/objc-api.h>
-#ifndef NeXT_RUNTIME
+#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 # include <objc/objc-list.h>
-#else
+#elif defined(NeXT_RUNTIME)
 # include <objc/objc-load.h>
 #endif
 #ifdef __GNUSTEP_RUNTIME__
