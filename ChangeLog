@@ -1,3 +1,8 @@
+2010-09-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: restore standardisation of header name
+	lost in last optimisation.  Fixes bug #31166
+
 2010-09-28  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Source/objc-load.m: Don't include objc-list with libobjc2

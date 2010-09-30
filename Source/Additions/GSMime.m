@@ -5205,9 +5205,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (count > 0)
     {
       NSUInteger	index;
-      IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      IMP	imp2 = [name methodForSelector: @selector(isEqualToString:)];
+      IMP		imp1;
+      IMP		imp2;
 
+      name = [GSMimeHeader makeToken: name preservingCase: NO];
+      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp2 = [name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
 	{
 	  GSMimeHeader	*info;
@@ -5230,15 +5233,17 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   NSUInteger	count;
 
-  name = [GSMimeHeader makeToken: name];
+  name = [GSMimeHeader makeToken: name preservingCase: NO];
   count = [headers count];
   if (count > 0)
     {
       NSUInteger	index;
       NSMutableArray	*array;
-      IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      IMP	imp2 = [name methodForSelector: @selector(isEqualToString:)];
+      IMP		imp1;
+      IMP		imp2;
 
+      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp2 = [name methodForSelector: @selector(isEqualToString:)];
       array = [NSMutableArray array];
 
       for (index = 0; index < count; index++)
