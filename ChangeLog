@@ -1,5 +1,10 @@
 2010-09-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURLProtocol.m: Remove excess release pointed out by
+	Sergey Golovin (bug 31168)
+
+2010-09-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSMime.m: restore standardisation of header name
 	lost in last optimisation.  Fixes bug #31166
 

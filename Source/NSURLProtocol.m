@@ -565,7 +565,6 @@ static NSURLProtocol	*placeholder = nil;
   [_body release];			// for sending the body
   [_response release];
   [_credential release];
-  [_credential release];
   [super dealloc];
 }
 
