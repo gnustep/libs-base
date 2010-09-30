@@ -920,7 +920,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return nil;
     }
 
-  if (listen(net, 256) == -1)
+  /* We try to allow a large number of connections.
+   */
+  if (listen(net, 10000) == -1)
     {
       NSLog(@"unable to listen on port - %@", [NSError _last]);
       (void) close(net);

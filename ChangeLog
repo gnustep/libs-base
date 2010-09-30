@@ -1,5 +1,11 @@
 2010-09-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSFileHandle.m:
+	Increase the backlog for the listen() call to allow more incoming
+	network connections.
+
+2010-09-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLProtocol.m: Remove excess release pointed out by
 	Sergey Golovin (bug 31168)
 
