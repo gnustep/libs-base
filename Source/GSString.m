@@ -300,7 +300,7 @@ setup(BOOL rerun)
       equalImp = (BOOL (*)(id, SEL, id))
 	[NSStringClass instanceMethodForSelector: equalSel];
       hashSel = @selector(hash);
-      hashImp = (unsigned (*)(id, SEL))
+      hashImp = (NSUInteger (*)(id, SEL))
 	[GSStringClass instanceMethodForSelector: hashSel];
 
       caiSel = @selector(characterAtIndex:);
