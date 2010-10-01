@@ -44,6 +44,7 @@
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSProcessInfo.h"
 
+#import "GSNetwork.h"
 #import "GSPrivate.h"
 #import "GSPortPrivate.h"
 
@@ -1300,7 +1301,7 @@ typedef	struct {
 	    {
               DESTROY(port);
 	    }
-	  else if (listen(desc, 128) < 0)
+	  else if (listen(desc, GSBACKLOG) < 0)
 	    {
 	      NSLog(@"unable to listen on port - %@", [NSError _last]);
 	      (void) close(desc);

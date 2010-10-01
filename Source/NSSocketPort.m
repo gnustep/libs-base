@@ -1664,7 +1664,7 @@ static Class		tcpPortClass;
 	      (void) close(desc);
               DESTROY(port);
 	    }
-	  else if (listen(desc, 128) == SOCKET_ERROR)
+	  else if (listen(desc, GSBACKLOG) == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to listen on port - %@", [NSError _last]);
 	      (void) close(desc);

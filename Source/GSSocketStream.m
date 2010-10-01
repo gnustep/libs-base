@@ -2444,8 +2444,6 @@ setNonBlocking(SOCKET fd)
   return Nil;
 }
 
-#define SOCKET_BACKLOG 256
-
 - (void) open
 {
   int bindReturn;
@@ -2499,7 +2497,7 @@ setNonBlocking(SOCKET fd)
       [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
-  listenReturn = listen([self _sock], SOCKET_BACKLOG);
+  listenReturn = listen([self _sock], GSBACKLOG);
   if (socketError(listenReturn))
     {
       [self _recordError];

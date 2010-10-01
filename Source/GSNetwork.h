@@ -74,6 +74,13 @@
 
 #endif  /* __MINGW__ */
 
+/* The backlog argument to the listen() system call.
+ * Systems should silently truncate the backlog if they don't support one
+ * as large as we set, so it makes sense to set a large value in order to
+ * support high volume applications.
+ */
+#define	GSBACKLOG	10000
+
 #ifndef INADDRSZ
 #define INADDRSZ        4
 #endif
