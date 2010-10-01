@@ -670,8 +670,11 @@ static unsigned	urlAlign;
 {
   /* RFC 2396 'reserved' characters ...
    * as modified by RFC2732
+   * static const char *reserved = ";/?:@&=+$,[]";
    */
-  static const char *reserved = ";/?:@&=+$,[]";
+  /* Same as reserved set but allow the hash character in a path too.
+   */
+  static const char *filepath = ";/?:@&=+$,[]#";
 
   if ([aUrlString isKindOfClass: [NSString class]] == NO)
     {
@@ -990,7 +993,7 @@ static unsigned	urlAlign;
 	      if (buf->fragment == 0 && base != 0)
 		{
 		  buf->fragment = base->fragment;
-		  if (legal(buf->fragment, reserved) == NO)
+		  if (legal(buf->fragment, filepath) == NO)
 		    {
 		      [NSException raise: NSInvalidArgumentException
                         format: @"[%@ %@](%@, %@) "
@@ -1019,7 +1022,7 @@ static unsigned	urlAlign;
 	      if (buf->query == 0 && base != 0)
 		{
 		  buf->query = base->query;
-		  if (legal(buf->query, reserved) == NO)
+		  if (legal(buf->query, filepath) == NO)
 		    {
 		      [NSException raise: NSInvalidArgumentException
                         format: @"[%@ %@](%@, %@) "
@@ -1048,7 +1051,7 @@ static unsigned	urlAlign;
 	      if (buf->parameters == 0 && base != 0)
 		{
 		  buf->parameters = base->parameters;
-		  if (legal(buf->parameters, reserved) == NO)
+		  if (legal(buf->parameters, filepath) == NO)
 		    {
 		      [NSException raise: NSInvalidArgumentException
                         format: @"[%@ %@](%@, %@) "
@@ -1086,7 +1089,7 @@ static unsigned	urlAlign;
 	{
 	  buf->hasNoPath = YES;
 	}
-      if (legal(buf->path, reserved) == NO)
+      if (legal(buf->path, filepath) == NO)
 	{
 	  [NSException raise: NSInvalidArgumentException
             format: @"[%@ %@](%@, %@) "
