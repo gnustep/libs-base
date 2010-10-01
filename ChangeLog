@@ -1,5 +1,13 @@
 2010-10-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSObjCRuntime.m: Revert to the working version
+	from the last release.
+	Can't see a changelog for the last change, I guess some local
+	hack was accidentally committed... it broke KVC, which showed up
+	when the testsuite was run.
+
+2010-10-01  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/GNUmakefile: Remove reference to non-existent behavior.h
         * Source/Makefile.postamble: Don't make circular dependency on
         common.h
