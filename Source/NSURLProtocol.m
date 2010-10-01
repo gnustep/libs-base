@@ -284,7 +284,33 @@ typedef struct {
 static NSMutableArray	*registered = nil;
 static NSLock		*regLock = nil;
 static Class		abstractClass = nil;
+static Class		placeholderClass = nil;
 static NSURLProtocol	*placeholder = nil;
+
+@interface	NSURLProtocolPlaceholder : NSURLProtocol
+@end
+@implementation	NSURLProtocolPlaceholder
+- (void) dealloc
+{
+  if (self == placeholder)
+    {
+      [self retain];
+      return;
+    }
+  [super dealloc];
+}
+- (void) release
+{
+  /* In a multi-threaded environment we could have two threads release the
+   * class at the same time ... causing -dealloc to be called twice at the
+   * same time, so that we can get an exception as we try to decrement the
+   * retain count beyond zero.  To avoid this we make the placeholder be a
+   * subclass whose -retain method prevents us even calling -dealoc in any
+   * normal circumstances.
+   */
+  return;
+}
+@end
 
 @implementation	NSURLProtocol
 
@@ -313,7 +339,8 @@ static NSURLProtocol	*placeholder = nil;
   if (registered == nil)
     {
       abstractClass = [NSURLProtocol class];
-      placeholder = (NSURLProtocol*)NSAllocateObject(abstractClass, 0,
+      placeholderClass = [NSURLProtocolPlaceholder class];
+      placeholder = (NSURLProtocol*)NSAllocateObject(placeholderClass, 0,
 	NSDefaultMallocZone());
       registered = [NSMutableArray new];
       regLock = [NSLock new];
@@ -342,7 +369,7 @@ static NSURLProtocol	*placeholder = nil;
   return NO;
 }
 
-+(Class) _classToHandleRequest:(NSURLRequest *)request
++ (Class) _classToHandleRequest:(NSURLRequest *)request
 {
   Class protoClass = nil;
   int count;
@@ -390,11 +417,6 @@ static NSURLProtocol	*placeholder = nil;
 
 - (void) dealloc
 {
-  if (self == placeholder)
-    {
-      [self retain];
-      return;
-    }
   if (this != 0)
     {
       [self stopLoading];
@@ -440,7 +462,7 @@ static NSURLProtocol	*placeholder = nil;
 {
   if ((self = [super init]) != nil)
     {
-      if (isa != abstractClass)
+      if (isa != abstractClass && isa != placeholderClass)
 	{
 	  _NSURLProtocolInternal = NSZoneCalloc([self zone],
 	    1, sizeof(Internal));
@@ -453,7 +475,7 @@ static NSURLProtocol	*placeholder = nil;
 	cachedResponse: (NSCachedURLResponse *)cachedResponse
 		client: (id <NSURLProtocolClient>)client
 {
-  if (isa == abstractClass)
+  if (isa == abstractClass || isa == placeholderClass)
     {
       unsigned	count;
 

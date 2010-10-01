@@ -1,3 +1,10 @@
+2010-10-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Fix for bug #31153 ... allow hash in path when
+	initialising.
+	* Source/NSURLProtocol.m: Fix thread related crash with deallocation
+	of placeholder object.
+
 2010-09-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m:
