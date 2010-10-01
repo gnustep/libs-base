@@ -138,7 +138,6 @@ NSThread+GNUstepBase.h \
 NSURL+GNUstepBase.h \
 Unicode.h \
 GNUstep.h \
-behavior.h \
 preface.h \
 Additions.h
 
