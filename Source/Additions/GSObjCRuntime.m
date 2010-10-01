@@ -39,7 +39,7 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
-#import "Foundation/NSInvocation.h"
+#import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
@@ -58,9 +58,6 @@
 
 #ifndef NeXT_RUNTIME
 #include <pthread.h>
-#endif
-#ifdef __GNUSTEP_RUNTIME__
-struct objc_slot* objc_get_slot(Class, SEL);
 #endif
 
 #ifdef NeXT_Foundation_LIBRARY
@@ -931,11 +928,6 @@ GSObjCAddClassOverride(Class receiver, Class override)
 #import	"Foundation/NSKeyValueCoding.h"
 #endif
 
-/**
- * Casts the accessor method IMP for sel to the correct type and calls it.
- */
-#define CALL_ACCESSOR(type, self, sel)\
-    (((type (*)(id, SEL))[self methodForSelector: sel])(self, sel))
 
 /**
  * This is used internally by the key-value coding methods, to get a
@@ -951,13 +943,9 @@ id
 GSObjCGetVal(NSObject *self, const char *key, SEL sel,
 	       const char *type, unsigned size, int offset)
 {
-  NSMethodSignature	*sig = nil;
   if (sel != 0)
     {
-      // FIXME: This can be slow, because it has to iterate over protocols for
-      // DO calling conventions, which we don't care about here.  With
-      // libobjc2, we can skip it and just do a fast slot lookup.  
-      sig = [self methodSignatureForSelector: sel];
+      NSMethodSignature	*sig = [self methodSignatureForSelector: sel];
 
       if ([sig numberOfArguments] != 2)
 	{
@@ -968,87 +956,363 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
     }
   if (type == NULL)
     {
-      // FIXME: This is stupid - we have an NSString in the caller, then we
-      // extract the buffer, then we create a new NSString.
       return [self valueForUndefinedKey: [NSString stringWithUTF8String: key]];
     }
-  if (0 == sel)
+  else
     {
-        void *addr = ((char *)self + offset);
-        switch (type[0])
-          {
-            // No boxing required for things that are already objects
-            case '@': case '#':
-              return *(id*)addr;
-              // Types not allowed for KVC:
-            case '(': case '^': case '[': case '*': case '?':
-              return [self valueForUndefinedKey: [NSString stringWithUTF8String: key]];
-            // Anything else, we ask NSValue to box for us
-            default:
-              return [NSValue valueWithBytes: addr objCType: type];
-          }
-    }
+      id	val = nil;
 
-  // Box a primitive type in an NSNumber and return it
-  switch (*type)
-  {
-    case _C_ID:
-    case _C_CLASS:
-        return [self methodForSelector: sel](self, sel);
-#define INTEGER_MACRO(encoding, type, name, capitalizedName) \
-case encoding: \
-   return [NSNumber numberWith ## capitalizedName: CALL_ACCESSOR(type, self, sel)];
-#define NO_NSNUMBER 1
-#include "../GSNumberTypes.h"
-  case _C_VOID:
-    // Calling an accessor method that doesn't return anything is crazy,
-    // but it's Apple-compatible crazy.
-    CALL_ACCESSOR(void, self, sel);
-    return nil;
-
-  case _C_STRUCT_B:
-    if (strcmp(@encode(NSPoint), type) == 0)
-      {
-        return [NSValue valueWithPoint: CALL_ACCESSOR(NSPoint, self, sel)];
-      }
-    else if (strcmp(@encode(NSRange), type) == 0)
-      {
-        return [NSValue valueWithRange: CALL_ACCESSOR(NSRange, self, sel)];
-      }
-    else if (strcmp(@encode(NSRect), type) == 0)
-      {
-        return [NSValue valueWithRect: CALL_ACCESSOR(NSRect, self, sel)];
-      }
-    else if (strcmp(@encode(NSSize), type) == 0)
-      {
-        return [NSValue valueWithSize: CALL_ACCESSOR(NSSize, self, sel)];
-      }
-    else
-      {
-        NSInvocation *inv = [NSInvocation invocationWithMethodSignature: sig];
-        [inv invokeWithTarget: self];
-        {
-          size_t retSize = [sig methodReturnLength];
-          char ret[retSize];
-          [inv getReturnValue: ret];
-          return [NSValue valueWithBytes: ret objCType: type];
-        }
-      }
-  default:
-#ifdef __GNUSTEP_RUNTIME__
+      switch (*type)
 	{
-		Class cls = [self class];
-		struct objc_slot *type_slot = objc_get_slot(cls, @selector(retain));
-		SEL typed = sel_registerTypedName_np(sel_getName(sel), type_slot->types);
-		struct objc_slot *slot = objc_get_slot(cls, typed);
-		if (strcmp(slot->types, type_slot->types) == 0)
+	  case _C_ID:
+	  case _C_CLASS:
+	    {
+	      id	v;
+
+	      if (sel == 0)
 		{
-			return slot->method(self, typed);
+		  v = *(id *)((char *)self + offset);
 		}
-	}
+	      else
+		{
+		  id	(*imp)(id, SEL) =
+		    (id (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = v;
+	    }
+	    break;
+
+	  case _C_CHR:
+	    {
+	      signed char	v;
+
+	      if (sel == 0)
+		{
+		  v = *(char *)((char *)self + offset);
+		}
+	      else
+		{
+		  signed char	(*imp)(id, SEL) =
+		    (signed char (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithChar: v];
+	    }
+	    break;
+
+	  case _C_UCHR:
+	    {
+	      unsigned char	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned char *)((char *)self + offset);
+		}
+	      else
+		{
+		  unsigned char	(*imp)(id, SEL) =
+		    (unsigned char (*)(id, SEL))[self methodForSelector:
+		    sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedChar: v];
+	    }
+	    break;
+
+	  case _C_SHT:
+	    {
+	      short	v;
+
+	      if (sel == 0)
+		{
+		  v = *(short *)((char *)self + offset);
+		}
+	      else
+		{
+		  short	(*imp)(id, SEL) =
+		    (short (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithShort: v];
+	    }
+	    break;
+
+	  case _C_USHT:
+	    {
+	      unsigned short	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned short *)((char *)self + offset);
+		}
+	      else
+		{
+		  unsigned short	(*imp)(id, SEL) =
+		    (unsigned short (*)(id, SEL))[self methodForSelector:
+		    sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedShort: v];
+	    }
+	    break;
+
+	  case _C_INT:
+	    {
+	      int	v;
+
+	      if (sel == 0)
+		{
+		  v = *(int *)((char *)self + offset);
+		}
+	      else
+		{
+		  int	(*imp)(id, SEL) =
+		    (int (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithInt: v];
+	    }
+	    break;
+
+	  case _C_UINT:
+	    {
+	      unsigned int	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned int *)((char *)self + offset);
+		}
+	      else
+		{
+		  unsigned int	(*imp)(id, SEL) =
+		    (unsigned int (*)(id, SEL))[self methodForSelector:
+		    sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedInt: v];
+	    }
+	    break;
+
+	  case _C_LNG:
+	    {
+	      long	v;
+
+	      if (sel == 0)
+		{
+		  v = *(long *)((char *)self + offset);
+		}
+	      else
+		{
+		  long	(*imp)(id, SEL) =
+		    (long (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithLong: v];
+	    }
+	    break;
+
+	  case _C_ULNG:
+	    {
+	      unsigned long	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned long *)((char *)self + offset);
+		}
+	      else
+		{
+		  unsigned long	(*imp)(id, SEL) =
+		    (unsigned long (*)(id, SEL))[self methodForSelector:
+		    sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedLong: v];
+	    }
+	    break;
+
+#ifdef	_C_LNG_LNG
+	  case _C_LNG_LNG:
+	    {
+	      long long	v;
+
+	      if (sel == 0)
+		{
+		  v = *(long long *)((char *)self + offset);
+		}
+	      else
+		{
+		   long long	(*imp)(id, SEL) =
+		    (long long (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithLongLong: v];
+	    }
+	    break;
 #endif
-    return [self valueForUndefinedKey: [NSString stringWithUTF8String: key]];
-  }
+
+#ifdef	_C_ULNG_LNG
+	  case _C_ULNG_LNG:
+	    {
+	      unsigned long long	v;
+
+	      if (sel == 0)
+		{
+		  v = *(unsigned long long *)((char *)self + offset);
+		}
+	      else
+		{
+		  unsigned long long	(*imp)(id, SEL) =
+		    (unsigned long long (*)(id, SEL))[self
+		    methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithUnsignedLongLong: v];
+	    }
+	    break;
+#endif
+
+	  case _C_FLT:
+	    {
+	      float	v;
+
+	      if (sel == 0)
+		{
+		  v = *(float *)((char *)self + offset);
+		}
+	      else
+		{
+		  float	(*imp)(id, SEL) =
+		    (float (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithFloat: v];
+	    }
+	    break;
+
+	  case _C_DBL:
+	    {
+	      double	v;
+
+	      if (sel == 0)
+		{
+		  v = *(double *)((char *)self + offset);
+		}
+	      else
+		{
+		  double	(*imp)(id, SEL) =
+		    (double (*)(id, SEL))[self methodForSelector: sel];
+
+		  v = (*imp)(self, sel);
+		}
+	      val = [NSNumber numberWithDouble: v];
+	    }
+	    break;
+
+	  case _C_VOID:
+            {
+              void        (*imp)(id, SEL) =
+                (void (*)(id, SEL))[self methodForSelector: sel];
+
+              (*imp)(self, sel);
+            }
+            val = nil;
+            break;
+
+          case _C_STRUCT_B:
+            if (strcmp(@encode(NSPoint), type) == 0)
+              {
+                NSPoint	v;
+
+                if (sel == 0)
+                  {
+                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
+                  }
+                else
+                  {
+                    NSPoint	(*imp)(id, SEL) =
+                      (NSPoint (*)(id, SEL))[self methodForSelector: sel];
+
+                    v = (*imp)(self, sel);
+                  }
+                val = [NSValue valueWithPoint: v];
+              }
+            else if (strcmp(@encode(NSRange), type) == 0)
+              {
+                NSRange	v;
+
+                if (sel == 0)
+                  {
+                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
+                  }
+                else
+                  {
+                    NSRange	(*imp)(id, SEL) =
+                      (NSRange (*)(id, SEL))[self methodForSelector: sel];
+
+                    v = (*imp)(self, sel);
+                  }
+                val = [NSValue valueWithRange: v];
+              }
+            else if (strcmp(@encode(NSRect), type) == 0)
+              {
+                NSRect	v;
+
+                if (sel == 0)
+                  {
+                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
+                  }
+                else
+                  {
+                    NSRect	(*imp)(id, SEL) =
+                      (NSRect (*)(id, SEL))[self methodForSelector: sel];
+
+                    v = (*imp)(self, sel);
+                  }
+                val = [NSValue valueWithRect: v];
+              }
+            else if (strcmp(@encode(NSSize), type) == 0)
+              {
+                NSSize	v;
+
+                if (sel == 0)
+                  {
+                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
+                  }
+                else
+                  {
+                    NSSize	(*imp)(id, SEL) =
+                      (NSSize (*)(id, SEL))[self methodForSelector: sel];
+
+                    v = (*imp)(self, sel);
+                  }
+                val = [NSValue valueWithSize: v];
+              }
+            else
+              {
+	        val = [self valueForUndefinedKey:
+		  [NSString stringWithUTF8String: key]];
+              }
+            break;
+
+	  default:
+	    val = [self valueForUndefinedKey:
+	      [NSString stringWithUTF8String: key]];
+	}
+      return val;
+    }
 }
 
 /**
