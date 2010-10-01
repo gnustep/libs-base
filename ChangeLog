@@ -1,5 +1,15 @@
 2010-10-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSSocketStream.m:
+	* Source/NSSocketPort.m:
+	* Source/NSMessagePort.m:
+	* Source/win32/GSFileHandle.m:
+	* Source/GSNetwork.h:
+	* Source/GSFileHandle.m:
+	Standardise the backlog parameter to listen() calls.
+
+2010-10-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURL.m: Fix for bug #31153 ... allow hash in path when
 	initialising.
 	* Source/NSURLProtocol.m: Fix thread related crash with deallocation

@@ -39,6 +39,7 @@
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSUserDefaults.h"
+#import "GSNetwork.h"
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
@@ -922,7 +923,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   /* We try to allow a large number of connections.
    */
-  if (listen(net, 10000) == -1)
+  if (listen(net, GSBACKLOG) == -1)
     {
       NSLog(@"unable to listen on port - %@", [NSError _last]);
       (void) close(net);

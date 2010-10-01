@@ -43,6 +43,7 @@
 #include "Foundation/NSDebug.h"
 
 #include "../Tools/gdomap.h"
+#include "../GSNetwork.h"
 #include "../GSPrivate.h"
 
 #include <winsock2.h>
@@ -923,7 +924,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return nil;
     }
 
-  if (listen(net, 256) == SOCKET_ERROR)
+  if (listen(net, GSBACKLOG) == SOCKET_ERROR)
     {
       NSLog(@"unable to listen on port - %@", [NSError _last]);
       (void) closesocket(net);
