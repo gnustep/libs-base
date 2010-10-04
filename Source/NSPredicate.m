@@ -808,11 +808,22 @@ static NSExpression	*evaluatedObjectExpression = nil;
      }
 }
 
-- (BOOL) _evaluateLeftValue: (id)leftResult rightValue: (id)rightResult
+- (BOOL) _evaluateLeftValue: (id)leftResult
+		 rightValue: (id)rightResult
+		     object: (id)object
 {
   unsigned compareOptions = 0;
   BOOL leftIsNil;
   BOOL rightIsNil;
+
+  if (leftResult == evaluatedObjectExpression)
+    {
+      leftResult = object;
+    }
+  if (rightResult == evaluatedObjectExpression)
+    {
+      rightResult = object;
+    }
 
   leftIsNil = (leftResult == nil || [leftResult isEqual: [NSNull null]]);
   rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
@@ -908,24 +919,22 @@ static NSExpression	*evaluatedObjectExpression = nil;
   id leftValue = [_left expressionValueWithObject: object context: nil];
   id rightValue = [_right expressionValueWithObject: object context: nil];
 
-  if (leftValue == evaluatedObjectExpression)
-    {
-      leftValue = object;
-    }
-  if (rightValue == evaluatedObjectExpression)
-    {
-      rightValue = object;
-    }
-
   if (_modifier == NSDirectPredicateModifier)
     {
-      return [self _evaluateLeftValue: leftValue rightValue: rightValue];
+      return [self _evaluateLeftValue: leftValue
+			   rightValue: rightValue
+			       object: object];
     }
   else
     {		
       BOOL result = (_modifier == NSAllPredicateModifier);
       NSEnumerator *e;
       id value;
+
+      if (leftValue == evaluatedObjectExpression)
+	{
+	  leftValue = object;
+	}
 
       if (![leftValue respondsToSelector: @selector(objectEnumerator)])
         {
@@ -936,7 +945,9 @@ static NSExpression	*evaluatedObjectExpression = nil;
       e = [leftValue objectEnumerator];
       while ((value = [e nextObject]))
         {
-          BOOL eval = [self _evaluateLeftValue: value rightValue: rightValue];
+          BOOL eval = [self _evaluateLeftValue: value
+				    rightValue: rightValue
+					object: object];
           if (eval != result) 
             return eval;		
         }
