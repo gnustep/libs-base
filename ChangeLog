@@ -1,3 +1,8 @@
+2010-10-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: Add simple implementation of
+	evalutedObjectExpression
+
 2010-10-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m: Revert to the working version

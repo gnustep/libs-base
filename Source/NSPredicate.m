@@ -52,6 +52,10 @@
 // For pow()
 #include <math.h>
 
+/* Object to represent the expression beign evaluated.
+ */
+static NSExpression	*evaluatedObjectExpression = nil;
+
 @interface GSPredicateScanner : NSScanner
 {
   NSEnumerator	*_args;		// Not retained.
@@ -806,22 +810,22 @@
 
 - (BOOL) _evaluateLeftValue: (id)leftResult rightValue: (id)rightResult
 {
-   unsigned compareOptions = 0;
-   BOOL leftIsNil;
-   BOOL rightIsNil;
-	
-   leftIsNil = (leftResult == nil || [leftResult isEqual: [NSNull null]]);
-   rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
-   if (leftIsNil || rightIsNil)
-     {
-       /* One of the values is nil. The result is YES,
-        * if both are nil and equlality is requested.
-        */
-       return ((leftIsNil == rightIsNil)
-         && ((_type == NSEqualToPredicateOperatorType)
-         || (_type == NSLessThanOrEqualToPredicateOperatorType)
-         || (_type == NSGreaterThanOrEqualToPredicateOperatorType)));
-     }
+  unsigned compareOptions = 0;
+  BOOL leftIsNil;
+  BOOL rightIsNil;
+
+  leftIsNil = (leftResult == nil || [leftResult isEqual: [NSNull null]]);
+  rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
+  if (leftIsNil || rightIsNil)
+    {
+      /* One of the values is nil. The result is YES,
+       * if both are nil and equality is requested.
+       */
+      return ((leftIsNil == rightIsNil)
+	&& ((_type == NSEqualToPredicateOperatorType)
+	|| (_type == NSLessThanOrEqualToPredicateOperatorType)
+	|| (_type == NSGreaterThanOrEqualToPredicateOperatorType)));
+    }
 
    // Change predicate options into string options.
    if (!(_options & NSDiacriticInsensitivePredicateOption))
@@ -903,7 +907,16 @@
 {
   id leftValue = [_left expressionValueWithObject: object context: nil];
   id rightValue = [_right expressionValueWithObject: object context: nil];
-	
+
+  if (leftValue == evaluatedObjectExpression)
+    {
+      leftValue = object;
+    }
+  if (rightValue == evaluatedObjectExpression)
+    {
+      rightValue = object;
+    }
+
   if (_modifier == NSDirectPredicateModifier)
     {
       return [self _evaluateLeftValue: leftValue rightValue: rightValue];
@@ -966,6 +979,14 @@
 
 @implementation NSExpression
 
++ (void) initialize
+{
+  if (self == [NSExpression class] && nil == evaluatedObjectExpression)
+    {
+      evaluatedObjectExpression = [GSEvaluatedObjectExpression new];
+    }
+}
+
 + (NSExpression *) expressionForConstantValue: (id)obj
 {
   GSConstantValueExpression *e;
@@ -978,11 +999,7 @@
 
 + (NSExpression *) expressionForEvaluatedObject
 {
-  GSEvaluatedObjectExpression *e;
-
-  e = [[GSEvaluatedObjectExpression alloc] 
-          initWithExpressionType: NSEvaluatedObjectExpressionType];
-  return AUTORELEASE(e);
+  return evaluatedObjectExpression;
 }
 
 + (NSExpression *) expressionForFunction: (NSString *)name
