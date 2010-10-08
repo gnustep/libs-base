@@ -221,27 +221,34 @@
       [timer invalidate];
       timer = nil;
     }
-  
-  timer = [[NSTimer timerWithTimeInterval: interval
-                                   target: self
-                                 selector: @selector(didTimeout:)
-                                 userInfo: nil
-                                  repeats: NO] retain];
+ 
+  // NOTE: the timer ivar is a weak reference; runloops retain their
+  // timers.
+  timer = [NSTimer timerWithTimeInterval: interval
+                                  target: self
+                                selector: @selector(didTimeout:)
+                                userInfo: nil
+                                 repeats: NO];
   [[ctx runLoop] addTimer: timer
                   forMode: [ctx mode]];
 }
 
 - (void)setTimerToTimeval: (const struct timeval*)tv
 {
-  // Construct a NSTimeInterval for the timer:
-  NSTimeInterval interval = 0;
-  
+  // Invalidate the old timer
+  if (timer != nil)
+    {
+      [timer invalidate];
+      timer = nil;
+    }
+ 
   if (NULL != tv)
     {
-      interval = (NSTimeInterval)tv->tv_sec;
+      // Construct a NSTimeInterval for the timer:
+      NSTimeInterval interval = (NSTimeInterval)tv->tv_sec;
       interval += (NSTimeInterval)(tv->tv_usec / 1000000.0);
+      [self setTimerToInterval: interval];
     }
-  [self setTimerToInterval: interval];
 }
 - (id)initWithCallback: (AvahiTimeoutCallback)aCallback
             andContext: (GSAvahiRunLoopContext*)aCtx
@@ -264,8 +271,8 @@
 {
   if ([timer isValid])
     {
-      [timer invalidate];
       fireDate = [[timer fireDate] retain];
+      [timer invalidate];
       timer = nil;
     }
 }

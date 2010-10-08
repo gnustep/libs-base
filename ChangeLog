@@ -1,3 +1,10 @@
+2010-10-08  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/GSAvahiRunLoopIntegration.m: Fix some bugs:
+	 - Remove an extra retain of the NSTimer which was leaking memory.
+	 - When passed a NULL struct timeval * from avahi, invalidate
+	 the timer and don't schedule a new one.
+
 2010-10-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m: Add simple implementation of
