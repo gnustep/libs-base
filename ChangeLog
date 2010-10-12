@@ -1,5 +1,11 @@
 2010-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSXML.m: If we receive an attribute name with no
+	corresponding value, assume it's a minimised attribute in html ...
+	and we should set the value to be the same as the name.
+
+2010-10-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSObjCRuntime.m: Add support for arbitrary struct
 	get/set since OSX has it at last (not just well-known structs).
  
