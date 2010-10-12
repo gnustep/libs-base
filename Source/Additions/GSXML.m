@@ -2809,9 +2809,20 @@ startElementFunction(void *ctx, const unsigned char *name,
 
       while (atts[i] != NULL)
 	{
-	  NSString	*key = UTF8Str(atts[i++]);
-	  NSString	*obj = UTF8Str(atts[i++]);
+	  NSString		*key = UTF8Str(atts[i++]);
+	  NSString		*obj;
+	  const unsigned char	*val = atts[i++];
 
+	  if (0 == val)
+	    {
+	      /* No value ... assume tis is a minimised attribute in html.
+	       */
+	      obj = key;
+	    }
+	  else
+	    {
+	      obj = UTF8Str(val);
+	    }
 	  [dict setObject: obj forKey: key];
 	}
     }
