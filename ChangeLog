@@ -1,3 +1,8 @@
+2010-10-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: Add support for arbitrary struct
+	get/set since OSX has it at last (not just well-known structs).
+ 
 2010-10-12 David Chisnall <theraven@gna.org>
 
 	* Source/Additions/GSObjCRuntime.m: 

@@ -38,6 +38,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSInvocation.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSNull.h"
@@ -946,10 +947,11 @@ id
 GSObjCGetVal(NSObject *self, const char *key, SEL sel,
 	       const char *type, unsigned size, int offset)
 {
+  NSMethodSignature	*sig = nil;
+
   if (sel != 0)
     {
-      NSMethodSignature	*sig = [self methodSignatureForSelector: sel];
-
+      sig = [self methodSignatureForSelector: sel];
       if ([sig numberOfArguments] != 2)
 	{
 	  [NSException raise: NSInvalidArgumentException
@@ -1305,8 +1307,27 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
               }
             else
               {
-	        val = [self valueForUndefinedKey:
-		  [NSString stringWithUTF8String: key]];
+                if (sel == 0)
+                  {
+		    return [NSValue valueWithBytes: ((char *)self + offset)
+					  objCType: type];
+                  }
+                else
+                  {
+		    NSInvocation	*inv;
+		    size_t		retSize;
+
+		    inv = [NSInvocation invocationWithMethodSignature: sig];
+		    [inv setSelector: sel];
+		    [inv invokeWithTarget: self];
+		    retSize = [sig methodReturnLength];
+		    {
+		      char ret[retSize];
+
+		      [inv getReturnValue: ret];
+		      return [NSValue valueWithBytes: ret objCType: type];
+		    }
+                  }
               }
             break;
 
@@ -1360,7 +1381,8 @@ void
 GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
   const char *type, unsigned size, int offset)
 {
-  static NSNull	*null = nil;
+  static NSNull		*null = nil;
+  NSMethodSignature	*sig = nil;
 
   if (null == nil)
     {
@@ -1368,8 +1390,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
     }
   if (sel != 0)
     {
-      NSMethodSignature	*sig = [self methodSignatureForSelector: sel];
-
+      sig = [self methodSignatureForSelector: sel];
       if ([sig numberOfArguments] != 3)
 	{
 	  [NSException raise: NSInvalidArgumentException
@@ -1737,8 +1758,24 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
               }
             else
               {
-                [self setValue: val forUndefinedKey:
-		  [NSString stringWithUTF8String: key]];
+		NSUInteger	size;
+
+		NSGetSizeAndAlignment(type, &size, 0);
+                if (sel == 0)
+                  {
+		    [val getValue: ((char *)self + offset)];
+		  }
+		else
+		  {
+		    NSInvocation	*inv;
+		    char		buf[size];
+
+		    [val getValue: buf];
+		    inv = [NSInvocation invocationWithMethodSignature: sig];
+		    [inv setSelector: sel];
+		    [inv setArgument: buf atIndex: 2];
+		    [inv invokeWithTarget: self];
+		  }
               }
             break;
 

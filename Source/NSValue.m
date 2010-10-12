@@ -673,7 +673,7 @@ static NSLock			*placeholderLock;
   GSNOSUPERDEALLOC;	// placeholders never get deallocated.
 }
 
-- (void) getData: (void*)data
+- (void) getValue: (void*)data
 {
   [NSException raise: NSInternalInconsistencyException
 	      format: @"attempt to use uninitialised value"];
