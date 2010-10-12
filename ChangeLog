@@ -1,3 +1,11 @@
+2010-10-12 David Chisnall <theraven@gna.org>
+
+	* Source/Additions/GSObjCRuntime.m: 
+	Add special case to KVC accessors for libobjc2: If there is a method
+	with the wrong types, try calling the method with the correct types.
+	This enables the TDD-fixup code to run and generate a KVC-compliant
+	version of an existing method.
+
 2010-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Exactly match the percent escaping used by OSX.
