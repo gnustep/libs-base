@@ -835,9 +835,6 @@ static unsigned	urlAlign;
         {
           if (strcmp(buf->scheme, "file") == 0)
 	    {
-	      usesFragments = NO;
-	      usesParameters = NO;
-	      usesQueries = NO;
 	      buf->isFile = YES;
 	    }
 	  else if (strcmp(buf->scheme, "mailto") == 0)
@@ -1060,15 +1057,15 @@ static unsigned	urlAlign;
 	      if (buf->fragment == 0 && base != 0)
 		{
 		  buf->fragment = base->fragment;
-		  if (legal(buf->fragment, filepath) == NO)
-		    {
-		      [NSException raise: NSInvalidArgumentException
-                        format: @"[%@ %@](%@, %@) "
-		        @"illegal character in fragment part",
-                        NSStringFromClass([self class]),
-                        NSStringFromSelector(_cmd),
-                        aUrlString, aBaseUrl];
-		    }
+		}
+	      if (legal(buf->fragment, filepath) == NO)
+		{
+		  [NSException raise: NSInvalidArgumentException
+		    format: @"[%@ %@](%@, %@) "
+		    @"illegal character in fragment part",
+		    NSStringFromClass([self class]),
+		    NSStringFromSelector(_cmd),
+		    aUrlString, aBaseUrl];
 		}
 	    }
 
@@ -1089,15 +1086,15 @@ static unsigned	urlAlign;
 	      if (buf->query == 0 && base != 0)
 		{
 		  buf->query = base->query;
-		  if (legal(buf->query, filepath) == NO)
-		    {
-		      [NSException raise: NSInvalidArgumentException
-                        format: @"[%@ %@](%@, %@) "
-		        @"illegal character in query part",
-                        NSStringFromClass([self class]),
-                        NSStringFromSelector(_cmd),
-                        aUrlString, aBaseUrl];
-		    }
+		}
+	      if (legal(buf->query, filepath) == NO)
+		{
+		  [NSException raise: NSInvalidArgumentException
+		    format: @"[%@ %@](%@, %@) "
+		    @"illegal character in query part",
+		    NSStringFromClass([self class]),
+		    NSStringFromSelector(_cmd),
+		    aUrlString, aBaseUrl];
 		}
 	    }
 
@@ -1118,15 +1115,15 @@ static unsigned	urlAlign;
 	      if (buf->parameters == 0 && base != 0)
 		{
 		  buf->parameters = base->parameters;
-		  if (legal(buf->parameters, filepath) == NO)
-		    {
-		      [NSException raise: NSInvalidArgumentException
-                        format: @"[%@ %@](%@, %@) "
-		        @"illegal character in parameters part",
-                        NSStringFromClass([self class]),
-                        NSStringFromSelector(_cmd),
-                        aUrlString, aBaseUrl];
-		    }
+		}
+	      if (legal(buf->parameters, filepath) == NO)
+		{
+		  [NSException raise: NSInvalidArgumentException
+		    format: @"[%@ %@](%@, %@) "
+		    @"illegal character in parameters part",
+		    NSStringFromClass([self class]),
+		    NSStringFromSelector(_cmd),
+		    aUrlString, aBaseUrl];
 		}
 	    }
 
@@ -1134,7 +1131,10 @@ static unsigned	urlAlign;
 	    {
 	      buf->user = 0;
 	      buf->password = 0;
-	      buf->host = (char*) "localhost";
+	      if (buf->host != 0 && *buf->host == 0)
+		{
+	          buf->host = 0;
+		}
 	      buf->port = 0;
 	      buf->isGeneric = YES;
 	    }
@@ -1702,13 +1702,20 @@ static unsigned	urlAlign;
  */
 - (NSString*) relativePath
 {
-  NSString	*path = nil;
-
-  if (myData->path != 0)
+  if (nil == _baseURL)
     {
-      path = [NSString stringWithUTF8String: myData->path];
+      return [self path];
     }
-  return path;
+  else
+    {
+      NSString	*path = nil;
+
+      if (myData->path != 0)
+	{
+	  path = [NSString stringWithUTF8String: myData->path];
+	}
+      return path;
+    }
 }
 
 /**
@@ -1758,7 +1765,7 @@ static unsigned	urlAlign;
 
   if (range.length > 0)
     {
-      return [_urlString substringFromIndex: range.location + 1];
+      return [_urlString substringFromIndex: NSMaxRange(range)];
     }
   else
     {
