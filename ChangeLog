@@ -1,3 +1,8 @@
+2010-10-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Match OSX behavior with file scheme URLS (treat
+	them like http/https rather than accorinding to the RFCs).
+
 2010-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: If we receive an attribute name with no
