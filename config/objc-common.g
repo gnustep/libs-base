@@ -26,8 +26,10 @@
  * for runtime implementations which won't link without them.
  */
 
-@interface NSObject 
+@interface NSObject
+{ 
  id isa;
+}
 @end
 @implementation NSObject
 @end

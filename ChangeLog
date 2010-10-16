@@ -1,3 +1,9 @@
+2010-10-16 16:53-EDT Gregory John Casamento <greg.casamento@gmail.com>
+
+	* config/objc-common.g: Correct test.  The previous version didn't
+	include the { and the } in the ivar section.  This is not correct.
+	* Source/ObjectiveC2/sync.m: Correct license text.
+
 2010-10-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: Match OSX behavior with file scheme URLS (treat
