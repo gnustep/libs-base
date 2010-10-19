@@ -1,7 +1,7 @@
 2010-10-19  Jonathan Gillaspie  <jonathan.gillaspie@testplant.com>
 
-	* Source/Additions/NSError+GNUstepBase.m: Prevent SegFault when FormatMessageW doesn't return a 
-	string on Windows.
+	* Source/Additions/NSError+GNUstepBase.m: Prevent SegFault when 
+	FormatMessageW doesn't return a string on Windows.
 	
 2010-10-19  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
