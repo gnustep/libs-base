@@ -114,14 +114,16 @@ strerror_r(int eno, char *buf, int len)
   NSDictionary	*info;
 #if defined(__MINGW__)
   LPVOID	lpMsgBuf;
-  NSString	*message;
+  NSString	*message=nil;
 
   domain = NSOSStatusErrorDomain;
   FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
     NULL, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
     (LPWSTR) &lpMsgBuf, 0, NULL );
-  message = [NSString stringWithCharacters: lpMsgBuf length: wcslen(lpMsgBuf)];
-  LocalFree(lpMsgBuf);
+  if (lpMsgBuf != NULL) {
+    message = [NSString stringWithCharacters: lpMsgBuf length: wcslen(lpMsgBuf)];
+    LocalFree(lpMsgBuf);
+  }
   info = [NSMutableDictionary dictionaryWithObjectsAndKeys:
     message, NSLocalizedDescriptionKey,
     nil];
