@@ -1,3 +1,8 @@
+2010-10-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: When making a relative file URL copy the host from
+	the base URL for OSX compatibility.
+
 2010-10-16 16:53-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
 	* config/objc-common.g: Correct test.  The previous version didn't

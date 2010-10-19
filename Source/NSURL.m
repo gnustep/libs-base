@@ -1131,9 +1131,13 @@ static unsigned	urlAlign;
 	    {
 	      buf->user = 0;
 	      buf->password = 0;
-	      if (buf->host != 0 && *buf->host == 0)
+	      if (base != 0 && base->host != 0)
 		{
-	          buf->host = 0;
+		  buf->host = base->host;
+		}
+	      else if (buf->host != 0 && *buf->host == 0)
+		{
+		  buf->host = 0;
 		}
 	      buf->port = 0;
 	      buf->isGeneric = YES;
