@@ -1298,7 +1298,7 @@ static unsigned	urlAlign;
  */
 - (NSURL*) absoluteURL
 {
-  if (_baseURL != nil)
+  if (_baseURL == nil)
     {
       return self;
     }
