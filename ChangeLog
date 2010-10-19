@@ -1,3 +1,8 @@
+2010-10-19  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSURL.m (-absoluteURL): Fix test for an absolute URL,
+	which got things backward.
+
 2010-10-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: When making a relative file URL copy the host from
