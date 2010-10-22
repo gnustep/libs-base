@@ -1,3 +1,9 @@
+2010-10-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/GNUmakefile:
+	Do not set -march=i686 when on an x86 system as it breaks compilation
+	for other cpu types.
+
 2010-10-19  Jonathan Gillaspie  <jonathan.gillaspie@testplant.com>
 
 	* Source/Additions/NSError+GNUstepBase.m: Prevent SegFault when 
