@@ -479,14 +479,64 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 - (NSString *) displayNameForKey: (id) key value: (id) value
 {
 #if	GS_USE_ICU == 1
-  int32_t length;
+  int32_t length = 0;
   unichar buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status;
+  const char *keyword = NULL;
   const char *locale = [[self localeIdentifier] cString];
 
-  length = uloc_getDisplayKeywordValue (locale, [key cString],
-    [value cString], (UChar *)buffer, sizeof(buffer)/sizeof(unichar),
-    &status);
+  if ([key isEqualToString: NSLocaleIdentifier])
+  {
+	length = uloc_getDisplayName([value UTF8String], locale,
+	  (UChar *)buffer, sizeof(buffer)/sizeof(unichar),
+	  &status);
+  }
+  else if ([key isEqualToString: NSLocaleLanguageCode])
+  {
+	length = uloc_getDisplayLanguage([value UTF8String], locale,
+	  (UChar *)buffer, sizeof(buffer)/sizeof(unichar),
+	  &status);
+  }
+  else if ([key isEqualToString: NSLocaleCountryCode])
+  {
+	length = uloc_getDisplayCountry([value UTF8String], locale,
+	  (UChar *)buffer, sizeof(buffer)/sizeof(unichar),
+	  &status);
+  }
+  else if ([key isEqualToString: NSLocaleScriptCode])
+  {
+	length = uloc_getDisplayCountry([value UTF8String], locale,
+	  (UChar *)buffer, sizeof(buffer)/sizeof(unichar),
+	  &status);
+  }
+  else if ([key isEqualToString: NSLocaleVariantCode])
+  {
+	length = uloc_getDisplayVariant([value UTF8String], locale,
+	  (UChar *)buffer, sizeof(buffer)/sizeof(unichar),
+	  &status);
+  }
+  else if ([key isEqualToString: NSLocaleCalendar])
+  {
+	keyword = ICUCalendarKeyword;
+  }
+  else if ([key isEqualToString: NSLocaleCollationIdentifier])
+  {
+	keyword = ICUCollationKeyword;
+  }
+  else
+  {
+	  return nil;
+  }
+
+  /*
+   * TODO: Implement handling of the other locale component constants.
+   */
+  if (NULL != keyword)
+  {
+    length = uloc_getDisplayKeywordValue ([value UTF8String], keyword,
+      locale, (UChar *)buffer, sizeof(buffer)/sizeof(unichar),
+      &status);
+  }
   if (U_FAILURE(status))
     return nil;
 
