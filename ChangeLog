@@ -1,3 +1,8 @@
+2010-10-26 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSLocale.m: Fix -displayNameForKey:value: to interact properly
+	with libicu for some common cases.
+
 2010-10-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/ObjectiveC2/GNUmakefile:
