@@ -1,5 +1,11 @@
 2010-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSFFIInvocation.m: Revert David's last change ,which caused
+	crashes by dereferencing a null pointer, even though I had put a
+	comment in the code warning that the pointer could be null!
+
+2010-10-27  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Fix definition of HAVE_ICU
 	* configure:
 	* Headers/Additions/GNUstepBase/config.h.in: regenerate
