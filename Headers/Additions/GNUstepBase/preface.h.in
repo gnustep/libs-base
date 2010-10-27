@@ -43,6 +43,13 @@
 #  endif
 #endif
 
+#ifndef __has_include
+#  define __has_include(x) 0
+#endif
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
+
 #if defined(__WIN32__)
 #include <w32api.h>
 #ifndef _WIN32_WINNT
