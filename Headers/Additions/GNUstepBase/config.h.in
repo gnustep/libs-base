@@ -277,6 +277,9 @@
 /* Define if you have this function */
 #undef HAVE_ICONV
 
+/* Define if using International Components for Unicode */
+#undef HAVE_ICU
+
 /* Define to 1 if you have the `inet_aton' function. */
 #undef HAVE_INET_ATON
 
@@ -665,9 +668,6 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
-
-/* Define to the home page for this package. */
-#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION

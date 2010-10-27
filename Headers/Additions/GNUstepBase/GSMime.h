@@ -355,9 +355,9 @@ typedef enum {
 - (void) setPort: (NSString*)s;
 
 /** Set the username for authentication to the SMTP server.
- * If this is not set (or is set to nil) then the GSMimeSMTPClientUsername user
- * default is used.  If the username is nil or an empty string then authentication
- * is not attempted.
+ * If this is not set (or is set to nil) then the GSMimeSMTPClientUsername
+ * user default is used.  If the username is nil or an empty string then
+ * authentication is not attempted.
  */
 - (void) setUsername: (NSString*)s;
 

@@ -78,25 +78,17 @@ static NSLocale *systemLocale = nil;
 static NSMutableDictionary *allLocales = nil;
 static NSRecursiveLock *classLock = nil;
 
-#if	!defined(HAVE_UCI)
-# if	HAVE_UNICODE_ULOC_H
-#   define	HAVE_UCI	1
-# else
-#   define	HAVE_UCI	0
-# endif
-#endif
-
-#if	HAVE_UNICODE_ULOC_H
+#if	defined(HAVE_UNICODE_ULOC_H)
 # include <unicode/uloc.h>
 #endif
-#if	HAVE_UNICODE_ULOCDATA_H
+#if	defined(HAVE_UNICODE_ULOCDATA_H)
 # include <unicode/ulocdata.h>
 #endif
-#if	HAVE_UNICODE_UCURR_H
+#if	defined(HAVE_UNICODE_UCURR_H)
 # include <unicode/ucurr.h>
 #endif
 
-#if	HAVE_UCI
+#if	defined(HAVE_ICU)
 //
 // ICU Component Keywords
 //

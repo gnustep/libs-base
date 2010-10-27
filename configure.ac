@@ -2647,9 +2647,14 @@ AC_ARG_ENABLE(icu,
 if test $enable_icu = yes; then
   AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
   if test "$have_icu" = "yes"; then
+    AC_MSG_RESULT(yes)
     AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucurr.h)
     LIBS="$LIBS $ICU_LIBS"
     HAVE_ICU=1
+    AC_DEFINE(HAVE_ICU,1,
+            [Define if using International Components for Unicode])
+  else
+    AC_MSG_RESULT(no)
   fi
 fi
 AC_SUBST(HAVE_ICU)

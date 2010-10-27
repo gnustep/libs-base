@@ -6327,7 +6327,8 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
     }
   while ([internal->queue count] > 0)
     {
-      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode beforeDate: limit];
+      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+			       beforeDate: limit];
     }
   return [internal->queue count] == 0 ? YES : NO;
 }
@@ -6529,7 +6530,8 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 	    {
 	      /* If we have no sender address ... use postmaster.
 	       */
-	      from = [NSString stringWithFormat: @"postmaster@%@", [self _identity]];
+	      from = [NSString stringWithFormat: @"postmaster@%@",
+		[self _identity]];
 	    }
 
 	  tmp = [NSString stringWithFormat: @"MAIL FROM: %@\r\n", from];
@@ -6675,7 +6677,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
               if (internal->rdata == nil)
                 {
                   internal->rdata = [[NSMutableData alloc] initWithBytes: buf
-								  length: length];
+		    length: length];
                 }
               else
                 {
@@ -6999,7 +7001,8 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
   NSDictionary	*d;
   NSString	*s;
 
-  s = [NSString stringWithFormat: @"Unexpected response form server while %@: %@",
+  s = [NSString stringWithFormat:
+    @"Unexpected response form server while %@: %@",
     [self stateDesc], r];
 
   d = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -7205,11 +7208,12 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
     {
       [internal->timer invalidate];
     }
-  internal->timer = [NSTimer scheduledTimerWithTimeInterval: s
-						     target: self
-						   selector: @selector(_timeout:)
-						   userInfo: nil
-						    repeats: NO];
+  internal->timer
+    = [NSTimer scheduledTimerWithTimeInterval: s
+				       target: self
+				     selector: @selector(_timeout:)
+				     userInfo: nil
+				      repeats: NO];
 }
 @end
 
