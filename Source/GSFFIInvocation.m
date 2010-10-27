@@ -134,7 +134,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
    * NB. object_getClass() and class_respondsToSelector() should both
    * return NULL when given NULL arguments, so they are safe to use.
    */
-  c = receiver->isa;
+  c = object_getClass(receiver);
   if (class_respondsToSelector(c, @selector(methodSignatureForSelector:)))
     {
       sig = [receiver methodSignatureForSelector: sel];
@@ -243,7 +243,7 @@ BOOL class_respondsToSelector(Class cls, SEL sel);
  */
 static id gs_objc_proxy_lookup(id receiver, SEL op)
 {
-  id cls = receiver->isa;
+  id cls = object_getClass(receiver);
   BOOL resolved = NO;
 
   /* Let the class try to add a method for this thing. */
