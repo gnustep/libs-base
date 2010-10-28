@@ -322,6 +322,14 @@ typedef enum {
  */
 - (void) send: (GSMimeDocument*)message;
 
+/** Add the message to the queue of emails to be sent by the receiver.<br />
+ * Also adds an envelope ID string to be used to uniquely identify the
+ * message for delivery receipting purposes.<br />
+ * For this to work, the SMTP gateway being used must support the SMTP
+ * service extension for delivery status notification (RFC 3460).
+ */
+- (void) send: (GSMimeDocument*)message envelopeID: (NSString*)envid;
+
 /** Set the delegate to receive callback methods indicating when a message
  * is sent, failed, or removed from the queue unsent.
  */

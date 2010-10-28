@@ -342,6 +342,7 @@ typedef struct
 	  RELEASE(limit);
 	}
       data = RETAIN([collector _data]);
+      [conn release];
     }
   return AUTORELEASE(data);
 }
