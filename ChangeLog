@@ -1,3 +1,10 @@
+2010-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSMime.h
+	* Source/Additions/GSMime.m: Add support for delivery receipts.
+	* Source/NSURLConnection.m: Fix simple leak in
+	([+sendSynchronousRequest:returningResponse:error:])
+
 2010-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFIInvocation.m: Revert David's last change ,which caused

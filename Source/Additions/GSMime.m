@@ -67,6 +67,7 @@
   NSString		*username;\
   NSTimer		*timer;\
   GSMimeDocument	*current;\
+  GSMimeHeader		*version;\
   NSMutableArray	*queue;\
   NSMutableArray	*pending;\
   NSInputStream		*istream;\
@@ -6151,6 +6152,7 @@ typedef	enum	{
   TP_IDLE,
   TP_OPEN,
   TP_INTRO,
+  TP_EHLO,
   TP_HELO,
   TP_AUTH,
   TP_MESG,
@@ -6159,6 +6161,10 @@ typedef	enum	{
   TP_DATA,
   TP_BODY
 } CState;
+
+typedef	enum	{
+  SMTPE_DSN,		// delivery status notification extension
+} SMTPE;
 
 NSString *
 eventText(NSStreamEvent e)
@@ -6350,6 +6356,20 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 
 - (void) send: (GSMimeDocument*)message
 {
+  [self send: message envelopeID: nil];
+}
+
+- (void) send: (GSMimeDocument*)message envelopeID: (NSString*)envid
+{
+  if (nil == [message headerNamed: @"mime-version"])
+    {
+      [message setHeader: @"MIME-Version" value: @"1.0" parameters: nil];
+    }
+  if (nil != envid)
+    {
+      [[message headerNamed: @"mime-version"] setObject: envid
+						 forKey: @"ENVID"];
+    }
   [internal->queue addObject: message];
   if (internal->cState == TP_IDLE)
     {
@@ -6407,6 +6427,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
     {
       case TP_OPEN:	return @"waiting for connection to SMTP server";
       case TP_INTRO:	return @"waiting for initial prompt from SMTP server";
+      case TP_EHLO:	return @"waiting for SMTP server EHLO completion";
       case TP_HELO:	return @"waiting for SMTP server HELO completion";
       case TP_AUTH:	return @"waiting for SMTP server AUTH response";
       case TP_FROM:	return @"waiting for ack of FROM command";
@@ -6507,6 +6528,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
       NSString		*tmp;
 
       internal->current = [internal->queue objectAtIndex: 0];
+      internal->version = [internal->current headerNamed: @"mime-version"];
 
       if (internal->cState == TP_IDLE)
 	{
@@ -6534,7 +6556,20 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 		[self _identity]];
 	    }
 
-	  tmp = [NSString stringWithFormat: @"MAIL FROM: %@\r\n", from];
+	  tmp = [internal->version objectForKey: @"ENVID"];
+	  if (nil == tmp)
+	    {
+	      tmp = [NSString stringWithFormat: @"MAIL FROM: <%@>\r\n", from];
+	    }
+	  else
+	    {
+	      /* Tell the mail server we want headers, not the full body
+	       * when an email is bounced or acknowledged.
+	       * Set the envelope ID to be the ID of the current message.
+	       */
+	      tmp = [NSString stringWithFormat:
+		@"MAIL FROM: <%@> RET=HDRS ENVID=%@\r\n", from, tmp];
+	    }
 	  NSDebugMLLog(@"GSMime", @"Initiating new mail message - %@", tmp);
 	  internal->cState = TP_FROM;
 	  [self _timer: 20.0];
@@ -6543,7 +6578,17 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
       else if (internal->cState == TP_FROM)
 	{
 	  tmp = [[internal->current headerNamed: @"to"] value];
-	  tmp = [NSString stringWithFormat: @"RCPT TO: <%@>\r\n", tmp];
+	  if (nil == [internal->version objectForKey: @"ENVID"])
+	    {
+	      tmp = [NSString stringWithFormat: @"RCPT TO: <%@>\r\n", tmp];
+	    }
+	  else
+	    {
+	      /* We have an envelope ID, so we need success/failure reports.
+	       */
+	      tmp = [NSString stringWithFormat:
+		@"RCPT TO: <%@> NOTIFY=SUCCESS,FAILURE\r\n", tmp];
+	    }
 	  NSDebugMLLog(@"GSMime", @"Destination - %@", tmp);
 	  internal->cState = TP_TO;
 	  [self _timer: 20.0];
@@ -6878,6 +6923,39 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 	  {
 	    NSLog(@"Server went away ... %@", s);
 	    [self _shutdown: [self _response: s]];
+	  }
+	break;
+
+      case TP_EHLO:
+	if (c == 220)
+	  {
+	    NSDebugMLLog(@"GSMime", @"System acknowledged EHLO");
+	    if ([internal->username length] == 0)
+	      {
+		internal->cState = TP_MESG;
+		[self _doMessage];
+	      }
+	    else
+	      {
+		NSString	*tmp;
+
+		tmp = [NSString stringWithFormat: @"AUTH PLAIN %@\r\n",
+		  [GSMimeDocument encodeBase64String: internal->username]];
+		NSDebugMLLog(@"GSMime", @"Ehlo OK - sending auth");
+		internal->cState = TP_AUTH;
+	        [self _timer: 30.0];
+                [self _sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
+	      }
+	  }
+	else
+	  {
+	    NSString	*tmp;
+
+	    tmp = [NSString stringWithFormat: @"HELO %@\r\n", [self _identity]];
+	    NSDebugMLLog(@"GSMime", @"Ehlo failed - sending helo");
+	    internal->cState = TP_HELO;
+	    [self _timer: 30.0];
+	    [self _sendData: [tmp dataUsingEncoding: NSUTF8StringEncoding]];
 	  }
 	break;
 
