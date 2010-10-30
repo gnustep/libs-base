@@ -1,3 +1,8 @@
+2010-10-30  German Arias <german@xelalug.org>
+
+	* Documentation/GNUmakefile: Changes in some files names to 
+	correspond with the files provided in the Documentation directory.
+
 2010-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSMime.h
