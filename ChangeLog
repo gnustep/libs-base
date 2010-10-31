@@ -1,3 +1,10 @@
+2010-10-31  Larry Campbell <lcampbel@akamai.com>
+
+	* Tools/make_strings/make_strings.m: Permits tool to take nil as the
+	table name argument in NSLocalizedStringFromTable and
+	NSLocalizedStringFromTableInBundle (as does the corresponding OSX
+	utility, genstrings).
+
 2010-10-30  German Arias <german@xelalug.org>
 
 	* Documentation/GNUmakefile: Changes in some files names to 
