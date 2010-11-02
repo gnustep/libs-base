@@ -1,3 +1,8 @@
+2010-11-02  Larry Campbell <lcampbel@akamai.com>
+
+	* Tools/make_strings/make_strings.m: Fix line missed in last patch.
+	* Source/NSPropertyList.m: Fixes for date serialization byte swaps.
+
 2010-10-31  Larry Campbell <lcampbel@akamai.com>
 
 	* Tools/make_strings/make_strings.m: Permits tool to take nil as the
