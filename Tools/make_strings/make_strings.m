@@ -369,12 +369,18 @@ printf("  %3i : %i '%s'\n", i, arg_ok[i], args[i]);
 		    comment = [NSString stringWithCString:
 		      (char*)args[lf->comment_index]];
 
-		  if (lf->table_index == -1)
-		    table = @"Localizable"; /* TODO: customizable? */
+		  if (lf->table_index == -1
+		    || (arg_ok[lf->table_index]
+		      && (args[lf->table_index] == 0
+			|| strcmp("nil", (char*)args[lf->table_index]) == 0)))
+		    {
+		      table = @"Localizable"; /* TODO: customizable? */
+		    }
 		  else
-		    table = [NSString stringWithCString:
-		      (char*)args[lf->table_index]];
-
+		    {
+		      table = [NSString stringWithCString:
+		        (char*)args[lf->table_index]];
+		    }
 		  e = [[SourceEntry alloc] initWithKey: key
 					       comment: comment
 						  file: filenamestr

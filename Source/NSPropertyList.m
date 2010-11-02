@@ -2947,7 +2947,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   else if (next == 0x33)
     {
-      double in;
+      NSSwappedDouble in;
       // Date
       NSDate *date;
       [data getBytes: &in range: NSMakeRange(counter, sizeof(double))];
@@ -3764,7 +3764,7 @@ isEqualFunc(const void *item1, const void *item2,
 - (void) storeDate: (NSDate*) date
 {
   unsigned char code;
-  double out;
+  NSSwappedDouble out;
 
   code = 0x33;
   [dest appendBytes: &code length: 1];
