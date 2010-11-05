@@ -631,10 +631,6 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
   if ([type isEqualToString: @"method"] || [type isEqualToString: @"ivariable"])
     {
-      if (category != nil)
-	{
-	  u = classname;	// Store category methods by classname.
-	}
       // type ... ref ... unit ... file
     }
   else
@@ -766,7 +762,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
   /*
    * If unit is a category, method was probably indexed under the class,
-   * so wirk with the class instead of the category.
+   * so work with the class instead of the category.
    */
   if ([*u length] > 0 && [*u characterAtIndex: [*u length] - 1] == ')')
     {

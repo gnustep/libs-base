@@ -1,3 +1,8 @@
+2010-11-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSIndex.m: ([-setUnitRef:type:]) Fix incorrect special
+	handling of category methods.
+
 2010-11-02  Larry Campbell <lcampbel@akamai.com>
 
 	* Tools/make_strings/make_strings.m: Fix line missed in last patch.
