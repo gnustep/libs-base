@@ -155,12 +155,12 @@ static Class concreteBrowserClass;
 }
 
 
-- (id) delegate
+- (id<NSNetServiceDelegate>) delegate
 {
   return _delegate;
 }
 
-- (void) setDelegate: (id) delegate
+- (void) setDelegate: (id<NSNetServiceDelegate>) delegate
 {
   _delegate = delegate;
 }
@@ -449,12 +449,12 @@ static Class concreteBrowserClass;
 }
 
 
-- (id) delegate
+- (id<NSNetServiceBrowserDelegate>) delegate
 {
   return _delegate;
 }
 
-- (void) setDelegate: (id) delegate
+- (void) setDelegate: (id<NSNetServiceBrowserDelegate>) delegate
 {
   _delegate = delegate;
 }
