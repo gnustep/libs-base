@@ -113,6 +113,13 @@
  #include <objc/encoding.h>
 #endif
 
+// Include the blocks runtime header if it's available (It shouldn't matter
+// that this doesn't work on compilers that don't support __has_include(),
+// because they also don't support blocks).
+#if __has_include(<objc/block_runtime.h>)
+#  include <objc/block_runtime.h>
+#endif
+
 /*
  * Hack for older compiler versions that don't have all defines
  * needed in  objc-api.h
@@ -219,6 +226,14 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#endif
+
+#if __has_feature(objc_gc)
+#define __strong __attribute__((objc_gc(strong)))
+#define __weak __attribute__((objc_gc(weak)))
+#else
+#define __strong 
+#define __weak 
 #endif
 
 #endif /* __preface_h_OBJECTS_INCLUDE */
