@@ -57,7 +57,8 @@
 @implementation NSAssertionHandler
 
 /* Key for thread dictionary. */
-static NSString *dict_key = @"NSAssertionHandler";
+NSString *const NSAssertionHandlerKey = @"NSAssertionHandler";
+
 
 /**
  * Returns the assertion handler object for the current thread.<br />
@@ -69,11 +70,11 @@ static NSString *dict_key = @"NSAssertionHandler";
   NSAssertionHandler	*handler;
 
   dict = GSCurrentThreadDictionary();
-  handler = [dict objectForKey: dict_key];
+  handler = [dict objectForKey: NSAssertionHandlerKey];
   if (handler == nil)
     {
       handler = [[NSAssertionHandler alloc] init];
-      [dict setObject: handler forKey: dict_key];
+      [dict setObject: handler forKey: NSAssertionHandlerKey];
       RELEASE(handler);
     }
   return handler;

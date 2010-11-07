@@ -389,6 +389,7 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 		   description: (NSString*)format,...;
 
 @end
+extern NSString *const NSAssertionHandlerKey;
 
 #ifdef	NS_BLOCK_ASSERTIONS
 #define _NSAssertArgs(condition, desc, args...)		
