@@ -33,6 +33,8 @@
 extern "C" {
 #endif
 
+@protocol NSNetServiceBrowserDelegate, NSNetServiceDelegate;
+
 enum
 {
   NSNetServicesUnknownError		= -72000L,
@@ -165,8 +167,13 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 - (void) startMonitoring;
 - (void) stopMonitoring;
 
-- (id) delegate;
-- (void) setDelegate: (id) delegate;
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+- (NSInteger)port;
+
+- (void) publishWithOptions: (NSNetServiceOptions)options;
+#endif
+- (id<NSNetServiceDelegate>) delegate;
+- (void) setDelegate: (id<NSNetServiceDelegate>) delegate;
 
 - (NSArray *) addresses;
 - (NSString *) domain;
@@ -238,15 +245,15 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 - (void) stop;
 
-- (id) delegate;
-- (void) setDelegate: (id) delegate;
+- (id<NSNetServiceBrowserDelegate>) delegate;
+- (void) setDelegate: (id<NSNetServiceBrowserDelegate>) delegate;
 
 @end
 
 /**
  * <unit>
  *   <heading>
- *     NSObject (NSNetServiceDelegateMethods) class description
+ *     NSNetServiceDelegate protocol description
  *   </heading>
  *   <p>
  *     <!-- Foreword -->
@@ -257,12 +264,18 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  *   </p>
  * </unit>
  * <p>
- *  This informal protocol must be adopted by any class wishing to implement
+ *  This protocol must be adopted by any class wishing to implement
  *  an [NSNetService] delegate.
  * </p>
  */
 
+@protocol  NSNetServiceDelegate
+#ifdef __clang__
+@optional
+#else
+@end
 @interface NSObject (NSNetServiceDelegateMethods)
+#endif
 
 /**
  * Notifies the delegate that the network is ready to publish the service.
@@ -353,7 +366,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 /**
  * <unit>
  *   <heading>
- *     NSObject (NSNetServiceBrowserDelegateMethods) class description
+ *     NSNetServiceBrowserDelegate protocol description
  *   </heading>
  *   <p>
  *     <!-- Foreword -->
@@ -364,12 +377,18 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  *   </p>
  * </unit>
  * <p>
- *  This informal protocol must be adopted by any class wishing to implement
+ *  This protocol must be adopted by any class wishing to implement
  *  an [NSNetServiceBrowser] delegate.
  * </p>
  */
 
+@protocol NSNetServiceBrowserDelegate
+#ifdef __clang__
+@optional
+#else
+@end
 @interface NSObject (NSNetServiceBrowserDelegateMethods)
+#endif
 
 /**
  * Notifies the delegate that the search is about to begin.
