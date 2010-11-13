@@ -1,5 +1,5 @@
 /* Implementation of filesystem & path-related functions for GNUstep
-   Copyright (C) 1996-2004 Free Software Foundation, Inc.
+   Copyright (C) 1996-2010 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <address@hidden>
    Created: May 1996
@@ -2028,19 +2028,18 @@ if (domainMask & mask) \
 
       case NSDocumentDirectory:
 	{
-	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Document");
-	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"Document");
-	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"Document");
-	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"Document");
+	  /* this is relative to the user home annd for the user domain only
+	   * verified on Macintosh 
+	   * despite the name it is Documents and not Document....
+	   */
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Documents");
 	}
 	break;
 
       case NSDownloadsDirectory:
 	{
-	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Downloads");
-	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"Downloads");
-	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"Downloads");
-	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"Downloads");
+	  /* Be consistent with NSDocumentDirectory */
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Downloads");
 	}
 	break;
 
