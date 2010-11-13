@@ -1,3 +1,8 @@
+2010-11-13  Riccardo Mottola
+
+	* Source/NSPathUtilities.m:
+	Make NSDownloadDirectory and NSDocumentDIrectory relative to the user home and for the user domain only. Behaviour checked on the Mac.
+
 2010-11-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSIndex.m: ([-setUnitRef:type:]) Fix incorrect special
