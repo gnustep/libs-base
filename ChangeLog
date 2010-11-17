@@ -1,3 +1,8 @@
+2010-11-17  Eric Wasylishen
+
+	* Source/NSPredicate.m: Implement MATCHES and LIKE using ICU
+	* configure.ac: Check for unicode/uregex.h in ICU checks 
+
 2010-11-13  Riccardo Mottola
 
 	* Source/NSPathUtilities.m:

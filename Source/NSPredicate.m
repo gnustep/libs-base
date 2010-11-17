@@ -52,6 +52,10 @@
 // For pow()
 #include <math.h>
 
+#if     defined(HAVE_UNICODE_UREGEX_H)
+#include <unicode/uregex.h>
+#endif
+
 /* Object to represent the expression beign evaluated.
  */
 static NSExpression	*evaluatedObjectExpression = nil;
@@ -808,6 +812,44 @@ static NSExpression	*evaluatedObjectExpression = nil;
      }
 }
 
+#if	defined(GS_USE_ICU)
+static BOOL GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOptions opts)
+{
+  BOOL result = NO;
+  UErrorCode error = 0;
+  uint32_t flags = 0;
+  NSUInteger stringLength = [string length];
+  NSUInteger regexLength = [regex length];
+  unichar *stringBuffer;
+  unichar *regexBuffer;
+  URegularExpression *icuregex = NULL;  
+
+  stringBuffer = malloc(stringLength * sizeof(unichar));
+  if (NULL == stringBuffer) { return NO; }
+  regexBuffer = malloc(regexLength * sizeof(unichar));
+  if (NULL == regexBuffer) { free(stringBuffer); return NO; }
+
+  [string getCharacters: stringBuffer range: NSMakeRange(0, stringLength)];
+  [regex getCharacters: regexBuffer range: NSMakeRange(0, regexLength)];
+
+  flags |= UREGEX_DOTALL; // . is supposed to recognize newlines
+  if ((opts & NSCaseInsensitiveSearch) != 0) { flags |= UREGEX_CASE_INSENSITIVE; }
+
+  icuregex = uregex_open(regexBuffer, regexLength, flags, NULL, &error);
+  if (icuregex != NULL && U_SUCCESS(error))
+    {
+      uregex_setText(icuregex, stringBuffer, stringLength, &error);
+      result = uregex_matches(icuregex, 0, &error);
+    }
+  uregex_close(icuregex);
+
+  free(stringBuffer);
+  free(regexBuffer);
+
+  return result;
+}
+#endif
+
 - (BOOL) _evaluateLeftValue: (id)leftResult
 		 rightValue: (id)rightResult
 		     object: (id)object
@@ -866,11 +908,26 @@ static NSExpression	*evaluatedObjectExpression = nil;
        case NSNotEqualToPredicateOperatorType:
          return ![leftResult isEqual: rightResult];
        case NSMatchesPredicateOperatorType:
-         // FIXME: Missing implementation of matches.
+#if	defined(GS_USE_ICU)
+         return GSICUStringMatchesRegex(leftResult, rightResult, compareOptions);
+#else
          return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;  
+#endif
        case NSLikePredicateOperatorType:
-         // FIXME: Missing implementation of like.
-         return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;  
+#if	defined(GS_USE_ICU)
+         {
+           // The right hand is a pattern with ? meaning match one character, and
+           // * meaning match zero or more characters, so translate that into a regex
+           NSString *regex = [rightResult stringByReplacingOccurrencesOfString: @"*"
+                                                                   withString: @".*"];
+           regex = [regex stringByReplacingOccurrencesOfString: @"?"
+                                                   withString: @".?"];
+           regex = [NSString stringWithFormat: @"^%@$", regex];
+           return GSICUStringMatchesRegex(leftResult, regex, compareOptions);
+         }
+#else
+         return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;
+#endif
        case NSBeginsWithPredicateOperatorType:
          {
            NSRange range = NSMakeRange(0, [rightResult length]);
