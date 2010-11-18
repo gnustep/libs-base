@@ -812,8 +812,9 @@ static NSExpression	*evaluatedObjectExpression = nil;
      }
 }
 
-#if	defined(GS_USE_ICU)
-static BOOL GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOptions opts)
+#if	GS_USE_ICU == 1
+static BOOL
+GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOptions opts)
 {
   BOOL result = NO;
   UErrorCode error = 0;
@@ -880,95 +881,113 @@ static BOOL GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringC
 	|| (_type == NSGreaterThanOrEqualToPredicateOperatorType)));
     }
 
-   // Change predicate options into string options.
-   if (!(_options & NSDiacriticInsensitivePredicateOption))
-     {
-       compareOptions |= NSLiteralSearch;
-     }
-   if (_options & NSCaseInsensitivePredicateOption)
-     {
-       compareOptions |= NSCaseInsensitiveSearch;
-     }
+  // Change predicate options into string options.
+  if (!(_options & NSDiacriticInsensitivePredicateOption))
+    {
+      compareOptions |= NSLiteralSearch;
+    }
+  if (_options & NSCaseInsensitivePredicateOption)
+    {
+      compareOptions |= NSCaseInsensitiveSearch;
+    }
 
-   /* This is a very optimistic implementation,
-    * hoping that the values are of the right type.
-    */
-   switch (_type)
-     {
-       case NSLessThanPredicateOperatorType:
-         return ([leftResult compare: rightResult] == NSOrderedAscending);
-       case NSLessThanOrEqualToPredicateOperatorType:
-         return ([leftResult compare: rightResult] != NSOrderedDescending);
-       case NSGreaterThanPredicateOperatorType:
-         return ([leftResult compare: rightResult] == NSOrderedDescending);
-       case NSGreaterThanOrEqualToPredicateOperatorType:
-         return ([leftResult compare: rightResult] != NSOrderedAscending);
-       case NSEqualToPredicateOperatorType:
-         return [leftResult isEqual: rightResult];
-       case NSNotEqualToPredicateOperatorType:
-         return ![leftResult isEqual: rightResult];
-       case NSMatchesPredicateOperatorType:
-#if	defined(GS_USE_ICU)
-         return GSICUStringMatchesRegex(leftResult, rightResult, compareOptions);
+  /* This is a very optimistic implementation,
+   * hoping that the values are of the right type.
+   */
+  switch (_type)
+    {
+      case NSLessThanPredicateOperatorType:
+	return ([leftResult compare: rightResult] == NSOrderedAscending);
+      case NSLessThanOrEqualToPredicateOperatorType:
+	return ([leftResult compare: rightResult] != NSOrderedDescending);
+      case NSGreaterThanPredicateOperatorType:
+	return ([leftResult compare: rightResult] == NSOrderedDescending);
+      case NSGreaterThanOrEqualToPredicateOperatorType:
+	return ([leftResult compare: rightResult] != NSOrderedAscending);
+      case NSEqualToPredicateOperatorType:
+	return [leftResult isEqual: rightResult];
+      case NSNotEqualToPredicateOperatorType:
+	return ![leftResult isEqual: rightResult];
+      case NSMatchesPredicateOperatorType:
+#if	GS_USE_ICU == 1
+	return GSICUStringMatchesRegex(leftResult, rightResult, compareOptions);
 #else
-         return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;  
+	return [leftResult compare: rightResult options: compareOptions]
+	  == NSOrderedSame;  
 #endif
-       case NSLikePredicateOperatorType:
-#if	defined(GS_USE_ICU)
-         {
-           // The right hand is a pattern with ? meaning match one character, and
-           // * meaning match zero or more characters, so translate that into a regex
-           NSString *regex = [rightResult stringByReplacingOccurrencesOfString: @"*"
-                                                                   withString: @".*"];
-           regex = [regex stringByReplacingOccurrencesOfString: @"?"
-                                                   withString: @".?"];
-           regex = [NSString stringWithFormat: @"^%@$", regex];
-           return GSICUStringMatchesRegex(leftResult, regex, compareOptions);
-         }
+      case NSLikePredicateOperatorType:
+#if	GS_USE_ICU == 1
+	{
+	  NSString *regex;
+
+	  /* The right hand is a pattern with '?' meaning match one character,
+	   * and '*' meaning match zero or more characters, so translate that
+	   * into a regex.
+	   */
+	  regex = [rightResult stringByReplacingOccurrencesOfString: @"*"
+							 withString: @".*"];
+	  regex = [regex stringByReplacingOccurrencesOfString: @"?"
+						   withString: @".?"];
+	  regex = [NSString stringWithFormat: @"^%@$", regex];
+	  return GSICUStringMatchesRegex(leftResult, regex, compareOptions);
+	}
 #else
-         return [leftResult compare: rightResult options: compareOptions] == NSOrderedSame;
+	return [leftResult compare: rightResult options: compareOptions]
+	  == NSOrderedSame;
 #endif
-       case NSBeginsWithPredicateOperatorType:
-         {
-           NSRange range = NSMakeRange(0, [rightResult length]);
-           return ([leftResult compare: rightResult options: compareOptions range: range] == NSOrderedSame);
-         }
-       case NSEndsWithPredicateOperatorType:
-         {
-           NSRange range = NSMakeRange([leftResult length] - [rightResult length], [rightResult length]);
-           return ([leftResult compare: rightResult options: compareOptions range: range] == NSOrderedSame);
-         }
-       case NSInPredicateOperatorType:
-         // Handle special case where rightResult is a collection and leftResult an element of it.
-         if (![rightResult isKindOfClass: [NSString class]])
-           {
-             NSEnumerator *e;
-             id value;
+      case NSBeginsWithPredicateOperatorType:
+	{
+	  NSRange range = NSMakeRange(0, [rightResult length]);
+	  return ([leftResult compare: rightResult
+			      options: compareOptions
+				range: range] == NSOrderedSame);
+	}
+      case NSEndsWithPredicateOperatorType:
+	{
+	  NSRange range;
 
-             if (![rightResult respondsToSelector: @selector(objectEnumerator)])
-               {
-                 [NSException raise: NSInvalidArgumentException 
-                              format: @"The right hand side for an IN operator must be a collection"];
-               }
+	  range = NSMakeRange([leftResult length] - [rightResult length],
+	    [rightResult length]);
+	  return ([leftResult compare: rightResult
+			      options: compareOptions
+				range: range] == NSOrderedSame);
+	}
+      case NSInPredicateOperatorType:
+	/* Handle special case where rightResult is a collection
+	 * and leftResult an element of it.
+	 */
+	if (![rightResult isKindOfClass: [NSString class]])
+	  {
+	    NSEnumerator *e;
+	    id value;
 
-             e = [rightResult objectEnumerator];
-             while ((value = [e nextObject]))
-               {
-                 if ([value isEqual: leftResult]) 
-                   return YES;		
-               }
+	    if (![rightResult respondsToSelector: @selector(objectEnumerator)])
+	      {
+		[NSException raise: NSInvalidArgumentException 
+			    format: @"The right hand side for an IN operator "
+		  @"must be a collection"];
+	      }
 
-             return NO;
-           }
-         return ([rightResult rangeOfString: leftResult options: compareOptions].location != NSNotFound);
-       case NSCustomSelectorPredicateOperatorType:
-         {
-           BOOL (*function)(id,SEL,id) = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
-           return function(leftResult, _selector, rightResult);
-         }
-       default:
-         return NO;
-     }
+	    e = [rightResult objectEnumerator];
+	    while ((value = [e nextObject]))
+	      {
+		if ([value isEqual: leftResult]) 
+		  return YES;		
+	      }
+
+	    return NO;
+	  }
+	return ([rightResult rangeOfString: leftResult
+				   options: compareOptions].location
+	  != NSNotFound);
+      case NSCustomSelectorPredicateOperatorType:
+	{
+	  BOOL (*function)(id,SEL,id) = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
+	  return function(leftResult, _selector, rightResult);
+	}
+      default:
+	return NO;
+    }
 }
 
 - (BOOL) evaluateWithObject: (id)object
