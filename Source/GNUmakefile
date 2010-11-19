@@ -161,6 +161,7 @@ GSSet.m \
 GSSocketStream.m \
 GSStream.m \
 GSString.m \
+GSICUString.m \
 GSValue.m \
 NSAffineTransform.m \
 NSArchiver.m \
@@ -241,6 +242,7 @@ NSPropertyList.m \
 NSProtocolChecker.m \
 NSProxy.m \
 NSRange.m \
+NSRegularExpression.m\
 NSRunLoop.m \
 NSScanner.m \
 NSSerializer.m \
@@ -267,6 +269,7 @@ NSURLProtectionSpace.m \
 NSURLProtocol.m \
 NSURLRequest.m \
 NSURLResponse.m \
+NSTextCheckingResult.m\
 NSURLHandle.m \
 NSUserDefaults.m \
 NSValue.m \
@@ -394,6 +397,7 @@ NSPropertyList.h \
 NSProtocolChecker.h \
 NSProxy.h \
 NSRange.h \
+NSRegularExpression.h\
 NSRunLoop.h \
 NSScanner.h \
 NSSerialization.h \
@@ -403,6 +407,7 @@ NSSpellServer.h \
 NSStream.h \
 NSString.h \
 NSTask.h \
+NSTextCheckingResult.h\
 NSThread.h \
 NSTimer.h \
 NSTimeZone.h \

@@ -1,3 +1,5 @@
+#import "config.h"
+#if HAVE_ICU
 #import "GSICUString.h"
 
 /**
@@ -14,6 +16,53 @@ static const NSUInteger chunkSize = 32;
 static int64_t UTextNSStringNativeLength(UText *ut)
 {
 	return [(NSString*)ut->p length];
+}
+
+
+/**
+ * Loads a group of characters into the buffer that can be directly accessed by
+ * users of the UText.  This is used for iteration but UText users.
+ */
+UBool UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
+{
+	NSString *str = ut->p;
+	NSUInteger length = [str length];
+	if (nativeIndex >= length) { return FALSE; }
+	// Special case if the chunk already contains this index
+	if (nativeIndex >= ut->chunkNativeStart
+	    && nativeIndex < (ut->chunkNativeStart + ut->chunkLength))
+	{
+		ut->chunkOffset = nativeIndex - ut->chunkNativeStart;
+		return TRUE;
+	}
+	NSRange r = {nativeIndex, chunkSize};
+	forward = TRUE;
+	if (forward)
+	{
+		if (nativeIndex + chunkSize > length)
+		{
+			r.length = length - nativeIndex;
+		}
+	}
+	else
+	{
+		if (nativeIndex - chunkSize > 0)
+		{
+			r.location = nativeIndex - chunkSize;
+			r.length = chunkSize;
+		}
+		else
+		{
+			r.location = 0;
+			r.length = chunkSize - nativeIndex;
+		}
+	}
+	[str getCharacters: ut->pExtra range: r];
+	ut->chunkNativeStart = r.location;
+	ut->chunkNativeLimit = r.location + r.length;
+	ut->chunkLength = r.length;
+	ut->chunkOffset = 0;
+	return TRUE;
 }
 
 /**
@@ -41,60 +90,19 @@ static int32_t UTextNSMutableStringReplace(UText *ut,
 		                                       freeWhenDone: NO];
 	}
 	[str replaceCharactersInRange: r withString: replacement];
+
+	// Setting the chunk length to 0 here forces UTextNSStringAccess to fetch
+	// the data from the string object.
+	ut->chunkLength = 0;
+	UTextNSStringAccess(ut, r.location + [replacement length] + 1, TRUE);
+	ut->chunkOffset++;
+	
 	[replacement release];
-	// Update the chunk to reflect the internal changes.
-	r = NSMakeRange(ut->chunkNativeStart, ut->chunkLength);
-	[str getCharacters: ut->pExtra range: r];
 	if (NULL != status)
 	{
 		*status = 0;
 	}
 	return 0;
-}
-
-/**
- * Loads a group of characters into the buffer that can be directly accessed by
- * users of the UText.  This is used for iteration but UText users.
- */
-UBool UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
-{
-	// Special case if the chunk already contains this index
-	if (nativeIndex > ut->chunkNativeStart
-	    && nativeIndex < (ut->chunkNativeStart + ut->chunkLength))
-	{
-		ut->chunkOffset = nativeIndex - ut->chunkNativeStart;
-		return TRUE;
-	}
-	NSString *str = ut->p;
-	NSUInteger length = [str length];
-	if (nativeIndex > length) { return FALSE; }
-	NSRange r = {nativeIndex, chunkSize};
-	forward = TRUE;
-	if (forward)
-	{
-		if (nativeIndex + chunkSize > length)
-		{
-			r.length = length - nativeIndex;
-		}
-	}
-	else
-	{
-		if (nativeIndex - chunkSize > 0)
-		{
-			r.location = nativeIndex - chunkSize;
-			r.length = chunkSize;
-		}
-		else
-		{
-			r.location = 0;
-			r.length = chunkSize - nativeIndex;
-		}
-	}
-	[str getCharacters: ut->pExtra range: r];
-	ut->chunkNativeStart = r.location;
-	ut->chunkLength = r.length;
-	ut->chunkOffset = 0;
-	return TRUE;
 }
 
 /**
@@ -216,7 +224,7 @@ UText* UTextNSMutableStringClone(UText *dest,
  */
 int64_t UTextNSStringMapOffsetToNative(const UText *ut)
 {
-	return ut->chunkNativeLimit + ut->chunkOffset;
+	return ut->chunkNativeStart + ut->chunkOffset;
 }
 
 /**
@@ -262,11 +270,12 @@ UText* UTextInitWithNSMutableString(UText *txt, NSMutableString *str)
 	UErrorCode status = 0;
 	txt = utext_setup(txt, chunkSize * sizeof(unichar), &status);
 
-	if (0 != status)  { return NULL; }
+	if (U_FAILURE(status)) { return NULL; }
 
-	txt->p = str;
+	txt->p = [str retain];
 	txt->pFuncs = &NSMutableStringFuncs;
 	txt->chunkContents = txt->pExtra;
+	txt->nativeIndexingLimit = INT32_MAX;
 
 	txt->providerProperties = 1<<UTEXT_PROVIDER_WRITABLE;
 
@@ -278,17 +287,24 @@ UText* UTextInitWithNSString(UText *txt, NSString *str)
 	UErrorCode status = 0;
 	txt = utext_setup(txt, 64, &status);
 
-	if (0 != status)  { return NULL; }
+	if (U_FAILURE(status)) { return NULL; }
 
-	txt->p = str;
+	txt->p = [str retain];
 	txt->pFuncs = &NSStringFuncs;
 	txt->chunkContents = txt->pExtra;
+	txt->nativeIndexingLimit = INT32_MAX;
 
 	return txt;
 }
 
-
 @implementation GSUTextString
+- init
+{
+	if (nil == (self = [super init])) { return nil; }
+	UText t = UTEXT_INITIALIZER;
+	memcpy(&txt, &t, sizeof(t));
+	return self;
+}
 - (NSUInteger)length
 {
 	return utext_nativeLength(&txt);
@@ -301,10 +317,10 @@ UText* UTextInitWithNSString(UText *txt, NSString *str)
 }
 - (void)getCharacters: (unichar*)buffer range: (NSRange)r
 {
-	UErrorCode status;
+	UErrorCode status = 0;
 	utext_extract(&txt, r.location, r.location+r.length, buffer, r.length,
 			&status);
-	if (0 != status)
+	if (U_FAILURE(status))
 	{
 		_NSRangeExceptionRaise();
 	}
@@ -317,6 +333,13 @@ UText* UTextInitWithNSString(UText *txt, NSString *str)
 @end
 
 @implementation GSUTextMutableString
+- init
+{
+	if (nil == (self = [super init])) { return nil; }
+	UText t = UTEXT_INITIALIZER;
+	memcpy(&txt, &t, sizeof(t));
+	return self;
+}
 - (NSUInteger)length
 {
 	return utext_nativeLength(&txt);
@@ -329,10 +352,10 @@ UText* UTextInitWithNSString(UText *txt, NSString *str)
 }
 - (void)getCharacters: (unichar*)buffer range: (NSRange)r
 {
-	UErrorCode status;
+	UErrorCode status = 0;
 	utext_extract(&txt, r.location, r.location+r.length, buffer, r.length,
 			&status);
-	if (0 != status)
+	if (U_FAILURE(status))
 	{
 		_NSRangeExceptionRaise();
 	}
@@ -341,7 +364,7 @@ UText* UTextInitWithNSString(UText *txt, NSString *str)
                       withString: (NSString*)aString
 {
 	NSUInteger size = [aString length];
-	UErrorCode status;
+	UErrorCode status = 0;
 	TEMP_BUFFER(buffer, size);
 	[aString getCharacters: buffer range: NSMakeRange(0, size)];
 
@@ -355,3 +378,4 @@ UText* UTextInitWithNSString(UText *txt, NSString *str)
 	[super dealloc];
 }
 @end
+#endif // HAV_ICU
