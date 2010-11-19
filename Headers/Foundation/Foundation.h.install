@@ -44,6 +44,7 @@
 #import	<Foundation/NSBundle.h>
 #import	<Foundation/NSByteOrder.h>
 #import	<Foundation/NSCache.h>
+#import	<Foundation/NSCalendar.h>
 #import	<Foundation/NSCalendarDate.h>
 #import	<Foundation/NSCharacterSet.h>
 #import	<Foundation/NSClassDescription.h>
@@ -99,6 +100,7 @@
 #import	<Foundation/NSProtocolChecker.h>
 #import	<Foundation/NSProxy.h>
 #import	<Foundation/NSRange.h>
+#import	<Foundation/NSRegularExpression.h>
 #import	<Foundation/NSRunLoop.h>
 #import	<Foundation/NSScanner.h>
 #import	<Foundation/NSSerialization.h>
@@ -108,6 +110,7 @@
 #import	<Foundation/NSStream.h>
 #import	<Foundation/NSString.h>
 #import	<Foundation/NSTask.h>
+#import <Foundation/NSTextCheckingResult.h>
 #import	<Foundation/NSThread.h>
 #import	<Foundation/NSTimer.h>
 #import	<Foundation/NSTimeZone.h>
