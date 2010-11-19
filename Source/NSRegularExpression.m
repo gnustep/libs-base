@@ -16,7 +16,7 @@
  * in theory use the libicu values directly (that would be sensible), but that
  * would break any code that didn't correctly use the symbolic constants.
  */
-uint32_t NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts) 
+uint32_t NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
 {
 	uint32_t flags = 0;
 	if (opts & NSRegularExpressionCaseInsensitive)
@@ -63,9 +63,9 @@ uint32_t NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opt
 {
 	uint32_t flags = NSRegularExpressionOptionsToURegexpFlags(opts);
 	UText p = UTEXT_INITIALIZER;
-	UTextInitWithNSString(&p, aPattern);
 	UParseError pe = {0};
 	UErrorCode s = 0;
+	UTextInitWithNSString(&p, aPattern);
 	regex = uregex_openUText(&p, flags, &pe, &s);
 	utext_close(&p);
 	if (U_FAILURE(s))
@@ -81,11 +81,12 @@ uint32_t NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opt
 {
 	UErrorCode s = 0;
 	UText *t = uregex_patternUText(regex, &s);
+	GSUTextString *str = NULL;
 	if (U_FAILURE(s))
 	{
 		return nil;
 	}
-	GSUTextString *str = [GSUTextString new];
+	str = [GSUTextString new];
 	utext_clone(&str->txt, t, FALSE, TRUE, &s);
 	utext_close(t);
 	return [str autorelease];
@@ -93,9 +94,9 @@ uint32_t NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opt
 
 static UBool callback(const void *context, int32_t steps)
 {
-	if (NULL == context) { return FALSE; }
 	BOOL stop = NO;
 	GSRegexBlock block = (GSRegexBlock)context;
+	if (NULL == context) { return FALSE; }
 	CALL_BLOCK(block, nil, NSMatchingProgress, &stop);
 	return stop;
 }
@@ -145,7 +146,8 @@ static uint32_t prepareResult(NSRegularExpression *regex,
                               UErrorCode *s)
 {
 	uint32_t flags = 0;
-	for (NSUInteger i=0 ; i<groups ; i++)
+	NSUInteger i = 0;
+	for (i = 0 ; i<groups ; i++)
 	{
 		NSUInteger start = uregex_start(r, i, s);
 		NSUInteger end = uregex_end(r, i, s);
@@ -185,7 +187,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 		{
 			// FIXME: Factor all of this out into prepareResult()
 			uint32_t flags = prepareResult(self, r, ranges, groups, &s);
-			NSTextCheckingResult *result = 
+			NSTextCheckingResult *result =
 				[NSTextCheckingResult regularExpressionCheckingResultWithRanges: ranges
 				                                                          count: groups
 				                                              regularExpression: self];
@@ -197,7 +199,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 		while (!stop && uregex_findNext(r, &s) && (s == 0))
 		{
 			uint32_t flags = prepareResult(self, r, ranges, groups, &s);
-			NSTextCheckingResult *result = 
+			NSTextCheckingResult *result =
 				[NSTextCheckingResult regularExpressionCheckingResultWithRanges: ranges
 				                                                          count: groups
 				                                              regularExpression: self];
@@ -213,7 +215,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 }
 // The remaining methods are all meant to be wrappers around the primitive
 // method that takes a block argument.  Unfortunately, this is not really
-// possible when compiling with a compiler that doesn't support blocks.  
+// possible when compiling with a compiler that doesn't support blocks.
 #if __has_feature(blocks)
 - (NSUInteger)numberOfMatchesInString: (NSString*)string
                               options: (NSMatchingOptions)opts
@@ -223,7 +225,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	__block NSUInteger count = 0;
 	opts &= ~NSMatchingReportProgress;
 	opts &= ~NSMatchingReportCompletion;
-	GSRegexBlock block = 
+	GSRegexBlock block =
 		^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
 		{
 			count++;
@@ -241,7 +243,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	__block NSTextCheckingResult *r = nil;
 	opts &= ~NSMatchingReportProgress;
 	opts &= ~NSMatchingReportCompletion;
-	GSRegexBlock block = 
+	GSRegexBlock block =
 		^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
 		{
 			r = result;
@@ -260,7 +262,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	NSMutableArray *array = [NSMutableArray array];
 	opts &= ~NSMatchingReportProgress;
 	opts &= ~NSMatchingReportCompletion;
-	GSRegexBlock block = 
+	GSRegexBlock block =
 		^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
 		{
 			[array addObject: result];
@@ -278,7 +280,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	__block NSRange r;
 	opts &= ~NSMatchingReportProgress;
 	opts &= ~NSMatchingReportCompletion;
-	GSRegexBlock block = 
+	GSRegexBlock block =
 		^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
 		{
 			r= [result range];
@@ -356,8 +358,9 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	NSRange ranges[groups];
 	FAKE_BLOCK_HACK(array,
 		{
+			NSTextCheckingResult *result = NULL;
 			prepareResult(self, r, ranges, groups, &s);
-			NSTextCheckingResult *result = 
+			result =
 				[NSTextCheckingResult regularExpressionCheckingResultWithRanges: ranges
 				                                                          count: groups
 				                                              regularExpression: self];
@@ -384,7 +387,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
                         withTemplate: (NSString*)template
 {
 	// FIXME: We're computing a value that is most likely ignored in an
-	// expensive way.  
+	// expensive way.
 	NSInteger results = [self numberOfMatchesInString: string
 	                                          options: opts
 	                                            range: range];
@@ -393,9 +396,10 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	UText replacement = UTEXT_INITIALIZER;
 	GSUTextString *ret = [GSUTextString new];
 	URegularExpression *r = setupRegex(regex, string, &txt, opts, range, 0);
+	UText *output = NULL;
 	UTextInitWithNSString(&replacement, template);
 
-	UText *output = uregex_replaceAllUText(r, &replacement, NULL, &s);
+	output = uregex_replaceAllUText(r, &replacement, NULL, &s);
 	utext_clone(&ret->txt, output, TRUE, TRUE, &s);
 	[string setString: ret];
 	[ret release];
@@ -415,12 +419,13 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	UErrorCode s = 0;
 	UText txt = UTEXT_INITIALIZER;
 	UText replacement = UTEXT_INITIALIZER;
+	UText *output = NULL;
 	GSUTextString *ret = [GSUTextString new];
 	URegularExpression *r = setupRegex(regex, string, &txt, opts, range, 0);
 	UTextInitWithNSString(&replacement, template);
 
 
-	UText *output = uregex_replaceAllUText(r, &replacement, NULL, &s);
+	output = uregex_replaceAllUText(r, &replacement, NULL, &s);
 	utext_clone(&ret->txt, output, TRUE, TRUE, &s);
 	uregex_close(r);
 
@@ -438,9 +443,10 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	UErrorCode s = 0;
 	UText txt = UTEXT_INITIALIZER;
 	UText replacement = UTEXT_INITIALIZER;
+	UText *output = NULL;
 	GSUTextString *ret = [GSUTextString new];
 	NSRange range = [result range];
-	URegularExpression *r = setupRegex(regex, 
+	URegularExpression *r = setupRegex(regex,
 	                                   [string substringWithRange: range],
 	                                   &txt,
 	                                   0,
@@ -449,7 +455,7 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	UTextInitWithNSString(&replacement, template);
 
 
-	UText *output = uregex_replaceFirstUText(r, &replacement, NULL, &s);
+	output = uregex_replaceFirstUText(r, &replacement, NULL, &s);
 	utext_clone(&ret->txt, output, TRUE, TRUE, &s);
 	uregex_close(r);
 
