@@ -75,4 +75,5 @@ static inline void free_string(unichar **buf)
 	{\
 		name ## _onheap = malloc(size);\
 		name = name ## _onheap;\
-	}\
+	}
+
