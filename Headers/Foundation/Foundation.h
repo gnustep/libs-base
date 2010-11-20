@@ -44,7 +44,6 @@
 #import	<Foundation/NSBundle.h>
 #import	<Foundation/NSByteOrder.h>
 #import	<Foundation/NSCache.h>
-#import	<Foundation/NSCalendar.h>
 #import	<Foundation/NSCalendarDate.h>
 #import	<Foundation/NSCharacterSet.h>
 #import	<Foundation/NSClassDescription.h>
@@ -79,8 +78,8 @@
 #import	<Foundation/NSKeyedArchiver.h>
 #import	<Foundation/NSKeyValueCoding.h>
 #import	<Foundation/NSKeyValueObserving.h>
-#import	<Foundation/NSLocale.h>
 #import	<Foundation/NSLock.h>
+#import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
 #import	<Foundation/NSMethodSignature.h>
 #import	<Foundation/NSNotification.h>
