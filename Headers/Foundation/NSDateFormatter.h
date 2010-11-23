@@ -105,7 +105,9 @@ extern "C" {
 #if	GS_EXPOSE(NSDateFormatter)
   NSString	*_dateFormat;
   BOOL		_allowsNaturalLanguage;
-  NSLocale  *locale;
+#endif
+#if	!GS_NONFRAGILE
+  void		*_unused;
 #endif
 }
 
@@ -139,13 +141,7 @@ extern "C" {
  *  specifies strings similar to "June 18, 1991".
  */
 - (NSString *) dateFormat;
-- (NSLocale*)locale;
-- (void)setLocale: (NSLocale*)aLocale;
 @end
-
-extern NSString *const NSDateFormatterLongStyle;
-extern NSString *const NSDateFormatterShortStyle;
-extern NSString *const NSDateFormatterNoStyle;
 
 #endif
 

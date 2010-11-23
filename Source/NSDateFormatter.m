@@ -62,7 +62,6 @@
 
 - (void) dealloc
 {
-  RELEASE(locale);
   RELEASE(_dateFormat);
   [super dealloc];
 }
@@ -70,14 +69,6 @@
 - (NSString*) editingStringForObjectValue: (id)anObject
 {
   return [self stringForObjectValue: anObject];
-}
-- (NSLocale*)locale
-{
-	return locale;
-}
-- (void)setLocale: (NSLocale*)aLocale
-{
-	ASSIGN(locale, aLocale);
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

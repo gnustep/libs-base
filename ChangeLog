@@ -1,13 +1,3 @@
-2010-11-19 22:15  theraven
-
-	* libs/base/trunk/Source/GSICUString.h: Fixed missing newline at
-	  end of GSICUString.h
-
-2010-11-19 22:15  theraven
-
-	* libs/base/trunk/Source/GSICUString.h: Fixed missing newline at
-	  end of GSICUString.h
-
 2010-11-19  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSRegularExpression.m: Rearrange for non-C99 compliant
