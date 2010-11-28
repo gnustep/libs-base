@@ -42,11 +42,7 @@ before-all::  $(GENERATED_HFILES)
 after-all:: Info-gnustep.plist
 
 # Things to do before installing
-before-install::
-	cp ../Headers/Foundation/Foundation.h \
-	../Headers/Foundation/Foundation.h.saved
-	cp ../Headers/Foundation/Foundation.h.install \
-	../Headers/Foundation/Foundation.h
+#before-install::
 
 # Things to do after installing
 #

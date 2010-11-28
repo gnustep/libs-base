@@ -35,8 +35,6 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
-#else
-#import <Foundation/Foundation.h>
 #endif
 
 NSString *

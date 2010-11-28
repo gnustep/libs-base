@@ -1,3 +1,17 @@
+2010-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Remove unnecessary include of Foundation.h
+	* Source/Additions/GCDictionary.m: ditto
+	* Source/Additions/GCObject.m: ditto
+	* Source/Additions/GCArray.m: ditto
+	* Source/Additions/GSXML.m: ditto
+	* Source/Additions/GSFunctions.m: ditto
+	* Source/Additions/GSObjCRuntime.m: ditto
+	* Headers/Foundation/Foundation.h.install: obsolete file ... removed
+	* Source/Makefile.postamble: Don't install obsolete Foundation.h.install
+	header ... we no longer include Foundation.h anywhere so there's no
+	need to protect against getting the installed version.
+
 2010-11-19  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSRegularExpression.m: Rearrange for non-C99 compliant

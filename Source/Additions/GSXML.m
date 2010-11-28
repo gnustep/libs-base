@@ -4148,8 +4148,6 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 #ifndef NeXT_Foundation_LIBRARY
 #import	"Foundation/NSCoder.h"
 #import	"Foundation/NSInvocation.h"
-#else
-#import <Foundation/Foundation.h>
 #endif
 
 /*

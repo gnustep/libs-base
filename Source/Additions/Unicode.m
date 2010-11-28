@@ -29,9 +29,7 @@
 */
 
 #import "common.h"
-#if	defined(NeXT_Foundation_LIBRARY)
-#import <Foundation/Foundation.h>
-#else
+#if	!defined(NeXT_Foundation_LIBRARY)
 #import "Foundation/NSArray.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSDictionary.h"

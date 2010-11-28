@@ -1200,13 +1200,15 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		    break;
 
 		  case 'S':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		    sec = atoi(tmpStr);
 		    had |= hads;
 		    break;
 
 		  case 'w':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 1, &error);
 		    dayOfWeek = atoi(tmpStr);
 		    had |= hadw;
 		    break;
@@ -1214,7 +1216,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		  case 'W': // Fall through
 		    weekStartsMonday = 1;
 		  case 'U':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 1, &error);
 		    julianWeeks = atoi(tmpStr);
 		    break;
 
@@ -1225,7 +1228,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		    //	break;
 
 		  case 'y':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		    year = atoi(tmpStr);
 		    if (year >= 70)
 		      {
@@ -1239,7 +1243,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		    break;
 
 		  case 'Y':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 4, &error);
 		    year = atoi(tmpStr);
 		    had |= hadY;
 		    break;

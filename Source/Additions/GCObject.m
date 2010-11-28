@@ -33,8 +33,6 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSThread.h"
-#else
-#import <Foundation/Foundation.h>
 #endif
 
 #import "GNUstepBase/GCObject.h"

@@ -27,8 +27,6 @@
 #import "common.h"
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSException.h"
-#else
-#import <Foundation/Foundation.h>
 #endif
 
 #import "GNUstepBase/GSObjCRuntime.h"
