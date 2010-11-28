@@ -54,8 +54,6 @@ after-install::
 	  $(INSTALL_DATA) ../Headers/Additions/GNUstepBase/$$file \
 	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
-	cp ../Headers/Foundation/Foundation.h.saved \
-	../Headers/Foundation/Foundation.h
 	$(MKDIRS) $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h \
 	  $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
@@ -91,7 +89,6 @@ before-uninstall::
 # Things to do after cleaning
 after-clean::
 	rm -f libgnustep-base.def
-	rm -f ../Headers/Foundation/Foundation.h.saved
 
 # Things to do before distcleaning
 # before-distclean::
