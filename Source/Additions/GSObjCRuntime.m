@@ -44,8 +44,6 @@
 #import "Foundation/NSNull.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
-#else
-#import <Foundation/Foundation.h>
 #endif
 #import "GNUstepBase/GSObjCRuntime.h"
 
