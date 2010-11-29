@@ -1,3 +1,8 @@
+2010-11-29  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSPropertyList.h,
+	* Source/NSPropertyList.m: Add a few OSX 10.6 methods.
+
 2010-11-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Remove unnecessary include of Foundation.h

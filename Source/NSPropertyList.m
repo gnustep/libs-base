@@ -35,9 +35,11 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPropertyList.h"
 #import "Foundation/NSSerialization.h"
+#import "Foundation/NSStream.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
@@ -440,7 +442,7 @@ foundIgnorableWhitespace: (NSString *)string
 
 @end
 
-@interface BinaryPLGenerator : NSObject
+@interface GSBinaryPLGenerator : NSObject
 {
   NSMutableData *dest;
   NSMapTable 	*objectList;
@@ -2287,6 +2289,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 
 
 
+static inline NSError*
+create_error(int code, NSString* desc)
+{
+  return [NSError errorWithDomain: @"NSPropertyListSerialization"
+                  code: code 
+                  userInfo: [NSDictionary 
+                                dictionaryWithObjectsAndKeys: desc,
+                                NSLocalizedDescriptionKey, nil]];
+}
+
 
 @implementation	NSPropertyListSerialization
 
@@ -2324,6 +2336,25 @@ static BOOL	classInitialized = NO;
 			  format: (NSPropertyListFormat)aFormat
 		errorDescription: (NSString**)anErrorString
 {
+  NSError *error = nil;
+  NSData *data = [self dataWithPropertyList: aPropertyList
+                                     format: aFormat
+                                    options: 0
+                                      error: &error];
+
+  if ((error != nil) && (anErrorString != NULL))
+    {
+      *anErrorString = [error description];
+    }
+
+  return data;
+}
+
++ (NSData *) dataWithPropertyList: (id)aPropertyList
+                           format: (NSPropertyListFormat)aFormat
+                          options: (NSPropertyListWriteOptions)anOption
+                            error: (NSError**)error
+{
   NSMutableData	*dest;
   NSDictionary	*loc;
   int		step = 2;
@@ -2333,7 +2364,7 @@ static BOOL	classInitialized = NO;
 
   if (aFormat == NSPropertyListXMLFormat_v1_0)
     {
-      const char	*prefix =
+      const char *prefix =
 	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
 	"PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" "
 	"\"http://www.gnustep.org/plist-0_9.xml\">\n"
@@ -2349,7 +2380,7 @@ static BOOL	classInitialized = NO;
     }
   else if (aFormat == NSPropertyListBinaryFormat_v1_0)
     {
-      [BinaryPLGenerator serializePropertyList: aPropertyList intoData: dest];
+      [GSBinaryPLGenerator serializePropertyList: aPropertyList intoData: dest];
     }
   else
     {
@@ -2455,151 +2486,195 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 		     format: (NSPropertyListFormat*)aFormat
 	   errorDescription: (NSString**)anErrorString
 {
+  NSError *error = nil;
+  id prop = [self propertyListWithData: data
+                               options: anOption
+                                format: aFormat
+                                 error: &error];
+
+  if ((error != nil) && (anErrorString != NULL))
+    {
+      *anErrorString = [error description];
+    }
+
+  return prop;
+}
+
++ (id) propertyListWithData: (NSData*)data
+                    options: (NSPropertyListReadOptions)anOption
+                     format: (NSPropertyListFormat*)aFormat
+                      error: (NSError**)error
+{
   NSPropertyListFormat	format = 0;
-  NSString		*error = nil;
+  NSString           *errorStr = nil;
   id			result = nil;
   const unsigned char	*bytes = 0;
   unsigned int		length = 0;
 
   if (data == nil)
     {
-      error = @"nil data argument passed to method";
+      errorStr = @"nil data argument passed to method";
     }
   else if ([data isKindOfClass: NSDataClass] == NO)
     {
-      error = @"non-NSData data argument passed to method";
+      errorStr = @"non-NSData data argument passed to method";
     }
   else if ([data length] == 0)
     {
-      error = @"empty data argument passed to method";
+      errorStr = @"empty data argument passed to method";
     }
   else
     {
       bytes = [data bytes];
       length = [data length];
       if (length >= 8 && memcmp(bytes, "bplist00", 8) == 0)
-	{
-	  format = NSPropertyListBinaryFormat_v1_0;
-	}
+        {
+          format = NSPropertyListBinaryFormat_v1_0;
+        }
       else if (bytes[0] == 0 || bytes[0] == 1)
-	{
-	  format = NSPropertyListGNUstepBinaryFormat;
-	}
+        {
+          format = NSPropertyListGNUstepBinaryFormat;
+        }
       else
-	{
-	  unsigned int		index = 0;
+        {
+          unsigned int index = 0;
 
-	  // Skip any leading white space.
-	  while (index < length && GS_IS_WHITESPACE(bytes[index]) == YES)
-	    {
-	      index++;
-	    }
-
-	  if (length - index > 2
-	    && bytes[index] == '<' && bytes[index+1] == '?')
-	    {
-	      // It begins with '<?' so it is xml
-	      format = NSPropertyListXMLFormat_v1_0;
-	    }
-	  else
-	    {
-	      // Assume openstep format unless we find otherwise.
-	      format = NSPropertyListOpenStepFormat;
-	    }
-	}
+          // Skip any leading white space.
+          while (index < length && GS_IS_WHITESPACE(bytes[index]) == YES)
+            {
+              index++;
+            }
+          
+          if (length - index > 2
+              && bytes[index] == '<' && bytes[index+1] == '?')
+            {
+              // It begins with '<?' so it is xml
+              format = NSPropertyListXMLFormat_v1_0;
+            }
+          else
+            {
+              // Assume openstep format unless we find otherwise.
+          format = NSPropertyListOpenStepFormat;
+            }
+        }
     }
 
-  if (error == nil)
+  if (errorStr == nil)
     {
       switch (format)
-	{
-	  case NSPropertyListXMLFormat_v1_0:
-	    {
-	      GSXMLPListParser *parser;
+        {
+        case NSPropertyListXMLFormat_v1_0:
+          {
+            GSXMLPListParser *parser;
+            
+            parser = [GSXMLPListParser alloc];
+            parser = AUTORELEASE([parser initWithData: data
+                                           mutability: anOption]);
+            if ([parser parse] == YES)
+              {
+                result = AUTORELEASE(RETAIN([parser result]));
+              }
+            else
+              { 
+                errorStr = @"failed to parse as XML property list";
+              }
+          }
+          break;
+          
+        case NSPropertyListOpenStepFormat:
+          {
+            pldata	_pld;
+            
+            _pld.ptr = bytes;
+            _pld.pos = 0;
+            _pld.end = length;
+            _pld.err = nil;
+            _pld.lin = 0;
+            _pld.opt = anOption;
+            _pld.key = NO;
+            _pld.old = YES;	// OpenStep style
+            
+            result = AUTORELEASE(parsePlItem(&_pld));
+            if (_pld.old == NO)
+              {
+                // Found some modern GNUstep extension in data.
+                format = NSPropertyListGNUstepFormat;
+              }
+            if (_pld.err != nil)
+              {
+                errorStr = [NSString stringWithFormat:
+                                       @"Parse failed at line %d (char %d) - %@",
+                                     _pld.lin + 1, _pld.pos + 1, _pld.err];
+              }
+          }
+          break;
 
-	      parser = [GSXMLPListParser alloc];
-	      parser = AUTORELEASE([parser initWithData: data
-					     mutability: anOption]);
-	      if ([parser parse] == YES)
-		{
-		  result = AUTORELEASE(RETAIN([parser result]));
-		}
-	      else if (error == nil)
-		{
-		  error = @"failed to parse as XML property list";
-		}
-	    }
-	    break;
-
-	  case NSPropertyListOpenStepFormat:
-	    {
-	      pldata	_pld;
-
-	      _pld.ptr = bytes;
-	      _pld.pos = 0;
-	      _pld.end = length;
-	      _pld.err = nil;
-	      _pld.lin = 0;
-	      _pld.opt = anOption;
-	      _pld.key = NO;
-	      _pld.old = YES;	// OpenStep style
-
-	      result = AUTORELEASE(parsePlItem(&_pld));
-	      if (_pld.old == NO)
-		{
-		  // Found some modern GNUstep extension in data.
-		  format = NSPropertyListGNUstepFormat;
-		}
-	      if (_pld.err != nil)
-		{
-		  error = [NSString stringWithFormat:
-		    @"Parse failed at line %d (char %d) - %@",
-		    _pld.lin + 1, _pld.pos + 1, _pld.err];
-		}
-	    }
-	    break;
-
-	  case NSPropertyListGNUstepBinaryFormat:
-	    if (anOption == NSPropertyListImmutable)
-	      {
-		result = [NSDeserializer deserializePropertyListFromData: data
-						       mutableContainers: NO];
-	      }
-	    else
-	      {
-		result = [NSDeserializer deserializePropertyListFromData: data
-						       mutableContainers: YES];
-	      }
-	    break;
-
-	  case NSPropertyListBinaryFormat_v1_0:
-	    {
-	      GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
-
-	      p = [p initWithData: data mutability: anOption];
-	      result = [p rootObject];
-	      RELEASE(p);
-	    }
-	    break;
-
-	  default:
-	    error = @"format not supported";
-	    break;
-	}
+        case NSPropertyListGNUstepBinaryFormat:
+          if (anOption == NSPropertyListImmutable)
+            {
+              result = [NSDeserializer deserializePropertyListFromData: data
+                                                     mutableContainers: NO];
+            }
+          else
+            {
+              result = [NSDeserializer deserializePropertyListFromData: data
+                                                     mutableContainers: YES];
+            }
+          break;
+          
+        case NSPropertyListBinaryFormat_v1_0:
+          {
+            GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
+            
+            p = [p initWithData: data mutability: anOption];
+            result = [p rootObject];
+            RELEASE(p);
+          }
+          break;
+          
+        default:
+          errorStr = @"format not supported";
+          break;
+        }
     }
 
   /*
    * Done ... return all values.
    */
-  if (anErrorString != 0)
+  if ((errorStr != nil) && (error != NULL))
     {
-      *anErrorString = error;
+      *error = create_error(0, errorStr);
     }
   if (aFormat != 0)
     {
       *aFormat = format;
     }
   return result;
+}
+
++ (id) propertyListWithStream: (NSInputStream*)stream
+                      options: (NSPropertyListReadOptions)anOption
+                       format: (NSPropertyListFormat*)aFormat
+                        error: (NSError**)error
+{
+  // FIXME
+  return nil;
+}
+
++ (NSInteger) writePropertyList: (id)aPropertyList
+                       toStream: (NSOutputStream*)stream
+                         format: (NSPropertyListFormat)aFormat
+                        options: (NSPropertyListWriteOptions)anOption
+                          error: (NSError**)error
+{
+  // FIXME: The NSData operations should be implemented on top of this method, 
+  // not the other way round,
+  NSData *data = [self dataWithPropertyList: aPropertyList
+                                     format: aFormat
+                                    options: 0
+                                      error: error];
+
+  return [stream write: [data bytes] maxLength: [data length]];
 }
 
 @end
@@ -3254,14 +3329,14 @@ isEqualFunc(const void *item1, const void *item2,
   return [o1 isEqual: o2];
 }
 
-@implementation BinaryPLGenerator
+@implementation GSBinaryPLGenerator
 
 + (void) serializePropertyList: (id)aPropertyList
 		      intoData: (NSMutableData *)destination
 {
-  BinaryPLGenerator *gen;
+  GSBinaryPLGenerator *gen;
 
-  gen = [[BinaryPLGenerator alloc]
+  gen = [[GSBinaryPLGenerator alloc]
     initWithPropertyList: aPropertyList intoData: destination];
   [gen generate];
   RELEASE(gen);
@@ -3524,6 +3599,19 @@ isEqualFunc(const void *item1, const void *item2,
 
       oid = NSSwapHostShortToBig(index);
       [dest appendBytes: &oid length: 2];
+    }
+  else if (index_size == 3)
+    {
+      unsigned char buffer[index_size];
+      int i;
+      unsigned num = index;
+
+      for (i = index_size - 1; i >= 0; i--)
+        {
+	  buffer[i] = num & 0xFF;
+          num >>= 8;
+	}
+      [dest appendBytes: buffer length: index_size];
     }
   else if (index_size == 4)
     {
