@@ -37,7 +37,7 @@ extern "C" {
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
-@class NSData, NSString;
+@class NSData, NSString, NSInputStream, NSOutputStream;
 
 enum {
   NSPropertyListImmutable = 0,
@@ -64,6 +64,12 @@ enum {
   NSPropertyListGNUstepFormat = 1000,
   NSPropertyListGNUstepBinaryFormat,
 };
+
+#if OS_API_VERSION(100600,GS_API_LATEST)
+typedef NSUInteger NSPropertyListWriteOptions;
+typedef NSUInteger NSPropertyListReadOptions;
+#endif
+
 /**
  * Specifies the serialisation format for a serialised property list.
  * <list>
@@ -253,6 +259,26 @@ typedef NSUInteger NSPropertyListFormat;
 	   mutabilityOption: (NSPropertyListMutabilityOptions)anOption
 		     format: (NSPropertyListFormat*)aFormat
 	   errorDescription: (NSString**)anErrorString;
+
+#if OS_API_VERSION(100600,GS_API_LATEST)
++ (NSData *) dataWithPropertyList: (id)aPropertyList
+                           format: (NSPropertyListFormat)aFormat
+                          options: (NSPropertyListWriteOptions)anOption
+                            error: (NSError**)error;
++ (id) propertyListWithData: (NSData*)data
+                    options: (NSPropertyListReadOptions)anOption
+                     format: (NSPropertyListFormat*)aFormat
+                      error: (NSError**)error;
++ (id) propertyListWithStream: (NSInputStream*)stream
+                      options: (NSPropertyListReadOptions)anOption
+                       format: (NSPropertyListFormat*)aFormat
+                        error: (NSError**)error;
++ (NSInteger) writePropertyList: (id)plist
+                       toStream: (NSOutputStream*)stream
+                         format: (NSPropertyListFormat)aFormat
+                        options: (NSPropertyListWriteOptions)anOption
+                          error: (NSError**)error;
+#endif
 
 @end
 
