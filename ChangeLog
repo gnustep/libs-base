@@ -1,3 +1,8 @@
+2010-12-02  Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Source/NSRegularExpression.m: Add a guard so this file isn't compiled
+	if the ICU version is older than 4.4.
+
 2010-11-29  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSPropertyList.h,
