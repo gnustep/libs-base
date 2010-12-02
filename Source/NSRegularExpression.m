@@ -1,6 +1,8 @@
 #include "config.h"
 #if HAVE_ICU
 #include "unicode/uregex.h"
+#if (U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
+
 #define GSREGEXTYPE URegularExpression
 #import "GSICUString.h"
 #import "Foundation/NSRegularExpression.h"
@@ -520,4 +522,5 @@ static uint32_t prepareResult(NSRegularExpression *regex,
 	return self;
 }
 @end
+#endif //U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
 #endif //HAV_ICU
