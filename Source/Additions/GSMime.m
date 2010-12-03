@@ -4030,6 +4030,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  buf[i] = '\0';
 	}
       decodebase64(tail, buf);
+      if (pad > 3) pad = 3;
       memcpy(dst, tail, 3 - pad);
       dst += 3 - pad;
     }
