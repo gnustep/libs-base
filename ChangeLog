@@ -1,3 +1,8 @@
+2010-12-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Fix possible memory corruption when asked
+	to base64 decode corrupt data with too many '=' characters.
+
 2010-12-02  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/NSRegularExpression.m: Add a guard so this file isn't compiled
