@@ -1,3 +1,8 @@
+2010-12-06  Riccardo Mottola
+
+	* Source/NSPathUtilities.m:
+	Make the Desktop directory relative to the user home.
+	
 2010-12-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Fix possible memory corruption when asked
