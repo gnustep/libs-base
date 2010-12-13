@@ -69,6 +69,7 @@ GS_EXPORT NSString * const NSLocaleCurrencySymbol;
 GS_EXPORT NSString * const NSLocaleCurrencyCode;
 GS_EXPORT NSString * const NSLocaleCollatorIdentifier;
 GS_EXPORT NSString * const NSLocaleQuotationBeginDelimiterKey;
+GS_EXPORT NSString * const NSLocaleQuotationEndDelimiterKey;
 GS_EXPORT NSString * const NSLocaleAlternateQuotationBeginDelimiterKey;
 GS_EXPORT NSString * const NSLocaleAlternateQuotationEndDelimiterKey;
 

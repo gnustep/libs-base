@@ -1,3 +1,8 @@
+2010-12-12  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/Foundation/NSLocale.h: Added missing constant.
+	* Source/NSLocale.m: Implemented more functionality.
+	
 2010-12-06  Riccardo Mottola
 
 	* Source/NSPathUtilities.m:
