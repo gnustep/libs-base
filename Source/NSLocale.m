@@ -307,6 +307,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   if (self == [NSLocale class])
     {
       classLock = [GSLazyRecursiveLock new];
+      allLocales = [[NSMutableDictionary alloc] initWithCapacity: 0];
     }
 }
 
@@ -398,7 +399,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
   strLength =
     uloc_getLanguage (cLocaleId, buffer, ULOC_LANG_CAPACITY, &error);
-  if (U_SUCCESS(error))
+  if (U_SUCCESS(error) && strLength)
     {
       [tmpDict setValue: [NSString stringWithUTF8String: buffer]
                  forKey: NSLocaleLanguageCode];
@@ -407,27 +408,27 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
   strLength =
     uloc_getCountry (cLocaleId, buffer, ULOC_COUNTRY_CAPACITY, &error);
-  if (U_SUCCESS(error))
+  if (U_SUCCESS(error) && strLength)
     {
-      [tmpDict setObject: [NSString stringWithUTF8String: buffer]
+      [tmpDict setValue: [NSString stringWithUTF8String: buffer]
                   forKey: NSLocaleCountryCode];
     }
   error = U_ZERO_ERROR;
 
   strLength =
     uloc_getScript (cLocaleId, buffer, ULOC_SCRIPT_CAPACITY, &error);
-  if (U_SUCCESS(error))
+  if (U_SUCCESS(error) && strLength)
     {
-      [tmpDict setObject: [NSString stringWithUTF8String: buffer]
+      [tmpDict setValue: [NSString stringWithUTF8String: buffer]
                   forKey: NSLocaleScriptCode];
     }
   error = U_ZERO_ERROR;
 
   strLength =
     uloc_getVariant (cLocaleId, buffer, ULOC_LANG_CAPACITY, &error);
-  if (U_SUCCESS(error))
+  if (U_SUCCESS(error) && strLength)
     {
-      [tmpDict setObject: [NSString stringWithUTF8String: buffer]
+      [tmpDict setValue: [NSString stringWithUTF8String: buffer]
                   forKey: NSLocaleVariantCode];
     }
   error = U_ZERO_ERROR;
@@ -614,8 +615,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   char buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status = U_ZERO_ERROR;
 
-  int32_t length =
-    uloc_getLocaleForLCID (lcid, buffer, ULOC_FULLNAME_CAPACITY, &status);
+  uloc_getLocaleForLCID (lcid, buffer, ULOC_FULLNAME_CAPACITY, &status);
   if (U_FAILURE(status))
     return nil;
 
@@ -726,10 +726,6 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 #endif
 
   [classLock lock];
-  if (nil == allLocales)
-    {
-      allLocales = [[NSMutableDictionary alloc] initWithCapacity: 0];
-    }
   newLocale = [allLocales objectForKey: localeId];
   if (nil == newLocale)
     {
@@ -742,6 +738,8 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
       self = [newLocale retain];
     }
   [classLock unlock];
+  
+  _components = [[NSMutableDictionary alloc] initWithCapacity: 0];
 
   return self;
 }
