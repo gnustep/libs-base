@@ -1,3 +1,9 @@
+2010-12-14  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSLocale.m: Initialize _components before using it and initilize
+	allLocales class variable in +initialize.  Also stop adding blank entries
+	to _components dictionary.
+	
 2010-12-12  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/Foundation/NSLocale.h: Added missing constant.
