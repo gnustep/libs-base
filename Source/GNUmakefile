@@ -172,6 +172,7 @@ NSAutoreleasePool.m \
 NSBundle.m \
 NSCache.m \
 NSCachedURLResponse.m \
+NSCalendar.m \
 NSCalendarDate.m \
 NSCallBacks.m \
 NSCharacterSet.m \
