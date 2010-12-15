@@ -25,7 +25,7 @@
 #import "common.h"
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSArray.h"
-//#import "Foundation/NSCalendar.h"
+#import "Foundation/NSCalendar.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSDictionary.h"
@@ -157,8 +157,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 - (NSString *) _getMeasurementSystem;
 - (NSCharacterSet *) _getExemplarCharacterSet;
 - (NSString *) _getDelimiterWithType: (NSInteger) delimiterType;
-//- (NSCalendar *) _getCalendar;
-- (id) _getCalendar;
+- (NSCalendar *) _getCalendar;
 - (NSString *) _getDecimalSeparator;
 - (NSString *) _getGroupingSeparator;
 - (NSString *) _getCurrencySymbol;
@@ -175,7 +174,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   UErrorCode err = U_ZERO_ERROR;
   NSString *result = nil;
   
-  cLocaleId = [[self localeIdentifier] UTF8String];
+  cLocaleId = [_localeId UTF8String];
   localeData = ulocdata_open (cLocaleId, &err);
   if (U_FAILURE(err))
     return nil;
@@ -208,7 +207,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   if (mSet == nil)
     return nil;
   
-  cLocaleId = [[self localeIdentifier] UTF8String];
+  cLocaleId = [_localeId UTF8String];
   localeData = ulocdata_open (cLocaleId, &err);
   if (U_FAILURE(err))
     return nil;
@@ -259,7 +258,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   ULocaleData *localeData;
   UChar result[32]; // Arbritrary size
   
-  cLocaleId = [[self localeIdentifier] UTF8String];
+  cLocaleId = [_localeId UTF8String];
   localeData = ulocdata_open (cLocaleId, &err);
   strLen = ulocdata_getDelimiter (localeData, delimiterType, result, 32, &err);
   if (U_SUCCESS(err))
@@ -268,11 +267,24 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   return nil;
 }
 
-//- (NSCalendar *) _getCalendar
-- (id) _getCalendar
+- (NSCalendar *) _getCalendar
 {
-  // FIXME: requires NSCalendar
-  return nil;
+  NSCalendar *result;
+  NSString *calId;
+  int strLen;
+  char buffer[ULOC_KEYWORDS_CAPACITY];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  strLen = uloc_getKeywordValue ([_localeId UTF8String], ICUCalendarKeyword,
+    buffer, ULOC_KEYWORDS_CAPACITY, &err);
+  if (U_SUCCESS(err) && strLen > 0)
+    calId = [NSString stringWithUTF8String: buffer];
+  else
+    calId = NSGregorianCalendar;
+  
+  result = [[NSCalendar alloc] initWithCalendarIdentifier: calId];
+  
+  return result;
 }
 
 // FIXME: these should be fairly simple, but require changes to NSNumberFormatter.
@@ -641,7 +653,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   unichar buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode status;
   const char *keyword = NULL;
-  const char *locale = [[self localeIdentifier] UTF8String];
+  const char *locale = [_localeId UTF8String];
 
   if ([key isEqualToString: NSLocaleIdentifier])
     {
@@ -762,7 +774,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   if ([_components count] == 0)
     {
       [_components addEntriesFromDictionary:
-        [NSLocale componentsFromLocaleIdentifier: [self localeIdentifier]]];
+        [NSLocale componentsFromLocaleIdentifier: _localeId]];
       if ((result = [_components objectForKey: key]))
         return result;
     }
