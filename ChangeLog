@@ -1,5 +1,9 @@
 2010-12-14  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/NSLocale.m: Added NSCalendar dependent code.
+	
+2010-12-14  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/Foundation/Foundation.h:
 	* Source/GNUmakefile: Include NSCalendar.
 	* configure.ac: Check for unicode/ucal.h.
