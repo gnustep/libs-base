@@ -36,6 +36,9 @@
 #import "Foundation/NSString.h"
 #import "GNUstepBase/GSLock.h"
 
+NSString * const NSCurrentLocaleDidChangeNotification =
+  @"NSCurrentLocaleDidChangeNotification";
+
 //
 // NSLocale Component Keys
 //
@@ -45,8 +48,9 @@ NSString * const NSLocaleCountryCode = @"NSLocaleCountryCode";
 NSString * const NSLocaleScriptCode = @"NSLocaleScriptCode";
 NSString * const NSLocaleVariantCode = @"NSLocaleVariantCode";
 NSString * const NSLocaleExemplarCharacterSet = @"NSLocaleExemplarCharacterSet";
+NSString * const NSLocaleCalendarIdentifier = @"calendar";
 NSString * const NSLocaleCalendar = @"NSLocaleCalendar";
-NSString * const NSLocaleCollationIdentifier = @"NSLocaleCollationIdentifier";
+NSString * const NSLocaleCollationIdentifier = @"collation";
 NSString * const NSLocaleUsesMetricSystem = @"NSLocaleUsesMetricSystem";
 NSString * const NSLocaleMeasurementSystem = @"NSLocaleMeasurementSystem";
 NSString * const NSLocaleDecimalSeparator = @"NSLocaleDecimalSeparator";
@@ -80,12 +84,6 @@ NSString * const NSRepublicOfChinaCalendar = @"roc";
 NSString * const NSPersianCalendar = @"persian";
 NSString * const NSIndianCalendar = @"indian";
 NSString * const NSISO8601Calendar = @"";
-
-static NSLocale *autoupdatingLocale = nil;
-static NSLocale *currentLocale = nil;
-static NSLocale *systemLocale = nil;
-static NSMutableDictionary *allLocales = nil;
-static NSRecursiveLock *classLock = nil;
 
 #if	defined(HAVE_UNICODE_ULOC_H)
 # include <unicode/uloc.h>
@@ -314,6 +312,12 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
 @implementation NSLocale
 
+static NSLocale *autoupdatingLocale = nil;
+static NSLocale *currentLocale = nil;
+static NSLocale *systemLocale = nil;
+static NSMutableDictionary *allLocales = nil;
+static NSRecursiveLock *classLock = nil;
+
 + (void) initialize
 {
   if (self == [NSLocale class])
@@ -401,16 +405,17 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 + (NSDictionary *) componentsFromLocaleIdentifier: (NSString *) string
 {
 #if	GS_USE_ICU == 1
-  char buffer[ULOC_LANG_CAPACITY];
+  char buffer[ULOC_KEYWORD_AND_VALUES_CAPACITY];
   const char *cLocaleId = [string UTF8String];
   int32_t strLength;
+  UEnumeration *enumerator;
   UErrorCode error = U_ZERO_ERROR;
   NSDictionary *result;
   NSMutableDictionary *tmpDict =
     [[NSMutableDictionary alloc] initWithCapacity: 5];
 
-  strLength =
-    uloc_getLanguage (cLocaleId, buffer, ULOC_LANG_CAPACITY, &error);
+  strLength = uloc_getLanguage (cLocaleId, buffer,
+    ULOC_KEYWORD_AND_VALUES_CAPACITY, &error);
   if (U_SUCCESS(error) && strLength)
     {
       [tmpDict setValue: [NSString stringWithUTF8String: buffer]
@@ -418,8 +423,8 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
     }
   error = U_ZERO_ERROR;
 
-  strLength =
-    uloc_getCountry (cLocaleId, buffer, ULOC_COUNTRY_CAPACITY, &error);
+  strLength = uloc_getCountry (cLocaleId, buffer,
+    ULOC_KEYWORD_AND_VALUES_CAPACITY, &error);
   if (U_SUCCESS(error) && strLength)
     {
       [tmpDict setValue: [NSString stringWithUTF8String: buffer]
@@ -427,8 +432,8 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
     }
   error = U_ZERO_ERROR;
 
-  strLength =
-    uloc_getScript (cLocaleId, buffer, ULOC_SCRIPT_CAPACITY, &error);
+  strLength = uloc_getScript (cLocaleId, buffer,
+    ULOC_KEYWORD_AND_VALUES_CAPACITY, &error);
   if (U_SUCCESS(error) && strLength)
     {
       [tmpDict setValue: [NSString stringWithUTF8String: buffer]
@@ -436,17 +441,41 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
     }
   error = U_ZERO_ERROR;
 
-  strLength =
-    uloc_getVariant (cLocaleId, buffer, ULOC_LANG_CAPACITY, &error);
+  strLength = uloc_getVariant (cLocaleId, buffer,
+    ULOC_KEYWORD_AND_VALUES_CAPACITY, &error);
   if (U_SUCCESS(error) && strLength)
     {
       [tmpDict setValue: [NSString stringWithUTF8String: buffer]
                   forKey: NSLocaleVariantCode];
     }
   error = U_ZERO_ERROR;
-
-  // FIXME: get keywords
-
+  
+  enumerator = uloc_openKeywords (cLocaleId, &error);
+  if (U_SUCCESS(error))
+    {
+      const char *keyword;
+      error = U_ZERO_ERROR;
+      
+      keyword = uenum_next(enumerator, NULL, &error);
+      while (keyword && U_SUCCESS(error))
+        {
+          error = U_ZERO_ERROR;
+          strLength = uloc_getKeywordValue (cLocaleId, keyword, buffer,
+            ULOC_KEYWORD_AND_VALUES_CAPACITY, &error);
+          if (strLength && U_SUCCESS(error))
+            {
+              // This is OK because NSLocaleCalendarIdentifier = "calendar"
+              // and NSLocaleCollationIdentifier = "collation".
+              [tmpDict setValue: [NSString stringWithUTF8String: buffer]
+                         forKey: [NSString stringWithUTF8String: keyword]];
+          
+              error = U_ZERO_ERROR;
+              keyword = uenum_next (enumerator, NULL, &error);
+            }
+        }
+    }
+  uenum_close (enumerator);
+  
   result = [NSDictionary dictionaryWithDictionary: tmpDict];
   RELEASE(tmpDict);
   return result;
@@ -590,12 +619,12 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   const char *script = [[dict objectForKey: NSLocaleScriptCode] UTF8String];
   const char *country = [[dict objectForKey: NSLocaleCountryCode] UTF8String];
   const char *variant = [[dict objectForKey: NSLocaleVariantCode] UTF8String];
-  const char *calendar = NULL;
-//    [[[dict objectForKey: NSLocaleCalendar] calendarIdentifier] UTF8String];
+  const char *calendar =
+    [[[dict objectForKey: NSLocaleCalendar] calendarIdentifier] UTF8String];
   const char *collation =
     [[dict objectForKey: NSLocaleCollationIdentifier] UTF8String];
   
-  // A locale cannot be constructed with a language.
+  // A locale cannot be constructed without a language.
   if (language == NULL)
     return nil;
 #define __TEST_CODE(x) (x ? "_" : ""), (x ? x : "")
@@ -604,7 +633,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 #undef __TEST_CODE
   
   // I'm not using uloc_setKeywordValue() here because the format is easy
-  // enough to reproduce and has the added advatange that it doesn't require ICU.
+  // enough to reproduce and has the added advatange that we doesn't need ICU.
   if (calendar)
     [string appendFormat: @"@calendar=%s", calendar];
   if (collation)
@@ -795,6 +824,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
     result = [self _getMeasurementSystem];
   else if ([key isEqualToString: NSLocaleExemplarCharacterSet])
     result = [self _getExemplarCharacterSet];
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
   else if ([key isEqualToString: NSLocaleQuotationBeginDelimiterKey])
     result = [self _getDelimiterWithType: ULOCDATA_QUOTATION_START];
   else if ([key isEqualToString: NSLocaleQuotationBeginDelimiterKey])
@@ -803,6 +833,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
     result = [self _getDelimiterWithType: ULOCDATA_ALT_QUOTATION_START];
   else if ([key isEqualToString: NSLocaleAlternateQuotationEndDelimiterKey])
     result = [self _getDelimiterWithType: ULOCDATA_ALT_QUOTATION_END];
+#endif
   else if ([key isEqualToString: NSLocaleCalendar])
     result = [self _getCalendar];
   else if ([key isEqualToString: NSLocaleDecimalSeparator])

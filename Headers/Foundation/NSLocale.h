@@ -59,6 +59,7 @@ GS_EXPORT NSString * const NSLocaleCountryCode;
 GS_EXPORT NSString * const NSLocaleScriptCode;
 GS_EXPORT NSString * const NSLocaleVariantCode;
 GS_EXPORT NSString * const NSLocaleExemplarCharacterSet;
+GS_EXPORT NSString * const NSLocaleCalendarIdentifier;
 GS_EXPORT NSString * const NSLocaleCalendar;
 GS_EXPORT NSString * const NSLocaleCollationIdentifier;
 GS_EXPORT NSString * const NSLocaleUsesMetricSystem;
@@ -68,10 +69,12 @@ GS_EXPORT NSString * const NSLocaleGroupingSeparator;
 GS_EXPORT NSString * const NSLocaleCurrencySymbol;
 GS_EXPORT NSString * const NSLocaleCurrencyCode;
 GS_EXPORT NSString * const NSLocaleCollatorIdentifier;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 GS_EXPORT NSString * const NSLocaleQuotationBeginDelimiterKey;
 GS_EXPORT NSString * const NSLocaleQuotationEndDelimiterKey;
 GS_EXPORT NSString * const NSLocaleAlternateQuotationBeginDelimiterKey;
 GS_EXPORT NSString * const NSLocaleAlternateQuotationEndDelimiterKey;
+#endif
 
 //
 // NSLocale Calendar Keys
@@ -83,10 +86,12 @@ GS_EXPORT NSString * const NSHebrewCalendar;
 GS_EXPORT NSString * const NSIslamicCalendar;
 GS_EXPORT NSString * const NSIslamicCivilCalendar;
 GS_EXPORT NSString * const NSJapaneseCalendar;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 GS_EXPORT NSString * const NSRepublicOfChinaCalendar;
 GS_EXPORT NSString * const NSPersianCalendar;
 GS_EXPORT NSString * const NSIndianCalendar;
 GS_EXPORT NSString * const NSISO8601Calendar;
+#endif
 
 /**
  * Provides information describing language, date and time, and currency
