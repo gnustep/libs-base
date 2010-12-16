@@ -22,6 +22,41 @@
 #   License along with this library; if not, write to the Free
 #   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #   Boston, MA 02111 USA
+
+#
+# DEPENDENCIES POLICY
+#
+# Generally the aim in the base library is to minimise dependencies on
+# external libraries which may not come as standard on all systems, and
+# you should not, as a rule, add such dependencies.
+#
+# However, in some cases there are large areas of functionality where it
+# would just be too much effort to implement things ourselves and it makes
+# sense to use external software to do the job.
+#
+# In such cases this configure.ac script should include options to allow
+# people to build with the dependency or to disable those parts of the
+# base library which require the external dependency and build without it.
+# The configure script should support a --disable-xxx option in such a case,
+# where 'xxx' is the name of the dependency.
+#
+# Where a dependency is introduced this script should do this by setting
+# HAVE_XXX to 1 or 0 and calling AC_SUBST(XXX) to substitute the information
+# into the make files:
+#   config.mak.in: used to build the base library itsself
+#   base.make.in: the makefile fragment used to build software which uses base
+# These files then define GNUSTEP_BASE_HAVE_XXX to 1 or 0 so that the variable
+# may be used to control conditional compilation of particular files.
+#
+# In addition the values should be substituted into the header file
+# Headers/Additions/GNUstepBase/GSConfig.h.in so that it can define a
+# preprocessor constant of the form GS_USE_XXX to 1 or 0, providing a
+# standard mechanism for parts of a paritcvular file to compile to make
+# use of the external code or not.
+# This file is included by all the base library source code, and may also
+# be included by code which uses the base library.
+#
+
 builtin(include, config/objc-con-autoload.m4)dnl
 builtin(include, config/objc-sys-dynamic.m4)dnl
 builtin(include, config/procfs-exe-link.m4)dnl
@@ -2472,8 +2507,8 @@ fi
 
 #--------------------------------------------------------------------
 # Check recent libxml for Properytlists, GSXML, GSDoc etc.
+# See DEPENDENCIES POLICY at the start of thsi file.
 #--------------------------------------------------------------------
-
 AC_ARG_ENABLE(xml,
   [  --disable-xml			Compile even if XML-dependencies are not met],,
   enable_xml=yes)
@@ -2544,8 +2579,8 @@ AC_SUBST(HAVE_LIBXML)
 
 #--------------------------------------------------------------------
 # Check recent libgnutls for SSL streams.
+# See DEPENDENCIES POLICY at the start of thsi file.
 #--------------------------------------------------------------------
-
 AC_ARG_ENABLE(tls,
   [  --disable-tls			Disable use of GNUTLS],,
   enable_tls=yes)
@@ -2595,6 +2630,7 @@ AC_SUBST(HAVE_GNUTLS)
 
 #--------------------------------------------------------------------
 # Check for NSNetServices
+# See DEPENDENCIES POLICY at the start of thsi file.
 #--------------------------------------------------------------------
 HAVE_MDNS=0
 HAVE_AVAHI=0
@@ -2625,7 +2661,8 @@ if test $enable_zeroconf = yes; then
       fi
     fi
   fi
-  # If we have both APIs, perfer Avahi, because the mDNS API is most certainly the compatability one
+  # If we have both APIs, prefer Avahi, because the mDNS API
+  # is most certainly the compatability one
   if test "$have_avahi" = "yes" && test "$have_mdns" = "yes"; then
     LIBS="$AVAHI_LIBS $LIBS"
     HAVE_MDNS=0
@@ -2638,6 +2675,7 @@ AC_SUBST(HAVE_MDNS)
 AC_SUBST(HAVE_AVAHI)
 #--------------------------------------------------------------------
 # Check for International Components for Unicode
+# See DEPENDENCIES POLICY at the start of thsi file.
 #--------------------------------------------------------------------
 HAVE_ICU=0
 AC_ARG_ENABLE(icu,
@@ -2645,14 +2683,12 @@ AC_ARG_ENABLE(icu,
   enable_icu=yes)
 
 if test $enable_icu = yes; then
-  AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
+  AC_CHECK_ICU(4.6, have_icu=yes, have_icu=no)
   if test "$have_icu" = "yes"; then
     AC_MSG_RESULT(yes)
     AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h)
     LIBS="$LIBS $ICU_LIBS"
     HAVE_ICU=1
-    AC_DEFINE(HAVE_ICU,1,
-            [Define if using International Components for Unicode])
   else
     AC_MSG_RESULT(no)
   fi

@@ -95,7 +95,7 @@ NSString * const NSISO8601Calendar = @"";
 # include <unicode/ucurr.h>
 #endif
 
-#if	defined(HAVE_ICU)
+#if	GS_USE_ICU == 1
 //
 // ICU Component Keywords
 //
@@ -601,7 +601,7 @@ static NSRecursiveLock *classLock = nil;
   [classLock lock];
   if (nil == systemLocale)
     {
-#if	defined(HAVE_ICU)
+#if	GS_USE_ICU == 1
       systemLocale = [[NSLocale alloc] initWithLocaleIdentifier: @""];
 #endif
     }
@@ -793,7 +793,7 @@ static NSRecursiveLock *classLock = nil;
 - (id) objectForKey: (id) key
 {
   id result = nil;
-#if defined(HAVE_ICU)
+#if GS_USE_ICU == 1
   if (key == NSLocaleIdentifier)
     return _localeId;
 
