@@ -1,5 +1,10 @@
 2010-12-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSRegularExpression.m: Move towards coding standards compliance
+	* Source/GSICUString.m: ditto
+
+2010-12-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Remove redundant/incorrect define of HAVE_ICU.
 	Require ICU version 4.6 or later.
 	Add comments describing how external dependencies are handled.
