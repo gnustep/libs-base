@@ -25,6 +25,7 @@
 #import "common.h"
 #import "Foundation/NSCalendar.h"
 #import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
@@ -33,22 +34,131 @@
 #include <unicode/ucal.h>
 #endif
 
+@interface NSCalendar (PrivateMethods)
+- (void) _openUCalendar;
+- (void) _closeUCalendar;
+- (NSString *) _localeIdWithLocale: (NSLocale *) locale;
+@end
+
+#define TZ_NAME_LENGTH 1024
+
+@implementation NSCalendar (PrivateMethods)
+- (void) _openUCalendar
+{
+#if defined(HAVE_ICU)
+  if (_cal == NULL)
+    {
+      NSString *tzName;
+      NSUInteger tzLen;
+      unichar cTzId[TZ_NAME_LENGTH];
+      const char *cLocaleId;
+      UErrorCode err = U_ZERO_ERROR;
+      
+      cLocaleId = [_localeId UTF8String];
+      tzName = [_tz name];
+      tzLen = [tzName length];
+      if (tzLen > TZ_NAME_LENGTH)
+        tzLen = TZ_NAME_LENGTH;
+      [tzName getCharacters: cTzId range: NSMakeRange(0, tzLen)];
+      
+      _cal = 
+        ucal_open ((const UChar *)cTzId, tzLen, cLocaleId, UCAL_DEFAULT, &err);
+    }
+#endif
+}
+
+- (void) _closeUCalendar
+{
+#if defined(HAVE_ICU)
+  ucal_close (_cal);
+  _cal = NULL;
+#endif
+}
+
+- (NSString *) _localeIdWithLocale: (NSLocale *) locale
+{
+  NSString *result;
+  NSString *localeId;
+  NSMutableDictionary *tmpDict;
+  
+  localeId = [locale localeIdentifier];
+  tmpDict = [[NSLocale componentsFromLocaleIdentifier: localeId]
+    mutableCopyWithZone: NULL];
+  [tmpDict setObject: _identifier forKey: NSLocaleCalendarIdentifier];
+  result = [NSLocale localeIdentifierFromComponents: tmpDict];
+  RELEASE(tmpDict);
+  
+  return result;
+}
+@end
+
 @implementation NSCalendar
 
 + (id) currentCalendar
 {
-  return nil;
+  NSCalendar *result = nil;
+  NSLocale *locale;
+  
+  locale = [NSLocale currentLocale];
+  
+  
+  
+  return result;
 }
 
 - (id) initWithCalendarIdentifier: (NSString *) string
 {
-  RELEASE(self);
-  return nil;
+  if ([string isEqualToString: NSGregorianCalendar])
+    _identifier = NSGregorianCalendar;
+  else if ([string isEqualToString: NSBuddhistCalendar])
+    _identifier = NSBuddhistCalendar;
+  else if ([string isEqualToString: NSChineseCalendar])
+    _identifier = NSChineseCalendar;
+  else if ([string isEqualToString: NSHebrewCalendar])
+    _identifier = NSHebrewCalendar;
+  else if ([string isEqualToString: NSIslamicCalendar])
+    _identifier = NSIslamicCalendar;
+  else if ([string isEqualToString: NSIslamicCivilCalendar])
+    _identifier = NSIslamicCivilCalendar;
+  else if ([string isEqualToString: NSJapaneseCalendar])
+    _identifier = NSJapaneseCalendar;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+  else if ([string isEqualToString: NSRepublicOfChinaCalendar])
+    _identifier = NSRepublicOfChinaCalendar;
+  else if ([string isEqualToString: NSPersianCalendar])
+    _identifier = NSPersianCalendar;
+  else if ([string isEqualToString: NSIndianCalendar])
+    _identifier = NSIndianCalendar;
+  else if ([string isEqualToString: NSISO8601Calendar])
+    _identifier = NSISO8601Calendar;
+#endif
+  else
+    {
+      RELEASE(self);
+      return nil;
+    }
+  
+  // It's much easier to keep a copy of the NSLocale's string representation
+  // than to have to build it everytime we have to open a UCalendar.
+  _localeId = [self _localeIdWithLocale: [NSLocale currentLocale]];
+  _tz = RETAIN([NSTimeZone defaultTimeZone]);
+  
+  return self;
+}
+
+- (void) dealloc
+{
+  [self _closeUCalendar];
+  RELEASE(_identifier);
+  RELEASE(_localeId);
+  RELEASE(_tz);
+  
+  [super dealloc];
 }
 
 - (NSString *) calendarIdentifier
 {
-  return nil;
+  return _identifier;
 }
 
 
@@ -80,42 +190,60 @@
 
 - (NSLocale *) locale
 {
-  return _locale;
+  return AUTORELEASE([[NSLocale alloc] initWithLocaleIdentifier: _localeId]);
 }
 
 - (void)setLocale: (NSLocale *) locale
 {
-  _locale = locale;
+  RELEASE(_localeId);
+  _localeId = RETAIN([self _localeIdWithLocale: locale]);
 }
 
 - (NSUInteger) firstWeekday
 {
+#if defined(HAVE_ICU)
+  [self _openUCalendar];
+  return ucal_getAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK);
+#endif
   return 0;
 }
 
 - (void) setFirstWeekday: (NSUInteger) weekday
 {
+#if defined(HAVE_ICU)
+  [self _openUCalendar];
+  ucal_setAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK, (int32_t)weekday);
+#endif
   return;
 }
 
-- (NSUInteger) minimumDayInFirstWeek
+- (NSUInteger) minimumDaysInFirstWeek
 {
-  return 0;
+#if defined(HAVE_ICU)
+  [self _openUCalendar];
+  return ucal_getAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);
+#endif
+  return 1;
 }
 
 - (void) setMinimumDaysInFirstWeek: (NSUInteger) mdw
 {
+#if defined(HAVE_ICU)
+  [self _openUCalendar];
+  ucal_setAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, (int32_t)mdw);
+#endif
   return;
 }
 
 - (NSTimeZone *) timeZone
 {
-  return nil;
+  return _tz;
 }
 
 - (void) setTimeZone: (NSTimeZone *) tz
 {
-  _tz = tz;
+  RELEASE(_tz);
+  _tz = RETAIN(tz);
 }
 
 
