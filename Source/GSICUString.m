@@ -1,5 +1,5 @@
-#import "config.h"
-#if HAVE_ICU
+#import "common.h"
+#if GS_USE_ICU == 1
 #import "GSICUString.h"
 
 /**

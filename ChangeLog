@@ -1,3 +1,20 @@
+2010-12-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Remove redundant/incorrect define of HAVE_ICU.
+	Require ICU version 4.6 or later.
+	Add comments describing how external dependencies are handled.
+	* configure: Regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerate
+	* config.mak.in: Update for consistency
+	* base.make.in: ditto
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: ditto
+	* Source/GSHTTPURLHandle.m: Improve debug logging a little
+	* Source/NSXMLParser.m: Improve error handling. Use sloppy parser.
+	* Source/NSRegularExpression.m: Use GS_USE_ICU and nnever HAVE_ICU
+	* Source/NSCalendar.m: ditto
+	* Source/NSLocale.m: ditto
+	* Source/GSICUString.m: ditto
+
 2010-12-15  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile: Install NSCalendar.h.

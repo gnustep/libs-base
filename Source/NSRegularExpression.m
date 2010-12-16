@@ -1,5 +1,5 @@
-#include "config.h"
-#if HAVE_ICU
+#include "common.h"
+#if GS_USE_ICU == 1
 #include "unicode/uregex.h"
 #if (U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
 

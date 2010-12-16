@@ -45,7 +45,7 @@
 @implementation NSCalendar (PrivateMethods)
 - (void) _openUCalendar
 {
-#if defined(HAVE_ICU)
+#if GS_USE_ICU == 1
   if (_cal == NULL)
     {
       NSString *tzName;
@@ -69,7 +69,7 @@
 
 - (void) _closeUCalendar
 {
-#if defined(HAVE_ICU)
+#if GS_USE_ICU == 1
   ucal_close (_cal);
   _cal = NULL;
 #endif
@@ -201,7 +201,7 @@
 
 - (NSUInteger) firstWeekday
 {
-#if defined(HAVE_ICU)
+#if GS_USE_ICU == 1
   [self _openUCalendar];
   return ucal_getAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK);
 #endif
@@ -210,7 +210,7 @@
 
 - (void) setFirstWeekday: (NSUInteger) weekday
 {
-#if defined(HAVE_ICU)
+#if GS_USE_ICU == 1
   [self _openUCalendar];
   ucal_setAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK, (int32_t)weekday);
 #endif
@@ -219,7 +219,7 @@
 
 - (NSUInteger) minimumDaysInFirstWeek
 {
-#if defined(HAVE_ICU)
+#if GS_USE_ICU == 1
   [self _openUCalendar];
   return ucal_getAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);
 #endif
@@ -228,7 +228,7 @@
 
 - (void) setMinimumDaysInFirstWeek: (NSUInteger) mdw
 {
-#if defined(HAVE_ICU)
+#if GS_USE_ICU == 1
   [self _openUCalendar];
   ucal_setAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, (int32_t)mdw);
 #endif
