@@ -1,5 +1,11 @@
 2010-12-15  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/GNUmakefile: Install NSCalendar.h.
+	* Headers/Foundation/NSCalendar.h:
+	* Source/NSCalendar.m: Started adding code to NSCalendar.
+	
+2010-12-15  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* configure: Regenerate.
 	* Headers/Additions/GNUstepBase/config.h.in: Update for unicode/ucal.h.
 	* Headers/Foundation/NSLocale.h: Added NSLocaleCalendarIdentifier key.

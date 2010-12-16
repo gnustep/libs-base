@@ -336,6 +336,7 @@ NSAutoreleasePool.h \
 NSBundle.h \
 NSByteOrder.h \
 NSCache.h\
+NSCalendar.h \
 NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \

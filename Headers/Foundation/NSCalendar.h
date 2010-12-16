@@ -119,9 +119,9 @@ enum
 @interface NSCalendar : NSObject
 {
   NSString   *_identifier;
-  NSLocale   *_locale;
+  NSString   *_localeId;
   NSTimeZone *_tz;
-  void       *_calendar;
+  void       *_cal;
 }
 
 + (id) currentCalendar;
@@ -144,7 +144,7 @@ enum
 - (void)setLocale: (NSLocale *) locale;
 - (NSUInteger) firstWeekday;
 - (void) setFirstWeekday: (NSUInteger) weekday;
-- (NSUInteger) minimumDayInFirstWeek;
+- (NSUInteger) minimumDaysInFirstWeek;
 - (void) setMinimumDaysInFirstWeek: (NSUInteger) mdw;
 - (NSTimeZone *) timeZone;
 - (void) setTimeZone: (NSTimeZone *) tz;
