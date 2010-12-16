@@ -10456,7 +10456,7 @@ $as_echo "$ICU_LIBS" >&6; }
   if test "$have_icu" = "yes"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucurr.h unicode/uregex.h
+    for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
