@@ -93,7 +93,14 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
       if (tzLen > TZ_NAME_LENGTH)
         tzLen = TZ_NAME_LENGTH;
       [tzName getCharacters: cTzId range: NSMakeRange(0, tzLen)];
-      
+
+#ifndef	UCAL_DEFAULT
+/*
+ * Older versions of ICU used UCAL_TRADITIONAL rather than UCAL_DEFAULT
+ * so if one is not available we use the other.
+ */      
+#define	UCAL_DEFAULT UCAL_TRADITIONAL
+#endif
       _cal = 
         ucal_open ((const UChar *)cTzId, tzLen, cLocaleId, UCAL_DEFAULT, &err);
     }
