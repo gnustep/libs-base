@@ -34,16 +34,49 @@
 #include <unicode/ucal.h>
 #endif
 
+
+
+#if GS_USE_ICU == 1
+static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
+{
+  // I'm just going to go in the order they appear in Apple's documentation
+  if (unit & NSEraCalendarUnit)
+    return UCAL_ERA;
+  if (unit & NSYearCalendarUnit)
+    return UCAL_YEAR;
+  if (unit & NSMonthCalendarUnit)
+    return UCAL_MONTH;
+  if (unit & NSDayCalendarUnit)
+    return UCAL_DAY_OF_YEAR;
+  if (unit & NSHourCalendarUnit)
+    return UCAL_HOUR_OF_DAY;
+  if (unit & NSMinuteCalendarUnit)
+    return UCAL_MINUTE;
+  if (unit & NSSecondCalendarUnit)
+    return UCAL_SECOND;
+  if (unit & NSWeekCalendarUnit)
+    return UCAL_WEEK_OF_YEAR;
+  if (unit & NSWeekdayCalendarUnit)
+    return UCAL_DAY_OF_WEEK;
+  if (unit & NSWeekdayOrdinalCalendarUnit)
+    // FIXME: Is this right???
+    return UCAL_DAY_OF_WEEK_IN_MONTH;
+  // ICU doesn't include a quarter DateField...
+  
+  return -1;
+}
+#endif /* GS_USE_ICU */
+
 @interface NSCalendar (PrivateMethods)
-- (void) _openUCalendar;
-- (void) _closeUCalendar;
+- (void) _openCalendar;
+- (void) _closeCalendar;
 - (NSString *) _localeIdWithLocale: (NSLocale *) locale;
 @end
 
 #define TZ_NAME_LENGTH 1024
 
 @implementation NSCalendar (PrivateMethods)
-- (void) _openUCalendar
+- (void) _openCalendar
 {
 #if GS_USE_ICU == 1
   if (_cal == NULL)
@@ -67,7 +100,7 @@
 #endif
 }
 
-- (void) _closeUCalendar
+- (void) _closeCalendar
 {
 #if GS_USE_ICU == 1
   ucal_close (_cal);
@@ -101,7 +134,7 @@
   
   locale = [NSLocale currentLocale];
   
-  
+  // FIXME
   
   return result;
 }
@@ -148,7 +181,7 @@
 
 - (void) dealloc
 {
-  [self _closeUCalendar];
+  [self _closeCalendar];
   RELEASE(_identifier);
   RELEASE(_localeId);
   RELEASE(_tz);
@@ -195,6 +228,10 @@
 
 - (void)setLocale: (NSLocale *) locale
 {
+  if ([[locale localeIdentifier] isEqual: _localeId])
+    return;
+  
+  [self _closeCalendar];
   RELEASE(_localeId);
   _localeId = RETAIN([self _localeIdWithLocale: locale]);
 }
@@ -202,7 +239,7 @@
 - (NSUInteger) firstWeekday
 {
 #if GS_USE_ICU == 1
-  [self _openUCalendar];
+  [self _openCalendar];
   return ucal_getAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK);
 #endif
   return 0;
@@ -211,7 +248,7 @@
 - (void) setFirstWeekday: (NSUInteger) weekday
 {
 #if GS_USE_ICU == 1
-  [self _openUCalendar];
+  [self _openCalendar];
   ucal_setAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK, (int32_t)weekday);
 #endif
   return;
@@ -220,7 +257,7 @@
 - (NSUInteger) minimumDaysInFirstWeek
 {
 #if GS_USE_ICU == 1
-  [self _openUCalendar];
+  [self _openCalendar];
   return ucal_getAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);
 #endif
   return 1;
@@ -229,7 +266,7 @@
 - (void) setMinimumDaysInFirstWeek: (NSUInteger) mdw
 {
 #if GS_USE_ICU == 1
-  [self _openUCalendar];
+  [self _openCalendar];
   ucal_setAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, (int32_t)mdw);
 #endif
   return;
@@ -242,6 +279,10 @@
 
 - (void) setTimeZone: (NSTimeZone *) tz
 {
+  if ([tz isEqual: _tz])
+    return;
+  
+  [self _closeCalendar];
   RELEASE(_tz);
   _tz = RETAIN(tz);
 }
@@ -249,12 +290,52 @@
 
 - (NSRange) maximumRangeOfUnit: (NSCalendarUnit) unit
 {
+#if GS_USE_ICU == 1
+  UCalendarDateFields dateField;
+  NSRange result;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  [self _openCalendar];
+  dateField = _NSCalendarUnitToDateField (unit);
+  // We really don't care if there are any errors...
+  result.location =
+    (NSUInteger)ucal_getLimit (_cal, dateField, UCAL_MINIMUM, &err);
+  result.length = 
+    (NSUInteger)ucal_getLimit (_cal, dateField, UCAL_MAXIMUM, &err)
+    - result.location + 1;
+  // ICU's month is 0-based, while NSCalendar is 1-based
+  if (dateField == UCAL_MONTH)
+    result.location += 1;
+  
+  return result;
+#else
   return NSMakeRange (0, 0);
+#endif
 }
 
 - (NSRange) minimumRangeofUnit: (NSCalendarUnit) unit
 {
+#if GS_USE_ICU == 1
+  UCalendarDateFields dateField;
+  NSRange result;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  [self _openCalendar];
+  dateField = _NSCalendarUnitToDateField (unit);
+  // We really don't care if there are any errors...
+  result.location =
+    (NSUInteger)ucal_getLimit (_cal, dateField, UCAL_GREATEST_MINIMUM, &err);
+  result.length = 
+    (NSUInteger)ucal_getLimit (_cal, dateField, UCAL_LEAST_MAXIMUM, &err)
+    - result.location + 1;
+  // ICU's month is 0-based, while NSCalendar is 1-based
+  if (dateField == UCAL_MONTH)
+    result.location += 1;
+  
+  return result;
+#else
   return NSMakeRange (0, 0);
+#endif
 }
 
 - (NSUInteger) ordinalityOfUnit: (NSCalendarUnit) smaller

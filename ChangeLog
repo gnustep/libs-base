@@ -1,3 +1,8 @@
+2010-12-16  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSCalendar.m: Added code for -maximumRangeOfUnit: and
+	-minimumRangeofUnit:.
+
 2010-12-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRegularExpression.m: Move towards coding standards compliance
