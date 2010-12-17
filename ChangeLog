@@ -1,3 +1,9 @@
+2010-12-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendar.m: Fix to build with ICU 4.0
+	* configure.ac: Permit ICU version as old as 4.0
+	* configure: regenerate
+
 2010-12-16  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSCalendar.m: Added code for -maximumRangeOfUnit: and
