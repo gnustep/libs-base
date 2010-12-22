@@ -1,3 +1,10 @@
+2010-12-22  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac (objc_thread_add): Check removed.
+	* configure: Regenerated.
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerated.
+	* Source/NSThread.m (objc_thread_add): Unused static function removed.
+
 2010-12-22  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/Foundation/NSCalendar.h: Add NSCopying protocol

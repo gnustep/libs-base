@@ -272,28 +272,6 @@ commonModes(void)
   return modes;
 }
 
-#if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
-/* We need to access these private vars in the objc runtime - because
-   the objc runtime's API is not enough powerful for the GNUstep
-   extensions we want to add.  */
-extern objc_mutex_t __objc_runtime_mutex;
-extern int __objc_runtime_threads_alive;
-extern int __objc_is_multi_threaded;
-
-/* WARNING:
- * GNUstep appears to have been written on the assumption that these variables
- * are used correctly by the GNU runtime.  In fact, they are used in only one
- * place, and are used incorrectly there.
- */
-inline static void objc_thread_add (void)
-{
-  objc_mutex_lock(__objc_runtime_mutex);
-  __objc_is_multi_threaded = 1;
-  __objc_runtime_threads_alive++;
-  objc_mutex_unlock(__objc_runtime_mutex);
-}
-#endif /* not HAVE_OBJC_THREAD_ADD */
-
 /*
  * Flag indicating whether the objc runtime ever went multi-threaded.
  */

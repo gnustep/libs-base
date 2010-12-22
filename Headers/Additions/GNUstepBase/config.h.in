@@ -385,9 +385,6 @@
 /* Define to 1 if you have the `objc_sync_enter' function. */
 #undef HAVE_OBJC_SYNC_ENTER
 
-/* Define to 1 if you have the `objc_thread_add' function. */
-#undef HAVE_OBJC_THREAD_ADD
-
 /* Define to 1 if you have the `poll' function. */
 #undef HAVE_POLL
 
@@ -671,6 +668,9 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
