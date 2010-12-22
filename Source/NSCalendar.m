@@ -180,7 +180,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   
   // It's much easier to keep a copy of the NSLocale's string representation
   // than to have to build it everytime we have to open a UCalendar.
-  _localeId = [self _localeIdWithLocale: [NSLocale currentLocale]];
+  _localeId = RETAIN([self _localeIdWithLocale: [NSLocale currentLocale]]);
   _tz = RETAIN([NSTimeZone defaultTimeZone]);
   
   return self;
@@ -504,6 +504,14 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (void) setYear: (NSInteger) v
 {
   _year = v;
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  if (NSShouldRetainWithZone(self, zone))
+    return RETAIN(self);
+  else
+    return NSCopyObject(self, 0, zone);
 }
 
 @end
