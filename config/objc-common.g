@@ -1,7 +1,13 @@
 /* Common information for all objc runtime tests.
  */
 #include <objc/objc.h>
-#include <objc/objc-api.h>
+
+#if __GNU_LIBOBJC__
+# include <objc/runtime.h>
+# include <objc/message.h>
+#else
+# include <objc/objc-api.h>
+#endif
 
 #include <objc/Object.h>
 
@@ -9,6 +15,8 @@
 #include <objc/hooks.h>
 #endif
 
+/* Provide an implementation of NXConstantString for an old libobjc when
+   built stand-alone without an NXConstantString implementation.  */
 #if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 @implementation NXConstantString
 - (const char*) cString
@@ -23,9 +31,8 @@
 #endif
 
 /* Provide dummy implementations for NSObject and NSConstantString
- * for runtime implementations which won't link without them.
+ * for libobjc2 which needs them.
  */
-
 @interface NSObject
 { 
  id isa;
