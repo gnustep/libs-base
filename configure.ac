@@ -1561,11 +1561,6 @@ fi
 # Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
-# Check for ability to add a thread in runtime
-#--------------------------------------------------------------------
-AC_CHECK_FUNCS(objc_thread_add)
-
-#--------------------------------------------------------------------
 # Check for thread synchronisation support in runtime
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(objc_sync_enter)
