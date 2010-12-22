@@ -1,5 +1,10 @@
 2010-12-22  Nicola Pero <nicola.pero@meta-innovation.com>
 
+	* config/objc-common.g: Include the correct headers to use the new
+	API if using the GNU Objective-C Runtime library from GCC 4.6.
+	
+2010-12-22  Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* configure.ac (objc_thread_add): Check removed.
 	* configure: Regenerated.
 	* Headers/Additions/GNUstepBase/config.h.in: Regenerated.
