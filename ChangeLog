@@ -1,3 +1,10 @@
+2010-12-22  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/Foundation/NSCalendar.h: Add NSCopying protocol
+	* Source/NSCalendar.m: Retain ivar. Add copyWithZone:
+	* Source/NSURL.m (-resourceSpecifier): Separate behavior for
+	file scheme vs other schemes.
+
 2010-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendar.m: Fix to build with ICU 4.0

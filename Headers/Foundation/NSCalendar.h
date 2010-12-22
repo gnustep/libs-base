@@ -70,7 +70,7 @@ enum
 
 
 
-@interface NSDateComponents : NSObject
+@interface NSDateComponents : NSObject <NSCopying>
 {
   NSInteger _era;
   NSInteger _year;

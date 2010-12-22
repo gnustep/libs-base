@@ -1769,7 +1769,14 @@ static unsigned	urlAlign;
 
   if (range.length > 0)
     {
-      return [_urlString substringFromIndex: NSMaxRange(range)];
+      NSString *specifier;
+      /* MacOSX compatibility - file schemes just return the path (without
+         the "//") but everything else returns the whole specifier */
+      if ([[self scheme] isEqual: @"file"])
+        specifier = [_urlString substringFromIndex: NSMaxRange(range)];
+      else
+        specifier = [_urlString substringFromIndex: range.location+1];
+      return specifier;
     }
   else
     {
