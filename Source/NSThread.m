@@ -88,6 +88,11 @@
 #define PTHREAD_MIN_PRIORITY 0
 #endif
 
+#if !defined(__GNUSTEP_RUNTIME__) && !defined(NeXT_RUNTIME)
+typedef void (*objc_thread_callback) (void);
+objc_thread_callback objc_set_thread_callback (objc_thread_callback func);
+#endif
+
 extern NSTimeInterval GSTimeNow(void);
 
 @interface NSAutoreleasePool (NSThread)

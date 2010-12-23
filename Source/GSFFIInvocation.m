@@ -35,8 +35,13 @@
 #import <pthread.h>
 #import "cifframe.h"
 #import "GSPrivate.h"
+
 #ifdef __GNUSTEP_RUNTIME__
 #include <objc/hooks.h>
+#endif
+
+#ifdef __GNU_LIBOBJC__
+#include <objc/message.h>
 #endif
 
 #ifndef INLINE
@@ -51,11 +56,10 @@ typedef void (*f_fun) ();
 static void GSFFIInvocationCallback(ffi_cif*, void*, void **, void*);
 
 /*
- * If we are using the GNU ObjC runtime we could
- * simplify this function quite a lot because this
- * function is already present in the ObjC runtime.
- * However, it is not part of the public API, so
- * we work around it.
+ * If we are using the GNU ObjC runtime we could simplify this
+ * function quite a lot because this function is already present in
+ * the ObjC runtime.  However, it is not part of the public API, so we
+ * work around it.
  */
 
 static INLINE GSMethod
@@ -75,19 +79,16 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
 
 
 /*
- * Selectors are not unique, and not all selectors have
- * type information.  This method tries to find the
- * best equivalent selector with type information.
+ * Selectors are not unique, and not all selectors have type
+ * information.  This method tries to find the best equivalent
+ * selector with type information.
  *
- * the conversion sel -> name -> sel
- * is not what we want.  However
- * I can not see a way to dispose of the
- * name, except if we can access the
- * internal data structures of the runtime.
+ * the conversion sel -> name -> sel is not what we want.  However I
+ * can not see a way to dispose of the name, except if we can access
+ * the internal data structures of the runtime.
  *
- * If we can access the private data structures
- * we can also check for incompatible
- * return types between all equivalent selectors.
+ * If we can access the private data structures we can also check for
+ * incompatible return types between all equivalent selectors.
  */
 
 /* 
@@ -99,14 +100,22 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
 static INLINE SEL
 gs_find_best_typed_sel (SEL sel)
 {
+#ifdef __GNU_LIBOBJC__
+  if (!sel_getType(sel))
+#else
   if (!sel_getType_np(sel))
+#endif
     {
       const char *name = sel_getName(sel);
 
       if (name)
 	{
 	  SEL tmp_sel = sel_get_any_typed_uid(name);
+#ifdef __GNU_LIBOBJC__
+	  if (sel_getType(tmp_sel))
+#else
 	  if (sel_getType_np(tmp_sel))
+#endif
 	    return tmp_sel;
 	}
     }
@@ -153,7 +162,11 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 	 in the callback, but only under limited circumstances.
        */
       sel = gs_find_best_typed_sel(sel);
+#ifdef __GNU_LIBOBJC__
+      sel_type = sel_getType(sel);
+#else
       sel_type = sel_getType_np(sel);
+#endif
       if (sel_type)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
@@ -233,9 +246,9 @@ BOOL class_isMetaClass(Class cls);
 BOOL class_respondsToSelector(Class cls, SEL sel);
 
 /**
- * Runtime hook used to provide message redirections.  If lookup fails but this
- * function returns non-nil then the lookup will be retried with the returned
- * value.
+ * Runtime hook used to provide message redirections with libobjc2.
+ * If lookup fails but this function returns non-nil then the lookup
+ * will be retried with the returned value.
  *
  * Note: Every message sent by this function MUST be understood by the
  * receiver.  If this is not the case then there is a potential for infinite
@@ -245,6 +258,9 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
 {
   id cls = object_getClass(receiver);
   BOOL resolved = NO;
+
+  /* Note that __GNU_LIBOBJC__ implements +resolveClassMethod: and
+     +resolveInstanceMethod: directly in the runtime instead.  */
 
   /* Let the class try to add a method for this thing. */
   if (class_isMetaClass(cls))
@@ -539,10 +555,17 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     }
 
   sig = nil;
+#ifdef __GNU_LIBOBJC__
+  if (gs_protocol_selector(sel_getType(selector)) == YES)
+    {
+      sig = [NSMethodSignature signatureWithObjCTypes: sel_getType(selector)];
+    }
+#else
   if (gs_protocol_selector(sel_getType_np(selector)) == YES)
     {
       sig = [NSMethodSignature signatureWithObjCTypes: sel_getType_np(selector)];
     }
+#endif
   if (sig == nil)
     {
       sig = [obj methodSignatureForSelector: selector];
@@ -555,13 +578,21 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   if (sig != nil)
     {
       const char	*receiverTypes = [sig methodType];
+#ifdef __GNU_LIBOBJC__
+      const char	*runtimeTypes = sel_getType(selector);
+#else
       const char	*runtimeTypes = sel_getType_np(selector);
+#endif
 
       if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
 	{
 	  const char	*runtimeName = sel_getName(selector);
 
+#ifdef __GNU_LIBOBJC__
+	  selector = sel_registerTypedName(runtimeName, receiverTypes);
+#else
 	  selector = sel_registerTypedName_np(runtimeName, receiverTypes);
+#endif
 	  if (runtimeTypes != 0)
 	    {
 	      /*
@@ -583,11 +614,19 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       selector = gs_find_best_typed_sel (selector);
 
+#ifdef __GNU_LIBOBJC__
+      if (sel_getType(selector) != 0)
+	{
+	  sig = [NSMethodSignature signatureWithObjCTypes:
+				     sel_getType(selector)];
+	}
+#else
       if (sel_getType_np(selector) != 0)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes:
-	    sel_getType_np(selector)];
+				     sel_getType_np(selector)];
 	}
+#endif
     }
 
   if (sig == nil)

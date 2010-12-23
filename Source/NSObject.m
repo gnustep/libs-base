@@ -1432,8 +1432,8 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       types = slot->types;
 #else
       struct objc_method *mth = 
-	  GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
-      types = mth->method_types;
+	GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
+      types = method_getTypeEncoding (mth);
 #endif
     }
 
@@ -1469,16 +1469,8 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (void) poseAsClass: (Class)aClassObject
 {
-#ifdef __GNUSTEP_RUNTIME__
   [NSException raise: NSInternalInconsistencyException
               format: @"Class posing is not supported"];
-#else
-  class_pose_as(self, aClassObject);
-#endif
-  /*
-   *	We may have replaced a class in the cache, or may have replaced one
-   *	which had cached methods, so we must rebuild the cache.
-   */
 }
 
 /**
@@ -1990,7 +1982,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (id) error: (const char *)aString, ...
 {
-#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 #define FMT "error: %s (%s)\n%s\n"
   char fmt[(strlen((char*)FMT)+strlen((char*)GSClassNameFromObject(self))
             +((aString!=NULL)?strlen((char*)aString):0)+8)];
@@ -2000,11 +1991,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
                     GSObjCIsInstance(self)?"instance":"class",
                     (aString!=NULL)?aString:"");
   va_start(ap, aString);
-  /* xxx What should `code' argument be?  Current 0. */
-  objc_verror (self, 0, fmt, ap);
+  vfprintf (stderr, fmt, ap);
+  abort ();
   va_end(ap);
 #undef FMT
-#endif
   return nil;
 }
 

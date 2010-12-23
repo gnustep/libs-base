@@ -448,6 +448,9 @@
 /* Define to 1 if you have the `setsid' function. */
 #undef HAVE_SETSID
 
+/* Define if libobjc has the objc_setUncaughtExceptionHandler() function */
+#undef HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER
+
 /* Define if libobjc has the objc_set_unexpected() function */
 #undef HAVE_SET_UNEXPECTED
 

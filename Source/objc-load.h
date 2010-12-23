@@ -31,7 +31,6 @@
 #define __objc_load_h_INCLUDE
 
 #include <stdio.h>
-#include <objc/objc-api.h>
 #include <Foundation/NSString.h>
 
 #ifdef HAVE_DLADDR

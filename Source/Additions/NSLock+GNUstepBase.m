@@ -33,13 +33,10 @@
 
 static GSLazyRecursiveLock *local_lock = nil;
 
-/*
-   This class only exists to provide
-   a thread safe mechanism to initialize local_lock
-   as +initialize is called under a lock in ObjC runtimes.
-   User code should resort to GS_INITIALIZED_LOCK(),
-   which uses the +newLockAt: extension.
-*/
+/* This class only exists to provide a thread safe mechanism to
+   initialize local_lock as +initialize is called under a lock in ObjC
+   runtimes.  User code should resort to GS_INITIALIZED_LOCK(), which
+   uses the +newLockAt: extension.  */
 
 @interface _GSLockInitializer : NSObject
 @end
@@ -48,9 +45,8 @@ static GSLazyRecursiveLock *local_lock = nil;
 {
   if (local_lock == nil)
     {
-      /* As we do not know whether creating custom locks
-	 may implicitly create other locks,
-	 we use a recursive lock.  */
+      /* As we do not know whether creating custom locks may
+	 implicitly create other locks, we use a recursive lock.  */
       local_lock = [GSLazyRecursiveLock new];
     }
 }

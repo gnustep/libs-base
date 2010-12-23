@@ -1624,6 +1624,15 @@ AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 #--------------------------------------------------------------------
 # One of these is needed by for handling uncaught exceptions
 #--------------------------------------------------------------------
+AC_MSG_CHECKING(for objc_setUncaughtExceptionHandler() in runtime)
+AC_LINK_IFELSE([#include "$srcdir/config/config.setUncaughtExceptionHandler.m"],
+	have_set_uncaught_exception_handler=yes, have_set_uncaught_exception_handler=no)
+if test $have_set_uncaught_exception_handler = yes; then
+  AC_DEFINE(HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER,1,
+	    [Define if libobjc has the objc_setUncaughtExceptionHandler() function])
+fi
+AC_MSG_RESULT($have_set_uncaught_exception_handler)
+
 AC_MSG_CHECKING(for objc_set_unexpected() in runtime)
 AC_LINK_IFELSE([#include "$srcdir/config/config.set_unexpected.m"],
 	have_set_unexpected=yes, have_set_unexpected=no)

@@ -1160,11 +1160,15 @@ failure:
 
 	      if (lt)
 		{
+#ifdef __GNU_LIBOBJC__
+		  sel = sel_registerTypedName(name, types);
+#else
 		  sel = sel_registerTypedName_np(name, types);
+#endif
 		}
 	      else
 		{
-		  sel = sel_registerTypedName_np(name, 0);
+		  sel = sel_registerName(name);
 		}
 	      if (sel == 0)
 		{
@@ -2803,7 +2807,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 	      if (lt)
 		{
+#ifdef __GNU_LIBOBJC__
+		  sel = sel_registerTypedName(name, types);
+#else
 		  sel = sel_registerTypedName_np(name, types);
+#endif
 		}
 	      else
 		{

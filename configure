@@ -6568,6 +6568,27 @@ rm -f conftest*
 #--------------------------------------------------------------------
 # One of these is needed by for handling uncaught exceptions
 #--------------------------------------------------------------------
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for objc_setUncaughtExceptionHandler() in runtime" >&5
+$as_echo_n "checking for objc_setUncaughtExceptionHandler() in runtime... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include "$srcdir/config/config.setUncaughtExceptionHandler.m"
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  have_set_uncaught_exception_handler=yes
+else
+  have_set_uncaught_exception_handler=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+if test $have_set_uncaught_exception_handler = yes; then
+
+$as_echo "#define HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER 1" >>confdefs.h
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_set_uncaught_exception_handler" >&5
+$as_echo "$have_set_uncaught_exception_handler" >&6; }
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for objc_set_unexpected() in runtime" >&5
 $as_echo_n "checking for objc_set_unexpected() in runtime... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext

@@ -44,6 +44,10 @@
 #include <objc/hooks.h>
 #endif
 
+#ifdef HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER
+#include <objc/objc-exception.h>
+#endif
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -802,12 +806,14 @@ callUncaughtHandler(id value)
     }
   NSLog(@"WARNING this copy of gnustep-base has been built with libbfd to provide symbolic stacktrace support. This means that the license of this copy of gnustep-base is GPL rather than the normal LGPL license (since libbfd is released under the GPL license).  If this is not what you want, please obtain a copy of gnustep-base which was not configured with the --enable-bfd option");
 #endif	/* USE_BINUTILS */
-#if	defined(_NATIVE_OBJC_EXCEPTIONS)
-#if     defined(HAVE_UNEXPECTED)
+#if defined(_NATIVE_OBJC_EXCEPTIONS)
+#  ifdef HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER
+  objc_setUncaughtExceptionHandler(callUncaughtHandler);
+#  elif defined(HAVE_UNEXPECTED)
   _objc_unexpected_exception = callUncaughtHandler;
-#elif   defined(HAVE_SET_UNEXPECTED)
+#  elif defined(HAVE_SET_UNEXPECTED)
   objc_set_unexpected(callUncaughtHandler);
-#endif
+#  endif
 #endif
   return;
 }

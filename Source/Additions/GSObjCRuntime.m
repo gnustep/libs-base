@@ -149,7 +149,11 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
     }
   else
     {
+#ifdef __GNU_LIBOBJC__
+      return sel_registerTypedName(name, types);
+#else
       return sel_registerTypedName_np(name, types);
+#endif
     }
 #endif
 }
@@ -161,7 +165,11 @@ GSTypesFromSelector(SEL sel)
 #else
   if (sel == 0)
     return 0;
+#ifdef __GNU_LIBOBJC__
+  return sel_getType(sel);
+#else
   return sel_getType_np(sel);
+#endif
 #endif
 }
 void
