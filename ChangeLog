@@ -1,3 +1,12 @@
+2010-12-22  Nicola Pero <nicola.pero@meta-innovation.co>
+
+	* Headers/Additions/GNUstepBase/preface.h.in: When using the new
+	GNU Objective-C Runtime library, include <objc/runtime.h> instead
+	of <objc/objc-api.h> and <objc/encoding.h>.
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: When
+	OBJC2RUNTIME, do not include <objc/objc-api.h>.
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h: Added FIXME.
+	
 2010-12-22  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* config/objc-common.g: Include the correct headers to use the new

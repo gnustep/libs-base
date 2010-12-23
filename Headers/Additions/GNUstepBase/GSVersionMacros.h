@@ -229,6 +229,10 @@
 #define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
 
 /* Include the appropriate header for ObjC2 blocks support if it is in use.
+ *
+ * FIXME: "OBJC2RUNTIME" is set to "1" if the runtime has
+ * objc_setProperty(), which is unrelated to whether it has blocks
+ * support or not.
  */
 #if __has_feature(blocks)
 #  if	OBJC2RUNTIME
