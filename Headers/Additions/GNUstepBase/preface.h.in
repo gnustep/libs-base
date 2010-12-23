@@ -88,6 +88,7 @@
 #include <stdint.h>
 #endif
 
+/* FIXME: Should not all these includes go in GSObjCRuntime.h ? */
 #if NeXT_RUNTIME
  #include <objc/objc.h>
  #include <objc/objc-class.h>
@@ -109,8 +110,12 @@
  #define _C_ONEWAY   'V'
 #else				/* GNU Objective C Runtime */
  #include <objc/objc.h>
- #include <objc/objc-api.h>
- #include <objc/encoding.h>
+ #if defined (__GNU_LIBOBJC__)
+  #include <objc/runtime.h>
+ #else
+  #include <objc/objc-api.h>
+  #include <objc/encoding.h>
+ #endif
 #endif
 
 // Include the blocks runtime header if it's available (It shouldn't matter

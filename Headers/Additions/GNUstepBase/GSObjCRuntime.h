@@ -35,7 +35,6 @@
 
 #include <stdio.h>
 #include <objc/objc.h>
-#include <objc/objc-api.h>
 
 #if	OBJC2RUNTIME
 /* We have a real ObjC2 runtime.
@@ -44,6 +43,7 @@
 #else
 /* We emulate an ObjC2 runtime.
  */
+#include <objc/objc-api.h>
 #include <ObjectiveC2/runtime.h>
 #endif
 
