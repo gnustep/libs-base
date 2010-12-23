@@ -22,23 +22,15 @@
    Boston, MA 02111 USA.
    */
 
-/*
-    CAVEATS:
-	- unloading modules not implemented
-	- would like to raise exceptions without having to turn this into
-	  a .m file (right now NSBundle does this for us, ok?)
-
-*/
+/* PS: Unloading modules is not implemented.  */
 
 #import "common.h"
-
 #include <stdio.h>
-#include <objc/objc-api.h>
-#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
-# include <objc/objc-list.h>
-#elif defined(NeXT_RUNTIME)
+
+#if defined(NeXT_RUNTIME)
 # include <objc/objc-load.h>
 #endif
+
 #ifdef __GNUSTEP_RUNTIME__
 # include <objc/hooks.h>
 #endif
@@ -56,11 +48,6 @@ static BOOL	dynamic_loaded;
 
 /* Our current callback function */
 static void (*_objc_load_load_callback)(Class, struct objc_category *) = 0;
-
-/* List of modules we have loaded (by handle) */
-#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
-static struct objc_list *dynamic_handles = NULL;
-#endif
 
 /* Check to see if there are any undefined symbols. Print them out.
 */
@@ -190,10 +177,6 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
       return 1;
     }
 
-#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
-  dynamic_handles = list_cons(handle, dynamic_handles);
-#endif
-
   /* If there are any undefined symbols, we can't load the bundle */
   if (objc_check_undefineds(errorStream))
     {
@@ -228,7 +211,7 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
     }
 #endif /* not __ELF__ */
 
-#ifndef __GNUSTEP_RUNTIME__
+#if !defined(__GNUSTEP_RUNTIME__) && !defined(__GNU_LIBOBJC__)
   __objc_resolve_class_links(); /* fill in subclass_list and sibling_class */
 #endif
   _objc_load_callback = 0;

@@ -278,6 +278,7 @@ static NSLock			*placeholderLock;
       NSRange range;
       range = NSMakeRange([[dict objectForKey: @"location"] intValue],
 			[[dict objectForKey: @"length"] intValue]);
+      return [abstractClass valueWithRange: range];
     }
   else if ([dict objectForKey: @"width"] && [dict objectForKey: @"x"])
     {

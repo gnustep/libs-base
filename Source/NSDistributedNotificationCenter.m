@@ -811,8 +811,13 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   notification = [NSNotification notificationWithName: name
 					       object: object
 					     userInfo: userInfo];
+#ifdef __GNU_LIBOBJC__
+  [recipient performSelector: sel_registerTypedName([aSelector cString], 0)
+		  withObject: notification];
+#else
   [recipient performSelector: sel_registerTypedName_np([aSelector cString], 0)
 		  withObject: notification];
+#endif
 }
 
 @end

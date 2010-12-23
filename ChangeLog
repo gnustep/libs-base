@@ -1,3 +1,63 @@
+2010-12-23  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Check for objc_setUncaughtExceptionHandler().
+	* configure: Regenerated.
+	* Headers/Additions/GNUstepBase/config.h.in: Regenerated.
+	* config/config..setUncaughtExceptionHandler.m: New.
+	* Source/Additions/GSObjCRuntime.m (GSTypesFromSelector): Use
+	sel_getType, not sel_getType_np, if __GNU_LIBOBJC__.
+	(GSSelectorFromNameAndTypes): Use sel_registerTypedName, not
+	sel_registerTypedName_np, if __GNU_LIBOBJC__.
+	* Source/objc-load.h: Do not include objc-api.h.
+	* Source/NSBundle.m (_bundle_load_callback): Use the new API to
+	iterate over classes when __GNU_LIBOBJC__.
+	* Source/NSConnection.m ([NSConnection
+	-forwardInvocation:forProxy:]): Use sel_registerTypedName, not
+	sel_registerTypedName_np, if __GNU_LIBOBJC__.
+	* Source/NSData.m ([NSData
+	-deserializeDataAt:ofObjCType:atCursor:context:]): Use
+	sel_registerTypedName, not sel_registerTypedName_np, if
+	__GNU_LIBOBJC__.  Use sel_registerName, not
+	sel_registerTypedName_np, if the type is 0.
+	([NSDataStatic -deserializeDataAt:ofObjCType:atCursor:context:]):
+	Use sel_registerTypedName, not sel_registerTypedName_np, if
+	__GNU_LIBOBJC__.
+	* Source/NSDistributedNotificationCenter.m
+	([NSDistributedNotificationCenter
+	-postNotificationName:object:userInfo:selector:to:]):
+	Use sel_registerTypedName, not sel_registerTypedName_np, if
+	__GNU_LIBOBJC__.
+	* Source/NSException.m: Include <objc/objc-exception.h> if
+	HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER.
+	([NSException +initialize]): Use objc_setUncaughtExceptionHandler
+	if HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER.
+	* Source/NSMethodSignature.m: Do not include objc/encoding.h when
+	__GNU_LIBOBJC__.
+	* Source/NSObject.m ([NSObject -methodSignatureForSelector:]): Use
+	method_getTypeEncoding instead of accessing directly the 'types'
+	field.
+	([NSObject +poseAsClass:]): Always throw an exception since
+	class_pose_as is now deprecated or unavailable in most Objective-C
+	runtimes.  If you need pose-as, and your runtime supports it, call
+	class_pose_as directly.
+	([NSObject -error:]): Use vprintf and abort directly instead of
+	trying to call objc_verror.
+	* Source/NSThread.m: Define objc_thread_callback if we are later
+	using it.
+	* Source/objc-load.m: Never include objc-api.h or objc-list.h.
+	(GSPrivateLoadModule): Removed 'dynamic_handles' variable, no
+	longer used. Do not call __objc_resolve_class_links if
+	__GNU_LIBOBJC__.
+	* Source/GSFFIInvocation.m: Include <objc/message.h> when
+	__GNU_LIBOBJC__.
+	(gs_find_best_typed_sel): Use sel_getType instead of
+	sel_getType_np if __GNU_LIBOBJC__.
+	(gs_objc_msg_forward2): Same change.
+	(GSFFIInvocationCallback): Same change.
+
+	* Source/NSValue.m ([NSValue +valueFromString:]): Added missing
+	return for NSRange values.
+	
 2010-12-22  Nicola Pero <nicola.pero@meta-innovation.co>
 
 	* Headers/Additions/GNUstepBase/preface.h.in: When using the new

@@ -873,15 +873,16 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       handle = objc_open_main_module(stderr);
       printf("%08x\n", handle);
 #endif
-#if NeXT_RUNTIME || defined(__GNUSTEP_RUNTIME__)
+#if NeXT_RUNTIME || defined(__GNUSTEP_RUNTIME__) || defined(__GNU_LIBOBJC__)
       {
 	int i, numClasses = 0, newNumClasses = objc_getClassList(NULL, 0);
 	Class *classes = NULL;
-	while (numClasses < newNumClasses) {
-	  numClasses = newNumClasses;
-	  classes = objc_realloc(classes, sizeof(Class) * numClasses);
-	  newNumClasses = objc_getClassList(classes, numClasses);
-	}
+	while (numClasses < newNumClasses)
+	  {
+	    numClasses = newNumClasses;
+	    classes = objc_realloc(classes, sizeof(Class) * numClasses);
+	    newNumClasses = objc_getClassList(classes, numClasses);
+	  }
 	for (i = 0; i < numClasses; i++)
 	  {
 	    [self _addFrameworkFromClass: classes[i]];
