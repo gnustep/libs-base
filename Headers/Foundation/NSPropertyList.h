@@ -68,6 +68,7 @@ enum {
 #if OS_API_VERSION(100600,GS_API_LATEST)
 typedef NSUInteger NSPropertyListWriteOptions;
 typedef NSUInteger NSPropertyListReadOptions;
+@class NSError;
 #endif
 
 /**

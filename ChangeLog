@@ -1,5 +1,10 @@
 2010-12-24  Nicola Pero <nicola.pero@meta-innovation.com>
 
+	* Headers/Foundation/NSPropertList.h: Forward-declare the NSError
+	class if appropriate.
+
+2010-12-24  Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* Source/NSObject.m ([+conformsToProtocol:]): Use the new code
 	only if __GNU_LIBOBJC__ is defined.
 	* Source/Additions/GSObjCRuntime.m (GSTypesFromSelector): Updated
