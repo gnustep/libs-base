@@ -101,7 +101,7 @@ static INLINE SEL
 gs_find_best_typed_sel (SEL sel)
 {
 #ifdef __GNU_LIBOBJC__
-  if (!sel_getType(sel))
+  if (!sel_getTypeEncoding(sel))
 #else
   if (!sel_getType_np(sel))
 #endif
@@ -110,13 +110,15 @@ gs_find_best_typed_sel (SEL sel)
 
       if (name)
 	{
-	  SEL tmp_sel = sel_get_any_typed_uid(name);
 #ifdef __GNU_LIBOBJC__
-	  if (sel_getType(tmp_sel))
-#else
-	  if (sel_getType_np(tmp_sel))
-#endif
+	  SEL tmp_sel = sel_getTypedSelector(name);
+	  if (tmp_sel)
 	    return tmp_sel;
+#else
+	  SEL tmp_sel = sel_get_any_typed_uid(name);
+	  if (sel_getType_np(tmp_sel))
+	    return tmp_sel;
+#endif
 	}
     }
   return sel;
@@ -163,7 +165,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
        */
       sel = gs_find_best_typed_sel(sel);
 #ifdef __GNU_LIBOBJC__
-      sel_type = sel_getType(sel);
+      sel_type = sel_getTypeEncoding(sel);
 #else
       sel_type = sel_getType_np(sel);
 #endif
@@ -556,9 +558,9 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 
   sig = nil;
 #ifdef __GNU_LIBOBJC__
-  if (gs_protocol_selector(sel_getType(selector)) == YES)
+  if (gs_protocol_selector(sel_getTypeEncoding(selector)) == YES)
     {
-      sig = [NSMethodSignature signatureWithObjCTypes: sel_getType(selector)];
+      sig = [NSMethodSignature signatureWithObjCTypes: sel_getTypeEncoding(selector)];
     }
 #else
   if (gs_protocol_selector(sel_getType_np(selector)) == YES)
@@ -579,7 +581,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       const char	*receiverTypes = [sig methodType];
 #ifdef __GNU_LIBOBJC__
-      const char	*runtimeTypes = sel_getType(selector);
+      const char	*runtimeTypes = sel_getTypeEncoding(selector);
 #else
       const char	*runtimeTypes = sel_getType_np(selector);
 #endif
@@ -615,10 +617,10 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
       selector = gs_find_best_typed_sel (selector);
 
 #ifdef __GNU_LIBOBJC__
-      if (sel_getType(selector) != 0)
+      if (sel_getTypeEncoding(selector) != 0)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes:
-				     sel_getType(selector)];
+				     sel_getTypeEncoding(selector)];
 	}
 #else
       if (sel_getType_np(selector) != 0)

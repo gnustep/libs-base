@@ -1,5 +1,15 @@
 2010-12-24  Nicola Pero <nicola.pero@meta-innovation.com>
 
+	* Source/NSObject.m ([+conformsToProtocol:]): Use the new code
+	only if __GNU_LIBOBJC__ is defined.
+	* Source/Additions/GSObjCRuntime.m (GSTypesFromSelector): Updated
+	usage of Modern typed selector API with __GNU_LIBOBJC__.
+	* Source/GSFFIInvocation.m (gs_find_best_typed_sel): Same.
+	(gs_objc_msg_forward2): Same.
+	(GSFFIInvocationCallback): Same.
+	
+2010-12-24  Nicola Pero <nicola.pero@meta-innovation.com>
+
 	* Source/NSObject.m ([+conformsToProtocol:]): Fixed to iterate
 	over superclasses.  Just calling class_conformsToProtcol() is not
 	enough as class_conformsToProtocol() does not iterate over

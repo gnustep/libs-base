@@ -166,7 +166,7 @@ GSTypesFromSelector(SEL sel)
   if (sel == 0)
     return 0;
 #ifdef __GNU_LIBOBJC__
-  return sel_getType(sel);
+  return sel_getTypeEncoding(sel);
 #else
   return sel_getType_np(sel);
 #endif
