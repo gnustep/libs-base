@@ -1,3 +1,11 @@
+2010-12-24  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/NSObject.m ([+conformsToProtocol:]): Fixed to iterate
+	over superclasses.  Just calling class_conformsToProtcol() is not
+	enough as class_conformsToProtocol() does not iterate over
+	superclasses.
+	([-conformsToProtocol:]): Updated.
+
 2010-12-23  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* configure.ac: Check for objc_setUncaughtExceptionHandler().

@@ -1298,7 +1298,18 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  return class_conformsToProtocol(self, aProtocol);
+  Class c;
+
+  /* Iterate over the current class and all the superclasses.  */
+  for (c = self; c != Nil; c = class_getSuperclass (c))
+    {
+      if (class_conformsToProtocol(c, aProtocol))
+	{
+	  return YES;
+	}
+    }
+
+  return NO;
 }
 
 /**
@@ -1307,7 +1318,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  return class_conformsToProtocol([self class], aProtocol);
+  return [[self class] conformsToProtocol: aProtocol];
 }
 
 /**
