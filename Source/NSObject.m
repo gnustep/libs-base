@@ -1298,6 +1298,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
+#ifdef __GNU_LIBOBJC__
   Class c;
 
   /* Iterate over the current class and all the superclasses.  */
@@ -1310,6 +1311,13 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     }
 
   return NO;
+#else
+  /* libobjc2 and ObjectiveC2/ have an implementation of
+     class_conformsToProtocol() which automatically looks up the
+     protocol in superclasses (unlike the Apple and GNU Objective-C
+     runtime ones).  */
+  return class_conformsToProtocol(self, aProtocol);
+#endif
 }
 
 /**
