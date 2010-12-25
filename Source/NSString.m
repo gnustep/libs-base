@@ -1786,6 +1786,7 @@ handle_printf_atsign (FILE *stream,
                              range: searchRange];
   return [copy makeImmutableCopyOnFail: NO];
 }
+
 - (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
                                        withString: (NSString*)by
 {
@@ -1794,6 +1795,18 @@ handle_printf_atsign (FILE *stream,
                                 withString: by
                                    options: 0
                                      range: NSMakeRange(0, [self length])];
+}
+
+/**
+ * Returns a new string where the substring in the given range is replaced by 
+ * the passed string. 
+ */
+- (NSString*) stringByReplacingCharactersInRange: (NSRange)aRange 
+                                      withString: (NSString*)by
+{
+  id copy = [self mutableCopy];
+  [copy replaceCharactersInRange: aRange withString: by];
+  return [copy makeImmutableCopyOnFail: NO];
 }
 
 /**
