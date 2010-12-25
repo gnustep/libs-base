@@ -1,5 +1,20 @@
 2010-12-25  Quentin Mathe <quentin.mathe@gmail.com>
 
+	Improved autogsdoc to output symbols such as methods in their header 
+	declaration order along the gsdoc files. 
+	Useful for third-party tools that want to generate final documentation from 
+	the GSDoc ouput and how the original headers were organized.
+	* Tools/autogsdoc.m:
+	Added OrderedSymbolDeclarations.plist file output and cleaning.
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	Added orderedSymbolDecls ivar.
+	(-addOrderedSymbolDeclaration:toUnit:, -orderedSymbolDeclarationsByUnit): Added.
+	(-parseMethodsAsDeclarations:): Modified to call 
+	-addOrderedSymbolDeclaration:toUnit:.
+
+2010-12-25  Quentin Mathe <quentin.mathe@gmail.com>
+
 	* Headers/Foundation/NSString.h:
 	* Source/NSString.m:
 	Added -stringByReplacingCharactersInRange:withString: (Mac OS 10.5 
