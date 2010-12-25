@@ -314,6 +314,8 @@ typedef NSUInteger NSStringEncodingConversionOptions;
                                             range: (NSRange)searchRange;
 - (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
                                        withString: (NSString*)by;
+- (NSString*) stringByReplacingCharactersInRange: (NSRange)aRange 
+                                      withString: (NSString*)by;
 #endif
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (NSUInteger)length
