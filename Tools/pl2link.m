@@ -19,6 +19,8 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
+#import <stdlib.h>
+
 #import	"common.h"
 
 #import	"Foundation/NSArray.h"
@@ -41,6 +43,9 @@ main(int argc, char** argv, char **env)
   NSDictionary	        *plist = nil;
   NSArray		*list;
   NSString		*entry;
+  NSString              *installDomain;
+  NSString              *installPath = @"";
+  NSString              *appName = @"";
 
 #ifdef GS_PASS_ARGUMENTS
   GSInitializeProcess(argc, argv, env);
@@ -98,10 +103,11 @@ main(int argc, char** argv, char **env)
   [fileContents appendString:
     @"[Desktop Entry]\nEncoding=UTF-8\nType=Application\n"];
   [fileContents appendString:
-    @"Version=0.94\nCategories=GNUstep\n"];
+    @"Categories=X-GNUstep;\n"];
   entry = [plist objectForKey: @"ApplicationName"];
   if (entry != nil)
     {
+      appName = entry;
       [fileContents appendFormat: @"Name=%@\n", entry];
       if (destName == nil)
 	destName = [entry stringByAppendingString: @".desktop"];
@@ -111,45 +117,86 @@ main(int argc, char** argv, char **env)
     {
       [fileContents appendFormat: @"Comment=%@\n", entry];
     }
+  installDomain = [[procinfo environment] objectForKey: @"GNUSTEP_INSTALLATION_DOMAIN"];
+  if(installDomain != nil)
+    {
+      if([installDomain isEqualToString: @"SYSTEM"])
+	{
+	  installPath = [[procinfo environment] objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+	}
+      else
+	{
+	  installPath = [[procinfo environment] objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+	}
+    }
+  else
+    {
+      installPath = [[procinfo environment] objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+    }
   entry = [plist objectForKey: @"NSIcon"];
   if (entry != nil)
-  {
-    if ([[entry pathExtension] isEqualToString: @""])
-      [fileContents appendFormat: @"Icon=%@.tiff\n", entry];
-    else
-      [fileContents appendFormat: @"Icon=%@\n", entry];
-  }
+    {
+      NSString *iconPath = [[[[[installPath stringByAppendingPathComponent: @"Applications"] 
+				stringByAppendingPathComponent:appName] 
+			       stringByAppendingPathExtension:@"app"] 
+			      stringByAppendingPathComponent:@"Resources"]
+			     stringByAppendingPathComponent:entry];
+
+      if ([[iconPath pathExtension] isEqualToString: @""])
+	{
+	  [fileContents appendFormat: @"Icon=%@.tiff\n", iconPath];
+	}
+      else
+	{
+	  [fileContents appendFormat: @"Icon=%@\n", iconPath];
+	}
+    }
   entry = [plist objectForKey: @"NSExecutable"];
   if (entry != nil)
     {
-      [fileContents appendFormat: @"Exec=openapp %@.app\n", entry];
-      [fileContents appendFormat: @"#TryExec=%@.app\n", entry];
-      [fileContents appendFormat: @"FilePattern=%@.app;%@\n", entry, entry];
+      FILE *fp;
+      char line[130];
+      NSString *execPath = nil;
+      int l = 0;
+
+      fp = popen("which openapp","r");
+      fgets(line,sizeof line,fp);
+      l = strlen(line);
+      line[l-1] = '\0';
+
+      // Build the string to execute the application...
+      execPath = [NSString stringWithCString: line
+			   encoding: NSASCIIStringEncoding];
+      [fileContents appendFormat: @"Exec=%@ %@\n", execPath, entry];
+      [fileContents appendFormat: @"FilePattern=%@.app;%@;\n", entry, entry];
     }
 
   list = [plist objectForKey: @"NSTypes"];
   if (list != nil)
     {
-      unsigned int i;
-
-      [fileContents appendString: @"MimeType="];
-      for (i = 0; i < [list count]; i++)
-	{
-	  NSArray *types;
-	  unsigned int j;
-
-	  plist = [list objectAtIndex: i];
-	  types = [plist objectForKey: @"NSMIMETypes"];
-	  if (types != nil)
+      if([list count] > 0)
+	{  
+	  unsigned int i;
+      
+	  [fileContents appendString: @"MimeType="];
+	  for (i = 0; i < [list count]; i++)
 	    {
-	      for (j = 0; j < [types count]; j++)
+	      NSArray *types;
+	      unsigned int j;
+	      
+	      plist = [list objectAtIndex: i];
+	      types = [plist objectForKey: @"NSMIMETypes"];
+	      if (types != nil)
 		{
-		  entry = [types objectAtIndex: j];
-		  [fileContents appendFormat: @"%@;", entry];
+		  for (j = 0; j < [types count]; j++)
+		    {
+		      entry = [types objectAtIndex: j];
+		      [fileContents appendFormat: @"%@;", entry];
+		    }
 		}
 	    }
+	  [fileContents appendString: @"\n"];
 	}
-      [fileContents appendString: @"\n"];
     }
 
   if ([[fileContents dataUsingEncoding: NSUTF8StringEncoding]

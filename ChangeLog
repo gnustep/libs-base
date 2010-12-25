@@ -1,3 +1,9 @@
+2010-12-25 12:13-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Tools/pl2link.m: Changes to better integrate with the GNOME
+	desktop.  Removed dummy version number.  Added code to
+	find the correct locations of the application and it's icon.
+
 2010-12-24  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Headers/Foundation/NSPropertList.h: Forward-declare the NSError
@@ -109,6 +115,7 @@
 	* Source/NSURL.m (-resourceSpecifier): Separate behavior for
 	file scheme vs other schemes.
 
+>>>>>>> .r31774
 2010-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendar.m: Fix to build with ICU 4.0
