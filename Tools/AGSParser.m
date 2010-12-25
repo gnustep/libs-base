@@ -140,6 +140,7 @@
   DESTROY(ifStack);
   DESTROY(declared);
   DESTROY(info);
+  DESTROY(orderedSymbolDeclsByUnit);
   DESTROY(comment);
   DESTROY(identifier);
   DESTROY(identStart);
@@ -152,6 +153,23 @@
 - (NSMutableDictionary*) info
 {
   return info;
+}
+
+/** Returns the methods, functions and C data types in their header declaration 
+order, by organizing them into arrays as described below. 
+
+Methods are grouped by class, category or protocol references. For example, 
+valid keys could be <em>ClassName</em>, <em>ClassName(CategoryName)</em> and 
+<em>(ProtocolName)</em>.
+
+Functions and C data types are grouped by header file names. For example, 
+<em>AGParser.h</em> would a valid key.
+
+TODO: Collect functions and C data types. Only methods are currently included 
+in the returned dictionary. */
+- (NSDictionary *) orderedSymbolDeclarationsByUnit
+{
+  return orderedSymbolDeclsByUnit;
 }
 
 - (id) init
@@ -170,6 +188,7 @@
   identStart = RETAIN([NSCharacterSet characterSetWithCharactersInString:
     @"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
   info = [[NSMutableDictionary alloc] initWithCapacity: 6];
+  orderedSymbolDeclsByUnit = [[NSMutableDictionary alloc] init];
   source = [NSMutableArray new];
   verbose = [[NSUserDefaults standardUserDefaults] boolForKey: @"Verbose"];
   warn = [[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"];
@@ -2897,6 +2916,18 @@ fail:
   return nil;
 }
 
+- (void) addOrderedSymbolDeclaration: (NSString *)aMethodOrFunc toUnit: (NSString *)aUnitName
+{
+  NSMutableArray *orderedSymbolDecls = [orderedSymbolDeclsByUnit objectForKey: aUnitName];
+
+  if (orderedSymbolDecls == nil)
+    {
+      orderedSymbolDecls = [NSMutableArray array];
+      [orderedSymbolDeclsByUnit setObject: orderedSymbolDecls forKey: aUnitName];
+    }
+  [orderedSymbolDecls addObject: aMethodOrFunc];
+}
+
 - (NSMutableDictionary*) parseMethodsAreDeclarations: (BOOL)flag
 {
   NSMutableDictionary	*methods;
@@ -2962,6 +2993,7 @@ fail:
 		 * Just record the method.
 		 */
 		[methods setObject: method forKey: token];
+                [self addOrderedSymbolDeclaration: token toUnit: unitName];
 	      }
 	    else if ((exist = [methods objectForKey: token]) != nil)
 	      {

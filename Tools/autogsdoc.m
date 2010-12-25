@@ -649,6 +649,7 @@ main(int argc, char **argv, char **env)
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
+  NSString              *symbolDeclsFile = nil;
   NSMutableSet		*deps = nil;
 #if GS_WITH_GC == 0
   NSAutoreleasePool	*outer = nil;
@@ -680,6 +681,7 @@ main(int argc, char **argv, char **env)
           supposed to).
       4c) Remove index file.
       4d) Remove HTML files corresponding to .gsdoc files in current list.
+      4e) Remove the OrderedSymbolDeclarations plist file
 
    5) Start with "source files".. for each one (hereafter called a "header
       file"):
@@ -810,7 +812,7 @@ main(int argc, char **argv, char **env)
     @"MakeFrames",
     @"\t\tString\t(nil)\n\tIf set, look for DTDs in the given directory",
     @"DTDs",
-    @"\t\tBOOL\t(NO)\n\tif YES, wrap paragraphs delimited by \\n\\n in "
+    @"\tBOOL\t(NO)\n\tif YES, wrap paragraphs delimited by \\n\\n in "
       @"<p> tags when possible",
     @"GenerateParagraphMarkup",
     nil];
@@ -907,6 +909,9 @@ main(int argc, char **argv, char **env)
     {
       [mgr createDirectoryAtPath: documentationDirectory attributes: nil];
     }
+
+  symbolDeclsFile = [documentationDirectory 
+    stringByAppendingPathComponent: @"OrderedSymbolDeclarations.plist"];
 
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
@@ -1180,6 +1185,18 @@ main(int argc, char **argv, char **env)
 		}
 	    }
 	}
+
+      /*
+       * 4e) Remove the OrderedSymbolDeclarations plist file.
+       */
+      if ([mgr fileExistsAtPath: symbolDeclsFile])
+	{
+	  if ([mgr removeFileAtPath: symbolDeclsFile handler: nil] == NO)
+	    {
+	      NSLog(@"Cleaning ... failed to remove %@", symbolDeclsFile);
+	    }
+	}
+
       return 0;
     }
 
@@ -1477,6 +1494,13 @@ main(int argc, char **argv, char **env)
 	      [gFiles addObject: [hfile lastPathComponent]];
 	    }
 	}
+
+      /* 
+       * Ask the parser for the OrderedSymbolDeclarations plist and save it
+       */
+      [[parser orderedSymbolDeclarationsByUnit] writeToFile: symbolDeclsFile 
+                                                 atomically: YES];
+
       informalProtocols = RETAIN([output informalProtocols]);
 #if GS_WITH_GC == 0
       DESTROY(pool);

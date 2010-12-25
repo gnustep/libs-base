@@ -73,6 +73,7 @@
 
   NSString		*comment;	/** Documentation accumulator. */
   NSMutableDictionary	*info;		/** All information parsed. */
+  NSMutableDictionary   *orderedSymbolDeclsByUnit;
   NSMutableArray	*source;	/** Names of source files. */
   NSCharacterSet	*identifier;	/** Legit char in identifier */
   NSCharacterSet	*identStart;	/** Legit initial char of identifier */
@@ -81,6 +82,7 @@
 }
 
 - (NSMutableDictionary*) info;
+- (NSDictionary *) orderedSymbolDeclarationsByUnit;
 - (id) init;	/** <init> Simple initialiser */
 - (NSMutableArray*) outputs;
 - (unsigned) parseComment;
