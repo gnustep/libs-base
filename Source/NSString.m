@@ -1774,21 +1774,24 @@ handle_printf_atsign (FILE *stream,
   return array;
 }
 
-- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
-                                       withString: (NSString*)by
-                                          options: (NSStringCompareOptions)opts
-                                            range: (NSRange)searchRange
+- (NSString*) stringByReplacingOccurrencesOfString: (NSString*)replace
+                                        withString: (NSString*)by
+                                           options: (NSStringCompareOptions)opts
+                                             range: (NSRange)searchRange
 {
-  id copy = [self mutableCopy];
+  id copy;
+
+  copy = [[GSMutableStringClass allocWithZone: NSDefaultMallocZone()]
+    initWithString: self];
   [copy replaceOccurrencesOfString: replace
                         withString: by
                            options: opts
                              range: searchRange];
-  return [copy makeImmutableCopyOnFail: NO];
+  return [[copy makeImmutableCopyOnFail: NO] autorelease];
 }
 
-- (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
-                                       withString: (NSString*)by
+- (NSString*) stringByReplacingOccurrencesOfString: (NSString*)replace
+                                        withString: (NSString*)by
 {
   return [self 
       stringByReplacingOccurrencesOfString: replace
