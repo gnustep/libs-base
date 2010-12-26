@@ -2,6 +2,8 @@
 
 	* Source/NSString.m:
 	([-stringByReplacingCharactersInRange:withString:]) fix memory leak.
+	([-stringByReplacingOccurrencesOfString:withString:options:range:])
+	ditto.
 
 2010-12-25  Quentin Mathe <quentin.mathe@gmail.com>
 
