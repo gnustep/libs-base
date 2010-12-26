@@ -1804,9 +1804,12 @@ handle_printf_atsign (FILE *stream,
 - (NSString*) stringByReplacingCharactersInRange: (NSRange)aRange 
                                       withString: (NSString*)by
 {
-  id copy = [self mutableCopy];
+  id	copy;
+
+  copy = [[GSMutableStringClass allocWithZone: NSDefaultMallocZone()]
+    initWithString: self];
   [copy replaceCharactersInRange: aRange withString: by];
-  return [copy makeImmutableCopyOnFail: NO];
+  return [[copy makeImmutableCopyOnFail: NO] autorelease];
 }
 
 /**

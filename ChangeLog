@@ -1,15 +1,21 @@
+2010-12-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m:
+	([-stringByReplacingCharactersInRange:withString:]) fix memory leak.
+
 2010-12-25  Quentin Mathe <quentin.mathe@gmail.com>
 
 	Improved autogsdoc to output symbols such as methods in their header 
 	declaration order along the gsdoc files. 
-	Useful for third-party tools that want to generate final documentation from 
-	the GSDoc ouput and how the original headers were organized.
+	Useful for third-party tools that want to generate final documentation
+	from the GSDoc ouput and how the original headers were organized.
 	* Tools/autogsdoc.m:
 	Added OrderedSymbolDeclarations.plist file output and cleaning.
 	* Tools/AGSParser.h:
 	* Tools/AGSParser.m:
 	Added orderedSymbolDecls ivar.
-	(-addOrderedSymbolDeclaration:toUnit:, -orderedSymbolDeclarationsByUnit): Added.
+	(-addOrderedSymbolDeclaration:toUnit:,
+	-orderedSymbolDeclarationsByUnit): Added.
 	(-parseMethodsAsDeclarations:): Modified to call 
 	-addOrderedSymbolDeclaration:toUnit:.
 
@@ -137,7 +143,6 @@
 	* Source/NSURL.m (-resourceSpecifier): Separate behavior for
 	file scheme vs other schemes.
 
->>>>>>> .r31774
 2010-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendar.m: Fix to build with ICU 4.0
