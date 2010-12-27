@@ -88,12 +88,6 @@
 #define PTHREAD_MIN_PRIORITY 0
 #endif
 
-#if !defined(__GNUSTEP_RUNTIME__) && !defined(NeXT_RUNTIME)
-typedef void (*objc_thread_callback) (void);
-objc_thread_callback objc_set_thread_callback (objc_thread_callback func);
-#endif
-
-extern NSTimeInterval GSTimeNow(void);
 
 @interface NSAutoreleasePool (NSThread)
 + (void) _endThread: (NSThread*)thread;
@@ -157,7 +151,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
   NSTimeInterval delay;
 
   // delay is always the number of seconds we still need to wait
-  delay = when - GSTimeNow();
+  delay = when - GSPrivateTimeNow();
   if (delay <= 0.0)
     {
       sched_yield();
@@ -173,7 +167,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
       request.tv_sec = (time_t)32768;
       request.tv_nsec = (long)0;
       nanosleep(&request, 0);
-      delay = when - GSTimeNow();
+      delay = when - GSPrivateTimeNow();
     }
   if (delay > 0)
     {
@@ -212,7 +206,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 #else
       sleep (30*60);
 #endif
-      delay = when - GSTimeNow();
+      delay = when - GSPrivateTimeNow();
     }
 
   /*
@@ -244,7 +238,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
       sleep ((NSInteger)delay);
 #endif	/* HAVE_USLEEP */
 #endif	/* __MINGW__ */
-      delay = when - GSTimeNow();
+      delay = when - GSPrivateTimeNow();
     }
 #endif	/* HAVE_NANOSLEEP */
 }
@@ -600,7 +594,7 @@ unregisterActiveThread(NSThread *thread)
 
 + (void) sleepForTimeInterval: (NSTimeInterval)ti
 {
-  GSSleepUntilIntervalSinceReferenceDate(GSTimeNow() + ti);
+  GSSleepUntilIntervalSinceReferenceDate(GSPrivateTimeNow() + ti);
 }
 
 /**

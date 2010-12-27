@@ -284,7 +284,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
  * Returns the current time (seconds since reference date) as an NSTimeInterval.
  */
 NSTimeInterval
-GSTimeNow(void)
+GSPrivateTimeNow(void)
 {
   NSTimeInterval t;
 #if !defined(__MINGW__)
@@ -321,7 +321,7 @@ GSTimeNow(void)
 	    diff, ctime(&now));
 	  /* Get time again ... should be OK now.
 	   */
-	  t = GSTimeNow();
+	  t = GSPrivateTimeNow();
 	}
     }
 }
