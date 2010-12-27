@@ -632,6 +632,7 @@ typedef struct NSXMLParserIvarsType
   BOOL shouldReportNamespacePrefixes;
   BOOL shouldResolveExternalEntities;
   BOOL acceptHTML;			// be lazy with bad tag nesting
+  BOOL hasStarted;
   IMP	didEndElement;
   IMP	didEndMappingPrefix;
   IMP	didStartElement;
@@ -925,15 +926,14 @@ static SEL	foundIgnorableSel;
 
   if (this->didEndElement != 0)
     {
-      NSString  *qualified = nil;
-      NSString  *uri = nil;
+      NSString  *qualified = tag;
+      NSString  *uri = @"";
 
       if (this->shouldProcessNamespaces)
         {
           NSRange   r = [tag rangeOfString: @":"];
           NSString  *p = @"";
 
-          qualified = tag;
           if (r.length > 0)
             {
               p = [tag substringToIndex: r.location];
@@ -979,15 +979,19 @@ static SEL	foundIgnorableSel;
     }
   if (!flag)
     {
-      if ([tag isEqualToString: @"?xml"])
+      if (NO == this->hasStarted)
 	{
 #if EXTRA_DEBUG
 NSLog(@"parserDidStartDocument: ");
 #endif
+	  this->hasStarted = YES;
 	  if ([_del respondsToSelector: @selector(parserDidStartDocument:)])
             {
               [_del parserDidStartDocument: self];
             }
+	}
+      if ([tag isEqualToString: @"?xml"])
+	{
 	  return;
 	}
       else if ([tag hasPrefix: @"?"])
@@ -1069,12 +1073,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
 	  if (this->didStartElement != 0)
 	    {
+	      qualified = tag;
               if (this->shouldProcessNamespaces)
                 {
                   NSRange   r = [tag rangeOfString: @":"];
                   NSString  *p = @"";
 
-                  qualified = tag;
                   if (r.length > 0)
                     {
                       p = [tag substringToIndex: r.location];
@@ -1084,8 +1088,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 }
               else
                 {
-                  qualified = nil;
-                  uri = nil;
+                  uri = @"";
                 }
 	      (*this->didStartElement)(_del,
 		didStartElementSel, self, tag, uri, qualified, attributes);
@@ -1262,14 +1265,6 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
   const unsigned char *vp = this->cp;  // value pointer
   int c;
 
-  if (!this->acceptHTML
-    && (this->cend - this->cp < 6
-      || strncmp((char *)this->cp, "<?xml ", 6) != 0))
-    {
-      // not a valid XML document start
-      return [self _parseError: @"missing <?xml > preamble"
-	code: NSXMLParserDocumentStartError];
-    }
   /* Start by accumulating ignorable whitespace.
    */
   this->ignorable = YES;
@@ -1570,6 +1565,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			    code: NSXMLParserGTRequiredError];
                         }
                       // process
+		      if ([tag isEqualToString: @"xml"]
+			&& tp != [this->data bytes])
+			{
+			  return [self _parseError: @"bad <?xml > preamble"
+			    code: NSXMLParserDocumentStartError];
+			}
                       [self _processTag: tag
                                   isEnd: NO
                          withAttributes: parameters];  // single <?tag ...?>

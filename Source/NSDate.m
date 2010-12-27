@@ -54,8 +54,6 @@ const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
 
 
 
-extern NSTimeInterval	GSTimeNow();	// In NSCalendarDate.m
-
 static BOOL	debug = NO;
 static Class	abstractClass = nil;
 static Class	concreteClass = nil;
@@ -160,7 +158,7 @@ otherTime(NSDate* other)
  */
 + (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-  return GSTimeNow();
+  return GSPrivateTimeNow();
 }
 
 /**
@@ -169,7 +167,7 @@ otherTime(NSDate* other)
 + (id) date
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-	initWithTimeIntervalSinceReferenceDate: GSTimeNow()]);
+	initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()]);
 }
 
 /**
@@ -1060,7 +1058,7 @@ otherTime(NSDate* other)
  */
 - (id) init
 {
-  return [self initWithTimeIntervalSinceReferenceDate: GSTimeNow()];
+  return [self initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()];
 }
 
 /**
@@ -1111,7 +1109,7 @@ otherTime(NSDate* other)
 {
   // Get the current time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:
-    GSTimeNow() + secsToBeAdded];
+    GSPrivateTimeNow() + secsToBeAdded];
 }
 
 /**
@@ -1248,7 +1246,7 @@ otherTime(NSDate* other)
  */
 - (NSTimeInterval) timeIntervalSinceNow
 {
-  return otherTime(self) - GSTimeNow();
+  return otherTime(self) - GSPrivateTimeNow();
 }
 
 /**
@@ -1416,7 +1414,7 @@ otherTime(NSDate* other)
 
 - (NSTimeInterval) timeIntervalSinceNow
 {
-  return _seconds_since_ref - GSTimeNow();
+  return _seconds_since_ref - GSPrivateTimeNow();
 }
 
 - (NSTimeInterval) timeIntervalSinceReferenceDate

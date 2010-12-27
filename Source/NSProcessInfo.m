@@ -1013,10 +1013,8 @@ int main(int argc, char *argv[], char *env[])
   [gnustep_global_lock lock];
   if (host == nil)
     {
-      extern NSTimeInterval GSTimeNow(void);
-
       pid = [self processIdentifier];
-      start = (unsigned long)GSTimeNow();
+      start = (unsigned long)GSPrivateTimeNow();
       host = [[self hostName] stringByReplacingString: @"." withString: @"_"];
       IF_NO_GC(RETAIN(host);)
     }

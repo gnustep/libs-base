@@ -947,7 +947,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       _currentMode = mode;
       NS_DURING
 	{
-	  extern NSTimeInterval GSTimeNow(void);
 	  GSIArray		timers = context->timers;
 	  NSTimeInterval	now;
           NSDate                *earliest;
@@ -969,7 +968,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	   * just keep firing the timer repeatedly and never return from
            * this method.
 	   */
-	  now = GSTimeNow();
+	  now = GSPrivateTimeNow();
 
 	  /* Fire housekeeping timer as necessary
 	   */
