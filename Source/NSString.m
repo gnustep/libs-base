@@ -4835,7 +4835,14 @@ static NSFileManager *fm = nil;
 	  NSStringEncoding	enc = NSUnicodeStringEncoding;
 	  unichar		*chars;
 
-	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+	  /* For backwards-compatibility, we always encode/decode
+	     'NSStringEncoding' (which really is an 'unsigned int') as
+	     an 'int'.  Due to a bug, GCC up to 4.5 always encode all
+	     enums as 'i' (int) regardless of the actual integer type
+	     required to store them; we need to be able to read/write
+	     archives compatible with GCC <= 4.5 so we explictly use
+	     'int' to read/write these variables.  */
+	  [aCoder encodeValueOfObjCType: @encode(int) at: &enc];
 
 	  chars = NSZoneMalloc(NSDefaultMallocZone(), count*sizeof(unichar));
 	  [self getCharacters: chars range: ((NSRange){0, count})];
@@ -4877,7 +4884,7 @@ static NSFileManager *fm = nil;
 	  NSStringEncoding	enc;
 	  NSZone		*zone;
 	
-	  [aCoder decodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+	  [aCoder decodeValueOfObjCType: @encode(int) at: &enc];
 #if	GS_WITH_GC
 	  zone = GSAtomicMallocZone();
 #else
