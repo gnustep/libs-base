@@ -1,3 +1,16 @@
+2010-12-27  Nicola Pero <nicola.pero@meta-innovation.com>
+
+	* Source/GSString.m ([GSCString -encodeWithCoder:]): Explicitly
+	encode NSStringEncoding variables as 'int' so that we can
+	read/write archives across compiler versions.  "enum
+	_NSStringEncoding" is an unsigned int, but GCC <= 4.5 incorrectly
+	encodes all enums, regardless of the actual integer type they
+	represent, as a signed int.
+	([GSMutableString -encodeWithCoder:]): Same change.
+	([GSUnicodeString -encodeWithCoder:]): Same change.
+	* Source/NSString.m ([NSString -encodeWithCoder:]): Same change.
+	([NSString -initWithCoder:]): Same change.
+
 2010-12-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h:

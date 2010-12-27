@@ -3144,7 +3144,7 @@ transmute(GSStr self, NSString *aString)
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count > 0)
     {
-      [aCoder encodeValueOfObjCType: @encode(NSStringEncoding)
+      [aCoder encodeValueOfObjCType: @encode(int)
 				 at: &internalEncoding];
       [aCoder encodeArrayOfObjCType: @encode(unsigned char)
 			      count: _count
@@ -3461,7 +3461,7 @@ agree, create a new GSCInlineString otherwise.
     {
       NSStringEncoding	enc = NSUnicodeStringEncoding;
 
-      [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+      [aCoder encodeValueOfObjCType: @encode(int) at: &enc];
       [aCoder encodeArrayOfObjCType: @encode(unichar)
 			      count: _count
 				 at: _contents.u];
@@ -3920,14 +3920,14 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	{
 	  NSStringEncoding	enc = NSUnicodeStringEncoding;
 
-	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+	  [aCoder encodeValueOfObjCType: @encode(int) at: &enc];
 	  [aCoder encodeArrayOfObjCType: @encode(unichar)
 				  count: _count
 				     at: _contents.u];
 	}
       else
 	{
-	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding)
+	  [aCoder encodeValueOfObjCType: @encode(int)
 				     at: &internalEncoding];
 	  [aCoder encodeArrayOfObjCType: @encode(unsigned char)
 				  count: _count
