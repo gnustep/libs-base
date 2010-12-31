@@ -304,7 +304,11 @@ GS_EXPORT NSString* const NSLoadedClasses;
  */
 - (NSString*) localizedStringForKey: (NSString*)key
 			      value: (NSString*)value
-			      table: (NSString*)tableName __attribute__((format_arg(1)));
+			      table: (NSString*)tableName 
+#ifdef __clang__
+				  __attribute__((format_arg(1)))
+#endif
+	;
 
 /** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;
