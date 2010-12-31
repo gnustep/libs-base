@@ -1,5 +1,10 @@
 2010-12-31 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/NSCalendar.m: Implemented -dateByAddingComponents:toDate:options:
+	and -dateFromComponents:.
+
+2010-12-31 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/Foundation/NSCalendar.h:
 	* Source/NSCalendar.m: Added iOS 4.0 and later methods to NSDateComponents.
 
