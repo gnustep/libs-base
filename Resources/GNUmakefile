@@ -74,7 +74,7 @@ Languages/Ukrainian \
 Languages/Esperanto \
 Languages/Korean 
 LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases \
-	Languages/Locale.encodings
+	Languages/Locale.encodings Languages/Locale.canonical
 
 include $(GNUSTEP_MAKEFILES)/resource-set.make
 
