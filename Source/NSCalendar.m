@@ -47,7 +47,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   if (unit & NSMonthCalendarUnit)
     return UCAL_MONTH;
   if (unit & NSDayCalendarUnit)
-    return UCAL_DAY_OF_YEAR;
+    return UCAL_DAY_OF_MONTH;
   if (unit & NSHourCalendarUnit)
     return UCAL_HOUR_OF_DAY;
   if (unit & NSMinuteCalendarUnit)
@@ -220,12 +220,115 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
                              toDate: (NSDate *) date
                             options: (NSUInteger) opts
 {
+#if GS_USE_ICU == 1
+  int32_t amount;
+  UErrorCode err = U_ZERO_ERROR;
+  UDate udate;
+  
+  [self _openCalendar];
+  udate = (UDate)([date timeIntervalSince1970] * 1000.0);
+  ucal_setMillis (_cal, udate, &err);
+  
+#define _ADD_COMPONENT(c, n) \
+  if (opts & NSWrapCalendarComponents) \
+    ucal_roll (_cal, c, n, &err); \
+  else \
+    ucal_add (_cal, c, n, &err);
+  if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_DAY_OF_MONTH, amount);
+    }
+  if ((amount = (int32_t)[comps era]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_ERA, amount);
+    }
+  if ((amount = (int32_t)[comps hour]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_HOUR_OF_DAY, amount);
+    }
+  if ((amount = (int32_t)[comps minute]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_MINUTE, amount);
+    }
+  if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_MONTH, amount);
+    }
+  if ((amount = (int32_t)[comps second]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_SECOND, amount);
+    }
+  if ((amount = (int32_t)[comps week]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_WEEK_OF_YEAR, amount);
+    }
+  if ((amount = (int32_t)[comps weekday]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_DAY_OF_WEEK, amount);
+    }
+#undef _ADD_COMPONENT
+  
+  udate = ucal_getMillis (_cal, &err);
+  if (U_FAILURE(err))
+    return nil;
+  
+  return [NSDate dateWithTimeIntervalSince1970: (udate / 1000.0)];
+#else
   return nil;
+#endif
 }
 
 - (NSDate *) dateFromComponents: (NSDateComponents *) comps
 {
+#if GS_USE_ICU == 1
+  int32_t amount;
+  UDate udate;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  [self _openCalendar];
+  ucal_clear (_cal);
+  
+  if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_DAY_OF_MONTH, amount);
+    }
+  if ((amount = (int32_t)[comps era]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_ERA, amount);
+    }
+  if ((amount = (int32_t)[comps hour]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_HOUR_OF_DAY, amount);
+    }
+  if ((amount = (int32_t)[comps minute]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_MINUTE, amount);
+    }
+  if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_MONTH, amount);
+    }
+  if ((amount = (int32_t)[comps second]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_SECOND, amount);
+    }
+  if ((amount = (int32_t)[comps week]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_WEEK_OF_YEAR, amount);
+    }
+  if ((amount = (int32_t)[comps weekday]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_DAY_OF_WEEK, amount);
+    }
+  
+  udate = ucal_getMillis (_cal, &err);
+  if (U_FAILURE(err))
+    return nil;
+  
+  return [NSDate dateWithTimeIntervalSince1970: (udate / 1000.0)];
+#else
   return nil;
+#endif
 }
 
 - (NSLocale *) locale
@@ -368,7 +471,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (BOOL) rangeOfUnit: (NSCalendarUnit) unit
            startDate: (NSDate **) datep
             interval: (NSTimeInterval *)tip
-             forDate:(NSDate *)date
+             forDate: (NSDate *)date
 {
   return NO;
 }

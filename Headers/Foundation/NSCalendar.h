@@ -179,7 +179,7 @@ enum
 - (BOOL) rangeOfUnit: (NSCalendarUnit) unit
            startDate: (NSDate **) datep
             interval: (NSTimeInterval *)tip
-             forDate:(NSDate *)date;
+             forDate: (NSDate *)date;
 #endif
 @end
 
