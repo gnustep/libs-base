@@ -71,15 +71,15 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
 - (NSUInteger)replaceMatchesInString: (NSMutableString*)string
                              options: (NSMatchingOptions)options
                                range: (NSRange)range
-                        withTemplate: (NSString*)template;
+                        withTemplate: (NSString*)templat;
 - (NSString*)stringByReplacingMatchesInString: (NSString*)string
                                       options: (NSMatchingOptions)options
                                         range: (NSRange)range
-                                 withTemplate: (NSString*)template;
+                                 withTemplate: (NSString*)templat;
 - (NSString*)replacementStringForResult: (NSTextCheckingResult*)result
                                inString: (NSString*)string
                                  offset: (NSInteger)offset
-                               template: (NSString*)template;
+                               template: (NSString*)templat;
 #if GS_HAS_DECLARED_PROPERTIES
 @property (readonly) NSRegularExpressionOptions options;
 @property (readonly) NSUInteger numberOfCaptureGroups;
