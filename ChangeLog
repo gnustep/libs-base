@@ -1,3 +1,4 @@
+
 2010-12-27  Nicola Pero <nicola.pero@meta-innovation.com>
 
 	* Source/GSString.m ([GSCString -encodeWithCoder:]): Explicitly
