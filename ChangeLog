@@ -1,8 +1,13 @@
 2010-12-31 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/Foundation/NSCalendar.h:
+	* Source/NSCalendar.m: Added iOS 4.0 and later methods to NSDateComponents.
+
+2010-12-31 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Resources/GNUmakefile:
 	* Resources/Languages/Locale.canonical: Added mapping to go from long
-	locale identifiers to short identifiers used by ICU.
+	locale identifiers to the shorter identifiers used by ICU.
 	* Source/NSLocale.m: Implemented -canonical* and -preferredLanaguges methods.
 
 2010-12-31 14:03  David Chisnall <theraven@gna.org>
