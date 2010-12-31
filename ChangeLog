@@ -1,3 +1,11 @@
+2010-12-31 14:03  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSBundle.h: Add __attribute__
+	  ((format_arg)) to [NSBundle -localizedStringForKey:value:table:].
+	  This informs the compiler that the output can be used anywhere
+	  that the first argument can be used, and should silence all of
+	  the non-constant format string warnings that we get anywhere that
+	  _(@"foo") or similar is used.
 
 2010-12-27  Nicola Pero <nicola.pero@meta-innovation.com>
 
