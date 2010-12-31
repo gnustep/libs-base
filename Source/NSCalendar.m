@@ -390,6 +390,9 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   _week = NSUndefinedDateComponent;
   _weekday = NSUndefinedDateComponent;
   _weekdayOrdinal = NSUndefinedDateComponent;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+  _quarter = NSUndefinedDateComponent;
+#endif
   
   return self;
 }
@@ -449,6 +452,16 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   return _year;
 }
 
+- (NSCalendar *) calendar
+{
+  return _cal;
+}
+
+- (NSTimeZone *) timeZone
+{
+  return _tz;
+}
+
 
 
 - (void) setDay: (NSInteger) v
@@ -504,6 +517,22 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (void) setYear: (NSInteger) v
 {
   _year = v;
+}
+
+- (void) setCalendar: (NSCalendar *) cal
+{
+  if (_cal)
+    RELEASE(_cal);
+  
+  _cal = RETAIN(cal);
+}
+
+- (void) setTimeZone: (NSTimeZone *) tz
+{
+  if (_tz)
+    RELEASE(_tz);
+  
+  _tz = RETAIN(tz);
 }
 
 - (id) copyWithZone: (NSZone*)zone
