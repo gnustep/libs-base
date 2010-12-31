@@ -32,6 +32,7 @@
 #include <Foundation/NSObject.h>
 
 @class NSDate;
+@class NSCalendar;
 @class NSLocale;
 @class NSString;
 @class NSTimeZone;
