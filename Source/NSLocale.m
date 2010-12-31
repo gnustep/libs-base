@@ -25,6 +25,7 @@
 #import "common.h"
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSCalendar.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSCharacterSet.h"
@@ -316,6 +317,7 @@ static NSLocale *autoupdatingLocale = nil;
 static NSLocale *currentLocale = nil;
 static NSLocale *systemLocale = nil;
 static NSMutableDictionary *allLocales = nil;
+static NSDictionary *canonicalLocales = nil;
 static NSRecursiveLock *classLock = nil;
 
 + (void) initialize
@@ -375,14 +377,45 @@ static NSRecursiveLock *classLock = nil;
 
 + (NSString *) canonicalLanguageIdentifierFromString: (NSString *) string
 {
-  // FIXME
-  return string;
+  NSString *result;
+  NSString *localeId;
+  NSArray *localeComps;
+  
+  /* Can't use the ICU functions here because, according to Apple locale docs,
+     the language has a format like "zh-Hant".  ICU, however, uses an
+     underscore to separate Scripts "zh_Hant". */
+  localeId = [self canonicalLocaleIdentifierFromString: string];
+  localeComps = [localeId componentsSeparatedByString: @"_"];
+  result = [localeComps objectAtIndex: 0];
+  
+  return result;
 }
 
 + (NSString *) canonicalLocaleIdentifierFromString: (NSString *) string
 {
-  // FIXME
-  return string;
+  /* The way this works, according to Apple docs, is a mess.  It seems
+     that both BCP 47's "-" and ICU's "_" separators are used.  According to
+     "Language and Locale Designations" (Apple docs) Taiwan, for example, has
+     zh-Hant_TW as it's locale identifier (was zh_TW on 10.3.9 and below).
+     Since ICU doesn't use "-" as a separator it will modify that identifier
+     to zh_Hant_TW. */
+  NSString *result;
+  
+  if (canonicalLocales == nil)
+    {
+      NSBundle *gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+      NSString *file = [gbundle pathForResource: @"Locale"
+                                         ofType: @"canonical"
+                                    inDirectory: @"Languages"];
+      if (file != nil)
+        canonicalLocales = [[NSDictionary alloc] initWithContentsOfFile: file];
+    }
+  
+  result = [canonicalLocales objectForKey: string];
+  if (result == nil)
+    result = string;
+  
+  return result;
 }
 
 + (NSLocaleLanguageDirection) characterDirectionForLanguage:
@@ -590,8 +623,26 @@ static NSRecursiveLock *classLock = nil;
 
 + (NSArray *) preferredLanguages
 {
-  // FIXME
-  return [NSUserDefaults userLanguages];
+  NSArray *result;
+  NSMutableArray *mArray;
+  NSUInteger cnt;
+  NSUInteger idx = 0;
+  NSArray *languages = [NSUserDefaults userLanguages];
+  
+  if (languages == nil)
+    return [NSArray arrayWithObject: @"en"];
+  
+  mArray = [NSMutableArray array];
+  cnt = [languages count];
+  while (idx < cnt)
+    {
+      NSString *lang = [languages objectAtIndex: idx];
+      [mArray addObject: [self canonicalLanguageIdentifierFromString: lang]];
+      ++idx;
+    }
+  
+  result = [NSArray arrayWithArray: mArray];
+  return result;
 }
 
 + (id) systemLocale
@@ -662,7 +713,8 @@ static NSRecursiveLock *classLock = nil;
 
   return [NSString stringWithUTF8String: buffer];
 #else
-  return nil;	// FIXME
+  return nil;	// FIXME Check
+              // msdn.microsoft.com/en-us/library/0h88fahh%28v=vs.85%29.aspx
 #endif
 }
 
@@ -671,7 +723,8 @@ static NSRecursiveLock *classLock = nil;
 #if	GS_USE_ICU == 1
   return uloc_getLCID ([localeIdentifier UTF8String]);
 #else
-  return 0;	// FIXME
+  return 0;	// FIXME: Check
+            // msdn.microsoft.com/en-us/library/0h88fahh%28v=vs.85%29.aspx
 #endif
 }
 
@@ -753,14 +806,17 @@ static NSRecursiveLock *classLock = nil;
   int32_t	length;
   char cLocaleId[ULOC_FULLNAME_CAPACITY];
   UErrorCode error = U_ZERO_ERROR;
-
-  length = uloc_canonicalize ([string UTF8String], cLocaleId,
+  
+  localeId = [NSLocale canonicalLocaleIdentifierFromString: string];
+  // Normalize locale ID
+  length = uloc_canonicalize ([localeId UTF8String], cLocaleId,
     ULOC_FULLNAME_CAPACITY, &error);
   if (U_FAILURE(error))
     {
       [self release];
       return nil;
     }
+  
   localeId = [NSString stringWithUTF8String: cLocaleId];
 #else
   localeId = string;
