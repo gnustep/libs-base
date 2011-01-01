@@ -181,7 +181,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   msystem = ulocdata_getMeasurementSystem (cLocaleId, &err);
   if (U_SUCCESS(err))
     {
-      if (msystem == UMS_US)
+      if (msystem == UMS_SI)
         result = @"Metric";
       else
         result = @"U.S.";
@@ -870,6 +870,7 @@ static NSRecursiveLock *classLock = nil;
       if (mSys != nil)
         {
           [_components setValue: mSys forKey: NSLocaleMeasurementSystem];
+          NSLog (@"%@", mSys);
           if ([mSys isEqualToString: @"Metric"])
             result = [NSNumber numberWithBool: YES];
           else
@@ -883,7 +884,7 @@ static NSRecursiveLock *classLock = nil;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
   else if ([key isEqualToString: NSLocaleQuotationBeginDelimiterKey])
     result = [self _getDelimiterWithType: ULOCDATA_QUOTATION_START];
-  else if ([key isEqualToString: NSLocaleQuotationBeginDelimiterKey])
+  else if ([key isEqualToString: NSLocaleQuotationEndDelimiterKey])
     result = [self _getDelimiterWithType: ULOCDATA_QUOTATION_END];
   else if ([key isEqualToString: NSLocaleAlternateQuotationBeginDelimiterKey])
     result = [self _getDelimiterWithType: ULOCDATA_ALT_QUOTATION_START];
