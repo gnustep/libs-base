@@ -1,5 +1,11 @@
 2011-01-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/Foundation/NSCalendar.h:
+	* Source/NSLocale.m: Minor fixes.
+	* Source/NSCalendar.m: Implemented +currentCalendar.
+
+2011-01-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/NSLocale.m: Fixed typos found by testsuite.
 
 2010-12-31 Stefan Bidigaray <stefanbidi@gmail.com>

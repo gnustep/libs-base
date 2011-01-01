@@ -30,6 +30,7 @@
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSGeometry.h>
 
 @class NSDate;
 @class NSCalendar;
