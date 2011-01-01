@@ -819,7 +819,7 @@ static NSRecursiveLock *classLock = nil;
   
   localeId = [NSString stringWithUTF8String: cLocaleId];
 #else
-  localeId = string;
+  localeId = [NSLocale canonicalLocaleIdentifierFromString: string];
 #endif
 
   [classLock lock];
@@ -933,7 +933,10 @@ static NSRecursiveLock *classLock = nil;
 
 - (id) copyWithZone: (NSZone *) zone
 {
-  return RETAIN(self);
+  if (NSShouldRetainWithZone(self, zone))
+    return RETAIN(self);
+  else
+    return NSCopyObject(self, 0, zone);
 }
 
 @end

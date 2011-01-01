@@ -137,13 +137,15 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 + (id) currentCalendar
 {
   NSCalendar *result = nil;
-  NSLocale *locale;
+  NSCalendar *cal;
   
-  locale = [NSLocale currentLocale];
+#if GS_USE_ICU == 1
+  cal = [[NSLocale currentLocale] objectForKey: NSLocaleCalendar];
+  result =
+    [[NSCalendar alloc] initWithCalendarIdentifier: [cal calendarIdentifier]];
+#endif
   
-  // FIXME
-  
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (id) initWithCalendarIdentifier: (NSString *) string
@@ -351,8 +353,9 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 #if GS_USE_ICU == 1
   [self _openCalendar];
   return ucal_getAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK);
-#endif
+#else
   return 0;
+#endif
 }
 
 - (void) setFirstWeekday: (NSUInteger) weekday
@@ -360,8 +363,9 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 #if GS_USE_ICU == 1
   [self _openCalendar];
   ucal_setAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK, (int32_t)weekday);
-#endif
+#else
   return;
+#endif
 }
 
 - (NSUInteger) minimumDaysInFirstWeek
@@ -369,8 +373,9 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 #if GS_USE_ICU == 1
   [self _openCalendar];
   return ucal_getAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);
-#endif
+#else
   return 1;
+#endif
 }
 
 - (void) setMinimumDaysInFirstWeek: (NSUInteger) mdw
@@ -378,8 +383,9 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 #if GS_USE_ICU == 1
   [self _openCalendar];
   ucal_setAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, (int32_t)mdw);
-#endif
+#else
   return;
+#endif
 }
 
 - (NSTimeZone *) timeZone
