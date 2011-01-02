@@ -24,6 +24,7 @@
 
 #import "common.h"
 #import "Foundation/NSCalendar.h"
+#import "Foundation/NSCoder.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSLocale.h"
@@ -71,6 +72,8 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (void) _openCalendar;
 - (void) _closeCalendar;
 - (NSString *) _localeIdWithLocale: (NSLocale *) locale;
+- (NSString *)_localeIdentifier;
+- (void) _setLocaleIdentifier: (NSString *) identifier;
 @end
 
 #define TZ_NAME_LENGTH 1024
@@ -129,6 +132,21 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   RELEASE(tmpDict);
   
   return result;
+}
+
+- (NSString *)_localeIdentifier
+{
+  return _localeId;
+}
+
+- (void) _setLocaleIdentifier: (NSString *) identifier
+{
+  if ([identifier isEqualToString: _localeId])
+    return;
+  
+  [self _closeCalendar];
+  RELEASE(_localeId);
+  _localeId = RETAIN(identifier);
 }
 @end
 
@@ -340,12 +358,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 
 - (void)setLocale: (NSLocale *) locale
 {
-  if ([[locale localeIdentifier] isEqual: _localeId])
-    return;
-  
-  [self _closeCalendar];
-  RELEASE(_localeId);
-  _localeId = RETAIN([self _localeIdWithLocale: locale]);
+  [self _setLocaleIdentifier: [self _localeIdWithLocale: locale]];
 }
 
 - (NSUInteger) firstWeekday
@@ -481,6 +494,58 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 {
   return NO;
 }
+
+- (BOOL) isEqual: (id) obj
+{
+  if ([obj isKindOfClass: [self class]])
+    {
+      if (![_identifier isEqual: [obj calendarIdentifier]])
+        return NO;
+      if (![_localeId isEqual: [obj _localeIdentifier]])
+        return NO;
+      if (![_tz isEqual: [obj timeZone]])
+        return NO;
+      return YES;
+    }
+  
+  return NO;
+}
+
+- (void) encodeWithCoder: (NSCoder*)encoder
+{
+  [encoder encodeObject: _identifier];
+  [encoder encodeObject: _localeId];
+  [encoder encodeObject: _tz];
+}
+
+- (id) initWithCoder: (NSCoder*)decoder
+{
+  NSString	*s = [decoder decodeObject];
+
+  [self initWithCalendarIdentifier: s];
+  [self _setLocaleIdentifier: [decoder decodeObject]];
+  [self setTimeZone: [decoder decodeObject]];
+  
+  return self;
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  NSCalendar *result;
+  
+  if (NSShouldRetainWithZone(self, zone))
+    return RETAIN(self);
+  else
+    {
+      result = (NSCalendar *)NSCopyObject(self, 0, zone);
+      result->_identifier = [_identifier copyWithZone: zone];
+      result->_localeId = [_localeId copyWithZone: zone];
+      result->_tz = RETAIN(_tz);
+    }
+  
+  return result;
+}
+
 @end
 
 
