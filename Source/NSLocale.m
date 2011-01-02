@@ -912,6 +912,14 @@ static NSRecursiveLock *classLock = nil;
   return _localeId;
 }
 
+- (BOOL) isEqual: (id) obj
+{
+  if ([obj isKindOfClass: [self class]])
+    return [_localeId isEqual: [obj localeIdentifier]];
+  
+  return NO;
+}
+
 - (void) dealloc
 {
   RELEASE(_localeId);
@@ -933,10 +941,17 @@ static NSRecursiveLock *classLock = nil;
 
 - (id) copyWithZone: (NSZone *) zone
 {
+  NSLocale *result;
+  
   if (NSShouldRetainWithZone(self, zone))
-    return RETAIN(self);
+    result = RETAIN(self);
   else
-    return NSCopyObject(self, 0, zone);
+    {
+       result = (NSLocale *)NSCopyObject(self, 0, zone);
+       result->_localeId = [_localeId copyWithZone: zone];
+    }
+  
+  return result;
 }
 
 @end

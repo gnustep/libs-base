@@ -1,6 +1,12 @@
 2011-01-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/Foundation/NSCalendar.h:
+	* Source/NSCalendar.m: Added NSCoding and NSCopying.
+	* Source/NSLocale.m: Implement -isEqual: and do a better job of copying.
+
+2011-01-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/Foundation/NSCalendar.h:
 	* Source/NSLocale.m: Minor fixes.
 	* Source/NSCalendar.m: Implemented +currentCalendar.
 

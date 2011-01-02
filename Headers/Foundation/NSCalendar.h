@@ -132,7 +132,7 @@ enum
 
 
 
-@interface NSCalendar : NSObject
+@interface NSCalendar : NSObject <NSCoding, NSCopying>
 {
   NSString   *_identifier;
   NSString   *_localeId;
