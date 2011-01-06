@@ -321,7 +321,9 @@ GSAtomicIncrement(gsatomic_t X)
   int tmp;
 
   __asm__ __volatile__ (
+#if !defined(__mips64__)
     "   .set  mips2  \n"
+#endif
     "0: ll    %0, %1 \n"
     "   addiu %0, 1  \n"
     "   sc    %0, %1 \n"
@@ -336,7 +338,9 @@ GSAtomicDecrement(gsatomic_t X)
   int tmp;
 
   __asm__ __volatile__ (
+#if !defined(__mips64__)
     "   .set  mips2  \n"
+#endif
     "0: ll    %0, %1 \n"
     "   addiu %0, -1 \n"
     "   sc    %0, %1 \n"
