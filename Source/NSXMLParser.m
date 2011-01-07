@@ -1436,6 +1436,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
               NSMutableDictionary       *parameters;
               NSString                  *arg;
               const unsigned char       *tp = this->cp;  // tag pointer
+	      const unsigned char	*sp = tp - 1;	// Open angle bracket
 
 	      /* After processing a tag, whitespace will be ignorable and
 	       * we can start accumulating it in our buffer.
@@ -1564,9 +1565,11 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                             @"<?tag ...? is missing the >"
 			    code: NSXMLParserGTRequiredError];
                         }
-                      // process
-		      if ([tag isEqualToString: @"xml"]
-			&& tp != [this->data bytes])
+		      /* If this is the <?xml  header, the opening angle
+		       * bracket MUST be at the start of the data.
+		       */
+		      if ([tag isEqualToString: @"?xml"]
+			&& sp != [this->data bytes])
 			{
 			  return [self _parseError: @"bad <?xml > preamble"
 			    code: NSXMLParserDocumentStartError];
@@ -1599,13 +1602,21 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       return [self _parseError: @"empty attribute name"
 			code: NSXMLParserAttributeNotStartedError];
                     }
-                  c = cget();  // get delimiting character
+                  c = cget();
+                  while (isspace(c))
+                    {
+                      c = cget();
+                    }
                   if (c == '=')
                     {
 		      NSString	*val;
 
                       // explicit assignment
                       c = cget();  // skip =
+		      while (isspace(c))
+			{
+			  c = cget();
+			}
 		      val = [self _newQarg];
                       [parameters setObject: val forKey: arg];
 		      [val release];

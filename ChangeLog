@@ -3,6 +3,8 @@
 	* Source/NSObject.m: Make zombie log message match current OSX.
 	* Source/NSURL.m: Fix -resourceSpecifier by removing incorrect
 	special handling for file URLs.
+	* Source/NSXMLParser.m: Maketolerant of whitespace around the '='
+	in an attribute.  Fix check for xml header being at start of doc.
 
 2011-01-06  Fred Kiefer <FredKiefer@gmx.de>
 
