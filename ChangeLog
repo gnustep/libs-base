@@ -1,3 +1,7 @@
+2011-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Make zombie log message match current OSX.
+
 2011-01-06  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSObject.m (GSAtomicIncrement, GSAtomicDecrement): MIPS64

@@ -156,13 +156,13 @@ static void GSLogZombie(id o, SEL sel)
     }
   if (c == 0)
     {
-      NSLog(@"Deallocated object (%p) sent %@",
-	o, NSStringFromSelector(sel));
+      NSLog(@"*** -[??? %@]: message sent to deallocated instance %p",
+	NSStringFromSelector(sel), o);
     }
   else
     {
-      NSLog(@"Deallocated %@ (%p) sent %@",
-	c, o, NSStringFromSelector(sel));
+      NSLog(@"*** -[%@ %@]: message sent to deallocated instance %p",
+	c, NSStringFromSelector(sel), o);
     }
   if (GSPrivateEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
     {
