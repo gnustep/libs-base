@@ -1770,12 +1770,19 @@ static unsigned	urlAlign;
   if (range.length > 0)
     {
       NSString *specifier;
-      /* MacOSX compatibility - file schemes just return the path (without
-         the "//") but everything else returns the whole specifier */
-      if ([[self scheme] isEqual: @"file"])
-        specifier = [_urlString substringFromIndex: NSMaxRange(range)];
+
+      /* MacOSX compatibility - in the case where there is no
+       * host in the URL, just return the path (without the "//").
+       * For all other cases we return the whole specifier.
+       */
+      if (nil == [self host])
+	{
+          specifier = [_urlString substringFromIndex: NSMaxRange(range)];
+	}
       else
-        specifier = [_urlString substringFromIndex: range.location+1];
+	{
+          specifier = [_urlString substringFromIndex: range.location+1];
+	}
       return specifier;
     }
   else
