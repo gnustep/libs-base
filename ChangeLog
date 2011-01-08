@@ -1,5 +1,12 @@
 2011-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure:
+	* configure.ac: Added check for unicode/unum.h.
+	* Headers/Foundation/NSNumberFormatter.h:
+	* Source/NSNumberFormatter.m: Added stub for 10.4+ methods.
+
+2011-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSObject.m: Make zombie log message match current OSX.
 	* Source/NSURL.m: Fix -resourceSpecifier by removing incorrect
 	special handling for file URLs.

@@ -32,12 +32,19 @@
 #import "Foundation/NSAttributedString.h"
 #import "Foundation/NSDecimalNumber.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSLocale.h"
+#import "Foundation/NSValue.h"
 #import "Foundation/NSNumberFormatter.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSCharacterSet.h"
 
 #import "GNUstepBase/GSLocale.h"
+
+#if	defined(HAVE_UNICODE_UNUM_H)
+# include <unicode/unum.h>
+#endif
 
 @implementation NSNumberFormatter
 
@@ -800,4 +807,527 @@
 
   return number;
 }
+
+
+
+- (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior
+{
+  return;
+}
+
+- (NSNumberFormatterBehavior) formatterBehavior
+{
+  return 0;
+}
+
++ (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior
+{
+  return;
+}
+
++ (NSNumberFormatterBehavior) defaultFormatterBehavior
+{
+  return 0;
+}
+
+- (void) setNumberStyle: (NSNumberFormatterStyle) style
+{
+  return;
+}
+
+- (NSNumberFormatterStyle) numberStyle
+{
+  return 0;
+}
+
+- (void) setGeneratesDecimalNumbers: (BOOL) flag
+{
+  return;
+}
+
+- (BOOL) generatesDecimalNubmers
+{
+  return NO;
+}
+
+
+- (void) setLocale: (NSLocale *) locale
+{
+  return;
+}
+
+- (NSLocale *) locale
+{
+  return nil;
+}
+
+
+- (void) setRoundingIncrement: (NSNumber *) number
+{
+  return;
+}
+
+- (NSNumber *) roundingIncrement
+{
+  return nil;
+}
+
+- (void) setRoundingMode: (NSNumberFormatterRoundingMode) mode
+{
+  return;
+}
+
+- (NSNumberFormatterRoundingMode) roundingMode
+{
+  return 0;
+}
+
+
+- (void) setFormatWidth: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) formatWidth
+{
+  return 0;
+}
+
+- (void) setMultiplier: (NSNumber *) number
+{
+  return;
+}
+
+- (NSNumber *) multiplier
+{
+  return nil;
+}
+
+
+- (void) setPercentSymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) percentSymbol
+{
+  return nil;
+}
+
+- (void) setPerMillSymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) perMillSymbol
+{
+  return nil;
+}
+
+- (void) setMinusSign: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) minusSign
+{
+  return nil;
+}
+
+- (void) setPlusSign: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) plusSign
+{
+  return nil;
+}
+
+- (void) setExponentSymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) exponentSymbol
+{
+  return nil;
+}
+
+- (void) setZeroSymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) zeroSymbol
+{
+  return nil;
+}
+
+- (void) setNilSymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) nilSymbol
+{
+  return nil;
+}
+
+- (void) setNotANumberSymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) notANumberSymbol
+{
+  return nil;
+}
+
+- (void) setNegativeInfinitySymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) negativeInfinitySymbol
+{
+  return nil;
+}
+
+- (void) setPositiveInfinitySymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) positiveInfinitySymbol
+{
+  return nil;
+}
+
+
+- (void) setCurrencySymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) currencySymbol
+{
+  return nil;
+}
+
+- (void) setCurrencyCode: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) currencyCode
+{
+  return nil;
+}
+
+- (void) setInternationalCurrencySymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) internationalCurrencySymbol
+{
+  return nil;
+}
+
+
+- (void) setPositivePrefix: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) positivePrefix
+{
+  return nil;
+}
+
+- (void) setPositiveSuffix: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) positiveSuffix
+{
+  return nil;
+}
+
+- (void) setNegativePrefix: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) negativePrefix
+{
+  return nil;
+}
+
+- (void) setNegativeSuffix: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) negativeSuffix
+{
+  return nil;
+}
+
+
+- (void) setTextAttributesForZero: (NSDictionary *) newAttributes
+{
+  return;
+}
+
+- (NSDictionary *) textAttributesForZero
+{
+  return nil;
+}
+
+- (void) setTextAttributesForNil: (NSDictionary *) newAttributes
+{
+  return;
+}
+
+- (NSDictionary *) textAttributesForNil
+{
+  return nil;
+}
+
+- (void) setTextAttributesForNotANumber: (NSDictionary *) newAttributes
+{
+  return;
+}
+
+- (NSDictionary *) textAttributesForNotANumber
+{
+  return nil;
+}
+
+- (void) setTextAttributesForPositiveInfinity: (NSDictionary *) newAttributes
+{
+  return;
+}
+
+- (NSDictionary *) textAttributesForPositiveInfinity
+{
+  return nil;
+}
+
+- (void) setTextAttributesForNegativeInfinity: (NSDictionary *) newAttributes
+{
+  return;
+}
+
+- (NSDictionary *) textAttributesForNegativeInfinity
+{
+  return nil;
+}
+
+
+- (void) setGroupingSeparator: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) groupingSeparator
+{
+  return nil;
+}
+
+- (void) setUsesGroupingSeparator: (BOOL) flag
+{
+  return;
+}
+
+- (BOOL) usesGroupingSeparator
+{
+  return NO;
+}
+
+- (void) setAlwaysShowsDecimalSeparator: (BOOL) flag
+{
+  return;
+}
+
+- (BOOL) alwaysShowsDecimalSeparator
+{
+  return NO;
+}
+
+- (void) setCurrencyDecimalSeparator: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) currencyDecimalSeparator
+{
+  return nil;
+}
+
+- (void) setGroupingSize: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) groupingSize
+{
+  return 0;
+}
+
+- (void) setSecondaryGroupingSize: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) secondaryGroupingSize
+{
+  return 0;
+}
+
+
+- (void) setPaddingCharacter: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) paddingCharacter
+{
+  return nil;
+}
+
+- (void) setPaddingPosition: (NSNumberFormatterPadPosition) position
+{
+  return;
+}
+
+- (NSNumberFormatterPadPosition) paddingPosition
+{
+  return 0;
+}
+
+
+- (void) setMinimumIntegerDigits: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) minimumIntegerDigits
+{
+  return 0;
+}
+
+- (void) setMinimumFractionDigits: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) minimumFractionDigits
+{
+  return 0;
+}
+
+- (void) setMaximumIntegerDigits: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) maximumIntegerDigits
+{
+  return 0;
+}
+
+- (void) setMaximumFractionDigits: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) maximumFractionDigits
+{
+  return 0;
+}
+
+
+- (BOOL) getObjectValue: (out id *) anObject
+              forString: (NSString *) aString
+                  range: (NSRange) rangep
+                  error: (out NSError **) error
+{
+  return NO;
+}
+
+
+- (void) setUsesSignificantDigits: (BOOL) flag
+{
+  return;
+}
+
+- (BOOL) usesSignificantDigits
+{
+  return NO;
+}
+
+- (void) setMinimumSignificantDigits: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) minimumSignificantDigits
+{
+  return 0;
+}
+
+- (void) setMaximumSignificantDigits: (NSUInteger) number
+{
+  return;
+}
+
+- (NSUInteger) maximumSignificantDigits
+{
+  return 0;
+}
+
+
+- (void) setCurrencyGroupingSeparator: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) currencyGroupingSeparator
+{
+  return nil;
+}
+
+
+- (void) setLenient: (BOOL) flag
+{
+  return;
+}
+
+- (BOOL) isLenient
+{
+  return NO;
+}
+
+
+- (void) setPartialStringValidationEnabled: (BOOL) enabled
+{
+  return;
+}
+
+- (BOOL) isPartialStringValidationEnabled
+{
+  return NO;
+}
+
+
++ (NSString *) localizedStringFromNumber: (NSNumber *) num
+    numberStyle: (NSNumberFormatterStyle) localizationStyle
+{
+  return nil;
+}
+
 @end
