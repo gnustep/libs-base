@@ -2690,7 +2690,7 @@ if test $enable_icu = yes; then
   AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
   if test "$have_icu" = "yes"; then
     AC_MSG_RESULT(yes)
-    AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h)
+    AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unum.h)
     LIBS="$LIBS $ICU_LIBS"
     HAVE_ICU=1
   else

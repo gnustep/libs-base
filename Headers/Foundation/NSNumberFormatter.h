@@ -37,7 +37,50 @@
 extern "C" {
 #endif
 
-@class	NSString, NSAttributedString, NSDictionary;
+@class	NSString, NSAttributedString, NSDictionary,
+        NSError, NSLocale, NSNumber;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+enum
+{
+  NSNumberFormatterNoStyle = 0,
+  NSNumberFormatterDecimalStyle = 1,
+  NSNumberFormatterCurrencyStyle = 2,
+  NSNumberFormatterPercentStyle = 3,
+  NSNumberFormatterScientificStyle = 4,
+  NSNumberFormatterSpellOutStyle = 5
+};
+typedef NSUInteger NSNumberFormatterStyle;
+
+enum
+{
+  NSNumberFormatterBehaviorDefault = 0,
+  NSNumberFormatterBehavior10_0 = 1000,
+  NSNumberFormatterBehavior10_4 = 1040,
+};
+typedef NSUInteger NSNumberFormatterBehavior;
+
+enum
+{
+  NSNumberFormatterPadBeforePrefix = 0,
+  NSNumberFormatterPadAfterPrefix = 1,
+  NSNumberFormatterPadBeforeSuffix = 2,
+  NSNumberFormatterPadAfterSuffix = 3
+};
+typedef NSUInteger NSNumberFormatterPadPosition;
+
+enum
+{
+  NSNumberFormatterRoundCeiling = 0,
+  NSNumberFormatterRoundFloor = 1,
+  NSNumberFormatterRoundDown = 2,
+  NSNumberFormatterRoundUp = 3,
+  NSNumberFormatterRoundHalfEven = 4,
+  NSNumberFormatterRoundHalfDown = 5,
+  NSNumberFormatterRoundHalfUp = 6
+};
+typedef NSUInteger NSNumberFormatterRoundingMode;
+#endif
 
 /**
  * <p><em><strong>This class is currently not implemented in GNUstep!  All set
@@ -304,16 +347,144 @@ extern "C" {
  */
 - (void) setMinimum: (NSDecimalNumber*)aMinimum;
 
-/**
- * Returns the string version of this number based on the format
- * specified.
- */
-- (NSString *) stringFromNumber: (NSNumber *)number;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+- (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior;
+- (NSNumberFormatterBehavior) formatterBehavior;
++ (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior;
++ (NSNumberFormatterBehavior) defaultFormatterBehavior;
+- (void) setNumberStyle: (NSNumberFormatterStyle) style;
+- (NSNumberFormatterStyle) numberStyle;
+- (void) setGeneratesDecimalNumbers: (BOOL) flag;
+- (BOOL) generatesDecimalNubmers;
+
+- (void) setLocale: (NSLocale *) locale;
+- (NSLocale *) locale;
+
+- (void) setRoundingIncrement: (NSNumber *) number;
+- (NSNumber *) roundingIncrement;
+- (void) setRoundingMode: (NSNumberFormatterRoundingMode) mode;
+- (NSNumberFormatterRoundingMode) roundingMode;
+
+- (void) setFormatWidth: (NSUInteger) number;
+- (NSUInteger) formatWidth;
+- (void) setMultiplier: (NSNumber *) number;
+- (NSNumber *) multiplier;
+
+- (void) setPercentSymbol: (NSString *) string;
+- (NSString *) percentSymbol;
+- (void) setPerMillSymbol: (NSString *) string;
+- (NSString *) perMillSymbol;
+- (void) setMinusSign: (NSString *) string;
+- (NSString *) minusSign;
+- (void) setPlusSign: (NSString *) string;
+- (NSString *) plusSign;
+- (void) setExponentSymbol: (NSString *) string;
+- (NSString *) exponentSymbol;
+- (void) setZeroSymbol: (NSString *) string;
+- (NSString *) zeroSymbol;
+- (void) setNilSymbol: (NSString *) string;
+- (NSString *) nilSymbol;
+- (void) setNotANumberSymbol: (NSString *) string;
+- (NSString *) notANumberSymbol;
+- (void) setNegativeInfinitySymbol: (NSString *) string;
+- (NSString *) negativeInfinitySymbol;
+- (void) setPositiveInfinitySymbol: (NSString *) string;
+- (NSString *) positiveInfinitySymbol;
+
+- (void) setCurrencySymbol: (NSString *) string;
+- (NSString *) currencySymbol;
+- (void) setCurrencyCode: (NSString *) string;
+- (NSString *) currencyCode;
+- (void) setInternationalCurrencySymbol: (NSString *) string;
+- (NSString *) internationalCurrencySymbol;
+
+- (void) setPositivePrefix: (NSString *) string;
+- (NSString *) positivePrefix;
+- (void) setPositiveSuffix: (NSString *) string;
+- (NSString *) positiveSuffix;
+- (void) setNegativePrefix: (NSString *) string;
+- (NSString *) negativePrefix;
+- (void) setNegativeSuffix: (NSString *) string;
+- (NSString *) negativeSuffix;
+
+- (void) setTextAttributesForZero: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForZero;
+- (void) setTextAttributesForNil: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForNil;
+- (void) setTextAttributesForNotANumber: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForNotANumber;
+- (void) setTextAttributesForPositiveInfinity: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForPositiveInfinity;
+- (void) setTextAttributesForNegativeInfinity: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForNegativeInfinity;
+
+- (void) setGroupingSeparator: (NSString *) string;
+- (NSString *) groupingSeparator;
+- (void) setUsesGroupingSeparator: (BOOL) flag;
+- (BOOL) usesGroupingSeparator;
+- (void) setAlwaysShowsDecimalSeparator: (BOOL) flag;
+- (BOOL) alwaysShowsDecimalSeparator;
+- (void) setCurrencyDecimalSeparator: (NSString *) string;
+- (NSString *) currencyDecimalSeparator;
+- (void) setGroupingSize: (NSUInteger) number;
+- (NSUInteger) groupingSize;
+- (void) setSecondaryGroupingSize: (NSUInteger) number;
+- (NSUInteger) secondaryGroupingSize;
+
+- (void) setPaddingCharacter: (NSString *) string;
+- (NSString *) paddingCharacter;
+- (void) setPaddingPosition: (NSNumberFormatterPadPosition) position;
+- (NSNumberFormatterPadPosition) paddingPosition;
+
+- (void) setMinimumIntegerDigits: (NSUInteger) number;
+- (NSUInteger) minimumIntegerDigits;
+- (void) setMinimumFractionDigits: (NSUInteger) number;
+- (NSUInteger) minimumFractionDigits;
+- (void) setMaximumIntegerDigits: (NSUInteger) number;
+- (NSUInteger) maximumIntegerDigits;
+- (void) setMaximumFractionDigits: (NSUInteger) number;
+- (NSUInteger) maximumFractionDigits;
 
 /**
  * Returns the number for this string.
  */
-- (NSNumber *) numberFromString: (NSString *)string;
+- (NSNumber *) numberFromString: (NSString *) string;
+/**
+ * Returns the string version of this number based on the format
+ * specified.
+ */
+- (NSString *) stringFromNumber: (NSNumber *) number;
+
+- (BOOL) getObjectValue: (out id *) anObject
+              forString: (NSString *) aString
+                  range: (NSRange) rangep
+                  error: (out NSError **) error;
+
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (void) setUsesSignificantDigits: (BOOL) flag;
+- (BOOL) usesSignificantDigits;
+- (void) setMinimumSignificantDigits: (NSUInteger) number;
+- (NSUInteger) minimumSignificantDigits;
+- (void) setMaximumSignificantDigits: (NSUInteger) number;
+- (NSUInteger) maximumSignificantDigits;
+
+- (void) setCurrencyGroupingSeparator: (NSString *) string;
+- (NSString *) currencyGroupingSeparator;
+
+- (void) setLenient: (BOOL) flag;
+- (BOOL) isLenient;
+
+- (void) setPartialStringValidationEnabled: (BOOL) enabled;
+- (BOOL) isPartialStringValidationEnabled;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (NSString *) localizedStringFromNumber: (NSNumber *) num
+    numberStyle: (NSNumberFormatterStyle) localizationStyle;
+#endif
+
 @end
 
 #if	defined(__cplusplus)
