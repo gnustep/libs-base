@@ -414,7 +414,7 @@ static NSUInteger _defaultBehavior = 0;
   RELEASE(o);
   
   _behavior = _defaultBehavior;
-  _locale = [NSLocale currentLocale];
+  _locale = RETAIN([NSLocale currentLocale]);
   [self _openUNumberFormat];
 
   return self;
@@ -1315,12 +1315,20 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setCurrencyCode: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setTextAttribute: string : UNUM_CURRENCY_CODE];
+#else
   return;
+#endif
 }
 
 - (NSString *) currencyCode
 {
+#if GS_USE_ICU == 1
+  return [self _getTextAttribute: UNUM_CURRENCY_CODE];
+#else
   return nil;
+#endif
 }
 
 - (void) setInternationalCurrencySymbol: (NSString *) string
@@ -1353,37 +1361,65 @@ static NSUInteger _defaultBehavior = 0;
 
 - (NSString *) positivePrefix
 {
+#if GS_USE_ICU == 1
+  return [self _getTextAttribute: UNUM_POSITIVE_PREFIX];
+#else
   return nil;
+#endif
 }
 
 - (void) setPositiveSuffix: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setTextAttribute: string : UNUM_POSITIVE_SUFFIX];
+#else
   return;
+#endif
 }
 
 - (NSString *) positiveSuffix
 {
+#if GS_USE_ICU == 1
+  return [self _getTextAttribute: UNUM_POSITIVE_SUFFIX];
+#else
   return nil;
+#endif
 }
 
 - (void) setNegativePrefix: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setTextAttribute: string : UNUM_NEGATIVE_PREFIX];
+#else
   return;
+#endif
 }
 
 - (NSString *) negativePrefix
 {
+#if GS_USE_ICU == 1
+  return [self _getTextAttribute: UNUM_NEGATIVE_PREFIX];
+#else
   return nil;
+#endif
 }
 
 - (void) setNegativeSuffix: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setTextAttribute: string : UNUM_NEGATIVE_SUFFIX];
+#else
   return;
+#endif
 }
 
 - (NSString *) negativeSuffix
 {
+#if GS_USE_ICU == 1
+  return [self _getTextAttribute: UNUM_NEGATIVE_SUFFIX];
+#else
   return nil;
+#endif
 }
 
 

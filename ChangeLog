@@ -1,5 +1,10 @@
 2011-01-09  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/NSNumberFormatter.m: Implemented a few more methods.
+	* Source/NSLocale.m: Added code requiring NSNumberFormatter code.
+
+2011-01-09  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/Additions/GNUstepBase/config.h.in:
 	* Headers/Foundation/NSNumberFormatter.h:
 	* Source/NSNumberFormatter.m: Started adding code for new methods.
