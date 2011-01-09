@@ -42,11 +42,173 @@
 
 #import "GNUstepBase/GSLocale.h"
 
+@class NSDoubleNumber;
+
 #if	defined(HAVE_UNICODE_UNUM_H)
 # include <unicode/unum.h>
 #endif
 
+#define MAX_SYMBOL_SIZE 32
+#define MAX_TEXT_ATTRIB_SIZE 512
+
+#if GS_USE_ICU == 1
+static inline UNumberFormatStyle
+_NSToICUFormatStyle (NSNumberFormatterStyle style)
+{
+  UNumberFormatStyle result;
+  
+  switch (style)
+    {
+      case NSNumberFormatterDecimalStyle:
+        result = UNUM_DECIMAL;
+        break;
+      case NSNumberFormatterCurrencyStyle:
+        result = UNUM_CURRENCY;
+        break;
+      case NSNumberFormatterPercentStyle:
+        result = UNUM_PERCENT;
+        break;
+      case NSNumberFormatterScientificStyle:
+        result = UNUM_SCIENTIFIC;
+        break;
+      case NSNumberFormatterSpellOutStyle:
+        result = UNUM_SPELLOUT;
+        break;
+      case NSNumberFormatterNoStyle:
+      default:
+        result = UNUM_IGNORE;
+    }
+  
+  return result;
+}
+
+static inline UNumberFormatPadPosition
+_NSToICUPadPosition (NSNumberFormatterPadPosition position)
+{
+  UNumberFormatPadPosition result;
+  
+  switch (position)
+    {
+      case NSNumberFormatterPadBeforePrefix:
+        result = UNUM_PAD_BEFORE_PREFIX;
+        break;
+      case NSNumberFormatterPadAfterPrefix:
+        result = UNUM_PAD_AFTER_PREFIX;
+        break;
+      case NSNumberFormatterPadBeforeSuffix:
+        result = UNUM_PAD_BEFORE_SUFFIX;
+        break;
+      case NSNumberFormatterPadAfterSuffix:
+        result = UNUM_PAD_AFTER_SUFFIX;
+        break;
+    }
+  
+  return result;
+}
+
+static inline NSNumberFormatterPadPosition
+_ICUToNSPadPosition (UNumberFormatPadPosition position)
+{
+  NSNumberFormatterPadPosition result;
+  
+  switch (position)
+    {
+      case UNUM_PAD_BEFORE_PREFIX:
+        result = NSNumberFormatterPadBeforePrefix;
+        break;
+      case UNUM_PAD_AFTER_PREFIX:
+        result = NSNumberFormatterPadAfterPrefix;
+        break;
+      case UNUM_PAD_BEFORE_SUFFIX:
+        result = NSNumberFormatterPadBeforeSuffix;
+        break;
+      case UNUM_PAD_AFTER_SUFFIX:
+        result = NSNumberFormatterPadAfterSuffix;
+        break;
+    }
+  
+  return result;
+}
+
+static inline UNumberFormatRoundingMode
+_NSToICURoundingMode (NSNumberFormatterRoundingMode mode)
+{
+  UNumberFormatRoundingMode result = 0;
+  
+  switch (mode)
+    {
+      case NSNumberFormatterRoundCeiling:
+        result = UNUM_ROUND_CEILING;
+        break;
+      case NSNumberFormatterRoundFloor:
+        result = UNUM_ROUND_FLOOR;
+        break;
+      case NSNumberFormatterRoundDown:
+        result = UNUM_ROUND_DOWN;
+        break;
+      case NSNumberFormatterRoundUp:
+        result = UNUM_ROUND_UP;
+        break;
+      case NSNumberFormatterRoundHalfEven:
+        result = UNUM_ROUND_HALFEVEN;
+        break;
+      case NSNumberFormatterRoundHalfDown:
+        result = UNUM_ROUND_HALFDOWN;
+        break;
+      case NSNumberFormatterRoundHalfUp:
+        result = UNUM_ROUND_HALFUP;
+        break;
+    }
+  
+  return result;
+}
+
+static inline NSNumberFormatterRoundingMode
+_ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
+{
+  NSNumberFormatterRoundingMode result = 0;
+  
+  switch (mode)
+    {
+      case UNUM_ROUND_CEILING:
+        result = NSNumberFormatterRoundCeiling;
+        break;
+      case UNUM_ROUND_FLOOR:
+        result = NSNumberFormatterRoundFloor;
+        break;
+      case UNUM_ROUND_DOWN:
+        result = NSNumberFormatterRoundDown;
+        break;
+      case UNUM_ROUND_UP:
+        result = NSNumberFormatterRoundUp;
+        break;
+      case UNUM_ROUND_HALFEVEN:
+        result = NSNumberFormatterRoundHalfEven;
+        break;
+      case UNUM_ROUND_HALFDOWN:
+        result = NSNumberFormatterRoundHalfDown;
+        break;
+      case UNUM_ROUND_HALFUP:
+        result = NSNumberFormatterRoundHalfUp;
+        break;
+    }
+  
+  return result;
+}
+#endif
+
+@interface NSNumberFormatter (PrivateMethods)
+- (void) _openUNumberFormat;
+- (void) _closeUNumberFormat;
+- (void) _setSymbol: (NSString *) string : (NSInteger) symbol;
+- (NSString *) _getSymbol: (NSInteger) symbol;
+- (void) _setTextAttribute: (NSString *) string : (NSInteger) attrib;
+- (NSString *) _getTextAttribute: (NSInteger) attrib;
+@end
+
 @implementation NSNumberFormatter
+
+static NSUInteger _defaultBehavior = 0;
 
 - (BOOL) allowsFloats
 {
@@ -138,6 +300,8 @@
   RELEASE(_attributedStringForNil);
   RELEASE(_attributedStringForNotANumber);
   RELEASE(_attributedStringForZero);
+  RELEASE(_locale);
+  [self _closeUNumberFormat];
   [super dealloc];
 }
 
@@ -248,6 +412,10 @@
   o = [[NSAttributedString alloc] initWithString: @"NaN"];
   [self setAttributedStringForNotANumber: o];
   RELEASE(o);
+  
+  _behavior = _defaultBehavior;
+  _locale = [NSLocale currentLocale];
+  [self _openUNumberFormat];
 
   return self;
 }
@@ -812,156 +980,252 @@
 
 - (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior
 {
-  return;
+  _behavior = behavior;
 }
 
 - (NSNumberFormatterBehavior) formatterBehavior
 {
-  return 0;
+  return _behavior;
 }
 
 + (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior
 {
-  return;
+  _defaultBehavior = behavior;
 }
 
 + (NSNumberFormatterBehavior) defaultFormatterBehavior
 {
-  return 0;
+  return _defaultBehavior;
 }
 
 - (void) setNumberStyle: (NSNumberFormatterStyle) style
 {
-  return;
+  [self _closeUNumberFormat];
+  _style = style;
+  [self _openUNumberFormat];
 }
 
 - (NSNumberFormatterStyle) numberStyle
 {
-  return 0;
+  return _style;
 }
 
 - (void) setGeneratesDecimalNumbers: (BOOL) flag
 {
-  return;
+  _genDecimal = flag;
 }
 
 - (BOOL) generatesDecimalNubmers
 {
-  return NO;
+  return _genDecimal;
 }
 
 
 - (void) setLocale: (NSLocale *) locale
 {
-  return;
+  RELEASE(_locale);
+  [self _closeUNumberFormat];
+  
+  if (locale == nil)
+    locale = [NSLocale currentLocale];
+  _locale = RETAIN(locale);
+  
+  [self _openUNumberFormat];
 }
 
 - (NSLocale *) locale
 {
-  return nil;
+  return _locale;
 }
 
 
 - (void) setRoundingIncrement: (NSNumber *) number
 {
+#if GS_USE_ICU == 1
+  if ([number class] == [NSDoubleNumber class])
+    unum_setDoubleAttribute (_formatter, UNUM_ROUNDING_INCREMENT,
+      [number doubleValue]);
+#else
   return;
+#endif
 }
 
 - (NSNumber *) roundingIncrement
 {
+#if GS_USE_ICU == 1
+  double value = unum_getDoubleAttribute (_formatter, UNUM_ROUNDING_INCREMENT);
+  return [NSNumber numberWithDouble: value];
+#else
   return nil;
+#endif
 }
 
 - (void) setRoundingMode: (NSNumberFormatterRoundingMode) mode
 {
+#if GS_USE_ICU == 1
+  unum_setAttribute (_formatter, UNUM_ROUNDING_MODE,
+    _NSToICURoundingMode(mode));
+#else
   return;
+#endif
 }
 
 - (NSNumberFormatterRoundingMode) roundingMode
 {
+#if GS_USE_ICU == 1
+  return _ICUToNSRoundingMode (unum_getAttribute (_formatter,
+    UNUM_ROUNDING_MODE));
+#else
   return 0;
+#endif
 }
 
 
 - (void) setFormatWidth: (NSUInteger) number
 {
+#if GS_USE_ICU == 1
+  unum_setAttribute (_formatter, UNUM_FORMAT_WIDTH, (int32_t)number);
+#else
   return;
+#endif
 }
 
 - (NSUInteger) formatWidth
 {
+#if GS_USE_ICU == 1
+  return (NSUInteger)unum_getAttribute (_formatter, UNUM_FORMAT_WIDTH);
+#else
   return 0;
+#endif
 }
 
 - (void) setMultiplier: (NSNumber *) number
 {
+#if GS_USE_ICU == 1
+  double value = [number doubleValue];
+  unum_setDoubleAttribute (_formatter, UNUM_MULTIPLIER, value);
+#else
   return;
+#endif
 }
 
 - (NSNumber *) multiplier
 {
+#if GS_USE_ICU == 1
+  double value = unum_getDoubleAttribute (_formatter, UNUM_MULTIPLIER);
+  return [NSNumber numberWithDouble: value];
+#else
   return nil;
+#endif
 }
 
 
 - (void) setPercentSymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_PERCENT_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) percentSymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_PERCENT_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setPerMillSymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_PERMILL_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) perMillSymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_PERMILL_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setMinusSign: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_MINUS_SIGN_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) minusSign
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_MINUS_SIGN_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setPlusSign: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_PLUS_SIGN_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) plusSign
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_PLUS_SIGN_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setExponentSymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_EXPONENTIAL_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) exponentSymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_EXPONENTIAL_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setZeroSymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_ZERO_DIGIT_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) zeroSymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_ZERO_DIGIT_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setNilSymbol: (NSString *) string
@@ -976,43 +1240,77 @@
 
 - (void) setNotANumberSymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_NAN_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) notANumberSymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_NAN_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setNegativeInfinitySymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  // FIXME: ICU doesn't differenciate between positive and negative infinity.
+  [self _setSymbol: string : UNUM_INFINITY_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) negativeInfinitySymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_INFINITY_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setPositiveInfinitySymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  // FIXME: ICU doesn't differenciate between positive and negative infinity.
+  [self _setSymbol: string : UNUM_INFINITY_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) positiveInfinitySymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_INFINITY_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 
 - (void) setCurrencySymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_CURRENCY_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) currencySymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_CURRENCY_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setCurrencyCode: (NSString *) string
@@ -1027,18 +1325,30 @@
 
 - (void) setInternationalCurrencySymbol: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_INTL_CURRENCY_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) internationalCurrencySymbol
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_INTL_CURRENCY_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 
 - (void) setPositivePrefix: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setTextAttribute: string : UNUM_POSITIVE_PREFIX];
+#else
   return;
+#endif
 }
 
 - (NSString *) positivePrefix
@@ -1130,12 +1440,20 @@
 
 - (void) setGroupingSeparator: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_GROUPING_SEPARATOR_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) groupingSeparator
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_GROUPING_SEPARATOR_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setUsesGroupingSeparator: (BOOL) flag
@@ -1160,12 +1478,20 @@
 
 - (void) setCurrencyDecimalSeparator: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_MONETARY_SEPARATOR_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) currencyDecimalSeparator
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_MONETARY_SEPARATOR_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 - (void) setGroupingSize: (NSUInteger) number
@@ -1293,12 +1619,20 @@
 
 - (void) setCurrencyGroupingSeparator: (NSString *) string
 {
+#if GS_USE_ICU == 1
+  [self _setSymbol: string : UNUM_MONETARY_GROUPING_SEPARATOR_SYMBOL];
+#else
   return;
+#endif
 }
 
 - (NSString *) currencyGroupingSeparator
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbol: UNUM_MONETARY_GROUPING_SEPARATOR_SYMBOL];
+#else
   return nil;
+#endif
 }
 
 
@@ -1330,4 +1664,133 @@
   return nil;
 }
 
+@end
+
+@implementation NSNumberFormatter (PrivateMethods)
+- (void) _openUNumberFormat
+{
+#if GS_USE_ICU == 1
+  UNumberFormatStyle style;
+  UErrorCode err = U_ZERO_ERROR;
+  const char *cLocaleId;
+  
+  cLocaleId = [[_locale localeIdentifier] UTF8String];
+  style = _NSToICUFormatStyle (_style);
+  
+  _formatter = unum_open (style, NULL, 0, cLocaleId, NULL, &err);
+  if (U_FAILURE(err))
+    _formatter = NULL;
+#else
+  return;
+#endif
+}
+
+- (void) _closeUNumberFormat
+{
+#if GS_USE_ICU == 1
+  unum_close (_formatter);
+#else
+  return;
+#endif
+}
+
+- (void) _setSymbol: (NSString *) string : (NSInteger) symbol
+{
+#if GS_USE_ICU == 1
+  unichar buffer[MAX_SYMBOL_SIZE];
+  unichar *str = buffer;
+  NSUInteger length;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  length = [string length];
+  if (length > MAX_SYMBOL_SIZE)
+    str = (unichar *)NSZoneMalloc ([self zone], length);
+  [string getCharacters: str range: NSMakeRange (0, length)];
+  
+  unum_setSymbol (_formatter, symbol, str, length, &err);
+  
+  if (length > MAX_SYMBOL_SIZE)
+    NSZoneFree ([self zone], str);
+#else
+  return;
+#endif
+}
+
+- (NSString *) _getSymbol: (NSInteger) symbol
+{
+#if GS_USE_ICU == 1
+  UChar buffer[MAX_SYMBOL_SIZE];
+  UChar *str = buffer;
+  int32_t length;
+  UErrorCode err = U_ZERO_ERROR;
+  NSString *result;
+  
+  length = unum_getSymbol (_formatter, symbol, str,
+    MAX_SYMBOL_SIZE, &err);
+  if (length > MAX_SYMBOL_SIZE)
+    {
+      str = (UChar *)NSZoneMalloc ([self zone], length);
+      length = unum_getSymbol (_formatter, symbol, str,
+        length, &err);
+    }
+  
+  result = [NSString stringWithCharacters: str length: length];
+  if (length > MAX_SYMBOL_SIZE)
+    NSZoneFree ([self zone], str);
+  
+  return result;
+#else
+  return nil;
+#endif
+}
+
+- (void) _setTextAttribute: (NSString *) string : (NSInteger) attrib
+{
+#if GS_USE_ICU == 1
+  unichar buffer[MAX_TEXT_ATTRIB_SIZE];
+  unichar *str = buffer;
+  NSUInteger length;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  length = [string length];
+  if (length > MAX_TEXT_ATTRIB_SIZE)
+    str = (unichar *)NSZoneMalloc ([self zone], length);
+  [string getCharacters: str range: NSMakeRange (0, length)];
+  
+  unum_setTextAttribute (_formatter, attrib, str, length, &err);
+  
+  if (length > MAX_TEXT_ATTRIB_SIZE)
+    NSZoneFree ([self zone], str);
+#else
+  return;
+#endif
+}
+
+- (NSString *) _getTextAttribute: (NSInteger) attrib
+{
+#if GS_USE_ICU == 1
+  UChar buffer[MAX_TEXT_ATTRIB_SIZE];
+  UChar *str = buffer;
+  int32_t length;
+  UErrorCode err = U_ZERO_ERROR;
+  NSString *result;
+  
+  length = unum_getTextAttribute (_formatter, attrib, str,
+    MAX_TEXT_ATTRIB_SIZE, &err);
+  if (length > MAX_TEXT_ATTRIB_SIZE)
+    {
+      str = (UChar *)NSZoneMalloc ([self zone], length);
+      length = unum_getTextAttribute (_formatter, attrib, str,
+        length, &err);
+    }
+  
+  result = [NSString stringWithCharacters: str length: length];
+  if (length > MAX_TEXT_ATTRIB_SIZE)
+    NSZoneFree ([self zone], str);
+  
+  return result;
+#else
+  return nil;
+#endif
+}
 @end
