@@ -59,9 +59,6 @@ NSString * const NSLocaleGroupingSeparator = @"NSLocaleGroupingSeparator";
 NSString * const NSLocaleCurrencySymbol = @"NSLocaleCurrencySymbol";
 NSString * const NSLocaleCurrencyCode = @"NSLocaleCurrencyCode";
 NSString * const NSLocaleCollatorIdentifier = @"NSLocaleCollatorIdentifier";
-  /* FIXME:
-  I'm not sure what the difference between NSLocaleCollatorIdentifier and
-  NSLocaleCollationIdentifier is.  Can someone look into this?  Thanks */
 NSString * const NSLocaleQuotationBeginDelimiterKey =
   @"NSLocaleQuotationBeginDelimiterKey";
 NSString * const NSLocaleQuotationEndDelimiterKey =
@@ -95,6 +92,20 @@ NSString * const NSISO8601Calendar = @"";
 #if	defined(HAVE_UNICODE_UCURR_H)
 # include <unicode/ucurr.h>
 #endif
+
+
+
+@interface NSLocale (PrivateMethods)
++ (void) _updateCanonicalLocales;
+- (NSString *) _getMeasurementSystem;
+- (NSCharacterSet *) _getExemplarCharacterSet;
+- (NSString *) _getDelimiterWithType: (NSInteger) delimiterType;
+- (NSCalendar *) _getCalendar;
+- (NSString *) _getDecimalSeparator;
+- (NSString *) _getGroupingSeparator;
+- (NSString *) _getCurrencySymbol;
+- (NSString *) _getCurrencyCode;
+@end
 
 #if	GS_USE_ICU == 1
 //
@@ -151,164 +162,6 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
   RELEASE (currencies);
   return result;
 }
-
-@interface NSLocale (PrivateMethods)
-- (NSString *) _getMeasurementSystem;
-- (NSCharacterSet *) _getExemplarCharacterSet;
-- (NSString *) _getDelimiterWithType: (NSInteger) delimiterType;
-- (NSCalendar *) _getCalendar;
-- (NSString *) _getDecimalSeparator;
-- (NSString *) _getGroupingSeparator;
-- (NSString *) _getCurrencySymbol;
-- (NSString *) _getCurrencyCode;
-@end
-
-@implementation NSLocale (PrimateMethods)
-
-- (NSString *) _getMeasurementSystem
-{
-  const char *cLocaleId;
-  ULocaleData *localeData;
-  UMeasurementSystem msystem;
-  UErrorCode err = U_ZERO_ERROR;
-  NSString *result = nil;
-  
-  cLocaleId = [_localeId UTF8String];
-  localeData = ulocdata_open (cLocaleId, &err);
-  if (U_FAILURE(err))
-    return nil;
-  
-  msystem = ulocdata_getMeasurementSystem (cLocaleId, &err);
-  if (U_SUCCESS(err))
-    {
-      if (msystem == UMS_SI)
-        result = @"Metric";
-      else
-        result = @"U.S.";
-    }
-  return result;
-}
-
-- (NSCharacterSet *) _getExemplarCharacterSet
-{
-  const char *cLocaleId;
-  int idx;
-  int count;
-  UChar buffer[1024];
-    // This is an arbitrary size, increase it if it's not enough.
-  ULocaleData *localeData;
-  USet *charSet;
-  UErrorCode err = U_ZERO_ERROR;
-  NSCharacterSet *result;
-  NSMutableCharacterSet *mSet;
-  
-  mSet = [[NSMutableCharacterSet alloc] init];
-  if (mSet == nil)
-    return nil;
-  
-  cLocaleId = [_localeId UTF8String];
-  localeData = ulocdata_open (cLocaleId, &err);
-  if (U_FAILURE(err))
-    return nil;
-  
-  charSet = ulocdata_getExemplarSet (localeData, NULL,
-    USET_ADD_CASE_MAPPINGS, ULOCDATA_ES_STANDARD, &err);
-  if (U_FAILURE(err))
-    return nil;
-  ulocdata_close(localeData);
-  
-  count = uset_getItemCount(charSet);
-  for (idx = 0 ; idx < count ; ++idx)
-    {
-      UChar32 start, end;
-      int strLen;
-      
-      err = U_ZERO_ERROR;
-      strLen = uset_getItem (charSet, idx, &start, &end, buffer, 1024, &err);
-      if (U_FAILURE(err))
-        {
-          RELEASE(mSet);
-          return nil;
-        }
-      if (strLen == 0)
-        {
-          [mSet addCharactersInRange: NSMakeRange(start, end)];
-        }
-      else if (strLen >= 2)
-        {
-          NSString *str = [NSString stringWithCharacters: buffer
-                                                  length: strLen];
-          [mSet addCharactersInString: str];
-        }
-      // FIXME: The icu docs are a bit iffy and don't explain what len == 1
-      // means.  So, if it is encountered, we simply skip it.
-    }
-  
-  result = [mSet copyWithZone: NULL];
-  RELEASE(mSet);
-  return AUTORELEASE(result);
-}
-
-- (NSString *) _getDelimiterWithType: (NSInteger) delimiterType
-{
-  const char *cLocaleId;
-  int strLen;
-  UErrorCode err = U_ZERO_ERROR;
-  ULocaleData *localeData;
-  UChar result[32]; // Arbritrary size
-  
-  cLocaleId = [_localeId UTF8String];
-  localeData = ulocdata_open (cLocaleId, &err);
-  strLen = ulocdata_getDelimiter (localeData, delimiterType, result, 32, &err);
-  if (U_SUCCESS(err))
-    return [NSString stringWithCharacters: (unichar *)result length: strLen];
-  
-  return nil;
-}
-
-- (NSCalendar *) _getCalendar
-{
-  NSCalendar *result;
-  NSString *calId;
-  int strLen;
-  char buffer[ULOC_KEYWORDS_CAPACITY];
-  UErrorCode err = U_ZERO_ERROR;
-  
-  strLen = uloc_getKeywordValue ([_localeId UTF8String], ICUCalendarKeyword,
-    buffer, ULOC_KEYWORDS_CAPACITY, &err);
-  if (U_SUCCESS(err) && strLen > 0)
-    calId = [NSString stringWithUTF8String: buffer];
-  else
-    calId = NSGregorianCalendar;
-  
-  result = [[NSCalendar alloc] initWithCalendarIdentifier: calId];
-  
-  return result;
-}
-
-// FIXME: these should be fairly simple, but require changes to NSNumberFormatter.
-- (NSString *) _getDecimalSeparator
-{
-  return nil;
-}
-
-- (NSString *) _getGroupingSeparator
-{
-  return nil;
-}
-
-- (NSString *) _getCurrencySymbol
-{
-  return nil;
-}
-
-- (NSString *) _getCurrencyCode
-{
-  return nil;
-}
-
-@end
-
 #endif
 
 @implementation NSLocale
@@ -384,7 +237,10 @@ static NSRecursiveLock *classLock = nil;
   /* Can't use the ICU functions here because, according to Apple locale docs,
      the language has a format like "zh-Hant".  ICU, however, uses an
      underscore to separate Scripts "zh_Hant". */
-  localeId = [self canonicalLocaleIdentifierFromString: string];
+  if (canonicalLocales == nil)
+    [self _updateCanonicalLocales];
+  
+  localeId = [canonicalLocales objectForKey: string];
   localeComps = [localeId componentsSeparatedByString: @"_"];
   result = [localeComps objectAtIndex: 0];
   
@@ -400,20 +256,30 @@ static NSRecursiveLock *classLock = nil;
      Since ICU doesn't use "-" as a separator it will modify that identifier
      to zh_Hant_TW. */
   NSString *result;
+  NSMutableString *mStr;
+  NSRange range;
   
   if (canonicalLocales == nil)
-    {
-      NSBundle *gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
-      NSString *file = [gbundle pathForResource: @"Locale"
-                                         ofType: @"canonical"
-                                    inDirectory: @"Languages"];
-      if (file != nil)
-        canonicalLocales = [[NSDictionary alloc] initWithContentsOfFile: file];
-    }
+    [self _updateCanonicalLocales];
   
   result = [canonicalLocales objectForKey: string];
   if (result == nil)
     result = string;
+  
+  // Strip script info from locale
+  range = [result rangeOfString: @"-"];
+  if (range.location != NSNotFound)
+    {
+      NSUInteger start = range.location;
+      NSUInteger length;
+      range = [result rangeOfString: @"_"];
+      length = range.location - start;
+      
+      mStr = [NSMutableString stringWithString: result];
+      [mStr deleteCharactersInRange: NSMakeRange (start, length)];
+      
+      result = [NSString stringWithString: mStr];
+    }
   
   return result;
 }
@@ -850,7 +716,7 @@ static NSRecursiveLock *classLock = nil;
 {
   id result = nil;
 #if GS_USE_ICU == 1
-  if (key == NSLocaleIdentifier)
+  if (key == NSLocaleIdentifier || key == NSLocaleCollatorIdentifier)
     return _localeId;
 
   if ((result = [_components objectForKey: key]))
@@ -956,3 +822,173 @@ static NSRecursiveLock *classLock = nil;
 
 @end
 
+
+
+@implementation NSLocale (PrimateMethods)
++ (void) _updateCanonicalLocales
+{
+  NSBundle *gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+  NSString *file = [gbundle pathForResource: @"Locale"
+                                     ofType: @"canonical"
+                                inDirectory: @"Languages"];
+  if (file != nil)
+    canonicalLocales = [[NSDictionary alloc] initWithContentsOfFile: file];
+}
+
+- (NSString *) _getMeasurementSystem
+{
+#if GS_USE_ICU == 1
+  const char *cLocaleId;
+  ULocaleData *localeData;
+  UMeasurementSystem msystem;
+  UErrorCode err = U_ZERO_ERROR;
+  NSString *result = nil;
+  
+  cLocaleId = [_localeId UTF8String];
+  localeData = ulocdata_open (cLocaleId, &err);
+  if (U_FAILURE(err))
+    return nil;
+  
+  msystem = ulocdata_getMeasurementSystem (cLocaleId, &err);
+  if (U_SUCCESS(err))
+    {
+      if (msystem == UMS_SI)
+        result = @"Metric";
+      else
+        result = @"U.S.";
+    }
+  return result;
+#else
+  return nil;
+#endif
+}
+
+- (NSCharacterSet *) _getExemplarCharacterSet
+{
+#if GS_USE_ICU == 1
+  const char *cLocaleId;
+  int idx;
+  int count;
+  UChar buffer[1024];
+    // This is an arbitrary size, increase it if it's not enough.
+  ULocaleData *localeData;
+  USet *charSet;
+  UErrorCode err = U_ZERO_ERROR;
+  NSCharacterSet *result;
+  NSMutableCharacterSet *mSet;
+  
+  mSet = [[NSMutableCharacterSet alloc] init];
+  if (mSet == nil)
+    return nil;
+  
+  cLocaleId = [_localeId UTF8String];
+  localeData = ulocdata_open (cLocaleId, &err);
+  if (U_FAILURE(err))
+    return nil;
+  
+  charSet = ulocdata_getExemplarSet (localeData, NULL,
+    USET_ADD_CASE_MAPPINGS, ULOCDATA_ES_STANDARD, &err);
+  if (U_FAILURE(err))
+    return nil;
+  ulocdata_close(localeData);
+  
+  count = uset_getItemCount(charSet);
+  for (idx = 0 ; idx < count ; ++idx)
+    {
+      UChar32 start, end;
+      int strLen;
+      
+      err = U_ZERO_ERROR;
+      strLen = uset_getItem (charSet, idx, &start, &end, buffer, 1024, &err);
+      if (U_FAILURE(err))
+        {
+          RELEASE(mSet);
+          return nil;
+        }
+      if (strLen == 0)
+        {
+          [mSet addCharactersInRange: NSMakeRange(start, end)];
+        }
+      else if (strLen >= 2)
+        {
+          NSString *str = [NSString stringWithCharacters: buffer
+                                                  length: strLen];
+          [mSet addCharactersInString: str];
+        }
+      // FIXME: The icu docs are a bit iffy and don't explain what len == 1
+      // means.  So, if it is encountered, we simply skip it.
+    }
+  
+  result = [mSet copyWithZone: NULL];
+  RELEASE(mSet);
+  return AUTORELEASE(result);
+#else
+  return nil;
+#endif
+}
+
+- (NSString *) _getDelimiterWithType: (NSInteger) delimiterType
+{
+#if GS_USE_ICU == 1
+  const char *cLocaleId;
+  int strLen;
+  UErrorCode err = U_ZERO_ERROR;
+  ULocaleData *localeData;
+  UChar result[32]; // Arbritrary size
+  
+  cLocaleId = [_localeId UTF8String];
+  localeData = ulocdata_open (cLocaleId, &err);
+  strLen = ulocdata_getDelimiter (localeData, delimiterType, result, 32, &err);
+  if (U_SUCCESS(err))
+    return [NSString stringWithCharacters: (unichar *)result length: strLen];
+#endif
+  
+  return nil;
+}
+
+- (NSCalendar *) _getCalendar
+{
+#if GS_USE_ICU == 1
+  NSCalendar *result;
+  NSString *calId;
+  int strLen;
+  char buffer[ULOC_KEYWORDS_CAPACITY];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  strLen = uloc_getKeywordValue ([_localeId UTF8String], ICUCalendarKeyword,
+    buffer, ULOC_KEYWORDS_CAPACITY, &err);
+  if (U_SUCCESS(err) && strLen > 0)
+    calId = [NSString stringWithUTF8String: buffer];
+  else
+    calId = NSGregorianCalendar;
+  
+  result = [[NSCalendar alloc] initWithCalendarIdentifier: calId];
+  
+  return result;
+#else
+  return nil;
+#endif
+}
+
+// FIXME: these should be fairly simple, but require changes to NSNumberFormatter.
+- (NSString *) _getDecimalSeparator
+{
+  return nil;
+}
+
+- (NSString *) _getGroupingSeparator
+{
+  return nil;
+}
+
+- (NSString *) _getCurrencySymbol
+{
+  return nil;
+}
+
+- (NSString *) _getCurrencyCode
+{
+  return nil;
+}
+
+@end
