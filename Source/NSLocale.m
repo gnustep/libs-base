@@ -32,7 +32,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSValue.h"
-//#import "Foundation/NSNumberFormatter.h"
+#import "Foundation/NSNumberFormatter.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSString.h"
 #import "GNUstepBase/GSLock.h"
@@ -970,25 +970,60 @@ static NSRecursiveLock *classLock = nil;
 #endif
 }
 
-// FIXME: these should be fairly simple, but require changes to NSNumberFormatter.
 - (NSString *) _getDecimalSeparator
 {
-  return nil;
+  NSNumberFormatter *nFor;
+  NSString *result;
+  
+  nFor = [[NSNumberFormatter alloc] init];
+  [nFor setLocale: self];
+  [nFor setNumberStyle: NSNumberFormatterDecimalStyle];
+  result = [nFor decimalSeparator];
+  
+  RELEASE(nFor);
+  return result;
 }
 
 - (NSString *) _getGroupingSeparator
 {
-  return nil;
+  NSNumberFormatter *nFor;
+  NSString *result;
+  
+  nFor = [[NSNumberFormatter alloc] init];
+  [nFor setLocale: self];
+  [nFor setNumberStyle: NSNumberFormatterDecimalStyle];
+  result = [nFor groupingSeparator];
+  
+  RELEASE(nFor);
+  return result;
 }
 
 - (NSString *) _getCurrencySymbol
 {
-  return nil;
+  NSNumberFormatter *nFor;
+  NSString *result;
+  
+  nFor = [[NSNumberFormatter alloc] init];
+  [nFor setLocale: self];
+  [nFor setNumberStyle: NSNumberFormatterCurrencyStyle];
+  result = [nFor currencySymbol];
+  
+  RELEASE(nFor);
+  return result;
 }
 
 - (NSString *) _getCurrencyCode
 {
-  return nil;
+  NSNumberFormatter *nFor;
+  NSString *result;
+  
+  nFor = [[NSNumberFormatter alloc] init];
+  [nFor setLocale: self];
+  [nFor setNumberStyle: NSNumberFormatterCurrencyStyle];
+  result = [nFor currencyCode];
+  
+  RELEASE(nFor);
+  return result;
 }
 
 @end
