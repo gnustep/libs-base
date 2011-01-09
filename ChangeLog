@@ -1,6 +1,12 @@
-2011-01-07  Stefan Bidigaray <stefanbidi@gmail.com>
+2011-01-09  Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* Source/NSLocale.m: Fixed a few errors exposed by testsuite.
+	* Headers/Additions/GNUstepBase/config.h.in:
+	* Headers/Foundation/NSNumberFormatter.h:
+	* Source/NSNumberFormatter.m: Started adding code for new methods.
+
+2011-01-08  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSLocale.m: Fixed a few bugs exposed by testsuite.
 
 2011-01-07  Stefan Bidigaray <stefanbidi@gmail.com>
 

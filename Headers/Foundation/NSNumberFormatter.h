@@ -56,7 +56,7 @@ enum
 {
   NSNumberFormatterBehaviorDefault = 0,
   NSNumberFormatterBehavior10_0 = 1000,
-  NSNumberFormatterBehavior10_4 = 1040,
+  NSNumberFormatterBehavior10_4 = 1040
 };
 typedef NSUInteger NSNumberFormatterBehavior;
 
@@ -137,6 +137,13 @@ typedef NSUInteger NSNumberFormatterRoundingMode;
   NSString *_positiveFormat;
   NSDictionary *_attributesForPositiveValues;
   NSDictionary *_attributesForNegativeValues;
+  
+  // 10.4+ variables
+  NSUInteger _behavior;
+  BOOL       _genDecimal;
+  NSUInteger _style;
+  NSLocale  *_locale;
+  void      *_formatter;
 #endif
 #if	!GS_NONFRAGILE
   void		*_unused;

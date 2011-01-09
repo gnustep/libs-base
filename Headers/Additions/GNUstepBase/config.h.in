@@ -621,6 +621,9 @@
 /* Define to 1 if you have the <unicode/uregex.h> header file. */
 #undef HAVE_UNICODE_UREGEX_H
 
+/* Define to 1 if you have the <unicode/unum.h> header file. */
+#undef HAVE_UNICODE_UNUM_H
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
