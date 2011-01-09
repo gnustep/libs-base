@@ -1,4 +1,8 @@
-2011-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+2011-01-07  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSLocale.m: Fixed a few errors exposed by testsuite.
+
+2011-01-07  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* configure:
 	* configure.ac: Added check for unicode/unum.h.
