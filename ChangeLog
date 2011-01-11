@@ -1,6 +1,6 @@
 2011-01-11  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSString.m: ([-stringByStandardizingPath:]) Fix bug when
+	* Source/NSString.m: ([-stringByStandardizingPath]) Fix bug when
 	dealing with three or more separators at the start of a path ...
 	should condense them to a single separator.  Thanks to Robert Slover
 	for pointing this out.
