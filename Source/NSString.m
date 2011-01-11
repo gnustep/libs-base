@@ -4261,7 +4261,30 @@ static NSFileManager *fm = nil;
 
   caiImp = (unichar (*)())[s methodForSelector: caiSel];
 
-  // Condense multiple separator ('/') sequences.
+  /* Remove any separators ('/') immediately after the trailing
+   * separator in the rot (if any).
+   */
+  if (root > 0 && YES == pathSepMember((*caiImp)(s, caiSel, root-1)))
+    {
+      unsigned	i;
+
+      for (i = root; i < l; i++)
+	{
+	  if (NO == pathSepMember((*caiImp)(s, caiSel, i)))
+	    {
+	      break;
+	    }
+	}
+      if (i > root)
+	{
+	  r = (NSRange){root, i-root};
+	  [s deleteCharactersInRange: r];
+	  l -= r.length;
+	}
+    }
+
+  /* Condense multiple separator ('/') sequences.
+   */
   r = (NSRange){root, l-root};
   while ((r = [s rangeOfCharacterFromSet: pathSeps()
 				 options: 0
