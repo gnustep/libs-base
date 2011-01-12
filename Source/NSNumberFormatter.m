@@ -617,7 +617,7 @@ static NSUInteger _defaultBehavior = 0;
 #endif
     {
 #if GS_USE_ICU == 1
-      return [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
+      [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
 #endif
     }
   else if (_behavior == NSNumberFormatterBehavior10_0
