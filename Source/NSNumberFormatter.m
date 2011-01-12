@@ -307,10 +307,26 @@ static NSUInteger _defaultBehavior = 0;
 
 - (NSString*) decimalSeparator
 {
-  if (_decimalSeparator == 0)
-    return @"";
-  else
-    return [NSString stringWithCharacters: &_decimalSeparator length: 1];
+  if (_behavior == NSNumberFormatterBehavior10_4
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+    || _behavior == NSNumberFormatterBehaviorDefault)
+#endif
+    {
+#if GS_USE_ICU == 1
+      return [self _getSymbol: UNUM_DECIMAL_SEPARATOR_SYMBOL];
+#endif
+    }
+  else if (_behavior == NSNumberFormatterBehavior10_0
+#if OS_API_VERSION(GS_OPENSTEP_V, MAC_OS_X_VERSION_10_3)
+    || _behavior == NSNumberFormatterBehaviorDefault)
+#endif
+    {
+      if (_decimalSeparator == 0)
+        return @"";
+      else
+        return [NSString stringWithCharacters: &_decimalSeparator length: 1];
+    }
+  return nil;
 }
 
 - (NSString*) editingStringForObjectValue: (id)anObject
@@ -595,10 +611,25 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setDecimalSeparator: (NSString*)newSeparator
 {
-  if ([newSeparator length] > 0)
-    _decimalSeparator = [newSeparator characterAtIndex: 0];
-  else
-    _decimalSeparator = 0;
+  if (_behavior == NSNumberFormatterBehavior10_4
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+    || NSNumberFormatterBehaviorDefault)
+#endif
+    {
+#if GS_USE_ICU == 1
+      return [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
+#endif
+    }
+  else if (_behavior == NSNumberFormatterBehavior10_0
+#if OS_API_VERSION(GS_OPENSTEP_V, MAC_OS_X_VERSION_10_3)
+    || NSNumberFormatterBehaviorDefault)
+#endif
+    {
+      if ([newSeparator length] > 0)
+        _decimalSeparator = [newSeparator characterAtIndex: 0];
+      else
+        _decimalSeparator = 0;
+    }
 }
 
 - (void) setFormat: (NSString*)aFormat
