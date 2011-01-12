@@ -41,7 +41,7 @@
  The mode defaults to 'gnustep' but may be set using the GSPathHandling()
  function.<br />
  You should probably stick to using the default 'gnustep' mode in which the
- path handling methods cope with both unix and windows style paths in
+ path handling methods cope with both 'unix' and 'windows' style paths in
  portable and tolerant manner:<br />
  Paths are read in literally so they can be in the native format provided
  by the operating system or in a non-native format.<br />
@@ -49,6 +49,10 @@
  is running on (eg on windows slashes are converted to backslashes).<br />
  The path handling methods accept either a forward or backward slash as a
  path separator when parsing any path.<br />
+ Unless operating in 'unix' mode, a leading letter followed by a colon is
+ considered the start of a windows style path (the drive specifier), and a
+ path beginning with something of the form '//host/share/' is considered
+ the start of a UNC style path.<br />
  The path handling methods add forward slashes when building new paths
  internally or when standardising paths, so those path strings provide
  a portable representation (as long as they are relative paths, not including
