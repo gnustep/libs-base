@@ -736,7 +736,6 @@ static NSRecursiveLock *classLock = nil;
       if (mSys != nil)
         {
           [_components setValue: mSys forKey: NSLocaleMeasurementSystem];
-          NSLog (@"%@", mSys);
           if ([mSys isEqualToString: @"Metric"])
             result = [NSNumber numberWithBool: YES];
           else
