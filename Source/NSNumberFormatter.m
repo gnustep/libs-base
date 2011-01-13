@@ -674,11 +674,13 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setMaximum: (NSDecimalNumber*)aMaximum
 {
+  // FIXME: NSNumberFormatterBehavior10_4
   ASSIGN(_maximum, aMaximum);
 }
 
 - (void) setMinimum: (NSDecimalNumber*)aMinimum
 {
+  // FIXME: NSNumberFormatterBehavior10_4
   ASSIGN(_minimum, aMinimum);
 }
 
