@@ -653,6 +653,10 @@ static SEL	foundCharactersSel;
 static SEL	foundCommentSel;
 static SEL	foundIgnorableSel;
 
+@interface	SloppyXMLParser (Private)
+- (NSString *) _newQarg;
+@end
+
 @implementation SloppyXMLParser
 
 #define EXTRA_DEBUG     0
@@ -969,6 +973,214 @@ static SEL	foundIgnorableSel;
   [this->namespaces removeLastObject];
 }
 
+- (void) _processDeclaration
+{
+  const unsigned char	*tp;
+  NSString	*decl;
+  NSString	*name;
+  char		c;
+
+  if (NO == this->hasStarted)
+    {
+#if EXTRA_DEBUG
+NSLog(@"parserDidStartDocument: ");
+#endif
+      this->hasStarted = YES;
+      if ([_del respondsToSelector: @selector(parserDidStartDocument:)])
+	{
+	  [_del parserDidStartDocument: self];
+	}
+    }
+
+  c = cget();
+  while (isspace(c))
+    {
+      c = cget();
+    }
+  tp = this->cp - 1;
+  while (c != EOF && !isspace(c) && c != '>')
+    {
+      c = cget(); // scan name to delimiting character
+    }
+  decl = [NewUTF8STR(tp, this->cp - tp - 1) autorelease];
+#if EXTRA_DEBUG
+  NSLog(@"decl=%@ - %02x %c", decl, c, isprint(c)?c: ' ');
+#endif
+
+  while (isspace(c))
+    {
+      c = cget();
+    }
+  tp = this->cp - 1;
+  while (c != EOF && !isspace(c) && c != '>')
+    {
+      c = cget(); // scan name to delimiting character
+    }
+  name = [NewUTF8STR(tp, this->cp - tp - 1) autorelease];
+#if EXTRA_DEBUG
+  NSLog(@"name=%@ - %02x %c", name, c, isprint(c)?c: ' ');
+#endif
+
+  if ([decl isEqualToString: @"ATTLIST"])
+    {
+      NSString	*elem = name;
+      NSString	*type;
+      NSString	*def;
+
+#if EXTRA_DEBUG
+NSLog(@"_processDeclaration <%@%@ %@>", flag?@"/": @"", decl, name);
+#endif
+      while (c != EOF && c != '>')
+	{
+	  while (isspace(c))
+	    {
+	      c = cget();
+	    }
+	  tp = this->cp - 1;
+	  while (c != EOF && !isspace(c) && c != '>')
+	    {
+	      c = cget(); // scan name to delimiting character
+	    }
+	  name = NewUTF8STR(tp, this->cp - tp - 1);
+#if 1 || EXTRA_DEBUG
+NSLog(@"name=%@ - %02x %c", name, c, isprint(c)?c: ' ');
+#endif
+
+	  while (isspace(c))
+	    {
+	      c = cget();
+	    }
+	  tp = this->cp - 1;
+	  while (c != EOF && !isspace(c) && c != '>')
+	    {
+	      c = cget(); // scan name to delimiting character
+	    }
+	  type = NewUTF8STR(tp, this->cp - tp - 1);
+#if 1 || EXTRA_DEBUG
+NSLog(@"type=%@ - %02x %c", type, c, isprint(c)?c: ' ');
+#endif
+	  /* OSX reports a CDATA type as an empty string.
+	   */
+	  if ([type isEqualToString: @"CDATA"])
+	    {
+	      [type release];
+	      type = @"";
+	    }
+
+	  while (isspace(c))
+	    {
+	      c = cget();
+	    }
+	  /* OSX reports a default as nil if it's not a quoted string.
+	   */
+	  if (c == '#')
+	    {
+	      while (c != EOF && !isspace(c) && c != '>')
+		{
+		  c = cget();
+		}
+	      def = nil;
+	    }
+	  else
+	    {
+	      def = [self _newQarg];
+	      c = cget();  // get character behind qarg value
+	    }
+	  while (isspace(c))
+	    {
+	      c = cget();
+	    }
+
+	  if ([_del respondsToSelector: @selector(parser:foundAttributeDeclarationWithName:forElement:type:defaultValue:)])
+	    {
+	      [_del parser: self
+		foundAttributeDeclarationWithName: name
+		forElement: elem
+		type: type
+		defaultValue: def];
+	    }
+	  [name release];
+	  [type release];
+	  [def release];
+	}
+      return;
+    }
+  else if ([decl isEqualToString: @"DOCTYPE"])
+    {
+#if EXTRA_DEBUG
+NSLog(@"_processDeclaration <%@%@ %@>", flag?@"/": @"", decl, name);
+#endif
+      while (isspace(c))
+	{
+	  c = cget();
+	}
+      while (c != EOF && c != '[' && c != '>')
+	{
+	  c = cget();
+	}
+      if (c == '[')
+	{
+	  /* Got inline docuent declaration.  Scan to ']'
+	   */
+	  while (c != EOF && c != ']')
+	    {
+	      if (c == '<')
+		{
+	          c = cget();
+		  if (c == '!')
+		    {
+		      [self _processDeclaration];
+	              c = cget();
+		    }
+		}
+	      else
+		{
+	          c = cget();
+		}
+	    }
+	  /* Skip to trailing '>' in DOCTYPE declration.
+	   */
+	  if (c == ']')
+	    {
+	      while (c != EOF && c != '>')
+		{
+		  c = cget();
+		}
+	    }
+	}
+      return;
+    }
+  else if ([decl isEqualToString: @"ELEMENT"])
+    {
+#if EXTRA_DEBUG
+NSLog(@"_processDeclaration <%@%@ %@>", flag?@"/": @"", decl, name);
+#endif
+      while (c != EOF &&  c != '>')
+	{
+	  c = cget();
+	}
+      if ([_del respondsToSelector:
+	@selector(parser:foundElementDeclarationWithName:model:)])
+	{
+	  [_del parser: self
+	    foundElementDeclarationWithName: name
+	    model: @""];
+	}
+      return;
+    }
+  else if ([decl isEqualToString: @"ENTITY"])
+    {
+#if EXTRA_DEBUG
+NSLog(@"_processDeclaration <%@%@ %@>", flag?@"/": @"", decl, name);
+#endif
+      while (c != EOF &&  c != '>')
+	{
+	  c = cget();
+	}
+      return;
+    }
+}
+
 - (void) _processTag: (NSString *)tag
 	       isEnd: (BOOL)flag
       withAttributes: (NSDictionary *)attributes
@@ -1000,20 +1212,6 @@ NSLog(@"parserDidStartDocument: ");
 NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #endif
 	  // parser: foundProcessingInstructionWithTarget: data: 
-	  return;
-	}
-      else if ([tag isEqualToString: @"!DOCTYPE"])
-	{
-#if EXTRA_DEBUG
-NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-#endif
-	  return;
-	}
-      else if ([tag isEqualToString: @"!ENTITY"])
-	{
-#if EXTRA_DEBUG
-NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
-#endif
 	  return;
 	}
       else
@@ -1397,7 +1595,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
               NSLog(@"parserDidEndDocument: ");
 #endif
               
-              if ([_del respondsToSelector: @selector(parserDidEndDocument: )])
+              if ([_del respondsToSelector: @selector(parserDidEndDocument:)])
                 {
                   [_del parserDidEndDocument: self];
                 }
@@ -1515,6 +1713,15 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                    * and quoted string constants...
                    */
                 }
+              else if (c == '!')
+                {
+                  /* declaration <!tag begins
+                   */
+		  [self _processDeclaration];
+		  vp = this->cp;    // prepare for next value
+		  c = cget();  // fetch next character
+		  continue;
+		}
 
               while (c != EOF && !isspace(c)
                 && c != '>' && c != '/'  && c != '?')
@@ -1532,6 +1739,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #if EXTRA_DEBUG
               NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c: ' ');
 #endif
+
               parameters = [[NSMutableDictionary alloc] initWithCapacity: 5];
               while (isspace(c))
                 {
