@@ -1847,7 +1847,9 @@ NSDictionary *locale)
 
 	obj = args_value[specs[nspecs_done].data_arg].pa_object;
 
-	if (!obj) dsc = @"(nil)";
+	/* On OSX a nil object is reported as '(null)' so we do the same.
+	 */
+	if (!obj) dsc = @"(null)";
 	else if ([obj respondsToSelector: @selector(descriptionWithLocale:)]) dsc = [obj descriptionWithLocale: locale];
 	else dsc = [obj description];
 
