@@ -567,9 +567,12 @@ static void setupQuotables(void)
     {
       NSMutableCharacterSet	*s;
 
+      /* The '$', '.', '/' and '_' characters used to be OK to use in
+       * property lists, but OSX now quotes them, so we follow suite.
+       */
       s = [[NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	@"abcdefghijklmnopqrstuvwxyz$./_"]
+	@"abcdefghijklmnopqrstuvwxyz"]
 	mutableCopy];
       [s invert];
       oldQuotables = [s copy];
@@ -984,7 +987,24 @@ static id parsePlItem(pldata* pld)
 		{
 		  pld->pos++;
 		}
-	      else if (pld->ptr[pld->pos] != '}')
+	      else if (pld->ptr[pld->pos] == '}')
+		{
+		  if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
+		    {
+		      pld->err = @"unexpected character '}' (wanted ';')";
+		      RELEASE(key);
+		      RELEASE(val);
+		      RELEASE(dict);
+		      return nil;
+		    }
+		  else
+		    {
+	              NSWarnFLog(
+		        @"Missing semicolon in dictionary at line %d char %d",
+		        pld->lin + 1, pld->pos + 1);
+		    }
+		}
+	      else
 		{
 		  pld->err = @"unexpected character (wanted ';' or '}')";
 		  RELEASE(key);
@@ -2603,8 +2623,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
             if (_pld.err != nil)
               {
                 errorStr = [NSString stringWithFormat:
-                                       @"Parse failed at line %d (char %d) - %@",
-                                     _pld.lin + 1, _pld.pos + 1, _pld.err];
+		  @"Parse failed at line %d (char %d) - %@",
+		  _pld.lin + 1, _pld.pos + 1, _pld.err];
               }
           }
           break;

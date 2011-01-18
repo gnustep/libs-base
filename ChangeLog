@@ -1,3 +1,14 @@
+2011-01-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: For OSX compatibility we now quote strings
+	in property lists of they contain non-alphanumerics.  We also warn
+	when we parse a dictionary with a missing semicolon at the end.
+	* Source/NSXMLParser.m: For OSX compatibility we report all character
+	data as characters and never as ignorable whitespace, though this
+	seems perverse.
+	Implement insertion of default attribute values into elements if we
+	have parsed an !ATTLIST which defines them.
+
 2011-01-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFormat.m: Print '(null)' rather than '(nil)' for a nil

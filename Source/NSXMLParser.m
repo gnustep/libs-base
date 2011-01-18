@@ -619,6 +619,7 @@ typedef struct NSXMLParserIvarsType
 {
   NSMutableArray        *tagPath;	// hierarchy of tags
   NSMutableArray        *namespaces;
+  NSMutableDictionary	*defaults;
   NSData                *data;
   NSError               *error;
   const unsigned char   *cp;		// character pointer
@@ -633,6 +634,7 @@ typedef struct NSXMLParserIvarsType
   BOOL shouldResolveExternalEntities;
   BOOL acceptHTML;			// be lazy with bad tag nesting
   BOOL hasStarted;
+  BOOL hasElement;
   IMP	didEndElement;
   IMP	didEndMappingPrefix;
   IMP	didStartElement;
@@ -711,6 +713,7 @@ static SEL	foundIgnorableSel;
       RELEASE(this->error);
       RELEASE(this->tagPath);
       RELEASE(this->namespaces);
+      RELEASE(this->defaults);
       NSZoneFree([self zone], this);
       _parser = 0;
       _handler = 0;
@@ -856,8 +859,15 @@ static SEL	foundIgnorableSel;
 
       if ([_del respondsToSelector: foundIgnorableSel])
 	{
+/* It seems OX reports ignorable whitespace as characters,
+ * so we disable this ... FIXME can this really be right?
+ */
+#if 0
 	  this->foundIgnorable
 	    = [_del methodForSelector: foundIgnorableSel];
+#else
+	  this->foundIgnorable = 0;
+#endif
 	}
       else
 	{
@@ -1023,13 +1033,29 @@ NSLog(@"parserDidStartDocument: ");
 
   if ([decl isEqualToString: @"ATTLIST"])
     {
-      NSString	*elem = name;
-      NSString	*type;
-      NSString	*def;
+      NSMutableDictionary	*d;
+      NSString			*elem = name;
+      NSString			*type;
+      NSString			*def;
 
 #if EXTRA_DEBUG
 NSLog(@"_processDeclaration <%@%@ %@>", flag?@"/": @"", decl, name);
 #endif
+
+      /* Get the dictionary  of attribute defaults for this element.
+       */
+      d = [this->defaults objectForKey: elem];
+      if (nil == d)
+	{
+	  if (nil == this->defaults)
+	    {
+	      this->defaults = [NSMutableDictionary new];
+	    }
+	  d = [NSMutableDictionary new];
+	  [this->defaults setObject: d forKey: elem];
+	  [d release];
+	}
+
       while (c != EOF && c != '>')
 	{
 	  while (isspace(c))
@@ -1089,6 +1115,13 @@ NSLog(@"type=%@ - %02x %c", type, c, isprint(c)?c: ' ');
 	  while (isspace(c))
 	    {
 	      c = cget();
+	    }
+
+	  /* Record default value (if any) for this attribute.
+	   */
+	  if (nil != def)
+	    {
+	      [d setObject: def forKey: name];
 	    }
 
 	  if ([_del respondsToSelector: @selector(parser:foundAttributeDeclarationWithName:forElement:type:defaultValue:)])
@@ -1223,6 +1256,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
           NSString              *uri;
           NSString              *qualified;
 
+	  this->hasElement = YES;
           while ((k = [enumerator nextObject]) != nil)
             {
               NSString  *prefix = nil;
@@ -1515,23 +1549,41 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			    }
 			}
 		    }
-                  if (p - vp > 0 && this->foundCharacters != 0)
-                    {
-		      /* Process initial data as characters
-		       */
-		      s = NewUTF8STR(vp, p - vp);
-                      (*this->foundCharacters)(_del,
-			foundCharactersSel, self, s);
-		      [s release];
-                    }
-		  if (p < this->cp - 1 && this->foundIgnorable != 0)
+		  if (YES == this->hasElement)
 		    {
-		      /* Process data as ignorable whitespace
-		       */
-		      s = NewUTF8STR(p, this->cp - p - 1);
-		      (*this->foundIgnorable)(_del,
-			foundIgnorableSel, self, s);
-		      [s release];
+		      if (p - vp > 0)
+			{
+			  if (this->foundCharacters != 0)
+			    {
+			      s = NewUTF8STR(vp, p - vp);
+			      /* Process this data as characters
+			       */
+			      (*this->foundCharacters)(_del,
+				foundCharactersSel, self, s);
+			      [s release];
+			    }
+			}
+		      if (p < this->cp - 1)
+			{
+			  if (this->foundIgnorable != 0)
+			    {
+			      s = NewUTF8STR(p, this->cp - p - 1);
+			      /* Process data as ignorable whitespace
+			       */
+			      (*this->foundIgnorable)(_del,
+				foundIgnorableSel, self, s);
+			      [s release];
+			    }
+			  else if (this->foundCharacters != 0)
+			    {
+			      s = NewUTF8STR(p, this->cp - p - 1);
+			      /* Process data as characters
+			       */
+			      (*this->foundCharacters)(_del,
+				foundCharactersSel, self, s);
+			      [s release];
+			    }
+			}
 		    }
                   vp = this->cp;
                 }
@@ -1545,22 +1597,29 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	      {
 		if (YES == this->ignorable && this->cp - vp > 1)
 		  {
+		    NSString	*s;
+
 		    /* We have accumulated ignorable whitespace ...
 		     * push it out.
 		     */
 		    if (this->foundIgnorable != 0)
 		      {
-			NSString	*s;
-
 			s = NewUTF8STR(vp, this->cp - vp - 1);
 			(*this->foundIgnorable)(_del,
 			  foundIgnorableSel, self, s);
 			[s release];
 		      }
+		    else if (this->foundCharacters != 0)
+		      {
+			s = NewUTF8STR(vp, this->cp - vp - 1);
+			(*this->foundCharacters)(_del,
+			  foundCharactersSel, self, s);
+			[s release];
+		      }
 		    vp = this->cp - 1;
 		  }
 		/* We have read non-space data, so whitespace is no longer
-		 * ignorable, and the buffer no loinger contains only space.
+		 * ignorable, and the buffer no longer contains only space.
 		 */
 		this->ignorable = NO;
 		this->whitespace = NO;
@@ -1631,7 +1690,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
           case '<': 
             {
               NSString                  *tag;
-              NSMutableDictionary       *parameters;
+              NSMutableDictionary       *attributes;
               NSString                  *arg;
               const unsigned char       *tp = this->cp;  // tag pointer
 	      const unsigned char	*sp = tp - 1;	// Open angle bracket
@@ -1740,7 +1799,16 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
               NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c: ' ');
 #endif
 
-              parameters = [[NSMutableDictionary alloc] initWithCapacity: 5];
+	      /* Create an attributes dictionary for this tag,
+	       * using default values if available.
+	       */
+	      attributes = [[this->defaults objectForKey: tag] mutableCopy];
+	      if (nil == attributes)
+		{
+                  attributes
+		    = [[NSMutableDictionary alloc] initWithCapacity: 5];
+		}
+
               while (isspace(c))
                 {
                   c = cget();
@@ -1758,7 +1826,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                         }
                       [self _processTag: tag
                                   isEnd: NO
-                         withAttributes: parameters];
+                         withAttributes: attributes];
                       [self _processTag: tag isEnd: YES withAttributes: nil];
                       break;
                     }
@@ -1784,7 +1852,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			}
                       [self _processTag: tag
                                   isEnd: NO
-                         withAttributes: parameters];  // single <?tag ...?>
+                         withAttributes: attributes];  // single <?tag ...?>
                       break; // done
                     }
                   // this should also allow for line break and tab
@@ -1796,7 +1864,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                     {
                       [self _processTag: tag
                                   isEnd: (*tp == '/')
-                         withAttributes: parameters];
+                         withAttributes: attributes];
                       break;
                     }
                   /* get next argument (eats up to /, ?, >, =, space)
@@ -1826,17 +1894,17 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			  c = cget();
 			}
 		      val = [self _newQarg];
-                      [parameters setObject: val forKey: arg];
+                      [attributes setObject: val forKey: arg];
 		      [val release];
                       c = cget();  // get character behind qarg value
                     }
                   else  // implicit
                     {
-                      [parameters setObject: @"" forKey: arg];
+                      [attributes setObject: @"" forKey: arg];
                     }
 		  [arg release];
                 }
-	      [parameters release];
+	      [attributes release];
 	      [tag release];
               vp = this->cp;    // prepare for next value
               c = cget();  // skip > and fetch next character
