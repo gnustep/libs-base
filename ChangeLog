@@ -1,5 +1,10 @@
 2011-01-18  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPropertyList.m: Fix to cope with NSXMLParser reporting
+	whitespace as character data.
+
+2011-01-18  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPropertyList.m: For OSX compatibility we now quote strings
 	in property lists of they contain non-alphanumerics.  We also warn
 	when we parse a dictionary with a missing semicolon at the end.
