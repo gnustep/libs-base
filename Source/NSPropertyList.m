@@ -144,7 +144,14 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 - (void) parser: (NSXMLParser *)parser
 foundCharacters: (NSString *)string
 {
-  [value appendString: string];
+  if (YES == inString)
+    {
+      [value appendString: string];
+    }
+  else
+    {
+      [value appendString: [string stringByTrimmingSpaces]];
+    }
 }
 
 - (void) parser: (NSXMLParser *)parser
