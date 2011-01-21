@@ -629,18 +629,22 @@ notice and this notice are preserved.
 	  <p>
 	    All the above values from the configuration file are made
 	    available in the NSUserDefaults system at runtime, in the
-	    GSConfigDomain (along with any defaults provided in the
+	    GSConfigDomain (along with any defaults provided in property
+	    lists in the GlobalDefaults subdirectory or in the
             GlobalDefaults.plist file in the same directory as the
             config file).<br />
-	    In addition, the configuration file may contain the key
-	    <em>GNUSTEP_EXTRA</em> with a value set to be a comma separated
-	    list of extra key names which are to be allowed in the config
-	    file.  This lets you add more key/value pairs to the config
-	    file intended to be seen in the NSUserDefaults system.<br />
-	    However, you must take care that any key names you choose
-	    do not conflict with variable names used with the GNUstep
-	    Makefiles package or your configuration script may cause
-	    problems when building software.
+ 	    The <code>.plist</code> files in the GlobalDefaults
+	    subdirectory are merged into the defaults system in an
+	    unpredictable order, but the values from the
+	    GlobalDefaults.plist are merged in <em>after</em> the
+	    other values and will take precedence.<br />
+	    The global defaults files allow packagers and system
+	    administrators to provide defaults settings for all
+	    users of a particular GNUstep installation.<br />
+	    It is recommended that each software package provides its
+	    own defaults in the GlobalDefaults subdirectory, while the
+	    GlobalDefaults.plist file should be reserved for other
+	    system-wide settings.
 	  </p>
 	  <p>
 	    The exact format of the configuration file is expected to 
@@ -649,10 +653,9 @@ notice and this notice are preserved.
 	    can 'source' in order to define shell variables).<br />
 	    This configuration file uses the escape sequence and
 	    quoting conventions of the standard bourne shell.<br />
-	    The only Keys permitted are those listed above (plus any
-	    specified in the GNUSTEP_EXTRA list), and all consist of
-	    uppercase letters, digits, and underscores, and must
-	    not begin with a digit.<br />
+	    The only Keys permitted are those listed above,
+	    and all consist of uppercase letters, digits, and underscores,
+	    and must not begin with a digit.<br />
 	    A value may be any quoted string (or an unquoted string
 	    containing no white space).<br />
 	    Lines beginning with a hash '#' are deemed comment lines
