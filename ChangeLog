@@ -1,3 +1,13 @@
+2011-01-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: Add support for GlobalDefaults directory
+	* Source/NSUserDefaults.m: Document GlobalDefaults directory
+	* Documentation/Base.gsdoc: Document GlobalDefaults directory
+	Implement suggestion by David Chisnall.
+	New GlobalDefaults directory support ... if there are .plist files
+	in this subdirectory, merge them in before merging in the contents		of the GlobalDefaults.plist file.
+	Deprecate use of the old GNUSTEP_EXTRA config file entry.
+
 2011-01-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Fix to cope with NSXMLParser reporting

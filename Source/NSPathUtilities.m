@@ -663,6 +663,81 @@ static void ExtractValuesFromConfig(NSDictionary *config)
   ASSIGN_DEFAULT_PATH(gnustepLocalUsersDir, @GNUSTEP_TARGET_LOCAL_USERS_DIR);
 }
 
+static void
+addDefaults(NSString *defs, NSMutableDictionary *conf)
+{
+  if ([MGR() isReadableFileAtPath: defs] == YES)
+    {
+      NSDictionary      *d;
+      NSDictionary      *attributes;
+
+      attributes = [MGR() fileAttributesAtPath: defs
+				  traverseLink: YES];
+      if (([attributes filePosixPermissions]
+	& (0022 & ATTRMASK)) != 0)
+	{
+#if defined(__MINGW__)
+	  fprintf(stderr,
+	    "The file '%S' is writable by someone other than"
+	    " its owner (permissions 0%lo).\nIgnoring it.\n",
+	    [defs fileSystemRepresentation],
+	    (long)[attributes filePosixPermissions]);
+#else
+	  fprintf(stderr,
+	    "The file '%s' is writable by someone other than"
+	    " its owner (permissions 0%lo).\nIgnoring it.\n",
+	    [defs fileSystemRepresentation],
+	    (long)[attributes filePosixPermissions]);
+#endif
+	  d = nil;
+	}
+      else
+	{
+	  d = [NSDictionary dictionaryWithContentsOfFile: defs];
+	}
+
+      if (d != nil)
+	{
+	  NSEnumerator  *enumerator;
+	  NSString      *key;
+	  id            extra;
+
+	  extra = [conf objectForKey: @"GNUSTEP_EXTRA"];
+	  if ([extra isKindOfClass: [NSString class]])
+	    {
+	      extra = [extra componentsSeparatedByString: @","];
+	    }
+	  extra = [extra mutableCopy];
+	  if (extra == nil)
+	    {
+	      extra = [NSMutableArray new];
+	    }
+	  enumerator = [d keyEnumerator];
+	  while ((key = [enumerator nextObject]) != nil)
+	    {
+	      if ([conf objectForKey: key] == nil)
+		{
+		  [extra addObject: key];
+		}
+	      else
+		{
+		  fprintf(stderr, "Value for key '%s' in '%s' replaces"
+		    " earlier setting.\n", [key UTF8String], [defs UTF8String]);
+		}
+	    }
+	  [conf addEntriesFromDictionary: d];
+	  if ([extra count] > 0)
+	    {
+	      NSArray   *c = [extra copy];
+
+	      [conf setObject: c forKey: @"GNUSTEP_EXTRA"];
+	      RELEASE(c);
+	    }
+	  RELEASE(extra);
+	}
+    }
+}
+
 NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig)
 {
@@ -763,82 +838,39 @@ GNUstepConfig(NSDictionary *newConfig)
 		}
 	      else
 		{
+		  NSEnumerator	*e;
                   NSString      *defs;
+                  NSString      *path;
 
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
 		  ParseConfigurationFile(file, conf, nil);
 
+		  if (nil != [conf objectForKey: @"GNUSTEP_EXTRA"])
+		    {
+		      NSLog(@"Warning: use of GNUSTEP_EXTRA in your GNUstep.conf file is deprecated.  Please use a GlobalDefaults.plist instead.\n");
+		    }
+		  /* Merge in any values from property lists in the 
+		   * GlobalDefaults directory.
+		   */
+                  path = [gnustepConfigPath stringByAppendingPathComponent:
+                    @"GlobalDefaults"];
+		  e = [[MGR() directoryContentsAtPath: path] objectEnumerator];
+		  while ((defs = [e nextObject]) != nil)
+		    {
+		      if ([[defs pathExtension] isEqualToString: @"plist"])
+			{
+			  defs = [path stringByAppendingPathComponent: defs];
+			  addDefaults(defs, conf);
+			}
+		    }
+
+		  /* And merge in value from GloablDefaults.plist
+		   */
                   defs = [gnustepConfigPath stringByAppendingPathComponent:
                     @"GlobalDefaults.plist"];
-                  if ([MGR() isReadableFileAtPath: defs] == YES)
-                    {
-                      NSDictionary      *d;
-                      NSDictionary      *attributes;
 
-                      attributes = [MGR() fileAttributesAtPath: defs
-                                                  traverseLink: YES];
-                      if (([attributes filePosixPermissions]
-                        & (0022 & ATTRMASK)) != 0)
-                        {
-#if defined(__MINGW__)
-                          fprintf(stderr,
-                            "The file '%S' is writable by someone other than"
-                            " its owner (permissions 0%lo).\nIgnoring it.\n",
-                            [defs fileSystemRepresentation],
-                            (long)[attributes filePosixPermissions]);
-#else
-                          fprintf(stderr,
-                            "The file '%s' is writable by someone other than"
-                            " its owner (permissions 0%lo).\nIgnoring it.\n",
-                            [defs fileSystemRepresentation],
-                            (long)[attributes filePosixPermissions]);
-#endif
-                          d = nil;
-                        }
-                      else
-                        {
-                          d = [NSDictionary dictionaryWithContentsOfFile: defs];
-                        }
-
-                      if (d != nil)
-                        {
-                          NSEnumerator  *enumerator;
-                          NSString      *key;
-                          id            extra;
-
-                          extra = [conf objectForKey: @"GNUSTEP_EXTRA"];
-                          extra = [extra componentsSeparatedByString: @","];
-                          extra = [extra mutableCopy];
-                          if (extra == nil)
-                            {
-                              extra = [NSMutableArray new];
-                            }
-                          enumerator = [d keyEnumerator];
-                          while ((key = [enumerator nextObject]) != nil)
-                            {
-                              if ([conf objectForKey: key] == nil)
-                                {
-                                  [extra addObject: key];
-                                }
-                              else
-                                {
-                                  fprintf(stderr, "Key '%s' in '%s' duplicates"
-                                    " key in %s\n", [key UTF8String],
-                                    [defs UTF8String], [file UTF8String]);
-                                }
-                            }
-                          [conf addEntriesFromDictionary: d];
-                          if ([extra count] > 0)
-                            {
-                              NSArray   *c = [extra copy];
-
-                              [conf setObject: c forKey: @"GNUSTEP_EXTRA"];
-                              RELEASE(c);
-                            }
-                          RELEASE(extra);
-                        }
-                    }
+		  addDefaults(defs, conf);
 		}
 	    }
 	  else
