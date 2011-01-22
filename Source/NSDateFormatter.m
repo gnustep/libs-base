@@ -166,11 +166,6 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   _defaultBehavior = behavior;
 }
 
-- (BOOL) allowsNaturalLanguage
-{
-  return NO;
-}
-
 - (NSDateFormatterBehavior) formatterBehavior
 {
   return 0;
@@ -467,7 +462,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   return;
 }
 
-- (NSAarray *) shortStandaloneWeekdaySymbols
+- (NSArray *) shortStandaloneWeekdaySymbols
 {
   return nil;
 }
