@@ -31,6 +31,8 @@
 
 #import	<Foundation/NSFormatter.h>
 
+@class NSCalendar, NSLocale, NSArray;
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -166,7 +168,6 @@ typedef NSUInteger NSDateFormatterBehavior;
 + (NSDateFormatterBehavior) defaultFormatterBehavior;
 + (void) setDefaultFormatterBehavior: (NSDateFormatterBehavior) behavior;
 
-- (BOOL) allowsNaturalLanguage;
 - (NSDateFormatterBehavior) formatterBehavior;
 - (void) setFormatterBehavior: (NSDateFormatterBehavior) behavior;
 - (BOOL) generatesCalendarDates;
@@ -242,7 +243,7 @@ typedef NSUInteger NSDateFormatterBehavior;
 - (NSArray *) veryShortStandaloneMonthSymbols;
 - (void) setVeryShortStandaloneMonthSymbols: (NSArray *) array;
 
-- (NSAarray *) shortStandaloneWeekdaySymbols;
+- (NSArray *) shortStandaloneWeekdaySymbols;
 - (void) setShortStandaloneWeekdaySymbols: (NSArray *) array;
 - (NSArray *) standaloneWeekdaySymbols;
 - (void) setStandaloneWeekdaySymbols: (NSArray *) array;
