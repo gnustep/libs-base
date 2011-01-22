@@ -35,6 +35,26 @@
 extern "C" {
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+enum
+{
+  NSDateFormatterNoStyle     = 0,
+  NSDateFormatterShortStyle  = 1,
+  NSDateFormatterMediumStyle = 2,
+  NSDateFormatterLongStyle   = 3,
+  NSDateFormatterFullStyle   = 4
+};
+typedef NSUInteger NSDateFormatterStyle;
+
+enum
+{
+  NSDateFormatterBehaviorDefault = 0,
+  NSDateFormatterBehavior10_0    = 1000,
+  NSDateFormatterBehavior10_4    = 1040,
+};
+typedef NSUInteger NSDateFormatterBehavior;
+#endif
+
 /**
  *  <p>Class for generating text representations of [NSDate]s and
  *  [NSCalendarDate]s, and for converting strings into instances of these
@@ -141,6 +161,108 @@ extern "C" {
  *  specifies strings similar to "June 18, 1991".
  */
 - (NSString *) dateFormat;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
++ (NSDateFormatterBehavior) defaultFormatterBehavior;
++ (void) setDefaultFormatterBehavior: (NSDateFormatterBehavior) behavior;
+
+- (BOOL) allowsNaturalLanguage;
+- (NSDateFormatterBehavior) formatterBehavior;
+- (void) setFormatterBehavior: (NSDateFormatterBehavior) behavior;
+- (BOOL) generatesCalendarDates;
+- (void) setGeneratesCalendarDates: (BOOL) flag;
+- (BOOL) isLenient;
+- (void) setLenient: (BOOL) flag;
+
+- (NSDate *) dateFromString: (NSString *) string;
+- (NSString *) stringFromDate: (NSDate *) date;
+- (BOOL) getObjectValue: (out id *) obj
+              forString: (NSString *) string
+                  range: (inout NSRange *) range
+                  error: (out NSError **) error;
+
+- (void) setDateFormat: (NSString *) string;
+- (NSDateFormatterStyle) dateStyle;
+- (void) setDateStyle: (NSDateFormatterStyle) style;
+- (NSDateFormatterStyle) timeStyle;
+- (void) setTimeStyle: (NSDateFormatterStyle) style;
+
+- (NSCalendar *) calendar;
+- (void) setCalendar: (NSCalendar *) calendar;
+- (NSDate *) defaultDate;
+- (void) setDefaultDate: (NSDate *) date;
+- (NSLocale *) locale;
+- (void) setLocale: (NSLocale *) locale;
+- (NSTimeZone *) timeZone;
+- (void) setTimeZone: (NSTimeZone *) tz;
+- (NSDate *) twoDigitStartDate;
+- (void) setTwoDigitStartDate: (NSDate *) date;
+
+- (NSString *) AMSymbol;
+- (void) setAMSymbol: (NSString *) string;
+- (NSString *) PMSymbol;
+- (void) setPMSymbol: (NSString *) string;
+
+- (NSArray *) weekdaySymbols;
+- (void) setWeekdaySymbols: () array;
+- (NSArray *) shortWeekdaySymbols;
+- (void) setShortWeekdaySymbols: (NSArray *) array;
+
+- (NSArray *) monthSymbols;
+- (void) setMonthSymbols: (NSArray *) array;
+- (NSArray *) shortMonthSymbols;
+- (void) setShortMonthSymbols: (NSArray *) array;
+
+- (NSArray *) eraSymbols;
+- (void) setEraSymbols: (NSArray *) array;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (NSDate *) gregorianStartDate;
+- (void) setGregorianStartDate: (NSDate *) date;
+
+- (NSArray *) longEraSymbols;
+- (void) setLongEraSymbols: (NSArray *) array;
+
+- (NSArray *) quarterSymbols;
+- (void) setQuarterSymbols: (NSArray *) array;
+- (NSArray *) shortQuarterSymbols;
+- (void) setShortQuarterSymbols: (NSArray *) array;
+- (NSArray *) standaloneQuarterSymbols;
+- (void) setStandaloneQuarterSymbols: (NSArray *) array;
+- (NSArray *) shortStandaloneQuarterSymbols;
+- (void) setShortStandaloneQuarterSymbols: (NSArray *) array;
+
+- (NSArray *) shortStandaloneMonthSymbols;
+- (void) setShortStandaloneMonthSymbols: (NSArray *) array;
+- (NSArray *) standaloneMonthSymbols;
+- (void) setStandaloneMonthSymbols: (NSArray *) array;
+- (NSArray *) veryShortMonthSymbols;
+- (void) setVeryShortMonthSymbols: (NSArray *) array;
+- (NSArray *) veryShortStandaloneMonthSymbols;
+- (void) setVeryShortStandaloneMonthSymbols: (NSArray *) array;
+
+- (NSAarray *) shortStandaloneWeekdaySymbols;
+- (void) setShortStandaloneWeekdaySymbols: (NSArray *) array;
+- (NSArray *) standaloneWeekdaySymbols;
+- (void) setStandaloneWeekdaySymbols: (NSArray *) array;
+- (NSArray *) veryShortWeekdaySymbols;
+- (void) setVeryShortWeekdaySymbols: (NSArray *) array;
+- (NSArray *) veryShortStandaloneWeekdaySymbols;
+- (void) setVeryShortStandaloneWeekdaySymbols: (NSArray *) array;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (NSString *) localizedStringFromDate: (NSDate *) date
+                             dateStyle: (NSDateFormatterStyle) dateStyle
+                             timeStyle: (NSDateFormatterStyle) timeStyle;
++ (NSString *) dateFormatFromTemplate: (NSString *) template
+                              options: (NSUInteger) opts
+                               locale: (NSLocale *) locale;
+
+- (BOOL) doesRelativeDateFormatting;
+- (void) setDoesRelativeDateFormatting: (BOOL) flag;
+#endif
 @end
 
 #endif
