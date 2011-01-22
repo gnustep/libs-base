@@ -36,6 +36,8 @@
 
 @implementation NSDateFormatter
 
+static NSDateFormatterBehavior _defaultBehavior = 0;
+
 - (BOOL) allowsNaturalLanguage
 {
   return _allowsNaturalLanguage;
@@ -151,5 +153,383 @@
 					timeZone: [NSTimeZone defaultTimeZone]
 					  locale: nil];
 }
+
+
+
++ (NSDateFormatterBehavior) defaultFormatterBehavior
+{
+  return _defaultBehavior;
+}
+
++ (void) setDefaultFormatterBehavior: (NSDateFormatterBehavior) behavior
+{
+  _defaultBehavior = behavior;
+}
+
+- (BOOL) allowsNaturalLanguage
+{
+  return NO;
+}
+
+- (NSDateFormatterBehavior) formatterBehavior
+{
+  return 0;
+}
+
+- (void) setFormatterBehavior: (NSDateFormatterBehavior) behavior
+{
+  return;
+}
+
+- (BOOL) generatesCalendarDates
+{
+  return NO;
+}
+
+- (void) setGeneratesCalendarDates: (BOOL) flag
+{
+  return;
+}
+
+- (BOOL) isLenient
+{
+  return NO;
+}
+
+- (void) setLenient: (BOOL) flag
+{
+  return;
+}
+
+
+- (NSDate *) dateFromString: (NSString *) string
+{
+  return nil;
+}
+
+- (NSString *) stringFromDate: (NSDate *) date
+{
+  return nil;
+}
+
+- (BOOL) getObjectValue: (out id *) obj
+              forString: (NSString *) string
+                  range: (inout NSRange *) range
+                  error: (out NSError **) error
+{
+  return NO;
+}
+
+- (void) setDateFormat: (NSString *) string
+{
+  return;
+}
+
+- (NSDateFormatterStyle) dateStyle
+{
+  return 0;
+}
+
+- (void) setDateStyle: (NSDateFormatterStyle) style
+{
+  return;
+}
+
+- (NSDateFormatterStyle) timeStyle
+{
+  return 0;
+}
+
+- (void) setTimeStyle: (NSDateFormatterStyle) style
+{
+  return;
+}
+
+- (NSCalendar *) calendar
+{
+  return nil;
+}
+
+- (void) setCalendar: (NSCalendar *) calendar
+{
+  return;
+}
+
+- (NSDate *) defaultDate
+{
+  return nil;
+}
+
+- (void) setDefaultDate: (NSDate *) date
+{
+  return;
+}
+
+- (NSLocale *) locale
+{
+  return nil;
+}
+
+- (void) setLocale: (NSLocale *) locale
+{
+  return;
+}
+
+- (NSTimeZone *) timeZone
+{
+  return nil;
+}
+
+- (void) setTimeZone: (NSTimeZone *) tz
+{
+  return;
+}
+
+- (NSDate *) twoDigitStartDate
+{
+  return nil;
+}
+
+- (void) setTwoDigitStartDate: (NSDate *) date
+{
+  return;
+}
+
+
+- (NSString *) AMSymbol
+{
+  return nil;
+}
+
+- (void) setAMSymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSString *) PMSymbol
+{
+  return nil;
+}
+
+- (void) setPMSymbol: (NSString *) string
+{
+  return;
+}
+
+- (NSArray *) weekdaySymbols
+{
+  return nil;
+}
+
+- (void) setWeekdaySymbols: () array
+{
+  return;
+}
+
+- (NSArray *) shortWeekdaySymbols
+{
+  return nil;
+}
+
+- (void) setShortWeekdaySymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) monthSymbols
+{
+  return nil;
+}
+
+- (void) setMonthSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) shortMonthSymbols
+{
+  return nil;
+}
+
+- (void) setShortMonthSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) eraSymbols
+{
+  return nil;
+}
+
+- (void) setEraSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSDate *) gregorianStartDate
+{
+  return nil;
+}
+
+- (void) setGregorianStartDate: (NSDate *) date
+{
+  return;
+}
+
+- (NSArray *) longEraSymbols
+{
+  return nil;
+}
+
+- (void) setLongEraSymbols: (NSArray *) array
+{
+  return;
+}
+
+
+- (NSArray *) quarterSymbols
+{
+  return nil;
+}
+
+- (void) setQuarterSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) shortQuarterSymbols
+{
+  return nil;
+}
+
+- (void) setShortQuarterSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) standaloneQuarterSymbols
+{
+  return nil;
+}
+
+- (void) setStandaloneQuarterSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) shortStandaloneQuarterSymbols
+{
+  return nil;
+}
+
+- (void) setShortStandaloneQuarterSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) shortStandaloneMonthSymbols
+{
+  return nil;
+}
+
+- (void) setShortStandaloneMonthSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) standaloneMonthSymbols
+{
+  return nil;
+}
+
+- (void) setStandaloneMonthSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) veryShortMonthSymbols
+{
+  return nil;
+}
+
+- (void) setVeryShortMonthSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) veryShortStandaloneMonthSymbols
+{
+  return nil;
+}
+
+- (void) setVeryShortStandaloneMonthSymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSAarray *) shortStandaloneWeekdaySymbols
+{
+  return nil;
+}
+
+- (void) setShortStandaloneWeekdaySymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) standaloneWeekdaySymbols
+{
+  return nil;
+}
+
+- (void) setStandaloneWeekdaySymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) veryShortWeekdaySymbols
+{
+  return nil;
+}
+
+- (void) setVeryShortWeekdaySymbols: (NSArray *) array
+{
+  return;
+}
+
+- (NSArray *) veryShortStandaloneWeekdaySymbols
+{
+  return nil;
+}
+
+- (void) setVeryShortStandaloneWeekdaySymbols: (NSArray *) array
+{
+  return;
+}
+
++ (NSString *) localizedStringFromDate: (NSDate *) date
+                             dateStyle: (NSDateFormatterStyle) dateStyle
+                             timeStyle: (NSDateFormatterStyle) timeStyle
+{
+  return nil;
+}
+
++ (NSString *) dateFormatFromTemplate: (NSString *) template
+                              options: (NSUInteger) opts
+                               locale: (NSLocale *) locale
+{
+  return nil;
+}
+
+- (BOOL) doesRelativeDateFormatting
+{
+  return NO;
+}
+
+- (void) setDoesRelativeDateFormatting: (BOOL) flag
+{
+  return;
+}
+
 @end
 
