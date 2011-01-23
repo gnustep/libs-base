@@ -203,6 +203,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   _localeId = RETAIN([self _localeIdWithLocale: [NSLocale currentLocale]]);
   _tz = RETAIN([NSTimeZone defaultTimeZone]);
   
+  [self _openCalendar];
   return self;
 }
 
@@ -225,7 +226,42 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (NSDateComponents *) components: (NSUInteger) unitFlags
                          fromDate: (NSDate *) date
 {
+#if GS_USE_ICU == 1
+  NSDateComponents *comps;
+  UErrorCode err = U_ZERO_ERROR;
+  UDate udate;
+  
+  udate = (UDate)floor([date timeIntervalSince1970] * 1000.0);
+  ucal_setMillis (_cal, udate, &err);
+  if (U_FAILURE(err))
+    return nil;
+  
+  comps = [[NSDateComponents alloc] init];
+  if (unitFlags & NSEraCalendarUnit)
+    [comps setEra: ucal_get (_cal, UCAL_ERA, &err)];
+  if (unitFlags & NSYearCalendarUnit)
+    [comps setYear: ucal_get (_cal, UCAL_YEAR, &err)];
+  if (unitFlags & NSMonthCalendarUnit)
+    [comps setMonth: ucal_get (_cal, UCAL_MONTH, &err)];
+  if (unitFlags & NSDayCalendarUnit)
+    [comps setDay: ucal_get (_cal, UCAL_DAY_OF_MONTH, &err)];
+  if (unitFlags & NSHourCalendarUnit)
+    [comps setHour: ucal_get (_cal, UCAL_HOUR_OF_DAY, &err)];
+  if (unitFlags & NSMinuteCalendarUnit)
+    [comps setMinute: ucal_get (_cal, UCAL_MINUTE, &err)];
+  if (unitFlags & NSSecondCalendarUnit)
+    [comps setSecond: ucal_get (_cal, UCAL_SECOND, &err)];
+  if (unitFlags & NSWeekCalendarUnit)
+    [comps setWeek: ucal_get (_cal, UCAL_WEEK_OF_YEAR, &err)];
+  if (unitFlags & NSWeekdayCalendarUnit)
+    [comps setWeekday: ucal_get (_cal, UCAL_DAY_OF_WEEK, &err)];
+  if (unitFlags & NSWeekdayOrdinalCalendarUnit)
+    [comps setWeekdayOrdinal: ucal_get (_cal, UCAL_WEEK_OF_MONTH, &err)];
+  
+  return AUTORELEASE(comps);
+#else
   return nil;
+#endif
 }
 
 - (NSDateComponents *) components: (NSUInteger) unitFlags
