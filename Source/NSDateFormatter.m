@@ -88,6 +88,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   _locale = RETAIN([NSLocale currentLocale]);
   _tz = RETAIN([NSTimeZone defaultTimeZone]);
   
+  [self _resetUDateFormat];
+  
 /* According to Apple docs, default behavior is NSDateFormatterBehavior10_4 on
    10.5 and later. Yeah, go figure. */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST) && GS_USE_ICU == 1
@@ -106,8 +108,6 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   if (length > BUFFER_SIZE)
     NSZoneFree ([self zone], value);
 #endif
-  
-  [self _resetUDateFormat];
   
   return self;
 }
