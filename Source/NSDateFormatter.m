@@ -85,8 +85,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
     return nil;
   
   _behavior = _defaultBehavior;
-  _locale = [NSLocale currentLocale];
-  _tz = [NSTimeZone defaultTimeZone];
+  _locale = RETAIN([NSLocale currentLocale]);
+  _tz = RETAIN([NSTimeZone defaultTimeZone]);
   
 /* According to Apple docs, default behavior is NSDateFormatterBehavior10_4 on
    10.5 and later. Yeah, go figure. */
@@ -429,8 +429,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
   if (locale == _locale)
     return;
-  if (_locale != nil)
-    RELEASE(_locale);
+  RELEASE(_locale);
   
   _locale = RETAIN(locale);
   [self _resetUDateFormat];
@@ -445,8 +444,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
   if (tz == _tz)
     return;
-  if (_tz != nil)
-    RELEASE(_tz);
+  RELEASE(_tz);
   
   _tz = RETAIN(tz);
   [self _resetUDateFormat];
