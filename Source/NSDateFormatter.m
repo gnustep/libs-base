@@ -87,6 +87,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   _behavior = _defaultBehavior;
   _locale = RETAIN([NSLocale currentLocale]);
   _tz = RETAIN([NSTimeZone defaultTimeZone]);
+  _calendar = RETAIN([NSCalendar currentCalendar]);
   
   [self _resetUDateFormat];
   
@@ -201,6 +202,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
   _dateFormat = [format copy];
   _allowsNaturalLanguage = flag;
+  _behavior = NSDateFormatterBehavior10_0;
   return self;
 }
 
@@ -402,12 +404,17 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSCalendar *) calendar
 {
-  return nil;
+  return _calendar;
 }
 
 - (void) setCalendar: (NSCalendar *) calendar
 {
-  return;
+  if (calendar == _calendar)
+    return;
+  RELEASE(_calendar);
+  
+  _calendar = RETAIN(calendar);
+  [self _resetUDateFormat];
 }
 
 - (NSDate *) defaultDate
