@@ -130,6 +130,7 @@ typedef NSUInteger NSDateFormatterBehavior;
   NSUInteger _behavior;
   NSLocale   *_locale;
   NSTimeZone *_tz;
+  NSCalendar *_calendar;
   NSDateFormatterStyle _timeStyle;
   NSDateFormatterStyle _dateStyle;
   void      *_formatter;

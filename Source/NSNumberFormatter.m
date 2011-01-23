@@ -782,7 +782,7 @@ static NSUInteger _defaultBehavior = 0;
         }
 #endif
     }
-  else if (_behavior == NSNumberFormatterBehavior10_0
+  else if (_behavior == NSNumberFormatterBehavior10_0)
     {
       NSMutableDictionary	*locale;
       NSCharacterSet	*formattingCharacters;
