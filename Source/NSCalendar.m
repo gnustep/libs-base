@@ -182,7 +182,6 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
     _identifier = NSIslamicCivilCalendar;
   else if ([string isEqualToString: NSJapaneseCalendar])
     _identifier = NSJapaneseCalendar;
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
   else if ([string isEqualToString: NSRepublicOfChinaCalendar])
     _identifier = NSRepublicOfChinaCalendar;
   else if ([string isEqualToString: NSPersianCalendar])
@@ -191,7 +190,6 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
     _identifier = NSIndianCalendar;
   else if ([string isEqualToString: NSISO8601Calendar])
     _identifier = NSISO8601Calendar;
-#endif
   else
     {
       RELEASE(self);
@@ -600,9 +598,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   _week = NSUndefinedDateComponent;
   _weekday = NSUndefinedDateComponent;
   _weekdayOrdinal = NSUndefinedDateComponent;
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
   _quarter = NSUndefinedDateComponent;
-#endif
   
   return self;
 }

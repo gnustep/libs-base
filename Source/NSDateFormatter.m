@@ -92,7 +92,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   
 /* According to Apple docs, default behavior is NSDateFormatterBehavior10_4 on
    10.5 and later. Yeah, go figure. */
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST) && GS_USE_ICU == 1
+#if GS_USE_ICU == 1
   err = U_ZERO_ERROR;
   
   length =
