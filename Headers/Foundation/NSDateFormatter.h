@@ -211,7 +211,7 @@ typedef NSUInteger NSDateFormatterBehavior;
 - (void) setPMSymbol: (NSString *) string;
 
 - (NSArray *) weekdaySymbols;
-- (void) setWeekdaySymbols: () array;
+- (void) setWeekdaySymbols: (NSArray *) array;
 - (NSArray *) shortWeekdaySymbols;
 - (void) setShortWeekdaySymbols: (NSArray *) array;
 
