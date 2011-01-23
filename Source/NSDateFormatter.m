@@ -37,7 +37,9 @@
 #import "Foundation/NSDateFormatter.h"
 #import "Foundation/NSCoder.h"
 
+#if defined(HAVE_UNICODE_UDAT_H)
 #include <unicode/udat.h>
+#endif
 
 
 
@@ -73,6 +75,11 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (id) init
 {
+  int length;
+  unichar buffer[BUFFER_SIZE];
+  unichar *value = buffer;
+  NSInteger err;
+  
   self = [super init];
   if (self == nil)
     return nil;
@@ -80,6 +87,25 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   _behavior = _defaultBehavior;
   _locale = [NSLocale currentLocale];
   _tz = [NSTimeZone defaultTimeZone];
+  
+/* According to Apple docs, default behavior is NSDateFormatterBehavior10_4 on
+   10.5 and later. Yeah, go figure. */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST) && GS_USE_ICU == 1
+  err = U_ZERO_ERROR;
+  
+  length =
+    udat_toPattern (_formatter, 0, value, BUFFER_SIZE, &err);
+  if (length > BUFFER_SIZE)
+    {
+      value = NSZoneMalloc ([self zone], sizeof(unichar) * length);
+      udat_toPattern (_formatter, 0, value, length, &err);
+    }
+  
+  _dateFormat = [NSString stringWithCharacters: value length: length];
+  
+  if (length > BUFFER_SIZE)
+    NSZoneFree ([self zone], value);
+#endif
   
   [self _resetUDateFormat];
   
@@ -113,6 +139,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) dealloc
 {
   RELEASE(_dateFormat);
+  RELEASE(_locale);
+  RELEASE(_tz);
   [super dealloc];
 }
 
@@ -344,9 +372,10 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   udat_applyPattern (_formatter, 0, pattern, patternLength);
   
   NSZoneFree ([self zone], pattern);
-#else
-  return;
 #endif
+  if (_dateFormat)
+    RELEASE(_dateFormat);
+  _dateFormat = RETAIN(string);
 }
 
 - (NSDateFormatterStyle) dateStyle
@@ -425,12 +454,25 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSDate *) twoDigitStartDate
 {
+#if GS_USE_ICU == 1
+  UErrorCode err = U_ZERO_ERROR;
+  return [NSDate dateWithTimeIntervalSince1970:
+    (udat_get2DigitYearStart (_formatter, &err) / 1000.0)];
+#else
   return nil;
+#endif
 }
 
 - (void) setTwoDigitStartDate: (NSDate *) date
 {
+#if GS_USE_ICU == 1
+  UErrorCode err = U_ZERO_ERROR;
+  udat_set2DigitYearStart (_formatter,
+                           ([date timeIntervalSince1970] * 1000.0),
+                           &err);
+#else
   return;
+#endif
 }
 
 
@@ -456,52 +498,92 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSArray *) weekdaySymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_WEEKDAYS];
+#else
   return nil;
+#endif
 }
 
-- (void) setWeekdaySymbols: () array
+- (void) setWeekdaySymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_WEEKDAYS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) shortWeekdaySymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_SHORT_WEEKDAYS];
+#else
   return nil;
+#endif
 }
 
 - (void) setShortWeekdaySymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _getSymbols: UDAT_SHORT_WEEKDAYS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) monthSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_MONTHS];
+#else
   return nil;
+#endif
 }
 
 - (void) setMonthSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _getSymbols: UDAT_MONTHS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) shortMonthSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_SHORT_MONTHS];
+#else
   return nil;
+#endif
 }
 
 - (void) setShortMonthSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _getSymbols: UDAT_SHORT_MONTHS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) eraSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_ERAS];
+#else
   return nil;
+#endif
 }
 
 - (void) setEraSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_ERAS];
+#else
   return;
+#endif
 }
 
 - (NSDate *) gregorianStartDate
@@ -516,133 +598,237 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSArray *) longEraSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_ERA_NAMES];
+#else
   return nil;
+#endif
 }
 
 - (void) setLongEraSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_ERA_NAMES];
+#else
   return;
+#endif
 }
 
 
 - (NSArray *) quarterSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_QUARTERS];
+#else
   return nil;
+#endif
 }
 
 - (void) setQuarterSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_QUARTERS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) shortQuarterSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_SHORT_QUARTERS];
+#else
   return nil;
+#endif
 }
 
 - (void) setShortQuarterSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_SHORT_QUARTERS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) standaloneQuarterSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_STANDALONE_QUARTERS];
+#else
   return nil;
+#endif
 }
 
 - (void) setStandaloneQuarterSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_STANDALONE_QUARTERS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) shortStandaloneQuarterSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_STANDALONE_SHORT_QUARTERS];
+#else
   return nil;
+#endif
 }
 
 - (void) setShortStandaloneQuarterSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_STANDALONE_SHORT_QUARTERS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) shortStandaloneMonthSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_STANDALONE_SHORT_MONTHS];
+#else
   return nil;
+#endif
 }
 
 - (void) setShortStandaloneMonthSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_STANDALONE_SHORT_MONTHS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) standaloneMonthSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_STANDALONE_MONTHS];
+#else
   return nil;
+#endif
 }
 
 - (void) setStandaloneMonthSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_STANDALONE_MONTHS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) veryShortMonthSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_NARROW_MONTHS];
+#else
   return nil;
+#endif
 }
 
 - (void) setVeryShortMonthSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_NARROW_MONTHS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) veryShortStandaloneMonthSymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_STANDALONE_NARROW_MONTHS];
+#else
   return nil;
+#endif
 }
 
 - (void) setVeryShortStandaloneMonthSymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_STANDALONE_NARROW_MONTHS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) shortStandaloneWeekdaySymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_STANDALONE_SHORT_WEEKDAYS];
+#else
   return nil;
+#endif
 }
 
 - (void) setShortStandaloneWeekdaySymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_STANDALONE_SHORT_WEEKDAYS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) standaloneWeekdaySymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_STANDALONE_WEEKDAYS];
+#else
   return nil;
+#endif
 }
 
 - (void) setStandaloneWeekdaySymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_STANDALONE_WEEKDAYS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) veryShortWeekdaySymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_SHORT_WEEKDAYS];
+#else
   return nil;
+#endif
 }
 
 - (void) setVeryShortWeekdaySymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_SHORT_WEEKDAYS];
+#else
   return;
+#endif
 }
 
 - (NSArray *) veryShortStandaloneWeekdaySymbols
 {
+#if GS_USE_ICU == 1
+  return [self _getSymbols: UDAT_STANDALONE_NARROW_WEEKDAYS];
+#else
   return nil;
+#endif
 }
 
 - (void) setVeryShortStandaloneWeekdaySymbols: (NSArray *) array
 {
+#if GS_USE_ICU == 1
+  [self _setSymbols: array : UDAT_STANDALONE_NARROW_WEEKDAYS];
+#else
   return;
+#endif
 }
 
 + (NSString *) localizedStringFromDate: (NSDate *) date
@@ -665,7 +851,14 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
                               options: (NSUInteger) opts
                                locale: (NSLocale *) locale
 {
-  return nil;
+  NSString *result;
+  NSDateFormatter *fmt = [[self alloc] init];
+  
+  [fmt setLocale: locale];
+  result = [fmt dateFormat];
+  RELEASE(fmt);
+  
+  return result;
 }
 
 - (BOOL) doesRelativeDateFormatting
@@ -773,7 +966,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
       ++idx;
     }
   
-  return [NSArray arrayWithArray: mArray];;
+  return [NSArray arrayWithArray: mArray];
 #else
   return nil;
 #endif
