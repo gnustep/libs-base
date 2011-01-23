@@ -1,5 +1,9 @@
 2011-01-22  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/NSDateFormatter.m: Implemented a few more methods.
+
+2011-01-22  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* configure:
 	* configure.ac:
 	* Headers/Additions/GNUstepBase/config.h.in: Added check for unicode/udat.h.
