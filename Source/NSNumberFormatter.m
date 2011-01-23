@@ -746,23 +746,52 @@ static NSUInteger _defaultBehavior = 0;
     return result; \
   } while (0)
 
+      // This is quite inefficient.  See the GSUText stuff for how
+      // to use ICU 4.6 UText objects as NSStrings.  This saves us from
+      // needing to do a load of O(n) things.  In 4.6, these APIs in ICU
+      // haven't been updated to use UText (so we have to use the UChar buffer
+      // approach), but they probably will be in the future.  We should
+      // revisit this code when they have been.
       UChar buffer[MAX_BUFFER_SIZE];
       
       // FIXME: What to do with unsigned types?
+      //
+      // The only unsigned case we actually need to worry about is unsigned
+      // long long - all of the others are stored as signed values.  We're now
+      // falling through to the double case for this, which will lose us some
+      // precision, but hopefully not matter too much...
       if (nil == anObject)
         return [self nilSymbol];
-      else if (![anObject isKindOfClass: [NSNumber class]])
+      if (![anObject isKindOfClass: [NSNumber class]])
         return [self notANumberSymbol];
-      else if ([anObject objCType] == @encode(int))
-        STRING_FROM_NUMBER(unum_format, [anObject intValue]);
-      else if ([anObject objCType] == @encode(long long))
-        STRING_FROM_NUMBER(unum_formatInt64, [anObject longLongValue]);
-      else if ([anObject objCType] == @encode(BOOL))
-        STRING_FROM_NUMBER(unum_format, (int)[anObject boolValue]);
-      else if ([anObject objCType] == @encode(double))
-        STRING_FROM_NUMBER(unum_formatDouble, [anObject doubleValue]);
-      else if ([anObject objCType] == @encode(float))
-        STRING_FROM_NUMBER(unum_formatDouble, (double)[anObject floatValue]);
+      switch ([anObject objCType][0])
+        {
+          case _C_LNG_LNG:
+            STRING_FROM_NUMBER(unum_formatInt64, [anObject longLongValue]);
+            break;
+          case _C_INT:
+            STRING_FROM_NUMBER(unum_format, [anObject intValue]);
+            break;
+          // Note: This case is probably wrong: the compiler doesn't generate B
+          // for bool, it generates C or c (depending on the platform).  I
+          // don't think it matters, because we don't bother with anything
+          // smaller than int for NSNumbers
+          case _C_BOOL:
+            STRING_FROM_NUMBER(unum_format, (int)[anObject boolValue]);
+            break;
+          // If it's not a type encoding that we recognise, let the receiver
+          // cast it to a double, which probably has enough precision for what
+          // we need.  This needs testing with NSDecimalNumber though, because
+          // I managed to break stuff last time I did anything with NSNumber by
+          // forgetting that NSDecimalNumber existed...
+          default:
+          case _C_DBL:
+            STRING_FROM_NUMBER(unum_formatDouble, [anObject doubleValue]);
+            break;
+          case _C_FLT:
+            STRING_FROM_NUMBER(unum_formatDouble, (double)[anObject floatValue]);
+            break;
+        }
 #endif
     }
   else if (_behavior == NSNumberFormatterBehavior10_0
