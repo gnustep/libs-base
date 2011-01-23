@@ -1,6 +1,11 @@
 2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* Headers/Foundation/NSDateFormatter.m:
+	* Headers/Foundation/NSDateFormatter.h:
+	* Source/NSDateFormatter.m: Redo the calendar code.
+
+2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/Foundation/NSDateFormatter.h:
 	* Source/NSDateFormatter.m: Add calendar.
 	* Source/NSNumberFormatter.m: Compile again.
 

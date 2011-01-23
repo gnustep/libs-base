@@ -87,7 +87,6 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   _behavior = _defaultBehavior;
   _locale = RETAIN([NSLocale currentLocale]);
   _tz = RETAIN([NSTimeZone defaultTimeZone]);
-  _calendar = RETAIN([NSCalendar currentCalendar]);
   
   [self _resetUDateFormat];
   
@@ -404,17 +403,24 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSCalendar *) calendar
 {
-  return _calendar;
+  return [_locale objectForKey: NSLocaleCalendar];
 }
 
 - (void) setCalendar: (NSCalendar *) calendar
 {
-  if (calendar == _calendar)
-    return;
-  RELEASE(_calendar);
+  NSMutableDictionary *dict;
+  NSLocale *locale;
   
-  _calendar = RETAIN(calendar);
-  [self _resetUDateFormat];
+  dict = [[NSLocale componentsFromLocaleIdentifier: [_locale localeIdentifier]]
+    mutableCopy];
+  [dict setValue: calendar forKey: NSLocaleCalendar];
+  locale = [[NSLocale alloc] initWithLocaleIdentifier:
+    [NSLocale localeIdentifierFromComponents: (NSDictionary *)dict]];
+  [self setLocale: locale];
+  /* Don't have to use udat_setCalendar here because -setLocale: will take care
+     of setting the calendar when it resets the formatter. */
+  RELEASE(locale);
+  RELEASE(dict);
 }
 
 - (NSDate *) defaultDate
@@ -483,7 +489,13 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSString *) AMSymbol
 {
+#if GS_USE_ICU == 1
+  NSArray *array = [self _getSymbols: UDAT_AM_PMS];
+  
+  return [array objectAtIndex: 0];
+#else
   return nil;
+#endif
 }
 
 - (void) setAMSymbol: (NSString *) string
@@ -493,7 +505,13 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSString *) PMSymbol
 {
+#if GS_USE_ICU == 1
+  NSArray *array = [self _getSymbols: UDAT_AM_PMS];
+  
+  return [array objectAtIndex: 1];
+#else
   return nil;
+#endif
 }
 
 - (void) setPMSymbol: (NSString *) string
