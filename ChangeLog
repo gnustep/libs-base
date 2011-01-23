@@ -1,5 +1,11 @@
 2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/Foundation/NSDateFormatter.m:
+	* Source/NSDateFormatter.m: Add calendar.
+	* Source/NSNumberFormatter.m: Compile again.
+
+2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/NSDateFormatter.m:
 	* Source/NSNumberFormatter.m:
 	* Source/NSCalendar.m: Remove use of OS_API_VERSION() in .m files.
