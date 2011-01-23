@@ -309,18 +309,13 @@ static NSUInteger _defaultBehavior = 0;
 - (NSString*) decimalSeparator
 {
   if (_behavior == NSNumberFormatterBehavior10_4
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
     || _behavior == NSNumberFormatterBehaviorDefault)
-#endif
     {
 #if GS_USE_ICU == 1
       return [self _getSymbol: UNUM_DECIMAL_SEPARATOR_SYMBOL];
 #endif
     }
-  else if (_behavior == NSNumberFormatterBehavior10_0
-#if OS_API_VERSION(GS_OPENSTEP_V, MAC_OS_X_VERSION_10_3)
-    || _behavior == NSNumberFormatterBehaviorDefault)
-#endif
+  else if (_behavior == NSNumberFormatterBehavior10_0)
     {
       if (_decimalSeparator == 0)
         return @"";
@@ -613,18 +608,13 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setDecimalSeparator: (NSString*)newSeparator
 {
   if (_behavior == NSNumberFormatterBehavior10_4
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
     || _behavior == NSNumberFormatterBehaviorDefault)
-#endif
     {
 #if GS_USE_ICU == 1
       [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
 #endif
     }
-  else if (_behavior == NSNumberFormatterBehavior10_0
-#if OS_API_VERSION(GS_OPENSTEP_V, MAC_OS_X_VERSION_10_3)
-    || _behavior == NSNumberFormatterBehaviorDefault)
-#endif
+  else if (_behavior == NSNumberFormatterBehavior10_0)
     {
       if ([newSeparator length] > 0)
         _decimalSeparator = [newSeparator characterAtIndex: 0];
@@ -722,9 +712,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSString*) stringForObjectValue: (id)anObject
 {
   if (_behavior == NSNumberFormatterBehavior10_4
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
     || _behavior == NSNumberFormatterBehaviorDefault)
-#endif
     {
 #if GS_USE_ICU == 1
 
@@ -795,10 +783,6 @@ static NSUInteger _defaultBehavior = 0;
 #endif
     }
   else if (_behavior == NSNumberFormatterBehavior10_0
-#if OS_API_VERSION(GS_OPENSTEP_V, MAC_OS_X_VERSION_10_3)
-    || _behavior == NSNumberFormatterBehaviorDefault)
-#endif
-    // FIXME: Should this method even work for OS X < 10.4?
     {
       NSMutableDictionary	*locale;
       NSCharacterSet	*formattingCharacters;

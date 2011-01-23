@@ -1,14 +1,20 @@
+2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSDateFormatter.m:
+	* Source/NSNumberFormatter.m:
+	* Source/NSCalendar.m: Remove use of OS_API_VERSION() in .m files.
+
 2011-01-23 15:42  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSNumberFormatter.m: Some small fixes in
 	  NSNumberFormatter. Mostly stop using == to compare C strings.
 
-2011-01-22  Stefan Bidigaray <stefanbidi@gmail.com>
+2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSDateFormatter.m: Initialize UDateFormat before using it.
 	* Source/NSCalendar.m: Implement -components:fromDate:.
 
-2011-01-22  Stefan Bidigaray <stefanbidi@gmail.com>
+2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSDateFormatter.m: Implemented a few more methods.
 
