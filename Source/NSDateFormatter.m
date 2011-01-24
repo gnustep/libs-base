@@ -53,6 +53,7 @@
 
 static inline NSInteger _NSToUDateFormatStyle (NSDateFormatterStyle style)
 {
+#if GS_USE_ICU == 1
   switch (style)
     {
       case NSDateFormatterNoStyle:
@@ -66,7 +67,8 @@ static inline NSInteger _NSToUDateFormatStyle (NSDateFormatterStyle style)
       case NSDateFormatterFullStyle: 
         return UDAT_FULL;
     }
-  return UDAT_NONE;
+#endif
+  return -1;
 }
 
 @implementation NSDateFormatter
