@@ -1,5 +1,9 @@
 2011-01-24  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/NSNumberFormatter.m: Fixes for formatter behavior.
+
+2011-01-24  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/NSDateFormatter.m: Check ICU presence in private function.
 
 2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
