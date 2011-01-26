@@ -1,3 +1,7 @@
+2011-01-26  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSLocale.m: Minor memory mgt fixes.
+
 2011-01-24  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSNumberFormatter.m: Fixes for formatter behavior.
