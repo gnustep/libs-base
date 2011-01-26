@@ -503,7 +503,8 @@ static NSRecursiveLock *classLock = nil;
   while (idx < cnt)
     {
       NSString *lang = [languages objectAtIndex: idx];
-      [mArray addObject: [self canonicalLanguageIdentifierFromString: lang]];
+      if (![mArray containsObject: lang])
+        [mArray addObject: [self canonicalLanguageIdentifierFromString: lang]];
       ++idx;
     }
   
@@ -732,7 +733,8 @@ static NSRecursiveLock *classLock = nil;
   
   if ([key isEqualToString: NSLocaleUsesMetricSystem])
     {
-      NSString *mSys = [self _getMeasurementSystem];
+      NSString *mSys = [_components objectForKey: key];
+      mSys = (mSys == nil) ? [self _getMeasurementSystem] : mSys;
       if (mSys != nil)
         {
           [_components setValue: mSys forKey: NSLocaleMeasurementSystem];
@@ -856,6 +858,7 @@ static NSRecursiveLock *classLock = nil;
       else
         result = @"U.S.";
     }
+  ulocdata_close (localeDate);
   return result;
 #else
   return nil;
@@ -917,6 +920,7 @@ static NSRecursiveLock *classLock = nil;
       // FIXME: The icu docs are a bit iffy and don't explain what len == 1
       // means.  So, if it is encountered, we simply skip it.
     }
+  uset_close (charSet);
   
   result = [mSet copyWithZone: NULL];
   RELEASE(mSet);
@@ -938,6 +942,7 @@ static NSRecursiveLock *classLock = nil;
   cLocaleId = [_localeId UTF8String];
   localeData = ulocdata_open (cLocaleId, &err);
   strLen = ulocdata_getDelimiter (localeData, delimiterType, result, 32, &err);
+  ulocdata_close (localeData);
   if (U_SUCCESS(err))
     return [NSString stringWithCharacters: (unichar *)result length: strLen];
 #endif
