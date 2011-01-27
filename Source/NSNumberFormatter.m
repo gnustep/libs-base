@@ -428,8 +428,17 @@ static NSUInteger _defaultBehavior = 0;
   
   _behavior = _defaultBehavior;
   _locale = RETAIN([NSLocale currentLocale]);
+  _style = NSNumberFormatterDecimalStyle;
   [self _resetUNumberFormat];
-
+  if (_formatter == NULL)
+    {
+      RELEASE(self);
+      return nil;
+    }
+  
+  // Set default values...
+  [self setMaximumFractionDigits: 2];
+  
   return self;
 }
 
