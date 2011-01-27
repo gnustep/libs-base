@@ -541,6 +541,7 @@ static NSRecursiveLock *classLock = nil;
     [[[dict objectForKey: NSLocaleCalendar] calendarIdentifier] UTF8String];
   const char *collation =
     [[dict objectForKey: NSLocaleCollationIdentifier] UTF8String];
+  const char *currency = [[dict objectForKey: NSLocaleCurrencyCode] UTF8String];
   
   // A locale cannot be constructed without a language.
   if (language == NULL)
@@ -552,15 +553,21 @@ static NSRecursiveLock *classLock = nil;
   
   // I'm not using uloc_setKeywordValue() here because the format is easy
   // enough to reproduce and has the added advatange that we doesn't need ICU.
+  if (calendar || calendar || currency)
+    [string appendString: @"@"];
   if (calendar)
-    [string appendFormat: @"@calendar=%s", calendar];
+    [string appendFormat: @"calendar=%s", calendar];
   if (collation)
     {
       if (calendar)
         [string appendString: @";"];
-      else
-        [string appendString: @"@"];
       [string appendFormat: @"collation=%s", collation];
+    }
+  if (currency)
+    {
+      if (calendar || currency)
+        [string appendString: @";"];
+      [string appendFormat: @"currency=%s", currency];
     }
   
   result =  [NSString stringWithString: string];
@@ -858,7 +865,7 @@ static NSRecursiveLock *classLock = nil;
       else
         result = @"U.S.";
     }
-  ulocdata_close (localeDate);
+  ulocdata_close (localeData);
   return result;
 #else
   return nil;

@@ -105,7 +105,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
       udat_toPattern (_formatter, 0, value, length, &err);
     }
   
-  _dateFormat = [NSString stringWithCharacters: value length: length];
+  _dateFormat = [[NSString alloc] initWithCharacters: value length: length];
   
   if (length > BUFFER_SIZE)
     NSZoneFree ([self zone], value);
