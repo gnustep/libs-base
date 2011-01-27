@@ -1,3 +1,7 @@
+2011-01-27  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSNumberFormatter.m: Set some sensible defaults.
+
 2011-01-26  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSLocale.m: Add currency code to locale identifier, if present.
