@@ -69,8 +69,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 #endif /* GS_USE_ICU */
 
 @interface NSCalendar (PrivateMethods)
-- (void) _openCalendar;
-- (void) _closeCalendar;
+- (void) _resetCalendar;
 - (NSString *) _localeIdWithLocale: (NSLocale *) locale;
 - (NSString *)_localeIdentifier;
 - (void) _setLocaleIdentifier: (NSString *) identifier;
@@ -79,23 +78,24 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 #define TZ_NAME_LENGTH 1024
 
 @implementation NSCalendar (PrivateMethods)
-- (void) _openCalendar
+- (void) _resetCalendar
 {
 #if GS_USE_ICU == 1
-  if (_cal == NULL)
-    {
-      NSString *tzName;
-      NSUInteger tzLen;
-      unichar cTzId[TZ_NAME_LENGTH];
-      const char *cLocaleId;
-      UErrorCode err = U_ZERO_ERROR;
-      
-      cLocaleId = [_localeId UTF8String];
-      tzName = [_tz name];
-      tzLen = [tzName length];
-      if (tzLen > TZ_NAME_LENGTH)
-        tzLen = TZ_NAME_LENGTH;
-      [tzName getCharacters: cTzId range: NSMakeRange(0, tzLen)];
+  NSString *tzName;
+  NSUInteger tzLen;
+  unichar cTzId[TZ_NAME_LENGTH];
+  const char *cLocaleId;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (_cal != NULL)
+    ucal_close (_cal);
+  
+  cLocaleId = [_localeId UTF8String];
+  tzName = [_tz name];
+  tzLen = [tzName length];
+  if (tzLen > TZ_NAME_LENGTH)
+    tzLen = TZ_NAME_LENGTH;
+  [tzName getCharacters: cTzId range: NSMakeRange(0, tzLen)];
 
 #ifndef	UCAL_DEFAULT
 /*
@@ -104,17 +104,8 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
  */      
 #define	UCAL_DEFAULT UCAL_TRADITIONAL
 #endif
-      _cal = 
-        ucal_open ((const UChar *)cTzId, tzLen, cLocaleId, UCAL_DEFAULT, &err);
-    }
-#endif
-}
-
-- (void) _closeCalendar
-{
-#if GS_USE_ICU == 1
-  ucal_close (_cal);
-  _cal = NULL;
+  _cal = 
+    ucal_open ((const UChar *)cTzId, tzLen, cLocaleId, UCAL_DEFAULT, &err);
 #endif
 }
 
@@ -144,9 +135,9 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   if ([identifier isEqualToString: _localeId])
     return;
   
-  [self _closeCalendar];
   RELEASE(_localeId);
   _localeId = RETAIN(identifier);
+  [self _resetCalendar];
 }
 @end
 
@@ -201,13 +192,15 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   _localeId = RETAIN([self _localeIdWithLocale: [NSLocale currentLocale]]);
   _tz = RETAIN([NSTimeZone defaultTimeZone]);
   
-  [self _openCalendar];
+  [self _resetCalendar];
   return self;
 }
 
 - (void) dealloc
 {
-  [self _closeCalendar];
+#if GS_USE_ICU == 1
+  ucal_close (_cal);
+#endif
   RELEASE(_identifier);
   RELEASE(_localeId);
   RELEASE(_tz);
@@ -279,7 +272,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   UErrorCode err = U_ZERO_ERROR;
   UDate udate;
   
-  [self _openCalendar];
+  [self _resetCalendar];
   udate = (UDate)([date timeIntervalSince1970] * 1000.0);
   ucal_setMillis (_cal, udate, &err);
   
@@ -339,7 +332,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   UDate udate;
   UErrorCode err = U_ZERO_ERROR;
   
-  [self _openCalendar];
+  [self _resetCalendar];
   ucal_clear (_cal);
   
   if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
@@ -398,7 +391,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (NSUInteger) firstWeekday
 {
 #if GS_USE_ICU == 1
-  [self _openCalendar];
+  [self _resetCalendar];
   return ucal_getAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK);
 #else
   return 0;
@@ -408,7 +401,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (void) setFirstWeekday: (NSUInteger) weekday
 {
 #if GS_USE_ICU == 1
-  [self _openCalendar];
+  [self _resetCalendar];
   ucal_setAttribute (_cal, UCAL_FIRST_DAY_OF_WEEK, (int32_t)weekday);
 #else
   return;
@@ -418,7 +411,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (NSUInteger) minimumDaysInFirstWeek
 {
 #if GS_USE_ICU == 1
-  [self _openCalendar];
+  [self _resetCalendar];
   return ucal_getAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);
 #else
   return 1;
@@ -428,7 +421,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 - (void) setMinimumDaysInFirstWeek: (NSUInteger) mdw
 {
 #if GS_USE_ICU == 1
-  [self _openCalendar];
+  [self _resetCalendar];
   ucal_setAttribute (_cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, (int32_t)mdw);
 #else
   return;
@@ -445,9 +438,9 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   if ([tz isEqual: _tz])
     return;
   
-  [self _closeCalendar];
   RELEASE(_tz);
   _tz = RETAIN(tz);
+  [self _resetCalendar];
 }
 
 
@@ -458,7 +451,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   NSRange result;
   UErrorCode err = U_ZERO_ERROR;
   
-  [self _openCalendar];
+  [self _resetCalendar];
   dateField = _NSCalendarUnitToDateField (unit);
   // We really don't care if there are any errors...
   result.location =
@@ -483,7 +476,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   NSRange result;
   UErrorCode err = U_ZERO_ERROR;
   
-  [self _openCalendar];
+  [self _resetCalendar];
   dateField = _NSCalendarUnitToDateField (unit);
   // We really don't care if there are any errors...
   result.location =

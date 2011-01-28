@@ -1,5 +1,9 @@
 2011-01-27  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/NSCalendar.m: Open UCalendar before use.
+
+2011-01-27  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/NSNumberFormatter.m: Set some sensible defaults.
 
 2011-01-26  Stefan Bidigaray <stefanbidi@gmail.com>
