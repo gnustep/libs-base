@@ -1160,7 +1160,7 @@ static NSUInteger _defaultBehavior = 0;
 
 - (BOOL) generatesDecimalNubmers
 {
-  return _genDecimal;
+  return NO; // FIXME
 }
 
 

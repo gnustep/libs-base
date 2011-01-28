@@ -70,6 +70,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 
 @interface NSCalendar (PrivateMethods)
 - (void) _resetCalendar;
+- (void *) _UCalendar;
 - (NSString *) _localeIdWithLocale: (NSLocale *) locale;
 - (NSString *)_localeIdentifier;
 - (void) _setLocaleIdentifier: (NSString *) identifier;
@@ -107,6 +108,11 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
   _cal = 
     ucal_open ((const UChar *)cTzId, tzLen, cLocaleId, UCAL_DEFAULT, &err);
 #endif
+}
+
+- (void *) _UCalendar
+{
+  return _cal;
 }
 
 - (NSString *) _localeIdWithLocale: (NSLocale *) locale
@@ -524,6 +530,9 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 
 - (BOOL) isEqual: (id) obj
 {
+#if GS_USE_ICU == 1
+  return (BOOL)ucal_equivalentTo (_cal, [obj _UCalendar]);
+#else
   if ([obj isKindOfClass: [self class]])
     {
       if (![_identifier isEqual: [obj calendarIdentifier]])
@@ -536,6 +545,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
     }
   
   return NO;
+#endif
 }
 
 - (void) encodeWithCoder: (NSCoder*)encoder
