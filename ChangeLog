@@ -1,3 +1,7 @@
+2011-01-29  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSCalendar.m: Handle current calendar updates.
+
 2011-01-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Fix bug with notifications ... was not always

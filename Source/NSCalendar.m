@@ -28,8 +28,11 @@
 #import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSLocale.h"
+#import "Foundation/NSNotification.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/GSLock.h"
 
 #if defined(HAVE_UNICODE_UCAL_H)
 #include <unicode/ucal.h>
@@ -149,16 +152,56 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 
 @implementation NSCalendar
 
+static NSCalendar *autoupdatingCalendar = nil;
+static NSRecursiveLock *classLock = nil;
+
++ (void) initialize
+{
+  if (self == [NSLocale class])
+    classLock = [GSLazyRecursiveLock new];
+}
+
++ (void) defaultsDidChange: (NSNotification*)n
+{
+  NSUserDefaults *defs;
+  NSString *locale;
+  NSString *calendar;
+  NSString *tz;
+
+  defs = [NSUserDefaults standardUserDefaults];
+  locale = [defs stringForKey: @"Locale"];
+  calendar = [defs stringForKey: @"Calendar"];
+  tz = [defs stringForKey: @"Local Time Zone"];
+  
+  if ([locale isEqual: autoupdatingCalendar->_localeId] == NO
+      || [calendar isEqual: autoupdatingCalendar->_identifier] == NO
+      || [tz isEqual: [(autoupdatingCalendar->_tz) name]] == NO)
+    {
+      [classLock lock];
+      RELEASE(autoupdatingCalendar->_localeId);
+      RELEASE(autoupdatingCalendar->_identifier);
+      RELEASE(autoupdatingCalendar->_tz);
+#if GS_USE_ICU == 1
+      ucal_close(autoupdatingCalendar->_cal);
+#endif
+      
+      autoupdatingCalendar->_localeId = RETAIN(locale);
+      autoupdatingCalendar->_identifier = RETAIN(calendar);
+      autoupdatingCalendar->_tz = [[NSTimeZone alloc] initWithName: tz];
+      
+      [autoupdatingCalendar _resetCalendar];
+      [classLock unlock];
+    }
+}
+
 + (id) currentCalendar
 {
-  NSCalendar *result = nil;
+  NSCalendar *result;
   NSCalendar *cal;
   
-#if GS_USE_ICU == 1
   cal = [[NSLocale currentLocale] objectForKey: NSLocaleCalendar];
   result =
     [[NSCalendar alloc] initWithCalendarIdentifier: [cal calendarIdentifier]];
-#endif
   
   return AUTORELEASE(result);
 }
@@ -516,7 +559,22 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 
 + (id) autoupdatingCurrentCalendar
 {
-  return nil;
+  NSCalendar *result;
+
+  [classLock lock];
+  if (nil == autoupdatingCalendar)
+    {
+      autoupdatingCalendar = [[self currentCalendar] copy];
+      [[NSNotificationCenter defaultCenter]
+        addObserver: self
+        selector: @selector(defaultsDidChange:)
+        name: NSUserDefaultsDidChangeNotification
+        object: nil];
+    }
+
+  result = RETAIN(autoupdatingCalendar);
+  [classLock unlock];
+  return AUTORELEASE(result);
 }
 
 
@@ -537,7 +595,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
     {
       if (![_identifier isEqual: [obj calendarIdentifier]])
         return NO;
-      if (![_localeId isEqual: [obj _localeIdentifier]])
+      if (![_localeId isEqual: [obj localeIdentifier]])
         return NO;
       if (![_tz isEqual: [obj timeZone]])
         return NO;
