@@ -428,16 +428,13 @@ static NSUInteger _defaultBehavior = 0;
   
   _behavior = _defaultBehavior;
   _locale = RETAIN([NSLocale currentLocale]);
-  _style = NSNumberFormatterDecimalStyle;
+  _style = NSNumberFormatterNoStyle;
   [self _resetUNumberFormat];
   if (_formatter == NULL)
     {
       RELEASE(self);
       return nil;
     }
-  
-  // Set default values...
-  [self setMaximumFractionDigits: 2];
   
   return self;
 }
@@ -721,260 +718,335 @@ static NSUInteger _defaultBehavior = 0;
 
 - (NSString*) stringForObjectValue: (id)anObject
 {
-  NSMutableDictionary	*locale;
-  NSCharacterSet	*formattingCharacters;
-  NSCharacterSet	*placeHolders;
-  NSString		*prefix;
-  NSString		*suffix;
-  NSString		*wholeString;
-  NSString		*fracPad = nil;
-  NSString		*fracPartString;
-  NSMutableString	*intPartString;
-  NSMutableString	*formattedNumber;
-  NSMutableString	*intPad;
-  NSRange		prefixRange;
-  NSRange		decimalPlaceRange;
-  NSRange		suffixRange;
-  NSRange		intPartRange;
-  NSDecimal		representativeDecimal;
-  NSDecimal		roundedDecimal;
-  NSDecimalNumber	*roundedNumber;
-  NSDecimalNumber	*intPart;
-  NSDecimalNumber	*fracPart;
-  int			decimalPlaces = 0;
-  BOOL			displayThousandsSeparators = NO;
-  BOOL			displayFractionalPart = NO;
-  BOOL			negativeNumber = NO;
-  NSString		*useFormat;
-  NSString		*defaultDecimalSeparator = nil;
-  NSString		*defaultThousandsSeparator = nil;
+  if (_behavior == NSNumberFormatterBehaviorDefault
+      || _behavior == NSNumberFormatterBehavior10_4)
+    {
+#if GS_USE_ICU == 1
 
-  if (_localizesFormat)
-    {
-      NSDictionary *defaultLocale = GSDomainFromDefaultLocale();
-      defaultDecimalSeparator 
-  = [defaultLocale objectForKey: NSDecimalSeparator];
-      defaultThousandsSeparator 
-  = [defaultLocale objectForKey: NSThousandsSeparator];
-    }
+#define STRING_FROM_NUMBER(function, number) do \
+  { \
+    UChar *outStr = buffer; \
+    UErrorCode err = U_ZERO_ERROR; \
+    int32_t len; \
+    NSString *result; \
+    \
+    len = function (_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
+    if (len > MAX_BUFFER_SIZE) \
+      outStr = NSZoneMalloc ([self zone], len * sizeof(UChar));\
+    err = U_ZERO_ERROR; \
+    function (_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
+    result = [NSString stringWithCharacters: outStr length: len]; \
+    if (len > MAX_BUFFER_SIZE) \
+      NSZoneFree ([self zone], outStr); \
+    return result; \
+  } while (0)
 
-  if (defaultDecimalSeparator == nil)
-    {
-      defaultDecimalSeparator = @".";
-    }
-  if (defaultThousandsSeparator == nil)
-    {
-      defaultThousandsSeparator = @",";
-    }
-  formattingCharacters = [NSCharacterSet
-    characterSetWithCharactersInString: @"0123456789#.,_"];
-  placeHolders = [NSCharacterSet 
-    characterSetWithCharactersInString: @"0123456789#_"];
-
-  if (nil == anObject)
-    return [[self attributedStringForNil] string];
-  if (![anObject isKindOfClass: [NSNumber class]])
-    return [[self attributedStringForNotANumber] string];
-  if ([anObject isEqual: [NSDecimalNumber notANumber]])
-    return [[self attributedStringForNotANumber] string];
-  if (_attributedStringForZero
-      && [anObject isEqual: [NSDecimalNumber zero]])
-    return [[self attributedStringForZero] string];
-  
-  useFormat = _positiveFormat;
-  if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
-    == NSOrderedAscending)
-    {
-      useFormat = _negativeFormat;
-      negativeNumber = YES;
-    }
-
-  // if no format specified, use the same default that Cocoa does
-  if (nil == useFormat)
-    {
-      useFormat = [NSString stringWithFormat: @"%@#%@###%@##",
-	        negativeNumber ? @"-" : @"",
-	        defaultThousandsSeparator,
-	        defaultDecimalSeparator];
-    }
-
-  prefixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters];
-  if (NSNotFound != prefixRange.location)
-    {
-      prefix = [useFormat substringToIndex: prefixRange.location];
-    }
-  else
-    {
-      prefix = @"";
-    }
-
-  locale = [NSMutableDictionary dictionaryWithCapacity: 3];
-  [locale setObject: @"" forKey: NSThousandsSeparator];
-  [locale setObject: @"" forKey: NSDecimalSeparator];
-
-  //should also set NSDecimalDigits?
-  
-  if ([self hasThousandSeparators]
-    && (0 != [useFormat rangeOfString: defaultThousandsSeparator].length))
-    {
-      displayThousandsSeparators = YES;
-    }
-
-  if ([self allowsFloats]
-    && (NSNotFound 
-  != [useFormat rangeOfString: defaultDecimalSeparator].location))
-    {
-      decimalPlaceRange = [useFormat rangeOfString: defaultDecimalSeparator
-			       options: NSBackwardsSearch];
-      if (NSMaxRange(decimalPlaceRange) == [useFormat length])
+      // This is quite inefficient.  See the GSUText stuff for how
+      // to use ICU 4.6 UText objects as NSStrings.  This saves us from
+      // needing to do a load of O(n) things.  In 4.6, these APIs in ICU
+      // haven't been updated to use UText (so we have to use the UChar buffer
+      // approach), but they probably will be in the future.  We should
+      // revisit this code when they have been.
+      UChar buffer[MAX_BUFFER_SIZE];
+      
+      // FIXME: What to do with unsigned types?
+      //
+      // The only unsigned case we actually need to worry about is unsigned
+      // long long - all of the others are stored as signed values.  We're now
+      // falling through to the double case for this, which will lose us some
+      // precision, but hopefully not matter too much...
+      if (nil == anObject)
+        return [self nilSymbol];
+      if (![anObject isKindOfClass: [NSNumber class]])
+        return [self notANumberSymbol];
+      switch ([anObject objCType][0])
         {
-          decimalPlaces = 0;
+          case _C_LNG_LNG:
+            STRING_FROM_NUMBER(unum_formatInt64, [anObject longLongValue]);
+            break;
+          case _C_INT:
+            STRING_FROM_NUMBER(unum_format, [anObject intValue]);
+            break;
+          // Note: This case is probably wrong: the compiler doesn't generate B
+          // for bool, it generates C or c (depending on the platform).  I
+          // don't think it matters, because we don't bother with anything
+          // smaller than int for NSNumbers
+          case _C_BOOL:
+            STRING_FROM_NUMBER(unum_format, (int)[anObject boolValue]);
+            break;
+          // If it's not a type encoding that we recognise, let the receiver
+          // cast it to a double, which probably has enough precision for what
+          // we need.  This needs testing with NSDecimalNumber though, because
+          // I managed to break stuff last time I did anything with NSNumber by
+          // forgetting that NSDecimalNumber existed...
+          default:
+          case _C_DBL:
+            STRING_FROM_NUMBER(unum_formatDouble, [anObject doubleValue]);
+            break;
+          case _C_FLT:
+            STRING_FROM_NUMBER(unum_formatDouble, (double)[anObject floatValue]);
+            break;
+        }
+    }
+#endif
+  else if (_behavior == NSNumberFormatterBehavior10_0)
+    {
+      NSMutableDictionary	*locale;
+      NSCharacterSet	*formattingCharacters;
+      NSCharacterSet	*placeHolders;
+      NSString		*prefix;
+      NSString		*suffix;
+      NSString		*wholeString;
+      NSString		*fracPad = nil;
+      NSString		*fracPartString;
+      NSMutableString	*intPartString;
+      NSMutableString	*formattedNumber;
+      NSMutableString	*intPad;
+      NSRange		prefixRange;
+      NSRange		decimalPlaceRange;
+      NSRange		suffixRange;
+      NSRange		intPartRange;
+      NSDecimal		representativeDecimal;
+      NSDecimal		roundedDecimal;
+      NSDecimalNumber	*roundedNumber;
+      NSDecimalNumber	*intPart;
+      NSDecimalNumber	*fracPart;
+      int			decimalPlaces = 0;
+      BOOL			displayThousandsSeparators = NO;
+      BOOL			displayFractionalPart = NO;
+      BOOL			negativeNumber = NO;
+      NSString		*useFormat;
+      NSString		*defaultDecimalSeparator = nil;
+      NSString		*defaultThousandsSeparator = nil;
+
+      if (_localizesFormat)
+        {
+          NSDictionary *defaultLocale = GSDomainFromDefaultLocale();
+          defaultDecimalSeparator 
+      = [defaultLocale objectForKey: NSDecimalSeparator];
+          defaultThousandsSeparator 
+      = [defaultLocale objectForKey: NSThousandsSeparator];
+        }
+
+      if (defaultDecimalSeparator == nil)
+        {
+          defaultDecimalSeparator = @".";
+        }
+      if (defaultThousandsSeparator == nil)
+        {
+          defaultThousandsSeparator = @",";
+        }
+      formattingCharacters = [NSCharacterSet
+        characterSetWithCharactersInString: @"0123456789#.,_"];
+      placeHolders = [NSCharacterSet 
+        characterSetWithCharactersInString: @"0123456789#_"];
+
+      if (nil == anObject)
+        return [[self attributedStringForNil] string];
+      if (![anObject isKindOfClass: [NSNumber class]])
+        return [[self attributedStringForNotANumber] string];
+      if ([anObject isEqual: [NSDecimalNumber notANumber]])
+        return [[self attributedStringForNotANumber] string];
+      if (_attributedStringForZero
+          && [anObject isEqual: [NSDecimalNumber zero]])
+        return [[self attributedStringForZero] string];
+      
+      useFormat = _positiveFormat;
+      if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
+        == NSOrderedAscending)
+        {
+          useFormat = _negativeFormat;
+          negativeNumber = YES;
+        }
+
+      // if no format specified, use the same default that Cocoa does
+      if (nil == useFormat)
+        {
+          useFormat = [NSString stringWithFormat: @"%@#%@###%@##",
+	            negativeNumber ? @"-" : @"",
+	            defaultThousandsSeparator,
+	            defaultDecimalSeparator];
+        }
+
+      prefixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters];
+      if (NSNotFound != prefixRange.location)
+        {
+          prefix = [useFormat substringToIndex: prefixRange.location];
         }
       else
         {
-          while ([placeHolders characterIsMember:
-      [useFormat characterAtIndex: NSMaxRange(decimalPlaceRange)]])
+          prefix = @"";
+        }
+
+      locale = [NSMutableDictionary dictionaryWithCapacity: 3];
+      [locale setObject: @"" forKey: NSThousandsSeparator];
+      [locale setObject: @"" forKey: NSDecimalSeparator];
+
+      //should also set NSDecimalDigits?
+      
+      if ([self hasThousandSeparators]
+        && (0 != [useFormat rangeOfString: defaultThousandsSeparator].length))
+        {
+          displayThousandsSeparators = YES;
+        }
+
+      if ([self allowsFloats]
+        && (NSNotFound 
+      != [useFormat rangeOfString: defaultDecimalSeparator].location))
+        {
+          decimalPlaceRange = [useFormat rangeOfString: defaultDecimalSeparator
+			           options: NSBackwardsSearch];
+          if (NSMaxRange(decimalPlaceRange) == [useFormat length])
             {
-              decimalPlaceRange.length++;
-              if (NSMaxRange(decimalPlaceRange) == [useFormat length])
-                break;
+              decimalPlaces = 0;
             }
-          decimalPlaces=decimalPlaceRange.length -= 1;
-          decimalPlaceRange.location += 1;
-          fracPad = [useFormat substringWithRange:decimalPlaceRange];
-        } 
-      if (0 != decimalPlaces)
-        displayFractionalPart = YES;
-    }
-
-  representativeDecimal = [anObject decimalValue];
-  NSDecimalRound(&roundedDecimal, &representativeDecimal, decimalPlaces,
-    NSRoundPlain);
-  roundedNumber =
-    [NSDecimalNumber decimalNumberWithDecimal: roundedDecimal];
-
-  /* Arguably this fiddling could be done by GSDecimalString() but I
-   * thought better to leave that behaviour as it is and provide the
-   * desired prettification here
-   */
-  if (negativeNumber)
-    roundedNumber = [roundedNumber decimalNumberByMultiplyingBy:
-      (NSDecimalNumber*)[NSDecimalNumber numberWithInt: -1]];
-  intPart = (NSDecimalNumber*)
-    [NSDecimalNumber numberWithInt: (int)[roundedNumber doubleValue]];
-  fracPart = [roundedNumber decimalNumberBySubtracting: intPart];
-  intPartString
-    = AUTORELEASE([[intPart descriptionWithLocale: locale] mutableCopy]);
-  
-  //sort out the padding for the integer part
-  intPartRange = [useFormat rangeOfCharacterFromSet: placeHolders];
-  if (NSMaxRange(intPartRange) < ([useFormat length] - 1))
-    {
-      while (([placeHolders characterIsMember:
-        [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
-        || [[useFormat substringFromRange:
-          NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual:
-      defaultThousandsSeparator])
-        && NSMaxRange(intPartRange) < [useFormat length] - 1)
-        {
-          intPartRange.length++;
-        }
-    }
-  intPad = [[useFormat substringWithRange: intPartRange] mutableCopy];
-  [intPad replaceOccurrencesOfString: defaultThousandsSeparator
-    withString: @""
-    options: 0
-    range: NSMakeRange(0, [intPad length])];
-  [intPad replaceOccurrencesOfString: @"#"
-    withString: @""
-    options: NSAnchoredSearch
-    range: NSMakeRange(0, [intPad length])];
-  if ([intPad length] > [intPartString length])
-    {
-      NSRange		ipRange;
-
-      ipRange =
-        NSMakeRange(0, [intPad length] - [intPartString length] + 1);
-      [intPartString insertString:
-        [intPad substringWithRange: ipRange] atIndex: 0];
-      [intPartString replaceOccurrencesOfString: @"_"
-  withString: @" "
-  options: 0
-  range: NSMakeRange(0, [intPartString length])];
-      [intPartString replaceOccurrencesOfString: @"#"
-  withString: @"0"
-  options: 0
-  range: NSMakeRange(0, [intPartString length])];
-    }
-  // fix the thousands separators up
-  if (displayThousandsSeparators && [intPartString length] > 3)
-    {
-      int index = [intPartString length];
-
-      while (0 < (index -= 3))
-  {
-    [intPartString insertString: [self thousandSeparator] atIndex: index];
-  }
-    }
-
-  formattedNumber = [intPartString mutableCopy];
-
-  //fix up the fractional part
-  if (displayFractionalPart)
-    {
-      if (0 != decimalPlaces)
-        {
-    NSMutableString	*ms;
-
-          fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
-      decimalPlaces];
-          ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
-          [ms replaceOccurrencesOfString: @"0"
-      withString: @""
-      options: (NSBackwardsSearch | NSAnchoredSearch)
-      range: NSMakeRange(0, [ms length])];
-          if ([fracPad length] > [ms length])
+          else
             {
-              NSRange fpRange;
+              while ([placeHolders characterIsMember:
+          [useFormat characterAtIndex: NSMaxRange(decimalPlaceRange)]])
+                {
+                  decimalPlaceRange.length++;
+                  if (NSMaxRange(decimalPlaceRange) == [useFormat length])
+                    break;
+                }
+              decimalPlaces=decimalPlaceRange.length -= 1;
+              decimalPlaceRange.location += 1;
+              fracPad = [useFormat substringWithRange:decimalPlaceRange];
+            } 
+          if (0 != decimalPlaces)
+            displayFractionalPart = YES;
+        }
 
-              fpRange = NSMakeRange([ms length],
-          ([fracPad length] - [ms length]));
-              [ms appendString:
-    [fracPad substringWithRange: fpRange]];
-              [ms replaceOccurrencesOfString: @"#"
-    withString: @""
-    options: (NSBackwardsSearch | NSAnchoredSearch)
-    range: NSMakeRange(0, [ms length])];
-              [ms replaceOccurrencesOfString: @"#"
-    withString: @"0"
-    options: 0
-    range: NSMakeRange(0, [ms length])];
-              [ms replaceOccurrencesOfString: @"_"
-    withString: @" "
-    options: 0
-    range: NSMakeRange(0, [ms length])];
-            }
-    fracPartString = AUTORELEASE(ms);
-        }
-      else
+      representativeDecimal = [anObject decimalValue];
+      NSDecimalRound(&roundedDecimal, &representativeDecimal, decimalPlaces,
+        NSRoundPlain);
+      roundedNumber =
+        [NSDecimalNumber decimalNumberWithDecimal: roundedDecimal];
+
+      /* Arguably this fiddling could be done by GSDecimalString() but I
+       * thought better to leave that behaviour as it is and provide the
+       * desired prettification here
+       */
+      if (negativeNumber)
+        roundedNumber = [roundedNumber decimalNumberByMultiplyingBy:
+          (NSDecimalNumber*)[NSDecimalNumber numberWithInt: -1]];
+      intPart = (NSDecimalNumber*)
+        [NSDecimalNumber numberWithInt: (int)[roundedNumber doubleValue]];
+      fracPart = [roundedNumber decimalNumberBySubtracting: intPart];
+      intPartString
+        = AUTORELEASE([[intPart descriptionWithLocale: locale] mutableCopy]);
+      
+      //sort out the padding for the integer part
+      intPartRange = [useFormat rangeOfCharacterFromSet: placeHolders];
+      if (NSMaxRange(intPartRange) < ([useFormat length] - 1))
         {
-          fracPartString = @"0";
+          while (([placeHolders characterIsMember:
+            [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
+            || [[useFormat substringFromRange:
+              NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual:
+          defaultThousandsSeparator])
+            && NSMaxRange(intPartRange) < [useFormat length] - 1)
+            {
+              intPartRange.length++;
+            }
         }
-      [formattedNumber appendString: [self decimalSeparator]];
-      [formattedNumber appendString: fracPartString];
+      intPad = [[useFormat substringWithRange: intPartRange] mutableCopy];
+      [intPad replaceOccurrencesOfString: defaultThousandsSeparator
+        withString: @""
+        options: 0
+        range: NSMakeRange(0, [intPad length])];
+      [intPad replaceOccurrencesOfString: @"#"
+        withString: @""
+        options: NSAnchoredSearch
+        range: NSMakeRange(0, [intPad length])];
+      if ([intPad length] > [intPartString length])
+        {
+          NSRange		ipRange;
+
+          ipRange =
+            NSMakeRange(0, [intPad length] - [intPartString length] + 1);
+          [intPartString insertString:
+            [intPad substringWithRange: ipRange] atIndex: 0];
+          [intPartString replaceOccurrencesOfString: @"_"
+      withString: @" "
+      options: 0
+      range: NSMakeRange(0, [intPartString length])];
+          [intPartString replaceOccurrencesOfString: @"#"
+      withString: @"0"
+      options: 0
+      range: NSMakeRange(0, [intPartString length])];
+        }
+      // fix the thousands separators up
+      if (displayThousandsSeparators && [intPartString length] > 3)
+        {
+          int index = [intPartString length];
+
+          while (0 < (index -= 3))
+      {
+        [intPartString insertString: [self thousandSeparator] atIndex: index];
+      }
+        }
+
+      formattedNumber = [intPartString mutableCopy];
+
+      //fix up the fractional part
+      if (displayFractionalPart)
+        {
+          if (0 != decimalPlaces)
+            {
+        NSMutableString	*ms;
+
+              fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
+          decimalPlaces];
+              ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
+              [ms replaceOccurrencesOfString: @"0"
+          withString: @""
+          options: (NSBackwardsSearch | NSAnchoredSearch)
+          range: NSMakeRange(0, [ms length])];
+              if ([fracPad length] > [ms length])
+                {
+                  NSRange fpRange;
+
+                  fpRange = NSMakeRange([ms length],
+              ([fracPad length] - [ms length]));
+                  [ms appendString:
+        [fracPad substringWithRange: fpRange]];
+                  [ms replaceOccurrencesOfString: @"#"
+        withString: @""
+        options: (NSBackwardsSearch | NSAnchoredSearch)
+        range: NSMakeRange(0, [ms length])];
+                  [ms replaceOccurrencesOfString: @"#"
+        withString: @"0"
+        options: 0
+        range: NSMakeRange(0, [ms length])];
+                  [ms replaceOccurrencesOfString: @"_"
+        withString: @" "
+        options: 0
+        range: NSMakeRange(0, [ms length])];
+                }
+        fracPartString = AUTORELEASE(ms);
+            }
+          else
+            {
+              fracPartString = @"0";
+            }
+          [formattedNumber appendString: [self decimalSeparator]];
+          [formattedNumber appendString: fracPartString];
+        }
+      /*FIXME - the suffix doesn't behave the same as on Mac OS X.
+       * Our suffix is everything which follows the final formatting
+       * character.  Cocoa's suffix is everything which isn't a
+       * formatting character nor in the prefix
+       */
+      suffixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters
+        options: NSBackwardsSearch];
+      suffix = [useFormat substringFromIndex: NSMaxRange(suffixRange)];
+      wholeString = [[prefix stringByAppendingString: formattedNumber]
+        stringByAppendingString: suffix];
+      [formattedNumber release];
+      return wholeString;
     }
-  /*FIXME - the suffix doesn't behave the same as on Mac OS X.
-   * Our suffix is everything which follows the final formatting
-   * character.  Cocoa's suffix is everything which isn't a
-   * formatting character nor in the prefix
-   */
-  suffixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters
-    options: NSBackwardsSearch];
-  suffix = [useFormat substringFromIndex: NSMaxRange(suffixRange)];
-  wholeString = [[prefix stringByAppendingString: formattedNumber]
-    stringByAppendingString: suffix];
-  [formattedNumber release];
-  return wholeString;
+  return nil;
 }
 
 - (NSDictionary*) textAttributesForNegativeValues
@@ -998,75 +1070,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSString *) stringFromNumber: (NSNumber *)number
 {
 // This is a 10.4 and above method and should not work with earlier version.
-#if GS_USE_ICU == 1
-
-#define STRING_FROM_NUMBER(function, number) do \
-  { \
-    UChar *outStr = buffer; \
-    UErrorCode err = U_ZERO_ERROR; \
-    int32_t len; \
-    NSString *result; \
-    \
-    len = function (_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
-    if (len > MAX_BUFFER_SIZE) \
-      outStr = NSZoneMalloc ([self zone], len * sizeof(UChar));\
-    err = U_ZERO_ERROR; \
-    function (_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
-    result = [NSString stringWithCharacters: outStr length: len]; \
-    if (len > MAX_BUFFER_SIZE) \
-      NSZoneFree ([self zone], outStr); \
-    return result; \
-  } while (0)
-
-  // This is quite inefficient.  See the GSUText stuff for how
-  // to use ICU 4.6 UText objects as NSStrings.  This saves us from
-  // needing to do a load of O(n) things.  In 4.6, these APIs in ICU
-  // haven't been updated to use UText (so we have to use the UChar buffer
-  // approach), but they probably will be in the future.  We should
-  // revisit this code when they have been.
-  UChar buffer[MAX_BUFFER_SIZE];
-  
-  // FIXME: What to do with unsigned types?
-  //
-  // The only unsigned case we actually need to worry about is unsigned
-  // long long - all of the others are stored as signed values.  We're now
-  // falling through to the double case for this, which will lose us some
-  // precision, but hopefully not matter too much...
-  if (nil == number)
-    return [self nilSymbol];
-  if (![number isKindOfClass: [NSNumber class]])
-    return [self notANumberSymbol];
-  switch ([number objCType][0])
-    {
-      case _C_LNG_LNG:
-        STRING_FROM_NUMBER(unum_formatInt64, [number longLongValue]);
-        break;
-      case _C_INT:
-        STRING_FROM_NUMBER(unum_format, [number intValue]);
-        break;
-      // Note: This case is probably wrong: the compiler doesn't generate B
-      // for bool, it generates C or c (depending on the platform).  I
-      // don't think it matters, because we don't bother with anything
-      // smaller than int for NSNumbers
-      case _C_BOOL:
-        STRING_FROM_NUMBER(unum_format, (int)[number boolValue]);
-        break;
-      // If it's not a type encoding that we recognise, let the receiver
-      // cast it to a double, which probably has enough precision for what
-      // we need.  This needs testing with NSDecimalNumber though, because
-      // I managed to break stuff last time I did anything with NSNumber by
-      // forgetting that NSDecimalNumber existed...
-      default:
-      case _C_DBL:
-        STRING_FROM_NUMBER(unum_formatDouble, [number doubleValue]);
-        break;
-      case _C_FLT:
-        STRING_FROM_NUMBER(unum_formatDouble, (double)[number floatValue]);
-        break;
-    }
-#else
-  return nil;
-#endif
+  return [self stringForObjectValue: number];
 }
 
 - (NSNumber *) numberFromString: (NSString *)string
@@ -1990,6 +1994,8 @@ static NSUInteger _defaultBehavior = 0;
   _formatter = unum_open (style, NULL, 0, cLocaleId, NULL, &err);
   if (U_FAILURE(err))
     _formatter = NULL;
+  
+  [self setMaximumFractionDigits: 0];
 #else
   return;
 #endif

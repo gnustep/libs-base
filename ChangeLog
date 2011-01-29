@@ -1,3 +1,7 @@
+2011-01-28  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSNumberFormatter.m: Fixed errors found by test suite.
+
 2011-01-27  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSCalendar.m: Add -isEqual:.
