@@ -190,7 +190,7 @@ static NSRecursiveLock *classLock = nil;
 
   defs = [NSUserDefaults standardUserDefaults];
   name = [defs stringForKey: @"Locale"];
-  if ([name isEqual: [autoupdatingLocale localeIdentifier]] == NO)
+  if ([name isEqual: autoupdatingLocale->_localeId] == NO)
     {
       [classLock lock];
       RELEASE(autoupdatingLocale->_localeId);
