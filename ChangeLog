@@ -1,7 +1,13 @@
+2011-01-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Fix bug with notifications ... was not always
+	sending them when a domain was modified.
+
 2011-01-29  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/Foundation/NSLocale.h: Use GS_EXPOSE(NSLocale).
-	* Source/NSLocale.m: ([-autoupdatingCurrentLocale]) Handle locale updates.
+	* Source/NSLocale.m: ([-autoupdatingCurrentLocale]) Handle locale
+	updates.
 	([-currentLocale]) Check Locale default for current user's locale.
 	([-preferredLanguages]) Do not add same language multiple times.
 
@@ -74,7 +80,8 @@
 
 	* configure:
 	* configure.ac:
-	* Headers/Additions/GNUstepBase/config.h.in: Added check for unicode/udat.h.
+	* Headers/Additions/GNUstepBase/config.h.in: Added check for
+	unicode/udat.h.
 	* Headers/Foundation/NSDateFormatter.h:
 	* Source/NSDateFormatter.m: Implemented a few methods.
 
