@@ -1,3 +1,10 @@
+2011-01-29  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/Foundation/NSLocale.h: Use GS_EXPOSE(NSLocale).
+	* Source/NSLocale.m: ([-autoupdatingCurrentLocale]) Handle locale updates.
+	([-currentLocale]) Check Locale default for current user's locale.
+	([-preferredLanguages]) Do not add same language multiple times.
+
 2011-01-28  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSNumberFormatter.m: Fixed errors found by test suite.

@@ -99,7 +99,7 @@ GS_EXPORT NSString * const NSISO8601Calendar;
  */
 @interface NSLocale : NSObject <NSCoding, NSCopying>
 {
-#if	GS_EXPOSE(NSUserDefaults)
+#if	GS_EXPOSE(NSLocale)
 @private
   NSString		*_localeId;
   NSMutableDictionary	*_components;
