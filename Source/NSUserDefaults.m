@@ -2113,14 +2113,14 @@ NSLog(@"Creating empty user defaults database");
           _changedDomains = [[NSMutableArray alloc] initWithObjects: &domainName
 							      count: 1];
           updateCache(self);
-          [[NSNotificationCenter defaultCenter]
-	    postNotificationName: NSUserDefaultsDidChangeNotification
-		          object: self];
         }
       else if ([_changedDomains containsObject: domainName] == NO)
         {
           [_changedDomains addObject: domainName];
         }
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
       [_lock unlock];
     }
   NS_HANDLER
