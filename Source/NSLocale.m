@@ -32,6 +32,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSValue.h"
+#import "Foundation/NSNotification.h"
 #import "Foundation/NSNumberFormatter.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSString.h"
@@ -182,14 +183,45 @@ static NSRecursiveLock *classLock = nil;
     }
 }
 
++ (void) defaultsDidChange: (NSNotification*)n
+{
+  NSUserDefaults	*defs;
+  NSString		*name;
+
+  defs = [NSUserDefaults standardUserDefaults];
+  name = [defs stringForKey: @"Locale"];
+  if ([name isEqual: [autoupdatingLocale localeIdentifier]] == NO)
+    {
+      [classLock lock];
+      RELEASE(autoupdatingLocale->_localeId);
+      RELEASE(autoupdatingLocale->_components);
+      
+      autoupdatingLocale->_localeId = RETAIN(name);
+      autoupdatingLocale->_components = nil;
+      
+      RELEASE(currentLocale);
+      currentLocale = nil;
+      [classLock unlock];
+      
+      [[NSNotificationCenter defaultCenter]
+        postNotificationName: NSCurrentLocaleDidChangeNotification
+        object: nil];
+    }
+}
+
 + (id) autoupdatingCurrentLocale
 {
-  // FIXME
   NSLocale *result;
 
   [classLock lock];
   if (nil == autoupdatingLocale)
     {
+      autoupdatingLocale = [[self currentLocale] copy];
+      [[NSNotificationCenter defaultCenter]
+        addObserver: self
+        selector: @selector(defaultsDidChange:)
+        name: NSUserDefaultsDidChangeNotification
+        object: nil];
     }
 
   result = RETAIN(autoupdatingLocale);
@@ -258,6 +290,9 @@ static NSRecursiveLock *classLock = nil;
   NSString *result;
   NSMutableString *mStr;
   NSRange range;
+  
+  if (string == nil)
+    return nil;
   
   if (canonicalLocales == nil)
     [self _updateCanonicalLocales];
@@ -390,11 +425,15 @@ static NSRecursiveLock *classLock = nil;
   [classLock lock];
   if (nil == currentLocale)
     {
-#if	GS_USE_ICU == 1
-      const char *cLocaleId = uloc_getDefault ();
-      NSString *localeId = [NSString stringWithUTF8String: cLocaleId];
-      currentLocale = [[NSLocale alloc] initWithLocaleIdentifier: localeId];
-#endif
+      NSString *localeId;
+      [classLock unlock];
+      
+      localeId =
+        [[NSUserDefaults standardUserDefaults] objectForKey: @"Locale"];
+      
+      [classLock lock];
+      if (currentLocale == nil)
+        currentLocale = [[NSLocale alloc] initWithLocaleIdentifier: localeId];
     }
   result = RETAIN(currentLocale);
   [classLock unlock];
@@ -502,9 +541,11 @@ static NSRecursiveLock *classLock = nil;
   cnt = [languages count];
   while (idx < cnt)
     {
-      NSString *lang = [languages objectAtIndex: idx];
+      NSString *lang = [self canonicalLanguageIdentifierFromString:
+        [languages objectAtIndex: idx]];
       if (![mArray containsObject: lang])
-        [mArray addObject: [self canonicalLanguageIdentifierFromString: lang]];
+        [mArray addObject: lang];
+      
       ++idx;
     }
   
