@@ -787,8 +787,8 @@ static NSUInteger _defaultBehavior = 0;
             STRING_FROM_NUMBER(unum_formatDouble, (double)[anObject floatValue]);
             break;
         }
-    }
 #endif
+    }
   else if (_behavior == NSNumberFormatterBehavior10_0)
     {
       NSMutableDictionary	*locale;
