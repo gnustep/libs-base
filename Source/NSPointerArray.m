@@ -233,6 +233,39 @@ static Class	concreteClass = Nil;
   [exception raise];
 }
 
+- (NSArray*) allObjects
+{
+  NSUInteger	i;
+  NSUInteger	c = 0;
+
+  for (i = 0; i < _count; i++)
+    {
+      if (_contents[i] != 0)
+	{
+	  c++;
+	}
+    }
+
+  if (0 == c)
+    {
+      return [NSArray array];
+    }
+  else
+    {
+      GSMutableArray	*a = [GSMutableArray arrayWithCapacity: c];
+
+      for (i = 0; i < _count; i++)
+        {
+          if (_contents[i] != 0)
+	    {
+	      [a addObject: (id)_contents[i]];
+	    }
+	}
+      [a makeImmutableCopyOnFail: NO]; 
+      return a;
+    }
+}
+
 - (void) compact
 {
   NSUInteger	i = _count;

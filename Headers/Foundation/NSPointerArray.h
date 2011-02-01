@@ -63,7 +63,7 @@ extern "C" {
  */
 - (NSUInteger) count;
 
-/** Initialises the receiver with the spefieifd options.
+/** Initialises the receiver with the specified options.
  */
 - (id) initWithOptions: (NSPointerFunctionsOptions)options;
 
