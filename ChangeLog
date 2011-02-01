@@ -1,3 +1,7 @@
+2011-02-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPointerArray.m: ([-allObjects]) implement missing method.
+
 2011-01-29  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSCalendar.m: Handle current calendar updates.
