@@ -1,3 +1,8 @@
+2011-02-02  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSDateFormatter.m: ([-doesRelativeDateFormatting])
+	([-setDoesRelativeDateFormatting:]) Implemented methods.
+
 2011-02-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPointerArray.m: ([-allObjects]) implement missing method.

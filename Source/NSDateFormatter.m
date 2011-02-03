@@ -43,6 +43,8 @@
 
 
 
+// This is defined to be the same as UDAT_RELATIVE
+#define FormatterDoesRelativeDateFormatting (1<<16)
 #define BUFFER_SIZE 1024
 
 @interface NSDateFormatter (PrivateMethods)
@@ -54,18 +56,20 @@
 static inline NSInteger _NSToUDateFormatStyle (NSDateFormatterStyle style)
 {
 #if GS_USE_ICU == 1
+  NSInteger relative =
+    (style & FormatterDoesRelativeDateFormatting) ? UDAT_RELATIVE : 0;
   switch (style)
     {
       case NSDateFormatterNoStyle:
-        return UDAT_NONE;
+        return (relative | UDAT_NONE);
       case NSDateFormatterShortStyle: 
-        return UDAT_SHORT;
+        return (relative | UDAT_SHORT);
       case NSDateFormatterMediumStyle: 
-        return UDAT_MEDIUM;
+        return (relative | UDAT_MEDIUM);
       case NSDateFormatterLongStyle:
-        return UDAT_LONG;
+        return (relative | UDAT_LONG);
       case NSDateFormatterFullStyle: 
-        return UDAT_FULL;
+        return (relative | UDAT_FULL);
     }
 #endif
   return -1;
@@ -257,12 +261,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (BOOL) generatesCalendarDates
 {
-  return NO;
+  return NO; // FIXME
 }
 
 - (void) setGeneratesCalendarDates: (BOOL) flag
 {
-  return;
+  return; // FIXME
 }
 
 - (BOOL) isLenient
@@ -359,7 +363,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
                   range: (inout NSRange *) range
                   error: (out NSError **) error
 {
-  return NO;
+  return NO; // FIXME
 }
 
 - (void) setDateFormat: (NSString *) string
@@ -427,12 +431,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSDate *) defaultDate
 {
-  return nil;
+  return nil;  // FIXME
 }
 
 - (void) setDefaultDate: (NSDate *) date
 {
-  return;
+  return; // FIXME
 }
 
 - (NSLocale *) locale
@@ -888,12 +892,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (BOOL) doesRelativeDateFormatting
 {
-  return NO;
+  return (_dateStyle & FormatterDoesRelativeDateFormatting) ? YES : NO;
 }
 
 - (void) setDoesRelativeDateFormatting: (BOOL) flag
 {
-  return;
+  _dateStyle |= FormatterDoesRelativeDateFormatting;
 }
 @end
 
