@@ -23,8 +23,8 @@
    */ 
 
 #import "common.h"
-#define	EXPOSE_NSNetServices_IVARS	1
-#define	EXPOSE_NSNetServicesBrowser_IVARS	1
+#define	EXPOSE_NSNetService_IVARS	1
+#define	EXPOSE_NSNetServiceBrowser_IVARS	1
 #import	"Foundation/NSNetServices.h"
 
 // Subclasses using mDNSResponder:

@@ -24,7 +24,6 @@
 
 #import "common.h"
 #import "GSNetServices.h"
-#define	EXPOSE_NSNetServices_IVARS	1
 #import "Foundation/NSNetServices.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
@@ -2296,14 +2295,13 @@ static void DNSSD_API
 - (void)      netService: (NSNetService *) sender
   didUpdateTXTRecordData: (NSData *) data
 {
-  id _delegate = [self delegate];
+  id delegate = [self delegate];
   INTERNALTRACE;
   
-  if ([_delegate respondsToSelector:
+  if ([delegate respondsToSelector:
     @selector(netService:didUpdateTXTRecordData:)])
     {
-      [_delegate   netService: sender
-       didUpdateTXTRecordData: data];
+      [delegate netService: sender didUpdateTXTRecordData: data];
     }
 }
 

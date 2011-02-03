@@ -130,7 +130,6 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 @interface NSNetService : NSObject
 {
 #if	GS_EXPOSE(NSNetService)
-  @private
   id		_delegate;
   void		*_netService;
   void		*_reserved;
@@ -222,7 +221,6 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 @interface NSNetServiceBrowser : NSObject
 {
 #if	GS_EXPOSE(NSNetServiceBrowser)
-  @private
   id		_delegate;
   void		*_netServiceBrowser;
   void		*_reserved;
