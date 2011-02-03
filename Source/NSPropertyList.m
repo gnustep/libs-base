@@ -312,6 +312,7 @@ foundIgnorableWhitespace: (NSString *)string
 	  o = [value copy];
 	}
       ASSIGN(plist, o);
+      [o release];
     }
   else if ([elementName isEqualToString: @"integer"])
     {
@@ -1750,6 +1751,7 @@ XString(NSString* obj, NSMutableData *output)
 	}
       NSZoneFree(NSDefaultMallocZone(), base);
       obj = [[NSString alloc] initWithCharacters: map length: len];
+      NSZoneFree(NSDefaultMallocZone(), map);
       [output appendData: [obj dataUsingEncoding: NSUTF8StringEncoding]];
       RELEASE(obj);
     }
