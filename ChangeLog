@@ -1,3 +1,8 @@
+2011-02-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcretePointerFunctions.m: objects with weak memory should
+	not be retained.
+
 2011-02-03  Philippe Roussel <p.o.roussel@free.fr>
 
 	* Source/NSPropertyList.m: Fix memory leaks.
