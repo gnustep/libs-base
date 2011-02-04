@@ -225,7 +225,14 @@ relinquishRetainedMemory(const void *item,
     }
   else if (options & NSPointerFunctionsObjectPointerPersonality)
     {
-      _x.acquireFunction = acquireRetainedObject;
+      if (options & NSPointerFunctionsZeroingWeakMemory)
+	{
+	  _x.acquireFunction = acquireExistingMemory;
+	}
+      else
+	{
+	  _x.acquireFunction = acquireRetainedObject;
+	}
       _x.descriptionFunction = describeObject;
       _x.hashFunction = hashShifted;
       _x.isEqualFunction = equalDirect;
@@ -253,11 +260,19 @@ relinquishRetainedMemory(const void *item,
     }
   else		/* objects */
     {
-      _x.acquireFunction = acquireRetainedObject;
+      if (options & NSPointerFunctionsZeroingWeakMemory)
+	{
+	  _x.acquireFunction = acquireExistingMemory;
+	}
+      else
+	{
+          _x.acquireFunction = acquireRetainedObject;
+	}
       _x.descriptionFunction = describeObject;
       _x.hashFunction = hashObject;
       _x.isEqualFunction = equalObject;
     }
+
 
   return self;
 }
