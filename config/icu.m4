@@ -20,8 +20,12 @@ AC_DEFUN([AC_CHECK_ICU], [
 	AC_MSG_CHECKING(ICU_LIBS)
 	ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
 	AC_MSG_RESULT($ICU_LIBS)
+	AC_MSG_CHECKING(ICU_LDFLAGS)
+	ICU_LDFLAGS=`$ICU_CONFIG --ldflags-searchpath`
+	AC_MSG_RESULT($ICU_LDFLAGS)
       else
 	ICU_LIBS=""
+	ICU_LDFLAGS=""
 	## Either perform custom action or print error message
 	ifelse([$3], ,echo "can't find ICU >= $1 (got $ICU_VERSION)",)
       fi
