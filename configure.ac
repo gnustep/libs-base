@@ -2696,6 +2696,7 @@ if test $enable_icu = yes; then
     HAVE_ICU=1
   else
     AC_MSG_RESULT(no)
+    AC_MSG_WARN([The International Components for Unicode (ICU) development headers and libraries do not appear to be available on this system.  Please install them and re-run configure.  If you do not do this gnustep-base will build but will have important functionality missing!])
   fi
 fi
 AC_SUBST(HAVE_ICU)

@@ -24035,6 +24035,8 @@ done
   else
     { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
+    { $as_echo "$as_me:$LINENO: WARNING: The International Components for Unicode (ICU) development headers and libraries do not appear to be available on this system.  Please install them and re-run configure.  If you do not do this gnustep-base will build but will have important functionality missing!" >&5
+$as_echo "$as_me: WARNING: The International Components for Unicode (ICU) development headers and libraries do not appear to be available on this system.  Please install them and re-run configure.  If you do not do this gnustep-base will build but will have important functionality missing!" >&2;}
   fi
 fi
 
