@@ -1,3 +1,10 @@
+2011-02-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLocale.m: Fix  canonical identifiers to return the input
+	string if no other value is found.  Refrain from putting nil locale
+	identifier in dictionary.  Fix leak of components dictionary when
+	returning an existing locale by id.
+
 2011-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConcretePointerFunctions.m: objects with weak memory should
