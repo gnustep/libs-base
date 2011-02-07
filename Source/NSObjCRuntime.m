@@ -95,7 +95,8 @@ NSSelectorFromString(NSString *aSelectorName)
 
 /**
  * Returns the class whose name is supplied in the
- * aClassName argument, or 0 if a nil string is supplied.
+ * aClassName argument, or Nil if a nil string is supplied.
+ * If no such class has been loaded, the function returns Nil.
  */
 Class
 NSClassFromString(NSString *aClassName)
