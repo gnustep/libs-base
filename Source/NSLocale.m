@@ -273,9 +273,15 @@ static NSRecursiveLock *classLock = nil;
     [self _updateCanonicalLocales];
   
   localeId = [canonicalLocales objectForKey: string];
-  localeComps = [localeId componentsSeparatedByString: @"_"];
-  result = [localeComps objectAtIndex: 0];
-  
+  if (nil == localeId)
+    {
+      result = string;
+    }
+  else
+    {
+      localeComps = [localeId componentsSeparatedByString: @"_"];
+      result = [localeComps objectAtIndex: 0];
+    }
   return result;
 }
 
@@ -736,12 +742,18 @@ static NSRecursiveLock *classLock = nil;
 #else
   localeId = [NSLocale canonicalLocaleIdentifierFromString: string];
 #endif
+  if (nil == localeId)
+    {
+      [self release];
+      return nil;
+    }
 
   [classLock lock];
   newLocale = [allLocales objectForKey: localeId];
   if (nil == newLocale)
     {
       _localeId = [localeId copy];
+      _components = [[NSMutableDictionary alloc] initWithCapacity: 0];
       [allLocales setObject: self forKey: localeId];
     }
   else
@@ -750,8 +762,6 @@ static NSRecursiveLock *classLock = nil;
       self = [newLocale retain];
     }
   [classLock unlock];
-  
-  _components = [[NSMutableDictionary alloc] initWithCapacity: 0];
 
   return self;
 }
