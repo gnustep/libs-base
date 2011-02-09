@@ -1036,11 +1036,20 @@ static void *nsthreadLauncher(void* thread)
     }
 #endif
 
+  c = [performers count];
+  if (0 == c)
+    {
+      /* We deal with all available performers each time we fire, so
+       * it's likely that we will fire when we have no performers left.
+       * In that case we can skip the copying and emptying of the array.
+       */
+      [lock unlock];
+      return;
+    }
   toDo = [NSArray arrayWithArray: performers];
   [performers removeAllObjects];
   [lock unlock];
 
-  c = [toDo count];
   for (i = 0; i < c; i++)
     {
       GSPerformHolder	*h = [toDo objectAtIndex: i];
