@@ -263,7 +263,7 @@ typedef NSUInteger NSDateFormatterBehavior;
 + (NSString *) localizedStringFromDate: (NSDate *) date
                              dateStyle: (NSDateFormatterStyle) dateStyle
                              timeStyle: (NSDateFormatterStyle) timeStyle;
-+ (NSString *) dateFormatFromTemplate: (NSString *) template
++ (NSString *) dateFormatFromTemplate: (NSString *) aTemplate
                               options: (NSUInteger) opts
                                locale: (NSLocale *) locale;
 
