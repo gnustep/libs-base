@@ -157,10 +157,12 @@ NSString * const NSSystemTimeZoneDidChangeNotification
 #define POSIX_TZONES     @"posix/"
 #endif
 
+#define BUFFER_SIZE 512
+
+#if GS_USE_ICU == 1
 static inline int
 _NSToICUTZDisplayStyle(NSTimeZoneNameStyle style)
 {
-#if GS_USE_ICU == 1
   switch (style)
     {
       case NSTimeZoneNameStyleStandard:
@@ -174,10 +176,31 @@ _NSToICUTZDisplayStyle(NSTimeZoneNameStyle style)
       default:
         return -1;
     }
-#else
-  return -1;
-#endif
 }
+
+static inline UCalendar *
+_UCalendarSetup (NSTimeZone *tz, NSLocale *locale)
+{
+  NSString *tzStr;
+  int32_t tzLen;
+  const char *cLocale;
+  UChar tzName[BUFFER_SIZE];
+  UCalendar *cal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  tzStr = [tz name];
+  if ((tzLen = [tzStr length]) > BUFFER_SIZE)
+    tzLen = BUFFER_SIZE;
+  [tzStr getCharacters: tzName range: NSMakeRange(0, tzLen)];
+  cLocale = [[locale localeIdentifier] UTF8String];
+  
+  cal = ucal_open(tzName, tzLen, cLocale, UCAL_TRADITIONAL, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  
+  return cal;
+}
+#endif
 
 /* Possible location of system time zone files */
 static NSString *tzdir = nil;
@@ -2098,7 +2121,25 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 
 - (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate
 {
+#if GS_USE_ICU == 1
+  NSTimeInterval result;
+  UCalendar *cal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  cal = _UCalendarSetup (self, nil);
+  if (cal == NULL)
+    return 0.0;
+  
+  ucal_setMillis (cal, ([aDate timeIntervalSince1970] * 1000.0), &err);
+  result = (double)ucal_get (cal, UCAL_DST_OFFSET, &err) / 1000.0;
+  if (U_FAILURE(err))
+    result = 0.0;
+  ucal_close (cal);
+  
+  return result;
+#else
   return 0.0;   // FIXME
+#endif
 }
 
 - (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate
@@ -2108,38 +2149,29 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 
 - (NSTimeInterval) daylightSavingTimeOffset
 {
-  return 0.0;   // FIXME
+  return [self daylightSavingTimeOffsetForDate: [NSDate date]];
 }
 
 - (NSDate *) nextDaylightSavingTimeTransition
 {
-  return nil;   // FIXME;
+  return [self nextDaylightSavingTimeTransitionAfterDate: [NSDate date]];
 }
 
 - (NSString *)localizedName: (NSTimeZoneNameStyle)style
                      locale: (NSLocale *)locale
 {
 #if GS_USE_ICU == 1
-#define BUFFER_SIZE 512
-  NSString *tzStr;
-  int32_t tzLen;
-  int32_t len;
-  const char *cLocale;
   UChar *result;
-  UChar tzName[BUFFER_SIZE];
+  const char *cLocale;
+  int32_t len;
   UCalendar *cal;
   UErrorCode err = U_ZERO_ERROR;
   
-  tzStr = [self name];
-  if ((tzLen = [tzStr length]) > BUFFER_SIZE)
-    tzLen = BUFFER_SIZE;
-  [tzStr getCharacters: tzName range: NSMakeRange(0, tzLen)];
-  cLocale = [[locale localeIdentifier] UTF8String];
-  
-  cal = ucal_open(tzName, tzLen, cLocale, UCAL_TRADITIONAL, &err);
-  if (U_FAILURE(err))
+  cal = _UCalendarSetup (self, locale);
+  if (cal == NULL)
     return nil;
   
+  cLocale = [[locale localeIdentifier] UTF8String];
   result = NSZoneMalloc ([self zone], BUFFER_SIZE * sizeof(UChar));
   len = ucal_getTimeZoneDisplayName (cal, _NSToICUTZDisplayStyle(style),
     cLocale, result, BUFFER_SIZE, &err);
