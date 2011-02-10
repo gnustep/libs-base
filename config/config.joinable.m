@@ -9,7 +9,7 @@
 int
 main()
 {
-  id            o = [Object new];
+  id            o = [NSObject new];
   pthread_t     tid;
   void          *value_ptr;
 
