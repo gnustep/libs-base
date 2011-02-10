@@ -104,9 +104,7 @@ GS_EXPORT NSString * const NSISO8601Calendar;
   NSString		*_localeId;
   NSMutableDictionary	*_components;
 #endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)

@@ -228,6 +228,16 @@
 
 #define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
 
+#ifdef GS_NONFRAGILE
+#  define GS_PADDING_IVAR
+#else
+#  ifdef __clang__
+#    define GS_PADDING_IVAR __attribute__((unused)) void *gs_unused;
+#  else
+#    define GS_PADDING_IVAR void *gs_unused;
+#  endif
+#endif
+
 /* Include the appropriate header for ObjC2 blocks support if it is in use.
  *
  * FIXME: "OBJC2RUNTIME" is set to "1" if the runtime has

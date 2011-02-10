@@ -40,9 +40,7 @@ extern "C" {
   NSString	*_lockPath;
   NSDate	*_lockTime;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 + (NSDistributedLock*) lockWithPath: (NSString*)aPath;

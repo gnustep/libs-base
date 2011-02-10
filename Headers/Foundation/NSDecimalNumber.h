@@ -129,9 +129,7 @@ extern "C" {
   BOOL _raiseOnUnderflow;
   BOOL _raiseOnDivideByZero;
 #endif
-#if	!GS_NONFRAGILE
-  void	*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**

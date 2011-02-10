@@ -60,9 +60,7 @@ extern "C" {
   NSMapTable	*_portMap;	/* Registered ports information.	*/
   NSMapTable	*_nameMap;	/* Registered names information.	*/
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 + (id) sharedInstance;
 - (NSPort*) portForName: (NSString*)name

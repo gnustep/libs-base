@@ -44,9 +44,7 @@ extern "C" {
   NSSet	*_names;
   NSSet	*_addresses;
 #endif
-#if	!GS_NONFRAGILE
-  void *_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**

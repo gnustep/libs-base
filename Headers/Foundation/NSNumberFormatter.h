@@ -145,9 +145,7 @@ typedef NSUInteger NSNumberFormatterRoundingMode;
   NSLocale  *_locale;
   void      *_formatter;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 // Format

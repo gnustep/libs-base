@@ -72,9 +72,7 @@ extern "C" {
   id			_gcontext;
   void                  *_runLoopInfo;  // Per-thread runloop related info.
 #endif
-#if	!GS_NONFRAGILE
-  void                  *_unused;     // For future expansion
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**

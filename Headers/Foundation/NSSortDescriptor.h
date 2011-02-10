@@ -50,9 +50,7 @@ extern "C" {
   BOOL	_ascending;
   SEL	_selector;
 #endif
-#if	!GS_NONFRAGILE
-  void	*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /** Returns a flag indicating whether the sort descriptor sorts objects

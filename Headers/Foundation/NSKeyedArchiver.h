@@ -71,9 +71,7 @@ extern "C" {
   NSMutableArray	*_obj;	/* Array of objects.		*/
   NSPropertyListFormat	_format;
 #endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**
@@ -240,9 +238,7 @@ extern "C" {
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**

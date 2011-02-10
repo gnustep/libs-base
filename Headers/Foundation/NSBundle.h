@@ -119,9 +119,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
   unsigned		_version;
   NSString      	*_frameworkVersion;
 #endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /** Return an array enumerating all the bundles in the application.  This

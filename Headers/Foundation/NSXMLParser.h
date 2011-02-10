@@ -74,9 +74,7 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
   void		*_parser;	// GSXMLParser
   void		*_handler;	// SAXHandler
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**

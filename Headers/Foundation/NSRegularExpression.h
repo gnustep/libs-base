@@ -37,6 +37,7 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
 	@private
 	GSREGEXTYPE *regex;
 	NSRegularExpressionOptions options;
+	GS_PADDING_IVAR;
 }
 + (NSRegularExpression*)regularExpressionWithPattern: (NSString*)aPattern
                                              options: (NSRegularExpressionOptions)opts

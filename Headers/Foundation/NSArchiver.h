@@ -70,9 +70,7 @@ extern "C" {
   BOOL		_encodingRoot;
   BOOL		_initialPass;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /* Initializing an archiver */
@@ -178,9 +176,7 @@ extern "C" {
   NSMutableDictionary	*objDict;	/* Class information store.	*/
   NSMutableArray	*objSave;
 #endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /* Initializing an unarchiver */
