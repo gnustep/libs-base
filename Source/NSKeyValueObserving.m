@@ -359,7 +359,7 @@ static NSString *newKey(SEL _cmd)
       u = uni_tolower(u);
       tmp = [[NSString alloc] initWithCharacters: &u length: 1];
       [m replaceCharactersInRange: NSMakeRange(0, 1) withString: tmp];
-      RELEASE(tmp);
+      [tmp release];
       key = m;
     }
   return key;
@@ -455,6 +455,7 @@ replacementForClass(Class c)
       tmp = [[NSString alloc] initWithCharacters: &u length: 1];
       a[0] = [NSString stringWithFormat: @"set%@%@:", tmp, suffix];
       a[1] = [NSString stringWithFormat: @"_set%@%@:", tmp, suffix];
+      [tmp release];
       for (i = 0; i < 2; i++)
         {
           /*

@@ -125,6 +125,7 @@ static SEL	cMemberSel = 0;
 
 #define IS_BIT_SET(a,i) ((((a) & (1<<(i)))) > 0)
 
+static NSData *whitespaceBitmap;
 static unsigned const char *whitespaceBitmapRep = NULL;
 #define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespaceBitmapRep[(X)/8], (X) % 8)
 
@@ -133,7 +134,6 @@ static void setupWhitespace(void)
   if (whitespaceBitmapRep == NULL)
     {
       NSCharacterSet *whitespace;
-      NSData *bitmap;
 
 /*
   We can not use whitespaceAndNewlineCharacterSet here as this would lead
@@ -143,8 +143,8 @@ static void setupWhitespace(void)
       whitespace = [NSCharacterSet characterSetWithCharactersInString:
 				    @" \t\r\n\f\b"];
 
-      bitmap = RETAIN([whitespace bitmapRepresentation]);
-      whitespaceBitmapRep = [bitmap bytes];
+      whitespaceBitmap = RETAIN([whitespace bitmapRepresentation]);
+      whitespaceBitmapRep = [whitespaceBitmap bytes];
     }
 }
 

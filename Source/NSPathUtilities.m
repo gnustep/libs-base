@@ -1400,8 +1400,8 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
   if (wantVal == YES)
     {
       [dict setObject: @"" forKey: key];
-      DESTROY(key);
     }
+  DESTROY(key);
   NSZoneFree(NSDefaultMallocZone(), src);
   NSZoneFree(NSDefaultMallocZone(), dst);
   return YES;

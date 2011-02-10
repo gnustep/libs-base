@@ -874,7 +874,7 @@ static int verbose = 0;
 	    NSString *filename;
 	   
 	    e = [HTMLDirectoryEnumerator alloc];
-	    e = [e initWithBasePath: pathOnDisk];
+	    e = [[e initWithBasePath: pathOnDisk] autorelease];
 	    [e setReturnsAbsolutePaths: YES];
 
 	    while ((filename = [e nextObject]) != nil)
@@ -1056,7 +1056,7 @@ build_relocation_table_for_directory (NSString *dir)
       IF_NO_GC ([relocationTable autorelease];)
 
       e = [HTMLDirectoryEnumerator alloc];
-      e = [e initWithBasePath: dir];
+      e = [[e initWithBasePath: dir] autorelease];
       /* The relocation table for a directory is relative to the
 	 directory top, so that the whole directory can be moved
 	 around without having to regenerate the .htmlink file.  */

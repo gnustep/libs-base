@@ -1,3 +1,15 @@
+2011-02-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSpellServer.m:  Avoid compiler warning.
+	* Source/NSPathUtilities.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSString.m:
+	* Source/NSNumberFormatter.m:
+	* Source/NSXMLParser.m:
+	Fix memory leaks
+
 2011-02-10 11:02  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/Additions/GNUstepBase/GSMime.h,

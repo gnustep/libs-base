@@ -669,7 +669,7 @@ static NSURLProtocol	*placeholder = nil;
 	{
 	  NSMutableURLRequest	*request;
 
-	  request = [this->request mutableCopy];
+	  request = [[this->request mutableCopy] autorelease];
 	  [request setURL: url];
 	  [this->client URLProtocol: self
 	     wasRedirectedToRequest: request
@@ -922,7 +922,7 @@ static NSURLProtocol	*placeholder = nil;
 	        {
 		  NSMutableURLRequest	*request;
 
-		  request = [this->request mutableCopy];
+		  request = [[this->request mutableCopy] autorelease];
 		  [request setURL: url];
 		  [this->client URLProtocol: self
 		     wasRedirectedToRequest: request
