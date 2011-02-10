@@ -63,8 +63,8 @@ GS_EXPORT NSString *const NSGrammarUserDescription;
   NSMutableDictionary *_userDictionaries;
   NSString *_currentLanguage;
   NSArray *_ignoredWords;
-  void *_reserved;
 #endif
+  GS_PADDING_IVAR;
 }
 
 // Checking in Your Service 
