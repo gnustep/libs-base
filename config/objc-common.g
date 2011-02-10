@@ -39,6 +39,12 @@
 }
 @end
 @implementation NSObject
++ (id)new
+{
+  NSObject *obj = calloc(sizeof(id), 1);
+  obj->isa = self;
+  return obj;
+}
 @end
 
 @interface NSConstantString : NSObject
