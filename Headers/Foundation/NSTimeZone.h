@@ -92,7 +92,7 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 - (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate;
 /** Not implemented */
 - (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate;
-/** Not implemented */
+
 - (NSTimeInterval) daylightSavingTimeOffset;
 /** Not implemented */
 - (NSDate *) nextDaylightSavingTimeTransition;
