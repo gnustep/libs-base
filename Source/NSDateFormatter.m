@@ -40,6 +40,9 @@
 #if defined(HAVE_UNICODE_UDAT_H)
 #include <unicode/udat.h>
 #endif
+#if defined(HAVE_UNICODE_UDATPG_H)
+#include <unicode/udatpg.h>
+#endif
 
 
 
@@ -880,14 +883,34 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
                               options: (NSUInteger) opts
                                locale: (NSLocale *) locale
 {
-  NSString *result;
-  NSDateFormatter *fmt = [[self alloc] init];
+#if GS_USE_ICU == 1
+  unichar pat[BUFFER_SIZE];
+  unichar skel[BUFFER_SIZE];
+  int32_t patLen;
+  int32_t skelLen;
+  UDateTimePatternGenerator *datpg;
+  UErrorCode err = U_ZERO_ERROR;
   
-  [fmt setLocale: locale];
-  result = [fmt dateFormat];
-  RELEASE(fmt);
+  datpg = udatpg_open ([[locale localeIdentifier] UTF8String], &err);
+  if (U_FAILURE(err))
+    return nil;
   
-  return result;
+  if ((patLen = [template length]) > BUFFER_SIZE)
+    patLen = BUFFER_SIZE;
+  [template getCharacters: pat range: NSMakeRange(0, patLen)];
+  
+  skelLen = udatpg_getSkeleton (datpg, pat, patLen, skel, BUFFER_SIZE, &err);
+  if (U_FAILURE(err))
+    return nil;
+  
+  patLen =
+    udatpg_getBestPattern (datpg, skel, skelLen, pat, BUFFER_SIZE, &err);
+  
+  udatpg_close (datpg);
+  return [NSString stringWithCharacters: pat length: patLen];
+#else
+  return nil;
+#endif
 }
 
 - (BOOL) doesRelativeDateFormatting

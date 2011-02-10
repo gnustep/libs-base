@@ -624,6 +624,9 @@
 /* Define to 1 if you have the <unicode/udat.h> header file. */
 #undef HAVE_UNICODE_UDAT_H
 
+/* Define to 1 if you have the <unicode/udatpg.h> header file. */
+#undef HAVE_UNICODE_UDATPG_H
+
 /* Define to 1 if you have the <unicode/uregex.h> header file. */
 #undef HAVE_UNICODE_UREGEX_H
 

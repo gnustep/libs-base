@@ -1,3 +1,11 @@
+2011-02-09  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* configure:
+	* configure.ac:
+	* Headers/Additions/GNUstepBase/config.h.in:
+	* Source/NSDateFormatter.m: ([-dateFormatFromTemplate:options:locale:])
+	Fix completely broken method using unicode/udatpg.h.
+
 2011-02-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLocale.m: Fix  canonical identifiers to return the input
