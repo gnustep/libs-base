@@ -203,9 +203,7 @@ typedef	uint32_t	OSType;
 @private
   NSString	*_lastError;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 + (NSFileManager*) defaultManager;
@@ -389,9 +387,7 @@ typedef	uint32_t	OSType;
     BOOL justContents: 1;
   } _flags;
 #endif
-#if	!GS_NONFRAGILE
-  void	*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 - (NSDictionary*) directoryAttributes;
 - (NSDictionary*) fileAttributes;

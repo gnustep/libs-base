@@ -134,9 +134,7 @@ typedef NSUInteger NSDateFormatterBehavior;
   NSDateFormatterStyle _dateStyle;
   void      *_formatter;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /* Initializing an NSDateFormatter */

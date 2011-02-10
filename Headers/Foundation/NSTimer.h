@@ -51,9 +51,7 @@ extern "C" {
   SEL		_selector;
   id		_info;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /* Creating timer objects. */

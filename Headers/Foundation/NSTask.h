@@ -54,9 +54,7 @@ extern "C" {
   BOOL		_hasCollected;
   BOOL		_hasNotified;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 + (NSTask*) launchedTaskWithLaunchPath: (NSString*)path

@@ -50,9 +50,7 @@ extern "C" {
   NSUInteger	_length;
   NSUInteger	*_indexes;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**

@@ -121,9 +121,7 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
   NSString	*_domain;
   NSDictionary	*_userInfo;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**

@@ -51,9 +51,7 @@ extern "C" {
   NSPort		*_send;
   NSMutableArray	*_components;
 #endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 /**
  * OpenStep compatibility.

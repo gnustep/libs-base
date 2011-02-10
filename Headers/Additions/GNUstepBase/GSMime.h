@@ -75,9 +75,7 @@ extern "C" {
   NSMutableDictionary   *objects;
   NSMutableDictionary	*params;
 #endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 + (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag;
 + (NSString*) makeToken: (NSString*)t preservingCase: (BOOL)preserve;

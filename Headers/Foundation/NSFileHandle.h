@@ -162,9 +162,7 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
   NSFileHandle	*_readHandle;
   NSFileHandle	*_writeHandle;
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 + (id) pipe;
 - (NSFileHandle*) fileHandleForReading;

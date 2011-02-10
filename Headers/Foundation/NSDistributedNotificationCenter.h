@@ -86,9 +86,7 @@ GS_EXPORT NSString* const GSNetworkNotificationCenterType;
   id		_remote;	/* Proxy for center.		*/
   BOOL		_suspended;	/* Is delivery suspended?	*/
 #endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 + (NSNotificationCenter*) defaultCenter;
 + (NSNotificationCenter*) notificationCenterForType: (NSString*)type;

@@ -94,9 +94,7 @@ extern "C" {
   unsigned		_version;	/* Version of archiver used.	*/
   NSZone		*_zone;		/* Zone for allocating objs.	*/
 #endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**

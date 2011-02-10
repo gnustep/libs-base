@@ -42,9 +42,7 @@ extern "C" {
   Protocol *_myProtocol;
   NSObject *_myTarget;
 #endif
-#if	!GS_NONFRAGILE
-  void	*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 // Creating a checker

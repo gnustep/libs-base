@@ -61,9 +61,7 @@ extern "C" {
   /** Total number of accesses to objects */
   int64_t _totalAccesses;
 #endif
-#if	!GS_NONFRAGILE
-  void	*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 /** 
  * Returns the maximum number of objects that are supported by this cache.

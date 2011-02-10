@@ -194,9 +194,7 @@ typedef struct autorelease_array_list
   /* The method to add an object to this pool */
   void 	(*_addImp)(id, SEL, id);
 #endif
-#if	!GS_NONFRAGILE
-  void	*_unused;
-#endif
+  GS_PADDING_IVAR;
 }
 
 /**
