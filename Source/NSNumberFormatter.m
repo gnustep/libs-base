@@ -950,7 +950,8 @@ static NSUInteger _defaultBehavior = 0;
               intPartRange.length++;
             }
         }
-      intPad = [[useFormat substringWithRange: intPartRange] mutableCopy];
+      intPad = [[[useFormat substringWithRange: intPartRange]
+	mutableCopy] autorelease];
       [intPad replaceOccurrencesOfString: defaultThousandsSeparator
         withString: @""
         options: 0

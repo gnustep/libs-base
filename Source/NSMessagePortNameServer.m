@@ -472,7 +472,9 @@ static void clean_up_names(void)
       RELEASE(a);
     }
 
-  [a addObject: [name copy]];
+  name = [name copy];
+  [a addObject: name];
+  [name release];
   [serverLock unlock];
   [dl unlock];
 

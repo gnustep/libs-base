@@ -44,6 +44,8 @@ NSString *const NSGrammarRange = @"NSGrammarRange";
 NSString *const NSGrammarUserDescription = @"NSGrammarUserDescription";
 NSString *const NSGrammarCorrections = @"NSGrammarCorrections";
 
+static NSConnection *spellServerConnection = nil;
+
 /* User dictionary location */
 static NSString *GNU_UserDictionariesDir = @"Dictionaries";
 
@@ -111,7 +113,6 @@ GSSpellServerName(NSString *vendor, NSString *language)
 		 byVendor: (NSString *)vendor
 {
   NSString *serverName = GSSpellServerName(vendor, language);
-  NSConnection *connection = nil;
   BOOL result = NO;
 
   if (serverName == nil)
@@ -119,12 +120,11 @@ GSSpellServerName(NSString *vendor, NSString *language)
       return NO;
     }
 
-  connection = [[NSConnection alloc] init];
-  if (connection)
+  spellServerConnection = [[NSConnection alloc] init];
+  if (spellServerConnection)
     {
-      IF_NO_GC(RETAIN(connection);)
-      [connection setRootObject: self];
-      result = [connection registerName: serverName];
+      [spellServerConnection setRootObject: self];
+      result = [spellServerConnection registerName: serverName];
     }
 
   return result;

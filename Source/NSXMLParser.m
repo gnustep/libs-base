@@ -759,7 +759,8 @@ static SEL	foundIgnorableSel;
 	      NSString	*tmp;
 
 	      tmp = [[NSString alloc] initWithData: data encoding: enc];
-	      data = [[tmp dataUsingEncoding: NSUTF8StringEncoding] retain];
+	      this->data
+		= [[tmp dataUsingEncoding: NSUTF8StringEncoding] retain];
 	      [tmp release];
 	    }
 	  this->tagPath = [[NSMutableArray alloc] init];
@@ -1821,6 +1822,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       c = cget();
                       if (c != '>')
                         {
+			  [attributes release];
                           return [self _parseError: @"<tag/ is missing the >"
 			    code: NSXMLParserGTRequiredError];
                         }
