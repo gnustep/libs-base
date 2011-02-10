@@ -380,13 +380,13 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 - (void) handleFailureInFunction: (NSString*)functionName 
 			    file: (NSString*)fileName 
 		      lineNumber: (NSInteger)line 
-		     description: (NSString*)format,...;
+		     description: (NSString*)format,... GS_NORETURN_METHOD;
 
 - (void) handleFailureInMethod: (SEL)aSelector 
 			object: object 
 			  file: (NSString*)fileName 
 		    lineNumber: (NSInteger)line 
-		   description: (NSString*)format,...;
+		   description: (NSString*)format,... GS_NORETURN_METHOD;
 
 @end
 extern NSString *const NSAssertionHandlerKey;
