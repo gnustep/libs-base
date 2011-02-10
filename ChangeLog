@@ -1,3 +1,52 @@
+2011-02-10 11:02  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Additions/GNUstepBase/GSMime.h,
+	  libs/base/trunk/Headers/Additions/GNUstepBase/GSVersionMacros.h,
+	  libs/base/trunk/Headers/Foundation/NSArchiver.h,
+	  libs/base/trunk/Headers/Foundation/NSAutoreleasePool.h,
+	  libs/base/trunk/Headers/Foundation/NSBundle.h,
+	  libs/base/trunk/Headers/Foundation/NSCache.h,
+	  libs/base/trunk/Headers/Foundation/NSComparisonPredicate.h,
+	  libs/base/trunk/Headers/Foundation/NSDateFormatter.h,
+	  libs/base/trunk/Headers/Foundation/NSDecimalNumber.h,
+	  libs/base/trunk/Headers/Foundation/NSDistributedLock.h,
+	  libs/base/trunk/Headers/Foundation/NSDistributedNotificationCenter.h,
+	  libs/base/trunk/Headers/Foundation/NSError.h,
+	  libs/base/trunk/Headers/Foundation/NSFileHandle.h,
+	  libs/base/trunk/Headers/Foundation/NSFileManager.h,
+	  libs/base/trunk/Headers/Foundation/NSHost.h,
+	  libs/base/trunk/Headers/Foundation/NSIndexPath.h,
+	  libs/base/trunk/Headers/Foundation/NSInvocation.h,
+	  libs/base/trunk/Headers/Foundation/NSKeyedArchiver.h,
+	  libs/base/trunk/Headers/Foundation/NSLocale.h,
+	  libs/base/trunk/Headers/Foundation/NSNumberFormatter.h,
+	  libs/base/trunk/Headers/Foundation/NSPort.h,
+	  libs/base/trunk/Headers/Foundation/NSPortCoder.h,
+	  libs/base/trunk/Headers/Foundation/NSPortMessage.h,
+	  libs/base/trunk/Headers/Foundation/NSPortNameServer.h,
+	  libs/base/trunk/Headers/Foundation/NSProtocolChecker.h,
+	  libs/base/trunk/Headers/Foundation/NSRegularExpression.h,
+	  libs/base/trunk/Headers/Foundation/NSScanner.h,
+	  libs/base/trunk/Headers/Foundation/NSSortDescriptor.h,
+	  libs/base/trunk/Headers/Foundation/NSTask.h,
+	  libs/base/trunk/Headers/Foundation/NSThread.h,
+	  libs/base/trunk/Headers/Foundation/NSTimer.h,
+	  libs/base/trunk/Headers/Foundation/NSUndoManager.h,
+	  libs/base/trunk/Headers/Foundation/NSUserDefaults.h,
+	  libs/base/trunk/Headers/Foundation/NSXMLNode.h,
+	  libs/base/trunk/Headers/Foundation/NSXMLParser.h: Add a
+	  GS_PADDING_IVAR macro. This defines the void *gs_unused; instance
+	  variable with __attribute__((unused)) on clang so that the static
+	  analyser only reports unused ivars that we expect to be used.
+	  This also makes it slightly easier to add the padding ivar to new
+	  classes.
+	  
+	  Note: The padding ivar has been added to NSRegularExpression.
+	  This will break the ABI for anyone subclassing
+	  NSRegularExpression, but hopefully that's no one (done before the
+	  next release, to make sure that we don't break the ABI between
+	  releases, only for people following -trunk).
+
 2011-02-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m:
