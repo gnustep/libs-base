@@ -1150,8 +1150,9 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 	    }
           else
 	    {
-	      dict = [obj mutableCopy];
+	      dict = obj = [obj mutableCopy];
 	      [_persDomains setObject: dict forKey: processName];
+	      [obj release];
 	    }
           [dict removeObjectForKey: defaultName];
           [self __changePersistentDomain: processName];
@@ -1575,6 +1576,7 @@ static BOOL isLocked = NO;
 	    {
 	      NSLog(@"Failed to lock user defaults database even after "
 		@"breaking old locks!");
+	      RELEASE(arp);
 	      return NO;
 	    }
 
@@ -1901,7 +1903,7 @@ NSLog(@"Creating empty user defaults database");
 
 - (NSDictionary*) dictionaryRepresentation
 {
-  NSDictionary	*rep = nil;
+  NSDictionary	*rep;
 
   [_lock lock];
   NS_DURING
@@ -1937,16 +1939,17 @@ NSLog(@"Creating empty user defaults database");
 	    }
           _dictionaryRep = [dictRep makeImmutableCopyOnFail: NO];
         }
-      rep = RETAIN(_dictionaryRep);
+      rep = [[_dictionaryRep retain] autorelease];
       [_lock unlock];
     }
   NS_HANDLER
     {
+      rep = nil;
       [_lock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  return AUTORELEASE(rep);
+  return rep;
 }
 
 - (void) registerDefaults: (NSDictionary*)newVals

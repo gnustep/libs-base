@@ -968,7 +968,7 @@ callUncaughtHandler(id value)
 
   thread = GSCurrentThread();
   handler = thread->_exception_handler;
-  if (handler == NULL)
+  if (NULL == handler)
     {
       static	int	recursion = 0;
 
@@ -991,10 +991,12 @@ callUncaughtHandler(id value)
        */
       callUncaughtHandler(self);
     }
-
-  thread->_exception_handler = handler->next;
-  handler->exception = self;
-  longjmp(handler->jumpState, 1);
+  else
+    {
+      thread->_exception_handler = handler->next;
+      handler->exception = self;
+      longjmp(handler->jumpState, 1);
+    }
 }
 #endif
 }

@@ -2174,7 +2174,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (NSString*) socketLocalAddress
 {
   NSString	*str = nil;
-  struct sockaddr_in sin;
+  struct sockaddr_in sin = { 0 };
   unsigned	size = sizeof(sin);
 
   if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == -1)
@@ -2191,7 +2191,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (NSString*) socketLocalService
 {
   NSString	*str = nil;
-  struct sockaddr_in sin;
+  struct sockaddr_in sin = { 0 };
   unsigned	size = sizeof(sin);
 
   if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == -1)

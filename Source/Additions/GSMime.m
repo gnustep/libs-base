@@ -4175,6 +4175,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	@"/?="]];
       [m removeCharactersInString: @"."];
       rfc2045Specials = [m copy];
+      [m release];
       whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
       if (NSArrayClass == 0)
 	{

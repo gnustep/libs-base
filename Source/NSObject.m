@@ -65,6 +65,7 @@
 #include <fenv.h>
 #endif
 
+#define	IN_NSOBJECT_M	1
 #import "GSPrivate.h"
 
 
@@ -944,6 +945,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       }
 #  endif
 #endif
+
+      /* Cleanup cached information on exit.
+       */
+      atexit(GSBaseCacheCleanup);
 
 #ifdef HAVE_LOCALE_H
       GSSetLocaleC(LC_ALL, "");		// Set up locale from environment.
@@ -2312,3 +2317,4 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   return [object methodSignatureForSelector: aSelector];
 }
 @end
+

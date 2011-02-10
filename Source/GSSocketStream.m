@@ -1327,7 +1327,7 @@ setNonBlocking(SOCKET fd)
         {
           case AF_INET:
             {
-              struct sockaddr_in sin;
+              struct sockaddr_in sin = { 0 };
               socklen_t	        size = sizeof(sin);
 
               if ([key isEqualToString: GSStreamLocalAddressKey])
@@ -1367,7 +1367,7 @@ setNonBlocking(SOCKET fd)
 #if	defined(AF_INET6)
           case AF_INET6:
             {
-              struct sockaddr_in6 sin;
+              struct sockaddr_in6 sin = { 0 };
               socklen_t	        size = sizeof(sin);
 
               if ([key isEqualToString: GSStreamLocalAddressKey])

@@ -1,6 +1,29 @@
+2011-02-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m:
+	* Source/NSPropertyList.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSException.m:
+	* Source/NSURL.m:
+	* Source/NSDecimalNumber.m:
+	* Source/Additions/GSMime.m:
+	* Source/GSFileHandle.m:
+	* Source/NSNumberFormatter.m:
+	* Tools/gdomap.c:
+	* Tools/HTMLLinker.m:
+	Fix a couple of minor/theoretical memory leaks and make other code
+	alterations to try to avoid clang static analyser reporting some
+	issues.
+	* Source/GSPrivate.h:
+	* Source/NSObject.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	New code to provide a single location to cache information which
+	should exist for the lifetime of the process, and a function to
+	clean it up on process exit.  Just a placeholder so far.
+
 2011-02-09  Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* Source/NSTimeZone.m: ([-daylightSavingTimeOffsetForDate:]) Implemented.
+	* Source/NSTimeZone.m: ([-daylightSavingTimeOffsetForDate:]) Implement.
 
 2011-02-09  Stefan Bidigaray <stefanbidi@gmail.com>
 
