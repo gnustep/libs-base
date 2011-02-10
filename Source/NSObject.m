@@ -964,7 +964,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       // Zombie management stuff.
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
-      zombieClass = [NSZombie class];
+      zombieClass = NSClassFromString(@"NSZombie");
       NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
       NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
 
