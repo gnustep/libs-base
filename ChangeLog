@@ -1,5 +1,9 @@
 2011-02-09  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/NSTimeZone.m: ([-localizedName:locale:]) Implemented method.
+
+2011-02-09  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* configure:
 	* configure.ac:
 	* Headers/Additions/GNUstepBase/config.h.in:
