@@ -1,3 +1,9 @@
+2011-02-10 18:54  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/config/config.joinable.m,
+	  libs/base/trunk/config/objc-common.g: Don't use Object in
+	  configure tests (not present in GNUstep runtime).
+
 2011-02-10 18:53  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSObject.m: Use NSClassFromString() to
