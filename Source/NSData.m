@@ -2526,7 +2526,7 @@ failure:
 		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
 {
-  if (bytes == 0 && length > 0)
+  if (aBuffer == 0 && bufferSize > 0)
     {
       [NSException raise: NSInvalidArgumentException
 	format: @"[%@-initWithBytesNoCopy:length:freeWhenDone:] called with "
