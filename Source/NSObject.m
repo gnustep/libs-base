@@ -1119,7 +1119,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (Class) class
 {
-  return object_getClass(self);
+  id cls = object_getClass(self);
+  if (class_isMetaClass(cls))
+    return (Class)self;
+  return cls;
 }
 
 /**
