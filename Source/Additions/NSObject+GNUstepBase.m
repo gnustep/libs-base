@@ -121,3 +121,9 @@
 }
 
 @end
+
+/* See ../GSPrivate.h for details.
+ */
+#import	"GSPrivate.h"
+BaseCacheStruct GSBaseCache = { };
+

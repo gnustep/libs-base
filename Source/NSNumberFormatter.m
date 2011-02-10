@@ -968,13 +968,13 @@ static NSUInteger _defaultBehavior = 0;
           [intPartString insertString:
             [intPad substringWithRange: ipRange] atIndex: 0];
           [intPartString replaceOccurrencesOfString: @"_"
-      withString: @" "
-      options: 0
-      range: NSMakeRange(0, [intPartString length])];
+	    withString: @" "
+	    options: 0
+	    range: NSMakeRange(0, [intPartString length])];
           [intPartString replaceOccurrencesOfString: @"#"
-      withString: @"0"
-      options: 0
-      range: NSMakeRange(0, [intPartString length])];
+	    withString: @"0"
+	    options: 0
+	    range: NSMakeRange(0, [intPartString length])];
         }
       // fix the thousands separators up
       if (displayThousandsSeparators && [intPartString length] > 3)
@@ -982,9 +982,10 @@ static NSUInteger _defaultBehavior = 0;
           int index = [intPartString length];
 
           while (0 < (index -= 3))
-      {
-        [intPartString insertString: [self thousandSeparator] atIndex: index];
-      }
+	    {
+	      [intPartString insertString: [self thousandSeparator]
+				  atIndex: index];
+	    }
         }
 
       formattedNumber = [intPartString mutableCopy];
@@ -994,37 +995,37 @@ static NSUInteger _defaultBehavior = 0;
         {
           if (0 != decimalPlaces)
             {
-        NSMutableString	*ms;
+	      NSMutableString	*ms;
 
               fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
-          decimalPlaces];
+		decimalPlaces];
               ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
               [ms replaceOccurrencesOfString: @"0"
-          withString: @""
-          options: (NSBackwardsSearch | NSAnchoredSearch)
-          range: NSMakeRange(0, [ms length])];
+		withString: @""
+		options: (NSBackwardsSearch | NSAnchoredSearch)
+		range: NSMakeRange(0, [ms length])];
               if ([fracPad length] > [ms length])
                 {
                   NSRange fpRange;
 
                   fpRange = NSMakeRange([ms length],
-              ([fracPad length] - [ms length]));
+		    ([fracPad length] - [ms length]));
                   [ms appendString:
-        [fracPad substringWithRange: fpRange]];
+		    [fracPad substringWithRange: fpRange]];
                   [ms replaceOccurrencesOfString: @"#"
-        withString: @""
-        options: (NSBackwardsSearch | NSAnchoredSearch)
-        range: NSMakeRange(0, [ms length])];
+		    withString: @""
+		    options: (NSBackwardsSearch | NSAnchoredSearch)
+		    range: NSMakeRange(0, [ms length])];
                   [ms replaceOccurrencesOfString: @"#"
-        withString: @"0"
-        options: 0
-        range: NSMakeRange(0, [ms length])];
+		    withString: @"0"
+		    options: 0
+		    range: NSMakeRange(0, [ms length])];
                   [ms replaceOccurrencesOfString: @"_"
-        withString: @" "
-        options: 0
-        range: NSMakeRange(0, [ms length])];
+		    withString: @" "
+		    options: 0
+		    range: NSMakeRange(0, [ms length])];
                 }
-        fracPartString = AUTORELEASE(ms);
+	      fracPartString = AUTORELEASE(ms);
             }
           else
             {

@@ -523,5 +523,32 @@ GSPrivateIsCollectable(const void *ptr) GS_ATTRIB_PRIVATE;
 NSZone*
 GSAtomicMallocZone (void);
 
+/* NB ... this is a placeholder for future cleanups of the code!
+ *
+ * GSBaseCache is a structure in which base library classes may cache private
+ * information expected to be present for the lifetime of the process.
+ *
+ * The NSObject class registers the BSBaseCacheCleanup() function to be called
+ * to clean it up on process termination, but we actually keep the cleanup
+ * code here so we can easily update it in sync with the structure definition.
+ *
+ * This structure is actually implemented in Additions/NSObject+GNUstepBase.m
+ * so that it can be accessed from the base-additions library as well as the
+ * base library.
+ */
+typedef struct {
+  // Add fields to hold cached values here
+} BaseCacheStruct;
+BaseCacheStruct GSBaseCache GS_ATTRIB_PRIVATE;
+
+#if	defined(IN_NSOBJECT_M)
+static void
+GSBaseCacheCleanup(void)
+{
+  // Add code to clean up cached values here
+  return;
+}
+#endif
+
 #endif /* _GSPrivate_h_ */
 

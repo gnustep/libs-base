@@ -165,9 +165,11 @@ static NSDecimalNumber *one;
 
 + (void) initialize
 {
-  NSDecimal d;
+  /* Initialize d to an empty structure to avoid compiler warnings.
+   * This also sets d.validNumber to NO ... which is what is actually needed.
+   */
+  NSDecimal d = { 0 };
 
-  d.validNumber = NO;
   notANumber = [[self alloc] initWithDecimal: d];
   NSDecimalMax(&d);
   maxNumber = [[self alloc] initWithDecimal: d];

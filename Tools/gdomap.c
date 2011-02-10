@@ -2065,7 +2065,7 @@ init_probe()
     {
       int		broadcast = 0;
       int		elen = 0;
-      struct in_addr	*other;
+      struct in_addr	*other = 0;
       struct in_addr	sin;
       int		high = 0;
       int		low = 0;

@@ -162,6 +162,7 @@ static char *unescape(const char *from, char * to);
  */
 static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 {
+  const char	*rpath;
   char		*buf;
   char		*ptr;
   char		*tmp;
@@ -189,8 +190,13 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
     }
   if (rel->path != 0)
     {
-      len += strlen(rel->path) + 1;	// path
+      rpath = rel->path;
     }
+  else
+    {
+      rpath = "";
+    }
+  len += strlen(rpath) + 1;	// path
   if (base != 0 && base->path != 0)
     {
       len += strlen(base->path) + 1;	// path
@@ -267,13 +273,13 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	{
 	  *tmp++ = '/';
 	}
-      strcpy(tmp, rel->path);
+      strcpy(tmp, rpath);
     }
   else if (base == 0)
     {
-      strcpy(tmp, rel->path);
+      strcpy(tmp, rpath);
     }
-  else if (rel->path[0] == 0)
+  else if (rpath[0] == 0)
     {
       if (base->hasNoPath == NO)
 	{
@@ -293,7 +299,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	  tmp += (end - start);
 	}
       *tmp++ = '/';
-      strcpy(tmp, rel->path);
+      strcpy(tmp, rpath);
     }
 
   if (standardize == YES)
@@ -394,7 +400,6 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
     {
       *ptr++ = '#';
       strcpy(ptr, rel->fragment);
-      ptr = &ptr[strlen(ptr)];
     }
 
   return buf;

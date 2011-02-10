@@ -1307,8 +1307,8 @@ int main (int argc, char** argv, char** env)
 		  HTMLDirectoryEnumerator *e;
 		  NSString *filename;
 		  
-		  e = [HTMLDirectoryEnumerator alloc];
-		  e = [e initWithBasePath: arg];
+		  e = [[[HTMLDirectoryEnumerator alloc]
+		    initWithBasePath: arg] autorelease];
 		  [e setReturnsAbsolutePaths: YES];
 		  
 		  while ((filename = [e nextObject]) != nil)
