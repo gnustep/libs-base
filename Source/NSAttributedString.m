@@ -460,7 +460,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   NSRange	tmpRange;
   IMP		getImp;
 
-  if (rangeLimit.location < 0 || NSMaxRange(rangeLimit) > [self length])
+  if (NSMaxRange(rangeLimit) > [self length])
     {
       [NSException raise: NSRangeException
 		  format: @"RangeError in method -attributesAtIndex:longestEffectiveRange:inRange: in class NSAttributedString"];
@@ -548,7 +548,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   BOOL		(*eImp)(id,SEL,id);
   IMP		getImp;
 
-  if (rangeLimit.location < 0 || NSMaxRange(rangeLimit) > [self length])
+  if (NSMaxRange(rangeLimit) > [self length])
     {
       [NSException raise: NSRangeException
 		  format: @"RangeError in method -attribute:atIndex:longestEffectiveRange:inRange: in class NSAttributedString"];

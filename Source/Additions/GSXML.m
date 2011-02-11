@@ -122,7 +122,7 @@ inline static NSString*
 UTF8Str(const unsigned char *bytes)
 {
   // stringWithUTF8String: raises on OSX if you feed it with a NULL string.
-  if ((bytes == NULL)) {
+  if (NULL == bytes) {
     return nil;
   }
   return (*usImp)(NSString_class, usSel, bytes);
