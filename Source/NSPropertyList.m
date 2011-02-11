@@ -2159,7 +2159,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    {
 	      stride = stride * STRIDE_FACTOR + 1;
 	    }
-	  lastClass = 0;
+	  lastClass = object_getClass(keys[d + stride]);
+	  comp = (NSComparisonResult (*)(id, SEL, id))
+	    [keys[d + stride] methodForSelector: @selector(compare:)];
 	  while (stride > (STRIDE_FACTOR - 1))
 	    {
 	      // loop to sort for each value of stride
