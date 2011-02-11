@@ -172,7 +172,7 @@
       [_accesses addObject: newObject];
     }
   [_objects setObject: newObject forKey: key];
-  RELEASE(obj);
+  RELEASE(newObject);
   _totalCost += num;
 }
 
