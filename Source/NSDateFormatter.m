@@ -84,11 +84,6 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (id) init
 {
-  int length;
-  unichar buffer[BUFFER_SIZE];
-  unichar *value = buffer;
-  NSInteger err;
-  
   self = [super init];
   if (self == nil)
     return nil;
@@ -102,20 +97,29 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 /* According to Apple docs, default behavior is NSDateFormatterBehavior10_4 on
    10.5 and later. Yeah, go figure. */
 #if GS_USE_ICU == 1
-  err = U_ZERO_ERROR;
-  
-  length =
-    udat_toPattern (_formatter, 0, value, BUFFER_SIZE, &err);
-  if (length > BUFFER_SIZE)
-    {
-      value = NSZoneMalloc ([self zone], sizeof(unichar) * length);
-      udat_toPattern (_formatter, 0, value, length, &err);
-    }
-  
-  _dateFormat = [[NSString alloc] initWithCharacters: value length: length];
-  
-  if (length > BUFFER_SIZE)
-    NSZoneFree ([self zone], value);
+  {
+    int length;
+    unichar *value;
+    NSZone *z = [self zone];
+    UErrorCode err = U_ZERO_ERROR;
+    
+    length = udat_toPattern (_formatter, 0, NULL, 0, &err);
+    value = NSZoneMalloc (z, sizeof(unichar) * length);
+    err = U_ZERO_ERROR;
+    udat_toPattern (_formatter, 0, value, length, &err);
+    if (U_SUCCESS(err))
+      {
+        _dateFormat = [[NSString allocWithZone: z]
+          initWithBytesNoCopy: value
+          length: length * sizeof(unichar)
+          encoding: NSUnicodeStringEncoding
+          freeWhenDone: YES];
+      }
+    else
+      {
+        NSZoneFree (z, value);
+      }
+  }
 #endif
   
   return self;
@@ -325,37 +329,27 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #if GS_USE_ICU == 1
   NSString *result;
   int32_t length;
-  unichar buffer[BUFFER_SIZE];
-  unichar *string = buffer;
+  unichar *string;
+  NSZone *z = [self zone];
+  UDate udate = [date timeIntervalSince1970] * 1000.0;
   UErrorCode err = U_ZERO_ERROR;
   
-  length = udat_format (_formatter,
-                        [date timeIntervalSince1970] * 1000.0,
-                        string,
-                        BUFFER_SIZE,
-                        NULL,
-                        &err);
-  if (U_FAILURE(err))
-    return nil;
-  if (length > BUFFER_SIZE)
+  length = udat_format (_formatter, udate, NULL, 0, NULL, &err);
+  string = NSZoneMalloc (z, sizeof(UChar) * (length + 1));
+  err = U_ZERO_ERROR;
+  udat_format (_formatter, udate, string, length, NULL, &err);
+  if (U_SUCCESS(err))
     {
-      string = NSZoneMalloc ([self zone], sizeof(UChar) * length);
-      udat_format (_formatter,
-                   [date timeIntervalSince1970] * 1000.0,
-                   string,
-                   length,
-                   NULL,
-                   &err);
-      if (U_FAILURE(err))
-        return nil;
+      result = AUTORELEASE([[NSString allocWithZone: z]
+        initWithBytesNoCopy: string
+        length: length * sizeof(UChar)
+        encoding: NSUnicodeStringEncoding
+        freeWhenDone: YES]);
+      return result;
     }
   
-  result = [NSString stringWithCharacters: string length: length];
-  
-  if (length > BUFFER_SIZE)
-    NSZoneFree ([self zone], string);
-  
-  return result;
+  NSZoneFree (z, string);
+  return nil;
 #else
   return nil;
 #endif
@@ -998,22 +992,28 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   while (idx < count)
     {
       int length;
-      unichar buffer[BUFFER_SIZE];
-      unichar *value = buffer;
-      UErrorCode err = U_ZERO_ERROR;
+      unichar *value;
+      NSString *str;
+      NSZone *z = [self zone];
+      UErrorCode err = U_ERROR_LIMIT;
       
-      length =
-        udat_getSymbols (_formatter, symbol, idx, value, BUFFER_SIZE, &err);
-      if (length > BUFFER_SIZE)
+      length = udat_getSymbols (_formatter, symbol, idx, NULL, 0, &err);
+      value = NSZoneMalloc (z, sizeof(unichar) * (length + 1));
+      err = U_ZERO_ERROR;
+      udat_getSymbols (_formatter, symbol, idx, value, length, &err);
+      if (U_SUCCESS(err))
         {
-          value = NSZoneMalloc ([self zone], sizeof(unichar) * length);
-          udat_getSymbols (_formatter, symbol, idx, value, length, &err);
+          str = AUTORELEASE([[NSString allocWithZone: z]
+            initWithBytesNoCopy: value
+            length: length * sizeof(unichar)
+            encoding: NSUnicodeStringEncoding
+            freeWhenDone: YES]);
+          [mArray addObject: str];
         }
-      
-      [mArray addObject: [NSString stringWithCharacters: value length: length]];
-      
-      if (length > BUFFER_SIZE)
-        NSZoneFree ([self zone], value);
+      else
+        {
+          NSZoneFree (z, value);
+        }
       
       ++idx;
     }
