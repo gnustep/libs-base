@@ -924,7 +924,7 @@ static SEL	rlSel;
       i = [indexes indexGreaterThanIndex: i];
     }
 
-  return [group copy];
+  return [group makeImmutableCopyOnFail: NO];
 }
 
 - (BOOL) isEqual: (id)anObject
