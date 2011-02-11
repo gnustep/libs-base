@@ -3068,7 +3068,7 @@ static NSCharacterSet	*tokenSet = nil;
 
   r = [v rangeOfCharacterFromSet: nonToken
 			 options: NSLiteralSearch
-			   range: NSMakeRange(pos, l - pos)];
+			   range: NSMakeRange(0, l)];
   if (flag == YES || r.length > 0)
     {
       NSMutableString	*m = [NSMutableString new];
