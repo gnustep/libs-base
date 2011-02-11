@@ -261,6 +261,7 @@
 	      [self removeObjectForKey: key];
 	    }
 	}
+    [evictedKeys release];
     }
 }
 
