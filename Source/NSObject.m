@@ -127,15 +127,22 @@ BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
 
 @class	NSZombie;
-static Class		zombieClass;
-static NSMapTable	*zombieMap;
+static NSMapTable	*zombieMap = 0;
 
 #if	!GS_WITH_GC
 static void GSMakeZombie(NSObject *o)
 {
-  Class	c = ((id)o)->class_pointer;
+  static Class	zombieClass = Nil;
+  Class		c;
 
-  ((id)o)->class_pointer = zombieClass;
+  if (nil == zombieClass)
+    {
+      zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+      zombieClass = [NSZombie class];
+    }
+  c = object_getClass(o);
+  object_setClass(o, zombieClass);
   if (NSDeallocateZombies == NO)
     {
       [allocationLock lock];
@@ -961,18 +968,19 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       GSObjCBehaviorDebug(GSPrivateEnvironmentFlag("GNUSTEP_BEHAVIOR_DEBUG",
 	GSObjCBehaviorDebug(-1)));
 
-      // Zombie management stuff.
-      zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-      zombieClass = NSClassFromString(@"NSZombie");
+      // Zombie management flags.
       NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
       NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
 
+      // Set up the autorelease system
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
+
+      // Make sure the constant string class works.
       NSConstantStringClass = [NSString constantStringClass];
       GSPrivateBuildStrings();
+
       [[NSNotificationCenter defaultCenter]
 	addObserver: self
 	   selector: @selector(_becomeMultiThreaded:)

@@ -1,6 +1,5 @@
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSUserDefaults.m:
 	* Source/NSArray.m:
 	* Source/NSString.m:
 	* Source/NSPointerArray.m:
@@ -8,6 +7,8 @@
 	Tweaks to try to avoid clang analyser warnings.
 	* Source/NSPropertyList.m:
 	Revert last change.
+	* Source/NSObject.m:
+	Rewrite zombie setup code to avoid crashes caused by latest change.
 
 2011-02-11  Stefan Bidigaray <stefanbidi@gmail.com>
 
