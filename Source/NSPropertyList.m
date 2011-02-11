@@ -2160,7 +2160,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  #define STRIDE_FACTOR 3
 	  unsigned	c,d, stride;
 	  BOOL		found;
-	  NSComparisonResult	(*comp)(id, SEL, id);
+	  NSComparisonResult	(*comp)(id, SEL, id) = 0;
 	  unsigned int	count = numKeys;
 	  #ifdef	GSWARN
 	  BOOL		badComparison = NO;
@@ -2171,15 +2171,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    {
 	      stride = stride * STRIDE_FACTOR + 1;
 	    }
-
-	  /* Initialise lastClass and comparison method to those of the
-	   * first object to be sorted ... this is done here to avoid
-	   * bogus compiler warnings.
-	   */
-	  lastClass = object_getClass(keys[0]);
-	  comp = (NSComparisonResult (*)(id, SEL, id))
-	    [keys[0] methodForSelector: @selector(compare:)];
-
+	  lastClass = 0;
 	  while (stride > (STRIDE_FACTOR - 1))
 	    {
 	      // loop to sort for each value of stride
