@@ -570,8 +570,8 @@ static NSOperationQueue *mainQueue = nil;
   if (total > 0)
     {
       BOOL		invalidArg = NO;
-      GS_BEGINITEMBUF(buf, total, id)
       NSUInteger	toAdd = total;
+      GS_BEGINITEMBUF(buf, total, id)
 
       [ops getObjects: buf];
       for (index = 0; index < total; index++)

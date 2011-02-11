@@ -1464,22 +1464,13 @@ PString(NSString *obj, NSMutableData *output)
   else if ([obj rangeOfCharacterFromSet: oldQuotables].length > 0
     || [obj characterAtIndex: 0] == '/')
     {
-      unichar		tmp[length <= 1024 ? length : 0];
-      unichar		*ustring;
       unichar		*from;
       unichar		*end;
       unsigned char	*ptr;
       int		base = [output length];
       int		len = 0;
+      GS_BEGINITEMBUF(ustring, (length * sizeof(unichar)), unichar)
 
-      if (length <= 1024)
-	{
-	  ustring = tmp;
-	}
-      else
-	{
-	  ustring = NSAllocateCollectable(sizeof(unichar) * length, 0);
-	}
       end = &ustring[length];
       [obj getCharacters: ustring];
       for (from = ustring; from < end; from++)
@@ -1581,10 +1572,7 @@ PString(NSString *obj, NSMutableData *output)
 	}
       *ptr++ = '"';
 
-      if (ustring != tmp)
-	{
-	  NSZoneFree(NSDefaultMallocZone(), ustring);
-	}
+      GS_ENDITEMBUF();
     }
   else
     {
