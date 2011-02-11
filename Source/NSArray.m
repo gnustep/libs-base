@@ -1692,7 +1692,7 @@ compare(id elem1, id elem2, void* context)
 	return set;
       }
     count++;
-  END_FOR_IN(self)
+  END_FOR_IN(enumerator)
   return set;
 }
 
@@ -1735,7 +1735,7 @@ compare(id elem1, id elem2, void* context)
 	return NSNotFound;
       }
     count++;
-  END_FOR_IN(self)
+  END_FOR_IN(enumerator)
   return NSNotFound;
 }
 
