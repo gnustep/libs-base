@@ -2693,6 +2693,7 @@ if test $enable_icu = yes; then
     AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unum.h unicode/udat.h unicode/udatpg.h)
     LIBS="$LIBS $ICU_LIBS"
     LDFLAGS="$LDFLAGS $ICU_LDFLAGS"
+    LDIR_FLAGS="$LDIR_FLAGS $ICU_LDFLAGS"
     HAVE_ICU=1
   else
     AC_MSG_RESULT(no)
