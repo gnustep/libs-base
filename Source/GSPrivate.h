@@ -93,21 +93,41 @@ typedef struct objc_category* Category;
  * arrays are allocated on the stack (for speed), but large arrays are
  * allocated from the heap (to avoid stack overflow).
  */
-#define	GS_BEGINITEMBUF(P, S, T) { \
+#if __GNUC__ > 3
+__attribute__((unused)) static void GSFreeTempBuffer(void **b)
+{
+	if (NULL != *b) free(*b);
+}
+#  define	GS_BEGINITEMBUF(P, S, T) { \
+	T _ibuf[GS_MAX_OBJECTS_FROM_STACK];\
+	T *P = _ibuf;\
+	__attribute__((cleanup(GSFreeTempBuffer))) void *_base = 0;\
+	if (S > GS_MAX_OBJECTS_FROM_STACK)\
+	{\
+		_base = malloc(S);\
+		P = _base;\
+	}
+#else
+#  define	GS_BEGINITEMBUF(P, S, T) { \
   T _ibuf[(S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 0]; \
   T *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
     : (T*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(T)); \
   T *(P) = _base;
+#endif
 
 /**
  * Macro to manage memory for chunks of code that need to work with
  * arrays of items.  Use GS_BEGINITEMBUF() to start the block of code using
  * the array and this macro to end it.
  */
-#define	GS_ENDITEMBUF() \
+#if __GNUC__ > 3
+# define	GS_ENDITEMBUF() }
+#else
+#  define	GS_ENDITEMBUF() \
   if (_base != _ibuf) \
     NSZoneFree(NSDefaultMallocZone(), _base); \
   }
+#endif
 
 /**
  * Macro to manage memory for chunks of code that need to work with
