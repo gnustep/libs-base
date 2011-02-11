@@ -74,7 +74,7 @@ extern "C" {
  * (but cannot due to compiler constraint), and wants to make sure it is not
  * called by mistake.  Default implementation raises an exception at runtime.
  */
-- (id) notImplemented: (SEL)aSel;
+- (id) notImplemented: (SEL)aSel GS_NORETURN_METHOD;
 
 /**
  * Message sent when an implementation wants to explicitly require a subclass
@@ -83,7 +83,7 @@ extern "C" {
  * raises an exception at runtime to alert developer that he/she forgot to
  * override a method.
  */
-- (id) subclassResponsibility: (SEL)aSel;
+- (id) subclassResponsibility: (SEL)aSel GS_NORETURN_METHOD;
 
 /**
  * Message sent when an implementation wants to explicitly exclude a method
@@ -92,7 +92,7 @@ extern "C" {
  * subclass <em>does</em> implement this method, however, the superclass's
  * implementation will not be called, so this is not a perfect mechanism.
  */
-- (id) shouldNotImplement: (SEL)aSel;
+- (id) shouldNotImplement: (SEL)aSel GS_NORETURN_METHOD;
 
 @end
 
