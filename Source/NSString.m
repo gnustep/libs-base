@@ -1781,13 +1781,13 @@ handle_printf_atsign (FILE *stream,
 {
   id copy;
 
-  copy = [[GSMutableStringClass allocWithZone: NSDefaultMallocZone()]
-    initWithString: self];
+  copy = [[[GSMutableStringClass allocWithZone: NSDefaultMallocZone()]
+    initWithString: self] autorelease];
   [copy replaceOccurrencesOfString: replace
                         withString: by
                            options: opts
                              range: searchRange];
-  return [[copy makeImmutableCopyOnFail: NO] autorelease];
+  return [copy makeImmutableCopyOnFail: NO];
 }
 
 - (NSString*) stringByReplacingOccurrencesOfString: (NSString*)replace
@@ -1809,10 +1809,10 @@ handle_printf_atsign (FILE *stream,
 {
   id	copy;
 
-  copy = [[GSMutableStringClass allocWithZone: NSDefaultMallocZone()]
-    initWithString: self];
+  copy = [[[GSMutableStringClass allocWithZone: NSDefaultMallocZone()]
+    initWithString: self] autorelease];
   [copy replaceCharactersInRange: aRange withString: by];
-  return [[copy makeImmutableCopyOnFail: NO] autorelease];
+  return [copy makeImmutableCopyOnFail: NO];
 }
 
 /**

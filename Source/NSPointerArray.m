@@ -261,8 +261,7 @@ static Class	concreteClass = Nil;
 	      [a addObject: (id)_contents[i]];
 	    }
 	}
-      [a makeImmutableCopyOnFail: NO]; 
-      return a;
+      return [a makeImmutableCopyOnFail: NO]; 
     }
 }
 

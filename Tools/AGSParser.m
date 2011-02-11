@@ -2189,6 +2189,7 @@ fail:
        */
       [self skipUnit];
       DESTROY(comment);
+      RELEASE(arp);
       return [NSMutableDictionary dictionary];
     }
   else

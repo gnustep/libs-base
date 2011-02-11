@@ -1093,11 +1093,11 @@ compare(id elem1, id elem2, void* context)
 {
   NSMutableArray	*sortedArray;
 
-  sortedArray = [[NSMutableArrayClass allocWithZone:
-    NSDefaultMallocZone()] initWithArray: self copyItems: NO];
+  sortedArray = [[[NSMutableArrayClass allocWithZone:
+    NSDefaultMallocZone()] initWithArray: self copyItems: NO] autorelease];
   [sortedArray sortUsingFunction: comparator context: context];
 
-  return AUTORELEASE([sortedArray makeImmutableCopyOnFail: NO]);
+  return [sortedArray makeImmutableCopyOnFail: NO];
 }
 
 /**
@@ -1107,8 +1107,9 @@ compare(id elem1, id elem2, void* context)
 - (NSString*) componentsJoinedByString: (NSString*)separator
 {
   unsigned int		c = [self count];
-  NSMutableString	*s = [[NSMutableString alloc] initWithCapacity: c];
+  NSMutableString	*s;
 
+  s = [[[NSMutableString alloc] initWithCapacity: c] autorelease];
   if (c > 0)
     {
       unsigned	l = [separator length];
@@ -1124,7 +1125,7 @@ compare(id elem1, id elem2, void* context)
 	  [s appendString: [[self objectAtIndex: i] description]];
 	}
     }
-  return AUTORELEASE([s makeImmutableCopyOnFail: NO]);
+  return [s makeImmutableCopyOnFail: NO];
 }
 
 /**
@@ -1135,7 +1136,7 @@ compare(id elem1, id elem2, void* context)
 - (NSArray*) pathsMatchingExtensions: (NSArray*)extensions
 {
   unsigned i, c = [self count];
-  NSMutableArray *a = [[NSMutableArray alloc] initWithCapacity: 1];
+  NSMutableArray *a = [[[NSMutableArray alloc] initWithCapacity: 1] autorelease];
   Class	cls = [NSString class];
   IMP	get = [self methodForSelector: oaiSel];
   IMP	add = [a methodForSelector: addSel];
@@ -1152,7 +1153,7 @@ compare(id elem1, id elem2, void* context)
 	    }
 	}
     }
-  return AUTORELEASE([a makeImmutableCopyOnFail: NO]);
+  return [a makeImmutableCopyOnFail: NO];
 }
 
 /**
