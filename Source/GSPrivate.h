@@ -96,17 +96,17 @@ typedef struct objc_category* Category;
 #if __GNUC__ > 3
 __attribute__((unused)) static void GSFreeTempBuffer(void **b)
 {
-	if (NULL != *b) free(*b);
+  if (NULL != *b) free(*b);
 }
 #  define	GS_BEGINITEMBUF(P, S, T) { \
-	T _ibuf[GS_MAX_OBJECTS_FROM_STACK];\
-	T *P = _ibuf;\
-	__attribute__((cleanup(GSFreeTempBuffer))) void *_base = 0;\
-	if (S > GS_MAX_OBJECTS_FROM_STACK)\
-	{\
-		_base = malloc(S);\
-		P = _base;\
-	}
+  T _ibuf[GS_MAX_OBJECTS_FROM_STACK];\
+  T *P = _ibuf;\
+  __attribute__((cleanup(GSFreeTempBuffer))) void *_base = 0;\
+  if (S > GS_MAX_OBJECTS_FROM_STACK)\
+    {\
+      _base = malloc((S) * sizeof(T));\
+      P = _base;\
+    }
 #else
 #  define	GS_BEGINITEMBUF(P, S, T) { \
   T _ibuf[(S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 0]; \

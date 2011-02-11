@@ -1,5 +1,12 @@
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* libs/base/trunk/Source/GSPrivate.h: Fixed the new GS_BEGINITEMBUF()
+	code ... was causing hard-to-track-down memory corruption which
+	unfortunately didn't show up in the testsuite (or I'd not have
+	re-comitted this code in the first place).
+
+2_011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSKeyValueObserving.m: Recommit
 	Reviewed and tested.
 	* Source/NAutoreleasePool.m: Make +initialize do nothing so that it
