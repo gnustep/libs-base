@@ -1908,7 +1908,7 @@ NSLog(@"Creating empty user defaults database");
   [_lock lock];
   NS_DURING
     {
-      if (nil == _dictionaryRep)
+      if (_dictionaryRep == nil)
         {
           NSEnumerator		*enumerator;
           NSMutableDictionary	*dictRep;
@@ -1925,8 +1925,8 @@ NSLog(@"Creating empty user defaults database");
           enumerator = [_searchList reverseObjectEnumerator];
           nImp = [enumerator methodForSelector: nextObjectSel];
 
-          dictRep = [NSMutableDictionaryClass alloc];
-          dictRep = [[dictRep initWithCapacity: 512] autorelease];
+          dictRep = [NSMutableDictionaryClass allocWithZone: NSDefaultMallocZone()];
+          dictRep = [dictRep initWithCapacity: 512];
           addImp = [dictRep methodForSelector: addSel];
 
           while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
@@ -1939,10 +1939,7 @@ NSLog(@"Creating empty user defaults database");
 	    }
           _dictionaryRep = [dictRep makeImmutableCopyOnFail: NO];
         }
-      else
-	{
-          rep = [[_dictionaryRep retain] autorelease];
-	}
+      rep = [[_dictionaryRep retain] autorelease];
       [_lock unlock];
     }
   NS_HANDLER
