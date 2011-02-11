@@ -1356,7 +1356,7 @@ static BOOL snuggleStart(NSString *t)
   CREATE_AUTORELEASE_POOL(arp);
 #endif
   unsigned	l = [str length];
-  NSRange	r = NSMakeRange(0, l);
+  NSRange	r = [str rangeOfString: @"<example"];
   unsigned	i = 0;
   NSArray	*a;
 
@@ -1364,7 +1364,6 @@ static BOOL snuggleStart(NSString *t)
    * Split out <example>...</example> sequences and output them literally.
    * All other text has reformatting applied as necessary.
    */
-  r = [str rangeOfString: @"<example"];
   while (r.length > 0)
     {
       NSString	*tmp;
