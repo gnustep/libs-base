@@ -2,6 +2,8 @@
 
 	* Source/GSICUString.m:
 	Fix leak spotted by static analyser.
+	* Source/NSArray.m:
+	Fix error in enumeration changes causing compile failure.
 
 2011-02-11 12:06  David Chisnall <theraven@gna.org>
 
