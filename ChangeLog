@@ -3,6 +3,9 @@
 	* Source/NSArray.m:
 	* Source/NSString.m:
 	* Source/NSPointerArray.m:
+	* Source/NSAttributedString.m:
+	* Source/Additions/GSXML.m:
+	* Source/NSData.m:
 	* Tools/AGSParser.m:
 	Tweaks to try to avoid clang analyser warnings.
 	* Source/NSPropertyList.m:

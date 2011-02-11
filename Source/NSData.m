@@ -3006,6 +3006,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
  */
 - (id) initWithContentsOfMappedFile: (NSString*)path
 {
+  off_t		off;
   int		fd;
 	
 #if defined(__MINGW__)
@@ -3033,14 +3034,15 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       return nil;
     }
   /* Find size of file to be mapped. */
-  length = lseek(fd, 0, SEEK_END);
-  if (length < 0)
+  off = lseek(fd, 0, SEEK_END);
+  if (off < 0)
     {
       NSWarnMLog(@"unable to seek to eof %@ - %@", path, [NSError _last]);
       close(fd);
       DESTROY(self);
       return nil;
     }
+  length = off;
   /* Position at start of file. */
   if (lseek(fd, 0, SEEK_SET) != 0)
     {
