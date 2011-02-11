@@ -1,3 +1,7 @@
+2011-02-11  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSDateFormatter.m: Avoid multiple memory copy operations.
+
 2011-02-10 18:54  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/config/config.joinable.m,
