@@ -123,12 +123,14 @@ static Class	concreteClass = 0;
 	     valuePointerFunctions: (NSPointerFunctions*)valueFunctions
 			  capacity: (NSUInteger)initialCapacity
 {
-  return [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (id) copyWithZone: (NSZone*)aZone
 {
-  return [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (NSUInteger) count
@@ -172,7 +174,8 @@ static Class	concreteClass = 0;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  return [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (BOOL) isEqual: (id)other
