@@ -1232,7 +1232,8 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  return [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (id) initWithKeyPointerFunctions: (NSPointerFunctions*)keyFunctions

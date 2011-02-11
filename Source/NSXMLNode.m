@@ -194,7 +194,8 @@
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  return [self notImplemented: _cmd];
+  [self notImplemented: _cmd];
+  return nil;
 }
 
 - (void) dealloc

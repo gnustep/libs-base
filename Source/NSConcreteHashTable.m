@@ -972,7 +972,8 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  return [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions

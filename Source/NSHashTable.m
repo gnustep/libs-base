@@ -94,7 +94,8 @@ static Class	concreteClass = 0;
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
 		capacity: (NSUInteger)initialCapacity
 {
-  return [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (void) addObject: (id)object
@@ -133,7 +134,8 @@ static Class	concreteClass = 0;
 
 - (id) copyWithZone: (NSZone*)aZone
 {
-  return [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (NSUInteger) count
@@ -160,7 +162,8 @@ static Class	concreteClass = 0;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  return [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (void) intersectHashTable: (NSHashTable*)other
