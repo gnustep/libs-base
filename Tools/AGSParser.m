@@ -263,7 +263,7 @@ in the returned dictionary. */
 - (void) parseArgsInto: (NSMutableDictionary*)d
 {
   BOOL			wasInArgList = inArgList;
-  NSMutableArray	*a = [d objectForKey: @"Args"];
+  NSMutableArray	*a = nil;
 
   NSAssert([d objectForKey: @"Args"] == nil, NSInternalInconsistencyException);
   a = [[NSMutableArray alloc] initWithCapacity: 4];
