@@ -1,3 +1,16 @@
+2011-02-11 12:06  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/GSPrivate.h: Added exception-safe version
+	  of the GS_BEGINITEMBUF() macro. As a side effect, this should
+	  silence the zero-sized VLA warnings in the static analyser.
+	  
+	  Note: This macro is currently only used on GCC 4+ and clang. It
+	  depends on __attribute__((cleanup)), which was introduced some
+	  time in the 3.x series, but I'm not sure exactly when (3.2 / 3.3
+	  I think), so someone who cares about gcc 3.x can tweak this if
+	  they want (not sure if anyone does - I think most people use
+	  2.95, 4.x, or clang).
+
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m:
