@@ -263,19 +263,12 @@ UTextNSMutableStringClone(UText *dest,
   UErrorCode *status)
 {
   NSMutableString	*str = (NSMutableString*)src->p;
-  UText			*txt;
 
   if (deep)
     {
       str = [str mutableCopy];
-      txt = UTextInitWithNSMutableString(dest, str);
-      [str release];
     }
-  else
-    {
-      txt = UTextInitWithNSMutableString(dest, str);
-    }
-  return txt;
+  return UTextInitWithNSMutableString(dest, str);
 }
 
 /**

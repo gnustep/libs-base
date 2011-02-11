@@ -1680,7 +1680,7 @@ compare(id elem1, id elem2, void* context)
       enumerator = [self reverseObjectEnumerator];
     }
 
-  FOR_IN (id, obj, enumerator)
+  FOR_IN (id, obj, self)
     if (CALL_BLOCK(predicate, obj, count, &shouldStop))
       {
 	/* TODO: It would be more efficient to collect an NSRange and only
@@ -1692,7 +1692,7 @@ compare(id elem1, id elem2, void* context)
 	return set;
       }
     count++;
-  END_FOR_IN(enumerator)
+  END_FOR_IN(self)
   return set;
 }
 
@@ -1725,7 +1725,7 @@ compare(id elem1, id elem2, void* context)
       enumerator = [self reverseObjectEnumerator];
     }
 
-  FOR_IN (id, obj, enumerator)
+  FOR_IN (id, obj, self)
     if (CALL_BLOCK(predicate, obj, count, &shouldStop))
       {
 	return count;
@@ -1735,7 +1735,7 @@ compare(id elem1, id elem2, void* context)
 	return NSNotFound;
       }
     count++;
-  END_FOR_IN(enumerator)
+  END_FOR_IN(self)
   return NSNotFound;
 }
 

@@ -277,6 +277,7 @@ commonModes(void)
 static BOOL	entered_multi_threaded_state = NO;
 
 static NSThread *defaultThread;
+static NSLock *thread_creation_lock;
 
 static pthread_key_t thread_object_key;
 
@@ -304,7 +305,6 @@ static void exitedThread(void *thread)
       fprintf(stderr, "WARNING thread %p terminated without calling +exit!\n",
         thread);
     }
-  [(id)thread release];
 }
 
 /**
@@ -458,15 +458,17 @@ unregisterActiveThread(NSThread *thread)
 
   if (t == nil)
     {
+      [thread_creation_lock lock];
       t = pthread_getspecific(thread_object_key);
       if (t == nil)
 	{
 	  t = [self new];
 	  t->_active = YES;
 	  pthread_setspecific(thread_object_key, t);
-	  [t release];
+	  [thread_creation_lock unlock];
 	  return YES;
 	}
+      [thread_creation_lock unlock];
     }
   return NO;
 }
@@ -527,6 +529,7 @@ unregisterActiveThread(NSThread *thread)
 	  [NSException raise: NSInternalInconsistencyException
 		      format: @"Unable to create thread key!"];
 	}
+      thread_creation_lock = [NSLock new];
       /*
        * Ensure that the default thread exists.
        */
