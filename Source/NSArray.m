@@ -1680,7 +1680,7 @@ compare(id elem1, id elem2, void* context)
       enumerator = [self reverseObjectEnumerator];
     }
 
-  FOR_IN (id, obj, self)
+  FOR_IN (id, obj, enumerator)
     if (CALL_BLOCK(predicate, obj, count, &shouldStop))
       {
 	/* TODO: It would be more efficient to collect an NSRange and only
