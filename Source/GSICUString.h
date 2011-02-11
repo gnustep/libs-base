@@ -11,6 +11,7 @@
  * contents directly.  
  */
 UText* UTextInitWithNSString(UText *txt, NSString *str);
+
 /**
  * Initialises a UText structure with an NSMutableString.  If txt is NULL, then
  * this allocates a new structure on the heap, otherwise it fills in the
@@ -23,6 +24,7 @@ UText* UTextInitWithNSString(UText *txt, NSString *str);
  * reflected in the underlying NSMutableString.
  */
 UText* UTextInitWithNSMutableString(UText *txt, NSMutableString *str);
+
 /**
  * GSUTextString is an NSString subclass that is backed by a libicu UText
  * structure.  This class is intended to be used when returning UText created
@@ -30,9 +32,9 @@ UText* UTextInitWithNSMutableString(UText *txt, NSMutableString *str);
  */
 @interface GSUTextString : NSString
 {
-	@public
-	/** The UText structure containing the libicu string interface. */
-	UText txt;
+  @public
+  /** The UText structure containing the libicu string interface. */
+  UText txt;
 }
 @end
 
@@ -43,9 +45,9 @@ UText* UTextInitWithNSMutableString(UText *txt, NSMutableString *str);
  */
 @interface GSUTextMutableString : NSMutableString
 {
-	@public
-	/** The UText structure containing the libicu string interface. */
-	UText txt;
+  @public
+  /** The UText structure containing the libicu string interface. */
+  UText txt;
 }
 @end
 
@@ -54,10 +56,10 @@ UText* UTextInitWithNSMutableString(UText *txt, NSMutableString *str);
  */
 static inline void free_string(unichar **buf)
 {
-	if (0 != *buf)
-	{
-		free(*buf);
-	}
+  if (0 != *buf)
+    {
+      free(*buf);
+    }
 }
 
 /**
@@ -68,12 +70,12 @@ static inline void free_string(unichar **buf)
  * Buffers created in this way are exception safe when using native exceptions.
  */
 #define TEMP_BUFFER(name, size)\
-	__attribute__((cleanup(free_string))) unichar *name ##_onheap = 0;\
-	unichar name ## _onstack[64 / sizeof(unichar)];\
-	unichar *name = name ## _onstack;\
-	if (size > 64)\
-	{\
-		name ## _onheap = malloc(size);\
-		name = name ## _onheap;\
-	}
+  __attribute__((cleanup(free_string))) unichar *name ##_onheap = 0;\
+  unichar name ## _onstack[64 / sizeof(unichar)];\
+  unichar *name = name ## _onstack;\
+  if (size > 64)\
+    {\
+      name ## _onheap = malloc(size);\
+      name = name ## _onheap;\
+    }
 
