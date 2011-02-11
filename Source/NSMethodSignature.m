@@ -452,6 +452,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   if (_inf == 0)
     {
       [self methodInfo];
+      NSAssert(0 != _inf, @"Initialising failed");
     }
   return _inf[index+1];
 }
@@ -471,6 +472,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   if (_inf == 0)
     {
       [self methodInfo];
+      NSAssert(0 != _inf, @"Initialising failed");
     }
   return _inf[index+1].qtype;
 }
@@ -480,6 +482,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   if (_inf == 0)
     {
       [self methodInfo];
+      NSAssert(0 != _inf, @"Initialising failed");
     }
   return (_inf[0].qual & _F_ONEWAY) ? YES : NO;
 }
@@ -489,6 +492,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   if (_inf == 0)
     {
       [self methodInfo];
+      NSAssert(0 != _inf, @"Initialising failed");
     }
   return _inf[0].size;
 }
@@ -498,6 +502,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   if (_inf == 0)
     {
       [self methodInfo];
+      NSAssert(0 != _inf, @"Initialising failed");
     }
   return _inf[0].qtype;
 }
