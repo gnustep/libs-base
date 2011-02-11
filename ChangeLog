@@ -2,7 +2,6 @@
 
 	* Source/GSICUString.m:
 	Fix leak spotted by static analyser.
-	Temporarily revert change to GSPrivate.h so code compiles again.
 
 2011-02-11 12:06  David Chisnall <theraven@gna.org>
 
