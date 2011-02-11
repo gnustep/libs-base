@@ -1,3 +1,8 @@
+2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSICUString.m:
+	Fix leak spotted by static analyser.
+
 2011-02-11 12:06  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/GSPrivate.h: Added exception-safe version
