@@ -1,5 +1,10 @@
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSKeyValueObserving.m: Recommit
+	Reviewed and tested.
+
+2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSLocale.m: Recommit
 	* Source/NSUnarchiver.m: Recommit
 	I have now test these two and recommited them as working.
