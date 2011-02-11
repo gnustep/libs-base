@@ -111,22 +111,15 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   return tv->pool_cache[--(tv->pool_cache_count)];
 }
 
-static SEL	releaseSel = 0;
-
 
 @implementation NSAutoreleasePool
 
-static IMP	allocImp;
-static IMP	initImp;
-
 + (void) initialize
 {
-  if (self == [NSAutoreleasePool class])
-    {
-      releaseSel = @selector(release);
-      allocImp = [self methodForSelector: @selector(allocWithZone:)];
-      initImp = [self instanceMethodForSelector: @selector(init)];
-    }
+  /* Do nothing here which might interact with ther classes since this
+   * is called by [NSObject+initialize] !
+   */
+  return;
 }
 
 + (id) allocWithZone: (NSZone*)zone
@@ -140,7 +133,18 @@ static IMP	initImp;
 
 + (id) new
 {
-  id arp = (*allocImp)(self, @selector(allocWithZone:), NSDefaultMallocZone());
+  static IMP	allocImp = 0;
+  static IMP	initImp = 0;
+  id		arp;
+
+  if (0 == allocImp)
+    {
+      allocImp
+	= [NSAutoreleasePool methodForSelector: @selector(allocWithZone:)];
+      initImp
+	= [NSAutoreleasePool instanceMethodForSelector: @selector(init)];
+    }
+  arp = (*allocImp)(self, @selector(allocWithZone:), NSDefaultMallocZone());
   return (*initImp)(arp, @selector(init));
 }
 
@@ -438,7 +442,7 @@ static IMP	initImp;
 		  imps[hash] = get_imp(c, @selector(release));
 		  classes[hash] = c;
 		}
-	      (imps[hash])(anObject, releaseSel);
+	      (imps[hash])(anObject, @selector(release));
 	    }
 	  _released_count -= released->count;
 	  released->count = 0;
