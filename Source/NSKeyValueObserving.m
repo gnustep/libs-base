@@ -313,6 +313,7 @@ static NSString *newKey(SEL _cmd)
   unsigned	len = strlen(name);
   NSString	*key;
   unsigned	i;
+  NSCAssert(len > 0, @"Invalid selector name!");
 
   if (*name == '_')
     {
