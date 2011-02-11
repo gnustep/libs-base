@@ -1196,7 +1196,6 @@ static Class NSDataMallocClass;
               {
                 NSLog(@"Loss of information converting decoded value to uint16_t");
               }
-            *(uint8_t*)address = (uint8_t)big;
             *(uint16_t*)address = (uint16_t)big;
             return;
           case 4:
