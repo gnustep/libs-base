@@ -2,6 +2,8 @@
 
 	* Source/NSKeyValueObserving.m: Recommit
 	Reviewed and tested.
+	* Source/NAutoreleasePool.m: Make +initialize do nothing so that it
+	won't interfere with anythign else when called by [NSObject+initialize]
 
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
