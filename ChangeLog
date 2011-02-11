@@ -1,5 +1,13 @@
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Revert everything back to svn 32051 due to loads of commits of broken
+	code which have been occurring to fast for anyone to review, and either
+	don't compile or fail the testsuite.
+	Lets go through things checking that they at least compile with gcc
+	and pass the testsuite before we recommit them!  
+
+2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSICUString.m:
 	Fix leak spotted by static analyser.
 	* Source/NSArray.m:

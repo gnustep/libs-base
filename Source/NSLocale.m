@@ -654,7 +654,7 @@ static NSRecursiveLock *classLock = nil;
 #if	GS_USE_ICU == 1
   int32_t length = 0;
   unichar buffer[ULOC_FULLNAME_CAPACITY];
-  UErrorCode status = 0;
+  UErrorCode status;
   const char *keyword = NULL;
   const char *locale = [_localeId UTF8String];
 
