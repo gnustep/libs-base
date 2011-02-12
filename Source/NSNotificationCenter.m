@@ -36,6 +36,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSThread.h"
 #import "GNUstepBase/GSLock.h"
+#import "GSPrivate.h"
 
 static NSZone	*_zone = 0;
 

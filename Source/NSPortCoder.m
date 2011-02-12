@@ -41,6 +41,7 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSPort.h"
+#import "GSPrivate.h"
 
 @class	NSMutableDataMalloc;
 @interface NSMutableDataMalloc : NSObject	// Help the compiler
