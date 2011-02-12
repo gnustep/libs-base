@@ -279,7 +279,6 @@ static NSUInteger _defaultBehavior = 0;
   IF_NO_GC(RETAIN(c->_maximum);)
   IF_NO_GC(RETAIN(c->_minimum);)
   IF_NO_GC(RETAIN(c->_roundingBehavior);)
-  IF_NO_GC(RETAIN(c->_roundingBehavior);)
   IF_NO_GC(RETAIN(c->_attributedStringForNil);)
   IF_NO_GC(RETAIN(c->_attributedStringForNotANumber);)
   IF_NO_GC(RETAIN(c->_attributedStringForZero);)
@@ -295,7 +294,6 @@ static NSUInteger _defaultBehavior = 0;
   RELEASE(_attributesForNegativeValues);
   RELEASE(_maximum);
   RELEASE(_minimum);
-  RELEASE(_roundingBehavior);
   RELEASE(_roundingBehavior);
   RELEASE(_attributedStringForNil);
   RELEASE(_attributedStringForNotANumber);
