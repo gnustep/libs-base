@@ -1,5 +1,11 @@
 2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSZombie.m: Get zombie class to set up class pointer in
+	+initialize rather than using +class since +class is not implemented
+	and David says support for it is runtime specific.
+
+2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPortCoder.m:
 	* Source/GSPrivate.h:
 	* Source/NSNotificationCenter.m:
