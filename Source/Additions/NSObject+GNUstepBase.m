@@ -122,8 +122,3 @@
 
 @end
 
-#ifdef	__clang__
-#import	"GSPrivate.h"
-id	gsPrivateDummy;
-#endif
-

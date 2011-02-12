@@ -1,5 +1,17 @@
 2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPortCoder.m:
+	* Source/GSPrivate.h:
+	* Source/NSNotificationCenter.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSThread.m:
+	* Source/NSSerializer.m:
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	Update with new GS_CONSUMED macro to try to avoid static analyzer
+	false positives.
+
+2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSLocale.m: fix memory leak
 	* Source/NSThread.m:
 	* Source/NSNotificationCenter.m:
@@ -27,7 +39,7 @@
 
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* libs/base/trunk/Source/GSPrivate.h: Fixed the new GS_BEGINITEMBUF()
+	* Source/GSPrivate.h: Fixed the new GS_BEGINITEMBUF()
 	code ... was causing hard-to-track-down memory corruption which
 	unfortunately didn't show up in the testsuite (or I'd not have
 	re-comitted this code in the first place).
@@ -80,7 +92,7 @@
 
 2011-02-11 12:06  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/GSPrivate.h: Added exception-safe version
+	* Source/GSPrivate.h: Added exception-safe version
 	  of the GS_BEGINITEMBUF() macro. As a side effect, this should
 	  silence the zero-sized VLA warnings in the static analyser.
 	  
@@ -112,13 +124,13 @@
 
 2011-02-10 18:54  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/config/config.joinable.m,
-	  libs/base/trunk/config/objc-common.g: Don't use Object in
+	* trunk/config/config.joinable.m,
+	  trunk/config/objc-common.g: Don't use Object in
 	  configure tests (not present in GNUstep runtime).
 
 2011-02-10 18:53  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSObject.m: Use NSClassFromString() to
+	* Source/NSObject.m: Use NSClassFromString() to
 	  look up NSZombie class. This has two advantages:
 	  
 	  1) Doesn't rely on Apple-incompatible behaviour in the GCC
@@ -140,41 +152,41 @@
 
 2011-02-10 11:02  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Headers/Additions/GNUstepBase/GSMime.h,
-	  libs/base/trunk/Headers/Additions/GNUstepBase/GSVersionMacros.h,
-	  libs/base/trunk/Headers/Foundation/NSArchiver.h,
-	  libs/base/trunk/Headers/Foundation/NSAutoreleasePool.h,
-	  libs/base/trunk/Headers/Foundation/NSBundle.h,
-	  libs/base/trunk/Headers/Foundation/NSCache.h,
-	  libs/base/trunk/Headers/Foundation/NSComparisonPredicate.h,
-	  libs/base/trunk/Headers/Foundation/NSDateFormatter.h,
-	  libs/base/trunk/Headers/Foundation/NSDecimalNumber.h,
-	  libs/base/trunk/Headers/Foundation/NSDistributedLock.h,
-	  libs/base/trunk/Headers/Foundation/NSDistributedNotificationCenter.h,
-	  libs/base/trunk/Headers/Foundation/NSError.h,
-	  libs/base/trunk/Headers/Foundation/NSFileHandle.h,
-	  libs/base/trunk/Headers/Foundation/NSFileManager.h,
-	  libs/base/trunk/Headers/Foundation/NSHost.h,
-	  libs/base/trunk/Headers/Foundation/NSIndexPath.h,
-	  libs/base/trunk/Headers/Foundation/NSInvocation.h,
-	  libs/base/trunk/Headers/Foundation/NSKeyedArchiver.h,
-	  libs/base/trunk/Headers/Foundation/NSLocale.h,
-	  libs/base/trunk/Headers/Foundation/NSNumberFormatter.h,
-	  libs/base/trunk/Headers/Foundation/NSPort.h,
-	  libs/base/trunk/Headers/Foundation/NSPortCoder.h,
-	  libs/base/trunk/Headers/Foundation/NSPortMessage.h,
-	  libs/base/trunk/Headers/Foundation/NSPortNameServer.h,
-	  libs/base/trunk/Headers/Foundation/NSProtocolChecker.h,
-	  libs/base/trunk/Headers/Foundation/NSRegularExpression.h,
-	  libs/base/trunk/Headers/Foundation/NSScanner.h,
-	  libs/base/trunk/Headers/Foundation/NSSortDescriptor.h,
-	  libs/base/trunk/Headers/Foundation/NSTask.h,
-	  libs/base/trunk/Headers/Foundation/NSThread.h,
-	  libs/base/trunk/Headers/Foundation/NSTimer.h,
-	  libs/base/trunk/Headers/Foundation/NSUndoManager.h,
-	  libs/base/trunk/Headers/Foundation/NSUserDefaults.h,
-	  libs/base/trunk/Headers/Foundation/NSXMLNode.h,
-	  libs/base/trunk/Headers/Foundation/NSXMLParser.h: Add a
+	* Headers/Additions/GNUstepBase/GSMime.h,
+	  Headers/Additions/GNUstepBase/GSVersionMacros.h,
+	  Headers/Foundation/NSArchiver.h,
+	  Headers/Foundation/NSAutoreleasePool.h,
+	  Headers/Foundation/NSBundle.h,
+	  Headers/Foundation/NSCache.h,
+	  Headers/Foundation/NSComparisonPredicate.h,
+	  Headers/Foundation/NSDateFormatter.h,
+	  Headers/Foundation/NSDecimalNumber.h,
+	  Headers/Foundation/NSDistributedLock.h,
+	  Headers/Foundation/NSDistributedNotificationCenter.h,
+	  Headers/Foundation/NSError.h,
+	  Headers/Foundation/NSFileHandle.h,
+	  Headers/Foundation/NSFileManager.h,
+	  Headers/Foundation/NSHost.h,
+	  Headers/Foundation/NSIndexPath.h,
+	  Headers/Foundation/NSInvocation.h,
+	  Headers/Foundation/NSKeyedArchiver.h,
+	  Headers/Foundation/NSLocale.h,
+	  Headers/Foundation/NSNumberFormatter.h,
+	  Headers/Foundation/NSPort.h,
+	  Headers/Foundation/NSPortCoder.h,
+	  Headers/Foundation/NSPortMessage.h,
+	  Headers/Foundation/NSPortNameServer.h,
+	  Headers/Foundation/NSProtocolChecker.h,
+	  Headers/Foundation/NSRegularExpression.h,
+	  Headers/Foundation/NSScanner.h,
+	  Headers/Foundation/NSSortDescriptor.h,
+	  Headers/Foundation/NSTask.h,
+	  Headers/Foundation/NSThread.h,
+	  Headers/Foundation/NSTimer.h,
+	  Headers/Foundation/NSUndoManager.h,
+	  Headers/Foundation/NSUserDefaults.h,
+	  Headers/Foundation/NSXMLNode.h,
+	  Headers/Foundation/NSXMLParser.h: Add a
 	  GS_PADDING_IVAR macro. This defines the void *gs_unused; instance
 	  variable with __attribute__((unused)) on clang so that the static
 	  analyser only reports unused ivars that we expect to be used.
@@ -328,7 +340,7 @@
 
 2011-01-23 15:42  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSNumberFormatter.m: Some small fixes in
+	* Source/NSNumberFormatter.m: Some small fixes in
 	  NSNumberFormatter. Mostly stop using == to compare C strings.
 
 2011-01-23  Stefan Bidigaray <stefanbidi@gmail.com>
@@ -480,7 +492,7 @@
 
 2010-12-31 14:03  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Headers/Foundation/NSBundle.h: Add __attribute__
+	* Headers/Foundation/NSBundle.h: Add __attribute__
 	  ((format_arg)) to [NSBundle -localizedStringForKey:value:table:].
 	  This informs the compiler that the output can be used anywhere
 	  that the first argument can be used, and should silence all of

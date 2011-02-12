@@ -282,6 +282,13 @@
 #  endif
 #endif
 
+#ifdef	__clang__
+static inline void gs_consumed(id NS_CONSUMED o) __attribute __ ((unused));
+static inline void gs_consumed(id o) { return; }
+#define	GS_CONSUMED(O)	gs_consumed(O);
+#else
+#define	GS_CONSUMED(O)
+#endif
 
 /* Include the appropriate header for ObjC2 blocks support if it is in use.
  *

@@ -36,7 +36,6 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSThread.h"
 #import "GNUstepBase/GSLock.h"
-#import "GSPrivate.h"
 
 static NSZone	*_zone = 0;
 
@@ -791,16 +790,7 @@ static NSNotificationCenter *default_center = nil;
 	   */
 	  name = [name copyWithZone: NSDefaultMallocZone()];
 	  GSIMapAddPair(NAMED, (GSIMapKey)(id)name, (GSIMapVal)(void*)m);
-#ifdef __clang__
-{
-  /* We store the object in 'dummy' for no other purpose than to silence
-   * the clang static analyser's warning that we are leaking memory, which
-   * occurs because it doesn't realise that the object was already stored
-   * later deallocation.
-   */
-  gsPrivateDummy = name;
-}
-#endif
+	  GS_CONSUMED(name)
 	}
       else
 	{
