@@ -105,7 +105,6 @@ static Class	NSConstantStringClass;
 {
   Class	isa;
 }
-+ (void) initialize;
 - (Class) class;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
@@ -948,31 +947,58 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 #  endif
 #endif
 
+
 #ifdef HAVE_LOCALE_H
-      GSSetLocaleC(LC_ALL, "");		// Set up locale from environment.
+      /* Set up locale from environment.
+       * This function should not use any ObjC code since important
+       * classes are not yet initialized.
+       */
+      GSSetLocaleC(LC_ALL, "");
 #endif
 
-      // Create the global lock
+      /* Create the global lock.
+       * NB. Ths is one of the first things we do ... setting up a new lock
+       * must not call any other Objective-C classes and must not involve
+       * any use of the autorelease system.
+       */
       gnustep_global_lock = [NSRecursiveLock new];
 
-      // Behavior debugging
+      /* Behavior debugging ... enable with environment variable if needed.
+       */
       GSObjCBehaviorDebug(GSPrivateEnvironmentFlag("GNUSTEP_BEHAVIOR_DEBUG",
 	GSObjCBehaviorDebug(-1)));
 
-      // Zombie management flags.
-      NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
-      NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
-      [NSZombie initialize];
-
-      // Set up the autorelease system
+      /* Set up the autorelease system ... we must do this before using any
+       * other class whose +initialize might autorelease something.
+       */
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
 
-      // Make sure the constant string class works.
+      /* Make sure the constant string class works and set up well-known
+       * string constants etc.
+       */
       NSConstantStringClass = [NSString constantStringClass];
       GSPrivateBuildStrings();
 
+      /* Determine zombie management flags and set up a map to store
+       * information about zombie objects.
+       */
+      NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
+      NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
+      zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+
+      /* We need to cache the zombie class.
+       * We can't call +class because NSZombie doesn't have that method.
+       * We can't use NSClassFromString() because that would use an NSString
+       * object, and that class hasn't been initialized yet ...
+       */
+      zombieClass = objc_lookUpClass("NSZombie");
+
+      /* Now that we have a workign autorelease system and working string
+       * classes we are able to set up notifications.
+       */
       [[NSNotificationCenter defaultCenter]
 	addObserver: self
 	   selector: @selector(_becomeMultiThreaded:)
@@ -2250,15 +2276,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 
 @implementation	NSZombie
-+ (void) initialize
-{
-  if (nil == zombieClass)
-    {
-      zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-      zombieClass = [NSZombie class];
-    }
-}
 - (Class) class
 {
   return (Class)isa;

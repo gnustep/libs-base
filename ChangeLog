@@ -1,8 +1,8 @@
 2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSZombie.m: Get zombie class to set up class pointer in
-	+initialize rather than using +class since +class is not implemented
-	and David says support for it is runtime specific.
+	* Source/NSObject.m: Obtain NSZombie class pointer using
+	objc_lookUpClass() to avoid the use of NSString inside the NSObject
+	initialize method. Re-order code for safety. Add lots of comments.
 
 2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -487,14 +487,16 @@
 2010-12-31 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/Foundation/NSCalendar.h:
-	* Source/NSCalendar.m: Added iOS 4.0 and later methods to NSDateComponents.
+	* Source/NSCalendar.m: Added iOS 4.0 and later methods
+	to NSDateComponents.
 
 2010-12-31 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Resources/GNUmakefile:
 	* Resources/Languages/Locale.canonical: Added mapping to go from long
 	locale identifiers to the shorter identifiers used by ICU.
-	* Source/NSLocale.m: Implemented -canonical* and -preferredLanaguges methods.
+	* Source/NSLocale.m: Implemented -canonical* and -preferredLanaguges
+	methods.
 
 2010-12-31 14:03  David Chisnall <theraven@gna.org>
 
