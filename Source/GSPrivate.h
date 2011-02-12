@@ -543,5 +543,12 @@ GSPrivateIsCollectable(const void *ptr) GS_ATTRIB_PRIVATE;
 NSZone*
 GSAtomicMallocZone (void);
 
+/* A global location to which we can assign objects in order to prevent
+ * the clang static analyser thinking we have leaked them when we haven't
+ */
+#ifdef	__clang__
+extern id gsPrivateDummy GS_ATTRIB_PRIVATE;
+#endif
+
 #endif /* _GSPrivate_h_ */
 

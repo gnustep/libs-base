@@ -1925,7 +1925,7 @@ NSLog(@"Creating empty user defaults database");
           enumerator = [_searchList reverseObjectEnumerator];
           nImp = [enumerator methodForSelector: nextObjectSel];
 
-          dictRep = [NSMutableDictionaryClass allocWithZone: NSDefaultMallocZone()];
+          dictRep = [NSMutableDictionaryClass alloc];
           dictRep = [dictRep initWithCapacity: 512];
           addImp = [dictRep methodForSelector: addSel];
 
@@ -1937,7 +1937,8 @@ NSLog(@"Creating empty user defaults database");
                   (*addImp)(dictRep, addSel, dict);
                 }
 	    }
-          _dictionaryRep = [dictRep makeImmutableCopyOnFail: NO];
+          [dictRep makeImmutableCopyOnFail: NO];
+          _dictionaryRep = dictRep;
         }
       rep = [[_dictionaryRep retain] autorelease];
       [_lock unlock];

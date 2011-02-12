@@ -1,5 +1,17 @@
 2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSLocale.m: fix memory leak
+	* Source/NSThread.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSPortCoder.m:
+	* Source/NSSerializer.m:
+	* Source/NSUserDefaults.m:
+	* Source/GSPrivate.h:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	Add code to try to prevent clang static analyser false warnings.
+
+2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSPrivate.h:
 	* Source/NSObject.m:
 	* Source/Additions/NSObject+GNUstepBase.m:
