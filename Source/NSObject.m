@@ -953,10 +953,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 #  endif
 #endif
 
-      /* Cleanup cached information on exit.
-       */
-      atexit(GSBaseCacheCleanup);
-
 #ifdef HAVE_LOCALE_H
       GSSetLocaleC(LC_ALL, "");		// Set up locale from environment.
 #endif

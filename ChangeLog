@@ -1,3 +1,11 @@
+2011-02-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h:
+	* Source/NSObject.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	Remove (unused) code for cleanup at program exit. Let's think of a
+	better way (eg runtime support to call a +atExit method).
+
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Avoid some unnecessary locking.
