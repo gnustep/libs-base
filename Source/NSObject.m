@@ -105,6 +105,7 @@ static Class	NSConstantStringClass;
 {
   Class	isa;
 }
++ (void) initialize;
 - (Class) class;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
@@ -127,20 +128,14 @@ BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
 
 @class	NSZombie;
+static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
 #if	!GS_WITH_GC
 static void GSMakeZombie(NSObject *o)
 {
-  static Class	zombieClass = Nil;
   Class		c;
 
-  if (nil == zombieClass)
-    {
-      zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-      zombieClass = [NSZombie class];
-    }
   c = object_getClass(o);
   object_setClass(o, zombieClass);
   if (NSDeallocateZombies == NO)
@@ -967,6 +962,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       // Zombie management flags.
       NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
       NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
+      [NSZombie initialize];
 
       // Set up the autorelease system
       autorelease_class = [NSAutoreleasePool class];
@@ -2254,6 +2250,15 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 
 @implementation	NSZombie
++ (void) initialize
+{
+  if (nil == zombieClass)
+    {
+      zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+      zombieClass = [NSZombie class];
+    }
+}
 - (Class) class
 {
   return (Class)isa;
