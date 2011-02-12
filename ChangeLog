@@ -1,6 +1,9 @@
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Avoid some unnecessary locking.
+	I think this completes recommitting of all the changes made with
+	bugfixes to get them all to at least compile/link on my centos and
+	windowsxp systems and to pass the testsuite on centos.
 
 2011-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
