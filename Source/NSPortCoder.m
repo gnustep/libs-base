@@ -41,7 +41,6 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSPort.h"
-#import "GSPrivate.h"
 
 @class	NSMutableDataMalloc;
 @interface NSMutableDataMalloc : NSObject	// Help the compiler
@@ -617,17 +616,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		      obj = rep;
 		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
 		    }
-#ifdef __clang__
-{
-  /* We store the object in 'dummy' for no other purpose than to silence
-   * the clang static analyser's warning that we are leaking memory, which
-   * occurs because it doesn't realise that the object was already stored
-   * later deallocation.
-   */
-  gsPrivateDummy = rep;
-}
-#endif
-
+		  GS_CONSUMED(rep)
 		}
 	    }
 	  *(id*)address = obj;
@@ -735,16 +724,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	       */
 	      address = &dummy;
 	      (*_dTagImp)(_src, dTagSel, &info, &xref, &_cursor);
-#ifdef __clang__
-{
-  /* We store the object in 'dummy' for no other purpose than to silence
-   * the clang static analyser's warning that we are leaking memory, which
-   * occurs because it doesn't realise that the object was already stored
-   * later deallocation.
-   */
-  gsPrivateDummy = classInfo;
-}
-#endif
+	      GS_CONSUMED(classInfo)
 	    }
 	  if (info != _GSC_NONE)
 	    {

@@ -525,8 +525,10 @@ NSEnumerateMapTable(NSMapTable *table)
   else
     {
       NSMapEnumerator	v = {0, 0, 0};
+      NSEnumerator	*e = [[table keyEnumerator] retain];
 
-      v.node = (void*)[[table keyEnumerator] retain];
+      v.node = (void*)e;
+      GS_CONSUMED(e)
       v.bucket = (unsigned long)(uintptr_t)table;
       return v;
     }
