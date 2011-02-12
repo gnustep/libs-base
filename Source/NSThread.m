@@ -460,6 +460,18 @@ unregisterActiveThread(NSThread *thread)
       t = [self new];
       t->_active = YES;
       pthread_setspecific(thread_object_key, t);
+
+#ifdef __clang__
+{
+  /* We store the thread in 'dummy' for no other purpose than to silence
+   * the clang static analyser's warning that we are leaking memory, which
+   * occurs because it doesn't realise that pthread_setspecific() stores
+   * the thread for later deallocation.
+   */
+  gsPrivateDummy = t;
+}
+#endif
+
       return YES;
     }
   return NO;

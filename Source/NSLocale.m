@@ -135,12 +135,16 @@ static NSLocaleLanguageDirection _ICUToNSLocaleOrientation (ULayoutType layout)
 static NSArray *_currencyCodesWithType (uint32_t currType)
 {
   NSArray *result;
-  NSMutableArray *currencies = [[NSMutableArray alloc] initWithCapacity: 10];
+  NSMutableArray *currencies;
   UErrorCode err = U_ZERO_ERROR;
   const char *currCode;
-  UEnumeration *codes = ucurr_openISOCurrencies (currType, &err);
+  UEnumeration *codes;
+
+  codes = ucurr_openISOCurrencies (currType, &err);
   if (U_FAILURE(err))
     return nil;
+
+  currencies = [[NSMutableArray alloc] initWithCapacity: 10];
 
   do
     {
@@ -151,6 +155,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
       if (U_FAILURE(err))
         {
           uenum_close (codes);
+	  [currencies release];
           return nil;
         }
       if (currCode == NULL)
@@ -160,7 +165,7 @@ static NSArray *_currencyCodesWithType (uint32_t currType)
 
   uenum_close (codes);
   result = [NSArray arrayWithArray: currencies];
-  RELEASE (currencies);
+  [currencies release];
   return result;
 }
 #endif

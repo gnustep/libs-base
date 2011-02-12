@@ -577,6 +577,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	    {
 	      GSIArrayAddItem(&info->array, (GSIArrayItem)((id)s));
 	    }
+#ifdef __clang__
+{
+  /* We store the object in 'dummy' for no other purpose than to silence
+   * the clang static analyser's warning that we are leaking memory, which
+   * occurs because it doesn't realise that the object was already stored
+   * later deallocation.
+   */
+  gsPrivateDummy = s;
+}
+#endif
 	  return s;
 	}
 
@@ -613,6 +623,16 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	    {
 	      GSIArrayAddItem(&info->array, (GSIArrayItem)((id)s));
 	    }
+#ifdef __clang__
+{
+  /* We store the object in 'dummy' for no other purpose than to silence
+   * the clang static analyser's warning that we are leaking memory, which
+   * occurs because it doesn't realise that the object was already stored
+   * later deallocation.
+   */
+  gsPrivateDummy = rep;
+}
+#endif
 	  return s;
 	}
 
