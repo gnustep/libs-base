@@ -144,7 +144,7 @@ extern "C" {
  *   </code>
  * </p>
  */
-- (id) unique: (id)anObject;
+- (id) unique: (id) NS_CONSUMED anObject NS_RETURNS_RETAINED;
 @end
 
 /*
@@ -165,7 +165,7 @@ void	GSUniquing(BOOL flag);
  * Thus, an -init method that wants to implement uniquing simply needs
  * to end with 'return GSUnique(self);'
  */
-id	GSUnique(id anObject);
+id	GSUnique(id NS_CONSUMED anObject) NS_RETURNS_RETAINED;
 
 /*
  * Management functions -
