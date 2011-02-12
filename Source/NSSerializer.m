@@ -630,7 +630,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
    * occurs because it doesn't realise that the object was already stored
    * later deallocation.
    */
-  gsPrivateDummy = rep;
+  gsPrivateDummy = s;
 }
 #endif
 	  return s;
