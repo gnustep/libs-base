@@ -4394,10 +4394,8 @@ static NSFileManager *fm = nil;
       r.length = l - r.location;
     }
 
-  return IMMUTABLE(s);
-#else
-  return [s stringByResolvingSymlinksInPath];
 #endif
+  return IMMUTABLE(s);
 }
 
 /**
