@@ -90,32 +90,48 @@
 
 - (id) notImplemented: (SEL)aSel
 {
+  char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
+
   [NSException
     raise: NSGenericException
-    format: @"method %@ not implemented in %@(%s)",
+    format: @"[%@%c%@] not implemented",
+    NSStringFromClass([self class]), c,
+    aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
+  return nil;
+}
+
+- (id) notImplemented: (SEL)aSel reason: (NSString*)reason
+{
+  char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
+
+  [NSException
+    raise: NSGenericException
+    format: @"[%@%c%@] not implemented ... %@",
+    NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)",
-    NSStringFromClass([self class]),
-    GSObjCIsInstance(self) ? "instance" : "class"];
+    reason];
   return nil;
 }
 
 - (id) shouldNotImplement: (SEL)aSel
 {
+  char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
+
   [NSException
     raise: NSGenericException
-    format: @"%@(%s) should not implement %@",
-    NSStringFromClass([self class]),
-    GSObjCIsInstance(self) ? "instance" : "class",
+    format: @"[%@%c%@] should not be implemented",
+    NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
   return nil;
 }
 
 - (id) subclassResponsibility: (SEL)aSel
 {
-  [NSException raise: NSInvalidArgumentException
-    format: @"subclass %@(%s) should override %@",
-    NSStringFromClass([self class]),
-    GSObjCIsInstance(self) ? "instance" : "class",
+  char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
+
+  [NSException raise: NSGenericException
+    format: @"[%@%c%@] should be overridden by subclass",
+    NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
   return nil;
 }
