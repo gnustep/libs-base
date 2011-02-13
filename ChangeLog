@@ -1,3 +1,8 @@
+2011-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: NSFullUserName() ... use short name if
+	no long one is available.
+
 2011-02-13  Philippe Roussel <p.o.roussel@free.fr>
 
 	* Source/NSPointerArray.m: replace memcpy with memmove for safety.

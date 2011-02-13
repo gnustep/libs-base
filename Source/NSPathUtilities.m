@@ -1627,15 +1627,21 @@ NSFullUserName(void)
 {
   if (theFullUserName == nil)
     {
-      NSString	*userName = nil;
+      NSString	*userName = NSUserName();
 #if defined(__MINGW__)
       struct _USER_INFO_2	*userInfo;
 
-      if (NetUserGetInfo(NULL, (unichar*)[NSUserName() cStringUsingEncoding:
+      if (NetUserGetInfo(NULL, (unichar*)[userName cStringUsingEncoding:
 	NSUnicodeStringEncoding], 2, (LPBYTE*)&userInfo) == 0)
 	{
-	  userName = [NSString stringWithCharacters: userInfo->usri2_full_name
-	    length: wcslen(userInfo->usri2_full_name)];
+	  int	length = wcslen(userInfo->usri2_full_name);
+
+	  if (length > 0)
+	    {
+	      userName = [NSString
+		stringWithCharacters: userInfo->usri2_full_name
+		length: length];
+	    }
 	}
 #else
 #ifdef  HAVE_PWD_H
@@ -1644,27 +1650,28 @@ NSFullUserName(void)
       struct passwd *p;
       char buf[BUFSIZ*10];
 
-      if (getpwnam_r([NSUserName() cString], &pw, buf, sizeof(buf), &p) == 0)
+      if (getpwnam_r([userName cString], &pw, buf, sizeof(buf), &p) == 0)
         {
-          userName = [NSString stringWithUTF8String: pw.pw_gecos];
+	  if (*pw.pw_gecos)
+	    {
+              userName = [NSString stringWithUTF8String: pw.pw_gecos];
+	    }
         }
 #else
 #if     defined(HAVE_GETPWNAM)
       struct passwd	*pw;
 
       [gnustep_global_lock lock];
-      pw = getpwnam([NSUserName() cString]);
-      userName = [NSString stringWithUTF8String: pw->pw_gecos];
+      pw = getpwnam([userName cString]);
+      if (*pw.pw_gecos)
+	{
+          userName = [NSString stringWithUTF8String: pw->pw_gecos];
+        }
       [gnustep_global_lock lock];
 #endif /* HAVE_GETPWNAM */
 #endif /* HAVE_GETPWNAM_R */
 #endif /* HAVE_PWD_H */
 #endif /* defined(__Win32__) else */
-      if (userName == nil)
-        {
-          NSLog(@"Warning: NSFullUserName not implemented\n");
-          userName = NSUserName();
-        }
       ASSIGN(theFullUserName, userName);
     }
   return theFullUserName;
