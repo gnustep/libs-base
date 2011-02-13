@@ -77,13 +77,6 @@ extern "C" {
 - (id) notImplemented: (SEL)aSel GS_NORETURN_METHOD;
 
 /**
- * Message sent when an implementation wants to explicitly exclude a method
- * (but cannot due to compiler constraint), and wants to make sure it is not
- * called by mistake.  Default implementation raises an exception at runtime.
- */
-- (id) notImplemented: (SEL)aSel reason: (NSString*)reason GS_NORETURN_METHOD;
-
-/**
  * Message sent when an implementation wants to explicitly require a subclass
  * to implement a method (but cannot at compile time since there is no
  * <code>abstract</code> keyword in Objective-C).  Default implementation

@@ -1,12 +1,7 @@
 2011-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Headers/Additions/GNUstepBase/NSObject+GNUstepBase.h:
 	* Source/Additions/NSObject+GNUstepBase.m:
-	Add -notImplemented:reason: to raise an exception when someone used
-	a class/method which depends on another library not present at
-	configure time.
-	* Source/NSCalendar.m:
-	Raise exception if used when not implmented because of no UCU
+	Use more runtime functions directly.  Standardise exception formats.
 	* Source/ObjectiveC2/runtime.c: Fix some cases of dereferencing null
 	pointers.
 
