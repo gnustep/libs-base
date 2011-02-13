@@ -93,7 +93,7 @@
   char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
 
   [NSException
-    raise: NSGenericException
+    raise: NSInvalidArgumentException
     format: @"[%@%c%@] not implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
@@ -105,7 +105,7 @@
   char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
 
   [NSException
-    raise: NSGenericException
+    raise: NSInvalidArgumentException
     format: @"[%@%c%@] should not be implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
@@ -116,7 +116,7 @@
 {
   char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
 
-  [NSException raise: NSGenericException
+  [NSException raise: NSInvalidArgumentException
     format: @"[%@%c%@] should be overridden by subclass",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
