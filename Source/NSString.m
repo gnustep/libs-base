@@ -121,6 +121,11 @@ static NSLock			*placeholderLock;
 
 static SEL	cMemberSel = 0;
 
+/* Macro to return the receiver if it is already immutable, but an
+ * autoreleased copy otherwise.  Used where we have to return an
+ * immutable string, but we don't want to change the parameter from 
+ * a mutable string to an immutable one.
+ */
 #define	IMMUTABLE(S)	AUTORELEASE([(S) copyWithZone: NSDefaultMallocZone()])
 
 #define IS_BIT_SET(a,i) ((((a) & (1<<(i)))) > 0)
