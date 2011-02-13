@@ -102,21 +102,24 @@ skip_argspec(const char *types)
 static Method
 class_getInstanceMethodNonrecursive(Class aClass, SEL aSelector)
 {
-  struct objc_method_list *methods;
-
-  for (methods = aClass->methods;
-       methods != NULL; methods = methods->method_next)
+  if (Nil != aClass)
     {
-      int i;
+      struct objc_method_list *methods;
 
-      for (i = 0; i < methods->method_count; i++)
+      for (methods = aClass->methods;
+        methods != NULL; methods = methods->method_next)
 	{
-	  Method_t method = &methods->method_list[i];
+	  int i;
 
-	  if (method->method_name->sel_id == aSelector->sel_id)
-		{
-		  return method;
-		}
+	  for (i = 0; i < methods->method_count; i++)
+	    {
+	      Method_t method = &methods->method_list[i];
+
+	      if (method->method_name->sel_id == aSelector->sel_id)
+		    {
+		      return method;
+		    }
+	    }
 	}
     }
   return NULL;
@@ -148,7 +151,7 @@ class_addIvar(Class cls, const char *name,
   unsigned off;
   Ivar ivar;
 
-  if (CLS_ISRESOLV(cls) || CLS_ISMETA(cls))
+  if (Nil == cls || CLS_ISRESOLV(cls) || CLS_ISMETA(cls))
     {
       return NO;
     }
@@ -380,6 +383,10 @@ class_getInstanceMethod(Class aClass, SEL aSelector)
 Method
 class_getClassMethod(Class aClass, SEL aSelector)
 {
+  if (Nil == aClass)
+    {
+      return NULL;
+    }
   return class_getInstanceMethod(aClass->class_pointer, aSelector);
 }
 
@@ -393,13 +400,17 @@ class_getClassVariable(Class cls, const char *name)
 size_t
 class_getInstanceSize(Class cls)
 {
+  if (Nil == cls)
+    {
+      return 0;
+    }
   return cls->instance_size;
 }
 
 Ivar
 class_getInstanceVariable(Class cls, const char *name)
 {
-  if (name != NULL)
+  if (Nil != cls && NULL != name)
     {
       while (cls != Nil)
 	{
@@ -430,6 +441,10 @@ class_getInstanceVariable(Class cls, const char *name)
 const char *
 class_getIvarLayout(Class cls)
 {
+  if (Nil == cls)
+    {
+      return 0;
+    }
   return (char *) cls->ivars;
 }
 
@@ -444,18 +459,26 @@ class_getIvarLayout(Class cls)
 IMP
 class_getMethodImplementation(Class cls, SEL name)
 {
+  if (Nil == cls || 0 == name)
+    {
+      return 0;
+    }
   return (IMP) get_imp(cls, name);
 }
 IMP
 class_getMethodImplementation_stret(Class cls, SEL name)
 {
+  if (Nil == cls || 0 == name)
+    {
+      return 0;
+    }
   return (IMP) get_imp(cls, name);
 }
 
 const char *
 class_getName(Class cls)
 {
-  if (cls == Nil)
+  if (Nil == cls)
     {
       return "nil";	// This is what OSX does.
     }
@@ -471,6 +494,10 @@ void __objc_resolve_class_links(void);
 Class
 class_getSuperclass(Class cls)
 {
+  if (Nil == cls)
+    {
+      return 0;
+    }
   if (!CLS_ISRESOLV(cls))
     {
       /* This class is not yet resolved ... so lookup superclass by name.
@@ -485,9 +512,13 @@ class_getSuperclass(Class cls)
 }
 
 int
-class_getVersion(Class theClass)
+class_getVersion(Class cls)
 {
-  return class_get_version(theClass);
+  if (Nil == cls)
+    {
+      return 0;
+    }
+  return class_get_version(cls);
 }
 
 const char *
@@ -500,7 +531,11 @@ class_getWeakIvarLayout(Class cls)
 BOOL
 class_isMetaClass(Class cls)
 {
-  return CLS_ISMETA(cls);
+  if (Nil == cls || !CLS_ISMETA(cls))
+    {
+      return NO;
+    }
+  return YES;
 }
 
 IMP
