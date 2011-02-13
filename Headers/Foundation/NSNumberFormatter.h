@@ -138,14 +138,10 @@ typedef NSUInteger NSNumberFormatterRoundingMode;
   NSDictionary *_attributesForPositiveValues;
   NSDictionary *_attributesForNegativeValues;
   
-  // 10.4+ variables
+  // 10.4 variable
+@protected
   NSUInteger _behavior;
-  BOOL       _genDecimal;
-  NSUInteger _style;
-  NSLocale  *_locale;
-  void      *_formatter;
 #endif
-  GS_PADDING_IVAR;
 }
 
 // Format

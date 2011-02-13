@@ -1,3 +1,7 @@
+2011-02-13  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSNumberFormatter.m: Moved 10.4+ functionality to a subclass.
+
 2011-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: NSFullUserName() ... use short name if
