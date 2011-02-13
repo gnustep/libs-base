@@ -100,19 +100,6 @@
   return nil;
 }
 
-- (id) notImplemented: (SEL)aSel reason: (NSString*)reason
-{
-  char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
-
-  [NSException
-    raise: NSGenericException
-    format: @"[%@%c%@] not implemented ... %@",
-    NSStringFromClass([self class]), c,
-    aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)",
-    reason];
-  return nil;
-}
-
 - (id) shouldNotImplement: (SEL)aSel
 {
   char	c = (class_isMetaClass(object_getClass(self)) ? '+' : '-');
