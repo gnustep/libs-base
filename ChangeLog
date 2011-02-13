@@ -6,7 +6,6 @@
 	a class/method which depends on another library not present at
 	configure time.
 	* Source/NSCalendar.m:
-	* Source/NSLocale.m:
 	Raise exception if used when not implmented because of no UCU
 	* Source/ObjectiveC2/runtime.c: Fix some cases of dereferencing null
 	pointers.

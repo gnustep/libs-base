@@ -179,14 +179,6 @@ static NSMutableDictionary *allLocales = nil;
 static NSDictionary *canonicalLocales = nil;
 static NSRecursiveLock *classLock = nil;
 
-#if GS_USE_ICU == 0
-+ (id) allocWithZone: (NSZone*)z
-{
-  [self notImplemented: _cmd
-		reason: @"missing ICU support at configure time."];
-}
-#endif
-
 + (void) initialize
 {
   if (self == [NSLocale class])
