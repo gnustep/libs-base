@@ -1,3 +1,7 @@
+2011-02-13  Philippe Roussel <p.o.roussel@free.fr>
+
+	* Source/NSPointerArray.m: replace memcpy with memmove for safety.
+
 2011-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSObject+GNUstepBase.m:

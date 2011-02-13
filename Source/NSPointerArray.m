@@ -281,7 +281,7 @@ static Class	concreteClass = Nil;
 	    }
 	  if (i < _count - 1)
 	    {
-	      memcpy(_contents + j, _contents + i + 1,
+	      memmove(_contents + j, _contents + i + 1,
 		(_count - i) * sizeof(void*));
 	    }
 	  _count = i = j;
