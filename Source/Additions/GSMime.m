@@ -79,7 +79,7 @@
   unsigned		woffset;\
   BOOL			readable;\
   BOOL			writable;\
-  int			cState;\
+  int			cState
 
 
 #include <string.h>

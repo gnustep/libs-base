@@ -96,7 +96,8 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
 {
 #if	GS_NONFRAGILE
 #  if	defined(GS_NSConnection_IVARS)
-@public GS_NSConnection_IVARS
+@public
+GS_NSConnection_IVARS;
 #  endif
 #else
 @private id _internal;

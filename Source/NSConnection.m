@@ -64,7 +64,7 @@
   NSString		*_remoteName; \
   NSString		*_registeredName; \
   NSPortNameServer	*_nameServer; \
-  int			_lastKeepalive;
+  int			_lastKeepalive
 
 #define	EXPOSE_NSDistantObject_IVARS	1
 

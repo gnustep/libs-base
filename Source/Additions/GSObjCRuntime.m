@@ -469,15 +469,15 @@ GSObjCAddClasses(NSArray *classes)
 static BOOL behavior_debug = NO;
 
 BOOL
-GSObjCBehaviorDebug(int i)
+GSObjCBehaviorDebug(int setget)
 {
   BOOL	old = behavior_debug;
 
-  if (i == YES)
+  if (setget == 1)
     {
       behavior_debug = YES;
     }
-  else if (i == NO)
+  else if (setget == 0)
     {
       behavior_debug = NO;
     }

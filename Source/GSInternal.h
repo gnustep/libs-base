@@ -31,7 +31,7 @@
  * form:
  * #if	GS_NONFRAGILE
  * #  if defined(GS_X_IVARS)
- * @public GS_X_IVARS
+ * @public GS_X_IVARS;
  * #  endif
  * #else
  * @private id _internal;
@@ -70,7 +70,7 @@
 @interface	name ## Internal : NSObject \
 { \
 @public \
-GS_##name##_IVARS \
+GS_##name##_IVARS; \
 } \
 @end \
 @implementation	name ## Internal \

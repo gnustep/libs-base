@@ -1,5 +1,27 @@
 2011-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSFileManager.m:
+	* Source/GSInternal.h:
+	* Source/DocMakefile:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/NSConnection.m:
+	* Source/NSDateFormatter.m:
+	* Documentation/coding-standards.texi:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/Additions/GNUstepBase/GSMime.h:
+	* Tools/DocMakefile:
+	* Tools/AGSParser.m:
+	Documentation cleanups and fixes ... add new macros to list of symbols
+	to ignore.  Add support for @optional and @required. Add support for
+	method attributes.
+
+2011-02-14  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSPortCoder.h:
 	* Headers/Foundation/NSCache.h:
 	* Headers/Foundation/NSSpellServer.h:

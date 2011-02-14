@@ -181,19 +181,19 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 // GNUstep class extensions
 
 @interface NSFileHandle (GNUstepExtensions)
-+ (id) fileHandleAsServerAtAddress: (NSString*)a
-			   service: (NSString*)s
-			  protocol: (NSString*)p;
-+ (id) fileHandleAsClientAtAddress: (NSString*)a
-			   service: (NSString*)s
-			  protocol: (NSString*)p;
-+ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)a
-				       service: (NSString*)s
-				      protocol: (NSString*)p;
-+ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)a
-				       service: (NSString*)s
-				      protocol: (NSString*)p
-				      forModes: (NSArray*)m;
++ (id) fileHandleAsServerAtAddress: (NSString*)address
+			   service: (NSString*)service
+			  protocol: (NSString*)protocol;
++ (id) fileHandleAsClientAtAddress: (NSString*)address
+			   service: (NSString*)service
+			  protocol: (NSString*)protocol;
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
+				       service: (NSString*)service
+				      protocol: (NSString*)protocol;
++ (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
+				       service: (NSString*)service
+				      protocol: (NSString*)protocol
+				      forModes: (NSArray*)modes;
 - (void) readDataInBackgroundAndNotifyLength: (unsigned)len;
 - (void) readDataInBackgroundAndNotifyLength: (unsigned)len
 				    forModes: (NSArray*)modes;
