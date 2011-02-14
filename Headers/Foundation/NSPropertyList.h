@@ -274,7 +274,7 @@ typedef NSUInteger NSPropertyListFormat;
                       options: (NSPropertyListReadOptions)anOption
                        format: (NSPropertyListFormat*)aFormat
                         error: (NSError**)error;
-+ (NSInteger) writePropertyList: (id)plist
++ (NSInteger) writePropertyList: (id)aPropertyList
                        toStream: (NSOutputStream*)stream
                          format: (NSPropertyListFormat)aFormat
                         options: (NSPropertyListWriteOptions)anOption

@@ -305,13 +305,16 @@ GS_EXPORT NSString* const NSLoadedClasses;
    localized equivalent found.  This can be useful during development to check
    where a given string in the UI is "coming from".</p>
  */
+#ifdef __clang__
 - (NSString*) localizedStringForKey: (NSString*)key
 			      value: (NSString*)value
-			      table: (NSString*)tableName 
-#ifdef __clang__
-				  __attribute__((format_arg(1)))
+			      table: (NSString*)tableName
+				  __attribute__((format_arg(1)));
+#else
+- (NSString*) localizedStringForKey: (NSString*)key
+			      value: (NSString*)value
+			      table: (NSString*)tableName;
 #endif
-	;
 
 /** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;

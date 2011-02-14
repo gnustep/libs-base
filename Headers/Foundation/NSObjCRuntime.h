@@ -61,17 +61,14 @@ extern "C" {
 
 enum 
 {
-  /**
-   * Specifies that the enumeration is concurrency-safe.  Note that this does
-   * not mean that it will be carried out in a concurrent manner, only that
-   * it can be.
+  NSEnumerationConcurrent = (1UL << 0), /** Specifies that the enumeration
+   * is concurrency-safe.  Note that this does not mean that it will be
+   * carried out in a concurrent manner, only that it can be.
    */
-  NSEnumerationConcurrent = (1UL << 0),
-  /**
-   * Specifies that the enumeration should happen in the opposite of the
-   * natural order of the collection.
+
+  NSEnumerationReverse = (1UL << 1) /** Specifies that the enumeration should
+   * happen in the opposite of the natural order of the collection.
    */
-  NSEnumerationReverse = (1UL << 1)
 };
 
 /** Bitfield used to specify options to control enumeration over collections.

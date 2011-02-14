@@ -873,7 +873,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   return result;
 }
 
-+ (NSString *) dateFormatFromTemplate: (NSString *) template
++ (NSString *) dateFormatFromTemplate: (NSString *) aTemplate
                               options: (NSUInteger) opts
                                locale: (NSLocale *) locale
 {
@@ -889,9 +889,9 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   if (U_FAILURE(err))
     return nil;
   
-  if ((patLen = [template length]) > BUFFER_SIZE)
+  if ((patLen = [aTemplate length]) > BUFFER_SIZE)
     patLen = BUFFER_SIZE;
-  [template getCharacters: pat range: NSMakeRange(0, patLen)];
+  [aTemplate getCharacters: pat range: NSMakeRange(0, patLen)];
   
   skelLen = udatpg_getSkeleton (datpg, pat, patLen, skel, BUFFER_SIZE, &err);
   if (U_FAILURE(err))

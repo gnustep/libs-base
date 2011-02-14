@@ -1400,7 +1400,8 @@ recheck:
 	  [d setObject: s forKey: @"Name"];
 	}
       /* We parse enum comment of the form:
-         <introComment> enum { field1, <comment1> field2 <comment2> } bla; */
+       * <introComment> enum { <comment1> field1, <comment2> field2 } bla;
+       */
       if (isEnum && [self parseSpace] < length && buffer[pos] == '{')
 	{
           NSString *ident;
@@ -1419,44 +1420,43 @@ recheck:
 
           // TODO: We should put the parsed field into the doc index and 
           // let AGSOutput generate the deflist.
-           while (buffer[pos] != '}')
+	  while (buffer[pos] != '}')
             {
+	      /*
+		 A comment belongs with the declaration following it,
+		 unless it begins on the same line as a declaration.
+                 Six combinations can be parsed:
+                 - fieldDecl,
+                 - <comment> fieldDecl,
+                 - fieldDecl, <comment>
+                 - <comment> fieldDecl, <comment>
+                 - fieldDecl }
+                 - <comment> fieldDecl }
+	       */
+
+	      /* Parse any space and comments before the identifier into
+	       * 'comment' and get the identifier in 'ident'.
+	       */
               ident = [self parseIdentifier];
-              /* Discard any comment parsed before the identifier */
-              if (comment != nil)
-                {
-                  [self log: @"Ignoring comment before first field %@ in %@", 
-                    comment, ident, s];
-                  DESTROY(comment);
-                }
 
               /* Skip the left-hand side such as ' = aValue'
-
-                 Four combinations can be parsed:
-                 - fieldDecl,
-                 - fieldDelc, <comment> 
-                 - fieldDecl }
-                 - fieldDelc <comment> } */
-              while (buffer[pos] != ',' && buffer[pos] != '}')
+	       */
+              while (pos < length && buffer[pos] != ',' && buffer[pos] != '}')
                 {
-                  BOOL foundComment = (buffer[pos] == '/' && buffer[pos + 1] == '*');
-
-                  if (foundComment)
-                    break;
-
                   pos++;
                 }
               if (buffer[pos] == ',')
+		{
+                  /* Parse any more space on the same line as the identifier
+		   * appending it to the 'comment' ivar
+		   */
+		  [self parseSpace: spaces];
                   pos++;
-
-              [self parseSpace]; /* Parse doc comment into 'comment' ivar */
-
-              [fieldComments appendString: @"<term><em>"];
-              if (comment != nil)
-                foundFieldComment = YES;
+		}
 
               if (ident != nil)
                 {
+                  [fieldComments appendString: @"<term><em>"];
                   [fieldComments appendString: ident];
                   [fieldComments appendString: @"</em></term>"];
                   [fieldComments appendString: @"<desc>"];
@@ -2430,7 +2430,6 @@ try:
 	  RELEASE(tmp);
 	  if ([val length] > 0)
 	    {
-	
 	      if ([val isEqualToString: @"//"] == YES)
 		{
 		  [self skipToEndOfLine];
@@ -2555,6 +2554,11 @@ fail:
   dict = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [self parseSpace: spaces];
   name = [self parseIdentifier];
+  if (nil == name)
+    {
+      // [self log: @"Missing name in #define"];
+      return nil;
+    }
   [self parseSpace: spaces];
   if (pos < length && buffer[pos] == '(')
     {
@@ -2711,6 +2715,30 @@ fail:
   while (buffer[pos] != term)
     {
       token = [self parseIdentifier];
+      if ([token isEqual: @"__attribute__"] == YES)
+	{
+	  if ([self skipSpaces] < length && buffer[pos] == '(')
+	    {
+	      unsigned	start = pos;
+	      NSString	*attr;
+
+	      [self skipBlock];	// Skip the attributes
+	      attr = [NSString stringWithCharacters: buffer + start
+					     length: pos - start];
+	      if ([attr rangeOfString: @"deprecated"].length > 0)
+		{
+		  [self appendComment: @"<em>Warning</em> this is "
+		    @"<em>deprecated</em> and may be removed in "
+		    @"future versions"
+		    to: nil];
+		}
+	    }
+	  else
+	    {
+	      [self log: @"strange format function attributes"];
+	    }
+	  continue;
+	}
       if ([self parseSpace] >= length)
 	{
 	  [self log: @"error at method name component"];
@@ -2924,7 +2952,8 @@ fail:
   if (orderedSymbolDecls == nil)
     {
       orderedSymbolDecls = [NSMutableArray array];
-      [orderedSymbolDeclsByUnit setObject: orderedSymbolDecls forKey: aUnitName];
+      [orderedSymbolDeclsByUnit setObject: orderedSymbolDecls
+				   forKey: aUnitName];
     }
   [orderedSymbolDecls addObject: aMethodOrFunc];
 }
@@ -2935,6 +2964,7 @@ fail:
   NSMutableDictionary	*method;
   NSMutableDictionary	*exist;
   NSString		*token;
+  BOOL			optionalMethods = NO;
 
   if (flag == YES)
     {
@@ -2986,6 +3016,10 @@ fail:
 	    if (method == nil)
 	      {
 		return nil;
+	      }
+	    if (YES == optionalMethods)
+	      {
+		[method setObject: @"YES" forKey: @"Optional"];
 	      }
 	    token = [method objectForKey: @"Name"];
 	    if (flag == YES)
@@ -3073,6 +3107,20 @@ fail:
 	    if ([token isEqual: @"end"] == YES)
 	      {
 		return methods;
+	      }
+	    else if ([token isEqual: @"optional"] == YES)
+	      {
+	        /* marking remaining methods as optional.
+	         */
+		optionalMethods = YES;
+		continue;
+	      }
+	    else if ([token isEqual: @"required"] == YES)
+	      {
+	        /* marking remaining methods as required.
+	         */
+		optionalMethods = NO;
+		continue;
 	      }
 	    else if ([token isEqual: @"class"] == YES)
 	      {

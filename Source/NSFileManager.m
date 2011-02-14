@@ -1721,22 +1721,22 @@ static NSStringEncoding	defaultEncoding;
  *   use the accessor methods where they are available.
  * </p>
  * <list>
- *   <item>[NSDictionary-fileCreationDate]</item>
- *   <item>[NSDictionary-fileExtensionHidden]</item>
- *   <item>[NSDictionary-fileHFSCreatorCode]</item>
- *   <item>[NSDictionary-fileHFSTypeCode]</item>
- *   <item>[NSDictionary-fileIsAppendOnly]</item>
- *   <item>[NSDictionary-fileIsImmutable]</item>
- *   <item>[NSDictionary-fileSize]</item>
- *   <item>[NSDictionary-fileType]</item>
- *   <item>[NSDictionary-fileOwnerAccountName]</item>
- *   <item>[NSDictionary-fileOwnerAccountID]</item>
- *   <item>[NSDictionary-fileGroupOwnerAccountName]</item>
- *   <item>[NSDictionary-fileGroupOwnerAccountID]</item>
- *   <item>[NSDictionary-fileModificationDate]</item>
- *   <item>[NSDictionary-filePosixPermissions]</item>
- *   <item>[NSDictionary-fileSystemNumber]</item>
- *   <item>[NSDictionary-fileSystemFileNumber]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileCreationDate]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileExtensionHidden]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileHFSCreatorCode]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileHFSTypeCode]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileIsAppendOnly]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileIsImmutable]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileSize]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileType]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileOwnerAccountName]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileOwnerAccountID]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileGroupOwnerAccountName]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileGroupOwnerAccountID]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileModificationDate]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-filePosixPermissions]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileSystemNumber]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileSystemFileNumber]</item>
  * </list>
  */
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path traverseLink: (BOOL)flag

@@ -293,8 +293,9 @@ typedef enum {
 @interface	GSMimeSMTPClient : NSObject
 {
 #if	GS_NONFRAGILE
-#  if	defined(GSMimeSMTPClient_IVARS)
-@public GSMimeSMTPClient_IVARS
+#  if	defined(GS_GSMimeSMTPClient_IVARS)
+@public
+GS_GSMimeSMTPClient_IVARS;
 #  endif
 #else
 @private id _internal;
