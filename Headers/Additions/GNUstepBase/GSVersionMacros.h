@@ -228,16 +228,6 @@
 
 #define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
 
-#ifdef GS_NONFRAGILE
-#  define GS_PADDING_IVAR
-#else
-#  ifdef __clang__
-#    define GS_PADDING_IVAR __attribute__((unused)) void *gs_unused;
-#  else
-#    define GS_PADDING_IVAR void *gs_unused;
-#  endif
-#endif
-
 /* Static analyser macros: Provide annotations to help the analyser */
 // TODO:  Make this more sensible when GCC supports __attribute__((unused)) on
 // ivars

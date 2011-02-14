@@ -75,7 +75,12 @@ extern "C" {
   NSMutableDictionary   *objects;
   NSMutableDictionary	*params;
 #endif
-  GS_PADDING_IVAR;
+#if     !GS_NONFRAGILE
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   */
+  void          *_reserved;
+#endif
 }
 + (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag;
 + (NSString*) makeToken: (NSString*)t preservingCase: (BOOL)preserve;
@@ -288,8 +293,8 @@ typedef enum {
 @interface	GSMimeSMTPClient : NSObject
 {
 #if	GS_NONFRAGILE
-#  if	defined(GS_GSMimeSMTPClient_IVARS)
-@public GS_GSMimeSMTPClient_IVARS
+#  if	defined(GSMimeSMTPClient_IVARS)
+@public GSMimeSMTPClient_IVARS
 #  endif
 #else
 @private id _internal;

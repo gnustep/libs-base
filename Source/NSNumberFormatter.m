@@ -198,16 +198,20 @@ _ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
 }
 #endif
 
-@interface NSNumberFormatter10_4 : NSNumberFormatter
-{
-  BOOL       _genDecimal;
-  NSUInteger _style;
-  NSLocale  *_locale;
-  void      *_formatter;
-}
-@end
 
-@interface NSNumberFormatter10_4 (PrivateMethods)
+// Internal data storage
+typedef struct {
+  NSUInteger _behavior;
+  BOOL       _genDecimal;	 
+  NSUInteger _style;	 
+  NSLocale  *_locale;	 
+  void      *_formatter;	 
+} Internal;
+ 
+#define this    ((Internal*)(self->_reserved))
+#define inst    ((Internal*)(o->_reserved))
+
+@interface NSNumberFormatter (PrivateMethods)
 - (void) _resetUNumberFormat;
 - (void) _setSymbol: (NSString *) string : (NSInteger) symbol;
 - (NSString *) _getSymbol: (NSInteger) symbol;
@@ -218,12 +222,6 @@ _ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
 @implementation NSNumberFormatter
 
 static NSUInteger _defaultBehavior = 0;
-
-+ (id) allocWithZone: (NSZone *) z
-{
-// Always return the subclass...
-  return [NSNumberFormatter10_4 allocWithZone: z];
-}
 
 - (BOOL) allowsFloats
 {
@@ -285,20 +283,30 @@ static NSUInteger _defaultBehavior = 0;
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  NSNumberFormatter	*c = (NSNumberFormatter*) NSCopyObject(self, 0, zone);
+  NSNumberFormatter	*o = (NSNumberFormatter*) NSCopyObject(self, 0, zone);
 
-  IF_NO_GC(RETAIN(c->_negativeFormat);)
-  IF_NO_GC(RETAIN(c->_positiveFormat);)
-  IF_NO_GC(RETAIN(c->_attributesForPositiveValues);)
-  IF_NO_GC(RETAIN(c->_attributesForNegativeValues);)
-  IF_NO_GC(RETAIN(c->_maximum);)
-  IF_NO_GC(RETAIN(c->_minimum);)
-  IF_NO_GC(RETAIN(c->_roundingBehavior);)
-  IF_NO_GC(RETAIN(c->_attributedStringForNil);)
-  IF_NO_GC(RETAIN(c->_attributedStringForNotANumber);)
-  IF_NO_GC(RETAIN(c->_attributedStringForZero);)
-
-  return c;
+  IF_NO_GC(RETAIN(o->_negativeFormat);)
+  IF_NO_GC(RETAIN(o->_positiveFormat);)
+  IF_NO_GC(RETAIN(o->_attributesForPositiveValues);)
+  IF_NO_GC(RETAIN(o->_attributesForNegativeValues);)
+  IF_NO_GC(RETAIN(o->_maximum);)
+  IF_NO_GC(RETAIN(o->_minimum);)
+  IF_NO_GC(RETAIN(o->_roundingBehavior);)
+  IF_NO_GC(RETAIN(o->_attributedStringForNil);)
+  IF_NO_GC(RETAIN(o->_attributedStringForNotANumber);)
+  IF_NO_GC(RETAIN(o->_attributedStringForZero);)
+  if (0 != this)
+    {
+      o->_reserved = NSZoneCalloc([self zone], 1, sizeof(Internal));
+      memcpy(inst, this, sizeof(Internal));
+      IF_NO_GC(RETAIN(inst->_locale);)
+      if (inst->_formatter != NULL)
+	{
+	  inst->_formatter = NULL;
+	  [o _resetUNumberFormat];
+	}
+    }
+  return o;
 }
 
 - (void) dealloc
@@ -313,15 +321,34 @@ static NSUInteger _defaultBehavior = 0;
   RELEASE(_attributedStringForNil);
   RELEASE(_attributedStringForNotANumber);
   RELEASE(_attributedStringForZero);
+  if (this != 0)
+    {
+      RELEASE(this->_locale);
+#if GS_USE_ICU == 1
+      unum_close (this->_formatter);
+#endif
+      NSZoneFree([self zone], this);
+    }
   [super dealloc];
 }
 
 - (NSString*) decimalSeparator
 {
-  if (_decimalSeparator == 0)
-    return @"";
-  else
-    return [NSString stringWithCharacters: &_decimalSeparator length: 1];
+  if (this->_behavior == NSNumberFormatterBehavior10_4
+    || this->_behavior == NSNumberFormatterBehaviorDefault)
+    {
+#if GS_USE_ICU == 1
+      return [self _getSymbol: UNUM_DECIMAL_SEPARATOR_SYMBOL];
+#endif
+    }
+  else if (this->_behavior == NSNumberFormatterBehavior10_0)
+    {
+      if (_decimalSeparator == 0)
+        return @"";
+      else
+        return [NSString stringWithCharacters: &_decimalSeparator length: 1];
+    }
+  return nil;
 }
 
 - (NSString*) editingStringForObjectValue: (id)anObject
@@ -413,6 +440,7 @@ static NSUInteger _defaultBehavior = 0;
 {
   id	o;
 
+  _reserved = NSZoneCalloc([self zone], 1, sizeof(Internal));
   _allowsFloats = YES;
   _decimalSeparator = '.';
   _thousandSeparator = ',';
@@ -424,7 +452,15 @@ static NSUInteger _defaultBehavior = 0;
   [self setAttributedStringForNotANumber: o];
   RELEASE(o);
   
-  _behavior = _defaultBehavior;
+  this->_behavior = _defaultBehavior;
+  this->_locale = RETAIN([NSLocale currentLocale]);
+  this->_style = NSNumberFormatterNoStyle;
+  [self _resetUNumberFormat];
+  if (this->_formatter == NULL)
+    {
+      RELEASE(self);
+      return nil;
+    }
   
   return self;
 }
@@ -604,10 +640,20 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setDecimalSeparator: (NSString*)newSeparator
 {
-  if ([newSeparator length] > 0)
-    _decimalSeparator = [newSeparator characterAtIndex: 0];
-  else
-    _decimalSeparator = 0;
+  if (this->_behavior == NSNumberFormatterBehavior10_4
+    || this->_behavior == NSNumberFormatterBehaviorDefault)
+    {
+#if GS_USE_ICU == 1
+      [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
+#endif
+    }
+  else if (this->_behavior == NSNumberFormatterBehavior10_0)
+    {
+      if ([newSeparator length] > 0)
+        _decimalSeparator = [newSeparator characterAtIndex: 0];
+      else
+        _decimalSeparator = 0;
+    }
 }
 
 - (void) setFormat: (NSString*)aFormat
@@ -698,870 +744,8 @@ static NSUInteger _defaultBehavior = 0;
 
 - (NSString*) stringForObjectValue: (id)anObject
 {
-  NSMutableDictionary	*locale;
-  NSCharacterSet	*formattingCharacters;
-  NSCharacterSet	*placeHolders;
-  NSString		*prefix;
-  NSString		*suffix;
-  NSString		*wholeString;
-  NSString		*fracPad = nil;
-  NSString		*fracPartString;
-  NSMutableString	*intPartString;
-  NSMutableString	*formattedNumber;
-  NSMutableString	*intPad;
-  NSRange		prefixRange;
-  NSRange		decimalPlaceRange;
-  NSRange		suffixRange;
-  NSRange		intPartRange;
-  NSDecimal		representativeDecimal;
-  NSDecimal		roundedDecimal;
-  NSDecimalNumber	*roundedNumber;
-  NSDecimalNumber	*intPart;
-  NSDecimalNumber	*fracPart;
-  int			decimalPlaces = 0;
-  BOOL			displayThousandsSeparators = NO;
-  BOOL			displayFractionalPart = NO;
-  BOOL			negativeNumber = NO;
-  NSString		*useFormat;
-  NSString		*defaultDecimalSeparator = nil;
-  NSString		*defaultThousandsSeparator = nil;
-
-  if (_localizesFormat)
-    {
-      NSDictionary *defaultLocale = GSDomainFromDefaultLocale();
-      defaultDecimalSeparator 
-  = [defaultLocale objectForKey: NSDecimalSeparator];
-      defaultThousandsSeparator 
-  = [defaultLocale objectForKey: NSThousandsSeparator];
-    }
-
-  if (defaultDecimalSeparator == nil)
-    {
-      defaultDecimalSeparator = @".";
-    }
-  if (defaultThousandsSeparator == nil)
-    {
-      defaultThousandsSeparator = @",";
-    }
-  formattingCharacters = [NSCharacterSet
-    characterSetWithCharactersInString: @"0123456789#.,_"];
-  placeHolders = [NSCharacterSet 
-    characterSetWithCharactersInString: @"0123456789#_"];
-
-  if (nil == anObject)
-    return [[self attributedStringForNil] string];
-  if (![anObject isKindOfClass: [NSNumber class]])
-    return [[self attributedStringForNotANumber] string];
-  if ([anObject isEqual: [NSDecimalNumber notANumber]])
-    return [[self attributedStringForNotANumber] string];
-  if (_attributedStringForZero
-      && [anObject isEqual: [NSDecimalNumber zero]])
-    return [[self attributedStringForZero] string];
-  
-  useFormat = _positiveFormat;
-  if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
-    == NSOrderedAscending)
-    {
-      useFormat = _negativeFormat;
-      negativeNumber = YES;
-    }
-
-  // if no format specified, use the same default that Cocoa does
-  if (nil == useFormat)
-    {
-      useFormat = [NSString stringWithFormat: @"%@#%@###%@##",
-          negativeNumber ? @"-" : @"",
-          defaultThousandsSeparator,
-          defaultDecimalSeparator];
-    }
-
-  prefixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters];
-  if (NSNotFound != prefixRange.location)
-    {
-      prefix = [useFormat substringToIndex: prefixRange.location];
-    }
-  else
-    {
-      prefix = @"";
-    }
-
-  locale = [NSMutableDictionary dictionaryWithCapacity: 3];
-  [locale setObject: @"" forKey: NSThousandsSeparator];
-  [locale setObject: @"" forKey: NSDecimalSeparator];
-
-  //should also set NSDecimalDigits?
-  
-  if ([self hasThousandSeparators]
-    && (0 != [useFormat rangeOfString: defaultThousandsSeparator].length))
-    {
-      displayThousandsSeparators = YES;
-    }
-
-  if ([self allowsFloats]
-    && (NSNotFound 
-  != [useFormat rangeOfString: defaultDecimalSeparator].location))
-    {
-      decimalPlaceRange = [useFormat rangeOfString: defaultDecimalSeparator
-	           options: NSBackwardsSearch];
-      if (NSMaxRange(decimalPlaceRange) == [useFormat length])
-        {
-          decimalPlaces = 0;
-        }
-      else
-        {
-          while ([placeHolders characterIsMember:
-      [useFormat characterAtIndex: NSMaxRange(decimalPlaceRange)]])
-            {
-              decimalPlaceRange.length++;
-              if (NSMaxRange(decimalPlaceRange) == [useFormat length])
-                break;
-            }
-          decimalPlaces=decimalPlaceRange.length -= 1;
-          decimalPlaceRange.location += 1;
-          fracPad = [useFormat substringWithRange:decimalPlaceRange];
-        } 
-      if (0 != decimalPlaces)
-        displayFractionalPart = YES;
-    }
-
-  representativeDecimal = [anObject decimalValue];
-  NSDecimalRound(&roundedDecimal, &representativeDecimal, decimalPlaces,
-    NSRoundPlain);
-  roundedNumber =
-    [NSDecimalNumber decimalNumberWithDecimal: roundedDecimal];
-
-  /* Arguably this fiddling could be done by GSDecimalString() but I
-   * thought better to leave that behaviour as it is and provide the
-   * desired prettification here
-   */
-  if (negativeNumber)
-    roundedNumber = [roundedNumber decimalNumberByMultiplyingBy:
-      (NSDecimalNumber*)[NSDecimalNumber numberWithInt: -1]];
-  intPart = (NSDecimalNumber*)
-    [NSDecimalNumber numberWithInt: (int)[roundedNumber doubleValue]];
-  fracPart = [roundedNumber decimalNumberBySubtracting: intPart];
-  intPartString
-    = AUTORELEASE([[intPart descriptionWithLocale: locale] mutableCopy]);
-  
-  //sort out the padding for the integer part
-  intPartRange = [useFormat rangeOfCharacterFromSet: placeHolders];
-  if (NSMaxRange(intPartRange) < ([useFormat length] - 1))
-    {
-      while (([placeHolders characterIsMember:
-        [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
-        || [[useFormat substringFromRange:
-          NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual:
-      defaultThousandsSeparator])
-        && NSMaxRange(intPartRange) < [useFormat length] - 1)
-        {
-          intPartRange.length++;
-        }
-    }
-  intPad = [[[useFormat substringWithRange: intPartRange]
-mutableCopy] autorelease];
-  [intPad replaceOccurrencesOfString: defaultThousandsSeparator
-    withString: @""
-    options: 0
-    range: NSMakeRange(0, [intPad length])];
-  [intPad replaceOccurrencesOfString: @"#"
-    withString: @""
-    options: NSAnchoredSearch
-    range: NSMakeRange(0, [intPad length])];
-  if ([intPad length] > [intPartString length])
-    {
-      NSRange		ipRange;
-
-      ipRange =
-        NSMakeRange(0, [intPad length] - [intPartString length] + 1);
-      [intPartString insertString:
-        [intPad substringWithRange: ipRange] atIndex: 0];
-      [intPartString replaceOccurrencesOfString: @"_"
-  withString: @" "
-  options: 0
-  range: NSMakeRange(0, [intPartString length])];
-      [intPartString replaceOccurrencesOfString: @"#"
-  withString: @"0"
-  options: 0
-  range: NSMakeRange(0, [intPartString length])];
-    }
-  // fix the thousands separators up
-  if (displayThousandsSeparators && [intPartString length] > 3)
-    {
-      int index = [intPartString length];
-
-      while (0 < (index -= 3))
-  {
-    [intPartString insertString: [self thousandSeparator]
-		  atIndex: index];
-  }
-    }
-
-  formattedNumber = [intPartString mutableCopy];
-
-  //fix up the fractional part
-  if (displayFractionalPart)
-    {
-      if (0 != decimalPlaces)
-        {
-    NSMutableString	*ms;
-
-          fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
-decimalPlaces];
-          ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
-          [ms replaceOccurrencesOfString: @"0"
-withString: @""
-options: (NSBackwardsSearch | NSAnchoredSearch)
-range: NSMakeRange(0, [ms length])];
-          if ([fracPad length] > [ms length])
-            {
-              NSRange fpRange;
-
-              fpRange = NSMakeRange([ms length],
-    ([fracPad length] - [ms length]));
-              [ms appendString:
-    [fracPad substringWithRange: fpRange]];
-              [ms replaceOccurrencesOfString: @"#"
-    withString: @""
-    options: (NSBackwardsSearch | NSAnchoredSearch)
-    range: NSMakeRange(0, [ms length])];
-              [ms replaceOccurrencesOfString: @"#"
-    withString: @"0"
-    options: 0
-    range: NSMakeRange(0, [ms length])];
-              [ms replaceOccurrencesOfString: @"_"
-    withString: @" "
-    options: 0
-    range: NSMakeRange(0, [ms length])];
-            }
-    fracPartString = AUTORELEASE(ms);
-        }
-      else
-        {
-          fracPartString = @"0";
-        }
-      [formattedNumber appendString: [self decimalSeparator]];
-      [formattedNumber appendString: fracPartString];
-    }
-  /*FIXME - the suffix doesn't behave the same as on Mac OS X.
-   * Our suffix is everything which follows the final formatting
-   * character.  Cocoa's suffix is everything which isn't a
-   * formatting character nor in the prefix
-   */
-  suffixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters
-    options: NSBackwardsSearch];
-  suffix = [useFormat substringFromIndex: NSMaxRange(suffixRange)];
-  wholeString = [[prefix stringByAppendingString: formattedNumber]
-    stringByAppendingString: suffix];
-  [formattedNumber release];
-  return wholeString;
-}
-
-- (NSDictionary*) textAttributesForNegativeValues
-{
-  return _attributesForNegativeValues;
-}
-
-- (NSDictionary*) textAttributesForPositiveValues
-{
-  return _attributesForPositiveValues;
-}
-
-- (NSString*) thousandSeparator
-{
-  if (!_thousandSeparator)
-    return @"";
-  else
-    return [NSString stringWithCharacters: &_thousandSeparator length: 1];
-}
-
-- (NSString *) stringFromNumber: (NSNumber *)number
-{
-  return [self stringForObjectValue: number];
-}
-
-- (NSNumber *) numberFromString: (NSString *)string
-{
-  return nil;
-}
-
-- (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior
-{
-  _behavior = behavior;
-}
-
-- (NSNumberFormatterBehavior) formatterBehavior
-{
-  return _behavior;
-}
-
-+ (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior
-{
-  _defaultBehavior = behavior;
-}
-
-+ (NSNumberFormatterBehavior) defaultFormatterBehavior
-{
-  return _defaultBehavior;
-}
-
-- (void) setNumberStyle: (NSNumberFormatterStyle) style
-{
-  return;
-}
-
-- (NSNumberFormatterStyle) numberStyle
-{
-  return 0;
-}
-
-- (void) setGeneratesDecimalNumbers: (BOOL) flag
-{
-  return;
-}
-
-- (BOOL) generatesDecimalNubmers
-{
-  return NO;
-}
-
-
-- (void) setLocale: (NSLocale *) locale
-{
-  return;
-}
-
-- (NSLocale *) locale
-{
-  return nil;
-}
-
-
-- (void) setRoundingIncrement: (NSNumber *) number
-{
-  return;
-}
-
-- (NSNumber *) roundingIncrement
-{
-  return nil;
-}
-
-- (void) setRoundingMode: (NSNumberFormatterRoundingMode) mode
-{
-  return;
-}
-
-- (NSNumberFormatterRoundingMode) roundingMode
-{
-  return 0;
-}
-
-- (void) setFormatWidth: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) formatWidth
-{
-  return 0;
-}
-
-- (void) setMultiplier: (NSNumber *) number
-{
-  return;
-}
-
-- (NSNumber *) multiplier
-{
-  return nil;
-}
-
-
-- (void) setPercentSymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) percentSymbol
-{
-  return nil;
-}
-
-- (void) setPerMillSymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) perMillSymbol
-{
-  return nil;
-}
-
-- (void) setMinusSign: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) minusSign
-{
-  return nil;
-}
-
-- (void) setPlusSign: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) plusSign
-{
-  return nil;
-}
-
-- (void) setExponentSymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) exponentSymbol
-{
-  return nil;
-}
-
-- (void) setZeroSymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) zeroSymbol
-{
-  return nil;
-}
-
-- (void) setNilSymbol: (NSString *) string
-{
-  return; // FIXME
-}
-
-- (NSString *) nilSymbol
-{
-  return nil; // FIXME
-}
-
-- (void) setNotANumberSymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) notANumberSymbol
-{
-  return nil;
-}
-
-- (void) setNegativeInfinitySymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) negativeInfinitySymbol
-{
-  return nil;
-}
-
-- (void) setPositiveInfinitySymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) positiveInfinitySymbol
-{
-  return nil;
-}
-
-
-- (void) setCurrencySymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) currencySymbol
-{
-  return nil;
-}
-
-- (void) setCurrencyCode: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) currencyCode
-{
-  return nil;
-}
-
-- (void) setInternationalCurrencySymbol: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) internationalCurrencySymbol
-{
-  return nil;
-}
-
-
-- (void) setPositivePrefix: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) positivePrefix
-{
-  return nil;
-}
-
-- (void) setPositiveSuffix: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) positiveSuffix
-{
-  return nil;
-}
-
-- (void) setNegativePrefix: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) negativePrefix
-{
-  return nil;
-}
-
-- (void) setNegativeSuffix: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) negativeSuffix
-{
-  return nil;
-}
-
-
-- (void) setTextAttributesForZero: (NSDictionary *) newAttributes
-{
-  return;  // FIXME
-}
-
-- (NSDictionary *) textAttributesForZero
-{
-  return nil; // FIXME
-}
-
-- (void) setTextAttributesForNil: (NSDictionary *) newAttributes
-{
-  return;
-}
-
-- (NSDictionary *) textAttributesForNil
-{
-  return nil; // FIXME
-}
-
-- (void) setTextAttributesForNotANumber: (NSDictionary *) newAttributes
-{
-  return; // FIXME
-}
-
-- (NSDictionary *) textAttributesForNotANumber
-{
-  return nil; // FIXME
-}
-
-- (void) setTextAttributesForPositiveInfinity: (NSDictionary *) newAttributes
-{
-  return; // FIXME
-}
-
-- (NSDictionary *) textAttributesForPositiveInfinity
-{
-  return nil; // FIXME
-}
-
-- (void) setTextAttributesForNegativeInfinity: (NSDictionary *) newAttributes
-{
-  return; // FIXME
-}
-
-- (NSDictionary *) textAttributesForNegativeInfinity
-{
-  return nil; // FIXME
-}
-
-
-- (void) setGroupingSeparator: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) groupingSeparator
-{
-  return nil;
-}
-
-- (void) setUsesGroupingSeparator: (BOOL) flag
-{
-  return;
-}
-
-- (BOOL) usesGroupingSeparator
-{
-  return NO;
-}
-
-- (void) setAlwaysShowsDecimalSeparator: (BOOL) flag
-{
-  return;
-}
-
-- (BOOL) alwaysShowsDecimalSeparator
-{
-  return NO;
-}
-
-- (void) setCurrencyDecimalSeparator: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) currencyDecimalSeparator
-{
-  return nil;
-}
-
-- (void) setGroupingSize: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) groupingSize
-{
-  return 3;
-}
-
-- (void) setSecondaryGroupingSize: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) secondaryGroupingSize
-{
-  return 0;
-}
-
-
-- (void) setPaddingCharacter: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) paddingCharacter
-{
-  return nil;
-}
-
-- (void) setPaddingPosition: (NSNumberFormatterPadPosition) position
-{
-  return;
-}
-
-- (NSNumberFormatterPadPosition) paddingPosition
-{
-  return 0;
-}
-
-
-- (void) setMinimumIntegerDigits: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) minimumIntegerDigits
-{
-  return 0;
-}
-
-- (void) setMinimumFractionDigits: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) minimumFractionDigits
-{
-  return 0;
-}
-
-- (void) setMaximumIntegerDigits: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) maximumIntegerDigits
-{
-  return 0;
-}
-
-- (void) setMaximumFractionDigits: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) maximumFractionDigits
-{
-  return 0;
-}
-
-
-- (BOOL) getObjectValue: (out id *) anObject
-              forString: (NSString *) aString
-                  range: (NSRange) rangep
-                  error: (out NSError **) error
-{
-  return NO;
-}
-
-
-- (void) setUsesSignificantDigits: (BOOL) flag
-{
-  return;
-}
-
-- (BOOL) usesSignificantDigits
-{
-  return NO;
-}
-
-- (void) setMinimumSignificantDigits: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) minimumSignificantDigits
-{
-  return 0;
-}
-
-- (void) setMaximumSignificantDigits: (NSUInteger) number
-{
-  return;
-}
-
-- (NSUInteger) maximumSignificantDigits
-{
-  return 0;
-}
-
-
-- (void) setCurrencyGroupingSeparator: (NSString *) string
-{
-  return;
-}
-
-- (NSString *) currencyGroupingSeparator
-{
-  return nil;
-}
-
-
-- (void) setLenient: (BOOL) flag
-{
-  return;
-}
-
-- (BOOL) isLenient
-{
-  return NO;
-}
-
-
-- (void) setPartialStringValidationEnabled: (BOOL) enabled
-{
-  return;
-}
-
-- (BOOL) isPartialStringValidationEnabled
-{
-  return NO;
-}
-
-+ (NSString *) localizedStringFromNumber: (NSNumber *) num
-    numberStyle: (NSNumberFormatterStyle) localizationStyle
-{
-  return nil;
-}
-@end
-
-@implementation NSNumberFormatter10_4
-+ (id) allocWithZone: (NSZone *) z
-{
-  return NSAllocateObject (self, 0, z);
-}
-
-- (id) init
-{
-  self = [super init];
-  if (self == nil)
-    return nil;
-  
-  _locale = RETAIN([NSLocale currentLocale]);
-  _style = NSNumberFormatterNoStyle;
-  [self _resetUNumberFormat];
-  if (_formatter == NULL)
-    {
-      RELEASE(self);
-      return nil;
-    }
-  
-  return self;
-}
-
-- (NSString*) decimalSeparator
-{
-  if (_behavior == NSNumberFormatterBehavior10_4
-    || _behavior == NSNumberFormatterBehaviorDefault)
-    {
-#if GS_USE_ICU == 1
-      return [self _getSymbol: UNUM_DECIMAL_SEPARATOR_SYMBOL];
-#endif
-    }
-  else if (_behavior == NSNumberFormatterBehavior10_0)
-    {
-      return [super decimalSeparator];
-    }
-  return nil;
-}
-
-- (void) setDecimalSeparator: (NSString*)newSeparator
-{
-  if (_behavior == NSNumberFormatterBehavior10_4
-    || _behavior == NSNumberFormatterBehaviorDefault)
-    {
-#if GS_USE_ICU == 1
-      [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
-#endif
-    }
-  else if (_behavior == NSNumberFormatterBehavior10_0)
-    {
-      [super setDecimalSeparator: newSeparator];
-    }
-}
-
-- (NSString *) stringForObjectValue: (id)anObject
-{
-  if (_behavior == NSNumberFormatterBehaviorDefault
-      || _behavior == NSNumberFormatterBehavior10_4)
+  if (this->_behavior == NSNumberFormatterBehaviorDefault
+      || this->_behavior == NSNumberFormatterBehavior10_4)
     {
 #if GS_USE_ICU == 1
 
@@ -1572,11 +756,11 @@ range: NSMakeRange(0, [ms length])];
     int32_t len; \
     NSString *result; \
     \
-    len = function (_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
+    len = function (this->_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
     if (len > MAX_BUFFER_SIZE) \
       outStr = NSZoneMalloc ([self zone], len * sizeof(UChar));\
     err = U_ZERO_ERROR; \
-    function (_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
+    function (this->_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
     result = [NSString stringWithCharacters: outStr length: len]; \
     if (len > MAX_BUFFER_SIZE) \
       NSZoneFree ([self zone], outStr); \
@@ -1631,15 +815,289 @@ range: NSMakeRange(0, [ms length])];
         }
 #endif
     }
-  else if (_behavior == NSNumberFormatterBehavior10_0)
+  else if (this->_behavior == NSNumberFormatterBehavior10_0)
     {
-      return [super stringForObjectValue: anObject];
+      NSMutableDictionary	*locale;
+      NSCharacterSet	*formattingCharacters;
+      NSCharacterSet	*placeHolders;
+      NSString		*prefix;
+      NSString		*suffix;
+      NSString		*wholeString;
+      NSString		*fracPad = nil;
+      NSString		*fracPartString;
+      NSMutableString	*intPartString;
+      NSMutableString	*formattedNumber;
+      NSMutableString	*intPad;
+      NSRange		prefixRange;
+      NSRange		decimalPlaceRange;
+      NSRange		suffixRange;
+      NSRange		intPartRange;
+      NSDecimal		representativeDecimal;
+      NSDecimal		roundedDecimal;
+      NSDecimalNumber	*roundedNumber;
+      NSDecimalNumber	*intPart;
+      NSDecimalNumber	*fracPart;
+      int			decimalPlaces = 0;
+      BOOL			displayThousandsSeparators = NO;
+      BOOL			displayFractionalPart = NO;
+      BOOL			negativeNumber = NO;
+      NSString		*useFormat;
+      NSString		*defaultDecimalSeparator = nil;
+      NSString		*defaultThousandsSeparator = nil;
+
+      if (_localizesFormat)
+        {
+          NSDictionary *defaultLocale = GSDomainFromDefaultLocale();
+          defaultDecimalSeparator 
+      = [defaultLocale objectForKey: NSDecimalSeparator];
+          defaultThousandsSeparator 
+      = [defaultLocale objectForKey: NSThousandsSeparator];
+        }
+
+      if (defaultDecimalSeparator == nil)
+        {
+          defaultDecimalSeparator = @".";
+        }
+      if (defaultThousandsSeparator == nil)
+        {
+          defaultThousandsSeparator = @",";
+        }
+      formattingCharacters = [NSCharacterSet
+        characterSetWithCharactersInString: @"0123456789#.,_"];
+      placeHolders = [NSCharacterSet 
+        characterSetWithCharactersInString: @"0123456789#_"];
+
+      if (nil == anObject)
+        return [[self attributedStringForNil] string];
+      if (![anObject isKindOfClass: [NSNumber class]])
+        return [[self attributedStringForNotANumber] string];
+      if ([anObject isEqual: [NSDecimalNumber notANumber]])
+        return [[self attributedStringForNotANumber] string];
+      if (_attributedStringForZero
+          && [anObject isEqual: [NSDecimalNumber zero]])
+        return [[self attributedStringForZero] string];
+      
+      useFormat = _positiveFormat;
+      if ([(NSNumber*)anObject compare: [NSDecimalNumber zero]]
+        == NSOrderedAscending)
+        {
+          useFormat = _negativeFormat;
+          negativeNumber = YES;
+        }
+
+      // if no format specified, use the same default that Cocoa does
+      if (nil == useFormat)
+        {
+          useFormat = [NSString stringWithFormat: @"%@#%@###%@##",
+	            negativeNumber ? @"-" : @"",
+	            defaultThousandsSeparator,
+	            defaultDecimalSeparator];
+        }
+
+      prefixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters];
+      if (NSNotFound != prefixRange.location)
+        {
+          prefix = [useFormat substringToIndex: prefixRange.location];
+        }
+      else
+        {
+          prefix = @"";
+        }
+
+      locale = [NSMutableDictionary dictionaryWithCapacity: 3];
+      [locale setObject: @"" forKey: NSThousandsSeparator];
+      [locale setObject: @"" forKey: NSDecimalSeparator];
+
+      //should also set NSDecimalDigits?
+      
+      if ([self hasThousandSeparators]
+        && (0 != [useFormat rangeOfString: defaultThousandsSeparator].length))
+        {
+          displayThousandsSeparators = YES;
+        }
+
+      if ([self allowsFloats]
+        && (NSNotFound 
+      != [useFormat rangeOfString: defaultDecimalSeparator].location))
+        {
+          decimalPlaceRange = [useFormat rangeOfString: defaultDecimalSeparator
+			           options: NSBackwardsSearch];
+          if (NSMaxRange(decimalPlaceRange) == [useFormat length])
+            {
+              decimalPlaces = 0;
+            }
+          else
+            {
+              while ([placeHolders characterIsMember:
+          [useFormat characterAtIndex: NSMaxRange(decimalPlaceRange)]])
+                {
+                  decimalPlaceRange.length++;
+                  if (NSMaxRange(decimalPlaceRange) == [useFormat length])
+                    break;
+                }
+              decimalPlaces=decimalPlaceRange.length -= 1;
+              decimalPlaceRange.location += 1;
+              fracPad = [useFormat substringWithRange:decimalPlaceRange];
+            } 
+          if (0 != decimalPlaces)
+            displayFractionalPart = YES;
+        }
+
+      representativeDecimal = [anObject decimalValue];
+      NSDecimalRound(&roundedDecimal, &representativeDecimal, decimalPlaces,
+        NSRoundPlain);
+      roundedNumber =
+        [NSDecimalNumber decimalNumberWithDecimal: roundedDecimal];
+
+      /* Arguably this fiddling could be done by GSDecimalString() but I
+       * thought better to leave that behaviour as it is and provide the
+       * desired prettification here
+       */
+      if (negativeNumber)
+        roundedNumber = [roundedNumber decimalNumberByMultiplyingBy:
+          (NSDecimalNumber*)[NSDecimalNumber numberWithInt: -1]];
+      intPart = (NSDecimalNumber*)
+        [NSDecimalNumber numberWithInt: (int)[roundedNumber doubleValue]];
+      fracPart = [roundedNumber decimalNumberBySubtracting: intPart];
+      intPartString
+        = AUTORELEASE([[intPart descriptionWithLocale: locale] mutableCopy]);
+      
+      //sort out the padding for the integer part
+      intPartRange = [useFormat rangeOfCharacterFromSet: placeHolders];
+      if (NSMaxRange(intPartRange) < ([useFormat length] - 1))
+        {
+          while (([placeHolders characterIsMember:
+            [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
+            || [[useFormat substringFromRange:
+              NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual:
+          defaultThousandsSeparator])
+            && NSMaxRange(intPartRange) < [useFormat length] - 1)
+            {
+              intPartRange.length++;
+            }
+        }
+      intPad = [[[useFormat substringWithRange: intPartRange]
+	mutableCopy] autorelease];
+      [intPad replaceOccurrencesOfString: defaultThousandsSeparator
+        withString: @""
+        options: 0
+        range: NSMakeRange(0, [intPad length])];
+      [intPad replaceOccurrencesOfString: @"#"
+        withString: @""
+        options: NSAnchoredSearch
+        range: NSMakeRange(0, [intPad length])];
+      if ([intPad length] > [intPartString length])
+        {
+          NSRange		ipRange;
+
+          ipRange =
+            NSMakeRange(0, [intPad length] - [intPartString length] + 1);
+          [intPartString insertString:
+            [intPad substringWithRange: ipRange] atIndex: 0];
+          [intPartString replaceOccurrencesOfString: @"_"
+	    withString: @" "
+	    options: 0
+	    range: NSMakeRange(0, [intPartString length])];
+          [intPartString replaceOccurrencesOfString: @"#"
+	    withString: @"0"
+	    options: 0
+	    range: NSMakeRange(0, [intPartString length])];
+        }
+      // fix the thousands separators up
+      if (displayThousandsSeparators && [intPartString length] > 3)
+        {
+          int index = [intPartString length];
+
+          while (0 < (index -= 3))
+	    {
+	      [intPartString insertString: [self thousandSeparator]
+				  atIndex: index];
+	    }
+        }
+
+      formattedNumber = [intPartString mutableCopy];
+
+      //fix up the fractional part
+      if (displayFractionalPart)
+        {
+          if (0 != decimalPlaces)
+            {
+	      NSMutableString	*ms;
+
+              fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
+		decimalPlaces];
+              ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
+              [ms replaceOccurrencesOfString: @"0"
+		withString: @""
+		options: (NSBackwardsSearch | NSAnchoredSearch)
+		range: NSMakeRange(0, [ms length])];
+              if ([fracPad length] > [ms length])
+                {
+                  NSRange fpRange;
+
+                  fpRange = NSMakeRange([ms length],
+		    ([fracPad length] - [ms length]));
+                  [ms appendString:
+		    [fracPad substringWithRange: fpRange]];
+                  [ms replaceOccurrencesOfString: @"#"
+		    withString: @""
+		    options: (NSBackwardsSearch | NSAnchoredSearch)
+		    range: NSMakeRange(0, [ms length])];
+                  [ms replaceOccurrencesOfString: @"#"
+		    withString: @"0"
+		    options: 0
+		    range: NSMakeRange(0, [ms length])];
+                  [ms replaceOccurrencesOfString: @"_"
+		    withString: @" "
+		    options: 0
+		    range: NSMakeRange(0, [ms length])];
+                }
+	      fracPartString = AUTORELEASE(ms);
+            }
+          else
+            {
+              fracPartString = @"0";
+            }
+          [formattedNumber appendString: [self decimalSeparator]];
+          [formattedNumber appendString: fracPartString];
+        }
+      /*FIXME - the suffix doesn't behave the same as on Mac OS X.
+       * Our suffix is everything which follows the final formatting
+       * character.  Cocoa's suffix is everything which isn't a
+       * formatting character nor in the prefix
+       */
+      suffixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters
+        options: NSBackwardsSearch];
+      suffix = [useFormat substringFromIndex: NSMaxRange(suffixRange)];
+      wholeString = [[prefix stringByAppendingString: formattedNumber]
+        stringByAppendingString: suffix];
+      [formattedNumber release];
+      return wholeString;
     }
   return nil;
 }
 
+- (NSDictionary*) textAttributesForNegativeValues
+{
+  return _attributesForNegativeValues;
+}
+
+- (NSDictionary*) textAttributesForPositiveValues
+{
+  return _attributesForPositiveValues;
+}
+
+- (NSString*) thousandSeparator
+{
+  if (!_thousandSeparator)
+    return @"";
+  else
+    return [NSString stringWithCharacters: &_thousandSeparator length: 1];
+}
+
 - (NSString *) stringFromNumber: (NSNumber *)number
 {
+// This is a 10.4 and above method and should not work with earlier version.
   return [self stringForObjectValue: number];
 }
 
@@ -1669,7 +1127,7 @@ range: NSMakeRange(0, [ms length])];
   range = [string rangeOfString: @"."];
   if (range.location == NSNotFound)
     {
-      intNum = unum_parseInt64 (_formatter, ustring, length, NULL, &err);
+      intNum = unum_parseInt64 (this->_formatter, ustring, length, NULL, &err);
       if (U_FAILURE(err))
         return nil;
       if (intNum == 0 || intNum == 1)
@@ -1681,7 +1139,7 @@ range: NSMakeRange(0, [ms length])];
     }
   else
     {
-      doubleNum = unum_parseDouble (_formatter, ustring, length, NULL, &err);
+      doubleNum = unum_parseDouble (this->_formatter, ustring, length, NULL, &err);
       if (U_FAILURE(err))
         return nil;
       result = [NSNumber numberWithDouble: doubleNum];
@@ -1694,14 +1152,16 @@ range: NSMakeRange(0, [ms length])];
 #endif
 }
 
+
+
 - (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior
 {
-  _behavior = behavior;
+  this->_behavior = behavior;
 }
 
 - (NSNumberFormatterBehavior) formatterBehavior
 {
-  return _behavior;
+  return this->_behavior;
 }
 
 + (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior
@@ -1716,18 +1176,18 @@ range: NSMakeRange(0, [ms length])];
 
 - (void) setNumberStyle: (NSNumberFormatterStyle) style
 {
-  _style = style;
+  this->_style = style;
   [self _resetUNumberFormat];
 }
 
 - (NSNumberFormatterStyle) numberStyle
 {
-  return _style;
+  return this->_style;
 }
 
 - (void) setGeneratesDecimalNumbers: (BOOL) flag
 {
-  _genDecimal = flag;
+  this->_genDecimal = flag;
 }
 
 - (BOOL) generatesDecimalNubmers
@@ -1738,18 +1198,18 @@ range: NSMakeRange(0, [ms length])];
 
 - (void) setLocale: (NSLocale *) locale
 {
-  RELEASE(_locale);
+  RELEASE(this->_locale);
   
   if (locale == nil)
     locale = [NSLocale currentLocale];
-  _locale = RETAIN(locale);
+  this->_locale = RETAIN(locale);
   
   [self _resetUNumberFormat];
 }
 
 - (NSLocale *) locale
 {
-  return _locale;
+  return this->_locale;
 }
 
 
@@ -1757,7 +1217,7 @@ range: NSMakeRange(0, [ms length])];
 {
 #if GS_USE_ICU == 1
   if ([number class] == [NSDoubleNumber class])
-    unum_setDoubleAttribute (_formatter, UNUM_ROUNDING_INCREMENT,
+    unum_setDoubleAttribute (this->_formatter, UNUM_ROUNDING_INCREMENT,
       [number doubleValue]);
 #else
   return;
@@ -1767,7 +1227,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSNumber *) roundingIncrement
 {
 #if GS_USE_ICU == 1
-  double value = unum_getDoubleAttribute (_formatter, UNUM_ROUNDING_INCREMENT);
+  double value = unum_getDoubleAttribute (this->_formatter, UNUM_ROUNDING_INCREMENT);
   return [NSNumber numberWithDouble: value];
 #else
   return nil;
@@ -1777,7 +1237,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setRoundingMode: (NSNumberFormatterRoundingMode) mode
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_ROUNDING_MODE,
+  unum_setAttribute (this->_formatter, UNUM_ROUNDING_MODE,
     _NSToICURoundingMode(mode));
 #else
   return;
@@ -1787,7 +1247,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSNumberFormatterRoundingMode) roundingMode
 {
 #if GS_USE_ICU == 1
-  return _ICUToNSRoundingMode (unum_getAttribute (_formatter,
+  return _ICUToNSRoundingMode (unum_getAttribute (this->_formatter,
     UNUM_ROUNDING_MODE));
 #else
   return 0;
@@ -1798,7 +1258,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setFormatWidth: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_FORMAT_WIDTH, (int32_t)number);
+  unum_setAttribute (this->_formatter, UNUM_FORMAT_WIDTH, (int32_t)number);
 #else
   return;
 #endif
@@ -1807,7 +1267,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) formatWidth
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (_formatter, UNUM_FORMAT_WIDTH);
+  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_FORMAT_WIDTH);
 #else
   return 0;
 #endif
@@ -1817,7 +1277,7 @@ range: NSMakeRange(0, [ms length])];
 {
 #if GS_USE_ICU == 1
   int32_t value = [number intValue];
-  unum_setAttribute (_formatter, UNUM_MULTIPLIER, value);
+  unum_setAttribute (this->_formatter, UNUM_MULTIPLIER, value);
 #else
   return;
 #endif
@@ -1826,7 +1286,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSNumber *) multiplier
 {
 #if GS_USE_ICU == 1
-  int32_t value = unum_getAttribute (_formatter, UNUM_MULTIPLIER);
+  int32_t value = unum_getAttribute (this->_formatter, UNUM_MULTIPLIER);
   return [NSNumber numberWithInt: value];
 #else
   return nil;
@@ -2210,7 +1670,7 @@ range: NSMakeRange(0, [ms length])];
 {
 
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_GROUPING_USED, flag);
+  unum_setAttribute (this->_formatter, UNUM_GROUPING_USED, flag);
 #else
   return;
 #endif
@@ -2219,7 +1679,7 @@ range: NSMakeRange(0, [ms length])];
 - (BOOL) usesGroupingSeparator
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (_formatter, UNUM_GROUPING_USED);
+  return (BOOL)unum_getAttribute (this->_formatter, UNUM_GROUPING_USED);
 #else
   return NO;
 #endif
@@ -2228,7 +1688,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setAlwaysShowsDecimalSeparator: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_DECIMAL_ALWAYS_SHOWN, flag);
+  unum_setAttribute (this->_formatter, UNUM_DECIMAL_ALWAYS_SHOWN, flag);
 #else
   return;
 #endif
@@ -2237,7 +1697,7 @@ range: NSMakeRange(0, [ms length])];
 - (BOOL) alwaysShowsDecimalSeparator
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (_formatter, UNUM_DECIMAL_ALWAYS_SHOWN);
+  return (BOOL)unum_getAttribute (this->_formatter, UNUM_DECIMAL_ALWAYS_SHOWN);
 #else
   return NO;
 #endif
@@ -2264,7 +1724,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setGroupingSize: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_GROUPING_SIZE, number);
+  unum_setAttribute (this->_formatter, UNUM_GROUPING_SIZE, number);
 #else
   return;
 #endif
@@ -2273,7 +1733,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) groupingSize
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (_formatter, UNUM_GROUPING_SIZE);
+  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_GROUPING_SIZE);
 #else
   return 3;
 #endif
@@ -2282,7 +1742,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setSecondaryGroupingSize: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_SECONDARY_GROUPING_SIZE, number);
+  unum_setAttribute (this->_formatter, UNUM_SECONDARY_GROUPING_SIZE, number);
 #else
   return;
 #endif
@@ -2291,7 +1751,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) secondaryGroupingSize
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (_formatter,
+  return (NSUInteger)unum_getAttribute (this->_formatter,
     UNUM_SECONDARY_GROUPING_SIZE);
 #else
   return 3;
@@ -2320,7 +1780,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setPaddingPosition: (NSNumberFormatterPadPosition) position
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_PADDING_POSITION,
+  unum_setAttribute (this->_formatter, UNUM_PADDING_POSITION,
     _NSToICUPadPosition (position));
 #else
   return;
@@ -2330,7 +1790,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSNumberFormatterPadPosition) paddingPosition
 {
 #if GS_USE_ICU == 1
-  return _ICUToNSPadPosition(unum_getAttribute (_formatter,
+  return _ICUToNSPadPosition(unum_getAttribute (this->_formatter,
     UNUM_PADDING_POSITION));
 #else
   return 0;
@@ -2341,7 +1801,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setMinimumIntegerDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_MIN_INTEGER_DIGITS, number);
+  unum_setAttribute (this->_formatter, UNUM_MIN_INTEGER_DIGITS, number);
 #else
   return;
 #endif
@@ -2350,7 +1810,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) minimumIntegerDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (_formatter, UNUM_MIN_INTEGER_DIGITS);
+  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_MIN_INTEGER_DIGITS);
 #else
   return 0;
 #endif
@@ -2359,7 +1819,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setMinimumFractionDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_MIN_FRACTION_DIGITS, number);
+  unum_setAttribute (this->_formatter, UNUM_MIN_FRACTION_DIGITS, number);
 #else
   return;
 #endif
@@ -2368,7 +1828,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) minimumFractionDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (_formatter, UNUM_MIN_FRACTION_DIGITS);
+  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_MIN_FRACTION_DIGITS);
 #else
   return 0;
 #endif
@@ -2377,7 +1837,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setMaximumIntegerDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_MAX_INTEGER_DIGITS, number);
+  unum_setAttribute (this->_formatter, UNUM_MAX_INTEGER_DIGITS, number);
 #else
   return;
 #endif
@@ -2386,7 +1846,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) maximumIntegerDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (_formatter, UNUM_MAX_INTEGER_DIGITS);
+  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_MAX_INTEGER_DIGITS);
 #else
   return 0;
 #endif
@@ -2395,7 +1855,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setMaximumFractionDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_MAX_FRACTION_DIGITS, number);
+  unum_setAttribute (this->_formatter, UNUM_MAX_FRACTION_DIGITS, number);
 #else
   return;
 #endif
@@ -2404,7 +1864,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) maximumFractionDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (_formatter, UNUM_MAX_FRACTION_DIGITS);
+  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_MAX_FRACTION_DIGITS);
 #else
   return 0;
 #endif
@@ -2423,7 +1883,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setUsesSignificantDigits: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_SIGNIFICANT_DIGITS_USED, flag);
+  unum_setAttribute (this->_formatter, UNUM_SIGNIFICANT_DIGITS_USED, flag);
 #else
   return;
 #endif
@@ -2432,7 +1892,7 @@ range: NSMakeRange(0, [ms length])];
 - (BOOL) usesSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (_formatter, UNUM_SIGNIFICANT_DIGITS_USED);
+  return (BOOL)unum_getAttribute (this->_formatter, UNUM_SIGNIFICANT_DIGITS_USED);
 #else
   return NO;
 #endif
@@ -2441,7 +1901,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setMinimumSignificantDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_MIN_SIGNIFICANT_DIGITS, number);
+  unum_setAttribute (this->_formatter, UNUM_MIN_SIGNIFICANT_DIGITS, number);
 #else
   return;
 #endif
@@ -2450,7 +1910,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) minimumSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (_formatter, UNUM_MIN_SIGNIFICANT_DIGITS);
+  return (BOOL)unum_getAttribute (this->_formatter, UNUM_MIN_SIGNIFICANT_DIGITS);
 #else
   return 0;
 #endif
@@ -2459,7 +1919,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setMaximumSignificantDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_MAX_SIGNIFICANT_DIGITS, number);
+  unum_setAttribute (this->_formatter, UNUM_MAX_SIGNIFICANT_DIGITS, number);
 #else
   return;
 #endif
@@ -2468,7 +1928,7 @@ range: NSMakeRange(0, [ms length])];
 - (NSUInteger) maximumSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (_formatter, UNUM_MAX_SIGNIFICANT_DIGITS);
+  return (BOOL)unum_getAttribute (this->_formatter, UNUM_MAX_SIGNIFICANT_DIGITS);
 #else
   return 0;
 #endif
@@ -2497,7 +1957,7 @@ range: NSMakeRange(0, [ms length])];
 - (void) setLenient: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (_formatter, UNUM_LENIENT_PARSE, flag);
+  unum_setAttribute (this->_formatter, UNUM_LENIENT_PARSE, flag);
 #else
   return;
 #endif
@@ -2506,7 +1966,7 @@ range: NSMakeRange(0, [ms length])];
 - (BOOL) isLenient
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (_formatter, UNUM_LENIENT_PARSE);
+  return (BOOL)unum_getAttribute (this->_formatter, UNUM_LENIENT_PARSE);
 #else
   return NO;
 #endif
@@ -2542,9 +2002,10 @@ range: NSMakeRange(0, [ms length])];
   return nil;
 #endif
 }
+
 @end
 
-@implementation NSNumberFormatter10_4 (PrivateMethods)
+@implementation NSNumberFormatter (PrivateMethods)
 - (void) _resetUNumberFormat
 {
 #if GS_USE_ICU == 1
@@ -2552,15 +2013,15 @@ range: NSMakeRange(0, [ms length])];
   UErrorCode err = U_ZERO_ERROR;
   const char *cLocaleId;
   
-  if (_formatter)
-    unum_close(_formatter);
+  if (this->_formatter)
+    unum_close(this->_formatter);
   
-  cLocaleId = [[_locale localeIdentifier] UTF8String];
-  style = _NSToICUFormatStyle (_style);
+  cLocaleId = [[this->_locale localeIdentifier] UTF8String];
+  style = _NSToICUFormatStyle (this->_style);
   
-  _formatter = unum_open (style, NULL, 0, cLocaleId, NULL, &err);
+  this->_formatter = unum_open (style, NULL, 0, cLocaleId, NULL, &err);
   if (U_FAILURE(err))
-    _formatter = NULL;
+    this->_formatter = NULL;
   
   [self setMaximumFractionDigits: 0];
 #else
@@ -2581,7 +2042,7 @@ range: NSMakeRange(0, [ms length])];
     str = (unichar *)NSZoneMalloc ([self zone], length * sizeof(unichar));
   [string getCharacters: str range: NSMakeRange (0, length)];
   
-  unum_setSymbol (_formatter, symbol, str, length, &err);
+  unum_setSymbol (this->_formatter, symbol, str, length, &err);
   
   if (length > MAX_SYMBOL_SIZE)
     NSZoneFree ([self zone], str);
@@ -2599,12 +2060,12 @@ range: NSMakeRange(0, [ms length])];
   UErrorCode err = U_ZERO_ERROR;
   NSString *result;
   
-  length = unum_getSymbol (_formatter, symbol, str,
+  length = unum_getSymbol (this->_formatter, symbol, str,
     MAX_SYMBOL_SIZE, &err);
   if (length > MAX_SYMBOL_SIZE)
     {
       str = (UChar *)NSZoneMalloc ([self zone], length * sizeof(UChar));
-      length = unum_getSymbol (_formatter, symbol, str,
+      length = unum_getSymbol (this->_formatter, symbol, str,
         length, &err);
     }
   
@@ -2631,7 +2092,7 @@ range: NSMakeRange(0, [ms length])];
     str = (unichar *)NSZoneMalloc ([self zone], length * sizeof(unichar));
   [string getCharacters: str range: NSMakeRange (0, length)];
   
-  unum_setTextAttribute (_formatter, attrib, str, length, &err);
+  unum_setTextAttribute (this->_formatter, attrib, str, length, &err);
   
   if (length > MAX_TEXT_ATTRIB_SIZE)
     NSZoneFree ([self zone], str);
@@ -2649,12 +2110,12 @@ range: NSMakeRange(0, [ms length])];
   UErrorCode err = U_ZERO_ERROR;
   NSString *result;
   
-  length = unum_getTextAttribute (_formatter, attrib, str,
+  length = unum_getTextAttribute (this->_formatter, attrib, str,
     MAX_TEXT_ATTRIB_SIZE, &err);
   if (length > MAX_TEXT_ATTRIB_SIZE)
     {
       str = (UChar *)NSZoneMalloc ([self zone], length * sizeof(UChar));
-      length = unum_getTextAttribute (_formatter, attrib, str,
+      length = unum_getTextAttribute (this->_formatter, attrib, str,
         length, &err);
     }
   
@@ -2666,14 +2127,5 @@ range: NSMakeRange(0, [ms length])];
 #else
   return nil;
 #endif
-}
-
-- (void) dealloc
-{
-  RELEASE(_locale);
-#if GS_USE_ICU == 1
-  unum_close (_formatter);
-#endif
-  [super dealloc];
 }
 @end

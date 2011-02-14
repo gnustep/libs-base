@@ -203,7 +203,12 @@ typedef	uint32_t	OSType;
 @private
   NSString	*_lastError;
 #endif
-  GS_PADDING_IVAR;
+#if     !GS_NONFRAGILE
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   */
+  void          *_reserved;
+#endif
 }
 
 + (NSFileManager*) defaultManager;
@@ -387,7 +392,12 @@ typedef	uint32_t	OSType;
     BOOL justContents: 1;
   } _flags;
 #endif
-  GS_PADDING_IVAR;
+#if     !GS_NONFRAGILE
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   */
+  void          *_reserved;
+#endif
 }
 - (NSDictionary*) directoryAttributes;
 - (NSDictionary*) fileAttributes;
