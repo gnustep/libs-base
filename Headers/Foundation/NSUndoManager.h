@@ -98,7 +98,12 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
   unsigned		_disableCount;
   unsigned		_levelsOfUndo;
 #endif
-  GS_PADDING_IVAR;
+#if     !GS_NONFRAGILE
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   */
+  void          *_reserved;
+#endif
 }
 
 - (void) beginUndoGrouping;

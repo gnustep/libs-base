@@ -34,10 +34,17 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
 
 @interface NSRegularExpression : NSObject <NSCoding, NSCopying>
 {
-	@private
-	GSREGEXTYPE *regex;
-	NSRegularExpressionOptions options;
-	GS_PADDING_IVAR;
+#if	GS_EXPOSE(NSRegularExpression)
+  @private
+  GSREGEXTYPE *regex;
+  NSRegularExpressionOptions options;
+#endif
+#if     !GS_NONFRAGILE
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   */
+  void          *_reserved;
+#endif
 }
 + (NSRegularExpression*)regularExpressionWithPattern: (NSString*)aPattern
                                              options: (NSRegularExpressionOptions)opts

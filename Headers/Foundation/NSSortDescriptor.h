@@ -50,7 +50,12 @@ extern "C" {
   BOOL	_ascending;
   SEL	_selector;
 #endif
-  GS_PADDING_IVAR;
+#if     !GS_NONFRAGILE
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   */
+  void          *_reserved;
+#endif
 }
 
 /** Returns a flag indicating whether the sort descriptor sorts objects
