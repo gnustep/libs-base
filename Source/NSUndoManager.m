@@ -27,11 +27,37 @@
 #import "common.h"
 #define	EXPOSE_NSUndoManager_IVARS	1
 #import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSUndoManager.h"
+
+/*
+ * Localize a message of the gnustep-base library.
+ */
+static inline NSString *GSBaseLocalizedString (NSString *key)
+{
+  static NSBundle *baseBundle = nil;
+
+  if (!baseBundle)
+    {
+      /* Create the base bundle we use to localize messages.  */
+      baseBundle = [NSBundle bundleForLibrary: @"gnustep-base"
+			    version: OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)];
+      RETAIN(baseBundle);
+    }
+
+  if (baseBundle != nil)
+    {
+      return [baseBundle localizedStringForKey: key  value: @""  table: nil];
+    }
+  else
+    {
+      return key;
+    }
+}
 
 
 /*
@@ -685,20 +711,16 @@
  */
 - (NSString*) redoMenuTitleForUndoActionName: (NSString*)actionName
 {
-  /*
-   * FIXME: The terms @"Redo" and @"Redo %@" should be localized.
-   * Possibly with the introduction of GSBaseLocalizedString() private
-   * the the library.
-   */
   if (actionName)
     {
       if ([actionName isEqual: @""])
 	{
-	  return @"Redo";
+	  return GSBaseLocalizedString(@"Redo");
 	}
       else
 	{
-	  return [NSString stringWithFormat: @"Redo %@", actionName];
+	  return [NSString stringWithFormat: 
+			     GSBaseLocalizedString(@"Redo %@"), actionName];
 	}
     }
   return actionName;
@@ -970,20 +992,16 @@
  */
 - (NSString*) undoMenuTitleForUndoActionName: (NSString*)actionName
 {
-  /*
-   * FIXME: The terms @"Undo" and @"Undo %@" should be localized.
-   * Possibly with the introduction of GSBaseLocalizedString() private
-   * the the library.
-   */
   if (actionName)
     {
       if ([actionName isEqual: @""])
 	{
-	  return @"Undo";
+	  return GSBaseLocalizedString(@"Undo");
 	}
       else
 	{
-	  return [NSString stringWithFormat: @"Undo %@", actionName];
+	  return [NSString stringWithFormat: 
+			     GSBaseLocalizedString(@"Undo %@"), actionName];
 	}
     }
   return actionName;

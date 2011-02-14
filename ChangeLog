@@ -1,3 +1,9 @@
+2011-02-14  German Arias <german@xelalug.org>
+
+	* Resources/Spanish.lproj/Localizable.strings: Added localized strings
+	for undo/redo.
+	* Source/NSUndoManager.m: Added GSBaseLocalizedString() function.
+	
 2011-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m:
