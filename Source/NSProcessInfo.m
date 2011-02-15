@@ -103,7 +103,6 @@
 
 #import "GNUstepBase/GSConfig.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSBundle.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSDate.h"

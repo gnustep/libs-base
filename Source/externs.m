@@ -103,13 +103,6 @@ NSString *const NSIsNotNilTransformerName
 NSString *const NSUnarchiveFromDataTransformerName
   = @"NSUnarchiveFromData";
 
-/* NSBundle */
-NSString *NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
-
-NSString *NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
-
-NSString *NSLoadedClasses = @"NSLoadedClasses";
-
 
 /* Standard domains */
 NSString *NSArgumentDomain = @"NSArgumentDomain";
@@ -245,7 +238,6 @@ GSPrivateBuildStrings()
       GS_REPLACE_CONSTANT_STRING(GSNetworkNotificationCenterType);
       GS_REPLACE_CONSTANT_STRING(NSAMPMDesignation);
       GS_REPLACE_CONSTANT_STRING(NSArgumentDomain);
-      GS_REPLACE_CONSTANT_STRING(NSBundleDidLoadNotification);
       GS_REPLACE_CONSTANT_STRING(NSClassDescriptionNeededForClassNotification);
       GS_REPLACE_CONSTANT_STRING(NSConnectionDidDieNotification);
       GS_REPLACE_CONSTANT_STRING(NSConnectionDidInitializeNotification);
@@ -270,7 +262,6 @@ GSPrivateBuildStrings()
       GS_REPLACE_CONSTANT_STRING(NSLanguageCode);
       GS_REPLACE_CONSTANT_STRING(NSLanguageName);
       GS_REPLACE_CONSTANT_STRING(NSLaterTimeDesignations);
-      GS_REPLACE_CONSTANT_STRING(NSLoadedClasses);
       GS_REPLACE_CONSTANT_STRING(GSLocale);
       GS_REPLACE_CONSTANT_STRING(NSLocalNotificationCenterType);
       GS_REPLACE_CONSTANT_STRING(NSMonthNameArray);
@@ -285,7 +276,6 @@ GSPrivateBuildStrings()
       GS_REPLACE_CONSTANT_STRING(NSShortMonthNameArray);
       GS_REPLACE_CONSTANT_STRING(NSShortTimeDateFormatString);
       GS_REPLACE_CONSTANT_STRING(NSShortWeekDayNameArray);
-      GS_REPLACE_CONSTANT_STRING(NSShowNonLocalizedStrings);
       GS_REPLACE_CONSTANT_STRING(NSTaskDidTerminateNotification);
       GS_REPLACE_CONSTANT_STRING(NSThisDayDesignations);
       GS_REPLACE_CONSTANT_STRING(NSThousandsSeparator);

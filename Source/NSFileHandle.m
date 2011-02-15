@@ -30,7 +30,6 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSPathUtilities.h"
-#import "Foundation/NSBundle.h"
 #import "GNUstepBase/GSFileHandle.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 

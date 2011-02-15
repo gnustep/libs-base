@@ -27,7 +27,6 @@
 #define	EXPOSE_NSSortDescriptor_IVARS	1
 #import "Foundation/NSSortDescriptor.h"
 
-#import "Foundation/NSBundle.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyValueCoding.h"

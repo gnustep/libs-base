@@ -37,6 +37,15 @@
  */
 #import	"Foundation/NSString.h"
 #import	"Foundation/NSDebug.h"
+#import	"Foundation/NSBundle.h"
+#import	"GNUstepBase/NSBundle+GNUstepBase.h"
+
+/* Change localisation macro for use within the base library itsself.
+ */
+#undef	_
+#define _(X) [[NSBundle bundleForLibrary: @"gnustep-base" version: \
+  OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)] \
+  localizedStringForKey:(X) value: @"" table: nil]
 
 #include <string.h>
 #include <ctype.h>

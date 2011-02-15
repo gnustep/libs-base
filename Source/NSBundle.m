@@ -54,6 +54,11 @@
 
 #import "GSPrivate.h"
 
+/* Constants */
+NSString * const NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
+NSString * const NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
+NSString * const NSLoadedClasses = @"NSLoadedClasses";
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -2102,11 +2107,11 @@ IF_NO_GC(
               if (tableContent != nil)
                 {
                   NSWarnMLog (@"Localisation file %@ not in portable encoding"
-                              @" so I'm using the default encoding for the current"
-                              @" system, which may not display messages correctly.\n"
-                              @"The file should be ASCII (using \\U escapes for unicode"
-                              @" characters) or Unicode (UTF16 or UTF8) with a leading "
-                              @"byte-order-marker.\n", tablePath);
+		    @" so I'm using the default encoding for the current"
+		    @" system, which may not display messages correctly.\n"
+		    @"The file should be ASCII (using \\U escapes for unicode"
+		    @" characters) or Unicode (UTF16 or UTF8) with a leading "
+		    @"byte-order-marker.\n", tablePath);
                 }
             }
           if (tableContent == nil)
