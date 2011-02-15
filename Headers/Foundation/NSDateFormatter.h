@@ -127,12 +127,6 @@ typedef NSUInteger NSDateFormatterBehavior;
 #if	GS_EXPOSE(NSDateFormatter)
   NSString	*_dateFormat;
   BOOL		_allowsNaturalLanguage;
-  NSUInteger _behavior;
-  NSLocale   *_locale;
-  NSTimeZone *_tz;
-  NSDateFormatterStyle _timeStyle;
-  NSDateFormatterStyle _dateStyle;
-  void      *_formatter;
 #endif
 #if     !GS_NONFRAGILE
   /* Pointer to private additional data used to avoid breaking ABI

@@ -1,3 +1,9 @@
+2011-02-14  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/Foundation/NSDateFormatter.m:
+	* Source/NSDateFormatter.m: Changes for ABI compatibility.
+	* Source/NSNumberFormatter.m: Use unum_clone to copy formatter.
+	
 2011-02-14  German Arias <german@xelalug.org>
 
 	* Resources/Spanish.lproj/Localizable.strings: Added localized strings
