@@ -35,7 +35,6 @@
 #include <langinfo.h>
 #endif
 #import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSBundle.h"
 
 #import "GSPrivate.h"
 

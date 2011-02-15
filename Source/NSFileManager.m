@@ -47,7 +47,6 @@
 #define	EXPOSE_NSDirectoryEnumerator_IVARS	1
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSBundle.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"

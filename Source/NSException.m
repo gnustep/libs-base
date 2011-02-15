@@ -28,7 +28,6 @@
 #define	EXPOSE_NSException_IVARS	1
 #define	EXPOSE_NSThread_IVARS	1
 #import "GSPrivate.h"
-#import "Foundation/NSBundle.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSArray.h"

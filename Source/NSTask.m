@@ -28,7 +28,6 @@
 #import "common.h"
 #define	EXPOSE_NSTask_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSBundle.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDate.h"

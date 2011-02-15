@@ -54,7 +54,6 @@
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSXML.h"
 #import "Foundation/NSArray.h"
-#import "Foundation/NSBundle.h"
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"

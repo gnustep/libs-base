@@ -1,3 +1,25 @@
+2011-02-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m:
+	* Source/NSTimeZone.m:
+	* Source/NSBundle.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSUndoManager.m:
+	* Source/NSFileHandle.m:
+	* Source/NSSortDescriptor.m:
+	* Source/NSFileManager.m:
+	* Source/common.h:
+	* Source/externs.m:
+	* Source/NSException.m:
+	* Source/NSString.m:
+	* Source/Additions/Unicode.m:
+	* Source/Additions/GSXML.m:
+	* Source/NSLocale.m:
+	* Source/NSTask.m:
+	As suggested by Wolfgang, change the _() macro for localization when
+	used inside base to use the base library bundle rather than the main
+	bundle.
+
 2011-02-14  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/Foundation/NSDateFormatter.m:
