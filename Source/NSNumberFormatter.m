@@ -300,11 +300,12 @@ static NSUInteger _defaultBehavior = 0;
       o->_reserved = NSZoneCalloc([self zone], 1, sizeof(Internal));
       memcpy(inst, this, sizeof(Internal));
       IF_NO_GC(RETAIN(inst->_locale);)
-      if (inst->_formatter != NULL)
-	{
-	  inst->_formatter = NULL;
-	  [o _resetUNumberFormat];
-	}
+#if GS_USE_ICU == 1
+      {
+        UErrorCode err = U_ZERO_ERROR;
+        inst->_formatter = unum_clone (this->_formatter, &err);
+      }
+#endif
     }
   return o;
 }
