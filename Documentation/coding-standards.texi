@@ -61,6 +61,7 @@ into another language, under the above conditions for modified versions.
 * Introduction::                
 * ChangeLog Entries::           
 * Coding Style::                
+* ObjectiveC::           
 * Memory Management::           
 * Error Handling::              
 * Variable Declaration::        
@@ -120,7 +121,7 @@ was changed. It's more appropriate to put that in the source code, where
 someone can find it, or in the documentation.
 
 @c ******************************************************************
-@node Coding Style, Memory Management, ChangeLog Entries, Top
+@node Coding Style, ObjectiveC, ChangeLog Entries, Top
 @section Coding Style
 
 The point is not what style is 'better' in the abstract -- it's what
@@ -286,10 +287,35 @@ the matching lines.
 #else /* not condition */
 #endif /* condition */
 
-
 @end example
+
 @c ******************************************************************
-@node Memory Management, Error Handling, Coding Style, Top
+@node ObjectiveC, Memory Management, Coding Style, Top
+@section ObjectiveC
+
+Since GNUstep is primarily written in ObjectiveC the C language coding
+standards largely apply with modifications as specified in the previous
+section.
+
+Most code is expect to be written in traditional ObjectiveC, but classes
+implementing newer APIs designed by Apple will sometimes need to be written
+using ObjectiveC-2.0, though compatibility with old compilers should be
+maintained wherever possible, and preprocessor macros must be used to at
+least conditionally build new code without breaking old code.
+
+One ObjectiveC-2.0 feature (the dot ('.') operator) is forbidden though.
+One problem is that, while apparently simple, the actual operation of this
+feature in unusual cases is actually undefined and varies between compiler
+versions.  
+The more serious problem is that the feature is simply very bad style
+because it looks like a simple structure field access and yet the code
+is really doing something very different and much more expensive, so use
+of the feature tends to lead to performance problems, bugs, and less
+explicit/readable code.
+
+
+@c ******************************************************************
+@node Memory Management, Error Handling, ObjectiveC, Top
 @section Memory Management
 
 We encourage the use of the following macros to ease retain and release
@@ -362,6 +388,23 @@ Certainly we would consider it a bug to introduce code into the
 GNUstep libraries which stopped them compiling with one of the
 commonly used compilers.
 
+Instance variables in public APIs should generally be limited to those
+which are explicitly declared to be public and which will never change
+(we want to avoid breaking ABI between releases by changing instance
+variable layouts).  Eventually compilers supporting a non-fragile ABI
+will be available and this will no longer be an issue, but until then
+we need to deal with the fragile API instance variable problem.
+
+The standard mechanism to support this is to provide a single private
+pointer variable (void *_internal;) which will be used to point to an
+area of memory containing the actual instance variables used internally.
+The internal implementation is then free to change without any change
+to the size of instances of the class.
+
+The GNUstep-base library has a standardised set of macros for writing
+code which deals with use of an _internal pointer to instance variables
+at the same time as allowing the instance variables to be used directly
+in the class if the code is built using the non-fragile ABI.
 
 @c ******************************************************************
 @node Naming Conventions, Object Persistence, Variable Declaration, Top

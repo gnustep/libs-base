@@ -1,3 +1,10 @@
+2011-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m:
+	* Documentation/coding-standards.texi:
+	* Headers/Foundation/NSXMLParser.h:
+	Documentation tweaks.
+
 2011-02-16  Jens Ayton <jens@ayton.se>
 
 	* Source/NSPropertyList.m: Fix to support 64bit integers when parsing
