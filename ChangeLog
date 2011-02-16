@@ -1,3 +1,8 @@
+2011-02-16  Jens Ayton <jens@ayton.se>
+
+	* Source/NSPropertyList.m: Fix to support 64bit integers when parsing
+	an XML property list.
+
 2011-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tests/base: import the testsuite here
