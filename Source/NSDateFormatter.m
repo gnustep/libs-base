@@ -78,18 +78,19 @@ static inline NSInteger _NSToUDateFormatStyle (NSDateFormatterStyle style)
   return -1;
 }
 
-typedef struct
-{
-  NSUInteger _behavior;
-  NSLocale   *_locale;
-  NSTimeZone *_tz;
-  NSDateFormatterStyle _timeStyle;
-  NSDateFormatterStyle _dateStyle;
-  void      *_formatter;
-} Internal;
+#define	GS_NSDateFormatter_IVARS \
+  NSUInteger _behavior; \
+  NSLocale   *_locale; \
+  NSTimeZone *_tz; \
+  NSDateFormatterStyle _timeStyle; \
+  NSDateFormatterStyle _dateStyle; \
+  void      *_formatter
 
-#define this    ((Internal*)(self->_reserved))
-#define inst    ((Internal*)(o->_reserved))
+#define	GSInternal		NSDateFormatterInternal
+#define	GS_INTERNAL_STRUCT	1
+#include	"GSInternal.h"
+GS_PRIVATE_INTERNAL(NSDateFormatter)
+
 
 @implementation NSDateFormatter
 
@@ -101,10 +102,11 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   if (self == nil)
     return nil;
   
-  _reserved = NSZoneCalloc([self zone], 1, sizeof(Internal));
-  this->_behavior = _defaultBehavior;
-  this->_locale = RETAIN([NSLocale currentLocale]);
-  this->_tz = RETAIN([NSTimeZone defaultTimeZone]);
+  GS_CREATE_INTERNAL(NSDateFormatter)
+
+  internal->_behavior = _defaultBehavior;
+  internal->_locale = RETAIN([NSLocale currentLocale]);
+  internal->_tz = RETAIN([NSTimeZone defaultTimeZone]);
   
   [self _resetUDateFormat];
   
@@ -117,10 +119,10 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
     NSZone *z = [self zone];
     UErrorCode err = U_ZERO_ERROR;
     
-    length = udat_toPattern (this->_formatter, 0, NULL, 0, &err);
+    length = udat_toPattern (internal->_formatter, 0, NULL, 0, &err);
     value = NSZoneMalloc (z, sizeof(unichar) * length);
     err = U_ZERO_ERROR;
-    udat_toPattern (this->_formatter, 0, value, length, &err);
+    udat_toPattern (internal->_formatter, 0, value, length, &err);
     if (U_SUCCESS(err))
       {
         _dateFormat = [[NSString allocWithZone: z]
@@ -155,15 +157,16 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   NSDateFormatter	*o = (id)NSCopyObject(self, 0, zone);
 
   IF_NO_GC(RETAIN(o->_dateFormat));
-  if (0 != this)
+  if (0 != internal)
     {
-      o->_reserved = NSZoneCalloc([self zone], 1, sizeof(Internal));
-      memcpy(inst, this, sizeof(Internal));
-      IF_NO_GC(RETAIN(inst->_locale);)
+      o->GS_CREATE_INTERNAL(NSDateFormatter)
+
+      memcpy(o->_internal, internal, sizeof(NSDateFormatterInternal));
+      IF_NO_GC(RETAIN(GSIVar(o,_locale));)
 #if GS_USE_ICU == 1
       {
         UErrorCode err = U_ZERO_ERROR;
-        inst->_formatter = udat_clone (this->_formatter, &err);
+        GSIVar(o,_formatter) = udat_clone (internal->_formatter, &err);
       }
 #endif
     }
@@ -179,14 +182,14 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) dealloc
 {
   RELEASE(_dateFormat);
-  if (this != 0)
+  if (internal != 0)
     {
-      RELEASE(this->_locale);
-      RELEASE(this->_tz);
+      RELEASE(internal->_locale);
+      RELEASE(internal->_tz);
 #if GS_USE_ICU == 1
-      udat_close (this->_formatter);
+      udat_close (internal->_formatter);
 #endif
-      NSZoneFree([self zone], this);
+      GS_DESTROY_INTERNAL(NSDateFormatter)
     }
   [super dealloc];
 }
@@ -248,7 +251,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
   _dateFormat = [format copy];
   _allowsNaturalLanguage = flag;
-  this->_behavior = NSDateFormatterBehavior10_0;
+  internal->_behavior = NSDateFormatterBehavior10_0;
   return self;
 }
 
@@ -292,12 +295,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSDateFormatterBehavior) formatterBehavior
 {
-  return this->_behavior;
+  return internal->_behavior;
 }
 
 - (void) setFormatterBehavior: (NSDateFormatterBehavior) behavior
 {
-  this->_behavior = behavior;
+  internal->_behavior = behavior;
 }
 
 - (BOOL) generatesCalendarDates
@@ -313,7 +316,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (BOOL) isLenient
 {
 #if GS_USE_ICU == 1
-  return (BOOL)udat_isLenient (this->_formatter);
+  return (BOOL)udat_isLenient (internal->_formatter);
 #else
   return NO;
 #endif
@@ -322,7 +325,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) setLenient: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  udat_setLenient (this->_formatter, flag);
+  udat_setLenient (internal->_formatter, flag);
 #else
   return;
 #endif
@@ -346,7 +349,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   
   [string getCharacters: text range: NSMakeRange (0, textLength)];
   
-  date = udat_parse (this->_formatter, text, textLength, &pPos, &err);
+  date = udat_parse (internal->_formatter, text, textLength, &pPos, &err);
   if (U_SUCCESS(err))
     result =
       [NSDate dateWithTimeIntervalSince1970: (NSTimeInterval)(date / 1000.0)];
@@ -368,10 +371,10 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   UDate udate = [date timeIntervalSince1970] * 1000.0;
   UErrorCode err = U_ZERO_ERROR;
   
-  length = udat_format (this->_formatter, udate, NULL, 0, NULL, &err);
+  length = udat_format (internal->_formatter, udate, NULL, 0, NULL, &err);
   string = NSZoneMalloc (z, sizeof(UChar) * (length + 1));
   err = U_ZERO_ERROR;
-  udat_format (this->_formatter, udate, string, length, NULL, &err);
+  udat_format (internal->_formatter, udate, string, length, NULL, &err);
   if (U_SUCCESS(err))
     {
       result = AUTORELEASE([[NSString allocWithZone: z]
@@ -407,7 +410,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   pattern = NSZoneMalloc ([self zone], sizeof(UChar) * patternLength);
   [string getCharacters: pattern range: NSMakeRange(0, patternLength)];
   
-  udat_applyPattern (this->_formatter, 0, pattern, patternLength);
+  udat_applyPattern (internal->_formatter, 0, pattern, patternLength);
   
   NSZoneFree ([self zone], pattern);
 #endif
@@ -418,29 +421,29 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSDateFormatterStyle) dateStyle
 {
-  return this->_dateStyle;
+  return internal->_dateStyle;
 }
 
 - (void) setDateStyle: (NSDateFormatterStyle) style
 {
-  this->_dateStyle = style;
+  internal->_dateStyle = style;
   [self _resetUDateFormat];
 }
 
 - (NSDateFormatterStyle) timeStyle
 {
-  return this->_timeStyle;
+  return internal->_timeStyle;
 }
 
 - (void) setTimeStyle: (NSDateFormatterStyle) style
 {
-  this->_timeStyle = style;
+  internal->_timeStyle = style;
   [self _resetUDateFormat];
 }
 
 - (NSCalendar *) calendar
 {
-  return [this->_locale objectForKey: NSLocaleCalendar];
+  return [internal->_locale objectForKey: NSLocaleCalendar];
 }
 
 - (void) setCalendar: (NSCalendar *) calendar
@@ -448,7 +451,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   NSMutableDictionary *dict;
   NSLocale *locale;
   
-  dict = [[NSLocale componentsFromLocaleIdentifier: [this->_locale localeIdentifier]]
+  dict = [[NSLocale componentsFromLocaleIdentifier: [internal->_locale localeIdentifier]]
     mutableCopy];
   [dict setValue: calendar forKey: NSLocaleCalendar];
   locale = [[NSLocale alloc] initWithLocaleIdentifier:
@@ -472,31 +475,31 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSLocale *) locale
 {
-  return this->_locale;
+  return internal->_locale;
 }
 
 - (void) setLocale: (NSLocale *) locale
 {
-  if (locale == this->_locale)
+  if (locale == internal->_locale)
     return;
-  RELEASE(this->_locale);
+  RELEASE(internal->_locale);
   
-  this->_locale = RETAIN(locale);
+  internal->_locale = RETAIN(locale);
   [self _resetUDateFormat];
 }
 
 - (NSTimeZone *) timeZone
 {
-  return this->_tz;
+  return internal->_tz;
 }
 
 - (void) setTimeZone: (NSTimeZone *) tz
 {
-  if (tz == this->_tz)
+  if (tz == internal->_tz)
     return;
-  RELEASE(this->_tz);
+  RELEASE(internal->_tz);
   
-  this->_tz = RETAIN(tz);
+  internal->_tz = RETAIN(tz);
   [self _resetUDateFormat];
 }
 
@@ -505,7 +508,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #if GS_USE_ICU == 1
   UErrorCode err = U_ZERO_ERROR;
   return [NSDate dateWithTimeIntervalSince1970:
-    (udat_get2DigitYearStart (this->_formatter, &err) / 1000.0)];
+    (udat_get2DigitYearStart (internal->_formatter, &err) / 1000.0)];
 #else
   return nil;
 #endif
@@ -515,7 +518,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
 #if GS_USE_ICU == 1
   UErrorCode err = U_ZERO_ERROR;
-  udat_set2DigitYearStart (this->_formatter,
+  udat_set2DigitYearStart (internal->_formatter,
                            ([date timeIntervalSince1970] * 1000.0),
                            &err);
 #else
@@ -943,12 +946,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (BOOL) doesRelativeDateFormatting
 {
-  return (this->_dateStyle & FormatterDoesRelativeDateFormatting) ? YES : NO;
+  return (internal->_dateStyle & FormatterDoesRelativeDateFormatting) ? YES : NO;
 }
 
 - (void) setDoesRelativeDateFormatting: (BOOL) flag
 {
-  this->_dateStyle |= FormatterDoesRelativeDateFormatting;
+  internal->_dateStyle |= FormatterDoesRelativeDateFormatting;
 }
 @end
 
@@ -960,23 +963,23 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   int32_t tzIDLength;
   UErrorCode err = U_ZERO_ERROR;
   
-  if (this->_formatter)
-    udat_close (this->_formatter);
+  if (internal->_formatter)
+    udat_close (internal->_formatter);
   
-  tzIDLength = [[this->_tz name] length];
+  tzIDLength = [[internal->_tz name] length];
   tzID = NSZoneMalloc ([self zone], sizeof(UChar) * tzIDLength);
-  [[this->_tz name] getCharacters: tzID range: NSMakeRange (0, tzIDLength)];
+  [[internal->_tz name] getCharacters: tzID range: NSMakeRange (0, tzIDLength)];
   
-  this->_formatter = udat_open (_NSToUDateFormatStyle(this->_timeStyle),
-                          _NSToUDateFormatStyle(this->_dateStyle),
-                          [[this->_locale localeIdentifier] UTF8String],
+  internal->_formatter = udat_open (_NSToUDateFormatStyle(internal->_timeStyle),
+                          _NSToUDateFormatStyle(internal->_dateStyle),
+                          [[internal->_locale localeIdentifier] UTF8String],
                           tzID,
                           tzIDLength,
                           NULL,
                           0,
                           &err);
   if (U_FAILURE(err))
-    this->_formatter = NULL;
+    internal->_formatter = NULL;
   
   NSZoneFree ([self zone], tzID);
 #else
@@ -988,7 +991,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
 #if GS_USE_ICU == 1
   int idx = 0;
-  int count = udat_countSymbols (this->_formatter, symbol);
+  int count = udat_countSymbols (internal->_formatter, symbol);
   
   if ([array count] != count)
     return;
@@ -1004,7 +1007,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
       value = NSZoneMalloc ([self zone], sizeof(unichar) * length);
       [string getCharacters: value range: NSMakeRange(0, length)];
       
-      udat_setSymbols (this->_formatter, symbol, idx, value, length, &err);
+      udat_setSymbols (internal->_formatter, symbol, idx, value, length, &err);
       
       NSZoneFree ([self zone], value);
       
@@ -1020,7 +1023,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #if GS_USE_ICU == 1
   NSMutableArray *mArray;
   int idx = 0;
-  int count = udat_countSymbols (this->_formatter, symbol);
+  int count = udat_countSymbols (internal->_formatter, symbol);
   
   mArray = [NSMutableArray arrayWithCapacity: count];
   while (idx < count)
@@ -1031,10 +1034,11 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
       NSZone *z = [self zone];
       UErrorCode err = U_ERROR_LIMIT;
       
-      length = udat_getSymbols (this->_formatter, symbol, idx, NULL, 0, &err);
+      length
+	= udat_getSymbols (internal->_formatter, symbol, idx, NULL, 0, &err);
       value = NSZoneMalloc (z, sizeof(unichar) * (length + 1));
       err = U_ZERO_ERROR;
-      udat_getSymbols (this->_formatter, symbol, idx, value, length, &err);
+      udat_getSymbols (internal->_formatter, symbol, idx, value, length, &err);
       if (U_SUCCESS(err))
         {
           str = AUTORELEASE([[NSString allocWithZone: z]

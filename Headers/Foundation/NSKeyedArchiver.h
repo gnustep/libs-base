@@ -71,11 +71,14 @@ extern "C" {
   NSMutableArray	*_obj;	/* Array of objects.		*/
   NSPropertyListFormat	_format;
 #endif
-#if     !GS_NONFRAGILE
+#if     GS_NONFRAGILE
+#else
   /* Pointer to private additional data used to avoid breaking ABI
    * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
    */
-  void          *_reserved;
+  @private void *_internal GS_UNUSED_IVAR;
 #endif
 }
 
@@ -243,11 +246,14 @@ extern "C" {
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
 #endif
-#if     !GS_NONFRAGILE
+#if     GS_NONFRAGILE
+#else
   /* Pointer to private additional data used to avoid breaking ABI
    * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
    */
-  void          *_reserved;
+  @private void *_internal GS_UNUSED_IVAR;
 #endif
 }
 

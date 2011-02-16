@@ -119,11 +119,14 @@ GS_EXPORT NSString* const NSLoadedClasses;
   unsigned		_version;
   NSString      	*_frameworkVersion;
 #endif
-#if     !GS_NONFRAGILE
+#if     GS_NONFRAGILE
+#else
   /* Pointer to private additional data used to avoid breaking ABI
    * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
    */
-  void          *_reserved;
+  @private void *_internal GS_UNUSED_IVAR;
 #endif
 }
 

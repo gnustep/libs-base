@@ -419,7 +419,7 @@ GSObjCDirectSubclassesOfClass(Class cls);
 #if GS_API_VERSION(GS_API_ANY,011500)
 
 GS_EXPORT const char *
-GSLastErrorStr(long error_id) GS_ATTRIB_DEPRECATED;
+GSLastErrorStr(long error_id) GS_DEPRECATED_FUNC;
 
 #endif
 

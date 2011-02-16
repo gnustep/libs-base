@@ -199,17 +199,18 @@ _ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
 #endif
 
 
-// Internal data storage
-typedef struct {
-  NSUInteger _behavior;
-  BOOL       _genDecimal;	 
-  NSUInteger _style;	 
-  NSLocale  *_locale;	 
-  void      *_formatter;	 
-} Internal;
+#define GS_NSNumberFormatter_IVARS \
+  NSUInteger _behavior; \
+  BOOL       _genDecimal; \
+  NSUInteger _style; \
+  NSLocale  *_locale; \
+  void      *_formatter
  
-#define this    ((Internal*)(self->_reserved))
-#define inst    ((Internal*)(o->_reserved))
+#define GSInternal              NSNumberFormatterInternal
+#define GS_INTERNAL_STRUCT      1
+#include        "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSNumberFormatter)
+
 
 @interface NSNumberFormatter (PrivateMethods)
 - (void) _resetUNumberFormat;
@@ -295,15 +296,16 @@ static NSUInteger _defaultBehavior = 0;
   IF_NO_GC(RETAIN(o->_attributedStringForNil);)
   IF_NO_GC(RETAIN(o->_attributedStringForNotANumber);)
   IF_NO_GC(RETAIN(o->_attributedStringForZero);)
-  if (0 != this)
+  if (0 != internal)
     {
-      o->_reserved = NSZoneCalloc([self zone], 1, sizeof(Internal));
-      memcpy(inst, this, sizeof(Internal));
-      IF_NO_GC(RETAIN(inst->_locale);)
+      o->_internal = GS_CREATE_INTERNAL(NSNumberFormatter)
+
+      memcpy(o->_internal, internal, sizeof(NSNumberFormatterInternal));
+      IF_NO_GC(RETAIN(GSIVar(o,_locale));)
 #if GS_USE_ICU == 1
       {
         UErrorCode err = U_ZERO_ERROR;
-        inst->_formatter = unum_clone (this->_formatter, &err);
+        GSIVar(o,_formatter) = unum_clone (internal->_formatter, &err);
       }
 #endif
     }
@@ -322,27 +324,27 @@ static NSUInteger _defaultBehavior = 0;
   RELEASE(_attributedStringForNil);
   RELEASE(_attributedStringForNotANumber);
   RELEASE(_attributedStringForZero);
-  if (this != 0)
+  if (internal != 0)
     {
-      RELEASE(this->_locale);
+      RELEASE(internal->_locale);
 #if GS_USE_ICU == 1
-      unum_close (this->_formatter);
+      unum_close (internal->_formatter);
 #endif
-      NSZoneFree([self zone], this);
+      GS_DESTROY_INTERNAL(NSNumberFormatter)
     }
   [super dealloc];
 }
 
 - (NSString*) decimalSeparator
 {
-  if (this->_behavior == NSNumberFormatterBehavior10_4
-    || this->_behavior == NSNumberFormatterBehaviorDefault)
+  if (internal->_behavior == NSNumberFormatterBehavior10_4
+    || internal->_behavior == NSNumberFormatterBehaviorDefault)
     {
 #if GS_USE_ICU == 1
       return [self _getSymbol: UNUM_DECIMAL_SEPARATOR_SYMBOL];
 #endif
     }
-  else if (this->_behavior == NSNumberFormatterBehavior10_0)
+  else if (internal->_behavior == NSNumberFormatterBehavior10_0)
     {
       if (_decimalSeparator == 0)
         return @"";
@@ -441,7 +443,8 @@ static NSUInteger _defaultBehavior = 0;
 {
   id	o;
 
-  _reserved = NSZoneCalloc([self zone], 1, sizeof(Internal));
+  GS_CREATE_INTERNAL(NSNumberFormatter)
+
   _allowsFloats = YES;
   _decimalSeparator = '.';
   _thousandSeparator = ',';
@@ -453,11 +456,11 @@ static NSUInteger _defaultBehavior = 0;
   [self setAttributedStringForNotANumber: o];
   RELEASE(o);
   
-  this->_behavior = _defaultBehavior;
-  this->_locale = RETAIN([NSLocale currentLocale]);
-  this->_style = NSNumberFormatterNoStyle;
+  internal->_behavior = _defaultBehavior;
+  internal->_locale = RETAIN([NSLocale currentLocale]);
+  internal->_style = NSNumberFormatterNoStyle;
   [self _resetUNumberFormat];
-  if (this->_formatter == NULL)
+  if (internal->_formatter == NULL)
     {
       RELEASE(self);
       return nil;
@@ -641,14 +644,14 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setDecimalSeparator: (NSString*)newSeparator
 {
-  if (this->_behavior == NSNumberFormatterBehavior10_4
-    || this->_behavior == NSNumberFormatterBehaviorDefault)
+  if (internal->_behavior == NSNumberFormatterBehavior10_4
+    || internal->_behavior == NSNumberFormatterBehaviorDefault)
     {
 #if GS_USE_ICU == 1
       [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
 #endif
     }
-  else if (this->_behavior == NSNumberFormatterBehavior10_0)
+  else if (internal->_behavior == NSNumberFormatterBehavior10_0)
     {
       if ([newSeparator length] > 0)
         _decimalSeparator = [newSeparator characterAtIndex: 0];
@@ -745,8 +748,8 @@ static NSUInteger _defaultBehavior = 0;
 
 - (NSString*) stringForObjectValue: (id)anObject
 {
-  if (this->_behavior == NSNumberFormatterBehaviorDefault
-      || this->_behavior == NSNumberFormatterBehavior10_4)
+  if (internal->_behavior == NSNumberFormatterBehaviorDefault
+      || internal->_behavior == NSNumberFormatterBehavior10_4)
     {
 #if GS_USE_ICU == 1
 
@@ -757,11 +760,11 @@ static NSUInteger _defaultBehavior = 0;
     int32_t len; \
     NSString *result; \
     \
-    len = function (this->_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
+    len = function (internal->_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
     if (len > MAX_BUFFER_SIZE) \
       outStr = NSZoneMalloc ([self zone], len * sizeof(UChar));\
     err = U_ZERO_ERROR; \
-    function (this->_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
+    function (internal->_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
     result = [NSString stringWithCharacters: outStr length: len]; \
     if (len > MAX_BUFFER_SIZE) \
       NSZoneFree ([self zone], outStr); \
@@ -816,7 +819,7 @@ static NSUInteger _defaultBehavior = 0;
         }
 #endif
     }
-  else if (this->_behavior == NSNumberFormatterBehavior10_0)
+  else if (internal->_behavior == NSNumberFormatterBehavior10_0)
     {
       NSMutableDictionary	*locale;
       NSCharacterSet	*formattingCharacters;
@@ -1128,7 +1131,7 @@ static NSUInteger _defaultBehavior = 0;
   range = [string rangeOfString: @"."];
   if (range.location == NSNotFound)
     {
-      intNum = unum_parseInt64 (this->_formatter, ustring, length, NULL, &err);
+      intNum = unum_parseInt64 (internal->_formatter, ustring, length, NULL, &err);
       if (U_FAILURE(err))
         return nil;
       if (intNum == 0 || intNum == 1)
@@ -1140,7 +1143,7 @@ static NSUInteger _defaultBehavior = 0;
     }
   else
     {
-      doubleNum = unum_parseDouble (this->_formatter, ustring, length, NULL, &err);
+      doubleNum = unum_parseDouble (internal->_formatter, ustring, length, NULL, &err);
       if (U_FAILURE(err))
         return nil;
       result = [NSNumber numberWithDouble: doubleNum];
@@ -1157,12 +1160,12 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior
 {
-  this->_behavior = behavior;
+  internal->_behavior = behavior;
 }
 
 - (NSNumberFormatterBehavior) formatterBehavior
 {
-  return this->_behavior;
+  return internal->_behavior;
 }
 
 + (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior
@@ -1177,18 +1180,18 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setNumberStyle: (NSNumberFormatterStyle) style
 {
-  this->_style = style;
+  internal->_style = style;
   [self _resetUNumberFormat];
 }
 
 - (NSNumberFormatterStyle) numberStyle
 {
-  return this->_style;
+  return internal->_style;
 }
 
 - (void) setGeneratesDecimalNumbers: (BOOL) flag
 {
-  this->_genDecimal = flag;
+  internal->_genDecimal = flag;
 }
 
 - (BOOL) generatesDecimalNubmers
@@ -1199,18 +1202,18 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setLocale: (NSLocale *) locale
 {
-  RELEASE(this->_locale);
+  RELEASE(internal->_locale);
   
   if (locale == nil)
     locale = [NSLocale currentLocale];
-  this->_locale = RETAIN(locale);
+  internal->_locale = RETAIN(locale);
   
   [self _resetUNumberFormat];
 }
 
 - (NSLocale *) locale
 {
-  return this->_locale;
+  return internal->_locale;
 }
 
 
@@ -1218,7 +1221,7 @@ static NSUInteger _defaultBehavior = 0;
 {
 #if GS_USE_ICU == 1
   if ([number class] == [NSDoubleNumber class])
-    unum_setDoubleAttribute (this->_formatter, UNUM_ROUNDING_INCREMENT,
+    unum_setDoubleAttribute (internal->_formatter, UNUM_ROUNDING_INCREMENT,
       [number doubleValue]);
 #else
   return;
@@ -1228,7 +1231,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSNumber *) roundingIncrement
 {
 #if GS_USE_ICU == 1
-  double value = unum_getDoubleAttribute (this->_formatter, UNUM_ROUNDING_INCREMENT);
+  double value = unum_getDoubleAttribute (internal->_formatter, UNUM_ROUNDING_INCREMENT);
   return [NSNumber numberWithDouble: value];
 #else
   return nil;
@@ -1238,7 +1241,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setRoundingMode: (NSNumberFormatterRoundingMode) mode
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_ROUNDING_MODE,
+  unum_setAttribute (internal->_formatter, UNUM_ROUNDING_MODE,
     _NSToICURoundingMode(mode));
 #else
   return;
@@ -1248,7 +1251,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSNumberFormatterRoundingMode) roundingMode
 {
 #if GS_USE_ICU == 1
-  return _ICUToNSRoundingMode (unum_getAttribute (this->_formatter,
+  return _ICUToNSRoundingMode (unum_getAttribute (internal->_formatter,
     UNUM_ROUNDING_MODE));
 #else
   return 0;
@@ -1259,7 +1262,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setFormatWidth: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_FORMAT_WIDTH, (int32_t)number);
+  unum_setAttribute (internal->_formatter, UNUM_FORMAT_WIDTH, (int32_t)number);
 #else
   return;
 #endif
@@ -1268,7 +1271,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) formatWidth
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_FORMAT_WIDTH);
+  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_FORMAT_WIDTH);
 #else
   return 0;
 #endif
@@ -1278,7 +1281,7 @@ static NSUInteger _defaultBehavior = 0;
 {
 #if GS_USE_ICU == 1
   int32_t value = [number intValue];
-  unum_setAttribute (this->_formatter, UNUM_MULTIPLIER, value);
+  unum_setAttribute (internal->_formatter, UNUM_MULTIPLIER, value);
 #else
   return;
 #endif
@@ -1287,7 +1290,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSNumber *) multiplier
 {
 #if GS_USE_ICU == 1
-  int32_t value = unum_getAttribute (this->_formatter, UNUM_MULTIPLIER);
+  int32_t value = unum_getAttribute (internal->_formatter, UNUM_MULTIPLIER);
   return [NSNumber numberWithInt: value];
 #else
   return nil;
@@ -1671,7 +1674,7 @@ static NSUInteger _defaultBehavior = 0;
 {
 
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_GROUPING_USED, flag);
+  unum_setAttribute (internal->_formatter, UNUM_GROUPING_USED, flag);
 #else
   return;
 #endif
@@ -1680,7 +1683,7 @@ static NSUInteger _defaultBehavior = 0;
 - (BOOL) usesGroupingSeparator
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (this->_formatter, UNUM_GROUPING_USED);
+  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_GROUPING_USED);
 #else
   return NO;
 #endif
@@ -1689,7 +1692,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setAlwaysShowsDecimalSeparator: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_DECIMAL_ALWAYS_SHOWN, flag);
+  unum_setAttribute (internal->_formatter, UNUM_DECIMAL_ALWAYS_SHOWN, flag);
 #else
   return;
 #endif
@@ -1698,7 +1701,7 @@ static NSUInteger _defaultBehavior = 0;
 - (BOOL) alwaysShowsDecimalSeparator
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (this->_formatter, UNUM_DECIMAL_ALWAYS_SHOWN);
+  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_DECIMAL_ALWAYS_SHOWN);
 #else
   return NO;
 #endif
@@ -1725,7 +1728,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setGroupingSize: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_GROUPING_SIZE, number);
+  unum_setAttribute (internal->_formatter, UNUM_GROUPING_SIZE, number);
 #else
   return;
 #endif
@@ -1734,7 +1737,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) groupingSize
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_GROUPING_SIZE);
+  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_GROUPING_SIZE);
 #else
   return 3;
 #endif
@@ -1743,7 +1746,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setSecondaryGroupingSize: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_SECONDARY_GROUPING_SIZE, number);
+  unum_setAttribute (internal->_formatter, UNUM_SECONDARY_GROUPING_SIZE, number);
 #else
   return;
 #endif
@@ -1752,7 +1755,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) secondaryGroupingSize
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (this->_formatter,
+  return (NSUInteger)unum_getAttribute (internal->_formatter,
     UNUM_SECONDARY_GROUPING_SIZE);
 #else
   return 3;
@@ -1781,7 +1784,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setPaddingPosition: (NSNumberFormatterPadPosition) position
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_PADDING_POSITION,
+  unum_setAttribute (internal->_formatter, UNUM_PADDING_POSITION,
     _NSToICUPadPosition (position));
 #else
   return;
@@ -1791,7 +1794,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSNumberFormatterPadPosition) paddingPosition
 {
 #if GS_USE_ICU == 1
-  return _ICUToNSPadPosition(unum_getAttribute (this->_formatter,
+  return _ICUToNSPadPosition(unum_getAttribute (internal->_formatter,
     UNUM_PADDING_POSITION));
 #else
   return 0;
@@ -1802,7 +1805,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setMinimumIntegerDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_MIN_INTEGER_DIGITS, number);
+  unum_setAttribute (internal->_formatter, UNUM_MIN_INTEGER_DIGITS, number);
 #else
   return;
 #endif
@@ -1811,7 +1814,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) minimumIntegerDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_MIN_INTEGER_DIGITS);
+  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_MIN_INTEGER_DIGITS);
 #else
   return 0;
 #endif
@@ -1820,7 +1823,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setMinimumFractionDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_MIN_FRACTION_DIGITS, number);
+  unum_setAttribute (internal->_formatter, UNUM_MIN_FRACTION_DIGITS, number);
 #else
   return;
 #endif
@@ -1829,7 +1832,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) minimumFractionDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_MIN_FRACTION_DIGITS);
+  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_MIN_FRACTION_DIGITS);
 #else
   return 0;
 #endif
@@ -1838,7 +1841,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setMaximumIntegerDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_MAX_INTEGER_DIGITS, number);
+  unum_setAttribute (internal->_formatter, UNUM_MAX_INTEGER_DIGITS, number);
 #else
   return;
 #endif
@@ -1847,7 +1850,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) maximumIntegerDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_MAX_INTEGER_DIGITS);
+  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_MAX_INTEGER_DIGITS);
 #else
   return 0;
 #endif
@@ -1856,7 +1859,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setMaximumFractionDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_MAX_FRACTION_DIGITS, number);
+  unum_setAttribute (internal->_formatter, UNUM_MAX_FRACTION_DIGITS, number);
 #else
   return;
 #endif
@@ -1865,7 +1868,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) maximumFractionDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (this->_formatter, UNUM_MAX_FRACTION_DIGITS);
+  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_MAX_FRACTION_DIGITS);
 #else
   return 0;
 #endif
@@ -1884,7 +1887,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setUsesSignificantDigits: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_SIGNIFICANT_DIGITS_USED, flag);
+  unum_setAttribute (internal->_formatter, UNUM_SIGNIFICANT_DIGITS_USED, flag);
 #else
   return;
 #endif
@@ -1893,7 +1896,7 @@ static NSUInteger _defaultBehavior = 0;
 - (BOOL) usesSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (this->_formatter, UNUM_SIGNIFICANT_DIGITS_USED);
+  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_SIGNIFICANT_DIGITS_USED);
 #else
   return NO;
 #endif
@@ -1902,7 +1905,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setMinimumSignificantDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_MIN_SIGNIFICANT_DIGITS, number);
+  unum_setAttribute (internal->_formatter, UNUM_MIN_SIGNIFICANT_DIGITS, number);
 #else
   return;
 #endif
@@ -1911,7 +1914,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) minimumSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (this->_formatter, UNUM_MIN_SIGNIFICANT_DIGITS);
+  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_MIN_SIGNIFICANT_DIGITS);
 #else
   return 0;
 #endif
@@ -1920,7 +1923,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setMaximumSignificantDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_MAX_SIGNIFICANT_DIGITS, number);
+  unum_setAttribute (internal->_formatter, UNUM_MAX_SIGNIFICANT_DIGITS, number);
 #else
   return;
 #endif
@@ -1929,7 +1932,7 @@ static NSUInteger _defaultBehavior = 0;
 - (NSUInteger) maximumSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (this->_formatter, UNUM_MAX_SIGNIFICANT_DIGITS);
+  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_MAX_SIGNIFICANT_DIGITS);
 #else
   return 0;
 #endif
@@ -1958,7 +1961,7 @@ static NSUInteger _defaultBehavior = 0;
 - (void) setLenient: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (this->_formatter, UNUM_LENIENT_PARSE, flag);
+  unum_setAttribute (internal->_formatter, UNUM_LENIENT_PARSE, flag);
 #else
   return;
 #endif
@@ -1967,7 +1970,7 @@ static NSUInteger _defaultBehavior = 0;
 - (BOOL) isLenient
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (this->_formatter, UNUM_LENIENT_PARSE);
+  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_LENIENT_PARSE);
 #else
   return NO;
 #endif
@@ -2014,15 +2017,15 @@ static NSUInteger _defaultBehavior = 0;
   UErrorCode err = U_ZERO_ERROR;
   const char *cLocaleId;
   
-  if (this->_formatter)
-    unum_close(this->_formatter);
+  if (internal->_formatter)
+    unum_close(internal->_formatter);
   
-  cLocaleId = [[this->_locale localeIdentifier] UTF8String];
-  style = _NSToICUFormatStyle (this->_style);
+  cLocaleId = [[internal->_locale localeIdentifier] UTF8String];
+  style = _NSToICUFormatStyle (internal->_style);
   
-  this->_formatter = unum_open (style, NULL, 0, cLocaleId, NULL, &err);
+  internal->_formatter = unum_open (style, NULL, 0, cLocaleId, NULL, &err);
   if (U_FAILURE(err))
-    this->_formatter = NULL;
+    internal->_formatter = NULL;
   
   [self setMaximumFractionDigits: 0];
 #else
@@ -2043,7 +2046,7 @@ static NSUInteger _defaultBehavior = 0;
     str = (unichar *)NSZoneMalloc ([self zone], length * sizeof(unichar));
   [string getCharacters: str range: NSMakeRange (0, length)];
   
-  unum_setSymbol (this->_formatter, symbol, str, length, &err);
+  unum_setSymbol (internal->_formatter, symbol, str, length, &err);
   
   if (length > MAX_SYMBOL_SIZE)
     NSZoneFree ([self zone], str);
@@ -2061,12 +2064,12 @@ static NSUInteger _defaultBehavior = 0;
   UErrorCode err = U_ZERO_ERROR;
   NSString *result;
   
-  length = unum_getSymbol (this->_formatter, symbol, str,
+  length = unum_getSymbol (internal->_formatter, symbol, str,
     MAX_SYMBOL_SIZE, &err);
   if (length > MAX_SYMBOL_SIZE)
     {
       str = (UChar *)NSZoneMalloc ([self zone], length * sizeof(UChar));
-      length = unum_getSymbol (this->_formatter, symbol, str,
+      length = unum_getSymbol (internal->_formatter, symbol, str,
         length, &err);
     }
   
@@ -2093,7 +2096,7 @@ static NSUInteger _defaultBehavior = 0;
     str = (unichar *)NSZoneMalloc ([self zone], length * sizeof(unichar));
   [string getCharacters: str range: NSMakeRange (0, length)];
   
-  unum_setTextAttribute (this->_formatter, attrib, str, length, &err);
+  unum_setTextAttribute (internal->_formatter, attrib, str, length, &err);
   
   if (length > MAX_TEXT_ATTRIB_SIZE)
     NSZoneFree ([self zone], str);
@@ -2111,12 +2114,12 @@ static NSUInteger _defaultBehavior = 0;
   UErrorCode err = U_ZERO_ERROR;
   NSString *result;
   
-  length = unum_getTextAttribute (this->_formatter, attrib, str,
+  length = unum_getTextAttribute (internal->_formatter, attrib, str,
     MAX_TEXT_ATTRIB_SIZE, &err);
   if (length > MAX_TEXT_ATTRIB_SIZE)
     {
       str = (UChar *)NSZoneMalloc ([self zone], length * sizeof(UChar));
-      length = unum_getTextAttribute (this->_formatter, attrib, str,
+      length = unum_getTextAttribute (internal->_formatter, attrib, str,
         length, &err);
     }
   

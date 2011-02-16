@@ -229,13 +229,9 @@
 #define	GS_EXPOSE(X)	(!GS_NONFRAGILE || defined(EXPOSE_##X##_IVARS))
 
 /* Static analyser macros: Provide annotations to help the analyser */
-// TODO:  Make this more sensible when GCC supports __attribute__((unused)) on
-// ivars
 #ifdef __clang__
-#  define GS_UNUSED_IVAR __attribute__((unused))
 #  define GS_NORETURN_METHOD __attribute__((__noreturn__))
 #else
-#  define GS_UNUSED_IVAR
 #  define GS_NORETURN_METHOD
 #endif
 
@@ -322,10 +318,23 @@ static inline void gs_consumed(id o) { return; }
 
 #endif
 
+/* Attribute definitions for attributes which may or may not be supported
+ * depending on the compiler being used.
+ * The definition should be of the form GS_XXX_CONTEXT where XXX is the
+ * name of the attribute and CONTEXT is one of FUNC, METH, or IVAR
+ * depending on where the attribute can be applied.
+ */
+
 #if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
-#define GS_ATTRIB_DEPRECATED __attribute__ ((deprecated))
+#  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
 #else
-#define GS_ATTRIB_DEPRECATED
+#  define GS_DEPRECATED_FUNC
+#endif
+
+#ifdef __clang__
+#  define GS_UNUSED_IVAR __attribute__((unused))
+#else
+#  define GS_UNUSED_IVAR
 #endif
 
 
