@@ -125,22 +125,22 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /**
  * Set flag to determine whether the namespaceURI and the qualified name
  * of an element is provided in the
- * [NSObject-parser:didStartElement:namespaceURI:qualifiedName:attributes:]
- * and [NSObject-parser:didEndElement:namespaceURI:qualifiedName:] methods.
+ * [NSObject(NSXMLParserDelegateEventAdditions)-parser:didStartElement:namespaceURI:qualifiedName:attributes:]
+ * and [NSObject(NSXMLParserDelegateEventAdditions)-parser:didEndElement:namespaceURI:qualifiedName:] methods.
  */
 - (void) setShouldProcessNamespaces: (BOOL)aFlag;
 
 /**
  * Sets a flag to specify whether the parser should call the
- * [NSObject-parser:didStartMappingPrefix:toURI:] and
- * [NSObject-parser:didEndMappingPrefix:] delegate methods.
+ * [NSObject(NSXMLParserDelegateEventAdditions)-parser:didStartMappingPrefix:toURI:] and
+ * [NSObject(NSXMLParserDelegateEventAdditions)-parser:didEndMappingPrefix:] delegate methods.
  */
 - (void) setShouldReportNamespacePrefixes: (BOOL)aFlag;
 
 /**
  * Sets flag to determine if declarations of external entities are
  * reported using
- * [NSObject-parser:foundExternalEntityDeclarationWithName:publicID:systemID:]
+ * [NSObject(NSXMLParserDelegateEventAdditions)-parser:foundExternalEntityDeclarationWithName:publicID:systemID:]
  */
 - (void) setShouldResolveExternalEntities: (BOOL)aFlag;
 

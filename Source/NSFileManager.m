@@ -1028,8 +1028,9 @@ static NSStringEncoding	defaultEncoding;
 /**
  * Copies the file or directory at source to destination, using a
  * handler object which should respond to
- * [NSObject-fileManager:willProcessPath:] and
- * [NSObject-fileManager:shouldProceedAfterError:] messages.<br />
+ * [NSObject(NSFileManagerHandler)-fileManager:willProcessPath:] and
+ * [NSObject(NSFileManagerHandler)-fileManager:shouldProceedAfterError:]
+ * messages.<br />
  * Will not copy to a destination which already exists.
  */
 - (BOOL) copyPath: (NSString*)source
@@ -1127,8 +1128,9 @@ static NSStringEncoding	defaultEncoding;
 /**
  * Moves the file or directory at source to destination, using a
  * handler object which should respond to
- * [NSObject-fileManager:willProcessPath:] and
- * [NSObject-fileManager:shouldProceedAfterError:] messages.
+ * [NSObject(NSFileManagerHandler)-fileManager:willProcessPath:] and
+ * [NSObject(NSFileManagerHandler)-fileManager:shouldProceedAfterError:]
+ * messages.
  * Will not move to a destination which already exists.<br />
  */
 - (BOOL) movePath: (NSString*)source
@@ -1212,8 +1214,9 @@ static NSStringEncoding	defaultEncoding;
 /**
  * <p>Links the file or directory at source to destination, using a
  * handler object which should respond to
- * [NSObject-fileManager:willProcessPath:] and
- * [NSObject-fileManager:shouldProceedAfterError:] messages.
+ * [NSObject(NSFileManagerHandler)-fileManager:willProcessPath:] and
+ * [NSObject(NSFileManagerHandler)-fileManager:shouldProceedAfterError:]
+ * messages.
  * </p>
  * <p>If the destination is a directory, the source path is linked
  * into that directory, otherwise the destination must not exist,
@@ -1318,8 +1321,9 @@ static NSStringEncoding	defaultEncoding;
 /**
  * Removes the file or directory at path, using a
  * handler object which should respond to
- * [NSObject-fileManager:willProcessPath:] and
- * [NSObject-fileManager:shouldProceedAfterError:] messages.
+ * [NSObject(NSFileManagerHandler)-fileManager:willProcessPath:] and
+ * [NSObject(NSFileManagerHandler)-fileManager:shouldProceedAfterError:]
+ * messages.
  */
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: handler
@@ -1801,22 +1805,22 @@ static NSStringEncoding	defaultEncoding;
  *   use the accessor methods where they are available.
  * </p>
  * <list>
- *   <item>[NSDictionary-fileCreationDate]</item>
- *   <item>[NSDictionary-fileExtensionHidden]</item>
- *   <item>[NSDictionary-fileHFSCreatorCode]</item>
- *   <item>[NSDictionary-fileHFSTypeCode]</item>
- *   <item>[NSDictionary-fileIsAppendOnly]</item>
- *   <item>[NSDictionary-fileIsImmutable]</item>
- *   <item>[NSDictionary-fileSize]</item>
- *   <item>[NSDictionary-fileType]</item>
- *   <item>[NSDictionary-fileOwnerAccountName]</item>
- *   <item>[NSDictionary-fileOwnerAccountID]</item>
- *   <item>[NSDictionary-fileGroupOwnerAccountName]</item>
- *   <item>[NSDictionary-fileGroupOwnerAccountID]</item>
- *   <item>[NSDictionary-fileModificationDate]</item>
- *   <item>[NSDictionary-filePosixPermissions]</item>
- *   <item>[NSDictionary-fileSystemNumber]</item>
- *   <item>[NSDictionary-fileSystemFileNumber]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileCreationDate]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileExtensionHidden]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileHFSCreatorCode]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileHFSTypeCode]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileIsAppendOnly]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileIsImmutable]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileSize]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileType]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileOwnerAccountName]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileOwnerAccountID]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileGroupOwnerAccountName]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileGroupOwnerAccountID]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileModificationDate]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-filePosixPermissions]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileSystemNumber]</item>
+ *   <item>[NSDictionary(NSFileAttributes)-fileSystemFileNumber]</item>
  * </list>
  */
 - (NSDictionary*) attributesOfItemAtPath: (NSString*)path
