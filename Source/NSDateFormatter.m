@@ -242,6 +242,10 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
+  self = [super initWithCoder: aCoder];
+  if (self == nil)
+    return nil;
+
   [aCoder decodeValuesOfObjCTypes: "@C", &_dateFormat, &_allowsNaturalLanguage];
   return self;
 }
@@ -249,6 +253,10 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (id) initWithDateFormat: (NSString *)format
      allowNaturalLanguage: (BOOL)flag
 {
+  self = [self init];
+  if (self == nil)
+    return nil;
+
   _dateFormat = [format copy];
   _allowsNaturalLanguage = flag;
   internal->_behavior = NSDateFormatterBehavior10_0;
