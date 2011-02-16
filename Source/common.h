@@ -20,6 +20,12 @@
 #import	"GNUstepBase/preface.h"
 #import	"GNUstepBase/GSConfig.h"
 
+/* Set localisation macro for use within the base library itsself.
+ */
+#define GS_LOCALISATION_BUNDLE \
+  [NSBundle bundleForLibrary: @"gnustep-base" version: \
+  OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
+
 #import	"GNUstepBase/GNUstep.h"
 
 /* Foundation/NSObject.h imports <Foundation/NSZone.h> and
@@ -37,15 +43,10 @@
  */
 #import	"Foundation/NSString.h"
 #import	"Foundation/NSDebug.h"
+
 #import	"Foundation/NSBundle.h"
 #import	"GNUstepBase/NSBundle+GNUstepBase.h"
 
-/* Change localisation macro for use within the base library itsself.
- */
-#undef	_
-#define _(X) [[NSBundle bundleForLibrary: @"gnustep-base" version: \
-  OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)] \
-  localizedStringForKey:(X) value: @"" table: nil]
 
 #include <string.h>
 #include <ctype.h>

@@ -1,5 +1,13 @@
 2011-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/common.h:
+	* Headers/Additions/GNUstepBase/GNUstep.h:
+	Implement David's idea of allowing some generalisation of the _()
+	macro by using a preprocessor define to set the bundle to be used
+	to lookup localisation information.
+
+2011-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSInternal.h:
 	* Source/NSDateFormatter.m:
 	* Source/NSNumberFormatter.m:
