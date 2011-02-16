@@ -1,5 +1,10 @@
 2011-02-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
+	* Resources/German.lproj/Localizable.strings: Add translation for
+	undo menu item strings.
+
+2011-02-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
 	* Source/NSDateFormatter.m (-initWithCoder:, -initWithDateFormat:):
 	Add missing calls to super/self initialization.
 
