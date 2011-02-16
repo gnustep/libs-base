@@ -190,28 +190,44 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
  *   <code>_(@"My string to translate")</code>
  * </p>
  * <p>
- *   is exactly the same as
+ *   is basically equivalent to
  * </p>
  * <p>
- *   <code>NSLocalizedString (@"My string to translate", @"")</code>
+ *   <code>NSLocalizedString(@"My string to translate", @"")</code>
  * </p>
  * <p>
- *   It is useful when you need to translate an application
- *   very quickly, as you just need to enclose all strings
- *   inside <code>_()</code>.  But please note that when you
- *   use this macro, you are not taking advantage of comments
- *   for the translator, so consider using
- *   <code>NSLocalizedString</code> instead when you need a
- *   comment.
+ * It is useful when you need to translate an application
+ * very quickly, as you just need to enclose all strings
+ * inside <code>_()</code>.  But please note that when you
+ * use this macro, you are not taking advantage of comments
+ * for the translator, so consider using
+ * <code>NSLocalizedString</code> instead when you need a
+ * comment.
+ * </p>
+ * <p>You may define GS_LOCALISATION_BUNDLE_ID to the bundle identifier
+ * of the bundle which is to provide the localisation information.<br />
+ * This can be used when compiling a single file by specifying something like
+ * '-D GS_LOCALISATION_BUNDLE_ID=$(FRAMEWORK_NAME)' in your make file.<br />
+ * If this is not defined, the localisation is provided by your application's
+ * main bundle exactly like the NSLocalizedString function.
+ * </p>
+ * <p>Alternatively you may define GS_LOCALISATION_BUNDLE to be the bundle
+ * to be used to prvide the localisation information.
  * </p>
  */
-#define _(X) NSLocalizedString (X, @"")
- 
-  /* The quickest possible way to localize a static string:
-    
-     static NSString *string = __(@"New Game");
-    
-     NSLog (_(string)); */
+# define _(X) \
+  [GS_LOCALISATION_BUNDLE localizedStringForKey: (X) value: @"" table: nil]
+
+#if	!defined(GS_LOCALISATION_BUNDLE)
+# if	defined(GS_LOCALISATION_BUNDLE_ID)
+#   define	GS_LOCALISATION_BUNDLE	[NSBundle bundleWithIdentifier: \
+  GS_LOCALISATION_BUNDLE_ID]
+# else
+#   define	GS_LOCALISATION_BUNDLE	[NSBundle mainBundle]
+# endif
+#endif
+
+
  
 /**
  * <p>
@@ -224,7 +240,7 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
  *   is exactly the same as
  * </p>
  * <p>
- *   <code>GSLocalizedStaticString (@"My string to translate", @"")</code>
+ *   <code>GSLocalizedStaticString(@"My string to translate", @"")</code>
  * </p>
  * <p>
  *   It is useful when you need to translate an application very
@@ -246,16 +262,16 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
  */
 #define __(X) X
 
-  /* The better way for a static string, with a comment - use as follows -
-
-     static NSString *string = GSLocalizedStaticString (@"New Game",
-                                                        @"Menu Option");
-
-     NSLog (_(string));
-
-     If you need anything more complicated than this, please initialize
-     the static strings manually.
-*/
+/* The better way for a static string, with a comment - use as follows -
+ *
+ * static NSString *string = GSLocalizedStaticString (@"New Game",
+ *                                                    @"Menu Option");
+ *
+ * NSLog (_(string));
+ *
+ * If you need anything more complicated than this, please initialize
+ * the static strings manually.
+ */
 
 /**
  * <p>
