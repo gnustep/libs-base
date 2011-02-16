@@ -1,3 +1,8 @@
+2011-02-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSDateFormatter.m (-initWithCoder:, -initWithDateFormat:):
+	Add missing calls to super/self initialization.
+
 2011-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/common.h:
