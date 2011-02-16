@@ -316,7 +316,7 @@ foundIgnorableWhitespace: (NSString *)string
     }
   else if ([elementName isEqualToString: @"integer"])
     {
-      ASSIGN(plist, [NSNumber numberWithInt: [value intValue]]);
+      ASSIGN(plist, [NSNumber numberWithLongLong: [value longLongValue]]);
     }
   else if ([elementName isEqualToString: @"real"])
     {
@@ -1130,7 +1130,7 @@ static id parsePlItem(pldata* pld)
 
 		    for (i = 0; i < len; i++) buf[i] = (char)ptr[i];
 		    buf[len] = '\0';
-		    result = [[NSNumber alloc] initWithLong: atol(buf)];
+		    result = [[NSNumber alloc] initWithLongLong: atoll(buf)];
 		  }
 		else if (type == 'B')
 		  {
