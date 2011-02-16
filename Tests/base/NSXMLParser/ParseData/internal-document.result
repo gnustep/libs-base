@@ -1,0 +1,84 @@
+parserDidStartDocument:
+parser:foundElementDeclarationWithName:model: cTree 
+parser:foundAttributeDeclarationWithName:forElement:type:defaultValue: version cTree  1.0
+parser:foundElementDeclarationWithName:model: function 
+parser:foundAttributeDeclarationWithName:forElement:type:defaultValue: name function  (null)
+parser:foundAttributeDeclarationWithName:forElement:type:defaultValue: srcLoc function  (null)
+parser:foundElementDeclarationWithName:model: argument 
+parser:foundElementDeclarationWithName:model: result 
+parser:didStartElement:namespaceURI:qualifiedName:attributes: cTree  cTree {
+    version = "1.0";
+}
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: function  function {
+    name = ".main.dbl";
+    srcLoc = "line 1.32";
+}
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: argument  argument {
+}
+parser:foundCharacters: .main.sqr
+parser:didEndElement:namespaceURI:qualifiedName: argument  argument
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: argument  argument {
+}
+parser:foundCharacters: 3
+parser:didEndElement:namespaceURI:qualifiedName: argument  argument
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: result  result {
+}
+parser:foundCharacters: 12
+parser:didEndElement:namespaceURI:qualifiedName: result  result
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: function  function {
+    name = ".main.sqr";
+    srcLoc = "line 1.17";
+}
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: argument  argument {
+}
+parser:foundCharacters: 3
+parser:didEndElement:namespaceURI:qualifiedName: argument  argument
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: result  result {
+}
+parser:foundCharacters: 6
+parser:didEndElement:namespaceURI:qualifiedName: result  result
+parser:foundCharacters: 
+
+parser:didEndElement:namespaceURI:qualifiedName: function  function
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: function  function {
+    name = ".main.sqr";
+    srcLoc = "line 1.17";
+}
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: argument  argument {
+}
+parser:foundCharacters: 6
+parser:didEndElement:namespaceURI:qualifiedName: argument  argument
+parser:foundCharacters: 
+
+parser:didStartElement:namespaceURI:qualifiedName:attributes: result  result {
+}
+parser:foundCharacters: 12
+parser:didEndElement:namespaceURI:qualifiedName: result  result
+parser:foundCharacters: 
+
+parser:didEndElement:namespaceURI:qualifiedName: function  function
+parser:foundCharacters: 
+
+parser:didEndElement:namespaceURI:qualifiedName: function  function
+parser:foundCharacters: 
+
+parser:didEndElement:namespaceURI:qualifiedName: cTree  cTree
+parserDidEndDocument:
