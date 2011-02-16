@@ -27,15 +27,25 @@
  * their code when the class implementation is changed in new versions of the
  * library.
  *
- * The public class MUST declare its instance variables using code of the
- * form:
+ * The public class MUST declare its instance variables (after any public
+ * instance variables which are part of the unchanging public API) using
+ * code of the form:
  * #if	GS_NONFRAGILE
  * #  if defined(GS_X_IVARS)
  * @public GS_X_IVARS;
  * #  endif
  * #else
- * @private id _internal;
+ * @private void *_internal GS_UNUSED_IVAR;
  * #endif
+ *
+ * In the non fragile case, this means that the public header has nothing
+ * visible, but the ivars defined in GS_X_IVARS are visible within the
+ * implementation.
+ *
+ * In the fragile case, the '_internal' pinter is visible in the public
+ * header, but as an opaque private instance variable, while macros from
+ * this file allow the actual memory to be accessed either as a malloc'ed
+ * structure or as a private class.
  *
  * Before including the header file containing the public class declaration,
  * you must define GS_X_IVARS (where X is the class name) to be the
@@ -62,7 +72,31 @@
 #if	!GS_NONFRAGILE
 
 /* Code for when we don't have non-fragile instance variables
+ * The presence of GS_INTERNAL_STRUCT means that the instance variables are
+ * accessible as a struct rather than as a class.
  */
+
+#if	defined(GS_INTERNAL_STRUCT)
+
+/* Start declaration of internal ivars.
+ */
+#define	GS_PRIVATE_INTERNAL(name) \
+typedef struct	name ## InternalStruct \
+{ \
+GS_##name##_IVARS; \
+} name ## Internal;
+
+/* Create holder for internal ivars.
+ */
+#define	GS_CREATE_INTERNAL(name) \
+_internal = (void*)NSZoneCalloc([self zone], 1, sizeof(name ## Internal));
+
+/* Destroy holder for internal ivars.
+ */
+#define	GS_DESTROY_INTERNAL(name) \
+if (_internal != 0) { NSZoneFree([self zone], _internal); _internal = 0; }
+
+#else	/* GS_INTERNAL_STRUCT */
 
 /* Start declaration of internal ivars.
  */
@@ -79,12 +113,14 @@ GS_##name##_IVARS; \
 /* Create holder for internal ivars.
  */
 #define	GS_CREATE_INTERNAL(name) \
-_internal = [name ## Internal new];
+_internal = (void*)[name ## Internal new];
 
 /* Destroy holder for internal ivars.
  */
 #define	GS_DESTROY_INTERNAL(name) \
-if (_internal != 0) DESTROY(_internal);
+if (_internal != 0) {[(id)_internal release]; _internal = 0; }
+
+#endif	/* GS_INTERNAL_STRUCT */
 
 #undef	internal
 #define	internal	((GSInternal*)_internal)
