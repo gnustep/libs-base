@@ -471,6 +471,8 @@ static NSUInteger _defaultBehavior = 0;
 
 - (id) initWithCoder: (NSCoder*)decoder
 {
+  GS_CREATE_INTERNAL(NSNumberFormatter)
+
   if ([decoder allowsKeyedCoding])
     {
       if ([decoder containsValueForKey: @"NS.allowsfloats"])
