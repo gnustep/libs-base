@@ -30,7 +30,7 @@ int main()
   PASS(YES == [nan isEqualToNumber: nan], "NaN is equal to NaN");
 
   PASS([n compare: nan] == NSOrderedDescending, "2 is greater than NaN") 
-  PASS([nan compare: n] == NSOrderedDescending, "NaN is less than 2") 
+  PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2") 
 
   END_SET("not-a-number checks")
   return 0;
