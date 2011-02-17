@@ -164,7 +164,33 @@ return NSOrderedSame;
 	  double other = [aNumber doubleValue];
 	  double value = [self doubleValue];
 
-	  COMPARE (value, other);
+	  if (isnan(value))
+	    {
+	      if (isnan(other))
+		{
+		  return NSOrderedSame;
+		}
+	      else
+		{
+		  return NSOrderedAscending;
+		}
+	    }
+	  else
+	    {
+	      if (isnan(other))
+		{
+		  return NSOrderedDescending;
+		}
+	      else if (value < other)
+		{
+		  return NSOrderedAscending;
+		}
+	      else if (value > other)
+		{
+		  return NSOrderedDescending;
+		}
+	      return NSOrderedSame;
+	    }
 	}
       default:
 	[NSException raise: NSInvalidArgumentException

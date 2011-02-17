@@ -1,5 +1,11 @@
 2011-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDecimalNumber.m:
+	* Source/NSNumber.m:
+	Quick hacks to try to get NaN comparison working.
+
+2011-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSDateFormatter.m:
 	* Source/NSNumberFormatter.m:
 	Fix -initWithCoder: methods to create internal ivar storage.
