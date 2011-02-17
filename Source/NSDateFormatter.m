@@ -242,9 +242,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  self = [super initWithCoder: aCoder];
-  if (self == nil)
-    return nil;
+  GS_CREATE_INTERNAL(NSDateFormatter)
 
   [aCoder decodeValuesOfObjCTypes: "@C", &_dateFormat, &_allowsNaturalLanguage];
   return self;
