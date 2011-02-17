@@ -719,8 +719,24 @@ static NSDecimalNumber *one;
 
       return NSDecimalCompare(&d1, &d2);
     }
+  else if ([decimalNumber isKindOfClass: [NSNumber class]])
+    {
+      NSComparisonResult	r = [decimalNumber compare: self];
+
+      if (r == NSOrderedAscending)
+	{
+	  return NSOrderedDescending;
+	}
+      else if (r == NSOrderedDescending)
+	{
+	  return NSOrderedAscending;
+	}
+      return NSOrderedSame;
+    }
   else
-    return [super compare: decimalNumber];
+    {
+      return [super compare: decimalNumber];
+    }
 }
 
 - (NSDecimalNumber*) decimalNumberByAdding: (NSDecimalNumber*)decimalNumber
