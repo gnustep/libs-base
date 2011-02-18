@@ -10,11 +10,6 @@ Test whether a class is a working concrete subclass of NSString. This file
 should be included _once_ in a test that wants to test a particular class.
 */
 
-/*
-This is the main entry point to this file. Call it with a class that's
-supposed to be a concrete NSString subclass.
-*/
-void TestNSStringClass(Class stringClass);
 
 
 #import "Testing.h"
@@ -22,6 +17,12 @@ void TestNSStringClass(Class stringClass);
 #import <Foundation/NSData.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSString.h>
+
+/*
+This is the main entry point to this file. Call it with a class that's
+supposed to be a concrete NSString subclass.
+*/
+void TestNSStringClass(Class stringClass);
 
 /* Solaris, in particular, can't handle a NULL string in a printf statement */
 #define FORMAT_STRING(str) ((str) ? str : "NULL")
