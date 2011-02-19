@@ -4,10 +4,11 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSNumberFormatter *fmt;
   NSNumber *num;
   NSString *str;
+
+  START_SET(YES)
 
   fmt = [[[NSNumberFormatter alloc] init] autorelease];
   num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
@@ -58,10 +59,13 @@ int main()
   
   PASS_EQUAL(str, @"-1235", "format string of length 1");
 
-  [fmt getObjectValue: &num forString: @"0.00", nil];
-  PASS_EQUAL(num,  [NSNumber numberWithFloat: 0.0], "getObjectValue inited with 0.00");
+  num = nil;
+  PASS_RUNS(({[fmt getObjectValue: &num forString: @"0.00" errorDescription: &str];}),
+    "getObjectValue:forString:errorDescription: runs")
+  PASS_EQUAL(num,  [NSNumber numberWithFloat: 0.0],
+    "getObjectValue inited with 0.00")
+  END_SET("NSNumberFormatter 10.4")
 
-  [arp release]; arp = nil;
   return 0;
 }
 
