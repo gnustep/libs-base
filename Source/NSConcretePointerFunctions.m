@@ -33,7 +33,7 @@ acquireMallocMemory(const void *item,
   if (shouldCopy == YES)
     {
       NSUInteger	len = (*size)(item);
-      void		*newItem = objc_malloc(len);
+      void		*newItem = malloc(len);
 
       memcpy(newItem, item, len);
       item = newItem;
@@ -161,7 +161,7 @@ static void
 relinquishMallocMemory(const void *item,
   NSUInteger (*size)(const void *item))
 {
-  objc_free((void*)item);
+  free((void*)item);
 }
 
 static void

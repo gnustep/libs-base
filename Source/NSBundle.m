@@ -885,14 +885,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	while (numClasses < newNumClasses)
 	  {
 	    numClasses = newNumClasses;
-	    classes = objc_realloc(classes, sizeof(Class) * numClasses);
+	    classes = realloc(classes, sizeof(Class) * numClasses);
 	    newNumClasses = objc_getClassList(classes, numClasses);
 	  }
 	for (i = 0; i < numClasses; i++)
 	  {
 	    [self _addFrameworkFromClass: classes[i]];
 	  }
-	objc_free(classes);
+	free(classes);
       }
 #else
       {

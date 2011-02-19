@@ -36,7 +36,7 @@
 
 /* Actual design:
 
-   - The default zone uses objc_malloc() and friends.  We assume that
+   - The default zone uses malloc() and friends.  We assume that
    they're thread safe and that they return NULL if we're out of
    memory (glibc malloc does this, what about other mallocs? FIXME).
 
@@ -121,7 +121,7 @@ default_malloc (NSZone *zone, size_t size)
 {
   void *mem;
 
-  mem = objc_malloc(size);
+  mem = malloc(size);
   if (mem == NULL)
     [NSException raise: NSMallocException
                  format: @"Default zone has run out of memory"];
@@ -135,18 +135,18 @@ default_realloc (NSZone *zone, void *ptr, size_t size)
 
   if (size == 0)
     {
-      objc_free(ptr);
+      free(ptr);
       return NULL;
     }
   if (ptr == 0)
     {
-      mem = objc_malloc(size);
+      mem = malloc(size);
       if (mem == NULL)
 	[NSException raise: NSMallocException
 		     format: @"Default zone has run out of memory"];
       return mem;
     }
-  mem = objc_realloc(ptr, size);
+  mem = realloc(ptr, size);
   if (mem == NULL)
     [NSException raise: NSMallocException
                  format: @"Default zone has run out of memory"];
@@ -156,7 +156,7 @@ default_realloc (NSZone *zone, void *ptr, size_t size)
 static void
 default_free (NSZone *zone, void *ptr)
 {
-  objc_free(ptr);
+  free(ptr);
 }
 
 static void
@@ -170,7 +170,7 @@ default_recycle (NSZone *zone)
 static BOOL
 default_check (NSZone *zone)
 {
-  /* We can't check memory managed by objc_malloc(). */
+  /* We can't check memory managed by malloc(). */
   [NSException raise: NSGenericException
 	      format: @"No checking for default zone"];
   return NO;
@@ -188,7 +188,7 @@ default_stats (NSZone *zone)
 {
   struct NSZoneStats dummy = {0,0,0,0,0};
 
-  /* We can't obtain statistics from the memory managed by objc_malloc(). */
+  /* We can't obtain statistics from the memory managed by malloc(). */
   [NSException raise: NSGenericException
 	      format: @"No statistics for default zone"];
   return dummy;
@@ -765,7 +765,7 @@ destroy_zone(NSZone* zone)
       if (ptr)
         ptr->next = zone->next;
     }
-  objc_free((void*)zone);
+  free((void*)zone);
 }
 
 /* Search the buffer to see if there is any memory chunks large enough
@@ -989,7 +989,7 @@ frecycle1(NSZone *zone)
 		tmp = tmp->next;
 	      tmp->next = block->next;
 	    }
-          objc_free((void*)block);
+          free((void*)block);
 	}
       block = nextblock;
     }
@@ -1277,7 +1277,7 @@ get_chunk (ffree_zone *zone, size_t size)
           ff_block *block;
 
           blocksize = roundupto(size, zone->common.gran);
-          block = objc_malloc(blocksize+2*FBSZ);
+          block = malloc(blocksize+2*FBSZ);
           if (block == NULL)
             return NULL;
 
@@ -1569,7 +1569,7 @@ nmalloc (NSZone *zone, size_t size)
         {
           size_t blocksize = roundupto(chunksize+NF_HEAD, zone->gran);
 
-          block = objc_malloc(blocksize);
+          block = malloc(blocksize);
           if (block == NULL)
             {
               pthread_mutex_unlock(&(zptr->lock));
@@ -1610,7 +1610,7 @@ nrecycle1 (NSZone *zone)
       while (block != NULL)
 	{
 	  nextblock = block->next;
-	  objc_free(block);
+	  free(block);
 	  block = nextblock;
 	}
       zptr->blocks = 0;
@@ -1864,7 +1864,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       ff_block *chunk;
       ff_block *tailer;
 
-      zone = objc_malloc(sizeof(ffree_zone));
+      zone = malloc(sizeof(ffree_zone));
       if (zone == NULL)
         [NSException raise: NSMallocException
                      format: @"No memory to create zone"];
@@ -1884,11 +1884,11 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
           zone->segtaillist[i] = NULL;
         }
       zone->bufsize = 0;
-      zone->blocks = objc_malloc(startsize + 2*FBSZ);
+      zone->blocks = malloc(startsize + 2*FBSZ);
       if (zone->blocks == NULL)
         {
           pthread_mutex_destroy(&(zone->lock));
-          objc_free(zone);
+          free(zone);
           [NSException raise: NSMallocException
                        format: @"No memory to create zone"];
         }
@@ -1919,7 +1919,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       nf_block *block;
       nfree_zone *zone;
 
-      zone = objc_malloc(sizeof(nfree_zone));
+      zone = malloc(sizeof(nfree_zone));
       if (zone == NULL)
         [NSException raise: NSMallocException
                      format: @"No memory to create zone"];
@@ -1933,12 +1933,12 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       zone->common.gran = granularity;
       zone->common.name = nil;
       GS_INIT_RECURSIVE_MUTEX(zone->lock);
-      zone->blocks = objc_malloc(startsize);
+      zone->blocks = malloc(startsize);
       zone->use = 0;
       if (zone->blocks == NULL)
         {
           pthread_mutex_destroy(&(zone->lock));
-          objc_free(zone);
+          free(zone);
           [NSException raise: NSMallocException
                        format: @"No memory to create zone"];
         }

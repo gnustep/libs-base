@@ -153,10 +153,10 @@
   d = [NSArchiver archivedDataWithRootObject: i];
   i = [NSUnarchiver unarchiveObjectWithData: d];
   l = [[i methodSignature] methodReturnLength];
-  b = (void *)objc_malloc(l);
+  b = (void *)malloc(l);
   [i getReturnValue: b];
   [inv setReturnValue: b];
-  objc_free(b);
+  free(b);
 #endif
 }
 

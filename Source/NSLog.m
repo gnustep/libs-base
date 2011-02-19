@@ -173,13 +173,13 @@ _NSLog_standard_printf_handler (NSString* message)
   if (GSPrivateDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
     {
-      null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
+      null_terminated_buf = malloc(sizeof (char) * (len + 1));
       strncpy (null_terminated_buf, buf, len);
       null_terminated_buf[len] = '\0';
 
       syslog(SYSLOGMASK, "%s",  null_terminated_buf);
 
-      objc_free (null_terminated_buf);
+      free(null_terminated_buf);
     }
 #else
   write(_NSLogDescriptor, buf, len);

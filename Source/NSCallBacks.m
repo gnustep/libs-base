@@ -93,7 +93,7 @@ void
 _NS_owned_void_p_release(void *table, void *p)
 {
   if (p != 0)
-    objc_free(p);
+    free(p);
   return;
 }
 

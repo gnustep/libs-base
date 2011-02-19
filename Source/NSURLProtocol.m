@@ -53,12 +53,12 @@
 static void*
 zalloc(void *opaque, unsigned nitems, unsigned size)
 {
-  return objc_calloc(nitems, size);
+  return calloc(nitems, size);
 }
 static void
 zfree(void *opaque, void *mem)
 {
-  objc_free(mem);
+  free(mem);
 }
 #else
 # undef	USE_ZLIB

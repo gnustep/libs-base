@@ -293,7 +293,7 @@ GSPrivateBaseAddress(void *addr, void **base)
     }
   if (_symbols)
     {
-      objc_free (_symbols);
+      free(_symbols);
       _symbols = NULL;
     }
   [super dealloc];
@@ -359,7 +359,7 @@ GSPrivateBaseAddress(void *addr, void **base)
       DESTROY(self);
       return nil;
     }
-  _symbols = objc_malloc (neededSpace);
+  _symbols = malloc (neededSpace);
   if (!_symbols)
     {
       //NSLog (@"GSBinaryFileInfo: Can't allocate buffer");

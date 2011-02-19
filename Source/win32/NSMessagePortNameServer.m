@@ -207,10 +207,10 @@ OutputDebugStringW(L"");
     {
       if (ptr != buf)
         {
-	  objc_free(ptr);
+	  free(ptr);
 	}
       max += 1024;
-      ptr = objc_malloc(max);
+      ptr = malloc(max);
       len = max;
       rc = RegQueryValueExW(
 	key,
@@ -224,7 +224,7 @@ OutputDebugStringW(L"");
     {
       if (ptr != buf)
         {
-	  objc_free(ptr);
+	  free(ptr);
 	}
       return nil;
     }
@@ -232,7 +232,7 @@ OutputDebugStringW(L"");
   mailslotName = [NSString stringWithUTF8String: (const char *) ptr];
   if (ptr != buf)
     {
-      objc_free(ptr);
+      free(ptr);
     }
 
   /*

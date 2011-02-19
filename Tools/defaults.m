@@ -481,7 +481,7 @@ main(int argc, char** argv, char **env)
 	  int	size = BUFSIZ;
 	  int	got;
 	  int	off = 0;
-	  char	*buf = objc_malloc(size);
+	  char	*buf = malloc(size);
 	  char	*ptr;
 
 	  /*
@@ -492,7 +492,7 @@ main(int argc, char** argv, char **env)
 	    {
 	      off += BUFSIZ;
 	      size += BUFSIZ;
-	      buf = objc_realloc(buf, size);
+	      buf = realloc(buf, size);
 	      if (buf == 0)
 		{
 		  GSPrintf(stderr,
@@ -667,14 +667,14 @@ main(int argc, char** argv, char **env)
 	  int	size = BUFSIZ;
 	  int	got;
 	  int	off = 0;
-	  char	*buf = objc_malloc(size);
+	  char	*buf = malloc(size);
 	  char	*ptr;
 
 	  while ((got = fread(buf + off, 1, BUFSIZ, stdin)) == BUFSIZ)
 	    {
 	      off += BUFSIZ;
 	      size += BUFSIZ;
-	      buf = objc_realloc(buf, size);
+	      buf = realloc(buf, size);
 	      if (buf == 0)
 		{
 		  GSPrintf(stderr,

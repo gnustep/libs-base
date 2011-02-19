@@ -282,7 +282,7 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
     {
       if (len + sizeof(char)*19 > sizeof(buf))
 	{
-	  p = objc_malloc(len + sizeof(char)*19);
+	  p = malloc(len + sizeof(char)*19);
 
 	  if (p == NULL)
 	    {
@@ -300,7 +300,7 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
 
       if (len + sizeof(char)*23 > sizeof(buf))
 	{
-	  p = objc_malloc(len + sizeof(char)*23);
+	  p = malloc(len + sizeof(char)*23);
 
 	  if (p == NULL)
 	    {
@@ -321,7 +321,7 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
 
   if (p != buf)
     {
-      objc_free(p);
+      free(p);
     }
 
   if (ret)
