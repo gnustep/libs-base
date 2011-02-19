@@ -71,14 +71,9 @@
  * the _np suffix explicitly annotates the code as not compatible with the NeXT
  * and Mac runtimes.
  */
-#ifdef NeXT_RUNTIME
-#  ifdef __GNU_LIBOBJC__
-#    define sel_getType_np sel_getTypeEncoding
-#    define sel_registerTypedName_np sel_registerTypedName
-#  elif !defined(__GNUSTEP_RUNTIME__)
-#    define sel_getType_np sel_get_type
-#    define sel_registerTypedName_np sel_register_typed_name
-#  endif
+#ifdef __GNU_LIBOBJC__
+#  define sel_getType_np sel_getTypeEncoding
+#  define sel_registerTypedName_np sel_registerTypedName
 #endif
 
 // Semi-private GNU[step] runtime function.
