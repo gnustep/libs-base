@@ -57,5 +57,29 @@
 #define objc_free(x) free(x)
 #endif
 
-// Semi-private GNU[step] runtime function.  
+/*
+ * If we are not using the NeXT runtime, we are able to use typed selectors.
+ * Unfortunately, the APIs for doing so differ between runtimes.  The old GCC
+ * runtime used lower-case function names with underscore separation.  The
+ * GNUstep runtime adopts the Apple runtime API naming convention, but suffixes
+ * non-portable functions with _np to warn against their use where OS X
+ * compatibility is required.  The newer GCC runtime uses the Apple convention,
+ * but does not add the _np suffix, making it unclear that the calls are not
+ * portable. 
+ *
+ * These macros allow the GNUstep runtime versions to be used everywhere, so
+ * the _np suffix explicitly annotates the code as not compatible with the NeXT
+ * and Mac runtimes.
+ */
+#ifdef NeXT_RUNTIME
+#  ifdef __GNU_LIBOBJC__
+#    define sel_getType_np sel_getTypeEncoding
+#    define sel_registerTypedName_np sel_registerTypedName
+#  elif !defined(__GNUSTEP_RUNTIME__)
+#    define sel_getType_np sel_get_type
+#    define sel_registerTypedName_np sel_register_typed_name
+#  endif
+#endif
+
+// Semi-private GNU[step] runtime function.
 IMP get_imp(Class, SEL);
