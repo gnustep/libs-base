@@ -58,6 +58,9 @@ int main()
   
   PASS_EQUAL(str, @"-1235", "format string of length 1");
 
+  [fmt getObjectValue: &num forString: @"0.00", nil];
+  PASS_EQUAL(num,  [NSNumber numberWithFloat: 0.0], "getObjectValue inited with 0.00");
+
   [arp release]; arp = nil;
   return 0;
 }
