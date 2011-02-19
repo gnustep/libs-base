@@ -919,10 +919,10 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	{
 	  const char	*runtimeName = sel_getName(selector);
 
-	  selector = sel_get_typed_uid (runtimeName, receiverTypes);
+	  selector = sel_getType_np(runtimeName, receiverTypes);
 	  if (selector == 0)
 	    {
-	      selector = sel_register_typed_name (runtimeName, receiverTypes);
+	      selector = sel_registerTypedName_np(runtimeName, receiverTypes);
 	    }
 	  if (runtimeTypes != 0)
 	    {

@@ -1,12 +1,20 @@
+2011-02-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m: Updated two obsolete runtime calls
+	* Source/common.h: Revert last change as it seemed pointless to
+	define macros within a private header which reproduce functions
+	we don't actually use (or want to use) within base. I think/hope
+	that the tiny change to GSFFcallInvocation.m is all that was needed.
+
 2011-02-19 16:02  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/common.h: Add some macros that map some
-	  libobjc functions to their runtime-specific variants.  This avoids the
-	  need for ugly #ifdefs everywhere (the next commit will try to clean up
-	  some of this mess), and lets us use the _np function names everywhere to
-	  explicitly note that we are using runtime functions that are not present
-	  on OS X - apparently the new GCC runtime does not add this suffix for
-	  some reason.
+	libobjc functions to their runtime-specific variants.
+	This avoids the need for ugly #ifdefs everywhere (the next commit
+	will try to clean up some of this mess), and lets us use the _np
+	function names everywhere to explicitly note that we are using
+	runtime functions that are not present on OS X - apparently the
+	new GCC runtime does not add this suffix for some reason.
 
 2011-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
