@@ -1,5 +1,25 @@
 2011-02-19  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSBundle.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSConcretePointerFunctions.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSZone.m:
+	* Source/NSCallBacks.m:
+	* Source/win32/NSMessagePortNameServer.m:
+	* Source/NSFileManager.m:
+	* Source/NSURLProtocol.m:
+	* Source/objc-load.m:
+	* Source/NSException.m:
+	* Source/cifframe.m:
+	* Source/NSLog.m:
+	* Tools/defaults.m:
+	* Tests/base/NSInvocation/Resources/InvokeProxy.m:
+	Remove obsolete calls to objc_malloc() in favour of NSZoneMalloc() or
+	malloc() where using zones is not appropriate.
+
+2011-02-19  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFFCallInvocation.m: Updated two obsolete runtime calls
 	* Source/common.h: Revert last change as it seemed pointless to
 	define macros within a private header which reproduce functions

@@ -231,12 +231,12 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
   if (_gnu_arg_zero != 0)
     {
-      objc_free(_gnu_arg_zero);
+      free(_gnu_arg_zero);
     }
 
   if (argv != 0 && argv[0] != 0)
     {
-      _gnu_arg_zero = (char*)objc_malloc(strlen(argv[0]) + 1);
+      _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
       strcpy(_gnu_arg_zero, argv[0]);
       arg0 = [[NSString alloc] initWithCString: _gnu_arg_zero];
     }
@@ -251,7 +251,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
       while (needed_size == buffer_size)
 	{
           buffer_size = buffer_size + 256;
-          buffer = (unichar*)objc_malloc(buffer_size * sizeof(unichar));
+          buffer = (unichar*)malloc(buffer_size * sizeof(unichar));
           needed_size = GetModuleFileNameW(NULL, buffer, buffer_size);
           if (needed_size < buffer_size)
 	    {
@@ -268,11 +268,11 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    }
           else
 	    {
-              objc_free(buffer);
+              free(buffer);
 	    }
 	}
       tmp = [arg0 cStringUsingEncoding: [NSString defaultCStringEncoding]];
-      _gnu_arg_zero = (char*)objc_malloc(strlen(tmp) + 1);
+      _gnu_arg_zero = (char*)malloc(strlen(tmp) + 1);
       strcpy(_gnu_arg_zero, tmp);
 #else
       fprintf(stderr, "Error: for some reason, argv not properly set up "
@@ -511,7 +511,7 @@ static char	**_gnu_noobjc_env = NULL;
   /* copy the environment strings */
   for (count = 0; vectors[count]; count++)
     ;
-  _gnu_noobjc_env = (char**)objc_malloc(sizeof(char*) * (count + 1));
+  _gnu_noobjc_env = (char**)malloc(sizeof(char*) * (count + 1));
   if (!_gnu_noobjc_env)
     goto malloc_error;
   for (i = 0; i < count; i++)
@@ -539,7 +539,7 @@ static char	**_gnu_noobjc_env = NULL;
   for (_gnu_noobjc_argc = 0; vectors[_gnu_noobjc_argc]; _gnu_noobjc_argc++)
     ;
   _gnu_noobjc_argv
-    = (char**)objc_malloc(sizeof(char*) * (_gnu_noobjc_argc + 1));
+    = (char**)malloc(sizeof(char*) * (_gnu_noobjc_argc + 1));
   if (!_gnu_noobjc_argv)
     goto malloc_error;
   for (i = 0; i < _gnu_noobjc_argc; i++)
@@ -559,7 +559,7 @@ static char	**_gnu_noobjc_env = NULL;
   int i, count;
   
   // Read commandline
-  proc_file_name = (char*)objc_malloc(sizeof(char) * 2048);
+  proc_file_name = (char*)malloc(sizeof(char) * 2048);
   sprintf(proc_file_name, "/proc/%d/psinfo", (int)getpid());
   
   ifp = fopen(proc_file_name, "r");
@@ -585,7 +585,7 @@ static char	**_gnu_noobjc_env = NULL;
   /* copy the environment strings */
   for (count = 0; vectors[count]; count++)
     ;
-  _gnu_noobjc_env = (char**)objc_malloc(sizeof(char*) * (count + 1));
+  _gnu_noobjc_env = (char**)malloc(sizeof(char*) * (count + 1));
   if (!_gnu_noobjc_env)
     goto malloc_error;
   for (i = 0; i < count; i++)
@@ -607,7 +607,7 @@ static char	**_gnu_noobjc_env = NULL;
   for (_gnu_noobjc_argc = 0; vectors[_gnu_noobjc_argc]; _gnu_noobjc_argc++)
     ;
   _gnu_noobjc_argv
-    = (char**)objc_malloc(sizeof(char*) * (_gnu_noobjc_argc + 1));
+    = (char**)malloc(sizeof(char*) * (_gnu_noobjc_argc + 1));
   if (!_gnu_noobjc_argv)
     goto malloc_error;
   for (i = 0; i < _gnu_noobjc_argc; i++)
@@ -656,7 +656,7 @@ static char	**_gnu_noobjc_env = NULL;
   while (environ[c] != NULL)
     c++;
   env_terms = c;
-  _gnu_noobjc_env = (char**)objc_malloc(sizeof(char*) * (env_terms + 1));
+  _gnu_noobjc_env = (char**)malloc(sizeof(char*) * (env_terms + 1));
   if (_gnu_noobjc_env == NULL)
     goto malloc_error;
   for (c = 0; c < env_terms; c++)
@@ -668,7 +668,7 @@ static char	**_gnu_noobjc_env = NULL;
   _gnu_noobjc_env[c] = NULL;
 
   // Read commandline
-  proc_file_name = (char *)objc_malloc(sizeof(char) * 2048);
+  proc_file_name = (char *)malloc(sizeof(char) * 2048);
   sprintf(proc_file_name, "/proc/%d/cmdline", (int)getpid());
 
   /*
@@ -701,8 +701,7 @@ static char	**_gnu_noobjc_env = NULL;
    * Now _gnu_noobcj_argc is the number of arguments;
    * allocate memory accordingly.
    */
-  _gnu_noobjc_argv
-    = (char **)objc_malloc((sizeof(char *)) * (_gnu_noobjc_argc + 1));
+  _gnu_noobjc_argv = (char **)malloc((sizeof(char *)) * (_gnu_noobjc_argc + 1));
   if (_gnu_noobjc_argv == NULL)
     goto malloc_error;
 
@@ -711,7 +710,7 @@ static char	**_gnu_noobjc_env = NULL;
   //freopen(proc_file_name, "r", ifp);
   if (ifp == NULL)
     {
-      objc_free(_gnu_noobjc_argv);
+      free(_gnu_noobjc_argv);
       goto proc_fs_error;
     }
   argument = 0;
@@ -723,7 +722,7 @@ static char	**_gnu_noobjc_env = NULL;
       if ((c == EOF) || (c == 0)) // End of a parameter
 	{
 	  _gnu_noobjc_argv[argument]
-	    = (char*)objc_malloc((sizeof(char))*length);
+	    = (char*)malloc((sizeof(char))*length);
 	  if (_gnu_noobjc_argv[argument] == NULL)
 	    goto malloc_error;
 	  argument++;
@@ -738,8 +737,8 @@ static char	**_gnu_noobjc_env = NULL;
   if (ifp == NULL)
     {
       for (c = 0; c < _gnu_noobjc_argc; c++)
-	objc_free(_gnu_noobjc_argv[c]);
-      objc_free(_gnu_noobjc_argv);
+	free(_gnu_noobjc_argv[c]);
+      free(_gnu_noobjc_argv);
       goto proc_fs_error;
     }
   argument = 0;
@@ -771,7 +770,7 @@ static char	**_gnu_noobjc_env = NULL;
     }
   _gnu_noobjc_argv[argument] = NULL;
   fclose(ifp);
-  objc_free(proc_file_name);
+  free(proc_file_name);
   return;
 
  proc_fs_error:
@@ -791,7 +790,7 @@ static char	**_gnu_noobjc_env = NULL;
 #ifdef HAVE_PROGRAM_INVOCATION_NAME
   fprintf(stderr, "We try to go on anyway; but the program will ignore any argument which were passed to it.\n");
   _gnu_noobjc_argc = 1;
-  _gnu_noobjc_argv = objc_malloc(sizeof(char *) * 2);
+  _gnu_noobjc_argv = malloc(sizeof(char *) * 2);
   if (_gnu_noobjc_argv == NULL)
     goto malloc_error;
   _gnu_noobjc_argv[0] = strdup(program_invocation_name);
@@ -809,7 +808,7 @@ static char	**_gnu_noobjc_env = NULL;
 #endif /* HAVE_PROGRAM_INVOCATION_NAME */
 #endif /* !HAVE_KVM_ENV (e.g. HAVE_PROCFS) */
  malloc_error:
-  fprintf(stderr, "objc_malloc() error when starting gnustep-base.\n");
+  fprintf(stderr, "malloc() error when starting gnustep-base.\n");
   fprintf(stderr, "Free some memory and then re-run the program.\n");
   abort();
 }
@@ -822,19 +821,19 @@ _gnu_noobjc_free_vars(void)
   p = _gnu_noobjc_argv;
   while (*p)
     {
-      objc_free(*p);
+      free(*p);
       p++;
     }
-  objc_free(_gnu_noobjc_argv);
+  free(_gnu_noobjc_argv);
   _gnu_noobjc_argv = 0;
 
   p = _gnu_noobjc_env;
   while (*p)
     {
-      objc_free(*p);
+      free(*p);
       p++;
     }
-  objc_free(_gnu_noobjc_env);
+  free(_gnu_noobjc_env);
   _gnu_noobjc_env = 0;
 }
 

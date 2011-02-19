@@ -493,7 +493,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 	  // 2.b.2 NO, we do not have it.
 	  vacallReturnTypeInfo *ret_info;
 
-	  ret_info = objc_malloc (sizeof (vacallReturnTypeInfo));
+	  ret_info = malloc(sizeof (vacallReturnTypeInfo));
 	  *ret_info = returnInfo;
 	
 	  forwarding_callback

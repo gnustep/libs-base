@@ -438,7 +438,7 @@ cifframe_type(const char *typePtr, const char **advance)
 	  {
 	    size += (align - (size % align));
 	  }
-	ftype = objc_malloc(size + (maxtypes+1)*sizeof(ffi_type));
+	ftype = malloc(size + (maxtypes+1)*sizeof(ffi_type));
 	ftype->size = 0;
 	ftype->alignment = 0;
 	ftype->type = FFI_TYPE_STRUCT;
@@ -455,7 +455,7 @@ cifframe_type(const char *typePtr, const char **advance)
 	    if (types >= maxtypes)
 	      {
 		maxtypes *=2;
-		ftype = objc_realloc(ftype,
+		ftype = realloc(ftype,
                   size + (maxtypes+1)*sizeof(ffi_type));
 	        ftype->elements = (void*)ftype + size;
 	      }
@@ -491,7 +491,7 @@ cifframe_type(const char *typePtr, const char **advance)
 	    if (align > max_align)
 	      {
 		if (ftype && ftype->type == FFI_TYPE_STRUCT)
-		  objc_free(ftype);
+		  free(ftype);
 		ftype = local;
 		max_align = align;
 	      }
