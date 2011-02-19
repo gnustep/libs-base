@@ -809,7 +809,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 #endif	/* AF_INET6 */
       else
 	{
-	  struct sockaddr_in	*addr = (struct sockaddr_in*)[istream _address];
+	  struct sockaddr_in	*addr = (struct sockaddr_in*)(void*)[istream _address];
           NSDictionary          *conf;
           NSString              *host;
           int                   pnum;

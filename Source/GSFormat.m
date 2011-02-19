@@ -1685,7 +1685,7 @@ NSDictionary *locale)
     LABEL (form_strerror):
       /* Print description of error ERRNO.  */
       errno = save_errno;
-      string = (unichar *)[[[NSError _last] localizedDescription]
+      string = (unichar *)(void*)[[[NSError _last] localizedDescription]
 	cStringUsingEncoding: NSUnicodeStringEncoding];
       is_long = 1;		/* This is a unicode string.  */
       goto LABEL (print_string);
