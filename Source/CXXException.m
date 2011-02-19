@@ -50,7 +50,7 @@ static Class CXXExceptionClass;
 // TODO: Add an API for registering other classes for other exception types
 static Class boxClass(int64_t foo)
 {
-  if (foo == *(int64_t*)"GNUCC++\0")
+  if (foo == *(int64_t*)(void*)"GNUCC++\0")
     {
       return CXXExceptionClass;
     }
@@ -75,7 +75,7 @@ static Class boxClass(int64_t foo)
 {
   char *ptr = (char*)ex;
   ptr -= __builtin_offsetof(struct __cxa_exception, unwindHeader);
-  return ((struct __cxa_exception*)ptr)->exceptionType;
+  return ((struct __cxa_exception*)(void*)ptr)->exceptionType;
 }
 - (void) rethrow
 {

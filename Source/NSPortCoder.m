@@ -1034,7 +1034,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 #else
 	  val = GSSwapBigI128ToHost(val);
 #if	GS_HAVE_I64
-	  bigval = *(uint64_t*)&val;
+	  bigval = *(uint64_t*)(void*)&val;
 #else
 	  bigval = *(uint32_t*)&val;
 #endif

@@ -1221,13 +1221,17 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setRoundingIncrement: (NSNumber *) number
 {
+  switch ([number objCType][0])
+    {
+      case 'd':
+      case 'f':
 #if GS_USE_ICU == 1
-  if ([number class] == [NSDoubleNumber class])
     unum_setDoubleAttribute (internal->_formatter, UNUM_ROUNDING_INCREMENT,
       [number doubleValue]);
-#else
-  return;
 #endif
+      default:
+        return;
+    }
 }
 
 - (NSNumber *) roundingIncrement

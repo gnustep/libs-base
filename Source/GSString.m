@@ -1840,7 +1840,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
       if (maxLength >= sizeof(unichar))
 	{
 	  unsigned	bytes = maxLength - sizeof(unichar);
-	  unichar	*u = (unichar*)buffer;
+	  unichar	*u = (unichar*)(void*)buffer;
 
 	  if (GSToUnicode(&u, &bytes, self->_contents.c, self->_count,
 	    internalEncoding, NSDefaultMallocZone(), GSUniTerminate) == NO)
@@ -1848,7 +1848,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 	      [NSException raise: NSCharacterConversionException
 			  format: @"Can't convert to Unicode string."];
 	    }
-	  if (u == (unichar*)buffer)
+	  if (u == (unichar*)(void*)buffer)
 	    {
 	      return YES;
 	    }
@@ -4136,7 +4136,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     }
 
   length /= sizeof(unichar);
-  if (GSUnicode((unichar*)chars, length, &isASCII, &isLatin1) != length)
+  if (GSUnicode((unichar*)(void*)chars, length, &isASCII, &isLatin1) != length)
     {
       if (shouldFree == YES && chars != 0)
         {
@@ -4153,7 +4153,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
       _flags.wide = 0;
       while (length-- > 0)
         {
-	  _contents.c[length] = ((unichar*)chars)[length];
+	  _contents.c[length] = ((unichar*)(void*)chars)[length];
         }
       if (shouldFree == YES && chars != 0)
         {
@@ -4166,7 +4166,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
       if (shouldFree == YES)
         {
 	  _zone = NSZoneFromPointer(chars);
-	  _contents.u = (unichar*)chars;
+	  _contents.u = (unichar*)(void*)chars;
         }
       else
 	{

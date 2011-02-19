@@ -1265,7 +1265,7 @@ handle_printf_atsign (FILE *stream,
   data_bytes = [d bytes];
   if ((data_bytes != NULL) && (len >= 2))
     {
-      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      const unichar *data_ucs2chars = (const unichar *)(void*) data_bytes;
       if ((data_ucs2chars[0] == byteOrderMark)
 	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
 	{
@@ -1332,7 +1332,7 @@ handle_printf_atsign (FILE *stream,
   data_bytes = [d bytes];
   if ((data_bytes != NULL) && (len >= 2))
     {
-      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      const unichar *data_ucs2chars = (const unichar *)(void*) data_bytes;
       if ((data_ucs2chars[0] == byteOrderMark)
 	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
 	{
@@ -1434,7 +1434,7 @@ handle_printf_atsign (FILE *stream,
   data_bytes = [d bytes];
   if ((data_bytes != NULL) && (len >= 2))
     {
-      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      const unichar *data_ucs2chars = (const unichar *)(void*) data_bytes;
       if ((data_ucs2chars[0] == byteOrderMark)
 	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
 	{
@@ -1480,7 +1480,7 @@ handle_printf_atsign (FILE *stream,
   data_bytes = [d bytes];
   if ((data_bytes != NULL) && (len >= 2))
     {
-      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      const unichar *data_ucs2chars = (const unichar *)(void*) data_bytes;
       if ((data_ucs2chars[0] == byteOrderMark)
 	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
 	{
@@ -2931,7 +2931,7 @@ handle_printf_atsign (FILE *stream,
 
       if (maxLength > length * sizeof(unichar))
 	{
-	  unichar	*ptr = (unichar*)buffer;
+	  unichar	*ptr = (unichar*)(void*)buffer;
 
 	  maxLength = (maxLength - 1) / sizeof(unichar);
 	  [self getCharacters: ptr

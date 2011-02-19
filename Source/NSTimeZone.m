@@ -2894,9 +2894,9 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 		      format: @"TZ_MAGIC is incorrect"];
 	}
 #endif
-      n_trans = GSSwapBigI32ToHost(*(int32_t*)header->tzh_timecnt);
-      n_types = GSSwapBigI32ToHost(*(int32_t*)header->tzh_typecnt);
-      charcnt = GSSwapBigI32ToHost(*(int32_t*)header->tzh_charcnt);
+      n_trans = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_timecnt);
+      n_types = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_typecnt);
+      charcnt = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_charcnt);
 
       i = pos;
       i += sizeof(int32_t)*n_trans;
