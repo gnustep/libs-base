@@ -1,5 +1,16 @@
 2011-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPortCoder.m:
+	* Source/common.h:
+	* Source/NSObject.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSProxy.m:
+	* Source/NSSerializer.m:
+	Replace all calls to get_imp() with the new runtime API
+	class_getMethodImplementation().
+
+2011-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSDistributedNotificationCenter.m:
 	* Source/GSFFCallInvocation.m:
 	* Source/GSFFIInvocation.m:

@@ -51,5 +51,3 @@
 #import	"Foundation/NSBundle.h"
 #import	"GNUstepBase/NSBundle+GNUstepBase.h"
 
-// Semi-private GNU[step] runtime function.
-IMP get_imp(Class, SEL);

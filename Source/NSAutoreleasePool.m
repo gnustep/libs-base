@@ -433,13 +433,14 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 		{
                   /* If anObject was an instance, c is it's class.
                    * If anObject was a class, c is its metaclass.
-                   * Either way, get_imp() should get the appropriate pointer.
+                   * Either way, we should get the appropriate pointer.
                    * If anObject is a proxy to something,
                    * the +instanceMethodForSelector: and -methodForSelector:
-                   * methods may not exist, but get_imp() will return the
+                   * methods may not exist, but this will return the
                    * address of the forwarding method if necessary.
                    */
-		  imps[hash] = get_imp(c, @selector(release));
+		  imps[hash]
+		    = class_getMethodImplementation(c, @selector(release));
 		  classes[hash] = c;
 		}
 	      (imps[hash])(anObject, @selector(release));
