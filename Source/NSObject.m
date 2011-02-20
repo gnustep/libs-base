@@ -586,7 +586,7 @@ GSFinalize(void* object, void* data)
 static BOOL
 GSIsFinalizable(Class c)
 {
-  if (get_imp(c, finalize_sel) != finalize_imp)
+  if (class_getMethodImplementation(c, finalize_sel) != finalize_imp)
     return YES;
   return NO;
 }
@@ -927,7 +927,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 #if	GS_WITH_GC
       finalize_sel = @selector(finalize);
-      finalize_imp = get_imp(self, finalize_sel);
+      finalize_imp = class_getMethodImplementation(self, finalize_sel);
 #endif
 
 #if (defined(__FreeBSD__) || defined(__OpenBSD__)) && defined(__i386__)
@@ -1376,9 +1376,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   /*
-   *	Since 'self' is an class, get_imp() will get the instance method.
+   * Since 'self' is an class, class_getMethodImplementation() will get
+   * the instance method.
    */
-  return get_imp((Class)self, aSelector);
+  return class_getMethodImplementation((Class)self, aSelector);
 }
 
 /**
@@ -1393,11 +1394,11 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   /*
    *	If 'self' is an instance, object_getClass() will get the class,
-   *	and get_imp() will get the instance method.
+   *	and class_getMethodImplementation() will get the instance method.
    *	If 'self' is a class, object_getClass() will get the meta-class,
-   *	and get_imp() will get the class method.
+   *	and class_getMethodImplementation() will get the class method.
    */
-  return get_imp(object_getClass(self), aSelector);
+  return class_getMethodImplementation(object_getClass(self), aSelector);
 }
 
 /**
@@ -1767,7 +1768,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(object_getClass(self), aSelector);
+  msg = class_getMethodImplementation(object_getClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1792,7 +1793,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(object_getClass(self), aSelector);
+  msg = class_getMethodImplementation(object_getClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1820,7 +1821,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(object_getClass(self), aSelector);
+  msg = class_getMethodImplementation(object_getClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException

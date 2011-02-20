@@ -144,11 +144,16 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 
   c = object_getClass(d);
   info->data = d;
-  info->appImp = (void (*)(NSData*,SEL,const void*,unsigned))get_imp(c, appSel);
-  info->datImp = (void* (*)(NSMutableData*,SEL))get_imp(c, datSel);
-  info->lenImp = (unsigned int (*)(NSData*,SEL))get_imp(c, lenSel);
-  info->serImp = (void (*)(NSMutableData*,SEL,int))get_imp(c, serSel);
-  info->setImp = (void (*)(NSMutableData*,SEL,unsigned))get_imp(c, setSel);
+  info->appImp = (void (*)(NSData*,SEL,const void*,unsigned))
+    class_getMethodImplementation(c, appSel);
+  info->datImp = (void* (*)(NSMutableData*,SEL))
+    class_getMethodImplementation(c, datSel);
+  info->lenImp = (unsigned int (*)(NSData*,SEL))
+    class_getMethodImplementation(c, lenSel);
+  info->serImp = (void (*)(NSMutableData*,SEL,int))
+    class_getMethodImplementation(c, serSel);
+  info->setImp = (void (*)(NSMutableData*,SEL,unsigned))
+    class_getMethodImplementation(c, setSel);
   info->shouldUnique = u;
   (*info->appImp)(d, appSel, &info->shouldUnique, 1);
   if (u)

@@ -102,9 +102,10 @@ extern BOOL __objc_responds_to(id, SEL);
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   /*
-   *	Since 'self' is an class, get_imp() will get the instance method.
+   * Since 'self' is an class, class_getMethodImplementation() will get
+   * the instance method.
    */
-  return get_imp((Class)self, aSelector);
+  return class_getMethodImplementation((Class)self, aSelector);
 }
 
 /**
@@ -137,7 +138,7 @@ extern BOOL __objc_responds_to(id, SEL);
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  return get_imp(object_getClass((id)self), aSelector);
+  return class_getMethodImplementation(object_getClass((id)self), aSelector);
 }
 
 /**
@@ -475,10 +476,10 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       proxyClass = [NSDistantObject class];
       /*
-       * use get_imp() because NSDistantObject doesn't implement
-       * methodForSelector:
+       * use class_getMethodImplementation() because NSDistantObject
+       * doesn't implement methodForSelector:
        */
-      proxyImp = get_imp(object_getClass((id)proxyClass),
+      proxyImp = class_getMethodImplementation(object_getClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 

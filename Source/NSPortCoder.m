@@ -2044,10 +2044,10 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
     {
       proxyClass = [NSDistantObject class];
       /*
-       * use get_imp() because NSDistantObject doesn't implement
-       * methodForSelector:
+       * Use class_getMethodImplementation() because NSDistantObject
+       * doesn't implement methodForSelector:
        */
-      proxyImp = get_imp(object_getClass((id)proxyClass),
+      proxyImp = class_getMethodImplementation(object_getClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 
