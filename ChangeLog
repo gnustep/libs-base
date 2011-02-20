@@ -1,3 +1,8 @@
+2011-02-20  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSNumberFormatter.m (-init): Only check the formatter in
+	the ICU case.
+
 2011-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFIInvocation.m:

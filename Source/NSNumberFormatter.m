@@ -460,11 +460,13 @@ static NSUInteger _defaultBehavior = 0;
   internal->_locale = RETAIN([NSLocale currentLocale]);
   internal->_style = NSNumberFormatterNoStyle;
   [self _resetUNumberFormat];
+#if GS_USE_ICU == 1
   if (internal->_formatter == NULL)
     {
       RELEASE(self);
       return nil;
     }
+#endif
   
   return self;
 }
