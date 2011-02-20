@@ -94,6 +94,7 @@ main(int argc, char *argv[])
   NSUInteger    a;
   const char    *t0;
   const char    *t1;
+  const char    *n;
 
   t0 = "1@1:@";
   t1 = NSGetSizeAndAlignment(t0, &s, &a);
@@ -105,8 +106,14 @@ main(int argc, char *argv[])
     "class_isMetaClass() returns NO for Nil");
   PASS(Nil == class_getSuperclass(Nil),
     "class_getSuperclass() returns NO for Nil");
-  PASS(strcmp(class_getName(Nil), "nil") == 0,
-    "class_getName() for Nil is nil");
+
+  /* NB. the OSX documentation says that the function returns an empty string
+   * when given a Nil argument, but the actual behavior on OSX 10.6 is to
+   * return the string "nil"
+   */
+  PASS_RUNS(n = class_getName(Nil), "class_getName() for Nil does not crash")
+  PASS(n != 0 && strcmp(n, "nil") == 0, "class_getName() for Nil is nil");
+
   PASS(0 == class_getInstanceVariable(Nil, 0), 
     "class_getInstanceVariables() for Nil,0 is 0");
   PASS(0 == class_getVersion(Nil), 
