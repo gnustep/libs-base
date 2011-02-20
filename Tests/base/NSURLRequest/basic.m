@@ -41,7 +41,7 @@ int main()
   PASS_EQUAL([mutable valueForHTTPHeaderField: @"gnustep"], @"value1",
     "Can set and get a value for an HTTP header field");
   [mutable addValue: @"value2" forHTTPHeaderField: @"gnustep"];
-  PASS([mutable valueForHTTPHeaderField: @"gnustep"], @"value1,value2",
+  PASS_EQUAL([mutable valueForHTTPHeaderField: @"gnustep"], (@"value1,value2"),
     "Handle multiple values for an HTTP header field");
   [mutable release];
 
