@@ -22,8 +22,6 @@
    Boston, MA 02111 USA.
    */
 
-#define class_pointer isa
-
 #import "common.h"
 #define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
@@ -266,7 +264,7 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
     }
   else
     {
-      if (class_respondsToSelector(cls->class_pointer,
+      if (class_respondsToSelector(object_getClass(cls),
 	@selector(resolveInstanceMethod:)))
 	{
 	  resolved = [cls resolveInstanceMethod: op];
@@ -537,7 +535,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   obj      = *(id *)args[0];
   selector = *(SEL *)args[1];
 
-  if (!class_respondsToSelector(obj->class_pointer,
+  if (!class_respondsToSelector(object_getClass(obj),
     @selector(forwardInvocation:)))
     {
       [NSException raise: NSInvalidArgumentException
