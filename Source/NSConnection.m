@@ -1991,11 +1991,7 @@ static NSLock	*cached_proxies_gate = nil;
       type = [[object methodSignatureForSelector: [inv selector]] methodType];
       if (type)
 	{
-#ifdef __GNU_LIBOBJC__
-	  sel_registerTypedName(sel_getName([inv selector]), type);
-#else
-	  sel_registerTypedName_np(sel_getName([inv selector]), type);
-#endif
+	  GSSelectorFromNameAndTypes(sel_getName([inv selector]), type);
 	}
     }
   NSParameterAssert(type);

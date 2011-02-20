@@ -44,18 +44,12 @@
 #import	"Foundation/NSString.h"
 #import	"Foundation/NSDebug.h"
 
+/* These headers needed for string localisation ... hopefully we will
+ * localise all the exceptions and debug/error messages in all the source
+ * some day, so localisation needs ot be in the common header for all code.
+ */
 #import	"Foundation/NSBundle.h"
 #import	"GNUstepBase/NSBundle+GNUstepBase.h"
-
-
-#include <string.h>
-#include <ctype.h>
-
-#if defined(__GNUSTEP_RUNTIME__) || defined(NeXT_RUNTIME)
-#define objc_malloc(x) malloc(x)
-#define objc_realloc(p, s) realloc(p, s)
-#define objc_free(x) free(x)
-#endif
 
 // Semi-private GNU[step] runtime function.
 IMP get_imp(Class, SEL);

@@ -922,7 +922,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	  selector = sel_getType_np(runtimeName, receiverTypes);
 	  if (selector == 0)
 	    {
-	      selector = sel_registerTypedName_np(runtimeName, receiverTypes);
+	      selector = GSSelectorFromNameAndTypes(runtimeName, receiverTypes);
 	    }
 	  if (runtimeTypes != 0)
 	    {

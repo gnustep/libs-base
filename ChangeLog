@@ -1,3 +1,14 @@
+2011-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFFIInvocation.m:
+	* Source/common.h:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	Use GSObjCRuntime functions for selector types until/unless we can get
+	a standard runtime API that handles them.
+
 2011-02-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m:
