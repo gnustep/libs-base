@@ -2942,12 +2942,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
   if (shouldFree == NO)
     {
-      GSPrivateSwizzle(self, dataStatic);
+      GSClassSwizzle(self, dataStatic);
     }
 #if	GS_WITH_GC
   else if (aBuffer != 0 && GSPrivateIsCollectable(aBuffer) == NO)
     {
-      GSPrivateSwizzle(self, dataFinalized);
+      GSClassSwizzle(self, dataFinalized);
     }
 #endif
   bytes = aBuffer;
@@ -3245,7 +3245,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #if	GS_WITH_GC
   if (shouldFree == YES && GSPrivateIsCollectable(aBuffer) == NO)
     {
-      GSPrivateSwizzle(self, mutableDataFinalized);
+      GSClassSwizzle(self, mutableDataFinalized);
     }
 #endif
   self = [self initWithCapacity: 0];

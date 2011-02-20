@@ -54,7 +54,7 @@
 - (void) _becomeThreaded: (NSNotification*)n
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
-  isa = [NSLock class];
+  object_setClass(self, [NSLock class]);
   if (locked == YES)
     {
       if ([self tryLock] == NO)
@@ -196,7 +196,7 @@
 - (void) _becomeThreaded: (NSNotification*)n
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
-  isa = [NSRecursiveLock class];
+  object_setClass(self, [NSRecursiveLock class]);
   while (counter-- > 0)
     {
       if ([self tryLock] == NO)

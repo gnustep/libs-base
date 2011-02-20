@@ -635,13 +635,7 @@ static Class	GSInlineArrayClass;
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-#ifndef NDEBUG
-  GSDebugAllocationRemove(isa, self);
-#endif
-  isa = [GSArray class];
-#ifndef NDEBUG
-  GSDebugAllocationAdd(isa, self);
-#endif
+  GSClassSwizzle(self, [GSArray class]);
   return self;
 }
 

@@ -1206,8 +1206,8 @@ static unsigned	urlAlign;
 {
   if (NSShouldRetainWithZone(self, zone) == NO)
     {
-      return [[isa allocWithZone: zone] initWithString: _urlString
-					 relativeToURL: _baseURL];
+      return [[[self class] allocWithZone: zone] initWithString: _urlString
+						  relativeToURL: _baseURL];
     }
   else
     {

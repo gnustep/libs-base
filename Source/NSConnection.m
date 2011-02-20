@@ -3046,7 +3046,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   /* xxx We should make sure that TARGET is a valid object. */
   /* Not actually a Proxy, but we avoid the warnings "id" would have made. */
-  m = GSGetMethod(((NSDistantObject*)o)->isa, sel, YES, YES);
+  m = GSGetMethod(object_getClass(o), sel, YES, YES);
   /* Perhaps I need to be more careful in the line above to get the
      version of the method types that has the type qualifiers in it.
      Search the protocols list. */
@@ -3883,9 +3883,10 @@ static NSLock	*cached_proxies_gate = nil;
 
   /* Don't assert (IisValid); */
   NSParameterAssert(aTarget > 0);
-  NSParameterAssert(aProxy==nil || aProxy->isa == distantObjectClass);
-  NSParameterAssert(aProxy==nil || [aProxy connectionForProxy] == self);
-  NSParameterAssert(aProxy==nil || aTarget == aProxy->_handle);
+  NSParameterAssert(aProxy == nil
+    || object_getClass(aProxy) == distantObjectClass);
+  NSParameterAssert(aProxy == nil || [aProxy connectionForProxy] == self);
+  NSParameterAssert(aProxy == nil || aTarget == aProxy->_handle);
 
   M_LOCK(IrefGate);
   node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)aTarget);

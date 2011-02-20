@@ -700,44 +700,6 @@ NSDeallocateObject(id anObject)
 
 #endif	/* GS_WITH_GC */
 
-
-void
-GSPrivateSwizzle(id o, Class c)
-{
-  Class	oc = object_getClass(o);
-
-  if (oc != c)
-    {
-#if	GS_WITH_GC
-      /* We only do allocation counting for objects that can be
-       * finalised - for other objects we have no way of decrementing
-       * the count when the object is collected.
-       */
-      if (GSIsFinalizable(oc))
-	{
-	  /* Already finalizable, so we just need to do any allocation
-	   * accounting.
-	   */
-          AREM(oc, o);
-          AADD(c, o);
-	}
-      else if (GSIsFinalizable(c))
-	{
-	  /* New class is finalizable, so we must register the instance
-	   * for finalisation and do allocation acounting for it.
-	   */
-	  AADD(c, o);
-	  GC_REGISTER_FINALIZER (o, GSFinalize, NULL, NULL, NULL);
-	}
-#else
-      AREM(oc, o);
-      AADD(c, o);
-#endif	/* GS_WITH_GC */
-      object_setClass(o, c);
-    }
-}
-
-
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
@@ -1024,10 +986,9 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  * <p>
  *   Memory for an instance of the receiver is allocated; a
  *   pointer to this newly created instance is returned.  All
- *   instance variables are set to 0 except the
- *   <code>isa</code> pointer which is set to point to the
- *   object class.  No initialization of the instance is
- *   performed: it is your responsibility to initialize the
+ *   instance variables are set to 0.  No initialization of the
+ *   instance is performed apart from setup to be an instance of
+ *   the correct class: it is your responsibility to initialize the
  *   instance by calling an appropriate <code>init</code>
  *   method.  If you are not using the garbage collector, it is
  *   also your responsibility to make sure the returned
@@ -1135,11 +1096,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 /**
  * Returns the class of which the receiver is an instance.<br />
- * The default implementation returns the private <code>isa</code>
- * instance variable of NSObject, which is used to store a pointer
- * to the objects class.<br />
- * NB.  When NSZombie is enabled (see NSDebug.h) this pointer is
- * changed upon object deallocation.
+ * The default implementation returns the actual class that the
+ * receiver is an instance of.<br />
+ * NB.  When NSZombie is enabled (see NSDebug.h) this is changed
+ * to be the NSZombie class upon object deallocation.
  */
 - (Class) class
 {

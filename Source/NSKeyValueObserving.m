@@ -47,7 +47,7 @@
 /*
  * IMPLEMENTATION NOTES
  *
- * Originally, I wanted to do KVO via a proxy, with isa swizzling
+ * Originally, I wanted to do KVO via a proxy, with class pointer swizzling
  * to turn the original instance into an instance of the proxy class.
  * However, I couldn't figure a way to get decent performance out of
  * this model, as every message to the instance would have to be
@@ -57,7 +57,7 @@
  * So, instead I arrived at the mechanism of creating a subclass of
  * each class being observed, with a few subclass methods overriding
  * those of the original, but most remaining the same.
- * The same isa swizzling technique was used to convert between the
+ * The same class pointer swizzling technique was used to convert between the
  * original class and the superclass.
  * This subclass basically overrides several standard methods with
  * those from a template class, and then overrides any setter methods
@@ -211,7 +211,7 @@ static inline void setup()
 {
   // Turn off KVO for self ... then call the real dealloc implementation.
   [self setObservationInfo: nil];
-  isa = [self class];
+  object_setClass(self, [self class]);
   [self dealloc];
   GSNOSUPERDEALLOC;
 }
@@ -1471,7 +1471,7 @@ replacementForClass(Class c)
     {
       info = [[GSKVOInfo alloc] initWithInstance: self];
       [self setObservationInfo: info];
-      isa = [r replacement];
+      object_setClass(self, [r replacement]);
     }
 
   /*
@@ -1521,7 +1521,7 @@ replacementForClass(Class c)
        * The instance is no longer being observed ... so we can
        * turn off key-value-observing for it.
        */
-      isa = [self class];
+      object_setClass(self, [self class]);
       IF_NO_GC(AUTORELEASE(info);)
       [self setObservationInfo: nil];
     }

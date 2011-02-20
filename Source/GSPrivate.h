@@ -531,12 +531,6 @@ GSPrivateUnloadModule(FILE *errorStream,
 - (void) protect;
 @end
 
-/* Function to safely change the class of an object by 'isa' swizzling
- * wile maintaining allocation accounting and finalization in a GC world.
- */
-void
-GSPrivateSwizzle(id o, Class c) GS_ATTRIB_PRIVATE;
-
 BOOL
 GSPrivateIsCollectable(const void *ptr) GS_ATTRIB_PRIVATE;
 

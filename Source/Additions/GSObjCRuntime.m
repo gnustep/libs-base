@@ -1961,3 +1961,68 @@ GSPrintf (FILE *fptr, NSString* format, ...)
   RELEASE(arp);
   return ok;
 }
+
+#if     defined(GNUSTEP_BASE_LIBRARY)
+# if	GS_WITH_GC
+static BOOL
+GSIsFinalizable(Class c)
+{
+  static IMP	finalizeIMP = 0;
+
+  if (0 == finalizeIMP)
+    {
+      finalizeIMP = [NSObject instanceMethodForSelector: @selector(finalize)];
+    }
+  if (class_getMethodImplementation(c, @selector(finalize)) != finalizeIMP)
+    return YES;
+  return NO;
+}
+# endif	/* GS_WITH_GC */
+#endif	/* defined(GNUSTEP_BASE_LIBRARY) */
+
+void
+GSClassSwizzle(id instance, Class newClass)
+{
+  Class	oldClass = object_getClass(instance);
+
+#ifndef	NDEBUG
+#define	AADD(c, o) GSDebugAllocationAdd(c, o)
+#define	AREM(c, o) GSDebugAllocationRemove(c, o)
+#else
+#define	AADD(c, o) 
+#define	AREM(c, o) 
+#endif
+
+  if (oldClass != newClass)
+    {
+#if     defined(GNUSTEP_BASE_LIBRARY)
+# if	GS_WITH_GC
+      /* We only do allocation counting for objects that can be
+       * finalised - for other objects we have no way of decrementing
+       * the count when the object is collected.
+       */
+      if (GSIsFinalizable(oldClass))
+	{
+	  /* Already finalizable, so we just need to do any allocation
+	   * accounting.
+	   */
+          AREM(oldClass, instance);
+          AADD(newClass, instance);
+	}
+      else if (GSIsFinalizable(newClass))
+	{
+	  /* New class is finalizable, so we must register the instance
+	   * for finalisation and do allocation acounting for it.
+	   */
+	  AADD(newClass, instance);
+	  GC_REGISTER_FINALIZER (instance, GSFinalize, NULL, NULL, NULL);
+	}
+# else
+      AREM(oldClass, instance);
+      AADD(newClass, instance);
+# endif	/* GS_WITH_GC */
+#endif	/* defined(GNUSTEP_BASE_LIBRARY) */
+      object_setClass(instance, newClass);
+    }
+}
+

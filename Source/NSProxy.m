@@ -49,9 +49,9 @@ extern BOOL __objc_responds_to(id, SEL);
  * implement -forwardInvocation: to these <em>real</em> objects.</p>
  *
  * <p>Note that <code>NSProxy</code> is a different sort of class than others
- *  in the GNUstep Base library in that it is the only example of a root class
- *  besides [NSObject].  Thus, it defines its own <code><em>isa</em></code>
- *  variable and implements the <code>NSObject</code> protocol.</p>
+ * in the GNUstep Base library in that it is the only example of a root class
+ * besides [NSObject].  Thus, it implements the <code>NSObject</code> protocol
+ * but is not a subclass of NSObject.</p>
  */
 @implementation NSProxy
 
