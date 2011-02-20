@@ -100,11 +100,7 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
 static INLINE SEL
 gs_find_best_typed_sel (SEL sel)
 {
-#ifdef __GNU_LIBOBJC__
-  if (!sel_getTypeEncoding(sel))
-#else
-  if (!sel_getType_np(sel))
-#endif
+  if (!GSTypesFromSelector(sel))
     {
       const char *name = sel_getName(sel);
 
@@ -164,11 +160,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 	 in the callback, but only under limited circumstances.
        */
       sel = gs_find_best_typed_sel(sel);
-#ifdef __GNU_LIBOBJC__
-      sel_type = sel_getTypeEncoding(sel);
-#else
-      sel_type = sel_getType_np(sel);
-#endif
+      sel_type = GSTypesFromSelector(sel);
       if (sel_type)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
@@ -557,17 +549,11 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     }
 
   sig = nil;
-#ifdef __GNU_LIBOBJC__
-  if (gs_protocol_selector(sel_getTypeEncoding(selector)) == YES)
+  if (gs_protocol_selector(GSTypesFromSelector(selector)) == YES)
     {
-      sig = [NSMethodSignature signatureWithObjCTypes: sel_getTypeEncoding(selector)];
+      sig = [NSMethodSignature signatureWithObjCTypes:
+	GSTypesFromSelector(selector)];
     }
-#else
-  if (gs_protocol_selector(sel_getType_np(selector)) == YES)
-    {
-      sig = [NSMethodSignature signatureWithObjCTypes: sel_getType_np(selector)];
-    }
-#endif
   if (sig == nil)
     {
       sig = [obj methodSignatureForSelector: selector];
@@ -580,21 +566,13 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   if (sig != nil)
     {
       const char	*receiverTypes = [sig methodType];
-#ifdef __GNU_LIBOBJC__
-      const char	*runtimeTypes = sel_getTypeEncoding(selector);
-#else
-      const char	*runtimeTypes = sel_getType_np(selector);
-#endif
+      const char	*runtimeTypes = GSTypesFromSelector(selector);
 
       if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
 	{
 	  const char	*runtimeName = sel_getName(selector);
 
-#ifdef __GNU_LIBOBJC__
-	  selector = sel_registerTypedName(runtimeName, receiverTypes);
-#else
-	  selector = sel_registerTypedName_np(runtimeName, receiverTypes);
-#endif
+	  selector = GSSelectorFromNameAndTypes(runtimeName, receiverTypes);
 	  if (runtimeTypes != 0)
 	    {
 	      /*
@@ -616,19 +594,11 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       selector = gs_find_best_typed_sel (selector);
 
-#ifdef __GNU_LIBOBJC__
-      if (sel_getTypeEncoding(selector) != 0)
+      if (GSTypesFromSelector(selector) != 0)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes:
-				     sel_getTypeEncoding(selector)];
+	    GSTypesFromSelector(selector)];
 	}
-#else
-      if (sel_getType_np(selector) != 0)
-	{
-	  sig = [NSMethodSignature signatureWithObjCTypes:
-				     sel_getType_np(selector)];
-	}
-#endif
     }
 
   if (sig == nil)

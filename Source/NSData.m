@@ -1160,11 +1160,7 @@ failure:
 
 	      if (lt)
 		{
-#ifdef __GNU_LIBOBJC__
-		  sel = sel_registerTypedName(name, types);
-#else
-		  sel = sel_registerTypedName_np(name, types);
-#endif
+		  sel = GSSelectorFromNameAndTypes(name, types);
 		}
 	      else
 		{
@@ -2807,11 +2803,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 	      if (lt)
 		{
-#ifdef __GNU_LIBOBJC__
-		  sel = sel_registerTypedName(name, types);
-#else
-		  sel = sel_registerTypedName_np(name, types);
-#endif
+		  sel = GSSelectorFromNameAndTypes(name, types);
 		}
 	      else
 		{
