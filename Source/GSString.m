@@ -4311,20 +4311,14 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
 NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
-#ifndef NDEBUG
-  GSDebugAllocationRemove(isa, self);
-#endif
   if (_flags.wide == 1)
     {
-      isa = [GSUnicodeBufferString class];
+      GSClassSwizzle(self, [GSUnicodeBufferString class]);
     }
   else
     {
-      isa = [GSCBufferString class];
+      GSClassSwizzle(self, [GSCBufferString class]);
     }
-#ifndef NDEBUG
-  GSDebugAllocationAdd(isa, self);
-#endif
   return self;
 }
 

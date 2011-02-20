@@ -528,7 +528,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
     {
       return NO;
     }
-  if (((NSMethodSignature *)other)->isa != isa)
+  if (object_getClass(other) != object_getClass(self))
     {
       return NO;
     }

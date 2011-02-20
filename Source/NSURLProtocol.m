@@ -462,7 +462,9 @@ static NSURLProtocol	*placeholder = nil;
 {
   if ((self = [super init]) != nil)
     {
-      if (isa != abstractClass && isa != placeholderClass)
+      Class	c = object_getClass(self);
+
+      if (c != abstractClass && c != placeholderClass)
 	{
 	  _NSURLProtocolInternal = NSZoneCalloc([self zone],
 	    1, sizeof(Internal));
@@ -475,7 +477,9 @@ static NSURLProtocol	*placeholder = nil;
 	cachedResponse: (NSCachedURLResponse *)cachedResponse
 		client: (id <NSURLProtocolClient>)client
 {
-  if (isa == abstractClass || isa == placeholderClass)
+  Class	c = object_getClass(self);
+
+  if (c == abstractClass || c == placeholderClass)
     {
       unsigned	count;
 

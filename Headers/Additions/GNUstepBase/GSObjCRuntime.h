@@ -416,6 +416,15 @@ GSObjCAllSubclassesOfClass(Class cls);
 GS_EXPORT NSArray *
 GSObjCDirectSubclassesOfClass(Class cls);
 
+/** Function to change the class of the specified instance to newClass.
+ * This handles memory debugging issues in GNUstep-base and also
+ * deals with class finalisation issues in a garbage collecting
+ * environment, so you should use this function rather than attempting
+ * to swizzle class pointers directly.
+ */
+GS_EXPORT void
+GSClassSwizzle(id instance, Class newClass);
+
 #if GS_API_VERSION(GS_API_ANY,011500)
 
 GS_EXPORT const char *

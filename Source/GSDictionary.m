@@ -394,13 +394,7 @@ static SEL	objSel;
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-#ifndef NDEBUG
-  GSDebugAllocationRemove(isa, self);
-#endif
-  isa = [GSDictionary class];
-#ifndef NDEBUG
-  GSDebugAllocationAdd(isa, self);
-#endif
+  GSClassSwizzle(self, [GSDictionary class]);
   return self;
 }
 

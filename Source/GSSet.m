@@ -657,13 +657,7 @@ static Class	mutableSetClass;
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-#ifndef NDEBUG
-  GSDebugAllocationRemove(isa, self);
-#endif
-  isa = [GSSet class];
-#ifndef NDEBUG
-  GSDebugAllocationAdd(isa, self);
-#endif
+  GSClassSwizzle(self, [GSSet class]);
   return self;
 }
 

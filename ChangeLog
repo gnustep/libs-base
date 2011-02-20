@@ -1,3 +1,27 @@
+2011-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMethodSignature.m:
+	* Source/GSArray.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/GSPrivate.h:
+	* Source/GSDictionary.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURL.m:
+	* Source/NSObject.m:
+	* Source/NSDecimalNumber.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/Additions/GSLock.m:
+	* Source/GSSet.m:
+	* Source/GSString.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Expose class pointer swizzling function in GSObjCRuntime.
+	Replace direct references to 'isa' pointer with objc_getClass() and
+	objcSetClass() calls (or occasionally calls to the -class method if
+	it seems more appropriate).
+
 2011-02-20  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSNumberFormatter.m (-init): Only check the formatter in
