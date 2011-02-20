@@ -25,10 +25,6 @@
    $Date$ $Revision$
    */
 
-// Make sure that class_pointer in the old runtime's definition of id is
-// renamed isa, and so are all uses.
-#define class_pointer isa
-
 /* On some versions of mingw we need to work around bad function declarations
  * by defining them away and doing the declarations ourself later.
  */
@@ -579,8 +575,8 @@ static void
 GSFinalize(void* object, void* data)
 {
   [(id)object finalize];
-  AREM(((id)object)->class_pointer, (id)object);
-  ((id)object)->class_pointer = (void*)0xdeadface;
+  AREM(object_getClass((id)object), (id)object);
+  object_setClass((id)object, (Classa)(void*)0xdeadface);
 }
 
 static BOOL
@@ -622,7 +618,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 
   if (new != nil)
     {
-      new->class_pointer = aClass;
+      object_setClass(new, aClass);
       if (GSIsFinalizable(aClass))
 	{
 	  /* We only do allocation counting for objects that can be
@@ -670,7 +666,7 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
       memset (new, 0, size);
       ((obj)new)->zone = zone;
       new = (id)&((obj)new)[1];
-      new->class_pointer = aClass;
+      object_setClass(new, aClass);
       AADD(aClass, new);
     }
   return new;
@@ -679,12 +675,12 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 inline void
 NSDeallocateObject(id anObject)
 {
-  if ((anObject!=nil) && !class_isMetaClass(((id)anObject)->class_pointer))
+  if ((anObject!=nil) && !class_isMetaClass(object_getClass((id)anObject)))
     {
       obj	o = &((obj)anObject)[-1];
       NSZone	*z = o->zone;
 
-      AREM(((id)anObject)->class_pointer, (id)anObject);
+      AREM(object_getClass((id)anObject), (id)anObject);
       if (NSZombieEnabled == YES)
 	{
 	  GSMakeZombie(anObject);
@@ -695,7 +691,7 @@ NSDeallocateObject(id anObject)
 	}
       else
 	{
-	  ((id)anObject)->class_pointer = (void*) 0xdeadface;
+	  object_setClass((id)anObject, (Class)(void*)0xdeadface);
 	  NSZoneFree(z, o);
 	}
     }
@@ -708,19 +704,21 @@ NSDeallocateObject(id anObject)
 void
 GSPrivateSwizzle(id o, Class c)
 {
-  if ((Class)o->class_pointer != c)
+  Class	oc = object_getClass(o);
+
+  if (oc != c)
     {
 #if	GS_WITH_GC
       /* We only do allocation counting for objects that can be
        * finalised - for other objects we have no way of decrementing
        * the count when the object is collected.
        */
-      if (GSIsFinalizable(o->class_pointer))
+      if (GSIsFinalizable(oc))
 	{
 	  /* Already finalizable, so we just need to do any allocation
 	   * accounting.
 	   */
-          AREM(o->class_pointer, o);
+          AREM(oc, o);
           AADD(c, o);
 	}
       else if (GSIsFinalizable(c))
@@ -732,10 +730,10 @@ GSPrivateSwizzle(id o, Class c)
 	  GC_REGISTER_FINALIZER (o, GSFinalize, NULL, NULL, NULL);
 	}
 #else
-      AREM(o->class_pointer, o);
+      AREM(oc, o);
       AADD(c, o);
 #endif	/* GS_WITH_GC */
-      o->class_pointer = c;
+      object_setClass(o, c);
     }
 }
 

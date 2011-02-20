@@ -1,5 +1,13 @@
 2011-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSFFIInvocation.m:
+	* Source/NSCopyObject.m:
+	* Source/NSObject.m:
+	Replace old code directly referencing class_pointer ivar with calls
+	to the new runtime API treating objects as opaque pointers.
+
+2011-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPortCoder.m:
 	* Source/common.h:
 	* Source/NSObject.m:
