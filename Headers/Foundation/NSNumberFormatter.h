@@ -83,7 +83,7 @@ typedef NSUInteger NSNumberFormatterRoundingMode;
 #endif
 
 /**
- * <p><em><strong>This class is currently not implemented in GNUstep!  All set
+ * <p><em><strong>This class is currently not fully implemented!  All set
  * methods will work, but stringForObject: will ignore the format completely.
  * The documentation below describes what the behavior SHOULD
  * be...</strong></em></p>
@@ -153,7 +153,6 @@ GS_NSNumberFormatter_IVARS;
 #endif
 }
 
-// Format
 /**
  * Returns the format string this instance was initialized with.
  */
@@ -358,10 +357,31 @@ GS_NSNumberFormatter_IVARS;
 - (void) setMinimum: (NSDecimalNumber*)aMinimum;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+/** Sets the behavior of the formatter.<br />
+ * NB. If GNUstep has been built without the ICU library,
+ * NSNumberFormatterBehavior10_0 is currently used irrespective of
+ * this setting.
+ */
 - (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior;
+
+/** Returns the behavior of the receiver, either the default behavior
+ * set for number formatters, or the behavior specified by an earlier
+ * call to the -setFormatterBehavior: method.
+ */
 - (NSNumberFormatterBehavior) formatterBehavior;
+
+/** Sets the default behavior of number formatters.<br />
+ * NB. If GNUstep has been built without the ICU library,
+ * NSNumberFormatterBehavior10_0 is currently used irrespective of
+ * this setting.
+ */
 + (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior;
+
+/** Returns the formatter behavior previously set as the default
+ * using the +setDefaultFormatterBehavior: method.
+ */
 + (NSNumberFormatterBehavior) defaultFormatterBehavior;
+
 - (void) setNumberStyle: (NSNumberFormatterStyle) style;
 - (NSNumberFormatterStyle) numberStyle;
 - (void) setGeneratesDecimalNumbers: (BOOL) flag;
