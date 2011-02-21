@@ -1,3 +1,26 @@
+2011-02-21 11:05  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/GSFFIInvocation.m: Some changes to method
+	  type lookup when forwarding. Alway use the compiler-supplied type
+	  information if it exists - this is guaranteed to by the correct
+	  type encoding for the call frame and lets us deconstruct it
+	  correctly. We can then fail gracefully later on when trying to
+	  invoke the selector if the types in the callee don't match,
+	  rather than by reading nonsense from the stack now.
+	  
+	  When using the GNUstep runtime, use the safe mechanism for
+	  checking whether there is more than one typed selector, and only
+	  use that as a guess if it is safe to do so. With the GCC runtime,
+	  we are still stuck using the API that it is impossible to use
+	  safely (we might be better off just giving up at this point), but
+	  now we call this after -methodSignatureForSelector:, so the app
+	  developer gets a chance to do the right thing before we do the
+	  wrong thing.
+	  
+	  Also changed the assert to throw an exception if no type
+	  signature can be found. This behaviour is consistent with Mac OS
+	  X.
+
 2011-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMethodSignature.m:
