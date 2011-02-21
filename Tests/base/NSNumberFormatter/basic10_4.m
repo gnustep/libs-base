@@ -10,7 +10,45 @@ int main()
 
   START_SET(YES)
 
+  PASS(NSNumberFormatterBehavior10_4
+    == [NSNumberFormatter defaultFormatterBehavior],
+   "default behavior is NSNumberFormatterBehavior10_4")
+
+  [NSNumberFormatter
+    setDefaultFormatterBehavior: NSNumberFormatterBehavior10_0];
+  PASS(NSNumberFormatterBehavior10_0
+    == [NSNumberFormatter defaultFormatterBehavior],
+   "default behavior can be changed to NSNumberFormatterBehavior10_0")
+
+  [NSNumberFormatter
+    setDefaultFormatterBehavior: NSNumberFormatterBehaviorDefault];
+  PASS(NSNumberFormatterBehavior10_4
+    == [NSNumberFormatter defaultFormatterBehavior],
+   "NSNumberFormatterBehaviorDefault gives NSNumberFormatterBehavior10_4")
+
+  [NSNumberFormatter
+    setDefaultFormatterBehavior: NSNumberFormatterBehavior10_0];
+  [NSNumberFormatter
+    setDefaultFormatterBehavior: 1234];
+  PASS(NSNumberFormatterBehavior10_0
+    == [NSNumberFormatter defaultFormatterBehavior],
+   "unknown behavior is ignored")
+
+  [NSNumberFormatter
+    setDefaultFormatterBehavior: NSNumberFormatterBehavior10_4];
+  PASS(NSNumberFormatterBehavior10_4
+    == [NSNumberFormatter defaultFormatterBehavior],
+   "default behavior can be changed to NSNumberFormatterBehavior10_4")
+
+
   fmt = [[[NSNumberFormatter alloc] init] autorelease];
+
+  PASS(NSNumberFormatterBehavior10_4 == [fmt formatterBehavior],
+   "a new formatter gets the current default behavior")
+  [fmt setFormatterBehavior: NSNumberFormatterBehaviorDefault];
+  PASS(NSNumberFormatterBehaviorDefault == [fmt formatterBehavior],
+   "a new formatter can have the default behavior set")
+
   num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
 
   str = [fmt stringFromNumber: num];
