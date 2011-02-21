@@ -1,3 +1,10 @@
+2011-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumberFormatter.m:
+	* Headers/Foundation/NSNumberFormatter.h:
+	If we don't have ICU then the actual behavior is 10.0 style
+	irrespective of the formatter behavior setting.
+
 2011-02-21 11:05  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/GSFFIInvocation.m: Some changes to method

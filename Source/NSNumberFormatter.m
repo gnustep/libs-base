@@ -222,7 +222,13 @@ GS_PRIVATE_INTERNAL(NSNumberFormatter)
 
 @implementation NSNumberFormatter
 
-static NSUInteger _defaultBehavior = 0;
+static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
+#if GS_USE_ICU == 1
+#define	MYBEHAVIOR	internal->_behavior
+#else
+#define	MYBEHAVIOR	NSNumberFormatterBehavior10_0
+#endif
+
 
 - (BOOL) allowsFloats
 {
@@ -337,14 +343,14 @@ static NSUInteger _defaultBehavior = 0;
 
 - (NSString*) decimalSeparator
 {
-  if (internal->_behavior == NSNumberFormatterBehavior10_4
-    || internal->_behavior == NSNumberFormatterBehaviorDefault)
+  if (MYBEHAVIOR == NSNumberFormatterBehavior10_4
+    || MYBEHAVIOR == NSNumberFormatterBehaviorDefault)
     {
 #if GS_USE_ICU == 1
       return [self _getSymbol: UNUM_DECIMAL_SEPARATOR_SYMBOL];
 #endif
     }
-  else if (internal->_behavior == NSNumberFormatterBehavior10_0)
+  else if (MYBEHAVIOR == NSNumberFormatterBehavior10_0)
     {
       if (_decimalSeparator == 0)
         return @"";
@@ -648,14 +654,14 @@ static NSUInteger _defaultBehavior = 0;
 
 - (void) setDecimalSeparator: (NSString*)newSeparator
 {
-  if (internal->_behavior == NSNumberFormatterBehavior10_4
-    || internal->_behavior == NSNumberFormatterBehaviorDefault)
+  if (MYBEHAVIOR == NSNumberFormatterBehavior10_4
+    || MYBEHAVIOR == NSNumberFormatterBehaviorDefault)
     {
 #if GS_USE_ICU == 1
       [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
 #endif
     }
-  else if (internal->_behavior == NSNumberFormatterBehavior10_0)
+  else if (MYBEHAVIOR == NSNumberFormatterBehavior10_0)
     {
       if ([newSeparator length] > 0)
         _decimalSeparator = [newSeparator characterAtIndex: 0];
@@ -752,8 +758,8 @@ static NSUInteger _defaultBehavior = 0;
 
 - (NSString*) stringForObjectValue: (id)anObject
 {
-  if (internal->_behavior == NSNumberFormatterBehaviorDefault
-      || internal->_behavior == NSNumberFormatterBehavior10_4)
+  if (MYBEHAVIOR == NSNumberFormatterBehaviorDefault
+      || MYBEHAVIOR == NSNumberFormatterBehavior10_4)
     {
 #if GS_USE_ICU == 1
 
@@ -823,7 +829,7 @@ static NSUInteger _defaultBehavior = 0;
         }
 #endif
     }
-  else if (internal->_behavior == NSNumberFormatterBehavior10_0)
+  else if (MYBEHAVIOR == NSNumberFormatterBehavior10_0)
     {
       NSMutableDictionary	*locale;
       NSCharacterSet	*formattingCharacters;
@@ -1162,19 +1168,32 @@ static NSUInteger _defaultBehavior = 0;
 
 
 
-- (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior
+- (void) setFormatterBehavior: (NSNumberFormatterBehavior)behavior
 {
-  internal->_behavior = behavior;
+  if (NSNumberFormatterBehavior10_4 == behavior
+    || NSNumberFormatterBehavior10_0 == behavior
+    || NSNumberFormatterBehaviorDefault == behavior)
+    {
+      internal->_behavior = behavior;
+    }
 }
 
-- (NSNumberFormatterBehavior) formatterBehavior
+- (NSNumberFormatterBehavior)formatterBehavior
 {
   return internal->_behavior;
 }
 
-+ (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior
++ (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior)behavior
 {
-  _defaultBehavior = behavior;
+  if (NSNumberFormatterBehavior10_0 == behavior)
+    {
+      _defaultBehavior = behavior;
+    }
+  else if (NSNumberFormatterBehavior10_4 == behavior
+    || NSNumberFormatterBehaviorDefault == behavior)
+    {
+      _defaultBehavior = NSNumberFormatterBehavior10_4;
+    }
 }
 
 + (NSNumberFormatterBehavior) defaultFormatterBehavior
