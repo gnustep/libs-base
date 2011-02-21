@@ -40,6 +40,9 @@
 
 #ifdef __GNU_LIBOBJC__
 #include <objc/message.h>
+// Note: Instead of deprecating this poorly designed API, which is impossible
+// to use correctly, the new GCC runtime decided to simply rename it.
+#define sel_get_any_typed_uid sel_getTypedSelector
 #endif
 
 #ifndef INLINE
@@ -75,7 +78,37 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
   return 0;
 }
 
+#ifdef __GNUSTEP_RUNTIME__
+/*
+ * With the GNUstep runtime, we can enumerate the types of a particular
+ * selector.  If there is only one type, then we can safely return that typed
+ * selector.  If not, then we can not be certain which is expected, and so we
+ * return NULL.
+ */
+static INLINE SEL
+gs_find_best_typed_sel (SEL sel)
+{
+  const char *selName = sel_getName(sel);
+  const char *types;
 
+  // If there is not exactly one typed selector with this name registered with
+  // the runtime, then give up - we can't safely use this function.
+  if (1 != sel_copyTypes_np(selName, NULL, 0)) { return (SEL)0; }
+
+  sel_copyTypes_np(selName, &types, 1);
+  return sel_registerTypedName_np(selName, types);
+}
+#elif defined(NeXTRUNTIME)
+/*
+ * The NeXT runtime does not support typed selectors, so we simply return 0
+ * here.
+ */
+static INLINE SEL
+gs_find_best_typed_sel (SEL sel)
+{
+  return (SEL)0;
+}
+#else
 /*
  * Selectors are not unique, and not all selectors have type
  * information.  This method tries to find the best equivalent
@@ -94,6 +127,10 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
  * the receiver (unfortunately most installed gcc/objc systems still
  * (2010) don't let us know the receiver when forwarding).  This can
  * never be more than a guess, but in practice it usually works.
+ *
+ * The GCC runtime in 4.6 renames the sel_get_any_typed_uid() function, but
+ * still does not provide a way of doing this that does not involve random
+ * stack corruption.
  */
 static INLINE SEL
 gs_find_best_typed_sel (SEL sel)
@@ -101,22 +138,16 @@ gs_find_best_typed_sel (SEL sel)
   if (!GSTypesFromSelector(sel))
     {
       const char *name = sel_getName(sel);
-
       if (name)
-	{
-#ifdef __GNU_LIBOBJC__
-	  SEL tmp_sel = sel_getTypedSelector(name);
-	  if (tmp_sel)
-	    return tmp_sel;
-#else
-	  SEL tmp_sel = sel_get_any_typed_uid(name);
-	  if (sel_getType_np(tmp_sel))
-	    return tmp_sel;
-#endif
-	}
+        {
+          SEL tmp_sel = sel_get_any_typed_uid(name);
+          if (GSTypesFromSelector(tmp_sel))
+            return tmp_sel;
+        }
     }
   return sel;
 }
+#endif
 
 
 @implementation GSFFIInvocation
@@ -126,9 +157,24 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   NSMutableData		*frame;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
-  NSMethodSignature     *sig;
+  NSMethodSignature     *sig = nil;
   GSCodeBuffer          *memory;
-  Class			c;
+  const char            *types;
+  Class c = object_getClass(receiver);
+
+  /*
+   * If we're called with a typed selector, then use this when deconstructing
+   * the stack frame.  This deviates from OS X behaviour (where there are no
+   * typed selectors), but it always more reliable because the compiler will
+   * set the selector types to represent the layout of the call frame.  This
+   * means that the invocation will always deconstruct the call frame
+   * correctly.  
+   */
+
+  if (NULL != (types = GSTypesFromSelector(sel)))
+    {
+      sig = [NSMethodSignature signatureWithObjCTypes: types];
+    }
 
   /* Take care here ... the receiver may be nil (old runtimes) or may be
    * a proxy which implements a method by forwarding it (so calling the
@@ -139,53 +185,31 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
    * NB. object_getClass() and class_respondsToSelector() should both
    * return NULL when given NULL arguments, so they are safe to use.
    */
-  c = object_getClass(receiver);
-  if (class_respondsToSelector(c, @selector(methodSignatureForSelector:)))
+  if (nil == sig)
     {
-      sig = [receiver methodSignatureForSelector: sel];
-    }
-  else
-    {
-      sig = nil;
+      if (class_respondsToSelector(c, @selector(methodSignatureForSelector:)))
+        {
+          sig = [receiver methodSignatureForSelector: sel];
+        }
     }
 
-  if (sig == nil)
+  /*
+   * If there is no
+   */
+  if (nil == sig && 
+     (NULL != (types = GSTypesFromSelector(gs_find_best_typed_sel(sel)))))
     {
-      const char	*sel_type;
-
-      /* Determine the method types so we can construct the frame. We may not
-	 get the right one, though. What to do then? Perhaps it can be fixed up
-	 in the callback, but only under limited circumstances.
-       */
-      sel = gs_find_best_typed_sel(sel);
-      sel_type = GSTypesFromSelector(sel);
-      if (sel_type)
-	{
-	  sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
-	}
-      else
-	{
-	  static NSMethodSignature *def = nil;
-
-#ifndef	NDEBUG
-          fprintf(stderr, "WARNING: Using default signature for %s ... "
-	    "either the method for that selector is not implemented by the "
-	    "receiver, or you must be using an old/faulty version of the "
-	    "Objective-C runtime library.\n", sel_getName(sel));
-#endif
-	  /*
-	   * Default signature is for a method returning an object.
-	   */
-	  if (def == nil)
-	    {
-	      def = RETAIN([NSMethodSignature signatureWithObjCTypes: "@@:"]);
-	    }
-	  sig = def;
-	}
+      sig = [NSMethodSignature signatureWithObjCTypes: types];
     }
 
-  NSCAssert1(sig, @"No signature for selector %@", NSStringFromSelector(sel));
-
+  if (nil == sig)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"%c[%s %s]: unrecognized selector sent to instance %p",
+                          (class_isMetaClass(c) ? '+' : '-'),
+                          class_getName(c), sel_getName(sel), receiver];
+    }
+      
   /* Construct the frame and closure. */
   /* Note: We obtain cframe here, but it's passed to GSFFIInvocationCallback
      where it becomes owned by the callback invocation, so we don't have to
@@ -549,8 +573,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   sig = nil;
   if (gs_protocol_selector(GSTypesFromSelector(selector)) == YES)
     {
-      sig = [NSMethodSignature signatureWithObjCTypes:
-	GSTypesFromSelector(selector)];
+      sig = [NSMethodSignature signatureWithObjCTypes: GSTypesFromSelector(selector)];
     }
   if (sig == nil)
     {
