@@ -1,3 +1,8 @@
+2011-02-22  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* Source/GSFFIInvocation.m (gs_find_best_typed_sel): Implemented
+	for __GNU_LIBOBJC__.  Tidied up documentation.
+
 2011-02-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Make private executable path be an absolute path.
