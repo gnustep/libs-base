@@ -169,7 +169,7 @@ int main()
   PASS(byteCount>0, "read www.google.com https");
   [defaultInput setDelegate: nil];
   [defaultOutput setDelegate: nil];
-  END_SET("NSStream SSL support")
+  END_SET("NSString SSL functions not supported\nThe GNU TLS library was not provided when GNUstep-base was configured/built.")
 
   [arp release];
   return 0;

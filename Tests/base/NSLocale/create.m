@@ -22,7 +22,7 @@ int main(void)
   PASS (locale != nil, "+currentLocale return non-nil");
   TEST_FOR_CLASS(@"NSLocale", locale, "+currentLocale return a NSLocale");
   
-  END_SET("NSLocale create")
+  END_SET("NSLocale not supported.\nThe ICU library was not provided when GNUstep-base was configured/built.")
 
   return 0;
 }

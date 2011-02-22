@@ -1,6 +1,12 @@
 #import "ObjectTesting.h"
 #import <Foundation/Foundation.h>
 
+#if	defined(GS_USE_ICU)
+#define	NSLOCALE_SUPPORTED	GS_USE_ICU
+#else
+#define	NSLOCALE_SUPPORTED	1 /* Assume Apple support */
+#endif
+
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
@@ -44,34 +50,42 @@ int main()
        && [current isDaylightSavingTime] == NO,
        "can set default time zone");
   
+  START_SET(NSLOCALE_SUPPORTED)
+
   current = [NSTimeZone timeZoneWithName: @"America/Sao_Paulo"];
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"en_GB"];
-  str = [current localizedName: NSTimeZoneNameStyleStandard locale: locale];
-  PASS_EQUAL (str, @"Brasilia Time",
-    "Correctly localizes standard time zone name");
-  str = [current localizedName: NSTimeZoneNameStyleShortStandard
-    locale: locale];
-  PASS_EQUAL (str, @"GMT-03:00", "Correctly localizes short time zone name");
-  str = [current localizedName: NSTimeZoneNameStyleDaylightSaving
-    locale: locale];
-  PASS_EQUAL (str, @"Brasilia Summer Time",
-    "Correctly localizes DST time zone name");
-  str = [current localizedName: NSTimeZoneNameStyleShortDaylightSaving
-    locale: locale];
-  PASS_EQUAL (str, @"GMT-02:00",
-    "Correctly localizes short DST time zone name");
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleStandard locale: locale],
+    @"Brasilia Time",
+    "Correctly localizes standard time zone name")
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleShortStandard locale: locale],
+    @"GMT-03:00",
+    "Correctly localizes short time zone name")
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleDaylightSaving locale: locale],
+    @"Brasilia Summer Time",
+    "Correctly localizes DST time zone name")
+  PASS_EQUAL(
+    [current localizedName: NSTimeZoneNameStyleShortDaylightSaving
+      locale: locale],
+    @"GMT-02:00",
+    "Correctly localizes short DST time zone name")
   RELEASE(locale);
   
   date = [NSDate dateWithTimeIntervalSince1970: 1.0];
   PASS ([current daylightSavingTimeOffsetForDate: date] == 0.0,
-    "Returns correct Daylight Saving offset.");
+    "Returns correct Daylight Saving offset.")
   date = [NSDate dateWithTimeIntervalSince1970: 1297308214.0];
   PASS ([current daylightSavingTimeOffsetForDate: date] == 3600.0,
-    "Returns correct Daylight Saving offset.");
+    "Returns correct Daylight Saving offset.")
   date = [NSDate date];
-  PASS ([current daylightSavingTimeOffset] == [current daylightSavingTimeOffsetForDate: date],
-    "Returns correct Daylight Saving offset.");
+  PASS ([current daylightSavingTimeOffset]
+    == [current daylightSavingTimeOffsetForDate: date],
+    "Returns correct Daylight Saving offset.")
   
+  END_SET("NSLocale features not supported\nThe ICU library was not provided when GNUstep-base was configured/built.")
+
   [arp release]; arp = nil;
   return 0;
 }

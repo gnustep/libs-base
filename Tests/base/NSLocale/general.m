@@ -124,6 +124,7 @@ int main(void)
     @"americanenglish",
     "Canonical language identifier for 'AmericanEnglish is americanenglish");
   
-  END_SET("NSLocale general");
+  END_SET("NSLocale not supported.\nThe ICU library was not provided when GNUstep-base was configured/built.")
+
   return 0;
 }
