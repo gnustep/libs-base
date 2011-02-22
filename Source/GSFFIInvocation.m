@@ -40,9 +40,6 @@
 
 #ifdef __GNU_LIBOBJC__
 #include <objc/message.h>
-// Note: Instead of deprecating this poorly designed API, which is impossible
-// to use correctly, the new GCC runtime decided to simply rename it.
-#define sel_get_any_typed_uid sel_getTypedSelector
 #endif
 
 #ifndef INLINE
@@ -78,63 +75,92 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
   return 0;
 }
 
-#ifdef __GNUSTEP_RUNTIME__
-/*
- * With the GNUstep runtime, we can enumerate the types of a particular
- * selector.  If there is only one type, then we can safely return that typed
- * selector.  If not, then we can not be certain which is expected, and so we
- * return NULL.
- */
+
+/* This routine should return a typed selector corresponding to the
+   name of the specified selector.  If there is only one type, then we
+   can safely return that typed selector.  If not, then we can not be
+   certain which one is expected, and to prevent a crash if we return
+   the wrong type, we return NULL.
+
+   Older runtimes do not have facilities in the API to check for
+   conflicting types, hence would return a random selector in that
+   case.  */
 static INLINE SEL
 gs_find_best_typed_sel (SEL sel)
+#ifdef __GNUSTEP_RUNTIME__
 {
   const char *selName = sel_getName(sel);
   const char *types;
-
-  // If there is not exactly one typed selector with this name registered with
-  // the runtime, then give up - we can't safely use this function.
-  if (1 != sel_copyTypes_np(selName, NULL, 0)) { return (SEL)0; }
-
-  sel_copyTypes_np(selName, &types, 1);
+  
+  /* If there is not exactly one typed selector with this name
+   * registered with the runtime, then give up - we can't safely use
+   * this function.  */
+  if (1 != sel_copyTypes_np (selName, NULL, 0))
+    return (SEL)0;
+  
+  sel_copyTypes_np (selName, &types, 1);
   return sel_registerTypedName_np(selName, types);
 }
-#elif defined(NeXTRUNTIME)
-/*
- * The NeXT runtime does not support typed selectors, so we simply return 0
- * here.
- */
-static INLINE SEL
-gs_find_best_typed_sel (SEL sel)
+#elif defined (__GNU_LIBOBJC__)
 {
+  /* Get the list of all selectors with this name.  */
+  const char *selName = sel_getName (sel);
+  unsigned int numberOfReturnedSelectors;
+  SEL *selectors = sel_copyTypedSelectorList (selName, &numberOfReturnedSelectors);
+
+  /* If no selectors are returned, there is no selector.  */ 
+  if (selectors == NULL)
+    return NULL;
+  
+  /* If one selector is returned, check if it has a type or not.  */
+  if (numberOfReturnedSelectors == 1)
+    {
+      SEL selector = selectors[0];
+      free (selectors);
+
+      if (sel_getTypeEncoding (selector))
+	return selector;
+      else
+	return NULL;
+    }
+
+  /* If two selectors are returned, check if one of them has a null
+   * type; if so, pick the other one.  */
+  if (numberOfReturnedSelectors == 2)
+    {
+      SEL first_selector = selectors[0];
+      SEL second_selector = selectors[1];
+      const char *first_selector_types = sel_getTypeEncoding (first_selector);
+      const char *second_selector_types = sel_getTypeEncoding (second_selector);
+      free (selectors);
+
+      if (first_selector_types && !second_selector_types)
+	return first_selector;
+
+      if (!first_selector_types && second_selector_types)
+	return second_selector;
+
+      /* If both selectors have a type, there is a conflict.  */
+      return NULL;
+    }
+
+  /* More than two selectors - there is a conflict.  */
+  free (selectors);
+  return NULL;
+}
+#elif defined(NeXTRUNTIME)
+{
+  /* The NeXT runtime does not support typed selectors, so we simply
+   * return 0 here.  */
   return (SEL)0;
 }
 #else
-/*
- * Selectors are not unique, and not all selectors have type
- * information.  This method tries to find the best equivalent
- * selector with type information.
- *
- * the conversion sel -> name -> sel is not what we want.  However I
- * can not see a way to dispose of the name, except if we can access
- * the internal data structures of the runtime.
- *
- * If we can access the private data structures we can also check for
- * incompatible return types between all equivalent selectors.
- */
-
-/* 
- * Find the best selector type information we can when we don't know
- * the receiver (unfortunately most installed gcc/objc systems still
- * (2010) don't let us know the receiver when forwarding).  This can
- * never be more than a guess, but in practice it usually works.
- *
- * The GCC runtime in 4.6 renames the sel_get_any_typed_uid() function, but
- * still does not provide a way of doing this that does not involve random
- * stack corruption.
- */
-static INLINE SEL
-gs_find_best_typed_sel (SEL sel)
 {
+  /* We can't iterate over the selectors with the same name, but we
+   * can ask the runtime for a typed selector with a certain name.
+   * Usually this works, but it may produce unexpected results
+   * (including a crash) if more than one selector are registered with
+   * the same name but different types.  */
   if (!GSTypesFromSelector(sel))
     {
       const char *name = sel_getName(sel);
