@@ -1,3 +1,12 @@
+2011-02-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDateFormatter.m:
+	* Source/NSLocale.m:
+	* Source/NSNumberFormatter.m:
+	* Source/NSTimeZone.m:
+	Remove a few bogus underscores (pointed out by David) which could
+	potentially cause problems with compiler/linker etc.
+	
 2011-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Modified stringByStandardizingPath and

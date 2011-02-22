@@ -56,7 +56,8 @@
 - (NSArray *) _getSymbols: (NSInteger) symbol;
 @end
 
-static inline NSInteger _NSToUDateFormatStyle (NSDateFormatterStyle style)
+static inline NSInteger
+NSToUDateFormatStyle (NSDateFormatterStyle style)
 {
 #if GS_USE_ICU == 1
   NSInteger relative =
@@ -976,8 +977,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   tzID = NSZoneMalloc ([self zone], sizeof(UChar) * tzIDLength);
   [[internal->_tz name] getCharacters: tzID range: NSMakeRange (0, tzIDLength)];
   
-  internal->_formatter = udat_open (_NSToUDateFormatStyle(internal->_timeStyle),
-                          _NSToUDateFormatStyle(internal->_dateStyle),
+  internal->_formatter = udat_open (NSToUDateFormatStyle(internal->_timeStyle),
+                          NSToUDateFormatStyle(internal->_dateStyle),
                           [[internal->_locale localeIdentifier] UTF8String],
                           tzID,
                           tzIDLength,

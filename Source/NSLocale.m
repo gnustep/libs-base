@@ -114,7 +114,8 @@ NSString * const NSISO8601Calendar = @"";
 static const char * ICUCalendarKeyword = "calendar";
 static const char * ICUCollationKeyword = "collation";
 
-static NSLocaleLanguageDirection _ICUToNSLocaleOrientation (ULayoutType layout)
+static NSLocaleLanguageDirection
+ICUToNSLocaleOrientation (ULayoutType layout)
 {
   switch (layout)
     {
@@ -340,7 +341,7 @@ static NSRecursiveLock *classLock = nil;
   if (U_FAILURE(status) || ULOC_LAYOUT_UNKNOWN == result)
     return NSLocaleLanguageDirectionUnknown;
 
-  return _ICUToNSLocaleOrientation (result);
+  return ICUToNSLocaleOrientation (result);
 #else
   return NSLocaleLanguageDirectionLeftToRight;	// FIXME
 #endif
@@ -530,7 +531,7 @@ static NSRecursiveLock *classLock = nil;
   if (U_FAILURE(status) || ULOC_LAYOUT_UNKNOWN == result)
     return NSLocaleLanguageDirectionUnknown;
 
-  return _ICUToNSLocaleOrientation (result);
+  return ICUToNSLocaleOrientation (result);
 #else
   return NSLocaleLanguageDirectionTopToBottom;	// FIXME
 #endif
@@ -597,10 +598,10 @@ static NSRecursiveLock *classLock = nil;
   // A locale cannot be constructed without a language.
   if (language == NULL)
     return nil;
-#define __TEST_CODE(x) (x ? "_" : ""), (x ? x : "")
+#define TEST_CODE(x) (x ? "_" : ""), (x ? x : "")
   string = [[NSMutableString alloc] initWithFormat: @"%s%s%s%s%s%s%s",
-    language, __TEST_CODE(script), __TEST_CODE(country), __TEST_CODE(variant)];
-#undef __TEST_CODE
+    language, TEST_CODE(script), TEST_CODE(country), TEST_CODE(variant)];
+#undef TEST_CODE
   
   // I'm not using uloc_setKeywordValue() here because the format is easy
   // enough to reproduce and has the added advatange that we doesn't need ICU.
