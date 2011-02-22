@@ -178,7 +178,7 @@ _NSToICUTZDisplayStyle(NSTimeZoneNameStyle style)
 }
 
 static inline UCalendar *
-_UCalendarSetup (NSTimeZone *tz, NSLocale *locale)
+ICUCalendarSetup (NSTimeZone *tz, NSLocale *locale)
 {
   NSString *tzStr;
   int32_t tzLen;
@@ -2125,7 +2125,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   UCalendar *cal;
   UErrorCode err = U_ZERO_ERROR;
   
-  cal = _UCalendarSetup (self, nil);
+  cal = ICUCalendarSetup (self, nil);
   if (cal == NULL)
     return 0.0;
   
@@ -2166,7 +2166,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   UCalendar *cal;
   UErrorCode err = U_ZERO_ERROR;
   
-  cal = _UCalendarSetup (self, locale);
+  cal = ICUCalendarSetup (self, locale);
   if (cal == NULL)
     return nil;
   

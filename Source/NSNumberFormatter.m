@@ -54,7 +54,7 @@
 
 #if GS_USE_ICU == 1
 static inline UNumberFormatStyle
-_NSToICUFormatStyle (NSNumberFormatterStyle style)
+NSToICUFormatStyle (NSNumberFormatterStyle style)
 {
   UNumberFormatStyle result;
   
@@ -84,7 +84,7 @@ _NSToICUFormatStyle (NSNumberFormatterStyle style)
 }
 
 static inline UNumberFormatPadPosition
-_NSToICUPadPosition (NSNumberFormatterPadPosition position)
+NSToICUPadPosition (NSNumberFormatterPadPosition position)
 {
   UNumberFormatPadPosition result = 0;
   
@@ -108,7 +108,7 @@ _NSToICUPadPosition (NSNumberFormatterPadPosition position)
 }
 
 static inline NSNumberFormatterPadPosition
-_ICUToNSPadPosition (UNumberFormatPadPosition position)
+ICUToNSPadPosition (UNumberFormatPadPosition position)
 {
   NSNumberFormatterPadPosition result = 0;
   
@@ -132,7 +132,7 @@ _ICUToNSPadPosition (UNumberFormatPadPosition position)
 }
 
 static inline UNumberFormatRoundingMode
-_NSToICURoundingMode (NSNumberFormatterRoundingMode mode)
+NSToICURoundingMode (NSNumberFormatterRoundingMode mode)
 {
   UNumberFormatRoundingMode result = 0;
   
@@ -165,7 +165,7 @@ _NSToICURoundingMode (NSNumberFormatterRoundingMode mode)
 }
 
 static inline NSNumberFormatterRoundingMode
-_ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
+ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
 {
   NSNumberFormatterRoundingMode result = 0;
   
@@ -1269,7 +1269,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 {
 #if GS_USE_ICU == 1
   unum_setAttribute (internal->_formatter, UNUM_ROUNDING_MODE,
-    _NSToICURoundingMode(mode));
+    NSToICURoundingMode(mode));
 #else
   return;
 #endif
@@ -1278,7 +1278,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSNumberFormatterRoundingMode) roundingMode
 {
 #if GS_USE_ICU == 1
-  return _ICUToNSRoundingMode (unum_getAttribute (internal->_formatter,
+  return ICUToNSRoundingMode (unum_getAttribute (internal->_formatter,
     UNUM_ROUNDING_MODE));
 #else
   return 0;
@@ -1812,7 +1812,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 {
 #if GS_USE_ICU == 1
   unum_setAttribute (internal->_formatter, UNUM_PADDING_POSITION,
-    _NSToICUPadPosition (position));
+    NSToICUPadPosition (position));
 #else
   return;
 #endif
@@ -1821,7 +1821,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSNumberFormatterPadPosition) paddingPosition
 {
 #if GS_USE_ICU == 1
-  return _ICUToNSPadPosition(unum_getAttribute (internal->_formatter,
+  return ICUToNSPadPosition(unum_getAttribute (internal->_formatter,
     UNUM_PADDING_POSITION));
 #else
   return 0;
@@ -2048,7 +2048,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     unum_close(internal->_formatter);
   
   cLocaleId = [[internal->_locale localeIdentifier] UTF8String];
-  style = _NSToICUFormatStyle (internal->_style);
+  style = NSToICUFormatStyle (internal->_style);
   
   internal->_formatter = unum_open (style, NULL, 0, cLocaleId, NULL, &err);
   if (U_FAILURE(err))
