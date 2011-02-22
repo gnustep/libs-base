@@ -235,15 +235,28 @@ int main()
   PASS_EQUAL([@"/home/.//././user" stringByStandardizingPath], @"/home/user",
    "/home/.//././user stringByStandardizingPath == /home/user");
   
-  PASS_EQUAL([@"/home/../nicola" stringByStandardizingPath], @"/home/../nicola",
-   "/home/../nicola stringByStandardizingPath == /home/../nicola");
+  PASS_EQUAL([@"/home/../nicola" stringByStandardizingPath], @"/nicola",
+   "/home/../nicola stringByStandardizingPath == /nicola");
 
   NSFileManager *fm = [NSFileManager defaultManager];
-  [fm createDirectoryAtPath: @"/tmp/foo" attributes: nil];
-  [fm createSymbolicLinkAtPath: @"/tmp/foo" pathContent: @"/tmp/bar"];
-  PASS_EQUAL([@"/tmp/foo" stringByStandardizingPath], @"/tmp/foo", 
-    "foo->bar symlink not expanded by stringByStandardizingPath");
+  NSString *cwd = [fm currentDirectoryPath];
+  NSString *tmpdir = NSTemporaryDirectory();
+  NSString *tmpdst = [tmpdir stringByAppendingPathComponent: @"bar"];
+  NSString *tmpsrc = [tmpdir stringByAppendingPathComponent: @"foo"];
 
+  [fm createDirectoryAtPath: tmpdst attributes: nil];
+  [fm createSymbolicLinkAtPath: tmpsrc pathContent: tmpdst];
+  PASS_EQUAL([tmpsrc stringByStandardizingPath], tmpsrc, 
+    "foo->bar symlink not expanded by stringByStandardizingPath")
+  PASS_EQUAL([tmpsrc stringByResolvingSymlinksInPath], tmpdst, 
+    "foo->bar absolute symlink expanded by stringByResolvingSymlinksInPath")
+  [fm changeCurrentDirectoryPath: tmpdir];
+  PASS_EQUAL([@"foo" stringByResolvingSymlinksInPath], tmpdst, 
+    "foo->bar relative symlink expanded by stringByResolvingSymlinksInPath")
+
+  [fm changeCurrentDirectoryPath: cwd];
+  [fm removeFileAtPath: tmpdst handler: nil];
+  [fm removeFileAtPath: tmpsrc handler: nil];
   
   PASS_EQUAL([@"/." stringByStandardizingPath], @"/",
    "/. stringByStandardizingPath == /");
