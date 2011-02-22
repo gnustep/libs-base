@@ -3675,21 +3675,23 @@ static NSFileManager *fm = nil;
 
 - (NSString*) stringByDeletingLastPathComponent
 {
-  NSRange	range;
-  unsigned int	l = [self length];
+  unsigned int	length;
+  unsigned int	root;
+  unsigned int	end;
   unsigned int	i;
 
-  if (l == 0)
+  end = length = [self length];
+  if (length == 0)
     {
       return @"";
     }
-  i = rootOf(self, l);
+  i = root = rootOf(self, length);
 
   /*
    * Any root without a trailing path separator can be deleted
    * as it's either a relative path or a tilde expression.
    */
-  if (i == l && pathSepMember([self characterAtIndex: i-1]) == NO)
+  if (i == length && pathSepMember([self characterAtIndex: i-1]) == NO)
     {
       return @"";	// Delete relative root
     }
@@ -3697,9 +3699,9 @@ static NSFileManager *fm = nil;
   /*
    * Step past trailing path separators.
    */
-  while (l > i && pathSepMember([self characterAtIndex: l-1]) == YES)
+  while (end > i && pathSepMember([self characterAtIndex: end-1]) == YES)
     {
-      l--;
+      end--;
     }
 
   /*
@@ -3707,7 +3709,7 @@ static NSFileManager *fm = nil;
    * special case of a tilde expression ... which may be deleted even
    * when it is followed by a separator.
    */
-  if (l == i)
+  if (end == i)
     {
       if ([self characterAtIndex: 0] == '~')
 	{
@@ -3715,18 +3717,47 @@ static NSFileManager *fm = nil;
 	}
       return [self substringToIndex: i];	// Return root component.
     }
-
-  /*
-   * Locate path separator preceding last path component.
-   */
-  range = [self rangeOfCharacterFromSet: pathSeps()
-				options: NSBackwardsSearch
-				  range: ((NSRange){i, l-i})];
-  if (range.length == 0)
+  else
     {
-      return [self substringToIndex: i];
+      NSString	*result;
+      unichar	*to;
+      unsigned	o;
+      unsigned	lastComponent = root;
+      GS_BEGINITEMBUF(from, (end * 2 * sizeof(unichar)), unichar)
+
+      to = from + end;
+      [self getCharacters: from range: NSMakeRange(0, end)];
+      for (o = 0; o < root; o++)
+	{
+	  to[o] = from[o];
+	}
+      for (i = root; i < end; i++)
+	{
+	  if (pathSepMember(from[i]))
+	    {
+	      if (o > lastComponent)
+		{
+		  to[o++] = from[i];
+		  lastComponent = o;
+		}
+	    }
+	  else
+	    {
+	      to[o++] = from[i];
+	    }
+	}
+      if (lastComponent > root)
+	{
+	  o = lastComponent - 1;
+	}
+      else
+	{
+	  o = root;
+	}
+      result = [NSString stringWithCharacters: to length: o];
+      GS_ENDITEMBUF();
+      return result;
     }
-  return [self substringToIndex: range.location];
 }
 
 - (NSString*) stringByDeletingPathExtension
@@ -4266,7 +4297,7 @@ static NSFileManager *fm = nil;
   caiImp = (unichar (*)())[s methodForSelector: caiSel];
 
   /* Remove any separators ('/') immediately after the trailing
-   * separator in the rot (if any).
+   * separator in the root (if any).
    */
   if (root > 0 && YES == pathSepMember((*caiImp)(s, caiSel, root-1)))
     {
@@ -4308,18 +4339,23 @@ static NSFileManager *fm = nil;
 	}
       r.length = l - r.location;
     }
-  // Remove trailing ('.') as long as it's preceeded by a path separator.
-  if (l > root && l > 1 && (*caiImp)(s, caiSel, l-1) == '.'
+
+  /* Remove trailing ('.') as long as it's preceeded by a path separator.
+   * As a special case for OSX compatibility, we only remove the trailing
+   * dot if it's not immediately after the root.
+   */
+  if (l > root + 1 && (*caiImp)(s, caiSel, l-1) == '.'
     && pathSepMember((*caiImp)(s, caiSel, l-2)) == YES)
     {
       l--;
       [s deleteCharactersInRange: NSMakeRange(l, 1)];
     }
+
   // Condense ('/./') sequences.
   r = (NSRange){root, l-root};
   while ((r = [s rangeOfString: @"." options: 0 range: r]).length == 1)
     {
-      if (r.location > 0
+      if (r.location > 0 && r.location < l - 1
 	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES
 	&& pathSepMember((*caiImp)(s, caiSel, r.location+1)) == YES)
 	{
@@ -4356,11 +4392,9 @@ static NSFileManager *fm = nil;
     }
 
   /*
-   *	For absolute paths, we must resolve symbolic links or (on MINGW)
+   *	For absolute paths, we must 
    *	remove '/../' sequences and their matching parent directories.
    */
-#if defined(__MINGW__)
-  /* Condense `/../' */
   r = (NSRange){root, l-root};
   while ((r = [s rangeOfString: @".." options: 0 range: r]).length == 2)
     {
@@ -4369,6 +4403,8 @@ static NSFileManager *fm = nil;
         && (NSMaxRange(r) == l
 	  || pathSepMember((*caiImp)(s, caiSel, NSMaxRange(r))) == YES))
 	{
+	  BOOL	atEnd = (NSMaxRange(r) == l) ? YES : NO;
+
 	  r.location--;
 	  r.length++;
 	  if (r.location > root)
@@ -4386,7 +4422,21 @@ static NSFileManager *fm = nil;
 		{
 		  r.length = NSMaxRange(r2) - r.location;
 		}
-	      r.length += 3;		/* Add the `/..' */
+	      if (YES == atEnd)
+		{
+	          r.length += 3;	/* Add the `/..' */
+		}
+	      else
+		{
+	          r.length += 4;	/* Add the `/../' */
+		}
+	    }
+	  else
+	    {
+	      /* Don't remove the root itsself.
+	       */
+	      r.location++;
+	      r.length--;
 	    }
 	  [s deleteCharactersInRange: r];
 	  l -= r.length;
@@ -4398,7 +4448,6 @@ static NSFileManager *fm = nil;
       r.length = l - r.location;
     }
 
-#endif
   return IMMUTABLE(s);
 }
 

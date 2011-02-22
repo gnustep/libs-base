@@ -160,7 +160,6 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   NSMethodSignature     *sig = nil;
   GSCodeBuffer          *memory;
   const char            *types;
-  Class c = object_getClass(receiver);
 
   /*
    * If we're called with a typed selector, then use this when deconstructing
@@ -187,27 +186,24 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
    */
   if (nil == sig)
     {
+      Class 	c = object_getClass(receiver);
+
       if (class_respondsToSelector(c, @selector(methodSignatureForSelector:)))
         {
           sig = [receiver methodSignatureForSelector: sel];
         }
-    }
-
-  /*
-   * If there is no
-   */
-  if (nil == sig && 
-     (NULL != (types = GSTypesFromSelector(gs_find_best_typed_sel(sel)))))
-    {
-      sig = [NSMethodSignature signatureWithObjCTypes: types];
-    }
-
-  if (nil == sig)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"%c[%s %s]: unrecognized selector sent to instance %p",
-                          (class_isMetaClass(c) ? '+' : '-'),
-                          class_getName(c), sel_getName(sel), receiver];
+      if (nil == sig
+	&& (NULL != (types = GSTypesFromSelector(gs_find_best_typed_sel(sel)))))
+	{
+	  sig = [NSMethodSignature signatureWithObjCTypes: types];
+	}
+      if (nil == sig)
+	{
+	  [NSException raise: NSInvalidArgumentException
+	    format: @"%c[%s %s]: unrecognized selector sent to instance %p",
+	    (class_isMetaClass(c) ? '+' : '-'),
+	    class_getName(c), sel_getName(sel), receiver];
+	}
     }
       
   /* Construct the frame and closure. */

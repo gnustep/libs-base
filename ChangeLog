@@ -1,5 +1,10 @@
 2011-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSString.m: Modified stringByStandardizingPath and
+	stringByDeletingLastPathComponent to better match OSX behavior.
+
+2011-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNumberFormatter.m:
 	* Headers/Foundation/NSNumberFormatter.h:
 	If we don't have ICU then the actual behavior is 10.0 style
