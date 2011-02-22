@@ -18,6 +18,6 @@ int main()
   test_NSCopying(@"NSLocale", @"NSLocale",
     [NSArray arrayWithObject: testObj], NO, NO);
   
-  END_SET("NSLocale basic")
+  END_SET("NSLocale not supported.\nThe ICU library was not provided when GNUstep-base was configured/built.")
   return 0;
 }

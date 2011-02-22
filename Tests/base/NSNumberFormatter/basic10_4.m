@@ -111,7 +111,7 @@ int main()
       
       PASS_EQUAL(str, @"-1235", "format string of length 1")
 
-    END_SET("ICU library not available when base was built")
+    END_SET("10.4 behaviors not supported\nThe ICU library was not provided when GNUstep-base was configured/built.")
 
   END_SET("NSNumberFormatter 10.4")
 
