@@ -1,5 +1,6 @@
 2011-02-22  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSBundle.m: Make private executable path be an absolute path.
 	* Source/NSDateFormatter.m:
 	* Source/NSLocale.m:
 	* Source/NSNumberFormatter.m:
