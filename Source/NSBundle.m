@@ -269,6 +269,9 @@ GSPrivateExecutablePath()
 	    {
 	      executablePath
 		= [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
+	    }
+	  if (NO == [executablePath isAbsolutePath])
+	    {
 	      executablePath = AbsolutePathOfExecutable(executablePath, YES);
 	    }
 
