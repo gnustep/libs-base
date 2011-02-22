@@ -107,6 +107,18 @@ int main()
        "'/' stringByDeletingLastPathComponent == '/'");
   PASS([[@"hello" stringByDeletingLastPathComponent] isEqual: @""],
        "'hello' stringByDeletingLastPathComponent == ''");
+  PASS_EQUAL([@"/hello/there/.." stringByDeletingLastPathComponent],
+    @"/hello/there",
+    "'/hello/there/..' stringByDeletingLastPathComponent == '/hello/there'");
+  PASS_EQUAL([@"/hello/there/." stringByDeletingLastPathComponent],
+    @"/hello/there",
+    "'/hello/there/.' stringByDeletingLastPathComponent == '/hello/there'");
+  PASS_EQUAL([@"/hello/../there" stringByDeletingLastPathComponent],
+    @"/hello/..",
+    "'/hello/../there' stringByDeletingLastPathComponent == '/hello/..'");
+  PASS_EQUAL([@"/hello//../there" stringByDeletingLastPathComponent],
+    @"/hello/..",
+    "'/hello//../there' stringByDeletingLastPathComponent == '/hello/..'");
 
 /* Check behavior for UNC absolute and relative paths.
  */
