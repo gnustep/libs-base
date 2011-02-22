@@ -137,13 +137,13 @@ int main()
 
   // Not UNC
   PASS_EQUAL([@"///host/share/" stringByDeletingLastPathComponent],
-    @"///host",
-    "'///host/share/' stringByDeletingLastPathComponent == '///host'");
+    @"/host",
+    "'///host/share/' stringByDeletingLastPathComponent == '/host'");
 
   // Not UNC
   PASS_EQUAL([@"//host/share" stringByDeletingLastPathComponent],
-    @"//host",
-    "'//host/share' stringByDeletingLastPathComponent == '//host'");
+    @"/host",
+    "'//host/share' stringByDeletingLastPathComponent == '/host'");
 
   // Not UNC
   PASS_EQUAL([@"//dir/" stringByDeletingLastPathComponent],
@@ -215,8 +215,8 @@ int main()
     @"\\\\home\\user\\",
     "\\\\home\\user\\ stringByStandardizingPath == \\\\home\\user\\");
 
-  PASS_EQUAL([@"c:\\." stringByStandardizingPath], @"c:\\",
-    "'c:\\.' stringByStandardizingPath == 'c:\\'");
+  PASS_EQUAL([@"c:\\." stringByStandardizingPath], @"c:\\.",
+    "'c:\\.' stringByStandardizingPath == 'c:\\.'");
   
   PASS_EQUAL([@"c:\\..." stringByStandardizingPath], @"c:\\...",
     "'c:\\...' stringByStandardizingPath == 'c:\\...'");
