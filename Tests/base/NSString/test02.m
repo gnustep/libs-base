@@ -144,14 +144,14 @@ int main()
 /* Check behavior when UNC paths are not supported.
  */
   PASS([[@"//host/share/file.jpg" stringByDeletingLastPathComponent]
-    isEqual: @"//host/share"],
-    "'//host/file.jpg' stringByDeletingLastPathComponent == '//host/share'");
+    isEqual: @"/host/share"],
+    "'//host/file.jpg' stringByDeletingLastPathComponent == '/host/share'");
   PASS([[@"//host/share/" stringByDeletingLastPathComponent]
-    isEqual: @"//host"],
-    "'//host/share/' stringByDeletingLastPathComponent == '//host'");
+    isEqual: @"/host"],
+    "'//host/share/' stringByDeletingLastPathComponent == '/host'");
   PASS([[@"//host/share" stringByDeletingLastPathComponent]
-   isEqual: @"//host"],
-   "'//host/share' stringByDeletingLastPathComponent == '//host'");
+   isEqual: @"/host"],
+   "'//host/share' stringByDeletingLastPathComponent == '/host'");
   PASS([[@"//dir/" stringByDeletingLastPathComponent] isEqual: @"/"],
    "'//dir/' stringByDeletingLastPathComponent == '/'");
 
@@ -238,6 +238,12 @@ int main()
   PASS_EQUAL([@"/home/../nicola" stringByStandardizingPath], @"/nicola",
    "/home/../nicola stringByStandardizingPath == /nicola");
 
+  PASS_EQUAL([@"home/../nicola" stringByStandardizingPath], @"home/../nicola",
+   "home/../nicola stringByStandardizingPath == home/../nicola");
+
+  PASS_EQUAL([@"a/b/../c" stringByStandardizingPath], @"a/b/../c",
+   "a/b/../c stringByStandardizingPath == a/b/../c");
+
   NSFileManager *fm = [NSFileManager defaultManager];
   NSString *cwd = [fm currentDirectoryPath];
   NSString *tmpdir = NSTemporaryDirectory();
@@ -258,8 +264,10 @@ int main()
   [fm removeFileAtPath: tmpdst handler: nil];
   [fm removeFileAtPath: tmpsrc handler: nil];
   
-  PASS_EQUAL([@"/." stringByStandardizingPath], @"/",
-   "/. stringByStandardizingPath == /");
+  PASS_EQUAL([@"/.." stringByStandardizingPath], @"/",
+   "/.. stringByStandardizingPath == /");
+  PASS_EQUAL([@"/." stringByStandardizingPath], @"/.",
+   "/. stringByStandardizingPath == /. (OSX special case)");
   
   result = [NSArray arrayWithObjects: @"nicola",@"core",nil];
   result = [@"home" stringsByAppendingPaths:result];
