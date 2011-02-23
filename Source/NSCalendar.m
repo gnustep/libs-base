@@ -197,9 +197,11 @@ static NSRecursiveLock *classLock = nil;
 + (id) currentCalendar
 {
   NSCalendar *result;
+  NSLocale *locale;
   NSCalendar *cal;
   
-  cal = [[NSLocale currentLocale] objectForKey: NSLocaleCalendar];
+  locale = [NSLocale currentLocale];
+  cal = [locale objectForKey: NSLocaleCalendar];
   result =
     [[NSCalendar alloc] initWithCalendarIdentifier: [cal calendarIdentifier]];
   

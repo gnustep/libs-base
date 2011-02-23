@@ -1245,7 +1245,7 @@ compare(id elem1, id elem2, void* context)
  * Returns the result of invoking -descriptionWithLocale:indent:
  * with a zero indent.
  */
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+- (NSString*) descriptionWithLocale: (id)locale
 {
   return [self descriptionWithLocale: locale indent: 0];
 }
@@ -1260,7 +1260,7 @@ compare(id elem1, id elem2, void* context)
  * The items in the property list string appear in the same order as
  * they appear in the receiver.
  */
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+- (NSString*) descriptionWithLocale: (id)locale
 			     indent: (NSUInteger)level
 {
   NSString	*result = nil;

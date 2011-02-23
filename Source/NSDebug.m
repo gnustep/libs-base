@@ -33,6 +33,7 @@
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
@@ -878,13 +879,14 @@ static jbuf_type *
 jbuf()
 {
   NSMutableData	*d;
+  NSMutableDictionary	*dict;
 
-  d = [[[NSThread currentThread] threadDictionary] objectForKey: @"GSjbuf"];
+  dict = [[NSThread currentThread] threadDictionary];
+  d = [dict objectForKey: @"GSjbuf"];
   if (d == nil)
     {
       d = [[NSMutableData alloc] initWithLength: sizeof(jbuf_type)];
-      [[[NSThread currentThread] threadDictionary] setObject: d
-						      forKey: @"GSjbuf"];
+      [dict setObject: d forKey: @"GSjbuf"];
       RELEASE(d);
     }
   return (jbuf_type*)[d mutableBytes];

@@ -311,7 +311,7 @@ extern "C" {
 /**
  *  Returns string version of number formatted according to locale.
  */
-- (NSString *)descriptionWithLocale:(NSDictionary *)locale;
+- (NSString *)descriptionWithLocale:(id)locale;
 
 /**
  *  Returns underlying value as a <code>double</code>, which may be an

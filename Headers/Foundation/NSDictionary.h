@@ -55,8 +55,8 @@ extern "C" {
 - (NSUInteger) count;						// Primitive
 - (NSString*) description;
 - (NSString*) descriptionInStringsFileFormat;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+- (NSString*) descriptionWithLocale: (id)locale;
+- (NSString*) descriptionWithLocale: (id)locale
 			     indent: (NSUInteger)level;
 
 - (id) init;

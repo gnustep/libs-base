@@ -56,7 +56,7 @@ extern "C" {
 - (BOOL) containsObject: (id)anObject;
 - (NSUInteger) count;
 - (NSString*) description;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
+- (NSString*) descriptionWithLocale: (id)locale;
 
 - (id) init;
 - (id) initWithArray: (NSArray*)other;

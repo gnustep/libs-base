@@ -5287,7 +5287,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       return NO;
     }
-  if (NO == [[self content] isEqual: [other content]])
+  if (NO == [[self content] isEqual: [(GSMimeDocument*)other content]])
     {
       return NO;
     }

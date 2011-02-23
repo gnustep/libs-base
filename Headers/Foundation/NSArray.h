@@ -107,8 +107,8 @@ extern "C" {
 - (NSEnumerator*) reverseObjectEnumerator;
 
 - (NSString*) description;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+- (NSString*) descriptionWithLocale: (id)locale;
+- (NSString*) descriptionWithLocale: (id)locale
 			     indent: (NSUInteger)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;

@@ -2137,12 +2137,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  * the -description method and discards the locale
  * information.
  */
-- (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
+- (NSString*) descriptionWithLocale: (id)aLocale
 {
   return [self description];
 }
 
-+ (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
++ (NSString*) descriptionWithLocale: (id)aLocale
 {
   return [self description];
 }
@@ -2152,13 +2152,13 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  * the -descriptionWithLocale: method and discards the
  * level information.
  */
-- (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
+- (NSString*) descriptionWithLocale: (id)aLocale
 			     indent: (NSUInteger)level
 {
   return [self descriptionWithLocale: aLocale];
 }
 
-+ (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
++ (NSString*) descriptionWithLocale: (id)aLocale
 			     indent: (NSUInteger)level
 {
   return [self descriptionWithLocale: aLocale];

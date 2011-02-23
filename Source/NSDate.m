@@ -1192,7 +1192,7 @@ otherTime(NSDate* other)
  * Returns a string representation of the receiver formatted according
  * to the default format string and time zone, but using the given locale.
  */
-- (NSString *) descriptionWithLocale: (NSDictionary *)locale
+- (NSString *) descriptionWithLocale: (id)locale
 {
   // Easiest to just have NSCalendarDate do the work for us
   NSString *s;
