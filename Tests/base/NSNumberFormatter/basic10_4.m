@@ -70,6 +70,8 @@ int main()
       str = [fmt stringFromNumber: num];
       PASS_EQUAL(str, @"1235", "default 10.4 format same as Cocoa")
 
+      [fmt setLocale: [[NSLocale alloc] initWithLocaleIdentifier: @"en"]];
+
       [fmt setMaximumFractionDigits: 2];
       str = [fmt stringFromNumber: num];
 
