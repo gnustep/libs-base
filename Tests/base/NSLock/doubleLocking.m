@@ -14,6 +14,7 @@ int main()
   NSData		*data;
   NSString		*string;
   NSLock 		*lock = nil;
+  unsigned		count;
 
   mgr = [NSFileManager defaultManager];
   helpers = [mgr currentDirectoryPath];
@@ -27,7 +28,11 @@ int main()
   [task setStandardError: ePipe]; 
   hdl = [ePipe fileHandleForReading];
   [task launch];
-  [task waitUntilExit];
+  for (count = 0; count < 30 && [task isRunning]; count++)
+    {
+      [NSThread sleepForTimeInterval: 1.0];
+    }
+  //[task waitUntilExit];
   data = [hdl availableData];
   NSLog(@"Data was %*.*s", [data length], [data length], [data bytes]);
   string = [NSString alloc];
@@ -42,7 +47,11 @@ int main()
   [task setStandardError: ePipe]; 
   hdl = [ePipe fileHandleForReading];
   [task launch];
-  [task waitUntilExit];
+  for (count = 0; count < 30 && [task isRunning]; count++)
+    {
+      [NSThread sleepForTimeInterval: 1.0];
+    }
+  //[task waitUntilExit];
   data = [hdl availableData];
   NSLog(@"Data was %*.*s", [data length], [data length], [data bytes]);
   string = [NSString alloc];
