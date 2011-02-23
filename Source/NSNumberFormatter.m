@@ -1194,6 +1194,10 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     {
       _defaultBehavior = NSNumberFormatterBehavior10_4;
     }
+  else
+    {
+      _defaultBehavior = behavior;	// Yeuch ... but OSX accepts any value
+    }
 }
 
 + (NSNumberFormatterBehavior) defaultFormatterBehavior
