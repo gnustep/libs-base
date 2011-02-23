@@ -55,8 +55,6 @@ int main()
     PASS(NSNumberFormatterBehaviorDefault == [fmt formatterBehavior],
      "a new formatter can have the default behavior set")
 
-    num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
-
     str = [fmt stringFromNumber: [NSDecimalNumber notANumber]];
     PASS_EQUAL(str, @"NaN", "notANumber special case")
 
@@ -68,6 +66,8 @@ int main()
       "getObjectValue inited with 0.00")
 
     START_SET(NSLOCALE_SUPPORTED)
+
+      num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
 
       str = [fmt stringFromNumber: num];
       PASS_EQUAL(str, @"1235", "default 10.4 format same as Cocoa")
