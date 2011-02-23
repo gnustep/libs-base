@@ -939,7 +939,7 @@ GSPrivateCheckTasks()
 {
   BOOL	found = NO;
 
-  if (hadChildSignal == YES)
+  if (YES == hadChildSignal)
     {
       NSArray	*a;
       unsigned	c;
@@ -1351,7 +1351,7 @@ GSPrivateCheckTasks()
 {
   BOOL	found = NO;
 
-  if (hadChildSignal == YES)
+  if (YES == hadChildSignal)
     {
       int result;
       int status;
@@ -1682,7 +1682,38 @@ GSPrivateCheckTasks()
 
 - (void) _collectChild
 {
-  GSPrivateCheckTasks();
+  if (_hasCollected == NO)
+    {
+      int result;
+      int status;
+
+      errno = 0;
+      result = waitpid(_taskId, &status, WNOHANG);
+      if (result > 0)
+	{
+	  if (WIFEXITED(status))
+	    {
+#if	defined(WAITDEBUG)
+	      NSLog(@"waitpid %d, exit status = %d",
+		result, status);
+#endif
+	      [self _terminatedChild: WEXITSTATUS(status)];
+	    }
+	  else if (WIFSIGNALED(status))
+	    {
+#if	defined(WAITDEBUG)
+	      NSLog(@"waitpid %d, termination status = %d",
+		result, status);
+#endif
+	      [self _terminatedChild: WTERMSIG(status)];
+	    }
+	  else
+	    {
+	      NSLog(@"Warning ... task %d neither exited nor signalled",
+		result);
+	    }
+	}
+    }
 }
 
 - (BOOL) usePseudoTerminal
