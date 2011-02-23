@@ -29,14 +29,19 @@
  */
 void testRootClass(const char *clsName)
 {
-	Class cls = objc_getClass(clsName);
-	Class super = class_getSuperclass(cls);
-	Class meta = object_getClass(cls);
-	Class superMeta = class_getSuperclass(meta);
-	Class metaMeta = object_getClass(meta);
-	PASS(Nil == super, "superclass of root class is Nil");
-	PASS(metaMeta == meta, "root class's metaclass is also its metaclass's metaclass");
-	PASS(cls == superMeta, "Root class is its metaclass's superclass");
+  testHopeful = YES;
+  START_SET(YES)
+    Class cls = objc_getClass(clsName);
+    Class super = class_getSuperclass(cls);
+    Class meta = object_getClass(cls);
+    Class superMeta = class_getSuperclass(meta);
+    Class metaMeta = object_getClass(meta);
+
+    PASS(Nil == super, "superclass of root class is Nil");
+    PASS(metaMeta == meta,
+      "root class's metaclass is also its metaclass's metaclass");
+    PASS(cls == superMeta, "Root class is its metaclass's superclass");
+  END_SET("testRootClass")
 }
 
 /**
@@ -45,33 +50,39 @@ void testRootClass(const char *clsName)
  */
 void testNonRootClass(const char *clsName)
 {
-	Class cls = objc_getClass(clsName);
-	Class super = class_getSuperclass(cls);
-	Class meta = object_getClass(cls);
-	Class superMeta = class_getSuperclass(meta);
-	Class metaMeta = object_getClass(meta);
-	Class metaSuper = object_getClass(super);
-	Class root = super;
-	Class rootMeta = Nil;
-	do
-	{
-		rootMeta = object_getClass(root);
-		root = class_getSuperclass(root);
-	} while (root != Nil);
+  testHopeful = YES;
+  START_SET(YES)
+    Class cls = objc_getClass(clsName);
+    Class super = class_getSuperclass(cls);
+    Class meta = object_getClass(cls);
+    Class superMeta = class_getSuperclass(meta);
+    Class metaMeta = object_getClass(meta);
+    Class metaSuper = object_getClass(super);
+    Class root = super;
+    Class rootMeta = Nil;
 
-	PASS(Nil != super, "Non-root class has a superclass");
-	PASS(superMeta == metaSuper, "Metaclass's superclass is superclass's metaclass");
-	PASS(rootMeta == metaMeta, "Metaclass's metaclass is root class's metaclass");
+    do
+      {
+	rootMeta = object_getClass(root);
+	root = class_getSuperclass(root);
+      } while (root != Nil);
+
+    PASS(Nil != super, "Non-root class has a superclass");
+    PASS(superMeta == metaSuper,
+      "Metaclass's superclass is superclass's metaclass");
+    PASS(rootMeta == metaMeta,
+      "Metaclass's metaclass is root class's metaclass");
+  END_SET("testNonRootClass")
 }
 
 int main(void)
 {
-	testRootClass("NSObject");
-	testRootClass("NSProxy");
-	testRootClass("Bar");
-	testNonRootClass("Foo");
-	testNonRootClass("Foo2");
-	testNonRootClass("Proxy");
-	testNonRootClass("Proxy2");
-	return 0;
+  testRootClass("NSObject");
+  testRootClass("NSProxy");
+  testRootClass("Bar");
+  testNonRootClass("Foo");
+  testNonRootClass("Foo2");
+  testNonRootClass("Proxy");
+  testNonRootClass("Proxy2");
+  return 0;
 }
