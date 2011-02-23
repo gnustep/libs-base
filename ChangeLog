@@ -1,3 +1,8 @@
+2011-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix bugs in upper and lower casing of constant
+	strings.
+
 2011-02-22  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Source/GSFFIInvocation.m (gs_find_best_typed_sel): Implemented
