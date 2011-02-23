@@ -15,7 +15,9 @@ int main(void)
 		caught = str;
 	}
 	[NSAutoreleasePool new];
-	PASS((caught == thrown), "Throwing an NSConstantString instance before the class is initialised");
+	START_SET(YES)
+		PASS((caught == thrown), "Throwing an NSConstantString instance before the class is initialised");
+	END_SET("String throwing")
 #else
 	[NSAutoreleasePool new];
 	unsupported("Native exceptions");
