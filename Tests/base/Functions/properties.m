@@ -60,10 +60,10 @@ int main(void)
 	id a, b, c, d;
 }
 #endif
-@property (nonatomic,readwrite,retain) NSObject *a;
-@property (readwrite,retain) NSObject *b;
-@property (nonatomic,readwrite,copy) NSObject *c;
-@property (readwrite,copy) NSObject *d;
+@property (nonatomic,readwrite,retain) id a;
+@property (readwrite,retain) id b;
+@property (nonatomic,readwrite,copy) id c;
+@property (readwrite,copy) id d;
 @end
 @implementation B
 @synthesize a,b,c,d;
