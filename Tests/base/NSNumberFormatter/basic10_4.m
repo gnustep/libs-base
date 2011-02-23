@@ -34,11 +34,9 @@ int main()
 
     [NSNumberFormatter
       setDefaultFormatterBehavior: NSNumberFormatterBehavior10_0];
-    [NSNumberFormatter
-      setDefaultFormatterBehavior: 1234];
-    PASS(NSNumberFormatterBehavior10_0
-      == [NSNumberFormatter defaultFormatterBehavior],
-     "unknown behavior is ignored")
+    [NSNumberFormatter setDefaultFormatterBehavior: 1234];
+    PASS(1234 == [NSNumberFormatter defaultFormatterBehavior],
+     "unknown behavior is accepted")
 
     [NSNumberFormatter
       setDefaultFormatterBehavior: NSNumberFormatterBehavior10_4];
@@ -98,7 +96,7 @@ int main()
       [fmt setPositiveSuffix: @"c"];
       str = [fmt stringFromNumber: num];
       
-      PASS_EQUAL(str, @"R$1.235c", "prefix and suffix used properly")
+      PASS_EQUAL(str, @"+1.235c", "prefix and suffix used properly")
 
       num = [[[NSNumber alloc] initWithFloat: -1234.56] autorelease];
       str = [fmt stringFromNumber: num];
@@ -109,7 +107,7 @@ int main()
       [fmt setMaximumFractionDigits: 0];
       str = [fmt stringFromNumber: num];
       
-      PASS_EQUAL(str, @"-1235", "format string of length 1")
+      PASS_EQUAL(str, @"0-1235", "format string of length 1")
 
     END_SET("10.4 behaviors not supported\nThe ICU library was not provided when GNUstep-base was configured/built.")
 
