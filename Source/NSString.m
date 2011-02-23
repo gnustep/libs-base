@@ -4405,38 +4405,31 @@ static NSFileManager *fm = nil;
 	{
 	  BOOL	atEnd = (NSMaxRange(r) == l) ? YES : NO;
 
-	  r.location--;
-	  r.length++;
 	  if (r.location > root)
 	    {
-	      NSRange r2 = {root, r.location-root};
+	      NSRange r2;
 
+	      r.location--;
+	      r.length++;
+	      r2 = NSMakeRange(root, r.location-root);
 	      r = [s rangeOfCharacterFromSet: pathSeps()
 				     options: NSBackwardsSearch
 				       range: r2];
 	      if (r.length == 0)
 		{
-		  r = r2;
+		  r = r2;	// Location just after root
+		  r.length++;
 		}
 	      else
 		{
 		  r.length = NSMaxRange(r2) - r.location;
+	          r.location++;		// Location Just after last separator
 		}
-	      if (YES == atEnd)
-		{
-	          r.length += 3;	/* Add the `/..' */
-		}
-	      else
-		{
-	          r.length += 4;	/* Add the `/../' */
-		}
+	      r.length += 2;		// Add the `..' 
 	    }
-	  else
+	  if (NO == atEnd)
 	    {
-	      /* Don't remove the root itsself.
-	       */
-	      r.location++;
-	      r.length--;
+	      r.length++;		// Add the '/' after the '..'
 	    }
 	  [s deleteCharactersInRange: r];
 	  l -= r.length;
