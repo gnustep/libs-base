@@ -250,6 +250,14 @@ int main()
   PASS_EQUAL([@"/home/../nicola" stringByStandardizingPath], @"/nicola",
    "/home/../nicola stringByStandardizingPath == /nicola");
 
+  PASS_EQUAL([@"/here/and/there/../../nicola" stringByStandardizingPath],
+   @"/here/nicola",
+   "/here/and/there/../../nicola stringByStandardizingPath == /here/nicola");
+
+  PASS_EQUAL([@"/here/../../nicola" stringByStandardizingPath],
+   @"/nicola",
+   "/here/../../nicola stringByStandardizingPath == /nicola");
+
   PASS_EQUAL([@"home/../nicola" stringByStandardizingPath], @"home/../nicola",
    "home/../nicola stringByStandardizingPath == home/../nicola");
 
