@@ -35,6 +35,7 @@ int main()
 			   toTarget: [MyClass class]
 			 withObject: nil];
   [NSThread sleepForTimeInterval: 1.0];
+  NSLog(@"Done.");
   [arp release];
   return 0;
 }

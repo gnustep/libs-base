@@ -28,17 +28,22 @@ int main()
   [task setStandardError: ePipe]; 
   hdl = [ePipe fileHandleForReading];
   [task launch];
-  for (count = 0; count < 30 && [task isRunning]; count++)
+  for (count = 0; count < 10 && [task isRunning]; count++)
     {
       [NSThread sleepForTimeInterval: 1.0];
     }
-  //[task waitUntilExit];
   data = [hdl availableData];
   NSLog(@"Data was %*.*s", [data length], [data length], [data bytes]);
   string = [NSString alloc];
   string = [string initWithData: data encoding: NSISOLatin1StringEncoding];
   PASS([string rangeOfString: @"deadlock"].length > 0,
-    "NSLock deadlocked as expected");
+    "NSLock reported deadlock as expected");
+  if (NO == testPassed)
+    {
+      PASS(count == 10, "NSLock seems to have deadlocked as expected")
+     [task terminate];
+    }
+  [task waitUntilExit];
 
   command = [helpers stringByAppendingPathComponent: @"doubleNSConditionLock"];
   task = [[NSTask alloc] init];
@@ -47,17 +52,22 @@ int main()
   [task setStandardError: ePipe]; 
   hdl = [ePipe fileHandleForReading];
   [task launch];
-  for (count = 0; count < 30 && [task isRunning]; count++)
+  for (count = 0; count < 10 && [task isRunning]; count++)
     {
       [NSThread sleepForTimeInterval: 1.0];
     }
-  //[task waitUntilExit];
   data = [hdl availableData];
   NSLog(@"Data was %*.*s", [data length], [data length], [data bytes]);
   string = [NSString alloc];
   string = [string initWithData: data encoding: NSISOLatin1StringEncoding];
   PASS([string rangeOfString: @"deadlock"].length > 0,
-    "NSConditionLock deadlocked as expected");
+    "NSConditionLock reported deadlock as expected");
+  if (NO == testPassed)
+    {
+      PASS(count == 10, "NSConditionLock seems to have deadlocked as expected")
+      [task terminate];
+    }
+  [task waitUntilExit];
 
   ASSIGN(lock,[NSRecursiveLock new]);
   [lock lock];
