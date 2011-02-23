@@ -2460,7 +2460,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
  * the specified locale dictionary.<br />
  * Calls -descriptionWithCalendarFormat:locale: to do this.
  */
-- (NSString*) descriptionWithLocale: (NSDictionary *)locale
+- (NSString*) descriptionWithLocale: (id)locale
 {
   return [self descriptionWithCalendarFormat: _calendar_format locale: locale];
 }

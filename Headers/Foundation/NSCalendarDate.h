@@ -106,7 +106,7 @@ extern "C" {
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format;
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				     locale: (NSDictionary*)locale;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
+- (NSString*) descriptionWithLocale: (id)locale;
 
 // Getting and Setting Calendar Formats
 - (NSString*) calendarFormat;

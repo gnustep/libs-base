@@ -602,7 +602,7 @@ static NSDecimalNumber *one;
 		     isNegative: NO];
 }
 
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+- (NSString*) descriptionWithLocale: (id)locale
 {
   return NSDecimalString(&data, locale);
 }

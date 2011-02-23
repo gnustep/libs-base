@@ -29,6 +29,7 @@
 #define	EXPOSE_NSDateFormatter_IVARS	1
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSCalendar.h"
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSLocale.h"
@@ -458,11 +459,11 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   NSMutableDictionary *dict;
   NSLocale *locale;
   
-  dict = [[NSLocale componentsFromLocaleIdentifier: [internal->_locale localeIdentifier]]
-    mutableCopy];
+  dict = [[NSLocale componentsFromLocaleIdentifier:
+    [internal->_locale localeIdentifier]] mutableCopy];
   [dict setValue: calendar forKey: NSLocaleCalendar];
   locale = [[NSLocale alloc] initWithLocaleIdentifier:
-    [NSLocale localeIdentifierFromComponents: (NSDictionary *)dict]];
+    [NSLocale localeIdentifierFromComponents: dict]];
   [self setLocale: locale];
   /* Don't have to use udat_setCalendar here because -setLocale: will take care
      of setting the calendar when it resets the formatter. */

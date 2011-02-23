@@ -66,10 +66,10 @@ typedef struct {
     {
       NSString		*k;
 
-      e = [headers keyEnumerator];
+      e = [(NSDictionary*)headers keyEnumerator];
       while ((k = [e nextObject]) != nil)
 	{
-	  v = [headers objectForKey: k];
+	  v = [(NSDictionary*)headers objectForKey: k];
 	  [self _setValue: v forHTTPHeaderField: k];
 	}
     }
@@ -77,7 +77,7 @@ typedef struct {
     {
       GSMimeHeader	*h;
 
-      e = [headers objectEnumerator];
+      e = [(NSArray*)headers objectEnumerator];
       while ((h = [e nextObject]) != nil)
         {
 	  NSString	*n = [h namePreservingCase: YES];

@@ -89,7 +89,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				   timeZone: (NSTimeZone*)aTimeZone
 				     locale: (NSDictionary*)l;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
+- (NSString*) descriptionWithLocale: (id)locale;
 
 // Adding and getting intervals
 

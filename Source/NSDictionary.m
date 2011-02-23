@@ -1057,7 +1057,7 @@ compareIt(id o1, id o2, void* context)
  * Returns the result of invoking -descriptionWithLocale:indent: with
  * a zero indent.
  */
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+- (NSString*) descriptionWithLocale: (id)locale
 {
   return [self descriptionWithLocale: locale indent: 0];
 }
@@ -1073,7 +1073,7 @@ compareIt(id o1, id o2, void* context)
  * listed by key in ascending order.  If not, the order in which the
  * items are listed is undefined.
  */
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+- (NSString*) descriptionWithLocale: (id)locale
 			     indent: (NSUInteger)level
 {
   NSMutableString	*result = nil;

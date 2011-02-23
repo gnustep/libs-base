@@ -1,5 +1,29 @@
 2011-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source\NSCalendarDate.m:
+	* Source\NSArray.m:
+	* Source\NSDebug.m:
+	* Source\NSCalendar.m:
+	* Source\NSURLResponse.m:
+	* Source\NSObject.m:
+	* Source\NSDecimalNumber.m:
+	* Source\Additions\GSMime.m:
+	* Source\NSDateFormatter.m:
+	* Source\NSDate.m:
+	* Source\NSDictionary.m:
+	* Source\NSSet.m:
+	* Headers\Foundation\NSCalendarDate.h:
+	* Headers\Foundation\NSDecimalNumber.h:
+	* Headers\Foundation\NSDate.h:
+	* Headers\Foundation\NSArray.h:
+	* Headers\Foundation\NSDictionary.h:
+	* Headers\Foundation\NSSet.h:
+	Tweaks to avoid compiler warnings on mingw and to make the
+	-descriptionWithLocale: method consistently take an id argument
+	as it now does on OSX.
+
+2011-02-23  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSString.m: Fix bugs in upper and lower casing of constant
 	strings.
 	* Source/NSTask.m: Force check of termination status when we call
