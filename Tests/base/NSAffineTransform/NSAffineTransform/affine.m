@@ -1,6 +1,6 @@
 #include "Testing.h"
 #include <Foundation/NSAutoreleasePool.h>
-#include <AppKit/NSAffineTransform.h>
+#include <Foundation/NSAffineTransform.h>
 
 static BOOL
 is_equal_struct(NSAffineTransformStruct as, NSAffineTransformStruct bs)
