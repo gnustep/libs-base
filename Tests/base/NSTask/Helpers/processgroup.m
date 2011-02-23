@@ -1,6 +1,8 @@
 #include	<Foundation/Foundation.h>
 #if	!defined(__MINGW32__)
 #include	<sys/file.h>
+#include        <sys/fcntl.h>
+#include        <unistd.h>
 #endif
 
 /* Test that the process group has been changed (not the same as that of our
