@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
+#import "Testing.h"
 #if     defined(GNUSTEP_BASE_LIBRARY) && (GS_USE_LIBXML == 1)
 #import <GNUstepBase/GSXML.h>
-#import "Testing.h"
 #import "ObjectTesting.h"
 int main()
 {
