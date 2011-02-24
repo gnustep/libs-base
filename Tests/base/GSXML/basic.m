@@ -151,7 +151,9 @@ int main()
 #else
 int main(int argc,char **argv)
 {
-  unsupported("GSXML support unavailable");
+  START_SET("GSXML")
+    SKIP("GSXML support unavailable");
+  END_SET("GSXML")
   return 0;
 }
 #endif
