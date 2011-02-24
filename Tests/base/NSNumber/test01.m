@@ -32,6 +32,12 @@ int main()
   PASS([n compare: nan] == NSOrderedDescending, "2 is greater than NaN") 
   PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2") 
 
+  n = [NSNumber numberWithFloat: 0.0];
+  PASS([n compare: nan] == NO, "0.0 is not NaN")
+
+  n = [NSNumber numberWithFloat: -1.01];
+  PASS([n compare: nan] == NO, "-1.01 is not NaN")
+
   END_SET("not-a-number checks")
   return 0;
 }
