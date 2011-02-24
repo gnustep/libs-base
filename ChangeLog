@@ -1,3 +1,9 @@
+2011-02-24 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSUserDefaults.m
+	* Source/NSKeyValueObserving.m:
+	Fix typos.
+
 2011-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source\NSCalendarDate.m:

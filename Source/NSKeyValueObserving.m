@@ -554,7 +554,7 @@ replacementForClass(Class c)
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterRect:)];
-                  }                           
+                  }
                 else
                   {
                     imp = 0;
@@ -613,12 +613,12 @@ replacementForClass(Class c)
                     }
                   NSEndHashTableEnumeration(&dependentKeyEnum);
                }
-              NSEndMapTableEnumeration(&enumerator); 
+              NSEndMapTableEnumeration(&enumerator);
             }
 
           if (!found)
             {
-              NSDebugLLog(@"KVC", @"class %@ not KVC complient for %@",
+              NSDebugLLog(@"KVC", @"class %@ not KVC compliant for %@",
 		original, aKey);
               /*
               [NSException raise: NSInvalidArgumentException
@@ -959,7 +959,7 @@ replacementForClass(Class c)
   observations = [NSMutableArray new];
   return self;
 }
- 
+
 - (void) notifyForKey: (NSString *)aKey ofInstance: (id)instance prior: (BOOL)f
 {
   unsigned      count;
@@ -1180,7 +1180,7 @@ replacementForClass(Class c)
 }
 
 /*
- * removes the observer 
+ * removes the observer
  */
 - (void) removeObserver: (NSObject*)anObserver forKeyPath: (NSString*)aPath
 {
@@ -1327,7 +1327,7 @@ replacementForClass(Class c)
     }
   if (observedObjectForForwarding)
     {
-      [observedObjectForForwarding removeObserver: self forKeyPath: 
+      [observedObjectForForwarding removeObserver: self forKeyPath:
         keyForForwarding];
     }
   DESTROY(self);
@@ -1347,7 +1347,7 @@ replacementForClass(Class c)
                          change: (NSDictionary *)change
                         context: (void *)context
 {
-  if (anObject == observedObjectForUpdate) 
+  if (anObject == observedObjectForUpdate)
     {
       [self keyPathChanged: nil];
     }
@@ -1381,8 +1381,8 @@ replacementForClass(Class c)
     {
       NSMutableDictionary *change;
 
-      change = [NSMutableDictionary dictionaryWithObject: 
-                                        [NSNumber numberWithInt: 1] 
+      change = [NSMutableDictionary dictionaryWithObject:
+                                        [NSNumber numberWithInt: 1]
                                     forKey:  NSKeyValueChangeKindKey];
 
       if (observedObjectForForwarding != nil)
@@ -1391,7 +1391,7 @@ replacementForClass(Class c)
 
           oldValue
             = [observedObjectForForwarding valueForKey: keyForForwarding];
-          [observedObjectForForwarding removeObserver: self forKeyPath: 
+          [observedObjectForForwarding removeObserver: self forKeyPath:
                                            keyForForwarding];
           if (oldValue)
             {
@@ -1663,7 +1663,7 @@ replacementForClass(Class c)
       if (pathInfo->recursion++ == 0)
         {
           id    old = [pathInfo->change objectForKey: NSKeyValueChangeNewKey];
-          
+
           if (old != nil)
             {
               /* We have set a value for this key already, so the value
