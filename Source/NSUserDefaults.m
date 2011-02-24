@@ -311,7 +311,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       if (sharedDefaults != nil)
         {
           NSDictionary	*regDefs;
-    
+
           /* To ensure that we don't try to synchronise the old defaults to disk
            * after creating the new ones, remove as housekeeping notification
            * observer.
@@ -323,7 +323,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
            */
           [sharedDefaults synchronize];
           DESTROY(sharedDefaults->_changedDomains);
-    
+
           regDefs = RETAIN([sharedDefaults->_tempDomains
 	    objectForKey: NSRegistrationDomain]);
           setSharedDefaults = NO;
@@ -491,7 +491,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
    * We need to lock and check again before CREATING sharedDefaults if it doesn't exist,
    * so that two threads can't create it at once (or call resetStandardUserDefaults at
    * the same time).
-   * By not locking here, we avoid a deadlock that can occur between classLock and _lock. */  
+   * By not locking here, we avoid a deadlock that can occur between classLock and _lock. */
   if (setSharedDefaults == YES)
     {
       IF_NO_GC([sharedDefaults retain];)
@@ -520,7 +520,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       {
         NSString	*path = GSDefaultsRootForUser(NSUserName());
         NSRange	r = [path rangeOfString: @":REGISTRY:"];
-    
+
         if (r.length > 0)
           {
 	    sharedDefaults = [[NSUserDefaultsWin32 alloc] init];
@@ -580,22 +580,22 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
        *
        * We iterate over <language>, and for each <language> we iterate over GNUSTEP_LIBRARY.
        */
-  
+
       {
         /* These variables are reused for all languages so we set them up
          * once here and then reuse them.
          */
         NSFileManager *fm = [NSFileManager defaultManager];
-        NSString *tail = [[[[[@"Libraries" 
+        NSString *tail = [[[[[@"Libraries"
 	  stringByAppendingPathComponent: @"gnustep-base"]
 	  stringByAppendingPathComponent: @"Versions"]
-	  stringByAppendingPathComponent: 
+	  stringByAppendingPathComponent:
 	  OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION)]
 	  stringByAppendingPathComponent: @"Resources"]
 	  stringByAppendingPathComponent: @"Languages"];
         NSArray *paths = NSSearchPathForDirectoriesInDomains
 	  (NSLibraryDirectory, NSAllDomainsMask, YES);
-        
+
         added_lang = NO;
         added_locale = NO;
         enumerator = [uL objectEnumerator];
@@ -616,7 +616,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 		    break;
 	          }
 	      }
-	    
+
 	    if (path != nil)
 	      {
 	        dict = [NSDictionary dictionaryWithContentsOfFile: path];
@@ -637,7 +637,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 	         * C library.
 	         */
 	        NSString	*locale = nil;
-	        
+
 #ifdef HAVE_LOCALE_H
 #ifdef LC_MESSAGES
 	        locale = GSSetLocale(LC_MESSAGES, nil);
@@ -659,13 +659,13 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 		         * later on.
 		         */
 		        added_locale = YES;
-		        
+
 		        dict = GSDomainFromDefaultLocale ();
 		        if (dict != nil)
 		          {
 			    [sharedDefaults setVolatileDomain: dict
 						      forName: lang];
-			
+
 			    /* We do not set added_lang to YES here
 			     * because we want the basic hardcoded defaults
 			     * to be used in that case.
@@ -676,7 +676,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
 	      }
           }
       }
-    
+
       if (added_lang == NO)
         {
           /* No language information found ... probably because the base
@@ -981,7 +981,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
     {
       desc = [NSMutableString stringWithFormat: @"%@", [super description]];
       [desc appendFormat: @" SearchList: %@", _searchList];
-      [desc appendFormat: @" Persistant: %@", _persDomains];
+      [desc appendFormat: @" Persistent: %@", _persDomains];
       [desc appendFormat: @" Temporary: %@", _tempDomains];
       [_lock unlock];
     }
@@ -1110,7 +1110,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       while ((dN = (*nImp)(enumerator, nextObjectSel)) != nil)
         {
           NSDictionary	*dict;
-    
+
           dict = (*pImp)(_persDomains, objectForKeySel, dN);
           if (dict != nil && (object = [dict objectForKey: defaultName]))
 	    break;
@@ -1662,7 +1662,7 @@ NSLog(@"Creating empty user defaults database");
   NS_HANDLER
     {
       NSLog(@"Warning ... someone broke our lock (%@) ... and may have"
-        @" interfered with updating defaults data in file.", 
+        @" interfered with updating defaults data in file.",
         [_defaultsDatabase stringByAppendingPathExtension: @"lck"]);
     }
   NS_ENDHANDLER
@@ -1714,7 +1714,7 @@ NSLog(@"Creating empty user defaults database");
        *	If we haven't changed anything, we only need to synchronise if
        *	the on-disk database has been changed by someone else.
        */
-   
+
       if (_changedDomains == nil)
         {
           if ([self wantToReadDefaultsSince: _lastSync] == NO)
@@ -1729,15 +1729,15 @@ NSLog(@"Creating empty user defaults database");
         {
           invalidatedLanguages = YES;
         }
-      
+
       if ([self lockDefaultsFile: &wasLocked] == NO)
         {
           [_lock unlock];
           NS_VALRETURN(NO);
         }
-  
+
       newDict = [self readDefaults];
-  
+
       if (newDict == nil)
         {
           if (wasLocked == NO)
@@ -2084,7 +2084,7 @@ NSLog(@"Creating empty user defaults database");
 		    {
 		      plist_val = val;
 		    }
-    
+
 	          [argDict setObject: plist_val  forKey: key];
 	          if (old != nil)
 		    {
