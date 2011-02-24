@@ -31,7 +31,7 @@ static void strCompare (char *s0, char *s1, NSComparisonResult ci,
   us0 = nil; 
   us1 = nil; 
   
-  TEST_EXCEPTION(cs0 = [NSString stringWithCString:s0];
+  PASS_RUNS(cs0 = [NSString stringWithCString:s0];
   		 l = [cs0 length];
 		 d = [NSMutableData dataWithLength:(l * 2)];
 		 b = [d mutableBytes];
@@ -44,7 +44,6 @@ static void strCompare (char *s0, char *s1, NSComparisonResult ci,
 		 b = [d mutableBytes];
 		 [cs1 getCharacters:b];
 		 us1 = [NSString stringWithCharacters:b length:l];,
-  		 nil,NO,
                "create strings for compare is ok");
   opts = NSCaseInsensitiveSearch;
   type =  "case insensitive comparison for";
@@ -173,7 +172,7 @@ static void strRange(char *s0, char *s1, unsigned int opts,
   us0 = nil; 
   us1 = nil; 
   
-  TEST_EXCEPTION(cs0 = [NSString stringWithCString:s0];
+  PASS_RUNS(cs0 = [NSString stringWithCString:s0];
                  l = [cs0 length];
                  d = [NSMutableData dataWithLength:(l * 2)];
                  b = [d mutableBytes];
@@ -186,7 +185,7 @@ static void strRange(char *s0, char *s1, unsigned int opts,
                  b = [d mutableBytes];
                  [cs1 getCharacters:b];
                  us1 = [NSString stringWithCharacters:b length:l];,
-                 nil,NO, "create strings for range is ok");
+                 "create strings for range is ok");
   
   res = [cs0 rangeOfString:cs1 options:opts range:range];
   PASS(rangesEqual(res,want), "CCString range for '%s' and '%s' is ok",s0,s1);
@@ -213,7 +212,7 @@ static void strRangeFromSet(char *s, NSCharacterSet *c, unsigned int o, NSRange 
   cs1 = nil; 
   us0 = nil; 
   us1 = nil; 
-  TEST_EXCEPTION(cs0 = [NSString stringWithCString:s];
+  PASS_RUNS(cs0 = [NSString stringWithCString:s];
                  l = [cs0 length];
                  d = [NSMutableData dataWithLength:(l * 2)];
                  b = [d mutableBytes];
@@ -226,7 +225,7 @@ static void strRangeFromSet(char *s, NSCharacterSet *c, unsigned int o, NSRange 
                  b = [d mutableBytes];
                  [cs1 getCharacters:b];
                  us1 = [NSMutableString stringWithCharacters:b length:l];,
-                 nil,NO, "create strings for range");
+                 "create strings for range");
    
    res = [cs0 rangeOfCharacterFromSet:c options:o range:range];
    PASS(rangesEqual(res,want), "CString range for '%s' is ok",s);
@@ -256,23 +255,23 @@ int main()
 { 
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   
-  TEST_EXCEPTION([NSString stringWithUTF8String: 0],
-    NSInvalidArgumentException, YES, 
+  PASS_EXCEPTION([NSString stringWithUTF8String: 0],
+    NSInvalidArgumentException,
     "stringWithUTF8String raises for NULL");
 
-  TEST_EXCEPTION([NSString stringWithCString: 0
+  PASS_EXCEPTION([NSString stringWithCString: 0
     encoding: NSASCIIStringEncoding],
-    NSInvalidArgumentException, YES, 
+    NSInvalidArgumentException,
     "initWithCString raises for NULL");
 
-  TEST_EXCEPTION([@"Hello" substringWithRange:NSMakeRange(6,4)];,
-    NSRangeException, YES, 
+  PASS_EXCEPTION([@"Hello" substringWithRange:NSMakeRange(6,4)];,
+    NSRangeException,
     "NSString extracting substring with range beyond end of string");
   
-  TEST_EXCEPTION([@"Hello" compare: @"Hello" 
+  PASS_EXCEPTION([@"Hello" compare: @"Hello" 
                           options:NSLiteralSearch 
 			    range:NSMakeRange(4,3)];,
-		 NSRangeException, YES, 
+		 NSRangeException,
 		 "NSString comparison with range beyond end of string");
 
   strCompare("hello", "hello", NSOrderedSame, NSOrderedSame, NSOrderedSame,

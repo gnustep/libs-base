@@ -159,8 +159,8 @@ int main()
 
   // Check that raising exception in -main causes operation tracking to fail.
   obj = [OpRaise new];
-  TEST_EXCEPTION([obj start];,
-  		 NSGenericException, YES, 
+  PASS_EXCEPTION([obj start];,
+  		 NSGenericException,
 		 "NSOperation exceptions propogate from main");
   PASS(([obj isFinished] == NO), "operation failed to finish");
   PASS(([obj ran] == YES), "operation ran");

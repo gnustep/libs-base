@@ -41,14 +41,14 @@ int main()
   [data2 release];
 
 
-  TEST_EXCEPTION(val1 = [NSString stringWithCString:"Archiver.dat"];
+  PASS_RUNS(val1 = [NSString stringWithCString:"Archiver.dat"];
 		 val2 = [NSString stringWithCString:"A Goodbye"];
 		 val3 = [NSString stringWithCString:"Testing all strings"];
 		 val4 = [NSNumber numberWithUnsignedInt: 100];
 		 vals1 = [[[NSArray arrayWithObject:val1] 
 			    arrayByAddingObject:val2] 
 			   arrayByAddingObject: val4];		 
-		 vals2 = [vals1 arrayByAddingObject: val2];, nil, NO, 
+		 vals2 = [vals1 arrayByAddingObject: val2];,
 		 "We can build basic strings and arrays for tests");
   
   PASS([NSKeyedArchiver archiveRootObject:vals2 toFile:val1],

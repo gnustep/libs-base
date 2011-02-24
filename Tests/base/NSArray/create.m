@@ -24,8 +24,8 @@ int main()
   obj = [NSArray array];
   PASS((obj != nil && [obj isKindOfClass:[NSArray class]] && [obj count] == 0),
        "+array creates an empty array");
-  TEST_EXCEPTION([NSArray arrayWithObject:nil];, @"NSInvalidArgumentException",
-                 YES, "+arrayWithObject with nil argument throws exception");
+  PASS_EXCEPTION([NSArray arrayWithObject:nil];, @"NSInvalidArgumentException",
+    "+arrayWithObject with nil argument throws exception");
  
   obj = [NSArray arrayWithObject:val1];
   PASS(obj != nil && [obj isKindOfClass:[NSArray class]] && [obj count] == 1,

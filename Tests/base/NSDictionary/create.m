@@ -35,12 +35,12 @@ int main()
        [obj count] == 0,
        "+dictionary creates an empty dictionary");
   
-  TEST_EXCEPTION([NSDictionary dictionaryWithObject:val1 forKey:nil];,
-                 NSInvalidArgumentException,YES,
+  PASS_EXCEPTION([NSDictionary dictionaryWithObject:val1 forKey:nil];,
+                 NSInvalidArgumentException,
 		  "+dictionaryWithObject:forKey: with nil key");
   
-  TEST_EXCEPTION([NSDictionary dictionaryWithObject:nil forKey:key1];,
-                 NSInvalidArgumentException,YES,
+  PASS_EXCEPTION([NSDictionary dictionaryWithObject:nil forKey:key1];,
+                 NSInvalidArgumentException,
 		  "+dictionaryWithObject:forKey: with nil value");
 
   obj = [NSDictionary dictionaryWithObject:val1 forKey:key1];
@@ -55,8 +55,8 @@ int main()
        [obj count] == 2, 
        "+dictionaryWithObjects:forKeys: builds a dictionary");
   
-  TEST_EXCEPTION([NSDictionary dictionaryWithObjects:vals1 forKeys:keys2];,
-                 NSInvalidArgumentException, YES,
+  PASS_EXCEPTION([NSDictionary dictionaryWithObjects:vals1 forKeys:keys2];,
+                 NSInvalidArgumentException,
 		 "+dictionaryWithObjects:forKeys: with arrays of different sizes");
   obj = [NSDictionary dictionaryWithObjects:vals2 forKeys:keys2];
   PASS(obj != nil &&

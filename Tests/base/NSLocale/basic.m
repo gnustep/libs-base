@@ -10,14 +10,18 @@
 
 int main()
 {  
-  START_SET(NSLOCALE_SUPPORTED)
-  id testObj = [NSLocale currentLocale];
+  START_SET("NSLocale")
+  id testObj;
 
+  if (!NSLOCALE_SUPPORTED)
+    SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
+
+  testObj = [NSLocale currentLocale];
   test_NSObject(@"NSLocale", [NSArray arrayWithObject: testObj]);
   test_keyed_NSCoding([NSArray arrayWithObject: testObj]);
   test_NSCopying(@"NSLocale", @"NSLocale",
     [NSArray arrayWithObject: testObj], NO, NO);
   
-  END_SET("NSLocale not supported.\nThe ICU library was not provided when GNUstep-base was configured/built.")
+  END_SET("NSLocale")
   return 0;
 }

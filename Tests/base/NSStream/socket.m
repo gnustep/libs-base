@@ -140,36 +140,38 @@ int main()
   [defaultOutput setDelegate: nil];
 #endif
 
-  START_SET(SSL_SUPPORTED)
-  done = NO;
-  byteCount = 0;
-  defaultInput = nil;
-  defaultOutput = nil;
-  li = [[Listener new] autorelease];
-  [NSStream getStreamsToHost: host port: 443
-    inputStream: &defaultInput outputStream: &defaultOutput];
+  START_SET("NSStream SSL")
+    if (!SSL_SUPPORTED)
+      SKIP("NSStream SSL functions not supported\nThe GNU TLS library was not provided when GNUstep-base was configured/built.")
+    done = NO;
+    byteCount = 0;
+    defaultInput = nil;
+    defaultOutput = nil;
+    li = [[Listener new] autorelease];
+    [NSStream getStreamsToHost: host port: 443
+      inputStream: &defaultInput outputStream: &defaultOutput];
 
-  [defaultInput setDelegate: li];
-  [defaultOutput setDelegate: li];
-  [defaultInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
-  [defaultOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
-  [defaultInput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
-                     forKey: NSStreamSocketSecurityLevelKey];
-  [defaultOutput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
-                      forKey: NSStreamSocketSecurityLevelKey];
-  [defaultInput open];
-  [defaultOutput open];
+    [defaultInput setDelegate: li];
+    [defaultOutput setDelegate: li];
+    [defaultInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+    [defaultOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+    [defaultInput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+		       forKey: NSStreamSocketSecurityLevelKey];
+    [defaultOutput setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
+			forKey: NSStreamSocketSecurityLevelKey];
+    [defaultInput open];
+    [defaultOutput open];
 
-  d = [NSDate dateWithTimeIntervalSinceNow: 30];
-  while (done == NO && [d timeIntervalSinceNow] > 0.0)
-    {
-      [rl runMode: NSDefaultRunLoopMode beforeDate: d];
-    }
+    d = [NSDate dateWithTimeIntervalSinceNow: 30];
+    while (done == NO && [d timeIntervalSinceNow] > 0.0)
+      {
+	[rl runMode: NSDefaultRunLoopMode beforeDate: d];
+      }
 
-  PASS(byteCount>0, "read www.google.com https");
-  [defaultInput setDelegate: nil];
-  [defaultOutput setDelegate: nil];
-  END_SET("NSStream SSL functions not supported\nThe GNU TLS library was not provided when GNUstep-base was configured/built.")
+    PASS(byteCount>0, "read www.google.com https");
+    [defaultInput setDelegate: nil];
+    [defaultOutput setDelegate: nil];
+  END_SET("NSStream SSL")
 
   [arp release];
   return 0;

@@ -95,10 +95,8 @@ int main()
     isKindOfClass: [NSMutableString class]],
     "initWithCharacters:length: creates mutable string for unicode");
 
-  TEST_EXCEPTION([[NSMutableString stringWithString: @"foo"]
+  PASS_RUNS([[NSMutableString stringWithString: @"foo"]
 		  			appendString: @"bar"];,
-		nil,
-		NO,
 		"can append to string from NSMutableString +stringWithString:");
 
   testObj = [@"hello" mutableCopy];

@@ -21,8 +21,8 @@ int main()
   TEST_FOR_CLASS(@"NSURLHandle", [NSURLHandle alloc],
     "NSURLHandle +alloc returns an NSURLHandle");
 
-  TEST_EXCEPTION([DummyHandle cachedHandleForURL: httpURL];,
-    NSInvalidArgumentException, YES, 
+  PASS_EXCEPTION([DummyHandle cachedHandleForURL: httpURL];,
+    NSInvalidArgumentException,
     "NSURLHandle subclass must implement +cachedHandleForURL:");
 
   cls = [NSURLHandle URLHandleClassForURL: httpURL];

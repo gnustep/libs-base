@@ -25,8 +25,8 @@ int main()
   
   [obj addObject: (void*)@"hello"];
   PASS([obj count] == 1, "-addObject: increments count");
-  TEST_EXCEPTION([obj addObject: nil];,
-    NSInvalidArgumentException, YES, "-addObject: raises with nil");
+  PASS_EXCEPTION([obj addObject: nil];,
+    NSInvalidArgumentException, "-addObject: raises with nil");
 
   [arp release]; arp = nil;
   return 0;

@@ -3,24 +3,22 @@
 
 int main(void)
 {
+  START_SET("String throwing")
 #if BASE_NATIVE_OBJC_EXCEPTIONS == 1
-	id caught = nil;
-	id thrown = @"thrown";
-	@try
-	{
-		@throw thrown;
-	}
-	@catch (id str)
-	{
-		caught = str;
-	}
-	[NSAutoreleasePool new];
-	START_SET(YES)
-		PASS((caught == thrown), "Throwing an NSConstantString instance before the class is initialised");
-	END_SET("String throwing")
+    id caught = nil;
+    id thrown = @"thrown";
+    @try
+      {
+	@throw thrown;
+      }
+    @catch (id str)
+      {
+	caught = str;
+      }
+    PASS((caught == thrown), "Throwing an NSConstantString instance before the class is initialised");
 #else
-	[NSAutoreleasePool new];
-	unsupported("Native exceptions");
+    SKIP("Native exceptions not supported")
 #endif
-	return 0;
+  END_SET("String throwing")
+  return 0;
 }

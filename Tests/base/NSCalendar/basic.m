@@ -10,7 +10,9 @@
 
 int main()
 {  
-  START_SET(NSCALENDAR_SUPPORTED)
+  START_SET("NSCalendar basic")
+  if (!NSCALENDAR_SUPPORTED)
+    SKIP("NSCalendar not supported\nThe ICU library was not available when GNUstep-base was built")
   id testObj = [NSCalendar currentCalendar];
 
   test_NSObject(@"NSCalendar", [NSArray arrayWithObject: testObj]);

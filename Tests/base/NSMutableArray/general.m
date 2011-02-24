@@ -79,7 +79,7 @@ int main()
 	 "-subarrayWithRange: seems ok");
     r = NSMakeRange(1,2);
     
-    TEST_EXCEPTION([arr subarrayWithRange:r];,@"NSRangeException",YES,"-subarrayWithRange with invalid range");
+    PASS_EXCEPTION([arr subarrayWithRange:r];,@"NSRangeException","-subarrayWithRange with invalid range");
   }
   
   {

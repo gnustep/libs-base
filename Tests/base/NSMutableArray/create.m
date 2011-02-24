@@ -29,8 +29,8 @@ int main()
        [obj count] == 0,
        "+array creates an empty mutable array");
   
-  TEST_EXCEPTION([NSMutableArray arrayWithObject:nil];,
-                 NSInvalidArgumentException,YES,
+  PASS_EXCEPTION([NSMutableArray arrayWithObject:nil];,
+                 NSInvalidArgumentException,
 		 "+arrayWithObject: with nil object raises an exception");
   
   obj = [NSMutableArray arrayWithObject:val1];
