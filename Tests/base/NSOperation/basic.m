@@ -73,8 +73,8 @@ int main()
   PASS(([obj2 isFinished] == YES),
     "a cancelled object can finish");
 
-  TEST_EXCEPTION([obj2 start];,
-  		 NSInvalidArgumentException, YES, 
+  PASS_EXCEPTION([obj2 start];,
+  		 NSInvalidArgumentException,
 		 "NSOperation cannot be started twice");
 
   PASS(([obj2 waitUntilFinished], YES), "wait returns at once");
@@ -108,8 +108,8 @@ int main()
   PASS(([obj1 maxConcurrentOperationCount] == 1000000), "max concurrent set to a million");
   [obj1 setMaxConcurrentOperationCount: NSOperationQueueDefaultMaxConcurrentOperationCount];
   PASS(([obj1 maxConcurrentOperationCount] == NSOperationQueueDefaultMaxConcurrentOperationCount), "max concurrent set to default");
-  TEST_EXCEPTION([obj1 setMaxConcurrentOperationCount: -1000000];,
-  		 NSInvalidArgumentException, YES, 
+  PASS_EXCEPTION([obj1 setMaxConcurrentOperationCount: -1000000];,
+  		 NSInvalidArgumentException,
 		 "NSOperationQueue cannot be given neagative count");
 
   obj2 = [NSOperation new];

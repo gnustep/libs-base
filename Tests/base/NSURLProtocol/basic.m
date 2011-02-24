@@ -15,7 +15,7 @@ int main()
     "NSURLProtocol +alloc returns an NSURLProtocol");
 
   mutable = [[NSMutableURLRequest requestWithURL: httpURL] retain];
-  TEST_EXCEPTION([NSURLProtocol canInitWithRequest: mutable], nil, YES,
+  PASS_EXCEPTION([NSURLProtocol canInitWithRequest: mutable], nil,
     "NSURLProtocol +canInitWithRequest throws an exeception (subclasses should be used)");
 
   canon = [NSURLProtocol canonicalRequestForRequest: mutable];

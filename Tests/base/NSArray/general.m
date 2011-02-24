@@ -69,7 +69,7 @@ int main()
          [a objectAtIndex:0] == val1 && [a objectAtIndex:1] == val2,
 	 "-subarrayWithRange: seems ok");
     r = NSMakeRange(1,2);
-    TEST_EXCEPTION([arr subarrayWithRange:r];,@"NSRangeException",YES,"-subarrayWithRange with invalid range");
+    PASS_EXCEPTION([arr subarrayWithRange:r];,@"NSRangeException","-subarrayWithRange with invalid range");
   }
   
   {

@@ -34,8 +34,8 @@ int main()
     && ![s isKindOfClass: [NSMutableString class]],
     "initWithCharacters:length: creates mutable string for unicode");
 
-  TEST_EXCEPTION([[NSString alloc] initWithString: nil];,
-  		 NSInvalidArgumentException, YES, 
+  PASS_EXCEPTION([[NSString alloc] initWithString: nil];,
+  		 NSInvalidArgumentException,
 		 "NSString -initWithString: does not allow nil argument");
 
   PASS([@"he" getCString: buf maxLength: 2 encoding: NSASCIIStringEncoding]==NO,

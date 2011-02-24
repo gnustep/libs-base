@@ -30,7 +30,7 @@
 void testRootClass(const char *clsName)
 {
   testHopeful = YES;
-  START_SET(YES)
+  START_SET("testRootClass")
     Class cls = objc_getClass(clsName);
     Class super = class_getSuperclass(cls);
     Class meta = object_getClass(cls);
@@ -51,7 +51,7 @@ void testRootClass(const char *clsName)
 void testNonRootClass(const char *clsName)
 {
   testHopeful = YES;
-  START_SET(YES)
+  START_SET("testNonRootClass")
     Class cls = objc_getClass(clsName);
     Class super = class_getSuperclass(cls);
     Class meta = object_getClass(cls);

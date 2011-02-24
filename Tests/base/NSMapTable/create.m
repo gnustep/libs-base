@@ -27,8 +27,8 @@ int main()
   PASS([obj count] == 1, "-setObject:forKey increments count");
   [obj setObject: nil forKey: @"Key2"];
   PASS([obj count] == 2, "-setObject:forKey: works with nil value");
-  TEST_EXCEPTION([obj setObject: val1 forKey: nil];,
-    NSInvalidArgumentException, YES, "-setObject:forKey: raises with nil key");
+  PASS_EXCEPTION([obj setObject: val1 forKey: nil];,
+    NSInvalidArgumentException, "-setObject:forKey: raises with nil key");
 
   [arp release]; arp = nil;
   return 0;

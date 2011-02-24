@@ -51,7 +51,7 @@ int main()
   [task terminate];
 
 
-  TEST_EXCEPTION([task launch];, @"NSInvalidArgumentException", YES,
+  PASS_EXCEPTION([task launch];, @"NSInvalidArgumentException",
     "raised exception on failed launch") 
   [outPipe release];
   [task release];

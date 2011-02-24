@@ -16,8 +16,8 @@ int main()
   obj = [obj initForWritingWithMutableData: data1];
   PASS((obj != nil && [obj isKindOfClass:[NSKeyedArchiver class]]), "-initForWritingWithMutableData seems ok");
 
-  TEST_EXCEPTION([[NSUnarchiver alloc] initForReadingWithData:nil];, 
-                 @"NSInvalidArgumentException", YES,
+  PASS_EXCEPTION([[NSUnarchiver alloc] initForReadingWithData:nil];, 
+                 @"NSInvalidArgumentException",
 		 "Creating an NSUnarchiver with nil data throws an exception");
   
   [arp release]; arp = nil;

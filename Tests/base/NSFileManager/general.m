@@ -126,8 +126,8 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
   PASS(![mgr isExecutableFileAtPath: @"NSFMCopy"],
        "NSFileManager isExecutableFileAtPath: works");
   
-  TEST_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
-                 NSInvalidArgumentException, YES,
+  PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
+                 NSInvalidArgumentException,
 		 "NSFileManager -removeFileAtPath: @\".\" throws exception");
 
   PASS([mgr createDirectoryAtPath: @"subdir" attributes: nil],
@@ -136,12 +136,12 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
   PASS([mgr changeCurrentDirectoryPath: @"subdir"], 
        "NSFileManager can move into subdir");
   
-  TEST_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
-                 NSInvalidArgumentException, YES,
+  PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
+                 NSInvalidArgumentException,
 		 "NSFileManager -removeFileAtPath: @\".\" throws exception");
        
-  TEST_EXCEPTION([mgr removeFileAtPath: @".." handler: nil];, 
-                 NSInvalidArgumentException, YES,
+  PASS_EXCEPTION([mgr removeFileAtPath: @".." handler: nil];, 
+                 NSInvalidArgumentException,
 		 "NSFileManager -removeFileAtPath: @\"..\" throws exception");
 /* clean up */ 
   {

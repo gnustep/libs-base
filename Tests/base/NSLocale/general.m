@@ -11,12 +11,15 @@
 
 int main(void)
 {
-  START_SET(NSLOCALE_SUPPORTED)
+  START_SET("NSLocale")
 
   NSLocale *locale;
   id            o;
   unichar       u;
   
+  if (!NSLOCALE_SUPPORTED)
+    SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
+
   // These tests don't really work all that well.  I need to come up with
   // something better.  Most of the ones that fail are because nil is returned.
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"es_ES_PREEURO"];
@@ -124,7 +127,7 @@ int main(void)
     @"americanenglish",
     "Canonical language identifier for 'AmericanEnglish is americanenglish");
   
-  END_SET("NSLocale not supported.\nThe ICU library was not provided when GNUstep-base was configured/built.")
+  END_SET("NSLocale")
 
   return 0;
 }

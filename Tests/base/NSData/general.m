@@ -42,22 +42,22 @@ int main()
   [data2 getBytes:hold range:NSMakeRange(2,6)]; 
   PASS(strcmp(hold,"st str") == 0, "-getBytes:range works");
   
-  TEST_EXCEPTION([data2 getBytes:hold 
+  PASS_EXCEPTION([data2 getBytes:hold 
                            range:NSMakeRange(strlen(str2)*sizeof(void*),1)];,
-                 NSRangeException, YES, 
+                 NSRangeException,
 		 "getBytes:range: with bad location");
   
-  TEST_EXCEPTION([data2 getBytes:hold 
+  PASS_EXCEPTION([data2 getBytes:hold 
                            range:NSMakeRange(1,(strlen(str2)*sizeof(void*)))];,
-                 NSRangeException, YES, 
+                 NSRangeException,
 		 "getBytes:range: with bad length");
   
-  TEST_EXCEPTION([data2 subdataWithRange:NSMakeRange((strlen(str2)*sizeof(void*)),1)];,
-                 NSRangeException, YES, 
+  PASS_EXCEPTION([data2 subdataWithRange:NSMakeRange((strlen(str2)*sizeof(void*)),1)];,
+                 NSRangeException,
 		 "-subdataWithRange: with bad location");
   
-  TEST_EXCEPTION([data2 subdataWithRange:NSMakeRange(1,(strlen(str2)*sizeof(void*)))];,
-                 NSRangeException, YES, 
+  PASS_EXCEPTION([data2 subdataWithRange:NSMakeRange(1,(strlen(str2)*sizeof(void*)))];,
+                 NSRangeException,
 		 "-subdataWithRange: with bad length");
   
   data2 = [NSData dataWithBytesNoCopy:str1 

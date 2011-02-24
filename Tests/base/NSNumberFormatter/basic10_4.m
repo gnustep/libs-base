@@ -14,7 +14,7 @@ int main()
   NSNumber *num;
   NSString *str;
 
-  START_SET(YES)
+  START_SET("NSNumberFormatter")
 
     PASS(NSNumberFormatterBehavior10_4
       == [NSNumberFormatter defaultFormatterBehavior],
@@ -63,7 +63,9 @@ int main()
     PASS_EQUAL(num,  [NSNumber numberWithFloat: 0.0],
       "getObjectValue inited with 0.00")
 
-    START_SET(NSLOCALE_SUPPORTED)
+    START_SET("NSLocale")
+      if (!NSLOCALE_SUPPORTED)
+        SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
 
       num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
 
@@ -111,9 +113,9 @@ int main()
       
       PASS_EQUAL(str, @"0-1235", "format string of length 1")
 
-    END_SET("10.4 behaviors not supported\nThe ICU library was not provided when GNUstep-base was configured/built.")
+    END_SET("NSLocale")
 
-  END_SET("NSNumberFormatter 10.4")
+  END_SET("NSNumberFormatter")
 
   return 0;
 }

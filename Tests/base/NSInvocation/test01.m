@@ -77,8 +77,8 @@ int main()
   sig = [tar methodSignatureForSelector:@selector(returnIdButThrowException)];
   inv = [NSInvocation invocationWithMethodSignature: sig];
   [inv setSelector:@selector(returnIdButThrowException)];
-  TEST_EXCEPTION([inv invokeWithTarget:tar];,@"AnException",YES,"Exception in invocation #1");
-  TEST_EXCEPTION([inv getReturnValue:&ret];,NSGenericException,YES,"Exception getting return value #1");
+  PASS_EXCEPTION([inv invokeWithTarget:tar];,@"AnException","Exception in invocation #1");
+  PASS_EXCEPTION([inv getReturnValue:&ret];,NSGenericException,"Exception getting return value #1");
  
   /* same as above but with a successful call first */
   sig = [tar methodSignatureForSelector:@selector(returnIdButThrowException)];
@@ -89,8 +89,8 @@ int main()
   [inv getReturnValue:&ret];
   
   [inv setSelector:@selector(returnIdButThrowException)];
-  TEST_EXCEPTION([inv invokeWithTarget:tar];,@"AnException",YES,"Exception in invocation #2");
-  TEST_EXCEPTION([inv getReturnValue:&ret];,NSGenericException,YES,"Exception getting return value #2");
+  PASS_EXCEPTION([inv invokeWithTarget:tar];,@"AnException","Exception in invocation #2");
+  PASS_EXCEPTION([inv getReturnValue:&ret];,NSGenericException,"Exception getting return value #2");
     
   
   [arp release]; arp = nil;

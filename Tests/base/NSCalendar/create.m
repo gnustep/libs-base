@@ -11,8 +11,11 @@
 
 int main(void)
 {
-  START_SET(NSCALENDAR_SUPPORTED)
+  START_SET("NSCalendar create")
   NSCalendar *cal;
+
+  if (!NSCALENDAR_SUPPORTED)
+    SKIP("NSCalendar not supported\nThe ICU library was not available when GNUstep-base was built")
   
   cal = [NSCalendar currentCalendar];
   PASS (cal != nil, "+currentCalendar returns non-nil");

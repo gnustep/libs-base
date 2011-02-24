@@ -22,7 +22,9 @@ int main(void)
   unsigned int components;
   NSInteger year;
   
-  START_SET(NSLOCALE_SUPPORTED)
+  START_SET("NSDateFormatter")
+  if (!NSLOCALE_SUPPORTED)
+    SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
 
     [NSTimeZone setDefaultTimeZone: [NSTimeZone timeZoneWithName: @"GMT"]];
     
@@ -73,7 +75,7 @@ int main(void)
     PASS_EQUAL(str, @"dd MMM", "Convert date format as Cocoa.");
     RELEASE(locale);
   
-  END_SET("NSDateFormatter not supported\nThe ICU library was not provided when GNUstep-base was configured/built.")
+  END_SET("NSDateFormatter")
 
   return 0;
 }

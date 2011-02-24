@@ -50,7 +50,9 @@ int main()
        && [current isDaylightSavingTime] == NO,
        "can set default time zone");
   
-  START_SET(NSLOCALE_SUPPORTED)
+  START_SET("NSLocale")
+  if (!NSLOCALE_SUPPORTED)
+    SKIP("NSlocale not supported\nThe ICU library was not available when GNUstep-base was built")
 
   current = [NSTimeZone timeZoneWithName: @"America/Sao_Paulo"];
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"en_GB"];
@@ -84,7 +86,7 @@ int main()
     == [current daylightSavingTimeOffsetForDate: date],
     "Returns correct Daylight Saving offset.")
   
-  END_SET("NSLocale features not supported\nThe ICU library was not provided when GNUstep-base was configured/built.")
+  END_SET("NSLocale")
 
   [arp release]; arp = nil;
   return 0;

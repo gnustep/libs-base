@@ -20,14 +20,14 @@ int main()
   PASS(run != nil, "NSRunLoop understands [+currentRunLoop]");
   PASS([run currentMode] == nil, "-currentMode returns nil");
   
-  TEST_EXCEPTION(date = [NSDate dateWithTimeIntervalSinceNow:3];
+  PASS_RUNS(date = [NSDate dateWithTimeIntervalSinceNow:3];
   		 [run runUntilDate:date];,
-		 nil,NO,"-runUntilDate: works");
-  TEST_EXCEPTION(date = [NSDate dateWithTimeIntervalSinceNow:5];
+		 "-runUntilDate: works");
+  PASS_RUNS(date = [NSDate dateWithTimeIntervalSinceNow:5];
   		 tim = [NSTimer scheduledTimerWithTimeInterval: 2.0
 						    invocation:inv
 				 		       repeats:YES];,
-	         nil,NO,"-runUntilDate: works with a timer");
+	         "-runUntilDate: works with a timer");
   
   
   

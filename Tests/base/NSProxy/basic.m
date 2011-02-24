@@ -15,11 +15,11 @@ int main()
   PASS(theClass != Nil, "%s exists",prefix); 
   obj0 = [NSProxy alloc];
   PASS(obj0 != nil, "%s has working alloc",prefix);
-  TEST_EXCEPTION([obj0 isKindOfClass:theClass];, NSInvalidArgumentException,
-  		 YES, "NSProxy -isKindOfClass raises exception");
+  PASS_EXCEPTION([obj0 isKindOfClass:theClass];, NSInvalidArgumentException,
+  		 "NSProxy -isKindOfClass raises exception");
   
-  TEST_EXCEPTION([obj0 isMemberOfClass:theClass];, 
-                 NSInvalidArgumentException, YES, 
+  PASS_EXCEPTION([obj0 isMemberOfClass:theClass];, 
+                 NSInvalidArgumentException,
 		 "NSProxy -isKindOfClass raises exception");
   
   obj1 = [NSProxy allocWithZone:testZone];

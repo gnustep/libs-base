@@ -302,7 +302,7 @@ int main()
   bar = [[NSObject alloc] init];
   rc = [bar retainCount];
   
-  TEST_EXCEPTION([um registerUndoWithTarget:obj selector:@selector(setFooReg:) object:nil], nil, YES, "can't register undo outside any group");
+  PASS_EXCEPTION([um registerUndoWithTarget:obj selector:@selector(setFooReg:) object:nil], nil, "can't register undo outside any group");
 
   [um beginUndoGrouping];
   [um registerUndoWithTarget:obj selector:@selector(setFooReg:) object:bar];

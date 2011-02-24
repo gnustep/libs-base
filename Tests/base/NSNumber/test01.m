@@ -19,7 +19,7 @@
 
 int main()
 {
-  START_SET(YES)
+  START_SET("not-a-number checks")
   NSNumber	*n;
   NSNumber	*nan;
 

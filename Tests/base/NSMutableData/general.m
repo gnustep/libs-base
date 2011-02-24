@@ -47,9 +47,9 @@ int main()
        strcmp(tmp,str2) == 0,
        "-replaceBytesInRange:withBytes suceeds");
   free(tmp);
-  TEST_EXCEPTION([mutable replaceBytesInRange:NSMakeRange([mutable length]+1,6) 
+  PASS_EXCEPTION([mutable replaceBytesInRange:NSMakeRange([mutable length]+1,6) 
                                     withBytes:str2];,
-		 NSRangeException,YES,"-replaceBytesInRange:withBytes out of range raises exception");
+		 NSRangeException,"-replaceBytesInRange:withBytes out of range raises exception");
                  
   
   [arp release]; arp = nil;

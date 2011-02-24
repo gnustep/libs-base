@@ -10,10 +10,11 @@
 
 int main(void)
 {
-  START_SET(NSLOCALE_SUPPORTED)
-
+  START_SET("NSLocale")
   NSLocale *locale;
   
+  if (!NSLOCALE_SUPPORTED)
+    SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
   locale = [NSLocale systemLocale];
   PASS (locale != nil, "+systemLocale returns non-nil");
   TEST_FOR_CLASS(@"NSLocale", locale, "+systemLocale return a NSLocale");
@@ -22,7 +23,7 @@ int main(void)
   PASS (locale != nil, "+currentLocale return non-nil");
   TEST_FOR_CLASS(@"NSLocale", locale, "+currentLocale return a NSLocale");
   
-  END_SET("NSLocale not supported.\nThe ICU library was not provided when GNUstep-base was configured/built.")
+  END_SET("NSLocale")
 
   return 0;
 }
