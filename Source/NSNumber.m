@@ -265,8 +265,35 @@ return NSOrderedSame;
       case 'd':
 	{
 	  double other = [aNumber doubleValue];
+	  double selfv = [self doubleValue];
 
-	  COMPARE (((double) value), other);
+	  if (isnan(selfv))
+	    {
+	      if (isnan(other))
+		{
+		  return NSOrderedSame;
+		}
+	      else
+		{
+		  return NSOrderedAscending;
+		}
+	    }
+	  else
+	    {
+	      if (isnan(other))
+		{
+		  return NSOrderedDescending;
+		}
+	      else if (selfv < other)
+		{
+		  return NSOrderedAscending;
+		}
+	      else if (selfv > other)
+		{
+		  return NSOrderedDescending;
+		}
+	      return NSOrderedSame;
+	    }
 	}
       default:
 	[NSException raise: NSInvalidArgumentException
@@ -305,9 +332,37 @@ return NSOrderedSame;
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil argument for compare:"];
     }
+
   other = [aNumber doubleValue];
   value = [self doubleValue];
-  COMPARE (value, other);
+
+  if (isnan(value))
+    {
+      if (isnan(other))
+	{
+	  return NSOrderedSame;
+	}
+      else
+	{
+	  return NSOrderedAscending;
+	}
+    }
+  else
+    {
+      if (isnan(other))
+	{
+	  return NSOrderedDescending;
+	}
+      else if (value < other)
+	{
+	  return NSOrderedAscending;
+	}
+      else if (value > other)
+	{
+	  return NSOrderedDescending;
+	}
+      return NSOrderedSame;
+    }
 }
 @end
 
