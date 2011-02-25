@@ -87,16 +87,36 @@ int main()
       [fmt setNumberStyle: NSNumberFormatterNoStyle];
       [fmt setMaximumFractionDigits: 0];
       [fmt setFormatWidth: 6];
+      
+      str = [fmt stringFromNumber: num];
+      PASS_EQUAL(str, @"**1234", "format width set correctly");
+      
       [fmt setPositivePrefix: @"+"];
+      str = [fmt stringFromNumber: num];
+      PASS_EQUAL(str, @"*+1234", "positive prefix set correctly");
+      
       [fmt setPaddingCharacter: @"0"];
-      [fmt setPaddingPosition: NSNumberFormatterPadBeforePrefix];
+      str = [fmt stringFromNumber: num];
+      PASS_EQUAL(str, @"0+1234", "default padding position is before prefix");
+      
+      [fmt setPaddingPosition: NSNumberFormatterPadAfterPrefix];
       str = [fmt stringFromNumber: num];
     
-      PASS_EQUAL(str, @"0+1234", "numeric and space padding OK")
+      PASS_EQUAL(str, @"+01234", "numeric and space padding OK")
 
       num = [[[NSNumber alloc] initWithFloat: 1234.56] autorelease];
       [fmt setNumberStyle: NSNumberFormatterCurrencyStyle];
       [fmt setLocale: [[NSLocale alloc] initWithLocaleIdentifier: @"pt_BR"]];
+      
+      str = [fmt stringFromNumber: num];
+      PASS_EQUAL(str, @"+1.235",
+        "currency style does not include currency string");
+      
+      [fmt setPositivePrefix: @"+"];
+      str = [fmt stringFromNumber: num];
+      PASS_EQUAL(str, @"+1.235",
+        "positive prefix is set correctly for currency style");
+      
       [fmt setPositiveSuffix: @"c"];
       str = [fmt stringFromNumber: num];
       
