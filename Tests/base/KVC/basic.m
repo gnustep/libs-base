@@ -101,7 +101,7 @@ typedef struct {
 
 - (void) setValue:(id) value forUndefinedKey:(NSString *) key
 {
-  if ([key isEqualToString: @"Lücke"]) {
+  if ([key isEqualToString: @"Lxcke"]) {
     [string release];
     string = [value copy];
   }
@@ -109,7 +109,7 @@ typedef struct {
 
 - (id) valueForUndefinedKey:(NSString *) key
 {
-  if ([key isEqualToString: @"Lücke"]) {
+  if ([key isEqualToString: @"Lxcke"]) {
     return string;
   }
   return nil;
@@ -133,7 +133,7 @@ typedef struct {
 
 - (void) handleTakeValue:(id) value forUnboundKey:(NSString *) key
 {
-  if ([key isEqualToString: @"Lücke"]) {
+  if ([key isEqualToString: @"Lxcke"]) {
     [string release];
     string = [value copy];
   }
@@ -141,7 +141,7 @@ typedef struct {
 
 - (id) handleQueryWithUnboundKey:(NSString *) key
 {
-  if ([key isEqualToString: @"Lücke"]) {
+  if ([key isEqualToString: @"Lxcke"]) {
     return string;
   }
   return nil;
@@ -220,12 +220,12 @@ int main()
   PASS([tester si] == s.i && [tester sc] == s.c,
     "KVC setValue:forKey: works for a struct (setter)");
 
-  [undefinedKey setValue: @"GNUstep" forKey: @"Lücke"];
-  PASS([[undefinedKey valueForKey: @"Lücke"] isEqualToString: @"GNUstep"],
+  [undefinedKey setValue: @"GNUstep" forKey: @"Lxcke"];
+  PASS([[undefinedKey valueForKey: @"Lxcke"] isEqualToString: @"GNUstep"],
       "KVC works with undefined keys");
 
-  [undefinedKey2 setValue: @"GNUstep" forKey: @"Lücke"];
-  PASS([[undefinedKey2 valueForKey: @"Lücke"] isEqualToString: @"GNUstep"],
+  [undefinedKey2 setValue: @"GNUstep" forKey: @"Lxcke"];
+  PASS([[undefinedKey2 valueForKey: @"Lxcke"] isEqualToString: @"GNUstep"],
       "KVC works with undefined keys (using deprecated methods) ");
 
   PASS_EXCEPTION(
