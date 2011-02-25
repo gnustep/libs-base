@@ -40,6 +40,8 @@ ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before running this!)
 endif
 
+all:
+	@(echo If you want to run the gnustep-base testsuite, please type \'make check\')
 
 check:
 	gnustep-tests base
