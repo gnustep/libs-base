@@ -131,7 +131,7 @@ int main()
       [fmt setMaximumFractionDigits: 0];
       str = [fmt stringFromNumber: num];
       
-      PASS_EQUAL(str, @"0-1235", "format string of length 1")
+      PASS_EQUAL(str, @"-01235", "format string of length 1")
 
     END_SET("NSLocale")
 
