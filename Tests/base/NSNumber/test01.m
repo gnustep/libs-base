@@ -26,13 +26,27 @@ int main()
 
       NSNumber	*nan = [NSDecimalNumber notANumber];
 
-      n = [NSNumber numberWithInt: 2];
-
-      PASS(NO == [n isEqualToNumber: nan], "2 is not equal to NaN");
       PASS(YES == [nan isEqualToNumber: nan], "NaN is equal to NaN");
 
-      PASS([n compare: nan] == NSOrderedDescending, "2 is greater than NaN") 
-      PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2") 
+      n = [NSNumber numberWithInt: 2];
+      PASS(NO == [n isEqualToNumber: nan], "2 is not equal to NaN");
+      PASS([n compare: nan] == NSOrderedDescending, "2 is greater than NaN")
+      PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2")
+
+      n = [NSNumber numberWithUnsignedLongLong: 2];
+      PASS(NO == [n isEqualToNumber: nan], "2LL is not equal to NaN");
+      PASS([n compare: nan] == NSOrderedDescending, "2LL is greater than NaN")
+      PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2LL")
+
+      n = [NSNumber numberWithFloat: 2.0];
+      PASS(NO == [n isEqualToNumber: nan], "2.0 is not equal to NaN");
+      PASS([n compare: nan] == NSOrderedDescending, "2.0 is greater than NaN")
+      PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2.0")
+
+      n = [NSNumber numberWithDouble: 2.0];
+      PASS(NO == [n isEqualToNumber: nan], "2.0dd is not equal to NaN");
+      PASS([n compare: nan] == NSOrderedDescending, "2.0dd is greater than NaN")
+      PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2.0dd")
 
       n = [NSNumber numberWithFloat: 0.0];
       PASS([n compare: nan] != NSOrderedSame, "0.0 is not NaN")
@@ -46,13 +60,28 @@ int main()
 
       NSNumber	*zero = [NSDecimalNumber zero];
 
-      n = [NSNumber numberWithInt: 2];
-
-      PASS(NO == [n isEqualToNumber: zero], "2 is not equal to NaN");
       PASS(YES == [zero isEqualToNumber: zero], "zero is equal to zero");
 
-      PASS([n compare: zero] == NSOrderedDescending, "2 is greater than zero") 
-      PASS([zero compare: n] == NSOrderedAscending, "zero is less than 2") 
+      n = [NSNumber numberWithInt: 2];
+      PASS(NO == [n isEqualToNumber: zero], "2 is not equal to zero");
+      PASS([n compare: zero] == NSOrderedDescending, "2 is greater than zero")
+      PASS([zero compare: n] == NSOrderedAscending, "zero is less than 2")
+
+      n = [NSNumber numberWithUnsignedLongLong: 2];
+      PASS(NO == [n isEqualToNumber: zero], "2LL is not equal to zero");
+      PASS([n compare: zero] == NSOrderedDescending, "2LL is greater than zero")
+      PASS([zero compare: n] == NSOrderedAscending, "zero is less than 2LL")
+
+      n = [NSNumber numberWithFloat: 2.0];
+      PASS(NO == [n isEqualToNumber: zero], "2.0 is not equal to zero");
+      PASS([n compare: zero] == NSOrderedDescending, "2.0 is greater than zero")
+      PASS([zero compare: n] == NSOrderedAscending, "zero is less than 2.0")
+
+      n = [NSNumber numberWithDouble: 2.0];
+      PASS(NO == [n isEqualToNumber: zero], "2.0dd is not equal to zero");
+      PASS([n compare: zero] == NSOrderedDescending,
+	"2.0dd is greater than zero")
+      PASS([zero compare: n] == NSOrderedAscending, "zero is less than 2.0dd")
 
       n = [NSNumber numberWithFloat: 0.0];
       PASS([n compare: zero] == NSOrderedSame, "0.0 is zero")
