@@ -1,3 +1,8 @@
+2011-02-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumber.m:
+	Fix error in float comparison.
+
 2011-02-24 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSUserDefaults.m
