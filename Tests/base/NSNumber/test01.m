@@ -19,25 +19,49 @@
 
 int main()
 {
-  START_SET("not-a-number checks")
-  NSNumber	*n;
-  NSNumber	*nan;
+  START_SET("NSNumber")
+    NSNumber	*n;
 
-  n = [NSNumber numberWithInt: 2];
-  nan = [NSDecimalNumber notANumber];
+    START_SET("not-a-number checks")
 
-  PASS(NO == [n isEqualToNumber: nan], "2 is not equal to NaN");
-  PASS(YES == [nan isEqualToNumber: nan], "NaN is equal to NaN");
+      NSNumber	*nan = [NSDecimalNumber notANumber];
 
-  PASS([n compare: nan] == NSOrderedDescending, "2 is greater than NaN") 
-  PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2") 
+      n = [NSNumber numberWithInt: 2];
 
-  n = [NSNumber numberWithFloat: 0.0];
-  PASS([n compare: nan] == NO, "0.0 is not NaN")
+      PASS(NO == [n isEqualToNumber: nan], "2 is not equal to NaN");
+      PASS(YES == [nan isEqualToNumber: nan], "NaN is equal to NaN");
 
-  n = [NSNumber numberWithFloat: -1.01];
-  PASS([n compare: nan] == NO, "-1.01 is not NaN")
+      PASS([n compare: nan] == NSOrderedDescending, "2 is greater than NaN") 
+      PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2") 
 
-  END_SET("not-a-number checks")
+      n = [NSNumber numberWithFloat: 0.0];
+      PASS([n compare: nan] == NO, "0.0 is not NaN")
+
+      n = [NSNumber numberWithFloat: -1.01];
+      PASS([n compare: nan] == NO, "-1.01 is not NaN")
+
+    END_SET("not-a-number checks")
+
+    START_SET("zero checks")
+
+      NSNumber	*zero = [NSDecimalNumber zero];
+
+      n = [NSNumber numberWithInt: 2];
+
+      PASS(NO == [n isEqualToNumber: zero], "2 is not equal to NaN");
+      PASS(YES == [zero isEqualToNumber: zero], "zero is equal to zero");
+
+      PASS([n compare: zero] == NSOrderedDescending, "2 is greater than zero") 
+      PASS([zero compare: n] == NSOrderedAscending, "zero is less than 2") 
+
+      n = [NSNumber numberWithFloat: 0.0];
+      PASS([n compare: zero] == NSOrderedSame, "0.0 is zero")
+
+      n = [NSNumber numberWithFloat: -1.01];
+      PASS([n compare: zero] != NSOrderedSame, "-1.01 is not zero")
+
+    END_SET("zero checks")
+  END_SET("NSNumber")
+
   return 0;
 }
