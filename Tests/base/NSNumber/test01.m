@@ -49,12 +49,16 @@ int main()
       PASS([nan compare: n] == NSOrderedAscending, "NaN is less than 2.0dd")
 
       n = [NSNumber numberWithFloat: 0.0];
-      PASS([n compare: nan] != NSOrderedSame, "0.0 is not NaN")
+      PASS(NO == [n isEqualToNumber: nan], "0.0 is not equal to NaN");
+      PASS([n compare: nan] == NSOrderedDescending, "0.0 greater than NaN")
+      PASS([nan compare: n] == NSOrderedAscending, "NaN less than 0.0")
 
       n = [NSNumber numberWithFloat: -1.01];
-      PASS([n compare: nan] != NSOrderedSame, "-1.01 is not NaN")
+      PASS(NO == [n isEqualToNumber: nan], "-1.01 is not equal to NaN");
+      PASS([n compare: nan] == NSOrderedAscending, "-1.01 less than NaN")
+      PASS([nan compare: n] == NSOrderedAscending, "NaN less than -1.01")
 
-    END_SET("not-a-number checks")
+      END_SET("not-a-number checks")
 
     START_SET("zero checks")
 
@@ -84,10 +88,14 @@ int main()
       PASS([zero compare: n] == NSOrderedAscending, "zero is less than 2.0dd")
 
       n = [NSNumber numberWithFloat: 0.0];
+      PASS([n isEqualToNumber: zero], "0.0 is equal to zero");
       PASS([n compare: zero] == NSOrderedSame, "0.0 is zero")
+      PASS([zero compare: n] == NSOrderedSame, "zero is 0.0")
 
       n = [NSNumber numberWithFloat: -1.01];
-      PASS([n compare: zero] != NSOrderedSame, "-1.01 is not zero")
+      PASS(NO == [n isEqualToNumber: zero], "-1.01 is not equal to zero");
+      PASS([n compare: zero] == NSOrderedAscending, "-1.01 less than zero")
+      PASS([zero compare: n] == NSOrderedDescending, "zero greater than -1.01")
 
     END_SET("zero checks")
   END_SET("NSNumber")
