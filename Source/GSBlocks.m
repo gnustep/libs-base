@@ -12,10 +12,11 @@ void _Block_release(void *);
 + (void)load
 {
 	unsigned int methodCount;
-	Method *m = methods = NULL;
+	Method *m = NULL;
 	Method *methods = 
 		class_copyMethodList(self, &methodCount);
 	id blockClass = objc_lookUpClass("_NSBlock");
+	Protocol *nscopying = NULL;
 
 	// If we don't have an _NSBlock class, we don't have blocks support in the
 	// runtime, so give up.
@@ -28,24 +29,24 @@ void _Block_release(void *);
 		class_addMethod(blockClass, method_getName(*m),
 			method_getImplementation(*m), method_getTypeEncoding(*m));
 	}
-	Protocol *nscopying = objc_getProtocol("NSCopying");
+	nscopying = objc_getProtocol("NSCopying");
 	class_addProtocol(blockClass, nscopying);
 }
 - (id)copyWithZone: (NSZone*)aZone
 {
-	return Block_copy(self);
+	return _Block_copy(self);
 }
 - (id)copy
 {
-	return Block_copy(self);
+	return _Block_copy(self);
 }
 - (id)retain
 {
-	return Block_copy(self);
+	return _Block_copy(self);
 }
 - (void)release
 {
-	Block_release(self);
+	_Block_release(self);
 }
 @end
 
