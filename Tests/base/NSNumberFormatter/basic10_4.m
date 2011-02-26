@@ -44,6 +44,18 @@ int main()
       == [NSNumberFormatter defaultFormatterBehavior],
      "default behavior can be changed to NSNumberFormatterBehavior10_4")
 
+    fmt = [[[NSNumberFormatter alloc] init] autorelease];
+    PASS([fmt getObjectValue: &num forString: @"0.00" errorDescription: nil]
+      && num != nil, "formatting tuceeded")
+    if (testPassed)
+      {
+	NSLog(@"number: %@", num);
+	PASS(NO == [num isEqual: [NSDecimalNumber notANumber]],
+	  "is not equal to NaN")
+	PASS(YES == [num isEqual: [NSDecimalNumber zero]],
+	  "is equal to zero")
+      }
+
 
     fmt = [[[NSNumberFormatter alloc] init] autorelease];
 
