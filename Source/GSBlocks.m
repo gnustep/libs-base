@@ -12,6 +12,7 @@ void _Block_release(void *);
 + (void)load
 {
 	unsigned int methodCount;
+	Method *m = methods = NULL;
 	Method *methods = 
 		class_copyMethodList(self, &methodCount);
 	id blockClass = objc_lookUpClass("_NSBlock");
@@ -22,7 +23,7 @@ void _Block_release(void *);
 
 	// Copy all of the methods in this class onto the block-runtime-provided
 	// _NSBlock
-	for (Method *m = methods ; NULL!=*m ; m++)
+	for (m = methods ; NULL!=*m ; m++)
 	{
 		class_addMethod(blockClass, method_getName(*m),
 			method_getImplementation(*m), method_getTypeEncoding(*m));
