@@ -202,6 +202,7 @@ static NSDecimalNumber *one;
 {
   return maxNumber;
 }
+
 + (NSDecimalNumber*) minimumDecimalNumber
 {
   return minNumber;
@@ -711,6 +712,10 @@ static NSDecimalNumber *one;
   if (self == decimalNumber)
     {
       return NSOrderedSame;
+    }
+  if (self == notANumber)
+    {
+      return NSOrderedAscending;	// NaN is considered less than anything
     }
   if ([decimalNumber isKindOfClass: NSDecimalNumberClass])
     {
