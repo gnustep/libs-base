@@ -101,6 +101,39 @@ if (value > other)\
   }\
 return NSOrderedSame;
 
+#define DCOMPARE(value, other) \
+  if (isnan(value)) \
+    { \
+      if (isnan(other)) \
+	{ \
+	  return NSOrderedSame; \
+	} \
+      else \
+	{ \
+	  return NSOrderedAscending; \
+	} \
+    } \
+  else \
+    { \
+      if (isnan(other)) \
+	{ \
+	  if (value < 0.0) \
+	    { \
+	      return NSOrderedAscending; \
+	    } \
+	  return NSOrderedDescending; \
+	} \
+      else if (value < other) \
+	{ \
+	  return NSOrderedAscending; \
+	} \
+      else if (value > other) \
+	{ \
+	  return NSOrderedDescending; \
+	} \
+      return NSOrderedSame; \
+    }
+
 @implementation NSSignedIntegerNumber
 - (NSComparisonResult) compare: (NSNumber*)aNumber
 {
@@ -164,33 +197,7 @@ return NSOrderedSame;
 	  double other = [aNumber doubleValue];
 	  double value = [self doubleValue];
 
-	  if (isnan(value))
-	    {
-	      if (isnan(other))
-		{
-		  return NSOrderedSame;
-		}
-	      else
-		{
-		  return NSOrderedAscending;
-		}
-	    }
-	  else
-	    {
-	      if (isnan(other))
-		{
-		  return NSOrderedDescending;
-		}
-	      else if (value < other)
-		{
-		  return NSOrderedAscending;
-		}
-	      else if (value > other)
-		{
-		  return NSOrderedDescending;
-		}
-	      return NSOrderedSame;
-	    }
+	  DCOMPARE(value, other)
 	}
       default:
 	[NSException raise: NSInvalidArgumentException
@@ -267,33 +274,7 @@ return NSOrderedSame;
 	  double other = [aNumber doubleValue];
 	  double selfv = [self doubleValue];
 
-	  if (isnan(selfv))
-	    {
-	      if (isnan(other))
-		{
-		  return NSOrderedSame;
-		}
-	      else
-		{
-		  return NSOrderedAscending;
-		}
-	    }
-	  else
-	    {
-	      if (isnan(other))
-		{
-		  return NSOrderedDescending;
-		}
-	      else if (selfv < other)
-		{
-		  return NSOrderedAscending;
-		}
-	      else if (selfv > other)
-		{
-		  return NSOrderedDescending;
-		}
-	      return NSOrderedSame;
-	    }
+	  DCOMPARE(selfv, other)
 	}
       default:
 	[NSException raise: NSInvalidArgumentException
@@ -336,33 +317,7 @@ return NSOrderedSame;
   other = [aNumber doubleValue];
   value = [self doubleValue];
 
-  if (isnan(value))
-    {
-      if (isnan(other))
-	{
-	  return NSOrderedSame;
-	}
-      else
-	{
-	  return NSOrderedAscending;
-	}
-    }
-  else
-    {
-      if (isnan(other))
-	{
-	  return NSOrderedDescending;
-	}
-      else if (value < other)
-	{
-	  return NSOrderedAscending;
-	}
-      else if (value > other)
-	{
-	  return NSOrderedDescending;
-	}
-      return NSOrderedSame;
-    }
+  DCOMPARE(value, other)
 }
 @end
 

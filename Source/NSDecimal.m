@@ -172,6 +172,14 @@ GSDecimalCompare(const GSDecimal *leftOperand, const GSDecimal *rightOperand)
   int s1 = leftOperand->exponent + leftOperand->length;
   int s2 = rightOperand->exponent + rightOperand->length;
 
+  if (leftOperand->validNumber != rightOperand->validNumber)
+    {
+      if (rightOperand->validNumber)
+	return NSOrderedDescending;
+      else
+	return NSOrderedAscending;
+    }
+
   if (leftOperand->isNegative != rightOperand->isNegative)
     {
       if (rightOperand->isNegative)

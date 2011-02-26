@@ -1,3 +1,10 @@
+2011-02-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDecimal.m:
+	Fix NaN comparison in GSDecimalCompare()
+	* Source/NSNumber.m:
+	Better match OSX for double comparison.
+
 2011-02-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNumber.m:
