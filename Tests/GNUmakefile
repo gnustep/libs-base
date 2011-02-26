@@ -49,3 +49,5 @@ check:
 clean:
 	gnustep-tests --clean
 
+install:
+
