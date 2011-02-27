@@ -947,7 +947,7 @@ static NSOperationQueue *mainQueue = nil;
 	  else if (internal->count != 0 && NO == internal->suspended
 	    && [internal->waiting count] > 0)
 	    {
-	      /* If concurrent operations are permitted an the queue
+	      /* If multiple operations are permitted and the queue
 	       * is not suspended, and there are operations waiting,
 	       * then we can get one.
 	       */
