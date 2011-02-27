@@ -99,7 +99,7 @@ gs_find_best_typed_sel (SEL sel)
     return (SEL)0;
   
   sel_copyTypes_np (selName, &types, 1);
-  return GSObjCSelectorFromNameAndTypes(selName, types);
+  return GSSelectorFromNameAndTypes(selName, types);
 }
 #elif defined (__GNU_LIBOBJC__)
 {
