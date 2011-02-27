@@ -234,7 +234,7 @@ NSZoneName (NSZone *zone)
 #define	GC_DEBUG	1
 #endif	/* DEBUG */
 
-#include <gc.h>
+#include <gc/gc.h>
 
 /*
  * Dummy zones used with garbage collection.

@@ -1927,11 +1927,11 @@ GSPrintf (FILE *fptr, NSString* format, ...)
 {
   static Class                  stringClass = 0;
   static NSStringEncoding       enc;
-  CREATE_AUTORELEASE_POOL(arp);
   va_list       ap;
   NSString      *message;
   NSData        *data;
   BOOL          ok = NO;
+  CREATE_AUTORELEASE_POOL(arp);
 
   if (stringClass == 0)
     {
@@ -1963,7 +1963,19 @@ GSPrintf (FILE *fptr, NSString* format, ...)
 }
 
 #if     defined(GNUSTEP_BASE_LIBRARY)
+
+# ifndef	NDEBUG
+#   define	AADD(c, o) GSDebugAllocationAdd(c, o)
+#   define	AREM(c, o) GSDebugAllocationRemove(c, o)
+# else
+#   define	AADD(c, o) 
+#   define	AREM(c, o) 
+# endif
+
 # if	GS_WITH_GC
+
+#include	<gc/gc.h>
+
 static BOOL
 GSIsFinalizable(Class c)
 {
@@ -1977,6 +1989,15 @@ GSIsFinalizable(Class c)
     return YES;
   return NO;
 }
+
+static void
+GSFinalize(void* object, void* data)
+{
+  [(id)object finalize];
+  AREM(object_getClass((id)object), (id)object);
+  object_setClass((id)object, (Class)(void*)0xdeadface);
+}
+
 # endif	/* GS_WITH_GC */
 #endif	/* defined(GNUSTEP_BASE_LIBRARY) */
 
@@ -1984,14 +2005,6 @@ void
 GSClassSwizzle(id instance, Class newClass)
 {
   Class	oldClass = object_getClass(instance);
-
-#ifndef	NDEBUG
-#define	AADD(c, o) GSDebugAllocationAdd(c, o)
-#define	AREM(c, o) GSDebugAllocationRemove(c, o)
-#else
-#define	AADD(c, o) 
-#define	AREM(c, o) 
-#endif
 
   if (oldClass != newClass)
     {

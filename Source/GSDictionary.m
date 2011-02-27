@@ -46,7 +46,7 @@
 				[((id)(X).obj) copyWithZone: map->zone]
 
 #if	GS_WITH_GC
-#include	<gc_typed.h>
+#include	<gc/gc_typed.h>
 static GC_descr	nodeDesc;	// Type descriptor for map node.
 #define	GSI_MAP_NODES(M, X) \
 (GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)

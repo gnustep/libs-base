@@ -149,7 +149,6 @@ BASE_MFILES = \
 CXXException.m\
 GSArray.m \
 GSAttributedString.m \
-GSBlocks.m \
 GSConcreteValue.m \
 GSCountedSet.m \
 GSDictionary.m \
