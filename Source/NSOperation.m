@@ -85,7 +85,7 @@ static NSArray	*empty = nil;
 
 - (void) addDependency: (NSOperation *)op
 {
-  if (NO == [op isKindOfClass: [self class]])
+  if (NO == [op isKindOfClass: [NSOperation class]])
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@-%@] dependency is not an NSOperation",
