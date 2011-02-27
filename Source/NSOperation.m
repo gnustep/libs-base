@@ -276,7 +276,7 @@ static NSArray	*empty = nil;
       en = [internal->dependencies objectEnumerator];
       while ((op = [en nextObject]) != nil)
         {
-          if (NO == [op isReady])
+          if (NO == [op isFinished])
 	    break;
         }
       if (op == nil)

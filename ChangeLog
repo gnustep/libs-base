@@ -1,3 +1,7 @@
+2011-02-27  Banlu Kemiyatorn <object@gmail.com>
+
+	* Source/NSOperation.m: Fix error checking condition for dependencies.
+
 2011-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Look for gc.h in gc subdirectory
