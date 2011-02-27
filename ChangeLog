@@ -1,3 +1,11 @@
+2011-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/runtime.c:
+	* Headers/Additions/GNUstepBase/preface.h.in:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	Remove last vestiges of runtime specific memory allocation apart from
+	obsolete macros (marked as deprecated).
+
 2011-02-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDecimal.m:

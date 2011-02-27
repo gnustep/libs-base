@@ -502,7 +502,7 @@ GSLastErrorStr(long error_id) GS_DEPRECATED_FUNC;
   if (__count > __max) \
     { \
       unsigned int	__tmp; \
-      __objects = (id*)objc_malloc(__count*sizeof(id)); \
+      __objects = (id*)malloc(__count*sizeof(id)); \
       __pairs = &__objects[__count/2]; \
       __objects[0] = firstObject; \
       va_start(__ap, firstObject); \
@@ -520,7 +520,7 @@ GSLastErrorStr(long error_id) GS_DEPRECATED_FUNC;
       va_end(__ap); \
     } \
   code; \
-  if (__objects != __buf) objc_free(__objects); \
+  if (__objects != __buf) free(__objects); \
 })
 
 /**

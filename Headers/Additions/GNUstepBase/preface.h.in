@@ -148,16 +148,16 @@
 #define GNUSTEP_BASE_GCC_VERSION        @GCC_VERSION@
 
 #define OBJC_MALLOC(VAR, TYPE, NUM) \
-   ((VAR) = (TYPE *) objc_malloc ((unsigned)(NUM)*sizeof(TYPE))) 
+   (fprintf(stderr, "OBJC_MALLOC is deprecated"),(VAR) = (TYPE *) malloc ((unsigned)(NUM)*sizeof(TYPE))) 
 #define OBJC_VALLOC(VAR, TYPE, NUM) \
-   ((VAR) = (TYPE *) objc_valloc ((unsigned)(NUM)*sizeof(TYPE))) 
+   (fprintf(stderr, "OBJC_VALLOC is deprecated"),(VAR) = (TYPE *) valloc ((unsigned)(NUM)*sizeof(TYPE))) 
 #define OBJC_ATOMIC_MALLOC(VAR, TYPE, NUM) \
-   ((VAR) = (TYPE *) objc_atomic_malloc ((unsigned)(NUM)*sizeof(TYPE))) 
+   (fprintf(stderr, "OBJC_ATOMIC_MALLOC is deprecated"),(VAR) = (TYPE *) malloc ((unsigned)(NUM)*sizeof(TYPE))) 
 #define OBJC_REALLOC(VAR, TYPE, NUM) \
-   ((VAR) = (TYPE *) objc_realloc ((VAR), (unsigned)(NUM)*sizeof(TYPE)))
+   (fprintf(stderr, "OBJC_REALLOC is deprecated"),(VAR) = (TYPE *) realloc ((VAR), (unsigned)(NUM)*sizeof(TYPE)))
 #define OBJC_CALLOC(VAR, TYPE, NUM) \
-   ((VAR) = (TYPE *) objc_calloc ((unsigned)(NUM), sizeof(TYPE)))
-#define OBJC_FREE(PTR) objc_free (PTR)
+   (fprintf(stderr, "OBJC_CALLOC is deprecated"),(VAR) = (TYPE *) calloc ((unsigned)(NUM), sizeof(TYPE)))
+#define OBJC_FREE(PTR) (fprintf(stderr, "OBJC_FREE is deprecated"), free (PTR))
 
 #ifndef MAX
 #define MAX(a,b) \
