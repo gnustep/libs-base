@@ -165,14 +165,14 @@ class_addIvar(Class cls, const char *name,
 
   if (NULL == ivarlist)
     {
-      cls->ivars = objc_malloc(sizeof(struct objc_ivar_list));
+      cls->ivars = malloc(sizeof(struct objc_ivar_list));
       cls->ivars->ivar_count = 1;
     }
   else
     {
       ivarlist->ivar_count++;
       // objc_ivar_list contains one ivar.  Others follow it.
-      cls->ivars = objc_realloc(ivarlist, sizeof(struct objc_ivar_list)
+      cls->ivars = realloc(ivarlist, sizeof(struct objc_ivar_list)
 				+ (ivarlist->ivar_count -
 				   1) * sizeof(struct objc_ivar));
     }
@@ -212,7 +212,7 @@ class_addMethod(Class cls, SEL name, IMP imp, const char *types)
 	}
     }
 
-  methods = objc_malloc(sizeof(struct objc_method_list));
+  methods = malloc(sizeof(struct objc_method_list));
   methods->method_next = cls->methods;
   cls->methods = methods;
 
@@ -240,7 +240,7 @@ class_addProtocol(Class cls, Protocol * protocol)
       return NO;
     }
   protocols = cls->protocols;
-  protocols = objc_malloc(sizeof(struct objc_protocol_list));
+  protocols = malloc(sizeof(struct objc_protocol_list));
   if (protocols == NULL)
     {
       return NO;
@@ -356,7 +356,7 @@ class_copyProtocolList(Class cls, unsigned int *outCount)
 id
 class_createInstance(Class cls, size_t extraBytes)
 {
-  id obj = objc_malloc(cls->instance_size + extraBytes);
+  id obj = malloc(cls->instance_size + extraBytes);
   obj->isa = cls;
   return obj;
 }
