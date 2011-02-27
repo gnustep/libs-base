@@ -1365,7 +1365,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
 
 	      cls = [self class];
 	      type_slot = objc_get_slot(cls, @selector(retain));
-	      typed = GSObjCSelectorFromNameAndTypes(sel_getName(sel),
+	      typed = GSSelectorFromNameAndTypes(sel_getName(sel),
 		type_slot->types);
 	      slot = objc_get_slot(cls, typed);
 	      if (strcmp(slot->types, type_slot->types) == 0)
