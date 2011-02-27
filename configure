@@ -2123,7 +2123,6 @@ test -n "$target_alias" &&
 #---------------------------------------------------------------------
 { echo "$as_me:$LINENO: checking for GNUstep configuration file to use at runtime" >&5
 echo $ECHO_N "checking for GNUstep configuration file to use at runtime... $ECHO_C" >&6; }
-GNUSTEP_CONFIG_FILE=""
 
 # This requires gnustep-make > 1.13.0 to work.  For gnustep-make =
 # 1.13.0 we would have to parse
@@ -2153,7 +2152,7 @@ if test "$result" != "no"
 then
   GNUSTEP_CONFIG_FILE="$result"
 fi
-if test "$GNUSTEP_CONFIG_FILE" = ""; then
+if test x"$GNUSTEP_CONFIG_FILE" = x""; then
   case "$target_os" in
     mingw*)
       GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
