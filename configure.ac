@@ -136,7 +136,6 @@ AC_CANONICAL_TARGET([])
 # Location of the GNUstep.conf config file (--with-config-file)
 #---------------------------------------------------------------------
 AC_MSG_CHECKING([for GNUstep configuration file to use at runtime])
-GNUSTEP_CONFIG_FILE=""
 
 # This requires gnustep-make > 1.13.0 to work.  For gnustep-make =
 # 1.13.0 we would have to parse
@@ -183,7 +182,7 @@ if test "$result" != "no"
 then
   GNUSTEP_CONFIG_FILE="$result"
 fi
-if test "$GNUSTEP_CONFIG_FILE" = ""; then
+if test x"$GNUSTEP_CONFIG_FILE" = x""; then
   case "$target_os" in
     mingw*)
       GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
