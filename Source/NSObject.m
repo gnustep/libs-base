@@ -576,7 +576,7 @@ GSFinalize(void* object, void* data)
 {
   [(id)object finalize];
   AREM(object_getClass((id)object), (id)object);
-  object_setClass((id)object, (Classa)(void*)0xdeadface);
+  object_setClass((id)object, (Class)(void*)0xdeadface);
 }
 
 static BOOL
