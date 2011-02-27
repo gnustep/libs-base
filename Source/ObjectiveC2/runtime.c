@@ -1328,14 +1328,6 @@ sel_getName(SEL sel)
   return sel_get_name(sel);
 }
 
-const char *
-sel_getType_np(SEL sel)
-{
-  if (sel == 0)
-    return "";
-  return sel_get_type(sel);
-}
-
 SEL
 sel_getUid(const char *selName)
 {
@@ -1356,28 +1348,3 @@ sel_registerName(const char *selName)
   return sel_register_name(selName);
 }
 
-SEL sel_registerTypedName_np(const char *selName, const char *types)
-{
-  SEL s;
-
-  if (types == 0)
-    {
-      s = sel_get_any_typed_uid(selName);
-    }
-  else
-    {
-      s = sel_get_typed_uid(selName, types);
-    }
-  if (s == 0)
-    {
-      if (types == 0)
-        {
-          s = sel_register_name(selName);
-        }
-      else
-        {
-          s = sel_register_typed_name(selName, types);
-        }
-    }
-  return s;
-}
