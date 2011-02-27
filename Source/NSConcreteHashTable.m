@@ -93,7 +93,7 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_ENUMERATOR	NSHashEnumerator
 
 #if	GS_WITH_GC
-#include	<gc_typed.h>
+#include	<gc/gc_typed.h>
 static GC_descr	nodeS = 0;
 static GC_descr	nodeW = 0;
 #define	GSI_MAP_NODES(M, X) \

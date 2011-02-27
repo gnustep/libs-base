@@ -1142,9 +1142,9 @@ if test $ac_cv_header_objc_objc_h = no; then
 fi
 
 if test $OBJC_WITH_GC = yes; then
-  AC_CHECK_HEADERS(gc.h, gc_ok=yes, gc_ok=no)
+  AC_CHECK_HEADERS(gc/gc.h, gc_ok=yes, gc_ok=no)
   if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc.h header couldn't be found.])
+    AC_MSG_ERROR([Garbage collection was required, but the gc/gc.h header couldn't be found.])
   fi
   saved_LIBS="$LIBS"
   LIBS+=" -lgc"

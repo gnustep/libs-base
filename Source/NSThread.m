@@ -76,7 +76,7 @@
 #import "GSRunLoopCtxt.h"
 
 #if	GS_WITH_GC
-#include	<gc.h>
+#include	<gc/gc.h>
 #endif
 
 // Some older BSD systems used a non-standard range of thread priorities.

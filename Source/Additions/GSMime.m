@@ -1622,7 +1622,6 @@ wordData(NSString *word)
       NSString	*tmp = [info parameterForKey: @"boundary"];
       NSString	*type;
       NSString	*subtype;
-      BOOL	supported = NO;
 
       DESTROY(boundary);
       if (tmp != nil)
@@ -1664,7 +1663,6 @@ wordData(NSString *word)
 	    {
 	      subtype = @"mixed";
 	    }
-	  supported = YES;
 	  if (boundary == nil)
 	    {
 	      NSLog(@"multipart message without boundary");
@@ -5962,9 +5960,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	       type: (NSString*)type
 	       name: (NSString*)name
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSString	*subtype = nil;
   GSMimeHeader	*hdr = nil;
+  CREATE_AUTORELEASE_POOL(arp);
 
   if (type == nil)
     {
@@ -6042,11 +6040,13 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (void) setContentType: (NSString *)newType
 {
-  CREATE_AUTORELEASE_POOL(arp);
   GSMimeHeader	*hdr = nil;
-  GSMimeParser	*p = AUTORELEASE([GSMimeParser new]);
-  NSScanner	*scanner = [NSScanner scannerWithString: newType];
+  GSMimeParser	*p;
+  NSScanner	*scanner;
+  CREATE_AUTORELEASE_POOL(arp);
 
+  p = AUTORELEASE([GSMimeParser new]);
+  scanner = [NSScanner scannerWithString: newType];
   hdr = AUTORELEASE([GSMimeHeader new]);
   [hdr setName: @"content-type"];
   if ([p scanHeaderBody: scanner into: hdr] == NO)

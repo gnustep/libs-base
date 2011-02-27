@@ -1,5 +1,30 @@
 2011-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: Look for gc.h in gc subdirectory
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Source/GNUmakefile: Don't attempt to build GSBlocks.m until it works
+	without causing link failures.
+	* Source/NSPortCoder.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSGarbageCollector.m:
+	* Source/NSZone.m:
+	* Source/GSDictionary.m:
+	* Source/GSCountedSet.m:
+	* Source/NSNotificationCenter.m:
+	* Source/GSAttributedString.m:
+	* Source/NSObject.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/GSSet.m:
+	* Source/NSConnection.m:
+	* Source/NSThread.m:
+	* Source/NSConcreteHashTable.m:
+	Modify location of gc.h header.
+
+2011-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/ObjectiveC2/runtime.c:
 	* Headers/Additions/GNUstepBase/preface.h.in:
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:

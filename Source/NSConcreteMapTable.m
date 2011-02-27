@@ -104,7 +104,7 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
 #if	GS_WITH_GC
-#include	<gc_typed.h>
+#include	<gc/gc_typed.h>
 static GC_descr	nodeSS = 0;
 static GC_descr	nodeSW = 0;
 static GC_descr	nodeWS = 0;

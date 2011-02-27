@@ -85,8 +85,8 @@ static IMP autorelease_imp;
 
 #if GS_WITH_GC
 
-#include	<gc.h>
-#include	<gc_typed.h>
+#include	<gc/gc.h>
+#include	<gc/gc_typed.h>
 
 static SEL finalize_sel;
 static IMP finalize_imp;

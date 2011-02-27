@@ -31,7 +31,7 @@ static unsigned			disabled = 0;
 
 #if	GS_WITH_GC
 
-#include <gc.h>
+#include <gc/gc.h>
 
 #import	"Foundation/NSLock.h"
 #import	"Foundation/NSHashTable.h"
