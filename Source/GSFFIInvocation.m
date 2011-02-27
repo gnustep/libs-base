@@ -99,15 +99,16 @@ gs_find_best_typed_sel (SEL sel)
     return (SEL)0;
   
   sel_copyTypes_np (selName, &types, 1);
-  return sel_registerTypedName_np(selName, types);
+  return GSObjCSelectorFromNameAndTypes(selName, types);
 }
 #elif defined (__GNU_LIBOBJC__)
 {
   /* Get the list of all selectors with this name.  */
   const char *selName = sel_getName (sel);
   unsigned int numberOfReturnedSelectors;
-  SEL *selectors = sel_copyTypedSelectorList (selName, &numberOfReturnedSelectors);
+  SEL *selectors;
 
+  selectors = sel_copyTypedSelectorList (selName, &numberOfReturnedSelectors);
   /* If no selectors are returned, there is no selector.  */ 
   if (selectors == NULL)
     return NULL;
@@ -118,7 +119,7 @@ gs_find_best_typed_sel (SEL sel)
       SEL selector = selectors[0];
       free (selectors);
 
-      if (sel_getTypeEncoding (selector))
+      if (GSTypesFromSelector(selector))
 	return selector;
       else
 	return NULL;
@@ -130,8 +131,8 @@ gs_find_best_typed_sel (SEL sel)
     {
       SEL first_selector = selectors[0];
       SEL second_selector = selectors[1];
-      const char *first_selector_types = sel_getTypeEncoding (first_selector);
-      const char *second_selector_types = sel_getTypeEncoding (second_selector);
+      const char *first_selector_types = GSTypesFromSelector(first_selector);
+      const char *second_selector_types = GSTypesFromSelector(second_selector);
       free (selectors);
 
       if (first_selector_types && !second_selector_types)

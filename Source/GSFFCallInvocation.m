@@ -919,7 +919,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	{
 	  const char	*runtimeName = sel_getName(selector);
 
-	  selector = sel_getType_np(runtimeName, receiverTypes);
+	  runtimeTypes = GSTypesFromSelector(selector);
 	  if (selector == 0)
 	    {
 	      selector = GSSelectorFromNameAndTypes(runtimeName, receiverTypes);

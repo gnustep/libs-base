@@ -1,3 +1,12 @@
+2011-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m:
+	* Source/ObjectiveC2/runtime.c:
+	* Source/ObjectiveC2/runtime.h:
+	* Source/Additions/GSObjCRuntime.m:
+	Avoid messy runtime differences by using old runtime api for typed
+	selector features not in the Apple runtime.
+
 2011-02-27  Banlu Kemiyatorn <object@gmail.com>
 
 	* Source/NSOperation.m: Fix error checking condition for dependencies.

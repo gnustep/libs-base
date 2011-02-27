@@ -149,11 +149,28 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
     }
   else
     {
-#ifdef __GNU_LIBOBJC__
-      return sel_registerTypedName(name, types);
-#else
-      return sel_registerTypedName_np(name, types);
-#endif
+      SEL s;
+
+      if (types == 0)
+	{
+	  s = sel_get_any_typed_uid(name);
+	}
+      else
+	{
+	  s = sel_get_typed_uid(name, types);
+	}
+      if (s == 0)
+	{
+	  if (types == 0)
+	    {
+	      s = sel_register_name(name);
+	    }
+	  else
+	    {
+	      s = sel_register_typed_name(name, types);
+	    }
+	}
+      return s;
     }
 #endif
 }
@@ -164,12 +181,13 @@ GSTypesFromSelector(SEL sel)
   return 0;
 #else
   if (sel == 0)
-    return 0;
-#ifdef __GNU_LIBOBJC__
-  return sel_getTypeEncoding(sel);
-#else
-  return sel_getType_np(sel);
-#endif
+    {
+      return 0;
+    }
+  else
+    {
+      return sel_get_type(sel);
+    }
 #endif
 }
 void
@@ -1347,7 +1365,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
 
 	      cls = [self class];
 	      type_slot = objc_get_slot(cls, @selector(retain));
-	      typed = sel_registerTypedName_np(sel_getName(sel),
+	      typed = GSObjCSelectorFromNameAndTypes(sel_getName(sel),
 		type_slot->types);
 	      slot = objc_get_slot(cls, typed);
 	      if (strcmp(slot->types, type_slot->types) == 0)

@@ -291,14 +291,10 @@ static const id self = nil;
 
 const char *sel_getName(SEL sel);
 
-const char *sel_getType_np(SEL sel);
-
 SEL sel_getUid(const char *selName);
 
 BOOL sel_isEqual(SEL sel1, SEL sel2);
 
 SEL sel_registerName(const char *selName);
-
-SEL sel_registerTypedName_np(const char *selName, const char *types);
 
 #endif // __OBJECTIVEC2_RUNTIME_H_INCLUDED
