@@ -186,9 +186,9 @@ GSTypesFromSelector(SEL sel)
 #if NeXT_RUNTIME
   return 0;
 #elif defined (__GNU_LIBOBJC__)
-  return sel_getTypes(name);
+  return sel_getTypeEncoding(sel);
 #elif defined (__GNUSTEP_RUNTIME__)
-  return sel_getType_np(name);
+  return sel_getType_np(sel);
 #else
   if (sel == 0)
     {
