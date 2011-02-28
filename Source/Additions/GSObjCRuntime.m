@@ -137,11 +137,16 @@ GSSelectorFromName(const char *name)
 {
   return sel_getUid(name);
 }
+
 SEL
 GSSelectorFromNameAndTypes(const char *name, const char *types)
 {
 #if NeXT_RUNTIME
   return sel_getUid(name);
+#elif defined (__GNU_LIBOBJC__)
+  return sel_registerTypedName(name, types);
+#elif defined (__GNUSTEP_RUNTIME__)
+  return sel_registerTypedName_np(name, types);
 #else
   if (name == 0)
     {
@@ -174,11 +179,16 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
     }
 #endif
 }
+
 const char *
 GSTypesFromSelector(SEL sel)
 {
 #if NeXT_RUNTIME
   return 0;
+#elif defined (__GNU_LIBOBJC__)
+  return sel_getTypes(name);
+#elif defined (__GNUSTEP_RUNTIME__)
+  return sel_getType_np(name);
 #else
   if (sel == 0)
     {
@@ -190,6 +200,7 @@ GSTypesFromSelector(SEL sel)
     }
 #endif
 }
+
 void
 GSFlushMethodCacheForClass (Class cls)
 {
