@@ -90,14 +90,14 @@
  */
 - (id) initWithHexadecimalRepresentation: (NSString*)string
 {
-  CREATE_AUTORELEASE_POOL(arp);
-  NSData	*d;
-  const char	*src;
-  const char	*end;
-  unsigned char	*dst;
-  unsigned int	pos = 0;
-  unsigned char	byte = 0;
-  BOOL		high = NO;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  NSData		*d;
+  const char		*src;
+  const char		*end;
+  unsigned char		*dst;
+  unsigned int		pos = 0;
+  unsigned char		byte = 0;
+  BOOL			high = NO;
 
   d = [string dataUsingEncoding: NSASCIIStringEncoding
 	   allowLossyConversion: YES];
@@ -152,7 +152,7 @@
       DESTROY(self);
     }
   NSZoneFree(NSDefaultMallocZone(), dst);
-  RELEASE(arp);
+  [arp release];
   if (self == nil)
     {
       [NSException raise: NSInvalidArgumentException

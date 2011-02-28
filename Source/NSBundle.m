@@ -1904,9 +1904,9 @@ IF_NO_GC(
 		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName
 {
-  CREATE_AUTORELEASE_POOL(arp);
-  NSString	*result = nil;
-  NSArray	*array;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  NSString		*result = nil;
+  NSArray		*array;
 
   if ([ext length] == 0)
     {
@@ -1937,8 +1937,9 @@ IF_NO_GC(
 	    }
 	}
     }
-  IF_NO_GC([result retain]; DESTROY(arp);)
-  return AUTORELEASE(result);
+  [result retain];
+  [arp release];
+  return [result autorelease];
 }
 
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray

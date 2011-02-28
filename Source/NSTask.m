@@ -1150,7 +1150,7 @@ quotedFromString(NSString *aString)
       NSEnumerator	*enumerator;
       NSString		*key;
       unichar 		terminator = 0;
-      CREATE_AUTORELEASE_POOL(pool);
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
       // Win32 environment variables must be sorted by name
       enumerator = [[[env allKeys]

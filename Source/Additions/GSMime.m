@@ -5418,17 +5418,17 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   NSMutableArray	*partData = nil;
   NSMutableData		*md = [NSMutableData dataWithCapacity: 1024];
-  NSData	*d = nil;
-  NSEnumerator	*enumerator;
-  GSMimeHeader	*type;
-  GSMimeHeader	*enc;
-  GSMimeHeader	*hdr;
-  NSData	*boundary = 0;
-  BOOL		contentIsBinary = NO;
-  BOOL		contentIs7bit = YES;
-  NSUInteger	count;
-  NSUInteger	i;
-  CREATE_AUTORELEASE_POOL(arp);
+  NSData		*d = nil;
+  NSEnumerator		*enumerator;
+  GSMimeHeader		*type;
+  GSMimeHeader		*enc;
+  GSMimeHeader		*hdr;
+  NSData		*boundary = 0;
+  BOOL			contentIsBinary = NO;
+  BOOL			contentIs7bit = YES;
+  NSUInteger		count;
+  NSUInteger		i;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   if (isOuter == YES)
     {
@@ -5865,7 +5865,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  [md appendData: d];
 	}
     }
-  RELEASE(arp);
+  [arp release];
   return md;
 }
 
@@ -5960,9 +5960,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	       type: (NSString*)type
 	       name: (NSString*)name
 {
-  NSString	*subtype = nil;
-  GSMimeHeader	*hdr = nil;
-  CREATE_AUTORELEASE_POOL(arp);
+  NSString		*subtype = nil;
+  GSMimeHeader		*hdr = nil;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   if (type == nil)
     {
@@ -6028,7 +6028,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   [self setContent: newContent];
   [self setHeader: hdr];
-  RELEASE(arp);
+  [arp release];
 }
 
 /**
@@ -6040,10 +6040,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (void) setContentType: (NSString *)newType
 {
-  GSMimeHeader	*hdr = nil;
-  GSMimeParser	*p;
-  NSScanner	*scanner;
-  CREATE_AUTORELEASE_POOL(arp);
+  GSMimeHeader		*hdr = nil;
+  GSMimeParser		*p;
+  NSScanner		*scanner;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   p = AUTORELEASE([GSMimeParser new]);
   scanner = [NSScanner scannerWithString: newType];
@@ -6055,7 +6055,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 		  format: @"Unable to parse type information"];
     }
   [self setHeader: hdr];
-  RELEASE(arp);
+  [arp release];
 }
 
 /**
@@ -6704,7 +6704,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 {
   NS_DURING
     {
-      RETAIN(self);             // Make sure we don't get released until done.
+      [self retain];             // Make sure we don't get released until done.
 
       /* First perform all reads ... so we process incoming data,
        */
@@ -6830,7 +6830,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
             }
         }
 
-      RELEASE(self);
+      [self release];
     }
   NS_HANDLER
     {
@@ -7206,8 +7206,8 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
                                 port: pnum
                          inputStream: &internal->istream
                         outputStream: &internal->ostream];
-          RETAIN(internal->istream);
-          RETAIN(internal->ostream);
+          [internal->istream retain];
+          [internal->ostream retain];
           if (internal->istream == nil || internal->ostream == nil)
             {
               NSLog(@"Unable to connect to %@:%@", n, p);

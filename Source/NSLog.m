@@ -282,10 +282,10 @@ NSLog (NSString* format, ...)
 void
 NSLogv (NSString* format, va_list args)
 {
-  NSString	*prefix;
-  NSString	*message;
-  static int	pid = 0;
-  CREATE_AUTORELEASE_POOL(arp);
+  NSString		*prefix;
+  NSString		*message;
+  static int		pid = 0;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   if (_NSLog_printf_handler == NULL)
     {
@@ -357,6 +357,6 @@ NSLogv (NSString* format, va_list args)
 
   [myLock unlock];
 
-  RELEASE(arp);
+  [arp release];
 }
 

@@ -175,7 +175,7 @@ foundIgnorableWhitespace: (NSString *)string
 
       if (key == nil)
         {
-          key = RETAIN([NSNull null]);
+          key = [[NSNull null] retain];
         }
       [stack addObject: key];
       DESTROY(key);
@@ -191,7 +191,7 @@ foundIgnorableWhitespace: (NSString *)string
 
       if (key == nil)
         {
-          key = RETAIN([NSNull null]);
+          key = [[NSNull null] retain];
         }
       [stack addObject: key];
       DESTROY(key);

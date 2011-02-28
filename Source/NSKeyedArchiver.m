@@ -468,13 +468,13 @@ static NSDictionary *makeReference(unsigned ref)
 
 + (BOOL) archiveRootObject: (id)anObject toFile: (NSString*)aPath
 {
-  CREATE_AUTORELEASE_POOL(pool);
-  NSData	*d;
-  BOOL		result;
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  NSData		*d;
+  BOOL			result;
 
   d = [self archivedDataWithRootObject: anObject];
   result = [d writeToFile: aPath atomically: YES];
-  RELEASE(pool);
+  [pool release];
   return result;
 }
 
@@ -485,8 +485,6 @@ static NSDictionary *makeReference(unsigned ref)
 
 + (void) initialize
 {
-  GSMakeWeakPointer(self, "delegate");
-
 #if	GS_WITH_GC
   /* We create a typed memory descriptor for map nodes.
    */
@@ -495,6 +493,9 @@ static NSDictionary *makeReference(unsigned ref)
   GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
   nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
 #endif
+
+  GSMakeWeakPointer(self, "delegate");
+
   if (globalClassMap == 0)
     {
       globalClassMap =

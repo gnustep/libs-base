@@ -373,8 +373,8 @@ static NSArray	*empty = nil;
 
 - (void) start
 {
-  CREATE_AUTORELEASE_POOL(pool);
-  double	prio = [NSThread  threadPriority];
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  double		prio = [NSThread  threadPriority];
 
   [internal->lock lock];
   NS_DURING
@@ -452,7 +452,7 @@ static NSArray	*empty = nil;
     }
   NS_ENDHANDLER
   [internal->lock unlock];
-  RELEASE(pool);
+  [pool release];
 }
 
 - (double) threadPriority

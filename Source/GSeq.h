@@ -598,7 +598,6 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 {
   GSEQ_ST	s = (GSEQ_ST)ss;
   GSEQ_OT	o = (GSEQ_OT)os;
-  unsigned	myLength;
   unsigned	myIndex;
   unsigned	myEndIndex;
   unsigned	strLength;
@@ -617,10 +616,10 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
   NSRange	(*orImp)(NSString*, SEL, unsigned);
 #endif
   
-  /* Check that the search range is reasonable */
-  myLength = GSEQ_SLEN;
-
 #if	0
+  /* Check that the search range is reasonable */
+  unsigned	myLength = GSEQ_SLEN;
+
   /* Range should be checked in calling code */
   if (aRange.location > myLength)
     [NSException raise: NSRangeException format: @"Invalid location."];

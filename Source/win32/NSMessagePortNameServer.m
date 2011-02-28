@@ -70,7 +70,7 @@ static void clean_up_names(void)
   NSMessagePort	*port;
   NSString	*name;
   BOOL	unknownThread = GSRegisterCurrentThread();
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool *arp = [NSAutoreleasePool new];
 
   mEnum = NSEnumerateMapTable(portToNamesMap);
   while (NSNextMapEnumeratorPair(&mEnum, (void *)&port, (void *)&name))

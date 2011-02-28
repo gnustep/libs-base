@@ -683,7 +683,7 @@ _GSDebugAllocationRemove(Class c, id o)
 		    }
 		}
 	      [uniqueLock unlock];
-	      RELEASE(tag);
+	      [tag release];
 	      return;
 	    }
 	}
@@ -1088,7 +1088,7 @@ NSMutableArray *
 GSPrivateStackAddresses(void)
 {
   NSMutableArray        *stack;
-  NSAutoreleasePool     *pool;
+  NSAutoreleasePool	*pool;
 
 #if HAVE_BACKTRACE
   void                  *addresses[1024];
@@ -1182,7 +1182,7 @@ GSPrivateStackAddresses(void)
       signal(SIGBUS, env->bus);
     }
 #endif
-  RELEASE(pool);
+  [pool release];
   return stack;
 }
 

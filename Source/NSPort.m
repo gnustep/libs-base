@@ -154,13 +154,13 @@ static Class	NSPort_concrete_class;
  */
 - (void) invalidate
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   _is_valid = NO;
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSPortDidBecomeInvalidNotification
 		  object: self];
-  RELEASE(arp);
+  [arp release];
 }
 
 - (BOOL) isValid

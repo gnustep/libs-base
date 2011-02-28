@@ -116,10 +116,6 @@ static Class	mutableSetClass;
 {
   if (self == [GSSet class])
     {
-      arrayClass = [NSArray class];
-      setClass = [GSSet class];
-      mutableSetClass = [GSMutableSet class];
-      memberSel = @selector(member:);
 #if	GS_WITH_GC
       /* We create a typed memory descriptor for map nodes.
        * Only the pointer to the key needs to be scanned.
@@ -128,6 +124,10 @@ static Class	mutableSetClass;
       GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
       nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
 #endif
+      arrayClass = [NSArray class];
+      setClass = [GSSet class];
+      mutableSetClass = [GSMutableSet class];
+      memberSel = @selector(member:);
     }
 }
 
