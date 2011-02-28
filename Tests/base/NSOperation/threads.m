@@ -250,7 +250,7 @@ int main()
   [q setSuspended: NO];
   [q addOperations: a waitUntilFinished: YES];
   PASS(([list objectAtIndex: 0] == [a objectAtIndex: 1] && [list objectAtIndex: 1] == [a objectAtIndex: 0]), "operations ran in order of dependency");
-
+  PASS(1 == [[old dependencies] count], "dependencies not removed when done")
 
   [arp release]; arp = nil;
   return 0;
