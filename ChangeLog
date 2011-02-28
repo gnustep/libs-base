@@ -1,5 +1,10 @@
 2011-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSAutoreleasePool.m:
+	Implement dummy version for use with garbage collecting runtime.
+
+2011-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSTimeZone.m:
 	* Source/NSPortCoder.m:
 	* Source/NSBundle.m:
