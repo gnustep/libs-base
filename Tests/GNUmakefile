@@ -42,7 +42,7 @@ endif
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-TESTS_TOOL_NAMES=
+TEST_TOOL_NAMES=
 
 all::
 	@(echo If you want to run the gnustep-base testsuite, please type \'make check\')
