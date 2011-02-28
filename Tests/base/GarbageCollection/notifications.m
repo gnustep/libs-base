@@ -31,11 +31,13 @@ static unsigned finalisationCounter = 0;
 int
 main()
 {
-  NSGarbageCollector	*collector = [NSGarbageCollector defaultCollector];
+  NSGarbageCollector	*collector;
   NSNotificationCenter	*center;
   MyClass		*object;
 
-  if (collector == nil) return 0;	// No garbage collection.
+  START_SET("Garbage Collection");
+  collector = [NSGarbageCollector defaultCollector];
+  if (collector == nil) SKIP("GNUstep was not built for Garbage collection")
 
   center = [NSNotificationCenter defaultCenter];
   object = [MyClass new];
@@ -45,12 +47,13 @@ main()
 	       object: nil];
 
   [center postNotificationName: @"Notification" object: nil];
-  PASS([MyClass notificationCounter] == 1, "simple notification works");
+  PASS([MyClass notificationCounter] == 1, "simple notification works")
   object = nil;
   [collector collectExhaustively];
-  PASS([MyClass finalisationCounter] == 1, "finalisation done");
+  PASS([MyClass finalisationCounter] == 1, "finalisation done")
   [center postNotificationName: @"Notification" object: nil];
-  PASS([MyClass notificationCounter] == 1, "automatic removal works");
+  PASS([MyClass notificationCounter] == 1, "automatic removal works")
 
+  END_SET("Garbage Collection");
   return 0;
 }
