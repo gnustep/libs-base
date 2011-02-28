@@ -91,8 +91,11 @@ int main()
   NSOperationQueue      *q;
   int                   i;
   NSMutableArray        *a;
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
 
+  START_SET("concurrent operations")
+#if	defined(GNUSTEP)
+SKIP("Not yet working on gnustep")
+#endif
   testHopeful = YES;
 
   // single concurrent operation
@@ -142,6 +145,6 @@ int main()
       PASS(([obj getCalculation] == (2*i)), "operation was performed");
     }
 
-  [arp release]; arp = nil;
+  END_SET("concurrent operations")
   return 0;
 }
