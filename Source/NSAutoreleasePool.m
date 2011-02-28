@@ -34,6 +34,132 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
 
+#if	GS_WITH_GC
+
+@implementation NSAutoreleasePool
+
+static NSAutoreleasePool	*pool = nil;
+
++ (void) initialize
+{
+  pool = NSAllocateObject(self, 0, NSDefaultMallocZone());
+  return;
+}
+
++ (id) allocWithZone: (NSZone*)zone
+{
+  return pool;
+}
+
++ (id) new
+{
+  return pool;
+}
+
+- (id) init
+{
+  return self;
+}
+
+- (unsigned) autoreleaseCount
+{
+  return 0;
+}
+
+- (unsigned) autoreleaseCountForObject: (id)anObject
+{
+  return 0;
+}
+
++ (unsigned) autoreleaseCountForObject: (id)anObject
+{
+  return 0;
+}
+
++ (id) currentPool
+{
+  return pool;
+}
+
++ (void) addObject: (id)anObj
+{
+  return;
+}
+
+- (void) addObject: (id)anObj
+{
+  return;
+}
+
+- (void) drain
+{
+  static NSGarbageCollector	*collector = nil;
+  static SEL			sel;
+  static IMP			imp;
+
+  if (collector == nil)
+    {
+      collector = [NSGarbageCollector defaultCollector];
+      sel = @selector(collectIfNeeded);
+      imp = [collector methodForSelector: sel];
+    }
+  (*imp)(collector, sel);
+}
+
+- (id) retain
+{
+  [NSException raise: NSGenericException
+	       format: @"Don't call `-retain' on a NSAutoreleasePool"];
+  return self;
+}
+
+- (oneway void) release
+{
+  return;
+}
+
+- (void) dealloc
+{
+  GSNOSUPERDEALLOC;
+  return;
+}
+
+- (void) emptyPool
+{
+  return;
+}
+
+- (id) autorelease
+{
+  [NSException raise: NSGenericException
+	       format: @"Don't call `-autorelease' on a NSAutoreleasePool"];
+  return self;
+}
+
++ (void) _endThread: (NSThread*)thread
+{
+  return;
+}
+
++ (void) enableRelease: (BOOL)enable
+{
+  return;
+}
+
++ (void) freeCache
+{
+  return;
+}
+
++ (void) setPoolCountThreshhold: (unsigned)c
+{
+  return;
+}
+
+@end
+
+#else
+
 /* When this is `NO', autoreleased objects are never actually recorded
    in an NSAutoreleasePool, and are not sent a `release' message.
    Thus memory for objects use grows, and grows, and... */
@@ -310,21 +436,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 
 - (void) drain
 {
-#if	GS_WITH_GC
-  static NSGarbageCollector	*collector = nil;
-  static SEL			sel;
-  static IMP			imp;
-
-  if (collector == nil)
-    {
-      collector = [NSGarbageCollector defaultCollector];
-      sel = @selector(collectIfNeeded);
-      imp = [collector methodForSelector: sel];
-    }
-  (*imp)(collector, sel);
-#else
-  DESTROY(self);
-#endif
+  [self release];
 }
 
 - (id) retain
@@ -520,4 +632,4 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 }
 
 @end
-
+#endif
