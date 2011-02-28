@@ -759,7 +759,8 @@ static void _terminate()
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
-  CREATE_AUTORELEASE_POOL(pool);
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+
   fprintf(stderr, "%s: Uncaught exception %s, reason: %s\n",
     GSPrivateArgZero(),
     [[exception name] lossyCString], [[exception reason] lossyCString]);
@@ -770,7 +771,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 	[[[exception _callStack] description] lossyCString]);
     }
   fflush(stderr);	/* NEEDED UNDER MINGW */
-  RELEASE(pool);
+  [pool release];
   _terminate();
 }
 
@@ -907,8 +908,8 @@ callUncaughtHandler(id value)
 
 - (NSString*) description
 {
-  CREATE_AUTORELEASE_POOL(pool);
-  NSString      *result;
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  NSString      	*result;
 
   if (_e_name == nil)
     {
@@ -945,9 +946,9 @@ callUncaughtHandler(id value)
       result = [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
         [super description], _e_name, _e_reason];
     }
-  IF_NO_GC([result retain];)
-  IF_NO_GC(DESTROY(pool);)
-  return AUTORELEASE(result);
+  [result retain];
+  [pool release];
+  return [result autorelease];
 }
 
 - (void) raise

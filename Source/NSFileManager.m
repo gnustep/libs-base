@@ -666,7 +666,7 @@ static NSStringEncoding	defaultEncoding;
 	  NSString	*n = [a1 objectAtIndex: index];
 	  NSString	*p1;
 	  NSString	*p2;
-	  CREATE_AUTORELEASE_POOL(pool);
+	  NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
 	  p1 = [path1 stringByAppendingPathComponent: n];
 	  p2 = [path2 stringByAppendingPathComponent: n];
@@ -1404,12 +1404,12 @@ static NSStringEncoding	defaultEncoding;
 	  NSString		*item;
 	  NSString		*next;
 	  BOOL			result;
-	  CREATE_AUTORELEASE_POOL(arp);
+	  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
 	  item = [contents objectAtIndex: i];
 	  next = [path stringByAppendingPathComponent: item];
 	  result = [self removeFileAtPath: next handler: handler];
-	  RELEASE(arp);
+	  [arp release];
 	  if (result == NO)
 	    {
 	      return NO;
@@ -2700,7 +2700,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   NSDirectoryEnumerator	*enumerator;
   NSString		*dirEntry;
-  CREATE_AUTORELEASE_POOL(pool);
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
 
   enumerator = [self enumeratorAtPath: source];
   while ((dirEntry = [enumerator nextObject]))
@@ -2789,7 +2789,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
     }
-  RELEASE(pool);
+  [pool release];
 
   return YES;
 }
@@ -2801,7 +2801,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #ifdef HAVE_LINK
   NSDirectoryEnumerator	*enumerator;
   NSString		*dirEntry;
-  CREATE_AUTORELEASE_POOL(pool);
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
 
   enumerator = [self enumeratorAtPath: source];
   while ((dirEntry = [enumerator nextObject]))
@@ -2879,7 +2879,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
     }
-  RELEASE(pool);
+  [pool release];
   return YES;
 #else
   return NO;

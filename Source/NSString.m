@@ -2270,7 +2270,7 @@ handle_printf_atsign (FILE *stream,
       int prefix_len = 0;
       unsigned	length = [self length];
       unsigned	aLength = [aString length];
-      unichar *u,*w;
+      unichar *u;
       unichar a1[length+1];
       unichar *s1 = a1;
       unichar a2[aLength+1];
@@ -2281,7 +2281,6 @@ handle_printf_atsign (FILE *stream,
       [aString getCharacters: s2 range: ((NSRange){0, aLength})];
       s2[aLength] = (unichar)0;
       u = s1;
-      w = s2;
 
       if (mask & NSCaseInsensitiveSearch)
 	{

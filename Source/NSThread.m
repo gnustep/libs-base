@@ -829,7 +829,7 @@ static void *nsthreadLauncher(void* thread)
 
   /* The thread must persist until it finishes executing.
    */
-  RETAIN(self);
+  [self retain];
 
   /* Mark the thread as active whiul it's running.
    */

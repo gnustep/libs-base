@@ -723,7 +723,7 @@ static Class	GSInlineArrayClass;
       index++;
     }
   _contents_array[_count] = 0;
-  RELEASE(obj);	/* Adjust array BEFORE releasing object.	*/
+  [obj release];	/* Adjust array BEFORE releasing object.	*/
   _version++;
 }
 
@@ -788,9 +788,9 @@ static Class	GSInlineArrayClass;
    *	array in case a retain or release causes an exception.
    */
   obj = _contents_array[index];
-  IF_NO_GC(RETAIN(anObject));
+  [anObject retain];
   _contents_array[index] = anObject;
-  RELEASE(obj);
+  [obj release];
   _version++;
 }
 

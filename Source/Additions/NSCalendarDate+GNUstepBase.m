@@ -54,7 +54,7 @@
    */
   if (dayOfWeek != 4)
     {
-      CREATE_AUTORELEASE_POOL(arp);
+      NSAutoreleasePool	*arp = [NSAutoreleasePool new];
       NSCalendarDate	*thursday;
 
       /*
@@ -72,7 +72,7 @@
 				 minutes: 0
 				 seconds: 0];
       dayOfYear = [thursday dayOfYear];
-      RELEASE(arp);
+      [arp release];
     }
   else
     {

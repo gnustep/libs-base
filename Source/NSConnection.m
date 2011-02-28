@@ -634,8 +634,6 @@ static NSLock	*cached_proxies_gate = nil;
     {
       NSNotificationCenter	*nc;
 
-      GSMakeWeakPointer(self, "delegate");
-
 #if	GS_WITH_GC
       /* We create a typed memory descriptor for map nodes.
        * FIXME
@@ -645,6 +643,8 @@ static NSLock	*cached_proxies_gate = nil;
       GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
       nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
 #endif
+
+      GSMakeWeakPointer(self, "delegate");
       connectionClass = self;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];
@@ -708,17 +708,17 @@ static NSLock	*cached_proxies_gate = nil;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
 						         host: (NSString*)h
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSConnection		*connection;
   NSDistantObject	*proxy = nil;
 
   connection = [self connectionWithRegisteredName: n host: h];
   if (connection != nil)
     {
-      proxy = RETAIN([connection rootProxy]);
+      proxy = [[connection rootProxy] retain];
     }
-  RELEASE(arp);
-  return AUTORELEASE(proxy);
+  [arp release];
+  return [proxy autorelease];
 }
 
 /**
@@ -734,7 +734,7 @@ static NSLock	*cached_proxies_gate = nil;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
   host: (NSString*)h usingNameServer: (NSPortNameServer*)s
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSConnection		*connection;
   NSDistantObject	*proxy = nil;
 
@@ -745,7 +745,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       proxy = RETAIN([connection rootProxy]);
     }
-  RELEASE(arp);
+  [arp release];
   return AUTORELEASE(proxy);
 }
 
@@ -1305,12 +1305,12 @@ static NSLock	*cached_proxies_gate = nil;
    * is done before the deallocation completes.
    */
   {
-    CREATE_AUTORELEASE_POOL(arp);
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
     [[NSNotificationCenter defaultCenter]
       postNotificationName: NSConnectionDidDieNotification
 		    object: self];
-    RELEASE(arp);
+    [arp release];
   }
 
   /*
@@ -1885,7 +1885,7 @@ static NSLock	*cached_proxies_gate = nil;
 
 - (void) finalize
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   if (debug_connection)
     NSLog(@"finalising %@", self);
@@ -1950,7 +1950,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   DESTROY(IrefGate);
 
-  RELEASE(arp);
+  [arp release];
 }
 
 /*

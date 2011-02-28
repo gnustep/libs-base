@@ -423,7 +423,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 - (void) _checkPerformers: (GSRunLoopCtxt*)context
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+
   if (context != nil)
     {
       GSIArray	performers = context->performers;
@@ -481,11 +482,11 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	    {
 	      [array[i] fire];
 	      RELEASE(array[i]);
-	      IF_NO_GC([arp emptyPool]);
+	      IF_NO_GC([arp emptyPool];)
 	    }
 	}
     }
-  RELEASE(arp);
+  [arp release];
 }
 
 /**
@@ -715,7 +716,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
        */
       if ([GSCurrentThread() isMainThread] == YES)
         {
-          CREATE_AUTORELEASE_POOL	(arp);
+          NSAutoreleasePool		*arp = [NSAutoreleasePool new];
           GSRunLoopCtxt	                *context;
           NSNotificationCenter	        *ctr;
           NSNotification		*not;
@@ -756,7 +757,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
                                            userInfo: nil
                                             repeats: YES];
           context->housekeeper = timer;
-          RELEASE(arp);
+          [arp release];
         }
     }
   return current;
@@ -942,7 +943,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   if (context != nil)
     {
       NSString		*savedMode = _currentMode;
-      CREATE_AUTORELEASE_POOL(arp);
+      NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
       _currentMode = mode;
       NS_DURING
@@ -982,7 +983,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                 {
                   [t fire];
                   GSPrivateNotifyASAP(_currentMode);
-                  IF_NO_GC([arp emptyPool]);
+                  IF_NO_GC([arp emptyPool];)
 		  updateTimer(t, d, now);
                 }
             }
@@ -1007,7 +1008,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 		      GSIArrayRemoveItemAtIndexNoRelease(timers, i);
 		      [t fire];
 		      GSPrivateNotifyASAP(_currentMode);
-		      IF_NO_GC([arp emptyPool]);
+		      IF_NO_GC([arp emptyPool];)
 		      if (updateTimer(t, d, now) == YES)
 			{
 			  /* Updated ... replace in array.
@@ -1069,7 +1070,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	}
       NS_ENDHANDLER
 
-      RELEASE(arp);
+      [arp release];
 
       if (when == nil)
         {
@@ -1119,7 +1120,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   NSTimeInterval	ti = 0;
   int			timeout_ms;
   NSString		*savedMode = _currentMode;
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   NSAssert(mode, NSInvalidArgumentException);
   if (mode == nil)
@@ -1163,7 +1164,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	    }
 	  GSPrivateNotifyASAP(_currentMode);
 	  _currentMode = savedMode;
-	  RELEASE(arp);
+	  [arp release];
 	  NS_VOIDRETURN;
 	}
 
@@ -1221,7 +1222,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       [localException raise];
     }
   NS_ENDHANDLER
-  RELEASE(arp);
+  [arp release];
 }
 
 /**
@@ -1238,8 +1239,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
  */
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
-  CREATE_AUTORELEASE_POOL(arp);
-  NSDate	*d;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  NSDate		*d;
 
   NSAssert(mode != nil, NSInvalidArgumentException);
 
@@ -1247,7 +1248,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   d = [self limitDateForMode: mode];
   if (d == nil)
     {
-      RELEASE(arp);
+      [arp release];
       return NO;
     }
 
@@ -1260,13 +1261,13 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
     {
       d = [d earlierDate: date];
     }
-  IF_NO_GC(RETAIN(d));
+  [d retain];
 
   /* Wait, listening to our input sources. */
   [self acceptInputForMode: mode beforeDate: d];
 
-  RELEASE(d);
-  RELEASE(arp);
+  [d release];
+  [arp release];
   return YES;
 }
 

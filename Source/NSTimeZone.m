@@ -993,7 +993,7 @@ static NSMapTable	*absolutes = 0;
     }
   if (abbreviationDictionary == nil)
     {
-      CREATE_AUTORELEASE_POOL(pool);
+      NSAutoreleasePool	*pool = [NSAutoreleasePool new];
       NSString		*path;
 
       path = _time_zone_path (ABBREV_DICT, @"plist");
@@ -1038,7 +1038,7 @@ static NSMapTable	*absolutes = 0;
 	  [md makeImmutableCopyOnFail: NO];
 	  abbreviationDictionary = md;
 	}
-      RELEASE(pool);
+      [pool release];
     }
   if (zone_mutex != nil)
     {
@@ -1067,7 +1067,7 @@ static NSMapTable	*absolutes = 0;
     }
   if (abbreviationMap == nil)
     {
-      CREATE_AUTORELEASE_POOL(pool);
+      NSAutoreleasePool		*pool = [NSAutoreleasePool new];
       NSMutableDictionary	*md;
       NSMutableArray		*ma;
       NSString			*the_name;
@@ -1184,7 +1184,7 @@ static NSMapTable	*absolutes = 0;
 
       [md makeImmutableCopyOnFail: NO];
       abbreviationMap = RETAIN(md); 
-      RELEASE(pool);
+      [pool release];
     }
   if (zone_mutex != nil)
     {
@@ -1717,9 +1717,10 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
     }
   if (regionsArray == nil)
     {
-      CREATE_AUTORELEASE_POOL(pool);
-      int index, i;
-      char name[80];
+      NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+      int		index;
+      int		i;
+      char		name[80];
       FILE		*fp;
       NSMutableArray	*temp_array[24];
       NSString		*path;
@@ -1839,7 +1840,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 	    }
 	}
       regionsArray = [[NSArray alloc] initWithObjects: temp_array count: 24];
-      RELEASE(pool);
+      [pool release];
     }
   if (zone_mutex != nil)
     {

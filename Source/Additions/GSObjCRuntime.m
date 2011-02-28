@@ -1956,11 +1956,11 @@ GSPrintf (FILE *fptr, NSString* format, ...)
 {
   static Class                  stringClass = 0;
   static NSStringEncoding       enc;
-  va_list       ap;
-  NSString      *message;
-  NSData        *data;
-  BOOL          ok = NO;
-  CREATE_AUTORELEASE_POOL(arp);
+  va_list       		ap;
+  NSAutoreleasePool		*arp = [NSAutoreleasePool new];
+  NSString      		*message;
+  NSData        		*data;
+  BOOL          		ok = NO;
 
   if (stringClass == 0)
     {
@@ -1976,7 +1976,7 @@ GSPrintf (FILE *fptr, NSString* format, ...)
     {
       data = [message dataUsingEncoding: NSUTF8StringEncoding];
     }
-  RELEASE(message);
+  [message release];
 
   if (data != nil)
     {
@@ -1987,7 +1987,7 @@ GSPrintf (FILE *fptr, NSString* format, ...)
           ok = YES;
         }
     }
-  RELEASE(arp);
+  [arp release];
   return ok;
 }
 

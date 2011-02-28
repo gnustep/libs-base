@@ -225,7 +225,7 @@ static NSMutableSet	*mySet = nil;
 static void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool *arp = [NSAutoreleasePool new];
   NSString	*arg0 = nil;
   int i;
 

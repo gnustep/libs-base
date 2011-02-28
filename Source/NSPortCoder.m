@@ -350,6 +350,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 {
   if (self == [NSPortCoder class])
     {
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
       connectionClass = [NSConnection class];
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableDataMalloc class];
@@ -365,14 +373,6 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       _eTagImp = [mutableDataClass instanceMethodForSelector: eTagSel];
       _xRefImp = [mutableDataClass instanceMethodForSelector: xRefSel];
       mutableDictionaryClass = [NSMutableDictionary class];
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
     }
 }
 

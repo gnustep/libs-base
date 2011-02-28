@@ -91,7 +91,7 @@ static void clean_up_names(void)
   NSMessagePort		*port;
   NSString		*name;
   BOOL			unknownThread = GSRegisterCurrentThread();
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   mEnum = NSEnumerateMapTable(portToNamesMap);
   while (NSNextMapEnumeratorPair(&mEnum, (void *)&port, (void *)&name))
@@ -99,7 +99,7 @@ static void clean_up_names(void)
       [defaultServer removePort: port];
     }
   NSEndMapTableEnumeration(&mEnum);
-  IF_NO_GC(DESTROY(arp);)
+  [arp release];
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();

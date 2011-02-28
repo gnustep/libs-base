@@ -1746,7 +1746,7 @@ static NSString	*endMarker = @"At end of incremental parse";
  * Creation of a new Parser by calling
  * -initWithSAXHandler:withContentsOfFile:
  * <example>
- * CREATE_AUTORELEASE_POOL(arp);
+ * NSAutoreleasePool *arp = [NSAutoreleasePool new];
  * GSSAXHandler *h = [GSDebugSAXHandler handler];
  * GSXMLParser  *p = [GSXMLParser parserWithSAXHandler: h
  *                                  withContentsOfFile: @"macos.xml"];

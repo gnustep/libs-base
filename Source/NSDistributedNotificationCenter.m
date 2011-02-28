@@ -736,13 +736,14 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  limit = [NSDate dateWithTimeIntervalSinceNow: 5.0];
 	  while (_remote == nil && [limit timeIntervalSinceNow] > 0)
 	    {
-              CREATE_AUTORELEASE_POOL(pool);
+              NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+
               [NSThread sleepForTimeInterval: 0.05];
 	      _remote = [NSConnection
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
-              IF_NO_GC([_remote retain];)
-              IF_NO_GC(DESTROY(pool);)
+              [_remote retain];
+              [pool release];
 	    }
 	  if (_remote == nil)
 	    {

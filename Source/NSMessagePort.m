@@ -1087,11 +1087,11 @@ static Class		messagePortClass;
 
 static void clean_up_sockets(void)
 {
-  NSMessagePort *port;
-  NSData	*name;
-  NSMapEnumerator mEnum;
-  BOOL	unknownThread = GSRegisterCurrentThread();
-  CREATE_AUTORELEASE_POOL(arp);
+  NSMessagePort		*port;
+  NSData		*name;
+  NSMapEnumerator	mEnum;
+  BOOL			unknownThread = GSRegisterCurrentThread();
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   mEnum = NSEnumerateMapTable(messagePortMap);
   while (NSNextMapEnumeratorPair(&mEnum, (void *)&name, (void *)&port))
@@ -1100,7 +1100,7 @@ static void clean_up_sockets(void)
 	unlink([name bytes]);
     }
   NSEndMapTableEnumeration(&mEnum);
-  IF_NO_GC(DESTROY(arp);)
+  [arp release];
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();

@@ -1,3 +1,37 @@
+2011-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m:
+	* Source/NSPortCoder.m:
+	* Source/NSBundle.m:
+	* Source/NSPropertyList.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSRunLoop.m:
+	* Source/NSOperation.m:
+	* Source/NSUserDefaults.m:
+	* Source/GSArray.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSDebug.m:
+	* Source/NSPort.m:
+	* Source/NSMessagePort.m:
+	* Source/win32/NSMessagePortNameServer.m:
+	* Source/NSFileManager.m:
+	* Source/NSException.m:
+	* Source/NSString.m:
+	* Source/Additions/NSData+GNUstepBase.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/NSCalendarDate+GNUstepBase.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/GSSet.m:
+	* Source/NSConnection.m:
+	* Source/NSThread.m:
+	* Source/GSeq.h:
+	* Source/NSLog.m:
+	* Source/NSTask.m:
+	Tweaks to avoid compiler warnings in garbage collecting environment.
+
 2011-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tests/GNUmakefile: Use gnustep-make to supply targets.

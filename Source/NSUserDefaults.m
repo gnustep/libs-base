@@ -1559,9 +1559,9 @@ static BOOL isLocked = NO;
 
       while ([_fileLock tryLock] == NO)
 	{
-	  CREATE_AUTORELEASE_POOL(arp);
-	  NSDate	*when;
-	  NSDate	*lockDate;
+	  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+	  NSDate		*when;
+	  NSDate		*lockDate;
 
 	  lockDate = [_fileLock lockDate];
 	  when = [NSDateClass dateWithTimeIntervalSinceNow: 0.1];
@@ -1576,7 +1576,7 @@ static BOOL isLocked = NO;
 	    {
 	      NSLog(@"Failed to lock user defaults database even after "
 		@"breaking old locks!");
-	      RELEASE(arp);
+	      [arp release];
 	      return NO;
 	    }
 
@@ -1593,7 +1593,7 @@ static BOOL isLocked = NO;
 	    {
 	      [NSThread sleepUntilDate: when];
 	    }
-	  RELEASE(arp);
+	  [arp release];
 	}
       isLocked = YES;
 
