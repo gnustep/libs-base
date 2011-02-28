@@ -176,7 +176,10 @@ int main()
   [tester setValue: m forKey: @"name"];
   PASS([tester valueForKey: @"name"] == m,
       "KVC works with mutable string");
-  PASS(rc + 1 == [m retainCount], "KVC retains object values");
+  if (nil == [NSGarbageCollector defaultCollector])
+    {
+      PASS(rc + 1 == [m retainCount], "KVC retains object values");
+    }
 
   [tester setValue:n forKey: @"num1"];
   PASS([[tester valueForKey: @"num1"] isEqualToNumber:n],
