@@ -281,18 +281,19 @@ GS_EXPORT SEL
 GSSelectorFromName(const char *name);
 
 /**
- * Return the selector for the specified name and types.  Returns a nul
- * pointer if the name is nul.  Uses any available selector if the types
- * argument is nul. <br />
- * Creates a new selector if necessary.
+ * Return the selector for the specified name and types.<br />
+ * Returns a nul pointer if the name is nul.<br />
+ * Creates a new selector if necessary.<br />
+ * Code must NOT rely on this providing a selector with type information.
  */
 GS_EXPORT SEL
 GSSelectorFromNameAndTypes(const char *name, const char *types);
 
 /**
- * Return the type information from the specified selector.
+ * Return the type information from the specified selector.<br />
  * May return a nul pointer if the selector was a nul pointer or if it
- * was not typed.
+ * was not typed (or if the runtime does not support typed selectors).<br />
+ * Code must NOT rely on this providing any type information.
  */
 GS_EXPORT const char *
 GSTypesFromSelector(SEL sel);
