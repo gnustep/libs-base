@@ -40,14 +40,18 @@ ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before running this!)
 endif
 
-all:
+include $(GNUSTEP_MAKEFILES)/common.make
+
+TESTS_TOOL_NAMES=
+
+all::
 	@(echo If you want to run the gnustep-base testsuite, please type \'make check\')
 
-check:
+check::
 	gnustep-tests base
 
-clean:
+clean::
 	gnustep-tests --clean
 
-install:
+include $(GNUSTEP_MAKEFILES)/test-tool.make
 

@@ -1,5 +1,9 @@
 2011-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tests/GNUmakefile: Use gnustep-make to supply targets.
+
+2011-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFFCallInvocation.m:
 	* Source/ObjectiveC2/runtime.c:
 	* Source/ObjectiveC2/runtime.h:
