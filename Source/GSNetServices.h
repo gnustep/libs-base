@@ -115,7 +115,11 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
          avahiIfIndex: (int)anIfIndex
         avahiProtocol: (int)aProtocol;
 
+#if GS_USE_AVAHI==1
 - (id<NSObject,GSNetServiceDelegate>)delegate;
+#else
+- (id<NSObject>)delegate;
+#endif
 @end
 
 /**
