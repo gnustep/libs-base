@@ -991,6 +991,10 @@ replacementForClass(Class c)
       newValue = null;
     }
 
+  /* Retain self so that we won't be deallocated during the
+   * notification process.
+   */
+  [self retain];
   count = [observations count];
   while (count-- > 0)
     {
@@ -1028,6 +1032,7 @@ replacementForClass(Class c)
   [oldValue release];
   [change setObject: newValue forKey: NSKeyValueChangeNewKey];
   [newValue release];
+  [self release];
 }
 @end
 
