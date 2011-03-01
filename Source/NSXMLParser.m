@@ -615,8 +615,9 @@ NewUTF8STR(const void *ptr, int len)
   return s;
 }
 
-typedef struct NSXMLParserIvarsType
+@interface GSXMLParserIvars : NSObject
 {
+@public
   NSMutableArray        *tagPath;	// hierarchy of tags
   NSMutableArray        *namespaces;
   NSMutableDictionary	*defaults;
@@ -643,8 +644,10 @@ typedef struct NSXMLParserIvarsType
   IMP	foundCharacters;
   IMP	foundComment;
   IMP	foundIgnorable;
-  
-} NSXMLParserIvars;
+} 
+@end
+@implementation	GSXMLParserIvars
+@end
 
 static SEL	didEndElementSel = 0;
 static SEL	didEndMappingPrefixSel;
@@ -665,7 +668,7 @@ static SEL	foundIgnorableSel;
 
 #define _parser (self->_parser)
 #define _handler (self->_handler)
-#define	this	((NSXMLParserIvars*)_parser)
+#define	this	((GSXMLParserIvars*)_parser)
 #define	_del	((id)_handler)
 
 + (void) initialize
@@ -714,7 +717,7 @@ static SEL	foundIgnorableSel;
       RELEASE(this->tagPath);
       RELEASE(this->namespaces);
       RELEASE(this->defaults);
-      NSZoneFree([self zone], this);
+      [this release];
       _parser = 0;
       _handler = 0;
     }
@@ -744,8 +747,7 @@ static SEL	foundIgnorableSel;
 	{
 	  NSStringEncoding	enc;
 
-	  _parser = NSZoneMalloc([self zone], sizeof(NSXMLParserIvars));
-	  memset(_parser, '\0', sizeof(NSXMLParserIvars));
+	  _parser = [GSXMLParserIvars new];
 	  /* Determine character encoding and convert to utf-8 if needed.
 	   */
 	  enc = [GSMimeDocument encodingFromCharset:

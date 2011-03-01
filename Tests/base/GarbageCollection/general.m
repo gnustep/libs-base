@@ -4,12 +4,13 @@
 int
 main()
 {
-  START_SET("Garbage collection");
   NSGarbageCollector	*collector;
   NSZone		*z;
 
   collector = [NSGarbageCollector defaultCollector];
-  if (collector == nil) SKIP("GNUstep was not built for Garbage collection")
+  if (collector == nil) return 0;
+
+  START_SET("Garbage collection");
 
   PASS([collector zone] == NSDefaultMallocZone(),
     "collector zone is default")

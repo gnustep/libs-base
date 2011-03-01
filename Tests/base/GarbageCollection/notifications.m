@@ -35,10 +35,10 @@ main()
   NSNotificationCenter	*center;
   MyClass		*object;
 
-  START_SET("Garbage Collection");
   collector = [NSGarbageCollector defaultCollector];
-  if (collector == nil) SKIP("GNUstep was not built for Garbage collection")
+  if (collector == nil) return 0;
 
+  START_SET("Garbage Collection");
   center = [NSNotificationCenter defaultCenter];
   object = [MyClass new];
   [center addObserver: object
