@@ -1,3 +1,9 @@
+2011-03-01  Niels Grewe <niels.grewe@halbordnung.de>
+	* Source/GSNetServices.h
+	* Headers/Additions/GNUstepBase/NSNetServices+GNUstepBase.h:
+	Declare a protocol for GNUstep specific delegate methods in
+	NSNetServices. 
+
 2011-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m:

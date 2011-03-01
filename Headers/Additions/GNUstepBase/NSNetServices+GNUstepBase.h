@@ -3,24 +3,24 @@
 
    Written by:  Niels Grewe <niels.grewe@halbordnung.de>
    Date: March 2010
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+   */
 
 #import <Foundation/NSNetServices.h>
 #import <GNUstepBase/GSConfig.h>
@@ -78,4 +78,38 @@
  */
 - (NSString*) fullServiceName;
 @end
+
+
+@protocol  GSNetServiceDelegate <NSNetServiceDelegate>
+#ifdef __clang__
+@optional
+#else
+@end
+@interface NSObject (GSNetServiceDelegateMethods)
+#endif // __clang__
+
+/**
+ * Notifies the delegate that the addresses for the <var>service</var> have
+ * changed.
+ */
+- (void)netService: (NSNetService*)service
+didUpdateAddresses: (NSArray*)addresses;
+
+/**
+ * Notifies the delegate that the record of the <var>type</var> given
+ * has changed.
+ */
+-  (void)netService: (NSNetService*)service
+didUpdateRecordData: (id)newData
+      forRecordType: (NSString*)type;
+
+/**
+ * Notifies the delegate that there was a problem when trying to monitor a
+ * resource record of <var>type</var> for updates.
+ */
+- (void)netService: (NSNetService*)service
+     didNotMonitor: (NSDictionary*)errorDict
+     forRecordType: (NSString*)type;
+@end
+
 #endif // GS_USE_AVAHI
