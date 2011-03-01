@@ -60,6 +60,10 @@ int main()
     [current localizedName: NSTimeZoneNameStyleStandard locale: locale],
     @"Brasilia Time",
     "Correctly localizes standard time zone name")
+
+  /* The next few depend on ICU issues
+   */
+  testHopeful = YES;
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleShortStandard locale: locale],
     @"GMT-03:00",
@@ -73,6 +77,8 @@ int main()
       locale: locale],
     @"GMT-02:00",
     "Correctly localizes short DST time zone name")
+  testHopeful = NO;
+
   RELEASE(locale);
   
   date = [NSDate dateWithTimeIntervalSince1970: 1.0];
