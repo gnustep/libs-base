@@ -120,30 +120,30 @@ int main()
       [fmt setNumberStyle: NSNumberFormatterCurrencyStyle];
       [fmt setLocale: [[NSLocale alloc] initWithLocaleIdentifier: @"pt_BR"]];
       
-      str = [fmt stringFromNumber: num];
-      PASS_EQUAL(str, @"+1.235",
+      testHopeful = YES;
+      PASS_EQUAL([fmt stringFromNumber: num], @"+1.235",
         "currency style does not include currency string");
+      testHopeful = NO;
       
       [fmt setPositivePrefix: @"+"];
-      str = [fmt stringFromNumber: num];
-      PASS_EQUAL(str, @"+1.235",
+      PASS_EQUAL([fmt stringFromNumber: num], @"+1.235",
         "positive prefix is set correctly for currency style");
       
       [fmt setPositiveSuffix: @"c"];
-      str = [fmt stringFromNumber: num];
-      
-      PASS_EQUAL(str, @"+1.235c", "prefix and suffix used properly")
+      PASS_EQUAL([fmt stringFromNumber: num], @"+1.235c",
+	"prefix and suffix used properly")
 
       num = [[[NSNumber alloc] initWithFloat: -1234.56] autorelease];
-      str = [fmt stringFromNumber: num];
-
-      PASS_EQUAL(str, @"(R$1.235)", "negativeFormat used for -ve number")
+      PASS_EQUAL([fmt stringFromNumber: num], @"(R$1.235)",
+	"negativeFormat used for -ve number")
 
       [fmt setNumberStyle: NSNumberFormatterNoStyle];
       [fmt setMaximumFractionDigits: 0];
-      str = [fmt stringFromNumber: num];
       
-      PASS_EQUAL(str, @"-01235", "format string of length 1")
+      testHopeful = YES;
+      PASS_EQUAL([fmt stringFromNumber: num], @"-01235",
+	"format string of length 1")
+      testHopeful = NO;
 
     END_SET("NSLocale")
 
