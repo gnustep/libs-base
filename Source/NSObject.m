@@ -1690,7 +1690,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (BOOL) isMemberOfClass: (Class)aClass
 {
-  return (object_getClass(self) == aClass) ? YES : NO;
+  return ([self class] == aClass) ? YES : NO;
 }
 
 /**
