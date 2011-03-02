@@ -1,3 +1,8 @@
+2011-03-02 Riccardo Mottola <rm@gnu.org>
+
+	*  base/NSNumberFormatter/basic.m:
+	Add test cor checking leading zeroes in fractional part.
+
 2011-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: ([-isMemberOfClass:]) test the class returned
@@ -16,7 +21,7 @@
 	* Source/GSNetServices.h
 	* Headers/Additions/GNUstepBase/NSNetServices+GNUstepBase.h:
 	Declare a protocol for GNUstep specific delegate methods in
-	NSNetServices. 
+	NSNetServices.
 
 2011-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 

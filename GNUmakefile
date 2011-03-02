@@ -68,7 +68,7 @@ SUBPROJECTS = Source
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   SUBPROJECTS += SSL
 endif
-SUBPROJECTS += Tools NSTimeZones Resources Tests
+SUBPROJECTS += Tools NSTimeZones Resources 
 
 -include Makefile.preamble
 

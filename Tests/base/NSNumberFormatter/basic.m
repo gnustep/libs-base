@@ -21,6 +21,12 @@ int main()
 
   PASS_EQUAL(str, @"1,234.57", "default format same as Cocoa");
 
+  num = [[[NSNumber alloc] initWithFloat: 1.01] autorelease];
+  str = [fmt stringFromNumber: num];
+
+  PASS_EQUAL(str, @"1.01", "Handle leading zeroes in fractional part: 1.01");
+
+
   [fmt setAllowsFloats: NO];
   str = [fmt stringForObjectValue: num];
 
