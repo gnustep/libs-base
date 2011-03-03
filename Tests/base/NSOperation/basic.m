@@ -110,7 +110,7 @@ int main()
   PASS(([obj1 maxConcurrentOperationCount] == NSOperationQueueDefaultMaxConcurrentOperationCount), "max concurrent set to default");
   PASS_EXCEPTION([obj1 setMaxConcurrentOperationCount: -1000000];,
   		 NSInvalidArgumentException,
-		 "NSOperationQueue cannot be given neagative count");
+		 "NSOperationQueue cannot be given negative count");
 
   obj2 = [NSOperation new];
   [obj1 addOperation: obj2];

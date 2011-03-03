@@ -22,15 +22,13 @@ int main()
   PASS_EQUAL(str, @"1,234.57", "default format same as Cocoa");
 
   num = [[[NSNumber alloc] initWithFloat: 1.01] autorelease];
-  str = [fmt stringFromNumber: num];
-
-  PASS_EQUAL(str, @"1.01", "Handle leading zeroes in fractional part: 1.01");
+  PASS_EQUAL([fmt stringFromNumber: num], @"1.01",
+    "Handle leading zeroes in fractional part: 1.01");
 
 
   [fmt setAllowsFloats: NO];
-  str = [fmt stringForObjectValue: num];
-
-  PASS_EQUAL(str, @"1,235", "round up for fractional part >0.5");
+  PASS_EQUAL([fmt stringForObjectValue: num], @"1,235",
+    "round up for fractional part >0.5");
 
   num = [[[NSNumber alloc] initWithFloat: 1234.432] autorelease];
   str = [fmt stringForObjectValue: num];
