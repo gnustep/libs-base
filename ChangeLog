@@ -1,7 +1,12 @@
+2011-03-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Review memory management ... fix possible
+	free of non-heap memory.
+
 2011-03-02 Riccardo Mottola <rm@gnu.org>
 
 	*  base/NSNumberFormatter/basic.m:
-	Add test cor checking leading zeroes in fractional part.
+	Add test for checking leading zeroes in fractional part.
 
 2011-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
