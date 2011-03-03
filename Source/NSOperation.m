@@ -45,11 +45,14 @@
 
 #define	GS_NSOperationQueue_IVARS \
   NSRecursiveLock	*lock; \
+  NSConditionLock	*cond; \
   NSMutableArray	*operations; \
   NSMutableArray	*waiting; \
+  NSMutableArray	*starting; \
   NSString		*name; \
   BOOL			suspended; \
   NSInteger		executing; \
+  NSInteger		threadCount; \
   NSInteger		count;
 
 #import "Foundation/NSOperation.h"
@@ -65,6 +68,10 @@
 #define	GSInternal	NSOperationInternal
 #include	"GSInternal.h"
 GS_PRIVATE_INTERNAL(NSOperation)
+
+/* The pool of threads for 'non-concurrent' operations in a queue.
+ */
+#define	POOL	8
 
 static NSArray	*empty = nil;
 
@@ -539,6 +546,7 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
 @interface	NSOperationQueue (Private)
 + (void) _mainQueue;
 - (void) _execute;
+- (void) _thread;
 - (void) observeValueForKeyPath: (NSString *)keyPath
 		       ofObject: (id)object
                          change: (NSDictionary *)change
@@ -720,8 +728,10 @@ static NSOperationQueue *mainQueue = nil;
 - (void) dealloc
 {
   [internal->operations release];
+  [internal->starting release];
   [internal->waiting release];
   [internal->name release];
+  [internal->cond release];
   [internal->lock release];
   GS_DESTROY_INTERNAL(NSOperationQueue);
   [super dealloc];
@@ -735,8 +745,10 @@ static NSOperationQueue *mainQueue = nil;
       internal->suspended = NO;
       internal->count = NSOperationQueueDefaultMaxConcurrentOperationCount;
       internal->operations = [NSMutableArray new];
+      internal->starting = [NSMutableArray new];
       internal->waiting = [NSMutableArray new];
       internal->lock = [NSRecursiveLock new];
+      internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
     }
   return self;
 }
@@ -901,6 +913,75 @@ static NSOperationQueue *mainQueue = nil;
   [self _execute];
 }
 
+- (void) _thread
+{
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+
+  for (;;)
+    {
+      NSOperation	*op;
+      NSDate		*when;
+      BOOL		found;
+
+      when = [[NSDate alloc] initWithTimeIntervalSinceNow: 5.0];
+      found = [internal->cond lockWhenCondition: 1 beforeDate: when];
+      [when release];
+      if (NO == found)
+	{
+	  break;	// Idle for 5 seconds ... exit thread.
+	}
+
+      if ([internal->starting count] > 0)
+	{
+          op = [internal->starting objectAtIndex: 0];
+	  [internal->starting removeObjectAtIndex: 0];
+	}
+      else
+	{
+	  op = nil;
+	}
+
+      if ([internal->starting count] > 0)
+	{
+	  // Signal any other idle threads,
+          [internal->cond unlockWithCondition: 1];
+	}
+      else
+	{
+	  // There are no more operations starting.
+          [internal->cond unlockWithCondition: 0];
+	}
+
+      if (nil != op)
+	{
+          NS_DURING
+	    {
+	      NSAutoreleasePool	*opPool = [NSAutoreleasePool new];
+
+	      if (NO == [op isCancelled])
+		{
+		  [NSThread setThreadPriority: [op threadPriority]];
+		  [op main];
+		}
+	      [opPool release];
+	    }
+          NS_HANDLER
+	    {
+	      NSLog(@"Problem running operation %@ ... %@",
+		op, localException);
+	    }
+          NS_ENDHANDLER
+	  [op _finish];
+	}
+    }
+
+  [internal->lock lock];
+  internal->threadCount--;
+  [internal->lock unlock];
+  [pool release];
+  [NSThread exit];
+}
+
 /* Check for operations which can be executed and start them.
  */
 - (void) _execute
@@ -943,10 +1024,26 @@ static NSOperationQueue *mainQueue = nil;
 	}
       else
 	{
-	  // FIXME ... use a thread pool again in future.
-	  [NSThread detachNewThreadSelector: @selector(start)
-				   toTarget: op
-				 withObject: nil];
+	  NSUInteger	pending;
+
+	  [internal->cond lock];
+	  pending = [internal->starting count];
+	  [internal->starting addObject: op];
+
+	  /* Create a new thread if all existing threads are busy and
+	   * we haven't reached the pool limit.
+	   */
+	  if (0 == internal->threadCount
+	    || (pending > 0 && internal->threadCount < POOL))
+	    {
+	      internal->threadCount++;
+	      [NSThread detachNewThreadSelector: @selector(_thread)
+				       toTarget: self
+				     withObject: nil];
+	    }
+	  /* Tell the thread pool that there is an operation to start.
+	   */
+	  [internal->cond unlockWithCondition: 1];
 	}
     }
   [internal->lock unlock];
