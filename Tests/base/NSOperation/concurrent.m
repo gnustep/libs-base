@@ -93,10 +93,6 @@ int main()
   NSMutableArray        *a;
 
   START_SET("concurrent operations")
-#if	defined(GNUSTEP)
-SKIP("Not yet working on gnustep")
-#endif
-  testHopeful = YES;
 
   // single concurrent operation
   obj = [[MyOperation alloc] initWithValue: 1];
