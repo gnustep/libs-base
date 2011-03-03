@@ -77,19 +77,25 @@ static NSMapTable       *dependentKeyTable;
 static Class		baseClass;
 static id               null;
 
-static inline void setup()
+static inline void
+setup()
 {
-  if (kvoLock == nil)
+  if (nil == kvoLock)
     {
-      kvoLock = [GSLazyRecursiveLock new];
-      null = [[NSNull null] retain];
-      classTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 128);
-      infoTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 1024);
-      dependentKeyTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-          NSOwnedPointerMapValueCallBacks, 128);
-      baseClass = NSClassFromString(@"GSKVOBase");
+      [gnustep_global_lock lock];
+      if (nil == kvoLock)
+	{
+	  kvoLock = [GSLazyRecursiveLock new];
+	  null = [[NSNull null] retain];
+	  classTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	    NSNonOwnedPointerMapValueCallBacks, 128);
+	  infoTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	    NSNonOwnedPointerMapValueCallBacks, 1024);
+	  dependentKeyTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	      NSOwnedPointerMapValueCallBacks, 128);
+	  baseClass = NSClassFromString(@"GSKVOBase");
+	}
+      [gnustep_global_lock unlock];
     }
 }
 /*
@@ -373,7 +379,6 @@ replacementForClass(Class c)
   GSKVOReplacement *r;
 
   setup();
-
   [kvoLock lock];
   r = (GSKVOReplacement*)NSMapGet(classTable, (void*)c);
   if (r == nil)
