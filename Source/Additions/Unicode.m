@@ -304,7 +304,8 @@ static void GSSetupEncodingTable(void)
 		    }
 		}
 	    }
-	  encTable = NSZoneMalloc(NSDefaultMallocZone(),(encTableSize+1)*sizeof(struct _strenc_ *));
+	  encTable = NSZoneMalloc(NSDefaultMallocZone(),
+	    (encTableSize+1)*sizeof(struct _strenc_ *));
 	  memset(encTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
 
 	  /*
@@ -328,7 +329,8 @@ static void GSSetupEncodingTable(void)
 		  /*
 		   * See if we can do a lossy conversion.
 		   */
-		  lossy = NSZoneMalloc(NSDefaultMallocZone(),strlen(entry->iconv) + 12);
+		  lossy = NSZoneMalloc(NSDefaultMallocZone(),
+		    strlen(entry->iconv) + 12);
 		  strcpy(lossy, entry->iconv);
 		  strcat(lossy, "//TRANSLIT");
 		  c = iconv_open(UNICODE_ENC, entry->iconv);
@@ -472,8 +474,8 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
  *  deduced from the clocale string itself. If  clocale isn't set or
  *  no match can be found, returns GSUndefinedEncoding.
  */
-/* It would be really nice if this could be used in +defaultCStringEncoding, but
- * there are too many dependancies on other parts of the library to
+/* It would be really nice if this could be used in +defaultCStringEncoding,
+ * but there are too many dependancies on other parts of the library to
  * make this practical (even if everything possible was written in C,
  * we'd still need some way to find the Locale.encodings file).
  */
@@ -1485,7 +1487,7 @@ done:
 	}
     }
 #if	!GS_WITH_GC
-  else if (ptr != buf && (dst == 0 || ptr != *dst))
+  else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
@@ -2482,7 +2484,7 @@ iconv_start:
 	}
     }
 #if	!GS_WITH_GC
-  else if (ptr != buf && (dst == 0 || ptr != *dst))
+  else if (ptr != buf && (dst != 0 || ptr != *dst))
     {
       NSZoneFree(zone, ptr);
     }
