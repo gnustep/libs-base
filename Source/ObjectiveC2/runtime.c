@@ -1057,11 +1057,12 @@ objc_registerClassPair(Class cls)
     {
       return;	// Already registered
     }
-  if (Nil == existing)
+  else if (Nil != existing)
     {
       fprintf(stderr, "*** ERROR *** function objc_registerClassPair() called "
 	"for class pair with name ('%s') of existing class.\n",
 	class_getName(cls));
+      return;
     }
 
   // Initialize the dispatch table for the class and metaclass.
