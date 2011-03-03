@@ -182,16 +182,11 @@ int main()
   PASS(([obj ran] == YES), "operation ran");
   PASS(([obj thread] != [NSThread currentThread]), "operation ran in other thread");
 
-  /* Currently we start a new thread for each operation, so this next test
-   * won't pass until we re-implement a thread pool.
-   */
-  testHopeful = YES;
   PASS(([cnt count] == 0), "thread did not exit immediately");
   [obj release];
   /* Observer behavior on OSX 10.6 is that the thread exits after five seconds ... but who knows what that might change to. */
   [NSThread sleepForTimeInterval: 6.0];
   PASS(([cnt count] == 1), "thread exit occurs after six seconds");
-  testHopeful = NO;
 
   PASS(([NSOperationQueue currentQueue] == [NSOperationQueue mainQueue]), "current queue outside -main is main queue");
   PASS(([NSOperationQueue mainQueue] != nil), "main queue is not nil");

@@ -1,9 +1,13 @@
 2011-03-03  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSOperation.m: re-introduce per-queue thread pool.
+
+2011-03-03  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSOperation.m: reorganise and simplify code, removing the
 	pool of threads for handling operations (need to re-add this at a
 	later point, but probably as a separate class) ... implement
-	support for 'concurrent' operations (ones which mange their own
+	support for 'concurrent' operations (ones which manage their own
 	executions rather than running in a thread provided by the queue.
 
 2011-03-03  Richard Frith-Macdonald <rfm@gnu.org>
