@@ -105,7 +105,7 @@ int main()
       [fmt setPercentSymbol: @"##"];
       
       [fmt setNumberStyle: NSNumberFormatterPercentStyle];
-      PASS_EQUAL([fmt stringFromNumber: num], @"-123,443%",
+      PASS_EQUAL([fmt stringFromNumber: num], @"_123,443##",
         "Negative percentage correct");
       
       
@@ -155,7 +155,7 @@ int main()
       [fmt setNumberStyle: NSNumberFormatterNoStyle];
       
       testHopeful = YES;
-      PASS_EQUAL([fmt stringFromNumber: num], @"-01235",
+      PASS_EQUAL([fmt stringFromNumber: num], @"_01235",
 	"format string of length 1")
       testHopeful = NO;
 
