@@ -8,6 +8,7 @@ int main()
 
     NSNumberFormatter *fmt;
     NSNumber *num;
+    NSString *error;
     
     [NSNumberFormatter
       setDefaultFormatterBehavior: NSNumberFormatterBehavior10_0];
@@ -27,12 +28,11 @@ int main()
 
     [fmt setAllowsFloats: NO];
     num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
-    PASS_EQUAL([fmt stringForObjectValue: num], @"1,235",
-      "round up for fractional part >0.5")
+    PASS_EQUAL([fmt stringForObjectValue: num], @"1,234.57",
+      "-setAllowsFloats: does not effect rounding")
 
-    num = [[[NSNumber alloc] initWithFloat: 1234.432] autorelease];
-    PASS_EQUAL([fmt stringForObjectValue: num], @"1,234",
-      "round down for fractional part <0.5")
+    PASS(NO == [fmt getObjectValue: &num forString: @"1234.567"
+       errorDescription: 0], "float input is disallowed")
 
     [fmt setFormat: @"__000000"];
     PASS_EQUAL([fmt stringForObjectValue: num], @"  001234",
