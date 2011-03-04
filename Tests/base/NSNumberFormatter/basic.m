@@ -4,65 +4,60 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSNumberFormatter *fmt;
-  NSNumber *num;
-  NSString *str;
-  
-  [NSNumberFormatter setDefaultFormatterBehavior: NSNumberFormatterBehavior10_0];
+  START_SET("basic")
 
-  TEST_FOR_CLASS(@"NSNumberFormatter",[NSNumberFormatter alloc],
-                 "+[NSNumberFormatter alloc] returns a NSNumberFormatter");
+    NSNumberFormatter *fmt;
+    NSNumber *num;
+    
+    [NSNumberFormatter
+      setDefaultFormatterBehavior: NSNumberFormatterBehavior10_0];
 
-  fmt = [[[NSNumberFormatter alloc] init] autorelease];
-  num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
+    TEST_FOR_CLASS(@"NSNumberFormatter",[NSNumberFormatter alloc],
+     "+[NSNumberFormatter alloc] returns a NSNumberFormatter");
 
-  str = [fmt stringForObjectValue: num];
+    fmt = [[[NSNumberFormatter alloc] init] autorelease];
+    num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
 
-  PASS_EQUAL(str, @"1,234.57", "default format same as Cocoa");
+    PASS_EQUAL([fmt stringForObjectValue: num], @"1,234.57",
+      "default format same as Cocoa")
 
-  num = [[[NSNumber alloc] initWithFloat: 1.01] autorelease];
-  PASS_EQUAL([fmt stringFromNumber: num], @"1.01",
-    "Handle leading zeroes in fractional part: 1.01");
+    num = [[[NSNumber alloc] initWithFloat: 1.01] autorelease];
+    PASS_EQUAL([fmt stringFromNumber: num], @"1.01",
+      "Handle leading zeroes in fractional part: 1.01")
 
+    [fmt setAllowsFloats: NO];
+    num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
+    PASS_EQUAL([fmt stringForObjectValue: num], @"1,235",
+      "round up for fractional part >0.5")
 
-  [fmt setAllowsFloats: NO];
-  PASS_EQUAL([fmt stringForObjectValue: num], @"1,235",
-    "round up for fractional part >0.5");
+    num = [[[NSNumber alloc] initWithFloat: 1234.432] autorelease];
+    PASS_EQUAL([fmt stringForObjectValue: num], @"1,234",
+      "round down for fractional part <0.5")
 
-  num = [[[NSNumber alloc] initWithFloat: 1234.432] autorelease];
-  str = [fmt stringForObjectValue: num];
+    [fmt setFormat: @"__000000"];
+    PASS_EQUAL([fmt stringForObjectValue: num], @"  001234",
+      "numeric and space padding OK")
 
-  PASS_EQUAL(str, @"1,234", "round down for fractional part <0.5");
+    num = [[[NSNumber alloc] initWithFloat: 1234.56] autorelease];
+    [fmt setAllowsFloats: YES];
+    [fmt setPositiveFormat: @"$####.##c"];
+    [fmt setNegativeFormat: @"-$(####.##)"];
+    PASS_EQUAL([fmt stringForObjectValue: num], @"$1234.56c",
+      "prefix and suffix used properly")
 
-  [fmt setFormat: @"__000000"];
-  str = [fmt stringForObjectValue: num];
+    num = [[[NSNumber alloc] initWithFloat: -1234.56] autorelease];
+    PASS_EQUAL([fmt stringForObjectValue: num], @"-$(1234.56)",
+      "negativeFormat used for -ve number")
 
-  PASS_EQUAL(str, @"  001234", "numeric and space padding OK");
+    PASS_EQUAL([fmt stringForObjectValue: [NSDecimalNumber notANumber]], 
+      @"NaN", "notANumber special case")
 
-  num = [[[NSNumber alloc] initWithFloat: 1234.56] autorelease];
-  [fmt setAllowsFloats: YES];
-  [fmt setPositiveFormat: @"$####.##c"];
-  [fmt setNegativeFormat: @"-$(####.##)"];
-  str = [fmt stringForObjectValue: num];
+    [fmt setFormat: @"0"];
+    PASS_EQUAL([fmt stringForObjectValue: num], @"-1235",
+      "format string of length 1")
 
-  PASS_EQUAL(str, @"$1234.56c", "prefix and suffix used properly");
+  END_SET("basic")
 
-  num = [[[NSNumber alloc] initWithFloat: -1234.56] autorelease];
-  str = [fmt stringForObjectValue: num];
-
-  PASS_EQUAL(str, @"-$(1234.56)", "negativeFormat used for -ve number");
-
-  str = [fmt stringForObjectValue: [NSDecimalNumber notANumber]];
-
-  PASS_EQUAL(str, @"NaN", "notANumber special case");
-
-  [fmt setFormat: @"0"];
-  str = [fmt stringForObjectValue: num];
-
-  PASS_EQUAL(str, @"-1235", "format string of length 1");
-
-  [arp release]; arp = nil;
   return 0;
 }
 
