@@ -95,7 +95,22 @@ int main()
       str = [fmt stringFromNumber: num];
 
       PASS_EQUAL(str, @"1234.43", "round down for fractional part <0.5")
-
+      
+      num = [[[NSNumber alloc] initWithFloat: -1234.43] autorelease];
+      [fmt setMaximumFractionDigits: 1];
+      [fmt setMinusSign: @"_"];
+      PASS_EQUAL([fmt stringFromNumber: num], @"_1234.4",
+        "minus sign assigned correctly");
+      
+      [fmt setPercentSymbol: @"##"];
+      
+      [fmt setNumberStyle: NSNumberFormatterPercentStyle];
+      PASS_EQUAL([fmt stringFromNumber: num], @"-123,443%",
+        "Negative percentage correct");
+      
+      
+      num = [[[NSNumber alloc] initWithFloat: 1234.432] autorelease];
+      
       [fmt setNumberStyle: NSNumberFormatterNoStyle];
       [fmt setMaximumFractionDigits: 0];
       [fmt setFormatWidth: 6];
@@ -131,14 +146,13 @@ int main()
       
       [fmt setPositiveSuffix: @"c"];
       PASS_EQUAL([fmt stringFromNumber: num], @"+1.235c",
-	"prefix and suffix used properly")
+        "prefix and suffix used properly");
 
       num = [[[NSNumber alloc] initWithFloat: -1234.56] autorelease];
       PASS_EQUAL([fmt stringFromNumber: num], @"(R$1.235)",
-	"negativeFormat used for -ve number")
+        "negativeFormat used for -ve number");
 
       [fmt setNumberStyle: NSNumberFormatterNoStyle];
-      [fmt setMaximumFractionDigits: 0];
       
       testHopeful = YES;
       PASS_EQUAL([fmt stringFromNumber: num], @"-01235",
