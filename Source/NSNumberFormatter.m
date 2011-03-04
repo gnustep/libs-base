@@ -406,6 +406,24 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   /* FIXME: This is just a quick hack implementation.  */
   NSLog(@"NSNumberFormatter-getObjectValue:forString:... not fully implemented");
 
+  if (nil == string)
+    {
+      if (0 != error)
+	{
+	  *error = _(@"nil string");
+	}
+      return NO;
+    }
+
+  if (NO == [self allowsFloats] && [string rangeOfString: @"."].length > 0)
+    {
+      if (0 != error)
+	{
+	  *error = _(@"floating point values not allowed");
+	}
+      return NO;
+    }
+
   /* Just assume nothing else has been setup and do a simple conversion. */
   if ([self hasThousandSeparators])
     {
@@ -930,9 +948,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
           displayThousandsSeparators = YES;
         }
 
-      if ([self allowsFloats]
-        && (NSNotFound 
-      != [useFormat rangeOfString: defaultDecimalSeparator].location))
+      if (NSNotFound
+	!= [useFormat rangeOfString: defaultDecimalSeparator].location)
         {
           decimalPlaceRange = [useFormat rangeOfString: defaultDecimalSeparator
 			           options: NSBackwardsSearch];
