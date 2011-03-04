@@ -105,8 +105,10 @@ int main()
       [fmt setPercentSymbol: @"##"];
       
       [fmt setNumberStyle: NSNumberFormatterPercentStyle];
+      testHopeful = YES;
       PASS_EQUAL([fmt stringFromNumber: num], @"_123,443##",
         "Negative percentage correct");
+      testHopeful = NO;
       
       
       num = [[[NSNumber alloc] initWithFloat: 1234.432] autorelease];
