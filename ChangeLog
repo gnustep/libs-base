@@ -1,3 +1,8 @@
+2011-03-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumberFormatter.m: Fix -setAllowsFloats to only operate
+	in input strings.
+	
 2011-03-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueObserving.m: Fix possible thread race condition.
