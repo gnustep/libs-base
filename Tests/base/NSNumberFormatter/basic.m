@@ -27,6 +27,7 @@ int main()
       "Handle leading zeroes in fractional part: 1.01")
 
     [fmt setAllowsFloats: NO];
+
     num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
     PASS_EQUAL([fmt stringForObjectValue: num], @"1,234.57",
       "-setAllowsFloats: does not effect rounding")
@@ -34,12 +35,17 @@ int main()
     PASS(NO == [fmt getObjectValue: &num forString: @"1234.567"
        errorDescription: 0], "float input is disallowed")
 
+    [fmt getObjectValue: &num forString: @"1234.567" errorDescription: &error];
+    PASS_EQUAL(error, @"Floating Point not allowed", "allowsFloat error")
+
     [fmt setFormat: @"__000000"];
+    num = [[[NSNumber alloc] initWithFloat: 1234.432] autorelease];
     PASS_EQUAL([fmt stringForObjectValue: num], @"  001234",
       "numeric and space padding OK")
 
-    num = [[[NSNumber alloc] initWithFloat: 1234.56] autorelease];
     [fmt setAllowsFloats: YES];
+
+    num = [[[NSNumber alloc] initWithFloat: 1234.56] autorelease];
     [fmt setPositiveFormat: @"$####.##c"];
     [fmt setNegativeFormat: @"-$(####.##)"];
     PASS_EQUAL([fmt stringForObjectValue: num], @"$1234.56c",
