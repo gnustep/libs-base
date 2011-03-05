@@ -32,6 +32,7 @@
 
 #import	<Foundation/NSObject.h>
 #import <Foundation/NSEnumerator.h>
+#import <GNUstepBase/GSBlocks.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -78,6 +79,31 @@ extern "C" {
 #endif
 - (id) member: (id)anObject;
 - (NSEnumerator*) objectEnumerator;
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+
+DEFINE_BLOCK_TYPE(GSSetEnumeratorBlock, void, id, BOOL*);
+/**
+ * Enumerate over the collection using a given block.  The first argument is
+ * the object.  The second argument is a pointer to a BOOL indicating
+ * whether the enumeration should stop.  Setting this to YES will interupt
+ * the enumeration.
+ */
+- (void) enumerateObjectsUsingBlock:(GSSetEnumeratorBlock)aBlock;
+
+/**
+ * Enumerate over the collection using the given block.  The first argument is
+ * the object.  The second argument is a pointer to a BOOL indicating whether
+ * the enumeration should stop.  Setting  this to YES will interrupt the
+ * enumeration.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
+                          usingBlock: (GSSetEnumeratorBlock)aBlock;
+#endif
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
 - (NSSet *) setByAddingObject: (id)anObject;

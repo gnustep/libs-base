@@ -1,3 +1,9 @@
+2011-03-05  Tom Davie <beelsebob2>
+
+	* Source/NSSet.m:
+	* Headers/Foundation/NSSet.h:
+	Add block enumeration.
+
 2011-03-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Small optimisation suggested by Fred.

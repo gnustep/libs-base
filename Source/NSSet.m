@@ -38,6 +38,7 @@
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSFastEnumeration.h"
 
 @class	GSSet;
 @interface GSSet : NSObject	// Help the compiler
@@ -855,6 +856,28 @@ static Class NSMutableSet_concrete_class;
     }
 
   return result;
+}
+
+- (void) enumerateObjectsUsingBlock: (GSSetEnumeratorBlock)aBlock
+{
+  [self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
+}
+
+- (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
+                          usingBlock: (GSSetEnumeratorBlock)aBlock
+{
+  BOOL shouldStop = NO;
+  id<NSFastEnumeration> enumerator = self;
+  
+  FOR_IN (id, obj, enumerator)
+  {
+    CALL_BLOCK(aBlock, obj, &shouldStop);
+    if(shouldStop)
+    {
+      return;
+    }
+  }
+  END_FOR_IN(enumerator)
 }
 
 /** Return a set formed by adding anObject to the receiver.
