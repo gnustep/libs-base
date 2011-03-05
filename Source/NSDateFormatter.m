@@ -89,7 +89,6 @@ NSToUDateFormatStyle (NSDateFormatterStyle style)
   void      *_formatter
 
 #define	GSInternal		NSDateFormatterInternal
-#define	GS_INTERNAL_STRUCT	1
 #include	"GSInternal.h"
 GS_PRIVATE_INTERNAL(NSDateFormatter)
 

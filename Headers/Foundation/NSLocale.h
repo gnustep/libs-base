@@ -111,7 +111,7 @@ GS_EXPORT NSString * const NSISO8601Calendar;
    * Use this mechanism rather than changing the instance variable
    * layout (see Source/GSInternal.h for details).
    */
-  @private void *_internal GS_UNUSED_IVAR;
+  @private id _internal GS_UNUSED_IVAR;
 #endif
 }
 

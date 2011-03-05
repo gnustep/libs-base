@@ -1,5 +1,47 @@
 2011-03-05  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSInternal.h:
+	* Source/NSDateFormatter.m:
+	* Source/NSNumberFormatter.m:
+	* Headers/Foundation/NSPortCoder.h:
+	* Headers/Foundation/NSCache.h:
+	* Headers/Foundation/NSSpellServer.h:
+	* Headers/Foundation/NSDecimalNumber.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSTimer.h:
+	* Headers/Foundation/NSScanner.h:
+	* Headers/Foundation/NSDistributedNotificationCenter.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSUndoManager.h:
+	* Headers/Foundation/NSDateFormatter.h:
+	* Headers/Foundation/NSAutoreleasePool.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSXMLNode.h:
+	* Headers/Foundation/NSThread.h:
+	* Headers/Foundation/NSHost.h:
+	* Headers/Foundation/NSRegularExpression.h:
+	* Headers/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSProtocolChecker.h:
+	* Headers/Foundation/NSError.h:
+	* Headers/Foundation/NSPortMessage.h:
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/Foundation/NSDistributedLock.h:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSSortDescriptor.h:
+	* Headers/Foundation/NSLocale.h:
+	* Headers/Foundation/NSTask.h:
+	* Headers/Foundation/NSArchiver.h:
+	* Headers/Foundation/NSInvocation.h:
+	* Headers/Foundation/NSFileManager.h:
+	* Headers/Foundation/NSNumberFormatter.h:
+	* Headers/Foundation/NSPortNameServer.h:
+	* Headers/Foundation/NSXMLParser.h:
+	* Headers/Foundation/NSIndexPath.h:
+	* Headers/Additions/GNUstepBase/GSMime.h:
+	Tweaks for running in a garbage collecting environment.
+
+2011-03-05  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSBundle.m: AbsolutePathOfExecutable() attempt to fix this
 	to return a fully standardised path without symbolic links.
 	* Source/NSFileManager.m:
