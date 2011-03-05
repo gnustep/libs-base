@@ -207,7 +207,6 @@ ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
   void      *_formatter
  
 #define GSInternal              NSNumberFormatterInternal
-#define GS_INTERNAL_STRUCT      1
 #include        "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSNumberFormatter)
 
