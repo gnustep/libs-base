@@ -380,15 +380,13 @@ gnustep_base_thread_callback(void)
 	       * Won't work properly if threads are not all created
 	       * by this class, but it's better than nothing.
 	       */
-	      // FIXME: This code is complete nonsense; this can be called from
-	      // any thread (and is when adding new foreign threads), so this
-	      // will often be called from the wrong thread, delivering
-	      // notifications to the wrong thread, and generally doing the
-	      // wrong thing..
 	      if (nc == nil)
 		{
 		  nc = RETAIN([NSNotificationCenter defaultCenter]);
 		}
+#if	!defined(HAVE_INITIALIZE)
+	      NSLog(@"WARNING your program is becoming multi-threaded, but you are using an ObjectiveC runtime library which does not have a thread-safe implementation of the +initialize method.  This means that any classes not already used may be incorrectly initialised, potentially causing strange behaviors and crashes.  Please build/run GNUstep-base with a runtime which supports the +initialize method.");
+#endif
 	      [nc postNotificationName: NSWillBecomeMultiThreadedNotification
 				object: nil
 			      userInfo: nil];
@@ -536,11 +534,7 @@ unregisterActiveThread(NSThread *thread)
        * if we have become multi-threaded due to a call to the runtime directly
        * rather than via the NSThread class.
        */
-#if defined(__GNUSTEP_RUNTIME__) || defined(NeXT_RUNTIME)
-      gnustep_base_thread_callback();
-#else
       objc_set_thread_callback(gnustep_base_thread_callback);
-#endif
     }
 }
 

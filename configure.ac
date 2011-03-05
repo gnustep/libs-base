@@ -1458,6 +1458,66 @@ OBJC_SYS_DYNAMIC_LINKER()
 AC_CHECK_FUNCS(dladdr)
 
 #--------------------------------------------------------------------
+# Check for pthread.h 
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(pthread.h)
+if test $ac_cv_header_pthread_h = yes ; then
+  AC_CHECK_SIZEOF(pthread_mutex_t,,[AC_INCLUDES_DEFAULT
+#include <pthread.h>])
+  GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
+  if test $ac_cv_sizeof_pthread_mutex_t = 0 ; then
+    AC_MSG_ERROR([Unable to find size of pthread_mutex_t (required).])
+  fi
+  AC_SUBST(GS_SIZEOF_MUTEX_T)
+  AC_CHECK_SIZEOF(pthread_cond_t,,[AC_INCLUDES_DEFAULT
+#include <pthread.h>])
+  if test $ac_cv_sizeof_pthread_cond_t = 0 ; then
+    AC_MSG_ERROR([Unable to find size of pthread_cond_t (required).])
+  fi
+  GS_SIZEOF_COND_T=$ac_cv_sizeof_pthread_cond_t
+  AC_SUBST(GS_SIZEOF_COND_T)
+  AC_CHECK_ALIGNOF(pthread_mutex_t,[AC_INCLUDES_DEFAULT
+#include <pthread.h>])
+  GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_pthread_mutex_t
+  if test $ac_cv_alignof_pthread_mutex_t = 0 ; then
+    AC_MSG_ERROR([Unable to find align of pthread_mutex_t (required).])
+  fi
+  AC_SUBST(GS_ALIGNOF_MUTEX_T)
+  AC_CHECK_ALIGNOF(pthread_cond_t,[AC_INCLUDES_DEFAULT
+#include <pthread.h>])
+  if test $ac_cv_alignof_pthread_cond_t = 0 ; then
+    AC_MSG_ERROR([Unable to find align of pthread_cond_t (required).])
+  fi
+  GS_ALIGNOF_COND_T=$ac_cv_alignof_pthread_cond_t
+  AC_SUBST(GS_ALIGNOF_COND_T)
+else
+  AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
+fi
+AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
+ismingw=no
+case "$target_os" in
+  mingw*)	ismingw=yes;;
+esac
+if test $pthread_ok = yes ; then
+  LIBS="$LIBS -lpthread"
+else
+  if test $ismingw = yes ; then
+    AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+    if test $pthread_ok = yes ; then
+      LIBS="$LIBS -lpthreadGC2"
+    fi
+  fi
+fi
+if test $pthread_ok = no ; then
+  AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
+fi
+
+
+# Typically need librt on Solaris for sched_yield
+AC_CHECK_LIB(rt, sched_yield)
+
+
+#--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(whether objc really works)
@@ -1570,6 +1630,8 @@ else
 fi
 AC_SUBST(OBJCSYNC)
 
+# Don't revert any Objective-C flags as they are used in the next test
+
 #--------------------------------------------------------------------
 # Check for ObjC2 support in runtime
 #--------------------------------------------------------------------
@@ -1580,6 +1642,8 @@ else
   OBJC2RUNTIME=0
 fi
 AC_SUBST(OBJC2RUNTIME)
+
+# Don't revert any Objective-C flags as they are used in the next test
 
 GS_NONFRAGILE=0
 GS_MIXEDABI=0
@@ -1632,6 +1696,8 @@ if test $have_set_uncaught_exception_handler = yes; then
 fi
 AC_MSG_RESULT($have_set_uncaught_exception_handler)
 
+# Don't revert any Objective-C flags as they are used in the next test
+
 AC_MSG_CHECKING(for objc_set_unexpected() in runtime)
 AC_LINK_IFELSE([#include "$srcdir/config/config.set_unexpected.m"],
 	have_set_unexpected=yes, have_set_unexpected=no)
@@ -1640,6 +1706,8 @@ if test $have_set_unexpected = yes; then
 	    [Define if libobjc has the objc_set_unexpected() function])
 fi
 AC_MSG_RESULT($have_set_unexpected)
+
+# Don't revert any Objective-C flags as they are used in the next test
 
 AC_MSG_CHECKING(for _objc_unexpected_exception in runtime)
 AC_RUN_IFELSE([#include "$srcdir/config/config.unexpected.m"],
@@ -1670,6 +1738,19 @@ if test $ac_cv_func_objc_sync_enter = yes ; then
   HAVE_OBJC_SYNC_ENTER=yes
 fi
 AC_SUBST(HAVE_OBJC_SYNC_ENTER)
+
+# Don't revert any Objective-C flags as they are used in the next test
+
+AC_MSG_CHECKING(for thread-safe +initialize in runtime)
+AC_RUN_IFELSE([#include "$srcdir/config/config.initialize.m"],
+	safe_initialize=yes, safe_initialize=no)
+if test $safe_initialize = yes; then
+  AC_DEFINE(HAVE_INITIALIZE,1,
+	    [Define if libobjc has thread-safe +initialize support])
+else
+  AC_MSG_WARN([Your ObjectiveC runtime does not support thread-safe class initialisation.  Please use a different runtime if you intend to use threads.])
+fi
+AC_MSG_RESULT($safe_initialize)
 
 LIBS="$saved_LIBS"
 CPPFLAGS="$saved_CPPFLAGS"
@@ -1804,64 +1885,6 @@ if test $ac_cv_header_poll_h = yes; then
     AC_MSG_RESULT(yes)
   fi
 fi
-
-#--------------------------------------------------------------------
-# Check for pthread.h 
-#--------------------------------------------------------------------
-AC_CHECK_HEADERS(pthread.h)
-if test $ac_cv_header_pthread_h = yes ; then
-  AC_CHECK_SIZEOF(pthread_mutex_t,,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
-  if test $ac_cv_sizeof_pthread_mutex_t = 0 ; then
-    AC_MSG_ERROR([Unable to find size of pthread_mutex_t (required).])
-  fi
-  AC_SUBST(GS_SIZEOF_MUTEX_T)
-  AC_CHECK_SIZEOF(pthread_cond_t,,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  if test $ac_cv_sizeof_pthread_cond_t = 0 ; then
-    AC_MSG_ERROR([Unable to find size of pthread_cond_t (required).])
-  fi
-  GS_SIZEOF_COND_T=$ac_cv_sizeof_pthread_cond_t
-  AC_SUBST(GS_SIZEOF_COND_T)
-  AC_CHECK_ALIGNOF(pthread_mutex_t,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_pthread_mutex_t
-  if test $ac_cv_alignof_pthread_mutex_t = 0 ; then
-    AC_MSG_ERROR([Unable to find align of pthread_mutex_t (required).])
-  fi
-  AC_SUBST(GS_ALIGNOF_MUTEX_T)
-  AC_CHECK_ALIGNOF(pthread_cond_t,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  if test $ac_cv_alignof_pthread_cond_t = 0 ; then
-    AC_MSG_ERROR([Unable to find align of pthread_cond_t (required).])
-  fi
-  GS_ALIGNOF_COND_T=$ac_cv_alignof_pthread_cond_t
-  AC_SUBST(GS_ALIGNOF_COND_T)
-else
-  AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
-fi
-AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
-ismingw=no
-case "$target_os" in
-  mingw*)	ismingw=yes;;
-esac
-if test $pthread_ok = yes ; then
-  LIBS="$LIBS -lpthread"
-else
-  if test $ismingw = yes ; then
-    AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
-    if test $pthread_ok = yes ; then
-      LIBS="$LIBS -lpthreadGC2"
-    fi
-  fi
-fi
-if test $pthread_ok = no ; then
-  AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
-fi
-
-# Typically need librt on Solaris for sched_yield
-AC_CHECK_LIB(rt, sched_yield)
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m
@@ -2212,8 +2235,7 @@ elif test "$enable_pass_arguments" = "no"; then
   if test "$objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 -o "$ac_cv_sys_procfs_psinfo" = yes \); then
     GS_FAKE_MAIN=0
     if test "$have_kvm_env" = "1"; then
-      echo "WARNING ... using libkvm which is known to be buggy on some systems"
-      echo "consider configuring with --enable-fake-main instead."
+      AC_MSG_WARN([Using libkvm which is known to be buggy on some systems consider configuring with --enable-fake-main instead.])
     fi
   else
     GS_FAKE_MAIN=1
