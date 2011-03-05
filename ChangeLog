@@ -1,3 +1,20 @@
+2011-03-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumberFormatter.m: Make error text compatible with OSX
+	* Source/NSSpellServer.m: Use NSLanguages user default
+	* Source/NSBundle.m: Use NSLanguages user default
+	* Source/NSUserDefaults.m:
+	Revert recent attempt to avoid deadlocks (broke thread-safety).
+	Rewrite shared defaults initialisation and user language management
+	to break the complicated interrelationshp between methods which
+	made the  initialisation fragile and incomprehensible.
+	Language information derived from operating system or environment
+	variables (rather than the defaults database) is now stored in a
+	new volatile domain.
+	The +userLanguages method just returns the NSLanguages default,
+	and +setUserLanguages: now sets NSLanguages in the new volatile domain.
+	Simplify setup of shared user defaults to avoid deadlocks.
+
 2011-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: retain operation while finishing so that it

@@ -543,8 +543,10 @@ static NSRecursiveLock *classLock = nil;
   NSMutableArray *mArray;
   NSUInteger cnt;
   NSUInteger idx = 0;
-  NSArray *languages = [NSUserDefaults userLanguages];
+  NSArray *languages;
   
+  languages = [[NSUserDefaults standardUserDefaults]
+    stringArrayForKey: @"NSLanguages"];
   if (languages == nil)
     return [NSArray arrayWithObject: @"en"];
   
