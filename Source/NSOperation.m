@@ -794,8 +794,6 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) setMaxConcurrentOperationCount: (NSInteger)cnt
 {
-  BOOL	unSuspend = NO;
-
   if (cnt < 0
     && cnt != NSOperationQueueDefaultMaxConcurrentOperationCount)
     {
@@ -806,10 +804,6 @@ static NSOperationQueue *mainQueue = nil;
   [internal->lock lock];
   if (cnt != internal->count)
     {
-      if (cnt > internal->count)
-	{
-	  unSuspend = YES;		// May need to add more threads.
-	}
       [self willChangeValueForKey: @"maxConcurrentOperationCount"];
       internal->count = cnt;
       [self didChangeValueForKey: @"maxConcurrentOperationCount"];
@@ -834,15 +828,9 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) setSuspended: (BOOL)flag
 {
-  BOOL	unSuspend = NO;
-
   [internal->lock lock];
   if (flag != internal->suspended)
     {
-      if (YES == flag)
-	{
-	  unSuspend = YES;
-	}
       [self willChangeValueForKey: @"suspended"];
       internal->suspended = flag;
       [self didChangeValueForKey: @"suspended"];
