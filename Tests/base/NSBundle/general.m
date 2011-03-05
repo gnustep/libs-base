@@ -15,10 +15,10 @@ int main()
   NSString *path, *exepath;
 
   
-  gnustepBundle = [NSBundle bundleForLibrary: @"gnustep-base"];
-  
-  TEST_FOR_CLASS(@"NSBundle",gnustepBundle,
-    "+bundleForLibrary: makes a bundle for us");
+  PASS((
+    [(gnustepBundle = [NSBundle bundleForLibrary: @"gnustep-base"])
+      isKindOfClass: [NSBundle class]]),
+    "+bundleForLibrary: makes a bundle for us")
   
   PASS([gnustepBundle principalClass] == [NSObject class], 
     "-principalClass returns NSObject for the +bundleForLibrary:gnustep-base");
@@ -35,9 +35,9 @@ int main()
   PASS(classBundle == [NSBundle mainBundle], 
     "-mainBundle is the same as +bundleForClass:[TestClass class]");
 
-  PASS([[gnustepBundle classNamed:@"NSArray"] isEqual:[NSArray class]] &&
-       [[NSArray class] isEqual: [gnustepBundle classNamed:@"NSArray"]],
-       "-classNamed returns the correct class");
+  PASS([[gnustepBundle classNamed: @"NSArray"] isEqual: [NSArray class]]
+    && [[NSArray class] isEqual: [gnustepBundle classNamed: @"NSArray"]],
+    "-classNamed returns the correct class");
   
   TEST_STRING([gnustepBundle resourcePath],"-resourcePath returns a string");
   

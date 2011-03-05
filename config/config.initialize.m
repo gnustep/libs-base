@@ -4,6 +4,13 @@
 #include "objc-common.g"
 #include <pthread.h>
 
+
+#if defined(_WIN32)
+#define	mySleep(X)	usleep(1000*(X))
+#else
+#define	mySleep(X)	sleep(X)
+#endif
+
 static unsigned	initialize_entered = 0;
 static unsigned	initialize_exited = 0;
 static unsigned	class_entered = 0;
@@ -16,7 +23,7 @@ static BOOL	may_proceed = NO;
 {
   initialize_entered++;
   while (NO == may_proceed)
-    sleep(1);
+    mySleep(1);
   initialize_exited++;
 }
 + (Class) class
@@ -43,7 +50,7 @@ main()
 
       while (0 == initialize_entered && counter++ < 3)
 	{
-	  sleep(1);
+	  mySleep(1);
 	}
       if (0 == initialize_entered)
 	{
@@ -52,14 +59,14 @@ main()
 	}
       if (0 == pthread_create(&t1, 0, test, 0))
         {
-	  sleep(1);
+	  mySleep(1);
 	  if (class_entered > 0)
 	    {
 	      fprintf(stderr, "class entered prematurely\n");
 	      return 1;
 	    }
 	  may_proceed = YES;
-	  sleep(1);
+	  mySleep(1);
 	  if (2 == class_entered)
 	    {
 	      return 0;	// OK

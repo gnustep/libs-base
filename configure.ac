@@ -1518,6 +1518,11 @@ AC_CHECK_LIB(rt, sched_yield)
 
 
 #--------------------------------------------------------------------
+# One of these function needed by NSThread.m and objc initialize test
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(nanosleep usleep Sleep)
+
+#--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(whether objc really works)
@@ -2035,11 +2040,6 @@ if test $ac_cv_func_inet_ntop = yes ; then
   HAVE_INET_NTOP=yes
 fi
 AC_SUBST(HAVE_INET_NTOP)
-
-#--------------------------------------------------------------------
-# One of these function needed by NSThread.m
-#--------------------------------------------------------------------
-AC_CHECK_FUNCS(nanosleep usleep)
 
 #--------------------------------------------------------------------
 # For setting thread stack size
