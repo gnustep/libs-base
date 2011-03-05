@@ -1685,7 +1685,8 @@ IF_NO_GC(
   NSEnumerator		*enumerate;
 
   array = [NSMutableArray arrayWithCapacity: 8];
-  languages = [NSUserDefaults userLanguages];
+  languages = [[NSUserDefaults standardUserDefaults]
+    stringArrayForKey: @"NSLanguages"];
 
   primary = [rootPath stringByAppendingPathComponent: @"Resources"];
   [array addObject: _bundle_resource_path(primary, subPath, nil)];
@@ -1945,7 +1946,8 @@ IF_NO_GC(
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray
 {
   return [self preferredLocalizationsFromArray: localizationsArray
-	         forPreferences: [NSUserDefaults userLanguages]];
+    forPreferences: [[NSUserDefaults standardUserDefaults]
+    stringArrayForKey: @"NSLanguages"]];
 }
 
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray

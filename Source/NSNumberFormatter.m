@@ -419,7 +419,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     {
       if (0 != error)
 	{
-	  *error = _(@"floating point values not allowed");
+	  *error = _(@"Floating Point not allowed");
 	}
       return NO;
     }

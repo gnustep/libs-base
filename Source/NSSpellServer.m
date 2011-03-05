@@ -81,9 +81,12 @@ GSSpellServerName(NSString *vendor, NSString *language)
 // Non-private Instance methods
 - (id) init
 {
-  NSArray *userLanguages = [NSUserDefaults userLanguages];  
-  NSString *currentLanguage = [userLanguages objectAtIndex: 0];
+  NSArray *userPreference;
+  NSString *currentLanguage;
 
+  userPreference = [[NSUserDefaults standardUserDefaults]
+    stringArrayForKey: @"NSLanguages"];  
+  currentLanguage = [userPreference objectAtIndex: 0];
   if ((self = [super init]) != nil)
     {
       _delegate = nil;
