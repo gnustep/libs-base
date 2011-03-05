@@ -1,5 +1,10 @@
 2011-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSOperation.m: retain operation while finishing so that it
+	doesn't get deallocated too soon (when the queue removes it).
+
+2011-03-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNumberFormatter.m: Fix -setAllowsFloats to only operate
 	in input strings.
 	

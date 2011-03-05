@@ -458,18 +458,7 @@ static NSArray	*empty = nil;
     }
   NS_ENDHANDLER;
 
-  [internal->lock lock];
-  NS_DURING
-    {
-      [self _finish];
-    }
-  NS_HANDLER
-    {
-      [internal->lock unlock];
-      [localException raise];
-    }
-  NS_ENDHANDLER
-  [internal->lock unlock];
+  [self _finish];
   [pool release];
 }
 
@@ -513,6 +502,10 @@ static NSArray	*empty = nil;
 @implementation	NSOperation (Private)
 - (void) _finish
 {
+  /* retain while finishing so that we don't get deallocated when our
+   * queue removes and releases us.
+   */
+  [self retain];
   [internal->lock lock];
   if (NO == internal->finished)
     {
@@ -533,6 +526,7 @@ static NSArray	*empty = nil;
 	}
     }
   [internal->lock unlock];
+  [self release];
 }
 
 @end
