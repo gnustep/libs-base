@@ -2,6 +2,9 @@
 
 	* Source/NSBundle.m: AbsolutePathOfExecutable() attempt to fix this
 	to return a fully standardised path without symbolic links.
+	* Source/NSFileManager.m:
+	* Headers/Foundation/NSFileManager.h:
+	Rudimentary implementation of a couple of new methods.
 
 2011-03-05  Tom Davie <beelsebob2>
 

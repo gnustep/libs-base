@@ -1125,6 +1125,16 @@ static NSStringEncoding	defaultEncoding;
   return YES;
 }
 
+- (BOOL) copyItemAtPath: (NSString*)src
+		 toPath: (NSString*)dst
+		  error: (NSError**)error
+{
+  BOOL	result;
+
+  result = [self copyPath: src toPath: dst handler: nil];
+  return result;
+}
+
 /**
  * Moves the file or directory at source to destination, using a
  * handler object which should respond to
@@ -1209,6 +1219,16 @@ static NSStringEncoding	defaultEncoding;
     }
 
   return NO;
+}
+
+- (BOOL) moveItemAtPath: (NSString*)src
+		 toPath: (NSString*)dst
+		  error: (NSError**)error
+{
+  BOOL	result;
+
+  result = [self movePath: src toPath: dst handler: nil];
+  return result;
 }
 
 /**
