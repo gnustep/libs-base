@@ -219,6 +219,12 @@ typedef	uint32_t	OSType;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 - (NSDictionary *) attributesOfItemAtPath: (NSString*)path
 				    error: (NSError**)error;
+- (BOOL) copyItemAtPath: (NSString*)src
+		 toPath: (NSString*)dst
+		  error: (NSError**)error;
+- (BOOL) moveItemAtPath: (NSString*)src
+		 toPath: (NSString*)dst
+		  error: (NSError**)error;
 #endif
 
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path;
