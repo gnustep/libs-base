@@ -783,15 +783,15 @@ newLanguages(NSArray *oldNames)
 
 + (NSArray*) userLanguages
 {
-  return [[NSUserDefaults standardUserDefaults]
-    stringArrayForKey: @"NSLanguages"];
+  return [[self standardUserDefaults] stringArrayForKey: @"NSLanguages"];
 }
 
 + (void) setUserLanguages: (NSArray*)languages
 {
-  NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+  NSUserDefaults	*defs;
   NSMutableDictionary	*dict;
 
+  defs = [self standardUserDefaults];
   dict = [[defs volatileDomainForName: GSPrimaryDomain] mutableCopy];
   if (languages == nil)          // Remove the entry
     {

@@ -1,5 +1,15 @@
 2011-03-05  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSUserDefaults.m: Small optimisation suggested by Fred.
+	* config/config.initialize.m: Test for working +initialize
+	* configure.ac: Use test for +initialize thread safety
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* configure: regenerate
+	* Source/NSThread.m: Log warning when going multithreaded without
+	a reliable runtime.
+
+2011-03-05  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNumberFormatter.m: Make error text compatible with OSX
 	* Source/NSSpellServer.m: Use NSLanguages user default
 	* Source/NSBundle.m: Use NSLanguages user default
