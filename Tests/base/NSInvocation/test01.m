@@ -45,8 +45,11 @@ int main()
   retc = [[tar retObject] retainCount];
   [inv setSelector:@selector(retObject)];
   [inv invokeWithTarget:tar];
-  PASS(retc + 1 == [[tar retObject] retainCount],
-       "Retain return value");
+  if (nil == [NSGarbageCollector defaultCollector])
+    {
+      PASS(retc + 1 == [[tar retObject] retainCount],
+       "Retain return value")
+    }
   
   sig = [tar methodSignatureForSelector:@selector(loopObject:)];
   inv = [NSInvocation invocationWithMethodSignature: sig];
@@ -55,8 +58,11 @@ int main()
   [inv invokeWithTarget:tar];
   [inv retainArguments];
   [inv setArgument:&tar atIndex:2];
-  PASS(retc + 1 == [tar retainCount],
-       "Will Retain arguments after -retainArguments");
+  if (nil == [NSGarbageCollector defaultCollector])
+    {
+      PASS(retc + 1 == [tar retainCount],
+       "Will Retain arguments after -retainArguments")
+    }
   
   sig = [tar methodSignatureForSelector:@selector(loopObject:)];
   inv = [NSInvocation invocationWithMethodSignature: sig];
