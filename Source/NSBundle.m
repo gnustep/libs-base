@@ -159,78 +159,91 @@ static NSString	*library_combo =
 static NSString*
 AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 {
-  NSFileManager	*mgr = manager();
-  NSDictionary	*env;
-  NSString	*pathlist;
-  NSString	*prefix;
-  id		patharr;
+  if (NO == [path isAbsolutePath])
+    {
+      NSFileManager	*mgr = manager();
+      NSDictionary	*env;
+      NSString		*pathlist;
+      NSString		*prefix;
+      id		patharr;
+      NSString		*result = nil;
 
-  path = [path stringByStandardizingPath];
-  if ([path isAbsolutePath])
-    {
-      return path;
-    }
+      env = [[NSProcessInfo processInfo] environment];
+      pathlist = [env objectForKey:@"PATH"];
 
-  env = [[NSProcessInfo processInfo] environment];
-  pathlist = [env objectForKey:@"PATH"];
-
-/* Windows 2000 and perhaps others have "Path" not "PATH" */
-  if (pathlist == nil)
-    {
-      pathlist = [env objectForKey:@"Path"];
-    }
-#if defined(__MINGW__)
-  patharr = [pathlist componentsSeparatedByString:@";"];
-#else
-  patharr = [pathlist componentsSeparatedByString:@":"];
-#endif
-  /* Add . if not already in path */
-  if ([patharr indexOfObject: @"."] == NSNotFound)
-    {
-      patharr = AUTORELEASE([patharr mutableCopy]);
-      [patharr addObject: @"."];
-    }
-  patharr = [patharr objectEnumerator];
-  while ((prefix = [patharr nextObject]))
-    {
-      if ([prefix isEqual:@"."])
+    /* Windows 2000 and perhaps others have "Path" not "PATH" */
+      if (pathlist == nil)
 	{
-	  if (atLaunch == YES)
+	  pathlist = [env objectForKey:@"Path"];
+	}
+#if defined(__MINGW__)
+      patharr = [pathlist componentsSeparatedByString:@";"];
+#else
+      patharr = [pathlist componentsSeparatedByString:@":"];
+#endif
+      /* Add . if not already in path */
+      if ([patharr indexOfObject: @"."] == NSNotFound)
+	{
+	  patharr = AUTORELEASE([patharr mutableCopy]);
+	  [patharr addObject: @"."];
+	}
+      patharr = [patharr objectEnumerator];
+      while (nil != (prefix = [patharr nextObject]))
+	{
+	  if ([prefix isEqual:@"."])
 	    {
-	      prefix = _launchDirectory;
+	      if (atLaunch == YES)
+		{
+		  prefix = _launchDirectory;
+		}
+	      else
+		{
+		  prefix = [mgr currentDirectoryPath];
+		}
 	    }
+	  prefix = [prefix stringByAppendingPathComponent: path];
+	  if ([mgr isExecutableFileAtPath: prefix])
+	    {
+	      result = [prefix stringByStandardizingPath];
+	      break;
+	    }
+#if defined(__WIN32__)
 	  else
 	    {
-	      prefix = [mgr currentDirectoryPath];
-	    }
-	}
-      prefix = [prefix stringByAppendingPathComponent: path];
-      if ([mgr isExecutableFileAtPath: prefix])
-	{
-	  return [prefix stringByStandardizingPath];
-	}
-#if defined(__WIN32__)
-      {
-	NSString	*ext = [path pathExtension];
+	      NSString	*ext = [path pathExtension];
 
-	/* Also add common executable extensions on windows */
-	if (ext == nil || [ext length] == 0)
-	  {
-	    NSString *wpath;
-	    wpath = [prefix stringByAppendingPathExtension: @"exe"];
-	    if ([mgr isExecutableFileAtPath: wpath])
-	      return [wpath stringByStandardizingPath];
-	    wpath = [prefix stringByAppendingPathExtension: @"com"];
-	    if ([mgr isExecutableFileAtPath: wpath])
-	      return [wpath stringByStandardizingPath];
-	    wpath = [prefix stringByAppendingPathExtension: @"cmd"];
-	    if ([mgr isExecutableFileAtPath: wpath])
-	      return [wpath stringByStandardizingPath];
-	  }
-	}
+	      /* Also add common executable extensions on windows */
+	      if (ext == nil || [ext length] == 0)
+		{
+		  NSString *wpath;
+
+		  wpath = [prefix stringByAppendingPathExtension: @"exe"];
+		  if ([mgr isExecutableFileAtPath: wpath])
+		    {
+		      result = [wpath stringByStandardizingPath];
+		      break;
+		    }
+		  wpath = [prefix stringByAppendingPathExtension: @"com"];
+		  if ([mgr isExecutableFileAtPath: wpath])
+		    {
+		      result = [wpath stringByStandardizingPath];
+		      break;
+		    }
+		  wpath = [prefix stringByAppendingPathExtension: @"cmd"];
+		  if ([mgr isExecutableFileAtPath: wpath])
+		    {
+		      result = [wpath stringByStandardizingPath];
+		      break;
+		    }
+		}
+	    }
 #endif
+	}
+      path = result;
     }
-  return nil;
+  path = [path stringByResolvingSymlinksInPath];
+  path = [path stringByStandardizingPath];
+  return path;
 }
 
 /*
@@ -247,7 +260,7 @@ GSPrivateExecutablePath()
       [load_lock lock];
       if (beenHere == NO)
 	{
-#ifdef PROCFS_EXE_LINK
+#if	defined(PROCFS_EXE_LINK)
 	  executablePath = [manager()
 	    pathContentOfSymbolicLinkAtPath:
               [NSString stringWithUTF8String: PROCFS_EXE_LINK]];
@@ -1310,6 +1323,9 @@ IF_NO_GC(
    * so we can manipulate it without having to worry about
    * details like that throughout the code.
    */
+
+  /* 1. make path absolute.
+   */
   if ([path isAbsolutePath] == NO)
     {
       NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names, "
@@ -1349,12 +1365,15 @@ IF_NO_GC(
 #endif
     }
 
-  /*
-   * Standardize the path so we can be sure that cache lookup is consistent.
+  /* 2. Expand any symbolic links.
+   */
+  path = [path stringByResolvingSymlinksInPath];
+
+  /* 3. Standardize so we can be sure that cache lookup is consistent.
    */
   path = [path stringByStandardizingPath];
 
-  /* Check if we were already initialized for this directory */
+  /* check if we were already initialized for this directory */
   [load_lock lock];
   if (_bundles)
     {
