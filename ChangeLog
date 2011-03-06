@@ -1,6 +1,7 @@
 2011-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: remove obsolete call to objc_set_thread_callback().
+	* Source/NSDebug.m: Try to improve getting return addresses from stack.
 
 2011-03-05  Richard Frith-Macdonald <rfm@gnu.org>
 
