@@ -1,3 +1,9 @@
+2011-03-06 Thomas Gamper <icicle@cg.tuwien.ac.at>
+
+    * config/config.initialize.m: add missing include to fix build.
+    Reformat, use correct thread handles, adapt sleep times to
+    worst case. Remove C99-ism.
+
 2011-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: remove obsolete call to objc_set_thread_callback().
