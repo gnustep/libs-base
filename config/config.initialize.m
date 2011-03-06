@@ -47,11 +47,11 @@ main()
 {
   pthread_t t1;
   pthread_t t2;
-  unsigned  counter = 0;
+  unsigned  counter;
 
   if (0 == pthread_create(&t1, 0, test, 0))
     {
-      while (0 == initialize_entered && counter++ < 3)
+      for (counter = 0; 0 == initialize_entered && counter < 5; counter++)
 	{
 	  mySleep(1);
 	}
@@ -78,7 +78,10 @@ main()
 	   * +initialize and for both threads to call +class
 	   */
 	  may_proceed = YES;
-	  mySleep(1);
+          for (counter = 0; 2 > class_entered && counter < 5; counter++)
+	    {
+	      mySleep(1);
+	    }
 
 	  if (2 == class_entered)
 	    {

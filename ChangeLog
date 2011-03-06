@@ -1,3 +1,10 @@
+2011-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.initialize.m: Correct formatting.  Increase time
+	allowed for threads to do their job, to minimise the chance of a
+	heavily loaded machine giving a wrong result because threads
+	don't get scheduled in time.
+
 2011-03-06 Thomas Gamper <icicle@cg.tuwien.ac.at>
 
 	* config/config.initialize.m: add missing include to fix build.
