@@ -4,6 +4,10 @@
 	allowed for threads to do their job, to minimise the chance of a
 	heavily loaded machine giving a wrong result because threads
 	don't get scheduled in time.
+	* configure.ac: check for stck return address extraction
+	* configure: regenerate
+	* Headers/Additions/GNUstepBase/config.h.in: regenerate
+	* Source/NSDebug.m: use function to get return address.
 
 2011-03-06 Thomas Gamper <icicle@cg.tuwien.ac.at>
 

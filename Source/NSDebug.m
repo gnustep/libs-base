@@ -832,12 +832,15 @@ GSDebugAllocationListRecordedObjects(Class c)
   return answer;
 }
 
+#if	!defined(HAVE_BUILTIN_EXTRACT_RETURN_ADDRESS)
+# define	__builtin_extract_return_address(X)	X
+#endif
 
 #define _NS_FRAME_HACK(a) \
 case a: env->addr = __builtin_frame_address(a + 1); break;
 #define _NS_RETURN_HACK(a) \
-case a: env->addr = (_NS_FRAME_HACK(a) ? __builtin_extract_return_address \
-(__builtin_return_address(a + 1)) : 0); break;
+case a: env->addr = (__builtin_frame_address(a + 1) ? \
+__builtin_extract_return_address(__builtin_return_address(a + 1)) : 0); break;
 
 /*
  * The following horrible signal handling code is a workaround for the fact
