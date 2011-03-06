@@ -271,7 +271,14 @@ int main()
   NSString *tmpsrc = [tmpdir stringByAppendingPathComponent: @"foo"];
 
   [fm createDirectoryAtPath: tmpdst attributes: nil];
+  [fm createSymbolicLinkAtPath: tmpsrc pathContent: @"bar"];
+
+  PASS_EQUAL([@"foo" stringByResolvingSymlinksInPath], @"foo",
+    "foo->bar relative symlink not expanded by stringByResolvingSymlinksInPath")
+
+  [fm removeFileAtPath: tmpsrc handler: nil];
   [fm createSymbolicLinkAtPath: tmpsrc pathContent: tmpdst];
+
   PASS_EQUAL([tmpsrc stringByStandardizingPath], tmpsrc, 
     "foo->bar symlink not expanded by stringByStandardizingPath")
   PASS_EQUAL([tmpsrc stringByResolvingSymlinksInPath], tmpdst, 
@@ -279,6 +286,8 @@ int main()
   [fm changeCurrentDirectoryPath: tmpdir];
   PASS_EQUAL([@"foo" stringByResolvingSymlinksInPath], tmpdst, 
     "foo->bar relative symlink expanded by stringByResolvingSymlinksInPath")
+  PASS(NO == [[@"~" stringByResolvingSymlinksInPath] isEqual: @"~"], 
+    "tilde is expanded by stringByResolvingSymlinksInPath")
 
   [fm changeCurrentDirectoryPath: cwd];
   [fm removeFileAtPath: tmpdst handler: nil];
