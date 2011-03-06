@@ -1858,6 +1858,7 @@ else
   AC_CHECK_HEADERS(execinfo.h)
   AC_CHECK_FUNCS(backtrace)
 fi
+AC_CHECK_FUNCS(__builtin_extract_return_address)
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
