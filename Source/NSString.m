@@ -4088,9 +4088,21 @@ static NSFileManager *fm = nil;
 
 - (NSString*) stringByResolvingSymlinksInPath
 {
+  NSString	*s = self;
+
+  if (0 == [s length])
+    {
+      return @"";
+    }
+  if ('~' == [s characterAtIndex: 0])
+    {
+      s = [s stringByExpandingTildeInPath];
+    }
 #if defined(__MINGW__)
-  return IMMUTABLE(self);
-#else
+  return IMMUTABLE(s);
+#endif
+
+{
   #ifndef PATH_MAX
   #define PATH_MAX 1024
   /* Don't use realpath unless we know we have the correct path size limit */
@@ -4101,12 +4113,12 @@ static NSFileManager *fm = nil;
   char		newBuf[PATH_MAX];
 #ifdef HAVE_REALPATH
 
-  if (realpath([self fileSystemRepresentation], newBuf) == 0)
-    return IMMUTABLE(self);
+  if (realpath([s fileSystemRepresentation], newBuf) == 0)
+    return IMMUTABLE(s);
 #else
   char		extra[PATH_MAX];
   char		*dest;
-  const char	*name = [self fileSystemRepresentation];
+  const char	*name = [s fileSystemRepresentation];
   const char	*start;
   const	char	*end;
   unsigned	num_links = 0;
@@ -4255,7 +4267,7 @@ static NSFileManager *fm = nil;
     }
   return [[NSFileManager defaultManager]
    stringWithFileSystemRepresentation: newBuf length: strlen(newBuf)];
-#endif  /* (__MINGW__) */
+}
 }
 
 - (NSString*) stringByStandardizingPath
