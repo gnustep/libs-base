@@ -626,8 +626,10 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (NSString*) stringByExpandingTildeInPath;
 
 /**
+ * First calls -stringByExpandingTildeInPath if necessary.<br />
  * Replaces path string by one in which path components representing symbolic
  * links have been replaced by their referents.<br />
+ * Removes a leading '/private' if the result is valid.<br />
  * If links cannot be resolved, returns an unmodified copy of the receiver.
  */
 - (NSString*) stringByResolvingSymlinksInPath;
