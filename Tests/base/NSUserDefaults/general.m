@@ -32,25 +32,6 @@ int main()
   PASS(defs != nil && [defs isKindOfClass: [NSUserDefaults class]],
        "NSUserDefaults understands +standardUserDefaults");
 
-#if	defined(GNUSTEP_BASE_LIBRARY)
-{
-  id lang;
-
-  lang = [NSUserDefaults userLanguages];
-  PASS(lang != nil && [lang isKindOfClass: [NSArray class]],
-       "NSUserDefaults understands +userLanguages");
-
-  [NSUserDefaults setUserLanguages:
-    [NSArray arrayWithObject: @"Bogus language"]];
-  PASS([lang isEqual: [NSUserDefaults userLanguages]] == NO,
-       "NSUserDefaults understands +setUserLanguages");
-
-  [NSUserDefaults setUserLanguages: lang];
-  PASS([lang isEqual: [NSUserDefaults userLanguages]],
-       "NSUserDefaults can set user languages");
-}
-#endif
-
   [[NSNotificationCenter defaultCenter] addObserver: obs
     selector: @selector(notified:)
     name: NSUserDefaultsDidChangeNotification
