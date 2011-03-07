@@ -25,7 +25,7 @@ static BOOL	may_proceed = NO;
 {
   initialize_entered++;
   while (NO == may_proceed)
-    ;
+    mySleep(1);
   initialize_exited++;
 }
 
