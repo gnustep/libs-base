@@ -4340,7 +4340,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 
 			to[j++] = '&';
 			to[j++] = '#';
-			sprintf(buf, "%u", c);
+			snprintf(buf, sizeof(buf), "%u", c);
 			while (*ptr != '\0')
 			  {
 			    to[j++] = *ptr++;

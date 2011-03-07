@@ -741,7 +741,7 @@ static NSMapTable	*absolutes = 0;
 	      int	m = i % 60;
 	      char	buf[9];
 
-	      sprintf(buf, "GMT%c%02d%02d", s, h, m);
+	      snprintf(buf, sizeof(buf), "GMT%c%02d%02d", s, h, m);
 	      name = [[NSString alloc] initWithUTF8String: buf];
 	    }
 	  else

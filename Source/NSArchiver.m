@@ -1019,8 +1019,8 @@ static Class	NSMutableDataMallocClass;
   char		header[headerLength+1];
   unsigned	dataLength = [_data length];
 
-  sprintf(header, "%s%08x:%08x:%08x:%08x:", PREFIX, systemVersion, classCount,
-    objectCount, pointerCount);
+  snprintf(header, sizeof(header), "%s%08x:%08x:%08x:%08x:",
+    PREFIX, systemVersion, classCount, objectCount, pointerCount);
 
   if (positionInData + headerLength <= dataLength)
     {

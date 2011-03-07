@@ -629,7 +629,7 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
   /*
    * The header is a line of the form 'begin mode filename'
    */
-  sprintf((char*)buf, "begin %03o ", (int)mode);
+  snprintf((char*)buf, sizeof(buf), "begin %03o ", (int)mode);
   [encoded appendBytes: buf length: strlen((const char*)buf)];
   [encoded appendData: [name dataUsingEncoding: NSASCIIStringEncoding]];
   [encoded appendBytes: "\n" length: 1];

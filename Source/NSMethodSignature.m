@@ -391,24 +391,30 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       const char	*q;
       char		*args;
       char		*ret;
+      char		*end;
+      char		*ptr;
       int		alen;
+      int		blen;
       int		rlen;
 
 /* In case we have been given a method encoding string without offsets,
  * we attempt to generate the frame size and offsets in a new copy of
  * the types string.
  */
-      ret = alloca((strlen(t)+1)*16);
+      blen = (strlen(t) + 1) * 16;	// Total buffer length
+      ret = alloca(blen);
+      end = ret + blen;
 
       /* Copy the return type (including qualifiers) with ehough room
        * after it to store the frame size.
        */
       p = t;
       p = objc_skip_typespec (p);
-      strncpy(ret, t, p - t);
-      ret[p - t] = '\0';
-      args = ret + (p - t) + 10;
-      *args = '\0';
+      rlen = p - t;
+      strncpy(ret, t, rlen);
+      ret[rlen] = '\0';
+      ptr = args = ret + rlen + 10;	// Allow room for a decimal integer
+      *ptr = '\0';
 
       /* Skip to the first arg type, taking note of where the qualifiers start.
        * Assume that casting _argFrameLength to int will not lose information.
@@ -423,15 +429,16 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	  _numArgs++;
 	  size = objc_promoted_size (p);
 	  p = objc_skip_typespec (p);
-	  strncat(args, q, p - q);
-	  sprintf(args + strlen(args), "%d", (int)_argFrameLength);
+	  memcpy(ptr, q, p - q);
+	  ptr += (p - q);
+	  snprintf(ptr, end - ptr, "%d", (int)_argFrameLength);
+	  ptr += strlen(ptr);
 	  _argFrameLength += size;
 	  p = skip_offset (p);
 	  q = p;
 	  p = objc_skip_type_qualifiers (p);
 	}
-      alen = strlen(args);
-      rlen = strlen(ret);
+      alen = ptr - args;
       sprintf(ret + rlen, "%d", (int)_argFrameLength);
 
       _methodTypes = NSZoneMalloc(NSDefaultMallocZone(), alen + rlen + 1);

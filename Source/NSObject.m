@@ -799,7 +799,7 @@ static void
 GSGarbageCollectorLog(char *msg, GC_word arg)
 {
   char	buf[strlen(msg)+1024];
-  sprintf(buf, msg, (unsigned long)arg);
+  snprintf(buf, sizeof(buf), msg, (unsigned long)arg);
   fprintf(stderr, "Garbage collector: %s", buf);
 }
 #endif
@@ -2000,9 +2000,9 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
             +((aString!=NULL)?strlen((char*)aString):0)+8)];
   va_list ap;
 
-  sprintf(fmt, FMT, GSClassNameFromObject(self),
-                    GSObjCIsInstance(self)?"instance":"class",
-                    (aString!=NULL)?aString:"");
+  snprintf(fmt, sizeof(fmt), FMT, GSClassNameFromObject(self),
+    GSObjCIsInstance(self) ? "instance" : "class",
+    (aString != NULL) ? aString : "");
   va_start(ap, aString);
   vfprintf (stderr, fmt, ap);
   abort ();

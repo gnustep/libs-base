@@ -52,7 +52,7 @@ loc_read_file(const char *dir, const char *file)
   if (strcmp(file, "POSIX") == 0)
     return 0;
 
-  sprintf(name, "%s/%s", dir, file);
+  snprintf(name, sizeof(name), "%s/%s", dir, file);
   fp = fopen(name, "r");
   if (fp == NULL)
     return -1;

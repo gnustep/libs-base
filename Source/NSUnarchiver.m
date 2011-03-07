@@ -86,13 +86,13 @@ typeToName1(char type)
 
 	  if (bufptr == buf1)
 	    {
-		bufptr = buf2;
+	      bufptr = buf2;
 	    }
 	  else
 	    {
 	      bufptr = buf1;
 	    }
-	  sprintf(bufptr, "unknown type info - 0x%x", type);
+	  snprintf(bufptr, 32, "unknown type info - 0x%x", type);
 	  return bufptr;
 	}
     }
@@ -131,13 +131,13 @@ typeToName2(char type)
 
 	  if (bufptr == buf1)
 	    {
-		bufptr = buf2;
+	      bufptr = buf2;
 	    }
 	  else
 	    {
 	      bufptr = buf1;
 	    }
-	  sprintf(bufptr, "unknown type info - 0x%x", type);
+	  snprintf(bufptr, 32, "unknown type info - 0x%x", type);
 	  return bufptr;
 	}
     }

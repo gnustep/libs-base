@@ -1176,7 +1176,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 				    {
 				      buf[j++] = ':';
 				    }
-				  sprintf((char*)&buf[j], "%04x", val);
+				  snprintf((char*)&buf[j], 5, "%04x", val);
 				  j += 4;
 				}
 			      a = [NSString stringWithUTF8String:
