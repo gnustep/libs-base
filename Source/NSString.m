@@ -3398,7 +3398,7 @@ static NSFileManager *fm = nil;
     {
       return NO;
     }
-  strcpy(buffer, ptr);
+  strncpy(buffer, ptr, size);
   return YES;
 }
 #endif
@@ -4187,7 +4187,7 @@ static NSFileManager *fm = nil;
 	    {
 	      return IMMUTABLE(self);	/* Resolved name too long.	*/
 	    }
-          memcpy(dest, start, len);
+          memmove(dest, start, len);
           dest += len;
           *dest = '\0';
 
@@ -4197,7 +4197,8 @@ static NSFileManager *fm = nil;
 	    }
           if (S_ISLNK(st.st_mode))
             {
-              char buf[PATH_MAX];
+              char	buf[PATH_MAX];
+	      int	l;
 
               if (++num_links > MAXSYMLINKS)
 		{
@@ -4210,7 +4211,8 @@ static NSFileManager *fm = nil;
 		}
               buf[n] = '\0';
 
-              if ((n + strlen(end)) >= PATH_MAX)
+	      l = strlen(end);
+              if ((n + l) >= PATH_MAX)
 		{
 		  return IMMUTABLE(self);	/* Path too long.	*/
 		}
@@ -4218,8 +4220,11 @@ static NSFileManager *fm = nil;
 	       * Concatenate the resolved name with the string still to
 	       * be processed, and start using the result as input.
 	       */
-              strcat(buf, end);
-              strcpy(extra, buf);
+              memcpy(buf + n, end, l);
+	      n += l;
+	      buf[n] = '\0';
+              memcpy(extra, buf, n);
+	      extra[n] = '\0';
               name = end = extra;
 
               if (buf[0] == '/')
@@ -4262,7 +4267,9 @@ static NSFileManager *fm = nil;
 
       if (lstat(&newBuf[8], &st) == 0)
 	{
-	  strcpy(newBuf, &newBuf[8]);
+	  int	l = strlen(newBuf) - 7;
+
+	  memmove(newBuf, &newBuf[8], l);
 	}
     }
   return [[NSFileManager defaultManager]

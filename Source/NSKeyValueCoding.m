@@ -87,17 +87,17 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
   if (size > 0)
     {
       const char	*name;
-      char		buf[size+6];
+      char		buf[size + 6];
       char		lo;
       char		hi;
 
-      strcpy(buf, "_set");
-      strcpy(&buf[4], key);
+      strncpy(buf, "_set", 4);
+      strncpy(&buf[4], key, size);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
-      buf[size+4] = ':';
-      buf[size+5] = '\0';
+      buf[size + 4] = ':';
+      buf[size + 5] = '\0';
 
       name = &buf[1];	// setKey:
       type = NULL;
@@ -111,7 +111,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
 	      sel = 0;
 	      if ([[self class] accessInstanceVariablesDirectly] == YES)
 		{
-		  buf[size+4] = '\0';
+		  buf[size + 4] = '\0';
 		  buf[3] = '_';
 		  buf[4] = lo;
 		  name = &buf[3];	// _key
@@ -159,12 +159,13 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   if (size > 0)
     {
       const char	*name;
-      char		buf[size+5];
+      char		buf[size + 5];
       char		lo;
       char		hi;
 
-      strcpy(buf, "_get");
-      strcpy(&buf[4], key);
+      strncpy(buf, "_get", 4);
+      strncpy(&buf[4], key, size);
+      buf[size + 4] = '\0';
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
@@ -353,7 +354,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 - (void) setValue: (id)anObject forKey: (NSString*)aKey
 {
   unsigned	size = [aKey length] * 8;
-  char		key[size+1];
+  char		key[size + 1];
 #ifdef WANT_DEPRECATED_KVC_COMPAT
   IMP   	o = [self methodForSelector: @selector(takeValue:forKey:)];
 
@@ -366,7 +367,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 #endif
 
   [aKey getCString: key
-	 maxLength: size+1
+	 maxLength: size + 1
 	  encoding: NSUTF8StringEncoding];
   size = strlen(key);
   SetValueForKey(self, anObject, key, size);
@@ -472,16 +473,17 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     }
   else
     {
-      char		name[size+16];
+      char		name[size + 16];
       SEL		sel;
       BOOL		(*imp)(id,SEL,id*,id*);
 
-      strcpy(name, "validate");
+      strncpy(name, "validate", 8);
       [aKey getCString: &name[8]
-	     maxLength: size+1
+	     maxLength: size + 1
 	      encoding: NSUTF8StringEncoding];
       size = strlen(&name[8]);
-      strcpy(&name[size+8], ":error:");
+      strncpy(&name[size + 8], ":error:", 7);
+      name[size + 15] = '\0';
       if (islower(name[8]))
 	{
 	  name[8] = toupper(name[8]);
@@ -521,10 +523,10 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 - (id) valueForKey: (NSString*)aKey
 {
   unsigned	size = [aKey length] * 8;
-  char		key[size+1];
+  char		key[size + 1];
 
   [aKey getCString: key
-	 maxLength: size+1
+	 maxLength: size + 1
 	  encoding: NSUTF8StringEncoding];
   size = strlen(key);
   return ValueForKey(self, key, size);
@@ -607,17 +609,18 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       const char	*type = NULL;
       int		off;
       const char	*name;
-      char		key[size+1];
-      char		buf[size+5];
+      char		key[size + 1];
+      char		buf[size + 5];
       char		lo;
       char		hi;
 
-      strcpy(buf, "_get");
+      strncpy(buf, "_get", 4);
       [aKey getCString: key
-	     maxLength: size+1
+	     maxLength: size + 1
 	      encoding: NSUTF8StringEncoding];
       size = strlen(key);
-      strcpy(&buf[4], key);
+      strncpy(&buf[4], key, size);
+      buf[size + 4] = '\0';
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
@@ -691,22 +694,23 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       const char	*type;
       int		off;
       const char	*name;
-      char		key[size+1];
-      char		buf[size+6];
+      char		key[size + 1];
+      char		buf[size + 6];
       char		lo;
       char		hi;
 
-      strcpy(buf, "_set");
+      strncpy(buf, "_set", 4);
       [aKey getCString: key
-	     maxLength: size+1
+	     maxLength: size + 1
 	      encoding: NSUTF8StringEncoding];
       size = strlen(key);
-      strcpy(&buf[4], key);
+      strncpy(&buf[4], key, size);
+      buf[size + 4] = '\0';
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
-      buf[size+4] = ':';
-      buf[size+5] = '\0';
+      buf[size + 4] = ':';
+      buf[size + 5] = '\0';
 
       name = buf;	// _setKey:
       type = NULL;
@@ -716,7 +720,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	  sel = 0;
 	  if ([[self class] accessInstanceVariablesDirectly] == YES)
 	    {
-	      buf[size+4] = '\0';
+	      buf[size + 4] = '\0';
 	      buf[4] = lo;
 	      buf[3] = '_';
 	      name = &buf[3];		// _key
@@ -728,7 +732,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	    }
 	  if (type == NULL)
 	    {
-	      buf[size+4] = ':';
+	      buf[size + 4] = ':';
 	      buf[4] = hi;
 	      buf[3] = 't';
 	      name = &buf[1];		// setKey:
@@ -803,27 +807,27 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
   const char	*type = 0;
   int		off;
   unsigned	size = [aKey length] * 8;
-  char		key[size+1];
+  char		key[size + 1];
 
   GSOnceMLog(@"This method is deprecated, use -setValue:forKey:");
   [aKey getCString: key
-	 maxLength: size+1
+	 maxLength: size + 1
 	  encoding: NSUTF8StringEncoding];
   size = strlen(key);
   if (size > 0)
     {
       const char	*name;
-      char		buf[size+6];
+      char		buf[size + 6];
       char		lo;
       char		hi;
 
-      strcpy(buf, "_set");
-      strcpy(&buf[4], key);
+      strncpy(buf, "_set", 4);
+      strncpy(&buf[4], key, size);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
       buf[4] = hi;
-      buf[size+4] = ':';
-      buf[size+5] = '\0';
+      buf[size + 4] = ':';
+      buf[size + 5] = '\0';
 
       name = &buf[1];	// setKey:
       type = NULL;
@@ -837,7 +841,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	      sel = 0;
 	      if ([[self class] accessInstanceVariablesDirectly] == YES)
 		{
-		  buf[size+4] = '\0';
+		  buf[size + 4] = '\0';
 		  buf[3] = '_';
 		  buf[4] = lo;
 		  name = &buf[4];	// key

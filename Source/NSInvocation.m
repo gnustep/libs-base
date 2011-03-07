@@ -481,10 +481,13 @@ _arg_addr(NSInvocation *inv, int index)
 		}
 	      else
 		{
+		  int	len;
 		  char	*tmp;
 
-		  tmp = NSZoneMalloc(NSDefaultMallocZone(), strlen(newstr)+1);
-		  strcpy(tmp, newstr);
+		  len = strlen(newstr);
+		  tmp = NSZoneMalloc(NSDefaultMallocZone(), len + 1);
+		  strncpy(tmp, newstr, len);
+		  tmp[len] = '\0';
 		  _set_arg(self, index, tmp);
 		}
 	      if (oldstr != 0)
@@ -615,9 +618,12 @@ _arg_addr(NSInvocation *inv, int index)
 	      if (str != 0)
 	        {
 		  char  *tmp;
+		  int	len;
 
-		  tmp = NSZoneMalloc(NSDefaultMallocZone(), strlen(str)+1);
-		  strcpy(tmp, str);
+		  len = strlen(str);
+		  tmp = NSZoneMalloc(NSDefaultMallocZone(), len + 1);
+		  strncpy(tmp, str, len);
+		  tmp[len] = '\0';
 		  _set_arg(self, i-1, &tmp);
 		}
 	    }

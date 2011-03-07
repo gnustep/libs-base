@@ -1511,7 +1511,8 @@ NSUserName(void)
 
       [gnustep_global_lock lock];
       pwent = getpwuid (uid);
-      strcpy(buf, pwent->pw_name);
+      strncpy(buf, pwent->pw_name, sizeof(buf) - 1);
+      buf[sizeof(buf) - 1] = '\0';
       [gnustep_global_lock unlock];
       loginName = buf;
 #endif /* HAVE_GETPWUID */

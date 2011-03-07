@@ -1327,7 +1327,8 @@ failure:
 
       if (local_c_path != 0 && strlen(local_c_path) < (BUFSIZ*2))
 	{	
-	  strcpy(theRealPath,local_c_path);
+	  strncpy(theRealPath, local_c_path, sizeof(theRealPath) - 1);
+	  theRealPath[sizeof(theRealPath) - 1] = '\0';
 	  error_BadPath = NO;
 	}	
     }
@@ -1344,8 +1345,9 @@ failure:
       int	desc;
       int	mask;
 
-      strcpy(thePath, theRealPath);
-      strcat(thePath, "XXXXXX");
+      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
+      thePath[sizeof(thePath) - 1] = '\0';
+      strncat(thePath, "XXXXXX", 6);
       if ((desc = mkstemp(thePath)) < 0)
 	{
           NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [NSError _last]);
@@ -1361,7 +1363,8 @@ failure:
     }
   else
     {
-      strcpy(thePath, theRealPath);
+      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
+      thePath[sizeof(thePath) - 1] = '\0';
       theFile = fopen(thePath, "wb");
     }
 #else
@@ -1381,8 +1384,9 @@ failure:
 	  goto failure;
 	}
 #else
-      strcpy(thePath, theRealPath);
-      strcat(thePath, "XXXXXX");
+      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
+      thePath[sizeof(thePath) - 1] = '\0';
+      strncat(thePath, "XXXXXX", 6);
       if (mktemp(thePath) == 0)
 	{
           NSWarnMLog(@"mktemp (%s) failed - %@", thePath, [NSError _last]);
@@ -1395,7 +1399,8 @@ failure:
 #if defined(__MINGW__)
       wcscpy(wthePath,wtheRealPath);
 #else
-      strcpy(thePath, theRealPath);
+      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
+      thePath[sizeof(thePath) - 1] = '\0';
 #endif
     }
 

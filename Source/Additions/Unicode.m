@@ -324,15 +324,16 @@ static void GSSetupEncodingTable(void)
 	      if (entry->iconv != 0 && *(entry->iconv) != 0)
 		{
 		  iconv_t	c;
+		  int		l;
 		  char	*lossy;
 
 		  /*
 		   * See if we can do a lossy conversion.
 		   */
-		  lossy = NSZoneMalloc(NSDefaultMallocZone(),
-		    strlen(entry->iconv) + 12);
-		  strcpy(lossy, entry->iconv);
-		  strcat(lossy, "//TRANSLIT");
+		  l = strlen(entry->iconv);
+		  lossy = NSZoneMalloc(NSDefaultMallocZone(), l + 11);
+		  strncpy(lossy, entry->iconv, l);
+		  strncpy(lossy + l, "//TRANSLIT", 11);
 		  c = iconv_open(UNICODE_ENC, entry->iconv);
 		  if (c == (iconv_t)-1)
 		    {
@@ -2565,8 +2566,8 @@ GSPrivateDefaultCStringEncoding()
 	  /* Take it from the system locale information.  */
           [gnustep_global_lock lock];
           strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
-          [gnustep_global_lock unlock];
           encbuf[sizeof(encbuf)-1] = '\0';
+          [gnustep_global_lock unlock];
           encoding = encbuf;
 
 	  /*

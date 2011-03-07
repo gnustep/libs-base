@@ -166,6 +166,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
   char		*buf;
   char		*ptr;
   char		*tmp;
+  int		l;
   unsigned int	len = 1;
 
   if (rel->scheme != 0)
@@ -222,8 +223,9 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 
   if (rel->scheme != 0)
     {
-      strcpy(ptr, rel->scheme);
-      ptr = &ptr[strlen(ptr)];
+      l = strlen(rel->scheme);
+      memcpy(ptr, rel->scheme, l);
+      ptr += l;
       *ptr++ = ':';
     }
   if (rel->isGeneric == YES
@@ -235,14 +237,16 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	{
 	  if (rel->user != 0)
 	    {
-	      strcpy(ptr, rel->user);
-	      ptr = &ptr[strlen(ptr)];
+	      l = strlen(rel->user);
+	      memcpy(ptr, rel->user, l);
+	      ptr += l;
 	    }
 	  if (rel->password != 0)
 	    {
 	      *ptr++ = ':';
-	      strcpy(ptr, rel->password);
-	      ptr = &ptr[strlen(ptr)];
+	      l = strlen(rel->password);
+	      memcpy(ptr, rel->password, l);
+	      ptr += l;
 	    }
 	  if (rel->host != 0 || rel->port != 0)
 	    {
@@ -251,14 +255,16 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	}
       if (rel->host != 0)
 	{
-	  strcpy(ptr, rel->host);
-	  ptr = &ptr[strlen(ptr)];
+	  l = strlen(rel->host);
+	  memcpy(ptr, rel->host, l);
+	  ptr += l;
 	}
       if (rel->port != 0)
 	{
 	  *ptr++ = ':';
-	  strcpy(ptr, rel->port);
-	  ptr = &ptr[strlen(ptr)];
+	  l = strlen(rel->port);
+	  memcpy(ptr, rel->port, l);
+	  ptr += l;
 	}
     }
 
@@ -273,11 +279,15 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	{
 	  *tmp++ = '/';
 	}
-      strcpy(tmp, rpath);
+      l = strlen(rpath);
+      memcpy(tmp, rpath, l);
+      tmp += l;
     }
   else if (base == 0)
     {
-      strcpy(tmp, rpath);
+      l = strlen(rpath);
+      memcpy(tmp, rpath, l);
+      tmp += l;
     }
   else if (rpath[0] == 0)
     {
@@ -285,7 +295,9 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	{
 	  *tmp++ = '/';
 	}
-      strcpy(tmp, base->path);
+      l = strlen(base->path);
+      memcpy(tmp, base->path, l);
+      tmp += l;
     }
   else
     {
@@ -295,12 +307,15 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
       if (end != 0)
 	{
 	  *tmp++ = '/';
-	  strncpy(tmp, start, end - start);
+	  memcpy(tmp, start, end - start);
 	  tmp += (end - start);
 	}
       *tmp++ = '/';
-      strcpy(tmp, rpath);
+      l = strlen(rpath);
+      memcpy(tmp, rpath, l);
+      tmp += l;
     }
+  *tmp = '\0';
 
   if (standardize == YES)
     {
@@ -322,7 +337,8 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 		}
 	      else
 		{
-		  strcpy(tmp, &tmp[2]);
+		  l = strlen(&tmp[2]) + 1;
+		  memmove(tmp, &tmp[2], l);
 		}
 	    }
 	  else
@@ -338,7 +354,8 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	{
 	  if (tmp[0] == '/' && tmp[1] == '/')
 	    {
-	      strcpy(tmp, &tmp[1]);
+	      l = strlen(&tmp[1]) + 1;
+	      memmove(tmp, &tmp[1], l);
 	    }
 	  else
 	    {
@@ -370,7 +387,8 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	    }
 	  else
 	    {
-	      strcpy(tmp, next);
+	      l = strlen(next) + 1;
+	      memmove(tmp, next, l);
 	    }
 	}
       /*
@@ -379,7 +397,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
       tmp = ptr;
       if (*tmp == '\0')
 	{
-	  strcpy(tmp, "/");
+	  memcpy(tmp, "/", 2);
 	}
     }
   ptr = &ptr[strlen(ptr)];
@@ -387,21 +405,25 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
   if (rel->parameters != 0)
     {
       *ptr++ = ';';
-      strcpy(ptr, rel->parameters);
-      ptr = &ptr[strlen(ptr)];
+      l = strlen(rel->parameters);
+      memcpy(ptr, rel->parameters, l);
+      ptr += l;
     }
   if (rel->query != 0)
     {
       *ptr++ = '?';
-      strcpy(ptr, rel->query);
-      ptr = &ptr[strlen(ptr)];
+      l = strlen(rel->query);
+      memcpy(ptr, rel->query, l);
+      ptr += l;
     }
   if (rel->fragment != 0)
     {
       *ptr++ = '#';
-      strcpy(ptr, rel->fragment);
+      l = strlen(rel->fragment);
+      memcpy(ptr, rel->fragment, l);
+      ptr += l;
     }
-
+  *ptr = '\0';
   return buf;
 }
 
@@ -1341,8 +1363,9 @@ static unsigned	urlAlign;
 
 - (char*) _path: (char*)buf
 {
-  char		*ptr = buf;
-  char		*tmp = buf;
+  char	*ptr = buf;
+  char	*tmp = buf;
+  int	l;
 
   if (myData->pathIsAbsolute == YES)
     {
@@ -1352,14 +1375,16 @@ static unsigned	urlAlign;
 	}
       if (myData->path != 0)
 	{
-          strcpy(tmp, myData->path);
+	  l = strlen(myData->path);
+          memcpy(tmp, myData->path, l + 1);
 	}
     }
   else if (_baseURL == nil)
     {
       if (myData->path != 0)
 	{
-          strcpy(tmp, myData->path);
+	  l = strlen(myData->path);
+          memcpy(tmp, myData->path, l + 1);
 	}
     }
   else if (*myData->path == 0)
@@ -1370,7 +1395,8 @@ static unsigned	urlAlign;
 	}
       if (baseData->path != 0)
 	{
-          strcpy(tmp, baseData->path);
+	  l = strlen(baseData->path);
+          memcpy(tmp, baseData->path, l + 1);
 	}
     }
   else
@@ -1387,7 +1413,8 @@ static unsigned	urlAlign;
       *tmp++ = '/';
       if (myData->path != 0)
 	{
-          strcpy(tmp, myData->path);
+	  l = strlen(myData->path);
+          memcpy(tmp, myData->path, l + 1);
 	}
     }
 

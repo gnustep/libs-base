@@ -236,8 +236,11 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
   if (argv != 0 && argv[0] != 0)
     {
-      _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
-      strcpy(_gnu_arg_zero, argv[0]);
+      int	len;
+
+      len = strlen(argv[0]) + 1;
+      _gnu_arg_zero = (char*)malloc(len);
+      memcpy(_gnu_arg_zero, argv[0], len);
       arg0 = [[NSString alloc] initWithCString: _gnu_arg_zero];
     }
   else
@@ -246,6 +249,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
       unichar	*buffer;
       int	buffer_size = 0;
       int	needed_size = 0;
+      int	len;
       const char	*tmp;
 
       while (needed_size == buffer_size)
@@ -272,8 +276,9 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    }
 	}
       tmp = [arg0 cStringUsingEncoding: [NSString defaultCStringEncoding]];
-      _gnu_arg_zero = (char*)malloc(strlen(tmp) + 1);
-      strcpy(_gnu_arg_zero, tmp);
+      len = strlen(tmp) + 1;
+      _gnu_arg_zero = (char*)malloc(len);
+      memcpy(_gnu_arg_zero, tmp, len);
 #else
       fprintf(stderr, "Error: for some reason, argv not properly set up "
 	      "during GNUstep base initialization\n");
@@ -423,7 +428,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	      {
 		char	buf[len+2];
 
-		strcpy(buf, env[i]);
+		memcpy(buf, env[i], len + 1);
 		cp = &buf[cp - env[i]];
 		*cp++ = '\0';
 		[keys addObject:

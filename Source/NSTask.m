@@ -167,7 +167,7 @@ pty_master(char* name, int len)
 	}
       else
 	{
-	  strcpy(name, (char*)slave);
+	  strncpy(name, (char*)slave, len);
 	}
     }
   else
@@ -178,7 +178,7 @@ pty_master(char* name, int len)
       master = -1;
       if (len > 10)
         {
-	  strcpy(name, "/dev/ptyXX");
+	  strncpy(name, "/dev/ptyXX", len);
 	  while (master < 0 && *groups != '\0')
 	    {
 	      int	i;

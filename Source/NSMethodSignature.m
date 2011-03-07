@@ -391,6 +391,8 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       const char	*q;
       char		*args;
       char		*ret;
+      int		alen;
+      int		rlen;
 
 /* In case we have been given a method encoding string without offsets,
  * we attempt to generate the frame size and offsets in a new copy of
@@ -428,11 +430,14 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	  q = p;
 	  p = objc_skip_type_qualifiers (p);
 	}
-      sprintf(ret + strlen(ret), "%d", (int)_argFrameLength);
-      _methodTypes = NSZoneMalloc(NSDefaultMallocZone(),
-	strlen(args) + strlen(ret) + 1);
-      strcpy((char*)_methodTypes, ret);
-      strcat((char*)_methodTypes, args);
+      alen = strlen(args);
+      rlen = strlen(ret);
+      sprintf(ret + rlen, "%d", (int)_argFrameLength);
+
+      _methodTypes = NSZoneMalloc(NSDefaultMallocZone(), alen + rlen + 1);
+      strncpy((char*)_methodTypes, ret, rlen);
+      strncpy(((char*)_methodTypes) + rlen, args, alen);
+      ((char*)_methodTypes)[alen + rlen] = '\0';
     }
   return self;
 }
