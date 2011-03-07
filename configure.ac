@@ -1895,7 +1895,7 @@ fi
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(vsprintf vasprintf)
+AC_CHECK_FUNCS(vsprintf vasprintf snprintf vsnprintf)
 if test $ac_cv_func_vsprintf = yes ; then
     AC_TRY_RUN([#include "$srcdir/config/config.vsprintf.c"],
 		VSPRINTF_RETURNS_LENGTH=1,

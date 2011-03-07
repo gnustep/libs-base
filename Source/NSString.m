@@ -4100,7 +4100,7 @@ static NSFileManager *fm = nil;
     }
 #if defined(__MINGW__)
   return IMMUTABLE(s);
-#endif
+#else
 
 {
   #ifndef PATH_MAX
@@ -4275,6 +4275,7 @@ static NSFileManager *fm = nil;
   return [[NSFileManager defaultManager]
    stringWithFileSystemRepresentation: newBuf length: strlen(newBuf)];
 }
+#endif
 }
 
 - (NSString*) stringByStandardizingPath
