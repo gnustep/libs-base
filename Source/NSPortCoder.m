@@ -132,13 +132,13 @@ typeToName1(char type)
 
 	  if (bufptr == buf1)
 	    {
-		bufptr = buf2;
+	      bufptr = buf2;
 	    }
 	  else
 	    {
 	      bufptr = buf1;
 	    }
-	  sprintf(bufptr, "unknown type info - 0x%x", type);
+	  snprintf(bufptr, 32, "unknown type info - 0x%x", type);
 	  return bufptr;
 	}
     }
@@ -177,13 +177,13 @@ typeToName2(char type)
 
 	  if (bufptr == buf1)
 	    {
-		bufptr = buf2;
+	      bufptr = buf2;
 	    }
 	  else
 	    {
 	      bufptr = buf1;
 	    }
-	  sprintf(bufptr, "unknown type info - 0x%x", type);
+	  snprintf(bufptr, 32, "unknown type info - 0x%x", type);
 	  return bufptr;
 	}
     }
@@ -1999,7 +1999,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   char		header[headerLength+1];
   unsigned	dataLength = [_dst length];
 
-  sprintf(header, "%s%08x:%08x:%08x:%08x:", PREFIX, v, cc, oc, pc);
+  snprintf(header, sizeof(header), "%s%08x:%08x:%08x:%08x:",
+    PREFIX, v, cc, oc, pc);
 
   if (locationInData + headerLength <= dataLength)
     {

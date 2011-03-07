@@ -783,7 +783,7 @@ static NSString	*locale_sep()
       char	*from = buf;
       char	*to;
 
-      sprintf(buf, "%g", 1.2);
+      snprintf(buf, sizeof(buf), "%g", 1.2);
       if (*from == '1') from++;
       to = from;
       while (*to != '\0' && *to != '2')
@@ -1463,12 +1463,12 @@ NSDictionary *locale)
 
 	if (specs[nspecs_done].info.is_long_double)
 	  {
-	    sprintf(buf2, buf1,
+	    snprintf(buf2, sizeof(buf2), buf1,
 	      args_value[specs[nspecs_done].data_arg].pa_long_double);
 	  }
 	else
 	  {
-	    sprintf(buf2, buf1,
+	    snprintf(buf2, sizeof(buf2), buf1,
 	      args_value[specs[nspecs_done].data_arg].pa_double);
 	  }
 
@@ -1581,12 +1581,12 @@ NSDictionary *locale)
 
 	if (specs[nspecs_done].info.is_long_double)
 	  {
-	    sprintf(buf2, buf1,
+	    snprintf(buf2, sizeof(buf2), buf1,
 	      args_value[specs[nspecs_done].data_arg].pa_long_double);
 	  }
 	else
 	  {
-	    sprintf(buf2, buf1,
+	    snprintf(buf2, sizeof(buf2), buf1,
 	      args_value[specs[nspecs_done].data_arg].pa_double);
 	  }
 

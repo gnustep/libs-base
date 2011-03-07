@@ -564,8 +564,8 @@ static char	**_gnu_noobjc_env = NULL;
   int i, count;
   
   // Read commandline
-  proc_file_name = (char*)malloc(sizeof(char) * 2048);
-  sprintf(proc_file_name, "/proc/%d/psinfo", (int)getpid());
+  proc_file_name = (char*)malloc(2048);
+  snprintf(proc_file_name, 2048, "/proc/%d/psinfo", (int)getpid());
   
   ifp = fopen(proc_file_name, "r");
   if (ifp == NULL)
@@ -673,8 +673,8 @@ static char	**_gnu_noobjc_env = NULL;
   _gnu_noobjc_env[c] = NULL;
 
   // Read commandline
-  proc_file_name = (char *)malloc(sizeof(char) * 2048);
-  sprintf(proc_file_name, "/proc/%d/cmdline", (int)getpid());
+  proc_file_name = (char *)malloc(2048);
+  snprintf(proc_file_name, 2048, "/proc/%d/cmdline", (int)getpid());
 
   /*
    * We read the /proc file thrice.

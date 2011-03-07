@@ -1864,7 +1864,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
   char	cbuf[MAX_FLD_WIDTH + 1];
   int	idx = 0;
 
-  sprintf((char*)cbuf, fldfmt, v);
+  snprintf((char*)cbuf, sizeof(cbuf), fldfmt, v);
   Grow(info, strlen((char*)cbuf));
   while (cbuf[idx] != '\0')
     {

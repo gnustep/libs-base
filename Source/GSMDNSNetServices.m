@@ -1162,7 +1162,8 @@ static void DNSSD_API
 	    struct sockaddr_in	ip4;
 	    
 	    // oogly
-	    sprintf(rdb, "%d.%d.%d.%d", rd[0], rd[1], rd[2], rd[3]);
+	    snprintf(rdb, sizeof(rdb),
+	      "%d.%d.%d.%d", rd[0], rd[1], rd[2], rd[3]);
 	    LOG(@"Found IPv4 <%s> on port %d", rdb, ntohs(service->port));
 	    
 	    length = sizeof (struct sockaddr_in);
@@ -1183,11 +1184,12 @@ static void DNSSD_API
 	    struct sockaddr_in6	ip6;
 	    
 	    // Even more oogly
-	    sprintf(rdb, "%x%x:%x%x:%x%x:%x%x:%x%x:%x%x:%x%x:%x%x",
-			 rd[0], rd[1], rd[2], rd[3],
-			 rd[4], rd[5], rd[6], rd[7],
-			 rd[8], rd[9], rd[10], rd[11],
-			 rd[12], rd[13], rd[14], rd[15]);
+	    snprintf(rdb, sizeof(rdb),
+	      "%x%x:%x%x:%x%x:%x%x:%x%x:%x%x:%x%x:%x%x",
+	      rd[0], rd[1], rd[2], rd[3],
+	      rd[4], rd[5], rd[6], rd[7],
+	      rd[8], rd[9], rd[10], rd[11],
+	      rd[12], rd[13], rd[14], rd[15]);
 	    LOG(@"Found IPv6 <%s> on port %d", rdb, ntohs(service->port));
 	    
 	    length = sizeof (struct sockaddr_in6);

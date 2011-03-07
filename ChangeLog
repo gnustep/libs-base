@@ -1,25 +1,36 @@
 2011-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSPortCoder.m:
-	* Source/NSKeyValueCoding.m:
-	* Source/NSPathUtilities.m:
-	* Source/NSProcessInfo.m:
-	* Source/NSMethodSignature.m:
-	* Source/NSMessagePort.m:
-	* Source/NSInvocation.m:
-	* Source/dld-load.h:
-	* Source/NSFileManager.m:
-	* Source/NSURL.m:
-	* Source/NSString.m:
-	* Source/Additions/Unicode.m:
-	* Source/Additions/NSError+GNUstepBase.m:
-	* Source/Additions/GSXML.m:
 	* Source/Additions/GSObjCRuntime.m:
-	* Source/NSData.m:
-	* Source/NSHost.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/NSData+GNUstepBase.m:
+	* Source/Additions/NSError+GNUstepBase.m:
+	* Source/Additions/Unicode.m:
+	* Source/dld-load.h:
+	* Source/GSFormat.m:
 	* Source/GSMDNSNetServices.m:
+	* Source/GSSocketStream.m:
 	* Source/GSValue.m:
+	* Source/NSArchiver.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSData.m:
+	* Source/NSDebug.m:
+	* Source/NSFileManager.m:
+	* Source/NSHost.m:
+	* Source/NSInvocation.m:
+	* Source/NSKeyValueCoding.m:
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSObject.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSPortCoder.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSString.m:
 	* Source/NSTask.m:
+	* Source/NSTimeZone.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSURL.m:
+	* Tools/cvtenc.m:
 	* Tools/defaults.m:
 	* Tools/locale_alias.m:
 	Avoid strcpy and strcat to get rid if some bsd warnings.

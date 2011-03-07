@@ -458,7 +458,7 @@ static void clean_up_names(void)
 
   write(fd, (char*)socket_name, strlen((char*)socket_name));
   write(fd, "\n", 1);
-  sprintf((char*)buf, "%i\n", getpid());
+  snprintf((char*)buf, sizeof(buf), "%i\n", getpid());
   write(fd, (char*)buf, strlen((char*)buf));
 
   close(fd);

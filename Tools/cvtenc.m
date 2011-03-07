@@ -280,7 +280,7 @@ main(int argc, char** argv, char **env)
 			    }
 			  else
 			    {
-			      sprintf(&c[o], "\\U%04x", u[i]);
+			      snprintf(&c[o], 6, "\\U%04x", u[i]);
 			      o += 6;
 			    }
 			}

@@ -137,7 +137,7 @@ strerror_r(int eno, char *buf, int len)
   domain = NSPOSIXErrorDomain;
   if (strerror_r(code, buf, BUFSIZ) < 0)
     {
-      sprintf(buf, "%ld", code);
+      snprintf(buf, sizeof(buf), "%ld", code);
     }
   message = [NSString stringWithCString: buf
 			       encoding: [NSString defaultCStringEncoding]];
