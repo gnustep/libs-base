@@ -37,9 +37,11 @@ static BOOL	may_proceed = NO;
 
 @end
 
-static void test(void *arg)
+static void *
+test(void *arg)
 {
   [MyClass class];
+  return 0;
 }
 
 int
