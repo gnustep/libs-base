@@ -11,10 +11,13 @@
 # define	mySleep(X)	sleep(X)
 #endif
 
-static unsigned	initialize_entered = 0;
-static unsigned	initialize_exited = 0;
-static unsigned	class_entered = 0;
-static BOOL	may_proceed = NO;
+/* Use volatile variables so compiler optimisation won't prevent one thread
+ * from seeing changes made by another.
+ */
+static volatile unsigned	initialize_entered = 0;
+static volatile unsigned	initialize_exited = 0;
+static volatile unsigned	class_entered = 0;
+static volatile BOOL		may_proceed = NO;
 
 @interface	MyClass : NSObject
 @end
@@ -25,7 +28,7 @@ static BOOL	may_proceed = NO;
 {
   initialize_entered++;
   while (NO == may_proceed)
-    mySleep(1);
+    ;
   initialize_exited++;
 }
 
