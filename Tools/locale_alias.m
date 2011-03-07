@@ -68,7 +68,8 @@ loc_read_file(const char *dir, const char *file)
 	}
       if ((s = strstr(buf, "ocale for")) != NULL)
 	{
-	  strcpy(country, s+10);
+	  strncpy(country, s + 10, sizeof(country) - 1);
+	  country[sizeof(country) - 1] = '\0';
 	  s = strchr(country, '\n');
 	  if (s)
 	    *s = '\0';
@@ -77,10 +78,11 @@ loc_read_file(const char *dir, const char *file)
 	break;
     }
 
-  strcpy(locale, file);
+  strncpy(locale, file, sizeof(locale) - 1);
+  locale[sizeof(locale) - 1] = '\0';
   if (strlen(country) > 0 && strcmp(country, language) != 0)
     {
-      strcat(country, language);
+      strncat(country, language, sizeof(country) - 1 - strlen(country));
       [dict setObject: [NSString stringWithUTF8String: country]
 	    forKey: [NSString stringWithUTF8String: locale]];
     }

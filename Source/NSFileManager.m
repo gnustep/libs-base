@@ -813,7 +813,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-  strcpy(dirpath, lpath);
+  strncpy(dirpath, lpath, len);
   dirpath[len] = '\0';
   if (dirpath[len-1] == '/')
     dirpath[len-1] = '\0';

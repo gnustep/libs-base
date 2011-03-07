@@ -150,7 +150,7 @@ static char * xml_strdup(const char *from)
 {
   unsigned	len = (from == 0) ? 1 : (strlen(from) + 1);
   char		*to = malloc(len);
-  strcpy(to, from);
+  memcpy(to, from, len);
   return to;
 }
 

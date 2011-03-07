@@ -872,6 +872,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  else
 	    {
 	      char	*tmp;
+	      int	len;
 
 	      if (xref != GSIArrayCount(_ptrAry))
 		{
@@ -879,9 +880,10 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 			      format: @"extra string crossref - %d", xref];
 		}
 	      (*_dDesImp)(_src, dDesSel, &tmp, @encode(char*), &_cursor, nil);
-	      *(void**)address = GSAutoreleasedBuffer(strlen(tmp)+1);
+	      len = strlen(tmp);
+	      *(void**)address = GSAutoreleasedBuffer(len + 1);
 	      GSIArrayAddItem(_ptrAry, (GSIArrayItem)*(void**)address);
-	      strcpy(*(char**)address, tmp);
+	      memcpy(*(char**)address, tmp, len + 1);
 	      NSZoneFree(NSDefaultMallocZone(), tmp);
 	    }
 	  return;

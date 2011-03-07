@@ -60,14 +60,15 @@ strerror_r(int eno, char *buf, int len)
   ptr = strerror(eno);
   if (ptr == 0)
     {
-      strncpy(buf, "unknown error number", len);
+      strncpy(buf, "unknown error number", len - 1);
       result = -1;
     }
   else
     {
-      strncpy(buf, strerror(eno), len);
+      strncpy(buf, strerror(eno), len - 1);
       result = 0;
     }
+  buf[len - 1] = '\0';
   [gnustep_global_lock unlock];
   return result;
 }
@@ -80,10 +81,11 @@ strerror_r(int eno, char *buf, int len)
 
   if (eno < 0 || eno >= sys_nerr)
     {
-      strncpy(buf, "unknown error number", len);
+      strncpy(buf, "unknown error number", len - 1);
       return -1;
     }
-  strncpy(buf, sys_errlist[eno], len);
+  strncpy(buf, sys_errlist[eno], len - 1);
+  buf[len - 1] = '\0';
   return 0;
 }
 #endif

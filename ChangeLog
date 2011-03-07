@@ -1,5 +1,31 @@
 2011-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPortCoder.m:
+	* Source/NSKeyValueCoding.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSMessagePort.m:
+	* Source/NSInvocation.m:
+	* Source/dld-load.h:
+	* Source/NSFileManager.m:
+	* Source/NSURL.m:
+	* Source/NSString.m:
+	* Source/Additions/Unicode.m:
+	* Source/Additions/NSError+GNUstepBase.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/NSData.m:
+	* Source/NSHost.m:
+	* Source/GSMDNSNetServices.m:
+	* Source/GSValue.m:
+	* Source/NSTask.m:
+	* Tools/defaults.m:
+	* Tools/locale_alias.m:
+	Avoid strcpy and strcat to get rid if some bsd warnings.
+
+2011-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* config/config.initialize.m: Correct formatting.  Increase time
 	allowed for threads to do their job, to minimise the chance of a
 	heavily loaded machine giving a wrong result because threads

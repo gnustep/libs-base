@@ -1523,8 +1523,6 @@ static void DNSSD_API
 		  break;
 		}
 	      
-	      strcat(key, "\0");
-	      
 	      if ([[values objectAtIndex: i] isKindOfClass: [NSString class]])
 		{
 		  char	value[256];

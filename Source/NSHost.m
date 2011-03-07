@@ -280,7 +280,8 @@ myHostName()
     }
   else if (name == nil || strcmp(old, buf) != 0)
     {
-      strcpy(old, buf);
+      strncpy(old, buf, sizeof(old) - 1);
+      old[sizeof(old) - 1] = '\0';
       RELEASE(name);
       name = [[NSString alloc] initWithCString: buf];
     }

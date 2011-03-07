@@ -55,7 +55,7 @@ static NSString *input(char **ptr)
 	    {
 	      if (*tmp == '\'')
 		{
-		  strcpy(&tmp[-1], tmp);
+		  memmove(&tmp[-1], tmp, strlen(tmp) + 1);
 		}
 	      else
 		{
