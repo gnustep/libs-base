@@ -187,7 +187,7 @@ newDataWithEncodedPort(NSMessagePort *port)
   pih->type = GSSwapHostI32ToBig(GSP_PORT);
   pih->length = GSSwapHostI32ToBig(plen);
   pi = (GSPortInfo*)&pih[1];
-  strncpy((char*)pi->addr, (char*)name, strlen(name) + 1);
+  strncpy((char*)pi->addr, (char*)name, strlen((char*)name) + 1);
 
   NSDebugFLLog(@"NSMessagePort", @"Encoded port as '%s'", pi->addr);
 
