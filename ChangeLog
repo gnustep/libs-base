@@ -1,3 +1,11 @@
+2011-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSInternal.h:
+	* Source/NSDateFormatter.m:
+	* Source/NSNumberFormatter.m:
+	Fix for object copying in non-fragile-ivar build spotted by
+	Chris Armstrong.
+
 2011-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m:
