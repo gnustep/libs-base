@@ -303,9 +303,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   IF_NO_GC(RETAIN(o->_attributedStringForZero);)
   if (0 != internal)
     {
-      o->_internal = GS_CREATE_INTERNAL(NSNumberFormatter)
-
-      memcpy(o->_internal, internal, sizeof(NSNumberFormatterInternal));
+      GS_COPY_INTERNAL(o, zone)
       IF_NO_GC(RETAIN(GSIVar(o,_locale));)
 #if GS_USE_ICU == 1
       {

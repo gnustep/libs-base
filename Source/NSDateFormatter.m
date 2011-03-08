@@ -160,9 +160,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   IF_NO_GC(RETAIN(o->_dateFormat));
   if (0 != internal)
     {
-      o->GS_CREATE_INTERNAL(NSDateFormatter)
-
-      memcpy(o->_internal, internal, sizeof(NSDateFormatterInternal));
+      GS_COPY_INTERNAL(o, zone)
       IF_NO_GC(RETAIN(GSIVar(o,_locale));)
 #if GS_USE_ICU == 1
       {

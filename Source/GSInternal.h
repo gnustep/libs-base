@@ -67,6 +67,9 @@
  * You use GS_CREATE_INTERNAL() in your intialiser to create the object
  * holding the internal instance variables, and GS_DESTROY_INTERNAL() to
  * get rid of that object  in your -dealloc method.
+ * You use GS_COPY_INTERNAL() in your implementations of -copyWithZone:
+ * and -mutableCopyWithZone: in order to get the default copying behavior
+ * for the internal class (a single copy of all the instance variables).
  *
  * Instance variables are referenced using the 'internal->ivar' suntax or
  * the GSIV(classname,object,ivar) macro.
@@ -99,11 +102,19 @@ _internal = [name ## Internal new];
 #define	GS_DESTROY_INTERNAL(name) \
 if (nil != _internal) {[_internal release]; _internal = nil; }
 
+/* Create a new copy of the current object's internal class and place
+ * it in the destination instance.  This poduces a bitwise copy, and you
+ * may wish to perform further action to deepen the copy after using this
+ * macro.
+ * Use this only where D is a new copy of the current instance.
+ */
+#define	GS_COPY_INTERNAL(D,Z) (D)->_internal = NSCopyObject(_internal, 0, (Z));
+
 
 #undef	internal
 #define	internal	((GSInternal*)_internal)
 #undef	GSIVar
-#define	GSIVar(X,Y)	(((GSInternal*)(X->_internal))->Y)
+#define	GSIVar(X,Y)	(((GSInternal*)((X)->_internal))->Y)
 
 #else	/* GS_NONFRAGILE */
 
@@ -115,6 +126,8 @@ if (nil != _internal) {[_internal release]; _internal = nil; }
 #define	GS_CREATE_INTERNAL(name)
 
 #define	GS_DESTROY_INTERNAL(name)
+
+#define	GS_COPY_INTERNAL(D,Z)
 
 /* Define constant to reference internal ivars.
  */
