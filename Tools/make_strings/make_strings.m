@@ -503,7 +503,7 @@ int main(int argc, char **argv)
 #endif
 
   NSMutableDictionary *source_entries;
-  NSMutableArray *languages = [NSMutableArray arrayWithcCapacity: 10];
+  NSMutableArray *languages = [NSMutableArray arrayWithCapacity: 10];
 
   int error;
 
