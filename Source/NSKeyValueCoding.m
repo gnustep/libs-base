@@ -209,9 +209,6 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	    }
 	  if (sel == 0)
 	    {
-	      buf[4] = lo;
-	      buf[3] = '_';
-	      name = &buf[3];		// _key
 	      if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
 		{
                   buf[4] = hi;
