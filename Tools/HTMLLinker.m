@@ -790,7 +790,7 @@ static int verbose = 0;
 	    NSString *filename;
 	   
 	    e = [HTMLDirectoryEnumerator alloc];
-	    e = [e initWithBasePath: pathOnDisk];
+	    e = [[e initWithBasePath: pathOnDisk] autorelease];
 	    [e setLooksForHTMLLinkFiles: YES];
 	    [e setReturnsAbsolutePaths: YES];
 
@@ -1125,7 +1125,7 @@ int main (int argc, char** argv, char** env)
   NSArray *args;
   NSMutableArray *inputFiles;
   unsigned i, count;
-  BOOL warn, fixupAllLinks;
+  BOOL warn;
   NSString *linksMarker;
   HTMLLinker *linker;
   CREATE_AUTORELEASE_POOL(pool);
@@ -1152,7 +1152,6 @@ int main (int argc, char** argv, char** env)
 					    nil]];
 
   warn = [userDefs boolForKey: @"Warn"];
-  fixupAllLinks = [userDefs boolForKey: @"FixupAllLinks"];
   linksMarker = [userDefs stringForKey: @"LinksMarker"];
 
 

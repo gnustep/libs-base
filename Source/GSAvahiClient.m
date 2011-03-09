@@ -119,8 +119,9 @@ GSAvahiClientState(AvahiClient *client, AvahiClientState state, void *userInfo)
 - (id) initWithRunLoop: (NSRunLoop*)rl
                forMode: (NSString*)mode
 {
-  return [self avahiClientInitWithRunLoop: rl
+  self = [self avahiClientInitWithRunLoop: rl
 				  forMode: mode];
+  return self;
 }
 
 - (id) avahiClientInit
@@ -131,7 +132,8 @@ GSAvahiClientState(AvahiClient *client, AvahiClientState state, void *userInfo)
 
 - (id) init
 {
-  return [self avahiClientInit];
+  self = [self avahiClientInit];
+  return self;
 }
 
 - (void*) client

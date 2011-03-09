@@ -753,7 +753,7 @@ static Class NSDataMallocClass;
 		  className = @"_NSUnarchiverUnknownClass";
 		}
 	      classInfo = [objDict objectForKey: className];
-	      if (classInfo == nil)
+	      if (nil == classInfo)
 		{
 		  classInfo = [NSUnarchiverObjectInfo newWithName: className];
 		  c = NSClassFromString(className);
@@ -769,10 +769,6 @@ static Class NSDataMallocClass;
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
 		  RELEASE(classInfo);
-		}
-	      else
-		{
-		  c = classInfo->class;
 		}
 	      RELEASE(className);
 	      classInfo->version = (NSInteger)cver;

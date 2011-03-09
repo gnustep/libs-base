@@ -45,7 +45,9 @@ NSString * const NSNetServicesErrorCode = @"NSNetServicesErrorCode";
  */
 NSString * const NSNetServicesErrorDomain = @"NSNetServicesErrorDomain";
 
+static Class abstractServiceClass;
 static Class concreteServiceClass;
+static Class abstractBrowserClass;
 static Class concreteBrowserClass;
 
 @implementation NSNetService
@@ -53,6 +55,7 @@ static Class concreteBrowserClass;
 {
   if (self == [NSNetService class])
     {
+      abstractServiceClass = self;
 #     if GS_USE_AVAHI==1 
         concreteServiceClass = [GSAvahiNetService class];
 #     else
@@ -63,9 +66,10 @@ static Class concreteBrowserClass;
 
 + (id) allocWithZone: (NSZone*)zone
 {
-  // Note: Assignging the subclass to self will make NSObject allocate the
-  // correct class layout.
-  self = concreteServiceClass;
+  if (self == abstractServiceClass)
+    {
+      return [concreteServiceClass allocWithZone: zone];
+    }
   return [super allocWithZone: zone];
 }
 
@@ -386,6 +390,7 @@ static Class concreteBrowserClass;
 {
   if (self == [NSNetServiceBrowser class])
     {
+      abstractBrowserClass = self;
 #     if GS_USE_AVAHI==1 
         concreteBrowserClass = [GSAvahiNetServiceBrowser class];
 #     else // Not Avahi (=GS_USE_MDNS)
@@ -396,9 +401,10 @@ static Class concreteBrowserClass;
 
 + (id) allocWithZone: (NSZone*)zone
 {
-  // Note: Assignging the subclass to self will make NSObject allocate the
-  // correct class layout.
-  self = concreteBrowserClass;
+  if (self == abstractBrowserClass)
+    {
+      return [concreteBrowserClass allocWithZone: zone];
+    }
   return [super allocWithZone: zone];
 }
 - (id) init

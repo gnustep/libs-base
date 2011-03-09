@@ -58,8 +58,8 @@ GS_EXPORT NSString *const NSGrammarUserDescription;
 #if	GS_EXPOSE(NSSpellServer)
 @private
   id _delegate;
-  BOOL _caseSensitive; 
-  unsigned char _dummy[3];
+  BOOL _caseSensitive GS_UNUSED_IVAR; 
+  unsigned char _dummy[3] GS_UNUSED_IVAR;
   NSMutableDictionary *_userDictionaries;
   NSString *_currentLanguage;
   NSArray *_ignoredWords;

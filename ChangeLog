@@ -2,6 +2,13 @@
 
 	* Source/NSUserDefaults.m: Fix bug in resetting ... was ending up
 	with an immutable dictionary for the registration domain.
+	* Source/NSObject.m: fix references to isa.
+	* Source/NSPropertyList.m: Fix unused increments.
+	* Source/NSRunLoop.m: Remove unused code.
+	* Source/NSSocketPort.m: Remove unused code.
+	* Source/NSSocketPortNameServer.m: Remove unused code.
+	* Source/NSTimeZone.m: Fix unused increment.
+	* Source/NSUnarchiver.m: Fix unused assignment.
 
 2011-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 

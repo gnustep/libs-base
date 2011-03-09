@@ -1570,7 +1570,7 @@ PString(NSString *obj, NSMutableData *output)
 		break;
 	    }
 	}
-      *ptr++ = '"';
+      *ptr = '"';
 
       GS_ENDITEMBUF();
     }
@@ -1921,7 +1921,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		  dst[++j] = ' ';
 		}
 	    }
-	  dst[j++] = '>';
+	  dst[j] = '>';
 	}
     }
   else if ([obj isKindOfClass: NSDateClass])
@@ -2186,7 +2186,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 			  comp = (NSComparisonResult (*)(id, SEL, id))
 			    [a methodForSelector: @selector(compare:)];
 			}
-		      r = (*comp)(a, @selector(compare:), b);
+		      r = (0 == comp) ? 0 : (*comp)(a, @selector(compare:), b);
 		      if (r < 0)
 			{
 			  #ifdef	GSWARN

@@ -50,8 +50,8 @@ convert_unicode(NSArray *args)
 	  IF_NO_GC([myString autorelease];)
 	  if ([myString length] == 0)
 	    {
-	      myString = [[NSString alloc] initWithData: data
-		encoding: [NSString defaultCStringEncoding]];
+	      myString = [[[NSString alloc] initWithData: data
+		encoding: [NSString defaultCStringEncoding]] autorelease];
 	    }
 	  output = [[file lastPathComponent]
 	    stringByAppendingPathExtension: @"unicode"];

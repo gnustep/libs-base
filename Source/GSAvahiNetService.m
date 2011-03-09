@@ -1005,7 +1005,8 @@ didUpdateRecordData: (id)data
         }
       else
         {
-           ret = AVAHI_ERR_FAILURE;
+          ret = AVAHI_ERR_FAILURE;
+	  break;
         }
     }
 
