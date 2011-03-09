@@ -1374,9 +1374,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   mth = GSGetMethod(self, aSelector, YES, YES);
-  if (mth == 0)
+  if (0 == mth)
     return nil;
-  return [NSMethodSignature signatureWithObjCTypes: method_getTypeEncoding(mth)];
+  return [NSMethodSignature
+    signatureWithObjCTypes: method_getTypeEncoding(mth)];
 }
 
 /**
@@ -1386,27 +1387,28 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  const char		*types = NULL;
-  Class			c;
-  unsigned int count;
-  Protocol **protocols;
+  const char	*types = NULL;
+  Class		c;
+  unsigned int	count;
+  Protocol	**protocols;
 
   if (0 == aSelector)
     {
       return nil;
     }
 
-  c = (GSObjCIsInstance(self) ? object_getClass(self) : (Class)self);
+  c = object_getClass(self);
 
-  // Do a fast lookup to see if the method is implemented at all.  If it isn't,
-  // we can give up without doing a very expensive linear search through every
-  // method list in the class hierarchy.
-  if (!class_respondsToSelector(object_getClass(self), aSelector))
+  /* Do a fast lookup to see if the method is implemented at all.  If it isn't,
+   * we can give up without doing a very expensive linear search through every
+   * method list in the class hierarchy.
+   */
+  if (!class_respondsToSelector(c, aSelector))
     {
       return nil; // Method not implemented
     }
-  /*
-   * If there are protocols that this class conforms to,
+
+  /* If there are protocols that this class conforms to,
    * the method may be listed in a protocol with more
    * detailed type information than in the class itself
    * and we must therefore use the information from the
@@ -1415,24 +1417,28 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
    * used by the Distributed Objects system, which the
    * runtime does not maintain in classes.
    */
-  protocols = class_copyProtocolList(isa, &count);
+  protocols = class_copyProtocolList(c, &count);
   if (NULL != protocols)
     {
       struct objc_method_description mth;
       int i;
-      for (i=0 ; i<count ; i++)
+
+      for (i = 0 ; i < count ; i++)
         {
           mth = GSProtocolGetMethodDescriptionRecursive(protocols[i],
-                  aSelector, YES, YES);
+	    aSelector, YES, YES);
           if (NULL == mth.types)
             {
               // Search for class method
               mth = GSProtocolGetMethodDescriptionRecursive(protocols[i],
-                      aSelector, YES, NO);
+		aSelector, YES, NO);
               // FIXME: We should probably search optional methods here too.
             }
 
-          if (NULL != mth.types) { break; }
+          if (NULL != mth.types)
+	    {
+	      break;
+	    }
         }
       free(protocols);
     }
@@ -1440,8 +1446,8 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   if (types == 0)
     {
 #ifdef __GNUSTEP_RUNTIME__
-      struct objc_slot* objc_get_slot(Class cls, SEL selector);
-      struct objc_slot *slot = objc_get_slot(isa, aSelector);
+      struct objc_slot	*objc_get_slot(Class cls, SEL selector);
+      struct objc_slot	*slot = objc_get_slot(object_getClass(self), aSelector);
       types = slot->types;
 #else
       struct objc_method *mth = 
@@ -2062,9 +2068,10 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   mth = GSGetMethod(self, aSelector, YES, YES);
-  if (mth == 0)
+  if (0 == mth)
     return nil;
-  return [NSMethodSignature signatureWithObjCTypes: method_getTypeEncoding(mth)];
+  return [NSMethodSignature
+    signatureWithObjCTypes: method_getTypeEncoding(mth)];
 }
 
 - (IMP) methodFor: (SEL)aSel
@@ -2237,7 +2244,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 @implementation	NSZombie
 - (Class) class
 {
-  return (Class)isa;
+  return object_getClass(self);
 }
 - (Class) originalClass
 {
