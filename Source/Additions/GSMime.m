@@ -1404,7 +1404,6 @@ wordData(NSString *word)
 	{
 	  *body = d;
 	}
-      l -= i;
     }
 
   while (flags.inBody == 0)
@@ -1655,6 +1654,7 @@ wordData(NSString *word)
 	  if (subtype == nil)
 	    {
 	      subtype = @"plain";
+	      [info setObject: subtype forKey: @"Subtype"];
 	    }
 	}
       else if ([type isEqualToString: @"multipart"] == YES)
@@ -1662,6 +1662,7 @@ wordData(NSString *word)
 	  if (subtype == nil)
 	    {
 	      subtype = @"mixed";
+	      [info setObject: subtype forKey: @"Subtype"];
 	    }
 	  if (boundary == nil)
 	    {
@@ -1674,6 +1675,7 @@ wordData(NSString *word)
 	  if (subtype == nil)
 	    {
 	      subtype = @"octet-stream";
+	      [info setObject: subtype forKey: @"Subtype"];
 	    }
 	}
 
@@ -5856,9 +5858,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  name = [[self headerNamed: @"content-type"] parameterForKey: @"name"];
 	  if (name == nil)
 	    {
-	      name = @"data";
+	      name = @"untitled";
 	    }
-          [d uuencodeInto: md name: @"untitled" mode: 0644];
+          [d uuencodeInto: md name: name mode: 0644];
 	}
       else
 	{
@@ -6009,7 +6011,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   else
     {
       type = [hdr objectForKey: @"Type"];
-      subtype = [hdr objectForKey: @"Subtype"];
     }
 
   if (name != nil)

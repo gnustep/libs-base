@@ -344,8 +344,6 @@ ParseFile(const char *filename, NSMutableDictionary *tables)
 	    {
 	      loc_func_t *lf = &loc_funcs[name];
 
-	      num_args++;
-
 /*{
 printf("got call to '%s', %i args\n", loc_funcs[name].func_name, num_args);
 for (i = 0;i<num_args;i++)
@@ -505,8 +503,7 @@ int main(int argc, char **argv)
 #endif
 
   NSMutableDictionary *source_entries;
-
-  NSMutableArray *languages = [[NSMutableArray alloc] init];
+  NSMutableArray *languages = [NSMutableArray arrayWithcCapacity: 10];
 
   int error;
 

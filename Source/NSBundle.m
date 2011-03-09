@@ -2018,8 +2018,10 @@ IF_NO_GC(
 	  dict = [[NSDictionary alloc] initWithContentsOfFile: path];
 	}
     }
-  if (dict == nil)
-    dict = [self infoDictionary];
+  if (nil == [dict autorelease])
+    {
+      dict = [self infoDictionary];
+    }
   return dict;
 }
 

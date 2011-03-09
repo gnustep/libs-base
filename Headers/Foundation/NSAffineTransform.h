@@ -48,8 +48,8 @@ typedef	struct {
   NSAffineTransformStruct	_matrix;
   BOOL _isIdentity;	// special case: A=D=1 and B=C=0
   BOOL _isFlipY;	// special case: A=1 D=-1 and B=C=0
-  BOOL _pad1;
-  BOOL _pad2;
+  BOOL _pad1 GS_UNUSED_IVAR;
+  BOOL _pad2 GS_UNUSED_IVAR;
 #endif
 }
 

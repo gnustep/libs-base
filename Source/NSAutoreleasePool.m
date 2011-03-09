@@ -365,8 +365,8 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   pool = t->_autorelease_vars.current_pool;
   if (pool == nil && t->_active == NO)
     {
-      [self new];	// Don't leak while exiting thread.
-      pool = t->_autorelease_vars.current_pool;
+      // Don't leak while exiting thread.
+      pool = t->_autorelease_vars.current_pool = [self new];
     }
   if (pool != nil)
     {

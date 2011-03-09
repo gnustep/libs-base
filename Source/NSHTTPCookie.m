@@ -113,7 +113,7 @@ static const unsigned char whitespace[32] = {
 
 #define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespace[(X)/8], (X) % 8)
 
-static id GSPropertyListFromCookieFormat(NSString *string);
+static id GSPropertyListFromCookieFormat(NSString *string, int version);
 static NSRange GSRangeOfCookie(NSString *string);
 
 @implementation NSHTTPCookie
@@ -141,11 +141,10 @@ static NSRange GSRangeOfCookie(NSString *string);
 		       forHeader: (NSString *)header
 			  andURL: (NSURL *)url
 {
-  int ckcount, pos;
   int version;
   NSString *defaultPath, *defaultDomain;
-  NSMutableArray *a = [NSMutableArray array];
-  ckcount = 0;
+  NSMutableArray *a;
+
   if ([header isEqual: @"Set-Cookie"])
     version = 0;
   else if ([header isEqual: @"Set-Cookie2"])
@@ -153,6 +152,7 @@ static NSRange GSRangeOfCookie(NSString *string);
   else
     return nil;
 
+  a = [NSMutableArray array];
   defaultDomain = [url host];
   defaultPath = [url path];
   if ([[url absoluteString] hasSuffix: @"/"] == NO)
@@ -161,31 +161,31 @@ static NSRange GSRangeOfCookie(NSString *string);
   /* We could use an NSScanner here, but this string could contain all
      sorts of odd stuff. It's not quite a property list either - it has
      dates and also could have tokens without values. */
-  pos = 0;
   while (1)
     {
       NSHTTPCookie *cookie;
       NSMutableDictionary *dict;
       NSString *onecookie;
       NSRange range = GSRangeOfCookie(field);
+
       if (range.location == NSNotFound)
 	break;
       onecookie = [field substringFromRange: range];
       NS_DURING
-	dict = GSPropertyListFromCookieFormat(onecookie);
+	dict = GSPropertyListFromCookieFormat(onecookie, version);
       NS_HANDLER
 	dict = nil;
       NS_ENDHANDLER
-	if ([dict count])
-	  {
-	    if ([dict objectForKey: NSHTTPCookiePath] == nil)
-	      [dict setObject: defaultPath forKey: NSHTTPCookiePath];
-	    if ([dict objectForKey: NSHTTPCookieDomain] == nil)
-	      [dict setObject: defaultDomain forKey: NSHTTPCookieDomain];
-	    cookie = [NSHTTPCookie cookieWithProperties: dict];
-	    if (cookie)
-	      [a addObject: cookie];
-	  }
+      if ([dict count])
+	{
+	  if ([dict objectForKey: NSHTTPCookiePath] == nil)
+	    [dict setObject: defaultPath forKey: NSHTTPCookiePath];
+	  if ([dict objectForKey: NSHTTPCookieDomain] == nil)
+	    [dict setObject: defaultDomain forKey: NSHTTPCookieDomain];
+	  cookie = [NSHTTPCookie cookieWithProperties: dict];
+	  if (cookie)
+	    [a addObject: cookie];
+	}
       if ([field length] <= NSMaxRange(range))
 	break;
       field = [field substringFromIndex: NSMaxRange(range)+1];
@@ -674,7 +674,7 @@ _setCookieKey(NSMutableDictionary *dict, NSString *key, NSString *value)
 }
 
 static id
-GSPropertyListFromCookieFormat(NSString *string)
+GSPropertyListFromCookieFormat(NSString *string, int version)
 {
   NSMutableDictionary	*dict;
   pldata		_pld;
@@ -755,7 +755,7 @@ GSPropertyListFromCookieFormat(NSString *string)
 	      DESTROY(dict);
 	      break;
 	    }
-          moreCharacters = skipSpace(pld);
+          skipSpace(pld);
 	  if (_setCookieKey(dict, key, val) == NO)
 	    {
 	      pld->err = @"invalid cookie pair";

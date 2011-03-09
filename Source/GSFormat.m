@@ -1459,7 +1459,7 @@ NSDictionary *locale)
 	if (specs[nspecs_done].info.spec != '\0')
 	  *bp++ = specs[nspecs_done].info.spec;
 
-	*bp++ = '\0';
+	*bp = '\0';
 
 	if (specs[nspecs_done].info.is_long_double)
 	  {
@@ -1577,7 +1577,7 @@ NSDictionary *locale)
 	if (specs[nspecs_done].info.spec != '\0')
 	  *bp++ = specs[nspecs_done].info.spec;
 
-	*bp++ = '\0';
+	*bp = '\0';
 
 	if (specs[nspecs_done].info.is_long_double)
 	  {

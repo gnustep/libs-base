@@ -673,7 +673,7 @@ otherTime(NSDate* other)
 	{
 	  BOOL	mustSkip = YES;
 
-	  while ((dtoIndex < [dto length]) && (mustSkip == YES))
+	  while ((dtoIndex < length) && (mustSkip == YES))
 	    {
 	      switch ([dto characterAtIndex: dtoIndex])
 		{
@@ -715,7 +715,7 @@ otherTime(NSDate* other)
 		    break;
 		}
 	    }
-	  if (dtoIndex >= [dto length])
+	  if (dtoIndex >= length)
 	    {
 	      if (debug)
 		{
@@ -982,7 +982,7 @@ otherTime(NSDate* other)
 + (id) distantFuture
 {
   if (_distantFuture == nil)
-    return [GSDateFuture allocWithZone: 0];
+    _distantFuture = [GSDateFuture allocWithZone: 0];
   return _distantFuture;
 }
 
@@ -993,7 +993,7 @@ otherTime(NSDate* other)
 + (id) distantPast
 {
   if (_distantPast == nil)
-    return [GSDatePast allocWithZone: 0];
+    _distantPast = [GSDatePast allocWithZone: 0];
   return _distantPast;
 }
 

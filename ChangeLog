@@ -1,5 +1,26 @@
 2011-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSAttributedString.m: remove unused assignment
+	* Source/GSFormat.m: remove unused increments
+	* Source/GSHTTPAuthentication.m: remove unused assignment, fix possible
+	use of nil as a dictionary key.
+	* Source/GSHTTPURLHandle.m: remove unused assignment, check length.
+	* Source/GSSocketStream.m: remove unused assignments
+	* Source/GSString.m: remove unused assignments
+	* Source/NSAttributedString.m: (-description) fix leak
+	* Source/NSAutoreleasePool.m: tweak for clang static analyser
+	* Source/NSBundle.m: fix memory leak
+	* Source/NSCachedURLResponse.m: fix error in -copy
+	* Source/NSCalendarDate.m: remove unused increments.
+	* Source/NSDate.m: fix parsing string with ordering too long
+	* Source/NSHTTPCookie.m: remove unused assignments
+	* Source/GSMime.m: fix unused assignments
+	* Source/NSInvocation.m: remove unused code
+	* Source/unix/NSStream.m: remove unused ivar
+	* Tools/gdomap.c: remove unused code
+
+2011-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSInternal.h:
 	* Source/NSDateFormatter.m:
 	* Source/NSNumberFormatter.m:
