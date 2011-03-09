@@ -198,11 +198,6 @@ setup()
   NSString                              *keyPathToForward;
 }
 
-+ (id) forwarderWithKeyPath: (NSString *)keyPath
-                   ofObject: (id)object
-                 withTarget: (id)aTarget
-                    context: (void *)context;
-
 - (id) initWithKeyPath: (NSString *)keyPath
               ofObject: (id)object
             withTarget: (id)aTarget
@@ -1263,17 +1258,6 @@ replacementForClass(Class c)
 
 @implementation NSKeyValueObservationForwarder
 
-+ (id) forwarderWithKeyPath: (NSString *)keyPath
-                   ofObject: (id)object
-                 withTarget: (id)aTarget
-                    context: (void *)context
-{
-  return [[self alloc] initWithKeyPath: keyPath
-                              ofObject: object
-                            withTarget: aTarget
-                               context: context];
-}
-
 - (id) initWithKeyPath: (NSString *)keyPath
               ofObject: (id)object
             withTarget: (id)aTarget
@@ -1303,11 +1287,11 @@ replacementForClass(Class c)
   dot = [remainingKeyPath rangeOfString: @"."];
   if (dot.location != NSNotFound)
     {
-      child = [NSKeyValueObservationForwarder
-        forwarderWithKeyPath: remainingKeyPath
-                    ofObject: [object valueForKey: keyForUpdate]
-                  withTarget: self
-                     context: NULL];
+      child = [[NSKeyValueObservationForwarder alloc]
+        initWithKeyPath: remainingKeyPath
+	       ofObject: [object valueForKey: keyForUpdate]
+	     withTarget: self
+		context: NULL];
       observedObjectForForwarding = nil;
     }
   else
@@ -1490,11 +1474,11 @@ replacementForClass(Class c)
   dot = [aPath rangeOfString:@"."];
   if (dot.location != NSNotFound)
     {
-      forwarder = [NSKeyValueObservationForwarder
-        forwarderWithKeyPath: aPath
-                    ofObject: self
-                  withTarget: anObserver
-                     context: aContext];
+      forwarder = [[NSKeyValueObservationForwarder alloc]
+        initWithKeyPath: aPath
+	       ofObject: self
+	     withTarget: anObserver
+		context: aContext];
       [info addObserver: anObserver
              forKeyPath: aPath
                 options: options
