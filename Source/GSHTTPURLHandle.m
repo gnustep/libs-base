@@ -628,7 +628,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    {
 	      complete = NO;	// Read chunked body data
 	    }
-	  else if (nil != len && [len count] == 0)
+	  else if (nil != len && [len intValue] == 0)
 	    {
 	      complete = YES;	// content-length explicitly zero
 	    }
