@@ -391,9 +391,18 @@ newLanguages(NSArray *oldNames)
   [classLock lock];
   NS_DURING
     {
-      regDefs = [sharedDefaults volatileDomainForName: @"NSRegistrationDomain"];
-      if (nil != sharedDefaults)
+      if (nil == sharedDefaults)
+	{
+	  regDefs = nil;
+	}
+      else
         {
+	  /* Extract the registration domain from the old defaults.
+	   */
+	  regDefs = [[[sharedDefaults->_tempDomains
+	    objectForKey: NSRegistrationDomain] retain] autorelease];
+	  [sharedDefaults->_tempDomains
+	    removeObjectForKey: NSRegistrationDomain];
 
           /* To ensure that we don't try to synchronise the old defaults to disk
            * after creating the new ones, remove as housekeeping notification
