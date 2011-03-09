@@ -1,3 +1,8 @@
+2011-03-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Fix bug in resetting ... was ending up
+	with an immutable dictionary for the registration domain.
+
 2011-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSAttributedString.m: remove unused assignment
