@@ -148,8 +148,12 @@ static BOOL cacheDone = NO;
 
 static char * xml_strdup(const char *from)
 {
-  unsigned	len = (from == 0) ? 1 : (strlen(from) + 1);
-  char		*to = malloc(len);
+  unsigned	len;
+  char		*to;
+
+  if (0 == from) from = "";
+  len = strlen(from) + 1;
+  to = malloc(len);
   memcpy(to, from, len);
   return to;
 }

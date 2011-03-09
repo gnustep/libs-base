@@ -527,10 +527,17 @@ extern "C" {
 @interface	GSXMLRPC : NSObject <NSURLHandleClient>
 {
 @private
+#if	defined(GNUSTEP)
   NSURLHandle		*handle;
+  NSString		*connectionURL GS_UNUSED_IVAR;
+  NSURLConnection	*connection GS_UNUSED_IVAR;
+  NSMutableData		*response GS_UNUSED_IVAR;
+#else
+  id			handle GS_UNUSED_IVAR;
   NSString		*connectionURL;
   NSURLConnection	*connection;
   NSMutableData		*response;
+#endif
   NSTimer		*timer;
   id			result;
   id			delegate;	// Not retained.
