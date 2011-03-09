@@ -81,10 +81,6 @@
 @end
 
 @interface GSLocalServerStream : GSSocketServerStream
-{
-  @private
-  struct sockaddr_un _serverAddr;
-}
 @end
 
 @implementation GSFileInputStream

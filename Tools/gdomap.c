@@ -3229,9 +3229,6 @@ handle_request(int desc)
       if (ri->addr.sin_port == my_port)
 	{
 	  struct in_addr	sin;
-	  unsigned long		net;
-	  struct in_addr	*ptr;
-	  int			c;
 
 	  memcpy(&sin, &ri->buf.r.name, IASIZE);
 	  if (debug > 2)
@@ -3240,38 +3237,7 @@ handle_request(int desc)
 		"Probe reply from '%s'", inet_ntoa(sin));
 	      gdomap_log(LOG_DEBUG);
 	    }
-#if	defined(__MINGW__)
-	  if (IN_CLASSA(sin.s_addr))
-	    {
-	      net = sin.s_addr & IN_CLASSA_NET;
-	    }
-	  else if (IN_CLASSB(sin.s_addr))
-	    {
-	      net = sin.s_addr & IN_CLASSB_NET;
-	    }
-	  else if (IN_CLASSC(sin.s_addr))
-	    {
-	      net = sin.s_addr & IN_CLASSC_NET;
-	    }
-#else
-	  net = inet_netof(sin);
-#endif
-	  ptr = (struct in_addr*)&ri->buf.r.name[2*IASIZE];
-	  c = (ri->buf.r.nsize - 2*IASIZE)/IASIZE;
 	  prb_add(&sin);
-#if 0
-	  while (c-- > 0)
-	    {
-	      if (debug > 2)
-		{
-		  snprintf(ebuf, sizeof(ebuf),
-		    "Add server '%s'", inet_ntoa(*ptr));
-		  gdomap_log(LOG_DEBUG);
-		}
-	      prb_add(ptr);
-	      ptr++;
-	    }
-#endif
 	  /*
 	   *	Irrespective of what we are told to do - we also add the
 	   *	interface from which this packet arrived so we have a
@@ -4035,7 +4001,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
        * the specified server on it.
        */
       rval = tryHost(GDO_SERVERS, 0, 0, ptype, &sin, &num, (uptr*)&b);
-      if (rval != 0 && host == local_hostname)
+      if (rval != 0)
 	{
 	  snprintf(ebuf, sizeof(ebuf),
 	    "failed to contact gdomap on %s(%s) - %s",

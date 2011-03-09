@@ -63,10 +63,10 @@ typedef struct {
   else
     {
       o = [[self class] allocWithZone: z];
-      o = [self initWithResponse: [self response]
-			    data: [self data]
-		        userInfo: [self userInfo]
-		   storagePolicy: [self storagePolicy]];
+      o = [o initWithResponse: [self response]
+			 data: [self data]
+		     userInfo: [self userInfo]
+		storagePolicy: [self storagePolicy]];
     }
   return o;
 }

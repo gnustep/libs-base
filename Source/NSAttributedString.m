@@ -405,7 +405,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   NSDictionary		*attrs;
   NSMutableString	*desc;
 
-  desc = [[NSMutableString alloc] init];
+  desc = [NSMutableString stringWithCapacity: length];
   while (index < length &&
     (attrs = [self attributesAtIndex: index effectiveRange: &r]) != nil)
     {

@@ -435,13 +435,13 @@ static gnutls_anon_client_credentials_t anoncred;
     }
   if ([proto isEqualToString: NSStreamSocketSecurityLevelNone] == YES)
     {
-      proto = NSStreamSocketSecurityLevelNone;
+      // proto = NSStreamSocketSecurityLevelNone;
       DESTROY(self);
       return nil;
     }
   else if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv2] == YES)
     {
-      proto = NSStreamSocketSecurityLevelSSLv2;
+      // proto = NSStreamSocketSecurityLevelSSLv2;
       GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
         @" not implemented");
       DESTROY(self);
@@ -809,7 +809,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 #endif	/* AF_INET6 */
       else
 	{
-	  struct sockaddr_in	*addr = (struct sockaddr_in*)(void*)[istream _address];
+	  struct sockaddr_in	*addr;
           NSDictionary          *conf;
           NSString              *host;
           int                   pnum;
@@ -817,6 +817,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           /* Record the host and port that the streams are supposed to be
            * connecting to.
            */ 
+	  addr = (struct sockaddr_in*)(void*)[istream _address];
 	  address = [[NSString alloc] initWithUTF8String:
 	    (char*)inet_ntoa(addr->sin_addr)];
 	  port = [[NSString alloc] initWithFormat: @"%d",
@@ -828,8 +829,8 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           conf = [istream propertyForKey: NSStreamSOCKSProxyConfigurationKey];
           host = [conf objectForKey: NSStreamSOCKSProxyHostKey];
           pnum = [[conf objectForKey: NSStreamSOCKSProxyPortKey] intValue];
-          [istream _setSocketAddress: address port: pnum family: AF_INET];
-          [ostream _setSocketAddress: address port: pnum family: AF_INET];
+          [istream _setSocketAddress: host port: pnum family: AF_INET];
+          [ostream _setSocketAddress: host port: pnum family: AF_INET];
 	}
     }
   return self;
@@ -1148,7 +1149,6 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 			{
 			  NSString	*a;
 
-			  error = @"";	// success
 			  if (rbuffer[3] == 1)
 			    {
 			      a = [NSString stringWithFormat: @"%d.%d.%d.%d",

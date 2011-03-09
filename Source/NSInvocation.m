@@ -399,16 +399,11 @@ _arg_addr(NSInvocation *inv, int index)
  */
 - (void) getReturnValue: (void*)buffer
 {
-  const char	*type;
-
   if (_validReturn == NO)
     {
       [NSException raise: NSGenericException
 		  format: @"getReturnValue with no value set"];
     }
-
-  type = [_sig methodReturnType];
-
   if (*_inf[0].type != _C_VOID)
     {
       memcpy(buffer, _retval, _inf[0].size);

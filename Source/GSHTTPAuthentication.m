@@ -369,7 +369,7 @@ static GSMimeParser		*mimeParser = nil;
 	      [domainMap setObject: sDict forKey: server];
 	      RELEASE(sDict);
 	    }
-	  [sDict setObject: space forKey: [u path]];
+	  [sDict setObject: space forKey: path];
 	}
     }
   NS_HANDLER
@@ -503,7 +503,6 @@ static GSMimeParser		*mimeParser = nil;
 	  [self->_lock lock];
 	  nonce = _nonce;
 	  opaque = _opaque;
-	  qop = _qop;
 	  realm = [self->_space realm];
 	}
 

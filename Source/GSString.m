@@ -2030,7 +2030,7 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 		    }
 		  buffer[i] = (char)u;
 		}
-	      buffer[i++] = '\0';
+	      buffer[i] = '\0';
 	      if (bytes == self->_count)
 		{
 		  return YES;
@@ -2056,7 +2056,7 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 		    }
 		  buffer[i] = (char)u;
 		}
-	      buffer[i++] = '\0';
+	      buffer[i] = '\0';
 	      if (bytes == self->_count)
 		{
 		  return YES;
@@ -2518,15 +2518,18 @@ rangeOfCharacter_c(GSStr self, NSCharacterSet *aSet, unsigned mask,
 
   if (aSet == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
-  i = self->_count;
 
   if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
     {
-      start = NSMaxRange(aRange)-1; stop = aRange.location-1; step = -1;
+      start = NSMaxRange(aRange) - 1;
+      stop = aRange.location - 1;
+      step = -1;
     }
   else
     {
-      start = aRange.location; stop = NSMaxRange(aRange); step = 1;
+      start = aRange.location;
+      stop = NSMaxRange(aRange);
+      step = 1;
     }
   range.location = NSNotFound;
   range.length = 0;
@@ -2572,15 +2575,18 @@ rangeOfCharacter_u(GSStr self, NSCharacterSet *aSet, unsigned mask,
 
   if (aSet == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
-  i = self->_count;
 
   if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
     {
-      start = NSMaxRange(aRange)-1; stop = aRange.location-1; step = -1;
+      start = NSMaxRange(aRange) - 1;
+      stop = aRange.location - 1;
+      step = -1;
     }
   else
     {
-      start = aRange.location; stop = NSMaxRange(aRange); step = 1;
+      start = aRange.location;
+      stop = NSMaxRange(aRange);
+      step = 1;
     }
   range.location = NSNotFound;
   range.length = 0;

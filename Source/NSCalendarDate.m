@@ -1981,8 +1981,9 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		v = info->yd;
 		if (ycent)
 		  {
-		    if (fmtlen == 1) // no format width specified; supply default
+		    if (fmtlen == 1)
 		      {
+			// no format width specified; supply default
 			fldfmt[fmtlen++] = '0';
 			fldfmt[fmtlen++] = '4';
 		      }
@@ -1991,14 +1992,15 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		  {
 		    if (v < 0) v = -v;
 		    v = v % 100;
-		    if (fmtlen == 1) // no format width specified; supply default
+		    if (fmtlen == 1)
 		      {
+			// no format width specified; supply default
 			fldfmt[fmtlen++] = '0';
 			fldfmt[fmtlen++] = '2';
 		      }
 		  }
 		  fldfmt[fmtlen++] = 'd';
-		  fldfmt[fmtlen++] = 0;
+		  fldfmt[fmtlen] = 0;
 		  outputValueWithFormat(v, fldfmt, info);
 		break;
 
@@ -2035,13 +2037,14 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		  {
 		    v = info->md;
 		    v = v % 100;
-		    if (fmtlen == 1) // no format width specified; supply default
+		    if (fmtlen == 1)
 		      {
+			// no format width specified; supply default
 			fldfmt[fmtlen++] = '0';
 			fldfmt[fmtlen++] = '2';
 		      }
 		    fldfmt[fmtlen++] = 'd';
-		    fldfmt[fmtlen++] = 0;
+		    fldfmt[fmtlen] = 0;
 		    outputValueWithFormat(v, fldfmt, info);
 		  }
 		break;
@@ -2049,26 +2052,26 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 	      case 'd': 	// day of month with leading zero
 		v = info->dom;
 		v = v % 100;
-		    if (fmtlen == 1) // no format width specified; supply default
-		      {
-			fldfmt[fmtlen++] = '0';
-			fldfmt[fmtlen++] = '2';
-		      }
-		    fldfmt[fmtlen++] = 'd';
-		    fldfmt[fmtlen++] = 0;
-		    outputValueWithFormat(v, fldfmt, info);
+		if (fmtlen == 1) // no format width specified; supply default
+		  {
+		    fldfmt[fmtlen++] = '0';
+		    fldfmt[fmtlen++] = '2';
+		  }
+		fldfmt[fmtlen++] = 'd';
+		fldfmt[fmtlen] = 0;
+		outputValueWithFormat(v, fldfmt, info);
 		break;
 
 	      case 'e': 	// day of month with leading space
 		v = info->dom;
 		v = v % 100;
-		    if (fmtlen == 1) // no format width specified; supply default
-		      {
-			fldfmt[fmtlen++] = '1'; // no leading space, just like Cocoa
-		      }
-		    fldfmt[fmtlen++] = 'd';
-		    fldfmt[fmtlen++] = 0;
-		    outputValueWithFormat(v, fldfmt, info);
+		if (fmtlen == 1) // no format width specified; supply default
+		  {
+		    fldfmt[fmtlen++] = '1'; // no leading space, just like Cocoa
+		  }
+		fldfmt[fmtlen++] = 'd';
+		fldfmt[fmtlen] = 0;
+		outputValueWithFormat(v, fldfmt, info);
 		break;
 
 	      case 'F': 	// milliseconds
@@ -2088,7 +2091,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		    fldfmt[fmtlen++] = '3';
 		  }
 		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
+		fldfmt[fmtlen] = 0;
 		outputValueWithFormat(v, fldfmt, info);
 		break;
 
@@ -2100,7 +2103,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		    fldfmt[fmtlen++] = '3';
 		  }
 		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
+		fldfmt[fmtlen] = 0;
 		outputValueWithFormat(v, fldfmt, info);
 		break;
 
@@ -2137,12 +2140,13 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		    }
 		  if (dtag == NO)
 		    {
-		      if (fmtlen == 1) // no format width specified; supply default
+		      if (fmtlen == 1)
 			{
+			  // no format width specified; supply default
 			  fldfmt[fmtlen++] = '1';
-			  }
+			}
 		      fldfmt[fmtlen++] = 'd';
-		      fldfmt[fmtlen++] = 0;
+		      fldfmt[fmtlen] = 0;
 		      outputValueWithFormat(v, fldfmt, info);
 		    }
 		}
@@ -2179,7 +2183,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 
 		  }
 		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
+		fldfmt[fmtlen] = 0;
 		if (GSPrivateDefaultsFlag(GSMacOSXCompatible)
 		    && hspc == YES)
 		  {
@@ -2201,7 +2205,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		    fldfmt[fmtlen++] = '2';
 		  }
 		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
+		fldfmt[fmtlen] = 0;
 		outputValueWithFormat(v, fldfmt, info);
 		break;
 
@@ -2214,7 +2218,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		    fldfmt[fmtlen++] = '2';
 		  }
 		fldfmt[fmtlen++] = 'd';
-		fldfmt[fmtlen++] = 0;
+		fldfmt[fmtlen] = 0;
 		outputValueWithFormat(v, fldfmt, info);
 		break;
 

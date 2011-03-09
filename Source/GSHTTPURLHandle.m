@@ -610,10 +610,8 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  NSString	*enc;
 	  NSString	*len;
 	  int		status;
-	  float		ver;
 
 	  info = [document headerNamed: @"http"];
-	  ver = [[info value] floatValue];
 	  status = [[info objectForKey: NSHTTPPropertyStatusCodeKey] intValue];
 	  len = [[document headerNamed: @"content-length"] value];
 	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
@@ -629,6 +627,10 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  else if ([enc isEqualToString: @"chunked"] == YES)	
 	    {
 	      complete = NO;	// Read chunked body data
+	    }
+	  else if (nil != len && [len count] == 0)
+	    {
+	      complete = YES;	// content-length explicitly zero
 	    }
 	  if (complete == NO && [d length] == 0)
 	    {
