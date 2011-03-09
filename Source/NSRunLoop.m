@@ -915,7 +915,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  ti += (increment * add);
 	  if (ti < now)
 	    {
-	      add++;
 	      ti += increment;
 	    }
 	}
@@ -1099,7 +1098,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 #endif
 
       NSDebugMLLog(@"NSRunLoop", @"limit date %f in %@",
-	[when timeIntervalSinceReferenceDate], mode);
+	nil == when ? 0.0 : [when timeIntervalSinceReferenceDate], mode);
     }
   return when;
 }

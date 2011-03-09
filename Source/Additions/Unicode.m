@@ -2274,7 +2274,6 @@ tables:
 		 * No mapping has been found.
 		 */
 		result = NO;
-		spos = slen;
 		goto done;
 	      }
 	  }

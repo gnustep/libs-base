@@ -285,8 +285,8 @@ main(int argc, char** argv, char **env)
 			    }
 			}
 		      NSZoneFree(z, u);
-		      myData = [[NSData alloc] initWithBytesNoCopy: c
-							    length: o];
+		      myData = [[[NSData alloc]
+			initWithBytesNoCopy: c length: o] autorelease];
 		    }
 		  else if (eIn == YES)
 		    {

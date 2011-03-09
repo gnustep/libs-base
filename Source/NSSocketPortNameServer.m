@@ -656,7 +656,6 @@ typedef enum {
       [serverLock lock];
       NS_DURING
 	{
-	  GSPortCom	*tmp;
 	  NSData	*dat;
 
 	  [com startListNameServers];
@@ -683,9 +682,7 @@ typedef enum {
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"failed to get list of name servers"];
 	    }
-	  tmp = com;
-	  com = nil;
-	  RELEASE(tmp);
+	  RELEASE(com);
 	}
       NS_HANDLER
 	{
@@ -1083,8 +1080,6 @@ typedef enum {
 
   NS_DURING
     {
-      GSPortCom	*tmp;
-
       com = [GSPortCom new];
       [com startPortUnregistration: 0 withName: name];
       while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
@@ -1134,9 +1129,7 @@ typedef enum {
 		}
 	    }
 	}
-      tmp = com;
-      com = nil;
-      RELEASE(tmp);
+      RELEASE(com);
     }
   NS_HANDLER
     {

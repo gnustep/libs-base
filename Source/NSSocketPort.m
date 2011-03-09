@@ -252,14 +252,12 @@ decodePort(NSData *data, NSString *defaultAddress)
   GSPortInfo		*pi;
   NSString		*addr;
   uint16_t		pnum;
-  uint32_t		length;
   NSHost		*host;
   unichar		c;
 
   pih = (GSPortItemHeader*)[data bytes];
   NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
     NSInternalInconsistencyException);
-  length = GSSwapBigI32ToHost(pih->length);
   pi = (GSPortInfo*)&pih[1];
   pnum = GSSwapBigI16ToHost(pi->num);
   if (strncmp(pi->addr, "VER", 3) == 0)

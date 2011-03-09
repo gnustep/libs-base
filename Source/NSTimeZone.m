@@ -308,7 +308,7 @@ decode (const void *ptr)
   result = (result << 8) | *p++;
   result = (result << 8) | *p++;
   result = (result << 8) | *p++;
-  result = (result << 8) | *p++;
+  result = (result << 8) | *p;
   return result;
 #endif /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
 }
