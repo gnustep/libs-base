@@ -583,6 +583,10 @@ _attributesAtIndexEffectiveRange(
       ADDOBJECT(info);
       RELEASE(info);
     }
+/* WARNING ... NSLayoutManager depends on the fact that we create the
+ * _textChars instance variable by copying the aString argument to get
+ * its own string subclass into the attributed string.
+ */
   if (aString == nil)
     _textChars = [[NSMutableString allocWithZone: z] init];
   else
