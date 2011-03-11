@@ -1,15 +1,54 @@
-#import "NSObject.h"
+/* Definition of class NSRegularExpression
+   Copyright (C) 2011 Free Software Foundation, Inc.
+   
+   This file is part of the GNUstep Library.
+   
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+   
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
+*/
+
+#ifndef _NSRegularExpression_h_GNUSTEP_BASE_INCLUDE
+#define _NSRegularExpression_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+
+#import	<Foundation/NSObject.h>
 #import "GNUstepBase/GSBlocks.h"
+
+#if	defined(__cplusplus)
+extern "C" {
+#endif
+
 @class NSTextCheckingResult;
 
 typedef NSUInteger NSRegularExpressionOptions;
-static const NSRegularExpressionOptions NSRegularExpressionCaseInsensitive             = 1<<0;
-static const NSRegularExpressionOptions NSRegularExpressionAllowCommentsAndWhitespace  = 1<<1;
-static const NSRegularExpressionOptions NSRegularExpressionIgnoreMetacharacters        = 1<<2;
-static const NSRegularExpressionOptions NSRegularExpressionDotMatchesLineSeparators    = 1<<3;
-static const NSRegularExpressionOptions NSRegularExpressionAnchorsMatchLines           = 1<<4;
-static const NSRegularExpressionOptions NSRegularExpressionUseUnixLineSeparators       = 1<<5;
-static const NSRegularExpressionOptions NSRegularExpressionUseUnicodeWordBoundaries    = 1<<6;
+static const NSRegularExpressionOptions
+  NSRegularExpressionCaseInsensitive             = 1<<0;
+static const NSRegularExpressionOptions
+  NSRegularExpressionAllowCommentsAndWhitespace  = 1<<1;
+static const NSRegularExpressionOptions
+  NSRegularExpressionIgnoreMetacharacters        = 1<<2;
+static const NSRegularExpressionOptions
+  NSRegularExpressionDotMatchesLineSeparators    = 1<<3;
+static const NSRegularExpressionOptions
+  NSRegularExpressionAnchorsMatchLines           = 1<<4;
+static const NSRegularExpressionOptions
+  NSRegularExpressionUseUnixLineSeparators       = 1<<5;
+static const NSRegularExpressionOptions
+  NSRegularExpressionUseUnicodeWordBoundaries    = 1<<6;
 
 typedef NSUInteger NSMatchingFlags;
 static const NSMatchingFlags NSMatchingProgress      = 1<<0;
@@ -29,7 +68,7 @@ static const NSMatchingOptions NSMatchingWithoutAnchoringBounds = 1<<4;
 DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BOOL*);
 
 #ifndef GSREGEXTYPE
-#define GSREGEXTYPE void
+#  define GSREGEXTYPE void
 #endif
 
 @interface NSRegularExpression : NSObject <NSCoding, NSCopying>
@@ -99,3 +138,12 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
 - (NSUInteger)numberOfCaptureGroups;
 #endif
 @end
+
+#if	defined(__cplusplus)
+}
+#endif
+
+#endif	/* GS_API_MACOSX */
+
+#endif	/* _NSRegualrExpression_h_GNUSTEP_BASE_INCLUDE */
+
