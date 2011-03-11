@@ -1,3 +1,10 @@
+2011-03-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSBlocks.m: Added header
+	* Headers/Additions/GNUstepBase/GSBlocks.h: Added header
+	* Headers/Foundation/NSRegularExpression.h: Added header
+	Added missing copyright headers etc.
+
 2011-03-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Fix bug in resetting ... was ending up
