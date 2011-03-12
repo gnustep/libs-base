@@ -475,22 +475,23 @@ static NSRecursiveLock *classLock = nil;
 
   if (nil == countries)
     {
+#if	GS_USE_ICU == 1
       [classLock lock];
       if (nil == countries)
-	{
-#if	GS_USE_ICU == 1
-	  NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
-	  const char *const *codes = uloc_getISOCountries ();
+        {
+          NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
+          const char *const *codes = uloc_getISOCountries ();
 
-	  while (codes != NULL)
-	    {
-	      [array addObject: [NSString stringWithUTF8String: *codes]];
-	      ++codes;
-	    }
-	  countries = [[NSArray alloc] initWithArray: array];
-	  [array release];
+          while (codes != NULL)
+            {
+              [array addObject: [NSString stringWithUTF8String: *codes]];
+              ++codes;
+            }
+          countries = [[NSArray alloc] initWithArray: array];
+          [array release];
+        }
+      [classLock unlock];
 #endif
-	}
     }
   return [[countries copy] autorelease];
 }
@@ -501,22 +502,23 @@ static NSRecursiveLock *classLock = nil;
 
   if (nil == languages)
     {
+#if	GS_USE_ICU == 1
       [classLock lock];
       if (nil == languages)
-	{
-#if	GS_USE_ICU == 1
-	  NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
-	  const char *const *codes = uloc_getISOCountries ();
+        {
+          NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
+          const char *const *codes = uloc_getISOCountries ();
 
-	  while (codes != NULL)
-	    {
-	      [array addObject: [NSString stringWithUTF8String: *codes]];
-	      ++codes;
-	    }
-	  languages = [[NSArray alloc] initWithArray: array];
-	  [array release];
+          while (codes != NULL)
+            {
+              [array addObject: [NSString stringWithUTF8String: *codes]];
+              ++codes;
+            }
+          languages = [[NSArray alloc] initWithArray: array];
+          [array release];
+        }
+      [classLock unlock];
 #endif
-	}
     }
   return [[languages copy] autorelease];
 }

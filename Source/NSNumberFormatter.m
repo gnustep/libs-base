@@ -35,6 +35,7 @@
 #import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLocale.h"
+#import "Foundation/NSMapTable.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSNumberFormatter.h"
 #import "Foundation/NSUserDefaults.h"
@@ -48,9 +49,15 @@
 # include <unicode/unum.h>
 #endif
 
-#define MAX_SYMBOL_SIZE 32
-#define MAX_TEXT_ATTRIB_SIZE 512
-#define MAX_BUFFER_SIZE 1024
+#define BUFFER_SIZE 1024
+
+/* Unfortunately, libicu does not define the maximum values allowed for all
+   of these attributes.  We define them here to, though.
+   These are based off libicu version 4.6.
+ */
+#define MAX_SYMBOLS 27
+#define MAX_TEXTATTRIBUTES 8
+#define MAX_ATTRIBUTES 20
 
 #if GS_USE_ICU == 1
 static inline UNumberFormatStyle
@@ -196,38 +203,132 @@ ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
   
   return result;
 }
-#endif
 
+#define SET_SYMBOL(key, value, reset) do\
+  { \
+    unichar buffer[BUFFER_SIZE]; \
+    NSUInteger length; \
+    UErrorCode err = U_ZERO_ERROR; \
+    \
+    if (reset && ((value) == nil)) \
+      break; \
+    \
+    length = [(value) length]; \
+    if (length > BUFFER_SIZE) \
+      length = BUFFER_SIZE; \
+    [value getCharacters: buffer range: NSMakeRange (0, length)]; \
+    \
+    unum_setSymbol (internal->_formatter, key, buffer, length, &err); \
+    \
+    if (!reset) \
+      { \
+        if (internal->_symbols[key]) \
+          RELEASE(internal->_symbols[key]); \
+        internal->_symbols[key] = RETAIN(value); \
+      } \
+  } while(0)
+
+#define SET_TEXTATTRIBUTE(key, value, reset) do\
+  { \
+    unichar buffer[BUFFER_SIZE]; \
+    NSUInteger length; \
+    UErrorCode err = U_ZERO_ERROR; \
+    \
+    if (reset && ((value) == nil)) \
+      break; \
+    \
+    length = [(value) length]; \
+    if (length > BUFFER_SIZE) \
+      length = BUFFER_SIZE; \
+    [value getCharacters: buffer range: NSMakeRange (0, length)]; \
+    \
+    unum_setTextAttribute (internal->_formatter, key, buffer, length, &err); \
+    \
+    if (!reset) \
+      { \
+        if (internal->_textAttributes[key]) \
+          RELEASE(internal->_textAttributes[key]); \
+        internal->_textAttributes[key] = RETAIN(value); \
+      } \
+  } while(0)
+
+#define SET_ATTRIBUTE(key, value, reset) do \
+  { \
+    if (reset && ((int32_t)(value) < 0)) \
+      break; \
+    \
+    unum_setAttribute (internal->_formatter, key, (int32_t)(value)); \
+    \
+    if (!reset) \
+      internal->_attributes[key] = (int32_t)(value); \
+  } while(0)
+
+#define GET_SYMBOL(key, retval) do \
+  { \
+  UChar buffer[BUFFER_SIZE]; \
+  int32_t length; \
+  UErrorCode err = U_ZERO_ERROR; \
+  \
+  length = unum_getSymbol (internal->_formatter, key, buffer, \
+    BUFFER_SIZE, &err); \
+  if (length > BUFFER_SIZE) \
+    length = BUFFER_SIZE; \
+  \
+  retval = [NSString stringWithCharacters: buffer length: length]; \
+  } while(0)
+
+#define GET_TEXTATTRIBUTE(key, retval) do \
+  { \
+  UChar buffer[BUFFER_SIZE]; \
+  int32_t length; \
+  UErrorCode err = U_ZERO_ERROR; \
+  \
+  length = unum_getTextAttribute (internal->_formatter, key, buffer, \
+    BUFFER_SIZE, &err); \
+  if (length > BUFFER_SIZE) \
+    length = BUFFER_SIZE; \
+  \
+  retval = [NSString stringWithCharacters: buffer length: length]; \
+  } while(0)
+
+#define GET_ATTRIBUTE(key, retval) do \
+  { \
+    if (internal->_attributes[key]) \
+      retval = internal->_attributes[key]; \
+    else \
+      retval = unum_getAttribute (internal->_formatter, key); \
+  } while (0)
+
+#endif
 
 #define GS_NSNumberFormatter_IVARS \
   NSUInteger _behavior; \
   BOOL       _genDecimal; \
   NSUInteger _style; \
   NSLocale  *_locale; \
-  void      *_formatter
+  void      *_formatter; \
+  id *_symbols; \
+  id *_textAttributes; \
+  int *_attributes
  
 #define GSInternal              NSNumberFormatterInternal
 #include        "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSNumberFormatter)
 
 
+
 @interface NSNumberFormatter (PrivateMethods)
 - (void) _resetUNumberFormat;
-- (void) _setSymbol: (NSString *) string : (NSInteger) symbol;
-- (NSString *) _getSymbol: (NSInteger) symbol;
-- (void) _setTextAttribute: (NSString *) string : (NSInteger) attrib;
-- (NSString *) _getTextAttribute: (NSInteger) attrib;
 @end
 
 @implementation NSNumberFormatter
 
-static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 #if GS_USE_ICU == 1
 #define	MYBEHAVIOR	internal->_behavior
 #else
 #define	MYBEHAVIOR	NSNumberFormatterBehavior10_0
 #endif
-
+static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (BOOL) allowsFloats
 {
@@ -329,10 +430,19 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   RELEASE(_attributedStringForZero);
   if (internal != 0)
     {
+      int idx;
+      NSZone *z = [self zone];
       RELEASE(internal->_locale);
 #if GS_USE_ICU == 1
       unum_close (internal->_formatter);
 #endif
+      for (idx = 0 ; idx < MAX_SYMBOLS ; ++idx )
+        RELEASE(internal->_symbols[idx]);
+      NSZoneFree (z, internal->_symbols);
+      for (idx = 0 ; idx < MAX_TEXTATTRIBUTES ; ++idx )
+        RELEASE(internal->_textAttributes[idx]);
+      NSZoneFree (z, internal->_textAttributes);
+      NSZoneFree (z, internal->_attributes);
       GS_DESTROY_INTERNAL(NSNumberFormatter)
     }
   [super dealloc];
@@ -344,7 +454,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     || MYBEHAVIOR == NSNumberFormatterBehaviorDefault)
     {
 #if GS_USE_ICU == 1
-      return [self _getSymbol: UNUM_DECIMAL_SEPARATOR_SYMBOL];
+      NSString *result;
+      GET_SYMBOL(UNUM_DECIMAL_SEPARATOR_SYMBOL, result);
+      return result;
 #endif
     }
   else if (MYBEHAVIOR == NSNumberFormatterBehavior10_0)
@@ -380,6 +492,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   [encoder encodeObject: _positiveFormat];
   [encoder encodeObject: _attributesForPositiveValues];
   [encoder encodeObject: _attributesForNegativeValues];
+  // FIXME: Add new ivars
 }
 
 - (NSString*) format
@@ -463,9 +576,11 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (id) init
 {
   id	o;
-
+  int idx;
+  NSZone *z = [self zone];
+  
   GS_CREATE_INTERNAL(NSNumberFormatter)
-
+  
   _allowsFloats = YES;
   _decimalSeparator = '.';
   _thousandSeparator = ',';
@@ -480,6 +595,21 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   internal->_behavior = _defaultBehavior;
   internal->_locale = RETAIN([NSLocale currentLocale]);
   internal->_style = NSNumberFormatterNoStyle;
+  internal->_symbols = NSZoneCalloc (z, MAX_SYMBOLS, sizeof(id));
+  internal->_textAttributes = NSZoneCalloc (z, MAX_TEXTATTRIBUTES, sizeof(id));
+  internal->_attributes = NSZoneCalloc (z, MAX_ATTRIBUTES, sizeof(id));
+  if (!(internal->_symbols
+        && internal->_textAttributes
+        && internal->_attributes))
+    {
+      RELEASE(self);
+      return nil;
+    }
+  /* Set all attributes to -1 before resetting the formatter.  When
+  resetting them only values < 0 will be skipped. */
+  for (idx = 0 ; idx < MAX_ATTRIBUTES ; ++idx)
+    internal->_attributes[idx] = -1;
+  
   [self _resetUNumberFormat];
 #if GS_USE_ICU == 1
   if (internal->_formatter == NULL)
@@ -488,6 +618,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       return nil;
     }
 #endif
+  
+  [self setMaximumFractionDigits: 0];
   
   return self;
 }
@@ -597,6 +729,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 	                          at: &_attributesForNegativeValues];
     }
   return self;
+  // FIXME: add new ivars
 }
 
 - (BOOL) isPartialStringValid: (NSString*)partialString
@@ -673,7 +806,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     || MYBEHAVIOR == NSNumberFormatterBehaviorDefault)
     {
 #if GS_USE_ICU == 1
-      [self _setSymbol: newSeparator : UNUM_DECIMAL_SEPARATOR_SYMBOL];
+      SET_SYMBOL(UNUM_DECIMAL_SEPARATOR_SYMBOL, newSeparator, NO);
 #endif
     }
   else if (MYBEHAVIOR == NSNumberFormatterBehavior10_0)
@@ -785,13 +918,13 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     int32_t len; \
     NSString *result; \
     \
-    len = function (internal->_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
-    if (len > MAX_BUFFER_SIZE) \
+    len = function (internal->_formatter, number, outStr, BUFFER_SIZE, NULL, &err); \
+    if (len > BUFFER_SIZE) \
       outStr = NSZoneMalloc ([self zone], len * sizeof(UChar));\
     err = U_ZERO_ERROR; \
-    function (internal->_formatter, number, outStr, MAX_BUFFER_SIZE, NULL, &err); \
+    function (internal->_formatter, number, outStr, BUFFER_SIZE, NULL, &err); \
     result = [NSString stringWithCharacters: outStr length: len]; \
-    if (len > MAX_BUFFER_SIZE) \
+    if (len > BUFFER_SIZE) \
       NSZoneFree ([self zone], outStr); \
     return result; \
   } while (0)
@@ -802,7 +935,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       // haven't been updated to use UText (so we have to use the UChar buffer
       // approach), but they probably will be in the future.  We should
       // revisit this code when they have been.
-      UChar buffer[MAX_BUFFER_SIZE];
+      UChar buffer[BUFFER_SIZE];
       
       // FIXME: What to do with unsigned types?
       //
@@ -1286,8 +1419,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setRoundingMode: (NSNumberFormatterRoundingMode) mode
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_ROUNDING_MODE,
-    NSToICURoundingMode(mode));
+  SET_ATTRIBUTE(UNUM_ROUNDING_MODE, NSToICURoundingMode(mode), NO);
 #else
   return;
 #endif
@@ -1296,8 +1428,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSNumberFormatterRoundingMode) roundingMode
 {
 #if GS_USE_ICU == 1
-  return ICUToNSRoundingMode (unum_getAttribute (internal->_formatter,
-    UNUM_ROUNDING_MODE));
+  int result;
+  GET_ATTRIBUTE(UNUM_ROUNDING_MODE, result);
+  return ICUToNSRoundingMode (result);
 #else
   return 0;
 #endif
@@ -1307,7 +1440,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setFormatWidth: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_FORMAT_WIDTH, (int32_t)number);
+  SET_ATTRIBUTE(UNUM_FORMAT_WIDTH, number, NO);
 #else
   return;
 #endif
@@ -1316,7 +1449,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) formatWidth
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_FORMAT_WIDTH);
+  NSUInteger result;
+  GET_ATTRIBUTE (UNUM_FORMAT_WIDTH, result);
+  return result;
 #else
   return 0;
 #endif
@@ -1326,7 +1461,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 {
 #if GS_USE_ICU == 1
   int32_t value = [number intValue];
-  unum_setAttribute (internal->_formatter, UNUM_MULTIPLIER, value);
+  SET_ATTRIBUTE(UNUM_MULTIPLIER, value, NO);
 #else
   return;
 #endif
@@ -1335,7 +1470,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSNumber *) multiplier
 {
 #if GS_USE_ICU == 1
-  int32_t value = unum_getAttribute (internal->_formatter, UNUM_MULTIPLIER);
+  int32_t value;
+  GET_ATTRIBUTE(UNUM_MULTIPLIER, value);
   return [NSNumber numberWithInt: value];
 #else
   return nil;
@@ -1346,7 +1482,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setPercentSymbol: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_PERCENT_SYMBOL];
+  SET_SYMBOL(UNUM_PERCENT_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1355,7 +1491,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) percentSymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_PERCENT_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_PERCENT_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1364,7 +1502,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setPerMillSymbol: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_PERMILL_SYMBOL];
+  SET_SYMBOL(UNUM_PERMILL_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1373,7 +1511,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) perMillSymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_PERMILL_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_PERMILL_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1382,7 +1522,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setMinusSign: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_MINUS_SIGN_SYMBOL];
+  SET_SYMBOL(UNUM_MINUS_SIGN_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1391,7 +1531,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) minusSign
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_MINUS_SIGN_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_MINUS_SIGN_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1400,7 +1542,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setPlusSign: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_PLUS_SIGN_SYMBOL];
+  SET_SYMBOL(UNUM_PLUS_SIGN_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1409,7 +1551,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) plusSign
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_PLUS_SIGN_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_PLUS_SIGN_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1418,7 +1562,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setExponentSymbol: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_EXPONENTIAL_SYMBOL];
+  SET_SYMBOL(UNUM_EXPONENTIAL_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1427,7 +1571,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) exponentSymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_EXPONENTIAL_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_EXPONENTIAL_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1436,7 +1582,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setZeroSymbol: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_ZERO_DIGIT_SYMBOL];
+  SET_SYMBOL(UNUM_ZERO_DIGIT_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1445,7 +1591,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) zeroSymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_ZERO_DIGIT_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_ZERO_DIGIT_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1464,7 +1612,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setNotANumberSymbol: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_NAN_SYMBOL];
+  SET_SYMBOL(UNUM_NAN_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1473,7 +1621,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) notANumberSymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_NAN_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_NAN_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1483,7 +1633,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 {
 #if GS_USE_ICU == 1
   // FIXME: ICU doesn't differenciate between positive and negative infinity.
-  [self _setSymbol: string : UNUM_INFINITY_SYMBOL];
+  SET_SYMBOL(UNUM_INFINITY_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1492,7 +1642,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) negativeInfinitySymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_INFINITY_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_INFINITY_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1502,7 +1654,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 {
 #if GS_USE_ICU == 1
   // FIXME: ICU doesn't differenciate between positive and negative infinity.
-  [self _setSymbol: string : UNUM_INFINITY_SYMBOL];
+  SET_SYMBOL(UNUM_INFINITY_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1511,7 +1663,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) positiveInfinitySymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_INFINITY_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_INFINITY_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1521,7 +1675,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setCurrencySymbol: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_CURRENCY_SYMBOL];
+  SET_SYMBOL(UNUM_CURRENCY_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1530,7 +1684,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) currencySymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_CURRENCY_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_CURRENCY_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1539,7 +1695,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setCurrencyCode: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setTextAttribute: string : UNUM_CURRENCY_CODE];
+  SET_SYMBOL(UNUM_CURRENCY_CODE, string, NO);
 #else
   return;
 #endif
@@ -1548,7 +1704,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) currencyCode
 {
 #if GS_USE_ICU == 1
-  return [self _getTextAttribute: UNUM_CURRENCY_CODE];
+  NSString *result;
+  GET_TEXTATTRIBUTE(UNUM_CURRENCY_CODE, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1557,7 +1715,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setInternationalCurrencySymbol: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_INTL_CURRENCY_SYMBOL];
+  SET_SYMBOL(UNUM_INTL_CURRENCY_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1566,7 +1724,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) internationalCurrencySymbol
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_INTL_CURRENCY_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_INTL_CURRENCY_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1576,7 +1736,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setPositivePrefix: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setTextAttribute: string : UNUM_POSITIVE_PREFIX];
+  SET_TEXTATTRIBUTE(UNUM_POSITIVE_PREFIX, string, NO);
 #else
   return;
 #endif
@@ -1585,7 +1745,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) positivePrefix
 {
 #if GS_USE_ICU == 1
-  return [self _getTextAttribute: UNUM_POSITIVE_PREFIX];
+  NSString *result;
+  GET_TEXTATTRIBUTE(UNUM_POSITIVE_PREFIX, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1594,7 +1756,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setPositiveSuffix: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setTextAttribute: string : UNUM_POSITIVE_SUFFIX];
+  SET_TEXTATTRIBUTE(UNUM_POSITIVE_SUFFIX, string, NO);
 #else
   return;
 #endif
@@ -1603,7 +1765,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) positiveSuffix
 {
 #if GS_USE_ICU == 1
-  return [self _getTextAttribute: UNUM_POSITIVE_SUFFIX];
+  NSString *result;
+  GET_TEXTATTRIBUTE(UNUM_POSITIVE_SUFFIX, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1612,7 +1776,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setNegativePrefix: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setTextAttribute: string : UNUM_NEGATIVE_PREFIX];
+  SET_TEXTATTRIBUTE(UNUM_NEGATIVE_PREFIX, string, NO);
 #else
   return;
 #endif
@@ -1621,7 +1785,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) negativePrefix
 {
 #if GS_USE_ICU == 1
-  return [self _getTextAttribute: UNUM_NEGATIVE_PREFIX];
+  NSString *result;
+  GET_TEXTATTRIBUTE(UNUM_NEGATIVE_PREFIX, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1630,7 +1796,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setNegativeSuffix: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setTextAttribute: string : UNUM_NEGATIVE_SUFFIX];
+  SET_TEXTATTRIBUTE(UNUM_NEGATIVE_SUFFIX, string, NO);
 #else
   return;
 #endif
@@ -1639,7 +1805,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) negativeSuffix
 {
 #if GS_USE_ICU == 1
-  return [self _getTextAttribute: UNUM_NEGATIVE_SUFFIX];
+  NSString *result;
+  GET_TEXTATTRIBUTE(UNUM_NEGATIVE_SUFFIX, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1700,7 +1868,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setGroupingSeparator: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_GROUPING_SEPARATOR_SYMBOL];
+  SET_SYMBOL(UNUM_GROUPING_SEPARATOR_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1709,7 +1877,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) groupingSeparator
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_GROUPING_SEPARATOR_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_GROUPING_SEPARATOR_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1719,7 +1889,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 {
 
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_GROUPING_USED, flag);
+  SET_ATTRIBUTE(UNUM_GROUPING_USED, flag, NO);
 #else
   return;
 #endif
@@ -1728,7 +1898,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (BOOL) usesGroupingSeparator
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_GROUPING_USED);
+  int result;
+  GET_ATTRIBUTE(UNUM_GROUPING_USED, result);
+  return (BOOL)result;
 #else
   return NO;
 #endif
@@ -1737,7 +1909,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setAlwaysShowsDecimalSeparator: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_DECIMAL_ALWAYS_SHOWN, flag);
+  SET_ATTRIBUTE(UNUM_DECIMAL_ALWAYS_SHOWN, flag, NO);
 #else
   return;
 #endif
@@ -1746,7 +1918,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (BOOL) alwaysShowsDecimalSeparator
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_DECIMAL_ALWAYS_SHOWN);
+  int result;
+  GET_ATTRIBUTE(UNUM_DECIMAL_ALWAYS_SHOWN, result);
+  return (BOOL)result;
 #else
   return NO;
 #endif
@@ -1755,7 +1929,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setCurrencyDecimalSeparator: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_MONETARY_SEPARATOR_SYMBOL];
+  SET_SYMBOL(UNUM_MONETARY_SEPARATOR_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1764,7 +1938,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) currencyDecimalSeparator
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_MONETARY_SEPARATOR_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_MONETARY_SEPARATOR_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1773,7 +1949,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setGroupingSize: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_GROUPING_SIZE, number);
+  SET_ATTRIBUTE(UNUM_GROUPING_SIZE, number, NO);
 #else
   return;
 #endif
@@ -1782,7 +1958,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) groupingSize
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_GROUPING_SIZE);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_GROUPING_SIZE, result);
+  return (NSUInteger)result;
 #else
   return 3;
 #endif
@@ -1791,7 +1969,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setSecondaryGroupingSize: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_SECONDARY_GROUPING_SIZE, number);
+  SET_ATTRIBUTE(UNUM_SECONDARY_GROUPING_SIZE, number, NO);
 #else
   return;
 #endif
@@ -1800,8 +1978,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) secondaryGroupingSize
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (internal->_formatter,
-    UNUM_SECONDARY_GROUPING_SIZE);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_SECONDARY_GROUPING_SIZE, result);
+  return (NSUInteger)result;
 #else
   return 3;
 #endif
@@ -1811,7 +1990,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setPaddingCharacter: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setTextAttribute: string : UNUM_PADDING_CHARACTER];
+  SET_TEXTATTRIBUTE(UNUM_PADDING_CHARACTER, string, NO);
 #else
   return;
 #endif
@@ -1820,7 +1999,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) paddingCharacter
 {
 #if GS_USE_ICU == 1
-  return [self _getTextAttribute: UNUM_PADDING_CHARACTER];
+  NSString *result;
+  GET_TEXTATTRIBUTE(UNUM_PADDING_CHARACTER, result);
+  return result;
 #else
   return nil;
 #endif
@@ -1829,8 +2010,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setPaddingPosition: (NSNumberFormatterPadPosition) position
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_PADDING_POSITION,
-    NSToICUPadPosition (position));
+  SET_ATTRIBUTE(UNUM_PADDING_POSITION, NSToICUPadPosition(position),  NO);
 #else
   return;
 #endif
@@ -1839,8 +2019,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSNumberFormatterPadPosition) paddingPosition
 {
 #if GS_USE_ICU == 1
-  return ICUToNSPadPosition(unum_getAttribute (internal->_formatter,
-    UNUM_PADDING_POSITION));
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_PADDING_POSITION, result);
+  return ICUToNSPadPosition(result);
 #else
   return 0;
 #endif
@@ -1850,7 +2031,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setMinimumIntegerDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_MIN_INTEGER_DIGITS, number);
+  SET_ATTRIBUTE(UNUM_MIN_INTEGER_DIGITS, number, NO);
 #else
   return;
 #endif
@@ -1859,7 +2040,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) minimumIntegerDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_MIN_INTEGER_DIGITS);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_MIN_INTEGER_DIGITS, result);
+  return (NSUInteger)result;
 #else
   return 0;
 #endif
@@ -1868,7 +2051,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setMinimumFractionDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_MIN_FRACTION_DIGITS, number);
+  SET_ATTRIBUTE(UNUM_MIN_FRACTION_DIGITS, number, NO);
 #else
   return;
 #endif
@@ -1877,7 +2060,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) minimumFractionDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_MIN_FRACTION_DIGITS);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_MIN_FRACTION_DIGITS, result);
+  return (NSUInteger)result;
 #else
   return 0;
 #endif
@@ -1886,7 +2071,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setMaximumIntegerDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_MAX_INTEGER_DIGITS, number);
+  SET_ATTRIBUTE(UNUM_MAX_INTEGER_DIGITS, number, NO);
 #else
   return;
 #endif
@@ -1895,7 +2080,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) maximumIntegerDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_MAX_INTEGER_DIGITS);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_MAX_INTEGER_DIGITS, result);
+  return (NSUInteger)result;
 #else
   return 0;
 #endif
@@ -1904,7 +2091,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setMaximumFractionDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_MAX_FRACTION_DIGITS, number);
+  SET_ATTRIBUTE(UNUM_MAX_FRACTION_DIGITS, number, NO);
 #else
   return;
 #endif
@@ -1913,7 +2100,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) maximumFractionDigits
 {
 #if GS_USE_ICU == 1
-  return (NSUInteger)unum_getAttribute (internal->_formatter, UNUM_MAX_FRACTION_DIGITS);
+  int result;
+  GET_ATTRIBUTE(UNUM_MAX_FRACTION_DIGITS, result);
+  return (NSUInteger)result;
 #else
   return 0;
 #endif
@@ -1932,7 +2121,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setUsesSignificantDigits: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_SIGNIFICANT_DIGITS_USED, flag);
+  SET_ATTRIBUTE(UNUM_SIGNIFICANT_DIGITS_USED, flag, NO);
 #else
   return;
 #endif
@@ -1941,7 +2130,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (BOOL) usesSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_SIGNIFICANT_DIGITS_USED);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_SIGNIFICANT_DIGITS_USED, result);
+  return (BOOL)result;
 #else
   return NO;
 #endif
@@ -1950,7 +2141,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setMinimumSignificantDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_MIN_SIGNIFICANT_DIGITS, number);
+  SET_ATTRIBUTE(UNUM_MIN_SIGNIFICANT_DIGITS, number, NO);
 #else
   return;
 #endif
@@ -1959,7 +2150,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) minimumSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_MIN_SIGNIFICANT_DIGITS);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_MIN_SIGNIFICANT_DIGITS, result);
+  return (NSUInteger)result;
 #else
   return 0;
 #endif
@@ -1968,7 +2161,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setMaximumSignificantDigits: (NSUInteger) number
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_MAX_SIGNIFICANT_DIGITS, number);
+  SET_ATTRIBUTE(UNUM_MAX_SIGNIFICANT_DIGITS, number, NO);
 #else
   return;
 #endif
@@ -1977,7 +2170,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSUInteger) maximumSignificantDigits
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_MAX_SIGNIFICANT_DIGITS);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_MAX_SIGNIFICANT_DIGITS, result);
+  return (NSUInteger)result;
 #else
   return 0;
 #endif
@@ -1987,7 +2182,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setCurrencyGroupingSeparator: (NSString *) string
 {
 #if GS_USE_ICU == 1
-  [self _setSymbol: string : UNUM_MONETARY_GROUPING_SEPARATOR_SYMBOL];
+  SET_SYMBOL(UNUM_MONETARY_GROUPING_SEPARATOR_SYMBOL, string, NO);
 #else
   return;
 #endif
@@ -1996,7 +2191,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString *) currencyGroupingSeparator
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbol: UNUM_MONETARY_GROUPING_SEPARATOR_SYMBOL];
+  NSString *result;
+  GET_SYMBOL(UNUM_MONETARY_GROUPING_SEPARATOR_SYMBOL, result);
+  return result;
 #else
   return nil;
 #endif
@@ -2006,7 +2203,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) setLenient: (BOOL) flag
 {
 #if GS_USE_ICU == 1
-  unum_setAttribute (internal->_formatter, UNUM_LENIENT_PARSE, flag);
+  SET_ATTRIBUTE(UNUM_LENIENT_PARSE, flag, NO);
 #else
   return;
 #endif
@@ -2015,7 +2212,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (BOOL) isLenient
 {
 #if GS_USE_ICU == 1
-  return (BOOL)unum_getAttribute (internal->_formatter, UNUM_LENIENT_PARSE);
+  int32_t result;
+  GET_ATTRIBUTE(UNUM_LENIENT_PARSE, result);
+  return (BOOL)result;
 #else
   return NO;
 #endif
@@ -2061,6 +2260,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   UNumberFormatStyle style;
   UErrorCode err = U_ZERO_ERROR;
   const char *cLocaleId;
+  int32_t idx;
   
   if (internal->_formatter)
     unum_close(internal->_formatter);
@@ -2072,109 +2272,15 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   if (U_FAILURE(err))
     internal->_formatter = NULL;
   
-  [self setMaximumFractionDigits: 0];
+  // Reset all properties
+  for (idx = 0 ; idx < MAX_SYMBOLS ; ++idx)
+    SET_SYMBOL(idx, internal->_symbols[idx], YES);
+  for (idx = 0 ; idx < MAX_TEXTATTRIBUTES ; ++idx)
+    SET_TEXTATTRIBUTE(idx, internal->_textAttributes[idx], YES);
+  for (idx = 0 ; idx < MAX_ATTRIBUTES ; ++idx)
+    SET_ATTRIBUTE(idx, internal->_attributes[idx], YES);
 #else
   return;
-#endif
-}
-
-- (void) _setSymbol: (NSString *) string : (NSInteger) symbol
-{
-#if GS_USE_ICU == 1
-  unichar buffer[MAX_SYMBOL_SIZE];
-  unichar *str = buffer;
-  NSUInteger length;
-  UErrorCode err = U_ZERO_ERROR;
-  
-  length = [string length];
-  if (length > MAX_SYMBOL_SIZE)
-    str = (unichar *)NSZoneMalloc ([self zone], length * sizeof(unichar));
-  [string getCharacters: str range: NSMakeRange (0, length)];
-  
-  unum_setSymbol (internal->_formatter, symbol, str, length, &err);
-  
-  if (length > MAX_SYMBOL_SIZE)
-    NSZoneFree ([self zone], str);
-#else
-  return;
-#endif
-}
-
-- (NSString *) _getSymbol: (NSInteger) symbol
-{
-#if GS_USE_ICU == 1
-  UChar buffer[MAX_SYMBOL_SIZE];
-  UChar *str = buffer;
-  int32_t length;
-  UErrorCode err = U_ZERO_ERROR;
-  NSString *result;
-  
-  length = unum_getSymbol (internal->_formatter, symbol, str,
-    MAX_SYMBOL_SIZE, &err);
-  if (length > MAX_SYMBOL_SIZE)
-    {
-      str = (UChar *)NSZoneMalloc ([self zone], length * sizeof(UChar));
-      length = unum_getSymbol (internal->_formatter, symbol, str,
-        length, &err);
-    }
-  
-  result = [NSString stringWithCharacters: str length: length];
-  if (length > MAX_SYMBOL_SIZE)
-    NSZoneFree ([self zone], str);
-  
-  return result;
-#else
-  return nil;
-#endif
-}
-
-- (void) _setTextAttribute: (NSString *) string : (NSInteger) attrib
-{
-#if GS_USE_ICU == 1
-  unichar buffer[MAX_TEXT_ATTRIB_SIZE];
-  unichar *str = buffer;
-  NSUInteger length;
-  UErrorCode err = U_ZERO_ERROR;
-  
-  length = [string length];
-  if (length > MAX_TEXT_ATTRIB_SIZE)
-    str = (unichar *)NSZoneMalloc ([self zone], length * sizeof(unichar));
-  [string getCharacters: str range: NSMakeRange (0, length)];
-  
-  unum_setTextAttribute (internal->_formatter, attrib, str, length, &err);
-  
-  if (length > MAX_TEXT_ATTRIB_SIZE)
-    NSZoneFree ([self zone], str);
-#else
-  return;
-#endif
-}
-
-- (NSString *) _getTextAttribute: (NSInteger) attrib
-{
-#if GS_USE_ICU == 1
-  UChar buffer[MAX_TEXT_ATTRIB_SIZE];
-  UChar *str = buffer;
-  int32_t length;
-  UErrorCode err = U_ZERO_ERROR;
-  NSString *result;
-  
-  length = unum_getTextAttribute (internal->_formatter, attrib, str,
-    MAX_TEXT_ATTRIB_SIZE, &err);
-  if (length > MAX_TEXT_ATTRIB_SIZE)
-    {
-      str = (UChar *)NSZoneMalloc ([self zone], length * sizeof(UChar));
-      length = unum_getTextAttribute (internal->_formatter, attrib, str,
-        length, &err);
-    }
-  
-  result = [NSString stringWithCharacters: str length: length];
-  if (length > MAX_TEXT_ATTRIB_SIZE)
-    NSZoneFree ([self zone], str);
-  
-  return result;
-#else
-  return nil;
 #endif
 }
 @end

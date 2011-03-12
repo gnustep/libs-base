@@ -1,3 +1,9 @@
+2011-03-12  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSNumberFormatter.m: Cache property values and reset them
+	along with the formatter.
+	* Source/NSLocale.m: Add 2 missing unlocks.
+
 2011-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSBlocks.m: Added header
