@@ -436,13 +436,20 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 #if GS_USE_ICU == 1
       unum_close (internal->_formatter);
 #endif
-      for (idx = 0 ; idx < MAX_SYMBOLS ; ++idx )
-        RELEASE(internal->_symbols[idx]);
-      NSZoneFree (z, internal->_symbols);
-      for (idx = 0 ; idx < MAX_TEXTATTRIBUTES ; ++idx )
-        RELEASE(internal->_textAttributes[idx]);
-      NSZoneFree (z, internal->_textAttributes);
-      NSZoneFree (z, internal->_attributes);
+      if (internal->_symbols)
+        {
+          for (idx = 0 ; idx < MAX_SYMBOLS ; ++idx )
+            RELEASE(internal->_symbols[idx]);
+          NSZoneFree (z, internal->_symbols);
+        }
+      if (internal->_textAttributes)
+        {
+          for (idx = 0 ; idx < MAX_TEXTATTRIBUTES ; ++idx )
+            RELEASE(internal->_textAttributes[idx]);
+          NSZoneFree (z, internal->_textAttributes);
+        }
+      if (internal->_attributes)
+        NSZoneFree (z, internal->_attributes);
       GS_DESTROY_INTERNAL(NSNumberFormatter)
     }
   [super dealloc];
