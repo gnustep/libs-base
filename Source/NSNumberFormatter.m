@@ -597,7 +597,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   internal->_style = NSNumberFormatterNoStyle;
   internal->_symbols = NSZoneCalloc (z, MAX_SYMBOLS, sizeof(id));
   internal->_textAttributes = NSZoneCalloc (z, MAX_TEXTATTRIBUTES, sizeof(id));
-  internal->_attributes = NSZoneCalloc (z, MAX_ATTRIBUTES, sizeof(id));
+  internal->_attributes = NSZoneCalloc (z, MAX_ATTRIBUTES, sizeof(int));
   if (!(internal->_symbols
         && internal->_textAttributes
         && internal->_attributes))
