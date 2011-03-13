@@ -722,49 +722,77 @@ method_getName(Method method)
 unsigned
 method_getNumberOfArguments(Method method)
 {
-  const char *types = method->method_types;
-  unsigned int count = 0;
-
-  while ('\0' != *types)
+  if (0 == method)
     {
-      types = skip_argspec(types);
-      count++;
+      return 0;
     }
-  return count - 1;
+  else
+    {
+      unsigned int count = 0;
+      const char *types = method->method_types;
+
+      while ('\0' != *types)
+	{
+	  types = skip_argspec(types);
+	  count++;
+	}
+      return count - 1;
+    }
 }
 
 void
 method_getReturnType(Method method, char *dst, size_t dst_len)
 {
-  //TODO: Coped and pasted code.  Factor it out.
-  const char *types = method->method_types;
-  size_t length = lengthOfTypeEncoding(types);
-
-  if (length < dst_len)
+  if (0 == method)
     {
-      memcpy(dst, types, length);
-      dst[length] = '\0';
+      if (dst_len > 0)
+	{
+          dst[0] = '\0';
+	}
     }
   else
     {
-      memcpy(dst, types, dst_len);
+      //TODO: Coped and pasted code.  Factor it out.
+      const char *types = method->method_types;
+      size_t length = lengthOfTypeEncoding(types);
+
+      if (length < dst_len)
+	{
+	  memcpy(dst, types, length);
+	  dst[length] = '\0';
+	}
+      else if (dst_len > 0)
+	{
+	  memcpy(dst, types, dst_len);
+	}
     }
 }
 
 const char *
 method_getTypeEncoding(Method method)
 {
+  if (0 == method)
+    {
+      return 0;
+    }
   return method->method_types;
 }
 
 IMP
 method_setImplementation(Method method, IMP imp)
 {
-  IMP old = (IMP) method->method_imp;
+  if (0 == method)
+    {
+      return (IMP)0;
+    }
+  else
+    {
+      IMP old = (IMP) method->method_imp;
 
-  method->method_imp = (objc_imp_gnu) old;
-  objc_updateDtableForClassContainingMethod(method);
-  return old;
+      method->method_imp = (objc_imp_gnu) old;
+      objc_updateDtableForClassContainingMethod(method);
+      return old;
+    }
 }
 
 id
