@@ -672,6 +672,9 @@
 /* Define to 1 if you have the <zlib.h> header file. */
 #undef HAVE_ZLIB_H
 
+/* Define to 1 if you have the `_Block_copy' function. */
+#undef HAVE__BLOCK_COPY
+
 /* Define to 1 if you have the `__builtin_extract_return_address' function. */
 #undef HAVE___BUILTIN_EXTRACT_RETURN_ADDRESS
 

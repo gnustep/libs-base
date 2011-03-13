@@ -65,17 +65,20 @@ LIBRARY_NAME += libgnustep-base
 endif
 
 ifeq ($(OBJC2RUNTIME),0)
-libgnustep-base_SUBPROJECTS = ObjectiveC2
-libgnustep-baseadd_SUBPROJECTS += Additions
+  libgnustep-base_SUBPROJECTS = ObjectiveC2
+else
+  ifeq ($(HAVE_BLOCKS),0)
+    libgnustep-base_SUBPROJECTS = ObjectiveC2
+  endif
 endif
 
 libgnustep-base_SUBPROJECTS += Additions
 libgnustep-baseadd_SUBPROJECTS += Additions
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
-libgnustep-base_SUBPROJECTS+=win32
+  libgnustep-base_SUBPROJECTS += win32
 else
-libgnustep-base_SUBPROJECTS+=unix
+  libgnustep-base_SUBPROJECTS += unix
 endif
 
 DEFS= -DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
@@ -149,6 +152,7 @@ BASE_MFILES = \
 CXXException.m\
 GSArray.m \
 GSAttributedString.m \
+GSBlocks.m \
 GSConcreteValue.m \
 GSCountedSet.m \
 GSDictionary.m \

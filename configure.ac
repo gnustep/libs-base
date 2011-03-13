@@ -1648,6 +1648,17 @@ else
 fi
 AC_SUBST(OBJC2RUNTIME)
 
+#--------------------------------------------------------------------
+# Check for blocks support in runtime
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(_Block_copy)
+if test $ac_cv_func__Block_copy = yes ; then
+  HAVE_BLOCKS=1
+else
+  HAVE_BLOCKS=0
+fi
+AC_SUBST(HAVE_BLOCKS)
+
 # Don't revert any Objective-C flags as they are used in the next test
 
 GS_NONFRAGILE=0
