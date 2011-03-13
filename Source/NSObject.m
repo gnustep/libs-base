@@ -808,19 +808,12 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
  * Semi-private function in libobjc2 that initialises the classes used for
  * blocks.
  */
-#ifndef __MINGW__
 BOOL 
 objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
-#endif
 
-+ (void)load
++ (void) load
 {
-#ifndef __MINGW__
-  /* When NSObject is loaded, register it as the superclass of the block
-   * classes */
-  if (objc_create_block_classes_as_subclasses_of)
-    objc_create_block_classes_as_subclasses_of(self);
-#endif
+  objc_create_block_classes_as_subclasses_of(self);
 }
 
 + (void) initialize

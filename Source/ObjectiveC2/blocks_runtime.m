@@ -200,16 +200,6 @@ struct StackBlockClass {
   const char *types;
 };
 
-#if	defined(__MINGW32__) || defined(__MINGW64__)
-/* FIXME ... evil hack ... declare symbol to avoid linker error on windows
- * where the compiler/linker doesn't support a weak reference.
- * This obviously breaks the code below...
- */
-#  if (__GNUC__ <= 3)
-void *_NSConcreteStackBlock;
-#  endif
-#endif
-
 
 /* Copy a block to the heap if it's still on the stack or
  * increments its retain count.
@@ -219,8 +209,7 @@ _Block_copy(void *src)
 {
   struct StackBlockClass *self = src;
   struct StackBlockClass *ret = self;
-
-  extern void _NSConcreteStackBlock __attribute__((weak));
+  extern void _NSConcreteStackBlock;
     
   // If the block is Global, there's no need to copy it on the heap.
   if (self->isa == &_NSConcreteStackBlock
@@ -244,8 +233,7 @@ void
 _Block_release(void *src)
 {
   struct StackBlockClass *self = src;
-    
-  extern void _NSConcreteStackBlock __attribute__((weak));
+  extern void _NSConcreteStackBlock;
 
   if (self->isa == &_NSConcreteStackBlock
     // A Global block doesn't need to be released
