@@ -42,13 +42,23 @@ endif
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
+TOP_DIR=$(shell dirname $(CURDIR))
+
 TEST_TOOL_NAMES=
 
 all::
 	@(echo If you want to run the gnustep-base testsuite, please type \'make check\')
 
 check::
-	gnustep-tests base
+	(\
+	ADDITIONAL_INCLUDE_DIRS="-I$(TOP_DIR)/Headers -I$(TOP_DIR)/Headers/Additions -I$(TOP_DIR)/Source";\
+	ADDITIONAL_LIB_DIRS="-L$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
+	LD_LIBRARY_PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${LD_LIBRARY_PATH}";\
+	export ADDITIONAL_INCLUDE_DIRS;\
+	export ADDITIONAL_LIB_DIRS;\
+	export LD_LIBRARY_PATH;\
+	gnustep-tests base;\
+	)
 
 clean::
 	gnustep-tests --clean

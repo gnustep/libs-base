@@ -1,5 +1,10 @@
 2011-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/CXXException.m: fix error in include
+	* Tests/GNUmakefile: add info for testing local copy of library
+
+2011-03-13  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac:
 	* configure:
 	* config.mak.in:
