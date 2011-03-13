@@ -1,5 +1,74 @@
 2011-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac:
+	* configure:
+	* Headers/Additions/GNUstepBase:
+	* Headers/Additions/GNUstepBase/Additions.h:
+	* Headers/Additions/GNUstepBase/config.h.in:
+	* Headers/Additions/GNUstepBase/.cvsignore:
+	* Headers/Additions/GNUstepBase/CXXException.h:
+	* Headers/Additions/GNUstepBase/DistributedObjects.h:
+	* Headers/Additions/GNUstepBase/GCObject.h:
+	* Headers/Additions/GNUstepBase/GNUstep.h:
+	* Headers/Additions/GNUstepBase/GSBlocks.h:
+	* Headers/Additions/GNUstepBase/GSConfig.h.in:
+	* Headers/Additions/GNUstepBase/GSFileHandle.h:
+	* Headers/Additions/GNUstepBase/GSFunctions.h:
+	* Headers/Additions/GNUstepBase/GSIArray.h:
+	* Headers/Additions/GNUstepBase/GSIMap.h:
+	* Headers/Additions/GNUstepBase/GSLocale.h:
+	* Headers/Additions/GNUstepBase/GSLock.h:
+	* Headers/Additions/GNUstepBase/GSMime.h:
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h:
+	* Headers/Additions/GNUstepBase/GSUnion.h:
+	* Headers/Additions/GNUstepBase/GSVersionMacros.h:
+	* Headers/Additions/GNUstepBase/GSXML.h:
+	* Headers/Additions/GNUstepBase/NSArray+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSAttributedString+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSBundle+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSCalendarDate+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSData+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSDebug+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSFileHandle+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSLock+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSMutableString+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSNetServices+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSNumber+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSObject+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSProcessInfo+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSStream+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSString+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSTask+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSThread+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/NSURL+GNUstepBase.h:
+	* Headers/Additions/GNUstepBase/preface.h.in:
+	* Headers/Additions/GNUstepBase/Unicode.h:
+	* Headers/GNUstepBase:
+	* Headers/GNUstepBase/config.h.in:
+	* Headers/ObjectiveC2:
+	* Headers/ObjectiveC2/Availability.h:
+	* Headers/ObjectiveC2/blocks_runtime.h:
+	* Headers/ObjectiveC2/capabilities.h:
+	* Headers/ObjectiveC2/runtime.h:
+	* Makefile.postamble:
+	* Source/DocMakefile:
+	* Source/GNUmakefile:
+	* Source/Makefile.postamble:
+	* Source/Makefile.preamble:
+	* Source/ObjectiveC2/Availability.h:
+	* Source/ObjectiveC2/blocks_runtime.h:
+	* Source/ObjectiveC2/capabilities.h:
+	* Source/ObjectiveC2/caps.c:
+	* Source/ObjectiveC2/GNUmakefile:
+	* Source/ObjectiveC2/NSBlocks.m:
+	* Source/ObjectiveC2/runtime.h:
+	* SSL/Makefile.preamble:
+	* Tests/GNUmakefile:
+	* Tools/Makefile.preamble:
+	Simplify header layout.
+
+2011-03-13  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/CXXException.m: fix error in include
 	* Tests/GNUmakefile: add info for testing local copy of library
 

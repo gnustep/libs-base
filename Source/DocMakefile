@@ -212,7 +212,7 @@ Base_AGSDOC_FLAGS = \
 BaseAdditions_AGSDOC_FLAGS = \
 	-MakeFrames YES \
 	-DocumentationDirectory ../Documentation/BaseAdditions \
-	-HeaderDirectory ../Headers/Additions/GNUstepBase \
+	-HeaderDirectory ../Headers/GNUstepBase \
 	-Declared GNUstepBase \
 	-Standards YES \
 	-DTDs ../Tools \

@@ -63,7 +63,6 @@ ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) $(WARN_FLAGS) \
 
 # Additional include directories the compiler should search
 ADDITIONAL_INCLUDE_DIRS = \
-	-I../Headers/Additions \
 	-I../Headers \
 	-I./$(GNUSTEP_TARGET_DIR)
 
@@ -88,6 +87,6 @@ ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/Foundation \
    $(GNUSTEP_HEADERS)/GNUstepBase/unicode \
    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
 
-HEADER_DIR_BASE = ../Headers/Additions/GNUstepBase
+HEADER_DIR_BASE = ../Headers/GNUstepBase
 HEADER_DIR_FND = ../Headers/Foundation
 

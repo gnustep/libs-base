@@ -69,9 +69,9 @@ after-uninstall::
 after-distclean::
 	$(ECHO_NOTHING)\
 	rm -f config.status config.log config.cache TAGS config.mak base.make \
-	        Headers/Additions/GNUstepBase/config.h \
-		Headers/Additions/GNUstepBase/GSConfig.h \
-		Headers/Additions/GNUstepBase/preface.h\
+	        Headers/GNUstepBase/config.h \
+		Headers/GNUstepBase/GSConfig.h \
+		Headers/GNUstepBase/preface.h \
 	$(END_ECHO)
 
 # Things to do before checking
