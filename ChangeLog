@@ -6,6 +6,9 @@
 	* Source/GNUmakefile:
 	* Headers/Additions/GNUstepBase/config.h.in:
 	Add config check for blocks support.
+	* Source/NSObject.m:
+	* Source/ObjectiveC2/blocks_runtime.m:
+	Fixups for mingw
 
 2011-03-12  Stefan Bidigaray <stefanbidi@gmail.com>
 

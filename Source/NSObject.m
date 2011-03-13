@@ -808,8 +808,8 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
  * Semi-private function in libobjc2 that initialises the classes used for
  * blocks.
  */
-BOOL 
-objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
+extern BOOL 
+objc_create_block_classes_as_subclasses_of(Class super);
 
 + (void) load
 {
