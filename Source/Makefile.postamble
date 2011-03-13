@@ -50,10 +50,12 @@ after-all:: Info-gnustep.plist
 # to the source we must install the GNU header manually
 # Ayers 2003-07-31: This statement should be reevaluated!
 after-install::
+	$(MKDIRS) $(GNUSTEP_HEADERS)/ObjectiveC2
 	for file in $(OBJECTIVEC2_HEADERS); do \
 	  $(INSTALL_DATA) ../Headers/ObjectiveC2/$$file \
 	    $(GNUSTEP_HEADERS)/ObjectiveC2/$$file ; \
 	done
+	$(MKDIRS) $(GNUSTEP_HEADERS)/GNUstepBase
 	for file in $(GNUSTEPBASE_HEADERS); do \
 	  $(INSTALL_DATA) ../Headers/GNUstepBase/$$file \
 	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
