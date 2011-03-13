@@ -49,7 +49,7 @@
 # may be used to control conditional compilation of particular files.
 #
 # In addition the values should be substituted into the header file
-# Headers/Additions/GNUstepBase/GSConfig.h.in so that it can define a
+# Headers/GNUstepBase/GSConfig.h.in so that it can define a
 # preprocessor constant of the form GS_USE_XXX to 1 or 0, providing a
 # standard mechanism for parts of a paritcvular file to compile to make
 # use of the external code or not.
@@ -125,7 +125,7 @@ AC_CONFIG_AUX_DIR($CURRENT_GNUSTEP_MAKEFILES)
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADER(Headers/Additions/GNUstepBase/config.h)
+AC_CONFIG_HEADER(Headers/GNUstepBase/config.h)
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
@@ -2860,6 +2860,6 @@ AC_SUBST(GCC_VERSION)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_CONFIG_FILES([config.mak base.make Headers/Additions/GNUstepBase/GSConfig.h 
-	  Headers/Additions/GNUstepBase/preface.h])
+AC_CONFIG_FILES([config.mak base.make Headers/GNUstepBase/GSConfig.h 
+	  Headers/GNUstepBase/preface.h])
 AC_OUTPUT

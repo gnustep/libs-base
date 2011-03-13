@@ -33,7 +33,6 @@ SUBPROJECT_NAME = ObjectiveC2
 
 ObjectiveC2_C_FILES =
 ObjectiveC2_OBJC_FILES =
-ObjectiveC2_HEADER_FILES =
 
 ifeq ($(OBJC2RUNTIME),0)
 
@@ -47,11 +46,6 @@ endif
 
 ObjectiveC2_C_FILES += caps.c runtime.c
 
-ObjectiveC2_HEADER_FILES += \
-	Availability.h\
-	capabilities.h\
-	runtime.h
-
 endif
 
 ifeq ($(HAVE_BLOCKS),0)
@@ -59,9 +53,6 @@ ifeq ($(HAVE_BLOCKS),0)
 ObjectiveC2_OBJC_FILES += \
 	blocks_runtime.m\
 	NSBlocks.m
-
-ObjectiveC2_HEADER_FILES += \
-	blocks_runtime.h
 
 endif
 

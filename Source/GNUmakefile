@@ -64,11 +64,16 @@ ifneq ($(base),no)
 LIBRARY_NAME += libgnustep-base
 endif
 
+OBJECTIVEC2_HEADERS =
+
 ifeq ($(OBJC2RUNTIME),0)
   libgnustep-base_SUBPROJECTS = ObjectiveC2
+  OBJECTIVEC2_HEADERS += \
+	Availability.h blocks_runtime.h capabilities.h runtime.h
 else
   ifeq ($(HAVE_BLOCKS),0)
     libgnustep-base_SUBPROJECTS = ObjectiveC2
+    OBJECTIVEC2_HEADERS += blocks_runtime.h
   endif
 endif
 
@@ -107,7 +112,7 @@ win32-entry.m \
 win32-def.top \
 libgnustep-base.def
 
-ADD_HEADERS = \
+GNUSTEPBASE_HEADERS = \
 GSBlocks.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
@@ -144,7 +149,6 @@ GNUstep.h \
 preface.h \
 Additions.h
 
-GNU_HEADERS = $(ADD_HEADERS)
 
 # GNUStep source files
 
@@ -444,8 +448,10 @@ NSXMLNodeOptions.h \
 NSXMLParser.h \
 NSZone.h
 
-HEADERS_INSTALL = $(GNU_HEADERS) \
-                  $(FOUNDATION_HEADERS)
+HEADERS_INSTALL = \
+	$(OBJECTIVEC2_HEADERS) \
+	$(GNUSTEPBASE_HEADERS) \
+	$(FOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \

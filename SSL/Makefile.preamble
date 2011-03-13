@@ -54,7 +54,7 @@ ADDITIONAL_CFLAGS =
 # GSPrivate.h on non-flattened though.
 ADDITIONAL_INCLUDE_DIRS = -I. \
  -I../Source/$(GNUSTEP_TARGET_DIR) -I../Source \
- -I../Headers/Additions -I../Headers
+ -I../Headers
 
 # Additional LDFLAGS to pass to the linker
 ADDITIONAL_LDFLAGS =

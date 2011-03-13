@@ -50,8 +50,12 @@ after-all:: Info-gnustep.plist
 # to the source we must install the GNU header manually
 # Ayers 2003-07-31: This statement should be reevaluated!
 after-install::
-	for file in $(GNU_HEADERS); do \
-	  $(INSTALL_DATA) ../Headers/Additions/GNUstepBase/$$file \
+	for file in $(OBJECTIVEC2_HEADERS); do \
+	  $(INSTALL_DATA) ../Headers/ObjectiveC2/$$file \
+	    $(GNUSTEP_HEADERS)/ObjectiveC2/$$file ; \
+	done
+	for file in $(GNUSTEPBASE_HEADERS); do \
+	  $(INSTALL_DATA) ../Headers/GNUstepBase/$$file \
 	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
 	$(MKDIRS) $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase
@@ -78,7 +82,10 @@ after-install::
 
 # Things to do after uninstalling
 before-uninstall::
-	for file in $(GNU_HEADERS); do \
+	for file in $(OBJECTIVEC2_HEADERS); do \
+	  rm -f $(GNUSTEP_HEADERS)/ObjectiveC2/$$file ; \
+	done
+	for file in $(GNUSTEPBASE_HEADERS); do \
 	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
 	rm -f $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h

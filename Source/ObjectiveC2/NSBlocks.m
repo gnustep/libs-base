@@ -1,5 +1,5 @@
 #import <objc/objc-api.h>
-#import "blocks_runtime.h"
+#import "ObjectiveC2/blocks_runtime.h"
 #include <assert.h>
 
 struct objc_class _NSConcreteGlobalBlock;
