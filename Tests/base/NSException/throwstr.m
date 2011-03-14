@@ -4,7 +4,7 @@
 int main(void)
 {
   START_SET("String throwing")
-#if BASE_NATIVE_OBJC_EXCEPTIONS == 1
+#if defined(BASE_NATIVE_OBJC_EXCEPTIONS) && BASE_NATIVE_OBJC_EXCEPTIONS == 1
     id caught = nil;
     id thrown = @"thrown";
     @try
