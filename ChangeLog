@@ -1,5 +1,10 @@
 2011-03-14  Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/NSNumberFormatter.m (-getObjectValue:forString:errorDescription:):
+	Add implementation.
+
+2011-03-14  Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/NSNumberFormatter.m (-getObjectValue:forString:range:error:):
 	Added implementation.
 	* Headers/NSNumberFormatter.h: Fixed a couple of typos.

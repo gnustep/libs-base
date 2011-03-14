@@ -517,59 +517,78 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 }
 
 - (BOOL) getObjectValue: (id*)anObject
-	      forString: (NSString*)string
+              forString: (NSString*)string
        errorDescription: (NSString**)error
 {
-  /* FIXME: This is just a quick hack implementation.  */
-  NSLog(@"NSNumberFormatter-getObjectValue:forString:... not fully implemented");
-
-  if (nil == string)
+  if (MYBEHAVIOR == NSNumberFormatterBehavior10_4
+    || MYBEHAVIOR == NSNumberFormatterBehaviorDefault)
     {
-      if (0 != error)
-	{
-	  *error = _(@"nil string");
-	}
-      return NO;
-    }
-
-  if (NO == [self allowsFloats] && [string rangeOfString: @"."].length > 0)
-    {
-      if (0 != error)
-	{
-	  *error = _(@"Floating Point not allowed");
-	}
-      return NO;
-    }
-
-  /* Just assume nothing else has been setup and do a simple conversion. */
-  if ([self hasThousandSeparators])
-    {
-      NSRange range;
+      BOOL result;
+      NSRange range = NSMakeRange (0, [string length]);
+      NSError *outError;
       
-      range = [string rangeOfString: [self thousandSeparator]];
-      if (range.length != 0)
-        {
-	  string = AUTORELEASE([string mutableCopy]);
-	  [(NSMutableString*)string replaceOccurrencesOfString:
-	    [self thousandSeparator]
-	    withString: @""
-	    options: 0
-	    range: NSMakeRange(0, [string length])];
-	}
-    }
-
-  if (anObject)
-    {
-      NSDictionary *locale;
+      result = [self getObjectValue: anObject
+                          forString: string
+                              range: &range
+                              error: &outError];
+      if (!result && error)
+        *error = [outError localizedDescription];
       
-      locale = [NSDictionary dictionaryWithObject: [self decimalSeparator] 
-			     forKey: NSDecimalSeparator];
-      *anObject = [NSDecimalNumber decimalNumberWithString: string
-				   locale: locale];
-      if (*anObject)
+      return result;
+    }
+  else if (MYBEHAVIOR == NSNumberFormatterBehavior10_0)
+    {
+      /* FIXME: This is just a quick hack implementation.  */
+      NSLog(@"NSNumberFormatter-getObjectValue:forString:... not fully implemented");
+
+      if (nil == string)
         {
-	  return YES;
-	}
+          if (0 != error)
+	    {
+	      *error = _(@"nil string");
+	    }
+          return NO;
+        }
+
+      if (NO == [self allowsFloats] && [string rangeOfString: @"."].length > 0)
+        {
+          if (0 != error)
+	    {
+	      *error = _(@"Floating Point not allowed");
+	    }
+          return NO;
+        }
+
+      /* Just assume nothing else has been setup and do a simple conversion. */
+      if ([self hasThousandSeparators])
+        {
+          NSRange range;
+          
+          range = [string rangeOfString: [self thousandSeparator]];
+          if (range.length != 0)
+            {
+	      string = AUTORELEASE([string mutableCopy]);
+	      [(NSMutableString*)string replaceOccurrencesOfString:
+	        [self thousandSeparator]
+	        withString: @""
+	        options: 0
+	        range: NSMakeRange(0, [string length])];
+	    }
+        }
+
+      if (anObject)
+        {
+          NSDictionary *locale;
+          
+          locale = [NSDictionary dictionaryWithObject: [self decimalSeparator] 
+			         forKey: NSDecimalSeparator];
+          *anObject = [NSDecimalNumber decimalNumberWithString: string
+				       locale: locale];
+          if (*anObject)
+            {
+	      return YES;
+	    }
+        }
     }
 
   return NO;
@@ -2136,6 +2155,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   
   if (genDec)  // Generate decimal number?  This should be the default.
     {
+#if 0 // FIXME: The unum_parseDecimal function is only available on ICU > 4.4
       int32_t outLen;
       char outBuffer[BUFFER_SIZE];
       
@@ -2159,6 +2179,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
           *rangep = NSMakeRange (rangep->location, parsePos);
           result = NO;
         }
+#endif
+      result = NO;
     }
   else  // If not generating NSDecimalNumber use unum_parseDouble()
     {
