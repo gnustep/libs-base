@@ -1375,9 +1375,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   internal->_genDecimal = flag;
 }
 
-- (BOOL) generatesDecimalNubmers
+- (BOOL) generatesDecimalNumbers
 {
-  return NO; // FIXME
+  return internal->_genDecimal; // FIXME
 }
 
 
@@ -2118,10 +2118,76 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (BOOL) getObjectValue: (out id *) anObject
               forString: (NSString *) aString
-                  range: (NSRange) rangep
+                  range: (NSRange *) rangep
                   error: (out NSError **) error
 {
+#if GS_USE_ICU == 1
+  BOOL result;
+  BOOL genDec = [self generatesDecimalNumbers];
+  NSUInteger inLen;
+  int32_t parsePos = rangep->location;
+  UChar inBuffer[BUFFER_SIZE];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  inLen = [aString length];
+  if (inLen > BUFFER_SIZE)
+    inLen = BUFFER_SIZE;
+  [aString getCharacters: inBuffer range: NSMakeRange(0, inLen)];
+  
+  if (genDec)  // Generate decimal number?  This should be the default.
+    {
+      int32_t outLen;
+      char outBuffer[BUFFER_SIZE];
+      
+      outLen = 
+        unum_parseDecimal (internal->_formatter, inBuffer, inLen, &parsePos,
+          outBuffer, BUFFER_SIZE-1, &err);
+      if (U_SUCCESS(err))
+        {
+          NSString *outStr = [NSString stringWithCString: outBuffer
+                                                  length: outLen];
+          *anObject = [NSDecimalNumber decimalNumberWithString: outStr];
+          result = YES;
+        }
+      else
+        {
+          if (error)
+            *error = [NSError errorWithDomain: @"NSNumberFormatterParseError"
+                                         code: err
+                                     userInfo: nil];
+          *anObject = nil;
+          *rangep = NSMakeRange (rangep->location, parsePos);
+          result = NO;
+        }
+    }
+  else  // If not generating NSDecimalNumber use unum_parseDouble()
+    {
+      double output;
+      
+      output = 
+        unum_parseDouble (internal->_formatter, inBuffer, inLen, &parsePos,
+          &err);
+      if (U_SUCCESS(err))
+        {
+          *anObject = [NSNumber numberWithDouble: output];
+          result = YES;
+        }
+      else
+        {
+          if (error)
+            *error = [NSError errorWithDomain: @"NSNumberFormatterParseError"
+                                         code: err
+                                     userInfo: nil];
+          *anObject = nil;
+          *rangep = NSMakeRange (rangep->location, parsePos);
+          result = NO;
+        }
+    }
+  
+  return result;
+#else
   return NO;
+#endif
 }
 
 
