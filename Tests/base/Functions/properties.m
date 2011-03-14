@@ -4,7 +4,7 @@
 int main(void)
 {
   START_SET("Properties")
-    SKIP("Your compiler does not support declared properties");
+    OMIT("Your compiler does not support declared properties");
   END_SET("Properties")
   return 0;
 }
