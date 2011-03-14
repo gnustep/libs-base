@@ -45,19 +45,6 @@ int main()
      "default behavior can be changed to NSNumberFormatterBehavior10_4")
 
     fmt = [[[NSNumberFormatter alloc] init] autorelease];
-    PASS([fmt getObjectValue: &num forString: @"0.00" errorDescription: nil]
-      && num != nil, "formatting tuceeded")
-    if (testPassed)
-      {
-	NSLog(@"number: %@", num);
-	PASS(NO == [num isEqual: [NSDecimalNumber notANumber]],
-	  "is not equal to NaN")
-	PASS(YES == [num isEqual: [NSDecimalNumber zero]],
-	  "is equal to zero")
-      }
-
-
-    fmt = [[[NSNumberFormatter alloc] init] autorelease];
 
     PASS(NSNumberFormatterBehavior10_4 == [fmt formatterBehavior],
      "a new formatter gets the current default behavior")
@@ -78,7 +65,17 @@ int main()
     START_SET("NSLocale")
       if (!NSLOCALE_SUPPORTED)
         SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
-
+      
+      PASS([fmt getObjectValue: &num forString: @"0.00" errorDescription: nil]
+        && num != nil, "formatting suceeded")
+      if (testPassed)
+        {
+          PASS(NO == [num isEqual: [NSDecimalNumber notANumber]],
+            "is not equal to NaN")
+          PASS(YES == [num isEqual: [NSDecimalNumber zero]],
+            "is equal to zero")
+        }
+      
       num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];
 
       str = [fmt stringFromNumber: num];
