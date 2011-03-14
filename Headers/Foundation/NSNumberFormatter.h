@@ -385,7 +385,7 @@ GS_NSNumberFormatter_IVARS;
 - (void) setNumberStyle: (NSNumberFormatterStyle) style;
 - (NSNumberFormatterStyle) numberStyle;
 - (void) setGeneratesDecimalNumbers: (BOOL) flag;
-- (BOOL) generatesDecimalNubmers;
+- (BOOL) generatesDecimalNumbers;
 
 - (void) setLocale: (NSLocale *) locale;
 - (NSLocale *) locale;
@@ -487,7 +487,7 @@ GS_NSNumberFormatter_IVARS;
 
 - (BOOL) getObjectValue: (out id *) anObject
               forString: (NSString *) aString
-                  range: (NSRange) rangep
+                  range: (NSRange *) rangep
                   error: (out NSError **) error;
 
 #endif
