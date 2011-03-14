@@ -55,13 +55,6 @@ int main()
     str = [fmt stringFromNumber: [NSDecimalNumber notANumber]];
     PASS_EQUAL(str, @"NaN", "notANumber special case")
 
-    num = nil;
-    PASS_RUNS(({
-      [fmt getObjectValue: &num forString: @"0.00" errorDescription: &str];}),
-      "getObjectValue:forString:errorDescription: runs")
-    PASS_EQUAL(num,  [NSNumber numberWithFloat: 0.0],
-      "getObjectValue inited with 0.00")
-
     START_SET("NSLocale")
       if (!NSLOCALE_SUPPORTED)
         SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
