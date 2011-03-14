@@ -1,3 +1,8 @@
+2011-03-14  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* Resources/GNUmakefile
+	(base-resources_RESOURCE_FILES_INSTALL_DIR): Removed.
+
 2011-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac:
