@@ -933,7 +933,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSString*) stringForObjectValue: (id)anObject
 {
   if (MYBEHAVIOR == NSNumberFormatterBehaviorDefault
-      || MYBEHAVIOR == NSNumberFormatterBehavior10_4)
+    || MYBEHAVIOR == NSNumberFormatterBehavior10_4)
     {
 #if GS_USE_ICU == 1
 
@@ -944,7 +944,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     int32_t len; \
     NSString *result; \
     \
-    len = function (internal->_formatter, number, outStr, BUFFER_SIZE, NULL, &err); \
+    len = function (internal->_formatter, number, outStr, \
+      BUFFER_SIZE, NULL, &err); \
     if (len > BUFFER_SIZE) \
       outStr = NSZoneMalloc ([self zone], len * sizeof(UChar));\
     err = U_ZERO_ERROR; \
@@ -955,20 +956,22 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     return result; \
   } while (0)
 
-      // This is quite inefficient.  See the GSUText stuff for how
-      // to use ICU 4.6 UText objects as NSStrings.  This saves us from
-      // needing to do a load of O(n) things.  In 4.6, these APIs in ICU
-      // haven't been updated to use UText (so we have to use the UChar buffer
-      // approach), but they probably will be in the future.  We should
-      // revisit this code when they have been.
+      /* This is quite inefficient.  See the GSUText stuff for how
+       * to use ICU 4.6 UText objects as NSStrings.  This saves us from
+       * needing to do a load of O(n) things.  In 4.6, these APIs in ICU
+       * haven't been updated to use UText (so we have to use the UChar buffer
+       * approach), but they probably will be in the future.  We should
+       * revisit this code when they have been.
+       */
       UChar buffer[BUFFER_SIZE];
       
-      // FIXME: What to do with unsigned types?
-      //
-      // The only unsigned case we actually need to worry about is unsigned
-      // long long - all of the others are stored as signed values.  We're now
-      // falling through to the double case for this, which will lose us some
-      // precision, but hopefully not matter too much...
+      /* FIXME: What to do with unsigned types?
+       *
+       * The only unsigned case we actually need to worry about is unsigned
+       * long long - all of the others are stored as signed values.  We're now
+       * falling through to the double case for this, which will lose us some
+       * precision, but hopefully not matter too much...
+       */
       if (nil == anObject)
         return [self nilSymbol];
       if (![anObject isKindOfClass: [NSNumber class]])
@@ -981,24 +984,27 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
           case _C_INT:
             STRING_FROM_NUMBER(unum_format, [anObject intValue]);
             break;
-          // Note: This case is probably wrong: the compiler doesn't generate B
-          // for bool, it generates C or c (depending on the platform).  I
-          // don't think it matters, because we don't bother with anything
-          // smaller than int for NSNumbers
+          /* Note: This case is probably wrong: the compiler doesn't generate B
+           * for bool, it generates C or c (depending on the platform).  I
+           * don't think it matters, because we don't bother with anything
+           * smaller than int for NSNumbers
+	   */
           case _C_BOOL:
             STRING_FROM_NUMBER(unum_format, (int)[anObject boolValue]);
             break;
-          // If it's not a type encoding that we recognise, let the receiver
-          // cast it to a double, which probably has enough precision for what
-          // we need.  This needs testing with NSDecimalNumber though, because
-          // I managed to break stuff last time I did anything with NSNumber by
-          // forgetting that NSDecimalNumber existed...
+          /* If it's not a type encoding that we recognise, let the receiver
+           * cast it to a double, which probably has enough precision for what
+           * we need.  This needs testing with NSDecimalNumber though, because
+           * I managed to break stuff last time I did anything with NSNumber by
+           * forgetting that NSDecimalNumber existed...
+           */
           default:
           case _C_DBL:
             STRING_FROM_NUMBER(unum_formatDouble, [anObject doubleValue]);
             break;
           case _C_FLT:
-            STRING_FROM_NUMBER(unum_formatDouble, (double)[anObject floatValue]);
+            STRING_FROM_NUMBER(unum_formatDouble,
+	      (double)[anObject floatValue]);
             break;
         }
 #endif
@@ -1025,10 +1031,10 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       NSDecimalNumber	*roundedNumber;
       NSDecimalNumber	*intPart;
       NSDecimalNumber	*fracPart;
-      int			decimalPlaces = 0;
-      BOOL			displayThousandsSeparators = NO;
-      BOOL			displayFractionalPart = NO;
-      BOOL			negativeNumber = NO;
+      int		decimalPlaces = 0;
+      BOOL		displayThousandsSeparators = NO;
+      BOOL		displayFractionalPart = NO;
+      BOOL		negativeNumber = NO;
       NSString		*useFormat;
       NSString		*defaultDecimalSeparator = nil;
       NSString		*defaultThousandsSeparator = nil;
@@ -1036,10 +1042,11 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       if (_localizesFormat)
         {
           NSDictionary *defaultLocale = GSDomainFromDefaultLocale();
+
           defaultDecimalSeparator 
-      = [defaultLocale objectForKey: NSDecimalSeparator];
+	    = [defaultLocale objectForKey: NSDecimalSeparator];
           defaultThousandsSeparator 
-      = [defaultLocale objectForKey: NSThousandsSeparator];
+	    = [defaultLocale objectForKey: NSThousandsSeparator];
         }
 
       if (defaultDecimalSeparator == nil)
@@ -1077,9 +1084,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       if (nil == useFormat)
         {
           useFormat = [NSString stringWithFormat: @"%@#%@###%@##",
-	            negativeNumber ? @"-" : @"",
-	            defaultThousandsSeparator,
-	            defaultDecimalSeparator];
+	    negativeNumber ? @"-" : @"",
+	    defaultThousandsSeparator,
+	    defaultDecimalSeparator];
         }
 
       prefixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters];
@@ -1116,7 +1123,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
           else
             {
               while ([placeHolders characterIsMember:
-          [useFormat characterAtIndex: NSMaxRange(decimalPlaceRange)]])
+		[useFormat characterAtIndex: NSMaxRange(decimalPlaceRange)]])
                 {
                   decimalPlaceRange.length++;
                   if (NSMaxRange(decimalPlaceRange) == [useFormat length])
@@ -1224,8 +1231,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
                   fpRange = NSMakeRange([ms length],
 		    ([fracPad length] - [ms length]));
-                  [ms appendString:
-		    [fracPad substringWithRange: fpRange]];
+                  [ms insertString:
+		    [fracPad substringWithRange: fpRange] atIndex: 0];
                   [ms replaceOccurrencesOfString: @"#"
 		    withString: @""
 		    options: (NSBackwardsSearch | NSAnchoredSearch)
