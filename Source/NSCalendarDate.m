@@ -495,7 +495,6 @@ GSPrivateTimeNow(void)
  */
 - (id) initWithString: (NSString *)description
 {
-  // +++ What is the locale?
   return [self initWithString: description
 	       calendarFormat: cformat
 		       locale: nil];
@@ -509,7 +508,6 @@ GSPrivateTimeNow(void)
 - (id) initWithString: (NSString *)description
        calendarFormat: (NSString *)format
 {
-  // ++ What is the locale?
   return [self initWithString: description
 	       calendarFormat: format
 		       locale: nil];
@@ -1107,7 +1105,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 
 		  case 'd': // fall through
 		  case 'e':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		    day = atoi(tmpStr);
 		    had |= hadD;
 		    if (error == NO && day < 1)
@@ -1118,7 +1117,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		    break;
 
 		  case 'F':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 3, &error);
 		    milliseconds = atoi(tmpStr);
 		    break;
 
@@ -1134,19 +1134,22 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		  case 'I': // fall through
 		    twelveHrClock = YES;
 		  case 'H':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		    hour = atoi(tmpStr);
 		    had |= hadh;
 		    break;
 
 		  case 'j':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 3, &error);
 		    day = atoi(tmpStr);
 		    had |= hadD;
 		    break;
 
 		  case 'm':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		    month = atoi(tmpStr);
 		    had |= hadM;
 		    if (error == NO && month < 1)
@@ -1157,7 +1160,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		    break;
 
 		  case 'M':
-		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2, &error);
+		    sourceIdx
+		      += getDigits(&source[sourceIdx], tmpStr, 2, &error);
 		    min = atoi(tmpStr);
 		    had |= hadm;
 		    break;
@@ -1186,12 +1190,14 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 		       * The time addition is handled below because this
 		       * indicator only modifies the time on a 12hour clock.
 		       */
-                      if ([[amPMNames objectAtIndex: 0] isEqual:currAMPM])
+                      if ([currAMPM caseInsensitiveCompare:
+			[amPMNames objectAtIndex: 0]] == NSOrderedSame)
                         {
                           ampm = YES;
                           isPM = NO;
                         }
-                      else if ([[amPMNames objectAtIndex: 1] isEqual:currAMPM])
+                      else if ([currAMPM caseInsensitiveCompare:
+			[amPMNames objectAtIndex: 1]] == NSOrderedSame)
                         {
                           ampm = YES;
                           isPM = YES;

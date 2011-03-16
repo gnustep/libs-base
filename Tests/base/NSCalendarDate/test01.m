@@ -1,12 +1,20 @@
 #import "Testing.h"
 #import <Foundation/NSCalendarDate.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSUserDefaults.h>
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSTimeInterval time1, time2, time3, time4, time5, time6, time7, time8, time9;
   NSCalendarDate *date1;
+  NSMutableDictionary *m;
+
+  m = [[[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
+    mutableCopy] autorelease];
+  [m setObject: [NSArray arrayWithObjects: @"am", @"pm", nil]
+	forKey: NSAMPMDesignation];
 
   time1 = [[NSCalendarDate dateWithString: @"Nov 20 02 01:54:22"
                            calendarFormat: @"%b %d %y %H:%M:%S"] 
@@ -41,11 +49,13 @@ int main()
     "+dateWithString:calendarFormat: works if no time zone is specified");
   
   date1 = [NSCalendarDate dateWithString: @"Nov 29 06 12:00am" 
-                          calendarFormat: @"%b %d %y %H:%M%p"]; 
+                          calendarFormat: @"%b %d %y %H:%M%p"
+				  locale: m]; 
   PASS(date1 != nil && [date1 hourOfDay] == 0, "12:00am is midnight");
 
   date1 = [NSCalendarDate dateWithString: @"Nov 29 06 12:00pm" 
-                          calendarFormat: @"%b %d %y %H:%M%p"]; 
+                          calendarFormat: @"%b %d %y %H:%M%p"
+				  locale: m]; 
   PASS(date1 != nil && [date1 hourOfDay] == 12, "12:00pm is noon");
 
   date1 = [NSCalendarDate dateWithString: @"Nov 29 06 01:25:38" 
