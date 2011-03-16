@@ -147,7 +147,7 @@ int main()
     [NSNumber numberWithLongLong: LLONG_MIN],
     nil];
   a = [a sortedArrayUsingSelector: @selector(compare:)];
-  pass([[a objectAtIndex: 0] longLongValue] == LLONG_MIN
+  PASS([[a objectAtIndex: 0] longLongValue] == LLONG_MIN
     && [[a objectAtIndex: 1] longLongValue] == -2
     && [[a objectAtIndex: 2] longLongValue] == 1
     && [[a objectAtIndex: 3] longLongValue] == 200
