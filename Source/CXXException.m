@@ -50,7 +50,13 @@ static Class CXXExceptionClass;
 // TODO: Add an API for registering other classes for other exception types
 static Class boxClass(int64_t foo)
 {
+  // Big endian platforms
   if (foo == *(int64_t*)(void*)"GNUCC++\0")
+    {
+      return CXXExceptionClass;
+    }
+  // Little endian platforms
+  if (foo == *(int64_t*)(void*)"\0++CCUNG")
     {
       return CXXExceptionClass;
     }
