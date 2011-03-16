@@ -112,7 +112,7 @@ BOOL test_encoding(void)
     NSData *d = [[NSData alloc] initWithBytes: "foo"  length: 3];
     NSString *s = [[stringClass alloc] initWithData: d  encoding: 0];
 
-    pass(s == nil, "-initWithData:encoding: gives nil for invalid encodings");
+    PASS(s == nil, "-initWithData:encoding: gives nil for invalid encodings")
 
     DESTROY(d);
   }
@@ -208,7 +208,7 @@ BOOL test_getCString_maxLength_range_remainingRange(void)
 	    break;
 	if (buffer[j]!= 0)
 	  {
-	    pass(0, "-getCString: maxLength: %i range: remainingRange: failed",
+	    PASS(0, "-getCString: maxLength: %i range: remainingRange: failed",
 	      i);
 	    ok = NO;
 	  }
@@ -233,7 +233,7 @@ void test_return_self_optimizations(void)
 	  length: 0];
   returnValue = [string lowercaseString];
   [string release];
-  pass((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
+  PASS((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
        "-lowercaseString returns a valid instance");
   DESTROY(arp);
 
@@ -242,7 +242,7 @@ void test_return_self_optimizations(void)
 	  length: 0];
   returnValue = [string uppercaseString];
   [string release];
-  pass((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
+  PASS((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
        "-uppercaseString returns a valid instance");
   DESTROY(arp);
 
@@ -251,7 +251,7 @@ void test_return_self_optimizations(void)
 	  length: 0];
   returnValue = [string capitalizedString];
   [string release];
-  pass((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
+  PASS((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
        "-capitalizedString returns a valid instance");
   DESTROY(arp);
 
@@ -259,7 +259,7 @@ void test_return_self_optimizations(void)
   string = [[stringClass alloc] initWithCharacters: NULL
 	  length: 0];
   returnValue = [string description];
-  pass((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
+  PASS((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
        "-description returns a valid instance");
   [string release];
   DESTROY(arp);
@@ -269,7 +269,7 @@ void test_return_self_optimizations(void)
 	  length: 0];
   returnValue = [string stringByExpandingTildeInPath];
   [string release];
-  pass([@"" isEqual: returnValue], "-stringByExpandingTildeInPath returns a valid instance (1)");
+  PASS([@"" isEqual: returnValue], "-stringByExpandingTildeInPath returns a valid instance (1)");
   DESTROY(arp);
 
   arp = [NSAutoreleasePool new];
@@ -277,7 +277,7 @@ void test_return_self_optimizations(void)
 	  length: 1];
   returnValue = [string stringByExpandingTildeInPath];
   [string release];
-  pass((IS_VALID_OBJECT(returnValue) && [@"A" isEqual: returnValue]), 
+  PASS((IS_VALID_OBJECT(returnValue) && [@"A" isEqual: returnValue]), 
        "-stringByExpandingTildeInPath returns a valid instance (2)");
   DESTROY(arp);
 
@@ -286,7 +286,7 @@ void test_return_self_optimizations(void)
 	  length: 1];
   returnValue = [string stringByAbbreviatingWithTildeInPath];
   [string release];
-  pass((IS_VALID_OBJECT(returnValue) && [@"A" isEqual: returnValue]), 
+  PASS((IS_VALID_OBJECT(returnValue) && [@"A" isEqual: returnValue]), 
        "-stringByAbbreviatingWithTildeInPath returns a valid instance");
   DESTROY(arp);
 
@@ -305,9 +305,9 @@ void TestNSStringClass(Class aStringClass)
 
   stringClass = aStringClass;
 
-  pass(test_initWithCString(), "-initWithCString: works");
-  pass(test_encoding(), "character set encoding/decoding works");
-  pass(test_getCString_maxLength_range_remainingRange(), "-getCString:maxLength:range:remainingRange: works");
+  PASS(test_initWithCString(), "-initWithCString: works");
+  PASS(test_encoding(), "character set encoding/decoding works");
+  PASS(test_getCString_maxLength_range_remainingRange(), "-getCString:maxLength:range:remainingRange: works");
 
   test_return_self_optimizations();
 
