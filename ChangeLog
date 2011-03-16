@@ -1,5 +1,10 @@
 2011-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* NSTimeZones/NSTimeZones.tar: regenerated wityh latest zone info.
+	* Tests/base/NSCalendarDate: Updated to use standardised locale
+
+2011-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSThread.m: Make +initialize thread safety warning optional
 	(disabled using GSSilenceInitializeWarning user default) and more
 	informative.
