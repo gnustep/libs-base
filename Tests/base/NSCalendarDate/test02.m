@@ -4,7 +4,8 @@
 #import <Foundation/NSCalendarDate.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSTimeZone.h>
-#import <Foundation/NSUserDefaults.h>
+
+#include "./western.h"
 
 int main()
 {
@@ -13,7 +14,8 @@ int main()
   NSMutableDictionary *myLocale;
   NSCalendarDate *myBirthday; 
   NSCalendarDate *anotherDay; 
-  myLocale = [NSMutableDictionary new];
+
+  myLocale = westernLocale();
   
   tmpArray = [NSMutableArray new];
   [tmpArray addObject: @"Gen"]; 
