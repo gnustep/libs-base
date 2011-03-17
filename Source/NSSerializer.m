@@ -73,8 +73,8 @@
 /*
  *	Setup for inline operation of string arrays.
  */
-#define	GSI_ARRAY_RETAIN(A, X)	
-#define	GSI_ARRAY_RELEASE(A, X)	
+#define	GSI_ARRAY_NO_RETAIN	1
+#define	GSI_ARRAY_NO_RELEASE	1
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ
 
 #include "GNUstepBase/GSIArray.h"

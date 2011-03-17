@@ -35,8 +35,8 @@
 /*
  *	Setup for inline operation of arrays.
  */
-#define	GSI_ARRAY_RETAIN(A, X)	
-#define	GSI_ARRAY_RELEASE(A, X)	
+#define	GSI_ARRAY_NO_RETAIN	1
+#define	GSI_ARRAY_NO_RELEASE	1
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
 
 #include "GNUstepBase/GSIArray.h"
