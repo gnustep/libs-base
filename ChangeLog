@@ -1,3 +1,8 @@
+2011-03-17 15:02  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSObject.m: Correctly call C++
+	  constructors / destructors for C++ 'objects' in ObjC++ ivars.
+
 2011-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: regenerated wityh latest zone info.
