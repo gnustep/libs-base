@@ -101,6 +101,10 @@
 #undef id
 #endif
 
+#if defined(__APPLE__) && !GS_FAKE_MAIN
+#include <crt_externs.h>
+#endif
+
 #import "GNUstepBase/GSConfig.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSSet.h"
@@ -448,7 +452,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   IF_NO_GC(RELEASE(arp));
 }
 
-#if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV) || defined(HAVE_PROCFS_PSINFO)) && (defined(HAVE_LOAD_METHOD)))
+#if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV) || defined(HAVE_PROCFS_PSINFO) || defined(__APPLE__)) && (defined(HAVE_LOAD_METHOD)))
 /*
  * We have to save program arguments and environment before main () is
  * executed, because main () could modify their values before we get a
@@ -619,6 +623,45 @@ static char	**_gnu_noobjc_env = NULL;
     {
       _gnu_noobjc_argv[i] = (char *)strdup(vectors[i]);
       if (!_gnu_noobjc_argv[i])
+	goto malloc_error;
+    }
+  _gnu_noobjc_argv[i] = NULL;
+
+  return;
+#elif defined(__APPLE__)
+  /*
+   * Darwin/Mac OS X provides indirect access to command line arguments and
+   * the environment with functions defined in the C runtime system.
+   */
+  int i, n;
+  int argc = *_NSGetArgc();
+  char **argv = *_NSGetArgv();
+  char **environ = *_NSGetEnviron();
+
+  /* copy environment */
+  n = 0;
+  while (environ[n] != NULL)
+    n++;
+  _gnu_noobjc_env = (char **)malloc(sizeof(char *) * (n + 1));
+  if (_gnu_noobjc_env == NULL)
+    goto malloc_error;
+  for (i = 0; i < n; i++)
+    {
+      _gnu_noobjc_env[i] = (char *)strdup(environ[i]);
+      if (_gnu_noobjc_env[i] == NULL)
+	goto malloc_error;
+    }
+  _gnu_noobjc_env[i] = NULL;
+
+  /* copy arguments */
+  _gnu_noobjc_argc = argc;
+  _gnu_noobjc_argv = (char **)malloc(sizeof(char *) * (argc + 1));
+  if (_gnu_noobjc_argv == NULL)
+    goto malloc_error;
+  for (i = 0; i < argc; i++)
+    {
+      _gnu_noobjc_argv[i] = (char *)strdup(argv[i]);
+      if (_gnu_noobjc_argv[i] == NULL)
 	goto malloc_error;
     }
   _gnu_noobjc_argv[i] = NULL;
