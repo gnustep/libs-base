@@ -2250,8 +2250,12 @@ elif test "$enable_pass_arguments" = "no"; then
       AC_MSG_WARN([Using libkvm which is known to be buggy on some systems consider configuring with --enable-fake-main instead.])
     fi
   else
-    GS_FAKE_MAIN=1
-    enable_fake_main=yes
+    case "$target_os" in
+      darwin* ) ;;
+      * )
+       GS_FAKE_MAIN=1
+       enable_fake_main=yes
+    esac
   fi
 fi
 case "$target_os" in
