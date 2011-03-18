@@ -2,6 +2,8 @@
 
 	* Source/Additions/GSObjCRuntime.m: Use old API to work around bug in
 	current sel_registerTypedName().
+	* Source/GSFFIInvocation.m: Use sel_getTypedName() to safely get a
+	typed selector.
 
 2011-03-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
