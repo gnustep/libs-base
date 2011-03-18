@@ -1,5 +1,5 @@
 /* Implementation for NSSortDescriptor for GNUStep
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
    Written by:  Saso Kiselkov <diablos@manga.sk>
    Date: 2005
@@ -163,10 +163,10 @@
 {
   if ([coder allowsKeyedCoding])
     {
-      [coder encodeObject: _key forKey: @"Key"];
-      [coder encodeBool: _ascending forKey: @"Ascending"];
+      [coder encodeObject: _key forKey: @"NSKey"];
+      [coder encodeBool: _ascending forKey: @"NSAscending"];
       [coder encodeObject: NSStringFromSelector(_selector)
-                   forKey: @"Selector"];
+                   forKey: @"NSSelector"];
     }
   else
     {
@@ -182,10 +182,10 @@
     {
       if ([decoder allowsKeyedCoding])
         {
-          ASSIGN(_key, [decoder decodeObjectForKey: @"Key"]);
-          _ascending = [decoder decodeBoolForKey: @"Ascending"];
+          ASSIGN(_key, [decoder decodeObjectForKey: @"NSKey"]);
+          _ascending = [decoder decodeBoolForKey: @"NSAscending"];
           _selector = NSSelectorFromString([decoder
-            decodeObjectForKey: @"Selector"]);
+            decodeObjectForKey: @"NSSelector"]);
         }
       else
         {

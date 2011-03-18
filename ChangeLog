@@ -1,3 +1,8 @@
+2011-03-18 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSSortDescriptor.m:
+	Use Cocoa values for the coding keys.
+	
 2011-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m: Use old API to work around bug in
