@@ -1,3 +1,8 @@
+2011-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m: Use old API to work around bug in
+	current sel_registerTypedName().
+
 2011-03-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSProcessInfo.m (_gnu_process_args): Use C runtime system
