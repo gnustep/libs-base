@@ -143,8 +143,10 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
 {
 #if NeXT_RUNTIME
   return sel_getUid(name);
+/* Don't do the next line until the function works.
 #elif defined (__GNU_LIBOBJC__)
   return sel_registerTypedName(name, types);
+*/
 #elif defined (__GNUSTEP_RUNTIME__)
   return sel_registerTypedName_np(name, types);
 #else
