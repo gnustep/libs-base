@@ -103,51 +103,10 @@ gs_find_best_typed_sel (SEL sel)
 }
 #elif defined (__GNU_LIBOBJC__)
 {
-  /* Get the list of all selectors with this name.  */
-  const char *selName = sel_getName (sel);
-  unsigned int numberOfReturnedSelectors;
-  SEL *selectors;
-
-  selectors = sel_copyTypedSelectorList (selName, &numberOfReturnedSelectors);
-  /* If no selectors are returned, there is no selector.  */ 
-  if (selectors == NULL)
-    return NULL;
-  
-  /* If one selector is returned, check if it has a type or not.  */
-  if (numberOfReturnedSelectors == 1)
-    {
-      SEL selector = selectors[0];
-      free (selectors);
-
-      if (GSTypesFromSelector(selector))
-	return selector;
-      else
-	return NULL;
-    }
-
-  /* If two selectors are returned, check if one of them has a null
-   * type; if so, pick the other one.  */
-  if (numberOfReturnedSelectors == 2)
-    {
-      SEL first_selector = selectors[0];
-      SEL second_selector = selectors[1];
-      const char *first_selector_types = GSTypesFromSelector(first_selector);
-      const char *second_selector_types = GSTypesFromSelector(second_selector);
-      free (selectors);
-
-      if (first_selector_types && !second_selector_types)
-	return first_selector;
-
-      if (!first_selector_types && second_selector_types)
-	return second_selector;
-
-      /* If both selectors have a type, there is a conflict.  */
-      return NULL;
-    }
-
-  /* More than two selectors - there is a conflict.  */
-  free (selectors);
-  return NULL;
+/* The sel_getTypedSelector() function returns a typed selector if there
+ * is only one, nul if there are zero or more tha one.
+ */
+  return sel_getTypedSelector(sel_getName(sel));
 }
 #elif defined(NeXTRUNTIME)
 {
