@@ -1,3 +1,11 @@
+2011-03-18  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* Documentation/GNUmakefile (CODING-STANDARDS_TEXI_FILES,
+	CODING-STANDARDS_DOC_INSTALL_DIR, CODING-STANDARDS_TEXT_MAIN):
+	Removed.
+	(DOCUMENT_TEXT_NAME, TOP_DOC_FILES): Fixed names of files to
+	generate; for example, INSTALL instead of install.
+	
 2011-03-18 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSSortDescriptor.m:

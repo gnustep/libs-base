@@ -56,9 +56,9 @@ SUBPROJECTS = manual General
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
-install news readme announce
+INSTALL NEWS README ANNOUNCE
 
-TOP_DOC_FILES = install news readme announce
+TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE
 
 gnustep-base_TEXI_FILES = \
 version.texi \
@@ -77,10 +77,6 @@ INSTALL_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 NEWS_TEXI_FILES = version.texi
 NEWS_TEXT_MAIN = news.texi
 NEWS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
-
-CODING-STANDARDS_TEXI_FILES = version.texi
-CODING-STANDARDS_TEXT_MAIN = coding-standards.texi
-CODING-STANDARDS_DOC_INSTALL_DIR = Developer/CodingStandards
 
 README_TEXI_FILES = version.texi
 README_TEXT_MAIN = readme.texi
