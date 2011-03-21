@@ -12,20 +12,20 @@ int main()
   NSBundle *bundle;
   NSString *bundlePath = [[NSFileManager defaultManager] currentDirectoryPath];
   bundlePath = [bundlePath stringByAppendingPathComponent: @"Resources"];
-  bundlePath = [NSBundle pathForResource:@"TestConnection" 
-                   		  ofType:@"bundle"
-			     inDirectory:bundlePath];
-  bundle = [NSBundle bundleWithPath:bundlePath];
+  bundlePath = [NSBundle pathForResource: @"TestConnection" 
+                   		  ofType: @"bundle"
+			     inDirectory: bundlePath];
+  bundle = [NSBundle bundleWithPath: bundlePath];
   PASS([bundle load],"We can load the test bundle");
   {
     /* this should probably be rewritten to uh return a bool */
     NS_DURING
       NSDate *date;
       NSRunLoop *run = [NSRunLoop currentRunLoop];
-      [NSClassFromString(@"Tester") performSelector:@selector(startup)];
+      [NSClassFromString(@"Tester") performSelector: @selector(startup)];
     
-      date = [NSDate dateWithTimeIntervalSinceNow:1];
-      [run runUntilDate:date];
+      date = [NSDate dateWithTimeIntervalSinceNow: 3.0];
+      [run runUntilDate: date];
       PASS(1, "NSConnection can do a simple connection");
     NS_HANDLER
       PASS(0, "NSConnection can do a simple connection");
