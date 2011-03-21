@@ -26,6 +26,10 @@ int main()
     PASS_EQUAL([fmt stringFromNumber: num], @"1.01",
       "Handle leading zeroes in fractional part: 1.01")
 
+    num = [[[NSNumber alloc] initWithFloat: 1.1] autorelease];
+    PASS_EQUAL([fmt stringFromNumber: num], @"1.1",
+      "Handle leading zeroes in fractional part: 1.1")
+
     [fmt setAllowsFloats: NO];
 
     num = [[[NSNumber alloc] initWithFloat: 1234.567] autorelease];

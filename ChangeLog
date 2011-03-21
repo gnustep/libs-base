@@ -1,3 +1,8 @@
+2011-03-32 Riccardo Mottola <rm@gnu.org>
+
+	* Tests/base/NSNumberFormatter/basic.m:
+	Added new test.
+	
 2011-03-18  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Documentation/GNUmakefile (CODING-STANDARDS_TEXI_FILES,
