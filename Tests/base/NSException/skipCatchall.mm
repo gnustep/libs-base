@@ -4,9 +4,11 @@
 #if !__has_feature(objc_nonfragile_abi)
 int main(void)
 {
+#if defined(TESTDEV)
   START_SET("Unified exception model")
     SKIP("Unified exception model not supported")
   END_SET("Unified exception model")
+#endif
   return 0;
 }
 
@@ -24,6 +26,7 @@ int main(void)
  */
 int main(void)
 {
+#if defined(TESTDEV)
   NSString *foo = @"foo";
   id caught = nil;
   int final = 0;
@@ -47,6 +50,7 @@ int main(void)
   PASS(0==final, "catchall not used to catch object");
   PASS(0==wrongCatch, "Incorrect object catch not used to catch object");
   PASS(caught == foo, "Unified exception model works correctly");
+#endif
   return 0;
 }
 #endif
