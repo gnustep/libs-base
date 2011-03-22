@@ -52,7 +52,7 @@ int main()
   
   START_SET("NSLocale")
   if (!NSLOCALE_SUPPORTED)
-    SKIP("NSlocale not supported\nThe ICU library was not available when GNUstep-base was built")
+    SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
 
   current = [NSTimeZone timeZoneWithName: @"America/Sao_Paulo"];
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"en_GB"];

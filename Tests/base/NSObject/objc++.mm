@@ -66,10 +66,13 @@ class A1
 @implementation C @end
 int main(void)
 {
+#if defined(TESTDEV)
   // Make sure constructors / destructors are called even without -init
   [[C alloc] release];
   // Reset state
   A_init = B_init = A_destroyed = B_destroyed = 0;
   // Check init is called in the middle
   [[C new] release];
+#endif
+  return 0;
 }
