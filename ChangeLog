@@ -1,8 +1,14 @@
-2011-03-32 Riccardo Mottola <rm@gnu.org>
+2011-03-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSObject.m (-methodSignatureForSelector:): Get method
+	right again in case the method is called on a class object and the
+	old runtime is used.
+
+2011-03-21 Riccardo Mottola <rm@gnu.org>
 
 	* Tests/base/NSNumberFormatter/basic.m:
 	Added new test.
-	
+
 2011-03-18  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Documentation/GNUmakefile (CODING-STANDARDS_TEXI_FILES,
@@ -10,12 +16,12 @@
 	Removed.
 	(DOCUMENT_TEXT_NAME, TOP_DOC_FILES): Fixed names of files to
 	generate; for example, INSTALL instead of install.
-	
+
 2011-03-18 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSSortDescriptor.m:
 	Use Cocoa values for the coding keys.
-	
+
 2011-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m: Use old API to work around bug in

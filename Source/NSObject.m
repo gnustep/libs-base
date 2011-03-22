@@ -1508,8 +1508,15 @@ objc_create_block_classes_as_subclasses_of(Class super);
       struct objc_slot	*slot = objc_get_slot(object_getClass(self), aSelector);
       types = slot->types;
 #else
-      struct objc_method *mth = 
-	GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
+      struct objc_method *mth;
+      if (GSObjCIsInstance(self))
+	{
+	  mth = GSGetMethod(object_getClass(self), aSelector, YES, YES);
+	}
+      else
+	{
+	  mth = GSGetMethod((Class)self, aSelector, NO, YES);
+	}
       types = method_getTypeEncoding (mth);
 #endif
     }
