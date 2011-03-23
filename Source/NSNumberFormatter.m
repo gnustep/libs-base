@@ -1221,10 +1221,6 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
               fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
 		decimalPlaces];
               ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
-              [ms replaceOccurrencesOfString: @"0"
-		withString: @""
-		options: (NSBackwardsSearch | NSAnchoredSearch)
-		range: NSMakeRange(0, [ms length])];
               if ([fracPad length] > [ms length])
                 {
                   NSRange fpRange;
@@ -1246,6 +1242,10 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 		    options: 0
 		    range: NSMakeRange(0, [ms length])];
                 }
+              [ms replaceOccurrencesOfString: @"0"
+		withString: @""
+		options: (NSBackwardsSearch | NSAnchoredSearch)
+		range: NSMakeRange(0, [ms length])];
 	      fracPartString = AUTORELEASE(ms);
             }
           else

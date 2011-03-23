@@ -1,3 +1,8 @@
+2011-03-23  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSNumberFormatter.m (-stringForObjectValue:): Swapped a
+	few lines of fraction handling code to get the test suite to pass.
+
 2011-03-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSObject.m (-methodSignatureForSelector:): Get method
