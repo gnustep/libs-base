@@ -273,8 +273,10 @@ int main()
   [fm createDirectoryAtPath: tmpdst attributes: nil];
   [fm createSymbolicLinkAtPath: tmpsrc pathContent: @"bar"];
 
+  [fm changeCurrentDirectoryPath: tmpdir];
   PASS_EQUAL([@"foo" stringByResolvingSymlinksInPath], @"foo",
     "foo->bar relative symlink not expanded by stringByResolvingSymlinksInPath")
+  [fm changeCurrentDirectoryPath: cwd];
 
   [fm removeFileAtPath: tmpsrc handler: nil];
   [fm createSymbolicLinkAtPath: tmpsrc pathContent: tmpdst];
@@ -283,13 +285,14 @@ int main()
     "foo->bar symlink not expanded by stringByStandardizingPath")
   PASS_EQUAL([tmpsrc stringByResolvingSymlinksInPath], tmpdst, 
     "foo->bar absolute symlink expanded by stringByResolvingSymlinksInPath")
+
   [fm changeCurrentDirectoryPath: tmpdir];
   PASS_EQUAL([@"foo" stringByResolvingSymlinksInPath], tmpdst, 
     "foo->bar relative symlink expanded by stringByResolvingSymlinksInPath")
   PASS(NO == [[@"~" stringByResolvingSymlinksInPath] isEqual: @"~"], 
     "tilde is expanded by stringByResolvingSymlinksInPath")
-
   [fm changeCurrentDirectoryPath: cwd];
+
   [fm removeFileAtPath: tmpdst handler: nil];
   [fm removeFileAtPath: tmpsrc handler: nil];
   
