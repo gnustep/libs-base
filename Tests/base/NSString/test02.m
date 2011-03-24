@@ -274,8 +274,10 @@ int main()
   [fm createSymbolicLinkAtPath: tmpsrc pathContent: @"bar"];
 
   [fm changeCurrentDirectoryPath: tmpdir];
+  testHopeful = YES;
   PASS_EQUAL([@"foo" stringByResolvingSymlinksInPath], @"foo",
     "foo->bar relative symlink not expanded by stringByResolvingSymlinksInPath")
+  testHopeful = NO;
   [fm changeCurrentDirectoryPath: cwd];
 
   [fm removeFileAtPath: tmpsrc handler: nil];
