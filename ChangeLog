@@ -1,3 +1,8 @@
+2011-03-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: Clarify/add to comments about linked
+	list operation and remove redundant/useless line of code.
+
 2011-03-23  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSNumberFormatter.m (-stringForObjectValue:): Swapped a
