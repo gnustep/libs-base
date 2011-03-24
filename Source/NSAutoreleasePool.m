@@ -299,7 +299,10 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
       _released = _released_head;
     }
 
-  /* Install ourselves as the current pool. */
+  /* Install ourselves as the current pool.
+   * The only other place where the parent/child linked list is modified
+   * should be in -dealloc
+   */
   {
     struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
     _parent = tv->current_pool;
@@ -457,10 +460,11 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 
   [self emptyPool];
 
-  /*
-   * Remove self from the linked list of pools in use.
-   * We already know that we have deallocated our child (if any),
+  /* Remove self from the linked list of pools in use.
+   * We already know that we have deallocated any child (in -emptyPool),
    * but we may have a parent which needs to know we have gone.
+   * The only other place where the parent/child linked list is modified
+   * should be in -init
    */
   if (tv->current_pool == self)
     {
@@ -471,7 +475,6 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
       _parent->_child = nil;
       _parent = nil;
     }
-  _child = nil;
 
   /* Don't deallocate ourself, just save us for later use. */
   push_pool_to_cache (tv, self);
