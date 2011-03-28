@@ -1,3 +1,8 @@
+2011-03-28 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSPathUtilities.m:
+	safer and more portable pointer access
+	
 2011-03-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: Clarify/add to comments about linked
