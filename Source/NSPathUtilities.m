@@ -1664,7 +1664,7 @@ NSFullUserName(void)
 
       [gnustep_global_lock lock];
       pw = getpwnam([userName cString]);
-      if (*pw.pw_gecos)
+      if (pw->pw_gecos)
 	{
           userName = [NSString stringWithUTF8String: pw->pw_gecos];
         }
