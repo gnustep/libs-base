@@ -1,5 +1,5 @@
+#include "Testing.h"
 #include <Foundation/Foundation.h>
-#include "ObjectTesting.h"
 
 @class NSAutoreleasePool;
 int main()

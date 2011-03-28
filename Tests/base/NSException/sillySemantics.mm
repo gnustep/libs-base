@@ -1,17 +1,13 @@
-extern "C"
-{
-#import <ObjectTesting.h>
+#import "Testing.h"
 #import <Foundation/NSObject.h>
-}
 
+#if defined(TESTDEV)
 #if !__has_feature(objc_nonfragile_abi)
 int main(void)
 {
-#if defined(TESTDEV)
   START_SET("String throwing")
     SKIP("Unified exception model not supported")
   END_SET("String throwing");
-#endif
   return 0;
 }
 
@@ -56,7 +52,6 @@ void testThrow(void)
  */
 int main(void)
 {
-#if defined(TESTDEV)
   testThrow();
   PASS(0==final, "catchall not used to catch object");
   PASS(caughtObj == nil, "Thrown string cast to NSObject matched NSObject (Apple mode)");
@@ -69,7 +64,11 @@ int main(void)
   PASS(caughtObj == foo, "Thrown string cast to NSObject matched NSObject (sane mode)");
   PASS(caughtStr == nil, "Thrown string cast to NSObject matched NSString (sane mode)");
 #endif
-#endif
+  return 0;
+}
+#else
+int main(void)
+{
   return 0;
 }
 #endif
