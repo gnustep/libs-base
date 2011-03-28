@@ -2,6 +2,7 @@
 #import <Foundation/NSObject.h>
 
 #if defined(TESTDEV)
+
 #if !__has_feature(objc_nonfragile_abi)
 int main(void)
 {
@@ -66,6 +67,7 @@ int main(void)
 #endif
   return 0;
 }
+#endif
 #else
 int main(void)
 {
