@@ -2,6 +2,9 @@
 
 	* Source/NSPathUtilities.m:
 	safer and more portable pointer access
+
+	* Headers/Foundation/NSNetServices.h
+	Remove forward protocol declarations as they break gcc 2.95.
 	
 2011-03-24  Richard Frith-Macdonald <rfm@gnu.org>
 
