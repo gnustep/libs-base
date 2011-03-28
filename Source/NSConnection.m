@@ -2044,7 +2044,7 @@ static NSLock	*cached_proxies_gate = nil;
        * a response, we must check for it and scrap it if necessary.
        */
       M_LOCK(IrefGate);
-      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)seq);
+      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(id)(NSInteger)seq);
       if (node != 0 && node->value.obj != dummyObject)
 	{
 	  BOOL	is_exception = NO;
@@ -2058,7 +2058,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
 	  [self _doneInRmc: node->value.obj];
 	}
-      GSIMapRemoveKey(IreplyMap, (GSIMapKey)seq);
+      GSIMapRemoveKey(IreplyMap, (GSIMapKey)(id)(NSInteger)seq);
       M_UNLOCK(IrefGate);
     }
   else
@@ -2376,7 +2376,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      break;
 	    }
 	  M_LOCK(GSIVar(conn, _refGate));
-	  node = GSIMapNodeForKey(GSIVar(conn, _replyMap), (GSIMapKey)sequence);
+	  node = GSIMapNodeForKey(GSIVar(conn, _replyMap), (GSIMapKey)(id)(NSInteger)sequence);
 	  if (node == 0)
 	    {
 	      NSDebugMLLog(@"NSConnection", @"Ignoring reply RMC %d on %@",
@@ -3135,7 +3135,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  sn, self);
       M_LOCK(IrefGate); isLocked = YES;
       while (IisValid == YES
-	&& (node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)sn)) != 0
+	&& (node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(id)(NSInteger)sn)) != 0
 	&& node->value.obj == dummyObject)
 	{
 	  NSDate	*limit_date;
@@ -3185,7 +3185,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    || [timeout_date timeIntervalSinceNow] <= 0.0)
 	    {
 	      M_LOCK(IrefGate); isLocked = YES;
-	      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)sn);
+	      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(id)(NSInteger)sn);
 	      break;
 	    }
 	  else if (warned == NO && [start_date timeIntervalSinceNow] <= -300.0)
@@ -3203,7 +3203,7 @@ static NSLock	*cached_proxies_gate = nil;
       else
 	{
 	  rmc = node->value.obj;
-	  GSIMapRemoveKey(IreplyMap, (GSIMapKey)sn);
+	  GSIMapRemoveKey(IreplyMap, (GSIMapKey)(id)(NSInteger)sn);
 	}
       M_UNLOCK(IrefGate); isLocked = NO;
       TEST_RELEASE(start_date);
@@ -3358,7 +3358,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   if (rep == YES)
     {
-      GSIMapAddPair(IreplyMap, (GSIMapKey)sno, (GSIMapVal)dummyObject);
+      GSIMapAddPair(IreplyMap, (GSIMapKey)(id)(NSInteger)sno, (GSIMapVal)dummyObject);
     }
   /*
    * Locate or create an rmc
@@ -3510,14 +3510,14 @@ static NSLock	*cached_proxies_gate = nil;
   /*
    * Record the value in the IlocalObjects map, retaining it.
    */
-  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)object);
+  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)(id)(NSInteger)object);
   NSAssert(node == 0, NSInternalInconsistencyException);
-  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)target);
+  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)(id)(NSInteger)target);
   NSAssert(node == 0, NSInternalInconsistencyException);
 
   IF_NO_GC([anObj retain];)
-  GSIMapAddPair(IlocalObjects, (GSIMapKey)object, (GSIMapVal)((id)anObj));
-  GSIMapAddPair(IlocalTargets, (GSIMapKey)target, (GSIMapVal)((id)anObj));
+  GSIMapAddPair(IlocalObjects, (GSIMapKey)(id)(NSInteger)object, (GSIMapVal)((id)anObj));
+  GSIMapAddPair(IlocalTargets, (GSIMapKey)(id)(NSInteger)target, (GSIMapVal)((id)anObj));
 
   if (debug_connection > 2)
     NSLog(@"add local object (0x%x) target (0x%x) "
@@ -3534,7 +3534,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   /* Don't assert (IisValid); */
   M_LOCK(IrefGate);
-  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)object);
+  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)(id)(NSInteger)object);
   if (node == 0)
     {
       p = nil;
@@ -3562,7 +3562,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   M_LOCK(IrefGate);
   anObj = prox->_object;
-  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)anObj);
+  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)(id)(NSInteger)anObj);
 
   /*
    * The NSDistantObject concerned may not belong to this connection,
@@ -3605,13 +3605,13 @@ static NSLock	*cached_proxies_gate = nil;
       /*
        * Remove the proxy from IlocalObjects and release it.
        */
-      GSIMapRemoveKey(IlocalObjects, (GSIMapKey)anObj);
+      GSIMapRemoveKey(IlocalObjects, (GSIMapKey)(id)(NSInteger)anObj);
       RELEASE(prox);
 
       /*
        * Remove the target info too - no release required.
        */
-      GSIMapRemoveKey(IlocalTargets, (GSIMapKey)target);
+      GSIMapRemoveKey(IlocalTargets, (GSIMapKey)(id)(NSInteger)target);
 
       if (debug_connection > 2)
 	NSLog(@"removed local object (0x%x) target (0x%x) "
@@ -3669,7 +3669,7 @@ static NSLock	*cached_proxies_gate = nil;
    * Try a quick lookup to see if the target references a local object
    * belonging to the receiver ... usually it should.
    */
-  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)target);
+  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)(id)(NSInteger)target);
   if (node != 0)
     {
       proxy = node->value.obj;
@@ -3720,7 +3720,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    {
 	      M_LOCK(GSIVar(c, _refGate));
 	      node = GSIMapNodeForKey(GSIVar(c, _localTargets),
-		(GSIMapKey)target);
+		(GSIMapKey)(id)(NSInteger)target);
 	      if (node != 0)
 		{
 		  id		local;
@@ -3742,9 +3742,9 @@ static NSLock	*cached_proxies_gate = nil;
 		  proxy = [NSDistantObject proxyWithLocal: local
 					       connection: self];
 		  nTarget = proxy->_handle;
-		  GSIMapRemoveKey(IlocalTargets, (GSIMapKey)nTarget);
+		  GSIMapRemoveKey(IlocalTargets, (GSIMapKey)(id)(NSInteger)nTarget);
 		  proxy->_handle = target;
-		  GSIMapAddPair(IlocalTargets, (GSIMapKey)target,
+		  GSIMapAddPair(IlocalTargets, (GSIMapKey)(id)(NSInteger)target,
 		    (GSIMapVal)((id)proxy));
 		}
 	      M_UNLOCK(GSIVar(c, _refGate));
@@ -3778,7 +3778,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   /* Don't assert (IisValid); */
   M_LOCK(IrefGate);
-  node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)target);
+  node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)(id)(NSInteger)target);
   if (node == 0)
     {
       found = nil;
@@ -3839,7 +3839,7 @@ static NSLock	*cached_proxies_gate = nil;
       GSIMapNode	node;
 
       target = aProxy->_handle;
-      node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)target);
+      node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)(id)(NSInteger)target);
 
       /*
        * Only remove if the proxy for the target is the same as the
@@ -3848,7 +3848,7 @@ static NSLock	*cached_proxies_gate = nil;
       if (node != 0 && node->value.obj == aProxy)
 	{
 	  count = aProxy->_counter;
-	  GSIMapRemoveKey(IremoteProxies, (GSIMapKey)target);
+	  GSIMapRemoveKey(IremoteProxies, (GSIMapKey)(id)(NSInteger)target);
 	  /*
 	   * Tell the remote application that we have removed our proxy and
 	   * it can release it's local object.
@@ -3889,7 +3889,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSParameterAssert(aProxy == nil || aTarget == aProxy->_handle);
 
   M_LOCK(IrefGate);
-  node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)aTarget);
+  node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)(id)(NSInteger)aTarget);
   if (node == 0)
     {
       p = nil;
@@ -3902,7 +3902,7 @@ static NSLock	*cached_proxies_gate = nil;
   if (p == nil && aProxy != nil)
     {
       p = aProxy;
-      GSIMapAddPair(IremoteProxies, (GSIMapKey)aTarget, (GSIMapVal)((id)p));
+      GSIMapAddPair(IremoteProxies, (GSIMapKey)(id)(NSInteger)aTarget, (GSIMapVal)((id)p));
     }
   /*
    * Whether this is a new proxy or an existing proxy, this method is
@@ -3925,7 +3925,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   /* Don't assert (IisValid); */
   M_LOCK(IrefGate);
-  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)anObj);
+  node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)(id)(NSInteger)anObj);
   if (node == 0)
     {
       ret = nil;
@@ -3945,7 +3945,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   /* Don't assert (IisValid); */
   M_LOCK(IrefGate);
-  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)target);
+  node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)(id)(NSInteger)target);
   if (node == 0)
     {
       ret = nil;
