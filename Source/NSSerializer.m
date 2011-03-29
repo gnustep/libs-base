@@ -212,7 +212,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 		    encoding: NSASCIIStringEncoding];
 	  if (info->shouldUnique)
 	    GSIMapAddPair(&info->map,
-		(GSIMapKey)object, (GSIMapVal)info->count++);
+	      (GSIMapKey)object, (GSIMapVal)(NSUInteger)info->count++);
 	}
       else
 	{
@@ -256,7 +256,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  [object getCharacters: (*info->datImp)(info->data, datSel) + dlen];
 	  if (info->shouldUnique)
 	    GSIMapAddPair(&info->map,
-		(GSIMapKey)object, (GSIMapVal)info->count++);
+	      (GSIMapKey)object, (GSIMapVal)(NSUInteger)info->count++);
 	}
       else
 	{

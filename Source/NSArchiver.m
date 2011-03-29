@@ -378,7 +378,7 @@ static Class	NSMutableDataMallocClass;
 		if (node == 0)
 		  {
 		    GSIMapAddPair(_ptrMap,
-			(GSIMapKey)*(void**)buf, (GSIMapVal)0);
+		      (GSIMapKey)*(void**)buf, (GSIMapVal)(NSUInteger)0);
 		    type++;
 		    buf = *(char**)buf;
 		    (*_eValImp)(self, eValSel, type, buf);
@@ -392,7 +392,7 @@ static Class	NSMutableDataMallocClass;
 		if (node == 0)
 		  {
 		    node = GSIMapAddPair(_ptrMap,
-			(GSIMapKey)*(void**)buf, (GSIMapVal)++_xRefP);
+		      (GSIMapKey)*(void**)buf, (GSIMapVal)(NSUInteger)++_xRefP);
 		  }
 		else
 		  {
@@ -458,7 +458,7 @@ static Class	NSMutableDataMallocClass;
 				format: @"negative class version"];
 		  }
 		node = GSIMapAddPair(_clsMap,
-			(GSIMapKey)(void*)c, (GSIMapVal)++_xRefC);
+		  (GSIMapKey)(void*)c, (GSIMapVal)(NSUInteger)++_xRefC);
 		/*
 		 *	Encode tag and crossref number.
 		 */
@@ -508,7 +508,7 @@ static Class	NSMutableDataMallocClass;
 	    if (node == 0)
 	      {
 		node = GSIMapAddPair(_ptrMap,
-		  (GSIMapKey)(void*)s, (GSIMapVal)++_xRefP);
+		  (GSIMapKey)(void*)s, (GSIMapVal)(NSUInteger)++_xRefP);
 		(*_xRefImp)(_dst, xRefSel, _GSC_SEL, node->value.nsu);
 		/*
 		 *	Encode selector.
@@ -539,7 +539,7 @@ static Class	NSMutableDataMallocClass;
 	    if (node == 0)
 	      {
 		node = GSIMapAddPair(_ptrMap,
-			(GSIMapKey)*(char**)buf, (GSIMapVal)++_xRefP);
+		  (GSIMapKey)*(char**)buf, (GSIMapVal)(NSUInteger)++_xRefP);
 		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR, node->value.nsu);
 		(*_serImp)(_dst, serSel, buf, type, nil);
 	      }
@@ -696,7 +696,7 @@ static Class	NSMutableDataMallocClass;
 	  return;
 	}
 
-      GSIMapAddPair(_cIdMap, (GSIMapKey)anObject, (GSIMapVal)0);
+      GSIMapAddPair(_cIdMap, (GSIMapKey)anObject, (GSIMapVal)(NSUInteger)0);
     }
   else if (anObject == nil)
     {
@@ -788,7 +788,8 @@ static Class	NSMutableDataMallocClass;
 	       *	and add it to the map of unconditionay encoded ones.
 	       */
 	      GSIMapRemoveKey(_cIdMap, (GSIMapKey)anObject);
-	      GSIMapAddPair(_uIdMap, (GSIMapKey)anObject, (GSIMapVal)0);
+	      GSIMapAddPair(_uIdMap,
+		(GSIMapKey)anObject, (GSIMapVal)(NSUInteger)0);
 	      [anObject encodeWithCoder: self];
 	    }
 	  return;
@@ -802,7 +803,7 @@ static Class	NSMutableDataMallocClass;
 	  if (node == 0)
 	    {
 	      node = GSIMapAddPair(_uIdMap,
-			(GSIMapKey)anObject, (GSIMapVal)++_xRefO);
+		(GSIMapKey)anObject, (GSIMapVal)(NSUInteger)++_xRefO);
 	    }
 	  else
 	    {

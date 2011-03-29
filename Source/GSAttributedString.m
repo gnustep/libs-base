@@ -144,7 +144,7 @@ cacheAttributes(NSDictionary *attrs)
        * in an immutable dictionary that can safely be cached.
        */
       attrs = [[NSDictionary alloc] initWithDictionary: attrs copyItems: NO];
-      GSIMapAddPair(&attrMap, (GSIMapKey)((id)attrs), (GSIMapVal)(unsigned)1);
+      GSIMapAddPair(&attrMap, (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
     }
   else
     {
