@@ -39,11 +39,11 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS | GSUNION_INT
-#define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_INT
+#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS | GSUNION_NSINT
+#define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_NSINT
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
-#define	GSI_MAP_HASH(M, X)	((X).uint)
+#define	GSI_MAP_HASH(M, X)	((X).nsu)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #undef	GSI_MAP_NOCLEAN
 #if	GS_WITH_GC
@@ -258,7 +258,7 @@ static NSDictionary *makeReference(unsigned ref)
 		  /*
 		   * This object has already been conditionally encoded.
 		   */
-		  ref = node->value.uint;
+		  ref = node->value.nsu;
 		}
 	    }
 	  else
@@ -296,7 +296,7 @@ static NSDictionary *makeReference(unsigned ref)
 		  /*
 		   * Conditionally encoded ... replace with actual value.
 		   */
-		  ref = node->value.uint;
+		  ref = node->value.nsu;
 		  GSIMapAddPair(_uIdMap, (GSIMapKey)anObject, (GSIMapVal)ref);
 		  GSIMapRemoveKey(_cIdMap, (GSIMapKey)anObject);
 		  [_obj replaceObjectAtIndex: ref withObject: objectInfo];
@@ -306,7 +306,7 @@ static NSDictionary *makeReference(unsigned ref)
 	}
       else
 	{
-	  ref = node->value.uint;
+	  ref = node->value.nsu;
 	}
     }
 
@@ -409,7 +409,7 @@ static NSDictionary *makeReference(unsigned ref)
 	}
       else
 	{
-	  ref = node->value.uint;
+	  ref = node->value.nsu;
 	}
 
       /*

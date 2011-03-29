@@ -1,3 +1,22 @@
+2011-03-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	* Headers/GNUstepBase/GSUnion.h:
+	* Source/GSAttributedString.m:
+	* Source/NSArchiver.m:
+	* Source/NSConnection.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSPortCoder.m:
+	* Source/NSSerializer.m:
+	Fixes for problem spotted by David Chisnall ... on a 64bit system where
+	the size of an integer is not the same as the size of a pointer the
+	union holding map keys and values will have undefined content if we
+	assign an integer to it and then use it as a pointer!
+	So, we change to use the .nsu accessor for a pointer sized integer
+	throughout, and we remove all the odd sized union members unless
+	GSUNION_DEPRECATED is defined.
+
 2011-03-28 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSPathUtilities.m:
