@@ -1,5 +1,15 @@
 2011-03-29  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/GNUstepBase/GSUnion.h: Remove problematic types.
+	* Source/unix/Makefile.preamble: Remove unused include directory
+	* Source/win32/Makefile.preamble: ditto
+	* Source/ObjectiveC2/Makefile.preamble: ditto
+	* Source/Additions/Makefile.preamble: ditto
+	* Source/Additions/Makefile.postamble: link to extra headers for apple
+	so we can build the additons library on a pure apple system again.
+
+2011-03-29  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/GNUstepBase/GSIMap.h:
 	* Headers/GNUstepBase/GSUnion.h:
 	* Source/GSAttributedString.m:
@@ -14,8 +24,7 @@
 	union holding map keys and values will have undefined content if we
 	assign an integer to it and then use it as a pointer!
 	So, we change to use the .nsu accessor for a pointer sized integer
-	throughout, and we remove all the odd sized union members unless
-	GSUNION_DEPRECATED is defined.
+	throughout, and we remove all the odd sized union members.
 
 2011-03-28 Riccardo Mottola <rm@gnu.org>
 

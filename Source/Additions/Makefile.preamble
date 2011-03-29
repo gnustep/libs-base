@@ -56,9 +56,10 @@ ADDITIONAL_CFLAGS =
 
 # Additional include directories the compiler should search
 # FIXME - the -I../ is for GSPrivate.h
-ADDITIONAL_INCLUDE_DIRS = -I../../Headers/Additions \
-     -I../$(GNUSTEP_TARGET_DIR) -I../
+ADDITIONAL_INCLUDE_DIRS = -I../$(GNUSTEP_TARGET_DIR) -I../
 
+# We include the main base Headers if we are building using the base library
+# (but not if we are using the Apple foundation).
 ifeq ($(FOUNDATION_LIB),gnu)
   ADDITIONAL_INCLUDE_DIRS += -I../../Headers
 endif
