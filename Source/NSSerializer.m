@@ -54,7 +54,7 @@
  *	Setup for inline operation of string map tables.
  */
 #define	GSI_MAP_KTYPES	GSUNION_OBJ
-#define	GSI_MAP_VTYPES	GSUNION_INT
+#define	GSI_MAP_VTYPES	GSUNION_NSINT
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
@@ -217,7 +217,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
       else
 	{
 	  (*info->appImp)(info->data, appSel, &st_xref, 1);
-	  (*info->serImp)(info->data, serSel, node->value.uint);
+	  (*info->serImp)(info->data, serSel, node->value.nsu);
 	}
     }
   else if (GSObjCIsKindOf(c, StringClass))
@@ -261,7 +261,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
       else
 	{
 	  (*info->appImp)(info->data, appSel, &st_xref, 1);
-	  (*info->serImp)(info->data, serSel, node->value.uint);
+	  (*info->serImp)(info->data, serSel, node->value.nsu);
 	}
     }
   else if (GSObjCIsKindOf(c, ArrayClass))

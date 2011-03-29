@@ -207,7 +207,7 @@ static void obsFree(Observation *o);
 #define GSI_MAP_RETAIN_VAL(M, X)
 #define GSI_MAP_RELEASE_VAL(M, X)
 
-#define GSI_MAP_KTYPES GSUNION_OBJ|GSUNION_INT
+#define GSI_MAP_KTYPES GSUNION_OBJ|GSUNION_NSINT
 #define GSI_MAP_VTYPES GSUNION_PTR
 #define GSI_MAP_VEXTRA Observation*
 #define	GSI_MAP_EXTRA	void*

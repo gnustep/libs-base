@@ -31,13 +31,13 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#define	GSI_MAP_KTYPES	GSUNION_INT | GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS
-#define	GSI_MAP_VTYPES	GSUNION_INT | GSUNION_PTR | GSUNION_OBJ
+#define	GSI_MAP_KTYPES	GSUNION_NSINT | GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS
+#define	GSI_MAP_VTYPES	GSUNION_NSINT | GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
-#define	GSI_MAP_HASH(M, X)	((X).uint)
+#define	GSI_MAP_HASH(M, X)	((X).nsu)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
 #if	GS_WITH_GC
@@ -384,7 +384,7 @@ static Class	NSMutableDataMallocClass;
 		    (*_eValImp)(self, eValSel, type, buf);
 		  }
 	      }
-	    else if (node == 0 || node->value.uint == 0)
+	    else if (node == 0 || node->value.nsu == 0)
 	      {
 		/*
 		 *	Second pass, unwritten pointer - write it.
@@ -396,9 +396,9 @@ static Class	NSMutableDataMallocClass;
 		  }
 		else
 		  {
-		    node->value.uint = ++_xRefP;
+		    node->value.nsu = ++_xRefP;
 		  }
-		(*_xRefImp)(_dst, xRefSel, _GSC_PTR, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_PTR, node->value.nsu);
 		type++;
 		buf = *(char**)buf;
 		(*_eValImp)(self, eValSel, type, buf);
@@ -409,7 +409,7 @@ static Class	NSMutableDataMallocClass;
 		 *	Second pass, write a cross-reference number.
 		 */
 		(*_xRefImp)(_dst, xRefSel, _GSC_PTR|_GSC_XREF,
-		  node->value.uint);
+		  node->value.nsu);
 	      }
 	  }
 	return;
@@ -443,7 +443,7 @@ static Class	NSMutableDataMallocClass;
 	    if (node != 0)
 	      {
 		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS | _GSC_XREF,
-		  node->value.uint);
+		  node->value.nsu);
 		return;
 	      }
 	    while (done == NO)
@@ -462,7 +462,7 @@ static Class	NSMutableDataMallocClass;
 		/*
 		 *	Encode tag and crossref number.
 		 */
-		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS, node->value.nsu);
 		/*
 		 *	Encode class, and version.
 		 */
@@ -509,7 +509,7 @@ static Class	NSMutableDataMallocClass;
 	      {
 		node = GSIMapAddPair(_ptrMap,
 		  (GSIMapKey)(void*)s, (GSIMapVal)++_xRefP);
-		(*_xRefImp)(_dst, xRefSel, _GSC_SEL, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_SEL, node->value.nsu);
 		/*
 		 *	Encode selector.
 		 */
@@ -518,7 +518,7 @@ static Class	NSMutableDataMallocClass;
 	    else
 	      {
 		(*_xRefImp)(_dst, xRefSel, _GSC_SEL|_GSC_XREF,
-		  node->value.uint);
+		  node->value.nsu);
 	      }
 	  }
 	return;
@@ -540,13 +540,13 @@ static Class	NSMutableDataMallocClass;
 	      {
 		node = GSIMapAddPair(_ptrMap,
 			(GSIMapKey)*(char**)buf, (GSIMapVal)++_xRefP);
-		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR, node->value.nsu);
 		(*_serImp)(_dst, serSel, buf, type, nil);
 	      }
 	    else
 	      {
 		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR|_GSC_XREF,
-		  node->value.uint);
+		  node->value.nsu);
 	      }
 	  }
 	return;
@@ -794,7 +794,7 @@ static Class	NSMutableDataMallocClass;
 	  return;
 	}
 
-      if (node == 0 || node->value.uint == 0)
+      if (node == 0 || node->value.nsu == 0)
 	{
 	  Class	cls;
 	  id	obj;
@@ -806,7 +806,7 @@ static Class	NSMutableDataMallocClass;
 	    }
 	  else
 	    {
-	      node->value.uint = ++_xRefO;
+	      node->value.nsu = ++_xRefO;
 	    }
 
 	  obj = [anObject replacementObjectForArchiver: self];
@@ -816,7 +816,7 @@ static Class	NSMutableDataMallocClass;
 	       * If the object we have been given is actually a class,
 	       * we encode it as a special case.
 	       */
-	      (*_xRefImp)(_dst, xRefSel, _GSC_CID, node->value.uint);
+	      (*_xRefImp)(_dst, xRefSel, _GSC_CID, node->value.nsu);
 	      (*_eValImp)(self, eValSel, @encode(Class), &obj);
 	    }
 	  else
@@ -833,14 +833,14 @@ static Class	NSMutableDataMallocClass;
 		      cls = (Class)n->value.ptr;
 		    }
 		}
-	      (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
+	      (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.nsu);
 	      (*_eValImp)(self, eValSel, @encode(Class), &cls);
 	      [obj encodeWithCoder: self];
 	    }
 	}
       else
 	{
-	  (*_xRefImp)(_dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.uint);
+	  (*_xRefImp)(_dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.nsu);
 	}
     }
 }

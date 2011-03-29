@@ -70,7 +70,7 @@ typedef uintptr_t NSUInteger;
 #if	defined(GSUNION) && defined(GSUNION_TYPES)
 
 typedef	union {
-  NSUInteger    addr;
+  NSUInteger    addr;	/* Always present */
 #if	((GSUNION_TYPES) & GSUNION_OBJ)
   id		obj;
   NSObject	*nso;
@@ -81,6 +81,20 @@ typedef	union {
 #if	((GSUNION_TYPES) & GSUNION_SEL)
   SEL		sel;
 #endif
+#if	((GSUNION_TYPES) & GSUNION_NSINT)
+  NSInteger 	nsi;
+  NSUInteger	nsu;
+#endif
+#if	((GSUNION_TYPES) & GSUNION_PTR)
+  void		*ptr;
+  const void	*cptr;
+  char		*str;
+  const char	*cstr;
+#endif
+
+/* The next group are deprecated ... define GSUNION_DEPRECATED to use them
+ */
+#if	defined(GSUNION_DEPRECATED)
 #if	((GSUNION_TYPES) & GSUNION_CHAR)
   char		schr;
   unsigned char	uchr;
@@ -96,16 +110,6 @@ typedef	union {
 #if	((GSUNION_TYPES) & GSUNION_LONG)
   long 		slng;
   unsigned long	ulng;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_NSINT)
-  NSInteger 	nsi;
-  NSUInteger	nsu;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_PTR)
-  void		*ptr;
-  const void	*cptr;
-  char		*str;
-  const char	*cstr;
 #endif
 #if	((GSUNION_TYPES) & GSUNION_8B)
   int8_t	s8;
@@ -123,10 +127,17 @@ typedef	union {
   int64_t	s64;
   uint64_t	u64;
 #endif
+#endif
+
+/* Warning ... if this value is declared in the union, and its type is not
+ * the same size as a pointer, then care must be taken in case of confusion
+ * caused when an assignment to a variable using one of the union's types
+ * causes part of the variable to ebe left with undefined content from the
+ * point of view of another of the union's types.
+ */
 #if	defined(GSUNION_EXTRA)
   GSUNION_EXTRA	ext;
 #endif
-  BOOL		bl;	/* Guaranteed present */
 } GSUNION;
 
 #endif
