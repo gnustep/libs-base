@@ -246,7 +246,8 @@ static NSDictionary *makeReference(unsigned ref)
 	      if (node == 0)
 		{
 		  ref = [_obj count];
-		  GSIMapAddPair(_cIdMap, (GSIMapKey)anObject, (GSIMapVal)ref);
+		  GSIMapAddPair(_cIdMap,
+		    (GSIMapKey)anObject, (GSIMapVal)(NSUInteger)ref);
 		  /*
 		   * Use the null object as a placeholder for a conditionally
 		   * encoded object.
@@ -288,7 +289,8 @@ static NSDictionary *makeReference(unsigned ref)
 		   * Not encoded ... create dictionary for it.
 		   */
 		  ref = [_obj count];
-		  GSIMapAddPair(_uIdMap, (GSIMapKey)anObject, (GSIMapVal)ref);
+		  GSIMapAddPair(_uIdMap,
+		    (GSIMapKey)anObject, (GSIMapVal)(NSUInteger)ref);
 		  [_obj addObject: objectInfo];
 		}
 	      else
@@ -297,7 +299,8 @@ static NSDictionary *makeReference(unsigned ref)
 		   * Conditionally encoded ... replace with actual value.
 		   */
 		  ref = node->value.nsu;
-		  GSIMapAddPair(_uIdMap, (GSIMapKey)anObject, (GSIMapVal)ref);
+		  GSIMapAddPair(_uIdMap,
+		    (GSIMapKey)anObject, (GSIMapVal)(NSUInteger)ref);
 		  GSIMapRemoveKey(_cIdMap, (GSIMapKey)anObject);
 		  [_obj replaceObjectAtIndex: ref withObject: objectInfo];
 		}
@@ -379,7 +382,8 @@ static NSDictionary *makeReference(unsigned ref)
 	  NSMutableArray	*hierarchy;
 
 	  ref = [_obj count];
-	  GSIMapAddPair(_uIdMap, (GSIMapKey)c, (GSIMapVal)ref);
+	  GSIMapAddPair(_uIdMap,
+	    (GSIMapKey)c, (GSIMapVal)(NSUInteger)ref);
 	  cDict = [[NSMutableDictionary alloc] initWithCapacity: 2];
 
 	  /*
