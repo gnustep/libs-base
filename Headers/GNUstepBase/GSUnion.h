@@ -42,15 +42,7 @@ typedef uintptr_t NSUInteger;
 #define	GSUNION_OBJ	0x0001
 #define	GSUNION_CLS	0x0002
 #define	GSUNION_SEL	0x0004
-#define	GSUNION_CHAR	0x0008
-#define	GSUNION_SHORT	0x0010
-#define	GSUNION_INT	0x0020
-#define	GSUNION_LONG	0x0040
 #define	GSUNION_PTR	0x0080
-#define	GSUNION_8B	0x0100
-#define	GSUNION_16B	0x0200
-#define	GSUNION_32B	0x0400
-#define	GSUNION_64B	0x0800
 #define	GSUNION_NSINT	0x1000
 
 #define	GSUNION_ALL	0x1fff
@@ -90,43 +82,6 @@ typedef	union {
   const void	*cptr;
   char		*str;
   const char	*cstr;
-#endif
-
-/* The next group are deprecated ... define GSUNION_DEPRECATED to use them
- */
-#if	defined(GSUNION_DEPRECATED)
-#if	((GSUNION_TYPES) & GSUNION_CHAR)
-  char		schr;
-  unsigned char	uchr;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_SHORT)
-  short		ssht;
-  unsigned short	usht;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_INT)
-  int		sint;
-  unsigned	uint;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_LONG)
-  long 		slng;
-  unsigned long	ulng;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_8B)
-  int8_t	s8;
-  uint8_t	u8;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_16B)
-  int16_t	s16;
-  uint16_t	u16;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_32B)
-  int32_t	s32;
-  uint32_t	u32;
-#endif
-#if	((GSUNION_TYPES) & GSUNION_64B)
-  int64_t	s64;
-  uint64_t	u64;
-#endif
 #endif
 
 /* Warning ... if this value is declared in the union, and its type is not
