@@ -1,3 +1,8 @@
+2011-03-31 Riccardo Mottola <rm@gnu.org>
+
+	* Source/ObjectiveC2/Makefile.preamble
+	Add directory of the local headers.
+
 2011-03-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/unicode/gsm0338.h:

@@ -56,7 +56,7 @@ ADDITIONAL_CFLAGS =
 
 # Additional include directories the compiler should search
 # FIXME - the -I../ is for GSPrivate.h
-ADDITIONAL_INCLUDE_DIRS = -I../$(GNUSTEP_TARGET_DIR) -I../
+ADDITIONAL_INCLUDE_DIRS = -I../$(GNUSTEP_TARGET_DIR) -I../ -I../../Headers
 
 # Additional LDFLAGS to pass to the linker
 ADDITIONAL_LDFLAGS = 
