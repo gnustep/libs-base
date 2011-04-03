@@ -1,5 +1,13 @@
 2011-04-03  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	Fix pointer ownership issue in callbacks in GC environment so we let
+	the garbage collector handle watchers rather than trying to free them
+	explicitly when we shouldn't.
+
+2011-04-03  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSObject.m: Fix problem with finalization of proxies and
 	remove obsolete runtime call to see if a class respons to selector.
 
