@@ -65,10 +65,6 @@
 #import "GSPrivate.h"
 
 
-#ifndef NeXT_RUNTIME
-extern BOOL __objc_responds_to(id, SEL);
-#endif
-
 /* When this is `YES', every call to release/autorelease, checks to
    make sure isn't being set up to release itself too many times.
    This does not need mutex protection. */
@@ -582,7 +578,8 @@ GSFinalize(void* object, void* data)
 static BOOL
 GSIsFinalizable(Class c)
 {
-  if (class_getMethodImplementation(c, finalize_sel) != finalize_imp)
+  if (class_getMethodImplementation(c, finalize_sel) != finalize_imp
+    && class_respondsToSelector(c, finalize_sel))
     return YES;
   return NO;
 }
@@ -1341,7 +1338,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
 	}
       return NO;
     }
-  return __objc_responds_to((id)&self, aSelector);
+  return class_respondsToSelector(self, aSelector) ? YES : NO;
 }
 
 /**
@@ -1914,7 +1911,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
       return NO;
     }
 
-  return __objc_responds_to(self, aSelector);
+  return class_respondsToSelector(object_getClass(self), aSelector) ? YES : NO;
 }
 
 /**
