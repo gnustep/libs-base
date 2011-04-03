@@ -379,10 +379,12 @@ notice and this notice are preserved.
 		This functionality may have been disabled if the base library
 		was configured/built with the
 		<code>--disable-environment-config-file</code> option.<br />
-		If it is operational, the environment variable overrides the
-		normal path to the gnustep config file used to determine the
-		locations of paths for the gnustep system (see later).<br />
-		This is provided to support the odd situation where you may
+		If it is operational (ie unless you've deliberately disabled
+		it), the environment variable overrides the normal path to
+		the gnustep config file used to determine the locations of
+		paths for the gnustep system (see later).<br />
+		This is provided to support situations such as when you
+		install into a sndbox during packaging, or where you may
 		want to simultaneously run applications using different sets
 		of resources but linked to a single copy of the base library,
 		or you want to use an alternative config file for some reason.

@@ -897,6 +897,7 @@ static void *nsthreadLauncher(void* thread)
 - (void) dealloc
 {
   [self invalidate];
+  DESTROY(performers);
   DESTROY(lock);
   DESTROY(loop);
   [super dealloc];
