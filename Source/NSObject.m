@@ -57,9 +57,12 @@
 #ifdef	HAVE_SYS_SIGNAL_H
 #include	<sys/signal.h>
 #endif
-#ifdef __FreeBSD__
+
+#if __GNUC__ >= 4
+#if defined(__FreeBSD__)
 #include <fenv.h>
 #endif
+#endif // __GNUC__
 
 #define	IN_NSOBJECT_M	1
 #import "GSPrivate.h"

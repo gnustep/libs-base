@@ -53,9 +53,10 @@
 #include <unistd.h>
 #endif
 #include <sys/types.h>
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <fcntl.h>
 #endif
+
 
 #ifdef HAVE_WINDOWS_H
 #  include <windows.h>
