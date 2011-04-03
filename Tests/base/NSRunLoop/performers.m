@@ -15,6 +15,7 @@ int main()
   NSDate *date;
   NSMutableString *str;
   NSFileHandle *fh = [NSFileHandle fileHandleWithStandardInput];
+  NSTimeInterval delay = 0.1;
 
   [fh retain];
   [fh readInBackgroundAndNotify];
@@ -30,7 +31,7 @@ int main()
 	argument: @"foo"
 	order: 0
 	modes: [NSArray arrayWithObject: NSDefaultRunLoopMode]];
-  date = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+  date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   PASS([str isEqual: @"foo"], 
        "-performSelector:target:argument:order:modes: works for one performer");
@@ -41,7 +42,7 @@ int main()
 	argument: @"foo"
 	order: 0
 	modes: [NSArray arrayWithObject: NSDefaultRunLoopMode]];
-  date = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+  date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   [run runUntilDate: date];
   PASS([str isEqual: @"foo"],
@@ -58,7 +59,7 @@ int main()
 	argument: @"foo"
 	order: 10
 	modes: [NSArray arrayWithObject: NSDefaultRunLoopMode]];
-  date = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+  date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   PASS([str isEqual: @"foobar"],
        "-performSelector:target:argument:order:modes: orders performers correctly");
@@ -82,7 +83,7 @@ int main()
   [run cancelPerformSelector: @selector(appendString:)
   	target: str
 	argument: @"bar"];
-  date = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+  date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   PASS([str isEqual: @"foozot"],
        "-cancelPerformSelector:target:argument: works");
@@ -99,7 +100,7 @@ int main()
 	order: 11
 	modes: [NSArray arrayWithObject: NSDefaultRunLoopMode]];
   [run cancelPerformSelectorsWithTarget: str];
-  date = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+  date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   PASS([str isEqualToString: @""], "-cancelPerformSelectorsWithTarget: works %s",[str cString]); 
 

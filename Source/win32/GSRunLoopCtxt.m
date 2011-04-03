@@ -45,7 +45,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   0
 };
 #else
-#define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks 
+#define	WatcherMapValueCallBacks	NSNonOwnedPointerMapValueCallBacks 
 #endif
 
 @implementation	GSRunLoopCtxt
