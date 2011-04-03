@@ -1,3 +1,7 @@
+2011-04-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: fix leak spotted by Fred.
+
 2011-04-03  Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 
 	* Source/GNUmakefile:
