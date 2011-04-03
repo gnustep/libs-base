@@ -1,3 +1,10 @@
+2011-04-03  Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+	* Source/GNUmakefile:
+	* Source/NSObject.m:
+	* Source/NSTask.m:
+	Tweaks for OpenBSD build
+	
 2011-04-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/unix/GSRunLoopCtxt.m:

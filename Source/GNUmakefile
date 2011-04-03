@@ -100,7 +100,7 @@ GSLocale.m \
 preface.m
 
 ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
-  OBJC_LIBS += -lpthread
+  OBJC_LIBS += -pthread
 endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
