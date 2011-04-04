@@ -3,6 +3,7 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSObject.h>
 #import <Foundation/NSFileHandle.h>
+#import <Foundation/NSNotification.h>
 #import <Foundation/NSThread.h>
 #import <Foundation/NSTimer.h>
 #import <Foundation/NSRunLoop.h>
@@ -21,11 +22,17 @@
   char  moreForTimer;
   char  performed;
 }
+- (void) notified: (NSNotification*)n;
 - (void) timeout: (NSTimer*)t;
 - (void) thread1: (id)o;
 @end
 
 @implementation ThreadTest
+
+- (void) notified: (NSNotification*)n
+{
+  NSLog(@"Notified: %@", n);
+}
 
 - (void) timeout: (NSTimer*)t
 {
@@ -34,12 +41,14 @@
 - (void) thread1: (id)o
 {
   NSAutoreleasePool     *pool = [NSAutoreleasePool new];
+  NSNotificationCenter	*nc;
   NSRunLoop             *loop;
   NSFileHandle          *fh;
   NSTimer               *timer;
   NSDate                *end;
   NSDate                *start;
  
+  nc = [NSNotificationCenter defaultCenter];
   loop = [NSRunLoop currentRunLoop];
 
   end = [loop limitDateForMode: NSDefaultRunLoopMode];
@@ -100,6 +109,8 @@
   [timer invalidate];
 
   fh = [NSFileHandle fileHandleWithStandardInput];
+  [nc addObserver: self selector:@selector(notified:) 
+  	     name: nil object:fh];
   [fh readInBackgroundAndNotify];
   end = [loop limitDateForMode: NSDefaultRunLoopMode];
   if ([end isEqual: [NSDate distantFuture]] == YES)
@@ -117,7 +128,7 @@
     blockForInput = 'N';
   else
     blockForInput = 'Y';
-
+  [nc removeObserver: self];
   [pool release];
 }
 
