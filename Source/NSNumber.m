@@ -491,7 +491,7 @@ if (aValue >= -1 && aValue <= 12)\
   if (self != NSNumberClass)
     {
       return [[[self alloc] initWithBytes: (const void *)&aValue
-        objCType: @encode(char)] autorelease];
+        objCType: @encode(signed char)] autorelease];
     }
   return [self numberWithInt: aValue];
 }
@@ -679,7 +679,7 @@ if (aValue >= -1 && aValue <= 12)\
   switch (type[0])
     {
       case 'c':
-	return [self initWithInteger: *(char *) value];
+	return [self initWithInteger: *(signed char *) value];
       case 'C':
 	return [self initWithInteger: *(unsigned char *) value];
       case 's':
