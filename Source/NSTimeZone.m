@@ -2385,8 +2385,10 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
 
 - (id) initWithName: (NSString*)name data: (NSData*)data
 {
-  HKEY     regDirKey;
-  BOOL     isNT = NO, regFound=NO;
+  HKEY	regDirKey;
+  BOOL	isNT = NO;
+  BOOL	regFound=NO;
+  BOOL	tzFound = NO;
 
   /* Open the key in the local machine hive where
    * the time zone data is stored. */
@@ -2396,8 +2398,8 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
     KEY_READ,
     &regDirKey))
     {
-      isNT=YES;
-      regFound=YES;
+      isNT = YES;
+      regFound = YES;
     }
   else
     {
@@ -2407,7 +2409,7 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
           KEY_READ,
           &regDirKey))
         {
-          regFound=YES;
+          regFound = YES;
         }
     }
 
@@ -2420,7 +2422,7 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
       DWORD    cbName;                   // size of name string 
       wchar_t  achClass[MAX_PATH] = L""; // buffer for class name 
       DWORD    cchClassName = MAX_PATH;  // size of class string 
-      DWORD    cSubKeys=0;               // number of subkeys 
+      DWORD    cSubKeys = 0;             // number of subkeys 
       DWORD    cbMaxSubKey;              // longest subkey size 
       DWORD    cchMaxClass;              // longest class string 
       DWORD    cValues;                  // number of values for key 
@@ -2429,7 +2431,6 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
       DWORD    cbSecurityDescriptor;     // size of security descriptor 
       FILETIME ftLastWriteTime;          // last write time 
       DWORD     i, retCode;
-      BOOL	tzFound = NO;
 		
       /* Get the class name and the value count. */
       retCode = RegQueryInfoKeyW(
@@ -2572,7 +2573,10 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
         }
       RegCloseKey(regDirKey);
     }
-    
+  if (NO == tzFound)
+    {
+      DESTROY(self);
+    }
   return self;
 }
 

@@ -1,5 +1,10 @@
 2011-04-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSTimeZone.m: on mingw release self and return nil if
+	initialiser can't find named timezone.
+
+2011-04-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSBundle.m: ([+initialize]) change to use 'right' path
 	handling so that our core paths are established correctly even if
 	an app has set the wrong path handling mode for the currenty platform.
