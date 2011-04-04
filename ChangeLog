@@ -1,3 +1,12 @@
+2011-04-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: ([+initialize]) change to use 'right' path
+	handling so that our core paths are established correctly even if
+	an app has set the wrong path handling mode for the currenty platform.
+	* Tests\base\NSURL\basic.m:
+	* Tests\base\NSString\test02.m:
+	Fix path portability bugs in tests.
+
 2011-04-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: fix leak spotted by Fred.

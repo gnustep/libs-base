@@ -247,6 +247,10 @@ int main()
   PASS_EQUAL([@"/home/.//././user" stringByStandardizingPath], @"/home/user",
    "/home/.//././user stringByStandardizingPath == /home/user");
   
+#if	defined(GNUSTEP_BASE_LIBRARY)
+  GSPathHandling("unix");
+#endif
+
   PASS_EQUAL([@"/home/../nicola" stringByStandardizingPath], @"/nicola",
    "/home/../nicola stringByStandardizingPath == /nicola");
 
@@ -283,6 +287,7 @@ int main()
   [fm removeFileAtPath: tmpsrc handler: nil];
   [fm createSymbolicLinkAtPath: tmpsrc pathContent: tmpdst];
 
+#if	!defined(__MINGW32__)
   PASS_EQUAL([tmpsrc stringByStandardizingPath], tmpsrc, 
     "foo->bar symlink not expanded by stringByStandardizingPath")
   PASS_EQUAL([tmpsrc stringByResolvingSymlinksInPath], tmpdst, 
@@ -291,6 +296,8 @@ int main()
   [fm changeCurrentDirectoryPath: tmpdir];
   PASS_EQUAL([@"foo" stringByResolvingSymlinksInPath], tmpdst, 
     "foo->bar relative symlink expanded by stringByResolvingSymlinksInPath")
+#endif
+
   PASS(NO == [[@"~" stringByResolvingSymlinksInPath] isEqual: @"~"], 
     "tilde is expanded by stringByResolvingSymlinksInPath")
   [fm changeCurrentDirectoryPath: cwd];
@@ -302,6 +309,11 @@ int main()
    "/.. stringByStandardizingPath == /");
   PASS_EQUAL([@"/." stringByStandardizingPath], @"/.",
    "/. stringByStandardizingPath == /. (OSX special case)");
+
+#if	defined(GNUSTEP_BASE_LIBRARY)
+  GSPathHandling("gnustep");
+#endif
+
   
   result = [NSArray arrayWithObjects: @"nicola",@"core",nil];
   result = [@"home" stringsByAppendingPaths:result];

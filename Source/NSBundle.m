@@ -845,9 +845,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   if (self == [NSBundle class])
     {
-      NSDictionary *env;
-      NSString	   *str;
+      extern const char	*GSPathHandling(const char *);
+      const char	*mode;
+      NSDictionary	*env;
+      NSString		*str;
 
+      /* Ensure we do 'right' path handling while initializing core paths.
+       */
+      mode = GSPathHandling("right");
       _emptyTable = RETAIN([NSDictionary dictionary]);
 
       /* Initialise manager here so it's thread-safe.
@@ -935,6 +940,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       objc_close_main_module(handle);
       _loadingBundle = nil;
 #endif
+      GSPathHandling(mode);
     }
 }
 
