@@ -107,7 +107,7 @@ int main()
     "NSDecimalNumber doubleValue works")
   PASS(YES == [val1 boolValue],
     "NSDecimalNumber boolValue works")
-  PASS((char)200 == [val1 charValue],
+  PASS((signed char)200 == [val1 charValue],
     "NSDecimalNumber charValue works")
   PASS(200 == [val1 intValue],
     "NSDecimalNumber intValue works")
