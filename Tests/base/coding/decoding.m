@@ -133,8 +133,9 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 	{
 	  uint8_t	tmp = p[0];
 
-	  p[0] = *++p;
-	  *p++ = tmp;
+	  p[0] = p[1];
+	  p[1] = tmp;
+	  p += 2;
 	}
       return m;
     }
