@@ -1,3 +1,8 @@
+2011-04-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Attempt to fixup C++ constructor/destructor
+	handling to work for all setups.
+
 2011-04-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: on mingw release self and return nil if
