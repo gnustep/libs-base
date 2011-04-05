@@ -87,10 +87,10 @@ static IMP autorelease_imp;
 #include	<gc/gc.h>
 #include	<gc/gc_typed.h>
 
-static SEL finalize_sel;
-static IMP finalize_imp;
 #endif
 
+static SEL finalize_sel;
+static IMP finalize_imp;
 static Class	NSConstantStringClass;
 
 @class	NSDataMalloc;
@@ -554,6 +554,41 @@ NSIncrementExtraRefCount(id anObject)
 #define	AREM(c, o) 
 #endif
 
+static SEL cxx_construct, cxx_destruct;
+
+/**
+ * Calls the C++ constructors for this object, starting with the ones declared
+ * in aClass.  The compiler generates two methods on Objective-C++ classes that
+ * static instances of C++ classes as ivars.  These are -.cxx_construct and
+ * -.cxx_destruct.  The -.cxx_construct methods must be called in order from
+ *  the root class to all subclasses, to ensure that subclass ivars are
+ *  initialised after superclass ones.  This must be done in reverse for
+ *  destruction.  
+ *
+ *  This function first calls itself recursively on the superclass, to get the
+ *  IMP for the constructor function in the superclass.  It then compares the
+ *  construct method for this class with the one that's already been called,
+ *  and calls it if it's new.
+ */
+static IMP
+callCXXConstructors(Class aClass, id anObject)
+{
+  IMP constructor = 0;
+
+  if (class_respondsToSelector(aClass, cxx_construct))
+    {
+      IMP calledConstructor =
+        callCXXConstructors(class_getSuperclass(aClass), anObject);
+      constructor = class_getMethodImplementation(aClass, cxx_construct);
+      if (calledConstructor != constructor)
+        {
+          constructor(anObject, cxx_construct);
+        }
+    }
+  return constructor;
+}
+
+
 /*
  *	Now do conditional compilation of memory allocation functions
  *	depending on what information (if any) we are storing before
@@ -619,7 +654,26 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
   if (new != nil)
     {
       object_setClass(new, aClass);
-      if (GSIsFinalizable(aClass))
+
+      /* Don't bother doing this in a thread-safe way, because
+       * the cost of locking will be a lot more than the cost
+       * of doing the same call in two threads.
+       * The returned selector will persist and the runtime will
+       * ensure that both calls return the same selector, so we
+       * don't need to bother doing it ourselves.
+       */
+      if (0 == cxx_construct)
+	{
+	  cxx_construct = sel_registerName(".cxx_construct");
+	  cxx_destruct = sel_registerName(".cxx_destruct");
+	}
+      callCXXConstructors(aClass, new);
+
+      /* We only need to finalize this object if it implements its a
+       * -finalize method or has C++ destructors.
+       */
+      if (GSIsFinalizable(aClass)
+        || class_respondsToSelector(destructorClass, cxx_destruct))
 	{
 	  /* We only do allocation counting for objects that can be
 	   * finalised - for other objects we have no way of decrementing
@@ -648,39 +702,6 @@ GSObjCZone(NSObject *object)
   return ((obj)object)[-1].zone;
 }
 
-static SEL cxx_construct, cxx_destruct;
-
-/**
- * Calls the C++ constructors for this object, starting with the ones declared
- * in aClass.  The compiler generates two methods on Objective-C++ classes that
- * static instances of C++ classes as ivars.  These are -.cxx_construct and
- * -.cxx_destruct.  The -.cxx_construct methods must be called in order from
- *  the root class to all subclasses, to ensure that subclass ivars are
- *  initialised after superclass ones.  This must be done in reverse for
- *  destruction.  
- *
- *  This function first calls itself recursively on the superclass, to get the
- *  IMP for the constructor function in the superclass.  It then compares the
- *  construct method for this class with the one that's already been called,
- *  and calls it if it's new.
- */
-static IMP callCXXConstructors(Class aClass, id anObject)
-{
-  IMP constructor = 0;
-
-  if (class_respondsToSelector(aClass, cxx_construct))
-    {
-      IMP calledConstructor =
-        callCXXConstructors(class_getSuperclass(aClass), anObject);
-      constructor = class_getMethodImplementation(aClass, cxx_construct);
-      if (calledConstructor != constructor)
-        {
-          constructor(anObject, cxx_construct);
-        }
-    }
-  return constructor;
-}
-
 inline id
 NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
@@ -702,17 +723,20 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
       object_setClass(new, aClass);
       AADD(aClass, new);
     }
-  // Don't bother doing this in a thread-safe way, because the cost of locking
-  // will be a lot more than the cost of doing the same call in two threads.
-  // The returned selector will persist and the runtime will ensure that both
-  // calls return the same selector, so we don't need to bother doing it
-  // ourselves.
+
+  /* Don't bother doing this in a thread-safe way, because the cost of locking
+   * will be a lot more than the cost of doing the same call in two threads.
+   * The returned selector will persist and the runtime will ensure that both
+   * calls return the same selector, so we don't need to bother doing it
+   * ourselves.
+   */
   if (0 == cxx_construct)
     {
       cxx_construct = sel_registerName(".cxx_construct");
       cxx_destruct = sel_registerName(".cxx_destruct");
     }
   callCXXConstructors(aClass, new);
+
   return new;
 }
 
@@ -720,32 +744,17 @@ inline void
 NSDeallocateObject(id anObject)
 {
   Class aClass = object_getClass(anObject);
-  if ((anObject!=nil) && !class_isMetaClass(aClass))
+
+  if ((anObject != nil) && !class_isMetaClass(aClass))
     {
       obj	o = &((obj)anObject)[-1];
       NSZone	*z = o->zone;
-      Class destructorClass = aClass;
-      IMP destructor = 0;
 
-      // C++ destructors must be called in the opposite order to their
-      // creators, so start at the leaf class and then go up the tree until we
-      // get to the root class.  As a small optimisation, we don't bother
-      // visiting any classes that don't have an implementation of this method
-      // (including one inherited from a superclass).
-      //
-      // Care must be taken not to call inherited .cxx_destruct methods.
-      while (class_respondsToSelector(destructorClass, cxx_destruct))
-        {
-          IMP newDestructor = class_getMethodImplementation(destructorClass, cxx_destruct);
-          if (newDestructor != destructor)
-            {
-              newDestructor(anObject, cxx_destruct);
-              destructor = newDestructor;
-            }
-          destructorClass = class_getSuperclass(destructorClass);
-        }
+      /* Call the default finalizer to handle C++ destructors.
+       */
+      (*finalize_imp)(anObject, finalize_sel);
 
-      AREM(object_getClass((id)anObject), (id)anObject);
+      AREM(aClass, (id)anObject);
       if (NSZombieEnabled == YES)
 	{
 	  GSMakeZombie(anObject);
@@ -943,10 +952,8 @@ objc_create_block_classes_as_subclasses_of(Class super);
 #endif /* SIGPIPE */
 #endif /* __MINGW__ */
 
-#if	GS_WITH_GC
       finalize_sel = @selector(finalize);
       finalize_imp = class_getMethodImplementation(self, finalize_sel);
-#endif
 
 #if (defined(__FreeBSD__) || defined(__OpenBSD__)) && defined(__i386__)
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
@@ -1274,6 +1281,30 @@ objc_create_block_classes_as_subclasses_of(Class super);
 
 - (void) finalize
 {
+  Class	destructorClass = object_getClass(self);
+  IMP	destructor = 0;
+
+  /* C++ destructors must be called in the opposite order to their
+   * creators, so start at the leaf class and then go up the tree until we
+   * get to the root class.  As a small optimisation, we don't bother
+   * visiting any classes that don't have an implementation of this method
+   * (including one inherited from a superclass).
+   *
+   * Care must be taken not to call inherited .cxx_destruct methods.
+   */
+  while (class_respondsToSelector(destructorClass, cxx_destruct))
+    {
+      IMP newDestructor;
+
+      newDestructor
+	= class_getMethodImplementation(destructorClass, cxx_destruct);
+      if (newDestructor != destructor)
+	{
+	  newDestructor(self, cxx_destruct);
+	  destructor = newDestructor;
+	}
+      destructorClass = class_getSuperclass(destructorClass);
+    }
   return;
 }
 
