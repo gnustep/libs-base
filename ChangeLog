@@ -1,3 +1,8 @@
+2011-04-05  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Tests/base/coding/decoding.m: Fix bogus byte swap code for
+	big-endian hosts.
+
 2011-04-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Attempt to fixup C++ constructor/destructor
