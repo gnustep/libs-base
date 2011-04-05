@@ -10,6 +10,7 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSAttributedString.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSByteOrder.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
@@ -25,6 +26,10 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 #include <Foundation/NSString.h>
 #include <Foundation/NSURL.h>
 #include <Foundation/NSValue.h>
+
+@interface NSObject (Equality)
+- (BOOL) testEquality: (id)other;
+@end
 
 @interface NSObject (DecodingTests)
 + (NSObject*) createTestInstance;
@@ -115,7 +120,28 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 @implementation NSData (DecodingTests)
 + (NSObject *) createTestInstance
 {
-  return [[@"We need constant data" dataUsingEncoding: NSUnicodeStringEncoding] retain];
+  NSString	*source = @"We need constant data";
+  NSData	*data = [source dataUsingEncoding: NSUnicodeStringEncoding];
+
+  if (NSHostByteOrder() == NS_BigEndian)
+    {
+      NSMutableData	*m = [data mutableCopy];
+      uint8_t		*p = (uint8_t*)[m mutableBytes];
+      uint8_t		*e = p + [m length];
+
+      while (p < e)
+	{
+	  uint8_t	tmp = p[0];
+
+	  p[0] = *++p;
+	  *p++ = tmp;
+	}
+      return m;
+    }
+  else
+    {
+      return [data retain];
+    }
 }
 @end
 
