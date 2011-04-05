@@ -835,6 +835,7 @@ failure:
 - (BOOL) isEqualToData: (NSData*)other
 {
   NSUInteger len;
+
   if (other == self)
     {
       return YES;
@@ -1869,18 +1870,18 @@ failure:
   if ([aCoder allowsKeyedCoding])
     {
       [aCoder encodeBytes: bytes
-                  length: length
-                  forKey:@"NS.data"]; 
+                   length: length
+                   forKey: @"NS.data"]; 
     }
   else
     {  
       [aCoder encodeValueOfObjCType: @encode(unsigned int)
-              at: &length];
+			         at: &length];
       if (length)
         {
           [aCoder encodeArrayOfObjCType: @encode(unsigned char)
-                  count: length
-                  at: bytes];
+				  count: length
+				     at: bytes];
         }
     }
 }
@@ -1900,7 +1901,7 @@ failure:
 {
   if ([aCoder allowsKeyedCoding])
     {
-      const uint8_t *data;
+      const uint8_t	*data;
       NSUInteger	l;
 
 
