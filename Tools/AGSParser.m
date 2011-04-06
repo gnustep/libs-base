@@ -1328,6 +1328,23 @@ recheck:
 	  [self skipStatementLine];
 	  goto fail;
 	}
+      if ([s isEqual: @"__attribute__"] == YES)
+	{
+	  if ([self skipSpaces] < length && buffer[pos] == '(')
+	    {
+	      unsigned	start = pos;
+	      NSString	*attr;
+
+	      [self skipBlock];	// Skip the attributes
+	      attr = [NSString stringWithCharacters: buffer + start
+					     length: pos - start];
+	    }
+	  else
+	    {
+	      [self log: @"strange format __attribute__"];
+	    }
+	  continue;
+	}
       if ([s isEqualToString: @"GS_EXPORT"] == YES)
 	{
 	  s = @"extern";

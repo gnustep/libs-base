@@ -1,3 +1,8 @@
+2011-04-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSparser.m: ignore __attribute__ in declarator to fix bug
+	#33008
+
 2011-04-05  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Tests/base/coding/decoding.m: Fix bogus byte swap code for
