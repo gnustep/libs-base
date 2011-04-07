@@ -1,5 +1,9 @@
 2011-04-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GSMime.m: Fix failure to connect to mail server.
+
+2011-04-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNmberFormatter.m: Tweak macros to avoid compiler warnings.
 
 2011-04-07  Chris Armstrong <carmstrong@fastmail.com.au>
