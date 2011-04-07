@@ -6297,7 +6297,14 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
     {
       GSMimeDocument	*d = [internal->queue objectAtIndex: c];
 
-      [internal->delegate smtpClient: self mimeUnsent: d];
+      if (nil == internal->delegate)
+	{
+          NSDebugMLLog(@"GSMime", @"-smtpClient:mimeUnsent: %@ %@", self, d);
+	}
+      else
+	{
+          [internal->delegate smtpClient: self mimeUnsent: d];
+	}
     }
   [internal->queue removeAllObjects];
 }
@@ -7057,7 +7064,15 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 
 		internal->current = nil;
 		[internal->queue removeObjectAtIndex: 0];
-		[internal->delegate smtpClient: self mimeSent: d];
+		if (nil == internal->delegate)
+		  {
+		    NSDebugMLLog(@"GSMime", @"-smtpClient:mimeSent: %@ %@",
+		      self, d);
+		  }
+		else
+		  {
+		    [internal->delegate smtpClient: self mimeSent: d];
+		  }
 		[d release];
 	      }
             [self _doMessage];
@@ -7151,7 +7166,14 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 
       [internal->queue removeObjectAtIndex: 0];
       internal->current = nil;
-      [internal->delegate smtpClient: self mimeFailed: d];
+      if (nil == internal->delegate)
+	{
+	  NSDebugMLLog(@"GSMime", @"-smtpClient:mimeFailed: %@ %@", self, d);
+	}
+      else
+	{
+          [internal->delegate smtpClient: self mimeFailed: d];
+	}
       [d release];
     }
   if ([internal->queue count] > 0)
@@ -7171,8 +7193,10 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
       NSHost    	*h;
       NSString		*n = internal->hostname;
       NSString		*p = internal->port;
+      int		pnum;
 
       DESTROY(internal->lastError);
+
       /* Need to start up ...
        */
       if (n == nil)
@@ -7195,27 +7219,30 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 
       if (p == nil)
 	{
-	  int	pnum;
-
 	  p = [defs stringForKey: @"GSMimeSMTPClientPort"];
-	  if ((pnum = [p intValue]) <= 0 || pnum > 65535)
+	  if ([p length] == 0)
 	    {
 	      p = @"25";
-	      pnum = 25;
 	    }
-          [NSStream getStreamsToHost: h
-                                port: pnum
-                         inputStream: &internal->istream
-                        outputStream: &internal->ostream];
-          [internal->istream retain];
-          [internal->ostream retain];
-          if (internal->istream == nil || internal->ostream == nil)
-            {
-              NSLog(@"Unable to connect to %@:%@", n, p);
-              [self _shutdown: nil];
-	      return;
-            }
-        }
+	}
+      if ((pnum = [p intValue]) <= 0 || pnum > 65535)
+	{
+          NSLog(@"Bad port '%@' ... using 25", p);
+	  pnum = 25;
+	}
+
+      [NSStream getStreamsToHost: h
+			    port: pnum
+		     inputStream: &internal->istream
+		    outputStream: &internal->ostream];
+      [internal->istream retain];
+      [internal->ostream retain];
+      if (internal->istream == nil || internal->ostream == nil)
+	{
+	  NSLog(@"Unable to connect to %@:%@", n, p);
+	  [self _shutdown: nil];
+	  return;
+	}
 
       [internal->istream setDelegate: self];
       [internal->ostream setDelegate: self];
