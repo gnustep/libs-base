@@ -278,8 +278,8 @@ static inline void gs_consumed(id o) { return; }
 
 /* Include the appropriate header for ObjC2 blocks support if it is in use.
  *
- * FIXME: "OBJC2RUNTIME" is set to "1" if the runtime has
- * objc_setProperty(), which is unrelated to whether it has blocks
+ * FIXME: "OBJC2RUNTIME" is set to "1" if the runtime supports the ObjC2
+ * runtime API, which is unrelated to whether the compiler has blocks
  * support or not.
  */
 #if __has_feature(blocks)

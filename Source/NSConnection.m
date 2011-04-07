@@ -2150,7 +2150,7 @@ static NSLock	*cached_proxies_gate = nil;
 		  flags = objc_get_type_qualifiers(tmptype);
 		  /* Skip over the type qualifiers, so now TYPE is
 		     pointing directly at the char corresponding to the
-		     argument's type, as defined in <objc/objc-api.h> */
+		     argument's type. */
 		  tmptype = objc_skip_type_qualifiers(tmptype);
 
 		  if (*tmptype == _C_PTR
@@ -2628,8 +2628,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
 	  flags = objc_get_type_qualifiers (etmptype);
 	  /* Skip over the type qualifiers, so now TYPE is pointing directly
-	     at the char corresponding to the argument's type, as defined
-	     in <objc/objc-api.h> */
+	     at the char corresponding to the argument's type.  */
 	  tmptype = objc_skip_type_qualifiers(tmptype);
 
 	  /* Decide how, (or whether or not), to decode the argument
@@ -2807,8 +2806,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */
 	      flags = objc_get_type_qualifiers(etmptype);
 	      /* Skip over the type qualifiers, so now TYPE is pointing directly
-		 at the char corresponding to the argument's type, as defined
-		 in <objc/objc-api.h> */
+		 at the char corresponding to the argument's type. */
 	      tmptype = objc_skip_type_qualifiers (tmptype);
 
 	      /* Decide how, (or whether or not), to encode the argument
