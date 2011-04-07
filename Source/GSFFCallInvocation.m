@@ -26,7 +26,6 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
 #import "GSInvocation.h"
-#import <objc/objc-api.h>
 #import <avcall.h>
 #import <callback.h>
 #import "callframe.h"
