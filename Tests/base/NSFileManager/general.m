@@ -10,6 +10,7 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSFileManager *mgr = [NSFileManager defaultManager];
   NSString *dir = @"NSFileManagerTestDir"; 
+  NSString *dirInDir = [@"TestDirectory" stringByAppendingPathComponent: @"WithinDirectory"];
   NSString *str1,*str2;
   PASS(mgr != nil && [mgr isKindOfClass: [NSFileManager class]],
        "NSFileManager understands +defaultManager");
@@ -135,6 +136,24 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
   
   PASS([mgr changeCurrentDirectoryPath: @"subdir"], 
        "NSFileManager can move into subdir");
+
+  {
+    BOOL isDir;
+    PASS([mgr createDirectoryAtPath: dirInDir
+        withIntermediateDirectories: NO  
+                         attributes: nil
+                              error: NULL] == NO,
+      "NSFileManager refuses to create non-existent intermediate directories withIntermediateDirectories == NO"); 
+  
+    PASS([mgr createDirectoryAtPath: dirInDir
+        withIntermediateDirectories: YES
+                         attributes: nil
+                              error: NULL],
+      "NSFileManager can create intermediate directories withIntermediateDirectories == YES"); 
+    PASS([mgr fileExistsAtPath: dirInDir isDirectory: &isDir] && isDir == YES,
+      "NSFileManager create directory and intermediate directory that actually exist");
+
+  }
   
   PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
                  NSInvalidArgumentException,

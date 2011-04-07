@@ -720,8 +720,19 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-      result = [self createDirectoryAtPath: [path lastPathComponent]
-                                attributes: attributes];
+      BOOL isDir;
+
+      if ([self fileExistsAtPath: [path stringByDeletingLastPathComponent]
+	isDirectory: &isDir] && isDir)
+        {
+          result = [self createDirectoryAtPath: path
+                                    attributes: attributes];
+        }
+      else
+        {
+          result = NO;  
+          ASSIGN(_lastError, @"Could not create directory - intermediate paths did not exist or were not a directory");
+        }
     }  
 
   if (error != NULL)
