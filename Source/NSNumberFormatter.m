@@ -263,6 +263,12 @@ ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
       internal->_attributes[key] = (int32_t)(value); \
   } while(0)
 
+#define SET_BOOL(key, value) do \
+  { \
+    internal->_attributes[key] = (value ? 2 : 1); \
+    unum_setAttribute (internal->_formatter, key, (int32_t)(value ? 1 : 0)); \
+  } while(0)
+
 #define GET_SYMBOL(key, retval) do \
   { \
   UChar buffer[BUFFER_SIZE]; \
@@ -297,6 +303,14 @@ ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
       retval = internal->_attributes[key]; \
     else \
       retval = unum_getAttribute (internal->_formatter, key); \
+  } while (0)
+
+#define GET_BOOL(key, retval) do \
+  { \
+    if (internal->_attributes[key]) \
+      retval = (2 == internal->_attributes[key] ? YES : NO); \
+    else \
+      retval = (1 == unum_getAttribute(internal->_formatter, key)) ? YES : NO; \
   } while (0)
 
 #endif
@@ -1918,11 +1932,10 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 #endif
 }
 
-- (void) setUsesGroupingSeparator: (BOOL) flag
+- (void) setUsesGroupingSeparator: (BOOL)flag
 {
-
 #if GS_USE_ICU == 1
-  SET_ATTRIBUTE(UNUM_GROUPING_USED, flag, NO);
+  SET_BOOL(UNUM_GROUPING_USED, flag);
 #else
   return;
 #endif
@@ -1931,18 +1944,18 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (BOOL) usesGroupingSeparator
 {
 #if GS_USE_ICU == 1
-  int result;
-  GET_ATTRIBUTE(UNUM_GROUPING_USED, result);
-  return (BOOL)result;
+  BOOL result;
+  GET_BOOL(UNUM_GROUPING_USED, result);
+  return result;
 #else
   return NO;
 #endif
 }
 
-- (void) setAlwaysShowsDecimalSeparator: (BOOL) flag
+- (void) setAlwaysShowsDecimalSeparator: (BOOL)flag
 {
 #if GS_USE_ICU == 1
-  SET_ATTRIBUTE(UNUM_DECIMAL_ALWAYS_SHOWN, flag, NO);
+  SET_BOOL(UNUM_DECIMAL_ALWAYS_SHOWN, flag);
 #else
   return;
 #endif
@@ -1951,9 +1964,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (BOOL) alwaysShowsDecimalSeparator
 {
 #if GS_USE_ICU == 1
-  int result;
-  GET_ATTRIBUTE(UNUM_DECIMAL_ALWAYS_SHOWN, result);
-  return (BOOL)result;
+  BOOL result;
+  GET_BOOL(UNUM_DECIMAL_ALWAYS_SHOWN, result);
+  return result;
 #else
   return NO;
 #endif
@@ -2220,10 +2233,10 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 }
 
 
-- (void) setUsesSignificantDigits: (BOOL) flag
+- (void) setUsesSignificantDigits: (BOOL)flag
 {
 #if GS_USE_ICU == 1
-  SET_ATTRIBUTE(UNUM_SIGNIFICANT_DIGITS_USED, flag, NO);
+  SET_BOOL(UNUM_SIGNIFICANT_DIGITS_USED, flag);
 #else
   return;
 #endif
@@ -2232,9 +2245,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (BOOL) usesSignificantDigits
 {
 #if GS_USE_ICU == 1
-  int32_t result;
-  GET_ATTRIBUTE(UNUM_SIGNIFICANT_DIGITS_USED, result);
-  return (BOOL)result;
+  BOOL result;
+  GET_BOOL(UNUM_SIGNIFICANT_DIGITS_USED, result);
+  return result;
 #else
   return NO;
 #endif
@@ -2302,10 +2315,10 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 }
 
 
-- (void) setLenient: (BOOL) flag
+- (void) setLenient: (BOOL)flag
 {
 #if GS_USE_ICU == 1
-  SET_ATTRIBUTE(UNUM_LENIENT_PARSE, flag, NO);
+  SET_BOOL(UNUM_LENIENT_PARSE, flag);
 #else
   return;
 #endif
@@ -2314,9 +2327,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (BOOL) isLenient
 {
 #if GS_USE_ICU == 1
-  int32_t result;
-  GET_ATTRIBUTE(UNUM_LENIENT_PARSE, result);
-  return (BOOL)result;
+  BOOL result;
+  GET_BOOL(UNUM_LENIENT_PARSE, result);
+  return result;
 #else
   return NO;
 #endif
