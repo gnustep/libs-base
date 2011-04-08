@@ -1,5 +1,10 @@
 2011-04-08  Nicola Pero  <nicola.pero@meta-innovation.com>
 
+	* Tests/GNUmakefile: Include rules.make instead of test-tool.make.
+	(TOP_DIR): Define using ':=' instead of '='.
+
+2011-04-08  Nicola Pero  <nicola.pero@meta-innovation.com>
+
 	* Tools/pl2link.m (main): Fixed determining the installation
 	location with the current filesystem layout (Problem reported by
 	"Philippe Roussel" <p.o.roussel@free.fr>).
