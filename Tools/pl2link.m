@@ -1,7 +1,7 @@
 /*
    This tool produces a desktop link file for KDE and Gnome out of a GNUstep
    property list.
-   Copyright (C) 20010 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2011 Free Software Foundation, Inc.
 
    Written by:  Fred Kiefer <FredKiefer@gmx.de>
    Created: December 2001
@@ -30,6 +30,7 @@
 #import	"Foundation/NSException.h"
 #import	"Foundation/NSFileManager.h"
 #import	"Foundation/NSProcessInfo.h"
+#import "Foundation/NSPathUtilities.h"
 
 int
 main(int argc, char** argv, char **env)
@@ -43,7 +44,6 @@ main(int argc, char** argv, char **env)
   NSDictionary	        *plist = nil;
   NSArray		*list;
   NSString		*entry;
-  NSString              *installDomain;
   NSString              *installPath = @"";
   NSString              *appName = @"";
 
@@ -117,27 +117,65 @@ main(int argc, char** argv, char **env)
     {
       [fileContents appendFormat: @"Comment=%@\n", entry];
     }
-  installDomain = [[procinfo environment] objectForKey: @"GNUSTEP_INSTALLATION_DOMAIN"];
-  if(installDomain != nil)
-    {
-      if([installDomain isEqualToString: @"SYSTEM"])
-	{
-	  installPath = [[procinfo environment] objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
-	}
-      else
-	{
-	  installPath = [[procinfo environment] objectForKey: @"GNUSTEP_LOCAL_ROOT"];
-	}
-    }
-  else
-    {
-      installPath = [[procinfo environment] objectForKey: @"GNUSTEP_LOCAL_ROOT"];
-    }
+
+  /* Try to guess where the application will be installed.  PS: At the
+     moment, this is only required for NSIcon, so I suppose we could
+     skip it if there is no NSIcon.  */
+  {
+    /* The default installation domain is the local domain.  Assume
+       that's the case unless something is specified.  */
+    NSSearchPathDomainMask domain = NSLocalDomainMask;
+    NSString *installDomain;
+    NSArray *installPaths;
+
+    installDomain = [[procinfo environment] objectForKey: @"GNUSTEP_INSTALLATION_DOMAIN"];
+    if(installDomain != nil)
+      {
+	if ([installDomain isEqualToString: @"SYSTEM"])
+	  {
+	    domain = NSSystemDomainMask;
+	  }
+	else if ([installDomain isEqualToString: @"NETWORK"])
+	  {
+	    domain = NSNetworkDomainMask;
+	  }
+	else if ([installDomain isEqualToString: @"USER"])
+	  {
+	    domain = NSUserDomainMask;
+	  }
+	
+	/* In all other cases, we leave domain == NSLocalDomainMask.  */
+      }
+
+    installPaths = NSSearchPathForDirectoriesInDomains (NSApplicationDirectory, domain, YES);
+    if ([installPaths count] > 0)
+      {
+	installPath = [installPaths objectAtIndex: 0];
+      }
+    else
+      {
+	/* Ahm - this should never happen.  */
+	GSPrintf(stderr, @"Error determining the application installation location\n");
+
+	/* Try to get any application installation path.  */
+	installPaths = NSSearchPathForDirectoriesInDomains (NSApplicationDirectory, NSAllDomainsMask, YES);
+	if ([installPaths count] > 0)
+	  {
+	    installPath = [installPaths objectAtIndex: 0];
+	    GSPrintf(stderr, @"Assuming it will be installed into '%@' (this may be wrong!)\n", installPath);
+	  }
+	else
+	  {
+	    [pool release];
+	    exit(EXIT_FAILURE);
+	  }
+      }
+  }
+
   entry = [plist objectForKey: @"NSIcon"];
   if (entry != nil)
     {
-      NSString *iconPath = [[[[[installPath stringByAppendingPathComponent: @"Applications"] 
-				stringByAppendingPathComponent:appName] 
+      NSString *iconPath = [[[[installPath stringByAppendingPathComponent:appName] 
 			       stringByAppendingPathExtension:@"app"] 
 			      stringByAppendingPathComponent:@"Resources"]
 			     stringByAppendingPathComponent:entry];
