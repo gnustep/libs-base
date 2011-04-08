@@ -44,8 +44,6 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 TOP_DIR := $(shell dirname $(CURDIR))
 
-TEST_TOOL_NAMES=
-
 all::
 	@(echo If you want to run the gnustep-base testsuite, please type \'make check\')
 
