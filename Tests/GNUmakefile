@@ -42,7 +42,7 @@ endif
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-TOP_DIR=$(shell dirname $(CURDIR))
+TOP_DIR := $(shell dirname $(CURDIR))
 
 TEST_TOOL_NAMES=
 
@@ -65,5 +65,5 @@ check::
 clean::
 	gnustep-tests --clean
 
-include $(GNUSTEP_MAKEFILES)/test-tool.make
-
+# This makefile does nothing.
+include $(GNUSTEP_MAKEFILES)/rules.make
