@@ -44,9 +44,18 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 TOP_DIR := $(shell dirname $(CURDIR))
 
+# This message is also printed when you type 'make' top-level.  It is
+# the last message printed (since 'Tests' is the last directory in
+# SUBPROJECTS top-level), which is good as it becomes a recommendation
+# to run 'make check' after 'make'.
 all::
 	@(echo If you want to run the gnustep-base testsuite, please type \'make check\')
 
+#
+# 'make check' runs the testsuite (Objective-C tests only)
+#
+# Use 'make check GNUSTEP_TEST_OBJCXX=yes' to run both Objective-C and Objective-C++ tests
+#
 check::
 	(\
 	ADDITIONAL_INCLUDE_DIRS="-I$(TOP_DIR)/Headers";\
