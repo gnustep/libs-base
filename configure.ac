@@ -85,16 +85,6 @@ if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
 
-exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
-if test -z "$exceptions"; then
-  exceptions=no
-  BASE_NATIVE_OBJC_EXCEPTIONS=0
-else
-  exceptions=yes
-  BASE_NATIVE_OBJC_EXCEPTIONS=1
-fi
-AC_SUBST(BASE_NATIVE_OBJC_EXCEPTIONS)
-
 nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
 if test -z "$nonfragile"; then
   nonfragile=no
@@ -1700,9 +1690,40 @@ AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 
 # Don't revert any Objective-C flags as they are used in the next test
 
+
+#--------------------------------------------------------------------
+# Native Objective-C exceptions
+#--------------------------------------------------------------------
+
+# First of all, determine if native Objective-C exceptions are enabled
+# in gnustep-make.  They are enabled if the compiler supports it; they
+# are disabled if it doesn't.  And, of course, the user may have
+# forced one behaviour or the other.  Note that we go and look at the
+# actual config.make file to be able to know what was configured in
+# gnustep-make regardless of any gnustep-base that is currently
+# installed.  We can't use `gnustep-config --objc-flags` because that
+# may report native exceptions as disabled because the currently
+# installed gnustep-base has them disabled.
+if grep USE_OBJC_EXCEPTIONS $CURRENT_GNUSTEP_MAKEFILES/$lobj_dir/config.make | grep yes >&5 2>&5; then
+  exceptions=yes
+else
+  exceptions=no
+fi
+
+# At this point, if exceptions=no, then native exceptions are disabled
+# and won't be used.  If exceptions=yes, we need to check if they work
+# and if the runtime has proper support for them.  If it does, we'll
+# happily use them; if it doesn't, we'll automatically disable them
+# because they don't work. ;-)
+
 #--------------------------------------------------------------------
 # One of these is needed by for handling uncaught exceptions
 #--------------------------------------------------------------------
+
+# TODO: These checks are not really needed if native exceptions are
+# disabled.  So maybe we should not run them at all in that case.  On
+# the other hand, that case is going to become more and more unusual.
+
 AC_MSG_CHECKING(for objc_setUncaughtExceptionHandler() in runtime)
 AC_LINK_IFELSE([#include "$srcdir/config/config.setUncaughtExceptionHandler.m"],
 	have_set_uncaught_exception_handler=yes, have_set_uncaught_exception_handler=no)
@@ -1734,13 +1755,31 @@ if test $have_unexpected = yes; then
 fi
 AC_MSG_RESULT($have_unexpected)
 
+# TODO: It would also be nice to actually test that native Objective-C
+# exceptions work.
+
 if test "$exceptions" = "yes"; then
-  if test $have_set_unexpected = no; then
-    if test $have_unexpected = no; then
-      AC_MSG_ERROR([Your objective-c runtime library does not appear to support any mechanism to set a handler for uncaught native exceptions.  Please upgrade your runtime or re-install gnustep-make without native-objc-exceptions!])
+  if test x"$have_set_uncaught_exception_handler" = x"no"; then
+    if test x"$have_set_unexpected" = x"no"; then
+      if test x"$have_unexpected" = x"no"; then
+        AC_MSG_NOTICE([Disabling native Objective-C exceptions because the ObjC runtime])
+        AC_MSG_NOTICE([has no way to set an uncaught exception handler.  Please install])
+        AC_MSG_NOTICE([a recent Objective-C runtime if you want to use them.])
+        exceptions="no";
+      fi
     fi
   fi
 fi
+
+AC_MSG_CHECKING(whether to enable native Objective-C exceptions)
+if test "$exceptions" = "yes"; then
+  AC_MSG_RESULT(yes)
+  BASE_NATIVE_OBJC_EXCEPTIONS=1
+else
+  AC_MSG_RESULT(no)
+  BASE_NATIVE_OBJC_EXCEPTIONS=0
+fi
+AC_SUBST(BASE_NATIVE_OBJC_EXCEPTIONS)
 
 # Don't revert any Objective-C flags as they are used in the next test
 

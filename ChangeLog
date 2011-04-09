@@ -1,5 +1,22 @@
 2011-04-09  Nicola Pero  <nicola.pero@meta-innovation.com>
 
+	* Source/Additions/GSObjCRuntime.m (GSSelectorFromNameAndTypes):
+	Uncommented case for __GNU_LIBOBJC__.
+
+2011-04-09  Nicola Pero  <nicola.pero@meta-innovation.com>
+
+	* configure.ac: Updated the checks to enable native Objective-C
+	exceptions.  If native exceptions were enabled in gnustep-make -
+	because the compiler supports them -, but are disabled here
+	because there is no uncaught exception handler in the runtime,
+	print an explanation without aborting; we now disable them via
+	base.make.
+	* configure: Regnerated.
+	* base.make.in: Set USE_OBJC_EXCEPTIONS to no if we disabled
+	native exceptions when configuring.
+	
+2011-04-09  Nicola Pero  <nicola.pero@meta-innovation.com>
+
 	* Tests/GNUmakefile: Updated comments.
 
 2011-04-08  Nicola Pero  <nicola.pero@meta-innovation.com>

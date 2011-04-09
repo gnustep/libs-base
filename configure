@@ -647,6 +647,7 @@ DEFINE_INT8_T
 INCLUDE_STDINT
 HAVE_PTS_STREAM_MODULES
 HAVE_OBJC_SYNC_ENTER
+BASE_NATIVE_OBJC_EXCEPTIONS
 GS_MIXEDABI
 GS_NONFRAGILE
 OBJCFLAGS
@@ -715,7 +716,6 @@ build_vendor
 build_cpu
 build
 BASE_NONFRAGILE_ABI
-BASE_NATIVE_OBJC_EXCEPTIONS
 target_alias
 host_alias
 build_alias
@@ -802,8 +802,7 @@ CFLAGS
 LDFLAGS
 LIBS
 CPPFLAGS
-CPP
-CPPFLAGS'
+CPP'
 ac_subdirs_all='SSL'
 
 # Initialize some variables set by options.
@@ -2571,16 +2570,6 @@ fi
 if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
-
-exceptions=`gnustep-config --objc-flags | grep _NATIVE_OBJC_EXCEPTIONS 2>&5`
-if test -z "$exceptions"; then
-  exceptions=no
-  BASE_NATIVE_OBJC_EXCEPTIONS=0
-else
-  exceptions=yes
-  BASE_NATIVE_OBJC_EXCEPTIONS=1
-fi
-
 
 nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
 if test -z "$nonfragile"; then
@@ -6940,9 +6929,40 @@ rm -f conftest*
 
 # Don't revert any Objective-C flags as they are used in the next test
 
+
+#--------------------------------------------------------------------
+# Native Objective-C exceptions
+#--------------------------------------------------------------------
+
+# First of all, determine if native Objective-C exceptions are enabled
+# in gnustep-make.  They are enabled if the compiler supports it; they
+# are disabled if it doesn't.  And, of course, the user may have
+# forced one behaviour or the other.  Note that we go and look at the
+# actual config.make file to be able to know what was configured in
+# gnustep-make regardless of any gnustep-base that is currently
+# installed.  We can't use `gnustep-config --objc-flags` because that
+# may report native exceptions as disabled because the currently
+# installed gnustep-base has them disabled.
+if grep USE_OBJC_EXCEPTIONS $CURRENT_GNUSTEP_MAKEFILES/$lobj_dir/config.make | grep yes >&5 2>&5; then
+  exceptions=yes
+else
+  exceptions=no
+fi
+
+# At this point, if exceptions=no, then native exceptions are disabled
+# and won't be used.  If exceptions=yes, we need to check if they work
+# and if the runtime has proper support for them.  If it does, we'll
+# happily use them; if it doesn't, we'll automatically disable them
+# because they don't work. ;-)
+
 #--------------------------------------------------------------------
 # One of these is needed by for handling uncaught exceptions
 #--------------------------------------------------------------------
+
+# TODO: These checks are not really needed if native exceptions are
+# disabled.  So maybe we should not run them at all in that case.  On
+# the other hand, that case is going to become more and more unusual.
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for objc_setUncaughtExceptionHandler() in runtime" >&5
 $as_echo_n "checking for objc_setUncaughtExceptionHandler() in runtime... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -7018,13 +7038,37 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_unexpected" >&5
 $as_echo "$have_unexpected" >&6; }
 
+# TODO: It would also be nice to actually test that native Objective-C
+# exceptions work.
+
 if test "$exceptions" = "yes"; then
-  if test $have_set_unexpected = no; then
-    if test $have_unexpected = no; then
-      as_fn_error $? "Your objective-c runtime library does not appear to support any mechanism to set a handler for uncaught native exceptions.  Please upgrade your runtime or re-install gnustep-make without native-objc-exceptions!" "$LINENO" 5
+  if test x"$have_set_uncaught_exception_handler" = x"no"; then
+    if test x"$have_set_unexpected" = x"no"; then
+      if test x"$have_unexpected" = x"no"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: Disabling native Objective-C exceptions because the ObjC runtime" >&5
+$as_echo "$as_me: Disabling native Objective-C exceptions because the ObjC runtime" >&6;}
+        { $as_echo "$as_me:${as_lineno-$LINENO}: has no way to set an uncaught exception handler.  Please install" >&5
+$as_echo "$as_me: has no way to set an uncaught exception handler.  Please install" >&6;}
+        { $as_echo "$as_me:${as_lineno-$LINENO}: a recent Objective-C runtime if you want to use them." >&5
+$as_echo "$as_me: a recent Objective-C runtime if you want to use them." >&6;}
+        exceptions="no";
+      fi
     fi
   fi
 fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable native Objective-C exceptions" >&5
+$as_echo_n "checking whether to enable native Objective-C exceptions... " >&6; }
+if test "$exceptions" = "yes"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+  BASE_NATIVE_OBJC_EXCEPTIONS=1
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+  BASE_NATIVE_OBJC_EXCEPTIONS=0
+fi
+
 
 # Don't revert any Objective-C flags as they are used in the next test
 
