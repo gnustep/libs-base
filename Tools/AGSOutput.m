@@ -204,10 +204,12 @@ static BOOL snuggleStart(NSString *t)
   for (i = start; size < limit && i < end; i++)
     {
       NSString	*t = [a objectAtIndex: i];
+      BOOL	forceNewline = [t hasPrefix: @"<p>"];
+      BOOL	elementEndReached = (nest == 0 && [t hasPrefix: @"</"] == YES); 
 
-      if (nest == 0 && [t hasPrefix: @"</"] == YES)
+      if (elementEndReached || forceNewline)
 	{
-	  break;	// End of element reached.
+	  break;
 	}
 
       /*

@@ -1,3 +1,10 @@
+2011-04-10  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Tools/AGSOutput.m (-fitWords:from:to:maxSize:output:): Ensure all 
+	paragraphs are output in the same way. Each paragraph starts on a new 
+	line now, which results in a GSDoc output that looks a bit better and 
+	is easier to parse.
+
 2011-04-09  Nicola Pero  <nicola.pero@meta-innovation.com>
 
 	* Source/Additions/GSObjCRuntime.m (GSSelectorFromNameAndTypes):
