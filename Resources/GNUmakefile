@@ -49,7 +49,11 @@ include ../Version
 libgnustep-base_INTERFACE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 RESOURCE_SET_NAME = base-resources
+
+ifeq ($(base-resources_INSTALL_DIR),)
 base-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
+endif
+
 base-resources_LANGUAGES = English German French Italian TraditionalChinese \
 Spanish Esperanto Korean
 base-resources_LOCALIZED_RESOURCE_FILES = Localizable.strings

@@ -218,6 +218,8 @@ static NSString *gnustepUserDirDocumentation = nil;
 static NSString *gnustepUserDirDocumentationInfo = nil;
 static NSString *gnustepUserDirDocumentationMan = nil;
 
+static NSString	*uninstalled = nil;
+
 static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict,
   NSString *userName);
 
@@ -973,6 +975,8 @@ static void InitialisePathUtilities(void)
       NSMutableDictionary	*config;
 
       [gnustep_global_lock lock];
+      ASSIGNCOPY(uninstalled, [[[NSProcessInfo processInfo] environment]
+	objectForKey: @"GNUSTEP_UNINSTALLED_LIBRARY_DIRECTORY"]);
       gnustepUserName = [NSUserName() copy];
 #if defined(__MINGW__)
       {
@@ -2026,6 +2030,12 @@ if (domainMask & mask) \
 
       case NSLibraryDirectory:
 	{
+	  /* We allow the environment to be used to specify the location of
+	   * the resources of uninstalled libraries so that we can run tests
+	   * on software prior to installation.
+	   */
+	  ADD_PLATFORM_PATH(NSAllDomainsMask, uninstalled);
+
 	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserLibrary);
 	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalLibrary);
 	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkLibrary);
