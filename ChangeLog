@@ -1,3 +1,14 @@
+2011-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSObjCRuntime.m (GSSelectorFromNameAndTypes):
+	Comment out case for __GNU_LIBOBJC__ to avoid breakage with gcc-4.6
+	* Source/NSPathUtilities.m: Minor tweak for running testcases.
+	* Tests/base/NSBundle/resources.m:
+	* Tests/base/NSBundle/basic.m:
+	Skip gnustep library bundle tests if not installed.
+	* Tests/base/NSNumberFormatter/basic.m:
+	Changed a test to a hope for the next release
+
 2011-04-10  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Tools/AGSOutput.m (-fitWords:from:to:maxSize:output:): Ensure all 

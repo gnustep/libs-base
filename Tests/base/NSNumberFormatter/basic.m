@@ -39,8 +39,10 @@ int main()
     PASS(NO == [fmt getObjectValue: &num forString: @"1234.567"
        errorDescription: 0], "float input is disallowed")
 
+    testHopeful = YES;
     [fmt getObjectValue: &num forString: @"1234.567" errorDescription: &error];
     PASS_EQUAL(error, @"Floating Point not allowed", "allowsFloat error")
+    testHopeful = NO;
 
     [fmt setFormat: @"__000000"];
     num = [[[NSNumber alloc] initWithFloat: 1234.432] autorelease];

@@ -143,8 +143,13 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
 {
 #if NeXT_RUNTIME
   return sel_getUid(name);
+/* Don't use sel_registerTypedName() ... it's broken when first introduced
+ * into gcc (fails to correctly check for multple registrations with same
+ * types but different layout info).
+ *
 #elif defined (__GNU_LIBOBJC__)
   return sel_registerTypedName(name, types);
+ */
 #elif defined (__GNUSTEP_RUNTIME__)
   return sel_registerTypedName_np(name, types);
 #else

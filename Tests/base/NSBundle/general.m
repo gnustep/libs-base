@@ -9,12 +9,21 @@
 
 int main()
 { 
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSBundle *classBundle, *gnustepBundle, *identifierBundle, *bundle;
-  NSFileManager *fm = [NSFileManager defaultManager];
+  START_SET("NSBundle general")
+  NSFileManager *fm;
+  NSBundle *classBundle, *identifierBundle, *bundle;
   NSString *path, *exepath;
 
-  
+  fm = [NSFileManager defaultManager];
+
+#if	defined(GNUSTEP)
+  START_SET("NSBundle GNUstep general")
+  NSBundle *gnustepBundle;
+
+  gnustepBundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+  if (nil == gnustepBundle)
+    SKIP("it looks like GNUstep-base is not yet installed")
+
   PASS((
     [(gnustepBundle = [NSBundle bundleForLibrary: @"gnustep-base"])
       isKindOfClass: [NSBundle class]]),
@@ -23,18 +32,6 @@ int main()
   PASS([gnustepBundle principalClass] == [NSObject class], 
     "-principalClass returns NSObject for the +bundleForLibrary:gnustep-base");
   
-  classBundle = [NSBundle bundleForClass: [TestClass class]];
-
-  TEST_FOR_CLASS(@"NSBundle",classBundle,
-    "+bundleForClass: makes a bundle for us");
-
-  NSLog(@"%@", [classBundle principalClass]);
-  PASS([classBundle principalClass] == [TestClass class], 
-    "-principalClass returns TestClass for +bundleForClass:[TestClass class]");
-
-  PASS(classBundle == [NSBundle mainBundle], 
-    "-mainBundle is the same as +bundleForClass:[TestClass class]");
-
   PASS([[gnustepBundle classNamed: @"NSArray"] isEqual: [NSArray class]]
     && [[NSArray class] isEqual: [gnustepBundle classNamed: @"NSArray"]],
     "-classNamed returns the correct class");
@@ -50,6 +47,21 @@ int main()
   exepath = [gnustepBundle executablePath];
   PASS([fm fileExistsAtPath: exepath],
     "-executablePath returns an executable path (gnustep bundle)");
+
+  END_SET("NSBundle GNUstep general")
+#endif
+
+  classBundle = [NSBundle bundleForClass: [TestClass class]];
+
+  TEST_FOR_CLASS(@"NSBundle",classBundle,
+    "+bundleForClass: makes a bundle for us");
+
+  NSLog(@"%@", [classBundle principalClass]);
+  PASS([classBundle principalClass] == [TestClass class], 
+    "-principalClass returns TestClass for +bundleForClass:[TestClass class]");
+
+  PASS(classBundle == [NSBundle mainBundle], 
+    "-mainBundle is the same as +bundleForClass:[TestClass class]");
 
   path = [[[fm currentDirectoryPath]
     stringByAppendingPathComponent:@"Resources"]
@@ -73,6 +85,7 @@ int main()
   PASS(identifierBundle == nil,
     "+bundleWithIdentifier returns nil for non-existent identifier");
 
-  [arp release]; arp = nil;
+  END_SET("NSBundle general")
+
   return 0;
 }
