@@ -1546,7 +1546,9 @@ NSHomeDirectory(void)
 /**
  * Returns loginName's home directory as an NSString object.<br />
  * On most systems this returns the directory specified in the system's
- * password file, but on ms-windows this is determined by examining the
+ * password file (ar at least whatever is returned by the standard
+ * operating system API for retrieving password file records),
+ * but on ms-windows this is determined by examining the
  * HOMEPATH and HOMEDRIVE environment variables or (if those don't make
  * sense) the USERPROFILE environment variable.
  */
