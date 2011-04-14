@@ -673,7 +673,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
        * -finalize method or has C++ destructors.
        */
       if (GSIsFinalizable(aClass)
-        || class_respondsToSelector(destructorClass, cxx_destruct))
+        || class_respondsToSelector(aClass, cxx_destruct))
 	{
 	  /* We only do allocation counting for objects that can be
 	   * finalised - for other objects we have no way of decrementing
