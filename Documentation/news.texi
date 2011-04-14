@@ -11,11 +11,19 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.22.0}
+
+@itemize @bullet
+@item Many updates and new classes
+@item There is now a regression test framework included with the package
+@item New support for Objective-C 2.0
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.21.1}
 
 This is an (unstable) copy of the 1.20.1 release
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.20.1}
 
@@ -26,7 +34,6 @@ handling to include the latest zone information.
 @section Noteworthy changes in version @samp{1.21.0}
 
 This is an (unstable) copy of the 1.20.0 release
-
 
 @section Noteworthy changes in version @samp{1.20.0}
 
