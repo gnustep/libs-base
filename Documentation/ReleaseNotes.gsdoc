@@ -28,6 +28,62 @@ notice and this notice are preserved.
 	changes and other information that might help developers and users
 	migrate to using a newer version of the library.
       </p>
+
+      <section>
+	<heading>Version 1.22.0</heading>
+        <p>A new stable release with many updates and changes. In addition
+	to many new classes and methods, there is now a regression test
+	framework included in the base release.  
+	</p>
+	<p>In addtion, base now
+	supports and uses the Objective-C 2.0 runtime API from Apple and
+	we encourage anyone programming with GNUstep to move to using this
+	new runtime and the new functionality it supports. Note however, 
+	there is currently no compiler/runtime combination that completely
+	supports the Objective-C 2.0 specification, but we would
+	recommend the following:
+	</p>
+	<list>
+	<item>gcc (pre 4.6) and GNUstep libobjc is the preferred
+	compiler/runtime for stability (best tested)</item>
+	<item>gcc 4.6 and GNU libobjc for experimental ObjC2 with
+	garbage collection but without blocks</item>
+	<item>clang and GNUstep libobjc2 for experimental ObjC2 without
+	garbage collection but with blocks.</item>
+	</list>
+	<deflist>
+	  <term>New Test Framework</term>
+          <desc>Please look at the README file in the TestFramework
+		directory of the make package for more information on
+		how to use and write test cases.
+	  </desc>
+	  <term>NSTimeZones</term>
+          <desc>Updated with the latest zone info.
+	  </desc>
+	  <term>NSNumberFormatter and NSDateFormatter</term>
+          <desc>Implemented a number of methods.</desc>
+	  <term>NSLocale and NSCalendar</term>
+          <desc>Initial implementation of these classes. The libicu 4.0
+	  library is now required for full operation of these classes.
+	  </desc>
+	  <term>NSNumber</term>
+          <desc>Fix the +numberWith... methods to work for subclasses of
+	  NSNumber rather than creating instances of the default class.</desc>
+	  <term>NSFileManager</term>
+          <desc>Implemented a few new methods</desc>
+	  <term>NSSet</term>
+          <desc>Add block enumeration</desc>
+	  <term>NSOperation</term>
+          <desc>Implement support for concurrent operations</desc>
+	  <term>NSRegularExpression</term>
+          <desc>Also requires libicu for full functionality.</desc>
+	  <term>NSTimeZone</term>
+          <desc>Implement some more methods</desc>
+	  <term>NSNetServices</term>
+          <desc>Implement avahi-based services</desc>
+	</deflist>
+      </section>
+
       <section>
 	<heading>Version 1.21.1</heading>
         <p>This is an unstable snapshot release but is functionally
