@@ -36,10 +36,6 @@
 
 @class	NSDistantObject;
 
-#ifndef NeXT_RUNTIME
-extern BOOL __objc_responds_to(id, SEL);
-#endif
-
 /**
  * <p>The NSProxy class provides a basic implementation of a class whose
  * instances are used to <em>stand in</em> for other objects.<br />
@@ -178,7 +174,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 + (BOOL) respondsToSelector: (SEL)aSelector
 {
-  if (__objc_responds_to(self, aSelector))
+  if (class_respondsToSelector(object_getClass(self), aSelector))
     return YES;
   else
     return NO;
@@ -497,7 +493,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       return NO;
     }
-  if (__objc_responds_to(self, aSelector))
+  if (class_respondsToSelector(object_getClass(self), aSelector))
     {
       return YES;
     }
