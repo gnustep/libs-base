@@ -439,7 +439,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	  p = objc_skip_type_qualifiers (p);
 	}
       alen = ptr - args;
-      sprintf(ret + rlen, "%d", (int)_argFrameLength);
+      rlen += sprintf(ret + rlen, "%d", (int)_argFrameLength);
 
       _methodTypes = NSZoneMalloc(NSDefaultMallocZone(), alen + rlen + 1);
       strncpy((char*)_methodTypes, ret, rlen);
