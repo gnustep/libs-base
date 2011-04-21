@@ -41,6 +41,9 @@
 #if     !defined(NSINTEGER_DEFINED)
 typedef	intptr_t	NSInteger;
 typedef	uintptr_t	NSUInteger;
+#	define NSIntegerMax  INTPTR_MAX
+#	define NSIntegerMin  INTPTR_MIN
+#	define NSUIntegerMax UINTPTR_MAX
 #endif /* !defined(NSINTEGER_DEFINED) */
 
 #if     !defined(CGFLOAT_DEFINED)
