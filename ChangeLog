@@ -1,5 +1,11 @@
 2011-04-26  Eric Wasylishen  <ewasylishen@gmail.com>
 
+	* Source/NSNumberFormatter.m: Move the body of -init to a method called
+	-_NSNumberFormatterInit, and call this in -initWithCoder: so that
+	instances created with -initWithCoder: are initialized correctly.
+
+2011-04-26  Eric Wasylishen  <ewasylishen@gmail.com>
+
 	* Headers/Foundation/NSObjCRuntime.h: Add CGFLOAT_MIN and CGFLOAT_MAX
 
 2011-04-14  Adam Fedor  <fedor@gnu.org>

@@ -613,13 +613,11 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   return _hasThousandSeparators;
 }
 
-- (id) init
+- (id) _NSNumberFormatterInit
 {
   id	o;
   int idx;
   NSZone *z = [self zone];
-  
-  GS_CREATE_INTERNAL(NSNumberFormatter)
   
   _allowsFloats = YES;
   _decimalSeparator = '.';
@@ -660,6 +658,14 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 #endif
   
   [self setMaximumFractionDigits: 0];
+  return self;
+}
+
+- (id) init
+{
+  GS_CREATE_INTERNAL(NSNumberFormatter)
+ 
+  self = [self _NSNumberFormatterInit];
   
   return self;
 }
@@ -667,6 +673,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (id) initWithCoder: (NSCoder*)decoder
 {
   GS_CREATE_INTERNAL(NSNumberFormatter)
+
+  self = [self _NSNumberFormatterInit];
 
   if ([decoder allowsKeyedCoding])
     {
