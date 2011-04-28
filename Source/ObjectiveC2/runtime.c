@@ -436,6 +436,37 @@ class_getInstanceVariable(Class cls, const char *name)
   return NULL;
 }
 
+void object_setIvar(id object, Ivar ivar, id value)
+{
+  char *addr = (char*)&object;
+  addr += ivar_getOffset(ivar);
+  *(id*)addr = value;
+}
+
+Ivar object_setInstanceVariable(id obj, const char *name, void *value)
+{
+  Ivar ivar = class_getInstanceVariable(object_getClass(obj), name);
+  object_setIvar(obj, ivar, value);
+  return ivar;
+}
+
+id object_getIvar(id object, Ivar ivar)
+{
+  return *(id*)(((char*)&object) + ivar_getOffset(ivar));
+}
+
+Ivar object_getInstanceVariable(id obj, const char *name, void **outValue)
+{
+  Ivar ivar = class_getInstanceVariable(object_getClass(obj), name);
+  if (NULL != outValue)
+    {
+      *outValue = object_getIvar(obj, ivar);
+    }
+  return ivar;
+}
+
+
+
 // The format of the char* is undocumented.  This function is only ever used in
 // conjunction with class_setIvarLayout().
 const char *
