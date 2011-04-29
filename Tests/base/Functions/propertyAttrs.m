@@ -141,12 +141,9 @@ int main(void)
 	testProperty("intAssign", "Ti,VintAssign");
 	testProperty("idRetain", "T@,&,VidRetain");
 	testProperty("idCopy", "T@,C,VidCopy");
-	// The following tests fail on OS X too.  This appears to be a bug in the
-	// compiler, not actually setting the nonatomic flag in the AST.
-	testHopeful = YES;
-	testProperty("intNonatomic", "Ti,VintNonatomic");
-	testProperty("idReadonlyCopyNonatomic", "T@,R,C,VidReadonlyCopyNonatomic");
-	testProperty("idReadonlyRetainNonatomic", "T@,R,&,VidReadonlyRetainNonatomic");
+	testProperty("intNonatomic", "Ti,N,VintNonatomic");
+	testProperty("idReadonlyCopyNonatomic", "T@,R,C,N,VidReadonlyCopyNonatomic");
+	testProperty("idReadonlyRetainNonatomic", "T@,R,&,N,VidReadonlyRetainNonatomic");
 	return 0;
 }
 #else
