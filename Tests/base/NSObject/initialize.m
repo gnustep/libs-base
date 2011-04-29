@@ -1,5 +1,6 @@
 #import <Foundation/NSThread.h>
 #import <Foundation/NSLock.h>
+#include <unistd.h>
 #import "Testing.h"
 
 @interface SlowInit0 @end
@@ -87,6 +88,8 @@ static volatile int finished = 2;
  */
 int main(void)
 {
+	// Die in a signal if this deadlocks.
+	alarm(7);
 	[NSAutoreleasePool new];
 	l = [NSCondition new];
 	[l lock];
