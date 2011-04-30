@@ -1,3 +1,10 @@
+2011-04-30  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Tools/autogsdoc.m: Fixed OrderedSymbolDeclarations.plist content to 
+	take in account that existing .gsdoc files are usually not regenerated.
+	We now create the plist by merging it with the previously output plist 
+	file.
+
 2011-04-26  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Source/NSNumberFormatter.m: Move the body of -init to a method called
