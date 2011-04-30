@@ -650,6 +650,7 @@ main(int argc, char **argv, char **env)
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
   NSString              *symbolDeclsFile = nil;
+  NSMutableDictionary 	*symbolDecls = nil;
   NSMutableSet		*deps = nil;
 #if GS_WITH_GC == 0
   NSAutoreleasePool	*outer = nil;
@@ -672,6 +673,8 @@ main(int argc, char **argv, char **env)
    3) Load existing .igsdoc file (PropertyList/Dictionary format) if found,
       initializing an AGSIndex from it.
 
+      Also load existing OrderedSymbolDeclarations.plist if found.
+
    4) Clean if desired:
 
       4a) Build list of all template files, and remove generated content
@@ -690,6 +693,8 @@ main(int argc, char **argv, char **env)
       5b) Determine (possibly multiple) dependent .m files corresponding to
           a .h and parse them.
       5c) Feed parser results to an AGSOutput instance.
+   
+      Finally write the OrderedSymbolDeclarations.plist built by the parser.
 
    6) Move to "gsdoc files" (including both command-line given ones and
       just-generated ones).. and generate the index; for each one:
@@ -1016,6 +1021,23 @@ main(int argc, char **argv, char **env)
 	  dict = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
 	  rDate = [dict fileModificationDate];
 	}
+    }
+
+  /*
+   * Load old OrderedSymbolDeclarations.plist to merge it later
+   */
+  if ([mgr isReadableFileAtPath: symbolDeclsFile])
+    {
+      symbolDecls = 
+        [NSMutableDictionary dictionaryWithContentsOfFile: symbolDeclsFile];
+      if (symbolDeclsFile == nil)
+	{
+	  NSLog(@"Unable to read ordered symbols file '%@'", symbolDeclsFile);
+	}
+    }
+  if (symbolDecls == nil)
+    {
+      symbolDecls = [NSMutableDictionary dictionary];
     }
 
   /*
@@ -1496,10 +1518,12 @@ main(int argc, char **argv, char **env)
 	}
 
       /* 
-       * Ask the parser for the OrderedSymbolDeclarations plist and save it
+       * Ask the parser for the OrderedSymbolDeclarations plist, merge with 
+       * the previously output plist and save it
        */
-      [[parser orderedSymbolDeclarationsByUnit] writeToFile: symbolDeclsFile 
-                                                 atomically: YES];
+      [symbolDecls addEntriesFromDictionary: 
+        [parser orderedSymbolDeclarationsByUnit]];
+      [symbolDecls writeToFile: symbolDeclsFile atomically: YES];
 
       informalProtocols = RETAIN([output informalProtocols]);
 #if GS_WITH_GC == 0
