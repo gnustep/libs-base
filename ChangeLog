@@ -1,3 +1,8 @@
+2011-05-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumberFormatter.m: Fix broken copying of formatters,
+	cleanup/simplify decoding, cleanup/simplify by removif macros.
+
 2011-04-30  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Tools/autogsdoc.m: Fixed OrderedSymbolDeclarations.plist content to 
