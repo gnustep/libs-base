@@ -138,6 +138,16 @@ GSSelectorFromName(const char *name)
   return sel_getUid(name);
 }
 
+// FIXME: Hack - need to provide these function declarations
+// for gcc 4.6 libobjc. They're called below, and they're declared 
+// in objc-api.h, but we're using runtime.h, so objc-api.h can't be imported.
+#if defined (__GNU_LIBOBJC__)
+SEL sel_get_any_typed_uid(const char *name);
+SEL sel_get_typed_uid(const char *name, const char*);
+SEL sel_register_name(const char *name);
+SEL sel_register_typed_name(const char *name, const char*type);
+#endif
+
 SEL
 GSSelectorFromNameAndTypes(const char *name, const char *types)
 {
