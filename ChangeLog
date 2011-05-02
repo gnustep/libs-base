@@ -1,3 +1,12 @@
+2011-05-02  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/Additions/GSObjCRuntime.m (GSSelectorFromNameAndTypes):
+	With gcc 4.6 libobjc, GSSelectorFromNameAndTypes was calling some
+	functions like sel_get_any_typed_uid that were not declared (they're
+	declared in objc/objc-api.h which cannot be imported). I had to copy
+	over these function declarations, otherwise incorrect function calls
+	are generated which corrupt selectors (at least on x86-64).
+
 2011-05-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNumberFormatter.m: Fix broken copying of formatters,
