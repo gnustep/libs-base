@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02111 USA.
@@ -69,9 +69,20 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
  */
 @interface NSXMLParser : NSObject
 {
-@private
+#if	GS_EXPOSE(NSXMLParser)
+@public
   void		*_parser;	// GSXMLParser
   void		*_handler;	// SAXHandler
+#endif
+#if     GS_NONFRAGILE
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
 /**
@@ -114,22 +125,22 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /**
  * Set flag to determine whether the namespaceURI and the qualified name
  * of an element is provided in the
- * [NSObject-parser:didStartElement:namespaceURI:qualifiedName:attributes:]
- * and [NSObject-parser:didEndElement:namespaceURI:qualifiedName:] methods.
+ * [NSObject(NSXMLParserDelegateEventAdditions)-parser:didStartElement:namespaceURI:qualifiedName:attributes:]
+ * and [NSObject(NSXMLParserDelegateEventAdditions)-parser:didEndElement:namespaceURI:qualifiedName:] methods.
  */
 - (void) setShouldProcessNamespaces: (BOOL)aFlag;
 
 /**
  * Sets a flag to specify whether the parser should call the
- * [NSObject-parser:didStartMappingPrefix:toURI:] and
- * [NSObject-parser:didEndMappingPrefix:] delegate methods.
+ * [NSObject(NSXMLParserDelegateEventAdditions)-parser:didStartMappingPrefix:toURI:] and
+ * [NSObject(NSXMLParserDelegateEventAdditions)-parser:didEndMappingPrefix:] delegate methods.
  */
 - (void) setShouldReportNamespacePrefixes: (BOOL)aFlag;
 
 /**
  * Sets flag to determine if declarations of external entities are
  * reported using
- * [NSObject-parser:foundExternalEntityDeclarationWithName:publicID:systemID:]
+ * [NSObject(NSXMLParserDelegateEventAdditions)-parser:foundExternalEntityDeclarationWithName:publicID:systemID:]
  */
 - (void) setShouldResolveExternalEntities: (BOOL)aFlag;
 
@@ -154,12 +165,12 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /**
  * Returns the current column number of the document being parsed.
  */
-- (int) columnNumber;
+- (NSInteger) columnNumber;
 
 /**
  * Returns the current line number of the document being parsed.
  */
-- (int) lineNumber;
+- (NSInteger) lineNumber;
 
 /**
  * Returns the public identifier of the external entity in the
@@ -308,7 +319,7 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /*
  * Provide the same error codes as MacOS-X, even if we don't use them all.
  */
-typedef enum {
+enum {
   NSXMLParserInternalError = 1,
   NSXMLParserOutOfMemoryError = 2,
   NSXMLParserDocumentStartError = 3,
@@ -402,7 +413,8 @@ typedef enum {
   NSXMLParserURIFragmentError = 92,
   NSXMLParserNoDTDError = 94,
   NSXMLParserDelegateAbortedParseError = 512
-} NSXMLParserError;
+};
+typedef NSUInteger NSXMLParserError;
 
 #if	defined(__cplusplus)
 }

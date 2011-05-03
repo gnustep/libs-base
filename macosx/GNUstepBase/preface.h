@@ -7,16 +7,16 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+   version 3 of the License, or (at your option) any later version.
    
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 */ 
@@ -119,19 +119,19 @@ extern const char o_NeXT_cc_version[];
 
 #ifndef MAX
 #define MAX(a,b) \
-       ({typeof(a) _MAX_a = (a); typeof(b) _MAX_b = (b);  \
+       ({__typeof__(a) _MAX_a = (a); __typeof__(b) _MAX_b = (b);  \
          _MAX_a > _MAX_b ? _MAX_a : _MAX_b; })
 #endif
 
 #ifndef MIN
 #define MIN(a,b) \
-       ({typeof(a) _MIN_a = (a); typeof(b) _MIN_b = (b);  \
+       ({__typeof__(a) _MIN_a = (a); __typeof__(b) _MIN_b = (b);  \
          _MIN_a < _MIN_b ? _MIN_a : _MIN_b; })
 #endif
 
 #ifndef ABS
 #define ABS(a) \
-       ({typeof(a) _ABS_a = (a); \
+       ({__typeof__(a) _ABS_a = (a); \
          _ABS_a < 0 ? -_ABS_a : _ABS_a; })
 #endif
 

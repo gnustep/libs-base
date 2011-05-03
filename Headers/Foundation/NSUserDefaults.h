@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02111 USA.
@@ -25,10 +25,10 @@
 
 #ifndef __NSUserDefaults_h_OBJECTS_INCLUDE
 #define __NSUserDefaults_h_OBJECTS_INCLUDE
-#include <GNUstepBase/GSVersionMacros.h>
+#import <GNUstepBase/GSVersionMacros.h>
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
+#import <Foundation/NSObject.h>
+#import <Foundation/NSString.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -61,9 +61,10 @@ GS_EXPORT NSString* const NSGlobalDomain;
  */
 GS_EXPORT NSString* const NSRegistrationDomain;
 
-#ifndef NO_GNUSTEP
+#if	!NO_GNUSTEP
 /**
- *  User defaults domain for GNUstep config file.
+ *  User defaults domain for GNUstep config file and for any defaults
+ *  stored in the GlobalDefaults.plist file alongside the config file.
  */
 GS_EXPORT NSString* const GSConfigDomain;
 #endif
@@ -130,7 +131,7 @@ GS_EXPORT NSString* const NSDecimalDigits;
 /** Key for locale dictionary: array of strings for AM and PM. */
 GS_EXPORT NSString* const NSAMPMDesignation;
 
-#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+#if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 
 /**
  *  Array of arrays of NSStrings, first member of each specifying a time,
@@ -178,9 +179,9 @@ GS_EXPORT NSString* const NSLanguageCode;
 
 /** Key for locale dictionary: formal name of language. */
 GS_EXPORT NSString* const NSFormalName;
-#ifndef NO_GNUSTEP
+#if	!NO_GNUSTEP
 /** Key for locale dictionary: name of locale. */
-GS_EXPORT NSString* const NSLocale;
+GS_EXPORT NSString* const GSLocale;
 #endif
 #endif
 
@@ -212,8 +213,9 @@ GS_EXPORT NSString* const NSLocale;
 	- write docs : -(
 	*/
 
-@interface NSUserDefaults:  NSObject
+@interface NSUserDefaults : NSObject
 {
+#if	GS_EXPOSE(NSUserDefaults)
 @private
   NSMutableArray	*_searchList;    // Current search list;
   NSMutableDictionary	*_persDomains;   // Contains persistent defaults info;
@@ -225,6 +227,16 @@ GS_EXPORT NSString* const NSLocale;
   NSDate		*_lastSync;
   NSRecursiveLock	*_lock;
   NSDistributedLock	*_fileLock;
+#endif
+#if     GS_NONFRAGILE
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
 /**
@@ -236,7 +248,7 @@ GS_EXPORT NSString* const NSLocale;
  */
 + (NSUserDefaults*) standardUserDefaults;
 
-#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+#if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 /**
  * Resets the shared user defaults object to reflect the current
  * user ID.  Needed by setuid processes which change the user they
@@ -263,7 +275,7 @@ GS_EXPORT NSString* const NSLocale;
 + (void) setUserLanguages: (NSArray*)languages;
 #endif
 
-#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+#if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 /**
  * Adds the domain names aName to the search list of the receiver.<br />
  * The domain is added after the application domain.<br />
@@ -330,7 +342,7 @@ GS_EXPORT NSString* const NSLocale;
  * and returns its integer value or 0 if it is not representable
  * as an integer.
  */
-- (int) integerForKey: (NSString*)defaultName;
+- (NSInteger) integerForKey: (NSString*)defaultName;
 
 /**
  * Looks up a value for a specified default using.
@@ -346,7 +358,7 @@ GS_EXPORT NSString* const NSLocale;
  */
 - (void) removeObjectForKey: (NSString*)defaultName;
 
-#if OS_API_VERSION(GSAPI_MACOSX, GSAPI_LAST)
+#if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 /**
  * Removes the named domain from the search list of the receiver.<br />
  * Suites may be added using the -addSuiteNamed: method.
@@ -363,8 +375,8 @@ GS_EXPORT NSString* const NSLocale;
 
 /**
  * Sets a boolean value for defaultName in the application domain.<br />
- * Calls -setObject:forKey: to make the change by storing a boolean
- * [NSNumber] instance.
+ * Calls -setObject:forKey: to make the change by storing a string
+ * containing either the word YES or NO.
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName;
 
@@ -380,13 +392,14 @@ GS_EXPORT NSString* const NSLocale;
  * Calls -setObject:forKey: to make the change by storing an intege
  * [NSNumber] instance.
  */
-- (void) setInteger: (int)value forKey: (NSString*)defaultName;
+- (void) setInteger: (NSInteger)value forKey: (NSString*)defaultName;
 
 /**
- * Sets an object value for defaultName in the application domain.<br />
+ * Sets a copy of an object value for defaultName in the
+ * application domain.<br />
  * The defaultName must be a non-empty string.<br />
- * The value must be an instance of one of the [NSString-propertyList]
- * classes.<br />
+ * The value to be copied into the domain must be an instance
+ * of one of the [NSString-propertyList] classes.<br />
  * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
  * if this is the first change to a persistent-domain since the
  * last -synchronize.

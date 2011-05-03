@@ -7,6 +7,9 @@ install the entire GNUstep package (including this library).
 GNUstep-HOWTO is located in the gnustep-make package or at
 `http://www.gnustep.org'
 
+   This version of gnustep-base requires gnustep-make version 2.0.0 or
+higher.
+
    Other external libraries that you may need to install include:
 
    * ffcall or ffi (HIGHLY RECOMMENDED)

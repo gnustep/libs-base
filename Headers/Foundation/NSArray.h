@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,8 +26,10 @@
 #define __NSArray_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
+#import	<Foundation/NSObject.h>
 #import	<Foundation/NSRange.h>
-#import	<Foundation/NSUtilities.h>
+#import <Foundation/NSEnumerator.h>
+#import <GNUstepBase/GSBlocks.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -35,8 +37,9 @@ extern "C" {
 
 @class NSString;
 @class NSURL;
+@class NSIndexSet;
 
-@interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
 + (id) array;
 + (id) arrayWithArray: (NSArray*)array;
@@ -46,18 +49,18 @@ extern "C" {
 #endif
 + (id) arrayWithObject: (id)anObject;
 + (id) arrayWithObjects: (id)firstObject, ...;
-+ (id) arrayWithObjects: (id*)objects count: (unsigned)count;
++ (id) arrayWithObjects: (id*)objects count: (NSUInteger)count;
 
 - (NSArray*) arrayByAddingObject: (id)anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
 - (BOOL) containsObject: anObject;
-- (unsigned) count;						// Primitive
+- (NSUInteger) count;						// Primitive
 - (void) getObjects: (id*)aBuffer;
 - (void) getObjects: (id*)aBuffer range: (NSRange)aRange;
-- (unsigned) indexOfObject: (id)anObject;
-- (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange;
-- (unsigned) indexOfObjectIdenticalTo: (id)anObject;
-- (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
+- (NSUInteger) indexOfObject: (id)anObject;
+- (NSUInteger) indexOfObject: (id)anObject inRange: (NSRange)aRange;
+- (NSUInteger) indexOfObjectIdenticalTo: (id)anObject;
+- (NSUInteger) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (id) init;
 - (id) initWithArray: (NSArray*)array;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -68,10 +71,13 @@ extern "C" {
 - (id) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 - (id) initWithObjects: firstObject, ...;
-- (id) initWithObjects: (id*)objects count: (unsigned)count;	// Primitive
+- (id) initWithObjects: (id*)objects count: (NSUInteger)count;	// Primitive
 
 - (id) lastObject;
-- (id) objectAtIndex: (unsigned)index;				// Primitive
+- (id) objectAtIndex: (NSUInteger)index;			// Primitive
+#if OS_API_VERSION(100400, GS_API_LATEST)
+- (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes;
+#endif
 
 - (id) firstObjectCommonWithArray: (NSArray*)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
@@ -103,31 +109,136 @@ extern "C" {
 - (NSString*) description;
 - (NSString*) descriptionWithLocale: (id)locale;
 - (NSString*) descriptionWithLocale: (id)locale
-			     indent: (unsigned int)level;
+			     indent: (NSUInteger)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 - (id) valueForKey: (NSString*)key;
 #endif
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+
+DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, id, NSUInteger, BOOL*);
+DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
+/**
+ * Enumerate over the collection using the given block.  The first argument is
+ * the object and the second is the index in the array.  The final argument is
+ * a pointer to a BOOL indicating whether the enumeration should stop.  Setting
+ * this to YES will interrupt the enumeration.
+ */
+- (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock;
+
+/**
+ * Enumerate over the collection using the given block.  The first argument is
+ * the object and the second is the index in the array.  The final argument is
+ * a pointer to a BOOL indicating whether the enumeration should stop.  Setting
+ * this to YES will interrupt the enumeration.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts 
+			  usingBlock: (GSEnumeratorBlock)aBlock;
+/**
+ * Enumerate over the specified indexes in the collection using the given
+ * block.  The first argument is the object and the second is the index in the
+ * array.  The final argument is a pointer to a BOOL indicating whether the
+ * enumeration should stop.  Setting this to YES will interrupt the
+ * enumeration.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (void) enumerateObjectsAtIndexes: (NSIndexSet*)indexSet
+			   options: (NSEnumerationOptions)opts
+			usingBlock: (GSEnumeratorBlock)block;
+/**
+ * Returns the indexes of the objects in a collection that match the condition
+ * specified by the block.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts 
+				 passingTest: (GSPredicateBlock)predicate;
+
+/**
+ * Returns the indexes of the objects in a collection that match the condition
+ * specified by the block.
+ */
+- (NSIndexSet*) indexesOfObjectsPassingTest: (GSPredicateBlock)predicate;
+
+/**
+ * Returns the indexes of the objects in a collection that match the condition
+ * specified by the block and are in the range specified by the index set.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (NSIndexSet*) indexesOfObjectsAtIndexes: (NSIndexSet*)indexSet
+				  options: (NSEnumerationOptions)opts
+			      passingTest: (GSPredicateBlock)predicate;
+
+/**
+ * Returns the index of the first object in the array that matches the
+ * condition specified by the block.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts 
+			    passingTest: (GSPredicateBlock)predicate;
+
+/**
+ * Returns the index of the first object in the array that matches the
+ * condition specified by the block.
+ */
+- (NSUInteger) indexOfObjectPassingTest: (GSPredicateBlock)predicate;
+
+/**
+ * Returns the index of the first object in the specified range in a collection
+ * that matches the condition specified by the block.
+ *
+ * The opts argument is a bitfield.  Setting the NSNSEnumerationConcurrent flag
+ * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
+ * that it should be enumerated in reverse order.
+ */
+- (NSUInteger) indexOfObjectAtIndexes: (NSIndexSet*)indexSet
+			      options: (NSEnumerationOptions)opts
+			  passingTest: (GSPredicateBlock)predicate;
+#endif
 @end
 
 
 @interface NSMutableArray : NSArray
 
-+ (id) arrayWithCapacity: (unsigned)numItems;
++ (id) arrayWithCapacity: (NSUInteger)numItems;
 
 - (void) addObject: (id)anObject;				// Primitive
 - (void) addObjectsFromArray: (NSArray*)otherArray;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (void) exchangeObjectAtIndex: (unsigned int)i1
-	     withObjectAtIndex: (unsigned int)i2;
+- (void) exchangeObjectAtIndex: (NSUInteger)i1
+	     withObjectAtIndex: (NSUInteger)i2;
 #endif
-- (id) initWithCapacity: (unsigned)numItems;			// Primitive
-- (void) insertObject: (id)anObject atIndex: (unsigned)index;	// Primitive
-- (void) removeObjectAtIndex: (unsigned)index;			// Primitive
-- (void) replaceObjectAtIndex: (unsigned)index
+- (id) initWithCapacity: (NSUInteger)numItems;			// Primitive
+- (void) insertObject: (id)anObject atIndex: (NSUInteger)index;	// Primitive
+#if OS_API_VERSION(100400, GS_API_LATEST)
+- (void) insertObjects: (NSArray *)objects atIndexes: (NSIndexSet *)indexes;
+#endif
+- (void) removeObjectAtIndex: (NSUInteger)index;			// Primitive
+- (void) removeObjectsAtIndexes: (NSIndexSet *)indexes;
+- (void) replaceObjectAtIndex: (NSUInteger)index
 		   withObject: (id)anObject;			// Primitive
+#if OS_API_VERSION(100400, GS_API_LATEST)
+- (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
+                     withObjects: (NSArray *)objects;
+#endif
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray;
 - (void) replaceObjectsInRange: (NSRange)aRange
@@ -143,8 +254,8 @@ extern "C" {
 - (void) removeObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
 - (void) removeObjectsInArray: (NSArray*)otherArray;
 - (void) removeObjectsInRange: (NSRange)aRange;
-- (void) removeObjectsFromIndices: (unsigned*)indices 
-		       numIndices: (unsigned)count;
+- (void) removeObjectsFromIndices: (NSUInteger*)indices 
+		       numIndices: (NSUInteger)count;
 
 - (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare 
 		   context: (void*)context;
@@ -156,31 +267,12 @@ extern "C" {
 
 @end
 
-@interface	NSArray (GSCategories)
-/*
- *	Extension methods for working with sorted arrays - use a binary chop
- *	to determine the insertion location for an nobject.  If equal objects
- *	already exist in the array, they will be located immediately before
- *	the insertion position.
- * 
- *	The comparator function takes two items as arguments, the first is the
- *	item to be added, the second is the item already in the array.
- *      The function should return NSOrderedAscending if the item to be
- *      added is 'less than' the item in the array, NSOrderedDescending
- *      if it is greater, and NSOrderedSame if it is equal.
- *
- *	The selector version works the same - returning NSOrderedAscending if
- *	the receiver is 'less than' the item in the array.
- */
-- (unsigned) insertionPosition: (id)item
-		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
-		       context: (void *)context;
-- (unsigned) insertionPosition: (id)item
-		 usingSelector: (SEL)comp;
-@end
-
 #if	defined(__cplusplus)
 }
+#endif
+
+#if	!NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import	<GNUstepBase/NSArray+GNUstepBase.h>
 #endif
 
 #endif /* __NSArray_h_GNUSTEP_BASE_INCLUDE */

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,25 +16,26 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
    AutogsdocSource: NSObject.m
-   AutogsdocSource: Additions/GSCategories.m
    */ 
 
 #ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
 #define __NSObject_h_GNUSTEP_BASE_INCLUDE
-#import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObjCRuntime.h>
-#import	<GNUstepBase/preface.h>
-#include <GNUstepBase/GSConfig.h>
-#include <objc/objc.h>
-#include <objc/typedstream.h>
+#import <objc/objc.h>
 #import	<Foundation/NSZone.h>
+
+#ifndef	GS_WITH_GC
+#define	GS_WITH_GC	0
+#endif
+
+#import	<GNUstepBase/GNUstep.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -65,7 +66,7 @@ extern "C" {
 - (BOOL) isKindOfClass: (Class)aClass;	/** See [NSObject-isKindOfClass:] */
 - (BOOL) isMemberOfClass: (Class)aClass;/** See [NSObject-isMemberOfClass:] */
 - (BOOL) isProxy;			/** See [NSObject-isProxy] */
-- (unsigned) hash;			/** See [NSObject-hash] */
+- (NSUInteger) hash;			/** See [NSObject-hash] */
 - (id) self;				/** See [NSObject-self] */
 - (id) performSelector: (SEL)aSelector;	/** See [NSObject-performSelector:] */
 /** See [NSObject-performSelector:withObject:] */
@@ -82,7 +83,7 @@ extern "C" {
 - (id) retain;				/** See [NSObject-retain] */
 - (id) autorelease			/** See [NSObject-autorelease] */;
 - (oneway void) release;		/** See [NSObject-release] */
-- (unsigned) retainCount;		/** See [NSObject-retainCount] */
+- (NSUInteger) retainCount;		/** See [NSObject-retainCount] */
 - (NSZone*) zone;			/** See [NSObject-zone] */
 - (NSString*) description;		/** See [NSObject-description] */
 @end
@@ -168,10 +169,13 @@ extern "C" {
   Class isa;
 }
 
-#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
-#if	GS_WITH_GC
-+ (BOOL) requiresTypedMemory;
-#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/** On a system which performs garbage collection, you should implement
+ * this method to execute code when the receiver is collected.<br />
+ * You must not call this method yourself (except when a subclass
+ * calls the superclass method within its own implementation).
+ */
+- (void) finalize;
 #endif
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -182,6 +186,52 @@ extern "C" {
 + (id) alloc;
 + (Class) class;
 + (NSString*) description;
+
+/**
+ * This method is automatically invoked on any class which implements it
+ * when the class is loaded into the runtime.<br />
+ * It is also invoked on any category where the method is implemented
+ * when that category is loaded into the runtime.<br />
+ * The +load method is called directly by the runtime and you should never
+ * send a +load message to a class yourself.<br />
+ * This method is called <em>before</em> the +initialize message is sent
+ * to the class, so you cannot depend on class initialisation having been
+ * performed, or upon other classes existing (apart from superclasses of
+ * the receiver, since +load is called on superclasses before it is called
+ * on their subclasses).<br />
+ * As a gross generalisation, it is safe to use C code, including
+ * most ObjectiveC runtime functions within +load, but attempting to send
+ * messages to ObjectiveC objects is likely to fail.<br />
+ * In GNUstep, this method is implemented for NSObject to perform some
+ * initialisation for the base library.<br />
+ * If you implement +load for a class, don't call [super load] in your
+ * implementation.
+ */
++ (void) load;
+
+/**
+ * This message is automatically sent to a class by the runtime.  It is
+ * sent once for each class, just before the class is used for the first
+ * time (excluding any automatic call to +load by the runtime).<br />
+ * The message is sent in a thread-safe manner ... other threads may not
+ * call methods of the class until +initialize has finished executing.<br />
+ * If the class has a superclass, its implementation of +initialize is
+ * called first.<br />
+ * If the class does not implement +initialize then the implementation
+ * in the closest superclass may be called.  This means that +initialize may
+ * be called more than once, and the recommended way to handle this by
+ * using the
+ * <code>
+ * if (self == [classname class])
+ * </code>
+ * conditional to check whether the method is being called for a subclass.<br />
+ * You should never call +initialize yourself ... let the runtime do it.<br />
+ * You can implement +initialize in your own class if you need to.
+ * NSObject's implementation handles essential root object and base
+ * library initialization.<br />
+ * It should be safe to call [super initialize] in your implementation
+ * of +initialize.
+ */
 + (void) initialize;
 + (IMP) instanceMethodForSelector: (SEL)aSelector;
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector;
@@ -189,9 +239,9 @@ extern "C" {
 + (BOOL) isSubclassOfClass: (Class)aClass;
 + (id) new;
 + (void) poseAsClass: (Class)aClassObject;
-+ (id) setVersion: (int)aVersion;
++ (id) setVersion: (NSInteger)aVersion;
 + (Class) superclass;
-+ (int) version;
++ (NSInteger) version;
 
 - (id) autorelease;
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
@@ -204,7 +254,7 @@ extern "C" {
 - (NSString*) description;
 - (void) doesNotRecognizeSelector: (SEL)aSelector;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (unsigned) hash;
+- (NSUInteger) hash;
 - (id) init;
 - (BOOL) isEqual: anObject;
 - (BOOL) isKindOfClass: (Class)aClass;
@@ -224,10 +274,65 @@ extern "C" {
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
 - (BOOL) respondsToSelector: (SEL)aSelector;
 - (id) retain;
-- (unsigned) retainCount;
+- (NSUInteger) retainCount;
 - (id) self;
 - (Class) superclass;
 - (NSZone*) zone;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/**
+ * This method will be called when attempting to send a message a class that
+ * does not understand it.  The class may install a new method for the given
+ * selector and return YES, otherwise it should return NO.
+ *
+ * Note: This method is only reliable when using the GNUstep runtime.  If you
+ * require compatibility with the GCC runtime, you must also implement
+ * -forwardInvocation: with equivalent semantics.  This will be considerably
+ *  slower, but more portable.
+ */
++ (BOOL) resolveClassMethod: (SEL)name;
+
+/**
+ * This method will be called when attempting to send a message an instance
+ * that does not understand it.  The class may install a new method for the
+ * given selector and return YES, otherwise it should return NO.
+ *
+ * Note: This method is only reliable when using the GNUstep runtime.  If you
+ * require compatibility with the GCC runtime, you must also implement
+ * -forwardInvocation: with equivalent semantics.  This will be considerably
+ *  slower, but more portable.
+ */
++ (BOOL) resolveInstanceMethod: (SEL)name;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+/**
+ * Returns an auto-accessing proxy for the given object.  This proxy sends a
+ * -beginContentAccess message to the receiver when it is created and an
+ * -endContentAccess message when it is destroyed.  This prevents an object
+ * that implements the NSDiscardableContent protocol from having its contents
+ * discarded for as long as the proxy exists.  
+ *
+ * On systems using the GNUstep runtime, messages send to the proxy will be
+ * slightly slower than direct messages.  With the GCC runtime, they will be
+ * approximately two orders of magnitude slower.  The GNUstep runtime,
+ * therefore, is strongly recommended for code calling this method.
+ */
+- (id) autoContentAccessingProxy;
+
+/**
+ * If an object does not understand a message, it may delegate it to another
+ * object.  Returning nil indicates that forwarding should not take place.  The
+ * default implementation of this returns nil, but care should be taken when
+ * subclassing NSObject subclasses and overriding this method that
+ * the superclass implementation is called if returning nil.
+ *
+ * Note: This method is only reliable when using the GNUstep runtime and code
+ * compiled with clang.  If you require compatibility with GCC and the GCC
+ * runtime, you must also implement -forwardInvocation: with equivalent
+ * semantics.  This will be considerably slower, but more portable.
+ */
+- (id) forwardingTargetForSelector: (SEL)aSelector;
+
+#endif
 @end
 
 /**
@@ -237,15 +342,15 @@ extern "C" {
  * instance variables of the object.<br />
  * This function is used by the [NSObject+allocWithZone:] method.
  */
-GS_EXPORT NSObject *
-NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
+GS_EXPORT id
+NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone);
 
 /**
  * Used to release the memory used by an object.<br />
  * This function is used by the [NSObject-dealloc] method.
  */
 GS_EXPORT void
-NSDeallocateObject(NSObject *anObject);
+NSDeallocateObject(id anObject);
 
 /**
  * Used to copy anObject.  This makes a bitwise copy of anObject to
@@ -256,7 +361,7 @@ NSDeallocateObject(NSObject *anObject);
  * [(NSCopying)-copyWithZone:] method.
  */
 GS_EXPORT NSObject *
-NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
+NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone);
 
 /**
  * Returns a flag to indicate whether anObject should be retained or
@@ -270,7 +375,7 @@ NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
 GS_EXPORT BOOL
 NSDecrementExtraRefCountWasZero(id anObject);
 
-GS_EXPORT unsigned
+GS_EXPORT NSUInteger
 NSExtraRefCount(id anObject);
 
 GS_EXPORT void
@@ -291,85 +396,24 @@ enum {NSNotFound = 0x7fffffff};
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
+/** Global lock to be used by classes when operating on any global
+    data that invoke other methods which also access global; thus,
+    creating the potential for deadlock. */
+GS_EXPORT NSRecursiveLock *gnustep_global_lock;
+
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
 /* - (const char *) name;
    Removed because OpenStep has -(NSString*)name; */
 @end
 
-/** Global lock to be used by classes when operating on any global
-    data that invoke other methods which also access global; thus,
-    creating the potential for deadlock. */
-GS_EXPORT NSRecursiveLock *gnustep_global_lock;
-
+#if GS_API_VERSION(GS_API_NONE, 011700)
 @interface NSObject (GNUstep)
-- (BOOL) isInstance;
-- (id) makeImmutableCopyOnFail: (BOOL)force;
-- (Class) transmuteClassTo: (Class)aClassObject;
-+ (Class) autoreleaseClass;
-+ (void) setAutoreleaseClass: (Class)aClass;
 + (void) enableDoubleReleaseCheck: (BOOL)enable;
-- (id) read: (TypedStream*)aStream;
-- (id) write: (TypedStream*)aStream;
 @end
-
-/**
- * Provides a number of GNUstep-specific methods that are used to aid
- * implementation of the Base library.
- */
-@interface NSObject (GSCategories)
-
-/**
- * Message sent when an implementation wants to explicitly exclude a method
- * (but cannot due to compiler constraint), and wants to make sure it is not
- * called by mistake.  Default implementation raises an exception at runtime.
- */
-- notImplemented:(SEL)aSel;
-
-/**
- * Message sent when an implementation wants to explicitly require a subclass
- * to implement a method (but cannot at compile time since there is no
- * <code>abstract</code> keyword in Objective-C).  Default implementation
- * raises an exception at runtime to alert developer that he/she forgot to
- * override a method.
- */
-- (id) subclassResponsibility: (SEL)aSel;
-
-/**
- * Message sent when an implementation wants to explicitly exclude a method
- * (but cannot due to compiler constraint) and forbid that subclasses
- * implement it.  Default implementation raises an exception at runtime.  If a
- * subclass <em>does</em> implement this method, however, the superclass's
- * implementation will not be called, so this is not a perfect mechanism.
- */
-- (id) shouldNotImplement: (SEL)aSel;
-
-/**
-  WARNING: The -compare: method for NSObject is deprecated
-           due to subclasses declaring the same selector with
-           conflicting signatures.
-           Comparison of arbitrary objects is not just meaningless
-           but also dangerous as most concrete implementations
-           expect comparable objects as arguments often accessing
-           instance variables directly.
-           This method will be removed in a future release.
-*/
-- (NSComparisonResult) compare: (id)anObject;
-@end
-
 #endif
 
-/**
- *	Protocol for garbage collection finalization - same as libFoundation
- *	for compatibility.
- */
-@protocol       GCFinalization
-/**
- *  Called before receiver is deallocated by garbage collector.  If you want
- *  to do anything special before [NSObject -dealloc] is called, do it here.
- */
-- (void) gcFinalize;
-@end
+#endif
 
 #import	<Foundation/NSDate.h>
 /**
@@ -412,192 +456,48 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 		 inModes: (NSArray*)modes;
 @end
 
-/*
- *	RETAIN(), RELEASE(), and AUTORELEASE() are placeholders for the
- *	future day when we have garbage collecting.
- */
-#ifndef	GS_WITH_GC
-#define	GS_WITH_GC	0
-#endif
-#if	GS_WITH_GC
-
-#ifndef	RETAIN
-#define	RETAIN(object)		((id)object)
-#endif
-#ifndef	RELEASE
-#define	RELEASE(object)		
-#endif
-#ifndef	AUTORELEASE
-#define	AUTORELEASE(object)	((id)object)
-#endif
-
-#ifndef	TEST_RETAIN
-#define	TEST_RETAIN(object)	((id)object)
-#endif
-#ifndef	TEST_RELEASE
-#define	TEST_RELEASE(object)
-#endif
-#ifndef	TEST_AUTORELEASE
-#define	TEST_AUTORELEASE(object)	((id)object)
-#endif
-
-#ifndef	ASSIGN
-#define	ASSIGN(object,value)	(object = value)
-#endif
-#ifndef	ASSIGNCOPY
-#define	ASSIGNCOPY(object,value)	(object = [value copy])
-#endif
-#ifndef	DESTROY
-#define	DESTROY(object) 	(object = nil)
-#endif
-
-#ifndef	CREATE_AUTORELEASE_POOL
-#define	CREATE_AUTORELEASE_POOL(X)	
-#endif
-
-#ifndef RECREATE_AUTORELEASE_POOL
-#define RECREATE_AUTORELEASE_POOL(X)
-#endif
-
-#define	IF_NO_GC(X)	
-
-#else
-
-#ifndef	RETAIN
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /**
- *	Basic retain operation ... calls [NSObject-retain]
+ * The NSDiscardableContent protocol is used by objects which encapsulate data
+ * which may be discarded if resource constraints are exceeded.  These
+ * constraints are typically, but not always, related memory.  
  */
-#define	RETAIN(object)		[object retain]
-#endif
+@protocol NSDiscardableContent
 
-#ifndef	RELEASE
 /**
- *	Basic release operation ... calls [NSObject-release]
+ * This method is called before any access to the object.  It returns YES if
+ * the object's content is still valid.  The caller must call -endContentAccess
+ * once for every call to -beginContentAccess;
  */
-#define	RELEASE(object)		[object release]
-#endif
+- (BOOL) beginContentAccess;
 
-#ifndef	AUTORELEASE
 /**
- *	Basic autorelease operation ... calls [NSObject-autorelease]
+ * Discards the contents of the object if it is not currently being edited.
  */
-#define	AUTORELEASE(object)	[object autorelease]
-#endif
+- (void) discardContentIfPossible;
 
-#ifndef	TEST_RETAIN
 /**
- *	Tested retain - only invoke the
- *	objective-c method if the receiver is not nil.
+ * This method indicates that the caller has finished accessing the contents of
+ * the object adopting this protocol.  Every call to -beginContentAccess must
+ * be be paired with a call to this method after the caller has finished
+ * accessing the contents.
  */
-#define	TEST_RETAIN(object)	({\
-id __object = (id)(object); (__object != nil) ? [__object retain] : nil; })
-#endif
-#ifndef	TEST_RELEASE
+- (void) endContentAccess;
+
 /**
- *	Tested release - only invoke the
- *	objective-c method if the receiver is not nil.
+ * Returns YES if the contents of the object have been discarded, either via a
+ * call to -discardContentIfPossible while the object is not in use, or by some
+ * implementation dependent mechanism.  
  */
-#define	TEST_RELEASE(object)	({\
-id __object = (id)(object); if (__object != nil) [__object release]; })
+- (BOOL) isContentDiscarded;
+@end
 #endif
-#ifndef	TEST_AUTORELEASE
-/**
- *	Tested autorelease - only invoke the
- *	objective-c method if the receiver is not nil.
- */
-#define	TEST_AUTORELEASE(object)	({\
-id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
-#endif
-
-#ifndef	ASSIGN
-/**
- *	ASSIGN(object,value) assigns the value to the object with
- *	appropriate retain and release operations.
- */
-#define	ASSIGN(object,value)	({\
-id __value = (id)(value); \
-id __object = (id)(object); \
-if (__value != __object) \
-  { \
-    if (__value != nil) \
-      { \
-	[__value retain]; \
-      } \
-    object = __value; \
-    if (__object != nil) \
-      { \
-	[__object release]; \
-      } \
-  } \
-})
-#endif
-
-#ifndef	ASSIGNCOPY
-/**
- *	ASSIGNCOPY(object,value) assigns a copy of the value to the object
- *	with release of the original.
- */
-#define	ASSIGNCOPY(object,value)	({\
-id __value = (id)(value); \
-id __object = (id)(object); \
-if (__value != __object) \
-  { \
-    if (__value != nil) \
-      { \
-	__value = [__value copy]; \
-      } \
-    object = __value; \
-    if (__object != nil) \
-      { \
-	[__object release]; \
-      } \
-  } \
-})
-#endif
-
-#ifndef	DESTROY
-/**
- *	DESTROY() is a release operation which also sets the variable to be
- *	a nil pointer for tidiness - we can't accidentally use a DESTROYED
- *	object later.  It also makes sure to set the variable to nil before
- *	releasing the object - to avoid side-effects of the release trying
- *	to reference the object being released through the variable.
- */
-#define	DESTROY(object) 	({ \
-  if (object) \
-    { \
-      id __o = object; \
-      object = nil; \
-      [__o release]; \
-    } \
-})
-#endif
-
-#ifndef	CREATE_AUTORELEASE_POOL
-/**
- * Declares an autorelease pool variable and creates and initialises
- * an autorelease pool object.
- */
-#define	CREATE_AUTORELEASE_POOL(X)	\
-  NSAutoreleasePool *(X) = [NSAutoreleasePool new]
-#endif
-
-#ifndef RECREATE_AUTORELEASE_POOL
-/**
- * Similar, but allows reuse of variables. Be sure to use DESTROY()
- * so the object variable stays nil.
- */
-#define RECREATE_AUTORELEASE_POOL(X)  \
-  if (X == nil) \
-    (X) = [NSAutoreleasePool new]
-#endif
-
-#define	IF_NO_GC(X)	X
-
-#endif
-
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSObject+GNUstepBase.h>
 #endif
 
 #endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */

@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,25 +26,23 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/DistributedObjects.h"
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSInvocation.h"
+#import "common.h"
+#define	EXPOSE_NSDistantObject_IVARS	1
+#import "GNUstepBase/DistributedObjects.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSInvocation.h"
 #include <objc/Protocol.h>
+#import "GSInvocation.h"
 
 
-@interface NSDistantObject(GNUstepExtensions) <GCFinalization>
+@interface NSDistantObject(GNUstepExtensions)
 - (Class) classForPortCoder;
-- (const char *) selectorTypeForProxy: (SEL)selector;
-- (id) forward: (SEL)aSel :(arglist_t)frame;
-- (void) gcFinalize;
+- (void) finalize;
 @end
 
 #define DO_FORWARD_INVOCATION(_SELX, _ARG1) ({			\
@@ -69,37 +67,36 @@ static int	debug_proxy = 0;
 static Class	placeHolder = 0;
 static Class	distantObjectClass = 0;
 
-typedef struct {
-  @defs(NSDistantObject)
-} NSDO;
-
+#ifndef __GNUSTEP_RUNTIME__
 @interface Object (NSConformsToProtocolNamed)
-- (BOOL) _conformsToProtocolNamed: (char*)aName;
+- (BOOL) _conformsToProtocolNamed: (const char*)aName;
 @end
+#endif
 @interface NSObject (NSConformsToProtocolNamed)
-- (BOOL) _conformsToProtocolNamed: (char*)aName;
+- (BOOL) _conformsToProtocolNamed: (const char*)aName;
 @end
 /*
  * Evil hack ... if a remote system wants to know if we conform
- * to a protocol we pretend we have a local protocol with the same name.
+ * to a protocol we usa a local protocol with the same name.
  */
-typedef struct {
-    @defs(Protocol)
-} Proto;
+#ifndef __GNUSTEP_RUNTIME__
 @implementation Object (NSConformsToProtocolNamed)
-- (BOOL) _conformsToProtocolNamed: (char*)aName
+- (BOOL) _conformsToProtocolNamed: (const char*)aName
 {
-  Proto	p;
-  p.protocol_name = (char*)aName;
-  return [self conformsTo: (Protocol*)&p];
+  Protocol	*p;
+
+  p = objc_getProtocol(aName);
+  return [self conformsTo: p];
 }
 @end
+#endif
 @implementation NSObject (NSConformsToProtocolNamed)
-- (BOOL) _conformsToProtocolNamed: (char*)aName
+- (BOOL) _conformsToProtocolNamed: (const char*)aName
 {
-  Proto	p;
-  p.protocol_name = (char*)aName;
-  return [self conformsToProtocol: (Protocol*)&p];
+  Protocol	*p;
+
+  p = objc_getProtocol(aName);
+  return [self conformsToProtocol: p];
 }
 @end
 
@@ -136,7 +133,7 @@ enum proxyLocation
 + (id) initWithCoder: (NSCoder*)aCoder;
 + (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection;
 + (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection;
-+ (void) autorelease;
++ (id) autorelease;
 + (void) release;
 + (id) retain;
 + (BOOL) respondsToSelector: (SEL)sel;
@@ -144,8 +141,9 @@ enum proxyLocation
 
 @implementation	GSDistantObjectPlaceHolder
 
-+ (void) autorelease
++ (id) autorelease
 {
+  return self;
 }
 
 + (void) release
@@ -159,7 +157,7 @@ enum proxyLocation
 
 + (void) initialize
 {
-  if (self == GSClassFromName("GSDistantObjectPlaceHolder"))
+  if (self == objc_lookUpClass("GSDistantObjectPlaceHolder"))
     {
       distantObjectClass = [NSDistantObject class];
     }
@@ -167,7 +165,7 @@ enum proxyLocation
 
 + (BOOL) respondsToSelector: (SEL)sel
 {
-  return GSGetMethod(self, sel, NO, YES) != (GSMethod)0;
+  return class_getClassMethod(self, sel) != NULL;
 }
 
 + (id) initWithCoder: (NSCoder*)aCoder
@@ -220,10 +218,10 @@ enum proxyLocation
 	  {
 	    if (debug_proxy)
 	      {
-		NSLog(@"Local object is 0x%x (0x%x)\n",
-		  (uintptr_t)o, (uintptr_t)o ? ((NSDO*)o)->_object : 0);
+		NSLog(@"Local object is %p (%p)\n",
+		  (void*)(uintptr_t)o, (void*)(uintptr_t)o ? o->_object : 0);
 	      }
-	    return RETAIN(((NSDO*)o)->_object);
+	    return RETAIN(o->_object);
 	  }
 
       case PROXY_LOCAL_FOR_SENDER:
@@ -403,7 +401,7 @@ enum proxyLocation
 {
   if (self == [NSDistantObject class])
     {
-      placeHolder = GSClassFromName("GSDistantObjectPlaceHolder");
+      placeHolder = objc_lookUpClass("GSDistantObjectPlaceHolder");
     }
 }
 
@@ -443,10 +441,29 @@ enum proxyLocation
 {
   return _connection;
 }
+/**
+ * NSProxy subclasses must override -init or an exception will be thrown.  This
+ * calls the forwarding mechanism to invoke -init on the remote object.
+ */
+- (id) init
+{
+  NSMethodSignature	*sig;
+  NSInvocation		*inv;
+  id			ret;
+
+  sig = [self methodSignatureForSelector: _cmd];
+  inv = [NSInvocation invocationWithMethodSignature: sig];
+  [inv setTarget: self];
+  [inv setSelector: _cmd];
+  [self forwardInvocation: inv];
+  [inv getReturnValue: &ret];
+  return ret;
+}
 
 - (void) dealloc
 {
-  [self gcFinalize];
+  [self finalize];
+  if (_sigs != 0) [(NSMutableDictionary*)_sigs release];
   [super dealloc];
 }
 
@@ -612,7 +629,7 @@ enum proxyLocation
 
   if (debug_proxy)
     NSLog(@"Created new local=0x%x object 0x%x target 0x%x connection 0x%x\n",
-	   (uintptr_t)self, (uintptr_t)_object, _handle, (uintptr_t)_connection);
+     (uintptr_t)self, (uintptr_t)_object, _handle, (uintptr_t)_connection);
 
   return self;
 }
@@ -656,6 +673,10 @@ enum proxyLocation
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
+  if (0 == aSelector)
+    {
+      return nil;
+    }
   if (_object != nil)
     {
       return [_object methodSignatureForSelector: aSelector];
@@ -668,105 +689,78 @@ enum proxyLocation
        * signature of methodSignatureForSelector:, so we hack in
        * the signature required manually :-(
        */
-      if (sel_eq(aSelector, _cmd))
+      if (sel_isEqual(aSelector, _cmd))
 	{
 	  static	NSMethodSignature	*sig = nil;
 
 	  if (sig == nil)
 	    {
-	      sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
-	      RETAIN(sig);
+	      sig = RETAIN([NSMethodSignature signatureWithObjCTypes: "@@::"]);
 	    }
 	  return sig;
 	}
-      /*
-       * Simlarly, when we fetch a method signature from the remote end,
-       * we get a proxy, and when we build a local signature we need to
-       * ask the proxy for its types ... and must avoid recursion again.
-       */
-      if (sel_eq(aSelector, @selector(methodType)))
+      if (sel_isEqual(aSelector, @selector(methodType)))
 	{
 	  static	NSMethodSignature	*sig = nil;
 
 	  if (sig == nil)
 	    {
-	      sig = [NSMethodSignature signatureWithObjCTypes: "r*@:"];
-	      RETAIN(sig);
+	      sig = RETAIN([NSMethodSignature signatureWithObjCTypes: "r*@:"]);
 	    }
 	  return sig;
 	}
 
       if (_protocol != nil)
 	{
-	  const char	*types = 0;
+	  struct objc_method_description mth;
+	  mth = GSProtocolGetMethodDescriptionRecursive(_protocol, aSelector, YES, YES);
 
-	  struct objc_method_description* mth;
+	  if (mth.name == NULL && mth.types == NULL)
+	    {
+	      // Search for class method
+	      mth = GSProtocolGetMethodDescriptionRecursive(_protocol, aSelector, YES, NO);
+	    }
 
-	  /* Older gcc versions may not initialise Protocol objects properly
-	   * so we have an evil hack which checks for a known bad value of
-	   * the class pointer, and uses an internal function
-	   * (implemented in NSObject.m) to examine the protocol contents
-	   * without sending any ObjectiveC message to it.
-	   */
-	  if ((uintptr_t)GSObjCClass(_protocol) == 0x2)
-	    {
-	      extern struct objc_method_description*
-		GSDescriptionForInstanceMethod();
-	      mth = GSDescriptionForInstanceMethod(_protocol, aSelector);
-	    }
-	  else
-	    {
-	      mth = [_protocol descriptionForInstanceMethod: aSelector];
-	    }
-	  if (mth == 0)
-	    {
-	      if ((uintptr_t)GSObjCClass(_protocol) == 0x2)
-		{
-		  extern struct objc_method_description*
-		    GSDescriptionForClassMethod();
-		  mth = GSDescriptionForClassMethod(_protocol, aSelector);
-		}
-	      else
-		{
-		  mth = [_protocol descriptionForClassMethod: aSelector];
-		}
-	    }
-	  if (mth != 0)
-	    {
-	      types = mth->types;
-	    }
-	  if (types)
-	    return [NSMethodSignature signatureWithObjCTypes: types];
+	  if (mth.types)
+	    return [NSMethodSignature signatureWithObjCTypes: mth.types];
+	}
+
+      if (_sigs != 0)
+	{
+	  NSMutableDictionary	*d = (NSMutableDictionary*)_sigs;
+	  NSString		*s = NSStringFromSelector(aSelector);
+	  NSMethodSignature	*m = [d objectForKey: s];
+
+	  if (m != nil) return m;
 	}
 
 	{
 	  id		m = nil;
-#if	defined(USE_FFCALL) || defined(USE_LIBFFI)
 	  id		inv;
 	  id		sig;
 
 	  DO_FORWARD_INVOCATION(methodSignatureForSelector:, aSelector);
-#else
-	  arglist_t	args;
-	  void		*retframe;
 
-	  id retframe_id (void *rframe)
-	    {
-	      __builtin_return (rframe);
-	    }
-
-	  /*
-	   *	No protocol - so try forwarding the message.
-	   */
-	  args = __builtin_apply_args();
-	  retframe = [self forward: _cmd : args];
-	  m = retframe_id(retframe);
-#endif
 	  if ([m isProxy] == YES)
 	    {
-	      const char	*types = [m methodType];
+	      const char	*types;
 
+	      types = [m methodType];
+	      /* Create a local method signature.
+	       */
 	      m = [NSMethodSignature signatureWithObjCTypes: types];
+	    }
+	  if (m != nil)
+	    {
+	      NSMutableDictionary	*d = (NSMutableDictionary*)_sigs;
+	      NSString			*s = NSStringFromSelector(aSelector);
+
+	      if (d == nil)
+		{
+		  d = [NSMutableDictionary new];
+		  _sigs = (void*)d;
+		}
+	      [d setObject: m forKey: s];
 	    }
 	  return m;
 	}
@@ -827,7 +821,7 @@ enum proxyLocation
 /**
  * Used by the garbage collection system to tidy up when a proxy is destroyed.
  */
-- (void) gcFinalize
+- (void) finalize
 {
   if (_connection)
     {
@@ -854,60 +848,12 @@ enum proxyLocation
     }
 }
 
-static inline BOOL class_is_kind_of (Class self, Class aClassObject)
-{
-  Class class;
-
-  for (class = self; class!=Nil; class = GSObjCSuper(class))
-    if (class==aClassObject)
-      return YES;
-  return NO;
-}
 
 
 
-/**
- * For backward compatibility ... do not use this method.<br />
- * Returns the type information ... the modern way of doing this is
- * with the -methodSignatureForSelector: method.
- */
-- (const char *) selectorTypeForProxy: (SEL)selector
-{
-#if NeXT_RUNTIME
-  /* This isn't what we want, unless the remote machine has
-     the same architecture as us. */
-  const char *t;
-  t = [_connection typeForSelector: selector remoteTarget: _handle];
-  return t;
-#else /* NeXT_runtime */
-  return sel_get_type (selector);
-#endif
-}
-
-/**
- * For backward compatibility ... do not use this method.<br />
- * Handle old fashioned forwarding to the proxy.
- */
-- (id) forward: (SEL)aSel :(arglist_t)frame
-{
-  if (debug_proxy)
-    NSLog(@"NSDistantObject forwarding %s\n", GSNameFromSelector(aSel));
-
-  if (![_connection isValid])
-    [NSException
-	   raise: NSGenericException
-	  format: @"Trying to send message to an invalid Proxy.\n"
-      @"You should request NSConnectionDidDieNotification's and\n"
-      @"release all references to the proxy's of invalid Connections."];
-
-  return [_connection forwardForProxy: self
-			     selector: aSel
-			     argFrame: frame];
-}
-
 - (Class) classForCoder
 {
-  return object_get_class (self);
+  return object_getClass(self);
 }
 
 /**
@@ -915,7 +861,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
  */
 - (Class) classForPortCoder
 {
-  return object_get_class (self);
+  return object_getClass(self);
 }
 
 /**
@@ -927,37 +873,23 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 {
   if (_protocol != nil)
     {
-      return [_protocol conformsTo: aProtocol];
+      return protocol_conformsToProtocol(_protocol, aProtocol);
     }
   else
     {
-      return [(id)self _conformsToProtocolNamed: (char*)[aProtocol name]];
+      return [(id)self _conformsToProtocolNamed: protocol_getName(aProtocol)];
     }
 }
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-#if	defined(USE_FFCALL) || defined(USE_LIBFFI)
-  BOOL m = NO;
-  id inv, sig;
+  BOOL		m = NO;
+  id		inv;
+  id		sig;
+
   DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
+
   return m;
-#else
-  arglist_t	args;
-  void		*retframe;
-
-  BOOL retframe_bool (void *rframe)
-    {
-      __builtin_return (rframe);
-    }
-
-  /*
-   *	Try forwarding the message.
-   */
-  args = __builtin_apply_args();
-  retframe = [self forward: _cmd : args];
-  return retframe_bool(retframe);
-#endif
 }
 
 - (id) replacementObjectForCoder: (NSCoder*)aCoder
@@ -972,29 +904,11 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 @end
 
 
-@implementation NSObject (NSDistantObject)
-- (const char *) selectorTypeForProxy: (SEL)selector
-{
-#if NeXT_runtime
-  {
-    Method m = GSGetInstanceMethod(isa, selector);
-    if (m)
-      return m->method_types;
-    else
-      return NULL;
-  }
-#else
-  return sel_get_type (selector);
-#endif
-}
-
-@end
-
 @implementation Protocol (DistributedObjectsCoding)
 
 - (Class) classForPortCoder
 {
-  return [self class];
+  return isa;
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc;

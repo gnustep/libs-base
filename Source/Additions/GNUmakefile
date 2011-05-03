@@ -1,14 +1,14 @@
 #
 #  src makefile for the GNUstep Base Library
 #
-#  Copyright (C) 1997 Free Software Foundation, Inc.
+#  Copyright (C) 199a-2010 Free Software Foundation, Inc.
 #
 #  Written by:	Scott Christley <scottc@net-community.com>
 #
 #  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU Library General Public
+#  modify it under the terms of the GNU Lesser General Public
 #  License as published by the Free Software Foundation; either
 #  version 2 of the License, or (at your option) any later version.
 #
@@ -17,12 +17,13 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
 #  Library General Public License for more details.
 #
-#  You should have received a copy of the GNU Library General Public
+#  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free
 #  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #  Boston, MA 02111 USA.
 #
 
+PACKAGE_NAME = gnustep-base
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
@@ -31,7 +32,6 @@ include ../../config.mak
 SUBPROJECT_NAME = Additions
 
 Additions_OBJC_FILES =\
-	GSCategories.m \
 	GSObjCRuntime.m \
 	GCObject.m \
 	GCArray.m \
@@ -40,14 +40,28 @@ Additions_OBJC_FILES =\
 	GSMime.m \
 	GSXML.m \
 	GSFunctions.m \
-	behavior.m
+	GSInsensitiveDictionary.m \
+	NSArray+GNUstepBase.m \
+	NSAttributedString+GNUstepBase.m \
+	NSBundle+GNUstepBase.m \
+	NSCalendarDate+GNUstepBase.m \
+	NSData+GNUstepBase.m \
+	NSDebug+GNUstepBase.m \
+	NSError+GNUstepBase.m \
+	NSFileHandle+GNUstepBase.m \
+	NSLock+GNUstepBase.m \
+	NSMutableString+GNUstepBase.m \
+	NSNumber+GNUstepBase.m \
+	NSObject+GNUstepBase.m \
+	NSPropertyList+GNUstepBase.m \
+	NSProcessInfo+GNUstepBase.m \
+	NSStream+GNUstepBase.m \
+	NSString+GNUstepBase.m \
+	NSTask+GNUstepBase.m \
+	NSThread+GNUstepBase.m \
+	NSURL+GNUstepBase.m \
 
-ifneq ($(OBJC_RUNTIME_LIB), gnu)
-Additions_OBJC_FILES += GSNextRuntime.m
-endif
-ifneq ($(FOUNDATION_LIB), gnu)
-Additions_OBJC_FILES += GSCompatibility.m
-endif
+
 Additions_OBJC_FILES += Unicode.m
 
 -include Makefile.preamble

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -28,24 +28,32 @@
 
 #if	OS_API_VERSION(100400, GS_API_LATEST)
 
-#import	<Foundation/NSPredicate.h>
+#import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
+@class NSArray;
 @class NSMutableDictionary;
+@class NSString;
 
-typedef enum _NSExpressionType
+enum
 {
   NSConstantValueExpressionType=0,
   NSEvaluatedObjectExpressionType,
   NSVariableExpressionType,
   NSKeyPathExpressionType,
   NSFunctionExpressionType
-} NSExpressionType;
+};
+typedef NSUInteger NSExpressionType;
 
 @interface NSExpression : NSObject <NSCoding, NSCopying>
+{
+#if	GS_EXPOSE(NSExpression)
+  NSExpressionType _type;
+#endif
+}
 
 + (NSExpression *) expressionForConstantValue: (id)obj;
 + (NSExpression *) expressionForEvaluatedObject;

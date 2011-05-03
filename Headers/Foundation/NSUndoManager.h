@@ -6,7 +6,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -15,7 +15,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -82,21 +82,31 @@ GS_EXPORT NSString* const NSUndoManagerWillRedoChangeNotification;
  */
 GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 
-@interface NSUndoManager: NSObject
+@interface NSUndoManager : NSObject
 {
+#if	GS_EXPOSE(NSUndoManager)
 @private
-    NSMutableArray	*_redoStack;
-    NSMutableArray	*_undoStack;
-    id                  *_unused1;
-    id			_group;
-    id			_nextTarget;
-    NSArray		*_modes;
-    BOOL		_isRedoing;
-    BOOL		_isUndoing;
-    BOOL		_groupsByEvent;
-    BOOL		_runLoopGroupingPending;
-    unsigned		_disableCount;
-    unsigned		_levelsOfUndo;
+  NSMutableArray	*_redoStack;
+  NSMutableArray	*_undoStack;
+  id			_group;
+  id			_nextTarget;
+  NSArray		*_modes;
+  BOOL			_isRedoing;
+  BOOL			_isUndoing;
+  BOOL			_groupsByEvent;
+  BOOL			_runLoopGroupingPending;
+  unsigned		_disableCount;
+  unsigned		_levelsOfUndo;
+#endif
+#if     GS_NONFRAGILE
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
 - (void) beginUndoGrouping;
@@ -106,12 +116,12 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 - (void) enableUndoRegistration;
 - (void) endUndoGrouping;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (int) groupingLevel;
+- (NSInteger) groupingLevel;
 - (BOOL) groupsByEvent;
 - (BOOL) isRedoing;
 - (BOOL) isUndoing;
 - (BOOL) isUndoRegistrationEnabled;
-- (unsigned int) levelsOfUndo;
+- (NSUInteger) levelsOfUndo;
 - (id) prepareWithInvocationTarget: (id)target;
 - (void) redo;
 - (NSString*) redoActionName;
@@ -125,7 +135,7 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 - (NSArray*) runLoopModes;
 - (void) setActionName: (NSString*)name;
 - (void) setGroupsByEvent: (BOOL)flag;
-- (void) setLevelsOfUndo: (unsigned)num;
+- (void) setLevelsOfUndo: (NSUInteger)num;
 - (void) setRunLoopModes: (NSArray*)newModes;
 - (void) undo;
 - (NSString*) undoActionName;

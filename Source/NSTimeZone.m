@@ -10,16 +10,16 @@
      This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License
-   as published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
 
    This library is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -76,39 +76,33 @@
 
    FIXME?: use leap seconds? */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSLock.h"
-#include <limits.h>
+#import "common.h"
+#define	EXPOSE_NSTimeZone_IVARS	1
+#import "GNUstepBase/GSLock.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSThread.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSDebug.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/GSConfig.h"
-#include "GSPrivate.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSLocale.h"
+#import "GNUstepBase/GSConfig.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GSPrivate.h"
 
 #ifdef HAVE_TZHEAD
 #include <tzfile.h>
@@ -116,6 +110,13 @@
 #define NOID
 #include "nstzfile.h"
 #endif
+
+#if defined(HAVE_UNICODE_UCAL_H)
+#include <unicode/ucal.h>
+#endif
+
+NSString * const NSSystemTimeZoneDidChangeNotification
+  = @"NSSystemTimeZoneDidChangeNotification";
 
 /* Key for local time zone in user defaults. */
 #define LOCALDBKEY @"Local Time Zone"
@@ -153,6 +154,51 @@
 #define POSIX_TZONES     @""
 #else
 #define POSIX_TZONES     @"posix/"
+#endif
+
+#define BUFFER_SIZE 512
+
+#if GS_USE_ICU == 1
+static inline int
+_NSToICUTZDisplayStyle(NSTimeZoneNameStyle style)
+{
+  switch (style)
+    {
+      case NSTimeZoneNameStyleStandard:
+        return UCAL_STANDARD;
+      case NSTimeZoneNameStyleShortStandard:
+        return UCAL_SHORT_STANDARD;
+      case NSTimeZoneNameStyleDaylightSaving:
+        return UCAL_DST;
+      case NSTimeZoneNameStyleShortDaylightSaving:
+        return UCAL_SHORT_DST;
+      default:
+        return -1;
+    }
+}
+
+static inline UCalendar *
+ICUCalendarSetup (NSTimeZone *tz, NSLocale *locale)
+{
+  NSString *tzStr;
+  int32_t tzLen;
+  const char *cLocale;
+  UChar tzName[BUFFER_SIZE];
+  UCalendar *cal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  tzStr = [tz name];
+  if ((tzLen = [tzStr length]) > BUFFER_SIZE)
+    tzLen = BUFFER_SIZE;
+  [tzStr getCharacters: tzName range: NSMakeRange(0, tzLen)];
+  cLocale = [[locale localeIdentifier] UTF8String];
+  
+  cal = ucal_open(tzName, tzLen, cLocale, UCAL_TRADITIONAL, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  
+  return cal;
+}
 #endif
 
 /* Possible location of system time zone files */
@@ -206,7 +252,7 @@ typedef struct {
 }
 @end
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 @interface	GSWindowsTimeZone : NSTimeZone
 {
 @public
@@ -250,10 +296,10 @@ decode (const void *ptr)
 #if defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4
 #if NEED_WORD_ALIGNMENT
   int value;
-  memcpy(&value, ptr, sizeof(int));
+  memcpy(&value, ptr, sizeof(NSInteger));
   return value;
 #else
-  return *(const int *) ptr;
+  return *(const NSInteger*) ptr;
 #endif
 #else /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
   const unsigned char *p = ptr;
@@ -262,7 +308,7 @@ decode (const void *ptr)
   result = (result << 8) | *p++;
   result = (result << 8) | *p++;
   result = (result << 8) | *p++;
-  result = (result << 8) | *p++;
+  result = (result << 8) | *p;
   return result;
 #endif /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
 }
@@ -290,7 +336,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   int		offset; // Offset from UTC in seconds.
 }
 
-- (id) initWithOffset: (int)anOffset name: (NSString*)aName;
+- (id) initWithOffset: (NSInteger)anOffset name: (NSString*)aName;
 @end
 
 @interface NSLocalTimeZone : NSTimeZone
@@ -306,7 +352,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 - (id) initWithTimeZone: (NSTimeZone*)aZone
 	     withAbbrev: (NSString*)anAbbrev
-	     withOffset: (int)anOffset
+	     withOffset: (NSInteger)anOffset
 		withDST: (BOOL)isDST;
 @end
 
@@ -320,7 +366,8 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 /* Private methods for obtaining resource file names. */
 @interface NSTimeZone (Private)
-+ (NSString*) getTimeZoneFile: (NSString*)name;
++ (NSString*) _getTimeZoneFile: (NSString*)name;
++ (void) _notified: (NSNotification*)n;
 @end
 
 
@@ -376,7 +423,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   if (zone == nil)
     {
       unichar	c;
-      unsigned	i;
+      int	i;
 
       if ((length == 3
 	&& ([name isEqualToString: @"GMT"] == YES
@@ -464,26 +511,34 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	{
 	  if (data == nil)
 	    {
-	      NSString		*fileName;
+	      NSString	*fileName;
+	      BOOL	isDir;
 
-	      fileName = [NSTimeZoneClass getTimeZoneFile: name];
+	      fileName = [NSTimeZoneClass _getTimeZoneFile: name];
 	      if (fileName == nil
-		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName])
-#if	defined(__MINGW32__)
+		|| ![[NSFileManager defaultManager] fileExistsAtPath: fileName
+		isDirectory: &isDir] || YES == isDir)
+		{
+		  data = nil;
+		}
+	      else
+		{
+	          data = [NSData dataWithContentsOfFile: fileName];
+		}
+	      if (nil == data)
+#if	defined(__MINGW__)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
-                  RELEASE(self);
+                  DESTROY(self);
                   return zone;
                 }
 #else
 		{
-		  NSLog(@"Unknown time zone name `%@'.", name);
 		  return nil;
 		}
 #endif
-	      data = [NSData dataWithContentsOfFile: fileName];
 	    }
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  if (!data)
 	    zone = [[GSWindowsTimeZone alloc] initWithName: name data: data];
 	  else
@@ -491,7 +546,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	  zone = [[GSTimeZone alloc] initWithName: name data: data];
 	}
     }
-  RELEASE(self);
+  DESTROY(self);
   return zone;
 }
 
@@ -564,12 +619,12 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   return self;
 }
 
-- (int) secondsFromGMT
+- (NSInteger) secondsFromGMT
 {
   return [[NSTimeZoneClass defaultTimeZone] secondsFromGMT];
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   return [[NSTimeZoneClass defaultTimeZone] secondsFromGMTForDate: aDate];
 }
@@ -631,7 +686,7 @@ static NSMapTable	*absolutes = 0;
   [aCoder encodeObject: name];
 }
 
-- (id) initWithOffset: (int)anOffset name: (NSString*)aName
+- (id) initWithOffset: (NSInteger)anOffset name: (NSString*)aName
 {
   GSAbsTimeZone	*z;
   int		extra;
@@ -659,7 +714,7 @@ static NSMapTable	*absolutes = 0;
     }
   if (anOffset > 64800)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   anOffset *= sign;
@@ -672,7 +727,7 @@ static NSMapTable	*absolutes = 0;
   if (z != nil)
     {
       IF_NO_GC(RETAIN(z));
-      RELEASE(self);
+      DESTROY(self);
     }
   else
     {
@@ -686,7 +741,7 @@ static NSMapTable	*absolutes = 0;
 	      int	m = i % 60;
 	      char	buf[9];
 
-	      sprintf(buf, "GMT%c%02d%02d", s, h, m);
+	      snprintf(buf, sizeof(buf), "GMT%c%02d%02d", s, h, m);
 	      name = [[NSString alloc] initWithUTF8String: buf];
 	    }
 	  else
@@ -726,7 +781,7 @@ static NSMapTable	*absolutes = 0;
   return name;
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   return offset;
 }
@@ -766,7 +821,7 @@ static NSMapTable	*absolutes = 0;
 
 - (id) initWithTimeZone: (NSTimeZone*)aZone
 	     withAbbrev: (NSString*)anAbbrev
-	     withOffset: (int)anOffset
+	     withOffset: (NSInteger)anOffset
 		withDST: (BOOL)isDST
 {
   timeZone = RETAIN(aZone);
@@ -801,12 +856,12 @@ static NSMapTable	*absolutes = 0;
   return [timeZone timeZoneDetailForDate: date];
 }
 
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   return offset;
 }
 
-- (int) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
 {
   return offset;
 }
@@ -868,12 +923,12 @@ static NSMapTable	*absolutes = 0;
   return self;
 }
 
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   return zone->offset;
 }
 
-- (int) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) timeZoneSecondsFromGMTForDate: (NSDate*)aDate
 {
   return zone->offset;
 }
@@ -938,7 +993,7 @@ static NSMapTable	*absolutes = 0;
     }
   if (abbreviationDictionary == nil)
     {
-      CREATE_AUTORELEASE_POOL(pool);
+      NSAutoreleasePool	*pool = [NSAutoreleasePool new];
       NSString		*path;
 
       path = _time_zone_path (ABBREV_DICT, @"plist");
@@ -983,7 +1038,7 @@ static NSMapTable	*absolutes = 0;
 	  [md makeImmutableCopyOnFail: NO];
 	  abbreviationDictionary = md;
 	}
-      RELEASE(pool);
+      [pool release];
     }
   if (zone_mutex != nil)
     {
@@ -1012,7 +1067,7 @@ static NSMapTable	*absolutes = 0;
     }
   if (abbreviationMap == nil)
     {
-      CREATE_AUTORELEASE_POOL(pool);
+      NSAutoreleasePool		*pool = [NSAutoreleasePool new];
       NSMutableDictionary	*md;
       NSMutableArray		*ma;
       NSString			*the_name;
@@ -1030,7 +1085,7 @@ static NSMapTable	*absolutes = 0;
       path = _time_zone_path (ABBREV_MAP, nil);
       if (path != nil)
 	{
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  unichar	mode[3];
 
 	  mode[0] = 'r';
@@ -1129,7 +1184,7 @@ static NSMapTable	*absolutes = 0;
 
       [md makeImmutableCopyOnFail: NO];
       abbreviationMap = RETAIN(md); 
-      RELEASE(pool);
+      [pool release];
     }
   if (zone_mutex != nil)
     {
@@ -1287,6 +1342,11 @@ static NSMapTable	*absolutes = 0;
       localTimeZone = [[NSLocalTimeZone alloc] init];
 
       zone_mutex = [GSLazyRecursiveLock new];
+
+      [[NSNotificationCenter defaultCenter] addObserver: self
+        selector: @selector(_notified:)
+        name: NSUserDefaultsDidChangeNotification
+        object: nil];
     }
 }
 
@@ -1313,6 +1373,9 @@ static NSMapTable	*absolutes = 0;
     {
       [zone_mutex unlock];
     }
+  [[NSNotificationCenter defaultCenter]
+    postNotificationName: NSSystemTimeZoneDidChangeNotification
+                  object: nil];
 }
 
 /**
@@ -1356,6 +1419,7 @@ static NSMapTable	*absolutes = 0;
   if (systemTimeZone == nil)
     {
       NSString	*localZoneString = nil;
+      NSString	*localZoneSource = nil;
 
       /*
        * setup default value in case something goes wrong.
@@ -1365,6 +1429,8 @@ static NSMapTable	*absolutes = 0;
       /*
        * Try to get timezone from user defaults database
        */
+      localZoneSource = [NSString stringWithFormat:
+	@"NSUserDefaults: '%@'", LOCALDBKEY];
       localZoneString = [[NSUserDefaults standardUserDefaults]
 	stringForKey: LOCALDBKEY];
 
@@ -1373,6 +1439,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = _(@"environment variable: 'GNUSTEP_TZ'");
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"GNUSTEP_TZ"];
 	}
@@ -1382,6 +1449,8 @@ static NSMapTable	*absolutes = 0;
       if (localZoneString == nil)
 	{
 	  NSString	*f = _time_zone_path(LOCAL_TIME_FILE, nil);
+
+          localZoneSource = [NSString stringWithFormat: @"file: '%@'", f];
 	  if (f != nil)
 	    {
 	      localZoneString = [NSString stringWithContentsOfFile: f];
@@ -1393,6 +1462,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = _(@"environment variable: 'TZ'");
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"TZ"];
 	}
@@ -1404,6 +1474,8 @@ static NSMapTable	*absolutes = 0;
 #if defined(HAVE_TZHEAD) && defined(TZDEFAULT)
 	  tzdir = RETAIN([NSString stringWithUTF8String: TZDIR]);
 	  localZoneString = [NSString stringWithUTF8String: TZDEFAULT];
+          localZoneSource = [NSString stringWithFormat:
+	    @"file (TZDEFAULT): '%@'", localZoneString];
 	  localZoneString = [localZoneString stringByResolvingSymlinksInPath];
 #else
 	  NSFileManager *dflt = [NSFileManager defaultManager];
@@ -1411,6 +1483,8 @@ static NSMapTable	*absolutes = 0;
           if ([dflt fileExistsAtPath: SYSTEM_TIME_FILE])
 	    {
 	      localZoneString = SYSTEM_TIME_FILE;
+	      localZoneSource = [NSString stringWithFormat:
+		@"file (SYSTEM_TIME_FILE): '%@'", localZoneString];
 	      localZoneString
 		= [localZoneString stringByResolvingSymlinksInPath];
 	      /* Guess what tzdir is */
@@ -1421,24 +1495,28 @@ static NSMapTable	*absolutes = 0;
 		{
 		  tzdir = [tzdir stringByDeletingLastPathComponent];
 		}
-	      if ([tzdir length] > 2)
-		{
-		  RETAIN(tzdir);
-		}
-	      else
+	      if ([tzdir length] <= 2)
 	        {
 		  localZoneString = tzdir = nil;
 		}
+#if	!GS_WITH_GC
+	      else
+		{
+		  [tzdir retain];
+		}
+#endif
 	    }
 #endif
 	  if (localZoneString != nil && [localZoneString hasPrefix: tzdir])
 	    {
 	      /* This must be the time zone name */
 	      localZoneString = AUTORELEASE([localZoneString mutableCopy]);
-	      [(NSMutableString *)localZoneString deletePrefix: tzdir];
-	      if ([localZoneString hasPrefix: @"/"])
+	      [(NSMutableString*)localZoneString deleteCharactersInRange:
+		NSMakeRange(0, [tzdir length])];
+	      while ([localZoneString hasPrefix: @"/"])
 	        {
-	          [(NSMutableString *)localZoneString deletePrefix: @"/"];
+		  [(NSMutableString*)localZoneString deleteCharactersInRange:
+		    NSMakeRange(0, 1)];
 	        }
 	    }
 	  else
@@ -1452,13 +1530,14 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
+          localZoneSource = @"function: 'tzset()/tzname'";
 	  tzset();
 	  if (tzname[0] != NULL && *tzname[0] != '\0')
 	    localZoneString = [NSString stringWithUTF8String: tzname[0]];
 	}
 #endif
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
       /*
        * Try to get timezone from windows system call.
        */
@@ -1466,6 +1545,7 @@ static NSMapTable	*absolutes = 0;
       	TIME_ZONE_INFORMATION tz;
       	DWORD DST = GetTimeZoneInformation(&tz);
 
+        localZoneSource = @"function: 'GetTimeZoneInformation()'";
       	if (DST == TIME_ZONE_ID_DAYLIGHT)
 	  {
 	    localZoneString = [NSString stringWithCharacters: tz.DaylightName
@@ -1483,6 +1563,109 @@ static NSMapTable	*absolutes = 0;
 	{
 	  NSDebugLLog (@"NSTimeZone", @"Using zone %@", localZoneString);
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
+	  if (zone == nil)
+	    {
+	      NSArray	*possibleZoneNames;
+
+	      /*
+		It is not guaranteed on some systems (e.g., Ubuntu) that 
+		SYSTEM_TIME_FILE is a symlink. This file is more probably 
+		a copy of a zoneinfo file. The above time zone detecting 
+		approach can lead to the situation when we can only know 
+		about the time zone abbreviation (localZoneString) and 
+		(for some time zone abbreviations) the corresponding list 
+		of possible time zone names (e.g. SAMT is valid for
+		Pacific/Samoa, Pacific/Pago_Pago, Pacific/Apia,
+		Asia/Samarkand, Europe/Samara, US/Samoa).
+		In such a case the time zone can be selected 
+		from the list by comparing the content of SYSTEM_TIME_FILE 
+		and the content of zoneinfo files corresponding to the items 
+		of that list.
+	       */
+	      possibleZoneNames = [[self abbreviationMap]
+		objectForKey: localZoneString];
+	      if (possibleZoneNames != nil)
+		{
+		  NSEnumerator	*en = [possibleZoneNames objectEnumerator];
+		  NSString	*zoneName;
+		  NSFileManager *dflt = [NSFileManager defaultManager];
+		  
+		  while ((zoneName = [en nextObject]) != nil)
+		    {
+		      NSString	*fileName = [self _getTimeZoneFile: zoneName];
+
+		      if (fileName != nil
+			&& [dflt contentsEqualAtPath: fileName 
+					     andPath: SYSTEM_TIME_FILE])
+			{
+			  zone = [[self timeZoneWithName: zoneName] retain];
+
+			  if (zone != nil)
+			    {
+			      GSPrintf(stderr,
+@"\nIt seems that your operating system does not have a valid timezone name\n"
+@"configured and is using an abbreviation instead.  By comparing timezone\n"
+@"file data it is has been possible to find the actual timezone used, but\n"
+@"doing that is a slow process.\n"
+@"\nYou can avoid slowness of this time zone detecting approach\n"
+@"by setting the environment variable TZ='%@'\n"
+@"Or You can override the timezone name by setting the '%@'\n"
+@"NSUserDefault via the 'defaults' command line utility, a Preferences\n"
+@"application, or some other utility.\n"
+@"eg \"defaults write NSGlobalDomain '%@' '%@'\"\n\n",
+zoneName, LOCALDBKEY, LOCALDBKEY, zoneName);
+			      break;
+			    }
+			}
+		    }
+		}
+	    }
+	  if (zone == nil)
+	    {
+	      if (zone == nil)
+		{
+		  GSPrintf(stderr,
+@"\nUnable to create time zone for name: '%@'\n"
+@"(source '%@').\n", localZoneString, localZoneSource);
+		}
+	      if ([localZoneSource hasPrefix: @"file"]
+	        || [localZoneSource hasPrefix: @"function"])
+		{
+                  GSPrintf(stderr,
+@"\nIt seems that your operating system does not have a valid timezone name\n"
+@"configured (it could be that some other software has set a, possibly\n"
+@"ambiguous, timezone abbreviation rather than a name) ... please correct\n"
+@"that or override by setting a timezone name (such as 'Europe/London'\n"
+@"or 'America/Chicago').\n");
+		}
+	      GSPrintf(stderr,
+@"\nYou can override the timezone name by setting the '%@'\n"
+@"NSUserDefault via the 'defaults' command line utility, a Preferences\n"
+@"application, or some other utility.\n"
+@"eg \"defaults write NSGlobalDomain '%@' 'Africa/Nairobi'\"\n"
+@"See '%@'\n"
+@"for the standard timezones such as 'GB-Eire' or 'America/Chicago'.\n",
+LOCALDBKEY, LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
+	      zone = [[self timeZoneWithAbbreviation: localZoneString] retain];
+	      if (zone != nil)
+		{
+		  NSInteger	s;
+		  char		sign = '+';
+
+		  s = [zone secondsFromGMT];
+		  if (s < 0)
+		    {
+		      sign = '-';
+		      s = -s;
+		    }
+	          GSPrintf(stderr,
+@"\nSucceeded in treating '%@' as a timezone abbreviation,\n"
+@"but abbreviations do not uniquely represent timezones, so this may\n"
+@"not have found the timezone you were expecting.  The timezone found\n"
+@"was '%@' (currently UTC%c%02d%02d)\n\n",
+localZoneString, [zone name], sign, s/3600, (s/60)%60);
+		}
+	    }
 	}
       else
 	{
@@ -1534,9 +1717,10 @@ static NSMapTable	*absolutes = 0;
     }
   if (regionsArray == nil)
     {
-      CREATE_AUTORELEASE_POOL(pool);
-      int index, i;
-      char name[80];
+      NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+      int		index;
+      int		i;
+      char		name[80];
       FILE		*fp;
       NSMutableArray	*temp_array[24];
       NSString		*path;
@@ -1549,7 +1733,7 @@ static NSMapTable	*absolutes = 0;
       path = _time_zone_path (REGIONS_FILE, nil);
       if (path != nil)
 	{
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 	  unichar	mode[3];
 
 	  mode[0] = 'r';
@@ -1579,7 +1763,7 @@ static NSMapTable	*absolutes = 0;
 	}
       else
 	{
-	  NSString	*zonedir = [NSTimeZone getTimeZoneFile: @"WET"]; 
+	  NSString	*zonedir = [NSTimeZone _getTimeZoneFile: @"WET"]; 
 
 	  if (tzdir != nil)
 	    {
@@ -1593,12 +1777,11 @@ static NSMapTable	*absolutes = 0;
 		{
 		  NSTimeZone	*zone = nil;
 		  BOOL		isDir;
-
-		  // FIXME: check file validity.
 		
 		  path = [zonedir stringByAppendingPathComponent: name];
 		  if ([mgr fileExistsAtPath: path isDirectory: &isDir]
-		    && isDir == NO)
+		      && isDir == NO
+		      && [[path pathExtension] isEqual: @"tab"] == NO)
 		    {
 		      zone = [zoneDictionary objectForKey: name];
 		      if (zone == nil)
@@ -1606,8 +1789,12 @@ static NSMapTable	*absolutes = 0;
 			  NSData	*data;
 
 			  data = [NSData dataWithContentsOfFile: path];
+			  /* We should really make sure this is a real
+			     zone file and not something extra that happens
+			     to be in this directory, but initWithName:data:
+			     will do this anyway and log a message if not. */
 			  zone = [[self alloc] initWithName: name data: data];
-			  AUTORELEASE(zone);
+			  IF_NO_GC([zone autorelease];)
 			}
 		      if (zone != nil)
 			{
@@ -1653,7 +1840,7 @@ static NSMapTable	*absolutes = 0;
 	    }
 	}
       regionsArray = [[NSArray alloc] initWithObjects: temp_array count: 24];
-      RELEASE(pool);
+      [pool release];
     }
   if (zone_mutex != nil)
     {
@@ -1670,7 +1857,7 @@ static NSMapTable	*absolutes = 0;
  * Time zones with an offset of more than +/- 18 hours  are disallowed,
  * and nil is returned.
  */
-+ (NSTimeZone*) timeZoneForSecondsFromGMT: (int)seconds
++ (NSTimeZone*) timeZoneForSecondsFromGMT: (NSInteger)seconds
 {
   NSTimeZone	*zone;
 
@@ -1886,7 +2073,7 @@ static NSMapTable	*absolutes = 0;
  * from Greenwich Mean Time at the current date and time.<br />
  * Invokes -secondsFromGMTForDate:
  */
-- (int) secondsFromGMT
+- (NSInteger) secondsFromGMT
 {
   return [self secondsFromGMTForDate: [NSDate date]];
 }
@@ -1897,7 +2084,7 @@ static NSMapTable	*absolutes = 0;
  * If the time zone uses daylight savings time, the returned value
  * will vary at different times of year.
  */
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   NSTimeZoneDetail	*detail;
   int			offset;
@@ -1932,6 +2119,76 @@ static NSMapTable	*absolutes = 0;
   return [self name];
 }
 
+- (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate
+{
+#if GS_USE_ICU == 1
+  NSTimeInterval result;
+  UCalendar *cal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  cal = ICUCalendarSetup (self, nil);
+  if (cal == NULL)
+    return 0.0;
+  
+  ucal_setMillis (cal, ([aDate timeIntervalSince1970] * 1000.0), &err);
+  result = (double)ucal_get (cal, UCAL_DST_OFFSET, &err) / 1000.0;
+  if (U_FAILURE(err))
+    result = 0.0;
+  ucal_close (cal);
+  
+  return result;
+#else
+  return 0.0;   // FIXME
+#endif
+}
+
+- (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate
+{
+  return nil;   // FIXME;
+}
+
+- (NSTimeInterval) daylightSavingTimeOffset
+{
+  return [self daylightSavingTimeOffsetForDate: [NSDate date]];
+}
+
+- (NSDate *) nextDaylightSavingTimeTransition
+{
+  return [self nextDaylightSavingTimeTransitionAfterDate: [NSDate date]];
+}
+
+- (NSString *)localizedName: (NSTimeZoneNameStyle)style
+                     locale: (NSLocale *)locale
+{
+#if GS_USE_ICU == 1
+  UChar *result;
+  const char *cLocale;
+  int32_t len;
+  UCalendar *cal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  cal = ICUCalendarSetup (self, locale);
+  if (cal == NULL)
+    return nil;
+  
+  cLocale = [[locale localeIdentifier] UTF8String];
+  result = NSZoneMalloc ([self zone], BUFFER_SIZE * sizeof(UChar));
+  len = ucal_getTimeZoneDisplayName (cal, _NSToICUTZDisplayStyle(style),
+    cLocale, result, BUFFER_SIZE, &err);
+  if (len > BUFFER_SIZE)
+    {
+      result = NSZoneRealloc ([self zone], result, len * sizeof(UChar));
+      ucal_getTimeZoneDisplayName (cal, _NSToICUTZDisplayStyle(style),
+        cLocale, result, len, &err);
+    }
+  
+  return AUTORELEASE([[NSString alloc] initWithCharactersNoCopy: result
+    length: len freeWhenDone: YES]);
+#else
+  return nil;   // FIXME;
+#endif
+}
+                    
 @end
 
 /**
@@ -1970,7 +2227,7 @@ static NSMapTable	*absolutes = 0;
 /**
  * DEPRECATED: Class is no longer used.
  */
-- (int) timeZoneSecondsFromGMT
+- (NSInteger) timeZoneSecondsFromGMT
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -1999,10 +2256,11 @@ static NSString *zoneDirs[] = {
 /**
  * Returns the path to the named zone info file.
  */
-+ (NSString*) getTimeZoneFile: (NSString *)name
++ (NSString*) _getTimeZoneFile: (NSString *)name
 {
   static BOOL	beenHere = NO;
   NSString	*dir = nil;
+  BOOL		isDir;
 
   if (beenHere == NO && tzdir == nil)
     {
@@ -2038,7 +2296,8 @@ static NSString *zoneDirs[] = {
   /* Use the system zone info if possible, otherwise, use our installed
      info.  */
   if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
-    [tzdir stringByAppendingPathComponent: name]] == YES)
+    [tzdir stringByAppendingPathComponent: name] isDirectory: &isDir] == YES
+    && isDir == NO)
     {
       dir = tzdir;
     }
@@ -2049,10 +2308,24 @@ static NSString *zoneDirs[] = {
   return [dir stringByAppendingPathComponent: name];
 }
 
++ (void) _notified: (NSNotification*)n
+{
+  NSString      *name;
+
+  /* If the name of the system time zone has changed ...
+   * get a new system time zone.
+   */
+  name = [[NSUserDefaults standardUserDefaults] stringForKey: LOCALDBKEY];
+  if ([name length] > 0 && [name isEqual: [[self systemTimeZone] name]] == NO)
+    {
+      [self resetSystemTimeZone];
+      [self systemTimeZone];
+    }
+}
 @end
 
 
-#if	defined(__MINGW32__)
+#if	defined(__MINGW__)
 /* Timezone information data as stored in the registry */
 typedef struct TZI_format {
 	LONG       Bias;
@@ -2083,15 +2356,9 @@ lastDayOfGregorianMonth(int month, int year)
 
 /* IMPORT from NSCalendar date */
 void
-GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
-  int *hour, int *minute, int *second, int *mil);
+GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
+  NSInteger*hour, NSInteger*minute, NSInteger*second, NSInteger*mil);
 
-
-
-/* FIXME
- * It's not unicode ... which is OK as the timezone registry
- * names are ascii ... but we ought to be consistent.
- */
 
 @implementation GSWindowsTimeZone
 
@@ -2118,14 +2385,15 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
 
 - (id) initWithName: (NSString*)name data: (NSData*)data
 {
-  HKEY  regDirKey;
-  BOOL  isNT = NO;
-  BOOL	regFound = NO;
+  HKEY	regDirKey;
+  BOOL	isNT = NO;
+  BOOL	regFound=NO;
+  BOOL	tzFound = NO;
 
   /* Open the key in the local machine hive where
    * the time zone data is stored. */
-  if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-    "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
+  if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+    L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
     0,
     KEY_READ,
     &regDirKey))
@@ -2135,191 +2403,179 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
     }
   else
     {
-      if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-	"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
-	0,
-	KEY_READ,
-	&regDirKey))
-	{
-	  regFound = YES;
-	}
+      if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+          L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
+          0,
+          KEY_READ,
+          &regDirKey))
+        {
+          regFound = YES;
+        }
     }
 
   if (regFound)
     {
       /* Iterate over all subKeys in the registry to find the right one.
-	 Unfortunately name is a localized value. The keys in the registry are
-	 unlocalized names. */
-      CHAR     achKey[255];              // buffer for subkey name
-      DWORD    cbName;                   // size of name string
-      CHAR     achClass[MAX_PATH] = "";  // buffer for class name
-      DWORD    cchClassName = MAX_PATH;  // size of class string
-      DWORD    cSubKeys=0;               // number of subkeys
-      DWORD    cbMaxSubKey;              // longest subkey size
-      DWORD    cchMaxClass;              // longest class string
-      DWORD    cValues;                  // number of values for key
-      DWORD    cchMaxValue;              // longest value name
-      DWORD    cbMaxValueData;           // longest value data
-      DWORD    cbSecurityDescriptor;     // size of security descriptor
-      FILETIME ftLastWriteTime;          // last write time
-      DWORD i;
-      DWORD retCode;
-      BOOL	tzFound = NO;
-	      
-	      /* Get the class name and the value count. */
-      retCode = RegQueryInfoKeyA(
-	regDirKey,               // key handle
-	achClass,                // buffer for class name
-	&cchClassName,           // size of class string
-	NULL,                    // reserved
-	&cSubKeys,               // number of subkeys
-	&cbMaxSubKey,            // longest subkey size
-	&cchMaxClass,            // longest class string
-	&cValues,                // number of values for this key
-	&cchMaxValue,            // longest value name
-	&cbMaxValueData,         // longest value data
-	&cbSecurityDescriptor,   // security descriptor
-	&ftLastWriteTime);       // last write time
+         Unfortunately name is a localized value. The keys in the registry are
+         unlocalized names. */
+      wchar_t  achKey[255];              // buffer for subkey name
+      DWORD    cbName;                   // size of name string 
+      wchar_t  achClass[MAX_PATH] = L""; // buffer for class name 
+      DWORD    cchClassName = MAX_PATH;  // size of class string 
+      DWORD    cSubKeys = 0;             // number of subkeys 
+      DWORD    cbMaxSubKey;              // longest subkey size 
+      DWORD    cchMaxClass;              // longest class string 
+      DWORD    cValues;                  // number of values for key 
+      DWORD    cchMaxValue;              // longest value name 
+      DWORD    cbMaxValueData;           // longest value data 
+      DWORD    cbSecurityDescriptor;     // size of security descriptor 
+      FILETIME ftLastWriteTime;          // last write time 
+      DWORD     i, retCode;
+		
+      /* Get the class name and the value count. */
+      retCode = RegQueryInfoKeyW(
+        regDirKey,               // key handle 
+        achClass,                // buffer for class name 
+        &cchClassName,           // size of class string 
+        NULL,                    // reserved 
+        &cSubKeys,               // number of subkeys 
+        &cbMaxSubKey,            // longest subkey size 
+        &cchMaxClass,            // longest class string 
+        &cValues,                // number of values for this key 
+        &cchMaxValue,            // longest value name 
+        &cbMaxValueData,         // longest value data 
+        &cbSecurityDescriptor,   // security descriptor 
+        &ftLastWriteTime);       // last write time 
 
       if (cSubKeys && (retCode == ERROR_SUCCESS))
-	{
-	  const char *cName = [name cString];
+    	{
+          unsigned wLen = [name length];
+          wchar_t *wName = malloc((wLen+1) * sizeof(wchar_t));
 
-	  for (i = 0; i < cSubKeys && !tzFound; i++)
-	    {
-	      cbName = 255;
-	    
-	      retCode = RegEnumKeyExA(regDirKey,
-		i,
-		achKey,
-		&cbName,
-		NULL,
-		NULL,
-		NULL,
-		&ftLastWriteTime);
-	      if (retCode == ERROR_SUCCESS)
-		{
-		  char keyBuffer[16384];
-		  HKEY regKey;
-	    
-		  if (isNT)
-		    {
-		      sprintf(keyBuffer, "SOFTWARE\\Microsoft\\Windows NT"
-			"\\CurrentVersion\\Time Zones\\%s", achKey);
-		    }
-		  else
-		    {
-		      sprintf(keyBuffer, "SOFTWARE\\Microsoft\\Windows"
-			"\\CurrentVersion\\Time Zones\\%s", achKey);
-		    }
-	    
-		  if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-		    keyBuffer,
-		    0,
-		    KEY_READ,
-		    &regKey))
-		    {
-		      char buf[256];
-		      char standardName[256];
-		      char daylightName[256];
-		      DWORD bufsize;
-		      DWORD type;
+          if (wName)
+            {
+              [name getCharacters: wName];
+              wName[wLen] = 0;
+              for (i = 0; i < cSubKeys && !tzFound; i++) 
+                { 
+                  cbName = 255;
+                   
+                  retCode = RegEnumKeyExW(regDirKey, i, achKey, &cbName,
+                    NULL, NULL, NULL, &ftLastWriteTime);         
+                  if (retCode == ERROR_SUCCESS) 
+                    {
+                      wchar_t keyBuffer[16384];
+                      HKEY regKey;
+                       
+                      if (isNT)
+                        wcscpy(keyBuffer, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\");
+                      else
+                        wcscpy(keyBuffer, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones\\");
+                       
+                      wcscat(keyBuffer, achKey);
+                      if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                        keyBuffer, 0, KEY_READ, &regKey))
+                        {
+                          wchar_t buf[256];
+                          wchar_t standardName[256];
+                          wchar_t daylightName[256];
+                          DWORD bufsize;
+                          DWORD type;
 
-		      /* check standardname */
-		      standardName[0]='\0';
-		      bufsize=sizeof(buf);
-		      if (ERROR_SUCCESS == RegQueryValueExA(regKey,
-			"Std",
-			0,
-			&type,
-			buf,
-			&bufsize))
-			{
-			  strcpy(standardName, buf);
-			  if (strcmp(standardName, cName) == 0)
-			    tzFound = YES;
-			}
+                          /* check standardname */
+                          standardName[0] = L'\0';
+                          bufsize = sizeof(buf);
+                          if (ERROR_SUCCESS == RegQueryValueExW(regKey,
+                            L"Std", 0, &type, (BYTE *)buf, &bufsize))
+                            {
+                              wcscpy(standardName, buf);
+                              if (wcscmp(standardName, wName) == 0)
+                                tzFound = YES;
+                            }
+        
+                          /* check daylightname */
+                          daylightName[0] = L'\0';
+                          bufsize = sizeof(buf);
+                          if (ERROR_SUCCESS == RegQueryValueExW(regKey,
+                            L"Dlt", 0, &type, (BYTE *)buf, &bufsize))
+                            {
+                              wcscpy(daylightName, buf);
+                              if (wcscmp(daylightName, wName) == 0)
+                                tzFound = YES;
+                            }
 
-		      /* check daylightname */
-		      daylightName[0]='\0';
-		      bufsize = sizeof(buf);
-		      if (ERROR_SUCCESS == RegQueryValueExA(regKey,
-			"Dlt",
-			0,
-			&type,
-			buf,
-			&bufsize))
-			{
-			  strcpy(daylightName, buf);
-			  if (strcmp(daylightName, cName) == 0)
-			    tzFound = YES;
-			}
+                          if (tzFound)
+                            {
+                              /* Read in the time zone data */
+                              bufsize = sizeof(buf);
+                              if (ERROR_SUCCESS == RegQueryValueExW(regKey,
+                                L"TZI", 0, &type, (BYTE *)buf, &bufsize))
+                                {
+                                  TZI *tzi = (void*)buf;
+                                  Bias = tzi->Bias;
+                                  StandardBias = tzi->StandardBias;
+                                  DaylightBias = tzi->DaylightBias;
+                                  StandardDate = tzi->StandardDate;
+                                  DaylightDate = tzi->DaylightDate;
+                                }
+                          
+                              /* Set the standard name for the time zone. */
+                              if (wcslen(standardName))
+                                {
+                                  int a, b;
 
-		      if (tzFound)
-			{
-			  /* Read in the time zone data */
-			  bufsize = sizeof(buf);
-			  if (ERROR_SUCCESS == RegQueryValueExA(regKey,
-			    "TZI",
-			    0,
-			    &type,
-			    buf,
-			    &bufsize))
-			    {
-			      TZI *tzi = (void*)buf;
-			      Bias = tzi->Bias;
-			      StandardBias = tzi->StandardBias;
-			      DaylightBias = tzi->DaylightBias;
-			      StandardDate = tzi->StandardDate;
-			      DaylightDate = tzi->DaylightDate;
-			    }
-		    
-			  /* Set the standard name for the time zone. */
-			  if (strlen(standardName))
-			    {
-			      int a, b;
+                                  ASSIGN(timeZoneName,
+                                    [NSString stringWithCharacters: standardName
+                                    length: wcslen(standardName)]);
 
-			      ASSIGN(timeZoneName,
-				[NSString stringWithUTF8String: standardName]);
+                                  /* Abbr generated here is IMHO
+                                   * a bit suspicous but I kept it */
+                                  for (a = 0, b = 0; standardName[a]; a++)
+                                    {
+                                      if (iswupper(standardName[a]))
+                                        standardName[b++] = standardName[a];
+                                    }
+                                  standardName[b] = L'\0';
+                                  ASSIGN(timeZoneNameAbbr,
+                                    [NSString stringWithCharacters: standardName
+                                    length: wcslen(standardName)]);
+                                }
 
-			      /* Abbr generated here is IMHO a
-			       * bit suspicous but I kept it */
-			      for (a = 0, b = 0; standardName[a]; a++)
-				{
-				  if (isupper(standardName[a]))
-				    standardName[b++] = standardName[a];
-				}
-			      standardName[b] = 0;
-			      ASSIGN(timeZoneNameAbbr,
-				[NSString stringWithUTF8String: standardName]);
-			    }
+                              /* Set the daylight savings name
+                               * for the time zone. */
+                              if (wcslen(daylightName))
+                                {
+                                  int a, b;
 
-			  /* Set the daylight savings name for the time zone. */
-			  if (strlen(daylightName))
-			    {
-			      int a, b;
+                                  ASSIGN(daylightZoneName,
+                                    [NSString stringWithCharacters: daylightName
+                                    length: wcslen(daylightName)]);
 
-			      ASSIGN(daylightZoneName,
-				[NSString stringWithUTF8String: daylightName]);
-
-			      /* Abbr generated here is IMHO
-			       * a bit suspicous but I kept it */
-			      for (a = 0, b = 0; daylightName[a]; a++)
-				{
-				  if (isupper(daylightName[a]))
-				    daylightName[b++] = daylightName[a];
-				}
-			      daylightName[b] = 0;
-			      ASSIGN(daylightZoneNameAbbr,
-				[NSString stringWithUTF8String: daylightName]);
-			    }
-			}
-		      RegCloseKey(regKey);
-		    }			
-		}
-	    }
-	}
+                                  /* Abbr generated here is IMHO
+                                   * a bit suspicous but I kept it */
+                                  for (a = 0, b = 0; daylightName[a]; a++)
+                                    {
+                                      if (iswupper(daylightName[a]))
+                                        daylightName[b++] = daylightName[a];
+                                    }
+                                  daylightName[b] = L'\0';
+                                  ASSIGN(daylightZoneNameAbbr,
+                                    [NSString stringWithCharacters: daylightName
+                                    length: wcslen(daylightName)]);
+                                }
+                            }
+                          RegCloseKey(regKey);
+                        }			       
+                    }
+                }
+              free(wName);
+            }
+        }
       RegCloseKey(regDirKey);
+    }
+  if (NO == tzFound)
+    {
+      DESTROY(self);
     }
   return self;
 }
@@ -2366,9 +2622,9 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
         {
 	  return NO;
 	}
-  }
+    }
 
-  dow = ((int)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
+  dow = ((NSInteger)((when / 86400.0) + GREGORIAN_REFERENCE)) % 7;
   if (dow < 0)
     dow += 7;
 
@@ -2377,13 +2633,13 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
       daylightdate = day - dow + DaylightDate.wDayOfWeek;
       maxdate = lastDayOfGregorianMonth(DaylightDate.wMonth, year)-7;
       while (daylightdate > 7)
-        daylightdate-=7;
+        daylightdate -= 7;
       if (daylightdate < 1)
         daylightdate += 7;
-      count=DaylightDate.wDay;
-      while (count>1 && daylightdate < maxdate)
+      count = DaylightDate.wDay;
+      while (count > 1 && daylightdate < maxdate)
         {
-          daylightdate+=7;
+          daylightdate += 7;
           count--;
         }
       if (day > daylightdate)
@@ -2411,13 +2667,13 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
       daylightdate = day - dow + StandardDate.wDayOfWeek;
       maxdate = lastDayOfGregorianMonth(StandardDate.wMonth, year)-7;
       while (daylightdate > 7)
-        daylightdate-=7;
+        daylightdate -= 7;
       if (daylightdate < 1)
         daylightdate += 7;
-      count=StandardDate.wDay;
-      while (count>1 && daylightdate < maxdate)
+      count = StandardDate.wDay;
+      while (count > 1 && daylightdate < maxdate)
         {
-          daylightdate+=7;
+          daylightdate += 7;
           count--;
         }
       if (day > daylightdate)
@@ -2458,7 +2714,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
     }
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   if ([self isDaylightSavingTimeForDate: aDate])
     return -Bias*60 - DaylightBias*60;
@@ -2508,7 +2764,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   return [self name];
 }
 @end
-#endif // __MINGW32__
+#endif // __MINGW__
 
 
 @implementation	GSTimeZone
@@ -2643,9 +2899,9 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 		      format: @"TZ_MAGIC is incorrect"];
 	}
 #endif
-      n_trans = GSSwapBigI32ToHost(*(int32_t*)header->tzh_timecnt);
-      n_types = GSSwapBigI32ToHost(*(int32_t*)header->tzh_typecnt);
-      charcnt = GSSwapBigI32ToHost(*(int32_t*)header->tzh_charcnt);
+      n_trans = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_timecnt);
+      n_types = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_typecnt);
+      charcnt = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_charcnt);
 
       i = pos;
       i += sizeof(int32_t)*n_trans;
@@ -2788,7 +3044,7 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
   return timeZoneName;
 }
 
-- (int) secondsFromGMTForDate: (NSDate*)aDate
+- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
   TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
 

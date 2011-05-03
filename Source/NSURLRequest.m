@@ -1,13 +1,13 @@
 /* Implementation for NSURLRequest for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,17 +16,19 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
+#import "common.h"
 
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSCoder.h"
-#include "NSCallBacks.h"
+#define	EXPOSE_NSURLRequest_IVARS	1
+#import "GSURLPrivate.h"
+#import "GSPrivate.h"
+
+#import "Foundation/NSCoder.h"
 
 
 // Internal data storage
@@ -34,7 +36,7 @@ typedef struct {
   NSData			*body;
   NSInputStream			*bodyStream;
   NSString			*method;
-  NSMapTable			*headers;
+  NSMutableDictionary		*headers;
   BOOL				shouldHandleCookies;
   NSURL				*URL;
   NSURL				*mainDocumentURL;
@@ -46,11 +48,11 @@ typedef struct {
 /* Defines to get easy access to internals from mutable/immutable
  * versions of the class and from categories.
  */
-typedef struct {
-  @defs(NSURLRequest)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLRequestInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLRequestInternal))
+#define	this	((Internal*)(self->_NSURLRequestInternal))
+#define	inst	((Internal*)(((NSURLRequest*)o)->_NSURLRequestInternal))
+
+@interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
+@end
 
 @implementation	NSURLRequest
 
@@ -112,14 +114,7 @@ typedef struct {
 	  ASSIGN(inst->bodyStream, this->bodyStream);
 	  ASSIGN(inst->method, this->method);
 	  inst->shouldHandleCookies = this->shouldHandleCookies;
-	  if (this->headers == 0)
-	    {
-	      inst->headers = 0;
-	    }
-	  else
-	    {
-	      inst->headers = NSCopyMapTableWithZone(this->headers, z);
-	    }
+          inst->headers = [this->headers mutableCopy];
 	}
     }
   return o;
@@ -135,10 +130,7 @@ typedef struct {
       RELEASE(this->URL);
       RELEASE(this->mainDocumentURL);
       RELEASE(this->properties);
-      if (this->headers != 0)
-        {
-	  NSFreeMapTable(this->headers);
-	}
+      RELEASE(this->headers);
       NSZoneFree([self zone], this);
     }
   [super dealloc];
@@ -173,9 +165,14 @@ typedef struct {
   return self;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [this->URL hash];
+}
+
+- (id) init
+{
+  return [self initWithURL: nil];
 }
 
 - (id) initWithURL: (NSURL *)URL
@@ -189,12 +186,17 @@ typedef struct {
        cachePolicy: (NSURLRequestCachePolicy)cachePolicy
    timeoutInterval: (NSTimeInterval)timeoutInterval
 {
-  if ((self = [super init]) != nil)
+  if ([URL isKindOfClass: [NSURL class]] == NO)
+    {
+      DESTROY(self);
+    }
+  else if ((self = [super init]) != nil)
     {
       this->URL = RETAIN(URL);
       this->cachePolicy = cachePolicy;
       this->timeoutInterval = timeoutInterval;
       this->mainDocumentURL = nil;
+      this->method = @"GET";
     }
   return self;
 }
@@ -235,32 +237,10 @@ typedef struct {
     {
       return NO;
     }
-  if (this->headers != inst->headers)
+  if (this->headers != inst->headers
+    && [this->headers isEqual: inst->headers] == NO)
     {
-      NSMapEnumerator	enumerator;
-      id		k;
-      id		v;
-
-      if (this->headers == 0 || inst->headers == 0)
-	{
-	  return NO;
-	}
-      if (NSCountMapTable(this->headers) != NSCountMapTable(inst->headers))
-	{
-	  return NO;
-	}
-      enumerator = NSEnumerateMapTable(this->headers);
-      while (NSNextMapEnumeratorPair(&enumerator, (void **)(&k), (void**)&v))
-	{
-	  id	ov = (id)NSMapGet(inst->headers, (void*)k);
-
-	  if ([v isEqual: ov] == NO)
-	    {
-	      NSEndMapTableEnumeration(&enumerator);
-	      return NO;
-	    }
-	}
-      NSEndMapTableEnumeration(&enumerator);
+      return NO;
     }
   return YES;
 }
@@ -287,14 +267,7 @@ typedef struct {
       ASSIGN(inst->bodyStream, this->bodyStream);
       ASSIGN(inst->method, this->method);
       inst->shouldHandleCookies = this->shouldHandleCookies;
-      if (this->headers == 0)
-        {
-	  inst->headers = 0;
-	}
-      else
-	{
-	  inst->headers = NSCopyMapTableWithZone(this->headers, z);
-	}
+      inst->headers = [this->headers mutableCopy];
     }
   return o;
 }
@@ -336,62 +309,19 @@ typedef struct {
 
 @end
 
-
-
-/*
- * Implement map keys for strings with case insensitive comparisons,
- * so we can have case insensitive matching of http headers (correct
- * behavior), but actually preserve case of headers stored and written
- * in case the remote server is buggy and requires particular
- * captialisation of headers (some http software is faulty like that).
- */
-static unsigned int
-_non_retained_id_hash(void *table, NSString* o)
-{
-  return [[o uppercaseString] hash];
-}
-
-static BOOL
-_non_retained_id_is_equal(void *table, NSString *o, NSString *p)
-{
-  return ([o caseInsensitiveCompare: p] == NSOrderedSame) ? YES : NO;
-}
-
-typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
-typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *, const void *);
-typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
-typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
-typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
-
-static const NSMapTableKeyCallBacks headerKeyCallBacks =
-{
-  (NSMT_hash_func_t) _non_retained_id_hash,
-  (NSMT_is_equal_func_t) _non_retained_id_is_equal,
-  (NSMT_retain_func_t) _NS_non_retained_id_retain,
-  (NSMT_release_func_t) _NS_non_retained_id_release,
-  (NSMT_describe_func_t) _NS_non_retained_id_describe,
-  NSNotAPointerMapKey
-};
-
 @implementation NSURLRequest (NSHTTPURLRequest)
 
 - (NSDictionary *) allHTTPHeaderFields
 {
-  NSMutableDictionary	*fields;
+  NSDictionary	*fields;
 
-  fields = [NSMutableDictionary dictionaryWithCapacity: 8];
-  if (this->headers != 0)
+  if (this->headers == nil)
     {
-      NSMapEnumerator	enumerator;
-      NSString		*k;
-      NSString		*v;
-
-      enumerator = NSEnumerateMapTable(this->headers);
-      while (NSNextMapEnumeratorPair(&enumerator, (void **)(&k), (void**)&v))
-	{
-	  [fields setObject: v forKey: k];
-	}
-      NSEndMapTableEnumeration(&enumerator);
+      fields = [NSDictionary dictionary];
+    }
+  else
+    {
+      fields = [NSDictionary dictionaryWithDictionary: this->headers];
     }
   return fields;
 }
@@ -418,13 +348,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 
 - (NSString *) valueForHTTPHeaderField: (NSString *)field
 {
-  NSString	*value = nil;
-
-  if (this->headers != 0)
-    {
-      value = (NSString*)NSMapGet(this->headers, (void*)field);
-    }
-  return value;
+  return [this->headers objectForKey: field];
 }
 
 @end
@@ -474,6 +398,14 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 
 - (void) setHTTPMethod: (NSString *)method
 {
+/* NB. I checked MacOS-X 4.2, and this method actually lets you set any
+ * copyable value (including non-string classes), but setting nil is
+ * equivalent to resetting to the default value of 'GET'
+ */
+  if (method == nil)
+    {
+      method = @"GET";
+    }
   ASSIGNCOPY(this->method, method);
 }
 
@@ -484,12 +416,11 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 
 - (void) setValue: (NSString *)value forHTTPHeaderField: (NSString *)field
 {
-  if (this->headers == 0)
+  if (this->headers == nil)
     {
-      this->headers = NSCreateMapTable(headerKeyCallBacks,
-	NSObjectMapValueCallBacks, 8);
+      this->headers = [_GSMutableInsensitiveDictionary new];
     }
-  NSMapInsert(this->headers, (void*)field, (void*)value);
+  [this->headers setObject: value forKey: field];
 }
 
 @end

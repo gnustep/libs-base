@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -35,9 +35,9 @@ extern "C" {
 @interface NSProxy <NSObject>
 {
 @public
-    Class		isa;
+    Class	isa;
 @private
-    unsigned int	_retain_count;
+    NSUInteger	_retain_count;
 }
 
 + (id) alloc;
@@ -55,7 +55,7 @@ extern "C" {
 + (void) release;
 + (BOOL) respondsToSelector: (SEL)aSelector;
 + (id) retain;
-+ (unsigned int) retainCount;
++ (NSUInteger) retainCount;
 
 - (id) autorelease;
 - (Class) class;
@@ -63,7 +63,7 @@ extern "C" {
 - (void) dealloc;
 - (NSString*) description;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (unsigned int) hash;
+- (NSUInteger) hash;
 - (id) init;
 - (BOOL) isEqual: (id)anObject;
 - (BOOL) isKindOfClass: (Class)aClass;
@@ -73,7 +73,7 @@ extern "C" {
 - (void) release;
 - (BOOL) respondsToSelector: (SEL)aSelector;
 - (id) retain;
-- (unsigned int) retainCount;
+- (NSUInteger) retainCount;
 - (id) self;
 - (Class) superclass;
 - (NSZone*) zone;

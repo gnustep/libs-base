@@ -6,7 +6,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -15,7 +15,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -24,15 +24,14 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSInvocation.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSUndoManager.h"
+#import "common.h"
+#define	EXPOSE_NSUndoManager_IVARS	1
+#import "Foundation/NSArray.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSUndoManager.h"
 
 /*
  *	Private class for grouping undo/redo actions.
@@ -155,19 +154,44 @@
  *	Private category for the method used to handle default grouping
  */
 @interface NSUndoManager (Private)
+- (void) _begin;
 - (void) _loop: (id)arg;
 @end
 
 @implementation NSUndoManager (Private)
+/* This method is used to begin undo grouping internally.
+ * It's necessary to have a different mechanism from the -beginUndoGrouping
+ * because it seems that in MacOS X a call to -beginUndoGrouping when at the
+ * top level will actually create two undo groups.
+ */
+- (void) _begin
+{
+  PrivateUndoGroup	*parent;
+
+  parent = (PrivateUndoGroup*)_group;
+  _group = [[PrivateUndoGroup alloc] initWithParent: parent];
+  if (_group == nil)
+    {
+      _group = parent;
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"beginUndoGrouping failed to greate group"];
+    }
+  else
+    {
+      RELEASE(parent);
+
+      if (_isUndoing == NO && _isRedoing == NO)
+        [[NSNotificationCenter defaultCenter]
+	    postNotificationName: NSUndoManagerDidOpenUndoGroupNotification
+			  object: self];
+    }
+}
+
 - (void) _loop: (id)arg
 {
-  if (_groupsByEvent)
+  if (_groupsByEvent && _group != nil)
     {
-      if (_group != nil)
-	{
-	  [self endUndoGrouping];
-	}
-      [self beginUndoGrouping];
+      [self endUndoGrouping];
     }
   _runLoopGroupingPending = NO;
 }
@@ -190,37 +214,32 @@
 
 /**
  * Starts a new grouping of undo actions which can be
- * atomically undone by an [-undo] invocation.
- * This method posts an NSUndoManagerCheckpointNotification
- * unless an undo is currently in progress.  It posts an
- * NSUndoManagerDidOpenUndoGroupNotification upon creating the grouping.
+ * atomically undone by an [-undo] invocation.<br />
+ * This method posts an NSUndoManagerDidOpenUndoGroupNotification
+ * upon creating the grouping.<br />
+ * It first posts an NSUndoManagerCheckpointNotification
+ * unless an undo is currently in progress.<br />
+ * The order of these notifications is undefined, but the GNUstep
+ * implementation currently mimics the observed order in MacOS X 10.5
  */
 - (void) beginUndoGrouping
 {
-  PrivateUndoGroup	*parent;
+  /* It seems that MacOS X implicitly creates a top-level group if this
+   * method is called when groupsByEvent is set and there is no existing
+   * top level group.  There is no checkpoint notification posted for the
+   * implicit group creation.
+   */
+  if (_group == nil && [self groupsByEvent])
+    {
+      [self _begin];	// Start top level group
+    }
 
-  if (_isUndoing == NO)
-    {
-      [[NSNotificationCenter defaultCenter]
-	  postNotificationName: NSUndoManagerCheckpointNotification
-			object: self];
-    }
-  parent = (PrivateUndoGroup*)_group;
-  _group = [[PrivateUndoGroup alloc] initWithParent: parent];
-  if (_group == nil)
-    {
-      _group = parent;
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"beginUndoGrouping failed to greate group"];
-    }
-  else
-    {
-      RELEASE(parent);
-
-      [[NSNotificationCenter defaultCenter]
-	  postNotificationName: NSUndoManagerDidOpenUndoGroupNotification
-			object: self];
-    }
+  /* Post the checkpoint notification and THEN create the group.
+   */
+  [[NSNotificationCenter defaultCenter]
+      postNotificationName: NSUndoManagerCheckpointNotification
+		    object: self];
+  [self _begin];	// Start a new group
 }
 
 /**
@@ -329,13 +348,14 @@
   [[NSNotificationCenter defaultCenter]
       postNotificationName: NSUndoManagerCheckpointNotification
 		    object: self];
+  if (_isUndoing == NO && _isRedoing == NO)
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName: NSUndoManagerWillCloseUndoGroupNotification
+		      object: self];
   g = (PrivateUndoGroup*)_group;
   p = RETAIN([g parent]);
   _group = p;
   [g orphan];
-  [[NSNotificationCenter defaultCenter]
-      postNotificationName: NSUndoManagerWillCloseUndoGroupNotification
-		    object: self];
   if (p == nil)
     {
       if (_isUndoing)
@@ -421,7 +441,7 @@
 	{
 	  if ([self groupsByEvent])
 	    {
-	      [self beginUndoGrouping];
+	      [self _begin];
 	    }
 	  else
 	    {
@@ -476,7 +496,7 @@
  * groupings which can be nested, not the number of of groups on either
  * the undo or redo stack.
  */
-- (int) groupingLevel
+- (NSInteger) groupingLevel
 {
   PrivateUndoGroup	*g = (PrivateUndoGroup*)_group;
   int			level = 0;
@@ -552,7 +572,7 @@
  * The default value is 0 meaning the number is only limited by
  * memory availability.
  */
-- (unsigned int) levelsOfUndo
+- (NSUInteger) levelsOfUndo
 {
   return _levelsOfUndo;
 }
@@ -615,7 +635,7 @@
       _group = nil;
       _isRedoing = YES;
 
-      [self beginUndoGrouping];
+      [self _begin];
       [groupToRedo perform];
       RELEASE(groupToRedo);
       [self endUndoGrouping];
@@ -715,7 +735,7 @@
 	{
 	  if ([self groupsByEvent])
 	    {
-	      [self beginUndoGrouping];
+	      [self _begin];
 	    }
 	  else
 	    {
@@ -848,7 +868,7 @@
  * When set to 0 the stack size is limited by the range of a unsigned int,
  * available memory.
  */
-- (void) setLevelsOfUndo: (unsigned)num
+- (void) setLevelsOfUndo: (NSUInteger)num
 {
   _levelsOfUndo = num;
   if (num > 0)
@@ -876,15 +896,18 @@
   if (_modes != newModes)
     {
       ASSIGN(_modes, newModes);
-      [[NSRunLoop currentRunLoop] cancelPerformSelector: @selector(_loop:)
-						 target: self
-					       argument: nil];
-      [[NSRunLoop currentRunLoop] performSelector: @selector(_loop:)
-	target: self
-	argument: nil
-	order: NSUndoCloseGroupingRunLoopOrdering
-	modes: _modes];
-      _runLoopGroupingPending = YES;
+      if (_runLoopGroupingPending)
+	{
+	  NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+	  [runLoop cancelPerformSelector: @selector(_loop:)
+				  target: self
+				argument: nil];
+	  [runLoop performSelector: @selector(_loop:)
+			    target: self
+			  argument: nil
+			     order: NSUndoCloseGroupingRunLoopOrdering
+			     modes: _modes];
+	}
     }
 }
 
@@ -1015,7 +1038,7 @@
 
   name = [NSString stringWithString: [groupToUndo actionName]];
 
-  [self beginUndoGrouping];
+  [self _begin];
   [groupToUndo perform];
   RELEASE(groupToUndo);
   [self endUndoGrouping];
@@ -1032,3 +1055,39 @@
 
 @end
 
+/*
+ * Category with auxiliary method to support coalescing undo actions
+ * for typing events in NSTextView. However, the implementation is
+ * not restricted to that purpose.
+ */
+@interface NSUndoManager(UndoCoalescing)
+- (BOOL) _canCoalesceUndoWithTarget: (id)target
+			   selector: (SEL)aSelector
+			     object: (id)anObject;
+@end
+
+@implementation NSUndoManager(UndoCoalescing)
+- (BOOL) _canCoalesceUndoWithTarget: (id)target
+			   selector: (SEL)aSelector
+			     object: (id)anObject
+{
+  if (_isUndoing == NO && _isRedoing == NO && [_undoStack count] > 0)
+    {
+      int      i;
+      NSArray *a = [[_undoStack lastObject] actions];
+
+      for (i = 0; i < [a count]; i++)
+        {
+	  NSInvocation *inv = [a objectAtIndex: i];
+	  if ([inv target] == target && [inv selector] == aSelector)
+	    {
+	      id object;
+	      [inv getArgument: &object atIndex: 2];
+	      if (object == anObject)
+		return YES;
+	    }
+	}
+    }
+  return NO;
+}
+@end

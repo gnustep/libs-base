@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -30,6 +30,7 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<objc/objc.h>
 
+#import	<Foundation/FoundationErrors.h>
 #import	<Foundation/NSObjCRuntime.h>
 #import <GNUstepBase/GSConfig.h>
 #import	<Foundation/NSDebug.h>
@@ -42,6 +43,7 @@
 #import	<Foundation/NSAutoreleasePool.h>
 #import	<Foundation/NSBundle.h>
 #import	<Foundation/NSByteOrder.h>
+#import	<Foundation/NSCache.h>
 #import	<Foundation/NSCalendar.h>
 #import	<Foundation/NSCalendarDate.h>
 #import	<Foundation/NSCharacterSet.h>
@@ -65,6 +67,7 @@
 #import	<Foundation/NSFileHandle.h>
 #import	<Foundation/NSFileManager.h>
 #import	<Foundation/NSFormatter.h>
+#import	<Foundation/NSGarbageCollector.h>
 #import	<Foundation/NSGeometry.h>
 #import	<Foundation/NSHashTable.h>
 #import	<Foundation/NSHost.h>
@@ -75,6 +78,7 @@
 #import	<Foundation/NSInvocation.h>
 #import	<Foundation/NSKeyedArchiver.h>
 #import	<Foundation/NSKeyValueCoding.h>
+#import	<Foundation/NSKeyValueObserving.h>
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
@@ -84,7 +88,10 @@
 #import	<Foundation/NSNetServices.h>
 #import	<Foundation/NSNull.h>
 #import	<Foundation/NSNumberFormatter.h>
+#import	<Foundation/NSOperation.h>
 #import	<Foundation/NSPathUtilities.h>
+#import	<Foundation/NSPointerArray.h>
+#import	<Foundation/NSPointerFunctions.h>
 #import	<Foundation/NSPortCoder.h>
 #import	<Foundation/NSPortMessage.h>
 #import	<Foundation/NSPortNameServer.h>
@@ -122,6 +129,12 @@
 #import	<Foundation/NSUserDefaults.h>
 #import	<Foundation/NSValue.h>
 #import	<Foundation/NSValueTransformer.h>
+#import <Foundation/NSXMLDocument.h>
+#import <Foundation/NSXMLDTD.h>
+#import <Foundation/NSXMLDTDNode.h>
+#import <Foundation/NSXMLElement.h>
+#import <Foundation/NSXMLNode.h>
+#import <Foundation/NSXMLNodeOptions.h>
 #import	<Foundation/NSXMLParser.h>
 #import	<Foundation/NSZone.h>
 

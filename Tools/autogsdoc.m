@@ -10,11 +10,11 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYING.LIB.
+   License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -86,7 +86,12 @@
       comment text is reformatted and then inserted into the output.<br />
       Where multiple comments are associated with the same item, they are
       joined together with a line break (&lt;br /&gt;) between each if
-      necessary.
+      necessary.<br />
+      Within a comment the special markup &lt;ignore&gt; and &lt;/ignore&gt;
+      may be used to tell autogsdoc to completely ignore the sourcecode
+      between these two pieces of markup (ie. the parser will skip from the
+      point just before it is told to start ignoring, to just after the point
+      where it is told to stop (or end of file if that occurs first).
     </p>
     <p>
       The tool can easily be used to document programs as well as libraries,
@@ -547,7 +552,7 @@
 <example>
   &lt;?xml version="1.0"?&gt;
   &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN"
-  "http://www.gnustep.org/gsdoc-1_0_3.xml"&gt;
+  "http://www.gnustep.org/gsdoc-1_0_3.dtd"&gt;
   &lt;gsdoc base="index"&gt;
     &lt;head&gt;
       &lt;title&gt;My project reference&lt;/title&gt;
@@ -592,16 +597,25 @@
 
    */
 
-#include	<config.h>
+#import	"common.h"
 
-#include "AGSParser.h"
-#include "AGSOutput.h"
-#include "AGSIndex.h"
-#include "AGSHtml.h"
-#include "GNUstepBase/GNUstep.h"
-#ifdef NeXT_Foundation_LIBRARY
-#include "GNUstepBase/GSCategories.h"
-#endif
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSEnumerator.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSSet.h"
+#import	"Foundation/NSUserDefaults.h"
+
+#import "AGSParser.h"
+#import "AGSOutput.h"
+#import "AGSIndex.h"
+#import "AGSHtml.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /** Invokes the autogsdoc tool. */
 int
@@ -635,6 +649,7 @@ main(int argc, char **argv, char **env)
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
+  NSString              *symbolDeclsFile = nil;
   NSMutableSet		*deps = nil;
 #if GS_WITH_GC == 0
   NSAutoreleasePool	*outer = nil;
@@ -666,6 +681,7 @@ main(int argc, char **argv, char **env)
           supposed to).
       4c) Remove index file.
       4d) Remove HTML files corresponding to .gsdoc files in current list.
+      4e) Remove the OrderedSymbolDeclarations plist file
 
    5) Start with "source files".. for each one (hereafter called a "header
       file"):
@@ -704,7 +720,7 @@ main(int argc, char **argv, char **env)
    */
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
 
 #if GS_WITH_GC == 0
@@ -794,6 +810,11 @@ main(int argc, char **argv, char **env)
     @"\t\tBOOL\t(NO)\n\tif YES, create documentation pages "
       @"for display in HTML frames",
     @"MakeFrames",
+    @"\t\tString\t(nil)\n\tIf set, look for DTDs in the given directory",
+    @"DTDs",
+    @"\tBOOL\t(NO)\n\tif YES, wrap paragraphs delimited by \\n\\n in "
+      @"<p> tags when possible",
+    @"GenerateParagraphMarkup",
     nil];
   argSet = [NSSet setWithArray: [argsRecognized allKeys]];
   argsGiven = [[NSProcessInfo processInfo] arguments];
@@ -838,6 +859,10 @@ main(int argc, char **argv, char **env)
 
   mgr = [NSFileManager defaultManager];
 
+  if ([GSXMLParser respondsToSelector: @selector(setDTDs:)])
+    {
+      [GSXMLParser setDTDs: [defs stringForKey: @"DTDs"]];
+    }
 
   verbose = [defs boolForKey: @"Verbose"];
   warn = [defs boolForKey: @"Warn"];
@@ -884,6 +909,9 @@ main(int argc, char **argv, char **env)
     {
       [mgr createDirectoryAtPath: documentationDirectory attributes: nil];
     }
+
+  symbolDeclsFile = [documentationDirectory 
+    stringByAppendingPathComponent: @"OrderedSymbolDeclarations.plist"];
 
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
@@ -1157,6 +1185,18 @@ main(int argc, char **argv, char **env)
 		}
 	    }
 	}
+
+      /*
+       * 4e) Remove the OrderedSymbolDeclarations plist file.
+       */
+      if ([mgr fileExistsAtPath: symbolDeclsFile])
+	{
+	  if ([mgr removeFileAtPath: symbolDeclsFile handler: nil] == NO)
+	    {
+	      NSLog(@"Cleaning ... failed to remove %@", symbolDeclsFile);
+	    }
+	}
+
       return 0;
     }
 
@@ -1209,6 +1249,7 @@ main(int argc, char **argv, char **env)
 	  NSString		*hfile = [sFiles objectAtIndex: i];
 	  NSString		*gsdocfile;
 	  NSString		*file;
+	  NSString              *sourceName = nil;
 	  NSMutableArray	*a;
 	  NSDictionary		*attrs;
 	  NSDate		*sDate = nil;
@@ -1259,6 +1300,7 @@ main(int argc, char **argv, char **env)
 	       */
 	      a = [projectRefs sourcesForHeader: hfile];
 	      [a insertObject: hfile atIndex: 0];
+	      [projectRefs setSources: a forHeader: hfile];
 	      for (j = 0; j < [a count]; j++)
 		{
 		  NSString	*sfile = [a objectAtIndex: j];
@@ -1269,7 +1311,7 @@ main(int argc, char **argv, char **env)
 		  if (sDate == nil || [d earlierDate: sDate] == sDate)
 		    {
 		      sDate = d;
-		      AUTORELEASE(RETAIN(sDate));
+		      IF_NO_GC([[sDate retain] autorelease];)
 		    }
 		}
 	      if (verbose == YES)
@@ -1286,6 +1328,7 @@ main(int argc, char **argv, char **env)
 	      if ([a count] == 0)
 		{
 		  [a insertObject: gsdocfile atIndex: 0];
+                  [projectRefs setOutputs: a forHeader: hfile];
 		}
 	      for (j = 0; j < [a count]; j++)
 		{
@@ -1296,7 +1339,7 @@ main(int argc, char **argv, char **env)
 		  if (gDate == nil || [d laterDate: gDate] == gDate)
 		    {
 		      gDate = d;
-		      AUTORELEASE(RETAIN(gDate));
+		      IF_NO_GC([[gDate retain] autorelease];)
 		    }
 		}
 	      if (verbose == YES)
@@ -1361,7 +1404,24 @@ main(int argc, char **argv, char **env)
 		    }
 		  [projectRefs setOutputs: a forHeader: hfile];
 		}
+
 	      a = [parser sources];
+              /*
+               * Collect any matching .m files provided as autogsdoc arguments 
+               * for the current header (hfile).
+               */
+              sourceName = [[hfile lastPathComponent] 
+                stringByDeletingPathExtension];
+              sourceName = [sourceName stringByAppendingPathExtension: @"m"];
+              for (j = 0; j < [sFiles count]; j++)
+                {
+                  NSString *sourcePath = [sFiles objectAtIndex: j];
+                  if ([sourcePath hasSuffix: sourceName] 
+                   && [mgr isReadableFileAtPath: sourcePath])
+                    {
+                      [a addObject: sourcePath];
+                    }
+                }
 	      if ([a count] > 0)
 		{
 		  [projectRefs setSources: a forHeader: hfile];
@@ -1434,6 +1494,13 @@ main(int argc, char **argv, char **env)
 	      [gFiles addObject: [hfile lastPathComponent]];
 	    }
 	}
+
+      /* 
+       * Ask the parser for the OrderedSymbolDeclarations plist and save it
+       */
+      [[parser orderedSymbolDeclarationsByUnit] writeToFile: symbolDeclsFile 
+                                                 atomically: YES];
+
       informalProtocols = RETAIN([output informalProtocols]);
 #if GS_WITH_GC == 0
       DESTROY(pool);
@@ -1495,7 +1562,7 @@ main(int argc, char **argv, char **env)
 	    {
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
 	      gDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
+	      IF_NO_GC([[gDate retain] autorelease];)
 	    }
 
 	  /*
@@ -1601,7 +1668,7 @@ main(int argc, char **argv, char **env)
 	  systemProjects = @"";
 	}
       projects = [[defs dictionaryForKey: @"Projects"] mutableCopy];
-      AUTORELEASE(projects);
+      IF_NO_GC([projects autorelease];)
 
       /*
        * Merge any system project references.
@@ -1774,7 +1841,7 @@ main(int argc, char **argv, char **env)
 
       // skeleton for table of contents files
       [tocSkel setString: @"<?xml version=\"1.0\"?>\n"
-@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.3//EN\" \"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"
+@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.3//EN\" \"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"
 @"<gsdoc base=\"[typeU]\" stylesheeturl=\"gsdoc_contents\">\n"
 @"  <head>\n"
 @"    <title>[typeU]</title>\n"
@@ -1880,7 +1947,7 @@ main(int argc, char **argv, char **env)
 @"named %@ in the documentation output directory.\n"
 @"Then include this file in the arguments to autogsdoc.\n\n", prjFile);
           [prjFileContents setString: @"<?xml version=\"1.0\"?>\n"
-@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.3//EN\" \"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"
+@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.3//EN\" \"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"
 @"<gsdoc base=\"[prjName]\">\n"
 @"  <head>\n"
 @"    <title>The [prjName] Project</title>\n"
@@ -1962,10 +2029,10 @@ main(int argc, char **argv, char **env)
 	       */
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
 	      gDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
+	      IF_NO_GC([[gDate retain] autorelease];)
 	      attrs = [mgr fileAttributesAtPath: htmlfile traverseLink: YES];
 	      hDate = [attrs fileModificationDate];
-	      AUTORELEASE(RETAIN(hDate));
+	      IF_NO_GC([[hDate retain] autorelease];)
 	    }
 
 	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)

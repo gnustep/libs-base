@@ -4,21 +4,18 @@
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
 
-   This file is part of the GNUstep Base Library.
+   This file is part of the GNUstep Project
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
-   License as published by the Free Software Foundation; either
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
-
    You should have received a copy of the GNU General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   License along with this program; see the file COPYING.
+   If not, write to the Free Software Foundation,
+   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
    */
 
 #define	GDNC_SERVICE	@"GDNCServer"
@@ -29,11 +26,11 @@
 			      object: (NSString*)object
 			    userInfo: (NSData*)info
 			    selector: (NSString*)aSelector
-				  to: (unsigned long)observer;
+				  to: (uint64_t)observer;
 @end
 
 @protocol	GDNCProtocol
-- (void) addObserver: (unsigned long)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
@@ -48,7 +45,7 @@
 
 - (void) registerClient: (id<GDNCClient>)client;
 
-- (void) removeObserver: (unsigned long)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationname
 		 object: (NSString*)anObject
 		    for: (id<GDNCClient>)client;

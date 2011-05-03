@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,22 +16,23 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
    */ 
 
-#include	<Foundation/NSByteOrder.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSHashTable.h>
-#include	<Foundation/NSIndexPath.h>
-#include	<Foundation/NSKeyedArchiver.h>
-#include	<Foundation/NSLock.h>
-#include	<Foundation/NSZone.h>
-#include	"GNUstepBase/GSLock.h"
+#import "common.h"
+#define	EXPOSE_NSIndexPath_IVARS	1
+#import	"Foundation/NSByteOrder.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSHashTable.h"
+#import	"Foundation/NSIndexPath.h"
+#import	"Foundation/NSKeyedArchiver.h"
+#import	"Foundation/NSLock.h"
+#import	"GNUstepBase/GSLock.h"
 
 static	NSLock		*lock = nil;
 static	NSHashTable	*shared = 0;
@@ -50,18 +51,17 @@ static	NSIndexPath	*dummy = nil;
   return [super allocWithZone: aZone];
 }
 
-+ (id) indexPathWithIndex: (unsigned)anIndex
++ (id) indexPathWithIndex: (NSUInteger)anIndex
 {
   return [self indexPathWithIndexes: &anIndex length: 1];
 }
 
-+ (id) indexPathWithIndexes: (unsigned*)indexes length: (unsigned)length
++ (id) indexPathWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   o = [o initWithIndexes: indexes length: length];
-  AUTORELEASE(o);
-  return o;
+  return AUTORELEASE(o);
 }
 
 + (void) initialize
@@ -81,10 +81,10 @@ static	NSIndexPath	*dummy = nil;
 {
   if (other != self)
     {
-      unsigned	olength = other->_length;
-      unsigned	*oindexes = other->_indexes;
-      unsigned	end = (_length > olength) ? _length : olength;
-      unsigned	pos;
+      NSUInteger	olength = other->_length;
+      NSUInteger	*oindexes = other->_indexes;
+      NSUInteger	end = (_length > olength) ? _length : olength;
+      NSUInteger	pos;
 
       for (pos = 0; pos < end; pos++)
 	{
@@ -126,7 +126,7 @@ static	NSIndexPath	*dummy = nil;
       NSHashRemove(shared, self);
       [lock unlock];
       NSZoneFree(NSDefaultMallocZone(), _indexes);
-      NSDeallocateObject(self);
+      [super dealloc];
     }
   GSNOSUPERDEALLOC;
 }
@@ -134,7 +134,7 @@ static	NSIndexPath	*dummy = nil;
 - (NSString*) description
 {
   NSMutableString	*m = [[super description] mutableCopy];
-  unsigned		i;
+  NSUInteger		i;
 
   [m appendFormat: @"%u indexes [", _length];
   for (i = 0; i < _length; i++)
@@ -153,19 +153,19 @@ static	NSIndexPath	*dummy = nil;
 {
   if ([aCoder allowsKeyedCoding] == YES)
     {
-      [aCoder encodeInt: (int)_length forKey: @"NSIndexPathLength"];
+      [aCoder encodeInt: (NSInteger)_length forKey: @"NSIndexPathLength"];
       if (_length == 1)
 	{
-	  [aCoder encodeInt: (int)_indexes[0] forKey: @"NSIndexPathValue"];
+	  [aCoder encodeInt: (NSInteger)_indexes[0] forKey: @"NSIndexPathValue"];
 	}
       else if (_length > 1)
 	{
 	  NSMutableData	*m;
-	  unsigned	*buf;
-	  unsigned	i;
+	  NSUInteger	*buf;
+	  NSUInteger	i;
 
 	  m = [NSMutableData new];
-	  [m setLength: _length * sizeof(unsigned)];
+	  [m setLength: _length * sizeof(NSUInteger)];
 	  buf = [m mutableBytes];
 	  for (i = 0; i < _length; i++)
 	    {
@@ -177,27 +177,27 @@ static	NSIndexPath	*dummy = nil;
     }
   else
     {
-      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_length];
+      [aCoder encodeValueOfObjCType: @encode(NSUInteger) at: &_length];
       if (_length > 0)
 	{
-	  [aCoder encodeArrayOfObjCType: @encode(unsigned)
+	  [aCoder encodeArrayOfObjCType: @encode(NSUInteger)
 				  count: _length
 				     at: _indexes];
 	}
     }
 }
 
-- (void) getIndexes: (unsigned*)aBuffer
+- (void) getIndexes: (NSUInteger*)aBuffer
 {
-  memcpy(aBuffer, _indexes, _length * sizeof(unsigned));
+  memcpy(aBuffer, _indexes, _length * sizeof(NSUInteger));
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return _hash;
 }
 
-- (unsigned) indexAtPosition: (unsigned)position
+- (NSUInteger) indexAtPosition: (NSUInteger)position
 {
   if (position >= _length)
     {
@@ -209,9 +209,9 @@ static	NSIndexPath	*dummy = nil;
 /**
  * Return path formed by adding the index to the receiver.
  */
-- (NSIndexPath *) indexPathByAddingIndex: (unsigned)anIndex
+- (NSIndexPath *) indexPathByAddingIndex: (NSUInteger)anIndex
 {
-  unsigned	buffer[_length + 1];
+  NSUInteger	buffer[_length + 1];
 
   [self getIndexes: buffer];
   buffer[_length] = anIndex;
@@ -234,97 +234,99 @@ static	NSIndexPath	*dummy = nil;
 {
   if ([aCoder allowsKeyedCoding] == YES)
     {
-      unsigned	length;
-      unsigned	index;
+      NSUInteger	length;
+      NSUInteger	index;
 
-      length = (unsigned)[aCoder decodeIntForKey: @"NSIndexPathLength"];
+      length = [aCoder decodeIntegerForKey: @"NSIndexPathLength"];
       if (length == 1)
 	{
-	  index = (unsigned)[aCoder decodeIntForKey: @"NSIndexPathValue"];
+	  index = [aCoder decodeIntegerForKey: @"NSIndexPathValue"];
 	  self = [self initWithIndex: index];
 	}
       else if (length > 1)
 	{
 	  // FIXME ... not MacOS-X
 	  NSMutableData	*d = [aCoder decodeObjectForKey: @"NSIndexPathData"];
-	  unsigned	l = [d length];
-	  unsigned	s = l / length;
-	  unsigned	i;
+	  NSUInteger	l = [d length];
+	  NSUInteger	s = l / length;
+	  NSUInteger	i;
+          void          *src = [d mutableBytes];
+          NSUInteger    *dst;
 
-	  if (s == sizeof(unsigned))
+	  if (s == sizeof(NSUInteger))
 	    {
-	      unsigned	*ptr = (unsigned*)[d mutableBytes];
-
-	      for (i = 0; i < _length; i++)
-		{
-		  ptr[i] = NSSwapBigIntToHost(ptr[i]);
-		}
-	      self = [self initWithIndexes: ptr length: length];
-	    }
+              dst = (NSUInteger*)src;
+            }
 	  else
 	    {
-	      unsigned	*buf;
+	      dst = (NSUInteger*)NSZoneMalloc(NSDefaultMallocZone(),
+		length * sizeof(NSUInteger));
+            }
 
-	      buf = (unsigned*)NSZoneMalloc(NSDefaultMallocZone(),
-		length * sizeof(unsigned));
-	      if (s == sizeof(long))
-		{
-		  long	*ptr = (long*)[d mutableBytes];
+          if (s == sizeof(long))
+            {
+              long	*ptr = (long*)src;
 
-		  for (i = 0; i < _length; i++)
-		    {
-		      buf[i] = (unsigned)NSSwapBigLongToHost(ptr[i]);
-		    }
-		}
-	      else if (s == sizeof(short))
-		{
-		  short	*ptr = (short*)[d mutableBytes];
+              for (i = 0; i < _length; i++)
+                {
+                  dst[i] = (NSUInteger)NSSwapBigLongToHost(ptr[i]);
+                }
+            }
+          else if (s == sizeof(short))
+            {
+              short	*ptr = (short*)src;
 
-		  for (i = 0; i < _length; i++)
-		    {
-		      buf[i] = (unsigned)NSSwapBigShortToHost(ptr[i]);
-		    }
-		}
-	      else if (s == sizeof(long long))
-		{
-		  long long	*ptr = (long long*)[d mutableBytes];
+              for (i = 0; i < _length; i++)
+                {
+                  dst[i] = (NSUInteger)NSSwapBigShortToHost(ptr[i]);
+                }
+            }
+          else if (s == sizeof(long long))
+            {
+              long long	*ptr = (long long*)src;
 
-		  for (i = 0; i < _length; i++)
-		    {
-		      buf[i] = (unsigned)NSSwapBigLongLongToHost(ptr[i]);
-		    }
-		}
-	      else
-		{
-		  [NSException raise: NSGenericException format:
-		    @"Unable to decode unsigned integers of size %u", s];
-		}
-	      self = [self initWithIndexes: buf length: length];
-	      NSZoneFree(NSDefaultMallocZone(), buf);
+              for (i = 0; i < _length; i++)
+                {
+                  dst[i] = (NSUInteger)NSSwapBigLongLongToHost(ptr[i]);
+                }
+            }
+          else
+            {
+              if ((void*)dst != src)
+                {
+                  NSZoneFree(NSDefaultMallocZone(), dst);
+                }
+              [NSException raise: NSGenericException format:
+                @"Unable to decode unsigned integers of size %u", s];
+            }
+          self = [self initWithIndexes: dst length: length];
+          if ((void*)dst != src)
+            {
+	      NSZoneFree(NSDefaultMallocZone(), dst);
 	    }
 	}
     }
   else
     {
-      unsigned	length;
+      NSUInteger	length;
 
-      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &length];
+      [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &length];
       if (length == 0)
 	{
-	  RELEASE(self);
+	  DESTROY(self);
 	  self = empty;
 	}
       else
 	{
-	  unsigned	buf[16];
-	  unsigned	*indexes = buf;
+	  NSUInteger	buf[16];
+	  NSUInteger	*indexes = buf;
 
 	  if (length > 16)
 	    {
 	      indexes = NSZoneMalloc(NSDefaultMallocZone(),
-		length * sizeof(unsigned));
+		length * sizeof(NSUInteger));
 	    }
-	  [aCoder decodeArrayOfObjCType: @encode(unsigned)
+	  [aCoder decodeArrayOfObjCType: @encode(NSUInteger)
 				  count: length
 				     at: indexes];
 	  self = [self initWithIndexes: indexes length: length];
@@ -337,7 +339,7 @@ static	NSIndexPath	*dummy = nil;
   return self;
 }
 
-- (id) initWithIndex: (unsigned)anIndex
+- (id) initWithIndex: (NSUInteger)anIndex
 {
   return [self initWithIndexes: &anIndex length: 1];
 }
@@ -346,11 +348,11 @@ static	NSIndexPath	*dummy = nil;
  * Initialise the receiver to contain the specified indexes.<br />
  * May return an existing index path.
  */
-- (id) initWithIndexes: (unsigned*)indexes length: (unsigned)length
+- (id) initWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length
 {
   NSIndexPath	*found;
-  unsigned	h = 0;
-  unsigned	i;
+  NSUInteger	h = 0;
+  NSUInteger	i;
 
   if (_length != 0)
     {
@@ -378,13 +380,13 @@ static	NSIndexPath	*dummy = nil;
       _hash = dummy->_hash;
       _length = dummy->_length;
       _indexes = NSZoneMalloc(NSDefaultMallocZone(),
-	_length * sizeof(unsigned));
-      memcpy(_indexes, dummy->_indexes, _length * sizeof(unsigned));
+	_length * sizeof(NSUInteger));
+      memcpy(_indexes, dummy->_indexes, _length * sizeof(NSUInteger));
       NSHashInsert(shared, self);
     }
   else
     {
-      RELEASE(self);
+      DESTROY(self);
       self = RETAIN(found);
     }
   [lock unlock];
@@ -397,7 +399,7 @@ static	NSIndexPath	*dummy = nil;
     {
       return YES;
     }
-  if (other == nil || GSObjCIsKindOf(GSObjCClass(other), myClass) == NO)
+  if (other == nil || GSObjCIsKindOf(object_getClass(other), myClass) == NO)
     {
       return NO;
     }
@@ -407,8 +409,8 @@ static	NSIndexPath	*dummy = nil;
     }
   else
     {
-      unsigned	*oindexes = ((NSIndexPath*)other)->_indexes;
-      unsigned	pos = _length;
+      NSUInteger	*oindexes = ((NSIndexPath*)other)->_indexes;
+      NSUInteger	pos = _length;
 
       while (pos-- > 0)
 	{
@@ -421,7 +423,7 @@ static	NSIndexPath	*dummy = nil;
   return YES;
 }
 
-- (unsigned) length
+- (NSUInteger) length
 {
   return _length;
 }
@@ -441,6 +443,7 @@ static	NSIndexPath	*dummy = nil;
       if (NSDecrementExtraRefCountWasZero(self))
 	{
 	  [self dealloc];
+	  self = nil;
 	}
       [lock unlock];
     }

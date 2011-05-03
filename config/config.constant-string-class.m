@@ -8,16 +8,15 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
 */
 
 /* must be compiled compile using -fconstant-string-class=NSConstantString
    as an option to gcc.  If it doesn't work, it means your gcc doesn't
    support this option. */
 
-#include <objc/objc.h>
-#include <objc/Object.h>
+#include "objc-common.g"
 
 /* Define our custom constant string class */
 @interface FooConstantString : Object

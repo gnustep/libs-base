@@ -1,13 +1,13 @@
 /* Implementation for NSURLCredentialStorage for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,13 +16,16 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
+#import "common.h"
+
+#define	EXPOSE_NSURLCredentialStorage_IVARS	1
+#import "GSURLPrivate.h"
 
 NSString *const NSURLCredentialStorageChangedNotification
   = @"NSURLCredentialStorageChangedNotification";
@@ -107,7 +110,7 @@ static NSURLCredentialStorage	*storage = nil;
 // Should never be called.
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 

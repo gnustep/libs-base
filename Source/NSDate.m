@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,24 +27,24 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSCalendarDate.h"
-#include "Foundation/NSCharacterSet.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSTimeZone.h"
-#include "Foundation/NSUserDefaults.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "common.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSUserDefaults.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
+
+#include <math.h>
 
 /* These constants seem to be what MacOS-X uses */
 #define DISTANT_FUTURE	63113990400.0
@@ -108,7 +108,7 @@ otherTime(NSDate* other)
     [NSException raise: NSInvalidArgumentException format: @"other time nil"];
   if (GSObjCIsInstance(other) == NO)
     [NSException raise: NSInvalidArgumentException format: @"other time bad"];
-  c = GSObjCClass(other);
+  c = object_getClass(other);
   if (c == concreteClass || c == calendarClass)
     return ((NSGDate*)other)->_seconds_since_ref;
   else
@@ -545,6 +545,7 @@ otherTime(NSDate* other)
 
   dtoIndex = 0;
   scanner = [NSScanner scannerWithString: string];
+  [scanner setCaseSensitive: NO];
   [scanner scanUpToCharactersFromSet: digits intoString: 0];
   while ([scanner scanCharactersFromSet: digits intoString: &tmp] == YES)
     {
@@ -560,6 +561,7 @@ otherTime(NSDate* other)
       if (tmp && ([tmp characterAtIndex: 0] == (unichar)':'))
 	{
 	  BOOL	done = NO;
+	  BOOL	checkForAMPM = NO;
 
 	  do
 	    {
@@ -582,6 +584,7 @@ otherTime(NSDate* other)
 		      m = 0;
 		      s = 0;
 		      hadHour = YES;
+		      checkForAMPM = YES;
 		    }
 		}
 	      else if (hadMinute == NO)
@@ -638,8 +641,7 @@ otherTime(NSDate* other)
 		    {
 		      num = [tmp intValue];
 		      done = NO;
-		      if ([scanner scanUpToCharactersFromSet: digits
-						  intoString: &tmp] == NO)
+		      if ([scanner scanString: @":" intoString: &tmp] == NO)
 			{
 			  tmp = nil;
 			}
@@ -647,6 +649,25 @@ otherTime(NSDate* other)
 		}
 	    }
 	  while (done == NO);
+
+	  if (checkForAMPM)
+	    {
+	      NSArray	*ampm;
+
+	      ampm = [locale objectForKey: NSAMPMDesignation];
+	      if ([scanner scanString: [ampm objectAtIndex: 0]
+			   intoString: NULL])
+		{
+		  if (h == 12) // 12 AM means midnight
+		    h = 0;
+		}
+	      else if ([scanner scanString: [ampm objectAtIndex: 1]
+				intoString: NULL])
+		{
+		  if (h < 12) // if PM add 12 to any hour less than 12
+		    h += 12;
+		}	  
+	    }
 	}
       else
 	{
@@ -1000,7 +1021,10 @@ otherTime(NSDate* other)
 {
   NSTimeInterval	interval = [self timeIntervalSinceReferenceDate];
 
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+  if ([coder allowsKeyedCoding])
+    [coder encodeDouble: interval forKey: @"NS.time"];
+  else
+    [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
@@ -1008,7 +1032,10 @@ otherTime(NSDate* other)
   NSTimeInterval	interval;
   id			o;
 
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+  if ([coder allowsKeyedCoding])
+    interval = [coder decodeDoubleForKey: @"NS.time"];
+  else
+    [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
   if (interval == DISTANT_PAST)
     {
       o = RETAIN([abstractClass distantPast]);
@@ -1022,7 +1049,7 @@ otherTime(NSDate* other)
       o = [concreteClass allocWithZone: NSDefaultMallocZone()];
       o = [o initWithTimeIntervalSinceReferenceDate: interval];
     }
-  RELEASE(self);
+  DESTROY(self);
   return o;
 }
 
@@ -1047,7 +1074,7 @@ otherTime(NSDate* other)
   d = [d initWithString: description];
   if (d == nil)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else
@@ -1067,7 +1094,7 @@ otherTime(NSDate* other)
   if (anotherDate == nil)
     {
       NSLog(@"initWithTimeInterval:sinceDate: given nil date");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   // Get the other date's time, add the secs and init thyself
@@ -1275,7 +1302,7 @@ otherTime(NSDate* other)
   return self;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return (unsigned)[self timeIntervalSinceReferenceDate];
 }
@@ -1340,19 +1367,29 @@ otherTime(NSDate* other)
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval)
-			    at: &_seconds_since_ref];
+  if ([coder allowsKeyedCoding])
+    [coder encodeDouble:_seconds_since_ref forKey:@"NS.time"];
+  else
+    [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval)
-			    at: &_seconds_since_ref];
+  if ([coder allowsKeyedCoding])
+    _seconds_since_ref = [coder decodeDoubleForKey:@"NS.time"];
+  else
+    [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
   return self;
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
+  if (isnan(secs))
+    {
+      [NSException raise: NSInvalidArgumentException
+	          format: @"[%@-%@] interval is not a number",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   _seconds_since_ref = secs;
   return self;
 }
@@ -1421,7 +1458,7 @@ otherTime(NSDate* other)
   return self;
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return (unsigned)_seconds_since_ref;
 }

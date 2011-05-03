@@ -837,8 +837,6 @@ ftp
 func
 functionName
 gcc
-GCFinalization
-gcFinalize
 gcontext
 gdnc
 GDNCHost
@@ -881,7 +879,6 @@ groupsByEvent
 GSApplicationSupportDirectory
 GSAtomicMallocZone
 GSBreakTime
-GSCategories
 GSCurrentThread
 GSCurrentThreadDictionary
 GSDebugAllocation

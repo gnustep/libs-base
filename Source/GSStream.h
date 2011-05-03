@@ -9,7 +9,7 @@
    Date: 2006
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,10 +26,13 @@
    NSInputStream and NSOutputStream are clusters rather than concrete classes
    The inherance graph is:
    NSStream 
+   |-- GSStream
+   |   `--GSSocketStream
    |-- NSInputStream
    |   `--GSInputStream
    |      |-- GSDataInputStream
    |      |-- GSFileInputStream
+   |      |-- GSPipeInputStream (mswindows only)
    |      `-- GSSocketInputStream
    |          |-- GSInetInputStream
    |          |-- GSLocalInputStream
@@ -39,20 +42,24 @@
    |      |-- GSBufferOutputStream
    |      |-- GSDataOutputStream
    |      |-- GSFileOutputStream
+   |      |-- GSPipeOutputStream (mswindows only)
    |      `-- GSSocketOutputStream
    |          |-- GSInetOutputStream
    |          |-- GSLocalOutputStream
    |          `-- GSInet6InputStream
    `-- GSServerStream
-      `-- GSAbstractServerStream
-          `-- GSSocketServerStream
-              |-- GSInetServerStream
-              |-- GSInet6ServerStream
-              `-- GSLocalServerStream 
+       `-- GSAbstractServerStream
+           |-- GSLocalServerStream (mswindows)
+           `-- GSSocketServerStream
+               |-- GSInetServerStream
+               |-- GSInet6ServerStream
+               `-- GSLocalServerStream (gnu/linux)
 */
 
-#include <Foundation/NSStream.h>
-#include <Foundation/NSRunLoop.h>
+#import "Foundation/NSStream.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSMapTable.h"
+#import "GNUstepBase/NSStream+GNUstepBase.h"
 
 /**
  * Convenience methods used to add streams to the run loop.
@@ -71,8 +78,7 @@
   BOOL                   _delegateValid;/* whether the delegate responds*/\
   NSError               *_lastError;    /* last error occured           */\
   NSStreamStatus         _currentStatus;/* current status               */\
-  NSMutableArray 	*_modes;	/* currently scheduled modes.	*/\
-  NSRunLoop 		*_runloop;	/* currently scheduled loop.	*/\
+  NSMapTable		*_loops;	/* Run loops and their modes.	*/\
   void                  *_loopID;	/* file descriptor etc.		*/\
   int			_events;	/* Signalled events.		*/\
 }
@@ -83,6 +89,10 @@
  * EXACTLY THE SAME initial ivar layout.
  */
 @interface GSStream : NSStream
+IVARS
+@end
+
+@interface GSAbstractServerStream : GSServerStream
 IVARS
 @end
 
@@ -102,6 +112,15 @@ IVARS
  * Return previously set reference for IO in run loop.
  */
 - (void*) _loopID;
+
+/** Reset events in mask to allow them to be sent again.
+ */
+- (void) _resetEvents: (NSUInteger)mask;
+
+/**
+ * Place the stream in all the scheduled runloops.
+ */
+- (void) _schedule;
 
 /**
  * send an event to delegate
@@ -123,11 +142,18 @@ IVARS
  * record an error based on errno
  */
 - (void) _recordError; 
+- (void) _recordError: (NSError*)anError; 
 
 /**
  * say whether there is unhandled data for the stream.
  */
 - (BOOL) _unhandledData;
+
+/**
+ * Remove the stream from all the scheduled runloops.
+ */
+- (void) _unschedule;
+
 @end
 
 @interface GSInputStream : NSInputStream
@@ -135,10 +161,6 @@ IVARS
 @end
 
 @interface GSOutputStream : NSOutputStream
-IVARS
-@end
-
-@interface GSAbstractServerStream : GSServerStream
 IVARS
 @end
 
@@ -151,11 +173,6 @@ IVARS
   NSData *_data;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 /**
@@ -168,11 +185,6 @@ IVARS
   unsigned	_capacity;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 /**
@@ -184,11 +196,6 @@ IVARS
   NSMutableData *_data;
   unsigned long _pointer;
 }
-
-/**
- * this is the bridge method for asynchronized operation. Do not call.
- */
-- (void) _dispatch;
 @end
 
 #endif

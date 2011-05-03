@@ -4,7 +4,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -13,7 +13,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -34,9 +34,11 @@ extern "C" {
 
 @interface NSCalendarDate : NSDate
 {
+#if	GS_EXPOSE(NSCalendarDate)
   NSTimeInterval	_seconds_since_ref;
   NSString		*_calendar_format;
   NSTimeZone		*_time_zone;
+#endif
 }
 
 // Getting an NSCalendar Date
@@ -46,12 +48,12 @@ extern "C" {
 + (id) dateWithString: (NSString*)description
        calendarFormat: (NSString*)format
 	       locale: (NSDictionary*)dictionary;
-+ (id) dateWithYear: (int)year
-	      month: (unsigned int)month
-	        day: (unsigned int)day
-	       hour: (unsigned int)hour
-	     minute: (unsigned int)minute
-	     second: (unsigned int)second
++ (id) dateWithYear: (NSInteger)year
+	      month: (NSUInteger)month
+	        day: (NSUInteger)day
+	       hour: (NSUInteger)hour
+	     minute: (NSUInteger)minute
+	     second: (NSUInteger)second
 	   timeZone: (NSTimeZone*)aTimeZone;
 
 // Initializing an NSCalendar Date
@@ -61,32 +63,43 @@ extern "C" {
 - (id) initWithString: (NSString*)description
        calendarFormat: (NSString*)fmt
 	       locale: (NSDictionary*)locale;
-- (id) initWithYear: (int)year
-	      month: (unsigned int)month
-	        day: (unsigned int)day
-	       hour: (unsigned int)hour
-	     minute: (unsigned int)minute
-	     second: (unsigned int)second
+- (id) initWithYear: (NSInteger)year
+	      month: (NSUInteger)month
+	        day: (NSUInteger)day
+	       hour: (NSUInteger)hour
+	     minute: (NSUInteger)minute
+	     second: (NSUInteger)second
 	   timeZone: (NSTimeZone*)aTimeZone;
 
 // Retrieving Date Elements
-- (int) dayOfCommonEra;
-- (int) dayOfMonth;
-- (int) dayOfWeek;
-- (int) dayOfYear;
-- (int) hourOfDay;
-- (int) minuteOfHour;
-- (int) monthOfYear;
-- (int) secondOfMinute;
-- (int) yearOfCommonEra;
+- (NSInteger) dayOfCommonEra;
+- (NSInteger) dayOfMonth;
+- (NSInteger) dayOfWeek;
+- (NSInteger) dayOfYear;
+- (NSInteger) hourOfDay;
+- (NSInteger) minuteOfHour;
+- (NSInteger) monthOfYear;
+- (NSInteger) secondOfMinute;
+- (NSInteger) yearOfCommonEra;
 
-// Providing Adjusted Dates
-- (NSCalendarDate*) addYear: (int)year
-		      month: (int)month
-			day: (int)day
-		       hour: (int)hour
-		     minute: (int)minute
-		     second: (int)second;
+/**
+ * <p>Returns a calendar date formed by adding the specified offsets to the
+ * receiver.  The offsets are added in order, years, then months, then
+ * days, then hours then minutes then seconds, so if you add 1 month and
+ * forty days to 20th September, the result will be 9th November.
+ * </p>
+ * <p>This method understands leap years and tries to adjust for daylight
+ * savings time changes so that it preserves expected clock time.
+ * </p>
+ * <p>The returned date has the calendar format and timezone of the receiver.
+ * </p>
+ */
+- (NSCalendarDate*) addYear: (NSInteger)year
+		      month: (NSInteger)month
+			day: (NSInteger)day
+		       hour: (NSInteger)hour
+		     minute: (NSInteger)minute
+		     second: (NSInteger)second;
 
 // Getting String Descriptions of Dates
 - (NSString*) description;
@@ -112,31 +125,16 @@ extern "C" {
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
-/**
- *  Adds <code>-weekOfYear</code> method.
- */
-@interface NSCalendarDate (GSCategories)
-/**
- * The ISO standard week of the year is based on the first week of the
- * year being that week (starting on monday) for which the thursday
- * is on or after the first of january.<br />
- * This has the effect that, if january first is a friday, saturday or
- * sunday, the days of that week (up to and including the sunday) are
- * considered to be in week 53 of the preceding year. Similarly if the
- * last day of the year is a monday tuesday or wednesday, these days are
- * part of week 1 of the next year.
- */
-- (int) weekOfYear;
-@end
-
 @interface NSCalendarDate (GregorianDate)
 
-- (int) lastDayOfGregorianMonth: (int)month year: (int)year;
-- (int) absoluteGregorianDay: (int)day month: (int)month year: (int)year;
-- (void) gregorianDateFromAbsolute: (int)d
-			       day: (int*)day
-			     month: (int*)month
-			      year: (int*)year;
+- (NSInteger) lastDayOfGregorianMonth: (NSInteger)month year: (NSInteger)year;
+- (NSInteger) absoluteGregorianDay: (NSInteger)day
+			     month: (NSInteger)month
+			      year: (NSInteger)year;
+- (void) gregorianDateFromAbsolute: (NSInteger)d
+			       day: (NSInteger*)day
+			     month: (NSInteger*)month
+			      year: (NSInteger*)year;
 
 @end
 
@@ -145,21 +143,25 @@ extern "C" {
 #if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 @interface NSCalendarDate (OPENSTEP)
 
-- (NSCalendarDate*) dateByAddingYears: (int)years
-			       months: (int)months
-				 days: (int)days
-				hours: (int)hours
-			      minutes: (int)minutes
-			      seconds: (int)seconds;
+- (NSCalendarDate*) dateByAddingYears: (NSInteger)years
+			       months: (NSInteger)months
+				 days: (NSInteger)days
+				hours: (NSInteger)hours
+			      minutes: (NSInteger)minutes
+			      seconds: (NSInteger)seconds;
 
-- (void) years: (int*)years
-	months: (int*)months
-          days: (int*)days
-         hours: (int*)hours
-       minutes: (int*)minutes
-       seconds: (int*)seconds
+- (void) years: (NSInteger*)years
+	months: (NSInteger*)months
+          days: (NSInteger*)days
+         hours: (NSInteger*)hours
+       minutes: (NSInteger*)minutes
+       seconds: (NSInteger*)seconds
      sinceDate: (NSDate*)date;
 @end
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSCalendarDate+GNUstepBase.h>
 #endif
 
 #if	defined(__cplusplus)

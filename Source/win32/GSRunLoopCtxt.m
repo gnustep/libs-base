@@ -6,18 +6,19 @@
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
 
-#include "config.h"
+#import "common.h"
 
-#include "GNUstepBase/preface.h"
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSStream.h>
-#include "../GSRunLoopCtxt.h"
-#include "../GSRunLoopWatcher.h"
-#include "../GSPrivate.h"
+#import "GNUstepBase/preface.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSStream.h"
+#import "../GSRunLoopCtxt.h"
+#import "../GSRunLoopWatcher.h"
+#import "../GSPrivate.h"
+
+#define	FDCOUNT	128
 
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
@@ -44,7 +45,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   0
 };
 #else
-#define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks 
+#define	WatcherMapValueCallBacks	NSNonOwnedPointerMapValueCallBacks 
 #endif
 
 @implementation	GSRunLoopCtxt
@@ -147,23 +148,32 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   self = [super init];
   if (self != nil)
     {
-      NSZone	*z = [self zone];
+      NSZone	*z;
 
       mode = [theMode copy];
       extra = e;
+#if	GS_WITH_GC
+      z = (NSZone*)1;
+      performers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      timers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      watchers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      _trigger = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
+      z = [self zone];
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
       timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
+      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
+#endif
+      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
+      GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
+      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
 
       handleMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
       winMsgMap = NSCreateMapTable(NSIntMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
-      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
-      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
   return self;
 }
@@ -275,6 +285,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
   NSMapEnumerator	hEnum;
   GSRunLoopWatcher	*watcher;
   HANDLE		handleArray[MAXIMUM_WAIT_OBJECTS-1];
@@ -302,8 +313,9 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   GSIArrayRemoveAllItems(_trigger);
 
   i = GSIArrayCount(watchers);
-  num_handles = 0;
+  num_handles = 1;              // One handle for signals from other threads
   num_winMsgs = 0;
+
   while (i-- > 0)
     {
       GSRunLoopWatcher	*info;
@@ -329,37 +341,30 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	  switch (info->type)
 	    {
 	      case ET_HANDLE:
-		handle = (HANDLE)(int)info->data;
+		handle = (HANDLE)(size_t)info->data;
 		NSMapInsert(handleMap, (void*)handle, info);
 		num_handles++;
 		break;
 	      case ET_RPORT:
 		{
 		  id port = info->receiver;
-		  int port_handle_count = 128; // #define this constant
-		  int port_handle_array[port_handle_count];
-		  if ([port respondsToSelector: @selector(getFds:count:)])
-		    {
-		      [port getFds: port_handle_array
-			     count: &port_handle_count];
-		    }
-		  else
-		    {
-		      NSLog(@"pollUntil - Impossible get win32 Handles");
-		      abort();
-		    }
+		  NSInteger port_handle_count = FDCOUNT;
+		  NSInteger port_handle_array[FDCOUNT];
+
+		  [port getFds: port_handle_array count: &port_handle_count];
 		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port handles",
 		    port_handle_count);
 		  while (port_handle_count--)
 		    {
 		      NSMapInsert(handleMap, 
-			(void*)port_handle_array[port_handle_count], info);
+			(void*)(size_t) port_handle_array[port_handle_count],
+			info);
 		      num_handles++;
 		    }
 		}
 		break;
 	      case ET_WINMSG:
-		handle = (HANDLE)(int)info->data;
+		handle = (HANDLE)(size_t)info->data;
 		NSMapInsert(winMsgMap, (void*)handle, info);
 		num_winMsgs++;
 		break;
@@ -375,12 +380,13 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
     {
       wait_timeout = 0;
     }
 
   i = 0;
+  handleArray[i++] = threadInfo->event; // Signal from other thread
   hEnum = NSEnumerateMapTable(handleMap);
   while (NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
     {
@@ -424,7 +430,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
   else
     {
-  	  SleepEx(wait_timeout, TRUE);
+      SleepEx(wait_timeout, TRUE);
       wait_return = WAIT_OBJECT_0;
     }
   NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);
@@ -467,13 +473,14 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    */
   count = GSIArrayCount(_trigger);
   completed = NO;
-  while (completed == NO && count-- > 0)
+  while (count-- > 0)
     {
       GSRunLoopWatcher	*watcher;
 
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
 	if (watcher->_invalidated == NO)
 	  {
+	    NSDebugMLLog(@"NSRunLoop", @"trigger watcher %@", watcher);
 	    i = [contexts count];
 	    while (i-- > 0)
 	      {
@@ -493,19 +500,21 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSPrivateNotifyASAP();
+	GSPrivateNotifyASAP(mode);
     }
 
   // if there are windows message
   if (wait_return == WAIT_OBJECT_0 + num_handles)
     {
+      NSDebugMLLog(@"NSRunLoop", @"processing windows messages");
       [self processAllWindowsMessages: num_winMsgs within: contexts];
       return NO;
     }
 
-  // if there arent events
+  // if there aren't events
   if (wait_return == WAIT_TIMEOUT)
     {
+      NSDebugMLLog(@"NSRunLoop", @"timeout without events");
       completed = YES;
       return NO;        
     }
@@ -521,7 +530,16 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   
   handle = handleArray[i];
 
-  watcher = (GSRunLoopWatcher*)NSMapGet(handleMap, (void*)handle);
+  if (handle == threadInfo->event)
+    {
+      watcher = nil;
+      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo fire];
+    }
+  else
+    {
+      watcher = (GSRunLoopWatcher*)NSMapGet(handleMap, (void*)handle);
+    }
   if (watcher != nil && watcher->_invalidated == NO)
     {
       i = [contexts count];
@@ -541,14 +559,30 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       NSDebugMLLog(@"NSRunLoop", @"Event callback found");
       [watcher->receiver receivedEvent: watcher->data
 				  type: watcher->type
-				 extra: watcher->data
+				 extra: (void*)handle
 			       forMode: mode];
     }
 
-  GSPrivateNotifyASAP();
+  GSPrivateNotifyASAP(mode);
 
   completed = YES;
   return YES;
+}
+
++ (BOOL) awakenedBefore: (NSDate*)when
+{
+  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
+  int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
+  HANDLE		h = threadInfo->event;
+
+  if (WaitForMultipleObjects(1, &h, NO, milliseconds) != WAIT_TIMEOUT)
+    {
+      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
+      [threadInfo fire];
+      return YES;
+    }
+  return NO;
 }
 
 @end

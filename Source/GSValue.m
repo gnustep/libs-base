@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,21 +16,17 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 */
 
-#include "config.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "GNUstepBase/preface.h"
+#import "common.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSCoder.h"
 
 @interface GSValue : NSValue
 {
@@ -84,7 +80,7 @@ typeSize(const char* type)
   if (!value || !type)
     {
       NSLog(@"Tried to create NSValue with NULL value or NULL type");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -96,16 +92,18 @@ typeSize(const char* type)
       if (size < 0)
 	{
 	  NSLog(@"Tried to create NSValue with invalid Objective-C type");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
 	}
       if (size > 0)
 	{
-	  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
+	  data = (void *)NSZoneMalloc([self zone], size);
 	  memcpy(data, value, size);
 	}
-      objctype = (char *)NSZoneMalloc(GSObjCZone(self), strlen(type)+1);
-      strcpy(objctype, type);
+      size = strlen(type);
+      objctype = (char *)NSZoneMalloc([self zone], size + 1);
+      strncpy(objctype, type, size);
+      objctype[size] = '\0';
     }
   return self;
 }
@@ -113,9 +111,9 @@ typeSize(const char* type)
 - (void) dealloc
 {
   if (objctype != 0)
-    NSZoneFree(GSObjCZone(self), objctype);
+    NSZoneFree([self zone], objctype);
   if (data != 0)
-    NSZoneFree(GSObjCZone(self), data);
+    NSZoneFree([self zone], data);
   [super dealloc];
 }
 
@@ -137,7 +135,7 @@ typeSize(const char* type)
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   unsigned	size = typeSize(objctype);
   unsigned	hash = 0;
@@ -153,7 +151,7 @@ typeSize(const char* type)
 {
   if (aValue == nil)
     return NO;
-  if (GSObjCClass(aValue) != GSObjCClass(self))
+  if (object_getClass(aValue) != object_getClass(self))
     return NO;
   if (strcmp(objctype, ((GSValue*)aValue)->objctype) != 0)
     return NO;

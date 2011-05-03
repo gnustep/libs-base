@@ -10,7 +10,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -19,7 +19,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -173,8 +173,8 @@
 #import	<Foundation/NSObject.h>
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-#import	<Foundation/NSUtilities.h>
 #import	<Foundation/NSDictionary.h>
+#import	<Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -186,15 +186,46 @@ extern "C" {
 @class NSDate;
 @class NSArray;
 @class NSMutableArray;
-
+@class NSEnumerator;
 @class NSDirectoryEnumerator;
+@class NSError;
+
+/* MacOS-X defines OSType as a 32bit unsigned integer.
+ */
+#ifndef OSTYPE_DECLARED
+typedef	uint32_t	OSType;
+#define OSTYPE_DECLARED
+#endif
 
 @interface NSFileManager : NSObject
 {
+#if	GS_EXPOSE(NSFileManager)
+@private
   NSString	*_lastError;
+#endif
+#if     GS_NONFRAGILE
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
 + (NSFileManager*) defaultManager;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (NSDictionary *) attributesOfItemAtPath: (NSString*)path
+				    error: (NSError**)error;
+- (BOOL) copyItemAtPath: (NSString*)src
+		 toPath: (NSString*)dst
+		  error: (NSError**)error;
+- (BOOL) moveItemAtPath: (NSString*)src
+		 toPath: (NSString*)dst
+		  error: (NSError**)error;
+#endif
 
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path;
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes
@@ -206,6 +237,10 @@ extern "C" {
 - (BOOL) copyPath: (NSString*)source
 	   toPath: (NSString*)destination
 	  handler: (id)handler;
+- (BOOL) createDirectoryAtPath: (NSString *)path
+   withIntermediateDirectories: (BOOL)flag
+		    attributes: (NSDictionary *)attributes
+                         error: (NSError **) error;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes;
 - (BOOL) createFileAtPath: (NSString*)path
@@ -216,9 +251,21 @@ extern "C" {
 - (NSString*) currentDirectoryPath;
 - (NSArray*) directoryContentsAtPath: (NSString*)path;
 - (NSString*) displayNameAtPath: (NSString*)path;
+/**
+ * <p>Returns an enumerator which can be used to return each item with
+ * the directory at path in turn.
+ * </p>
+ * <p>The enumeration is recursive ... following all nested subdirectories.
+ * </p>
+ * <p>The order in which directory contents are enumerated is undefined,
+ * and in the current implementation the natural order of the underlying
+ * filesystem is used.
+ * </p>
+ */
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path
 			  traverseLink: (BOOL)flag;
+
 - (BOOL) fileExistsAtPath: (NSString*)path;
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
@@ -263,7 +310,7 @@ extern "C" {
  * with unicode strings.
  */
 - (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
-					  length: (unsigned int)len;
+					  length: (NSUInteger)len;
 
 - (NSArray*) subpathsAtPath: (NSString*)path;
 
@@ -326,8 +373,22 @@ extern "C" {
 @end
 
 
+/**
+ *  <p>This is a subclass of <code>NSEnumerator</code> which provides a full
+ *  listing of all the files beneath a directory and its subdirectories.
+ *  Instances can be obtained through [NSFileManager-enumeratorAtPath:].
+ *  </p>
+ *
+ *  <p>This implementation is optimized and performance should be comparable
+ *  to the speed of standard Unix tools for large directories.</p>
+ *
+ *  <p>The order in which directory contents are enumerated is undefined,
+ *  and in the current implementation the natural order of the underlying
+ *  filesystem is used.</p>
+ */
 @interface NSDirectoryEnumerator : NSEnumerator
 {
+#if	GS_EXPOSE(NSDirectoryEnumerator)
 @private
   void *_stack; /* GSIArray */
   NSString *_topPath;
@@ -339,6 +400,16 @@ extern "C" {
     BOOL isFollowing: 1;
     BOOL justContents: 1;
   } _flags;
+#endif
+#if     GS_NONFRAGILE
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
 }
 - (NSDictionary*) directoryAttributes;
 - (NSDictionary*) fileAttributes;
@@ -449,20 +520,20 @@ GS_EXPORT NSString* const NSFileSystemFreeNodes;
 @interface NSDictionary(NSFileAttributes)
 - (NSDate*) fileCreationDate;
 - (BOOL) fileExtensionHidden;
-- (int) fileHFSCreatorCode;
-- (int) fileHFSTypeCode;
+- (OSType) fileHFSCreatorCode;
+- (OSType) fileHFSTypeCode;
 - (BOOL) fileIsAppendOnly;
 - (BOOL) fileIsImmutable;
 - (unsigned long long) fileSize;
 - (NSString*) fileType;
-- (unsigned long) fileOwnerAccountID;
+- (NSNumber*) fileOwnerAccountID;
 - (NSString*) fileOwnerAccountName;
-- (unsigned long) fileGroupOwnerAccountID;
+- (NSNumber*) fileGroupOwnerAccountID;
 - (NSString*) fileGroupOwnerAccountName;
 - (NSDate*) fileModificationDate;
-- (unsigned long) filePosixPermissions;
-- (unsigned long) fileSystemNumber;
-- (unsigned long) fileSystemFileNumber;
+- (NSUInteger) filePosixPermissions;
+- (NSUInteger) fileSystemNumber;
+- (NSUInteger) fileSystemFileNumber;
 @end
 
 #if	defined(__cplusplus)

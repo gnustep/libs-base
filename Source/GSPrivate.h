@@ -6,7 +6,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -15,7 +15,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02111 USA.
@@ -24,7 +24,10 @@
 #ifndef _GSPrivate_h_
 #define _GSPrivate_h_
 
-#include "Foundation/NSError.h"
+#import "Foundation/NSError.h"
+
+@class	_GSInsensitiveDictionary;
+@class	_GSMutableInsensitiveDictionary;
 
 @class	NSNotification;
 
@@ -46,11 +49,16 @@
  */
 #define GREGORIAN_REFERENCE 730486
 
+NSTimeInterval   GSPrivateTimeNow() GS_ATTRIB_PRIVATE;
 
 #include "GNUstepBase/GSObjCRuntime.h"
 
 #include "Foundation/NSArray.h"
 
+#ifdef __GNUSTEP_RUNTIME__
+struct objc_category;
+typedef struct objc_category* Category;
+#endif
 
 @interface GSArray : NSArray
 {
@@ -67,11 +75,7 @@
   unsigned	_count;
   unsigned	_capacity;
   int		_grow_factor;
-}
-@end
-
-@interface GSInlineArray : GSArray
-{
+  int		_version;
 }
 @end
 
@@ -89,21 +93,41 @@
  * arrays are allocated on the stack (for speed), but large arrays are
  * allocated from the heap (to avoid stack overflow).
  */
-#define	GS_BEGINITEMBUF(P, S, T) { \
+#if __GNUC__ > 3
+__attribute__((unused)) static void GSFreeTempBuffer(void **b)
+{
+  if (NULL != *b) free(*b);
+}
+#  define	GS_BEGINITEMBUF(P, S, T) { \
+  T _ibuf[GS_MAX_OBJECTS_FROM_STACK];\
+  T *P = _ibuf;\
+  __attribute__((cleanup(GSFreeTempBuffer))) void *_base = 0;\
+  if (S > GS_MAX_OBJECTS_FROM_STACK)\
+    {\
+      _base = malloc((S) * sizeof(T));\
+      P = _base;\
+    }
+#else
+#  define	GS_BEGINITEMBUF(P, S, T) { \
   T _ibuf[(S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 0]; \
   T *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
     : (T*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(T)); \
   T *(P) = _base;
+#endif
 
 /**
  * Macro to manage memory for chunks of code that need to work with
  * arrays of items.  Use GS_BEGINITEMBUF() to start the block of code using
  * the array and this macro to end it.
  */
-#define	GS_ENDITEMBUF() \
+#if __GNUC__ > 3
+# define	GS_ENDITEMBUF() }
+#else
+#  define	GS_ENDITEMBUF() \
   if (_base != _ibuf) \
     NSZoneFree(NSDefaultMallocZone(), _base); \
   }
+#endif
 
 /**
  * Macro to manage memory for chunks of code that need to work with
@@ -162,11 +186,12 @@ typedef union {
  */
 @interface GSString : NSString
 {
+@public
   GSCharPtr _contents;
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	free: 1;	// Set if the instance owns the
+    unsigned int	owned: 1;	// Set if the instance owns the
 					// _contents buffer
     unsigned int	unused: 2;
     unsigned int	hash: 28;
@@ -180,30 +205,21 @@ typedef union {
  */
 @interface GSMutableString : NSMutableString
 {
-  union {
-    unichar		*u;
-    unsigned char	*c;
-  } _contents;
+@public
+  GSCharPtr _contents;
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;
-    unsigned int	free: 1;
+    unsigned int	owned: 1;
     unsigned int	unused: 2;
     unsigned int	hash: 28;
   } _flags;
-  NSZone	*_zone;
   unsigned int	_capacity;
+  NSZone	*_zone;
 }
 @end
 
-/*
- * Typedef for access to internals of concrete string objects.
- */
-typedef struct {
-  @defs(GSMutableString)
-} GSStr_t;
-typedef	GSStr_t	*GSStr;
-
+typedef	GSMutableString *GSStr;
 
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
@@ -234,20 +250,60 @@ typedef enum {
   NSData	*_d;	// Only valid after initWithCoder:
 }
 - (const void*) bytes;
-- (unsigned) count;
+- (NSUInteger) count;
 - (void) encodeWithCoder: (NSCoder*)aCoder;
 - (id) initWithCoder: (NSCoder*)aCoder;
-- (id) initWithObjCType: (const char*)t count: (int)c at: (const void*)a;
-- (unsigned) size;
+- (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a;
+- (NSUInteger) size;
 - (const char*) type;
 @end
 
 /* Get error information.
  */
-@interface	NSError (GSCategories)
+@interface	NSError (GNUstepBase)
 + (NSError*) _last;
 + (NSError*) _systemError: (long)number;
 @end
+
+@class  NSRunLoop;
+@class  NSLock;
+@class  NSThread;
+
+/* Used to handle events performed in one thread from another.
+ */
+@interface      GSRunLoopThreadInfo : NSObject
+{
+  @public
+  NSRunLoop             *loop;
+  NSLock                *lock;
+  NSMutableArray        *performers;
+#ifdef __MINGW__
+  HANDLE	        event;
+#else
+  int                   inputFd;
+  int                   outputFd;
+#endif	
+}
+/* Add a performer to be run in the loop's thread.  May be called from
+ * any thread.
+ */
+- (void) addPerformer: (id)performer;
+/* Fire all pending performers in the current thread.  May only be called
+ * from the runloop when the event/descriptor is triggered.
+ */
+- (void) fire;
+/* Cancel all pending performers.
+ */
+- (void) invalidate;
+@end
+
+/* Return (and optionally create) GSRunLoopThreadInfo for the specified
+ * thread (or the current thread if aThread is nil).<br />
+ * If aThread is nil and no value is set for the current thread, create
+ * a GSRunLoopThreadInfo and set it for the current thread.
+ */
+GSRunLoopThreadInfo *
+GSRunLoopInfoForThread(NSThread *aThread) GS_ATTRIB_PRIVATE;
 
 /* Used by NSException uncaught exception handler - must not call any
  * methods/functions which might cause a recursive exception.
@@ -363,17 +419,28 @@ GSPrivateNativeCStringEncoding() GS_ATTRIB_PRIVATE;
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed at the first safe moment.
  */
-void GSPrivateNotifyASAP(void) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyASAP(NSString *mode) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed when the loop is idle.
  */
-void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyIdle(NSString *mode) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for determining whether
  * there are more queued notifications to be processed.
  */
-BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
+BOOL GSPrivateNotifyMore(NSString *mode) GS_ATTRIB_PRIVATE;
+
+/* Function to return the function for searching in a string for a range.
+ */
+typedef NSRange (*GSRSFunc)(id, id, unsigned, NSRange);
+GSRSFunc
+GSPrivateRangeOfString(NSString *receiver, NSString *target) GS_ATTRIB_PRIVATE;
+
+/* Function to return the current stack return addresses.
+ */
+NSMutableArray *
+GSPrivateStackAddresses(void) GS_ATTRIB_PRIVATE;
 
 /* Function to return the hash value for a small integer (used by NSNumber).
  */
@@ -449,6 +516,26 @@ GSPrivateUniCop(unichar u) GS_ATTRIB_PRIVATE;
 long
 GSPrivateUnloadModule(FILE *errorStream,
   void (*unloadCallback)(Class, struct objc_category *)) GS_ATTRIB_PRIVATE;
+
+
+/* Memory to use to put executable code in.
+ */
+@interface      GSCodeBuffer : NSObject
+{
+  unsigned      size;
+  void          *buffer;
+}
++ (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size;
+- (void*) buffer;
+- (id) initWithSize: (NSUInteger)_size;
+- (void) protect;
+@end
+
+BOOL
+GSPrivateIsCollectable(const void *ptr) GS_ATTRIB_PRIVATE;
+
+NSZone*
+GSAtomicMallocZone (void);
 
 #endif /* _GSPrivate_h_ */
 

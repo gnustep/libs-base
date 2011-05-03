@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,14 +27,15 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObject.h>
+#import	<Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-@class NSArray, NSString, NSEnumerator, NSURL;
+@class NSArray, NSString, NSURL;
 
-@interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 + (id) dictionary;
 + (id) dictionaryWithContentsOfFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -45,18 +46,18 @@ extern "C" {
 + (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 + (id) dictionaryWithObjects: (id*)objects
 		     forKeys: (id*)keys
-		       count: (unsigned)count;
+		       count: (NSUInteger)count;
 + (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...;
 
 - (NSArray*) allKeys;
 - (NSArray*) allKeysForObject: (id)anObject;
 - (NSArray*) allValues;
-- (unsigned) count;						// Primitive
+- (NSUInteger) count;						// Primitive
 - (NSString*) description;
 - (NSString*) descriptionInStringsFileFormat;
 - (NSString*) descriptionWithLocale: (id)locale;
 - (NSString*) descriptionWithLocale: (id)locale
-			     indent: (unsigned int)level;
+			     indent: (NSUInteger)level;
 
 - (id) init;
 - (id) initWithContentsOfFile: (NSString*)path;
@@ -69,7 +70,7 @@ extern "C" {
 - (id) initWithObjectsAndKeys: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
-		 count: (unsigned)count;			// Primitive
+		 count: (NSUInteger)count;			// Primitive
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
 
 - (NSEnumerator*) keyEnumerator;				// Primitive
@@ -87,10 +88,10 @@ extern "C" {
 
 @interface NSMutableDictionary: NSDictionary
 
-+ (id) dictionaryWithCapacity: (unsigned)numItems;
++ (id) dictionaryWithCapacity: (NSUInteger)numItems;
 
 - (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary;
-- (id) initWithCapacity: (unsigned)numItems;			// Primitive
+- (id) initWithCapacity: (NSUInteger)numItems;			// Primitive
 - (void) removeAllObjects;
 - (void) removeObjectForKey: (id)aKey;				// Primitive
 - (void) removeObjectsForKeys: (NSArray*)keyArray;

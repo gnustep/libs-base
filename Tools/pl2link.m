@@ -1,34 +1,36 @@
 /*
    This tool produces a desktop link file for KDE and Gnome out of a GNUstep
    property list.
-   Copyright (C) 20010 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2011 Free Software Foundation, Inc.
 
    Written by:  Fred Kiefer <FredKiefer@gmx.de>
    Created: December 2001
 
    This file is part of the GNUstep Project
 
-   This library is free software; you can redistribute it and/or
+   This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this library; see the file COPYING.LIB.
+   License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*/
 
-   */
+#import <stdlib.h>
 
-#include        <Foundation/Foundation.h>
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSAutoreleasePool.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSFileManager.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSString.h>
+#import	"common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSFileManager.h"
+#import	"Foundation/NSProcessInfo.h"
+#import "Foundation/NSPathUtilities.h"
 
 int
 main(int argc, char** argv, char **env)
@@ -42,9 +44,11 @@ main(int argc, char** argv, char **env)
   NSDictionary	        *plist = nil;
   NSArray		*list;
   NSString		*entry;
+  NSString              *installPath = @"";
+  NSString              *appName = @"";
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   pool = [NSAutoreleasePool new];
   procinfo = [NSProcessInfo processInfo];
@@ -99,10 +103,11 @@ main(int argc, char** argv, char **env)
   [fileContents appendString:
     @"[Desktop Entry]\nEncoding=UTF-8\nType=Application\n"];
   [fileContents appendString:
-    @"Version=0.94\nCategories=GNUstep\n"];
+    @"Categories=X-GNUstep;\n"];
   entry = [plist objectForKey: @"ApplicationName"];
   if (entry != nil)
     {
+      appName = entry;
       [fileContents appendFormat: @"Name=%@\n", entry];
       if (destName == nil)
 	destName = [entry stringByAppendingString: @".desktop"];
@@ -112,45 +117,124 @@ main(int argc, char** argv, char **env)
     {
       [fileContents appendFormat: @"Comment=%@\n", entry];
     }
+
+  /* Try to guess where the application will be installed.  PS: At the
+     moment, this is only required for NSIcon, so I suppose we could
+     skip it if there is no NSIcon.  */
+  {
+    /* The default installation domain is the local domain.  Assume
+       that's the case unless something is specified.  */
+    NSSearchPathDomainMask domain = NSLocalDomainMask;
+    NSString *installDomain;
+    NSArray *installPaths;
+
+    installDomain = [[procinfo environment] objectForKey: @"GNUSTEP_INSTALLATION_DOMAIN"];
+    if(installDomain != nil)
+      {
+	if ([installDomain isEqualToString: @"SYSTEM"])
+	  {
+	    domain = NSSystemDomainMask;
+	  }
+	else if ([installDomain isEqualToString: @"NETWORK"])
+	  {
+	    domain = NSNetworkDomainMask;
+	  }
+	else if ([installDomain isEqualToString: @"USER"])
+	  {
+	    domain = NSUserDomainMask;
+	  }
+	
+	/* In all other cases, we leave domain == NSLocalDomainMask.  */
+      }
+
+    installPaths = NSSearchPathForDirectoriesInDomains (NSApplicationDirectory, domain, YES);
+    if ([installPaths count] > 0)
+      {
+	installPath = [installPaths objectAtIndex: 0];
+      }
+    else
+      {
+	/* Ahm - this should never happen.  */
+	GSPrintf(stderr, @"Error determining the application installation location\n");
+
+	/* Try to get any application installation path.  */
+	installPaths = NSSearchPathForDirectoriesInDomains (NSApplicationDirectory, NSAllDomainsMask, YES);
+	if ([installPaths count] > 0)
+	  {
+	    installPath = [installPaths objectAtIndex: 0];
+	    GSPrintf(stderr, @"Assuming it will be installed into '%@' (this may be wrong!)\n", installPath);
+	  }
+	else
+	  {
+	    [pool release];
+	    exit(EXIT_FAILURE);
+	  }
+      }
+  }
+
   entry = [plist objectForKey: @"NSIcon"];
   if (entry != nil)
-  {
-    if ([[entry pathExtension] isEqualToString: @""])
-      [fileContents appendFormat: @"Icon=%@.tiff\n", entry];
-    else
-      [fileContents appendFormat: @"Icon=%@\n", entry];
-  }
+    {
+      NSString *iconPath = [[[[installPath stringByAppendingPathComponent:appName] 
+			       stringByAppendingPathExtension:@"app"] 
+			      stringByAppendingPathComponent:@"Resources"]
+			     stringByAppendingPathComponent:entry];
+
+      if ([[iconPath pathExtension] isEqualToString: @""])
+	{
+	  [fileContents appendFormat: @"Icon=%@.tiff\n", iconPath];
+	}
+      else
+	{
+	  [fileContents appendFormat: @"Icon=%@\n", iconPath];
+	}
+    }
   entry = [plist objectForKey: @"NSExecutable"];
   if (entry != nil)
     {
-      [fileContents appendFormat: @"Exec=openapp %@.app\n", entry];
-      [fileContents appendFormat: @"#TryExec=%@.app\n", entry];
-      [fileContents appendFormat: @"FilePattern=%@.app;%@\n", entry, entry];
+      FILE *fp;
+      char line[130];
+      NSString *execPath = nil;
+      int l = 0;
+
+      fp = popen("which openapp","r");
+      fgets(line,sizeof line,fp);
+      l = strlen(line);
+      line[l-1] = '\0';
+
+      // Build the string to execute the application...
+      execPath = [NSString stringWithCString: line
+			   encoding: NSASCIIStringEncoding];
+      [fileContents appendFormat: @"Exec=%@ %@\n", execPath, entry];
+      [fileContents appendFormat: @"FilePattern=%@.app;%@;\n", entry, entry];
     }
 
   list = [plist objectForKey: @"NSTypes"];
   if (list != nil)
     {
-      unsigned int i;
-
-      [fileContents appendString: @"MimeType="];
-      for (i = 0; i < [list count]; i++)
-	{
-	  NSArray *types;
-	  unsigned int j;
-
-	  plist = [list objectAtIndex: i];
-	  types = [plist objectForKey: @"NSMIMETypes"];
-	  if (types != nil)
+      if([list count] > 0)
+	{  
+	  unsigned int i;
+      
+	  [fileContents appendString: @"MimeType="];
+	  for (i = 0; i < [list count]; i++)
 	    {
-	      for (j = 0; j < [types count]; j++)
+	      NSArray *types;
+	      unsigned int j;
+	      
+	      plist = [list objectAtIndex: i];
+	      types = [plist objectForKey: @"NSMIMETypes"];
+	      if (types != nil)
 		{
-		  entry = [types objectAtIndex: j];
-		  [fileContents appendFormat: @"%@;", entry];
+		  for (j = 0; j < [types count]; j++)
+		    {
+		      entry = [types objectAtIndex: j];
+		      [fileContents appendFormat: @"%@;", entry];
+		    }
 		}
 	    }
+	  [fileContents appendString: @"\n"];
 	}
-      [fileContents appendString: @"\n"];
     }
 
   if ([[fileContents dataUsingEncoding: NSUTF8StringEncoding]

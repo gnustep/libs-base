@@ -6,33 +6,32 @@
 
    This file is part of the GNUstep Project
 
-   This library is free software; you can redistribute it and/or
+   This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this library; see the file COPYING.LIB.
+   License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#include "config.h"
-#include	<Foundation/Foundation.h>
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSUserDefaults.h>
-#include	<Foundation/NSDebug.h>
-#include	<Foundation/NSFileHandle.h>
-#include	<Foundation/NSAutoreleasePool.h>
+#import "common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSString.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSFileHandle.h"
+#import	"Foundation/NSAutoreleasePool.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/GSMime.h"
 #ifdef NeXT_Foundation_LIBRARY
-#include "GNUstepBase/GSCategories.h"
+#import "GNUstepBase/Additions.h"
 #endif
 
 #include	<ctype.h>
@@ -66,7 +65,7 @@ main(int argc, char** argv, char **env)
   NSStringEncoding	enc = 0;
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];

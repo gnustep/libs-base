@@ -7,7 +7,7 @@
    This file is part of the GNUstep Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -43,10 +43,13 @@ GS_EXPORT NSString* const NSURLFileScheme;
 
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>
 {
+#if	GS_EXPOSE(NSURL)
+@private
   NSString	*_urlString;
   NSURL		*_baseURL;
   void		*_clients;
   void		*_data;
+#endif
 }
         
 + (id) fileURLWithPath: (NSString*)aPath;
@@ -121,6 +124,10 @@ GS_EXPORT NSString* const NSURLFileScheme;
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import <GNUstepBase/NSURL+GNUstepBase.h>
 #endif
 
 #endif	/* __NSURL_h_GNUSTEP_BASE_INCLUDE */

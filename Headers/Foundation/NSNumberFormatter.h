@@ -8,7 +8,7 @@
    This file is part of the GNUstep Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -37,10 +37,53 @@
 extern "C" {
 #endif
 
-@class	NSString, NSAttributedString, NSDictionary;
+@class	NSString, NSAttributedString, NSDictionary,
+        NSError, NSLocale, NSNumber;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+enum
+{
+  NSNumberFormatterNoStyle = 0,
+  NSNumberFormatterDecimalStyle = 1,
+  NSNumberFormatterCurrencyStyle = 2,
+  NSNumberFormatterPercentStyle = 3,
+  NSNumberFormatterScientificStyle = 4,
+  NSNumberFormatterSpellOutStyle = 5
+};
+typedef NSUInteger NSNumberFormatterStyle;
+
+enum
+{
+  NSNumberFormatterBehaviorDefault = 0,
+  NSNumberFormatterBehavior10_0 = 1000,
+  NSNumberFormatterBehavior10_4 = 1040
+};
+typedef NSUInteger NSNumberFormatterBehavior;
+
+enum
+{
+  NSNumberFormatterPadBeforePrefix = 0,
+  NSNumberFormatterPadAfterPrefix = 1,
+  NSNumberFormatterPadBeforeSuffix = 2,
+  NSNumberFormatterPadAfterSuffix = 3
+};
+typedef NSUInteger NSNumberFormatterPadPosition;
+
+enum
+{
+  NSNumberFormatterRoundCeiling = 0,
+  NSNumberFormatterRoundFloor = 1,
+  NSNumberFormatterRoundDown = 2,
+  NSNumberFormatterRoundUp = 3,
+  NSNumberFormatterRoundHalfEven = 4,
+  NSNumberFormatterRoundHalfDown = 5,
+  NSNumberFormatterRoundHalfUp = 6
+};
+typedef NSUInteger NSNumberFormatterRoundingMode;
+#endif
 
 /**
- * <p><em><strong>This class is currently not implemented in GNUstep!  All set
+ * <p><em><strong>This class is currently not fully implemented!  All set
  * methods will work, but stringForObject: will ignore the format completely.
  * The documentation below describes what the behavior SHOULD
  * be...</strong></em></p>
@@ -75,8 +118,10 @@ extern "C" {
  * of attributes for positive and negative numbers, and for specific cases
  * including 0, NaN, and nil... </p>
  */
-@interface NSNumberFormatter: NSFormatter
+@interface NSNumberFormatter : NSFormatter
 {
+#if	GS_EXPOSE(NSNumberFormatter)
+@private
   BOOL _hasThousandSeparators;
   BOOL _allowsFloats;
   BOOL _localizesFormat;
@@ -92,9 +137,22 @@ extern "C" {
   NSString *_positiveFormat;
   NSDictionary *_attributesForPositiveValues;
   NSDictionary *_attributesForNegativeValues;
+#endif
+#if     GS_NONFRAGILE
+#  if	defined(GS_NSNumberFormatter_IVARS)
+@public
+GS_NSNumberFormatter_IVARS;
+#  endif
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
 }
 
-// Format
 /**
  * Returns the format string this instance was initialized with.
  */
@@ -297,6 +355,165 @@ extern "C" {
  * Default is none.
  */
 - (void) setMinimum: (NSDecimalNumber*)aMinimum;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+/** Sets the behavior of the formatter.<br />
+ * NB. If GNUstep has been built without the ICU library,
+ * NSNumberFormatterBehavior10_0 is currently used irrespective of
+ * this setting.
+ */
+- (void) setFormatterBehavior: (NSNumberFormatterBehavior) behavior;
+
+/** Returns the behavior of the receiver, either the default behavior
+ * set for number formatters, or the behavior specified by an earlier
+ * call to the -setFormatterBehavior: method.
+ */
+- (NSNumberFormatterBehavior) formatterBehavior;
+
+/** Sets the default behavior of number formatters.<br />
+ * NB. If GNUstep has been built without the ICU library,
+ * NSNumberFormatterBehavior10_0 is currently used irrespective of
+ * this setting.
+ */
++ (void) setDefaultFormatterBehavior: (NSNumberFormatterBehavior) behavior;
+
+/** Returns the formatter behavior previously set as the default
+ * using the +setDefaultFormatterBehavior: method.
+ */
++ (NSNumberFormatterBehavior) defaultFormatterBehavior;
+
+- (void) setNumberStyle: (NSNumberFormatterStyle) style;
+- (NSNumberFormatterStyle) numberStyle;
+- (void) setGeneratesDecimalNumbers: (BOOL) flag;
+- (BOOL) generatesDecimalNumbers;
+
+- (void) setLocale: (NSLocale *) locale;
+- (NSLocale *) locale;
+
+- (void) setRoundingIncrement: (NSNumber *) number;
+- (NSNumber *) roundingIncrement;
+- (void) setRoundingMode: (NSNumberFormatterRoundingMode) mode;
+- (NSNumberFormatterRoundingMode) roundingMode;
+
+- (void) setFormatWidth: (NSUInteger) number;
+- (NSUInteger) formatWidth;
+- (void) setMultiplier: (NSNumber *) number;
+- (NSNumber *) multiplier;
+
+- (void) setPercentSymbol: (NSString *) string;
+- (NSString *) percentSymbol;
+- (void) setPerMillSymbol: (NSString *) string;
+- (NSString *) perMillSymbol;
+- (void) setMinusSign: (NSString *) string;
+- (NSString *) minusSign;
+- (void) setPlusSign: (NSString *) string;
+- (NSString *) plusSign;
+- (void) setExponentSymbol: (NSString *) string;
+- (NSString *) exponentSymbol;
+- (void) setZeroSymbol: (NSString *) string;
+- (NSString *) zeroSymbol;
+- (void) setNilSymbol: (NSString *) string;
+- (NSString *) nilSymbol;
+- (void) setNotANumberSymbol: (NSString *) string;
+- (NSString *) notANumberSymbol;
+- (void) setNegativeInfinitySymbol: (NSString *) string;
+- (NSString *) negativeInfinitySymbol;
+- (void) setPositiveInfinitySymbol: (NSString *) string;
+- (NSString *) positiveInfinitySymbol;
+
+- (void) setCurrencySymbol: (NSString *) string;
+- (NSString *) currencySymbol;
+- (void) setCurrencyCode: (NSString *) string;
+- (NSString *) currencyCode;
+- (void) setInternationalCurrencySymbol: (NSString *) string;
+- (NSString *) internationalCurrencySymbol;
+
+- (void) setPositivePrefix: (NSString *) string;
+- (NSString *) positivePrefix;
+- (void) setPositiveSuffix: (NSString *) string;
+- (NSString *) positiveSuffix;
+- (void) setNegativePrefix: (NSString *) string;
+- (NSString *) negativePrefix;
+- (void) setNegativeSuffix: (NSString *) string;
+- (NSString *) negativeSuffix;
+
+- (void) setTextAttributesForZero: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForZero;
+- (void) setTextAttributesForNil: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForNil;
+- (void) setTextAttributesForNotANumber: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForNotANumber;
+- (void) setTextAttributesForPositiveInfinity: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForPositiveInfinity;
+- (void) setTextAttributesForNegativeInfinity: (NSDictionary *) newAttributes;
+- (NSDictionary *) textAttributesForNegativeInfinity;
+
+- (void) setGroupingSeparator: (NSString *) string;
+- (NSString *) groupingSeparator;
+- (void) setUsesGroupingSeparator: (BOOL) flag;
+- (BOOL) usesGroupingSeparator;
+- (void) setAlwaysShowsDecimalSeparator: (BOOL) flag;
+- (BOOL) alwaysShowsDecimalSeparator;
+- (void) setCurrencyDecimalSeparator: (NSString *) string;
+- (NSString *) currencyDecimalSeparator;
+- (void) setGroupingSize: (NSUInteger) number;
+- (NSUInteger) groupingSize;
+- (void) setSecondaryGroupingSize: (NSUInteger) number;
+- (NSUInteger) secondaryGroupingSize;
+
+- (void) setPaddingCharacter: (NSString *) string;
+- (NSString *) paddingCharacter;
+- (void) setPaddingPosition: (NSNumberFormatterPadPosition) position;
+- (NSNumberFormatterPadPosition) paddingPosition;
+
+- (void) setMinimumIntegerDigits: (NSUInteger) number;
+- (NSUInteger) minimumIntegerDigits;
+- (void) setMinimumFractionDigits: (NSUInteger) number;
+- (NSUInteger) minimumFractionDigits;
+- (void) setMaximumIntegerDigits: (NSUInteger) number;
+- (NSUInteger) maximumIntegerDigits;
+- (void) setMaximumFractionDigits: (NSUInteger) number;
+- (NSUInteger) maximumFractionDigits;
+
+/**
+ * Returns the number for this string.
+ */
+- (NSNumber *) numberFromString: (NSString *) string;
+/**
+ * Returns the string version of this number based on the format
+ * specified.
+ */
+- (NSString *) stringFromNumber: (NSNumber *) number;
+
+- (BOOL) getObjectValue: (out id *) anObject
+              forString: (NSString *) aString
+                  range: (NSRange *) rangep
+                  error: (out NSError **) error;
+
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (void) setUsesSignificantDigits: (BOOL) flag;
+- (BOOL) usesSignificantDigits;
+- (void) setMinimumSignificantDigits: (NSUInteger) number;
+- (NSUInteger) minimumSignificantDigits;
+- (void) setMaximumSignificantDigits: (NSUInteger) number;
+- (NSUInteger) maximumSignificantDigits;
+
+- (void) setCurrencyGroupingSeparator: (NSString *) string;
+- (NSString *) currencyGroupingSeparator;
+
+- (void) setLenient: (BOOL) flag;
+- (BOOL) isLenient;
+
+- (void) setPartialStringValidationEnabled: (BOOL) enabled;
+- (BOOL) isPartialStringValidationEnabled;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (NSString *) localizedStringFromNumber: (NSNumber *) num
+    numberStyle: (NSNumberFormatterStyle) localizationStyle;
+#endif
 
 @end
 

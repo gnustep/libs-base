@@ -8,38 +8,42 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+   _version 2 of the License, or (at your option) any later _version.
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
 
-#include "config.h"
-#include "Foundation/NSSet.h"
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSObjCRuntime.h"
+#import "common.h"
+#import "Foundation/NSSet.h"
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
-#include "GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GSPrivate.h"
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
+#if	GS_WITH_GC
+#include	<gc/gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
+
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -56,6 +60,8 @@ static SEL	memberSel;
 {
 @public
   GSIMapTable_t	map;
+@private
+  NSUInteger _version;
 }
 @end
 
@@ -110,6 +116,14 @@ static Class	mutableSetClass;
 {
   if (self == [GSSet class])
     {
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * Only the pointer to the key needs to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
       arrayClass = [NSArray class];
       setClass = [GSSet class];
       mutableSetClass = [GSMutableSet class];
@@ -121,7 +135,7 @@ static Class	mutableSetClass;
 {
   GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
   GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-  unsigned		i = 0;
+  NSUInteger		i = 0;
   NSArray		*result;
   GS_BEGINIDBUF(objects, map.nodeCount);
 
@@ -166,7 +180,7 @@ static Class	mutableSetClass;
   return RETAIN(self);
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return map.nodeCount;
 }
@@ -185,7 +199,7 @@ static Class	mutableSetClass;
     }
   else
     {
-      unsigned			count = map.nodeCount;
+      unsigned		count = map.nodeCount;
       SEL			sel = @selector(encodeObject:);
       IMP			imp = [aCoder methodForSelector: sel];
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
@@ -201,7 +215,7 @@ static Class	mutableSetClass;
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return map.nodeCount;
 }
@@ -238,9 +252,9 @@ static Class	mutableSetClass;
 }
 
 /* Designated initialiser */
-- (id) initWithObjects: (id*)objs count: (unsigned)c
+- (id) initWithObjects: (id*)objs count: (NSUInteger)c
 {
-  unsigned i;
+  NSUInteger i;
 
   GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
   for (i = 0; i < c; i++)
@@ -249,7 +263,7 @@ static Class	mutableSetClass;
 
       if (objs[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}
@@ -279,7 +293,7 @@ static Class	mutableSetClass;
     }
 
   // Loop for all members in otherSet
-  c = GSObjCClass(otherSet);
+  c = object_getClass(otherSet);
   if (c == setClass || c == mutableSetClass)
     {
       GSIMapTable		m = &((GSSet*)otherSet)->map;
@@ -367,7 +381,7 @@ static Class	mutableSetClass;
     }
   else
     {
-      Class	c = GSObjCClass(other);
+      Class	c = object_getClass(other);
 
       if (c == setClass || c == mutableSetClass)
 	{
@@ -506,6 +520,14 @@ static Class	mutableSetClass;
   return AUTORELEASE([[GSSetEnumerator alloc] initWithSet: self]);
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+                                   objects: (id*)stackbuf
+                                     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)self;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
+}
 @end
 
 @implementation GSMutableSet
@@ -531,12 +553,13 @@ static Class	mutableSetClass;
   if (node == 0)
     {
       GSIMapAddKey(&map, (GSIMapKey)anObject);
+      _version++;
     }
 }
 
 - (void) addObjectsFromArray: (NSArray*)array
 {
-  unsigned	count = [array count];
+  NSUInteger	count = [array count];
 
   while (count-- > 0)
     {
@@ -555,12 +578,13 @@ static Class	mutableSetClass;
 	  if (node == 0)
 	    {
 	      GSIMapAddKey(&map, (GSIMapKey)anObject);
+	      _version++;
 	    }
 	}
     }
 }
 
-/* Override version from GSSet */
+/* Override _version from GSSet */
 - (id) copyWithZone: (NSZone*)z
 {
   NSSet	*copy = [setClass allocWithZone: z];
@@ -574,14 +598,14 @@ static Class	mutableSetClass;
 }
 
 /* Designated initialiser */
-- (id) initWithCapacity: (unsigned)cap
+- (id) initWithCapacity: (NSUInteger)cap
 {
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
 }
 
 - (id) initWithObjects: (id*)objects
-		 count: (unsigned)count
+		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
 
@@ -633,13 +657,7 @@ static Class	mutableSetClass;
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-#ifndef NDEBUG
-  GSDebugAllocationRemove(isa, self);
-#endif
-  isa = [GSSet class];
-#ifndef NDEBUG
-  GSDebugAllocationAdd(isa, self);
-#endif
+  GSClassSwizzle(self, [GSSet class]);
   return self;
 }
 
@@ -657,6 +675,7 @@ static Class	mutableSetClass;
       while ((anObject = [e nextObject]) != nil)
 	{
 	  GSIMapRemoveKey(&map, (GSIMapKey)anObject);
+	  _version++;
 	}
     }
 }
@@ -674,6 +693,7 @@ static Class	mutableSetClass;
       return;
     }
   GSIMapRemoveKey(&map, (GSIMapKey)anObject);
+  _version++;
 }
 
 - (void) unionSet: (NSSet*) other
@@ -696,12 +716,21 @@ static Class	mutableSetClass;
 	      if (node == 0)
 		{
 		  GSIMapAddKey(&map, (GSIMapKey)anObject);
+		  _version++;
 		}
 	    }
 	}
     }
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+                                   objects: (id*)stackbuf
+                                     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)&_version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
+}
 @end
 
 @interface	NSGSet : NSSet
@@ -710,7 +739,7 @@ static Class	mutableSetClass;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSSet class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
@@ -723,7 +752,7 @@ static Class	mutableSetClass;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSMutableSet class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;

@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,21 +17,21 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02111 USA.
 
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include <Foundation/NSException.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSThread.h>
-#include "GNUstepBase/GSLock.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "common.h"
+#define	EXPOSE_GSLock_IVARS	1
+#import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSThread.h"
+#import "GNUstepBase/GSLock.h"
 
 /**
  * This implements a class which, when used in single-threaded mode,
@@ -72,16 +72,10 @@
   locked = -1;
 }
 
-- (void) dealloc
-{
-  [self gcFinalize];
-  [super dealloc];
-}
-
-- (void) gcFinalize
+- (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
-  [super gcFinalize];
+  [super finalize];
 }
 
 - (id) init
@@ -90,7 +84,7 @@
 
   if ([NSThread isMultiThreaded] == YES)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSLock new];
     }
   else if (self != nil)
@@ -220,16 +214,10 @@
   counter = -1;
 }
 
-- (void) dealloc
-{
-  [self gcFinalize];
-  [super dealloc];
-}
-
-- (void) gcFinalize
+- (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
-  [super gcFinalize];
+  [super finalize];
 }
 
 - (id) init
@@ -238,7 +226,7 @@
 
   if ([NSThread isMultiThreaded] == YES)
     {
-      RELEASE(self);
+      DESTROY(self);
       self = [NSRecursiveLock new];
     }
   else
@@ -311,4 +299,9 @@
 }
 
 @end
+
+/* Global lock to be used by classes when operating on any global
+   data that invoke other methods which also access global; thus,
+   creating the potential for deadlock. */
+NSRecursiveLock *gnustep_global_lock = nil;
 

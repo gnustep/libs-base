@@ -15,7 +15,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -24,7 +24,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -33,19 +33,14 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include <string.h>
-
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSZone.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSString.h"
+#import "common.h"
+#define	EXPOSE_NSPortCoder_IVARS	1
+#import "Foundation/NSException.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSPort.h"
 
 @class	NSMutableDataMalloc;
 @interface NSMutableDataMalloc : NSObject	// Help the compiler
@@ -54,21 +49,30 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
+#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS | GSUNION_NSINT
+#define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS | GSUNION_NSINT
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
-#define	GSI_MAP_HASH(M, X)	((X).uint)
+#define	GSI_MAP_HASH(M, X)	((X).nsu)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
+
+#if	GS_WITH_GC
+#include	<gc/gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
 
 #include "GNUstepBase/GSIMap.h"
 
 /*
  *	Setup for inline operation of arrays.
  */
-#define	GSI_ARRAY_RETAIN(A, X)	
-#define	GSI_ARRAY_RELEASE(A, X)	
+#define	GSI_ARRAY_NO_RETAIN	1
+#define	GSI_ARRAY_NO_RELEASE	1
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
 
 #include "GNUstepBase/GSIArray.h"
@@ -76,10 +80,10 @@
 
 
 #define	_IN_PORT_CODER_M
-#include "Foundation/NSPortCoder.h"
+#import "Foundation/NSPortCoder.h"
 #undef	_IN_PORT_CODER_M
 
-#include "GNUstepBase/DistributedObjects.h"
+#import "GNUstepBase/DistributedObjects.h"
 
 typedef	unsigned char	uchar;
 
@@ -128,13 +132,13 @@ typeToName1(char type)
 
 	  if (bufptr == buf1)
 	    {
-		bufptr = buf2;
+	      bufptr = buf2;
 	    }
 	  else
 	    {
 	      bufptr = buf1;
 	    }
-	  sprintf(bufptr, "unknown type info - 0x%x", type);
+	  snprintf(bufptr, 32, "unknown type info - 0x%x", type);
 	  return bufptr;
 	}
     }
@@ -173,13 +177,13 @@ typeToName2(char type)
 
 	  if (bufptr == buf1)
 	    {
-		bufptr = buf2;
+	      bufptr = buf2;
 	    }
 	  else
 	    {
 	      bufptr = buf1;
 	    }
-	  sprintf(bufptr, "unknown type info - 0x%x", type);
+	  snprintf(bufptr, 32, "unknown type info - 0x%x", type);
 	  return bufptr;
 	}
     }
@@ -261,6 +265,12 @@ typeCheck(char t1, char t2)
 #endif
 	)) return;
 
+/* HACK also allow float and double to be used interchangably as MacOS-X
+ * intorduced CGFloat, which may be aither a float or a double.
+ */
+      if ((c == _C_FLT || c == _C_DBL) && (t1 == _C_FLT || t1 == _C_DBL))
+	return;
+
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
 		    typeToName1(t1), typeToName2(t2)];
@@ -340,6 +350,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 {
   if (self == [NSPortCoder class])
     {
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
       connectionClass = [NSConnection class];
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableDataMalloc class];
@@ -366,7 +384,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
   coder = [self allocWithZone: NSDefaultMallocZone()];
   coder = [coder initWithReceivePort: recv sendPort: send components: comp];
-  AUTORELEASE(coder);
+  IF_NO_GC(AUTORELEASE(coder);)
   return coder;
 }
 
@@ -407,7 +425,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 }
 
 - (void) decodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)expected
+			 count: (NSUInteger)expected
 			    at: (void*)buf
 {
   unsigned int	i;
@@ -579,8 +597,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		  if (c == 0)
 		    {
 		      NSLog(@"[%s %s] decoded nil class",
-			GSNameFromClass([self class]),
-			GSNameFromSelector(_cmd));
+			class_getName([self class]),
+			sel_getName(_cmd));
 		    }
 		  obj = [c allocWithZone: _zone];
 		  GSIArrayAddItem(_objAry, (GSIArrayItem)obj);
@@ -598,6 +616,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		      obj = rep;
 		      GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
 		    }
+		  GS_CONSUMED(rep)
 		}
 	    }
 	  *(id*)address = obj;
@@ -694,7 +713,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      if (c == 0)
 		{
 		  NSLog(@"[%s %s] decoded nil class",
-		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
+		    class_getName([self class]), sel_getName(_cmd));
 		}
 	      classInfo = [GSClassInfo newWithClass: c andVersion: cver];
 	      GSIArrayAddItem(_clsAry, (GSIArrayItem)((id)classInfo));
@@ -705,6 +724,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	       */
 	      address = &dummy;
 	      (*_dTagImp)(_src, dTagSel, &info, &xref, &_cursor);
+	      GS_CONSUMED(classInfo)
 	    }
 	  if (info != _GSC_NONE)
 	    {
@@ -852,6 +872,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  else
 	    {
 	      char	*tmp;
+	      int	len;
 
 	      if (xref != GSIArrayCount(_ptrAry))
 		{
@@ -859,9 +880,10 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 			      format: @"extra string crossref - %d", xref];
 		}
 	      (*_dDesImp)(_src, dDesSel, &tmp, @encode(char*), &_cursor, nil);
-	      *(void**)address = GSAutoreleasedBuffer(strlen(tmp)+1);
+	      len = strlen(tmp);
+	      *(void**)address = GSAutoreleasedBuffer(len + 1);
 	      GSIArrayAddItem(_ptrAry, (GSIArrayItem)*(void**)address);
-	      strcpy(*(char**)address, tmp);
+	      memcpy(*(char**)address, tmp, len + 1);
 	      NSZoneFree(NSDefaultMallocZone(), tmp);
 	    }
 	  return;
@@ -924,12 +946,36 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 #endif
       case _GSC_FLT:
 	typeCheck(*type, _GSC_FLT);
-	(*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	if (*type == _C_FLT)
+	  {
+	    (*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	  }
+	else
+	  {
+	    float	val;
+
+	    /* We found a float when expecting a double ... handle it.
+	     */
+	    (*_dDesImp)(_src, dDesSel, &val, @encode(float), &_cursor, nil);
+	    *(double*)address = (double)val;
+	  }
 	return;
 
       case _GSC_DBL:
 	typeCheck(*type, _GSC_DBL);
-	(*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	if (*type == _C_DBL)
+	  {
+	    (*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	  }
+	else
+	  {
+	    double	val;
+
+	    /* We found a double when expecting a float ... handle it.
+	     */
+	    (*_dDesImp)(_src, dDesSel, &val, @encode(double), &_cursor, nil);
+	    *(float*)address = (float)val;
+	  }
 	return;
 
       default:
@@ -990,7 +1036,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 #else
 	  val = GSSwapBigI128ToHost(val);
 #if	GS_HAVE_I64
-	  bigval = *(uint64_t*)&val;
+	  bigval = *(uint64_t*)(void*)&val;
 #else
 	  bigval = *(uint32_t*)&val;
 #endif
@@ -1047,7 +1093,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 }
 
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)count
+			 count: (NSUInteger)count
 			    at: (const void*)buf
 {
   unsigned	i;
@@ -1169,7 +1215,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  return;
 	}
 
-      GSIMapAddPair(_cIdMap, (GSIMapKey)anObject, (GSIMapVal)0);
+      GSIMapAddPair(_cIdMap, (GSIMapKey)anObject, (GSIMapVal)(NSUInteger)0);
     }
   else if (anObject == nil)
     {
@@ -1246,13 +1292,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	       *	and add it to the map of unconditionay encoded ones.
 	       */
 	      GSIMapRemoveKey(_cIdMap, (GSIMapKey)anObject);
-	      GSIMapAddPair(_uIdMap, (GSIMapKey)anObject, (GSIMapVal)0);
+	      GSIMapAddPair(_uIdMap,
+		(GSIMapKey)anObject, (GSIMapVal)(NSUInteger)0);
 	      [anObject encodeWithCoder: self];
 	    }
 	  return;
 	}
 
-      if (node == 0 || node->value.uint == 0)
+      if (node == 0 || node->value.nsu == 0)
 	{
 	  Class	cls;
 	  id	obj;
@@ -1260,11 +1307,11 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  if (node == 0)
 	    {
 	      node = GSIMapAddPair(_uIdMap,
-		(GSIMapKey)anObject, (GSIMapVal)++_xRefO);
+		(GSIMapKey)anObject, (GSIMapVal)(NSUInteger)++_xRefO);
 	    }
 	  else
 	    {
-	      node->value.uint = ++_xRefO;
+	      node->value.nsu = ++_xRefO;
 	    }
 
 	  obj = [anObject replacementObjectForPortCoder: self];
@@ -1274,20 +1321,20 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	       *	If the object we have been given is actually a class,
 	       *	we encode it as a special case.
 	       */
-	      (*_xRefImp)(_dst, xRefSel, _GSC_CID, node->value.uint);
+	      (*_xRefImp)(_dst, xRefSel, _GSC_CID, node->value.nsu);
 	      (*_eValImp)(self, eValSel, @encode(Class), &obj);
 	    }
 	  else
 	    {
 	      cls = [obj classForPortCoder];
-	      (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
+	      (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.nsu);
 	      (*_eValImp)(self, eValSel, @encode(Class), &cls);
 	      [obj encodeWithCoder: self];
 	    }
 	}
       else
 	{
-	  (*_xRefImp)(_dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.uint);
+	  (*_xRefImp)(_dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.nsu);
 	}
     }
 }
@@ -1413,13 +1460,13 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		if (node == 0)
 		  {
 		    GSIMapAddPair(_ptrMap,
-			(GSIMapKey)*(void**)buf, (GSIMapVal)0);
+		      (GSIMapKey)*(void**)buf, (GSIMapVal)(NSUInteger)0);
 		    type++;
 		    buf = *(char**)buf;
 		    (*_eValImp)(self, eValSel, type, buf);
 		  }
 	      }
-	    else if (node == 0 || node->value.uint == 0)
+	    else if (node == 0 || node->value.nsu == 0)
 	      {
 		/*
 		 *	Second pass, unwritten pointer - write it.
@@ -1427,13 +1474,13 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		if (node == 0)
 		  {
 		    node = GSIMapAddPair(_ptrMap,
-			(GSIMapKey)*(void**)buf, (GSIMapVal)++_xRefP);
+		      (GSIMapKey)*(void**)buf, (GSIMapVal)(NSUInteger)++_xRefP);
 		  }
 		else
 		  {
-		    node->value.uint = ++_xRefP;
+		    node->value.nsu = ++_xRefP;
 		  }
-		(*_xRefImp)(_dst, xRefSel, _GSC_PTR, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_PTR, node->value.nsu);
 		type++;
 		buf = *(char**)buf;
 		(*_eValImp)(self, eValSel, type, buf);
@@ -1444,7 +1491,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		 *	Second pass, write a cross-reference number.
 		 */
 		(*_xRefImp)(_dst, xRefSel, _GSC_PTR|_GSC_XREF,
-		  node->value.uint);
+		  node->value.nsu);
 	      }
 	  }
 	return;
@@ -1478,14 +1525,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    if (node != 0)
 	      {
 		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS | _GSC_XREF,
-		  node->value.uint);
+		  node->value.nsu);
 		return;
 	      }
 	    while (done == NO)
 	      {
-		int		tmp = GSObjCVersion(c);
+		int		tmp = class_getVersion(c);
 		unsigned	version = tmp;
-		Class		s = GSObjCSuper(c);
+		Class		s = class_getSuperclass(c);
 
 		if (tmp < 0)
 		  {
@@ -1493,11 +1540,11 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 				format: @"negative class version"];
 		  }
 		node = GSIMapAddPair(_clsMap,
-			(GSIMapKey)(void*)c, (GSIMapVal)++_xRefC);
+		  (GSIMapKey)(void*)c, (GSIMapVal)(NSUInteger)++_xRefC);
 		/*
 		 *	Encode tag and crossref number.
 		 */
-		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS, node->value.uint);
+		(*_xRefImp)(_dst, xRefSel, _GSC_CLASS, node->value.nsu);
 		/*
 		 *	Encode class, and version.
 		 */
@@ -1543,8 +1590,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    if (node == 0)
 	      {
 		node = GSIMapAddPair(_ptrMap,
-			(GSIMapKey)(void*)s, (GSIMapVal)++_xRefP);
-		(*_xRefImp)(_dst, xRefSel, _GSC_SEL, node->value.uint);
+		  (GSIMapKey)(void*)s, (GSIMapVal)(NSUInteger)++_xRefP);
+		(*_xRefImp)(_dst, xRefSel, _GSC_SEL, node->value.nsu);
 		/*
 		 *	Encode selector.
 		 */
@@ -1553,7 +1600,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    else
 	      {
 		(*_xRefImp)(_dst, xRefSel, _GSC_SEL|_GSC_XREF,
-		  node->value.uint);
+		  node->value.nsu);
 	      }
 	  }
 	return;
@@ -1574,14 +1621,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    if (node == 0)
 	      {
 		node = GSIMapAddPair(_ptrMap,
-			(GSIMapKey)*(char**)buf, (GSIMapVal)++_xRefP);
-		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR, node->value.uint);
+		  (GSIMapKey)*(char**)buf, (GSIMapVal)(NSUInteger)++_xRefP);
+		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR, node->value.nsu);
 		(*_eSerImp)(_dst, eSerSel, buf, type, nil);
 	      }
 	    else
 	      {
 		(*_xRefImp)(_dst, xRefSel, _GSC_CHARPTR|_GSC_XREF,
-		  node->value.uint);
+		  node->value.nsu);
 	      }
 	  }
 	return;
@@ -1713,8 +1760,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      /*
 	       *	Set up map tables.
 	       */
+#if	GS_WITH_GC
+	      _clsMap
+		= (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*4,
+		NSScannedOption);
+#else
 	      _clsMap
 		= (GSIMapTable)NSZoneMalloc(_zone, sizeof(GSIMapTable_t)*4);
+#endif
 	      _cIdMap = &_clsMap[1];
 	      _uIdMap = &_clsMap[2];
 	      _ptrMap = &_clsMap[3];
@@ -1800,7 +1853,12 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	   */
 	  if (firstTime == YES)
 	    {
+#if	GS_WITH_GC
+	      _clsAry
+		= NSAllocateCollectable(sizeof(GSIArray_t)*3, NSScannedOption);
+#else
 	      _clsAry = NSZoneMalloc(_zone, sizeof(GSIArray_t)*3);
+#endif
 	      _objAry = &_clsAry[1];
 	      _ptrAry = &_clsAry[2];
 	      GSIArrayInitWithZoneAndCapacity(_clsAry, _zone, sizeC);
@@ -1859,7 +1917,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   return _version;
 }
 
-- (unsigned) versionForClassName: (NSString*)className
+- (NSInteger) versionForClassName: (NSString*)className
 {
   GSClassInfo	*info = nil;
   unsigned	version = NSNotFound;
@@ -1942,7 +2000,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   char		header[headerLength+1];
   unsigned	dataLength = [_dst length];
 
-  sprintf(header, "%s%08x:%08x:%08x:%08x:", PREFIX, v, cc, oc, pc);
+  snprintf(header, sizeof(header), "%s%08x:%08x:%08x:%08x:",
+    PREFIX, v, cc, oc, pc);
 
   if (locationInData + headerLength <= dataLength)
     {
@@ -1989,10 +2048,10 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
     {
       proxyClass = [NSDistantObject class];
       /*
-       * use get_imp() because NSDistantObject doesn't implement
-       * methodForSelector:
+       * Use class_getMethodImplementation() because NSDistantObject
+       * doesn't implement methodForSelector:
        */
-      proxyImp = get_imp(GSObjCClass((id)proxyClass),
+      proxyImp = class_getMethodImplementation(object_getClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 

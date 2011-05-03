@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -33,8 +33,18 @@
 extern "C" {
 #endif
 
-typedef enum
+
+enum
 {
+  NSNetServicesUnknownError		= -72000L,
+  NSNetServicesCollisionError		= -72001L,
+  NSNetServicesNotFoundError		= -72002L,
+  NSNetServicesActivityInProgress	= -72003L,
+  NSNetServicesBadArgumentError		= -72004L,
+  NSNetServicesCancelledError		= -72005L,
+  NSNetServicesInvalidError		= -72006L,
+  NSNetServicesTimeoutError		= -72007L
+};
   /**
    * <list>
    *   <item>
@@ -80,169 +90,33 @@ typedef enum
    *   </item>
    * </list>
    */
-  NSNetServicesUnknownError		= -72000L,
-  NSNetServicesCollisionError		= -72001L,
-  NSNetServicesNotFoundError		= -72002L,
-  NSNetServicesActivityInProgress	= -72003L,
-  NSNetServicesBadArgumentError		= -72004L,
-  NSNetServicesCancelledError		= -72005L,
-  NSNetServicesInvalidError		= -72006L,
-  NSNetServicesTimeoutError		= -72007L
-} NSNetServicesError;
+typedef NSUInteger NSNetServicesError;
+
+enum {
+  NSNetServiceNoAutoRename = 1 << 0
+};
+typedef NSUInteger NSNetServiceOptions;
+
 
 GS_EXPORT NSString * const NSNetServicesErrorCode;
 GS_EXPORT NSString * const NSNetServicesErrorDomain;
+
 
 @class	NSInputStream;
 @class  NSOutputStream;
 @class  NSRunLoop;
 
-/**
- * <unit>
- *   <heading>
- *     NSNetService class description
- *   </heading>
- *   <p>
- *     <!-- Foreword -->
- *   </p>
- *   <unit />
- *   <p>
- *     <!-- Afterword -->
- *   </p>
- * </unit>
- * <p>
- *   [NSNetService] lets you publish a network service in a domain using
- *   multicast DNS. Additionally, it lets you resolve a network service that
- *   was discovered by [NSNetServiceBrowser].
- * </p>
- */
+@class NSNetService;
+@class NSNetServiceBrowser;
 
-@interface NSNetService : NSObject
-{
-  @private
-  void		* _netService;
-  id		  _delegate;
-  void		* _reserved;
-}
 
-+ (NSData *) dataFromTXTRecordDictionary: (NSDictionary *) txtDictionary;
-+ (NSDictionary *) dictionaryFromTXTRecordData: (NSData *) txtData;
-
-- (id) initWithDomain: (NSString *) domain
-                 type: (NSString *) type
-                 name: (NSString *) name;
-- (id) initWithDomain: (NSString *) domain
-                 type: (NSString *) type
-                 name: (NSString *) name
-                 port: (int) port;
-
-- (void) removeFromRunLoop: (NSRunLoop *) aRunLoop
-                   forMode: (NSString *) mode;
-- (void) scheduleInRunLoop: (NSRunLoop *) aRunLoop
-                   forMode: (NSString *) mode;
-
-- (void) publish;
-- (void) resolve;
-- (void) resolveWithTimeout: (NSTimeInterval) timeout;
-- (void) stop;
-
-- (void) startMonitoring;
-- (void) stopMonitoring;
-
-- (id) delegate;
-- (void) setDelegate: (id) delegate;
-
-- (NSArray *) addresses;
-- (NSString *) domain;
-- (NSString *) hostName;
-- (NSString *) name;
-- (NSString *) type;
-
-- (NSString *) protocolSpecificInformation;
-- (void) setProtocolSpecificInformation: (NSString *) specificInformation;
-
-- (NSData *) TXTRecordData;
-- (BOOL) setTXTRecordData: (NSData *) recordData;
-
-- (BOOL) getInputStream: (NSInputStream **) inputStream
-           outputStream: (NSOutputStream **) outputStream;
-
+@protocol  NSNetServiceDelegate
+#ifdef __clang__
+@optional
+#else
 @end
-
-/**
- * <unit>
- *   <heading>
- *     NSNetServiceBrowser class description
- *   </heading>
- *   <p>
- *     <!-- Foreword -->
- *   </p>
- *   <unit />
- *   <p>
- *     <!-- Afterword -->
- *   </p>
- * </unit>
- * <p>
- *   [NSNetServiceBrowser] asynchronously lets you discover network domains
- *   and, additionally, search for a type of network service. It sends its
- *   delegate a message whenever it discovers a new network service, and
- *   whenever a network service goes away.
- * </p>
- * <p>
- *   Each [NSNetServiceBrowser] performs one search at a time. So in order
- *   to perform multiple searches simultaneously, create multiple instances.
- * </p>
- */
-
-@interface NSNetServiceBrowser : NSObject
-{
-  @private
-  void		* _netServiceBrowser;
-  id		  _delegate;
-  void		* _reserved;
-}
-
-- (id) init;
-
-- (void) removeFromRunLoop: (NSRunLoop *) aRunLoop
-                   forMode: (NSString *) mode;
-- (void) scheduleInRunLoop: (NSRunLoop *) aRunLoop
-                   forMode: (NSString *) mode;
-
-- (void) searchForAllDomains;
-- (void) searchForBrowsableDomains;
-- (void) searchForRegistrationDomains;
-
-- (void) searchForServicesOfType: (NSString *) serviceType
-                        inDomain: (NSString *) domainName;
-
-- (void) stop;
-
-- (id) delegate;
-- (void) setDelegate: (id) delegate;
-
-@end
-
-/**
- * <unit>
- *   <heading>
- *     NSObject (NSNetServiceDelegateMethods) class description
- *   </heading>
- *   <p>
- *     <!-- Foreword -->
- *   </p>
- *   <unit />
- *   <p>
- *     <!-- Afterword -->
- *   </p>
- * </unit>
- * <p>
- *  This informal protocol must be adopted by any class wishing to implement
- *  an [NSNetService] delegate.
- * </p>
- */
-
 @interface NSObject (NSNetServiceDelegateMethods)
+#endif
 
 /**
  * Notifies the delegate that the network is ready to publish the service.
@@ -333,7 +207,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 /**
  * <unit>
  *   <heading>
- *     NSObject (NSNetServiceBrowserDelegateMethods) class description
+ *     NSNetServiceBrowserDelegate protocol description
  *   </heading>
  *   <p>
  *     <!-- Foreword -->
@@ -344,12 +218,18 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  *   </p>
  * </unit>
  * <p>
- *  This informal protocol must be adopted by any class wishing to implement
+ *  This protocol must be adopted by any class wishing to implement
  *  an [NSNetServiceBrowser] delegate.
  * </p>
  */
 
+@protocol NSNetServiceBrowserDelegate
+#ifdef __clang__
+@optional
+#else
+@end
 @interface NSObject (NSNetServiceBrowserDelegateMethods)
+#endif
 
 /**
  * Notifies the delegate that the search is about to begin.
@@ -433,6 +313,177 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
                 moreComing: (BOOL) moreComing;
 
 @end
+
+
+
+/**
+ * <unit>
+ *   <heading>
+ *     NSNetService class description
+ *   </heading>
+ *   <p>
+ *     <!-- Foreword -->
+ *   </p>
+ *   <unit />
+ *   <p>
+ *     <!-- Afterword -->
+ *   </p>
+ * </unit>
+ * <p>
+ *   [NSNetService] lets you publish a network service in a domain using
+ *   multicast DNS. Additionally, it lets you resolve a network service that
+ *   was discovered by [NSNetServiceBrowser]. This class is an abstract
+ *   superclass for concrete implementations of its functionality.
+ * </p>
+ */
+
+@interface NSNetService : NSObject
+{
+#if	GS_EXPOSE(NSNetService)
+  id		_delegate;
+  void		*_netService;
+  void		*_reserved;
+#endif
+}
+
++ (NSData *) dataFromTXTRecordDictionary: (NSDictionary *) txtDictionary;
++ (NSDictionary *) dictionaryFromTXTRecordData: (NSData *) txtData;
+
+- (id) initWithDomain: (NSString *) domain
+                 type: (NSString *) type
+                 name: (NSString *) name;
+- (id) initWithDomain: (NSString *) domain
+                 type: (NSString *) type
+                 name: (NSString *) name
+                 port: (NSInteger) port;
+
+- (void) removeFromRunLoop: (NSRunLoop *) aRunLoop
+                   forMode: (NSString *) mode;
+- (void) scheduleInRunLoop: (NSRunLoop *) aRunLoop
+                   forMode: (NSString *) mode;
+
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+- (NSInteger)port;
+
+- (void) publishWithOptions: (NSNetServiceOptions)options;
+#endif
+
+- (void) publish;
+- (void) resolve;
+- (void) resolveWithTimeout: (NSTimeInterval) timeout;
+- (void) stop;
+
+- (void) startMonitoring;
+- (void) stopMonitoring;
+
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+- (NSInteger)port;
+
+- (void) publishWithOptions: (NSNetServiceOptions)options;
+#endif
+- (id<NSNetServiceDelegate>) delegate;
+- (void) setDelegate: (id<NSNetServiceDelegate>) delegate;
+
+- (NSArray *) addresses;
+- (NSString *) domain;
+- (NSString *) hostName;
+- (NSString *) name;
+- (NSString *) type;
+
+- (NSString *) protocolSpecificInformation;
+- (void) setProtocolSpecificInformation: (NSString *) specificInformation;
+
+- (NSData *) TXTRecordData;
+- (BOOL) setTXTRecordData: (NSData *) recordData;
+
+- (BOOL) getInputStream: (NSInputStream **) inputStream
+           outputStream: (NSOutputStream **) outputStream;
+
+@end
+
+/**
+ * <unit>
+ *   <heading>
+ *     NSNetServiceBrowser class description
+ *   </heading>
+ *   <p>
+ *     <!-- Foreword -->
+ *   </p>
+ *   <unit />
+ *   <p>
+ *     <!-- Afterword -->
+ *   </p>
+ * </unit>
+ * <p>
+ *   [NSNetServiceBrowser] asynchronously lets you discover network domains
+ *   and, additionally, search for a type of network service. It sends its
+ *   delegate a message whenever it discovers a new network service, and
+ *   whenever a network service goes away.
+ * </p>
+ * <p>
+ *   Each [NSNetServiceBrowser] performs one search at a time. So in order
+ *   to perform multiple searches simultaneously, create multiple instances.
+ *   This class is an abstract superclass for concrete implementations of its
+ *   functionality.
+ * </p>
+ */
+
+@interface NSNetServiceBrowser : NSObject
+{
+#if	GS_EXPOSE(NSNetServiceBrowser)
+  id		_delegate;
+  void		*_netServiceBrowser;
+  void		*_reserved;
+#endif
+}
+
+- (id) init;
+
+- (void) removeFromRunLoop: (NSRunLoop *) aRunLoop
+                   forMode: (NSString *) mode;
+- (void) scheduleInRunLoop: (NSRunLoop *) aRunLoop
+                   forMode: (NSString *) mode;
+
+- (void) searchForAllDomains;
+- (void) searchForBrowsableDomains;
+- (void) searchForRegistrationDomains;
+
+- (void) searchForServicesOfType: (NSString *) serviceType
+                        inDomain: (NSString *) domainName;
+
+- (void) stop;
+
+- (id<NSNetServiceBrowserDelegate>) delegate;
+- (void) setDelegate: (id<NSNetServiceBrowserDelegate>) delegate;
+
+@end
+
+/**
+ * <unit>
+ *   <heading>
+ *     NSNetServiceDelegate protocol description
+ *   </heading>
+ *   <p>
+ *     <!-- Foreword -->
+ *   </p>
+ *   <unit />
+ *   <p>
+ *     <!-- Afterword -->
+ *   </p>
+ * </unit>
+ * <p>
+ *  This protocol must be adopted by any class wishing to implement
+ *  an [NSNetService] delegate.
+ * </p>
+ */
+
+
+#if	!NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import	<GNUstepBase/NSNetServices+GNUstepBase.h>
+#endif
+#if	defined(__cplusplus)
+}
+#endif
 
 #endif	/* __NSNetServices_h_GNUSTEP_BASE_INCLUDE */
 

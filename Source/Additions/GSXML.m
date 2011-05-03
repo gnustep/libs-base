@@ -12,7 +12,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -21,7 +21,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -40,47 +40,45 @@
    </chapter>
 */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GNUstepBase/Unicode.h"
+#include <string.h>
+#import "common.h"
+#import "GNUstepBase/preface.h"
+#import "GNUstepBase/Unicode.h"
 
 
 #ifdef	HAVE_LIBXML
 
 // #undef	HAVE_LIBXML_SAX2_H
+#import "GNUstepBase/GSObjCRuntime.h"
 
-#include "GNUstepBase/GSMime.h"
-#include "GNUstepBase/GSXML.h"
-#ifndef NeXT_Foundation_LIBRARY
-#include <Foundation/NSArray.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSCalendarDate.h>
-#include <Foundation/NSCharacterSet.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSHashTable.h>
-#include <Foundation/NSInvocation.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSTimeZone.h>
-#include <Foundation/NSTimer.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSURLHandle.h>
-#include <Foundation/NSValue.h>
-#else
-#include <Foundation/Foundation.h>
-#endif
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/GSXML.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCalendarDate.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSURLHandle.h"
+#import "Foundation/NSValue.h"
+
+/* Avoid problems on systems where the xml headers use 'id'
+ */
+#define	id	GSXMLID
 
 /* libxml headers */
 #include <libxml/tree.h>
 #include <libxml/entities.h>
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
+#include <libxml/catalog.h>
 #ifdef	HAVE_LIBXML_SAX2_H
 #include <libxml/SAX2.h>
 #else
@@ -88,10 +86,12 @@
 # define	xmlSAX2GetLineNumber	getLineNumber
 # define	xmlSAX2GetPublicId	getPublicId
 # define	xmlSAX2GetSystemId	getSystemId
+# define	xmlSAX2ResolveEntity 	resolveEntity
 #endif
 #include <libxml/HTMLparser.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
 #ifdef HAVE_LIBXSLT
 #include <libxslt/xslt.h>
@@ -99,6 +99,9 @@
 #include <libxslt/transform.h>
 #include <libxslt/xsltutils.h>
 #endif /* HAVE_LIBXSLT */
+
+#undef	id
+
 
 /*
  * optimization
@@ -117,6 +120,10 @@ static SEL usSel;
 inline static NSString*
 UTF8Str(const unsigned char *bytes)
 {
+  // stringWithUTF8String: raises on OSX if you feed it with a NULL string.
+  if (NULL == bytes) {
+    return nil;
+  }
   return (*usImp)(NSString_class, usSel, bytes);
 }
 
@@ -139,11 +146,15 @@ static BOOL cacheDone = NO;
 @end
 #endif
 
-static char * objc_strdup(const char *from)
+static char * xml_strdup(const char *from)
 {
-  unsigned	len = (from == 0) ? 1 : (strlen(from) + 1);
-  char		*to = objc_malloc(len);
-  strcpy(to, from);
+  unsigned	len;
+  char		*to;
+
+  if (0 == from) from = "";
+  len = strlen(from) + 1;
+  to = malloc(len);
+  memcpy(to, from, len);
   return to;
 }
 
@@ -153,7 +164,8 @@ setupCache()
   if (cacheDone == NO)
     {
       cacheDone = YES;
-      xmlMemSetup(objc_free, objc_malloc, objc_realloc, objc_strdup);
+      xmlMemSetup(free, malloc, realloc, xml_strdup);
+      xmlInitializeCatalog();
 
 #if	HAVE_LIBXML_SAX2_H
       xmlDefaultSAXHandlerInit();
@@ -239,7 +251,7 @@ static NSMapTable	*attrNames = 0;
     }
 }
 
-+ (int) typeFromDescription: (NSString*)desc
++ (NSInteger) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
@@ -250,22 +262,22 @@ static NSMapTable	*attrNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)(intptr_t)key;
+	  return (NSInteger)(intptr_t)key;
 	}
     }
   return -1;
 }
 
-+ (NSString*) descriptionFromType: (int)type
++ (NSString*) descriptionFromType: (NSInteger)type
 {
   NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)(intptr_t)type);
 
   return desc;
 }
 
-- (int) type
+- (NSInteger) type
 {
-  return (int)((xmlAttrPtr)(lib))->atype;
+  return (NSInteger)((xmlAttrPtr)(lib))->atype;
 }
 
 - (NSString*) typeDescription
@@ -401,7 +413,7 @@ static NSMapTable	*attrNames = 0;
   if (buf != 0 && length > 0)
     {
       string = UTF8StrLen(buf, length);
-      objc_free(buf);
+      free(buf);
     }
   return string;
 }
@@ -414,15 +426,15 @@ static NSMapTable	*attrNames = 0;
   return UTF8Str(((xmlDocPtr)(lib))->encoding);
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
-  return (((unsigned)(uintptr_t)lib) >> 3);
+  return (((NSUInteger)(intptr_t)lib) >> 3);
 }
 
 - (id) init
 {
   NSLog(@"GSXMLDocument: calling -init is not legal");
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 
@@ -567,7 +579,7 @@ static NSMapTable	*nsNames = 0;
 /**
  * Return the string representation of the specified numeric type.
  */
-+ (NSString*) descriptionFromType: (int)type
++ (NSString*) descriptionFromType: (NSInteger)type
 {
   NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)(intptr_t)type);
 
@@ -596,7 +608,7 @@ static NSMapTable	*nsNames = 0;
  *   <item>XML_LOCAL_NAMESPACE</item>
  * </list>
  */
-+ (int) typeFromDescription: (NSString*)desc
++ (NSInteger) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
@@ -607,7 +619,7 @@ static NSMapTable	*nsNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)(intptr_t)key;
+	  return (NSInteger)(intptr_t)key;
 	}
     }
   return -1;
@@ -624,9 +636,9 @@ static NSMapTable	*nsNames = 0;
   [super dealloc];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
-  return (((unsigned)(uintptr_t)lib) >> 3);
+  return (((NSUInteger)(intptr_t)lib) >> 3);
 }
 
 /**
@@ -640,7 +652,7 @@ static NSMapTable	*nsNames = 0;
 - (id) init
 {
   NSLog(@"GSXMLNamespace: calling -init is not legal");
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 
@@ -690,9 +702,9 @@ static NSMapTable	*nsNames = 0;
 /**
  * Return type of namespace
  */
-- (int) type
+- (NSInteger) type
 {
-  return (int)((xmlNsPtr)(lib))->type;
+  return (NSInteger)((xmlNsPtr)(lib))->type;
 }
 
 /**
@@ -745,7 +757,7 @@ static NSMapTable	*nodeNames = 0;
 /**
  * Return the string constant value for the node type given.
  */
-+ (NSString*) descriptionFromType: (int)type
++ (NSString*) descriptionFromType: (NSInteger)type
 {
   NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)(intptr_t)type);
 
@@ -824,7 +836,7 @@ static NSMapTable	*nodeNames = 0;
  *   <item>XML_ENTITY_DECL</item>
  * </list>
  */
-+ (int) typeFromDescription: (NSString*)desc
++ (NSInteger) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
   NSString		*val;
@@ -835,7 +847,7 @@ static NSMapTable	*nodeNames = 0;
     {
       if ([desc isEqual: val] == YES)
 	{
-	  return (int)(intptr_t)key;
+	  return (NSInteger)(intptr_t)key;
 	}
     }
   return -1;
@@ -908,11 +920,11 @@ static NSMapTable	*nodeNames = 0;
     {
       return UTF8Str(ptr->content);
     }
-  if ((int)ptr->type == XML_TEXT_NODE)
+  if ((NSInteger)ptr->type == XML_TEXT_NODE)
     {
       return @"";
     }
-  else if ((int)ptr->type == XML_ELEMENT_NODE)
+  else if ((NSInteger)ptr->type == XML_ELEMENT_NODE)
     {
       ptr = ptr->children;
       if (ptr != NULL)
@@ -1084,15 +1096,15 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
-  return (((unsigned)(uintptr_t)lib) >> 3);
+  return (((NSUInteger)(intptr_t)lib) >> 3);
 }
 
 - (id) init
 {
   NSLog(@"GSXMLNode: calling -init is not legal");
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 
@@ -1103,7 +1115,7 @@ static NSMapTable	*nodeNames = 0;
  */
 - (BOOL) isElement
 {
-  if ((int)((xmlNodePtr)(lib))->type == XML_ELEMENT_NODE)
+  if ((NSInteger)((xmlNodePtr)(lib))->type == XML_ELEMENT_NODE)
     {
       return YES;
     }
@@ -1130,7 +1142,7 @@ static NSMapTable	*nodeNames = 0;
  */
 - (BOOL) isText
 {
-  if ((int)((xmlNodePtr)(lib))->type == XML_TEXT_NODE)
+  if ((NSInteger)((xmlNodePtr)(lib))->type == XML_TEXT_NODE)
     {
       return YES;
     }
@@ -1545,9 +1557,9 @@ static NSMapTable	*nodeNames = 0;
  * use this method and compare the return value with a value you previously
  * obtained using the +typeFromDescription: method.
  */
-- (int) type
+- (NSInteger) type
 {
-  return (int)((xmlNodePtr)(lib))->type;
+  return (NSInteger)((xmlNodePtr)(lib))->type;
 }
 
 /**
@@ -1615,6 +1627,10 @@ static NSMapTable	*nodeNames = 0;
  * </p>
  */
 @implementation GSXMLParser
+
+/* To override location for DTDs
+ */
+static NSString	*dtdPath = nil;
 
 static NSString	*endMarker = @"At end of incremental parse";
 
@@ -1734,7 +1750,7 @@ static NSString	*endMarker = @"At end of incremental parse";
  * Creation of a new Parser by calling
  * -initWithSAXHandler:withContentsOfFile:
  * <example>
- * CREATE_AUTORELEASE_POOL(arp);
+ * NSAutoreleasePool *arp = [NSAutoreleasePool new];
  * GSSAXHandler *h = [GSDebugSAXHandler handler];
  * GSXMLParser  *p = [GSXMLParser parserWithSAXHandler: h
  *                                  withContentsOfFile: @"macos.xml"];
@@ -1772,6 +1788,15 @@ static NSString	*endMarker = @"At end of incremental parse";
 {
   return AUTORELEASE([[self alloc] initWithSAXHandler: handler
 					     withData: data]);
+}
+
+/** Sets a directory in which to look for DTDs when resolving external
+ * references.  Can be used whjen DTDs have not been installed in the
+ * normal locatioons.
+ */
++ (void) setDTDs: (NSString*)aPath
+{
+  ASSIGNCOPY(dtdPath, aPath);
 }
 
 /**
@@ -1826,13 +1851,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       case NSSymbolStringEncoding:
 	NSLog(@"NSSymbolStringEncoding not supported for XML");//??
 	break;
-      case NSISOCyrillicStringEncoding:
-	NSLog(@"NSISOCyrillicStringEncoding not supported for XML");//??
-	break;
-      case NSNonLossyASCIIStringEncoding:
-      case NSASCIIStringEncoding:
-      case GSUndefinedEncoding:
       default:
+	NSLog(@"Encoding not supported for XML");//??
 	xmlEncodingString = nil;
 	break;
     }
@@ -1861,7 +1881,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 /**
  * If executed during a parse operation, returns the current column number.
  */
-- (int) columnNumber
+- (NSInteger) columnNumber
 {
   return  xmlSAX2GetColumnNumber(lib);
 }
@@ -1905,7 +1925,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 /**
  * Return error code for last parse operation.
  */
-- (int) errNo
+- (NSInteger) errNo
 {
   return ((xmlParserCtxtPtr)lib)->errNo;
 }
@@ -1966,13 +1986,13 @@ static NSString	*endMarker = @"At end of incremental parse";
   else
     {
       NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   [saxHandler _setParser: self];
   if ([self _initLibXML] == NO)
     {
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   return self;
@@ -1995,7 +2015,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   if (path == nil || [path isKindOfClass: NSString_class] == NO)
     {
       NSLog(@"Bad file path passed to initialize GSXMLParser");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   src = [path copy];
@@ -2020,7 +2040,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   if (url == nil || [url isKindOfClass: [NSURL class]] == NO)
     {
       NSLog(@"Bad NSURL passed to initialize GSXMLParser");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   src = [url copy];
@@ -2045,7 +2065,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   if (data == nil || [data isKindOfClass: [NSData class]] == NO)
     {
       NSLog(@"Bad NSData passed to initialize GSXMLParser");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   src = [data copy];
@@ -2071,7 +2091,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 /**
  * If executed during a parse operation, returns the current line number.
  */
-- (int) lineNumber
+- (NSInteger) lineNumber
 {
   return  xmlSAX2GetLineNumber(lib);
 }
@@ -2413,18 +2433,11 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 #define	HANDLER	((GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private))
 
-#ifdef GNUSTEP
-static NSString *applePList
-  = @"file://localhost/System/Library/DTDs/PropertyList.dtd";
-#endif
-
 static xmlParserInputPtr
 loadEntityFunction(void *ctx,
   const unsigned char *eid, const unsigned char *url)
 {
-  extern xmlParserInputPtr	xmlNewInputFromFile();
   NSString			*file = nil;
-  xmlParserInputPtr		ret = 0;
   NSString			*entityId;
   NSString			*location;
   NSArray			*components;
@@ -2433,13 +2446,13 @@ loadEntityFunction(void *ctx,
   unsigned			index;
 
   NSCAssert(ctx, @"No Context");
-  if (url == 0)
-    return 0;
+  if (url == NULL)
+    return NULL;
 
-  entityId = (eid != 0) ? (id)UTF8Str(eid) : nil;
+  entityId = (eid != NULL) ? (id)UTF8Str(eid) : nil;
   location = UTF8Str(url);
   components = [location pathComponents];
-  local = [NSMutableString string];
+  local = (NSMutableString *) [NSMutableString string];
 
   /*
    * Build a local filename by replacing path separator characters with
@@ -2462,7 +2475,7 @@ loadEntityFunction(void *ctx,
                             range: NSMakeRange(0, [local length])];
 
 #ifdef GNUSTEP
-  if ([location isEqual: applePList] == YES)
+  if ([location rangeOfString: @"/DTDs/PropertyList"].length > 0)
     {
       file = [location substringFromIndex: 6];
       if ([[NSFileManager defaultManager] fileExistsAtPath: file] == NO)
@@ -2497,8 +2510,8 @@ loadEntityFunction(void *ctx,
       if ([entityId hasPrefix: @"-//GNUstep//DTD "] == YES)
 	{
 	  NSCharacterSet	*ws = [NSCharacterSet whitespaceCharacterSet];
+	  NSString		*found = nil;
 	  NSMutableString	*name;
-	  NSString		*found;
 	  unsigned		len;
 	  NSRange		r;
 
@@ -2545,16 +2558,28 @@ loadEntityFunction(void *ctx,
 					 range: r];
 	    }
 
-#ifdef GNUSTEP
-	  found = [NSBundle pathForLibraryResource: name
-					    ofType: @"dtd"
-				       inDirectory: @"DTDs"];
+	  if (dtdPath != nil)
+	    {
+	      found = [dtdPath stringByAppendingPathComponent: name];
+	      found = [found stringByAppendingPathExtension: @"dtd"];
+	      if (![[NSFileManager defaultManager] fileExistsAtPath: found])
+		{
+		  found = nil;
+		}
+	    }
+	  if (found == nil)
+	    {
+#ifndef NeXT_Foundation_LIBRARY
+	      found = [NSBundle pathForLibraryResource: name
+						ofType: @"dtd"
+					   inDirectory: @"DTDs"];
 #else
-	  found = [[NSBundle bundleForClass: NSClassFromString(@"GSXMLNode")]
-			    pathForResource: name
-		                     ofType: @"dtd"
-		                inDirectory: @"DTDs"];
+	      found = [[NSBundle bundleForClass: [GSXMLNode class]]
+		pathForResource: name
+		ofType: @"dtd"
+		inDirectory: @"DTDs"];
 #endif
+	    }
 	  if (found == nil)
 	    {
 	      NSLog(@"unable to find GNUstep DTD - '%@' for '%s'", name, eid);
@@ -2570,60 +2595,51 @@ loadEntityFunction(void *ctx,
        */
       if (file == nil)
 	{
-	  file = [[NSBundle mainBundle] pathForResource: local
-						 ofType: @""
-					    inDirectory: @"DTDs"];
-	  if (file == nil)
+	  if (dtdPath != nil)
 	    {
-	      file = [NSBundle pathForLibraryResource: local
-					       ofType: @""
-					  inDirectory: @"DTDs"];
+	      file = [dtdPath stringByAppendingPathComponent: local];
+	      if (![[NSFileManager defaultManager] fileExistsAtPath: local])
+		{
+		  file = nil;
+		}
 	    }
 	  if (file == nil)
 	    {
-	      NSURL	*aURL;
-
-	      aURL = [NSURL URLWithString: location];
-	      if ([aURL isFileURL] == YES)
-	        {
-		  file = [aURL path];
-		}
-	      else
-	        {
-		  NSData	*data = [aURL resourceDataUsingCache: NO];
-
-		  if ([data length] > 0)
-		    {
-		      file = [@"/tmp" stringByAppendingPathComponent: local];
-		      [data writeToFile: local atomically: NO];
-		    }
-		}
+	      file = [[NSBundle mainBundle] pathForResource: local
+						     ofType: @""
+					        inDirectory: @"DTDs"];
+	    }
+	  if (file == nil)
+	    {
+#ifndef NeXT_Foundation_LIBRARY
+	      file = [NSBundle pathForLibraryResource: local
+					       ofType: @""
+					  inDirectory: @"DTDs"];
+#else
+	      file = [[NSBundle bundleForClass: [GSXMLNode class]]
+		pathForResource: local
+		ofType: @""
+		inDirectory: @"DTDs"];
+#endif
 	    }
 	}
     }
 
+  /*
+   * If we found the DTD somewhere, add it to the catalog.
+   */
   if ([file length] > 0)
     {
-      const char	*path;
-
-#if	defined(__MINGW32__)
-      /*
-       * The xmlNewInputFromFile() function requires an eight bit string
-       * but on a modern windows filesystem the file name could be unicode
-       * which can't be represented as a cString ... and may cause an
-       * exception ... nothing we can do about it really.
-       */
-      path = [file cString];
-#else
-      path = [file fileSystemRepresentation];
-#endif
-      ret = xmlNewInputFromFile((xmlParserCtxtPtr)ctx, path);
+      NSURL *theURL = [NSURL fileURLWithPath: file];
+      xmlCatalogAdd((const unsigned char*)"public", eid,
+        UTF8STRING([theURL absoluteString]));
     }
-  else
-    {
-      NSLog(@"don't know how to load entity '%s' id '%s'", url, eid);
-    }
-  return ret;
+    
+  /*
+   * A local DTD will now be in the catalog: The builtin entity resolver can
+   * take over.
+   */
+  return xmlSAX2ResolveEntity(ctx, eid, url);
 }
 
 
@@ -2792,13 +2808,24 @@ startElementFunction(void *ctx, const unsigned char *name,
   dict = [NSMutableDictionary dictionary];
   if (atts != NULL)
     {
-      int i = 0;;
+      int i = 0;
 
       while (atts[i] != NULL)
 	{
-	  NSString	*key = UTF8Str(atts[i++]);
-	  NSString	*obj = UTF8Str(atts[i++]);
+	  NSString		*key = UTF8Str(atts[i++]);
+	  NSString		*obj;
+	  const unsigned char	*val = atts[i++];
 
+	  if (0 == val)
+	    {
+	      /* No value ... assume tis is a minimised attribute in html.
+	       */
+	      obj = key;
+	    }
+	  else
+	    {
+	      obj = UTF8Str(val);
+	    }
 	  [dict setObject: obj forKey: key];
 	}
     }
@@ -2820,29 +2847,63 @@ startElementNsFunction(void *ctx, const unsigned char *name,
   int nb_attributes, int nb_defaulted,
   const unsigned char **atts)
 {
-  NSMutableDictionary	*dict;
+  NSMutableDictionary	*adict = nil;
+  NSMutableDictionary	*ndict = nil;
   NSString		*elem;
 
   NSCAssert(ctx,@"No Context");
   elem = UTF8Str(name);
-  dict = [NSMutableDictionary dictionary];
   if (atts != NULL)
     {
       int 	i;
       int	j;
 
+      adict = [NSMutableDictionary dictionaryWithCapacity: nb_attributes];
       for (i = j = 0; i < nb_attributes; i++, j += 5)
 	{
 	  NSString	*key = UTF8Str(atts[j]);
 	  NSString	*obj = UTF8StrLen(atts[j+3], atts[j+4]-atts[j+3]);
 
-	  [dict setObject: obj forKey: key];
+	  [adict setObject: obj forKey: key];
 	}
+    }
+  if (nb_namespaces > 0)
+    {
+      int       i;
+      int       pos = 0;
+
+      ndict = [NSMutableDictionary dictionaryWithCapacity: nb_namespaces];
+      for (i = 0; i < nb_namespaces; i++)
+        {
+          NSString      *key;
+          NSString      *obj;
+
+          if (namespaces[pos] == 0)
+            {
+              key = @"";
+            }
+          else
+            {
+              key = UTF8Str(namespaces[pos]);
+            }
+          pos++;
+          if (namespaces[pos] == 0)
+            {
+              obj = @"";
+            }
+          else
+            {
+              obj = UTF8Str(namespaces[pos]);
+            }
+          pos++;
+          [ndict setObject: obj forKey: key];
+        }
     }
   [HANDLER startElement: elem
 		 prefix: UTF8Str(prefix)
 		   href: UTF8Str(href)
-	     attributes: dict];
+	     attributes: adict
+             namespaces: ndict];
 }
 
 static void
@@ -2909,7 +2970,8 @@ warningFunction(void *ctx, const unsigned char *msg, ...)
   int		colNumber = -1;
 
   va_start(args, msg);
-  estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
+  estr = [[[NSString alloc]
+    initWithFormat: UTF8Str(msg) arguments: args] autorelease];
   va_end(args);
 
   NSCAssert(ctx,@"No Context");
@@ -2929,7 +2991,8 @@ errorFunction(void *ctx, const unsigned char *msg, ...)
   int		colNumber = -1;
 
   va_start(args, msg);
-  estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
+  estr = [[[NSString alloc]
+    initWithFormat: UTF8Str(msg) arguments: args] autorelease];
   va_end(args);
   NSCAssert(ctx,@"No Context");
   lineNumber = xmlSAX2GetLineNumber(ctx);
@@ -2948,7 +3011,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   int		colNumber = -1;
 
   va_start(args, msg);
-  estr = [[NSString alloc] initWithFormat: UTF8Str(msg) arguments: args];
+  estr = [[[NSString alloc]
+    initWithFormat: UTF8Str(msg) arguments: args] autorelease];
   va_end(args);
   NSCAssert(ctx, @"No Context");
   lineNumber = xmlSAX2GetLineNumber(ctx);
@@ -2977,7 +3041,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       if ([self _initLibXML] == NO)
         {
           NSLog(@"GSSAXHandler: out of memory\n");
-	  RELEASE(self);
+	  DESTROY(self);
 	  return nil;
         }
     }
@@ -3006,7 +3070,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 {
   if (lib != NULL)
     {
-      objc_free(lib);
+      free(lib);
     }
   [super dealloc];
 }
@@ -3028,7 +3092,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Called to detemrine if the document is standalone.
  */
-- (int) isStandalone
+- (NSInteger) isStandalone
 {
   return 1;
 }
@@ -3047,6 +3111,18 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 	   attributes: (NSMutableDictionary*)elementAttributes
 {
   [self startElement: elementName attributes: elementAttributes];
+}
+
+- (void) startElement: (NSString*)elementName
+               prefix: (NSString*)prefix
+		 href: (NSString*)href
+	   attributes: (NSMutableDictionary*)elementAttributes
+           namespaces: (NSMutableDictionary*)elementNamespaces
+{
+  [self startElement: elementName
+              prefix: prefix
+                href: href
+          attributes: elementAttributes];
 }
 
 /**
@@ -3139,7 +3215,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * An entity definition has been parsed.
  */
 - (void) entityDecl: (NSString*)name
-	       type: (int)type
+	       type: (NSInteger)type
 	     public: (NSString*)publicId
 	     system: (NSString*)systemId
 	    content: (NSString*)content
@@ -3151,8 +3227,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  */
 - (void) attributeDecl: (NSString*)nameElement
 		  name: (NSString*)name
-		  type: (int)type
-	  typeDefValue: (int)defType
+		  type: (NSInteger)type
+	  typeDefValue: (NSInteger)defType
 	  defaultValue: (NSString*)value
 {
 }
@@ -3161,7 +3237,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * An element definition has been parsed.
  */
 - (void) elementDecl: (NSString*)name
-		type: (int)type
+		type: (NSInteger)type
 {
 }
 
@@ -3219,8 +3295,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Called when a warning message needs to be output.
  */
 - (void) warning: (NSString*)e
-       colNumber: (int)colNumber
-      lineNumber: (int)lineNumber
+       colNumber: (NSInteger)colNumber
+      lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
     lineNumber, colNumber, e];
@@ -3231,8 +3307,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Called when an error message needs to be output.
  */
 - (void) error: (NSString*)e
-     colNumber: (int)colNumber
-    lineNumber: (int)lineNumber
+     colNumber: (NSInteger)colNumber
+    lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
     lineNumber, colNumber, e];
@@ -3243,8 +3319,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Called when a fatal error message needs to be output.
  */
 - (void) fatalError: (NSString*)e
-       colNumber: (int)colNumber
-      lineNumber: (int)lineNumber
+          colNumber: (NSInteger)colNumber
+         lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
     lineNumber, colNumber, e];
@@ -3254,7 +3330,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Called to find out whether there is an internal subset.
  */
-- (int) hasInternalSubset
+- (NSInteger) hasInternalSubset
 {
   return 0;
 }
@@ -3272,7 +3348,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Called to find out whether there is an external subset.
  */
-- (int) hasExternalSubset
+- (NSInteger) hasExternalSubset
 {
   return 0;
 }
@@ -3308,7 +3384,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  */
 - (BOOL) _initLibXML
 {
-  lib = (xmlSAXHandler*)objc_malloc(sizeof(xmlSAXHandler));
+  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
@@ -3428,7 +3504,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 
 - (BOOL) _initLibXML
 {
-  lib = (xmlSAXHandler*)objc_malloc(sizeof(xmlSAXHandler));
+  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
@@ -3457,7 +3533,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       SETCB(hasExternalSubset, hasExternalSubset);
       SETCB(getEntity, getEntity:);
       SETCB(entityDecl, entityDecl:type:public:system:content:);
-      SETCB(notationDecl, notationDecl:public:);
+      SETCB(notationDecl, notationDecl:public:system:);
       SETCB(attributeDecl, attributeDecl:name:type:typeDefValue:defaultValue:);
       SETCB(elementDecl, elementDecl:type:);
       SETCB(unparsedEntityDecl, unparsedEntityDecl:public:system:notationName:);
@@ -3493,7 +3569,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (BOOL) _initLibXML
 {
   isHtmlHandler = YES;
-  lib = (xmlSAXHandler*)objc_malloc(sizeof(htmlSAXHandler));
+  lib = (xmlSAXHandler*)malloc(sizeof(htmlSAXHandler));
   if (lib == NULL)
     {
       return NO;
@@ -3545,7 +3621,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 @implementation GSXPathObject
 - (id) init
 {
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 
@@ -3661,7 +3737,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Returns the number of nodes in the receiver.
  */
-- (unsigned int) count
+- (NSUInteger) count
 {
   if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
     {
@@ -3673,7 +3749,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 /**
  * Deprecated
  */
-- (unsigned int) length
+- (NSUInteger) length
 {
   if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
     {
@@ -3687,7 +3763,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
  * Returns the node from the receiver at the specified index, or nil
  * if no such node exists.
  */
-- (GSXMLNode *) nodeAtIndex: (unsigned)index
+- (GSXMLNode *) nodeAtIndex: (NSUInteger)index
 {
   if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
     {
@@ -3699,7 +3775,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       GSXMLNode *n;
 
       node = xmlXPathNodeSetItem (((xmlXPathObject*)_lib)->nodesetval,
-	(int)index);
+	(NSInteger)index);
       n = [GSXMLNode alloc];
       n = [n _initFrom: node  parent: self];
       return AUTORELEASE(n);
@@ -3707,15 +3783,16 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 }
 - (NSString *) description
 {
-  return [NSString_class stringWithFormat: @"NodeSet (count %d)", [self count]];
+  return [NSString_class stringWithFormat: @"NodeSet (count %u)", [self count]];
 }
 @end
 
 
 /**
- * <p>Use of the GSXPathContext claass is simple ... you just need to look up
- * xpath to learn the syntax of xpath expressions, then you can apply those
- * expressions to a context to retrieve data from a document.
+ * <p>Use of the GSXPathContext class is simple ... you just need to
+ * look up xpath to learn the syntax of xpath expressions, then you
+ * can apply those expressions to a context to retrieve data from a
+ * document.
  * </p>
  * <example>
  * GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile: @"xp.xml"];
@@ -3772,11 +3849,24 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   else
     {
       result = [GSXPathObject _newWithNativePointer: res  context: self];
-      AUTORELEASE (result);
+      IF_NO_GC ([result autorelease];)
     }
   xmlXPathFreeCompExpr (comp);
 
   return result;
+}
+
+- (BOOL) registerNamespaceWithPrefix: (NSString *)prefix
+				href: (NSString *)href
+{
+  if (xmlXPathRegisterNs (_lib, UTF8STRING(prefix), UTF8STRING(href)) != 0)
+    {
+      return NO;
+    }
+  else
+    {
+      return YES;
+    }
 }
 
 - (void) dealloc
@@ -3993,7 +4083,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	      newdoc = [newdoc _initFrom: res
 				  parent: self
 				 ownsLib: YES];
-	      AUTORELEASE(newdoc);
+	      IF_NO_GC([newdoc autorelease];)
 	    }
 	}
       /*
@@ -4059,12 +4149,8 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 #else
 
 #ifndef NeXT_Foundation_LIBRARY
-#include	<Foundation/NSObjCRuntime.h>
-#include	<Foundation/NSCoder.h>
-#include	<Foundation/NSInvocation.h>
-#include	<Foundation/NSString.h>
-#else
-#include <Foundation/Foundation.h>
+#import	"Foundation/NSCoder.h"
+#import	"Foundation/NSInvocation.h"
 #endif
 
 /*
@@ -4102,14 +4188,14 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 {
   NSLog(@"Not built with libxml ... %@ unusable in %@",
     NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Not built with libxml ... %@ unusable in %@",
     NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-  RELEASE(self);
+  DESTROY(self);
   return nil;
 }
 @end
@@ -4258,7 +4344,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 
 			to[j++] = '&';
 			to[j++] = '#';
-			sprintf(buf, "%u", c);
+			snprintf(buf, sizeof(buf), "%u", c);
 			while (*ptr != '\0')
 			  {
 			    to[j++] = *ptr++;
@@ -4275,7 +4361,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	}
       self = [[NSString alloc] initWithCharacters: to length: output];
       NSZoneFree (NSDefaultMallocZone (), to);
-      AUTORELEASE(self);
+      IF_NO_GC([self autorelease];)
     }
   else
     {
@@ -4400,43 +4486,43 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
  */
 @interface	NSArray (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSData (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSDate (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSDictionary (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSObject (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSNumber (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
 @interface	NSString (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc;
 @end
 
@@ -4487,7 +4573,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSArray (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   unsigned 		i;
@@ -4523,7 +4609,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSData (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   NSData	*d;
@@ -4540,7 +4626,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSDate (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   NSString		*s;
@@ -4556,7 +4642,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSDictionary (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   NSEnumerator	*kEnum = [self keyEnumerator];
@@ -4597,7 +4683,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSNumber (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   const char	*t = [self objCType];
@@ -4621,7 +4707,7 @@ static void indentation(unsigned level, NSMutableString *str)
 	}
       else
 	{
-	  [str appendFormat: @"<i4>%d</i4>", i];
+	  [str appendFormat: @"<i4>%ld</i4>", i];
 	}
     }
   else
@@ -4633,7 +4719,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSObject (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   [[self description] appendToXMLRPC: str indent: indent for: rpc];
@@ -4642,7 +4728,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 @implementation	NSString (GSXMLRPC)
 - (void) appendToXMLRPC: (NSMutableString*)str
-		 indent: (unsigned)indent
+		 indent: (NSUInteger)indent
 		    for: (GSXMLRPC*)rpc
 {
   BOOL	compact = [rpc compact];
@@ -4949,7 +5035,7 @@ static void indentation(unsigned level, NSMutableString *str)
   return str;
 }
 
-- (NSString*) buildResponseWithFaultCode: (int)code andString: (NSString*)s
+- (NSString*) buildResponseWithFaultCode: (NSInteger)code andString: (NSString*)s
 {
   NSMutableString	*str = [NSMutableString stringWithCapacity: 1024];
   NSDictionary		*fault;
@@ -5099,7 +5185,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 - (id) makeMethodCall: (NSString*)method 
 	       params: (NSArray*)params
-	      timeout: (int)seconds
+	      timeout: (NSInteger)seconds
 {
   NS_DURING
     {
@@ -5193,7 +5279,7 @@ static void indentation(unsigned level, NSMutableString *str)
   return method;
 }
 
-- (NSDictionary*) parseResponse: (NSData*)response
+- (NSDictionary*) parseResponse: (NSData*)resp
 			 params: (NSMutableArray*)params
 {
   GSXPathContext	*ctx = nil;
@@ -5207,7 +5293,7 @@ static void indentation(unsigned level, NSMutableString *str)
     {
       GSXMLDocument	*doc = nil;
 
-      parser = [GSXMLParser parserWithData: response];
+      parser = [GSXMLParser parserWithData: resp];
       [parser substituteEntities: YES];
       [parser saveMessages: YES];
       if ([parser parse] == YES)
@@ -5281,7 +5367,7 @@ static void indentation(unsigned level, NSMutableString *str)
 
 - (BOOL) sendMethodCall: (NSString*)method 
 		 params: (NSArray*)params
-		timeout: (int)seconds
+		timeout: (NSInteger)seconds
 {
   NSData	*data;
 
@@ -5444,11 +5530,11 @@ static void indentation(unsigned level, NSMutableString *str)
 
   if (code == 200)
     {
-      NSData	*response = [handle availableResourceData];
+      NSData	*resp = [handle availableResourceData];
 
       NS_DURING
 	{
-	  fault = [self parseResponse: response params: params];
+	  fault = [self parseResponse: resp params: params];
 	}
       NS_HANDLER
 	{

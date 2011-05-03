@@ -37,10 +37,10 @@
 #
 
 # Additional flags to pass to the preprocessor
-# ADDITIONAL_CPPFLAGS +=
+ADDITIONAL_CPPFLAGS += $(WARN_FLAGS)
 
 # Additional flags to pass to the Objective-C compiler
-ADDITIONAL_OBJCFLAGS += -Wall
+#ADDITIONAL_OBJCFLAGS +=
 
 # Additional flags to pass to the C compiler
 #ADDITIONAL_CFLAGS += 

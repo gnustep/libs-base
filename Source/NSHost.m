@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,18 +27,17 @@
    $Date$ $Revision$
   */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDebug.h"
+#import "common.h"
+#define	EXPOSE_NSHost_IVARS	1
+#import "Foundation/NSLock.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSCoder.h"
 
-#if defined(__MINGW32__)
+#if defined(__MINGW__)
 #include <winsock2.h>
 #else
 #include <netdb.h>
@@ -49,7 +48,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#endif /* !__MINGW32__*/
+#endif /* !__MINGW__*/
 
 #ifndef	INADDR_NONE
 #define	INADDR_NONE	-1
@@ -152,13 +151,13 @@ static NSMutableDictionary	*_hostCache = nil;
     {
       NSLog(@"Host '%@' init failed - perhaps the name/address is wrong or "
 	@"networking is not set up on your machine", name);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   else if (name == nil && entry != (struct hostent*)NULL)
     {
       NSLog(@"Nil hostname supplied but network database entry is not empty");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
 
@@ -335,7 +334,7 @@ myHostName()
 	   * with ALL the IP addresses of any interfaces on the local machine
 	   */
 	  host = [[self alloc] _initWithHostEntry: 0 key: localHostName];
-	  AUTORELEASE(host);
+	  IF_NO_GC([host autorelease];)
 	}
       else
 	{
@@ -369,9 +368,13 @@ myHostName()
 	  else
 	    {
 	      host = [[self alloc] _initWithHostEntry: h key: name];
-	      AUTORELEASE(host);
+	      IF_NO_GC([host autorelease];)
 	    }
 	}
+    }
+  else
+    {
+      IF_NO_GC([[host retain] autorelease];)
     }
   [_hostCacheLock unlock];
   if (tryByAddress == YES)
@@ -401,7 +404,6 @@ myHostName()
     {
       host = [_hostCache objectForKey: address];
     }
-
   if (host == nil)
     {
       struct hostent	*h;
@@ -428,14 +430,18 @@ myHostName()
 	  if (badAddr == NO)
 	    {
 	      host = [[self alloc] _initWithAddress: address];
-	      AUTORELEASE(host);
+	      IF_NO_GC([host autorelease];)
 	    }
 	}
       else
 	{
 	  host = [[self alloc] _initWithHostEntry: h key: address];
-	  AUTORELEASE(host);
+	  IF_NO_GC([host autorelease];)
 	}
+    }
+  else
+    {
+      IF_NO_GC([[host retain] autorelease];)
     }
   [_hostCacheLock unlock];
   return host;
@@ -500,8 +506,8 @@ myHostName()
     {
       host = [NSHost currentHost];
     }
-  RETAIN(host);
-  RELEASE(self);
+  IF_NO_GC([host retain];)
+  DESTROY(self);
   return host;
 }
 
@@ -528,7 +534,7 @@ myHostName()
  *	is for all hosts to hash to the same value - which makes it very
  *	inefficient to store them in a set, dictionary, map or hash table.
  */
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return 1;
 }

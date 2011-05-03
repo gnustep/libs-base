@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -94,44 +94,14 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
  */
 @interface NSConnection : NSObject
 {
-@private
-  BOOL			_isValid;
-  BOOL			_independentQueueing;
-  BOOL			_authenticateIn;
-  BOOL			_authenticateOut;
-  BOOL			_multipleThreads;
-  BOOL			_shuttingDown;
-  BOOL			_dummy1;
-  BOOL			_dummy2;
-  NSPort		*_receivePort;
-  NSPort		*_sendPort;
-  unsigned		_requestDepth;
-  unsigned		_messageCount;
-  unsigned		_reqOutCount;
-  unsigned		_reqInCount;
-  unsigned		_repOutCount;
-  unsigned		_repInCount;
-#ifndef	_IN_CONNECTION_M
-#define	GSIMapTable	void*
+#if	GS_NONFRAGILE
+#  if	defined(GS_NSConnection_IVARS)
+@public
+GS_NSConnection_IVARS;
+#  endif
+#else
+@private id _internal;
 #endif
-  GSIMapTable		_localObjects;
-  GSIMapTable		_localTargets;
-  GSIMapTable		_remoteProxies;
-  GSIMapTable		_replyMap;
-#ifndef	_IN_CONNECTION_M
-#undef	GSIMapTable
-#endif
-  NSTimeInterval	_replyTimeout;
-  NSTimeInterval	_requestTimeout;
-  NSMutableArray	*_requestModes;
-  NSMutableArray	*_runLoops;
-  NSMutableArray	*_requestQueue;
-  id			_delegate;
-  NSRecursiveLock	*_refGate;
-  NSMutableArray	*_cachedDecoders;
-  NSMutableArray	*_cachedEncoders;
-  NSString		*_registeredName;
-  NSPortNameServer	*_nameServer;
 }
 
 + (NSArray*) allConnections;
@@ -149,6 +119,13 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)n
   host: (NSString*)h usingNameServer: (NSPortNameServer*)s;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
++ (id) serviceConnectionWithName: (NSString *)name
+                      rootObject: (id)root;
++ (id) serviceConnectionWithName: (NSString *)name
+                      rootObject: (id)root
+                 usingNameServer: (NSPortNameServer *)server;
+#endif
 
 - (void) addRequestMode: (NSString*)mode;
 - (void) addRunLoop: (NSRunLoop*)loop;

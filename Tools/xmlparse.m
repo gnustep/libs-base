@@ -10,28 +10,25 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYING.LIB.
+   License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#include "config.h"
 #include <stdio.h>
-#ifdef NeXT_Foundation_LIBRARY
-#include <Foundation/Foundation.h>
-#include <GNUstepBase/GSCategories.h>
-#else
-#include <Foundation/NSArray.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSProcessInfo.h>
-#endif
-#include <GNUstepBase/GSXML.h>
+
+#import "common.h"
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSPathUtilities.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
+#import "GNUstepBase/Additions.h"
 
 @interface GSXMLParser (Loader)
 + (NSString*) loadEntity: (NSString*)publicId
@@ -73,7 +70,7 @@ main(int argc, char **argv, char **env)
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
 
 #ifndef HAVE_LIBXML

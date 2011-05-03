@@ -9,7 +9,7 @@
    This file is part of the GNUstep Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,12 +27,15 @@
    $Date$ $Revision$
 */
 
-#include "GSURLPrivate.h"
+#import "common.h"
 
-#include "Foundation/NSEnumerator.h"
-#include "Foundation/NSURLHandle.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSFileManager.h"
+#define	EXPOSE_NSURLHandle_IVARS	1
+#import "GSURLPrivate.h"
+
+#import "Foundation/NSURLHandle.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSFileManager.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 @class	GSFTPURLHandle;
@@ -253,10 +256,10 @@ static Class		NSURLHandleClass = 0;
 {
   id	o = client;
 
-  RETAIN(o);
+  IF_NO_GC([o retain];)
   [_clients removeObjectIdenticalTo: o];
   [_clients addObject: o];
-  RELEASE(o);
+  IF_NO_GC([o release];)
 }
 
 /**
@@ -313,12 +316,12 @@ static Class		NSURLHandleClass = 0;
  */
 - (void) cancelLoadInBackground
 {
-  RETAIN(self);
+  IF_NO_GC([self retain];)
   [_clients makeObjectsPerformSelector:
     @selector(URLHandleResourceDidCancelLoading:)
     withObject: self];
   [self endLoadInBackground];
-  RELEASE(self);
+  IF_NO_GC(RELEASE(self);)
 }
 
 - (void) dealloc
@@ -481,7 +484,7 @@ static Class		NSURLHandleClass = 0;
       NSDate	*limit;
 
       limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
-      [loop runUntilDate: limit];
+      [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
       RELEASE(limit);
     }
   return _data;
@@ -632,7 +635,7 @@ static NSLock			*fileLock = nil;
       NS_DURING
 	{
 	  obj = [fileCache objectForKey: path];
-	  AUTORELEASE(RETAIN(obj));
+	  IF_NO_GC([[obj retain] autorelease];)
 	}
       NS_HANDLER
 	{
@@ -707,7 +710,7 @@ static NSLock			*fileLock = nil;
   if ([url isFileURL] == NO)
     {
       NSLog(@"Attempt to init GSFileURLHandle with bad URL");
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   path = [url path];
@@ -724,7 +727,7 @@ static NSLock			*fileLock = nil;
 	  if (obj != nil)
 	    {
 	      DESTROY(self);
-	      RETAIN(obj);
+	      IF_NO_GC([obj retain];)
 	    }
 	}
       NS_HANDLER

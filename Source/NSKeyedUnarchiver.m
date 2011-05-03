@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,35 +16,42 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
    */
 
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSNull.h>
-#include <Foundation/NSValue.h>
+#import "common.h"
+#define	EXPOSE_NSKeyedUnarchiver_IVARS	1
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSValue.h"
 
-#include "GSPrivate.h"
-#include "config.h"
+#import "GSPrivate.h"
 
 /*
  *      Setup for inline operation of arrays.
  */
-#define GSI_ARRAY_RETAIN(A, X)	RETAIN((X).obj)
-#define GSI_ARRAY_RELEASE(A, X)	RELEASE((X).obj)
+#if	GS_WITH_GC
+#define GSI_ARRAY_RETAIN(A, X)
+#define GSI_ARRAY_RELEASE(A, X)
+#else
+#define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
+#define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
+#endif
 #define GSI_ARRAY_TYPES GSUNION_OBJ
 
 
 #include "GNUstepBase/GSIArray.h"
 
 #define	_IN_NSKEYEDUNARCHIVER_M	1
-#include <Foundation/NSKeyedArchiver.h>
+#import "Foundation/NSKeyedArchiver.h"
 #undef	_IN_NSKEYEDUNARCHIVER_M
 
 @interface NilMarker: NSObject
@@ -58,7 +65,7 @@
 NSString * const NSInvalidUnarchiveOperationException
   = @"NSInvalidUnarchiveOperationException";
 
-static NSMapTable	globalClassMap = 0;
+static NSMapTable	*globalClassMap = 0;
 
 #define	GETVAL \
   id		o; \
@@ -273,6 +280,8 @@ static NSMapTable	globalClassMap = 0;
 
 + (void) initialize
 {
+  GSMakeWeakPointer(self, "delegate");
+
   if (globalClassMap == 0)
     {
       globalClassMap =
@@ -336,7 +345,7 @@ static NSMapTable	globalClassMap = 0;
 
 - (Class) classForClassName: (NSString*)aString
 {
-  return (Class)NSMapGet(_clsMap, (void*)aString);
+  return _clsMap == 0 ? Nil : (Class)NSMapGet(_clsMap, (void*)aString);
 }
 
 - (BOOL) containsValueForKey: (NSString*)aKey
@@ -368,7 +377,7 @@ static NSMapTable	globalClassMap = 0;
 }
 
 - (void) decodeArrayOfObjCType: (const char*)type
-			 count: (unsigned)expected
+			 count: (NSUInteger)expected
 			    at: (void*)buf
 {
   id	 o = [self decodeObject];
@@ -416,7 +425,7 @@ static NSMapTable	globalClassMap = 0;
 }
 
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (unsigned*)length
+		      returnedLength: (NSUInteger*)length
 {
   NSString	*oldKey = aKey;
   GETVAL
@@ -483,48 +492,49 @@ static NSMapTable	globalClassMap = 0;
 
 - (int) decodeIntForKey: (NSString*)aKey
 {
-  NSString	*oldKey = aKey;
-  GETVAL
-  if (o != nil)
-    {
-      if ([o isKindOfClass: [NSNumber class]] == YES)
-	{
-	  long long	l = [o longLongValue];
+  int64_t	i = [self decodeInt64ForKey: aKey];
 
-	  return l;
-	}
-      else
-	{
-	  [NSException raise: NSInvalidUnarchiveOperationException
-		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
-	    oldKey, o];
-	}
+#if	(INT_MAX < INT64_MAX)
+  if (i > INT_MAX || i < INT_MIN)
+    {
+      [NSException raise: NSRangeException
+	          format: @"[%@ +%@]: value for key(%@) is out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aKey];
     }
-  return 0;
+#endif
+  return (int)i;
+}
+
+- (NSInteger) decodeIntegerForKey: (NSString*)aKey
+{
+  int64_t	i = [self decodeInt64ForKey: aKey];
+
+/* Older Solaris systems define INTPTR_MAX incorrectly ... so we use the
+ * void pointer size we determined at configure time to decide whether
+ * we need to check for overflow.
+ */
+#if	(GS_SIZEOF_VOIDP < 8)
+  if (i > INT32_MAX || i < INT32_MIN)
+    {
+      [NSException raise: NSRangeException
+	          format: @"[%@ +%@]: value for key(%@) is out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aKey];
+    }
+#endif
+  return (NSInteger)i;
 }
 
 - (int32_t) decodeInt32ForKey: (NSString*)aKey
 {
-  NSString	*oldKey = aKey;
-  GETVAL
-  if (o != nil)
-    {
-      if ([o isKindOfClass: [NSNumber class]] == YES)
-	{
-	  long long	l = [o longLongValue];
+  int64_t	i = [self decodeInt64ForKey: aKey];
 
-	  return l;
-	}
-      else
-	{
-	  [NSException raise: NSInvalidUnarchiveOperationException
-		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
-	    oldKey, o];
-	}
+  if (i > INT32_MAX || i < INT32_MIN)
+    {
+      [NSException raise: NSRangeException
+	          format: @"[%@ +%@]: value for key(%@) is out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aKey];
     }
-  return 0;
+  return (int32_t)i;
 }
 
 - (int64_t) decodeInt64ForKey: (NSString*)aKey
@@ -606,8 +616,8 @@ static NSMapTable	globalClassMap = 0;
 {
   NSPoint	p;
 
-  [self decodeValueOfObjCType: @encode(float) at: &p.x];
-  [self decodeValueOfObjCType: @encode(float) at: &p.y];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &p.x];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &p.y];
   return p;
 }
 
@@ -615,10 +625,10 @@ static NSMapTable	globalClassMap = 0;
 {
   NSRect	r;
 
-  [self decodeValueOfObjCType: @encode(float) at: &r.origin.x];
-  [self decodeValueOfObjCType: @encode(float) at: &r.origin.y];
-  [self decodeValueOfObjCType: @encode(float) at: &r.size.width];
-  [self decodeValueOfObjCType: @encode(float) at: &r.size.height];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.origin.x];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.origin.y];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.size.width];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &r.size.height];
   return r;
 }
 
@@ -626,8 +636,8 @@ static NSMapTable	globalClassMap = 0;
 {
   NSSize	s;
 
-  [self decodeValueOfObjCType: @encode(float) at: &s.width];
-  [self decodeValueOfObjCType: @encode(float) at: &s.height];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &s.width];
+  [self decodeValueOfObjCType: @encode(CGFloat) at: &s.height];
   return s;
 }
 
@@ -715,6 +725,18 @@ static NSMapTable	globalClassMap = 0;
 	  NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 	return;
 
+      case _C_ARY_B:
+	{
+	  int		count = atoi(++type);
+
+	  while (isdigit(*type))
+	    {
+	      type++;
+	    }
+	  [self decodeArrayOfObjCType: type count: count at: address];
+	}
+	return;
+
       default:
 	[NSException raise: NSInvalidArgumentException
 		    format: @"-[%@ %@]: unknown type encoding ('%c')",
@@ -728,11 +750,32 @@ static NSMapTable	globalClassMap = 0;
   return _delegate;
 }
 
+- (NSString*) description
+{
+  if (_archive == nil)
+    {
+      // For consistency with OSX
+      [NSException raise: NSInvalidArgumentException
+		  format: @"method sent to uninitialised unarchiver"];
+    }
+  return [super description];
+}
+
 - (void) finishDecoding
 {
   [_delegate unarchiverWillFinish: self];
   DESTROY(_archive);
   [_delegate unarchiverDidFinish: self];
+}
+
+- (id) init
+{
+  Class c = [self class];
+  DESTROY(self);
+  [NSException raise: NSInvalidArgumentException
+              format: @"-[%@ init]: cannot use -init for initialisation",
+              NSStringFromClass(c)];
+  return nil;
 }
 
 - (id) initForReadingWithData: (NSData*)data
@@ -750,13 +793,6 @@ static NSMapTable	globalClassMap = 0;
 	errorDescription: &error];
       if (_archive == nil)
 	{
-#ifndef	HAVE_LIBXML
-	  if (format == NSPropertyListXMLFormat_v1_0)
-	    {
-	      NSLog(@"Unable to parse XML archive as the base "
-		@"library was not configured with libxml2 support.");
-	    }
-#endif
 	  DESTROY(self);
 	}
       else
@@ -764,16 +800,18 @@ static NSMapTable	globalClassMap = 0;
 	  unsigned	count;
 	  unsigned	i;
 
-	  RETAIN(_archive);
+	  IF_NO_GC(RETAIN(_archive);)
 	  _archiverClass = [_archive objectForKey: @"$archiver"];
 	  _version = [_archive objectForKey: @"$version"];
 
 	  _objects = [_archive objectForKey: @"$objects"];
 	  _keyMap = [_archive objectForKey: @"$top"];
 
-	  _clsMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
-	    NSNonOwnedPointerMapValueCallBacks, 0);
+#if	GS_WITH_GC
+	  _objMap = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+#else
 	  _objMap = NSZoneMalloc(_zone, sizeof(GSIArray_t));
+#endif
 	  count = [_objects count];
 	  GSIArrayInitWithZoneAndCapacity(_objMap, _zone, count);
 	  // Add marker for nil object
@@ -792,10 +830,18 @@ static NSMapTable	globalClassMap = 0;
 {
   if (aString == nil)
     {
-      NSMapRemove(_clsMap, (void*)aString);
+      if (_clsMap != 0)
+	{
+          NSMapRemove(_clsMap, (void*)aString);
+	}
     }
   else
     {
+      if (_clsMap == 0)
+	{
+	  _clsMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	    NSNonOwnedPointerMapValueCallBacks, 0);
+	}
       NSMapInsert(_clsMap, (void*)aString, (void*)aClass);
     }
 }
@@ -805,6 +851,10 @@ static NSMapTable	globalClassMap = 0;
   _delegate = delegate;		// Not retained.
 }
 
+- (NSInteger) versionForClassName: (NSString*)className
+{
+  return 0;	// Not used for keyed unarchiving.
+}
 @end
 
 @implementation NSObject (NSKeyedUnarchiverDelegate)

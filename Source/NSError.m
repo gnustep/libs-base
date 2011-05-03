@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,16 +16,17 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
 
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSError.h>
-#include	<Foundation/NSCoder.h>
+#import "common.h"
+#define	EXPOSE_NSError_IVARS	1
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSError.h"
+#import	"Foundation/NSCoder.h"
 
 NSString* const NSFilePathErrorKey = @"NSFilePathErrorKey";
 NSString* const NSLocalizedDescriptionKey = @"NSLocalizedDescriptionKey";
@@ -50,7 +51,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
 @implementation	NSError
 
 + (id) errorWithDomain: (NSString*)aDomain
-		  code: (int)aCode
+		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary
 {
   NSError	*e = [self allocWithZone: NSDefaultMallocZone()];
@@ -59,7 +60,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
   return AUTORELEASE(e);
 }
 
-- (int) code
+- (NSInteger) code
 {
   return _code;
 }
@@ -133,7 +134,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
 }
 
 - (id) initWithDomain: (NSString*)aDomain
-		 code: (int)aCode
+		 code: (NSInteger)aCode
 	     userInfo: (NSDictionary*)aDictionary
 {
   if (aDomain == nil)

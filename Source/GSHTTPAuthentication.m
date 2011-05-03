@@ -1,13 +1,13 @@
 /* Implementation for GSHTTPAuthentication for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,20 +16,23 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSScanner.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSValue.h"
-#include "GNUstepBase/GSLock.h"
-#include "GNUstepBase/GSMime.h"
+#import "common.h"
+#import "GSURLPrivate.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSValue.h"
+#import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
 
 
 static NSMutableDictionary	*domainMap = nil;
@@ -48,12 +51,17 @@ static GSMimeParser		*mimeParser = nil;
   unsigned		slen = [self length];
   unsigned		dlen = slen * 2;
   const unsigned char	*src = (const unsigned char *)[self bytes];
-  char			*dst = (char*)NSZoneMalloc(NSDefaultMallocZone(), dlen);
+  char			*dst;
   unsigned		spos = 0;
   unsigned		dpos = 0;
   NSData		*data;
   NSString		*string;
 
+#if	GS_WITH_GC
+  dst = (char*)NSAllocateCollectable(dlen, 0);
+#else
+  dst = (char*)NSZoneMalloc(NSDefaultMallocZone(), dlen);
+#endif
   while (spos < slen)
     {
       unsigned char	c = src[spos++];
@@ -134,7 +142,7 @@ static GSMimeParser		*mimeParser = nil;
 	      RELEASE(authentication);
 	    }
 	}
-      AUTORELEASE(RETAIN(authentication));
+      IF_NO_GC([[authentication retain] autorelease];)
     }
   NS_HANDLER
     {
@@ -149,7 +157,7 @@ static GSMimeParser		*mimeParser = nil;
 + (NSURLProtectionSpace*) protectionSpaceForAuthentication: (NSString*)auth
                                                 requestURL: (NSURL*)URL;
 {
-  if (auth != nil)
+  if ([auth isKindOfClass: [NSString class]] == YES)
     {
       NSString			*method = nil;
       NSURLProtectionSpace	*space;

@@ -12,7 +12,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
     
@@ -21,24 +21,30 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */ 
 
-#include "config.h"
-#include "Foundation/NSSpellServer.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSUserDefaults.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSConnection.h"
-#include "Foundation/NSProcessInfo.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSSet.h"
+#import "common.h"
+#define	EXPOSE_NSSpellServer_IVARS	1
+#import "Foundation/NSSpellServer.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSConnection.h"
+#import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSSet.h"
+
+NSString *const NSGrammarRange = @"NSGrammarRange";
+NSString *const NSGrammarUserDescription = @"NSGrammarUserDescription";
+NSString *const NSGrammarCorrections = @"NSGrammarCorrections";
+
+static NSConnection *spellServerConnection = nil;
 
 /* User dictionary location */
 static NSString *GNU_UserDictionariesDir = @"Dictionaries";
@@ -75,9 +81,12 @@ GSSpellServerName(NSString *vendor, NSString *language)
 // Non-private Instance methods
 - (id) init
 {
-  NSArray *userLanguages = [NSUserDefaults userLanguages];  
-  NSString *currentLanguage = [userLanguages objectAtIndex: 0];
+  NSArray *userPreference;
+  NSString *currentLanguage;
 
+  userPreference = [[NSUserDefaults standardUserDefaults]
+    stringArrayForKey: @"NSLanguages"];  
+  currentLanguage = [userPreference objectAtIndex: 0];
   if ((self = [super init]) != nil)
     {
       _delegate = nil;
@@ -107,7 +116,6 @@ GSSpellServerName(NSString *vendor, NSString *language)
 		 byVendor: (NSString *)vendor
 {
   NSString *serverName = GSSpellServerName(vendor, language);
-  NSConnection *connection = nil;
   BOOL result = NO;
 
   if (serverName == nil)
@@ -115,12 +123,11 @@ GSSpellServerName(NSString *vendor, NSString *language)
       return NO;
     }
 
-  connection = [[NSConnection alloc] init];
-  if (connection)
+  spellServerConnection = [[NSConnection alloc] init];
+  if (spellServerConnection)
     {
-      RETAIN(connection);
-      [connection setRootObject: self];
-      result = [connection registerName: serverName];
+      [spellServerConnection setRootObject: self];
+      result = [spellServerConnection registerName: serverName];
     }
 
   return result;
@@ -146,7 +153,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
 - (void) setDelegate: (id)anObject
 {
   /* FIXME - we should not retain the delegate ! */
-  RETAIN(anObject);
+  IF_NO_GC(RETAIN(anObject);)
   ASSIGN(_delegate, anObject);
 }
 
@@ -297,6 +304,28 @@ GSSpellServerName(NSString *vendor, NSString *language)
 	  result = [word isEqualToString: dictWord];
 	}
     }
+  
+  return result;
+}
+
+// Checking User Dictionaries
+/** 
+Checks to see if the word is in the user's dictionary.  The user dictionary
+is a set of words learned by the spell service for that particular user
+combined with the set of ignored words in the current document.
+*/
+- (BOOL) isWordInUserDictionaries: (NSString *)word
+		    caseSensitive: (BOOL)flag
+{
+  NSSet *userDict = [self _openUserDictionary: _currentLanguage];
+  BOOL result = NO;
+
+  if (userDict)
+    {
+      result = [self _isWord: word
+	        inDictionary: userDict
+	       caseSensitive: flag];
+    }
 
   if (result == NO && _ignoredWords)
     {
@@ -319,27 +348,6 @@ GSSpellServerName(NSString *vendor, NSString *language)
 	      result = [word isEqualToString: iword];
 	    }
 	}      
-    }
-  
-  return result;
-}
-
-// Checking User Dictionaries
-/** 
-Checks to see if the word is in the user's dictionary.  The user dictionary
-is a set of words learned by the spell service for that particular user.
-*/
-- (BOOL) isWordInUserDictionaries: (NSString *)word
-		    caseSensitive: (BOOL)flag
-{
-  NSSet *userDict = [self _openUserDictionary: _currentLanguage];
-  BOOL result = NO;
-
-  if (userDict)
-    {
-      result = [self _isWord: word
-	        inDictionary: userDict
-	       caseSensitive: flag];
     }
 
   return result;
@@ -419,7 +427,7 @@ is a set of words learned by the spell service for that particular user.
 - (NSRange) _findMisspelledWordInString: (NSString *)stringToCheck
 			       language: (NSString *)language
 			   ignoredWords: (NSArray *)ignoredWords
-			      wordCount: (int *)wordCount
+			      wordCount: (int32_t *)wordCount
 			      countOnly: (BOOL)countOnly
 {
   NSRange r = NSMakeRange(0,0);
@@ -468,4 +476,19 @@ is a set of words learned by the spell service for that particular user.
   return words;
 }
 
+- (NSArray *) spellServer: (NSSpellServer *)sender
+  suggestCompletionsForPartialWordRange: (NSRange)range
+  inString: (NSString *)string
+  language: (NSString *)language
+{
+  return nil;   // FIXME
+}
+
+- (NSRange) spellServer: (NSSpellServer *)sender
+  checkGrammarInString: (NSString *)stringToCheck
+  language: (NSString *)language
+  details: (NSArray **)details
+{
+  return NSMakeRange(0, 0);     // FIXME
+}
 @end

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -45,8 +45,6 @@ extern "C" {
 @class	NSPort, NSString, NSMutableArray;
 
 @interface	NSPortNameServer : NSObject
-{
-}
 + (id) systemDefaultPortNameServer;
 - (NSPort*) portForName: (NSString*)name;
 - (NSPort*) portForName: (NSString*)name
@@ -58,8 +56,19 @@ extern "C" {
 
 @interface NSSocketPortNameServer : NSPortNameServer
 {
+#if	GS_EXPOSE(NSSocketPortNameServer)
   NSMapTable	*_portMap;	/* Registered ports information.	*/
   NSMapTable	*_nameMap;	/* Registered names information.	*/
+#endif
+#if     GS_NONFRAGILE
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
 }
 + (id) sharedInstance;
 - (NSPort*) portForName: (NSString*)name

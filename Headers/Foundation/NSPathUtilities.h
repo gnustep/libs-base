@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,8 +27,7 @@
 #ifndef __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
 #define __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
-
-#import	<GNUstepBase/GSObjCRuntime.h>
+#import	<Foundation/NSObjCRuntime.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -107,6 +106,45 @@ GS_EXPORT NSString *NSHomeDirectory(void);
 GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+enum
+{
+  NSApplicationDirectory = 1,		/** Applications */
+  NSDemoApplicationDirectory,		/** Demos */
+  NSDeveloperApplicationDirectory,	/** Developer/Applications */
+  NSAdminApplicationDirectory,		/** Administration */
+  NSLibraryDirectory,			/** Library */
+  NSDeveloperDirectory,			/** Developer */
+  NSUserDirectory,			/** user home directories */
+  NSDocumentationDirectory,		/** Documentation */
+#if OS_API_VERSION(100200, GS_API_LATEST)
+  NSDocumentDirectory,			/** Documents */
+#endif
+#if OS_API_VERSION(100300, GS_API_LATEST)
+  NSCoreServicesDirectory,		/** CoreServices */
+#endif
+#if OS_API_VERSION(100400, GS_API_LATEST)
+  NSDesktopDirectory = 12,		/** location of users desktop */
+  NSCachesDirectory = 13,		/** location of users cache files */
+  NSApplicationSupportDirectory = 14,	/** location of app support files */
+#endif
+#if OS_API_VERSION(100500, GS_API_LATEST)
+  NSDownloadsDirectory = 15,	        /** location of downloaded files */
+#endif
+
+  NSAllApplicationsDirectory = 100,	/** all app directories */
+  NSAllLibrariesDirectory = 101,	/** all library resources */
+
+#define  GSApplicationSupportDirectory NSApplicationSupportDirectory
+/*  GNUstep Directory Identifiers
+ *  Start at 1000, we hope Apple will never overlap.
+ */
+  GSLibrariesDirectory = 1000,		/** libraries (binary code) */
+  GSToolsDirectory,			/** non-gui programs */
+  GSFontsDirectory,			/** font storage */
+  GSFrameworksDirectory, 		/** frameworks */
+  GSWebApplicationsDirectory,		/** web applications (GSWeb or SOPE) */
+  GSAdminToolsDirectory	        	/** admin non-gui programs */
+};
 /**
  * Enumeration of possible requested directory type specifiers for
  * NSSearchPathForDirectoriesInDomains() function.  On a traditional
@@ -140,56 +178,22 @@ GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 }
  </example>
  */
-typedef enum
-{
-  NSApplicationDirectory = 1,		/** Applications */
-  NSDemoApplicationDirectory,		/** Demos */
-  NSDeveloperApplicationDirectory,	/** Developer/Applications */
-  NSAdminApplicationDirectory,		/** Administration */
-  NSLibraryDirectory,			/** Library */
-  NSDeveloperDirectory,			/** Developer */
-  NSUserDirectory,			/** user home directories */
-  NSDocumentationDirectory,		/** Documentation */
-#if OS_API_VERSION(100200, GS_API_LATEST)
-  NSDocumentDirectory,			/** Documents */
-#endif
-#if OS_API_VERSION(100300, GS_API_LATEST)
-  NSCoreServicesDirectory,		/** CoreServices */
-#endif
-#if OS_API_VERSION(100400, GS_API_LATEST)
-  NSDesktopDirectory = 12,		/** location of users desktop */
-  NSCachesDirectory = 13,		/** location of users cache files */
-  NSApplicationSupportDirectory = 14,	/** location of app support files */
-#endif
+typedef NSUInteger NSSearchPathDirectory;
 
-  NSAllApplicationsDirectory = 100,	/** all app directories */
-  NSAllLibrariesDirectory = 101,	/** all library resources */
-
-#define  GSApplicationSupportDirectory NSApplicationSupportDirectory
-/*  GNUstep Directory Identifiers
- *  Start at 1000, we hope Apple will never overlap.
- */
-  GSLibrariesDirectory = 1000,		/** libraries (binary code) */
-  GSToolsDirectory,			/** non-gui programs */
-  GSFontsDirectory,			/** font storage */
-  GSFrameworksDirectory, 		/** frameworks */
-  GSWebApplicationsDirectory,		/** web applications (GSWeb or SOPE) */
-  GSAdminToolsDirectory	        	/** admin non-gui programs */
- } NSSearchPathDirectory;
-
-/**
- * Mask type for NSSearchPathForDirectoriesInDomains() function.  A bitwise OR
- * of one or more of <code>NSUserDomainMask, NSLocalDomainMask,
- * NSNetworkDomainMask, NSSystemDomainMask, NSAllDomainsMask</code>.
- */
-typedef enum
+enum
 {
   NSUserDomainMask = 1,		/** The user's personal items */
   NSLocalDomainMask = 2,	/** Local for all users on the machine */
   NSNetworkDomainMask = 4,	/** Public for all users on network */
   NSSystemDomainMask = 8,	/** Standard GNUstep items */
   NSAllDomainsMask = 0x0ffff,	/** all domains */
-} NSSearchPathDomainMask;
+};
+/**
+ * Mask type for NSSearchPathForDirectoriesInDomains() function.  A bitwise OR
+ * of one or more of <code>NSUserDomainMask, NSLocalDomainMask,
+ * NSNetworkDomainMask, NSSystemDomainMask, NSAllDomainsMask</code>.
+ */
+typedef NSUInteger NSSearchPathDomainMask;
 
 /**
  * Returns an array of search paths to look at for resources.<br/ >

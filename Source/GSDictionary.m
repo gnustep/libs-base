@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,25 +16,23 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
 
 
-#include "config.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSPortCoder.h"
-#include "Foundation/NSDebug.h"
+#import "common.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSPortCoder.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
 
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 
 /*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
@@ -46,6 +44,13 @@
 #define	GSI_MAP_EQUAL(M, X,Y)		[X.obj isEqual: Y.obj]
 #define	GSI_MAP_RETAIN_KEY(M, X)	((X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
+
+#if	GS_WITH_GC
+#include	<gc/gc_typed.h>
+static GC_descr	nodeDesc;	// Type descriptor for map node.
+#define	GSI_MAP_NODES(M, X) \
+(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
+#endif
 
 #include	"GNUstepBase/GSIMap.h"
 
@@ -60,6 +65,7 @@
 {
 @public
   GSIMapTable_t	map;
+  NSUInteger _version;
 }
 @end
 
@@ -82,6 +88,15 @@ static SEL	objSel;
 {
   if (self == [GSDictionary class])
     {
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * The pointers to the key and value need to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
       nxtSel = @selector(nextObject);
       objSel = @selector(objectForKey:);
     }
@@ -92,7 +107,7 @@ static SEL	objSel;
   return RETAIN(self);
 }
 
-- (unsigned) count
+- (NSUInteger) count
 {
   return map.nodeCount;
 }
@@ -111,7 +126,7 @@ static SEL	objSel;
     }
   else
     {
-      unsigned		count = map.nodeCount;
+      unsigned	count = map.nodeCount;
       SEL		sel = @selector(encodeObject:);
       IMP		imp = [aCoder methodForSelector: sel];
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
@@ -128,7 +143,7 @@ static SEL	objSel;
     }
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return map.nodeCount;
 }
@@ -156,7 +171,7 @@ static SEL	objSel;
       [aCoder decodeValueOfObjCType: @encode(unsigned)
 	                         at: &count];
 
-      GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
+      GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
       while (count-- > 0)
         {
 	  (*imp)(aCoder, sel, type, &key);
@@ -168,24 +183,24 @@ static SEL	objSel;
 }
 
 /* Designated initialiser */
-- (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (unsigned)c
+- (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (NSUInteger)c
 {
-  unsigned int	i;
+  NSUInteger	i;
 
-  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), c);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
   for (i = 0; i < c; i++)
     {
       GSIMapNode	node;
 
       if (keys[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil key"];
 	}
       if (objs[i] == nil)
 	{
-	  IF_NO_GC(AUTORELEASE(self));
+	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil value"];
 	}
@@ -211,18 +226,17 @@ static SEL	objSel;
 - (id) initWithDictionary: (NSDictionary*)other
 		copyItems: (BOOL)shouldCopy
 {
-  NSZone	*z = GSObjCZone(self);
-  unsigned	c = [other count];
+  NSZone	*z = [self zone];
+  NSUInteger	c = [other count];
 
   GSIMapInitWithZoneAndCapacity(&map, z, c);
-
   if (c > 0)
     {
       NSEnumerator	*e = [other keyEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
       IMP		otherObj = [other methodForSelector: objSel];
       BOOL		isProxy = [other isProxy];
-      unsigned		i;
+      NSUInteger	i;
 
       for (i = 0; i < c; i++)
 	{
@@ -243,7 +257,7 @@ static SEL	objSel;
 	  k = [k copyWithZone: z];
 	  if (k == nil)
 	    {
-	      IF_NO_GC(AUTORELEASE(self));
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init dictionary with nil key"];
 	    }
@@ -257,7 +271,7 @@ static SEL	objSel;
 	    }
 	  if (o == nil)
 	    {
-	      IF_NO_GC(AUTORELEASE(self));
+	      DESTROY(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init dictionary with nil value"];
 	    }
@@ -279,7 +293,7 @@ static SEL	objSel;
 
 - (BOOL) isEqualToDictionary: (NSDictionary*)other
 {
-  unsigned	count;
+  NSUInteger	count;
 
   if (other == self)
     {
@@ -339,6 +353,14 @@ static SEL	objSel;
   return nil;
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)self;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
+}
 @end
 
 @implementation GSMutableDictionary
@@ -364,21 +386,15 @@ static SEL	objSel;
 }
 
 /* Designated initialiser */
-- (id) initWithCapacity: (unsigned)cap
+- (id) initWithCapacity: (NSUInteger)cap
 {
-  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), cap);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-#ifndef NDEBUG
-  GSDebugAllocationRemove(isa, self);
-#endif
-  isa = [GSDictionary class];
-#ifndef NDEBUG
-  GSDebugAllocationAdd(isa, self);
-#endif
+  GSClassSwizzle(self, [GSDictionary class]);
   return self;
 }
 
@@ -386,6 +402,7 @@ static SEL	objSel;
 {
   GSIMapNode	node;
 
+  _version++;
   if (aKey == nil)
     {
       NSException	*e;
@@ -418,11 +435,14 @@ static SEL	objSel;
     {
       GSIMapAddPair(&map, (GSIMapKey)aKey, (GSIMapVal)anObject);
     }
+  _version++;
 }
 
 - (void) removeAllObjects
 {
+  _version++;
   GSIMapCleanMap(&map);
+  _version++;
 }
 
 - (void) removeObjectForKey: (id)aKey
@@ -432,9 +452,19 @@ static SEL	objSel;
       NSWarnMLog(@"attempt to remove nil key from dictionary %@", self);
       return;
     }
+  _version++;
   GSIMapRemoveKey(&map, (GSIMapKey)aKey);
+  _version++;
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+				   objects: (id*)stackbuf
+				     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)&_version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
+}
 @end
 
 @implementation GSDictionaryKeyEnumerator
@@ -490,7 +520,7 @@ static SEL	objSel;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSDictionary class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
@@ -503,7 +533,7 @@ static SEL	objSel;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  RELEASE(self);
+  DESTROY(self);
   self = (id)NSAllocateObject([GSMutableDictionary class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;

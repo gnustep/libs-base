@@ -11,6 +11,98 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.22.0}
+
+@itemize @bullet
+@item Many updates and new classes
+@item There is now a regression test framework included with the package
+@item New support for Objective-C 2.0
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{1.21.1}
+
+This is an (unstable) copy of the 1.20.1 release
+
+@section Noteworthy changes in version @samp{1.20.1}
+
+This is a stable bugfix release. There are no major changes or binary
+incompatibilities, but this release does include an update of timezone
+handling to include the latest zone information.
+
+@section Noteworthy changes in version @samp{1.21.0}
+
+This is an (unstable) copy of the 1.20.0 release
+
+@section Noteworthy changes in version @samp{1.20.0}
+
+This is a stable release. There have been major changes
+and reorganizations to support, among other things, the new
+non-fragile ABI from clang. These changes, although they
+break binary compatibility with previous releases, should allow 
+all future releases to maintain compatibility.
+
+@section Noteworthy changes in version @samp{1.19.3}
+
+@itemize @bullet
+@item Bugfix to work around OSX behavior of [NSURL-path]
+@end itemize
+
+@section Noteworthy changes in version @samp{1.19.2}
+
+@itemize @bullet
+@item Various OSX compatibility improvements.
+@item String handling performance improvements.
+@item Several minor bugfixes.
+@end itemize
+
+@section Noteworthy changes in version @samp{1.19.1}
+
+@itemize @bullet
+@item New Mac OS X methods for writing data in NSData
+@item New classes NSHashTable and NSMapTable
+@item Garbage collection now works again and is much improved.
+@item Method return types and arguments have been changed for Mac OS X 10.5
+@end itemize
+
+@section Noteworthy changes in version @samp{1.19.0}
+
+@itemize @bullet
+@item Support for native objective-c exceptions
+@item Connection keepalive for ms-windows
+@item Path utitlites fix for ms-windows
+@item Changes to build on 64bit ms-windows
+@item Support for @@synchronize
+@end itemize
+
+@section Noteworthy changes in version @samp{1.15.3}
+
+@itemize @bullet
+@item Extended NSUserDefaults so it recognizes ../ as a relative path.
+@item Added TLS/SSL support for NSStream based on GNU TLS
+@item Added support for https to NSURLConnection using new stream code and
+added basic support for digest authentication.
+@item Fixed various problems with and added new options to KVO.
+@end itemize
+
+@section Noteworthy changes in version @samp{1.15.2}
+Bug fixes include improved thread safety (and a change to the NSThread
+class structure) and Key-Value observing.
+
+@section Noteworthy changes in version @samp{1.15.1}
+
+This is an unstable release. There may be API and ABI changes 
+from previous releases. The licesne hase changed to GPLv3 and LGPLv3.
+Mostly bug fixes, but a few improvements in NSPredicates and Key-Value
+coding have been added.
+
+@section Noteworthy changes in version @samp{1.15.0}
+
+This is an unstable release from 1.14.0.  It is otherwise
+identical to the 1.14.0 release. Releases in the 1.15 series
+may not be forward compatible with previous 1.15 releases.
+ 
 @section Noteworthy changes in version @samp{1.14.0}
 
 Many portability (particularly for ms-windows) and MacOS-X compatibility fixes.
@@ -18,7 +110,6 @@ New MacOS-X classes and incorporation of NSAffineTransform and NSSpellServer
 which were formerly in the gui library.
 Improved performance of amssively multithreaded programs.
 
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.13.1}
 

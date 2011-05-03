@@ -4,21 +4,18 @@
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1996
 
-   This file is part of the GNUstep Base Library.
+   This file is part of the GNUstep Project.
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   You should have received a copy of the GNU General Public
+   License along with this program; see the file COPYING.
+   If not, write to the Free Software Foundation,
+   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-   You should have received a copy of the GNU Library General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
    */
 
 /*
@@ -183,7 +180,7 @@
  */
 #define	GDO_NET_MASK	0x70	/* Network protocol of port.		*/
 #define	GDO_NET_TCP	0x10
-#define	GDO_NET_UDP	0x10
+#define	GDO_NET_UDP	0x20
 #define	GDO_SVC_MASK	0x0f	/* High level protocol of port.		*/
 #define	GDO_SVC_GDO	0x01
 #define	GDO_SVC_FOREIGN	0x02

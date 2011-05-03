@@ -8,15 +8,32 @@
 
   AFAIK: This only works on machines that support setlocale.
   The files created may require hand editing.
+
+   This file is part of the GNUstep Project
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   You should have received a copy of the GNU General Public
+   License along with this program; see the file COPYINGv3.
+   If not, write to the Free Software Foundation,
+   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
 */
+
+#import	"common.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
 #include <ctype.h>
 #include <locale.h>
-#include <Foundation/Foundation.h>
-#include <GNUstepBase/GSLocale.h>
+
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSDictionary.h"
+#import "GNUstepBase/GSLocale.h"
 
 #define MAXSTRING 100
 

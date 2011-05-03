@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,21 +25,14 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSInvocation.h"
-#include "Foundation/NSProxy.h"
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSDistantObject.h"
-#include "Foundation/NSPortCoder.h"
-
-#ifdef	HAVE_LIMITS_H
-/* For UINT_MAX */
-#include <limits.h>
-#endif
+#import "common.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSProxy.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSDistantObject.h"
+#import "Foundation/NSPortCoder.h"
 
 @class	NSDistantObject;
 
@@ -56,9 +49,9 @@ extern BOOL __objc_responds_to(id, SEL);
  * implement -forwardInvocation: to these <em>real</em> objects.</p>
  *
  * <p>Note that <code>NSProxy</code> is a different sort of class than others
- *  in the GNUstep Base library in that it is the only example of a root class
- *  besides [NSObject].  Thus, it defines its own <code><em>isa</em></code>
- *  variable and implements the <code>NSObject</code> protocol.</p>
+ * in the GNUstep Base library in that it is the only example of a root class
+ * besides [NSObject].  Thus, it implements the <code>NSObject</code> protocol
+ * but is not a subclass of NSObject.</p>
  */
 @implementation NSProxy
 
@@ -109,9 +102,10 @@ extern BOOL __objc_responds_to(id, SEL);
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   /*
-   *	Since 'self' is an class, get_imp() will get the instance method.
+   * Since 'self' is an class, class_getMethodImplementation() will get
+   * the instance method.
    */
-  return get_imp((Class)self, aSelector);
+  return class_getMethodImplementation((Class)self, aSelector);
 }
 
 /**
@@ -144,7 +138,7 @@ extern BOOL __objc_responds_to(id, SEL);
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  return get_imp(GSObjCClass((id)self), aSelector);
+  return class_getMethodImplementation(object_getClass((id)self), aSelector);
 }
 
 /**
@@ -154,14 +148,14 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   struct objc_method	*mth;
 
-  if (aSelector == 0)
+  if (0 == aSelector)
     {
       return nil;
     }
   mth = GSGetMethod(self, aSelector, NO, YES);
   if (mth != 0)
     {
-      const char	*types = mth->method_types;
+      const char	*types = method_getTypeEncoding(mth);
 
       if (types != 0)
 	{
@@ -201,7 +195,7 @@ extern BOOL __objc_responds_to(id, SEL);
 /**
  * Returns the maximum unsigned integer value.
  */
-+ (unsigned int) retainCount
++ (NSUInteger) retainCount
 {
   return UINT_MAX;
 }
@@ -211,7 +205,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 + (Class) superclass
 {
-  return GSObjCSuper(self);
+  return class_getSuperclass(self);
 }
 
 /**
@@ -238,7 +232,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 - (Class) class
 {
-  return object_get_class(self);
+  return object_getClass(self);
 }
 
 /**
@@ -275,20 +269,7 @@ extern BOOL __objc_responds_to(id, SEL);
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s %lx>",
-	GSClassNameFromObject(self), (unsigned long)self];
-}
-
-/**
- * Calls the -forwardInvocation: method and returns the result.
- */
-- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
-{
-  NSInvocation *inv;
-
-  inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
-						  selector: aSel]);
-  [self forwardInvocation: inv];
-  return [inv returnFrame: argFrame];
+	GSClassNameFromObject(self), (size_t)self];
 }
 
 /** <override-subclass />
@@ -298,13 +279,13 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   [NSException raise: NSInvalidArgumentException
 	      format: @"NSProxy should not implement '%s'",
-				GSNameFromSelector(_cmd)];
+				sel_getName(_cmd)];
 }
 
 /**
  * Returns the address of the receiver ... so it can be stored in a dictionary.
  */
-- (unsigned int) hash
+- (NSUInteger) hash
 {
   /*
    * Ideally we would shift left to lose any zero bits produced by the
@@ -313,7 +294,7 @@ extern BOOL __objc_responds_to(id, SEL);
    * In the absence of detailed information, pick a reasonable value
    * assuming the object will be aligned to an eight byte boundary.
    */
-  return ((unsigned)(uintptr_t)self)>>3;
+  return ((NSUInteger)(uintptr_t)self)>>3;
 }
 
 /** <init /> <override-subclass />
@@ -323,7 +304,7 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   [NSException raise: NSGenericException
     format: @"subclass %s should override %s", GSClassNameFromObject(self),
-    GSNameFromSelector(_cmd)];
+    sel_getName(_cmd)];
   return self;
 }
 
@@ -388,7 +369,7 @@ extern BOOL __objc_responds_to(id, SEL);
 - (id) notImplemented: (SEL)aSel
 {
   [NSException raise: NSGenericException
-	      format: @"NSProxy notImplemented %s", GSNameFromSelector(aSel)];
+	      format: @"NSProxy notImplemented %s", sel_getName(aSel)];
   return self;
 }
 
@@ -400,14 +381,14 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   struct objc_method	*mth;
 
-  if (aSelector == 0)
+  if (0 == aSelector)
     {
       return nil;
     }
-  mth = GSGetMethod(GSObjCClass(self), aSelector, YES, YES);
+  mth = GSGetMethod(object_getClass(self), aSelector, YES, YES);
   if (mth != 0)
     {
-      const char	*types = mth->method_types;
+      const char	*types = method_getTypeEncoding(mth);
 
       if (types != 0)
 	{
@@ -427,7 +408,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				GSNameFromSelector(_cmd)];
+				sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -442,7 +423,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				GSNameFromSelector(_cmd)];
+				sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector, anObject);
@@ -458,7 +439,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				GSNameFromSelector(_cmd)];
+				sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector, anObject, anotherObject);
@@ -495,10 +476,10 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       proxyClass = [NSDistantObject class];
       /*
-       * use get_imp() because NSDistantObject doesn't implement
-       * methodForSelector:
+       * use class_getMethodImplementation() because NSDistantObject
+       * doesn't implement methodForSelector:
        */
-      proxyImp = get_imp(GSObjCClass((id)proxyClass),
+      proxyImp = class_getMethodImplementation(object_getClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 
@@ -550,7 +531,7 @@ extern BOOL __objc_responds_to(id, SEL);
 /**
  * Return the retain count for the receiver.
  */
-- (unsigned int) retainCount
+- (NSUInteger) retainCount
 {
   return _retain_count + 1;
 }
@@ -568,7 +549,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 - (Class) superclass
 {
-  return object_get_super_class(self);
+  return class_getSuperclass(isa);
 }
 
 /**

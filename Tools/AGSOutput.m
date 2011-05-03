@@ -10,19 +10,30 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYING.LIB.
+   License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#include "AGSOutput.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "common.h"
+
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSUserDefaults.h"
+#import "AGSOutput.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 @interface AGSOutput (Private)
 - (NSString*) mergeMarkup: (NSString*)markup
@@ -47,7 +58,7 @@ static BOOL snuggleEnd(NSString *t)
   if (set == nil)
     {
       set = [NSCharacterSet characterSetWithCharactersInString: @"]}).,;"];
-      RETAIN(set);
+      IF_NO_GC([set retain];)
     }
   return [set characterIsMember: [t characterAtIndex: 0]];
 }
@@ -59,7 +70,7 @@ static BOOL snuggleStart(NSString *t)
   if (set == nil)
     {
       set = [NSCharacterSet characterSetWithCharactersInString: @"[{("];
-      RETAIN(set);
+      IF_NO_GC([set retain];)
     }
   return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
 }
@@ -334,7 +345,7 @@ static BOOL snuggleStart(NSString *t)
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
   [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.3//EN\" "];
-  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"];
+  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"];
   [str appendFormat: @"<gsdoc"];
 
   if (base != nil)
@@ -827,16 +838,16 @@ static BOOL snuggleStart(NSString *t)
       NSString		*s = [a objectForKey: @"BaseType"];
 
       [str appendString: @"        <arg type=\""];
-      [str appendString: s];
+      [str appendString: escapeType(s)];
       s = [a objectForKey: @"Prefix"];
       if (s != nil)
 	{
-	  [str appendString: s];
+	  [str appendString: escapeType(s)];
 	}
       s = [a objectForKey: @"Suffix"];
       if (s != nil)
 	{
-	  [str appendString: s];
+	  [str appendString: escapeType(s)];
 	}
       [str appendString: @"\">"];
       [str appendString: [a objectForKey: @"Name"]];
@@ -1070,7 +1081,7 @@ static BOOL snuggleStart(NSString *t)
 	} while (r.length > 0);
       if (m != nil)
 	{
-	  AUTORELEASE(m);
+	  IF_NO_GC([m autorelease];)
 	}
     }
 
@@ -2336,7 +2347,7 @@ static BOOL snuggleStart(NSString *t)
 	  [str appendString: @"<?xml version=\"1.0\"?>\n"];
 	  [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
 	  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.3//EN\" "];
-	  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"];
+	  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"];
 	  [str appendString: @"<gsdoc base=\""];
 	  [str appendString: [name lastPathComponent]];
 	  /*

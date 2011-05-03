@@ -1,13 +1,13 @@
 /* Implementation for NSURLResponse for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,104 +16,130 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
+#import "common.h"
 
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSScanner.h"
-#include "NSCallBacks.h"
-#include "GNUstepBase/GSMime.h"
+#define	EXPOSE_NSURLResponse_IVARS	1
+#import "GSURLPrivate.h"
+#import "GSPrivate.h"
+
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSScanner.h"
+#import "NSCallBacks.h"
+#import "GNUstepBase/GSMime.h"
 
 
 // Internal data storage
 typedef struct {
-  long long			expectedContentLength;
-  NSURL				*URL;
-  NSString			*MIMEType;
-  NSString			*textEncodingName;
-  NSString			*statusText;
-  NSMapTable			*headers;
-  int				statusCode;
+  long long		expectedContentLength;
+  NSURL			*URL;
+  NSString		*MIMEType;
+  NSString		*textEncodingName;
+  NSString		*statusText;
+  NSMutableDictionary	*headers; /* _GSMutableInsensitiveDictionary */
+  int			statusCode;
 } Internal;
  
-typedef struct {
-  @defs(NSURLResponse)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLResponseInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLResponseInternal))
+#define	this	((Internal*)(self->_NSURLResponseInternal))
+#define	inst	((Internal*)(o->_NSURLResponseInternal))
 
 
-/*
- * Implement map keys for strings with case insensitive comparisons,
- * so we can have case insensitive matching of http headers (correct
- * behavior), but actually preserve case of headers stored and written
- * in case the remote server is buggy and requires particular
- * captialisation of headers (some http software is faulty like that).
- */
-static unsigned int
-_non_retained_id_hash(void *table, NSString* o)
-{
-  return [[o uppercaseString] hash];
-}
-
-static BOOL
-_non_retained_id_is_equal(void *table, NSString *o, NSString *p)
-{
-  return ([o caseInsensitiveCompare: p] == NSOrderedSame) ? YES : NO;
-}
-
-typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
-typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *, const void *);
-typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
-typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
-typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
-
-static const NSMapTableKeyCallBacks headerKeyCallBacks =
-{
-  (NSMT_hash_func_t) _non_retained_id_hash,
-  (NSMT_is_equal_func_t) _non_retained_id_is_equal,
-  (NSMT_retain_func_t) _NS_non_retained_id_retain,
-  (NSMT_release_func_t) _NS_non_retained_id_release,
-  (NSMT_describe_func_t) _NS_non_retained_id_describe,
-  NSNotAPointerMapKey
-};
-
-@interface	NSURLResponse (Internal)
-- (void) setStatusCode: (int)code text: (NSString*)text;
-- (void) setValue: (NSString *)value forHTTPHeaderField: (NSString *)field;
-- (NSString *) valueForHTTPHeaderField: (NSString *)field;
+@interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
 @end
 
-@implementation	NSURLResponse (Internal)
-- (void) setStatusCode: (int)code text: (NSString*)text
+@implementation	NSURLResponse (Private)
+
+- (void) _setHeaders: (id)headers
+{
+  NSEnumerator	*e;
+  NSString	*v;
+  NSString	*contentLength = nil;
+  GSMimeHeader	*contentType = nil;
+
+  if ([headers isKindOfClass: [NSDictionary class]] == YES)
+    {
+      NSString		*k;
+
+      e = [(NSDictionary*)headers keyEnumerator];
+      while ((k = [e nextObject]) != nil)
+	{
+	  v = [(NSDictionary*)headers objectForKey: k];
+	  [self _setValue: v forHTTPHeaderField: k];
+	}
+    }
+  else if ([headers isKindOfClass: [NSArray class]] == YES)
+    {
+      GSMimeHeader	*h;
+
+      e = [(NSArray*)headers objectEnumerator];
+      while ((h = [e nextObject]) != nil)
+        {
+	  NSString	*n = [h namePreservingCase: YES];
+	  NSString	*v = [h fullValue];
+
+	  if ([n caseInsensitiveCompare: @"content-type"] == NSOrderedSame)
+	    {
+	      contentType = h;
+	    }
+	  [self _setValue: v forHTTPHeaderField: n];
+	}
+    }
+
+  if (contentLength == nil)
+    {
+      contentLength = [self _valueForHTTPHeaderField: @"content-length"];
+    }
+  if ([contentLength length] == 0)
+    {
+      this->expectedContentLength = -1;
+    }
+  else
+    {
+      this->expectedContentLength = [contentLength intValue];
+    }
+
+  if (contentType == nil)
+    {
+      GSMimeParser	*p;
+      NSScanner		*s;
+
+      v = [self _valueForHTTPHeaderField: @"content-type"];
+      if (v == nil)
+        {
+	  v = @"text/plain";	// No content type given.
+	}
+      s = [NSScanner scannerWithString: v];
+      p = [GSMimeParser new];
+      contentType = AUTORELEASE([GSMimeHeader new]);
+      [p scanHeaderBody: s into: contentType];
+      RELEASE(p);
+    }
+  ASSIGNCOPY(this->MIMEType, [contentType value]);
+  v = [contentType parameterForKey: @"charset"];
+  ASSIGNCOPY(this->textEncodingName, v);
+}
+- (void) _setStatusCode: (NSInteger)code text: (NSString*)text
 {
   this->statusCode = code;
   ASSIGNCOPY(this->statusText, text);
 }
-- (void) setValue: (NSString *)value forHTTPHeaderField: (NSString *)field
+- (void) _setValue: (NSString *)value forHTTPHeaderField: (NSString *)field
 {
   if (this->headers == 0)
     {
-      this->headers = NSCreateMapTable(headerKeyCallBacks,
-	NSObjectMapValueCallBacks, 8);
+      this->headers = [_GSMutableInsensitiveDictionary new];
     }
-  NSMapInsert(this->headers, (void*)field, (void*)value);
+  [this->headers setObject: value forKey: field];
 }
-- (NSString *) valueForHTTPHeaderField: (NSString *)field
+- (NSString *) _valueForHTTPHeaderField: (NSString *)field
 {
-  NSString	*value = nil;
-
-  if (this->headers != 0)
-    {
-      value = (NSString*)NSMapGet(this->headers, (void*)field);
-    }
-  return value;
+  return [this->headers objectForKey: field];
 }
 @end
 
@@ -156,7 +182,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 	    }
 	  else
 	    {
-	      inst->headers = NSCopyMapTableWithZone(this->headers, z);
+	      inst->headers = [this->headers mutableCopy];
 	    }
 	}
     }
@@ -171,10 +197,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
       RELEASE(this->MIMEType);
       RELEASE(this->textEncodingName);
       RELEASE(this->statusText);
-      if (this->headers != 0)
-        {
-	  NSFreeMapTable(this->headers);
-	}
+      RELEASE(this->headers);
       NSZoneFree([self zone], this);
     }
   [super dealloc];
@@ -214,7 +237,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
  */
 - (id) initWithURL: (NSURL *)URL
   MIMEType: (NSString *)MIMEType
-  expectedContentLength: (int)length
+  expectedContentLength: (NSInteger)length
   textEncodingName: (NSString *)name
 {
   if ((self = [super init]) != nil)
@@ -247,7 +270,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
  */
 - (NSString *) suggestedFilename
 {
-  NSString	*disp = [self valueForHTTPHeaderField: @"content-disposition"];
+  NSString	*disp = [self _valueForHTTPHeaderField: @"content-disposition"];
   NSString	*name = nil;
 
   if (disp != nil)
@@ -260,7 +283,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
       p = AUTORELEASE([GSMimeParser new]);
       h = [[GSMimeHeader alloc] initWithName: @"content-displosition"
 				       value: disp];
-      AUTORELEASE(h);
+      IF_NO_GC([h autorelease];)
       sc = [NSScanner scannerWithString: [h value]];
       if ([p scanHeaderBody: sc into: h] == YES)
         {
@@ -301,7 +324,7 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 
 @implementation NSHTTPURLResponse
 
-+ (NSString *) localizedStringForStatusCode: (int)statusCode
++ (NSString *) localizedStringForStatusCode: (NSInteger)statusCode
 {
 // FIXME ... put real responses in here
   return [NSString stringWithFormat: @"%d", statusCode];
@@ -309,29 +332,12 @@ static const NSMapTableKeyCallBacks headerKeyCallBacks =
 
 - (NSDictionary *) allHeaderFields
 {
-  NSMutableDictionary	*fields;
-
-  fields = [NSMutableDictionary dictionaryWithCapacity: 8];
-  if (this->headers != 0)
-    {
-      NSMapEnumerator	enumerator;
-      NSString		*k;
-      NSString		*v;
-
-      enumerator = NSEnumerateMapTable(this->headers);
-      while (NSNextMapEnumeratorPair(&enumerator, (void **)(&k), (void**)&v))
-	{
-	  [fields setObject: v forKey: k];
-	}
-      NSEndMapTableEnumeration(&enumerator);
-    }
-  return fields;
+  return AUTORELEASE([this->headers copy]);
 }
 
-- (int) statusCode
+- (NSInteger) statusCode
 {
   return this->statusCode;
 }
-
 @end
 

@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,35 +26,27 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSUtilities.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSKeyValueCoding.h"
-#include "Foundation/NSUserDefaults.h"
+#import "common.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSUserDefaults.h"
 // For private method _decodeArrayOfObjectsForKey:
-#include "Foundation/NSKeyedArchiver.h"
-#include "GNUstepBase/GSCategories.h"
-#include "GSPrivate.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSPrivate.h"
 
 static BOOL GSMacOSXCompatiblePropertyLists(void)
 {
-#if	defined(HAVE_LIBXML)
   if (GSPrivateDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
     return NO;
   return GSPrivateDefaultsFlag(GSMacOSXCompatible);
-#else
-  return NO;
-#endif
 }
 
 @class	GSDictionary;
@@ -109,18 +101,16 @@ static SEL	appSel;
 {
   if (self == [NSDictionary class])
     {
-      NSArray_class = [NSArray class];
-      NSDictionaryClass = [NSDictionary class];
-      NSMutableDictionaryClass = [NSMutableDictionary class];
-      GSDictionaryClass = [GSDictionary class];
-      GSMutableDictionaryClass = [GSMutableDictionary class];
-
       eqSel = @selector(isEqual:);
       nxtSel = @selector(nextObject);
       objSel = @selector(objectForKey:);
       remSel = @selector(removeObjectForKey:);
       setSel = @selector(setObject:forKey:);
       appSel = @selector(appendString:);
+      NSArray_class = [NSArray class];
+      NSDictionaryClass = self;
+      GSDictionaryClass = [GSDictionary class];
+      [NSMutableDictionary class];
     }
 }
 
@@ -177,7 +167,7 @@ static SEL	appSel;
  */
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
-		 count: (unsigned)count
+		 count: (NSUInteger)count
 {
   self = [self init];
   return self;
@@ -187,7 +177,7 @@ static SEL	appSel;
  * Returns an unsigned integer which is the number of elements
  * stored in the dictionary.
  */
-- (unsigned) count
+- (NSUInteger) count
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -408,13 +398,13 @@ static SEL	appSel;
  */
 + (id) dictionaryWithObjects: (id*)objects
 		     forKeys: (id*)keys
-		       count: (unsigned)count
+		       count: (NSUInteger)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: objects forKeys: keys count: count]);
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [self count];
 }
@@ -438,8 +428,32 @@ static SEL	appSel;
     {
       GS_BEGINIDBUF(o, objectCount*2);
 
-      [objects getObjects: o];
-      [keys getObjects: o + objectCount];
+      if ([objects isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < objectCount; i++)
+	    {
+	      o[i] = [objects objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [objects getObjects: o];
+	}
+      if ([keys isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < objectCount; i++)
+	    {
+	      o[objectCount + i] = [keys objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [keys getObjects: o + objectCount];
+	}
       self = [self initWithObjects: o
 			   forKeys: o + objectCount
 			     count: objectCount];
@@ -450,8 +464,9 @@ static SEL	appSel;
 
 /**
  * Initialises a dictionary created using the list given as argument.
- * The list is alternately composed of objects and keys.
- * Thus, the list's length must be pair.
+ * The list is alternately composed of objects and keys and
+ * terminated by nil.  Thus, the list's length must be even,
+ * followed by nil.
  */
 - (id) initWithObjectsAndKeys: (id)firstObject, ...
 {
@@ -462,8 +477,9 @@ static SEL	appSel;
 
 /**
  * Returns a dictionary created using the list given as argument.
- * The list is alternately composed of objects and keys.
- * Thus, the list's length must be pair.
+ * The list is alternately composed of objects and keys and
+ * terminated by nil.  Thus, the list's length must be even,
+ * followed by nil.
  */
 + (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...
 {
@@ -854,7 +870,7 @@ compareIt(id o1, id o2, void* context)
   struct foo	*f = (struct foo*)context;
   o1 = (*f->i)(f->d, @selector(objectForKey:), o1);
   o2 = (*f->i)(f->d, @selector(objectForKey:), o2);
-  return (int)(intptr_t)[o1 performSelector: f->s withObject: o2];
+  return (NSInteger)(intptr_t)[o1 performSelector: f->s withObject: o2];
 }
 
 /**
@@ -898,7 +914,17 @@ compareIt(id o1, id o2, void* context)
       id	result;
       GS_BEGINIDBUF(obuf, c);
 
-      [keys getObjects: obuf];
+      if ([keys isProxy])
+	{
+	  for (i = 0; i < c; i++)
+	    {
+	      obuf[i] = [keys objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [keys getObjects: obuf];
+	}
       for (i = 0; i < c; i++)
 	{
 	  id o = (*myObj)(self, objSel, obuf[i]);
@@ -1048,7 +1074,7 @@ compareIt(id o1, id o2, void* context)
  * items are listed is undefined.
  */
 - (NSString*) descriptionWithLocale: (id)locale
-			     indent: (unsigned int)level
+			     indent: (NSUInteger)level
 {
   NSMutableString	*result = nil;
 
@@ -1076,6 +1102,13 @@ compareIt(id o1, id o2, void* context)
     }
   return o;
 }
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+                                   objects: (id*)stackbuf
+                                     count: (NSUInteger)len
+{
+    [self subclassResponsibility: _cmd];
+    return 0;
+}
 @end
 
 
@@ -1088,6 +1121,8 @@ compareIt(id o1, id o2, void* context)
 {
   if (self == [NSMutableDictionary class])
     {
+      NSMutableDictionaryClass = self;
+      GSMutableDictionaryClass = [GSMutableDictionary class];
     }
 }
 
@@ -1150,7 +1185,7 @@ compareIt(id o1, id o2, void* context)
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithCapacity: (unsigned)numItems
+- (id) initWithCapacity: (NSUInteger)numItems
 {
   self = [self init];
   return self;
@@ -1183,7 +1218,7 @@ compareIt(id o1, id o2, void* context)
  *  added, this can avoid the reallocate-and-copy process if the size of the
  *  ultimate contents is known in advance.
  */
-+ (id) dictionaryWithCapacity: (unsigned)numItems
++ (id) dictionaryWithCapacity: (NSUInteger)numItems
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithCapacity: numItems]);
@@ -1198,7 +1233,7 @@ compareIt(id o1, id o2, void* context)
  */
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
-		 count: (unsigned)count
+		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (self != nil)
@@ -1244,7 +1279,19 @@ compareIt(id o1, id o2, void* context)
       IMP	remObj = [self methodForSelector: remSel];
       GS_BEGINIDBUF(keys, c);
 
-      [keyArray getObjects: keys];
+      if ([keyArray isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < c; i++)
+	    {
+	      keys[i] = [keyArray objectAtIndex: i];
+	    }
+	}
+      else
+	{
+	  [keyArray getObjects: keys];
+	}
       while (c--)
 	{
 	  (*remObj)(self, remSel, keys[c]);

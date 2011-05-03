@@ -1,13 +1,13 @@
 /* Implementation for NSURLProtectionSpace for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,13 +16,17 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */ 
 
-#include "GSURLPrivate.h"
+#import "common.h"
+
+#define	EXPOSE_NSURLProtectionSpace_IVARS	1
+#import "GSURLPrivate.h"
+#import "GNUstepBase/NSURL+GNUstepBase.h"
 
 NSString * const NSURLProtectionSpaceFTPProxy = @"ftp";	
 NSString * const NSURLProtectionSpaceHTTPProxy = @"http";
@@ -48,11 +52,8 @@ typedef struct {
   BOOL		isProxy;
 } Internal;
  
-typedef struct {
-  @defs(NSURLProtectionSpace)
-} priv;
-#define	this	((Internal*)(((priv*)self)->_NSURLProtectionSpaceInternal))
-#define	inst	((Internal*)(((priv*)o)->_NSURLProtectionSpaceInternal))
+#define	this	((Internal*)(self->_NSURLProtectionSpaceInternal))
+#define	inst	((Internal*)(o->_NSURLProtectionSpaceInternal))
 
 @implementation NSURLProtectionSpace
 
@@ -108,7 +109,7 @@ typedef struct {
   [super dealloc];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [[self host] hash] + [self port]
     + [[self realm] hash] + [[self protocol] hash]
@@ -121,7 +122,7 @@ typedef struct {
 }
 
 - (id) initWithHost: (NSString *)host
-	       port: (int)port
+	       port: (NSInteger)port
 	   protocol: (NSString *)protocol
 	      realm: (NSString *)realm
 authenticationMethod: (NSString *)authenticationMethod
@@ -158,7 +159,7 @@ authenticationMethod: (NSString *)authenticationMethod
 }
 
 - (id) initWithProxyHost: (NSString *)host
-		    port: (int)port
+		    port: (NSInteger)port
 		    type: (NSString *)type
 		   realm: (NSString *)realm
     authenticationMethod: (NSString *)authenticationMethod
@@ -250,7 +251,7 @@ authenticationMethod: (NSString *)authenticationMethod
   return this->isProxy;
 }
 
-- (int) port
+- (NSInteger) port
 {
   return this->port;
 }

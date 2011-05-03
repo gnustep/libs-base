@@ -5,7 +5,7 @@
    Date: 2006
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -14,7 +14,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,7 +25,7 @@
 #define __NSStream_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-typedef enum {   
+enum {   
   NSStreamStatusNotOpen = 0,   
   NSStreamStatusOpening = 1,
   NSStreamStatusOpen = 2,   
@@ -42,16 +42,18 @@ typedef enum {
   NSStreamStatusAtEnd = 5,   
   NSStreamStatusClosed = 6,   
   NSStreamStatusError = 7
-} NSStreamStatus;
+};
+typedef NSUInteger NSStreamStatus;
 
-typedef enum {   
+enum {   
   NSStreamEventNone = 0,    
   NSStreamEventOpenCompleted = 1,    
   NSStreamEventHasBytesAvailable = 2,
   NSStreamEventHasSpaceAvailable = 4,    
   NSStreamEventErrorOccurred = 8,    
   NSStreamEventEndEncountered = 16
-} NSStreamEvent;
+};
+typedef NSUInteger NSStreamEvent;
 
 @class NSError;
 @class NSHost;
@@ -70,7 +72,7 @@ typedef enum {
  * object for a socket connection with the specified port on host.
  */
 + (void) getStreamsToHost: (NSHost *)host 
-                     port: (int)port 
+                     port: (NSInteger)port 
               inputStream: (NSInputStream **)inputStream 
              outputStream: (NSOutputStream **)outputStream;
 
@@ -162,7 +164,7 @@ typedef enum {
  * Returns a pointer to the read buffer in buffer and, by reference, the number 
  * of bytes available in len.
  */
-- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len;
+- (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len;
 
 /**
  * Returns YES if the receiver has bytes available to read.
@@ -185,7 +187,7 @@ typedef enum {
 /**
  * Reads up to len bytes into buffer, returning the actual number of bytes read.
  */
-- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len;
 
 @end
 
@@ -199,7 +201,7 @@ typedef enum {
  * Creates and returns an initialized NSOutputStream object
  * that can write to buffer, up to a maximum of capacity bytes.
  */
-+ (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity;
++ (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity;
 
 /**
  * Creates and returns an initialized NSOutputStream object
@@ -224,7 +226,7 @@ typedef enum {
  * Returns an initialized NSOutputStream object that can write to buffer, 
  * up to a maximum of capacity bytes.
  */
-- (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity;
+- (id) initToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity;
 
 /**
  * Returns an initialized NSOutputStream object for writing to the file
@@ -243,71 +245,10 @@ typedef enum {
  * Writes the contents of buffer, up to a maximum of len bytes,
  * to the receiver.
  */
-- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len;
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len;
 
 @end
 
-/**
- * the additional interface defined for gnustep
- */
-@interface NSStream (GNUstepExtensions)
-
-/**
- * Creates and returns by reference an NSInputStream object and
- * NSOutputStream object for a local socket connection with the
- * specified path. To use them you need to open them and wait
- * on the NSStreamEventOpenCompleted event on one of them
- */
-+ (void) getLocalStreamsToPath: (NSString *)path 
-		   inputStream: (NSInputStream **)inputStream 
-		  outputStream: (NSOutputStream **)outputStream;
-/**
- * Creates and returns by reference an NSInputStream object and NSOutputStream 
- * object for a anonymous local socket. Although you still need to open them, 
- * the open will be instantanious, and no NSStreamEventOpenCompleted event 
- * will be delivered.
- */
-+ (void) pipeWithInputStream: (NSInputStream **)inputStream 
-                outputStream: (NSOutputStream **)outputStream;
-@end
-
-/**
- * GSServerStream is a subclass of NSStream that encapsulate a "server" stream;
- * that is a stream that binds to a socket and accepts incoming connections
- */
-@interface GSServerStream : NSStream
-
-/**
- * Createe a ip (ipv6) server stream
- */
-+ (id) serverStreamToAddr: (NSString*)addr port: (int)port;
-
-/**
- * Create a local (unix domain or named pipe) server stream
- */
-+ (id) serverStreamToAddr: (NSString*)addr;
-
-/**
- * This is the method that accepts a connection and generates two streams
- * as the server side inputStream and OutputStream.
- * Although you still need to open them, the open will be
- * instantanious, and no NSStreamEventOpenCompleted event will be delivered.
- */
-- (void) acceptWithInputStream: (NSInputStream **)inputStream 
-                  outputStream: (NSOutputStream **)outputStream;
-
-/**
- * the designated initializer for a ip (ipv6) server stream
- */
-- (id) initToAddr: (NSString*)addr port: (int)port;
-
-/**
- * the designated initializer for a local (unix domain or named pipe)
- * server stream
- */
-- (id) initToAddr: (NSString*)addr;
-
-@end
 
 GS_EXPORT NSString * const NSStreamDataWrittenToMemoryStreamKey;
 GS_EXPORT NSString * const NSStreamFileCurrentOffsetKey;
@@ -338,6 +279,10 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
 
 #if	defined(__cplusplus)
 }
+#endif
+
+#if	!NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
+#import	<GNUstepBase/NSStream+GNUstepBase.h>
 #endif
 
 #endif	/* 100200 */

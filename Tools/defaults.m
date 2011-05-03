@@ -6,31 +6,30 @@
 
    This file is part of the GNUstep Project
 
-   This library is free software; you can redistribute it and/or
+   This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this library; see the file COPYING.LIB.
+   License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#include "config.h"
-#include	<string.h>
-#include	<GNUstepBase/preface.h>
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSProcessInfo.h>
-#include	<Foundation/NSUserDefaults.h>
-#include	<Foundation/NSDebug.h>
-#include	<Foundation/NSAutoreleasePool.h>
-#include	<Foundation/NSPathUtilities.h>
+#include <string.h>
+
+#import "common.h"
+
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSEnumerator.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSUserDefaults.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSPathUtilities.h"
 
 #define GSEXIT_SUCCESS EXIT_SUCCESS
 #define GSEXIT_FAILURE EXIT_FAILURE
@@ -134,7 +133,7 @@ main(int argc, char** argv, char **env)
   int derror = 0;
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   [NSObject enableDoubleReleaseCheck: YES];
   pool = [NSAutoreleasePool new];
@@ -401,6 +400,72 @@ main(int argc, char** argv, char **env)
 	    }
 	}
 
+      domains = [defs volatileDomainNames];
+      for (i = 0; i < [domains count]; i++)
+	{
+	  NSString	*domainName = [domains objectAtIndex: i];
+
+#if 0
+	  if (owner == nil || [owner isEqual: domainName])
+#else	
+	  if ([owner isEqual: domainName])
+#endif
+	    {
+	      NSDictionary	*dom;
+
+	      dom = [defs volatileDomainForName: domainName];
+	      if (dom)
+		{
+		  if (name == nil)
+		    {
+		      NSEnumerator	*enumerator;
+		      NSString		*key;
+
+		      enumerator = [dom keyEnumerator];
+		      while ((key = [enumerator nextObject]) != nil)
+			{
+			  id		obj = [dom objectForKey: key];
+			  const char	*ptr;
+
+			  ptr = [domainName UTF8String];
+			  output(ptr);
+			  putchar(' ');
+
+			  ptr = [key UTF8String];
+			  output(ptr);
+			  putchar(' ');
+
+			  ptr = [[obj descriptionWithLocale: locale
+			    indent: 0] UTF8String];
+			  output(ptr);
+			  putchar('\n');
+			}
+		    }
+		  else
+		    {
+		      id	obj = [dom objectForKey: name];
+
+		      if (obj)
+			{
+			  const char      *ptr;
+
+			  ptr = [domainName UTF8String];
+			  output(ptr);
+			  putchar(' ');
+			  ptr = [name UTF8String];
+			  output(ptr);
+			  putchar(' ');
+			  ptr = [[obj descriptionWithLocale: locale indent: 0]
+			    UTF8String];
+			  output(ptr);
+			  putchar('\n');
+			  found = YES;
+			}
+		    }
+		}
+	    }
+	}
+
       if (found == NO && name != nil)
 	{
 	  GSPrintf(stderr, @"defaults read: couldn't read default\n");
@@ -592,8 +657,7 @@ main(int argc, char** argv, char **env)
       if ([defs synchronize] == NO)
 	{
 	  GSPrintf(stderr,
-	    @"defaults: unable to write to defaults database - %s\n",
-	    strerror(errno));
+	    @"defaults: unable to write to defaults database\n");
 	}
     }
   else if ([[args objectAtIndex: i] isEqual: @"delete"])
@@ -717,8 +781,7 @@ main(int argc, char** argv, char **env)
       if ([defs synchronize] == NO)
 	{
 	  GSPrintf(stderr,
-	    @"defaults: unable to write to defaults database - %s\n",
-	    strerror(errno));
+	    @"defaults: unable to write to defaults database\n");
 	}
     }
   else if ([[args objectAtIndex: i] isEqual: @"domains"])

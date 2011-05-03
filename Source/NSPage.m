@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,10 +25,7 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObjCRuntime.h"
-#include "Foundation/NSZone.h"
+#import "common.h"
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -38,16 +35,11 @@
 #include <mach.h>
 #endif
 
-#if __linux__
-#include <linux/kernel.h>
-#include <linux/sys.h>
-#endif
-
 #ifdef __CYGWIN__
 #include <malloc.h>
 #endif
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #include <malloc.h>
 static size_t
 getpagesize(void)
@@ -77,27 +69,27 @@ getpagesize(void)
 
 /* Cache the size of a memory page here, so we don't have to make the
    getpagesize() system call repeatedly. */
-static unsigned ns_page_size = 0;
+static NSUInteger ns_page_size = 0;
 
 /**
  * Return the number of bytes in a memory page.
  */
-unsigned
+NSUInteger
 NSPageSize (void)
 {
   if (!ns_page_size)
-    ns_page_size = (unsigned) getpagesize ();
+    ns_page_size = getpagesize ();
   return ns_page_size;
 }
 
 /**
  * Return log base 2 of the number of bytes in a memory page.
  */
-unsigned
+NSUInteger
 NSLogPageSize (void)
 {
-  unsigned tmp_page_size = NSPageSize();
-  unsigned log = 0;
+  NSUInteger tmp_page_size = NSPageSize();
+  NSUInteger log = 0;
 
   while (tmp_page_size >>= 1)
     log++;
@@ -108,10 +100,10 @@ NSLogPageSize (void)
  * Round bytes down to the nearest multiple of the memory page size,
  * and return it.
  */
-unsigned
-NSRoundDownToMultipleOfPageSize (unsigned bytes)
+NSUInteger
+NSRoundDownToMultipleOfPageSize (NSUInteger bytes)
 {
-  unsigned a = NSPageSize();
+  NSUInteger a = NSPageSize();
 
   return (bytes / a) * a;
 }
@@ -120,10 +112,10 @@ NSRoundDownToMultipleOfPageSize (unsigned bytes)
  * Round bytes up to the nearest multiple of the memory page size,
  * and return it.
  */
-unsigned
-NSRoundUpToMultipleOfPageSize (unsigned bytes)
+NSUInteger
+NSRoundUpToMultipleOfPageSize (NSUInteger bytes)
 {
-  unsigned a = NSPageSize();
+  NSUInteger a = NSPageSize();
 
   return ((bytes % a) ? ((bytes / a + 1) * a) : bytes);
 }
@@ -135,7 +127,7 @@ NSRoundUpToMultipleOfPageSize (unsigned bytes)
 /**
  * Return the number of bytes of real (physical) memory available.
  */
-unsigned
+NSUInteger
 NSRealMemoryAvailable ()
 {
 #if __linux__
@@ -143,18 +135,19 @@ NSRealMemoryAvailable ()
 
   if ((sysinfo(&info)) != 0)
     return 0;
-  return (unsigned) info.freeram;
-#elif defined(__MINGW32__)
-  MEMORYSTATUS memory;
+  return  info.freeram;
+#elif defined(__MINGW__)
+  MEMORYSTATUSEX memory;
 
-  GlobalMemoryStatus(&memory);
-  return (unsigned)memory.dwAvailPhys;
+  memory.dwLength = sizeof(memory);
+  GlobalMemoryStatusEx(&memory);
+  return memory.ullAvailPhys;
 #elif defined(__BEOS__)
   system_info info;
 
   if (get_system_info(&info) != B_OK)
     return 0;
-  return (unsigned)(info.max_pages - info.used_pages) * B_PAGE_SIZE;
+  return (info.max_pages - info.used_pages) * B_PAGE_SIZE;
 #else
   fprintf (stderr, "NSRealMemoryAvailable() not implemented.\n");
   return 0;
@@ -163,38 +156,49 @@ NSRealMemoryAvailable ()
 
 /**
  * Allocate memory for this process and return a pointer to it (or a null
- * pointer on failure).
+ * pointer on failure). The allocated memory is page aligned and the
+ * actual size of memory allocated is a multiple of the page size.
  */
 void *
-NSAllocateMemoryPages (unsigned bytes)
+NSAllocateMemoryPages (NSUInteger bytes)
 {
+  NSUInteger size = NSRoundUpToMultipleOfPageSize (bytes);
   void *where;
-#if __mach__
+#if defined(__MINGW__)
+  where = VirtualAlloc(NULL, size, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+#elif __mach__
   kern_return_t r;
-  r = vm_allocate (mach_task_self(), &where, (vm_size_t) bytes, 1);
+  r = vm_allocate (mach_task_self(), &where, (vm_size_t) size, 1);
   if (r != KERN_SUCCESS)
     return NULL;
   return where;
+#elif	HAVE_POSIX_MEMALIGN
+  if (posix_memalign(&where, NSPageSize(), size) != 0)
+    return NULL;
 #else
-  where = objc_valloc (bytes);
+  where = valloc (size);
   if (where == NULL)
     return NULL;
+#endif
   memset (where, 0, bytes);
   return where;
-#endif
 }
 
 /**
  * Deallocate memory which was previously allocated using the
- * NSAllocateMemoryPages() function.
+ * NSAllocateMemoryPages() function.<br />
+ * The bytes argument should be the same as the value passed
+ * to the NSAllocateMemoryPages() function.
  */
 void
-NSDeallocateMemoryPages (void *ptr, unsigned bytes)
+NSDeallocateMemoryPages (void *ptr, NSUInteger bytes)
 {
-#if __mach__
-  vm_deallocate (mach_task_self (), ptr, bytes);
+#if defined(__MINGW__)
+  VirtualFree(ptr, 0, MEM_RELEASE);
+#elif __mach__
+  vm_deallocate (mach_task_self (), ptr, NSRoundUpToMultipleOfPageSize (bytes));
 #else
-  objc_free (ptr);
+  free (ptr);
 #endif
 }
 
@@ -203,7 +207,7 @@ NSDeallocateMemoryPages (void *ptr, unsigned bytes)
  * The value bytes specifies the length of the data copied.
  */
 void
-NSCopyMemoryPages (const void *src, void *dest, unsigned bytes)
+NSCopyMemoryPages (const void *src, void *dest, NSUInteger bytes)
 {
 #if __mach__
   kern_return_t r;

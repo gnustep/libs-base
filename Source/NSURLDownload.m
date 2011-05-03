@@ -1,13 +1,13 @@
 /* Implementation for NSURLDownload for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,14 +16,16 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
 
-#include "GSURLPrivate.h"
+#define	EXPOSE_NSURLDownload_IVARS	1
+#import "GSURLPrivate.h"
 
 @interface	GSURLDownload : NSObject <NSURLProtocolClient>
 {
@@ -39,11 +41,8 @@
 }
 @end
  
-typedef struct {
-  @defs(NSURLDownload)
-} priv;
-#define	this	((GSURLDownload*)(((priv*)self)->_NSURLDownloadInternal))
-#define	inst	((GSURLDownload*)(((priv*)o)->_NSURLDownloadInternal))
+#define	this	((GSURLDownload*)(self->_NSURLDownloadInternal))
+#define	inst	((GSURLDownload*)(o->_NSURLDownloadInternal))
 
 @implementation	NSURLDownload
 
@@ -132,44 +131,53 @@ typedef struct {
 
 - (void) downloadDidBegin: (NSURLDownload *)download
 {
+  return;
 }
 
 - (void) downloadDidFinish: (NSURLDownload *)download
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
  decideDestinationWithSuggestedFilename: (NSString *)filename
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didCreateDestination: (NSString *)path
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download didFailWithError: (NSError *)error
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
-  didReceiveDataOfLength: (unsigned)length
+  didReceiveDataOfLength: (NSUInteger)length
 {
+  return;
 }
 
 - (void) download: (NSURLDownload *)download
   didReceiveResponse: (NSURLResponse *)response
 {
+  return;
 }
 
 - (BOOL) download: (NSURLDownload *)download
@@ -182,6 +190,7 @@ typedef struct {
   willResumeWithResponse: (NSURLResponse *)response
   fromByte: (long long)startingByte
 {
+  return;
 }
 
 - (NSURLRequest *) download: (NSURLDownload *)download
@@ -209,7 +218,7 @@ typedef struct {
 - (void) URLProtocol: (NSURLProtocol *)protocol
   cachedResponseIsValid: (NSCachedURLResponse *)cachedResponse
 {
-
+  return;
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
@@ -221,6 +230,7 @@ typedef struct {
 - (void) URLProtocol: (NSURLProtocol *)protocol
 	 didLoadData: (NSData *)data
 {
+  return;
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -24,31 +24,32 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSByteOrder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSAutoreleasePool.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSPort.h"
-#include "Foundation/NSMapTable.h"
-#include "Foundation/NSSet.h"
-#include "Foundation/NSHost.h"
-#include "Foundation/NSTask.h"
-#include "Foundation/NSDate.h"
-#include "Foundation/NSTimer.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSPortNameServer.h"
-#include "Foundation/NSDebug.h"
+#import "common.h"
+#define	EXPOSE_NSSocketPortNameServer_IVARS	1
+#import "Foundation/NSData.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSPort.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSTask.h"
+#import "GNUstepBase/NSTask+GNUstepBase.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSPortNameServer.h"
 
-#include "GSPortPrivate.h"
+#import "GSPortPrivate.h"
 
-#ifdef __MINGW32__
+#ifdef __MINGW__
 #include <winsock2.h>
 #include <wininet.h>
 #else
@@ -186,9 +187,7 @@ typedef enum {
       [self close];
       if (launchCmd == nil)
 	{
-	  launchCmd = RETAIN([[NSSearchPathForDirectoriesInDomains(
-	    GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
-	    stringByAppendingPathComponent: @"gdomap"]);
+	  launchCmd = [NSTask launchPathForTool: @"gdomap"];
 	}
       if (state == GSPC_LOPEN && launchCmd != nil)
 	{
@@ -198,6 +197,10 @@ typedef enum {
 	  NSLog(@"NSSocketPortNameServer attempting to start gdomap on local host\n"
 @"This will take a few seconds.\n"
 @"Trying to launch gdomap from %@ or a machine/operating-system subdirectory.\n"
+#if	!defined(GDOMAP_PORT_OVERRIDE)
+@"On systems other than mswindows, this will only work if the gdomap program\n"
+@"was installed setuid to root.\n"
+#endif
 @"It is recommended that you start up gdomap at login time or (better) when\n"
 @"your computer is started instead.",
 [launchCmd stringByDeletingLastPathComponent]);
@@ -1188,7 +1191,7 @@ typedef enum {
       NSMutableSet	*known = (NSMutableSet*)NSMapGet(_portMap, port);
       NSString		*name;
 
-      RETAIN(known);
+      IF_NO_GC(RETAIN(known);)
       while ((name = [known anyObject]) != nil)
 	{
 	  if ([self removePortForName: name] == NO)

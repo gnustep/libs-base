@@ -8,7 +8,7 @@
 #  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU Library General Public
+#  modify it under the terms of the GNU Lesser General Public
 #  License as published by the Free Software Foundation; either
 #  version 2 of the License, or (at your option) any later version.
 #
@@ -20,7 +20,7 @@
 #  If you are interested in a warranty or support for this source code,
 #  contact Scott Christley at scottc@net-community.com
 #
-#  You should have received a copy of the GNU Library General Public
+#  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; see the file COPYING.LIB.
 #  If not, write to the Free Software Foundation,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -39,7 +39,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall \
+ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) $(WARN_FLAGS) \
 -Wcast-align \
 #-Wstrict-prototypes \
 #-Wpointer-arith \
@@ -56,10 +56,10 @@ ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall \
 
 
 # Additional flags to pass to the Objective-C compiler
-ADDITIONAL_OBJCFLAGS =
+#£ADDITIONAL_OBJCFLAGS+=
 
 # Additional flags to pass to the C compiler
-ADDITIONAL_CFLAGS = 
+#ADDITIONAL_CFLAGS+= 
 
 # Additional include directories the compiler should search
 ADDITIONAL_INCLUDE_DIRS = \
@@ -67,7 +67,7 @@ ADDITIONAL_INCLUDE_DIRS = \
 	-I./$(GNUSTEP_TARGET_DIR)
 
 # Additional LDFLAGS to pass to the linker
-ADDITIONAL_LDFLAGS = 
+#ADDITIONAL_LDFLAGS+= 
 
 # Additional library directories the linker should search
 ADDITIONAL_LIB_DIRS = -L$(GNUSTEP_OBJ_DIR)

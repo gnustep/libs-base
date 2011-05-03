@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -30,6 +30,7 @@
 
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSArray.h>
+#import	<Foundation/NSSet.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -51,7 +52,31 @@ extern "C" {
 @end
 
 @interface NSArray (NSPredicate)
+/** Evaluate each object in the array using the specified predicate and
+ * return an array containing all the objects which evaluate to YES.
+ */
 - (NSArray *) filteredArrayUsingPredicate: (NSPredicate *)predicate;
+@end
+
+@interface NSMutableArray (NSPredicate)
+/** Evaluate each object in the array using the specified predicate and
+ * remove each objects which evaluates to NO.
+ */
+- (void) filterUsingPredicate: (NSPredicate *)predicate;
+@end
+
+@interface NSSet (NSPredicate)
+/** Evaluate each object in the set using the specified predicate and
+ * return an set containing all the objects which evaluate to YES.
+ */
+- (NSSet *) filteredSetUsingPredicate: (NSPredicate *)predicate;
+@end
+
+@interface NSMutableSet (NSPredicate)
+/** Evaluate each object in the set using the specified predicate and
+ * remove each objects which evaluates to NO.
+ */
+- (void) filterUsingPredicate: (NSPredicate *)predicate;
 @end
 
 #if	defined(__cplusplus)

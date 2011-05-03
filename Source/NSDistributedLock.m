@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,14 +25,14 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "common.h"
 #include <string.h>
-#include "Foundation/NSDistributedLock.h"
-#include "Foundation/NSFileManager.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSValue.h"
-#include "Foundation/NSDebug.h"
-#include "GSPrivate.h"
+#define	EXPOSE_NSDistributedLock_IVARS	1
+#import "Foundation/NSDistributedLock.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSValue.h"
+#import "GSPrivate.h"
 
 #include <fcntl.h>
 
@@ -125,34 +125,34 @@ static NSFileManager	*mgr = nil;
   NSString	*lockDir;
   BOOL		isDirectory;
 
-  _lockPath = [aPath copy];
+  _lockPath = [[aPath stringByStandardizingPath] copy];
   _lockTime = nil;
 
   lockDir = [_lockPath stringByDeletingLastPathComponent];
   if ([mgr fileExistsAtPath: lockDir isDirectory: &isDirectory] == NO)
     {
-      NSLog(@"part of the path to the lock file '%@' is missing\n", _lockPath);
-      RELEASE(self);
+      NSLog(@"part of the path to the lock file '%@' is missing\n", aPath);
+      DESTROY(self);
       return nil;
     }
   if (isDirectory == NO)
     {
       NSLog(@"part of the path to the lock file '%@' is not a directory\n",
-		_lockPath);
-      RELEASE(self);
+	_lockPath);
+      DESTROY(self);
       return nil;
     }
   if ([mgr isWritableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not writable\n", _lockPath);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   if ([mgr isExecutableFileAtPath: lockDir] == NO)
     {
       NSLog(@"parent directory of lock file '%@' is not accessible\n",
 		_lockPath);
-      RELEASE(self);
+      DESTROY(self);
       return nil;
     }
   return self;

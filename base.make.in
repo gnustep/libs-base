@@ -12,8 +12,8 @@
 #
 #   This library is free software; you can redistribute it and/or
 #   modify it under the terms of the GNU General Public License
-#   as published by the Free Software Foundation; either version 2
-#   of the License, or (at your option) any later version.
+#   as published by the Free Software Foundation; either
+#   version 2 of the License, or (at your option) any later version.
 #   
 #   You should have received a copy of the GNU General Public
 #   License along with this library; see the file COPYING.LIB.
@@ -42,16 +42,18 @@ ifeq ($(FOUNDATION_LIB),gnu)
   FND_LIBS = -lgnustep-base
   FND_DEFINE = -DGNUSTEP_BASE_LIBRARY=1
   GNUSTEP_DEFINE = -DGNUSTEP
-  # If gc=yes was passed, use the appropriate library and defines
-  ifeq ($(gc), yes)
-    AUXILIARY_CPPFLAGS += -DGS_WITH_GC=1
-    AUXILIARY_INCLUDE_DIRS += -I/usr/include/gc
-  endif
+else
+#
+# Not using the GNUstep foundation ... must be Apple's
+# So we need to use the base additions library.
+#
+  FND_LIBS = -lgnustep-baseadd -framework Foundation
 endif
 
+  GNUSTEP_BASE_HAVE_GNUTLS=@HAVE_GNUTLS@
   GNUSTEP_BASE_HAVE_LIBXML=@HAVE_LIBXML@
   GNUSTEP_BASE_HAVE_MDNS=@HAVE_MDNS@
-
+  GNUSTEP_BASE_HAVE_AVAHI=@HAVE_AVAHI@
   GNUSTEP_BASE_HAVE_UCI=@HAVE_UCI@
 
   # If we determined that the Objective-C runtime does not support

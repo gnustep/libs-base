@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,17 +27,22 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
+#import "common.h"
 #include <stdio.h>
-#include "GNUstepBase/GSLock.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSDebug.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSLock.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSThread.h"
+#import "GSPrivate.h"
+#import "GNUstepBase/GSLock.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSValue.h"
+
+#if     HAVE_EXECINFO_H
+#include        <execinfo.h>
+#endif
 
 typedef struct {
   Class	class;
@@ -489,7 +494,7 @@ _GSDebugAllocationList(BOOL difference)
 	}
       if (val != 0)
 	{
-	  pos += 11 + strlen(the_table[i].class->name);
+	  pos += 22 + strlen(class_getName(the_table[i].class));
 	}
     }
   if (pos == 0)
@@ -535,7 +540,8 @@ _GSDebugAllocationList(BOOL difference)
 
 	  if (val != 0)
 	    {
-	      sprintf(&buf[pos], "%d\t%s\n", val, the_table[i].class->name);
+	      snprintf(&buf[pos], siz - pos, "%d\t%s\n",
+		val, class_getName(the_table[i].class));
 	      pos += strlen(&buf[pos]);
 	    }
 	}
@@ -583,7 +589,7 @@ _GSDebugAllocationListAll(void)
 
       if (val != 0)
 	{
-	  pos += 11 + strlen(the_table[i].class->name);
+	  pos += 22 + strlen(class_getName(the_table[i].class));
 	}
     }
   if (pos == 0)
@@ -615,7 +621,8 @@ _GSDebugAllocationListAll(void)
 
 	  if (val != 0)
 	    {
-	      sprintf(&buf[pos], "%d\t%s\n", val, the_table[i].class->name);
+	      snprintf(&buf[pos], siz - pos, "%d\t%s\n",
+		val, class_getName(the_table[i].class));
 	      pos += strlen(&buf[pos]);
 	    }
 	}
@@ -678,7 +685,7 @@ _GSDebugAllocationRemove(Class c, id o)
 		    }
 		}
 	      [uniqueLock unlock];
-	      RELEASE(tag);
+	      [tag release];
 	      return;
 	    }
 	}
@@ -799,11 +806,13 @@ GSDebugAllocationListRecordedObjects(Class c)
 	 the_table[i].num_recorded_objects * sizeof(id));
 
   /* Retain all the objects - NB: if retaining one of the objects as a
-     side effect releases another one of them , we are broken ... */
+     side effect eleases another one of them , we are broken ... */
+#if	!GS_WITH_GC
   for (k = 0; k < the_table[i].num_recorded_objects; k++)
     {
-      RETAIN (tmp[k]);
+      [tmp[k] retain];
     }
+#endif
 
   /* Then, we bravely unlock the lock */
   [uniqueLock unlock];
@@ -825,46 +834,15 @@ GSDebugAllocationListRecordedObjects(Class c)
   return answer;
 }
 
+#if	!defined(HAVE_BUILTIN_EXTRACT_RETURN_ADDRESS)
+# define	__builtin_extract_return_address(X)	X
+#endif
 
-
-NSString*
-GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
-{
-  NSString *message;
-
-  message = [NSString stringWithFormat: @"File %s: %d. In %s %@",
-	file, line, func, fmt];
-  return message;
-}
-
-NSString*
-GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
-{
-  NSString	*message;
-  Class		cls = (Class)obj;
-  char		c = '+';
-
-  if ([obj isInstance] == YES)
-    {
-      c = '-';
-      cls = [obj class];
-    }
-  message = [NSString stringWithFormat: @"File %s: %d. In [%@ %c%@] %@",
-	file, line, NSStringFromClass(cls), c, NSStringFromSelector(sel), fmt];
-  return message;
-}
-
-unsigned NSCountFrames(void)
-{
-   unsigned    x = 0;
-
-   while (NSFrameAddress(x + 1)) x++;
-
-   return x;
-}
-
-#define _NS_FRAME_HACK(a) case a: val = __builtin_frame_address(a + 1); break;
-#define _NS_RETURN_HACK(a) case a: val = __builtin_return_address(a + 1); break;
+#define _NS_FRAME_HACK(a) \
+case a: env->addr = __builtin_frame_address(a + 1); break;
+#define _NS_RETURN_HACK(a) \
+case a: env->addr = (__builtin_frame_address(a + 1) ? \
+__builtin_extract_return_address(__builtin_return_address(a + 1)) : 0); break;
 
 /*
  * The following horrible signal handling code is a workaround for the fact
@@ -872,55 +850,70 @@ unsigned NSCountFrames(void)
  * functions are not reliable (at least not on my EM64T based system) and
  * will sometimes walk off the stack and access illegal memory locations.
  * In order to prevent such an occurrance from crashing the application,
- * we use setjmp() and longjmp() to ensure that we can recover, and
+ * we use sigsetjmp() and siglongjmp() to ensure that we can recover, and
  * we keep the jump buffer in thread-local memory to avoid possible thread
  * safety issues.
  * Of course this will fail horribly if an exception occurs in one of the
  * few methods we use to manage the per-thread jump buffer.
  */
 #include <signal.h>
-
-#if	defined(__MINGW32__)
 #include <setjmp.h>
+
+#if	defined(__MINGW__)
+#ifndef SIGBUS
+#define SIGBUS  SIGILL
+#endif
 #endif
 
-static jmp_buf *
+/* sigsetjmp may be a function or a macro.  The test for the function is
+ * done at configure time so we can tell here if either is available.
+ */
+#if	!defined(HAVE_SIGSETJMP) && !defined(sigsetjmp)
+#define	siglongjmp(A,B)	longjmp(A,B)
+#define	sigsetjmp(A,B)	setjmp(A)
+#define	sigjmp_buf	jmp_buf
+#endif
+
+typedef struct {
+  sigjmp_buf    buf;
+  void          *addr;
+  void          (*bus)(int);
+  void          (*segv)(int);
+} jbuf_type;
+
+static jbuf_type *
 jbuf()
 {
   NSMutableData	*d;
+  NSMutableDictionary	*dict;
 
-  d = [[[NSThread currentThread] threadDictionary] objectForKey: @"GSjbuf"];
+  dict = [[NSThread currentThread] threadDictionary];
+  d = [dict objectForKey: @"GSjbuf"];
   if (d == nil)
     {
-      d = [[NSMutableData alloc] initWithLength:
-	sizeof(jmp_buf) + sizeof(void(*)(int))];
-      [[[NSThread currentThread] threadDictionary] setObject: d
-						      forKey: @"GSjbuf"];
+      d = [[NSMutableData alloc] initWithLength: sizeof(jbuf_type)];
+      [dict setObject: d forKey: @"GSjbuf"];
       RELEASE(d);
     }
-  return (jmp_buf*)[d mutableBytes];
+  return (jbuf_type*)[d mutableBytes];
 }
 
 static void
 recover(int sig)
 {
-  jmp_buf	*env = jbuf();
-
-  longjmp(*env, 1);
+  siglongjmp(jbuf()->buf, 1);
 }
 
 void *
-NSFrameAddress(int offset)
+NSFrameAddress(NSUInteger offset)
 {
-  jmp_buf	*env;
-  void		(*old)(int);
-  void		*val;
+  jbuf_type     *env;
 
   env = jbuf();
-  if (setjmp(*env) == 0)
+  if (sigsetjmp(env->buf, 1) == 0)
     {
-      old = signal(SIGSEGV, recover);
-      memcpy(env + 1, &old, sizeof(old));
+      env->segv = signal(SIGSEGV, recover);
+      env->bus = signal(SIGBUS, recover);
       switch (offset)
 	{
 	  _NS_FRAME_HACK(0); _NS_FRAME_HACK(1); _NS_FRAME_HACK(2);
@@ -957,32 +950,94 @@ NSFrameAddress(int offset)
 	  _NS_FRAME_HACK(93); _NS_FRAME_HACK(94); _NS_FRAME_HACK(95);
 	  _NS_FRAME_HACK(96); _NS_FRAME_HACK(97); _NS_FRAME_HACK(98);
 	  _NS_FRAME_HACK(99);
-	  default: val = NULL; break;
+	  default: env->addr = NULL; break;
 	}
-      signal(SIGSEGV, old);
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
     }
   else
     {
       env = jbuf();
-      memcpy(&old, env + 1, sizeof(old));
-      signal(SIGSEGV, old);
-      val = NULL;
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
+      env->addr = NULL;
     }
-  return val;
+  return env->addr;
+}
+
+NSUInteger NSCountFrames(void)
+{
+  jbuf_type	*env;
+
+  env = jbuf();
+  if (sigsetjmp(env->buf, 1) == 0)
+    {
+      env->segv = signal(SIGSEGV, recover);
+      env->bus = signal(SIGBUS, recover);
+      env->addr = 0;
+
+#define _NS_COUNT_HACK(X) if (__builtin_frame_address(X + 1) == 0) \
+        goto done; else env->addr = (void*)(X + 1);
+
+      _NS_COUNT_HACK(0); _NS_COUNT_HACK(1); _NS_COUNT_HACK(2);
+      _NS_COUNT_HACK(3); _NS_COUNT_HACK(4); _NS_COUNT_HACK(5);
+      _NS_COUNT_HACK(6); _NS_COUNT_HACK(7); _NS_COUNT_HACK(8);
+      _NS_COUNT_HACK(9); _NS_COUNT_HACK(10); _NS_COUNT_HACK(11);
+      _NS_COUNT_HACK(12); _NS_COUNT_HACK(13); _NS_COUNT_HACK(14);
+      _NS_COUNT_HACK(15); _NS_COUNT_HACK(16); _NS_COUNT_HACK(17);
+      _NS_COUNT_HACK(18); _NS_COUNT_HACK(19); _NS_COUNT_HACK(20);
+      _NS_COUNT_HACK(21); _NS_COUNT_HACK(22); _NS_COUNT_HACK(23);
+      _NS_COUNT_HACK(24); _NS_COUNT_HACK(25); _NS_COUNT_HACK(26);
+      _NS_COUNT_HACK(27); _NS_COUNT_HACK(28); _NS_COUNT_HACK(29);
+      _NS_COUNT_HACK(30); _NS_COUNT_HACK(31); _NS_COUNT_HACK(32);
+      _NS_COUNT_HACK(33); _NS_COUNT_HACK(34); _NS_COUNT_HACK(35);
+      _NS_COUNT_HACK(36); _NS_COUNT_HACK(37); _NS_COUNT_HACK(38);
+      _NS_COUNT_HACK(39); _NS_COUNT_HACK(40); _NS_COUNT_HACK(41);
+      _NS_COUNT_HACK(42); _NS_COUNT_HACK(43); _NS_COUNT_HACK(44);
+      _NS_COUNT_HACK(45); _NS_COUNT_HACK(46); _NS_COUNT_HACK(47);
+      _NS_COUNT_HACK(48); _NS_COUNT_HACK(49); _NS_COUNT_HACK(50);
+      _NS_COUNT_HACK(51); _NS_COUNT_HACK(52); _NS_COUNT_HACK(53);
+      _NS_COUNT_HACK(54); _NS_COUNT_HACK(55); _NS_COUNT_HACK(56);
+      _NS_COUNT_HACK(57); _NS_COUNT_HACK(58); _NS_COUNT_HACK(59);
+      _NS_COUNT_HACK(60); _NS_COUNT_HACK(61); _NS_COUNT_HACK(62);
+      _NS_COUNT_HACK(63); _NS_COUNT_HACK(64); _NS_COUNT_HACK(65);
+      _NS_COUNT_HACK(66); _NS_COUNT_HACK(67); _NS_COUNT_HACK(68);
+      _NS_COUNT_HACK(69); _NS_COUNT_HACK(70); _NS_COUNT_HACK(71);
+      _NS_COUNT_HACK(72); _NS_COUNT_HACK(73); _NS_COUNT_HACK(74);
+      _NS_COUNT_HACK(75); _NS_COUNT_HACK(76); _NS_COUNT_HACK(77);
+      _NS_COUNT_HACK(78); _NS_COUNT_HACK(79); _NS_COUNT_HACK(80);
+      _NS_COUNT_HACK(81); _NS_COUNT_HACK(82); _NS_COUNT_HACK(83);
+      _NS_COUNT_HACK(84); _NS_COUNT_HACK(85); _NS_COUNT_HACK(86);
+      _NS_COUNT_HACK(87); _NS_COUNT_HACK(88); _NS_COUNT_HACK(89);
+      _NS_COUNT_HACK(90); _NS_COUNT_HACK(91); _NS_COUNT_HACK(92);
+      _NS_COUNT_HACK(93); _NS_COUNT_HACK(94); _NS_COUNT_HACK(95);
+      _NS_COUNT_HACK(96); _NS_COUNT_HACK(97); _NS_COUNT_HACK(98);
+      _NS_COUNT_HACK(99);
+
+done:
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
+    }
+  else
+    {
+      env = jbuf();
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
+    }
+
+  return (uintptr_t)env->addr;
 }
 
 void *
-NSReturnAddress(int offset)
+NSReturnAddress(NSUInteger offset)
 {
-  jmp_buf	*env;
-  void		(*old)(int);
-  void		*val;
+  jbuf_type	*env;
 
   env = jbuf();
-  if (setjmp(*env) == 0)
+  if (sigsetjmp(env->buf, 1) == 0)
     {
-      old = signal(SIGSEGV, recover);
-      memcpy(env + 1, &old, sizeof(old));
+      env->segv = signal(SIGSEGV, recover);
+      env->bus = signal(SIGBUS, recover);
       switch (offset)
 	{
 	  _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
@@ -1019,19 +1074,122 @@ NSReturnAddress(int offset)
 	  _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
 	  _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
 	  _NS_RETURN_HACK(99);
-	  default: val = NULL; break;
+	  default: env->addr = NULL; break;
 	}
-      signal(SIGSEGV, old);
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
     }
   else
     {
       env = jbuf();
-      memcpy(&old, env + 1, sizeof(old));
-      signal(SIGSEGV, old);
-      val = NULL;
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
+      env->addr = NULL;
     }
 
-  return val;
+  return env->addr;
+}
+
+NSMutableArray *
+GSPrivateStackAddresses(void)
+{
+  NSMutableArray        *stack;
+  NSAutoreleasePool	*pool;
+
+#if HAVE_BACKTRACE
+  void                  *addresses[1024];
+  int                   n = backtrace(addresses, 1024);
+  int                   i;
+
+  stack = [NSMutableArray arrayWithCapacity: n];
+  pool = [NSAutoreleasePool new];
+  for (i = 0; i < n; i++)
+    {
+      [stack addObject: [NSValue valueWithPointer: addresses[i]]];
+    }
+
+#else
+  unsigned              n = NSCountFrames();
+  unsigned              i;
+  jbuf_type             *env;
+
+  stack = [NSMutableArray arrayWithCapacity: n];
+  pool = [NSAutoreleasePool new];
+  /* There should be more frame addresses than return addresses.
+   */
+  if (n > 0)
+    {
+      n--;
+    }
+  if (n > 0)
+    {
+      n--;
+    }
+
+  env = jbuf();
+  if (sigsetjmp(env->buf, 1) == 0)
+    {
+      env->segv = signal(SIGSEGV, recover);
+      env->bus = signal(SIGBUS, recover);
+
+      for (i = 0; i < n; i++)
+        {
+          switch (i)
+            {
+              _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
+              _NS_RETURN_HACK(3); _NS_RETURN_HACK(4); _NS_RETURN_HACK(5);
+              _NS_RETURN_HACK(6); _NS_RETURN_HACK(7); _NS_RETURN_HACK(8);
+              _NS_RETURN_HACK(9); _NS_RETURN_HACK(10); _NS_RETURN_HACK(11);
+              _NS_RETURN_HACK(12); _NS_RETURN_HACK(13); _NS_RETURN_HACK(14);
+              _NS_RETURN_HACK(15); _NS_RETURN_HACK(16); _NS_RETURN_HACK(17);
+              _NS_RETURN_HACK(18); _NS_RETURN_HACK(19); _NS_RETURN_HACK(20);
+              _NS_RETURN_HACK(21); _NS_RETURN_HACK(22); _NS_RETURN_HACK(23);
+              _NS_RETURN_HACK(24); _NS_RETURN_HACK(25); _NS_RETURN_HACK(26);
+              _NS_RETURN_HACK(27); _NS_RETURN_HACK(28); _NS_RETURN_HACK(29);
+              _NS_RETURN_HACK(30); _NS_RETURN_HACK(31); _NS_RETURN_HACK(32);
+              _NS_RETURN_HACK(33); _NS_RETURN_HACK(34); _NS_RETURN_HACK(35);
+              _NS_RETURN_HACK(36); _NS_RETURN_HACK(37); _NS_RETURN_HACK(38);
+              _NS_RETURN_HACK(39); _NS_RETURN_HACK(40); _NS_RETURN_HACK(41);
+              _NS_RETURN_HACK(42); _NS_RETURN_HACK(43); _NS_RETURN_HACK(44);
+              _NS_RETURN_HACK(45); _NS_RETURN_HACK(46); _NS_RETURN_HACK(47);
+              _NS_RETURN_HACK(48); _NS_RETURN_HACK(49); _NS_RETURN_HACK(50);
+              _NS_RETURN_HACK(51); _NS_RETURN_HACK(52); _NS_RETURN_HACK(53);
+              _NS_RETURN_HACK(54); _NS_RETURN_HACK(55); _NS_RETURN_HACK(56);
+              _NS_RETURN_HACK(57); _NS_RETURN_HACK(58); _NS_RETURN_HACK(59);
+              _NS_RETURN_HACK(60); _NS_RETURN_HACK(61); _NS_RETURN_HACK(62);
+              _NS_RETURN_HACK(63); _NS_RETURN_HACK(64); _NS_RETURN_HACK(65);
+              _NS_RETURN_HACK(66); _NS_RETURN_HACK(67); _NS_RETURN_HACK(68);
+              _NS_RETURN_HACK(69); _NS_RETURN_HACK(70); _NS_RETURN_HACK(71);
+              _NS_RETURN_HACK(72); _NS_RETURN_HACK(73); _NS_RETURN_HACK(74);
+              _NS_RETURN_HACK(75); _NS_RETURN_HACK(76); _NS_RETURN_HACK(77);
+              _NS_RETURN_HACK(78); _NS_RETURN_HACK(79); _NS_RETURN_HACK(80);
+              _NS_RETURN_HACK(81); _NS_RETURN_HACK(82); _NS_RETURN_HACK(83);
+              _NS_RETURN_HACK(84); _NS_RETURN_HACK(85); _NS_RETURN_HACK(86);
+              _NS_RETURN_HACK(87); _NS_RETURN_HACK(88); _NS_RETURN_HACK(89);
+              _NS_RETURN_HACK(90); _NS_RETURN_HACK(91); _NS_RETURN_HACK(92);
+              _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
+              _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
+              _NS_RETURN_HACK(99);
+              default: env->addr = 0; break;
+            }
+          if (env->addr == 0)
+            {
+              break;
+            }
+          [stack addObject: [NSValue valueWithPointer: env->addr]];
+        }
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
+    }
+  else
+    {
+      env = jbuf();
+      signal(SIGSEGV, env->segv);
+      signal(SIGBUS, env->bus);
+    }
+#endif
+  [pool release];
+  return stack;
 }
 
 

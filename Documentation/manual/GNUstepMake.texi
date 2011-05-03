@@ -99,6 +99,14 @@ The following Makefile defines a project:
 # A GNUmakefile
 #
 
+# Check that the GNUSTEP_MAKEFILES environment variable is set
+ifeq ($(GNUSTEP_MAKEFILES),)
+GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
+ ifeq ($(GNUSTEP_MAKEFILES),)
+   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
+ endif
+endif
+
 # Include the common variables
 include $(GNUSTEP_MAKEFILES)/common.make
 
@@ -106,7 +114,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 OBJC_PROGRAM_NAME = simple
 
 # Objective-C files requiring compilation
-simple_OBJC_FILES = simple.m
+simple_OBJC_FILES = source.m
 
 -include GNUmakefile.preamble
 

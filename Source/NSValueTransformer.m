@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -17,13 +17,22 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */ 
 
-#import "Foundation/Foundation.h"
+#import "common.h"
+
+#define	EXPOSE_NSValueTransformer_IVARS	1
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSValueTransformer.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSLock.h"
 
 @interface NSNegateBooleanTransformer : NSValueTransformer
@@ -40,15 +49,6 @@
 
 
 @implementation NSValueTransformer
-
-NSString * const NSNegateBooleanTransformerName
-  = @"NSNegateBooleanTransformerName";
-NSString * const NSIsNilTransformerName
-  = @"NSIsNilTransformerName";
-NSString * const NSIsNotNilTransformerName
-  = @"NSIsNotNilTransformerName"; 
-NSString * const NSUnarchiveFromDataTransformerName
-  = @"NSUnarchiveFromDataTransformerName";
 
 // non-abstract methods
 
@@ -100,7 +100,7 @@ static GSLazyLock *lock = nil;
 
   [lock lock];
   transformer = [registry objectForKey: name];
-  RETAIN(transformer);
+  IF_NO_GC([transformer retain];)
   [lock unlock];
   return AUTORELEASE(transformer);
 }

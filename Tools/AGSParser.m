@@ -8,19 +8,33 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYING.LIB.
+   License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#include "AGSParser.h"
-#include "GNUstepBase/GNUstep.h"
-#include "GNUstepBase/GSCategories.h"
+#import "common.h"
+
+#import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSScanner.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSValue.h"
+#import "AGSParser.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
 /**
  *  The AGSParser class parses Objective-C header and source files
@@ -126,6 +140,7 @@
   DESTROY(ifStack);
   DESTROY(declared);
   DESTROY(info);
+  DESTROY(orderedSymbolDeclsByUnit);
   DESTROY(comment);
   DESTROY(identifier);
   DESTROY(identStart);
@@ -138,6 +153,23 @@
 - (NSMutableDictionary*) info
 {
   return info;
+}
+
+/** Returns the methods, functions and C data types in their header declaration 
+order, by organizing them into arrays as described below. 
+
+Methods are grouped by class, category or protocol references. For example, 
+valid keys could be <em>ClassName</em>, <em>ClassName(CategoryName)</em> and 
+<em>(ProtocolName)</em>.
+
+Functions and C data types are grouped by header file names. For example, 
+<em>AGParser.h</em> would a valid key.
+
+TODO: Collect functions and C data types. Only methods are currently included 
+in the returned dictionary. */
+- (NSDictionary *) orderedSymbolDeclarationsByUnit
+{
+  return orderedSymbolDeclsByUnit;
 }
 
 - (id) init
@@ -156,6 +188,7 @@
   identStart = RETAIN([NSCharacterSet characterSetWithCharactersInString:
     @"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
   info = [[NSMutableDictionary alloc] initWithCapacity: 6];
+  orderedSymbolDeclsByUnit = [[NSMutableDictionary alloc] init];
   source = [NSMutableArray new];
   verbose = [[NSUserDefaults standardUserDefaults] boolForKey: @"Verbose"];
   warn = [[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"];
@@ -230,7 +263,7 @@
 - (void) parseArgsInto: (NSMutableDictionary*)d
 {
   BOOL			wasInArgList = inArgList;
-  NSMutableArray	*a = [d objectForKey: @"Args"];
+  NSMutableArray	*a = nil;
 
   NSAssert([d objectForKey: @"Args"] == nil, NSInternalInconsistencyException);
   a = [[NSMutableArray alloc] initWithCapacity: 4];
@@ -342,6 +375,148 @@
   return output;
 }
 
+/* When the paragraph string contains a GSDoc block element which is not a text 
+element (in the GSDoc DTD sense), we return NO, otherwise we return YES. 
+
+A GSDoc or HTML paragraph content is limited to text elements (see GSDoc DTD).
+e.g. 'list' or 'example' cannot belong to a 'p' element.
+
+Any other non-block elements are considered valid. Whether or not they can be 
+embedded within a paragraph in the final output is the doc writer 
+responsability.
+ 
+For 'item' and 'answer' which can contain arbitrary block elements, explicit 
+'p' tags should be used, because we won't wrap 'patata' and 'patati' as two 
+paragraphs in the example below:
+<list>
+<item>patata
+
+patati</item>
+</list>
+
+When <example> starts a paragraph, \n\n sequence are allowed in the example. 
+In the example below, bla<example> or bla\n<example> wouldn't be handled 
+correctly unlike: 
+bla
+
+<example>
+patati
+
+patata
+</example> */
+- (BOOL) canWrapWithParagraphMarkup: (NSString *)para
+{
+  NSScanner *scanner = [NSScanner scannerWithString: para];
+  NSSet *blockTags = [NSSet setWithObjects: @"list", @"enum", @"item", 
+    @"deflist", @"term", @"qalist", @"question", @"answer", 
+    @"p", @"example", @"embed", @"index", nil]; 
+  NSMutableCharacterSet *skippedChars = 
+    (id)[NSMutableCharacterSet punctuationCharacterSet];
+
+  if (inUnclosedExample)
+    {
+        /* We don't need to check block element presence within an example, 
+           since an example content is limited to PCDATA. */
+        [scanner scanUpToString: @"</example>" intoString: NULL];
+        if ([scanner scanString: @"</example>" intoString: NULL])
+          {
+            inUnclosedExample = NO;
+          }
+          return NO;
+    }
+
+  /* Set up the scanner to treat opening and closing tags in the same way.
+     Punctuation character set includes '/' but not '<' and '>' */
+  [skippedChars formUnionWithCharacterSet: [scanner charactersToBeSkipped]];
+  [scanner setCharactersToBeSkipped: AUTORELEASE([skippedChars copy])];
+
+  while (![scanner isAtEnd])
+    {
+      NSString *tag = @"";
+      BOOL foundBlockTag = NO;
+   
+      [scanner scanUpToString: @"<" intoString: NULL];
+      if (![scanner scanString: @"<" intoString: NULL])
+        return YES;
+
+      [scanner scanUpToString: @">" intoString: &tag];
+      foundBlockTag = [blockTags containsObject: tag];
+
+      if (foundBlockTag)
+      {
+        /* When the first block tag is <example> and the example is unclosed in 
+           the current paragraph, we stop to insert <p> tags in the next 
+           paragraphs until we reach </example> */
+        if ([tag isEqualToString: @"example"])
+          {
+            [scanner setCharactersToBeSkipped: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            [scanner scanUpToString: @"</example>" intoString: NULL];
+            inUnclosedExample = ([scanner scanString: @"</example>" intoString: NULL] == NO);
+          }
+
+        return NO;
+      }
+    }
+
+   return YES;
+}
+
+// NOTE: We could be able to eliminate that if -parseComment processes the 
+// first comment tags before calling -generateParagraphMarkups:
+- (BOOL) shouldInsertParagraphMarkupInFirstComment: (NSString *)aComment
+{
+  NSArray *firstCommentTags = [NSArray arrayWithObjects: @"<title>", 
+    @"<abstract>", @"<author>", @"<copy>", @"<version>", @"<date>", 
+    @"Author:", @"By:", @"Copyright (C)", @"Revision:", @"Date:", nil];
+   NSEnumerator *e = [firstCommentTags objectEnumerator];
+   NSString *tag = nil;
+
+   while ((tag = [e nextObject]) != nil)
+     {
+       if ([aComment rangeOfString: tag 
+                           options: NSCaseInsensitiveSearch].location != NSNotFound)
+         {
+            return NO;
+         }
+     }
+
+  return YES;
+}
+
+- (NSString *) generateParagraphMarkupForString: (NSString *)aComment
+{
+  NSMutableString *formattedComment = [NSMutableString stringWithCapacity: [aComment length] + 100];
+  NSArray *paras = [aComment componentsSeparatedByString: @"\n\n"];
+  NSEnumerator *e = [paras objectEnumerator];
+  NSString *para = nil;
+  BOOL isFirstComment = (commentsRead == NO);
+
+  if (isFirstComment 
+   && ![self shouldInsertParagraphMarkupInFirstComment: aComment])
+    {
+      return aComment;
+    }
+
+  while ((para = [e nextObject]) != nil)
+    {
+      NSString *newPara = para;
+      /* -canWrapWithParagraph: can change its value */
+      BOOL wasInUnclosedExample = inUnclosedExample;
+
+      if ([self canWrapWithParagraphMarkup: para])
+      {
+        newPara = [NSString stringWithFormat: @"<p>%@</p>", para];
+      }
+      else if (wasInUnclosedExample)
+      {
+        newPara = [NSString stringWithFormat: @"\n\n%@", para];
+      }
+      [formattedComment appendString: newPara];
+    }
+
+  return formattedComment;
+}
+
 /**
  * In spite of its trivial name, this is one of the key methods -
  * it parses and skips past comments, but it also recognizes special
@@ -367,6 +542,12 @@
       BOOL	isDocumentation = NO;
       BOOL	skippedFirstLine = NO;
       NSRange	r;
+      BOOL	ignore = NO;
+
+
+      /* Jump back here if we have ignored data up to a new comment.
+       */
+comment:
 
       pos += 2;	/* Skip opening part */
 
@@ -500,10 +681,46 @@
 	   */
 	  if (end > start)
 	    {
-	      NSString	*tmp;
+	      NSString 		*tmp;
+	      NSRange		r;
+              NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
 
 	      tmp = [NSString stringWithCharacters: start length: end - start];
-	      [self appendComment: tmp to: nil];
+
+              /* 
+               * If the comment does not contain block markup already and we 
+               * were asked to generate it, we insert <p> tags to get an 
+               * explicit paragraph structure.
+               */
+              if ([defs boolForKey: @"GenerateParagraphMarkup"])
+                {
+                  // FIXME: Should follow <ignore> processing and be called 
+                  // just before using -appendComment:to:
+                  tmp = [self generateParagraphMarkupForString: tmp]; 
+                }
+recheck:
+	      if (YES == ignore)
+		{
+	          r = [tmp rangeOfString: @"</ignore>"];
+		  if (r.length > 0)
+		    {
+		      tmp = [tmp substringFromIndex: NSMaxRange(r)];
+		      ignore = NO;
+		    }
+		}
+	      if (NO == ignore)
+		{
+	          r = [tmp rangeOfString: @"<ignore>"];
+		  if (r.length > 0)
+		    {
+		      [self appendComment: [tmp substringToIndex: r.location]
+				       to: nil];
+		      tmp = [tmp substringFromIndex: NSMaxRange(r)];
+		      ignore = YES;
+		      goto recheck;
+		    }
+		  [self appendComment: tmp to: nil];
+		}
 	    }
 
           /*
@@ -927,6 +1144,38 @@
 	    }
 	  commentsRead = YES;
 	}
+      if (YES == ignore)
+	{
+	  while (pos < length)
+	    {
+	      switch (buffer[pos])
+		{
+		  case '\'':
+		  case '"':
+		    [self skipLiteral];
+		    break;
+
+		  case '/':
+		    if (pos + 1 < length)
+		      {
+			if (buffer[pos + 1] == '/')
+			  {
+			    [self skipRemainderOfLine];
+			  }
+			else if (buffer[pos + 1] == '*')
+			  {
+			    goto comment;
+			  }
+		      }
+		    pos++;
+		    break;
+
+		  default:
+		    pos++;
+		    break;
+		}
+	    }
+	}
     }
   return pos;
 }
@@ -1055,7 +1304,7 @@
 	@"unsigned",
 	@"volatile",
 	nil];
-      RETAIN(qualifiers);
+      IF_NO_GC([qualifiers retain];)
       keep = [NSSet setWithObjects:
 	@"const",
 	@"long",
@@ -1064,7 +1313,7 @@
 	@"unsigned",
 	@"volatile",
 	nil];
-      RETAIN(keep);
+      IF_NO_GC([keep retain];)
     }
 
   a = [NSMutableArray array];
@@ -1078,6 +1327,23 @@
 	   */
 	  [self skipStatementLine];
 	  goto fail;
+	}
+      if ([s isEqual: @"__attribute__"] == YES)
+	{
+	  if ([self skipSpaces] < length && buffer[pos] == '(')
+	    {
+	      unsigned	start = pos;
+	      NSString	*attr;
+
+	      [self skipBlock];	// Skip the attributes
+	      attr = [NSString stringWithCharacters: buffer + start
+					     length: pos - start];
+	    }
+	  else
+	    {
+	      [self log: @"strange format __attribute__"];
+	    }
+	  continue;
 	}
       if ([s isEqualToString: @"GS_EXPORT"] == YES)
 	{
@@ -1103,7 +1369,7 @@
 		  pos++;
 		  [self skipSpaces];
 		}
-	      DESTROY(arp);
+	      IF_NO_GC(DESTROY(arp);)
 	      return nil;
 	    }
 
@@ -1132,6 +1398,7 @@
     || [s isEqualToString: @"union"] == YES
     || [s isEqualToString: @"enum"] == YES)
     {
+      BOOL isEnum = [s isEqualToString: @"enum"];
       NSString	*tmp = s;
 
       s = [self parseIdentifier];
@@ -1149,9 +1416,91 @@
 	   */
 	  [d setObject: s forKey: @"Name"];
 	}
-      if ([self parseSpace] < length && buffer[pos] == '{')
+      /* We parse enum comment of the form:
+       * <introComment> enum { <comment1> field1, <comment2> field2 } bla;
+       */
+      if (isEnum && [self parseSpace] < length && buffer[pos] == '{')
 	{
-	  [self skipBlock];
+          NSString *ident;
+          NSString *introComment;
+          NSMutableString *fieldComments = [NSMutableString string];
+          BOOL foundFieldComment = NO;
+
+          /* We want to be able to parse new comments while retaining the 
+             originally parsed comment for the enum/union/struct. */
+          introComment = [comment copy];
+          DESTROY(comment);
+
+          pos++; /* Skip '{' */
+
+          [fieldComments appendString: @"<deflist>"];
+
+          // TODO: We should put the parsed field into the doc index and 
+          // let AGSOutput generate the deflist.
+	  while (buffer[pos] != '}')
+            {
+	      /*
+		 A comment belongs with the declaration following it,
+		 unless it begins on the same line as a declaration.
+                 Six combinations can be parsed:
+                 - fieldDecl,
+                 - <comment> fieldDecl,
+                 - fieldDecl, <comment>
+                 - <comment> fieldDecl, <comment>
+                 - fieldDecl }
+                 - <comment> fieldDecl }
+	       */
+
+	      /* Parse any space and comments before the identifier into
+	       * 'comment' and get the identifier in 'ident'.
+	       */
+              ident = [self parseIdentifier];
+
+              /* Skip the left-hand side such as ' = aValue'
+	       */
+              while (pos < length && buffer[pos] != ',' && buffer[pos] != '}')
+                {
+                  pos++;
+                }
+              if (buffer[pos] == ',')
+		{
+                  /* Parse any more space on the same line as the identifier
+		   * appending it to the 'comment' ivar
+		   */
+		  [self parseSpace: spaces];
+                  pos++;
+		}
+
+              if (ident != nil)
+                {
+                  [fieldComments appendString: @"<term><em>"];
+                  [fieldComments appendString: ident];
+                  [fieldComments appendString: @"</em></term>"];
+                  [fieldComments appendString: @"<desc>"];
+                  // NOTE: We could add a 'Description forthcoming' if nil
+                  if (comment != nil)
+                    {
+                      [fieldComments appendString: comment];
+                    }
+                  [fieldComments appendString: @"</desc>\n"];
+                }
+              DESTROY(comment);
+            }
+
+          [fieldComments appendString: @"</deflist>"];
+
+          /* Restore the comment as initially parsed before -parseDeclaration 
+             was called and add the comments parsed per field into a deflist. */
+          ASSIGN(comment, introComment);
+          if (foundFieldComment)
+            {
+              NSString *enumComment = 
+                [comment stringByAppendingFormat: @"\n\n%@", fieldComments];
+
+              ASSIGN(comment, enumComment);
+            }
+
+          pos++; /* Skip '}' */
 	}
       [a addObject: s];
       s = nil;
@@ -1857,6 +2206,7 @@ fail:
        */
       [self skipUnit];
       DESTROY(comment);
+      RELEASE(arp);
       return [NSMutableDictionary dictionary];
     }
   else
@@ -2097,7 +2447,6 @@ try:
 	  RELEASE(tmp);
 	  if ([val length] > 0)
 	    {
-	
 	      if ([val isEqualToString: @"//"] == YES)
 		{
 		  [self skipToEndOfLine];
@@ -2222,6 +2571,11 @@ fail:
   dict = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [self parseSpace: spaces];
   name = [self parseIdentifier];
+  if (nil == name)
+    {
+      // [self log: @"Missing name in #define"];
+      return nil;
+    }
   [self parseSpace: spaces];
   if (pos < length && buffer[pos] == '(')
     {
@@ -2378,6 +2732,30 @@ fail:
   while (buffer[pos] != term)
     {
       token = [self parseIdentifier];
+      if ([token isEqual: @"__attribute__"] == YES)
+	{
+	  if ([self skipSpaces] < length && buffer[pos] == '(')
+	    {
+	      unsigned	start = pos;
+	      NSString	*attr;
+
+	      [self skipBlock];	// Skip the attributes
+	      attr = [NSString stringWithCharacters: buffer + start
+					     length: pos - start];
+	      if ([attr rangeOfString: @"deprecated"].length > 0)
+		{
+		  [self appendComment: @"<em>Warning</em> this is "
+		    @"<em>deprecated</em> and may be removed in "
+		    @"future versions"
+		    to: nil];
+		}
+	    }
+	  else
+	    {
+	      [self log: @"strange format function attributes"];
+	    }
+	  continue;
+	}
       if ([self parseSpace] >= length)
 	{
 	  [self log: @"error at method name component"];
@@ -2573,7 +2951,7 @@ fail:
 
   itemName = nil;
   RELEASE(arp);
-  AUTORELEASE(method);
+  IF_NO_GC([method autorelease];)
   return method;
 
 fail:
@@ -2584,12 +2962,26 @@ fail:
   return nil;
 }
 
+- (void) addOrderedSymbolDeclaration: (NSString *)aMethodOrFunc toUnit: (NSString *)aUnitName
+{
+  NSMutableArray *orderedSymbolDecls = [orderedSymbolDeclsByUnit objectForKey: aUnitName];
+
+  if (orderedSymbolDecls == nil)
+    {
+      orderedSymbolDecls = [NSMutableArray array];
+      [orderedSymbolDeclsByUnit setObject: orderedSymbolDecls
+				   forKey: aUnitName];
+    }
+  [orderedSymbolDecls addObject: aMethodOrFunc];
+}
+
 - (NSMutableDictionary*) parseMethodsAreDeclarations: (BOOL)flag
 {
   NSMutableDictionary	*methods;
   NSMutableDictionary	*method;
   NSMutableDictionary	*exist;
   NSString		*token;
+  BOOL			optionalMethods = NO;
 
   if (flag == YES)
     {
@@ -2642,6 +3034,10 @@ fail:
 	      {
 		return nil;
 	      }
+	    if (YES == optionalMethods)
+	      {
+		[method setObject: @"YES" forKey: @"Optional"];
+	      }
 	    token = [method objectForKey: @"Name"];
 	    if (flag == YES)
 	      {
@@ -2649,6 +3045,7 @@ fail:
 		 * Just record the method.
 		 */
 		[methods setObject: method forKey: token];
+                [self addOrderedSymbolDeclaration: token toUnit: unitName];
 	      }
 	    else if ((exist = [methods objectForKey: token]) != nil)
 	      {
@@ -2727,6 +3124,20 @@ fail:
 	    if ([token isEqual: @"end"] == YES)
 	      {
 		return methods;
+	      }
+	    else if ([token isEqual: @"optional"] == YES)
+	      {
+	        /* marking remaining methods as optional.
+	         */
+		optionalMethods = YES;
+		continue;
+	      }
+	    else if ([token isEqual: @"required"] == YES)
+	      {
+	        /* marking remaining methods as required.
+	         */
+		optionalMethods = NO;
+		continue;
 	      }
 	    else if ([token isEqual: @"class"] == YES)
 	      {
@@ -3251,7 +3662,7 @@ fail:
   unitName = nil;
   DESTROY(comment);
   RELEASE(arp);
-  AUTORELEASE(dict);
+  IF_NO_GC([dict autorelease];)
   return dict;
 
 fail:
@@ -3698,8 +4109,8 @@ fail:
   pos = 0;
   lines = [[NSArray alloc] initWithArray: a];
   RELEASE(arp);
-  AUTORELEASE(lines);
-  AUTORELEASE(data);
+  IF_NO_GC([lines autorelease];)
+  IF_NO_GC([data autorelease];)
 }
 
 /**

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,15 +25,13 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSObject.h"
-#include "Foundation/NSData.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSFileHandle.h"
-#include "Foundation/NSPathUtilities.h"
-#include "Foundation/NSBundle.h"
-#include "GNUstepBase/GSFileHandle.h"
+#import "common.h"
+#define	EXPOSE_NSFileHandle_IVARS	1
+#import "Foundation/NSData.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSPathUtilities.h"
+#import "GNUstepBase/GSFileHandle.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // GNUstep Notification names
 
@@ -250,8 +248,9 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /**
- *  Reads up to maximum unsigned int bytes from file or communications
- *  channel into return data.
+ * Reads up to maximum unsigned int bytes from file or communications
+ * channel into return data.<br />
+ * If the file is empty, returns an empty data item.
  */
 - (NSData*) readDataToEndOfFile
 {

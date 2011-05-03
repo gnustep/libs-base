@@ -1,5 +1,5 @@
 /* Implementation for NSSortDescriptor for GNUStep
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
    Written by:  Saso Kiselkov <diablos@manga.sk>
    Date: 2005
@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,22 +16,24 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
 
-#include "Foundation/NSSortDescriptor.h"
+#import "common.h"
 
-#include "Foundation/NSBundle.h"
-#include "Foundation/NSCoder.h"
-#include "Foundation/NSException.h"
-#include "Foundation/NSKeyValueCoding.h"
-#include "Foundation/NSString.h"
+#define	EXPOSE_NSSortDescriptor_IVARS	1
+#import "Foundation/NSSortDescriptor.h"
 
-#include "GNUstepBase/GSObjCRuntime.h"
-#include "GSPrivate.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyValueCoding.h"
+
+#import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSPrivate.h"
 
 @implementation NSSortDescriptor
 
@@ -79,9 +81,9 @@
   [super dealloc];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
-  const char	*sel = GSNameFromSelector(_selector);
+  const char	*sel = sel_getName(_selector);
 
   return _ascending + GSPrivateHash(sel, strlen(sel), 16, YES) + [_key hash];
 }
@@ -134,7 +136,7 @@
     {
       return NO;
     }
-  if (!sel_eq(((NSSortDescriptor*)other)->_selector, _selector))
+  if (!sel_isEqual(((NSSortDescriptor*)other)->_selector, _selector))
     {
       return NO;
     }
@@ -161,10 +163,10 @@
 {
   if ([coder allowsKeyedCoding])
     {
-      [coder encodeObject: _key forKey: @"Key"];
-      [coder encodeBool: _ascending forKey: @"Ascending"];
+      [coder encodeObject: _key forKey: @"NSKey"];
+      [coder encodeBool: _ascending forKey: @"NSAscending"];
       [coder encodeObject: NSStringFromSelector(_selector)
-                   forKey: @"Selector"];
+                   forKey: @"NSSelector"];
     }
   else
     {
@@ -180,10 +182,10 @@
     {
       if ([decoder allowsKeyedCoding])
         {
-          ASSIGN(_key, [decoder decodeObjectForKey: @"Key"]);
-          _ascending = [decoder decodeBoolForKey: @"Ascending"];
+          ASSIGN(_key, [decoder decodeObjectForKey: @"NSKey"]);
+          _ascending = [decoder decodeBoolForKey: @"NSAscending"];
           _selector = NSSelectorFromString([decoder
-            decodeObjectForKey: @"Selector"]);
+            decodeObjectForKey: @"NSSelector"]);
         }
       else
         {
@@ -308,11 +310,23 @@ SortRange(id *objects, NSRange range, id *descriptors,
   if (count > 1 && numDescriptors > 0)
     {
       id	descriptors[numDescriptors];
-      GS_BEGINIDBUF(objects, count);
       NSArray	*a;
+      GS_BEGINIDBUF(objects, count);
 
       [self getObjects: objects];
-      [sortDescriptors getObjects: descriptors];
+      if ([sortDescriptors isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < numDescriptors; i++)
+	    {
+	      descriptors[i] = [sortDescriptors objectAtIndex: i];
+	    }
+	}
+      else
+	{
+	  [sortDescriptors getObjects: descriptors];
+	}
       SortRange(objects, NSMakeRange(0, count), descriptors, numDescriptors);
       a = [[NSArray alloc] initWithObjects: objects count: count];
       [self setArray: a];
@@ -333,7 +347,19 @@ SortRange(id *objects, NSRange range, id *descriptors,
     {
       GS_BEGINIDBUF(descriptors, dCount);
 
-      [sortDescriptors getObjects: descriptors];
+      if ([sortDescriptors isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < dCount; i++)
+	    {
+	      descriptors[i] = [sortDescriptors objectAtIndex: i];
+	    }
+	}
+      else
+	{
+	  [sortDescriptors getObjects: descriptors];
+	}
       SortRange(_contents_array, NSMakeRange(0, _count), descriptors, dCount);
 
       GS_ENDIDBUF();

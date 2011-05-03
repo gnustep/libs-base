@@ -10,7 +10,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -19,7 +19,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -28,17 +28,16 @@
    $Date$ $Revision$
    */
 
-#include "config.h"
-#include "GNUstepBase/preface.h"
-#include "Foundation/NSRunLoop.h"
-#include "Foundation/NSNotificationQueue.h"
-#include "Foundation/NSNotification.h"
-#include "Foundation/NSDictionary.h"
-#include "Foundation/NSArray.h"
-#include "Foundation/NSString.h"
-#include "Foundation/NSThread.h"
+#import "common.h"
+#define	EXPOSE_NSNotificationQueue_IVARS	1
+#import "Foundation/NSRunLoop.h"
+#import "Foundation/NSNotificationQueue.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSThread.h"
 
-#include "GSPrivate.h"
+#import "GSPrivate.h"
 /* NotificationQueueList by Richard Frith-Macdonald
    These objects are used to maintain lists of NSNotificationQueue objects.
    There is one list per NSThread, with the first object in the list stored
@@ -47,10 +46,6 @@
 
 static	NSString*	lkey = @"NotificationQueueListThreadKey";
 static	NSString*	qkey = @"NotificationQueueThreadKey";
-
-typedef struct {
-  @defs(NSNotificationQueue)
-} *accessQueue;
 
 
 @interface	NotificationQueueList : NSObject
@@ -130,13 +125,11 @@ currentList(void)
 
   if (list->queue == q)
     {
-      NSMutableDictionary	*d;
+      NSMutableDictionary	*d = GSCurrentThreadDictionary();
+      NotificationQueueList	*tmp = list->next;
 
-      d = GSCurrentThreadDictionary();
-      if (list->next)
+      if (tmp != nil)
         {
-	  NotificationQueueList	*tmp = list->next;
-
           [d setObject: tmp forKey: lkey];
 	  RELEASE(tmp);			/* retained in dictionary.	*/
         }
@@ -189,8 +182,8 @@ typedef struct _NSNotificationQueueList
  * Queue functions
  *
  *  Queue             Elem              Elem              Elem
- *    head ---------> prev -----------> prev -----------> prev --> nil
- *            nil <-- next <----------- next <----------- next
+ *    head ---------> next -----------> next -----------> next --> nil
+ *            nil <-- prev <----------- prev <----------- prev
  *    tail --------------------------------------------->
  */
 
@@ -198,30 +191,24 @@ static inline void
 remove_from_queue_no_release(NSNotificationQueueList *queue,
   NSNotificationQueueRegistration *item)
 {
-  if (item->prev)
-    {
-      item->prev->next = item->next;
-    }
-  else
-    {
-      queue->tail = item->next;
-      if (item->next)
-	{
-	  item->next->prev = NULL;
-	}
-    }
-
   if (item->next)
     {
       item->next->prev = item->prev;
     }
   else
     {
-      queue->head = item->prev;
-      if (item->prev)
-	{
-	  item->prev->next = NULL;
-	}
+      NSCAssert(queue->tail == item, @"tail item not at tail of queue!");
+      queue->tail = item->prev;
+    }
+
+  if (item->prev)
+    {
+      item->prev->next = item->next;
+    }
+  else
+    {
+      NSCAssert(queue->head == item, @"head item not at head of queue!");
+      queue->head = item->next;
     }
 }
 
@@ -241,7 +228,12 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 {
   NSNotificationQueueRegistration	*item;
 
+#if	GS_WITH_GC
+  item = NSAllocateCollectable(sizeof(NSNotificationQueueRegistration),
+    NSScannedOption);
+#else
   item = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueRegistration));
+#endif
   if (item == 0)
     {
       [NSException raise: NSMallocException
@@ -253,12 +245,12 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
   item->object = [notification object];
   item->modes = [modes copyWithZone: [modes zone]];
 
-  item->prev = NULL;
-  item->next = queue->tail;
+  item->next = NULL;
+  item->prev = queue->tail;
   queue->tail = item;
-  if (item->next)
+  if (item->prev)
     {
-      item->next->prev = item;
+      item->prev->next = item;
     }
   if (!queue->head)
     {
@@ -273,8 +265,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
  */
 
 @interface NSNotificationQueue (Private)
-- (void) _postNotification: (NSNotification*)notification
-		  forModes: (NSArray*)modes;
+- (NSNotificationCenter*) _center;
 @end
 
 /**
@@ -286,6 +277,16 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
  */
 @implementation NSNotificationQueue
 
+static NSArray	*defaultMode = nil;
+
++ (void) initialize
+{
+  if (defaultMode == nil)
+    {
+      defaultMode = [[NSArray alloc] initWithObjects: (id*)&NSDefaultRunLoopMode
+					       count: 1];
+    }
+}
 
 /**
  * Returns the default notification queue for use in this thread.  It will
@@ -334,8 +335,15 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 
   // init queue
   _center = RETAIN(notificationCenter);
+#if	GS_WITH_GC
+  _asapQueue = NSAllocateCollectable(sizeof(NSNotificationQueueList),
+    NSScannedOption);
+  _idleQueue = NSAllocateCollectable(sizeof(NSNotificationQueueList),
+    NSScannedOption);
+#else
   _asapQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
   _idleQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
+#endif
   if (_asapQueue == 0 || _idleQueue == 0)
     {
       DESTROY(self);
@@ -360,15 +368,15 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
   [NotificationQueueList unregisterQueue: self];
 
   /*
-   * release self from queues
+   * release items from our queues
    */
-  for (item = _asapQueue->head; item; item=item->prev)
+  while ((item = _asapQueue->head) != 0)
     {
       remove_from_queue(_asapQueue, item, _zone);
     }
   NSZoneFree(_zone, _asapQueue);
 
-  for (item = _idleQueue->head; item; item=item->prev)
+  while ((item = _idleQueue->head) != 0)
     {
       remove_from_queue(_idleQueue, item, _zone);
     }
@@ -392,10 +400,10 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
  * <em>not</em> posted.
  */
 - (void) dequeueNotificationsMatching: (NSNotification*)notification
-			 coalesceMask: (unsigned int)coalesceMask
+			 coalesceMask: (NSUInteger)coalesceMask
 {
   NSNotificationQueueRegistration	*item;
-  NSNotificationQueueRegistration	*next;
+  NSNotificationQueueRegistration	*prev;
   id					name   = [notification name];
   id					object = [notification object];
 
@@ -405,9 +413,9 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       /*
        * find in ASAP notification in queue matching both
        */
-      for (item = _asapQueue->tail; item; item = next)
+      for (item = _asapQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           //PENDING: should object comparison be '==' instead of isEqual?!
           if ((object == item->object) && [name isEqual: item->name])
 	    {
@@ -417,9 +425,9 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       /*
        * find in idle notification in queue matching both
        */
-      for (item = _idleQueue->tail; item; item = next)
+      for (item = _idleQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if ((object == item->object) && [name isEqual: item->name])
 	    {
               remove_from_queue(_idleQueue, item, _zone);
@@ -431,9 +439,9 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       /*
        * find in ASAP notification in queue matching name
        */
-      for (item = _asapQueue->tail; item; item = next)
+      for (item = _asapQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if ([name isEqual: item->name])
 	    {
               remove_from_queue(_asapQueue, item, _zone);
@@ -442,9 +450,9 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       /*
        * find in idle notification in queue matching name
        */
-      for (item = _idleQueue->tail; item; item = next)
+      for (item = _idleQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if ([name isEqual: item->name])
 	    {
               remove_from_queue(_idleQueue, item, _zone);
@@ -456,9 +464,9 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       /*
        * find in ASAP notification in queue matching sender
        */
-      for (item = _asapQueue->tail; item; item = next)
+      for (item = _asapQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if (object == item->object)
 	    {
               remove_from_queue(_asapQueue, item, _zone);
@@ -467,9 +475,9 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       /*
        * find in idle notification in queue matching sender
        */
-      for (item = _idleQueue->tail; item; item = next)
+      for (item = _idleQueue->tail; item; item = prev)
 	{
-          next = item->next;
+          prev = item->prev;
           if (object == item->object)
 	    {
               remove_from_queue(_idleQueue, item, _zone);
@@ -503,13 +511,17 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
  *  in which case they are removed through a call to
  *  -dequeueNotificationsMatching:coalesceMask: .  The modes argument
  *  determines which [NSRunLoop] mode notification may be posted in (nil means
- *  all modes).
+ *  NSDefaultRunLoopMode).
  */
 - (void) enqueueNotification: (NSNotification*)notification
 		postingStyle: (NSPostingStyle)postingStyle
-		coalesceMask: (unsigned int)coalesceMask
+		coalesceMask: (NSUInteger)coalesceMask
 		    forModes: (NSArray*)modes
 {
+  if (modes == nil)
+    {
+      modes = defaultMode;
+    }
   if (coalesceMask != NSNotificationNoCoalescing)
     {
       [self dequeueNotificationsMatching: notification
@@ -518,11 +530,21 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
   switch (postingStyle)
     {
       case NSPostNow:
-	[self _postNotification: notification forModes: modes];
+	{
+	  NSString	*mode;
+
+	  mode = [[NSRunLoop currentRunLoop] currentMode];
+	  if (mode == nil || [modes indexOfObject: mode] != NSNotFound)
+	    {
+	      [_center postNotification: notification];
+	    }
+	}
 	break;
+
       case NSPostASAP:
 	add_to_queue(_asapQueue, notification, modes, _zone);
 	break;
+
       case NSPostWhenIdle:
 	add_to_queue(_idleQueue, notification, modes, _zone);
 	break;
@@ -533,49 +555,101 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 
 @implementation NSNotificationQueue (Private)
 
-- (void) _postNotification: (NSNotification*)notification
-		  forModes: (NSArray*)modes
+- (NSNotificationCenter*) _center
 {
-  NSString	*mode = [[NSRunLoop currentRunLoop] currentMode];
-
-  // check to see if run loop is in a valid mode
-  if (mode == nil || modes == nil
-    || [modes indexOfObject: mode] != NSNotFound)
-    {
-      [_center postNotification: notification];
-    }
+  return _center;
 }
 
 @end
+
+static void
+notify(NSNotificationCenter *center, NSNotificationQueueList *list,
+  NSString *mode, NSZone *zone)
+{
+  BOOL					allocated = NO;
+  void					*buf[100];
+  void					**ptr = buf;
+  unsigned				len = sizeof(buf) / sizeof(*buf);
+  unsigned				pos = 0;
+  NSNotificationQueueRegistration	*item = list->head;
+
+  /* Gather matching items into a buffer.
+   */
+  while (item != 0)
+    {
+      if (mode == nil || [item->modes indexOfObject: mode] != NSNotFound)
+	{
+	  if (pos == len)
+	    {
+	      unsigned	want;
+
+	      want = (len == 0) ? 2 : len * 2;
+	      if (NO == allocated)
+		{
+		  void		*tmp;
+		  
+		  tmp = NSZoneMalloc(NSDefaultMallocZone(),
+		    want * sizeof(void*));
+		  memcpy(tmp, (void*)ptr, len * sizeof(void*));
+		  ptr = tmp;
+		  allocated = YES;
+		}
+	      else
+		{
+		  ptr = NSZoneRealloc(NSDefaultMallocZone(),
+		    ptr, want * sizeof(void*));
+		}
+	      len = want;
+	    }
+	  ptr[pos++] = item;
+	}
+      item = item->next;	// head --> tail uses next link
+    }
+  len = pos;	// Number of items found
+
+  /* Posting a notification catches exceptions, so it's OK to use
+   * retain/release of objects here as we won't get an exception
+   * causing a leak.
+   */
+  if (len > 0)
+    {
+      /* First, we make a note of each notification while removing the
+       * corresponding list item from the queue ... so that when we get
+       * round to posting the notifications we will not get problems
+       * with another notif() trying to use the same items.
+       */
+      for (pos = 0; pos < len; pos++)
+	{
+	  item = ptr[pos];
+	  ptr[pos] = RETAIN(item->notification);
+	  remove_from_queue(list, item, zone);
+	}
+
+      /* Now that we no longer need to worry about r-entrancy,
+       * we step through our notifications, posting each one in turn.
+       */
+      for (pos = 0; pos < len; pos++)
+	{
+	  NSNotification	*n = (NSNotification*)ptr[pos];
+
+	  [center postNotification: n];
+	  RELEASE(n);
+	}
+
+      if (allocated)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), ptr);
+	}
+    }
+}
 
 /*
  *	The following code handles sending of queued notifications by
  *	NSRunLoop.
  */
 
-static inline void notifyASAP(NSNotificationQueue *q)
-{
-  NSNotificationQueueList	*list = ((accessQueue)q)->_asapQueue;
-
-  /*
-   *	post all ASAP notifications in queue
-   */
-  while (list->head)
-    {
-      NSNotificationQueueRegistration	*item = list->head;
-      NSNotification			*notification = item->notification;
-      NSArray				*modes = item->modes;
-
-      remove_from_queue_no_release(list, item);
-      [q _postNotification: notification forModes: modes];
-      RELEASE(notification);
-      RELEASE(modes);
-      NSZoneFree(((accessQueue)q)->_zone, item);
-    }
-}
-
 void
-GSPrivateNotifyASAP()
+GSPrivateNotifyASAP(NSString *mode)
 {
   NotificationQueueList	*item;
 
@@ -583,38 +657,16 @@ GSPrivateNotifyASAP()
     {
       if (item->queue)
 	{
-	  notifyASAP(item->queue);
+	  notify(item->queue->_center,
+	    item->queue->_asapQueue,
+	    mode,
+	    item->queue->_zone);
 	}
     }
 }
 
-static inline void notifyIdle(NSNotificationQueue *q)
-{
-  NSNotificationQueueList	*list = ((accessQueue)q)->_idleQueue;
-
-  /*
-   *	post next IDLE notification in queue
-   */
-  if (list->head)
-    {
-      NSNotificationQueueRegistration	*item = list->head;
-      NSNotification			*notification = item->notification;
-      NSArray				*modes = item->modes;
-
-      remove_from_queue_no_release(list, item);
-      [q _postNotification: notification forModes: modes];
-      RELEASE(notification);
-      RELEASE(modes);
-      NSZoneFree(((accessQueue)q)->_zone, item);
-    }
-  /*
-   *	Post all ASAP notifications.
-   */
-  notifyASAP(q);
-}
-
 void
-GSPrivateNotifyIdle()
+GSPrivateNotifyIdle(NSString *mode)
 {
   NotificationQueueList	*item;
 
@@ -622,21 +674,34 @@ GSPrivateNotifyIdle()
     {
       if (item->queue)
 	{
-	  notifyIdle(item->queue);
+	  notify(item->queue->_center,
+	    item->queue->_idleQueue,
+	    mode,
+	    item->queue->_zone);
 	}
     }
 }
 
 BOOL
-GSPrivateNotifyMore()
+GSPrivateNotifyMore(NSString *mode)
 {
   NotificationQueueList	*item;
 
   for (item = currentList(); item; item = item->next)
     {
-      if (item->queue && ((accessQueue)item->queue)->_idleQueue->head)
+      if (item->queue != nil)
 	{
-	  return YES;
+          NSNotificationQueueRegistration	*r;
+
+	  r = item->queue->_idleQueue->head;
+	  while (r != 0)
+	    {
+	      if (mode == nil || [r->modes indexOfObject: mode] != NSNotFound)
+		{
+		  return YES;
+		}
+	      r = r->next;
+	    }
 	}
     }
   return NO;

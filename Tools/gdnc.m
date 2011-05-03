@@ -1,30 +1,47 @@
-/** Implementation of GNUstep Distributed Notification Center
-   Copyright (C) 1998 Free Software Foundation, Inc.
+/* Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
 
    This file is part of the GNUstep Project
 
-   This library is free software; you can redistribute it and/or
+   This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this library; see the file COPYING.LIB.
+   License along with this program; see the file COPYING.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#include	"config.h"
-#include	<Foundation/Foundation.h>
+#import	"common.h"
 
-#include        <stdio.h>
-#include	<unistd.h>
+#include <stdio.h>
+#include <unistd.h>
 
-#if	defined(__MINGW32__)
+#import	"Foundation/NSArray.h"
+#import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSBundle.h"
+#import	"Foundation/NSConnection.h"
+#import	"Foundation/NSData.h"
+#import	"Foundation/NSDistantObject.h"
+#import	"Foundation/NSDistributedNotificationCenter.h"
+#import	"Foundation/NSException.h"
+#import	"Foundation/NSHashTable.h"
+#import	"Foundation/NSHost.h"
+#import	"Foundation/NSNotification.h"
+#import	"Foundation/NSPort.h"
+#import	"Foundation/NSPortNameServer.h"
+#import	"Foundation/NSProcessInfo.h"
+#import	"Foundation/NSRunLoop.h"
+#import	"Foundation/NSTask.h"
+#import	"Foundation/NSUserDefaults.h"
+
+
+#if	defined(__MINGW__)
 #include	"process.h"
 #endif
 
@@ -39,20 +56,20 @@
 #define NSIG    32
 #endif
 
+static BOOL	debugging = NO;
 static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
 static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
-static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
 
 static int	log_priority = LOG_DEBUG;
 
 static void
-gdnc_log (int prio)
+gdnc_log (int prio, const char *ebuf)
 {
   if (is_daemon)
     {
-      syslog (log_priority | prio, ebuf);
+      syslog (log_priority | prio, "%s", ebuf);
     }
   else if (prio == LOG_INFO)
     {
@@ -86,8 +103,8 @@ gdnc_log (int prio)
 #define LOG_ERR		1
 #define LOG_INFO	0
 #define LOG_WARNING	0
-void
-gdnc_log (int prio)
+static void
+gdnc_log (int prio, const char *ebuf)
 {
   write (2, ebuf, strlen (ebuf));
   write (2, "\n", 1);
@@ -160,19 +177,18 @@ ihandler(int sig)
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
-                                  to: (unsigned long)observer;
+                                  to: (uint64_t)observer;
 @end
 @implementation	NSDistributedNotificationCenterGDNCDummy
 - (oneway void) postNotificationName: (NSString*)name
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
-                                  to: (unsigned long)observer
+                                  to: (uint64_t)observer
 {
   return;
 }
 @end
-
 
 @interface	GDNCNotification : NSObject
 {
@@ -193,6 +209,11 @@ ihandler(int sig)
   RELEASE(object);
   RELEASE(info);
   [super dealloc];
+}
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"%@ Name:'%@' Object:'%@' Info:'%@'",
+    [super description], name, object, info];
 }
 + (GDNCNotification*) notificationWithName: (NSString*)notificationName
 				    object: (NSString*)notificationObject
@@ -242,7 +263,7 @@ ihandler(int sig)
 @interface	GDNCObserver : NSObject
 {
 @public
-  unsigned		observer;
+  uint64_t		observer;
   NSString		*notificationName;
   NSString		*notificationObject;
   NSString		*selector;
@@ -280,7 +301,7 @@ ihandler(int sig)
   NSMutableDictionary	*observersForObjects;
 }
 
-- (void) addObserver: (unsigned long)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
@@ -292,17 +313,17 @@ ihandler(int sig)
 
 - (id) connectionBecameInvalid: (NSNotification*)notification;
 
-- (void) postNotificationName: (NSString*)notificationName
-		       object: (NSString*)notificationObject
-		     userInfo: (NSData*)d
-	   deliverImmediately: (BOOL)deliverImmediately
-			  for: (id<GDNCClient>)client;
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)notificationObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+				 for: (id<GDNCClient>)client;
 
 - (void) removeObserver: (GDNCObserver*)observer;
 
 - (void) removeObserversForClients: (NSMapTable*)clients;
 
-- (void) removeObserver: (unsigned long)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client;
@@ -472,6 +493,7 @@ ihandler(int sig)
 	  name = [service stringByAppendingFormat: @"-%@", name];
 	  if ([ns registerPort: port forName: name] == NO)
 	    {
+              NSLog(@"gdnc - failed to register as %@", name);
 	    }
 	}
       a = [host addresses];
@@ -483,6 +505,7 @@ ihandler(int sig)
 	  name = [service stringByAppendingFormat: @"-%@", name];
 	  if ([ns registerPort: port forName: name] == NO)
 	    {
+              NSLog(@"gdnc - failed to register as %@", name);
 	    }
 	}
     }
@@ -499,7 +522,7 @@ ihandler(int sig)
   return self;
 }
 
-- (void) addObserver: (unsigned long)anObserver
+- (void) addObserver: (uint64_t)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationName
 	      object: (NSString*)anObject
@@ -510,6 +533,10 @@ ihandler(int sig)
   NSMapTable	*clients;
   GDNCObserver	*obs;
   NSConnection	*connection;
+
+  if (debugging)
+    NSLog(@"Adding observer %llu for %@ %@",
+      anObserver, notificationName, anObject);
 
   connection = [(NSDistantObject*)client connectionForProxy];
   clients = (NSMapTable*)NSMapGet(connections, connection);
@@ -683,11 +710,11 @@ ihandler(int sig)
   RELEASE(info);
 }
 
-- (void) postNotificationName: (NSString*)notificationName
-		       object: (NSString*)notificationObject
-		     userInfo: (NSData*)d
-	   deliverImmediately: (BOOL)deliverImmediately
-			  for: (id<GDNCClient>)client
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)notificationObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+				 for: (id<GDNCClient>)client
 {
   NSMutableArray	*observers = [NSMutableArray array];
   NSMutableArray	*byName;
@@ -790,6 +817,8 @@ ihandler(int sig)
 	      NS_DURING
 		{
 		  [obs->queue removeObjectAtIndex: 0];
+  if (debugging)
+    NSLog(@"Posting to observer %llu with %@", obs->observer, n);
 		  [obs->client->client postNotificationName: n->name
 						     object: n->object
 						   userInfo: n->info
@@ -799,6 +828,8 @@ ihandler(int sig)
 	      NS_HANDLER
 		{
 		  obs = nil;
+		  NSLog(@"Problem posting notification to client: %@",
+		    localException);
 		}
 	      NS_ENDHANDLER
 	      RELEASE(n);
@@ -809,6 +840,11 @@ ihandler(int sig)
 
 - (void) removeObserver: (GDNCObserver*)observer
 {
+  if (debugging)
+    NSLog(@"Removing observer %llu for %@ %@",
+      observer->observer, observer->notificationName,
+      observer->notificationObject);
+
   if (observer->notificationObject)
     {
       NSMutableArray	*objList;
@@ -850,7 +886,7 @@ ihandler(int sig)
     }
 }
 
-- (void) removeObserver: (unsigned long)anObserver
+- (void) removeObserver: (uint64_t)anObserver
 		   name: (NSString*)notificationName
 		 object: (NSString*)notificationObject
 		    for: (id<GDNCClient>)client
@@ -1035,13 +1071,12 @@ main(int argc, char** argv, char** env)
 {
   GDNCServer		*server;
   BOOL			subtask = YES;
-  BOOL			debugging = NO;
   NSProcessInfo		*pInfo;
   NSMutableArray	*args;
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
-  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+  GSInitializeProcess(argc, argv, env);
 #endif
   [NSObject enableDoubleReleaseCheck: YES];
   pInfo = [NSProcessInfo processInfo];
@@ -1102,7 +1137,7 @@ main(int argc, char** argv, char** env)
 	}
       NS_HANDLER
 	{
-	  gdnc_log(LOG_CRIT);
+	  gdnc_log(LOG_CRIT, [[localException description] UTF8String]);
 	  DESTROY(t);
 	}
       NS_ENDHANDLER
@@ -1119,12 +1154,13 @@ main(int argc, char** argv, char** env)
 
     for (sym = 0; sym < NSIG; sym++)
       {
+	if (sym == SIGABRT) continue;
 #ifdef	SIGPROF
 	if (sym == SIGPROF) continue;
 #endif
 	signal(sym, ihandler);
       }
-#ifndef __MINGW32__
+#ifndef __MINGW__
     signal(SIGPIPE, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
@@ -1146,7 +1182,7 @@ main(int argc, char** argv, char** env)
      */
     [[NSFileHandle fileHandleWithStandardInput] closeFile];
     [[NSFileHandle fileHandleWithStandardOutput] closeFile];
-#ifndef __MINGW32__
+#ifndef __MINGW__
     if (debugging == NO)
       {
 	[[NSFileHandle fileHandleWithStandardError] closeFile];
