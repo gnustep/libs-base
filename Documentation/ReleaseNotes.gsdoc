@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.dtd">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" "http://www.gnustep.org/gsdoc-1_0_1.xml">
 <!--
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
@@ -24,507 +24,10 @@ notice and this notice are preserved.
     <chapter>
       <heading>Base Release Notes</heading>
       <p>
-        The release notes include descriptions of API changes, behaviour
+        The release notes include descriptions of API changes, behavior
 	changes and other information that might help developers and users
 	migrate to using a newer version of the library.
       </p>
-
-      <section>
-	<heading>Version 1.20.2</heading>
-        <p>This is a stable bugfix release. The changes in this release
-	are a rewrite of the netservices code to use libavahi if available,
-	additional languages added, and various bug fixes and portability
-	updates.
-	</p>
-	<deflist>
-	  <term>NSBundle</term>
-          <desc>Fix for loading frameworks with relative paths.<br />
-	  Fix error in lookup of localized resources.
-	  </desc>
-	  <term>NSCalendarDate</term>
-          <desc>Fix AM/PM parsing to treat 12 AM as midnight, and to return
-	  nil if the format requires a timezone and none is supplied.
-	  </desc>
-	  <term>NSkeyedArchiver</term>
-          <desc>Implement missing methods and add range checks.</desc>
-	  <term>NSMutableSet</term>
-          <desc>Fix for use the correct class when coding.</desc>
-	  <term>NSNetServices</term>
-          <desc>Implement using avahi if available<br />
-	  <term>NSNotificationQueue</term>
-          <desc>Fix for rare loss of notifications.</desc>
-	  <term>NSNumber</term>
-          <desc>Fixes for storing booleans in keyed archives.</desc>
-	  <term>NSPathUtilities</term>
-          <desc>Fix to support absolute paths in the user domain.</desc>
-	  <term>NSString</term>
-          <desc>Fix memory management issue loading from URL.</desc>
-	  <term>NSTask</term>
-          <desc>Fix for thread safety issue on task termination.</desc>
-	  <term>NSThread</term>
-          <desc>Fix for deadlock when asked to perform too many operations
-	  in another thread.</desc>
-	  <term>NSURL</term>
-          <desc>Implement keyed archiving.</desc>
-	  <term>NSZombie</term>
-          <desc>Improve handling of -release.</desc>
-	  <term>autogdoc</term>
-          <desc>Support paragraph markup generation on pairs of newlines.</desc>
-	</deflist>
-      </section>
-
-      <section>
-	<heading>Version 1.20.1</heading>
-        <p>This is a stable bugfix release. The changes in this release
-	are a timezone handling update to the latest zone information,
-	various minor bug fixes and portibility updates, some small
-	cleanups and optimisations, a few tweaks to help packagers,
-	and finally an alteration to the additions library on OSX to
-	add a category to re-enable serialisation of property lists
-	in the more readable and compact OpenStep format (something the
-	most recent versions of OSX lost).
-	</p>
-	<deflist>
-	  <term>NSAttributedString</term>
-          <desc>Fixes for keyed archiving/unarchiving.</desc>
-	  <term>NSData</term>
-          <desc>Improve reading of non-standard files (eg /proc filesystem).
-	  </desc>
-	  <term>NSHashTable</term>
-          <desc>Fix minor buffer overrun.</desc>
-	  <term>NSInvocation</term>
-          <desc>Fix for problem with FFI when caching the method implementation
-	  of a proxy.
-	  </desc>
-	  <term>NSNumber</term>
-          <desc>Fix the +numberWith... methods to work for subclasses of
-	  NSNumber rather than creating instances of the default class.</desc>
-	  <term>NSKeyValueCoding</term>
-          <desc>Fix -isKey for KVC compliance.</desc>
-	  <term>NSPropertyList</term>
-          <desc>Fix whitespace handling in XML property lists.<br />
-	  Allow OpenStep style property lists to be written on OSX.
-	  </desc>
-	  <term>NSTimeZone</term>
-          <desc>Update to latest zone information.<br />
-	  Update list of timezone abbreviations.<br />
-	  Improve diagnostics when no timezone is set.</desc>
-	  <term>GSObjCMethodNames</term>
-          <desc>Fix broken implementation.</desc>
-	  <term>ObjectiveC2 compatibility</term>
-          <desc>Bugfix for selector lookup issue.<br />
-	    Working implementation of checks for conformance to protocols.
-	  </desc>
-	  <term>Installation of gdomap</term>
-	  <desc>The installation process used to install gdomap setuid to
-	  root by default (for developers/hackers) and packagers were
-	  supposed to change that to not be setid, and start gdomap as root
-	  at system boot time. But packagers weren't doing that.
-	  The installation is now changed to install non-setuid by default
-	  giving packagers more of an incentive to start gdomap properly.
-	  </desc>
-	  <term>Update of fake-main mechanism</term>
-	  <desc>The fake-main mechanism for obtaining program arguments and
-	  environment requires the library to link to the gnustep_user_main
-	  function in any program which uses it.  This caused problems where
-	  a distribution packaging system refuses to allow unresolved link
-	  symbols in a library.  The code was reworked to use a weak reference
-	  to a local function, avoiding this problem.
-	  </desc>
-	</deflist>
-      </section>
-
-      <section>
-	<heading>Version 1.20.0</heading>
-        <p>This is a stable release. There have been major changes
-	  and reorganizations to support, among other things, the new
-	  non-fragile ABI from clang. These changes, although they
-	  break binary compatibility with previous releases, should allow 
-	  all future releases to maintain compatibility.
-	</p>
-	<deflist>
-	  <term>Objective-C 2</term>
-          <desc>
-	    Add compatibility code for Objective-C 2.0 when it is not provided
-	    by the compiler or objc library. Some runtime wrappers for 
-	    Objective-C have been deprecated in favour of new 2.0 API.
-          </desc>
-	  <term>Additions library</term>
-          <desc>
-	    Reorganized so all GNUstep extensions are in the Additions
-	    library files.
-          </desc>
-	  <term>Mac OS X Compatibility</term>
-          <desc>
-	    Various improvements for compatibility including use of 
-	    NSInteger/NSUInteger/CGFloat
-          </desc>
-	  <term>non-fragile ABI</term>
-          <desc>
-	    Support added for this ABI from clang includes additions of
-	    an extra ivar for future expansion and hiding of ivars in some
-	    classes.
-          </desc>
-	  <term>NSOperation</term>
-          <desc>
-	    Complete NSOperation and NSOperationQueue 
-	    (compatibile with 10.6 apart from blocks).
-          </desc>
-	  <term>Fast Enumeration</term>
-          <desc>
-	    Support was added.
-          </desc>
-	  <term>NSLock</term>
-          <desc>
-	    Complete rewrite of NSLock so they are faster, more complete and
-	    OS X-compatible. NSLock now depends on POSIX threads.
-          </desc>
-	</deflist>
-      </section>
-
-      <section>
-	<heading>Version 1.19.3</heading>
-        <p>This is a new unstable snapshot release of the base library
-	almost identical to 1.19.2 but containing a bugfix for the
-	introduction of a change in the behavior of NSURL's -path
-	method to match OSX.  We add a new -fullPath method which
-	returns the actual path of the URL the way the old -path
-	implementaiton did.  This is necessary because the OSX behavior
-	is to strip any trailing '/' from a path so that it's no longer
-	possible to reliably build a URL string from its component parts.
-	</p>
-      </section>
-      <section>
-	<heading>Version 1.19.2</heading>
-        <p>This is a new unstable snapshot release of the base library.
-	It may contain minor binary incompatibilities with the previous
-	unstable release, but should generally work with software compiled
-	for that release.
-	</p>
-	<p>This is primarily intended as a bugfix release prior to major
-	rewrite of NSLock code by David Chisnall.  As such, most changes
-	are bugfixes and performance tweaks.  Some of the main ones are
-	listed below.
-	</p>
-	<deflist>
-	  <term>NSCalendarDate</term>
-          <desc>
-	    Add OSX compatible field widths in date formats.
-          </desc>
-	  <term>NSCharacterSet</term>
-          <desc>
-	    Uses a much more compact internal representation to decrease the
-	    memory footprint of applications which make extensive use of
-	    charactersets.
-          </desc>
-	  <term>NSFileHandle</term>
-          <desc>
-	    Fixes for socket connections on mswindows.
-          </desc>
-	  <term>NSRunLoop</term>
-          <desc>
-	    Adds OSX compatibility changes with timers acting like input
-	    sources for determining blocking.
-          </desc>
-	  <term>NSString</term>
-          <desc>
-	    Performance improvements converting between 8bit and 16bit
-	    character representations.
-          </desc>
-	  <term>NSURL</term>
-          <desc>
-	    Support file URLs on mswindows.  Include 'Host' header in requests
-	    to conform to W3C standards.
-          </desc>
-	  <term>NSUserDefaults</term>
-          <desc>
-	    Fixes for improved thread safety.
-	    Now stores to file in XML format.
-          </desc>
-	  <term>Key Value Coding/Observing</term>
-          <desc>
-	    Various improvements for OSX compatibility.
-          </desc>
-	</deflist>
-      </section>
-      <section>
-	<heading>Version 1.19.1</heading>
-	<p>A great deal of improvements have occured recently.  This includes
-	many improvements in garbage collection (first to get it working again).
-	Also many Mac OS X 10.5 methods and classes have been added, as well
-	as compatibility improvements.
-	</p>
-	Highlights:
-	<deflist>
-	  <term>NSData</term>
-          <desc>
-	    Implemented new Mac OS X methods for writing data.
-          </desc>
-	  <term>NSFileManager</term>
-          <desc>
-	    Fix -fileOwnerAccountID and -fileGroupOwnerAccountID to
-	    return the correct type.
-          </desc>
-	  <term>NSHashTable, NSMapTable</term>
-          <desc>
-	    New Mac OS X 10.5 API classes.
-          </desc>
-	  <term>Garbage Collection</term>
-          <desc>
-	    Get GC working again. Fixes in various classes to work
-	    better with GC.
-          </desc>
-	  <term>Mac OS X 10.5 Return Types</term>
-          <desc>
-	    Methods have been converted to use return types and
-	    arguments of NSInteger, NSUInteger and CGFloat.  For now,
-	    these types are equivalent to the old types. This can be
-	    changed in NSObjCRuntime.h so that integer tpyes are the
-	    same size as a pointer, and the float type is actually a
-	    double on 64bit processors.
-          </desc>
-	  <term>NSArray</term>
-          <desc>
-	    New methods for inserting objects with NSIndexSet
-          </desc>
-	</deflist>
-      </section>
-      <section>
-	<heading>Version 1.19.0</heading>
-	<p> 
-          This is a new unstable release of the base library.  Note that
-          gnustep-core is now installed in the LOCAL domain by default
-          instead of the SYSTEM domain. You may want to remove old
-          installations in the SYSTEM domain to avoid any
-          incompatibility problems.  Or you can force installation in
-          SYSTEM using make GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
-          install.
-	</p>
-	Highlights:
-	<deflist>
-	  <term>NSBundle</term>
-          <desc>Improve lookup of versioned library resources and improve
-	  location of resources based on the location of the executable
-	  under ms-windows.
-          </desc>
-	  <term>NSConnection</term>
-          <desc>Adds a new keepalive mechanism to check connections at periodic
-	  intervals to see if the other end is still there.  This is enabled
-	  for message ports on ms-windows, where the operating system does
-	  not inform us when the other end goes away, and is not needed on
-	  the socket based connections on Unix.
-          </desc>
-	  <term>NSException</term>
-          <desc>Implement full support for native objecive-c exceptions,
-	  though this requires a fix for the objc runtme which is not yet
-	  available in gcc.  The patch for the runtime can be found at
-	  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27466
-          </desc>
-	  <term>NSTask</term>
-          <desc>Adds a new method in a category in the Additions library ...
-	  The +launchPathForTool: method will locate a named tool by looking
-	  in all the standard locations in the USER, LOCAL, NETWORK and
-	  SYSTEM domains, and also by looking in PATH.
-          </desc>
-	  <term>Portability and compatibility work</term>
-          <desc>There are various minor changes to improve portability
-	  (both improved configuration/detection of system software and
-	  runtime iimprovements) to different operating systems such as
-	  64bit ms-windows.  There are also various improvements to
-	  MacOS-X compatibility.
-	  </desc>
-	  <term>@synchronize</term>
-          <desc>
-	  Implementation of runtime support for @synchronize.
-	  </desc>
-	</deflist>
-      </section>
-      <section>
-	<heading>Version 1.15.4</heading>
-	<p> 
-          This is an unstable release.
-	</p>
-	Highlights:
-	<deflist>
-	  <term>NSArray</term>
-	  <desc>New OSX method stubs.</desc>
-	  <term>NSAutoreleasePool</term>
-	  <desc>Dummy OSX method (-drain).</desc>
-	  <term>NSBundle</term>
-	  <desc>New OSX method stubs.</desc>
-	  <term>NSCoder</term>
-	  <desc>New OSX10.5 methods for NSInteger implemented.</desc>
-	  <term>NSConnection</term>
-	  <desc>New OSX10.5 methods for server connections implemented.<br />
-	  A keepalive facility so that daemons can tell (on mswindows)
-	  that all client processes have gone away, and shut themselves down.
-	  </desc>
-	  <term>NSData</term>
-	  <desc>New OSX method stubs.</desc>
-	  <term>NSException</term>
-	  <desc>Implement stack address reporting.</desc>
-	  <term>NSIndexSet</term>
-	  <desc>Add OSX10.5 stub for countOfIndexesInRange</desc>
-	  <term>NSKeyvalueObserving</term>
-	  <desc>OSX10.5 additions implemented</desc>
-	  <term>NSSet</term>
-	  <desc>Implemented new OSX methods.</desc>
-	  <term>NSStream</term>
-	  <desc>Implemented basic SSL/TLS support using gnu-TLS.</desc>
-	  <term>NSThread</term>
-	  <desc>Implemented new OSX methods.</desc>
-	  <term>NSLock, NSRecursiveLock, NSConditionLock</term>
-	  <desc>Implemented names.</desc>
-	  <term>GSXML, NSXMLParser</term>
-	  <desc>Fully support namespace handling and fix bugs.</desc>
-	  <term>NSKeyValueCoding, NSKeyValueObserving</term>
-	  <desc>Made fully functional and MacOS-X compatible.</desc>
-	  <term>Windows 64bit</term>
-	  <desc>Changes so that the library can be built/used for 64bit windows.
-	  </desc>
-	  <term>@synchronize</term>
-	  <desc>Support for new ObjC language feature.
-	  </desc>
-	</deflist>
-        <p>The current emphasis of the base library is MacOS-X compatibility,
-        and the headers in this release mark many non-MacOS-X methods as being
-        scheduled for removal by the next unstable release (from 1.17.0).<br />
-        These methods will mostly be moved to the 'additions' library,
-        (which can be built stand-alone in conjunction with the Cocoa Foundation
-        framework as libgnustep-baseadd on OSX) and their declarations will
-        be in the headers of that library (&lt;GNUstepBase/...&gt;) rather
-        than in the <em>Foundation</em> directory.<br />
-        NB. The markup in the headers and documentation should not be
-        assumed to be exhaustive ...  it is planned that the next stable
-        release of the base library will enforce MacOS-X compatibility
-        by default, and you will have to explicitly include headers from
-        &lt;GNUstepBase/...&gt; in order to use GNUstep specific
-        additions.<br />
-        You should track the unstable branch of the base library (subversion
-        trunk) to find out what changes your software actually needs to make.
-        </p>
-        <p>The TODO list for MacOS-X 10.5 compatibility follows,
-        this is all stuff which would ideally be done by the next
-        stable release of this library.
-        </p>
-        <list>
-          <item>Remove all non OSX10.5 declarations from standard headers</item>
-          <item>Implement most new method stubs.</item>
-          <item>Implement new OSX10.5 NSCalendar class.</item>
-          <item>Implement new OSX10.5 NSLocale class.</item>
-          <item>Implement new OSX10.5 NSOperation class.</item>
-          <item>Implement new OSX10.5 XML classes.</item>
-          <item>Implement NSInteger coding for NSCoder subclasses.</item>
-          <item>Implement support for now enumerated values
-          in NSComparisonPredicate.</item>
-          <item>Implement new OSX10.5 features of NSDateFormatter.</item>
-          <item>Implement new OSX10.5 features of NSExpression.</item>
-          <item>Implement new OSX10.5 features of NSPredicate.</item>
-          <item>Implement new OSX10.5 features of NSFileManager.</item>
-          <item>Implement new OSX10.5 features of NSProcessInfo.</item>
-          <item>Implement new OSX10.5 NSHashTable class.</item>
-          <item>Implement new OSX10.5 NSMapTable class.</item>
-          <item>Implement new OSX10.5 NSPointerArray class.</item>
-          <item>Implement new OSX10.5 NSLocale additions.</item>
-          <item>Implement new OSX10.5 features of NSNumberFormatter.</item>
-          <item>Implement new OSX10.5 features of NSNumber/NSValue.</item>
-          <item>Update NSDistributedNotificationCenter
-          with new OSX methods.</item>
-        </list>
-      </section>
-
-      <section>
-	<heading>Version 1.15.3</heading>
-	<p> 
-          This is an unstable release.
-	</p>
-	Highlights:
-	<deflist>
-          <term>Configuration/NSUserDefaults</term>
-	  <desc>
-          Syntax within the configuration file extended so that a leading
-          '../' in a path name denotes a relative path in a relocatable
-          installation.<br />
-          New 'GlobalDefaults.plist' file in the same directory as the main
-          GNUstep config file allows packagers/sysadmins to set up global
-          defaults easily.
-	  </desc>
-	  <term>NSStream</term>
-	  <desc>
-	  Addition of TLS/SSL support using GNU TLS on both unix-like
-          and mswindows systems.  First draft.<br />
-          Additions of SOCKS proxying support for socket streams.  First draft.
-	  </desc>
-	  <term>NSURLConnection</term>
-	  <desc>
-          Added support for https using new stream code.<br />
-          Added support for basic and digest authentication.
-	  </desc>
-	</deflist>
-      </section>
-        
-      <section>
-	<heading>Version 1.15.2</heading>
-	<p> 
-          This is an unstable release. Bug fixes include improved thread
-	  safety and Key-Value observing.
-	</p>
-	Highlights:
-	<deflist>
-	  <term>NSException</term>
-	  <desc>
-	  New MacOS X methods and improved stack trace.
-	  </desc>
-	  <term>NSThread</term>
-	  <desc>
-	  New methods from Mac OS 10.5 and new ivars
-	  </desc>
-	  <term>NSDecimal and NSDecimalNumber</term>
-	  <desc>
-	  Many improvements
-	  </desc>
-	</deflist>
-      </section>
-      <section>
-	<heading>Version 1.15.1</heading>
-	<p> 
-          This is an unstable release. There have been many bug fixes, but
-	  also a few method additions and changes to some headers.
-	  Also the license for this release is now GPLv3 and LGPLv3.
-	</p>
-	Highlights:
-	<deflist>
-	  <term>NSUserDefaults</term>
-	  <desc>
-	  Stores YES or NO as a string for MacOS X compatibility.
-	  </desc>
-	  <term>NSErrorRecoveryAttempting</term>
-	  <desc>
-	  Added header (and some support in the gui library).
-	  </desc>
-	  <term>NSArray</term>
-	  <desc>
-	  Added some new methods to handle multiple objects.
-	  </desc>
-	  <term>Key-Value Coding</term>
-	  <desc>
-	  More support for key-value coding.
-	  </desc>
-	  <term>NSPredicate</term>
-	  <desc>
-	  Much improved parsing. Ivars have changed in some of the predicate
-	  classes.
-	  </desc>
-	</deflist>
-      </section>
-      <section>
-	<heading>Version 1.15.0</heading>
-	<p> 
-          This is an unstable release from 1.14.0.  It is otherwise
-	  identical to the 1.14.0 release. Releases in the 1.15 series
-	  may not be forward compatible with previous 1.15 releases.
-	</p>
-      </section>
       <section>
 	<heading>Version 1.14.0</heading>
 	<p> 
@@ -557,7 +60,7 @@ notice and this notice are preserved.
 	  <term>NSObject</term>
 	  <desc>
 	     Fixes for lock contention with retain/release, so the performance
-	     of massively multi-threaded applications is much better.
+	     of massively multithreaded applications is much better.
 	  </desc>
 	  <term>NSNetServices</term>
 	  <desc>
@@ -595,18 +98,18 @@ notice and this notice are preserved.
 	  <term>NSBundle</term>
 	  <desc>
 	    Fix for crash when initialising the bundle system in
-	    an application linked with many frameworks.
+	    an applicatiuon linked with many frameworks.
 	  </desc>
 	  <term>NSCalendarDate</term>
 	  <desc>
-	     Fix for buffer overrun problem when initialising
+	     Fix for buffer overrun problem mwhen initialising
 	     date from string.  Also fixed to return nil when
 	     initialising from some illegal strings.
 	  </desc>
 	  <term>NSConnection</term>
 	  <desc>
 	     Some locking fixes to avoid rare deadlocks in heavily
-	     multi-threaded applications.
+	     multithreaded applications.
 	  </desc>
 	  <term>NSDecimalNumber</term>
 	  <desc>
@@ -649,17 +152,17 @@ notice and this notice are preserved.
 	<heading>Version 1.13.0</heading>
 	<p> 
           Several sets of classes have been added for dealing with urls and
-          predicates. A few minor api changes have occurred as well.
+          predicates. A few minor api changes have occured as well.
 	</p>
 	  <deflist>
 	    <term>Character sets</term>
 	    <desc>
-	       Character sets were improved with regard to ranges (Chinese
+	       Character sets were improved with regard to ranges (chinese
                characters, etc).
 	    </desc>
 	    <term>Keyed Archiving</term>
 	    <desc>
-               Better compatibility with MacOSX. In particular, some guesses
+               Better compatibility with MacOSX. In particular, some gueses
                are made as to how some objects should be encoded.
 	    </desc>
 	    <term>GNUstep configuration file</term>
@@ -677,14 +180,14 @@ notice and this notice are preserved.
                Most of the code was updated to compile nicely with the new
                gcc objective-c++ compiler.
 	    </desc>
-	    <term>NSString designated initialiser</term>
+	    <term>NSString designated initializer</term>
 	    <desc>
                The GNUstep designated initialiser for the NSString class 
                cluster has changed to 
                <code>-initWithBytesNoCopy:length:encoding:freeWhenDone:</code>
                from 
                <code>-initWithCharactersNoCopy:length:freeWhenDone:</code> 
-               and older code sub classing NSString will need to be updated.
+               and older code subclassing NSString will need to be updated.
 	    </desc>
 	    <term>NSBundle bundleWithIndentifier:</term>
 	    <desc>
@@ -709,7 +212,7 @@ notice and this notice are preserved.
 	    </desc>
 	    <term>Run loops</term>
 	    <desc>
-              Removed the timeout facility for run loop watchers - you should
+              Removed the timeout facility for runloop watchers - you should
               use standard timers instead. The watcher interface is deprecated
               anyway.
 	    </desc>
@@ -745,7 +248,7 @@ notice and this notice are preserved.
 	    Several deprecated and private methods were removed from
 	    the public interface including
 	    <code>+gnustepBundle</code>, and
-	    <code>+pathForGNUstepResource:ofType:inDirectory:</code>.
+	    <code>+pathForGNUstepResource:ofTpye:inDirectory:</code>.
 	    </desc>
 	    <term>NSNotificationCenter deprecated method</term>
 	    <desc>

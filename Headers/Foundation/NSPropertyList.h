@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -39,47 +39,46 @@ extern "C" {
 
 @class NSData, NSString;
 
-enum {
-  NSPropertyListImmutable = 0,
-  NSPropertyListMutableContainers,
-  NSPropertyListMutableContainersAndLeaves
-};
 /**
  * Describes the mutability to use when generating objects during
  * deserialisation of a property list.
- * <list>
- * <item><strong>NSPropertyListImmutable</strong>
- * all objects in created list are immutable</item>
- * <item><strong>NSPropertyListMutableContainers</strong>
- * dictionaries, arrays, strings and data objects are mutable</item>
- * </list>
  */
-typedef NSUInteger NSPropertyListMutabilityOptions;
+typedef enum {
+  NSPropertyListImmutable = 0,
+/** <strong>NSPropertyListImmutable</strong>
+ * all objects in created list are immutable
+ */
+  NSPropertyListMutableContainers,
+/** <strong>NSPropertyListMutableContainers</strong>
+ * dictionaries and arrays are mutable
+ */
+  NSPropertyListMutableContainersAndLeaves
+/** <strong>NSPropertyListMutableContainersAndLeaves</strong>
+ * dictionaries, arrays, strings and data objects are mutable
+ */
+} NSPropertyListMutabilityOptions;
 
-enum {
-  NSPropertyListOpenStepFormat = 1,
-  NSPropertyListXMLFormat_v1_0 = 100,
-  NSPropertyListBinaryFormat_v1_0 = 200,
-
-  NSPropertyListGNUstepFormat = 1000,
-  NSPropertyListGNUstepBinaryFormat,
-};
 /**
  * Specifies the serialisation format for a serialised property list.
- * <list>
- * <item><strong>NSPropertyListOpenStepFormat</strong>
- * the most human-readable format</item>
- * <item><strong>NSPropertyListXMLFormat_v1_0</strong>
- * portable and readable</item>
- * <item><strong>NSPropertyListBinaryFormat_v1_0</strong>
- * the standard format on macos-x</item>
- * <item><strong>NSPropertyListGNUstepFormat</strong>
- * extension of OpenStep format</item>
- * <item><strong>NSPropertyListGNUstepBinaryFormat</strong>
- * efficient, hardware independent</item>
- * </list>
  */
-typedef NSUInteger NSPropertyListFormat;
+typedef enum {
+  NSPropertyListOpenStepFormat = 1,
+/** <strong>NSPropertyListOpenStepFormat</strong>
+ * the most human-readable format */
+  NSPropertyListXMLFormat_v1_0 = 100,
+/** <strong>NSPropertyListXMLFormat_v1_0</strong>
+ * portable and readable */
+  NSPropertyListBinaryFormat_v1_0 = 200,
+/** <strong>NSPropertyListBinaryFormat_v1_0</strong>
+ * the standard format on macos-x */
+
+  NSPropertyListGNUstepFormat = 1000,
+/** <strong>NSPropertyListGNUstepFormat</strong>
+ * extension of OpenStep format */
+  NSPropertyListGNUstepBinaryFormat,
+/** <strong>NSPropertyListGNUstepBinaryFormat</strong>
+ * efficient, hardware independent */
+} NSPropertyListFormat;
 
 /**
  * <p>The NSPropertyListSerialization class provides facilities for
@@ -133,10 +132,9 @@ typedef NSUInteger NSPropertyListFormat;
  *       &lt;*D2002-03-22 11:30:00 +0100&gt;
  *     </example>
  *     In XML format, a date object is an element whose name is
- *     <code>date</code> and whose content is a date in the format
- *     YYYY-MM-DDTHH:MM:SSZ (or the above dfate format).
+ *     <code>date</code> and whose content is a date in the above format.
  *     <example>
- *       &lt;date&gt;2002-03-22T11:30:00Z&lt;/date&gt;
+ *       &lt;date&gt;2002-03-22 11:30:00 +0100&lt;/date&gt;
  *     </example>
  *   </desc>
  *   <term>[NSDictionary]</term>

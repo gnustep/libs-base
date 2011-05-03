@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -52,7 +52,6 @@ extern "C" {
  */
 @interface NSKeyedArchiver : NSCoder
 {
-#if	GS_EXPOSE(NSKeyedArchiver)
 @private
   NSMutableData	*_data;		/* Data to write into.		*/
   id		_delegate;	/* Delegate controls operation.	*/
@@ -70,10 +69,6 @@ extern "C" {
   NSMutableDictionary	*_enc;	/* Object being encoded.	*/
   NSMutableArray	*_obj;	/* Array of objects.		*/
   NSPropertyListFormat	_format;
-#endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
 }
 
 /**
@@ -126,7 +121,7 @@ extern "C" {
  * and associates the encoded value with aKey.
  */
 - (void) encodeBytes: (const uint8_t*)aPointer
-	      length: (NSUInteger)length
+	      length: (unsigned)length
 	      forKey: (NSString*)aKey;
 
 /**
@@ -221,7 +216,6 @@ extern "C" {
  */
 @interface NSKeyedUnarchiver : NSCoder
 {
-#if	GS_EXPOSE(NSKeyedUnarchiver)
 @private
   NSDictionary	*_archive;
   id		_delegate;	/* Delegate controls operation.	*/
@@ -236,13 +230,9 @@ extern "C" {
 #endif
   GSIArray		_objMap; /* Decoded objects.		*/
 #ifndef	_IN_NSKEYEDUNARCHIVER_M
-#undef	GSIArray
+#undef	GSUnarchiverArray
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
-#endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
 }
 
 /**
@@ -308,7 +298,7 @@ extern "C" {
  * -encodeBytes:length:forKey:
  */
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (NSUInteger*)length;
+		      returnedLength: (unsigned*)length;
 
 /**
  * Returns a double value associated with aKey.  This value must previously

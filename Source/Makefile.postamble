@@ -8,7 +8,7 @@
 #  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU Lesser General Public
+#  modify it under the terms of the GNU Library General Public
 #  License as published by the Free Software Foundation; either
 #  version 2 of the License, or (at your option) any later version.
 #
@@ -20,7 +20,7 @@
 #  If you are interested in a warranty or support for this source code,
 #  contact Scott Christley at scottc@net-community.com
 #
-#  You should have received a copy of the GNU Lesser General Public
+#  You should have received a copy of the GNU Library General Public
 #  License along with this library; see the file COPYING.LIB.
 #  If not, write to the Free Software Foundation,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -42,11 +42,7 @@ before-all::  $(GENERATED_HFILES)
 after-all:: Info-gnustep.plist
 
 # Things to do before installing
-before-install::
-	cp ../Headers/Foundation/Foundation.h \
-	../Headers/Foundation/Foundation.h.saved
-	cp ../Headers/Foundation/Foundation.h.install \
-	../Headers/Foundation/Foundation.h
+# before-install::
 
 # Things to do after installing
 #
@@ -58,12 +54,10 @@ after-install::
 	  $(INSTALL_DATA) ../Headers/Additions/GNUstepBase/$$file \
 	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
-	cp ../Headers/Foundation/Foundation.h.saved \
-	../Headers/Foundation/Foundation.h
 	$(MKDIRS) $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h \
 	  $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
-	if [ "$(DESTDIR)" = "" ]; then \
+	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
 	  services=/etc/services; \
 	  if [ "`$(WHOAMI)`" != root ]; then \
 	      echo "WARNING: Please add the following lines to $$services"; \
@@ -95,7 +89,6 @@ before-uninstall::
 # Things to do after cleaning
 after-clean::
 	rm -f libgnustep-base.def
-	rm -f ../Headers/Foundation/Foundation.h.saved
 
 # Things to do before distcleaning
 # before-distclean::
@@ -115,9 +108,13 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
+$(GNUSTEP_OBJ_DIR)/objc-load${OEXT}: dynamic-load.h
+
 dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
+
+$(GNUSTEP_OBJ_DIR)/preface${OEXT}: $(HEADER_DIR_BASE)/preface.h
 
 #
 # The config.h file is specific to a target
@@ -137,11 +134,6 @@ $(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
 	-mv mframe/mframe.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/mframe.h
 
-$(GNUSTEP_TARGET_DIR)/common.h: common.h
-	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
-	cp common.h $(GNUSTEP_TARGET_DIR)/common.h
-	-touch $(GNUSTEP_TARGET_DIR)/common.h
-
 #
 #       Files where optimisation breaks the code!
 #       These have to filter the optimisation flag out.
@@ -150,7 +142,6 @@ $(GNUSTEP_TARGET_DIR)/common.h: common.h
 mframe.m_FILE_FILTER_OUT_FLAGS = -O%
 NSConnection.m_FILE_FILTER_OUT_FLAGS = -O%
 NSInvocation.m_FILE_FILTER_OUT_FLAGS = -O%
-libgnustep-base-entry.m_FILE_FILTER_OUT_FLAGS = -O%   # gcc 4.4 on mingw
 
 #
 # Make list of class names for DLL exports. Uses the actual classes from

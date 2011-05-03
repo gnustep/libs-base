@@ -29,7 +29,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -38,7 +38,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -73,12 +73,11 @@ extern "C" {
 }
  </example>
  */
-enum {
+typedef enum {
   NSPostWhenIdle = 1,
   NSPostASAP = 2,
   NSPostNow = 3
-};
-typedef NSUInteger NSPostingStyle;
+} NSPostingStyle;
 
 /**
  * Enumeration of possible ways to combine notifications when dealing with
@@ -91,12 +90,11 @@ typedef NSUInteger NSPostingStyle;
 }
  </example>
  */
-enum {
+typedef enum {
   NSNotificationNoCoalescing = 0,
   NSNotificationCoalescingOnName = 1,
   NSNotificationCoalescingOnSender = 2,
-};
-typedef NSUInteger NSNotificationCoalescing;
+} NSNotificationCoalescing;
 
 /*
  * NSNotificationQueue class
@@ -109,13 +107,10 @@ struct _NSNotificationQueueList;
 
 @interface NSNotificationQueue : NSObject
 {
-#if	GS_EXPOSE(NSNotificationQueue)
-@public
   NSNotificationCenter			*_center;
   struct _NSNotificationQueueList	*_asapQueue;
   struct _NSNotificationQueueList	*_idleQueue;
   NSZone				*_zone;
-#endif
 }
 
 /* Creating Notification Queues */
@@ -126,14 +121,14 @@ struct _NSNotificationQueueList;
 /* Inserting and Removing Notifications From a Queue */
 
 - (void) dequeueNotificationsMatching: (NSNotification*)notification
-			 coalesceMask: (NSUInteger)coalesceMask;
+			 coalesceMask: (unsigned int)coalesceMask;
 
 - (void) enqueueNotification: (NSNotification*)notification
 	        postingStyle: (NSPostingStyle)postingStyle;
 
 - (void) enqueueNotification: (NSNotification*)notification
 	        postingStyle: (NSPostingStyle)postingStyle
-	        coalesceMask: (NSUInteger)coalesceMask
+	        coalesceMask: (unsigned int)coalesceMask
 		    forModes: (NSArray*)modes;
 
 @end

@@ -6,27 +6,29 @@
 
    This file is part of the GNUstep Project
 
-   This program is free software; you can redistribute it and/or
+   This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
+   License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#import "common.h"
-
-#import	"Foundation/NSArray.h"
-#import	"Foundation/NSData.h"
-#import	"Foundation/NSException.h"
-#import	"Foundation/NSProcessInfo.h"
-#import	"Foundation/NSUserDefaults.h"
-#import	"Foundation/NSFileHandle.h"
-#import	"Foundation/NSAutoreleasePool.h"
+#include "config.h"
+#include	<Foundation/Foundation.h>
+#include	<Foundation/NSArray.h>
+#include	<Foundation/NSData.h>
+#include	<Foundation/NSException.h>
+#include	<Foundation/NSString.h>
+#include	<Foundation/NSProcessInfo.h>
+#include	<Foundation/NSUserDefaults.h>
+#include	<Foundation/NSDebug.h>
+#include	<Foundation/NSFileHandle.h>
+#include	<Foundation/NSAutoreleasePool.h>
 
 
 /** <p> This tool converts a text property list to a binary serialised
@@ -41,7 +43,7 @@ main(int argc, char** argv, char **env)
   unsigned		i;
 
 #ifdef GS_PASS_ARGUMENTS
-  GSInitializeProcess(argc, argv, env);
+  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
   pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];

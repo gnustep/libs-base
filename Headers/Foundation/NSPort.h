@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -33,7 +33,7 @@
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSMapTable.h>
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 #include	<winsock2.h>
 #include	<wininet.h>
 #else
@@ -62,6 +62,14 @@ extern "C" {
 @end
 
 /**
+ *  Exception raised by [NSPort], [NSConnection], and friends if sufficient
+ *  time elapses while waiting for a response, or if the receiving port is
+ *  invalidated before a request can be received.  See
+ *  [NSConnection-setReplyTimeout:].
+ */
+GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
+
+/**
  * <p><code>NSPort</code> is an abstract class defining interfaces underlying
  * communications in the distributed objects framework.  Each side of a
  * connection will have an <code>NSPort</code> object, responsible for sending
@@ -74,10 +82,8 @@ extern "C" {
  */
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {
-#if	GS_EXPOSE(NSPort)
   BOOL		_is_valid;
   id		_delegate;
-#endif
 }
 
 /**
@@ -93,7 +99,7 @@ extern "C" {
 /**
  * NSMachPort compatibility method.
  */
-+ (NSPort*) portWithMachPort: (NSInteger)machPort;
++ (NSPort*) portWithMachPort: (int)machPort;
 
 /**
  *  Returns the object that received messages will be passed off to.
@@ -114,12 +120,12 @@ extern "C" {
 /**
  * NSMachPort compatibility method.
  */
-- (id) initWithMachPort: (NSInteger)machPort;
+- (id) initWithMachPort: (int)machPort;
 
 /**
  * NSMachPort compatibility.
  */
-- (NSInteger) machPort;
+- (int) machPort;
 
 /**
  * Mark port as invalid, deregister with listeners and cease further network
@@ -153,16 +159,16 @@ extern "C" {
  * Returns amount of space used for header info at beginning of messages.
  * Subclasses should override (this implementation returns 0).
  */
-- (NSUInteger) reservedSpaceLength;
+- (unsigned) reservedSpaceLength;
 
 /**
  * Internal method for sending message, for use by subclasses.
  */
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (NSInteger)msgid
+		  msgid: (int)msgid
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
-	       reserved: (NSUInteger)length;
+	       reserved: (unsigned)length;
 
 /**
  * Internal method for sending message, for use by subclasses.
@@ -170,7 +176,7 @@ extern "C" {
 - (BOOL) sendBeforeDate: (NSDate*)when
 	     components: (NSMutableArray*)components
 		   from: (NSPort*)receivingPort
-	       reserved: (NSUInteger)length;
+	       reserved: (unsigned)length;
 #endif
 @end
 
@@ -197,22 +203,17 @@ typedef SOCKET NSSocketNativeHandle;
  *
  *  <p>Note that this class is incompatible with the latest OS X version.</p>
  */
-@interface NSSocketPort : NSPort
+@interface NSSocketPort : NSPort <GCFinalization>
 {
-#if	GS_EXPOSE(NSSocketPort)
   NSRecursiveLock	*myLock;
   NSHost		*host;		/* OpenStep host for this port.	*/
   NSString		*address;	/* Forced internet address.	*/
   uint16_t		portNum;	/* TCP port in host byte order.	*/
   SOCKET		listener;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   WSAEVENT              eventListener;
   NSMapTable            *events;
-#endif
-#endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
 #endif
 }
 
@@ -265,6 +266,40 @@ typedef SOCKET NSSocketNativeHandle;
  *  Returns port number of underlying socket.
  */
 - (uint16_t) portNumber;
+
+// This is the OS X interface
+/*
+{
+  NSSocketNativeHandle _socket;
+  int _protocolFamily;
+  int _socketType;
+  int _protocol;
+  NSData *_remoteAddrData;
+}
+- (id) init;
+- (id) initWithTCPPort: (unsigned short)portNumber;
+- (id) initWithProtocolFamily: (int)family
+                   socketType: (int)type
+                     protocol: (int)protocol
+                      address: (NSData *)addrData;
+- (id) initWithProtocolFamily: (int)family
+                   socketType: (int)type
+                     protocol: (int)protocol
+                       socket: (NSSocketNativeHandle)socket;
+- (id) initRemoteWithTCPPort: (unsigned short)portNumber
+                        host: (NSString *)hostname;
+- (id) initRemoteWithProtocolFamily: (int)family
+                         socketType: (int)type
+                           protocol: (int)protocol
+                            address: (NSData *)addrData;
+
+- (NSData *) address;
+- (int) protocol;
+- (int) protocolFamily;
+- (NSSocketNativeHandle) socket;
+- (int) socketType;
+*/
+
 @end
 
 
@@ -273,11 +308,9 @@ typedef SOCKET NSSocketNativeHandle;
  *  which can be used for interthread/interprocess communications
  *  on the same host, but not between different hosts.
  */
-@interface NSMessagePort : NSPort
+@interface NSMessagePort : NSPort <GCFinalization>
 {
-#if	GS_EXPOSE(NSMessagePort)
   void	*_internal;
-#endif
 }
 @end
 

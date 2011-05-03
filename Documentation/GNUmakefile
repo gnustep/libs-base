@@ -9,7 +9,7 @@
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public
 #  License as published by the Free Software Foundation; either
-#  version 3 of the License, or (at your option) any later version.
+#  version 2 of the License, or (at your option) any later version.
 #
 #  This library is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,28 +23,21 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
-  ifeq ($(GNUSTEP_MAKEFILES),)
-    $(warning )
-    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
-    $(warning Perhaps gnustep-make is not properly installed,)
-    $(warning so gnustep-config is not in your PATH.)
-    $(warning )
-    $(warning Your PATH is currently $(PATH))
-    $(warning )
-  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
-PACKAGE_NAME = gnustep-base
+# Install into the system root by default
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
+
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
--include ../Version
--include ../config.mak
+include ../Version
+include ../config.mak
 
 # The documents to be generated
 DOCUMENT_NAME = coding-standards
@@ -56,7 +49,7 @@ SUBPROJECTS = manual General
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
-INSTALL NEWS README ANNOUNCE
+INSTALL NEWS CODING-STANDARDS README ANNOUNCE
 
 TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE
 
@@ -77,10 +70,6 @@ INSTALL_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 NEWS_TEXI_FILES = version.texi
 NEWS_TEXT_MAIN = news.texi
 NEWS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
-
-CODING-STANDARDS_TEXI_FILES = version.texi
-CODING-STANDARDS_TEXT_MAIN = coding-standards.texi
-CODING-STANDARDS_DOC_INSTALL_DIR = Developer/CodingStandards
 
 README_TEXI_FILES = version.texi
 README_TEXT_MAIN = readme.texi
@@ -111,9 +100,11 @@ BASE_MAKE_LOADED=yes
 # file using the make file ../Source/DocMakefile.  If headers are added to the
 # library, you need to modify that file to get the autogsdoc tool to use them.
 #
-REF_DOC_INSTALL_DIR = $(GNUSTEP_DOC)/Developer
+REF_DOC_INSTALL_DIR = $(GNUSTEP_DOCUMENTATION)/Developer
 
 -include Makefile.preamble
+
+-include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
 include $(GNUSTEP_MAKEFILES)/aggregate.make

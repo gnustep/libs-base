@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -90,17 +90,7 @@
    * Ensure that the version encoded is that used by the abstract class.
    */
   [self setVersion: [super version]];
-#if TYPE_ORDER == 0 && GS_WITH_GC
-  GSMakeWeakPointer(self, "data");
-#endif
 }
-
-#if TYPE_ORDER == 0 && GS_WITH_GC
-- (void) finalize
-{
-  GSAssignZeroingWeakPointer((void**)&data, (void*)nil);
-}
-#endif
 
 // Allocating and Initializing
 
@@ -109,11 +99,7 @@
 {
   typedef __typeof__(data) _dt;
   self = [super init];
-#if TYPE_ORDER == 0 && GS_WITH_GC
-  GSAssignZeroingWeakPointer((void**)&data, (void*)(*(id*)value));
-#else
   data = *(_dt *)value;
-#endif
   return self;
 }
 
@@ -132,7 +118,7 @@
 - (BOOL) isEqual: (id)other
 {
   if (other != nil && GSObjCIsInstance(other) == YES
-    && GSObjCIsKindOf(object_getClass(other), object_getClass(self)))
+    && GSObjCIsKindOf(GSObjCClass(other), GSObjCClass(self)))
     {
       return [self isEqualToValue: other];
     }
@@ -144,7 +130,7 @@
   typedef __typeof__(data) _dt;
 
   if (aValue != nil && GSObjCIsInstance(aValue) == YES
-    && GSObjCIsKindOf(object_getClass(aValue), object_getClass(self)))
+    && GSObjCIsKindOf(GSObjCClass(aValue), GSObjCClass(self)))
     {
       _dt	val = [aValue TYPE_METHOD];
 #if TYPE_ORDER == 0
@@ -182,7 +168,7 @@
   return NO;
 }
 
-- (NSUInteger) hash
+- (unsigned) hash
 {
 #if TYPE_ORDER == 0
   return [data hash];
@@ -191,7 +177,7 @@
     double d;
     unsigned char c[sizeof(double)];
   } val;
-  unsigned      hash = 0;
+  NSUInteger	hash = 0;
   unsigned int	i;
 
   val.d = data.x + data.y;
@@ -199,7 +185,7 @@
     hash += val.c[i];
   return hash;
 #elif TYPE_ORDER == 2
-  return (NSUInteger)(uintptr_t)data;
+  return (unsigned)(uintptr_t)data;
 #elif TYPE_ORDER == 3
   return (data.length ^ data.location);
 #elif TYPE_ORDER == 4
@@ -207,7 +193,7 @@
     double d;
     unsigned char c[sizeof(double)];
   } val;
-  unsigned      hash = 0;
+  NSUInteger	hash = 0;
   unsigned int	i;
 
   val.d = data.origin.x + data.origin.y + data.size.width + data.size.height;
@@ -219,7 +205,7 @@
     double d;
     unsigned char c[sizeof(double)];
   } val;
-  unsigned      hash = 0;
+  NSUInteger	hash = 0;
   unsigned int	i;
 
   val.d = data.width + data.height;

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,18 +16,19 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
 
-#import "common.h"
+#include "config.h"
+#include "Foundation/NSString.h"
 
-#import "Foundation/NSArray.h"
-#import "Foundation/NSException.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
 
-#import "GSPrivate.h"
+#include "GSPrivate.h"
 
 /*
  PENDING some string constants are scattered about in the class impl
@@ -36,6 +37,12 @@
          needs to be updated
 */
 
+
+/* Global lock to be used by classes when operating on any global
+   data that invoke other methods which also access global; thus,
+   creating the potential for deadlock. */
+@class	NSRecursiveLock;
+NSRecursiveLock *gnustep_global_lock = nil;
 
 /*
  * NSConnection Notification Strings.
@@ -93,15 +100,13 @@ NSString *NSURLFileScheme = @"file";
 /* RunLoop modes */
 NSString *NSConnectionReplyMode = @"NSConnectionReplyMode";
 
-/* NSValueTransformer constants */
-NSString *const NSNegateBooleanTransformerName
-  = @"NSNegateBoolean";
-NSString *const NSIsNilTransformerName
-  = @"NSIsNil";
-NSString *const NSIsNotNilTransformerName
-  = @"NSIsNotNil"; 
-NSString *const NSUnarchiveFromDataTransformerName
-  = @"NSUnarchiveFromData";
+
+
+/**
+ * Last-resort exception handler, a function taking an NSException and
+ * returning void.  Set with NSSetUncaughtExceptionHandler().
+ */
+NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
 /* NSBundle */
 NSString *NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
@@ -190,7 +195,7 @@ NSString *NSLanguageName = @"NSLanguageName";
 NSString *NSFormalName = @"NSFormalName";
 
 /* For GNUstep */
-NSString *GSLocale = @"GSLocale";
+NSString *NSLocale = @"NSLocale";
 
 
 /*
@@ -271,7 +276,7 @@ GSPrivateBuildStrings()
       GS_REPLACE_CONSTANT_STRING(NSLanguageName);
       GS_REPLACE_CONSTANT_STRING(NSLaterTimeDesignations);
       GS_REPLACE_CONSTANT_STRING(NSLoadedClasses);
-      GS_REPLACE_CONSTANT_STRING(GSLocale);
+      GS_REPLACE_CONSTANT_STRING(NSLocale);
       GS_REPLACE_CONSTANT_STRING(NSLocalNotificationCenterType);
       GS_REPLACE_CONSTANT_STRING(NSMonthNameArray);
       GS_REPLACE_CONSTANT_STRING(NSNegativeCurrencyFormatString);

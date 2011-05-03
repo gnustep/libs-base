@@ -6,28 +6,30 @@
 
    This file is part of the GNUstep Project
 
-   This program is free software; you can redistribute it and/or
+   This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
+   License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#import "common.h"
-
-#import	"Foundation/NSArray.h"
-#import	"Foundation/NSData.h"
-#import	"Foundation/NSDictionary.h"
-#import	"Foundation/NSException.h"
-#import	"Foundation/NSProcessInfo.h"
-#import	"Foundation/NSUserDefaults.h"
-#import	"Foundation/NSAutoreleasePool.h"
-#import "GNUstepBase/Additions.h"
+#include "config.h"
+#include	<Foundation/NSArray.h>
+#include	<Foundation/NSData.h>
+#include	<Foundation/NSException.h>
+#include	<Foundation/NSString.h>
+#include	<Foundation/NSProcessInfo.h>
+#include	<Foundation/NSUserDefaults.h>
+#include	<Foundation/NSDebug.h>
+#include	<Foundation/NSAutoreleasePool.h>
+#ifdef NeXT_Foundation_LIBRARY
+#include "GNUstepBase/GSCategories.h"
+#endif
 
 int
 convert_unicode(NSArray *args)
@@ -47,11 +49,11 @@ convert_unicode(NSArray *args)
 	  data = [NSData dataWithContentsOfFile: file];
 	  myString = [[NSString alloc] initWithData: data
 					   encoding: NSUTF8StringEncoding];
-	  IF_NO_GC([myString autorelease];)
+	  AUTORELEASE(myString);
 	  if ([myString length] == 0)
 	    {
-	      myString = [[NSString alloc] initWithData: data
-		encoding: [NSString defaultCStringEncoding]];
+	      myString = [[[NSString alloc] initWithData: data
+		encoding: [NSString defaultCStringEncoding]] autorelease];
 	    }
 	  output = [[file lastPathComponent]
 	    stringByAppendingPathExtension: @"unicode"];
@@ -118,7 +120,7 @@ main(int argc, char** argv, char **env)
   int			retval = 0;
 
 #ifdef GS_PASS_ARGUMENTS
-  GSInitializeProcess(argc, argv, env);
+  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
   pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];
@@ -162,8 +164,7 @@ main(int argc, char** argv, char **env)
 	      if (result == nil)
 		GSPrintf(stderr, @"Parsing '%@' - nil property list\n", file);
 	      else if ([result isKindOfClass: [NSDictionary class]] == YES)
-		GSPrintf(stderr, @"Parsing '%@' - seems ok (%d entries)\n",
-                  file, [result count]);
+		GSPrintf(stderr, @"Parsing '%@' - seems ok\n", file);
 	      else
 		GSPrintf(stderr, @"Parsing '%@' - unexpected class - %@\n",
 		  file, [[result class] description]);

@@ -33,7 +33,7 @@
 #
 
 # Things to do before compiling
-#before-all::
+# before-all::
 
 # Things to do after compiling
 # after-all::
@@ -69,9 +69,9 @@ after-uninstall::
 after-distclean::
 	$(ECHO_NOTHING)\
 	rm -f config.status config.log config.cache TAGS config.mak base.make \
-	        Headers/Additions/GNUstepBase/config.h \
-		Headers/Additions/GNUstepBase/GSConfig.h \
-		Headers/Additions/GNUstepBase/preface.h\
+	        Headers/GNUstepBase/config.h \
+		Headers/GNUstepBase/GSConfig.h \
+		Headers/GNUstepBase/preface.h \
 	$(END_ECHO)
 
 # Things to do before checking
@@ -88,6 +88,9 @@ after-distclean::
 # why we can't guess what the ./configure arguments were last time
 # ./configure was called - make distclean cleans the sources
 # completely, wiping out any memory of specific configuration.
-config.mak base.make: config.mak.in base.make.in Version configure
+base.make: base.make.in
+	./configure
+
+config.mak: config.mak.in
 	./configure
 

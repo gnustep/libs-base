@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -30,9 +30,16 @@
 
 */
 
-#import "common.h"
+#include "config.h"
+
+#ifdef HAVE_DLADDR
+/* Define _GNU_SOURCE because that is required with GNU libc in order
+ * to have dladdr() available.  */
+# define _GNU_SOURCE
+#endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <objc/objc-api.h>
 #ifndef NeXT_RUNTIME
 # include <objc/objc-list.h>
@@ -41,9 +48,11 @@
 #endif
 
 #include "objc-load.h"
-#import "Foundation/NSException.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSException.h"
 
-#import "GSPrivate.h"
+#include "GSPrivate.h"
 
 /* include the interface to the dynamic linker */
 #include "dynamic-load.h"
@@ -93,7 +102,7 @@ static int
 objc_initialize_loading(FILE *errorStream)
 {
   NSString	*path;
-#ifdef    __MINGW__
+#ifdef    __MINGW32__
   const unichar *fsPath;
 #else  
   const char *fsPath;
@@ -136,7 +145,7 @@ objc_load_callback(Class class, struct objc_category * category)
     }
 }
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 #define	FSCHAR	unichar
 #else
 #define	FSCHAR	char
@@ -246,21 +255,20 @@ GSPrivateUnloadModule(FILE *errorStream,
 }
 
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 NSString *
 GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {
   unichar buf[MAX_PATH];
-  NSString *s = nil;
   MEMORY_BASIC_INFORMATION memInfo;
   NSCAssert(!theCategory, @"GSPrivateSymbolPath doesn't support categories");
 
   VirtualQueryEx(GetCurrentProcess(), theClass, &memInfo, sizeof(memInfo));
   if (GetModuleFileNameW(memInfo.AllocationBase, buf, sizeof(buf)))
     {
-      s = [NSString stringWithCharacters: buf length: wcslen(buf)];
+      return [NSString stringWithCharacters: buf length: wcslen(buf)];
     }
-  return s;
+  return 0;
 }
 #else
 NSString *

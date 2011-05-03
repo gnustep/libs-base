@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,13 +26,13 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSAutoreleasePool_IVARS	1
-#define	EXPOSE_NSThread_IVARS	1
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSGarbageCollector.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSThread.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSZone.h"
+#include <limits.h>
 
 /* When this is `NO', autoreleased objects are never actually recorded
    in an NSAutoreleasePool, and are not sent a `release' message.
@@ -47,7 +47,7 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 #define BEGINNING_POOL_SIZE 32
 
 /* Easy access to the thread variables belonging to NSAutoreleasePool. */
-#define ARP_THREAD_VARS (&((GSCurrentThread())->_autorelease_vars))
+#define ARP_THREAD_VARS (&(GSCurrentThread()->_autorelease_vars))
 
 
 @interface NSAutoreleasePool (Private)
@@ -248,7 +248,7 @@ static IMP	initImp;
 
       if (anObj != nil)
 	{
-	  NSLog(@"autorelease called without pool for object (%p) "
+	  NSLog(@"autorelease called without pool for object (%x) "
 	    @"of class %@ in thread %@", anObj,
 	    NSStringFromClass([anObj class]), [NSThread currentThread]);
 	}
@@ -304,25 +304,6 @@ static IMP	initImp;
   _released_count++;
 }
 
-- (void) drain
-{
-#if	GS_WITH_GC
-  static NSGarbageCollector	*collector = nil;
-  static SEL			sel;
-  static IMP			imp;
-
-  if (collector == nil)
-    {
-      collector = [NSGarbageCollector defaultCollector];
-      sel = @selector(collectIfNeeded);
-      imp = [collector methodForSelector: sel];
-    }
-  (*imp)(collector, sel);
-#else
-  DESTROY(self);
-#endif
-}
-
 - (id) retain
 {
   [NSException raise: NSGenericException
@@ -353,9 +334,7 @@ static IMP	initImp;
   if (_parent != nil)
     {
       _parent->_child = nil;
-      _parent = nil;
     }
-  _child = nil;
 
   /* Don't deallocate ourself, just save us for later use. */
   push_pool_to_cache (tv, self);
@@ -383,14 +362,14 @@ static IMP	initImp;
    */
   while (_child != nil || _released_count > 0)
     {
-      volatile struct autorelease_array_list *released;
+      volatile struct autorelease_array_list *released = _released_head;
 
       /* If there are NSAutoreleasePool below us in the stack of
 	 NSAutoreleasePools, then deallocate them also.  The (only) way we
 	 could get in this situation (in correctly written programs, that
 	 don't release NSAutoreleasePools in weird ways), is if an
 	 exception threw us up the stack. */
-      while (_child != nil)
+      if (_child != nil)
 	{
 	  [_child dealloc];
 	}
@@ -399,44 +378,28 @@ static IMP	initImp;
        * so if we are doing "double_release_check"ing, then
        * autoreleaseCountForObject: won't find the object we are currently
        * releasing. */
-      released = _released_head;
       while (released != 0)
 	{
 	  id	*objects = (id*)(released->objects);
 
 	  for (i = 0; i < released->count; i++)
 	    {
-	      id	anObject;
-	      Class	c;
-	      unsigned	hash;
+	      id	anObject = objects[i];
+	      Class	c = GSObjCClass(anObject);
+	      unsigned	hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
 
-	      anObject = objects[i];
 	      objects[i] = nil;
-              if (anObject == nil)
-                {
-                  fprintf(stderr,
-                    "nil object encountered in autorelease pool\n");
-                  continue;
-                }
-	      c = object_getClass(anObject);
-              if (c == 0)
-                {
-                  [NSException raise: NSInternalInconsistencyException
-                    format: @"nul class for object in autorelease pool"];
-                }
-	      hash = (((unsigned)(uintptr_t)c) >> 3) & 0x0f;
 	      if (classes[hash] != c)
 		{
-                  /* If anObject was an instance, c is it's class.
-                   * If anObject was a class, c is its metaclass.
-                   * Either way, get_imp() should get the appropriate pointer.
-                   * If anObject is a proxy to something,
-                   * the +instanceMethodForSelector: and -methodForSelector:
-                   * methods may not exist, but get_imp() will return the
-                   * address of the forwarding method if necessary.
-                   */
-		  imps[hash] = get_imp(c, @selector(release));
 		  classes[hash] = c;
+		  if (GSObjCIsInstance(anObject))
+		    {
+		      imps[hash] = [c instanceMethodForSelector: releaseSel];
+		    }
+		  else
+		    {
+		      imps[hash] = [c methodForSelector: releaseSel];
+		    }
 		}
 	      (imps[hash])(anObject, releaseSel);
 	    }
@@ -456,7 +419,6 @@ static IMP	initImp;
       NSZoneFree(NSDefaultMallocZone(), a);
       a = n;
     }
-  _released = _released_head = 0;
   [super dealloc];
 }
 
@@ -470,30 +432,14 @@ static IMP	initImp;
 + (void) _endThread: (NSThread*)thread
 {
   struct autorelease_thread_vars *tv;
-  NSAutoreleasePool *pool;
+  id	pool;
 
-  tv = &((thread)->_autorelease_vars);
-
-  /* First release any objects in the pool... bearing in mind that
-   * releasing any object could cause other objects to be added to
-   * the pool.
-   */
-  pool = tv->current_pool;
-  while (pool)
+  tv = ARP_THREAD_VARS;
+  while (tv->current_pool)
     {
-      [pool emptyPool];
-      pool = pool->_parent;
-    }
-
-  /* Now free the memory (we have finished usingthe pool).
-   */
-  pool = tv->current_pool;
-  while (pool)
-    {
-      NSAutoreleasePool *p = pool->_parent;
-
+      [tv->current_pool release];
+      pool = pop_pool_from_cache(tv);
       [pool _reallyDealloc];
-      pool = p;
     }
 
   free_pool_cache(tv);

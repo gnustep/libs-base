@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -308,7 +308,7 @@ extern "C" {
  *   <desc>%0.16g</desc>
  * </deflist>
  */
-- (NSString*) descriptionWithLocale: (id)locale;
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
 
 /**
  * Compares receiver with otherNumber, using C type conversion if necessary,
@@ -322,32 +322,23 @@ extern "C" {
  * Returns whether receiver and otherNumber represent the same numerical value.
  */
 - (BOOL) isEqualToNumber: (NSNumber*)otherNumber;
-
-
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-/** Return a number intialised with NSInteger.
- */
-+ (NSNumber*) numberWithInteger: (NSInteger)value;
-/** Return a number intialised with NSUInteger.
- */
-+ (NSNumber*) numberWithUnsignedInteger: (NSUInteger)value;
-/** Initialise the receiver with NSInteger content.
- */
-- (id) initWithInteger: (NSInteger)value;
-/** Initialise the receiver with NSUInteger content.
- */
-- (id) initWithUnsignedInteger: (NSUInteger)value;
-/** Return the contents of the receiver as NSInteger.
- */
-- (NSInteger) integerValue;
-/** Return the contents of the receiver as NSUInteger.
- */
-- (NSUInteger) unsignedIntegerValue;
-#endif
-
 @end
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+
+/**
+ * GNUstep specific (non-standard) additions to the NSNumber class.
+ */
+@interface NSNumber(GSCategories)
+
+/**
+ * Parses string as a <code>double</code>, <code>int</code>, or <code>unsigned
+ * int</code> depending on what characters are present.  Uses
+ * <code>atof</code> and <code>atoi</code> which don't report errors, so be
+ * careful if the string might contain an invalid value.
+ */
++ (NSValue*) valueFromString: (NSString *)string;
+@end
 
 /** Note: Defines a method that is not in the OpenStep spec, but makes
     subclassing easier. */
@@ -357,14 +348,29 @@ extern "C" {
 + (Class) valueClassWithObjCType: (const char*)type;
 
 @end
+
+/**
+ * Cache info for internal use by NSNumber concrete subclasses.
+ * DO NOT USE.
+ */
+typedef struct {
+  int		typeLevel;
+  void		(*getValue)(NSNumber*, SEL, void*);
+} GSNumberInfo;
+
+/** Internal method for caching. DO NOT USE. */
+GSNumberInfo	*GSNumberInfoFromObject(NSNumber *o);
+#define	GS_SMALL	16
+/**
+ * Internal method: get cached values for integers in the range
+ * - GS_SMALL to + GS_SMALL
+ *   <br />DO NOT USE
+ */
+unsigned	GSSmallHash(int n);
 #endif
 
 #if	defined(__cplusplus)
 }
-#endif
-
-#if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
-#import <GNUstepBase/NSNumber+GNUstepBase.h>
 #endif
 
 #endif /* __NSValue_h_GNUSTEP_BASE_INCLUDE */

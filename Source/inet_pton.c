@@ -20,22 +20,33 @@
 #include "config.h"
 
 #include <ctype.h>
-#ifdef  HAVE_STDINT_H
-#include <stdint.h>
-#endif
-
 #include <sys/types.h>
 #include <sys/param.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 #include <errno.h>
 
-#include "GSNetwork.h"
-
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+#if	defined(__MINGW32__)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <wininet.h>
+#if	!defined(EAFNOSUPPORT)
+#define	EAFNOSUPPORT WSAEAFNOSUPPORT
 #endif
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
+
 
 #if HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>
+#endif
+
+#ifndef INADDRSZ
+#define	INADDRSZ	4
 #endif
 
 /*
@@ -295,5 +306,3 @@ inet_pton6(const char *src, uint8_t *dst)
 	return (1);
 }
 #endif
-
-

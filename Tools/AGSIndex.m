@@ -10,24 +10,20 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
+   License along with this program; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#import	"common.h"
-
-#import	"Foundation/NSArray.h"
-#import	"Foundation/NSAutoreleasePool.h"
-#import	"Foundation/NSDictionary.h"
-#import "AGSIndex.h"
-#import "GNUstepBase/NSString+GNUstepBase.h"
-#import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#include	<Foundation/Foundation.h>
+#include        "AGSIndex.h"
+#include 	"GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSCategories.h"
 
 static int      XML_ELEMENT_NODE;
 static int      XML_TEXT_NODE;
@@ -631,10 +627,6 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
   if ([type isEqualToString: @"method"] || [type isEqualToString: @"ivariable"])
     {
-      if (category != nil)
-	{
-	  u = classname;	// Store category methods by classname.
-	}
       // type ... ref ... unit ... file
     }
   else
@@ -766,7 +758,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
   /*
    * If unit is a category, method was probably indexed under the class,
-   * so wirk with the class instead of the category.
+   * so work with the class instead of the category.
    */
   if ([*u length] > 0 && [*u characterAtIndex: [*u length] - 1] == ')')
     {

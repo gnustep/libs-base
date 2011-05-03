@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,13 +27,12 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSTimer_IVARS	1
-#import "Foundation/NSTimer.h"
-#import "Foundation/NSDate.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSRunLoop.h"
-#import "Foundation/NSInvocation.h"
+#include "config.h"
+#include "Foundation/NSTimer.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSInvocation.h"
 
 @class	NSGDate;
 @interface NSGDate : NSObject	// Help the compiler
@@ -41,16 +40,12 @@
 static Class	NSDate_class;
 
 /**
- * <p>An <code>NSTimer</code> provides a way to send a message at some time in
+ * An <code>NSTimer</code> provides a way to send a message at some time in
  * the future, possibly repeating every time a fixed interval has passed. To
  * use a timer, you can either create one that will automatically be added to
  * the run loop in the current thread (using the -addTimer:forMode: method),
  * or you can create it without adding it then add it to an [NSRunLoop]
  * explicitly later.
- * </p>
- * <p>NB. You may not use -init or +new to create a timer, as the timer must
- * be properly initialised to send an action after some interval.
- * </p>
  */
 @implementation NSTimer
 
@@ -62,29 +57,22 @@ static Class	NSDate_class;
     }
 }
 
-/* For MacOS-X compatibility, this returns nil.
- */
-- (id) init
-{
-  DESTROY(self);
-  return nil;
-}
-
-/** <init />
+/**
+ * <init />
  * Initialise the receive, a newly allocated NSTimer object.<br />
+ * The fd argument specifies an initial fire date ... if it is not
+ * supplied (a nil object) then the ti argument is used to create
+ * a start date relative to the current time.<br />
  * The ti argument specifies the time (in seconds) between the firing.
  * If it is less than or equal to 0.0 then a small interval is chosen
  * automatically.<br />
- * The fd argument specifies an initial fire date copied by the timer...
- * if it is not supplied (a nil object) then the ti argument is used to
- * create a start date relative to the current time.<br />
  * The f argument specifies whether the timer will fire repeatedly
  * or just once.<br />
  * If the selector argument is zero, then then object is an invocation
  * to be used when the timer fires.  otherwise, the object is sent the
  * message specified by the selector and with the timer as an argument.<br />
- * The object and info arguments will be retained until the timer is
- * invalidated.
+ * The fd, object and info arguments will be retained until the timer is
+ * invalidated.<br />
  */
 - (id) initWithFireDate: (NSDate*)fd
 	       interval: (NSTimeInterval)ti
@@ -93,32 +81,24 @@ static Class	NSDate_class;
 	       userInfo: (id)info
 		repeats: (BOOL)f
 {
-  if (ti <= 0.0)
+  if (ti <= 0)
     {
       ti = 0.0001;
     }
+  _interval = ti;
   if (fd == nil)
     {
       _date = [[NSDate_class allocWithZone: NSDefaultMallocZone()]
-        initWithTimeIntervalSinceNow: ti];
+        initWithTimeIntervalSinceNow: _interval];
     }
   else
     {
-      _date = [fd copyWithZone: NSDefaultMallocZone()];
+      _date = [fd copy];
     }
   _target = RETAIN(object);
   _selector = selector;
   _info = RETAIN(info);
-  if (f == YES)
-    {
-      _repeats = YES;
-      _interval = ti;
-    }
-  else
-    {
-      _repeats = NO;
-      _interval = 0.0;
-    }
+  _repeats = f;
   return self;
 }
 
@@ -224,40 +204,77 @@ static Class	NSDate_class;
  */
 - (void) fire
 {
-  if (_selector == 0)
+  id	target;
+
+  /* We retain the target so it won't be deallocated while we are using it
+   * (if this timer gets invalidated while we are firing).
+   */
+  target = [_target retain];
+
+  /* We check that we have not been invalidated before we fire.
+   */
+  if (NO == _invalidated)
     {
-      NS_DURING
+      if (_selector == 0)
 	{
-	  [(NSInvocation*)_target invoke];
+	  NS_DURING
+	    {
+	      [(NSInvocation*)target invoke];
+	    }
+	  NS_HANDLER
+	    {
+	      NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+	        @"raised during posting of timer with target %p "
+		@"and selector '%@'",
+		[localException name], [localException reason], target,
+		NSStringFromSelector([target selector]));
+	    }
+	  NS_ENDHANDLER
 	}
-      NS_HANDLER
+      else
 	{
-	  NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-	   @"raised during posting of timer with target %p and selector '%@'",
-	    [localException name], [localException reason], _target,
-	    NSStringFromSelector([_target selector]));
+	  NS_DURING
+	    {
+	      [target performSelector: _selector withObject: self];
+	    }
+	  NS_HANDLER
+	    {
+	      NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+		@"raised during posting of timer with target %p and "
+		@"selector '%@'",
+		[localException name], [localException reason], target,
+		NSStringFromSelector(_selector));
+	    }
+	  NS_ENDHANDLER
 	}
-      NS_ENDHANDLER
     }
-  else
-    {
-      NS_DURING
-	{
-	  [_target performSelector: _selector withObject: self];
-	}
-      NS_HANDLER
-	{
-	  NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-	    @"raised during posting of timer with target %p and selector '%@'",
-	    [localException name], [localException reason], _target,
-	    NSStringFromSelector(_selector));
-	}
-      NS_ENDHANDLER
-    }
+  [target release];
 
   if (_repeats == NO)
     {
       [self invalidate];
+    }
+  else if (_invalidated == NO)
+    {
+      extern NSTimeInterval GSTimeNow();
+      NSTimeInterval	now = GSTimeNow();
+      NSTimeInterval	nxt = [_date timeIntervalSinceReferenceDate];
+      int		inc = -1;
+
+      while (nxt <= now)		// xxx remove this
+	{
+	  inc++;
+	  nxt += _interval;
+	}
+#ifdef	LOG_MISSED
+      if (inc > 0)
+	{
+	  NSLog(@"Missed %d timeouts at %f second intervals", inc, _interval);
+	}
+#endif
+      RELEASE(_date);
+      _date = [[NSDate_class allocWithZone: NSDefaultMallocZone()]
+	initWithTimeIntervalSinceReferenceDate: nxt];
     }
 }
 
@@ -269,8 +286,6 @@ static Class	NSDate_class;
  */
 - (void) invalidate
 {
-  /* OPENSTEP allows this method to be called multiple times. */
-  _invalidated = YES;
   if (_target != nil)
     {
       DESTROY(_target);
@@ -279,6 +294,9 @@ static Class	NSDate_class;
     {
       DESTROY(_info);
     }
+  /* OPENSTEP allows this method to be called multiple times. */
+  //NSAssert(_invalidated == NO, NSInternalInconsistencyException);
+  _invalidated = YES;
 }
 
 /**
@@ -317,8 +335,7 @@ static Class	NSDate_class;
 }
 
 /**
- * Returns the interval between firings, or zero if the timer
- * does not repeat.
+ * Returns the interval between firings.
  */
 - (NSTimeInterval) timeInterval
 {

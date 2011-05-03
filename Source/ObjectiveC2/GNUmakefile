@@ -31,28 +31,33 @@ include ../../config.mak
 
 SUBPROJECT_NAME = ObjectiveC2
 
-ObjectiveC2_OBJC_FILES = \
-	blocks_runtime.m\
-	properties.m\
+ObjectiveC2_C_FILES =
+ObjectiveC2_OBJC_FILES =
 
+ifeq ($(OBJC2RUNTIME),0)
 
-ifeq ($(OBJCSYNC), 0)
-ObjectiveC2_OBJC_FILES += sync.m
+ObjectiveC2_OBJC_FILES += \
+	properties.m
+
+ifneq ($(OBJCSYNC), 1)
+ObjectiveC2_OBJC_FILES += \
+	sync.m
 endif
 
-ObjectiveC2_C_FILES = \
-	runtime.c
+ObjectiveC2_C_FILES += caps.c runtime.c
 
-ObjectiveC2_HEADER_FILES = \
-	Availability.h\
-	blocks_runtime.h\
-	runtime.h
+endif
+
+ifeq ($(HAVE_BLOCKS),0)
+
+ObjectiveC2_OBJC_FILES += \
+	blocks_runtime.m\
+	NSBlocks.m
+
+endif
 
 ifeq ($(CC), clang)
   ADDITIONAL_OBJCFLAGS = -fblocks
-endif
-ifeq ($(GNUSTEP_TARGET_CPU), ix86)
-  ADDITIONAL_OBJCFLAGS += -march=i686
 endif
 
 -include Makefile.preamble

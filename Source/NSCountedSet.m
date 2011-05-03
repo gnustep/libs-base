@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,16 +25,17 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#import "GNUstepBase/GSLock.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSSet.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSThread.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "config.h"
+#include "GNUstepBase/GSLock.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSObjCRuntime.h"
 
 @class	GSCountedSet;
 @interface GSCountedSet : NSObject	// Help the compiler
@@ -96,7 +97,7 @@ static Class NSCountedSet_concrete_class;
  * specified object (as determined by the [-isEqual:] method) has
  * been added to the set and not removed from it.
  */
-- (NSUInteger) countForObject: (id)anObject
+- (unsigned int) countForObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -115,11 +116,11 @@ static Class NSCountedSet_concrete_class;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned	count;
-  Class		c = object_getClass(self);
+  Class		c = GSObjCClass(self);
 
   if (c == NSCountedSet_abstract_class)
     {
-      DESTROY(self);
+      RELEASE(self);
       self = [NSCountedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: aCoder];
     }
@@ -208,7 +209,7 @@ static Class NSCountedSet_concrete_class;
   return self;
 }
 
-- (void) purge: (NSInteger)level
+- (void) purge: (int)level
 {
   if (level > 0)
     {
@@ -231,7 +232,7 @@ static Class NSCountedSet_concrete_class;
 	    {
 	      unsigned	c = (*cImp)(self, @selector(countForObject:), obj);
 
-	      if (c <= (NSUInteger)level)
+	      if (c <= (unsigned int)level)
 		{
 		  while (c-- > 0)
 		    {
@@ -269,7 +270,7 @@ static Class NSCountedSet_concrete_class;
  * purge the set even when uniquing is turned off.
  */
 void
-GSUPurge(NSUInteger count)
+GSUPurge(unsigned count)
 {
   if (uniqueLock != nil)
     {
@@ -291,10 +292,10 @@ GSUPurge(NSUInteger count)
  * alter the set even when uniquing is turned off.
  */
 id
-GSUSet(id anObject, NSUInteger count)
+GSUSet(id anObject, unsigned count)
 {
   id		found;
-  NSUInteger	i;
+  unsigned	i;
 
   if (uniqueLock != nil)
     {

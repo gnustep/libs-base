@@ -1,12 +1,16 @@
 /** NSHashTable implementation for GNUStep.
- * Copyright (C) 2009  Free Software Foundation, Inc.
+ * Copyright (C) 1994, 1995, 1996, 1997, 2002  Free Software Foundation, Inc.
  *
- * Author: Richard Frith-Macdonald <rfm@gnu.org>
+ * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
+ * Created: Mon Dec 12 23:54:09 EST 1994
+ * Updated: Mon Mar 11 01:48:31 EST 1996
+ * Serial: 96.03.11.06
+ * Rewrite by: Richard Frith-Macdonald <rfm@gnu.org>
  *
  * This file is part of the GNUstep Base Library.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
+ * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
  *
@@ -15,7 +19,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
+ * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02111 USA.
@@ -24,288 +28,553 @@
  * $Date$ $Revision$
  */
 
-#import "common.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSPointerFunctions.h"
-#import "Foundation/NSSet.h"
-#import "Foundation/NSHashTable.h"
-#import "NSCallBacks.h"
-#import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+/**** Included Headers *******************************************************/
 
-@interface	NSConcreteHashTable : NSHashTable
-@end
-
-@implementation	NSHashTable
+#include "config.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSHashTable.h"
+#include "Foundation/NSDebug.h"
+#include "NSCallBacks.h"
 
 
-static Class	abstractClass = 0;
-static Class	concreteClass = 0;
+/*
+ *      The 'Fastmap' stuff provides an inline implementation of a hash
+ *      table - for maximum performance.
+ */
+#define GSI_MAP_HAS_VALUE	0
+#define GSI_MAP_EXTRA           NSHashTableCallBacks
+#define GSI_MAP_KTYPES          GSUNION_PTR
+#define GSI_MAP_HASH(M, X)\
+ (M->extra.hash)((NSHashTable*)M, X.ptr)
+#define GSI_MAP_EQUAL(M, X, Y)\
+ (M->extra.isEqual)((NSHashTable*)M, X.ptr, Y.ptr)
+#define GSI_MAP_RELEASE_KEY(M, X)\
+ (M->extra.release)((NSHashTable*)M, X.ptr)
+#define GSI_MAP_RETAIN_KEY(M, X)\
+ (M->extra.retain)((NSHashTable*)M, X.ptr)
+#define GSI_MAP_ENUMERATOR	NSHashEnumerator
 
-+ (id) allocWithZone: (NSZone*)aZone
+#include "GNUstepBase/GSIMap.h"
+
+/**
+ * Returns an array of all the objects in the table.
+ * NB. The table <em>must</em> contain objects, not pointers or integers.
+ */
+NSArray *
+NSAllHashTableObjects(NSHashTable *table)
 {
-  if (self == abstractClass)
+  NSMutableArray	*array;
+  NSHashEnumerator	enumerator;
+  id			element;
+
+  if (table == 0)
     {
-      return NSAllocateObject(concreteClass, 0, aZone);
+      NSWarnFLog(@"Nul table argument supplied");
+      return nil;
     }
-  return NSAllocateObject(self, 0, aZone);
-}
 
-+ (void) initialize
-{
-  if (abstractClass == 0)
+  array = [NSMutableArray arrayWithCapacity: NSCountHashTable(table)];
+
+  /* Get an enumerator for TABLE. */
+  enumerator = NSEnumerateHashTable(table);
+
+  while ((element = NSNextHashEnumeratorItem(&enumerator)) != 0)
     {
-      abstractClass = [NSHashTable class];
-      concreteClass = [NSConcreteHashTable class];
+      [array addObject: element];
     }
+  NSEndHashTableEnumeration(&enumerator);
+  return array;
 }
 
-+ (id) hashTableWithOptions: (NSPointerFunctionsOptions)options
+/**
+ * Compares the two hash tables for equality.
+ * If the tables are different sizes, returns NO.
+ * Otherwise, compares the values in the two tables
+ * and returns NO if they differ.<br />
+ * The GNUstep implementation enumerates the values in table1
+ * and uses the hash and isEqual functions of table2 for comparison.
+ */
+BOOL
+NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
 {
-  NSHashTable	*t;
+  GSIMapTable   t1 = (GSIMapTable)table1;
+  GSIMapTable   t2 = (GSIMapTable)table2;
 
-  t = [self allocWithZone: NSDefaultMallocZone()];
-  t = [t initWithOptions: options
-		capacity: 0];
-  return AUTORELEASE(t);
-}
-
-+ (id) hashTableWithWeakObjects
-{
-  return [self hashTableWithOptions:
-    NSPointerFunctionsObjectPersonality | NSPointerFunctionsZeroingWeakMemory];
-}
-
-- (id) initWithOptions: (NSPointerFunctionsOptions)options
-	      capacity: (NSUInteger)initialCapacity
-{
-  NSPointerFunctions	*k;
-  id			o;
-
-  k = [[NSPointerFunctions alloc] initWithOptions: options];
-  o = [self initWithPointerFunctions: k capacity: initialCapacity];
-#if	!GS_WITH_GC
-  [k release];
-#endif
-  return o;
-}
-
-- (id) initWithPointerFunctions: (NSPointerFunctions*)functions
-		capacity: (NSUInteger)initialCapacity
-{
-  return [self subclassResponsibility: _cmd];
-}
-
-- (void) addObject: (id)object
-{
-  [self subclassResponsibility: _cmd];
-}
-
-- (NSArray*) allObjects
-{
-  NSEnumerator	*enumerator;
-  unsigned	nodeCount = [self count];
-  unsigned	index;
-  NSArray	*a;
-  GS_BEGINITEMBUF(objects, nodeCount, id);
-
-  enumerator = [self objectEnumerator];
-  index = 0;
-  while (index < nodeCount && (objects[index] = [enumerator nextObject]) != nil)
+  if (t1 == t2)
     {
-      index++;
+      return YES;
     }
-  a = [[[NSArray alloc] initWithObjects: objects count: index] autorelease];
-  GS_ENDITEMBUF();
-  return a;
-}
-
-- (id) anyObject
-{
-  return [[self objectEnumerator] nextObject];
-}
-
-- (BOOL) containsObject: (id)anObject
-{
-  return [self member: anObject] ? YES : NO;
-}
-
-- (id) copyWithZone: (NSZone*)aZone
-{
-  return [self subclassResponsibility: _cmd];
-}
-
-- (NSUInteger) count
-{
-  return (NSUInteger)[self subclassResponsibility: _cmd];
-}
-
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-				   objects: (id*)stackbuf
-				     count: (NSUInteger)len
-{
-  return (NSUInteger)[self subclassResponsibility: _cmd];
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  [self subclassResponsibility: _cmd];
-}
-
-- (NSUInteger) hash
-{
-  return [self count];
-}
-
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  return [self subclassResponsibility: _cmd];
-}
-
-- (void) intersectHashTable: (NSHashTable*)other
-{
-  unsigned		count = [self count];
-
-  if (count > 0)
+  if (t1 == 0)
     {
-      NSEnumerator	*enumerator;
-      NSMutableArray	*array;
-      id		object;
+      NSWarnFLog(@"Nul first argument supplied");
+      return NO;
+    }
+  if (t2 == 0)
+    {
+      NSWarnFLog(@"Nul second argument supplied");
+      return NO;
+    }
 
-      array = [NSMutableArray arrayWithCapacity: count];
-      enumerator = [self objectEnumerator];
-      while ((object = [enumerator nextObject]) != nil)
-	{
-	  if ([other member: object] == nil)
-	    {
-	      [array addObject: object];
-	    }
-	}
-      enumerator = [array objectEnumerator];
-      while ((object = [enumerator nextObject]) != nil)
-	{
-	  [self removeObject: object];
-	}
+  if (t1->nodeCount != t2->nodeCount)
+    {
+      return NO;
+    }
+  else
+    {
+      NSHashEnumerator enumerator = GSIMapEnumeratorForMap((GSIMapTable)t1);
+      GSIMapNode n;
+      while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+        {
+          if (GSIMapNodeForKey(t2, n->key) == 0)
+            {
+	      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
+              return NO;
+            }
+        }
+      GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
+      return YES;
     }
 }
 
-- (BOOL) intersectsHashTable: (NSHashTable*)other
+/**
+ * Copy the supplied map table creating the new table in the specified zone.
+ */
+NSHashTable *
+NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 {
-  NSEnumerator	*enumerator;
-  id		object;
+  GSIMapTable   t;
+  GSIMapNode    n;
+  NSHashEnumerator enumerator;
 
-  enumerator = [self objectEnumerator];
-  while ((object = [enumerator nextObject]) != nil)
+  if (table == 0)
     {
-      if ([other member: object] != nil)
-	{
-	  return YES;
-	}
+      NSWarnFLog(@"Nul table argument supplied");
+      return 0;
     }
-  return NO;
-}
 
-- (BOOL) isEqual: (id)other
-{
-  if ([other isKindOfClass: abstractClass] == NO) return NO;
-  return NSCompareHashTables(self, other);
-}
-
-- (BOOL) isEqualToHashTable: (NSHashTable*)other
-{
-  return NSCompareHashTables(self, other);
-}
-
-- (BOOL) isSubsetOfHashTable: (NSHashTable*)other
-{
-  NSEnumerator	*enumerator;
-  id		object;
-
-  enumerator = [self objectEnumerator];
-  while ((object = [enumerator nextObject]) != nil)
+  t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
+  t->extra = ((GSIMapTable)table)->extra;
+  enumerator = GSIMapEnumeratorForMap((GSIMapTable)table);
+  while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
     {
-      if ([other member: object] == nil)
-	{
-	  return NO;
-	}
+      GSIMapAddKey(t, n->key);
     }
-  return YES;
+  GSIMapEndEnumerator((GSIMapEnumerator)&enumerator);
+
+  return (NSHashTable*)t;
 }
 
-- (id) member: (id)object
+/**
+ * Returns the number of objects in the table.
+ */
+unsigned int
+NSCountHashTable(NSHashTable *table)
 {
-  return [self subclassResponsibility: _cmd];
-}
-
-- (void) minusHashTable: (NSHashTable*)other
-{
-  if ([self count] > 0 && [other count] > 0)
+  if (table == 0)
     {
-      NSEnumerator	*enumerator;
-      id		object;
-
-      enumerator = [other objectEnumerator];
-      while ((object = [enumerator nextObject]) != nil)
-	{
-	  [self removeObject: object];
-	}
+      NSWarnFLog(@"Nul table argument supplied");
+      return 0;
     }
+  return ((GSIMapTable)table)->nodeCount;
 }
 
-- (NSEnumerator*) objectEnumerator
+/**
+ * Create a new hash table by calling NSCreateHashTableWithZone() using
+ * NSDefaultMallocZone().  callbacks provides five helper functions used by
+ * the main implementation.  See the NSHashTableCallbacks documentation
+ * for more information.<br />
+ * If capacity is small or 0, then the returned
+ * table has a reasonable (but still small) capacity.
+ */
+NSHashTable *
+NSCreateHashTable(
+  NSHashTableCallBacks callBacks,
+  unsigned int capacity)
 {
-  return [self subclassResponsibility: _cmd];
+  return NSCreateHashTableWithZone(callBacks, capacity, NSDefaultMallocZone());
 }
 
-- (NSPointerFunctions*) pointerFunctions
+/**
+ * Create a new hash table using the supplied callbacks structure.
+ * If any functions in the callback structure is null the default
+ * values are used ... as for non-owned pointers.
+ * The table will be created with the specified capacity ... ie ready
+ * to hold at lest that many items.
+ */
+NSHashTable *
+NSCreateHashTableWithZone(
+  NSHashTableCallBacks callBacks,
+  unsigned int capacity,
+  NSZone *zone)
 {
-  return [self subclassResponsibility: _cmd];
+  GSIMapTable	table;
+
+  table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(table, zone, capacity);
+  table->extra = callBacks;
+
+  if (table->extra.hash == 0)
+    table->extra.hash = NSNonOwnedPointerHashCallBacks.hash;
+  if (table->extra.isEqual == 0)
+    table->extra.isEqual = NSNonOwnedPointerHashCallBacks.isEqual;
+  if (table->extra.retain == 0)
+    table->extra.retain = NSNonOwnedPointerHashCallBacks.retain;
+  if (table->extra.release == 0)
+    table->extra.release = NSNonOwnedPointerHashCallBacks.release;
+  if (table->extra.describe == 0)
+    table->extra.describe = NSNonOwnedPointerHashCallBacks.describe;
+
+  return (NSHashTable*)table;
 }
 
-- (void) removeAllObjects
+/**
+ * Function to be called when finished with the enumerator.
+ * This permits memory used by the enumerator to be released.
+ */
+void
+NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
 {
-  NSEnumerator	*enumerator;
-  id		object;
-
-  enumerator = [[self allObjects] objectEnumerator];
-  while ((object = [enumerator nextObject]) != nil)
+  if (enumerator == 0)
     {
-      [self removeObject: object];
+      NSWarnFLog(@"Nul enumerator argument supplied");
+      return;
     }
+  GSIMapEndEnumerator((GSIMapEnumerator)enumerator);
 }
 
-- (void) removeObject: (id)object
+/**
+ * Return an enumerator for stepping through a map table using the
+ * NSNextHashEnumeratorItem() function.
+ */
+NSHashEnumerator
+NSEnumerateHashTable(NSHashTable *table)
 {
-  [self subclassResponsibility: _cmd];
-}
-
-- (NSSet*) setRepresentation 
-{
-  NSEnumerator	*enumerator;
-  NSMutableSet	*set;
-  id		object;
-
-  set = [NSMutableSet setWithCapacity: [self count]];
-  enumerator = [[self allObjects] objectEnumerator];
-  while ((object = [enumerator nextObject]) != nil)
+  if (table == 0)
     {
-      [set addObject: object];
+      NSHashEnumerator	v = { 0, 0, 0 };
+
+      NSWarnFLog(@"Nul table argument supplied");
+      return v;
     }
-  return [[set copy] autorelease];
-}
-
-- (void) unionHashTable: (NSHashTable*)other
-{
-  NSEnumerator	*enumerator;
-  id		object;
-
-  enumerator = [other objectEnumerator];
-  while ((object = [enumerator nextObject]) != nil)
+  else
     {
-      [self addObject: object];
+      return GSIMapEnumeratorForMap((GSIMapTable)table);
     }
 }
 
-@end
+/**
+ * Releases all the keys and values of table (using the callbacks
+ * specified at the time of table's creation), and then proceeds
+ * to deallocate the space allocated for table itself.
+ */
+void
+NSFreeHashTable(NSHashTable *table)
+{
+  if (table == 0)
+    {
+      NSWarnFLog(@"Nul table argument supplied");
+    }
+  else
+    {
+      NSZone	*z = ((GSIMapTable)table)->zone;
+
+      GSIMapEmptyMap((GSIMapTable)table);
+      NSZoneFree(z, table);
+    }
+}
+
+/**
+ * Returns the value for the specified element, or a null pointer if the
+ * element is not found in the table.
+ */
+void *
+NSHashGet(NSHashTable *table, const void *element)
+{
+  GSIMapNode    n;
+
+  if (table == 0)
+    {
+      NSWarnFLog(@"Nul table argument supplied");
+      return 0;
+    }
+  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)element);
+  if (n == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      return n->key.ptr;
+    }
+}
+
+/**
+ * Adds the element to table.<br />
+ * If an equal element is already in table, replaces it with the new one.<br />
+ * If element is null raises an NSInvalidArgumentException.
+ */
+void
+NSHashInsert(NSHashTable *table, const void *element)
+{
+  GSIMapTable   t = (GSIMapTable)table;
+  GSIMapNode    n;
+
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place value in null hash table"];
+    }
+  if (element == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place null in hash table"];
+    }
+  n = GSIMapNodeForKey(t, (GSIMapKey)element);
+  if (n == 0)
+    {
+      GSIMapAddKey(t, (GSIMapKey)element);
+    }
+  else
+    {
+      GSIMapKey	tmp = n->key;
+
+      n->key = (GSIMapKey)element;
+      GSI_MAP_RETAIN_KEY(t, n->key);
+      GSI_MAP_RELEASE_KEY(t, tmp);
+    }
+}
+
+/**
+ * Adds the element to table and returns nul.<br />
+ * If an equal element is already in table, returns the old element
+ * instead of adding the new one.<br />
+ * If element is nul, raises an NSInvalidArgumentException.
+ */
+void *
+NSHashInsertIfAbsent(NSHashTable *table, const void *element)
+{
+  GSIMapTable   t = (GSIMapTable)table;
+  GSIMapNode    n;
+
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place value in null hash table"];
+    }
+  if (element == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place null in hash table"];
+    }
+  n = GSIMapNodeForKey(t, (GSIMapKey)element);
+  if (n == 0)
+    {
+      GSIMapAddKey(t, (GSIMapKey)element);
+      return 0;
+    }
+  else
+    {
+      return n->key.ptr;
+    }
+}
+
+/**
+ * Adds the element to table and returns nul.<br />
+ * If an equal element is already present, raises NSInvalidArgumentException.
+ * <br />If element is null raises an NSInvalidArgumentException.
+ */
+void
+NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
+{
+  GSIMapTable   t = (GSIMapTable)table;
+  GSIMapNode    n;
+
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place value in null hash table"];
+    }
+  if (element == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to place null in hash table"];
+    }
+  n = GSIMapNodeForKey(t, (GSIMapKey)element);
+  if (n == 0)
+    {
+      GSIMapAddKey(t, (GSIMapKey)element);
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSHashInsertKnownAbsent ... element not absent"];
+    }
+}
+
+/**
+ * Remove the specified element from the table.
+ */
+void
+NSHashRemove(NSHashTable *table, const void *element)
+{
+  if (table == 0)
+    {
+      NSWarnFLog(@"Nul table argument supplied");
+    }
+  else
+    {
+      GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)element);
+    }
+}
+
+/**
+ * Step through the hash table ... return the next item or
+ * return nul if we hit the of the table.
+ */
+void *
+NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
+{
+  GSIMapNode    n;
+
+  if (enumerator == 0)
+    {
+      NSWarnFLog(@"Nul enumerator argument supplied");
+      return 0;
+    }
+  n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
+  if (n == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      return n->key.ptr;
+    }
+}
+
+/**
+ * Empty the hash table (releasing all elements), but preserve its capacity.
+ */
+void
+NSResetHashTable(NSHashTable *table)
+{
+  if (table == 0)
+    {
+      NSWarnFLog(@"Nul table argument supplied");
+    }
+  else
+    {
+      GSIMapCleanMap((GSIMapTable)table);
+    }
+}
+
+/**
+ * Returns a string describing the table contents.<br />
+ * For each item, a string of the form "value;\n"
+ * is appended.  The appropriate describe function is used to generate
+ * the strings for each item.
+ */
+NSString *
+NSStringFromHashTable(NSHashTable *table)
+{
+  GSIMapTable		t = (GSIMapTable)table;
+  NSMutableString	*string;
+  NSHashEnumerator	enumerator;
+  const void		*element;
+
+  if (table == 0)
+    {
+      NSWarnFLog(@"Nul table argument supplied");
+      return nil;
+    }
+
+  /* This will be our string. */
+  string = [NSMutableString stringWithCapacity: 0];
+
+  /* Get an enumerator for TABLE. */
+  enumerator = NSEnumerateHashTable(table);
+
+  /* Iterate over the elements of TABLE, appending the description of
+   * each to the mutable string STRING. */
+  while ((element = NSNextHashEnumeratorItem(&enumerator)) != 0)
+    {
+      [string appendFormat: @"%@;\n", (t->extra.describe)(table, element)];
+    }
+  NSEndHashTableEnumeration(&enumerator);
+  return string;
+}
+
+
+
+/* These are to increase readabilty locally. */
+typedef unsigned int (*NSHT_hash_func_t)(NSHashTable *, const void *);
+typedef BOOL (*NSHT_isEqual_func_t)(NSHashTable *, const void *, const void *);
+typedef void (*NSHT_retain_func_t)(NSHashTable *, const void *);
+typedef void (*NSHT_release_func_t)(NSHashTable *, void *);
+typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
+
+/** For sets of pointer-sized or smaller quantities. */
+const NSHashTableCallBacks NSIntHashCallBacks =
+{
+  (NSHT_hash_func_t) _NS_int_hash,
+  (NSHT_isEqual_func_t) _NS_int_is_equal,
+  (NSHT_retain_func_t) _NS_int_retain,
+  (NSHT_release_func_t) _NS_int_release,
+  (NSHT_describe_func_t) _NS_int_describe
+};
+
+/** For sets of pointers hashed by address. */
+const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks =
+{
+  (NSHT_hash_func_t) _NS_non_owned_void_p_hash,
+  (NSHT_isEqual_func_t) _NS_non_owned_void_p_is_equal,
+  (NSHT_retain_func_t) _NS_non_owned_void_p_retain,
+  (NSHT_release_func_t) _NS_non_owned_void_p_release,
+  (NSHT_describe_func_t) _NS_non_owned_void_p_describe
+};
+
+/** For sets of objects without retaining and releasing. */
+const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks =
+{
+  (NSHT_hash_func_t) _NS_non_retained_id_hash,
+  (NSHT_isEqual_func_t) _NS_non_retained_id_is_equal,
+  (NSHT_retain_func_t) _NS_non_retained_id_retain,
+  (NSHT_release_func_t) _NS_non_retained_id_release,
+  (NSHT_describe_func_t) _NS_non_retained_id_describe
+};
+
+/** For sets of objects; similar to [NSSet]. */
+const NSHashTableCallBacks NSObjectHashCallBacks =
+{
+  (NSHT_hash_func_t) _NS_id_hash,
+  (NSHT_isEqual_func_t) _NS_id_is_equal,
+  (NSHT_retain_func_t) _NS_id_retain,
+  (NSHT_release_func_t) _NS_id_release,
+  (NSHT_describe_func_t) _NS_id_describe
+};
+
+/** For sets of pointers with transfer of ownership upon insertion. */
+const NSHashTableCallBacks NSOwnedPointerHashCallBacks =
+{
+  (NSHT_hash_func_t) _NS_owned_void_p_hash,
+  (NSHT_isEqual_func_t) _NS_owned_void_p_is_equal,
+  (NSHT_retain_func_t) _NS_owned_void_p_retain,
+  (NSHT_release_func_t) _NS_owned_void_p_release,
+  (NSHT_describe_func_t) _NS_owned_void_p_describe
+};
+
+/** For sets of pointers to structs when the first field of the
+ * struct is the size of an int. */
+const NSHashTableCallBacks NSPointerToStructHashCallBacks =
+{
+  (NSHT_hash_func_t) _NS_int_p_hash,
+  (NSHT_isEqual_func_t) _NS_int_p_is_equal,
+  (NSHT_retain_func_t) _NS_int_p_retain,
+  (NSHT_release_func_t) _NS_int_p_release,
+  (NSHT_describe_func_t) _NS_int_p_describe
+};
 

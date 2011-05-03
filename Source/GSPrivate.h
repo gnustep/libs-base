@@ -6,7 +6,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -15,7 +15,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02111 USA.
@@ -24,10 +24,7 @@
 #ifndef _GSPrivate_h_
 #define _GSPrivate_h_
 
-#import "Foundation/NSError.h"
-
-@class	_GSInsensitiveDictionary;
-@class	_GSMutableInsensitiveDictionary;
+#include "Foundation/NSError.h"
 
 @class	NSNotification;
 
@@ -70,7 +67,11 @@
   unsigned	_count;
   unsigned	_capacity;
   int		_grow_factor;
-  int		_version;
+}
+@end
+
+@interface GSInlineArray : GSArray
+{
 }
 @end
 
@@ -161,12 +162,11 @@ typedef union {
  */
 @interface GSString : NSString
 {
-@public
   GSCharPtr _contents;
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	owned: 1;	// Set if the instance owns the
+    unsigned int	free: 1;	// Set if the instance owns the
 					// _contents buffer
     unsigned int	unused: 2;
     unsigned int	hash: 28;
@@ -180,21 +180,30 @@ typedef union {
  */
 @interface GSMutableString : NSMutableString
 {
-@public
-  GSCharPtr _contents;
+  union {
+    unichar		*u;
+    unsigned char	*c;
+  } _contents;
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;
-    unsigned int	owned: 1;
+    unsigned int	free: 1;
     unsigned int	unused: 2;
     unsigned int	hash: 28;
   } _flags;
-  unsigned int	_capacity;
   NSZone	*_zone;
+  unsigned int	_capacity;
 }
 @end
 
-typedef	GSMutableString *GSStr;
+/*
+ * Typedef for access to internals of concrete string objects.
+ */
+typedef struct {
+  @defs(GSMutableString)
+} GSStr_t;
+typedef	GSStr_t	*GSStr;
+
 
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
@@ -225,60 +234,20 @@ typedef enum {
   NSData	*_d;	// Only valid after initWithCoder:
 }
 - (const void*) bytes;
-- (NSUInteger) count;
+- (unsigned) count;
 - (void) encodeWithCoder: (NSCoder*)aCoder;
 - (id) initWithCoder: (NSCoder*)aCoder;
-- (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a;
-- (NSUInteger) size;
+- (id) initWithObjCType: (const char*)t count: (int)c at: (const void*)a;
+- (unsigned) size;
 - (const char*) type;
 @end
 
 /* Get error information.
  */
-@interface	NSError (GNUstepBase)
+@interface	NSError (GSCategories)
 + (NSError*) _last;
 + (NSError*) _systemError: (long)number;
 @end
-
-@class  NSRunLoop;
-@class  NSLock;
-@class  NSThread;
-
-/* Used to handle events performed in one thread from another.
- */
-@interface      GSRunLoopThreadInfo : NSObject
-{
-  @public
-  NSRunLoop             *loop;
-  NSLock                *lock;
-  NSMutableArray        *performers;
-#ifdef __MINGW__
-  HANDLE	        event;
-#else
-  int                   inputFd;
-  int                   outputFd;
-#endif	
-}
-/* Add a performer to be run in the loop's thread.  May be called from
- * any thread.
- */
-- (void) addPerformer: (id)performer;
-/* Fire all pending performers in the current thread.  May only be called
- * from the runloop when the event/descriptor is triggered.
- */
-- (void) fire;
-/* Cancel all pending performers.
- */
-- (void) invalidate;
-@end
-
-/* Return (and optionally create) GSRunLoopThreadInfo for the specified
- * thread (or the current thread if aThread is nil).<br />
- * If aThread is nil and no value is set for the current thread, create
- * a GSRunLoopThreadInfo and set it for the current thread.
- */
-GSRunLoopThreadInfo *
-GSRunLoopInfoForThread(NSThread *aThread) GS_ATTRIB_PRIVATE;
 
 /* Used by NSException uncaught exception handler - must not call any
  * methods/functions which might cause a recursive exception.
@@ -394,28 +363,17 @@ GSPrivateNativeCStringEncoding() GS_ATTRIB_PRIVATE;
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed at the first safe moment.
  */
-void GSPrivateNotifyASAP(NSString *mode) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyASAP(void) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed when the loop is idle.
  */
-void GSPrivateNotifyIdle(NSString *mode) GS_ATTRIB_PRIVATE;
+void GSPrivateNotifyIdle(void) GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for determining whether
  * there are more queued notifications to be processed.
  */
-BOOL GSPrivateNotifyMore(NSString *mode) GS_ATTRIB_PRIVATE;
-
-/* Function to return the function for searching in a string for a range.
- */
-typedef NSRange (*GSRSFunc)(id, id, unsigned, NSRange);
-GSRSFunc
-GSPrivateRangeOfString(NSString *receiver, NSString *target) GS_ATTRIB_PRIVATE;
-
-/* Function to return the current stack return addresses.
- */
-NSMutableArray *
-GSPrivateStackAddresses(void) GS_ATTRIB_PRIVATE;
+BOOL GSPrivateNotifyMore(void) GS_ATTRIB_PRIVATE;
 
 /* Function to return the hash value for a small integer (used by NSNumber).
  */
@@ -491,32 +449,6 @@ GSPrivateUniCop(unichar u) GS_ATTRIB_PRIVATE;
 long
 GSPrivateUnloadModule(FILE *errorStream,
   void (*unloadCallback)(Class, struct objc_category *)) GS_ATTRIB_PRIVATE;
-
-
-/* Memory to use to put executable code in.
- */
-@interface      GSCodeBuffer : NSObject
-{
-  unsigned      size;
-  void          *buffer;
-}
-+ (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size;
-- (void*) buffer;
-- (id) initWithSize: (NSUInteger)_size;
-- (void) protect;
-@end
-
-/* Function to safely change the class of an object by 'isa' swizzling
- * wile maintaining allocation accounting and finalization in a GC world.
- */
-void
-GSPrivateSwizzle(id o, Class c) GS_ATTRIB_PRIVATE;
-
-BOOL
-GSPrivateIsCollectable(const void *ptr) GS_ATTRIB_PRIVATE;
-
-NSZone*
-GSAtomicMallocZone (void);
 
 #endif /* _GSPrivate_h_ */
 

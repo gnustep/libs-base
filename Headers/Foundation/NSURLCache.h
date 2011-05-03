@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,7 +26,7 @@
 #define __NSURLCache_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -56,9 +56,8 @@ typedef enum
  */
 @interface NSCachedURLResponse : NSObject <NSCoding, NSCopying>
 {
-#if	GS_EXPOSE(NSCachedURLResponse)
+@private
   void *_NSCachedURLResponseInternal;
-#endif
 }
 
 /**
@@ -102,9 +101,8 @@ typedef enum
 
 @interface NSURLCache : NSObject
 {
-#if	GS_EXPOSE(NSURLCache)
+@private
   void *_NSURLCacheInternal;
-#endif
 }
 
 /**
@@ -139,32 +137,32 @@ typedef enum
  * Returns the current size (butes) of the data stored in the on-disk
  * cache.
  */
-- (NSUInteger) currentDiskUsage;
+- (unsigned) currentDiskUsage;
 
 /**
  * Returns the current size (butes) of the data stored in the in-memory
  * cache.
  */
-- (NSUInteger) currentMemoryUsage;
+- (unsigned) currentMemoryUsage;
 
 /**
  * Returns the disk capacity (in bytes) of the cache.
  */
-- (NSUInteger) diskCapacity;
+- (unsigned) diskCapacity;
 
 /**
  * Returns the receiver initialised with the specified capacities
  * (in bytes) and using the specified location on disk for persistent
  * storage.
  */
-- (id) initWithMemoryCapacity: (NSUInteger)memoryCapacity
-		 diskCapacity: (NSUInteger)diskCapacity
+- (id) initWithMemoryCapacity: (unsigned)memoryCapacity
+		 diskCapacity: (unsigned)diskCapacity
 		     diskPath: (NSString *)path;
 
 /**
  * Returns the memory capacity (in bytes) of the cache.
  */
-- (NSUInteger) memoryCapacity;
+- (unsigned) memoryCapacity;
 
 /**
  * Empties the cache.
@@ -180,12 +178,12 @@ typedef enum
 /**
  * Sets the disk capacity (in bytes) truncating cache contents if necessary.
  */
-- (void) setDiskCapacity: (NSUInteger)diskCapacity;
+- (void) setDiskCapacity: (unsigned)diskCapacity;
 
 /**
  * Sets the memory capacity (in bytes) truncating cache contents if necessary.
  */
-- (void) setMemoryCapacity: (NSUInteger)memoryCapacity;
+- (void) setMemoryCapacity: (unsigned)memoryCapacity;
 
 /**
  * Stores cachedResponse in the cache, keyed on request.<br />

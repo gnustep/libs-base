@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,12 +26,12 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSCoder_IVARS	1
-#import "Foundation/NSData.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSSerialization.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSSerialization.h"
 
 @implementation NSCoder
 
@@ -65,16 +65,16 @@
   return nil;
 }
 
-- (NSInteger) versionForClassName: (NSString*)className
+- (unsigned int) versionForClassName: (NSString*)className
 {
   [self subclassResponsibility: _cmd];
-  return (NSInteger)NSNotFound;
+  return NSNotFound;
 }
 
 // Encoding Data
 
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (NSUInteger)count
+			 count: (unsigned)count
 			    at: (const void*)array
 {
   unsigned	i;
@@ -99,7 +99,7 @@
   [self encodeObject: anObject];
 }
 
-- (void) encodeBytes: (void*)d length: (NSUInteger)l
+- (void) encodeBytes: (void*)d length: (unsigned)l
 {
   const char		*type = @encode(unsigned char);
   const unsigned char	*where = (const unsigned char*)d;
@@ -169,7 +169,7 @@
 // Decoding Data
 
 - (void) decodeArrayOfObjCType: (const char*)type
-			 count: (NSUInteger)count
+			 count: (unsigned)count
 			    at: (void*)address
 {
   unsigned	i;
@@ -185,9 +185,9 @@
     }
 }
 
-- (void*) decodeBytesWithReturnedLength: (NSUInteger*)l
+- (void*) decodeBytesWithReturnedLength: (unsigned*)l
 {
-  unsigned int	count;
+  unsigned	count;
   const char	*type = @encode(unsigned char);
   unsigned char	*where;
   unsigned char	*array;
@@ -196,8 +196,8 @@
   imp = [self methodForSelector: @selector(decodeValueOfObjCType:at:)];
 
   (*imp)(self, @selector(decodeValueOfObjCType:at:),
-    @encode(unsigned int), &count);
-  *l = (NSUInteger)count;
+    @encode(unsigned), &count);
+  *l = count;
   array = NSZoneMalloc(NSDefaultMallocZone(), count);
   where = array;
   while (count-- > 0)
@@ -291,8 +291,10 @@
 
 // Getting a Version
 
-- (unsigned) systemVersion
+- (unsigned int) systemVersion
 {
+  //PENDING(ABR)- should probably mult major version by 1000, not 100, since,
+  //              e.g., 2.0.0 is going to be <1000
   return (((GNUSTEP_BASE_MAJOR_VERSION * 100)
     + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
 }
@@ -318,7 +320,7 @@
 }
 
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (NSUInteger*)alength
+		      returnedLength: (unsigned*)alength
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -337,12 +339,6 @@
 }
 
 - (int) decodeIntForKey: (NSString*)aKey
-{
-  [self subclassResponsibility: _cmd];
-  return 0;
-}
-
-- (NSInteger) decodeIntegerForKey: (NSString*)key
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -372,7 +368,7 @@
 }
 
 - (void) encodeBytes: (const uint8_t*)aPointer
-	      length: (NSUInteger)length
+	      length: (unsigned)length
 	      forKey: (NSString*)aKey
 {
   [self subclassResponsibility: _cmd];
@@ -398,11 +394,6 @@
   [self subclassResponsibility: _cmd];
 }
 
-- (void) encodeInteger: (NSInteger)anInteger forKey: (NSString*)key
-{
-  [self subclassResponsibility: _cmd];
-}
-
 - (void) encodeInt32: (int32_t)anInteger forKey: (NSString*)aKey
 {
   [self subclassResponsibility: _cmd];
@@ -422,14 +413,14 @@
 
 
 
-#import	"GSPrivate.h"
+#include	"GSPrivate.h"
 
 @implementation	_NSKeyedCoderOldStyleArray
 - (const void*) bytes
 {
   return _a;
 }
-- (NSUInteger) count
+- (unsigned) count
 {
   return _c;
 }
@@ -465,7 +456,7 @@
   return self;
 }
 
-- (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a
+- (id) initWithObjCType: (const char*)t count: (int)c at: (const void*)a
 {
   _t[0] = *t;
   _t[1] = '\0';
@@ -489,7 +480,7 @@
     }
 }
 
-- (NSUInteger) size
+- (unsigned) size
 {
   return _s;
 }

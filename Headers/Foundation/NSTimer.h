@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,6 +25,9 @@
 #ifndef __NSTimer_h_GNUSTEP_BASE_INCLUDE
 #define __NSTimer_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
+
+/* This class is currently thrown together.  When it is cleaned up, it
+   may no longer be concrete. */
 
 #import	<Foundation/NSDate.h>
 
@@ -36,13 +39,9 @@ extern "C" {
  *	NB. NSRunLoop is optimised using a hack that knows about the
  *	class layout for the fire date and invialidation flag in NSTimer.
  *	These MUST remain the first two items in the class.
- *	Other classes must not attempt to use instance variables as
- *	they are subject to change.
  */
 @interface NSTimer : NSObject
 {
-#if	GS_EXPOSE(NSTimer)
-@public
   NSDate 	*_date;		/* Must be first - for NSRunLoop optimisation */
   BOOL		_invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
   BOOL		_repeats;
@@ -50,10 +49,6 @@ extern "C" {
   id		_target;
   SEL		_selector;
   id		_info;
-#endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
 }
 
 /* Creating timer objects. */
@@ -81,19 +76,17 @@ extern "C" {
 - (void) invalidate;
 - (id) userInfo;
 
-#if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (BOOL) isValid;
-- (NSTimeInterval) timeInterval;
-#endif
 
-#if	OS_API_VERSION(100200, GS_API_LATEST)
+#if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithFireDate: (NSDate*)fd
 	       interval: (NSTimeInterval)ti
 		 target: (id)object
 	       selector: (SEL)selector
 	       userInfo: (id)info
 		repeats: (BOOL)f;
+- (BOOL) isValid;
 - (void) setFireDate: (NSDate*)fireDate;
+- (NSTimeInterval) timeInterval;
 #endif
 
 @end

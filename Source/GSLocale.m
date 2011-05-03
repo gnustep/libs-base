@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,16 +17,16 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 */
-#import "common.h"
-#import "GNUstepBase/GSLocale.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSLock.h"
+#include "config.h"
+#include "GNUstepBase/GSLocale.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSLock.h"
 
 #ifdef HAVE_LOCALE_H
 
@@ -34,10 +34,10 @@
 #ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
 #endif
-#import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSBundle.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSBundle.h"
 
-#import "GSPrivate.h"
+#include "GSPrivate.h"
 
 /*
  * Function called by [NSObject +initialize] to setup locale information
@@ -50,9 +50,6 @@ GSSetLocaleC(int category, const char *loc)
 {
   return setlocale(category, loc);
 }
-
-#define ToString(value) [NSString stringWithCString: (value) \
-encoding: GSPrivateNativeCStringEncoding()]
 
 /* Set the locale for libc functions from the supplied string or from
    the environment if not specified. This function should be called
@@ -81,12 +78,13 @@ GSSetLocale(int category, NSString *locale)
   locale = nil;
   if (clocale != 0)
     {
-      locale = ToString(clocale);
+      locale = [NSString stringWithUTF8String: clocale];
     }
   return locale;
 }
 
-#define GSLanginfo(value) ToString(nl_langinfo (value))
+#define GSLanginfo(value) [NSString stringWithCString: nl_langinfo (value) \
+encoding: GSPrivateNativeCStringEncoding()]
 
 
 /* Creates a locale dictionary from information provided by i18n functions.
@@ -109,11 +107,6 @@ GSDomainFromDefaultLocale(void)
     return saved;
 
   dict = [NSMutableDictionary dictionary];
-
-  /* Protect locale access with locks to prevent multiple threads using
-   * it and interfering with the buffer.
-   */
-  [gnustep_global_lock lock];
 
 #ifdef HAVE_LANGINFO_H
   /* Time/Date Information */
@@ -166,35 +159,36 @@ GSDomainFromDefaultLocale(void)
   /* Currency Information */
   if (lconv->currency_symbol)
     {
-      [dict setObject: ToString(lconv->currency_symbol)
+      [dict setObject: [NSString stringWithUTF8String: lconv->currency_symbol]
 	       forKey: NSCurrencySymbol];
     }
   if (lconv->int_curr_symbol)
     {
-      [dict setObject: ToString(lconv->int_curr_symbol)
+      [dict setObject: [NSString stringWithUTF8String: lconv->int_curr_symbol]
 	       forKey: NSInternationalCurrencyString];
     }
   if (lconv->mon_decimal_point)
     {
-      [dict setObject: ToString(lconv->mon_decimal_point)
+      [dict setObject: [NSString stringWithUTF8String: lconv->mon_decimal_point]
 	       forKey: NSInternationalCurrencyString];
     }
   if (lconv->mon_thousands_sep)
     {
-      [dict setObject: ToString(lconv->mon_thousands_sep)
+      [dict setObject: [NSString stringWithUTF8String: lconv->mon_thousands_sep]
 	       forKey: NSInternationalCurrencyString];
     }
 
   if (lconv->decimal_point)
     {
-      [dict setObject: ToString(lconv->decimal_point)
+      [dict setObject: [NSString stringWithUTF8String: lconv->decimal_point]
 	       forKey: NSDecimalSeparator];
     }
   if (lconv->thousands_sep)
     {
-      [dict setObject: ToString(lconv->thousands_sep)
+      [dict setObject: [NSString stringWithUTF8String: lconv->thousands_sep]
 	       forKey: NSThousandsSeparator];
     }
+
 
   /* FIXME: Get currency format from localeconv */
 
@@ -205,7 +199,7 @@ GSDomainFromDefaultLocale(void)
 #endif
   if (str1 != nil)
     {
-      [dict setObject: str1 forKey: GSLocale];
+      [dict setObject: str1 forKey: NSLocale];
     }
   str2 = GSLanguageFromLocale(str1);
   if (str2 != nil)
@@ -213,6 +207,7 @@ GSDomainFromDefaultLocale(void)
       [dict setObject: str2 forKey: NSLanguageName];
     }
 
+  [gnustep_global_lock lock];
   /*
    * Another thread might have been faster in setting the static variable.
    * If so, we just drop our dict.

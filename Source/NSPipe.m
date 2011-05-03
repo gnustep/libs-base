@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -24,12 +24,12 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-
-#define	EXPOSE_NSPipe_IVARS	1
-
-#import "Foundation/NSFileHandle.h"
-#import "GSPrivate.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSFileHandle.h"
+#include "Foundation/NSDebug.h"
+#include "GSPrivate.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -57,8 +57,8 @@
 
 - (void) dealloc
 {
-  RELEASE(_readHandle);
-  RELEASE(_writeHandle);
+  RELEASE(readHandle);
+  RELEASE(writeHandle);
   [super dealloc];
 }
 
@@ -67,15 +67,15 @@
   self = [super init];
   if (self != nil)
     {
-#ifndef __MINGW__
+#ifndef __MINGW32__
       int	p[2];
 
       if (pipe(p) == 0)
         {
-          _readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]
+          readHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[0]
+						     closeOnDealloc: YES];
+          writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]
 						      closeOnDealloc: YES];
-          _writeHandle = [[NSFileHandle alloc] initWithFileDescriptor: p[1]
-						       closeOnDealloc: YES];
         }
       else
 	{
@@ -87,15 +87,15 @@
       HANDLE readh, writeh;
 
       saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-      saAttr.bInheritHandle = FALSE;
+      saAttr.bInheritHandle = TRUE;
       saAttr.lpSecurityDescriptor = NULL;
 
       if (CreatePipe(&readh, &writeh, &saAttr, 0) != 0)
         {
-          _readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh
+          readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh
+						   closeOnDealloc: YES];
+          writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
 						    closeOnDealloc: YES];
-          _writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh
-						     closeOnDealloc: YES];
         }
       else
 	{
@@ -112,7 +112,7 @@
  */
 - (NSFileHandle*) fileHandleForReading
 {
-  return _readHandle;
+  return readHandle;
 }
 
 /**
@@ -120,7 +120,7 @@
  */
 - (NSFileHandle*) fileHandleForWriting
 {
-  return _writeHandle;
+  return writeHandle;
 }
 
 @end

@@ -1,7 +1,21 @@
+/* Dummy NXConstantString impl for so libobjc that doesn't include it */
+/*
+  Copyright (C) 2005 Free Software Foundation
 
-#include "objc-common.g"
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+*/
+#ifndef NeXT_RUNTIME
+#include <objc/NXConstStr.h>
+@implementation NXConstantString
+@end
+#endif
 
-@interface Test : NSObject
+#include <objc/Object.h>
+
+@interface Test : Object
+static int test_result;
 +(void) load;
 +(int) test_result;
 @end
@@ -12,6 +26,4 @@ static int test_result = 1;
 +(int) test_result {return test_result;}
 @end
 
-int main (void) {
-return [Test test_result];
-}
+int main (void) {return [Test test_result];}

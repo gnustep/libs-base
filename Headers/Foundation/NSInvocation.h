@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -35,24 +35,21 @@ extern "C" {
 
 @interface NSInvocation : NSObject
 {
-#if	GS_EXPOSE(NSInvocation)
-@public
   NSMethodSignature	*_sig;
   void                  *_cframe;
   void			*_retval;
   id			_target;
   SEL			_selector;
   unsigned int		_numArgs;
-  void			*_info;
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
+  NSArgumentInfo	*_info;
+#else
+  void			*_dummy;
+#endif
   BOOL			_argsRetained;
   BOOL                  _targetRetained;
   BOOL			_validReturn;
   BOOL			_sendToSuper;
-  void			*_retptr;
-#endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
 }
 
 /*
@@ -64,11 +61,11 @@ extern "C" {
  *	Accessing message elements.
  */
 - (void) getArgument: (void*)buffer
-	     atIndex: (NSInteger)index;
+	     atIndex: (int)index;
 - (void) getReturnValue: (void*)buffer;
 - (SEL) selector;
 - (void) setArgument: (void*)buffer
-	     atIndex: (NSInteger)index;
+	     atIndex: (int)index;
 - (void) setReturnValue: (void*)buffer;
 - (void) setSelector: (SEL)aSelector;
 - (void) setTarget: (id)anObject;
@@ -80,7 +77,7 @@ extern "C" {
 - (BOOL) argumentsRetained;
 - (void) retainArguments;
 
-#if OS_API_VERSION(GS_API_NONE,GS_API_NONE) && GS_API_VERSION( 11101,GS_API_LATEST)
+#if OS_API_VERSION(GS_API_NONE,GS_API_NONE) && GS_API_VERSION(011101,GS_API_LATEST)
 - (BOOL) targetRetained;
 - (void) retainArgumentsIncludingTarget: (BOOL)retainTargetFlag;
 #endif
@@ -98,7 +95,7 @@ extern "C" {
 
 @end
 
-#if GS_API_VERSION(GS_API_NONE, 011700)
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 @interface NSInvocation (GNUstep)
 /**
  * Returns the status of the flag set by -setSendsToSuper:
@@ -122,6 +119,8 @@ extern "C" {
 + (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy;
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
+- (id) initWithSelector: (SEL)aSelector;
+- (id) initWithTarget: (id)anObject selector: (SEL)aSelector, ...;
 - (void*) returnFrame: (arglist_t)argFrame;
 @end
 

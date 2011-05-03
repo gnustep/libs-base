@@ -11,7 +11,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -20,7 +20,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -29,15 +29,14 @@
    $Date$ $Revision$
 */
 
-#import "common.h"
-#define	EXPOSE_NSNotificationCenter_IVARS	1
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSThread.h"
-#import "GNUstepBase/GSLock.h"
+#include "config.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSDebug.h"
+#include "GNUstepBase/GSLock.h"
 
-static NSZone	*_zone = 0;
 
 /**
  * Concrete class implementing NSNotification.
@@ -70,7 +69,7 @@ static Class concrete = 0;
   GSNotification	*n;
 
   n = (GSNotification*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  n->_name = [name copyWithZone: [self zone]];
+  n->_name = [name copyWithZone: GSObjCZone(self)];
   n->_object = TEST_RETAIN(object);
   n->_info = TEST_RETAIN(info);
   return AUTORELEASE(n);
@@ -85,7 +84,7 @@ static Class concrete = 0;
       return [self retain];
     }
   n = (GSNotification*)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
-  n->_name = [_name copyWithZone: [self zone]];
+  n->_name = [_name copyWithZone: GSObjCZone(self)];
   n->_object = TEST_RETAIN(_object);
   n->_info = TEST_RETAIN(_info);
   return n;
@@ -136,9 +135,6 @@ struct	NCTbl;		/* Notification Center Table structure	*/
  * each -addObserver... request.  It holds the requested selector,
  * name and object.  Each struct is placed in one LinkedList,
  * as keyed by the NAME/OBJECT parameters.
- * If 'next' is 0 then the observation is unused (ie it has been
- * removed from, or not yet added to  any list).  The end of a
- * list is marked by 'next' being set to 'ENDOBS'.
  */
 
 typedef	struct	Obs {
@@ -212,13 +208,6 @@ static void obsFree(Observation *o);
 #define GSI_MAP_VEXTRA Observation*
 #define	GSI_MAP_EXTRA	void*
 
-#if	GS_WITH_GC
-#include	<gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
-
 #include "GNUstepBase/GSIMap.h"
 
 @class	GSLazyRecursiveLock;
@@ -279,20 +268,13 @@ static Observation *obsNew(NCTable* t)
 	  unsigned	size;
 
 	  t->numChunks++;
-
 	  size = t->numChunks * sizeof(Observation*);
-#if	GS_WITH_GC
-	  t->chunks = (Observation**)NSReallocateCollectable(
-	    t->chunks, size, NSScannedOption);
-#else
 	  t->chunks = (Observation**)NSZoneRealloc(NSDefaultMallocZone(),
 	    t->chunks, size);
-#endif
-
 	  size = CHUNKSIZE * sizeof(Observation);
 #if	GS_WITH_GC
 	  t->chunks[t->numChunks - 1]
-	    = (Observation*)NSAllocateCollectable(size, 0);
+	    = (Observation*)NSZoneMallocAtomic(NSDefaultMallocZone(), size);
 #else
 	  t->chunks[t->numChunks - 1]
 	    = (Observation*)NSZoneMalloc(NSDefaultMallocZone(), size);
@@ -318,12 +300,8 @@ static GSIMapTable	mapNew(NCTable *t)
     {
       GSIMapTable	m;
 
-#if	GS_WITH_GC
-      m = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
-#else
-      m = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
-#endif
-      GSIMapInitWithZoneAndCapacity(m, _zone, 2);
+      m = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
+      GSIMapInitWithZoneAndCapacity(m, NSDefaultMallocZone(), 2);
       return m;
     }
 }
@@ -331,9 +309,7 @@ static GSIMapTable	mapNew(NCTable *t)
 static void	mapFree(NCTable *t, GSIMapTable m)
 {
   if (t->cacheIndex < CACHESIZE)
-    {
-      t->cache[t->cacheIndex++] = m;
-    }
+    t->cache[t->cacheIndex++] = m;
   else
     {
       GSIMapEmptyMap(m);
@@ -411,24 +387,16 @@ static NCTable *newNCTable(void)
 {
   NCTable	*t;
 
-#if	GS_WITH_GC
-  t = (NCTable*)NSAllocateCollectable(sizeof(NCTable), NSScannedOption);
-#else
-  t = (NCTable*)NSZoneMalloc(_zone, sizeof(NCTable));
+  t = (NCTable*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(NCTable));
   memset((void*)t, '\0', sizeof(NCTable));
-#endif
   t->chunkIndex = CHUNKSIZE;
   t->wildcard = ENDOBS;
 
-#if	GS_WITH_GC
-  t->nameless = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
-  t->named = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
-#else
-  t->nameless = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
-  t->named = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
-#endif
-  GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
-  GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
+  t->nameless = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t->nameless, NSDefaultMallocZone(), 16);
+
+  t->named = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t->named, NSDefaultMallocZone(), 128);
 
   // t->_lock = [GSLazyRecursiveLock new];
   t->_lock = [NSRecursiveLock new];
@@ -454,9 +422,6 @@ static void obsFree(Observation *o)
     {
       NCTable	*t = o->link;
 
-#if	GS_WITH_GC
-      GSAssignZeroingWeakPointer((void**)&o->observer, 0);
-#endif
       o->link = (NCTable*)t->freeList;
       t->freeList = o;
     }
@@ -479,8 +444,6 @@ static void listFree(Observation *list)
  *	we remove to be zero so that, if it currently exists in an array
  *	of observations being posted, the posting code can notice that it
  *	has been removed from its linked list.
- *
- *	Also, 
  */
 static Observation *listPurge(Observation *list, id observer)
 {
@@ -560,30 +523,6 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
     }
 }
 
-/* purgeCollected() returns a list of observations with any observations for
- * a collected observer removed.
- * purgeCollectedFromMapNode() does the same thing but also handles cleanup
- * of the map node containing the list if necessary.
- */
-#if	GS_WITH_GC
-#define	purgeCollected(X)	listPurge(X, nil)
-static Observation*
-purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
-{
-  Observation	*o;
-
-  o = node->value.ext = purgeCollected((Observation*)(node->value.ext));
-  if (o == ENDOBS)
-    {
-      GSIMapRemoveKey(map, node->key);
-    }
-  return o;
-}
-#else
-#define	purgeCollected(X)	(X)
-#define purgeCollectedFromMapNode(X, Y) ((Observation*)Y->value.ext)
-#endif
-
 /*
  * In order to hide pointers from garbage collection, we OR in an
  * extra bit.  This should be ok for the objects we deal with
@@ -591,7 +530,7 @@ purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
  * I know of.
  *
  * We also use this trick to differentiate between map table keys that
- * should be treated as objects (notification names) and those that
+ * should be treated as objects (notification names) and thise that
  * should be treated as pointers (notification objects)
  */
 #define	CHEATGC(X)	(id)(((uintptr_t)X) | 1)
@@ -628,16 +567,6 @@ static NSNotificationCenter *default_center = nil;
 {
   if (self == [NSNotificationCenter class])
     {
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#else
-      _zone = NSDefaultMallocZone();
-#endif
       if (concrete == 0)
 	{
 	  concrete = [GSNotification class];
@@ -675,12 +604,12 @@ static NSNotificationCenter *default_center = nil;
 
 - (void) dealloc
 {
-  [self finalize];
+  [self gcFinalize];
 
   [super dealloc];
 }
 
-- (void) finalize
+- (void) gcFinalize
 {
   if (self == default_center)
     {
@@ -709,10 +638,7 @@ static NSNotificationCenter *default_center = nil;
  *
  * <p>The notification center does not retain observer or object. Therefore,
  * you should always send removeObserver: or removeObserver:name:object: to
- * the notification center before releasing these objects.<br />
- * As a convenience, when built with garbage collection, you do not need to
- * remove any garbage collected observer as the system will do it implicitly.
- * </p>
+ * the notification center before releasing these objects.</p>
  *
  * <p>NB. For MacOS-X compatibility, adding an observer multiple times will
  * register it to receive multiple copies of any matching notification, however
@@ -754,18 +680,12 @@ static NSNotificationCenter *default_center = nil;
   o = obsNew(TABLE);
   o->selector = selector;
   o->method = method;
-#if	GS_WITH_GC
-  GSAssignZeroingWeakPointer((void**)&o->observer, (void*)observer);
-#else
   o->observer = observer;
-#endif
   o->retained = 0;
   o->next = 0;
 
   if (object != nil)
-    {
-      object = CHEATGC(object);
-    }
+    object = CHEATGC(object);
 
   /*
    * Record the Observation in one of the linked lists.
@@ -1029,9 +949,6 @@ static NSNotificationCenter *default_center = nil;
   GSIArrayItem	i[64];
   GSIArray_t	b;
   GSIArray	a = &b;
-#if	GS_WITH_GC
-  NSGarbageCollector	*collector = [NSGarbageCollector defaultCollector];
-#endif
 
   if (name == nil)
     {
@@ -1046,26 +963,19 @@ static NSNotificationCenter *default_center = nil;
     }
 
   /*
-   * Lock the table of observations while we traverse it.
-   *
-   * The table of observations contains weak pointers which are zeroed when
-   * the observers get garbage collected.  So to avoid consistency problems
-   * we disable gc while we copy all the observations we are interested in.
-   * We use scanned memory in the array in the case where there are more
-   * than the 64 observers we allowed room for on the stack.
+   * Initialise static array to store copies of observers.
    */
-#if	GS_WITH_GC
-  GSIArrayInitWithZoneAndStaticCapacity(a, (NSZone*)1, 64, i);
-  [collector disable];
-#else
-  GSIArrayInitWithZoneAndStaticCapacity(a, _zone, 64, i);
-#endif
+  GSIArrayInitWithZoneAndStaticCapacity(a, NSDefaultMallocZone(), 64, i);
+
+  /*
+   * Lock the table of observers while we traverse it.
+   */
   lockNCTable(TABLE);
 
   /*
    * Find all the observers that specified neither NAME nor OBJECT.
    */
-  for (o = WILDCARD = purgeCollected(WILDCARD); o != ENDOBS; o = o->next)
+  for (o = WILDCARD; o != ENDOBS; o = o->next)
     {
       GSIArrayAddItem(a, (GSIArrayItem)o);
     }
@@ -1078,7 +988,7 @@ static NSNotificationCenter *default_center = nil;
       n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
       if (n != 0)
 	{
-	  o = purgeCollectedFromMapNode(NAMELESS, n);
+	  o = n->value.ext;
 	  while (o != ENDOBS)
 	    {
 	      GSIArrayAddItem(a, (GSIArrayItem)o);
@@ -1110,7 +1020,7 @@ static NSNotificationCenter *default_center = nil;
 	  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
 	  if (n != 0)
 	    {
-	      o = purgeCollectedFromMapNode(m, n);
+	      o = n->value.ext;
 	      while (o != ENDOBS)
 		{
 		  GSIArrayAddItem(a, (GSIArrayItem)o);
@@ -1126,7 +1036,7 @@ static NSNotificationCenter *default_center = nil;
 	      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)nil);
 	      if (n != 0)
 		{
-	          o = purgeCollectedFromMapNode(m, n);
+		  o = n->value.ext;
 		  while (o != ENDOBS)
 		    {
 		      GSIArrayAddItem(a, (GSIArrayItem)o);
@@ -1134,19 +1044,18 @@ static NSNotificationCenter *default_center = nil;
 		    }
 		}
 	    }
+
 	}
     }
 
   /*
-   * Finished with the table ... we can unlock it and re-enable garbage
-   * collection, safe in the knowledge that the observers we will be
-   * notifying won't get collected prematurely.
+   * Finished with the table ... we can unlock it.
    */
   unlockNCTable(TABLE);
-#if	GS_WITH_GC
-  [collector enable];
-#endif
 
+#if 0
+  NS_DURING
+#endif
   /*
    * Now send all the notifications.
    */
@@ -1156,20 +1065,27 @@ static NSNotificationCenter *default_center = nil;
       o = GSIArrayItemAtIndex(a, count).ext;
       if (o->next != 0)
 	{
-          NS_DURING
-            {
-              (*o->method)(o->observer, o->selector, notification);
-            }
-          NS_HANDLER
-            {
-              NSLog(@"Problem posting notification: %@", localException);
-            }
-          NS_ENDHANDLER
+	  (*o->method)(o->observer, o->selector, notification);
 	}
     }
   lockNCTable(TABLE);
   GSIArrayEmpty(a);
   unlockNCTable(TABLE);
+
+#if 0
+  NS_HANDLER
+    {
+      /*
+       *    If we had a problem - release memory before going on.
+       */
+      lockNCTable(TABLE);
+      GSIArrayEmpty(a);
+      unlockNCTable(TABLE);
+      RELEASE(notification);
+      [localException raise];
+    }
+  NS_ENDHANDLER
+#endif
 
   RELEASE(notification);
 }
@@ -1214,7 +1130,7 @@ static NSNotificationCenter *default_center = nil;
   GSNotification	*notification;
 
   notification = (id)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
-  name = notification->_name = [name copyWithZone: [self zone]];
+  name = notification->_name = [name copyWithZone: GSObjCZone(self)];
   object = notification->_object = TEST_RETAIN(object);
   notification->_info = TEST_RETAIN(info);
   [self _postAndRelease: notification];

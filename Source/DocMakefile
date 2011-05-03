@@ -8,7 +8,7 @@
 #  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU Lesser General Public
+#  modify it under the terms of the GNU Library General Public
 #  License as published by the Free Software Foundation; either
 #  version 2 of the License, or (at your option) any later version.
 #
@@ -17,7 +17,7 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
 #  Library General Public License for more details.
 #
-#  You should have received a copy of the GNU Lesser General Public
+#  You should have received a copy of the GNU Library General Public
 #  License along with this library; if not, write to the Free
 #  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #  Boston, MA 02111 USA
@@ -36,7 +36,6 @@ BaseAdditions_DOC_INSTALL_DIR = Developer
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
 NSArchiver.h \
-NSAffineTransform.h \
 NSArray.h \
 NSAttributedString.h \
 NSAutoreleasePool.h \
@@ -84,8 +83,6 @@ NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
 NSPathUtilities.h \
-NSPointerFunctions.h \
-NSPointerArray.h \
 NSPortCoder.h \
 NSPort.h \
 NSPortMessage.h \
@@ -122,12 +119,6 @@ NSURLResponse.h \
 NSUserDefaults.h \
 NSValue.h \
 NSValueTransformer.h \
-NSXMLDocument.h \
-NSXMLDTD.h \
-NSXMLDTDNode.h \
-NSXMLElement.h \
-NSXMLNode.h \
-NSXMLNodeOptions.h \
 NSXMLParser.h \
 NSZone.h
 
@@ -135,35 +126,16 @@ NSZone.h
 
 BaseAdditions_AGSDOC_FILES = \
 ../Documentation/BaseAdditions.gsdoc \
-GNUstep.h \
-GSBlocks.h \
-GSVersionMacros.h \
-GSObjCRuntime.h \
-GSUnion.h \
+GSCategories.h \
 GSIArray.h \
 GSIMap.h \
-GCObject.h \
 GSLock.h \
-GSFunctions.h \
 GSMime.h \
+GSObjCRuntime.h \
+GSUnion.h \
+GSVersionMacros.h \
 GSXML.h \
-GSLocale.h \
-NSArray+GNUstepBase.h \
-NSAttributedString+GNUstepBase.h \
-NSBundle+GNUstepBase.h \
-NSCalendarDate+GNUstepBase.h \
-NSData+GNUstepBase.h \
-NSDebug+GNUstepBase.h \
-NSFileHandle+GNUstepBase.h \
-NSLock+GNUstepBase.h \
-NSMutableString+GNUstepBase.h \
-NSNumber+GNUstepBase.h \
-NSObject+GNUstepBase.h \
-NSProcessInfo+GNUstepBase.h \
-NSString+GNUstepBase.h \
-NSTask+GNUstepBase.h \
-NSThread+GNUstepBase.h \
-NSURL+GNUstepBase.h \
+behavior.h \
 Unicode.h \
 GCObject.h \
 
@@ -192,7 +164,6 @@ Base_AGSDOC_FLAGS = \
 	GS_RANGE_SCOPE=extern;GS_RANGE_ATTR="";\
 	GS_ZONE_SCOPE=extern;GS_ZONE_ATTR="";\
 	INLINE=inline;\
-	WINAPI="";\
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
@@ -201,7 +172,6 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Additions/GNUstepBase \
 	-Declared GNUstepBase \
 	-Standards YES \
-	-DTDs ../Tools \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \
 	-MacrosTemplate Functions \

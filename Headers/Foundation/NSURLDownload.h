@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,7 +26,7 @@
 #define __NSURLDownload_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -46,9 +46,8 @@ extern "C" {
  */
 @interface NSURLDownload : NSObject
 {
-#if	GS_EXPOSE(NSURLDownload)
+@private
   void *_NSURLDownloadInternal;
-#endif
 }
 
 /**
@@ -106,11 +105,10 @@ extern "C" {
 /**
  * Sets the path to which the file is downloaded.<br />
  * May be called (once only) after initialisation of the receiver or when the
- * delegate receives a -download:decideDestinationWithSuggestedFilename:
- * message.<br />
+ * delegate receives a -decideDestinationWithSuggestedFilename: message.<br />
  * Appends a number to the filename if allowOverwrite is NO and a file
  * already exists at path.<br />
- * See -download:didCreateDestination: also.
+ * See -didCreateDestination: also.
  */
 - (void) setDestination: (NSString *)path allowOverwrite: (BOOL)allowOverwrite;
 
@@ -170,7 +168,7 @@ extern "C" {
  * Called when some data has been received.
  */
 - (void) download: (NSURLDownload *)download
-  didReceiveDataOfLength: (NSUInteger)length;
+  didReceiveDataOfLength: (unsigned)length;
 
 /**
  * Called when a response is received.<br />

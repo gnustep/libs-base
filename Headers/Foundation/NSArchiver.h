@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -42,7 +42,6 @@ extern "C" {
 
 @interface NSArchiver : NSCoder
 {
-#if	GS_EXPOSE(NSArchiver)
 @private
   NSMutableData	*_data;		/* Data to write into.		*/
   id		_dst;		/* Serialization destination.	*/
@@ -69,10 +68,6 @@ extern "C" {
   unsigned	_startPos;	/* Where in data we started.	*/
   BOOL		_encodingRoot;
   BOOL		_initialPass;
-#endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
 }
 
 /* Initializing an archiver */
@@ -97,7 +92,7 @@ extern "C" {
 #endif
 @end
 
-#if	GS_API_VERSION(GS_API_NONE,011700)
+#if	OS_API_VERSION(GS_API_NONE,GS_API_NONE)
 @interface	NSArchiver (GNUstep)
 
 /*
@@ -155,7 +150,6 @@ extern "C" {
 
 @interface NSUnarchiver : NSCoder
 {
-#if	GS_EXPOSE(NSUnarchiver)
 @private
   NSData		*data;		/* Data to write into.		*/
   Class			dataClass;	/* What sort of data is it?	*/
@@ -170,17 +164,13 @@ extern "C" {
   GSIArray		objMap;		/* Object crossreference map.	*/
   GSIArray		ptrMap;		/* Pointer crossreference map.	*/
 #ifndef	_IN_NSUNARCHIVER_M
-#undef	GSIArray
+#undef	GSUnarchiverArray
 #endif
   unsigned		cursor;		/* Position in data buffer.	*/
   unsigned		version;	/* Version of archiver used.	*/
   NSZone		*zone;		/* Zone for allocating objs.	*/
   NSMutableDictionary	*objDict;	/* Class information store.	*/
   NSMutableArray	*objSave;
-#endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
 }
 
 /* Initializing an unarchiver */

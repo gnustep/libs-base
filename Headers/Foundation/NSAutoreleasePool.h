@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -70,8 +70,7 @@ typedef struct autorelease_thread_vars
 /* Initialize an autorelease_thread_vars structure for a new thread.
    This function is called in NSThread each time an NSThread is created.
    TV should be of type `struct autorelease_thread_vars *' */
-#define init_autorelease_thread_vars(TV) \
-memset (TV, 0, sizeof (__typeof__ (*TV)))
+#define init_autorelease_thread_vars(TV)  memset (TV, 0, sizeof (typeof (*TV)))
 
 
 
@@ -180,7 +179,6 @@ typedef struct autorelease_array_list
  */
 @interface NSAutoreleasePool : NSObject 
 {
-#if	GS_EXPOSE(NSAutoreleasePool)
   /* For re-setting the current pool when we are dealloc'ed. */
   NSAutoreleasePool *_parent;
   /* This pointer to our child pool is  necessary for co-existing
@@ -193,10 +191,6 @@ typedef struct autorelease_array_list
   unsigned _released_count;
   /* The method to add an object to this pool */
   void 	(*_addImp)(id, SEL, id);
-#endif
-#if	!GS_NONFRAGILE
-  void	*_unused;
-#endif
 }
 
 /**
@@ -223,16 +217,6 @@ typedef struct autorelease_array_list
  * Raises an exception - pools should not be autoreleased.
  */
 - (id) autorelease;
-
-#if OS_API_VERSION(100400, GS_API_LATEST)
-/**
- * Intended to trigger a garbage collection run (if needed) when called in
- * a garbage collected environment.<br />
- * In a non-garbage collected environment, this method implements the
- * undocumented MacOS-X behavior, and releases the receiver.
- */
-- (void) drain;
-#endif
 
 /**
  * Destroys the receiver (calls -dealloc).

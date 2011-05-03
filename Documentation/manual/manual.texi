@@ -7,9 +7,8 @@
 
 @ifinfo
 @format
-INFO-DIR-SECTION GNUstep
 START-INFO-DIR-ENTRY
-* GNUstepBase: (manual).        Objective C Language and GNUstep Base Library
+* GNUstepBase:         Objective C Language and GNUstep Base Library
 END-INFO-DIR-ENTRY
 @end format
 @end ifinfo
@@ -89,7 +88,6 @@ into another language, under the above conditions for modified versions.
 * Objective-C Java and C++:: Comparison between Objective-C, Java, and C++
 * Java and Guile::       Programming GNUstep in Java and Guile
 * Compliance to Standards:: GNUstep and the OpenStep and Mac OS X APIs
-* Make::                 Using the Package to build GNUstep "Objects"
 @end menu
 @c **end Top node and master menu
 @end ifinfo
@@ -135,8 +133,6 @@ into another language, under the above conditions for modified versions.
 @c Appendix E: GNUstep Compliance to Standards
 @include Compliance.texi
 
-@c Appendix F: Using the GNUstep Make Package
-@include GNUstepMake.texi
 
 @unnumbered Concept Index
 @printindex cp

@@ -8,7 +8,7 @@
 #  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU Lesser General Public
+#  modify it under the terms of the GNU Library General Public
 #  License as published by the Free Software Foundation; either
 #  version 2 of the License, or (at your option) any later version.
 #
@@ -20,7 +20,7 @@
 #  If you are interested in a warranty or support for this source code,
 #  contact Scott Christley at scottc@net-community.com
 #
-#  You should have received a copy of the GNU Lesser General Public
+#  You should have received a copy of the GNU Library General Public
 #  License along with this library; see the file COPYING.LIB.
 #  If not, write to the Free Software Foundation,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -67,7 +67,7 @@
 
 # Things to do after distcleaning
 after-distclean::
-	rm -rf config.status config.log config.cache TAGS config.mak config.h
+	rm -rf $(GNUSTEP_TARGET_DIR)/config.h config.status config.log config.cache TAGS config.mak config.h
 
 # Things to do before checking
 # before-check::
@@ -75,20 +75,20 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-config.mak: config.mak.in
-	./configure
+config.mak: config.mak.in config.status
+	./config.status
 
-config.h: config.h.in
-	./configure
-
-# PS: the config.h file is specific to the target that was configured.
-# At the moment, we use a single config.h file in ./, so if you want
-# to change target, you have to reconfigure the SSL bundle, which
-# would remove the configuration for the previous target and create a
-# configuration for the new target.
 #
-# A possible improvement would be to have configure store each
-# config.h file in a target-specific directory so that when you
-# reconfigure for a different target, you don't lose the configuration
-# for the previous target.  It doesn't seem to help much though as you
-# still have to configure and build multiple times.
+# The config.h file is specific to a target
+#
+$(GNUSTEP_TARGET_DIR)/config.h: config.status
+	./config.status
+ifneq ($(GNUSTEP_TARGET_DIR), .)
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
+	-mv config.h $(GNUSTEP_TARGET_DIR)
+	-touch $(GNUSTEP_TARGET_DIR)/config.h
+endif
+
+# Run configure manually if you need to pass any options
+config.status:
+	./configure

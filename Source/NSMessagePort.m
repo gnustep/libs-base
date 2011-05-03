@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,41 +16,42 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
 
-#import "common.h"
-#define	EXPOSE_NSPort_IVARS	1
-#define	EXPOSE_NSMessagePort_IVARS	1
-#import "GNUstepBase/GSLock.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSRunLoop.h"
-#import "Foundation/NSByteOrder.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSDate.h"
-#import "Foundation/NSMapTable.h"
-#import "Foundation/NSPortMessage.h"
-#import "Foundation/NSPortNameServer.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSThread.h"
-#import "Foundation/NSConnection.h"
-#import "Foundation/NSPathUtilities.h"
-#import "Foundation/NSValue.h"
-#import "Foundation/NSFileManager.h"
-#import "Foundation/NSProcessInfo.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSLock.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSPortMessage.h"
+#include "Foundation/NSPortNameServer.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSConnection.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSProcessInfo.h"
 
-#import "GSPrivate.h"
-#import "GSPortPrivate.h"
+#include "GSPrivate.h"
+#include "GSPortPrivate.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#include <unistd.h>		/* for gethostname() */
 #endif
 
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
@@ -58,6 +59,7 @@
 #include <sys/un.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #include <errno.h>
+#include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
@@ -88,10 +90,6 @@
 #if	defined(__svr4__)
 #include <sys/stropts.h>
 #endif
-
-@interface NSProcessInfo (private)
-+ (BOOL) _exists: (int)pid;
-@end
 
 /*
  * Largest chunk of data possible in DO
@@ -232,7 +230,7 @@ typedef enum {
   GS_H_CONNECTED	// Currently connected.
 } GSHandleState;
 
-@interface GSMessageHandle : NSObject <RunLoopEvents>
+@interface GSMessageHandle : NSObject <GCFinalization, RunLoopEvents>
 {
   int			desc;		/* File descriptor for I/O.	*/
   unsigned		wItem;		/* Index of item being written.	*/
@@ -396,7 +394,15 @@ static Class	runLoopClass;
       watcher: self
       forMode: NSConnectionReplyMode];
   [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+  [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
 
@@ -411,7 +417,15 @@ static Class	runLoopClass;
 	 forMode: NSConnectionReplyMode
 	     all: NO];
   [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_EDESC
+	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 
@@ -445,7 +459,7 @@ static Class	runLoopClass;
 
 - (void) dealloc
 {
-  [self finalize];
+  [self gcFinalize];
   DESTROY(rData);
   DESTROY(rItems);
   DESTROY(wMsgs);
@@ -464,7 +478,7 @@ static Class	runLoopClass;
   return desc;
 }
 
-- (void) finalize
+- (void) gcFinalize
 {
   [self invalidate];
   (void)close(desc);
@@ -488,6 +502,10 @@ static Class	runLoopClass;
 		     all: YES];
 	  [l removeEvent: (void*)(uintptr_t)desc
 		    type: ET_WDESC
+		 forMode: nil
+		     all: YES];
+	  [l removeEvent: (void*)(uintptr_t)desc
+		    type: ET_EDESC
 		 forMode: nil
 		     all: YES];
 	  NSDebugMLLog(@"NSMessagePort", @"invalidated 0x%x", self);
@@ -518,7 +536,7 @@ static Class	runLoopClass;
 {
   NSDebugMLLog(@"NSMessagePort_details",
     @"received %s event on 0x%x",
-    type != ET_WDESC ? "read" : "write", self);
+    type == ET_RPORT ? "read" : "write", self);
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
@@ -531,12 +549,16 @@ static Class	runLoopClass;
 		type: ET_WDESC
 	     forMode: mode
 		 all: YES];
+      [l removeEvent: data
+		type: ET_EDESC
+	     forMode: mode
+		 all: YES];
       return;
     }
 
   M_LOCK(myLock);
 
-  if (type != ET_WDESC)
+  if (type == ET_RPORT)
     {
       unsigned	want;
       void	*bytes;
@@ -852,7 +874,7 @@ static Class	runLoopClass;
 	      DESTROY(rItems);
 	      NSDebugMLLog(@"NSMessagePort_details",
 		@"got message %@ on 0x%x", pm, self);
-	      IF_NO_GC([rp retain];)
+	      RETAIN(rp);
 	      M_UNLOCK(myLock);
 	      NS_DURING
 		{
@@ -1001,14 +1023,22 @@ static Class	runLoopClass;
 
   l = [runLoopClass currentRunLoop];
 
-  IF_NO_GC(RETAIN(self);)
+  RETAIN(self);
 
   [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
   [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(uintptr_t)desc
 	 type: ET_WDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+  [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_EDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
 
@@ -1026,7 +1056,15 @@ static Class	runLoopClass;
 	 forMode: NSConnectionReplyMode
 	     all: NO];
   [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_EDESC
+	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)desc
 	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 
@@ -1035,9 +1073,9 @@ static Class	runLoopClass;
       sent = YES;
     }
   M_UNLOCK(myLock);
+  RELEASE(self);
   NSDebugMLLog(@"NSMessagePort_details",
     @"Message send 0x%x on 0x%x status %d", components, self, sent);
-  RELEASE(self);
   return sent;
 }
 
@@ -1099,7 +1137,7 @@ static void clean_up_sockets(void)
 	unlink([name bytes]);
     }
   NSEndMapTableEnumeration(&mEnum);
-  IF_NO_GC(DESTROY(arp);)
+  DESTROY(arp);
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
@@ -1122,56 +1160,12 @@ typedef	struct {
 {
   if (self == [NSMessagePort class])
     {
-      NSFileManager	*mgr;
-      NSString		*path;
-      NSString		*pref;
-      NSString		*file;
-      NSEnumerator	*files;
-
       messagePortClass = self;
       messagePortMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       messagePortLock = [GSLazyRecursiveLock new];
       atexit(clean_up_sockets);
-
-      /* It's possible that an old process, with the same process ID as
-       * this one, got forcibly killed or crashed so that clean_up_sockets
-       * was never called.
-       * To deal with that unlikely situation, we need to remove all such
-       * ports which have been left over.
-       */
-      path = NSTemporaryDirectory();
-      path = [path stringByAppendingPathComponent: @"NSMessagePort"];
-      path = [path stringByAppendingPathComponent: @"ports"];
-      pref = [NSString stringWithFormat: @"%i.",
-	[[NSProcessInfo processInfo] processIdentifier]];
-      mgr = [NSFileManager defaultManager];
-      files = [[mgr directoryContentsAtPath: path] objectEnumerator];
-      while ((file = [files nextObject]) != nil)
-	{
-          NSString	*old = [path stringByAppendingPathComponent: file];
-
-	  if (YES == [file hasPrefix: pref])
-	    {
-	      NSDebugMLLog(@"NSMessagePort", @"Removing old port %@", old);
-	      [mgr removeFileAtPath: old handler: nil];
-	    }
-	  else
-	    {
-	      int	pid = [file intValue];
-
-	      if (pid > 0)
-		{
-		  if (NO == [NSProcessInfo _exists: pid])
-		    {
-		      NSDebugMLLog(@"NSMessagePort",
-		        @"Removing old port %@ for process %d", old, pid);
-		      [mgr removeFileAtPath: old handler: nil];
-		    }
-		}
-	    }
-	}
     }
 }
 
@@ -1340,7 +1334,7 @@ typedef	struct {
   else
     {
       RELEASE(theName);
-      IF_NO_GC([port retain];)
+      RETAIN(port);
       NSDebugMLLog(@"NSMessagePort", @"Using pre-existing port: %@", port);
     }
   IF_NO_GC(AUTORELEASE(port));
@@ -1374,7 +1368,12 @@ typedef	struct {
 
 - (void) dealloc
 {
-  [self finalize];
+  [self gcFinalize];
+  if (_internal != 0)
+    {
+      DESTROY(name);
+      NSZoneFree(NSDefaultMallocZone(), _internal);
+    }
   [super dealloc];
 }
 
@@ -1382,23 +1381,15 @@ typedef	struct {
 {
   NSString	*desc;
 
-  desc = [NSString stringWithFormat:
-    @"<%s %p file name %s>",
-    GSClassNameFromObject(self), self, [name bytes]];
+  desc = [NSString stringWithFormat: @"<NSMessagePort %p with name %s>",
+	   self, [name bytes]];
   return desc;
 }
 
-- (void) finalize
+- (void) gcFinalize
 {
   NSDebugMLLog(@"NSMessagePort", @"NSMessagePort 0x%x finalized", self);
   [self invalidate];
-  if (_internal != 0)
-    {
-      DESTROY(name);
-      NSFreeMapTable(handles);
-      RELEASE(myLock);
-      NSZoneFree(NSDefaultMallocZone(), _internal);
-    }
 }
 
 /*
@@ -1459,9 +1450,9 @@ typedef	struct {
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
     {
-      if ((NSPort*) [handle recvPort] == recvPort)
+      if ([handle recvPort] == recvPort)
 	{
-	  IF_NO_GC([handle retain];)
+	  RETAIN(handle);
 	  NSEndMapTableEnumeration(&me);
 	  M_UNLOCK(myLock);
 	  return AUTORELEASE(handle);
@@ -1564,14 +1555,14 @@ typedef	struct {
   [d handlePortMessage: m];
 }
 
-- (NSUInteger) hash
+- (unsigned) hash
 {
   return [name hash];
 }
 
 - (id) init
 {
-  DESTROY(self);
+  RELEASE(self);
   self = [messagePortClass new];
   return self;
 }
@@ -1580,7 +1571,6 @@ typedef	struct {
 {
   if ([self isValid] == YES)
     {
-      IF_NO_GC(RETAIN(self);)
       M_LOCK(myLock);
 
       if ([self isValid] == YES)
@@ -1598,21 +1588,31 @@ typedef	struct {
 	      lDesc = -1;
 	    }
 
-	  handleArray = NSAllMapTableValues(handles);
-	  i = [handleArray count];
-	  while (i-- > 0)
+	  if (handles != 0)
 	    {
-	      GSMessageHandle	*handle;
+	      handleArray = NSAllMapTableValues(handles);
+	      i = [handleArray count];
+	      while (i-- > 0)
+		{
+		  GSMessageHandle	*handle;
 
-	      handle = [handleArray objectAtIndex: i];
-	      [handle invalidate];
+		  handle = [handleArray objectAtIndex: i];
+		  [handle invalidate];
+		}
+	      /*
+	       * We permit mutual recursive invalidation, so the handles map
+	       * may already have been destroyed.
+	       */
+	      if (handles != 0)
+		{
+		  NSFreeMapTable(handles);
+		  handles = 0;
+		}
 	    }
-
 	  [[NSMessagePortNameServer sharedInstance] removePort: self];
 	  [super invalidate];
 	}
       M_UNLOCK(myLock);
-      RELEASE(self);
     }
 }
 
@@ -1622,7 +1622,7 @@ typedef	struct {
     {
       return YES;
     }
-  if ([anObject class] == [self class] && [self isValid] && [anObject isValid])
+  if ([anObject class] == [self class])
     {
       NSMessagePort	*o = (NSMessagePort*)anObject;
 
@@ -1680,6 +1680,7 @@ typedef	struct {
 
 	  if (type == ET_RDESC) t = "rdesc";
 	  else if (type == ET_WDESC) t = "wdesc";
+	  else if (type == ET_EDESC) t = "edesc";
 	  else if (type == ET_RPORT) t = "rport";
 	  else t = "unknown";
 	  NSLog(@"No handle for event %s on descriptor %d", t, desc);
@@ -1715,7 +1716,6 @@ typedef	struct {
 
 - (void) removeHandle: (GSMessageHandle*)handle
 {
-  IF_NO_GC(RETAIN(self);)
   M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
@@ -1728,7 +1728,7 @@ typedef	struct {
 	   * been retained - we must therefore release this port since the
 	   * handle no longer uses it.
 	   */
-	  IF_NO_GC([self autorelease];)
+	  AUTORELEASE(self);
 	}
       handle->sendPort = nil;
     }
@@ -1742,7 +1742,6 @@ typedef	struct {
       [self invalidate];
     }
   M_UNLOCK(myLock);
-  RELEASE(self);
 }
 
 /*
@@ -1844,7 +1843,6 @@ typedef	struct {
        * a maximum of NETBLOCK bytes.  This is to try to get a single,
        * efficient write operation if possible.
        */
-      c = [components count];
       for (i = 1; i < c; i++)
 	{
 	  id	o = [components objectAtIndex: i];

@@ -1,5 +1,5 @@
 /** Implementation of NSObject for GNUStep
-   Copyright (C) 1994-2010 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: August 1994
@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -28,25 +28,32 @@
 /* On some versions of mingw we need to work around bad function declarations
  * by defining them away and doing the declarations ourself later.
  */
-#ifndef _WIN64
 #define InterlockedIncrement	BadInterlockedIncrement
 #define InterlockedDecrement	BadInterlockedDecrement
-#endif
 
-#import "common.h"
+
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include <stdarg.h>
+#include "Foundation/NSObject.h"
 #include <objc/Protocol.h>
-#import "Foundation/NSMethodSignature.h"
-#import "Foundation/NSInvocation.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSPortCoder.h"
-#import "Foundation/NSDistantObject.h"
-#import "Foundation/NSThread.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSMapTable.h"
-#import "GNUstepBase/GSLocale.h"
+#include "Foundation/NSMethodSignature.h"
+#include "Foundation/NSInvocation.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSDistantObject.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSMapTable.h"
+#include <limits.h>
+#include "GNUstepBase/GSLocale.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -57,11 +64,8 @@
 #ifdef	HAVE_SYS_SIGNAL_H
 #include	<sys/signal.h>
 #endif
-#ifdef __FreeBSD__
-#include <fenv.h>
-#endif
 
-#import "GSPrivate.h"
+#include "GSPrivate.h"
 
 
 #ifndef NeXT_RUNTIME
@@ -87,8 +91,6 @@ static IMP autorelease_imp;
 #include	<gc.h>
 #include	<gc_typed.h>
 
-static SEL finalize_sel;
-static IMP finalize_imp;
 #endif
 
 static Class	NSConstantStringClass;
@@ -106,27 +108,20 @@ static Class	NSConstantStringClass;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 @end
 
-@interface GSContentAccessingProxy : NSProxy 
-{
-  NSObject<NSDiscardableContent> *object;
-}
-- (id) initWithObject: (id)anObject;
-@end
-
 /*
  * allocationLock is needed when running multi-threaded for 
- * protecting the map table of zombie information.
+ * protecting the map table of zombie information and for retain
+ * count protection (when using a map table ... REFCNT_LOCAL is NO)
  */
-static NSLock *allocationLock;
+static objc_mutex_t allocationLock = NULL;
 
 BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
 
 @class	NSZombie;
 static Class		zombieClass;
-static NSMapTable	*zombieMap;
+static NSMapTable	zombieMap;
 
-#if	!GS_WITH_GC
 static void GSMakeZombie(NSObject *o)
 {
   Class	c = ((id)o)->class_pointer;
@@ -134,12 +129,17 @@ static void GSMakeZombie(NSObject *o)
   ((id)o)->class_pointer = zombieClass;
   if (NSDeallocateZombies == NO)
     {
-      [allocationLock lock];
+      if (allocationLock != 0)
+	{
+	  objc_mutex_lock(allocationLock);
+	}
       NSMapInsert(zombieMap, (void*)o, (void*)c);
-      [allocationLock unlock];
+      if (allocationLock != 0)
+	{
+	  objc_mutex_unlock(allocationLock);
+	}
     }
 }
-#endif
 
 static void GSLogZombie(id o, SEL sel)
 {
@@ -147,19 +147,25 @@ static void GSLogZombie(id o, SEL sel)
 
   if (NSDeallocateZombies == NO)
     {
-      [allocationLock lock];
+      if (allocationLock != 0)
+	{
+	  objc_mutex_lock(allocationLock);
+	}
       c = NSMapGet(zombieMap, (void*)o);
-      [allocationLock unlock];
+      if (allocationLock != 0)
+	{
+	  objc_mutex_unlock(allocationLock);
+	}
     }
   if (c == 0)
     {
-      NSLog(@"Deallocated object (%p) sent %@",
+      NSLog(@"Deallocated object (0x%x) sent %@",
 	o, NSStringFromSelector(sel));
     }
   else
     {
-      NSLog(@"Deallocated %@ (%p) sent %@",
-	c, o, NSStringFromSelector(sel));
+      NSLog(@"Deallocated %@ (0x%x) sent %@",
+	NSStringFromClass(c), o, NSStringFromSelector(sel));
     }
   if (GSPrivateEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
     {
@@ -170,11 +176,23 @@ static void GSLogZombie(id o, SEL sel)
 
 /*
  *	Reference count and memory management
- *	Reference counts for object are stored
- *	with the object.
- *	The zone in which an object has been
- *	allocated is stored with the object.
+ *
+ *	If REFCNT_LOCAL is defined, reference counts for object are stored
+ *	with the object, otherwise they are stored in a global map table
+ *	that has to be protected by mutexes in a multithreraded environment.
+ *	You therefore want REFCNT_LOCAL defined for best performance.
+ *
+ *	If CACHE_ZONE is defined, the zone in which an object has been
+ *	allocated is stored with the object - this makes lookup of the
+ *	correct zone to free memory very fast.
  */
+
+
+#if	GS_WITH_GC == 0 && !defined(NeXT_RUNTIME)
+#define	REFCNT_LOCAL	1
+#define	CACHE_ZONE	1
+#endif
+
 
 /* Now, if we are on a platform where we know how to do atomic
  * read, increment, and decrement, then we define the GSATOMICREAD
@@ -190,13 +208,14 @@ static void GSLogZombie(id o, SEL sel)
 #undef	GSATOMICREAD
 #endif
 
-#if	defined(__MINGW__)
-#ifndef _WIN64
+#if	defined(REFCNT_LOCAL)
+
+#if	defined(__MINGW32__)
+
 #undef InterlockedIncrement
 #undef InterlockedDecrement
 LONG WINAPI InterlockedIncrement(LONG volatile *);
 LONG WINAPI InterlockedDecrement(LONG volatile *);
-#endif
 
 /* Set up atomic read, increment and decrement for mswindows
  */
@@ -208,17 +227,10 @@ typedef int32_t volatile *gsatomic_t;
 #define	GSAtomicIncrement(X)	InterlockedIncrement((LONG volatile*)X)
 #define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
 
-
-#elif defined(__llvm__) || (defined(USE_ATOMIC_BUILDINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
-/* Use the GCC atomic operations with recent GCC versions */
-
-typedef int32_t volatile *gsatomic_t;
-#define GSATOMICREAD(X) (*(X))
-#define GSAtomicIncrement(X)    __sync_fetch_and_add(X, 1)
-#define GSAtomicDecrement(X)    __sync_fetch_and_sub(X, 1)
+#endif
 
 
-#elif	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
+#if	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
 /* Set up atomic read, increment and decrement for intel style linux
  */
 
@@ -229,126 +241,34 @@ typedef int32_t volatile *gsatomic_t;
 static __inline__ int
 GSAtomicIncrement(gsatomic_t X)
 {
- __asm__ __volatile__ (
-     "lock addl $1, %0"
-     :"=m" (*X));
- return *X;
+  int	i = 1;
+  __asm__ __volatile__(
+  "lock ; xaddl %0, %1;"
+  :"=r"(i)
+  :"m"(*X), "0"(i));
+  return i + 1;
 }
 
 static __inline__ int
 GSAtomicDecrement(gsatomic_t X)
 {
- __asm__ __volatile__ (
-     "lock subl $1, %0"
-     :"=m" (*X));
- return *X;
+  int	i = -1;
+  __asm__ __volatile__(
+  "lock ; xaddl %0, %1;"
+  :"=r"(i)
+  :"m"(*X), "0"(i));
+  return i - 1;
 }
 
-#elif defined(__PPC__) || defined(__POWERPC__)
-
-typedef int32_t volatile *gsatomic_t;
-
-#define	GSATOMICREAD(X)	(*(X))
-
-static __inline__ int
-GSAtomicIncrement(gsatomic_t X)
-{
-  int tmp;
-  __asm__ __volatile__ (
-    "0:"
-    "lwarx %0,0,%1 \n"
-    "addic %0,%0,1 \n"
-    "stwcx. %0,0,%1 \n"
-    "bne- 0b \n"
-    :"=&r" (tmp)
-    :"r" (X)
-    :"cc", "memory");
-  return *X;
-}
-
-static __inline__ int
-GSAtomicDecrement(gsatomic_t X)
-{
-  int tmp;
-  __asm__ __volatile__ (
-    "0:"
-    "lwarx %0,0,%1 \n"
-    "addic %0,%0,-1 \n"
-    "stwcx. %0,0,%1 \n"
-    "bne- 0b \n"
-    :"=&r" (tmp)
-    :"r" (X)
-    :"cc", "memory");
-  return *X;
-}
-
-#elif defined(__m68k__)
-
-typedef int32_t volatile *gsatomic_t;
-
-#define	GSATOMICREAD(X)	(*(X))
-
-static __inline__ int
-GSAtomicIncrement(gsatomic_t X)
-{
-  __asm__ __volatile__ (
-    "addq%.l %#1, %0"
-    :"=m" (*X));
-    return *X;
-}
-
-static __inline__ int
-GSAtomicDecrement(gsatomic_t X)
-{
-  __asm__ __volatile__ (
-    "subq%.l %#1, %0"
-    :"=m" (*X));
-    return *X;
-}
-
-#elif defined(__mips__)
-
-typedef int32_t volatile *gsatomic_t;
-
-#define	GSATOMICREAD(X)	(*(X))
-
-static __inline__ int
-GSAtomicIncrement(gsatomic_t X)
-{
-  int tmp;
-
-  __asm__ __volatile__ (
-    "   .set  mips2  \n"
-    "0: ll    %0, %1 \n"
-    "   addiu %0, 1  \n"
-    "   sc    %0, %1 \n"
-    "   beqz  %0, 0b  \n"
-    :"=&r" (tmp), "=m" (*X));
-    return *X;
-}
-
-static __inline__ int
-GSAtomicDecrement(gsatomic_t X)
-{
-  int tmp;
-
-  __asm__ __volatile__ (
-    "   .set  mips2  \n"
-    "0: ll    %0, %1 \n"
-    "   addiu %0, -1 \n"
-    "   sc    %0, %1 \n"
-    "   beqz  %0, 0b  \n"
-    :"=&r" (tmp), "=m" (*X));
-    return *X;
-}
+#endif
 #endif
 
-#if	!defined(GSATOMICREAD)
+#if	defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
 
 /*
  * Having just one allocationLock for all leads to lock contention
  * if there are lots of threads doing lots of retain/release calls.
- * To alleviate this, instead of a single
+ * To alleviate this, if using REFCNT_LOCAL, instead of a single
  * allocationLock for all objects, we divide the object space into
  * chunks, each with its own lock. The chunk is selected by shifting
  * off the low-order ALIGNBITS of the object's pointer (these bits
@@ -361,11 +281,11 @@ GSAtomicDecrement(gsatomic_t X)
 #define LOCKMASK (LOCKCOUNT-1)
 #define ALIGNBITS 3
 
-static NSLock *allocationLocks[LOCKCOUNT] = { 0 };
+static objc_mutex_t allocationLocks[LOCKCOUNT] = { 0 };
 
-static inline NSLock *GSAllocationLockForObject(id p)
+static inline objc_mutex_t GSAllocationLockForObject(id p)
 {
-  NSUInteger i = ((((NSUInteger)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
+  unsigned i = ((((unsigned)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
   return allocationLocks[i];
 }
 
@@ -377,13 +297,19 @@ static inline NSLock *GSAllocationLockForObject(id p)
 #endif
 #define	ALIGN __alignof__(double)
 
+#if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
+
 /*
  *	Define a structure to hold information that is held locally
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
-    NSUInteger	retained;
+#if	defined(REFCNT_LOCAL)
+    unsigned	retained;
+#endif
+#if	defined(CACHE_ZONE)
     NSZone	*zone;
+#endif
 } unp;
 #define	UNP sizeof(unp)
 
@@ -393,11 +319,39 @@ typedef struct obj_layout_unpadded {
  *	structure correct.
  */
 struct obj_layout {
-    NSUInteger	retained;
+#if	defined(REFCNT_LOCAL)
+    unsigned	retained;
+#endif
+#if	defined(CACHE_ZONE)
     NSZone	*zone;
+#endif
     char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
 };
 typedef	struct obj_layout *obj;
+
+#endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
+
+#if !defined(REFCNT_LOCAL)
+
+/*
+ * Set up map table for non-local reference counts.
+ */
+
+#define GSI_MAP_EQUAL(M, X, Y)	(X.obj == Y.obj)
+#define GSI_MAP_HASH(M, X)	(X.uint >> 2)
+#define GSI_MAP_RETAIN_KEY(M, X)
+#define GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_RETAIN_VAL(M, X)
+#define GSI_MAP_RELEASE_VAL(M, X)
+#define GSI_MAP_KTYPES  GSUNION_OBJ|GSUNION_INT
+#define GSI_MAP_VTYPES  GSUNION_INT
+#define	GSI_MAP_NOCLEAN	1
+
+#include "GNUstepBase/GSIMap.h"
+
+static GSIMapTable_t	retain_counts = {0};
+
+#endif	/* !defined(REFCNT_LOCAL) */
 
 
 /**
@@ -413,13 +367,14 @@ NSDecrementExtraRefCountWasZero(id anObject)
 #if	!GS_WITH_GC
   if (double_release_check_enabled)
     {
-      NSUInteger release_count;
-      NSUInteger retain_count = [anObject retainCount];
+      unsigned release_count;
+      unsigned retain_count = [anObject retainCount];
       release_count = [autorelease_class autoreleaseCountForObject: anObject];
       if (release_count >= retain_count)
         [NSException raise: NSGenericException
 		    format: @"Release would release object too many times."];
     }
+#if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
 #if	defined(GSATOMICREAD)
@@ -444,18 +399,18 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	  return YES;
 	}
 #else	/* GSATOMICREAD */
-      NSLock *theLock = GSAllocationLockForObject(anObject);
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
 
-      [theLock lock];
+      objc_mutex_lock(theLock);
       if (((obj)anObject)[-1].retained == 0)
 	{
-	  [theLock unlock];
+	  objc_mutex_unlock(theLock);
 	  return YES;
 	}
       else
 	{
 	  ((obj)anObject)[-1].retained--;
-	  [theLock unlock];
+	  objc_mutex_unlock(theLock);
 	  return NO;
 	}
 #endif	/* GSATOMICREAD */
@@ -472,7 +427,49 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	  return NO;
 	}
     }
-#endif /* !GS_WITH_GC */
+#else
+  GSIMapNode	node;
+
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
+	{
+	  objc_mutex_unlock(allocationLock);
+	  return YES;
+	}
+      if (node->value.uint == 0)
+	{
+	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
+	  objc_mutex_unlock(allocationLock);
+	  return YES;
+	}
+      else
+	{
+	  (node->value.uint)--;
+	}
+      objc_mutex_unlock(allocationLock);
+    }
+  else
+    {
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
+	{
+	  return YES;
+	}
+      if ((node->value.uint) == 0)
+	{
+	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
+	  return YES;
+	}
+      else
+	{
+	  --(node->value.uint);
+	}
+    }
+#endif
+#endif
   return NO;
 }
 
@@ -481,14 +478,49 @@ NSDecrementExtraRefCountWasZero(id anObject)
  * from 0 to the maximum unsigned integer value minus one).<br />
  * The retain count for an object is this value plus one.
  */
-inline NSUInteger
+inline unsigned
 NSExtraRefCount(id anObject)
 {
 #if	GS_WITH_GC
   return UINT_MAX - 1;
 #else	/* GS_WITH_GC */
+#if	defined(REFCNT_LOCAL)
   return ((obj)anObject)[-1].retained;
-#endif /* GS_WITH_GC */
+#else
+  GSIMapNode	node;
+  unsigned	ret;
+
+  if (allocationLock != 0)
+    {
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
+
+      objc_mutex_lock(theLock);
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
+	{
+	  ret = 0;
+	}
+      else
+	{
+	  ret = node->value.uint;
+	}
+      objc_mutex_unlock(theLock);
+    }
+  else
+    {
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
+	{
+	  ret = 0;
+	}
+      else
+	{
+	  ret = node->value.uint;
+	}
+    }
+  return ret;
+#endif
+#endif
 }
 
 /**
@@ -503,6 +535,7 @@ NSIncrementExtraRefCount(id anObject)
 #if	GS_WITH_GC
   return;
 #else	/* GS_WITH_GC */
+#if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
 #if	defined(GSATOMICREAD)
@@ -517,17 +550,17 @@ NSIncrementExtraRefCount(id anObject)
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
 	}
 #else	/* GSATOMICREAD */
-      NSLock *theLock = GSAllocationLockForObject(anObject);
+      objc_mutex_t theLock = GSAllocationLockForObject(anObject);
 
-      [theLock lock];
+      objc_mutex_lock(theLock);
       if (((obj)anObject)[-1].retained == UINT_MAX - 1)
 	{
-	  [theLock unlock];
+	  objc_mutex_unlock (theLock);
 	  [NSException raise: NSInternalInconsistencyException
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
 	}
       ((obj)anObject)[-1].retained++;
-      [theLock unlock];
+      objc_mutex_unlock (theLock);
 #endif	/* GSATOMICREAD */
     }
   else
@@ -539,16 +572,52 @@ NSIncrementExtraRefCount(id anObject)
 	}
       ((obj)anObject)[-1].retained++;
     }
+#else	/* REFCNT_LOCAL */
+  GSIMapNode	node;
+
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node != 0)
+	{
+	  if ((node->value.uint) == UINT_MAX - 1)
+	    {
+	      objc_mutex_unlock(allocationLock);
+	      [NSException raise: NSInternalInconsistencyException
+		format:
+		@"NSIncrementExtraRefCount() asked to increment too far"];
+	    }
+	  (node->value.uint)++;
+	}
+      else
+	{
+	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
+	}
+      objc_mutex_unlock(allocationLock);
+    }
+  else
+    {
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node != 0)
+	{
+	  if ((node->value.uint) == UINT_MAX - 1)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format:
+		@"NSIncrementExtraRefCount() asked to increment too far"];
+	    }
+	  (node->value.uint)++;
+	}
+      else
+	{
+	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
+	}
+    }
+#endif	/* REFCNT_LOCAL */
 #endif	/* GS_WITH_GC */
 }
 
-#ifndef	NDEBUG
-#define	AADD(c, o) GSDebugAllocationAdd(c, o)
-#define	AREM(c, o) GSDebugAllocationRemove(c, o)
-#else
-#define	AADD(c, o) 
-#define	AREM(c, o) 
-#endif
 
 /*
  *	Now do conditional compilation of memory allocation functions
@@ -560,67 +629,65 @@ NSIncrementExtraRefCount(id anObject)
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
-  GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
-  /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
-   */
-  return NSDefaultMallocZone();
+  return 0;
 }
 
 static void
 GSFinalize(void* object, void* data)
 {
-  [(id)object finalize];
-  AREM(((id)object)->class_pointer, (id)object);
+  [(id)object gcFinalize];
+#ifndef	NDEBUG
+  GSDebugAllocationRemove(((id)object)->class_pointer, (id)object);
+#endif
   ((id)object)->class_pointer = (void*)0xdeadface;
 }
 
-static BOOL
-GSIsFinalizable(Class c)
-{
-  if (get_imp(c, finalize_sel) != finalize_imp)
-    return YES;
-  return NO;
-}
-
-inline id
-NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
+inline NSObject *
+NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 {
   id	new;
   int	size;
-  GC_descr	gc_type;
 
   NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
-  gc_type = (GC_descr)aClass->gc_object_type;
-  size = class_getInstanceSize(aClass) + extraBytes;
-  if (size % sizeof(void*) != 0)
+  size = aClass->instance_size + extraBytes;
+  if (zone == GSAtomicMallocZone())
     {
-      /* Size must be a multiple of pointer size for the garbage collector
-       * to be able to allocate explicitly typed memory.
-       */
-      size += sizeof(void*) - size % sizeof(void*);
-    }
-
-  if (gc_type == 0)
-    {
-      new = NSZoneCalloc(zone, 1, size);
-      NSLog(@"No garbage collection information for '%s'",
-	class_getName(aClass));
+      new = NSZoneMalloc(zone, size);
     }
   else
     {
-      new = GC_calloc_explicitly_typed(1, size, gc_type);
+      GC_descr	gc_type = (GC_descr)aClass->gc_object_type;
+
+      if (gc_type == 0)
+	{
+	  new = NSZoneMalloc(zone, size);
+	  NSLog(@"No garbage collection information for '%s'",
+	    GSNameFromClass(aClass));
+	}
+      else if ([aClass requiresTypedMemory])
+	{
+	  new = GC_CALLOC_EXPLICTLY_TYPED(1, size, gc_type);
+        }
+      else
+	{
+	  new = NSZoneMalloc(zone, size);
+	}
     }
 
   if (new != nil)
     {
+      memset(new, 0, size);
       new->class_pointer = aClass;
-      if (GSIsFinalizable(aClass))
+      if (__objc_responds_to(new, @selector(gcFinalize)))
 	{
-	  /* We only do allocation counting for objects that can be
-	   * finalised - for other objects we have no way of decrementing
-	   * the count when the object is collected.
+#ifndef	NDEBUG
+	  /*
+	   *	We only do allocation counting for objects that can be
+	   *	finalised - for other objects we have no way of decrementing
+	   *	the count when the object is collected.
 	   */
-	  AADD(aClass, new);
+	  GSDebugAllocationAdd(aClass, new);
+#endif
 	  GC_REGISTER_FINALIZER (new, GSFinalize, NULL, NULL, NULL);
 	}
     }
@@ -628,29 +695,47 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 }
 
 inline void
-NSDeallocateObject(id anObject)
+NSDeallocateObject(NSObject *anObject)
 {
 }
 
 #else	/* GS_WITH_GC */
 
+#if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
+
+#if defined(CACHE_ZONE)
+
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
-  GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
-  if (object_getClass(object) == NSConstantStringClass)
+  if (GSObjCClass(object) == NSConstantStringClass)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
 }
 
-inline id
-NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
+#else	/* defined(CACHE_ZONE)	*/
+
+inline NSZone *
+GSObjCZone(NSObject *object)
 {
+  if (GSObjCClass(object) == NSConstantStringClass)
+    return NSDefaultMallocZone();
+  return NSZoneFromPointer(&((obj)object)[-1]);
+}
+
+#endif	/* defined(CACHE_ZONE)	*/
+
+inline NSObject *
+NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+{
+#ifndef	NDEBUG
+  extern void GSDebugAllocationAdd(Class c, id o);
+#endif
   id	new;
   int	size;
 
   NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
-  size = class_getInstanceSize(aClass) + extraBytes + sizeof(struct obj_layout);
+  size = aClass->instance_size + extraBytes + sizeof(struct obj_layout);
   if (zone == 0)
     {
       zone = NSDefaultMallocZone();
@@ -659,23 +744,32 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
   if (new != nil)
     {
       memset (new, 0, size);
+#if	defined(CACHE_ZONE)
       ((obj)new)->zone = zone;
+#endif
       new = (id)&((obj)new)[1];
       new->class_pointer = aClass;
-      AADD(aClass, new);
+#ifndef	NDEBUG
+      GSDebugAllocationAdd(aClass, new);
+#endif
     }
   return new;
 }
 
 inline void
-NSDeallocateObject(id anObject)
+NSDeallocateObject(NSObject *anObject)
 {
+#ifndef	NDEBUG
+  extern void GSDebugAllocationRemove(Class c, id o);
+#endif
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
       obj	o = &((obj)anObject)[-1];
-      NSZone	*z = o->zone;
+      NSZone	*z = GSObjCZone(anObject);
 
-      AREM(((id)anObject)->class_pointer, (id)anObject);
+#ifndef	NDEBUG
+      GSDebugAllocationRemove(((id)anObject)->class_pointer, (id)anObject);
+#endif
       if (NSZombieEnabled == YES)
 	{
 	  GSMakeZombie(anObject);
@@ -693,43 +787,66 @@ NSDeallocateObject(id anObject)
   return;
 }
 
-#endif	/* GS_WITH_GC */
-
-
-void
-GSPrivateSwizzle(id o, Class c)
-{
-  if ((Class)o->class_pointer != c)
-    {
-#if	GS_WITH_GC
-      /* We only do allocation counting for objects that can be
-       * finalised - for other objects we have no way of decrementing
-       * the count when the object is collected.
-       */
-      if (GSIsFinalizable(o->class_pointer))
-	{
-	  /* Already finalizable, so we just need to do any allocation
-	   * accounting.
-	   */
-          AREM(o->class_pointer, o);
-          AADD(c, o);
-	}
-      else if (GSIsFinalizable(c))
-	{
-	  /* New class is finalizable, so we must register the instance
-	   * for finalisation and do allocation acounting for it.
-	   */
-	  AADD(c, o);
-	  GC_REGISTER_FINALIZER (o, GSFinalize, NULL, NULL, NULL);
-	}
 #else
-      AREM(o->class_pointer, o);
-      AADD(c, o);
-#endif	/* GS_WITH_GC */
-      o->class_pointer = c;
-    }
+
+inline NSZone *
+GSObjCZone(NSObject *object)
+{
+  if (GSObjCClass(object) == NSConstantStringClass)
+    return NSDefaultMallocZone();
+  return NSZoneFromPointer(object);
 }
 
+inline NSObject *
+NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+{
+  id	new;
+  int	size;
+
+  NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
+  size = aClass->instance_size + extraBytes;
+  new = NSZoneMalloc (zone, size);
+  if (new != nil)
+    {
+      memset (new, 0, size);
+      new->class_pointer = aClass;
+#ifndef	NDEBUG
+      GSDebugAllocationAdd(aClass, new);
+#endif
+    }
+  return new;
+}
+
+inline void
+NSDeallocateObject(NSObject *anObject)
+{
+  if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
+    {
+      NSZone	*z = [anObject zone];
+
+#ifndef	NDEBUG
+      GSDebugAllocationRemove(((id)anObject)->class_pointer, (id)anObject);
+#endif
+      if (NSZombieEnabled == YES)
+	{
+	  GSMakeZombie(anObject);
+	  if (NSDeallocateZombies == YES)
+	    {
+	      NSZoneFree(z, anObject);
+	    }
+	}
+      else
+	{
+	  ((id)anObject)->class_pointer = (void*) 0xdeadface;
+	  NSZoneFree(z, anObject);
+	}
+    }
+  return;
+}
+
+#endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
+
+#endif	/* GS_WITH_GC */
 
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
@@ -738,51 +855,42 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
   return YES;
 #else
   return (!requestedZone || requestedZone == NSDefaultMallocZone()
-    || [anObject zone] == requestedZone);
+    || GSObjCZone(anObject) == requestedZone);
 #endif
 }
 
 
 
-/* FIXME ... the following code is a hack for the gnu runtime only
- */
+
 struct objc_method_description_list {
   int count;
   struct objc_method_description list[1];
 };
-
-/* Must have same layout as ivars of Protocol class
- */
-struct protocol_class {
-  Class	isa;
-  char	*protocol_name;
-  struct objc_protocol_list *protocol_list;
-  struct objc_method_description_list *instance_methods;
-  struct objc_method_description_list *class_methods;
-};
+typedef struct {
+  @defs(Protocol)
+} *pcl;
 
 struct objc_method_description *
-GSDescriptionForInstanceMethod(Protocol *self, SEL aSel)
+GSDescriptionForInstanceMethod(pcl self, SEL aSel)
 {
-  struct protocol_class *pcl = (struct protocol_class*)self;
   int i;
   struct objc_protocol_list	*p_list;
-  const char			*name = sel_getName(aSel);
+  const char			*name = GSNameFromSelector(aSel);
   struct objc_method_description *result;
 
-  if (pcl->instance_methods != 0)
+  if (self->instance_methods != 0)
     {
-      for (i = 0; i < pcl->instance_methods->count; i++)
+      for (i = 0; i < self->instance_methods->count; i++)
 	{
-	  if (!strcmp ((char*)pcl->instance_methods->list[i].name, name))
-	    return &(pcl->instance_methods->list[i]);
+	  if (!strcmp ((char*)self->instance_methods->list[i].name, name))
+	    return &(self->instance_methods->list[i]);
 	}
     }
-  for (p_list = pcl->protocol_list; p_list != 0; p_list = p_list->next)
+  for (p_list = self->protocol_list; p_list != 0; p_list = p_list->next)
     {
       for (i = 0; i < p_list->count; i++)
 	{
-	  result = GSDescriptionForInstanceMethod(p_list->list[i], aSel);
+	  result = GSDescriptionForInstanceMethod((pcl)p_list->list[i], aSel);
 	  if (result)
 	    {
 	      return result;
@@ -794,27 +902,26 @@ GSDescriptionForInstanceMethod(Protocol *self, SEL aSel)
 }
 
 struct objc_method_description *
-GSDescriptionForClassMethod(Protocol *self, SEL aSel)
+GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
-  struct protocol_class *pcl = (struct protocol_class*)self;
   int i;
   struct objc_protocol_list	*p_list;
-  const char			*name = sel_getName(aSel);
+  const char			*name = GSNameFromSelector(aSel);
   struct objc_method_description *result;
 
-  if (pcl->class_methods != 0)
+  if (self->class_methods != 0)
     {
-      for (i = 0; i < pcl->class_methods->count; i++)
+      for (i = 0; i < self->class_methods->count; i++)
 	{
-	  if (!strcmp ((char*)pcl->class_methods->list[i].name, name))
-	    return &(pcl->class_methods->list[i]);
+	  if (!strcmp ((char*)self->class_methods->list[i].name, name))
+	    return &(self->class_methods->list[i]);
 	}
     }
-  for (p_list = pcl->protocol_list; p_list != 0; p_list = p_list->next)
+  for (p_list = self->protocol_list; p_list != 0; p_list = p_list->next)
     {
       for (i = 0; i < p_list->count; i++)
 	{
-	  result = GSDescriptionForClassMethod(p_list->list[i], aSel);
+	  result = GSDescriptionForClassMethod((pcl)p_list->list[i], aSel);
 	  if (result)
 	    {
 	      return result;
@@ -829,12 +936,12 @@ GSDescriptionForClassMethod(Protocol *self, SEL aSel)
 
 - (struct objc_method_description *) descriptionForInstanceMethod:(SEL)aSel
 {
-  return GSDescriptionForInstanceMethod(self, aSel);
+  return GSDescriptionForInstanceMethod((pcl)self, aSel);
 }
 
 - (struct objc_method_description *) descriptionForClassMethod:(SEL)aSel;
 {
-  return GSDescriptionForClassMethod(self, aSel);
+  return GSDescriptionForClassMethod((pcl)self, aSel);
 }
 
 @end
@@ -904,70 +1011,44 @@ GSDescriptionForClassMethod(Protocol *self, SEL aSel)
 {
   if (allocationLock == 0)
     {
-#if !defined(GSATOMICREAD)
-      NSUInteger	i;
+#if defined(REFCNT_LOCAL) && !defined(GSATOMICREAD)
+      unsigned	i;
 
       for (i = 0; i < LOCKCOUNT; i++)
         {
-	  allocationLocks[i] = [NSLock new];
+	  allocationLocks[i] = objc_mutex_allocate();
 	}
 #endif
-      allocationLock = [NSLock new];
+      allocationLock = objc_mutex_allocate();
     }
 }
 
 #if	GS_WITH_GC
-/* Function to log Boehm GC warnings
- * NB. This must not allocate any collectable memory as it may result
- * in a deadlock in the garbage collecting library.
+/**
+ * A utility method used when garbage collection is enabled.  Can be ignored.
  */
-static void
-GSGarbageCollectorLog(char *msg, GC_word arg)
++ (BOOL) requiresTypedMemory
 {
-  char	buf[strlen(msg)+1024];
-  sprintf(buf, msg, (unsigned long)arg);
-  fprintf(stderr, "Garbage collector: %s", buf);
+  return NO;
 }
 #endif
 
 /**
- * Semi-private function in libobjc2 that initialises the classes used for
- * blocks.
+ * This message is sent to a class once just before it is used for the first
+ * time.  If class has a superclass, its implementation of +initialize is
+ * called first.  You can implement +initialize in your own class if you need
+ * to.  NSObject's implementation handles essential root object and base
+ * library initialization.
  */
-#ifndef __MINGW__
-BOOL 
-objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
-#endif
-
-+ (void)load
-{
-#ifndef __MINGW__
-  /* When NSObject is loaded, register it as the superclass of the block
-   * classes */
-  if (objc_create_block_classes_as_subclasses_of)
-    objc_create_block_classes_as_subclasses_of(self);
-#endif
-}
-
 + (void) initialize
 {
   if (self == [NSObject class])
     {
-#if	GS_WITH_GC
-      /* Make sure that the garbage collection library is initialised.
-       * This is not necessary on most platforms, but is good practice.
-       */
-      GC_init();
-      GC_set_warn_proc(GSGarbageCollectorLog);
-#endif
-
-#ifdef __MINGW__
-      {
-        // See libgnustep-base-entry.m
-        extern void gnustep_base_socket_init(void);	
-        gnustep_base_socket_init();	
-      }
-#else /* __MINGW__ */
+#ifdef __MINGW32__
+      // See libgnustep-base-entry.m
+      extern void gnustep_base_socket_init(void);	
+      gnustep_base_socket_init();	
+#else
 
 #ifdef	SIGPIPE
     /*
@@ -997,9 +1078,9 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 	    fprintf(stderr, "Unable to retrieve information about SIGPIPE\n");
 	  }
       }
-#else /* HAVE_SIGACTION */
+#else
       {
-	void	(*handler)(NSInteger);
+	void	(*handler)(int);
 
 	handler = signal(SIGPIPE, SIG_IGN);
 	if (handler != SIG_DFL)
@@ -1007,31 +1088,24 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 	    signal(SIGPIPE, handler);
 	  }
       }
-#endif /* HAVE_SIGACTION */
-#endif /* SIGPIPE */
-#endif /* __MINGW__ */
-
-#if	GS_WITH_GC
-      finalize_sel = @selector(finalize);
-      finalize_imp = get_imp(self, finalize_sel);
+#endif
+#endif
 #endif
 
-#if (defined(__FreeBSD__) || defined(__OpenBSD__)) && defined(__i386__)
+#if defined(__FreeBSD__) && defined(__i386__)
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
       // problems on *BSD)
       // Note this only works on x86
-#  if defined(FE_INVALID)
-      fedisableexcept(FE_INVALID);
-#  else
-      {
-        volatile short cw;
 
-        __asm__ volatile ("fstcw (%0)" : : "g" (&cw));
-        cw |= 1; /* Mask 'invalid' exception */
-        __asm__ volatile ("fldcw (%0)" : : "g" (&cw));
+      {
+	volatile short cw;
+
+	__asm__ volatile ("fstcw (%0)" : : "g" (&cw));
+	cw |= 1; /* Mask 'invalid' exception */
+	__asm__ volatile ("fldcw (%0)" : : "g" (&cw));
       }
-#  endif
 #endif
+
 
 #ifdef HAVE_LOCALE_H
       GSSetLocaleC(LC_ALL, "");		// Set up locale from environment.
@@ -1039,10 +1113,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
       // Create the global lock
       gnustep_global_lock = [NSRecursiveLock new];
-
-      // Behavior debugging
-      GSObjCBehaviorDebug(GSPrivateEnvironmentFlag("GNUSTEP_BEHAVIOR_DEBUG",
-	GSObjCBehaviorDebug(-1)));
 
       // Zombie management stuff.
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
@@ -1054,6 +1124,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
+#if	GS_WITH_GC == 0
+#if	!defined(REFCNT_LOCAL)
+      GSIMapInitWithZoneAndCapacity(&retain_counts,
+	NSDefaultMallocZone(), 1024);
+#endif
+#endif
       NSConstantStringClass = [NSString constantStringClass];
       GSPrivateBuildStrings();
       [[NSNotificationCenter defaultCenter]
@@ -1313,11 +1389,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   NSDeallocateObject (self);
 }
 
-- (void) finalize
-{
-  return;
-}
-
 /**
  *  This method is an anachronism.  Do not use it.
  */
@@ -1350,7 +1421,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (Class) superclass
 {
-  return class_getSuperclass(self);
+  return GSObjCSuper(self);
 }
 
 /**
@@ -1358,7 +1429,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (Class) superclass
 {
-  return class_getSuperclass(object_getClass(self));
+  return GSObjCSuper(GSObjCClass(self));
 }
 
 /**
@@ -1390,7 +1461,35 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 + (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  return class_conformsToProtocol(self, aProtocol);
+  struct objc_protocol_list* proto_list;
+
+  if (aProtocol == 0)
+    {
+      return NO;
+    }
+  for (proto_list = ((struct objc_class*)self)->protocols;
+       proto_list; proto_list = proto_list->next)
+    {
+      unsigned int i;
+
+      for (i = 0; i < proto_list->count; i++)
+	{
+	  /* xxx We should add conformsToProtocol to Protocol class. */
+	  if ([proto_list->list[i] conformsTo: aProtocol])
+	    {
+	      return YES;
+	    }
+	}
+    }
+
+  if ([self superclass])
+    {
+      return [[self superclass] conformsToProtocol: aProtocol];
+    }
+  else
+    {
+      return NO;
+    }
 }
 
 /**
@@ -1399,7 +1498,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  return class_conformsToProtocol([self class], aProtocol);
+  return [[self class] conformsToProtocol: aProtocol];
 }
 
 /**
@@ -1430,12 +1529,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
   /*
-   *	If 'self' is an instance, object_getClass() will get the class,
+   *	If 'self' is an instance, GSObjCClass() will get the class,
    *	and get_imp() will get the instance method.
-   *	If 'self' is a class, object_getClass() will get the meta-class,
+   *	If 'self' is a class, GSObjCClass() will get the meta-class,
    *	and get_imp() will get the class method.
    */
-  return get_imp(object_getClass(self), aSelector);
+  return get_imp(GSObjCClass(self), aSelector);
 }
 
 /**
@@ -1461,7 +1560,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 /**
  * Returns the method signature describing how the receiver would handle
  * a message with aSelector.
- * <br />Returns nil if given a null selector.
+ * <br />Raises NSInvalidArgumentException if given a null selector.
  */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
@@ -1469,12 +1568,11 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   struct objc_method	*mth;
   Class			c;
 
-  if (0 == aSelector)
-    {
-      return nil;
-    }
+  if (aSelector == 0)
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  c = (GSObjCIsInstance(self) ? object_getClass(self) : (Class)self);
+  c = (GSObjCIsInstance(self) ? GSObjCClass(self) : (Class)self);
   mth = GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
 
   if (mth == 0)
@@ -1500,7 +1598,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
       while (found == NO && protocols != 0)
 	{
-	  NSUInteger	i = 0;
+	  unsigned	i = 0;
 
 	  while (found == NO && i < protocols->count)
 	    {
@@ -1540,7 +1638,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s: %p>",
-    class_getName([self class]), self];
+    GSClassNameFromObject(self), self];
 }
 
 /**
@@ -1575,7 +1673,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 	      format: @"%s(%s) does not recognize %s",
 	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSelector ? sel_getName(aSelector) : "(null)"];
+	       aSelector ? GSNameFromSelector(aSelector) : "(null)"];
 }
 
 - (retval_t) forward: (SEL)aSel : (arglist_t)argFrame
@@ -1599,13 +1697,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-  id target = [self forwardingTargetForSelector: [anInvocation selector]];
-
-  if (nil != target)
-    {
-      [anInvocation invokeWithTarget: target];
-      return;
-    }
   [self doesNotRecognizeSelector: [anInvocation selector]];
   return;
 }
@@ -1686,8 +1777,8 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 #if	GS_WITH_GC == 0
   if (double_release_check_enabled)
     {
-      NSUInteger release_count;
-      NSUInteger retain_count = [self retainCount];
+      unsigned release_count;
+      unsigned retain_count = [self retainCount];
       release_count = [autorelease_class autoreleaseCountForObject:self];
       if (release_count > retain_count)
         [NSException
@@ -1725,7 +1816,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  * The default implementation returns a value based on the address
  * of the instance.
  */
-- (NSUInteger) hash
+- (unsigned) hash
 {
   /*
    * Ideally we would shift left to lose any zero bits produced by the
@@ -1734,7 +1825,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
    * In the absence of detailed information, pick a reasonable value
    * assuming the object will be aligned to an eight byte boundary.
    */
-  return (NSUInteger)(uintptr_t)self >> 3;
+  return (unsigned)(uintptr_t)self >> 3;
 }
 
 /**
@@ -1765,7 +1856,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (BOOL) isKindOfClass: (Class)aClass
 {
-  Class class = object_getClass(self);
+  Class class = GSObjCClass(self);
 
   return GSObjCIsKindOf(class, aClass);
 }
@@ -1783,7 +1874,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (BOOL) isMemberOfClass: (Class)aClass
 {
-  return (object_getClass(self) == aClass) ? YES : NO;
+  return (GSObjCClass(self) == aClass) ? YES : NO;
 }
 
 /**
@@ -1819,12 +1910,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(object_getClass(self), aSelector);
+  msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
 		   format: @"invalid selector passed to %s",
-		     sel_getName(_cmd)];
+		     GSNameFromSelector(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -1844,12 +1935,12 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(object_getClass(self), aSelector);
+  msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
 		   format: @"invalid selector passed to %s",
-		   sel_getName(_cmd)];
+		   GSNameFromSelector(_cmd)];
       return nil;
     }
 
@@ -1872,11 +1963,11 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = get_imp(object_getClass(self), aSelector);
+  msg = get_imp(GSObjCClass(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
-		  format: @"invalid selector passed to %s", sel_getName(_cmd)];
+		  format: @"invalid selector passed to %s", GSNameFromSelector(_cmd)];
       return nil;
     }
 
@@ -1970,7 +2061,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  * By convention, objects which should (or can) never be deallocated
  * return the maximum unsigned integer value.
  */
-- (NSUInteger) retainCount
+- (unsigned) retainCount
 {
 #if	GS_WITH_GC
   return UINT_MAX;
@@ -1984,7 +2075,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  * the maximum unsigned integer value, as classes can not be deallocated
  * the retain count mechanism is a dummy system for them.
  */
-+ (NSUInteger) retainCount
++ (unsigned) retainCount
 {
   return UINT_MAX;
 }
@@ -2002,13 +2093,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (NSZone*) zone
 {
-#if	GS_WITH_GC
-  /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
-   */
-  return NSDefaultMallocZone();
-#else
-  return (((obj)self)[-1]).zone;
-#endif
+  return GSObjCZone(self);
 }
 
 /**
@@ -2031,20 +2116,20 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   return self;
 }
 
-+ (BOOL) resolveClassMethod: (SEL)name
+/**
+ *  Returns the version number of the receiving class.  This will default to
+ *  a number assigned by the Objective C compiler if [NSObject -setVersion] has
+ *  not been called.
+ */
++ (int) version
 {
-  return NO;
-}
-
-+ (BOOL) resolveInstanceMethod: (SEL)name
-{
-  return NO;
+  return class_get_version(self);
 }
 
 /**
  * Sets the version number of the receiving class.  Should be nonnegative.
  */
-+ (id) setVersion: (NSInteger)aVersion
++ (id) setVersion: (int)aVersion
 {
   if (aVersion < 0)
     [NSException raise: NSInvalidArgumentException
@@ -2054,25 +2139,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   return self;
 }
 
-/**
- *  Returns the version number of the receiving class.  This will default to
- *  a number assigned by the Objective C compiler if [NSObject -setVersion] has
- *  not been called.
- */
-+ (NSInteger) version
-{
-  return class_get_version(self);
-}
-
-- (id) autoContentAccessingProxy
-{
-  return AUTORELEASE([[GSContentAccessingProxy alloc] initWithObject: self]);
-}
-
-- (id) forwardingTargetForSelector:(SEL)aSelector
-{
-  return nil;
-}
 @end
 
 
@@ -2088,7 +2154,6 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  */
 - (id) error: (const char *)aString, ...
 {
-#if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
 #define FMT "error: %s (%s)\n%s\n"
   char fmt[(strlen((char*)FMT)+strlen((char*)GSClassNameFromObject(self))
             +((aString!=NULL)?strlen((char*)aString):0)+8)];
@@ -2101,9 +2166,8 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
   /* xxx What should `code' argument be?  Current 0. */
   objc_verror (self, 0, fmt, ap);
   va_end(ap);
-#undef FMT
-#endif
   return nil;
+#undef FMT
 }
 
 /*
@@ -2188,7 +2252,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 	       format: @"%s(%s) does not recognize %s",
 	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
-	       aSel ? sel_getName(aSel) : "(null)"];
+	       aSel ? GSNameFromSelector(aSel) : "(null)"];
   return nil;
 }
 
@@ -2212,6 +2276,25 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  * and internal utility reasons.
  */
 @implementation NSObject (GNUstep)
+
+/* GNU Object class compatibility */
+
+/**
+ * Called to change the class used for autoreleasing objects.
+ */
++ (void) setAutoreleaseClass: (Class)aClass
+{
+  autorelease_class = aClass;
+  autorelease_imp = [self instanceMethodForSelector: autorelease_sel];
+}
+
+/**
+ * returns the class used to autorelease objects.
+ */
++ (Class) autoreleaseClass
+{
+  return autorelease_class;
+}
 
 /**
  * Enables runtime checking of retain/release/autorelease operations.<br />
@@ -2257,13 +2340,13 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
  * level information.
  */
 - (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
-			     indent: (NSUInteger)level
+			     indent: (unsigned)level
 {
   return [self descriptionWithLocale: aLocale];
 }
 
 + (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
-			     indent: (NSUInteger)level
+			     indent: (unsigned)level
 {
   return [self descriptionWithLocale: aLocale];
 }
@@ -2280,13 +2363,18 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
 - (BOOL) isClass
 {
-  return class_isMetaClass(object_getClass(self));
+  return GSObjCIsClass((Class)self);
+}
+
+- (BOOL) isInstance
+{
+  return GSObjCIsInstance(self);
 }
 
 - (BOOL) isMemberOfClassNamed: (const char*)aClassName
 {
   return ((aClassName!=NULL)
-          &&!strcmp(class_getName(object_getClass(self)), aClassName));
+          &&!strcmp(GSNameFromClass(GSObjCClass(self)), aClassName));
 }
 
 + (struct objc_method_description *) descriptionForInstanceMethod: (SEL)aSel
@@ -2307,33 +2395,155 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 
   return ((struct objc_method_description *)
 	  GSGetMethod((GSObjCIsInstance(self)
-		       ? object_getClass(self) : (Class)self),
+		       ? GSObjCClass(self) : (Class)self),
 		      aSel,
 		      GSObjCIsInstance(self),
 		      YES));
 }
 
-+ (NSInteger) streamVersion: (void*)aStream
+/**
+ * Transmutes the receiver into an immutable version of the same object
+ * and returns the result.<br />
+ * If the receiver is not a mutable object or cannot be simply transmuted,
+ * then this method either returns the receiver unchanged or,
+ * if the force flag is set to YES, returns an autoreleased copy of the
+ * receiver.<br />
+ * Mutable classes should override this default implementation.<br />
+ * This method is used in methods which are declared to return immutable
+ * objects (eg. an NSArray), but which create and build mutable ones
+ * internally.
+ */
+- (id) makeImmutableCopyOnFail: (BOOL)force
 {
-  GSOnceMLog(@"[NSObject+streamVersion:] is deprecated ... do not use");
-  return class_get_version (self);
-}
-- (id) read: (void*)aStream
-{
-  GSOnceMLog(@"[NSObject-read:] is deprecated ... do not use");
-  return self;
-}
-- (id) write: (void*)aStream
-{
-  GSOnceMLog(@"[NSObject-write:] is deprecated ... do not use");
-  return self;
-}
-- (id) awake
-{
-  GSOnceMLog(@"[NSObject-awake] is deprecated ... do not use");
+  if (force == YES)
+    {
+      return AUTORELEASE([self copy]);
+    }
   return self;
 }
 
+/**
+ * Changes the class of the receiver (the 'isa' pointer) to be aClassObject,
+ * but only if the receiver is an instance of a subclass of aClassObject
+ * which has not added extra instance variables.<br />
+ * Returns zero on failure, or the old class on success.
+ */
+- (Class) transmuteClassTo: (Class)aClassObject
+{
+  if (GSObjCIsInstance(self) == YES)
+    if (class_is_class(aClassObject))
+      if (class_get_instance_size(aClassObject)==class_get_instance_size(isa))
+        if ([self isKindOfClass: aClassObject])
+          {
+            Class old_isa = isa;
+            isa = aClassObject;
+            return old_isa;
+          }
+  return 0;
+}
+
++ (int) streamVersion: (TypedStream*)aStream
+{
+#ifndef NeXT_RUNTIME
+  if (aStream->mode == OBJC_READONLY)
+    return objc_get_stream_class_version (aStream, self);
+  else
+#endif
+    return class_get_version (self);
+}
+
+//NOTE: original comments included the following excerpt, however it is
+//      probably not relevant now since the implementations are stubbed out.
+//  Subclasses should extend these, by calling
+//  [super read/write: aStream] before doing their own archiving.  These
+//  methods are private, in the sense that they should only be called from
+//  subclasses.
+
+/**
+ * Originally used to read the instance variables declared in this
+ * particular part of the object from a stream.  Currently stubbed out.
+ */
+- (id) read: (TypedStream*)aStream
+{
+  // [super read: aStream];
+  return self;
+}
+
+/**
+ * Originally used to write the instance variables declared in this
+ * particular part of the object to a stream.  Currently stubbed out.
+ */
+- (id) write: (TypedStream*)aStream
+{
+  // [super write: aStream];
+  return self;
+}
+
+/**
+ * Originally used before [NSCoder] and related classes existed.  Currently
+ * stubbed out.
+ */
+- (id) awake
+{
+  // [super awake];
+  return self;
+}
+
+@end
+
+/*
+ * Stuff for compatibility with 'Object' derived classes.
+ */
+@interface	Object (NSObjectCompat)
++ (NSString*) description;
++ (void) release;
++ (id) retain;
+- (NSString*) className;
+- (NSString*) description;
+- (void) release;
+- (BOOL) respondsToSelector: (SEL)aSel;
+- (id) retain;
+@end
+
+@implementation	Object (NSObjectCompat)
++ (NSString*) description
+{
+  return NSStringFromClass(self);
+}
++ (void) release
+{
+  return;
+}
++ (id) retain
+{
+  return self;
+}
+- (NSString*) className
+{
+  return NSStringFromClass([self class]);
+}
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"<%s: %p>",
+    GSClassNameFromObject(self), self];
+}
+- (BOOL) isProxy
+{
+  return NO;
+}
+- (void) release
+{
+  return;
+}
+- (BOOL) respondsToSelector: (SEL)aSelector
+{
+  /* Object implements -respondsTo: */
+  return [self respondsTo: aSelector];
+}
+- (id) retain
+{
+  return self;
+}
 @end
 
 
@@ -2341,11 +2551,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 @implementation	NSZombie
 - (Class) class
 {
-  return (Class)isa;
-}
-- (Class) originalClass
-{
-  return NSMapGet(zombieMap, (void*)self);
+  return object_get_class(self);
 }
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
 {
@@ -2358,7 +2564,7 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 }
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-  NSUInteger	size = [[anInvocation methodSignature] methodReturnLength];
+  unsigned	size = [[anInvocation methodSignature] methodReturnLength];
   unsigned char	v[size];
 
   memset(v, '\0', size);
@@ -2370,48 +2576,16 @@ objc_create_block_classes_as_subclasses_of(Class super) __attribute__((weak));
 {
   Class	c;
 
-  if (0 == aSelector)
+  if (allocationLock != 0)
     {
-      return nil;
+      objc_mutex_lock(allocationLock);
     }
-  [allocationLock lock];
   c = NSMapGet(zombieMap, (void*)self);
-  [allocationLock unlock];
+  if (allocationLock != 0)
+    {
+      objc_mutex_unlock(allocationLock);
+    }
   return [c instanceMethodSignatureForSelector: aSelector];
 }
 @end
 
-@implementation GSContentAccessingProxy 
-- (void) dealloc
-{
-  [object endContentAccess];
-  [super dealloc];
-}
-
-- (void) finalize
-{
-  [object endContentAccess];
-}
-
-- (id) forwardingTargetForSelector: (SEL)aSelector
-{
-  return object;
-}
-/* Support for legacy runtimes... */
-- (void) forwardInvocation: (NSInvocation*)anInvocation
-{
-  [anInvocation invokeWithTarget: object];
-}
-
-- (id) initWithObject: (id)anObject
-{
-  ASSIGN(object, anObject);
-  [object beginContentAccess];
-  return self;
-}
-
-- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
-{
-  return [object methodSignatureForSelector: aSelector];
-}
-@end

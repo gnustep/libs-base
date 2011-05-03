@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -33,17 +33,8 @@
 extern "C" {
 #endif
 
-enum
+typedef enum
 {
-  NSNetServicesUnknownError		= -72000L,
-  NSNetServicesCollisionError		= -72001L,
-  NSNetServicesNotFoundError		= -72002L,
-  NSNetServicesActivityInProgress	= -72003L,
-  NSNetServicesBadArgumentError		= -72004L,
-  NSNetServicesCancelledError		= -72005L,
-  NSNetServicesInvalidError		= -72006L,
-  NSNetServicesTimeoutError		= -72007L
-};
   /**
    * <list>
    *   <item>
@@ -89,13 +80,15 @@ enum
    *   </item>
    * </list>
    */
-typedef NSUInteger NSNetServicesError;
-
-enum {
-  NSNetServiceNoAutoRename = 1 << 0
-};
-typedef NSUInteger NSNetServiceOptions;
-
+  NSNetServicesUnknownError		= -72000L,
+  NSNetServicesCollisionError		= -72001L,
+  NSNetServicesNotFoundError		= -72002L,
+  NSNetServicesActivityInProgress	= -72003L,
+  NSNetServicesBadArgumentError		= -72004L,
+  NSNetServicesCancelledError		= -72005L,
+  NSNetServicesInvalidError		= -72006L,
+  NSNetServicesTimeoutError		= -72007L
+} NSNetServicesError;
 
 GS_EXPORT NSString * const NSNetServicesErrorCode;
 GS_EXPORT NSString * const NSNetServicesErrorDomain;
@@ -120,19 +113,16 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  * <p>
  *   [NSNetService] lets you publish a network service in a domain using
  *   multicast DNS. Additionally, it lets you resolve a network service that
- *   was discovered by [NSNetServiceBrowser]. This class is an abstract
- *   superclass for concrete implementations of its functionality.
+ *   was discovered by [NSNetServiceBrowser].
  * </p>
  */
 
 @interface NSNetService : NSObject
 {
-#if	GS_EXPOSE(NSNetService)
   @private
-  id		_delegate;
-  void		*_netService;
-  void		*_reserved;
-#endif
+  void		* _netService;
+  id		  _delegate;
+  void		* _reserved;
 }
 
 + (NSData *) dataFromTXTRecordDictionary: (NSDictionary *) txtDictionary;
@@ -144,18 +134,12 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 - (id) initWithDomain: (NSString *) domain
                  type: (NSString *) type
                  name: (NSString *) name
-                 port: (NSInteger) port;
+                 port: (int) port;
 
 - (void) removeFromRunLoop: (NSRunLoop *) aRunLoop
                    forMode: (NSString *) mode;
 - (void) scheduleInRunLoop: (NSRunLoop *) aRunLoop
                    forMode: (NSString *) mode;
-
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-- (NSInteger)port;
-
-- (void) publishWithOptions: (NSNetServiceOptions)options;
-#endif
 
 - (void) publish;
 - (void) resolve;
@@ -207,19 +191,15 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  * <p>
  *   Each [NSNetServiceBrowser] performs one search at a time. So in order
  *   to perform multiple searches simultaneously, create multiple instances.
- *   This class is an abstract superclass for concrete implementations of its
- *   functionality.
  * </p>
  */
 
 @interface NSNetServiceBrowser : NSObject
 {
-#if	GS_EXPOSE(NSNetServiceBrowser)
   @private
-  id		_delegate;
-  void		*_netServiceBrowser;
-  void		*_reserved;
-#endif
+  void		* _netServiceBrowser;
+  id		  _delegate;
+  void		* _reserved;
 }
 
 - (id) init;
@@ -453,13 +433,6 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
                 moreComing: (BOOL) moreComing;
 
 @end
-
-#if	!NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
-#import	<GNUstepBase/NSNetServices+GNUstepBase.h>
-#endif
-#if	defined(__cplusplus)
-}
-#endif
 
 #endif	/* __NSNetServices_h_GNUSTEP_BASE_INCLUDE */
 

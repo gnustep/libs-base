@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
   
@@ -18,10 +18,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
   
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
    */
 
 /*
@@ -41,7 +40,7 @@
 
 /*
  *	Some standard selectors for frequently used methods. Set in NSString
- *      +initialize or the GSString.m setup() function.
+ *      +initialize.
  */
 static SEL	caiSel = NULL;
 static SEL	gcrSel = NULL;
@@ -373,20 +372,18 @@ static inline void GSeq_uppercase(GSeq seq)
  * If a string comparison function is required, implement it.
  */
 #ifdef	GSEQ_STRCOMP
-static NSComparisonResult
+static inline NSComparisonResult
 GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 {
   GSEQ_ST	s = (GSEQ_ST)ss;
   GSEQ_OT	o = (GSEQ_OT)os;
   unsigned	oLength;			/* Length of other.	*/
+  unsigned	sLength = GSEQ_SLEN;
 
-#if	0
-  /* Range should be checked in calling code */
-  if (aRange.location > GSEQ_SLEN)
+  if (aRange.location > sLength)
     [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > (GSEQ_SLEN - aRange.location))
+  if (aRange.length > (sLength - aRange.location))
     [NSException raise: NSRangeException format: @"Invalid location+length."];
-#endif
 
   oLength = GSEQ_OLEN;
   if (aRange.length == 0)
@@ -461,13 +458,8 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	{
 	  for (i = 0; i < end; i++)
 	    {
-#if	GSEQ_O == GSEQ_CS && GSEQ_S == GSEQ_CS
-	      char	c1 = tolower(sBuf[i]);
-	      char	c2 = tolower(oBuf[i]);
-#else
 	      unichar	c1 = uni_tolower((unichar)sBuf[i]);
 	      unichar	c2 = uni_tolower((unichar)oBuf[i]);
-#endif
 
 	      if (c1 < c2)
 		return NSOrderedAscending;
@@ -479,17 +471,10 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	{
 	  for (i = 0; i < end; i++)
 	    {
-#if	GSEQ_O == GSEQ_CS && GSEQ_S == GSEQ_CS
-	      if (sBuf[i] < oBuf[i])
-		return NSOrderedAscending;
-	      if (sBuf[i] > oBuf[i])
-		return NSOrderedDescending;
-#else
 	      if ((unichar)sBuf[i] < (unichar)oBuf[i])
 		return NSOrderedAscending;
 	      if ((unichar)sBuf[i] > (unichar)oBuf[i])
 		return NSOrderedDescending;
-#endif
 	    }
 	}
       if (sLen > oLen)
@@ -503,7 +488,6 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
     {
       unsigned		start = aRange.location;
       unsigned		end = start + aRange.length;
-      unsigned		sLength = GSEQ_SLEN;
       unsigned		sCount = start;
       unsigned		oCount = 0;
       NSComparisonResult result;
@@ -593,7 +577,7 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
  * If a string search function is required, implement it.
  */
 #ifdef	GSEQ_STRRANGE
-static NSRange
+static inline NSRange
 GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 {
   GSEQ_ST	s = (GSEQ_ST)ss;
@@ -619,14 +603,11 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
   
   /* Check that the search range is reasonable */
   myLength = GSEQ_SLEN;
-
-#if	0
-  /* Range should be checked in calling code */
   if (aRange.location > myLength)
     [NSException raise: NSRangeException format: @"Invalid location."];
   if (aRange.length > (myLength - aRange.location))
     [NSException raise: NSRangeException format: @"Invalid location+length."];
-#endif
+
 
   /* Ensure the string can be found */
   strLength = GSEQ_OLEN;

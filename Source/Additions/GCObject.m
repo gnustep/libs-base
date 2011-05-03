@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -28,18 +28,18 @@
 
 */
 
-#import "common.h"
+#include "config.h"
 #ifndef NeXT_Foundation_LIBRARY
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSThread.h"
+#include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSNotification.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSThread.h>
 #else
-#import <Foundation/Foundation.h>
+#include <Foundation/Foundation.h>
 #endif
 
-#import "GNUstepBase/GCObject.h"
-
-#include <pthread.h>
+#include "GNUstepBase/GCObject.h"
+#include "GNUstepBase/GSCategories.h"
 
 /*
  * The head of a linked list of all garbage collecting objects  is a
@@ -70,25 +70,18 @@ static BOOL	isCollecting = NO;
 
 #ifdef NeXT_RUNTIME
 static void *allocationLock = NULL;
-#define pthread_mutex_lock(lock)
-#define pthread_mutex_unlock(lock)
+#define objc_mutex_allocate()	NULL
+#define objc_mutex_lock(lock)
+#define objc_mutex_unlock(lock)
 #else
-static pthread_mutex_t *allocationLock = NULL;
+static objc_mutex_t allocationLock = NULL;
 #endif
 
 + (void) _becomeMultiThreaded: (NSNotification *)aNotification
 {
-  if (allocationLock == NULL)
+  if (allocationLock == 0)
     {
-#     ifndef NeXT_RUNTIME
-      allocationLock = malloc(sizeof(pthread_mutex_t));
-	  if (allocationLock == NULL)
-        {
-	      abort();
-		}
-	  
-	  pthread_mutex_init(allocationLock, NULL);
-#     endif
+      allocationLock = objc_mutex_allocate();
     }
 }
 
@@ -102,7 +95,7 @@ static pthread_mutex_t *allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      pthread_mutex_lock(allocationLock);
+      objc_mutex_lock(allocationLock);
     }
   o->gc.next = allObjects;
   o->gc.previous = allObjects->gc.previous;
@@ -111,7 +104,7 @@ static pthread_mutex_t *allocationLock = NULL;
   o->gc.flags.refCount = 1;
   if (allocationLock != 0)
     {
-      pthread_mutex_unlock(allocationLock);
+      objc_mutex_unlock(allocationLock);
     }
 
   return o;
@@ -152,13 +145,13 @@ static pthread_mutex_t *allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      pthread_mutex_lock(allocationLock);
+      objc_mutex_lock(allocationLock);
     }
   if (isCollecting == YES)
     {
       if (allocationLock != 0)
 	{
-	  pthread_mutex_unlock(allocationLock);
+	  objc_mutex_unlock(allocationLock);
 	}
       return;	// Don't allow recursion.
     }
@@ -218,7 +211,7 @@ static pthread_mutex_t *allocationLock = NULL;
   isCollecting = NO;
   if (allocationLock != 0)
     {
-      pthread_mutex_unlock(allocationLock);
+      objc_mutex_unlock(allocationLock);
     }
 }
 
@@ -268,7 +261,7 @@ static pthread_mutex_t *allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      pthread_mutex_lock(allocationLock);
+      objc_mutex_lock(allocationLock);
     }
   // p = anObject->gc.previous;
   // n = anObject->gc.next;
@@ -280,7 +273,7 @@ static pthread_mutex_t *allocationLock = NULL;
   [n gcSetPreviousObject: p];
   if (allocationLock != 0)
     {
-      pthread_mutex_unlock(allocationLock);
+      objc_mutex_unlock(allocationLock);
     }
 }
 
@@ -295,7 +288,7 @@ static pthread_mutex_t *allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      pthread_mutex_lock(allocationLock);
+      objc_mutex_lock(allocationLock);
     }
   o->gc.next = allObjects;
   o->gc.previous = allObjects->gc.previous;
@@ -304,7 +297,7 @@ static pthread_mutex_t *allocationLock = NULL;
   o->gc.flags.refCount = 1;
   if (allocationLock != 0)
     {
-      pthread_mutex_unlock(allocationLock);
+      objc_mutex_unlock(allocationLock);
     }
   return o;
 }
@@ -322,7 +315,7 @@ static pthread_mutex_t *allocationLock = NULL;
 
   if (allocationLock != 0)
     {
-      pthread_mutex_lock(allocationLock);
+      objc_mutex_lock(allocationLock);
     }
   // p = anObject->gc.previous;
   // n = anObject->gc.next;
@@ -334,7 +327,7 @@ static pthread_mutex_t *allocationLock = NULL;
   [n gcSetPreviousObject: p];
   if (allocationLock != 0)
     {
-      pthread_mutex_unlock(allocationLock);
+      objc_mutex_unlock(allocationLock);
     }
   [super dealloc];
 }
@@ -417,7 +410,7 @@ static pthread_mutex_t *allocationLock = NULL;
 {
   if (allocationLock != 0)
     {
-      pthread_mutex_lock(allocationLock);
+      objc_mutex_lock(allocationLock);
     }
   if (gc.flags.refCount > 0 && gc.flags.refCount-- == 1)
     {
@@ -426,7 +419,7 @@ static pthread_mutex_t *allocationLock = NULL;
     }
   if (allocationLock != 0)
     {
-      pthread_mutex_unlock(allocationLock);
+      objc_mutex_unlock(allocationLock);
     }
 }
 
@@ -437,12 +430,12 @@ static pthread_mutex_t *allocationLock = NULL;
 {
   if (allocationLock != 0)
     {
-      pthread_mutex_lock(allocationLock);
+      objc_mutex_lock(allocationLock);
     }
   gc.flags.refCount++;
   if (allocationLock != 0)
     {
-      pthread_mutex_unlock(allocationLock);
+      objc_mutex_unlock(allocationLock);
     }
   return self;
 }
@@ -450,7 +443,7 @@ static pthread_mutex_t *allocationLock = NULL;
 /**
  * Returns the receivers reference count.
  */
-- (NSUInteger) retainCount
+- (unsigned int) retainCount
 {
   return gc.flags.refCount;
 }

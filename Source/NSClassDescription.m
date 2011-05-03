@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,18 +25,17 @@
    $Date$ $Revision$
 */
 
-#import "common.h"
-#import "Foundation/NSClassDescription.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSMapTable.h"
-#import "Foundation/NSNotification.h"
+#include "Foundation/NSClassDescription.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSNotification.h"
 
 
 /**
  *  Each instance of this class provides descriptive information for an
  *  Objective C class.  This is used for key-value coding, a framework
  *  used in Cocoa for scripting with Objective-C objects.  Scripting is
- *  available in GNUstep in many ways, however those implementations do
+ *  available in GNUstep using Guile, however that implementation does
  *  not make use of class descriptions.  Therefore the primary purpose
  *  of this class is to smooth the process of porting between GNUstep
  *  and other OpenStep-derived systems.
@@ -75,7 +74,7 @@ static NSMapTable	*classMap;
                         object: aClass];
       description = NSMapGet(classMap, aClass);
     }
-  IF_NO_GC([description retain];)
+  RETAIN(description);
   [mapLock unlock];
 
   return AUTORELEASE(description);

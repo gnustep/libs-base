@@ -6,7 +6,7 @@
    Date: 2006
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -15,29 +15,25 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
    */
+#include <unistd.h>
+#include <errno.h>
 
-#import "common.h"
+#include <Foundation/NSData.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSRunLoop.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSValue.h>
+#include <Foundation/NSHost.h>
+#include <Foundation/NSDebug.h>
 
-#import "Foundation/NSArray.h"
-#import "Foundation/NSByteOrder.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSHost.h"
-#import "Foundation/NSRunLoop.h"
-#import "Foundation/NSValue.h"
-
-#import "GSStream.h"
-#import "GSPrivate.h"
-#import "GSSocketStream.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "GSStream.h"
+#include "GSPrivate.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
   = @"NSStreamDataWrittenToMemoryStreamKey";
@@ -89,7 +85,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
  */
 static RunLoopEventType typeForStream(NSStream *aStream)
 {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   if ([aStream _loopID] == (void*)aStream)
     {
       return ET_TRIGGER;
@@ -135,43 +131,41 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @implementation GSStream
 
-+ (void) initialize
-{
-  GSMakeWeakPointer(self, "delegate");
-}
-
 - (void) close
 {
   if (_currentStatus == NSStreamStatusNotOpen)
     {
-      NSDebugMLLog(@"NSStream", @"Attempt to close unopened stream %@", self);
+      NSDebugMLog(@"Attempt to close unopened stream %@", self);
     }
-  [self _unschedule];
+  if (_currentStatus == NSStreamStatusClosed)
+    {
+      NSDebugMLog(@"Attempt to close already closed stream %@", self);
+    }
+  if (_runloop)
+    {
+      unsigned	i = [_modes count];
+
+      while (i-- > 0)
+	{
+	  [_runloop removeStream: self mode: [_modes objectAtIndex: i]];
+	}
+    }
   [self _setStatus: NSStreamStatusClosed];
-  /* We don't want to send any events to the delegate after the
+  /* We don't want to send any events the the delegate after the
    * stream has been closed.
    */
   _delegateValid = NO;
 }
 
-- (void) finalize
+- (void) dealloc
 {
   if (_currentStatus != NSStreamStatusNotOpen
     && _currentStatus != NSStreamStatusClosed)
     {
       [self close];
     }
-  GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
-}
-
-- (void) dealloc
-{
-  [self finalize];
-  if (_loops != 0)
-    {
-      NSFreeMapTable(_loops);
-      _loops = 0;
-    }
+  DESTROY(_runloop);
+  DESTROY(_modes);
   DESTROY(_properties);
   DESTROY(_lastError);
   [super dealloc];
@@ -189,8 +183,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       _delegate = self;
       _properties = nil;
       _lastError = nil;
-      _loops = NSCreateMapTable(NSObjectMapKeyCallBacks,
-	NSObjectMapValueCallBacks, 1);
+      _modes = [NSMutableArray new];
       _currentStatus = NSStreamStatusNotOpen;
       _loopID = (void*)self;
     }
@@ -199,13 +192,20 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) open
 {
-  if (_currentStatus != NSStreamStatusNotOpen
-    && _currentStatus != NSStreamStatusOpening)
+  if (_currentStatus != NSStreamStatusNotOpen)
     {
-      NSDebugMLLog(@"NSStream", @"Attempt to re-open stream %@", self);
+      NSDebugMLog(@"Attempt to re-open stream %@", self);
     }
   [self _setStatus: NSStreamStatusOpen];
-  [self _schedule];
+  if (_runloop)
+    {
+      unsigned	i = [_modes count];
+
+      while (i-- > 0)
+	{
+	  [_runloop addStream: self mode: [_modes objectAtIndex: i]];
+	}
+    }
   [self _sendEvent: NSStreamEventOpenCompleted];
 }
 
@@ -224,18 +224,15 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
 {
-  if (aRunLoop != nil && mode != nil)
+  if (_runloop == aRunLoop)
     {
-      NSMutableArray	*modes;
-
-      modes = (NSMutableArray*)NSMapGet(_loops, (void*)aRunLoop);
-      if ([modes containsObject: mode])
+      if ([_modes containsObject: mode])
 	{
-	  [aRunLoop removeStream: self mode: mode];
-	  [modes removeObject: mode];
-	  if ([modes count] == 0)
+	  [_runloop removeStream: self mode: mode];
+	  [_modes removeObject: mode];
+	  if ([_modes count] == 0)
 	    {
-	      NSMapRemove(_loops, (void*)aRunLoop);
+	      DESTROY(_runloop);
 	    }
 	}
     }
@@ -243,60 +240,38 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
 {
-  if (aRunLoop != nil && mode != nil)
+  NSAssert(!_runloop || _runloop == aRunLoop, 
+    @"Attempt to schedule in more than one runloop.");
+  ASSIGN(_runloop, aRunLoop);
+  if ([_modes containsObject: mode] == NO)
     {
-      NSMutableArray	*modes;
-
-      modes = (NSMutableArray*)NSMapGet(_loops, (void*)aRunLoop);
-      if (modes == nil)
+      mode = [mode copy];
+      [_modes addObject: mode];
+      RELEASE(mode);
+      /* We only add open streams to the runloop .. subclasses may add
+       * streams when they are in the process of opening if they need
+       * to do so.
+       */
+      if ([self _isOpened])
 	{
-	  modes = [[NSMutableArray alloc] initWithCapacity: 1];
-	  NSMapInsert(_loops, (void*)aRunLoop, (void*)modes);
-	  RELEASE(modes);
-	}
-      if ([modes containsObject: mode] == NO)
-	{
-	  mode = [mode copy];
-	  [modes addObject: mode];
-	  RELEASE(mode);
-	  /* We only add open streams to the runloop .. subclasses may add
-	   * streams when they are in the process of opening if they need
-	   * to do so.
-	   */
-	  if ([self _isOpened])
-	    {
-	      [aRunLoop addStream: self mode: mode];
-	    }
+	  [_runloop addStream: self mode: mode];
 	}
     }
 }
 
 - (void) setDelegate: (id)delegate
 {
-  if ([self streamStatus] == NSStreamStatusClosed
-    || [self streamStatus] == NSStreamStatusError)
+  if (delegate)
     {
-      _delegateValid = NO;
-      GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
+      _delegate = delegate;
     }
   else
     {
-      if (delegate == nil)
-	{
-	  _delegate = self;
-	}
-      if (delegate == self)
-	{
-	  if (_delegate != nil && _delegate != self)
-	    {
-              GSAssignZeroingWeakPointer((void**)&_delegate, (void*)0);
-	    }
-	  _delegate = delegate;
-	}
-      else
-	{
-          GSAssignZeroingWeakPointer((void**)&_delegate, (void*)delegate);
-	}
+      _delegate = self;
+    }
+  if ([self streamStatus] != NSStreamStatusClosed
+    && [self streamStatus] != NSStreamStatusError)
+    {
       /* We don't want to send any events the the delegate after the
        * stream has been closed.
        */
@@ -348,20 +323,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
 }
 
-- (void) _recordError: (NSError*)anError
-{
-  return;
-}
-
-- (void) _resetEvents: (NSUInteger)mask
-{
-  return;
-}
-
-- (void) _schedule
-{
-}
-
 - (void) _sendEvent: (NSStreamEvent)event
 {
 }
@@ -378,11 +339,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
   return NO;
 }
-
-- (void) _unschedule
-{
-}
-
 @end
 
 @implementation	GSStream (Private)
@@ -403,39 +359,15 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
   NSError *theError;
 
-  theError = [NSError _last];
-  [self _recordError: theError];
-}
-
-- (void) _recordError: (NSError*)anError
-{
-  NSDebugMLLog(@"NSStream", @"record error: %@ - %@", self, anError);
-  ASSIGN(_lastError, anError);
+#if	defined(__MINGW32__)
+  errno = GetLastError();
+#endif
+  theError = [NSError errorWithDomain: NSPOSIXErrorDomain
+					  code: errno
+				      userInfo: nil];
+  NSLog(@"%@ error(%d): - %@", self, errno, [NSError _last]);
+  ASSIGN(_lastError, theError);
   _currentStatus = NSStreamStatusError;
-}
-
-- (void) _resetEvents: (NSUInteger)mask
-{
-  _events &= ~mask;
-}
-
-- (void) _schedule
-{
-  NSMapEnumerator	enumerator;
-  NSRunLoop		*k;
-  NSMutableArray	*v;
-
-  enumerator = NSEnumerateMapTable(_loops);
-  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&k), (void**)&v))
-    {
-      unsigned	i = [v count];
-
-      while (i-- > 0)
-	{
-	  [k addStream: self mode: [v objectAtIndex: i]];
-	}
-    }
-  NSEndMapTableEnumeration(&enumerator);
 }
 
 - (void) _sendEvent: (NSStreamEvent)event
@@ -549,25 +481,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return NO;
 }
 
-- (void) _unschedule
-{
-  NSMapEnumerator	enumerator;
-  NSRunLoop		*k;
-  NSMutableArray	*v;
-
-  enumerator = NSEnumerateMapTable(_loops);
-  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&k), (void**)&v))
-    {
-      unsigned	i = [v count];
-
-      while (i-- > 0)
-	{
-	  [k removeStream: self mode: [v objectAtIndex: i]];
-	}
-    }
-  NSEndMapTableEnumeration(&enumerator);
-}
-
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   if (_events
@@ -579,43 +492,23 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       *trigger = NO;
       return NO;
     }
-  if (_currentStatus == NSStreamStatusError)
+  if (_currentStatus == NSStreamStatusError &&
+    (_events & NSStreamEventErrorOccurred) == NSStreamEventErrorOccurred)
     {
-      if ((_events & NSStreamEventErrorOccurred) == 0)
-	{
-	  /* An error has occurred but not been handled,
-	   * so we should trigger an error event at once.
-	   */
-	  *trigger = YES;
-	  return NO;
-	}
-      else
-	{
-	  /* An error has occurred (and been handled),
-	   * so we should not watch for any events at all.
-	   */
-	  *trigger = NO;
-	  return NO;
-	}
+      /* If an error has occurred (and been handled),
+       * we should not watch for any events at all.
+       */
+      *trigger = NO;
+      return NO;
     }
-  if (_currentStatus == NSStreamStatusAtEnd)
+  if (_currentStatus == NSStreamStatusAtEnd &&
+    (_events & NSStreamEventEndEncountered) == NSStreamEventEndEncountered)
     {
-      if ((_events & NSStreamEventEndEncountered) == 0)
-	{
-	  /* An end of stream has occurred but not been handled,
-	   * so we should trigger an end of stream event at once.
-	   */
-	  *trigger = YES;
-	  return NO;
-	}
-      else
-	{
-	  /* An end of stream has occurred (and been handled),
-	   * so we should not watch for any events at all.
-	   */
-	  *trigger = NO;
-	  return NO;
-	}
+      /* If an error has occurred (and been handled),
+       * we should not watch for any events at all.
+       */
+      *trigger = NO;
+      return NO;
     }
 
   if (_loopID == (void*)self)
@@ -642,7 +535,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSInputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
-      GSMakeWeakPointer(self, "delegate");
     }
 }
 
@@ -675,7 +567,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   if (self == [GSOutputStream class])
     {
       GSObjCAddClassBehavior(self, [GSStream class]);
-      GSMakeWeakPointer(self, "delegate");
     }
 }
 
@@ -685,9 +576,29 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     {
       return YES;
     }
+  if (_currentStatus == NSStreamStatusAtEnd)
+    {
+      if ((_events & NSStreamEventEndEncountered) == 0)
+	{
+	  /* We have not sent the appropriate event yet, so the
+           * client must not have issued a write:maxLength:
+	   * (which is the point at which we should send).
+	   */
+	  return YES;
+	}
+    }
   return NO;
 }
 
+@end
+@implementation	GSAbstractServerStream
++ (void) initialize
+{
+  if (self == [GSAbstractServerStream class])
+    {
+      GSObjCAddClassBehavior(self, [GSStream class]);
+    }
+}
 @end
 
 
@@ -714,7 +625,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   [super dealloc];
 }
 
-- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
+- (int) read: (uint8_t *)buffer maxLength: (unsigned int)len
 {
   unsigned long dataSize;
   unsigned long copySize;
@@ -755,11 +666,12 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   else
     {
       [self _setStatus: NSStreamStatusAtEnd];
+      [self _sendEvent: NSStreamEventEndEncountered];
     }
   return copySize;
 }
 
-- (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
+- (BOOL) getBuffer: (uint8_t **)buffer length: (unsigned int *)len
 {
   unsigned long dataSize = [_data length];
 
@@ -799,7 +711,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @implementation GSBufferOutputStream
 
-- (id) initToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity
+- (id) initToBuffer: (uint8_t *)buffer capacity: (unsigned int)capacity
 {
   if ((self = [super init]) != nil)
     {
@@ -810,7 +722,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return self;
 }
 
-- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   if (buffer == 0)
     {
@@ -836,6 +748,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       if (len == 0)
 	{
 	  [self _setStatus: NSStreamStatusAtEnd];
+	  [self _sendEvent: NSStreamEventEndEncountered];
 	  return 0;
 	}
     }
@@ -882,7 +795,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   [super dealloc];
 }
 
-- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
+- (int) write: (const uint8_t *)buffer maxLength: (unsigned int)len
 {
   if (buffer == 0)
     {
@@ -936,65 +849,404 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 @end
 
-@interface	GSLocalServerStream : GSServerStream
+
+/*
+ * States for socks connection negotiation
+ */
+static NSString * const GSSOCKSOfferAuth = @"GSSOCKSOfferAuth";
+static NSString * const GSSOCKSRecvAuth = @"GSSOCKSRecvAuth";
+static NSString * const GSSOCKSSendAuth = @"GSSOCKSSendAuth";
+static NSString * const GSSOCKSAckAuth = @"GSSOCKSAckAuth";
+static NSString * const GSSOCKSSendConn = @"GSSOCKSSendConn";
+static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
+
+@interface	GSSOCKS
+{
+  NSString		*state;
+  NSString		*addr;
+  int			port;
+  int			roffset;
+  int			woffset;
+  int			rwant;
+  unsigned char		rbuffer[128];
+  NSInputStream		*istream;
+  NSOutputStream	*ostream;
+}
+- (NSString*) addr;
+- (id) initToAddr: (NSString*)_addr port: (int)_port;
+- (int) port;
+- (NSString*) stream: (NSStream*)stream SOCKSEvent: (NSStreamEvent)event;
 @end
 
-@implementation GSServerStream
-
-+ (void) initialize
+@implementation	GSSOCKS
+- (NSString*) addr
 {
-  GSMakeWeakPointer(self, "delegate");
+  return addr;
 }
 
-+ (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port
+- (id) initToAddr: (NSString*)_addr port: (int)_port
 {
-  GSServerStream *s;
-
-  // try inet first, then inet6
-  s = [[GSInetServerStream alloc] initToAddr: addr port: port];
-  if (!s)
-    s = [[GSInet6ServerStream alloc] initToAddr: addr port: port];
-  return AUTORELEASE(s);
-}
-
-+ (id) serverStreamToAddr: (NSString*)addr
-{
-  return AUTORELEASE([[GSLocalServerStream alloc] initToAddr: addr]);
-}
-
-- (id) initToAddr: (NSString*)addr port: (NSInteger)port
-{
-  DESTROY(self);
-  // try inet first, then inet6
-  self = [[GSInetServerStream alloc] initToAddr: addr port: port];
-  if (!self)
-    self = [[GSInet6ServerStream alloc] initToAddr: addr port: port];
+  ASSIGNCOPY(addr, _addr);
+  port = _port;
+  state = GSSOCKSOfferAuth;
   return self;
 }
 
-- (id) initToAddr: (NSString*)addr
+- (int) port
 {
-  DESTROY(self);
-  return [[GSLocalServerStream alloc] initToAddr: addr];
+  return port;
 }
 
-- (void) acceptWithInputStream: (NSInputStream **)inputStream 
-                  outputStream: (NSOutputStream **)outputStream
+- (NSString*) stream: (NSStream*)stream SOCKSEvent: (NSStreamEvent)event
 {
-  [self subclassResponsibility: _cmd];
-}
+  NSString		*error = nil;
+  NSDictionary		*conf;
+  NSString		*user;
+  NSString		*pass;
 
-@end
-
-@implementation GSAbstractServerStream
-
-+ (void) initialize
-{
-  if (self == [GSAbstractServerStream class])
+  if (event == NSStreamEventErrorOccurred
+    || [stream streamStatus] == NSStreamStatusError
+    || [stream streamStatus] == NSStreamStatusClosed)
     {
-      GSObjCAddClassBehavior(self, [GSStream class]);
+      return @"SOCKS errur during negotiation";
     }
+
+  conf = [stream propertyForKey: NSStreamSOCKSProxyConfigurationKey];
+  user = [conf objectForKey: NSStreamSOCKSProxyUserKey];
+  pass = [conf objectForKey: NSStreamSOCKSProxyPasswordKey];
+  if ([[conf objectForKey: NSStreamSOCKSProxyVersionKey]
+    isEqual: NSStreamSOCKSProxyVersion4] == YES)
+    {
+    }
+  else
+    {
+      again:
+
+      if (state == GSSOCKSOfferAuth)
+	{
+	  int		result;
+	  int		want;
+	  unsigned char	buf[4];
+
+	  /*
+	   * Authorisation record is at least three bytes -
+	   *   socks version (5)
+	   *   authorisation method bytes to follow (1)
+	   *   say we do no authorisation (0)
+	   *   say we do user/pass authorisation (2)
+	   */
+	  buf[0] = 5;
+	  if (user && pass)
+	    {
+	      buf[1] = 2;
+	      buf[2] = 2;
+	      buf[3] = 0;
+	      want = 4;
+	    }
+	  else
+	    {
+	      buf[1] = 1;
+	      buf[2] = 0;
+	      want = 3;
+	    }
+
+	  result = [ostream write: buf + woffset maxLength: 4 - woffset];
+	  if (result == 0)
+	    {
+	      error = @"end-of-file during SOCKS negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      woffset += result;
+	      if (woffset == want)
+		{
+		  woffset = 0;
+		  state = GSSOCKSRecvAuth;
+		  goto again;
+		}
+	    }
+	}
+      else if (state == GSSOCKSRecvAuth)
+	{
+	  int	result;
+
+	  result = [istream read: rbuffer + roffset maxLength: 2 - roffset];
+	  if (result == 0)
+	    {
+	      error = @"SOCKS end-of-file during negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      roffset += result;
+	      if (roffset == 2)
+		{
+		  roffset = 0;
+		  if (rbuffer[0] != 5)
+		    {
+		      error = @"SOCKS authorisation response had wrong version";
+		    }
+		  else if (rbuffer[1] == 0)
+		    {
+		      state = GSSOCKSSendConn;
+		      goto again;
+		    }
+		  else if (rbuffer[1] == 2)
+		    {
+		      state = GSSOCKSSendAuth;
+		      goto again;
+		    }
+		  else
+		    {
+		      error = @"SOCKS authorisation response had wrong method";
+		    }
+		}
+	    }
+	}
+      else if (state == GSSOCKSSendAuth)
+	{
+	  NSData	*u = [user dataUsingEncoding: NSUTF8StringEncoding];
+	  unsigned	ul = [u length];
+	  NSData	*p = [pass dataUsingEncoding: NSUTF8StringEncoding];
+	  unsigned	pl = [p length];
+
+	  if (ul < 1 || ul > 255)
+	    {
+	      error = @"NSStreamSOCKSProxyUserKey value too long";
+	    }
+	  else if (ul < 1 || ul > 255)
+	    {
+	      error = @"NSStreamSOCKSProxyPasswordKey value too long";
+	    }
+	  else
+	    {
+	      int		want = ul + pl + 3;
+	      unsigned char	buf[want];
+	      int		result;
+
+	      buf[0] = 5;
+	      buf[1] = ul;
+	      memcpy(buf + 2, [u bytes], ul);
+	      buf[ul + 2] = pl;
+	      memcpy(buf + ul + 3, [p bytes], pl);
+	      result = [ostream write: buf + woffset maxLength: want - woffset];
+	      if (result == 0)
+		{
+		  error = @"SOCKS end-of-file during negotiation";
+		}
+	      else if (result > 0)
+		{
+		  woffset += result;
+		  if (woffset == want)
+		    {
+		      state = GSSOCKSAckAuth;
+		      goto again;
+		    }
+		}
+	    }
+	}
+      else if (state == GSSOCKSAckAuth)
+	{
+	  int	result;
+
+	  result = [istream read: rbuffer + roffset maxLength: 2 - roffset];
+	  if (result == 0)
+	    {
+	      error = @"SOCKS end-of-file during negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      roffset += result;
+	      if (roffset == 2)
+		{
+		  roffset = 0;
+		  if (rbuffer[0] != 5)
+		    {
+		      error = @"SOCKS authorisation response had wrong version";
+		    }
+		  else if (rbuffer[1] == 0)
+		    {
+		      state = GSSOCKSSendConn;
+		      goto again;
+		    }
+		  else if (rbuffer[1] == 2)
+		    {
+		      error = @"SOCKS authorisation failed";
+		    }
+		}
+	    }
+	}
+      else if (state == GSSOCKSSendConn)
+	{
+	  unsigned char	buf[10];
+	  int		want = 10;
+	  int		result;
+	  const char	*ptr;
+
+	  /*
+	   * Connect command is ten bytes -
+	   *   socks version
+	   *   connect command
+	   *   reserved byte
+	   *   address type
+	   *   address 4 bytes (big endian)
+	   *   port 2 bytes (big endian)
+	   */
+	  buf[0] = 5;	// Socks version number
+	  buf[1] = 1;	// Connect command
+	  buf[2] = 0;	// Reserved
+	  buf[3] = 1;	// Address type (IPV4)
+	  ptr = [addr lossyCString];
+	  buf[4] = atoi(ptr);
+	  while (isdigit(*ptr))
+	    ptr++;
+	  ptr++;
+	  buf[5] = atoi(ptr);
+	  while (isdigit(*ptr))
+	    ptr++;
+	  ptr++;
+	  buf[6] = atoi(ptr);
+	  while (isdigit(*ptr))
+	    ptr++;
+	  ptr++;
+	  buf[7] = atoi(ptr);
+	  buf[8] = ((port & 0xff00) >> 8);
+	  buf[9] = (port & 0xff);
+
+	  result = [ostream write: buf + woffset maxLength: want - woffset];
+	  if (result == 0)
+	    {
+	      error = @"SOCKS end-of-file during negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      woffset += result;
+	      if (woffset == want)
+		{
+		  rwant = 5;
+		  state = GSSOCKSAckConn;
+		  goto again;
+		}
+	    }
+	}
+      else if (state == GSSOCKSAckConn)
+	{
+	  int	result;
+
+	  result = [istream read: rbuffer + roffset maxLength: rwant - roffset];
+	  if (result == 0)
+	    {
+	      error = @"SOCKS end-of-file during negotiation";
+	    }
+	  else if (result > 0)
+	    {
+	      roffset += result;
+	      if (roffset == rwant)
+		{
+		  if (rbuffer[0] != 5)
+		    {
+		      error = @"connect response from SOCKS had wrong version";
+		    }
+		  else if (rbuffer[1] != 0)
+		    {
+		      switch (rbuffer[1])
+			{
+			  case 1:
+			    error = @"SOCKS server general failure";
+			    break;
+			  case 2:
+			    error = @"SOCKS server says permission denied";
+			    break;
+			  case 3:
+			    error = @"SOCKS server says network unreachable";
+			    break;
+			  case 4:
+			    error = @"SOCKS server says host unreachable";
+			    break;
+			  case 5:
+			    error = @"SOCKS server says connection refused";
+			    break;
+			  case 6:
+			    error = @"SOCKS server says connection timed out";
+			    break;
+			  case 7:
+			    error = @"SOCKS server says command not supported";
+			    break;
+			  case 8:
+			    error = @"SOCKS server says address not supported";
+			    break;
+			  default:
+			    error = @"connect response from SOCKS was failure";
+			    break;
+			}
+		    }
+		  else if (rbuffer[3] == 1)
+		    {
+		      rwant = 10;		// Fixed size (IPV4) address
+		    }
+		  else if (rbuffer[3] == 3)
+		    {
+		      rwant = 7 + rbuffer[4];	// Domain name leading length
+		    }
+		  else if (rbuffer[3] == 4)
+		    {
+		      rwant = 22;		// Fixed size (IPV6) address
+		    }
+		  else
+		    {
+		      error = @"SOCKS server returned unknown address type";
+		    }
+		  if (error == nil)
+		    {
+		      if (roffset < rwant)
+			{
+			  goto again;	// Need address/port bytes
+			}
+		      else
+			{
+			  NSString	*a;
+
+			  error = @"";	// success
+			  if (rbuffer[3] == 1)
+			    {
+			      a = [NSString stringWithFormat: @"%d.%d.%d.%d",
+			        rbuffer[4], rbuffer[5], rbuffer[6], rbuffer[7]];
+			    }
+			  else if (rbuffer[3] == 3)
+			    {
+			      rbuffer[rwant] = '\0';
+			      a = [NSString stringWithUTF8String:
+			        (const char*)rbuffer];
+			    }
+			  else
+			    {
+			      unsigned char	buf[40];
+			      int		i = 4;
+			      int		j = 0;
+
+			      while (i < rwant)
+			        {
+				  int	val = rbuffer[i++] * 256 + rbuffer[i++];
+
+				  if (i > 4)
+				    {
+				      buf[j++] = ':';
+				    }
+				  sprintf((char*)&buf[j], "%04x", val);
+				  j += 4;
+				}
+			      a = [NSString stringWithUTF8String:
+			        (const char*)buf];
+			    }
+			  ASSIGN(addr, a);
+			  port =  rbuffer[rwant-1] * 256 * rbuffer[rwant-2];
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+  return error;
 }
 
 @end
-

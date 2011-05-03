@@ -9,7 +9,7 @@
    This file is part of the GNUstep Objective-C Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,33 +27,30 @@
    $Date$ $Revision$
 */
 
-#import "common.h"
-
-#if	defined(HAVE_FLOAT_H)
-#include	<float.h>
+/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
-#if	!defined(LLONG_MAX)
-#  if	defined(__LONG_LONG_MAX__)
-#    define LLONG_MAX __LONG_LONG_MAX__
-#    define LLONG_MIN	(-LLONG_MAX-1)
-#    define ULLONG_MAX	(LLONG_MAX * 2ULL + 1)
-#  else
-#    error Neither LLONG_MAX nor __LONG_LONG_MAX__ found
-#  endif
-#endif
+#include "config.h"
+#include "GNUstepBase/Unicode.h"
+#include "Foundation/NSScanner.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSUserDefaults.h"
 
+#include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
+#include "GSPrivate.h"
 
-#define	EXPOSE_NSScanner_IVARS	1
-#import "GNUstepBase/Unicode.h"
-#import "Foundation/NSScanner.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSUserDefaults.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
-
-#import "GSPrivate.h"
+/* BSD and Solaris have this */
+#if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
+#define LONG_LONG_MAX LLONG_MAX
+#define LONG_LONG_MIN LLONG_MIN
+#define ULONG_LONG_MAX ULLONG_MAX
+#endif
 
 
 @class	GSCString;
@@ -90,7 +87,9 @@ static inline unichar myGetC(unsigned char c)
 /*
  * Hack for direct access to internals of an concrete string object.
  */
-typedef GSString	*ivars;
+typedef struct {
+  @defs(GSString)
+} *ivars;
 #define	myLength()	(((ivars)_string)->_count)
 #define	myUnicode(I)	(((ivars)_string)->_contents.u[I])
 #define	myChar(I)	myGetC((((ivars)_string)->_contents.c[I]))
@@ -202,7 +201,7 @@ typedef GSString	*ivars;
       aString = @"";
     }
 
-  c = object_getClass(aString);
+  c = GSObjCClass(aString);
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
     {
       _isUnicode = YES;
@@ -241,7 +240,7 @@ typedef GSString	*ivars;
     }
   else
     {
-      DESTROY(self);
+      RELEASE(self);
       NSLog(@"Scanner initialised with something not a string");
       return nil;
     }
@@ -340,7 +339,7 @@ typedef GSString	*ivars;
   if (value)
     {
       if (overflow
-	|| (num > (negative ? (NSUInteger)INT_MIN : (NSUInteger)INT_MAX)))
+	|| (num > (negative ? (unsigned int)INT_MIN : (unsigned int)INT_MAX)))
 	*value = negative ? INT_MIN: INT_MAX;
       else if (negative)
 	*value = -num;
@@ -374,8 +373,8 @@ typedef GSString	*ivars;
  * Scan an unsigned int of the given radix into value.
  * Internal version used by scanRadixUnsignedInt: and scanHexInt: .
  */
-- (BOOL) scanUnsignedInt_: (unsigned int*)value
-		    radix: (NSUInteger)radix
+- (BOOL) scanUnsignedInt_: (unsigned int *)value
+		    radix: (unsigned int)radix
 		gotDigits: (BOOL)gotDigits
 {
   unsigned int	num = 0;
@@ -463,7 +462,7 @@ typedef GSString	*ivars;
  * <br/>
  * Scans past any excess digits
  */
-- (BOOL) scanRadixUnsignedInt: (unsigned int*)value
+- (BOOL) scanRadixUnsignedInt: (unsigned int *)value
 {
   unsigned int	radix;
   BOOL		gotDigits = NO;
@@ -513,7 +512,7 @@ typedef GSString	*ivars;
  * <br/>
  * Scans past any excess digits
  */
-- (BOOL) scanHexInt: (unsigned int*)value
+- (BOOL) scanHexInt: (unsigned int *)value
 {
   unsigned int saveScanLocation = _scanLocation;
 
@@ -558,16 +557,16 @@ typedef GSString	*ivars;
  * <br/>
  * Returns YES if anything is scanned, NO otherwise.
  * <br/>
- * On overflow, LLONG_MAX or LLONG_MIN is put into
+ * On overflow, LONG_LONG_MAX or LONG_LONG_MIN is put into
  * <em>longLongValue</em>
  * <br/>
  * Scans past any excess digits
  */
 - (BOOL) scanLongLong: (long long *)value
 {
-#if defined(LLONG_MAX)
+#if defined(LONG_LONG_MAX)
   unsigned long long		num = 0;
-  const unsigned long long	limit = ULLONG_MAX / 10;
+  const unsigned long long	limit = ULONG_LONG_MAX / 10;
   BOOL				negative = NO;
   BOOL				overflow = NO;
   BOOL				got_digits = NO;
@@ -622,21 +621,21 @@ typedef GSString	*ivars;
     {
       if (negative)
 	{
-	  if (overflow || (num > (unsigned long long)LLONG_MIN))
-	    *value = LLONG_MIN;
+	  if (overflow || (num > (unsigned long long)LONG_LONG_MIN))
+	    *value = LONG_LONG_MIN;
 	  else
 	    *value = -num;
 	}
       else
 	{
-	  if (overflow || (num > (unsigned long long)LLONG_MAX))
-	    *value = LLONG_MAX;
+	  if (overflow || (num > (unsigned long long)LONG_LONG_MAX))
+	    *value = LONG_LONG_MAX;
 	  else
 	    *value = num;
 	}
     }
   return YES;
-#else /* defined(LLONG_MAX) */
+#else /* defined(LONG_LONG_MAX) */
   /*
    * Provide compile-time warning and run-time exception.
    */
@@ -644,7 +643,7 @@ typedef GSString	*ivars;
   [NSException raise: NSGenericException
 	       format: @"Can't use long long variables."];
   return NO;
-#endif /* defined(LLONG_MAX) */
+#endif /* defined(LONG_LONG_MAX) */
 }
 
 /**
@@ -935,10 +934,7 @@ typedef GSString	*ivars;
   NSRange	range;
   unsigned int	saveScanLocation = _scanLocation;
 
-  if (skipToNextField() == NO)
-    {
-      return NO;
-    }
+  skipToNextField();
   range.location = _scanLocation;
   range.length = [string length];
   if (range.location + range.length > myLength())
@@ -992,10 +988,7 @@ typedef GSString	*ivars;
   NSRange	found;
   unsigned int	saveScanLocation = _scanLocation;
 
-  if (skipToNextField() == NO)
-    {
-      return NO;
-    }
+  skipToNextField();
   range.location = _scanLocation;
   range.length = myLength() - _scanLocation;
   found = [_string rangeOfString: string
@@ -1027,7 +1020,7 @@ typedef GSString	*ivars;
  * scanning the string.  This is the position at which the next scan
  * operation will begin.
  */
-- (NSUInteger) scanLocation
+- (unsigned) scanLocation
 {
   return _scanLocation;
 }
@@ -1038,7 +1031,7 @@ typedef GSString	*ivars;
  * Raises an NSRangeException if index is beyond the end of the
  * scanned string.
  */
-- (void) setScanLocation: (NSUInteger)anIndex
+- (void) setScanLocation: (unsigned int)anIndex
 {
   if (_scanLocation <= myLength())
     _scanLocation = anIndex;
@@ -1146,7 +1139,7 @@ typedef GSString	*ivars;
 {
   NSScanner	*n = [[self class] allocWithZone: zone];
 
-  [n initWithString: _string];
+  n = [n initWithString: _string];
   [n setCharactersToBeSkipped: _charactersToBeSkipped];
   [n setLocale: _locale];
   [n setScanLocation: _scanLocation];
@@ -1154,22 +1147,6 @@ typedef GSString	*ivars;
   return n;
 }
 
-- (BOOL) scanHexDouble: (double *)result
-{
-  return NO;    // FIXME
-}
-- (BOOL) scanHexFloat: (float *)result
-{
-  return NO;    // FIXME
-}
-- (BOOL) scanHexLongLong: (unsigned long long *)result
-{
-  return NO;    // FIXME
-}
-- (BOOL) scanInteger: (NSInteger *)value
-{
-  return NO;    // FIXME
-}
 @end
 
 /*
@@ -1226,7 +1203,7 @@ GSScanInt(unichar *buf, unsigned length, int *result)
   if (result)
     {
       if (overflow
-	|| (num > (negative ? (NSUInteger)INT_MIN : (NSUInteger)INT_MAX)))
+	|| (num > (negative ? (unsigned int)INT_MIN : (unsigned int)INT_MAX)))
 	*result = negative ? INT_MIN: INT_MAX;
       else if (negative)
 	*result = -num;
@@ -1237,7 +1214,7 @@ GSScanInt(unichar *buf, unsigned length, int *result)
 }
 
 /**
- * Scan in a double value in the standard locale ('.' as decimal poNSInteger).<br />
+ * Scan in a double value in the standard locale ('.' as decimal point).<br />
  * Return YES on success, NO on failure.<br />
  * The value pointed to by result is unmodified on failure.<br />
  * No value is returned in result if it is a null pointer.
@@ -1254,7 +1231,7 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
   unsigned	pos = 0;
 
   /* Skip whitespace */
-  while (pos < length && isspace((NSInteger)buf[pos]))
+  while (pos < length && isspace((int)buf[pos]))
     {
       pos++;
     }

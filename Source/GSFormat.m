@@ -23,7 +23,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -32,54 +32,49 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 */
 
-#include "common.h"
+#include "config.h"
 
-#if	!defined(LLONG_MAX)
-#  if	defined(__LONG_LONG_MAX__)
-#    define LLONG_MAX __LONG_LONG_MAX__
-#    define LLONG_MIN	(-LLONG_MAX-1)
-#    define ULLONG_MAX	(LLONG_MAX * 2ULL + 1)
-#  else
-#    error Neither LLONG_MAX nor __LONG_LONG_MAX__ found
-#  endif
+/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
 #endif
-#ifdef HAVE_ALLOCA_H
-#include <alloca.h>
-#endif
+#include <limits.h>
 
 #include <stdio.h>
 #include <string.h>
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSCharacterSet.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSRange.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSURL.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSDebug.h"
+#include "GNUstepBase/GSLocale.h"
 
-#import "Foundation/NSArray.h"
-#import "Foundation/NSCharacterSet.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSValue.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSFileManager.h"
-#import "Foundation/NSPortCoder.h"
-#import "Foundation/NSPathUtilities.h"
-#import "Foundation/NSRange.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSBundle.h"
-#import "Foundation/NSURL.h"
-#import "Foundation/NSMapTable.h"
-#import "Foundation/NSLock.h"
-#import "GNUstepBase/GSLocale.h"
-
-#import "GSPrivate.h"
+#include "GSPrivate.h"
 
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -104,8 +99,28 @@ typedef uint32_t wint_t;
 typedef unsigned long long uintmax_t;
 #endif
 
+/* BSD and Solaris have this */
+#if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
+#define LONG_LONG_MAX LLONG_MAX
+#define LONG_LONG_MIN LLONG_MIN
+#define ULONG_LONG_MAX ULLONG_MAX
+#else
+/* Darwin 1.0 CPP can't handle this */
+#ifndef HANDLE_LONG_LONG_MAX
+#undef LONG_LONG_MAX
+#endif
+#endif
 
-#import "GNUstepBase/Unicode.h"
+#if	defined(HANDLE_LONG_LONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_long_long_max defined without long_long_max being defined
+#else
+#if	defined(HANDLE_LLONG_MAX) && !defined(LONG_LONG_MAX)
+#error handle_llong_max defined without llong_max being defined
+#endif
+#endif
+
+
+#include "GNUstepBase/Unicode.h"
 
 struct printf_info
 {
@@ -618,8 +633,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
     case 'Z':
       /* ints are size_ts.  */
       NSCParameterAssert (sizeof (size_t) <= sizeof (unsigned long long int));
-#if defined(LLONG_MAX)
-#if LONG_MAX != LLONG_MAX
+#if defined(LONG_LONG_MAX)
+#if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = sizeof (size_t) > sizeof (unsigned long int);
 #endif
 #endif
@@ -627,8 +642,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
       break;
     case 't':
       NSCParameterAssert (sizeof (ptrdiff_t) <= sizeof (long long int));
-#if defined(LLONG_MAX)
-#if LONG_MAX != LLONG_MAX
+#if defined(LONG_LONG_MAX)
+#if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = (sizeof (ptrdiff_t) > sizeof (long int));
 #endif
 #endif
@@ -636,8 +651,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
       break;
     case 'j':
       NSCParameterAssert (sizeof (uintmax_t) <= sizeof (unsigned long long int));
-#if defined(LLONG_MAX)
-#if LONG_MAX != LLONG_MAX
+#if defined(LONG_LONG_MAX)
+#if LONG_MAX != LONG_LONG_MAX
       spec->info.is_long_double = (sizeof (uintmax_t)
 				   > sizeof (unsigned long int));
 #endif
@@ -664,8 +679,8 @@ parse_one_spec (const unichar *format, size_t posn, struct printf_spec *spec,
 	case 'o':
 	case 'X':
 	case 'x':
-#if defined(LLONG_MAX)
-#if LONG_MAX != LLONG_MAX
+#if defined(LONG_LONG_MAX)
+#if LONG_MAX != LONG_LONG_MAX
 	  if (spec->info.is_long_double)
 	    spec->data_arg_type = PA_INT|PA_FLAG_LONG_LONG;
 	  else
@@ -755,8 +770,8 @@ static inline void GSStrAppendUnichar(GSStr s, unichar u)
 /* For handling long_double and longlong we use the same flag.  If
    `long' and `long long' are effectively the same type define it to
    zero.  */
-#if defined(LLONG_MAX)
-#if LONG_MAX == LLONG_MAX
+#if defined(LONG_LONG_MAX)
+#if LONG_MAX == LONG_LONG_MAX
 # define is_longlong 0
 #else
 # define is_longlong is_long_double
@@ -773,27 +788,6 @@ static inline void GSStrAppendUnichar(GSStr s, unichar u)
 # define is_long_num	is_long
 #endif
 
-static NSString	*locale_sep()
-{
-  static NSString	*sep = nil;
-
-  if (sep == nil)
-    {
-      char	buf[32];
-      char	*from = buf;
-      char	*to;
-
-      sprintf(buf, "%g", 1.2);
-      if (*from == '1') from++;
-      to = from;
-      while (*to != '\0' && *to != '2')
-	to++;
-      *to = '\0';
-      sep = [[NSString alloc] initWithCString: from];
-    }
-  return sep;
-}
- 
 
 /* Global variables.  */
 static const unichar null[] = {'(','n','u','l','l',')','\0'};
@@ -1096,7 +1090,7 @@ NSDictionary *locale)
 	int left = specs[nspecs_done].info.left;
 	int showsign = specs[nspecs_done].info.showsign;
 	int group = specs[nspecs_done].info.group;
-#if defined(LLONG_MAX) && (LONG_MAX != LLONG_MAX)
+#if defined(LONG_LONG_MAX) && (LONG_MAX != LONG_LONG_MAX)
 	int is_long_double = specs[nspecs_done].info.is_long_double;
 #endif
 	int is_short = specs[nspecs_done].info.is_short;
@@ -1153,9 +1147,9 @@ NSDictionary *locale)
 	    int string_malloced;
       do
 	{
-	  void *ptr;
-	  ptr = NOT_IN_JUMP_RANGE (spec) ? (void*)REF (form_unknown)
-	    : (void*)step4_jumps[CHAR_CLASS (spec)];
+	  const void *ptr;
+	  ptr = NOT_IN_JUMP_RANGE (spec) ? REF (form_unknown)
+	    : step4_jumps[CHAR_CLASS (spec)];
 	  goto *ptr;
 	}
       while (0);
@@ -1396,7 +1390,7 @@ NSDictionary *locale)
 	    {
 	      int temp = width;
 	      width = prec;
-	      PAD ('0');
+	      PAD ('0');;
 	      width = temp;
 	    }
 
@@ -1478,8 +1472,22 @@ NSDictionary *locale)
 	 */
 	if (decimal_sep != nil)
 	  {
-	    NSString	*sep = locale_sep();
+	    static NSString	*sep = nil;
 
+	    if (sep == nil)
+	      {
+		char	buf[32];
+		char	*from = buf;
+		char	*to;
+
+		sprintf(buf, "%g", 1.2);
+		if (*from == '1') from++;
+		to = from;
+		while (*to != '\0' && *to != '2')
+		  to++;
+		*to = '\0';
+		sep = [[NSString alloc] initWithCString: from];
+	      }
 	    if ([decimal_sep isEqual: sep] == NO && [sep length] == 1)
 	      {
 		unichar	m = [sep characterAtIndex: 0];
@@ -1596,8 +1604,11 @@ NSDictionary *locale)
 	 */
 	if (decimal_sep != nil)
 	  {
-	    NSString	*sep = locale_sep();
+	    NSDictionary	*def = GSDomainFromDefaultLocale();
+	    NSString		*sep = [def objectForKey: NSDecimalSeparator];
 
+	    if (sep == nil)
+	      sep = @".";
 	    if ([decimal_sep isEqual: sep] == NO && [sep length] == 1)
 	      {
 		unichar	m = [sep characterAtIndex: 0];
@@ -1651,7 +1662,7 @@ NSDictionary *locale)
 	  {
 	    /* If the pointer is not NULL, write it as a %#x spec.  */
 	    base = 16;
-	    number.word = (size_t) ptr;
+	    number.word = (unsigned long int) ptr;
 	    is_negative = 0;
 	    alt = 1;
 	    group = 0;

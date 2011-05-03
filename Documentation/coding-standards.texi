@@ -4,10 +4,7 @@
 
 @ifinfo
 @format
-INFO-DIR-SECTION GNUstep
-START-INFO-DIR-ENTRY
-* Coding: (coding-standards).           Coding Standards for GNUstep Libraries
-END-INFO-DIR-ENTRY
+* Coding: (coding).           Coding Standards for GNUstep Libraries
 @end format
 @end ifinfo
 
@@ -61,6 +58,7 @@ into another language, under the above conditions for modified versions.
 * Introduction::                
 * ChangeLog Entries::           
 * Coding Style::                
+* ObjectiveC::           
 * Memory Management::           
 * Error Handling::              
 * Variable Declaration::        
@@ -120,7 +118,7 @@ was changed. It's more appropriate to put that in the source code, where
 someone can find it, or in the documentation.
 
 @c ******************************************************************
-@node Coding Style, Memory Management, ChangeLog Entries, Top
+@node Coding Style, ObjectiveC, ChangeLog Entries, Top
 @section Coding Style
 
 The point is not what style is 'better' in the abstract -- it's what
@@ -159,17 +157,19 @@ the trailing bracket (as in this example), though there are odd occasions
 where those spaces might be omitted ((eg. when brackets are doubled)).
 This applies to square brackets too.
 
-Where round brackets are used for type-casts or at the end of a statement,
+Where round brackets are used to enclose function or macro paramters, there
+is no space between the function romacro name and the opening bracket, and
+where round brackets are used for type-casts or at the end of a statement,
 there is normally no space between the closing bracket and the following
 expression or semicolon-
 @example
 a = (int)b;
 - (void) methodWithArg1: (int)arg1 andArg2: (float)arg2;
-a = foo (ax, y, z);
+a = foo(ax, y, z);
 @end example
 
 The placement of curly brackets is part of the indentation rules. the
-correct GNU style is
+correct GNU style is to indent by two spaces
 @example
   if (...)
     @{
@@ -266,7 +266,7 @@ length limit).
 @end example
 
 My own preference (not part of the standard in any way) is to
-generally use curly brackets for control constructs, event where only one line
+generally use curly brackets for control constructs, even where only one line
 of code is involved
 @example
   if (a)
@@ -284,21 +284,40 @@ the matching lines.
 #else /* not condition */
 #endif /* condition */
 
-
 @end example
+
 @c ******************************************************************
-@node Memory Management, Error Handling, Coding Style, Top
+@node ObjectiveC, Memory Management, Coding Style, Top
+@section ObjectiveC
+
+Since GNUstep is primarily written in ObjectiveC the C language coding
+standards largely apply with modifications as specified in the previous
+section.
+
+Most code is expect to be written in traditional ObjectiveC, but classes
+implementing newer APIs designed by Apple will sometimes need to be written
+using ObjectiveC-2.0, though compatibility with old compilers should be
+maintained wherever possible, and preprocessor macros must be used to at
+least conditionally build new code without breaking old code.
+
+One ObjectiveC-2.0 feature (the dot ('.') operator) is forbidden though.
+One problem is that, while apparently simple, the actual operation of this
+feature in unusual cases is actually undefined and varies between compiler
+versions.  
+The more serious problem is that the feature is simply very bad style
+because it looks like a simple structure field access and yet the code
+is really doing something very different and much more expensive, so use
+of the feature tends to lead to performance problems, bugs, and less
+explicit/readable code.
+
+
+@c ******************************************************************
+@node Memory Management, Error Handling, ObjectiveC, Top
 @section Memory Management
 
-In anticipation of the day when we can make the use of a Garbage Collector
-possible for all GNUstep apps (it's almost-usable/usable-with-care for
-non-gui apps now), the normal use of retain/release/autorelease is
-deprecated.
-
-You should always use the macros RETAIN(), RELEASE() and AUTORELEASE()
-(defined in NSObject.h) instead.
-
-There are also some extra macros that may be of use -
+We encourage the use of the following macros to ease retain and release
+and as a convenience for managing code which should work in both a
+garbage collecting and a retain counting environment.
 @itemize @bullet
 @item
 ASSIGN(object,value) to assign an object variable, performing the appropriate retain/release as necessary.
@@ -306,12 +325,6 @@ ASSIGN(object,value) to assign an object variable, performing the appropriate re
 ASSIGNCOPY(object,value) to copy the value and assign it to the object.
 @item
 DESTROY(object) to release an object variable and set it to nil.
-@item
-TEST_RETAIN(object) to retain an object if it is non-nil
-@item
-TEST_RELEASE(object) to release an object if it is non-nil
-@item
-TEST_AUTORELEASE(object) to autorelease an object if it is non-nil
 @item
 CREATE_AUTORELEASE_POOL(name) to create an autorelease pool with the
 specified name.
@@ -372,6 +385,23 @@ Certainly we would consider it a bug to introduce code into the
 GNUstep libraries which stopped them compiling with one of the
 commonly used compilers.
 
+Instance variables in public APIs should generally be limited to those
+which are explicitly declared to be public and which will never change
+(we want to avoid breaking ABI between releases by changing instance
+variable layouts).  Eventually compilers supporting a non-fragile ABI
+will be available and this will no longer be an issue, but until then
+we need to deal with the fragile API instance variable problem.
+
+The standard mechanism to support this is to provide a single private
+pointer variable (void *_internal;) which will be used to point to an
+area of memory containing the actual instance variables used internally.
+The internal implementation is then free to change without any change
+to the size of instances of the class.
+
+The GNUstep-base library has a standardised set of macros for writing
+code which deals with use of an _internal pointer to instance variables
+at the same time as allowing the instance variables to be used directly
+in the class if the code is built using the non-fragile ABI.
 
 @c ******************************************************************
 @node Naming Conventions, Object Persistence, Variable Declaration, Top
@@ -438,6 +468,8 @@ that all changes to these methods be backward compatible with previously
 stored archives (for instance, those created by Gorm). The easiest way to do
 this is to use class version numbers to indicate which archive configuration
 should be read.
+Modern implementations are expected to suppoort keyed archiving and should
+use the same keys that are used in OSX.
 
 @c ******************************************************************
 @node Documentation, Before You Commit, Object Persistence, Top
@@ -449,10 +481,8 @@ do not copy either the OpenStep or Cocoa documentation. Some methods
 are so simple you might have to intentionally reword the documentation
 so it is different.
 
-Currently there is a difference of opinion on whether to document in
-the header or in the source file, although we generally lean towards
-the header currently. Make sure you are consistent with the current
-method of documentation in the source file you are changing.
+Public documentation should be in the header files, formatted so that the
+autogsdoc tool can extract it.
 
 @c ******************************************************************
 @node Before You Commit, Contributing, Documentation, Top
@@ -460,13 +490,17 @@ method of documentation in the source file you are changing.
 
 @itemize @bullet
 @item Make sure you have a ChangeLog entry
-@item Make sure everything still compiles
-@item Make sure you've tested the change as much as is reasonable.
-@item If you have added a class, add the class to @file{Foundation/Foundation.h}
+@item Make sure any new method/class is documented in the header file.
 or @file{Appkit/Appkit.h} if appropriate.
-@item Documentation the methods you have changed or added.
+@item If you have added a class, add the class to @file{Foundation/Foundation.h}
 @item If you have updated and configure checks, be sure to run both
 autoconf and autoheader.
+@item Make sure everything still compiles at least on the most common
+platform (ie Intel processor, GNU/Linux operating system, with the GCC compiler and ObjC runtime), and ideally on ms-windows too.
+@item Make sure you've tested the change and contributed testcase code to
+the testsuite. Run the testsuite on the systems where you compiled.
+@item Make sure that documentation generation still works by running 'make'
+in the Documentation directory.
 @end itemize
 
 

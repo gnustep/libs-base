@@ -8,7 +8,7 @@
    This file is part of the GNUstep Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -75,10 +75,8 @@ extern "C" {
  * of attributes for positive and negative numbers, and for specific cases
  * including 0, NaN, and nil... </p>
  */
-@interface NSNumberFormatter : NSFormatter
+@interface NSNumberFormatter: NSFormatter
 {
-#if	GS_EXPOSE(NSNumberFormatter)
-@private
   BOOL _hasThousandSeparators;
   BOOL _allowsFloats;
   BOOL _localizesFormat;
@@ -94,10 +92,6 @@ extern "C" {
   NSString *_positiveFormat;
   NSDictionary *_attributesForPositiveValues;
   NSDictionary *_attributesForNegativeValues;
-#endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
 }
 
 // Format
@@ -304,16 +298,6 @@ extern "C" {
  */
 - (void) setMinimum: (NSDecimalNumber*)aMinimum;
 
-/**
- * Returns the string version of this number based on the format
- * specified.
- */
-- (NSString *) stringFromNumber: (NSNumber *)number;
-
-/**
- * Returns the number for this string.
- */
-- (NSNumber *) numberFromString: (NSString *)string;
 @end
 
 #if	defined(__cplusplus)

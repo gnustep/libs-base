@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,17 +27,14 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSNumberFormatter_IVARS	1
-#import "Foundation/NSAttributedString.h"
-#import "Foundation/NSDecimalNumber.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSNumberFormatter.h"
-#import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSCharacterSet.h"
-
-#import "GNUstepBase/GSLocale.h"
+#include "Foundation/NSAttributedString.h"
+#include "Foundation/NSDecimalNumber.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSNumberFormatter.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSCharacterSet.h"
 
 @implementation NSNumberFormatter
 
@@ -103,17 +100,17 @@
 {
   NSNumberFormatter	*c = (NSNumberFormatter*) NSCopyObject(self, 0, zone);
 
-  IF_NO_GC(RETAIN(c->_negativeFormat);)
-  IF_NO_GC(RETAIN(c->_positiveFormat);)
-  IF_NO_GC(RETAIN(c->_attributesForPositiveValues);)
-  IF_NO_GC(RETAIN(c->_attributesForNegativeValues);)
-  IF_NO_GC(RETAIN(c->_maximum);)
-  IF_NO_GC(RETAIN(c->_minimum);)
-  IF_NO_GC(RETAIN(c->_roundingBehavior);)
-  IF_NO_GC(RETAIN(c->_roundingBehavior);)
-  IF_NO_GC(RETAIN(c->_attributedStringForNil);)
-  IF_NO_GC(RETAIN(c->_attributedStringForNotANumber);)
-  IF_NO_GC(RETAIN(c->_attributedStringForZero);)
+  RETAIN(c->_negativeFormat);
+  RETAIN(c->_positiveFormat);
+  RETAIN(c->_attributesForPositiveValues);
+  RETAIN(c->_attributesForNegativeValues);
+  RETAIN(c->_maximum);
+  RETAIN(c->_minimum);
+  RETAIN(c->_roundingBehavior);
+  RETAIN(c->_roundingBehavior);
+  RETAIN(c->_attributedStringForNil);
+  RETAIN(c->_attributedStringForNotANumber);
+  RETAIN(c->_attributedStringForZero);
 
   return c;
 }
@@ -518,7 +515,7 @@
   NSString		*prefix;
   NSString		*suffix;
   NSString		*wholeString;
-  NSString		*fracPad = nil;
+  NSString		*fracPad;
   NSString		*fracPartString;
   NSMutableString	*intPartString;
   NSMutableString	*formattedNumber;
@@ -537,26 +534,7 @@
   BOOL			displayFractionalPart = NO;
   BOOL			negativeNumber = NO;
   NSString		*useFormat;
-  NSString		*defaultDecimalSeparator = nil;
-  NSString		*defaultThousandsSeparator = nil;
 
-  if (_localizesFormat)
-    {
-      NSDictionary *defaultLocale = GSDomainFromDefaultLocale();
-      defaultDecimalSeparator 
-	= [defaultLocale objectForKey: NSDecimalSeparator];
-      defaultThousandsSeparator 
-	= [defaultLocale objectForKey: NSThousandsSeparator];
-    }
-
-  if (defaultDecimalSeparator == nil)
-    {
-      defaultDecimalSeparator = @".";
-    }
-  if (defaultThousandsSeparator == nil)
-    {
-      defaultThousandsSeparator = @",";
-    }
   formattingCharacters = [NSCharacterSet
     characterSetWithCharactersInString: @"0123456789#.,_"];
   placeHolders = [NSCharacterSet 
@@ -568,8 +546,7 @@
     return [[self attributedStringForNotANumber] string];
   if ([anObject isEqual: [NSDecimalNumber notANumber]])
     return [[self attributedStringForNotANumber] string];
-  if (_attributedStringForZero
-      && [anObject isEqual: [NSDecimalNumber zero]])
+  if ([anObject isEqual: [NSDecimalNumber zero]])
     return [[self attributedStringForZero] string];
   
   useFormat = _positiveFormat;
@@ -583,10 +560,7 @@
   // if no format specified, use the same default that Cocoa does
   if (nil == useFormat)
     {
-      useFormat = [NSString stringWithFormat: @"%@#%@###%@##",
-			    negativeNumber ? @"-" : @"",
-			    defaultThousandsSeparator,
-			    defaultDecimalSeparator];
+      useFormat = negativeNumber ? @"-#,###.##" : @"#,###.##";
     }
 
   prefixRange = [useFormat rangeOfCharacterFromSet: formattingCharacters];
@@ -606,16 +580,15 @@
   //should also set NSDecimalDigits?
   
   if ([self hasThousandSeparators]
-    && (0 != [useFormat rangeOfString: defaultThousandsSeparator].length))
+    && (0 != [useFormat rangeOfString:@","].length))
     {
       displayThousandsSeparators = YES;
     }
 
   if ([self allowsFloats]
-    && (NSNotFound 
-	!= [useFormat rangeOfString: defaultDecimalSeparator].location))
+    && (NSNotFound != [useFormat rangeOfString:@"." ].location))
     {
-      decimalPlaceRange = [useFormat rangeOfString: defaultDecimalSeparator
+      decimalPlaceRange = [useFormat rangeOfString: @"."
 					   options: NSBackwardsSearch];
       if (NSMaxRange(decimalPlaceRange) == [useFormat length])
         {
@@ -651,7 +624,7 @@
     roundedNumber = [roundedNumber decimalNumberByMultiplyingBy:
       (NSDecimalNumber*)[NSDecimalNumber numberWithInt: -1]];
   intPart = (NSDecimalNumber*)
-    [NSDecimalNumber numberWithInt: (int)[roundedNumber doubleValue]];
+    [NSDecimalNumber numberWithInt: [roundedNumber intValue]];
   fracPart = [roundedNumber decimalNumberBySubtracting: intPart];
   intPartString
     = AUTORELEASE([[intPart descriptionWithLocale: locale] mutableCopy]);
@@ -663,15 +636,14 @@
       while (([placeHolders characterIsMember:
         [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
         || [[useFormat substringFromRange:
-          NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual:
-	    defaultThousandsSeparator])
+          NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual: @","])
         && NSMaxRange(intPartRange) < [useFormat length] - 1)
         {
           intPartRange.length++;
         }
     }
   intPad = [[useFormat substringWithRange: intPartRange] mutableCopy];
-  [intPad replaceOccurrencesOfString: defaultThousandsSeparator
+  [intPad replaceOccurrencesOfString: @","
     withString: @""
     options: 0
     range: NSMakeRange(0, [intPad length])];
@@ -784,20 +756,4 @@
     return [NSString stringWithCharacters: &_thousandSeparator length: 1];
 }
 
-- (NSString *) stringFromNumber: (NSNumber *)number
-{
-  return [self stringForObjectValue: number];
-}
-
-- (NSNumber *) numberFromString: (NSString *)string
-{
-  id number = nil;
-  NSString *error;
-
-  [self getObjectValue: &number
-	forString: string
-	errorDescription: &error];
-
-  return number;
-}
 @end

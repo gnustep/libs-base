@@ -8,32 +8,15 @@
 
   AFAIK: This only works on machines that support setlocale.
   The files created may require hand editing.
-
-   This file is part of the GNUstep Project
-
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
-
-   You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
-   If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
 */
-
-#import	"common.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
 #include <ctype.h>
 #include <locale.h>
-
-#import	"Foundation/NSAutoreleasePool.h"
-#import	"Foundation/NSDictionary.h"
-#import "GNUstepBase/GSLocale.h"
+#include <Foundation/Foundation.h>
+#include <GNUstepBase/GSLocale.h>
 
 #define MAXSTRING 100
 
@@ -52,7 +35,7 @@ loc_read_file(const char *dir, const char *file)
   if (strcmp(file, "POSIX") == 0)
     return 0;
 
-  sprintf(name, "%s/%s", dir, file);
+  snprintf(name, sizeof(name), "%s/%s", dir, file);
   fp = fopen(name, "r");
   if (fp == NULL)
     return -1;
@@ -68,7 +51,8 @@ loc_read_file(const char *dir, const char *file)
 	}
       if ((s = strstr(buf, "ocale for")) != NULL)
 	{
-	  strcpy(country, s+10);
+	  strncpy(country, s + 10, sizeof(country) - 1);
+	  country[sizeof(country) - 1] = '\0';
 	  s = strchr(country, '\n');
 	  if (s)
 	    *s = '\0';
@@ -77,10 +61,11 @@ loc_read_file(const char *dir, const char *file)
 	break;
     }
 
-  strcpy(locale, file);
+  strncpy(locale, file, sizeof(locale) - 1);
+  locale[sizeof(locale) - 1] = '\0';
   if (strlen(country) > 0 && strcmp(country, language) != 0)
     {
-      strcat(country, language);
+      strncat(country, language, sizeof(country) - 1 - strlen(country));
       [dict setObject: [NSString stringWithUTF8String: country]
 	    forKey: [NSString stringWithUTF8String: locale]];
     }

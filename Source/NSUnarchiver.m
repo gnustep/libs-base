@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,12 +25,12 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSUnarchiver_IVARS	1
+#include "config.h"
 #include <string.h>
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSByteOrder.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSByteOrder.h"
 
 /*
  *	Setup for inline operation of arrays.
@@ -42,13 +42,15 @@
 #include "GNUstepBase/GSIArray.h"
 
 #define	_IN_NSUNARCHIVER_M
-#import "Foundation/NSArchiver.h"
+#include "Foundation/NSArchiver.h"
 #undef	_IN_NSUNARCHIVER_M
 
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSArray.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
 
 @class NSDataMalloc;
 @interface NSDataMalloc : NSObject	// Help the compiler
@@ -158,8 +160,13 @@ static char	type_map[32] = {
   _C_UINT,
   _C_LNG,
   _C_ULNG,
+#ifdef	_C_LNG_LNG
   _C_LNG_LNG,
   _C_ULNG_LNG,
+#else
+  0,
+  0,
+#endif
   _C_FLT,
   _C_DBL,
   0,
@@ -183,8 +190,7 @@ static char	type_map[32] = {
   0
 };
 
-
-static inline BOOL
+static inline void
 typeCheck(char t1, char t2)
 {
   if (type_map[(t2 & _GSC_MASK)] != t1)
@@ -196,54 +202,29 @@ typeCheck(char t1, char t2)
  * can vary.
  */
       char	c = type_map[(t2 & _GSC_MASK)];
-      char      s1;
-      char      s2;
-
-      switch (t1)
-        {
-          case _C_SHT:  s1 = _GSC_S_SHT; break;
-          case _C_USHT:  s1 = _GSC_S_SHT; break;
-          case _C_INT:  s1 = _GSC_S_INT; break;
-          case _C_UINT:  s1 = _GSC_S_INT; break;
-          case _C_LNG:  s1 = _GSC_S_LNG; break;
-          case _C_ULNG:  s1 = _GSC_S_LNG; break;
-          case _C_LNG_LNG:  s1 = _GSC_S_LNG_LNG; break;
-          case _C_ULNG_LNG:  s1 = _GSC_S_LNG_LNG; break;
-          default:      s1 = 0;
-        }
-
-      switch (t2)
-        {
-          case _C_SHT:  s2 = _GSC_S_SHT; break;
-          case _C_USHT:  s2 = _GSC_S_SHT; break;
-          case _C_INT:  s2 = _GSC_S_INT; break;
-          case _C_UINT:  s2 = _GSC_S_INT; break;
-          case _C_LNG:  s2 = _GSC_S_LNG; break;
-          case _C_ULNG:  s2 = _GSC_S_LNG; break;
-          case _C_LNG_LNG:  s2 = _GSC_S_LNG_LNG; break;
-          case _C_ULNG_LNG:  s2 = _GSC_S_LNG_LNG; break;
-          default:      s2 = 0;
-        }
-
-      if ((c == _C_INT || c == _C_LNG || c == _C_LNG_LNG)
-        && (t1 == _C_INT || t1 == _C_LNG || t1 == _C_LNG_LNG))
-        return s1 == s2 ? YES : NO;
-
-      if ((c == _C_UINT || c == _C_ULNG || c == _C_ULNG_LNG)
-        && (t1 == _C_UINT || t1 == _C_ULNG || t1 == _C_ULNG_LNG))
-        return s1 == s2 ? YES : NO;
-
-/* HACK also allow float and double to be used interchangably as MacOS-X
- * intorduced CGFloat, which may be aither a float or a double.
- */
-      if ((c == _C_FLT || c == _C_DBL) && (t1 == _C_FLT || t1 == _C_DBL))
-	return NO;
+      if ((c == _C_INT || c == _C_LNG
+#ifdef	_C_LNG_LNG
+	|| c == _C_LNG_LNG
+#endif
+	) && (t1 == _C_INT || t1 == _C_LNG
+#ifdef	_C_LNG_LNG
+	|| t1 == _C_LNG_LNG
+#endif
+	)) return;
+      if ((c == _C_UINT || c == _C_ULNG
+#ifdef	_C_LNG_LNG
+	|| c == _C_ULNG_LNG
+#endif
+	) && (t1 == _C_UINT || t1 == _C_ULNG
+#ifdef	_C_LNG_LNG
+	|| t1 == _C_ULNG_LNG
+#endif
+	)) return;
 
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
 		    typeToName1(t1), typeToName2(t2)];
     }
-  return YES;
 }
 
 #define	PREFIX		"GNUstep archive"
@@ -302,7 +283,7 @@ static NSMutableDictionary	*clsDict;	/* Class information	*/
 @interface	NSUnarchiverObjectInfo : NSUnarchiverClassInfo
 {
 @public
-  NSInteger	version;
+  unsigned	version;
   NSUnarchiverClassInfo	*overrides;
 }
 @end
@@ -512,7 +493,7 @@ static Class NSDataMallocClass;
 	}
       NS_HANDLER
 	{
-	  DESTROY(self);
+	  RELEASE(self);
 	  [localException raise];
 	}
       NS_ENDHANDLER
@@ -555,8 +536,10 @@ static Class NSDataMallocClass;
       case _C_UINT:	info = _GSC_UINT; break;
       case _C_LNG:	info = _GSC_LNG; break;
       case _C_ULNG:	info = _GSC_ULNG; break;
+#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:	info = _GSC_LNG_LNG; break;
       case _C_ULNG_LNG:	info = _GSC_ULNG_LNG; break;
+#endif
       case _C_FLT:	info = _GSC_FLT; break;
       case _C_DBL:	info = _GSC_DBL; break;
       default:		info = _GSC_NONE; break;
@@ -598,6 +581,15 @@ static Class NSDataMallocClass;
 {
   unsigned	xref;
   unsigned char	info;
+#if	GS_HAVE_I128
+    gsu128	bigval;
+#else
+#if	GS_HAVE_I64
+    uint64_t	bigval;
+#else
+    uint32_t	bigval;
+#endif
+#endif
 
   (*tagImp)(src, tagSel, &info, &xref, &cursor);
 
@@ -748,24 +740,16 @@ static Class NSDataMallocClass;
 	      (*desImp)(src, desSel, &cver, @encode(unsigned), &cursor, nil);
 	      if (className == 0)
 		{
-		  NSLog(@"[%s %s] decoded nil class name",
-		    class_getName([self class]), sel_getName(_cmd));
+		  NSLog(@"[%s %s] decoded nil class",
+		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
 		  className = @"_NSUnarchiverUnknownClass";
 		}
 	      classInfo = [objDict objectForKey: className];
 	      if (classInfo == nil)
 		{
-		  classInfo = [NSUnarchiverObjectInfo newWithName: className];
+		  classInfo = [NSUnarchiverObjectInfo
+		    newWithName: className];
 		  c = NSClassFromString(className);
-		  /*
-		   * Show a warning, if the class name that's being used to
-		   * build the class causes NSClassFromString to return nil.
-		   * This means that the class is unknown to the runtime.
-		   */
-		  if (c == nil)
-		    {
-		      NSLog(@"Unable to find class named '%@'", className);
-		    }
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
 		  RELEASE(classInfo);
@@ -775,7 +759,7 @@ static Class NSDataMallocClass;
 		  c = classInfo->class;
 		}
 	      RELEASE(className);
-	      classInfo->version = (NSInteger)cver;
+	      classInfo->version = cver;
 	      GSIArrayAddItem(clsMap, (GSIArrayItem)((id)classInfo));
 	      *(Class*)address = mapClassObject(classInfo);
 	      /*
@@ -956,8 +940,8 @@ static Class NSDataMallocClass;
 
       case _GSC_SHT:
       case _GSC_USHT:
-	if (YES == typeCheck(*type, info & _GSC_MASK)
-	  && (info & _GSC_SIZE) == _GSC_S_SHT)
+	typeCheck(*type, info & _GSC_MASK);
+	if ((info & _GSC_SIZE) == _GSC_S_SHT)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -966,8 +950,8 @@ static Class NSDataMallocClass;
 
       case _GSC_INT:
       case _GSC_UINT:
-	if (YES == typeCheck(*type, info & _GSC_MASK)
-	  &&  (info & _GSC_SIZE) == _GSC_S_INT)
+	typeCheck(*type, info & _GSC_MASK);
+	if ((info & _GSC_SIZE) == _GSC_S_INT)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -976,56 +960,34 @@ static Class NSDataMallocClass;
 
       case _GSC_LNG:
       case _GSC_ULNG:
-	if (YES == typeCheck(*type, info & _GSC_MASK)
-	  && (info & _GSC_SIZE) == _GSC_S_LNG)
+	typeCheck(*type, info & _GSC_MASK);
+	if ((info & _GSC_SIZE) == _GSC_S_LNG)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
 	  }
 	break;
 
+#ifdef	_C_LNG_LNG
       case _GSC_LNG_LNG:
       case _GSC_ULNG_LNG:
-	if (YES == typeCheck(*type, info & _GSC_MASK)
-	  && (info & _GSC_SIZE) == _GSC_S_LNG_LNG)
+	typeCheck(*type, info & _GSC_MASK);
+	if ((info & _GSC_SIZE) == _GSC_S_LNG_LNG)
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
 	  }
 	break;
 
+#endif
       case _GSC_FLT:
-	if (YES == typeCheck(*type, _GSC_FLT)
-	  && *type == _C_FLT)
-	  {
-	    (*desImp)(src, desSel, address, type, &cursor, nil);
-	  }
-	else
-	  {
-	    float	val;
-
-	    /* We found a float when expecting a double ... handle it.
-	     */
-	    (*desImp)(src, desSel, &val, @encode(float), &cursor, nil);
-	    *(double*)address = (double)val;
-	  }
+	typeCheck(*type, _GSC_FLT);
+	(*desImp)(src, desSel, address, type, &cursor, nil);
 	return;
 
       case _GSC_DBL:
-	if (YES == typeCheck(*type, _GSC_DBL)
-	  && *type == _C_DBL)
-	  {
-	    (*desImp)(src, desSel, address, type, &cursor, nil);
-	  }
-	else
-	  {
-	    double	val;
-
-	    /* We found a double when expecting a float ... handle it.
-	     */
-	    (*desImp)(src, desSel, &val, @encode(double), &cursor, nil);
-	    *(float*)address = (float)val;
-	  }
+	typeCheck(*type, _GSC_DBL);
+	(*desImp)(src, desSel, address, type, &cursor, nil);
 	return;
 
       default:
@@ -1033,188 +995,103 @@ static Class NSDataMallocClass;
 		    format: @"read unknown type info - %d", info];
     }
 
-{
-  uint8_t       size;
-
   /*
    *	We fall through to here only when we have to decode a value
    *	whose natural size on this system is not the same as on the
    *	machine on which the archive was created.
    */
 
-  switch (*type)
-    {
-      case _C_SHT:
-      case _C_USHT:  size = sizeof(short); break;
-      case _C_INT: 
-      case _C_UINT:  size = sizeof(int); break;
-      case _C_LNG:
-      case _C_ULNG:  size = sizeof(long); break;
-      case _C_LNG_LNG:
-      case _C_ULNG_LNG:  size = sizeof(long long); break;
-      default:      size = 1;
-    }
-
   /*
    *	First, we read the data and convert it to the largest size
    *	this system can support.
    */
-  if (*type == _C_SHT
-    || *type == _C_INT
-    || *type == _C_LNG
-    || *type == _C_LNG_LNG)
+  switch (info & _GSC_SIZE)
     {
-      int64_t   big;
+      case _GSC_I16:	/* Encoded as 16-bit	*/
+	{
+	  uint16_t	val;
 
-      switch (info & _GSC_SIZE)
-        {
-          case _GSC_I16:	/* Encoded as 16-bit	*/
-            {
-              int16_t	val;
+	  (*desImp)(src, desSel, &val, @encode(uint16_t), &cursor, nil);
+	  bigval = val;
+	  break;
+	}
 
-              (*desImp)(src, desSel, &val, @encode(int16_t), &cursor, nil);
-              big = val;
-              break;
-            }
+      case _GSC_I32:	/* Encoded as 32-bit	*/
+	{
+	  uint32_t	val;
 
-          case _GSC_I32:	/* Encoded as 32-bit	*/
-            {
-              int32_t	val;
+	  (*desImp)(src, desSel, &val, @encode(uint32_t), &cursor, nil);
+	  bigval = val;
+	  break;
+	}
 
-              (*desImp)(src, desSel, &val, @encode(int32_t), &cursor, nil);
-              big = val;
-              break;
-            }
+      case _GSC_I64:	/* Encoded as 64-bit	*/
+	{
+	  uint64_t	val;
 
-          case _GSC_I64:	/* Encoded as 64-bit	*/
-            {
-              (*desImp)(src, desSel, &big, @encode(int64_t), &cursor, nil);
-              break;
-            }
+	  (*desImp)(src, desSel, &val, @encode(uint64_t), &cursor, nil);
+#if	GS_HAVE_I64
+	  bigval = val;
+#else
+	  bigval = GSSwapBigI64ToHost(val);
+#endif
+	  break;
+	}
 
-          default:		/* A 128-bit value	*/
-            {
-              big = 0;
-              [NSException raise: NSInternalInconsistencyException
-                          format: @"Archiving of 128bit integer not allowed"];
-            }
-        }
-      /*
-       *	Now we copy from the big value to the destination location.
-       */
-      switch (size)
-        {
-          case 1:
-            *(int8_t*)address = (int8_t)big;
-            if (big & ~0xff)
-              {
-                if ((int8_t)big >= 0 || (big & ~0xff) != ~0xff)
-                  {
-                    NSLog(@"Loss of information converting decoded value to int8_t");
-                  }
-              }
-            return;
-          case 2:
-            *(int16_t*)address = (int16_t)big;
-            if (big & ~0xffff)
-              {
-                if ((int16_t)big >= 0 || (big & ~0xffff) != ~0xffff)
-                  {
-                    NSLog(@"Loss of information converting decoded value to int16_t");
-                  }
-              }
-            return;
-          case 4:
-            *(int32_t*)address = (int32_t)big;
-            if (big & ~0xffffffff)
-              {
-                if ((int32_t)big >= 0 || (big & ~0xffffffff) != ~0xffffffff)
-                  {
-                    NSLog(@"Loss of information converting decoded value to int32_t");
-                  }
-              }
-            return;
-          case 8:
-            *(int64_t*)address = big;
-            return;
-          default:
-            [NSException raise: NSInternalInconsistencyException
-                        format: @"type/size information error"];
-        }
+      default:		/* A 128-bit value	*/
+	{
+	  gsu128	val;
+
+	  (*desImp)(src, desSel, &val, @encode(gsu128), &cursor, nil);
+#if	GS_HAVE_I128
+	  bigval = val;
+#else
+	  val = GSSwapBigI128ToHost(val);
+#if	GS_HAVE_I64
+	  bigval = *(uint64_t*)&val;
+#else
+	  bigval = *(uint32_t*)&val;
+#endif
+#endif
+	  break;
+	}
     }
-  else
+
+/*
+ *	Now we copy from the 'bigval' to the destination location.
+ */
+  switch (info & _GSC_MASK)
     {
-      uint64_t  big;
-
-      switch (info & _GSC_SIZE)
-        {
-          case _GSC_I16:	/* Encoded as 16-bit	*/
-            {
-              uint16_t	val;
-
-              (*desImp)(src, desSel, &val, @encode(uint16_t), &cursor, nil);
-              big = val;
-              break;
-            }
-
-          case _GSC_I32:	/* Encoded as 32-bit	*/
-            {
-              uint32_t	val;
-
-              (*desImp)(src, desSel, &val, @encode(uint32_t), &cursor, nil);
-              big = val;
-              break;
-            }
-
-          case _GSC_I64:	/* Encoded as 64-bit	*/
-            {
-              (*desImp)(src, desSel, &big, @encode(uint64_t), &cursor, nil);
-              break;
-            }
-
-          default:		/* A 128-bit value	*/
-            {
-              big = 0;
-              [NSException raise: NSInternalInconsistencyException
-                          format: @"Archiving of 128bit integer not allowed"];
-            }
-        }
-      /*
-       * Now we copy from the big value to the destination location.
-       */
-      switch (size)
-        {
-          case 1:
-            if (big & ~0xff)
-              {
-                NSLog(@"Loss of information converting decoded value to uint8_t");
-              }
-            *(uint8_t*)address = (uint8_t)big;
-            return;
-          case 2:
-            if (big & ~0xffff)
-              {
-                NSLog(@"Loss of information converting decoded value to uint16_t");
-              }
-            *(uint8_t*)address = (uint8_t)big;
-            *(uint16_t*)address = (uint16_t)big;
-            return;
-          case 4:
-            if (big & ~0xffffffff)
-              {
-                NSLog(@"Loss of information converting decoded value to uint32_t");
-              }
-            *(uint32_t*)address = (uint32_t)big;
-            return;
-          case 8:
-            *(uint64_t*)address = big;
-            return;
-          default:
-            [NSException raise: NSInternalInconsistencyException
-                        format: @"type/size information error"];
-        }
+      case _GSC_SHT:
+	*(short*)address = (short)bigval;
+	return;
+      case _GSC_USHT:
+	*(unsigned short*)address = (unsigned short)bigval;
+	return;
+      case _GSC_INT:
+	*(int*)address = (int)bigval;
+	return;
+      case _GSC_UINT:
+	*(unsigned int*)address = (unsigned int)bigval;
+	return;
+      case _GSC_LNG:
+	*(long*)address = (long)bigval;
+	return;
+      case _GSC_ULNG:
+	*(unsigned long*)address = (unsigned long)bigval;
+	return;
+#ifdef	_C_LNG_LNG
+      case _GSC_LNG_LNG:
+	*(long long*)address = (long long)bigval;
+	return;
+      case _GSC_ULNG_LNG:
+	*(unsigned long long*)address = (unsigned long long)bigval;
+	return;
+#endif
+      default:
+	[NSException raise: NSInternalInconsistencyException
+		    format: @"type/size information error"];
     }
-}
 }
 
 - (NSData*) decodeDataObject
@@ -1231,12 +1108,14 @@ static Class NSDataMallocClass;
 	{
 	  void		*b;
 	  NSData	*d;
+	  NSZone	*z;
 
 #if	GS_WITH_GC
-	  b = NSAllocateCollectable(l, 0);
+	  z = GSAtomicMallocZone();
 #else
-	  b = NSZoneMalloc(zone, l);
+	  z = zone;
 #endif
+	  b = NSZoneMalloc(z, l);
 	  [self decodeArrayOfObjCType: @encode(unsigned char)
 				count: l
 				   at: b];
@@ -1318,7 +1197,7 @@ static Class NSDataMallocClass;
 {
   Class	c;
 
-  c = objc_lookUpClass([trueName cString]);
+  c = GSClassFromName([trueName cString]);
   if (c == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1370,7 +1249,7 @@ static Class NSDataMallocClass;
 {
   Class	c;
 
-  c = objc_lookUpClass([trueName cString]);
+  c = GSClassFromName([trueName cString]);
   if (c == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1412,14 +1291,14 @@ static Class NSDataMallocClass;
 	      format: @"object to be replaced does not exist"];
 }
 
-- (NSInteger) versionForClassName: (NSString*)className
+- (unsigned) versionForClassName: (NSString*)className
 {
   NSUnarchiverObjectInfo	*info;
 
   info = [objDict objectForKey: className];
   if (info == nil)
     {
-      return (NSInteger)NSNotFound;
+      return NSNotFound;
     }
   return info->version;
 }
@@ -1465,7 +1344,7 @@ static Class NSDataMallocClass;
 
       TEST_RELEASE(data);
       data = RETAIN(anObject);
-      c = object_getClass(data);
+      c = GSObjCClass(data);
       if (src != self)
 	{
 	  src = data;

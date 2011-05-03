@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,40 +26,35 @@
    $Date$ $Revision$
 */
 
-#import "common.h"
-#import "GNUstepBase/GSLock.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSIndexSet.h"
-#import "Foundation/NSThread.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSCharacterSet.h"
-#import "Foundation/NSData.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "config.h"
+#include "GNUstepBase/GSLock.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSIndexSet.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSCharacterSet.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
 
-/* Using and index set to hold a characterset is more space efficient but
- * on the intel core-2 system I benchmarked on, it made my applications
- * about 20% slower.
- * It only makes sense to build base to use index charactersets on machines
- * with a very low memory (eg PDAs), and possibly not even there.
- */
 //#define	GNUSTEP_INDEX_CHARSET	1
 #undef	GNUSTEP_INDEX_CHARSET
 
-#import "NSCharacterSetData.h"
+#include "NSCharacterSetData.h"
 
-#define GSUNICODE_MAX	1114112
-#define GSBITMAP_SIZE	8192
-#define GSBITMAP_MAX	139264
+//PENDING: may want to make these less likely to conflict
+#define UNICODE_MAX	1114112
+#define BITMAP_SIZE	8192
+#define BITMAP_MAX	139264
 
-#ifndef GSSETBIT
-#define GSSETBIT(a,i)     ((a) |= 1<<(i))
-#define GSCLRBIT(a,i)     ((a) &= ~(1<<(i)))
-#define GSISSET(a,i)      ((a) & (1<<(i)))
+#ifndef SETBIT
+#define SETBIT(a,i)     ((a) |= 1<<(i))
+#define CLRBIT(a,i)     ((a) &= ~(1<<(i)))
+#define ISSET(a,i)      ((a) & (1<<(i)))
 #endif
 
 @interface _GSIndexCharSet : NSCharacterSet
@@ -82,7 +77,7 @@
 /* Private class from NSIndexSet.m
  */
 @interface	_GSStaticIndexSet : NSIndexSet
-- (id) _initWithBytes: (const void*)bytes length: (NSUInteger)length;
+- (id) _initWithBytes: (const void*)bytes length: (unsigned)length;
 @end
 
 @interface NSBitmapCharSet : NSCharacterSet
@@ -117,7 +112,7 @@
     {
       i--;
     }
-  i *= GSBITMAP_SIZE;
+  i *= BITMAP_SIZE;
   if (i < _length)
     {
       return [NSData dataWithBytes: _data length: i];
@@ -129,7 +124,7 @@
 {
   unsigned	byte = aCharacter/8;
 
-  if (byte < _length && GSISSET(_data[byte], aCharacter % 8))
+  if (byte < _length && ISSET(_data[byte], aCharacter % 8))
     {
       return YES;
     }
@@ -172,10 +167,10 @@
 	  return NO;
 	}
     }
-  if (aPlane * GSBITMAP_SIZE < _length)
+  if (aPlane * BITMAP_SIZE < _length)
     {
-      unsigned	i = GSBITMAP_SIZE * aPlane;
-      unsigned	e = GSBITMAP_SIZE * (aPlane + 1);
+      unsigned	i = BITMAP_SIZE * aPlane;
+      unsigned	e = BITMAP_SIZE * (aPlane + 1);
 
       while (i < e)
 	{
@@ -202,7 +197,7 @@
 {
   unsigned	length = [bitmap length];
 
-  if ((length % GSBITMAP_SIZE) != 0 || length > GSBITMAP_MAX)
+  if ((length % BITMAP_SIZE) != 0 || length > BITMAP_MAX)
     {
       NSLog(@"attempt to initialize character set with invalid bitmap");
       [self dealloc];
@@ -231,14 +226,14 @@
 {
   unsigned	byte = aCharacter/8;
 
-  if (aCharacter >= GSUNICODE_MAX)
+  if (aCharacter >= UNICODE_MAX)
     {
       [NSException raise: NSInvalidArgumentException
 	format: @"[%@-%@] argument (0x%08x) is too large",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	aCharacter];
     }
-  if (byte < _length && GSISSET(_data[byte], aCharacter % 8))
+  if (byte < _length && ISSET(_data[byte], aCharacter % 8))
     {
       return YES;
     }
@@ -259,61 +254,26 @@
 
 - (void) addCharactersInRange: (NSRange)aRange
 {
-  NSUInteger	i;
-  NSUInteger	m;
-  NSUInteger	b;
+  unsigned i;
 
-  m = NSMaxRange(aRange);
-  if (m > GSUNICODE_MAX)
+  if (NSMaxRange(aRange) > UNICODE_MAX)
     {
       [NSException raise:NSInvalidArgumentException
 	  format:@"Specified range exceeds character set"];
       /* NOT REACHED */
     }
-  else if (m < 1)
-    {
-      return;
-    }
 
-  /* Make space if needed.
-   */
-  b = (m - 1) / 8;
-  if (b >= _length)
+  for (i = aRange.location; i < NSMaxRange(aRange); i++)
     {
-      while (b >= _length)
+      unsigned	byte = i/8;
+
+      while (byte >= _length)
 	{
-	  _length += GSBITMAP_SIZE;
+	  [_obj setLength: _length + BITMAP_SIZE];
+	  _length += BITMAP_SIZE;
+	  _data = [_obj mutableBytes];
 	}
-      [_obj setLength: _length];
-      _data = [_obj mutableBytes];
-    }
-
-  /* Fill the first byte in the range.
-   */
-  i = aRange.location;
-  b = i / 8;
-  while (i % 8 != 0 && i < m)
-    {
-      GSSETBIT(_data[b], i % 8);
-      i++;
-    }
-
-  /* Set any complete bytes in the range.
-   */
-  b = (m - i) / 8;
-  if (b > 0)
-    {
-      memset(&_data[i / 8], 0xff, b);
-      i += b * 8;
-    }
-
-  /* Partial set of any bits needed in the last byte.
-   */
-  b = i / 8;
-  while (i < m)
-    {
-      GSSETBIT(_data[b], i % 8);
-      i++;
+      SETBIT(_data[byte], i % 8);
     }
   _known = 0;	// Invalidate cache
 }
@@ -354,16 +314,13 @@
 		+ (second - 0xdc00) + 0x0010000;
 	    }
 	  byte = letter/8;
-	  if (byte >= _length)
+	  while (byte >= _length)
 	    {
-	      while (byte >= _length)
-		{
-		  _length += GSBITMAP_SIZE;
-		}
-	      [_obj setLength: _length];
+	      [_obj setLength: _length + BITMAP_SIZE];
+	      _length += BITMAP_SIZE;
 	      _data = [_obj mutableBytes];
 	    }
-	  GSSETBIT(_data[byte], letter % 8);
+	  SETBIT(_data[byte], letter % 8);
 	}
     }
   _known = 0;	// Invalidate cache
@@ -377,7 +334,7 @@
     {
       i--;
     }
-  i *= GSBITMAP_SIZE;
+  i *= BITMAP_SIZE;
   return [NSData dataWithBytes: _data length: i];
 }
 
@@ -426,7 +383,7 @@
   unsigned	length = [bitmap length];
   id		tmp;
 
-  if ((length % GSBITMAP_SIZE) != 0 || length > GSBITMAP_MAX)
+  if ((length % BITMAP_SIZE) != 0 || length > BITMAP_MAX)
     {
       NSLog(@"attempt to initialize character set with invalid bitmap");
       [self dealloc];
@@ -452,10 +409,10 @@
 {
   unsigned	i;
 
-  if (_length < GSBITMAP_MAX)
+  if (_length < BITMAP_MAX)
     {
-      [_obj setLength: GSBITMAP_MAX];
-      _length = GSBITMAP_MAX;
+      [_obj setLength: BITMAP_MAX];
+      _length = BITMAP_MAX;
       _data = [_obj mutableBytes];
     }
   for (i = 0; i < _length; i++)
@@ -470,7 +427,7 @@
   unsigned	i;
   unsigned	limit = NSMaxRange(aRange);
 
-  if (NSMaxRange(aRange) > GSUNICODE_MAX)
+  if (NSMaxRange(aRange) > UNICODE_MAX)
     {
       [NSException raise:NSInvalidArgumentException
 	  format:@"Specified range exceeds character set"];
@@ -483,7 +440,7 @@
     }
   for (i = aRange.location; i < limit; i++)
     {
-      GSCLRBIT(_data[i/8], i % 8);
+      CLRBIT(_data[i/8], i % 8);
     }
   _known = 0;	// Invalidate cache
 }
@@ -527,7 +484,7 @@
 	  byte = letter/8;
 	  if (byte < _length)
 	    {
-	      GSCLRBIT(_data[byte], letter % 8);
+	      CLRBIT(_data[byte], letter % 8);
 	    }
 	}
     }
@@ -736,13 +693,6 @@ static Class concreteMutableClass = nil;
 		   number: 6];
 }
 
-+ (NSCharacterSet*) newlineCharacterSet
-{
-  return [self _staticSet: newlineCharSet
-		   length: sizeof(newlineCharSet)
-		   number: 14];
-}
-
 + (NSCharacterSet*) nonBaseCharacterSet
 {
   return [self _staticSet: nonBaseCharSet
@@ -847,7 +797,7 @@ static Class concreteMutableClass = nil;
     {
       if (imp(self, @selector(characterIsMember:), i) == YES)
 	{
-	  GSSETBIT(p[i/8], i % 8);
+	  SETBIT(p[i/8], i % 8);
 	}
     }
   return m;
@@ -890,13 +840,13 @@ static Class concreteMutableClass = nil;
 
 - (id) init
 {
-  if (object_getClass(self) == abstractClass)
+  if (GSObjCClass(self) == abstractClass)
     {
       id	obj;
 
       obj = [concreteClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: nil];
-      DESTROY(self);
+      RELEASE(self);
       self = obj;
     }
   return self;
@@ -1002,7 +952,7 @@ static Class concreteMutableClass = nil;
 {
   int	plane = (aCharacter >> 16);
 
-  if (aCharacter >= GSUNICODE_MAX)
+  if (aCharacter >= UNICODE_MAX)
     {
       [NSException raise: NSInvalidArgumentException
 	format: @"[%@-%@] argument (0x%08x) is too large",
@@ -1074,11 +1024,6 @@ static Class concreteMutableClass = nil;
 }
 
 + (NSCharacterSet*) lowercaseLetterCharacterSet
-{
-  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
-}
-
-+ (NSCharacterSet*) newlineCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
@@ -1167,13 +1112,13 @@ static Class concreteMutableClass = nil;
 
 - (id) init
 {
-  if (object_getClass(self) == abstractMutableClass)
+  if (GSObjCClass(self) == abstractMutableClass)
     {
       id	obj;
 
       obj = [concreteMutableClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: nil];
-      DESTROY(self);
+      RELEASE(self);
       self = obj;
     }
   return self;
@@ -1181,13 +1126,13 @@ static Class concreteMutableClass = nil;
 
 - (id) initWithBitmap: (NSData*)bitmap
 {
-  if (object_getClass(self) == abstractMutableClass)
+  if (GSObjCClass(self) == abstractMutableClass)
     {
       id	obj;
 
       obj = [concreteMutableClass allocWithZone: [self zone]];
       obj = [obj initWithBitmap: bitmap];
-      DESTROY(self);
+      RELEASE(self);
       self = obj;
     }
   return self;
@@ -1217,7 +1162,7 @@ static Class concreteMutableClass = nil;
  */
 
 @interface      NSIndexSet (NSCharacterSet)
-- (NSUInteger) _gapGreaterThanIndex: (NSUInteger)anIndex;
+- (unsigned int) _gapGreaterThanIndex: (unsigned int)anIndex;
 @end
 
 
@@ -1305,7 +1250,6 @@ static Class concreteMutableClass = nil;
   NSRange		r;
   BOOL			findingLocation = YES;
 
-  r.location = 0;
   indexes = [NSMutableIndexSet new];
   for (i = 0; i < length; i++)
     {
@@ -1394,7 +1338,7 @@ static Class concreteMutableClass = nil;
 
 - (void) addCharactersInRange: (NSRange)aRange
 {
-  if (NSMaxRange(aRange) > GSUNICODE_MAX)
+  if (NSMaxRange(aRange) > UNICODE_MAX)
     {
       [NSException raise:NSInvalidArgumentException
 	  format:@"Specified range exceeds character set"];
@@ -1579,7 +1523,7 @@ static Class concreteMutableClass = nil;
 	  /* No more indexes, so we have a gap to the end of all
 	   * unicode characters which we can invert.
 	   */
-	  index = GSUNICODE_MAX;
+	  index = UNICODE_MAX;
 	}
       r.length = index - r.location;
       [tmp addIndexesInRange: r];
@@ -1591,7 +1535,7 @@ static Class concreteMutableClass = nil;
 
 - (void) removeCharactersInRange: (NSRange)aRange
 {
-  if (NSMaxRange(aRange) > GSUNICODE_MAX)
+  if (NSMaxRange(aRange) > UNICODE_MAX)
     {
       [NSException raise:NSInvalidArgumentException
 	  format:@"Specified range exceeds character set"];

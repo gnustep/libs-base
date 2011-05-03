@@ -6,30 +6,33 @@
 
    This file is part of the GNUstep Project
 
-   This program is free software; you can redistribute it and/or
+   This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
+   License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#import "common.h"
-
-#import	"Foundation/NSArray.h"
-#import	"Foundation/NSData.h"
-#import	"Foundation/NSException.h"
-#import	"Foundation/NSString.h"
-#import	"Foundation/NSProcessInfo.h"
-#import	"Foundation/NSUserDefaults.h"
-#import	"Foundation/NSFileHandle.h"
-#import	"Foundation/NSAutoreleasePool.h"
+#include "config.h"
+#include	<Foundation/Foundation.h>
+#include	<Foundation/NSArray.h>
+#include	<Foundation/NSData.h>
+#include	<Foundation/NSException.h>
+#include	<Foundation/NSString.h>
+#include	<Foundation/NSProcessInfo.h>
+#include	<Foundation/NSUserDefaults.h>
+#include	<Foundation/NSDebug.h>
+#include	<Foundation/NSFileHandle.h>
+#include	<Foundation/NSAutoreleasePool.h>
+#import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/GSMime.h"
 #ifdef NeXT_Foundation_LIBRARY
-#import "GNUstepBase/Additions.h"
+#include "GNUstepBase/GSCategories.h"
 #endif
 
 #include	<ctype.h>
@@ -63,7 +66,7 @@ main(int argc, char** argv, char **env)
   NSStringEncoding	enc = 0;
 
 #ifdef GS_PASS_ARGUMENTS
-  GSInitializeProcess(argc, argv, env);
+  [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
 #endif
   pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];
@@ -83,7 +86,7 @@ main(int argc, char** argv, char **env)
     {
       enc = [NSString defaultCStringEncoding];
     }
-  else
+  else if (0 == (enc = [GSMimeDocument encodingFromCharset: n]))
     {
       const NSStringEncoding	*e;
       NSMutableString	*names;
@@ -94,7 +97,7 @@ main(int argc, char** argv, char **env)
 	{
 	  NSString	*name = [NSString localizedNameOfStringEncoding: *e];
 
-	  [names appendFormat: @"  %@\n", name];
+	  [names appendFormat: @"  '%@'\n", name];
 	  if ([n isEqual: name] == YES)
 	    {
 	      enc = *e;
@@ -105,17 +108,39 @@ main(int argc, char** argv, char **env)
       if (enc == 0)
 	{
 	  NSLog(@"defaults: unable to find encoding '%@'!\n"
-	    @"Known encoding names are -\n%@", n, names);
+	    @"Localised encoding names are -\n%@", n, names);
 	  [pool release];
 	  exit(EXIT_SUCCESS);
 	}
+    }
+
+  n = [[NSUserDefaults standardUserDefaults] stringForKey: @"Unicode"];
+  n = [[n stringByTrimmingSpaces] lowercaseString];
+  if ([n length] > 0)
+    {
+      if ([n isEqual: @"in"] || [n isEqual: @"i"])
+	{
+	  n = @"i";
+	}
+      else if ([n isEqual: @"out"] || [n isEqual: @"o"])
+	{
+	  n = @"o";
+	}
+      else
+	{
+	  n = nil;
+	}
+    }
+  else
+    {
+      n = nil;
     }
 
   for (i = 1; found == NO && i < [args count]; i++)
     {
       NSString	*file = [args objectAtIndex: i];
 
-      if ([file hasPrefix: @"-"] == YES)
+      if ([file hasPrefix: @"-"] == YES && NO == [file isEqual: @"-"])
 	{
 	  i++;
 	  continue;
@@ -125,7 +150,15 @@ main(int argc, char** argv, char **env)
 	{
 	  NSData	*myData;
 
-	  myData = [[NSData alloc] initWithContentsOfFile: file];
+          if (YES == [file isEqual: @"-"])
+	    {
+	      myData = [[[NSFileHandle fileHandleWithStandardInput]
+		readDataToEndOfFile] retain];
+	    }
+	  else
+	    {
+	      myData = [[NSData alloc] initWithContentsOfFile: file];
+	    }
 	  if (myData == nil)
 	    {
 	      NSLog(@"File read operation failed for %@.", file);
@@ -138,13 +171,30 @@ main(int argc, char** argv, char **env)
 	      NSStringEncoding	oEnc;
 	      NSString		*myString;
 
-	      if (l > 1 && (*b == 0xFFFE || *b == 0xFEFF))
+	      if (nil == n)
 		{
+		  if (l > 1 && (*b == 0xFFFE || *b == 0xFEFF))
+		    {
+		      iEnc = NSUnicodeStringEncoding;
+		      oEnc = enc;
+		    }
+		  else
+		    {
+		      iEnc = enc;
+		      oEnc = NSUnicodeStringEncoding;
+		    }
+		}
+	      else if ([n isEqualToString: @"i"])
+		{
+		  /* Unicode (UTF16) in
+		   */
 		  iEnc = NSUnicodeStringEncoding;
 		  oEnc = enc;
 		}
 	      else
 		{
+		  /* Unicode (UTF16) out
+		   */
 		  iEnc = enc;
 		  oEnc = NSUnicodeStringEncoding;
 		}
@@ -231,13 +281,13 @@ main(int argc, char** argv, char **env)
 			    }
 			  else
 			    {
-			      sprintf(&c[o], "\\U%04x", u[i]);
+			      snprintf(&c[o], 6, "\\U%04x", u[i]);
 			      o += 6;
 			    }
 			}
 		      NSZoneFree(z, u);
-		      myData = [[NSData alloc] initWithBytesNoCopy: c
-							    length: o];
+		      myData = [[[NSData alloc]
+			initWithBytesNoCopy: c length: o] autorelease];
 		    }
 		  else if (eIn == YES)
 		    {
@@ -258,10 +308,12 @@ main(int argc, char** argv, char **env)
 		  else
 		    {
 		      NSFileHandle	*out;
+		      CREATE_AUTORELEASE_POOL(arp);
 
 		      out = [NSFileHandle fileHandleWithStandardOutput];
 		      [out writeData: myData];
 		      [out synchronizeFile];
+		      RELEASE(arp);
 		    }
 		}
 	    }
@@ -277,13 +329,20 @@ main(int argc, char** argv, char **env)
     {
       NSLog(@"\nThis utility expects a filename as an argument.\n"
 	@"It reads the file, and writes it to STDOUT after converting it\n"
-	@"to unicode from C string encoding or vice versa.\n"
-	@"You can supply a '-Encoding name' option to specify the C string\n"
+	@"to unicode (UTF16) from C-string encoding or vice versa.\n"
+	@"You can use '-' as the filename argument to read from STDIN.\n"
+	@"You can supply a '-Encoding name' option to specify the C-string\n"
 	@"encoding to be used, if you don't want to use the default.\n"
+	@"If you supply an unknown encoding the tool will print a list\n"
+	@"of all the known encodings.\n"
 	@"You can supply a '-EscapeIn YES' option to specify that input\n"
 	@"should be parsed for \\U escape sequences (as in property lists).\n"
 	@"You can supply a '-EscapeOut YES' option to specify that output\n"
-	@"should be ascii with \\U escape sequences (for property lists).\n");
+	@"should be ascii with \\U escape sequences (for property lists).\n"
+	@"You can supply a '-Unicode in/out' option to specify that the\n"
+	@"conversion is from/to unicode (UTF16).  This suppresses the normal\n"
+	@"behavior of guessing the direction of conversion from the content\n"
+	@"of the incoming data.\n");
     }
   [pool release];
   return 0;

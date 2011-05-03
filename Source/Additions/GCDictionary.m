@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,22 +17,24 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
 */
 
-#import "common.h"
+#include "config.h"
 #ifndef NeXT_Foundation_LIBRARY
-#import "Foundation/NSException.h"
+#include <Foundation/NSException.h>
+#include <Foundation/NSString.h>
 #else
-#import <Foundation/Foundation.h>
+#include <Foundation/Foundation.h>
 #endif
 
-#import "GNUstepBase/GSObjCRuntime.h"
-#import "GNUstepBase/GCObject.h"
+#include "GNUstepBase/GSObjCRuntime.h"
+#include "GNUstepBase/GCObject.h"
+#include "GNUstepBase/GSCategories.h"
 
 typedef struct {
   id	object;
@@ -101,11 +103,9 @@ _GCCompareObjects(NSMapTable *table, const GCInfo *o1, const GCInfo *o2)
 static void
 _GCRetainObjects(NSMapTable *table, const void *ptr)
 {
-#if	!GS_WITH_GC
   GCInfo	*objectStruct = (GCInfo*)ptr;
 
-  [objectStruct->object retain];
-#endif
+  RETAIN(objectStruct->object);
 }
 
 static void
@@ -134,7 +134,7 @@ _GCDescribeObjects(NSMapTable *table, const GCInfo *objectStruct)
 }
 
 static const NSMapTableKeyCallBacks GCInfoMapKeyCallBacks = {
-  (NSUInteger(*)(NSMapTable *, const void *))_GCHashObject,
+  (unsigned(*)(NSMapTable *, const void *))_GCHashObject,
   (BOOL(*)(NSMapTable *, const void *, const void *))_GCCompareObjects,
   (void (*)(NSMapTable *, const void *))_GCRetainObjects,
   (void (*)(NSMapTable *, void *))_GCReleaseObjects,
@@ -168,7 +168,7 @@ static Class	gcClass = 0;
   return [[GCDictionary allocWithZone: zone] initWithDictionary: self];
 }
 
-- (NSUInteger) count
+- (unsigned int) count
 {
   return NSCountMapTable(_map);
 }
@@ -237,7 +237,7 @@ static Class	gcClass = 0;
 {
   id		keys = [dictionary keyEnumerator];
   id		key;
-  NSUInteger	size = ([dictionary count] * 4) / 3;
+  unsigned int	size = ([dictionary count] * 4) / 3;
   NSZone	*z = NSDefaultMallocZone();
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
@@ -264,9 +264,9 @@ static Class	gcClass = 0;
 
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
-		 count: (NSUInteger)count
+		 count: (unsigned int)count
 {
-  NSUInteger	size = (count * 4) / 3;
+  unsigned int	size = (count * 4) / 3;
   NSZone	*z = NSDefaultMallocZone();
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
@@ -279,7 +279,7 @@ static Class	gcClass = 0;
 
       if (!keys[count] || !objects[count])
 	{
-	  DESTROY(self);
+	  [self release];
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Nil object added in dictionary"];
 	}
@@ -366,9 +366,9 @@ static Class	gcClass = 0;
   return [self initWithCapacity: 0];
 }
 
-- (id) initWithCapacity: (NSUInteger)aNumItems
+- (id) initWithCapacity: (unsigned int)aNumItems
 {
-  NSUInteger	size = (aNumItems * 4) / 3;
+  unsigned int	size = (aNumItems * 4) / 3;
 
   _map = NSCreateMapTableWithZone(GCInfoMapKeyCallBacks,
     GCInfoValueCallBacks, size, [self zone]);

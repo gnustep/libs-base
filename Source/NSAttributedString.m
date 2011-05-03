@@ -13,7 +13,7 @@
    This file is part of GNUstep-base
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -25,7 +25,7 @@
    If you are interested in a warranty or support for this source code,
    contact Scott Christley <scottc@net-community.com> for more information.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -47,16 +47,15 @@
  *		attributes argument and use the values from the string.
  */
 
-#import "common.h"
-#import "GNUstepBase/Unicode.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/Unicode.h"
 
-#import "Foundation/NSAttributedString.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSPortCoder.h"
-#import "Foundation/NSRange.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "Foundation/NSAttributedString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSRange.h"
 
 @class	GSAttributedString;
 @interface GSAttributedString : NSObject	// Help the compiler
@@ -151,88 +150,21 @@ static Class GSMutableAttributedStringClass;
   return NSAttributedStringClass;
 }
 
-static void
-appendUIntData(NSMutableData *d, NSUInteger i)
-{
-  unsigned int aux = i;
-  unsigned int len = 1;
-
-  while (aux >= 128)
-    {
-      aux /= 128;
-      len++;
-    }
-
-  {
-    unsigned char *p, buf[len];
-
-    p = buf;
-    while (i >= 128)
-      {
-	*p++ = (i & 0x7f) + 128;
-	i /= 128;
-      }
-    *p = i;
-
-     [d appendBytes: buf length: len];
-  }
-}
-
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  if ([aCoder allowsKeyedCoding])
+  NSRange		r = NSMakeRange(0, 0);
+  unsigned		index = NSMaxRange(r);
+  unsigned		length = [self length];
+  NSString		*string = [self string];
+  NSDictionary		*attrs;
+
+  [aCoder encodeObject: string];
+  while (index < length)
     {
-      NSUInteger length = [self length];
-
-      [aCoder  encodeObject: [self string] forKey: @"NSString"];
-      if (length > 0) 
-	{
-	  NSRange range;
-	  NSDictionary	*attrs;
-
-	  attrs = [self attributesAtIndex: 0 effectiveRange: &range];
-	  if (range.length == length)
-	    {
-	      [aCoder encodeObject: attrs forKey: @"NSAttributes"];
-	    }
-	  else
-	    {
-	      NSUInteger i = 0;
-	      NSUInteger pos = 0;
-	      NSMutableArray *attrs = [NSMutableArray arrayWithCapacity: 1];
-	      NSMutableData *info = [NSMutableData dataWithCapacity: 2];
-
-	      while (pos < length)
-		{
-		  [attrs addObject: [self attributesAtIndex: pos
-					     effectiveRange: &range]];
-		  appendUIntData(info, range.length);
-		  appendUIntData(info, i++);
-		  pos = NSMaxRange(range);
-		}
-	      [aCoder encodeObject: [[attrs copy] autorelease]
-			    forKey: @"NSAttributes"];
-	      [aCoder encodeObject: [[info copy] autorelease]
-			    forKey: @"NSAttributeInfo"];
-	    }
-	}
-    }
-  else
-    {
-      NSRange		r = NSMakeRange(0, 0);
-      unsigned		index = NSMaxRange(r);
-      unsigned		length = [self length];
-      NSString		*string = [self string];
-      NSDictionary	*attrs;
-
-      [aCoder encodeObject: string];
-      while (index < length)
-	{
-	  attrs = [self attributesAtIndex: index effectiveRange: &r];
-	  index = NSMaxRange(r);
-	  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &index];
-	  [aCoder encodeObject: attrs];
-	}
+      attrs = [self attributesAtIndex: index effectiveRange: &r];
+      index = NSMaxRange(r);
+      [aCoder encodeValueOfObjCType: @encode(unsigned int) at: &index];
+      [aCoder encodeObject: attrs];
     }
 }
 
@@ -241,54 +173,9 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   if ([aDecoder allowsKeyedCoding])
     {
       NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
+      NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
 
-      if (![aDecoder containsValueForKey: @"NSAttributeInfo"])
-        {
-          NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
-          self = [self initWithString: string attributes: attributes];
-        }
-      else
-        {
-          NSArray *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
-          NSData *info = [aDecoder decodeObjectForKey: @"NSAttributeInfo"];
-          unsigned int pos = 0;
-          const unsigned char *p = [info bytes];
-          const unsigned char *end = p + [info length];
-          NSMutableAttributedString *m = [[NSMutableAttributedString alloc] 
-                                           initWithString: string 
-                                               attributes: nil];
-
-          while (p < end)
-            {
-              unsigned int idx;
-              unsigned int len;
-	      unsigned int shift;
-              NSRange r;
-
-	      len = shift = 0;
-	      while (*p & 0x80)
-		{
-		  len += (*p++ - 128) << shift;
-		  shift += 7;
-		}
-	      len += *p++ << shift;
-
-	      idx = shift = 0;
-	      while (*p & 0x80)
-		{
-		  idx += (*p++ - 128) << shift;
-		  shift += 7;
-		}
-	      idx += *p++ << shift;
-
-              r = NSMakeRange(pos, len);
-	      [m setAttributes: [attributes objectAtIndex: idx] range: r];
-              pos = NSMaxRange(r);
-            }
-          DESTROY(self);
-          self = [m copy];
-          RELEASE(m);
-        }
+      self = [self initWithString: string attributes: attributes];
     }
   else
     {
@@ -301,10 +188,10 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 	}
       else
         {
-	  unsigned	index;
+	  unsigned		index;
 	  NSDictionary	*attrs;
 	
-	  [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
+	  [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
 	  attrs = [aDecoder decodeObject];
 	  if (index == length)
 	    {
@@ -321,14 +208,14 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 	      [m setAttributes: attrs range: r];
 	      while (index < length)
 	        {
-		  [aDecoder decodeValueOfObjCType: @encode(unsigned)
+		  [aDecoder decodeValueOfObjCType: @encode(unsigned int)
 			 		       at: &index];
 		  attrs = [aDecoder decodeObject];
 		  r = NSMakeRange(last, index - last);
 		  [m setAttributes: attrs range: r];
 		  last = index;
 		}
-	      DESTROY(self);
+	      RELEASE(self);
 	      self = [m copy];
 	      RELEASE(m);
 	    }
@@ -405,7 +292,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   NSDictionary		*attrs;
   NSMutableString	*desc;
 
-  desc = [[NSMutableString alloc] init];
+  desc = [NSMutableString stringWithCapacity: length];
   while (index < length &&
     (attrs = [self attributesAtIndex: index effectiveRange: &r]) != nil)
     {
@@ -419,7 +306,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 /**
  *  Return length of the underlying string.
  */
-- (NSUInteger) length
+- (unsigned int) length
 {
   return [[self string] length];
 }
@@ -440,7 +327,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
  *  and values still hold.  This may not be the maximum range, depending
  *  on the implementation.
  */
-- (NSDictionary*) attributesAtIndex: (NSUInteger)index
+- (NSDictionary*) attributesAtIndex: (unsigned int)index
 		     effectiveRange: (NSRange*)aRange
 {
   [self subclassResponsibility: _cmd];/* Primitive method! */
@@ -452,7 +339,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
  *  is non-nil, this gets filled with the range over which the attribute-value
  *  set is the same as at index, clipped to rangeLimit.
  */
-- (NSDictionary*) attributesAtIndex: (NSUInteger)index
+- (NSDictionary*) attributesAtIndex: (unsigned int)index
 	      longestEffectiveRange: (NSRange*)aRange
 			    inRange: (NSRange)rangeLimit
 {
@@ -460,7 +347,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   NSRange	tmpRange;
   IMP		getImp;
 
-  if (rangeLimit.location < 0 || NSMaxRange(rangeLimit) > [self length])
+  if (NSMaxRange(rangeLimit) > [self length])
     {
       [NSException raise: NSRangeException
 		  format: @"RangeError in method -attributesAtIndex:longestEffectiveRange:inRange: in class NSAttributedString"];
@@ -507,7 +394,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
  *  may not be the maximum range, depending on the implementation.
  */
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (NSUInteger)index
+	 atIndex: (unsigned int)index
   effectiveRange: (NSRange*)aRange
 {
   NSDictionary *tmpDictionary;
@@ -537,7 +424,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
  *  applies, clipped to rangeLimit.
  */
 - (id) attribute: (NSString*)attributeName
-	 atIndex: (NSUInteger)index
+	 atIndex: (unsigned int)index
   longestEffectiveRange: (NSRange*)aRange
 	 inRange: (NSRange)rangeLimit
 {
@@ -548,7 +435,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   BOOL		(*eImp)(id,SEL,id);
   IMP		getImp;
 
-  if (rangeLimit.location < 0 || NSMaxRange(rangeLimit) > [self length])
+  if (NSMaxRange(rangeLimit) > [self length])
     {
       [NSException raise: NSRangeException
 		  format: @"RangeError in method -attribute:atIndex:longestEffectiveRange:inRange: in class NSAttributedString"];
@@ -623,7 +510,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
     return NO;
 
   length = [otherString length];
-  if (length == 0)
+  if (length<=0)
     return YES;
 
   ownDictionary = [self attributesAtIndex: 0
@@ -740,93 +627,42 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
-  if ([aDecoder allowsKeyedCoding])
+  NSString	*string = [aDecoder decodeObject];
+  unsigned	length = [string length];
+
+  if (length == 0)
     {
-      NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
-
-      if (![aDecoder containsValueForKey: @"NSAttributeInfo"])
-        {
-          NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
-          self = [self initWithString: string attributes: attributes];
-        }
-      else
-        {
-          NSArray *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
-          NSData *info = [aDecoder decodeObjectForKey: @"NSAttributeInfo"];
-          unsigned int pos = 0;
-          const unsigned char *p = [info bytes];
-          const unsigned char *end = p + [info length];
-
-	  self = [self initWithString: string attributes: nil];
-          while (p < end)
-            {
-              unsigned int idx;
-              unsigned int len;
-	      unsigned int shift;
-              NSRange r;
-
-	      len = shift = 0;
-	      while (*p & 0x80)
-		{
-		  len += (*p++ - 128) << shift;
-		  shift += 7;
-		}
-	      len += *p++ << shift;
-
-	      idx = shift = 0;
-	      while (*p & 0x80)
-		{
-		  idx += (*p++ - 128) << shift;
-		  shift += 7;
-		}
-	      idx += *p++ << shift;
-
-              r = NSMakeRange(pos, len);
-	      [self setAttributes: [attributes objectAtIndex: idx] range: r];
-              pos = NSMaxRange(r);
-            }
-        }
+      self = [self initWithString: string attributes: nil];
     }
   else
     {
-      NSString	*string = [aDecoder decodeObject];
-      unsigned	length = [string length];
+      unsigned		index;
+      NSDictionary	*attrs;
 
-      if (length == 0)
+      [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
+      attrs = [aDecoder decodeObject];
+      if (index == length)
 	{
-	  self = [self initWithString: string attributes: nil];
+	  self = [self initWithString: string attributes: attrs];
 	}
       else
 	{
-	  unsigned	index;
-	  NSDictionary	*attrs;
+	  NSRange	r = NSMakeRange(0, index);
+	  unsigned	last = index;
 
-	  [aDecoder decodeValueOfObjCType: @encode(unsigned) at: &index];
-	  attrs = [aDecoder decodeObject];
-	  if (index == length)
+	  self = [self initWithString: string attributes: nil];
+	  [self setAttributes: attrs range: r];
+	  while (index < length)
 	    {
-	      self = [self initWithString: string attributes: attrs];
-	    }
-	  else
-	    {
-	      NSRange	r = NSMakeRange(0, index);
-	      unsigned	last = index;
-	      
-	      self = [self initWithString: string attributes: nil];
-	      [self setAttributes: attrs range: r];
-	      while (index < length)
-		{
-		  [aDecoder decodeValueOfObjCType: @encode(unsigned)
+	      [aDecoder decodeValueOfObjCType: @encode(unsigned int)
 					   at: &index];
-		  attrs = [aDecoder decodeObject];
-		  r = NSMakeRange(last, index - last);
-		  [self setAttributes: attrs range: r];
-		  last = index;
-		}
+	      attrs = [aDecoder decodeObject];
+	      r = NSMakeRange(last, index - last);
+	      [self setAttributes: attrs range: r];
+	      last = index;
 	    }
 	}
     }
-
   return self;
 }
 
@@ -1029,7 +865,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
  *  Inserts attributed string within this one, preserving attributes.
  */
 - (void) insertAttributedString: (NSAttributedString*)attributedString
-			atIndex: (NSUInteger)index
+			atIndex: (unsigned int)index
 {
   [self replaceCharactersInRange: NSMakeRange(index,0)
 	    withAttributedString: attributedString];
@@ -1139,15 +975,16 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 - (void) dealloc
 {
   RELEASE(_owner);
-  [super dealloc];
+  NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 
-- (NSUInteger) length
+- (unsigned int) length
 {
   return [[_owner string] length];
 }
 
-- (unichar) characterAtIndex: (NSUInteger)index
+- (unichar) characterAtIndex: (unsigned int)index
 {
   return [[_owner string] characterAtIndex: index];
 }
@@ -1167,7 +1004,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   return [[_owner string] cString];
 }
 
-- (NSUInteger) cStringLength
+- (unsigned int) cStringLength
 {
   return [[_owner string] cStringLength];
 }
@@ -1182,7 +1019,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   return [[_owner string] smallestEncoding];
 }
 
-- (NSInteger) _baseLength
+- (int) _baseLength
 {
   return [[_owner string] _baseLength];
 }

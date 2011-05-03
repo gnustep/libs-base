@@ -10,7 +10,7 @@
  * This file is part of the GNUstep Base Library.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
+ * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or(at your option) any later version.
  *
@@ -19,7 +19,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
+ * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
 
    <title>NSCallBacks class reference</title>
@@ -29,8 +29,11 @@
 
 /**** Included Headers *******************************************************/
 
-#import "common.h"
-#import "NSCallBacks.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "NSCallBacks.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSString.h"
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -93,7 +96,7 @@ void
 _NS_owned_void_p_release(void *table, void *p)
 {
   if (p != 0)
-    objc_free(p);
+    free(p);
   return;
 }
 

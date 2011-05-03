@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,10 +25,13 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSThread.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSThread.h"
 
 /**
  * <p>NSAssertionHandler objects are used to raise exceptions on behalf of
@@ -57,7 +60,8 @@
 @implementation NSAssertionHandler
 
 /* Key for thread dictionary. */
-static NSString *dict_key = @"NSAssertionHandler";
+NSString *const NSAssertionHandlerKey = @"NSAssertionHandler";
+
 
 /**
  * Returns the assertion handler object for the current thread.<br />
@@ -69,11 +73,11 @@ static NSString *dict_key = @"NSAssertionHandler";
   NSAssertionHandler	*handler;
 
   dict = GSCurrentThreadDictionary();
-  handler = [dict objectForKey: dict_key];
+  handler = [dict objectForKey: NSAssertionHandlerKey];
   if (handler == nil)
     {
       handler = [[NSAssertionHandler alloc] init];
-      [dict setObject: handler forKey: dict_key];
+      [dict setObject: handler forKey: NSAssertionHandlerKey];
       RELEASE(handler);
     }
   return handler;
@@ -86,7 +90,7 @@ static NSString *dict_key = @"NSAssertionHandler";
  */
 - (void) handleFailureInFunction: (NSString*)functionName
 			    file: (NSString*)fileName
-		      lineNumber: (NSInteger)line
+		      lineNumber: (int)line
 		     description: (NSString*)format,...
 {
   id		message;
@@ -113,7 +117,7 @@ static NSString *dict_key = @"NSAssertionHandler";
 - (void) handleFailureInMethod: (SEL) aSelector
                         object: object
                           file: (NSString *) fileName
-                    lineNumber: (NSInteger) line
+                    lineNumber: (int) line
                    description: (NSString *) format,...
 {
   id		message;
@@ -124,7 +128,7 @@ static NSString *dict_key = @"NSAssertionHandler";
     [NSString
       stringWithFormat: @"%@:%d  Assertion failed in %@(%@), method %@.  %@",
       fileName, line, NSStringFromClass([object class]),
-      class_isMetaClass([object class]) ? @"class" : @"instance",
+      [object isInstance] ? @"instance" : @"class",
       NSStringFromSelector(aSelector), format];
   NSLogv(message, ap);
 

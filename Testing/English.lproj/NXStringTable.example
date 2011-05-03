@@ -1,0 +1,21 @@
+/* This is an example of a string table file. Everything inside a comment
+is completely ignored, even if in "quotes", or \escape characters, etc.
+*/
+
+"title"	= "pattern II target 1";
+
+/* This is an example of excape codes in the string table, codes */
+/* that are not one of abfnrtv are stripped of the \ character */
+"escapes"    = "This is a tab \t and a return \n or a \a but not a \p";
+"escapes2"    = "Well how about a \0? Guess not.";
+
+/* more parameters, white space between tokens is ignored */
+"actualSize"	
+	= 
+		"0.000250 0.000250";
+
+/* a key with no value assumes the value is the same as the key */
+"hoe322070.element";
+
+/* this will produce an error */
+"unterminated"= "this is a string with no ending quote;

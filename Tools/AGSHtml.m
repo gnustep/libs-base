@@ -10,26 +10,20 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
+   License along with this program; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#import "common.h"
-
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSSet.h"
-#import "Foundation/NSUserDefaults.h"
-#import "AGSHtml.h"
-#import "GNUstepBase/NSString+GNUstepBase.h"
-#import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#include	<Foundation/Foundation.h>
+#include        "AGSHtml.h"
+#include "GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSCategories.h"
 
 /*
  * Define constants for use if we are built with apple Foundation
@@ -1221,8 +1215,8 @@ static NSString		*mainFont = nil;
 		  if (url == nil)
 		    {
 		      [buf appendString: @"<dt>"];
-		      [buf appendString: [[[author attributes]
-			objectForKey: @"name"] stringByEscapingXML]];
+		      [buf appendString: [[author attributes]
+			objectForKey: @"name"]];
 		    }
 		  else
 		    {
@@ -1230,8 +1224,8 @@ static NSString		*mainFont = nil;
 		      [buf appendString: [[url attributes]
 			objectForKey: @"url"]];
 		      [buf appendString: @"\">"];
-		      [buf appendString: [[[author attributes]
-			objectForKey: @"name"] stringByEscapingXML]];
+		      [buf appendString: [[author attributes]
+			objectForKey: @"name"]];
 		      [buf appendString: @"</a>"];
 		    }
 		  if (email != nil)
@@ -1660,7 +1654,7 @@ static NSString		*mainFont = nil;
 	      str = [prop objectForKey: @"override"];
 	      if ([str isEqual: @"subclass"] == YES)
 		{
-		  [buf appendString: @"Subclasses <strong>must</strong> "
+		  [buf appendString: @"Subclasses <strong>should</strong> "
 		    @"override this method.<br />\n"];
 		}
 	      else if ([str isEqual: @"dummy"] == YES)
@@ -1670,7 +1664,7 @@ static NSString		*mainFont = nil;
 		}
 	      else if ([str isEqual: @"never"] == YES)
 		{
-		  [buf appendString: @"Subclasses must <strong>NOT</strong> "
+		  [buf appendString: @"Subclasses should <strong>NOT</strong> "
 		    @"override this method.<br />\n"];
 		}
 
@@ -2215,14 +2209,14 @@ static NSString		*mainFont = nil;
             }
           [buf appendString: indent];
           [buf appendString: @"<dt>"];
-          [buf appendString: [[dProp objectForKey: @"key"] stringByEscapingXML]];
+          [buf appendString: [dProp objectForKey: @"key"]];
           [buf appendString: @" = </dt>\n"];
 	  [buf appendString: indent];
           [buf appendString: @"<dd>\n"];
           [self incIndent];
           if (value != nil)
             {
-              [buf appendString: [value stringByEscapingXML]];
+              [buf appendString: value];
             }
           else
             {
@@ -2511,7 +2505,7 @@ static NSString		*mainFont = nil;
 	    }
 	  if ([gvrem length] > 0)
 	    {
-	      [buf appendString: @" Likely to be changed/moved/removed at "];
+	      [buf appendString: @" deprecated for removal at "];
 	      [buf appendString: gvrem];
 	    }
 	}
@@ -2537,7 +2531,7 @@ static NSString		*mainFont = nil;
       [buf appendString: @"<br />\n"];
       if ([gvrem length] > 0)
 	{
-          [buf appendString: @" Likely to be changed/moved/removed at "];
+	  [buf appendString: @" deprecated for removal at "];
 	  [buf appendString: gvrem];
 	}
       [buf appendString:@"</div>\n"];

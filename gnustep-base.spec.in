@@ -1,12 +1,12 @@
 Release: 	1
 Source: 	ftp://ftp.gnustep.org/pub/gnustep/core/%{gs_name}-%{gs_version}.tar.gz
-License: 	LGPL
+Copyright: 	LGPL
 Group: 		Development/Libraries
 Summary: 	GNUstep Base library package
 Packager:       GNUstep Development <bug-gnustep@gnu.org>
 Vendor:		The GNUstep Project
 URL:		http://www.gnustep.org/
-Requires:	gnustep-make >= 2.0.0
+Requires:	gnustep-make >= 1.11.0
 
 %description
 The GNUstep Base Library is a powerful fast library of general-purpose,

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -31,16 +31,6 @@
 #ifndef __NSException_h_GNUSTEP_BASE_INCLUDE
 #define __NSException_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
-#import	<GNUstepBase/GSConfig.h>
-
-#if     defined(_NATIVE_OBJC_EXCEPTIONS)
-#define USER_NATIVE_OBJC_EXCEPTIONS       1
-#else
-#define USER_NATIVE_OBJC_EXCEPTIONS       0
-#endif
-#if     BASE_NATIVE_OBJC_EXCEPTIONS != USER_NATIVE_OBJC_EXCEPTIONS
-#error  The current setting for native-objc-exceptions does not match that of gnustep-base ... please correct this.
-#endif
 
 #import	<Foundation/NSString.h>
 #include <setjmp.h>
@@ -93,12 +83,9 @@ extern "C" {
 */
 @interface NSException : NSObject <NSCoding, NSCopying>
 {    
-#if	GS_EXPOSE(NSException)
-@private
   NSString *_e_name;
   NSString *_e_reason;
-  void *_reserved;
-#endif
+  NSDictionary *_e_info;
 }
 
 /**
@@ -128,24 +115,6 @@ extern "C" {
 + (void) raise: (NSString*)name
 	format: (NSString*)format
      arguments: (va_list)argList;
-
-#if OS_API_VERSION(100500,GS_API_LATEST) && GS_API_VERSION( 11501,GS_API_LATEST)
-/** Returns an array of the call stack return addresses at the point when
- * the exception was raised.  Re-raising the exception does not change
- * this value.
- */
-- (NSArray*) callStackReturnAddresses;
-#endif
-
-#if OS_API_VERSION(100600,GS_API_LATEST) && GS_API_VERSION( 11903,GS_API_LATEST)
-/**
- * Returns an array of the symbolic names of the call stack return addresses.  
- * Note that, on some platforms, symbols are only exported in
- * position-independent code and so these may only return numeric addresses for
- * code in static libraries or the main application.  
- */
-- (NSArray*) callStackSymbols;
-#endif
 
 /**
  * <init/>Initializes a newly allocated NSException object with a
@@ -178,83 +147,60 @@ extern "C" {
 - (NSString*) reason;
 
 /** Returns the exception userInfo dictionary.<br />
+ * There is a GNUstep extension, enabled when the GNUSTEP_STACK_TRACE
+ * environment variable is set to YES, which causes a stack trace to
+ * be placed in this dictionary (keyed on GSStackTraceKey) at the point
+ * when the exception is raised.  This can be useful for determining
+ * where an exception ocurred.
  */
 - (NSDictionary*) userInfo;
 
 @end
 
-/** An exception when character set conversion fails.
- */
-GS_EXPORT NSString* const NSCharacterConversionException;
-
-/** Attempt to use an invalidated destination.
- */
-GS_EXPORT NSString* const NSDestinationInvalidException;
-
-/** A generic exception for general purpose usage.
+/**
+ * A generic exception for general purpose usage.
  */
 GS_EXPORT NSString* const NSGenericException;
 
-/** An exception for cases where unexpected state is detected within an object.
+/**
+ * An exception for cases where unexpected state is detected within an object.
  */
 GS_EXPORT NSString* const NSInternalInconsistencyException;
 
-/** An exception used when an invalid argument is passed to a method
+/**
+ * An exception used when an invalid argument is passed to a method
  * or function.
  */
 GS_EXPORT NSString* const NSInvalidArgumentException;
 
-/** Attempt to use a receive port which has been invalidated.
- */
-GS_EXPORT NSString * const NSInvalidReceivePortException;
-
-/** Attempt to use a send port which has been invalidated.
- */
-GS_EXPORT NSString * const NSInvalidSendPortException;
-
-/** An exception used when the system fails to allocate required memory.
+/**
+ * An exception used when the system fails to allocate required memory.
  */
 GS_EXPORT NSString* const NSMallocException;
 
-/**  An exception when a remote object is sent a message from a thread
+/**
+ * An exception used when an illegal range is encountered ... usually this
+ * is used to provide more information than an invalid argument exception.
+ */
+GS_EXPORT NSString* const NSRangeException;
+
+/**
+ * An exception when character set conversion fails.
+ */
+GS_EXPORT NSString* const NSCharacterConversionException;
+
+/**
+ *  An exception when a remote object is sent a message from a thread
  *  unable to access the object.
  */
 GS_EXPORT NSString* const NSObjectInaccessibleException;
 
-/**  Attempt to send to an object which is no longer available.
- */
-GS_EXPORT NSString* const NSObjectNotAvailableException;
-
-/**  UNused ... for MacOS-X compatibility.
- */
-GS_EXPORT NSString* const NSOldStyleException;
-
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-/** An exception used when some form of parsing fails.
+/**
+ * An exception used when some form of parsing fails.
  */
 GS_EXPORT NSString* const NSParseErrorException;
 #endif
-
-/** Some failure to receive on a port.
- */
-GS_EXPORT NSString * const NSPortReceiveException;
-
-/** Some failure to send on a port.
- */
-GS_EXPORT NSString * const NSPortSendException;
-
-/**
- *  Exception raised by [NSPort], [NSConnection], and friends if sufficient
- *  time elapses while waiting for a response, or if the receiving port is
- *  invalidated before a request can be received.  See
- *  [NSConnection-setReplyTimeout:].
- */
-GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
-
-/** An exception used when an illegal range is encountered ... usually this
- * is used to provide more information than an invalid argument exception.
- */
-GS_EXPORT NSString* const NSRangeException;
 
 /**
  * The actual structure for an NSHandler.  You shouldn't need to worry about it.
@@ -274,14 +220,19 @@ typedef struct _NSHandler
 typedef void NSUncaughtExceptionHandler(NSException *exception);
 
 /**
+ *  Variable used to hold the current uncaught exception handler.  Use the
+ *  function NSSetUncaughtExceptionHandler() to set this.
+ */
+GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
+
+/**
  *  Returns the exception handler called when an exception is generated and
  *  not caught by the programmer (by enclosing in <code>NS_DURING</code> and
  *  <code>NS_HANDLER</code>...<code>NS_ENDHANDLER</code>).  The default prints
  *  an error message and exits the program.  You can change this behavior by
  *  calling NSSetUncaughtExceptionHandler().
  */
-GS_EXPORT NSUncaughtExceptionHandler *
-NSGetUncaughtExceptionHandler();
+#define NSGetUncaughtExceptionHandler() _NSUncaughtExceptionHandler
 
 /**
  *  <p>Sets the exception handler called when an exception is generated and
@@ -292,23 +243,20 @@ NSGetUncaughtExceptionHandler();
  *  </p>
  *  <p>NB. If the exception handler set by this function does not terminate
  *  the process, the process will be terminateed anyway.  This is a safety
- *  precaution to ensure that, in the event of an exception being raised
+ *  precaution to ensure that, in the event of an exception ebing raised
  *  and not handled, the program does not try to continue running in a
  *  confused state (possibly doing horrible things like billing customers
  *  who shouldn't be billed etc), but shuts down as cleanly as possible.
  *  </p>
  *  <p>Process termination is normally accomplished by calling the standard
- *  exit function of the C runtime library, but if the environment variable
+ *  exit function of theC runtime library, but if the environment variable
  *  CRASH_ON_ABORT is set to YES or TRUE or 1 the termination will be
  *  accomplished by calling the abort function instead, which should cause
  *  a core dump to be made for debugging.
  *  </p>
- *  <p>The value of proc should be a pointer to a function taking an
- *  [NSException] instance as an argument.
- *  </p>
  */
-GS_EXPORT void
-NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler);
+#define NSSetUncaughtExceptionHandler(proc) \
+			(_NSUncaughtExceptionHandler = (proc))
 
 /* NS_DURING, NS_HANDLER and NS_ENDHANDLER are always used like: 
 
@@ -328,7 +276,7 @@ NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler);
    It is illegal to exit the first block of code by any other means than
    NS_VALRETURN, NS_VOIDRETURN, or just falling out the bottom.
  */
-#if     defined(_NATIVE_OBJC_EXCEPTIONS)
+#ifdef _NATIVE_OBJC_EXCEPTIONS
 
 # define NS_DURING       @try {
 # define NS_HANDLER      } @catch (NSException * localException) {
@@ -356,7 +304,7 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_ENDHANDLER }}}
 
-#define NS_VALRETURN(val)  do { __typeof__(val) temp = (val);	\
+#define NS_VALRETURN(val)  do { typeof(val) temp = (val);	\
 			_NSRemoveHandler(&NSLocalHandler);	\
 			return(temp); } while (0)
 
@@ -379,16 +327,17 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 - (void) handleFailureInFunction: (NSString*)functionName 
 			    file: (NSString*)fileName 
-		      lineNumber: (NSInteger)line 
-		     description: (NSString*)format,...;
+		      lineNumber: (int)line 
+		     description: (NSString*)format,... GS_NORETURN_METHOD;
 
 - (void) handleFailureInMethod: (SEL)aSelector 
 			object: object 
 			  file: (NSString*)fileName 
-		    lineNumber: (NSInteger)line 
-		   description: (NSString*)format,...;
+		    lineNumber: (int)line 
+		   description: (NSString*)format,... GS_NORETURN_METHOD;
 
 @end
+extern NSString *const NSAssertionHandlerKey;
 
 #ifdef	NS_BLOCK_ASSERTIONS
 #define _NSAssertArgs(condition, desc, args...)		

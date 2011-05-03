@@ -5,7 +5,7 @@
    With the GNU runtime, this file does not link.
 */
 
-#include "objc-common.g"
+#include <objc/Object.h>
 
 int libobjects_nextrt_checker ()
 {

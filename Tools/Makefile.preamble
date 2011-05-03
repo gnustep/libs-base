@@ -37,17 +37,16 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS += $(WARN_FLAGS)
+# ADDITIONAL_CPPFLAGS +=
 
 # Additional flags to pass to the Objective-C compiler
-#ADDITIONAL_OBJCFLAGS +=
+ADDITIONAL_OBJCFLAGS += -Wall
 
 # Additional flags to pass to the C compiler
 #ADDITIONAL_CFLAGS += 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS += -I../Headers/Additions \
-	-I../Source/$(GNUSTEP_TARGET_DIR)
+ADDITIONAL_INCLUDE_DIRS += -I../Source/$(GNUSTEP_TARGET_DIR)
 
 ifeq ($(FOUNDATION_LIB),gnu)
   ADDITIONAL_INCLUDE_DIRS += -I../Headers

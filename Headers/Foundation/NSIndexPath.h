@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
+#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 
 /**
  * Instances of this class represent a series of indexes into a hierarchy
@@ -44,26 +44,20 @@ extern "C" {
  */
 @interface	NSIndexPath : NSObject <NSCopying, NSCoding>
 {
-#if	GS_EXPOSE(NSIndexPath)
-@private
-  NSUInteger	_hash;
-  NSUInteger	_length;
-  NSUInteger	*_indexes;
-#endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
+  unsigned	_hash;
+  unsigned	_length;
+  unsigned	*_indexes;
 }
 
 /**
  * Return a path containing the single value anIndex.
  */
-+ (id) indexPathWithIndex: (NSUInteger)anIndex;
++ (id) indexPathWithIndex: (unsigned)anIndex;
 
 /**
  * Return a path containing all the indexes in the supplied array.
  */
-+ (id) indexPathWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
++ (id) indexPathWithIndexes: (unsigned*)indexes length: (unsigned)length;
 
 /**
  * Compares other with the receiver.<br />
@@ -77,18 +71,18 @@ extern "C" {
 /**
  * Copies all index values from the receiver into aBuffer.
  */
-- (void) getIndexes: (NSUInteger*)aBuffer;
+- (void) getIndexes: (unsigned*)aBuffer;
 
 /**
  * Return the index at the specified position or NSNotFound if there
  * is no index at the specified position.
  */
-- (NSUInteger) indexAtPosition: (NSUInteger)position;
+- (unsigned) indexAtPosition: (unsigned)position;
 
 /**
  * Return path formed by adding anIndex to the receiver.
  */
-- (NSIndexPath *) indexPathByAddingIndex: (NSUInteger)anIndex;
+- (NSIndexPath *) indexPathByAddingIndex: (unsigned)anIndex;
 
 /**
  * Return path formed by removing the last index from the receiver.
@@ -99,18 +93,18 @@ extern "C" {
  * Returns the shared instance containing the specified index, creating it
  * and destroying the receiver if necessary.
  */
-- (id) initWithIndex: (NSUInteger)anIndex;
+- (id) initWithIndex: (unsigned)anIndex;
 
 /** <init />
  * Returns the shared instance containing the specified index array,
  * creating it and destroying the receiver if necessary.
  */
-- (id) initWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
+- (id) initWithIndexes: (unsigned*)indexes length: (unsigned)length;
 
 /**
  * Returns the number of index values present in the receiver.
  */
-- (NSUInteger) length;
+- (unsigned) length;
 
 @end
 

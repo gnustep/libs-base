@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,17 +25,18 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#import "Foundation/NSDate.h"
-#import "Foundation/NSCalendarDate.h"
-#import "Foundation/NSTimeZone.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSThread.h"
-#import "GNUstepBase/NSString+GNUstepBase.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSCalendarDate.h"
+#include "Foundation/NSTimeZone.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSThread.h"
 
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
@@ -67,7 +68,7 @@
 #include <unistd.h>
 #endif
 
-#import "GSPrivate.h"
+#include "GSPrivate.h"
 
 extern NSThread	*GSCurrentThread();
 
@@ -108,7 +109,7 @@ _NSLog_standard_printf_handler (NSString* message)
   NSData	*d;
   const char	*buf;
   unsigned	len;
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   LPCWSTR	null_terminated_buf;
 #else
 #if	defined(HAVE_SYSLOG)
@@ -139,7 +140,7 @@ _NSLog_standard_printf_handler (NSString* message)
       len = [d length];
     }
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   null_terminated_buf = UNISTR(message);
 
   OutputDebugStringW(null_terminated_buf);
@@ -173,18 +174,18 @@ _NSLog_standard_printf_handler (NSString* message)
   if (GSPrivateDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
     {
-      null_terminated_buf = objc_malloc (sizeof (char) * (len + 1));
+      null_terminated_buf = malloc(sizeof (char) * (len + 1));
       strncpy (null_terminated_buf, buf, len);
       null_terminated_buf[len] = '\0';
 
       syslog(SYSLOGMASK, "%s",  null_terminated_buf);
 
-      objc_free (null_terminated_buf);
+      free(null_terminated_buf);
     }
 #else
   write(_NSLogDescriptor, buf, len);
 #endif
-#endif // __MINGW__
+#endif // __MINGW32__
 }
 
 /**
@@ -282,10 +283,10 @@ NSLog (NSString* format, ...)
 void
 NSLogv (NSString* format, va_list args)
 {
-  NSString	*prefix;
-  NSString	*message;
-  static int	pid = 0;
-  CREATE_AUTORELEASE_POOL(arp);
+  NSString		*prefix;
+  NSString		*message;
+  static int		pid = 0;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   if (_NSLog_printf_handler == NULL)
     {
@@ -294,7 +295,7 @@ NSLogv (NSString* format, va_list args)
 
   if (pid == 0)
     {
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       pid = (int)GetCurrentProcessId();
 #else
       pid = (int)getpid();
@@ -357,6 +358,6 @@ NSLogv (NSString* format, va_list args)
 
   [myLock unlock];
 
-  RELEASE(arp);
+  [arp release];
 }
 

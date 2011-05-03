@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,7 +26,7 @@
 #define __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100300,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
+#if OS_API_VERSION(100300,GS_API_LATEST) && GS_API_VERSION(010200,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSArray.h>
@@ -39,39 +39,29 @@ extern "C" {
 @class NSSet;
 @class NSString;
 
-enum {
+typedef enum {
   NSKeyValueObservingOptionNew = 1,
   NSKeyValueObservingOptionOld = 2
-#if OS_API_VERSION(100500,GS_API_LATEST)
-,  NSKeyValueObservingOptionInitial = 4,
-  NSKeyValueObservingOptionPrior = 8
-#endif
-};
-typedef NSUInteger NSKeyValueObservingOptions;
+} NSKeyValueObservingOptions;
 
-enum {
+typedef enum {
   NSKeyValueChangeSetting = 1,
   NSKeyValueChangeInsertion = 2,
   NSKeyValueChangeRemoval = 3,
   NSKeyValueChangeReplacement = 4
-};
-typedef NSUInteger NSKeyValueChange;
+} NSKeyValueChange;
 
-enum {
+typedef enum {
   NSKeyValueUnionSetMutation = 1,
   NSKeyValueMinusSetMutation = 2,
   NSKeyValueIntersectSetMutation = 3,
   NSKeyValueSetSetMutation = 4
-};
-typedef NSUInteger NSKeyValueSetMutationKind;
+} NSKeyValueSetMutationKind;
 
 GS_EXPORT NSString *const NSKeyValueChangeIndexesKey;
 GS_EXPORT NSString *const NSKeyValueChangeKindKey;
 GS_EXPORT NSString *const NSKeyValueChangeNewKey;
 GS_EXPORT NSString *const NSKeyValueChangeOldKey;
-#if OS_API_VERSION(100500,GS_API_LATEST)
-GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
-#endif
 
 /* Given that the receiver has been registered as an observer
  * of the value at a key path relative to an object,
@@ -213,10 +203,10 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
 
 /**
  * Tells the observing system that when NSKeyValueObserverNotification
- * protocol messages are sent for any key in the triggerKeys array,
- * they should also be sent for dependentKey.
+ * protocol messages are sent for any key in the keys array, they should
+ * also be sent for dependentKey.
  */
-+ (void) setKeys: (NSArray*)triggerKeys
++ (void) setKeys: (NSArray*)keys
 triggerChangeNotificationsForDependentKey: (NSString*)dependentKey;
 
 /**

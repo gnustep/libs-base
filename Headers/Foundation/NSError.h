@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -115,15 +115,10 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  */
 @interface NSError : NSObject <NSCopying, NSCoding>
 {
-#if	GS_EXPOSE(NSError)
 @private
   int		_code;
   NSString	*_domain;
   NSDictionary	*_userInfo;
-#endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
 }
 
 /**
@@ -131,14 +126,14 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  * -initWithDomain:code:userInfo:
  */
 + (id) errorWithDomain: (NSString*)aDomain
-		  code: (NSInteger)aCode
+		  code: (int)aCode
 	      userInfo: (NSDictionary*)aDictionary;
 
 /**
  * Return the error code ... which is not globally unique, just unique for
  * a particular domain.
  */
-- (NSInteger) code;
+- (int) code;
 
 /**
  * Return the domain for this instance.
@@ -150,7 +145,7 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  * The domain must be non-nil.
  */
 - (id) initWithDomain: (NSString*)aDomain
-		 code: (NSInteger)aCode
+		 code: (int)aCode
 	     userInfo: (NSDictionary*)aDictionary;
 
 /**

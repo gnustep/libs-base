@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -24,25 +24,27 @@
 
 #define	_FILE_OFFSET_BITS 64
 
-#import "common.h"
-#define	EXPOSE_NSFileHandle_IVARS	1
-#define	EXPOSE_GSFileHandle_IVARS	1
-#import "Foundation/NSData.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSFileHandle.h"
-#import "GNUstepBase/GSFileHandle.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSRunLoop.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSNotificationQueue.h"
-#import "Foundation/NSHost.h"
-#import "Foundation/NSByteOrder.h"
-#import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSUserDefaults.h"
-#import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "config.h"
 
-#import "../Tools/gdomap.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSFileHandle.h"
+#include "GNUstepBase/GSFileHandle.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSDebug.h"
+#include "GSPrivate.h"
+
+#include "../Tools/gdomap.h"
 
 #include <time.h>
 #include <sys/time.h>
@@ -108,7 +110,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
  * Encapsulates low level read operation to get data from the operating
  * system.
  */
-- (NSInteger) read: (void*)buf length: (NSUInteger)len
+- (int) read: (void*)buf length: (int)len
 {
 #if	USE_ZLIB
   if (gzDescriptor != 0)
@@ -132,7 +134,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
  * Encapsulates low level write operation to send data to the operating
  * system.
  */
-- (NSInteger) write: (const void*)buf length: (NSUInteger)len
+- (int) write: (const void*)buf length: (int)len
 {
 #if	USE_ZLIB
   if (gzDescriptor != 0)
@@ -247,14 +249,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   RELEASE(service);
   RELEASE(protocol);
 
-  [self finalize];
+  [self gcFinalize];
 
   RELEASE(readInfo);
   RELEASE(writeInfo);
   [super dealloc];
 }
 
-- (void) finalize
+- (void) gcFinalize
 {
   if (self == fh_stdin)
     fh_stdin = nil;
@@ -697,7 +699,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (s == nil)
     {
       NSLog(@"bad argument - service is nil");
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
 
@@ -719,7 +721,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (getAddr(lhost, p, @"tcp", &lsin) == NO)
 	{
 	  NSLog(@"bad bind address specification");
-	  DESTROY(self);
+	  RELEASE(self);
 	  return nil;
 	}
       p = @"tcp";
@@ -765,7 +767,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      DESTROY(self);
+      RELEASE(self);
       NSLog(@"bad address-service-protocol combination");
       return nil;
     }
@@ -789,7 +791,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (getAddr(shost, sport, p, &sin) == NO)
 	{
 	  NSLog(@"bad SOCKS host-port combination");
-	  DESTROY(self);
+	  RELEASE(self);
 	  return nil;
 	}
     }
@@ -797,7 +799,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == -1)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
   /*
@@ -813,7 +815,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(lsin.sin_addr),
 	    GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
 	  (void) close(net);
-	  DESTROY(self);
+	  RELEASE(self);
 	  return nil;
 	}
     }
@@ -832,7 +834,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      NSLog(@"unable to make connection to %s:%d - %@",
 		inet_ntoa(sin.sin_addr),
 		GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
-	      DESTROY(self);
+	      RELEASE(self);
 	      return nil;
 	    }
 	}
@@ -888,7 +890,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      DESTROY(self);
+      RELEASE(self);
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
@@ -896,7 +898,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == -1)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
 
@@ -915,7 +917,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(sin.sin_addr),
 	GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
       (void) close(net);
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
 
@@ -923,7 +925,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSLog(@"unable to listen on port - %@", [NSError _last]);
       (void) close(net);
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
 
@@ -931,7 +933,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       NSLog(@"unable to get socket name - %@", [NSError _last]);
       (void) close(net);
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
 
@@ -954,7 +956,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
   else
@@ -976,7 +978,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
   else
@@ -998,7 +1000,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
   else
@@ -1017,13 +1019,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stderr != nil)
     {
-      ASSIGN(self, fh_stderr);
+      RETAIN(fh_stderr);
+      RELEASE(self);
     }
   else
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
       fh_stderr = self;
     }
+  self = fh_stderr;
   if (self)
     {
       readOK = NO;
@@ -1035,13 +1039,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdin != nil)
     {
-      ASSIGN(self, fh_stdin);
+      RETAIN(fh_stdin);
+      RELEASE(self);
     }
   else
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
       fh_stdin = self;
     }
+  self = fh_stdin;
   if (self)
     {
       writeOK = NO;
@@ -1053,13 +1059,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdout != nil)
     {
-      ASSIGN(self, fh_stdout);
+      RETAIN(fh_stdout);
+      RELEASE(self);
     }
   else
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
       fh_stdout = self;
     }
+  self = fh_stdout;
   if (self)
     {
       readOK = NO;
@@ -1081,34 +1089,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
   self = [super init];
-  if (nil == self)
-    {
-      if (YES == flag)
-	{
-	  close(desc);
-	}
-    }
-  else
+  if (self != nil)
     {
       struct stat	sbuf;
       int		e;
 
       if (fstat(desc, &sbuf) < 0)
 	{
-#if	defined(__MINGW__)
-	  /* On windows, an fstat will fail if the descriptor is a pipe
-	   * or socket, so we simply mark the descriptor as not being a
-	   * standard file.
-	   */
-	  isStandardFile = NO;
-#else
-	  /* This should never happen on unix.  If it does, we have somehow
-	   * ended up with a bad descriptor.
-	   */
           NSLog(@"unable to get status of descriptor %d - %@",
 	    desc, [NSError _last]);
-	  isStandardFile = NO;
-#endif
 	}
       else
 	{
@@ -1364,34 +1353,51 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSMutableData	*d;
   int		got;
-  char		buf[READ_SIZE];
 
   [self checkRead];
   if (isNonBlocking == YES)
     {
       [self setNonBlocking: NO];
     }
-
-  d = [NSMutableData dataWithCapacity: len < READ_SIZE ? len : READ_SIZE];
-  do
+  if (len <= 65536)
     {
-      int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
+      char	*buf;
 
-      got = [self read: buf length: chunk];
-      if (got > 0)
-	{
-	  [d appendBytes: buf length: got];
-	  len -= got;
-	}
-      else if (got < 0)
+      buf = NSZoneMalloc(NSDefaultMallocZone(), len);
+      d = [NSMutableData dataWithBytesNoCopy: buf length: len];
+      got = [self read: [d mutableBytes] length: len];
+      if (got < 0)
 	{
 	  [NSException raise: NSFileHandleOperationException
 		      format: @"unable to read from descriptor - %@",
 		      [NSError _last]];
 	}
+      [d setLength: got];
     }
-  while (len > 0 && got > 0);
+  else
+    {
+      char	buf[READ_SIZE];
 
+      d = [NSMutableData dataWithCapacity: 0];
+      do
+	{
+	  int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
+
+	  got = [self read: buf length: chunk];
+	  if (got > 0)
+	    {
+	      [d appendBytes: buf length: got];
+	      len -= got;
+	    }
+	  else if (got < 0)
+	    {
+	      [NSException raise: NSFileHandleOperationException
+			  format: @"unable to read from descriptor - %@",
+			  [NSError _last]];
+	    }
+	}
+      while (len > 0 && got > 0);
+    }
   return d;
 }
 

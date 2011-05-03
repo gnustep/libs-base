@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,12 +25,10 @@
    $Date$ $Revision$
 */
 
-#import "common.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSException.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
-
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSArray.h"
 
 /**
  *  Simple class for iterating over a collection of objects, usually returned
@@ -39,9 +37,7 @@
 @implementation NSEnumerator
 
 /**
- *  Returns all objects remaining in the enumeration as an array.<br />
- *  Calling this method 'exhausts' the enumerator, leaving it at the
- *  end of the collection being enumerated.
+ *  Returns all objects remaining in the enumeration as an array.
  */
 - (NSArray*) allObjects
 {
@@ -76,36 +72,4 @@
   return nil;
 }
 
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-				   objects: (id*)stackbuf
-				     count: (NSUInteger)len
-{
-  IMP nextObject = [self methodForSelector: @selector(nextObject)];
-  int i;
-
-  state->itemsPtr = stackbuf;
-  state->mutationsPtr = (unsigned long*)self;
-  for (i = 0; i < len; i++)
-    {
-      id next = nextObject(self, @selector(nextObject));
-
-      if (nil == next)
-	{
-	  return i;
-	}
-      *(stackbuf+i) = next;
-    }
-  return len;
-}
 @end
-
-/**
- * objc_enumerationMutation() is called whenever a collection mutates in the
- * middle of fast enumeration.
- */
-void objc_enumerationMutation(id obj)
-{
-	[NSException raise: NSGenericException 
-	               format: @"Collection %@ was mutated while being enumerated", 
-	                       obj];
-}

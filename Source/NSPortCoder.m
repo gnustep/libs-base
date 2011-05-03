@@ -15,7 +15,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -24,7 +24,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -33,14 +33,19 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSPortCoder_IVARS	1
-#import "Foundation/NSException.h"
-#import "Foundation/NSByteOrder.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSPort.h"
+#include "config.h"
+#include <string.h>
+
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSString.h"
 
 @class	NSMutableDataMalloc;
 @interface NSMutableDataMalloc : NSObject	// Help the compiler
@@ -49,8 +54,6 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS | GSUNION_INT
-#define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS | GSUNION_INT
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
@@ -58,13 +61,6 @@
 #define	GSI_MAP_HASH(M, X)	((X).uint)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
-
-#if	GS_WITH_GC
-#include	<gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -80,10 +76,10 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 
 
 #define	_IN_PORT_CODER_M
-#import "Foundation/NSPortCoder.h"
+#include "Foundation/NSPortCoder.h"
 #undef	_IN_PORT_CODER_M
 
-#import "GNUstepBase/DistributedObjects.h"
+#include "GNUstepBase/DistributedObjects.h"
 
 typedef	unsigned char	uchar;
 
@@ -265,12 +261,6 @@ typeCheck(char t1, char t2)
 #endif
 	)) return;
 
-/* HACK also allow float and double to be used interchangably as MacOS-X
- * intorduced CGFloat, which may be aither a float or a double.
- */
-      if ((c == _C_FLT || c == _C_DBL) && (t1 == _C_FLT || t1 == _C_DBL))
-	return;
-
       [NSException raise: NSInternalInconsistencyException
 		  format: @"expected %s and got %s",
 		    typeToName1(t1), typeToName2(t2)];
@@ -365,14 +355,6 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       _eTagImp = [mutableDataClass instanceMethodForSelector: eTagSel];
       _xRefImp = [mutableDataClass instanceMethodForSelector: xRefSel];
       mutableDictionaryClass = [NSMutableDictionary class];
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
     }
 }
 
@@ -384,7 +366,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
   coder = [self allocWithZone: NSDefaultMallocZone()];
   coder = [coder initWithReceivePort: recv sendPort: send components: comp];
-  IF_NO_GC(AUTORELEASE(coder);)
+  AUTORELEASE(coder);
   return coder;
 }
 
@@ -597,8 +579,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 		  if (c == 0)
 		    {
 		      NSLog(@"[%s %s] decoded nil class",
-			class_getName([self class]),
-			sel_getName(_cmd));
+			GSNameFromClass([self class]),
+			GSNameFromSelector(_cmd));
 		    }
 		  obj = [c allocWithZone: _zone];
 		  GSIArrayAddItem(_objAry, (GSIArrayItem)obj);
@@ -712,7 +694,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      if (c == 0)
 		{
 		  NSLog(@"[%s %s] decoded nil class",
-		    class_getName([self class]), sel_getName(_cmd));
+		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
 		}
 	      classInfo = [GSClassInfo newWithClass: c andVersion: cver];
 	      GSIArrayAddItem(_clsAry, (GSIArrayItem)((id)classInfo));
@@ -942,36 +924,12 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 #endif
       case _GSC_FLT:
 	typeCheck(*type, _GSC_FLT);
-	if (*type == _C_FLT)
-	  {
-	    (*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
-	  }
-	else
-	  {
-	    float	val;
-
-	    /* We found a float when expecting a double ... handle it.
-	     */
-	    (*_dDesImp)(_src, dDesSel, &val, @encode(float), &_cursor, nil);
-	    *(double*)address = (double)val;
-	  }
+	(*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
 	return;
 
       case _GSC_DBL:
 	typeCheck(*type, _GSC_DBL);
-	if (*type == _C_DBL)
-	  {
-	    (*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
-	  }
-	else
-	  {
-	    double	val;
-
-	    /* We found a double when expecting a float ... handle it.
-	     */
-	    (*_dDesImp)(_src, dDesSel, &val, @encode(double), &_cursor, nil);
-	    *(float*)address = (float)val;
-	  }
+	(*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
 	return;
 
       default:
@@ -1525,9 +1483,9 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      }
 	    while (done == NO)
 	      {
-		int		tmp = class_getVersion(c);
+		int		tmp = GSObjCVersion(c);
 		unsigned	version = tmp;
-		Class		s = class_getSuperclass(c);
+		Class		s = GSObjCSuper(c);
 
 		if (tmp < 0)
 		  {
@@ -1755,14 +1713,8 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	      /*
 	       *	Set up map tables.
 	       */
-#if	GS_WITH_GC
-	      _clsMap
-		= (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*4,
-		NSScannedOption);
-#else
 	      _clsMap
 		= (GSIMapTable)NSZoneMalloc(_zone, sizeof(GSIMapTable_t)*4);
-#endif
 	      _cIdMap = &_clsMap[1];
 	      _uIdMap = &_clsMap[2];
 	      _ptrMap = &_clsMap[3];
@@ -1848,12 +1800,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	   */
 	  if (firstTime == YES)
 	    {
-#if	GS_WITH_GC
-	      _clsAry
-		= NSAllocateCollectable(sizeof(GSIArray_t)*3, NSScannedOption);
-#else
 	      _clsAry = NSZoneMalloc(_zone, sizeof(GSIArray_t)*3);
-#endif
 	      _objAry = &_clsAry[1];
 	      _ptrAry = &_clsAry[2];
 	      GSIArrayInitWithZoneAndCapacity(_clsAry, _zone, sizeC);
@@ -1912,7 +1859,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   return _version;
 }
 
-- (NSInteger) versionForClassName: (NSString*)className
+- (unsigned) versionForClassName: (NSString*)className
 {
   GSClassInfo	*info = nil;
   unsigned	version = NSNotFound;
@@ -2045,7 +1992,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
        * use get_imp() because NSDistantObject doesn't implement
        * methodForSelector:
        */
-      proxyImp = get_imp(object_getClass((id)proxyClass),
+      proxyImp = get_imp(GSObjCClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,27 +16,29 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
-
-#import "common.h"
-#define	EXPOSE_NSInvocation_IVARS	1
-#import "Foundation/NSException.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSDistantObject.h"
-#import "Foundation/NSData.h"
-#import "GSInvocation.h"
-#import "GNUstepBase/GSObjCRuntime.h"
-#import <pthread.h>
-#import "cifframe.h"
-#import "GSPrivate.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSDistantObject.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
+#include "GSInvocation.h"
+#include <config.h>
+#include <objc/objc-api.h>
+#include "cifframe.h"
+#include "mframe.h"
 
 #ifndef INLINE
 #define INLINE inline
 #endif
+
+typedef struct _NSInvocation_t {
+  @defs(NSInvocation)
+} NSInvocation_t;
 
 /* Function that implements the actual forwarding */
 typedef void (*ffi_closure_fun) (ffi_cif*,void*,void**,void*);
@@ -59,7 +61,7 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
   if (receiver)
     {
       return GSGetMethod((GSObjCIsInstance(receiver)
-                          ? object_getClass(receiver) : (Class)receiver),
+                          ? GSObjCClass(receiver) : (Class)receiver),
                          sel,
                          GSObjCIsInstance(receiver),
                          YES);
@@ -90,7 +92,7 @@ gs_find_best_typed_sel (SEL sel)
 {
   if (!sel_get_type (sel))
     {
-      const char *name = sel_getName(sel);
+      const char *name = GSNameFromSelector(sel);
 
       if (name)
 	{
@@ -139,183 +141,70 @@ gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 
 @implementation GSFFIInvocation
 
-static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
+static IMP gs_objc_msg_forward (SEL sel)
 {
-  NSMutableData		*frame;
+  const char		*sel_type;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
-  NSMethodSignature     *sig;
-  GSCodeBuffer          *memory;
-  Class			c;
 
-  /* Take care here ... the receiver may be nil (old runtimes) or may be
-   * a proxy which implements a method by forwarding it (so calling the
-   * method might cause recursion).  However, any sane proxy ought to at
-   * least implement -methodSignatureForSelector: in such a way that it
-   * won't cause infinite recursion, so we check for that method being
-   * implemented and call it.
-   * NB. object_getClass() and class_respondsToSelector() should both
-   * return NULL when given NULL arguments, so they are safe to use.
+  NSMethodSignature     *sig;
+
+  /* Determine the method types so we can construct the frame. We may not
+     get the right one, though. What to do then? Perhaps it can be fixed up
+     in the callback, but only under limited circumstances.
    */
-  c = object_getClass(receiver);
-  if (class_respondsToSelector(c, @selector(methodSignatureForSelector:)))
+  sel_type = sel_get_type (sel);
+  sig = nil;
+
+  if (sel_type)
     {
-      sig = [receiver methodSignatureForSelector: sel];
+      sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
     }
   else
     {
-      sig = nil;
-    }
+      static NSMethodSignature *def = nil;
 
-  if (sig == nil)
-    {
-      const char	*sel_type;
-
-      /* Determine the method types so we can construct the frame. We may not
-	 get the right one, though. What to do then? Perhaps it can be fixed up
-	 in the callback, but only under limited circumstances.
+      /*
+       * Default signature is for a method returning an object.
        */
-      sel = gs_find_best_typed_sel(sel);
-      sel_type = sel_get_type (sel);
-      if (sel_type)
+      if (def == nil)
 	{
-	  sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
+	  def = RETAIN([NSMethodSignature signatureWithObjCTypes: "@@:"]);
 	}
-      else
-	{
-	  static NSMethodSignature *def = nil;
-
-#ifndef	NDEBUG
-          fprintf(stderr, "WARNING: Using default signature for %s ... "
-	    "either the method for that selector is not implemented by the "
-	    "receiver, or you must be using an old/faulty version of the "
-	    "Objective-C runtime library.\n", sel_get_name(sel));
-#endif
-	  /*
-	   * Default signature is for a method returning an object.
-	   */
-	  if (def == nil)
-	    {
-	      def = RETAIN([NSMethodSignature signatureWithObjCTypes: "@@:"]);
-	    }
-	  sig = def;
-	}
+      sig = def;
     }
 
   NSCAssert1(sig, @"No signature for selector %@", NSStringFromSelector(sel));
 
   /* Construct the frame and closure. */
-  /* Note: We obtain cframe here, but it's passed to GSFFIInvocationCallback
+  /* Note: We malloc cframe here, but it's passed to GSFFIInvocationCallback
      where it becomes owned by the callback invocation, so we don't have to
-     worry about ownership */
-  frame = cifframe_from_signature(sig);
-  cframe = [frame mutableBytes];
+     worry about freeing it */
+  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
   /* Autorelease the closure through GSAutoreleasedBuffer */
-
-  memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
-  cclosure = [memory buffer];
+  cclosure = (ffi_closure *)GSAutoreleasedBuffer(sizeof(ffi_closure));
   if (cframe == NULL || cclosure == NULL)
     {
       [NSException raise: NSMallocException format: @"Allocating closure"];
     }
   if (ffi_prep_closure(cclosure, &(cframe->cif),
-    GSFFIInvocationCallback, frame) != FFI_OK)
+		       GSFFIInvocationCallback, cframe) != FFI_OK)
     {
       [NSException raise: NSGenericException format: @"Preping closure"];
     }
-  [memory protect];
 
   return (IMP)cclosure;
 }
 
-static __attribute__ ((__unused__))
-IMP gs_objc_msg_forward (SEL sel)
-{
-  return gs_objc_msg_forward2 (nil, sel);
-}
-#ifdef __GNUSTEP_RUNTIME__
-pthread_key_t thread_slot_key;
-static struct objc_slot *
-gs_objc_msg_forward3(id receiver, SEL op)
-{
-  /* The slot has its version set to 0, so it can not be cached.  This makes it
-   * safe to free it when the thread exits. */
-  struct objc_slot *slot = pthread_getspecific(thread_slot_key);
-
-  if (NULL == slot)
-    {
-      slot = calloc(sizeof(struct objc_slot), 1);
-      pthread_setspecific(thread_slot_key, slot);
-    }
-  slot->method = gs_objc_msg_forward2(receiver, op);
-  return slot;
-}
-
-/** Hidden by legacy API define.  Declare it locally */
-BOOL class_isMetaClass(Class cls);
-BOOL class_respondsToSelector(Class cls, SEL sel);
-
-/**
- * Runtime hook used to provide message redirections.  If lookup fails but this
- * function returns non-nil then the lookup will be retried with the returned
- * value.
- *
- * Note: Every message sent by this function MUST be understood by the
- * receiver.  If this is not the case then there is a potential for infinite
- * recursion.  
- */
-static id gs_objc_proxy_lookup(id receiver, SEL op)
-{
-  Class cls = object_getClass(receiver);
-  BOOL resolved = NO;
-
-  /* Let the class try to add a method for this thing. */
-  if (class_isMetaClass(cls))
-    {
-      if (class_respondsToSelector(cls, @selector(resolveClassMethod:)))
-	{
-	  resolved = [receiver resolveClassMethod: op];
-	}
-    }
-  else
-    {
-      if (class_respondsToSelector(cls->class_pointer,
-	@selector(resolveInstanceMethod:)))
-	{
-	  resolved = [cls resolveInstanceMethod: op];
-	}
-    }
-  if (resolved)
-    {
-      return receiver;
-    }
-  if (class_respondsToSelector(cls, @selector(forwardingTargetForSelector:)))
-    {
-      return [receiver forwardingTargetForSelector: op];
-    }
-  return nil;
-}
-#endif
-
 + (void) load
 {
-#if	HAVE_FORWARD2
-  __objc_msg_forward2 = gs_objc_msg_forward2;
-#else
   __objc_msg_forward = gs_objc_msg_forward;
-#endif
-#ifdef __GNUSTEP_RUNTIME__
-  pthread_key_create(&thread_slot_key, free);
-  objc_msg_forward3 = gs_objc_msg_forward3;
-  objc_proxy_lookup = gs_objc_proxy_lookup;
-#endif
 }
 
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
   /* We should never get here */
-  [self dealloc];
-  self = nil;
+  NSDeallocateObject(self);
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Runtime incorrectly configured to pass argframes"];
   return nil;
@@ -326,36 +215,15 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
  */
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature
 {
-  int	i;
-
   if (aSignature == nil)
     {
-      DESTROY(self);
+      RELEASE(self);
       return nil;
     }
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _frame = cifframe_from_signature(_sig);
-  [_frame retain];
-  _cframe = [_frame mutableBytes];
-
-  /* Make sure we have somewhere to store the return value if needed.
-   */
-  _retval = _retptr = 0;
-  i = objc_sizeof_type (objc_skip_type_qualifiers ([_sig methodReturnType]));
-  if (i > 0)
-    {
-      if (i <= sizeof(_retbuf))
-	{
-	  _retval = _retbuf;
-	}
-      else
-	{
-	  _retptr = NSAllocateCollectable(i, NSScannedOption);
-	  _retval = _retptr;
-	}
-    }
+  _cframe = cifframe_from_info(_info, _numArgs, &_retval);
   return self;
 }
 
@@ -363,47 +231,42 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
    the callback. The cifframe was allocated by the forwarding function,
    but we own it now so we can free it */
 - (id) initWithCallback: (ffi_cif *)cif
+		returnp: (void *)retp
 		 values: (void **)vals
-		  frame: (void *)frame
+		  frame: (cifframe_t *)frame
 	      signature: (NSMethodSignature*)aSignature
 {
-  cifframe_t *f;
-  int i;
-
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _frame = (NSMutableData*)frame;
-  [_frame retain];
-  _cframe = [_frame mutableBytes];
-  f = (cifframe_t *)_cframe;
-  f->cif = *cif;
+  _cframe = frame;
+  ((cifframe_t *)_cframe)->cif = *cif;
 
-  /* Copy the arguments into our frame so that they are preserved
-   * in the NSInvocation if the stack is changed before the
-   * invocation is used.
-   */
-  for (i = 0; i < f->nargs; i++)
+#if MFRAME_STRUCT_BYREF
+{
+  int i;
+  /* Fix up some of the values. Do this on all processors that pass
+     structs by reference. Is there an automatic way to determine this? */
+  for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
     {
-      memcpy(f->values[i], vals[i], f->arg_types[i]->size);
-    }
+      const char *t = _info[i+1].type;
 
-  /* Make sure we have somewhere to store the return value if needed.
-   */
-  _retval = _retptr = 0;
-  i = objc_sizeof_type (objc_skip_type_qualifiers ([_sig methodReturnType]));
-  if (i > 0)
-    {
-      if (i <= sizeof(_retbuf))
+      if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
 	{
-	  _retval = _retbuf;
+	  memcpy(((cifframe_t *)_cframe)->values[i], *(void **)vals[i],
+		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
       else
 	{
-	  _retptr = NSAllocateCollectable(i, NSScannedOption);
-	  _retval = _retptr;
+	  memcpy(((cifframe_t *)_cframe)->values[i], vals[i],
+		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
     }
+}
+#else
+  ((cifframe_t *)_cframe)->values = vals;
+#endif
+  _retval = retp;
   return self;
 }
 
@@ -412,8 +275,10 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
  * routines (like the DO forwarding)
  */
 void
-GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
+GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 {
+  NSInvocation_t	*inv = (NSInvocation_t*)_inv;
+
   /* Do it */
   ffi_call(inv->_cframe, (f_fun)imp, (inv->_retval),
 	   ((cifframe_t *)inv->_cframe)->values);
@@ -424,22 +289,18 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
 - (void) invokeWithTarget: (id)anObject
 {
   id		old_target;
-  const char	*type;
   IMP		imp;
 
   CLEAR_RETURN_VALUE_IF_OBJECT;
   _validReturn = NO;
-  type = objc_skip_type_qualifiers([_sig methodReturnType]);
-  
+
   /*
    *	A message to a nil object returns nil.
    */
   if (anObject == nil)
     {
       if (_retval)
-	{
-          memset(_retval, '\0', objc_sizeof_type (type));
-	}
+        memset(_retval, '\0', _info[0].size);	/* Clear return value */
       _validReturn = YES;
       return;
     }
@@ -453,8 +314,8 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
   old_target = RETAIN(_target);
   [self setTarget: anObject];
 
-  cifframe_set_arg((cifframe_t *)_cframe, 0, &_target, sizeof(id));
-  cifframe_set_arg((cifframe_t *)_cframe, 1, &_selector, sizeof(SEL));
+  cifframe_set_arg((cifframe_t *)_cframe, 0, &_target, _info[1].size);
+  cifframe_set_arg((cifframe_t *)_cframe, 1, &_selector, _info[2].size);
 
   if (_sendToSuper == YES)
     {
@@ -462,16 +323,16 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
 
       s.self = _target;
       if (GSObjCIsInstance(_target))
-	s.class = class_getSuperclass(object_getClass(_target));
+	s.class = GSObjCSuper(GSObjCClass(_target));
       else
-	s.class = class_getSuperclass((Class)_target);
+	s.class = GSObjCSuper((Class)_target);
       imp = objc_msg_lookup_super(&s, _selector);
     }
   else
     {
       GSMethod method;
       method = GSGetMethod((GSObjCIsInstance(_target)
-                            ? (Class)object_getClass(_target)
+                            ? (Class)GSObjCClass(_target)
                             : (Class)_target),
                            _selector,
                            GSObjCIsInstance(_target),
@@ -492,10 +353,8 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
   GSFFIInvokeWithTargetAndImp(self, anObject, imp);
 
   /* Decode the return value */
-  if (*type != _C_VOID)
-    {
-      cifframe_decode_arg(type, _retval);
-    }
+  if (*_info[0].type != _C_VOID)
+    cifframe_decode_arg(_info[0].type, _retval);
 
   RETAIN_RETURN_VALUE;
   _validReturn = YES;
@@ -519,13 +378,13 @@ gs_protocol_selector(const char *types)
     }
   while (*types != '\0')
     {
-      if (*types == '+' || *types == '-')
+      if (*types == '-')
 	{
 	  types++;
 	}
-      while(isdigit(*types))
+      if (*types == '+' || isdigit(*types))
 	{
-	  types++;
+	  types = objc_skip_offset(types);
 	}
       while (*types == _C_CONST || *types == _C_GCINVISIBLE)
 	{
@@ -556,19 +415,22 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   SEL			selector;
   GSFFIInvocation	*invocation;
   NSMethodSignature	*sig;
+  GSMethod              fwdInvMethod;
 
   obj      = *(id *)args[0];
   selector = *(SEL *)args[1];
 
-  if (!class_respondsToSelector(obj->class_pointer,
-    @selector(forwardInvocation:)))
+  fwdInvMethod = gs_method_for_receiver_and_selector
+    (obj, @selector (forwardInvocation:));
+
+  if (!fwdInvMethod)
     {
       [NSException raise: NSInvalidArgumentException
 		   format: @"GSFFIInvocation: Class '%s'(%s) does not respond"
 		           @" to forwardInvocation: for '%s'",
 		   GSClassNameFromObject(obj),
 		   GSObjCIsInstance(obj) ? "instance" : "class",
-		   selector ? sel_getName(selector) : "(null)"];
+		   selector ? GSNameFromSelector(selector) : "(null)"];
     }
 
   sig = nil;
@@ -592,7 +454,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 
       if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
 	{
-	  const char	*runtimeName = sel_getName(selector);
+	  const char	*runtimeName = GSNameFromSelector(selector);
 
 	  selector = sel_get_typed_uid (runtimeName, receiverTypes);
 	  if (selector == 0)
@@ -621,10 +483,9 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
       selector = gs_find_best_typed_sel (selector);
 
       if (sel_get_type (selector) != 0)
-	{
-	  sig = [NSMethodSignature signatureWithObjCTypes:
-	    sel_get_type(selector)];
-	}
+    {
+      sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
+    }
     }
 
   if (sig == nil)
@@ -633,25 +494,38 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
                    format: @"Can not determine type information for %s[%s %s]",
                    GSObjCIsInstance(obj) ? "-" : "+",
 	 GSClassNameFromObject(obj),
-	 selector ? sel_getName(selector) : "(null)"];
+	 selector ? GSNameFromSelector(selector) : "(null)"];
     }
 
   invocation = [[GSFFIInvocation alloc] initWithCallback: cif
+					returnp: retp
 					values: args
  					frame: user
 					signature: sig];
-  IF_NO_GC([invocation autorelease];)
+  AUTORELEASE(invocation);
   [invocation setTarget: obj];
   [invocation setSelector: selector];
 
-  [obj forwardInvocation: invocation];
+  /*
+   * Now do it.
+   * The next line is equivalent to
+   *
+   *   [obj forwardInvocation: invocation];
+   *
+   * but we have already the GSMethod for forwardInvocation
+   * so the line below is somewhat faster. */
+  fwdInvMethod->method_imp (obj, fwdInvMethod->method_name, invocation);
 
-  /* If we are returning a value, we must copy it from the invocation
-   * to the memory indicated by 'retp'.
-   */
-  if (retp != 0 && invocation->_validReturn == YES)
+  /* Autorelease the invocation's return value (if it's an object) and
+     mark it as invalid, so it won't be released later. We have to do
+     this since the return value (retp) really belongs to the closure
+     not the invocation so it will be demallocd at the end of this call
+  */
+  if ([sig methodReturnType] && *[sig methodReturnType] == _C_ID
+      && ((NSInvocation_t *)invocation)->_validReturn == YES)
     {
-      [invocation getReturnValue: retp];
+      AUTORELEASE(*(id *)retp);
+      ((NSInvocation_t *)invocation)->_validReturn = NO;
     }
 
   /* We need to (re)encode the return type for it's trip back. */
@@ -673,8 +547,8 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 
   for (i = 0; i < _numArgs; i++)
     {
-      int		flags = _inf[i+1].qual;
-      const char	*type = _inf[i+1].type;
+      int		flags = _info[i+1].qual;
+      const char	*type = _info[i+1].type;
       void		*datum;
 
       if (i == 0)

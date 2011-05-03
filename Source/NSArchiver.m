@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,14 +25,10 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSArchiver_IVARS	1
-#define	EXPOSE_NSUnarchiver_IVARS	1
+#include "config.h"
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#define	GSI_MAP_KTYPES	GSUNION_INT | GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS
-#define	GSI_MAP_VTYPES	GSUNION_INT | GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
@@ -40,21 +36,19 @@
 #define	GSI_MAP_HASH(M, X)	((X).uint)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
-#if	GS_WITH_GC
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)NSAllocateCollectable(X * sizeof(GSIMapNode_t), 0)
-#endif
-
 
 #include "GNUstepBase/GSIMap.h"
 
 #define	_IN_NSARCHIVER_M
-#import "Foundation/NSArchiver.h"
+#include "Foundation/NSArchiver.h"
 #undef	_IN_NSARCHIVER_M
 
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
 
 typedef	unsigned char	uchar;
 
@@ -107,7 +101,7 @@ static Class	NSMutableDataMallocClass;
 {
   NSMutableData	*d;
 
-  d = [[NSMutableDataMallocClass allocWithZone: [self zone]] init];
+  d = [[NSMutableDataMallocClass allocWithZone: GSObjCZone(self)] init];
   self = [self initForWritingWithMutableData: d];
   RELEASE(d);
   return self;
@@ -144,12 +138,7 @@ static Class	NSMutableDataMallocClass;
       /*
        *	Set up map tables.
        */
-#if	GS_WITH_GC
-      _clsMap = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*6,
-	NSScannedOption);
-#else
       _clsMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*6);
-#endif
       _cIdMap = &_clsMap[1];
       _uIdMap = &_clsMap[2];
       _ptrMap = &_clsMap[3];
@@ -246,10 +235,9 @@ static Class	NSMutableDataMallocClass;
 }
 
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (NSUInteger)count
+			 count: (unsigned)count
 			    at: (const void*)buf
 {
-  unsigned      c = count;
   unsigned	i;
   unsigned	offset = 0;
   unsigned	size = objc_sizeof_type(type);
@@ -282,9 +270,9 @@ static Class	NSMutableDataMallocClass;
       if (_initialPass == NO)
 	{
 	  (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-	  (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
+	  (*_serImp)(_dst, serSel, &count, @encode(unsigned), nil);
 	}
-      for (i = 0; i < c; i++)
+      for (i = 0; i < count; i++)
 	{
 	  (*_eValImp)(self, eValSel, type, (char*)buf + offset);
 	  offset += size;
@@ -293,10 +281,10 @@ static Class	NSMutableDataMallocClass;
   else if (_initialPass == NO)
     {
       (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-      (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
+      (*_serImp)(_dst, serSel, &count, @encode(unsigned), nil);
 
       (*_tagImp)(_dst, tagSel, info);
-      for (i = 0; i < c; i++)
+      for (i = 0; i < count; i++)
 	{
 	  (*_serImp)(_dst, serSel, (char*)buf + offset, type, nil);
 	  offset += size;
@@ -315,7 +303,7 @@ static Class	NSMutableDataMallocClass;
 
       case _C_ARY_B:
 	{
-	  unsigned	count = atoi(++type);
+	  int		count = atoi(++type);
 
 	  while (isdigit(*type))
 	    {
@@ -448,9 +436,9 @@ static Class	NSMutableDataMallocClass;
 	      }
 	    while (done == NO)
 	      {
-		int		tmp = class_getVersion(c);
+		int		tmp = GSObjCVersion(c);
 		unsigned	version = tmp;
-		Class		s = class_getSuperclass(c);
+		Class		s = GSObjCSuper(c);
 
 		if (tmp < 0)
 		  {
@@ -865,12 +853,12 @@ static Class	NSMutableDataMallocClass;
       GSIMapNode	node;
       Class		c;
 
-      c = objc_lookUpClass([trueName cString]);
+      c = GSClassFromName([trueName cString]);
       node = GSIMapNodeForKey(_namMap, (GSIMapKey)c);
       if (node)
 	{
 	  c = (Class)node->value.ptr;
-	  return [NSString stringWithUTF8String: class_getName(c)];
+	  return [NSString stringWithUTF8String: GSNameFromClass(c)];
 	}
     }
   return trueName;
@@ -891,13 +879,13 @@ static Class	NSMutableDataMallocClass;
   Class		tc;
   Class		ic;
 
-  tc = objc_lookUpClass([trueName cString]);
+  tc = GSClassFromName([trueName cString]);
   if (tc == 0)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Can't find class '%@'.", trueName];
     }
-  ic = objc_lookUpClass([inArchiveName cString]);
+  ic = GSClassFromName([inArchiveName cString]);
   if (ic == 0)
     {
       [NSException raise: NSInternalInconsistencyException

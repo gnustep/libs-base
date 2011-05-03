@@ -1,13 +1,13 @@
 /* Implementation for NSURLCache for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
+   Written by:  Richard Frith-Macdonald <frm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,17 +16,13 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */ 
 
-#import "common.h"
-
-#define	EXPOSE_NSURLCache_IVARS	1
-#import "GSURLPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "GSURLPrivate.h"
 
 // FIXME ... locking and disk storage needed
 typedef struct {
@@ -38,8 +34,11 @@ typedef struct {
   NSMutableDictionary	*memory;
 } Internal;
  
-#define	this	((Internal*)(self->_NSURLCacheInternal))
-#define	inst	((Internal*)(o->_NSURLCacheInternal))
+typedef struct {
+  @defs(NSURLCache)
+} priv;
+#define	this	((Internal*)(((priv*)self)->_NSURLCacheInternal))
+#define	inst	((Internal*)(((priv*)o)->_NSURLCacheInternal))
 
 
 static NSURLCache	*shared = nil;
@@ -102,23 +101,23 @@ static NSURLCache	*shared = nil;
   return [this->memory objectForKey: request];
 }
 
-- (NSUInteger) currentDiskUsage
+- (unsigned) currentDiskUsage
 {
   return this->diskUsage;
 }
 
-- (NSUInteger) currentMemoryUsage
+- (unsigned) currentMemoryUsage
 {
   return this->memoryUsage;
 }
 
-- (NSUInteger) diskCapacity
+- (unsigned) diskCapacity
 {
   return this->diskCapacity;
 }
 
-- (id) initWithMemoryCapacity: (NSUInteger)memoryCapacity
-		 diskCapacity: (NSUInteger)diskCapacity
+- (id) initWithMemoryCapacity: (unsigned)memoryCapacity
+		 diskCapacity: (unsigned)diskCapacity
 		     diskPath: (NSString *)path
 {
   if ((self = [super init]) != nil)
@@ -133,7 +132,7 @@ static NSURLCache	*shared = nil;
   return self;
 }
 
-- (NSUInteger) memoryCapacity
+- (unsigned) memoryCapacity
 {
   return this->memoryCapacity;
 }
@@ -158,15 +157,13 @@ static NSURLCache	*shared = nil;
     }
 }
 
-- (void) setDiskCapacity: (NSUInteger)diskCapacity
+- (void) setDiskCapacity: (unsigned)diskCapacity
 {
-  [self notImplemented: _cmd];
   // FIXME
 }
 
-- (void) setMemoryCapacity: (NSUInteger)memoryCapacity
+- (void) setMemoryCapacity: (unsigned)memoryCapacity
 {
-  [self notImplemented: _cmd];
   // FIXME
 }
 

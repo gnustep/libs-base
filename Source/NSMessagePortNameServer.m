@@ -5,7 +5,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -14,7 +14,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -23,21 +23,21 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#import "Foundation/NSPortNameServer.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSDistributedLock.h"
-#import "Foundation/NSMapTable.h"
-#import "Foundation/NSPathUtilities.h"
-#import "Foundation/NSPort.h"
-#import "Foundation/NSFileManager.h"
-#import "Foundation/NSValue.h"
-#import "Foundation/NSThread.h"
-#import "GNUstepBase/GSMime.h"
+#include "Foundation/NSPortNameServer.h"
 
-#import "GSPortPrivate.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSThread.h"
+#include "GNUstepBase/GSMime.h"
+
+#include "GSPortPrivate.h"
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -56,9 +56,6 @@
 	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
 
-@interface NSProcessInfo (private)
-+ (BOOL) _exists: (int)pid;
-@end
 
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;
@@ -76,21 +73,20 @@ Since we _have_to_ deal with this anyway, we handle it in -removePort: and
 -removePort:forName:, and we don't bother removing entries in the map when
 unregistering a name not for a specific port.
 */
-static NSMapTable *portToNamesMap;
+static NSMapTable portToNamesMap;
 
 
 @interface NSMessagePortNameServer (private)
-+ (NSDistributedLock*) _fileLock;
-+ (NSString *) _pathForName: (NSString *)name;
++(NSString *) _pathForName: (NSString *)name;
 @end
 
 
 static void clean_up_names(void)
 {
-  NSMapEnumerator	mEnum;
-  NSMessagePort		*port;
-  NSString		*name;
-  BOOL			unknownThread = GSRegisterCurrentThread();
+  NSMapEnumerator mEnum;
+  NSMessagePort	*port;
+  NSString	*name;
+  BOOL	unknownThread = GSRegisterCurrentThread();
   CREATE_AUTORELEASE_POOL(arp);
 
   mEnum = NSEnumerateMapTable(portToNamesMap);
@@ -99,7 +95,7 @@ static void clean_up_names(void)
       [defaultServer removePort: port];
     }
   NSEndMapTableEnumeration(&mEnum);
-  IF_NO_GC(DESTROY(arp);)
+  DESTROY(arp);
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
@@ -118,55 +114,10 @@ static void clean_up_names(void)
 {
   if (self == [NSMessagePortNameServer class])
     {
-      NSFileManager	*mgr;
-      NSString		*path;
-      NSString		*pref;
-      NSString		*file;
-      NSEnumerator	*files;
-
       serverLock = [NSRecursiveLock new];
       portToNamesMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 			 NSObjectMapValueCallBacks, 0);
       atexit(clean_up_names);
-
-      /* It's possible that an old process, with the same process ID as
-       * this one, got forcibly killed or crashed so that clean_up_names
-       * was never called.
-       * To deal with that unlikely situation, we need to remove all such
-       * names which have been left over.
-       */
-      path = NSTemporaryDirectory();
-      path = [path stringByAppendingPathComponent: @"NSMessagePort"];
-      path = [path stringByAppendingPathComponent: @"names"];
-      pref = [NSString stringWithFormat: @"%i.",
-	[[NSProcessInfo processInfo] processIdentifier]];
-      mgr = [NSFileManager defaultManager];
-      files = [[mgr directoryContentsAtPath: path] objectEnumerator];
-      while ((file = [files nextObject]) != nil)
-	{
-          NSString	*old = [path stringByAppendingPathComponent: file];
-	  NSString	*port = [NSString stringWithContentsOfFile: old];
-
-	  if (YES == [port hasPrefix: pref])
-	    {
-	      NSDebugMLLog(@"NSMessagePort", @"Removing old name %@", old);
-	      [mgr removeFileAtPath: old handler: nil];
-	    }
-	  else
-	    {
-	      int	pid = [port intValue];
-
-	      if (pid > 0)
-		{
-		  if (NO == [NSProcessInfo _exists: pid])
-		    {
-		      NSDebugMLLog(@"NSMessagePort",
-		        @"Removing old name %@ for process %d", old, pid);
-		      [mgr removeFileAtPath: old handler: nil];
-		    }
-		}
-	    }
-	}
     }
 }
 
@@ -188,73 +139,21 @@ static void clean_up_names(void)
   return defaultServer;
 }
 
-+ (NSDistributedLock*) _fileLock
-{
-  NSDistributedLock	*dl;
 
-  dl = [NSDistributedLock lockWithPath: [self _pathForName: nil]];
-  if ([dl tryLock] == NO)
-    {
-      NSDate	*limit = [NSDate dateWithTimeIntervalSinceNow: 2.0];
-
-      while (dl != nil && [dl tryLock] == NO)
-	{
-	  if ([limit timeIntervalSinceNow] > 0.0)
-	    {
-	      [NSThread sleepForTimeInterval: 0.1];
-	    }
-	  else
-	    {
-              if ([[dl lockDate] timeIntervalSinceNow] < -15.0)
-                {
-                  NS_DURING
-                    {
-                      [dl breakLock];
-                    }
-                  NS_HANDLER
-                    {
-                      NSLog(@"Failed to break lock on names for "
-                        @"NSMessagePortNameServer: %@", localException);
-                      dl = nil;
-                    }
-                  NS_ENDHANDLER
-                }
-              else
-                {
-                  NSLog(@"Failed to lock names for NSMessagePortNameServer");
-                  dl = nil;
-                }
-	    }
-	}
-    }
-  return dl;
-}
-
-/* Return the full path for the supplied port name or, if it's nil,
- * the path for the distributed lock protecting all names.
- */
 + (NSString *) _pathForName: (NSString *)name
 {
   static NSString	*base_path = nil;
   NSString		*path;
   NSData		*data;
 
-  if (name == nil)
-    {
-      name = @"lock";
-    }
-  else
-    {
-      /*
-       * Make sure name is representable as a filename ... assume base64 encoded
-       * strings are valid on all filesystems.
-       */
-      data = [name dataUsingEncoding: NSUTF8StringEncoding];
-      data = [GSMimeDocument encodeBase64: data];
-      name = [[NSString alloc] initWithData: data
-				   encoding: NSASCIIStringEncoding];
-      IF_NO_GC([name autorelease];)
-    }
+  /*
+   * Make sure name is representable as a filename ... assume base64 encoded
+   * strings are valid on all filesystems.
+   */
+  data = [name dataUsingEncoding: NSUTF8StringEncoding];
+  data = [GSMimeDocument encodeBase64: data];
+  name = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
+  AUTORELEASE(name);
   [serverLock lock];
   if (!base_path)
     {
@@ -361,36 +260,26 @@ static void clean_up_names(void)
 - (NSPort*) portForName: (NSString *)name
 		 onHost: (NSString *)host
 {
-  NSDistributedLock	*dl;
-  NSString		*path;
-  FILE			*f;
-  char			socket_path[512];
+  NSString	*path;
+  FILE		*f;
+  char		socket_path[512];
 
   NSDebugLLog(@"NSMessagePort", @"portForName: %@ host: %@", name, host);
 
   if ([host length] > 0)
     {
-      NSLog(@"Attempt to contact a named host using a "
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to contact a named host using a "
 	@"message port name server.  This name server can only be used "
 	@"to contact processes owned by the same user on the local host "
-	@"(host name must be nil or an empty string).  To contact processes "
+	@"(host name must be an empty string).  To contact processes "
 	@"owned by other users or on other hosts you must use an instance "
-	@"of the NSSocketPortNameServer class.");
-      if (NO == [host isEqualToString: @"*"])
-	{
-          return nil;
-        }
+	@"of the NSSocketPortNameServer class."];
     }
 
   path = [[self class] _pathForName: name];
-  if ((dl = [[self class] _fileLock]) == nil)
-    {
-      [NSException raise: NSGenericException
-		  format: @"Failed to lock names for NSMessagePortNameServer"];
-    }
   if (![[self class] _livePort: path])
     {
-      [dl unlock];
       NSDebugLLog(@"NSMessagePort", @"not a live port");
       return nil;
     }
@@ -398,7 +287,6 @@ static void clean_up_names(void)
   f = fopen([path fileSystemRepresentation], "rt");
   if (!f)
     {
-      [dl unlock];
       NSDebugLLog(@"NSMessagePort", @"can't open file (%m)");
       return nil;
     }
@@ -408,7 +296,6 @@ static void clean_up_names(void)
   fclose(f);
 
   NSDebugLLog(@"NSMessagePort", @"got %s", socket_path);
-  [dl unlock];
 
   return [NSMessagePort _portWithName: (unsigned char*)socket_path
 			     listener: NO];
@@ -419,7 +306,6 @@ static void clean_up_names(void)
 {
   int			fd;
   unsigned char		buf[32];
-  NSDistributedLock	*dl;
   NSString		*path;
   const unsigned char	*socket_name;
   NSMutableArray	*a;
@@ -430,17 +316,13 @@ static void clean_up_names(void)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Attempted to register a non-NSMessagePort (%@)",
 	port];
+      return NO;
     }
 
   path = [[self class] _pathForName: name];
-  if ((dl = [[self class] _fileLock]) == nil)
-    {
-      [NSException raise: NSGenericException
-		  format: @"Failed to lock names for NSMessagePortNameServer"];
-    }
+
   if ([[self class] _livePort: path])
     {
-      [dl unlock];
       NSDebugLLog(@"NSMessagePort", @"fail, is a live port (%@)", name);
       return NO;
     }
@@ -448,7 +330,6 @@ static void clean_up_names(void)
   fd = open([path fileSystemRepresentation], O_CREAT|O_EXCL|O_WRONLY, 0600);
   if (fd < 0)
     {
-      [dl unlock];
       NSDebugLLog(@"NSMessagePort", @"fail, can't open file (%@) for %@",
 	path, name);
       return NO;
@@ -474,25 +355,17 @@ static void clean_up_names(void)
 
   [a addObject: [name copy]];
   [serverLock unlock];
-  [dl unlock];
 
   return YES;
 }
 
 - (BOOL) removePortForName: (NSString *)name
 {
-  NSDistributedLock	*dl;
-  NSString		*path;
+  NSString	*path;
 
   NSDebugLLog(@"NSMessagePort", @"removePortForName: %@", name);
   path = [[self class] _pathForName: name];
-  if ((dl = [[self class] _fileLock]) == nil)
-    {
-      [NSException raise: NSGenericException
-		  format: @"Failed to lock names for NSMessagePortNameServer"];
-    }
   unlink([path fileSystemRepresentation]);
-  [dl unlock];
   return YES;
 }
 
@@ -532,36 +405,29 @@ static void clean_up_names(void)
 {
   FILE			*f;
   char			socket_path[512];
-  NSDistributedLock	*dl;
   NSString		*path;
   const unsigned char	*port_path;
 
   NSDebugLLog(@"NSMessagePort", @"removePort: %@  forName: %@", port, name);
 
   path = [[self class] _pathForName: name];
-  if ((dl = [[self class] _fileLock]) == nil)
-    {
-      [NSException raise: NSGenericException
-		  format: @"Failed to lock names for NSMessagePortNameServer"];
-    }
+
   f = fopen([path fileSystemRepresentation], "rt");
   if (!f)
-    {
-      [dl unlock];
-      return YES;
-    }
+    return YES;
+
   fgets(socket_path, sizeof(socket_path), f);
-  if (strlen(socket_path) > 0)
-    {
-      socket_path[strlen(socket_path) - 1] = 0;
-    }
+  if (strlen(socket_path) > 0) socket_path[strlen(socket_path) - 1] = 0;
+
   fclose(f);
+
   port_path = [(NSMessagePort *)port _name];
+
   if (!strcmp((char*)socket_path, (char*)port_path))
     {
       unlink([path fileSystemRepresentation]);
     }
-  [dl unlock];
+
   return YES;
 }
 

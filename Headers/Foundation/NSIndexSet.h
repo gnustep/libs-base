@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -45,9 +45,7 @@ extern "C" {
  */
 @interface	NSIndexSet : NSObject <NSCopying, NSMutableCopying, NSCoding>
 {
-#if	GS_EXPOSE(NSIndexSet)
   void	*_data;
-#endif
 }
 
 /**
@@ -59,7 +57,7 @@ extern "C" {
  * Return a set containing the single value anIndex, or returns nil if
  * anIndex is NSNotFound.
  */
-+ (id) indexSetWithIndex: (NSUInteger)anIndex;
++ (id) indexSetWithIndex: (unsigned int)anIndex;
 
 /**
  * Return a set containing all the values in aRange, or returns nil if
@@ -70,7 +68,7 @@ extern "C" {
 /**
  * Returns YES if the receiver contains anIndex, NO otherwise.
  */
-- (BOOL) containsIndex: (NSUInteger)anIndex;
+- (BOOL) containsIndex: (unsigned int)anIndex;
 
 /**
  * Returns YES if the receiver contains all the index values present
@@ -87,20 +85,13 @@ extern "C" {
 /**
  * Returns the number of index values present in the receiver.
  */
-- (NSUInteger) count;
-
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-/** Not implemented
- * Returns the number of indexes set within the specified range.
- */
-- (NSUInteger) countOfIndexesInRange: (NSRange)range;
-#endif
+- (unsigned int) count;
 
 /**
  * Returns the first index value in the receiver or NSNotFound if the
  * receiver is empty.
  */
-- (NSUInteger) firstIndex;
+- (unsigned int) firstIndex;
 
 /**
  * Copies index values into aBuffer until there are no index values left or
@@ -111,39 +102,39 @@ extern "C" {
  * If aRange is a null pointer, this method attempts to get <em>all</em>
  * index values from the set (and of course no range can be returned in it).
  */
-- (NSUInteger) getIndexes: (NSUInteger*)aBuffer
-		 maxCount: (NSUInteger)aCount
-	     inIndexRange: (NSRangePointer)aRange;
+- (unsigned int) getIndexes: (unsigned int*)aBuffer
+		   maxCount: (unsigned int)aCount
+	       inIndexRange: (NSRangePointer)aRange;
 
 /**
  * Return the first index value in the receiver which is greater than
  * anIndex.
  */
-- (NSUInteger) indexGreaterThanIndex: (NSUInteger)anIndex;
+- (unsigned int) indexGreaterThanIndex: (unsigned int)anIndex;
 
 /**
  * Return the first index value in the receiver which is greater than
  * or equal to anIndex.
  */
-- (NSUInteger) indexGreaterThanOrEqualToIndex: (NSUInteger)anIndex;
+- (unsigned int) indexGreaterThanOrEqualToIndex: (unsigned int)anIndex;
 
 /**
  * Return the first index value in the receiver which is less than
  * anIndex.
  */
-- (NSUInteger) indexLessThanIndex: (NSUInteger)anIndex;
+- (unsigned int) indexLessThanIndex: (unsigned int)anIndex;
 
 /**
  * Return the first index value in the receiver which is less than
  * or equal to anIndex.
  */
-- (NSUInteger) indexLessThanOrEqualToIndex: (NSUInteger)anIndex;
+- (unsigned int) indexLessThanOrEqualToIndex: (unsigned int)anIndex;
 
 /**
  * Initialise the receiver to contain anIndex.  Returns the initialised
  * object or nil if anIndex is NSNotFound.
  */
-- (id) initWithIndex: (NSUInteger)anIndex;
+- (id) initWithIndex: (unsigned int)anIndex;
 
 /** <init />
  * Initialise the receiver to contain all index values in aRange.
@@ -171,7 +162,7 @@ extern "C" {
  * Returns the last index value in the receiver or NSNotFound if the
  * receiver is empty.
  */
-- (NSUInteger) lastIndex;
+- (unsigned int) lastIndex;
 @end
 
 
@@ -180,7 +171,7 @@ extern "C" {
 /**
  * Adds anIndex to the set of indexes stored in the receiver.
  */
-- (void) addIndex: (NSUInteger)anIndex;
+- (void) addIndex: (unsigned int)anIndex;
 
 /**
  * Adds all the indexes from aSet to the set of indexes stored in the receiver.
@@ -200,7 +191,7 @@ extern "C" {
 /**
  * Removes anIndex from the set of indexes stored in the receiver.
  */
-- (void) removeIndex: (NSUInteger)anIndex;
+- (void) removeIndex: (unsigned int)anIndex;
 
 /**
  * Removes all the indexes in aSet from the set of indexes
@@ -215,14 +206,14 @@ extern "C" {
 - (void) removeIndexesInRange: (NSRange)aRange;
 
 /**
+ * Not implemented.<br />
  * Moves all the indexes from anIndex upwards by the amount specified.<br />
  * If amount is negative, index values below anIndex will be overwritten
  * by the shifted values.<br />
  * If amount is positive, a 'hole' will be left in the index range after
  * anIndex.
  */
-- (void) shiftIndexesStartingAtIndex: (NSUInteger)anIndex
-				  by: (NSInteger)amount;   
+- (void) shiftIndexesStartingAtIndex: (unsigned int)anIndex by: (int)amount;   
 
 @end
 

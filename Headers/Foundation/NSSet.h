@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -31,7 +31,6 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObject.h>
-#import <Foundation/NSEnumerator.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -39,7 +38,7 @@ extern "C" {
 
 @class NSArray, NSString, NSEnumerator, NSDictionary;
 
-@interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
+@interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 + (id) set;
 + (id) setWithArray: (NSArray*)objects;
@@ -47,14 +46,14 @@ extern "C" {
 + (id) setWithObjects: (id)firstObject, ...;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) setWithObjects: (id*)objects
-		count: (NSUInteger)count;
+		count: (unsigned)count;
 #endif
 + (id) setWithSet: (NSSet*)aSet;
 
 - (NSArray*) allObjects;
 - (id) anyObject;
 - (BOOL) containsObject: (id)anObject;
-- (NSUInteger) count;
+- (unsigned) count;
 - (NSString*) description;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale;
 
@@ -62,7 +61,7 @@ extern "C" {
 - (id) initWithArray: (NSArray*)other;
 - (id) initWithObjects: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects
-		 count: (NSUInteger)count;
+		 count: (unsigned)count;
 - (id) initWithSet: (NSSet*)other;
 - (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag;
 
@@ -79,20 +78,15 @@ extern "C" {
 - (id) member: (id)anObject;
 - (NSEnumerator*) objectEnumerator;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-- (NSSet *) setByAddingObject: (id)anObject;
-- (NSSet *) setByAddingObjectsFromSet: (NSSet *)other;
-- (NSSet *) setByAddingObjectsFromArray: (NSArray *)other;
-#endif
 @end
 
 @interface NSMutableSet: NSSet
 
-+ (id) setWithCapacity: (NSUInteger)numItems;
++ (id) setWithCapacity: (unsigned)numItems;
 
 - (void) addObject: (id)anObject;
 - (void) addObjectsFromArray: (NSArray*)array;
-- (id) initWithCapacity: (NSUInteger)numItems;
+- (id) initWithCapacity: (unsigned)numItems;
 - (void) intersectSet: (NSSet*)other;
 - (void) minusSet: (NSSet*)other;
 - (void) removeAllObjects;
@@ -105,7 +99,7 @@ extern "C" {
 
 @interface NSCountedSet : NSMutableSet
 
-- (NSUInteger) countForObject: (id)anObject;
+- (unsigned int) countForObject: (id)anObject;
 
 @end
 
@@ -126,7 +120,7 @@ extern "C" {
  *   been added once - and are therefore simply wasting space.
  * </p>
  */
-- (void) purge: (NSInteger)level;
+- (void) purge: (int)level;
 
 /**
  * <p>
@@ -176,13 +170,13 @@ id	GSUnique(id anObject);
  * set by removing any objec whose count is less than or equal to that given.
  *
  */
-void	GSUPurge(NSUInteger count);
+void	GSUPurge(unsigned count);
 
 /*
  * GSUSet() can be used to artificially set the count for a particular object
  * Setting the count to zero will remove the object from the global set.
  */
-id	GSUSet(id anObject, NSUInteger count);
+id	GSUSet(id anObject, unsigned count);
 
 #endif	/* GS_API_NONE */
 

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,14 +25,21 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#import "Foundation/NSInvocation.h"
-#import "Foundation/NSProxy.h"
-#import "Foundation/NSMethodSignature.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSDistantObject.h"
-#import "Foundation/NSPortCoder.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSInvocation.h"
+#include "Foundation/NSProxy.h"
+#include "Foundation/NSMethodSignature.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSDistantObject.h"
+#include "Foundation/NSPortCoder.h"
+
+#ifdef	HAVE_LIMITS_H
+/* For UINT_MAX */
+#include <limits.h>
+#endif
 
 @class	NSDistantObject;
 
@@ -137,7 +144,7 @@ extern BOOL __objc_responds_to(id, SEL);
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  return get_imp(object_getClass((id)self), aSelector);
+  return get_imp(GSObjCClass((id)self), aSelector);
 }
 
 /**
@@ -194,7 +201,7 @@ extern BOOL __objc_responds_to(id, SEL);
 /**
  * Returns the maximum unsigned integer value.
  */
-+ (NSUInteger) retainCount
++ (unsigned int) retainCount
 {
   return UINT_MAX;
 }
@@ -204,7 +211,7 @@ extern BOOL __objc_responds_to(id, SEL);
  */
 + (Class) superclass
 {
-  return class_getSuperclass(self);
+  return GSObjCSuper(self);
 }
 
 /**
@@ -268,7 +275,7 @@ extern BOOL __objc_responds_to(id, SEL);
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s %lx>",
-	GSClassNameFromObject(self), (size_t)self];
+	GSClassNameFromObject(self), (unsigned long)self];
 }
 
 /**
@@ -291,13 +298,13 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   [NSException raise: NSInvalidArgumentException
 	      format: @"NSProxy should not implement '%s'",
-				sel_getName(_cmd)];
+				GSNameFromSelector(_cmd)];
 }
 
 /**
  * Returns the address of the receiver ... so it can be stored in a dictionary.
  */
-- (NSUInteger) hash
+- (unsigned int) hash
 {
   /*
    * Ideally we would shift left to lose any zero bits produced by the
@@ -306,7 +313,7 @@ extern BOOL __objc_responds_to(id, SEL);
    * In the absence of detailed information, pick a reasonable value
    * assuming the object will be aligned to an eight byte boundary.
    */
-  return ((NSUInteger)(uintptr_t)self)>>3;
+  return ((unsigned)(uintptr_t)self)>>3;
 }
 
 /** <init /> <override-subclass />
@@ -316,7 +323,7 @@ extern BOOL __objc_responds_to(id, SEL);
 {
   [NSException raise: NSGenericException
     format: @"subclass %s should override %s", GSClassNameFromObject(self),
-    sel_getName(_cmd)];
+    GSNameFromSelector(_cmd)];
   return self;
 }
 
@@ -381,7 +388,7 @@ extern BOOL __objc_responds_to(id, SEL);
 - (id) notImplemented: (SEL)aSel
 {
   [NSException raise: NSGenericException
-	      format: @"NSProxy notImplemented %s", sel_getName(aSel)];
+	      format: @"NSProxy notImplemented %s", GSNameFromSelector(aSel)];
   return self;
 }
 
@@ -397,7 +404,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       return nil;
     }
-  mth = GSGetMethod(object_getClass(self), aSelector, YES, YES);
+  mth = GSGetMethod(GSObjCClass(self), aSelector, YES, YES);
   if (mth != 0)
     {
       const char	*types = mth->method_types;
@@ -420,7 +427,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				sel_getName(_cmd)];
+				GSNameFromSelector(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -435,7 +442,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				sel_getName(_cmd)];
+				GSNameFromSelector(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector, anObject);
@@ -451,7 +458,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       [NSException raise: NSGenericException
 		  format: @"invalid selector passed to %s",
-				sel_getName(_cmd)];
+				GSNameFromSelector(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector, anObject, anotherObject);
@@ -491,7 +498,7 @@ extern BOOL __objc_responds_to(id, SEL);
        * use get_imp() because NSDistantObject doesn't implement
        * methodForSelector:
        */
-      proxyImp = get_imp(object_getClass((id)proxyClass),
+      proxyImp = get_imp(GSObjCClass((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 
@@ -543,7 +550,7 @@ extern BOOL __objc_responds_to(id, SEL);
 /**
  * Return the retain count for the receiver.
  */
-- (NSUInteger) retainCount
+- (unsigned int) retainCount
 {
   return _retain_count + 1;
 }

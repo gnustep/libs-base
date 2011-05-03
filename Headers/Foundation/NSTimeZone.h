@@ -4,7 +4,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -13,7 +13,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -32,25 +32,13 @@ extern "C" {
 @class	NSArray;
 @class	NSDate;
 @class	NSDictionary;
-@class  NSLocale;
 @class	NSString;
-
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-enum {
-  NSTimeZoneNameStyleStandard,
-  NSTimeZoneNameStyleShortStandard,
-  NSTimeZoneNameStyleDaylightSaving,
-  NSTimeZoneNameStyleShortDaylightSaving
-};
-typedef NSInteger NSTimeZoneNameStyle;
-GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
-#endif
 
 @interface NSTimeZone : NSObject
 
 //Creating and Initializing an NSTimeZone
 + (NSTimeZone*) localTimeZone;
-+ (NSTimeZone*) timeZoneForSecondsFromGMT: (NSInteger)seconds;
++ (NSTimeZone*) timeZoneForSecondsFromGMT: (int)seconds;
 + (NSTimeZone*) timeZoneWithName: (NSString*)aTimeZoneName;
 
 //Managing Time Zones
@@ -83,22 +71,8 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 - (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate;
 - (BOOL) isEqualToTimeZone: (NSTimeZone*)aTimeZone;
 - (NSString*) name;
-- (NSInteger) secondsFromGMT;
-- (NSInteger) secondsFromGMTForDate: (NSDate*)aDate;
-#endif
-
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-/** Not implemented */
-- (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate;
-/** Not implemented */
-- (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate;
-/** Not implemented */
-- (NSTimeInterval) daylightSavingTimeOffset;
-/** Not implemented */
-- (NSDate *) nextDaylightSavingTimeTransition;
-
-- (NSString *)localizedName: (NSTimeZoneNameStyle)style
-                     locale: (NSLocale *)locale;
+- (int) secondsFromGMT;
+- (int) secondsFromGMTForDate: (NSDate*)aDate;
 #endif
 
 #if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
@@ -113,14 +87,13 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
  */
 + (NSTimeZone*) defaultTimeZone;
 + (NSTimeZone*) timeZoneWithAbbreviation: (NSString*)abbreviation;  
-
 @end
 
 #if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 @interface NSTimeZoneDetail : NSTimeZone
 - (BOOL) isDaylightSavingTimeZone;
 - (NSString*) timeZoneAbbreviation;
-- (NSInteger) timeZoneSecondsFromGMT;
+- (int) timeZoneSecondsFromGMT;
 @end
 #endif
 

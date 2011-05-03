@@ -13,7 +13,7 @@
    This file is part of GNUStep-base
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -25,7 +25,7 @@
    If you are interested in a warranty or support for this source code,
    contact Scott Christley <scottc@net-community.com> for more information.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -44,23 +44,22 @@
  *		attributes argument and use the values from the string.
  */
 
-#import "common.h"
-#import "GNUstepBase/GSLock.h"
-#import "GNUstepBase/NSMutableString+GNUstepBase.h"
-#import "Foundation/NSAttributedString.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSRange.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSInvocation.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSProxy.h"
-#import "Foundation/NSThread.h"
-#import "Foundation/NSNotification.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSLock.h"
+#include "Foundation/NSAttributedString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRange.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSZone.h"
 
 #define		SANITY_CHECKS	0
 
 static	NSDictionary	*blank;
-
 
 @interface GSAttributedString : NSAttributedString
 {
@@ -105,13 +104,6 @@ static	NSDictionary	*blank;
 #define GSI_MAP_KTYPES	GSUNION_OBJ
 #define GSI_MAP_VTYPES	GSUNION_INT
 #define	GSI_MAP_NOCLEAN	1
-
-#if	GS_WITH_GC
-#include	<gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -181,7 +173,7 @@ unCacheAttributes(NSDictionary *attrs)
 
 
 
-@interface	GSAttrInfo : NSObject
+@interface	GSAttrInfo : NSObject <GCFinalization>
 {
 @public
   unsigned	loc;
@@ -210,8 +202,9 @@ unCacheAttributes(NSDictionary *attrs)
 
 - (void) dealloc
 {
-  [self finalize];
-  [super dealloc];
+  [self gcFinalize];
+  NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 
 - (NSString*) description
@@ -226,7 +219,7 @@ unCacheAttributes(NSDictionary *attrs)
   [aCoder encodeValueOfObjCType: @encode(id) at: &attrs];
 }
 
-- (void) finalize
+- (void) gcFinalize
 {
   unCacheAttributes(attrs);
   DESTROY(attrs);
@@ -282,14 +275,6 @@ static void _setup(void)
       NSMutableArray	*a;
       NSDictionary	*d;
 
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       * Only the pointer to the key needs to be scanned.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
       GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
 
       infSel = @selector(newWithZone:value:at:);
@@ -324,7 +309,7 @@ _setAttributesFrom(
   NSRange aRange,
   NSMutableArray *_infoArray)
 {
-  NSZone	*z = [_infoArray zone];
+  NSZone	*z = GSObjCZone(_infoArray);
   NSRange	range;
   NSDictionary	*attr;
   GSAttrInfo	*info;
@@ -459,7 +444,7 @@ _attributesAtIndexEffectiveRange(
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
-  NSZone	*z = [self zone];
+  NSZone	*z = GSObjCZone(self);
 
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
@@ -560,7 +545,7 @@ _attributesAtIndexEffectiveRange(
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
-  NSZone	*z = [self zone];
+  NSZone	*z = GSObjCZone(self);
 
   _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
@@ -593,12 +578,9 @@ SANITY();
 
 - (NSString*) string
 {
-  /* NB. This method is SUPPOSED to return a proxy to the mutable string!
-   * This is a performance feature documented ifor OSX.
-   */
   if (_textProxy == nil)
     {
-      _textProxy = [[_textChars immutableProxy] retain];
+      _textProxy = RETAIN([_textChars immutableProxy]);
     }
   return _textProxy;
 }
@@ -625,13 +607,11 @@ SANITY();
 - (void) setAttributes: (NSDictionary*)attributes
 		 range: (NSRange)range
 {
-  unsigned	tmpLength;
-  unsigned	arrayIndex = 0;
-  unsigned	arraySize;
-  NSRange	effectiveRange = NSMakeRange(0, NSNotFound);
+  unsigned	tmpLength, arrayIndex, arraySize;
+  NSRange	effectiveRange;
   unsigned	afterRangeLoc, beginRangeLoc;
   NSDictionary	*attrs;
-  NSZone	*z = [self zone];
+  NSZone	*z = GSObjCZone(self);
   GSAttrInfo	*info;
 
   if (range.length == 0)
@@ -753,10 +733,8 @@ SANITY();
 - (void) replaceCharactersInRange: (NSRange)range
 		       withString: (NSString*)aString
 {
-  unsigned	tmpLength;
-  unsigned	arrayIndex = 0;
-  unsigned	arraySize;
-  NSRange	effectiveRange = NSMakeRange(0, NSNotFound);
+  unsigned	tmpLength, arrayIndex, arraySize;
+  NSRange	effectiveRange;
   NSDictionary	*attrs;
   GSAttrInfo	*info;
   int		moveLocations;
@@ -894,7 +872,7 @@ SANITY();
 
 - (void) dealloc
 {
-  [_textProxy release];
+  TEST_RELEASE(_textProxy);
   RELEASE(_textChars);
   RELEASE(_infoArray);
   [super dealloc];
@@ -916,7 +894,7 @@ SANITY();
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  DESTROY(self);
+  RELEASE(self);
   self = (id)NSAllocateObject([GSAttributedString class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
@@ -929,7 +907,7 @@ SANITY();
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  DESTROY(self);
+  RELEASE(self);
   self = (id)NSAllocateObject([GSMutableAttributedString class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;

@@ -6,17 +6,18 @@
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
 
-#import "common.h"
+#include "config.h"
 
-#import "GNUstepBase/preface.h"
-#import "Foundation/NSError.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSNotificationQueue.h"
-#import "Foundation/NSPort.h"
-#import "Foundation/NSStream.h"
-#import "../GSRunLoopCtxt.h"
-#import "../GSRunLoopWatcher.h"
-#import "../GSPrivate.h"
+#include "GNUstepBase/preface.h"
+#include <Foundation/NSDebug.h>
+#include <Foundation/NSError.h>
+#include <Foundation/NSNotification.h>
+#include <Foundation/NSNotificationQueue.h>
+#include <Foundation/NSPort.h>
+#include <Foundation/NSStream.h>
+#include "../GSRunLoopCtxt.h"
+#include "../GSRunLoopWatcher.h"
+#include "../GSPrivate.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -30,6 +31,8 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#define	FDCOUNT	128
 
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
@@ -56,7 +59,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   0
 };
 #else
-#define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks 
+#define	WatcherMapValueCallBacks	NSNonOwnedPointerMapValueCallBacks 
 #endif
 
 @implementation	GSRunLoopCtxt
@@ -97,7 +100,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 #ifdef	HAVE_POLL_F
   if (pollfds != 0)
     {
-      NSZoneFree(NSDefaultMallocZone(), pollfds);
+      objc_free(pollfds);
     }
 #endif
   [super dealloc];
@@ -174,27 +177,16 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   self = [super init];
   if (self != nil)
     {
-      NSZone	*z;
+      NSZone	*z = [self zone];
 
       mode = [theMode copy];
       extra = e;
-#if	GS_WITH_GC
-      z = (NSZone*)1;
-      performers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-      timers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-      watchers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-      _trigger = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-#else
-      z = [self zone];
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      timers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
-      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
-#endif
       GSIArrayInitWithZoneAndCapacity(performers, z, 8);
+      timers = NSZoneMalloc(z, sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(timers, z, 8);
+      watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
-      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
 
       _efdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				      WatcherMapValueCallBacks, 0);
@@ -202,6 +194,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 				      WatcherMapValueCallBacks, 0);
       _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				      WatcherMapValueCallBacks, 0);
+      _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
+      GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
     }
   return self;
 }
@@ -221,23 +215,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       pe->limit = fd + 1;
       if (pe->index == 0)
 	{
-#if	GS_WITH_GC
-	  pe->index
-	    = NSAllocateCollectable(pe->limit * sizeof(*(pe->index)), 0);
-#else
-	  pe->index = NSZoneMalloc(NSDefaultMallocZone(),
-	    pe->limit * sizeof(*(pe->index)));
-#endif
+	  pe->index = objc_malloc(pe->limit * sizeof(*(pe->index)));
 	}
       else
 	{
-#if	GS_WITH_GC
-	  pe->index = NSReallocateCollectable(pe->index,
-	    pe->limit * sizeof(*(pe->index)), 0);
-#else
-	  pe->index = NSZoneRealloc(NSDefaultMallocZone(),
-	    pe->index, pe->limit * sizeof(*(pe->index)));
-#endif
+	  pe->index = objc_realloc(pe->index, pe->limit * sizeof(*(pe->index)));
 	}
       do
 	{
@@ -251,13 +233,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
       if (ctxt->pollfds_count >= ctxt->pollfds_capacity)
 	{
 	  ctxt->pollfds_capacity += 8;
-#if	GS_WITH_GC
-	  pollfds = NSReallocateCollectable(pollfds,
-	    ctxt->pollfds_capacity * sizeof (*pollfds), 0);
-#else
-	  pollfds = NSZoneRealloc(NSDefaultMallocZone(),
-	    pollfds, ctxt->pollfds_capacity * sizeof (*pollfds));
-#endif
+	  pollfds =
+	    objc_realloc(pollfds, ctxt->pollfds_capacity * sizeof (*pollfds));
 	  ctxt->pollfds = pollfds;
 	}
       index = ctxt->pollfds_count++;
@@ -278,7 +255,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
  */
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
   int		poll_return;
   int		fdEnd;	/* Number of descriptors being monitored. */
   int		fdIndex;
@@ -301,36 +277,20 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   /*
    * Do the pre-listening set-up for the file descriptors of this mode.
    */
-  if (pollfds_capacity < i + 2)
+  if (pollfds_capacity < i + 1)
     {
-      pollfds_capacity = i + 2;
+      pollfds_capacity = i + 1;
       if (pollfds == 0)
 	{
-#if	GS_WITH_GC
-	  pollfds
-	    = NSAllocateCollectable(pollfds_capacity * sizeof(*pollfds), 0);
-#else
-	  pollfds = NSZoneMalloc(NSDefaultMallocZone(),
-	    pollfds_capacity * sizeof(*pollfds));
-#endif
+	  pollfds = objc_malloc(pollfds_capacity * sizeof(*pollfds));
 	}
       else
 	{
-#if	GS_WITH_GC
-	  pollfds = NSReallocateCollectable(pollfds,
-	    pollfds_capacity * sizeof(*pollfds), 0);
-#else
-	  pollfds = NSZoneRealloc(NSDefaultMallocZone(),
-	    pollfds, pollfds_capacity * sizeof(*pollfds));
-#endif
+	  pollfds = objc_realloc(pollfds, pollfds_capacity * sizeof(*pollfds));
 	}
     }
   pollfds_count = 0;
   ((pollextra*)extra)->limit = 0;
-
-  /* Watch for signals from other threads.
-   */
-  setPollfd(threadInfo->inputFd, POLLIN, self);
 
   while (i-- > 0)
     {
@@ -380,15 +340,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	      case ET_RPORT: 
 		{
 		  id port = info->receiver;
-		  int port_fd_count = 128; // FIXME 
-		  int port_fd_array[port_fd_count];
+		  NSInteger port_fd_count = FDCOUNT;
+		  NSInteger port_fd_array[FDCOUNT];
 
-		  if ([port respondsToSelector:
-		    @selector(getFds:count:)])
-		    {
-		      [port getFds: port_fd_array
-			     count: &port_fd_count];
-		    }
+		  [port getFds: port_fd_array count: &port_fd_count];
 		  NSDebugMLLog(@"NSRunLoop",
 		    @"listening to %d port handles\n", port_fd_count);
 		  while (port_fd_count--)
@@ -410,7 +365,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
     {
       milliseconds = 0;
     }
@@ -424,7 +379,14 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   fprintf(stderr, "\n");
 }
 #endif
-  poll_return = poll (pollfds, pollfds_count, milliseconds);
+  if (pollfds_count > 0)
+    {
+      poll_return = poll (pollfds, pollfds_count, milliseconds);
+    }
+  else
+    {
+      poll_return = 0;
+    }
 #if 0
 {
   unsigned int i;
@@ -464,33 +426,33 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * Trigger any watchers which are set up to for every runloop wait.
    */
   count =  GSIArrayCount(_trigger);
-  while (count-- > 0)
+  while (completed == NO && count-- > 0)
     {
       GSRunLoopWatcher	*watcher;
 
       watcher = (GSRunLoopWatcher*)GSIArrayItemAtIndex(_trigger, count).obj;
-      if (watcher->_invalidated == NO)
-	{
-	  i = [contexts count];
-	  while (i-- > 0)
-	    {
-	      GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
+	if (watcher->_invalidated == NO)
+	  {
+	    i = [contexts count];
+	    while (i-- > 0)
+	      {
+		GSRunLoopCtxt	*c = [contexts objectAtIndex: i];
 
-	      if (c != self)
-		{
-		  [c endEvent: (void*)watcher for: watcher];
-		}
-	    }
-	  /*
-	   * The watcher is still valid - so call its
-	   * receivers event handling method.
-	   */
-	  [watcher->receiver receivedEvent: watcher->data
-				      type: watcher->type
-				     extra: watcher->data
-				   forMode: mode];
-	}
-      GSPrivateNotifyASAP(mode);
+		if (c != self)
+		  {
+		    [c endEvent: (void*)watcher for: watcher];
+		  }
+	      }
+	    /*
+	     * The watcher is still valid - so call its
+	     * receivers event handling method.
+	     */
+	    [watcher->receiver receivedEvent: watcher->data
+					type: watcher->type
+				       extra: watcher->data
+				     forMode: mode];
+	  }
+	GSPrivateNotifyASAP();
     }
 
   /*
@@ -565,7 +527,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSPrivateNotifyASAP(mode);
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -597,7 +559,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSPrivateNotifyASAP(mode);
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -606,17 +568,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    }
 	  if (pollfds[fdIndex].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))
 	    {
-              if (fd == threadInfo->inputFd)
-                {
-	          NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
-                  [threadInfo fire];
-                  watcher = nil;
-                }
-              else
-                {
-                  watcher = (GSRunLoopWatcher*)
-                    NSMapGet(_rfdMap, (void*)(intptr_t)fd);
-                }
+	      watcher
+		= (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)(intptr_t)fd);
 	      if (watcher != nil && watcher->_invalidated == NO)
 		{
 		  i = [contexts count];
@@ -638,7 +591,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 					     extra: (void*)(uintptr_t)fd
 					   forMode: mode];
 		}
-	      GSPrivateNotifyASAP(mode);
+	      GSPrivateNotifyASAP();
 	      if (completed == YES)
 		{
 		  break;	// A nested poll has done the job.
@@ -663,32 +616,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   return YES;
 }
 
-+ (BOOL) awakenedBefore: (NSDate*)when
-{
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
-  NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
-  int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
-  struct pollfd		pollfds;
-
-  /* Watch for signals from other threads.
-   */
-  pollfds.fd = threadInfo->inputFd;
-  pollfds.events = POLLIN;
-  pollfds.revents = 0;
-  if (poll(&pollfds, 1, milliseconds) == 1)
-    {
-      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
-      [threadInfo fire];
-      return YES;
-    }
-  return NO;
-}
-
 #else
 
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
   struct timeval	timeout;
   void			*select_timeout;
   int			select_return;
@@ -697,7 +628,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   fd_set 		read_fds;	// Mask for read-ready fds.
   fd_set 		exception_fds;	// Mask for exception fds.
   fd_set 		write_fds;	// Mask for write-ready fds.
-  int			fd;
   int			fdEnd = -1;
   unsigned		count;
   unsigned		i;
@@ -741,13 +671,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   NSResetMapTable(_rfdMap);
   NSResetMapTable(_wfdMap);
   GSIArrayRemoveAllItems(_trigger);
-
-  /* Watch for signals from other threads.
-   */
-  fd = threadInfo->inputFd;
-  if (fd > fdEnd)
-    fdEnd = fd;
-  FD_SET (fd, &read_fds);
 
   while (i-- > 0)
     {
@@ -799,15 +722,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	      case ET_RPORT: 
 		{
 		  id port = info->receiver;
-		  int port_fd_count = 128; // xxx #define this constant
-		  int port_fd_array[port_fd_count];
+		  NSInteger port_fd_count = FDCOUNT;
+		  NSInteger port_fd_array[FDCOUNT];
 
-		  if ([port respondsToSelector:
-		    @selector(getFds:count:)])
-		    {
-		      [port getFds: port_fd_array
-			     count: &port_fd_count];
-		    }
+		  [port getFds: port_fd_array count: &port_fd_count];
 		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port sockets",
 		    port_fd_count);
 		  while (port_fd_count--)
@@ -836,7 +754,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * we can service the queue.  Similarly, if a task has completed,
    * we need to deliver its notifications.
    */
-  if (GSPrivateCheckTasks() || GSPrivateNotifyMore(mode) || immediate == YES)
+  if (GSPrivateCheckTasks() || GSPrivateNotifyMore() || immediate == YES)
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
@@ -845,8 +763,15 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
   // NSDebugMLLog(@"NSRunLoop", @"select timeout %d,%d", timeout.tv_sec, timeout.tv_usec);
 
-  select_return = select (fdEnd, &read_fds, &write_fds,
-    &exception_fds, select_timeout);
+  if (fdEnd >= 0)
+    {
+      select_return = select (fdEnd, &read_fds, &write_fds,
+	&exception_fds, select_timeout);
+    }
+  else
+    {
+      select_return = 0;
+    }
 
   NSDebugMLLog(@"NSRunLoop", @"select returned %d", select_return);
 
@@ -877,7 +802,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * Trigger any watchers which are set up to for every runloop wait.
    */
   count = GSIArrayCount(_trigger);
-  while (count-- > 0)
+  while (completed == NO && count-- > 0)
     {
       GSRunLoopWatcher	*watcher;
 
@@ -903,7 +828,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 				       extra: watcher->data
 				     forMode: mode];
 	  }
-	GSPrivateNotifyASAP(mode);
+	GSPrivateNotifyASAP();
     }
 
   /*
@@ -961,10 +886,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      [watcher->receiver receivedEvent: watcher->data
 					  type: watcher->type
-					 extra: (void*)(intptr_t)fdIndex
+					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSPrivateNotifyASAP(mode);
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;
@@ -993,10 +918,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      [watcher->receiver receivedEvent: watcher->data
 					  type: watcher->type
-					 extra: (void*)(intptr_t)fdIndex
+					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSPrivateNotifyASAP(mode);
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;
@@ -1007,17 +932,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	{
 	  GSRunLoopWatcher	*watcher;
 
-          if (fdIndex == threadInfo->inputFd)
-            {
-	      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
-              [threadInfo fire];
-              watcher = nil;
-            }
-          else
-            {
-              watcher = (GSRunLoopWatcher*)
-                NSMapGet(_rfdMap, (void*)(intptr_t)fdIndex);
-            }
+	  watcher
+	    = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)(intptr_t)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      i = [contexts count];
@@ -1034,10 +950,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	       */
 	      [watcher->receiver receivedEvent: watcher->data
 					  type: watcher->type
-					 extra: (void*)(intptr_t)fdIndex
+					 extra: watcher->data
 				       forMode: mode];
 	    }
-	  GSPrivateNotifyASAP(mode);
+	  GSPrivateNotifyASAP();
 	  if (completed == YES)
 	    {
 	      break;
@@ -1059,32 +975,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     }
   completed = YES;
   return YES;
-}
-
-+ (BOOL) awakenedBefore: (NSDate*)when
-{
-  GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
-  NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
-  int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
-  struct timeval	timeout;
-  fd_set 		read_fds;	// Mask for read-ready fds.
-  fd_set 		exception_fds;	// Mask for exception fds.
-  fd_set 		write_fds;	// Mask for write-ready fds.
-
-  memset(&exception_fds, '\0', sizeof(exception_fds));
-  memset(&read_fds, '\0', sizeof(read_fds));
-  memset(&write_fds, '\0', sizeof(write_fds));
-  timeout.tv_sec = milliseconds/1000;
-  timeout.tv_usec = (milliseconds - 1000 * timeout.tv_sec) * 1000;
-  FD_SET (threadInfo->inputFd, &read_fds);
-  if (select (threadInfo->inputFd, &read_fds, &write_fds,
-    &exception_fds, &timeout) > 0)
-    {
-      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
-      [threadInfo fire];
-      return YES;
-    }
-  return NO;
 }
 
 #endif

@@ -32,3 +32,14 @@ NSJapaneseEUCStringEncoding = 		"Japon\U00e9s EUC";
 NSShiftJISStringEncoding = 			"Japon\U00e9s Shift-JIS";
 NSISO2022JPStringEncoding = 		"Japon\U00e9s JIS (7 bits) (ISO 2022)";
 NSGB2312StringEncoding = 			"Chino Simplificado GB2312";
+
+/* Menu items for NSUndoManager */
+
+/* File: ../Source/NSUndoManager.m:718 */
+Redo = Rehacer;
+/* File: ../Source/NSUndoManager.m:723 */
+"Redo %@" = "Rehacer %@";
+/* File: ../Source/NSUndoManager.m:999 */
+Undo = Deshacer;
+/* File: ../Source/NSUndoManager.m:1004 */
+"Undo %@" = "Deshacer %@";

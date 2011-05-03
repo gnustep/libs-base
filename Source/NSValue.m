@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,15 +27,17 @@
    $Date$ $Revision$
 */
 
-#import "common.h"
-#import "Foundation/NSValue.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSMapTable.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSData.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
 
 @interface	GSPlaceholderValue : NSValue
 @end
@@ -88,7 +90,7 @@ static NSLock			*placeholderLock;
   if (self == [NSValue class])
     {
       abstractClass = self;
-      [abstractClass setVersion: 3];	// Version 3
+      [abstractClass setVersion: 2];	// Version 2
       concreteClass = [GSValue class];
       nonretainedObjectValueClass = [GSNonretainedObjectValue class];
       pointValueClass = [GSPointValue class];
@@ -278,6 +280,7 @@ static NSLock			*placeholderLock;
       NSRange range;
       range = NSMakeRange([[dict objectForKey: @"location"] intValue],
 			[[dict objectForKey: @"length"] intValue]);
+      return [abstractClass valueWithRange: range];
     }
   else if ([dict objectForKey: @"width"] && [dict objectForKey: @"x"])
     {
@@ -390,37 +393,8 @@ static NSLock			*placeholderLock;
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
-  if (strncmp("{_NSSize=", objctype, 9) == 0)
-    {
-      NSSize    v = [self sizeValue];
-
-      [coder encodeValueOfObjCType: objctype at: &v];
-      return;
-    }
-  else if (strncmp("{_NSPoint=", objctype, 10) == 0)
-    {
-      NSPoint    v = [self pointValue];
-
-      [coder encodeValueOfObjCType: objctype at: &v];
-      return;
-    }
-  else if (strncmp("{_NSRect=", objctype, 9) == 0)
-    {
-      NSRect    v = [self rectValue];
-
-      [coder encodeValueOfObjCType: objctype at: &v];
-      return;
-    }
-  else if (strncmp("{_NSRange=", objctype, 10) == 0)
-    {
-      NSRange    v = [self rangeValue];
-
-      [coder encodeValueOfObjCType: objctype at: &v];
-      return;
-    }
-
   size = objc_sizeof_type(objctype);
-  data = (void *)NSZoneMalloc([self zone], size);
+  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
   [self getValue: (void*)data];
   d = [NSMutableData new];
   [d serializeDataAt: data ofObjCType: objctype context: nil];
@@ -458,55 +432,10 @@ static NSLock			*placeholderLock;
   [coder decodeArrayOfObjCType: @encode(signed char)
 			 count: size
 			    at: (void*)objctype];
-  if (strncmp("{_NSSize=", objctype, 9) == 0)
-    c = [abstractClass valueClassWithObjCType: @encode(NSSize)];
-  else if (strncmp("{_NSPoint=", objctype, 10) == 0)
-    c = [abstractClass valueClassWithObjCType: @encode(NSPoint)];
-  else if (strncmp("{_NSRect=", objctype, 9) == 0)
-    c = [abstractClass valueClassWithObjCType: @encode(NSRect)];
-  else if (strncmp("{_NSRange=", objctype, 10) == 0)
-    c = [abstractClass valueClassWithObjCType: @encode(NSRange)];
-  else
-    c = [abstractClass valueClassWithObjCType: objctype];
+  c = [abstractClass valueClassWithObjCType: objctype];
   o = [c allocWithZone: [coder objectZone]];
 
   ver = [coder versionForClassName: @"NSValue"];
-  if (ver > 2)
-    {
-      if (c == pointValueClass)
-        {
-          NSPoint	v;
-
-          [coder decodeValueOfObjCType: @encode(NSPoint) at: &v];
-          DESTROY(self);
-          return [o initWithBytes: &v objCType: @encode(NSPoint)];
-        }
-      else if (c == sizeValueClass)
-        {
-          NSSize	v;
-
-          [coder decodeValueOfObjCType: @encode(NSSize) at: &v];
-          DESTROY(self);
-          return [o initWithBytes: &v objCType: @encode(NSSize)];
-        }
-      else if (c == rangeValueClass)
-        {
-          NSRange	v;
-
-          [coder decodeValueOfObjCType: @encode(NSRange) at: &v];
-          DESTROY(self);
-          return [o initWithBytes: &v objCType: @encode(NSRange)];
-        }
-      else if (c == rectValueClass)
-        {
-          NSRect	v;
-
-          [coder decodeValueOfObjCType: @encode(NSRect) at: &v];
-          DESTROY(self);
-          return [o initWithBytes: &v objCType: @encode(NSRect)];
-        }
-    }
-
   if (ver < 2)
     {
       if (ver < 1)
@@ -554,8 +483,8 @@ static NSLock			*placeholderLock;
 	}
       else
 	{
-	  NSData        *d;
-	  unsigned      cursor = 0;
+	  NSData            *d;
+	  unsigned          cursor = 0;
 
 	  /*
 	   * For performance, decode small values directly onto the stack,
@@ -593,7 +522,7 @@ static NSLock			*placeholderLock;
   else
     {
       static NSData	*d = nil;
-      unsigned  	cursor = 0;
+      unsigned		cursor = 0;
 
       if (d == nil)
 	{
@@ -651,7 +580,7 @@ static NSLock			*placeholderLock;
     {
       NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
     }
-  DESTROY(self);
+  RELEASE(self);
   self = o;
   return self;
 }
@@ -673,7 +602,7 @@ static NSLock			*placeholderLock;
   GSNOSUPERDEALLOC;	// placeholders never get deallocated.
 }
 
-- (void) getData: (void*)data
+- (void) getValue: (void*)data
 {
   [NSException raise: NSInternalInconsistencyException
 	      format: @"attempt to use uninitialised value"];
@@ -683,7 +612,7 @@ static NSLock			*placeholderLock;
 {
   Class		c = [abstractClass valueClassWithObjCType: type];
 
-  self = (id)NSAllocateObject(c, 0, [self zone]);
+  self = (id)NSAllocateObject(c, 0, GSObjCZone(self));
   return [self initWithBytes: data objCType: type];
 }
 

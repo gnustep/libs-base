@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -26,7 +26,7 @@
 #define __NSURLRequest_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION(011300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -41,13 +41,6 @@ extern "C" {
 @class NSString;
 @class NSURL;
 
-enum
-{
-  NSURLRequestUseProtocolCachePolicy,
-  NSURLRequestReloadIgnoringCacheData,
-  NSURLRequestReturnCacheDataElseLoad,
-  NSURLRequestReturnCacheDataDontLoad,
-};
 /**
  * <deflist>
  *   <term>NSURLRequestUseProtocolCachePolicy</term>
@@ -74,7 +67,13 @@ enum
  *   </desc>
  * </deflist>
  */
-typedef NSUInteger NSURLRequestCachePolicy;
+typedef enum
+{
+  NSURLRequestUseProtocolCachePolicy,
+  NSURLRequestReloadIgnoringCacheData,
+  NSURLRequestReturnCacheDataElseLoad,
+  NSURLRequestReturnCacheDataDontLoad,
+} NSURLRequestCachePolicy;
 
 
 /**
@@ -84,9 +83,8 @@ typedef NSUInteger NSURLRequestCachePolicy;
  */
 @interface NSURLRequest : NSObject <NSCoding, NSCopying, NSMutableCopying>
 {
-#if	GS_EXPOSE(NSURLRequest)
+@private
   void *_NSURLRequestInternal;
-#endif
 }
 
 /*

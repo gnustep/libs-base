@@ -18,7 +18,7 @@ AC_DEFUN(AC_SYS_PROCFS,
   #  if test -d /proc/0; then
   # but it doesn't work on my linux - /proc/0 does not exist, but /proc
   # works fine
-    if grep 'proc' /proc/mounts >/dev/null 2>/dev/null; then
+    if (mount | grep 'proc' >/dev/null 2>/dev/null); then 
       ac_cv_sys_procfs=yes
     else
       ac_cv_sys_procfs=no
@@ -31,14 +31,11 @@ AC_DEFUN(AC_SYS_PROCFS,
       cygwin*)     ac_cv_sys_procfs=yes;;
     esac
   elif test "$enable_procfs" = cross; then
-    ac_cv_sys_procfs=no
+    AC_MSG_WARN(Pass --enable-procfs argument to enable use of /proc filesystem.)
   else
     ac_cv_sys_procfs=no
   fi])
 
-  if test "$enable_procfs" = cross; then
-    AC_MSG_WARN(Cross-compiling: Pass --enable-procfs argument to enable use of /proc filesystem.)
-  fi
   if test $ac_cv_sys_procfs = yes; then
     AC_DEFINE(HAVE_PROCFS, 1, [Define if system supports the /proc filesystem])
   fi
@@ -59,14 +56,11 @@ AC_DEFUN(AC_SYS_PROCFS_PSINFO,
 	ac_cv_sys_procfs_psinfo=yes, ac_cv_sys_procfs_psinfo=no, 
 	ac_cv_sys_procfs_psinfo=yes)
   elif test "$enable_procfs" = cross; then
-    ac_cv_sys_procfs_psinfo=no
+    AC_MSG_WARN(Pass --enable-procfs-psinfo argument to enable use of /proc psinfo information.)
   else
     ac_cv_sys_procfs_psinfo=no
   fi])
 
-  if test "$enable_procfs" = cross; then
-    AC_MSG_WARN(Cross-compiling: Pass --enable-procfs-psinfo argument to enable use of /proc psinfo information.)
-  fi
   if test $ac_cv_sys_procfs_psinfo = yes; then
     AC_DEFINE(HAVE_PROCFS_PSINFO, 1, [Define if system supports reading psinfo from /proc])
   fi

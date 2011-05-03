@@ -9,7 +9,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -18,7 +18,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -27,12 +27,12 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSProtocolChecker_IVARS	1
-#import "Foundation/NSProtocolChecker.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSInvocation.h"
-#import "Foundation/NSMethodSignature.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSProtocolChecker.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSInvocation.h"
+#include "Foundation/NSMethodSignature.h"
 #include <objc/Protocol.h>
 
 /**
@@ -74,10 +74,8 @@
 
 - (struct objc_method_description*) _methodDescription: (SEL)aSelector
 {
-  extern struct objc_method_description
-    *GSDescriptionForInstanceMethod(Protocol *self, SEL aSel);
-  extern struct objc_method_description
-    *GSDescriptionForClassMethod(Protocol *self, SEL aSel);
+  extern struct objc_method_description	*GSDescriptionForInstanceMethod();
+  extern struct objc_method_description	*GSDescriptionForClassMethod();
 
   if (_myProtocol != nil && _myTarget != nil)
     {
@@ -91,7 +89,7 @@
        */
       if (GSObjCIsInstance(_myTarget))
 	{
-	  if ((uintptr_t)object_getClass(_myProtocol) == 0x2)
+	  if ((uintptr_t)GSObjCClass(_myProtocol) == 0x2)
 	    {
 	      mth = GSDescriptionForInstanceMethod(_myProtocol, aSelector);
 	    }
@@ -102,7 +100,7 @@
 	}
       else
 	{
-	  if ((uintptr_t)object_getClass(_myProtocol) == 0x2)
+	  if ((uintptr_t)GSObjCClass(_myProtocol) == 0x2)
 	    {
 	      mth = GSDescriptionForClassMethod(_myProtocol, aSelector);
 	    }
@@ -198,14 +196,14 @@
    * signature of methodSignatureForSelector:, so we hack in
    * the signature required manually :-(
    */
-  if (sel_isEqual(aSelector, _cmd))
+  if (sel_eq(aSelector, _cmd))
     {
       static	NSMethodSignature	*sig = nil;
 
       if (sig == nil)
 	{
 	  sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
-	  IF_NO_GC(RETAIN(sig);)
+	  RETAIN(sig);
 	}
       return sig;
     }
@@ -227,7 +225,7 @@
       return [NSMethodSignature signatureWithObjCTypes: types];
     }
 
-  c = object_getClass(self);
+  c = GSObjCClass(self);
   mth = GSGetMethod(c, aSelector, YES, YES);
   if (mth == 0)
     {

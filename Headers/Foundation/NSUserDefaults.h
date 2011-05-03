@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02111 USA.
@@ -25,10 +25,10 @@
 
 #ifndef __NSUserDefaults_h_OBJECTS_INCLUDE
 #define __NSUserDefaults_h_OBJECTS_INCLUDE
-#import <GNUstepBase/GSVersionMacros.h>
+#include <GNUstepBase/GSVersionMacros.h>
 
-#import <Foundation/NSObject.h>
-#import <Foundation/NSString.h>
+#include <Foundation/NSObject.h>
+#include <Foundation/NSString.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -61,10 +61,9 @@ GS_EXPORT NSString* const NSGlobalDomain;
  */
 GS_EXPORT NSString* const NSRegistrationDomain;
 
-#if	!NO_GNUSTEP
+#ifndef NO_GNUSTEP
 /**
- *  User defaults domain for GNUstep config file and for any defaults
- *  stored in the GlobalDefaults.plist file alongside the config file.
+ *  User defaults domain for GNUstep config file.
  */
 GS_EXPORT NSString* const GSConfigDomain;
 #endif
@@ -179,9 +178,9 @@ GS_EXPORT NSString* const NSLanguageCode;
 
 /** Key for locale dictionary: formal name of language. */
 GS_EXPORT NSString* const NSFormalName;
-#if	!NO_GNUSTEP
+#ifndef NO_GNUSTEP
 /** Key for locale dictionary: name of locale. */
-GS_EXPORT NSString* const GSLocale;
+GS_EXPORT NSString* const NSLocale;
 #endif
 #endif
 
@@ -213,9 +212,8 @@ GS_EXPORT NSString* const GSLocale;
 	- write docs : -(
 	*/
 
-@interface NSUserDefaults : NSObject
+@interface NSUserDefaults:  NSObject
 {
-#if	GS_EXPOSE(NSUserDefaults)
 @private
   NSMutableArray	*_searchList;    // Current search list;
   NSMutableDictionary	*_persDomains;   // Contains persistent defaults info;
@@ -227,10 +225,6 @@ GS_EXPORT NSString* const GSLocale;
   NSDate		*_lastSync;
   NSRecursiveLock	*_lock;
   NSDistributedLock	*_fileLock;
-#endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
 }
 
 /**
@@ -336,7 +330,7 @@ GS_EXPORT NSString* const GSLocale;
  * and returns its integer value or 0 if it is not representable
  * as an integer.
  */
-- (NSInteger) integerForKey: (NSString*)defaultName;
+- (int) integerForKey: (NSString*)defaultName;
 
 /**
  * Looks up a value for a specified default using.
@@ -369,8 +363,8 @@ GS_EXPORT NSString* const GSLocale;
 
 /**
  * Sets a boolean value for defaultName in the application domain.<br />
- * Calls -setObject:forKey: to make the change by storing a string
- * containing either the word YES or NO.
+ * Calls -setObject:forKey: to make the change by storing a boolean
+ * [NSNumber] instance.
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName;
 
@@ -386,14 +380,13 @@ GS_EXPORT NSString* const GSLocale;
  * Calls -setObject:forKey: to make the change by storing an intege
  * [NSNumber] instance.
  */
-- (void) setInteger: (NSInteger)value forKey: (NSString*)defaultName;
+- (void) setInteger: (int)value forKey: (NSString*)defaultName;
 
 /**
- * Sets a copy of an object value for defaultName in the
- * application domain.<br />
+ * Sets an object value for defaultName in the application domain.<br />
  * The defaultName must be a non-empty string.<br />
- * The value to be copied into the domain must be an instance
- * of one of the [NSString-propertyList] classes.<br />
+ * The value must be an instance of one of the [NSString-propertyList]
+ * classes.<br />
  * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
  * if this is the first change to a persistent-domain since the
  * last -synchronize.

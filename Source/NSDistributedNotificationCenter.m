@@ -1,5 +1,5 @@
 /**
-   Copyright (C) 1998-2009 Free Software Foundation, Inc.
+   Copyright (C) 1998-2003 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,25 +25,25 @@
    $Date$ $Revision$
    */
 
-#import	"common.h"
-#define	EXPOSE_NSDistributedNotificationCenter_IVARS	1
-#import	"Foundation/NSConnection.h"
-#import	"Foundation/NSDistantObject.h"
-#import	"Foundation/NSException.h"
-#import	"Foundation/NSFileManager.h"
-#import	"Foundation/NSArchiver.h"
-#import	"Foundation/NSNotification.h"
-#import	"Foundation/NSDate.h"
-#import	"Foundation/NSPathUtilities.h"
-#import	"Foundation/NSRunLoop.h"
-#import	"Foundation/NSTask.h"
-#import	"GNUstepBase/NSTask+GNUstepBase.h"
-#import	"Foundation/NSDistributedNotificationCenter.h"
-#import	"Foundation/NSUserDefaults.h"
-#import	"Foundation/NSHost.h"
-#import	"Foundation/NSPortNameServer.h"
-#import "Foundation/NSThread.h"
-#import	"../Tools/gdnc.h"
+#include	"config.h"
+#include	"GNUstepBase/preface.h"
+#include	"Foundation/NSObject.h"
+#include	"Foundation/NSConnection.h"
+#include	"Foundation/NSDistantObject.h"
+#include	"Foundation/NSException.h"
+#include	"Foundation/NSArchiver.h"
+#include	"Foundation/NSNotification.h"
+#include	"Foundation/NSDate.h"
+#include	"Foundation/NSPathUtilities.h"
+#include	"Foundation/NSRunLoop.h"
+#include	"Foundation/NSTask.h"
+#include	"Foundation/NSDistributedNotificationCenter.h"
+#include	"Foundation/NSUserDefaults.h"
+#include	"Foundation/NSHost.h"
+#include	"Foundation/NSPortNameServer.h"
+#include	"Foundation/NSDebug.h"
+
+#include	"../Tools/gdnc.h"
 
 
 @interface	NSDistributedNotificationCenter (Private)
@@ -53,7 +53,7 @@
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
 		     selector: (NSString*)aSelector
-			   to: (uint64_t)observer;
+			   to: (unsigned long)observer;
 @end
 
 /**
@@ -236,7 +236,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
     }
   RELEASE(_remote);
   RELEASE(_type);
-  [super dealloc];
+  NSDeallocateObject(self);
+  GSNOSUPERDEALLOC;
 }
 
 /**
@@ -244,7 +245,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  */
 - (id) init
 {
-  DESTROY(self);
+  RELEASE(self);
   [NSException raise: NSInternalInconsistencyException
     format: @"Should not call -init for NSDistributedNotificationCenter"];
   return nil;
@@ -336,12 +337,12 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)_remote addObserver: (uint64_t)(uintptr_t)anObserver
-				    selector: NSStringFromSelector(aSelector)
-				        name: notificationName
-				      object: anObject
-			  suspensionBehavior: suspensionBehavior
-					 for: (id<GDNCClient>)self];
+      [(id<GDNCProtocol>)_remote addObserver: (unsigned long)anObserver
+				   selector: NSStringFromSelector(aSelector)
+				       name: notificationName
+				     object: anObject
+			 suspensionBehavior: suspensionBehavior
+					for: (id<GDNCClient>)self];
     }
   NS_HANDLER
     {
@@ -462,10 +463,10 @@ static NSDistributedNotificationCenter	*netCenter = nil;
   NS_DURING
     {
       [self _connect];
-      [(id<GDNCProtocol>)_remote removeObserver: (uint64_t)(uintptr_t)anObserver
-					   name: notificationName
-					 object: anObject
-					    for: (id<GDNCClient>)self];
+      [(id<GDNCProtocol>)_remote removeObserver: (unsigned long)anObserver
+					  name: notificationName
+					object: anObject
+					   for: (id<GDNCClient>)self];
     }
   NS_HANDLER
     {
@@ -516,7 +517,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  * in the source where the '@protocol()' directive is used.
  */
 @interface NSDistributedNotificationCenterDummy : NSObject <GDNCProtocol>
-- (void) addObserver: (uint64_t)anObserver
+- (void) addObserver: (unsigned long)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
@@ -528,7 +529,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		  deliverImmediately: (BOOL)deliverImmediately
 			         for: (id<GDNCClient>)client;
 - (void) registerClient: (id<GDNCClient>)client;
-- (void) removeObserver: (uint64_t)anObserver
+- (void) removeObserver: (unsigned long)anObserver
 		   name: (NSString*)notificationname
 		 object: (NSString*)anObject
 		    for: (id<GDNCClient>)client;
@@ -538,7 +539,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 @end
 
 @implementation NSDistributedNotificationCenterDummy
-- (void) addObserver: (uint64_t)anObserver
+- (void) addObserver: (unsigned long)anObserver
 	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
@@ -556,7 +557,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 - (void) registerClient: (id<GDNCClient>)client
 {
 }
-- (void) removeObserver: (uint64_t)anObserver
+- (void) removeObserver: (unsigned long)anObserver
 		   name: (NSString*)notificationname
 		 object: (NSString*)anObject
 		    for: (id<GDNCClient>)client
@@ -694,8 +695,10 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  NSArray	*args = nil;
 	  NSDate	*limit;
 
-	  cmd = [NSTask launchPathForTool: @"gdnc"];
-	
+	  cmd = [[NSSearchPathForDirectoriesInDomains(
+	    GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
+	    stringByAppendingPathComponent: @"gdnc"];
+
 	  NSDebugMLLog(@"NSDistributedNotificationCenter",
 @"\nI couldn't contact the notification server for %@ -\n"
 @"so I'm attempting to to start one - which will take a few seconds.\n"
@@ -736,13 +739,9 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  limit = [NSDate dateWithTimeIntervalSinceNow: 5.0];
 	  while (_remote == nil && [limit timeIntervalSinceNow] > 0)
 	    {
-              CREATE_AUTORELEASE_POOL(pool);
-              [NSThread sleepForTimeInterval: 0.05];
 	      _remote = [NSConnection
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
-              IF_NO_GC([_remote retain];)
-              IF_NO_GC(DESTROY(pool);)
 	    }
 	  if (_remote == nil)
 	    {
@@ -752,13 +751,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		@"I attempted to start it at '%@'\n", cmd];
 	    }
 	}
-#if	!GS_WITH_GC
-      else
-        {
-          [_remote retain];
-        }
-#endif
 
+      RETAIN(_remote);
       c = [_remote connectionForProxy];
       [_remote setProtocolForProxy: p];
     
@@ -801,11 +795,11 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
 		     selector: (NSString*)aSelector
-			   to: (uint64_t)observer
+			   to: (unsigned long)observer
 {
   id			userInfo;
   NSNotification	*notification;
-  id			recipient = (id)(uintptr_t)observer;
+  id			recipient = (id)observer;
 
   userInfo = [NSUnarchiver unarchiveObjectWithData: info];
   notification = [NSNotification notificationWithName: name

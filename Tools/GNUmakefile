@@ -23,31 +23,21 @@
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
-  ifeq ($(GNUSTEP_MAKEFILES),)
-    $(warning )
-    $(warning Unable to obtain GNUSTEP_MAKEFILES setting from gnustep-config!)
-    $(warning Perhaps gnustep-make is not properly installed,)
-    $(warning so gnustep-config is not in your PATH.)
-    $(warning )
-    $(warning Your PATH is currently $(PATH))
-    $(warning )
-  endif
 endif
 
 ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
-PACKAGE_NAME = gnustep-base
+# Install into the system root by default
+GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
+
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
--include ../Version
--include ../config.mak
-
-ADDITIONAL_CPPFLAGS = -DGNUSTEP_BASE_INTERNAL=1
-
+include ../Version
+include ../config.mak
 
 # DTDs to install
 dtddir = $(GNUSTEP_LIBRARY)/DTDs
@@ -72,7 +62,7 @@ ifeq ($(add),yes)
 TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
 TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge \
-		plparse sfparse pldes plget plser pl2link xmlparse HTMLLinker
+		plparse sfparse pldes plget plser pl2link xmlparse
 CTOOL_NAME = gdomap
 
 SUBPROJECTS = make_strings
@@ -100,7 +90,6 @@ sfparse_OBJC_FILES = sfparse.m
 pl2link_OBJC_FILES = pl2link.m
 locale_alias_OBJC_FILES = locale_alias.m
 xmlparse_OBJC_FILES = xmlparse.m
-HTMLLinker_OBJC_FILES = HTMLLinker.m
 
 DOCUMENT_NAME = autogsdoc
 
@@ -114,6 +103,8 @@ autogsdoc_DOC_INSTALL_DIR = Developer/Tools
 AUTOGSDOC=./$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc
 
 include Makefile.preamble
+
+-include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/tool.make
 include $(GNUSTEP_MAKEFILES)/ctool.make

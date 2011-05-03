@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,55 +16,56 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
    */
 
-#import "common.h"
-#define	EXPOSE_NSPort_IVARS	1
-#define	EXPOSE_NSSocketPort_IVARS	1
-#import "GNUstepBase/GSLock.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSNotificationQueue.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSRunLoop.h"
-#import "Foundation/NSByteOrder.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSDate.h"
-#import "Foundation/NSHost.h"
-#import "Foundation/NSMapTable.h"
-#import "Foundation/NSPortMessage.h"
-#import "Foundation/NSPortNameServer.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSHost.h"
-#import "Foundation/NSThread.h"
-#import "Foundation/NSConnection.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSLock.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSPortMessage.h"
+#include "Foundation/NSPortNameServer.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSConnection.h"
+#include "Foundation/NSDebug.h"
 
-#import "GSNetwork.h"
-#import "GSPortPrivate.h"
-#import "GSPrivate.h"
+#include "GSPortPrivate.h"
+#include "GSPrivate.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#include <unistd.h>		/* for gethostname() */
 #endif
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #define close closesocket
 #else
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 #include <errno.h>
+#include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #include <winsock2.h>
 #include <wininet.h>
 #include <process.h>
@@ -101,7 +102,7 @@
 #define	SOCKET_ERROR	-1
 #define	INVALID_SOCKET	-1
 
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 
 /*
  * Largest chunk of data possible in DO
@@ -186,7 +187,7 @@ typedef enum {
   GS_H_CONNECTED	// Currently connected.
 } GSHandleState;
 
-@interface GSTcpHandle : NSObject <RunLoopEvents>
+@interface GSTcpHandle : NSObject <GCFinalization, RunLoopEvents>
 {
   SOCKET		desc;		/* File descriptor for I/O.	*/
   unsigned		wItem;		/* Index of item being written.	*/
@@ -202,7 +203,7 @@ typedef enum {
   unsigned		nItems;		/* Number of items to be read.	*/
   GSHandleState		state;		/* State of the handle.		*/
   unsigned int		addrNum;	/* Address number within host.	*/
-#ifdef __MINGW__
+#ifdef __MINGW32__
   WSAEVENT              event;          /* Win32 event associated to socket */
   WSAEVENT              eventTemp;      /* Win32 event for asynchronous */
 @public
@@ -223,7 +224,7 @@ typedef enum {
 + (GSTcpHandle*) handleWithDescriptor: (SOCKET)d;
 - (BOOL) connectToPort: (NSSocketPort*)aPort beforeDate: (NSDate*)when;
 - (int) descriptor;
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 - (int) eventHandle;
 #endif
 - (void) invalidate;
@@ -252,14 +253,12 @@ decodePort(NSData *data, NSString *defaultAddress)
   GSPortInfo		*pi;
   NSString		*addr;
   uint16_t		pnum;
-  uint32_t		length;
   NSHost		*host;
   unichar		c;
 
   pih = (GSPortItemHeader*)[data bytes];
   NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
     NSInternalInconsistencyException);
-  length = GSSwapBigI32ToHost(pih->length);
   pi = (GSPortInfo*)&pih[1];
   pnum = GSSwapBigI16ToHost(pi->num);
   if (strncmp(pi->addr, "VER", 3) == 0)
@@ -369,13 +368,13 @@ static Class	runLoopClass;
 + (GSTcpHandle*) handleWithDescriptor: (SOCKET)d
 {
   GSTcpHandle	*handle;
-#ifdef __MINGW__
+#ifdef __MINGW32__
   unsigned long dummy;
 #else
   int		e;
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
   WSAEVENT ev;
   int rc;
 #endif
@@ -385,7 +384,7 @@ static Class	runLoopClass;
       NSLog(@"illegal descriptor (%d) for Tcp Handle", d);
       return nil;
     }
-#ifdef __MINGW__
+#ifdef __MINGW32__
   dummy = 1;
   if (ioctlsocket(d, FIONBIO, &dummy) == SOCKET_ERROR)
     {
@@ -393,7 +392,7 @@ static Class	runLoopClass;
 	d, [NSError _last]);
       return nil;
     }
-#else /* !__MINGW__ */
+#else /* !__MINGW32__ */
   if ((e = fcntl(d, F_GETFL, 0)) >= 0)
     {
       e |= NBLK_OPT;
@@ -416,7 +415,7 @@ static Class	runLoopClass;
   handle->wMsgs = [NSMutableArray new];
   handle->myLock = [GSLazyRecursiveLock new];
   handle->valid = YES;
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   ev = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
   if (ev == WSA_INVALID_EVENT)
     {
@@ -437,7 +436,7 @@ static Class	runLoopClass;
 {
   if (self == [GSTcpHandle class])
     {
-#ifdef __MINGW__
+#ifdef __MINGW32__
       WORD wVersionRequested;
       WSADATA wsaData;
 
@@ -538,7 +537,7 @@ static Class	runLoopClass;
   if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr))
     == SOCKET_ERROR)
     {
-#ifdef __MINGW__
+#ifdef __MINGW32__
       if (WSAGetLastError() != WSAEWOULDBLOCK)
 #else
       if (errno != EINPROGRESS)
@@ -565,7 +564,7 @@ static Class	runLoopClass;
 
   state = GS_H_TRYCON;
   l = [NSRunLoop currentRunLoop];
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
   [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
@@ -603,7 +602,7 @@ static Class	runLoopClass;
       M_LOCK(myLock);
     }
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
@@ -674,7 +673,7 @@ static Class	runLoopClass;
 
 - (void) dealloc
 {
-  [self finalize];
+  [self gcFinalize];
   DESTROY(defaultAddress);
   DESTROY(rData);
   DESTROY(rItems);
@@ -694,14 +693,14 @@ static Class	runLoopClass;
   return desc;
 }
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 - (int) eventHandle
 {
-  return (int) (size_t) event;
+  return (int)event;
 }
 #endif
 
-- (void) finalize
+- (void) gcFinalize
 {
   [self invalidate];
   (void)close(desc);
@@ -719,7 +718,7 @@ static Class	runLoopClass;
 
 	  valid = NO;
 	  l = [runLoopClass currentRunLoop];
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  [l removeEvent: (void*)(uintptr_t)event
 		    type: ET_HANDLE
 		 forMode: nil
@@ -741,7 +740,7 @@ static Class	runLoopClass;
 	  NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x", self);
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
           WSACloseEvent(event);
           event = WSA_INVALID_EVENT;
 #endif
@@ -808,12 +807,12 @@ static Class	runLoopClass;
           [self invalidate];
           return;
         }
-#ifdef __MINGW__
+#ifdef __MINGW32__
       else if (WSAGetLastError()!= WSAEINTR
 	&& WSAGetLastError()!= WSAEWOULDBLOCK)
 #else
       else if (errno != EINTR && errno != EAGAIN)
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 	{
 	  NSDebugMLLog(@"GSTcpHandle",
 	      @"read failed - %@ on 0x%p", [NSError _last], self);
@@ -1074,7 +1073,7 @@ static Class	runLoopClass;
           DESTROY(rItems);
           NSDebugMLLog(@"GSTcpHandle",
         	@"got message %@ on 0x%x", pm, self);
-          IF_NO_GC(RETAIN(rp);)
+          RETAIN(rp);
           M_UNLOCK(myLock);
           NS_DURING
             {
@@ -1101,7 +1100,7 @@ static Class	runLoopClass;
   if (state == GS_H_TRYCON)	/* Connection attempt.	*/
     {
       int	res = 0;
-      socklen_t len = sizeof(res);
+      unsigned	len = sizeof(res);
 
       if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) != 0)
         {
@@ -1162,23 +1161,23 @@ static Class	runLoopClass;
       res = send(desc, b + wLength,  l - wLength, 0);
       if (res < 0)
         {
-#ifdef __MINGW__
+#ifdef __MINGW32__
           if (WSAGetLastError()!= WSAEINTR
 	    && WSAGetLastError()!= WSAEWOULDBLOCK)
 #else
 	  if (errno != EINTR && errno != EAGAIN)
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 	    {
 	      NSLog(@"write attempt failed - %@", [NSError _last]);
 	      [self invalidate];
 	      return;
 	    }
-#ifdef __MINGW__
+#ifdef __MINGW32__
 	  if (WSAGetLastError()== WSAEWOULDBLOCK)
 	    {
 	      readyToSend = NO;
 	    }
-#endif /* !__MINGW__ */
+#endif /* !__MINGW32__ */
 	}
       else
         {
@@ -1223,10 +1222,11 @@ static Class	runLoopClass;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   WSANETWORKEVENTS ocurredEvents;
-#else
 #endif
+  NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x",
+    type == ET_RPORT ? "read" : "write", self);
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
@@ -1235,7 +1235,7 @@ static Class	runLoopClass;
     {
       NSRunLoop	*l = [runLoopClass currentRunLoop];
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       [l removeEvent: data
 		type: ET_HANDLE
 	     forMode: mode
@@ -1255,7 +1255,7 @@ static Class	runLoopClass;
 
   M_LOCK(myLock);
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   if (WSAEnumNetworkEvents(desc, event, &ocurredEvents)==SOCKET_ERROR)
     {
       NSLog(@"Error getting event type %d", WSAGetLastError());
@@ -1264,7 +1264,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents & FD_CONNECT)
     {
       [self receivedEventWrite];
-      GSPrivateNotifyASAP(mode);
+      GSPrivateNotifyASAP();
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1275,7 +1275,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents & FD_READ)
     {
       [self receivedEventRead];
-      GSPrivateNotifyASAP(mode);
+      GSPrivateNotifyASAP();
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1286,7 +1286,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents & FD_OOB)
     {
       [self receivedEventRead];
-      GSPrivateNotifyASAP(mode);
+      GSPrivateNotifyASAP();
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1298,7 +1298,7 @@ static Class	runLoopClass;
     {
       readyToSend = YES;
       [self receivedEventWrite];
-      GSPrivateNotifyASAP(mode);
+      GSPrivateNotifyASAP();
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1309,7 +1309,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents & FD_CLOSE)
     {
       [self receivedEventRead];
-      GSPrivateNotifyASAP(mode);
+      GSPrivateNotifyASAP();
       if (desc == INVALID_SOCKET)
         {
           M_UNLOCK(myLock);
@@ -1323,7 +1323,7 @@ static Class	runLoopClass;
       abort();      
     }
 #else
-  if (type != ET_WDESC)
+  if (type == ET_RPORT)
     {
       [self receivedEventRead];
     }
@@ -1350,9 +1350,9 @@ static Class	runLoopClass;
 
   l = [runLoopClass currentRunLoop];
 
-  IF_NO_GC(RETAIN(self);)
+  RETAIN(self);
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
   [l addEvent: (void*)(uintptr_t)event
 	 type: ET_HANDLE
@@ -1387,7 +1387,7 @@ static Class	runLoopClass;
     && [when timeIntervalSinceNow] > 0)
     {
       M_UNLOCK(myLock);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       if (readyToSend)
         {
           [self receivedEventWrite];
@@ -1402,7 +1402,7 @@ static Class	runLoopClass;
       M_LOCK(myLock);
     }
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   [l removeEvent: (void*)(uintptr_t)event
 	    type: ET_HANDLE
 	 forMode: NSConnectionReplyMode
@@ -1436,9 +1436,9 @@ static Class	runLoopClass;
       sent = YES;
     }
   M_UNLOCK(myLock);
+  RELEASE(self);
   NSDebugMLLog(@"GSTcpHandle",
     @"Message send 0x%x on 0x%x status %d", components, self, sent);
-  RELEASE(self);
   return sent;
 }
 
@@ -1539,7 +1539,7 @@ static Class		tcpPortClass;
 		    forceAddress: (NSString*)addr
 			listener: (BOOL)shouldListen
 {
-  socklen_t 		slen;
+  unsigned		i;
   NSSocketPort		*port = nil;
   NSHost		*thisHost = [NSHost localHost];
   NSMapTable		*thePorts;
@@ -1583,7 +1583,7 @@ static Class		tcpPortClass;
       port->address = [addr copy];
       port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       port->eventListener = WSA_INVALID_EVENT;
       port->events = NSCreateMapTable(NSIntMapKeyCallBacks,
         NSIntMapValueCallBacks, 0);
@@ -1627,7 +1627,7 @@ static Class		tcpPortClass;
 	  /*
            * Need size of buffer for getsockbyname() later.
 	   */
-	  slen = sizeof(sockaddr);
+	  i = sizeof(sockaddr);
 
 	  if (addrOk == NO)
 	    {
@@ -1664,13 +1664,13 @@ static Class		tcpPortClass;
 	      (void) close(desc);
               DESTROY(port);
 	    }
-	  else if (listen(desc, 128) == SOCKET_ERROR)
+	  else if (listen(desc, GSBACKLOG) == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to listen on port - %@", [NSError _last]);
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
-	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &slen)
+	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i)
 	    == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to get socket name - %@", [NSError _last]);
@@ -1679,7 +1679,7 @@ static Class		tcpPortClass;
 	    }
 	  else
 	    {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
               int rc;
 #endif
 	      /*
@@ -1689,7 +1689,7 @@ static Class		tcpPortClass;
 	       */
 	      port->listener = desc;
 	      port->portNum = GSSwapBigI16ToHost(sockaddr.sin_port); 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
               port->eventListener = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
               if (port->eventListener == WSA_INVALID_EVENT)
                 {
@@ -1751,7 +1751,7 @@ static Class		tcpPortClass;
     }
   else
     {
-      IF_NO_GC(RETAIN(port);)
+      RETAIN(port);
       NSDebugMLLog(@"NSPort", @"Using pre-existing port: %@", port);
     }
   IF_NO_GC(AUTORELEASE(port));
@@ -1775,7 +1775,7 @@ static Class		tcpPortClass;
       handle->recvPort = GS_GC_HIDE(self);
     }
   NSMapInsert(handles, (void*)(uintptr_t)[handle descriptor], (void*)handle);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSMapInsert(events, (void*)(uintptr_t)[handle eventHandle],
           (void*)(uintptr_t)[handle descriptor]);
 #endif
@@ -1794,41 +1794,42 @@ static Class		tcpPortClass;
 
 - (void) dealloc
 {
-  [self finalize];
+  [self gcFinalize];
+  DESTROY(host);
+  TEST_RELEASE(address);
   [super dealloc];
 }
 
 - (NSString*) description
 {
-  NSString	*desc;
+  NSMutableString	*desc;
 
-  desc = [NSString stringWithFormat:
-    @"<%s %p on IP %@,%d>",
-    GSClassNameFromObject(self), self,
-    ((address == nil) ? (id)@"any" : (id)address), portNum];
+  desc = [NSMutableString stringWithFormat: @"NSPort on host with details -\n"
+    @"%@\n", host];
+  if (address == nil)
+    {
+      [desc appendFormat: @"  IP address - any\n"];
+    }
+  else
+    {
+      [desc appendFormat: @"  IP address - %@\n", address];
+    }
+  [desc appendFormat: @"  TCP port - %d\n", portNum];
   return desc;
 }
 
-- (void) finalize
+- (void) gcFinalize
 {
   NSDebugMLLog(@"NSPort", @"NSSocketPort 0x%x finalized", self);
   [self invalidate];
-  if (handles != 0)
-    {
-      NSFreeMapTable(handles);
-      handles = 0;
-    }
-  DESTROY(host);
-  TEST_RELEASE(address);
-  DESTROY(myLock);
 }
 
 /*
  * This is a callback method used by the NSRunLoop class to determine which
  * descriptors to watch for the port.
  */
-#if	defined(__MINGW__)
-- (void) getFds: (int*)fds count: (int*)count
+#if	defined(__MINGW32__)
+- (void) getFds: (NSInteger*)fds count: (NSInteger*)count
 {
   NSMapEnumerator	me;
   void			*event;
@@ -1865,14 +1866,13 @@ static Class		tcpPortClass;
       if (handle->recvPort == recvSelf && handle->inReplyMode == NO)
 	{
 	  fds[(*count)++] = (uintptr_t)event;
-          NSDebugMLLog(@"NSPort", @"Add event %p", event);
 	}
     }
   NSEndMapTableEnumeration(&me);
   M_UNLOCK(myLock);
 }
 #else
-- (void) getFds: (int*)fds count: (int*)count
+- (void) getFds: (NSInteger*)fds count: (NSInteger*)count
 {
   NSMapEnumerator	me;
   void			*sock;
@@ -1927,9 +1927,9 @@ static Class		tcpPortClass;
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
     {
-      if ((NSPort*) [handle recvPort] == recvPort)
+      if ([handle recvPort] == recvPort)
 	{
-	  IF_NO_GC(RETAIN(handle);)
+	  RETAIN(handle);
 	  NSEndMapTableEnumeration(&me);
 	  M_UNLOCK(myLock);
 	  return AUTORELEASE(handle);
@@ -2030,9 +2030,9 @@ static Class		tcpPortClass;
   [d handlePortMessage: m];
 }
 
-- (NSUInteger) hash
+- (unsigned) hash
 {
-  return (NSUInteger)portNum;
+  return (unsigned)portNum;
 }
 
 - (NSHost*) host
@@ -2042,7 +2042,7 @@ static Class		tcpPortClass;
 
 - (id) init
 {
-  DESTROY(self);
+  RELEASE(self);
   self = [tcpPortClass new];
   return self;
 }
@@ -2051,7 +2051,6 @@ static Class		tcpPortClass;
 {
   if ([self isValid] == YES)
     {
-      IF_NO_GC(RETAIN(self);)
       M_LOCK(myLock);
 
       if ([self isValid] == YES)
@@ -2072,7 +2071,7 @@ static Class		tcpPortClass;
 	    {
 	      (void) close(listener);
 	      listener = -1;
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	      WSACloseEvent(eventListener);
 	      eventListener = WSA_INVALID_EVENT;                   
 #endif
@@ -2088,8 +2087,17 @@ static Class		tcpPortClass;
 
 		  [handle invalidate];
 		}
+	      /*
+	       * We permit mutual recursive invalidation, so the handles map
+	       * may already have been destroyed.
+	       */
+	      if (handles != 0)
+		{
+		  NSFreeMapTable(handles);
+		  handles = 0;
+		}
 	    }
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  if (events != 0)
 	    {
 	      NSFreeMapTable(events);
@@ -2100,7 +2108,6 @@ static Class		tcpPortClass;
 	  [super invalidate];
 	}
       M_UNLOCK(myLock);
-      RELEASE(self);
     }
 }
 
@@ -2132,7 +2139,7 @@ static Class		tcpPortClass;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   WSAEVENT      event = (WSAEVENT)extra;
   SOCKET	desc;
 #else
@@ -2140,17 +2147,17 @@ static Class		tcpPortClass;
 #endif
   GSTcpHandle	*handle;
 
-  NSDebugMLLog(@"NSPort", @"received %s event %p on 0x%x",
-    type == ET_RPORT ? "read" : "write", extra, self);
+  NSDebugMLLog(@"NSPort", @"received %s event on 0x%x",
+    type == ET_RPORT ? "read" : "write", self);
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   if (event == eventListener)
 #else
   if (desc == listener)
 #endif
     {
       struct sockaddr_in	sockAddr;
-      socklen_t size = sizeof(sockAddr);
+      unsigned			size = sizeof(sockAddr);
 
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
       if (desc == INVALID_SOCKET)
@@ -2163,7 +2170,7 @@ static Class		tcpPortClass;
 
 	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
 	    sizeof(status));
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  // reset associated event with new socket
 	  WSAEventSelect(desc, eventListener, 0);
 #endif
@@ -2184,7 +2191,7 @@ static Class		tcpPortClass;
   else
     {
       M_LOCK(myLock);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       desc = (SOCKET)NSMapGet(events, (void*)(uintptr_t)event);
 #endif
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
@@ -2194,7 +2201,7 @@ static Class		tcpPortClass;
 	{
 	  const char	*t;
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 	  if (type == ET_HANDLE) t = "winhandle";
 #else
 	  if (type == ET_RDESC) t = "rdesc";
@@ -2245,7 +2252,6 @@ static Class		tcpPortClass;
  */
 - (void) removeHandle: (GSTcpHandle*)handle
 {
-  IF_NO_GC(RETAIN(self);)
   M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
@@ -2258,7 +2264,7 @@ static Class		tcpPortClass;
 	   * been retained - we must therefore release this port since the
 	   * handle no longer uses it.
 	   */
-	  IF_NO_GC(RELEASE(self);)
+	  AUTORELEASE(self);
 	}
       handle->sendPort = nil;
     }
@@ -2267,7 +2273,7 @@ static Class		tcpPortClass;
       handle->recvPort = nil;
     }
   NSMapRemove(handles, (void*)(uintptr_t)[handle descriptor]);
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSMapRemove(events, (void*)(uintptr_t)[handle eventHandle]);
 #endif
   if (((int) listener) < 0 && NSCountMapTable(handles) == 0)
@@ -2275,7 +2281,6 @@ static Class		tcpPortClass;
       [self invalidate];
     }
   M_UNLOCK(myLock);
-  RELEASE(self);
 }
 
 /*
@@ -2286,16 +2291,16 @@ static Class		tcpPortClass;
  * the start can be written directly without having to copy data to another
  * buffer etc.
  */
-- (unsigned int) reservedSpaceLength
+- (NSUInteger) reservedSpaceLength
 {
   return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (int)msgId
+		  msgid: (NSInteger)msgId
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
-               reserved: (unsigned)length
+               reserved: (NSUInteger)length
 {
   BOOL		sent = NO;
   GSTcpHandle	*h;
@@ -2377,7 +2382,6 @@ static Class		tcpPortClass;
        * a maximum of NETBLOCK bytes.  This is to try to get a single,
        * efficient write operation if possible.
        */
-      c = [components count];
       for (i = 1; i < c; i++)
 	{
 	  id	o = [components objectAtIndex: i];

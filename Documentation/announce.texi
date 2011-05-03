@@ -37,3 +37,11 @@ Please log bug reports on the GNUstep project page
 @url{http://savannah.gnu.org/bugs/?group=gnustep} or send bug
 reports to @email{bug-gnustep@@gnu.org}.
 
+@ifinfo
+Copyright @copyright{} 2005 Free Software Foundation
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+@end ifinfo
+

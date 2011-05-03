@@ -7,7 +7,7 @@
    This file is part of the GNUstep Objective-C Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -39,20 +39,15 @@ extern "C" {
  */
 @interface NSScanner : NSObject <NSCopying>
 {
-#if	GS_EXPOSE(NSScanner)
 @private
   NSString		*_string;
   NSCharacterSet	*_charactersToBeSkipped;
   BOOL			(*_skipImp)(NSCharacterSet*, SEL, unichar);
   NSDictionary		*_locale;
-  NSUInteger		_scanLocation;
+  unsigned int		_scanLocation;
   unichar		_decimal;
   BOOL			_caseSensitive;
   BOOL			_isUnicode;
-#endif
-#if	!GS_NONFRAGILE
-  void			*_unused;
-#endif
 }
 
 /*
@@ -70,8 +65,8 @@ extern "C" {
 /*
  * Configuring an NSScanner
  */
-- (NSUInteger) scanLocation;
-- (void) setScanLocation: (NSUInteger)anIndex;
+- (unsigned) scanLocation;
+- (void) setScanLocation: (unsigned int)anIndex;
 
 - (BOOL) caseSensitive;
 - (void) setCaseSensitive: (BOOL)flag;
@@ -103,16 +98,6 @@ extern "C" {
 #endif
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) scanDecimal: (NSDecimal*)value;
-#endif
-#if OS_API_VERSION(100500, GS_API_LATEST)
-/** Not implemented */
-- (BOOL) scanHexDouble: (double *)result;
-/** Not implemented */
-- (BOOL) scanHexFloat: (float *)result;
-/** Not implemented */
-- (BOOL) scanHexLongLong: (unsigned long long *)result;
-/** Not implemented */
-- (BOOL) scanInteger: (NSInteger *)value;
 #endif
 @end
 

@@ -1,5 +1,5 @@
 /** Implementation of ObjC runtime additions for GNUStep
-   Copyright (C) 1995-2010 Free Software Foundation, Inc.
+   Copyright (C) 1995-2002 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: Aug 1995
@@ -11,7 +11,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -20,45 +20,40 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 
    <title>GSObjCRuntime function and macro reference</title>
    $Date$ $Revision$
    */
 
-#import "common.h"
-#import "GNUstepBase/preface.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
 #ifndef NeXT_Foundation_LIBRARY
-#import "Foundation/NSArray.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSLock.h"
-#import "Foundation/NSMethodSignature.h"
-#import "Foundation/NSNull.h"
-#import "Foundation/NSSet.h"
-#import "Foundation/NSValue.h"
+#include <Foundation/NSArray.h>
+#include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSData.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSEnumerator.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSLock.h>
+#include <Foundation/NSMethodSignature.h>
+#include <Foundation/NSNull.h>
+#include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSSet.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSValue.h>
 #else
-#import <Foundation/Foundation.h>
+#include <Foundation/Foundation.h>
 #endif
-#import "GNUstepBase/GSObjCRuntime.h"
-
-#import "../GSPrivate.h"
+#include "GNUstepBase/GSObjCRuntime.h"
+#include "GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSCategories.h"
 
 #include <objc/Protocol.h>
 
-#include <stdio.h>
 #include <string.h>
-#include <ctype.h>
-
-#ifndef NeXT_RUNTIME
-#include <pthread.h>
-#endif
 
 #ifdef NeXT_Foundation_LIBRARY
 @interface NSObject (MissingFromMacOSX)
@@ -69,131 +64,58 @@
 #define BDBGPrintf(format, args...) \
   do { if (behavior_debug) { fprintf(stderr, (format) , ## args); } } while (0)
 
+static objc_mutex_t local_lock = NULL;
 
-Class
-GSObjCClass(id obj)
+/* This class it intended soley for thread safe / +load safe
+   initialization of the local lock.
+   It's a root class so it won't trigger the initialization
+   of any other class.  */
+@interface _GSObjCRuntimeInitializer /* Root Class */
 {
-  return object_getClass(obj);
+  Class isa;
 }
-Class GSObjCSuper(Class cls)
++ (Class)class;
+@end
+@implementation _GSObjCRuntimeInitializer
++ (void)initialize
 {
-  return class_getSuperclass(cls);
+  if (local_lock == NULL)
+    {
+      local_lock = objc_mutex_allocate();
+    }
 }
-BOOL
-GSObjCIsInstance(id obj)
++ (Class)class
 {
-  Class	c = object_getClass(obj);
+  return self;
+}
+@end
 
-  if (c != Nil && class_isMetaClass(c) == NO)
-    return YES;
-  else
-    return NO;
-}
-BOOL
-GSObjCIsClass(Class cls)
-{
-  if (class_isMetaClass(object_getClass(cls)))
-    return YES; 
-  else
-    return NO;
-}
-BOOL
-GSObjCIsKindOf(Class cls, Class other)
-{
-  while (cls != Nil)
-    {
-      if (cls == other)
-	{
-	  return YES;
-	}
-      cls = class_getSuperclass(cls);
-    }
-  return NO;
-}
-Class
-GSClassFromName(const char *name)
-{
-  return objc_lookUpClass(name);
-}
-const char *
-GSNameFromClass(Class cls)
-{
-  return class_getName(cls);
-}
-const char *
-GSClassNameFromObject(id obj)
-{
-  return class_getName(object_getClass(obj));
-}
-const char *
-GSNameFromSelector(SEL sel)
-{
-  return sel_getName(sel);
-}
-SEL
-GSSelectorFromName(const char *name)
-{
-  return sel_getUid(name);
-}
-SEL
-GSSelectorFromNameAndTypes(const char *name, const char *types)
-{
-#if NeXT_RUNTIME
-  return sel_getUid(name);
-#else
-  if (name == 0)
-    {
-      return 0;
-    }
-  else
-    {
-      SEL s;
-
-      if (types == 0)
-	{
-	  s = sel_get_any_typed_uid(name);
-	}
-      else
-	{
-	  s = sel_get_typed_uid(name, types);
-	}
-      if (s == 0)
-	{
-	  if (types == 0)
-	    {
-	      s = sel_register_name(name);
-	    }
-	  else
-	    {
-	      s = sel_register_typed_name(name, types);
-	    }
-	}
-      return s;
-    }
-#endif
-}
-const char *
-GSTypesFromSelector(SEL sel)
-{
-#if NeXT_RUNTIME
-  return 0;
-#else
-  if (sel == 0)
-    return 0;
-  return sel_get_type(sel);
-#endif
-}
 void
-GSFlushMethodCacheForClass (Class cls)
+GSAllocateMutexAt(objc_mutex_t *request)
 {
-  return;
-}
-int
-GSObjCVersion(Class cls)
-{
-  return class_getVersion(cls);
-}
+  if (request == NULL)
+    {
+      /* This could be called very early in process
+	 initialization so many things may not have
+	 been setup correctly yet.  */
+      fprintf(stderr,
+	      "Error: GSAllocateMutexAt() called with NULL pointer.\n");
+      abort();
+    }
 
+  if (local_lock == NULL)
+    {
+      /* Initialize in a thread safe way.  */
+      [_GSObjCRuntimeInitializer class];
+    }
+
+  objc_mutex_lock(local_lock);
+  if (*request == NULL)
+    {
+      *request = objc_mutex_allocate();
+    }
+  objc_mutex_unlock(local_lock);
+}
 
 /**
  * This function is used to locate information about the instance
@@ -204,37 +126,44 @@ GSObjCVersion(Class cls)
  */
 BOOL
 GSObjCFindVariable(id obj, const char *name,
-  const char **type, unsigned int *size, int *offset)
+		   const char **type, unsigned int *size, int *offset)
 {
-  Class		class = object_getClass(obj);
-  Ivar		ivar = class_getInstanceVariable(class, name);
+  Class			class;
+  struct objc_ivar_list	*ivars;
+  struct objc_ivar	*ivar = 0;
 
+  if (obj == nil) return NO;
+  class = GSObjCClass(obj);
+  while (class != nil && ivar == 0)
+    {
+      ivars = class->ivars;
+      class = class->super_class;
+      if (ivars != 0)
+	{
+	  int	i;
+
+	  for (i = 0; i < ivars->ivar_count; i++)
+	    {
+	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
+		{
+		  ivar = &ivars->ivar_list[i];
+		  break;
+		}
+	    }
+	}
+    }
   if (ivar == 0)
     {
       return NO;
     }
-  else
-    {
-      const char	*enc = ivar_getTypeEncoding(ivar);
 
-      if (type != 0)
-	{
-	  *type = enc;
-	}
-      if (size != 0)
-	{
-	  NSUInteger	s;
-	  NSUInteger	a;
-
-	  NSGetSizeAndAlignment(enc, &s, &a);
-	  *size = s;
-	}
-      if (offset != 0)
-	{
-	  *offset = ivar_getOffset(ivar);
-	}
-      return YES;
-    }
+  if (type)
+    *type = ivar->ivar_type;
+  if (size)
+    *size = objc_sizeof_type(ivar->ivar_type);
+  if (offset)
+    *offset = ivar->ivar_offset;
+  return YES;
 }
 
 /**
@@ -245,11 +174,12 @@ GSObjCFindVariable(id obj, const char *name,
  * Returns nil if obj is nil.
  */
 NSArray *
-GSObjCMethodNames(id obj, BOOL recurse)
+GSObjCMethodNames(id obj)
 {
   NSMutableSet	*set;
   NSArray	*array;
   Class		 class;
+  GSMethodList	 methods;
 
   if (obj == nil)
     {
@@ -261,31 +191,33 @@ GSObjCMethodNames(id obj, BOOL recurse)
    */
   set = [[NSMutableSet alloc] initWithCapacity: 32];
 
-  class = object_getClass(obj);
+  class = GSObjCClass(obj);
 
-  while (class != Nil)
+  while (class != nil)
     {
-      unsigned	count;
-      Method	*meth = class_copyMethodList(class, &count);
+      void *iterator = 0;
 
-      while (count-- > 0)
+      while ((methods = class_nextMethodList(class, &iterator)))
 	{
-	  NSString	*name;
+	  int i;
 
-	  name = [[NSString alloc] initWithFormat: @"%s",
-	    sel_getName(method_getName(meth[count]))];
-	  [set addObject: name];
-	  [name release];
+	  for (i = 0; i < methods->method_count; i++)
+	    {
+	      GSMethod method = &methods->method_list[i];
+
+	      if (method->method_name != 0)
+		{
+		  NSString	*name;
+                  const char *cName;
+
+                  cName = GSNameFromSelector(method->method_name);
+                  name = [[NSString alloc] initWithUTF8String: cName];
+		  [set addObject: name];
+		  RELEASE(name);
+		}
+	    }
 	}
-      if (meth != NULL)
-	{
-          free(meth);
-        }
-      if (NO == recurse)
-	{
-	  break;
-	}
-      class = class_getSuperclass(class);
+      class = class->super_class;
     }
 
   array = [set allObjects];
@@ -300,51 +232,37 @@ GSObjCMethodNames(id obj, BOOL recurse)
  * Returns nil if obj is nil.
  */
 NSArray *
-GSObjCVariableNames(id obj, BOOL recurse)
+GSObjCVariableNames(id obj)
 {
-  NSMutableSet	*set;
-  NSArray	*array;
-  Class		 class;
+  NSMutableArray	*array;
+  Class			class;
+  struct objc_ivar_list	*ivars;
 
   if (obj == nil)
     {
       return nil;
     }
-  /*
-   * Add names to a set so methods declared in superclasses
-   * and then overridden do not appear more than once.
-   */
-  set = [[NSMutableSet alloc] initWithCapacity: 32];
-
-  class = object_getClass(obj);
-
-  while (class != Nil)
+  array = [NSMutableArray arrayWithCapacity: 16];
+  class = GSObjCClass(obj);
+  while (class != nil)
     {
-      unsigned	count;
-      Ivar	*ivar = class_copyIvarList(class, &count);
+      ivars = class->ivars;
+      if (ivars != 0)
+	{
+	  int		i;
 
-      while (count-- > 0)
-	{
-	  NSString	*name;
+	  for (i = 0; i < ivars->ivar_count; i++)
+	    {
+	      NSString	*name;
 
-	  name = [[NSString alloc] initWithFormat: @"%s",
-	    ivar_getName(ivar[count])];
-	  [set addObject: name];
-	  [name release];
+	      name = [[NSString alloc] initWithUTF8String:
+		ivars->ivar_list[i].ivar_name];
+	      [array addObject: name];
+	      RELEASE(name);
+	    }
 	}
-      if (ivar != NULL)
-	{
-          free(ivar);
-	}
-      if (NO == recurse)
-	{
-	  break;
-	}
-      class = class_getSuperclass(class);
+      class = class->super_class;
     }
-
-  array = [set allObjects];
-  RELEASE(set);
   return array;
 }
 
@@ -375,6 +293,7 @@ GSObjCSetVariable(id obj, int offset, unsigned int size, const void *data)
 GS_EXPORT unsigned int
 GSClassList(Class *buffer, unsigned int max, BOOL clearCache)
 {
+#ifdef NeXT_RUNTIME
   int num;
 
   if (buffer != NULL)
@@ -384,6 +303,73 @@ GSClassList(Class *buffer, unsigned int max, BOOL clearCache)
 
   num = objc_getClassList(buffer, max);
   num = (num < 0) ? 0 : num;
+
+#else
+  static Class *cache = 0;
+  static unsigned cacheClassCount = 0;
+  static volatile objc_mutex_t cache_lock = NULL;
+  unsigned int num;
+
+  if (cache_lock == NULL)
+    {
+      GSAllocateMutexAt((void*)&cache_lock);
+    }
+
+  objc_mutex_lock(cache_lock);
+
+  if (clearCache)
+    {
+      if (cache)
+	{
+	  objc_free(cache);
+	  cache = NULL;
+	}
+      cacheClassCount = 0;
+    }
+
+  if (cache == NULL)
+    {
+      void *iterator = 0;
+      Class cls;
+      unsigned int i;
+
+      cacheClassCount = 0;
+      while ((cls = objc_next_class(&iterator)))
+	{
+	  cacheClassCount++;
+	}
+      cache = objc_malloc(sizeof(Class) * (cacheClassCount + 1));
+      /* Be extra careful as another thread may be loading classes.  */
+      for (i = 0, iterator = 0, cls = objc_next_class(&iterator);
+	   i < cacheClassCount && cls != NULL;
+	   i++, cls = objc_next_class(&iterator))
+	{
+	  cache[i] = cls;
+	}
+      cache[i] = NULL;
+    }
+
+  if (buffer == NULL)
+    {
+      num = cacheClassCount;
+    }
+  else
+    {
+      size_t       cpySize;
+      unsigned int cpyCnt;
+
+      cpyCnt = MIN(max, cacheClassCount);
+      cpySize = sizeof(Class) * cpyCnt;
+      memcpy(buffer, cache, cpySize);
+      buffer[cpyCnt] = NULL;
+
+      num = (max > cacheClassCount) ? 0 : (cacheClassCount - max);
+    }
+
+  objc_mutex_unlock(cache_lock);
+
+#endif
+
   return num;
 }
 
@@ -408,6 +394,10 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
   Class		newClass;
   Class		classSuperClass;
   const char	*classNameCString;
+  const char	*superClassNameCString;
+  Class		newMetaClass;
+  Class		rootClass;
+  unsigned int	iVarSize;
   char		*tmp;
 
   NSCAssert(name, @"no name");
@@ -418,43 +408,98 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
   NSCAssert1(classSuperClass, @"No class named %@",superName);
   NSCAssert1(!NSClassFromString(name), @"A class %@ already exists", name);
 
-  classNameCString = [name UTF8String];
-  tmp = malloc(strlen(classNameCString) + 1);
+  classNameCString = [name cString];
+  tmp = objc_malloc(strlen(classNameCString) + 1);
   strcpy(tmp, classNameCString);
   classNameCString = tmp;
 
-  newClass = objc_allocateClassPair(classSuperClass, classNameCString, 0);
+  superClassNameCString = [superName cString];
+  tmp = objc_malloc(strlen(superClassNameCString) + 1);
+  strcpy(tmp, superClassNameCString);
+  superClassNameCString = tmp;
+
+  rootClass = classSuperClass;
+  while (rootClass->super_class != 0)
+    {
+      rootClass = rootClass->super_class;
+    }
+
+  /*
+   * Create new class and meta class structure storage
+   *
+   * From Nicola: NB: There is a trick here.
+   * The runtime system will look up the name in the following string,
+   * and replace it with a pointer to the actual superclass structure.
+   * This also means the type of pointer will change, that's why we
+   * need to cast it.
+   */
+  newMetaClass = objc_malloc(sizeof(struct objc_class));
+  memset(newMetaClass, 0, sizeof(struct objc_class));
+  newMetaClass->class_pointer = rootClass->class_pointer; // Points to root
+  newMetaClass->super_class = (Class)superClassNameCString;
+  newMetaClass->name = classNameCString;
+  newMetaClass->version = 0;
+  newMetaClass->info = _CLS_META; // this is a Meta Class
+
+
+  newClass = objc_malloc(sizeof(struct objc_class));
+  memset(newClass, 0, sizeof(struct objc_class));
+  newClass->class_pointer = newMetaClass; // Points to the class's meta class.
+  newClass->super_class = (Class)superClassNameCString;
+  newClass->name = classNameCString;
+  newClass->version = 0;
+  newClass->info = _CLS_CLASS; // this is a Class
+
+  // work on instances variables
+  iVarSize = classSuperClass->instance_size; // super class ivar size
   if ([iVars count] > 0)
     {
+      unsigned int	iVarsStructsSize;
+      struct objc_ivar	*ivar = NULL;
+      unsigned int	iVarsCount = [iVars count];
       NSEnumerator	*enumerator = [iVars keyEnumerator];
       NSString		*key;
 
+      // ivars list is 1 objc_ivar_list followed by (iVarsCount-1) ivar_list
+      iVarsStructsSize = sizeof(struct objc_ivar_list)
+	+ (iVarsCount-1)*sizeof(struct objc_ivar);
+
+      // Allocate for all ivars
+      newClass->ivars = (struct objc_ivar_list*)objc_malloc(iVarsStructsSize);
+      memset(newClass->ivars, 0, iVarsStructsSize);
+
+      // Set ivars count
+      newClass->ivars->ivar_count = iVarsCount;
+
+      // initialize each ivar
+      ivar = newClass->ivars->ivar_list; // 1st one
       while ((key = [enumerator nextObject]) != nil)
         {
-          const	char	*iVarName = [key UTF8String];
-          const char	*iVarType = [[iVars objectForKey: key] UTF8String];
-	  uint8_t	iVarAlign = 0;
-	  size_t	iVarSize;
-	  NSUInteger	s;
-	  NSUInteger	a;
+          const	char	*iVarName = [key cString];
+          const char	*iVarType = [[iVars objectForKey: key] cString];
 
-	  NSGetSizeAndAlignment(iVarType, &s, &a);
-	  // Convert size to number of bitshifts needed for alignment.
-	  iVarSize = 1;
-	  while (iVarSize < s)
-	    {
-	      iVarSize <<= 1;
-	      iVarAlign++;
-	    }
-	  // Record actual size
-	  iVarSize = s;
-	  if (NO
-	    == class_addIvar(newClass, iVarName, iVarSize, iVarAlign, iVarType))
-	    {
-	      NSLog(@"Error adding ivar '%s' of type '%s'", iVarName, iVarType);
-	    }
-	}
+          tmp = objc_malloc(strlen(iVarName) + 1);
+	  strcpy(tmp, iVarName);
+          ivar->ivar_name = tmp;
+          tmp =  objc_malloc(strlen(iVarType) + 1);
+	  strcpy(tmp, iVarType);
+          ivar->ivar_type = tmp;
+
+          // align the ivar (i.e. put it on the first aligned address
+          ivar->ivar_offset = iVarSize;
+          iVarSize += objc_sizeof_type(ivar->ivar_type); // add the ivar size
+	  ivar = ivar + 1;
+        }
     }
+
+  /*
+   * Size in bytes of the class.  The sum of the class definition
+   * and all super class definitions.
+   */
+  newClass->instance_size = iVarSize;
+
+  // Meta Class instance size is superclass instance size.
+  newMetaClass->instance_size = classSuperClass->class_pointer->instance_size;
 
   return [NSValue valueWithPointer: newClass];
 }
@@ -463,82 +508,263 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
  * The classes argument is an array of NSValue objects containing pointers
  * to classes previously created by the GSObjCMakeClass() function.
  */
+#ifdef NeXT_RUNTIME
 void
 GSObjCAddClasses(NSArray *classes)
 {
-  NSUInteger	numClasses = [classes count];
-  NSUInteger	i;
+  unsigned int	numClasses = [classes count];
+  unsigned int	i;
+  for (i = 0; i < numClasses; i++)
+    {
+      objc_addClass((Class)[[classes objectAtIndex: i] pointerValue]);
+    }
+}
+#else
+/*
+ *	NOTE - OBJC_VERSION needs to be defined to be the version of the
+ *	Objective-C runtime you are using.  You can find this in the file
+ *	'init.c' in the GNU objective-C runtime source.
+ */
+#define	OBJC_VERSION	8
+
+void
+GSObjCAddClasses(NSArray *classes)
+{
+  void	__objc_exec_class (void* module);
+  void	__objc_resolve_class_links ();
+  Module_t	module;
+  Symtab_t	symtab;
+  unsigned int	numClasses = [classes count];
+  unsigned int	i;
+  Class		c;
+
+  NSCAssert(numClasses > 0, @"No classes (array is NULL)");
+
+  c = (Class)[[classes objectAtIndex: 0] pointerValue];
+
+  // Prepare a fake module containing only the new classes
+  module = objc_calloc (1, sizeof (Module));
+  module->version = OBJC_VERSION;
+  module->size = sizeof (Module);
+  module->name = objc_malloc (strlen(c->name) + 15);
+  strcpy ((char*)module->name, "GNUstep-Proxy-");
+  strcat ((char*)module->name, c->name);
+  module->symtab = objc_malloc(sizeof(Symtab) + numClasses * sizeof(void *));
+
+  symtab = module->symtab;
+  symtab->sel_ref_cnt = 0;
+  symtab->refs = 0;
+  symtab->cls_def_cnt = numClasses; // We are defining numClasses classes.
+  symtab->cat_def_cnt = 0; // But no categories
 
   for (i = 0; i < numClasses; i++)
     {
-      objc_registerClassPair((Class)[[classes objectAtIndex: i] pointerValue]);
+      symtab->defs[i] = (Class)[[classes objectAtIndex: i] pointerValue];
     }
-}
+  symtab->defs[numClasses] = NULL; //null terminated list
 
+  // Insert our new class into the runtime.
+  __objc_exec_class (module);
+  __objc_resolve_class_links();
+}
+#endif
 
 
-static BOOL behavior_debug = NO;
-
-BOOL
-GSObjCBehaviorDebug(int i)
-{
-  BOOL	old = behavior_debug;
-
-  if (i == YES)
-    {
-      behavior_debug = YES;
-    }
-  else if (i == NO)
-    {
-      behavior_debug = NO;
-    }
-  return old;
-}
+static int behavior_debug = 0;
 
 void
-GSObjCAddMethods(Class cls, Method *list, BOOL replace)
+GSObjCBehaviorDebug(int i)
 {
-  unsigned int	index = 0;
-  char		c;
-  Method	m;
+  behavior_debug = i;
+}
 
-  if (cls == 0 || list == 0)
+#if NeXT_RUNTIME
+
+static GSMethod search_for_method_in_class (Class cls, SEL op);
+
+void
+GSObjCAddMethods (Class cls, GSMethodList methods)
+{
+  static SEL initialize_sel = 0;
+  GSMethodList mlist;
+
+  if (!initialize_sel)
+    initialize_sel = sel_register_name ("initialize");
+
+  /* Add methods to cls->dtable and cls->methods */
+  mlist = methods;
     {
-      return;
-    }
-  c = class_isMetaClass(cls) ? '+' : '-';
+      int counter;
+      GSMethodList new_list;
 
-  while ((m = list[index++]) != NULL)
-    {
-      SEL		n = method_getName(m);
-      IMP		i = method_getImplementation(m);
-      const char	*t = method_getTypeEncoding(m);
+      counter = mlist->method_count ? mlist->method_count - 1 : 1;
 
-      /* This will override a superclass method but will not replace a
-       * method which already exists in the class itsself.
-       */
-      if (YES == class_addMethod(cls, n, i, t))
+      /* This is a little wasteful of memory, since not necessarily
+	 all methods will go in here. */
+      new_list = (GSMethodList)
+	objc_malloc (sizeof(struct objc_method_list) +
+		     sizeof(struct objc_method[counter+1]));
+      new_list->method_count = 0;
+
+      while (counter >= 0)
+        {
+          GSMethod method = &(mlist->method_list[counter]);
+
+	  BDBGPrintf("   processing method [%s] ... ",
+		     GSNameFromSelector(method->method_name));
+
+	  if (!search_for_method_in_class(cls, method->method_name)
+	    && !sel_eq(method->method_name, initialize_sel))
+	    {
+	      /* As long as the method isn't defined in the CLASS,
+		 put the BEHAVIOR method in there.  Thus, behavior
+		 methods override the superclasses' methods. */
+	      new_list->method_list[new_list->method_count] = *method;
+	      (new_list->method_count)++;
+
+	      BDBGPrintf("added.\n");
+	    }
+	  else
+	    {
+	      BDBGPrintf("ignored.\n");
+	    }
+          counter -= 1;
+        }
+      if (new_list->method_count)
 	{
-          BDBGPrintf("    added %c%s\n", c, sel_getName(n));
+	  class_add_method_list(cls, new_list);
 	}
-      else if (YES == replace)
-	{
-	  /* If we want to replace an existing implemetation ...
-	   */
-	  method_setImplementation(class_getInstanceMethod(cls, n), i);
-          BDBGPrintf("    replaced %c%s\n", c, sel_getName(n));
-	} 
       else
 	{
-          BDBGPrintf("    skipped %c%s\n", c, sel_getName(n));
+	  OBJC_FREE(new_list);
 	}
     }
 }
+
+/* Search for the named method's method structure.  Return a pointer
+   to the method's method structure if found.  NULL otherwise. */
+static GSMethod
+search_for_method_in_class (Class cls, SEL op)
+{
+  void *iterator = 0;
+  GSMethodList method_list;
+
+  if (! sel_is_mapped (op))
+    return NULL;
+
+  /* If not found then we'll search the list.  */
+  while ((method_list = class_nextMethodList(cls, &iterator)))
+    {
+      int i;
+
+      /* Search the method list.  */
+      for (i = 0; i < method_list->method_count; ++i)
+        {
+          GSMethod method = &method_list->method_list[i];
+
+          if (method->method_name)
+            {
+              if (sel_eq(method->method_name, op))
+                return method;
+            }
+        }
+    }
+
+  return NULL;
+}
+
+#else /* GNU runtime */
+
+/*
+ * The following two functions are implemented in the GNU objc runtime
+ */
+extern Method_t search_for_method_in_list(MethodList_t list, SEL op);
+extern void class_add_method_list(Class, MethodList_t);
+
+static Method_t search_for_method_in_class (Class cls, SEL op);
+
+void
+GSObjCAddMethods (Class cls, GSMethodList methods)
+{
+  static SEL initialize_sel = 0;
+  GSMethodList mlist;
+
+  if (initialize_sel == 0)
+    {
+      initialize_sel = sel_register_name ("initialize");
+    }
+
+  /* Add methods to class->dtable and class->methods */
+  for (mlist = methods; mlist; mlist = mlist->method_next)
+    {
+      int counter;
+      GSMethodList new_list;
+
+      counter = mlist->method_count ? mlist->method_count - 1 : 1;
+
+      /* This is a little wasteful of memory, since not necessarily
+	 all methods will go in here. */
+      new_list = (GSMethodList)
+	objc_malloc (sizeof(struct objc_method_list) +
+		     sizeof(struct objc_method[counter+1]));
+      new_list->method_count = 0;
+      new_list->method_next = NULL;
+
+      while (counter >= 0)
+        {
+          GSMethod method = &(mlist->method_list[counter]);
+	  const char *name = GSNameFromSelector(method->method_name);
+
+	  BDBGPrintf("   processing method [%s] ... ", name);
+
+	  if (!search_for_method_in_list(cls->methods, method->method_name)
+	    && !sel_eq(method->method_name, initialize_sel))
+	    {
+	      /* As long as the method isn't defined in the CLASS,
+		 put the BEHAVIOR method in there.  Thus, behavior
+		 methods override the superclasses' methods. */
+	      new_list->method_list[new_list->method_count] = *method;
+	      /*
+	       * HACK ... the GNU runtime implementation of
+	       * class_add_method_list() expects the method names to be
+	       * C-strings rather than selectors ... so we must allow
+	       * for that.
+	       */
+	      new_list->method_list[new_list->method_count].method_name
+		= (SEL)name;
+	      (new_list->method_count)++;
+
+	      BDBGPrintf("added.\n");
+	    }
+	  else
+	    {
+	      BDBGPrintf("ignored.\n");
+	    }
+          counter -= 1;
+        }
+      if (new_list->method_count)
+	{
+	  class_add_method_list(cls, new_list);
+	}
+      else
+	{
+	  OBJC_FREE(new_list);
+	}
+    }
+}
+
+static Method_t
+search_for_method_in_class (Class cls, SEL op)
+{
+  return cls != NULL ? search_for_method_in_list(cls->methods, op) : NULL;
+}
+
+#endif /* NeXT runtime */
 
 GSMethod
 GSGetMethod(Class cls, SEL sel,
-  BOOL searchInstanceMethods,
-  BOOL searchSuperClasses)
+	    BOOL searchInstanceMethods,
+	    BOOL searchSuperClasses)
 {
   if (cls == 0 || sel == 0)
     {
@@ -547,61 +773,323 @@ GSGetMethod(Class cls, SEL sel,
 
   if (searchSuperClasses == NO)
     {
-      unsigned int	count;
-      Method		method = NULL;
-      Method		*methods;
-
       if (searchInstanceMethods == NO)
 	{
-	  methods = class_copyMethodList(object_getClass(cls), &count);
+	  return search_for_method_in_class(cls->class_pointer, sel);
 	}
       else
 	{
-	  methods = class_copyMethodList(cls, &count);
+	  return search_for_method_in_class(cls, sel);
 	}
-      if (methods != NULL)
-	{
-	  unsigned int	index = 0;
-
-	  while ((method = methods[index++]) != NULL)
-	    {
-	      if (sel_isEqual(sel, method_getName(method)))
-		{
-		  break;
-		}
-	    }
-	  free(methods);
-	}
-      return method;
     }
   else
     {
       if (searchInstanceMethods == NO)
 	{
+	  /*
+	    We do not rely on the mapping supplied in objc_gnu2next.h
+	    because we want to be explicit about the fact
+	    that the expected parameters are different.
+	    Therefor we refrain from simply using class_getClassMethod().
+	  */
+#ifdef NeXT_RUNTIME
 	  return class_getClassMethod(cls, sel);
+#else
+	  return class_get_class_method(cls->class_pointer, sel);
+#endif
 	}
       else
 	{
-	  return class_getInstanceMethod(cls, sel);
+	  return class_get_instance_method(cls, sel);
 	}
     }
 }
 
 
-static inline const char *
+/* See header for documentation. */
+GSMethodList
+GSAllocMethodList (unsigned int count)
+{
+  GSMethodList list;
+  size_t size;
+
+  size = (sizeof (struct objc_method_list) +
+          sizeof (struct objc_method[count]));
+  list = objc_malloc (size);
+  memset(list, 0, size);
+
+  return list;
+}
+
+/* See header for documentation. */
+void
+GSAppendMethodToList (GSMethodList list,
+                      SEL sel,
+                      const char *types,
+                      IMP imp,
+                      BOOL isFree)
+{
+  unsigned int num;
+
+  num = (list->method_count)++;
+
+#ifdef GNU_RUNTIME
+  /*
+     Deal with typed selectors: No matter what kind of selector we get
+     convert it into a c-string.  Cache that c-string incase the
+     selector isn't found, then search for corresponding typed selector.
+     If none is found use the cached name to register an new selector
+     with the corresponding types.
+   */
+  sel = (SEL)GSNameFromSelector (sel);
+
+  if (isFree == NO)
+    {
+      const char *sel_save = (const char *)sel;
+
+      sel = sel_get_typed_uid (sel_save, types);
+      if (sel == 0)
+        {
+          sel = sel_register_typed_name (sel_save, types);
+        }
+    }
+#endif
+
+  list->method_list[num].method_name = sel;
+  list->method_list[num].method_types = strdup(types);
+  list->method_list[num].method_imp = imp;
+}
+
+/* See header for documentation. */
+BOOL
+GSRemoveMethodFromList (GSMethodList list,
+                        SEL sel,
+                        BOOL isFree)
+{
+  int i;
+
+#ifdef GNU_RUNTIME
+  if (isFree == YES)
+    {
+      sel = (SEL)GSNameFromSelector (sel);
+    }
+#else
+  /* Insure that we always use sel_eq on non GNU Runtimes.  */
+  isFree = NO;
+#endif
+
+  for (i = 0; i < list->method_count; i++)
+    {
+      SEL  method_name = list->method_list[i].method_name;
+
+      /* For the GNU runtime we have use strcmp instead of sel_eq
+	 for free standing method lists.  */
+      if ((isFree == YES && strcmp((char *)method_name, (char *)sel) == 0)
+          || (isFree == NO && sel_eq(method_name, sel)))
+        {
+	  /* Found the list.  Now fill up the gap.  */
+          for ((list->method_count)--; i < list->method_count; i++)
+            {
+              list->method_list[i].method_name
+                = list->method_list[i+1].method_name;
+              list->method_list[i].method_types
+                = list->method_list[i+1].method_types;
+              list->method_list[i].method_imp
+                = list->method_list[i+1].method_imp;
+            }
+
+	  /* Clear the last entry.  */
+	  /* NB: We may leak the types if they were previously
+	     set by GSAppendMethodFromList.  Yet as we can not
+	     determine the origin, we shall leak.  */
+          list->method_list[i].method_name = 0;
+          list->method_list[i].method_types = 0;
+          list->method_list[i].method_imp = 0;
+
+          return YES;
+        }
+    }
+  return NO;
+}
+
+/* See header for documentation. */
+GSMethodList
+GSMethodListForSelector(Class cls,
+                        SEL selector,
+                        void **iterator,
+                        BOOL searchInstanceMethods)
+{
+  void *local_iterator = 0;
+
+  if (cls == 0 || selector == 0)
+    {
+      return 0;
+    }
+
+  if (searchInstanceMethods == NO)
+    {
+      cls = cls->class_pointer;
+    }
+
+  if (sel_is_mapped(selector))
+    {
+      void **iterator_pointer;
+      GSMethodList method_list;
+
+      iterator_pointer = (iterator == 0 ? &local_iterator : iterator);
+      while ((method_list = class_nextMethodList(cls, iterator_pointer)))
+        {
+	  /* Search the method in the current list.  */
+	  if (GSMethodFromList(method_list, selector, NO) != 0)
+	    {
+	      return method_list;
+	    }
+        }
+    }
+
+  return 0;
+}
+
+/* See header for documentation. */
+GSMethod
+GSMethodFromList(GSMethodList list,
+                 SEL sel,
+		 BOOL isFree)
+{
+  unsigned i;
+
+#ifdef GNU_RUNTIME
+  if (isFree)
+    {
+      sel = (SEL)GSNameFromSelector (sel);
+    }
+#else
+  isFree = NO;
+#endif
+
+  for (i = 0; i < list->method_count; ++i)
+    {
+      GSMethod method = &list->method_list[i];
+      SEL  method_name = method->method_name;
+
+      /* For the GNU runtime we have use strcmp instead of sel_eq
+	 for free standing method lists.  */
+      if ((isFree == YES && strcmp((char *)method_name, (char *)sel) == 0)
+          || (isFree == NO && sel_eq(method_name, sel)))
+	{
+	  return method;
+	}
+    }
+  return 0;
+}
+
+/* See header for documentation. */
+void
+GSAddMethodList(Class cls,
+                GSMethodList list,
+                BOOL toInstanceMethods)
+{
+  if (cls == 0 || list == 0)
+    {
+      return;
+    }
+
+  if (toInstanceMethods == NO)
+    {
+      cls = cls->class_pointer;
+    }
+
+  class_add_method_list(cls, list);
+}
+
+GS_STATIC_INLINE void
+gs_revert_selector_names_in_list(GSMethodList list)
+{
+  int i;
+  const char *name;
+
+  for (i = 0; i < list->method_count; i++)
+    {
+      name  = GSNameFromSelector(list->method_list[i].method_name);
+      if (name)
+	{
+	  list->method_list[i].method_name = (SEL)name;
+	}
+    }
+}
+
+/* See header for documentation. */
+void
+GSRemoveMethodList(Class cls,
+                   GSMethodList list,
+                   BOOL fromInstanceMethods)
+{
+  if (cls == 0 || list == 0)
+    {
+      return;
+    }
+
+  if (fromInstanceMethods == NO)
+    {
+      cls = cls->class_pointer;
+    }
+
+#ifdef NeXT_RUNTIME
+  class_removeMethods(cls, list);
+#else
+  if (list == cls->methods)
+    {
+      cls->methods = list->method_next;
+      list->method_next = 0;
+
+      /*
+	The list has become "free standing".
+	Replace all selector references with selector names
+	so the runtime can convert them again
+	it the list gets reinserted.
+      */
+      gs_revert_selector_names_in_list(list);
+    }
+  else
+    {
+      GSMethodList current_list;
+      for (current_list = cls->methods;
+           current_list != 0;
+           current_list = current_list->method_next)
+        {
+          if (current_list->method_next == list)
+            {
+              current_list->method_next = list->method_next;
+              list->method_next = 0;
+
+              /*
+                 The list has become "free standing".
+                 Replace all selector references with selector names
+                 so the runtime can convert them again
+                 it the list gets reinserted.
+	      */
+	      gs_revert_selector_names_in_list(list);
+            }
+        }
+    }
+#endif /* NeXT_RUNTIME */
+}
+
+
+GS_STATIC_INLINE const char *
 gs_skip_type_qualifier_and_layout_info (const char *types)
 {
   while (*types == '+'
-    || *types == '-'
-    || *types == _C_CONST
-    || *types == _C_IN
-    || *types == _C_INOUT
-    || *types == _C_OUT
-    || *types == _C_BYCOPY
-    || *types == _C_BYREF
-    || *types == _C_ONEWAY
-    || *types == _C_GCINVISIBLE
-    || isdigit ((unsigned char) *types))
+	 || *types == '-'
+	 || *types == _C_CONST
+	 || *types == _C_IN
+	 || *types == _C_INOUT
+	 || *types == _C_OUT
+	 || *types == _C_BYCOPY
+	 || *types == _C_BYREF
+	 || *types == _C_ONEWAY
+	 || *types == _C_GCINVISIBLE
+	 || isdigit ((unsigned char) *types))
     {
       types++;
     }
@@ -628,10 +1116,10 @@ GSSelectorTypesMatch(const char *types1, const char *types2)
       /* Ignore structure name yet compare layout.  */
       if (*types1 == '{' && *types2 == '{')
 	{
-	  while (*types1 != '=' && *types1 != '}')
+	  while (*types1 != '=')
 	    types1++;
 
-	  while (*types2 != '=' && *types2 != '}')
+	  while (*types2 != '=')
 	    types2++;
 	}
 
@@ -652,17 +1140,37 @@ GSSelectorTypesMatch(const char *types1, const char *types2)
 GSIVar
 GSCGetInstanceVariableDefinition(Class cls, const char *name)
 {
-  return class_getInstanceVariable(cls, name);
+  struct objc_ivar_list *list;
+  int i;
+
+  if (cls == 0)
+    return 0;
+
+  list = cls->ivars;
+  for (i = 0; (list != 0) && i < list->ivar_count; i++)
+    {
+      if (strcmp (list->ivar_list[i].ivar_name, name) == 0)
+	return &(list->ivar_list[i]);
+    }
+  cls = GSObjCSuper(cls);
+  if (cls != 0)
+    {
+      return GSCGetInstanceVariableDefinition(cls, name);
+    }
+  return 0;
 }
 
 GSIVar
 GSObjCGetInstanceVariableDefinition(Class cls, NSString *name)
 {
-  return class_getInstanceVariable(cls, [name UTF8String]);
+  return GSCGetInstanceVariableDefinition(cls, [name cString]);
 }
 
+typedef struct {
+  @defs(Protocol)
+} *pcl;
 
-static inline unsigned int
+GS_STATIC_INLINE unsigned int
 gs_string_hash(const char *s)
 {
   unsigned int val = 0;
@@ -671,6 +1179,63 @@ gs_string_hash(const char *s)
       val = (val << 5) + val + *s++;
     }
   return val;
+}
+
+GS_STATIC_INLINE pcl
+gs_find_protocol_named_in_protocol_list(const char *name,
+					struct objc_protocol_list *pcllist)
+{
+  pcl p = NULL;
+  size_t i;
+
+  while (pcllist != NULL)
+    {
+      for (i=0; i<pcllist->count; i++)
+	{
+	  p = (pcl)pcllist->list[i];
+	  if (strcmp(p->protocol_name, name) == 0)
+	    {
+	      return p;
+	    }
+	}
+      pcllist = pcllist->next;
+    }
+  return NULL;
+}
+
+GS_STATIC_INLINE pcl
+gs_find_protocol_named(const char *name)
+{
+  pcl p = NULL;
+  Class cls;
+#ifdef NeXT_RUNTIME
+  Class *clsList, *clsListStart;
+  unsigned int num;
+
+  /* Setting the clearCache flag is a noop for the Apple runtime.  */
+  num = GSClassList(NULL, 0, NO);
+  clsList = objc_malloc(sizeof(Class) * (num + 1));
+  GSClassList(clsList, num, NO);
+
+  clsListStart = clsList;
+
+  while (p == NULL && (cls = *clsList++))
+    {
+      p = gs_find_protocol_named_in_protocol_list(name, cls->protocols);
+    }
+
+  objc_free(clsListStart);
+
+#else
+  void *iterator = NULL;
+
+  while (p == NULL && (cls = objc_next_class(&iterator)))
+    {
+      p = gs_find_protocol_named_in_protocol_list(name, cls->protocols);
+    }
+
+#endif
+  return p;
 }
 
 #define GSI_MAP_HAS_VALUE 1
@@ -686,26 +1251,29 @@ gs_string_hash(const char *s)
 #define GSI_MAP_VTYPES GSUNION_PTR
 
 #include "GNUstepBase/GSIMap.h"
-#include <pthread.h>
 
 static GSIMapTable_t protocol_by_name;
 static BOOL protocol_by_name_init = NO;
-static pthread_mutex_t protocol_by_name_lock = PTHREAD_MUTEX_INITIALIZER;
+static volatile objc_mutex_t protocol_by_name_lock = NULL;
 
 /* Not sure about the semantics of inlining
    functions with static variables.  */
 static void
 gs_init_protocol_lock(void)
 {
-  pthread_mutex_lock(&protocol_by_name_lock);
-  if (protocol_by_name_init == NO)
-  	{
+  if (protocol_by_name_lock == NULL)
+    {
+      GSAllocateMutexAt((void *)&protocol_by_name_lock);
+      objc_mutex_lock(protocol_by_name_lock);
+      if (protocol_by_name_init == NO)
+	{
 	  GSIMapInitWithZoneAndCapacity (&protocol_by_name,
 					 NSDefaultMallocZone(),
 					 128);
 	  protocol_by_name_init = YES;
 	}
-  pthread_mutex_unlock(&protocol_by_name_lock);
+      objc_mutex_unlock(protocol_by_name_lock);
+    }
 }
 
 void
@@ -719,17 +1287,19 @@ GSRegisterProtocol(Protocol *proto)
   if (proto != nil)
     {
       GSIMapNode node;
+      pcl p;
 
-      pthread_mutex_lock(&protocol_by_name_lock);
+      p = (pcl)proto;
+      objc_mutex_lock(protocol_by_name_lock);
       node = GSIMapNodeForKey(&protocol_by_name,
-	(GSIMapKey)protocol_getName(proto));
+			      (GSIMapKey) p->protocol_name);
       if (node == 0)
 	{
 	  GSIMapAddPairNoRetain(&protocol_by_name,
-	    (GSIMapKey)(void*)protocol_getName(proto),
-	    (GSIMapVal)(void*)proto);
+				(GSIMapKey) (void *) p->protocol_name,
+				(GSIMapVal) (void *) p);
 	}
-      pthread_mutex_unlock(&protocol_by_name_lock);
+      objc_mutex_unlock(protocol_by_name_lock);
     }
 }
 
@@ -737,7 +1307,7 @@ Protocol *
 GSProtocolFromName(const char *name)
 {
   GSIMapNode node;
-  Protocol *p;
+  pcl p;
 
   if (protocol_by_name_init == NO)
     {
@@ -751,7 +1321,7 @@ GSProtocolFromName(const char *name)
     }
   else
     {
-      pthread_mutex_lock(&protocol_by_name_lock);
+      objc_mutex_lock(protocol_by_name_lock);
       node = GSIMapNodeForKey(&protocol_by_name, (GSIMapKey) name);
 
       if (node)
@@ -760,94 +1330,113 @@ GSProtocolFromName(const char *name)
 	}
       else
 	{
-	  p = objc_getProtocol(name);
+	  p = gs_find_protocol_named(name);
 	  if (p)
 	    {
 	      /* Use the protocol's name to save us from allocating
 		 a copy of the parameter 'name'.  */
 	      GSIMapAddPairNoRetain(&protocol_by_name,
-	        (GSIMapKey)(void*)protocol_getName(p),
-		(GSIMapVal)(void*)p);
+				    (GSIMapKey) (void *) p->protocol_name,
+				    (GSIMapVal) (void *) p);
 	    }
 	}
-      pthread_mutex_unlock(&protocol_by_name_lock);
+      objc_mutex_unlock(protocol_by_name_lock);
 
     }
 
-  return p;
+  return (Protocol *)p;
 }
 
 
+/**
+ * <p>A Behavior can be seen as a "Protocol with an implementation" or a
+ * "Class without any instance variables".  A key feature of behaviors
+ * is that they give a degree of multiple inheritance.
+ * </p>
+ * <p>Behavior methods, when added to a class, override the class's
+ * superclass methods, but not the class's methods.
+ * </p>
+ * <p>It's not the case that a class adding behaviors from another class
+ * must have "no instance vars".  The receiver class just has to have the
+ * same layout as the behavior class (optionally with some additional
+ * ivars after those of the behavior class).
+ * </p>
+ * <p>This function provides Behaviors without adding any new syntax to
+ * the Objective C language.  Simply define a class with the methods you
+ * want to add, then call this function with that class as the behavior
+ * argument.
+ * </p>
+ * <p>This function should be called in the +initialize method of the receiver.
+ * </p>
+ * <p>If you add several behaviors to a class, be aware that the order of
+ * the additions is significant.
+ * </p>
+ */
 void
 GSObjCAddClassBehavior(Class receiver, Class behavior)
 {
-  unsigned int	count;
-  Method	*methods;
-  Class behavior_super_class = class_getSuperclass(behavior);
+  Class behavior_super_class = GSObjCSuper(behavior);
 
-  if (YES == class_isMetaClass(receiver))
-    {
-      fprintf(stderr, "Trying to add behavior (%s) to meta class (%s)\n",
-	class_getName(behavior), class_getName(receiver));
-      abort();
-    }
-  if (YES == class_isMetaClass(behavior))
-    {
-      fprintf(stderr, "Trying to add meta class as behavior (%s) to (%s)\n",
-	class_getName(behavior), class_getName(receiver));
-      abort();
-    }
-  if (class_getInstanceSize(receiver) < class_getInstanceSize(behavior))
-    {
-      const char *b = class_getName(behavior);
-      const char *r = class_getName(receiver);
+  NSCAssert(CLS_ISCLASS(receiver), NSInvalidArgumentException);
+  NSCAssert(CLS_ISCLASS(behavior), NSInvalidArgumentException);
 
-#ifdef NeXT_Foundation_LIBRARY
-      fprintf(stderr, "Trying to add behavior (%s) with instance "
-	"size larger than class (%s)\n", b, r);
-      abort();
+  /* If necessary, increase instance_size of CLASS. */
+  if (receiver->instance_size < behavior->instance_size)
+    {
+#if NeXT_RUNTIME
+        NSCAssert2(receiver->instance_size >= behavior->instance_size,
+          @"Trying to add behavior (%s) with instance size larger than class (%s)",
+          class_get_class_name(behavior), class_get_class_name(receiver));
 #else
-      /* As a special case we allow adding GSString/GSCString to the
-       * constant string class ... since we know the base library
-       * takes care not to access non-existent instance variables.
-       */
-      if ((strcmp(b, "GSCString") && strcmp(b, "GSString"))
-        || (strcmp(r, "NSConstantString") && strcmp(r, "NXConstantString")))
-	{
-	  fprintf(stderr, "Trying to add behavior (%s) with instance "
-	    "size larger than class (%s)\n", b, r);
-          abort();
-	}
+      NSCAssert(!receiver->subclass_list,
+	@"The behavior-addition code wants to increase the\n"
+	@"instance size of a class, but it cannot because you\n"
+	@"have subclassed the class.  There are two solutions:\n"
+	@"(1) Don't subclass it; (2) Add placeholder instance\n"
+	@"variables to the class, so the behavior-addition code\n"
+	@"will not have to increase the instance size\n");
 #endif
+      receiver->instance_size = behavior->instance_size;
     }
 
-  BDBGPrintf("Adding behavior to class %s\n", class_getName(receiver));
+  BDBGPrintf("Adding behavior to class %s\n", receiver->name);
+  BDBGPrintf("  instance methods from %s\n", behavior->name);
 
   /* Add instance methods */
-  methods = class_copyMethodList(behavior, &count);
-  BDBGPrintf("  instance methods from %s %u\n", class_getName(behavior), count);
-  if (methods == NULL)
-    {
-      BDBGPrintf("    none.\n");
-    }
-  else
-    {
-      GSObjCAddMethods (receiver, methods, NO);
-      free(methods);
-    }
+#if NeXT_RUNTIME
+  {
+    void	 *iterator = 0;
+    GSMethodList  method_list;
+
+    method_list = class_nextMethodList(behavior, &iterator);
+    while (method_list != 0)
+      {
+	GSObjCAddMethods (receiver, method_list);
+	method_list = class_nextMethodList(behavior, &iterator);
+      }
+  }
+#else
+  GSObjCAddMethods (receiver, behavior->methods);
+#endif
 
   /* Add class methods */
-  methods = class_copyMethodList(object_getClass(behavior), &count);
-  BDBGPrintf("  class methods from %s %u\n", class_getName(behavior), count);
-  if (methods == NULL)
-    {
-      BDBGPrintf("    none.\n");
-    }
-  else
-    {
-      GSObjCAddMethods (object_getClass(receiver), methods, NO);
-      free(methods);
-    }
+  BDBGPrintf("Adding class methods from %s\n",
+	     behavior->class_pointer->name);
+#if NeXT_RUNTIME
+  {
+    void	 *iterator = 0;
+    GSMethodList  method_list;
+
+    method_list = class_nextMethodList(behavior->class_pointer, &iterator);
+    while (method_list != 0)
+      {
+	GSObjCAddMethods (receiver->class_pointer, method_list);
+	method_list = class_nextMethodList(behavior->class_pointer, &iterator);
+      }
+  }
+#else
+  GSObjCAddMethods (receiver->class_pointer, behavior->class_pointer->methods);
+#endif
 
   /* Add behavior's superclass, if not already there. */
   if (!GSObjCIsKindOf(receiver, behavior_super_class))
@@ -857,68 +1446,12 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
   GSFlushMethodCacheForClass (receiver);
 }
 
-void
-GSObjCAddClassOverride(Class receiver, Class override)
-{
-  unsigned int	count;
-  Method	*methods;
-
-  if (YES == class_isMetaClass(receiver))
-    {
-      fprintf(stderr, "Trying to add override (%s) to meta class (%s)\n",
-	class_getName(override), class_getName(receiver));
-      abort();
-    }
-  if (YES == class_isMetaClass(override))
-    {
-      fprintf(stderr, "Trying to add meta class as override (%s) to (%s)\n",
-	class_getName(override), class_getName(receiver));
-      abort();
-    }
-  if (class_getInstanceSize(receiver) < class_getInstanceSize(override))
-    {
-      fprintf(stderr, "Trying to add override (%s) with instance "
-	"size larger than class (%s)\n",
-	class_getName(override), class_getName(receiver));
-      abort();
-    }
-
-  BDBGPrintf("Adding override to class %s\n", class_getName(receiver));
-
-  /* Add instance methods */
-  methods = class_copyMethodList(override, &count);
-  BDBGPrintf("  instance methods from %s %u\n", class_getName(override), count);
-  if (methods == NULL)
-    {
-      BDBGPrintf("    none.\n");
-    }
-  else
-    {
-      GSObjCAddMethods (receiver, methods, YES);
-      free(methods);
-    }
-
-  /* Add class methods */
-  methods = class_copyMethodList(object_getClass(override), &count);
-  BDBGPrintf("  class methods from %s %u\n", class_getName(override), count);
-  if (methods == NULL)
-    {
-      BDBGPrintf("    none.\n");
-    }
-  else
-    {
-      GSObjCAddMethods (object_getClass(receiver), methods, YES);
-      free(methods);
-    }
-  GSFlushMethodCacheForClass (receiver);
-}
-
 
 
 
 #ifndef NeXT_Foundation_LIBRARY
-#import	"Foundation/NSValue.h"
-#import	"Foundation/NSKeyValueCoding.h"
+#include	<Foundation/NSValue.h>
+#include	<Foundation/NSKeyValueCoding.h>
 #endif
 
 
@@ -1224,90 +1757,13 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
             val = nil;
             break;
 
-          case _C_STRUCT_B:
-            if (strcmp(@encode(NSPoint), type) == 0)
-              {
-                NSPoint	v;
-
-                if (sel == 0)
-                  {
-                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
-                  }
-                else
-                  {
-                    NSPoint	(*imp)(id, SEL) =
-                      (NSPoint (*)(id, SEL))[self methodForSelector: sel];
-
-                    v = (*imp)(self, sel);
-                  }
-                val = [NSValue valueWithPoint: v];
-              }
-            else if (strcmp(@encode(NSRange), type) == 0)
-              {
-                NSRange	v;
-
-                if (sel == 0)
-                  {
-                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
-                  }
-                else
-                  {
-                    NSRange	(*imp)(id, SEL) =
-                      (NSRange (*)(id, SEL))[self methodForSelector: sel];
-
-                    v = (*imp)(self, sel);
-                  }
-                val = [NSValue valueWithRange: v];
-              }
-            else if (strcmp(@encode(NSRect), type) == 0)
-              {
-                NSRect	v;
-
-                if (sel == 0)
-                  {
-                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
-                  }
-                else
-                  {
-                    NSRect	(*imp)(id, SEL) =
-                      (NSRect (*)(id, SEL))[self methodForSelector: sel];
-
-                    v = (*imp)(self, sel);
-                  }
-                val = [NSValue valueWithRect: v];
-              }
-            else if (strcmp(@encode(NSSize), type) == 0)
-              {
-                NSSize	v;
-
-                if (sel == 0)
-                  {
-                    memcpy((char*)&v, ((char *)self + offset), sizeof(v));
-                  }
-                else
-                  {
-                    NSSize	(*imp)(id, SEL) =
-                      (NSSize (*)(id, SEL))[self methodForSelector: sel];
-
-                    v = (*imp)(self, sel);
-                  }
-                val = [NSValue valueWithSize: v];
-              }
-            else
-              {
-	        val = [self valueForUndefinedKey:
-		  [NSString stringWithUTF8String: key]];
-              }
-            break;
-
 	  default:
-	    val = [self valueForUndefinedKey:
-	      [NSString stringWithUTF8String: key]];
+	    [NSException raise: NSInvalidArgumentException
+			format: @"key-value get method has unsupported type"];
 	}
       return val;
     }
 }
-
 /**
  * Calls GSObjCGetVal()
  */
@@ -1351,8 +1807,8 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
     }
   if (type == NULL)
     {
-      [self setValue: val forUndefinedKey:
-	[NSString stringWithUTF8String: key]];
+      [self setValue: val
+     forUndefinedKey: [NSString stringWithUTF8String: key]];
     }
   else if ((val == nil || val == null) && *type != _C_ID && *type != _C_CLASS)
     {
@@ -1634,93 +2090,12 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
 	    }
 	    break;
 
-          case _C_STRUCT_B:
-            if (strcmp(@encode(NSPoint), type) == 0)
-              {
-                NSPoint	v = [val pointValue];
-
-                if (sel == 0)
-                  {
-                    NSPoint *ptr = (NSPoint*)((char *)self + offset);
-
-                    *ptr = v;
-                  }
-                else
-                  {
-                    void	(*imp)(id, SEL, NSPoint) =
-                      (void (*)(id, SEL, NSPoint))[self methodForSelector: sel];
-
-                    (*imp)(self, sel, v);
-                  }
-              }
-            else if (strcmp(@encode(NSRange), type) == 0)
-              {
-                NSRange	v = [val rangeValue];
-
-                if (sel == 0)
-                  {
-                    NSRange *ptr = (NSRange*)((char *)self + offset);
-
-                    *ptr = v;
-                  }
-                else
-                  {
-                    void	(*imp)(id, SEL, NSRange) =
-                      (void (*)(id, SEL, NSRange))[self methodForSelector: sel];
-
-                    (*imp)(self, sel, v);
-                  }
-              }
-            else if (strcmp(@encode(NSRect), type) == 0)
-              {
-                NSRect	v = [val rectValue];
-
-                if (sel == 0)
-                  {
-                    NSRect *ptr = (NSRect*)((char *)self + offset);
-
-                    *ptr = v;
-                  }
-                else
-                  {
-                    void	(*imp)(id, SEL, NSRect) =
-                      (void (*)(id, SEL, NSRect))[self methodForSelector: sel];
-
-                    (*imp)(self, sel, v);
-                  }
-              }
-            else if (strcmp(@encode(NSSize), type) == 0)
-              {
-                NSSize	v = [val sizeValue];
-
-                if (sel == 0)
-                  {
-                    NSSize *ptr = (NSSize*)((char *)self + offset);
-
-                    *ptr = v;
-                  }
-                else
-                  {
-                    void	(*imp)(id, SEL, NSSize) =
-                      (void (*)(id, SEL, NSSize))[self methodForSelector: sel];
-
-                    (*imp)(self, sel, v);
-                  }
-              }
-            else
-              {
-                [self setValue: val forUndefinedKey:
-		  [NSString stringWithUTF8String: key]];
-              }
-            break;
-
 	  default:
-            [self setValue: val forUndefinedKey:
-	      [NSString stringWithUTF8String: key]];
+	    [NSException raise: NSInvalidArgumentException
+			format: @"key-value set method has unsupported type"];
 	}
     }
 }
-
 /**
  * Calls GSObjCSetVal()
  */
@@ -1742,26 +2117,21 @@ NSArray *GSObjCAllSubclassesOfClass(Class cls)
     }
   else
     {
-      NSMutableArray	*result;
-      Class		*classes;
-      int 		numClasses;
-      int		i;
+      Class aClass;
+      NSMutableArray *result = [[NSMutableArray alloc] init];
 
-      numClasses = objc_getClassList(NULL, 0);
-      classes = NSZoneMalloc(NSDefaultMallocZone(), numClasses*sizeof(Class));
-      objc_getClassList(classes, numClasses);
-      result = [NSMutableArray array];
-      for (i = 0; i < numClasses; i++)
+#ifdef GNU_RUNTIME
+      for (aClass = cls->subclass_list; aClass; aClass=aClass->sibling_class)
 	{
-	  Class	c = classes[i];
-
-	  if (YES == GSObjCIsKindOf(c, cls) && cls != c)
-	    {
-	      [result addObject: c];
-	    }
+	  if (CLS_ISMETA(aClass))
+	    continue;
+	  [result addObject:aClass];
+	  [result addObjectsFromArray: GSObjCAllSubclassesOfClass(aClass)];
 	}
-      NSZoneFree(NSDefaultMallocZone(), classes);
-      return result;
+#else
+#warning not implemented for the NeXT_RUNTIME
+#endif
+      return AUTORELEASE(result);
     }
 }
 
@@ -1775,26 +2145,20 @@ NSArray *GSObjCDirectSubclassesOfClass(Class cls)
     }
   else
     {
-      NSMutableArray	*result;
-      Class		*classes;
-      int 		numClasses;
-      int		i;
+      NSMutableArray *result=[[NSMutableArray alloc] init];
+      Class aClass;
 
-      numClasses = objc_getClassList(NULL, 0);
-      classes = NSZoneMalloc(NSDefaultMallocZone(), numClasses*sizeof(Class));
-      objc_getClassList(classes, numClasses);
-      result = [NSMutableArray array];
-      for (i = 0; i < numClasses; i++)
+#ifdef GNU_RUNTIME
+      for (aClass = cls->subclass_list;aClass;aClass=aClass->sibling_class)
 	{
-	  Class	c = classes[i];
-
-	  if (class_getSuperclass(c) == cls)
-	    {
-	      [result addObject: c];
-	    }
+	  if (CLS_ISMETA(aClass))
+	    continue;
+	  [result addObject:aClass];
 	}
-      NSZoneFree(NSDefaultMallocZone(), classes);
-      return result;
+#else
+#warning not implemented for the NeXT_RUNTIME
+#endif
+      return AUTORELEASE(result);
     }
 }
 
@@ -1807,7 +2171,7 @@ void *
 GSAutoreleasedBuffer(unsigned size)
 {
 #if GS_WITH_GC
-  return NSAllocateCollectable(size, NSScannedOption);
+  return GC_malloc(size);
 #else
 #ifdef ALIGN
 #undef ALIGN
@@ -1818,15 +2182,13 @@ GSAutoreleasedBuffer(unsigned size)
   static Class	autorelease_class;
   static SEL	autorelease_sel;
   static IMP	autorelease_imp;
-  static int	instance_size;
   static int	offset;
   NSObject	*o;
 
   if (buffer_class == 0)
     {
       buffer_class = [GSAutoreleasedMemory class];
-      instance_size = class_getInstanceSize(buffer_class);
-      offset = instance_size % ALIGN;
+      offset = buffer_class->instance_size % ALIGN;
       autorelease_class = [NSAutoreleasePool class];
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
@@ -1834,19 +2196,59 @@ GSAutoreleasedBuffer(unsigned size)
   o = (NSObject*)NSAllocateObject(buffer_class,
     size + offset, NSDefaultMallocZone());
   (*autorelease_imp)(autorelease_class, autorelease_sel, o);
-  return ((void*)o) + instance_size + offset;
+  return ((void*)&o[1]) + offset;
 #endif
 }
 
 
 
 /*
- * Deprecated function.
+ * Getting a system error message on a variety of systems.
+ * Currently 8bit string ... perhaps we should move to unicode.
  */
+#ifdef __MINGW32__
+
+const char *GetErrorMsg(DWORD msgId)
+{
+  void	*lpMsgBuf = 0;
+
+  FormatMessageA(
+    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
+    | FORMAT_MESSAGE_IGNORE_INSERTS,
+    NULL,
+    msgId,
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+    (LPSTR)&lpMsgBuf,
+    (DWORD)0,
+    NULL);
+
+  return (const char*)lpMsgBuf;
+}
+#else
+#ifndef HAVE_STRERROR
+const char *
+strerror(int eno)
+{
+  extern char  *sys_errlist[];
+  extern int    sys_nerr;
+
+  if (eno < 0 || eno >= sys_nerr)
+    {
+      return("unknown error number");
+    }
+  return(sys_errlist[eno]);
+}
+#endif
+#endif /* __MINGW32__ */
+
 const char *
 GSLastErrorStr(long error_id)
 {
-  return [[[NSError _last] localizedDescription] cString];
+#ifdef __MINGW32__
+  return GetErrorMsg(GetLastError());
+#else
+  return strerror(error_id);
+#endif
 }
 
 

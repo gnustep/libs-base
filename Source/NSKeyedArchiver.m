@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,54 +16,40 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
    */
 
-#import "common.h"
-#define	EXPOSE_NSKeyedArchiver_IVARS	1
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSScanner.h"
-#import "Foundation/NSValue.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSObject.h>
+#include <Foundation/NSData.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSScanner.h>
+#include <Foundation/NSValue.h>
 
-#import "GSPrivate.h"
+#include "GSPrivate.h"
 
 @class	GSString;
 
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_CLS | GSUNION_INT
-#define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ | GSUNION_INT
+#define	GSI_MAP_RETAIN_KEY(M, X)	RETAIN(X.obj)	
+#define	GSI_MAP_RELEASE_KEY(M, X)	RELEASE(X.obj)
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_HASH(M, X)	((X).uint)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #undef	GSI_MAP_NOCLEAN
-#if	GS_WITH_GC
-#include	<gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#define	GSI_MAP_RETAIN_KEY(M, X)
-#define	GSI_MAP_RELEASE_KEY(M, X)
-#else
-#define	GSI_MAP_RETAIN_KEY(M, X)	RETAIN(X.obj)	
-#define	GSI_MAP_RELEASE_KEY(M, X)	RELEASE(X.obj)
-#endif
-
 
 #include "GNUstepBase/GSIMap.h"
 
 
 #define	_IN_NSKEYEDARCHIVER_M	1
-#import "Foundation/NSKeyedArchiver.h"
+#include <Foundation/NSKeyedArchiver.h>
 #undef	_IN_NSKEYEDARCHIVER_M
 
 /* Exceptions */
@@ -81,7 +67,7 @@ static Class	NSScannerClass = 0;
 static SEL	scanFloatSel;
 static SEL	scanStringSel;
 static SEL	scannerSel;
-static BOOL	(*scanFloatImp)(NSScanner*, SEL, CGFloat*);
+static BOOL	(*scanFloatImp)(NSScanner*, SEL, float*);
 static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
 
@@ -92,17 +78,10 @@ setupCache(void)
     {
       NSStringClass = [NSString class];
       NSScannerClass = [NSScanner class];
-      if (sizeof(CGFloat) == sizeof(double))
-        {
-          scanFloatSel = @selector(scanDouble:);
-        }
-      else
-        {
-          scanFloatSel = @selector(scanFloat:);
-        }
+      scanFloatSel = @selector(scanFloat:);
       scanStringSel = @selector(scanString:intoString:);
       scannerSel = @selector(scannerWithString:);
-      scanFloatImp = (BOOL (*)(NSScanner*, SEL, CGFloat*))
+      scanFloatImp = (BOOL (*)(NSScanner*, SEL, float*))
 	[NSScannerClass instanceMethodForSelector: scanFloatSel];
       scanStringImp = (BOOL (*)(NSScanner*, SEL, NSString*, NSString**))
 	[NSScannerClass instanceMethodForSelector: scanStringSel];
@@ -485,16 +464,6 @@ static NSDictionary *makeReference(unsigned ref)
 
 + (void) initialize
 {
-  GSMakeWeakPointer(self, "delegate");
-
-#if	GS_WITH_GC
-  /* We create a typed memory descriptor for map nodes.
-   */
-  GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-  GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-  GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-  nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
   if (globalClassMap == 0)
     {
       globalClassMap =
@@ -556,19 +525,8 @@ static NSDictionary *makeReference(unsigned ref)
   return _delegate;
 }
 
-- (NSString*) description
-{
-  if (_data == nil)
-    {
-      // For consistency with OSX
-      [NSException raise: NSInvalidArgumentException
-		  format: @"method sent to uninitialised archiver"];
-    }
-  return [super description];
-}
-
 - (void) encodeArrayOfObjCType: (const char*)aType
-			 count: (NSUInteger)aCount
+			 count: (unsigned)aCount
 			    at: (const void*)address
 {
   id	o;
@@ -587,7 +545,7 @@ static NSDictionary *makeReference(unsigned ref)
   [_enc setObject: [NSNumber  numberWithBool: aBool] forKey: aKey];
 }
 
-- (void) encodeBytes: (const uint8_t*)aPointer length: (NSUInteger)length forKey: (NSString*)aKey
+- (void) encodeBytes: (const uint8_t*)aPointer length: (unsigned)length forKey: (NSString*)aKey
 {
   CHECKKEY
 
@@ -632,13 +590,6 @@ static NSDictionary *makeReference(unsigned ref)
   [_enc setObject: [NSNumber  numberWithInt: anInteger] forKey: aKey];
 }
 
-- (void) encodeInteger: (NSInteger)anInteger forKey: (NSString*)aKey
-{
-  CHECKKEY
-
-  [_enc setObject: [NSNumber  numberWithInteger: anInteger] forKey: aKey];
-}
-
 - (void) encodeInt32: (int32_t)anInteger forKey: (NSString*)aKey
 {
   CHECKKEY
@@ -671,22 +622,22 @@ static NSDictionary *makeReference(unsigned ref)
 
 - (void) encodePoint: (NSPoint)p
 {
-  [self encodeValueOfObjCType: @encode(CGFloat) at: &p.x];
-  [self encodeValueOfObjCType: @encode(CGFloat) at: &p.y];
+  [self encodeValueOfObjCType: @encode(float) at: &p.x];
+  [self encodeValueOfObjCType: @encode(float) at: &p.y];
 }
 
 - (void) encodeRect: (NSRect)r
 {
-  [self encodeValueOfObjCType: @encode(CGFloat) at: &r.origin.x];
-  [self encodeValueOfObjCType: @encode(CGFloat) at: &r.origin.y];
-  [self encodeValueOfObjCType: @encode(CGFloat) at: &r.size.width];
-  [self encodeValueOfObjCType: @encode(CGFloat) at: &r.size.height];
+  [self encodeValueOfObjCType: @encode(float) at: &r.origin.x];
+  [self encodeValueOfObjCType: @encode(float) at: &r.origin.y];
+  [self encodeValueOfObjCType: @encode(float) at: &r.size.width];
+  [self encodeValueOfObjCType: @encode(float) at: &r.size.height];
 }
 
 - (void) encodeSize: (NSSize)s
 {
-  [self encodeValueOfObjCType: @encode(CGFloat) at: &s.width];
-  [self encodeValueOfObjCType: @encode(CGFloat) at: &s.height];
+  [self encodeValueOfObjCType: @encode(float) at: &s.width];
+  [self encodeValueOfObjCType: @encode(float) at: &s.height];
 }
 
 - (void) encodeValueOfObjCType: (const char*)type
@@ -724,17 +675,17 @@ static NSDictionary *makeReference(unsigned ref)
 	return;
 
       case _C_CHR:
-	o = [NSNumber numberWithInt: (NSInteger)*(char*)address];
+	o = [NSNumber numberWithInt: (int)*(char*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
       case _C_UCHR:
-	o = [NSNumber numberWithInt: (NSInteger)*(unsigned char*)address];
+	o = [NSNumber numberWithInt: (int)*(unsigned char*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
       case _C_SHT:
-	o = [NSNumber numberWithInt: (NSInteger)*(short*)address];
+	o = [NSNumber numberWithInt: (int)*(short*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
@@ -744,12 +695,12 @@ static NSDictionary *makeReference(unsigned ref)
 	return;
 
       case _C_INT:
-	o = [NSNumber numberWithInt: *(NSInteger*)address];
+	o = [NSNumber numberWithInt: *(int*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
       case _C_UINT:
-	o = [NSNumber numberWithUnsignedInt: *(NSUInteger*)address];
+	o = [NSNumber numberWithUnsignedInt: *(unsigned int*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
@@ -790,18 +741,6 @@ static NSDictionary *makeReference(unsigned ref)
 	  NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 	return;
 
-      case _C_ARY_B:
-	{
-	  int		count = atoi(++type);
-
-	  while (isdigit(*type))
-	    {
-	      type++;
-	    }
-	  [self encodeArrayOfObjCType: type count: count at: address];
-	}
-	return;
-
       default:	/* Types that can be ignored in first pass.	*/
 	[NSException raise: NSInvalidArgumentException
 		    format: @"-[%@ %@]: unknown type encoding ('%c')",
@@ -831,16 +770,6 @@ static NSDictionary *makeReference(unsigned ref)
   [_delegate archiverDidFinish: self];
 }
 
-- (id) init
-{
-  Class c = [self class];
-  DESTROY(self);
-  [NSException raise: NSInvalidArgumentException
-              format: @"-[%@ init]: cannot use -init for initialisation",
-              NSStringFromClass(c)];
-  return nil;
-}
-
 - (id) initForWritingWithMutableData: (NSMutableData*)data
 {
   self = [super init];
@@ -856,12 +785,7 @@ static NSDictionary *makeReference(unsigned ref)
       /*
        *	Set up map tables.
        */
-#if	GS_WITH_GC
-      _cIdMap = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*5,
-	NSScannedOption);
-#else
       _cIdMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*5);
-#endif
       _uIdMap = &_cIdMap[1];
       _repMap = &_cIdMap[2];
       GSIMapInitWithZoneAndCapacity(_cIdMap, zone, 10);

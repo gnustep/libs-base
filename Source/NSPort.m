@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,19 +25,18 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSPort_IVARS	1
-#import "Foundation/NSException.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSNotificationQueue.h"
-#import "Foundation/NSPort.h"
-#import "Foundation/NSPortCoder.h"
-#import "Foundation/NSPortNameServer.h"
-#import "Foundation/NSRunLoop.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSUserDefaults.h"
-#import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
+#include "config.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSPortNameServer.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSUserDefaults.h"
+#include "GSPrivate.h"
 
 
 @class NSMessagePort;
@@ -50,16 +49,11 @@
 
 @implementation NSPort
 
-NSString * const NSInvalidReceivePortException
-  = @"NSInvalidReceivePortException";
-NSString * const NSInvalidSendPortException
-  = @"NSInvalidSendPortException";
-NSString * const NSPortReceiveException
-  = @"NSPortReceiveException";
-NSString * const NSPortSendException
-  = @"NSPortSendException";
-NSString * const NSPortTimeoutException
-  = @"NSPortTimeoutException";
+/**
+ *  Exception raised if a timeout occurs during a port send or receive
+ *  operation.
+ */
+NSString * const NSPortTimeoutException = @"NSPortTimeoutException";
 
 static Class	NSPort_abstract_class;
 static Class	NSPort_concrete_class;
@@ -82,8 +76,6 @@ static Class	NSPort_concrete_class;
     {
       NSUserDefaults	*defs;
 
-      GSMakeWeakPointer(self, "delegate");
-
       NSPort_abstract_class = self;
       NSPort_concrete_class = [NSMessagePort class];
 
@@ -104,7 +96,7 @@ static Class	NSPort_concrete_class;
     return AUTORELEASE([self new]);
 }
 
-+ (NSPort*) portWithMachPort: (NSInteger)machPort
++ (NSPort*) portWithMachPort: (int)machPort
 {
   return AUTORELEASE([[self alloc] initWithMachPort: machPort]);
 }
@@ -136,13 +128,13 @@ static Class	NSPort_concrete_class;
 
   if (obj != self)
     {
-      DESTROY(self);
+      RELEASE(self);
       self = RETAIN(obj);
     }
   return self;
 }
 
-- (id) initWithMachPort: (NSInteger)machPort
+- (id) initWithMachPort: (int)machPort
 {
   [self shouldNotImplement: _cmd];
   return nil;
@@ -154,13 +146,13 @@ static Class	NSPort_concrete_class;
  */
 - (void) invalidate
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   _is_valid = NO;
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSPortDidBecomeInvalidNotification
 		  object: self];
-  RELEASE(arp);
+  [arp release];
 }
 
 - (BOOL) isValid
@@ -168,7 +160,7 @@ static Class	NSPort_concrete_class;
   return _is_valid;
 }
 
-- (NSInteger) machPort
+- (int) machPort
 {
   [self shouldNotImplement: _cmd];
   return 0;
@@ -222,7 +214,7 @@ static Class	NSPort_concrete_class;
   [aLoop removePort: self forMode: aMode];
 }
 
-- (NSUInteger) reservedSpaceLength
+- (unsigned) reservedSpaceLength
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -231,7 +223,7 @@ static Class	NSPort_concrete_class;
 - (BOOL) sendBeforeDate: (NSDate*)when
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
-               reserved: (NSUInteger)length
+               reserved: (unsigned) length
 {
   return [self sendBeforeDate: when
 			msgid: 0
@@ -241,10 +233,10 @@ static Class	NSPort_concrete_class;
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (NSInteger)msgid
+		  msgid: (int)msgid
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
-               reserved: (NSUInteger)length
+               reserved: (unsigned)length
 {
   [self subclassResponsibility: _cmd];
   return YES;
@@ -252,3 +244,13 @@ static Class	NSPort_concrete_class;
 
 @end
 
+/*
+ * This is a callback method used by the NSRunLoop class to determine which
+ * descriptors to watch for the port.  Subclasses override it.
+ */
+@implementation	NSPort (GNUstep)
+- (void) getFds: (NSInteger*)fds count: (NSInteger*)count
+{
+  *count = 0;
+}
+@end

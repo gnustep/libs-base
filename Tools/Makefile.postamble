@@ -6,9 +6,8 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either
-# version 2 of the License, or (at your option) any later version.
-# This program is distributed in the
+# the Free Software Foundation; either version 2 of the License, or (at
+# your option) any later version.  This program is distributed in the
 # hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 # PURPOSE. See the GNU General Public License for more details.
@@ -41,50 +40,40 @@ after-install::
 	for file in $(DTD_FILES); do \
 	  $(INSTALL_DATA) $$file $(dtddir)/$$file; \
 	done; \
-	if [ ! -f $(GNUSTEP_DOC_MAN) ]; then \
-	  $(MKDIRS) $(GNUSTEP_DOC_MAN); \
+	if [ ! -f $(GNUSTEP_DOCUMENTATION_MAN) ]; then \
+	  $(MKDIRS) $(GNUSTEP_DOCUMENTATION_MAN); \
 	fi; \
-	if [ ! -f $(GNUSTEP_DOC_MAN)/man1 ]; then \
-	  $(MKDIRS) $(GNUSTEP_DOC_MAN)/man1; \
+	if [ ! -f $(GNUSTEP_DOCUMENTATION_MAN)/man1 ]; then \
+	  $(MKDIRS) $(GNUSTEP_DOCUMENTATION_MAN)/man1; \
 	fi; \
 	for file in $(MAN1_PAGES) __done; do \
 	  if [ $$file != __done ]; then \
-	    $(INSTALL_DATA) $$file $(GNUSTEP_DOC_MAN)/man1/$$file; \
-	    which gzip && rm -f $(GNUSTEP_DOC_MAN)/man1/$$file.gz \
-		&& gzip -9 $(GNUSTEP_DOC_MAN)/man1/$$file; \
+	    $(INSTALL_DATA) $$file $(GNUSTEP_DOCUMENTATION_MAN)/man1/$$file; \
+	    which gzip && rm -f $(GNUSTEP_DOCUMENTATION_MAN)/man1/$$file.gz \
+		&& gzip -9 $(GNUSTEP_DOCUMENTATION_MAN)/man1/$$file; \
 	  fi; \
 	done; \
-	if [ ! -f $(GNUSTEP_DOC_MAN)/man8 ]; then \
-	  $(MKDIRS) $(GNUSTEP_DOC_MAN)/man8; \
+	if [ ! -f $(GNUSTEP_DOCUMENTATION_MAN)/man8 ]; then \
+	  $(MKDIRS) $(GNUSTEP_DOCUMENTATION_MAN)/man8; \
 	fi; \
 	for file in $(MAN8_PAGES); do \
-	  $(INSTALL_DATA) $$file $(GNUSTEP_DOC_MAN)/man8/$$file; \
-	    which gzip && rm -f $(GNUSTEP_DOC_MAN)/man8/$$file.gz \
-		&& gzip -9 $(GNUSTEP_DOC_MAN)/man8/$$file; \
-	done$(END_ECHO)
-ifeq ($(GNUSTEP_INSTALL_GDOMAP_AS_SETUID),no)
-	$(ECHO_NOTHING)echo ""; \
-	echo "Note: gdomap has not been made setuid to root, so you must"; \
-	echo "start it up as root.  Most often this is done at system boot"; \
-	echo "by executing 'gdomap -p' in the startup scripts."; \
-	echo ""$(END_ECHO)
-else
-	$(ECHO_NOTHING)echo ""; \
+	  $(INSTALL_DATA) $$file $(GNUSTEP_DOCUMENTATION_MAN)/man8/$$file; \
+	    which gzip && rm -f $(GNUSTEP_DOCUMENTATION_MAN)/man8/$$file.gz \
+		&& gzip -9 $(GNUSTEP_DOCUMENTATION_MAN)/man8/$$file; \
+	done; \
 	if [ "`$(WHOAMI)`" != "root" ]; then \
 	  echo ""; \
 	  echo "************************************************************"; \
-	  echo "WARNING: gdomap has not been made setuid to root ..."; \
-	  echo "NOTE: Unless gdomap is started as root at system boot time,"; \
-	  echo "it MUST either be installed owned by root and with the"; \
-	  echo "'s-bit' or you must have defined 'GDOMAP_PORT_OVERRIDE' in"; \
+	  echo "FAILED gdomap installation - please re-run this as root ..."; \
+	  echo "NOTE: gdomap MUST be installed owned by root and with"; \
+	  echo "the 's-bit' set unless you defined 'GDOMAP_PORT_OVERRIDE' in"; \
 	  echo "gdomap.h before compiling gdomap.c and NSPortNameServer.m"; \
-	  echo "If either of those cases applies, ignore this message."; \
+	  echo "in which case you should install it by hand."; \
+	  echo "If you have installed by hand, ignore this message."; \
 	  echo "************************************************************"; \
 	  echo ""; \
 	else \
 	  echo "Making gdomap in $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR) setuid to root"; \
-	  echo "WARNING: if possible, you should remove the setuid flag and"; \
-	  echo "WARNING: have gdomap started as root at machine boot time."; \
 	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_TOOLS)/$(GNUSTEP_TARGET_DIR); \
 	fi; \
 	echo "************************************************************"; \
@@ -97,7 +86,6 @@ else
 	echo "startup command to your system boot scripts!"; \
 	echo "************************************************************"; \
 	$(END_ECHO)
-endif
 
 # Things to do before uninstalling
 before-uninstall::
@@ -106,14 +94,14 @@ before-uninstall::
 	done
 	-rmdir $(dtddir)
 	for file in $(MAN1_PAGES); do \
-	  rm -f $(GNUSTEP_DOC_MAN)/man1/$$file.gz; \
+	  rm -f $(GNUSTEP_DOCUMENTATION_MAN)/man1/$$file.gz; \
 	done;
-	-rmdir $(GNUSTEP_DOC_MAN)/man1;
+	-rmdir $(GNUSTEP_DOCUMENTATION_MAN)/man1;
 	for file in $(MAN8_PAGES); do \
-	  rm -f $(GNUSTEP_DOC_MAN)/man8/$$file.gz; \
+	  rm -f $(GNUSTEP_DOCUMENTATION_MAN)/man8/$$file.gz; \
 	done;
-	-rmdir $(GNUSTEP_DOC_MAN)/man8;
-	-rmdir $(GNUSTEP_DOC_MAN);
+	-rmdir $(GNUSTEP_DOCUMENTATION_MAN)/man8;
+	-rmdir $(GNUSTEP_DOCUMENTATION_MAN);
 
 # Things to do after uninstalling
 # after-uninstall::
@@ -136,4 +124,21 @@ before-uninstall::
 # Things to do after checking
 # after-check::
 
+
+#
+# If building with the Apple Foundation, we don't include the base 'Headers'
+# directory in the includes path, but we need the additions headers so we
+# link to them from the current directory.
+#
+
+ifeq ($(FOUNDATION_LIB),apple)
+
+before-all::
+	rm -f GNUstepBase
+	ln -s ../Headers/GNUstepBase GNUstepBase
+
+after-clean::
+	rm -f GNUstepBase
+
+endif
 

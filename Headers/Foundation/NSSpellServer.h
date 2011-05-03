@@ -14,7 +14,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -23,7 +23,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; see the file COPYING.LIB.
     If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor,
@@ -47,23 +47,23 @@ extern "C" {
 @class NSMutableArray;
 @class NSMutableDictionary;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-GS_EXPORT NSString *const NSGrammarCorrections;
-GS_EXPORT NSString *const NSGrammarRange;
-GS_EXPORT NSString *const NSGrammarUserDescription;
-#endif
-
 @interface NSSpellServer : NSObject
 {
-#if	GS_EXPOSE(NSSpellServer)
 @private
   id _delegate;
-  BOOL _caseSensitive; 
-  unsigned char _dummy[3];
+  BOOL _caseSensitive GS_UNUSED_IVAR; 
+  unsigned char _dummy[3] GS_UNUSED_IVAR;
   NSMutableDictionary *_userDictionaries;
   NSString *_currentLanguage;
   NSArray *_ignoredWords;
-  void *_reserved;
+#if     GS_NONFRAGILE
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
 #endif
 }
 
@@ -111,7 +111,7 @@ GS_EXPORT NSString *const NSGrammarUserDescription;
 - (NSRange) spellServer: (NSSpellServer *)sender
 findMisspelledWordInString: (NSString *)stringToCheck
                   language: (NSString *)language
-                 wordCount: (int32_t *)wordCount
+                 wordCount: (int *)wordCount
                  countOnly: (BOOL)countOnly;
 
 /**
@@ -134,24 +134,6 @@ findMisspelledWordInString: (NSString *)stringToCheck
 - (void) spellServer: (NSSpellServer *)sender
        didForgetWord: (NSString *)word
           inLanguage: (NSString *)language;
-
-#if OS_API_VERSION(100300,GS_API_LATEST) 
-/** Not implemented */
-- (NSArray *) spellServer: (NSSpellServer *)sender
-  suggestCompletionsForPartialWordRange: (NSRange)range
-  inString: (NSString *)string
-  language: (NSString *)language;
-#endif
-
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-/** Not implemented */
-- (NSRange) spellServer: (NSSpellServer *)sender
-  checkGrammarInString: (NSString *)stringToCheck
-  language: (NSString *)language
-  details: (NSArray **)details;
-
-#endif
-
 @end
 
 #if     defined(__cplusplus)

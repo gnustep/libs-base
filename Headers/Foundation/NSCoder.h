@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -57,7 +57,7 @@ extern "C" {
  *  well.
  */
 - (void) encodeArrayOfObjCType: (const char*)type
-			 count: (NSUInteger)count
+			 count: (unsigned)count
 			    at: (const void*)array;
 
 /**
@@ -72,7 +72,7 @@ extern "C" {
 /**
  *  Stores bytes directly into archive.  
  */
-- (void) encodeBytes: (void*)d length: (NSUInteger)l;
+- (void) encodeBytes: (void*)d length: (unsigned)l;
 
 /**
  *  Encode object if it is/will be encoded unconditionally by this coder,
@@ -141,13 +141,13 @@ extern "C" {
  *  well.  Objects will be retained and you must release them.
  */
 - (void) decodeArrayOfObjCType: (const char*)type
-                         count: (NSUInteger)count
+                         count: (unsigned)count
                             at: (void*)address;
 
 /**
  *  Retrieve bytes directly from archive.
  */
-- (void*) decodeBytesWithReturnedLength: (NSUInteger*)l;
+- (void*) decodeBytesWithReturnedLength: (unsigned*)l;
 
 /**
  *  Decode an instance of [NSData].
@@ -222,13 +222,13 @@ extern "C" {
  *  class (decoded).  Version comes from [NSObject -getVersion].
  *  
  */
-- (NSInteger) versionForClassName: (NSString*)className;
+- (unsigned int) versionForClassName: (NSString*)className;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /*
  * Include GSConfig.h for typedefs/defines of uint8_t, int32_t int64_t
  */
-#import <GNUstepBase/GSConfig.h>
+#include <GNUstepBase/GSConfig.h>
 
 
 /** <override-subclass />
@@ -257,7 +257,7 @@ extern "C" {
  * -encodeBytes:length:forKey:
  */
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
-		      returnedLength: (NSUInteger*)alength;
+		      returnedLength: (unsigned*)alength;
 
 /** <override-subclass />
  * Returns a double value associated with aKey.  This value must previously
@@ -313,7 +313,7 @@ extern "C" {
  * and associates the encoded value with aKey.
  */
 - (void) encodeBytes: (const uint8_t*)aPointer
-	      length: (NSUInteger)length
+	      length: (unsigned)length
 	      forKey: (NSString*)aKey;
 
 /** <override-subclass />
@@ -333,17 +333,17 @@ extern "C" {
 - (void) encodeFloat: (float)aFloat forKey: (NSString*)aKey;
 
 /** <override-subclass />
- * Encodes an int and associates the encoded value with aKey.
+ * Encodes anInteger and associates the encoded value with aKey.
  */
 - (void) encodeInt: (int)anInteger forKey: (NSString*)aKey;
 
 /** <override-subclass />
- * Encodes 32 bit integer and associates the encoded value with aKey.
+ * Encodes anInteger and associates the encoded value with aKey.
  */
 - (void) encodeInt32: (int32_t)anInteger forKey: (NSString*)aKey;
 
 /** <override-subclass />
- * Encodes a 64 bit integer and associates the encoded value with aKey.
+ * Encodes anInteger and associates the encoded value with aKey.
  */
 - (void) encodeInt64: (int64_t)anInteger forKey: (NSString*)aKey;
 
@@ -351,18 +351,6 @@ extern "C" {
  * Encodes anObject and associates the encoded value with aKey.
  */
 - (void) encodeObject: (id)anObject forKey: (NSString*)aKey;
-#endif
-
-#if OS_API_VERSION(100500, GS_API_LATEST)
-/** <override-subclass />
- * Encodes an NSInteger and associates the encoded value with key.
- */
-
-- (void) encodeInteger: (NSInteger)anInteger forKey: (NSString *)key;
-/** <override-subclass />
- * Decodes an NSInteger associated with the key.
- */
-- (NSInteger) decodeIntegerForKey: (NSString *)key;
 #endif
 @end
 

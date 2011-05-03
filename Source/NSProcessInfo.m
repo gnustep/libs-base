@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,7 +17,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -54,7 +54,8 @@
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
 
-#import "common.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -64,19 +65,8 @@
 #endif /* HAVE_STRERROR */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-
-#ifdef HAVE_WINDOWS_H
-#  include <windows.h>
-#endif
-
-#ifdef  HAVE_SYS_SIGNAL_H
-#include <sys/signal.h>
-#endif
-#ifdef  HAVE_SIGNAL_H
-#include <signal.h>
-#endif
-
 #include <sys/file.h>
 #ifdef HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>
@@ -89,11 +79,8 @@
 #include <kvm.h>
 #include <fcntl.h>
 #include <sys/param.h>
-#endif /* HAVE_KVM_ENV */
-
-#ifdef HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
-#endif
+#endif /* HAVE_KVM_ENV */
 
 #if HAVE_PROCFS_H
 #define id _procfs_avoid_id_collision
@@ -101,21 +88,22 @@
 #undef id
 #endif
 
-#import "GNUstepBase/GSConfig.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSBundle.h"
-#import "Foundation/NSSet.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSDate.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSHost.h"
-#import "Foundation/NSLock.h"
-#import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
-#import "GNUstepBase/NSString+GNUstepBase.h"
+#include "GNUstepBase/GSConfig.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSDebug.h"
+#include "GNUstepBase/GSCategories.h"
 
-#import "GSPrivate.h"
+#include "GSPrivate.h"
 
 @interface NSBundle (Private)
 + (NSString*) _gnustep_target_os;
@@ -215,10 +203,12 @@ static unsigned int	_operatingSystem = 0;
 static NSString		*_operatingSystemName = nil;
 static NSString		*_operatingSystemVersion = nil;
 
+// Array of debug levels set.
+static NSMutableSet	*_debug_set = nil;
+
 // Flag to indicate that fallbackInitialisation was executed.
 static BOOL	fallbackInitialisation = NO;
 
-static NSMutableSet	*mySet = nil;
 /*************************************************************************
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
@@ -243,7 +233,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
   else
     {
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       unichar	*buffer;
       int	buffer_size = 0;
       int	needed_size = 0;
@@ -285,7 +275,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   /* Getting the process name */
   IF_NO_GC(RELEASE(_gnu_processName));
   _gnu_processName = [arg0 lastPathComponent];
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   /* On windows we remove any .exe extension for consistency with app names
    * under unix
    */
@@ -301,18 +291,19 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   IF_NO_GC(RETAIN(_gnu_processName));
 
   /* Copy the argument list */
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
 {
   unichar **argvw = CommandLineToArgvW(GetCommandLineW(), &argc);
   NSString *str;
+  NSMutableSet *mySet;
   id obj_argv[argc];
   int added = 1;
+  
+  mySet = [NSMutableSet new];
   
   /* Copy the zero'th argument to the argument list */
   obj_argv[0] = arg0;
   
-  if (mySet == nil) mySet = [NSMutableSet new];
-
   for (i = 1; i < argc; i++)
     {
       str = [NSString stringWithCharacters: argvw[i] length: wcslen(argvw[i])];
@@ -328,20 +319,23 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     
   IF_NO_GC(RELEASE(_gnu_arguments));
   _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
+  IF_NO_GC(RELEASE(_debug_set));
+  _debug_set = mySet;
   RELEASE(arg0);
 }
 #else
   if (argv)
     {
       NSString		*str;
+      NSMutableSet	*mySet;
       id		obj_argv[argc];
       int		added = 1;
       NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
+      mySet = [NSMutableSet new];
+
       /* Copy the zero'th argument to the argument list */
       obj_argv[0] = arg0;
-
-      if (mySet == nil) mySet = [NSMutableSet new];
 
       for (i = 1; i < argc; i++)
 	{
@@ -355,6 +349,8 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
       IF_NO_GC(RELEASE(_gnu_arguments));
       _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
+      IF_NO_GC(RELEASE(_debug_set));
+      _debug_set = mySet;
       RELEASE(arg0);
     }
 #endif	
@@ -365,7 +361,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*values = [NSMutableArray new];
     NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
     if (fallbackInitialisation == NO)
       {
 	unichar	*base;
@@ -528,11 +524,6 @@ static char	**_gnu_noobjc_env = NULL;
   if (!vectors)
     {
       fprintf(stderr, "Error: libkvm does not return arguments for the current process\n");
-      fprintf(stderr, "this may be due to a bug (undocumented feature) in libkvm\n");
-      fprintf(stderr, "which fails to get arguments unless /proc is mounted.\n");
-      fprintf(stderr, "If so, you can mount the /proc filesystem or reconfigure/build\n");
-      fprintf(stderr, "gnustep-base with --enable-fake-main as a workaround, and\n");
-      fprintf(stderr, "should report the bug to the maintainer of libkvm on your operating system.\n");
       abort();
     }
 
@@ -561,7 +552,7 @@ static char	**_gnu_noobjc_env = NULL;
   
   // Read commandline
   proc_file_name = (char*)objc_malloc(sizeof(char) * 2048);
-  sprintf(proc_file_name, "/proc/%d/psinfo", (int)getpid());
+  sprintf(proc_file_name, "/proc/%d/psinfo", (int) getpid());
   
   ifp = fopen(proc_file_name, "r");
   if (ifp == NULL)
@@ -670,7 +661,7 @@ static char	**_gnu_noobjc_env = NULL;
 
   // Read commandline
   proc_file_name = (char *)objc_malloc(sizeof(char) * 2048);
-  sprintf(proc_file_name, "/proc/%d/cmdline", (int)getpid());
+  sprintf(proc_file_name, "/proc/%d/cmdline", (int) getpid());
 
   /*
    * We read the /proc file thrice.
@@ -777,10 +768,6 @@ static char	**_gnu_noobjc_env = NULL;
 
  proc_fs_error:
 #ifdef HAVE_STRERROR
-  /* Don't care about thread safety of strerror() here as this is only
-   * called in the initial thread and there shouldn't be any other
-   * threads at this point.
-   */
   fprintf(stderr, "Couldn't open file %s when starting gnustep-base; %s\n",
 	   proc_file_name, strerror(errno));
 #else  /* !HAVE_FUNCTION_STRERROR */
@@ -844,18 +831,15 @@ _gnu_noobjc_free_vars(void)
   if (self == [NSProcessInfo class]
     && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {
-      if(_gnu_noobjc_argv == 0 || _gnu_noobjc_env == 0)
-	{
-          _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
-          exit(1);
-	}
+      NSAssert(_gnu_noobjc_argv && _gnu_noobjc_env,
+	_GNU_MISSING_MAIN_FUNCTION_CALL);
       _gnu_process_args(_gnu_noobjc_argc, _gnu_noobjc_argv, _gnu_noobjc_env);
       _gnu_noobjc_free_vars();
     }
 }
 #else /*! HAVE_PROCFS !HAVE_LOAD_METHOD !HAVE_KVM_ENV */
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
 + (void) initialize
 {
@@ -882,26 +866,6 @@ extern char **__libc_argv;
 #else
 #ifndef GS_PASS_ARGUMENTS
 #undef main
-/* The gnustep_base_user_main function is declared 'weak' so that the linker
- * should actually use the one compiled as the program's 'main' function.
- * The internal version gets called only if the program does not implement
- * the function (ie the prgram was compiled with the wrong version of
- * GSConfig.h included/imported).  The other possible reason for the internal
- * function to be called would be a compiler/linker issue (eg 'weak' not
- * supported).
- */
-int gnustep_base_user_main () __attribute__((weak));
-int gnustep_base_user_main (int argc, char *argv[], char *env[])
-{
-  fprintf(stderr, "\nGNUSTEP Internal Error:\n"
-"The GNUstep function to establish the argv and environment variables could\n"
-"not find the main function of your program.\n"
-"Perhaps your program failed to #include <Foundation/NSObject.h> or\n"
-"<Foundation/Foundation.h> (or included/imported a different version of the\n"
-"header from the one supplied with this copy of the gnustep-base library)?\n"
-"If that is not the case, Please report the error to bug-gnustep@gnu.org.\n");
-  exit(1);
-}
 int main(int argc, char *argv[], char *env[])
 {
 #ifdef NeXT_RUNTIME
@@ -912,7 +876,7 @@ int main(int argc, char *argv[], char *env[])
          sizeof(_NSConstantStringClassReference));
 #endif
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   WSADATA lpWSAData;
 
   // Initialize Windows Sockets
@@ -921,7 +885,7 @@ int main(int argc, char *argv[], char *env[])
       printf("Could not startup Windows Sockets\n");
       exit(1);
     }
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
 #ifdef __MS_WIN__
   _MB_init_runtime();
@@ -933,7 +897,7 @@ int main(int argc, char *argv[], char *env[])
   return gnustep_base_user_main(argc, argv, env);
 }
 #endif /* !GS_PASS_ARGUMENTS */
-#endif /* __MINGW__ */
+#endif /* __MINGW32__ */
 
 #endif /* HAS_LOAD_METHOD && HAS_PROCFS */
 
@@ -944,52 +908,15 @@ int main(int argc, char *argv[], char *env[])
   if (!(_gnu_processName && _gnu_arguments && _gnu_environment))
     {
       _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
-      exit(1);
+      [NSException raise: NSInternalInconsistencyException
+	          format: _GNU_MISSING_MAIN_FUNCTION_CALL];
     }
 
   if (!_gnu_sharedProcessInfoObject)
     {
       _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
-      [gnustep_global_lock lock];
-      if (mySet != nil)
-	{
-	  NSEnumerator	*e = [mySet objectEnumerator];
-	  NSMutableSet	*s = [_gnu_sharedProcessInfoObject debugSet];
-	  id		o;
-
-	  while ((o = [e nextObject]) != nil)
-	    {
-              [s addObject: o];
-	    }
-	  [mySet release];
-	  mySet = nil;
-        }
-      [gnustep_global_lock unlock];
     }
-
   return _gnu_sharedProcessInfoObject;
-}
-
-+ (BOOL) _exists: (int)pid
-{
-  if (pid > 0)
-    {
-#if	defined(__MINGW__)
-      HANDLE        h = OpenProcess(PROCESS_QUERY_INFORMATION,0,pid);
-      if (h == NULL && GetLastError() != ERROR_ACCESS_DENIED)
-        {
-          return NO;
-        }
-      CloseHandle(h);
-#else
-      if (kill(pid, 0) < 0 && errno == ESRCH)
-        {
-          return NO;
-        }
-#endif
-      return YES;
-    }
-  return NO;
 }
 
 - (NSArray *) arguments
@@ -1018,7 +945,7 @@ int main(int argc, char *argv[], char *env[])
       pid = [self processIdentifier];
       start = (unsigned long)GSTimeNow();
       host = [[self hostName] stringByReplacingString: @"." withString: @"_"];
-      IF_NO_GC(RETAIN(host);)
+      RETAIN(host);
     }
   count = counter++;
   [gnustep_global_lock unlock];
@@ -1045,7 +972,7 @@ static void determineOperatingSystem()
       NSString	*os = nil;
       BOOL	parseOS = YES;
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
       OSVERSIONINFOW	osver;
 
       osver.dwOSVersionInfoSize = sizeof(osver);
@@ -1087,7 +1014,7 @@ static void determineOperatingSystem()
 	    }
 	}
 #endif	/* HAVE_SYS_UTSNAME_H */
-#endif	/* __MINGW__ */
+#endif	/* __MINGW32__ */
 
       if (_operatingSystemVersion == nil)
         {
@@ -1174,7 +1101,7 @@ static void determineOperatingSystem()
     }
 }
 
-- (NSUInteger) operatingSystem
+- (unsigned int) operatingSystem
 {
   if (_operatingSystem == 0)
     {
@@ -1205,7 +1132,7 @@ static void determineOperatingSystem()
 {
   int	pid;
 
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
   pid = (int)GetCurrentProcessId();
 #else
   pid = (int)getpid();
@@ -1220,192 +1147,56 @@ static void determineOperatingSystem()
 
 - (void) setProcessName: (NSString *)newName
 {
-  if (newName && [newName length])
-    {
-      [_gnu_processName autorelease];
-      _gnu_processName = [newName copyWithZone: [self zone]];
-    }
+  if (newName && [newName length]) {
+    [_gnu_processName autorelease];
+    _gnu_processName = [newName copyWithZone: [self zone]];
+  }
   return;
-}
-
-- (NSUInteger) processorCount
-{
-  static NSUInteger	procCount = 0;
-  static BOOL		beenHere = NO;
-
-  if (beenHere == NO)
-    {
-#if	defined(__MINGW__)
-      SYSTEM_INFO info;
-
-      GetSystemInfo(&info);
-      return info.dwNumberOfProcessors;
-#elif	defined(_SC_NPROCESSORS_CONF)
-      procCount = sysconf(_SC_NPROCESSORS_CONF);
-#elif	defined(HAVE_SYSCTLBYNAME)
-      int	val;
-      size_t	len = sizeof(val);
-
-      if (sysctlbyname("hw.ncpu", &val, &len, 0, 0) == 0)
-        {
-          procCount = val;
-        }
-#elif	defined(HAVE_PROCFS)
-      NSFileManager	*fileManager = [NSFileManager defaultManager];
-
-      if ([fileManager fileExistsAtPath: @"/proc/cpuinfo"])
-	{
-	  NSString	*cpuInfo;
-	  NSArray	*a;
-	  unsigned	i;
-
-	  cpuInfo = [NSString stringWithContentsOfFile: @"/proc/cpuinfo"];
-	  a = [cpuInfo componentsSeparatedByCharactersInSet:
-	    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-	  // syntax is processor : #
-	  // count up each one
-	  for (i = 0; i < [a count]; ++i)
-	    {
-	      if ([[a objectAtIndex: i] isEqualToString: @"processor"])
-		{
-		  if (((i+1) < [a count])
-		    && [[a objectAtIndex: i+1] isEqualToString: @":"])
-		    {
-		      procCount++;
-		    }
-		}
-	    }
-	}
-#else
-#warning	"no known way to determine number of processors on this system"
-#endif
-
-      beenHere = YES;
-      if (procCount == 0)
-	{
-	  NSLog(@"Cannot determine processor count.");
-	}
-    }    
-  return procCount;
-}
-
-- (NSUInteger) activeProcessorCount
-{
-#if	defined(__MINGW__)
-  SYSTEM_INFO info;
-  int	index;
-  int	count = 0;
-
-  GetSystemInfo(&info);
-  for (index = 0; index < 32; index++)
-    {
-      if (info.dwActiveProcessorMask & (1<<index))
-	{
-	  count++;
-	}
-    }
-  return count;
-#elif	defined(_SC_NPROCESSORS_ONLN)
-  return sysconf(_SC_NPROCESSORS_ONLN);
-#elif	defined(HAVE_SYSCTLBYNAME)
-  int		val;
-  size_t	len = sizeof(val);
-
-  if (sysctlbyname("kern.smp.cpus", &val, &len, 0, 0) == 0)
-    {
-      return val;
-    }
-  else if (sysctlbyname("hw.activecpu", &val, &len, 0, 0) == 0)
-    {
-      return val;
-    }
-  return [self processorCount];
-#else
-  return [self processorCount];
-#endif
-}
-
-- (unsigned long long) physicalMemory
-{
-  static NSUInteger availMem = 0;
-  static BOOL beenHere = NO;
-
-  if (beenHere == NO)
-    {
-#if	defined(__MINGW__)
-      MEMORYSTATUSEX memory;
-
-      memory.dwLength = sizeof(memory);
-      GlobalMemoryStatusEx(&memory);
-      return memory.ullTotalPhys;
-#elif	defined(_SC_PHYS_PAGES)
-      availMem = sysconf(_SC_PHYS_PAGES) * NSPageSize();
-#elif	defined(HAVE_SYSCTLBYNAME)
-      long	val;
-      size_t	len = val;
-
-      if (sysctlbyname("hw.physmem", &val, &len, 0, 0) == 0)
-        {
-          availMem = val;
-        }
-#elif	defined(HAVE_PROCFS)
-      NSFileManager *fileManager = [NSFileManager defaultManager];
-
-      if ([fileManager fileExistsAtPath: @"/proc/meminfo"])
-	{
-	  NSString	*memInfo;
-	  NSString	*s;
-	  NSArray	*a;
-	  NSRange	r;
-
-	  memInfo = [NSString stringWithContentsOfFile: @"/proc/meminfo"];
-	  r = [memInfo rangeOfString: @"MemTotal:"];
-
-	  if (r.location == NSNotFound)
-	    {
-	      NSLog(@"Cannot determine amount of physical memory.");
-	      return 0;
-	    }
-	  s = [[memInfo substringFromIndex: (r.location + r.length)]
-	    stringByTrimmingCharactersInSet:
-	    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-	  a = [s componentsSeparatedByString: @" "];
-	  s = [a objectAtIndex: 0];
-	  availMem = (NSUInteger)[s longLongValue];
-	  availMem *= NSPageSize();
-	}
-#else
-#warning	"no known way to determine amount of memory on this system"
-#endif
-  
-      beenHere = YES;
-      if (availMem == 0)
-	{
-	  NSLog(@"Cannot determine amount of physical memory.");
-	}
-    }
-  return availMem;
 }
 
 @end
 
-void
-GSInitializeProcess(int argc, char **argv, char **envp)
-{
-  [NSProcessInfo class];
-  [gnustep_global_lock lock];
-  fallbackInitialisation = YES;
-  _gnu_process_args(argc, argv, envp);
-  [gnustep_global_lock unlock];
-}
-
 @implementation	NSProcessInfo (GNUstep)
+
+static BOOL	debugTemporarilyDisabled = NO;
 
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env
 {
-  GSInitializeProcess(argc, argv, env);
+  [gnustep_global_lock lock];
+  fallbackInitialisation = YES;
+  _gnu_process_args(argc, argv, env);
+  [gnustep_global_lock unlock];
+}
+
+- (BOOL) debugLoggingEnabled
+{
+  if (debugTemporarilyDisabled == YES)
+    {
+      return NO;
+    }
+  else
+    {
+      return YES;
+    }
+}
+
+- (NSMutableSet*) debugSet
+{
+  return _debug_set;
+}
+
+- (void) setDebugLoggingEnabled: (BOOL)flag
+{
+  if (flag == NO)
+    {
+      debugTemporarilyDisabled = YES;
+    }
+  else
+    {
+      debugTemporarilyDisabled = NO;
+    }
 }
 
 - (BOOL) setLogFile: (NSString*)path
@@ -1413,7 +1204,7 @@ GSInitializeProcess(int argc, char **argv, char **envp)
   extern int	_NSLogDescriptor;
   int		desc;
 
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   desc = _wopen([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
 #else
   desc = open([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
@@ -1430,6 +1221,31 @@ GSInitializeProcess(int argc, char **argv, char **envp)
   return NO;
 }
 @end
+
+BOOL GSDebugSet(NSString *level)
+{
+  static IMP debugImp = 0;
+  static SEL debugSel;
+
+  if (debugTemporarilyDisabled == YES)
+    {
+      return NO;
+    }
+  if (debugImp == 0)
+    {
+      debugSel = @selector(member:);
+      if (_debug_set == nil)
+	{
+	  [[NSProcessInfo processInfo] debugSet];
+	}
+      debugImp = [_debug_set methodForSelector: debugSel];
+    }
+  if ((*debugImp)(_debug_set, debugSel, level) == nil)
+    {
+      return NO;
+    }
+  return YES;
+}
 
 BOOL
 GSPrivateEnvironmentFlag(const char *name, BOOL def)

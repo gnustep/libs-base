@@ -8,7 +8,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -17,27 +17,19 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
 
    <title>NSPathUtilities function reference</title>
    $Date$ $Revision$
    */
 
-#import "common.h"
-#import "GNUstepBase/preface.h"
-#import "GNUstepBase/GSFunctions.h"
-#import "GNUstepBase/NSDebug+GNUstepBase.h"
-#ifndef NeXT_Foundation_LIBRARY
-#import "Foundation/NSArray.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSFileManager.h"
-#else
-#import <Foundation/Foundation.h>
-#endif
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSFunctions.h"
+#include "GNUstepBase/GSCategories.h"
+#include "Foundation/Foundation.h"
 
 NSString *
 GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension)

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
    
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
    
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02111 USA.
@@ -69,14 +69,9 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
  */
 @interface NSXMLParser : NSObject
 {
-#if	GS_EXPOSE(NSXMLParser)
-@public
+@private
   void		*_parser;	// GSXMLParser
   void		*_handler;	// SAXHandler
-#endif
-#if	!GS_NONFRAGILE
-  void		*_unused;
-#endif
 }
 
 /**
@@ -159,12 +154,12 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /**
  * Returns the current column number of the document being parsed.
  */
-- (NSInteger) columnNumber;
+- (int) columnNumber;
 
 /**
  * Returns the current line number of the document being parsed.
  */
-- (NSInteger) lineNumber;
+- (int) lineNumber;
 
 /**
  * Returns the public identifier of the external entity in the
@@ -313,7 +308,7 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /*
  * Provide the same error codes as MacOS-X, even if we don't use them all.
  */
-enum {
+typedef enum {
   NSXMLParserInternalError = 1,
   NSXMLParserOutOfMemoryError = 2,
   NSXMLParserDocumentStartError = 3,
@@ -407,8 +402,7 @@ enum {
   NSXMLParserURIFragmentError = 92,
   NSXMLParserNoDTDError = 94,
   NSXMLParserDelegateAbortedParseError = 512
-};
-typedef NSUInteger NSXMLParserError;
+} NSXMLParserError;
 
 #if	defined(__cplusplus)
 }

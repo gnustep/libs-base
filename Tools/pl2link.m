@@ -8,26 +8,27 @@
 
    This file is part of the GNUstep Project
 
-   This program is free software; you can redistribute it and/or
+   This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
+   License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
 
-#import	"common.h"
+   */
 
-#import	"Foundation/NSArray.h"
-#import	"Foundation/NSAutoreleasePool.h"
-#import	"Foundation/NSData.h"
-#import	"Foundation/NSDictionary.h"
-#import	"Foundation/NSException.h"
-#import	"Foundation/NSFileManager.h"
-#import	"Foundation/NSProcessInfo.h"
+#include        <Foundation/Foundation.h>
+#include	<Foundation/NSArray.h>
+#include	<Foundation/NSAutoreleasePool.h>
+#include	<Foundation/NSData.h>
+#include	<Foundation/NSDictionary.h>
+#include	<Foundation/NSException.h>
+#include	<Foundation/NSFileManager.h>
+#include	<Foundation/NSProcessInfo.h>
+#include	<Foundation/NSString.h>
 
 int
 main(int argc, char** argv, char **env)
@@ -43,7 +44,7 @@ main(int argc, char** argv, char **env)
   NSString		*entry;
 
 #ifdef GS_PASS_ARGUMENTS
-  GSInitializeProcess(argc, argv, env);
+  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
   pool = [NSAutoreleasePool new];
   procinfo = [NSProcessInfo processInfo];

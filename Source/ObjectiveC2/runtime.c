@@ -102,21 +102,24 @@ skip_argspec(const char *types)
 static Method
 class_getInstanceMethodNonrecursive(Class aClass, SEL aSelector)
 {
-  struct objc_method_list *methods;
-
-  for (methods = aClass->methods;
-       methods != NULL; methods = methods->method_next)
+  if (Nil != aClass)
     {
-      int i;
+      struct objc_method_list *methods;
 
-      for (i = 0; i < methods->method_count; i++)
+      for (methods = aClass->methods;
+        methods != NULL; methods = methods->method_next)
 	{
-	  Method_t method = &methods->method_list[i];
+	  int i;
 
-	  if (method->method_name->sel_id == aSelector->sel_id)
-		{
-		  return method;
-		}
+	  for (i = 0; i < methods->method_count; i++)
+	    {
+	      Method_t method = &methods->method_list[i];
+
+	      if (method->method_name->sel_id == aSelector->sel_id)
+		    {
+		      return method;
+		    }
+	    }
 	}
     }
   return NULL;
@@ -148,7 +151,7 @@ class_addIvar(Class cls, const char *name,
   unsigned off;
   Ivar ivar;
 
-  if (CLS_ISRESOLV(cls) || CLS_ISMETA(cls))
+  if (Nil == cls || CLS_ISRESOLV(cls) || CLS_ISMETA(cls))
     {
       return NO;
     }
@@ -162,14 +165,14 @@ class_addIvar(Class cls, const char *name,
 
   if (NULL == ivarlist)
     {
-      cls->ivars = objc_malloc(sizeof(struct objc_ivar_list));
+      cls->ivars = malloc(sizeof(struct objc_ivar_list));
       cls->ivars->ivar_count = 1;
     }
   else
     {
       ivarlist->ivar_count++;
       // objc_ivar_list contains one ivar.  Others follow it.
-      cls->ivars = objc_realloc(ivarlist, sizeof(struct objc_ivar_list)
+      cls->ivars = realloc(ivarlist, sizeof(struct objc_ivar_list)
 				+ (ivarlist->ivar_count -
 				   1) * sizeof(struct objc_ivar));
     }
@@ -209,7 +212,7 @@ class_addMethod(Class cls, SEL name, IMP imp, const char *types)
 	}
     }
 
-  methods = objc_malloc(sizeof(struct objc_method_list));
+  methods = malloc(sizeof(struct objc_method_list));
   methods->method_next = cls->methods;
   cls->methods = methods;
 
@@ -237,7 +240,7 @@ class_addProtocol(Class cls, Protocol * protocol)
       return NO;
     }
   protocols = cls->protocols;
-  protocols = objc_malloc(sizeof(struct objc_protocol_list));
+  protocols = malloc(sizeof(struct objc_protocol_list));
   if (protocols == NULL)
     {
       return NO;
@@ -353,7 +356,7 @@ class_copyProtocolList(Class cls, unsigned int *outCount)
 id
 class_createInstance(Class cls, size_t extraBytes)
 {
-  id obj = objc_malloc(cls->instance_size + extraBytes);
+  id obj = malloc(cls->instance_size + extraBytes);
   obj->isa = cls;
   return obj;
 }
@@ -380,6 +383,10 @@ class_getInstanceMethod(Class aClass, SEL aSelector)
 Method
 class_getClassMethod(Class aClass, SEL aSelector)
 {
+  if (Nil == aClass)
+    {
+      return NULL;
+    }
   return class_getInstanceMethod(aClass->class_pointer, aSelector);
 }
 
@@ -393,13 +400,17 @@ class_getClassVariable(Class cls, const char *name)
 size_t
 class_getInstanceSize(Class cls)
 {
+  if (Nil == cls)
+    {
+      return 0;
+    }
   return cls->instance_size;
 }
 
 Ivar
 class_getInstanceVariable(Class cls, const char *name)
 {
-  if (name != NULL)
+  if (Nil != cls && NULL != name)
     {
       while (cls != Nil)
 	{
@@ -430,27 +441,44 @@ class_getInstanceVariable(Class cls, const char *name)
 const char *
 class_getIvarLayout(Class cls)
 {
+  if (Nil == cls)
+    {
+      return 0;
+    }
   return (char *) cls->ivars;
 }
 
+/* For the next two functions ...
+ * It would be nice to use objc_msg_lookup(), but we can't because that
+ * requires an instance rather than a class as its argument.  Trying to
+ * pass the address of the class as if it was an instance won't work since 
+ * the instance variables will be missing and any forwarding callback used
+ * by a proxy may try to use the instance variables and crash/fail in
+ * interesting ways.
+ */ 
 IMP
 class_getMethodImplementation(Class cls, SEL name)
 {
-  struct objc_object_gnu obj = { cls };
-  return (IMP) objc_msg_lookup((id) & obj, name);
+  if (Nil == cls || 0 == name)
+    {
+      return 0;
+    }
+  return (IMP) get_imp(cls, name);
 }
-
 IMP
 class_getMethodImplementation_stret(Class cls, SEL name)
 {
-  struct objc_object_gnu obj = { cls };
-  return (IMP) objc_msg_lookup((id) & obj, name);
+  if (Nil == cls || 0 == name)
+    {
+      return 0;
+    }
+  return (IMP) get_imp(cls, name);
 }
 
 const char *
 class_getName(Class cls)
 {
-  if (cls == Nil)
+  if (Nil == cls)
     {
       return "nil";	// This is what OSX does.
     }
@@ -466,6 +494,10 @@ void __objc_resolve_class_links(void);
 Class
 class_getSuperclass(Class cls)
 {
+  if (Nil == cls)
+    {
+      return 0;
+    }
   if (!CLS_ISRESOLV(cls))
     {
       /* This class is not yet resolved ... so lookup superclass by name.
@@ -480,9 +512,13 @@ class_getSuperclass(Class cls)
 }
 
 int
-class_getVersion(Class theClass)
+class_getVersion(Class cls)
 {
-  return class_get_version(theClass);
+  if (Nil == cls)
+    {
+      return 0;
+    }
+  return class_get_version(cls);
 }
 
 const char *
@@ -495,7 +531,11 @@ class_getWeakIvarLayout(Class cls)
 BOOL
 class_isMetaClass(Class cls)
 {
-  return CLS_ISMETA(cls);
+  if (Nil == cls || !CLS_ISMETA(cls))
+    {
+      return NO;
+    }
+  return YES;
 }
 
 IMP
@@ -670,61 +710,89 @@ method_getArgumentType(Method method,
 IMP
 method_getImplementation(Method method)
 {
-  return (IMP) method->method_imp;
+  return method ? (IMP) method->method_imp : (IMP) 0;
 }
 
 SEL
 method_getName(Method method)
 {
-  return method->method_name;
+  return method ? method->method_name : (SEL) 0;
 }
 
 unsigned
 method_getNumberOfArguments(Method method)
 {
-  const char *types = method->method_types;
-  unsigned int count = 0;
-
-  while ('\0' != *types)
+  if (0 == method)
     {
-      types = skip_argspec(types);
-      count++;
+      return 0;
     }
-  return count - 1;
+  else
+    {
+      unsigned int count = 0;
+      const char *types = method->method_types;
+
+      while ('\0' != *types)
+	{
+	  types = skip_argspec(types);
+	  count++;
+	}
+      return count - 1;
+    }
 }
 
 void
 method_getReturnType(Method method, char *dst, size_t dst_len)
 {
-  //TODO: Coped and pasted code.  Factor it out.
-  const char *types = method->method_types;
-  size_t length = lengthOfTypeEncoding(types);
-
-  if (length < dst_len)
+  if (0 == method)
     {
-      memcpy(dst, types, length);
-      dst[length] = '\0';
+      if (dst_len > 0)
+	{
+          dst[0] = '\0';
+	}
     }
   else
     {
-      memcpy(dst, types, dst_len);
+      //TODO: Coped and pasted code.  Factor it out.
+      const char *types = method->method_types;
+      size_t length = lengthOfTypeEncoding(types);
+
+      if (length < dst_len)
+	{
+	  memcpy(dst, types, length);
+	  dst[length] = '\0';
+	}
+      else if (dst_len > 0)
+	{
+	  memcpy(dst, types, dst_len);
+	}
     }
 }
 
 const char *
 method_getTypeEncoding(Method method)
 {
+  if (0 == method)
+    {
+      return 0;
+    }
   return method->method_types;
 }
 
 IMP
 method_setImplementation(Method method, IMP imp)
 {
-  IMP old = (IMP) method->method_imp;
+  if (0 == method)
+    {
+      return (IMP)0;
+    }
+  else
+    {
+      IMP old = (IMP) method->method_imp;
 
-  method->method_imp = (objc_imp_gnu) old;
-  objc_updateDtableForClassContainingMethod(method);
-  return old;
+      method->method_imp = (objc_imp_gnu) old;
+      objc_updateDtableForClassContainingMethod(method);
+      return old;
+    }
 }
 
 id
@@ -1017,11 +1085,12 @@ objc_registerClassPair(Class cls)
     {
       return;	// Already registered
     }
-  if (Nil == existing)
+  else if (Nil != existing)
     {
       fprintf(stderr, "*** ERROR *** function objc_registerClassPair() called "
 	"for class pair with name ('%s') of existing class.\n",
 	class_getName(cls));
+      return;
     }
 
   // Initialize the dispatch table for the class and metaclass.
@@ -1082,6 +1151,12 @@ objc_getProtocol(const char *name)
   return p;
 }
 
+Protocol **objc_copyProtocolList(unsigned int *count)
+{
+  *count = 0;
+  return NULL;
+}
+
 BOOL protocol_conformsToProtocol(Protocol *p1, Protocol *p2)
 {
 	struct objc_protocol_list *list = p1->protocol_list;
@@ -1134,20 +1209,81 @@ BOOL class_conformsToProtocol(Class cls, Protocol *protocol)
 	return NO;
 }
 
+struct objc_method_description_list {
+  int count;
+  struct objc_method_description list[1];
+};
+
 struct objc_method_description *
 protocol_copyMethodDescriptionList(Protocol * p,
 				   BOOL isRequiredMethod,
 				   BOOL isInstanceMethod, unsigned int *count)
 {
-  *count = 0;
-  return NULL;
+	struct objc_method_description *output = NULL;
+	unsigned int outputCount = 0;
+	struct objc_method_description_list *methods;
+
+	if (isInstanceMethod)
+	{
+		methods = p->instance_methods;
+	}
+	else
+	{
+		methods = p->class_methods;
+	}
+
+
+	if (methods != NULL)
+	{
+		int i;
+		outputCount = methods->count;
+		output = malloc(outputCount * sizeof(struct objc_method_description));
+
+		for (i=0 ; i<methods->count; i++)
+		{
+			output[i] = methods->list[i];
+			// HACK: the name field of the objc_method_description struct 
+			// is supposed to be a selector, but testing reveals it is a string
+			output[i].name = sel_registerName((const char *) output[i].name);
+		}
+	}
+
+	*count = outputCount;
+	return output;
 }
 
 Protocol **
 protocol_copyProtocolList(Protocol * p, unsigned int *count)
 {
-  *count = 0;
-  return NULL;
+	Protocol **output = NULL;
+	unsigned int outputCount = 0;
+	struct objc_protocol_list *list;
+
+	for (list = p->protocol_list ; list != NULL ; list = list->next)
+	{
+		int i;
+		for (i=0 ; i<list->count ; i++)
+		{
+			outputCount++;
+		}
+	}
+
+	if (outputCount > 0)
+	{
+		output = malloc(outputCount * sizeof(Protocol *));
+	}
+
+	for (list = p->protocol_list ; list != NULL ; list = list->next)
+	{
+		int i;
+		for (i=0 ; i<list->count ; i++)
+		{
+			output[i] = (Protocol*)list->list[i];
+		}
+	}
+
+	*count = outputCount;
+	return output;
 }
 
 const char *
@@ -1159,6 +1295,45 @@ protocol_getName(Protocol * p)
     }
   return NULL;
 }
+
+struct objc_method_description protocol_getMethodDescription(Protocol *p,
+  SEL aSel, BOOL isRequiredMethod, BOOL isInstanceMethod)
+{
+  struct objc_method_description output = {NULL, NULL};
+
+  if (p != NULL)
+    {
+      struct objc_method_description_list *methods;
+      const char *name = sel_getName(aSel);
+      int i;
+
+      if (isInstanceMethod)
+	{
+          methods = p->instance_methods;
+	}
+      else
+	{
+	  methods = p->class_methods;
+	}
+
+      if (methods != NULL)
+	{
+	  for (i = 0; i < methods->count; i++)
+	    {
+	      if (!strcmp((char*)methods->list[i].name, name))
+		{
+		  output = methods->list[i];
+		  // HACK: the name field of the objc_method_description struct 
+		  // is supposed to be a selector, but testing reveals it is a string
+		  output.name = sel_registerName((const char *) output.name);
+		  break;
+		}
+	    }
+	}
+    }
+  return output;
+}
+
 
 BOOL
 protocol_isEqual(Protocol * p, Protocol * other)
@@ -1182,20 +1357,10 @@ sel_getName(SEL sel)
   return sel_get_name(sel);
 }
 
-const char *
-sel_getType_np(SEL sel)
-{
-  if (sel == 0)
-    return "";
-  return sel_get_type(sel);
-}
-
 SEL
 sel_getUid(const char *selName)
 {
-  if (selName == 0)
-    return 0;
-  return sel_get_uid(selName);
+  return sel_registerName(selName);
 }
 
 BOOL
@@ -1211,3 +1376,4 @@ sel_registerName(const char *selName)
     return 0;
   return sel_register_name(selName);
 }
+

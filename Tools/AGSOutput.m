@@ -10,30 +10,19 @@
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
+   License along with this program; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    */
 
-#import "common.h"
-
-#import "Foundation/NSArray.h"
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSCharacterSet.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSFileManager.h"
-#import "Foundation/NSPathUtilities.h"
-#import "Foundation/NSUserDefaults.h"
-#import "AGSOutput.h"
-#import "GNUstepBase/NSString+GNUstepBase.h"
-#import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#include "AGSOutput.h"
+#include "GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSCategories.h"
 
 @interface AGSOutput (Private)
 - (NSString*) mergeMarkup: (NSString*)markup
@@ -58,7 +47,7 @@ static BOOL snuggleEnd(NSString *t)
   if (set == nil)
     {
       set = [NSCharacterSet characterSetWithCharactersInString: @"]}).,;"];
-      IF_NO_GC([set retain];)
+      RETAIN(set);
     }
   return [set characterIsMember: [t characterAtIndex: 0]];
 }
@@ -70,7 +59,7 @@ static BOOL snuggleStart(NSString *t)
   if (set == nil)
     {
       set = [NSCharacterSet characterSetWithCharactersInString: @"[{("];
-      IF_NO_GC([set retain];)
+      RETAIN(set);
     }
   return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
 }
@@ -204,10 +193,12 @@ static BOOL snuggleStart(NSString *t)
   for (i = start; size < limit && i < end; i++)
     {
       NSString	*t = [a objectAtIndex: i];
+      BOOL	forceNewline = [t hasPrefix: @"<p>"];
+      BOOL	elementEndReached = (nest == 0 && [t hasPrefix: @"</"] == YES); 
 
-      if (nest == 0 && [t hasPrefix: @"</"] == YES)
+      if (elementEndReached || forceNewline)
 	{
-	  break;	// End of element reached.
+	  break;
 	}
 
       /*
@@ -343,7 +334,7 @@ static BOOL snuggleStart(NSString *t)
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
   [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.3//EN\" "];
-  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"];
+  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"];
   [str appendFormat: @"<gsdoc"];
 
   if (base != nil)
@@ -836,16 +827,16 @@ static BOOL snuggleStart(NSString *t)
       NSString		*s = [a objectForKey: @"BaseType"];
 
       [str appendString: @"        <arg type=\""];
-      [str appendString: escapeType(s)];
+      [str appendString: s];
       s = [a objectForKey: @"Prefix"];
       if (s != nil)
 	{
-	  [str appendString: escapeType(s)];
+	  [str appendString: s];
 	}
       s = [a objectForKey: @"Suffix"];
       if (s != nil)
 	{
-	  [str appendString: escapeType(s)];
+	  [str appendString: s];
 	}
       [str appendString: @"\">"];
       [str appendString: [a objectForKey: @"Name"]];
@@ -1079,7 +1070,7 @@ static BOOL snuggleStart(NSString *t)
 	} while (r.length > 0);
       if (m != nil)
 	{
-	  IF_NO_GC([m autorelease];)
+	  AUTORELEASE(m);
 	}
     }
 
@@ -1356,7 +1347,7 @@ static BOOL snuggleStart(NSString *t)
   CREATE_AUTORELEASE_POOL(arp);
 #endif
   unsigned	l = [str length];
-  NSRange	r = NSMakeRange(0, l);
+  NSRange	r = [str rangeOfString: @"<example"];
   unsigned	i = 0;
   NSArray	*a;
 
@@ -1364,7 +1355,6 @@ static BOOL snuggleStart(NSString *t)
    * Split out <example>...</example> sequences and output them literally.
    * All other text has reformatting applied as necessary.
    */
-  r = [str rangeOfString: @"<example"];
   while (r.length > 0)
     {
       NSString	*tmp;
@@ -2346,7 +2336,7 @@ static BOOL snuggleStart(NSString *t)
 	  [str appendString: @"<?xml version=\"1.0\"?>\n"];
 	  [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
 	  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.3//EN\" "];
-	  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"];
+	  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.xml\">\n"];
 	  [str appendString: @"<gsdoc base=\""];
 	  [str appendString: [name lastPathComponent]];
 	  /*

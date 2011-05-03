@@ -1,5 +1,4 @@
-
-#include "objc-common.g"
+#include <objc/objc-api.h>
 
 int main (void)
 {

@@ -7,7 +7,7 @@
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
+   modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
 
@@ -16,7 +16,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
@@ -25,29 +25,29 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
-#define	EXPOSE_NSTask_IVARS	1
-#import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSBundle.h"
-#import "Foundation/NSCharacterSet.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSDate.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSException.h"
-#import "Foundation/NSFileHandle.h"
-#import "Foundation/NSFileManager.h"
-#import "Foundation/NSMapTable.h"
-#import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSRunLoop.h"
-#import "Foundation/NSNotification.h"
-#import "Foundation/NSNotificationQueue.h"
-#import "Foundation/NSTask.h"
-#import "Foundation/NSThread.h"
-#import "Foundation/NSTimer.h"
-#import "Foundation/NSLock.h"
-#import "GNUstepBase/NSString+GNUstepBase.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
-#import "GSPrivate.h"
+#include "config.h"
+#include "GNUstepBase/preface.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSCharacterSet.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSEnumerator.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSFileHandle.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSTask.h"
+#include "Foundation/NSTimer.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSDebug.h"
+#include "GSPrivate.h"
 
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -84,7 +84,6 @@
 #include <sys/param.h>
 #endif
 
-
 /*
  *	If we are on a streams based system, we need to include stropts.h
  *	for definitions needed to set up slave pseudo-terminal stream.
@@ -104,7 +103,6 @@
 #define	NOFILE	256
 #endif
 
-
 @interface	NSBundle(Private)
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
 + (NSString*) _gnustep_target_cpu;
@@ -120,12 +118,12 @@ static BOOL	hadChildSignal = NO;
 static void handleSignal(int sig)
 {
   hadChildSignal = YES;
-#ifndef __MINGW__
+#ifndef __MINGW32__
   signal(SIGCHLD, handleSignal);
 #endif
 }
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 @interface NSConcreteWindowsTask : NSTask
 {
 @public
@@ -229,6 +227,7 @@ pty_slave(const char* name)
 
 @interface NSTask (Private)
 - (NSString *) _fullLaunchPath;
+- (void) _sendNotification;
 - (void) _collectChild;
 - (void) _terminatedChild: (int)status;
 @end
@@ -259,34 +258,12 @@ pty_slave(const char* name)
       if (tasksLock == nil)
         {
           tasksLock = [NSRecursiveLock new];
-	  /* The activeTasks map contains the NSTask objects corresponding
-	   * to running subtasks, and retains them until the subprocess
-	   * actually terminates.
-	   * The previous implementation stored non-retained objects and
-	   * the -finalize method removed them from the table, but this
-	   * caused a thread safety issue even though table access was
-	   * lock protected:
-	   * If thread t1 releases the task at the same time that the subtask
-	   * dies and is 'reaped' by t2, then there is a window such
-	   * that t1 can enter -dealloc while t2 is dealing with
-	   * subprocess termination notification.
-	   * So t1 completes deallocation while t2 performs
-	   * the notification, and then t2 tries to release the object...
-	   * t1: enter dealloc
-	   * t2: lookup task in activeTasks and retain/autorelease it
-	   * t2: create NSNotification (retaining task)
-	   * t2: post notification
-	   * t1: remove task from activeTasks
-	   * t1: release memory occupied by task object.
-	   * t2: complete notification ... attempt to release task object
-	   * but it's already deallocated.
-	   */
           activeTasks = NSCreateMapTable(NSIntMapKeyCallBacks,
-                NSObjectMapValueCallBacks, 0);
+                NSNonOwnedPointerMapValueCallBacks, 0);
         }
       [gnustep_global_lock unlock];
 
-#ifndef __MINGW__
+#ifndef __MINGW32__
       signal(SIGCHLD, handleSignal);
 #endif
     }
@@ -308,14 +285,16 @@ pty_slave(const char* name)
   return AUTORELEASE(task);
 }
 
-- (void) finalize
+- (void) gcFinalize
 {
-  return;
+  [tasksLock lock];
+  NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
+  [tasksLock unlock];
 }
 
 - (void) dealloc
 {
-  [self finalize];
+  [self gcFinalize];
   RELEASE(_arguments);
   RELEASE(_environment);
   RELEASE(_launchPath);
@@ -379,7 +358,7 @@ pty_slave(const char* name)
       return;
     }
 
-#ifndef __MINGW__
+#ifndef __MINGW32__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGINT);
 #else
@@ -447,7 +426,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW__
+#ifndef __MINGW32__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGCONT);
 #else
@@ -638,7 +617,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW__
+#ifndef __MINGW32__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGSTOP);
 #else
@@ -670,7 +649,7 @@ pty_slave(const char* name)
     }
 
   _hasTerminated = YES;
-#ifndef __MINGW__
+#ifndef __MINGW32__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGTERM);
 #else
@@ -771,7 +750,7 @@ pty_slave(const char* name)
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
   lpath = [full_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW__
+#ifdef	__MINGW32__
   if ([mgr isExecutableFileAtPath: lpath] == NO
     && [mgr isExecutableFileAtPath:
     (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -780,7 +759,7 @@ pty_slave(const char* name)
 #endif
     {
       lpath = [arch_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW__
+#ifdef	__MINGW32__
       if ([mgr isExecutableFileAtPath: lpath] == NO
 	&& [mgr isExecutableFileAtPath:
 	(lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -789,7 +768,7 @@ pty_slave(const char* name)
 #endif
 	{
 	  lpath = [base_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW__
+#ifdef	__MINGW32__
 	  if ([mgr isExecutableFileAtPath: lpath] == NO
 	    && [mgr isExecutableFileAtPath:
 	    (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
@@ -808,7 +787,7 @@ pty_slave(const char* name)
 		}
 	      if (lpath != nil)
 		{
-#ifdef	__MINGW__
+#ifdef	__MINGW32__
 		  if ([mgr isExecutableFileAtPath: lpath] == NO
 		    && [mgr isExecutableFileAtPath:
 		    (lpath = [lpath stringByAppendingPathExtension: @"exe"])]
@@ -836,7 +815,7 @@ pty_slave(const char* name)
 	}
       lpath = [lpath stringByStandardizingPath];
     }
-#ifdef	__MINGW__
+#ifdef	__MINGW32__
   /** We need this to be native windows format, and some of the standardisation
    * above may have left unix style separators in the string.
    */
@@ -900,20 +879,8 @@ pty_slave(const char* name)
   return val;
 }
 
-- (void) _collectChild
+- (void) _sendNotification
 {
-  [self subclassResponsibility: _cmd];
-}
-
-- (void) _terminatedChild: (int)status
-{
-  [tasksLock lock];
-  IF_NO_GC([[self retain] autorelease];)
-  NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
-  [tasksLock unlock];
-  _terminationStatus = status;
-  _hasCollected = YES;
-  _hasTerminated = YES;
   if (_hasNotified == NO)
     {
       NSNotification	*n;
@@ -930,9 +897,28 @@ pty_slave(const char* name)
     }
 }
 
+- (void) _collectChild
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) _terminatedChild: (int)status
+{
+  [tasksLock lock];
+  NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
+  [tasksLock unlock];
+  _terminationStatus = status;
+  _hasCollected = YES;
+  _hasTerminated = YES;
+  if (_hasNotified == NO)
+    {
+      [self _sendNotification];
+    }
+}
+
 @end
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 @implementation NSConcreteWindowsTask
 
 BOOL
@@ -968,9 +954,9 @@ GSPrivateCheckTasks()
   return found;
 }
 
-- (void) finalize
+- (void) gcFinalize
 {
-  [super finalize];
+  [super gcFinalize];
   if (wThread != NULL)
     {
       CloseHandle(wThread);
@@ -1003,6 +989,40 @@ GSPrivateCheckTasks()
 
   _hasTerminated = YES;
   TerminateProcess(procInfo.hProcess, 10);
+}
+
+/*
+ * Wait for child process completion.
+ */
+static DWORD WINAPI _threadFunction(LPVOID t)
+{
+  DWORD	milliseconds = 60000;
+  int	taskId = [(NSTask*)t processIdentifier];
+
+  for (;;)
+    {
+      NSConcreteWindowsTask	*task;
+
+      [tasksLock lock];
+      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks, (void*)taskId);
+      [tasksLock unlock];
+      if (task == nil)
+	{
+	  return 0;	// Task gone away.
+	}
+      switch (WaitForSingleObject(task->procInfo.hProcess, milliseconds))
+	{
+	  case WAIT_OBJECT_0:
+	    handleSignal(0);	// Signal child process state change.
+	    return 0;
+
+	  case WAIT_TIMEOUT:
+	    break;		// Timeout ... retry
+
+	  default:
+	    return 0;		// Error ... stop watching.
+	}
+    }
 }
 
 
@@ -1057,53 +1077,9 @@ quotedFromString(NSString *aString)
   return resultString;
 }
 
-
-/* Wait for child process completion.  The task object is retained by the
- * current thread until it exits, but may be removed from the table of
- * active tasks by another thread, so we must check that it's still
- * active at intervals. 
- */
-- (void) _windowsTaskWatcher
-{
-  void			*taskId = (void*)(intptr_t)[self processIdentifier];
-
-  for (;;)
-    {
-      NSConcreteWindowsTask	*task;
-
-      /* Check that this task is still active.
-       */
-      [tasksLock lock];
-      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks, taskId);
-      [tasksLock unlock];
-      if (task != self)
-	{
-	  /* Task has been reaped by another thread ... so we can exit.
-	   */
-	  [NSThread exit];
-	}
-
-      /* Wait for up to 1 minute (60,000 milliseconds) to get a notification
-       * of an event from the subprocess.
-       */
-      if (WaitForSingleObject(procInfo.hProcess, (DWORD)60000)
-	!= WAIT_TIMEOUT)
-	{
-          /* The subprocess has terminated or failed in some way ...
-	   * Set flag so child task can be reaped, then exit since this
-	   * thread no longer needs to watch for events.
-	   */
-	  handleSignal(0);
-	  [NSThread exit];
-	}
-
-      /* Timed out ... repeat wait attempt.
-       */
-    }
-}
-
 - (void) launch
 {
+  DWORD			tid;
   STARTUPINFOW		start_info;
   NSString      	*lpath;
   NSString      	*arg;
@@ -1116,10 +1092,6 @@ quotedFromString(NSString *aString)
   NSDictionary		*env;
   NSMutableArray	*toClose;
   NSFileHandle		*hdl;
-  HANDLE		hIn;
-  HANDLE		hOut;
-  HANDLE		hErr;
-  id			last = nil;
 
   if (_hasLaunched)
     {
@@ -1191,110 +1163,51 @@ quotedFromString(NSString *aString)
   start_info.dwFlags |= STARTF_USESTDHANDLES;
 
   toClose = [NSMutableArray arrayWithCapacity: 3];
-
-  if (_standardInput == nil)
+  hdl = [self standardInput];
+  if ([hdl isKindOfClass: [NSPipe class]])
     {
-      start_info.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+      hdl = [(NSPipe*)hdl fileHandleForReading];
+      [toClose addObject: hdl];
     }
-  else
+  start_info.hStdInput = [hdl nativeHandle];
+
+  hdl = [self standardOutput];
+  if ([hdl isKindOfClass: [NSPipe class]])
     {
-      hdl = [self standardInput];
-      if ([hdl isKindOfClass: [NSPipe class]])
+      hdl = [(NSPipe*)hdl fileHandleForWriting];
+      [toClose addObject: hdl];
+    }
+  start_info.hStdOutput = [hdl nativeHandle];
+
+  hdl = [self standardError];
+  if ([hdl isKindOfClass: [NSPipe class]])
+    {
+      hdl = [(NSPipe*)hdl fileHandleForWriting];
+      /*
+       * If we have the same pipe twice we don't want to close it twice
+       */
+      if ([toClose indexOfObjectIdenticalTo: hdl] == NSNotFound)
 	{
-	  hdl = [(NSPipe*)hdl fileHandleForReading];
 	  [toClose addObject: hdl];
 	}
-      start_info.hStdInput = [hdl nativeHandle];
     }
-  hIn = start_info.hStdInput;
-
-  if (_standardOutput == nil)
-    {
-      start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    }
-  else
-    {
-      hdl = [self standardOutput];
-      if ([hdl isKindOfClass: [NSPipe class]])
-	{
-	  hdl = [(NSPipe*)hdl fileHandleForWriting];
-	  [toClose addObject: hdl];
-	}
-      start_info.hStdOutput = [hdl nativeHandle];
-    }
-  hOut = start_info.hStdOutput;
-
-  if (_standardError == nil)
-    {
-      start_info.hStdError = GetStdHandle(STD_ERROR_HANDLE);
-    }
-  else
-    {
-      hdl = [self standardError];
-      if ([hdl isKindOfClass: [NSPipe class]])
-	{
-	  hdl = [(NSPipe*)hdl fileHandleForWriting];
-	  /*
-	   * If we have the same pipe twice we don't want to close it twice
-	   */
-	  if ([toClose indexOfObjectIdenticalTo: hdl] == NSNotFound)
-	    {
-	      [toClose addObject: hdl];
-	    }
-	}
-      start_info.hStdError = [hdl nativeHandle];
-    }
-  hErr = start_info.hStdError;
-
-  /* Tell the system not to show a window for the subtask.
-   */
-  start_info.wShowWindow = SW_HIDE;
-  start_info.dwFlags |= STARTF_USESHOWWINDOW;
-
-  /* Make the handles inheritable only temporarily while launching the
-   * child task.  This section must be lock protected so we don't have
-   * another thread trying to launch at the same time and get handles
-   * inherited by the wrong threads.
-   */
-  [tasksLock lock];
-  SetHandleInformation(hIn, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
-  SetHandleInformation(hOut, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
-  SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+  start_info.hStdError = [hdl nativeHandle];
 
   result = CreateProcessW(wexecutable,
     w_args,
     NULL,      			/* proc attrs */
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
-    0
-    |CREATE_NO_WINDOW
-/* One would have thought the the CREATE_NO_WINDOW flag should be used,
- * but apparently this breaks for old 16bit applications/tools on XP.
- * So maybe we want to leave it out?
- */
-//    |DETACHED_PROCESS
-/* We don't set the DETACHED_PROCESS flag as it actually means that the
- * child task should get a new Console allocated ... and that means it
- * will pop up a console window ... which looks really bad.
- */
-    |CREATE_UNICODE_ENVIRONMENT,
+//    CREATE_NO_WINDOW|DETACHED_PROCESS|CREATE_UNICODE_ENVIRONMENT,
+    CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT,
     envp,			/* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,
     &procInfo);
-  if (result == 0)
-    {
-      last = [NSError _last];
-    }
   NSZoneFree(NSDefaultMallocZone(), w_args);
-  SetHandleInformation(hIn, HANDLE_FLAG_INHERIT, 0);
-  SetHandleInformation(hOut, HANDLE_FLAG_INHERIT, 0);
-  SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, 0);
-  [tasksLock unlock];
-
   if (result == 0)
     {
-      NSLog(@"Error launching task: %@ ... %@", lpath, last);
+      NSLog(@"Error launching task: %@", lpath);
       return;
     }
 
@@ -1303,15 +1216,12 @@ quotedFromString(NSString *aString)
   ASSIGN(_launchPath, lpath);	// Actual path used.
 
   [tasksLock lock];
-  NSMapInsert(activeTasks, (void*)(intptr_t) _taskId, (void*)self);
+  NSMapInsert(activeTasks, (void*)_taskId, (void*)self);
   [tasksLock unlock];
-
   /*
    * Create thread to watch for termination of process.
    */
-  [NSThread detachNewThreadSelector: @selector(_windowsTaskWatcher)
-			   toTarget: self
-			 withObject: nil];
+  wThread = CreateThread(NULL, 0, _threadFunction, (LPVOID)self, 0, &tid);
 
   /*
    *	Close the ends of any pipes used by the child.
@@ -1361,47 +1271,24 @@ GSPrivateCheckTasks()
 
       do
 	{
-	  NSTask	*t;
-
-	  errno = 0;
 	  result = waitpid(-1, &status, WNOHANG);
-	  if (result < 0)
+	  if (result > 0)
 	    {
-#if	defined(WAITDEBUG)
+	      NSTask    *t;
+
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
-	      IF_NO_GC([[t retain] autorelease];)
-	      [tasksLock unlock];
-	      if (t != nil)
-		{
-	          NSLog(@"waitpid result %d, error %@",
-		    result, [NSError _last]);
-		}
-#endif
-	    }
-	  else if (result > 0)
-	    {
-	      [tasksLock lock];
-	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
-	      IF_NO_GC([[t retain] autorelease];)
+	      AUTORELEASE(RETAIN(t));
 	      [tasksLock unlock];
 	      if (t != nil)
 		{
 		  if (WIFEXITED(status))
 		    {
-#if	defined(WAITDEBUG)
-		      NSLog(@"waitpid %d, exit status = %d",
-			result, status);
-#endif
 		      [t _terminatedChild: WEXITSTATUS(status)];
 		      found = YES;
 		    }
 		  else if (WIFSIGNALED(status))
 		    {
-#if	defined(WAITDEBUG)
-		      NSLog(@"waitpid %d, termination status = %d",
-			result, status);
-#endif
 		      [t _terminatedChild: WTERMSIG(status)];
 		      found = YES;
 		    }
@@ -1411,12 +1298,6 @@ GSPrivateCheckTasks()
 			result);
 		    }
 		}
-#if	defined(WAITDEBUG)
-	      else
-		{
-		  NSLog(@"Received signal for unknown child %d", result);
-		}
-#endif
 	    }
 	}
       while (result > 0);
@@ -1511,7 +1392,7 @@ GSPrivateCheckTasks()
     }
   edesc = [hdl fileDescriptor];
 
-  pid = vfork();
+  pid = fork();
   if (pid < 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1521,48 +1402,33 @@ GSPrivateCheckTasks()
     {
       int	i;
 
-      /* Make sure the task gets default signal setup.
+      /*
+       * Make sure the task gets default signal setup.
        */
       for (i = 0; i < 32; i++)
 	{
 	  signal(i, SIG_DFL);
 	}
 
-      /* Make sure task is session leader in it's own process group
-       * and with no controlling terminal.
-       * This allows us to use killpg() to put the task to sleep etc,
-       * and have the signal effect forked children of the subtask.
+      /*
+       * Make sure task is run in it's own process group.
        */
-#if	defined(HAVE_SETSID)
-      setsid();
-#else
-#if	defined(HAVE_SETPGRP)
-#if	defined(SETPGRP_VOID)
+#ifdef     HAVE_SETPGRP
+#ifdef	SETPGRP_VOID
       setpgrp();
 #else
       setpgrp(getpid(), getpid());
 #endif
 #else
-#if	defined(HAVE_SETPGID)
-#if defined(__MINGW__)
+#if defined(__MINGW32__)
       pid = (int)GetCurrentProcessId(),
 #else
       pid = (int)getpid();
 #endif
+#ifdef     HAVE_SETPGID
       setpgid(pid, pid);
-#endif	/* HAVE_SETPGID */
-#endif	/* HAVE_SETPGRP */
-      /* Detach from controlling terminal.
-       */
-#if	defined(TIOCNOTTY)
-      i = open("/dev/tty", O_RDWR);
-      if (i >= 0)
-	{
-	  (void)ioctl(i, TIOCNOTTY, 0);
-	  (void)close(i);
-	}
-#endif	/* TIOCNOTTY */
-#endif	/* HAVE_SETSID */
+#endif
+#endif
 
       if (_usePseudoTerminal == YES)
 	{
@@ -1574,7 +1440,19 @@ GSPrivateCheckTasks()
 	      exit(1);			/* Failed to open slave!	*/
 	    }
 
-	  /* Set up stdin, stdout and stderr by duplicating descriptors as
+#ifdef	HAVE_SETSID
+	  i = setsid();
+#endif
+#ifdef	TIOCNOTTY
+	  i = open("/dev/tty", O_RDWR);
+	  if (i >= 0)
+	    {
+	      (void)ioctl(i, TIOCNOTTY, 0);
+	      (void)close(i);
+	    }
+#endif
+	  /*
+	   * Set up stdin, stdout and stderr by duplicating descriptors as
 	   * necessary and closing the originals (to ensure we won't have a
 	   * pipe left with two write descriptors etc).
 	   */
@@ -1593,7 +1471,8 @@ GSPrivateCheckTasks()
 	}
       else
 	{
-	  /* Set up stdin, stdout and stderr by duplicating descriptors as
+	  /*
+	   * Set up stdin, stdout and stderr by duplicating descriptors as
 	   * necessary and closing the originals (to ensure we won't have a
 	   * pipe left with two write descriptors etc).
 	   */
@@ -1677,7 +1556,52 @@ GSPrivateCheckTasks()
 
 - (void) _collectChild
 {
-  GSPrivateCheckTasks();
+  if (_hasCollected == NO)
+    {
+      int       result;
+
+      errno = 0;
+      result = waitpid(_taskId, &_terminationStatus, WNOHANG);
+      if (result < 0)
+        {
+          NSLog(@"waitpid %d, result %d, error %@",
+	    _taskId, result, [NSError _last]);
+          [self _terminatedChild: -1];
+        }
+      else if (result == _taskId || (result > 0 && errno == 0))
+	{
+	  if (WIFEXITED(_terminationStatus))
+	    {
+#ifdef  WAITDEBUG
+              NSLog(@"waitpid %d, termination status = %d",
+		_taskId, _terminationStatus);
+#endif
+              [self _terminatedChild: WEXITSTATUS(_terminationStatus)];
+	    }
+	  else if (WIFSIGNALED(_terminationStatus))
+	    {
+#ifdef  WAITDEBUG
+              NSLog(@"waitpid %d, termination status = %d",
+		_taskId, _terminationStatus);
+#endif
+              [self _terminatedChild: WTERMSIG(_terminationStatus)];
+	    }
+#ifdef  WAITDEBUG
+          else
+	    {
+	      NSLog(@"waitpid %d, event status = %d",
+		_taskId, _terminationStatus);
+	    }
+#endif
+	}
+#ifdef  WAITDEBUG
+      else
+	{
+	  NSLog(@"waitpid %d, result %d, error %@",
+	    _taskId, result, [NSError _last]);
+	}
+#endif
+    }
 }
 
 - (BOOL) usePseudoTerminal

@@ -1,29 +1,5 @@
 #ifndef __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE
 #define __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE
-/** 
-   Copyright (C) 2008-2009 Free Software Foundation, Inc.
-
-   By: Richard Frith-Macdonald <richard@brainstorm.co.uk>
-
-   This file is part of the GNUstep Base Library.
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
-
-   $Date$ $Revision$
-*/
 
 #include "config.h"
 #include <Foundation/NSException.h>
@@ -62,14 +38,11 @@ typedef struct{
   void		*extra;		/** Copy of the RunLoop ivar.		*/
   NSString	*mode;		/** The mode for this context.		*/
   GSIArray	performers;	/** The actions to perform regularly.	*/
-  unsigned	maxPerformers;
   GSIArray	timers;		/** The timers set for the runloop mode */
-  unsigned	maxTimers;
   GSIArray	watchers;	/** The inputs set for the runloop mode */
-  unsigned	maxWatchers;
   NSTimer	*housekeeper;	/** Housekeeping timer for loop.	*/
 @private
-#if	defined(__MINGW__)
+#if	defined(__MINGW32__)
   NSMapTable    *handleMap;     
   NSMapTable	*winMsgMap;
 #else
@@ -86,17 +59,15 @@ typedef struct{
   struct pollfd	*pollfds;
 #endif
 }
-/* Check to see of the thread has been awakened, blocking until it
- * does get awakened or until the limit date has been reached.
- * A date in the past (or nil) results in a check follwed by an
- * immediate return.
- */
-+ (BOOL) awakenedBefore: (NSDate*)when;
 - (void) endEvent: (void*)data
               for: (GSRunLoopWatcher*)watcher;
 - (void) endPoll;
 - (id) initWithMode: (NSString*)theMode extra: (void*)e;
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts;
+@end
+
+@interface	NSRunLoop (Housekeeper)
+- (void) _setHousekeeper: (NSTimer*)timer;
 @end
 
 #endif /* __GSRunLoopCtxt_h_GNUSTEP_BASE_INCLUDE */
