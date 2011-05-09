@@ -752,7 +752,9 @@ static SEL	foundIgnorableSel;
 	   */
 	  enc = [GSMimeDocument encodingFromCharset:
 	    [GSMimeDocument charsetForXml: data]];
-	  if (enc == NSUTF8StringEncoding || enc == NSASCIIStringEncoding)
+	  if (enc == NSUTF8StringEncoding
+	    || enc == NSASCIIStringEncoding
+	    || enc == GSUndefinedEncoding)
 	    {
 	      this->data = [data copy];
 	    }
