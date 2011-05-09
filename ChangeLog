@@ -1,3 +1,8 @@
+2011-05-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: treat unknown/undefined encodings as utf-8
+	so we tolerate bad xml documents better.
+
 2011-05-02  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Source/Additions/GSObjCRuntime.m (GSSelectorFromNameAndTypes):
