@@ -380,7 +380,8 @@ static NSMapTable	*globalClassMap = 0;
 			 count: (NSUInteger)expected
 			    at: (void*)buf
 {
-  id	 o = [self decodeObject];
+  id	 	o = [self decodeObject];
+  NSUInteger	size;
 
   if ([o isKindOfClass: [_NSKeyedCoderOldStyleArray class]] == NO)
     {
@@ -400,7 +401,8 @@ static NSMapTable	*globalClassMap = 0;
 		  format: @"[%@ +%@]: count missmatch",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
     }
-  memcpy(buf, [o bytes], expected * objc_sizeof_type(type));
+  NSGetSizeAndAlignment(type, 0, &size);
+  memcpy(buf, [o bytes], expected * size);
 }
 
 - (BOOL) decodeBoolForKey: (NSString*)aKey

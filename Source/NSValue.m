@@ -383,6 +383,7 @@ static NSLock			*placeholderLock;
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  NSUInteger	tsize;
   unsigned	size;
   const char	*data;
   const char	*objctype = [self objCType];
@@ -420,8 +421,8 @@ static NSLock			*placeholderLock;
       return;
     }
 
-  size = objc_sizeof_type(objctype);
-  data = (void *)NSZoneMalloc([self zone], size);
+  NSGetSizeAndAlignment(objctype, 0, &tsize);
+  data = (void *)NSZoneMalloc([self zone], tsize);
   [self getValue: (void*)data];
   d = [NSMutableData new];
   [d serializeDataAt: data ofObjCType: objctype context: nil];
@@ -439,6 +440,7 @@ static NSLock			*placeholderLock;
   const char	*objctype;
   Class		c;
   id		o;
+  NSUInteger	tsize;
   unsigned	size;
   int		ver;
 
@@ -562,10 +564,10 @@ static NSLock			*placeholderLock;
 	   * For performance, decode small values directly onto the stack,
 	   * For larger values we allocate and deallocate heap space.
 	   */
-	  size = objc_sizeof_type(objctype);
-	  if (size <= 64)
+	  NSGetSizeAndAlignment(objctype, 0, &tsize);
+	  if (tsize <= 64)
 	    {
-	      unsigned char data[size];
+	      unsigned char data[tsize];
 
 	      [coder decodeValueOfObjCType: @encode(id) at: &d];
 	      [d deserializeDataAt: data
@@ -579,7 +581,7 @@ static NSLock			*placeholderLock;
 	    {
 	      unsigned char *data;
 
-	      data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+	      data = (void *)NSZoneMalloc(NSDefaultMallocZone(), tsize);
 	      [coder decodeValueOfObjCType: @encode(id) at: &d];
 	      [d deserializeDataAt: data
 			ofObjCType: objctype
@@ -604,10 +606,10 @@ static NSLock			*placeholderLock;
        * For performance, decode small values directly onto the stack,
        * For larger values we allocate and deallocate heap space.
        */
-      size = objc_sizeof_type(objctype);
-      if (size <= 64)
+      NSGetSizeAndAlignment(objctype, 0, &tsize);
+      if (tsize <= 64)
 	{
-	  unsigned char	data[size];
+	  unsigned char	data[tsize];
 
 	  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
 	  {
@@ -628,7 +630,7 @@ static NSLock			*placeholderLock;
 	{
 	  void	*data;
 
-	  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+	  data = (void *)NSZoneMalloc(NSDefaultMallocZone(), tsize);
 	  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
 	  {
 	    void	*serialized;

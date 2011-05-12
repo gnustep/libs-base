@@ -68,6 +68,7 @@
  */
 
 #import "common.h"
+#import	<objc/encoding.h>
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSCoder.h"

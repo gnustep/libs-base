@@ -26,6 +26,7 @@
    */
 
 #import "common.h"
+#import <objc/encoding.h>
 #define	EXPOSE_NSArchiver_IVARS	1
 #define	EXPOSE_NSUnarchiver_IVARS	1
 /*

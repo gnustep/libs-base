@@ -30,6 +30,7 @@
    */
 
 #import "common.h"
+#import <objc/encoding.h>
 
 #define	GS_NSConnection_IVARS \
   BOOL			_isValid; \

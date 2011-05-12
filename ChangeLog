@@ -1,6 +1,26 @@
+2011-05-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortCoder.m:
+	* Source/GSConcreteValueTemplate.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/GSFFIInvocation.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSCoder.m:
+	* Source/NSURL.m:
+	* Source/cifframe.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSObjCRuntime.m:
+	* Source/GSValue.m:
+	* Source/NSValue.m:
+	* Source/NSArchiver.m:
+	updates for old/new objc api change.
+
 2011-05-12  Fred Kiefer <FredKiefer@gmx.de>
 
-	* Source/GSArray.m: Fix keyed decoding for GSMutableArray and GSPlaceholderArray.
+	* Source/GSArray.m: Fix keyed decoding for GSMutableArray and
+	GSPlaceholderArray.
 
 2011-05-09  Richard Frith-Macdonald <rfm@gnu.org>
 
