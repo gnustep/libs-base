@@ -535,10 +535,7 @@ static Class	GSInlineArrayClass;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
-						@"NS.objects"];
-
-      [self initWithArray: array];
+      self = [super initWithCoder: aCoder];
     }
   else
     {
@@ -1123,9 +1120,15 @@ static Class	GSInlineArrayClass;
   if ([aCoder allowsKeyedCoding])
     {
       NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
-						@"NS.objects"];
-
-      return RETAIN(array);
+                                              @"NS.objects"];
+      if (array != nil)
+	{
+          return RETAIN(array);
+	}
+      else
+        {
+          return [super initWithCoder: aCoder];
+        }
     }
   else
     {

@@ -1,3 +1,7 @@
+2011-05-12  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/GSArray.m: Fix keyed decoding for GSMutableArray and GSPlaceholderArray.
+
 2011-05-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: treat unknown/undefined encodings as utf-8
