@@ -66,7 +66,13 @@ typeSize(const char* type)
       case _C_BFLD:
       case _C_ARY_B:
       case _C_UNION_B:
-      case _C_STRUCT_B:	return objc_sizeof_type(type);
+      case _C_STRUCT_B:
+	{
+	  NSUInteger	size;
+
+	  NSGetSizeAndAlignment(type, &size, 0);
+	  return (int)size;
+	}
       case _C_VOID:	return 0;
       default:		return -1;
     }
@@ -242,13 +248,15 @@ typeSize(const char* type)
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  NSUInteger	tsize;
   unsigned	size;
   NSMutableData	*d;
 
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
-  size = objc_sizeof_type(objctype);
+  NSGetSizeAndAlignment(objctype, 0, &tsize);
+  size = tsize;
   d = [NSMutableData new];
   [d serializeDataAt: data ofObjCType: objctype context: nil];
   size = [d length];

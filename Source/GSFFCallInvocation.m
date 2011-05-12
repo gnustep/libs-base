@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */
 #import "common.h"
+#import <objc/encoding.h>
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"

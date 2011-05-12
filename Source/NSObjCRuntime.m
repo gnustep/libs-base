@@ -26,6 +26,7 @@
    */
 
 #import "common.h"
+#import <objc/encoding.h>
 #import "Foundation/NSException.h"
 #include <string.h>
 

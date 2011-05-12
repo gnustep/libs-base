@@ -574,7 +574,7 @@ static char *unescape(const char *from, char * to)
  */
 @implementation NSURL
 
-static unsigned	urlAlign;
+static NSUInteger	urlAlign;
 
 /**
  * Create and return a file URL with the supplied path.<br />
@@ -591,7 +591,7 @@ static unsigned	urlAlign;
 {
   if (clientsLock == nil)
     {
-      urlAlign = objc_alignof_type(@encode(parsedURL));
+      NSGetSizeAndAlignment(@encode(parsedURL), &urlAlign, 0);
       clientsLock = [NSLock new];
     }
 }

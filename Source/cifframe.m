@@ -24,6 +24,7 @@
    */
 
 #import "common.h"
+#import <objc/encoding.h>
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>

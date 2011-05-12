@@ -27,6 +27,7 @@
    */
 
 #import "common.h"
+#import <objc/encoding.h>
 #define	EXPOSE_NSCoder_IVARS	1
 #import "Foundation/NSData.h"
 #import "Foundation/NSCoder.h"

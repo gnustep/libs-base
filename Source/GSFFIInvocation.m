@@ -23,6 +23,7 @@
    */
 
 #import "common.h"
+#import <objc/encoding.h>
 #define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
