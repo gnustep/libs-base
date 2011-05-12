@@ -42,13 +42,14 @@
 
 #include "GNUstepBase/GSMime.h"
 
+#include <errno.h>
+
 #include "../GSPrivate.h"
 #include "../GSPortPrivate.h"
 
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
-extern __declspec(dllimport) int	errno;
 
 static NSRecursiveLock *serverLock = nil;
 static NSMessagePortNameServer *defaultServer = nil;

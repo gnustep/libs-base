@@ -2022,7 +2022,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (operation == GSFileHandleConnectCompletionNotification
     || operation == GSSOCKSConnect)
     { // Connection attempt completed.
-      extern int errno;
       int	result;
       int	rval;
       unsigned	len = sizeof(result);
