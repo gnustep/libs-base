@@ -1,5 +1,13 @@
 2011-05-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSFileHandle.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/win32/NSMessagePort.m:
+	* Source/win32/NSMessagePortNameServer.m:
+	Include/use errno.h for thread-safe errno support.
+
+2011-05-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPortCoder.m:
 	* Source/GSConcreteValueTemplate.m:
 	* Source/GSFFCallInvocation.m:
