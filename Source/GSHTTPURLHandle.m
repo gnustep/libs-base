@@ -62,6 +62,8 @@
 #include <sys/socket.h>		// For MSG_PEEK, etc
 #endif
 
+#include <errno.h>
+
 /*
  * Implement map keys for strings with case insensitive comparisons,
  * so we can have case insensitive matching of http headers (correct
@@ -1323,7 +1325,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       if (fd >= 0)
         {
-	  extern int	errno;
 	  int		result;
 	  unsigned char	c;
 
@@ -1438,11 +1439,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       if (sock == nil)
 	{
-	#ifdef _WIN32
-	extern int __declspec(dllimport) errno;
-	#else
-	  extern int errno;
-    #endif
 	  /*
 	   * Tell superclass that the load failed - let it do housekeeping.
 	   */
