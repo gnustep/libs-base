@@ -48,8 +48,7 @@
 #include "../GSPortPrivate.h"
 
 #include <stdio.h>
-
-extern __declspec(dllimport) int	errno;
+#include <errno.h>
 
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
