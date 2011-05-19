@@ -30,7 +30,10 @@
    */
 
 #import "common.h"
-#import <objc/encoding.h>
+
+#if !defined (__GNU_LIBOBJC__)
+#  include <objc/encoding.h>
+#endif
 
 #define	GS_NSConnection_IVARS \
   BOOL			_isValid; \

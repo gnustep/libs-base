@@ -22,7 +22,6 @@
    Boston, MA 02111 USA.
    */
 #import "common.h"
-#import <objc/encoding.h>
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
@@ -30,6 +29,10 @@
 #import <avcall.h>
 #import <callback.h>
 #import "callframe.h"
+
+#if !defined (__GNU_LIBOBJC__)
+#  include <objc/encoding.h>
+#endif
 
 #include <pthread.h>
 

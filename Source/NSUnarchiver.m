@@ -26,7 +26,11 @@
    */
 
 #import "common.h"
-#import <objc/encoding.h>
+
+#if !defined (__GNU_LIBOBJC__)
+#  include <objc/encoding.h>
+#endif
+
 #define	EXPOSE_NSUnarchiver_IVARS	1
 #include <string.h>
 #import "Foundation/NSDictionary.h"

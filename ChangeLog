@@ -1,3 +1,19 @@
+2011-05-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortCoder.m:
+	* Source/NSMethodSignature.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFFIInvocation.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSCoder.m:
+	* Source/cifframe.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSObjCRuntime.m:
+	* Source/NSArchiver.m:
+	Fixup objc header includes for gcc-4.6
+
 2011-05-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m:
