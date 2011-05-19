@@ -71,7 +71,6 @@ extern struct objc_slot	*objc_get_slot(Class, SEL);
 #define BDBGPrintf(format, args...) \
   do { if (behavior_debug) { fprintf(stderr, (format) , ## args); } } while (0)
 
-
 Class
 GSObjCClass(id obj)
 {
@@ -163,6 +162,11 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
 #elif defined (__GNUSTEP_RUNTIME__)
   return sel_registerTypedName_np(name, types);
 #else
+extern SEL sel_get_any_typed_uid(const char*);
+extern SEL sel_get_typed_uid(const char*, const char*);
+extern SEL sel_register_name(const char*);
+extern SEL sel_register_typed_name(const char*, const char*);
+
   if (name == 0)
     {
       return 0;

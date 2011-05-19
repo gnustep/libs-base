@@ -28,9 +28,11 @@
    */
 
 #import "common.h"
-#ifndef __GNU_LIBOBJC__
-#include <objc/encoding.h>
+
+#if !defined (__GNU_LIBOBJC__)
+#  include <objc/encoding.h>
 #endif
+
 #define	EXPOSE_NSMethodSignature_IVARS	1
 
 #import "Foundation/NSMethodSignature.h"

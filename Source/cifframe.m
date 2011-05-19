@@ -24,7 +24,10 @@
    */
 
 #import "common.h"
-#import <objc/encoding.h>
+
+#if !defined (__GNU_LIBOBJC__)
+#  include <objc/encoding.h>
+#endif
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>

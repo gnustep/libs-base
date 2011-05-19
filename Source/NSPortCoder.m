@@ -34,7 +34,11 @@
    */
 
 #import "common.h"
-#import <objc/encoding.h>
+
+#if !defined (__GNU_LIBOBJC__)
+#  include <objc/encoding.h>
+#endif
+
 #define	EXPOSE_NSPortCoder_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSByteOrder.h"
