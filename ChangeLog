@@ -1,3 +1,8 @@
+2011-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Fixes for encoding quoted-printable document body content.
+
 2011-05-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortCoder.m:

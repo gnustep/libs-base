@@ -175,6 +175,127 @@ encodebase64(unsigned char *dst, const unsigned char *src, int length)
   return dIndex;
 }
 
+
+static void
+encodeQuotedPrintable(NSMutableData *result,
+  const unsigned char *src, unsigned length)
+{
+  static char	*hex = "0123456789ABCDEF";
+  unsigned	offset;
+  unsigned	column = 0;
+  unsigned	size = 0;
+  unsigned	i;
+  unsigned char	*dst;
+
+  for (i = 0; i < length; i++)
+    {
+      unsigned char	c = src[i];
+      int		add;
+
+      if ('\r' == c && i < length && '\n' == src[i + 1])
+	{
+	  /* A cr-lf sequence is an end of line, we send that literally
+	   * as a hard line break.
+	   */
+	  i++;
+	  size += 2;
+	  column = 0;
+	  continue;
+	}
+
+      if ((' ' == c || '\t' == c) && i < length
+	&& ('\r' == src[i + 1] || '\n' == src[i + 1]))
+	{
+	  /* RFC 2045 says we have to encode space and tab characters when
+	   * they occur just before end of line.
+	   */
+	  add = 3;
+	}
+      else if ('\t' == c || (c >= 32 && c <= 60) || (c >= 62 && c <= 126))
+	{
+	  /* Most characters can be sent literally.
+	   */
+	  add = 1;
+	}
+      else
+	{
+	  /* Everything else must be escaped.
+	   */
+	  add = 3;
+	}
+      if (column + add > 75)
+	{
+	  size += 3;	// '=\r\n'
+	  column = 0;
+	}
+      size += add;
+      column += add;
+    }
+
+  offset = [result length];
+  [result setLength: offset + size];
+  dst = (unsigned char*)[result mutableBytes];
+  column = 0;  
+
+  for (i = 0; i < length; i++)
+    {
+      unsigned char	c = src[i];
+      int		add;
+
+      if ('\r' == c && i < length && '\n' == src[i + 1])
+	{
+	  /* A cr-lf sequence is an end of line, we send that literally
+	   * as a hard line break.
+	   */
+	  i++;
+	  dst[offset++] = '\r';
+	  dst[offset++] = '\n';
+	  column = 0;
+	  continue;
+	}
+
+      if ((' ' == c || '\t' == c) && i < length
+	&& ('\r' == src[i + 1] || '\n' == src[i + 1]))
+	{
+	  /* RFC 2045 says we have to encode space and tab characters when
+	   * they occur just before end of line.
+	   */
+	  add = 3;
+	}
+      else if ('\t' == c || (c >= 32 && c <= 60) || (c >= 62 && c <= 126))
+	{
+	  /* Most characters can be sent literally.
+	   */
+	  add = 1;
+	}
+      else
+	{
+	  /* Everything else must be escaped.
+	   */
+	  add = 3;
+	}
+      if (column + add > 75)
+	{
+	  dst[offset++] = '=';
+          dst[offset++] = '\r';
+          dst[offset++] = '\n';
+	  column = 0;
+	}
+      if (3 == add)
+	{
+	  dst[offset++] = '=';
+          dst[offset++] = hex[c >> 4];
+          dst[offset++] = hex[c & 15];
+	}
+      else
+	{
+	  dst[offset++] = c;
+	}
+      column += add;
+    }
+}
+
+
 typedef	enum {
   WE_QUOTED,
   WE_BASE64
@@ -592,7 +713,11 @@ wordData(NSString *word)
     {
       if (pos > 0)
 	{
-	  if ((*src == '\n') || (*src == '\r'))
+	  if (1 == pos && '\r' == *src)
+	    {
+	      pos++;
+	    }
+	  else if (*src == '\n')
 	    {
 	      pos = 0;
 	    }
@@ -601,16 +726,44 @@ wordData(NSString *word)
 	      buf[pos++] = *src;
 	      if (pos == 3)
 		{
+		  BOOL	ok = YES;
 		  int	c;
 		  int	val;
 
 		  pos = 0;
 		  c = buf[1];
-		  val = isdigit(c) ? (c - '0') : (c - 55);
-		  val *= 0x10;
-		  c = buf[2];
-		  val += isdigit(c) ? (c - '0') : (c - 55);
-		  *dst++ = val;
+		  if (isxdigit(c))
+		    {
+		      if (islower(c)) c = toupper(c);
+		      val = isdigit(c) ? (c - '0') : (c - 55);
+		      val *= 0x10;
+		      c = buf[2];
+		      if (isxdigit(c))
+			{
+			  if (islower(c)) c = toupper(c);
+			  val += isdigit(c) ? (c - '0') : (c - 55);
+			}
+		      else
+			{
+			  ok = NO;
+			}
+		    }
+		  else
+		    {
+		      ok = NO;
+		    }
+		  if (YES == ok)
+		    {
+		      *dst++ = val;
+		    }
+		  else
+		    {
+		      /* A bad escape sequence is copied literally.
+		       */
+		      *dst++ = '=';
+		      *dst++ = buf[0];
+		      *dst++ = buf[1];
+		    }
 		}
 	    }
 	}
@@ -5304,16 +5457,21 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  * guarantees that we won't produce two identical strings in
  * the same run of the program.
  * </p>
+ * <p>The boundary has a suffix of '=_' to ensure it's not mistaken
+ * for quoted-printable data.
+ * </p>
  */
 - (NSString*) makeBoundary
 {
   static int		count = 0;
   unsigned char		output[20];
+  unsigned char		*ptr;
   NSMutableData		*md;
   NSString		*result;
   NSData		*source;
   NSData		*digest;
   int			sequence = ++count;
+  int			length;
 
   source = [[[NSProcessInfo processInfo] globallyUniqueString]
     dataUsingEncoding: NSUTF8StringEncoding];
@@ -5327,7 +5485,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   md = [NSMutableData allocWithZone: NSDefaultMallocZone()];
   md = [md initWithLength: 40];
-  [md setLength: encodebase64([md mutableBytes], output, 20)];
+  length = encodebase64([md mutableBytes], output, 20);
+  [md setLength: length + 2];
+  ptr = (unsigned char*)[md mutableBytes];
+  ptr[length-2] = '=';
+  ptr[length-1] = '_';
   result = [NSStringClass allocWithZone: NSDefaultMallocZone()];
   result = [result initWithData: md encoding: NSASCIIStringEncoding];
   RELEASE(md);
@@ -5850,6 +6012,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	      [md appendBytes: &ptr[pos] length: len-pos];
 	      [md appendBytes: "\r\n" length: 2];
 	    }
+	}
+      else if ([[enc value] isEqualToString: @"quoted-printable"] == YES)
+        {
+	  encodeQuotedPrintable(md, [d bytes], [d length]);
 	}
       else if ([[enc value] isEqualToString: @"x-uuencode"] == YES)
         {
