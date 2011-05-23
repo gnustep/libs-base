@@ -1,3 +1,8 @@
+2011-05-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m:
+	Fixe to resolve links and standardize path to current executable.
+
 2011-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:

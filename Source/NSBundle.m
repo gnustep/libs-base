@@ -287,7 +287,11 @@ GSPrivateExecutablePath()
 	    {
 	      executablePath = AbsolutePathOfExecutable(executablePath, YES);
 	    }
-
+	  else
+	    {
+	      executablePath = [executablePath stringByResolvingSymlinksInPath];
+	      executablePath = [executablePath stringByStandardizingPath];
+	    }
 	  IF_NO_GC([executablePath retain];)
 	  beenHere = YES;
 	}
