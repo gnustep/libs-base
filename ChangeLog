@@ -1,3 +1,12 @@
+2011-05-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m:
+	Try to better cope with bad code which leaks autorelease pools.
+	1. check number of pools in thread when creating a new one, and
+	raise an exception if too many are created.
+	2. when deallocating a pool, avoid recursively deallocating child
+	pools so that a large number of pools won't cause stack overflow.
+
 2011-05-23  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSBundle.m:
