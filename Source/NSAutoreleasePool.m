@@ -156,6 +156,11 @@ static NSAutoreleasePool	*pool = nil;
   return;
 }
 
++ (void) setPoolNumberThreshhold: (unsigned)c
+{
+  return;
+}
+
 @end
 
 #else
@@ -166,8 +171,12 @@ static NSAutoreleasePool	*pool = nil;
 static BOOL autorelease_enabled = YES;
 
 /* When the _released_count of a pool gets over this value, we raise
-   an exception.  This can be adjusted with -setPoolCountThreshhold */
+   an exception.  This can be adjusted with +setPoolCountThreshhold */
 static unsigned pool_count_warning_threshhold = UINT_MAX;
+
+/* When the number of pools in a thread gets over this value, we raise
+   an exception.  This can be adjusted with +setPoolNumberThreshhold */
+static unsigned pool_number_warning_threshhold = 10000;
 
 /* The size of the first _released array. */
 #define BEGINNING_POOL_SIZE 32
@@ -305,10 +314,25 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
    */
   {
     struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
+    unsigned	level = 0;
     _parent = tv->current_pool;
     if (_parent)
-      _parent->_child = self;
+      {
+	NSAutoreleasePool	*pool = _parent;
+
+	while (nil != pool)
+	  {
+	    level++;
+	    pool = pool->_parent;
+	  }
+        _parent->_child = self;
+      }
     tv->current_pool = self;
+    if (level > pool_number_warning_threshhold)
+      {
+	[NSException raise: NSGenericException
+	  format: @"Too many (%u) autorelease pools ... leaking them?", level];
+      }
   }
 
   return self;
@@ -504,14 +528,32 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
     {
       volatile struct autorelease_array_list *released;
 
-      /* If there are NSAutoreleasePool below us in the stack of
-	 NSAutoreleasePools, then deallocate them also.  The (only) way we
-	 could get in this situation (in correctly written programs, that
-	 don't release NSAutoreleasePools in weird ways), is if an
-	 exception threw us up the stack. */
-      while (_child != nil)
+      /* If there are NSAutoreleasePool below us in the list of
+       * NSAutoreleasePools, then deallocate them also.
+       * The (only) way we could get in this situation (in correctly
+       * written programs, that don't release NSAutoreleasePools in
+       * weird ways), is if an exception threw us up the stack.
+       * However, if a program has leaked pools we may be deallocating
+       * a pool with LOTS of children. To avoid stack overflow we
+       * therefore deallocate children starting with the oldest first.
+       */
+      if (nil != _child)
 	{
-	  [_child dealloc];
+	  NSAutoreleasePool	*pool = _child;
+
+	  /* Find other end of linked list ... oldest child.
+	   */
+	  while (nil != pool->_child)
+	    {
+	      pool = pool->_child;
+	    }
+	  /* Deallocate the children in the list.
+	   */
+          while (pool != self)
+	    {
+	      pool = pool->_parent;
+	      [pool->_child dealloc];
+	    }
 	}
 
       /* Take the object out of the released list just before releasing it,
@@ -632,6 +674,11 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 + (void) setPoolCountThreshhold: (unsigned)c
 {
   pool_count_warning_threshhold = c;
+}
+
++ (void) setPoolNumberThreshhold: (unsigned)c
+{
+  pool_number_warning_threshhold = c;
 }
 
 @end
