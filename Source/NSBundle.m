@@ -1305,13 +1305,21 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       bundle = (NSBundle *)NSMapGet(_byIdentifier, identifier);
 IF_NO_GC(
-      if (bundle != nil)
-	{
-	  [bundle retain]; /* retain - look as if we were alloc'ed */
-	}
+	[bundle retain]; /* retain - look as if we were alloc'ed */
 )
     }
   [load_lock unlock];
+  // Some OS X apps  try to get the foundation bundle by looking it up by
+  // identifier.  This is expected to be faster than looking it up by class, so
+  // we lazily insert it into the table if it's requested.
+  if (nil == bundle && [@"com.apple.Foundation" isEqualToString: identifier])
+    {
+      NSBundle *foundation = [self bundleForClass: self];
+      [load_lock lock];
+      NSMapInsert(_byIdentifier, @"com.apple.Foundation", foundation);
+      [load_lock unlock];
+      return foundation;
+    }
   return AUTORELEASE(bundle);
 }
 

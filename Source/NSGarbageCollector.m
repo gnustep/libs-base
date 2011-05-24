@@ -27,8 +27,91 @@
 #import	"Foundation/NSGarbageCollector.h"
 
 static NSGarbageCollector	*collector = nil;
-static unsigned			disabled = 0;
 
+#if __OBJC_GC__
+#include <objc/objc-auto.h>
+
+id CFRetain(id obj)
+{
+  return objc_gc_retain(obj);
+}
+
+void CFRelease(id obj)
+{
+  objc_gc_release(obj);
+}
+
+@implementation	NSGarbageCollector
+
++ (id) defaultCollector
+{
+  return collector;
+}
+
++ (void) initialize
+{
+  collector = [self alloc];
+}
+
+- (void) collectIfNeeded
+{
+  objc_collect(OBJC_COLLECT_IF_NEEDED | OBJC_FULL_COLLECTION);
+}
+
+- (void) collectExhaustively
+{
+  objc_collect(OBJC_EXHAUSTIVE_COLLECTION);
+}
+
+- (void) disable
+{
+  objc_gc_disable();
+}
+
+- (void) disableCollectorForPointer: (void *)ptr
+{
+  CFRetain(ptr);
+}
+
+- (void) enable
+{
+  objc_gc_enable();
+}
+
+- (void) enableCollectorForPointer: (void *)ptr
+{
+  CFRelease(ptr);
+}
+
+- (id) init
+{
+  if (self != collector)
+    {
+      [self dealloc];
+      self = nil;
+    }
+  return self;
+}
+
+- (BOOL) isCollecting
+{
+  return NO;
+}
+
+- (BOOL) isEnabled
+{
+	return objc_collectingEnabled();
+}
+
+- (NSZone*) zone
+{
+  return NSDefaultMallocZone();
+}
+@end
+
+#else
+
+static unsigned			disabled = 0;
 #if	GS_WITH_GC
 
 #include <gc/gc.h>
@@ -152,3 +235,4 @@ static NSHashTable	*uncollectable = 0;
 }
 @end
 
+#endif // __OBJC_GC__
