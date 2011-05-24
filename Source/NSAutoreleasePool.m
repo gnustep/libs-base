@@ -34,7 +34,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
 
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __OBJC_GC__
 
 @implementation NSAutoreleasePool
 
@@ -120,6 +120,8 @@ static NSAutoreleasePool	*pool = nil;
 
 - (void) dealloc
 {
+  [NSException raise: NSGenericException
+		   format: @"dealloc should not be called in garbage collected mode"];
   GSNOSUPERDEALLOC;
   return;
 }

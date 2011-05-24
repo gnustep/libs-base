@@ -125,7 +125,7 @@ BOOL	NSDeallocateZombies = NO;
 static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
-#if	!GS_WITH_GC
+#if	!GS_WITH_GC && !__OBJC_GC__
 static void GSMakeZombie(NSObject *o)
 {
   Class		c;
@@ -414,7 +414,7 @@ typedef	struct obj_layout *obj;
 BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
-#if	!GS_WITH_GC
+#if	!GS_WITH_GC && !__OBJC_GC__
   if (double_release_check_enabled)
     {
       NSUInteger release_count;
@@ -504,7 +504,7 @@ NSExtraRefCount(id anObject)
 inline void
 NSIncrementExtraRefCount(id anObject)
 {
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __OBJC_GC__
   return;
 #else	/* GS_WITH_GC */
   if (allocationLock != 0)
@@ -594,7 +594,32 @@ callCXXConstructors(Class aClass, id anObject)
  *	depending on what information (if any) we are storing before
  *	the start of each object.
  */
-#if	GS_WITH_GC
+#if __OBJC_GC__
+
+inline NSZone *
+GSObjCZone(NSObject *object)
+{
+  return NSDefaultMallocZone();
+}
+
+inline id
+NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
+{
+  id	new = class_createInstance(aClass, extraBytes);
+  if (0 == cxx_construct)
+    {
+      cxx_construct = sel_registerName(".cxx_construct");
+      cxx_destruct = sel_registerName(".cxx_destruct");
+    }
+  callCXXConstructors(aClass, new);
+  return new;
+}
+
+inline void
+NSDeallocateObject(id anObject)
+{
+}
+#elif	GS_WITH_GC 
 
 inline NSZone *
 GSObjCZone(NSObject *object)
@@ -777,7 +802,7 @@ NSDeallocateObject(id anObject)
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __OBJC_GC__
   return YES;
 #else
   return (!requestedZone || requestedZone == NSDefaultMallocZone()
@@ -1904,7 +1929,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (oneway void) release
 {
-#if	GS_WITH_GC == 0
+#if	GS_WITH_GC == 0 && !__OBJC_GC__
   if (NSDecrementExtraRefCountWasZero(self))
     {
       [self dealloc];
@@ -1954,7 +1979,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (id) retain
 {
-#if	GS_WITH_GC == 0
+#if	GS_WITH_GC == 0 && !__OBJC_GC__
   NSIncrementExtraRefCount(self);
 #endif
   return self;

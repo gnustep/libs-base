@@ -227,8 +227,100 @@ NSZoneName (NSZone *zone)
     zone = NSDefaultMallocZone();
   return zone->name;
 }
+#if __OBJC_GC__
 
-#if	GS_WITH_GC
+#include <objc/objc-auto.h>
+void *
+NSAllocateCollectable(NSUInteger size, NSUInteger options)
+{
+  return objc_gc_allocate_collectable(size, 
+             ((options & NSScannedOption) == NSScannedOption));
+}
+
+void *
+NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
+{
+  return objc_gc_reallocate_collectable(ptr, size, 
+             ((options & NSScannedOption) == NSScannedOption));
+}
+
+NSZone*
+NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
+{
+  NSLog(@" *** Creating a zone while running GC is ignored.");
+  return &default_zone;
+}
+
+NSZone*
+NSDefaultMallocZone (void)
+{
+  return &default_zone;
+}
+
+// This is an ugly hack.  We should be using NSAllocateCollectable() without
+// NSScannedOption, not trying to fudge this with stuff that's totally
+// incompatible with Apple's design.
+NSZone*
+GSAtomicMallocZone (void)
+{
+  return &default_zone;
+}
+
+NSZone*
+NSZoneFromPointer (void *ptr)
+{
+  return &default_zone;
+}
+
+void
+NSRecycleZone (NSZone *zone) { }
+
+BOOL
+NSZoneCheck (NSZone *zone)
+{
+  return YES;
+}
+
+struct
+NSZoneStats NSZoneStats (NSZone *zone)
+{
+  struct NSZoneStats stats = { 0 };
+  return stats;
+}
+
+void
+GSMakeWeakPointer(Class theClass, const char *iVarName) { }
+
+BOOL
+GSAssignZeroingWeakPointer(void **destination, void *source)
+{
+  objc_assign_weak(source, (id*)destination);
+  return YES;
+}
+
+void*
+NSZoneMalloc (NSZone *zone, NSUInteger size)
+{
+  return NSZoneCalloc(zone, 1, size);
+}
+
+void*
+NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
+{
+  // FIXME: Overflow checking
+  size_t	size = elems * bytes;
+  return objc_gc_allocate_collectable(size, YES);
+}
+
+void*
+NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
+{
+  return objc_gc_reallocate_collectable(ptr, size, YES);
+}
+
+void NSZoneFree (NSZone *zone, void *ptr) { }
+
+#elif	GS_WITH_GC
 
 #if	defined(DEBUG)
 #define	GC_DEBUG	1
