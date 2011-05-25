@@ -226,7 +226,8 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSATOMICREAD(X)	(*(X))
 
-int
+#ifdef	ATOMICTEST
+static __inline__ int
 GSAtomicIncrement(gsatomic_t X)
 {
   int32_t tmp = 1;
@@ -238,7 +239,7 @@ GSAtomicIncrement(gsatomic_t X)
  return tmp;
 }
 
-int
+static __inline__ int
 GSAtomicDecrement(gsatomic_t X)
 {
   int32_t tmp = -1;
@@ -249,6 +250,27 @@ GSAtomicDecrement(gsatomic_t X)
     :"memory" );
  return tmp;
 }
+#else
+
+static __inline__ int
+GSAtomicIncrement(gsatomic_t X)
+{
+ __asm__ __volatile__ (
+     "lock addl $1, %0"
+     :"=m" (*X));
+ return *X;
+}
+
+static __inline__ int
+GSAtomicDecrement(gsatomic_t X)
+{
+ __asm__ __volatile__ (
+     "lock subl $1, %0"
+     :"=m" (*X));
+ return *X;
+}
+
+#endif
 
 #elif defined(__PPC__) || defined(__POWERPC__)
 
