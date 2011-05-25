@@ -1,3 +1,21 @@
+2011-05-25 11:15  David Chisnall <theraven@gna.org>
+
+	* Headers/Foundation/NSZone.h,
+	* Source/GSString.m,
+	* Source/NSData.m,
+	* Source/NSMethodSignature.m,
+	* Source/NSNotificationCenter.m,
+	* Source/NSObject.m,
+	* Source/NSZone.m:
+	  More tweaks for garbage collection mode, including making
+	  NSNotificationCenter use weak pointers (things are never removed if it
+	  uses strong pointers because they remove themselves in the -dealloc
+	  method, which is never called, and can't remove themselves in the
+	  -finalize method because the -finalize method would not be called until
+	  after they have been removed - this is consistent with Apple behaviour).
+	  
+	  Gorm now works correctly when built with GC enabled.
+
 2011-05-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m:
