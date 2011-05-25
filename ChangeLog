@@ -1,8 +1,10 @@
 2011-05-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m:
-	Make last assembler attempt conditional ... I'm far from sure it's
-	correct.
+	Further tweak of atomic assembly code ... don't really know what I'm
+	doing here ... perhaps theoriginal author (mostly David?) knows more
+	about this assmebly stuff and implementation of atomic primitives on
+	different architectures?
 
 2011-05-25 11:15  David Chisnall <theraven@gna.org>
 
