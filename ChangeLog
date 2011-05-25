@@ -1,3 +1,8 @@
+2011-05-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m:
+	Attempt fix for atomic assembler on x86 (bug #33392)
+
 2011-05-24 David Chisnall <theraven@gna.org>
 
 	* Source/NSBundle.m
@@ -6,11 +11,11 @@
 	* Source/NSZone.m
 	* Source/NSObject.m
 	* Source/NSAutoreleasePool.m
-	First pass at supporting fully Apple-compatible GC in -base.  Code sitting
+	First pass at supporting fully Apple-compatible GC in -base.
+	Code sitting
 	on top of -base should not require modifying (in theory, at least, and
 	unless it does the sort of evil tricks that LanguageKit does for
 	performance).
-
 
 2011-05-24  Richard Frith-Macdonald <rfm@gnu.org>
 
