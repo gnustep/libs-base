@@ -214,8 +214,8 @@ typedef int32_t volatile *gsatomic_t;
 
 typedef int32_t volatile *gsatomic_t;
 #define GSATOMICREAD(X) (*(X))
-#define GSAtomicIncrement(X)    __sync_fetch_and_add(X, 1)
-#define GSAtomicDecrement(X)    __sync_fetch_and_sub(X, 1)
+#define GSAtomicIncrement(X)    __sync_add_and_fetch(X, 1)
+#define GSAtomicDecrement(X)    __sync_sub_and_fetch(X, 1)
 
 
 #elif	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
@@ -228,18 +228,17 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	ATOMIC_TESTING	1
 
-#if defined(ATOMIC_TESTING)
 static __inline__ int
 GSAtomicIncrement(gsatomic_t X)
 {
   register int tmp;
   __asm__ __volatile__ (
-    "movl $1, %0\n\t"
+    "movl $1, %0\n"
     "lock xaddl %0, %1"
     :"=r" (tmp), "=m" (*X)
     :"r" (tmp), "m" (*X)
     :"memory" );
- return tmp;
+  return tmp + 1;
 }
 
 static __inline__ int
@@ -247,35 +246,14 @@ GSAtomicDecrement(gsatomic_t X)
 {
   register int tmp;
   __asm__ __volatile__ (
-    "movl $1, %0\n\t"
-    "negl %0\n\t"
+    "movl $1, %0\n"
+    "negl %0\n" 
     "lock xaddl %0, %1"
     :"=r" (tmp), "=m" (*X)
     :"r" (tmp), "m" (*X)
     :"memory" );
- return tmp;
+ return tmp - 1;
 }
-#else
-
-static __inline__ int
-GSAtomicIncrement(gsatomic_t X)
-{
- __asm__ __volatile__ (
-     "lock addl $1, %0"
-     :"=m" (*X));
- return *X;
-}
-
-static __inline__ int
-GSAtomicDecrement(gsatomic_t X)
-{
- __asm__ __volatile__ (
-     "lock subl $1, %0"
-     :"=m" (*X));
- return *X;
-}
-
-#endif
 
 #elif defined(__PPC__) || defined(__POWERPC__)
 
@@ -296,7 +274,7 @@ GSAtomicIncrement(gsatomic_t X)
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");
-  return *X;
+  return tmp;
 }
 
 static __inline__ int
@@ -312,7 +290,7 @@ GSAtomicDecrement(gsatomic_t X)
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");
-  return *X;
+  return tmp;
 }
 
 #elif defined(__m68k__)
@@ -359,7 +337,7 @@ GSAtomicIncrement(gsatomic_t X)
     "   sc    %0, %1 \n"
     "   beqz  %0, 0b  \n"
     :"=&r" (tmp), "=m" (*X));
-    return *X;
+    return tmp;
 }
 
 static __inline__ int
@@ -376,7 +354,7 @@ GSAtomicDecrement(gsatomic_t X)
     "   sc    %0, %1 \n"
     "   beqz  %0, 0b  \n"
     :"=&r" (tmp), "=m" (*X));
-    return *X;
+    return tmp;
 }
 #endif
 
