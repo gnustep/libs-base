@@ -443,7 +443,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       alen = ptr - args;
       rlen += sprintf(ret + rlen, "%d", (int)_argFrameLength);
 
-      _methodTypes = NSZoneMalloc(NSDefaultMallocZone(), alen + rlen + 1);
+      _methodTypes = NSAllocateCollectable(alen + rlen + 1, 0);
       strncpy((char*)_methodTypes, ret, rlen);
       strncpy(((char*)_methodTypes) + rlen, args, alen);
       ((char*)_methodTypes)[alen + rlen] = '\0';

@@ -390,11 +390,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 	  len -= sizeof(unichar);
 	  memcpy(&u, from, sizeof(unichar));
 	  from += sizeof(unichar);
-#if	GS_WITH_GC
 	  to = NSAllocateCollectable(len, 0);
-#else
-	  to = NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 	  if (u == 0xFEFF)
 	    {
 	      // Native byte order
@@ -443,11 +439,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 	  // Got a byte order marker ... remove it.
 	  len -= 3;
 	  from += 3;
-#if	GS_WITH_GC
 	  to = NSAllocateCollectable(len, 0);
-#else
-	  to = NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 	  memcpy(to, from, len);
 	  if (*owned == YES)
 	    {
@@ -485,7 +477,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        */
       if (original == bytes)
 	{
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __OBJC_GC__
 	  chars = NSAllocateCollectable(length, 0);
 #else
 	  chars = NSZoneMalloc([self zone], length);

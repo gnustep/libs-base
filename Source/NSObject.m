@@ -494,7 +494,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 inline NSUInteger
 NSExtraRefCount(id anObject)
 {
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __OBJC_GC__
   return UINT_MAX - 1;
 #else	/* GS_WITH_GC */
   return ((obj)anObject)[-1].retained;
@@ -1723,7 +1723,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (id) autorelease
 {
-#if	GS_WITH_GC == 0
+#if	!GS_WITH_GC && !__OBJC_GC__
   if (double_release_check_enabled)
     {
       NSUInteger release_count;
@@ -1935,7 +1935,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (oneway void) release
 {
-#if	GS_WITH_GC == 0 && !__OBJC_GC__
+#if	(GS_WITH_GC == 0) && !__OBJC_GC__
   if (NSDecrementExtraRefCountWasZero(self))
     {
       [self dealloc];
@@ -1985,7 +1985,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (id) retain
 {
-#if	GS_WITH_GC == 0 && !__OBJC_GC__
+#if	(GS_WITH_GC == 0) && !__OBJC_GC__
   NSIncrementExtraRefCount(self);
 #endif
   return self;
@@ -2012,7 +2012,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (NSUInteger) retainCount
 {
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __OBJC_GC__
   return UINT_MAX;
 #else
   return NSExtraRefCount(self) + 1;
@@ -2042,7 +2042,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (NSZone*) zone
 {
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __OBJC_GC__
   /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
    */
   return NSDefaultMallocZone();

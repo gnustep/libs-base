@@ -142,7 +142,7 @@ struct	NCTbl;		/* Notification Center Table structure	*/
  */
 
 typedef	struct	Obs {
-  id		observer;	/* Object to receive message.	*/
+  __weak id	observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
   IMP		method;		/* Method implementation.	*/
   struct Obs	*next;		/* Next item in linked list.	*/
