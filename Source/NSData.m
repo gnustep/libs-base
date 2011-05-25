@@ -575,11 +575,7 @@ failure:
 	    format: @"[%@-initWithBytes:length:] called with "
 	    @"length but null bytes", NSStringFromClass([self class])];
 	}
-#if	GS_WITH_GC
       ptr = NSAllocateCollectable(bufferSize, 0);
-#else
-      ptr = NSZoneMalloc(NSDefaultMallocZone(), bufferSize);
-#endif
       if (ptr == 0)
 	{
 	  DESTROY(self);

@@ -230,14 +230,20 @@ NSZoneName (NSZone *zone)
 #if __OBJC_GC__
 
 #include <objc/objc-auto.h>
-void *
+
+__strong void *
 NSAllocateCollectable(NSUInteger size, NSUInteger options)
 {
-  return objc_gc_allocate_collectable(size, 
+  id obj = objc_gc_allocate_collectable(size, 
              ((options & NSScannedOption) == NSScannedOption));
+  if ((options & NSCollectorDisabledOption) == NSCollectorDisabledOption)
+    {
+      obj = objc_gc_retain(obj);
+    }
+  return obj;
 }
 
-void *
+__strong void *
 NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
 {
   return objc_gc_reallocate_collectable(ptr, size, 
