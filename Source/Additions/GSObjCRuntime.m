@@ -1928,7 +1928,7 @@ NSArray *GSObjCDirectSubclassesOfClass(Class cls)
 void *
 GSAutoreleasedBuffer(unsigned size)
 {
-#if GS_WITH_GC
+#if GS_WITH_GC || __OBJC_GC__
   return NSAllocateCollectable(size, NSScannedOption);
 #else
 #ifdef ALIGN

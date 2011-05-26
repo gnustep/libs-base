@@ -72,11 +72,13 @@
   locked = -1;
 }
 
+#ifdef __GS_WITH_GC__
 - (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
   [super finalize];
 }
+#endif
 
 - (id) init
 {
@@ -214,11 +216,13 @@
   counter = -1;
 }
 
+#ifdef __GS_WITH_GC__
 - (void) finalize
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
   [super finalize];
 }
+#endif
 
 - (id) init
 {

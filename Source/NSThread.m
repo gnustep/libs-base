@@ -72,12 +72,16 @@
 #import "Foundation/NSConnection.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSGarbageCollector.h"
 
 #import "GSPrivate.h"
 #import "GSRunLoopCtxt.h"
 
 #if	GS_WITH_GC
 #include	<gc/gc.h>
+#endif
+#if __OBJC_GC__
+#include <objc/objc-auto.h>
 #endif
 
 // Some older BSD systems used a non-standard range of thread priorities.
@@ -415,6 +419,7 @@ gnustep_base_thread_callback(void)
 static void
 setThreadForCurrentThread(NSThread *t)
 {
+  [[NSGarbageCollector defaultCollector] disableCollectorForPointer: t];
   pthread_setspecific(thread_object_key, t);
   gnustep_base_thread_callback();
 }
@@ -443,6 +448,8 @@ unregisterActiveThread(NSThread *thread)
 
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
       [thread  release];
+	  
+      [[NSGarbageCollector defaultCollector] enableCollectorForPointer: thread];
       pthread_setspecific(thread_object_key, nil);
     }
 }
@@ -462,6 +469,7 @@ unregisterActiveThread(NSThread *thread)
     {
       t = [self new];
       t->_active = YES;
+      [[NSGarbageCollector defaultCollector] disableCollectorForPointer: t];
       pthread_setspecific(thread_object_key, t);
       GS_CONSUMED(t);
       return YES;
@@ -748,6 +756,9 @@ static void *nsthreadLauncher(void* thread)
 {
     NSThread *t = (NSThread*)thread;
     setThreadForCurrentThread(t);
+#if __OBJC_GC__
+	objc_registerThreadWithCollector();
+#endif
 #if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
   {
     struct GC_stack_base	base;
