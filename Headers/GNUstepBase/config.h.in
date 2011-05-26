@@ -699,6 +699,9 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
@@ -737,6 +740,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Define if the compiler provides builtins for atomic operations */
+#undef USE_ATOMIC_BUILTINS
 
 /* Define if using the ffcall library for invocations */
 #undef USE_FFCALL

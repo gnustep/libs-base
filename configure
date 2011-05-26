@@ -5063,6 +5063,132 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
 
 
 
+
+#--------------------------------------------------------------------
+# Check how to enable builtins for atomic operations
+#--------------------------------------------------------------------
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports atomic operations" >&5
+$as_echo_n "checking whether the compiler supports atomic operations... " >&6; };
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main ()
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  have_atomic=yes
+else
+  have_atomic=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext;
+  if test "$have_atomic" = "yes"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; };
+
+$as_echo "#define USE_ATOMIC_BUILTINS 1" >>confdefs.h
+
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; };
+  fi
+if test "$CC" = "gcc"; then
+  saved_CFLAGS="$CFLAGS";
+  ATOMIC_CFLAGS="";
+
+  # FIXME: Forcing -march=i568 for any i568 or later CPU is a stop gap measure
+  # to make the compiler emit native assembly for atomic operations on i586 or
+  # latter processors (GCC by defaults emits code compatible with the original
+  # i386 and requires library functions to emulate atomic operations). When
+  # gnustep-make takes care of this kind of target setting, the check can safely
+  # be removed.
+  case "$target_cpu" in
+    i586*|i686*|i786*)
+      ATOMIC_CFLAGS="-march=i586";
+      CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS";
+  esac
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking whether atomic operations require an external library" >&5
+$as_echo_n "checking checking whether atomic operations require an external library... " >&6; };
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main ()
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  need_linkage=no
+else
+  need_linkage=yes
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext;
+
+  if test "$need_linkage" = "no"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; };
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; };
+    saved_LDFLAGS="$LDFLAGS";
+    LDFLAGS="$saved_LDFLAGS -lgcc";
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for atomic operations from libgcc" >&5
+$as_echo_n "checking checking for atomic operations from libgcc... " >&6; };
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main ()
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  atomic_in_libgcc=yes
+else
+  atomic_in_libgcc=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext;
+    if test "$atomic_in_libgcc" = "yes"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; };
+      LIBS="$LIBS -lgcc";
+
+$as_echo "#define USE_ATOMIC_BUILTINS 1" >>confdefs.h
+
+    else
+      LDFLAGS="$saved_LDFLAGS";
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; };
+    fi
+  fi
+fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
 # Extract the first word of "whoami", so it can be a program name with args.
 set dummy whoami; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
