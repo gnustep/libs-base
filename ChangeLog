@@ -1,3 +1,8 @@
+2011-05-26 18:29  David Chisnall <theraven@gna.org>
+
+	* Source/simple-load.h:
+	Use RTLD_NOLOAD, if it's supported.
+
 2011-05-26 13:24  David Chisnall <theraven@gna.org>
 
 	* Headers/Foundation/NSNotification.h,
