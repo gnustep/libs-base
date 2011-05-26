@@ -105,7 +105,7 @@ static Class	NSConstantStringClass;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 @end
 
-@interface GSContentAccessingProxy : NSProxy 
+@interface GSContentAccessingProxy : NSProxy
 {
   NSObject<NSDiscardableContent> *object;
 }
@@ -113,7 +113,7 @@ static Class	NSConstantStringClass;
 @end
 
 /*
- * allocationLock is needed when running multi-threaded for 
+ * allocationLock is needed when running multi-threaded for
  * protecting the map table of zombie information.
  */
 static NSLock *allocationLock;
@@ -209,7 +209,7 @@ typedef int32_t volatile *gsatomic_t;
 #define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
 
 
-#elif defined(__llvm__) || (defined(USE_ATOMIC_BUILDINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
+#elif defined(__llvm__) || (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
 /* Use the GCC atomic operations with recent GCC versions */
 
 typedef int32_t volatile *gsatomic_t;
@@ -247,7 +247,7 @@ GSAtomicDecrement(gsatomic_t X)
   register int tmp;
   __asm__ __volatile__ (
     "movl $1, %0\n"
-    "negl %0\n" 
+    "negl %0\n"
     "lock xaddl %0, %1"
     :"=r" (tmp), "=m" (*X)
     :"r" (tmp), "m" (*X)
@@ -561,8 +561,8 @@ NSIncrementExtraRefCount(id anObject)
 #define	AADD(c, o) GSDebugAllocationAdd(c, o)
 #define	AREM(c, o) GSDebugAllocationRemove(c, o)
 #else
-#define	AADD(c, o) 
-#define	AREM(c, o) 
+#define	AADD(c, o)
+#define	AREM(c, o)
 #endif
 
 static SEL cxx_construct, cxx_destruct;
@@ -574,7 +574,7 @@ static SEL cxx_construct, cxx_destruct;
  * -.cxx_destruct.  The -.cxx_construct methods must be called in order from
  *  the root class to all subclasses, to ensure that subclass ivars are
  *  initialised after superclass ones.  This must be done in reverse for
- *  destruction.  
+ *  destruction.
  *
  *  This function first calls itself recursively on the superclass, to get the
  *  IMP for the constructor function in the superclass.  It then compares the
@@ -630,7 +630,7 @@ inline void
 NSDeallocateObject(id anObject)
 {
 }
-#elif	GS_WITH_GC 
+#elif	GS_WITH_GC
 
 inline NSZone *
 GSObjCZone(NSObject *object)
@@ -918,7 +918,7 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
  * Semi-private function in libobjc2 that initialises the classes used for
  * blocks.
  */
-extern BOOL 
+extern BOOL
 objc_create_block_classes_as_subclasses_of(Class super);
 
 + (void) load
@@ -941,8 +941,8 @@ objc_create_block_classes_as_subclasses_of(Class super);
 #ifdef __MINGW__
       {
         // See libgnustep-base-entry.m
-        extern void gnustep_base_socket_init(void);	
-        gnustep_base_socket_init();	
+        extern void gnustep_base_socket_init(void);
+        gnustep_base_socket_init();
       }
 #else /* __MINGW__ */
 
@@ -2407,7 +2407,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
 }
 @end
 
-@implementation GSContentAccessingProxy 
+@implementation GSContentAccessingProxy
 - (void) dealloc
 {
   [object endContentAccess];

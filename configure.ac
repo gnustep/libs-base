@@ -1006,6 +1006,70 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
+
+#--------------------------------------------------------------------
+# Check how to enable builtins for atomic operations
+#--------------------------------------------------------------------
+
+AC_LANG_PUSH(C)
+AC_MSG_CHECKING([whether the compiler supports atomic operations]);
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
+    [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);]])],
+  have_atomic=yes,
+  have_atomic=no);
+  if test "$have_atomic" = "yes"; then
+    AC_MSG_RESULT([yes]);
+    AC_DEFINE(USE_ATOMIC_BUILTINS,1,
+      [Define if the compiler provides builtins for atomic operations])
+  else
+    AC_MSG_RESULT([no]);
+  fi
+if test "$CC" = "gcc"; then
+  saved_CFLAGS="$CFLAGS";
+  ATOMIC_CFLAGS="";
+  
+  # FIXME: Forcing -march=i568 for any i568 or later CPU is a stop gap measure
+  # to make the compiler emit native assembly for atomic operations on i586 or
+  # latter processors (GCC by defaults emits code compatible with the original
+  # i386 and requires library functions to emulate atomic operations). When
+  # gnustep-make takes care of this kind of target setting, the check can safely
+  # be removed.  
+  case "$target_cpu" in
+    i586*|i686*|i786*)
+      ATOMIC_CFLAGS="-march=i586";
+      CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS";
+  esac
+  AC_MSG_CHECKING([checking whether atomic operations require an external library]);
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
+      [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);]])],
+    need_linkage=no,
+  need_linkage=yes);
+
+  if test "$need_linkage" = "no"; then
+    AC_MSG_RESULT([no]);
+  else
+    AC_MSG_RESULT([yes]);
+    saved_LDFLAGS="$LDFLAGS";
+    LDFLAGS="$saved_LDFLAGS -lgcc";
+    AC_MSG_CHECKING([checking for atomic operations from libgcc]);
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
+        [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);]])],
+      atomic_in_libgcc=yes,
+    atomic_in_libgcc=no);
+    if test "$atomic_in_libgcc" = "yes"; then
+      AC_MSG_RESULT([yes]);
+      LIBS="$LIBS -lgcc";
+      AC_DEFINE(USE_ATOMIC_BUILTINS,1,
+        [Define if the compiler provides builtins for atomic operations])
+    else
+      LDFLAGS="$saved_LDFLAGS";
+      AC_MSG_RESULT([no]);
+    fi
+  fi     
+fi
+AC_LANG_POP(C)
+
+
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 
 #--------------------------------------------------------------------

@@ -1,3 +1,13 @@
+2011-05-26  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Add test to check for availability of atomic builtins.
+	* configure: Regenerate.
+	* Headers/GNUstepBase/config.h.in: Regenerate.
+	* Source/NSObject.m: Fix typo.
+
+	Attempt to set the compiler and linker flags needed to enable compiler
+	intrinsics for atomic operations on platforms where those are available.
+
 2011-05-26 18:29  David Chisnall <theraven@gna.org>
 
 	* Source/simple-load.h:
