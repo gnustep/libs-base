@@ -28,6 +28,7 @@
    Boston, MA 02111 USA.
 */
 
+
 #import "common.h"
 #if	!defined(NeXT_Foundation_LIBRARY)
 #import "Foundation/NSArray.h"
@@ -304,7 +305,7 @@ static void GSSetupEncodingTable(void)
 		    }
 		}
 	    }
-	  encTable = NSZoneMalloc(NSDefaultMallocZone(),
+	  encTable = malloc(
 	    (encTableSize+1)*sizeof(struct _strenc_ *));
 	  memset(encTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
 
@@ -331,13 +332,13 @@ static void GSSetupEncodingTable(void)
 		   * See if we can do a lossy conversion.
 		   */
 		  l = strlen(entry->iconv);
-		  lossy = NSZoneMalloc(NSDefaultMallocZone(), l + 11);
+		  lossy = malloc(l + 11);
 		  strncpy(lossy, entry->iconv, l);
 		  strncpy(lossy + l, "//TRANSLIT", 11);
 		  c = iconv_open(UNICODE_ENC, entry->iconv);
 		  if (c == (iconv_t)-1)
 		    {
-		      NSZoneFree(NSDefaultMallocZone(),lossy);
+		      free(lossy);
 		    }
 		  else
 		    {
@@ -371,6 +372,7 @@ EntryForEncoding(NSStringEncoding enc)
 
 	  while (i < sizeof(str_encoding_table) / sizeof(struct _strenc_))
 	    {
+			NSLog(@"Checking encoding %s (%d == %d) %d", str_encoding_table[i].ename, str_encoding_table[i].enc, enc, str_encoding_table[i].supported);
 	      if (str_encoding_table[i].enc == enc)
 		{
 		  entry = &str_encoding_table[i];
@@ -2520,7 +2522,7 @@ GSPrivateAvailableEncodings()
 	   * This is also the place where we determine the name we use
 	   * for iconv to support unicode.
 	   */
-	  encodings = NSZoneMalloc(NSDefaultMallocZone(),sizeof(NSStringEncoding) * (encTableSize+1));
+	  encodings = malloc(sizeof(NSStringEncoding) * (encTableSize+1));
 	  pos = 0;
 	  for (i = 0; i < encTableSize+1; i++)
 	    {

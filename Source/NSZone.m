@@ -250,6 +250,11 @@ NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
              ((options & NSScannedOption) == NSScannedOption));
 }
 
+id NSMakeCollectable(id obj)
+{
+  objc_gc_release(obj);
+}
+
 NSZone*
 NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
 {

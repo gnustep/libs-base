@@ -477,7 +477,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        */
       if (original == bytes)
 	{
-#if	GS_WITH_GC || __OBJC_GC__
+#if	GS_WITH_GC
 	  chars = NSAllocateCollectable(length, 0);
 #else
 	  chars = NSZoneMalloc([self zone], length);
