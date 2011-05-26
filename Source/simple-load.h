@@ -62,6 +62,18 @@ __objc_dynamic_init(const char* exec_path)
 static dl_handle_t
 __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 {
+#ifdef RTLD_NOLOAD
+	/*
+	 * If we've got RTLD_NOLOAD, then ask the dynamic linker first to check if
+	 * the library is already loaded.  If it is, then just return a handle to
+	 * it.  If not, then load it again.
+	 */
+	void *handle = dlopen(module, RTLD_LAZY | RTLD_GLOBAL | RTLD_NOLOAD);
+	if (NULL != handle)
+	{
+		return handle;
+	}
+#endif
     return (dl_handle_t)dlopen(module, RTLD_LAZY | RTLD_GLOBAL);
 }
 
