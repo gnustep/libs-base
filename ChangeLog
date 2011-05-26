@@ -1,3 +1,16 @@
+2011-05-26 13:24  David Chisnall <theraven@gna.org>
+
+	* Headers/Foundation/NSNotification.h,
+	* Source/Additions/GSLock.m,
+	* Source/Additions/GSObjCRuntime.m,
+	* Source/Additions/Unicode.m,
+	* Source/GSString.m,
+	* Source/NSThread.m,
+	* Source/NSZone.m:
+	  More GC fixes. Most notably,
+	  mark the thread object as not collectable, since it's hidden away
+	  in TLS where the GC can't find it.
+
 2011-05-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m:
