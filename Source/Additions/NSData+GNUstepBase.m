@@ -152,7 +152,7 @@
       DESTROY(self);
     }
   NSZoneFree(NSDefaultMallocZone(), dst);
-  [arp release];
+  [arp drain];
   if (self == nil)
     {
       [NSException raise: NSInvalidArgumentException

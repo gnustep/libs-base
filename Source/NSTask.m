@@ -1182,7 +1182,7 @@ quotedFromString(NSString *aString)
 	  [data appendBytes: &terminator length: 2];	// end of setting
 	}
       [data appendBytes: &terminator length: 2];	// end of environment
-      RELEASE(pool);
+      [pool drain];
       envp = [data mutableBytes];
     }
 

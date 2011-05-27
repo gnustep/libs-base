@@ -1962,7 +1962,7 @@ static NSString		*mainFont = nil;
 	  node = tmp;
 	}
     }
-  RELEASE(arp);
+  [arp drain];
 }
 
 /**

@@ -1038,7 +1038,7 @@ static NSMapTable	*absolutes = 0;
 	  [md makeImmutableCopyOnFail: NO];
 	  abbreviationDictionary = md;
 	}
-      [pool release];
+      [pool drain];
     }
   if (zone_mutex != nil)
     {
@@ -1184,7 +1184,7 @@ static NSMapTable	*absolutes = 0;
 
       [md makeImmutableCopyOnFail: NO];
       abbreviationMap = RETAIN(md); 
-      [pool release];
+      [pool drain];
     }
   if (zone_mutex != nil)
     {
@@ -1840,7 +1840,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 	    }
 	}
       regionsArray = [[NSArray alloc] initWithObjects: temp_array count: 24];
-      [pool release];
+      [pool drain];
     }
   if (zone_mutex != nil)
     {

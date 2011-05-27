@@ -1976,7 +1976,7 @@ IF_NO_GC(
 	}
     }
   [result retain];
-  [arp release];
+  [arp drain];
   return [result autorelease];
 }
 

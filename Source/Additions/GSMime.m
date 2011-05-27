@@ -6033,7 +6033,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  [md appendData: d];
 	}
     }
-  [arp release];
+  [arp drain];
   return md;
 }
 
@@ -6195,7 +6195,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   [self setContent: newContent];
   [self setHeader: hdr];
-  [arp release];
+  [arp drain];
 }
 
 /**
@@ -6222,7 +6222,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 		  format: @"Unable to parse type information"];
     }
   [self setHeader: hdr];
-  [arp release];
+  [arp drain];
 }
 
 /**

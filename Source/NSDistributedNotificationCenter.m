@@ -743,7 +743,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		rootProxyForConnectionWithRegisteredName: service
 		host: host usingNameServer: ns];
               [_remote retain];
-              [pool release];
+              [pool drain];
 	    }
 	  if (_remote == nil)
 	    {

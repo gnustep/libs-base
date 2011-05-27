@@ -1351,7 +1351,7 @@ int main (int argc, char** argv, char** env)
     }
 
   RELEASE (linker);
-  RELEASE (pool);
+  [pool drain];
 
   return 0;
 }

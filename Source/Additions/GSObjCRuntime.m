@@ -2009,7 +2009,7 @@ GSPrintf (FILE *fptr, NSString* format, ...)
           ok = YES;
         }
     }
-  [arp release];
+  [arp drain];
   return ok;
 }
 

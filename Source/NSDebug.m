@@ -1188,7 +1188,7 @@ GSPrivateStackAddresses(void)
       signal(SIGBUS, env->bus);
     }
 #endif
-  [pool release];
+  [pool drain];
   return stack;
 }
 

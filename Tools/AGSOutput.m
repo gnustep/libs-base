@@ -1474,7 +1474,7 @@ static BOOL snuggleStart(NSString *t)
 	  [buf appendString: @"\n"];
 	}
     }
-  RELEASE(arp);
+  [arp drain];
   return ind;
 }
 

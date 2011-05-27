@@ -721,7 +721,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       proxy = [[connection rootProxy] retain];
     }
-  [arp release];
+  [arp drain];
   return [proxy autorelease];
 }
 
@@ -749,7 +749,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       proxy = RETAIN([connection rootProxy]);
     }
-  [arp release];
+  [arp drain];
   return AUTORELEASE(proxy);
 }
 
@@ -1314,7 +1314,7 @@ static NSLock	*cached_proxies_gate = nil;
     [[NSNotificationCenter defaultCenter]
       postNotificationName: NSConnectionDidDieNotification
 		    object: self];
-    [arp release];
+    [arp drain];
   }
 
   /*
@@ -1954,7 +1954,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   DESTROY(IrefGate);
 
-  [arp release];
+  [arp drain];
 }
 
 /*

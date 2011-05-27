@@ -478,7 +478,7 @@ static NSDictionary *makeReference(unsigned ref)
 
   d = [self archivedDataWithRootObject: anObject];
   result = [d writeToFile: aPath atomically: YES];
-  [pool release];
+  [pool drain];
   return result;
 }
 

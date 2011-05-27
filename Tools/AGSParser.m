@@ -1744,7 +1744,7 @@ recheck:
 	{
 	  if (buffer[pos] == ')' || buffer[pos] == ',')
 	    {
-	      RELEASE(arp);
+	      [arp drain];
 	      return d;
 	    }
 	  else
@@ -1877,7 +1877,7 @@ recheck:
 	}
       DESTROY(comment);
 
-      RELEASE(arp);
+      [arp drain];
       if (inArgList == NO)
 	{
 	  /*
@@ -1907,7 +1907,7 @@ recheck:
     }
 fail:
   DESTROY(comment);
-  RELEASE(arp);
+  [arp drain];
   return nil;
 }
 
@@ -2206,7 +2206,7 @@ fail:
        */
       [self skipUnit];
       DESTROY(comment);
-      RELEASE(arp);
+      [arp drain];
       return [NSMutableDictionary dictionary];
     }
   else
@@ -2245,13 +2245,13 @@ fail:
 
   unitName = nil;
   DESTROY(comment);
-  RELEASE(arp);
+  [arp drain];
   return dict;
 
 fail:
   unitName = nil;
   DESTROY(comment);
-  RELEASE(arp);
+  [arp drain];
   return nil;
 }
 
@@ -2401,13 +2401,13 @@ fail:
 
   unitName = nil;
   DESTROY(comment);
-  RELEASE(arp);
+  [arp drain];
   return dict;
 
 fail:
   unitName = nil;
   DESTROY(comment);
-  RELEASE(arp);
+  [arp drain];
   return nil;
 }
 
@@ -2950,14 +2950,14 @@ fail:
     }
 
   itemName = nil;
-  RELEASE(arp);
+  [arp drain];
   IF_NO_GC([method autorelease];)
   return method;
 
 fail:
   itemName = nil;
   DESTROY(comment);
-  RELEASE(arp);
+  [arp drain];
   RELEASE(method);
   return nil;
 }
@@ -3661,14 +3661,14 @@ fail:
 
   unitName = nil;
   DESTROY(comment);
-  RELEASE(arp);
+  [arp drain];
   IF_NO_GC([dict autorelease];)
   return dict;
 
 fail:
   unitName = nil;
   DESTROY(comment);
-  RELEASE(arp);
+  [arp drain];
   RELEASE(dict);
   return nil;
 }
@@ -4108,7 +4108,7 @@ fail:
   buffer = [data mutableBytes];
   pos = 0;
   lines = [[NSArray alloc] initWithArray: a];
-  RELEASE(arp);
+  [arp drain];
   IF_NO_GC([lines autorelease];)
   IF_NO_GC([data autorelease];)
 }

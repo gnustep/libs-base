@@ -166,7 +166,7 @@ int main (int argc, const char *argv[])
       puts("     if -output is specified.");
     }
 
-  [pool release];
+  [pool drain];
   exit(0);       // insure the process exit status is 0
   return 0;      // ...and make main fit the ANSI spec.
 }
