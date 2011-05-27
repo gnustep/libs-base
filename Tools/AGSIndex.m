@@ -542,7 +542,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
     {
       CREATE_AUTORELEASE_POOL(pool);
       setDirectory(refs, path);
-      RELEASE(pool);
+      [pool drain];
     }
 }
 

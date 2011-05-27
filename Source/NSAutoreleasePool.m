@@ -465,7 +465,9 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 
 - (void) drain
 {
-  [self release];
+  // Don't call -release, make both -release and -drain have the same cost in
+  // non-GC mode.
+  [self dealloc];
 }
 
 - (id) retain

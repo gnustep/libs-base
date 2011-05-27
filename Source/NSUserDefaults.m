@@ -1539,7 +1539,7 @@ static BOOL isLocked = NO;
 	    {
 	      NSLog(@"Failed to lock user defaults database even after "
 		@"breaking old locks!");
-	      [arp release];
+	      [arp drain];
 	      return NO;
 	    }
 
@@ -1556,7 +1556,7 @@ static BOOL isLocked = NO;
 	    {
 	      [NSThread sleepUntilDate: when];
 	    }
-	  [arp release];
+	  [arp drain];
 	}
       isLocked = YES;
 

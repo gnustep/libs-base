@@ -486,7 +486,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	    }
 	}
     }
-  [arp release];
+  [arp drain];
 }
 
 /**
@@ -757,7 +757,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
                                            userInfo: nil
                                             repeats: YES];
           context->housekeeper = timer;
-          [arp release];
+          [arp drain];
         }
     }
   return current;
@@ -1163,7 +1163,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	    }
 	  GSPrivateNotifyASAP(_currentMode);
 	  _currentMode = savedMode;
-	  [arp release];
+	  [arp drain];
 	  NS_VOIDRETURN;
 	}
 
@@ -1221,7 +1221,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       [localException raise];
     }
   NS_ENDHANDLER
-  [arp release];
+  [arp drain];
 }
 
 /**
@@ -1247,7 +1247,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   d = [self limitDateForMode: mode];
   if (d == nil)
     {
-      [arp release];
+      [arp drain];
       return NO;
     }
 
@@ -1266,7 +1266,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   [self acceptInputForMode: mode beforeDate: d];
 
   [d release];
-  [arp release];
+  [arp drain];
   return YES;
 }
 

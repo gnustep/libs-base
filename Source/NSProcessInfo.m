@@ -449,7 +449,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     IF_NO_GC(RELEASE(keys));
     IF_NO_GC(RELEASE(values));
   }
-  IF_NO_GC(RELEASE(arp));
+  [arp drain];
 }
 
 #if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV) || defined(HAVE_PROCFS_PSINFO) || defined(__APPLE__)) && (defined(HAVE_LOAD_METHOD)))

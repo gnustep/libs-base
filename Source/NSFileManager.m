@@ -681,7 +681,7 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      ok = [self contentsEqualAtPath: p1 andPath: p2];
 	    }
-	  RELEASE(pool);
+	  [pool drain];
 	}
       return ok;
     }
@@ -1440,7 +1440,7 @@ static NSStringEncoding	defaultEncoding;
 	  item = [contents objectAtIndex: i];
 	  next = [path stringByAppendingPathComponent: item];
 	  result = [self removeFileAtPath: next handler: handler];
-	  [arp release];
+	  [arp drain];
 	  if (result == NO)
 	    {
 	      return NO;
@@ -2820,7 +2820,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
     }
-  [pool release];
+  [pool drain];
 
   return YES;
 }
@@ -2910,7 +2910,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
     }
-  [pool release];
+  [pool drain];
   return YES;
 #else
   return NO;

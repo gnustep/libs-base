@@ -160,7 +160,7 @@ static Class	NSPort_concrete_class;
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSPortDidBecomeInvalidNotification
 		  object: self];
-  [arp release];
+  [arp drain];
 }
 
 - (BOOL) isValid

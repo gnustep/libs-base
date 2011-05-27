@@ -99,7 +99,7 @@ static void clean_up_names(void)
       [defaultServer removePort: port];
     }
   NSEndMapTableEnumeration(&mEnum);
-  [arp release];
+  [arp drain];
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();

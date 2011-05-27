@@ -357,6 +357,6 @@ NSLogv (NSString* format, va_list args)
 
   [myLock unlock];
 
-  [arp release];
+  [arp drain];
 }
 

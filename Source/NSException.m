@@ -771,7 +771,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 	[[[exception _callStack] description] lossyCString]);
     }
   fflush(stderr);	/* NEEDED UNDER MINGW */
-  [pool release];
+  [pool drain];
   _terminate();
 }
 
@@ -947,7 +947,7 @@ callUncaughtHandler(id value)
         [super description], _e_name, _e_reason];
     }
   [result retain];
-  [pool release];
+  [pool drain];
   return [result autorelease];
 }
 

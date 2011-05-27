@@ -1100,7 +1100,7 @@ static void clean_up_sockets(void)
 	unlink([name bytes]);
     }
   NSEndMapTableEnumeration(&mEnum);
-  [arp release];
+  [arp drain];
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();

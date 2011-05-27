@@ -72,7 +72,7 @@
 				 minutes: 0
 				 seconds: 0];
       dayOfYear = [thursday dayOfYear];
-      [arp release];
+      [arp drain];
     }
   else
     {

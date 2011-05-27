@@ -64,7 +64,7 @@ main(int argc, char** argv, char **env)
   if (proc == nil)
     {
       GSPrintf(stderr, @"gspath: unable to get process information!\n");
-      [pool release];
+      [pool drain];
       return 1;
     }
 
@@ -116,7 +116,7 @@ main(int argc, char** argv, char **env)
 	}
       if (ok == YES)
 	{
-	  [pool release];
+	  [pool drain];
 	  return 0;
 	}
     }
@@ -141,6 +141,6 @@ main(int argc, char** argv, char **env)
 @"user\n"
 @"  The GNUstep home directory of the current user\n\n"
 );
-  [pool release];
+  [pool drain];
   return 1;
 }
