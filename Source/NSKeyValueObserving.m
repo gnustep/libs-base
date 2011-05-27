@@ -1705,7 +1705,6 @@ replacementForClass(Class c)
     }
 
   pathInfo = [info lockReturningPathInfoForKey: aKey];
-  //[pathInfo retain];
   if (pathInfo != nil)
     {
       if (pathInfo->recursion == 1)
@@ -1731,7 +1730,6 @@ replacementForClass(Class c)
     }
 
   [self didChangeValueForDependentsOfKey: aKey];
-  //[pathInfo release];
 }
 
 - (void) didChange: (NSKeyValueChange)changeKind
