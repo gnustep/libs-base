@@ -1,3 +1,9 @@
+2011-05-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Remove useless leftover #define.
+	* configure.ac: Get -march flag passed to build process
+	* configure: regenerate
+
 2011-05-26  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* configure.ac: Add test to check for availability of atomic builtins.
