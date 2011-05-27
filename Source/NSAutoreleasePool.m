@@ -415,7 +415,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 	{
 	  NSLog(@"autorelease called without pool for nil object.");
 	}
-      [arp release];
+      [arp drain];
     }
 }
 
