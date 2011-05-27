@@ -239,7 +239,7 @@
 #include <stdint.h>
 #endif
 
-#if __has_feature(objc_gc)
+#if __OBJC_GC__
 #define __strong __attribute__((objc_gc(strong)))
 #define __weak __attribute__((objc_gc(weak)))
 #else
