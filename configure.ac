@@ -1038,6 +1038,7 @@ if test "$CC" = "gcc"; then
     i586*|i686*|i786*)
       ATOMIC_CFLAGS="-march=i586";
       CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS";
+      OBJCFLAGS="$OBJCFLAGS $ATOMIC_CFLAGS";
   esac
   AC_MSG_CHECKING([checking whether atomic operations require an external library]);
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],

@@ -226,8 +226,6 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSATOMICREAD(X)	(*(X))
 
-#define	ATOMIC_TESTING	1
-
 static __inline__ int
 GSAtomicIncrement(gsatomic_t X)
 {
