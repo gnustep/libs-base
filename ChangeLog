@@ -1,3 +1,39 @@
+2011-05-27 11:48  David Chisnall <theraven@gna.org>
+
+	* Source/NSAutoreleasePool.m:
+	Make -drain and -release in NSAutoreleasePool do the same thing (rather
+	than one calling the other) in non-GC mode.
+	  
+	* Source/Additions/GSMime.m,
+	* Source/Additions/GSObjCRuntime.m,
+	* Source/Additions/NSCalendarDate+GNUstepBase.m,
+	* Source/Additions/NSData+GNUstepBase.m,
+	* Source/NSBundle.m,
+	* Source/NSConnection.m,
+	* Source/NSDebug.m,
+	* Source/NSDistributedNotificationCenter.m,
+	* Source/NSException.m,
+	* Source/NSFileManager.m,
+	* Source/NSKeyedArchiver.m,
+	* Source/NSLog.m,
+	* Source/NSMessagePort.m,
+	* Source/NSMessagePortNameServer.m,
+	* Source/NSPort.m,
+	* Source/NSProcessInfo.m,
+	* Source/NSRunLoop.m,
+	* Source/NSTask.m,
+	* Source/NSTimeZone.m,
+	* Source/NSUserDefaults.m,
+	* Tools/AGSHtml.m,
+	* Tools/AGSIndex.m,
+	* Tools/AGSOutput.m,
+	* Tools/AGSParser.m,
+	* Tools/HTMLLinker.m,
+	* Tools/gspath.m
+	* Tools/pl.m:
+	Replace all -release messages sent to autorelease pools with -drain. In
+	non-GC mode, these are equivalent. In GC mode, these trigger a collection.
+
 2011-05-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Remove useless leftover #define.
