@@ -234,6 +234,10 @@ NSZoneName (NSZone *zone)
 __strong void *
 NSAllocateCollectable(NSUInteger size, NSUInteger options)
 {
+  if (!objc_collecting_enabled())
+    {
+      return calloc(1, size);
+    }
   id obj = objc_gc_allocate_collectable(size, 
              ((options & NSScannedOption) == NSScannedOption));
   if ((options & NSCollectorDisabledOption) == NSCollectorDisabledOption)
@@ -246,33 +250,31 @@ NSAllocateCollectable(NSUInteger size, NSUInteger options)
 __strong void *
 NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
 {
+  if (!objc_collecting_enabled())
+    {
+      return realloc(ptr, size);
+    }
   return objc_gc_reallocate_collectable(ptr, size, 
              ((options & NSScannedOption) == NSScannedOption));
 }
 
 id NSMakeCollectable(id obj)
 {
-  objc_gc_release(obj);
+  if (objc_collecting_enabled())
+    {
+      objc_gc_release(obj);
+    }
+  return obj;
 }
 
 NSZone*
 NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
 {
-  NSLog(@" *** Creating a zone while running GC is ignored.");
   return &default_zone;
 }
 
 NSZone*
 NSDefaultMallocZone (void)
-{
-  return &default_zone;
-}
-
-// This is an ugly hack.  We should be using NSAllocateCollectable() without
-// NSScannedOption, not trying to fudge this with stuff that's totally
-// incompatible with Apple's design.
-NSZone*
-GSAtomicMallocZone (void)
 {
   return &default_zone;
 }
@@ -318,15 +320,23 @@ NSZoneMalloc (NSZone *zone, NSUInteger size)
 void*
 NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
-  // FIXME: Overflow checking
-  size_t	size = elems * bytes;
-  return objc_gc_allocate_collectable(size, YES);
+  if (objc_collecting_enabled())
+    {
+      // FIXME: Overflow checking
+      size_t size = elems * bytes;
+      return objc_gc_allocate_collectable(size, YES);
+    }
+  return calloc(elems, bytes);
 }
 
 void*
 NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
 {
-  return objc_gc_reallocate_collectable(ptr, size, YES);
+  if (objc_collecting_enabled())
+    {
+      return objc_gc_reallocate_collectable(ptr, size, YES);
+    }
+  return realloc(ptr, size);
 }
 
 void NSZoneFree (NSZone *zone, void *ptr) { }
