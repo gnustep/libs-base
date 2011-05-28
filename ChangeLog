@@ -1,3 +1,9 @@
+2011-05-28 12:49  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSNotificationCenter.m:
+	__weak is only allowed on ivars and globals, so we need to turn the
+	Observation structure into a class.
+
 2011-05-28  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSObject.m: Disable atomic ops detection for the time being.
