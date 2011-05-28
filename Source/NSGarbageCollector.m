@@ -33,12 +33,23 @@ static NSGarbageCollector	*collector = nil;
 
 id CFRetain(id obj)
 {
-  return objc_gc_retain(obj);
+  if (collector)
+    {
+      return objc_gc_retain(obj);
+    }
+  return [obj retain];
 }
 
 void CFRelease(id obj)
 {
-  objc_gc_release(obj);
+  if (collector)
+    {
+      objc_gc_release(obj);
+    }
+  else
+    {
+      [obj release];
+    }
 }
 
 @implementation	NSGarbageCollector
