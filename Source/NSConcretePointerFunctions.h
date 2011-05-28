@@ -124,7 +124,7 @@ static inline void pointerFunctionsAssign(PFInfo *PF, void **addr, void *value)
     }
 #elif GS_WITH_GC
   if (PF->options & NSPointerFunctionsZeroingWeakMemory)
-    GSAssignZeroingWeakPointer(itemptr, (void*)0);
+    GSAssignZeroingWeakPointer(addr, value);
 #else
   *addr = value;
 #endif
