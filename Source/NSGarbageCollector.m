@@ -50,7 +50,10 @@ void CFRelease(id obj)
 
 + (void) initialize
 {
-  collector = [self alloc];
+  if (objc_collecting_enabled())
+    {
+      collector = [self alloc];
+    }
 }
 
 - (void) collectIfNeeded
