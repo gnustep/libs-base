@@ -1,3 +1,9 @@
+2011-05-28  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSString.m (-initWithFormat:locale:): Make sure va_end()
+	gets called.
+	Patch by Stefan Bidigaray <stefanbidi@gmail.com>.
+
 2011-05-28 12:49  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSNotificationCenter.m:
@@ -13,7 +19,7 @@
 	* Source/NSAutoreleasePool.m:
 	Make -drain and -release in NSAutoreleasePool do the same thing (rather
 	than one calling the other) in non-GC mode.
-	  
+
 	* Source/Additions/GSMime.m,
 	* Source/Additions/GSObjCRuntime.m,
 	* Source/Additions/NSCalendarDate+GNUstepBase.m,
