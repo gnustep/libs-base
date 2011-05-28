@@ -190,6 +190,15 @@ static void GSLogZombie(id o, SEL sel)
 #undef	GSATOMICREAD
 #endif
 
+/*
+ * FIXME: Refrain from using atomic builtins until we know how to reliably check
+ * whether they do work with GCC.
+ */
+#ifdef USE_ATOMIC_BUILTINS
+#undef USE_ATOMIC_BUILTINS
+#endif
+
+
 #if	defined(__MINGW__)
 #ifndef _WIN64
 #undef InterlockedIncrement

@@ -1,3 +1,7 @@
+2011-05-28  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSObject.m: Disable atomic ops detection for the time being.
+
 2011-05-27 11:48  David Chisnall <theraven@gna.org>
 
 	* Source/NSAutoreleasePool.m:
