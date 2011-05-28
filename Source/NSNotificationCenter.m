@@ -141,14 +141,24 @@ struct	NCTbl;		/* Notification Center Table structure	*/
  * list is marked by 'next' being set to 'ENDOBS'.
  */
 
-typedef	struct	Obs {
+@interface GSObservation : NSObject
+{
+  @public
   __weak id	observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
   IMP		method;		/* Method implementation.	*/
-  struct Obs	*next;		/* Next item in linked list.	*/
-  int		retained;	/* Retain count for structure.	*/
+  GSObservation *next;		/* Next item in linked list.	*/
+#ifndef __OBJC_GC__
+  /** Retain count.  This must be stored internally, because we're
+   * allocating a load of these in an array, so we can't rely on the existence
+   * of the header that NSAllocateObject() adds (in non-GC mode). */
+  int       retained;
+#endif
   struct NCTbl	*link;		/* Pointer back to chunk table	*/
-} Observation;
+} 
+@end
+
+typedef GSObservation Observation;
 
 #define	ENDOBS	((Observation*)-1)
 
@@ -188,14 +198,12 @@ static inline BOOL doEqual(NSString* key1, NSString* key2)
  * Setup for inline operation on arrays of Observers.
  */
 static void listFree(Observation *list);
-static void obsRetain(Observation *o);
-static void obsFree(Observation *o);
 
 
 #define GSI_ARRAY_TYPES	0
 #define GSI_ARRAY_TYPE	Observation*
-#define GSI_ARRAY_RELEASE(A, X)   obsFree(X.ext)
-#define GSI_ARRAY_RETAIN(A, X)    obsRetain(X.ext)
+#define GSI_ARRAY_RELEASE(A, X)   [X.ext release]
+#define GSI_ARRAY_RETAIN(A, X)    [X.ext retain]
 
 #include "GNUstepBase/GSIArray.h"
 
@@ -252,12 +260,16 @@ typedef struct NCTbl {
   GSIMapTable		named;		/* Getting named messages only.	*/
   unsigned		lockCount;	/* Count recursive operations.	*/
   GSLazyRecursiveLock	*_lock;		/* Lock out other threads.	*/
+#ifndef __OBJC_GC__
+  // In GC mode, we don't bother with a memory pool for observations, we let
+  // the GC manage all of this
   Observation		*freeList;
   Observation		**chunks;
   unsigned		numChunks;
   GSIMapTable		cache[CACHESIZE];
   unsigned short	chunkIndex;
   unsigned short	cacheIndex;
+#endif
 } NCTable;
 
 #define	TABLE		((NCTable*)_table)
@@ -266,8 +278,52 @@ typedef struct NCTbl {
 #define	NAMED		(TABLE->named)
 #define	LOCKCOUNT	(TABLE->lockCount)
 
+@implementation GSObservation
+// We don't need the finalize method on ObjC-GC mode, because the collector
+// will automatically delete the zeroing weak reference, and we can't compile
+// the dealloc method in this mode because we're also not creating the fields
+// that it refers to.
+#ifndef __OBJC_GC__
+- (id)retain
+{
+  retained++;
+  return self;
+}
+- (void)release
+{
+  NSAssert(retained >= 0, NSInternalInconsistencyException);
+  if (retained-- == 0)
+    {
+#if	GS_WITH_GC
+      GSAssignZeroingWeakPointer((void**)&observer, 0);
+#endif
+      NCTable       *t = link;
+      link = (NCTable*)t->freeList;
+      t->freeList = self;
+    }
+}
+- (void)dealloc
+{
+  // Don't actually try to destroy this in response to a -dealloc message
+  // (should not be sent), since memory is allocated in a pool.
+  GSNOSUPERDEALLOC;
+}
+#endif
+@end
+
+
 static Observation *obsNew(NCTable* t)
 {
+  static Class observationClass;
+  static size_t observationSize;
+  if (0 == observationClass)
+    {
+      observationClass = [GSObservation class];
+      observationSize = class_getInstanceSize(observationClass);
+    }
+#if __OBJC_GC__
+  return NSAllocateObject(observationClass, 0, _zone);
+#else
   Observation	*obs;
 
   if (t->freeList == 0)
@@ -289,7 +345,7 @@ static Observation *obsNew(NCTable* t)
 	    t->chunks, size);
 #endif
 
-	  size = CHUNKSIZE * sizeof(Observation);
+	  size = CHUNKSIZE * observationSize;
 #if	GS_WITH_GC
 	  t->chunks[t->numChunks - 1]
 	    = (Observation*)NSAllocateCollectable(size, 0);
@@ -300,18 +356,27 @@ static Observation *obsNew(NCTable* t)
 	  t->chunkIndex = 0;
 	}
       block = t->chunks[t->numChunks - 1];
-      t->freeList = &block[t->chunkIndex];
+
+      t->freeList = (Observation*)((char*)block+(observationSize * t->chunkIndex));
       t->chunkIndex++;
       t->freeList->link = 0;
     }
   obs = t->freeList;
   t->freeList = (Observation*)obs->link;
   obs->link = (void*)t;
+  object_setClass(obs, observationClass);
   return obs;
+#endif
 }
 
 static GSIMapTable	mapNew(NCTable *t)
 {
+#ifdef __OBJC_GC__
+  GSIMapTable m =
+    NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
+  GSIMapInitWithZoneAndCapacity(m, 0, 2);
+  return m;
+#else
   if (t->cacheIndex > 0)
     return t->cache[--t->cacheIndex];
   else
@@ -326,10 +391,12 @@ static GSIMapTable	mapNew(NCTable *t)
       GSIMapInitWithZoneAndCapacity(m, _zone, 2);
       return m;
     }
+#endif
 }
 
 static void	mapFree(NCTable *t, GSIMapTable m)
 {
+#ifndef __OBJC_GC__
   if (t->cacheIndex < CACHESIZE)
     {
       t->cache[t->cacheIndex++] = m;
@@ -339,10 +406,12 @@ static void	mapFree(NCTable *t, GSIMapTable m)
       GSIMapEmptyMap(m);
       NSZoneFree(NSDefaultMallocZone(), (void*)m);
     }
+#endif
 }
 
 static void endNCTable(NCTable *t)
 {
+#ifndef __OBJC_GC__
   unsigned		i;
   GSIMapEnumerator_t	e0;
   GSIMapNode		n0;
@@ -405,28 +474,21 @@ static void endNCTable(NCTable *t)
   NSZoneFree(NSDefaultMallocZone(), t);
 
   TEST_RELEASE(t->_lock);
+#endif
 }
 
 static NCTable *newNCTable(void)
 {
   NCTable	*t;
 
-#if	GS_WITH_GC
   t = (NCTable*)NSAllocateCollectable(sizeof(NCTable), NSScannedOption);
-#else
-  t = (NCTable*)NSZoneMalloc(_zone, sizeof(NCTable));
-  memset((void*)t, '\0', sizeof(NCTable));
-#endif
+#ifndef __OBJC_GC__
   t->chunkIndex = CHUNKSIZE;
+#endif
   t->wildcard = ENDOBS;
 
-#if	GS_WITH_GC
   t->nameless = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
   t->named = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
-#else
-  t->nameless = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
-  t->named = NSZoneMalloc(_zone, sizeof(GSIMapTable_t));
-#endif
   GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
 
@@ -447,21 +509,6 @@ static inline void unlockNCTable(NCTable* t)
   [t->_lock unlock];
 }
 
-static void obsFree(Observation *o)
-{
-  NSCAssert(o->retained >= 0, NSInternalInconsistencyException);
-  if (o->retained-- == 0)
-    {
-      NCTable	*t = o->link;
-
-#if	GS_WITH_GC
-      GSAssignZeroingWeakPointer((void**)&o->observer, 0);
-#endif
-      o->link = (NCTable*)t->freeList;
-      t->freeList = o;
-    }
-}
-
 static void listFree(Observation *list)
 {
   while (list != ENDOBS)
@@ -470,7 +517,7 @@ static void listFree(Observation *list)
 
       list = o->next;
       o->next = 0;
-      obsFree(o);
+      [o release];
     }
 }
 
@@ -490,7 +537,7 @@ static Observation *listPurge(Observation *list, id observer)
     {
       tmp = list->next;
       list->next = 0;
-      obsFree(list);
+      [list release];
       list = tmp;
     }
   if (list != ENDOBS)
@@ -504,7 +551,7 @@ static Observation *listPurge(Observation *list, id observer)
 
 	      tmp->next = next->next;
 	      next->next = 0;
-	      obsFree(next);
+	      [next release];
 	    }
 	  else
 	    {
@@ -515,10 +562,6 @@ static Observation *listPurge(Observation *list, id observer)
   return list;
 }
 
-static void obsRetain(Observation *o)
-{
-  o->retained++;
-}
 
 /*
  * Utility function to remove all the observations from a particular
@@ -565,7 +608,7 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
  * purgeCollectedFromMapNode() does the same thing but also handles cleanup
  * of the map node containing the list if necessary.
  */
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __OBJC_GC__
 #define	purgeCollected(X)	listPurge(X, nil)
 static Observation*
 purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
