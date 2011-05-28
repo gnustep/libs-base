@@ -386,16 +386,12 @@ newLanguages(NSArray *oldNames)
 
 + (void) resetStandardUserDefaults
 {
-  NSDictionary	*regDefs;
+  NSDictionary *regDefs = nil;
 
   [classLock lock];
   NS_DURING
     {
-      if (nil == sharedDefaults)
-	{
-	  regDefs = nil;
-	}
-      else
+      if (nil != sharedDefaults)
         {
 	  /* Extract the registration domain from the old defaults.
 	   */

@@ -316,6 +316,8 @@ static Observation *obsNew(NCTable* t)
 {
   static Class observationClass;
   static size_t observationSize;
+  Observation	*obs;
+
   if (0 == observationClass)
     {
       observationClass = [GSObservation class];
@@ -324,7 +326,6 @@ static Observation *obsNew(NCTable* t)
 #if __OBJC_GC__
   return NSAllocateObject(observationClass, 0, _zone);
 #else
-  Observation	*obs;
 
   if (t->freeList == 0)
     {

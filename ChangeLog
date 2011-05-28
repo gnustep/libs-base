@@ -1,3 +1,8 @@
+2011-05-28  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSNotificationCenter.m,
+	* Source/NSUserDefaults.m: Remove compiler warnings.
+
 2011-05-28 18:05  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSPointerArray.m:
