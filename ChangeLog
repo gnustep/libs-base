@@ -1,3 +1,11 @@
+2011-05-28 18:05  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSPointerArray.m:
+	Make NSPointerArray insert the correct read / write barriers in GC mode.
+	* libs/base/trunk/Source/NSConcretePointerFunctions.h:
+	Add some helper functions to NSConcretePointerFunctions.h that make it
+	easier to do this in the other collections that need to support GC.
+
 2011-05-28  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* configure.ac: Tweak atomic ops detection
