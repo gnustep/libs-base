@@ -1,3 +1,12 @@
+2011-05-28 14:51 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSAutoreleasePool.m,
+	*  libs/base/trunk/Source/NSObject.m,
+	*  libs/base/trunk/Source/NSZone.m:
+	First pass at hybrid GC mode.  This will try use retain-release mode if
+	the collector is not running. Code will run in retain/release mode unless
+	something compiled with -fobjc-gc-only is loaded.
+
 2011-05-28  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSString.m (-initWithFormat:locale:): Make sure va_end()
