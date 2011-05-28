@@ -440,6 +440,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
     {
       return GSDecrementExtraRefCountWasZero(anObject);
     }
+  return NO;
 }
 
 
@@ -662,32 +663,7 @@ callCXXConstructors(Class aClass, id anObject)
  *	depending on what information (if any) we are storing before
  *	the start of each object.
  */
-#if __OBJC_GC__
-
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  return NSDefaultMallocZone();
-}
-
-inline id
-NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
-{
-  id	new = class_createInstance(aClass, extraBytes);
-  if (0 == cxx_construct)
-    {
-      cxx_construct = sel_registerName(".cxx_construct");
-      cxx_destruct = sel_registerName(".cxx_destruct");
-    }
-  callCXXConstructors(aClass, new);
-  return new;
-}
-
-inline void
-NSDeallocateObject(id anObject)
-{
-}
-#elif	GS_WITH_GC
+#if	GS_WITH_GC
 
 inline NSZone *
 GSObjCZone(NSObject *object)
@@ -786,6 +762,7 @@ NSDeallocateObject(id anObject)
 
 #else	/* GS_WITH_GC */
 
+#if !__OBJC_GC__
 inline NSZone *
 GSObjCZone(NSObject *object)
 {
@@ -794,9 +771,39 @@ GSObjCZone(NSObject *object)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
 }
+#endif
+
+#if __OBJC_GC__
+inline NSZone *
+GSObjCZone(NSObject *object)
+{
+  return NSDefaultMallocZone();
+}
+static inline id
+GSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone);
 
 inline id
+NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
+{
+  if (!objc_collecting_enabled())
+    {
+      NSAllocateObject(aClass, extraBytes, zone);
+    }
+  id	new = class_createInstance(aClass, extraBytes);
+  if (0 == cxx_construct)
+    {
+      cxx_construct = sel_registerName(".cxx_construct");
+      cxx_destruct = sel_registerName(".cxx_destruct");
+    }
+  callCXXConstructors(aClass, new);
+  return new;
+}
+inline id
+GSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
+#else
+inline id
 NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
+#endif
 {
   id	new;
   int	size;
@@ -832,9 +839,22 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 
   return new;
 }
+#if __OBJC_GC__
+static void GSDeallocateObject(id anObject);
 
+inline void NSDeallocateObject(id anObject)
+{
+  if (!objc_collecting_enabled())
+    {
+      GSDeallocateObject(anObject);
+    }
+}
+
+static void GSDeallocateObject(id anObject)
+#else
 inline void
 NSDeallocateObject(id anObject)
+#endif
 {
   Class aClass = object_getClass(anObject);
 
@@ -871,6 +891,9 @@ BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
 #if	GS_WITH_GC || __OBJC_GC__
+  // If we're running in hybrid mode, we disable all of the clever zone stuff
+  // for non-GC code, so this is always true if we're compiled for GC, even if
+  // we're compiled for GC but not using GC.
   return YES;
 #else
   return (!requestedZone || requestedZone == NSDefaultMallocZone()
@@ -1785,7 +1808,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (id) autorelease
 {
-#if	!GS_WITH_GC && !__OBJC_GC__
+#if	!GS_WITH_GC
   if (double_release_check_enabled)
     {
       NSUInteger release_count;
