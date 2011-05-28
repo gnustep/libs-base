@@ -240,7 +240,7 @@ static Class	concreteClass = Nil;
 
   for (i = 0; i < _count; i++)
     {
-      if (_contents[i] != 0)
+      if (pointerFunctionsRead(&_pf, _contents[i]) != 0)
 	{
 	  c++;
 	}
@@ -256,9 +256,10 @@ static Class	concreteClass = Nil;
 
       for (i = 0; i < _count; i++)
         {
-          if (_contents[i] != 0)
+          id obj = pointerFunctionsRead(&_pf, _contents[i]);
+          if (obj != 0)
 	    {
-	      [a addObject: (id)_contents[i]];
+	      [a addObject: obj];
 	    }
 	}
       return [a makeImmutableCopyOnFail: NO]; 
@@ -267,26 +268,22 @@ static Class	concreteClass = Nil;
 
 - (void) compact
 {
-  NSUInteger	i = _count;
-
-  while (i-- > 0)
+  NSUInteger	insert = 0;
+  NSUInteger	i;
+  // We can't use memmove here for __weak pointers, because that would omit the
+  // required read barriers.  We could use objc_memmoveCollectable() for strong
+  // pointers, but we may as well use the same code path for everything
+  for (i=0 ; i<_count ; i++)
     {
-      if (_contents[i] == 0)
-	{
-	  NSUInteger	j = i;
-
-	  while (j > 0 && _contents[j-1] != 0)
-	    {
-	      j--;
-	    }
-	  if (i < _count - 1)
-	    {
-	      memmove(_contents + j, _contents + i + 1,
-		(_count - i) * sizeof(void*));
-	    }
-	  _count = i = j;
-	}
+      id obj = pointerFunctionsRead(&_pf, &_contents[i]);
+      // If this object is not nil, but at least one before it has been, then
+      // move it back to the correct location.
+      if (nil != obj && i != insert)
+       {
+         pointerFunctionsAssign(&_pf, &_contents[insert++], obj);
+       }
     }
+  _count = insert;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -312,7 +309,8 @@ static Class	concreteClass = Nil;
 #endif
   for (i = 0; i < _count; i++)
     {
-      pointerFunctionsAcquire(&_pf, &c->_contents[i], _contents[i]);
+      pointerFunctionsAcquire(&_pf, &c->_contents[i],
+              pointerFunctionsRead(&_pf, _contents[i]));
     }
   return c;
 }
@@ -443,7 +441,7 @@ static Class	concreteClass = Nil;
   [self setCount: _count + 1];
   while (i > index)
     {
-      _contents[i] = _contents[i-1];
+      pointerFunctionsMove(&_pf, _contents+i, _contents + i-1);
       i--;
     }
   pointerFunctionsAcquire(&_pf, &_contents[index], pointer);
@@ -468,8 +466,9 @@ static Class	concreteClass = Nil;
   count = [self count];
   while (count-- > 0)
     {
-      if (pointerFunctionsEqual(&_pf, _contents[count],
-	[other pointerAtIndex: count]) == NO)
+      if (pointerFunctionsEqual(&_pf,
+            pointerFunctionsRead(&_pf, _contents[count]),
+            [other pointerAtIndex: count]) == NO)
 	return NO;
     }
   return YES;
@@ -481,7 +480,7 @@ static Class	concreteClass = Nil;
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
-  return _contents[index];
+  return pointerFunctionsRead(&_pf, &_contents[index]);
 }
 
 - (NSPointerFunctions*) pointerFunctions
@@ -501,7 +500,7 @@ static Class	concreteClass = Nil;
   pointerFunctionsRelinquish(&_pf, &_contents[index]);
   while (++index < _count)
     {
-      _contents[index-1] = _contents[index];
+      pointerFunctionsMove(&_pf, &_contents[index-1], &_contents[index]);
     }
   [self setCount: _count - 1];
 }
