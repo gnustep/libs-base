@@ -802,7 +802,9 @@ static NSNotificationCenter *default_center = nil;
 #else
   o->observer = observer;
 #endif
+#ifndef __OBJC_GC__
   o->retained = 0;
+#endif
   o->next = 0;
 
   if (object != nil)
