@@ -34,12 +34,18 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
 
-#if	GS_WITH_GC || __OBJC_GC__
+
+#if GS_WITH_GC || __OBJC_GC__
+
+#if __OBJC_GC__
+@interface GSAutoreleasePool : NSAutoreleasePool @end
+#endif
 
 @implementation NSAutoreleasePool
 
 static NSAutoreleasePool	*pool = nil;
 
+#if GS_WITH_GC
 + (void) initialize
 {
   pool = NSAllocateObject(self, 0, NSDefaultMallocZone());
@@ -55,6 +61,42 @@ static NSAutoreleasePool	*pool = nil;
 {
   return pool;
 }
+#endif
+#ifdef __OBJC_GC__ 
+
+static Class PoolClass;
+
++ (void) initialize
+{
+  if ([NSGarbageCollector defaultCollector])
+    {
+      pool = NSAllocateObject(self, 0, NSDefaultMallocZone());
+    }
+  else
+    {
+      PoolClass = [GSAutoreleasePool class];
+    }
+  return;
+}
+
++ (id) allocWithZone: (NSZone*)zone
+{
+  if (nil == pool)
+    {
+      return NSAllocateObject(PoolClass, 0, 0);
+    }
+  return pool;
+}
+
++ (id) new
+{
+  if (nil == pool)
+    {
+      return [NSAllocateObject(PoolClass, 0, 0) init];
+    }
+  return pool;
+}
+#endif
 
 - (id) init
 {
@@ -165,7 +207,9 @@ static NSAutoreleasePool	*pool = nil;
 
 @end
 
-#else
+#endif
+
+#if !GS_WITH_GC
 
 /* When this is `NO', autoreleased objects are never actually recorded
    in an NSAutoreleasePool, and are not sent a `release' message.
@@ -249,7 +293,11 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 }
 
 
+#if __OBJC_GC__
+@implementation GSAutoreleasePool
+#else
 @implementation NSAutoreleasePool
+#endif
 
 + (void) initialize
 {

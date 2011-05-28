@@ -64,6 +64,10 @@
 #endif
 #endif // __GNUC__
 
+#ifdef __OBJC_GC__
+#include <objc/objc-auto.h>
+#endif
+
 #define	IN_NSOBJECT_M	1
 #import "GSPrivate.h"
 
@@ -125,7 +129,7 @@ BOOL	NSDeallocateZombies = NO;
 static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
-#if	!GS_WITH_GC && !__OBJC_GC__
+#if	!GS_WITH_GC
 static void GSMakeZombie(NSObject *o)
 {
   Class		c;
@@ -421,7 +425,26 @@ struct obj_layout {
 };
 typedef	struct obj_layout *obj;
 
+#ifdef __OBJC_GC__
 
+/**
+ * If -base is compiled in GC mode, then we want to still support manual
+ * reference counting if we are linked with non-GC code.  
+ */
+static BOOL GSDecrementExtraRefCountWasZero(id anObject);
+
+BOOL
+NSDecrementExtraRefCountWasZero(id anObject)
+{
+  if (!objc_collecting_enabled())
+    {
+      return GSDecrementExtraRefCountWasZero(anObject);
+    }
+}
+
+
+static BOOL GSDecrementExtraRefCountWasZero(id anObject)
+#else
 /**
  * Examines the extra reference count for the object and, if non-zero
  * decrements it, otherwise leaves it unchanged.<br />
@@ -431,8 +454,9 @@ typedef	struct obj_layout *obj;
  */
 BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
+#endif
 {
-#if	!GS_WITH_GC && !__OBJC_GC__
+#if	!GS_WITH_GC
   if (double_release_check_enabled)
     {
       NSUInteger release_count;
@@ -506,13 +530,38 @@ NSDecrementExtraRefCountWasZero(id anObject)
 inline NSUInteger
 NSExtraRefCount(id anObject)
 {
-#if	GS_WITH_GC || __OBJC_GC__
+#ifdef __OBJC_GC__
+  if (objc_collecting_enabled())
+    {
+      return UINT_MAX-1;
+    }
+#endif
+#if	GS_WITH_GC
   return UINT_MAX - 1;
 #else	/* GS_WITH_GC */
   return ((obj)anObject)[-1].retained;
 #endif /* GS_WITH_GC */
 }
 
+#ifdef __OBJC_GC__
+
+/**
+ * If -base is compiled in GC mode, then we want to still support manual
+ * reference counting if we are linked with non-GC code.  
+ */
+static void GSIncrementExtraRefCount(id anObject);
+
+inline void NSIncrementExtraRefCount(id anObject)
+{
+  if (!objc_collecting_enabled())
+    {
+      GSIncrementExtraRefCount(anObject);
+    }
+}
+
+
+static void GSIncrementExtraRefCount(id anObject)
+#else
 /**
  * Increments the extra reference count for anObject.<br />
  * The GNUstep version raises an exception if the reference count
@@ -521,6 +570,7 @@ NSExtraRefCount(id anObject)
  */
 inline void
 NSIncrementExtraRefCount(id anObject)
+#endif
 {
 #if	GS_WITH_GC || __OBJC_GC__
   return;
@@ -1947,7 +1997,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (oneway void) release
 {
-#if	(GS_WITH_GC == 0) && !__OBJC_GC__
+#if	(GS_WITH_GC == 0)
   if (NSDecrementExtraRefCountWasZero(self))
     {
       [self dealloc];
@@ -1997,7 +2047,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (id) retain
 {
-#if	(GS_WITH_GC == 0) && !__OBJC_GC__
+#if	(GS_WITH_GC == 0)
   NSIncrementExtraRefCount(self);
 #endif
   return self;
@@ -2024,7 +2074,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
  */
 - (NSUInteger) retainCount
 {
-#if	GS_WITH_GC || __OBJC_GC__
+#if	GS_WITH_GC
   return UINT_MAX;
 #else
   return NSExtraRefCount(self) + 1;
