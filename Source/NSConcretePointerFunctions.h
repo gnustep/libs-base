@@ -24,6 +24,9 @@
    */ 
 
 #import	"Foundation/NSPointerFunctions.h"
+#if __OBJC_GC__
+#include <objc/objc-auto.h>
+#endif
 
 /* Declare a structure type to copy pointer functions information 
  * around easily.
@@ -58,7 +61,6 @@ typedef struct
 @public
   PFInfo	_x;
 }
-
 @end
 
 /* Wrapper functions to make use of the pointer functions.
@@ -72,12 +74,68 @@ pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
   if (PF->acquireFunction != 0)
     src = (*PF->acquireFunction)(src, PF->sizeFunction,
     PF->options & NSPointerFunctionsCopyIn ? YES : NO);
+#if __OBJC_GC__
+  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
+    {
+      objc_assign_weak((id)src, (id*)dst);
+    }
+  else
+    {
+      objc_assign_strongCast((id)src, (id*)dst);
+    }
+#else
 #if	GSWITHGC
   if (PF->options & NSPointerFunctionsZeroingWeakMemory)
     GSAssignZeroingWeakPointer(dst, src);
   else
 #endif
     *dst = src;
+#endif
+}
+
+/**
+ * Reads the pointer from the specified address, inserting a read barrier if
+ * required.
+ */
+static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
+{
+#if __OBJC_GC__
+  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
+    {
+      return objc_read_weak((id*)addr);
+    }
+#endif
+  return *addr;
+}
+
+/**
+ * Assigns a pointer, inserting the correct write barrier if required.
+ */
+static inline void pointerFunctionsAssign(PFInfo *PF, void **addr, void *value)
+{
+#if __OBJC_GC__
+  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
+    {
+      objc_assign_weak(value, (id*)addr);
+    }
+  else
+    {
+      objc_assign_strongCast(value, (id*)addr);
+    }
+#elif GS_WITH_GC
+  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
+    GSAssignZeroingWeakPointer(itemptr, (void*)0);
+#else
+  *addr = value;
+#endif
+}
+
+/**
+ * Moves a pointer from location to another.
+ */
+static inline void pointerFunctionsMove(PFInfo *PF, void **new, void **old)
+{
+  pointerFunctionsAssign(PF, new, pointerFunctionsRead(PF, old));
 }
 
 
