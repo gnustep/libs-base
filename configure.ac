@@ -1024,44 +1024,44 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
   else
     AC_MSG_RESULT([no]);
     if test "$CC" = "gcc"; then
-       saved_CFLAGS="$CFLAGS";
-       ATOMIC_CFLAGS="";
+      saved_CFLAGS="$CFLAGS";
+      ATOMIC_CFLAGS="";
   
-      # FIXME: Forcing -march=i568 for any i568 or later CPU is a stop gap measure
-      # to make the compiler emit native assembly for atomic operations on i586 or
-      # latter processors (GCC by defaults emits code compatible with the original
-      # i386 and requires library functions to emulate atomic operations). When
-      # gnustep-make takes care of this kind of target setting, the check can safely
-      # be removed.  
+      # FIXME: Forcing -march=i568 for any i568 or later CPU is a
+      # stop gap measure to make the compiler emit native assembly
+      # for atomic operations on i586 or latter processors (GCC by
+      # default emits code compatible with the original i386 and
+      # requires library functions to emulate atomic operations).
+      # When gnustep-make takes care of this kind of target setting,
+      # the check can safely be removed.  
       case "$target_cpu" in
         i586*|i686*|i786*)
           ATOMIC_CFLAGS="-march=i586"
           CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
-          OBJCFLAGS="$OBJCFLAGS $ATOMIC_CFLAGS"
           ;;
         x86_64)
           ATOMIC_CFLAGS="-march=x86-64"
           CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
-          OBJCFLAGS="$OBJCFLAGS $ATOMIC_CFLAGS"
           ;;
       esac
-      AC_MSG_CHECKING([whether gcc supports atomic operations by setting -march]);
+      AC_MSG_CHECKING([whether gcc supports atomic operations with -march]);
         AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
-          [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);]])],
+          [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);]])],
         need_march=yes,
       need_march=no);
 
       if test "$need_march" = "yes"; then
         AC_MSG_RESULT([yes]);
+	OBJCFLAGS="$OBJCFLAGS $ATOMIC_CFLAGS";
         AC_DEFINE(USE_ATOMIC_BUILTINS,1,
           [Define if the compiler provides builtins for atomic operations])
       else
         AC_MSG_RESULT([no]);
         saved_LDFLAGS="$LDFLAGS";
         LDFLAGS="$saved_LDFLAGS -lgcc";
-        AC_MSG_CHECKING([whether gcc supports atomic operations by linikng to libgcc]);
+        AC_MSG_CHECKING([whether gcc supports atomic operations using libgcc]);
           AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
-            [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);]])],
+            [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);]])],
           atomic_in_libgcc=yes,
         atomic_in_libgcc=no);
         if test "$atomic_in_libgcc" = "yes"; then
@@ -1105,16 +1105,16 @@ AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
   LIBOBJC='-lobjc'
-  OBJCFLAGS="-fnext-runtime -DNeXT_RUNTIME"
+  OBJCFLAGS="$OBJCFLAGS -fnext-runtime -DNeXT_RUNTIME"
 elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
   AC_MSG_RESULT(GNU)
   LIBOBJC='-lobjc_gc -ldl -lgc'
-  OBJCFLAGS="-fgnu-runtime"
+  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
   OBJC_WITH_GC=yes
 else
   AC_MSG_RESULT(GNU)
   LIBOBJC='-lobjc'
-  OBJCFLAGS="-fgnu-runtime"
+  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
 fi
 
 #--------------------------------------------------------------------
@@ -1735,7 +1735,6 @@ if test "$nonfragile" = "yes"; then
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
     OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
-    AC_SUBST(OBJCFLAGS)
     GS_NONFRAGILE=1
     AC_ARG_ENABLE(mixedabi,
       [  --disable-mixedabi
@@ -1882,6 +1881,8 @@ AC_MSG_RESULT($safe_initialize)
 
 LIBS="$saved_LIBS"
 CPPFLAGS="$saved_CPPFLAGS"
+
+AC_SUBST(OBJCFLAGS)
 
 #--------------------------------------------------------------------
 # Generic settings needed by NSZone.m

@@ -1,3 +1,8 @@
+2011-05-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Fix broken atomic ops again.
+	* configure: regenerate
+
 2011-05-28  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSNotificationCenter.m,
@@ -22,8 +27,8 @@
 	*  libs/base/trunk/Source/NSObject.m,
 	*  libs/base/trunk/Source/NSZone.m:
 	First pass at hybrid GC mode.  This will try use retain-release mode if
-	the collector is not running. Code will run in retain/release mode unless
-	something compiled with -fobjc-gc-only is loaded.
+	the collector is not running. Code will run in retain/release mode
+	unless something compiled with -fobjc-gc-only is loaded.
 
 2011-05-28  Fred Kiefer <FredKiefer@gmx.de>
 
@@ -75,7 +80,8 @@
 	* Tools/gspath.m
 	* Tools/pl.m:
 	Replace all -release messages sent to autorelease pools with -drain. In
-	non-GC mode, these are equivalent. In GC mode, these trigger a collection.
+	non-GC mode, these are equivalent.
+	In GC mode, these trigger a collection.
 
 2011-05-26  Richard Frith-Macdonald <rfm@gnu.org>
 
