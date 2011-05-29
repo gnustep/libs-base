@@ -1,3 +1,9 @@
+2011-05-28  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSString.m (-initWithFormat:locale:): Make sure va_end()
+	gets called.
+	Patch by Stefan Bidigaray <stefanbidi@gmail.com>.
+
 2011-05-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m:
