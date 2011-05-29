@@ -1115,7 +1115,7 @@ handle_printf_atsign (FILE *stream,
 {
   va_list ap;
   va_start(ap, locale);
-  selv = [self initWithFormat: format locale: locale arguments: ap];
+  self = [self initWithFormat: format locale: locale arguments: ap];
   va_end(ap);
   return self;
 }
