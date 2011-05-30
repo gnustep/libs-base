@@ -1,8 +1,15 @@
-
 2011-05-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Fix broken atomic ops again.
 	* configure: regenerate
+
+2011-05-30 11:40  David Chisnall <theraven@gna.org>
+
+	* /NSData.m:
+	Add a couple of __strong annotations to pointers. Any non-id pointer that
+	can store GC'd memory must be __strong. Currently, this annotation is
+	largely ignored, because the runtime is a lot more lax about what may
+	store pointers than Apple's, but this will be tightened up in the future.
 
 2011-05-28  Fred Kiefer <FredKiefer@gmx.de>
 
