@@ -316,7 +316,7 @@ failure:
 @interface	NSDataStatic : NSData
 {
   NSUInteger	length;
-  void		*bytes;
+  __strong void	*bytes;
 }
 @end
 
@@ -329,7 +329,7 @@ failure:
 @interface	NSMutableDataMalloc : NSMutableData
 {
   NSUInteger	length;
-  void		*bytes;
+  __strong void	*bytes;
 #if	GS_WITH_GC
   BOOL		owned;
 #else
