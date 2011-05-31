@@ -1,3 +1,8 @@
+2011-05-31  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSCallBacks.h: Adjust callback prototypes to use
+	NSUInteger.
+
 2011-05-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GNUstep.h:
