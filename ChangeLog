@@ -1,3 +1,29 @@
+2011-05-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSHashTable.h:
+	* Headers/Foundation/NSMapTable.h:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSXML.m:
+	* Source/GSAvahiNetService.m:
+	* Source/NSCallBacks.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSConnection.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	* Source/NSTask.m:
+	* Source/NSTimeZone.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	Update to use new NSInteger... callback names rather than NSInt...
+	for compatibility with OSX
+	* Source/NSNotificationCenter.m: revert/rewrite recent GC changes to
+	simplify code and preprocessor conditionals and to avoid overheads
+	of using a class as an observation except for GC with cland/libobc2.
+	Is it really needed even then?  I guess it would be if we weren't
+	using the Boehm GC library, and were stuck with a GC system which
+	didn't support zeroing weak pointers in unscanned memory.
+
 2011-05-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Fix broken atomic ops again.
@@ -5,11 +31,12 @@
 
 2011-05-30 11:40  David Chisnall <theraven@gna.org>
 
-	* /NSData.m:
-	Add a couple of __strong annotations to pointers. Any non-id pointer that
-	can store GC'd memory must be __strong. Currently, this annotation is
-	largely ignored, because the runtime is a lot more lax about what may
-	store pointers than Apple's, but this will be tightened up in the future.
+	* Source/NSData.m:
+	Add a couple of __strong annotations to pointers. Any non-id pointer
+	that can store GC'd memory must be __strong. Currently, this annotation
+	is largely ignored, because the runtime is a lot more lax about what
+	may store pointers than Apple's, but this will be tightened up in the
+	future.
 
 2011-05-28  Fred Kiefer <FredKiefer@gmx.de>
 
@@ -18,9 +45,9 @@
 
 2011-05-28 18:05  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSPointerArray.m:
+	* Source/NSPointerArray.m:
 	Make NSPointerArray insert the correct read / write barriers in GC mode.
-	* libs/base/trunk/Source/NSConcretePointerFunctions.h:
+	* Source/NSConcretePointerFunctions.h:
 	Add some helper functions to NSConcretePointerFunctions.h that make it
 	easier to do this in the other collections that need to support GC.
 
@@ -31,9 +58,9 @@
 
 2011-05-28 14:51 David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSAutoreleasePool.m,
-	*  libs/base/trunk/Source/NSObject.m,
-	*  libs/base/trunk/Source/NSZone.m:
+	* Source/NSAutoreleasePool.m,
+	* Source/NSObject.m,
+	* Source/NSZone.m:
 	First pass at hybrid GC mode.  This will try use retain-release mode if
 	the collector is not running. Code will run in retain/release mode
 	unless something compiled with -fobjc-gc-only is loaded.
@@ -46,7 +73,7 @@
 
 2011-05-28 12:49  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSNotificationCenter.m:
+	* Source/NSNotificationCenter.m:
 	__weak is only allowed on ivars and globals, so we need to turn the
 	Observation structure into a class.
 
@@ -499,7 +526,7 @@
 
 2011-03-17 15:02  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSObject.m: Correctly call C++
+	* Source/NSObject.m: Correctly call C++
 	  constructors / destructors for C++ 'objects' in ObjC++ ivars.
 
 2011-03-16  Richard Frith-Macdonald <rfm@gnu.org>
@@ -850,7 +877,7 @@
 
 2011-03-02 Riccardo Mottola <rm@gnu.org>
 
-	*  base/NSNumberFormatter/basic.m:
+	* base/NSNumberFormatter/basic.m:
 	Add test for checking leading zeroes in fractional part.
 
 2011-03-02  Richard Frith-Macdonald <rfm@gnu.org>
@@ -1040,7 +1067,7 @@
 
 2011-02-21 11:05  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/GSFFIInvocation.m: Some changes to method
+	* Source/GSFFIInvocation.m: Some changes to method
 	  type lookup when forwarding. Alway use the compiler-supplied type
 	  information if it exists - this is guaranteed to by the correct
 	  type encoding for the call frame and lets us deconstruct it
@@ -1150,7 +1177,7 @@
 
 2011-02-19 16:02  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/common.h: Add some macros that map some
+	* Source/common.h: Add some macros that map some
 	libobjc functions to their runtime-specific variants.
 	This avoids the need for ugly #ifdefs everywhere (the next commit
 	will try to clean up some of this mess), and lets us use the _np

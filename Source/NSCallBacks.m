@@ -38,10 +38,10 @@
 
 /** For `int's **/
 
-unsigned int
+NSUInteger
 _NS_int_hash(void *table, void* i)
 {
-  return (unsigned)(uintptr_t)i;
+  return (uintptr_t)i;
 }
 
 BOOL
@@ -70,11 +70,11 @@ _NS_int_describe(void *table, void* i)
 
 /** For owned `void *' **/
 
-unsigned int
+NSUInteger
 _NS_owned_void_p_hash(void *table, void *p)
 {
   /* P may be aligned, so we need to compensate. */
-  return ((unsigned)(uintptr_t)p)/4;
+  return ((uintptr_t)p)/4;
 }
 
 BOOL
@@ -105,7 +105,7 @@ _NS_owned_void_p_describe(void *table, void *p)
 
 /** For non-retained Objective-C objects **/
 
-unsigned int
+NSUInteger
 _NS_non_retained_id_hash(void *table, id <NSObject> o)
 {
   return [o hash];
@@ -137,7 +137,7 @@ _NS_non_retained_id_describe(void *table, id <NSObject> o)
 
 /** For(retainable) objects **/
 
-unsigned int
+NSUInteger
 _NS_id_hash(void *table, id <NSObject> o)
 {
   return [o hash];
@@ -172,10 +172,10 @@ _NS_id_describe(void *table, id <NSObject> o)
 
 /** For(non-owned) `void *' **/
 
-unsigned int
+NSUInteger
 _NS_non_owned_void_p_hash(void *table, void *p)
 {
-  return ((unsigned)(uintptr_t)p)/4;
+  return ((uintptr_t)p)/4;
 }
 
 BOOL
@@ -204,10 +204,10 @@ _NS_non_owned_void_p_describe(void *table, void *p)
 
 /** For pointers to structures and `int *' **/
 
-unsigned int
+NSUInteger
 _NS_int_p_hash(void *table, int *p)
 {
-  return ((unsigned)(uintptr_t)p)/4;
+  return ((uintptr_t)p)/4;
 }
 
 BOOL

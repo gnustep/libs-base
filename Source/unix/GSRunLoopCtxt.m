@@ -198,11 +198,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
       GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
 
-      _efdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+      _efdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
 				      WatcherMapValueCallBacks, 0);
-      _rfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+      _rfdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
 				      WatcherMapValueCallBacks, 0);
-      _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+      _wfdMap = NSCreateMapTable (NSIntegerMapKeyCallBacks,
 				      WatcherMapValueCallBacks, 0);
     }
   return self;

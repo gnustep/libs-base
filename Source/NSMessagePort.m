@@ -1236,7 +1236,7 @@ typedef	struct {
       ((internal*)(port->_internal))->_name = theName;
       ((internal*)(port->_internal))->_listener = -1;
       ((internal*)(port->_internal))->_handles
-	= NSCreateMapTable(NSIntMapKeyCallBacks,
+	= NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
       ((internal*)(port->_internal))->_myLock = [GSLazyRecursiveLock new];
       port->_is_valid = YES;

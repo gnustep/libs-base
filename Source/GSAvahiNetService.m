@@ -726,8 +726,8 @@ didUpdateRecordData: (id)data
   [_info setObject: name   forKey: @"name"];
   [_info setObject: [NSNumber numberWithInteger: port]
             forKey: @"port"];
-  _browsers = NSCreateMapTable(NSIntMapKeyCallBacks, valueCallbacks, 10);
-  _browserTimeouts = NSCreateMapTable(NSIntMapKeyCallBacks,
+  _browsers = NSCreateMapTable(NSIntegerMapKeyCallBacks, valueCallbacks, 10);
+  _browserTimeouts = NSCreateMapTable(NSIntegerMapKeyCallBacks,
     NSObjectMapValueCallBacks, 10);
   if (port > 0)
     {

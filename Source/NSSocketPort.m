@@ -1482,7 +1482,7 @@ static Class		tcpPortClass;
   if (self == [NSSocketPort class])
     {
       tcpPortClass = self;
-      tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
+      tcpPortMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       tcpPortLock = [GSLazyRecursiveLock new];
@@ -1579,12 +1579,12 @@ static Class		tcpPortClass;
       port->listener = -1;
       port->host = RETAIN(aHost);
       port->address = [addr copy];
-      port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
+      port->handles = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
 #if	defined(__MINGW__)
       port->eventListener = WSA_INVALID_EVENT;
-      port->events = NSCreateMapTable(NSIntMapKeyCallBacks,
-        NSIntMapValueCallBacks, 0);
+      port->events = NSCreateMapTable(NSIntegerMapKeyCallBacks,
+        NSIntegerMapValueCallBacks, 0);
 #endif
       port->myLock = [GSLazyRecursiveLock new];
       port->_is_valid = YES;
@@ -1735,7 +1735,7 @@ static Class		tcpPortClass;
 	       * No known ports within this port number -
 	       * create the map table to add the new port to.
 	       */
-	      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
+	      thePorts = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 			      NSNonOwnedPointerMapValueCallBacks, 0);
 	      NSMapInsert(tcpPortMap,
 		(void*)(uintptr_t)number, (void*)thePorts);

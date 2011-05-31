@@ -170,9 +170,9 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
       GSIArrayInitWithZoneAndCapacity(_trigger, z, 8);
 
-      handleMap = NSCreateMapTable(NSIntMapKeyCallBacks,
+      handleMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
-      winMsgMap = NSCreateMapTable(NSIntMapKeyCallBacks,
+      winMsgMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
               WatcherMapValueCallBacks, 0);
     }
   return self;

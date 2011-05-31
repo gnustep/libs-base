@@ -4341,7 +4341,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       if (charsets == 0)
 	{
 	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
-	    NSIntMapValueCallBacks, 0);
+	    NSIntegerMapValueCallBacks, 0);
 
 	  /*
 	   * These mappings were obtained primarily from
@@ -4621,7 +4621,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	}
       if (encodings == 0)
 	{
-	  encodings = NSCreateMapTable (NSIntMapKeyCallBacks,
+	  encodings = NSCreateMapTable (NSIntegerMapKeyCallBacks,
 	    NSObjectMapValueCallBacks, 0);
 
 	  /* While the charset mappings above are many to one,
