@@ -61,14 +61,6 @@
 #define	DESTROY(object) 	object = nil
 #endif
 
-#ifndef	CREATE_AUTORELEASE_POOL
-#define	CREATE_AUTORELEASE_POOL(X)	
-#endif
-
-#ifndef RECREATE_AUTORELEASE_POOL
-#define RECREATE_AUTORELEASE_POOL(X)
-#endif
-
 #define	IF_NO_GC(X)	
 
 #else
@@ -158,27 +150,23 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
 })
 #endif
 
+#define	IF_NO_GC(X)	X
+
+#endif
+
 #ifndef	CREATE_AUTORELEASE_POOL
-/**
- * Declares an autorelease pool variable and creates and initialises
- * an autorelease pool object.
+/** DEPRECATED ... use NSAutoreleasePool *X = [NSAutoreleasePool new]
  */
 #define	CREATE_AUTORELEASE_POOL(X)	\
   NSAutoreleasePool *X = [NSAutoreleasePool new]
 #endif
 
 #ifndef RECREATE_AUTORELEASE_POOL
-/**
- * Similar, but allows reuse of variables. This destroys the old pool before
- * creating the new one.
+/** DEPRECATED ... use [X release]; X = [NSAutoreleasePool new]
  */
 #define RECREATE_AUTORELEASE_POOL(X)  \
   DESTROY(X);\
   X = [NSAutoreleasePool new]
-#endif
-
-#define	IF_NO_GC(X)	X
-
 #endif
 
 

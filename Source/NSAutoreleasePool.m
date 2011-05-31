@@ -163,7 +163,7 @@ static Class PoolClass;
 - (void) dealloc
 {
   [NSException raise: NSGenericException
-		   format: @"dealloc should not be called in garbage collected mode"];
+    format: @"dealloc should not be called in garbage collected mode"];
   GSNOSUPERDEALLOC;
   return;
 }

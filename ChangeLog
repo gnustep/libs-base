@@ -1,5 +1,11 @@
 2011-05-31  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/GNUstepBase/GNUstep.h:
+	Deprecate autorelease pool macros and make them always create the
+	pool.
+
+2011-05-31  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSHashTable.h:
 	* Headers/Foundation/NSMapTable.h:
 	* Source/Additions/GSMime.m:
