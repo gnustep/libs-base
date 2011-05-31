@@ -281,7 +281,7 @@ pty_slave(const char* name)
 	   * t2: complete notification ... attempt to release task object
 	   * but it's already deallocated.
 	   */
-          activeTasks = NSCreateMapTable(NSIntMapKeyCallBacks,
+          activeTasks = NSCreateMapTable(NSIntegerMapKeyCallBacks,
                 NSObjectMapValueCallBacks, 0);
         }
       [gnustep_global_lock unlock];

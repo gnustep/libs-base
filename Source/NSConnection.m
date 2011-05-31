@@ -662,7 +662,7 @@ static NSLock	*cached_proxies_gate = nil;
 	NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
 
       targetToCached =
-	NSCreateMapTable(NSIntMapKeyCallBacks,
+	NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	  NSObjectMapValueCallBacks, 0);
 
       root_object_map =

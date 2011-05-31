@@ -656,7 +656,7 @@ static NSMapTable	*absolutes = 0;
 {
   if (self == [GSAbsTimeZone class])
     {
-      absolutes = NSCreateMapTable(NSIntMapKeyCallBacks,
+      absolutes = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
     }
 }

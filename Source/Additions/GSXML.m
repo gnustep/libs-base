@@ -226,7 +226,7 @@ static NSMapTable	*attrNames = 0;
     {
       if (cacheDone == NO)
 	setupCache();
-      attrNames = NSCreateMapTable(NSIntMapKeyCallBacks,
+      attrNames = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       NSMapInsert(attrNames,
 	(void*)XML_ATTRIBUTE_CDATA, (void*)@"XML_ATTRIBUTE_CDATA");
@@ -592,7 +592,7 @@ static NSMapTable	*nsNames = 0;
     {
       if (cacheDone == NO)
 	setupCache();
-      nsNames = NSCreateMapTable(NSIntMapKeyCallBacks,
+      nsNames = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       NSMapInsert(nsNames,
 	(void*)XML_LOCAL_NAMESPACE, (void*)@"XML_LOCAL_NAMESPACE");
@@ -770,7 +770,7 @@ static NSMapTable	*nodeNames = 0;
     {
       if (cacheDone == NO)
 	setupCache();
-      nodeNames = NSCreateMapTable(NSIntMapKeyCallBacks,
+      nodeNames = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       NSMapInsert(nodeNames,
 	(void*)XML_ELEMENT_NODE, (void*)@"XML_ELEMENT_NODE");
