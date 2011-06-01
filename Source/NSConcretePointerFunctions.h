@@ -84,7 +84,7 @@ pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
       objc_assign_strongCast((id)src, (id*)dst);
     }
 #else
-#if	GSWITHGC
+#if	GS_WITH_GC
   if (PF->options & NSPointerFunctionsZeroingWeakMemory)
     GSAssignZeroingWeakPointer(dst, src);
   else
@@ -198,7 +198,7 @@ pointerFunctionsReplace(PFInfo *PF, void **dst, void *src)
           PF->options & NSPointerFunctionsCopyIn ? YES : NO);
       if (PF->relinquishFunction != 0)
 	(*PF->relinquishFunction)(*dst, PF->sizeFunction);
-#if	GSWITHGC
+#if	GS_WITH_GC
       if (PF->options & NSPointerFunctionsZeroingWeakMemory)
 	GSAssignZeroingWeakPointer(dst, src);
       else
