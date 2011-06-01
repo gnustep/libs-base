@@ -5488,8 +5488,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   length = encodebase64([md mutableBytes], output, 20);
   [md setLength: length + 2];
   ptr = (unsigned char*)[md mutableBytes];
-  ptr[length-2] = '=';
-  ptr[length-1] = '_';
+  ptr[length] = '=';
+  ptr[length+1] = '_';
   result = [NSStringClass allocWithZone: NSDefaultMallocZone()];
   result = [result initWithData: md encoding: NSASCIIStringEncoding];
   RELEASE(md);
