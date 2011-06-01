@@ -2,6 +2,8 @@
 
 	* Headers/Foundation/NSString.h: Add explicit warnings about OSX
 	compatible modifications to values returned by path methods.
+	* Source/NSTimeZone.m: Don't guess at tzname[0] if the value of
+	daylight shows it's not valid.
 
 2011-05-31  Niels Grewe <niels.grewe@halbordnung.de>
 

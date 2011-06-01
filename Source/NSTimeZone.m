@@ -1526,13 +1526,16 @@ static NSMapTable	*absolutes = 0;
         }
 #if HAVE_TZSET
       /*
-       * Try to get timezone from tzset and tzname
+       * Try to get timezone from tzset and tzname/daylight.
+       * If daylight is non-zero, then tzname[0] is only the name
+       * the the zone for part of the year, so we can't use it as
+       * the definitive zone.
        */
       if (localZoneString == nil)
 	{
           localZoneSource = @"function: 'tzset()/tzname'";
 	  tzset();
-	  if (tzname[0] != NULL && *tzname[0] != '\0')
+	  if (NULL != tzname[0] && '\0' != *tzname[0] && 0 == daylight)
 	    localZoneString = [NSString stringWithUTF8String: tzname[0]];
 	}
 #endif
