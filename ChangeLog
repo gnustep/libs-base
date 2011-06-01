@@ -1,5 +1,11 @@
 2011-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSTimeZone.m: Disable use of tzname on FreeBSD as it's not
+	fully implemented there.  Add a couple of new mechanisms for
+	guessing the timezone on debina and redhat.
+
+2011-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSString.h: Add explicit warnings about OSX
 	compatible modifications to values returned by path methods.
 	* Source/NSTimeZone.m: Don't guess at tzname[0] if the value of
