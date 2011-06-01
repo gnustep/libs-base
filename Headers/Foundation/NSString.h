@@ -550,6 +550,10 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  *   @"/" with @"/file" produces @"/file"
  *   @"path with @"C:/file" produces @"path/file"
  * </example>
+ * NB. Do not use this method to modify strings other than filesystem
+ * paths as the behavior in such cases is undefined ... for instance
+ * the string may have repeated slashes or slash-dot-slash sequences
+ * removed.
  */
 - (NSString*) stringByAppendingPathComponent: (NSString*)aString;
 
@@ -571,6 +575,10 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  *   @"/" with @"app" produces @"/" (no file name to append to)
  *   @"" with @"app" produces @"" (no file name to append to)
  * </example>
+ * NB. Do not use this method to modify strings other than filesystem
+ * paths as the behavior in such cases is undefined ... for instance
+ * the string may have repeated slashes or slash-dot-slash sequences
+ * removed.
  */
 - (NSString*) stringByAppendingPathExtension: (NSString*)aString;
 
@@ -593,6 +601,10 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  *   @"//host/share/" produces @"//host/share/" (a UNC path)
  *   @"//path/file" produces @"//path" (an absolute Unix path)
  * </example>
+ * NB. Do not use this method to modify strings other than filesystem
+ * paths as the behavior in such cases is undefined ... for instance
+ * the string may have repeated slashes or slash-dot-slash sequences
+ * removed.
  */
 - (NSString*) stringByDeletingLastPathComponent;
 
@@ -613,6 +625,10 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  *   @"/.ext" produces @"/.ext" (there is no file to strip from)
  *   @".ext" produces @".ext" (there is no file to strip from)
  * </example>
+ * NB. Do not use this method to modify strings other than filesystem
+ * paths as the behavior in such cases is undefined ... for instance
+ * the string may have repeated slashes or slash-dot-slash sequences
+ * removed.
  */
 - (NSString*) stringByDeletingPathExtension;
 
