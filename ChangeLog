@@ -1,5 +1,10 @@
 2011-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSTimeZone.m: Add more system specific code for guessing
+	the timezone.
+
+2011-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSString.h: Add explicit warnings about OSX
 	compatible modifications to values returned by path methods.
 	* Source/NSTimeZone.m: Don't guess at tzname[0] if the value of
