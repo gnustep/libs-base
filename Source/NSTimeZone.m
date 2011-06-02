@@ -1527,6 +1527,15 @@ static NSMapTable	*absolutes = 0;
 			{
 			  s = [s substringFromIndex: 1];
 			  s = [s stringByTrimmingSpaces];
+			  if ([s hasPrefix: @"\""])
+			    {
+			      s = [s substringFromIndex: 1];
+			    }
+			  if ([s hasSuffix: @"\""])
+			    {
+			      s = [s substringToIndex: [s length] - 1];
+			    }
+			  s = [s stringByTrimmingSpaces];
 			  if ([s length] > 0)
 			    {
 			      localZoneSource = _(@"/etc/sysconfig/clock file");
