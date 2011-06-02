@@ -1012,6 +1012,17 @@ typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
 
 
 /** For keys that are pointer-sized or smaller quantities. */
+const NSMapTableKeyCallBacks NSIntegerMapKeyCallBacks =
+{
+  (NSMT_hash_func_t) _NS_int_hash,
+  (NSMT_is_equal_func_t) _NS_int_is_equal,
+  (NSMT_retain_func_t) _NS_int_retain,
+  (NSMT_release_func_t) _NS_int_release,
+  (NSMT_describe_func_t) _NS_int_describe,
+  NSNotAnIntMapKey
+};
+
+/** For backward compatibility. */
 const NSMapTableKeyCallBacks NSIntMapKeyCallBacks =
 {
   (NSMT_hash_func_t) _NS_int_hash,
@@ -1078,6 +1089,14 @@ const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks =
 };
 
 /** For values that are pointer-sized integer quantities. */
+const NSMapTableValueCallBacks NSIntegerMapValueCallBacks =
+{
+  (NSMT_retain_func_t) _NS_int_retain,
+  (NSMT_release_func_t) _NS_int_release,
+  (NSMT_describe_func_t) _NS_int_describe
+};
+
+/** For backward compatibilty. */
 const NSMapTableValueCallBacks NSIntMapValueCallBacks =
 {
   (NSMT_retain_func_t) _NS_int_retain,

@@ -183,7 +183,8 @@ typedef struct _NSHashTableCallBacks
   NSString *(*describe)(NSHashTable *, const void *);
 } NSHashTableCallBacks;
 
-GS_EXPORT const NSHashTableCallBacks NSIntHashCallBacks;
+GS_EXPORT const NSHashTableCallBacks NSIntegerHashCallBacks;
+GS_EXPORT const NSHashTableCallBacks NSIntHashCallBacks; /*DEPRECATED*/
 GS_EXPORT const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks;
 GS_EXPORT const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks;
 GS_EXPORT const NSHashTableCallBacks NSObjectHashCallBacks;

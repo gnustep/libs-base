@@ -733,6 +733,16 @@ typedef void (*NSHT_release_func_t)(NSHashTable *, void *);
 typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
 
 /** For sets of pointer-sized or smaller quantities. */
+const NSHashTableCallBacks NSIntegerHashCallBacks =
+{
+  (NSHT_hash_func_t) _NS_int_hash,
+  (NSHT_isEqual_func_t) _NS_int_is_equal,
+  (NSHT_retain_func_t) _NS_int_retain,
+  (NSHT_release_func_t) _NS_int_release,
+  (NSHT_describe_func_t) _NS_int_describe
+};
+
+/** For backward compatibility. */
 const NSHashTableCallBacks NSIntHashCallBacks =
 {
   (NSHT_hash_func_t) _NS_int_hash,

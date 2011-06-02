@@ -1,3 +1,13 @@
+2011-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCallBacks.h:
+	* Source/NSCallBacks.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSConcreteHashTable.m:
+	* Headers/Foundation/NSHashTable.h:
+	* Headers/Foundation/NSMapTable.h:
+	Backport fix for missing callbacks structure.
+
 2011-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: Add more system specific code for guessing

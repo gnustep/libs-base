@@ -227,13 +227,15 @@ struct _NSMapTableValueCallBacks
 #define NSNotAnIntMapKey     ((const void *)0x80000000)
 #define NSNotAPointerMapKey  ((const void *)0xffffffff)
 
-GS_EXPORT const NSMapTableKeyCallBacks NSIntMapKeyCallBacks;
+GS_EXPORT const NSMapTableKeyCallBacks NSIntegerMapKeyCallBacks;
+GS_EXPORT const NSMapTableKeyCallBacks NSIntMapKeyCallBacks; /*DEPRECATED*/
 GS_EXPORT const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks;
 GS_EXPORT const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks;
 GS_EXPORT const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks;
 GS_EXPORT const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks;
 GS_EXPORT const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks;
-GS_EXPORT const NSMapTableValueCallBacks NSIntMapValueCallBacks;
+GS_EXPORT const NSMapTableValueCallBacks NSIntegerMapValueCallBacks;
+GS_EXPORT const NSMapTableValueCallBacks NSIntMapValueCallBacks; /*DEPRECATED*/
 GS_EXPORT const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks;
 GS_EXPORT const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks;
 GS_EXPORT const NSMapTableValueCallBacks NSObjectMapValueCallBacks;
