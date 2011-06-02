@@ -1,3 +1,8 @@
+2011-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: Allow for quotes around zone name in
+	/etc/sysconfig/time on redhat/centos.
+
 2011-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: Disable use of tzname on FreeBSD as it's not
