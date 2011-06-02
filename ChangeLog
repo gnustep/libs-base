@@ -1,3 +1,7 @@
+2011-06-02 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSTimeZone.m: Disable use of tzname on OpenBSD too.
+	
 2011-06-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: Allow for quotes around zone name in

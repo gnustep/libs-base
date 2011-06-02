@@ -1,5 +1,5 @@
 /** Time zone management. -*- Mode: ObjC -*-
-   Copyright (C) 1997-2002 Free Software Foundation, Inc.
+   Copyright (C) 1997-20 11Free Software Foundation, Inc.
 
    Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>
    Date: June 1997
@@ -1615,7 +1615,7 @@ static NSMapTable	*absolutes = 0;
 	}
 
 
-#if HAVE_TZSET && !defined(__FreeBSD__)
+#if HAVE_TZSET && !defined(__FreeBSD__) && !defined(__OpenBSD__)
       /*
        * Try to get timezone from tzset and tzname/daylight.
        * If daylight is non-zero, then tzname[0] is only the name
@@ -1623,6 +1623,7 @@ static NSMapTable	*absolutes = 0;
        * the definitive zone.
        *
        * FreeBSD doesn't implement TZSet fully, so we can't use it there.
+       * Apparently, OpenBSD neither.
        */
       if (localZoneString == nil)
 	{
