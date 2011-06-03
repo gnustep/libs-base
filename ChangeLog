@@ -1,3 +1,8 @@
+2011-06-03  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSString.m: [(-getLineStart:end:contentsEnd:forRange:)]
+	Fix off-by-one error iun reported contents end for DOS style lines.
+
 2011-06-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCallBacks.h:
