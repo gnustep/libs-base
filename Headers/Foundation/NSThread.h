@@ -263,7 +263,7 @@ extern "C" {
 /**
  * Invokes -performSelectorOnMainThread:withObject:waitUntilDone:modes:
  * using the supplied arguments and an array containing common modes.<br />
- * These modes consist of NSRunLoopMode, NSConnectionreplyMode, and if
+ * These modes consist of NSRunLoopMode, NSConnectionReplyMode, and if
  * in an application, the NSApplication modes.
  */
 - (void) performSelectorOnMainThread: (SEL)aSelector

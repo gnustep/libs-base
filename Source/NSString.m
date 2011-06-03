@@ -2450,6 +2450,13 @@ handle_printf_atsign (FILE *stream,
   GS_RANGE_CHECK(aRange, len);
 
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
+  /* Place aRange.location at the beginning of a CR-LF sequence */
+  if (aRange.location > 0 && aRange.location < len
+    && (*caiImp)(self, caiSel, aRange.location - 1) == (unichar)'\r'
+    && (*caiImp)(self, caiSel, aRange.location) == (unichar)'\n')
+    {
+      aRange.location--;
+    }
   start = aRange.location;
 
   if (startIndex)
@@ -2537,7 +2544,7 @@ handle_printf_atsign (FILE *stream,
 	    && ((*caiImp)(self, caiSel, end-1) == (unichar)0x000D)
 	    && ((*caiImp)(self, caiSel, end) == (unichar)0x000A))
 	    {
-	      *lineEndIndex = end+1;
+	      *lineEndIndex = ++end;
 	      termlen = 2;
 	    }
 	  else
