@@ -42,6 +42,7 @@ function may be incorrect
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSLock.h"
@@ -1342,6 +1343,43 @@ static NSUInteger	urlAlign;
 - (NSURL*) baseURL
 {
   return _baseURL;
+}
+
+- (BOOL) checkResourceIsReachableAndReturnError: (NSError **)error
+{
+  NSString *errorStr = nil;
+
+  if ([self isFileURL])
+    {
+      NSFileManager *mgr = [NSFileManager defaultManager];
+      NSString *path = [self path];
+      
+      if ([mgr fileExistsAtPath: path])
+        {
+          if (![mgr isReadableFileAtPath: path])
+            {
+              errorStr = @"File not readable";
+            }
+        }
+      else
+        {
+          errorStr = @"File does not exist";
+        }
+    }
+  else
+    {
+      errorStr = @"No file URL";
+    }
+
+  if ((errorStr != nil) && (error != NULL))
+    {
+      *error = [NSError errorWithDomain: @"NSURLError"
+                                   code: 0 
+                               userInfo: [NSDictionary 
+                                              dictionaryWithObjectsAndKeys: errorStr,
+                                           NSLocalizedDescriptionKey, nil]];
+    }
+  return (errorStr != nil);
 }
 
 /**

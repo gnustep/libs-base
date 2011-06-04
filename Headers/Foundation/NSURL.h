@@ -34,6 +34,7 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
+@class NSError;
 @class NSNumber;
 
 /**
@@ -68,6 +69,9 @@ GS_EXPORT NSString* const NSURLFileScheme;
 - (NSString*) absoluteString;
 - (NSURL*) absoluteURL;
 - (NSURL*) baseURL;
+#if OS_API_VERSION(100600,GS_API_LATEST) 
+- (BOOL) checkResourceIsReachableAndReturnError: (NSError **)error;
+#endif
 - (NSString*) fragment;
 - (NSString*) host;
 - (BOOL) isFileURL;
