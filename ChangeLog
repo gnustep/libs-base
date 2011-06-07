@@ -1,3 +1,8 @@
+2011-06-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSLock.m:
+	Remove notification observation on dealloc.
+
 2011-06-03  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSString.m: [(-getLineStart:end:contentsEnd:forRange:)]
