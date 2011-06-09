@@ -645,6 +645,7 @@ MAJOR_VERSION
 VERSION
 subdirs
 GNUSTEP_INSTALL_GDOMAP_AS_SETUID
+GNUSTEP_GDOMAP_PORT_OVERRIDE
 WARN_FLAGS
 LDIR_FLAGS
 INCLUDE_FLAGS
@@ -824,6 +825,7 @@ with_zeroconf_api
 enable_icu
 with_gmp_include
 with_gmp_library
+with_gdomap_port
 enable_setuid_gdomap
 enable_openssl
 with_openssl_include
@@ -1575,6 +1577,7 @@ Optional Packages:
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
+  --with-gdomap-port=PORT  alternative port for gdomap
   --with-openssl-include=PATH  include path for openssl headers
   --with-openssl-library=PATH  library path for openssl libraries
 
@@ -25085,6 +25088,25 @@ else
   WARN_FLAGS=-Wall
 fi
 
+
+
+#--------------------------------------------------------------------
+# Check if we should use an alternative gdomap port
+#--------------------------------------------------------------------
+
+# Check whether --with-gdomap-port was given.
+if test "${with_gdomap_port+set}" = set; then
+  withval=$with_gdomap_port; gdomap_port="$withval"
+else
+  gdomap_port="no"
+fi
+
+
+if test "$gdomap_port" = "no"; then
+  GNUSTEP_GDOMAP_PORT_OVERRIDE="$gdomap_port"
+else
+  GNUSTEP_GDOMAP_PORT_OVERRIDE="$gdomap_port"
+fi
 
 
 #--------------------------------------------------------------------

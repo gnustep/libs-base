@@ -56,10 +56,14 @@ ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) $(WARN_FLAGS) \
 
 
 # Additional flags to pass to the Objective-C compiler
-#£ADDITIONAL_OBJCFLAGS+=
+#ADDITIONAL_OBJCFLAGS+=
 
 # Additional flags to pass to the C compiler
 #ADDITIONAL_CFLAGS+= 
+
+ifneq ($(GNUSTEP_GDOMAP_PORT_OVERRIDE),no)
+ADDITIONAL_CPPFLAGS += -DGDOMAP_PORT_OVERRIDE=$(GNUSTEP_GDOMAP_PORT_OVERRIDE)
+endif
 
 # Additional include directories the compiler should search
 ADDITIONAL_INCLUDE_DIRS = \
