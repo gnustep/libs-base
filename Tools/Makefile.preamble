@@ -38,6 +38,9 @@
 
 # Additional flags to pass to the preprocessor
 ADDITIONAL_CPPFLAGS += $(WARN_FLAGS)
+ifneq ($(GNUSTEP_GDOMAP_PORT_OVERRIDE),no)
+ADDITIONAL_CPPFLAGS += -DGDOMAP_PORT_OVERRIDE=$(GNUSTEP_GDOMAP_PORT_OVERRIDE)
+endif
 
 # Additional flags to pass to the Objective-C compiler
 #ADDITIONAL_OBJCFLAGS +=

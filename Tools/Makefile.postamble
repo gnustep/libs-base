@@ -62,6 +62,7 @@ after-install::
 	    which gzip && rm -f $(GNUSTEP_DOC_MAN)/man8/$$file.gz \
 		&& gzip -9 $(GNUSTEP_DOC_MAN)/man8/$$file; \
 	done$(END_ECHO)
+ifeq ($(GNUSTEP_GDOMAP_PORT_OVERRIDE),no)
 ifeq ($(GNUSTEP_INSTALL_GDOMAP_AS_SETUID),no)
 	$(ECHO_NOTHING)echo ""; \
 	echo "Note: gdomap has not been made setuid to root, so you must"; \
@@ -97,6 +98,7 @@ else
 	echo "startup command to your system boot scripts!"; \
 	echo "************************************************************"; \
 	$(END_ECHO)
+endif
 endif
 
 # Things to do before uninstalling
