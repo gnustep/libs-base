@@ -1,3 +1,13 @@
+2011-06-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure: Regenerate
+	* config.mak.in:
+	* configure.ac:
+	* Source/Makefile.preamble:
+	* Tools/Makefile.postamble:
+	* Tools/Makefile.preamble:
+	Add --with-gdomap-port= to specify an alternative port
+
 2011-06-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSLock.m:

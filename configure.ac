@@ -2844,6 +2844,20 @@ fi
 AC_SUBST(WARN_FLAGS)
 
 #--------------------------------------------------------------------
+# Check if we should use an alternative gdomap port
+#--------------------------------------------------------------------
+AC_ARG_WITH(gdomap-port,
+  [  --with-gdomap-port=PORT  alternative port for gdomap],
+  gdomap_port="$withval", gdomap_port="no")
+
+if test "$gdomap_port" = "no"; then
+  GNUSTEP_GDOMAP_PORT_OVERRIDE="$gdomap_port"
+else
+  GNUSTEP_GDOMAP_PORT_OVERRIDE="$gdomap_port"
+fi
+AC_SUBST(GNUSTEP_GDOMAP_PORT_OVERRIDE)
+
+#--------------------------------------------------------------------
 # Check if we should install gdomap as setuid
 #--------------------------------------------------------------------
 AC_MSG_CHECKING([if we should install gdomap as setuid])
