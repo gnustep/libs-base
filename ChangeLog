@@ -1,3 +1,8 @@
+2011-06-11 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source\NSCalendar.m: Protect the name id.
+	Patch by Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
 2011-06-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure: Regenerate

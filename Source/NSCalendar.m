@@ -35,7 +35,9 @@
 #import "GNUstepBase/GSLock.h"
 
 #if defined(HAVE_UNICODE_UCAL_H)
+#define id ucal_id
 #include <unicode/ucal.h>
+#undef id
 #endif
 
 
