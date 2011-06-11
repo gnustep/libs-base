@@ -39,7 +39,9 @@
 #import "Foundation/NSCoder.h"
 
 #if defined(HAVE_UNICODE_UDAT_H)
+#define id id_ucal
 #include <unicode/udat.h>
+#undef id
 #endif
 #if defined(HAVE_UNICODE_UDATPG_H)
 #include <unicode/udatpg.h>

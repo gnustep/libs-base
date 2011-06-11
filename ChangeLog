@@ -1,5 +1,7 @@
 2011-06-11 Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSDateFormatter.m,
+	* Source/NSTimeZone.m,
 	* Source\NSCalendar.m: Protect the name id.
 	Patch by Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 
