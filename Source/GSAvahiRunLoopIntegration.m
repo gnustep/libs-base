@@ -36,6 +36,12 @@
   GSAvahiRunLoopContext *ctx;
   void *userData;
 }
+- (void)listenForEvents: (AvahiWatchEvent)events;
+- (AvahiWatchEvent)getEvents;
+- (void)removeFromContext;
+- (void)setContext: (GSAvahiRunLoopContext*)aCtxt;
+- (void)unschedule;
+- (void)reschedule;
 @end
 
 @implementation GSAvahiWatcher

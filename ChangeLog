@@ -1,3 +1,9 @@
+2011-06-13 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/GSAvahiRunLoopIntegration.m: Declare the local methods in
+	the interface.
+	Patch by Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
 2011-06-11 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSDateFormatter.m,
