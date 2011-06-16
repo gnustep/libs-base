@@ -120,7 +120,9 @@
 #endif
 
 #if defined(HAVE_UNICODE_UCAL_H)
+#define id id_ucal
 #include <unicode/ucal.h>
+#undef id
 #endif
 
 NSString * const NSSystemTimeZoneDidChangeNotification

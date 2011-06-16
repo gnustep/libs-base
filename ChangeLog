@@ -1,3 +1,16 @@
+2011-06-13 Fred Kiefer <FredKiefer@gmx.de>
+
+        * Source/GSAvahiRunLoopIntegration.m: Declare the local methods in
+        the interface.
+        Patch by Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+2011-06-11 Fred Kiefer <FredKiefer@gmx.de>
+
+        * Source/NSDateFormatter.m,
+        * Source/NSTimeZone.m,
+        * Source/NSCalendar.m: Protect the name id.
+        Patch by Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
 2011-06-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure: Regenerate
@@ -16,7 +29,7 @@
 2011-06-03  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSString.m: [(-getLineStart:end:contentsEnd:forRange:)]
-	Fix off-by-one error iun reported contents end for DOS style lines.
+	Fix off-by-one error in reported contents end for DOS style lines.
 
 2011-06-02  Richard Frith-Macdonald <rfm@gnu.org>
 
