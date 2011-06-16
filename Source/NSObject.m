@@ -229,19 +229,28 @@ typedef int32_t volatile *gsatomic_t;
 static __inline__ int
 GSAtomicIncrement(gsatomic_t X)
 {
- __asm__ __volatile__ (
-     "lock addl $1, %0"
-     :"=m" (*X));
- return *X;
+  register int tmp;
+  __asm__ __volatile__ (
+    "movl $1, %0\n"
+    "lock xaddl %0, %1"
+    :"=r" (tmp), "=m" (*X)
+    :"r" (tmp), "m" (*X)
+    :"memory" );
+  return tmp + 1;
 }
 
 static __inline__ int
 GSAtomicDecrement(gsatomic_t X)
 {
- __asm__ __volatile__ (
-     "lock subl $1, %0"
-     :"=m" (*X));
- return *X;
+  register int tmp;
+  __asm__ __volatile__ (
+    "movl $1, %0\n"
+    "negl %0\n"
+    "lock xaddl %0, %1"
+    :"=r" (tmp), "=m" (*X)
+    :"r" (tmp), "m" (*X)
+    :"memory" );
+ return tmp - 1;
 }
 
 #elif defined(__PPC__) || defined(__POWERPC__)
@@ -263,7 +272,7 @@ GSAtomicIncrement(gsatomic_t X)
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");
-  return *X;
+  return tmp;
 }
 
 static __inline__ int
@@ -279,7 +288,7 @@ GSAtomicDecrement(gsatomic_t X)
     :"=&r" (tmp)
     :"r" (X)
     :"cc", "memory");
-  return *X;
+  return tmp;
 }
 
 #elif defined(__m68k__)
@@ -326,7 +335,7 @@ GSAtomicIncrement(gsatomic_t X)
     "   sc    %0, %1 \n"
     "   beqz  %0, 0b  \n"
     :"=&r" (tmp), "=m" (*X));
-    return *X;
+    return tmp;
 }
 
 static __inline__ int
@@ -343,7 +352,7 @@ GSAtomicDecrement(gsatomic_t X)
     "   sc    %0, %1 \n"
     "   beqz  %0, 0b  \n"
     :"=&r" (tmp), "=m" (*X));
-    return *X;
+    return tmp;
 }
 #endif
 

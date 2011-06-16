@@ -683,11 +683,11 @@ DEFINE_UINT8_T
 DEFINE_INT8_T
 INCLUDE_STDINT
 HAVE_PTS_STREAM_MODULES
+OBJCFLAGS
 HAVE_OBJC_SYNC_ENTER
 BASE_NATIVE_OBJC_EXCEPTIONS
 GS_MIXEDABI
 GS_NONFRAGILE
-OBJCFLAGS
 HAVE_BLOCKS
 OBJC2RUNTIME
 OBJCSYNC
@@ -5103,6 +5103,235 @@ _ACEOF
 
 
 
+#--------------------------------------------------------------------
+# Check how to enable builtins for atomic operations
+#--------------------------------------------------------------------
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+{ $as_echo "$as_me:$LINENO: checking whether the compiler supports atomic operations" >&5
+$as_echo_n "checking whether the compiler supports atomic operations... " >&6; };
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main ()
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y + 1);
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  have_atomic=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	have_atomic=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext;
+  if test "$have_atomic" = "yes"; then
+    { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; };
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_ATOMIC_BUILTINS 1
+_ACEOF
+
+  else
+    { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; };
+    if test "$CC" = "gcc"; then
+      saved_CFLAGS="$CFLAGS";
+      ATOMIC_CFLAGS="";
+
+      # FIXME: Forcing -march=i568 for any i568 or later CPU is a
+      # stop gap measure to make the compiler emit native assembly
+      # for atomic operations on i586 or latter processors (GCC by
+      # default emits code compatible with the original i386 and
+      # requires library functions to emulate atomic operations).
+      # When gnustep-make takes care of this kind of target setting,
+      # the check can safely be removed.
+      case "$target_cpu" in
+        i586*|i686*|i786*)
+          ATOMIC_CFLAGS="-march=i586"
+          CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
+          ;;
+        x86_64)
+          ATOMIC_CFLAGS="-march=x86-64"
+          CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
+          ;;
+      esac
+      { $as_echo "$as_me:$LINENO: checking whether gcc supports atomic operations with -march" >&5
+$as_echo_n "checking whether gcc supports atomic operations with -march... " >&6; };
+        cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main ()
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  need_march=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	need_march=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext;
+
+      if test "$need_march" = "yes"; then
+        { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; };
+	OBJCFLAGS="$OBJCFLAGS $ATOMIC_CFLAGS";
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_ATOMIC_BUILTINS 1
+_ACEOF
+
+      else
+        { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; };
+        saved_LDFLAGS="$LDFLAGS";
+        LDFLAGS="$saved_LDFLAGS -lgcc";
+        { $as_echo "$as_me:$LINENO: checking whether gcc supports atomic operations using libgcc" >&5
+$as_echo_n "checking whether gcc supports atomic operations using libgcc... " >&6; };
+          cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+typedef int atomic;
+int
+main ()
+{
+atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  atomic_in_libgcc=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	atomic_in_libgcc=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext;
+        if test "$atomic_in_libgcc" = "yes"; then
+          { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; };
+          LIBS="$LIBS -lgcc";
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_ATOMIC_BUILTINS 1
+_ACEOF
+
+        else
+          LDFLAGS="$saved_LDFLAGS";
+          { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; };
+        fi
+      fi
+    fi
+  fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
 # Extract the first word of "whoami", so it can be a program name with args.
 set dummy whoami; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -5172,18 +5401,18 @@ if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   { $as_echo "$as_me:$LINENO: result: NeXT" >&5
 $as_echo "NeXT" >&6; }
   LIBOBJC='-lobjc'
-  OBJCFLAGS="-fnext-runtime -DNeXT_RUNTIME"
+  OBJCFLAGS="$OBJCFLAGS -fnext-runtime -DNeXT_RUNTIME"
 elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
   { $as_echo "$as_me:$LINENO: result: GNU" >&5
 $as_echo "GNU" >&6; }
   LIBOBJC='-lobjc_gc -ldl -lgc'
-  OBJCFLAGS="-fgnu-runtime"
+  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
   OBJC_WITH_GC=yes
 else
   { $as_echo "$as_me:$LINENO: result: GNU" >&5
 $as_echo "GNU" >&6; }
   LIBOBJC='-lobjc'
-  OBJCFLAGS="-fgnu-runtime"
+  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
 fi
 
 #--------------------------------------------------------------------
@@ -12990,7 +13219,6 @@ fi
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
     OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
-
     GS_NONFRAGILE=1
     # Check whether --enable-mixedabi was given.
 if test "${enable_mixedabi+set}" = set; then
@@ -13441,6 +13669,8 @@ $as_echo "$safe_initialize" >&6; }
 
 LIBS="$saved_LIBS"
 CPPFLAGS="$saved_CPPFLAGS"
+
+
 
 #--------------------------------------------------------------------
 # Generic settings needed by NSZone.m
