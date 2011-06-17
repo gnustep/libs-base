@@ -1,3 +1,16 @@
+2011-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSURL+GNUstepBase.h: Add method to build a URL
+	from separate components.
+	* Headers/Foundation/NSURL.h: Add some OSX 10.6 methods for path
+	handling, and incorporate documentation from source file.
+	* Source/NSURL.m: Add some OSX 10.6 methods for path handling, fix
+	minor bug checking resource availability, and move documentation to
+	header.
+	* Source/Additions/NSURL+GNUstepBase.m: Add method to build a URL from
+	components.
+	We NEED testcases for these.
+
 2011-06-13 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/GSAvahiRunLoopIntegration.m: Declare the local methods in

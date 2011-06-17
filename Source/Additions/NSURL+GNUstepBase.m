@@ -23,12 +23,84 @@
 
 */
 
-#ifndef	GNUSTEP
-
 #import "common.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
+@implementation NSURL (GNUstepBaseAdditions)
+
+- (id) initWithScheme: (NSString*)scheme
+		 user: (NSString*)user
+	     password: (NSString*)password
+		 host: (NSString*)host
+		 port: (NSNumber*)port
+	     fullPath: (NSString*)fullPath
+      parameterString: (NSString*)parameterString
+		query: (NSString*)query
+	     fragment: (NSString*)fragment
+{
+  NSMutableString	*urlString;
+  NSString		*s;
+
+  urlString = [scheme mutableCopy];
+  [urlString appendString: @"://"];
+  if ([user length] > 0 || [password length] > 0)
+    {
+      if (nil == (s = user)) s = @"";
+      [urlString appendString:
+	[s stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
+      [urlString appendString: @":"];
+      if (nil == (s = password)) s = @"";
+      [urlString appendString:
+	[s stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
+      [urlString appendString: @"@"];
+    }
+  if ([host length] > 0)
+    {
+      [urlString appendString:
+	[s stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
+    }
+  if ([port intValue] > 0)
+    {
+      [urlString appendString: @":"];
+      [urlString appendFormat: @"%u", [port intValue]];
+    }
+
+  if (nil == (s = fullPath)) s = @"";
+  if ([s hasPrefix: @"/"] == NO)
+    {
+      [urlString appendString: @"/"];
+    }
+  [urlString appendString:
+    [s stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
+
+  if ([parameterString length] > 0)
+    {
+      [urlString appendString: @";"];
+      [urlString appendString: parameterString];
+    }
+
+  if ([query length] > 0)
+    {
+      [urlString appendString: @"?"];
+      [urlString appendString: query];
+    }
+
+  if ([fragment length] > 0)
+    {
+      [urlString appendString: @"#"];
+      [urlString appendString: fragment];
+    }
+
+  self = [self initWithString: urlString];
+  [urlString release];
+  return self;
+}
+@end
+
+#ifndef	GNUSTEP
 @implementation NSURL (GNUstepBase)
+/* For efficiency this is built in to the main library.
+ */
 - (NSString*) fullPath
 {
   NSRange	r;
@@ -50,6 +122,6 @@
   return s;
 }
 @end
-
 #endif
+
 

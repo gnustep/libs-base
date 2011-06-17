@@ -36,6 +36,22 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
+@interface NSURL (GNUstepBaseAdditions)
+
+/** Builds a URL from components as returned by the methods of the same names.
+ */
+- (id) initWithScheme: (NSString*)scheme
+		 user: (NSString*)user
+	     password: (NSString*)password
+		 host: (NSString*)host
+		 port: (NSNumber*)port
+	     fullPath: (NSString*)fullPath
+      parameterString: (NSString*)parameterString
+		query: (NSString*)query
+	     fragment: (NSString*)fragment;
+
+@end
+
 @interface NSURL (GNUstepBase)
 /** Returns the full path for this URL including any trailing slash.
  */
