@@ -657,6 +657,34 @@ static NSUInteger	urlAlign;
   return self;
 }
 
+- (id) initFileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir
+{
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  BOOL		flag = NO;
+
+  if ([aPath isAbsolutePath] == NO)
+    {
+      aPath = [[mgr currentDirectoryPath]
+	stringByAppendingPathComponent: aPath];
+    }
+  if ([mgr fileExistsAtPath: aPath isDirectory: &flag] == YES)
+    {
+      if ([aPath isAbsolutePath] == NO)
+	{
+	  aPath = [aPath stringByStandardizingPath];
+	}
+      isDir = flag;
+    }
+  if (isDir == YES && [aPath hasSuffix: @"/"] == NO)
+    {
+      aPath = [aPath stringByAppendingString: @"/"];
+    }
+  self = [self initWithScheme: NSURLFileScheme
+			 host: @"localhost"
+			 path: aPath];
+  return self;
+}
+
 - (id) initWithScheme: (NSString*)aScheme
 		 host: (NSString*)aHost
 		 path: (NSString*)aPath

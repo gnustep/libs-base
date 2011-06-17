@@ -97,6 +97,18 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 - (id) initFileURLWithPath: (NSString*)aPath;
 
+#if OS_API_VERSION(100500,GS_API_LATEST) 
+/**
+ * Initialise as a file URL with the specified path (which must
+ * be a valid path on the local filesystem).<br />
+ * Converts relative paths to absolute ones.<br />
+ * Appends a trailing slash to the path when necessary if it
+ * specifies a directory.<br />
+ * Calls -initWithScheme:host:path:
+ */
+- (id) initFileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir;
+#endif
+
 /**
  * Initialise by building a URL string from the supplied parameters
  * and calling -initWithString:relativeToURL:<br />
