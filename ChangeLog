@@ -1,3 +1,7 @@
+2011-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: Fix problem parsing space at end of attributes.
+
 2011-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Source/NSObject.m:

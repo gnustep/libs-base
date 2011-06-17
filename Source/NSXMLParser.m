@@ -1903,6 +1903,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       [attributes setObject: val forKey: arg];
 		      [val release];
                       c = cget();  // get character behind qarg value
+		      while (isspace(c))
+			{
+			  c = cget();
+			}
                     }
                   else  // implicit
                     {
