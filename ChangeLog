@@ -1,5 +1,6 @@
 2011-06-17  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSXMLParser.m: Fix error with whitespace at end of attributes.
 	* Headers/GNUstepBase/NSURL+GNUstepBase.h: Add method to build a URL
 	from separate components.
 	* Headers/Foundation/NSURL.h: Add some OSX 10.6 methods for path
