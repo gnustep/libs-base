@@ -1063,7 +1063,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
       finalize_sel = @selector(finalize);
       finalize_imp = class_getMethodImplementation(self, finalize_sel);
 
-#if (defined(__FreeBSD__) || defined(__OpenBSD__)) && defined(__i386__)
+#if defined(__FreeBSD__) && defined(__i386__)
       // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
       // problems on *BSD)
       // Note this only works on x86
