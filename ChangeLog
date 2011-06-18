@@ -1,3 +1,8 @@
+2011-06-18  Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+	* Source/NSObject.m: fix for clang
+	* SSL/GNUmakefile: don't link libobjc ... depend on gnustep-make
+
 2011-06-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: Fix problem parsing space at end of attributes.
