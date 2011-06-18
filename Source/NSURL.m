@@ -609,6 +609,11 @@ static NSUInteger	urlAlign;
   return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath]);
 }
 
++ (NSURL*) fileURLWithPathComponents: (NSArray*)components
+{
+  return [self fileURLWithPath: [NSString pathWithComponents: components]];
+}
+
 + (void) initialize
 {
   if (clientsLock == nil)
@@ -1622,6 +1627,11 @@ static NSUInteger	urlAlign;
   return path;
 }
 
+- (NSArray*) pathComponents 
+{
+  return [[self path] pathComponents];
+}
+
 - (NSString*) pathExtension 
 {
   return [[self path] pathExtension];
@@ -1834,7 +1844,7 @@ static NSUInteger	urlAlign;
 - (NSURL*) URLByAppendingPathComponent: (NSString*)pathComponent 
 {
   return [self _URLBySettingPath:
-    [[self path] stringByAppendingPathComponent:pathComponent]];
+    [[self path] stringByAppendingPathComponent: pathComponent]];
 }
 
 - (NSURL*) URLByAppendingPathExtension: (NSString*)pathExtension
@@ -1853,6 +1863,25 @@ static NSUInteger	urlAlign;
 {
   return [self _URLBySettingPath:
     [[self path] stringByDeletingPathExtension]];
+}
+
+- (NSURL*) URLByResolvingSymlinksInPath 
+{
+  if ([self isFileURL]) 
+    {
+      return [NSURL fileURLWithPath:
+	[[self path] stringByResolvingSymlinksInPath]];
+    }
+  return self;
+}
+
+- (NSURL*) URLByStandardizingPath 
+{
+  if ([self isFileURL]) 
+    {
+      return [NSURL fileURLWithPath: [[self path] stringByStandardizingPath]];
+    }
+  return self;
 }
 
 - (void) URLHandle: (NSURLHandle*)sender
