@@ -2489,6 +2489,9 @@ static NSLock	*cached_proxies_gate = nil;
   NSInvocation	*inv = nil;
   unsigned	seq;
 
+  /* Save this for later */
+  [aRmc decodeValueOfObjCType: @encode(int) at: &seq];
+
   /*
    * Make sure don't let exceptions caused by servicing the client's
    * request cause us to crash.
@@ -2523,9 +2526,6 @@ static NSLock	*cached_proxies_gate = nil;
 			  format: @"Message received in wrong thread"];
 	    }
 	}
-
-      /* Save this for later */
-      [aRmc decodeValueOfObjCType: @encode(int) at: &seq];
 
       /*
        * Get the types that we're using, so that we know
