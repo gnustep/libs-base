@@ -70,6 +70,12 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 + (id) fileURLWithPath: (NSString*)aPath;
 
+#if OS_API_VERSION(100600,GS_API_LATEST) 
+/** Creates a file URL using a path built from components.
+ */
++ (NSURL*) fileURLWithPathComponents: (NSArray*)components;
+#endif
+
 /**
  * Create and return a URL with the supplied string, which should
  * be a string (containing percent escape codes where necessary)
@@ -253,8 +259,14 @@ GS_EXPORT NSString* const NSURLFileScheme;
 - (NSString*) path;
 
 #if OS_API_VERSION(100600,GS_API_LATEST) 
+/** Returns thepath components of the receiver.<br />
+ * See [NSString-pathComponents].
+ */
+- (NSArray*) pathComponents;
+
 /** Returns the file extension (text after the rightmost dot in the path)
- * of the receiver.
+ * of the receiver.<br />
+ * see [NSString-pathExtension].
  */
 - (NSString*) pathExtension;
 #endif
@@ -334,24 +346,39 @@ GS_EXPORT NSString* const NSURLFileScheme;
 
 #if OS_API_VERSION(100600,GS_API_LATEST) 
 /** Returns a URL formed by adding a path component to the path of the
- * receiver.
+ * receiver.<br />
+ * See [NSString-stringByAppendingPathComponent:].
  */
 - (NSURL*) URLByAppendingPathComponent: (NSString*)pathComponent;
 
 /** Returns a URL formed by adding a path extension to the path of the
- * receiver.
+ * receiver.<br />
+ * See [NSString-stringByAppendingPathExtension:].
  */
 - (NSURL*) URLByAppendingPathExtension: (NSString*)pathExtension;
 
 /** Returns a URL formed by removing a path component from the path of the
- * receiver.
+ * receiver.<br />
+ * See [NSString-stringByDeletingLastPathComponent].
  */
 - (NSURL*) URLByDeletingLastPathComponent;
 
 /** Returns a URL formed by removing an extension from the path of the
- * receiver.
+ * receiver.<br />
+ * See [NSString-stringByDeletingPathExtension].
  */
 - (NSURL*) URLByDeletingPathExtension;
+
+/** Returns self unless the receiver is a file URL, in which case it returns
+ * a URL formed by calling [NSString-stringByResolvingSymlinksInPath].
+ */
+- (NSURL*) URLByResolvingSymlinksInPath;
+
+/** Returns self unless the receiver is a file URL, in which case it returns
+ * a URL formed by calling [NSString-stringByStandardizingPath].
+ */
+- (NSURL*) URLByStandardizingPath;
+
 #endif
 
 /**

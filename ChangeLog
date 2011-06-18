@@ -1,3 +1,8 @@
+2011-06-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURL.h:
+	* Source/NSURL.m: more 10.6 methods
+
 2011-06-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: Fix error with whitespace at end of attributes.
