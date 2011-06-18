@@ -57,7 +57,7 @@
   if ([host length] > 0)
     {
       [urlString appendString:
-	[s stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
+	[host stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
     }
   if ([port intValue] > 0)
     {
