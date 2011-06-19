@@ -161,8 +161,8 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
  * Yet the optimization of the stored hash value is currently deemed
  * more important.
  */
-#define GS_REPLACE_CONSTANT_STRING(ID) \
-  ID = [[NSStringClass alloc] initWithCString: [ID cString]]
+#define GS_REPLACE_CONSTANT_STRING(ID) [(ID = [NSObject \
+  leak: [[NSString alloc] initWithCString: [ID cString]]]) release]
 /* Using cString here is OK here
    because NXConstantString returns a pointer
    to it's internal pointer.  */

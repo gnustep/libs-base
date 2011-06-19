@@ -96,6 +96,67 @@ extern "C" {
 
 @end
 
+/** Category for methods handling leaked memory cleanup on exit of process
+ * (for use when debugging memory leaks).<br />
+ * You enable this by calling the +setShouldCleanUp: method (done implicitly
+ * by gnustep-base if the GNUSTEP_SHOULD_CLEAN_UP environment variable is
+ * set to YES).<br />
+ * Your class then has two options for performing cleanup when the process
+ * ends:
+ * <p>1. Use the +leak: method to register objects which are simply to be 
+ * retained until the process ends, and then either ignored or released
+ * depending on the cleanup setting in force.  This mechanism is simple
+ * and should be sufficient for many classes.
+ * </p>
+ * <p>2. Implement a +atExit method to be run when the process ends and,
+ * within that method call +shouldCleanUp to determine whether cleanup
+ * should be done, and if it returns YES then perform any complex cleanup
+ * tasks for the class.
+ * </p>
+ */
+@interface NSObject(atExit)
+
+/** This method is called on exit for any class which implements it.<br />
+ * The order in which methods for different classes is called is indeterminate
+ * so the method must not depend on any other class being in a usable state
+ * at the point when the method is called (rather like +load).<br />
+ * Typical use would be to release memory occupied by class data structures
+ * so that memory usage analysis software will not think the memory has
+ * been leaked.
+ */
++ (void) atExit;
+
+/** Activates support for the +atExit method.
+ */
++ (void) enableAtExit;
+
+/** This method simply retains its argument so that it will never be
+ * deallocated during normal operation, but keeps track of it so that
+ * it is released during process exit (at the point immediately before
+ * calls to +atExit methods are performed) if cleanup is enabled.<br />
+ * Returns its argument.
+ */
++ (id) leak: (id)anObject;
+
+/** Specifies the default cleanup behavior on process exit ... the value
+ * returned by the NSObject implementation of the +shouldClanUp method.<br />
+ * Calling this method with a YES argument implicitly calls the +enableAtExit
+ * method as well.<br />
+ * The GNUstep Base library calls this method with the value obtained from
+ * the GNUSTEP_SHOULD_CLEAN_UP environment variable when NSObject is
+ * initialised.
+ */
++ (void) setShouldCleanUp: (BOOL)aFlag;
+
+/** Returns a flag indicating whether the receiver should clean up
+ * its data structures etc at process exit.<br />
+ * The NSObject implementation returns the value set by the +setShouldCleanUp:
+ * method but subclasses may override this.
+ */
++ (BOOL) shouldCleanUp;
+
+@end
+
 #endif	/* OS_API_VERSION */
 
 #if	defined(__cplusplus)

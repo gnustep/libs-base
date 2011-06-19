@@ -363,6 +363,15 @@ newLanguages(NSArray *oldNames)
  */
 @implementation NSUserDefaults: NSObject
 
++ (void) atExit
+{
+  id	tmp;
+
+  tmp = sharedDefaults;
+  sharedDefaults = nil;
+  [tmp release];
+}
+
 + (void) initialize
 {
   if (self == [NSUserDefaults class])

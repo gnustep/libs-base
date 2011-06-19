@@ -47,6 +47,7 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSMapTable.h"
 #import "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -70,7 +71,6 @@
 
 #define	IN_NSOBJECT_M	1
 #import "GSPrivate.h"
-
 
 /* When this is `YES', every call to release/autorelease, checks to
    make sure isn't being set up to release itself too many times.
@@ -1112,6 +1112,14 @@ objc_create_block_classes_as_subclasses_of(Class super);
        * string constants etc.
        */
       NSConstantStringClass = [NSString constantStringClass];
+
+      /* See if we should cleanup at process exit.
+       */
+      if (YES == GSPrivateEnvironmentFlag("GNUSTEP_SHOULD_CLEAN_UP", NO))
+	{
+	  [self setShouldCleanUp: YES];
+	}
+
       GSPrivateBuildStrings();
 
       /* Determine zombie management flags and set up a map to store
