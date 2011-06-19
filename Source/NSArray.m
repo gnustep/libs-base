@@ -101,6 +101,13 @@ static SEL	oaiSel;
 static SEL	remSel;
 static SEL	rlSel;
 
++ (void) atExit
+{
+  DESTROY(defaultPlaceholderArray);
+  DESTROY(placeholderLock);
+  DESTROY(placeholderMap);
+}
+
 + (void) initialize
 {
   if (self == [NSArray class])
@@ -129,6 +136,7 @@ static SEL	rlSel;
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       placeholderLock = [NSLock new];
+      [self registerAtExit];
     }
 }
 

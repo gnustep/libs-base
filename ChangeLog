@@ -2,6 +2,19 @@
 
 	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
 	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/NSArray.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObject.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSValue.m:
+	More leak cleanup.
+
+2011-06-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/NSObject+GNUstepBase.m:
 	Add new category with methods for cleanup of long-lived data structures
 	on process exit.
 	* Source/NSObject.m: Check GNUSTEP_SHOULD_CLEAN_UP environment variable

@@ -668,6 +668,7 @@ static NSMapTable	*absolutes = 0;
     {
       absolutes = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
+      [[NSObject leakAt: (id*)&absolutes] release];
     }
 }
 
@@ -1340,18 +1341,23 @@ static NSMapTable	*absolutes = 0;
       NSTimeZoneClass = self;
       GSPlaceholderTimeZoneClass = [GSPlaceholderTimeZone class];
       zoneDictionary = [[NSMutableDictionary alloc] init];
+      [[NSObject leakAt: &zoneDictionary] release];
 
       /*
        * Set up infrastructure for placeholder timezones.
        */
       defaultPlaceholderTimeZone = (GSPlaceholderTimeZone*)
 	NSAllocateObject(GSPlaceholderTimeZoneClass, 0, NSDefaultMallocZone());
+      [[NSObject leakAt: &defaultPlaceholderTimeZone] release];
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: (id*)&placeholderMap] release];
 
       localTimeZone = [[NSLocalTimeZone alloc] init];
+      [[NSObject leakAt: (id*)&localTimeZone] release];
 
       zone_mutex = [GSLazyRecursiveLock new];
+      [[NSObject leakAt: (id*)&zone_mutex] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(_notified:)

@@ -127,80 +127,135 @@
 
 @end
 
-static NSMutableArray	*leaked = nil;
-static NSLock		*leakLock = nil;
+struct exitLink {
+  struct exitLink	*next;
+  Class			cls;
+};
+
+struct leakLink {
+  struct leakLink	*next;
+  id			obj;
+  id			*at;
+};
+
+static struct exitLink	*exited = 0;
+static struct leakLink	*leaked = 0;
+static BOOL		enabled = NO;
 static BOOL		shouldCleanUp = NO;
 
 static void
 handleExit()
 {
-  int	classCount;
-
   if (YES == shouldCleanUp)
     {
-      DESTROY(leaked);
-      DESTROY(leakLock);
-    }
-  classCount = objc_getClassList(NULL, 0);
-  if (classCount > 0)
-    {
-      Class	*classes;
-      int	index;
- 
-      classes = malloc(sizeof(Class) * classCount);
-      classCount = objc_getClassList(classes, classCount);
-      for (index = 0; index < classCount; index++)
+      while (leaked != 0)
 	{
-	  Class		c = classes[index];
-	  Method	m = class_getClassMethod(c, @selector(atExit));
+	  struct leakLink	*tmp = leaked;
 
-	  if (m != 0)
+	  leaked = tmp->next;
+	  if (0 != tmp->at)
 	    {
-	      Class	s = class_getSuperclass(c);
-
-	      if (0 == s || class_getClassMethod(s, @selector(atExit)) != m)
-		{
-		  [c atExit];
-		}
+	      tmp->obj = *(tmp->at);
+	      *(tmp->at) = nil;
 	    }
+	  [tmp->obj release];
+	  free(tmp);
 	}
-      free(classes);
     }
+
+  while (exited != 0)
+    {
+      struct exitLink	*tmp = exited;
+
+      exited = tmp->next;
+      [tmp->cls atExit];
+      free(tmp);
+    }
+
+  [gnustep_global_lock release];
 }
 
 @implementation NSObject(atExit)
-
-+ (void) enableAtExit
-{
-  if (nil == leakLock)
-    {
-      leakLock = [NSLock new];
-      atexit(handleExit);
-    }
-}
 
 + (void) atExit
 {
   return;
 }
 
++ (id) leakAt: (id*)anAddress
+{
+  struct leakLink	*l;
+
+  l = (struct leakLink*)malloc(sizeof(struct leakLink));
+  l->at = anAddress;
+  l->obj = [*anAddress retain];
+  [gnustep_global_lock lock];
+  l->next = leaked;
+  leaked = l;
+  [gnustep_global_lock unlock];
+  return l->obj;
+}
+
 + (id) leak: (id)anObject
 {
-  [leakLock lock];
-  if (nil == leaked)
+  struct leakLink	*l;
+
+  l = (struct leakLink*)malloc(sizeof(struct leakLink));
+  l->at = 0;
+  l->obj = [anObject retain];
+  [gnustep_global_lock lock];
+  l->next = leaked;
+  leaked = l;
+  [gnustep_global_lock unlock];
+  return l->obj;
+}
+
++ (void) registerAtExit
+{
+  Method	m = class_getClassMethod(self, @selector(atExit));
+
+  if (m != 0)
     {
-      leaked = [NSMutableArray new];
+      Class	s = class_getSuperclass(self);
+
+      if (0 == s || class_getClassMethod(s, @selector(atExit)) != m)
+	{
+	  struct exitLink	*l;
+
+	  [gnustep_global_lock lock];
+	  for (l = exited; l != 0; l = l->next)
+	    {
+	      if (l->cls == self)
+		{
+		  [gnustep_global_lock unlock];
+		  return;	// Already registered
+		}
+	    }
+	  l = (struct exitLink*)malloc(sizeof(struct exitLink));
+	  l->cls = self;
+	  l->next = exited;
+	  exited = l;
+	  if (NO == enabled)
+	    {
+	      atexit(handleExit);
+	      enabled = YES;
+	    }
+	  [gnustep_global_lock lock];
+	}
     }
-  [leaked addObject: anObject];
-  [leakLock unlock];
-  return anObject;
 }
 
 + (void) setShouldCleanUp: (BOOL)aFlag
 {
   if (YES == aFlag)
     {
-      [self enableAtExit];
+      [gnustep_global_lock lock];
+      if (NO == enabled)
+	{
+	  atexit(handleExit);
+	  enabled = YES;
+	}
+      [gnustep_global_lock lock];
       shouldCleanUp = YES;
     }
   else
