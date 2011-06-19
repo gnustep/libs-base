@@ -417,6 +417,8 @@ static void endNCTable(NCTable *t)
   GSIMapNode		n0;
   Observation		*l;
 
+  TEST_RELEASE(t->_lock);
+
   /*
    * Free observations without notification names or numbers.
    */
@@ -472,8 +474,6 @@ static void endNCTable(NCTable *t)
     }
   NSZoneFree(NSDefaultMallocZone(), t->chunks);
   NSZoneFree(NSDefaultMallocZone(), t);
-
-  TEST_RELEASE(t->_lock);
 }
 
 static NCTable *newNCTable(void)
@@ -683,6 +683,14 @@ purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
    There is no need to mutex locking of this variable. */
 
 static NSNotificationCenter *default_center = nil;
+
++ (void) atExit
+{
+  id	tmp = default_center;
+
+  default_center = nil;
+  [tmp release];
+}
 
 + (void) initialize
 {

@@ -38,6 +38,7 @@
 #import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSTask.h"
 #import	"GNUstepBase/NSTask+GNUstepBase.h"
+#import	"GNUstepBase/NSObject+GNUstepBase.h"
 #import	"Foundation/NSDistributedNotificationCenter.h"
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSHost.h"
@@ -151,7 +152,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		      NSAllocateObject(self, 0, NSDefaultMallocZone());
 		    tmp->_centerLock = [NSRecursiveLock new];
 		    tmp->_type = RETAIN(NSLocalNotificationCenterType);
-		    locCenter = tmp;
+		    locCenter = [NSObject leak: tmp];
+		    [tmp release];
 		  }
 		NS_HANDLER
 		  {
@@ -179,7 +181,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		      NSAllocateObject(self, 0, NSDefaultMallocZone());
 		    tmp->_centerLock = [NSRecursiveLock new];
 		    tmp->_type = RETAIN(GSPublicNotificationCenterType);
-		    pubCenter = tmp;
+		    pubCenter = [NSObject leak: tmp];
+		    [tmp release];
 		  }
 		NS_HANDLER
 		  {
@@ -207,7 +210,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		      NSAllocateObject(self, 0, NSDefaultMallocZone());
 		    tmp->_centerLock = [NSRecursiveLock new];
 		    tmp->_type = RETAIN(GSNetworkNotificationCenterType);
-		    netCenter = tmp;
+		    netCenter = [NSObject leak: tmp];
+		    [tmp release];
 		  }
 		NS_HANDLER
 		  {

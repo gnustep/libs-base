@@ -23,7 +23,9 @@
 
 */
 #import "common.h"
+#import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 
@@ -121,6 +123,95 @@
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
   return nil;
+}
+
+@end
+
+static NSMutableArray	*leaked = nil;
+static NSLock		*leakLock = nil;
+static BOOL		shouldCleanUp = NO;
+
+static void
+handleExit()
+{
+  int	classCount;
+
+  if (YES == shouldCleanUp)
+    {
+      DESTROY(leaked);
+      DESTROY(leakLock);
+    }
+  classCount = objc_getClassList(NULL, 0);
+  if (classCount > 0)
+    {
+      Class	*classes;
+      int	index;
+ 
+      classes = malloc(sizeof(Class) * classCount);
+      classCount = objc_getClassList(classes, classCount);
+      for (index = 0; index < classCount; index++)
+	{
+	  Class		c = classes[index];
+	  Method	m = class_getClassMethod(c, @selector(atExit));
+
+	  if (m != 0)
+	    {
+	      Class	s = class_getSuperclass(c);
+
+	      if (0 == s || class_getClassMethod(s, @selector(atExit)) != m)
+		{
+		  [c atExit];
+		}
+	    }
+	}
+      free(classes);
+    }
+}
+
+@implementation NSObject(atExit)
+
++ (void) enableAtExit
+{
+  if (nil == leakLock)
+    {
+      leakLock = [NSLock new];
+      atexit(handleExit);
+    }
+}
+
++ (void) atExit
+{
+  return;
+}
+
++ (id) leak: (id)anObject
+{
+  [leakLock lock];
+  if (nil == leaked)
+    {
+      leaked = [NSMutableArray new];
+    }
+  [leaked addObject: anObject];
+  [leakLock unlock];
+  return anObject;
+}
+
++ (void) setShouldCleanUp: (BOOL)aFlag
+{
+  if (YES == aFlag)
+    {
+      [self enableAtExit];
+      shouldCleanUp = YES;
+    }
+  else
+    {
+      shouldCleanUp = NO;
+    }
+}
+
++ (BOOL) shouldCleanUp
+{
+  return shouldCleanUp;
 }
 
 @end

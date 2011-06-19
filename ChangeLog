@@ -1,3 +1,28 @@
+2011-06-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	Add new category with methods for cleanup of long-lived data structures
+	on process exit.
+	* Source/NSObject.m: Check GNUSTEP_SHOULD_CLEAN_UP environment variable
+	and call +shouldCleanUp: if it is set.
+	* Documentation/Base.gsdoc: Document new environment variable.
+	* Source/GSLocale.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSNotificationCenter.m:
+	* Source/GSPrivate.h:
+	* Source/externs.m:
+	* Source/NSString.m:
+	Add some cleanup support.
+
+	Classes may perform cleanup in a +atExit method which is automatically
+	called on process exit.
+	Classes may use [NSObject+leak:] to 'leak' an object so that it is
+	retained for the life of the process, but released immediately before
+	the +atExit methods are called if GNUSTEP_SHOULD_CLEAN_UP is YES.
+	See the NSObject(AtExit) category documentation for details. 
+
 2011-06-18  Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 
 	* Source/NSObject.m: fix for clang

@@ -558,6 +558,19 @@ handle_printf_atsign (FILE *stream,
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
 
++ (void) atExit
+{
+  NSMapTable	*t = placeholderMap;
+
+  if (0 != t)
+    {
+      DESTROY(defaultPlaceholderString);
+      DESTROY(placeholderLock);
+      placeholderMap = 0;
+      NSFreeMapTable(t);
+    }
+}
+
 + (void) initialize
 {
   /*

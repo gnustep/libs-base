@@ -269,6 +269,22 @@ notice and this notice are preserved.
 		core dump on systems where that is possible.
 	      </p>
 	    </desc>
+	    <term>GNUSTEP_SHOULD_CLEAN_UP</term>
+	    <desc>
+	      <p>
+		When this is set to YES, the GNUstep extension method
+		+setShouldCleanUp: is called when the NSObject class is
+		initialised, this turns on recording of some intentionally
+		leaked memory (data structures intended to persist for the
+		whole life of the process), and activates cleanup of that
+		memory on process exit so that external tools such as
+		valgrind will not report the memory as possibly lost. 
+	      </p>
+	      <p>
+		Use of this facility is a work in progress ... many classes
+		do not yet clean up after themselves when this is enabled.
+	      </p>
+	    </desc>
 	    <term>GNUSTEP_STACK_TRACE</term>
 	    <desc>
 	      <p>

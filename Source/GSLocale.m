@@ -24,6 +24,7 @@
 */
 #import "common.h"
 #import "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSLock.h"
@@ -218,7 +219,7 @@ GSDomainFromDefaultLocale(void)
    */
   if (saved == nil)
     {
-      saved = [dict mutableCopy];
+      saved = [NSObject leak: dict];
     }
   [gnustep_global_lock unlock];
   return saved;
