@@ -390,6 +390,7 @@ newLanguages(NSArray *oldNames)
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
       classLock = [GSLazyRecursiveLock new];
+      [self registerAtExit];
     }
 }
 

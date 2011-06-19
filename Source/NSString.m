@@ -560,15 +560,9 @@ handle_printf_atsign (FILE *stream,
 
 + (void) atExit
 {
-  NSMapTable	*t = placeholderMap;
-
-  if (0 != t)
-    {
-      DESTROY(defaultPlaceholderString);
-      DESTROY(placeholderLock);
-      placeholderMap = 0;
-      NSFreeMapTable(t);
-    }
+  DESTROY(defaultPlaceholderString);
+  DESTROY(placeholderLock);
+  DESTROY(placeholderMap);
 }
 
 + (void) initialize
@@ -626,6 +620,7 @@ handle_printf_atsign (FILE *stream,
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
 #endif
+      [self registerAtExit];
     }
 }
 

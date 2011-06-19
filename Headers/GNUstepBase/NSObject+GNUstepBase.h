@@ -109,26 +109,25 @@ extern "C" {
  * and should be sufficient for many classes.
  * </p>
  * <p>2. Implement a +atExit method to be run when the process ends and,
- * within that method call +shouldCleanUp to determine whether cleanup
- * should be done, and if it returns YES then perform any complex cleanup
- * tasks for the class.
+ * within your +initialize implementation, call +shouldCleanUp to determine
+ * whether cleanup should be done, and if it returns YES then call
+ * +registerAtExit to have your +atExit method called when the process
+ * terminates.
  * </p>
  */
 @interface NSObject(atExit)
 
-/** This method is called on exit for any class which implements it.<br />
- * The order in which methods for different classes is called is indeterminate
- * so the method must not depend on any other class being in a usable state
+/** This method is called on exit for any class which implements it and which
+ * has called +registerAtExit to register it to be called.<br />
+ * The order in which methods for different classes is called is the reverse
+ * of the order in which the classes were registered, but it's best to assume
+ * the method can not depend on any other class being in a usable state
  * at the point when the method is called (rather like +load).<br />
  * Typical use would be to release memory occupied by class data structures
  * so that memory usage analysis software will not think the memory has
  * been leaked.
  */
 + (void) atExit;
-
-/** Activates support for the +atExit method.
- */
-+ (void) enableAtExit;
 
 /** This method simply retains its argument so that it will never be
  * deallocated during normal operation, but keeps track of it so that
@@ -137,6 +136,20 @@ extern "C" {
  * Returns its argument.
  */
 + (id) leak: (id)anObject;
+
+/** This method retains the object at *anAddress so that it will never be
+ * deallocated during normal operation, but keeps track of the address
+ * so that the object is released and the address is zeroed during process
+ * exit (at the point immediately before calls to +atExit methods are
+ * performed) if cleanup is enabled.<br />
+ * Returns the object at *anAddress.
+ */
++ (id) leakAt: (id*)anAddress;
+
+/** Sets the receiver to have its +atExit method called at the point when
+ * the process terminates.
+ */
++ (void) registerAtExit;
 
 /** Specifies the default cleanup behavior on process exit ... the value
  * returned by the NSObject implementation of the +shouldClanUp method.<br />

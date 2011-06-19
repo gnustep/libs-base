@@ -1101,6 +1101,13 @@ objc_create_block_classes_as_subclasses_of(Class super);
       GSObjCBehaviorDebug(GSPrivateEnvironmentFlag("GNUSTEP_BEHAVIOR_DEBUG",
 	GSObjCBehaviorDebug(-1)));
 
+      /* See if we should cleanup at process exit.
+       */
+      if (YES == GSPrivateEnvironmentFlag("GNUSTEP_SHOULD_CLEAN_UP", NO))
+	{
+	  [self setShouldCleanUp: YES];
+	}
+
       /* Set up the autorelease system ... we must do this before using any
        * other class whose +initialize might autorelease something.
        */
@@ -1113,13 +1120,6 @@ objc_create_block_classes_as_subclasses_of(Class super);
        */
       NSConstantStringClass = [NSString constantStringClass];
 
-      /* See if we should cleanup at process exit.
-       */
-      if (YES == GSPrivateEnvironmentFlag("GNUSTEP_SHOULD_CLEAN_UP", NO))
-	{
-	  [self setShouldCleanUp: YES];
-	}
-
       GSPrivateBuildStrings();
 
       /* Determine zombie management flags and set up a map to store
@@ -1129,6 +1129,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
       NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
+      [[NSObject leakAt: (id*)&zombieMap] release];
 
       /* We need to cache the zombie class.
        * We can't call +class because NSZombie doesn't have that method.
