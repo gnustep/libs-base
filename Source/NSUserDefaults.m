@@ -788,8 +788,11 @@ newLanguages(NSArray *oldNames)
     }
   NS_HANDLER
     {
-      [defs->_lock unlock];
-      [defs release];
+      if (nil != defs)
+	{
+	  [defs->_lock unlock];
+	  [defs release];
+	}
       [localException raise];
     }
   NS_ENDHANDLER

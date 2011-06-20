@@ -1129,7 +1129,6 @@ objc_create_block_classes_as_subclasses_of(Class super);
       NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
-      [[NSObject leakAt: (id*)&zombieMap] release];
 
       /* We need to cache the zombie class.
        * We can't call +class because NSZombie doesn't have that method.
