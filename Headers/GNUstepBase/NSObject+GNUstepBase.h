@@ -96,6 +96,23 @@ extern "C" {
 
 @end
 
+/** This is an informal protocol ... classes may implement the method and
+ * register themselves to have it called on process exit.
+ */
+@interface NSObject(GSAtExit)
+/** This method is called on exit for any class which implements it and which
+ * has called +registerAtExit to register it to be called.<br />
+ * The order in which methods for different classes is called is the reverse
+ * of the order in which the classes were registered, but it's best to assume
+ * the method can not depend on any other class being in a usable state
+ * at the point when the method is called (rather like +load).<br />
+ * Typical use would be to release memory occupied by class data structures
+ * so that memory usage analysis software will not think the memory has
+ * been leaked.
+ */
++ (void) atExit;
+@end
+
 /** Category for methods handling leaked memory cleanup on exit of process
  * (for use when debugging memory leaks).<br />
  * You enable this by calling the +setShouldCleanUp: method (done implicitly
@@ -114,25 +131,17 @@ extern "C" {
  * +registerAtExit to have your +atExit method called when the process
  * terminates.
  * </p>
+ * <p>The order in which 'leaked' objects are released and +atExit methods
+ * are called on process exist is the reverse of the order in which they
+ * werse set up suing this API.
+ * </p>
  */
-@interface NSObject(atExit)
+@interface NSObject(GSCleanup)
 
-/** This method is called on exit for any class which implements it and which
- * has called +registerAtExit to register it to be called.<br />
- * The order in which methods for different classes is called is the reverse
- * of the order in which the classes were registered, but it's best to assume
- * the method can not depend on any other class being in a usable state
- * at the point when the method is called (rather like +load).<br />
- * Typical use would be to release memory occupied by class data structures
- * so that memory usage analysis software will not think the memory has
- * been leaked.
- */
-+ (void) atExit;
 
 /** This method simply retains its argument so that it will never be
  * deallocated during normal operation, but keeps track of it so that
- * it is released during process exit (at the point immediately before
- * calls to +atExit methods are performed) if cleanup is enabled.<br />
+ * it is released during process exit if cleanup is enabled.<br />
  * Returns its argument.
  */
 + (id) leak: (id)anObject;
@@ -140,16 +149,26 @@ extern "C" {
 /** This method retains the object at *anAddress so that it will never be
  * deallocated during normal operation, but keeps track of the address
  * so that the object is released and the address is zeroed during process
- * exit (at the point immediately before calls to +atExit methods are
- * performed) if cleanup is enabled.<br />
+ * exit if cleanup is enabled.<br />
  * Returns the object at *anAddress.
  */
 + (id) leakAt: (id*)anAddress;
 
 /** Sets the receiver to have its +atExit method called at the point when
- * the process terminates.
+ * the process terminates.<br />
+ * Returns YES on success and NO on failure (if the class does not implement
+ * the method or if it is already registered to call it).<br />
+ * Implemented as a call to +registerAtExit: with the selector for the +atExit
+ * method as its argument.
  */
-+ (void) registerAtExit;
++ (BOOL) registerAtExit;
+
+/** Sets the receiver to have the specified  method called at the point when
+ * the process terminates.<br />
+ * Returns YES on success and NO on failure (if the class does not implement
+ * the method ir if it is already registered to call it).
+ */
++ (BOOL) registerAtExit: (SEL)aSelector;
 
 /** Specifies the default cleanup behavior on process exit ... the value
  * returned by the NSObject implementation of the +shouldClanUp method.<br />

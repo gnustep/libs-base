@@ -129,120 +129,132 @@
 
 struct exitLink {
   struct exitLink	*next;
-  Class			cls;
-};
-
-struct leakLink {
-  struct leakLink	*next;
-  id			obj;
-  id			*at;
+  id			obj;	// Object to release or class for atExit
+  SEL			sel;	// Selector for atExit or 0 if releasing
+  id			*at;	// Address of static variable or NULL
 };
 
 static struct exitLink	*exited = 0;
-static struct leakLink	*leaked = 0;
 static BOOL		enabled = NO;
 static BOOL		shouldCleanUp = NO;
 
 static void
 handleExit()
 {
-  if (YES == shouldCleanUp)
+  while (exited != 0)
     {
-      while (leaked != 0)
-	{
-	  struct leakLink	*tmp = leaked;
+      struct exitLink	*tmp = exited;
 
-	  leaked = tmp->next;
+      exited = tmp->next;
+      if (0 != tmp->sel)
+	{
+	  Method	method;
+	  IMP		msg;
+
+	  method = class_getClassMethod(tmp->obj, tmp->sel);
+	  msg = method_getImplementation(method);
+	  if (0 != msg)
+	    {
+	      (*msg)(tmp->obj, tmp->sel);
+	    }
+	}
+      else if (YES == shouldCleanUp)
+	{
 	  if (0 != tmp->at)
 	    {
 	      tmp->obj = *(tmp->at);
 	      *(tmp->at) = nil;
 	    }
 	  [tmp->obj release];
-	  free(tmp);
 	}
-    }
-
-  while (exited != 0)
-    {
-      struct exitLink	*tmp = exited;
-
-      exited = tmp->next;
-      [tmp->cls atExit];
       free(tmp);
     }
 
   [gnustep_global_lock release];
 }
 
-@implementation NSObject(atExit)
-
-+ (void) atExit
-{
-  return;
-}
+@implementation NSObject(GSCleanup)
 
 + (id) leakAt: (id*)anAddress
 {
-  struct leakLink	*l;
+  struct exitLink	*l;
 
-  l = (struct leakLink*)malloc(sizeof(struct leakLink));
+  l = (struct exitLink*)malloc(sizeof(struct exitLink));
   l->at = anAddress;
   l->obj = [*anAddress retain];
+  l->sel = 0;
   [gnustep_global_lock lock];
-  l->next = leaked;
-  leaked = l;
+  l->next = exited;
+  exited = l;
   [gnustep_global_lock unlock];
   return l->obj;
 }
 
 + (id) leak: (id)anObject
 {
-  struct leakLink	*l;
+  struct exitLink	*l;
 
-  l = (struct leakLink*)malloc(sizeof(struct leakLink));
+  l = (struct exitLink*)malloc(sizeof(struct exitLink));
   l->at = 0;
   l->obj = [anObject retain];
+  l->sel = 0;
   [gnustep_global_lock lock];
-  l->next = leaked;
-  leaked = l;
+  l->next = exited;
+  exited = l;
   [gnustep_global_lock unlock];
   return l->obj;
 }
 
-+ (void) registerAtExit
++ (BOOL) registerAtExit
 {
-  Method	m = class_getClassMethod(self, @selector(atExit));
+  return [self registerAtExit: @selector(atExit)];
+}
 
-  if (m != 0)
++ (BOOL) registerAtExit: (SEL)sel
+{
+  Method		m;
+  Class			s;
+  struct exitLink	*l;
+
+  if (0 == sel)
     {
-      Class	s = class_getSuperclass(self);
+      sel = @selector(atExit);
+    }
 
-      if (0 == s || class_getClassMethod(s, @selector(atExit)) != m)
+  m = class_getClassMethod(self, sel);
+  if (0 == m)
+    {
+      return NO;	// method not implemented.
+    }
+
+  s = class_getSuperclass(self);
+  if (0 != s && class_getClassMethod(s, sel) == m)
+    {
+      return NO;	// method not implemented in this class
+    }
+
+  [gnustep_global_lock lock];
+  for (l = exited; l != 0; l = l->next)
+    {
+      if (l->obj == self && sel_isEqual(l->sel, sel))
 	{
-	  struct exitLink	*l;
-
-	  [gnustep_global_lock lock];
-	  for (l = exited; l != 0; l = l->next)
-	    {
-	      if (l->cls == self)
-		{
-		  [gnustep_global_lock unlock];
-		  return;	// Already registered
-		}
-	    }
-	  l = (struct exitLink*)malloc(sizeof(struct exitLink));
-	  l->cls = self;
-	  l->next = exited;
-	  exited = l;
-	  if (NO == enabled)
-	    {
-	      atexit(handleExit);
-	      enabled = YES;
-	    }
-	  [gnustep_global_lock lock];
+	  [gnustep_global_lock unlock];
+	  return NO;	// Already registered
 	}
     }
+  l = (struct exitLink*)malloc(sizeof(struct exitLink));
+  l->obj = self;
+  l->sel = sel;
+  l->at = 0;
+  l->next = exited;
+  exited = l;
+  if (NO == enabled)
+    {
+      atexit(handleExit);
+      enabled = YES;
+    }
+  [gnustep_global_lock lock];
+  return YES;
 }
 
 + (void) setShouldCleanUp: (BOOL)aFlag
