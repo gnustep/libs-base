@@ -624,6 +624,13 @@ purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
 
 static NSNotificationCenter *default_center = nil;
 
+static void cleanup()
+{
+  id i = default_center;
+  default_center = nil;
+  [default_center release];
+}
+
 + (void) initialize
 {
   if (self == [NSNotificationCenter class])
@@ -648,6 +655,7 @@ static NSNotificationCenter *default_center = nil;
        */
       default_center = [self alloc];
       [default_center init];
+atexit(cleanup);
     }
 }
 

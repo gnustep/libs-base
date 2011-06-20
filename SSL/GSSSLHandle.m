@@ -225,7 +225,7 @@ static BOOL	permitSSLv2 = NO;
   [super finalize];
 }
 
-- (int) read: (void*)buf length: (NSUInteger)len
+- (NSInteger) read: (void*)buf length: (NSUInteger)len
 {
   if (connected)
     {
@@ -516,7 +516,7 @@ static BOOL	permitSSLv2 = NO;
     }
 }
 
-- (int) write: (const void*)buf length: (NSUInteger)len
+- (NSInteger) write: (const void*)buf length: (NSUInteger)len
 {
   if (connected)
     {

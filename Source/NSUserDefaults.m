@@ -386,7 +386,7 @@ newLanguages(NSArray *oldNames)
 
 + (void) resetStandardUserDefaults
 {
-  NSDictionary	*regDefs;
+  NSDictionary	*regDefs = nil;
 
   [classLock lock];
   NS_DURING
