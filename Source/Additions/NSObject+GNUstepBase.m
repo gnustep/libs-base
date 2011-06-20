@@ -253,7 +253,7 @@ handleExit()
       atexit(handleExit);
       enabled = YES;
     }
-  [gnustep_global_lock lock];
+  [gnustep_global_lock unlock];
   return YES;
 }
 
@@ -267,7 +267,7 @@ handleExit()
 	  atexit(handleExit);
 	  enabled = YES;
 	}
-      [gnustep_global_lock lock];
+      [gnustep_global_lock unlock];
       shouldCleanUp = YES;
     }
   else
