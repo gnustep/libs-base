@@ -136,7 +136,7 @@ static void GSMakeZombie(NSObject *o)
 
   c = object_getClass(o);
   object_setClass(o, zombieClass);
-  if (NSDeallocateZombies == NO)
+  if (0 != zombieMap)
     {
       [allocationLock lock];
       NSMapInsert(zombieMap, (void*)o, (void*)c);
@@ -149,7 +149,7 @@ static void GSLogZombie(id o, SEL sel)
 {
   Class	c = 0;
 
-  if (NSDeallocateZombies == NO)
+  if (0 != zombieMap)
     {
       [allocationLock lock];
       c = NSMapGet(zombieMap, (void*)o);
@@ -1106,6 +1106,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
       if (YES == GSPrivateEnvironmentFlag("GNUSTEP_SHOULD_CLEAN_UP", NO))
 	{
 	  [self setShouldCleanUp: YES];
+	  [self registerAtExit: @selector(_atExit)];
 	}
 
       /* Set up the autorelease system ... we must do this before using any
@@ -1147,6 +1148,11 @@ objc_create_block_classes_as_subclasses_of(Class super);
 	     object: nil];
     }
   return;
+}
+
++ (void) _atExit
+{
+  DESTROY(zombieMap);
 }
 
 /**
@@ -2460,7 +2466,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
 }
 - (Class) originalClass
 {
-  return NSMapGet(zombieMap, (void*)self);
+  return zombieMap ? NSMapGet(zombieMap, (void*)self) : Nil;
 }
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
@@ -2481,7 +2487,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
       return nil;
     }
   [allocationLock lock];
-  c = NSMapGet(zombieMap, (void*)self);
+  c = zombieMap ? NSMapGet(zombieMap, (void*)self) : Nil;
   [allocationLock unlock];
   return [c instanceMethodSignatureForSelector: aSelector];
 }

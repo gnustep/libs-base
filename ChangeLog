@@ -3,6 +3,10 @@
 	* Source/NSObject.m: Keep zombie working until after atext stuff has
 	run.
 	* Source/NSUserDefaults.m: fix possible deref of nul pointer.
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	Make clanup code a bit more flexible by allowin different cleanup
+	methods to be registered.
 
 2011-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 
