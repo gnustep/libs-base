@@ -1,3 +1,9 @@
+2011-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Keep zombie working until after atext stuff has
+	run.
+	* Source/NSUserDefaults.m: fix possible deref of nul pointer.
+
 2011-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
