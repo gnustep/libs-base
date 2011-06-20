@@ -1,3 +1,9 @@
+2011-06-20  Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+	* SSL/GSSSLHandle.m:
+	* Headers/GNUstepBase/GSFileHandle.h:
+	Avoid compiler warnings
+
 2011-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Keep zombie working until after atext stuff has

@@ -36,6 +36,9 @@
 #include <zlib.h>
 #endif
 
+#include <sys/types.h>
+#include <netinet/in.h>
+
 /**
  * DO NOT USE ... this header is here only for the SSL file handle support
  * and is not intended to be used by anyone else ... it is subject to
