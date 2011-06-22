@@ -48,6 +48,7 @@
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -1296,6 +1297,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return AUTORELEASE([[self alloc] initWithPath: path]);
 }
 
++ (NSBundle*) bundleWithURL: (NSURL*)url
+{
+  return AUTORELEASE([[self alloc] initWithURL: url]);
+}
+
 + (NSBundle*) bundleWithIdentifier: (NSString*)identifier
 {
   NSBundle	*bundle = nil;
@@ -1462,6 +1468,12 @@ IF_NO_GC(
   [load_lock unlock];
 
   return self;
+}
+
+- (id) initWithURL: (NSURL*)url
+{
+  // FIXME
+  return [self initWithPath: [url path]];
 }
 
 - (void) dealloc
@@ -1823,6 +1835,18 @@ IF_NO_GC(
 		    inDirectory: nil];
 }
 
++ (NSURL*) URLForResource: (NSString*)name
+            withExtension: (NSString*)ext
+             subdirectory: (NSString*)subpath
+          inBundleWithURL: (NSURL*)bundleURL
+{
+  NSBundle *root = [self bundleWithURL: bundleURL];
+
+  return [root URLForResource: name
+                withExtension: ext
+                 subdirectory: subpath];
+}
+
 - (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)ext
 {
@@ -1849,6 +1873,36 @@ IF_NO_GC(
 			     ofType: ext
 			 inRootPath: rootPath
 		        inDirectory: subPath];
+}
+
+- (NSURL *) URLForResource: (NSString *)name
+	     withExtension: (NSString *)ext
+{
+  return [self URLForResource: name
+                withExtension: ext
+                 subdirectory: nil
+                 localization: nil];
+}
+
+- (NSURL *) URLForResource: (NSString *)name
+	     withExtension: (NSString *)ext
+              subdirectory: (NSString *)subpath
+{
+  return [self URLForResource: name
+                withExtension: ext
+                 subdirectory: subpath
+                 localization: nil];
+}
+
+- (NSURL *) URLForResource: (NSString *)name
+	     withExtension: (NSString *)ext
+	      subdirectory: (NSString *)subpath
+	      localization: (NSString *)localizationName
+{
+  return [NSURL fileURLWithPath: [self pathForResource: name
+                                                ofType: ext
+                                           inDirectory: subpath
+                                       forLocalization: localizationName]];
 }
 
 + (NSArray*) _pathsForResourcesOfType: (NSString*)extension

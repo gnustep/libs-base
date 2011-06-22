@@ -184,6 +184,9 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * not readable, return nil.  If you want the main bundle of an
  * application or a tool, it's better if you use +mainBundle.  */
 + (NSBundle*) bundleWithPath: (NSString*)path;
+#if OS_API_VERSION(100600,GS_API_LATEST) 
++ (NSBundle*) bundleWithURL: (NSURL*)url;
+#endif
 
 /**
   Returns an absolute path for a resource name with the extension
@@ -203,6 +206,13 @@ GS_EXPORT NSString* const NSLoadedClasses;
 		       ofType: (NSString*)ext
 		  inDirectory: (NSString*)bundlePath
 		  withVersion: (int)version;
+
+#if OS_API_VERSION(100600,GS_API_LATEST) 
++ (NSURL*) URLForResource: (NSString*)name
+            withExtension: (NSString*)ext
+             subdirectory: (NSString*)subpath
+          inBundleWithURL: (NSURL*)bundleURL;
+#endif
 
 /** <init />
  * Init the bundle for reading resources from path.<br />
@@ -225,6 +235,10 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * of the receiver (and the receiver is deallocated).
  */
 - (id) initWithPath: (NSString*)path;
+
+#if OS_API_VERSION(100600,GS_API_LATEST) 
+- (id) initWithURL: (NSURL*)url;
+#endif
 
 /** Return the path to the bundle - an absolute path.  */
 - (NSString*) bundlePath;
@@ -298,6 +312,18 @@ GS_EXPORT NSString* const NSLoadedClasses;
  */
 - (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext;
+
+#if OS_API_VERSION(100600,GS_API_LATEST) 
+- (NSURL*) URLForResource: (NSString*)name
+            withExtension: (NSString*)extension;
+- (NSURL*) URLForResource: (NSString*)name
+            withExtension: (NSString*)extension
+             subdirectory: (NSString*)subpath;
+- (NSURL*) URLForResource: (NSString*)name 
+            withExtension: (NSString*)extension
+             subdirectory: (NSString*)subpath
+             localization: (NSString*)localizationName;
+#endif
 
 /**
    <p>Returns the value for the key found in the strings file tableName, or

@@ -1,3 +1,9 @@
+2011-06-23 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSBundle.h,
+	* Source/NSBundle.m: Add a few 10.6 NSURL methods.
+	Based on patch by julian.
+
 2011-06-20  Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 
 	* SSL/GSSSLHandle.m:
