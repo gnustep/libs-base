@@ -2524,7 +2524,8 @@ if test $enable_libffi = yes; then
             [Define if using the libffi library for invocations])
   WITH_FFI=libffi
   LIBS="-lffi $LIBS"
-  AC_TRY_RUN([#include "$srcdir/config/config.ffi.c"],,ffi_ok="yes",ffi_ok="no")
+  AC_TRY_RUN([#include "$srcdir/config/config.ffi.c"],
+             ffi_ok="yes",ffi_ok="no",ffi_ok="yes")
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(libffi)
     if test $do_broken_libffi = yes; then
