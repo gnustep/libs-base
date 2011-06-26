@@ -2445,10 +2445,11 @@ handle_printf_atsign (FILE *stream,
  * arguments to be null pointers (in which case no value is returned in that
  * argument).
  */
-- (void) getLineStart: (NSUInteger*)startIndex
-                  end: (NSUInteger*)lineEndIndex
-          contentsEnd: (NSUInteger*)contentsEndIndex
-	     forRange: (NSRange)aRange
+- (void) _getStart: (NSUInteger*)startIndex
+	       end: (NSUInteger*)lineEndIndex
+       contentsEnd: (NSUInteger*)contentsEndIndex
+	  forRange: (NSRange)aRange
+	   lineSep: (BOOL)flag
 {
   unichar	thischar;
   unsigned	start, end, len, termlen;
@@ -2485,10 +2486,15 @@ handle_printf_atsign (FILE *stream,
 		{
 		  case (unichar)0x000A:
 		  case (unichar)0x000D:
-		  case (unichar)0x2028:
 		  case (unichar)0x2029:
 		    done = YES;
 		    break;
+		  case (unichar)0x2028:
+		    if (flag)
+		      {
+			done = YES;
+			break;
+		      }
 		  default:
 		    start--;
 		    break;
@@ -2503,10 +2509,15 @@ handle_printf_atsign (FILE *stream,
 		{
 		  case (unichar)0x000A:
 		  case (unichar)0x000D:
-		  case (unichar)0x2028:
 		  case (unichar)0x2029:
 		    start++;
 		    break;
+		  case (unichar)0x2028:
+		    if (flag)
+		      {
+			start++;
+			break;
+		      }
 		  default:
 		    break;
 		}
@@ -2534,10 +2545,15 @@ handle_printf_atsign (FILE *stream,
 	     {
 	       case (unichar)0x000A:
 	       case (unichar)0x000D:
-	       case (unichar)0x2028:
 	       case (unichar)0x2029:
 		 found = YES;
 		 break;
+	       case (unichar)0x2028:
+		 if (flag)
+		   {
+		     found = YES;
+		     break;
+		   }
 	       default:
 		 break;
 	     }
@@ -2576,16 +2592,28 @@ handle_printf_atsign (FILE *stream,
     }
 }
 
+- (void) getLineStart: (NSUInteger *)startPtr
+                  end: (NSUInteger *)lineEndPtr
+          contentsEnd: (NSUInteger *)contentsEndPtr
+	     forRange: (NSRange)aRange
+{
+  [self _getStart: startPtr
+        end: lineEndPtr
+        contentsEnd: contentsEndPtr
+        forRange: aRange
+        lineSep: YES];
+}
+
 - (void) getParagraphStart: (NSUInteger *)startPtr 
                        end: (NSUInteger *)parEndPtr
                contentsEnd: (NSUInteger *)contentsEndPtr
-                  forRange: (NSRange)range
+                  forRange: (NSRange)aRange
 {
-  // FIXME
-  [self getLineStart: startPtr
+  [self _getStart: startPtr
         end: parEndPtr
         contentsEnd: contentsEndPtr
-        forRange: range];
+        forRange: aRange
+        lineSep: NO];
 }
 
 // Changing Case

@@ -1,5 +1,12 @@
 2011-06-26  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
+	* Source/NSString.m(-_getStart:end:contentsEnd:forRange:lineSep:,
+	-getLineStart:end:contentsEnd:forRange:,
+	-getParagraphStart:end:contentsEnd:forRange):
+	Fix implementation of getParagraphStart:end:contentsEnd:forRange:.
+
+2011-06-26  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
 	* configure.ac:
 	* config/config.ffi.c (cls_struct_combined_fn): Fix the broken
 	test whether libffi works. The test program always failed, but
