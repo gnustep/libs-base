@@ -30,12 +30,19 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.22.1</heading>
+        <p>A stable bugfix release ... no API changes, mostly portability fixes
+	por older or less popular platforms.
+	</p>
+      </section>
+
+      <section>
 	<heading>Version 1.22.0</heading>
         <p>A new stable release with many updates and changes. In addition
 	to many new classes and methods, there is now a regression test
 	framework included in the base release.  
 	</p>
-	<p>In addtion, base now
+	<p>In addition, base now
 	supports and uses the Objective-C 2.0 runtime API from Apple and
 	we encourage anyone programming with GNUstep to move to using this
 	new runtime and the new functionality it supports. Note however, 

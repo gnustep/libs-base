@@ -11,6 +11,16 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{1.22.1}
+
+This is a stable bugfix release. There are no major changes or binary
+incompatibilities, but this release does include an update of timezone
+handling to include the latest zone information.
+There is an important bugfix for thread-safety of retain/release on some
+architecture/compiler combinations, but other fixes are minor.
+
 @section Noteworthy changes in version @samp{1.22.0}
 
 @itemize @bullet
@@ -18,8 +28,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item There is now a regression test framework included with the package
 @item New support for Objective-C 2.0
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.21.1}
 
