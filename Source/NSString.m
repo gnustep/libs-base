@@ -2423,28 +2423,6 @@ handle_printf_atsign (FILE *stream,
   return NSMakeRange(startIndex, lineEndIndex - startIndex);
 }
 
-/**
- * Determines the smallest range of lines containing aRange and returns
- * the locations in that range.<br />
- * Lines are delimited by any of these character sequences, the longest
- * (CRLF) sequence preferred.
- * <list>
- *   <item>U+000A (linefeed)</item>
- *   <item>U+000D (carriage return)</item>
- *   <item>U+2028 (Unicode line separator)</item>
- *   <item>U+2029 (Unicode paragraph separator)</item>
- *   <item>U+000D U+000A (CRLF)</item>
- * </list>
- * The index of the first character of the line at or before aRange is
- * returned in startIndex.<br />
- * The index of the first character of the next line after the line terminator
- * is returned in endIndex.<br />
- * The index of the last character before the line terminator is returned
- * contentsEndIndex.<br />
- * Raises an NSRangeException if the range is invalid, but permits the index
- * arguments to be null pointers (in which case no value is returned in that
- * argument).
- */
 - (void) _getStart: (NSUInteger*)startIndex
 	       end: (NSUInteger*)lineEndIndex
        contentsEnd: (NSUInteger*)contentsEndIndex
@@ -2592,16 +2570,38 @@ handle_printf_atsign (FILE *stream,
     }
 }
 
+/**
+ * Determines the smallest range of lines containing aRange and returns
+ * the locations in that range.<br />
+ * Lines are delimited by any of these character sequences, the longest
+ * (CRLF) sequence preferred.
+ * <list>
+ *   <item>U+000A (linefeed)</item>
+ *   <item>U+000D (carriage return)</item>
+ *   <item>U+2028 (Unicode line separator)</item>
+ *   <item>U+2029 (Unicode paragraph separator)</item>
+ *   <item>U+000D U+000A (CRLF)</item>
+ * </list>
+ * The index of the first character of the line at or before aRange is
+ * returned in startIndex.<br />
+ * The index of the first character of the next line after the line terminator
+ * is returned in endIndex.<br />
+ * The index of the last character before the line terminator is returned
+ * contentsEndIndex.<br />
+ * Raises an NSRangeException if the range is invalid, but permits the index
+ * arguments to be null pointers (in which case no value is returned in that
+ * argument).
+ */
 - (void) getLineStart: (NSUInteger *)startPtr
                   end: (NSUInteger *)lineEndPtr
           contentsEnd: (NSUInteger *)contentsEndPtr
 	     forRange: (NSRange)aRange
 {
   [self _getStart: startPtr
-        end: lineEndPtr
-        contentsEnd: contentsEndPtr
-        forRange: aRange
-        lineSep: YES];
+	      end: lineEndPtr
+      contentsEnd: contentsEndPtr
+	 forRange: aRange
+	  lineSep: YES];
 }
 
 - (void) getParagraphStart: (NSUInteger *)startPtr 
@@ -2610,10 +2610,10 @@ handle_printf_atsign (FILE *stream,
                   forRange: (NSRange)aRange
 {
   [self _getStart: startPtr
-        end: parEndPtr
-        contentsEnd: contentsEndPtr
-        forRange: aRange
-        lineSep: NO];
+	      end: parEndPtr
+      contentsEnd: contentsEndPtr
+         forRange: aRange
+	  lineSep: NO];
 }
 
 // Changing Case
