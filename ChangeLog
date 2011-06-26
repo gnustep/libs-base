@@ -1,3 +1,12 @@
+2011-06-26  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* configure.ac:
+	* config/config.ffi.c (cls_struct_combined_fn): Fix the broken
+	test whether libffi works. The test program always failed, but
+	this failure was masked by an incorrect use of AC_TRY_RUN.
+
+	* configure: Regenerated.
+
 2011-06-23 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSBundle.h,

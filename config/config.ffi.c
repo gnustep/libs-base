@@ -18,7 +18,7 @@ void cls_struct_combined_fn(struct cls_struct_combined arg)
 	 arg.c, arg.d);
   fflush(stdout);
 */
-  if (arg.a != 4 || arg.b != 5 || arg.c != 6 || arg.d != 8) abort();
+  if (arg.a != 4 || arg.b != 5 || arg.c != 1 || arg.d != 8) abort();
 }
 
 static void
