@@ -239,6 +239,14 @@
 #include <stdint.h>
 #endif
 
+// Strong has different semantics in GC and ARC modes, so we need to have a
+// macro that picks the correct one.
+#if __OBJC_GC__
+#  define GS_GC_STRONG __strong
+#else
+#  define GS_GC_STRONG
+#endif
+
 #if !__has_feature(objc_arc)
 #  if __OBJC_GC__
 #    define __strong __attribute__((objc_gc(strong)))
