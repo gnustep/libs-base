@@ -65,7 +65,7 @@ extern "C" {
 {
 #if	GS_EXPOSE(NSNotificationCenter)
 @private
-  __strong void	*_table;
+  GS_GC_STRONG void	*_table;
 #endif
 }
 

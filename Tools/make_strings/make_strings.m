@@ -19,6 +19,7 @@
 
 */
 
+#import "GNUstepBase/preface.h"
 #import "common.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSAutoreleasePool.h"

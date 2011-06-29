@@ -28,7 +28,8 @@
 
 #ifndef __NSZone_h_GNUSTEP_BASE_INCLUDE
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
-#import	<GNUstepBase/GSVersionMacros.h>
+#import	"GNUstepBase/GSVersionMacros.h"
+#import	"GNUstepBase/preface.h"
 
 /**
  * Primary structure representing an <code>NSZone</code>.  Technically it
@@ -308,14 +309,14 @@ enum {
  * garbage collected itsself.<br />
  * In any case the memory returned is zero'ed.
  */
-GS_EXPORT __strong void *
+GS_EXPORT GS_GC_STRONG void *
 NSAllocateCollectable(NSUInteger size, NSUInteger options);
 
 /** Reallocate memory to be of a different size and/or to have different
  * options settings.  The behavior of options is as for
  * the NSAllocateCollectable() function.
  */ 
-GS_EXPORT __strong void *
+GS_EXPORT GS_GC_STRONG void *
 NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options);
 
 #endif
