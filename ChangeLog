@@ -1,3 +1,12 @@
+2011-06-29 15:21 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSNotification.h,
+	  libs/base/trunk/Headers/Foundation/NSZone.h,
+	  libs/base/trunk/Headers/GNUstepBase/preface.h.in,
+	  libs/base/trunk/Tools/make_strings/make_strings.m: More ARC
+	  fixes. We don't want to be using __strong void* in ARC mode (it
+	  only makes sense in GC mode and is invalid in ARC mode).
+
 2011-06-29 13:13  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSObject.m: Add support to NSObject for
