@@ -29,7 +29,7 @@
  * GNUstep-base or MacOS-X Foundation.
  */
 
-#if	GS_WITH_GC
+#if	GS_WITH_GC || __has_feature(objc_arc)
 
 #ifndef	RETAIN
 #define	RETAIN(object)		(object)
