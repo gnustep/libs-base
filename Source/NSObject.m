@@ -72,6 +72,15 @@
 #define	IN_NSOBJECT_M	1
 #import "GSPrivate.h"
 
+
+#ifdef __GNUSTEP_RUNTIME__
+#include <objc/capabilities.h>
+#include <objc/hooks.h>
+#ifdef OBJC_CAP_ARC
+#include <objc/objc-arc.h>
+#endif
+#endif
+
 /* When this is `YES', every call to release/autorelease, checks to
    make sure isn't being set up to release itself too many times.
    This does not need mutex protection. */
@@ -993,8 +1002,18 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
 extern BOOL
 objc_create_block_classes_as_subclasses_of(Class super);
 
+#ifdef OBJC_CAP_ARC
+static id gs_weak_load(id obj)
+{
+	return (NSExtraRefCount(obj) + 1) > 0 ? obj : nil;
+}
+#endif
+
 + (void) load
 {
+#ifdef OBJC_CAP_ARC
+  _objc_weak_load = gs_weak_load;
+#endif
   objc_create_block_classes_as_subclasses_of(self);
 }
 
@@ -2029,6 +2048,9 @@ objc_create_block_classes_as_subclasses_of(Class super);
 #if	(GS_WITH_GC == 0)
   if (NSDecrementExtraRefCountWasZero(self))
     {
+#  ifdef OBJC_CAP_ARC
+      objc_delete_weak_refs(self);
+#  endif
       [self dealloc];
     }
 #endif
