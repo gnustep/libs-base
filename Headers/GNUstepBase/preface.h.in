@@ -239,12 +239,21 @@
 #include <stdint.h>
 #endif
 
-#if __OBJC_GC__
-#define __strong __attribute__((objc_gc(strong)))
-#define __weak __attribute__((objc_gc(weak)))
-#else
-#define __strong 
-#define __weak 
+#if !__has_feature(objc_arc)
+#  if __OBJC_GC__
+#    define __strong __attribute__((objc_gc(strong)))
+#    define __weak __attribute__((objc_gc(weak)))
+#  else
+#    define __strong 
+#    define __weak 
+#  endif
 #endif
+
+#ifndef __unsafe_unretained
+#  if !__has_feature(objc_arc)
+#    define __unsafe_unretained
+#  endif
+#endif
+
 
 #endif /* __preface_h_OBJECTS_INCLUDE */
