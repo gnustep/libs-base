@@ -74,7 +74,7 @@ struct _NSZone
   struct NSZoneStats (*stats)(struct _NSZone *zone);
   
   size_t gran; // Zone granularity
-  NSString *name; // Name of zone (default is 'nil')
+  __unsafe_unretained NSString *name; // Name of zone (default is 'nil')
   NSZone *next;
 };
 

@@ -263,7 +263,7 @@ typedef struct _NSHandler
 {
     jmp_buf jumpState;			/* place to longjmp to */
     struct _NSHandler *next;		/* ptr to next handler */
-    NSException *exception;
+    __unsafe_unretained NSException *exception;
 } NSHandler;
 
 /**

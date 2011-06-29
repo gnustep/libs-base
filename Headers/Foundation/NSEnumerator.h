@@ -37,7 +37,7 @@ extern "C" {
 typedef struct 
 {
   unsigned long	state;
-  id		*itemsPtr;
+  __unsafe_unretained id		*itemsPtr;
   unsigned long	*mutationsPtr;
   unsigned long	extra[5];
 } NSFastEnumerationState;
