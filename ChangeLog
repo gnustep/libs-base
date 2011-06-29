@@ -1,3 +1,8 @@
+2011-06-29 13:13  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSObject.m: Add support to NSObject for
+	  automatically zeroing __weak references when using ARC.
+
 2011-06-29 11:50  David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/Foundation/NSAutoreleasePool.h,
