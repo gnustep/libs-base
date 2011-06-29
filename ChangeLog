@@ -1,3 +1,18 @@
+2011-06-29 11:50  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSAutoreleasePool.h,
+	  libs/base/trunk/Headers/Foundation/NSEnumerator.h,
+	  libs/base/trunk/Headers/Foundation/NSException.h,
+	  libs/base/trunk/Headers/Foundation/NSZone.h,
+	  libs/base/trunk/Headers/GNUstepBase/preface.h.in:
+	  ARC-compatibility tweaks in the headers. ARC will not track
+	  objects inside structures and rejects code that uses object types
+	  that are not __unsafe_unretained qualified inside structures.
+	  
+	  This quick fix just added this type qualifier on all such
+	  structures. Several of these should probably not be in headers at
+	  all.
+
 2011-06-26  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSString.m(-_getStart:end:contentsEnd:forRange:lineSep:,
