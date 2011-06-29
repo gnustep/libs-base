@@ -64,6 +64,7 @@ void CFRelease(id obj)
   if (objc_collecting_enabled())
     {
       collector = [self alloc];
+      objc_startCollectorThread();
     }
 }
 
@@ -101,8 +102,8 @@ void CFRelease(id obj)
 {
   if (self != collector)
     {
-      [self dealloc];
-      self = nil;
+      [self release];
+      self = collector;
     }
   return self;
 }
