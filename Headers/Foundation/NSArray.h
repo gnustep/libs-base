@@ -49,7 +49,7 @@ extern "C" {
 #endif
 + (id) arrayWithObject: (id)anObject;
 + (id) arrayWithObjects: (id)firstObject, ...;
-+ (id) arrayWithObjects: (id*)objects count: (NSUInteger)count;
++ (id) arrayWithObjects: (const id*)objects count: (NSUInteger)count;
 
 - (NSArray*) arrayByAddingObject: (id)anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;

@@ -34,6 +34,14 @@
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSPortCoder.h"
 
+// Get objc_delete_weak_refs(), if it is present in the runtime.
+#ifdef __GNUSTEP_RUNTIME__
+#include <objc/capabilities.h>
+#ifdef OBJC_CAP_ARC
+#include <objc/objc-arc.h>
+#endif
+#endif
+
 @class	NSDistantObject;
 
 /**
@@ -447,14 +455,13 @@
  */
 - (void) release
 {
-#if	GS_WITH_GC == 0
-  if (_retain_count == 0)
+#if	(GS_WITH_GC == 0)
+  if (NSDecrementExtraRefCountWasZero(self))
     {
+#  ifdef OBJC_CAP_ARC
+      objc_delete_weak_refs(self);
+#  endif
       [self dealloc];
-    }
-  else
-    {
-      _retain_count--;
     }
 #endif
 }
@@ -518,9 +525,7 @@
  */
 - (id) retain
 {
-#if	GS_WITH_GC == 0
-  _retain_count++;
-#endif
+  NSIncrementExtraRefCount(self);
   return self;
 }
 
@@ -529,7 +534,7 @@
  */
 - (NSUInteger) retainCount
 {
-  return _retain_count + 1;
+  return NSExtraRefCount(self) + 1;
 }
 
 /**
