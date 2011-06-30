@@ -1,3 +1,18 @@
+2011-06-30 14:44 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSArray.h,
+	  libs/base/trunk/Headers/Foundation/NSProxy.h,
+	  libs/base/trunk/Headers/GNUstepBase/GSVersionMacros.h,
+	  libs/base/trunk/Headers/GNUstepBase/preface.h.in,
+	  libs/base/trunk/Source/NSProxy.m: Rewrote NSProxy's -retain /
+	  -release to be the same as NSObject, not its own ad-hoc thing.
+	  
+	  Added declaration of __bridge for use in non-ARC mode.
+	  
+	  Tweaked arrayWithObjects:count: to take a const id* parameter, to
+	  avoid ARC
+	  treating it as a write-back parameter.
+
 2011-06-29 15:21 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/Foundation/NSNotification.h,
