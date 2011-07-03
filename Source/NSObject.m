@@ -796,7 +796,6 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
       cxx_construct = sel_registerName(".cxx_construct");
       cxx_destruct = sel_registerName(".cxx_destruct");
     }
-  callCXXConstructors(aClass, new);
   return new;
 }
 inline id
