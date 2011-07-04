@@ -1,3 +1,16 @@
+2011-07-04 11:31 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSObject.m:
+	  Switch the order of the reference count and the zone so that the
+	  reference count (in reference counted mode) is always immediately in
+	  front of the object. Please test this!!
+	  
+	  Opt NSObject into the fast path for ARC. ARC will now not call
+	  the retain / release / autorelease methods on NSObject or any
+	  classes that inherit their implementation of these methods from
+	  NSObject. In quick and dirty testing, this gives about a 10-20%
+	  speedup.
+
 2011-06-30 14:44 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/Foundation/NSArray.h,
