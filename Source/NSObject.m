@@ -409,8 +409,8 @@ static inline NSLock *GSAllocationLockForObject(id p)
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
-    NSUInteger	retained;
     NSZone	*zone;
+    NSUInteger	retained;
 } unp;
 #define	UNP sizeof(unp)
 
@@ -420,8 +420,8 @@ typedef struct obj_layout_unpadded {
  *	structure correct.
  */
 struct obj_layout {
-    NSUInteger	retained;
     NSZone	*zone;
+    NSUInteger	retained;
     char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
 };
 typedef	struct obj_layout *obj;
@@ -963,6 +963,7 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
  * </p>
  */
 @implementation NSObject
+- (void)_ARCCompliantRetainRelease {}
 
 + (void) _becomeMultiThreaded: (NSNotification *)aNotification
 {
