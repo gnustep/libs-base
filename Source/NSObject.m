@@ -788,7 +788,7 @@ NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
   if (!objc_collecting_enabled())
     {
-      NSAllocateObject(aClass, extraBytes, zone);
+      GSAllocateObject(aClass, extraBytes, zone);
     }
   id	new = class_createInstance(aClass, extraBytes);
   if (0 == cxx_construct)
