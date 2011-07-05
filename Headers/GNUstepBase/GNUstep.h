@@ -29,6 +29,10 @@
  * GNUstep-base or MacOS-X Foundation.
  */
 
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
+
 #if	GS_WITH_GC || __has_feature(objc_arc)
 
 #ifndef	RETAIN
