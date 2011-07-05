@@ -1,5 +1,11 @@
 2011-07-05 Fred Kiefer <FredKiefer@gmx.de>
 
+	* macosx/gnustep.pbproj/project.pbxproj,
+	* Tools/make_strings/GNUmakefile.preamble: Remove references to
+	obsolete directory Headers/Additions.
+
+2011-07-05 Fred Kiefer <FredKiefer@gmx.de>
+
 	* Headers/GNUstepBase/GNUstep.h: Define the __has_feature macro,
 	as this file may be used without preface.h being included first.
 	Fixes bug #33708. Patch by Tim Kack <timkack@gmail.com>.
