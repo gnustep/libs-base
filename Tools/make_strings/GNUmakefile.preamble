@@ -46,8 +46,7 @@ ADDITIONAL_OBJCFLAGS += $(WARN_FLAGS)
 #ADDITIONAL_CFLAGS += 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS += -I../../Headers/Additions \
-	-I../../Source/$(GNUSTEP_TARGET_DIR)
+ADDITIONAL_INCLUDE_DIRS += -I../../Source/$(GNUSTEP_TARGET_DIR)
 
 ifeq ($(FOUNDATION_LIB),gnu)
   ADDITIONAL_INCLUDE_DIRS += -I../../Headers

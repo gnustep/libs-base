@@ -142,7 +142,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = "";
 				FRAMEWORK_VERSION = A;
-				HEADER_SEARCH_PATHS = ". \"${SRCROOT}/../Headers/Additions\" /sw/include /sw/include/libxml2";
+				HEADER_SEARCH_PATHS = ". /sw/include /sw/include/libxml2";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LIBRARY_SEARCH_PATHS = "/usr/local/lib /sw/lib";
 				OPTIMIZATION_CFLAGS = "-O0";
