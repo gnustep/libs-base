@@ -1005,7 +1005,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
 #ifdef OBJC_CAP_ARC
 static id gs_weak_load(id obj)
 {
-	return (NSExtraRefCount(obj) + 1) > 0 ? obj : nil;
+	return [obj retainCount] > 0 ? obj : nil;
 }
 #endif
 
