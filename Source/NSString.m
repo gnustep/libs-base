@@ -560,7 +560,6 @@ handle_printf_atsign (FILE *stream,
 
 + (void) atExit
 {
-  DESTROY(defaultPlaceholderString);
   DESTROY(placeholderLock);
   DESTROY(placeholderMap);
 }
