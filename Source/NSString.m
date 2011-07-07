@@ -98,7 +98,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 @class	GSString;
 @class	GSMutableString;
 @class	GSPlaceholderString;
-@interface GSPlaceholderString : NSObject	// Help the compiler
+@interface GSPlaceholderString : NSString	// Help the compiler
 @end
 @class	GSMutableArray;
 @class	GSMutableDictionary;
