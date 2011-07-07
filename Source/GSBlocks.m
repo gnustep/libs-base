@@ -58,6 +58,7 @@ void _Block_release(void *);
     }
   nscopying = objc_getProtocol("NSCopying");
   class_addProtocol(blockClass, nscopying);
+  free(methods);
 }
 
 - (id) copyWithZone: (NSZone*)aZone
