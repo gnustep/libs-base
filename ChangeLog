@@ -1,3 +1,8 @@
+2011-07-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSObject.m (+zone): Override to ensure that -zone returns
+	a valid zone pointer when it is called on a class object.
+
 2011-07-05 Fred Kiefer <FredKiefer@gmx.de>
 
 	* macosx/gnustep.pbproj/project.pbxproj,
