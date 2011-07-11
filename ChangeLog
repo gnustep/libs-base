@@ -1,3 +1,8 @@
+2011-07-11 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSTimeZone.m (+systemTimeZone): Support the OpenSuse key
+	TIMEZONE in /etc/sysconfig/clock.
+
 2011-07-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSObject.m (+zone): Override to ensure that -zone returns
