@@ -1,3 +1,10 @@
+2011-07-11 12:36 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSNumber.m: [NSNumber -init] should not
+	  destroy itself when called as [super init]. This behaviour was
+	  breaking anything that subclassed NSNumber in user code (e.g.
+	  PyObjC).
+
 2011-07-11 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/GSLocale.m (GSLanguageFromLocale): Handle local "C.UTF-8"
