@@ -263,6 +263,8 @@ GSLanguageFromLocale(NSString *locale)
       if (language == nil && [locale pathExtension] != nil)
 	{
 	  locale = [locale stringByDeletingPathExtension];
+          if ([locale isEqual: @"C"] || [locale isEqual: @"POSIX"])
+            return @"English";
 	  language = [dict objectForKey: locale];
 	}
       if (language == nil)
