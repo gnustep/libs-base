@@ -763,6 +763,10 @@ if (aValue >= -1 && aValue <= 12)\
  */
 - (id) init
 {
+  if (object_getClass(self) != NSNumberClass)
+    {
+      return [super init];
+    }
   DESTROY(self);
   return nil;
 }
