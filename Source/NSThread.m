@@ -329,13 +329,14 @@ GSCurrentThread(void)
   NSThread *thr = pthread_getspecific(thread_object_key);
   if (nil == thr)
     {
-      GSRegisterCurrentThread();
+      assert(GSRegisterCurrentThread() && @"Failed to register thread");
+      thr = pthread_getspecific(thread_object_key);
       if ((defaultThread == nil) && IS_MAIN_PTHREAD)
         {
-          defaultThread = thr;
+          defaultThread = [thr retain];
         }
-      thr = pthread_getspecific(thread_object_key);
     }
+  assert(nil != thr && @"No main thread");
   return thr;
 }
 
