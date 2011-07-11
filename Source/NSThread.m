@@ -84,6 +84,14 @@
 #include <objc/objc-auto.h>
 #endif
 
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
+#  include <pthread_np.h>
+#  define IS_MAIN_PTHREAD (pthread_main_np() == 1)
+#else
+#  define IS_MAIN_PTHREAD (1)
+#endif
+
+
 // Some older BSD systems used a non-standard range of thread priorities.
 // Use these if they exist, otherwise define standard ones.
 #ifndef PTHREAD_MAX_PRIORITY
@@ -318,11 +326,17 @@ static void exitedThread(void *thread)
 inline NSThread*
 GSCurrentThread(void)
 {
-  if (defaultThread == nil)
+  NSThread *thr = pthread_getspecific(thread_object_key);
+  if (nil == thr)
     {
-      [NSThread currentThread];
+      GSRegisterCurrentThread();
+      if ((defaultThread == nil) && IS_MAIN_PTHREAD)
+        {
+          defaultThread = thr;
+        }
+      thr = pthread_getspecific(thread_object_key);
     }
-  return (NSThread*)pthread_getspecific(thread_object_key);
+  return thr;
 }
 
 NSMutableDictionary*
@@ -479,7 +493,7 @@ unregisterActiveThread(NSThread *thread)
 
 + (NSThread*) currentThread
 {
-  return (NSThread*)pthread_getspecific(thread_object_key);
+  return GSCurrentThread();
 }
 
 + (void) detachNewThreadSelector: (SEL)aSelector
@@ -538,8 +552,7 @@ unregisterActiveThread(NSThread *thread)
        */
       threadClass = self;
 
-      [NSThread _createThreadForCurrentPthread];
-      defaultThread = [NSThread currentThread];
+      GSCurrentThread();
     }
 }
 

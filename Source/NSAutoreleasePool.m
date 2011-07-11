@@ -438,6 +438,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 {
   NSThread		*t = GSCurrentThread();
   NSAutoreleasePool	*pool;
+  NSAssert(nil != t, @"Creating autorelease pool on nonexistent thread!");
 
   pool = t->_autorelease_vars.current_pool;
   if (pool == nil && t->_active == NO)
