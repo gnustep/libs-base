@@ -1,3 +1,16 @@
+2011-07-11 14:31 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSAutoreleasePool.m,
+	  libs/base/trunk/Source/NSThread.m: Lazily initialize POSIX
+	  threads, matching OS X behaviour and stopping us from crashing
+	  when calling autorelease from a thread that was not previously
+	  registered explicitly (yuck!)
+	  
+	  Also do some quite hacky (and not totally correct) things to try
+	  to make sure that we aren't confused into thinking that the first
+	  NSThread is the main thread, if it's created on a separate
+	  thread. Currently only supported on FreeBSD and OpenBSD.
+
 2011-07-11 12:36 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSNumber.m: [NSNumber -init] should not
