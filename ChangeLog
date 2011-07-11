@@ -1,5 +1,10 @@
 2011-07-11 Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/GSLocale.m (GSLanguageFromLocale): Handle local "C.UTF-8"
+	correctly. Needed for Cygwin.
+
+2011-07-11 Fred Kiefer <FredKiefer@gmx.de>
+
 	* config/config.ffi.c: Move declaration of g_dbl to begin of
 	function.
 	Patch by Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
