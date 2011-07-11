@@ -1,5 +1,11 @@
 2011-07-11 Fred Kiefer <FredKiefer@gmx.de>
 
+	* config/config.ffi.c: Move declaration of g_dbl to begin of
+	function.
+	Patch by Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+2011-07-11 Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSTimeZone.m (+systemTimeZone): Support the OpenSuse key
 	TIMEZONE in /etc/sysconfig/clock.
 
