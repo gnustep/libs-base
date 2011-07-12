@@ -331,7 +331,7 @@ GSCurrentThread(void)
     {
       assert(GSRegisterCurrentThread() && @"Failed to register thread");
       thr = pthread_getspecific(thread_object_key);
-      if ((defaultThread == nil) && IS_MAIN_PTHREAD)
+      if ((nil == defaultThread) && IS_MAIN_PTHREAD)
         {
           defaultThread = [thr retain];
         }

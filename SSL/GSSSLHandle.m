@@ -156,6 +156,7 @@ threadid_function()
 - (BOOL) sslAccept;
 - (BOOL) sslConnect;
 - (void) sslDisconnect;
+- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
 - (void) sslSetCertificate: (NSString*)certFile
 		privateKey: (NSString*)privateKey
 		 PEMpasswd: (NSString*)PEMpasswd;
@@ -236,215 +237,100 @@ static BOOL	permitSSLv2 = NO;
 
 - (BOOL) sslAccept
 {
-  int		ret;
-  int		err;
-  NSRunLoop	*loop;
+  BOOL		result = NO;
 
-  if (connected == YES)
-    {
-      return YES;	/* Already connected.	*/
-    }
-  if (isStandardFile == YES)
+  if (YES == isStandardFile)
     {
       NSLog(@"Attempt to make ssl connection to a standard file");
       return NO;
     }
+  if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
+    {
+      NSRunLoop	*loop;
 
-  /*
-   * Ensure we have a context and handle to connect with.
-   */
-  if (ctx == 0)
-    {
-      ctx = SSL_CTX_new(SSLv23_server_method());
-      if (permitSSLv2 == NO)
-	{
-          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
-	}
-    }
-  if (ssl == 0)
-    {
-      ssl = SSL_new(ctx);
-    }
-  /*
-   * Set non-blocking so accept won't hang if remote end goes wrong.
-   */
-  [self setNonBlocking: YES];
-  IF_NO_GC([self retain];)		// Don't get destroyed during runloop
-  loop = [NSRunLoop currentRunLoop];
-  ret = SSL_set_fd(ssl, descriptor);
-  if (ret == 1)
-    {
+      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      loop = [NSRunLoop currentRunLoop];
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
-      if (ssl == 0)
+      if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
 	{
-	  DESTROY(self);
-	  return NO;
+	  NSDate		*final;
+	  NSDate		*when;
+	  NSTimeInterval	last = 0.0;
+	  NSTimeInterval	limit = 0.1;
+
+	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
+	  when = [NSDate alloc];
+
+	  while (NO == [self sslHandshakeEstablished: &result outgoing: NO]
+	    && [final timeIntervalSinceNow] > 0.0)
+	    {
+	      NSTimeInterval	tmp = limit;
+
+	      limit += last;
+	      last = tmp;
+	      if (limit > 0.5)
+		{
+		  limit = 0.1;
+		  last = 0.1;
+		}
+	      when = [when initWithTimeIntervalSinceNow: limit];
+	      [loop runUntilDate: when];
+	    }
+	  RELEASE(when);
+	  RELEASE(final);
 	}
-      ret = SSL_accept(ssl);
+      DESTROY(self);
     }
-  if (ret != 1)
-    {
-      NSDate		*final;
-      NSDate		*when;
-      NSTimeInterval	last = 0.0;
-      NSTimeInterval	limit = 0.1;
-
-      final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
-      when = [NSDate alloc];
-
-      err = SSL_get_error(ssl, ret);
-      while ((err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
-	&& [final timeIntervalSinceNow] > 0.0)
-	{
-	  NSTimeInterval	tmp = limit;
-
-	  limit += last;
-	  last = tmp;
-	  when = [when initWithTimeIntervalSinceNow: limit];
-	  [loop runUntilDate: when];
-	  if (ssl == 0)
-	    {
-	      RELEASE(when);
-	      RELEASE(final);
-	      DESTROY(self);
-	      return NO;
-	    }
-	  ret = SSL_accept(ssl);
-	  if (ret != 1)
-	    {
-	      err = SSL_get_error(ssl, ret);
-	    }
-	  else
-	    {
-	      err = SSL_ERROR_NONE;
-	    }
-	}
-      RELEASE(when);
-      RELEASE(final);
-      if (err != SSL_ERROR_NONE)
-	{
-	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE
-	    && (err != SSL_ERROR_SYSCALL || errno != 0))
-	    {
-	      /*
-	       * Some other error ... not just a timeout or disconnect
-	       */
-	      NSWarnLog(@"unable to accept SSL connection from %@:%@ - %@",
-		address, service, sslError(err));
-	    }
-	  DESTROY(self);
-	  return NO;
-	}
-    }
-  connected = YES;
-  DESTROY(self);
-  return YES;
+  return result;
 }
 
 - (BOOL) sslConnect
 {
-  int		ret;
-  int		err;
-  NSRunLoop	*loop;
+  BOOL		result = NO;
 
-  if (connected == YES)
-    {
-      return YES;	/* Already connected.	*/
-    }
-  if (isStandardFile == YES)
+  if (YES == isStandardFile)
     {
       NSLog(@"Attempt to make ssl connection to a standard file");
       return NO;
     }
+  if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
+    {
+      NSRunLoop	*loop;
 
-  /*
-   * Ensure we have a context and handle to connect with.
-   */
-  if (ctx == 0)
-    {
-      ctx = SSL_CTX_new(SSLv23_client_method());
-      if (permitSSLv2 == NO)
-	{
-          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
-	}
-    }
-  if (ssl == 0)
-    {
-      ssl = SSL_new(ctx);
-    }
-  IF_NO_GC([self retain];)		// Don't get destroyed during runloop
-  /*
-   * Set non-blocking so accept won't hang if remote end goes wrong.
-   */
-  [self setNonBlocking: YES];
-  loop = [NSRunLoop currentRunLoop];
-  ret = SSL_set_fd(ssl, descriptor);
-  if (ret == 1)
-    {
+      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      loop = [NSRunLoop currentRunLoop];
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
-      if (ssl == 0)
+      if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
 	{
-	  DESTROY(self);
-	  return NO;
+	  NSDate		*final;
+	  NSDate		*when;
+	  NSTimeInterval	last = 0.0;
+	  NSTimeInterval	limit = 0.1;
+
+	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
+	  when = [NSDate alloc];
+
+	  while (NO == [self sslHandshakeEstablished: &result outgoing: YES]
+	    && [final timeIntervalSinceNow] > 0.0)
+	    {
+	      NSTimeInterval	tmp = limit;
+
+	      limit += last;
+	      last = tmp;
+	      if (limit > 0.5)
+		{
+		  limit = 0.1;
+		  last = 0.1;
+		}
+	      when = [when initWithTimeIntervalSinceNow: limit];
+	      [loop runUntilDate: when];
+	    }
+	  RELEASE(when);
+	  RELEASE(final);
 	}
-      ret = SSL_connect(ssl);
+      DESTROY(self);
     }
-  if (ret != 1)
-    {
-      NSDate		*final;
-      NSDate		*when;
-      NSTimeInterval	last = 0.0;
-      NSTimeInterval	limit = 0.1;
-
-      final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
-      when = [NSDate alloc];
-
-      err = SSL_get_error(ssl, ret);
-      while ((err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
-	&& [final timeIntervalSinceNow] > 0.0)
-	{
-	  NSTimeInterval	tmp = limit;
-
-	  limit += last;
-	  last = tmp;
-	  when = [when initWithTimeIntervalSinceNow: limit];
-	  [loop runUntilDate: when];
-	  if (ssl == 0)
-	    {
-	      RELEASE(when);
-	      RELEASE(final);
-	      DESTROY(self);
-	      return NO;
-	    }
-	  ret = SSL_connect(ssl);
-	  if (ret != 1)
-	    {
-	      err = SSL_get_error(ssl, ret);
-	    }
-	  else
-	    {
-	      err = SSL_ERROR_NONE;
-	    }
-	}
-      RELEASE(when);
-      RELEASE(final);
-      if (err != SSL_ERROR_NONE)
-	{
-	  if (err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE)
-	    {
-	      /*
-	       * Some other error ... not just a timeout or disconnect
-	       */
-	      NSLog(@"unable to make SSL connection to %@:%@ - %@",
-		address, service, sslError(err));
-	    }
-	  DESTROY(self);
-	  return NO;
-	}
-    }
-  connected = YES;
-  DESTROY(self);
-  return YES;
+  return result;
 }
 
 - (void) sslDisconnect
@@ -465,6 +351,75 @@ static BOOL	permitSSLv2 = NO;
       ctx = 0;
     }
   connected = NO;
+}
+
+- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing
+{
+  int		ret;
+  int		err;
+
+  NSAssert(0 != result, NSInvalidArgumentException);
+
+  if (YES == connected)
+    {
+      return YES;	/* Already connected.	*/
+    }
+  if (YES == isStandardFile)
+    {
+      NSLog(@"Attempt to perform ssl handshake with a standard file");
+      return NO;
+    }
+
+  /*
+   * Ensure we have a context and handle to connect with.
+   */
+  if (ctx == 0)
+    {
+      ctx = SSL_CTX_new(SSLv23_client_method());
+      if (permitSSLv2 == NO)
+	{
+          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+	}
+    }
+  if (ssl == 0)
+    {
+      ssl = SSL_new(ctx);
+    }
+
+  /*
+   * Set non-blocking so accept won't hang if remote end goes wrong.
+   */
+  [self setNonBlocking: YES];
+  ret = SSL_set_fd(ssl, descriptor);
+  if (1 == ret)
+    {
+      if (YES == isOutgoing)
+	{
+	  ret = SSL_connect(ssl);
+	}
+      else
+	{
+	  ret = SSL_accept(ssl);
+	}
+    }
+  if (1 == ret)
+    {
+      connected = YES;
+      *result = YES;
+    }
+  else
+    {
+      err = SSL_get_error(ssl, ret);
+      if (SSL_ERROR_WANT_READ == err || SSL_ERROR_WANT_WRITE == err)
+	{
+	  return NO;
+	}
+
+      NSLog(@"unable to make SSL connection to %@:%@ - %@",
+	address, service, sslError(err));
+      *result = NO;
+    }
+  return YES;
 }
 
 - (void) sslSetCertificate: (NSString*)certFile
@@ -496,8 +451,7 @@ static BOOL	permitSSLv2 = NO;
     }
   if ([certFile length] > 0)
     {
-      ret = SSL_CTX_use_certificate_file(ctx, [certFile UTF8String],
-	X509_FILETYPE_PEM);
+      ret = SSL_CTX_use_certificate_chain_file(ctx, [certFile UTF8String]);
       if (ret != 1)
 	{
 	  NSLog(@"Failed to set certificate file to %@ - %@",

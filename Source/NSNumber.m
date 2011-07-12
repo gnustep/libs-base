@@ -757,7 +757,7 @@ if (aValue >= -1 && aValue <= 12)\
   return [self stringValue];
 }
 
-/* Return nil for an NSNumber that is allocated and initalized without
+/* Return nil for an NSNumber that is allocated and initialized without
  * providing a real value.  Yes, this seems weird, but it is actually what
  * happens on OS X.
  */
