@@ -1,3 +1,12 @@
+2011-07-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSFileHandle.m:
+        * SSL/GSSSLHandle.m:
+        * Headers/Foundation/NSFileHandle.h:
+        Fixup to let certificate information contain a chain with intermediate
+        certificate authorities.  Simplify handshake using common routine for
+        non-blocking handshake attempt.
+
 2011-07-11 12:36 David Chisnall <theraven@gna.org>
 
         * Source/NSNumber.m: [NSNumber -init] should not
