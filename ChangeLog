@@ -1,7 +1,16 @@
+2011-07-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileHandle.m:
+	* SSL/GSSSLHandle.m:
+	* Headers/Foundation/NSFileHandle.h:
+	Fixup to let certificate information contain a chaing with intermediate
+	certificate authorities.  Simplify handshake using common routine for
+	non-blocking handshake attempt.
+
 2011-07-11 14:31 David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSAutoreleasePool.m,
-	  libs/base/trunk/Source/NSThread.m: Lazily initialize POSIX
+	* Source/NSAutoreleasePool.m,
+	  Source/NSThread.m: Lazily initialize POSIX
 	  threads, matching OS X behaviour and stopping us from crashing
 	  when calling autorelease from a thread that was not previously
 	  registered explicitly (yuck!)
@@ -13,7 +22,7 @@
 
 2011-07-11 12:36 David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSNumber.m: [NSNumber -init] should not
+	* Source/NSNumber.m: [NSNumber -init] should not
 	  destroy itself when called as [super init]. This behaviour was
 	  breaking anything that subclassed NSNumber in user code (e.g.
 	  PyObjC).
@@ -53,7 +62,7 @@
 
 2011-07-04 11:31 David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSObject.m:
+	* Source/NSObject.m:
 	  Switch the order of the reference count and the zone so that the
 	  reference count (in reference counted mode) is always immediately in
 	  front of the object. Please test this!!
@@ -66,11 +75,11 @@
 
 2011-06-30 14:44 David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Headers/Foundation/NSArray.h,
-	  libs/base/trunk/Headers/Foundation/NSProxy.h,
-	  libs/base/trunk/Headers/GNUstepBase/GSVersionMacros.h,
-	  libs/base/trunk/Headers/GNUstepBase/preface.h.in,
-	  libs/base/trunk/Source/NSProxy.m: Rewrote NSProxy's -retain /
+	* Headers/Foundation/NSArray.h,
+	  Headers/Foundation/NSProxy.h,
+	  Headers/GNUstepBase/GSVersionMacros.h,
+	  Headers/GNUstepBase/preface.h.in,
+	  Source/NSProxy.m: Rewrote NSProxy's -retain /
 	  -release to be the same as NSObject, not its own ad-hoc thing.
 
 	  Added declaration of __bridge for use in non-ARC mode.
@@ -81,25 +90,25 @@
 
 2011-06-29 15:21 David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Headers/Foundation/NSNotification.h,
-	  libs/base/trunk/Headers/Foundation/NSZone.h,
-	  libs/base/trunk/Headers/GNUstepBase/preface.h.in,
-	  libs/base/trunk/Tools/make_strings/make_strings.m: More ARC
+	* Headers/Foundation/NSNotification.h,
+	  Headers/Foundation/NSZone.h,
+	  Headers/GNUstepBase/preface.h.in,
+	  Tools/make_strings/make_strings.m: More ARC
 	  fixes. We don't want to be using __strong void* in ARC mode (it
 	  only makes sense in GC mode and is invalid in ARC mode).
 
 2011-06-29 13:13  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Source/NSObject.m: Add support to NSObject for
+	* Source/NSObject.m: Add support to NSObject for
 	  automatically zeroing __weak references when using ARC.
 
 2011-06-29 11:50  David Chisnall <theraven@gna.org>
 
-	* libs/base/trunk/Headers/Foundation/NSAutoreleasePool.h,
-	  libs/base/trunk/Headers/Foundation/NSEnumerator.h,
-	  libs/base/trunk/Headers/Foundation/NSException.h,
-	  libs/base/trunk/Headers/Foundation/NSZone.h,
-	  libs/base/trunk/Headers/GNUstepBase/preface.h.in:
+	* Headers/Foundation/NSAutoreleasePool.h,
+	  Headers/Foundation/NSEnumerator.h,
+	  Headers/Foundation/NSException.h,
+	  Headers/Foundation/NSZone.h,
+	  Headers/GNUstepBase/preface.h.in:
 	  ARC-compatibility tweaks in the headers. ARC will not track
 	  objects inside structures and rejects code that uses object types
 	  that are not __unsafe_unretained qualified inside structures.

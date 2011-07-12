@@ -728,7 +728,7 @@ NSString * const NSFileHandleOperationException
 /** <override-dummy />
  * Establishes an SSL connection from the system that the handle
  * is talking to.<br />
- * This is implented by an SSL handling subclass.<br />
+ * This is implemented by an SSL handling subclass.<br />
  * The default implementation just returns NO.
  */
 - (BOOL) sslAccept
@@ -739,7 +739,7 @@ NSString * const NSFileHandleOperationException
 /** <override-dummy />
  * Establishes an SSL connection to the system that the handle
  * is talking to.<br />
- * This is implented by an SSL handling subclass.<br />
+ * This is implemented by an SSL handling subclass.<br />
  * The default implementation just returns NO.
  */
 - (BOOL) sslConnect
@@ -755,7 +755,14 @@ NSString * const NSFileHandleOperationException
 }
 
 /** <override-dummy />
- * Sets the certificate to be used to identify this process to the server
+ */
+- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
+{
+  return NO;
+}
+
+/** <override-dummy />
+ * Sets the certificate chain to be used to identify this process to the server
  * at the opposite end of the network connection.
  */
 - (void) sslSetCertificate: (NSString*)certFile
@@ -763,5 +770,6 @@ NSString * const NSFileHandleOperationException
                  PEMpasswd: (NSString*)PEMpasswd
 {
 }
+
 @end
 

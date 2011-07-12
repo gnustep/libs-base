@@ -236,6 +236,22 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 - (BOOL) sslAccept;
 - (BOOL) sslConnect;
 - (void) sslDisconnect;
+/** Make a non-blocking handshake attempt.  Calls to this method should be
+ * repeated until the method returns YES indicating that the handshake
+ * completed.  If the method returns YES indicating completion of the
+ * handshake, the result indicates whether the handshake succeeded in
+ * establishing a connection or not.
+ */
+- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
+/** Sets certification data for the SSL connection.<br />
+ * The value of certFile is the path to a file containing a PEM encoded
+ * certificate for this host (optionally followed by other PEM encoded
+ * certificates in a chain leading to a root certificate authority).<br />
+ * The value of privatekey is the path of a file containing a PEM encoded key
+ * used to establish handshakes using the host certificate.<br />
+ * The value of PEMpasswd is a string used as the password to access the
+ * content of the key file.
+ */
 - (void) sslSetCertificate: (NSString*)certFile
                 privateKey: (NSString*)privateKey
                  PEMpasswd: (NSString*)PEMpasswd;
