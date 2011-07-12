@@ -2029,6 +2029,13 @@ objc_create_block_classes_as_subclasses_of(Class super);
 #endif
 }
 
+#if     !GS_WITH_GC && !__OBJC_GC__
++ (NSZone *) zone
+{
+  return NSDefaultMallocZone();
+}
+#endif
+
 /**
  * Called to encode the instance variables of the receiver to aCoder.<br />
  * Subclasses should call the superclass method at the start of their

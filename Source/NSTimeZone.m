@@ -1521,9 +1521,14 @@ static NSMapTable	*absolutes = 0;
 	      while (nil != (s = [e nextObject]))
 		{
 		  s = [s stringByTrimmingSpaces];
-		  if ([s hasPrefix: @"ZONE"])
+                  // OpenSuse uses the non-standard key TIMEZONE
+		  if ([s hasPrefix: @"ZONE"] || [s hasPrefix: @"TIMEZONE"])
 		    {
-		      s = [s substringFromIndex: 4];
+                      if ([s hasPrefix: @"ZONE"])
+                        s = [s substringFromIndex: 4];
+                      else
+                        s = [s substringFromIndex: 8];
+
 		      s = [s stringByTrimmingSpaces];
 		      if ([s hasPrefix: @"="])
 			{

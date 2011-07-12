@@ -1,3 +1,32 @@
+2011-07-11 12:36 David Chisnall <theraven@gna.org>
+
+        * Source/NSNumber.m: [NSNumber -init] should not
+          destroy itself when called as [super init]. This behaviour was
+          breaking anything that subclassed NSNumber in user code (e.g.
+          PyObjC).
+
+2011-07-11 Fred Kiefer <FredKiefer@gmx.de>
+
+	* config/config.ffi.c: Move declaration of g_dbl to begin of
+	function.
+	Patch by Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+2011-07-11 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSTimeZone.m (+systemTimeZone): Support the OpenSuse key
+	TIMEZONE in /etc/sysconfig/clock.
+
+2011-07-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSObject.m (+zone): Override to ensure that -zone returns
+	a valid zone pointer when it is called on a class object.
+
+2011-07-05 Fred Kiefer <FredKiefer@gmx.de>
+
+        * macosx/gnustep.pbproj/project.pbxproj,
+        * Tools/make_strings/GNUmakefile.preamble: Remove references to
+        obsolete directory Headers/Additions.
+
 2011-06-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/news.texi
