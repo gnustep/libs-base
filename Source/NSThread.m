@@ -329,7 +329,7 @@ GSCurrentThread(void)
   NSThread *thr = pthread_getspecific(thread_object_key);
   if (nil == thr)
     {
-      assert(GSRegisterCurrentThread() && @"Failed to register thread");
+      GSRegisterCurrentThread();
       thr = pthread_getspecific(thread_object_key);
       if ((nil == defaultThread) && IS_MAIN_PTHREAD)
         {
@@ -1325,6 +1325,7 @@ GSRegisterCurrentThread (void)
 {
   return [NSThread _createThreadForCurrentPthread];
 }
+
 /**
  * <p>
  *   This function is provided to let threads started by some other

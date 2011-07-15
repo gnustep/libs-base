@@ -1,3 +1,7 @@
+2011-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Fix faulty assert.
+
 2011-07-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileHandle.m:
