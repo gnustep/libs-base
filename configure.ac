@@ -2992,6 +2992,5 @@ AC_SUBST(GCC_VERSION)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_CONFIG_FILES([config.mak base.make Headers/GNUstepBase/GSConfig.h 
-	  Headers/GNUstepBase/preface.h])
+AC_CONFIG_FILES([config.mak base.make Headers/GNUstepBase/GSConfig.h])
 AC_OUTPUT

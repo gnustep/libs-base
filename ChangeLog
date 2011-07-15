@@ -1,5 +1,31 @@
 2011-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GNUmakefile:
+	* Source/GSRunLoopWatcher.h:
+	* Source/NSXMLPrivate.h:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSFileHandle.m:
+	* Source/win32/NSMessagePort.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/win32/NSStream.m:
+	* Source/common.h:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSFunctions.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/GSURLPrivate.h:
+	* SSL/GSSSLHandle.m:
+	* Makefile.postamble:
+	* configure.ac:
+	* Headers/GNUstepBase/GSConfig.h.in:
+	* Headers/GNUstepBase/GSFunctions.h:
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Headers/Foundation/NSZone.h:
+	* Tools/make_strings/make_strings.m:
+	* configure: regenerate
+	Remove references to obsolete header.
+
+2011-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSThread.m: Fix faulty assert.
 
 2011-07-12  Richard Frith-Macdonald <rfm@gnu.org>

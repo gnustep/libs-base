@@ -146,7 +146,6 @@ NSThread+GNUstepBase.h \
 NSURL+GNUstepBase.h \
 Unicode.h \
 GNUstep.h \
-preface.h \
 Additions.h
 
 
@@ -455,7 +454,6 @@ HEADERS_INSTALL = \
 
 GENERATED_HFILES = \
 dynamic-load.h \
-$(HEADER_DIR_BASE)/preface.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/common.h \
 $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h

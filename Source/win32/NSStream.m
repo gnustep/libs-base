@@ -22,7 +22,6 @@
 
    */
 #include "common.h"
-#include "GNUstepBase/preface.h"
 
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"

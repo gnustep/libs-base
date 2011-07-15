@@ -29,7 +29,6 @@
 #ifndef __NSZone_h_GNUSTEP_BASE_INCLUDE
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
 #import	"GNUstepBase/GSVersionMacros.h"
-#import	"GNUstepBase/preface.h"
 
 /**
  * Primary structure representing an <code>NSZone</code>.  Technically it

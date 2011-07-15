@@ -28,7 +28,6 @@
 #define __GSFunctions_h_GNUSTEP_BASE_INCLUDE
 #import "GNUstepBase/GNUstep.h"
 
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 
 #if	defined(__cplusplus)

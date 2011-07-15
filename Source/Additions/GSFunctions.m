@@ -27,7 +27,6 @@
    */
 
 #import "common.h"
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/GSFunctions.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 #ifndef NeXT_Foundation_LIBRARY

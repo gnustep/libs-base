@@ -55,7 +55,6 @@
  */
 
 #include "config.h"
-#include "GNUstepBase/preface.h"
 #include <Foundation/NSRunLoop.h>
 
 @class NSDate;
