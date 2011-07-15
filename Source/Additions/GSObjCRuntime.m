@@ -30,7 +30,6 @@
    */
 
 #import "common.h"
-#import "GNUstepBase/preface.h"
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"

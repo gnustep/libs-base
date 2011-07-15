@@ -28,7 +28,6 @@
  * Headers needed by many URL loading classes
  */
 #import "config.h"
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"

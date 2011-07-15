@@ -34,7 +34,46 @@
 #import <GNUstepBase/GSConfig.h>
 
 #include <stdio.h>
-#include <objc/objc.h>
+
+#if NeXT_RUNTIME
+ #include <objc/objc.h>
+ #include <objc/objc-class.h>
+ #include <objc/objc-runtime.h>
+ #ifndef _C_ATOM
+  #define _C_ATOM '%'
+ #endif
+ #define _F_CONST    0x01
+ #define _F_IN       0x01
+ #define _F_OUT      0x02
+ #define _F_INOUT    0x03
+ #define _F_BYCOPY   0x04
+ #define _F_ONEWAY   0x08
+ #define _C_CONST    'r'
+ #define _C_IN       'n'
+ #define _C_INOUT    'N'
+ #define _C_OUT      'o'
+ #define _C_BYCOPY   'O'
+ #define _C_ONEWAY   'V'
+#else				/* GNU Objective C Runtime */
+ #include <objc/objc.h>
+ #if defined (__GNU_LIBOBJC__)
+  #include <objc/runtime.h>
+ #else
+  #include <objc/objc-api.h>
+  #include <objc/encoding.h>
+ #endif
+#endif
+
+/*
+ * Hack for older compiler versions that don't have all defines
+ * needed in  objc-api.h
+ */
+#ifndef	_C_LNG_LNG
+#define	_C_LNG_LNG	'q'
+#endif
+#ifndef	_C_ULNG_LNG
+#define	_C_ULNG_LNG	'Q'
+#endif
 
 #if	OBJC2RUNTIME
 /* We have a real ObjC2 runtime.
@@ -46,8 +85,6 @@
 #include <objc/objc-api.h>
 #include <ObjectiveC2/runtime.h>
 #endif
-
-#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -22,7 +22,6 @@
    */
 
 #include "common.h"
-#include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSNotification.h"

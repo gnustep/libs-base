@@ -14,10 +14,6 @@
 #import	<Foundation/Foundation.h>
 #endif
 
-/* GNUstepBase/GSConfig.h includes <GNUstepBase/preface.h> so
- * we import local versions first.
- */
-#import	"GNUstepBase/preface.h"
 #import	"GNUstepBase/GSConfig.h"
 
 /* Set localisation macro for use within the base library itsself.

@@ -8,7 +8,6 @@
 
 #import "common.h"
 
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"

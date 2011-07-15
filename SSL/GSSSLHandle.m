@@ -39,7 +39,6 @@
 
 #if defined(__WIN32__)
 #include <windows.h>
-#define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)
 #endif
 
   /* Because openssl uses `id' as variable name sometime,

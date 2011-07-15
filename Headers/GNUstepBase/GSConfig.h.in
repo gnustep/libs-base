@@ -226,7 +226,181 @@ typedef	struct {
 #define GS_USE_AVAHI @HAVE_AVAHI@
 #define GS_USE_MDNS @HAVE_MDNS@
 #define GS_USE_ICU @HAVE_ICU@
-#import <GNUstepBase/preface.h>
 
+
+#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
+#  if	!defined(__WIN32__)
+#    define __WIN32__
+#  endif
+#endif
+
+#if	defined(__MINGW32__)
+#  if	!defined(__MINGW__)
+#    define __MINGW__
+#  endif
+#  if	!defined(__WIN32__)
+#    define __WIN32__
+#  endif
+#endif
+
+#ifndef __has_include
+#  define __has_include(x) 0
+#endif
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
+
+#if defined(__WIN32__)
+#include <w32api.h>
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT Windows2000
+#endif
+#if	!defined(WINVER)
+#define WINVER Windows2000
+#elif (WINVER < Windows2000)
+#undef	WINVER
+#define WINVER Windows2000
+#endif
+#include <windows.h>
+#endif
+
+// Include the blocks runtime header if it's available (It shouldn't matter
+// that this doesn't work on compilers that don't support __has_include(),
+// because they also don't support blocks).
+#if __has_include(<objc/block_runtime.h>)
+#  include <objc/block_runtime.h>
+#endif
+
+#ifndef __WIN32__
+#include <sys/param.h> /* Hack to get rid of warning in GNU libc 2.0.3. */
+#endif
+
+/* The following group of lines maintained by the gstep-base configure */
+#define GNUSTEP_BASE_VERSION            @VERSION@
+#define GNUSTEP_BASE_MAJOR_VERSION      @MAJOR_VERSION@
+#define GNUSTEP_BASE_MINOR_VERSION      @MINOR_VERSION@
+#define GNUSTEP_BASE_SUBMINOR_VERSION   @SUBMINOR_VERSION@
+#define GNUSTEP_BASE_GCC_VERSION        @GCC_VERSION@
+
+/* Do not use the following macros!
+ */
+#define OBJC_DEP(M) \
+  ({ static BOOL beenHere = NO; if (beenHere == NO) {\
+    beenHere = YES; fprintf(stderr, "%s:%d %s", __FILE__, __LINE__, (M));}})
+
+#define OBJC_MALLOC(VAR, TYPE, NUM) \
+   (OBJC_DEP("OBJC_MALLOC is deprecated ... use malloc\n"),(VAR) = (TYPE *) malloc ((unsigned)(NUM)*sizeof(TYPE))) 
+#define OBJC_VALLOC(VAR, TYPE, NUM) \
+   (OBJC_DEP("OBJC_VALLOC is deprecated\n"),(VAR) = (TYPE *) valloc ((unsigned)(NUM)*sizeof(TYPE))) 
+#define OBJC_ATOMIC_MALLOC(VAR, TYPE, NUM) \
+   (OBJC_DEP("OBJC_ATOMIC_MALLOC is deprecated\n"),(VAR) = (TYPE *) malloc ((unsigned)(NUM)*sizeof(TYPE))) 
+#define OBJC_REALLOC(VAR, TYPE, NUM) \
+   (OBJC_DEP("OBJC_REALLOC is deprecated ... use realloc\n"),(VAR) = (TYPE *) realloc ((VAR), (unsigned)(NUM)*sizeof(TYPE)))
+#define OBJC_CALLOC(VAR, TYPE, NUM) \
+   (OBJC_DEP("OBJC_CALLOC is deprecated ... use calloc\n"),(VAR) = (TYPE *) calloc ((unsigned)(NUM), sizeof(TYPE)))
+#define OBJC_FREE(PTR) (OBJC_DEP("OBJC_FREE is deprecated ... use free\n"), free (PTR))
+
+#ifndef MAX
+#define MAX(a,b) \
+       ({__typeof__(a) _MAX_a = (a); __typeof__(b) _MAX_b = (b);  \
+         _MAX_a > _MAX_b ? _MAX_a : _MAX_b; })
+#endif
+
+#ifndef MIN
+#define MIN(a,b) \
+       ({__typeof__(a) _MIN_a = (a); __typeof__(b) _MIN_b = (b);  \
+         _MIN_a < _MIN_b ? _MIN_a : _MIN_b; })
+#endif
+
+#ifndef ABS
+#define ABS(a) \
+       ({__typeof__(a) _ABS_a = (a); \
+         _ABS_a < 0 ? -_ABS_a : _ABS_a; })
+#endif
+
+#ifndef STRINGIFY
+#define STRINGIFY(s) XSTRINGIFY(s)
+#define XSTRINGIFY(s) #s
+#endif
+
+#ifndef OBJC_STRINGIFY
+#define OBJC_STRINGIFY(s) OBJC_XSTRINGIFY(s)
+#define OBJC_XSTRINGIFY(s) @#s
+#endif
+
+#ifndef PTR2LONG
+#define PTR2LONG(P) (((char*)(P))-(char*)0)
+#endif
+#ifndef LONG2PTR
+#define LONG2PTR(L) (((char*)0)+(L))
+#endif
+
+#if VSPRINTF_RETURNS_LENGTH 
+#define VSPRINTF_LENGTH(VSPF_CALL) (VSPF_CALL)
+#else
+#define VSPRINTF_LENGTH(VSPF_CALL) strlen((VSPF_CALL))
+#endif /* VSPRINTF_RETURNS_LENGTH */
+
+#if VASPRINTF_RETURNS_LENGTH 
+#define VASPRINTF_LENGTH(VASPF_CALL) (VASPF_CALL)
+#else
+#define VASPRINTF_LENGTH(VASPF_CALL) strlen((VASPF_CALL))
+#endif /* VSPRINTF_RETURNS_LENGTH */
+
+/* Evil hack to stop gcc-4.1 complaining about a dealloc method which
+ * does not call the superclass implementation.
+ */
+#define	GSNOSUPERDEALLOC	if (0) [super dealloc]
+
+#ifndef CF_EXCLUDE_CSTD_HEADERS
+#include <sys/types.h>
+#include <stdarg.h>
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <float.h>
+#include <limits.h>
+#include <locale.h>
+#include <math.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
+#endif
+
+// Strong has different semantics in GC and ARC modes, so we need to have a
+// macro that picks the correct one.
+#if __OBJC_GC__
+#  define GS_GC_STRONG __strong
+#else
+#  define GS_GC_STRONG
+#endif
+
+#if !__has_feature(objc_arc)
+#  if __OBJC_GC__
+#    define __strong __attribute__((objc_gc(strong)))
+#    define __weak __attribute__((objc_gc(weak)))
+#  else
+#    define __strong 
+#    define __weak 
+#  endif
+#endif
+
+#ifndef __unsafe_unretained
+#  if !__has_feature(objc_arc)
+#    define __unsafe_unretained
+#  endif
+#endif
+#ifndef __bridge
+#  if !__has_feature(objc_arc)
+#    define __bridge
+#  endif
+#endif
 #endif	/* included_GSConfig_h */
 

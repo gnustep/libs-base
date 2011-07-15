@@ -42,7 +42,6 @@
 
 #include <string.h>
 #import "common.h"
-#import "GNUstepBase/preface.h"
 #import "GNUstepBase/Unicode.h"
 
 

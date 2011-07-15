@@ -31,7 +31,6 @@
 #define	EXPOSE_NSXMLDocument_IVARS	1
 #define	EXPOSE_NSXMLElement_IVARS	1
 #define	EXPOSE_NSXMLNode_IVARS	1
-#import "GNUstepBase/preface.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDebug.h"

@@ -71,7 +71,6 @@ after-distclean::
 	rm -f config.status config.log config.cache TAGS config.mak base.make \
 	        Headers/GNUstepBase/config.h \
 		Headers/GNUstepBase/GSConfig.h \
-		Headers/GNUstepBase/preface.h \
 	$(END_ECHO)
 
 # Things to do before checking
