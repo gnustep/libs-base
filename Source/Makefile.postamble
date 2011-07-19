@@ -46,15 +46,21 @@ after-all:: Info-gnustep.plist
 
 # Things to do after installing
 #
-# Unfortunately the way the header files are placed in relationship
-# to the source we must install the GNU header manually
-# Ayers 2003-07-31: This statement should be reevaluated!
+ifeq ($(OBJC2RUNTIME),0)
 after-install::
 	$(MKDIRS) $(GNUSTEP_HEADERS)/ObjectiveC2
 	for file in $(OBJECTIVEC2_HEADERS); do \
 	  $(INSTALL_DATA) ../Headers/ObjectiveC2/$$file \
 	    $(GNUSTEP_HEADERS)/ObjectiveC2/$$file ; \
 	done
+	$(MKDIRS) $(GNUSTEP_HEADERS)/objc
+	echo "#include <ObjectiveC2/runtime.h>" \
+	> $(GNUSTEP_HEADERS)/objc/runtime.h
+endif
+# Unfortunately the way the header files are placed in relationship
+# to the source we must install the GNU header manually
+# Ayers 2003-07-31: This statement should be reevaluated!
+after-install::
 	$(MKDIRS) $(GNUSTEP_HEADERS)/GNUstepBase
 	for file in $(GNUSTEPBASE_HEADERS); do \
 	  $(INSTALL_DATA) ../Headers/GNUstepBase/$$file \
@@ -80,13 +86,15 @@ after-install::
 	fi
 
 # Things to do before uninstalling
-# before-uninstall::
-
-# Things to do after uninstalling
+ifeq ($(OBJC2RUNTIME),0)
 before-uninstall::
+	rm -f $(GNUSTEP_HEADERS)/objc/runtime.h; \
 	for file in $(OBJECTIVEC2_HEADERS); do \
 	  rm -f $(GNUSTEP_HEADERS)/ObjectiveC2/$$file ; \
 	done
+endif
+
+before-uninstall::
 	for file in $(GNUSTEPBASE_HEADERS); do \
 	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
