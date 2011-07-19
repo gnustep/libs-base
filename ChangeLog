@@ -1,3 +1,13 @@
+2011-07-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Makefile.postamble:
+	Install ObjectiveC2 compatibility headers only if that is built (which
+	should be only if no 'real' objc2 library is available).
+	Also generate an objc/runtime.h header to include objectiveC2/runtime.h
+	so that people can just include objc/runtime.h to use the new runtime
+	API irrespective of whether the API is provided by the actual runtime
+	library or by the compatibility library.
+
 2011-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile:
