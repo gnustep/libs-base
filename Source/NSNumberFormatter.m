@@ -437,6 +437,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (NSAttributedString*) attributedStringForObjectValue: (id)anObject
 				 withDefaultAttributes: (NSDictionary*)attr
 {
+  NSString *stringForObjectValue;
   NSDecimalNumber *zeroNumber = [NSDecimalNumber zero];
   NSDecimalNumber *nanNumber = [NSDecimalNumber notANumber];
 
@@ -468,8 +469,15 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       attr = _attributesForNegativeValues;
     }
 
+  stringForObjectValue = [self stringForObjectValue: anObject];
+  
+  if (stringForObjectValue == nil)
+    {
+      stringForObjectValue = @"";
+    }
+
   return AUTORELEASE([[NSAttributedString alloc] initWithString:
-    [self stringForObjectValue: anObject] attributes: attr]);
+     stringForObjectValue attributes: attr]);
 }
 
 - (NSAttributedString*) attributedStringForNil
