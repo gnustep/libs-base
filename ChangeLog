@@ -1,3 +1,12 @@
+2011-07-20  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/GSAttributedString.m: Throw an exception if the string object
+	passed to -initWithString:attributes: doesn't respond to -length, or if
+	it is nil. This is the same behaviour as OS X.
+	* Source/NSAttributedString.m (-init): Call -initWithString:attributes:
+	with @"" instead of nil, since passing nil now causes an exception
+	to be thrown.
+
 2011-07-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Makefile.postamble:
