@@ -3239,6 +3239,10 @@ agree, create a new GSCInlineString otherwise.
     [NSException raise: NSInvalidArgumentException
 		format: @"[%@ -%@] not a string argument",
       NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
+    {
+      return [super rangeOfString: aString options: mask range: aRange];
+    }
   return rangeOfString_c((GSStr)self, aString, mask, aRange);
 }
 
@@ -3573,6 +3577,10 @@ agree, create a new GSCInlineString otherwise.
     [NSException raise: NSInvalidArgumentException
 		format: @"[%@ -%@] not a string argument",
       NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
+    {
+      return [super rangeOfString: aString options: mask range: aRange];
+    }
   return rangeOfString_u((GSStr)self, aString, mask, aRange);
 }
 
@@ -4425,6 +4433,10 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     [NSException raise: NSInvalidArgumentException
 		format: @"[%@ -%@] not a string argument",
       NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
+    {
+      return [super rangeOfString: aString options: mask range: aRange];
+    }
   if (_flags.wide == 1)
     return rangeOfString_u((GSStr)self, aString, mask, aRange);
   else
