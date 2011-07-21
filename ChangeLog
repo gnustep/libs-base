@@ -1,5 +1,11 @@
 2011-07-20  Eric Wasylishen  <ewasylishen@gmail.com>
 
+	* Source/NSNumberFormatter.m 
+	(-attributedStringForObjectValue:withDefaultAttributes:):
+	Guard against initializing an NSAttributedString with a nil string.
+
+2011-07-20  Eric Wasylishen  <ewasylishen@gmail.com>
+
 	* Source/GSAttributedString.m: Throw an exception if the string object
 	passed to -initWithString:attributes: doesn't respond to -length, or if
 	it is nil. This is the same behaviour as OS X.
