@@ -58,6 +58,7 @@
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSRange.h"
+#import "Foundation/NSRegularExpression.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSURL.h"
@@ -2037,6 +2038,28 @@ handle_printf_atsign (FILE *stream,
   GS_RANGE_CHECK(aRange, [self length]);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
+  if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
+    {
+        NSRange r = {NSNotFound, 0};
+        NSError *e = nil;
+        NSUInteger options = 0;
+        NSRegularExpression *regex = [NSRegularExpression alloc];
+        if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
+          {
+            options |= NSRegularExpressionCaseInsensitive;
+          }
+        regex = [regex initWithPattern: aString options: options error: &e];
+        if (nil == e)
+          {
+            options = ((mask & NSAnchoredSearch) == NSAnchoredSearch) ?
+                NSMatchingAnchored : 0;
+            r = [regex rangeOfFirstMatchInString: self
+                                         options: options
+                                           range: aRange];
+          }
+        [regex release];
+        return r;
+    }
   return strRangeNsNs(self, aString, mask, aRange);
 }
 
@@ -2045,7 +2068,11 @@ handle_printf_atsign (FILE *stream,
                     range: (NSRange)searchRange
                    locale: (NSLocale *)locale
 {
-  return NSMakeRange(0, 0);     // FIXME
+  // FIXME: Doing a locale-insensitive search is better than returning {0, 0},
+  // but it's still wrong.
+  return [self rangeOfString: aString
+                     options: mask
+                       range: searchRange];
 }
 
 - (NSUInteger) indexOfString: (NSString *)substring

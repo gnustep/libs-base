@@ -110,6 +110,17 @@ enum
  NSWidthInsensitiveSearch = 256,
  NSForcedOrderingSearch = 512
 #endif
+#if OS_API_VERSION(100700,GS_API_LATEST) 
+ ,
+ /**
+  * Treats the search string as a regular expression.  This option may be
+  * combined with NSCaseInsensitiveSearch and NSAnchoredSearch, but no other
+  * search options.
+  *
+  * This option may only be used with the -rangeOfString: family of methods.
+  */
+ NSRegularExpressionSearch = 1024
+#endif
 };
 typedef NSUInteger NSStringCompareOptions;
 
