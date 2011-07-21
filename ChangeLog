@@ -1,3 +1,11 @@
+2011-07-21 13:17 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSString.h,
+	  libs/base/trunk/Source/GSString.m,
+	  libs/base/trunk/Source/NSString.m,
+	  libs/base/trunk/Tests/base/NSString/regex.m: Added
+	  NSRegularExpressionSearch (10.7) support to NSString.
+
 2011-07-20  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Source/NSNumberFormatter.m 
