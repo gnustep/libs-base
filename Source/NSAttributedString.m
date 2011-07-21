@@ -366,7 +366,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 //Creating an NSAttributedString
 - (id) init
 {
-  return [self initWithString: nil attributes: nil];
+  return [self initWithString: @"" attributes: nil];
 }
 
 /**
