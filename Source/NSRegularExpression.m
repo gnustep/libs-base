@@ -626,6 +626,7 @@ prepareResult(NSRegularExpression *regex,
 #endif //HAV_ICU
 
 #ifndef NSRegularExpressionWorks
+#import "Foundation/NSRegularExpression.h"
 @implementation NSRegularExpression
 + (id)allocWithZone: (NSZone*)
 {
