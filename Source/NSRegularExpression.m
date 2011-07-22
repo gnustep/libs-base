@@ -627,8 +627,9 @@ prepareResult(NSRegularExpression *regex,
 
 #ifndef NSRegularExpressionWorks
 #import "Foundation/NSRegularExpression.h"
+#import "Foundation/NSZone.h"
 @implementation NSRegularExpression
-+ (id)allocWithZone: (NSZone*)
++ (id)allocWithZone: (NSZone*)aZone
 {
   [NSException raise: NSInvalidArgumentException
               format: @"NSRegularExpression requires ICU 4.4 or later"];
