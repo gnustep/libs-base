@@ -49,14 +49,14 @@ extern "C" {
 #endif
 + (id) arrayWithObject: (id)anObject;
 + (id) arrayWithObjects: (id)firstObject, ...;
-+ (id) arrayWithObjects: (const id*)objects count: (NSUInteger)count;
++ (id) arrayWithObjects: (const id[])objects count: (NSUInteger)count;
 
 - (NSArray*) arrayByAddingObject: (id)anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
 - (BOOL) containsObject: anObject;
 - (NSUInteger) count;						// Primitive
-- (void) getObjects: (id*)aBuffer;
-- (void) getObjects: (id*)aBuffer range: (NSRange)aRange;
+- (void) getObjects: (id[])aBuffer;
+- (void) getObjects: (id[])aBuffer range: (NSRange)aRange;
 - (NSUInteger) indexOfObject: (id)anObject;
 - (NSUInteger) indexOfObject: (id)anObject inRange: (NSRange)aRange;
 - (NSUInteger) indexOfObjectIdenticalTo: (id)anObject;
@@ -71,7 +71,7 @@ extern "C" {
 - (id) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 - (id) initWithObjects: firstObject, ...;
-- (id) initWithObjects: (id*)objects count: (NSUInteger)count;	// Primitive
+- (id) initWithObjects: (const id[])objects count: (NSUInteger)count;	// Primitive
 
 - (id) lastObject;
 - (id) objectAtIndex: (NSUInteger)index;			// Primitive

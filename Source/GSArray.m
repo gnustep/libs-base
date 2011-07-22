@@ -148,7 +148,7 @@ static Class	GSInlineArrayClass;
 }
 
 /* This is the designated initializer for NSArray. */
-- (id) initWithObjects: (id*)objects count: (NSUInteger)count
+- (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
   if (count > 0)
     {
@@ -353,7 +353,7 @@ static Class	GSInlineArrayClass;
     }
 }
 
-- (void) getObjects: (id*)aBuffer
+- (void) getObjects: (id[])aBuffer
 {
   NSUInteger i;
 
@@ -363,7 +363,7 @@ static Class	GSInlineArrayClass;
     }
 }
 
-- (void) getObjects: (id*)aBuffer range: (NSRange)aRange
+- (void) getObjects: (id[])aBuffer range: (NSRange)aRange
 {
   NSUInteger i, j = 0, e = aRange.location + aRange.length;
 
@@ -408,7 +408,7 @@ static Class	GSInlineArrayClass;
 {
   return [self initWithObjects: 0 count: 0];
 }
-- (id) initWithObjects: (id*)objects count: (NSUInteger)count
+- (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
   _contents_array
     = (id*)(((void*)self) + class_getInstanceSize([self class]));
@@ -559,7 +559,7 @@ static Class	GSInlineArrayClass;
   return self;
 }
 
-- (id) initWithObjects: (id*)objects count: (NSUInteger)count
+- (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (self != nil && count > 0)
@@ -1123,7 +1123,7 @@ static Class	GSInlineArrayClass;
                                               @"NS.objects"];
       if (array != nil)
 	{
-          return RETAIN(array);
+          return (GSPlaceholderArray*)RETAIN(array);
 	}
       else
         {
@@ -1155,11 +1155,11 @@ static Class	GSInlineArrayClass;
 				  at: a->_contents_array];
 	}
       a->_count = c;
-      return a;
+      return (GSPlaceholderArray*)a;
     }
 }
 
-- (id) initWithObjects: (id*)objects count: (NSUInteger)count
+- (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
 #if	GS_WITH_GC
   self = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
