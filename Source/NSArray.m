@@ -271,7 +271,7 @@ static SEL	rlSel;
  * Returns an autoreleased array containing the specified
  * objects, preserving order.
  */
-+ (id) arrayWithObjects: (id*)objects count: (NSUInteger)count
++ (id) arrayWithObjects: (const id[])objects count: (NSUInteger)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: objects count: count]);
@@ -479,7 +479,7 @@ static SEL	rlSel;
  * Copies the objects from the receiver to aBuffer, which must be
  * an area of memory large enough to hold them.
  */
-- (void) getObjects: (id*)aBuffer
+- (void) getObjects: (id[])aBuffer
 {
   unsigned i, c = [self count];
   IMP	get = [self methodForSelector: oaiSel];
@@ -492,7 +492,7 @@ static SEL	rlSel;
  * Copies the objects from the range aRange of the receiver to aBuffer,
  * which must be an area of memory large enough to hold them.
  */
-- (void) getObjects: (id*)aBuffer range: (NSRange)aRange
+- (void) getObjects: (id[])aBuffer range: (NSRange)aRange
 {
   unsigned i, j = 0, c = [self count], e = aRange.location + aRange.length;
   IMP	get = [self methodForSelector: oaiSel];
@@ -879,7 +879,7 @@ static SEL	rlSel;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithObjects: (id*)objects count: (NSUInteger)count
+- (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
   self = [self init];
   return self;
@@ -1949,7 +1949,7 @@ compare(id elem1, id elem2, void* context)
 /**
  * Override our superclass's designated initializer to go our's
  */
-- (id) initWithObjects: (id*)objects count: (NSUInteger)count
+- (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (count > 0)
