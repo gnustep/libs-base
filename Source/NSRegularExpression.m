@@ -28,6 +28,8 @@
 #include "unicode/uregex.h"
 #if (U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
 
+#define NSRegularExpressionWorks
+
 #define GSREGEXTYPE URegularExpression
 #import "GSICUString.h"
 #import "Foundation/NSRegularExpression.h"
@@ -622,3 +624,13 @@ prepareResult(NSRegularExpression *regex,
 @end
 #endif //U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
 #endif //HAV_ICU
+
+#ifndef NSRegularExpressionWorks
+@implementation NSRegularExpression
++ (id)allocWithZone: (NSZone*)
+{
+  [NSException raise: NSInvalidArgumentException
+              format: @"NSRegularExpression requires ICU 4.4 or later"];
+}
+@end
+#endif
