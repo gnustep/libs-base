@@ -628,6 +628,7 @@ prepareResult(NSRegularExpression *regex,
 #ifndef NSRegularExpressionWorks
 #import "Foundation/NSRegularExpression.h"
 #import "Foundation/NSZone.h"
+#import "Foundation/NSException.h"
 @implementation NSRegularExpression
 + (id)allocWithZone: (NSZone*)aZone
 {
