@@ -1,5 +1,12 @@
+2011-07-22 16:07 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSArray.h,
+	  libs/base/trunk/Source/GSArray.m,
+	  libs/base/trunk/Source/NSArray.m: Change id* -> id[] for OS X
+	  10.7 compatibility in NSArray. This change is required for ARC:
+	  now, id* means pointer to a single object, id[] means array.
+
 2011-07-22 14:38 David Chisnall <theraven@gna.org>
-2011-07-21 13:17 David Chisnall <theraven@gna.org>
 
 	* Source/NSRegularExpression.m:
 	Added stub implementation for when GNUstep is built without ICU.
