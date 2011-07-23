@@ -24,9 +24,37 @@
    */ 
 
 #import	"Foundation/NSPointerFunctions.h"
-#if __OBJC_GC__
-#include <objc/objc-auto.h>
+
+#ifdef __GNUSTEP_RUNTIME__
+#  include <objc/capabilities.h>
 #endif
+
+// Define a weak read barrier macro for ARC or GC, depending on which one this
+// target supports.  If this target doesn't support zeroing weak references,
+// then use an unsafe unretained access.
+#if __OBJC_GC__
+#  include <objc/objc-auto.h>
+#  define WEAK_READ(x) objc_read_weak((id*)x)
+#  define WEAK_WRITE(addr, x) objc_assign_weak((id)x, (id*)addr)
+#  define STRONG_WRITE(addr, x) objc_assign_strongCast((id)x, (id*)addr)
+#  define STRONG_ACQUIRE(x) x
+#elif defined(OBJC_CAP_ARC)
+#    include <objc/objc-arc.h>
+#    define WEAK_READ(x) objc_loadWeak((id*)x)
+#    define WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
+#    define STRONG_WRITE(addr, x) objc_storeStrong((id*)addr, (id)x)
+#    define STRONG_ACQUIRE(x) objc_retain(x)
+#else
+#  define WEAK_READ(x) (*x)
+#  if GS_WITH_GC
+#    define WEAK_WRITE(addr, x) GSAssignZeroingWeakPointer(addr, x)
+#  else
+#    define WEAK_WRITE(addr, x) (*(addr) =  x)
+#  endif
+#  define STRONG_WRITE(addr, x) ASSIGN(*(addr), x)
+#  define STRONG_ACQUIRE(x) RETAIN(x)
+#endif
+
 
 /* Declare a structure type to copy pointer functions information 
  * around easily.
@@ -68,29 +96,13 @@ typedef struct
 
 /* Acquire the pointer value to store for the specified item.
  */
-static inline void
+static inline void *
 pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
 {
   if (PF->acquireFunction != 0)
     src = (*PF->acquireFunction)(src, PF->sizeFunction,
     PF->options & NSPointerFunctionsCopyIn ? YES : NO);
-#if __OBJC_GC__
-  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
-    {
-      objc_assign_weak((id)src, (id*)dst);
-    }
-  else
-    {
-      objc_assign_strongCast((id)src, (id*)dst);
-    }
-#else
-#if	GS_WITH_GC
-  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
-    GSAssignZeroingWeakPointer(dst, src);
-  else
-#endif
-    *dst = src;
-#endif
+  return src;
 }
 
 /**
@@ -99,12 +111,10 @@ pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
  */
 static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
 {
-#if __OBJC_GC__
   if (PF->options & NSPointerFunctionsZeroingWeakMemory)
     {
-      return objc_read_weak((id*)addr);
+      return WEAK_READ((id*)addr);
     }
-#endif
   return *addr;
 }
 
@@ -113,21 +123,18 @@ static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
  */
 static inline void pointerFunctionsAssign(PFInfo *PF, void **addr, void *value)
 {
-#if __OBJC_GC__
   if (PF->options & NSPointerFunctionsZeroingWeakMemory)
     {
-      objc_assign_weak(value, (id*)addr);
+      WEAK_WRITE(addr, value);
+    }
+  else if (PF->options & NSPointerFunctionsStrongMemory)
+    {
+      STRONG_WRITE(addr, value);
     }
   else
     {
-      objc_assign_strongCast(value, (id*)addr);
+      *addr = value;
     }
-#elif GS_WITH_GC
-  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
-    GSAssignZeroingWeakPointer(addr, value);
-#else
-  *addr = value;
-#endif
 }
 
 /**
@@ -179,6 +186,7 @@ pointerFunctionsEqual(PFInfo *PF, void *item1, void *item2)
 static inline void
 pointerFunctionsRelinquish(PFInfo *PF, void **itemptr)
 {
+  
   if (PF->relinquishFunction != 0)
     (*PF->relinquishFunction)(*itemptr, PF->sizeFunction);
   if (PF->options & NSPointerFunctionsZeroingWeakMemory)
@@ -198,11 +206,9 @@ pointerFunctionsReplace(PFInfo *PF, void **dst, void *src)
           PF->options & NSPointerFunctionsCopyIn ? YES : NO);
       if (PF->relinquishFunction != 0)
 	(*PF->relinquishFunction)(*dst, PF->sizeFunction);
-#if	GS_WITH_GC
       if (PF->options & NSPointerFunctionsZeroingWeakMemory)
-	GSAssignZeroingWeakPointer(dst, src);
+        WEAK_WRITE(dst, src);
       else
-#endif
 	*dst = src;
     }
 }
