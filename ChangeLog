@@ -1,3 +1,14 @@
+2011-07-23 12:19 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSObject.m: Remove the zone pointer from
+	  objects. Now we always query the zones to find the relevant
+	  pointer. Zones are still supported, but we now optimise for the
+	  case where they are not used.
+	  
+	  To disable zone support completely, NSAllocateObject() should
+	  ignore the zone and NSDeallocateObject() should skip the zone
+	  lookup.
+
 2011-07-22 16:07 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/Foundation/NSArray.h,
