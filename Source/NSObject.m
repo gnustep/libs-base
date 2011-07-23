@@ -409,7 +409,6 @@ static inline NSLock *GSAllocationLockForObject(id p)
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
-    NSZone	*zone;
     NSUInteger	retained;
 } unp;
 #define	UNP sizeof(unp)
@@ -420,7 +419,6 @@ typedef struct obj_layout_unpadded {
  *	structure correct.
  */
 struct obj_layout {
-    NSZone	*zone;
     NSUInteger	retained;
     char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
 };
@@ -770,7 +768,7 @@ GSObjCZone(NSObject *object)
   GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
   if (object_getClass(object) == NSConstantStringClass)
     return NSDefaultMallocZone();
-  return ((obj)object)[-1].zone;
+  return NSZoneFromPointer(object);
 }
 #endif
 
@@ -818,7 +816,6 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
   if (new != nil)
     {
       memset (new, 0, size);
-      ((obj)new)->zone = zone;
       new = (id)&((obj)new)[1];
       object_setClass(new, aClass);
       AADD(aClass, new);
@@ -861,7 +858,7 @@ NSDeallocateObject(id anObject)
   if ((anObject != nil) && !class_isMetaClass(aClass))
     {
       obj	o = &((obj)anObject)[-1];
-      NSZone	*z = o->zone;
+      NSZone	*z = NSZoneFromPointer(o);
 
       /* Call the default finalizer to handle C++ destructors.
        */
@@ -2160,7 +2157,7 @@ static id gs_weak_load(id obj)
    */
   return NSDefaultMallocZone();
 #else
-  return (((obj)self)[-1]).zone;
+  return NSZoneFromPointer(self);
 #endif
 }
 
