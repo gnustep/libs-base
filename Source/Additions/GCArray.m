@@ -145,7 +145,7 @@ static Class	gcClass = 0;
     }
 }
 
-- (id) initWithObjects: (id*)objects count: (NSUInteger)count
+- (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
   _contents = NSZoneMalloc([self zone], count * (sizeof(id) + sizeof(BOOL)));
   _isGCObject = (BOOL*)&_contents[count];
@@ -297,7 +297,7 @@ static Class	gcClass = 0;
   return self;
 }
 
-- (id) initWithObjects: (id *)objects count: (NSUInteger)count
+- (id) initWithObjects: (const id [])objects count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
   if (self != nil)
