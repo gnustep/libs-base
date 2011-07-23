@@ -1,3 +1,13 @@
+2011-07-23 16:16 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/GNUstepBase/GSIMap.h,
+	  libs/base/trunk/Source/NSConcreteMapTable.m,
+	  libs/base/trunk/Source/NSConcretePointerFunctions.h,
+	  libs/base/trunk/Tests/base/NSMapTable/weak.m: Add support (and
+	  test) for weak keys and values in NSMapTable. This support should
+	  work in GC mode. It also works if the runtime supports ARC, even
+	  if the compiler does not use this support.
+
 2011-07-23 12:19 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSObject.m: Remove the zone pointer from
