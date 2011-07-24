@@ -240,7 +240,7 @@ static Class	concreteClass = Nil;
 
   for (i = 0; i < _count; i++)
     {
-      if (pointerFunctionsRead(&_pf, _contents[i]) != 0)
+      if (pointerFunctionsRead(&_pf, &_contents[i]) != 0)
 	{
 	  c++;
 	}
@@ -256,7 +256,7 @@ static Class	concreteClass = Nil;
 
       for (i = 0; i < _count; i++)
         {
-          id obj = pointerFunctionsRead(&_pf, _contents[i]);
+          id obj = pointerFunctionsRead(&_pf, &_contents[i]);
           if (obj != 0)
 	    {
 	      [a addObject: obj];
@@ -309,8 +309,9 @@ static Class	concreteClass = Nil;
 #endif
   for (i = 0; i < _count; i++)
     {
+      NSLog(@"Copying %d, %p", i, _contents[i]);
       pointerFunctionsAcquire(&_pf, &c->_contents[i],
-              pointerFunctionsRead(&_pf, _contents[i]));
+              pointerFunctionsRead(&_pf, &_contents[i]));
     }
   return c;
 }
@@ -432,6 +433,7 @@ static Class	concreteClass = Nil;
 - (void) insertPointer: (void*)pointer atIndex: (NSUInteger)index
 {
   NSUInteger	i;
+  
 
   if (index > _count)
     {
@@ -467,7 +469,7 @@ static Class	concreteClass = Nil;
   while (count-- > 0)
     {
       if (pointerFunctionsEqual(&_pf,
-            pointerFunctionsRead(&_pf, _contents[count]),
+            pointerFunctionsRead(&_pf, &_contents[count]),
             [other pointerAtIndex: count]) == NO)
 	return NO;
     }

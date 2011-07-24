@@ -93,7 +93,7 @@
   if ([NSThread isMultiThreaded] == YES)
     {
       DESTROY(self);
-      self = [NSLock new];
+      return (GSLazyLock*)[NSLock new];
     }
   else if (self != nil)
     {
@@ -246,7 +246,7 @@
   if ([NSThread isMultiThreaded] == YES)
     {
       DESTROY(self);
-      self = [NSRecursiveLock new];
+      return (GSLazyRecursiveLock*)[NSRecursiveLock new];
     }
   else
     {

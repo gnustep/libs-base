@@ -174,7 +174,7 @@ setup()
 @interface	GSKVOInfo : NSObject
 {
   NSObject	        *instance;	// Not retained.
-  NSLock	        *iLock;
+  GSLazyRecursiveLock	        *iLock;
   NSMapTable	        *paths;
 }
 - (GSKVOPathInfo *) lockReturningPathInfoForKey: (NSString *)key;

@@ -407,7 +407,7 @@ enum proxyLocation
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return placeHolder;
+  return (NSDistantObject*)placeHolder;
 }
 
 /**

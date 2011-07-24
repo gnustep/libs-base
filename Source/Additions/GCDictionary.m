@@ -37,7 +37,7 @@ typedef struct {
   BOOL	isGCObject;
 } GCInfo;
 
-@interface _GCDictionaryKeyEnumerator : NSObject
+@interface _GCDictionaryKeyEnumerator : NSEnumerator
 {
 @public
   GCDictionary		*dict;
@@ -260,8 +260,8 @@ static Class	gcClass = 0;
   return self;
 }
 
-- (id) initWithObjects: (id*)objects
-	       forKeys: (id*)keys
+- (id) initWithObjects: (const id[])objects
+	       forKeys: (const id[])keys
 		 count: (NSUInteger)count
 {
   NSUInteger	size = (count * 4) / 3;

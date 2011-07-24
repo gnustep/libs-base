@@ -44,7 +44,7 @@ typedef struct
 
 @protocol NSFastEnumeration
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState *)state 
-				   objects: (id *)stackbuf
+				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len;
 @end
 

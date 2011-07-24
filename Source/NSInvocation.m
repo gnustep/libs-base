@@ -153,20 +153,6 @@
 static Class   NSInvocation_abstract_class;
 static Class   NSInvocation_concrete_class;
 
-@interface GSInvocationProxy
-{
-@public
-  Class		isa;
-  id		target;
-  NSInvocation	*invocation;
-}
-+ (id) _newWithTarget: (id)t;
-- (NSInvocation*) _invocation;
-- (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
-@end
-@interface GSMessageProxy : GSInvocationProxy
-@end
 
 
 
@@ -788,26 +774,6 @@ _arg_addr(NSInvocation *inv, int index)
   return nil;
 }
 
-/**
- * Internal use.<br />
- * Provides a return frame that the ObjectiveC runtime can use to
- * return the result of an invocation to a calling function.
- */
-
-+ (id) _newProxyForInvocation: (id)target
-{
-  return [GSInvocationProxy _newWithTarget: target];
-}
-+ (id) _newProxyForMessage: (id)target
-{
-  return [GSMessageProxy _newWithTarget: target];
-}
-+ (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy
-{
-  NSInvocation	*inv = [proxy _invocation];
-  NSDeallocateObject(proxy);
-  return inv;
-}
 @end
 
 @implementation NSInvocation (BackwardCompatibility)
@@ -848,35 +814,4 @@ _arg_addr(NSInvocation *inv, int index)
 
 @end
 #endif
-
-
-@implementation	GSInvocationProxy
-+ (id) _newWithTarget: (id)t
-{
-  GSInvocationProxy	*o;
-  o = (GSInvocationProxy*) NSAllocateObject(self, 0, NSDefaultMallocZone());
-  o->target = RETAIN(t);
-  return o;
-}
-- (NSInvocation*) _invocation
-{
-  return invocation;
-}
-- (void) forwardInvocation: (NSInvocation*)anInvocation
-{
-  invocation = anInvocation;
-}
-- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
-{
-  return [target methodSignatureForSelector: aSelector];
-}
-@end
-
-@implementation	GSMessageProxy
-- (NSInvocation*) _invocation
-{
-  [invocation setTarget: target];
-  return invocation;
-}
-@end
 

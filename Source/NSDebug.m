@@ -66,7 +66,7 @@ static table_entry*	the_table = 0;
 
 static BOOL	debug_allocation = NO;
 
-static NSLock	*uniqueLock = nil;
+static GSLazyRecursiveLock	*uniqueLock = nil;
 
 static const char*	_GSDebugAllocationList(BOOL difference);
 static const char*	_GSDebugAllocationListAll(void);

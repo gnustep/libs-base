@@ -26,6 +26,7 @@
    */
 
 #import "common.h"
+#import "GNUstepBase/preface.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSThread.h"
@@ -103,6 +104,7 @@ NSString *const NSAssertionHandlerKey = @"NSAssertionHandler";
   [NSException raise: NSInternalInconsistencyException
 	      format: message arguments: ap];
   va_end(ap);
+  GS_UNREACHABLE();
   /* NOT REACHED */
 }
 
@@ -133,6 +135,7 @@ NSString *const NSAssertionHandlerKey = @"NSAssertionHandler";
 	      format: message arguments: ap];
   va_end(ap);
   /* NOT REACHED */
+  GS_UNREACHABLE();
 }
 
 @end

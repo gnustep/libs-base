@@ -408,7 +408,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
     {
       zone = RETAIN(localTimeZone);
       DESTROY(self);
-      return zone;
+      return (GSPlaceholderTimeZone*)zone;
     }
 
   /*
@@ -557,7 +557,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	}
     }
   DESTROY(self);
-  return zone;
+  return (GSPlaceholderTimeZone*)zone;
 }
 
 - (void) release

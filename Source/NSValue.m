@@ -62,7 +62,7 @@
 @interface GSSizeValue : NSObject	// Help the compiler
 @end
 @class	NSDataStatic;		// Needed for decoding.
-@interface NSDataStatic : NSObject	// Help the compiler
+@interface NSDataStatic : NSData	// Help the compiler
 @end
 
 

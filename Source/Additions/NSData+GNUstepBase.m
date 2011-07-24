@@ -331,7 +331,7 @@ static void MD5Final (unsigned char digest[16], struct MD5Context *ctx)
   MD5Transform (ctx->buf, (uint32_t *) ctx->in);
   littleEndian ((unsigned char *) ctx->buf, 4);
   memcpy (digest, ctx->buf, 16);
-  memset (ctx, 0, sizeof (ctx));	/* In case it's sensitive */
+  memset (ctx, 0, sizeof (*ctx));	/* In case it's sensitive */
 }
 
 /* The four core functions - F1 is optimized somewhat */

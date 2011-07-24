@@ -69,6 +69,7 @@
   _GSInsensitiveDictionary		*dictionary;
   GSIMapEnumerator_t	enumerator;
 }
+- (id) initWithDictionary: (NSDictionary*)d;
 @end
 
 @interface _GSInsensitiveDictionaryObjectEnumerator : _GSInsensitiveDictionaryKeyEnumerator
@@ -169,7 +170,7 @@ static SEL	objSel;
 }
 
 /* Designated initialiser */
-- (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (NSUInteger)c
+- (id) initWithObjects: (const id[])objs forKeys: (const id[])keys count: (NSUInteger)c
 {
   NSUInteger	i;
 
