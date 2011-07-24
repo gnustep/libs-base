@@ -249,6 +249,9 @@ typedef	struct {
 #ifndef __has_feature
 #  define __has_feature(x) 0
 #endif
+#ifndef __has_builtin
+#  define __has_builtin(x) 0
+#endif
 
 #if defined(__WIN32__)
 #include <w32api.h>
@@ -402,5 +405,12 @@ typedef	struct {
 #    define __bridge
 #  endif
 #endif
+
+#if __has_builtin(__builtin_unreachable)
+#  define GS_UNREACHABLE() __builtin_unreachable()
+#else
+#  define GS_UNREACHABLE() abort()
+#endif
+
 #endif	/* included_GSConfig_h */
 
