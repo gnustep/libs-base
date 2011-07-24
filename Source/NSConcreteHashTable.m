@@ -90,6 +90,18 @@ typedef GSIMapNode_t *GSIMapNode;
  (M->legacy ? 0 \
  : ((M->cb.pf.options & NSPointerFunctionsZeroingWeakMemory) ? YES : NO))
 
+#define GSI_MAP_WRITE_KEY(M, addr, x) \
+	if (M->legacy) \
+		*(addr) = x;\
+	else\
+	 pointerFunctionsAssign(&M->cb.pf, (void**)addr, (x).obj);
+#define GSI_MAP_READ_KEY(M,addr) \
+	(M->legacy ? *(addr) :\
+	 (typeof(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))
+#define GSI_MAP_ZEROED(M)\
+ (M->legacy ? 0 \
+ : ((M->cb.pf.options & NSPointerFunctionsZeroingWeakMemory) ? YES : NO))
+
 #define	GSI_MAP_ENUMERATOR	NSHashEnumerator
 
 #if	GS_WITH_GC
@@ -353,7 +365,7 @@ NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
        * in the 'node' field.
        */
       [(id)enumerator->node release];
-      memset(enumerator, '\0', sizeof(GSIMapEnumerator));
+      memset(enumerator, '\0', sizeof(NSHashEnumerator));
     }
 }
 
@@ -914,6 +926,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 - (NSUInteger) count
 {
+  GSIMapRemoveWeak(self);
   return (NSUInteger)nodeCount;
 }
 

@@ -78,8 +78,8 @@ static Class	calendarClass = nil;
 @interface	GSDateFuture : GSDateSingle
 @end
 
-static NSDate	*_distantPast = nil;
-static NSDate	*_distantFuture = nil;
+static id _distantPast = nil;
+static id _distantFuture = nil;
 
 
 static NSString*

@@ -44,8 +44,8 @@ extern "C" {
 + (id) dictionaryWithDictionary: (NSDictionary*)otherDictionary;
 + (id) dictionaryWithObject: (id)object forKey: (id)key;
 + (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
-+ (id) dictionaryWithObjects: (id*)objects
-		     forKeys: (id*)keys
++ (id) dictionaryWithObjects: (const id[])objects
+		     forKeys: (const id[])keys
 		       count: (NSUInteger)count;
 + (id) dictionaryWithObjectsAndKeys: (id)firstObject, ...;
 
@@ -68,8 +68,8 @@ extern "C" {
 - (id) initWithDictionary: (NSDictionary*)other copyItems: (BOOL)shouldCopy;
 - (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 - (id) initWithObjectsAndKeys: (id)firstObject, ...;
-- (id) initWithObjects: (id*)objects
-	       forKeys: (id*)keys
+- (id) initWithObjects: (const id[])objects
+	       forKeys: (const id[])keys
 		 count: (NSUInteger)count;			// Primitive
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
 
@@ -78,6 +78,8 @@ extern "C" {
 - (NSEnumerator*) objectEnumerator;				// Primitive
 - (id) objectForKey: (id)aKey;					// Primitive
 - (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)marker;
+- (void)getObjects: (__unsafe_unretained id[])objects
+           andKeys: (__unsafe_unretained id[])keys;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)

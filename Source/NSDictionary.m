@@ -41,6 +41,7 @@
 #import "Foundation/NSKeyedArchiver.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
+#import "GSFastEnumeration.h"
 
 static BOOL GSMacOSXCompatiblePropertyLists(void)
 {
@@ -165,8 +166,8 @@ static SEL	appSel;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithObjects: (id*)objects
-	       forKeys: (id*)keys
+- (id) initWithObjects: (const id[])objects
+	       forKeys: (const id[])keys
 		 count: (NSUInteger)count
 {
   self = [self init];
@@ -396,8 +397,8 @@ static SEL	appSel;
  * The n th element of the objects array is associated with the n th
  * element of the keys array.
  */
-+ (id) dictionaryWithObjects: (id*)objects
-		     forKeys: (id*)keys
++ (id) dictionaryWithObjects: (const id[])objects
+		     forKeys: (const id[])keys
 		       count: (NSUInteger)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -814,6 +815,15 @@ static SEL	appSel;
       return AUTORELEASE(result);
     }
 }
+- (void)getObjects: (__unsafe_unretained id[])objects
+           andKeys: (__unsafe_unretained id[])keys
+{
+  int i=0;
+  FOR_IN(id, key, self)
+    keys[i] = key;
+    objects[i] = [self objectForKey: key];
+  END_FOR_IN(self)
+}
 
 /**
  * Returns an array containing all the dictionary's keys that are
@@ -1103,7 +1113,7 @@ compareIt(id o1, id o2, void* context)
   return o;
 }
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-                                   objects: (id*)stackbuf
+                                   objects: (__unsafe_unretained id[])stackbuf
                                      count: (NSUInteger)len
 {
     [self subclassResponsibility: _cmd];
@@ -1231,8 +1241,8 @@ compareIt(id o1, id o2, void* context)
  * The n th element of the objects array is associated with the n th
  * element of the keys array.
  */
-- (id) initWithObjects: (id*)objects
-	       forKeys: (id*)keys
+- (id) initWithObjects: (const id[])objects
+	       forKeys: (const id[])keys
 		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];

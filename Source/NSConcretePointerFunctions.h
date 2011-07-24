@@ -94,17 +94,6 @@ typedef struct
 /* Wrapper functions to make use of the pointer functions.
  */
 
-/* Acquire the pointer value to store for the specified item.
- */
-static inline void *
-pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
-{
-  if (PF->acquireFunction != 0)
-    src = (*PF->acquireFunction)(src, PF->sizeFunction,
-    PF->options & NSPointerFunctionsCopyIn ? YES : NO);
-  return src;
-}
-
 /**
  * Reads the pointer from the specified address, inserting a read barrier if
  * required.
@@ -115,6 +104,8 @@ static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
     {
       return WEAK_READ((id*)addr);
     }
+  NSLog(@"Reading from %p", addr);
+  NSLog(@"Value: %p", *addr);
   return *addr;
 }
 
@@ -136,6 +127,23 @@ static inline void pointerFunctionsAssign(PFInfo *PF, void **addr, void *value)
       *addr = value;
     }
 }
+
+/* Acquire the pointer value to store for the specified item.
+ */
+static inline void *
+pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
+{
+  if (PF->acquireFunction != 0)
+    src = (*PF->acquireFunction)(src, PF->sizeFunction,
+    PF->options & NSPointerFunctionsCopyIn ? YES : NO);
+  // FIXME: This shouldn't be here.  Acquire and assign are separate
+  // operations.  Acquire is for copy-in operations (i.e. retain / copy),
+  // assign is for move operations of already-owned pointers.  Combining them
+  // like this is Just Plain Wrong™
+  pointerFunctionsAssign(PF, dst, src);
+  return src;
+}
+
 
 /**
  * Moves a pointer from location to another.

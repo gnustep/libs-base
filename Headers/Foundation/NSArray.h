@@ -55,8 +55,8 @@ extern "C" {
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
 - (BOOL) containsObject: anObject;
 - (NSUInteger) count;						// Primitive
-- (void) getObjects: (id[])aBuffer;
-- (void) getObjects: (id[])aBuffer range: (NSRange)aRange;
+- (void) getObjects: (__unsafe_unretained id[])aBuffer;
+- (void) getObjects: (__unsafe_unretained id[])aBuffer range: (NSRange)aRange;
 - (NSUInteger) indexOfObject: (id)anObject;
 - (NSUInteger) indexOfObject: (id)anObject inRange: (NSRange)aRange;
 - (NSUInteger) indexOfObjectIdenticalTo: (id)anObject;

@@ -354,8 +354,8 @@
              outputStream: (NSOutputStream **)outputStream
 {
   NSString *address = host ? (id)[host address] : (id)@"127.0.0.1";
-  GSSocketStream *ins = nil;
-  GSSocketStream *outs = nil;
+  id ins = nil;
+  id outs = nil;
 
   // try ipv4 first
   ins = AUTORELEASE([[GSInetInputStream alloc]
@@ -388,8 +388,8 @@
                    inputStream: (NSInputStream **)inputStream 
                   outputStream: (NSOutputStream **)outputStream
 {
-  GSSocketStream *ins = nil;
-  GSSocketStream *outs = nil;
+  id ins = nil;
+  id outs = nil;
 
   ins = AUTORELEASE([[GSLocalInputStream alloc] initToAddr: path]);
   outs = AUTORELEASE([[GSLocalOutputStream alloc] initToAddr: path]);
@@ -409,8 +409,8 @@
 + (void) pipeWithInputStream: (NSInputStream **)inputStream 
                 outputStream: (NSOutputStream **)outputStream
 {
-  GSSocketStream *ins = nil;
-  GSSocketStream *outs = nil;
+  id ins = nil;
+  id outs = nil;
   int fds[2];
   int pipeReturn;
 

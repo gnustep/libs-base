@@ -76,7 +76,7 @@
 }
 @end
 
-@interface	NSDataStatic : NSObject	// Help the compiler
+@interface	NSDataStatic : NSData	// Help the compiler
 @end
 
 /* Private class from NSIndexSet.m
@@ -620,7 +620,7 @@ static Class concreteMutableClass = nil;
 
 - (id) initWithBitmap: (NSData*)bitmap number: (int)number
 {
-  if ((self = [(NSBitmapCharSet*)self initWithBitmap: bitmap]) != nil)
+  if ((self = (_GSStaticCharSet*)[(NSBitmapCharSet*)self initWithBitmap: bitmap]) != nil)
     {
       _index = number;
     }

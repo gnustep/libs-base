@@ -36,6 +36,7 @@
 #include <zlib.h>
 #endif
 
+struct sockaddr_in;
 
 /**
  * DO NOT USE ... this header is here only for the SSL file handle support

@@ -39,6 +39,11 @@ typedef struct	{
   BOOL		isReg;
 } NSArgumentInfo;
 
+@interface NSInvocation (MacroSetup)
+- (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
+@end
+
+
 @interface GSFFIInvocation : NSInvocation
 {
 @public

@@ -34,7 +34,7 @@
 #import	"Foundation/NSLock.h"
 #import	"GNUstepBase/GSLock.h"
 
-static	NSLock		*lock = nil;
+static	GSLazyRecursiveLock	*lock = nil;
 static	NSHashTable	*shared = 0;
 static	Class		myClass = 0;
 static	NSIndexPath	*empty = nil;

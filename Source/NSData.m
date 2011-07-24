@@ -2389,7 +2389,7 @@ failure:
 + (id) dataWithShmID: (int)anID length: (NSUInteger)length
 {
 #ifdef	HAVE_SHMCTL
-  NSDataShared	*d;
+  NSMutableDataShared	*d;
 
   d = [NSMutableDataShared allocWithZone: NSDefaultMallocZone()];
   d = [d initWithShmID: anID length: length];
@@ -2502,7 +2502,7 @@ failure:
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return (NSData*)NSAllocateObject(self, 0, z);
+  return NSAllocateObject(self, 0, z);
 }
 
 /*	Creation and Destruction of objects.	*/
@@ -2979,7 +2979,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 @implementation	NSDataMappedFile
 + (id) allocWithZone: (NSZone*)z
 {
-  return (NSData*)NSAllocateObject([NSDataMappedFile class], 0, z);
+  return NSAllocateObject([NSDataMappedFile class], 0, z);
 }
 
 - (void) dealloc
@@ -3070,7 +3070,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 @implementation	NSDataShared
 + (id) allocWithZone: (NSZone*)z
 {
-  return (NSData*)NSAllocateObject([NSDataShared class], 0, z);
+  return NSAllocateObject([NSDataShared class], 0, z);
 }
 
 - (void) dealloc
@@ -3184,7 +3184,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return (NSData*)NSAllocateObject(mutableDataMalloc, 0, z);
+  return NSAllocateObject(mutableDataMalloc, 0, z);
 }
 
 - (Class) classForCoder
@@ -3797,7 +3797,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 @implementation	NSMutableDataShared
 + (id) allocWithZone: (NSZone*)z
 {
-  return (NSData*)NSAllocateObject([NSMutableDataShared class], 0, z);
+  return NSAllocateObject([NSMutableDataShared class], 0, z);
 }
 
 - (void) dealloc

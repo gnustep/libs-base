@@ -56,7 +56,7 @@
 
 static NSString			*localHostName = @"GNUstep local host";
 static Class			hostClass;
-static NSLock			*_hostCacheLock = nil;
+static NSRecursiveLock		*_hostCacheLock = nil;
 static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
 

@@ -74,6 +74,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
   GSDictionary		*dictionary;
   GSIMapEnumerator_t	enumerator;
 }
+- (id) initWithDictionary: (NSDictionary*)d;
 @end
 
 @interface GSDictionaryObjectEnumerator : GSDictionaryKeyEnumerator
@@ -183,7 +184,9 @@ static SEL	objSel;
 }
 
 /* Designated initialiser */
-- (id) initWithObjects: (id*)objs forKeys: (id*)keys count: (NSUInteger)c
+- (id) initWithObjects: (const id[])objs
+               forKeys: (const id[])keys
+                 count: (NSUInteger)c
 {
   NSUInteger	i;
 
@@ -354,7 +357,7 @@ static SEL	objSel;
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-				   objects: (id*)stackbuf
+				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
   state->mutationsPtr = (unsigned long *)self;
@@ -458,7 +461,7 @@ static SEL	objSel;
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-				   objects: (id*)stackbuf
+				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
   state->mutationsPtr = (unsigned long *)&_version;

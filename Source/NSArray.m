@@ -389,7 +389,7 @@ static SEL	rlSel;
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-				   objects: (id*)stackbuf
+				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
   NSUInteger size = [self count];
@@ -479,7 +479,7 @@ static SEL	rlSel;
  * Copies the objects from the receiver to aBuffer, which must be
  * an area of memory large enough to hold them.
  */
-- (void) getObjects: (id[])aBuffer
+- (void) getObjects: (__unsafe_unretained id[])aBuffer
 {
   unsigned i, c = [self count];
   IMP	get = [self methodForSelector: oaiSel];
@@ -492,7 +492,7 @@ static SEL	rlSel;
  * Copies the objects from the range aRange of the receiver to aBuffer,
  * which must be an area of memory large enough to hold them.
  */
-- (void) getObjects: (id[])aBuffer range: (NSRange)aRange
+- (void) getObjects: (__unsafe_unretained id[])aBuffer range: (NSRange)aRange
 {
   unsigned i, j = 0, c = [self count], e = aRange.location + aRange.length;
   IMP	get = [self methodForSelector: oaiSel];

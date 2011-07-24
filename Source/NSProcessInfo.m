@@ -211,7 +211,7 @@ static NSString		*_gnu_processName = nil;
 static NSArray		*_gnu_arguments = nil;
 
 // Dictionary of environment vars and their values
-static NSMutableDictionary	*_gnu_environment = nil;
+static NSDictionary	*_gnu_environment = nil;
 
 // The operating system we are using.
 static unsigned int	_operatingSystem = 0;

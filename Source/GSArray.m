@@ -353,7 +353,7 @@ static Class	GSInlineArrayClass;
     }
 }
 
-- (void) getObjects: (id[])aBuffer
+- (void) getObjects: (__unsafe_unretained id[])aBuffer
 {
   NSUInteger i;
 
@@ -363,7 +363,7 @@ static Class	GSInlineArrayClass;
     }
 }
 
-- (void) getObjects: (id[])aBuffer range: (NSRange)aRange
+- (void) getObjects: (__unsafe_unretained id[])aBuffer range: (NSRange)aRange
 {
   NSUInteger i, j = 0, e = aRange.location + aRange.length;
 
@@ -376,7 +376,7 @@ static Class	GSInlineArrayClass;
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-				   objects: (id*)stackbuf
+				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
   /* For immutable arrays we can return the contents pointer directly. */
@@ -886,7 +886,7 @@ static Class	GSInlineArrayClass;
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
-				   objects: (id*)stackbuf
+				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
   NSInteger count;

@@ -482,6 +482,33 @@ GSIMapRemoveAndFreeNode(GSIMapTable map, uintptr_t bkt, GSIMapNode node)
 }
 
 static INLINE void
+GSIMapRemoveWeak(GSIMapTable map)
+{
+  uintptr_t bucketCount = map->bucketCount;
+  GSIMapBucket bucket = map->buckets;
+  if (GSI_MAP_ZEROED(map))
+    {
+      while (bucketCount-- > 0)
+        {
+          GSIMapNode node = bucket->firstNode;
+
+          while (node != 0)
+            {
+              GSIMapNode next = node->nextInBucket;
+              if (GSI_MAP_NODE_IS_EMPTY(map, node))
+                {
+                  GSIMapRemoveNodeFromMap(map, bucket, node);
+                  GSIMapFreeNode(map, node);
+                }
+              node = next;
+            }
+          bucket++;
+        }
+      return;
+    }
+}
+
+static INLINE void
 GSIMapRemangleBuckets(GSIMapTable map,
   GSIMapBucket old_buckets, uintptr_t old_bucketCount,
   GSIMapBucket new_buckets, uintptr_t new_bucketCount)

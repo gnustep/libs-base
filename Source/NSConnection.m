@@ -365,7 +365,7 @@ static BOOL cacheCoders = NO;
 static int debug_connection = 0;
 
 static NSHashTable	*connection_table;
-static NSLock		*connection_table_gate = nil;
+static GSLazyRecursiveLock		*connection_table_gate = nil;
 
 /*
  * Locate an existing connection with the specified send and receive ports.

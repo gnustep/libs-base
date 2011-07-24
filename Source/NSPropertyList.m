@@ -86,7 +86,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   NSXMLParser				*theParser;
   NSMutableString			*value;
   NSMutableArray			*stack;
-  NSString				*key;
+  id					key;
   BOOL					inArray;
   BOOL					inDictionary;
   BOOL					inString;
