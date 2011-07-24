@@ -51,8 +51,8 @@
 #  else
 #    define WEAK_WRITE(addr, x) (*(addr) =  x)
 #  endif
-#  define STRONG_WRITE(addr, x) ASSIGN(*(addr), x)
-#  define STRONG_ACQUIRE(x) RETAIN(x)
+#  define STRONG_WRITE(addr, x) ASSIGN(*((id*)addr), ((id)x))
+#  define STRONG_ACQUIRE(x) RETAIN(((id)x))
 #endif
 
 
