@@ -1,3 +1,71 @@
+2011-07-24 13:09 David Chisnall <theraven@gna.org>
+
+	* Headers/Foundation/NSArray.h,
+	  Headers/Foundation/NSDictionary.h,
+	  Headers/Foundation/NSEnumerator.h,
+	  Headers/Foundation/NSInvocation.h,
+	  Headers/GNUstepBase/GSFileHandle.h,
+	  Headers/GNUstepBase/GSIMap.h,
+	  Headers/GNUstepBase/preface.h.in,
+	  Source/Additions/GCDictionary.m,
+	  Source/Additions/GSInsensitiveDictionary.m,
+	  Source/Additions/GSLock.m,
+	  Source/Additions/NSData+GNUstepBase.m,
+	  Source/GSArray.m,
+	  Source/GSDictionary.m,
+	  Source/GSInvocation.h,
+	  Source/NSArray.m,
+	  Source/NSAssertionHandler.m,
+	  Source/NSCharacterSet.m,
+	  Source/NSConcreteHashTable.m,
+	  Source/NSConcreteMapTable.m,
+	  Source/NSConcretePointerFunctions.h,
+	  Source/NSConnection.m,
+	  Source/NSCountedSet.m,
+	  Source/NSData.m, libs/base/trunk/Source/NSDate.m,
+	  Source/NSDebug.m,
+	  Source/NSDictionary.m,
+	  Source/NSDistantObject.m,
+	  Source/NSHost.m,
+	  Source/NSIndexPath.m,
+	  Source/NSInvocation.m,
+	  Source/NSKeyValueObserving.m,
+	  Source/NSPointerArray.m,
+	  Source/NSProcessInfo.m,
+	  Source/NSPropertyList.m,
+	  Source/NSTimeZone.m,
+	  Source/NSValue.m,
+	  Source/unix/NSStream.m,
+	  Tests/base/NSHashTable/weak.m,
+	  Tests/base/NSPointerArray/weak.m: Lots of little
+	  fixes to make -base compile with -Werror (now builds without
+	  warnings).
+	  
+	  Richard: I'm unsure about three of these, which were fixes in
+	  memset() calls in:
+	  - NSConcreteMapTable.m
+	  - NSConcreteHashTable.m
+	  - Additions/NSData+GNUstepBase.m
+	  
+	  Please can you check them? I think they are intended to zero the
+	  entire object
+	  (rather than the first word), but the lack of comments makes me
+	  unsure.
+	  
+	  Most changes were just tweaks to variable types. I've also
+	  removed some dead code from NSInvocation. This was small group of
+	  things that were marked for internal use only, but not actually
+	  referenced in the code anywhere.
+	  
+	  Other improvements:
+	  
+	  - NSArray / NSDictionary fixed up to use the 10.7 (ARC-friendly)
+	  prototypes.
+	  - getObjects:andKeys: implemented for NSDictionary (10.5 method)
+	  - NSPointerArray and NSHashTable now properly support weak
+	  objects.
+	  - Tests for weak objects in collections.
+
 2011-07-23 16:16 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/GNUstepBase/GSIMap.h,
