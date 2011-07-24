@@ -1,3 +1,9 @@
+2011-07-24 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSAssertionHandler.m,
+	* Headers/GNUstepBase/GSConfig.h.in: Clean up after last commit.
+	* Headers/GNUstepBase/preface.h.in: Remove this obsolete file.
+
 2011-07-24 13:09 David Chisnall <theraven@gna.org>
 
 	* Headers/Foundation/NSArray.h,
