@@ -1106,7 +1106,7 @@ GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 	}
     }
   map->freeNodes = node->nextInBucket;
-  GSI_MAP_WRITE_KEY(map, &node->key, node->key);
+  GSI_MAP_WRITE_KEY(map, &node->key, key);
   node->nextInBucket = 0;
   GSIMapRightSizeMap(map, map->nodeCount);
   GSIMapAddNodeToMap(map, node);
