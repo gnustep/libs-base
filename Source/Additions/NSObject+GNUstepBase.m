@@ -170,7 +170,6 @@ handleExit()
       free(tmp);
     }
 
-  [gnustep_global_lock release];
 }
 
 @implementation NSObject(GSCleanup)
