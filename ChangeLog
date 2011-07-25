@@ -1,3 +1,16 @@
+2011-07-25 15:50  David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/Foundation.h,
+	  libs/base/trunk/Headers/Foundation/NSJSONSerialization.h,
+	  libs/base/trunk/Source/GNUmakefile,
+	  libs/base/trunk/Source/NSJSONSerialization.m,
+	  libs/base/trunk/Tests/base/NSJSONSerialization,
+	  libs/base/trunk/Tests/base/NSJSONSerialization/TestInfo,
+	  libs/base/trunk/Tests/base/NSJSONSerialization/json.m: Added
+	  NSJSONSerialization (10.7) implementation. The code path reading
+	  from an NSInputStream is not well tested - please try and break
+	  it!
+
 2011-07-25 Fred Kiefer <FredKiefer@gmx.de>
 
 	* libs/base/trunk/Headers/GNUstepBase/GSIMap.h
