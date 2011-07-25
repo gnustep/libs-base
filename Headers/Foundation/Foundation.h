@@ -76,6 +76,7 @@
 #import	<Foundation/NSIndexPath.h>
 #import	<Foundation/NSIndexSet.h>
 #import	<Foundation/NSInvocation.h>
+#import	<Foundation/NSJSONSerialization.h>
 #import	<Foundation/NSKeyedArchiver.h>
 #import	<Foundation/NSKeyValueCoding.h>
 #import	<Foundation/NSKeyValueObserving.h>

@@ -215,6 +215,7 @@ NSHTTPCookieStorage.m \
 NSIndexPath.m \
 NSIndexSet.m \
 NSInvocation.m \
+NSJSONSerialization.m \
 NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
@@ -378,6 +379,7 @@ NSHTTPCookieStorage.h \
 NSIndexPath.h \
 NSIndexSet.h \
 NSInvocation.h \
+NSJSONSerialization.h \
 NSKeyedArchiver.h \
 NSKeyValueCoding.h \
 NSKeyValueObserving.h \
