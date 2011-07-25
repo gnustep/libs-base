@@ -92,16 +92,22 @@ static inline void updateStringBuffer(ParserState* state)
 static inline void updateStreamBuffer(ParserState* state)
 {
   NSInputStream *stream = state->source;
+  uint8_t *buffer;
+  NSUInteger length;
+  NSString *str;
+
   // Discard anything that we've already consumed
   while (state->sourceIndex > 0)
   {
     uint8_t discard[128];
     NSUInteger toRead = 128;
+    NSInteger amountRead;
+
     if (state->sourceIndex < 128)
       {
         toRead = state->sourceIndex;
       }
-    NSInteger amountRead = [stream read: discard maxLength: toRead];
+    amountRead = [stream read: discard maxLength: toRead];
     // If something goes wrong with the stream, return the stream error as our
     // error.
     if (amountRead == 0)
@@ -113,8 +119,7 @@ static inline void updateStreamBuffer(ParserState* state)
       }
     state->sourceIndex -= amountRead;
   }
-  uint8_t *buffer;
-  NSUInteger length;
+
   // Get the temporary buffer.  We need to read from here so that we can read
   // characters from the stream without advancing the stream position.
   // If the stream doesn't do buffering, then we need to get data one character
@@ -127,11 +132,12 @@ static inline void updateStreamBuffer(ParserState* state)
         case NSUTF8StringEncoding:
           {
             int i = -1;
+
             // Read one UTF8 character from the stream
             do {
               [stream read: &bytes[++i] maxLength: 1];
             } while (bytes[i] & 0xf);
-            NSString *str = [[NSString alloc] initWithUTF8String: (char*)bytes];
+            str = [[NSString alloc] initWithUTF8String: (char*)bytes];
             [str getCharacters: state->buffer range: NSMakeRange(0,1)];
             [str release];
             break;
@@ -170,10 +176,10 @@ static inline void updateStreamBuffer(ParserState* state)
     }
   // Use an NSString to do the character set conversion.  We could do this more
   // efficiently.  We could also reuse the string.
-  NSString *str = [[NSString alloc] initWithBytesNoCopy: buffer
-                                                 length: length
-                                               encoding: state->enc
-                                           freeWhenDone: NO];
+  str = [[NSString alloc] initWithBytesNoCopy: buffer
+                                       length: length
+                                     encoding: state->enc
+                                 freeWhenDone: NO];
   // Just use the string buffer fetch function to actually get the data
   state->source = str;
   updateStringBuffer(state);
@@ -245,6 +251,10 @@ NS_RETURNS_RETAINED static id parseValue(ParserState *state);
 NS_RETURNS_RETAINED static NSString* parseString(ParserState *state)
 {
   NSMutableString *val = nil;
+  unichar buffer[64];
+  int bufferIndex = 0;
+  unichar next;
+
   if (state->error) { return nil; };
   if (currentChar(state) != '"')
     {
@@ -252,9 +262,7 @@ NS_RETURNS_RETAINED static NSString* parseString(ParserState *state)
       return nil;
     }
 
-  unichar buffer[64];
-  int bufferIndex = 0;
-  unichar next = consumeChar(state);
+  next = consumeChar(state);
   while ((next != 0) && (next != '"'))
     {
       // Unexpected end of stream
@@ -278,10 +286,11 @@ NS_RETURNS_RETAINED static NSString* parseString(ParserState *state)
               case 'u': 
                 {
                   char hex[5] = {0};
-                  for (unsigned i=0 ; i<4 ; i++)
+                  unsigned i;
+                  for (i = 0 ; i < 4 ; i++)
                     {
                       next = consumeChar(state);
-                      if (!ishexnumber(next))
+                      if (!isxdigit(next))
                         {
                           [val release];
                           parseError(state);
@@ -345,6 +354,8 @@ NS_RETURNS_RETAINED static NSNumber* parseNumber(ParserState *state)
   char *number = numberBuffer;
   int bufferSize = 128;
   int parsedSize = 0;
+  double num;
+
   // Define a macro to add a character to the buffer, because we'll need to do
   // it a lot.  This resizes the buffer if required.
 #define BUFFER(x) do {\
@@ -400,7 +411,7 @@ NS_RETURNS_RETAINED static NSNumber* parseNumber(ParserState *state)
     }
     // Add a null terminator on the buffer.
     BUFFER(0);
-    double num = strtod(number, 0);
+    num = strtod(number, 0);
     if (number != numberBuffer)
       {
         free(number);
@@ -414,6 +425,7 @@ NS_RETURNS_RETAINED static NSNumber* parseNumber(ParserState *state)
 NS_RETURNS_RETAINED static NSArray* parseArray(ParserState *state)
 {
   unichar c = consumeSpace(state);
+  NSMutableArray *array;
 
   if (c != '[')
     {
@@ -422,7 +434,7 @@ NS_RETURNS_RETAINED static NSArray* parseArray(ParserState *state)
     }
   // Eat the [
   consumeChar(state);
-  NSMutableArray *array = [NSMutableArray new];
+  array = [NSMutableArray new];
   c = consumeSpace(state);
   while (c != ']')
     {
@@ -454,6 +466,7 @@ NS_RETURNS_RETAINED static NSArray* parseArray(ParserState *state)
 NS_RETURNS_RETAINED static NSDictionary* parseObject(ParserState *state)
 {
   unichar c = consumeSpace(state);
+  NSMutableDictionary *dict;
 
   if (c != '{')
     {
@@ -462,11 +475,13 @@ NS_RETURNS_RETAINED static NSDictionary* parseObject(ParserState *state)
     }
   // Eat the {
   consumeChar(state);
-  NSMutableDictionary *dict = [NSMutableDictionary new];
+  dict = [NSMutableDictionary new];
   c = consumeSpace(state);
   while (c != '}')
     {
       id key = parseString(state);
+      id obj;
+
       if (nil == key)
         {
           [dict release];
@@ -482,7 +497,7 @@ NS_RETURNS_RETAINED static NSDictionary* parseObject(ParserState *state)
         }
       // Eat the :
       consumeChar(state);
-      id obj = parseValue(state);
+      obj = parseValue(state);
       if (nil == obj)
         {
           [key release];
@@ -515,8 +530,10 @@ NS_RETURNS_RETAINED static NSDictionary* parseObject(ParserState *state)
 NS_RETURNS_RETAINED
 static id parseValue(ParserState *state)
 {
+  unichar c;
+
   if (state->error) { return nil; };
-  unichar c = consumeSpace(state);
+  c = consumeSpace(state);
   //   2.1: A JSON value MUST be an object, array, number, or string, or one of the
   //   following three literal names:
   //            false null true
@@ -652,7 +669,9 @@ static NSCharacterSet *escapeSet;
 
 static inline void writeTabs(NSMutableString *output, NSInteger tabs)
 {
-  for (NSInteger i=0 ; i< tabs ; i++)
+  NSInteger i;
+
+  for (i = 0 ; i < tabs ; i++)
     {
       [output appendString: @"\t"];
     }
@@ -680,7 +699,7 @@ static BOOL writeObject(id obj, NSMutableString *output, NSInteger tabs)
         writeNewline(output, tabs);
         writeTabs(output, tabs);
         writeObject(o, output, tabs + 1);
-      END_FOR_IN()
+      END_FOR_IN(obj)
       writeNewline(output, tabs);
       writeTabs(output, tabs);
       [output appendString: @"]"];
@@ -702,7 +721,7 @@ static BOOL writeObject(id obj, NSMutableString *output, NSInteger tabs)
         writeObject(o, output, tabs + 1);
         [output appendString: @": "];
         writeObject([obj objectForKey: o], output, tabs + 1);
-      END_FOR_IN()
+      END_FOR_IN(obj)
       writeNewline(output, tabs);
       writeTabs(output, tabs);
       [output appendString: @"}"];
@@ -822,14 +841,16 @@ static BOOL writeObject(id obj, NSMutableString *output, NSInteger tabs)
                    error:(NSError **)error
 {
   char BOM[4];
-  [data getBytes: BOM length: 4];
   ParserState p = { 0 };
+  id obj;
+
+  [data getBytes: BOM length: 4];
   getEncoding(BOM, &p);
   p.source = [[NSString alloc] initWithData: data encoding: p.enc];
   p.updateBuffer = updateStringBuffer;
   p.mutableContainers = (opt & NSJSONReadingMutableContainers) == NSJSONReadingMutableContainers;
   p.mutableStrings = (opt & NSJSONReadingMutableLeaves) == NSJSONReadingMutableLeaves;
-  id obj = parseValue(&p);
+  obj = parseValue(&p);
   [p.source release];
   if (NULL != error)
     {
@@ -842,9 +863,11 @@ static BOOL writeObject(id obj, NSMutableString *output, NSInteger tabs)
                      error:(NSError **)error
 {
   char BOM[4];
+  ParserState p = { 0 };
+  id obj;
+
   // TODO: Handle failure here!
   [stream read: (uint8_t*)BOM maxLength: 4];
-  ParserState p = { 0 };
   getEncoding(BOM, &p);
   p.mutableContainers = (opt & NSJSONReadingMutableContainers) == NSJSONReadingMutableContainers;
   p.mutableStrings = (opt & NSJSONReadingMutableLeaves) == NSJSONReadingMutableLeaves;
@@ -860,7 +883,7 @@ static BOOL writeObject(id obj, NSMutableString *output, NSInteger tabs)
     }
   p.source = stream;
   p.updateBuffer = updateStreamBuffer;
-  id obj = parseValue(&p);
+  obj = parseValue(&p);
   // Consume any data in the stream that we've failed to read
   updateStreamBuffer(&p);
   if (NULL != error)
@@ -869,6 +892,7 @@ static BOOL writeObject(id obj, NSMutableString *output, NSInteger tabs)
     }
   return [obj autorelease];
 }
+
 + (NSInteger)writeJSONObject:(id)obj
                     toStream:(NSOutputStream *)stream
                      options:(NSJSONWritingOptions)opt
