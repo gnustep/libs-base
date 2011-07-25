@@ -372,7 +372,6 @@ EntryForEncoding(NSStringEncoding enc)
 
 	  while (i < sizeof(str_encoding_table) / sizeof(struct _strenc_))
 	    {
-			NSLog(@"Checking encoding %s (%d == %d) %d", str_encoding_table[i].ename, str_encoding_table[i].enc, enc, str_encoding_table[i].supported);
 	      if (str_encoding_table[i].enc == enc)
 		{
 		  entry = &str_encoding_table[i];
