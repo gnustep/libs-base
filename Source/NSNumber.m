@@ -47,6 +47,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#include <objc/runtime.h>
 
 /*
  * NSNumber implementation.  This matches the behaviour of Apple's
@@ -345,6 +346,42 @@ return NSOrderedSame;
 #include "NSNumberMethods.h"
 @end
 
+#ifdef OBJC_SMALL_OBJECT_SHIFT
+static BOOL useSmallInt;
+
+
+@interface NSSmallInt : NSSignedIntegerNumber @end
+@implementation NSSmallInt
+#undef VALUE
+#define VALUE (((intptr_t)self) >> 1)
+#define FORMAT @"%d"
+#include "NSNumberMethods.h"
++ (void)load
+{
+  useSmallInt = objc_registerSmallObjectClass_np(self, 1);
+}
++ (id)alloc
+{
+  return (id)1;
+}
++ (id)allocWithZone: (NSZone*)aZone
+{
+  return (id)1;
+}
+- (id)copy
+{
+  return self;
+}
+- (id)copyWithZone: (NSZone*)aZone
+{
+  return self;
+}
+- (id)retain { return self; }
+- (id)autorelease { return self; }
+- (void)release { }
+@end
+#endif
+
 @implementation NSNumber
 
 static Class NSNumberClass;
@@ -537,6 +574,14 @@ if (aValue >= -1 && aValue <= 12)\
     }
 
   CHECK_SINGLETON (aValue);
+#ifdef OBJC_SMALL_OBJECT_SHIFT
+  if (useSmallInt &&
+      (aValue < (INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)) &&
+      (aValue > -(INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)))
+    {
+       return (id)((aValue << 1) | 1);
+    }
+#endif
   n = NSAllocateObject (NSIntNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
