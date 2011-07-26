@@ -269,7 +269,7 @@ extern "C" {
 - (id) performSelector: (SEL)aSelector
 	    withObject: (id)object1
 	    withObject: (id)object2;
-- (void) release;
+- (oneway void) release;
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
 - (BOOL) respondsToSelector: (SEL)aSelector;
