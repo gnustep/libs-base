@@ -35,7 +35,6 @@ int main(void)
 		obj = tmp;
 	}
 	PASS([obj count] == 3, "Decoded dictionary had the right number of elements");
-	NSLog(@"Obj: %@", obj);
 	PASS([NSJSONSerialization isValidJSONObject: obj], "Can serialise deserialised JSON");
 	NSData *data = [NSJSONSerialization dataWithJSONObject: obj options: NSJSONWritingPrettyPrinted error: 0];
 	PASS([obj isEqual: [NSJSONSerialization JSONObjectWithData: data options: 0 error: 0]], "Round trip worked with pretty printing");
