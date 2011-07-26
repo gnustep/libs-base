@@ -579,7 +579,7 @@ if (aValue >= -1 && aValue <= 12)\
       (aValue < (INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)) &&
       (aValue > -(INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)))
     {
-       return (id)((aValue << 1) | 1);
+       return (id)((aValue << OBJC_SMALL_OBJECT_SHIFT) | 1);
     }
 #endif
   n = NSAllocateObject (NSIntNumberClass, 0, 0);
