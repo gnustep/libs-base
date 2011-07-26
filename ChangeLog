@@ -1,3 +1,11 @@
+2011-07-26  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSProxy.h:
+	* Source/NSProxy.m:
+	Fixed missing oneway qualifier on -release return type. Recent Clang 
+	trunk complains about it.
+
 2011-07-25 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSJSONSerialization.m: Get this file to compile with

@@ -172,7 +172,7 @@
 /**
  * A dummy method to ensure that the class can safely be held in containers.
  */
-+ (void) release
++ (oneway void) release
 {
   /* Do nothing	*/
 }
@@ -453,7 +453,7 @@
  * Decrement the retain count for the receiver ... deallocate if it would
  * become negative.
  */
-- (void) release
+- (oneway void) release
 {
 #if	(GS_WITH_GC == 0)
   if (NSDecrementExtraRefCountWasZero(self))

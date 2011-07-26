@@ -57,7 +57,7 @@ extern "C" {
 + (void) load;
 /** <override-dummy />
  */
-+ (void) release;
++ (oneway void) release;
 + (BOOL) respondsToSelector: (SEL)aSelector;
 + (id) retain;
 + (NSUInteger) retainCount;
@@ -75,7 +75,7 @@ extern "C" {
 - (BOOL) isMemberOfClass: (Class)aClass;
 - (BOOL) isProxy;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
-- (void) release;
+- (oneway void) release;
 - (BOOL) respondsToSelector: (SEL)aSelector;
 - (id) retain;
 - (NSUInteger) retainCount;
