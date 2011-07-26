@@ -1,3 +1,17 @@
+2011-07-26 David Chisnall <theraven@gna.org>
+	* Source/NSObject.m:
+	Change the order of the retain count and the padding, so the retain count
+	is always the word before isa.
+
+	Switch to using the correct kind of alignof (the ABI alignment in
+	structures, not the preferred alignment of the type - this stops us from
+	allocating 4 bytes of padding on x86-32 where there is no need for any)
+
+	* Source/NSNumber.m:
+	Use the small object support in libobjc2 trunk for 31 / 61-bit signed
+	NSNumbers on 32 / 64-bit platforms respectively.  Still to do: add an
+	NSSmallFloat equivalent for 64-bit platforms, storing a float.
+
 2011-07-26  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Headers/Foundation/NSObject.h:
