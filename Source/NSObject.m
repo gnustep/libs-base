@@ -398,11 +398,11 @@ static inline NSLock *GSAllocationLockForObject(id p)
 
 #endif
 
-
 #ifdef ALIGN
 #undef ALIGN
 #endif
-#define	ALIGN __alignof__(double)
+#define alignof(type) __builtin_offsetof(struct { const char c; type member; }, member)
+#define	ALIGN alignof(double)
 
 /*
  *	Define a structure to hold information that is held locally
@@ -419,8 +419,8 @@ typedef struct obj_layout_unpadded {
  *	structure correct.
  */
 struct obj_layout {
-    NSUInteger	retained;
     char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
+    NSUInteger	retained;
 };
 typedef	struct obj_layout *obj;
 
