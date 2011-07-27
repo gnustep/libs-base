@@ -353,7 +353,7 @@ static BOOL useSmallInt;
 @interface NSSmallInt : NSSignedIntegerNumber @end
 @implementation NSSmallInt
 #undef VALUE
-#define VALUE (((intptr_t)self) >> 1)
+#define VALUE (((intptr_t)self) >> OBJC_SMALL_OBJECT_SHIFT)
 #define FORMAT @"%d"
 #include "NSNumberMethods.h"
 + (void)load
