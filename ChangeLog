@@ -1,3 +1,33 @@
+2011-07-31 15:31 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSAutoreleasePool.h,
+	  libs/base/trunk/Headers/Foundation/NSException.h,
+	  libs/base/trunk/Headers/Foundation/NSObjCRuntime.h,
+	  libs/base/trunk/Headers/Foundation/NSObject.h,
+	  libs/base/trunk/Source/GSArray.m,
+	  libs/base/trunk/Source/GSBlocks.m,
+	  libs/base/trunk/Source/GSString.m,
+	  libs/base/trunk/Source/NSBundle.m,
+	  libs/base/trunk/Source/NSConnection.m,
+	  libs/base/trunk/Source/NSDate.m,
+	  libs/base/trunk/Source/NSIndexPath.m,
+	  libs/base/trunk/Source/NSMessagePort.m,
+	  libs/base/trunk/Source/NSNull.m,
+	  libs/base/trunk/Source/NSNumber.m,
+	  libs/base/trunk/Source/NSPort.m,
+	  libs/base/trunk/Source/NSSocketPort.m,
+	  libs/base/trunk/Source/NSTimeZone.m,
+	  libs/base/trunk/Source/NSURLProtocol.m,
+	  libs/base/trunk/Source/NSValue.m: Cleanup:
+	  - (void)release;
+	  to
+	  - (oneway void)release;
+	  so everything implementing -release actually implements the one
+	  declared in the NSObject protocol.
+	  
+	  Start marking things that are unavailable in ARC mode as
+	  unavailable in ARC mode.
+
 2011-07-26 David Chisnall <theraven@gna.org>
 	* Source/NSObject.m:
 	Change the order of the retain count and the padding, so the retain count
