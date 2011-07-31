@@ -342,7 +342,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  */
 - (BOOL) validateValue: (id*)aValue
 		forKey: (NSString*)aKey
-		 error: (NSError**)anError;
+		 error: (out NSError**)anError;
 
 /**
  * Returns the result of calling -validateValue:forKey:error: on the receiver
@@ -351,7 +351,7 @@ GS_EXPORT NSString* const NSUndefinedKeyException;
  */
 - (BOOL) validateValue: (id*)aValue
 	    forKeyPath: (NSString*)aKey
-		 error: (NSError**)anError;
+		 error: (out NSError**)anError;
 
 /**
  * Returns the value associated with the supplied key as an object.

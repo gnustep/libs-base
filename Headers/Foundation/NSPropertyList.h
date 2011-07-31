@@ -265,20 +265,20 @@ typedef NSUInteger NSPropertyListFormat;
 + (NSData *) dataWithPropertyList: (id)aPropertyList
                            format: (NSPropertyListFormat)aFormat
                           options: (NSPropertyListWriteOptions)anOption
-                            error: (NSError**)error;
+                            error: (out NSError**)error;
 + (id) propertyListWithData: (NSData*)data
                     options: (NSPropertyListReadOptions)anOption
                      format: (NSPropertyListFormat*)aFormat
-                      error: (NSError**)error;
+                      error: (out NSError**)error;
 + (id) propertyListWithStream: (NSInputStream*)stream
                       options: (NSPropertyListReadOptions)anOption
                        format: (NSPropertyListFormat*)aFormat
-                        error: (NSError**)error;
+                        error: (out NSError**)error;
 + (NSInteger) writePropertyList: (id)aPropertyList
                        toStream: (NSOutputStream*)stream
                          format: (NSPropertyListFormat)aFormat
                         options: (NSPropertyListWriteOptions)anOption
-                          error: (NSError**)error;
+                          error: (out NSError**)error;
 #endif
 
 @end
