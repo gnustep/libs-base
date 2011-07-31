@@ -60,32 +60,156 @@ extern "C" {
  * in assuming that the receiver can handle it.
  */
 @protocol NSObject
-- (Class) class;			/** See [NSObject-class] */
-- (Class) superclass;			/** See [NSObject-superclass] */
-- (BOOL) isEqual: (id)anObject;		/** See [NSObject-isEqual:] */
-- (BOOL) isKindOfClass: (Class)aClass;	/** See [NSObject-isKindOfClass:] */
-- (BOOL) isMemberOfClass: (Class)aClass;/** See [NSObject-isMemberOfClass:] */
-- (BOOL) isProxy;			/** See [NSObject-isProxy] */
-- (NSUInteger) hash;			/** See [NSObject-hash] */
-- (id) self;				/** See [NSObject-self] */
-- (id) performSelector: (SEL)aSelector;	/** See [NSObject-performSelector:] */
-/** See [NSObject-performSelector:withObject:] */
+/**
+ * Returns the class of the receiver.  If the receiver is a proxy, then this
+ * may return the class of the proxy target.  Use -isProxy to determine whether
+ * the receiver is a proxy.  If you wish to find the real class of the
+ * receiver, ignoring proxies, then use object_getClass().  
+ */
+- (Class) class;
+/**
+ * Returns the superclass of receiver's class.  If the receiver is a proxy,
+ * then this may return the class of the proxy target.  Use -isProxy to
+ * determine whether the receiver is a proxy.  If you wish to find the real
+ * superclass of the receiver's class, ignoring proxies, then use
+ * class_getSuperclass(object_getClass()).
+ */
+- (Class) superclass;
+/**
+ * Returns whether the receiver is equal to the argument.  Defining equality is
+ * complex, so be careful when implementing this method.  Collections such as
+ * NSSet depend on the behaviour of this method.  In particular, this method
+ * must be commutative, so for any objects a and b:
+ *
+ * [a isEqual: b] == [b isEqual: a]
+ *
+ * This means that you must be very careful when returning YES if the argument
+ * is of another class.  For example, if you define a number class that returns
+ * YES if the argument is a string representation of the number, then this will
+ * break because the string will not recognise your object as being equal to
+ * itself.
+ *
+ * If two objects are equal, then they must have the same hash value, however
+ * equal hash values do not imply equality.
+ */
+- (BOOL) isEqual: (id)anObject;
+/**
+ * Returns YES if the receiver is an instance of the class, an instance of the
+ * subclass, or (in the case of proxies), an instance of something that can be
+ * treated as an instance of the class.
+ */
+- (BOOL) isKindOfClass: (Class)aClass;
+/**
+ * Returns YES if the receiver is an instance of the class or (in the case of
+ * proxies), an instance of something that can be treated as an instance of the
+ * class.
+ *
+ * Calling this method is rarely the correct thing to do.  In most cases, a
+ * subclass can be substituted for a superclass, so you should never need to
+ * check that an object is really an instance of a specific class and not a
+ * subclass.  
+ */
+- (BOOL) isMemberOfClass: (Class)aClass;
+/**
+ * Returns YES if the receiver is a proxy, NO otherwise.  The default
+ * implementation of this method in NSObject returns NO, while the
+ * implementation in NSProxy returns YES.
+ */
+- (BOOL) isProxy;
+/**
+ * Returns a hash value for the object.  All objects that are equal *MUST*
+ * return the same hash value.  For efficient storage in sets, or as keys in
+ * dictionaries, different objects should return hashes spread evenly over the
+ * range of an integer.
+ *
+ * An object may not return different values from this method after being
+ * stored in a collection.  This typically means that ether the hash value must
+ * be constant after the object's creation, or that the object may not be
+ * modified while stored in an unordered collection.
+ */
+- (NSUInteger) hash;
+/**
+ * Returns the receiver.  In a proxy, this may (but is not required to) return
+ * the proxied object.
+ */
+- (id) self;
+/**
+ * Performs the specified selector.  The selector must correspond to a method
+ * that takes no arguments.
+ */
+- (id) performSelector: (SEL)aSelector;
+/**
+ * Performs the specified selector, with the object as the argument.  This
+ * method does not perform any automatic unboxing, so the selector must
+ * correspond to a method that takes one object argument.
+ */
 - (id) performSelector: (SEL)aSelector
 	    withObject: (id)anObject;
-/** See [NSObject-performSelector:withObject:withObject:] */
+/**
+ * Performs the specified selector, with the objects as the arguments.  This
+ * method does not perform any automatic unboxing, so the selector must
+ * correspond to a method that takes two object arguments.
+ */
 - (id) performSelector: (SEL)aSelector
 	    withObject: (id)object1
 	    withObject: (id)object2;
-/** See [NSObject-respondsToSelector:] */
+/**
+ * Returns YES if the object can respond to messages with the specified
+ * selector.  The default implementation in NSObject returns YES if the
+ * receiver has a method corresponding to the method, but other classes may
+ * return YES if they can respond to a selector using one of the various
+ * forwarding mechanisms.
+ */
 - (BOOL) respondsToSelector: (SEL)aSelector;
-/** See [NSObject-conformsToProtocol:] */
+/**
+ * Returns YES if the receiver conforms to the specified protocol.
+ */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol;
-- (id) retain NS_AUTOMATED_REFCOUNT_UNAVAILABLE;				/** See [NSObject-retain] */
-- (id) autorelease NS_AUTOMATED_REFCOUNT_UNAVAILABLE			/** See [NSObject-autorelease] */;
-- (oneway void) release NS_AUTOMATED_REFCOUNT_UNAVAILABLE;		/** See [NSObject-release] */
-- (NSUInteger) retainCount NS_AUTOMATED_REFCOUNT_UNAVAILABLE;		/** See [NSObject-retainCount] */
-- (NSZone*) zone;			/** See [NSObject-zone] */
-- (NSString*) description;		/** See [NSObject-description] */
+/**
+ * Increments the reference count of the object and returns the receiver.  In
+ * garbage collected mode, this method does nothing.  In automated reference
+ * counting mode, you may neither implement this method nor call it directly.
+ */
+- (id) retain NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+/**
+ * Decrements the reference count of the object and destroys if it there are no
+ * remaining references.  In garbage collected mode, this method does nothing.
+ * In automated reference counting mode, you may neither implement this method
+ * nor call it directly.
+ */
+- (oneway void) release NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+/**
+ * Performs a deferred -release operation.  The object's reference count is
+ * decremented at the end of the scope of the current autorelease pool,
+ * identified either by a -drain message sent to the current NSAutoreleasePool
+ * instance, or in more recent versions of Objective-C by the end of an
+ * @autorelease_pool scope.
+ *
+ * In garbage collected mode, this method does nothing.  In automated reference
+ * counting mode, you may neither implement this method nor call it directly.
+ */
+- (id) autorelease NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+/**
+ * Returns the current retain count of an object.  This does not include the
+ * result of any pending autorelease operations.
+ *
+ * Code that relies on this method returning a sane value is broken.  For
+ * singletons, it may return NSUIntegerMax.  Even when it is tracking a retain
+ * count, it will not include on-stack pointers in manual retain/release mode,
+ * pointers marked as __unsafe_unretain or __weak in ARC mode, or pending
+ * autorelease operations.  Its value is therefore largely meaningless.  It can
+ * occasionally be useful for debugging.
+ */
+- (NSUInteger) retainCount NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+/**
+ * Returns the description of the object.  This is used by the %@ format
+ * specifier in strings.
+ */
+- (NSString*) description;
+/**
+ * Returns the zone of the object.
+ */
+- (NSZone*) zone NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
 @end
 
 /**
@@ -185,7 +309,6 @@ extern "C" {
 + (id) allocWithZone: (NSZone*)z;
 + (id) alloc;
 + (Class) class;
-+ (NSString*) description;
 
 /**
  * This method is automatically invoked on any class which implements it
@@ -240,40 +363,22 @@ extern "C" {
 + (id) new;
 + (void) poseAsClass: (Class)aClassObject;
 + (id) setVersion: (NSInteger)aVersion;
-+ (Class) superclass;
 + (NSInteger) version;
 
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
-- (Class) class;
 - (Class) classForArchiver;
 - (Class) classForCoder;
-- (BOOL) conformsToProtocol: (Protocol*)aProtocol;
 - (id) copy;
 - (void) dealloc;
-- (NSString*) description;
 - (void) doesNotRecognizeSelector: (SEL)aSelector;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (NSUInteger) hash;
 - (id) init;
-- (BOOL) isEqual: anObject;
-- (BOOL) isKindOfClass: (Class)aClass;
-- (BOOL) isMemberOfClass: (Class)aClass;
-- (BOOL) isProxy;
 - (IMP) methodForSelector: (SEL)aSelector;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 - (id) mutableCopy;
-- (id) performSelector: (SEL)aSelector;
-- (id) performSelector: (SEL)aSelector
-	    withObject: (id)anObject;
-- (id) performSelector: (SEL)aSelector
-	    withObject: (id)object1
-	    withObject: (id)object2;
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
-- (BOOL) respondsToSelector: (SEL)aSelector;
-- (id) self;
 - (Class) superclass;
-- (NSZone*) zone;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /**
  * This method will be called when attempting to send a message a class that
