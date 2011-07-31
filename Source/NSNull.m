@@ -104,7 +104,7 @@ static NSNull	*null = 0;
     return NO;
 }
 
-- (void) release
+- (oneway void) release
 {
 }
 

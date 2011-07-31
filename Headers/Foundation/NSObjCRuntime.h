@@ -62,6 +62,15 @@ typedef float           CGFloat;
 
 #define NSINTEGER_DEFINED 1
 #define CGFLOAT_DEFINED 1
+#ifndef NS_AUTOMATED_REFCOUNT_UNAVAILABLE
+#  if __has_feature(objc_arc)
+#    define NS_AUTOMATED_REFCOUNT_UNAVAILABLE \
+      __attribute__((unavailable("Not available with automatic reference counting")))
+#  else
+#    define NS_AUTOMATED_REFCOUNT_UNAVAILABLE
+#  endif
+#endif
+
 
 #if	defined(__cplusplus)
 extern "C" {

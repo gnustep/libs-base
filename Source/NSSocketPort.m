@@ -2214,7 +2214,7 @@ static Class		tcpPortClass;
     }
 }
 
-- (void) release
+- (oneway void) release
 {
   M_LOCK(tcpPortLock);
   if (NSDecrementExtraRefCountWasZero(self))

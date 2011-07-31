@@ -35,6 +35,8 @@
 
 #if     defined(_NATIVE_OBJC_EXCEPTIONS)
 #define USER_NATIVE_OBJC_EXCEPTIONS       1
+#elif __has_feature(objc_exceptions)
+#define USER_NATIVE_OBJC_EXCEPTIONS       1
 #else
 #define USER_NATIVE_OBJC_EXCEPTIONS       0
 #endif

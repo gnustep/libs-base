@@ -1696,7 +1696,7 @@ typedef	struct {
     }
 }
 
-- (void) release
+- (oneway void) release
 {
   M_LOCK(messagePortLock);
   if (NSDecrementExtraRefCountWasZero(self))

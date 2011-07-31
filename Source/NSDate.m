@@ -1518,7 +1518,7 @@ otherTime(NSDate* other)
   return self;
 }
 
-- (void) release
+- (oneway void) release
 {
 }
 

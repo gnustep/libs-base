@@ -1700,7 +1700,7 @@ IF_NO_GC(
   return YES;
 }
 
-- (void) release
+- (oneway void) release
 {
   /* We lock during release so that other threads can't grab the
    * object between us checking the reference count and deallocating.

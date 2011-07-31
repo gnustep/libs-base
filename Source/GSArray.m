@@ -1177,7 +1177,7 @@ static Class	GSInlineArrayClass;
   return 0;
 }
 
-- (void) release
+- (oneway void) release
 {
   return;		// placeholders never get released.
 }

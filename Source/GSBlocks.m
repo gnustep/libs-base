@@ -76,7 +76,7 @@ void _Block_release(void *);
   return _Block_copy(self);
 }
 
-- (void) release
+- (oneway void) release
 {
   _Block_release(self);
 }

@@ -1493,7 +1493,7 @@ static NSLock	*cached_proxies_gate = nil;
   return result;
 }
 
-- (void) release
+- (oneway void) release
 {
   /* We lock the connection table while checking, to prevent
    * another thread from grabbing this connection while we are

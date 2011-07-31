@@ -184,7 +184,7 @@ static Class	NSPort_concrete_class;
   return [super autorelease];
 }
 
-- (void) release
+- (oneway void) release
 {
   if (_is_valid && [self retainCount] == 1)
     {
