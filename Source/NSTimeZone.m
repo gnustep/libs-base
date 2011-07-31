@@ -560,7 +560,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   return (GSPlaceholderTimeZone*)zone;
 }
 
-- (void) release
+- (oneway void) release
 {
   return;		// placeholders never get released.
 }
@@ -620,7 +620,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   return [[NSTimeZoneClass defaultTimeZone] name];
 }
 
-- (void) release
+- (oneway void) release
 {
 }
 

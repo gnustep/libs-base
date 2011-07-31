@@ -80,10 +80,10 @@ extern "C" {
 - (BOOL) respondsToSelector: (SEL)aSelector;
 /** See [NSObject-conformsToProtocol:] */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol;
-- (id) retain;				/** See [NSObject-retain] */
-- (id) autorelease			/** See [NSObject-autorelease] */;
-- (oneway void) release;		/** See [NSObject-release] */
-- (NSUInteger) retainCount;		/** See [NSObject-retainCount] */
+- (id) retain NS_AUTOMATED_REFCOUNT_UNAVAILABLE;				/** See [NSObject-retain] */
+- (id) autorelease NS_AUTOMATED_REFCOUNT_UNAVAILABLE			/** See [NSObject-autorelease] */;
+- (oneway void) release NS_AUTOMATED_REFCOUNT_UNAVAILABLE;		/** See [NSObject-release] */
+- (NSUInteger) retainCount NS_AUTOMATED_REFCOUNT_UNAVAILABLE;		/** See [NSObject-retainCount] */
 - (NSZone*) zone;			/** See [NSObject-zone] */
 - (NSString*) description;		/** See [NSObject-description] */
 @end
@@ -243,7 +243,6 @@ extern "C" {
 + (Class) superclass;
 + (NSInteger) version;
 
-- (id) autorelease;
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
 - (Class) class;
 - (Class) classForArchiver;
@@ -269,12 +268,9 @@ extern "C" {
 - (id) performSelector: (SEL)aSelector
 	    withObject: (id)object1
 	    withObject: (id)object2;
-- (oneway void) release;
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
 - (BOOL) respondsToSelector: (SEL)aSelector;
-- (id) retain;
-- (NSUInteger) retainCount;
 - (id) self;
 - (Class) superclass;
 - (NSZone*) zone;

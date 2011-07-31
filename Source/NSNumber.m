@@ -378,7 +378,7 @@ static BOOL useSmallInt;
 }
 - (id)retain { return self; }
 - (id)autorelease { return self; }
-- (void)release { }
+- (oneway void)release { }
 @end
 #endif
 

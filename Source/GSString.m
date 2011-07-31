@@ -891,7 +891,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   return 0;
 }
 
-- (void) release
+- (oneway void) release
 {
   return;		// placeholders never get released.
 }

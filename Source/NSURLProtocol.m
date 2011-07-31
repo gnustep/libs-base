@@ -299,7 +299,7 @@ static NSURLProtocol	*placeholder = nil;
     }
   [super dealloc];
 }
-- (void) release
+- (oneway void) release
 {
   /* In a multi-threaded environment we could have two threads release the
    * class at the same time ... causing -dealloc to be called twice at the

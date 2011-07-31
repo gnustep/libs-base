@@ -428,7 +428,7 @@ static	NSIndexPath	*dummy = nil;
   return _length;
 }
 
-- (void) release
+- (oneway void) release
 {
   if (self != empty)
     {
