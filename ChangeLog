@@ -1,3 +1,15 @@
+2011-07-31 16:19 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSObject.h: Remove the
+	  duplicate definition of the NSObject protocol methods in the
+	  NSObject class (redundant since they are implicitly added by the
+	  class adopting
+	  the protocol, and stupid because there was already one
+	  copy-and-paste error
+	  where they differed slightly). Also replaced all of the
+	  references to
+	  nonexistent documentation with actual documentation.
+
 2011-07-31 15:31 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/Foundation/NSAutoreleasePool.h,
