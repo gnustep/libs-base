@@ -227,7 +227,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
   return self;
 }
 
-- (id) initWithObjects: (id*)objs count: (NSUInteger)c
+- (id) initWithObjects: (const id*)objs count: (NSUInteger)c
 {
   NSUInteger	i;
 
