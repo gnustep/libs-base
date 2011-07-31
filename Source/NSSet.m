@@ -110,7 +110,7 @@ static Class NSMutableSet_concrete_class;
 /**
  *  New set containing (unique elements of) objects.
  */
-+ (id) setWithObjects: (const id*)objects
++ (id) setWithObjects: (const id[])objects
 	        count: (NSUInteger)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -314,7 +314,7 @@ static Class NSMutableSet_concrete_class;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithObjects: (const id*)objects
+- (id) initWithObjects: (const id[])objects
 		 count: (NSUInteger)count
 {
   self = [self init];
@@ -1005,7 +1005,7 @@ static Class NSMutableSet_concrete_class;
   [self subclassResponsibility: _cmd];
 }
 
-- (id) initWithObjects: (const id*)objects
+- (id) initWithObjects: (const id[])objects
 		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
