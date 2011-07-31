@@ -252,7 +252,7 @@ static Class	mutableSetClass;
 }
 
 /* Designated initialiser */
-- (id) initWithObjects: (id*)objs count: (NSUInteger)c
+- (id) initWithObjects: (const id*)objs count: (NSUInteger)c
 {
   NSUInteger i;
 
@@ -604,7 +604,7 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (id) initWithObjects: (id*)objects
+- (id) initWithObjects: (const id*)objects
 		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];
