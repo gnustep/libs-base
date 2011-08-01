@@ -104,8 +104,6 @@ static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
     {
       return WEAK_READ((id*)addr);
     }
-  NSLog(@"Reading from %p", addr);
-  NSLog(@"Value: %p", *addr);
   return *addr;
 }
 
