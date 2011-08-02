@@ -23,7 +23,9 @@ int main(void)
   }";
 	NSStringEncoding encs[] = {NSUTF8StringEncoding, NSUTF16LittleEndianStringEncoding, NSUTF16BigEndianStringEncoding, NSUTF32LittleEndianStringEncoding, NSUTF32BigEndianStringEncoding};
 	id obj;
-	for (int i=0 ; i<(sizeof(encs) / sizeof(NSStringEncoding)) ; i++)
+        int i;
+
+	for (i=0 ; i<(sizeof(encs) / sizeof(NSStringEncoding)) ; i++)
 	{
 		NSData *data = [json dataUsingEncoding: encs[i]];
 		NSError *e;
