@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-@class NSTextCheckingResult;
+@class NSString, NSTextCheckingResult;
 
 typedef NSUInteger NSRegularExpressionOptions;
 static const NSRegularExpressionOptions
@@ -76,6 +76,7 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
 #if	GS_EXPOSE(NSRegularExpression)
   @private
   GSREGEXTYPE *regex;
+  NSString *pattern;
   NSRegularExpressionOptions options;
 #endif
 #if     GS_NONFRAGILE
@@ -113,8 +114,8 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
                                     options: (NSMatchingOptions)options
                                       range: (NSRange)range;
 - (NSArray*)matchesInString: (NSString*)string
-                    options:(NSMatchingOptions)options
-                      range:(NSRange)range;
+                    options: (NSMatchingOptions)options
+                      range: (NSRange)range;
 - (NSRange)rangeOfFirstMatchInString: (NSString*)string
                              options: (NSMatchingOptions)options
                                range: (NSRange)range;

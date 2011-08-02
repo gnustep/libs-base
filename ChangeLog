@@ -1,3 +1,11 @@
+2011-08-02  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSThread.m (GSCurrentThread): Use C string in assert, not
+	ObjC string.
+	* Headers/Foundation/NSRegularExpression.h: Add the pattern as ivar.
+	* Source/NSRegularExpression.m: Rewrite to compile with less
+	warnings on systems not supporting ICU.
+
 2011-07-31 16:19 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/Foundation/NSObject.h: Remove the
@@ -36,7 +44,7 @@
 	  - (oneway void)release;
 	  so everything implementing -release actually implements the one
 	  declared in the NSObject protocol.
-	  
+
 	  Start marking things that are unavailable in ARC mode as
 	  unavailable in ARC mode.
 
@@ -59,7 +67,7 @@
 	* Headers/Foundation/NSObject.h:
 	* Headers/Foundation/NSProxy.h:
 	* Source/NSProxy.m:
-	Fixed missing oneway qualifier on -release return type. Recent Clang 
+	Fixed missing oneway qualifier on -release return type. Recent Clang
 	trunk complains about it.
 
 2011-07-25 Fred Kiefer <FredKiefer@gmx.de>
@@ -133,25 +141,25 @@
 	  Tests/base/NSPointerArray/weak.m: Lots of little
 	  fixes to make -base compile with -Werror (now builds without
 	  warnings).
-	  
+
 	  Richard: I'm unsure about three of these, which were fixes in
 	  memset() calls in:
 	  - NSConcreteMapTable.m
 	  - NSConcreteHashTable.m
 	  - Additions/NSData+GNUstepBase.m
-	  
+
 	  Please can you check them? I think they are intended to zero the
 	  entire object
 	  (rather than the first word), but the lack of comments makes me
 	  unsure.
-	  
+
 	  Most changes were just tweaks to variable types. I've also
 	  removed some dead code from NSInvocation. This was small group of
 	  things that were marked for internal use only, but not actually
 	  referenced in the code anywhere.
-	  
+
 	  Other improvements:
-	  
+
 	  - NSArray / NSDictionary fixed up to use the 10.7 (ARC-friendly)
 	  prototypes.
 	  - getObjects:andKeys: implemented for NSDictionary (10.5 method)
@@ -175,7 +183,7 @@
 	  objects. Now we always query the zones to find the relevant
 	  pointer. Zones are still supported, but we now optimise for the
 	  case where they are not used.
-	  
+
 	  To disable zone support completely, NSAllocateObject() should
 	  ignore the zone and NSDeallocateObject() should skip the zone
 	  lookup.
@@ -195,7 +203,7 @@
 
 2011-07-20  Eric Wasylishen  <ewasylishen@gmail.com>
 
-	* Source/NSNumberFormatter.m 
+	* Source/NSNumberFormatter.m
 	(-attributedStringForObjectValue:withDefaultAttributes:):
 	Guard against initializing an NSAttributedString with a nil string.
 
@@ -264,7 +272,7 @@
 	  threads, matching OS X behaviour and stopping us from crashing
 	  when calling autorelease from a thread that was not previously
 	  registered explicitly (yuck!)
-	  
+
 	  Also do some quite hacky (and not totally correct) things to try
 	  to make sure that we aren't confused into thinking that the first
 	  NSThread is the main thread, if it's created on a separate
