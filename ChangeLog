@@ -1,5 +1,11 @@
 2011-08-02  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Tests/base/NSJSONSerialization/json.m: Get it compile without
+	C99.
+	* Tests/base/NSString/regex.m: Use an autorelease pool.
+
+2011-08-02  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSThread.m (GSCurrentThread): Use C string in assert, not
 	ObjC string.
 	* Headers/Foundation/NSRegularExpression.h: Add the pattern as ivar.
