@@ -336,7 +336,7 @@ GSCurrentThread(void)
           defaultThread = [thr retain];
         }
     }
-  assert(nil != thr && @"No main thread");
+  assert(nil != thr && "No main thread");
   return thr;
 }
 
