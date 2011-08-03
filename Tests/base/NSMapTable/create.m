@@ -6,7 +6,7 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSString *val1, *val2, *val3;
-  NSMapTable *obj, *old;
+  NSMapTable *obj;
   id vals[3];
   
   val1 = @"Hello";

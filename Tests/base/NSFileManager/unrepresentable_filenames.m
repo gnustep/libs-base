@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 	BOOL e,d;
 
 	files=[fm directoryContentsAtPath: @"."];
-	printf("%i files\n",[files count]);
+	printf("%lu files\n", (unsigned long)[files count]);
 	for (i=0;i<[files count];i++)
 	{
 		int j;

@@ -8,7 +8,7 @@ int main()
 { 
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   char *str1,*str2,*tmp;
-  NSData *data1, *data2;
+  NSData *data1;
   NSMutableData *mutable;
   unsigned char *hold;
    

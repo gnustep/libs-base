@@ -1,4 +1,5 @@
 #import "Testing.h"
+#import "generic.h"
 #import <Foundation/NSArray.h>
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSBundle.h>

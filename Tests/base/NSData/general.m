@@ -10,7 +10,7 @@ int main()
   char *str1,*str2;
   NSData *data1, *data2;
   NSMutableData *mutable;
-  unsigned char *hold;
+  char *hold;
   
   str1 = "Test string for data classes";
   str2 = (char *) malloc(sizeof("Test string for data classes not copied")); 

@@ -3,12 +3,14 @@
 #import <Foundation/NSDate.h>
 #import <Foundation/NSCalendarDate.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSTimeZone.h>
 
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSString *val;
-  NSDate *date1,*date2;
+  NSDate *date1;
+  NSCalendarDate *date2;
 
   val = @"2000-10-19 00:00:00 +0000";
   date1 = [NSDate date];
