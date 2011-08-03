@@ -1,3 +1,14 @@
+2011-08-03 12:04 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Headers/Foundation/NSRegularExpression.h,
+	  libs/base/trunk/Source/NSRegularExpression.m,
+	  libs/base/trunk/Source/NSString.m,
+	  libs/base/trunk/Tests/base/NSString/regex.m: Clean up
+	  NSRegularExpression, so that it compiles without warnings with or
+	  without ICU, but we don't pretend that we support things that we
+	  don't and silently return nonsense results to make debugging
+	  difficult for GNUstep users.
+
 2011-08-03  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tests/base/NSMutableData/general.m
