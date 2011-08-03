@@ -124,7 +124,14 @@ int main(void)
 	testProperty("enumDefault", "Ti,VenumDefault");
 	testProperty("floatDefault", "Tf,VfloatDefault");
 	testProperty("intDefault", "Ti,VintDefault");
-	testProperty("longDefault", "Tl,VlongDefault");
+	if (sizeof(long) == 4)
+	{
+		testProperty("longDefault", "Tl,VlongDefault");
+	}
+	else
+	{
+		testProperty("longDefault", "Tq,VlongDefault");
+	}
 	testProperty("shortDefault", "Ts,VshortDefault");
 	testProperty("signedDefault", "Ti,VsignedDefault");
 	testProperty("structDefault", "T{YorkshireTeaStruct=ic},VstructDefault");
