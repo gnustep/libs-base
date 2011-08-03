@@ -27,6 +27,7 @@
 
 #import	<Foundation/NSObject.h>
 #import "GNUstepBase/GSBlocks.h"
+#import "GNUstepBase/GSConfig.h"
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -76,7 +77,6 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
 #if	GS_EXPOSE(NSRegularExpression)
   @private
   GSREGEXTYPE *regex;
-  NSString *pattern;
   NSRegularExpressionOptions options;
 #endif
 #if     GS_NONFRAGILE
@@ -89,6 +89,10 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
   @private id _internal GS_UNUSED_IVAR;
 #endif
 }
+// GNUstep, like OS X, uses libicu to provide the NSRegularExpression
+// implementation.  If you have configured GNUstep without this support then it
+// will not work, so these methods are hidden.
+#if GS_USE_ICU || GS_UNSAFE_REGEX
 + (NSRegularExpression*)regularExpressionWithPattern: (NSString*)aPattern
                                              options: (NSRegularExpressionOptions)opts
                                                error: (NSError**)e;
@@ -138,6 +142,7 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
 - (NSRegularExpressionOptions)options;
 - (NSUInteger)numberOfCaptureGroups;
 #endif
+#endif // GS_USE_ICU
 @end
 
 #if	defined(__cplusplus)
