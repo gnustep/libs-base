@@ -43,6 +43,7 @@
    Limited choice of default encodings.
 */
 
+#define GS_UNSAFE_REGEX 1
 #import "common.h"
 #include <stdio.h>
 #include <string.h>

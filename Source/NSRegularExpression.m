@@ -27,19 +27,17 @@
 #if GS_USE_ICU == 1
 #include "unicode/uregex.h"
 #if (U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
+
 #define NSRegularExpressionWorks
+
 #define GSREGEXTYPE URegularExpression
 #import "GSICUString.h"
-#endif //U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
-#endif //HAV_ICU
-
-#import "Foundation/NSArray.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSException.h"
 #import "Foundation/NSRegularExpression.h"
 #import "Foundation/NSTextCheckingResult.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCoder.h"
 
-#ifdef NSRegularExpressionWorks
+
 /**
  * To be helpful, Apple decided to define a set of flags that mean exactly the
  * same thing as the URegexpFlags enum in libicu, but have different values.
@@ -82,7 +80,6 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
     }
   return flags;
 }
-#endif
 
 @implementation NSRegularExpression
 
@@ -99,7 +96,6 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
 	       options: (NSRegularExpressionOptions)opts
 		 error: (NSError**)e
 {
-#ifdef NSRegularExpressionWorks
   uint32_t	flags = NSRegularExpressionOptionsToURegexpFlags(opts);
   UText		p = UTEXT_INITIALIZER;
   UParseError	pe = {0};
@@ -114,18 +110,26 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
       [self release];
       return nil;
     }
-#endif
-  ASSIGN(pattern, aPattern);
   options = opts;
   return self;
 }
 
 - (NSString*) pattern
 {
-  return pattern;
+  UErrorCode	s = 0;
+  UText		*t = uregex_patternUText(regex, &s);
+  GSUTextString	*str = NULL;
+
+  if (U_FAILURE(s))
+    {
+      return nil;
+    }
+  str = [GSUTextString new];
+  utext_clone(&str->txt, t, FALSE, TRUE, &s);
+  utext_close(t);
+  return [str autorelease];
 }
 
-#ifdef NSRegularExpressionWorks
 static UBool
 callback(const void *context, int32_t steps)
 {
@@ -213,14 +217,12 @@ prepareResult(NSRegularExpression *regex,
     }
   return flags;
 }
-#endif
 
 - (void) enumerateMatchesInString: (NSString*)string
                           options: (NSMatchingOptions)opts
                             range: (NSRange)range
                        usingBlock: (GSRegexBlock)block
 {
-#ifdef NSRegularExpressionWorks
   UErrorCode	s = 0;
   UText		txt = UTEXT_INITIALIZER;
   BOOL		stop = NO;
@@ -270,11 +272,6 @@ prepareResult(NSRegularExpression *regex,
     }
   utext_close(&txt);
   uregex_close(r);
-#else
-  //FIXME
-  [NSException raise: NSInvalidArgumentException
-              format: @"NSRegularExpression requires ICU 4.4 or later"];
-#endif
 }
 
 /* The remaining methods are all meant to be wrappers around the primitive
@@ -374,8 +371,6 @@ prepareResult(NSRegularExpression *regex,
 #	ifdef __clang__
 #		warning Your compiler would support blocks if you added -fblocks to your OBJCFLAGS
 #	endif
-
-#ifdef NSRegularExpressionWorks
 #define FAKE_BLOCK_HACK(failRet, code) \
   UErrorCode s = 0;\
   UText txt = UTEXT_INITIALIZER;\
@@ -398,11 +393,6 @@ prepareResult(NSRegularExpression *regex,
     }\
   utext_close(&txt);\
   uregex_close(r);
-#else
-#define FAKE_BLOCK_HACK(failRet, code) \
-  [NSException raise: NSInvalidArgumentException \
-              format: @"NSRegularExpression requires ICU 4.4 or later"]
-#endif
 
 - (NSUInteger) numberOfMatchesInString: (NSString*)string
                                options: (NSMatchingOptions)opts
@@ -486,7 +476,6 @@ prepareResult(NSRegularExpression *regex,
   NSInteger	results = [self numberOfMatchesInString: string
 						options: opts
 						  range: range];
-#ifdef NSRegularExpressionWorks
   UErrorCode	s = 0;
   UText		txt = UTEXT_INITIALIZER;
   UText		replacement = UTEXT_INITIALIZER;
@@ -505,7 +494,6 @@ prepareResult(NSRegularExpression *regex,
   utext_close(&txt);
   utext_close(output);
   utext_close(&replacement);
-#endif
   return results;
 }
 
@@ -514,7 +502,6 @@ prepareResult(NSRegularExpression *regex,
                                          range: (NSRange)range
                                   withTemplate: (NSString*)template
 {
-#ifdef NSRegularExpressionWorks
   UErrorCode	s = 0;
   UText		txt = UTEXT_INITIALIZER;
   UText		replacement = UTEXT_INITIALIZER;
@@ -532,10 +519,6 @@ prepareResult(NSRegularExpression *regex,
   utext_close(output);
   utext_close(&replacement);
   return ret;
-#else
-  // FIXME
-  return nil;
-#endif
 }
 
 - (NSString*) replacementStringForResult: (NSTextCheckingResult*)result
@@ -543,7 +526,6 @@ prepareResult(NSRegularExpression *regex,
                                   offset: (NSInteger)offset
                                 template: (NSString*)template
 {
-#ifdef NSRegularExpressionWorks
   UErrorCode	s = 0;
   UText		txt = UTEXT_INITIALIZER;
   UText		replacement = UTEXT_INITIALIZER;
@@ -567,10 +549,6 @@ prepareResult(NSRegularExpression *regex,
   utext_close(output);
   utext_close(&replacement);
   return ret;
-#else
-  //FIXME
-  return nil;
-#endif
 }
 
 - (NSRegularExpressionOptions) options
@@ -580,21 +558,13 @@ prepareResult(NSRegularExpression *regex,
 
 - (NSUInteger) numberOfCaptureGroups
 {
-#ifdef NSRegularExpressionWorks
   UErrorCode s = 0;
   return uregex_groupCount(regex, &s);
-#else
-  // FIXME
-  return 0;
-#endif
 }
 
 - (void) dealloc
 {
-#ifdef NSRegularExpressionWorks
   uregex_close(regex);
-#endif
-  RELEASE(pattern);
   [super dealloc];
 }
 
@@ -615,26 +585,24 @@ prepareResult(NSRegularExpression *regex,
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  NSString *aPattern;
-  NSRegularExpressionOptions opts;
+  NSString	*pattern;
 
   if ([aCoder allowsKeyedCoding])
     {
-      opts = [aCoder decodeIntegerForKey: @"options"];
-      aPattern = [aCoder decodeObjectForKey: @"pattern"];
+      options = [aCoder decodeIntegerForKey: @"options"];
+      pattern = [aCoder decodeObjectForKey: @"pattern"];
     }
   else
     {
       [aCoder decodeValueOfObjCType: @encode(NSRegularExpressionOptions)
-				 at: &opts];
-      aPattern = [aCoder decodeObject];
+				 at: &options];
+      pattern = [aCoder decodeObject];
     }
-  return [self initWithPattern: aPattern options: opts error: NULL];
+  return [self initWithPattern: pattern options: options error: NULL];
 }
 
 - (id) copyWithZone: (NSZone*)aZone
 {
-#ifdef NSRegularExpressionWorks
   NSRegularExpressionOptions	opts = options;
   UErrorCode			s = 0;
   URegularExpression		*r = uregex_clone(regex, &s);
@@ -652,10 +620,32 @@ prepareResult(NSRegularExpression *regex,
   options = opts;
   regex = r;
   return self;
-#else
-  return [[[self class] allocWithZone: aZone] initWithPattern: [self pattern]
-                                                      options: [self options]
-                                                        error: NULL];
-#endif
 }
 @end
+#endif //U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
+#endif //HAV_ICU
+
+#ifndef NSRegularExpressionWorks
+#import "Foundation/NSRegularExpression.h"
+#import "Foundation/NSZone.h"
+#import "Foundation/NSException.h"
+@implementation NSRegularExpression
++ (id)allocWithZone: (NSZone*)aZone
+{
+  [NSException raise: NSInvalidArgumentException
+              format: @"NSRegularExpression requires ICU 4.4 or later"];
+  return nil;
+}
+- (id) copyWithZone: (NSZone*)zone
+{
+  return nil;
+}
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+}
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  return nil;
+}
+@end
+#endif
