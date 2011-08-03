@@ -40,8 +40,15 @@
 #  define STRONG_ACQUIRE(x) x
 #elif defined(OBJC_CAP_ARC)
 #    include <objc/objc-arc.h>
+/*
+ * OS X 10.7 uses weak to mean unsafe unretained, which is stupid and wrong,
+ * but we should probably do the same thing for now.  Uncomment this when Apple
+ * fixes their implementation.
 #    define WEAK_READ(x) objc_loadWeak((id*)x)
 #    define WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
+*/
+#    define WEAK_READ(x) (*x)
+#    define WEAK_WRITE(addr, x) (*(addr) =  x)
 #    define STRONG_WRITE(addr, x) objc_storeStrong((id*)addr, (id)x)
 #    define STRONG_ACQUIRE(x) objc_retain(x)
 #else
