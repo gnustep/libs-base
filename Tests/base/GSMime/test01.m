@@ -13,7 +13,6 @@ int main()
   GSMimeHeader  *hdr;
   NSString      *val;
   NSString      *raw;
-  BOOL		complete;
 
   data = [@"Content-type: application/xxx\r\n" dataUsingEncoding: enc];
   PASS([parser parse:data] && [parser isInHeaders] && (doc != nil),

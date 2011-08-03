@@ -1,8 +1,5 @@
 #import "ObjectTesting.h"
-#import <Foundation/NSAutoreleasePool.h>
-#import <Foundation/NSKeyValueCoding.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSSet.h>
+#import <Foundation/Foundation.h>
 
 @interface Observer : NSObject
 - (void) observeValueForKeyPath: (NSString *)keyPath

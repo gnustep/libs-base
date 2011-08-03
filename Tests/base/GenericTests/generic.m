@@ -9,7 +9,7 @@
 {
   return ([self isEqual:anObject] && [anObject isEqual:self]);
 }
-- (int) length
+- (NSUInteger) length
 {
   return 0;
 }

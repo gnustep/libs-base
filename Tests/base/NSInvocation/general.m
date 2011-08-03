@@ -196,7 +196,7 @@ int main()
   TEST_INVOKE_ARG(@selector(loopLarge:),&lsarg);
   [inv getReturnValue:&lsret];
   PASS(lsret.i == 9 && 
-       lsret.s == "Hello" &&
+       strcmp(lsret.s, "Hello") == 0 &&
        lsret.f == 11.0,
        "Can send/return large structs");
   

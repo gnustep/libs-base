@@ -86,7 +86,6 @@ main(int argc, char *argv[])
   Ivar          ivar;
   Ivar          *ivars;
   unsigned int  count;
-  unsigned int  index;
   Method        method;
   Method        *methods;
   Protocol      **protocols;

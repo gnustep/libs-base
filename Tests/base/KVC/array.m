@@ -31,7 +31,6 @@ int main(int argc,char **argv)
   NSArray       *ivar;
   ArrayIVar     *aiv;
   NSString      *plist;
-  id            tmp = nil;
 
   array = [@"({value=10;},{value=12;})" propertyList];
   plist = @"{displayGroup={allObjects=({detailArray=({value=4;},{value=2;});},{detailArray=({value=8;},{value=10;});});};}";

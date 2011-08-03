@@ -49,6 +49,7 @@
   } else if ([key isEqualToString:@"Lücke"]) {
     return string;
   }
+  return nil;
 }
 
 @end
@@ -103,7 +104,6 @@ int main(void) {
   DeprecatedCustomKVC * deprecated = [[[DeprecatedCustomKVC alloc] init]
     autorelease];
   NSNumber * n = [NSNumber numberWithInt:8];
-  NSNumber * adjustedN = [NSNumber numberWithInt:7];
   NSNumber * n2 = [NSNumber numberWithDouble:87.999];
 
   [tester setValue:n2 forKeyPath:@"child.num2"];
