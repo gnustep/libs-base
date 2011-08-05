@@ -47,7 +47,9 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
-#include <objc/runtime.h>
+#if __has_include(<objc/runtime.h>)
+#  include <objc/runtime.h>
+#endif
 
 /*
  * NSNumber implementation.  This matches the behaviour of Apple's
