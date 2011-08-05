@@ -1,3 +1,8 @@
+2011-08-05 17:34 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSNumber.m: Bracket the runtime.h include
+	  in a check.
+
 2011-08-03 12:04 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Headers/Foundation/NSRegularExpression.h,
