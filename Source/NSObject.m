@@ -1436,12 +1436,13 @@ static id gs_weak_load(id obj)
 
       newDestructor
 	= class_getMethodImplementation(destructorClass, cxx_destruct);
+      destructorClass = class_getSuperclass(destructorClass);
+
       if (newDestructor != destructor)
-	{
+	  {
 	  newDestructor(self, cxx_destruct);
 	  destructor = newDestructor;
 	}
-      destructorClass = class_getSuperclass(destructorClass);
     }
   return;
 }
