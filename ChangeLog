@@ -1,3 +1,11 @@
+2011-08-07 16:56  theraven
+
+	* libs/base/trunk/Source/NSObject.m: When calling -.cxx_dealloc,
+	  look up the superclass before calling. This method
+	  may destroy the receiver's class, if it's a user-generated one,
+	  so we can't
+	  guarantee that it is valid after the call.
+
 2011-08-05 17:34 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSNumber.m: Bracket the runtime.h include
