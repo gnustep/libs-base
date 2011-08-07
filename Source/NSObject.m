@@ -1419,8 +1419,12 @@ static id gs_weak_load(id obj)
 
 - (void) finalize
 {
-  Class	destructorClass = object_getClass(self);
+  Class	destructorClass = Nil;
   IMP	destructor = 0;
+#ifdef OBJC_SMALL_OBJECT_MASK
+  if (((NSUInteger)self & OBJC_SMALL_OBJECT_MASK) == 0)
+#endif
+  destructorClass = isa;
 
   /* C++ destructors must be called in the opposite order to their
    * creators, so start at the leaf class and then go up the tree until we
