@@ -1,3 +1,13 @@
+2011-08-07 18:00  theraven
+
+	* libs/base/trunk/Source/NSObject.m: In -finalize, we're pretending
+	  to be the Objective-C runtime, so we need to
+	  actually use isa directly, rather than the safe version. A better
+	  solution
+	  would be to call object_dispose(), but this only works for
+	  objects created with
+	  class_createInstance().
+
 2011-08-07 16:56  theraven
 
 	* libs/base/trunk/Source/NSObject.m: When calling -.cxx_dealloc,
