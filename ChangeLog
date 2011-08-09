@@ -1,3 +1,11 @@
+2011-08-09 08:43  theraven
+
+	* libs/base/trunk/Source/NSConcreteHashTable.m,
+	  libs/base/trunk/Source/NSConcreteMapTable.m: Replace the
+	  implementations of NSFastEnumeration in NSConcrete{Hash,Map}Table
+	  with ones that work and don't cause people to dereference
+	  pointers that are set to random integer values.
+
 2011-08-07 18:00  theraven
 
 	* libs/base/trunk/Source/NSObject.m: In -finalize, we're pretending
