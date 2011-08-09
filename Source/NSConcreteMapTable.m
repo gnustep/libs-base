@@ -1210,37 +1210,9 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-  NSInteger 		count;
-  NSMapEnumerator	enumerator;
-
-  state->mutationsPtr = (unsigned long *)version;
-  if (state->state == 0 && state->extra[0] == 0)
-    {
-      enumerator = GSIMapEnumeratorForMap(self);
-    }
-  else
-    {
-      enumerator.map = self;
-      enumerator.node = (GSIMapNode)(uintptr_t)state->state;
-      enumerator.bucket = state->extra[0];
-    }
-  for (count = 0; count < len; count++)
-    {
-      GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
-
-      if (node == 0)
-	{
-	  break;
-	}
-      else
-	{
-	  stackbuf[count] = node->key.obj;
-	}
-    }
-  state->state = (unsigned long)(uintptr_t)enumerator.node;
-  state->extra[0] = enumerator.bucket;
-  state->itemsPtr = stackbuf;
-  return count;
+  state->mutationsPtr = (unsigned long *)&version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (self, state, stackbuf, len);
 }
 
 - (void) dealloc
