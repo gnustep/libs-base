@@ -1,4 +1,10 @@
-2011-08-09 08:43  theraven
+2011-08-11  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSAffineTransform.m (-appendTransform:)
+	(-prependTransform:): Fix bug in optimisation code by using a
+	local variable.
+
+2011-08-09 08:43 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSConcreteHashTable.m,
 	  libs/base/trunk/Source/NSConcreteMapTable.m: Replace the
@@ -6,7 +12,7 @@
 	  with ones that work and don't cause people to dereference
 	  pointers that are set to random integer values.
 
-2011-08-07 18:00  theraven
+2011-08-07 18:00 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSObject.m: In -finalize, we're pretending
 	  to be the Objective-C runtime, so we need to
@@ -16,7 +22,7 @@
 	  objects created with
 	  class_createInstance().
 
-2011-08-07 16:56  theraven
+2011-08-07 16:56 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSObject.m: When calling -.cxx_dealloc,
 	  look up the superclass before calling. This method

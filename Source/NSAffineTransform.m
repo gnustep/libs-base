@@ -160,12 +160,15 @@ static NSAffineTransformStruct identityTransform = {
 
   if (_isIdentity)
     {
+      CGFloat newTX;
+
       A = aTransform->A;
       B = aTransform->B;
       C = aTransform->C;
       D = aTransform->D;
-      TX = TX * aTransform->A + TY * aTransform->C + aTransform->TX;
+      newTX = TX * aTransform->A + TY * aTransform->C + aTransform->TX;
       TY = TX * aTransform->B + TY * aTransform->D + aTransform->TY;
+      TX = newTX;
       _isIdentity = NO;  // because aTransform is not an identity transform.
       _isFlipY = aTransform->_isFlipY;
       check();
@@ -174,12 +177,15 @@ static NSAffineTransformStruct identityTransform = {
 
   if (_isFlipY)
     {
+      CGFloat newTX;
+
       A = aTransform->A;
       B = aTransform->B;
       C = -aTransform->C;
       D = -aTransform->D;
-      TX  = TX * aTransform->A + TY * aTransform->C + aTransform->TX;
+      newTX  = TX * aTransform->A + TY * aTransform->C + aTransform->TX;
       TY  = TX * aTransform->B + TY * aTransform->D + aTransform->TY;
+      TX = newTX;
       _isIdentity = NO;
       _isFlipY = NO;
       check();
@@ -280,16 +286,22 @@ static NSAffineTransformStruct identityTransform = {
 
   if (aTransform->_isIdentity)
     {
-      TX = aTransform->TX * A + aTransform->TY * C + TX;
+      CGFloat newTX;
+
+      newTX = aTransform->TX * A + aTransform->TY * C + TX;
       TY = aTransform->TX * B + aTransform->TY * D + TY;
+      TX = newTX;
       check();
       return;
     }
 
   if (aTransform->_isFlipY)
     {
-      TX  = aTransform->TX * A + aTransform->TY * C + TX;
-      TY  = aTransform->TX * B + aTransform->TY * D + TY;
+      CGFloat newTX;
+
+      newTX = aTransform->TX * A + aTransform->TY * C + TX;
+      TY = aTransform->TX * B + aTransform->TY * D + TY;
+      TX = newTX;
       C = -C;
       D = -D;
       if (_isIdentity)
