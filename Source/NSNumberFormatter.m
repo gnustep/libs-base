@@ -27,6 +27,24 @@
    $Date$ $Revision$
    */
 
+/* Unfortunately, libicu does not define the maximum values allowed for all
+   of these attributes.  We define them here to, though.
+   These are based off libicu version 4.6.
+ */
+#define MAX_SYMBOLS 27
+#define MAX_TEXTATTRIBUTES 8
+#define MAX_ATTRIBUTES 20
+
+#define GS_NSNumberFormatter_IVARS \
+  NSUInteger	_behavior; \
+  BOOL		_genDecimal; \
+  NSUInteger	_style; \
+  NSLocale	*_locale; \
+  void		*_formatter; \
+  id		_symbols[MAX_SYMBOLS]; \
+  id		_textAttributes[MAX_TEXTATTRIBUTES]; \
+  int		_attributes[MAX_ATTRIBUTES]
+
 #import "common.h"
 #define	EXPOSE_NSNumberFormatter_IVARS	1
 #import "Foundation/NSAttributedString.h"
@@ -50,14 +68,6 @@
 #endif
 
 #define BUFFER_SIZE 1024
-
-/* Unfortunately, libicu does not define the maximum values allowed for all
-   of these attributes.  We define them here to, though.
-   These are based off libicu version 4.6.
- */
-#define MAX_SYMBOLS 27
-#define MAX_TEXTATTRIBUTES 8
-#define MAX_ATTRIBUTES 20
 
 #if GS_USE_ICU == 1
 static inline UNumberFormatStyle
@@ -252,22 +262,16 @@ ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
 #define	UNUM_ZERO_DIGIT_SYMBOL	0
 
 #endif
-
-#define GS_NSNumberFormatter_IVARS \
-  NSUInteger	_behavior; \
-  BOOL		_genDecimal; \
-  NSUInteger	_style; \
-  NSLocale	*_locale; \
-  void		*_formatter; \
-  id		_symbols[MAX_SYMBOLS]; \
-  id		_textAttributes[MAX_TEXTATTRIBUTES]; \
-  int		_attributes[MAX_ATTRIBUTES]
  
 #define GSInternal              NSNumberFormatterInternal
 #include        "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSNumberFormatter)
 
+#ifdef GS_NONFRAGILE
+@interface NSNumberFormatter (Internal)
+#else
 @interface	NSNumberFormatterInternal (Methods)
+#endif
 - (int32_t) attributeForKey: (int)key;
 - (NSString*) symbolForKey: (int)key;
 - (NSString*) textAttributeForKey: (int)key;
@@ -276,7 +280,11 @@ GS_PRIVATE_INTERNAL(NSNumberFormatter)
 - (void) setTextAttribute: (NSString*)value forKey: (int)key;
 @end
 
+#ifdef GS_NONFRAGILE
+@implementation NSNumberFormatter (Internal)
+#else
 @implementation	NSNumberFormatterInternal (Methods)
+#endif
 
 - (int32_t) attributeForKey: (int)key
 {

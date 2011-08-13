@@ -22,6 +22,7 @@
    Boston, MA 02110-1301, USA.
 */
 
+#define	EXPOSE_NSLocale_IVARS	1
 #import "common.h"
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSArray.h"

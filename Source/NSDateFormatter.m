@@ -25,8 +25,16 @@
    $Date$ $Revision$
    */
 
-#import "common.h"
+#define	GS_NSDateFormatter_IVARS \
+  NSUInteger _behavior; \
+  NSLocale   *_locale; \
+  NSTimeZone *_tz; \
+  NSDateFormatterStyle _timeStyle; \
+  NSDateFormatterStyle _dateStyle; \
+  void      *_formatter
+
 #define	EXPOSE_NSDateFormatter_IVARS	1
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"
@@ -82,13 +90,6 @@ NSToUDateFormatStyle (NSDateFormatterStyle style)
   return -1;
 }
 
-#define	GS_NSDateFormatter_IVARS \
-  NSUInteger _behavior; \
-  NSLocale   *_locale; \
-  NSTimeZone *_tz; \
-  NSDateFormatterStyle _timeStyle; \
-  NSDateFormatterStyle _dateStyle; \
-  void      *_formatter
 
 #define	GSInternal		NSDateFormatterInternal
 #include	"GSInternal.h"
