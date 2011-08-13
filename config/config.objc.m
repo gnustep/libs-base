@@ -1,7 +1,7 @@
 
 #include "objc-common.g"
 
-@interface Test : Object
+@interface Test 
 +(int) testResult;
 @end
 
