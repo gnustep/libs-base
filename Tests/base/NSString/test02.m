@@ -3,6 +3,7 @@
 #import <Foundation/NSArray.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSFileManager.h>
+#import <Foundation/NSPathUtilities.h>
 
 int main()
 {
