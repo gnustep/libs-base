@@ -22,6 +22,8 @@
    $Date: 2010-09-18 16:09:58 +0100 (Sat, 18 Sep 2010) $ $Revision: 31371 $
    */
 
+
+#define	EXPOSE_NSRegularExpression_IVARS	1
 #import "common.h"
 
 #if GS_USE_ICU == 1

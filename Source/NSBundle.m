@@ -31,8 +31,8 @@
    $Date$ $Revision$
 */
 
-#import "common.h"
 #define	EXPOSE_NSBundle_IVARS	1
+#import "common.h"
 #include "objc-load.h"
 #import "Foundation/NSBundle.h"
 #import "Foundation/NSException.h"
