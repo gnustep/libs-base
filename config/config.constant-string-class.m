@@ -19,8 +19,9 @@
 #include "objc-common.g"
 
 /* Define our custom constant string class */
-@interface FooConstantString : Object
+@interface FooConstantString
 {
+   Class isa;
    char *c_string;
    unsigned int len;
 }
