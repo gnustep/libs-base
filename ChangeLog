@@ -1,4 +1,13 @@
-2011-08-13 13:28  theraven
+2011-08-13 15:28 David Chisnall <theraven@gna.org>
+
+	* libs/base/trunk/Source/NSBundle.m,
+	  libs/base/trunk/Source/NSDateFormatter.m,
+	  libs/base/trunk/Source/NSLocale.m,
+	  libs/base/trunk/Source/NSNumberFormatter.m,
+	  libs/base/trunk/Source/NSRegularExpression.m: Fix the build with
+	  the pure non-fragile ABI by declaring macros before using them.
+
+2011-08-13 13:28 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/config/config.objc.m: Don't assume Object exists
 	  in libobjc.
