@@ -1,3 +1,9 @@
+2011-08-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Attempt fix for recording of excess data in the case where we are
+	parsing mime headers only and the headers are incomplete.
+
 2011-08-13 15:28 David Chisnall <theraven@gna.org>
 
 	* libs/base/trunk/Source/NSBundle.m,
