@@ -267,7 +267,7 @@ ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
 #include        "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSNumberFormatter)
 
-#ifdef GS_NONFRAGILE
+#if GS_NONFRAGILE
 @interface NSNumberFormatter (Internal)
 #else
 @interface	NSNumberFormatterInternal (Methods)
@@ -280,7 +280,7 @@ GS_PRIVATE_INTERNAL(NSNumberFormatter)
 - (void) setTextAttribute: (NSString*)value forKey: (int)key;
 @end
 
-#ifdef GS_NONFRAGILE
+#if GS_NONFRAGILE
 @implementation NSNumberFormatter (Internal)
 #else
 @implementation	NSNumberFormatterInternal (Methods)
