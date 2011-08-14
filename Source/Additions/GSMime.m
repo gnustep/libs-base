@@ -1522,6 +1522,7 @@ wordData(NSString *word)
       [self parseHeaders: [NSData dataWithBytes: "\r\n\r\n" length: 4]
 	       remaining: 0];
       flags.wantEndOfLine = 0;
+      flags.excessData = 0;
       flags.inBody = 0;
       flags.complete = 1;	/* Finished parsing	*/
       return NO;		/* Want no more data	*/
@@ -1535,11 +1536,13 @@ wordData(NSString *word)
       [data appendData: d];
       bytes = (unsigned char*)[data bytes];
       dataEnd = [data length];
+      d = nil;
     }
   else
     {
       NSUInteger	i = NSMaxRange(r);
-
+      
+      i -= [data length];			// Bytes to append to headers
       [data appendBytes: [d bytes] length: i];
       bytes = (unsigned char*)[data bytes];
       dataEnd = [data length];
@@ -3035,98 +3038,141 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
  * range at index NSNotFound.<br />
  * Permits a bare LF as a line terminator for maximum compatibility.<br />
  * Also checks for an empty line overlapping the existing data and the
- * new data.
+ * new data.<br />
+ * Also, handles the special case of an empty line and no further headers.
  */
 - (NSRange) _endOfHeaders: (NSData*)newData
 {
-  unsigned		nl = [newData length];
+  unsigned int		ol = [data length];
+  unsigned int		nl = [newData length];
+  unsigned int		len = ol + nl;
+  unsigned int		pos = ol;
+  const unsigned char	*op = (const unsigned char*)[data bytes];
+  const unsigned char	*np = (const unsigned char*)[newData bytes];
+  char			c;
 
-  if (nl > 0)
+#define	C(X)	((X) < ol ? op[(X)] : np[(X)-ol])
+
+  if (ol > 0)
     {
-      unsigned int		ol = [data length];
-      const unsigned char	*np = (const unsigned char*)[newData bytes];
-
-      if (ol > 0)
+      /* Find the start of any trailing CRLF or LF sequence we have already
+       * checked.
+       */
+      while (pos > 0)
 	{
-	  const unsigned char	*op = (const unsigned char*)[data bytes];
-
-	  if (np[0] == '\r' && nl > 1 && np[1] == '\n')
+	  c = C(pos - 1);
+	  if (c != '\r' && c != '\n')
 	    {
-	      /* We have a CRLF in the new data, so we check for a
-	       * newline at the end of the old data
-	       */
-	      if (op[ol-1] == '\n')
-		{
-		  return NSMakeRange(0, 2);
-		}
+	      break;
 	    }
-	  else if (np[0] == '\n')
+	  pos--;
+	}
+    }
+
+  /* Check for a document with no headera
+   */
+  if (0 == pos)
+    {
+      if (len < 1)
+	{
+	  return NSMakeRange(NSNotFound, 0);
+	}
+      c = C(0);
+      if ('\n' == c)
+	{
+	  return NSMakeRange(0, 1);	// no headers ... just an LF.
+	}
+      if (len < 2)
+	{
+	  return NSMakeRange(NSNotFound, 0);
+	}
+      if ('\r' == c && '\n' == C(1))
+	{
+	  return NSMakeRange(0, 2);	// no headers ... just a CRLF.
+	}
+    }
+
+  /* Now check for pairs of line ends overlapping the old and new data
+   */
+  if (pos < ol)
+    {
+      if (pos >= len - 2)
+	{
+	  return NSMakeRange(NSNotFound, 0);
+	}
+      c = C(pos);
+      if ('\n' == c)
+	{
+	  char	c1 = C(pos + 1);
+
+	  if ('\n' ==  c1)
 	    {
-	      if (op[ol-1] == '\n')
+	      return NSMakeRange(pos, 2);	// LFLF
+	    }
+	  if ('\r' == c1 && pos < len - 3 && '\n' == C(pos + 2))
+	    {
+	      return NSMakeRange(pos, 3);	// LFCRLF
+	    }
+	}
+      else if ('\r' == c)
+	{
+	  char	c1 = C(pos + 1);
+
+	  if ('\n' == c1 && pos < len - 3)
+	    {
+	      char	c2 = C(pos + 2);
+
+	      if ('\n' == c2)
 		{
-		  /* LF in old and LF in new data ... empty line.
-		   */
-		  return NSMakeRange(0, 1);
+		  return NSMakeRange(pos, 3);	// CRLFLF
 		}
-	      else if (op[ol-1] == '\r')
+	      if ('\r' == c2 && pos < len - 4 && '\n' == C(pos + 3))
 		{
-		  /* We have a newline crossing the boundary of old and
-		   * new data (CR in the old data and LF in new data).
-		   */
-		  if (ol > 1 && op[ol-2] == '\n')
-		    {
-		      return NSMakeRange(0, 1);
-		    }
-		  else if (nl > 1)
-		    {
-		      if (np[1] == '\n')
-			{
-			  return NSMakeRange(0, 2);
-			}
-		      else if (nl > 2 && np[1] == '\r' && np[2] == '\n')
-			{
-			  return NSMakeRange(0, 3);
-			}
-		    }
+		  return NSMakeRange(pos, 4);	// CRLFCRLF
 		}
 	    }
 	}
+    }
 
-      if (nl >= 2)
+  /* Now check for end of headers in new data.
+   */
+  pos = 0;
+  while (pos < nl - 2)
+    {
+      c = np[pos];
+      if ('\n' == c)
 	{
-	  unsigned int	i;
+	  char	c1 = np[pos + 1];
 
-          for (i = 0; i < nl; i++)
+	  if ('\n' ==  c1)
 	    {
-	      if (np[i] == '\r')
-		{
-		  unsigned	l = (nl - i);
-
-		  if (l >= 4 && np[i+1] == '\n' && np[i+2] == '\r'
-		    && np[i+3] == '\n')
-		    {
-		      return NSMakeRange(i, 4);
-		    }
-		  if (l >= 3 && np[i+1] == '\n' && np[i+2] == '\n')
-		    {
-		      return NSMakeRange(i, 3);
-		    }
-		}
-	      else if (np[i] == '\n')
-		{
-		  unsigned	l = (nl - i);
-
-		  if (l >= 3 && np[i+1] == '\r' && np[i+2] == '\n')
-		    {
-		      return NSMakeRange(i, 3);
-		    }
-		  if (l >= 2 && np[i+1] == '\n')
-		    {
-		      return NSMakeRange(i, 2);
-		    }
-		}
+	      return NSMakeRange(pos + ol, 2);	// LFLF
+	    }
+	  if ('\r' == c1 && pos < nl - 3 && '\n' == np[pos + 2])
+	    {
+	      return NSMakeRange(pos + ol, 3);	// LFCRLF
 	    }
 	}
+      else if ('\r' == c)
+	{
+	  char	c1 = np[pos + 1];
+
+	  if ('\n' == c1 && pos < nl - 3)
+	    {
+	      char	c2 = np[pos + 2];
+
+	      if ('\n' == c2)
+		{
+		  return NSMakeRange(pos + ol, 3);	// CRLFLF
+		}
+	      if ('\r' == c2 && pos < nl - 4 && '\n' == np[pos + 3])
+		{
+		  return NSMakeRange(pos + ol, 4);	// CRLFCRLF
+		}
+	      pos++;
+	    }
+	}
+      pos++;
     }
 
   return NSMakeRange(NSNotFound, 0);
