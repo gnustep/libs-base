@@ -2580,7 +2580,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
       while (done == NO)
 	{
-	  BOOL	found = NO;
+	  BOOL		found = NO;
+	  NSUInteger	eol = len;
 
 	  /*
 	   * Search data for the next boundary.
@@ -2594,7 +2595,6 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		    || buf[lineStart-1] == '\n')
 		    {
 		      BOOL		lastPart = NO;
-		      NSUInteger	eol;
 
 		      lineEnd = lineStart + bLength;
 		      eol = lineEnd;
@@ -2620,6 +2620,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 			}
 		      if (eol < len && buf[eol] == '\n')
 			{
+			  eol++;
 			  flags.wantEndOfLine = 0;
 			  found = YES;
 			  endedFinalPart = lastPart;
@@ -2771,6 +2772,16 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      sectionStart = lineStart;
 	      if (endedFinalPart == YES)
 		{
+		  if (eol < len)
+		    {
+		      NSData	*excess;
+
+		      excess = [[NSData alloc] initWithBytes: buf + eol
+						      length: len - eol];
+		      ASSIGN(boundary, excess);
+		      flags.excessData = 1;
+		      [excess release];
+		    }
 		  lineStart = sectionStart = 0;
 		  [data setLength: 0];
 		  done = YES;
