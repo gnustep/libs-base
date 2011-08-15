@@ -1,3 +1,8 @@
+2011-08-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Redo fix for incorrect handling of documents with empty headers.
+
 2011-08-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:
