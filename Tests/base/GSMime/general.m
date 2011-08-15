@@ -4,10 +4,24 @@
 #import "Testing.h"
 
 static GSMimeDocument *
-parse(GSMimeParser *parser, NSData *data)
+parse(GSMimeParser **parserPointer, NSData *data)
 {
+  GSMimeParser	*parser;
   unsigned	length = [data length];
   unsigned	index;
+
+  if (0 == parserPointer)
+    {
+      parser = [[GSMimeParser new] autorelease];
+    }
+  else
+    {
+      if (nil == *parserPointer)
+	{
+	  *parserPointer = [[GSMimeParser new] autorelease];
+	}
+      parser = *parserPointer;
+    }
 
   for (index = 0; index < length-1; index++)
     {
@@ -22,40 +36,68 @@ parse(GSMimeParser *parser, NSData *data)
       [arp release];
     }
   data = [data subdataWithRange: NSMakeRange(index, 1)];
-  if ([parser parse: data] == YES)
+  if ([parser parse: data] == YES && NO == [parser isComplete])
     {
       [parser parse: nil];
     }
   return [parser mimeDocument];
 }
 
+static GSMimeDocument *
+exact(GSMimeParser **parserPointer, NSData *data)
+{
+  GSMimeParser	*parser = nil;
+  GSMimeDocument *doc;
+
+  if (0 == parserPointer)
+    {
+      parserPointer = &parser;
+    }
+  doc = parse(parserPointer, data);  
+  if (nil != [parser excess])
+    {
+      NSLog(@"Excess data in parser after parse completed");
+      doc = nil;
+    }
+  return doc;
+}
+
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSData *data;
+  GSMimeParser *parser;
   GSMimeDocument *doc;
   GSMimeDocument *idoc;
 
   data = [NSData dataWithContentsOfFile: @"mime1.dat"];
-  idoc = parse([[GSMimeParser new] autorelease], data);
-  PASS(([[[[idoc content] objectAtIndex:0] content] isEqual: @"a"]),
+  idoc = exact(0, data);
+  PASS_EQUAL([[[idoc content] objectAtIndex:0] content], @"a",
        "can parse one char base64 mime1.dat incrementally");
   doc = [GSMimeParser documentFromData: data];
-  PASS(([[[[doc content] objectAtIndex:0] content] isEqual: @"a"]),
+  PASS_EQUAL([[[doc content] objectAtIndex:0] content], @"a",
        "can parse one char base64 mime1.dat in one go");
-  PASS([idoc isEqual: doc], "mime1.dat documents are the same");
+  PASS_EQUAL(idoc, doc, "mime1.dat documents are the same");
+
+  parser = [GSMimeParser new];
+  data = [[data mutableCopy] autorelease];
+  [(NSMutableData*)data appendBytes: "\r\n\r\n" length: 4];
+  [parser parse: data];
+  doc = [parser document];
+  PASS([[parser excess] length] == 4, "Can detect excess data in multipart");
+  [parser release];
   
   data = [NSData dataWithContentsOfFile: @"mime2.dat"];
-  idoc = parse([[GSMimeParser new] autorelease], data);
-  PASS(([[idoc content] isEqual: @"aa"]),
+  idoc = exact(0, data);
+  PASS_EQUAL([idoc content], @"aa",
     "can parse two char base64 mime2.dat incrementally");
   doc = [GSMimeParser documentFromData: data];
-  PASS(([[doc content] isEqual: @"aa"]),
+  PASS_EQUAL([doc content], @"aa",
     "can parse two char base64 mime2.dat in one go");
-  PASS([idoc isEqual: doc], "mime2.dat documents are the same");
+  PASS_EQUAL(idoc, doc, "mime2.dat documents are the same");
  
   data = [NSData dataWithContentsOfFile: @"mime3.dat"];
-  idoc = parse([[GSMimeParser new] autorelease], data);
+  idoc = exact(0, data);
   PASS(([[idoc content] isEqual: @"aaa"]),
     "can parse three char base64 mime3.dat incrementally");
   doc = [GSMimeParser documentFromData: data];
@@ -64,7 +106,7 @@ int main()
   PASS([idoc isEqual: doc], "mime3.dat documents are the same");
    
   data = [NSData dataWithContentsOfFile: @"mime4.dat"];
-  idoc = parse([[GSMimeParser new] autorelease], data);
+  idoc = exact(0, data);
   PASS(([[[[idoc content] objectAtIndex:0] content] isEqual: @"hello\n"]
     && [[[[idoc content] objectAtIndex:1] content] isEqual: @"there\n"]),
     "can parse multi-part text mime4.dat incrementally");
@@ -88,7 +130,7 @@ int main()
   PASS([idoc isEqual: doc], "mime4.dat documents are the same");
     
   data = [NSData dataWithContentsOfFile: @"mime5.dat"];
-  idoc = parse([[GSMimeParser new] autorelease], data);
+  idoc = exact(0, data);
   PASS(([[idoc contentSubtype] isEqual: @"xml"]),
    "can parse http document mime5.dat incrementally"); 
   doc = [GSMimeParser documentFromData: data];
@@ -97,7 +139,7 @@ int main()
   PASS([idoc isEqual: doc], "mime5.dat documents are the same");
   
   data = [NSData dataWithContentsOfFile: @"mime6.dat"];
-  idoc = parse([[GSMimeParser new] autorelease], data);
+  idoc = exact(0, data);
   PASS(([[idoc content] count] == 3),
     "can parse multipart mixed mime6.dat incrementally"); 
   doc = [GSMimeParser documentFromData: data];
@@ -110,7 +152,7 @@ int main()
    "mime6.dat binary data part matches mime7.dat");
 
   data = [NSData dataWithContentsOfFile: @"mime9.dat"];
-  idoc = parse([[GSMimeParser new] autorelease], data);
+  idoc = exact(0, data);
   PASS(([[[idoc headerNamed: @"Long"] value] isEqual: @"first second third"]),
    "mime9.dat folded header unfolds correctly incrementally");
   doc = [GSMimeParser documentFromData: data];
@@ -122,7 +164,7 @@ int main()
   /* Test a document containing nested multipart documents
    */
   data = [NSData dataWithContentsOfFile: @"mime10.dat"];
-  idoc = parse([[GSMimeParser new] autorelease], data);
+  idoc = exact(0, data);
   doc = [GSMimeParser documentFromData: data];
   PASS([idoc isEqual: doc], "mime10.dat documents are the same");
   data = [idoc rawMimeData];
