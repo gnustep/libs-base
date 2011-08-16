@@ -536,7 +536,7 @@ ihandler(int sig)
 
   if (debugging)
     NSLog(@"Adding observer %llu for %@ %@",
-      anObserver, notificationName, anObject);
+      (unsigned long long)anObserver, notificationName, anObject);
 
   connection = [(NSDistantObject*)client connectionForProxy];
   clients = (NSMapTable*)NSMapGet(connections, connection);
@@ -818,7 +818,7 @@ ihandler(int sig)
 		{
 		  [obs->queue removeObjectAtIndex: 0];
   if (debugging)
-    NSLog(@"Posting to observer %llu with %@", obs->observer, n);
+    NSLog(@"Posting to observer %llu with %@", (unsigned long long)obs->observer, n);
 		  [obs->client->client postNotificationName: n->name
 						     object: n->object
 						   userInfo: n->info
@@ -842,7 +842,7 @@ ihandler(int sig)
 {
   if (debugging)
     NSLog(@"Removing observer %llu for %@ %@",
-      observer->observer, observer->notificationName,
+      (unsigned long long)observer->observer, observer->notificationName,
       observer->notificationObject);
 
   if (observer->notificationObject)

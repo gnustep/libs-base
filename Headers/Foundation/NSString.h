@@ -368,7 +368,6 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 // Dividing Strings into Substrings
 - (NSArray*) componentsSeparatedByString: (NSString*)separator;
 - (NSString*) substringFromIndex: (NSUInteger)index;
-- (NSString*) substringFromRange: (NSRange)aRange;
 - (NSString*) substringToIndex: (NSUInteger)index;
 
 // Finding Ranges of Characters and Substrings

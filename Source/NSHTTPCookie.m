@@ -170,7 +170,7 @@ static NSRange GSRangeOfCookie(NSString *string);
 
       if (range.location == NSNotFound)
 	break;
-      onecookie = [field substringFromRange: range];
+      onecookie = [field substringWithRange: range];
       NS_DURING
 	dict = GSPropertyListFromCookieFormat(onecookie, version);
       NS_HANDLER

@@ -269,7 +269,7 @@ GSLanguageFromLocale(NSString *locale)
 	}
       if (language == nil)
 	{
-	  locale = [locale substringFromRange: NSMakeRange(0, 2)];
+	  locale = [locale substringWithRange: NSMakeRange(0, 2)];
 	  language = [dict objectForKey: locale];
 	}
     }

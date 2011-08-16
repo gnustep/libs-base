@@ -29,55 +29,6 @@
 
 @implementation NSArray (GNUstepBase)
 
-/**
- * Initialize the receiver with the contents of array.
- * The order of array is preserved.<br />
- * If shouldCopy is YES then the objects are copied
- * rather than simply retained.<br />
- * Invokes -initWithObjects:count:
- */
-- (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy
-{
-  NSUInteger	c = [array count];
-  GS_BEGINIDBUF(objects, c);
-
-  if ([array isProxy])
-    {
-      NSUInteger	i;
-
-      for (i = 0; i < c; i++)
-	{
-	  objects[i] = [array objectAtIndex: i];
-	}
-    }
-  else
-    {
-      [array getObjects: objects];
-    }
-  if (shouldCopy == YES)
-    {
-      NSUInteger	i;
-
-      for (i = 0; i < c; i++)
-	{
-	  objects[i] = [objects[i] copy];
-	}
-      self = [self initWithObjects: objects count: c];
-#if GS_WITH_GC == 0
-      while (i > 0)
-	{
-	  [objects[--i] release];
-	}
-#endif
-    }
-  else
-    {
-      self = [self initWithObjects: objects count: c];
-    }
-  GS_ENDIDBUF();
-  return self;
-}
-
 - (NSUInteger) insertionPosition: (id)item
 		   usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
 		         context: (void *)context

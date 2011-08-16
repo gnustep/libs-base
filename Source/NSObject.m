@@ -2308,21 +2308,6 @@ static id gs_weak_load(id obj)
   return [self instanceMethodForSelector:aSel];
 }
 
-+ (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
-{
-  struct objc_method* mth;
-
-  if (aSelector == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-
-  mth = GSGetMethod(self, aSelector, YES, YES);
-  if (0 == mth)
-    return nil;
-  return [NSMethodSignature
-    signatureWithObjCTypes: method_getTypeEncoding(mth)];
-}
-
 - (IMP) methodFor: (SEL)aSel
 {
   return [self methodForSelector: aSel];
