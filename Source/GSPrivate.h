@@ -75,7 +75,7 @@ typedef struct objc_category* Category;
   unsigned	_count;
   unsigned	_capacity;
   int		_grow_factor;
-  int		_version;
+  unsigned long		_version;
 }
 @end
 

@@ -3525,8 +3525,8 @@ static NSLock	*cached_proxies_gate = nil;
     (GSIMapKey)(NSUInteger)target, (GSIMapVal)((id)anObj));
 
   if (debug_connection > 2)
-    NSLog(@"add local object (0x%x) target (0x%x) "
-	  @"to connection (%@)", (uintptr_t)object, target, self);
+    NSLog(@"add local object (%p) target (0x%x) "
+	  @"to connection (%@)", object, target, self);
 
   M_UNLOCK(IrefGate);
 }
@@ -3603,8 +3603,8 @@ static NSLock	*cached_proxies_gate = nil;
 	  M_UNLOCK(cached_proxies_gate);
 	  RELEASE(item);
 	  if (debug_connection > 3)
-	    NSLog(@"placed local object (0x%x) target (0x%x) in cache",
-			(uintptr_t)anObj, target);
+	    NSLog(@"placed local object (%p) target (0x%x) in cache",
+			anObj, target);
 	}
 
       /*
@@ -3619,8 +3619,8 @@ static NSLock	*cached_proxies_gate = nil;
       GSIMapRemoveKey(IlocalTargets, (GSIMapKey)(NSUInteger)target);
 
       if (debug_connection > 2)
-	NSLog(@"removed local object (0x%x) target (0x%x) "
-	  @"from connection (%@) (ref %d)", (uintptr_t)anObj, target, self, val);
+	NSLog(@"removed local object (%p) target (0x%x) "
+	  @"from connection (%@) (ref %d)", anObj, target, self, val);
     }
   M_UNLOCK(IrefGate);
 }

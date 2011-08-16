@@ -2221,7 +2221,7 @@ main(int argc, char **argv, char **env)
 				  options: NSLiteralSearch];
 		  if (r.length == 0)
 		    {
-		      NSLog(@"Missing '#' in href at %u", replace.location);
+		      NSLog(@"Missing '#' in href at %" PRIuPTR, replace.location);
 		      break;
 		    }
 		  href = [href substringFromIndex: NSMaxRange(r)];
@@ -2233,7 +2233,7 @@ main(int argc, char **argv, char **env)
 				  options: NSLiteralSearch];
 		  if (r.length == 0)
 		    {
-		      NSLog(@"Missing '$' in href at %u", replace.location);
+		      NSLog(@"Missing '$' in href at %" PRIuPTR, replace.location);
 		      break;
 		    }
 		  type = [href substringToIndex: r.location];
@@ -2272,7 +2272,7 @@ main(int argc, char **argv, char **env)
 			}
 		      if (unit == nil)
 			{
-			  NSLog(@"Missing unit name terminator at %u",
+			  NSLog(@"Missing unit name terminator at %" PRIuPTR,
 			    replace.location);
 			  break;
 			}

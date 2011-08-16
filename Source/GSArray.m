@@ -895,7 +895,7 @@ static Class	GSInlineArrayClass;
    * iteration.   If it changes during the iteration then
    * objc_enumerationMutation() will be called, throwing an exception.
    */
-  state->mutationsPtr = (unsigned long *)&_version;
+  state->mutationsPtr = &_version;
   count = MIN(len, _count - state->state);
   /* If a mutation has occurred then it's possible that we are being asked to
    * get objects from after the end of the array.  Don't pass negative values

@@ -209,6 +209,8 @@ ICUToNSRoundingMode (UNumberFormatRoundingMode mode)
       case UNUM_ROUND_HALFUP:
         result = NSNumberFormatterRoundHalfUp;
         break;
+      default:
+        result = NSNumberFormatterRoundHalfUp;
     }
   
   return result;
@@ -1276,7 +1278,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
         {
           while (([placeHolders characterIsMember:
             [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
-            || [[useFormat substringFromRange:
+            || [[useFormat substringWithRange:
               NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual:
           defaultThousandsSeparator])
             && NSMaxRange(intPartRange) < [useFormat length] - 1)
