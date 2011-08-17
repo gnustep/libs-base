@@ -120,6 +120,8 @@ static	Class		NSArrayClass = 0;
 static	Class		NSStringClass = 0;
 static	Class		documentClass = 0;
 
+typedef BOOL (*boolIMP)(id, SEL, id);
+
 @interface GSMimeDocument (Private)
 - (GSMimeHeader*) _lastHeaderNamed: (NSString*)name;
 - (NSUInteger) _indexOfHeaderNamed: (NSString*)name;
@@ -5371,12 +5373,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (count > 0)
     {
       IMP	imp1;
-      IMP	imp2;
+      boolIMP	imp2;
 
       name = [name lowercaseString];
 
       imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      imp2 = [name methodForSelector: @selector(isEqualToString:)];
+      imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       while (count-- > 0)
 	{
 	  GSMimeHeader	*info;
@@ -5418,11 +5420,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       NSUInteger	index;
       IMP		imp1;
-      IMP		imp2;
+      boolIMP		imp2;
 
       name = [GSMimeHeader makeToken: name preservingCase: NO];
       imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      imp2 = [name methodForSelector: @selector(isEqualToString:)];
+      imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
 	{
 	  GSMimeHeader	*info;
@@ -5452,10 +5454,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       NSUInteger	index;
       NSMutableArray	*array;
       IMP		imp1;
-      IMP		imp2;
+      boolIMP		imp2;
 
       imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      imp2 = [name methodForSelector: @selector(isEqualToString:)];
+      imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       array = [NSMutableArray array];
 
       for (index = 0; index < count; index++)
@@ -6329,7 +6331,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       NSUInteger	index;
       IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      IMP	imp2 = [name methodForSelector: @selector(isEqualToString:)];
+      boolIMP	imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
 
       for (index = 0; index < count; index++)
 	{
@@ -6352,7 +6354,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (count > 0)
     {
       IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      IMP	imp2 = [name methodForSelector: @selector(isEqualToString:)];
+      boolIMP	imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
 
       while (count-- > 0)
 	{
