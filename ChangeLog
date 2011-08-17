@@ -1,3 +1,7 @@
+2011-08-17  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* config/objc-common.h: Include stdlib.h for the prototype of calloc().
+
 2011-08-17  Riccardo Mottola <rm@gnu.org>
 
 	* Headers/GSIMap.h

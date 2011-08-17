@@ -1,5 +1,6 @@
 /* Common information for all objc runtime tests.
  */
+#include <stdlib.h>
 #include <objc/objc.h>
 
 #if __GNU_LIBOBJC__
