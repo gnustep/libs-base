@@ -195,7 +195,7 @@
     }
   else
     {
-      NSLog(@"_dispatch with unexpected status %" PRIdPTR, [self streamStatus]);
+      NSLog(@"_dispatch with unexpected status %d", [self streamStatus]);
     }
 }
 @end
@@ -324,7 +324,7 @@
     }
   else
     {
-      NSLog(@"_dispatch with unexpected status %" PRIdPTR, [self streamStatus]);
+      NSLog(@"_dispatch with unexpected status %d", [self streamStatus]);
     }
 }
 @end

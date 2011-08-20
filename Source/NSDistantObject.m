@@ -826,7 +826,7 @@ enum proxyLocation
   if (_connection)
     {
       if (debug_proxy > 3)
-	NSLog(@"retain count for connection (%p) is now %" PRIxPTR "\n",
+	NSLog(@"retain count for connection (%p) is now %x\n",
 		_connection, [_connection retainCount]);
       /*
        * A proxy for local object retains its target - so we release it.
