@@ -356,7 +356,7 @@ static BOOL useSmallInt;
 @implementation NSSmallInt
 #undef VALUE
 #define VALUE (((intptr_t)self) >> OBJC_SMALL_OBJECT_SHIFT)
-#define FORMAT @"%" PRIdPTR
+#define FORMAT @"%d"
 #include "NSNumberMethods.h"
 + (void)load
 {
