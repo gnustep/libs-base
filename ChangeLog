@@ -1,3 +1,8 @@
+2011-08-22  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSObject.m (__builtin_offsetof): Add
+	workaround for build in missing in old versions of gcc.
+
 2011-08-20  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/Additions/GSMime.m,

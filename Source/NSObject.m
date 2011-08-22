@@ -401,6 +401,9 @@ static inline NSLock *GSAllocationLockForObject(id p)
 #ifdef ALIGN
 #undef ALIGN
 #endif
+#if defined(__GNUC__) && __GNUC__ < 4
+#define __builtin_offsetof(s, f) (uintptr_t)(&(((s*)0)->f))
+#endif
 #define alignof(type) __builtin_offsetof(struct { const char c; type member; }, member)
 #define	ALIGN alignof(double)
 
