@@ -113,10 +113,12 @@ int main(void)
    */
   PASS(1, "initialize test starts");
 
+#if defined(SIGALRM)
   /* End in a signal if the concurrency test deadlocks.
    */
   signal(SIGALRM, alarmed);
   alarm(5);
+#endif
 
   l = [NSCondition new];
   [l lock];

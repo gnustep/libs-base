@@ -1,3 +1,8 @@
+2011-08-25  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tests/base/NSObject/test01.m: Only test for -isClass on GNUstep base.
+	* Tests/base/NSObject/initialize.m: Make test compile on MinGW.
+
 2011-08-22  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSObject.m (__builtin_offsetof): Add
