@@ -118,6 +118,8 @@ int main(void)
    */
   signal(SIGALRM, alarmed);
   alarm(5);
+#else
+  SKIP("+initialize runs concurrently");
 #endif
 
   l = [NSCondition new];
