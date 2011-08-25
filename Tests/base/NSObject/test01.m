@@ -2,6 +2,13 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSArray.h>
+
+#if defined(GNUSTEP_BASE_LIBRARY)
+@interface NSObject (ISCLASS)
+// This method doesn't exist on Cocoa
+- (BOOL) isClass;
+@end
+
 @interface MyEvilClass : NSObject
 {
  Class class;
@@ -23,11 +30,14 @@
   info = theInfo;
 }
 @end
+#endif
 
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   id evilObject;
+
+#if defined(GNUSTEP_BASE_LIBRARY)
   PASS([NSObject isClass] &&
        [NSString isClass] &&
        [NSArray isClass],
@@ -42,6 +52,7 @@ int main()
   [evilObject setInfo:1];
   PASS(![evilObject isClass], 
        "-isClass returns NO on an instance (special test for broken libobjc)");
+#endif
   
   PASS(([[[NSObject new] autorelease] isKindOfClass:[NSObject class]] &&
        [[[NSString new] autorelease] isKindOfClass:[NSString class]] &&
