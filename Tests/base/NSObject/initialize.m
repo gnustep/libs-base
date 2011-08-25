@@ -108,6 +108,8 @@ int main(void)
 {
   [NSAutoreleasePool new];
 
+  START_SET("+initialize")
+
   /* Make sure we have initalised all the classes necessary for the test
    * framework to record a test ... by passing one.
    */
@@ -119,7 +121,7 @@ int main(void)
   signal(SIGALRM, alarmed);
   alarm(5);
 #else
-  SKIP("+initialize runs concurrently");
+  SKIP("+initialize runs concurrently. No SIGALRM present, this means we cannot stop the test on deadlock.");
 #endif
 
   l = [NSCondition new];
@@ -135,5 +137,8 @@ int main(void)
     {
       [NSThread sleepForTimeInterval: 0.01];
     }
+
+  END_SET("+initialize")
+
   return 0;
 }
