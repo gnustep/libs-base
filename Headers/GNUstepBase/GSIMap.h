@@ -201,7 +201,7 @@ extern "C" {
 
 
 #if (GSI_MAP_KTYPES) & GSUNION_OBJ
-#define GSI_MAP_CLEAR_KEY(node)  GSI_MAP_WRITE_KEY(map, &node->key, (GSIMapKey)nil)
+#define GSI_MAP_CLEAR_KEY(node)  GSI_MAP_WRITE_KEY(map, &node->key, (GSIMapKey)(id)nil)
 #elif  (GSI_MAP_KTYPES) & GSUNION_PTR
 #define GSI_MAP_CLEAR_KEY(node)  GSI_MAP_WRITE_KEY(map, &node->key, (GSIMapKey)(void *)NULL)
 #else
@@ -253,7 +253,7 @@ extern "C" {
 #endif
 
 #if (GSI_MAP_VTYPES) & GSUNION_OBJ
-#define GSI_MAP_CLEAR_VAL(node)  GSI_MAP_WRITE_VAL(map, &node->value, (GSIMapVal)nil)
+#define GSI_MAP_CLEAR_VAL(node)  GSI_MAP_WRITE_VAL(map, &node->value, (GSIMapVal)(id)nil)
 #elif  (GSI_MAP_VTYPES) & GSUNION_PTR
 #define GSI_MAP_CLEAR_VAL(node)  GSI_MAP_WRITE_VAL(map, &node->value, (GSIMapVal)(void *)NULL)
 #else
