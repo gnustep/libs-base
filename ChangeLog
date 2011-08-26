@@ -1,3 +1,9 @@
+2011-08-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* libs/base/trunk/config/config.objc.m: If we don't assume Object
+        exists in libobjc, we must implement +initialize so that the runtime
+        won't crash when it tries to initialize our class.
+
 2011-08-25  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tests/base/NSObject/test01.m: Only test for -isClass on GNUstep base.

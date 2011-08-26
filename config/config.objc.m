@@ -6,6 +6,10 @@
 @end
 
 @implementation Test
++ (void) initialize
+{
+  return;
+}
 +(int) testResult
 {
   return -1;
