@@ -127,6 +127,7 @@
 
 @end
 
+#if     defined(GNUSTEP)
 struct exitLink {
   struct exitLink	*next;
   id			obj;	// Object to release or class for atExit
@@ -281,4 +282,42 @@ handleExit()
 }
 
 @end
+
+#else
+
+/* Dummy implementation
+ */
+@implementation NSObject(GSCleanup)
+
++ (id) leakAt: (id*)anAddress
+{
+  [*anAddress retain];
+}
+
++ (id) leak: (id)anObject
+{
+  return [anObject retain];
+}
+
++ (BOOL) registerAtExit
+{
+  return [self registerAtExit: @selector(atExit)];
+}
+
++ (BOOL) registerAtExit: (SEL)sel
+{
+  return NO;
+}
+
++ (void) setShouldCleanUp: (BOOL)aFlag
+{
+  return;
+}
+
++ (BOOL) shouldCleanUp
+{
+  return NO;
+}
+
+#endif
 
