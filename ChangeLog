@@ -1,3 +1,7 @@
+2011-08-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLock.m: Fix bug #34154 ... logic error locking before date.
+
 2011-08-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* libs/base/trunk/config/config.objc.m: If we don't assume Object
