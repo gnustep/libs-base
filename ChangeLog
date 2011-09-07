@@ -1,3 +1,11 @@
+2011-09-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m: Check that we have a typed selector
+	during invocation (copy types from method signature if necessary)
+	so that forwarding won't fail if the runtime does a callback to
+	us without providing the receiver for us to check ... workaround
+	for proxying issues with very old runtimes.
+
 2011-08-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLock.m: Fix bug #34154 ... logic error locking before date.
