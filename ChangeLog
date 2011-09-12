@@ -1,3 +1,9 @@
+2011-09-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: When getting the local type information for
+	comparison with that supplied by the remote system, do so by sending
+	-methodSignatureForSelector: to the receiver of the message.
+
 2011-09-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFIInvocation.m: Check that we have a typed selector
