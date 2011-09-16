@@ -3,6 +3,12 @@
 #include <unistd.h>
 #import "Testing.h"
 
+@interface Init0 : NSObject
+@end
+
+@interface Init1 : Init0
+@end
+
 @interface SlowInit0
 @end
 
@@ -16,6 +22,17 @@
 
 static NSCondition *l;
 static volatile int init0, init1, init2, init3;
+static int initCount = 0;
+
+@implementation Init0
++ (void) initialize
+{
+  initCount++;
+}
+@end
+
+@implementation	Init1
+@end
 
 @implementation SlowInit0
 + (void) initialize
@@ -114,6 +131,12 @@ int main(void)
    * framework to record a test ... by passing one.
    */
   PASS(1, "initialize test starts");
+
+  /* Make sure that when a class without its own +initialise is first used,
+   * the inherited +initialize is called instead.
+   */
+  [Init1 class];
+  PASS(2 == initCount, "inherited +initialize is called automatically");
 
 #if defined(SIGALRM)
   /* End in a signal if the concurrency test deadlocks.
