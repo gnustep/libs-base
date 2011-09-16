@@ -1,3 +1,35 @@
+2011-09-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version: Bump to 1.22.2 for bugfix release
+
+2011-09-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: When getting the local type information for
+	comparison with that supplied by the remote system, do so by sending
+	-methodSignatureForSelector: to the receiver of the message.
+
+2011-09-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFIInvocation.m: Check that we have a typed selector
+	during invocation (copy types from method signature if necessary)
+	so that forwarding won't fail if the runtime does a callback to
+	us without providing the receiver for us to check ... workaround
+	for proxying issues with very old runtimes.
+
+2011-08-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLock.m: Fix bug #34154 ... logic error locking before date.
+
+2011-08-17  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/Additions/GSMime.m: Use specific IMP type for method
+	returning BOOL value.
+
+2011-08-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Fix for incorrect handling of documents with empty headers.
+
 2011-07-12  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSFileHandle.m:

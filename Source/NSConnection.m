@@ -31,6 +31,10 @@
 
 #import "common.h"
 
+#if !defined (__GNU_LIBOBJC__)
+#  include <objc/encoding.h>
+#endif
+
 #define	GS_NSConnection_IVARS \
   BOOL			_isValid; \
   BOOL			_independentQueueing; \
@@ -361,7 +365,7 @@ static BOOL cacheCoders = NO;
 static int debug_connection = 0;
 
 static NSHashTable	*connection_table;
-static NSLock		*connection_table_gate = nil;
+static GSLazyRecursiveLock		*connection_table_gate = nil;
 
 /*
  * Locate an existing connection with the specified send and receive ports.
@@ -658,7 +662,7 @@ static NSLock	*cached_proxies_gate = nil;
 	NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
 
       targetToCached =
-	NSCreateMapTable(NSIntMapKeyCallBacks,
+	NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	  NSObjectMapValueCallBacks, 0);
 
       root_object_map =
@@ -717,7 +721,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       proxy = [[connection rootProxy] retain];
     }
-  [arp release];
+  [arp drain];
   return [proxy autorelease];
 }
 
@@ -745,7 +749,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       proxy = RETAIN([connection rootProxy]);
     }
-  [arp release];
+  [arp drain];
   return AUTORELEASE(proxy);
 }
 
@@ -1310,7 +1314,7 @@ static NSLock	*cached_proxies_gate = nil;
     [[NSNotificationCenter defaultCenter]
       postNotificationName: NSConnectionDidDieNotification
 		    object: self];
-    [arp release];
+    [arp drain];
   }
 
   /*
@@ -1489,7 +1493,7 @@ static NSLock	*cached_proxies_gate = nil;
   return result;
 }
 
-- (void) release
+- (oneway void) release
 {
   /* We lock the connection table while checking, to prevent
    * another thread from grabbing this connection while we are
@@ -1950,7 +1954,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   DESTROY(IrefGate);
 
-  [arp release];
+  [arp drain];
 }
 
 /*
@@ -2505,7 +2509,6 @@ static NSLock	*cached_proxies_gate = nil;
       id		tmp;
       id		object;
       SEL		selector;
-      GSMethod		meth = 0;
       BOOL		is_exception = NO;
       unsigned		flags;
       int		argnum;
@@ -2563,35 +2566,15 @@ static NSLock	*cached_proxies_gate = nil;
 	 as the ENCODED_TYPES string, but it will have different register
 	 and stack locations if the ENCODED_TYPES came from a machine of a
 	 different architecture. */
-      if (GSObjCIsClass(object))
-	{
-	  meth = GSGetMethod(object, selector, NO, YES);
-	}
-      else if (GSObjCIsInstance(object))
-	{
-	  meth = GSGetMethod(object_getClass(object), selector, YES, YES);
-	}
-      else
+      sig = [object methodSignatureForSelector: selector];
+      if (nil == sig)
 	{
 	  [NSException raise: NSInvalidArgumentException
-		       format: @"decoded object %p is invalid", object];
+		       format: @"decoded object %p doesn't handle %s",
+	    object, sel_getName(selector)];
 	}
+      type = [sig methodType];
       
-      if (meth != 0)
-	{
-	  type = method_getTypeEncoding(meth);
-	}
-      else
-	{
-	  NSDebugLog(@"Local object <%p %s> doesn't implement: %s directly.  "
-		     @"Will search for arbitrary signature.",
-		     object,
-		     class_getName(GSObjCIsClass(object) 
-				     ? object : (id)object_getClass(object)),
-		     sel_getName(selector));
-	  type = GSTypesFromSelector(selector);
-	}
-
       /* Make sure we successfully got the method type, and that its
 	 types match the ENCODED_TYPES. */
       NSCParameterAssert (type);
@@ -2602,7 +2585,6 @@ static NSLock	*cached_proxies_gate = nil;
 	    encoded_types, type, sel_getName(selector)];
 	}
 
-      sig = [NSMethodSignature signatureWithObjCTypes: type];
       inv = [[NSInvocation alloc] initWithMethodSignature: sig];
 
       tmptype = skip_argspec (type);
@@ -3521,8 +3503,8 @@ static NSLock	*cached_proxies_gate = nil;
     (GSIMapKey)(NSUInteger)target, (GSIMapVal)((id)anObj));
 
   if (debug_connection > 2)
-    NSLog(@"add local object (0x%x) target (0x%x) "
-	  @"to connection (%@)", (uintptr_t)object, target, self);
+    NSLog(@"add local object (%p) target (0x%x) "
+	  @"to connection (%@)", object, target, self);
 
   M_UNLOCK(IrefGate);
 }
@@ -3599,8 +3581,8 @@ static NSLock	*cached_proxies_gate = nil;
 	  M_UNLOCK(cached_proxies_gate);
 	  RELEASE(item);
 	  if (debug_connection > 3)
-	    NSLog(@"placed local object (0x%x) target (0x%x) in cache",
-			(uintptr_t)anObj, target);
+	    NSLog(@"placed local object (%p) target (0x%x) in cache",
+			anObj, target);
 	}
 
       /*
@@ -3615,8 +3597,8 @@ static NSLock	*cached_proxies_gate = nil;
       GSIMapRemoveKey(IlocalTargets, (GSIMapKey)(NSUInteger)target);
 
       if (debug_connection > 2)
-	NSLog(@"removed local object (0x%x) target (0x%x) "
-	  @"from connection (%@) (ref %d)", (uintptr_t)anObj, target, self, val);
+	NSLog(@"removed local object (%p) target (0x%x) "
+	  @"from connection (%@) (ref %d)", anObj, target, self, val);
     }
   M_UNLOCK(IrefGate);
 }

@@ -30,6 +30,13 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.22.2</heading>
+        <p>A stable bugfix release ... no API changes, a couple of fixes for
+	MIME document handling, locking, and Distributed Objects.
+	</p>
+      </section>
+
+      <section>
 	<heading>Version 1.22.1</heading>
         <p>A stable bugfix release ... no API changes, mostly portability fixes
 	por older or less popular platforms.

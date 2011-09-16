@@ -23,6 +23,11 @@
    */
 
 #import "common.h"
+
+#if !defined (__GNU_LIBOBJC__)
+#  include <objc/encoding.h>
+#endif
+
 #define	EXPOSE_NSInvocation_IVARS	1
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
@@ -428,7 +433,14 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
       return;
     }
 
+  /* Make sure we have a typed selector for forwarding.
+   */
   NSAssert(_selector != 0, @"you must set the selector before invoking");
+  if (0 == GSTypesFromSelector(_selector))
+    {
+      _selector = GSSelectorFromNameAndTypes(sel_getName(_selector),
+	[_sig methodType]);
+    }
 
   /*
    *	Temporarily set new target and copy it (and the selector) into the
@@ -555,7 +567,8 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   sig = nil;
   if (gs_protocol_selector(GSTypesFromSelector(selector)) == YES)
     {
-      sig = [NSMethodSignature signatureWithObjCTypes: GSTypesFromSelector(selector)];
+      sig = [NSMethodSignature signatureWithObjCTypes:
+	GSTypesFromSelector(selector)];
     }
   if (sig == nil)
     {

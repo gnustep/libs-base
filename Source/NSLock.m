@@ -106,7 +106,7 @@
 	  return YES;\
 	}\
       sched_yield();\
-    } while([limit timeIntervalSinceNow] < 0);\
+    } while ([limit timeIntervalSinceNow] > 0);\
   return NO;\
 }
 #define	MTRYLOCK \
@@ -219,7 +219,7 @@ MLOCK
 	  _NSLockError(self, _cmd, NO);
 	}
       sched_yield();
-    } while([limit timeIntervalSinceNow] < 0);
+    } while ([limit timeIntervalSinceNow] > 0);
   return NO;
 }
 

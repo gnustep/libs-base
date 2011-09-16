@@ -13,6 +13,13 @@ See the @url{ReleaseNotes.html} document for more information.
 
 @ifclear ANNOUNCE-ONLY
 
+@section Noteworthy changes in version @samp{1.22.2}
+
+This is a stable bugfix release. There are no major changes or binary
+incompatibilities.
+There is a bugfix for locking with timeouts and a fix for handling distributed
+objects requests going via a local proxy as well as minor fixes in GSMIME.
+
 @section Noteworthy changes in version @samp{1.22.1}
 
 This is a stable bugfix release. There are no major changes or binary
