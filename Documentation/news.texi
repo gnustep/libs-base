@@ -14,8 +14,11 @@ See the @url{ReleaseNotes.html} document for more information.
 @section Noteworthy changes in version @samp{1.23.0}
 
 @itemize @bullet
-@item Support for automatic reference counting (ARC) when using the GNUstep Objective-C runtime 1.5 or later.
-@item Full support for weak references in NSHashTable, NSMapTable and NSPointerArray when using the GNUstep Objective-C runtime 1.5 or later. 
+@item Support for automatic reference counting (ARC) when using clasng and
+the GNUstep Objective-C 2.0 runtime 1.5 or later.
+@item Full support for weak references in NSHashTable, NSMapTable and
+NSPointerArray when using clang and the GNUstep Objective-C 2.0 runtime 1.5
+or later. 
 @end itemize
 
 @ifclear ANNOUNCE-ONLY

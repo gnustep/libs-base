@@ -1,3 +1,10 @@
+2011-09-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/news.texi:
+	* Documentation/ReleaseNotes.gsdoc:
+	Update release notes for ...
+	Version 1.23.0
+
 2011-09-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: When getting the local type information for

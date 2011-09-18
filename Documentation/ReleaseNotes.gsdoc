@@ -30,6 +30,32 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.23.0</heading>
+        <p>A new stable release with many minor bugfices and tweaks.<br />
+	The main changes however are David Chisnall's work adding support
+	of the clang compiler and Objective-C 2.0 language/runtime (the
+	compiler/runtime combination now provides full support for the
+	Objective-C 2.0 language).<br />
+	Garbage collection using clang and libobjc2 is now available in
+	addition to the existing gcc runtime garbage collection support.<br />
+	Going beyond that, for people who don't like garbage collection,
+	there is now support for automated reference counting, where the
+	clang compiler adds reference count calls to manage object lifetimes,
+	reliveing the application developer from the need to manage reference
+	counts.
+	</p>
+	<p>An important point to note is that this is the last release to
+	support the gcc-2.9.5 compiler.  In future, while releases may work
+	with older systems, the formal requirement will be a gcc-4.x series
+	compiler or later and base may also depend on support for the C99
+	standard being available.<br />
+	This change is being made in order avoid developers needing to spend
+	a great deal of time keeping code working for obsolete systems which
+	are no longer used in practice.
+	</p>
+      </section>
+
+      <section>
 	<heading>Version 1.22.0</heading>
         <p>A new stable release with many updates and changes. In addition
 	to many new classes and methods, there is now a regression test
