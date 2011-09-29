@@ -178,44 +178,69 @@ writeDictionary(NSDictionary *dict, NSString *file)
   return NO;
 }
 
+/**
+ * Returns the list of languages retrieved from the operating system, in
+ * decreasing order of preference. Returns an empty array if the information
+ * could not be retrieved.
+ */
+static NSArray *
+systemLanguages()
+{
+  NSMutableArray *names = [NSMutableArray arrayWithCapacity: 10];
+
+  // Add the languages listed in the LANGUAGE environment variable
+  // (a non-POSIX GNU extension)
+  {
+    NSString	*env = [[[NSProcessInfo processInfo] environment]
+				 objectForKey: @"LANGUAGE"];
+    if (env != nil && [env length] > 0)
+      {
+	NSArray *array = [env componentsSeparatedByString: @":"];
+	NSEnumerator *enumerator = [array objectEnumerator];
+	NSString *locale;
+	while (nil != (locale = [enumerator nextObject]))
+	  {
+	    [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
+	  }
+      }
+  }	
+  
+  // If LANGUAGES did not yield any languages, try LC_MESSAGES
+#ifdef HAVE_LOCALE_H
+#ifdef LC_MESSAGES
+  if ([names count] == 0)
+    {
+      NSString *locale = GSSetLocale(LC_MESSAGES, nil);
+
+      if (locale != nil)
+	{
+	  [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
+	}
+    }
+#endif
+#endif
+
+  return names;
+}
+
 static NSMutableArray *
 newLanguages(NSArray *oldNames)
 {
   NSMutableArray	*newNames;
   NSEnumerator		*enumerator;
   NSString		*language;
-  NSString		*locale = nil;
 
-#ifdef HAVE_LOCALE_H
-#ifdef LC_MESSAGES
-  locale = GSSetLocale(LC_MESSAGES, nil);
-#endif
-#endif
   newNames = [NSMutableArray arrayWithCapacity: 5];
 
-  if (oldNames == nil && locale != nil)
+  if (oldNames == nil || [oldNames count] == 0)
     {
-      NSString	*locLang = GSLanguageFromLocale(locale);
-
-      if (nil != locLang)
-	{
-	  oldNames = [NSArray arrayWithObject: locLang];
-	}
-#ifdef __MINGW__
-      if (oldNames == nil)
-	{
-	  /* Check for language as the first part of the locale string */
-	  NSRange under = [locale rangeOfString: @"_"];
-
-	  if (under.location)
-	    {
-	      oldNames = [NSArray arrayWithObject:
-		[locale substringToIndex: under.location]];
-	    }
-	}
-#endif
+      oldNames = systemLanguages();
     }
-  if (oldNames == nil)
+
+  // If the user default was not set, and the system languages couldn't
+  // be retrieved, try the GNUstep environment variable LANGUAGES
+
+  if (oldNames == nil || [oldNames count] == 0)
     {
       NSString	*env;
 

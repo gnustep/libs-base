@@ -44,7 +44,30 @@ GS_EXPORT NSString   *GSSetLocale(int category, NSString *locale);
 
 GS_EXPORT NSDictionary *GSDomainFromDefaultLocale(void);
 
+/**
+ * Returns a language name string for a given locale.
+ * e.g. GSLanguageFromLocale(@"en_CA") returns @"CanadaEnglish"
+ */
 GS_EXPORT NSString *GSLanguageFromLocale(NSString *locale);
+
+/**
+ * Return an array of variants of a locale, formed by stripping
+ * off parts of the identifier, ordered from most similar to 
+ * least similar.
+ *
+ * e.g. GSLocaleVariants(@"en_CA") returns  (@"en_CA", @"en").
+ */
+GS_EXPORT NSArray *GSLocaleVariants(NSString *locale);
+
+/**
+ * Convenience function which calls GSLocaleVariants to expand
+ * the given locale to a list of variants, and then calls 
+ * GSLanguageFromLocale on each.
+ * 
+ * e.g. GSLanguagesFromLocale(@"en_CA") returns
+ * (@"CanadaEnglish", @"English")
+ */
+GS_EXPORT NSArray *GSLanguagesFromLocale(NSString *locale);
 
 #if	defined(__cplusplus)
 }

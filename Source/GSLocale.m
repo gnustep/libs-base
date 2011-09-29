@@ -247,7 +247,8 @@ GSLanguageFromLocale(NSString *locale)
   NSString	*aliases = nil;
   NSBundle      *gbundle;
 
-  if (locale == nil || [locale isEqual: @"C"] || [locale isEqual: @"POSIX"])
+  if (locale == nil || [locale isEqual: @"C"] || [locale isEqual: @"POSIX"]
+      || [locale length] < 2)
     return @"English";
 
   gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
@@ -275,4 +276,37 @@ GSLanguageFromLocale(NSString *locale)
     }
 
   return language;
+}
+
+NSArray *
+GSLocaleVariants(NSString *locale)
+{
+  NSRange under = [locale rangeOfString: @"_"];
+  if (under.location != NSNotFound)
+    {
+      return [NSArray arrayWithObjects:
+			locale,
+		      [locale substringToIndex: under.location],
+		      nil];
+    }
+  return [NSArray arrayWithObject: locale];
+}
+
+NSArray *
+GSLanguagesFromLocale(NSString *locale)
+{
+  NSArray *variants = GSLocaleVariants(locale);
+  NSMutableArray *result = [NSMutableArray arrayWithCapacity: [variants count]];
+
+  NSEnumerator *enumerator = [variants objectEnumerator];
+  NSString *variant;
+  while ((variant = [enumerator nextObject]) != nil)
+    {
+      NSString *language = GSLanguageFromLocale(variant);
+      if (language != nil)
+	{
+	  [result addObject: language];
+	}
+    }
+  return result;
 }
