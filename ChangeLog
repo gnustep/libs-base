@@ -1,3 +1,28 @@
+2011-09-07  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/NSUserDefaults.m:
+	- Refactoring of the code to read the system language list
+	  into a separate function, systemLanguages().
+	- Add support for the LANGUAGE environment variable, a GNU extension.
+	  It holds a colon-separated list of locales, and is intended to let
+	  the user specify a list of their preferred languages in order.
+	  For example, the language settings GUI in Ubuntu modifies the
+	  LANGUAGE variable.
+
+	  More info here:
+	  http://www.gnu.org/software/gettext/manual/gettext.html#The-LANGUAGE-variable
+	- When populating NSLanguages, "expand" locales into a list of
+	  related variants, formed by stripping off region suffixes. This
+	  ensures that if a user's environment is set to a regional version
+	  of a language (say CanadaFrench) but an application is only
+	  traslated into French, the plain French translation will still be used.
+
+	  e.g. if the system locales are {fr_CA, en_CA}, expand the list to
+	  {fr_CA, fr, en_CA, en}.
+	* Headers/GNUstepBase/GSLocale.h:
+	* Source/GSLocale.m:
+	New functions GSLocaleVariants and GSLanguagesFromLocale
+
 2011-09-28  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Tests/base/NSXMLNode/*: Some initial tests for NSXMLNode. Passes on
