@@ -408,7 +408,7 @@ gnustep_base_thread_callback(void)
 	      if (NO == [[NSUserDefaults standardUserDefaults]
 		boolForKey: @"GSSilenceInitializeWarning"])
 		{
-		  NSLog(@"WARNING your program is becoming multi-threaded, but you are using an ObjectiveC runtime library which does not have a thread-safe implementation of the +initialize method.  This means that any classes not already used may be incorrectly initialised, potentially causing strange behaviors and crashes.\nTo put this into context, the runtime bug has been knoown for several years and only rarely causes problems ... the easy workaround being to ensure that any classes used by a new thread have already been used in the main thread before the new thread starts.\nIf you are worried, please build/run GNUstep with a runtime which supports the +initialize method. The GNUstep stable runtime (libobjc) and experimental runtime (libobjc2), available from the GNUstep website and subversion repository, should both work.\nTo disable this warning (eg. for an application which does not suffer any problems caused by this runtime bug), please set the GSSilenceInitializeWarning user default to YES.");
+		  NSLog(@"WARNING your program is becoming multi-threaded, but you are using an ObjectiveC runtime library which does not have a thread-safe implementation of the +initialize method. Please see README.initialize for more information.");
 		}
 #endif
 	      [nc postNotificationName: NSWillBecomeMultiThreadedNotification
