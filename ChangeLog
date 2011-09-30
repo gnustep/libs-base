@@ -1,3 +1,12 @@
+2011-09-29  julian <julian@corecode.at>
+
+	* Source/NSBundle.m: ([objectForInfoDictionaryKey:])
+	Add missing one-line implementation.
+	
+2011-09-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumberFormatter.m: Check for _C_BOOL definition.
+
 2011-09-07  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Source/NSUserDefaults.m:

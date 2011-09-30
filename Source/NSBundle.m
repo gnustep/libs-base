@@ -2099,7 +2099,7 @@ IF_NO_GC(
 
 - (id) objectForInfoDictionaryKey: (NSString *)key
 {
-  return nil;
+  return [[self infoDictionary] objectForKey: key];
 }
 
 - (NSString*) developmentLocalization
