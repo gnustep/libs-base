@@ -6,7 +6,7 @@ int main()
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLNode           *node;
 
-  node = [NSXMLNode new];
+  node = [[NSXMLNode alloc] initWithKind: NSXMLInvalidKind];
   test_alloc(@"NSXMLNode");
   test_NSObject(@"NSXMLNode", [NSArray arrayWithObject: node]);
   [arp release];

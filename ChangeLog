@@ -1,4 +1,12 @@
-2011-09-28  Niels Grewe <niels.grewe@halbordnung.de>
+2011-10-01  Niels Grewe <niels.grewe@halbordnung.de>
+
+        * Source/NSXMLNode.m: Properly implement -initWithKind: initializer.
+        Stub out some tree traversal stuff. 
+	* Tests/base/NSXMLNode/basic.m: Fix test.
+
+	Initial work on NSXMLNode.
+
+2011-10-01  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Tests/base/NSXMLNode/children.m: Test for child de-/re-attachment
 	behaviour.
