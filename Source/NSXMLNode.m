@@ -10,7 +10,7 @@
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 3 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -25,6 +25,29 @@
 #import "common.h"
 
 #import "NSXMLPrivate.h"
+
+/*
+ * Description of internal ivars:
+ * - `children': The primary storage for the descendant nodes. We use an NSArray
+ *   here until somebody finds out it's not fast enough.
+ * - `childCount': For efficiency, we cache the count. This means we need to
+ *   update it whenever the children change.
+ * - `previousSibling', `nextSibling': Tree walking is a common operation for
+ *   XML. [_parent->internal->children objectAtIndex: index + 1] would be a
+ *   straightforward way to obtain the next sibling of the node, but it hurts
+ *   performance quite a bit. So we cache the siblings and update them when the
+ *   nodes are changed.
+ */
+#define GS_NSXMLNode_IVARS \
+  NSMutableArray *children; \
+  NSUInteger childCount; \
+  NSXMLNode *previousSibling; \
+  NSXMLNode *nextSibling; \
+  NSUInteger options
+
+#define GSInternal              NSXMLNodeInternal
+#include        "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSXMLNode)
 
 @implementation NSXMLNode
 
@@ -119,7 +142,7 @@
   NSXMLElement	*e;
   NSXMLNode	*t;
 
-  e = [self elementWithName: name]; 
+  e = [self elementWithName: name];
   t = [[self alloc] initWithKind: NSXMLTextKind];
   [t setStringValue: string];
   [e addChild: t];
@@ -178,18 +201,17 @@
 
 - (NSXMLNode*) childAtIndex: (NSUInteger)index
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  return [internal->children objectAtIndex: index];
 }
 
 - (NSUInteger) childCount
 {
-  [self notImplemented: _cmd];	// FIXME ... fetch from libxml
-  return 0;
+  return internal->childCount;
 }
 
 - (NSArray*)children
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  return internal->children;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -201,6 +223,8 @@
 - (void) dealloc
 {
   [self detach];
+  [internal->children release];
+  GS_DESTROY_INTERNAL(NSXMLNode)
   [_objectValue release];
   [super dealloc];
 }
@@ -209,7 +233,8 @@
 {
   if (_parent != nil)
     {
-      [self notImplemented: _cmd];	// FIXME ... remove from libxml
+      [(NSXMLElement*)_parent removeChildAtIndex: _index];
+      _parent = nil;
     }
 }
 
@@ -218,18 +243,80 @@
   return _index;
 }
 
+- (id) init
+{
+  return [self initWithKind: NSXMLInvalidKind];
+}
+
 - (id) initWithKind:(NSXMLNodeKind) kind
 {
   self = [self initWithKind: kind options: 0];
   return self;
 }
 
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)options
+- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
 {
-  if ((self = [super init]) != nil)
+  Class theSubclass = [NSXMLNode class];
+  if (nil == (self = [super init]))
+  {
+    return nil;
+  }
+
+  GS_CREATE_INTERNAL(NSXMLNode)
+
+  /*
+   * We find the correct subclass for specific node kinds:
+   */
+  switch (kind)
+  {
+    case NSXMLDocumentKind:
     {
-      [self notImplemented: _cmd];	// FIXME ... use libxml
+      theSubclass = [NSXMLDocument class];
+      break;
     }
+    case NSXMLElementKind:
+    {
+      theSubclass = [NSXMLElement class];
+      break;
+    }
+    case NSXMLDTDKind:
+    {
+      theSubclass = [NSXMLDTD class];
+      break;
+    }
+    case NSXMLEntityDeclarationKind:
+    case NSXMLElementDeclarationKind:
+    case NSXMLNotationDeclarationKind:
+    {
+      theSubclass = [NSXMLDTDNode class];
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
+
+  /*
+   * Check whether we are already initializing an instance of the given
+   * subclass. If we are not, release ourselves and allocate a subclass instance
+   * instead.
+   */
+  if (NO == [self isKindOfClass: theSubclass])
+  {
+    [self release];
+    return [[theSubclass alloc] initWithKind: kind
+                                     options: theOptions];
+  }
+
+  /*
+   * If we are initializing for the correct class, we can actually perform
+   * initializations:
+   */
+
+  _kind = kind;
+  internal->options = theOptions;
+  internal->children = [NSMutableArray new];
   return self;
 }
 
@@ -261,14 +348,74 @@
   return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
 }
 
+- (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward
+{
+  NSXMLNode *ancestor = _parent;
+  NSXMLNode *candidate = nil;
+
+  /* Node walking is a depth-first thingy. Hence, we consider children first: */
+  if (0 != internal->childCount)
+  {
+    NSUInteger theIndex = 0;
+    if (NO == forward)
+    {
+      theIndex = (internal->childCount) - 1;
+    }
+    candidate = [internal->children objectAtIndex: theIndex];
+  }
+
+  /* If there are no children, we move on to siblings: */
+  if (nil == candidate)
+  {
+    if (forward)
+    {
+      candidate = internal->nextSibling;
+    }
+    else
+    {
+      candidate = internal->previousSibling;
+    }
+  }
+
+  /* If there are no siblings left for the receiver, we recurse down to the root
+   * of the tree until we find an ancestor with further siblings: */
+  while ((nil == candidate) && (nil != ancestor))
+  {
+    if (forward)
+    {
+      candidate = [ancestor nextSibling];
+    }
+    else
+    {
+      candidate = [ancestor previousSibling];
+    }
+    ancestor = ancestor->_parent;
+  }
+
+  /* No children, no next siblings, no next siblings for any ancestor: We are
+   * the last node */
+  if (nil == candidate)
+  {
+    return nil;
+  }
+
+  /* Sanity check: Namespace and attribute nodes are skipped: */
+  if ((NSXMLAttributeKind == candidate->_kind)
+    || (NSXMLNamespaceKind == candidate->_kind))
+  {
+    return [candidate _nodeFollowingInNaturalDirection: forward];
+  }
+  return candidate;
+}
+
 - (NSXMLNode*) nextNode
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  return [self _nodeFollowingInNaturalDirection: YES];
 }
 
 - (NSXMLNode*) nextSibling
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  return internal->nextSibling;
 }
 
 - (id) objectValue
@@ -288,18 +435,29 @@
 
 - (NSXMLNode*) previousNode
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  return [self _nodeFollowingInNaturalDirection: NO];
 }
 
 - (NSXMLNode*) previousSibling
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  return internal->previousSibling;
+
 }
 
 - (NSXMLDocument*) rootDocument
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  NSXMLNode *ancestor = _parent;
+  /*
+   * Short-circuit evaluation gurantees that the nil-pointer is not
+   * dereferenced:
+   */
+  while ((ancestor != nil) && (NSXMLDocumentKind != ancestor->_kind))
+  {
+    ancestor = ancestor->_parent;
+  }
+  return (NSXMLDocument*)ancestor;
 }
+
 
 - (NSString*) stringValue
 {
