@@ -35,7 +35,7 @@ int main()
   }
   NS_HANDLER
   {
-    PASS(YES == NO, "Failed testing NSXMLNode kinds");
+    PASS(YES == NO, "NSXMLNode kinds working");
   }
   NS_ENDHANDLER
   [arp release];
