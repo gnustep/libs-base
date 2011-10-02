@@ -1063,6 +1063,18 @@ newLanguages(NSArray *oldNames)
   return nil;
 }
 
+- (double) doubleForKey: (NSString*)defaultName
+{
+  id	obj = [self objectForKey: defaultName];
+
+  if (obj != nil && ([obj isKindOfClass: NSStringClass]
+    || [obj isKindOfClass: NSNumberClass]))
+    {
+      return [obj doubleValue];
+    }
+  return 0.0;
+}
+
 - (float) floatForKey: (NSString*)defaultName
 {
   id	obj = [self objectForKey: defaultName];
@@ -1177,6 +1189,13 @@ newLanguages(NSArray *oldNames)
     }
 }
 
+- (void) setDouble: (double)value forKey: (NSString*)defaultName
+{
+  NSNumber	*n = [NSNumberClass numberWithDouble: value];
+
+  [self setObject: n forKey: defaultName];
+}
+
 - (void) setFloat: (float)value forKey: (NSString*)defaultName
 {
   NSNumber	*n = [NSNumberClass numberWithFloat: value];
@@ -1272,7 +1291,11 @@ static BOOL isPlistObject(id o)
   NS_DURING
     {
       obj = [_persDomains objectForKey: processName];
-      if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
+      if (nil == obj)
+	{
+	  dict = [NSMutableDictionary new];
+	}
+      else if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
         {
           dict = obj;
         }

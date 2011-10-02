@@ -691,6 +691,11 @@ static NSStringEncoding	defaultEncoding;
     }
 }
 
+- (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error
+{
+  return [self directoryContentsAtPath: path];
+}
+
 /**
  * Creates a new directory and all intermediate directories
  * if flag is YES, creates only the last directory in the path

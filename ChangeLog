@@ -1,3 +1,13 @@
+2011-10-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSFileManager.h
+	* Source/NSFileManager.m
+	* Tests/base/NSFileManager/general.m
+	* Headers/Foundation/NSUserDefaults.h
+	* Source/NSUserDefaults.m
+	* Tests/base/NSUserDefaults/basic.m
+	Add a few newer OSX methods for compatibility.
+
 2011-10-01  Niels Grewe <niels.grewe@halbordnung.de>
 
         * Source/NSXMLNode.m: Properly implement -initWithKind: initializer.
