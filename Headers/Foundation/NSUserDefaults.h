@@ -314,6 +314,14 @@ GS_EXPORT NSString* const GSLocale;
  */
 - (NSDictionary*) dictionaryForKey: (NSString*)defaultName;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/**
+ * Looks up a value for a specified default using -objectForKey:
+ * and checks that it is a double.  Returns 0.0 if it is not.
+ */
+- (double) doubleForKey: (NSString*)defaultName;
+#endif
+
 /**
  * Looks up a value for a specified default using -objectForKey:
  * and checks that it is a float.  Returns 0.0 if it is not.
@@ -379,6 +387,15 @@ GS_EXPORT NSString* const GSLocale;
  * containing either the word YES or NO.
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/**
+ * Sets a double value for defaultName in the application domain.<br />
+ * Calls -setObject:forKey: to make the change by storing a double
+ * [NSNumber] instance.
+ */
+- (void) setDouble: (double)value forKey: (NSString*)defaultName;
+#endif
 
 /**
  * Sets a float value for defaultName in the application domain.<br />

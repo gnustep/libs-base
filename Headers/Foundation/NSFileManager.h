@@ -234,6 +234,18 @@ typedef	uint32_t	OSType;
 - (NSData*) contentsAtPath: (NSString*)path;
 - (BOOL) contentsEqualAtPath: (NSString*)path1
 		     andPath: (NSString*)path2;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/**
+ * Returns an array of the contents of the specified directory.<br />
+ * The listing does <strong>not</strong> recursively list subdirectories.<br />
+ * The special files '.' and '..' are not listed.<br />
+ * Indicates an error by returning nil (eg. if path is not a directory or
+ * it can't be read for some reason).
+ */
+- (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error;
+#endif
+
 - (BOOL) copyPath: (NSString*)source
 	   toPath: (NSString*)destination
 	  handler: (id)handler;

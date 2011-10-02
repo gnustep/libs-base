@@ -10,8 +10,12 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSFileManager *mgr = [NSFileManager defaultManager];
   NSString *dir = @"NSFileManagerTestDir"; 
-  NSString *dirInDir = [@"TestDirectory" stringByAppendingPathComponent: @"WithinDirectory"];
+  NSString *dirInDir;
   NSString *str1,*str2;
+
+  dirInDir
+    = [@"TestDirectory" stringByAppendingPathComponent: @"WithinDirectory"];
+
   PASS(mgr != nil && [mgr isKindOfClass: [NSFileManager class]],
        "NSFileManager understands +defaultManager");
 
@@ -63,6 +67,14 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
        "NSFileManager creates a file");
   PASS([mgr fileExistsAtPath: @"NSFMFile"],"-fileExistsAtPath: agrees");
   
+  {
+    NSArray	*a;
+
+    a = [mgr contentsOfDirectoryAtPath: @"." error: 0];
+    PASS(1 == [a count] && [[a lastObject] isEqual: @"NSFMFile"],
+      "-contentsOfDirectoryAtPath: agrees");
+  }
+
   {
     NSData *dat1 = [mgr contentsAtPath: @"NSFMFile"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
