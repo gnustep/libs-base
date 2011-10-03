@@ -1,3 +1,11 @@
+2011-10-03  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m (GSBinaryPLParser -objectAtIndex:): Use
+	long long for all integer types. Before we used signed types which
+	resulted wrong values for negative integers.
+	* Source/NSKeyedUnarchiver.m (-_decodeObject:): Handle the string
+	"$null" as nil all the times.
+
 2011-10-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHost.m: Update to use inet_pton() and inet_ntop() and to

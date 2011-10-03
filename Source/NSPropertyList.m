@@ -2998,28 +2998,18 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned		i;
       unsigned char	buffer[16];
 
+      if (len > sizeof(unsigned long long))
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Stored number too long (%d bytes) in property list", len];
+       }
+
       [data getBytes: buffer range: NSMakeRange(counter, len)];
       for (i = 0; i < len; i++)
         {
 	  num = (num << 8) + buffer[i];
 	}
-
-      if (next == 0x10)
-        {
-	  result = [NSNumber numberWithUnsignedChar: (unsigned char)num];
-	}
-      else if (next == 0x11)
-        {
-	  result = [NSNumber numberWithUnsignedShort: (unsigned short)num];
-	}
-      else if ((next == 0x12) || (next == 13))
-        {
-	  result = [NSNumber numberWithUnsignedInt: (unsigned int)num];
-	}
-      else
-        {
-	  result = [NSNumber numberWithUnsignedLongLong: num];
-	}
+      result = [NSNumber numberWithLongLong: (long long)num];
     }
   else if (next == 0x22)
     {
