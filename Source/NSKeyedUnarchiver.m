@@ -259,11 +259,12 @@ static NSMapTable	*globalClassMap = 0;
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)obj, index);
     }
 
-  if (obj == nil)
+  if ((obj == nil) || [@"$null" isEqual: obj])
     {
       // Record NilMarker for decoded object.
       o = GSIArrayItemAtIndex(_objMap, 0).obj;
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
+      obj = nil;
     }
 
   return obj;
@@ -500,8 +501,8 @@ static NSMapTable	*globalClassMap = 0;
   if (i > INT_MAX || i < INT_MIN)
     {
       [NSException raise: NSRangeException
-	          format: @"[%@ +%@]: value for key(%@) is out of range",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aKey];
+	          format: @"[%@ +%@]: value %ld for key(%@) is out of range",
+                   NSStringFromClass([self class]), NSStringFromSelector(_cmd), i, aKey];
     }
 #endif
   return (int)i;
