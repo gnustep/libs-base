@@ -1,3 +1,8 @@
+2011-10-03  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSData.m (-initWithCoder:, -encodeWithCoder): Correct
+	keyed encoding/decoding.
+
 2011-10-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSFileManager.h
@@ -11,7 +16,7 @@
 2011-10-01  Niels Grewe <niels.grewe@halbordnung.de>
 
         * Source/NSXMLNode.m: Properly implement -initWithKind: initializer.
-        Stub out some tree traversal stuff. 
+        Stub out some tree traversal stuff.
 	* Tests/base/NSXMLNode/basic.m: Fix test.
 
 	Initial work on NSXMLNode.
