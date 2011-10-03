@@ -1321,103 +1321,40 @@ setNonBlocking(SOCKET fd)
 
   if (result == nil && _address.s.sa_family != AF_UNSPEC)
     {
-      SOCKET    s = [self _sock];
+      SOCKET    	s = [self _sock];
+      struct sockaddr	sin;
+      socklen_t	        size = sizeof(sin);
 
-      switch (_address.s.sa_family)
-        {
-          case AF_INET:
-            {
-              struct sockaddr_in sin = { 0 };
-              socklen_t	        size = sizeof(sin);
-
-              if ([key isEqualToString: GSStreamLocalAddressKey])
-                {
-                  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
-                    {
-                      result = [NSString stringWithUTF8String:
-                        (char*)inet_ntoa(sin.sin_addr)];
-                    }
-                }
-              else if ([key isEqualToString: GSStreamLocalPortKey])
-                {
-                  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
-                    {
-                      result = [NSString stringWithFormat: @"%d",
-                        (int)GSSwapBigI16ToHost(sin.sin_port)];
-                    }
-                }
-              else if ([key isEqualToString: GSStreamRemoteAddressKey])
-                {
-                  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
-                    {
-                      result = [NSString stringWithUTF8String:
-                        (char*)inet_ntoa(sin.sin_addr)];
-                    }
-                }
-              else if ([key isEqualToString: GSStreamRemotePortKey])
-                {
-                  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
-                    {
-                      result = [NSString stringWithFormat: @"%d",
-                        (int)GSSwapBigI16ToHost(sin.sin_port)];
-                    }
-                }
-            }
-            break;
-#if	defined(AF_INET6)
-          case AF_INET6:
-            {
-              struct sockaddr_in6 sin = { 0 };
-              socklen_t	        size = sizeof(sin);
-
-              if ([key isEqualToString: GSStreamLocalAddressKey])
-                {
-                  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
-                    {
-                      char	buf[INET6_ADDRSTRLEN+1];
-
-                      if (inet_ntop(AF_INET6, &(sin.sin6_addr), buf,
-                        INET6_ADDRSTRLEN) == 0)
-                        {
-                          buf[INET6_ADDRSTRLEN] = '\0';
-                          result = [NSString stringWithUTF8String: buf];
-                        }
-                    }
-                }
-              else if ([key isEqualToString: GSStreamLocalPortKey])
-                {
-                  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
-                    {
-                      result = [NSString stringWithFormat: @"%d",
-                        (int)GSSwapBigI16ToHost(sin.sin6_port)];
-                    }
-                }
-              else if ([key isEqualToString: GSStreamRemoteAddressKey])
-                {
-                  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
-                    {
-                      char	buf[INET6_ADDRSTRLEN+1];
-
-                      if (inet_ntop(AF_INET6, &(sin.sin6_addr), buf,
-                        INET6_ADDRSTRLEN) == 0)
-                        {
-                          buf[INET6_ADDRSTRLEN] = '\0';
-                          result = [NSString stringWithUTF8String: buf];
-                        }
-                    }
-                }
-              else if ([key isEqualToString: GSStreamRemotePortKey])
-                {
-                  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
-                    {
-                      result = [NSString stringWithFormat: @"%d",
-                        (int)GSSwapBigI16ToHost(sin.sin6_port)];
-                    }
-                }
-            }
-            break;
-#endif
-        }
+      if ([key isEqualToString: GSStreamLocalAddressKey])
+	{
+	  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
+	    {
+	      result = GSPrivateSockaddrHost(&sin);
+	    }
+	}
+      else if ([key isEqualToString: GSStreamLocalPortKey])
+	{
+	  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
+	    {
+	      result = [NSString stringWithFormat: @"%d",
+		(int)GSPrivateSockaddrPort(&sin)];
+	    }
+	}
+      else if ([key isEqualToString: GSStreamRemoteAddressKey])
+	{
+	  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
+	    {
+	      result = GSPrivateSockaddrHost(&sin);
+	    }
+	}
+      else if ([key isEqualToString: GSStreamRemotePortKey])
+	{
+	  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
+	    {
+	      result = [NSString stringWithFormat: @"%d",
+		(int)GSPrivateSockaddrPort(&sin)];
+	    }
+	}
     }
   return result;
 }
@@ -1470,7 +1407,7 @@ setNonBlocking(SOCKET fd)
           peer.sin_family = AF_INET;
           peer.sin_port = GSSwapHostI16ToBig(p);
           ptonReturn = inet_pton(AF_INET, addr_c, &peer.sin_addr);
-          if (ptonReturn == 0)   // error
+          if (ptonReturn <= 0)   // error
             {
               return NO;
             }
@@ -1493,7 +1430,7 @@ setNonBlocking(SOCKET fd)
           peer.sin6_family = AF_INET6;
           peer.sin6_port = GSSwapHostI16ToBig(p);
           ptonReturn = inet_pton(AF_INET6, addr_c, &peer.sin6_addr);
-          if (ptonReturn == 0)   // error
+          if (ptonReturn <= 0)   // error
             {
               return NO;
             }

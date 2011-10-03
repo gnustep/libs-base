@@ -43,9 +43,9 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSConnection.h"
 
-#import "GSNetwork.h"
 #import "GSPortPrivate.h"
 #import "GSPrivate.h"
+#import "GSNetwork.h"
 
 #include <stdio.h>
 #ifdef HAVE_UNISTD_H
@@ -216,7 +216,7 @@ typedef enum {
   BOOL			valid;
   NSSocketPort		*recvPort;
   NSSocketPort		*sendPort;
-  struct sockaddr_in	sockAddr;	/* Far end of connection.	*/
+  struct sockaddr	sockAddr;	/* Far end of connection.	*/
   NSString		*defaultAddress;
 }
 
@@ -502,7 +502,7 @@ static Class	runLoopClass;
     }
   while (gotAddr == NO)
     {
-      const char	*addr;
+      NSString	*addr;
 
       if (addrNum >= [addrs count])
 	{
@@ -511,18 +511,12 @@ static Class	runLoopClass;
 	  M_UNLOCK(myLock);
 	  return NO;
 	}
-      addr = [[addrs objectAtIndex: addrNum++] cString];
+      addr = [addrs objectAtIndex: addrNum++];
 
-      memset(&sockAddr, '\0', sizeof(sockAddr));
-      sockAddr.sin_family = AF_INET;
-#ifndef HAVE_INET_ATON
-      sockAddr.sin_addr.s_addr = inet_addr(addr);
-      if (sockAddr.sin_addr.s_addr == INADDR_NONE)
-#else
-      if (inet_aton(addr, &sockAddr.sin_addr) == 0)
-#endif
+      if (NO == GSPrivateSockaddrSetup(addr,
+	[aPort portNumber], nil, nil, &sockAddr))
 	{
-	  NSLog(@"bad ip address - '%s'", addr);
+	  NSLog(@"bad address - '%s'", addr);
 	}
       else
 	{
@@ -531,10 +525,9 @@ static Class	runLoopClass;
 	    addr, [aPort portNumber], desc);
 	}
     }
-  sockAddr.sin_port = GSSwapHostI16ToBig([aPort portNumber]);
 
-  if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr))
-    == SOCKET_ERROR)
+  if (connect(desc, (struct sockaddr*)&sockAddr,
+    GSPrivateSockaddrLength(&sockAddr)) == SOCKET_ERROR)
     {
 #ifdef __MINGW__
       if (WSAGetLastError() != WSAEWOULDBLOCK)
@@ -542,9 +535,8 @@ static Class	runLoopClass;
       if (errno != EINPROGRESS)
 #endif
 	{
-	  NSLog(@"unable to make connection to %s:%d - %@",
-	    inet_ntoa(sockAddr.sin_addr),
-	    GSSwapBigI16ToHost(sockAddr.sin_port), [NSError _last]);
+	  NSLog(@"unable to make connection to %d - %@",
+	    GSPrivateSockaddrName(&sockAddr), [NSError _last]);
 	  if (addrNum < [addrs count])
 	    {
 	      BOOL	result;
@@ -684,7 +676,7 @@ static Class	runLoopClass;
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"Handle (%d) to %s:%d",
-    desc, inet_ntoa(sockAddr.sin_addr), ntohs(sockAddr.sin_port)];
+    desc, GSPrivateSockaddrName(&sockAddr)];
 }
 
 - (int) descriptor
@@ -1118,9 +1110,7 @@ static Class	runLoopClass;
           len = send(desc, [d bytes], [d length], 0);
           if (len == (int)[d length])
             {
-	      RELEASE(defaultAddress);
-	      defaultAddress = RETAIN([NSString stringWithUTF8String:
-	        inet_ntoa(sockAddr.sin_addr)]);
+	      ASSIGN(defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 	      NSDebugMLLog(@"GSTcpHandle",
 	        @"wrote %d bytes on 0x%x", len, self);
 	      state = GS_H_CONNECTED;
@@ -1596,43 +1586,19 @@ static Class		tcpPortClass;
 #endif
 	  SOCKET desc;
 	  BOOL	addrOk = YES;
-	  struct sockaddr_in	sockaddr;
+	  struct sockaddr	sockaddr;
 
 	  /*
 	   * Creating a new port on the local host - so we must create a
 	   * listener socket to accept incoming connections.
 	   */
-	  memset(&sockaddr, '\0', sizeof(sockaddr));
-	  sockaddr.sin_family = AF_INET;
-	  if (addr == nil)
-	    {
-	      sockaddr.sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
-	    }
-	  else
-	    {
-#ifndef HAVE_INET_ATON
-	      sockaddr.sin_addr.s_addr = inet_addr([addr cString]);
-	      if (sockaddr.sin_addr.s_addr == INADDR_NONE)
-#else
-	      if (inet_aton([addr cString], &sockaddr.sin_addr) == 0)
-#endif
-		{
-		  addrOk = NO;
-		}
-	    }
-	  sockaddr.sin_port = GSSwapHostI16ToBig(number);
-
-	  /*
-           * Need size of buffer for getsockbyname() later.
-	   */
-	  slen = sizeof(sockaddr);
-
-	  if (addrOk == NO)
+	  addrOk = GSPrivateSockaddrSetup(addr, number, nil, nil, &sockaddr);
+	  if (NO == addrOk)
 	    {
 	      NSLog(@"Bad address (%@) specified for listening port", addr);
 	      DESTROY(port);
 	    }
-	  else if ((desc = socket(AF_INET, SOCK_STREAM, PF_UNSPEC))
+	  else if ((desc = socket(sockaddr.sa_family, SOCK_STREAM, PF_UNSPEC))
 	    == INVALID_SOCKET)
 	    {
 	      NSLog(@"unable to create socket - %@", [NSError _last]);
@@ -1654,11 +1620,11 @@ static Class		tcpPortClass;
               DESTROY(port);
 	    }
 #endif
-	  else if (bind(desc, (struct sockaddr *)&sockaddr,
-	    sizeof(sockaddr)) == SOCKET_ERROR)
+	  else if (bind(desc, &sockaddr,
+	    GSPrivateSockaddrLength(&sockaddr)) == SOCKET_ERROR)
 	    {
-	      NSLog(@"unable to bind to port %s:%d - %@",
-		inet_ntoa(sockaddr.sin_addr), number, [NSError _last]);
+	      NSLog(@"unable to bind to port %@ - %@",
+		GSPrivateSockaddrName(&sockaddr), [NSError _last]);
 	      (void) close(desc);
               DESTROY(port);
 	    }
@@ -1686,7 +1652,7 @@ static Class		tcpPortClass;
 	       * we did the 'bind' call.
 	       */
 	      port->listener = desc;
-	      port->portNum = GSSwapBigI16ToHost(sockaddr.sin_port); 
+	      port->portNum = GSPrivateSockaddrPort(&sockaddr); 
 #if	defined(__MINGW__)
               port->eventListener = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
               if (port->eventListener == WSA_INVALID_EVENT)
@@ -2147,7 +2113,7 @@ static Class		tcpPortClass;
   if (desc == listener)
 #endif
     {
-      struct sockaddr_in	sockAddr;
+      struct sockaddr	sockAddr;
       socklen_t size = sizeof(sockAddr);
 
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
@@ -2172,8 +2138,7 @@ static Class		tcpPortClass;
 	   */
 	  handle = [GSTcpHandle handleWithDescriptor: desc];
 	  memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
-	  handle->defaultAddress = RETAIN([NSString stringWithUTF8String:
-	    inet_ntoa(sockAddr.sin_addr)]);
+	  ASSIGN(handle->defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 
 	  [handle setState: GS_H_ACCEPT];
 	  [self addHandle: handle forSend: NO];

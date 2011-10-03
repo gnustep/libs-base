@@ -44,8 +44,8 @@
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSProcessInfo.h"
 
-#import "GSNetwork.h"
 #import "GSPrivate.h"
+#import "GSNetwork.h"
 #import "GSPortPrivate.h"
 
 #include <stdio.h>

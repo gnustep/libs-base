@@ -1,3 +1,17 @@
+2011-10-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost.m: Update to use inet_pton() and inet_ntop() and to
+	understand IPV6 addresses.
+	* Source/GSNetwork.h: New private functions to work with the internals
+	of a sockaddr irrespective of whether it's IP v4 or v6
+	* Source/GSSocketStream.h: Move a declaration to GSNetwork.h
+	* Source/GSSocketStream.m: Use new functions.
+	* Source/NSSocketPort.m: Change to be IP v4/v6 agnostic
+	* Source/NSMessagePort.m: Fix header include order.
+	* Source/GSFileHandle.m: Changes to be IP v4/v6 agnostic
+	* Headers/GNUstepBase/GSFileHandle.h: make setter use sockaddr type
+	rather than sockaddr_in so we can use it for ipv6
+
 2011-10-03  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSData.m (-initWithCoder:, -encodeWithCoder): Correct
