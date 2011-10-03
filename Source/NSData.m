@@ -1268,7 +1268,7 @@ failure:
 {
   if ([coder allowsKeyedCoding])
     {
-      [coder encodeObject: self];
+      [coder encodeObject: self forKey: @"NS.bytes"];
     }
   else
     {
@@ -1278,12 +1278,11 @@ failure:
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  id	obj = nil;
+  id obj = nil;
 
   if ([coder allowsKeyedCoding])
     {
-      // FIXME
-      obj = [coder decodeObject];
+      obj = [coder decodeObjectForKey: @"NS.bytes"];
     }
   else
     {
