@@ -39,8 +39,8 @@
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSUserDefaults.h"
-#import "GSNetwork.h"
 #import "GSPrivate.h"
+#import "GSNetwork.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "../Tools/gdomap.h"
@@ -98,6 +98,171 @@ static GSFileHandle*	fh_stderr = nil;
 // Key to info dictionary for operation mode.
 static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
+NSString *
+GSPrivateSockaddrHost(struct sockaddr *addr)
+{
+  char		buf[40];
+
+#if     defined(AF_INET6)
+  if (AF_INET6 == addr->sa_family)
+    {
+      struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)addr;
+
+      inet_ntop(AF_INET, &addr6->sin6_addr, buf, sizeof(buf));
+      return [NSString stringWithUTF8String: buf];
+    } 
+#endif
+  inet_ntop(AF_INET, &((struct sockaddr_in*)addr)->sin_addr, buf, sizeof(buf));
+  return [NSString stringWithUTF8String: buf];
+}
+
+NSString *
+GSPrivateSockaddrName(struct sockaddr *addr)
+{
+  return [NSString stringWithFormat: @"%@:%d",
+    GSPrivateSockaddrHost(addr),
+    GSPrivateSockaddrPort(addr)];
+}
+
+uint16_t
+GSPrivateSockaddrPort(struct sockaddr *addr)
+{
+  uint16_t	port;
+
+#if     defined(AF_INET6)
+  if (AF_INET6 == addr->sa_family)
+    {
+      struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)addr;
+
+      port = addr6->sin6_port;
+      port = GSSwapBigI16ToHost(port);
+      return port;
+    } 
+#endif
+  port = ((struct sockaddr_in*)addr)->sin_port;
+  port = GSSwapBigI16ToHost(port);
+  return port;
+}
+
+BOOL
+GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
+  NSString *service, NSString *protocol, struct sockaddr *sin)
+{
+  memset(sin, '\0', sizeof(*sin));
+  sin->sa_family = AF_INET;
+
+  /* If we were given a hostname, we use any address for that host.
+   * Otherwise we expect the given name to be an address unless it is
+   * a null (any address).
+   */
+  if (0 != [machine length])
+    {
+      const char	*n;
+
+      n = [machine UTF8String];
+      if ((!isdigit(n[0]) || sscanf(n, "%*d.%*d.%*d.%*d") != 4)
+	&& 0 == strchr(n, ':'))
+	{
+	  machine = [[NSHost hostWithName: machine] address];
+	  n = [machine UTF8String];
+	}
+
+      if (0 == strchr(n, ':'))
+	{
+	  struct sockaddr_in	*addr = (struct sockaddr_in*)sin;
+
+	  if (inet_pton(AF_INET, n, &addr->sin_addr) <= 0)
+	    {
+	      return NO;
+	    }
+	}
+      else
+	{
+#if     defined(AF_INET6)
+	  struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)sin;
+
+	  sin->sa_family = AF_INET6;
+	  if (inet_pton(AF_INET6, n, &addr6->sin6_addr) <= 0)
+	    {
+	      return NO;
+	    }
+#else
+	  return NO;
+#endif
+	}
+    }
+  else
+    {
+      ((struct sockaddr_in*)sin)->sin_addr.s_addr
+	= GSSwapHostI32ToBig(INADDR_ANY);
+    }
+
+  /* The optional service and protocol parameters may be used to
+   * look up the port
+   */
+  if (nil != service)
+    {
+      const char	*sname;
+      const char	*proto;
+      struct servent	*sp;
+
+      if (nil == protocol)
+	{
+	  proto = "tcp";
+	}
+      else
+	{
+	  proto = [protocol UTF8String];
+	}
+
+      sname = [service UTF8String];
+      if ((sp = getservbyname(sname, proto)) == 0)
+	{
+	  const char*     ptr = sname;
+	  int             val = atoi(ptr);
+
+	  while (isdigit(*ptr))
+	    {
+	      ptr++;
+	    }
+	  if (*ptr == '\0' && val <= 0xffff)
+	    {
+	      port = val;
+	    }
+	  else if (strcmp(ptr, "gdomap") == 0)
+	    {
+#ifdef	GDOMAP_PORT_OVERRIDE
+	      port = GDOMAP_PORT_OVERRIDE;
+#else
+	      port = 538;	// IANA allocated port
+#endif
+	    }
+	  else
+	    {
+	      return NO;
+	    }
+	}
+      else
+	{
+	  port = GSSwapBigI16ToHost(sp->s_port);
+	}
+    }
+
+#if     defined(AF_INET6)
+  if (AF_INET6 == sin->sa_family)
+    {
+      ((struct sockaddr_in6*)sin)->sin6_port = GSSwapHostI16ToBig(port);
+    }
+  else
+    {
+      ((struct sockaddr_in*)sin)->sin_port = GSSwapHostI16ToBig(port);
+    }
+#else
+  ((struct sockaddr_ind*)sin)->sin6_port = GSSwapHostI16ToBig(port);
+#endif
+  return YES;
+}
+
 @interface GSFileHandle(private)
 - (void) receivedEventRead;
 - (void) receivedEventWrite;
@@ -151,90 +316,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
       len = write(descriptor, buf, len);
     }
   return len;
-}
-
-static BOOL
-getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
-{
-  const char		*proto = "tcp";
-  struct servent	*sp;
-
-  if (pcl)
-    {
-      proto = [pcl lossyCString];
-    }
-  memset(sin, '\0', sizeof(*sin));
-  sin->sin_family = AF_INET;
-
-  /*
-   *	If we were given a hostname, we use any address for that host.
-   *	Otherwise we expect the given name to be an address unless it is
-   *	a null (any address).
-   */
-  if (name)
-    {
-      NSHost*		host = [NSHost hostWithName: name];
-
-      if (host != nil)
-	{
-	  name = [host address];
-	}
-#ifndef	HAVE_INET_ATON
-      sin->sin_addr.s_addr = inet_addr([name lossyCString]);
-      if (sin->sin_addr.s_addr == INADDR_NONE)
-#else
-      if (inet_aton([name lossyCString], &sin->sin_addr) == 0)
-#endif
-	{
-	  return NO;
-	}
-    }
-  else
-    {
-      sin->sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
-    }
-  if (svc == nil)
-    {
-      sin->sin_port = 0;
-      return YES;
-    }
-  else if ((sp = getservbyname([svc lossyCString], proto)) == 0)
-    {
-      const char*     ptr = [svc lossyCString];
-      int             val = atoi(ptr);
-
-      while (isdigit(*ptr))
-	{
-	  ptr++;
-	}
-      if (*ptr == '\0' && val <= 0xffff)
-	{
-	  uint16_t	v = val;
-
-	  sin->sin_port = GSSwapHostI16ToBig(v);
-	  return YES;
-        }
-      else if (strcmp(ptr, "gdomap") == 0)
-	{
-	  uint16_t	v;
-#ifdef	GDOMAP_PORT_OVERRIDE
-	  v = GDOMAP_PORT_OVERRIDE;
-#else
-	  v = 538;	// IANA allocated port
-#endif
-	  sin->sin_port = GSSwapHostI16ToBig(v);
-	  return YES;
-	}
-      else
-	{
-	  return NO;
-	}
-    }
-  else
-    {
-      sin->sin_port = sp->s_port;
-      return YES;
-    }
 }
 
 + (id) allocWithZone: (NSZone*)z
@@ -664,8 +745,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   static NSString	*dsocks = nil;
   static BOOL		beenHere = NO;
   int			net;
-  struct sockaddr_in	sin;
-  struct sockaddr_in	lsin;
+  struct sockaddr	sin;
+  struct sockaddr	lsin;
   NSString		*lhost = nil;
   NSString		*shost = nil;
   NSString		*sport = nil;
@@ -718,7 +799,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  p = nil;
 	}
-      if (getAddr(lhost, p, @"tcp", &lsin) == NO)
+      if (GSPrivateSockaddrSetup(lhost, 0, p, @"tcp", &lsin) == NO)
 	{
 	  NSLog(@"bad bind address specification");
 	  DESTROY(self);
@@ -765,7 +846,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       p = @"tcp";
     }
 
-  if (getAddr(a, s, p, &sin) == NO)
+  if (GSPrivateSockaddrSetup(a, 0, s, p, &sin) == NO)
     {
       DESTROY(self);
       NSLog(@"bad address-service-protocol combination");
@@ -788,7 +869,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (shost != nil)
     {
-      if (getAddr(shost, sport, p, &sin) == NO)
+      if (GSPrivateSockaddrSetup(shost, 0, sport, p, &sin) == NO)
 	{
 	  NSLog(@"bad SOCKS host-port combination");
 	  DESTROY(self);
@@ -796,7 +877,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
     }
 
-  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == -1)
+  if ((net = socket(sin.sa_family, SOCK_STREAM, PF_UNSPEC)) == -1)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
       DESTROY(self);
@@ -810,10 +891,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (lhost != nil)
     {
-      if (bind(net, (struct sockaddr *)&lsin, sizeof(lsin)) == -1)
+      if (bind(net, &lsin, GSPrivateSockaddrLength(&lsin)) == -1)
 	{
-	  NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(lsin.sin_addr),
-	    GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
+	  NSLog(@"unable to bind to port %@ - %@",
+	    GSPrivateSockaddrName(&lsin), [NSError _last]);
 	  (void) close(net);
 	  DESTROY(self);
 	  return nil;
@@ -827,13 +908,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       isSocket = YES;
       [self setNonBlocking: YES];
-      if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) == -1)
+      if (connect(net, &sin, GSPrivateSockaddrLength(&sin)) == -1)
 	{
 	  if (errno != EINPROGRESS)
 	    {
-	      NSLog(@"unable to make connection to %s:%d - %@",
-		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
+	      NSLog(@"unable to make connection to %@ - %@",
+		GSPrivateSockaddrName(&sin), [NSError _last]);
 	      DESTROY(self);
 	      return nil;
 	    }
@@ -885,17 +965,17 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   int			status = 1;
 #endif
   int			net;
-  struct sockaddr_in	sin;
+  struct sockaddr	sin;
   unsigned int		size = sizeof(sin);
 
-  if (getAddr(a, s, p, &sin) == NO)
+  if (GSPrivateSockaddrSetup(a, 0, s, p, &sin) == NO)
     {
       DESTROY(self);
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
 
-  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == -1)
+  if ((net = socket(sin.sa_family, SOCK_STREAM, PF_UNSPEC)) == -1)
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
       DESTROY(self);
@@ -912,10 +992,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
 #endif
 
-  if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) == -1)
+  if (bind(net, &sin, GSPrivateSockaddrLength(&sin)) == -1)
     {
-      NSLog(@"unable to bind to port %s:%d - %@", inet_ntoa(sin.sin_addr),
-	GSSwapBigI16ToHost(sin.sin_port), [NSError _last]);
+      NSLog(@"unable to bind to port %@ - %@",
+	GSPrivateSockaddrName(&sin), [NSError _last]);
       (void) close(net);
       DESTROY(self);
       return nil;
@@ -931,7 +1011,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return nil;
     }
 
-  if (getsockname(net, (struct sockaddr*)&sin, &size) == -1)
+  if (getsockname(net, &sin, &size) == -1)
     {
       NSLog(@"unable to get socket name - %@", [NSError _last]);
       (void) close(net);
@@ -1917,11 +1997,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   operation = [readInfo objectForKey: NotificationKey];
   if (operation == NSFileHandleConnectionAcceptedNotification)
     {
-      struct sockaddr_in	buf;
+      struct sockaddr	buf;
       int			desc;
       unsigned int		blen = sizeof(buf);
 
-      desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
+      desc = accept(descriptor, &buf, &blen);
       if (desc == -1)
 	{
 	  NSString	*s;
@@ -1933,7 +2013,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       else
 	{ // Accept attempt completed.
 	  GSFileHandle		*h;
-	  struct sockaddr_in	sin;
+	  struct sockaddr	sin;
 	  unsigned int		size = sizeof(sin);
 	  int			status;
 
@@ -1947,7 +2027,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  h = [[[self class] alloc] initWithFileDescriptor: desc
 						closeOnDealloc: YES];
 	  h->isSocket = YES;
-	  getpeername(desc, (struct sockaddr*)&sin, &size);
+	  getpeername(desc, &sin, &size);
 	  [h setAddr: &sin];
 	  [readInfo setObject: h
 		   forKey: NSFileHandleNotificationFileHandleItem];
@@ -2111,11 +2191,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
 }
 
-- (void) setAddr: (struct sockaddr_in *)sin
+- (void) setAddr: (struct sockaddr *)sin
 {
-  address = [[NSString alloc] initWithCString: (char*)inet_ntoa(sin->sin_addr)];
-  service = [[NSString alloc] initWithFormat: @"%d",
-    (int)GSSwapBigI16ToHost(sin->sin_port)];
+  NSString	*s;
+
+  ASSIGN(address, GSPrivateSockaddrHost(sin));
+  s = [NSString stringWithFormat: @"%d", GSPrivateSockaddrPort(sin)];
+  ASSIGN(service, s);
   protocol = @"tcp";
 }
 
@@ -2173,16 +2255,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (NSString*) socketLocalAddress
 {
   NSString	*str = nil;
-  struct sockaddr_in sin = { 0 };
+  struct sockaddr sin;
   unsigned	size = sizeof(sin);
 
-  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == -1)
+  if (getsockname(descriptor, &sin, &size) == -1)
     {
       NSLog(@"unable to get socket name - %@", [NSError _last]);
     }
   else
     {
-      str = [NSString stringWithUTF8String: (char*)inet_ntoa(sin.sin_addr)];
+      str = GSPrivateSockaddrHost(&sin);
     }
   return str;
 }
@@ -2190,17 +2272,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (NSString*) socketLocalService
 {
   NSString	*str = nil;
-  struct sockaddr_in sin = { 0 };
+  struct sockaddr sin;
   unsigned	size = sizeof(sin);
 
-  if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == -1)
+  if (getsockname(descriptor, &sin, &size) == -1)
     {
       NSLog(@"unable to get socket name - %@", [NSError _last]);
     }
   else
     {
-      str = [NSString stringWithFormat: @"%d",
-	(int)GSSwapBigI16ToHost(sin.sin_port)];
+      str = [NSString stringWithFormat: @"%d", GSPrivateSockaddrPort(&sin)];
     }
   return str;
 }

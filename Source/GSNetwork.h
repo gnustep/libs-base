@@ -95,4 +95,20 @@
 #  endif
 #endif
 
+NSString*
+GSPrivateSockaddrHost(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
+
+unsigned
+GSPrivateSockaddrLength(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
+
+NSString*
+GSPrivateSockaddrName(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
+
+uint16_t
+GSPrivateSockaddrPort(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
+
+BOOL
+GSPrivateSockaddrSetup(NSString *machine, uint16_t port, NSString *service,
+  NSString *protocol, struct sockaddr *sin) GS_ATTRIB_PRIVATE;
+
 #endif

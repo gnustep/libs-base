@@ -29,9 +29,6 @@
 
 #include "GSNetwork.h"
 
-unsigned
-GSPrivateSockaddrLength(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
-
 typedef	union {
   struct sockaddr	s;
   struct sockaddr_in	i4;

@@ -63,7 +63,6 @@ static NSMutableDictionary	*_hostCache = nil;
 
 @interface NSHost (Private)
 - (void) _addName: (NSString*)name;
-+ (struct hostent*) _entryForAddress: (NSString*)address;
 - (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)key;
 + (NSMutableSet*) _localAddresses;
 @end
@@ -83,36 +82,6 @@ static NSMutableDictionary	*_hostCache = nil;
       [_hostCache setObject: self forKey: name];
     }
   RELEASE(name);
-}
-
-+ (struct hostent*) _entryForAddress: (NSString*)address
-{
-  struct hostent	*h = 0;
-  struct in_addr	hostaddr;
-
-#ifndef	HAVE_INET_ATON
-  hostaddr.s_addr = inet_addr([address UTF8String]);
-  if (hostaddr.s_addr == INADDR_NONE)
-    {
-      NSLog(@"Attempt to lookup host entry for bad IP address (%@)", address);
-    }
-#else
-  if (inet_aton([address UTF8String], (struct in_addr*)&hostaddr.s_addr) == 0)
-    {
-      NSLog(@"Attempt to lookup host entry for bad IP address (%@)", address);
-    }
-#endif
-  else
-    {
-      h = gethostbyaddr((char*)&hostaddr, sizeof(hostaddr), AF_INET);
-      if (h == 0)
-	{
-	  NSDebugLog(@"Host '%@' not found using 'gethostbyaddr()' - perhaps "
-	    @"the address is wrong, networking is not set up on your machine,"
-	    @" or the requested address lacks a reverse-dns entry.", address);
-	}
-    }
-  return h;
 }
 
 - (id) _initWithAddress: (NSString*)name
@@ -187,7 +156,7 @@ static NSMutableDictionary	*_hostCache = nil;
 	{
 	  NSString	*a = [extra anyObject];
 
-	  entry = [hostClass _entryForAddress: a];
+	  entry = gethostbyname([a UTF8String]);
 	  if (entry == 0)
 	    {
 	      /*
@@ -306,8 +275,8 @@ myHostName()
 
 + (NSHost*) hostWithName: (NSString*)name
 {
-  BOOL		tryByAddress = NO;
   NSHost	*host = nil;
+  const char	*n;
 
   if (name == nil)
     {
@@ -318,6 +287,16 @@ myHostName()
     {
       NSLog(@"Empty host name sent to [NSHost +hostWithName:]");
       return nil;
+    }
+
+  /* If this looks like an address rather than a host name ...
+   * call the correct method instead of this one.
+   */
+  n = [name UTF8String];
+  if ((isdigit(n[0]) && sscanf(n, "%*d.%*d.%*d.%*d") == 4)
+    || 0 != strchr(n, ':'))
+    {
+      return [self hostWithAddress: name];
     }
 
   [_hostCacheLock lock];
@@ -338,15 +317,10 @@ myHostName()
 	}
       else
 	{
-	  struct hostent	*h = 0;
-	  const char		*n = [name UTF8String];
+	  struct hostent	*h;
 
 	  h = gethostbyname((char*)n);
-	  if (h == 0 && sscanf(n, "%*d.%*d.%*d.%*d") == 4)
-	    {
-	      tryByAddress = YES;
-	    }
-	  else if (h == 0)
+	  if (0 == h)
 	    {
 	      if ([name isEqualToString: myHostName()] == YES)
 		{
@@ -377,61 +351,79 @@ myHostName()
       IF_NO_GC([[host retain] autorelease];)
     }
   [_hostCacheLock unlock];
-  if (tryByAddress == YES)
-    {
-      return [self hostWithAddress: name];
-    }
   return host;
 }
 
 + (NSHost*) hostWithAddress: (NSString*)address
 {
-  NSHost	*host = nil;
+  NSHost		*host = nil;
+  char			buf[40];
+  const char		*a;
 
   if (address == nil)
     {
       NSLog(@"Nil host address sent to [NSHost +hostWithAddress:]");
       return nil;
     }
-  if ([address isEqual: @""] == YES)
+  a = [address UTF8String];
+  if (0 == a || '\0' == *a)
     {
       NSLog(@"Empty host address sent to [NSHost +hostWithAddress:]");
       return nil;
     }
+
+  /* Now check that the address is of valid format, and standardise it
+   * by converting from characters to binary and back.
+   */
+  if (0 == strchr(a, ':'))
+    {
+      struct in_addr	hostaddr;
+
+      if (inet_pton(AF_INET, a, (void*)&hostaddr) <= 0)
+	{
+	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]");
+	  return nil;
+	}
+      inet_ntop(AF_INET, (void*)&hostaddr, buf, sizeof(buf));
+      a = buf;
+      address = [NSString stringWithUTF8String: a];
+    }
+  else
+#if     defined(AF_INET6)
+    {
+      struct in6_addr	hostaddr6;
+
+      if (inet_pton(AF_INET6, a, (void*)&hostaddr6) <= 0)
+	{
+	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]");
+	  return nil;
+	}
+      inet_ntop(AF_INET6, (void*)&hostaddr6, buf, sizeof(buf));
+      a = buf;
+      address = [NSString stringWithUTF8String: a];
+    }
+#else
+  NSLog(@"Unsupported host address sent to [NSHost +hostWithAddress:]");
+  return nil;
+#endif
 
   [_hostCacheLock lock];
   if (_hostCacheEnabled == YES)
     {
       host = [_hostCache objectForKey: address];
     }
-  if (host == nil)
+  if (nil == host)
     {
       struct hostent	*h;
 
-      h = [self _entryForAddress: address];
-      if (h == 0)
+      /* The gethostbyname() function should handle names, ipv4 addresses,
+       * and ipv6 addresses ... so we can use it whatever we have.
+       */
+      h = gethostbyname(a);
+      if (0 == h)
 	{
-	  struct in_addr	hostaddr;
-	  BOOL			badAddr = NO;
-
-#ifndef	HAVE_INET_ATON
-	  hostaddr.s_addr = inet_addr([address UTF8String]);
-	  if (hostaddr.s_addr == INADDR_NONE)
-	    {
-	      badAddr = YES;
-	    }
-#else
-	  if (inet_aton([address UTF8String],
-	    (struct in_addr*)&hostaddr.s_addr) == 0)
-	    {
-	      badAddr = YES;
-	    }
-#endif
-	  if (badAddr == NO)
-	    {
-	      host = [[self alloc] _initWithAddress: address];
-	      IF_NO_GC([host autorelease];)
-	    }
+	  host = [[self alloc] _initWithAddress: address];
+	  IF_NO_GC([host autorelease];)
 	}
       else
 	{
