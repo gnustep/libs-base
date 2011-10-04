@@ -96,6 +96,9 @@ int main()
     "resourceSpecifier of /usr is //localhost/usr/");
 #endif
 
+  PASS_EXCEPTION([NSURL fileURLWithPath: nil], NSInvalidArgumentException,
+   "nil is an invalid argument for +fileURLWithPath:");
+
   url = [NSURL URLWithString: @"file:///usr"];
   PASS_EQUAL([url resourceSpecifier], @"/usr",
     "resourceSpecifier of file:///usr is /usr");
