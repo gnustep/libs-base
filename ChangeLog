@@ -1,3 +1,11 @@
+2011-10-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURL.h: Document that methods creating file URLs
+	raise an exception on being given a nil argument.
+	* Source/NSURL.m: Make file URL initialisers raise on nil argument.
+	* Source/NSBundle.m: Fix to check for nil path when reating file
+	URLs (fix for bug #34468).
+
 2011-10-03  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m (GSBinaryPLParser -objectAtIndex:): Use

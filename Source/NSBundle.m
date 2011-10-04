@@ -1899,10 +1899,17 @@ IF_NO_GC(
 	      subdirectory: (NSString *)subpath
 	      localization: (NSString *)localizationName
 {
-  return [NSURL fileURLWithPath: [self pathForResource: name
-                                                ofType: ext
-                                           inDirectory: subpath
-                                       forLocalization: localizationName]];
+  NSString	*path;
+
+  path = [self pathForResource: name
+			ofType: ext
+		   inDirectory: subpath
+	       forLocalization: localizationName];
+  if (nil == path)
+    {
+      return nil;
+    }
+  return [NSURL fileURLWithPath: path];
 }
 
 + (NSArray*) _pathsForResourcesOfType: (NSString*)extension
