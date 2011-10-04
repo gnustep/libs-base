@@ -96,6 +96,7 @@ GS_EXPORT NSString* const NSURLFileScheme;
 /**
  * Initialise as a file URL with the specified path (which must
  * be a valid path on the local filesystem).<br />
+ * Raises NSInvalidArgumentException if aPath is nil.<br />
  * Converts relative paths to absolute ones.<br />
  * Appends a trailing slash to the path when necessary if it
  * specifies a directory.<br />
@@ -107,6 +108,7 @@ GS_EXPORT NSString* const NSURLFileScheme;
 /**
  * Initialise as a file URL with the specified path (which must
  * be a valid path on the local filesystem).<br />
+ * Raises NSInvalidArgumentException if aPath is nil.<br />
  * Converts relative paths to absolute ones.<br />
  * Appends a trailing slash to the path when necessary if it
  * specifies a directory.<br />

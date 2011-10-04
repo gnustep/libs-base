@@ -640,6 +640,12 @@ static NSUInteger	urlAlign;
   NSFileManager	*mgr = [NSFileManager defaultManager];
   BOOL		flag = NO;
 
+  if (nil == aPath)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@ %@] nil string parameter",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   if ([aPath isAbsolutePath] == NO)
     {
       aPath = [[mgr currentDirectoryPath]
@@ -667,6 +673,12 @@ static NSUInteger	urlAlign;
   NSFileManager	*mgr = [NSFileManager defaultManager];
   BOOL		flag = NO;
 
+  if (nil == aPath)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[%@ %@] nil string parameter",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
   if ([aPath isAbsolutePath] == NO)
     {
       aPath = [[mgr currentDirectoryPath]
