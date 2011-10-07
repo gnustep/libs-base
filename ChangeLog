@@ -1,5 +1,11 @@
 2011-10-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSHTTPURLHandle.m:
+	Be aggressive about checking for close n the 'connection' header
+	and shutting down the network connection immediately.
+
+2011-10-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLProtocol.m:
 	* Source/NSURLConnection.m:
 	Ensure that a synchronous load returns the response.
