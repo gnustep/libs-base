@@ -1,3 +1,10 @@
+2011-10-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m:
+	* Source/NSURLConnection.m:
+	Ensure that a synchronous load returns the response.
+	* Tests/base/NSURLConnection/basic.m: add test for above change.
+
 2011-10-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSURL.h: Document that methods creating file URLs
