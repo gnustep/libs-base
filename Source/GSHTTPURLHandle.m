@@ -651,12 +651,39 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  [nc removeObserver: self name: nil object: sock];
 
 	  ver = [[[document headerNamed: @"http"] value] floatValue];
-	  val = [[document headerNamed: @"connection"] value];
-	  if (ver < 1.1 || (val != nil && [val isEqual: @"close"] == YES))
+	  if (ver < 1.1)
 	    {
 	      [nc removeObserver: self name: nil object: sock];
 	      [sock closeFile];
 	      DESTROY(sock);
+	    }
+	  else if (nil != (val = [[document headerNamed: @"connection"] value]))
+	    {
+	      val = [val lowercaseString];
+	      if (YES == [val isEqualToString: @"close"])
+		{
+		  [nc removeObserver: self name: nil object: sock];
+		  [sock closeFile];
+		  DESTROY(sock);
+		}
+	      else if ([val length] > 5)
+		{
+		  NSEnumerator	*e;
+
+		  e = [[val componentsSeparatedByString: @","]
+		    objectEnumerator];
+		  while (nil != (val = [e nextObject]))
+		    {
+		      val = [val stringByTrimmingSpaces];
+		      if (YES == [val isEqualToString: @"close"])
+			{
+			  [nc removeObserver: self name: nil object: sock];
+			  [sock closeFile];
+			  DESTROY(sock);
+			  break;
+			}
+		    }
+		}
 	    }
 
 	  /*
