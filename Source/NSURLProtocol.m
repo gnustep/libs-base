@@ -679,10 +679,15 @@ static NSURLProtocol	*placeholder = nil;
 	     wasRedirectedToRequest: request
 		   redirectResponse: nil];
 	}
-      if (_isLoading == NO)
+      if (NO == _isLoading)
         {
-	  return;
+	  return;	// Loading cancelled
 	}
+      if (nil != this->input)
+	{
+	  return;	// Following redirection
+	}
+      // Fall through to continue original connect.
     }
 
   if (0 && this->cachedResponse)
@@ -843,6 +848,8 @@ static NSURLProtocol	*placeholder = nil;
 	  GSMimeHeader		*info;
 	  NSString		*enc;
 	  int			len = -1;
+	  NSString		*ct;
+	  NSString		*st;
 	  NSString		*s;
 
 	  info = [document headerNamed: @"http"];
@@ -878,11 +885,22 @@ static NSURLProtocol	*placeholder = nil;
 	      enc = [[document headerNamed: @"transfer-encoding"] value];
 	    }
 
+	  info = [document headerNamed: @"content-type"];
+	  ct = [document contentType];
+	  st = [document contentSubtype];
+	  if (ct && st)
+	    {
+	      ct = [ct stringByAppendingFormat: @"/%@", st];
+	    }
+	  else
+	    {
+	      ct = nil;
+	    }
 	  _response = [[NSHTTPURLResponse alloc]
 	    initWithURL: [this->request URL]
-	    MIMEType: nil
+	    MIMEType: ct
 	    expectedContentLength: len
-	    textEncodingName: nil];
+	    textEncodingName: [info parameterForKey: @"charset"]];
 	  [_response _setStatusCode: _statusCode text: s];
 	  [document deleteHeaderNamed: @"http"];
 	  [_response _setHeaders: [document allHeaders]];
@@ -1237,7 +1255,8 @@ static NSURLProtocol	*placeholder = nil;
   IF_NO_GC([[self retain] autorelease];)
 
 #if 0
-  NSLog(@"stream: %@ handleEvent: %x for: %@", stream, event, self);
+  NSLog(@"stream: %@ handleEvent: %x for: %@ (ip %p, op %p)",
+    stream, event, self, this->input, this->output);
 #endif
 
   if (stream == this->input) 
@@ -1479,6 +1498,7 @@ static NSURLProtocol	*placeholder = nil;
 		    }
 		  if (_shouldClose == YES)
 		    {
+		      [this->output setDelegate: nil];
 		      [this->output removeFromRunLoop:
 			[NSRunLoop currentRunLoop]
 			forMode: NSDefaultRunLoopMode];

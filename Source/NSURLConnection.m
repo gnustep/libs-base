@@ -28,108 +28,69 @@
 #import "Foundation/NSRunLoop.h"
 #import "GSURLPrivate.h"
 
-@interface _NSURLConnectionDataCollector : NSObject <NSURLProtocolClient>
+@interface _NSURLConnectionDataCollector : NSObject
 {
   NSURLConnection	*_connection;	// Not retained
   NSMutableData		*_data;
-  NSError		**_error;
-  NSURLResponse		**_response;
+  NSError		*_error;
+  NSURLResponse		*_response;
   BOOL			_done;
 }
 
-- (id) initWithResponsePointer: (NSURLResponse **)response
-	       andErrorPointer: (NSError **)error;
-- (NSData*) _data;
-- (BOOL) _done;
-- (void) _setConnection: (NSURLConnection *)c;
+- (NSData*) data;
+- (BOOL) done;
+- (NSError*) error;
+- (NSURLResponse*) response;
+- (void) setConnection: (NSURLConnection *)c;
 
 @end
 
 @implementation _NSURLConnectionDataCollector
 
-- (id) initWithResponsePointer: (NSURLResponse **)response
-	       andErrorPointer: (NSError **)error
-{
-  if ((self = [super init]) != nil)
-    {
-      _response = response;
-      _error = error;
-    }
-  return self;
-}
-
 - (void) dealloc
 {
-  RELEASE(_data);
+  [_data release];
+  [_error release];
+  [_response release];
   [super dealloc];
 }
 
-- (BOOL) _done
+- (BOOL) done
 {
   return _done;
 }
 
-- (NSData*) _data
+- (NSData*) data
 {
   return _data;
 }
 
-- (void) _setConnection: (NSURLConnection*)c
+- (NSError*) error
+{
+  return _error;
+}
+
+- (NSURLResponse*) response
+{
+  return _response;
+}
+
+- (void) setConnection: (NSURLConnection*)c
 {
   _connection = c;
-}
-
-// notification handler
-
-- (void) URLProtocol: (NSURLProtocol*)proto
-cachedResponseIsValid: (NSCachedURLResponse*)resp
-{
-  return;
-}
-
-- (void) URLProtocol: (NSURLProtocol*)proto
-didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
-{
-  return;
-}
-
-- (void) URLProtocol: (NSURLProtocol*)proto
-didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
-{
-  return;
-}
-
-- (void) URLProtocol: (NSURLProtocol*)proto
-wasRedirectedToRequest: (NSURLRequest*)request
-redirectResponse: (NSURLResponse*)redirectResponse
-{
-  return;
-}
-
-- (void) URLProtocol: (NSURLProtocol*)proto
-    didFailWithError: (NSError*)error
-{
-  *_error = error;
-  _done = YES;
 }
 
 - (void) connection: (NSURLConnection *)connection
    didFailWithError: (NSError *)error
 {
-  *_error = error;
+  ASSIGN(_error, error);
   _done = YES;
 }
 
-- (void) URLProtocol: (NSURLProtocol*)proto
-  didReceiveResponse: (NSURLResponse*)response
-  cacheStoragePolicy: (NSURLCacheStoragePolicy)policy
+- (void) connection: (NSURLConnection *)connection
+ didReceiveResponse: (NSURLResponse*)response
 {
-  *_response = response;
-}
-
-- (void) URLProtocolDidFinishLoading: (NSURLProtocol*)proto
-{
-  _done = YES;
+  ASSIGN(_response, response);
 }
 
 - (void) connectionDidFinishLoading: (NSURLConnection *)connection
@@ -138,23 +99,10 @@ redirectResponse: (NSURLResponse*)redirectResponse
 }
 
 
-- (void) URLProtocol: (NSURLProtocol*)proto
-	 didLoadData: (NSData*)data
-{
-  if (_data == nil)
-    {
-      _data = [data mutableCopy];
-    }
-  else
-    {
-      [_data appendData: data];
-    }
-}
-
 - (void) connection: (NSURLConnection *)connection
      didReceiveData: (NSData *)data
 {
-  if (_data == nil)
+  if (nil == _data)
     {
       _data = [data mutableCopy];
     }
@@ -320,20 +268,26 @@ typedef struct
 {
   NSData	*data = nil;
 
+  if (0 != response)
+    {
+      *response = nil;
+    }
+  if (0 != error)
+    {
+      *error = nil;
+    }
   if ([self canHandleRequest: request] == YES)
     {
       _NSURLConnectionDataCollector	*collector;
       NSURLConnection			*conn;
       NSRunLoop				*loop;
 
-      collector = [_NSURLConnectionDataCollector alloc];
-      collector = [collector initWithResponsePointer: response
-				     andErrorPointer: error];
+      collector = [_NSURLConnectionDataCollector new];
       conn = [self alloc];
-      conn = [conn initWithRequest: request delegate: AUTORELEASE(collector)];
-      [collector _setConnection: conn];
+      conn = [conn initWithRequest: request delegate: [collector autorelease]];
+      [collector setConnection: conn];
       loop = [NSRunLoop currentRunLoop];
-      while ([collector _done] == NO)
+      while ([collector done] == NO)
         {
 	  NSDate	*limit;
 
@@ -341,10 +295,18 @@ typedef struct
 	  [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
 	  RELEASE(limit);
 	}
-      data = RETAIN([collector _data]);
+      data = [[[collector data] retain] autorelease];
+      if (0 != response)
+	{
+          *response = [[[collector response] retain] autorelease];
+	}
+      if (0 != error)
+	{
+          *error = [[[collector error] retain] autorelease];
+	}
       [conn release];
     }
-  return AUTORELEASE(data);
+  return data;
 }
 
 @end
@@ -355,7 +317,7 @@ typedef struct
 - (void) URLProtocol: (NSURLProtocol *)protocol
   cachedResponseIsValid: (NSCachedURLResponse *)cachedResponse
 {
-
+  return;
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
@@ -374,7 +336,7 @@ typedef struct
   didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
   [this->_delegate connection: self
-  didReceiveAuthenticationChallenge: challenge];
+    didReceiveAuthenticationChallenge: challenge];
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
