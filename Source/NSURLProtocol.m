@@ -77,6 +77,7 @@ zfree(void *opaque, void *mem)
 }
 + (void) purge: (NSNotification*)n;
 - (void) cache: (NSDate*)when;
+- (void) close;
 - (NSDate*) expires;
 - (id) initWithHost: (NSHost*)h port: (uint16_t)p forSSL: (BOOL)s;
 - (NSInputStream*) inputStream;
@@ -126,13 +127,28 @@ static NSLock		*pairLock = nil;
 
 - (void) cache: (NSDate*)when
 {
-  ASSIGN(expires, when);
+  NSTimeInterval	ti = [when timeIntervalSinceNow];
+
+  if (ti <= 0.0)
+    {
+      [self close];
+      return;
+    }
+  NSAssert(ip != nil, NSGenericException);
+  if (ti > 120.0)
+    {
+      ASSIGN(expires, [NSDate dateWithTimeIntervalSinceNow: 120.0]);
+    }
+  else
+    { 
+      ASSIGN(expires, when);
+    }
   [pairLock lock];
   [pairCache addObject: self];
   [pairLock unlock];
 }
 
-- (void) dealloc
+- (void) close
 {
   [ip setDelegate: nil];
   [op setDelegate: nil];
@@ -144,6 +160,11 @@ static NSLock		*pairLock = nil;
   [op close];
   DESTROY(ip);
   DESTROY(op);
+}
+
+- (void) dealloc
+{
+  [self close];
   DESTROY(host);
   DESTROY(expires);
   [super dealloc];

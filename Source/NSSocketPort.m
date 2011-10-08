@@ -529,11 +529,7 @@ static Class	runLoopClass;
   if (connect(desc, (struct sockaddr*)&sockAddr,
     GSPrivateSockaddrLength(&sockAddr)) == SOCKET_ERROR)
     {
-#ifdef __MINGW__
-      if (WSAGetLastError() != WSAEWOULDBLOCK)
-#else
-      if (errno != EINPROGRESS)
-#endif
+      if (!GSWOULDBLOCK)
 	{
 	  NSLog(@"unable to make connection to %d - %@",
 	    GSPrivateSockaddrName(&sockAddr), [NSError _last]);

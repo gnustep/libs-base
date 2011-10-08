@@ -910,7 +910,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       [self setNonBlocking: YES];
       if (connect(net, &sin, GSPrivateSockaddrLength(&sin)) == -1)
 	{
-	  if (errno != EINPROGRESS)
+	  if (!GSWOULDBLOCK)
 	    {
 	      NSLog(@"unable to make connection to %@ - %@",
 		GSPrivateSockaddrName(&sin), [NSError _last]);

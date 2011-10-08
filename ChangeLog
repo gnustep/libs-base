@@ -1,3 +1,14 @@
+2011-10-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSFileHandle.m:
+	* GSNetwork.h:
+	* GSSocketStream.m:
+	* NSMessagePort.m:
+	* NSSocketPort.m:
+	* NSURLProtocol.m:
+	Check for EALREADY as well as EINPROGRESS as an indicator of an
+	incomplete system call on a non-blocking descriptor.
+
 2011-10-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:

@@ -381,7 +381,7 @@ static Class	runLoopClass;
 
   if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
     {
-      if (errno != EINPROGRESS)
+      if (!GSWOULDBLOCK)
 	{
 	  NSLog(@"unable to make connection to %s - %@",
 	    sockAddr.sun_path, [NSError _last]);

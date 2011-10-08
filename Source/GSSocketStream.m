@@ -1246,12 +1246,7 @@ socketError(int result)
 static inline BOOL
 socketWouldBlock()
 {
-#if	defined(__MINGW__)
-  int   e = WSAGetLastError();
-  return (e == WSAEWOULDBLOCK || e == WSAEINPROGRESS) ? YES : NO;
-#else
-  return (errno == EWOULDBLOCK || errno == EINPROGRESS) ? YES : NO;
-#endif
+  return GSWOULDBLOCK ? YES : NO;
 }
 
 
