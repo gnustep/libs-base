@@ -237,7 +237,7 @@ encodeQuotedPrintable(NSMutableData *result,
   offset = [result length];
   [result setLength: offset + size];
   dst = (unsigned char*)[result mutableBytes];
-  column = 0;  
+  column = 0;
 
   for (i = 0; i < length; i++)
     {
@@ -1272,7 +1272,7 @@ wordData(NSString *word)
 	}
       /*
        * Correct size of output buffer.
-       */	
+       */
       [dData setLength: size + dst - beg];
     }
   else
@@ -1518,7 +1518,7 @@ wordData(NSString *word)
     }
   if (l == 0)
     {
-      /* Add an empty line to the end of the current headers to force 
+      /* Add an empty line to the end of the current headers to force
        * completion of header parsing.
        */
       [self parseHeaders: [NSData dataWithBytes: "\r\n\r\n" length: 4]
@@ -1542,7 +1542,7 @@ wordData(NSString *word)
   else
     {
       NSUInteger	i = NSMaxRange(r);
-      
+
       i -= [data length];			// Bytes to append to headers
       [data appendBytes: [d bytes] length: i];
       bytes = (unsigned char*)[data bytes];
@@ -1805,7 +1805,7 @@ wordData(NSString *word)
 	  return NO;
 	}
       subtype = [info objectForKey: @"Subtype"];
-	
+
       if ([type isEqualToString: @"text"] == YES)
 	{
 	  if (subtype == nil)
@@ -2229,7 +2229,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       length = r.location - start;
       if (length == 0)
 	{
-	  return nil;
+	  return @"";
 	}
       else
 	{
@@ -2663,7 +2663,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  else if (child == nil)
 	    {
 	      NSString	*cset;
-	
+
 	      /*
 	       * Found boundary at the start of the first section.
 	       * Set sectionStart to point immediately after boundary.
@@ -4048,7 +4048,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
 
   /*
-   * Now look for the xml encoding declaration ... 
+   * Now look for the xml encoding declaration ...
    */
 
   // Tolerate leading whitespace
@@ -4348,7 +4348,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 + (NSStringEncoding) encodingFromCharset: (NSString*)charset
 {
   NSStringEncoding	enc = NSASCIIStringEncoding;
-  
+
   if (charset != nil)
     {
       enc = (NSStringEncoding)NSMapGet(charsets, charset);
@@ -5193,7 +5193,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 }
 
 /**
- * Converts any base64 encoded parts of the receiver's content to be 
+ * Converts any base64 encoded parts of the receiver's content to be
  * binary encoded instead ... a convenience method to
  * shrink down the size of the message when converted to data using
  * the -rawMimeData method.
@@ -6674,7 +6674,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
   return @"idle ... not connected to SMTP server";
 }
 
-/** Handler for stream events ... 
+/** Handler for stream events ...
  */
 - (void) stream: (NSStream*)aStream handleEvent: (NSStreamEvent)anEvent
 {
