@@ -3,6 +3,7 @@
 	* Source/NSString.m: Fix boundary error when getting cString into a
 	buffer.  Fix floatValue and doubleValue to support arbitrary length
 	of leading white space.
+	* Source/GSNetwork.h: Check for EAGAIN on nonblocking socket.
 
 2011-10-08  Niels Grewe <niels.grewe@halbordnung.de>
 
