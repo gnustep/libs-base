@@ -136,6 +136,17 @@ static NSData *whitespaceBitmap;
 static unsigned const char *whitespaceBitmapRep = NULL;
 #define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespaceBitmapRep[(X)/8], (X) % 8)
 
+static void setupNonspace(void)
+{
+  if (nil == nonspace)
+    {
+      NSCharacterSet *whitespace;
+
+      whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+      nonspace = [[whitespace invertedSet] retain];
+    }
+}
+
 static void setupWhitespace(void)
 {
   if (whitespaceBitmapRep == NULL)
@@ -149,7 +160,6 @@ static void setupWhitespace(void)
 */
       whitespace = [NSCharacterSet characterSetWithCharactersInString:
 				    @" \t\r\n\f\b"];
-      nonspace = [[whitespace invertedSet] retain];
       whitespaceBitmap = RETAIN([whitespace bitmapRepresentation]);
       whitespaceBitmapRep = [whitespaceBitmap bytes];
     }
@@ -3112,7 +3122,7 @@ handle_printf_atsign (FILE *stream,
   double	d = 0.0;
   NSRange	r;
 
-  setupWhitespace();
+  setupNonspace();
   r = [self rangeOfCharacterFromSet: nonspace];
   if (NSNotFound == r.location) return 0.0;
   r.length = [self length] - r.location;
@@ -3133,7 +3143,7 @@ handle_printf_atsign (FILE *stream,
   double	d = 0.0;
   NSRange	r;
 
-  setupWhitespace();
+  setupNonspace();
   r = [self rangeOfCharacterFromSet: nonspace];
   if (NSNotFound == r.location) return 0.0;
   r.length = [self length] - r.location;
