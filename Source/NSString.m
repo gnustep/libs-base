@@ -131,6 +131,7 @@ static SEL	cMemberSel = 0;
 
 #define IS_BIT_SET(a,i) ((((a) & (1<<(i)))) > 0)
 
+static NSCharacterSet	*nonspace = nil;
 static NSData *whitespaceBitmap;
 static unsigned const char *whitespaceBitmapRep = NULL;
 #define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespaceBitmapRep[(X)/8], (X) % 8)
@@ -148,7 +149,7 @@ static void setupWhitespace(void)
 */
       whitespace = [NSCharacterSet characterSetWithCharactersInString:
 				    @" \t\r\n\f\b"];
-
+      nonspace = [[whitespace invertedSet] retain];
       whitespaceBitmap = RETAIN([whitespace bitmapRepresentation]);
       whitespaceBitmapRep = [whitespaceBitmap bytes];
     }
@@ -3014,16 +3015,16 @@ handle_printf_atsign (FILE *stream,
     {
       NSData	*d = [self dataUsingEncoding: encoding];
       unsigned	length = [d length];
-      BOOL	result = (length <= maxLength) ? YES : NO;
+      BOOL	result = (length < maxLength) ? YES : NO;
 
       if (d == nil)
         {
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't convert to C string."];
 	}
-      if (length > maxLength)
+      if (length >= maxLength)
         {
-          length = maxLength;
+          length = maxLength-1;
 	}
       memcpy(buffer, [d bytes], length);
       buffer[length] = '\0';
@@ -3108,12 +3109,16 @@ handle_printf_atsign (FILE *stream,
 - (double) doubleValue
 {
   unichar	buf[32];
-  unsigned	len = [self length];
   double	d = 0.0;
+  NSRange	r;
 
-  if (len > 32) len = 32;
-  [self getCharacters: buf range: NSMakeRange(0, len)];
-  GSScanDouble(buf, len, &d);
+  setupWhitespace();
+  r = [self rangeOfCharacterFromSet: nonspace];
+  if (NSNotFound == r.location) return 0.0;
+  r.length = [self length] - r.location;
+  if (r.length > 32) r.length = 32;
+  [self getCharacters: buf range: r];
+  GSScanDouble(buf, r.length, &d);
   return d;
 }
 
@@ -3125,12 +3130,16 @@ handle_printf_atsign (FILE *stream,
 - (float) floatValue
 {
   unichar	buf[32];
-  unsigned	len = [self length];
   double	d = 0.0;
+  NSRange	r;
 
-  if (len > 32) len = 32;
-  [self getCharacters: buf range: NSMakeRange(0, len)];
-  GSScanDouble(buf, len, &d);
+  setupWhitespace();
+  r = [self rangeOfCharacterFromSet: nonspace];
+  if (NSNotFound == r.location) return 0.0;
+  r.length = [self length] - r.location;
+  if (r.length > 32) r.length = 32;
+  [self getCharacters: buf range: r];
+  GSScanDouble(buf, r.length, &d);
   return (float)d;
 }
 
@@ -3141,17 +3150,17 @@ handle_printf_atsign (FILE *stream,
  */
 - (int) intValue
 {
-  return atoi([self lossyCString]);
+  return atoi([self UTF8String]);
 }
 
 - (NSInteger) integerValue
 {
-  return atol([self lossyCString]);
+  return atol([self UTF8String]);
 }
 
 - (long long) longLongValue
 {
-  return atoll([self lossyCString]);
+  return atoll([self UTF8String]);
 }
 
 // Working With Encodings

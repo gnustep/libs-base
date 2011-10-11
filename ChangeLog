@@ -1,3 +1,9 @@
+2011-10-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Fix boundary error when getting cString into a
+	buffer.  Fix floatValue and doubleValue to support arbitrary length
+	of leading white space.
+
 2011-10-08  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/Additions/GSMime.m (GSMimeParser -scanToken:): Return an empty
@@ -5,12 +11,12 @@
  
 2011-10-08  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* GSFileHandle.m:
-	* GSNetwork.h:
-	* GSSocketStream.m:
-	* NSMessagePort.m:
-	* NSSocketPort.m:
-	* NSURLProtocol.m:
+	* Source/GSFileHandle.m:
+	* Source/GSNetwork.h:
+	* Source/GSSocketStream.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	* Source/NSURLProtocol.m:
 	Check for EALREADY as well as EINPROGRESS as an indicator of an
 	incomplete system call on a non-blocking descriptor.
 
