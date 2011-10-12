@@ -1,3 +1,14 @@
+2011-10-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h:
+	* Source/NSString.m:
+	* Source/GSString.m: Use UTF-8 literal constant strings now that we
+	require a compiler version which supports them.
+	* Tests/base/NSString/test07.m: Simple test for UTF-8 in literal.
+	* Tests/base/GNUmakefile.super: Ensure all tests are compiled with
+	UTF-8 set as the source code characterset.
+	Shuld fix bug #34486
+
 2011-10-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix boundary error when getting cString into a

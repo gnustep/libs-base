@@ -162,7 +162,7 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
  * more important.
  */
 #define GS_REPLACE_CONSTANT_STRING(ID) [(ID = [NSObject \
-  leak: [[NSString alloc] initWithCString: [ID cString]]]) release]
+  leak: [[NSString alloc] initWithUTF8String: [ID UTF8String]]]) release]
 /* Using cString here is OK here
    because NXConstantString returns a pointer
    to it's internal pointer.  */

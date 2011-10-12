@@ -4,8 +4,10 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  double d;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  unichar		u = 0x00a3;	// Pound sign
+  NSString		*s;
+  double 		d;
 
   PASS([@"12" intValue] == 12, "simple intValue works");
   PASS([@"-12" intValue] == -12, "negative intValue works");
@@ -24,6 +26,9 @@ int main()
   PASS(d > 1.199999 && d < 1.200001, "doubleValue ignores trailing data");
   d = [@"                                1.2" doubleValue];
   PASS(d > 1.199999 && d < 1.200001, "doubleValue with leading space works");
+
+  s = [NSString stringWithCharacters: &u length: 1];
+  PASS_EQUAL(s, @"£", "UTF-8 string literal matches 16bit unicode string");
 
   [arp release]; arp = nil;
   return 0;
