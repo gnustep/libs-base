@@ -24,7 +24,8 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "GSNetwork.h"
+#import "GSPrivate.h"
+#import "GSNetwork.h"
 
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
