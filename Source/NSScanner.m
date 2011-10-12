@@ -72,7 +72,6 @@ static Class		GSCStringClass;
 static Class		GSUnicodeStringClass;
 static Class		GSMutableStringClass;
 static Class		GSPlaceholderStringClass;
-static Class		NSConstantStringClass;
 static id		_holder;
 static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel;
@@ -139,7 +138,6 @@ typedef GSString	*ivars;
       GSUnicodeStringClass = [GSUnicodeString class];
       GSMutableStringClass = [GSMutableString class];
       GSPlaceholderStringClass = [GSPlaceholderString class];
-      NSConstantStringClass = [NSString constantStringClass];
       _holder = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
       externalEncoding = [NSString defaultCStringEncoding];
       if (GSPrivateIsByteEncoding(externalEncoding) == YES)
@@ -228,11 +226,6 @@ typedef GSString	*ivars;
 				    length: ((ivars)aString)->_count
 				  encoding: internalEncoding];
 	}
-    }
-  else if (c == NSConstantStringClass)
-    {
-      _isUnicode = NO;
-      _string = RETAIN(aString);
     }
   else if ([aString isKindOfClass: NSStringClass])
     {
