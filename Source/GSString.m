@@ -832,7 +832,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 
   c = object_getClass(string);
   length = [string length];
-  if (GSObjCIsKindOf(c, GSCStringClass) == YES || c == NSConstantStringClass
+  if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || (GSObjCIsKindOf(c, GSMutableStringClass) == YES
       && ((GSStr)string)->_flags.wide == 0))
     {
@@ -1219,7 +1219,6 @@ compare_c(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
     return strCompCsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 0))
     return strCompCsCs((id)self, aString, mask, aRange);
   else
@@ -1236,7 +1235,6 @@ compare_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
     return strCompUsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass)
-    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 0))
     return strCompUsCs((id)self, aString, mask, aRange);
   else
@@ -1707,11 +1705,6 @@ getCString_c(GSStr self, char *buffer, unsigned int maxLength,
 	      buffer[i] = '\0';
 	      return;
 	    }
-	  // Fall through to perform conversion to unicode and back
-	  if ([(id)self class] == NSConstantStringClass)
-	    {
-	      NSLog(@"Warning: non-ASCII character in string literal");
-	    }
 	}
     }
 
@@ -1901,11 +1894,6 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 		    }
 	          return YES;
 		}
-	      // Fall through to perform conversion to unicode and back
-              if ([(id)self class] == NSConstantStringClass)
-                {
-                  NSLog(@"Warning: non-ASCII character in string literal");
-                }
 	    }
 
 	  if (enc == NSASCIIStringEncoding
@@ -2139,16 +2127,7 @@ isEqual_c(GSStr self, id anObject)
       return NO;
     }
   c = object_getClass(anObject);
-  if (c == NSConstantStringClass)
-    {
-      GSStr	other = (GSStr)anObject;
-
-      if (other->_count == self->_count
-	&& memcmp(other->_contents.c, self->_contents.c, self->_count) == 0)
-	return YES;
-      return NO;
-    }
-  else if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
+  if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
     {
       GSStr	other = (GSStr)anObject;
       NSRange	r = {0, self->_count};
@@ -2207,16 +2186,7 @@ isEqual_u(GSStr self, id anObject)
       return NO;
     }
   c = object_getClass(anObject);
-  if (c == NSConstantStringClass)
-    {
-      GSStr	other = (GSStr)anObject;
-      NSRange	r = {0, self->_count};
-
-      if (strCompUsCs((id)self, (id)other, 0, r) == NSOrderedSame)
-	return YES;
-      return NO;
-    }
-  else if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
+  if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
     {
       GSStr	other = (GSStr)anObject;
       NSRange	r = {0, self->_count};
@@ -2617,14 +2587,12 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target)
         || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 1))
         return (GSRSFunc)strRangeUsUs;
       else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-        || c == NSConstantStringClass
         || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
         return (GSRSFunc)strRangeUsCs;
       else
         return (GSRSFunc)strRangeUsNs;
     }
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
     {
       c = object_getClass(target);
@@ -2632,7 +2600,6 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target)
         || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 1))
         return (GSRSFunc)strRangeCsUs;
       else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-        || c == NSConstantStringClass
         || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
         return (GSRSFunc)strRangeCsCs;
       else
@@ -2654,7 +2621,6 @@ rangeOfString_c(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
     return strRangeCsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 0))
     return strRangeCsCs((id)self, aString, mask, aRange);
   else
@@ -2671,7 +2637,6 @@ rangeOfString_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
     return strRangeUsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 0))
     return strRangeUsCs((id)self, aString, mask, aRange);
   else
@@ -2749,7 +2714,7 @@ transmute(GSStr self, NSString *aString)
       /*
        * This is a string held in the internal 8-bit encoding.
        */
-      if (GSObjCIsKindOf(c, GSCStringClass) || c == NSConstantStringClass
+      if (GSObjCIsKindOf(c, GSCStringClass)
 	|| (c == GSMutableStringClass && other->_flags.wide == 0))
 	{
 	  /*
@@ -4766,6 +4731,215 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
 
 
+/* Determine the length of the UTF-8 string as a unicode (UTF-16) string.
+ * sets the ascii flag according to the content found.
+ */
+static NSUInteger
+lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii)
+{
+  const uint8_t	*e = p + l;
+  BOOL		a = YES;
+
+  l = 0;
+  while (p < e)
+    {
+      uint8_t	c = *p;
+      uint32_t	u = c;
+
+      if (c > 0x7f)
+	{
+	  int i, sle = 0;
+
+	  a = NO;
+	  /* calculated the expected sequence length */
+	  while (c & 0x80)
+	    {
+	      c = c << 1;
+	      sle++;
+	    }
+
+	  /* legal ? */
+	  if ((sle < 2) || (sle > 6))
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Bad sequence length in constant string"];
+	    }
+
+	  if (p + sle > e)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Short data in constant string"];
+	    }
+
+	  /* get the codepoint */
+	  for (i = 1; i < sle; i++)
+	    {
+	      if (p[i] < 0x80 || p[i] >= 0xc0)
+		break;
+	      u = (u << 6) | (p[i] & 0x3f);
+	    }
+
+	  if (i < sle)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Codepoint out of range in constant string"];
+	    }
+	  u = u & ~(0xffffffff << ((5 * sle) + 1));
+	  p += sle;
+
+	  /*
+	   * We check for invalid codepoints here.
+	   */
+	  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
+	    || (u >= 0xfdd0 && u <= 0xfdef))
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Codepoint invalid in constant string"];
+	    }
+
+	  if ((u >= 0xd800) && (u <= 0xdfff))
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Bad surrogate pair in constant string"];
+	    }
+	}
+      else
+	{
+	  p++;
+	}
+
+      /*
+       * Add codepoint as either a single unichar for BMP
+       * or as a pair of surrogates for codepoints over 16 bits.
+       */
+      if (u < 0x10000)
+	{
+	  l++;
+	}
+      else
+	{
+	  l += 2;
+	}
+    }
+  if (0 != ascii)
+    {
+      *ascii = a;
+    }
+  return l;
+}
+
+/* Sequentially extracts characters from UTF-8 string
+ * p = pointer to the utf-8 data
+ * l = length (bytes) of the utf-8 data
+ * o = pointer to current offset within the data
+ * n = pointer to either zero or the next pre-read part of a surrogate pair.
+ */
+static inline unichar
+nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
+{
+  unsigned	i;
+
+  /* If we still have the second part of a surrogate pair, return it.
+   */
+  if (*n > 0)
+    {
+      unichar	u = *n;
+
+      *n = 0;
+      return u;
+    }
+
+  if ((i = *o) < l)
+    {
+      uint8_t	c = p[i];
+      uint32_t	u = c;
+
+      if (c > 0x7f)
+	{
+	  int j, sle = 0;
+
+	  /* calculated the expected sequence length */
+	  while (c & 0x80)
+	    {
+	      c = c << 1;
+	      sle++;
+	    }
+
+	  /* legal ? */
+	  if ((sle < 2) || (sle > 6))
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"bad multibyte character length"];
+	    }
+
+	  if (sle + i > l)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"multibyte character extends beyond data"];
+	    }
+
+	  /* get the codepoint */
+	  for (j = 1; j < sle; j++)
+	    {
+	      uint8_t	b = p[i + j];
+
+	      if (b < 0x80 || b >= 0xc0)
+		break;
+	      u = (u << 6) | (b & 0x3f);
+	    }
+
+	  if (j < sle)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"bad data in multibyte character"];
+	    }
+	  u = u & ~(0xffffffff << ((5 * sle) + 1));
+	  i += sle;
+
+	  /*
+	   * We discard invalid codepoints here.
+	   */
+	  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
+	    || (u >= 0xfdd0 && u <= 0xfdef))
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"invalid unicode codepoint"];
+	    }
+
+	  if ((u >= 0xd800) && (u <= 0xdfff))
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"unmatched half of surrogate pair"];
+	    }
+	}
+      else
+	{
+	  i++;
+	}
+
+      /*
+       * Add codepoint as either a single unichar for BMP
+       * or as a pair of surrogates for codepoints over 16 bits.
+       */
+      if (u >= 0x10000)
+	{
+	  unichar ul, uh;
+
+	  u -= 0x10000;
+	  ul = u & 0x3ff;
+	  uh = (u >> 10) & 0x3ff;
+
+	  *n = ul + 0xdc00;	// record second part of pair
+	  u = uh + 0xd800;	// return first part.
+	}
+      *o = i;			// Return new index
+      return (unichar)u;
+    }
+  [NSException raise: NSInvalidArgumentException
+	      format: @"no more data in UTF-8 string"];
+  return 0;
+}
+
 /**
  * <p>The NXConstantString class is used by the compiler for constant
  * strings, as such its ivar layout is determined by the compiler
@@ -4780,16 +4954,90 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 {
   if (self == [NXConstantString class])
     {
-      GSObjCAddClassBehavior(self, [GSCString class]);
       NSConstantStringClass = self;
     }
 }
 
-/*
- * Access instance variables of NXConstantString class consistently
- * with other concrete NSString subclasses.
- */
-#define _self	((GSStr)self)
+- (const char*) UTF8String
+{
+  return nxcsptr;
+}
+
+- (unichar) characterAtIndex: (NSUInteger)index
+{
+  NSUInteger	l = 0;
+  unichar	u;
+  unichar	n = 0;
+  unsigned	i = 0;
+
+  while (i < nxcslen)
+    {
+      u = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+      if (l++ == index)
+	{
+	  return u;
+	}
+    }
+
+  [NSException raise: NSInvalidArgumentException
+	      format: @"-characterAtIndex: index out of range"];
+  return 0;
+}
+
+- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
+	 allowLossyConversion: (BOOL)flag
+{
+  if (0 == nxcslen)
+    {
+      return [NSDataClass data];
+    }
+  if (NSUTF8StringEncoding == encoding)
+    {
+      return [NSDataClass dataWithBytesNoCopy: (void*)nxcsptr
+				       length: nxcslen
+				 freeWhenDone: NO];
+    }
+  return [super dataUsingEncoding: encoding allowLossyConversion: flag];
+}
+
+- (void) dealloc
+{
+  GSNOSUPERDEALLOC;
+}
+
+- (void) getCharacters: (unichar*)buffer
+		 range: (NSRange)aRange
+{
+  unichar	n = 0;
+  unsigned	i = 0;
+  NSUInteger	max = NSMaxRange(aRange);
+  NSUInteger	index = 0;
+
+  if (NSNotFound == aRange.location)
+    [NSException raise: NSRangeException
+                format: @"in %s, range { %u, %u } extends beyond string",
+     GSNameFromSelector(_cmd), aRange.location, aRange.length];
+
+  while (index < aRange.location && i < nxcslen)
+    {
+      nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+      index++;
+    }
+  if (index == aRange.location)
+    {
+      while (index < max && i < nxcslen)
+	{
+	  *buffer++ = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+	  index++;
+	}
+    }
+  if (index != max)
+    {
+      [NSException raise: NSRangeException
+		  format: @"in %s, range { %u, %u } extends beyond string",
+       GSNameFromSelector(_cmd), aRange.location, aRange.length];
+    }
+}
 
 - (id) initWithBytes: (const void*)bytes
 	      length: (NSUInteger)length
@@ -4810,14 +5058,75 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   return nil;
 }
 
-- (void) dealloc
+- (NSUInteger) length
 {
-  GSNOSUPERDEALLOC;
+  return lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0);
 }
 
-- (const char*) cString
+- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
+			    options: (NSUInteger)mask
+			      range: (NSRange)aRange
 {
-  return (char*)_self->_contents.c;
+  NSUInteger	index;
+  NSUInteger	start;
+  NSUInteger	stop;
+  NSRange	range;
+  BOOL		(*mImp)(id, SEL, unichar);
+  unichar	n = 0;
+  unsigned	i = 0;
+  BOOL		ascii;
+
+  index = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii);
+  GS_RANGE_CHECK(aRange, index);
+
+  start = aRange.location;
+  stop = NSMaxRange(aRange);
+
+  range.location = NSNotFound;
+  range.length = 0;
+
+  mImp = (BOOL(*)(id,SEL,unichar))
+    [aSet methodForSelector: @selector(characterIsMember:)];
+
+  for (index = 0; index < start; index++)
+    {
+      nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+    }
+  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+    {
+      unichar		buf[stop - start];
+      NSUInteger	pos = 0;
+      
+      for (pos = 0; pos + start < stop; pos++)
+	{
+	  buf[pos] = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+	}
+      index = stop;
+      while (index-- > 0)
+	{
+	  if ((*mImp)(aSet, @selector(characterIsMember:), buf[--pos]))
+	    {
+	      range = NSMakeRange(index, 1);
+	      break;
+	    }
+	}
+    }
+  else
+    {
+      while (index < stop)
+	{
+	  unichar letter = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+
+	  if ((*mImp)(aSet, @selector(characterIsMember:), letter))
+	    {
+	      range = NSMakeRange(index, 1);
+	      break;
+	    }
+	  index++;
+	}
+    }
+
+  return range;
 }
 
 - (id) retain
@@ -4847,169 +5156,12 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
 - (NSStringEncoding) fastestEncoding
 {
-  return NSASCIIStringEncoding;
+  return NSUTF8StringEncoding;
 }
 
 - (NSStringEncoding) smallestEncoding
 {
-  return NSASCIIStringEncoding;
-}
-
-/*
- * Return a 28-bit hash value for the string contents - this
- * MUST match the algorithm used by the NSString base class.
- */
-- (NSUInteger) hash
-{
-  unsigned	ret = 0;
-  unsigned	len = _self->_count;
-
-  if (len > 0)
-    {
-      register const unsigned char	*p;
-      register unsigned			index = 0;
-
-      p = _self->_contents.c;
-      if (internalEncoding == NSISOLatin1StringEncoding)
-	{
-	  while (index < len)
-	    {
-	      ret = (ret << 5) + ret + p[index++];
-	    }
-	}
-      else
-	{
-	  while (index < len)
-	    {
-	      unichar	u = p[index++];
-
-	      if (u > 127)
-		{
-		  unsigned char	c = (unsigned char)u;
-		  unsigned int	s = 1;
-		  unichar	*d = &u;
-
-		  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
-		}
-	      ret = (ret << 5) + ret + u;
-	    }
-	}
-
-      /*
-       * The hash caching in our concrete string classes uses zero to denote
-       * an empty cache value, so we MUST NOT return a hash of zero.
-       */
-      ret &= 0x0fffffff;
-      if (ret == 0)
-	{
-	  ret = 0x0fffffff;
-	}
-    }
-  else
-    {
-      ret = 0x0ffffffe;	/* Hash for an empty string.	*/
-    }
-  return ret;
-}
-
-- (BOOL) isEqual: (id)anObject
-{
-  Class	c;
-
-  if (anObject == self)
-    {
-      return YES;
-    }
-  if (anObject == nil)
-    {
-      return NO;
-    }
-  if (GSObjCIsInstance(anObject) == NO)
-    {
-      return NO;
-    }
-  c = object_getClass(anObject);
-
-  if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NSConstantStringClass
-    || (c == GSMutableStringClass && ((GSStr)anObject)->_flags.wide == 0))
-    {
-      GSStr	other = (GSStr)anObject;
-
-      if (_self->_count != other->_count)
-	return NO;
-      if (memcmp(_self->_contents.c, other->_contents.c, _self->_count) != 0)
-	return NO;
-      return YES;
-    }
-  else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
-    || c == GSMutableStringClass)
-    {
-      if (strCompCsUs(self, anObject, 0, (NSRange){0,_self->_count})
-	== NSOrderedSame)
-	{
-	  return YES;
-	}
-      return NO;
-    }
-  else if (YES == [anObject isKindOfClass: NSStringClass]) // may be proxy
-    {
-      return (*equalImp)(self, equalSel, anObject);
-    }
-  else
-    {
-      return NO;
-    }
-}
-
-- (BOOL) isEqualToString: (NSString*)anObject
-{
-  Class	c;
-
-  if (anObject == self)
-    {
-      return YES;
-    }
-  if (anObject == nil)
-    {
-      return NO;
-    }
-  if (GSObjCIsInstance(anObject) == NO)
-    {
-      return NO;
-    }
-  c = object_getClass(anObject);
-
-  if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NSConstantStringClass
-    || (c == GSMutableStringClass && ((GSStr)anObject)->_flags.wide == 0))
-    {
-      GSStr	other = (GSStr)anObject;
-
-      if (_self->_count != other->_count)
-	return NO;
-      if (memcmp(_self->_contents.c, other->_contents.c, _self->_count) != 0)
-	return NO;
-      return YES;
-    }
-  else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
-    || c == GSMutableStringClass)
-    {
-      if (strCompCsUs(self, anObject, 0, (NSRange){0,_self->_count})
-	== NSOrderedSame)
-	{
-	  return YES;
-	}
-      return NO;
-    }
-  else if (YES == [anObject isKindOfClass: NSStringClass]) // may be proxy
-    {
-      return (*equalImp)(self, equalSel, anObject);
-    }
-  else
-    {
-      return NO;
-    }
+  return NSUTF8StringEncoding;
 }
 
 @end

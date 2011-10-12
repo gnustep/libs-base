@@ -15,7 +15,7 @@ static NSOutputStream *defaultOutput = nil;
 static NSInputStream *defaultInput = nil;
 static int byteCount = 0;
 
-static const uint8_t * rawstring = "GET / HTTP/1.0\r\n\r\n";
+static const uint8_t *rawstring = (const uint8_t*)"GET / HTTP/1.0\r\n\r\n";
 static BOOL     done = NO;
 
 @interface Listener : NSObject
@@ -70,6 +70,7 @@ NSLog(@"Got %d on %p", streamEvent, theStream);
           {
             // it is possible that readSize<0 but not an Error.
 	    // For example would block
+NSLog(@"%@", [defaultInput streamError]);
             NSAssert([defaultInput streamError]==nil, @"read error");
           }
         if (readSize == 0)

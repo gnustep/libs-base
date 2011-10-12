@@ -2052,25 +2052,26 @@ handle_printf_atsign (FILE *stream,
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
   if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
     {
-        NSRange r = {NSNotFound, 0};
-        NSError *e = nil;
-        NSUInteger options = 0;
-        NSRegularExpression *regex = [NSRegularExpression alloc];
-        if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
-          {
-            options |= NSRegularExpressionCaseInsensitive;
-          }
-        regex = [regex initWithPattern: aString options: options error: &e];
-        if (nil == e)
-          {
-            options = ((mask & NSAnchoredSearch) == NSAnchoredSearch) ?
-                NSMatchingAnchored : 0;
-            r = [regex rangeOfFirstMatchInString: self
-                                         options: options
-                                           range: aRange];
-          }
-        [regex release];
-        return r;
+      NSRange			r = {NSNotFound, 0};
+      NSError			*e = nil;
+      NSUInteger		options = 0;
+      NSRegularExpression	*regex = [NSRegularExpression alloc];
+
+      if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
+	{
+	  options |= NSRegularExpressionCaseInsensitive;
+	}
+      regex = [regex initWithPattern: aString options: options error: &e];
+      if (nil == e)
+	{
+	  options = ((mask & NSAnchoredSearch) == NSAnchoredSearch)
+	    ? NSMatchingAnchored : 0;
+	  r = [regex rangeOfFirstMatchInString: self
+				       options: options
+					 range: aRange];
+	}
+      [regex release];
+      return r;
     }
   return strRangeNsNs(self, aString, mask, aRange);
 }
