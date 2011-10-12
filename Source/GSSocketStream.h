@@ -27,7 +27,7 @@
 
 /* You should have included GSStream.h before this */
 
-#include "GSNetwork.h"
+#import "GSNetwork.h"
 
 typedef	union {
   struct sockaddr	s;
