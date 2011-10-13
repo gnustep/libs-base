@@ -70,8 +70,10 @@
 #define INVALID_SOCKET  -1
 #define BADSOCKET(X)    ((X) < 0)
 #define GSNETERROR      errno
-#define GSWOULDBLOCK    (EINPROGRESS == GSNETERROR\
- || EALREADY == GSNETERROR || EAGAIN == errno)
+#define GSWOULDBLOCK    (EINPROGRESS == errno\
+ || EALREADY == errno\
+ || EINTR == errno\
+ || EAGAIN == errno)
 
 #endif  /* __MINGW__ */
 
