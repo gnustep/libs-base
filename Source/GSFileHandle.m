@@ -747,8 +747,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  if (!GSWOULDBLOCK)
 	    {
+	      NSError	*e = [NSError _last];
+
 	      NSLog(@"unable to make connection to %@ - %@",
-		GSPrivateSockaddrName(&sin), [NSError _last]);
+		GSPrivateSockaddrName(&sin), e);
 	      DESTROY(self);
 	      return nil;
 	    }
@@ -829,8 +831,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (bind(net, &sin, GSPrivateSockaddrLength(&sin)) == -1)
     {
+      NSError	*e = [NSError _last];
+
       NSLog(@"unable to bind to port %@ - %@",
-	GSPrivateSockaddrName(&sin), [NSError _last]);
+	GSPrivateSockaddrName(&sin), e);
       (void) close(net);
       DESTROY(self);
       return nil;
