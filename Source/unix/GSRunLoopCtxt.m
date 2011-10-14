@@ -26,9 +26,6 @@
 #ifdef HAVE_POLL_F
 #include <poll.h>
 #endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 #define	FDCOUNT	128
 

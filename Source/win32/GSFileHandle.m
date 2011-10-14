@@ -54,9 +54,6 @@
 #include <stdio.h>
 
 #include <string.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 #ifndef	O_BINARY
 #ifdef	_O_BINARY

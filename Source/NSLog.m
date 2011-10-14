@@ -62,11 +62,6 @@
 # endif
 #endif	// HAVE_SYSLOG
 
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 #import "GSPrivate.h"
 
 extern NSThread	*GSCurrentThread();

@@ -50,9 +50,6 @@
 #import "GSPrivate.h"
 
 #include <string.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <sys/file.h>
 
 #ifdef HAVE_SYS_FCNTL_H
