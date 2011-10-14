@@ -1,6 +1,6 @@
-/* Comment åäö. */
+﻿/* Comment Ã¥Ã¤Ã¶. */
 {
 ascii = ascii;
-"NågotMindreAscii" = foo;
-"Quoted non-ascii åäö" = "åäö";
+"NÃ¥gotMindreAscii" = foo;
+"Quoted non-ascii Ã¥Ã¤Ã¶" = "Ã¥Ã¤Ã¶";
 }
