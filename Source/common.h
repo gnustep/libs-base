@@ -47,6 +47,10 @@
 #import	"Foundation/NSBundle.h"
 #import	"GNUstepBase/NSBundle+GNUstepBase.h"
 
+/* We need to wrap unistd.h because it is used throughout the code and some
+ * versions include __block as a variable name, and clang now defines that
+ * as a reserved workd :-(
+ */
 #ifdef HAVE_UNISTD_H
 #define __block __gs_unistd_block
 #include <unistd.h>
