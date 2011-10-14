@@ -4735,10 +4735,11 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
  * sets the ascii flag according to the content found.
  */
 static NSUInteger
-lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii)
+lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii, BOOL *latin1)
 {
   const uint8_t	*e = p + l;
   BOOL		a = YES;
+  BOOL		l1 = YES;
 
   l = 0;
   while (p < e)
@@ -4815,6 +4816,10 @@ lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii)
       if (u < 0x10000)
 	{
 	  l++;
+	  if (u > 255)
+	    {
+	      l1 = NO;
+	    }
 	}
       else
 	{
@@ -4824,6 +4829,10 @@ lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii)
   if (0 != ascii)
     {
       *ascii = a;
+    }
+  if (0 != latin1)
+    {
+      *latin1 = l1;
     }
   return l;
 }
@@ -4996,9 +5005,47 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
     }
   if (NSUTF8StringEncoding == encoding)
     {
+      /* We want utf-8, so we can just return an object pointing to the
+       * constant string data.
+       */
       return [NSDataClass dataWithBytesNoCopy: (void*)nxcsptr
 				       length: nxcslen
 				 freeWhenDone: NO];
+    }
+  if (NSASCIIStringEncoding == encoding
+    || NSISOLatin1StringEncoding == encoding)
+    {
+      BOOL	ascii;
+      BOOL	latin1;
+      unsigned	length;
+
+      length = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, &latin1);
+      if (YES == ascii)
+	{
+	  /* The coonstant string data is just ascii, so we can return a
+	   * pointer to it dierctly.
+	   */
+	  return [NSDataClass dataWithBytesNoCopy: (void*)nxcsptr
+					   length: nxcslen
+				     freeWhenDone: NO];
+	}
+      if (YES == latin1)
+	{
+	  unsigned	i = 0;
+	  unichar	n = 0;
+	  uint8_t	*b;
+
+	  /* If all the characters are latin1 we can copy them efficiently.
+	   */
+	  b = NSAllocateCollectable(length, 0);
+	  while (i < length)
+	    {
+	      b[i] = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+	    }
+	  return [NSDataClass dataWithBytesNoCopy: (void*)b
+					   length: length
+				     freeWhenDone: YES];
+	}
     }
   return [super dataUsingEncoding: encoding allowLossyConversion: flag];
 }
@@ -5096,7 +5143,7 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
 
 - (NSUInteger) length
 {
-  return lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0);
+  return lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, 0);
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
@@ -5112,7 +5159,7 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
   unsigned	i = 0;
   BOOL		ascii;
 
-  index = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii);
+  index = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, 0);
   GS_RANGE_CHECK(aRange, index);
 
   start = aRange.location;
