@@ -63,6 +63,10 @@
 #  include <windows.h>
 #endif
 
+#ifdef HAVE_STRERROR
+#  include <errno.h>
+#endif
+
 #ifdef  HAVE_SYS_SIGNAL_H
 #include <sys/signal.h>
 #endif
