@@ -36,10 +36,6 @@
 #import "Foundation/NSError.h"
 #import "GSPrivate.h"
 
-#if !defined(__MINGW__)
-#include <errno.h>
-#endif
-
 /**
  * GNUstep specific (non-standard) additions to the NSError class.
  * Possibly to be made public

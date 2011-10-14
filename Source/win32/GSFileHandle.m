@@ -57,7 +57,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <errno.h>
 
 #ifndef	O_BINARY
 #ifdef	_O_BINARY

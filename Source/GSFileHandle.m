@@ -64,7 +64,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <errno.h>
 
 /*
  *	Stuff for setting the sockets into non-blocking mode.

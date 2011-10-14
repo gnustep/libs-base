@@ -42,8 +42,6 @@
 
 #include "GNUstepBase/GSMime.h"
 
-#include <errno.h>
-
 #include "../GSPrivate.h"
 #include "../GSPortPrivate.h"
 

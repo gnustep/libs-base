@@ -47,7 +47,6 @@
 #include "../GSPortPrivate.h"
 
 #include <stdio.h>
-#include <errno.h>
 
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
