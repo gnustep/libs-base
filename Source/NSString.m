@@ -2857,27 +2857,32 @@ handle_printf_atsign (FILE *stream,
  */
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding
 {
-  NSData	*d;
   NSMutableData	*m;
 
-  d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
-  if (d == nil)
+  if (NSUnicodeStringEncoding == encoding)
     {
-      [NSException raise: NSCharacterConversionException
-		  format: @"unable to convert to cString"];
-    }
-  m = [d mutableCopy];
-  if (encoding == NSUnicodeStringEncoding)
-    {
-      unichar c = 0;
+      unichar	*u;
+      unsigned	l;
 
-      [m appendBytes: &c length: 2];
+      l = [self length];
+      m = [NSMutableData dataWithLength: l + 1];
+      u = (unichar*)[m mutableBytes];
+      [self getCharacters: u];
+      u[l] = 0;
     }
   else
     {
+      NSData	*d;
+
+      d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
+      if (d == nil)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"unable to convert to cString"];
+	}
+      m = [[d mutableCopy] autorelease];
       [m appendBytes: "" length: 1];
     }
-  IF_NO_GC([m autorelease];)
   return (const char*)[m bytes];
 }
 
