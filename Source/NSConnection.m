@@ -178,10 +178,14 @@ GSRunLoopForThread(NSThread *aThread)
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
 @end
 
-#define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
-#define F_UNLOCK(X) {NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
-#define M_LOCK(X) {NSDebugMLLog(@"GSConnection",@"Lock %@",X);[X lock];}
-#define M_UNLOCK(X) {NSDebugMLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
+#define GS_F_LOCK(X) \
+{NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
+#define GS_F_UNLOCK(X) \
+{NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
+#define GS_M_LOCK(X) \
+{NSDebugMLLog(@"GSConnection",@"Lock %@",X);[X lock];}
+#define GSM_UNLOCK(X) \
+{NSDebugMLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 
 NSString * const NSDestinationInvalidException =
   @"NSDestinationInvalidException";
@@ -377,7 +381,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
   NSHashEnumerator	enumerator;
   NSConnection		*c;
 
-  F_LOCK(connection_table_gate);
+  GS_F_LOCK(connection_table_gate);
   enumerator = NSEnumerateHashTable(connection_table);
   while ((c = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
     {
@@ -393,7 +397,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
 	}
     }
   NSEndHashTableEnumeration(&enumerator);
-  F_UNLOCK(connection_table_gate);
+  GS_F_UNLOCK(connection_table_gate);
   return c;
 }
 
@@ -405,9 +409,9 @@ rootObjectForInPort(NSPort *aPort)
 {
   id	rootObject;
 
-  F_LOCK(root_object_map_gate);
+  GS_F_LOCK(root_object_map_gate);
   rootObject = (id)NSMapGet(root_object_map, (void*)(uintptr_t)aPort);
-  F_UNLOCK(root_object_map_gate);
+  GS_F_UNLOCK(root_object_map_gate);
   return rootObject;
 }
 
@@ -417,7 +421,7 @@ setRootObjectForInPort(id anObj, NSPort *aPort)
 {
   id	oldRootObject;
 
-  F_LOCK(root_object_map_gate);
+  GS_F_LOCK(root_object_map_gate);
   oldRootObject = (id)NSMapGet(root_object_map, (void*)(uintptr_t)aPort);
   if (oldRootObject != anObj)
     {
@@ -431,7 +435,7 @@ setRootObjectForInPort(id anObj, NSPort *aPort)
 	  NSMapRemove(root_object_map, (void*)(uintptr_t)aPort);
 	}
     }
-  F_UNLOCK(root_object_map_gate);
+  GS_F_UNLOCK(root_object_map_gate);
 }
 
 static NSMapTable *targetToCached = NULL;
@@ -457,9 +461,9 @@ static NSLock	*cached_proxies_gate = nil;
 {
   NSArray	*a;
 
-  M_LOCK(connection_table_gate);
+  GS_M_LOCK(connection_table_gate);
   a = NSAllHashTableObjects(connection_table);
-  M_UNLOCK(connection_table_gate);
+  GSM_UNLOCK(connection_table_gate);
   return a;
 }
 
@@ -795,7 +799,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSArray	*cached_locals;
   int	i;
 
-  M_LOCK(cached_proxies_gate);
+  GS_M_LOCK(cached_proxies_gate);
   cached_locals = NSAllMapTableValues(targetToCached);
   for (i = [cached_locals count]; i > 0; i--)
     {
@@ -814,7 +818,7 @@ static NSLock	*cached_proxies_gate = nil;
       [t invalidate];
       timer = nil;
     }
-  M_UNLOCK(cached_proxies_gate);
+  GSM_UNLOCK(cached_proxies_gate);
 }
 
 /**
@@ -823,7 +827,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) addRequestMode: (NSString*)mode
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if ([self isValid] == YES)
     {
       if ([IrequestModes containsObject: mode] == NO)
@@ -839,7 +843,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  [IrequestModes addObject: mode];
 	}
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 /**
@@ -848,7 +852,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) addRunLoop: (NSRunLoop*)loop
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if ([self isValid] == YES)
     {
       if ([IrunLoops indexOfObjectIdenticalTo: loop] == NSNotFound)
@@ -864,7 +868,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  [IrunLoops addObject: loop];
 	}
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 - (void) dealloc
@@ -1038,7 +1042,7 @@ static NSLock	*cached_proxies_gate = nil;
 	@"Send: %@\n  Recv: %@", parent, self, s, r);
     }
 
-  M_LOCK(connection_table_gate);
+  GS_M_LOCK(connection_table_gate);
 
   IisValid = YES;
   IreceivePort = RETAIN(r);
@@ -1179,7 +1183,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       if ([del connection: parent shouldMakeNewConnection: self] == NO)
 	{
-	  M_UNLOCK(connection_table_gate);
+	  GSM_UNLOCK(connection_table_gate);
 	  DESTROY(self);
 	  return nil;
 	}
@@ -1189,7 +1193,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       if (![del makeNewConnection: self sender: parent])
 	{
-	  M_UNLOCK(connection_table_gate);
+	  GSM_UNLOCK(connection_table_gate);
 	  DESTROY(self);
 	  return nil;
 	}
@@ -1223,7 +1227,7 @@ static NSLock	*cached_proxies_gate = nil;
      implementation of [-release] to automatically remove the connection
      from this array when it is the only thing retaining it. */
   NSHashInsert(connection_table, (void*)self);
-  M_UNLOCK(connection_table_gate);
+  GSM_UNLOCK(connection_table_gate);
 
   [nCenter postNotificationName: NSConnectionDidInitializeNotification
 			 object: self];
@@ -1242,10 +1246,10 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) invalidate
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (IisValid == NO)
     {
-      M_UNLOCK(IrefGate);
+      GSM_UNLOCK(IrefGate);
       return;
     }
   if (IshuttingDown == NO)
@@ -1258,11 +1262,11 @@ static NSLock	*cached_proxies_gate = nil;
       //[self _shutdown];
     }
   IisValid = NO;
-  M_LOCK(connection_table_gate);
+  GS_M_LOCK(connection_table_gate);
   NSHashRemove(connection_table, self);
-  M_UNLOCK(connection_table_gate);
+  GSM_UNLOCK(connection_table_gate);
 
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 
   /*
    * Don't need notifications any more - so remove self as observer.
@@ -1323,7 +1327,7 @@ static NSLock	*cached_proxies_gate = nil;
    *	these proxies in case they are keeping us retained when we
    *	might otherwise de deallocated.
    */
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (IlocalTargets != 0)
     {
       NSMutableArray		*targets;
@@ -1371,7 +1375,7 @@ static NSLock	*cached_proxies_gate = nil;
       NSZoneFree(IlocalObjects->zone, (void*)IlocalObjects);
       IlocalObjects = 0;
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 
   /*
    * If we are invalidated, we shouldn't be receiving any event and
@@ -1412,7 +1416,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSMutableArray	*c;
 
   /* Don't assert (IisValid); */
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (IlocalObjects != 0)
     {
       GSIMapEnumerator_t	enumerator;
@@ -1432,7 +1436,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       c = [NSArray array];
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
   return c;
 }
 
@@ -1502,16 +1506,16 @@ static NSLock	*cached_proxies_gate = nil;
    * it from the table so that no other thread will find it
    * and try to use it while it is being deallocated.
    */
-  M_LOCK(connection_table_gate);
+  GS_M_LOCK(connection_table_gate);
   if (NSDecrementExtraRefCountWasZero(self))
     {
       NSHashRemove(connection_table, self);
-      M_UNLOCK(connection_table_gate);
+      GSM_UNLOCK(connection_table_gate);
       [self dealloc];
     }
   else
     {
-      M_UNLOCK(connection_table_gate);
+      GSM_UNLOCK(connection_table_gate);
     }
 }
 
@@ -1524,7 +1528,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSMutableArray	*c;
 
   /* Don't assert (IisValid); */
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (IremoteProxies != 0)
     {
       GSIMapEnumerator_t	enumerator;
@@ -1544,7 +1548,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       c = [NSMutableArray array];
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
   return c;
 }
 
@@ -1553,7 +1557,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) removeRequestMode: (NSString*)mode
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (IrequestModes != nil && [IrequestModes containsObject: mode])
     {
       unsigned	c = [IrunLoops count];
@@ -1568,7 +1572,7 @@ static NSLock	*cached_proxies_gate = nil;
 	}
       [IrequestModes removeObject: mode];
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 /**
@@ -1576,7 +1580,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) removeRunLoop: (NSRunLoop*)loop
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (IrunLoops != nil)
     {
       unsigned	pos = [IrunLoops indexOfObjectIdenticalTo: loop];
@@ -1596,7 +1600,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  [IrunLoops removeObjectAtIndex: pos];
 	}
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 /**
@@ -1619,9 +1623,9 @@ static NSLock	*cached_proxies_gate = nil;
 {
   NSArray	*c;
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   c = AUTORELEASE([IrequestModes copy]);
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
   return c;
 }
 
@@ -1743,7 +1747,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) setRequestMode: (NSString*)mode
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (IrequestModes != nil)
     {
       while ([IrequestModes count] > 0
@@ -1760,7 +1764,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  [self addRequestMode: mode];
 	}
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 /**
@@ -1830,7 +1834,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   d = [NSMutableDictionary dictionaryWithCapacity: 8];
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
 
   /*
    *	These are in OPENSTEP 4.2
@@ -1859,7 +1863,7 @@ static NSLock	*cached_proxies_gate = nil;
   o = [NSNumber numberWithUnsignedInt: [IrequestQueue count]];
   [d setObject: o forKey: @"NSConnectionRequestQueue"];
 
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 
   return d;
 }
@@ -2047,7 +2051,7 @@ static NSLock	*cached_proxies_gate = nil;
        * the IreplyMap.  However, in case the other end has already sent us
        * a response, we must check for it and scrap it if necessary.
        */
-      M_LOCK(IrefGate);
+      GS_M_LOCK(IrefGate);
       node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(NSUInteger)seq);
       if (node != 0 && node->value.obj != dummyObject)
 	{
@@ -2063,7 +2067,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  [self _doneInRmc: node->value.obj];
 	}
       GSIMapRemoveKey(IreplyMap, (GSIMapKey)(NSUInteger)seq);
-      M_UNLOCK(IrefGate);
+      GSM_UNLOCK(IrefGate);
     }
   else
     {
@@ -2211,9 +2215,9 @@ static NSLock	*cached_proxies_gate = nil;
 {
   unsigned	result;
 
-  M_LOCK(connection_table_gate);
+  GS_M_LOCK(connection_table_gate);
   result = NSCountHashTable(connection_table);
-  M_UNLOCK(connection_table_gate);
+  GSM_UNLOCK(connection_table_gate);
   return result;
 }
 
@@ -2223,7 +2227,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSHashEnumerator	enumerator;
   NSConnection		*o;
 
-  M_LOCK(connection_table_gate);
+  GS_M_LOCK(connection_table_gate);
   enumerator = NSEnumerateHashTable(connection_table);
   while ((o = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
     {
@@ -2233,7 +2237,7 @@ static NSLock	*cached_proxies_gate = nil;
 	}
     }
   NSEndHashTableEnumeration(&enumerator);
-  M_UNLOCK(connection_table_gate);
+  GSM_UNLOCK(connection_table_gate);
 
   return count;
 }
@@ -2326,14 +2330,14 @@ static NSLock	*cached_proxies_gate = nil;
 	 * If REPLY_DEPTH is non-zero, we may still want to service it now
 	 * if independent_queuing is NO.
 	 */
-	M_LOCK(GSIVar(conn, _refGate));
+	GS_M_LOCK(GSIVar(conn, _refGate));
 	if (GSIVar(conn, _requestDepth) == 0
 	  || GSIVar(conn, _independentQueueing) == NO)
 	  {
 	    GSIVar(conn, _requestDepth)++;
-	    M_UNLOCK(GSIVar(conn, _refGate));
+	    GSM_UNLOCK(GSIVar(conn, _refGate));
 	    [conn _service_forwardForProxy: rmc];	// Catches exceptions
-	    M_LOCK(GSIVar(conn, _refGate));
+	    GS_M_LOCK(GSIVar(conn, _refGate));
 	    GSIVar(conn, _requestDepth)--;
 	  }
 	else
@@ -2349,11 +2353,11 @@ static NSLock	*cached_proxies_gate = nil;
 	  {
 	    rmc = [GSIVar(conn, _requestQueue) objectAtIndex: 0];
 	    [GSIVar(conn, _requestQueue) removeObjectAtIndex: 0];
-	    M_UNLOCK(GSIVar(conn, _refGate));
+	    GSM_UNLOCK(GSIVar(conn, _refGate));
 	    [conn _service_forwardForProxy: rmc];	// Catches exceptions
-	    M_LOCK(GSIVar(conn, _refGate));
+	    GS_M_LOCK(GSIVar(conn, _refGate));
 	  }
-	M_UNLOCK(GSIVar(conn, _refGate));
+	GSM_UNLOCK(GSIVar(conn, _refGate));
 	break;
 
       /*
@@ -2379,7 +2383,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      [self _doneInRmc: rmc];
 	      break;
 	    }
-	  M_LOCK(GSIVar(conn, _refGate));
+	  GS_M_LOCK(GSIVar(conn, _refGate));
 	  node = GSIMapNodeForKey(GSIVar(conn, _replyMap),
 	    (GSIMapKey)(NSUInteger)sequence);
 	  if (node == 0)
@@ -2401,7 +2405,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      [self _doneInRmc: node->value.obj];
 	      node->value.obj = rmc;
 	    }
-	  M_UNLOCK(GSIVar(conn, _refGate));
+	  GSM_UNLOCK(GSIVar(conn, _refGate));
 	}
 	break;
 
@@ -2908,7 +2912,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  if (debug_connection > 3)
 	    NSLog(@"releasing object with target (0x%x) on (%@) counter %d",
 		target, self, prox->_counter);
-	  M_LOCK(IrefGate);
+	  GS_M_LOCK(IrefGate);
 	  NS_DURING
 	    {
 	      if (--(prox->_counter) == 0)
@@ -2929,11 +2933,11 @@ static NSLock	*cached_proxies_gate = nil;
 	    }
 	  NS_HANDLER
 	    {
-	      M_UNLOCK(IrefGate);
+	      GSM_UNLOCK(IrefGate);
 	      [localException raise];
 	    }
 	  NS_ENDHANDLER
-	  M_UNLOCK(IrefGate);
+	  GSM_UNLOCK(IrefGate);
 	}
       else if (debug_connection > 3)
 	NSLog(@"releasing object with target (0x%x) on (%@) - nothing to do",
@@ -2962,7 +2966,7 @@ static NSLock	*cached_proxies_gate = nil;
     NSLog(@"looking to retain local object with target (0x%x) on (%@)",
       target, self);
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   local = [self locateLocalTarget: target];
   if (local == nil)
     {
@@ -2972,7 +2976,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       local->_counter++;	// Vended on connection.
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 
   [op encodeObject: response];
   [self _sendOutRmc: op type: RETAIN_REPLY];
@@ -3114,14 +3118,14 @@ static NSLock	*cached_proxies_gate = nil;
       if (debug_connection > 5)
 	NSLog(@"Waiting for reply sequence %d on %@",
 	  sn, self);
-      M_LOCK(IrefGate); isLocked = YES;
+      GS_M_LOCK(IrefGate); isLocked = YES;
       while (IisValid == YES
 	&& (node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(NSUInteger)sn)) != 0
 	&& node->value.obj == dummyObject)
 	{
 	  NSDate	*limit_date;
 
-	  M_UNLOCK(IrefGate); isLocked = NO;
+	  GSM_UNLOCK(IrefGate); isLocked = NO;
 	  if (start_date == nil)
 	    {
 	      start_date = [dateClass allocWithZone: NSDefaultMallocZone()];
@@ -3165,7 +3169,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    && (limit_date == timeout_date))
 	    || [timeout_date timeIntervalSinceNow] <= 0.0)
 	    {
-	      M_LOCK(IrefGate); isLocked = YES;
+	      GS_M_LOCK(IrefGate); isLocked = YES;
 	      node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(NSUInteger)sn);
 	      break;
 	    }
@@ -3175,7 +3179,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      NSLog(@"WARNING ... waiting for reply %u since %@ on %@",
 		sn, start_date, self);
 	    }
-	  M_LOCK(IrefGate); isLocked = YES;
+	  GS_M_LOCK(IrefGate); isLocked = YES;
 	}
       if (node == 0)
 	{
@@ -3186,7 +3190,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  rmc = node->value.obj;
 	  GSIMapRemoveKey(IreplyMap, (GSIMapKey)(NSUInteger)sn);
 	}
-      M_UNLOCK(IrefGate); isLocked = NO;
+      GSM_UNLOCK(IrefGate); isLocked = NO;
       TEST_RELEASE(start_date);
       TEST_RELEASE(delay_date);
       TEST_RELEASE(timeout_date);
@@ -3213,7 +3217,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       if (isLocked == YES)
 	{
-	  M_UNLOCK(IrefGate);
+	  GSM_UNLOCK(IrefGate);
 	}
       [localException raise];
     }
@@ -3231,7 +3235,7 @@ static NSLock	*cached_proxies_gate = nil;
 
 - (void) _doneInRmc: (NSPortCoder*)c
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (debug_connection > 5)
     {
       NSLog(@"done rmc %p", c);
@@ -3242,7 +3246,7 @@ static NSLock	*cached_proxies_gate = nil;
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 /*
@@ -3251,7 +3255,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) _failInRmc: (NSPortCoder*)c
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (cacheCoders == YES && IcachedDecoders != nil
     && [IcachedDecoders indexOfObjectIdenticalTo: c] == NSNotFound)
     {
@@ -3263,7 +3267,7 @@ static NSLock	*cached_proxies_gate = nil;
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 /*
@@ -3272,7 +3276,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) _failOutRmc: (NSPortCoder*)c
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (cacheCoders == YES && IcachedEncoders != nil
     && [IcachedEncoders indexOfObjectIdenticalTo: c] == NSNotFound)
     {
@@ -3280,7 +3284,7 @@ static NSLock	*cached_proxies_gate = nil;
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 - (NSPortCoder*) _makeInRmc: (NSMutableArray*)components
@@ -3290,7 +3294,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   NSParameterAssert(IisValid);
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (cacheCoders == YES && IcachedDecoders != nil
     && (count = [IcachedDecoders count]) > 0)
     {
@@ -3301,7 +3305,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       coder = [recvCoderClass allocWithZone: NSDefaultMallocZone()];
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 
   coder = [coder initWithReceivePort: IreceivePort
 			    sendPort:IsendPort
@@ -3325,7 +3329,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   NSParameterAssert(IisValid);
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   /*
    * Generate a new sequence number if required.
    */
@@ -3355,7 +3359,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       coder = [sendCoderClass allocWithZone: NSDefaultMallocZone()];
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 
   coder = [coder initWithReceivePort: IreceivePort
 			    sendPort:IsendPort
@@ -3418,7 +3422,7 @@ static NSLock	*cached_proxies_gate = nil;
 			      from: IreceivePort
 			  reserved: [IsendPort reservedSpaceLength]];
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
 
   /*
    * We replace the coder we have just used in the cache, and tell it not to
@@ -3430,7 +3434,7 @@ static NSLock	*cached_proxies_gate = nil;
     }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 
   if (sent == NO)
     {
@@ -3475,7 +3479,7 @@ static NSLock	*cached_proxies_gate = nil;
   unsigned		target;
   GSIMapNode    	node;
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   NSParameterAssert (IisValid);
 
   object = anObj->_object;
@@ -3506,7 +3510,7 @@ static NSLock	*cached_proxies_gate = nil;
     NSLog(@"add local object (%p) target (0x%x) "
 	  @"to connection (%@)", object, target, self);
 
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 - (NSDistantObject*) retainOrAddLocal: (NSDistantObject*)proxy
@@ -3516,7 +3520,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSDistantObject	*p;
 
   /* Don't assert (IisValid); */
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)object);
   if (node == 0)
     {
@@ -3532,7 +3536,7 @@ static NSLock	*cached_proxies_gate = nil;
       p = proxy;
       [self addLocalObject: p];
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
   return p;
 }
 
@@ -3543,7 +3547,7 @@ static NSLock	*cached_proxies_gate = nil;
   unsigned	val = 0;
   GSIMapNode	node;
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   anObj = prox->_object;
   node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)anObj);
 
@@ -3567,7 +3571,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  CachedLocalObject	*item;
 
 	  (prox->_counter) = 0;
-	  M_LOCK(cached_proxies_gate);
+	  GS_M_LOCK(cached_proxies_gate);
 	  if (timer == nil)
 	    {
 	      timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
@@ -3578,7 +3582,7 @@ static NSLock	*cached_proxies_gate = nil;
 	    }
 	  item = [CachedLocalObject newWithObject: prox time: 5];
 	  NSMapInsert(targetToCached, (void*)(uintptr_t)target, item);
-	  M_UNLOCK(cached_proxies_gate);
+	  GSM_UNLOCK(cached_proxies_gate);
 	  RELEASE(item);
 	  if (debug_connection > 3)
 	    NSLog(@"placed local object (%p) target (0x%x) in cache",
@@ -3600,7 +3604,7 @@ static NSLock	*cached_proxies_gate = nil;
 	NSLog(@"removed local object (%p) target (0x%x) "
 	  @"from connection (%@) (ref %d)", anObj, target, self, val);
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 - (void) _release_target: (unsigned)target count: (unsigned)number
@@ -3646,7 +3650,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSDistantObject	*proxy = nil;
   GSIMapNode		node;
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
 
   /*
    * Try a quick lookup to see if the target references a local object
@@ -3667,7 +3671,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       CachedLocalObject	*cached;
 
-      M_LOCK(cached_proxies_gate);
+      GS_M_LOCK(cached_proxies_gate);
       cached = NSMapGet (targetToCached, (void*)(uintptr_t)target);
       if (cached != nil)
 	{
@@ -3682,7 +3686,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  if (debug_connection > 3)
 	    NSLog(@"target (0x%x) moved from cache", target);
 	}
-      M_UNLOCK(cached_proxies_gate);
+      GSM_UNLOCK(cached_proxies_gate);
     }
 
   /*
@@ -3694,14 +3698,14 @@ static NSLock	*cached_proxies_gate = nil;
       NSHashEnumerator	enumerator;
       NSConnection	*c;
 
-      M_LOCK(connection_table_gate);
+      GS_M_LOCK(connection_table_gate);
       enumerator = NSEnumerateHashTable(connection_table);
       while (proxy == nil
 	&& (c = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
 	{
 	  if (c != self && [c isValid] == YES)
 	    {
-	      M_LOCK(GSIVar(c, _refGate));
+	      GS_M_LOCK(GSIVar(c, _refGate));
 	      node = GSIMapNodeForKey(GSIVar(c, _localTargets),
 		(GSIMapKey)(NSUInteger)target);
 	      if (node != 0)
@@ -3731,14 +3735,14 @@ static NSLock	*cached_proxies_gate = nil;
 		  GSIMapAddPair(IlocalTargets,
 		    (GSIMapKey)(NSUInteger)target, (GSIMapVal)((id)proxy));
 		}
-	      M_UNLOCK(GSIVar(c, _refGate));
+	      GSM_UNLOCK(GSIVar(c, _refGate));
 	    }
 	}
       NSEndHashTableEnumeration(&enumerator);
-      M_UNLOCK(connection_table_gate);
+      GSM_UNLOCK(connection_table_gate);
     }
 
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 
   if (proxy == nil)
     {
@@ -3750,9 +3754,9 @@ static NSLock	*cached_proxies_gate = nil;
 
 - (void) vendLocal: (NSDistantObject*)aProxy
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   aProxy->_counter++;
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 - (void) acquireProxyForTarget: (unsigned)target
@@ -3761,7 +3765,7 @@ static NSLock	*cached_proxies_gate = nil;
   GSIMapNode		node;
 
   /* Don't assert (IisValid); */
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)(NSUInteger)target);
   if (node == 0)
     {
@@ -3771,7 +3775,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       found = node->value.obj;
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
   if (found == nil)
     {
       NS_DURING
@@ -3815,7 +3819,7 @@ static NSLock	*cached_proxies_gate = nil;
 
 - (void) removeProxy: (NSDistantObject*)aProxy
 {
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   if (IisValid == YES)
     {
       unsigned		target;
@@ -3840,7 +3844,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  [self _release_target: target count: count];
 	}
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
 }
 
 
@@ -3872,7 +3876,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSParameterAssert(aProxy == nil || [aProxy connectionForProxy] == self);
   NSParameterAssert(aProxy == nil || aTarget == aProxy->_handle);
 
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   node = GSIMapNodeForKey(IremoteProxies, (GSIMapKey)(NSUInteger)aTarget);
   if (node == 0)
     {
@@ -3898,7 +3902,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       p->_counter++;
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
   return p;
 }
 
@@ -3908,7 +3912,7 @@ static NSLock	*cached_proxies_gate = nil;
   GSIMapNode		node;
 
   /* Don't assert (IisValid); */
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   node = GSIMapNodeForKey(IlocalObjects, (GSIMapKey)(NSUInteger)anObj);
   if (node == 0)
     {
@@ -3918,7 +3922,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       ret = node->value.obj;
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
   return ret;
 }
 
@@ -3928,7 +3932,7 @@ static NSLock	*cached_proxies_gate = nil;
   GSIMapNode		node;
 
   /* Don't assert (IisValid); */
-  M_LOCK(IrefGate);
+  GS_M_LOCK(IrefGate);
   node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)(NSUInteger)target);
   if (node == 0)
     {
@@ -3938,7 +3942,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       ret = node->value.obj;
     }
-  M_UNLOCK(IrefGate);
+  GSM_UNLOCK(IrefGate);
   return ret;
 }
 
@@ -3994,9 +3998,9 @@ static NSLock	*cached_proxies_gate = nil;
       NSEnumerator	*enumerator;
       NSConnection	*c;
 
-      M_LOCK (connection_table_gate);
+      GS_M_LOCK (connection_table_gate);
       enumerator = [NSAllHashTableObjects(connection_table) objectEnumerator];
-      M_UNLOCK (connection_table_gate);
+      GSM_UNLOCK (connection_table_gate);
 
       /*
        * We enumerate an array copy of the contents of the hash table
