@@ -60,7 +60,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #endif /* !__MINGW__ */
-#include <errno.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>

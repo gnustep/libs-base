@@ -22,7 +22,6 @@
 #include <sys/types.h>
 #include <sys/param.h>
 #include <stdio.h>
-#include <errno.h>
 
 #import "GSPrivate.h"
 #import "GSNetwork.h"

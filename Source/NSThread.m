@@ -55,8 +55,6 @@
 #include <sys/fcntl.h>
 #endif
 
-#include <errno.h>
-
 #ifdef	__POSIX_SOURCE
 #define NBLK_OPT     O_NONBLOCK
 #else

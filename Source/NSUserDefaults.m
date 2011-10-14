@@ -31,7 +31,6 @@
 #define	EXPOSE_NSUserDefaults_IVARS	1
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <errno.h>
 
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSArchiver.h"

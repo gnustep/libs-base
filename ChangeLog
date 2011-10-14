@@ -3,6 +3,26 @@
 	* Source/GSString.m: Implement -hash for literal UTF-8 performance.
 	* Source/NSScanner.m: Fix initialisation bug which could cause
 	scanning to fail on some strings.
+	* Source/inet_pton.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSSocketPort.m:
+	* Source/NSUserDefaults.m:
+	* Source/unix/NSStream.m:
+	* Source/inet_ntop.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSMessagePort.m:
+	* Source/GSPrivate.h:
+	* Source/win32/GSFileHandle.m:
+	* Source/win32/NSMessagePort.m:
+	* Source/win32/NSMessagePortNameServer.m:
+	* Source/NSFileManager.m:
+	* Source/Additions/Unicode.m:
+	* Source/Additions/NSError+GNUstepBase.m:
+	* Source/NSThread.m:
+	* Source/GSNetwork.h:
+	* Source/GSFileHandle.m:
+	* Source/NSLock.m:
+	Fix for thread-safe errno on solaris.
 
 2011-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 

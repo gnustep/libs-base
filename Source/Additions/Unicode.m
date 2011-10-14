@@ -71,7 +71,6 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #else
 #include <iconv.h>
 #endif
-#include <errno.h>
 
 /*
  * The whole of the GNUstep code stores UNICODE in internal byte order,

@@ -25,7 +25,6 @@
 #import "common.h"
 
 #include <unistd.h>
-#include <errno.h>
 
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
