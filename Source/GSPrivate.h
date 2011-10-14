@@ -24,9 +24,6 @@
 #ifndef _GSPrivate_h_
 #define _GSPrivate_h_
 
-/* Generally may need this for posix thread-safe errno
- */
-#define _XOPEN_SOURCE   600
 #include <errno.h>
 
 #import "Foundation/NSError.h"

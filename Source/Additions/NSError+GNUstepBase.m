@@ -23,13 +23,7 @@
 
 */
 
-/* We must define _XOPEN_SOURCE to 600 in order to get the standard
- * version of strerror_r when using glibc.  Otherwise glibc will give
- * us a version which may not populate the buffer.
- */
-#define	_XOPEN_SOURCE	600
 #include <string.h>
-
 
 #import "common.h"
 #import "Foundation/NSDictionary.h"
