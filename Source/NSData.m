@@ -3008,7 +3008,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   int		fd;
 	
 #if defined(__MINGW__)
-  const unichar	*thePath = (const unichar*)[path filesystemRepresentation];
+  const unichar	*thePath = (const unichar*)[path fileSystemRepresentation];
 #else
   const char	*thePath = [path fileSystemRepresentation];
 #endif
