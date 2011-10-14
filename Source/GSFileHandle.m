@@ -749,8 +749,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    {
 	      NSError	*e = [NSError _last];
 
-	      NSLog(@"unable to make connection to %@ - %@",
-		GSPrivateSockaddrName(&sin), e);
+	      NSLog(@"unable to make socket connection to %@ - %@ (%d)",
+		GSPrivateSockaddrName(&sin), e, (int)[e code]);
 	      DESTROY(self);
 	      return nil;
 	    }
