@@ -1,6 +1,8 @@
 2011-10-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Implement -hash for literal UTF-8 performance.
+	* Source/NSScanner.m: Fix initialisation bug which could cause
+	scanning to fail on some strings.
 
 2011-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 

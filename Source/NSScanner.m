@@ -201,35 +201,20 @@ typedef GSString	*ivars;
     }
 
   c = object_getClass(aString);
+  if (GSObjCIsKindOf(c, GSMutableStringClass) == YES)
+    {
+      _string = [_holder initWithString: aString];
+    }
   if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
     {
-      _isUnicode = YES;
       _string = RETAIN(aString);
     }
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES)
     {
-      _isUnicode = NO;
       _string = RETAIN(aString);
-    }
-  else if (GSObjCIsKindOf(c, GSMutableStringClass) == YES)
-    {
-      if (((ivars)aString)->_flags.wide == 1)
-	{
-	  _isUnicode = YES;
-	  _string = [_holder initWithCharacters: ((ivars)aString)->_contents.u
-					 length: ((ivars)aString)->_count];
-	}
-      else
-	{
-	  _isUnicode = NO;
-	  _string = [_holder initWithBytes: ((ivars)aString)->_contents.c
-				    length: ((ivars)aString)->_count
-				  encoding: internalEncoding];
-	}
     }
   else if ([aString isKindOfClass: NSStringClass])
     {
-      _isUnicode = YES;
       _string = [_holder initWithString: aString];
     }
   else
@@ -237,6 +222,11 @@ typedef GSString	*ivars;
       DESTROY(self);
       NSLog(@"Scanner initialised with something not a string");
       return nil;
+    }
+  c = object_getClass(_string);
+  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
+    {
+      _isUnicode = YES;
     }
   [self setCharactersToBeSkipped: defaultSkipSet];
   _decimal = '.';
