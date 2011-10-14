@@ -83,9 +83,6 @@
 
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>

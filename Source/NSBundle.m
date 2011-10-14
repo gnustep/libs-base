@@ -60,9 +60,6 @@ NSString * const NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
 NSString * const NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
 NSString * const NSLoadedClasses = @"NSLoadedClasses";
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <string.h>
 
 static NSFileManager	*

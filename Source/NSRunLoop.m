@@ -59,9 +59,6 @@
 #ifdef HAVE_POLL_F
 #include <poll.h>
 #endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <math.h>
 #include <time.h>
 #include <string.h>		/* for memset() */

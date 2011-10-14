@@ -20,7 +20,6 @@
 #import	"common.h"
 
 #include <stdio.h>
-#include <unistd.h>
 
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"

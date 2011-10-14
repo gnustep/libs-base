@@ -76,9 +76,6 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #include <sys/stat.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>

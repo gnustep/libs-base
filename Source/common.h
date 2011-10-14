@@ -47,3 +47,9 @@
 #import	"Foundation/NSBundle.h"
 #import	"GNUstepBase/NSBundle+GNUstepBase.h"
 
+#ifdef HAVE_UNISTD_H
+#define __block __gs_unistd_block
+#include <unistd.h>
+#undef __block
+#endif
+

@@ -86,14 +86,10 @@
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #include <stdio.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>             /* SEEK_* on SunOS 4 */
-#endif
 
 #ifdef	HAVE_MMAP
-#include	<unistd.h>
-#include	<sys/mman.h>
-#include	<fcntl.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 #ifndef	MAP_FAILED
 #define	MAP_FAILED	((void*)-1)	/* Failure address.	*/
 #endif

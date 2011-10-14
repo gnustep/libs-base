@@ -30,9 +30,6 @@
 
 #import "Foundation/NSFileHandle.h"
 #import "GSPrivate.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 /**
  * <p>The NSPipe provides an encapsulation of the UNIX concept of pipe.<br />

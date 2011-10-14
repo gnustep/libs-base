@@ -1,5 +1,36 @@
 2011-10-14  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSSocketPort.m:
+	* Source/NSRunLoop.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/unix/NSStream.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSPage.m:
+	* Source/NSMessagePort.m:
+	* Source/win32/GSFileHandle.m:
+	* Source/NSInvocation.m:
+	* Source/NSFileManager.m:
+	* Source/common.h:
+	* Source/NSString.m:
+	* Source/NSThread.m:
+	* Source/NSData.m:
+	* Source/NSHost.m:
+	* Source/GSNetwork.h:
+	* Source/NSPipe.m:
+	* Source/NSLog.m:
+	* Source/GSFormat.m:
+	* Source/GSFileHandle.m:
+	* Source/NSTask.m:
+	* SSL/GSSSLHandle.m:
+	* Tools/gdnc.m:
+	Move/wrap include of unistd.h to work around clang problem.
+
+2011-10-14  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/Unicode.m:
 	Fix test for availability of lossy conversion via iconv.
 

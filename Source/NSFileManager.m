@@ -77,9 +77,6 @@
 # include <ndir.h>
 #endif
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #ifdef HAVE_WINDOWS_H
 #  include <windows.h>
 #endif

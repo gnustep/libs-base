@@ -33,9 +33,6 @@
 
 #import "common.h"
 #define	EXPOSE_NSThread_IVARS	1
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #ifdef HAVE_NANOSLEEP
 #include <time.h>
 #endif

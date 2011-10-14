@@ -73,9 +73,6 @@
 
 #import "GSPrivate.h"
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>		// for getuid()
-#endif
 #ifdef	HAVE_PWD_H
 #include <pwd.h>		// for getpwnam_r() and getpwuid_r()
 #endif

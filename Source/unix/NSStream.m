@@ -24,8 +24,6 @@
 
 #import "common.h"
 
-#include <unistd.h>
-
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
