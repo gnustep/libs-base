@@ -693,7 +693,6 @@ static gnutls_anon_client_credentials_t anoncred;
   
   /* Set transport layer to use our low level stream code.
    */
-  gnutls_transport_set_lowat (session, 0);
   gnutls_transport_set_pull_function (session, GSTLSPull);
   gnutls_transport_set_push_function (session, GSTLSPush);
   gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
