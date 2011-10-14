@@ -4833,6 +4833,9 @@ lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii)
  * l = length (bytes) of the utf-8 data
  * o = pointer to current offset within the data
  * n = pointer to either zero or the next pre-read part of a surrogate pair.
+ * The condition for having read the entire string is that the offset (*o)
+ * is the number of bytes in the string, and the unichar pointed to by *n
+ * is zero (meaning there is no second part of a surrogate pair remaining).
  */
 static inline unichar
 nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
@@ -4970,7 +4973,7 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
   unichar	n = 0;
   unsigned	i = 0;
 
-  while (i < nxcslen)
+  while (i < nxcslen || n > 0)
     {
       u = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
       if (l++ == index)
@@ -5018,14 +5021,14 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
                 format: @"in %s, range { %u, %u } extends beyond string",
      GSNameFromSelector(_cmd), aRange.location, aRange.length];
 
-  while (index < aRange.location && i < nxcslen)
+  while (index < aRange.location && (i < nxcslen || n > 0))
     {
       nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
       index++;
     }
   if (index == aRange.location)
     {
-      while (index < max && i < nxcslen)
+      while (index < max && (i < nxcslen || n > 0))
 	{
 	  *buffer++ = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
 	  index++;
@@ -5036,6 +5039,39 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
       [NSException raise: NSRangeException
 		  format: @"in %s, range { %u, %u } extends beyond string",
        GSNameFromSelector(_cmd), aRange.location, aRange.length];
+    }
+}
+
+/* Must match the implementation in NSString
+ */
+- (NSUInteger) hash
+{
+  if (nxcslen > 0)
+    {
+      unsigned	ret = 0;
+      unichar	n = 0;
+      unsigned	i = 0;
+      unichar	c;
+
+      while (i < nxcslen)
+	{
+	  c = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+	  ret = (ret << 5) + ret + c;
+	}
+      if (0 != n)
+	{
+	  ret = (ret << 5) + ret + n;	// Add final character
+	}
+      ret &= 0x0fffffff;
+      if (ret == 0)
+	{
+	  ret = 0x0fffffff;
+	}
+      return ret;
+    }
+  else
+    {
+      return 0x0ffffffe;	/* Hash for an empty string.	*/
     }
 }
 
