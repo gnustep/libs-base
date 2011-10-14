@@ -22,7 +22,8 @@
 	* Source/GSNetwork.h:
 	* Source/GSFileHandle.m:
 	* Source/NSLock.m:
-	Fix for thread-safe errno on solaris.
+	* Source/Makefile.preamble:
+	Fix for thread-safe errno on solaris ... define _XOPEN_SOURCE to 600
 
 2011-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 
