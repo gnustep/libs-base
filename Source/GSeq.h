@@ -36,8 +36,8 @@
  *	times so the same code can be used for NSString, and subclasses.
  */
 
-#ifndef __GSeq_h_GNUSTEP_BASE_INCLUDE
-#define __GSeq_h_GNUSTEP_BASE_INCLUDE
+#ifndef __GSeq_h_GNUSTEP_GSEQ_BASE_INCLUDE
+#define __GSeq_h_GNUSTEP_GSEQ_BASE_INCLUDE
 
 /*
  *	Some standard selectors for frequently used methods. Set in NSString
@@ -286,24 +286,24 @@ static inline void GSeq_uppercase(GSeq seq)
  * Definitions for bitmask of search options.  These MUST match the
  * enumeration in NSString.h
  */
-#define FCLS  3
-#define BCLS  7
-#define FLS  2
-#define BLS 6
-#define FCS  1
-#define BCS  5
-#define FS  0
-#define BS  4
-#define FCLAS  11
-#define BCLAS  15
-#define FLAS  10
-#define BLAS 14
-#define FCAS  9
-#define BCAS  13
-#define FAS  8
-#define BAS  12
+#define GSEQ_FCLS  3
+#define GSEQ_BCLS  7
+#define GSEQ_FLS  2
+#define GSEQ_BLS 6
+#define GSEQ_FCS  1
+#define GSEQ_BCS  5
+#define GSEQ_FS  0
+#define GSEQ_BS  4
+#define GSEQ_FCLAS  11
+#define GSEQ_BCLAS  15
+#define GSEQ_FLAS  10
+#define GSEQ_BLAS 14
+#define GSEQ_FCAS  9
+#define GSEQ_BCAS  13
+#define GESQ_FAS  8
+#define GSEQ_BAS  12
 
-#endif /* __GSeq_h_GNUSTEP_BASE_INCLUDE */
+#endif /* __GSeq_h_GNUSTEP_GSEQ_BASE_INCLUDE */
 
 /*
  * Set up macros for dealing with 'self' on the basis of GSQ_S
@@ -658,8 +658,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
   switch (mask)
     {
-      case FCLS : 
-      case FCLAS : 
+      case GSEQ_FCLS: 
+      case GSEQ_FCLAS: 
 	{
 	  unichar	strFirstCharacter = GSEQ_OGETC(0);
 
@@ -693,8 +693,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	  return (NSRange){NSNotFound, 0};
 	}
 
-      case BCLS : 
-      case BCLAS : 
+      case GSEQ_BCLS: 
+      case GSEQ_BCLAS: 
 	{
 	  unichar	strFirstCharacter = GSEQ_OGETC(0);
 
@@ -728,8 +728,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	  return (NSRange){NSNotFound, 0};
 	}
 
-      case FLS : 
-      case FLAS : 
+      case GSEQ_FLS: 
+      case GSEQ_FLAS: 
 	{
 	  unichar	strFirstCharacter = GSEQ_OGETC(0);
 
@@ -762,8 +762,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	  return (NSRange){NSNotFound, 0};
 	}
 
-      case BLS : 
-      case BLAS : 
+      case GSEQ_BLS: 
+      case GSEQ_BLAS: 
 	{
 	  unichar	strFirstCharacter = GSEQ_OGETC(0);
 
@@ -796,8 +796,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	  return (NSRange){NSNotFound, 0};
 	}
 
-      case FCS : 
-      case FCAS : 
+      case GSEQ_FCS: 
+      case GSEQ_FCAS: 
 	{
 	  unsigned	strBaseLength;
 	  NSRange	iRange;
@@ -870,8 +870,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	  return (NSRange){NSNotFound, 0};
 	}
 
-      case BCS : 
-      case BCAS : 
+      case GSEQ_BCS: 
+      case GSEQ_BCAS: 
 	{
 	  unsigned	strBaseLength;
 	  NSRange	iRange;
@@ -947,8 +947,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	  return (NSRange){NSNotFound, 0};
 	}
 
-      case BS : 
-      case BAS : 
+      case GSEQ_BS: 
+      case GSEQ_BAS: 
 	{
 	  unsigned	strBaseLength;
 	  NSRange	iRange;
@@ -1017,9 +1017,9 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 	  return (NSRange){NSNotFound, 0};
 	}
 
-      case FS : 
-      case FAS : 
-      default : 
+      case GSEQ_FS: 
+      case GESQ_FAS: 
+      default: 
 	{
 	  unsigned	strBaseLength;
 	  NSRange	iRange;
