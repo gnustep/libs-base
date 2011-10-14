@@ -1351,7 +1351,7 @@ tables:
 	   */
 	  if (estr == 0)
 	    {
-	      NSLog(@"No iconv for encoding x%02x", enc);
+	      NSLog(@"GSToUnicode() No iconv for encoding x%02x", enc);
 	      result = NO;
 	      goto done;
 	    }
@@ -1362,7 +1362,7 @@ tables:
 	  cd = iconv_open(UNICODE_ENC, estr);
 	  if (cd == (iconv_t)-1)
 	    {
-	      NSLog(@"No iconv for encoding %@ tried to use %s",
+	      NSLog(@"GSToUnicode() No iconv for encoding %@ tried to use %s",
 		GSPrivateEncodingName(enc), estr);
 	      result = NO;
 	      goto done;
@@ -2314,7 +2314,7 @@ iconv_start:
 	   */
 	  if (estr == 0)
 	    {
-	      NSLog(@"No iconv for encoding x%02x", enc);
+	      NSLog(@"GSFromUnicode() No iconv for encoding x%02x", enc);
 	      result = NO;
 	      goto done;
 	    }
@@ -2325,7 +2325,7 @@ iconv_start:
 	  cd = iconv_open(estr, UNICODE_ENC);
 	  if (cd == (iconv_t)-1)
 	    {
-	      NSLog(@"No iconv for encoding %@ tried to use %s",
+	      NSLog(@"GSFromUnicode() No iconv for encoding %@ tried to use %s",
 		GSPrivateEncodingName(enc), estr);
 	      result = NO;
 	      goto done;
