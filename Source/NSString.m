@@ -2865,7 +2865,7 @@ handle_printf_atsign (FILE *stream,
       unsigned	l;
 
       l = [self length];
-      m = [NSMutableData dataWithLength: l + 1];
+      m = [NSMutableData dataWithLength: (l + 1) * sizeof(unichar)];
       u = (unichar*)[m mutableBytes];
       [self getCharacters: u];
       u[l] = 0;
