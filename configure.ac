@@ -1080,6 +1080,7 @@ AC_LANG_POP(C)
 
 
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
+AC_PATH_PROG(PKGCONFIG, pkg-config, yes, no)
 
 #--------------------------------------------------------------------
 # specific target_os options
@@ -1597,13 +1598,13 @@ if test x"$objc_threaded" != x""; then
   LIBS="$LIBS $objc_threaded"
 fi
 LIBS="$LIBS $extra_LIBS"
-AC_CACHE_VAL(objc_works,
+AC_CACHE_VAL(gs_cv_objc_works,
   AC_TRY_RUN([#include "$srcdir/config/config.objc.m"],
-  objc_works=yes, 
-  objc_works=no, 
-  objc_works=yes)
+  gs_cv_objc_works=yes, 
+  gs_cv_objc_works=no, 
+  gs_cv_objc_works=yes)
 )
-if test $objc_works = yes; then
+if test $gs_cv_objc_works = yes; then
   AC_MSG_RESULT(yes)
 else
   AC_MSG_RESULT(no)
@@ -1632,13 +1633,13 @@ else
   strclass_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS -fconstant-string-class=FooConstantString"
   AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
-  AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
+  AC_CACHE_VAL(gs_cv_objc_compiler_supports_constant_string_class,
     AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
-    objc_compiler_supports_constant_string_class=yes,
-    objc_compiler_supports_constant_string_class=no,
-    objc_compiler_supports_constant_string_class=no)
+    gs_cv_objc_compiler_supports_constant_string_class=yes,
+    gs_cv_objc_compiler_supports_constant_string_class=no,
+    gs_cv_objc_compiler_supports_constant_string_class=no)
   )
-  if test $objc_compiler_supports_constant_string_class = yes; then
+  if test $gs_cv_objc_compiler_supports_constant_string_class = yes; then
     NX_CONST_STRING_OBJCFLAGS="-fconstant-string-class=NSConstantString"
     NX_CONST_STRING_CLASS=NSConstantString
     AC_MSG_RESULT(yes)
@@ -1671,13 +1672,13 @@ AC_SUBST(NX_CONST_STRING_CLASS)
 # Needed by NSProcessInfo.m
 #---------------------------------------------------------------------
 AC_MSG_CHECKING(if +load method is executed before main)
-AC_CACHE_VAL(objc_load_method_worked,
+AC_CACHE_VAL(gs_cv_objc_load_method_worked,
   AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
-	objc_load_method_worked=yes,
-	objc_load_method_worked=no,
-	objc_load_method_worked=no)
+	gs_cv_objc_load_method_worked=yes,
+	gs_cv_objc_load_method_worked=no,
+	gs_cv_objc_load_method_worked=no)
 )
-if test $objc_load_method_worked = yes; then
+if test $gs_cv_objc_load_method_worked = yes; then
   AC_DEFINE(HAVE_LOAD_METHOD,1,
             [Define if your Obj-C compiler calls +load methods before main])
   AC_MSG_RESULT(yes)
@@ -2238,7 +2239,7 @@ AC_CHECK_FUNCS(realpath)
 # Used in critical cases by NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(program_invocation_name in C Library)
-AC_CACHE_VAL(program_invocation_name_worked,
+AC_CACHE_VAL(gs_cv_program_invocation_name_worked,
 [AC_TRY_RUN([
 #include <string.h>
 int 
@@ -2247,8 +2248,8 @@ main (int argc, char *argv[])
   extern char *program_invocation_name;
   return (strcmp (program_invocation_name, argv[0]));
 }
-], program_invocation_name_worked=yes, program_invocation_name_worked=no, program_invocation_name_worked=no)])
-if test $program_invocation_name_worked = yes; then
+], gs_cv_program_invocation_name_worked=yes, gs_cv_program_invocation_name_worked=no, gs_cv_program_invocation_name_worked=no)])
+if test $gs_cv_program_invocation_name_worked = yes; then
   AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,1,
             [Define if your Lib C defines program_invocation_name])
   AC_MSG_RESULT(yes)
@@ -2357,7 +2358,7 @@ GS_FAKE_MAIN=0
 if test "$enable_fake_main" = "yes"; then
   GS_FAKE_MAIN=1
 elif test "$enable_pass_arguments" = "no"; then
-  if test "$objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 -o "$ac_cv_sys_procfs_psinfo" = yes \); then
+  if test "$gs_cv_objc_load_method_worked" = yes -a \( "$ac_cv_sys_procfs" = yes -o "$have_kvm_env" = 1 -o "$ac_cv_sys_procfs_psinfo" = yes \); then
     GS_FAKE_MAIN=0
     if test "$have_kvm_env" = "1"; then
       AC_MSG_WARN([Using libkvm which is known to be buggy on some systems consider configuring with --enable-fake-main instead.])
@@ -2734,7 +2735,7 @@ AC_SUBST(HAVE_LIBXML)
 
 #--------------------------------------------------------------------
 # Check recent libgnutls for SSL streams.
-# See DEPENDENCIES POLICY at the start of thsi file.
+# See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(tls,
   [  --disable-tls			Disable use of GNUTLS],,
@@ -2746,41 +2747,59 @@ if test $enable_tls = yes; then
   saved_LIBS="$LIBS"
   saved_CFLAGS="$CFLAGS"
 
-#  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
-  AM_PATH_TLS(1.4.0, enable_libgnutls=yes, enable_libgnutls=no)
-  if test $enable_libgnutls = yes; then
-    CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
-    INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
-    LIBS="$TLS_LIBS $LIBS"
-    HAVE_GNUTLS=1
-    AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
-    AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
-    if test "$have_gcrypt" = "no"; then
-      AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
-      HAVE_GNUTLS=0
+  HAVE_GNUTLS=0
+  if test $PKGCONFIG = yes; then
+    if pkg-config --exists gnutls; then
+      AC_MSG_CHECKING(gnutls support)
+      HAVE_GNUTLS=1
+      TLS_CFLAGS=`pkg-config --cflags gnutls`
+      TLS_LIBS=`pkg-config --clibs gnutls`
+      CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
+      INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
+      LIBS="$TLS_LIBS $LIBS"
+    fi
+  fi
+
+  if test $HAVE_GNUTLS = 0; then
+  #  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+    AM_PATH_TLS(1.4.0, enable_libgnutls=yes, enable_libgnutls=no)
+    if test $enable_libgnutls = yes; then
+      CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
+      INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
+      LIBS="$TLS_LIBS $LIBS"
+      HAVE_GNUTLS=1
+      AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
+      AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
+      if test "$have_gcrypt" = "no"; then
+	AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
+	HAVE_GNUTLS=0
+      else
+	LIBS="$TLS_LIBS -lgcrypt $LIBS"
+      fi
+      AC_CHECK_FUNCS(gnutls_transport_set_errno)
+      if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
+	AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
+      fi
     else
-      LIBS="$TLS_LIBS -lgcrypt $LIBS"
+      HAVE_GNUTLS=0
+      # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
+      LIBS="$saved_LIBS"
+      CFLAGS="$saved_CFLAGS"
     fi
-    AC_CHECK_FUNCS(gnutls_transport_set_errno)
-    if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
-      AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
-    fi
-  else
-    HAVE_GNUTLS=0
-    # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
-    LIBS="$saved_LIBS"
-    CFLAGS="$saved_CFLAGS"
+  fi
+  if test $HAVE_GNUTLS = 0; then
+    AC_MSG_WARN([Missing support for TLS functionality.])
     echo
     echo "You may not want to build base without libgnutls."
     echo "Doing so will disable SSL support in the NSStream class."
     echo "If you really want to build -base without TLS support,"
     echo "add --disable-tls to the configure arguments."
-    AC_MSG_WARN([Missing support for TLS functionality.])
   fi
 else
   AC_MSG_WARN([Disabled support for TLS funtionality.])
   HAVE_GNUTLS=0
 fi
+
 AC_SUBST(HAVE_GNUTLS)
 
 #--------------------------------------------------------------------

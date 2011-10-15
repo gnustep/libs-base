@@ -23,9 +23,14 @@
 
 */
 
-#include <string.h>
-
 #import "common.h"
+
+#ifndef	_XOPEN_SOURCE
+#define	_XOPEN_SOURCE=600
+#endif
+#include <string.h>
+#include <stdio.h>
+
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
 #import "GSPrivate.h"
