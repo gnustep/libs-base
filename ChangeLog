@@ -1,5 +1,11 @@
 2011-10-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* config.mak.in:
+	Shift the responsibility for setting up macros controlling thread
+	safety to gnustep-make, and use the compiler -pthread option there.
+
+2011-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/unix/Makefile.preamble:
 	* Source/win32/Makefile.preamble:
 	* Source/ObjectiveC2/Makefile.preamble:
