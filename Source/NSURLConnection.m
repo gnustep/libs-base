@@ -25,6 +25,7 @@
 #import "common.h"
 
 #define	EXPOSE_NSURLConnection_IVARS	1
+#import "Foundation/NSError.h"
 #import "Foundation/NSRunLoop.h"
 #import "GSURLPrivate.h"
 
