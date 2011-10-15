@@ -136,10 +136,15 @@ GSSelectorFromName(const char *name)
   return sel_getUid(name);
 }
 
-// FIXME: Hack - need to provide these function declarations
-// for gcc 4.6 libobjc. They're called below, and they're declared 
-// in objc-api.h, but we're using runtime.h, so objc-api.h can't be imported.
-#if defined (__GNU_LIBOBJC__)
+#if defined (__GNU_LIBOBJC__) && (__GNU_LIBOBJC__ < 20110608)
+/* Don't use sel_registerTypedName() ... it's broken when first introduced
+ * into gcc (fails to correctly check for multiple registrations with same
+ * types but different layout info).
+ * Later versions of the runtime should be OK though.
+ * Hack - need to provide these function declarations
+ * for gcc 4.6 libobjc. They're called below, and they're declared 
+ * in objc-api.h, but we're using runtime.h, so objc-api.h can't be imported.
+ */
 SEL sel_get_any_typed_uid(const char *name);
 SEL sel_get_typed_uid(const char *name, const char*);
 SEL sel_register_name(const char *name);
@@ -151,13 +156,8 @@ GSSelectorFromNameAndTypes(const char *name, const char *types)
 {
 #if NeXT_RUNTIME
   return sel_getUid(name);
-/* Don't use sel_registerTypedName() ... it's broken when first introduced
- * into gcc (fails to correctly check for multple registrations with same
- * types but different layout info).
- *
-#elif defined (__GNU_LIBOBJC__)
+#elif defined (__GNU_LIBOBJC__) && (__GNU_LIBOBJC__ >= 20110608)
   return sel_registerTypedName(name, types);
- */
 #elif defined (__GNUSTEP_RUNTIME__)
   return sel_registerTypedName_np(name, types);
 #else

@@ -1,4 +1,23 @@
+
+#import <objc/objc.h>
+
+#if defined (__GNU_LIBOBJC__)
+
+#warning Unable to build NSBlocks for this runtime.
+
+/* FIXME ... these let us link, but blocks will be broken.
+ */
+void *_NSConcreteStackBlock;
+BOOL objc_create_block_classes_as_subclasses_of(Class super)
+{
+  return NO;
+}
+
+#else
+
 #import <objc/objc-api.h>
+#import "ObjectiveC2/runtime.h"
+
 #import "ObjectiveC2/blocks_runtime.h"
 #include <assert.h>
 
@@ -60,3 +79,6 @@ BOOL objc_create_block_classes_as_subclasses_of(Class super)
   NEW_CLASS(&_NSBlock, _NSConcreteGlobalBlock);
   return YES;
 }
+
+#endif /* defined (__GNU_LIBOBJC__) */
+
