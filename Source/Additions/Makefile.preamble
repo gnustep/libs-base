@@ -40,8 +40,8 @@
 
 # Additional flags to pass to the preprocessor
 ADDITIONAL_CPPFLAGS = $(DEFS) \
--D_XOPEN_SOURCE=600 -D_REENTRANT\
-$(WARN_FLAGS) -DNO_GNUSTEP=1
+$(WARN_FLAGS) \
+-DNO_GNUSTEP=1
 
 # Additional flags to pass to the Objective-C compiler
 #ADDITIONAL_OBJCFLAGS = 
