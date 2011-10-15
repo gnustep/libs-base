@@ -1,5 +1,10 @@
 2011-10-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/common.h: Added Quentin's fix to get Clang to compile this
+	without warnings.
+
+2011-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/ObjectiveC2/NSBlocks.m:
 	* Source/Additions/GSObjCRuntime.m:
 	Fixes to build with latest gcc.
