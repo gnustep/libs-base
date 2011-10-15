@@ -55,6 +55,7 @@
 #ifdef __block
 /* Turn off Clang built-in __block */
 #undef __block
+#endif
 #define __block __gs_unistd_block
 #include <unistd.h>
 #undef __block
