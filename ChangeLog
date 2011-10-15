@@ -1,3 +1,9 @@
+2011-10-15  Gregory Casamento <greg.casamento@gmail.com>
+
+	* Documentation/GNUmakefile: 
+	* Documentation/README.initialize: Documentation referred to by
+	NSThread warning.
+
 2011-10-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config.mak.in:
