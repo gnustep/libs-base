@@ -49,9 +49,12 @@
 
 /* We need to wrap unistd.h because it is used throughout the code and some
  * versions include __block as a variable name, and clang now defines that
- * as a reserved workd :-(
+ * as a reserved word :-(
  */
 #ifdef HAVE_UNISTD_H
+#ifdef __block
+/* Turn off Clang built-in __block */
+#undef __block
 #define __block __gs_unistd_block
 #include <unistd.h>
 #undef __block
