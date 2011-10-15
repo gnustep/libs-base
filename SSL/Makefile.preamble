@@ -39,7 +39,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) $(WARN_FLAGS)
+ADDITIONAL_CPPFLAGS = $(DEFS) $(WARN_FLAGS)
 
 # Additional flags to pass to the Objective-C compiler
 ADDITIONAL_OBJCFLAGS = $(SSLFLAGS)

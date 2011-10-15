@@ -39,8 +39,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) \
--D_XOPEN_SOURCE=600 -D_REENTRANT\
+ADDITIONAL_CPPFLAGS = $(DEFS) \
 $(WARN_FLAGS) \
 -Wcast-align \
 #-Wstrict-prototypes \

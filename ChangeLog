@@ -1,3 +1,15 @@
+2011-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/unix/Makefile.preamble:
+	* Source/win32/Makefile.preamble:
+	* Source/ObjectiveC2/Makefile.preamble:
+	* Source/Additions/Makefile.preamble:
+	* Source/Makefile.preamble:
+	* config.mak.in:
+	It seems various BSD operating systems have bugs in their _XOPEN_SOURCE
+	implementation, so we can't generally use it.  Try _POSIX_C_SOURCE
+	instead.
+
 2011-10-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/unix/Makefile.preamble:
