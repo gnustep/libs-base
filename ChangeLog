@@ -1,3 +1,9 @@
+2011-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/NSBlocks.m:
+	* Source/Additions/GSObjCRuntime.m:
+	Fixes to build with latest gcc.
+
 2011-10-15  Gregory Casamento <greg.casamento@gmail.com>
 
 	* Documentation/GNUmakefile: 
