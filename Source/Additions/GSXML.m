@@ -44,7 +44,7 @@
 #import "GNUstepBase/Unicode.h"
 
 #ifndef	_XOPEN_SOURCE
-#define	_XOPEN_SOURCE=600
+#define	_XOPEN_SOURCE 600
 #endif
 #include <string.h>
 #include <stdio.h>
