@@ -190,12 +190,12 @@ GS_EXPORT NSString* const NSLoadedClasses;
 
 /**
   Returns an absolute path for a resource name with the extension
-  ext in the specified bundlePath.  See also
+  in the specified bundlePath.  See also
   -pathForResource:ofType:inDirectory: for more information on
   searching a bundle.  
  */
 + (NSString*) pathForResource: (NSString*)name
-		       ofType: (NSString*)ext
+		       ofType: (NSString*)extension
 		  inDirectory: (NSString*)bundlePath;
 
 /**
@@ -203,13 +203,13 @@ GS_EXPORT NSString* const NSLoadedClasses;
   so this method behaves exactly like +pathForResource:ofType:inDirectory:.
  */
 + (NSString*) pathForResource: (NSString*)name
-		       ofType: (NSString*)ext
+		       ofType: (NSString*)extension
 		  inDirectory: (NSString*)bundlePath
 		  withVersion: (int)version;
 
 #if OS_API_VERSION(100600,GS_API_LATEST) 
 + (NSURL*) URLForResource: (NSString*)name
-            withExtension: (NSString*)ext
+            withExtension: (NSString*)extension
              subdirectory: (NSString*)subpath
           inBundleWithURL: (NSURL*)bundleURL;
 #endif
@@ -282,7 +282,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 
 /**
   <p>
-   Returns an absolute path for a resource name with the extension ext
+   Returns an absolute path for a resource name with the extension
    in the specified bundlePath. Directories in the bundle are searched
    in the following order:
    </p>
@@ -297,21 +297,21 @@ GS_EXPORT NSString* const NSLoadedClasses;
    the bundle.
    </p>
    <p>
-   If ext is nil or empty, then the first file exactly matching name
+   If extension is nil or empty, then the first file exactly matching name
    (ie with no extension) is returned.
    </p>
 */
 - (NSString*) pathForResource: (NSString*)name
-		       ofType: (NSString*)ext
+		       ofType: (NSString*)extension
 		  inDirectory: (NSString*)subPath;
 
 /**
-   Returns an absolute path for a resource name with the extension ext
+   Returns an absolute path for a resource name with the extension
    in the receivers bundle path. 
    See -pathForResource:ofType:inDirectory:.
  */
 - (NSString*) pathForResource: (NSString*)name
-		       ofType: (NSString*)ext;
+		       ofType: (NSString*)extension;
 
 #if OS_API_VERSION(100600,GS_API_LATEST) 
 - (NSURL*) URLForResource: (NSString*)name
@@ -400,7 +400,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * resources.
  */
 - (NSString*) pathForResource: (NSString*)name
-		       ofType: (NSString*)ext
+		       ofType: (NSString*)extension
 		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName;
 
@@ -507,7 +507,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
 
 /** Find a resource in the "Library" directory. */
 + (NSString*) pathForLibraryResource: (NSString*)name
-			      ofType: (NSString*)ext
+			      ofType: (NSString*)extension
 			 inDirectory: (NSString*)bundlePath;
 
 @end

@@ -1,3 +1,15 @@
+2011-10-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m:
+	* Source/NSPropertyList.m:
+	* Source/NSFileHandle.m:
+	* Source/NSString.m:
+	* Source/DocMakefile:
+	* Documentation/Base.gsdoc:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSBundle.h:
+	Documentation cleanups.
+
 2011-10-17  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Headers/Foundation/NSXMLNode.h:

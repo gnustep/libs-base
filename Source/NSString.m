@@ -2628,26 +2628,26 @@ handle_printf_atsign (FILE *stream,
  * arguments to be null pointers (in which case no value is returned in that
  * argument).
  */
-- (void) getLineStart: (NSUInteger *)startPtr
-                  end: (NSUInteger *)lineEndPtr
-          contentsEnd: (NSUInteger *)contentsEndPtr
+- (void) getLineStart: (NSUInteger *)startIndex
+                  end: (NSUInteger *)lineEndIndex
+          contentsEnd: (NSUInteger *)contentsEndIndex
 	     forRange: (NSRange)aRange
 {
-  [self _getStart: startPtr
-	      end: lineEndPtr
-      contentsEnd: contentsEndPtr
+  [self _getStart: startIndex
+	      end: lineEndIndex
+      contentsEnd: contentsEndIndex
 	 forRange: aRange
 	  lineSep: YES];
 }
 
-- (void) getParagraphStart: (NSUInteger *)startPtr 
-                       end: (NSUInteger *)parEndPtr
-               contentsEnd: (NSUInteger *)contentsEndPtr
+- (void) getParagraphStart: (NSUInteger *)startIndex 
+                       end: (NSUInteger *)parEndIndex
+               contentsEnd: (NSUInteger *)contentsEndIndex
                   forRange: (NSRange)aRange
 {
-  [self _getStart: startPtr
-	      end: parEndPtr
-      contentsEnd: contentsEndPtr
+  [self _getStart: startIndex
+	      end: parEndIndex
+      contentsEnd: contentsEndIndex
          forRange: aRange
 	  lineSep: NO];
 }
