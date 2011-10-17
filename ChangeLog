@@ -1,3 +1,10 @@
+2011-10-15  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Headers/Foundation/NSXMLNode.h:
+	* Source/NSXMLNode.m:
+	Fixed NSXMLNode compilation when using the "pure" non-fragile ABI 
+	(--disable-mixedabi was passed to Base configure).
+
 2011-10-17  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSString.m (-initWithCoder:): In keyed coding the key

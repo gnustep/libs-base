@@ -89,6 +89,9 @@ typedef NSUInteger NSXMLNodeKind;
   id            _objectValue;
 #endif
 #if     GS_NONFRAGILE
+#  if	defined(GS_NSXMLNode_IVARS)
+@public GS_NSXMLNode_IVARS
+#  endif
 #else
   /* Pointer to private additional data used to avoid breaking ABI
    * when we don't have the non-fragile ABI available.
