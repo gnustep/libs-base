@@ -1,3 +1,9 @@
+2011-10-17  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSString.m (-initWithCoder:): In keyed coding the key
+	"NS.bytes" may contain either an NSData or an NSString object. Not
+	sure about the encoding, I am using UTF8.
+
 2011-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* standalone.conf: First draft at a layout for standalone system
@@ -16,7 +22,7 @@
 
 2011-10-15  Gregory Casamento <greg.casamento@gmail.com>
 
-	* Documentation/GNUmakefile: 
+	* Documentation/GNUmakefile:
 	* Documentation/README.initialize: Documentation referred to by
 	NSThread warning.
 
