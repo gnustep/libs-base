@@ -5036,20 +5036,34 @@ static NSFileManager *fm = nil;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSString *string = nil;
-
       if ([aCoder containsValueForKey: @"NS.string"])
-          {
-            string = (NSString*)[(NSKeyedUnarchiver*)aCoder
-                                    _decodePropertyListForKey: @"NS.string"];
-          }
+        {
+          NSString *string = nil;
+      
+          string = (NSString*)[(NSKeyedUnarchiver*)aCoder
+                                  _decodePropertyListForKey: @"NS.string"];
+          self = [self initWithString: string];
+        }
       else if ([aCoder containsValueForKey: @"NS.bytes"])
         {
-          string = (NSString*)[(NSKeyedUnarchiver*)aCoder
-                                    decodeObjectForKey: @"NS.bytes"];
-        }
+          id bytes = [(NSKeyedUnarchiver*)aCoder
+                         decodeObjectForKey: @"NS.bytes"];
 
-      self = [self initWithString: string];
+          if ([bytes isKindOfClass: NSStringClass])
+            {
+              self = [self initWithString: (NSString*)bytes];
+            }
+          else
+            {
+              self = [self initWithData: (NSData*)bytes 
+                               encoding: NSUTF8StringEncoding];
+            }
+        }
+      else
+        {
+          // empty string
+          self = [self initWithString: @""];
+        }
     }
   else
     {
