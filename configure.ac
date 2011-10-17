@@ -306,12 +306,16 @@ then
   # Only try importing if the default config file has been specified.
   #
   if test "$GNUSTEP_DEFAULT_CONFIG" != ""; then
+    # Make sure we have a slash in the path so that '.' will source it
+    case $GNUSTEP_DEFAULT_CONFIG in
+      /*) ;;
+      *) GNUSTEP_DEFAULT_CONFIG="./$GNUSTEP_DEFAULT_CONFIG" ;;
+    esac
     #
     # Use the default config file to override standard values.
     #
     if test ! -f "$GNUSTEP_DEFAULT_CONFIG"; then
       AC_MSG_RESULT([fail: file "$GNUSTEP_DEFAULT_CONFIG" does not exist])
-
       # Ohoh ... things are not going well.  We are asked to import
       # a config file that doesn't exist.  So all paths might be unset
       # and who knows what we'll end up hardcoding into gnustep-base.
@@ -322,11 +326,18 @@ then
       # a config file (eg, they don't have one and they don't care about 
       # the hardcoded paths) they should just say so. ;-)
       AC_MSG_ERROR([Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
-
+      exit 1
     else
       AC_MSG_RESULT([trying to import "$GNUSTEP_DEFAULT_CONFIG"])
-      AC_MSG_NOTICE([If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
-      . "$GNUSTEP_DEFAULT_CONFIG"
+      if test -r "$GNUSTEP_DEFAULT_CONFIG"
+      then
+        AC_MSG_NOTICE([If this fails, please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
+        . "$GNUSTEP_DEFAULT_CONFIG"
+      else
+        AC_MSG_RESULT([fail: file "$GNUSTEP_DEFAULT_CONFIG" is not readable])
+	AC_MSG_ERROR([Unable to import configuration file at $GNUSTEP_DEFAULT_CONFIG.  Please run configure again with a revised/corrected --with-default-config= option or with --disable-importing-config-file.])
+	exit 1
+      fi
     fi
   fi
 fi
