@@ -239,8 +239,8 @@ static void ShutdownPathUtilities(void);
 })
 
 /* Grab a path from the config file, making it relative to the config
- * file location if it begins with './' or '../', and checking that the
- * result is an absolute path.
+ * file location if it is '.' or begins with './' or '../', and checking
+ * that the result is an absolute path.
  */
 #define ASSIGN_PATH(var, dictionary, key) ({\
   id val = getPathConfig(dictionary, key);\
@@ -361,7 +361,11 @@ substUser(NSString *str)
 static inline NSString *
 getPath(NSString *path)
 {
-  if ([path hasPrefix: @"./"] == YES)
+  if ([path isEqualToString: @"."] == YES)
+    {
+      path = gnustepConfigPath;
+    }
+  else if ([path hasPrefix: @"./"] == YES)
     {
       path = [gnustepConfigPath stringByAppendingPathComponent:
 	[path substringFromIndex: 2]];
