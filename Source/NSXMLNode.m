@@ -24,8 +24,6 @@
 
 #import "common.h"
 
-#import "NSXMLPrivate.h"
-
 /*
  * Description of internal ivars:
  * - `children': The primary storage for the descendant nodes. We use an NSArray
@@ -43,11 +41,14 @@
   NSUInteger childCount; \
   NSXMLNode *previousSibling; \
   NSXMLNode *nextSibling; \
-  NSUInteger options
+  NSUInteger options;
 
 #define GSInternal              NSXMLNodeInternal
 #include        "GSInternal.h"
+@class NSXMLNode;
 GS_PRIVATE_INTERNAL(NSXMLNode)
+
+#import "NSXMLPrivate.h"
 
 @implementation NSXMLNode
 
