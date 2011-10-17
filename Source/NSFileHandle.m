@@ -756,7 +756,7 @@ NSString * const NSFileHandleOperationException
 
 /** <override-dummy />
  */
-- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
+- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing
 {
   return NO;
 }

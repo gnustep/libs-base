@@ -512,19 +512,36 @@ notice and this notice are preserved.
 	<subsect>
 	  <heading>GNUstep Configuration File</heading>
 	  <p>
-	    This file is the master configuration file for GNUstep. It
-	    can be used to set the base location of all the standard
-	    paths that GNUstep programs use or know about. The
-	    location of this file depends on how the Base library was
-	    configured and/or what operating system it was configured
-	    on. On a GNU/Linux system, the default would be
+	    This file is the master configuration file for GNUstep.
+	    It can be used to set the base location of all the standard
+	    paths that GNUstep programs use or know about.
+	    The location of this file depends on how the Base library was
+	    configured and/or what operating system it was configured on.
+	    On a GNU/Linux system, the default would be
 	    /etc/GNUstep/GNUstep.conf for instance, while on mswindows
-	    it would be ./GNUstep.conf.<br />
-	    The location of this file can be specified when the base library
-	    is configured ... using the <code>--with-config-file=</code>
+	    it would be ./GNUstep.conf.
+	  </p>
+	  <p>
+	    NB. The gnustep-make package sets up a configuration file to
+	    be used when building GNUstep software, and gnustep-base
+	    normally uses that same file, but it is important to be
+	    aware that the two configuration files are not necessarily
+	    the same since one is required to provide environment
+	    variables used while building and installing software, but
+	    the other is used when gnustep tools and applications are run
+	    (ie in a target/deployment environment).<br />
+	    In particular it is normal for the two files to differ on
+	    mswindows (where the build environment is an UNIX-like MSYS
+	    shell, using unix style paths, but the deployment environment
+	    is native-windows using windows style paths).
+	  </p>
+	  <p>
+	    The location of the GNUstep configuration file can be specified
+	    when the base library is configured, using the
+	    <code>--with-config-file=</code>
 	    option of the <code>configure</code> script.<br />
-	    The configuration file is not actually required to exist, and
-	    if it does not exist, then default values will be used.
+	    This configuration file is not actually required to exist,
+	    and if it does not exist, then default values will be used
 	    for the standard path locations (these default values may
 	    be specified using the <code>--with-default-config=</code>
 	    option of the <code>configure</code> script.<br />
@@ -727,8 +744,61 @@ notice and this notice are preserved.
 	  <p>
 	    So you can bundle the whole lot together in one directory,
 	    and configure various relative paths in that directory, then
-	    move the directory around wherever you like.
+	    move the directory around wherever you like.<br />
+	    However, if your operating system needs to know where to find
+	    the libraries it will load, you will have to tell it where they
+	    are ... typically you do this by setting an environment variable
+	    such as LD_LIBRARY_PATH to contain the full path to the
+	    directory you put the libraries in.
 	  </p>
+	</subsect>
+	<subsect>
+	  <heading>Standalone packages</heading>
+	  <p>
+	    While the recommended setup for GNUstep is to install the
+	    core packages in a standard location on your system, and then
+	    install applications which make use of those core libraries,
+	    it is sometimes desirable to have standalone applications
+	    which don't need the core to be installed.<br />
+	    This is a special case of the relocatable packages described
+	    above, in which all your application's dependencies are built
+	    as relocatable packages using a filesystem layout which lets	
+	    them all be stored within your application directory.
+	  </p>
+	  <p>
+	    As an aide to easy creation of such standalone packages we
+	    provide two template gnustep configuration files for a common
+	    setup where things are stored in a 'standalone' subdirectory
+	    of your application wrapper.<br />
+	    You configure/install gnustep-make with the 'standalone'
+	    filesystem layout, then you configure/build/install gnustep-base
+	    with the 'standalone.conf' default configuration file, and
+	    build/install the other librarties/packages your app depends
+	    upon.<br />
+	    This leaves you with a 'standalone' directory containing all
+	    the relocatable code, which you can then copy into your app
+	    wrapper to provide a complete standalone system.
+	  </p>
+	    To set up the relocatable standalone resources:
+<example>
+cd make
+./configure --with-layout=standalone
+make install
+. ~/standalone/Makefile/GNUstep.sh
+cd ../base
+./configure --with-config-file=./ --with-default-config=standalone.conf
+make install
+cd ../gui
+make install
+cd ../back
+make install
+</example>
+	    To copy them to your application and run it using them:
+<example>
+(cd ~; tar -cf - standalone) | (cd MyApp.app; tar -xpf -)
+export LD_LIBRARY_PATH=`pwd`/MyApp.app/standalone
+MyApp.app/MyApp
+</example>
 	</subsect>
 	<subsect>
 	  <heading>Lock-Down</heading>

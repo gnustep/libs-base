@@ -2370,7 +2370,7 @@ static BOOL	classInitialized = NO;
 + (NSData *) dataWithPropertyList: (id)aPropertyList
                            format: (NSPropertyListFormat)aFormat
                           options: (NSPropertyListWriteOptions)anOption
-                            error: (NSError**)error
+                            error: (out NSError**)error
 {
   NSMutableData	*dest;
   NSDictionary	*loc;
@@ -2520,7 +2520,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 + (id) propertyListWithData: (NSData*)data
                     options: (NSPropertyListReadOptions)anOption
                      format: (NSPropertyListFormat*)aFormat
-                      error: (NSError**)error
+                      error: (out NSError**)error
 {
   NSPropertyListFormat	format = 0;
   NSString           *errorStr = nil;
@@ -2672,7 +2672,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 + (id) propertyListWithStream: (NSInputStream*)stream
                       options: (NSPropertyListReadOptions)anOption
                        format: (NSPropertyListFormat*)aFormat
-                        error: (NSError**)error
+                        error: (out NSError**)error
 {
   // FIXME
   return nil;
@@ -2682,7 +2682,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
                        toStream: (NSOutputStream*)stream
                          format: (NSPropertyListFormat)aFormat
                         options: (NSPropertyListWriteOptions)anOption
-                          error: (NSError**)error
+                          error: (out NSError**)error
 {
   // FIXME: The NSData operations should be implemented on top of this method, 
   // not the other way round,

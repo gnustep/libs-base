@@ -208,10 +208,10 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 #if defined(__WIN32__)
 	  else
 	    {
-	      NSString	*ext = [path pathExtension];
+	      NSString	*extension = [path pathExtension];
 
 	      /* Also add common executable extensions on windows */
-	      if (ext == nil || [ext length] == 0)
+	      if (extension == nil || [extension length] == 0)
 		{
 		  NSString *wpath;
 
@@ -386,14 +386,14 @@ _bundle_resource_path(NSString *primary, NSString* bundlePath, NSString *lang)
    which are like /Library/Frameworks/(name).framework */
 static inline NSString *
 _find_framework(NSString *name)
-{                
+{
   NSArray	*paths;
   NSFileManager *file_mgr = manager();
   NSString	*file_name = [name stringByAppendingPathExtension:@"framework"];
   NSString	*file_path;
   NSString	*path;
   NSEnumerator	*enumerator;
-           
+
   NSCParameterAssert(name != nil);
 
   paths = NSSearchPathForDirectoriesInDomains(GSFrameworksDirectory,
@@ -410,7 +410,7 @@ _find_framework(NSString *name)
         }
     }
   return nil;
-}        
+}
 
 
 /* Try to locate resources for tool name (which is this tool) in
@@ -444,7 +444,7 @@ _find_main_bundle_for_tool(NSString *toolName)
     }
 
   tail = [@"Tools" stringByAppendingPathComponent:
-	     [@"Resources" stringByAppendingPathComponent: 
+	     [@"Resources" stringByAppendingPathComponent:
 		 toolName]];
 
   paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
@@ -592,14 +592,14 @@ _find_main_bundle_for_tool(NSString *toolName)
 	   */
 	  if ([bundlePath isAbsolutePath] == NO)
 	    {
-	      bundlePath = [_launchDirectory 
+	      bundlePath = [_launchDirectory
 			     stringByAppendingPathComponent: bundlePath];
 
 	    }
-	  
+
 	  /* Dereference symlinks, and standardize path.  This will
 	   * only work properly if the original bundlePath is
-	   * absolute.  
+	   * absolute.
 	   */
 	  bundlePath = [bundlePath stringByStandardizingPath];
 
@@ -657,7 +657,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 #endif
 	      pathComponent = [bundlePath lastPathComponent];
-	
+
 	      if ([pathComponent isEqualToString:
 				   [NSString stringWithFormat: @"%@%@",
 					     name, @".framework"]])
@@ -727,7 +727,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 
 	  value = [NSValue valueWithPointer: (void*)class];
 	  [bundle->_bundleClasses addObject: value];
-	
+
 	  fmClasses++;
 	}
 
@@ -878,22 +878,22 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	gnustep_target_cpu = RETAIN(str);
       else if ((str = [env objectForKey: @"GNUSTEP_HOST_CPU"]) != nil)
 	gnustep_target_cpu = RETAIN(str);
-      
+
       if ((str = [env objectForKey: @"GNUSTEP_TARGET_OS"]) != nil)
 	gnustep_target_os = RETAIN(str);
       else if ((str = [env objectForKey: @"GNUSTEP_HOST_OS"]) != nil)
 	gnustep_target_os = RETAIN(str);
-      
+
       if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
 	gnustep_target_dir = RETAIN(str);
       else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
 	gnustep_target_dir = RETAIN(str);
-      
+
       if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	library_combo = RETAIN(str);
-      
+
       _launchDirectory = RETAIN([manager() currentDirectoryPath]);
-      
+
       _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
 					      version: _base_version]);
 #if 0
@@ -921,12 +921,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       {
 	void	*state = NULL;
 	Class	class;
-	
+
 	while ((class = objc_next_class(&state)))
 	  {
 	    const char *className = class_getName(class);
 	    unsigned int len = strlen (className);
-	    
+
 	    if (len > sizeof("NSFramework_")
 		&& !strncmp("NSFramework_", className, 12))
 	      {
@@ -938,7 +938,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 #if 0
       //  _bundle_load_callback(class, NULL);
       //  bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
-      
+
       objc_close_main_module(handle);
       _loadingBundle = nil;
 #endif
@@ -1096,7 +1096,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if (isApplication == YES)
 	{
 	  s = [path lastPathComponent];
-    
+
 	  if ([s hasSuffix: @".app"] == NO
 	    && [s hasSuffix: @".debug"] == NO
 	    && [s hasSuffix: @".profile"] == NO
@@ -1167,7 +1167,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		   */
 		  maybePath = _find_main_bundle_for_tool (toolName);
 		}
-	      
+
 	      /* If that didn't work, maybe the tool was created with
 	       * gnustep-make version 1.  So we try {tool location on
 	       * disk after walking up the non-flattened
@@ -1745,7 +1745,7 @@ IF_NO_GC(
   else
     {
       /* This matches OS X behavior, which only searches languages that
-       * are in the user's preference. Don't use -preferredLocalizations - 
+       * are in the user's preference. Don't use -preferredLocalizations -
        * that would cause a recursive loop.
        */
       enumerate = [languages objectEnumerator];
@@ -1772,7 +1772,7 @@ IF_NO_GC(
 }
 
 + (NSString *) _pathForResource: (NSString *)name
-			 ofType: (NSString *)ext	
+			 ofType: (NSString *)extension
 		     inRootPath: (NSString *)rootPath
 		    inDirectory: (NSString *)subPath
 {
@@ -1784,9 +1784,9 @@ IF_NO_GC(
     {
       name = @"";
     }
-  if ([ext length] == 0)
+  if ([extension length] == 0)
     {
-      ext = nil;
+      extension = nil;
     }
 
   pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
@@ -1796,9 +1796,9 @@ IF_NO_GC(
       if (bundle_directory_readable(path))
 	{
 	  path = [path stringByAppendingPathComponent: name];
-	  if (ext != nil)
+	  if (extension != nil)
 	    {
-	      path = [path stringByAppendingPathExtension: ext];
+	      path = [path stringByAppendingPathExtension: extension];
 	    }
 	  if ([mgr isReadableFileAtPath: path])
 	    {
@@ -1812,48 +1812,48 @@ IF_NO_GC(
 
 
 + (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext	
+			ofType: (NSString *)extension
 		   inDirectory: (NSString *)bundlePath
 		   withVersion: (int)version
 {
   return [self _pathForResource: name
-			 ofType: ext
+			 ofType: extension
 		     inRootPath: bundlePath
 		    inDirectory: nil];
 }
 
 + (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext	
+			ofType: (NSString *)extension
 		   inDirectory: (NSString *)bundlePath
 {
   return [self _pathForResource: name
-			 ofType: ext
+			 ofType: extension
 		     inRootPath: bundlePath
 		    inDirectory: nil];
 }
 
 + (NSURL*) URLForResource: (NSString*)name
-            withExtension: (NSString*)ext
+            withExtension: (NSString*)extension
              subdirectory: (NSString*)subpath
           inBundleWithURL: (NSURL*)bundleURL
 {
   NSBundle *root = [self bundleWithURL: bundleURL];
 
   return [root URLForResource: name
-                withExtension: ext
+                withExtension: extension
                  subdirectory: subpath];
 }
 
 - (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext
+			ofType: (NSString *)extension
 {
   return [self pathForResource: name
-			ofType: ext
+			ofType: extension
 		   inDirectory: nil];
 }
 
 - (NSString *) pathForResource: (NSString *)name
-			ofType: (NSString *)ext
+			ofType: (NSString *)extension
 		   inDirectory: (NSString *)subPath
 {
   NSString *rootPath;
@@ -1867,39 +1867,39 @@ IF_NO_GC(
     rootPath = [self bundlePath];
 
   return [NSBundle _pathForResource: name
-			     ofType: ext
+			     ofType: extension
 			 inRootPath: rootPath
 		        inDirectory: subPath];
 }
 
 - (NSURL *) URLForResource: (NSString *)name
-	     withExtension: (NSString *)ext
+	     withExtension: (NSString *)extension
 {
   return [self URLForResource: name
-                withExtension: ext
+                withExtension: extension
                  subdirectory: nil
                  localization: nil];
 }
 
 - (NSURL *) URLForResource: (NSString *)name
-	     withExtension: (NSString *)ext
+	     withExtension: (NSString *)extension
               subdirectory: (NSString *)subpath
 {
   return [self URLForResource: name
-                withExtension: ext
+                withExtension: extension
                  subdirectory: subpath
                  localization: nil];
 }
 
 - (NSURL *) URLForResource: (NSString *)name
-	     withExtension: (NSString *)ext
+	     withExtension: (NSString *)extension
 	      subdirectory: (NSString *)subpath
 	      localization: (NSString *)localizationName
 {
   NSString	*path;
 
   path = [self pathForResource: name
-			ofType: ext
+			ofType: extension
 		   inDirectory: subpath
 	       forLocalization: localizationName];
   if (nil == path)
@@ -1987,16 +1987,16 @@ IF_NO_GC(
 	}
       else if ([localizationName length] > 0
 	&& [[theDir lastPathComponent] hasPrefix: localizationName])
-	{ 
+	{
 	  [result insertObject: path atIndex: 0];
 	}
     }
-  
+
   return result;
 }
 
 - (NSString*) pathForResource: (NSString*)name
-		       ofType: (NSString*)ext
+		       ofType: (NSString*)extension
 		  inDirectory: (NSString*)subPath
 	      forLocalization: (NSString*)localizationName
 {
@@ -2004,15 +2004,15 @@ IF_NO_GC(
   NSString		*result = nil;
   NSArray		*array;
 
-  if ([ext length] == 0)
+  if ([extension length] == 0)
     {
-      ext = [name pathExtension];
-      if (ext != nil)
+      extension = [name pathExtension];
+      if (extension != nil)
 	{
 	  name = [name stringByDeletingPathExtension];
 	}
     }
-  array = [self pathsForResourcesOfType: ext
+  array = [self pathsForResourcesOfType: extension
                             inDirectory: subPath
                         forLocalization: localizationName];
 
@@ -2021,7 +2021,7 @@ IF_NO_GC(
       NSEnumerator	*enumerator = [array objectEnumerator];
       NSString		*path;
 
-      name = [name stringByAppendingPathExtension: ext];
+      name = [name stringByAppendingPathExtension: extension];
       while ((path = [enumerator nextObject]) != nil)
 	{
 	  NSString	*found = [path lastPathComponent];
@@ -2134,7 +2134,7 @@ IF_NO_GC(
   return [NSBundle preferredLocalizationsFromArray: [self localizations]];
 }
 
-- (NSString *) localizedStringForKey: (NSString *)key	
+- (NSString *) localizedStringForKey: (NSString *)key
                                value: (NSString *)value
                                table: (NSString *)tableName
 {
@@ -2175,7 +2175,7 @@ IF_NO_GC(
           NSData		*tableData;
           const unsigned char	*bytes;
           unsigned		length;
-          
+
           tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
           bytes = [tableData bytes];
           length = [tableData length];
@@ -2325,11 +2325,11 @@ IF_NO_GC(
        * which really is a class name.
        */
       NSString *mangledName = object;
-      mangledName = [mangledName stringByReplacingString: @"_"  
+      mangledName = [mangledName stringByReplacingString: @"_"
 				 withString: @"__"];
-      mangledName = [mangledName stringByReplacingString: @"-" 
+      mangledName = [mangledName stringByReplacingString: @"-"
 				 withString: @"_0"];
-      mangledName = [mangledName stringByReplacingString: @"+" 
+      mangledName = [mangledName stringByReplacingString: @"+"
 				 withString: @"_1"];
 
 #if !defined(__MINGW__)
@@ -2576,14 +2576,14 @@ IF_NO_GC(
    *
    * if no <interfaceVersion> is specified, and if can't find any versioned
    * resources in those directories, we'll also accept the old unversioned
-   * subdirectory: 
+   * subdirectory:
    *
    * Libraries/Resources/<libraryName>/
    *
    */
   paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
 					       NSAllDomainsMask, YES);
-  
+
   enumerator = [paths objectEnumerator];
   while ((path = [enumerator nextObject]) != nil)
     {
@@ -2625,7 +2625,7 @@ IF_NO_GC(
 	      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 		{
 		  b = [self bundleWithPath: path];
-		  
+
 		  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
 		    {
 		      b->_bundleType = NSBUNDLE_LIBRARY;
@@ -2648,7 +2648,7 @@ IF_NO_GC(
 		  /* TODO: Ignore subdirectories.  */
 		  NSEnumerator *fileEnumerator;
 		  NSString *potentialPath;
-		  
+
 		  fileEnumerator = [fm enumeratorAtPath: versionsPath];
 		  while ((potentialPath = [fileEnumerator nextObject]) != nil)
 		    {
@@ -2660,7 +2660,7 @@ IF_NO_GC(
 				   isDirectory: &isDir]  &&  isDir)
 			{
 			  b = [self bundleWithPath: potentialPath];
-			  
+
 			  if (b != nil && b->_bundleType == NSBUNDLE_BUNDLE)
 			    {
 			      b->_bundleType = NSBUNDLE_LIBRARY;
@@ -2704,7 +2704,7 @@ IF_NO_GC(
 }
 
 + (NSString *) pathForLibraryResource: (NSString *)name
-			       ofType: (NSString *)ext	
+			       ofType: (NSString *)extension
 			  inDirectory: (NSString *)bundlePath
 {
   NSString	*path = nil;
@@ -2722,7 +2722,7 @@ IF_NO_GC(
     {
       bundle = [self bundleWithPath: bundle_path];
       path = [bundle pathForResource: name
-                              ofType: ext
+                              ofType: extension
                          inDirectory: bundlePath];
     }
 

@@ -768,9 +768,9 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 #if OS_API_VERSION(100300,GS_API_LATEST) 
 /** Not implemented */
-- (void) getParagraphStart: (NSUInteger *)startPtr
-                       end: (NSUInteger *)parEndPtr
-               contentsEnd: (NSUInteger *)contentsEndPtr
+- (void) getParagraphStart: (NSUInteger *)startIndex
+                       end: (NSUInteger *)parEndIndex
+               contentsEnd: (NSUInteger *)contentsEndIndex
                  forRange: (NSRange)range;
 /** Not implemented */
  - (NSRange) paragraphRangeForRange: (NSRange)range;
