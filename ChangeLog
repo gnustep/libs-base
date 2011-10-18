@@ -1,3 +1,8 @@
+2011-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* standalone.conf: example configuration file for a stanadalone
+	package installation.
+
 2011-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Make sourcing of default config file more reliable.

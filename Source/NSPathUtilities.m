@@ -361,11 +361,7 @@ substUser(NSString *str)
 static inline NSString *
 getPath(NSString *path)
 {
-  if ([path isEqualToString: @"."] == YES)
-    {
-      path = gnustepConfigPath;
-    }
-  else if ([path hasPrefix: @"./"] == YES)
+  if ([path hasPrefix: @"./"] == YES)
     {
       path = [gnustepConfigPath stringByAppendingPathComponent:
 	[path substringFromIndex: 2]];
