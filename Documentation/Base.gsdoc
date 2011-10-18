@@ -773,7 +773,7 @@ notice and this notice are preserved.
 	    You configure/install gnustep-make with the 'standalone'
 	    filesystem layout, then you configure/build/install gnustep-base
 	    with the 'standalone.conf' default configuration file, and
-	    build/install the other librarties/packages your app depends
+	    build/install the other libraries/packages your app depends
 	    upon.<br />
 	    This leaves you with a 'standalone' directory containing all
 	    the relocatable code, which you can then copy into your app
@@ -786,7 +786,7 @@ cd make
 make install
 . ~/standalone/Makefile/GNUstep.sh
 cd ../base
-./configure --with-config-file=./ --with-default-config=standalone.conf
+./configure --with-config-file=./GNUstep.conf --with-default-config=standalone.conf
 make install
 cd ../gui
 make install

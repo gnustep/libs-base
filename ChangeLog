@@ -1,7 +1,9 @@
 2011-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* standalone.conf: example configuration file for a stanadalone
+	* standalone.conf: example configuration file for a standalone
 	package installation.
+	* Documentation/Base.gsdoc:
+	Documentation improvements for packaging
 
 2011-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 
