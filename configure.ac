@@ -2752,45 +2752,42 @@ AC_ARG_ENABLE(tls,
 
 if test $enable_tls = yes; then
   HAVE_GNUTLS=0
+  # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
+  # of the success of the macro.
+  saved_LIBS="$LIBS"
+  saved_CFLAGS="$CFLAGS"
+
   if test $PKGCONFIG = yes; then
     if pkg-config --exists gnutls; then
       AC_MSG_CHECKING(gnutls support)
       HAVE_GNUTLS=1
       TLS_CFLAGS=`pkg-config --cflags gnutls`
       TLS_LIBS=`pkg-config --libs gnutls`
-      CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
-      INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
-      LIBS="$TLS_LIBS $LIBS"
     fi
   fi
 
   if test $HAVE_GNUTLS = 0; then
-    # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
-    # of the success of the macro.
-    saved_LIBS="$LIBS"
-    saved_CFLAGS="$CFLAGS"
     #  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
     AM_PATH_TLS(1.4.0, enable_libgnutls=yes, enable_libgnutls=no)
     if test $enable_libgnutls = yes; then
-      CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
-      INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
-      LIBS="$TLS_LIBS $LIBS"
       HAVE_GNUTLS=1
-      AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
-      if test "$have_gcrypt" = "no"; then
-	AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
-	HAVE_GNUTLS=0
-      else
-	LIBS="$TLS_LIBS -lgcrypt $LIBS"
-      fi
     else
       HAVE_GNUTLS=0
-      # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
-      LIBS="$saved_LIBS"
-      CFLAGS="$saved_CFLAGS"
+    fi
+  fi
+  if test $HAVE_GNUTLS = 1; then
+    AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
+    if test "$have_gcrypt" = "no"; then
+      AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
+      HAVE_GNUTLS=0
+    else
+      TLS_LIBS="$TLS_LIBS -lgcrypt"
     fi
   fi
   if test $HAVE_GNUTLS = 0; then
+    # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
+    LIBS="$saved_LIBS"
+    CFLAGS="$saved_CFLAGS"
     AC_MSG_RESULT(no)
     AC_MSG_WARN([Missing support for TLS functionality.])
     echo
@@ -2800,6 +2797,9 @@ if test $enable_tls = yes; then
     echo "add --disable-tls to the configure arguments."
   else
     AC_MSG_RESULT(yes)
+    CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
+    LIBS="$TLS_LIBS $LIBS"
     AC_CHECK_FUNCS(gnutls_transport_set_errno)
     if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
       AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
