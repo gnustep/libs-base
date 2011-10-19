@@ -2764,7 +2764,7 @@ if test $enable_tls = yes; then
       AC_MSG_CHECKING(gnutls support)
       HAVE_GNUTLS=1
       TLS_CFLAGS=`pkg-config --cflags gnutls`
-      TLS_LIBS=`pkg-config --clibs gnutls`
+      TLS_LIBS=`pkg-config --libs gnutls`
       CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
       INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
       LIBS="$TLS_LIBS $LIBS"
