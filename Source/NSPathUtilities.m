@@ -751,9 +751,12 @@ GNUstepConfig(NSDictionary *newConfig)
 	{
 	  if (newConfig == nil)
 	    {
-	      NSString	*file = nil;
-	      BOOL	fromEnvironment = YES;
-	      BOOL	bareDirectory = NO;
+	      NSString		*file = nil;
+	      NSString		*path;
+	      NSEnumerator	*e;
+	      NSString      	*defs;
+	      BOOL		fromEnvironment = YES;
+	      BOOL		bareDirectory = NO;
 
 	      conf = [[NSMutableDictionary alloc] initWithCapacity: 32];
 
@@ -786,8 +789,8 @@ GNUstepConfig(NSDictionary *newConfig)
 	        || [file hasPrefix: @"../"] == YES)
 		{
 		  Class		c = [NSProcessInfo class];
-		  NSString	*path = GSPrivateSymbolPath (c, 0);
 
+		  path = GSPrivateSymbolPath (c, 0);
 		  // Remove library name from path
 		  path = [path stringByDeletingLastPathComponent];
                   if ([file hasPrefix: @"./"] == YES)
@@ -831,46 +834,44 @@ GNUstepConfig(NSDictionary *newConfig)
 		    }
 #endif
 		}
+
 	      if (bareDirectory == YES)
 		{
+		  /* Set the directory name, but don't try to read file.
+		   */
 		  gnustepConfigPath = RETAIN(file);
 		}
 	      else
 		{
-		  NSEnumerator	*e;
-                  NSString      *defs;
-                  NSString      *path;
-
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
 		  ParseConfigurationFile(file, conf, nil);
-
 		  if (nil != [conf objectForKey: @"GNUSTEP_EXTRA"])
 		    {
 		      NSLog(@"Warning: use of GNUSTEP_EXTRA in your GNUstep.conf file is deprecated.  Please use a GlobalDefaults.plist instead.\n");
 		    }
-		  /* Merge in any values from property lists in the 
-		   * GlobalDefaults directory.
-		   */
-                  path = [gnustepConfigPath stringByAppendingPathComponent:
-                    @"GlobalDefaults"];
-		  e = [[MGR() directoryContentsAtPath: path] objectEnumerator];
-		  while ((defs = [e nextObject]) != nil)
-		    {
-		      if ([[defs pathExtension] isEqualToString: @"plist"])
-			{
-			  defs = [path stringByAppendingPathComponent: defs];
-			  addDefaults(defs, conf);
-			}
-		    }
-
-		  /* And merge in value from GloablDefaults.plist
-		   */
-                  defs = [gnustepConfigPath stringByAppendingPathComponent:
-                    @"GlobalDefaults.plist"];
-
-		  addDefaults(defs, conf);
 		}
+
+	      /* Merge in any values from property lists in the 
+	       * GlobalDefaults directory.
+	       */
+	      path = [gnustepConfigPath stringByAppendingPathComponent:
+		@"GlobalDefaults"];
+	      e = [[MGR() directoryContentsAtPath: path] objectEnumerator];
+	      while ((defs = [e nextObject]) != nil)
+		{
+		  if ([[defs pathExtension] isEqualToString: @"plist"])
+		    {
+		      defs = [path stringByAppendingPathComponent: defs];
+		      addDefaults(defs, conf);
+		    }
+		}
+
+	      /* And merge in value from GlobalDefaults.plist
+	       */
+	      defs = [gnustepConfigPath stringByAppendingPathComponent:
+		@"GlobalDefaults.plist"];
+	      addDefaults(defs, conf);
 	    }
 	  else
 	    {
