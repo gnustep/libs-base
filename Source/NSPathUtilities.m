@@ -692,7 +692,41 @@ addDefaults(NSString *defs, NSMutableDictionary *conf)
 	}
       else
 	{
-	  d = [NSDictionary dictionaryWithContentsOfFile: defs];
+	  NSString	*s;
+
+	  s = [[NSString allocWithZone: NSDefaultMallocZone()]
+	    initWithContentsOfFile: defs];
+	  if (nil == s)
+	    {
+	      d = nil;
+	    }
+	  else
+	    {
+	      NS_DURING
+		{
+		  d = [s propertyList];
+		}
+	      NS_HANDLER
+		{
+		  d = nil;
+		}
+	      NS_ENDHANDLER
+	      RELEASE(s);
+	    }
+	  if (nil == d)
+	    {
+#if defined(__MINGW__)
+	  fprintf(stderr,
+	    "The file '%S' is not readable as a propety list"
+	    ".\nIgnoring it.\n",
+	    [defs fileSystemRepresentation]);
+#else
+	  fprintf(stderr,
+	    "The file '%s' is not readable as a propety list"
+	    ".\nIgnoring it.\n",
+	    [defs fileSystemRepresentation]);
+#endif
+	    }
 	}
 
       if (d != nil)
