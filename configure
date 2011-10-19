@@ -5457,20 +5457,18 @@ $as_echo_n "checking the Objective-C runtime... " >&6; }
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   { $as_echo "$as_me:$LINENO: result: NeXT" >&5
 $as_echo "NeXT" >&6; }
-  LIBOBJC='-lobjc'
   OBJCFLAGS="$OBJCFLAGS -fnext-runtime -DNeXT_RUNTIME"
 elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
   { $as_echo "$as_me:$LINENO: result: GNU" >&5
 $as_echo "GNU" >&6; }
-  LIBOBJC='-lobjc_gc -ldl -lgc'
   OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
   OBJC_WITH_GC=yes
 else
   { $as_echo "$as_me:$LINENO: result: GNU" >&5
 $as_echo "GNU" >&6; }
-  LIBOBJC='-lobjc'
   OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
 fi
+LIBOBJC=`gnustep-config --objc-libs`
 
 #--------------------------------------------------------------------
 # Miscellaneous flags
@@ -23419,11 +23417,6 @@ fi
 
 
 if test $enable_tls = yes; then
-  # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
-  # of the success of the macro.
-  saved_LIBS="$LIBS"
-  saved_CFLAGS="$CFLAGS"
-
   HAVE_GNUTLS=0
   if test $PKGCONFIG = yes; then
     if pkg-config --exists gnutls; then
@@ -23439,7 +23432,11 @@ $as_echo_n "checking gnutls support... " >&6; }
   fi
 
   if test $HAVE_GNUTLS = 0; then
-  #  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+    # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
+    # of the success of the macro.
+    saved_LIBS="$LIBS"
+    saved_CFLAGS="$CFLAGS"
+    #  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
 
 
 # Check whether --with-tls-prefix was given.
@@ -23719,11 +23716,6 @@ $as_echo "no" >&6; }
       INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
       LIBS="$TLS_LIBS $LIBS"
       HAVE_GNUTLS=1
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_GNUTLS 1
-_ACEOF
-
       { $as_echo "$as_me:$LINENO: checking for gcry_control in -lgcrypt" >&5
 $as_echo_n "checking for gcry_control in -lgcrypt... " >&6; }
 if test "${ac_cv_lib_gcrypt_gcry_control+set}" = set; then
@@ -23802,6 +23794,26 @@ $as_echo "$as_me: WARNING: Missing support for thread-safe operation in GNUTLS. 
       else
 	LIBS="$TLS_LIBS -lgcrypt $LIBS"
       fi
+    else
+      HAVE_GNUTLS=0
+      # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
+      LIBS="$saved_LIBS"
+      CFLAGS="$saved_CFLAGS"
+    fi
+  fi
+  if test $HAVE_GNUTLS = 0; then
+    { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+    { $as_echo "$as_me:$LINENO: WARNING: Missing support for TLS functionality." >&5
+$as_echo "$as_me: WARNING: Missing support for TLS functionality." >&2;}
+    echo
+    echo "You may not want to build base without libgnutls."
+    echo "Doing so will disable SSL support in the NSStream class."
+    echo "If you really want to build -base without TLS support,"
+    echo "add --disable-tls to the configure arguments."
+  else
+    { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
 
 for ac_func in gnutls_transport_set_errno
 do
@@ -23903,31 +23915,20 @@ _ACEOF
 fi
 done
 
-      if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
-	{ $as_echo "$as_me:$LINENO: WARNING: Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine)." >&5
+    if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
+      { $as_echo "$as_me:$LINENO: WARNING: Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine)." >&5
 $as_echo "$as_me: WARNING: Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine)." >&2;}
-      fi
-    else
-      HAVE_GNUTLS=0
-      # Restore the CFLAGS and LIBS because AM_PATH_TLS messes them
-      LIBS="$saved_LIBS"
-      CFLAGS="$saved_CFLAGS"
     fi
-  fi
-  if test $HAVE_GNUTLS = 0; then
-    { $as_echo "$as_me:$LINENO: WARNING: Missing support for TLS functionality." >&5
-$as_echo "$as_me: WARNING: Missing support for TLS functionality." >&2;}
-    echo
-    echo "You may not want to build base without libgnutls."
-    echo "Doing so will disable SSL support in the NSStream class."
-    echo "If you really want to build -base without TLS support,"
-    echo "add --disable-tls to the configure arguments."
   fi
 else
   { $as_echo "$as_me:$LINENO: WARNING: Disabled support for TLS funtionality." >&5
 $as_echo "$as_me: WARNING: Disabled support for TLS funtionality." >&2;}
   HAVE_GNUTLS=0
 fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_GNUTLS $HAVE_GNUTLS
+_ACEOF
 
 
 

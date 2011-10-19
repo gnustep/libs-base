@@ -1116,18 +1116,16 @@ OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
-  LIBOBJC='-lobjc'
   OBJCFLAGS="$OBJCFLAGS -fnext-runtime -DNeXT_RUNTIME"
 elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
   AC_MSG_RESULT(GNU)
-  LIBOBJC='-lobjc_gc -ldl -lgc'
   OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
   OBJC_WITH_GC=yes
 else
   AC_MSG_RESULT(GNU)
-  LIBOBJC='-lobjc'
   OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
 fi
+LIBOBJC=`gnustep-config --objc-libs`
 
 #--------------------------------------------------------------------
 # Miscellaneous flags
@@ -2753,11 +2751,6 @@ AC_ARG_ENABLE(tls,
   enable_tls=yes)
 
 if test $enable_tls = yes; then
-  # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
-  # of the success of the macro.
-  saved_LIBS="$LIBS"
-  saved_CFLAGS="$CFLAGS"
-
   HAVE_GNUTLS=0
   if test $PKGCONFIG = yes; then
     if pkg-config --exists gnutls; then
@@ -2772,24 +2765,23 @@ if test $enable_tls = yes; then
   fi
 
   if test $HAVE_GNUTLS = 0; then
-  #  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
+    # Save CFLAGS and LIBS as AM_PATH_TLS clobbers these variables regardless
+    # of the success of the macro.
+    saved_LIBS="$LIBS"
+    saved_CFLAGS="$CFLAGS"
+    #  AM_PATH_TLS(2.0.1, enable_libgnutls=yes, enable_libgnutls=no)
     AM_PATH_TLS(1.4.0, enable_libgnutls=yes, enable_libgnutls=no)
     if test $enable_libgnutls = yes; then
       CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
       INCLUDE_FLAGS="$INCLUDE_FLAGS $TLS_CFLAGS"
       LIBS="$TLS_LIBS $LIBS"
       HAVE_GNUTLS=1
-      AC_DEFINE(HAVE_GNUTLS,1,[Define if libgnutls available])
       AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
       if test "$have_gcrypt" = "no"; then
 	AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
 	HAVE_GNUTLS=0
       else
 	LIBS="$TLS_LIBS -lgcrypt $LIBS"
-      fi
-      AC_CHECK_FUNCS(gnutls_transport_set_errno)
-      if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
-	AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
       fi
     else
       HAVE_GNUTLS=0
@@ -2799,18 +2791,25 @@ if test $enable_tls = yes; then
     fi
   fi
   if test $HAVE_GNUTLS = 0; then
+    AC_MSG_RESULT(no)
     AC_MSG_WARN([Missing support for TLS functionality.])
     echo
     echo "You may not want to build base without libgnutls."
     echo "Doing so will disable SSL support in the NSStream class."
     echo "If you really want to build -base without TLS support,"
     echo "add --disable-tls to the configure arguments."
+  else
+    AC_MSG_RESULT(yes)
+    AC_CHECK_FUNCS(gnutls_transport_set_errno)
+    if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
+      AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
+    fi
   fi
 else
   AC_MSG_WARN([Disabled support for TLS funtionality.])
   HAVE_GNUTLS=0
 fi
-
+AC_DEFINE_UNQUOTED(HAVE_GNUTLS,$HAVE_GNUTLS,[Define if libgnutls available])
 AC_SUBST(HAVE_GNUTLS)
 
 #--------------------------------------------------------------------
