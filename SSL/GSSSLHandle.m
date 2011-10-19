@@ -60,8 +60,9 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSUserDefaults.h"
 
-#import "GNUstepBase/GSFileHandle.h"
 #import "GSPrivate.h"
+#import "GSNetwork.h"
+#import "GSFileHandle.h"
 
 #if defined(__MINGW__)
 #include <winsock2.h>

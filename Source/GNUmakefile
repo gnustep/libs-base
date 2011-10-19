@@ -116,7 +116,6 @@ GNUSTEPBASE_HEADERS = \
 GSBlocks.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
-GSFileHandle.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \

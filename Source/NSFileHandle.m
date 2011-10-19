@@ -30,8 +30,10 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSPathUtilities.h"
-#import "GNUstepBase/GSFileHandle.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSPrivate.h"
+#import "GSNetwork.h"
+#import "GSFileHandle.h"
 
 // GNUstep Notification names
 
