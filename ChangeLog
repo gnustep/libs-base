@@ -1,3 +1,9 @@
+2011-10-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m
+	Fix failure to load global defaults when system layout/config is
+	locked down (problem reported by Julian Mayer).
+
 2011-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* standalone.conf: example configuration file for a standalone
