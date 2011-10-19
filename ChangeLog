@@ -1,3 +1,13 @@
+2011-10-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSFileHandle.h: remove
+	* Source/GSFileHandle.h: add
+	* Source/GNUmakefile: Don't install private header
+	* Source/NSFileHandle.m:
+	* Source/GSFileHandle.m:
+	* SSL/GSSSLHandle.m:
+	Update to make GSFileHandle.h: private as it should be.
+
 2011-10-19  Sebastian Reitenbach
 
 	* configure.ac: fix typo on gnutls detection.

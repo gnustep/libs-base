@@ -30,7 +30,6 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSFileHandle.h"
-#import "GNUstepBase/GSFileHandle.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSNotification.h"
@@ -42,6 +41,7 @@
 #import "GSPrivate.h"
 #import "GSNetwork.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSFileHandle.h"
 
 #import "../Tools/gdomap.h"
 
