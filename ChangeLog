@@ -1,5 +1,10 @@
 2011-10-19  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: fixes for gnutls detection and to use the objc
+	libraries provided by gnustep-config.
+
+2011-10-19  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/GNUstepBase/GSFileHandle.h: remove
 	* Source/GSFileHandle.h: add
 	* Source/GNUmakefile: Don't install private header
