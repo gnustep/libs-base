@@ -1,5 +1,9 @@
 2011-10-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/common.h: Attempt to workaroiund clang __blockproblem
+
+2011-10-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPathUtilities.m:
 	Fix for bug #34603
 
