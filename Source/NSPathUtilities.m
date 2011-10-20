@@ -677,13 +677,13 @@ addDefaults(NSString *defs, NSMutableDictionary *conf)
 	{
 #if defined(__MINGW__)
 	  fprintf(stderr,
-	    "The file '%S' is writable by someone other than"
+	    "\nThe file '%S' is writable by someone other than"
 	    " its owner (permissions 0%lo).\nIgnoring it.\n",
 	    [defs fileSystemRepresentation],
 	    (long)[attributes filePosixPermissions]);
 #else
 	  fprintf(stderr,
-	    "The file '%s' is writable by someone other than"
+	    "\nThe file '%s' is writable by someone other than"
 	    " its owner (permissions 0%lo).\nIgnoring it.\n",
 	    [defs fileSystemRepresentation],
 	    (long)[attributes filePosixPermissions]);
@@ -694,6 +694,11 @@ addDefaults(NSString *defs, NSMutableDictionary *conf)
 	{
 	  NSString	*s;
 
+	  /* Here we load the string and convert to a property list
+	   * rather than using higher-level methods likely to raise
+	   * an exception or otherwise use the NSUserDefaults
+           * system and cause recursion on error.
+	   */
 	  s = [[NSString allocWithZone: NSDefaultMallocZone()]
 	    initWithContentsOfFile: defs];
 	  if (nil == s)
@@ -705,6 +710,10 @@ addDefaults(NSString *defs, NSMutableDictionary *conf)
 	      NS_DURING
 		{
 		  d = [s propertyList];
+		  if (NO == [d isKindOfClass: [NSDictionary class]])
+		    {
+		      d = nil;
+		    }
 		}
 	      NS_HANDLER
 		{
@@ -717,13 +726,13 @@ addDefaults(NSString *defs, NSMutableDictionary *conf)
 	    {
 #if defined(__MINGW__)
 	  fprintf(stderr,
-	    "The file '%S' is not readable as a propety list"
-	    ".\nIgnoring it.\n",
+	    "\nThe file '%S' is not parseable as a property list"
+	    " containing a dictionary.\nIgnoring it.\n",
 	    [defs fileSystemRepresentation]);
 #else
 	  fprintf(stderr,
-	    "The file '%s' is not readable as a propety list"
-	    ".\nIgnoring it.\n",
+	    "\nThe file '%s' is not parseable as a property list"
+	    " containing a dictionary.\nIgnoring it.\n",
 	    [defs fileSystemRepresentation]);
 #endif
 	    }
