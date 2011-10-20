@@ -48,16 +48,21 @@
 #import	"GNUstepBase/NSBundle+GNUstepBase.h"
 
 /* We need to wrap unistd.h because it is used throughout the code and some
- * versions include __block as a variable name, and clang now defines that
- * as a reserved word :-(
+ * versions include __block as a variable name, and clang also defines that
+ * and depends on the definition later ... so we resort to the fragile hack
+ * of redefining according to the observed definition.
  */
 #ifdef HAVE_UNISTD_H
-#ifdef __block
-/* Turn off Clang built-in __block */
-#undef __block
-#endif
-#define __block __gs_unistd_block
-#include <unistd.h>
-#undef __block
+#  ifdef __block
+#    undef __block
+#    define __block __gs_unistd_block
+#    include <unistd.h>
+#    undef __block
+#    define __block __attribute__((__blocks__(byref)))
+#  endif
+#else
+#  define __block __gs_unistd_block
+#  include <unistd.h>
+#  undef __block
 #endif
 
