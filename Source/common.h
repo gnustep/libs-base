@@ -59,10 +59,10 @@
 #    include <unistd.h>
 #    undef __block
 #    define __block __attribute__((__blocks__(byref)))
+#  else
+#    define __block __gs_unistd_block
+#    include <unistd.h>
+#    undef __block
 #  endif
-#else
-#  define __block __gs_unistd_block
-#  include <unistd.h>
-#  undef __block
 #endif
 

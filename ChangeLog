@@ -1,3 +1,10 @@
+2011-10-22  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSProcessInfo.m: Add includes needed for the HAVE_PROCFS
+	case.
+	* Source/common.h: Correct last commit, the #endif was placed
+	incorrectly.
+
 2011-10-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/common.h: Attempt to workaroiund clang __blockproblem
