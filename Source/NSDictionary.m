@@ -315,13 +315,22 @@ static SEL	appSel;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      id	keys;
-      id	objects;
+      id keys = nil;
+      id objects = nil;
 
-      keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
-					       @"NS.keys"];
-      objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
-						  @"NS.objects"];
+      if ([aCoder containsValueForKey: @"NS.keys"])
+        {
+          keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
+                                        @"NS.keys"];
+          objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
+                                           @"NS.objects"];
+        }
+      else if ([aCoder containsValueForKey: @"dict.sortedKeys"])
+	{
+          keys = [aCoder decodeObjectForKey: @"dict.sortedKeys"];
+          objects = [aCoder decodeObjectForKey: @"dict.values"];
+        }
+
       if (keys == nil)
 	{
 	  unsigned	i = 0;

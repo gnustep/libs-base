@@ -591,9 +591,26 @@ static NSAffineTransformStruct identityTransform = {
 {
   NSAffineTransformStruct	replace;
     
-  [aCoder decodeArrayOfObjCType: @encode(CGFloat)
-			  count: 6
-			     at: (CGFloat*)&replace];
+  if ([aCoder allowsKeyedCoding])
+    {
+      // FIXME
+      /*
+      NSData *data = [aCoder decodeObjectForKey: @"NSTransformStruct"];
+      unsigned int cursor = 0;
+      // We get lengths of 12 and 18
+      NSLog(@"length %d data %@", [data length], data);
+      [data deserializeDataAt: (CGFloat*)&replace
+	        ofObjCType: "[6f]"
+		  atCursor: &cursor
+		   context: nil];
+      */
+    }
+  else
+    {
+      [aCoder decodeArrayOfObjCType: @encode(CGFloat)
+                              count: 6
+                                 at: (CGFloat*)&replace];
+    }
   [self setTransformStruct: replace];
   return self;
 }
@@ -603,9 +620,16 @@ static NSAffineTransformStruct identityTransform = {
   NSAffineTransformStruct	replace;
     
   replace = [self transformStruct];
-  [aCoder encodeArrayOfObjCType: @encode(CGFloat)
-			  count: 6
-			     at: (CGFloat*)&replace];
+  if ([aCoder allowsKeyedCoding])
+    {
+      // FIXME
+    }
+  else
+    {
+      [aCoder encodeArrayOfObjCType: @encode(CGFloat)
+                              count: 6
+                                 at: (CGFloat*)&replace];
+    }
 }
 
 @end /* NSAffineTransform */
