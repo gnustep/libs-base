@@ -1017,8 +1017,13 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
+MAKECC=`gnustep-config --variable=CC`
+if test "$CC" != "$MAKECC"; then
+  AC_MSG_ERROR([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  Please run configure again with your environment set to match your gnustep-make])
+  exit 1
+fi
 
-#--------------------------------------------------------------------
+#-------------------------------------------------------------------r
 # Check how to enable builtins for atomic operations
 #--------------------------------------------------------------------
 
@@ -2809,7 +2814,9 @@ else
   AC_MSG_WARN([Disabled support for TLS funtionality.])
   HAVE_GNUTLS=0
 fi
-AC_DEFINE_UNQUOTED(HAVE_GNUTLS,$HAVE_GNUTLS,[Define if libgnutls available])
+if test $HAVE_GNUTLS = 1; then
+  AC_DEFINE_UNQUOTED(HAVE_GNUTLS,$HAVE_GNUTLS,[Define if libgnutls available])
+fi
 AC_SUBST(HAVE_GNUTLS)
 
 #--------------------------------------------------------------------

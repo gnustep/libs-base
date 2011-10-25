@@ -5118,8 +5118,15 @@ _ACEOF
 
 
 
+MAKECC=`gnustep-config --variable=CC`
+if test "$CC" != "$MAKECC"; then
+  { { $as_echo "$as_me:$LINENO: error: You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  Please run configure again with your environment set to match your gnustep-make" >&5
+$as_echo "$as_me: error: You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  Please run configure again with your environment set to match your gnustep-make" >&2;}
+   { (exit 1); exit 1; }; }
+  exit 1
+fi
 
-#--------------------------------------------------------------------
+#-------------------------------------------------------------------r
 # Check how to enable builtins for atomic operations
 #--------------------------------------------------------------------
 
@@ -23925,11 +23932,13 @@ else
 $as_echo "$as_me: WARNING: Disabled support for TLS funtionality." >&2;}
   HAVE_GNUTLS=0
 fi
+if test $HAVE_GNUTLS = 1; then
 
 cat >>confdefs.h <<_ACEOF
 #define HAVE_GNUTLS $HAVE_GNUTLS
 _ACEOF
 
+fi
 
 
 #--------------------------------------------------------------------
