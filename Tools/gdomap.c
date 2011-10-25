@@ -3090,10 +3090,7 @@ handle_request(int desc)
        */
       if (ri->addr.sin_port == my_port)
 	{
-	  struct in_addr	*ptr;
 	  struct in_addr	sin;
-	  unsigned long	net;
-	  int	c;
 
 	  memcpy(&sin, ri->buf.r.name, IASIZE);
 	  if (debug > 2)
@@ -3101,6 +3098,21 @@ handle_request(int desc)
 	      snprintf(ebuf, sizeof(ebuf), "Probe from '%s'", inet_ntoa(sin));
 	      gdomap_log(LOG_DEBUG);
 	    }
+	  prb_add(&sin);
+
+	  /*
+	   *	Irrespective of what we are told to do - we also add the
+	   *	interface from which this packet arrived so we have a
+	   *	route we KNOW we can use.
+	   */
+	  prb_add(&ri->addr.sin_addr);
+
+#if 0
+	{
+	  struct in_addr	*ptr;
+	  unsigned long	net;
+	  int	c;
+
 #if	defined(__MINGW__)
 	  if (IN_CLASSA(sin.s_addr))
 	    {
@@ -3119,8 +3131,6 @@ handle_request(int desc)
 #endif
 	  ptr = (struct in_addr*)&ri->buf.r.name[2*IASIZE];
 	  c = (ri->buf.r.nsize - 2*IASIZE)/IASIZE;
-	  prb_add(&sin);
-#if 0
 	  while (c-- > 0)
 	    {
 	      if (debug > 2)
@@ -3132,13 +3142,8 @@ handle_request(int desc)
 	      prb_add(ptr);
 	      ptr++;
 	    }
+	}
 #endif
-	  /*
-	   *	Irrespective of what we are told to do - we also add the
-	   *	interface from which this packet arrived so we have a
-	   *	route we KNOW we can use.
-	   */
-	  prb_add(&ri->addr.sin_addr);
 	}
       /*
        *	For a UDP request from another name server, we send a reply
