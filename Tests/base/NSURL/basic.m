@@ -96,9 +96,9 @@ int main()
     "resourceSpecifier of /usr is //localhost/usr/");
 #endif
 
-  PASS_EXCEPTION([[NSURL alloc] initFileURLWithPath: nil isDir: YES],
+  PASS_EXCEPTION([[NSURL alloc] initFileURLWithPath: nil isDirectory: YES],
     NSInvalidArgumentException,
-    "nil is an invalid argument for -initFileURLWithPath:isDir:");
+    "nil is an invalid argument for -initFileURLWithPath:isDirectory:");
   PASS_EXCEPTION([[NSURL alloc] initFileURLWithPath: nil],
     NSInvalidArgumentException,
     "nil is an invalid argument for -initFileURLWithPath:");
