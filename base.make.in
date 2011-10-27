@@ -21,34 +21,38 @@
 #   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 ifeq ($(BASE_MAKE_LOADED),)
-BASE_MAKE_LOADED=yes
+  BASE_MAKE_LOADED=yes
 
-ifeq ($(FOUNDATION_LIB),gnu)
-#
-# FIXME - macro names
-#
-  AUXILIARY_OBJCFLAGS += @NX_CONST_STRING_OBJCFLAGS@
-  ifeq ($(shared),no)
-    CONFIG_SYSTEM_LIBS += @LIBS@
-    CONFIG_SYSTEM_LIB_DIR += @LDIR_FLAGS@
+  ifeq ($(FOUNDATION_LIB),gnu)
+    #
+    # FIXME - macro names
+    #
+    AUXILIARY_OBJCFLAGS += @NX_CONST_STRING_OBJCFLAGS@
+    ifeq ($(shared),no)
+      CONFIG_SYSTEM_LIBS += @LIBS@
+      CONFIG_SYSTEM_LIB_DIR += @LDIR_FLAGS@
+    endif
+
+    GNUSTEP_BASE_VERSION = @VERSION@
+    GNUSTEP_BASE_MAJOR_VERSION = @MAJOR_VERSION@
+    GNUSTEP_BASE_MINOR_VERSION = @MINOR_VERSION@
+    GNUSTEP_BASE_SUBMINOR_VERSION = @SUBMINOR_VERSION@
+
+    FND_LDFLAGS =
+    FND_LIBS = -lgnustep-base
+    FND_DEFINE = -DGNUSTEP_BASE_LIBRARY=1
+    GNUSTEP_DEFINE = -DGNUSTEP
+  else
+    #
+    # Not using the GNUstep foundation ... must be Apple's
+    # So we need to use the base additions library.
+    #
+    FND_LIBS = -lgnustep-baseadd -framework Foundation
   endif
 
-  GNUSTEP_BASE_VERSION = @VERSION@
-  GNUSTEP_BASE_MAJOR_VERSION = @MAJOR_VERSION@
-  GNUSTEP_BASE_MINOR_VERSION = @MINOR_VERSION@
-  GNUSTEP_BASE_SUBMINOR_VERSION = @SUBMINOR_VERSION@
-
-  FND_LDFLAGS =
-  FND_LIBS = -lgnustep-base
-  FND_DEFINE = -DGNUSTEP_BASE_LIBRARY=1
-  GNUSTEP_DEFINE = -DGNUSTEP
-else
-#
-# Not using the GNUstep foundation ... must be Apple's
-# So we need to use the base additions library.
-#
-  FND_LIBS = -lgnustep-baseadd -framework Foundation
-endif
+  # For literal string handling, base requires the compiler to store the
+  # string as UTF-8
+  AUXILIARY_OBJCFLAGS += -fexec-charset=UTF-8
 
   GNUSTEP_BASE_HAVE_GNUTLS=@HAVE_GNUTLS@
   GNUSTEP_BASE_HAVE_LIBXML=@HAVE_LIBXML@

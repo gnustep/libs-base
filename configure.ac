@@ -170,17 +170,17 @@ AC_ARG_WITH(config-file,
 )
 if test "$result" != "no"
 then
-  GNUSTEP_CONFIG_FILE="$result"
+  GNUSTEP_TARGET_CONFIG_FILE="$result"
 fi
-if test x"$GNUSTEP_CONFIG_FILE" = x""; then
+if test x"$GNUSTEP_TARGET_CONFIG_FILE" = x""; then
   case "$target_os" in
     mingw*)
-      GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
+      GNUSTEP_TARGET_CONFIG_FILE=./GNUstep.conf ;;
     *)
-      GNUSTEP_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
+      GNUSTEP_TARGET_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
   esac
 fi
-AC_MSG_RESULT($GNUSTEP_CONFIG_FILE)
+AC_MSG_RESULT($GNUSTEP_TARGET_CONFIG_FILE)
 
 #-----------------------------------------------------------------
 # Whether the GNUstep.conf file path can be set in the environment
@@ -226,7 +226,7 @@ else
 fi
 
 #--------------------------------------------------------------------
-# We are not trying to determine the default GNUstep paths to be
+# We are now trying to determine the default GNUstep paths to be
 # used at runtime.  So all GNUSTEP_xxx variables from now on are to be
 # considered as 'runtime' ones.  They refer to paths that might not
 # make any sense now, but might make sense once gnustep-base is
@@ -278,8 +278,8 @@ then
 				provide default values for the base library
 				to use at runtime if no GNUstep config file
 				is found at runtime.  If this is not specified
-				then the path from --with-config-file or from
-				the gnustep-make package is used.],
+				then the path from the gnustep-make package
+				is used.],
     result="$withval",
     result="no"
   )
@@ -686,9 +686,9 @@ GNUSTEP_USER_CONFIG_FILE=`echo $GNUSTEP_USER_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_USER_CONFIG_FILE,
   "$GNUSTEP_USER_CONFIG_FILE",
   [Built in default value for GNUstep user config file])
-GNUSTEP_CONFIG_FILE=`echo $GNUSTEP_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
+GNUSTEP_TARGET_CONFIG_FILE=`echo $GNUSTEP_TARGET_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(GNUSTEP_TARGET_CONFIG_FILE,
-  "$GNUSTEP_CONFIG_FILE",
+  "$GNUSTEP_TARGET_CONFIG_FILE",
   [Built in default value for GNUstep config file])
 
 #
@@ -1131,6 +1131,10 @@ else
   OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
 fi
 LIBOBJC=`gnustep-config --objc-libs`
+if test "$LIBOBJC" = ""; then
+  AC_MSG_ERROR([The command 'gnustep-config --objc-libs' (provided by the gnustep-make package) returned no Objective-C library.  Unable to continue configuring without Objective-C support.])
+  exit 1
+fi
 
 #--------------------------------------------------------------------
 # Miscellaneous flags

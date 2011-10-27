@@ -1553,8 +1553,8 @@ Optional Packages:
 				provide default values for the base library
 				to use at runtime if no GNUstep config file
 				is found at runtime.  If this is not specified
-				then the path from --with-config-file or from
-				the gnustep-make package is used.
+				then the path from the gnustep-make package
+				is used.
   --with-installation-domain=DOMAIN
 				Specify the domain (SYSTEM, LOCAL,
 				NETWORK or USER) into which
@@ -2275,18 +2275,18 @@ fi
 
 if test "$result" != "no"
 then
-  GNUSTEP_CONFIG_FILE="$result"
+  GNUSTEP_TARGET_CONFIG_FILE="$result"
 fi
-if test x"$GNUSTEP_CONFIG_FILE" = x""; then
+if test x"$GNUSTEP_TARGET_CONFIG_FILE" = x""; then
   case "$target_os" in
     mingw*)
-      GNUSTEP_CONFIG_FILE=./GNUstep.conf ;;
+      GNUSTEP_TARGET_CONFIG_FILE=./GNUstep.conf ;;
     *)
-      GNUSTEP_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
+      GNUSTEP_TARGET_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
   esac
 fi
-{ $as_echo "$as_me:$LINENO: result: $GNUSTEP_CONFIG_FILE" >&5
-$as_echo "$GNUSTEP_CONFIG_FILE" >&6; }
+{ $as_echo "$as_me:$LINENO: result: $GNUSTEP_TARGET_CONFIG_FILE" >&5
+$as_echo "$GNUSTEP_TARGET_CONFIG_FILE" >&6; }
 
 #-----------------------------------------------------------------
 # Whether the GNUstep.conf file path can be set in the environment
@@ -2328,7 +2328,7 @@ $as_echo "no: disabled from the command-line" >&6; }
 fi
 
 #--------------------------------------------------------------------
-# We are not trying to determine the default GNUstep paths to be
+# We are now trying to determine the default GNUstep paths to be
 # used at runtime.  So all GNUSTEP_xxx variables from now on are to be
 # considered as 'runtime' ones.  They refer to paths that might not
 # make any sense now, but might make sense once gnustep-base is
@@ -2909,10 +2909,10 @@ cat >>confdefs.h <<_ACEOF
 #define GNUSTEP_TARGET_USER_CONFIG_FILE "$GNUSTEP_USER_CONFIG_FILE"
 _ACEOF
 
-GNUSTEP_CONFIG_FILE=`echo $GNUSTEP_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
+GNUSTEP_TARGET_CONFIG_FILE=`echo $GNUSTEP_TARGET_CONFIG_FILE|sed -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
-#define GNUSTEP_TARGET_CONFIG_FILE "$GNUSTEP_CONFIG_FILE"
+#define GNUSTEP_TARGET_CONFIG_FILE "$GNUSTEP_TARGET_CONFIG_FILE"
 _ACEOF
 
 
@@ -5476,6 +5476,12 @@ $as_echo "GNU" >&6; }
   OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
 fi
 LIBOBJC=`gnustep-config --objc-libs`
+if test "$LIBOBJC" = ""; then
+  { { $as_echo "$as_me:$LINENO: error: The command 'gnustep-config --objc-libs' (provided by the gnustep-make package) returned no Objective-C library.  Unable to continue configuring without Objective-C support." >&5
+$as_echo "$as_me: error: The command 'gnustep-config --objc-libs' (provided by the gnustep-make package) returned no Objective-C library.  Unable to continue configuring without Objective-C support." >&2;}
+   { (exit 1); exit 1; }; }
+  exit 1
+fi
 
 #--------------------------------------------------------------------
 # Miscellaneous flags
