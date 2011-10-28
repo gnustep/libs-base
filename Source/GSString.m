@@ -2723,15 +2723,11 @@ transmute(GSStr self, NSString *aString)
 	   */
 	  transmute = NO;
 	}
-      else if (internalEncoding == externalEncoding
-	&& [aString canBeConvertedToEncoding: internalEncoding] == YES)
+      else if ([aString canBeConvertedToEncoding: internalEncoding] == YES)
 	{
 	  /*
 	   * The other string can be converted to the internal 8-bit encoding,
-	   * via the cString method, so we don't need to transmute, but we
-	   * can *not* use its GSStr.
-	   * NB. If 'internalEncoding != externalEncoding' the cString method
-	   * of the other string will not return data in the internal encoding.
+	   * so we don't need to transmute, but we can *not* use its GSStr.
 	   */
 	  transmute = NO;
 	  other = 0;

@@ -3,7 +3,8 @@
 	* Source/NSString.m: Fix bug when widening mutable string in
         replaceOccurrencesOfString:...range:
 	* Source/GSString.m: more efficient check to see if a literal string
-	can be converted to ascii or latin1
+	can be converted to ascii or latin1.  Remove unnecessary constraint
+	on when we need to widen strings.
 
 2011-10-28  Fred Kiefer <FredKiefer@gmx.de>
 
