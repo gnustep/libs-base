@@ -4996,6 +4996,30 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
   return 0;
 }
 
+- (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
+{
+  if (NSASCIIStringEncoding == encoding)
+    {
+      BOOL	ascii;
+
+      lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, 0);
+      return ascii;
+    }
+  else if (NSISOLatin1StringEncoding == encoding)
+    {
+      BOOL	latin1;
+
+      lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, &latin1);
+      return latin1;
+    }
+  else
+    {
+      id d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
+
+      return d != nil ? YES : NO;
+    }
+}
+
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
 	 allowLossyConversion: (BOOL)flag
 {

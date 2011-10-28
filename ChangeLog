@@ -1,6 +1,14 @@
+2011-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Fix bug when widening mutable string in
+        replaceOccurrencesOfString:...range:
+	* Source/GSString.m: more efficient check to see if a literal string
+	can be converted to ascii or latin1
+
 2011-10-28  Fred Kiefer <FredKiefer@gmx.de>
 
-	* Tests/base/NSMutableString/basic.m: Add test for replaceOccurrencesOfString:...range:
+	* Tests/base/NSMutableString/basic.m: Add test for
+	replaceOccurrencesOfString:...range:
 
 2011-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 
