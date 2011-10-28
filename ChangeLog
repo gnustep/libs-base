@@ -1,3 +1,7 @@
+2011-10-28  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tests/base/NSMutableString/basic.m: Add test for replaceOccurrencesOfString:...range:
+
 2011-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Do not redefine GNUSTEP_CONFIG_FILE in case it confuses
