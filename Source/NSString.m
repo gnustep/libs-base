@@ -5524,15 +5524,12 @@ static NSFileManager *fm = nil;
 	      searchRange.location = range.location + byLen;
 	      searchRange.length = newEnd - searchRange.location;
 	    }
-	  if (searchRange.length > 0)
-	    {
-	      /* We replaced something and now need to scan again.
-	       * As we modified the receiver, we must refresh the
-	       * method implementation for searching.
-	       */
-	      func = GSPrivateRangeOfString(self, replace);
-	      range = (*func)(self, replace, opts, searchRange);
-	    }
+	  /* We replaced something and now need to scan again.
+	   * As we modified the receiver, we must refresh the
+	   * method implementation for searching.
+	   */
+	  func = GSPrivateRangeOfString(self, replace);
+	  range = (*func)(self, replace, opts, searchRange);
 	}
       while (range.length > 0);
     }
