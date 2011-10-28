@@ -837,8 +837,8 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
       && ((GSStr)string)->_flags.wide == 0))
     {
       /*
-       * For a GSCString subclass, and ??ConstantString, or an 8-bit
-       * GSMutableString, we can copy the bytes directly into a GSCString.
+       * For a GSCString subclass, or an 8-bit GSMutableString,
+       * we can copy the bytes directly into a GSCString.
        */
       me = (GSStr)NSAllocateObject(GSCInlineStringClass,
 	length, [self zone]);
@@ -908,7 +908,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
  * The following inline functions are used by the concrete string classes
  * to implement their core functionality.
  * GSCString uses the functions with the _c suffix.
- * GSCSubString, GSCInlineString, GSCBufferString, and ??ConstantString
+ * GSCSubString, GSCInlineString, GSCBufferString
  * inherit methods from GSCString.
  * GSUnicodeString uses the functions with the _u suffix.
  * GSUnicodeSubString, GSUnicodeInlineString, and GSUnicodeBufferString
@@ -4956,9 +4956,7 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
  * <p>The NXConstantString class is used by the compiler for constant
  * strings, as such its ivar layout is determined by the compiler
  * and consists of a pointer (_contents.c) and a character count
- * (_count).  So, while this class inherits GSCString behavior,
- * the code must make sure not to use any other GSCString GSStr
- * when accesssing an NXConstantString.</p>
+ * (_count). 
  */
 @implementation NXConstantString
 
