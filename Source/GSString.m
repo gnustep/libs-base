@@ -5012,6 +5012,11 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
       lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, &latin1);
       return latin1;
     }
+  else if (NSUTF8StringEncoding == encoding
+    || NSUnicodeStringEncoding == encoding)
+    {
+      return YES;
+    }
   else
     {
       id d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
