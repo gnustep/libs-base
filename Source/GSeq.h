@@ -58,8 +58,8 @@ static SEL	ranSel = NULL;
  */
 typedef	struct {
   unichar	*chars;
-  unsigned	count;
-  unsigned	capacity;
+  NSUInteger	count;
+  NSUInteger	capacity;
   BOOL		normalized;
 } GSeqStruct;
 typedef	GSeqStruct	*GSeq;
@@ -79,13 +79,13 @@ typedef	GSeqStruct	*GSeq;
  */
 static inline void GSeq_normalize(GSeq seq)
 {
-  unsigned	count = seq->count;
+  NSUInteger	count = seq->count;
 
   if (count)
     {
       unichar	*source = seq->chars;
       unichar	target[count*MAXDEC+1];
-      unsigned	base = 0;
+      NSUInteger	base = 0;
 
       /*
        * Pre-scan ... anything with a code under 0x00C0 is not a decomposable
@@ -114,7 +114,7 @@ static inline void GSeq_normalize(GSeq seq)
 	    {
 	      unichar	*spoint = &source[base];
 	      unichar	*tpoint = &target[base];
-	      unsigned	newbase = 0;
+	      NSUInteger	newbase = 0;
 
 	      do
 		{
@@ -163,7 +163,7 @@ static inline void GSeq_normalize(GSeq seq)
 		{
 		  unichar	*first = seq->chars;
 		  unichar	*second = first + 1;
-		  unsigned	i;
+		  NSUInteger	i;
 
 		  notdone = NO;
 		  for (i = 1; i < count; i++)
@@ -208,10 +208,10 @@ static inline void GSeq_normalize(GSeq seq)
  */
 static inline NSComparisonResult GSeq_compare(GSeq s0, GSeq s1)
 {
-  unsigned	i;
-  unsigned	end;
-  unsigned	len0;
-  unsigned	len1;
+  NSUInteger	i;
+  NSUInteger	end;
+  NSUInteger	len0;
+  NSUInteger	len1;
   unichar	*c0 = s0->chars;
   unichar	*c1 = s1->chars;
 
@@ -258,8 +258,8 @@ static inline NSComparisonResult GSeq_compare(GSeq s0, GSeq s1)
 static inline void GSeq_lowercase(GSeq seq)
 {
   unichar	*s = seq->chars;
-  unsigned	len = seq->count;
-  unsigned	i;
+  NSUInteger	len = seq->count;
+  NSUInteger	i;
 
   for (i = 0; i < len; i++)
     s[i] = uni_tolower(s[i]);
@@ -268,8 +268,8 @@ static inline void GSeq_lowercase(GSeq seq)
 static inline void GSeq_uppercase(GSeq seq)
 {
   unichar	*s = seq->chars;
-  unsigned	len = seq->count;
-  unsigned	i;
+  NSUInteger	len = seq->count;
+  NSUInteger	i;
 
   for (i = 0; i < len; i++)
     s[i] = uni_toupper(s[i]);
@@ -320,7 +320,7 @@ static inline void GSeq_uppercase(GSeq seq)
 #define	GSEQ_SLEN	s->_count
 #define	GSEQ_SGETC(I)	(unichar)s->_contents.c[I]
 #define	GSEQ_SGETR(B,R)	( { \
-  unsigned _lcount = 0; \
+  NSUInteger _lcount = 0; \
   while (_lcount < (R).length) \
     { \
       (B)[_lcount] = (unichar)s->_contents.c[(R).location + _lcount]; \
@@ -352,7 +352,7 @@ static inline void GSeq_uppercase(GSeq seq)
 #define	GSEQ_OLEN	o->_count
 #define	GSEQ_OGETC(I)	(unichar)o->_contents.c[I]
 #define	GSEQ_OGETR(B,R)	( { \
-  unsigned _lcount = 0; \
+  NSUInteger _lcount = 0; \
   while (_lcount < (R).length) \
     { \
       (B)[_lcount] = (unichar)o->_contents.c[(R).location + _lcount]; \
@@ -374,11 +374,11 @@ static inline void GSeq_uppercase(GSeq seq)
  */
 #ifdef	GSEQ_STRCOMP
 static NSComparisonResult
-GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
+GSEQ_STRCOMP(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 {
   GSEQ_ST	s = (GSEQ_ST)ss;
   GSEQ_OT	o = (GSEQ_OT)os;
-  unsigned	oLength;			/* Length of other.	*/
+  NSUInteger	oLength;			/* Length of other.	*/
 
 #if	0
   /* Range should be checked in calling code */
@@ -404,10 +404,10 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
   if (mask & NSLiteralSearch)
     {
-      unsigned	i;
-      unsigned	sLen = aRange.length;
-      unsigned	oLen = oLength;
-      unsigned	end;
+      NSUInteger	i;
+      NSUInteger	sLen = aRange.length;
+      NSUInteger	oLen = oLength;
+      NSUInteger	end;
 #if	GSEQ_S == GSEQ_NS
       void	(*sgImp)(NSString*, SEL, unichar*, NSRange);
       unichar	sBuf[sLen];
@@ -501,17 +501,17 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
     }
   else
     {
-      unsigned		start = aRange.location;
-      unsigned		end = start + aRange.length;
-      unsigned		sLength = GSEQ_SLEN;
-      unsigned		sCount = start;
-      unsigned		oCount = 0;
+      NSUInteger		start = aRange.location;
+      NSUInteger		end = start + aRange.length;
+      NSUInteger		sLength = GSEQ_SLEN;
+      NSUInteger		sCount = start;
+      NSUInteger		oCount = 0;
       NSComparisonResult result;
 #if	GSEQ_S == GSEQ_NS || GSEQ_S == GSEQ_US
-      NSRange		(*srImp)(NSString*, SEL, unsigned);
+      NSRange		(*srImp)(NSString*, SEL, NSUInteger);
 #endif
 #if	GSEQ_O == GSEQ_NS || GSEQ_O == GSEQ_US
-      NSRange		(*orImp)(NSString*, SEL, unsigned);
+      NSRange		(*orImp)(NSString*, SEL, NSUInteger);
 #endif
 #if	GSEQ_S == GSEQ_NS
       void		(*sgImp)(NSString*, SEL, unichar*, NSRange);
@@ -521,11 +521,11 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 #endif
 
 #if	GSEQ_S == GSEQ_NS || GSEQ_S == GSEQ_US
-      srImp = (NSRange (*)(NSString*, SEL, unsigned))
+      srImp = (NSRange (*)(NSString*, SEL, NSUInteger))
 	[(id)s methodForSelector: ranSel];
 #endif
 #if	GSEQ_O == GSEQ_NS || GSEQ_O == GSEQ_US
-      orImp = (NSRange (*)(NSString*, SEL, unsigned))
+      orImp = (NSRange (*)(NSString*, SEL, NSUInteger))
 	[(id)o methodForSelector: ranSel];
 #endif
 #if	GSEQ_S == GSEQ_NS
@@ -594,31 +594,31 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
  */
 #ifdef	GSEQ_STRRANGE
 static NSRange
-GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
+GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 {
   GSEQ_ST	s = (GSEQ_ST)ss;
   GSEQ_OT	o = (GSEQ_OT)os;
-  unsigned	myIndex;
-  unsigned	myEndIndex;
-  unsigned	strLength;
+  NSUInteger	myIndex;
+  NSUInteger	myEndIndex;
+  NSUInteger	strLength;
 #if	GSEQ_S == GSEQ_NS
-  unichar	(*scImp)(NSString*, SEL, unsigned);
+  unichar	(*scImp)(NSString*, SEL, NSUInteger);
   void		(*sgImp)(NSString*, SEL, unichar*, NSRange);
 #endif
 #if	GSEQ_O == GSEQ_NS
-  unichar	(*ocImp)(NSString*, SEL, unsigned);
+  unichar	(*ocImp)(NSString*, SEL, NSUInteger);
   void		(*ogImp)(NSString*, SEL, unichar*, NSRange);
 #endif
 #if	GSEQ_S == GSEQ_NS || GSEQ_S == GSEQ_US
-  NSRange	(*srImp)(NSString*, SEL, unsigned);
+  NSRange	(*srImp)(NSString*, SEL, NSUInteger);
 #endif
 #if	GSEQ_O == GSEQ_NS || GSEQ_O == GSEQ_US
-  NSRange	(*orImp)(NSString*, SEL, unsigned);
+  NSRange	(*orImp)(NSString*, SEL, NSUInteger);
 #endif
   
 #if	0
   /* Check that the search range is reasonable */
-  unsigned	myLength = GSEQ_SLEN;
+  NSUInteger	myLength = GSEQ_SLEN;
 
   /* Range should be checked in calling code */
   if (aRange.location > myLength)
@@ -636,23 +636,23 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
    * Cache method implementations for getting characters and ranges
    */
 #if	GSEQ_S == GSEQ_NS
-  scImp = (unichar (*)(NSString*,SEL,unsigned))
+  scImp = (unichar (*)(NSString*,SEL,NSUInteger))
     [(id)s methodForSelector: caiSel];
   sgImp = (void (*)(NSString*,SEL,unichar*,NSRange))
     [(id)s methodForSelector: gcrSel];
 #endif
 #if	GSEQ_O == GSEQ_NS
-  ocImp = (unichar (*)(NSString*,SEL,unsigned))
+  ocImp = (unichar (*)(NSString*,SEL,NSUInteger))
     [(id)o methodForSelector: caiSel];
   ogImp = (void (*)(NSString*,SEL,unichar*,NSRange))
     [(id)o methodForSelector: gcrSel];
 #endif
 #if	GSEQ_S == GSEQ_NS || GSEQ_S == GSEQ_US
-  srImp = (NSRange (*)(NSString*,SEL,unsigned))
+  srImp = (NSRange (*)(NSString*,SEL,NSUInteger))
     [(id)s methodForSelector: ranSel];
 #endif
 #if	GSEQ_O == GSEQ_NS || GSEQ_O == GSEQ_US
-  orImp = (NSRange (*)(NSString*,SEL,unsigned))
+  orImp = (NSRange (*)(NSString*,SEL,NSUInteger))
     [(id)o methodForSelector: ranSel];
 #endif
 
@@ -671,7 +671,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
 	  for (;;)
 	    {
-	      unsigned	i = 1;
+	      NSUInteger	i = 1;
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
@@ -706,7 +706,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
 	  for (;;)
 	    {
-	      unsigned	i = 1;
+	      NSUInteger	i = 1;
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
@@ -741,7 +741,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
 	  for (;;)
 	    {
-	      unsigned	i = 1;
+	      NSUInteger	i = 1;
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
@@ -775,7 +775,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
 	  for (;;)
 	    {
-	      unsigned	i = 1;
+	      NSUInteger	i = 1;
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
@@ -799,7 +799,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
       case GSEQ_FCS: 
       case GSEQ_FCAS: 
 	{
-	  unsigned	strBaseLength;
+	  NSUInteger	strBaseLength;
 	  NSRange	iRange;
 
 	  strBaseLength = [(NSString*)o _baseLength];
@@ -828,8 +828,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
 		  if (GSeq_compare(&iSeq, &sSeq) == NSOrderedSame)
 		    {
-		      unsigned	myCount = sRange.length;
-		      unsigned	strCount = iRange.length;
+		      NSUInteger	myCount = sRange.length;
+		      NSUInteger	strCount = iRange.length;
 
 		      if (strCount >= strLength)
 			{
@@ -873,7 +873,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
       case GSEQ_BCS: 
       case GSEQ_BCAS: 
 	{
-	  unsigned	strBaseLength;
+	  NSUInteger	strBaseLength;
 	  NSRange	iRange;
 
 	  strBaseLength = [(NSString*)o _baseLength];
@@ -902,8 +902,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
 		  if (GSeq_compare(&iSeq, &sSeq) == NSOrderedSame)
 		    {
-		      unsigned	myCount = sRange.length;
-		      unsigned	strCount = iRange.length;
+		      NSUInteger	myCount = sRange.length;
+		      NSUInteger	strCount = iRange.length;
 
 		      if (strCount >= strLength)
 			{
@@ -950,7 +950,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
       case GSEQ_BS: 
       case GSEQ_BAS: 
 	{
-	  unsigned	strBaseLength;
+	  NSUInteger	strBaseLength;
 	  NSRange	iRange;
 
 	  strBaseLength = [(NSString*)o _baseLength];
@@ -977,8 +977,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
 		  if (GSeq_compare(&iSeq, &sSeq) == NSOrderedSame)
 		    {
-		      unsigned	myCount = sRange.length;
-		      unsigned	strCount = iRange.length;
+		      NSUInteger	myCount = sRange.length;
+		      NSUInteger	strCount = iRange.length;
 
 		      if (strCount >= strLength)
 			{
@@ -1021,7 +1021,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
       case GESQ_FAS: 
       default: 
 	{
-	  unsigned	strBaseLength;
+	  NSUInteger	strBaseLength;
 	  NSRange	iRange;
 
 	  strBaseLength = [(NSString*)o _baseLength];
@@ -1048,8 +1048,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 
 		  if (GSeq_compare(&iSeq, &sSeq) == NSOrderedSame)
 		    {
-		      unsigned	myCount = sRange.length;
-		      unsigned	strCount = iRange.length;
+		      NSUInteger	myCount = sRange.length;
+		      NSUInteger	strCount = iRange.length;
 
 		      if (strCount >= strLength)
 			{

@@ -1,3 +1,7 @@
+2011-10-29  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/GSeq.h: Replace unsigned with NSUInteger.
+
 2011-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix bug when widening mutable string in
