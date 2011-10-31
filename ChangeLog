@@ -1,3 +1,10 @@
+2011-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Implement more efficient equality tests for
+	utf-8 literal strings and strings in internal representation.
+	Implement rangeOfComposedCharacterSequenceAtIndex: for utf8 literal
+	strings.
+
 2011-10-29  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/GSeq.h: Replace unsigned with NSUInteger.
