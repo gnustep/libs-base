@@ -70,6 +70,227 @@ static BOOL isByteEncoding(NSStringEncoding enc)
 struct objc_class _NSConstantStringClassReference;
 #endif
 
+/* Determine the length of the UTF-8 string as a unicode (UTF-16) string.
+ * sets the ascii flag according to the content found.
+ */
+static NSUInteger
+lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii, BOOL *latin1)
+{
+  const uint8_t	*e = p + l;
+  BOOL		a = YES;
+  BOOL		l1 = YES;
+
+  l = 0;
+  while (p < e)
+    {
+      uint8_t	c = *p;
+      uint32_t	u = c;
+
+      if (c > 0x7f)
+	{
+	  int i, sle = 0;
+
+	  a = NO;
+	  /* calculated the expected sequence length */
+	  while (c & 0x80)
+	    {
+	      c = c << 1;
+	      sle++;
+	    }
+
+	  /* legal ? */
+	  if ((sle < 2) || (sle > 6))
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Bad sequence length in constant string"];
+	    }
+
+	  if (p + sle > e)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Short data in constant string"];
+	    }
+
+	  /* get the codepoint */
+	  for (i = 1; i < sle; i++)
+	    {
+	      if (p[i] < 0x80 || p[i] >= 0xc0)
+		break;
+	      u = (u << 6) | (p[i] & 0x3f);
+	    }
+
+	  if (i < sle)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Codepoint out of range in constant string"];
+	    }
+	  u = u & ~(0xffffffff << ((5 * sle) + 1));
+	  p += sle;
+
+	  /*
+	   * We check for invalid codepoints here.
+	   */
+	  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
+	    || (u >= 0xfdd0 && u <= 0xfdef))
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Codepoint invalid in constant string"];
+	    }
+
+	  if ((u >= 0xd800) && (u <= 0xdfff))
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"Bad surrogate pair in constant string"];
+	    }
+	}
+      else
+	{
+	  p++;
+	}
+
+      /*
+       * Add codepoint as either a single unichar for BMP
+       * or as a pair of surrogates for codepoints over 16 bits.
+       */
+      if (u < 0x10000)
+	{
+	  l++;
+	  if (u > 255)
+	    {
+	      l1 = NO;
+	    }
+	}
+      else
+	{
+	  l += 2;
+	}
+    }
+  if (0 != ascii)
+    {
+      *ascii = a;
+    }
+  if (0 != latin1)
+    {
+      *latin1 = l1;
+    }
+  return l;
+}
+
+/* Sequentially extracts characters from UTF-8 string
+ * p = pointer to the utf-8 data
+ * l = length (bytes) of the utf-8 data
+ * o = pointer to current offset within the data
+ * n = pointer to either zero or the next pre-read part of a surrogate pair.
+ * The condition for having read the entire string is that the offset (*o)
+ * is the number of bytes in the string, and the unichar pointed to by *n
+ * is zero (meaning there is no second part of a surrogate pair remaining).
+ */
+static inline unichar
+nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
+{
+  unsigned	i;
+
+  /* If we still have the second part of a surrogate pair, return it.
+   */
+  if (*n > 0)
+    {
+      unichar	u = *n;
+
+      *n = 0;
+      return u;
+    }
+
+  if ((i = *o) < l)
+    {
+      uint8_t	c = p[i];
+      uint32_t	u = c;
+
+      if (c > 0x7f)
+	{
+	  int j, sle = 0;
+
+	  /* calculated the expected sequence length */
+	  while (c & 0x80)
+	    {
+	      c = c << 1;
+	      sle++;
+	    }
+
+	  /* legal ? */
+	  if ((sle < 2) || (sle > 6))
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"bad multibyte character length"];
+	    }
+
+	  if (sle + i > l)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"multibyte character extends beyond data"];
+	    }
+
+	  /* get the codepoint */
+	  for (j = 1; j < sle; j++)
+	    {
+	      uint8_t	b = p[i + j];
+
+	      if (b < 0x80 || b >= 0xc0)
+		break;
+	      u = (u << 6) | (b & 0x3f);
+	    }
+
+	  if (j < sle)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"bad data in multibyte character"];
+	    }
+	  u = u & ~(0xffffffff << ((5 * sle) + 1));
+	  i += sle;
+
+	  /*
+	   * We discard invalid codepoints here.
+	   */
+	  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
+	    || (u >= 0xfdd0 && u <= 0xfdef))
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"invalid unicode codepoint"];
+	    }
+
+	  if ((u >= 0xd800) && (u <= 0xdfff))
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"unmatched half of surrogate pair"];
+	    }
+	}
+      else
+	{
+	  i++;
+	}
+
+      /*
+       * Add codepoint as either a single unichar for BMP
+       * or as a pair of surrogates for codepoints over 16 bits.
+       */
+      if (u >= 0x10000)
+	{
+	  unichar ul, uh;
+
+	  u -= 0x10000;
+	  ul = u & 0x3ff;
+	  uh = (u >> 10) & 0x3ff;
+
+	  *n = ul + 0xdc00;	// record second part of pair
+	  u = uh + 0xd800;	// return first part.
+	}
+      *o = i;			// Return new index
+      return (unichar)u;
+    }
+  [NSException raise: NSInvalidArgumentException
+	      format: @"no more data in UTF-8 string"];
+  return 0;
+}
+
 
 /*
  * GSPlaceholderString - placeholder class for objects awaiting intialisation.
@@ -2127,6 +2348,43 @@ isEqual_c(GSStr self, id anObject)
       return NO;
     }
   c = object_getClass(anObject);
+  if (c == NSConstantStringClass)
+    {
+      NXConstantString	*other = (NXConstantString*)anObject;
+
+      if (internalEncoding == NSASCIIStringEncoding)
+	{
+	  if (self->_count == other->nxcslen
+	    && 0 == memcmp(self->_contents.c, other->nxcsptr, other->nxcslen))
+	    {
+	      return YES;
+	    }
+	  return NO;
+	}
+      if (internalEncoding == NSISOLatin1StringEncoding)
+	{
+	  NSUInteger	pos = 0;
+	  unichar	n = 0;
+	  unsigned	i = 0;
+	  unichar	u;
+
+	  while (i < other->nxcslen || n > 0)
+	    {
+	      u = nextUTF8((const uint8_t *)other->nxcsptr, other->nxcslen,
+		&i, &n);
+	      if (pos >= self->_count || (unichar)self->_contents.c[pos] != u)
+		{
+		  return NO;
+		}
+	      pos++;
+	    }
+	  if (pos != self->_count)
+	    {
+	      return NO;
+	    }
+	  return YES;
+	}
+    }
   if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
     {
       GSStr	other = (GSStr)anObject;
@@ -2186,6 +2444,29 @@ isEqual_u(GSStr self, id anObject)
       return NO;
     }
   c = object_getClass(anObject);
+  if (c == NSConstantStringClass)
+    {
+      NXConstantString	*other = (NXConstantString*)anObject;
+      NSUInteger	pos = 0;
+      unichar		n = 0;
+      unsigned		i = 0;
+      unichar		u;
+
+      while (i < other->nxcslen || n > 0)
+	{
+	  u = nextUTF8((const uint8_t *)other->nxcsptr, other->nxcslen, &i, &n);
+	  if (pos >= self->_count || self->_contents.u[pos] != u)
+	    {
+	      return NO;
+	    }
+	  pos++;
+	}
+      if (pos != self->_count)
+	{
+	  return NO;
+	}
+      return YES;
+    }
   if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
     {
       GSStr	other = (GSStr)anObject;
@@ -4727,225 +5008,126 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
 
 
-/* Determine the length of the UTF-8 string as a unicode (UTF-16) string.
- * sets the ascii flag according to the content found.
- */
-static NSUInteger
-lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii, BOOL *latin1)
+static BOOL
+literalIsEqual(NXConstantString *self, id anObject)
 {
-  const uint8_t	*e = p + l;
-  BOOL		a = YES;
-  BOOL		l1 = YES;
+  Class	c;
 
-  l = 0;
-  while (p < e)
+  if (anObject == (id)self)
     {
-      uint8_t	c = *p;
-      uint32_t	u = c;
+      return YES;
+    }
+  if (anObject == nil)
+    {
+      return NO;
+    }
+  if (GSObjCIsInstance(anObject) == NO)
+    {
+      return NO;
+    }
+  c = object_getClass(anObject);
+  if (c == NSConstantStringClass)
+    {
+      NXConstantString	*other = (NXConstantString*)anObject;
 
-      if (c > 0x7f)
+      if (other->nxcslen != self->nxcslen
+	|| strcmp(other->nxcsptr, self->nxcsptr) != 0)
 	{
-	  int i, sle = 0;
+	  return NO;
+	}
+      return YES;
+    }
+  else if (YES == [anObject isKindOfClass: NSStringClass]) // may be proxy
+    {
+      unichar		(*imp)(id, SEL, NSUInteger);
+      NSUInteger	len = [anObject length];
+      NSUInteger	pos = 0;
+      unichar		n = 0;
+      unsigned		i = 0;
+      unichar		u;
 
-	  a = NO;
-	  /* calculated the expected sequence length */
-	  while (c & 0x80)
-	    {
-	      c = c << 1;
-	      sle++;
-	    }
-
-	  /* legal ? */
-	  if ((sle < 2) || (sle > 6))
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"Bad sequence length in constant string"];
-	    }
-
-	  if (p + sle > e)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"Short data in constant string"];
-	    }
-
-	  /* get the codepoint */
-	  for (i = 1; i < sle; i++)
-	    {
-	      if (p[i] < 0x80 || p[i] >= 0xc0)
-		break;
-	      u = (u << 6) | (p[i] & 0x3f);
-	    }
-
-	  if (i < sle)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"Codepoint out of range in constant string"];
-	    }
-	  u = u & ~(0xffffffff << ((5 * sle) + 1));
-	  p += sle;
-
-	  /*
-	   * We check for invalid codepoints here.
+      if (len < self->nxcslen)
+	{
+	  /* Since UTF-8 is a multibyte character set, it must have at least
+	   * as many bytes as another string of the same length. So if the
+	   * other is shorter, the two cannot be equal.
 	   */
-	  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
-	    || (u >= 0xfdd0 && u <= 0xfdef))
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"Codepoint invalid in constant string"];
-	    }
-
-	  if ((u >= 0xd800) && (u <= 0xdfff))
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"Bad surrogate pair in constant string"];
-	    }
-	}
-      else
-	{
-	  p++;
+	  return NO;
 	}
 
-      /*
-       * Add codepoint as either a single unichar for BMP
-       * or as a pair of surrogates for codepoints over 16 bits.
+      /* Try to do a fast comparison for well known scring classes.
        */
-      if (u < 0x10000)
+      if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
 	{
-	  l++;
-	  if (u > 255)
+	  GSStr	o = (GSStr)anObject;
+
+	  if (o->_flags.wide == 1)
 	    {
-	      l1 = NO;
+	      /* Other string is a unichar buffer
+	       */
+	      while (i < self->nxcslen || n > 0)
+		{
+		  u = nextUTF8((const uint8_t *)self->nxcsptr,
+		    self->nxcslen, &i, &n);
+		  if (pos >= len || o->_contents.u[pos] != u)
+		    {
+		      return NO;
+		    }
+		  pos++;
+		}
+	      if (pos != len)
+		{
+		  return NO;
+		}
+	      return YES;
+	    }
+	  else if (internalEncoding == NSISOLatin1StringEncoding
+	    || internalEncoding == NSASCIIStringEncoding)
+	    {
+	      /* Other string is a buffer containing ascii or latin1 so
+	       * we can compare buffer contents with unichar values directly.
+	       */
+	      while (i < self->nxcslen || n > 0)
+		{
+		  u = nextUTF8((const uint8_t *)self->nxcsptr,
+		    self->nxcslen, &i, &n);
+		  if (pos >= len || (unichar)o->_contents.c[pos] != u)
+		    {
+		      return NO;
+		    }
+		  pos++;
+		}
+	      if (pos != len)
+		{
+		  return NO;
+		}
+	      return YES;
 	    }
 	}
-      else
-	{
-	  l += 2;
-	}
-    }
-  if (0 != ascii)
-    {
-      *ascii = a;
-    }
-  if (0 != latin1)
-    {
-      *latin1 = l1;
-    }
-  return l;
-}
 
-/* Sequentially extracts characters from UTF-8 string
- * p = pointer to the utf-8 data
- * l = length (bytes) of the utf-8 data
- * o = pointer to current offset within the data
- * n = pointer to either zero or the next pre-read part of a surrogate pair.
- * The condition for having read the entire string is that the offset (*o)
- * is the number of bytes in the string, and the unichar pointed to by *n
- * is zero (meaning there is no second part of a surrogate pair remaining).
- */
-static inline unichar
-nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
-{
-  unsigned	i;
-
-  /* If we still have the second part of a surrogate pair, return it.
-   */
-  if (*n > 0)
-    {
-      unichar	u = *n;
-
-      *n = 0;
-      return u;
-    }
-
-  if ((i = *o) < l)
-    {
-      uint8_t	c = p[i];
-      uint32_t	u = c;
-
-      if (c > 0x7f)
-	{
-	  int j, sle = 0;
-
-	  /* calculated the expected sequence length */
-	  while (c & 0x80)
-	    {
-	      c = c << 1;
-	      sle++;
-	    }
-
-	  /* legal ? */
-	  if ((sle < 2) || (sle > 6))
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"bad multibyte character length"];
-	    }
-
-	  if (sle + i > l)
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"multibyte character extends beyond data"];
-	    }
-
-	  /* get the codepoint */
-	  for (j = 1; j < sle; j++)
-	    {
-	      uint8_t	b = p[i + j];
-
-	      if (b < 0x80 || b >= 0xc0)
-		break;
-	      u = (u << 6) | (b & 0x3f);
-	    }
-
-	  if (j < sle)
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"bad data in multibyte character"];
-	    }
-	  u = u & ~(0xffffffff << ((5 * sle) + 1));
-	  i += sle;
-
-	  /*
-	   * We discard invalid codepoints here.
-	   */
-	  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
-	    || (u >= 0xfdd0 && u <= 0xfdef))
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"invalid unicode codepoint"];
-	    }
-
-	  if ((u >= 0xd800) && (u <= 0xdfff))
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"unmatched half of surrogate pair"];
-	    }
-	}
-      else
-	{
-	  i++;
-	}
-
-      /*
-       * Add codepoint as either a single unichar for BMP
-       * or as a pair of surrogates for codepoints over 16 bits.
+      /* Fall through to do a character by character comparison
+       * using characterAtIndex:
        */
-      if (u >= 0x10000)
+      imp = (unichar(*)(id,SEL,NSUInteger))[anObject methodForSelector:
+	@selector(characterAtIndex:)];
+      while (i < self->nxcslen || n > 0)
 	{
-	  unichar ul, uh;
-
-	  u -= 0x10000;
-	  ul = u & 0x3ff;
-	  uh = (u >> 10) & 0x3ff;
-
-	  *n = ul + 0xdc00;	// record second part of pair
-	  u = uh + 0xd800;	// return first part.
+	  u = nextUTF8((const uint8_t *)self->nxcsptr,
+	    self->nxcslen, &i, &n);
+	  if (pos >= len
+	    || (*imp)(anObject, @selector(characterAtIndex:), pos) != u)
+	    {
+	      return NO;
+	    }
+	  pos++;
 	}
-      *o = i;			// Return new index
-      return (unichar)u;
+      if (pos != len)
+	{
+	  return NO;
+	}
+      return YES;
     }
-  [NSException raise: NSInvalidArgumentException
-	      format: @"no more data in UTF-8 string"];
-  return 0;
+  return NO;
 }
 
 /**
@@ -5164,6 +5346,16 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
   return nil;
 }
 
+- (BOOL) isEqual: (id)anObject
+{
+  return literalIsEqual(self, anObject);
+}
+
+- (BOOL) isEqualToString: (NSString*)other
+{
+  return literalIsEqual(self, other);
+}
+
 - (NSUInteger) length
 {
   return lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, 0);
@@ -5233,6 +5425,50 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
     }
 
   return range;
+}
+
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
+{
+  NSUInteger	start = 0;
+  NSUInteger	pos = 0;
+  unichar	n = 0;
+  unsigned	i = 0;
+  unichar	u;
+
+  /* A composed character sequence consists of a single base character
+   * followed by zero or more non-base characters.
+   */
+  while (i < nxcslen || n > 0)
+    {
+      u = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+      if (!uni_isnonsp(u))
+	{
+	  /* This may be the base character at the start of the sequence.
+	   */
+	  start = pos;
+	}
+      if (pos++ == anIndex)
+	{
+	  /* Look ahead to see if the character at the specified index is
+	   * followed by one or more non-base characters. If it is, we
+	   * make the range longer before returning it.
+	   */
+	  while (i < nxcslen || n > 0)
+	    {
+	      u = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+	      if (!uni_isnonsp(u))
+		{
+		  break;
+		}
+	      pos++;
+	    }
+	  return NSMakeRange(start, pos - start);
+	}
+    }
+
+  [NSException raise: NSInvalidArgumentException
+    format: @"-rangeOfComposedCharacterSequenceAtIndex: index out of range"];
+  return NSMakeRange(NSNotFound, 0);
 }
 
 - (id) retain

@@ -862,6 +862,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  */
 @interface NXConstantString : NSString
 {
+@public
   const char * const nxcsptr;
   const unsigned int nxcslen;
 }
