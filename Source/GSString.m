@@ -2352,6 +2352,14 @@ isEqual_c(GSStr self, id anObject)
     {
       NXConstantString	*other = (NXConstantString*)anObject;
 
+      if (self->_count > other->nxcslen)
+	{
+	  /* Since UTF-8 is a multibyte character set, it must have at least
+	   * as many bytes as another string of the same length. So if the
+	   * UTF-8 string is shorter, the two cannot be equal.
+	   */
+	  return NO;
+	}
       if (internalEncoding == NSASCIIStringEncoding)
 	{
 	  if (self->_count == other->nxcslen
@@ -2452,6 +2460,14 @@ isEqual_u(GSStr self, id anObject)
       unsigned		i = 0;
       unichar		u;
 
+      if (self->_count > other->nxcslen)
+	{
+	  /* Since UTF-8 is a multibyte character set, it must have at least
+	   * as many bytes as another string of the same character length.
+	   * So if the UTF-8 string is shorter, the two cannot be equal.
+	   */
+	  return NO;
+	}
       while (i < other->nxcslen || n > 0)
 	{
 	  u = nextUTF8((const uint8_t *)other->nxcsptr, other->nxcslen, &i, &n);
@@ -5046,11 +5062,11 @@ literalIsEqual(NXConstantString *self, id anObject)
       unsigned		i = 0;
       unichar		u;
 
-      if (len < self->nxcslen)
+      if (len > self->nxcslen)
 	{
 	  /* Since UTF-8 is a multibyte character set, it must have at least
 	   * as many bytes as another string of the same length. So if the
-	   * other is shorter, the two cannot be equal.
+	   * UTF-8 string is shorter, the two cannot be equal.
 	   */
 	  return NO;
 	}

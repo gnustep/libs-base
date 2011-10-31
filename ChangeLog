@@ -1,5 +1,10 @@
 2011-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSString.m: Fix error (spotted by Fred) in check of UTF-8
+	string length against fixed character size string length.
+
+2011-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSString.m: Implement more efficient equality tests for
 	utf-8 literal strings and strings in internal representation.
 	Implement rangeOfComposedCharacterSequenceAtIndex: for utf8 literal
