@@ -318,21 +318,26 @@ literalIsEqualInternal(NXConstantString *s, GSStr o)
 
       if (0 == o->_flags.wide)
 	{
-	  /* A narrow internal characterset must have ASCII as a subset,
-	   * and so does a UTF-8 string literal, so a bytewise comparison
-	   * of strings that contain the same number of bytes will give
-	   * a quick check for the common case where both are ASCII.
+	  /* If the other string is a buffer containing ascii characters,
+	   * we can perform a bytewise comparison.
 	   */
-	  if (len == s->nxcslen && 0 == memcmp(o->_contents.c, s->nxcsptr, len))
+	  if (internalEncoding == NSASCIIStringEncoding)
 	    {
-	      return YES;
+	      if (len == s->nxcslen
+		&& 0 == memcmp(o->_contents.c, s->nxcsptr, len))
+		{
+		  return YES;
+		}
+	      else
+		{
+		  return NO;
+		}
 	    }
 
-	  /* If the other string is a buffer containing ascii or latin1,
+	  /* If the other string is a buffer containing latin1 characters,
 	   * we can compare buffer contents with unichar values directly.
 	   */
-	  if (internalEncoding == NSISOLatin1StringEncoding
-	    || internalEncoding == NSASCIIStringEncoding)
+	  if (internalEncoding == NSISOLatin1StringEncoding)
 	    {
 	      while (i < s->nxcslen || n > 0)
 		{
@@ -349,6 +354,35 @@ literalIsEqualInternal(NXConstantString *s, GSStr o)
 		}
 	      return YES;
 	    }
+
+	  /* For any other narrow internal string, we know that ascii is
+	   * a subset of the encoding, so as long as characters are ascii
+	   * (don't have the top bit set) we can do bytewise comparison.
+	   */
+	  if (len == s->nxcslen)
+	    {
+	      unsigned	index;
+
+	      for (index = 0; index < len; index++)
+		{
+		  uint8_t	c = s->nxcsptr[index];
+
+		  if (c != o->_contents.c[index] || c >= 128)
+		    {
+		      /* Characters differ at this point.
+		       */
+		      break;
+		    }
+		}
+	      if (index == len)
+		{
+		  return YES;
+		}
+	      /* The characters were the same up to 'index', so we won't
+	       * need to recheck those first few characters.
+	       */
+	      pos = i = index;
+	    }
 	}
 
       /* For small strings, or ones where we already have an array of
@@ -356,7 +390,7 @@ literalIsEqualInternal(NXConstantString *s, GSStr o)
        * For larger strings, we may do as well with a character by
        * character comparison.
        */
-      if (1 == o->_flags.wide || len < 200)
+      if (1 == o->_flags.wide || (len < 200 && pos < len))
 	{
 	  unichar	*ptr;
 
