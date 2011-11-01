@@ -59,6 +59,9 @@
 
 #import "GNUstepBase/Unicode.h"
 
+static NSStringEncoding externalEncoding = 0;
+static NSStringEncoding internalEncoding = NSISOLatin1StringEncoding;
+
 static BOOL isByteEncoding(NSStringEncoding enc)
 {
   return GSPrivateIsByteEncoding(enc);
@@ -291,6 +294,129 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
   return 0;
 }
 
+static BOOL
+literalIsEqualInternal(NXConstantString *s, GSStr o)
+{
+  unsigned	len = o->_count;
+
+  /* Since UTF-8 is a multibyte character set, it must have at least
+   * as many bytes as another string of the same length. So if the
+   * UTF-8 string is shorter, the two cannot be equal.
+   * A check for this can quickly give us a result in half the cases
+   * where the two strings have different lengths.
+   */
+  if (len > s->nxcslen)
+    {
+      return NO;
+    }
+  else
+    {
+      NSUInteger	pos = 0;
+      unichar		n = 0;
+      unsigned		i = 0;
+      unichar		u;
+
+      if (0 == o->_flags.wide)
+	{
+	  /* A narrow internal characterset must have ASCII as a subset,
+	   * and so does a UTF-8 string literal, so a bytewise comparison
+	   * of strings that contain the same number of bytes will give
+	   * a quick check for the common case where both are ASCII.
+	   */
+	  if (len == s->nxcslen && 0 == memcmp(o->_contents.c, s->nxcsptr, len))
+	    {
+	      return YES;
+	    }
+
+	  /* If the other string is a buffer containing ascii or latin1,
+	   * we can compare buffer contents with unichar values directly.
+	   */
+	  if (internalEncoding == NSISOLatin1StringEncoding
+	    || internalEncoding == NSASCIIStringEncoding)
+	    {
+	      while (i < s->nxcslen || n > 0)
+		{
+		  u = nextUTF8((const uint8_t *)s->nxcsptr, s->nxcslen, &i, &n);
+		  if (pos >= len || (unichar)o->_contents.c[pos] != u)
+		    {
+		      return NO;
+		    }
+		  pos++;
+		}
+	      if (pos != len)
+		{
+		  return NO;
+		}
+	      return YES;
+	    }
+	}
+
+      /* For small strings, or ones where we already have an array of
+       * UTF-16 characters, we can do a UTF-16 comparison directly.
+       * For larger strings, we may do as well with a character by
+       * character comparison.
+       */
+      if (1 == o->_flags.wide || len < 200)
+	{
+	  unichar	*ptr;
+
+	  if (1 == o->_flags.wide)
+	    {
+	      ptr = o->_contents.u;
+	    }
+	  else
+	    {
+	      ptr = alloca(sizeof(unichar) * len);
+	      if (NO == GSToUnicode(&ptr, &len, o->_contents.c,
+		len, internalEncoding, 0, 0))
+		{
+		  return NO;
+		}
+	    }
+
+	  /* Now we have a UTF-16 buffer, so we can do a UTF-16 comparison.
+	   */
+	  while (i < s->nxcslen || n > 0)
+	    {
+	      u = nextUTF8((const uint8_t *)s->nxcsptr, s->nxcslen, &i, &n);
+	      if (pos >= len || ptr[pos] != u)
+		{
+		  return NO;
+		}
+	      pos++;
+	    }
+	}
+      else
+	{
+	  unichar	(*imp)(id, SEL, NSUInteger);
+
+	  /* Do a character by character comparison using characterAtIndex:
+	   * This will be relatively slow, but how often will we actually
+	   * need to do this for a literal string?  Most string literals will
+	   * either be short or will differ from any other string we are
+	   * doing a comparison with within the first few tens of characters.
+	   */
+	  imp = (unichar(*)(id,SEL,NSUInteger))[(id)o methodForSelector:
+	    @selector(characterAtIndex:)];
+	  while (i < s->nxcslen || n > 0)
+	    {
+	      u = nextUTF8((const uint8_t *)s->nxcsptr, s->nxcslen, &i, &n);
+	      if (pos >= len
+		|| (*imp)((id)o, @selector(characterAtIndex:), pos) != u)
+		{
+		  return NO;
+		}
+	      pos++;
+	    }
+	}
+      if (pos != len)
+	{
+	  return NO;
+	}
+      return YES;
+    }
+}
+
 
 /*
  * GSPlaceholderString - placeholder class for objects awaiting intialisation.
@@ -459,9 +585,6 @@ static SEL	equalSel;
 static BOOL	(*equalImp)(id, SEL, id);
 static SEL	hashSel;
 static NSUInteger (*hashImp)(id, SEL);
-
-static NSStringEncoding externalEncoding = 0;
-static NSStringEncoding internalEncoding = NSISOLatin1StringEncoding;
 
 /*
  * The setup() function is called when any concrete string class is
@@ -2350,48 +2473,7 @@ isEqual_c(GSStr self, id anObject)
   c = object_getClass(anObject);
   if (c == NSConstantStringClass)
     {
-      NXConstantString	*other = (NXConstantString*)anObject;
-
-      if (self->_count > other->nxcslen)
-	{
-	  /* Since UTF-8 is a multibyte character set, it must have at least
-	   * as many bytes as another string of the same length. So if the
-	   * UTF-8 string is shorter, the two cannot be equal.
-	   */
-	  return NO;
-	}
-      if (internalEncoding == NSASCIIStringEncoding)
-	{
-	  if (self->_count == other->nxcslen
-	    && 0 == memcmp(self->_contents.c, other->nxcsptr, other->nxcslen))
-	    {
-	      return YES;
-	    }
-	  return NO;
-	}
-      if (internalEncoding == NSISOLatin1StringEncoding)
-	{
-	  NSUInteger	pos = 0;
-	  unichar	n = 0;
-	  unsigned	i = 0;
-	  unichar	u;
-
-	  while (i < other->nxcslen || n > 0)
-	    {
-	      u = nextUTF8((const uint8_t *)other->nxcsptr, other->nxcslen,
-		&i, &n);
-	      if (pos >= self->_count || (unichar)self->_contents.c[pos] != u)
-		{
-		  return NO;
-		}
-	      pos++;
-	    }
-	  if (pos != self->_count)
-	    {
-	      return NO;
-	    }
-	  return YES;
-	}
+      return literalIsEqualInternal((NXConstantString*)anObject, (GSStr)self);
     }
   if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
     {
@@ -2454,34 +2536,7 @@ isEqual_u(GSStr self, id anObject)
   c = object_getClass(anObject);
   if (c == NSConstantStringClass)
     {
-      NXConstantString	*other = (NXConstantString*)anObject;
-      NSUInteger	pos = 0;
-      unichar		n = 0;
-      unsigned		i = 0;
-      unichar		u;
-
-      if (self->_count > other->nxcslen)
-	{
-	  /* Since UTF-8 is a multibyte character set, it must have at least
-	   * as many bytes as another string of the same character length.
-	   * So if the UTF-8 string is shorter, the two cannot be equal.
-	   */
-	  return NO;
-	}
-      while (i < other->nxcslen || n > 0)
-	{
-	  u = nextUTF8((const uint8_t *)other->nxcsptr, other->nxcslen, &i, &n);
-	  if (pos >= self->_count || self->_contents.u[pos] != u)
-	    {
-	      return NO;
-	    }
-	  pos++;
-	}
-      if (pos != self->_count)
-	{
-	  return NO;
-	}
-      return YES;
+      return literalIsEqualInternal((NXConstantString*)anObject, (GSStr)self);
     }
   if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
     {
@@ -5053,6 +5108,10 @@ literalIsEqual(NXConstantString *self, id anObject)
 	}
       return YES;
     }
+  else if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
+    {
+      return literalIsEqualInternal(self, (GSStr)anObject);
+    }
   else if (YES == [anObject isKindOfClass: NSStringClass]) // may be proxy
     {
       unichar		(*imp)(id, SEL, NSUInteger);
@@ -5071,58 +5130,7 @@ literalIsEqual(NXConstantString *self, id anObject)
 	  return NO;
 	}
 
-      /* Try to do a fast comparison for well known scring classes.
-       */
-      if (c == GSMutableStringClass || GSObjCIsKindOf(c, GSStringClass) == YES)
-	{
-	  GSStr	o = (GSStr)anObject;
-
-	  if (o->_flags.wide == 1)
-	    {
-	      /* Other string is a unichar buffer
-	       */
-	      while (i < self->nxcslen || n > 0)
-		{
-		  u = nextUTF8((const uint8_t *)self->nxcsptr,
-		    self->nxcslen, &i, &n);
-		  if (pos >= len || o->_contents.u[pos] != u)
-		    {
-		      return NO;
-		    }
-		  pos++;
-		}
-	      if (pos != len)
-		{
-		  return NO;
-		}
-	      return YES;
-	    }
-	  else if (internalEncoding == NSISOLatin1StringEncoding
-	    || internalEncoding == NSASCIIStringEncoding)
-	    {
-	      /* Other string is a buffer containing ascii or latin1 so
-	       * we can compare buffer contents with unichar values directly.
-	       */
-	      while (i < self->nxcslen || n > 0)
-		{
-		  u = nextUTF8((const uint8_t *)self->nxcsptr,
-		    self->nxcslen, &i, &n);
-		  if (pos >= len || (unichar)o->_contents.c[pos] != u)
-		    {
-		      return NO;
-		    }
-		  pos++;
-		}
-	      if (pos != len)
-		{
-		  return NO;
-		}
-	      return YES;
-	    }
-	}
-
-      /* Fall through to do a character by character comparison
-       * using characterAtIndex:
+      /* Do a character by character comparison using characterAtIndex:
        */
       imp = (unichar(*)(id,SEL,NSUInteger))[anObject methodForSelector:
 	@selector(characterAtIndex:)];

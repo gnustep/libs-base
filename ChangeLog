@@ -1,3 +1,8 @@
+2011-11-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Partial restructuring suggested by Fred, plus
+	some more minor optimisation of equality checks for literal strings.
+
 2011-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Fix error (spotted by Fred) in check of UTF-8
