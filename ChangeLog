@@ -1,3 +1,8 @@
+2011-11-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNumber.m: Fix alignment error when encoding/decoding ...
+	buffer must be aligned so that any datatype can go in it.
+
 2011-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Partial restructuring suggested by Fred, plus

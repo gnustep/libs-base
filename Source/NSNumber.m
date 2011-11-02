@@ -771,7 +771,7 @@ if (aValue >= -1 && aValue <= 12)\
 - (void) encodeWithCoder: (NSCoder *) coder
 {
   const char *type = [self objCType];
-  char buffer[16];
+  char buffer[16] __attribute__ ((aligned (16)));
 
   [coder encodeValueOfObjCType: @encode (char) at: type];
   /* The most we currently store in an NSNumber is 8 bytes (double or long
@@ -792,7 +792,7 @@ if (aValue >= -1 && aValue <= 12)\
 - (id) initWithCoder: (NSCoder *) coder
 {
   char type[2] = { 0 };
-  char buffer[16];
+  char buffer[16] __attribute__ ((aligned (16)));
 
   [coder decodeValueOfObjCType: @encode (char) at: type];
   [coder decodeValueOfObjCType: type at: buffer];
