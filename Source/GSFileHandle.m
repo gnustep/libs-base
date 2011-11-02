@@ -107,22 +107,28 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
  */
 - (NSInteger) read: (void*)buf length: (NSUInteger)len
 {
+  int	result;
+
+  do
+    {
 #if	USE_ZLIB
-  if (gzDescriptor != 0)
-    {
-      len = gzread(gzDescriptor, buf, len);
-    }
-  else
+      if (gzDescriptor != 0)
+	{
+	  result = gzread(gzDescriptor, buf, len);
+	}
+      else
 #endif
-  if (isSocket)
-    {
-      len = recv(descriptor, buf, len, 0);
+      if (isSocket)
+	{
+	  result = recv(descriptor, buf, len, 0);
+	}
+      else
+	{
+	  result = read(descriptor, buf, len);
+	}
     }
-  else
-    {
-      len = read(descriptor, buf, len);
-    }
-  return len;
+  while (result < 0 && EINTR == errno);
+  return result;
 }
 
 /**
@@ -131,22 +137,28 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
  */
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len
 {
+  int	result;
+
+  do
+    {
 #if	USE_ZLIB
-  if (gzDescriptor != 0)
-    {
-      len = gzwrite(gzDescriptor, (char*)buf, len);
-    }
-  else
+    if (gzDescriptor != 0)
+      {
+	result = gzwrite(gzDescriptor, (char*)buf, len);
+      }
+    else
 #endif
-  if (isSocket)
-    {
-      len = send(descriptor, buf, len, 0);
+      if (isSocket)
+	{
+	  result = send(descriptor, buf, len, 0);
+	}
+      else
+	{
+	  result = write(descriptor, buf, len);
+	}
     }
-  else
-    {
-      len = write(descriptor, buf, len);
-    }
-  return len;
+  while (result < 0 && EINTR == errno);
+  return result;
 }
 
 + (id) allocWithZone: (NSZone*)z
