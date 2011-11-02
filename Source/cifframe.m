@@ -43,6 +43,8 @@
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;
+#elif defined(__sparc(
+typedef NSInteger smallret_t;
 #else
 typedef int smallret_t;
 #endif
