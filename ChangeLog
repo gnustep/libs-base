@@ -2,6 +2,8 @@
 
 	* Source/NSNumber.m: Fix alignment error when encoding/decoding ...
 	buffer must be aligned so that any datatype can go in it.
+	* Source/cifframe.m: Fix buffer size for small scalar values on
+	64bit sparc
 
 2011-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
