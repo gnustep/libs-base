@@ -1226,15 +1226,20 @@ otherTime(NSDate* other)
 /**
  * Returns the time interval between the receivers value and that of the
  * otherDate argument.  If otherDate is earlier than the receiver, the
- * returned value will be positive, if it is later it will be negative.
+ * returned value will be positive, if it is later it will be negative.<br />
+ * For current (2011) OSX compatibility, this method returns NaN if otherDate
+ * is nil ... do not write code depending on that behavior.
  */
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
   if (otherDate == nil)
+    return nan("");
+/*
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil argument for timeIntervalSinceDate:"];
     }
+*/
   return otherTime(self) - otherTime(otherDate);
 }
 
