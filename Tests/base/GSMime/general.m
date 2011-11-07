@@ -65,10 +65,21 @@ exact(GSMimeParser **parserPointer, NSData *data)
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  NSData *cr;
   NSData *data;
   GSMimeParser *parser;
   GSMimeDocument *doc;
   GSMimeDocument *idoc;
+
+  cr = [NSData dataWithBytes: "\r" length: 1];
+
+  data = [NSData dataWithBytes: "DQ==" length: 4];
+  PASS_EQUAL([GSMimeDocument decodeBase64: data], cr,
+    "decodeBase64 works for padded data");
+
+  data = [NSData dataWithBytes: "DQ" length: 2];
+  PASS_EQUAL([GSMimeDocument decodeBase64: data], cr,
+    "decodeBase64 works for unpadded data");
 
   data = [NSData dataWithContentsOfFile: @"mime1.dat"];
   idoc = exact(0, data);
