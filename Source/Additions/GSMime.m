@@ -4201,22 +4201,26 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  c = 63;
 	}
+      else if (c == '_')
+	{
+	  c = 63;	/* RFC 4648 permits '_' in URLs and filenames */
+	}
       else if (c == '+')
 	{
 	  c = 62;
+	}
+      else if (c == '-')
+	{
+	  c = 62;	/* RFC 4648 permits '-' in URLs and filenames */
 	}
       else if  (c == '=')
 	{
 	  c = -1;
 	  pad++;
 	}
-      else if (c == '-')
-	{
-	  break;		/* end    */
-	}
       else
 	{
-	  c = -1;		/* ignore */
+	  c = -1;	/* Ignore ... non-standard but more tolerant */
 	}
 
       if (c >= 0)
@@ -4231,6 +4235,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	}
     }
 
+  /* If length is not a multiple of four, treat it as if the missing
+   * bytes were the '=' characters normally used for padding.
+   * This is not allowed by the basic standards, but permitted in some
+   * variants of 6ase64 encoding, so we should tolerate it.
+   */
+  if (length % 4 > 0)
+    {
+      pad += (4 - length % 4);
+    }
   if (pos > 0)
     {
       NSUInteger	i;
