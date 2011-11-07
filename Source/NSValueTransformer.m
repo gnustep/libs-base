@@ -29,7 +29,7 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSArchiver.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSValueTransformer.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
@@ -222,14 +222,12 @@ static GSLazyLock *lock = nil;
 
 - (id) reverseTransformedValue: (id)value
 {
-// FIXME ... should we use a keyed archive?
-  return [NSKeyedArchiver archivedDataWithRootObject: value];
+  return [NSArchiver archivedDataWithRootObject: value];
 }
 
 - (id) transformedValue: (id)value
 {
-// FIXME ... should we use a keyed archive?
-  return [NSKeyedUnarchiver unarchiveObjectWithData: value];
+  return [NSUnarchiver unarchiveObjectWithData: value];
 }
 
 @end
