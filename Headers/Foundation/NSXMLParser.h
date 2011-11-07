@@ -190,6 +190,12 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
  * This is now a formal protocol.
  */
 @protocol NSXMLParserDelegate <NSObject>
+#ifdef __clang__
+@optional
+#else
+@end
+@interface NSObject (NSXMLParserDelegateEventAdditions)
+#endif
 
 /** <override-dummy />
  */
