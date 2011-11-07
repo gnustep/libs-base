@@ -1,3 +1,10 @@
+2011-11-07  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSValueTransformer.m
+	([NSUnarchiveFromDataTransformer-reverseTransformedValue])
+	([NSUnarchiveFromDataTransformer-transformedValue]): Use archiver
+	instead of keyed archiver.
+
 2011-11-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: ([+decodeBase64:]) tolerate missing
