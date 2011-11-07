@@ -4152,7 +4152,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 + (NSData*) decodeBase64: (NSData*)source
 {
   int		length;
-  int		declen ;
+  int		declen;
   const unsigned char	*src;
   const unsigned char	*end;
   unsigned char *result;
@@ -4220,7 +4220,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	}
       else
 	{
-	  c = -1;	/* Ignore ... non-standard but more tolerant */
+	  c = -1;	/* Ignore ... non-standard but more tolerant. */
+	  length--;	/* Don't count this as part of the length. */
 	}
 
       if (c >= 0)
@@ -4235,7 +4236,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	}
     }
 
-  /* If length is not a multiple of four, treat it as if the missing
+  /* If number of bytes is not a multiple of four, treat it as if the missing
    * bytes were the '=' characters normally used for padding.
    * This is not allowed by the basic standards, but permitted in some
    * variants of 6ase64 encoding, so we should tolerate it.
