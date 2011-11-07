@@ -1,5 +1,11 @@
 2011-11-07  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Headers/Foundation/NSXMLParser.h: Turn the
+	NSXMLParserDelegateEventAdditions informal protocol into the
+	protocol NSXMLParserDelegate.
+
+2011-11-07  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSValueTransformer.m
 	([NSUnarchiveFromDataTransformer-reverseTransformedValue])
 	([NSUnarchiveFromDataTransformer-transformedValue]): Use archiver

@@ -187,9 +187,9 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 
 /**
  * Methods implemented by a delegate in order to make use of the parser.<br />
- * This is an informal protocol.
+ * This is now a formal protocol.
  */
-@interface NSObject (NSXMLParserDelegateEventAdditions)
+@protocol NSXMLParserDelegate <NSObject>
 
 /** <override-dummy />
  */
