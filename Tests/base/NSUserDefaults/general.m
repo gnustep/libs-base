@@ -53,6 +53,14 @@ int main()
   PASS([[defs stringForKey: @"Test Suite Str"] isEqual: @"SetString"],
        "NSUserDefaults can set/get a string");
   
+  [defs removeObjectForKey: @"Test Suite Bool"];
+  PASS(nil == [defs objectForKey: @"Test Suite Bool"],
+       "NSUserDefaults can use -removeObjectForKey: to remove a bool");
+
+  [defs setObject: nil forKey: @"Test Suite Int"];
+  PASS(nil == [defs objectForKey: @"Test Suite Int"],
+       "NSUserDefaults can use -setObject:forKey: to remove an int");
+
   [arp release]; arp = nil;
   return 0;
 }
