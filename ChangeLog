@@ -1,3 +1,8 @@
+2011-11-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: ([-setObject:forKey:]) replace missing
+	return statement after removing object.
+
 2011-11-07  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSXMLParser.h: Turn the

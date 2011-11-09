@@ -1271,6 +1271,7 @@ static BOOL isPlistObject(id o)
   if (value == nil)
     {
       [self removeObjectForKey: defaultName];
+      return;
     }
   if ([defaultName isKindOfClass: [NSString class]] == NO
     || [defaultName length] == 0)
