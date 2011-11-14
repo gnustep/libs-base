@@ -1734,9 +1734,8 @@ NSLog(@"Creating empty user defaults database");
   _lastSync = [NSDate new];	// Record timestamp of this sync.
   NS_DURING
     {
-      /*
-       *	If we haven't changed anything, we only need to synchronise if
-       *	the on-disk database has been changed by someone else.
+      /* If we haven't changed anything, we only need to synchronise if
+       * the on-disk database has been changed by someone else.
        */
       if (_changedDomains != nil
         || YES == [self wantToReadDefaultsSince: saved])

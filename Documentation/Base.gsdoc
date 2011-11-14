@@ -662,6 +662,16 @@ notice and this notice are preserved.
 	    environment variable if the others can't be used).
 	  </p>
 	  <p>
+	    NB. The presence of a path in the configuration (and therefore
+	    its inclusion in the paths provided by the API at runtime) does
+	    <em>not</em> guarantee that the directory at that path actually
+	    exists in the local filesystem.<br />
+	    However the GNUSTEP_CREATE_LIBRARY_PATH configuration value may
+	    be set to YES to tell the library to create the most commonly
+	    used per-user directory (GNUSTEP_USER_LIBRARY) on startup if it
+	    does not already exist.
+	  </p>
+	  <p>
 	    All the above values from the configuration file are made
 	    available in the NSUserDefaults system at runtime, in the
 	    GSConfigDomain (along with any defaults provided in property
@@ -821,7 +831,7 @@ MyApp.app/MyApp
 	    with './' as the config file path and relative paths in myConfig...
 	    a user could then move the entire package around, but would not
 	    be able to edit a configuration file to alter the paths within
-	    the pacakge.
+	    the package.
 	  </p>
 	</subsect>
 	<subsect>
