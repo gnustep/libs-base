@@ -31,7 +31,7 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSFileHandle.h"
-#import "GNUstepBase/GSFileHandle.h"
+#import "../GSFileHandle.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSNotification.h"
