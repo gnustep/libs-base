@@ -350,6 +350,11 @@ return NSOrderedSame;
 
 #ifdef OBJC_SMALL_OBJECT_SHIFT
 static BOOL useSmallInt;
+static BOOL useSmallExtendedDouble;
+static BOOL useSmallRepeatingDouble;
+#define SMALL_INT_MASK 1
+#define SMALL_EXTENDED_DOUBLE_MASK 2
+#define SMALL_REPEATING_DOUBLE_MASK 3
 
 
 @interface NSSmallInt : NSSignedIntegerNumber @end
@@ -360,7 +365,7 @@ static BOOL useSmallInt;
 #include "NSNumberMethods.h"
 + (void)load
 {
-  useSmallInt = objc_registerSmallObjectClass_np(self, 1);
+  useSmallInt = objc_registerSmallObjectClass_np(self, SMALL_INT_MASK);
 }
 + (id)alloc
 {
@@ -382,6 +387,111 @@ static BOOL useSmallInt;
 - (id)autorelease { return self; }
 - (oneway void)release { }
 @end
+#if OBJC_SMALL_OBJECT_SHIFT == 3
+union BoxedDouble
+{
+	id obj;
+	uintptr_t bits;
+	double d;
+} ;
+@interface NSSmallExtendedDouble : NSFloatingPointNumber @end
+@implementation NSSmallExtendedDouble
+static double unboxSmallExtendedDouble(uintptr_t boxed)
+{
+  // The low bit of the mantissa
+  uintptr_t mask = boxed & 8;
+  union BoxedDouble ret;
+  // Clear the class pointer
+  boxed &= ~7;
+  ret.bits = boxed | (mask >> 1) | (mask >> 2) | (mask >> 3);
+  return ret.d;
+}
+static BOOL isSmallExtendedDouble(double d)
+{
+  union BoxedDouble b = {.d=d};
+  return unboxSmallExtendedDouble(b.bits) == d;
+}
+static double unboxSmallRepeatingDouble(uintptr_t boxed)
+{
+  // The low bit of the mantissa
+  uintptr_t mask = boxed & 56;
+  union BoxedDouble ret;
+  // Clear the class pointer
+  boxed &= ~7;
+  ret.bits = boxed | (mask >> 3);
+  return ret.d;
+}
+static BOOL isSmallRepeatingDouble(double d)
+{
+  union BoxedDouble b = {.d=d};
+  return unboxSmallRepeatingDouble(b.bits) == d;
+}
+static id boxDouble(double d, uintptr_t mask)
+{
+  union BoxedDouble b = {.d=d};
+  b.bits &= ~OBJC_SMALL_OBJECT_MASK;
+  b.bits |= mask;
+  return b.obj;
+}
+#undef VALUE
+#define VALUE (unboxSmallExtendedDouble((uintptr_t)self))
+#define FORMAT @"%0.16g"
+#include "NSNumberMethods.h"
++ (void)load
+{
+  useSmallExtendedDouble = objc_registerSmallObjectClass_np(self, SMALL_EXTENDED_DOUBLE_MASK);
+}
++ (id)alloc
+{
+  return (id)SMALL_EXTENDED_DOUBLE_MASK;
+}
++ (id)allocWithZone: (NSZone*)aZone
+{
+  return (id)SMALL_EXTENDED_DOUBLE_MASK;
+}
+- (id)copy
+{
+  return self;
+}
+- (id)copyWithZone: (NSZone*)aZone
+{
+  return self;
+}
+- (id)retain { return self; }
+- (id)autorelease { return self; }
+- (oneway void)release { }
+@end
+@interface NSSmallRepeatingDouble : NSFloatingPointNumber @end
+@implementation NSSmallRepeatingDouble
+#undef VALUE
+#define VALUE (unboxSmallRepeatingDouble((uintptr_t)self))
+#define FORMAT @"%0.16g"
+#include "NSNumberMethods.h"
++ (void)load
+{
+  useSmallRepeatingDouble = objc_registerSmallObjectClass_np(self, SMALL_REPEATING_DOUBLE_MASK);
+}
++ (id)alloc
+{
+  return (id)SMALL_REPEATING_DOUBLE_MASK;
+}
++ (id)allocWithZone: (NSZone*)aZone
+{
+  return (id)SMALL_REPEATING_DOUBLE_MASK;
+}
+- (id)copy
+{
+  return self;
+}
+- (id)copyWithZone: (NSZone*)aZone
+{
+  return self;
+}
+- (id)retain { return self; }
+- (id)autorelease { return self; }
+- (oneway void)release { }
+@end
+#endif
 #endif
 
 @implementation NSNumber
@@ -581,7 +691,7 @@ if (aValue >= -1 && aValue <= 12)\
       (aValue < (INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)) &&
       (aValue > -(INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)))
     {
-       return (id)((aValue << OBJC_SMALL_OBJECT_SHIFT) | 1);
+       return (id)((aValue << OBJC_SMALL_OBJECT_SHIFT) | SMALL_INT_MASK);
     }
 #endif
   n = NSAllocateObject (NSIntNumberClass, 0, 0);
@@ -671,6 +781,12 @@ if (aValue >= -1 && aValue <= 12)\
       return [[[self alloc] initWithBytes: (const void *)&aValue
         objCType: @encode(float)] autorelease];
     }
+#if OBJC_SMALL_OBJECT_SHIFT == 3
+  if (useSmallRepeatingDouble)
+    {
+      return boxDouble(aValue, SMALL_REPEATING_DOUBLE_MASK);
+    }
+#endif
   n = NSAllocateObject (NSFloatNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
@@ -685,6 +801,16 @@ if (aValue >= -1 && aValue <= 12)\
       return [[[self alloc] initWithBytes: (const void *)&aValue
         objCType: @encode(double)] autorelease];
     }
+#if OBJC_SMALL_OBJECT_SHIFT == 3
+  if (useSmallRepeatingDouble && isSmallRepeatingDouble(aValue))
+    {
+      return boxDouble(aValue, SMALL_REPEATING_DOUBLE_MASK);
+    }
+  if (useSmallExtendedDouble && isSmallExtendedDouble(aValue))
+    {
+      return boxDouble(aValue, SMALL_EXTENDED_DOUBLE_MASK);
+    }
+#endif
   n = NSAllocateObject (NSDoubleNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
