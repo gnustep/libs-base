@@ -1,3 +1,13 @@
+2011-11-16 17:29  theraven
+
+	* libs/base/trunk/Source/NSNumber.m: Implement the double boxing
+	  techniques used by Smalltalk/X and Cincom Smalltalk. Now we can
+	  conceal most doubles inside a pointer. This is most useful for
+	  LanguageKit, but should save some memory / malloc overhead / heap
+	  fragmentation in any code that uses a lot of NSNumbers (e.g.
+	  anything that deals with big plists). OS X 10.7 employs a similar
+	  trick.
+
 2011-11-15  Adam Fedor  <fedor@gnu.org>
 
 	* Source/win32/GSFileHandle.m: Fix include location
