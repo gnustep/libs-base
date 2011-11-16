@@ -1,3 +1,13 @@
+2011-11-16 20:48  theraven
+
+	* libs/base/trunk/Source/GSString.m: Store tiny strings (up to 8
+	  ASCII characters) inside the pointer. Strings of this length are fairly
+	  common, and this makes them very cheap to store / copy / compare
+	  (pointer comparisons test for equality). 8 characters seems to be enough
+	  for quite a lot of common uses, such as path components and tokens.
+	  There are possibly still some things constructing tiny strings and not
+	  using these.
+
 2011-11-16 17:29  theraven
 
 	* libs/base/trunk/Source/NSNumber.m: Implement the double boxing
