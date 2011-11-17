@@ -357,46 +357,71 @@ static BOOL useSmallRepeatingDouble;
 #define SMALL_REPEATING_DOUBLE_MASK 3
 
 
-@interface NSSmallInt : NSSignedIntegerNumber @end
+@interface NSSmallInt : NSSignedIntegerNumber
+@end
+
 @implementation NSSmallInt
 #undef VALUE
 #define VALUE (((intptr_t)self) >> OBJC_SMALL_OBJECT_SHIFT)
 #define FORMAT @"%d"
 #include "NSNumberMethods.h"
-+ (void)load
+
++ (void) load
 {
   useSmallInt = objc_registerSmallObjectClass_np(self, SMALL_INT_MASK);
 }
-+ (id)alloc
+
++ (id) alloc
 {
   return (id)1;
 }
-+ (id)allocWithZone: (NSZone*)aZone
+
++ (id) allocWithZone: (NSZone*)aZone
 {
   return (id)1;
 }
-- (id)copy
+
+- (id) copy
 {
   return self;
 }
-- (id)copyWithZone: (NSZone*)aZone
+
+- (id) copyWithZone: (NSZone*)aZone
 {
   return self;
 }
-- (id)retain { return self; }
-- (id)autorelease { return self; }
-- (oneway void)release { }
+
+- (id) retain
+{
+  return self;
+}
+
+- (id) autorelease
+{
+  return self;
+}
+
+- (oneway void) release
+{
+  return;
+}
 @end
+
 #if OBJC_SMALL_OBJECT_SHIFT == 3
+
 union BoxedDouble
 {
-	id obj;
-	uintptr_t bits;
-	double d;
-} ;
-@interface NSSmallExtendedDouble : NSFloatingPointNumber @end
+  id obj;
+  uintptr_t bits;
+  double d;
+};
+
+@interface NSSmallExtendedDouble : NSFloatingPointNumber
+@end
+
 @implementation NSSmallExtendedDouble
-static double unboxSmallExtendedDouble(uintptr_t boxed)
+static double
+unboxSmallExtendedDouble(uintptr_t boxed)
 {
   // The low bit of the mantissa
   uintptr_t mask = boxed & 8;
@@ -406,12 +431,16 @@ static double unboxSmallExtendedDouble(uintptr_t boxed)
   ret.bits = boxed | (mask >> 1) | (mask >> 2) | (mask >> 3);
   return ret.d;
 }
-static BOOL isSmallExtendedDouble(double d)
+
+static BOOL
+isSmallExtendedDouble(double d)
 {
   union BoxedDouble b = {.d=d};
   return unboxSmallExtendedDouble(b.bits) == d;
 }
-static double unboxSmallRepeatingDouble(uintptr_t boxed)
+
+static double
+unboxSmallRepeatingDouble(uintptr_t boxed)
 {
   // The low bit of the mantissa
   uintptr_t mask = boxed & 56;
@@ -421,75 +450,120 @@ static double unboxSmallRepeatingDouble(uintptr_t boxed)
   ret.bits = boxed | (mask >> 3);
   return ret.d;
 }
-static BOOL isSmallRepeatingDouble(double d)
+
+static BOOL
+isSmallRepeatingDouble(double d)
 {
   union BoxedDouble b = {.d=d};
   return unboxSmallRepeatingDouble(b.bits) == d;
 }
-static id boxDouble(double d, uintptr_t mask)
+
+static id
+boxDouble(double d, uintptr_t mask)
 {
   union BoxedDouble b = {.d=d};
   b.bits &= ~OBJC_SMALL_OBJECT_MASK;
   b.bits |= mask;
   return b.obj;
 }
+
 #undef VALUE
 #define VALUE (unboxSmallExtendedDouble((uintptr_t)self))
 #define FORMAT @"%0.16g"
 #include "NSNumberMethods.h"
-+ (void)load
+
++ (void)
+load
 {
-  useSmallExtendedDouble = objc_registerSmallObjectClass_np(self, SMALL_EXTENDED_DOUBLE_MASK);
+  useSmallExtendedDouble = objc_registerSmallObjectClass_np
+    (self, SMALL_EXTENDED_DOUBLE_MASK);
 }
-+ (id)alloc
+
++ (id) alloc
 {
   return (id)SMALL_EXTENDED_DOUBLE_MASK;
 }
-+ (id)allocWithZone: (NSZone*)aZone
+
++ (id) allocWithZone: (NSZone*)aZone
 {
   return (id)SMALL_EXTENDED_DOUBLE_MASK;
 }
-- (id)copy
+
+- (id) copy
 {
   return self;
 }
-- (id)copyWithZone: (NSZone*)aZone
+
+- (id) copyWithZone: (NSZone*)aZone
 {
   return self;
 }
-- (id)retain { return self; }
-- (id)autorelease { return self; }
-- (oneway void)release { }
+
+- (id) retain
+{
+  return self;
+}
+
+- (id) autorelease
+{
+  return self;
+}
+
+- (oneway void) release
+{
+  return;
+}
 @end
-@interface NSSmallRepeatingDouble : NSFloatingPointNumber @end
+
+@interface NSSmallRepeatingDouble : NSFloatingPointNumber
+@end
+
 @implementation NSSmallRepeatingDouble
 #undef VALUE
 #define VALUE (unboxSmallRepeatingDouble((uintptr_t)self))
 #define FORMAT @"%0.16g"
 #include "NSNumberMethods.h"
-+ (void)load
+
++ (void) load
 {
-  useSmallRepeatingDouble = objc_registerSmallObjectClass_np(self, SMALL_REPEATING_DOUBLE_MASK);
+  useSmallRepeatingDouble = objc_registerSmallObjectClass_np
+    (self, SMALL_REPEATING_DOUBLE_MASK);
 }
-+ (id)alloc
+
++ (id) alloc
 {
   return (id)SMALL_REPEATING_DOUBLE_MASK;
 }
-+ (id)allocWithZone: (NSZone*)aZone
+
++ (id) allocWithZone: (NSZone*)aZone
 {
   return (id)SMALL_REPEATING_DOUBLE_MASK;
 }
-- (id)copy
+
+- (id) copy
 {
   return self;
 }
-- (id)copyWithZone: (NSZone*)aZone
+
+- (id) copyWithZone: (NSZone*)aZone
 {
   return self;
 }
-- (id)retain { return self; }
-- (id)autorelease { return self; }
-- (oneway void)release { }
+
+- (id) retain
+{
+  return self;
+}
+
+- (id) autorelease
+{
+  return self;
+}
+
+- (oneway void) release
+{
+  return;
+}
 @end
 #endif
 #endif

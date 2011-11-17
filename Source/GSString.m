@@ -695,7 +695,7 @@ static void getCString_u(GSStr self, char *buffer, unsigned int maxLength,
 
 #if defined(OBJC_SMALL_OBJECT_SHIFT) && (OBJC_SMALL_OBJECT_SHIFT == 3)
 #define TINY_STRING_MASK 4
-BOOL useTinyStrings;
+static BOOL useTinyStrings;
 /**
  * A GSTinyString is used on 64-bit platforms to store up to 8 ASCII (7-bit)
  * characters inside a pointer.  Note that a mutable version of this class is
@@ -718,17 +718,21 @@ BOOL useTinyStrings;
 #define TINY_STRING_CHAR(s, x) ((s & (0xFE00000000000000 >> (x*7))) >> (57-(x*7)))
 #define TINY_STRING_LENGTH_MASK 0x1f
 #define TINY_STRING_LENGTH_SHIFT OBJC_SMALL_OBJECT_SHIFT
-@interface GSTinyString : NSString @end
+@interface GSTinyString : NSString
+@end
+
 @implementation GSTinyString
-- (NSUInteger)length
+- (NSUInteger) length
 {
   uintptr_t s = (uintptr_t)self;
   return (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
 }
-- (unichar)characterAtIndex: (NSUInteger)anIndex
+
+- (unichar) characterAtIndex: (NSUInteger)anIndex
 {
   uintptr_t s = (uintptr_t)self;
   NSUInteger length = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+
   if (anIndex >= length)
     {
       [NSException raise: NSInvalidArgumentException
@@ -741,53 +745,81 @@ BOOL useTinyStrings;
     }
   return TINY_STRING_CHAR(s, anIndex);
 }
-+ (void)load
+
++ (void) load
 {
   useTinyStrings = objc_registerSmallObjectClass_np(self, TINY_STRING_MASK);
 }
-+ (id)alloc
+
++ (id) alloc
 {
   return (id)TINY_STRING_MASK;
 }
-+ (id)allocWithZone: (NSZone*)aZone
+
++ (id) allocWithZone: (NSZone*)aZone
 {
   return (id)TINY_STRING_MASK;
 }
-- (id)copy
+
+- (id) copy
 {
   return self;
 }
-- (id)copyWithZone: (NSZone*)aZone
+
+- (id) copyWithZone: (NSZone*)aZone
 {
   return self;
 }
-- (id)retain { return self; }
-- (id)autorelease { return self; }
-- (oneway void)release { }
+
+- (id) retain
+{
+  return self;
+}
+
+- (id) autorelease
+{
+  return self;
+}
+
+- (oneway void) release
+{
+  return;
+}
 @end
+
 /**
  * Constructs a tiny string.
  */
-static id createTinyString(const char *str, int length)
+static id
+createTinyString(const char *str, int length)
 {
-  // No tiny string support detected at run time, give up
-  if (!useTinyStrings) { return nil; }
-  // String too long to fit in a pointer, give up
-  if (length > 9) { return nil; }
-  // String would fit if the last byte was an implicit 0, but it isn't.
-  if ((length == 9) && str[8] != '\0') { return nil; }
+  /* No tiny string support detected at run time, give up
+   */
+  if (!useTinyStrings)
+    {
+      return nil;
+    }
+
+  /* String too long to fit in a pointer, give up
+   */
+  if (length > 9)
+    {
+      return nil;
+    }
+
+  /* String would fit if the last byte was an implicit 0, but it isn't.
+   */
+  if ((length == 9) && str[8] != '\0')
+    {
+      return nil;
+    }
   uintptr_t s = TINY_STRING_MASK;
   s |= length << TINY_STRING_LENGTH_SHIFT;
   for (unsigned int i = 0 ; i<length ; i++)
-  {
-    s |= ((uintptr_t)str[i]) << (57 - (i*7));
-  }
+    {
+      s |= ((uintptr_t)str[i]) << (57 - (i*7));
+    }
   return (id)s;
-}
-#else
-static id createTinyString(const char *str, int length)
-{
-  return nil;
 }
 #endif
 /*
@@ -945,11 +977,13 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     {
       const void	*original = bytes;
 
+#if defined(OBJC_SMALL_OBJECT_SHIFT) && (OBJC_SMALL_OBJECT_SHIFT == 3)
       if (useTinyStrings)
         {
           if (NSASCIIStringEncoding == encoding)
             {
               id tinyString = createTinyString(bytes, length);
+
               if (tinyString)
                 {
                   return tinyString;
@@ -958,7 +992,8 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
           if (NSUTF8StringEncoding == encoding && (length < 9))
             {
               NSUInteger i;
-              for (i=0 ; i<length ; i++)
+
+              for (i = 0; i < length; i++)
                 {
                   if (((const char*)bytes)[i] & 0x80)
                     {
@@ -968,6 +1003,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
               if (i == length)
                 {
                   id tinyString = createTinyString(bytes, length);
+
                   if (tinyString)
                     {
                       return tinyString;
@@ -975,6 +1011,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
                 }
             }
         }
+#endif
 
       fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
       /*
