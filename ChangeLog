@@ -1,3 +1,7 @@
+2011-11-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: Fix errors in BOM handling and tidy.
+
 2011-11-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Fix to compile again (use ifdef to consistently
