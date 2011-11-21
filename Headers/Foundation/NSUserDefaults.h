@@ -191,11 +191,6 @@ GS_EXPORT NSString* const GSLocale;
    we had to make several implementation decisions which may vary in
    other OpenStep implementations.
   
-  - We add a new instance method initWithFile:  as a designated 
-    initialization method because it allows to create user defaults
-    database from a "default user" and also it will work for various 
-    non-posix implementations. 
-
   - We add two new class methods for getting and setting a list of 
     user languages (userLanguages and setUserLanguages: ). They are 
     somehow equivalent to the NS3.x Application's systemLanguages 
@@ -204,9 +199,6 @@ GS_EXPORT NSString* const GSLocale;
   - Definition of argument (command line parameters)
   	(-GSxxxx || --GSxxx) [value]
 	
-    Note:  As far as I know, there is nothing like home directory for 
-    the M$ hell. God help the Win95/WinNT users of NSUserDefaults ;-)
-  
   To Do: 
 	- polish & optimize;
 	- when tested, fix NSBundle (the system languages stuff);
@@ -333,17 +325,11 @@ GS_EXPORT NSString* const GSLocale;
  */
 - (id) init;
 
-/**
- * Initializes defaults for the specified user calling -initWithContentsOfFile:
+/** <init />
+ * Initializes defaults for the specified user.<br />
+ * Returns an object with an empty search list.
  */
 - (id) initWithUser: (NSString*)userName;
-
-/**
- * <init />
- * Initializes defaults for the specified path. Returns an object with
- * an empty search list.
- */
-- (id) initWithContentsOfFile: (NSString*)path;     // This is a new method
 
 /**
  * Looks up a value for a specified default using -objectForKey:
@@ -474,7 +460,7 @@ GS_EXPORT NSString* const GSLocale;
  * last -synchronize.
  */
 - (void) setPersistentDomain: (NSDictionary*)domain 
-        forName: (NSString*)domainName;
+		     forName: (NSString*)domainName;
 
 /**
  * Ensures that the in-memory and on-disk representations of the defaults
@@ -498,7 +484,7 @@ GS_EXPORT NSString* const GSLocale;
  * exists as either a volatile-domain or a persistent-domain.
  */
 - (void) setVolatileDomain: (NSDictionary*)domain 
-        forName: (NSString*)domainName;
+		   forName: (NSString*)domainName;
 
 /**
  * Returns the volatile domain specified by domainName.
