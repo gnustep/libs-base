@@ -797,7 +797,7 @@ static NSUInteger	urlAlign;
   if ([aUrlString isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ %@] nil string parameter",
+		  format: @"[%@ %@] bad string parameter",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
   if (aBaseUrl != nil
