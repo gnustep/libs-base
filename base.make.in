@@ -50,10 +50,6 @@ ifeq ($(BASE_MAKE_LOADED),)
     FND_LIBS = -lgnustep-baseadd -framework Foundation
   endif
 
-  # For literal string handling, base requires the compiler to store the
-  # string as UTF-8
-  AUXILIARY_OBJCFLAGS += -fexec-charset=UTF-8
-
   GNUSTEP_BASE_HAVE_GNUTLS=@HAVE_GNUTLS@
   GNUSTEP_BASE_HAVE_LIBXML=@HAVE_LIBXML@
   GNUSTEP_BASE_HAVE_MDNS=@HAVE_MDNS@
