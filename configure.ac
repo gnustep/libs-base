@@ -1063,7 +1063,7 @@ if test "$enable_unicodeconstants" != "no"; then
       GS_INPUT_CHARSET=-finput-charset=UTF-8
     else
       AC_MSG_RESULT([no]);
-      AC_MSG_ERROR([Your compiler does not appear to support UTF-8 string constants and any code which depends on non US-ASCII text in string constants would perform incorrectly.  If you do not carte about this, please confgure using --disable-unicodeconstants])
+      AC_MSG_ERROR([Your compiler does not appear to support UTF-8 string constants and any code which depends on non US-ASCII text in string constants would perform incorrectly.  If you do not care about this, please confgure using --disable-unicodeconstants])
     fi
   fi
   export LANG="$saved_LANG"
