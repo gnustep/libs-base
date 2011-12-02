@@ -41,6 +41,11 @@ GNUSTEP_BASE_HAVE_MDNS=@HAVE_MDNS@
 GNUSTEP_BASE_HAVE_AVAHI=@HAVE_AVAHI@
 GNUSTEP_BASE_HAVE_ICU=@HAVE_ICU@
 
+# Futureproofing ... if we ever use non-ascii string constants in base,
+# we need to make sure that anyone building base uses the expected input
+# characterset
+AUXILIARY_OBJCFLAGS += @GS_INPUT_CHARSET@
+
 # Default to building only -baseadd
 # on non *-gnu-* library combos
 ifneq ($(FOUNDATION_LIB),gnu)
