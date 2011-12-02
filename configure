@@ -5268,8 +5268,8 @@ $as_echo "yes" >&6; };
     else
       { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; };
-      { { $as_echo "$as_me:$LINENO: error: Your compiler does not appear to support UTF-8 string constants and any code which depends on non US-ASCII text in string constants would perform incorrectly.  If you do not carte about this, please confgure using --disable-unicodeconstants" >&5
-$as_echo "$as_me: error: Your compiler does not appear to support UTF-8 string constants and any code which depends on non US-ASCII text in string constants would perform incorrectly.  If you do not carte about this, please confgure using --disable-unicodeconstants" >&2;}
+      { { $as_echo "$as_me:$LINENO: error: Your compiler does not appear to support UTF-8 string constants and any code which depends on non US-ASCII text in string constants would perform incorrectly.  If you do not care about this, please confgure using --disable-unicodeconstants" >&5
+$as_echo "$as_me: error: Your compiler does not appear to support UTF-8 string constants and any code which depends on non US-ASCII text in string constants would perform incorrectly.  If you do not care about this, please confgure using --disable-unicodeconstants" >&2;}
    { (exit 1); exit 1; }; }
     fi
   fi
