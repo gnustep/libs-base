@@ -1,3 +1,20 @@
+2011-12-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.constant-string-encoding.c: test for string literal
+	encoding behavior ... irrespective of source encoding we need to put
+	utf-8 in the executable.  Can't check all cases, so just check the
+	most common one ... that building latin1 source in a latin1 locale
+	produces a utf8 string literal in the executable.
+	* configure.ac: add check for encoding.
+	* config.mak.in: specify charset for string literal in source
+	* base.make.in: specify charset for string literal in executable
+	* configure: regenerate
+	Check compiler behavior ... if well behaved, that's OK, no action to
+	take.  If well behaved when given specific options to control input
+	and output encodings, then note the options to be used when building.
+	If neither, then abort with an error message giving the option of
+	disabling unicode string literal checks.
+
 2011-11-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: rewrite to store defaults in multiple files,

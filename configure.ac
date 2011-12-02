@@ -1023,7 +1023,58 @@ if test "$CC" != "$MAKECC"; then
   exit 1
 fi
 
-#-------------------------------------------------------------------r
+#--------------------------------------------------------------------
+# Check wether the compiler supports UTF-8 constant strings
+#--------------------------------------------------------------------
+
+GS_EXEC_CHARSET=
+GS_INPUT_CHARSET=
+AC_ARG_ENABLE(unicodeconstants,
+      [  --disable-unicodeconstants
+	    Permits the use of a compiler which does not support unicode
+	    string constants.],,)
+if test "$enable_unicodeconstants" != "no"; then
+  AC_LANG_PUSH(C)
+  AC_MSG_CHECKING(whether compiler supports UTF-8 constants in executable)
+  saved_CFLAGS="$CFLAGS"
+  saved_LANG="$LANG"
+  saved_LC_ALL="$LC_ALL"
+  export LANG="en_US.ISO-8859-1"
+  export LC_ALL="en_US.ISO-8859-1"
+  # We are working in a latin1 locale so we can build a program containing
+  # a latin1 pound character, and see if the executable has a utf-8 literal.
+  AC_TRY_RUN([#include "$srcdir/config/config.constant-string-encoding.c"],
+	  utf8literal_ok=yes,
+	  utf8literal_ok=no,
+	  utf8literal_ok=no)
+  if test "$utf8literal_ok" = "yes"; then
+    AC_MSG_RESULT([yes]);
+  else
+    # The compiler did not produce a utf-8 literal ... see if it does so when
+    # given the appropriate flags to tell it what charactersets to use.
+    CFLAGS="$CFLAGS -finput-charset=ISO-8859-1 -fexec-charset=UTF-8"
+    AC_TRY_RUN([#include "$srcdir/config/config.constant-string-encoding.c"],
+	  utf8literal_ok=yes,
+	  utf8literal_ok=no,
+	  utf8literal_ok=no)
+    if test "$utf8literal_ok" = "yes"; then
+      AC_MSG_RESULT([yes]);
+      GS_EXEC_CHARSET=-fexec-charset=UTF-8
+      GS_INPUT_CHARSET=-finput-charset=UTF-8
+    else
+      AC_MSG_RESULT([no]);
+      AC_MSG_ERROR([Your compiler does not appear to support UTF-8 string constants and any code which depends on non US-ASCII text in string constants would perform incorrectly.  If you do not carte about this, please confgure using --disable-unicodeconstants])
+    fi
+  fi
+  export LANG="$saved_LANG"
+  export LC_ALL="$saved_LC_ALL"
+  CFLAGS="$saved_CFLAGS"
+  AC_LANG_POP(C)
+fi
+AC_SUBST(GS_EXEC_CHARSET)
+AC_SUBST(GS_INPUT_CHARSET)
+
+#--------------------------------------------------------------------
 # Check how to enable builtins for atomic operations
 #--------------------------------------------------------------------
 
