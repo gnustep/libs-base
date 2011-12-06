@@ -21926,6 +21926,13 @@ esac
 fi
 
 if test "$do_broken_libffi" = "no"; then
+  if test "$PKGCONFIG" = "yes"; then
+    if pkg-config --exists libffi; then
+      pkg_config_libffi=yes
+      ffi_CFLAGS=`pkg-config --cflags libffi`
+      CFLAGS="$CFLAGS $ffi_CFLAGS"
+    fi
+  fi
   if test "${ac_cv_header_ffi_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for ffi.h" >&5
 $as_echo_n "checking for ffi.h... " >&6; }
@@ -22324,7 +22331,12 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   WITH_FFI=libffi
-  LIBS="-lffi $LIBS"
+  if test "$pkg_config_libffi" = "yes"; then
+    ffi_LIBS=`pkg-config --libs libffi`
+  else
+    ffi_LIBS=-lffi
+  fi
+  LIBS="$ffi_LIBS $LIBS"
   if test "$cross_compiling" = yes; then
   ffi_ok="yes"
 else

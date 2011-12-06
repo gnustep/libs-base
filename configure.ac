@@ -2541,6 +2541,13 @@ GS_ADD_LIBRARY_PATH([${ffi_libdir}])
 fi
 
 if test "$do_broken_libffi" = "no"; then
+  if test "$PKGCONFIG" = "yes"; then
+    if pkg-config --exists libffi; then
+      pkg_config_libffi=yes
+      ffi_CFLAGS=`pkg-config --cflags libffi`
+      CFLAGS="$CFLAGS $ffi_CFLAGS"
+    fi
+  fi
   AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
 else
   have_libffi=no
@@ -2593,7 +2600,12 @@ if test $enable_libffi = yes; then
   AC_DEFINE(USE_LIBFFI,1,
             [Define if using the libffi library for invocations])
   WITH_FFI=libffi
-  LIBS="-lffi $LIBS"
+  if test "$pkg_config_libffi" = "yes"; then
+    ffi_LIBS=`pkg-config --libs libffi`
+  else
+    ffi_LIBS=-lffi
+  fi
+  LIBS="$ffi_LIBS $LIBS"
   AC_TRY_RUN([#include "$srcdir/config/config.ffi.c"],
              ffi_ok="yes",ffi_ok="no",ffi_ok="yes")
   if test $ffi_ok = yes; then
