@@ -225,6 +225,8 @@ typedef	uint32_t	OSType;
 - (BOOL) moveItemAtPath: (NSString*)src
 		 toPath: (NSString*)dst
 		  error: (NSError**)error;
+- (BOOL) removeItemAtPath: (NSString*)path
+                    error: (NSError**)error;
 #endif
 
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path;
