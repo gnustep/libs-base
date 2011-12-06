@@ -1,5 +1,10 @@
 2011-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/AGSParser.m: Fix suggested by Daniel Santos (ifStack was
+	created with incorrect initial content).
+
+2011-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: use pkg-config for libffi if/when available.
 	* configure: regenerate
 

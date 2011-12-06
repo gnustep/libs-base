@@ -175,7 +175,6 @@ in the returned dictionary. */
 - (id) init
 {
   NSMutableCharacterSet	*m;
-  NSMutableSet		*s;
 
   m = [[NSCharacterSet controlCharacterSet] mutableCopy];
   [m addCharactersInString: @" "];
@@ -194,9 +193,7 @@ in the returned dictionary. */
   warn = [[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"];
   documentInstanceVariables = YES;
   ifStack = [[NSMutableArray alloc] initWithCapacity: 4];
-  s = [NSMutableSet new];
-  [ifStack addObject: s];
-  RELEASE(s);
+  [ifStack addObject: [NSDictionary dictionary]];
   return self;
 }
 
@@ -3388,135 +3385,134 @@ fail:
 	  top = [[ifStack lastObject] mutableCopy];
 
 	  while ((arg = [self parseIdentifier]) != nil)
-	    {
-	      BOOL	openstep;
-	      NSString	*ver;
-
-	      if ([arg isEqual: @"OS_API_VERSION"] == YES)
-		{
-		  openstep = YES;
-		  if (hadOstep == YES)
-		    {
-		      [self log: @"multiple grouped OS_API_VERSION() calls"];
-		      return [self skipRemainderOfLine];
-		    }
-		  hadOstep = YES;
-		  [top removeObjectForKey: @"ovadd"];
-		  [top removeObjectForKey: @"ovdep"];
-		  [top removeObjectForKey: @"ovrem"];
-		}
-	      else if ([arg isEqual: @"GS_API_VERSION"] == YES)
-		{
-		  openstep = NO;
-		  if (hadGstep == YES)
-		    {
-		      [self log: @"multiple grouped GS_API_VERSION() calls"];
-		      return [self skipRemainderOfLine];
-		    }
-		  hadGstep = YES;
-		  [top removeObjectForKey: @"gvadd"];
-		  [top removeObjectForKey: @"gvdep"];
-		  [top removeObjectForKey: @"gvrem"];
-		}
-	      else
-		{
-		  break;
-		}
-
-	      [self parseSpace: spaces];
-	      if (pos < length && buffer[pos] == '(')
-		{
-		  pos++;
-		}
-	      ver = [self parseVersion];
-	      if ([ver length] == 0)
-		{
-		  ver = @"1.0.0";
-		}
-	      if (openstep)
-		{
-		  [top setObject: ver forKey: @"ovadd"];
-		}
-	      else
-		{
-		  [top setObject: ver forKey: @"gvadd"];
-		}
-
-	      [self parseSpace: spaces];
-	      if (pos < length && buffer[pos] == ',')
-		{
-		  pos++;
-		}
-	      ver = [self parseVersion];
-	      if ([ver length] == 0)
-		{
-		  ver = @"99.99.99";
-		}
-	      if ([ver isEqualToString: @"99.99.99"] == NO)
-		{
-		  if (openstep)
-		    {
-		      [top setObject: ver forKey: @"ovrem"];
-		    }
-		  else
-		    {
-		      [top setObject: ver forKey: @"gvrem"];
-		    }
-		}
-
-	      [self parseSpace: spaces];
-	      if (pos < length && buffer[pos] == ',')
-		{
-		  pos++;
-		  ver = [self parseVersion];
-		  if ([ver length] == 0)
-		    {
-		      ver = @"99.99.99";
-		    }
-		  if ([ver isEqualToString: @"99.99.99"] == NO)
-		    {
-		      if (openstep)
-			{
-			  [top setObject: ver forKey: @"ovdep"];
-			}
-		      else
-			{
-			  [top setObject: ver forKey: @"gvdep"];
-			}
-		    }
-		  [self parseSpace: spaces];
-		}
-
-	      if (pos < length && buffer[pos] == ')')
-		{
-		  pos++;
-		}
-
-	      [self parseSpace: spaces];
-	      if (pos < length-1 && buffer[pos] == '&' && buffer[pos+1] == '&')
-		{
-		  pos += 2;
-		}
-	      else
-		{
-		  break;	// may only join version macros with &&
-		}
-
-	      }
-	    [ifStack addObject: top];
-	    RELEASE(top);
-	  }
-	else if ([directive hasPrefix: @"if"] == YES)
 	  {
-	    BOOL	isIfDef = [directive isEqual: @"ifdef"];
+	    BOOL	openstep;
+	    NSString	*ver;
+
+	    if ([arg isEqual: @"OS_API_VERSION"] == YES)
+	      {
+		openstep = YES;
+		if (hadOstep == YES)
+		  {
+		    [self log: @"multiple grouped OS_API_VERSION() calls"];
+		    return [self skipRemainderOfLine];
+		  }
+		hadOstep = YES;
+		[top removeObjectForKey: @"ovadd"];
+		[top removeObjectForKey: @"ovdep"];
+		[top removeObjectForKey: @"ovrem"];
+	      }
+	    else if ([arg isEqual: @"GS_API_VERSION"] == YES)
+	      {
+		openstep = NO;
+		if (hadGstep == YES)
+		  {
+		    [self log: @"multiple grouped GS_API_VERSION() calls"];
+		    return [self skipRemainderOfLine];
+		  }
+		hadGstep = YES;
+		[top removeObjectForKey: @"gvadd"];
+		[top removeObjectForKey: @"gvdep"];
+		[top removeObjectForKey: @"gvrem"];
+	      }
+	    else
+	      {
+		break;
+	      }
 
 	    [self parseSpace: spaces];
-	    if (pos < length && buffer[pos] != '\n')
+	    if (pos < length && buffer[pos] == '(')
 	      {
-		NSMutableDictionary	*top;
-		NSString			*arg;
+		pos++;
+	      }
+	    ver = [self parseVersion];
+	    if ([ver length] == 0)
+	      {
+		ver = @"1.0.0";
+	      }
+	    if (openstep)
+	      {
+		[top setObject: ver forKey: @"ovadd"];
+	      }
+	    else
+	      {
+		[top setObject: ver forKey: @"gvadd"];
+	      }
 
-		top = [[ifStack lastObject] mutableCopy];
+	    [self parseSpace: spaces];
+	    if (pos < length && buffer[pos] == ',')
+	      {
+		pos++;
+	      }
+	    ver = [self parseVersion];
+	    if ([ver length] == 0)
+	      {
+		ver = @"99.99.99";
+	      }
+	    if ([ver isEqualToString: @"99.99.99"] == NO)
+	      {
+		if (openstep)
+		  {
+		    [top setObject: ver forKey: @"ovrem"];
+		  }
+		else
+		  {
+		    [top setObject: ver forKey: @"gvrem"];
+		  }
+	      }
+
+	    [self parseSpace: spaces];
+	    if (pos < length && buffer[pos] == ',')
+	      {
+		pos++;
+		ver = [self parseVersion];
+		if ([ver length] == 0)
+		  {
+		    ver = @"99.99.99";
+		  }
+		if ([ver isEqualToString: @"99.99.99"] == NO)
+		  {
+		    if (openstep)
+		      {
+			[top setObject: ver forKey: @"ovdep"];
+		      }
+		    else
+		      {
+			[top setObject: ver forKey: @"gvdep"];
+		      }
+		  }
+		[self parseSpace: spaces];
+	      }
+
+	    if (pos < length && buffer[pos] == ')')
+	      {
+		pos++;
+	      }
+
+	    [self parseSpace: spaces];
+	    if (pos < length-1 && buffer[pos] == '&' && buffer[pos+1] == '&')
+	      {
+		pos += 2;
+	      }
+	    else
+	      {
+		break;	// may only join version macros with &&
+	      }
+	  }
+	  [ifStack addObject: top];
+	  RELEASE(top);
+	}
+      else if ([directive hasPrefix: @"if"] == YES)
+	{
+	  BOOL	isIfDef = [directive isEqual: @"ifdef"];
+
+	  [self parseSpace: spaces];
+	  if (pos < length && buffer[pos] != '\n')
+	    {
+	      NSMutableDictionary	*top;
+	      NSString			*arg;
+
+	      top = [[ifStack lastObject] mutableCopy];
 	      arg = [self parseIdentifier];
 	      if ([arg isEqual: @"NO_GNUSTEP"] == YES)
 		{
