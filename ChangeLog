@@ -1,3 +1,8 @@
+2011-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: use pkg-config for libffi if/when available.
+	* configure: regenerate
+
 2011-12-05  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Source/NSFileManager.m:
