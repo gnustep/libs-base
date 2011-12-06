@@ -1462,6 +1462,15 @@ static NSStringEncoding	defaultEncoding;
     }
 }
 
+- (BOOL) removeItemAtPath: (NSString*)path
+		    error: (NSError**)error
+{
+  BOOL  result;
+
+  result = [self removeFileAtPath: path handler: nil];
+  return result;
+}
+
 /**
  * Returns YES if a file (or directory etc) exists at the specified path.
  */

@@ -1,3 +1,10 @@
+2011-12-05  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/NSFileManager.m:
+	* Headers/Foundation/NSFileManager.h: Add removeItemAtPath:error:
+	method, as a simple wrapper around removeFileAtPath:handler: with
+	no handler.
+
 2011-12-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/config.constant-string-encoding.c: test for string literal
