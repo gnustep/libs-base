@@ -1,3 +1,10 @@
+2011-12-08  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* configure.ac: Fix pkg-config configuration for libffi to make it
+	really work on systems where additional include options are
+	needed.
+	* configure: Regenerated.
+
 2011-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Fix suggested by Daniel Santos (ifStack was
