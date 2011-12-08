@@ -2544,8 +2544,9 @@ if test "$do_broken_libffi" = "no"; then
   if test "$PKGCONFIG" = "yes"; then
     if pkg-config --exists libffi; then
       pkg_config_libffi=yes
-      ffi_CFLAGS=`pkg-config --cflags libffi`
-      CFLAGS="$CFLAGS $ffi_CFLAGS"
+      ffi_CFLAGS=`pkg-config --cflags libffi`; 
+      CPPFLAGS="$CPPFLAGS $ffi_CFLAGS"
+      INCLUDE_FLAGS="$INCLUDE_FLAGS $ffi_CFLAGS"
     fi
   fi
   AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)
