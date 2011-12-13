@@ -1,3 +1,8 @@
+2011-12-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/GSSSLHandle.m: Allow cipher list to be set using GSCipherList
+	default.
+
 2011-12-08  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* configure.ac: Fix pkg-config configuration for libffi to make it
