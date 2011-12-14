@@ -163,12 +163,15 @@ threadid_function()
 @end
 
 static BOOL	permitSSLv2 = NO;
+static NSString *cipherList = nil;
 
 @implementation	GSSSLHandle
 + (void) _defaultsChanged: (NSNotification*)n
 {
   permitSSLv2
     = [[NSUserDefaults standardUserDefaults] boolForKey: @"GSPermitSSLv2"];
+  cipherList
+    = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSCipherList"];
 }
 
 + (void) initialize
@@ -206,6 +209,7 @@ static BOOL	permitSSLv2 = NO;
 	}
       defs = [NSUserDefaults standardUserDefaults];
       permitSSLv2 = [defs boolForKey: @"GSPermitSSLv2"];
+      cipherList = [defs stringForKey: @"GSCipherList"];
       [[NSNotificationCenter defaultCenter]
 	addObserver: self
 	   selector: @selector(_defaultsChanged:)
@@ -380,6 +384,10 @@ static BOOL	permitSSLv2 = NO;
 	{
           SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
 	}
+      if (nil != cipherList)
+        {
+          SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
+        }
     }
   if (ssl == 0)
     {
@@ -443,6 +451,10 @@ static BOOL	permitSSLv2 = NO;
 	{
           SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
 	}
+      if (nil != cipherList)
+        {
+          SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
+        }
     }
   if ([PEMpasswd length] > 0)
     {
