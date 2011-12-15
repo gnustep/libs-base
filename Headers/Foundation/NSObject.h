@@ -482,19 +482,6 @@ NSExtraRefCount(id anObject);
 GS_EXPORT void
 NSIncrementExtraRefCount(id anObject);
 
-/**
- * Contains values <code>NSOrderedSame</code>, <code>NSOrderedAscending</code>
- * <code>NSOrderedDescending</code>, for left hand side equals, less than, or
- * greater than right hand side.
- */
-typedef enum _NSComparisonResult 
-{
-  NSOrderedAscending = -1, NSOrderedSame, NSOrderedDescending
-} 
-NSComparisonResult;
-
-enum {NSNotFound = 0x7fffffff};
-
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
 /** Global lock to be used by classes when operating on any global
