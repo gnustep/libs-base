@@ -40,8 +40,20 @@
 #import "GSPortPrivate.h"
 
 #include <sys/stat.h>
-#include <signal.h>
-#include <fcntl.h>
+
+#if	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
+#elif	defined(HAVE_SIGNAL_H)
+#  include	<signal.h>
+#endif
+
+
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include	<fcntl.h>
+#endif
+
 #include <string.h>
 #include <sys/un.h>
 

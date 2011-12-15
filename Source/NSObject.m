@@ -52,11 +52,10 @@
 #include <locale.h>
 #endif
 
-#ifdef	HAVE_SIGNAL_H
-#include	<signal.h>
-#endif
-#ifdef	HAVE_SYS_SIGNAL_H
-#include	<sys/signal.h>
+#if	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
+#elif	defined(HAVE_SIGNAL_H)
+#  include	<signal.h>
 #endif
 
 #if __GNUC__ >= 4

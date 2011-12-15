@@ -50,13 +50,19 @@
 #import "GSPrivate.h"
 
 #include <string.h>
-#include <sys/file.h>
 
-#ifdef HAVE_SYS_FCNTL_H
-#include <sys/fcntl.h>		// For O_WRONLY, etc
+#ifdef	HAVE_SYS_FILE_H
+#  include <sys/file.h>
 #endif
+
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include <fcntl.h>
+#endif
+
 #ifdef	HAVE_SYS_SOCKET_H
-#include <sys/socket.h>		// For MSG_PEEK, etc
+#  include <sys/socket.h>		// For MSG_PEEK, etc
 #endif
 
 /*

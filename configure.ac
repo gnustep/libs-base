@@ -2155,10 +2155,27 @@ AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES,
                    [Define this if you work on sysv])
 AC_SUBST(HAVE_PTS_STREAM_MODULES)
 
-AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
+AC_CHECK_HEADERS(dnl
+	fcntl.h dnl
+	inttypes.h dnl
+	libc.h dnl
+	limits.h dnl
+	malloc.h dnl
+	memory.h dnl
+	signal.h dnl
+	stdint.h dnl
+	string.h dnl
+	sys/fcntl.h dnl
+	sys/file.h dnl
+	sys/inttypes.h dnl
+	sys/ioctl.h dnl
+	sys/signal.h dnl
+	sys/stropts.h dnl
+	sys/wait.h dnl
+	unistd.h dnl
+	utime.h dnl
         stdlib.h dnl
-	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h dnl
-	sys/stropts.h unistd.h utime.h stdint.h inttypes.h sys/inttypes.h)
+	)
 
 if test $ac_cv_header_stdint_h = yes; then
 INCLUDE_STDINT="#include <stdint.h>"

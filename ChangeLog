@@ -1,5 +1,34 @@
 2011-12-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSProcessInfo.m:
+	* Source/NSSocketPort.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSDebug.m:
+	* Source/NSDistributedLock.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSMessagePort.m:
+	* Source/NSFileManager.m:
+	* Source/NSString.m:
+	* Source/NSObject.m:
+	* Source/NSThread.m:
+	* Source/NSData.m:
+	* Source/GSNetwork.h:
+	* Source/GSFormat.m:
+	* Source/GSFileHandle.m:
+	* Source/NSTask.m:
+	* SSL/GSSSLHandle.m:
+	* SSL/configure.ac:
+	* SSL/configure:
+	* SSL/config.h.in:
+	* configure.ac:
+	* configure:
+	* Headers/GNUstepBase/config.h.in:
+	* Tools/gdnc.m:
+	Support fcntl.h and signal.h not being in the 'sys' subdirectory
+	(for android and any other systems with that header layout).
+
+2011-12-15  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSObject.h:
 	* Headers/Foundation/NSObjCRuntime.h:
 	Move a few declarations between headers to match OSX, and update

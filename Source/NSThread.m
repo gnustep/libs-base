@@ -45,11 +45,15 @@
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
 #endif
-#ifdef HAVE_SYS_FILE_H
-#include <sys/file.h>
+
+#if	defined(HAVE_SYS_FILE_H)
+#  include	<sys/file.h>
 #endif
-#ifdef HAVE_SYS_FCNTL_H
-#include <sys/fcntl.h>
+
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include <fcntl.h>
 #endif
 
 #ifdef	__POSIX_SOURCE

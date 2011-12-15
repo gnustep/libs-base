@@ -64,6 +64,16 @@
 #import "GSNetwork.h"
 #import "GSFileHandle.h"
 
+#if	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
+#elif	defined(HAVE_SIGNAL_H)
+#  include	<signal.h>
+#endif
+
+#if	defined(HAVE_SYS_FILE_H)
+#  include	<sys/file.h>
+#endif
+
 #if defined(__MINGW__)
 #include <winsock2.h>
 #else
@@ -73,12 +83,16 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <signal.h>
 #endif /* __MINGW__ */
 
-#include <sys/file.h>
 #include <sys/stat.h>
-#include <sys/fcntl.h>
+
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include	<fcntl.h>
+#endif
+
 #include <sys/ioctl.h>
 #ifdef	__svr4__
 #include <sys/filio.h>
