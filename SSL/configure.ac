@@ -103,7 +103,26 @@ case "$target_os" in
 
 esac
 
-AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h sys/signal.h sys/param.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
+AC_CHECK_HEADERS(dnl
+	fcntl.h dnl
+	libc.h dnl
+	limits.h dnl
+	malloc.h dnl
+	memory.h dnl
+	signal.h dnl
+	stdint.h dnl
+	string.h dnl
+	sys/fcntl.h dnl
+	sys/file.h dnl
+	sys/inttypes.h dnl
+	sys/ioctl.h dnl
+	sys/param.h dnl
+	sys/signal.h dnl
+	sys/stropts.h dnl
+	sys/wait.h dnl
+	unistd.h dnl
+	utime.h dnl
+	)
 
 #--------------------------------------------------------------------
 # Simple way to add a bunch of paths to the flags

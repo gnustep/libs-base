@@ -44,12 +44,22 @@
 #include	"process.h"
 #endif
 
-#include <fcntl.h>
+
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include	<fcntl.h>
+#endif
+
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
 
-#include        <signal.h>
+#if	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
+#elif	defined(HAVE_SIGNAL_H)
+#  include	<signal.h>
+#endif
 
 #ifndef NSIG
 #define NSIG    32

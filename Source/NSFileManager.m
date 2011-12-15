@@ -136,8 +136,8 @@
 # include <sys/statfs.h>
 #endif
 
-#ifdef HAVE_SYS_FILE_H
-#include <sys/file.h>
+#if	defined(HAVE_SYS_FILE_H)
+# include <sys/file.h>
 #endif
 
 #ifdef HAVE_SYS_MOUNT_H
@@ -148,7 +148,12 @@
 #include <sys/stat.h>
 #endif
 
-#include <fcntl.h>
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include	<fcntl.h>
+#endif
+
 #ifdef HAVE_PWD_H
 #include <pwd.h>     /* For struct passwd */
 #endif

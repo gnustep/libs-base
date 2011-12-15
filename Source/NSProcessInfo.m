@@ -67,24 +67,35 @@
 #  include <errno.h>
 #endif
 
-#ifdef  HAVE_SYS_SIGNAL_H
-#include <sys/signal.h>
-#endif
-#ifdef  HAVE_SIGNAL_H
-#include <signal.h>
+#if	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
+#elif	defined(HAVE_SIGNAL_H)
+#  include	<signal.h>
 #endif
 
-#include <sys/file.h>
-#ifdef HAVE_SYS_FCNTL_H
-#include <sys/fcntl.h>
+#if	defined(HAVE_SYS_FILE_H)
+#  include <sys/file.h>
 #endif
+
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include <fcntl.h>
+#endif
+
 #ifdef HAVE_SYS_UTSNAME_H
 #include <sys/utsname.h>
 #endif
 
 #ifdef HAVE_KVM_ENV
 #include <kvm.h>
-#include <fcntl.h>
+
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include	<fcntl.h>
+#endif
+
 #include <sys/param.h>
 #endif /* HAVE_KVM_ENV */
 

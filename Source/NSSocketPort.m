@@ -59,7 +59,13 @@
 #endif /* !__MINGW__ */
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
-#include <fcntl.h>
+
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include	<fcntl.h>
+#endif
+
 #ifdef __MINGW__
 #include <winsock2.h>
 #include <wininet.h>
@@ -70,7 +76,11 @@
 #include <sys/resource.h>
 #include <netdb.h>
 #include <sys/socket.h>
-#include <sys/file.h>
+
+#if	defined(HAVE_SYS_FILE_H)
+#  include	<sys/file.h>
+#endif
+
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */

@@ -856,7 +856,12 @@ __builtin_extract_return_address(__builtin_return_address(a + 1)) : 0); break;
  * Of course this will fail horribly if an exception occurs in one of the
  * few methods we use to manage the per-thread jump buffer.
  */
-#include <signal.h>
+#if	defined(HAVE_SYS_SIGNAL_H)
+#  include	<sys/signal.h>
+#elif	defined(HAVE_SIGNAL_H)
+#  include	<signal.h>
+#endif
+
 #include <setjmp.h>
 
 #if	defined(__MINGW__)
