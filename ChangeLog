@@ -1,3 +1,10 @@
+2011-12-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	Move a few declarations between headers to match OSX, and update
+	NSNotFound to be NSIntegerMax for compatibility on 64bit platforms.
+
 2011-12-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/GSSSLHandle.m: Allow cipher list to be set using GSCipherList

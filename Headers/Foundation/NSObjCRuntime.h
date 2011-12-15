@@ -133,6 +133,19 @@ GS_EXPORT void			NSLogv (NSString *format, va_list args);
 #define nil		0
 #endif
 
+/**
+ * Contains values <code>NSOrderedSame</code>, <code>NSOrderedAscending</code>
+ * <code>NSOrderedDescending</code>, for left hand side equals, less than, or
+ * greater than right hand side.
+ */
+typedef enum _NSComparisonResult 
+{
+  NSOrderedAscending = -1, NSOrderedSame, NSOrderedDescending
+} 
+NSComparisonResult;
+
+enum {NSNotFound = NSIntegerMax};
+
 #if	defined(__cplusplus)
 }
 #endif
