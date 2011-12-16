@@ -116,9 +116,9 @@ class_getInstanceMethodNonrecursive(Class aClass, SEL aSelector)
 	      Method_t method = &methods->method_list[i];
 
 	      if (method->method_name->sel_id == aSelector->sel_id)
-		    {
-		      return method;
-		    }
+		{
+		  return method;
+		}
 	    }
 	}
     }
@@ -173,8 +173,7 @@ class_addIvar(Class cls, const char *name,
       ivarlist->ivar_count++;
       // objc_ivar_list contains one ivar.  Others follow it.
       cls->ivars = realloc(ivarlist, sizeof(struct objc_ivar_list)
-				+ (ivarlist->ivar_count -
-				   1) * sizeof(struct objc_ivar));
+	+ (ivarlist->ivar_count - 1) * sizeof(struct objc_ivar));
     }
 
   ivar = &cls->ivars->ivar_list[cls->ivars->ivar_count - 1];
@@ -197,7 +196,7 @@ class_addMethod(Class cls, SEL name, IMP imp, const char *types)
   struct objc_method_list *methods;
 
   for (methods = cls->methods; methods != NULL;
-       methods = methods->method_next)
+    methods = methods->method_next)
     {
       int i;
 
@@ -715,7 +714,7 @@ method_exchangeImplementations(Method m1, Method m2)
 
 void
 method_getArgumentType(Method method,
-		       unsigned int index, char *dst, size_t dst_len)
+ unsigned int index, char *dst, size_t dst_len)
 {
   const char *types;
   size_t length;
@@ -1182,62 +1181,72 @@ objc_getProtocol(const char *name)
   return p;
 }
 
-Protocol **objc_copyProtocolList(unsigned int *count)
+Protocol **
+objc_copyProtocolList(unsigned int *count)
 {
   *count = 0;
   return NULL;
 }
 
-BOOL protocol_conformsToProtocol(Protocol *p1, Protocol *p2)
+BOOL
+protocol_conformsToProtocol(Protocol *p1, Protocol *p2)
 {
-	struct objc_protocol_list *list = p1->protocol_list;
-	// A protocol trivially conforms to itself
-	if (strcmp(p1->protocol_name, p2->protocol_name) == 0) { return YES; }
+  struct objc_protocol_list *list = p1->protocol_list;
 
-	for (list = p1->protocol_list ; list != NULL ; list = list->next)
+  // A protocol trivially conforms to itself
+  if (strcmp(p1->protocol_name, p2->protocol_name) == 0)
+    {
+      return YES;
+    }
+
+  for (list = p1->protocol_list; list != NULL; list = list->next)
+    {
+      int i;
+
+      for (i = 0; i < list->count; i++)
 	{
-		int i;
-		for (i=0 ; i<list->count ; i++)
-		{
-			if (strcmp(list->list[i]->protocol_name, p2->protocol_name) == 0)
-			{
-				return YES;
-			}
-			if (protocol_conformsToProtocol((Protocol*)list->list[i], p2))
-			{
-				return YES;
-			}
-		}
+	  if (strcmp(list->list[i]->protocol_name, p2->protocol_name) == 0)
+	    {
+	      return YES;
+	    }
+	  if (protocol_conformsToProtocol((Protocol*)list->list[i], p2))
+	    {
+	      return YES;
+	    }
 	}
-	return NO;
+    }
+  return NO;
 }
 
-BOOL class_conformsToProtocol(Class cls, Protocol *protocol)
+BOOL
+class_conformsToProtocol(Class cls, Protocol *protocol)
 {
-	struct objc_protocol_list *protocols;
+  struct objc_protocol_list *protocols;
 
-	while (cls)
+  while (cls)
+    {
+      for (protocols = cls->protocols;
+	protocols != NULL; protocols = protocols->next)
 	{
-		for (protocols = cls->protocols;
-			protocols != NULL ; protocols = protocols->next)
+	  int i;
+
+	  for (i = 0; i < protocols->count; i++)
+	    {
+	      Protocol *p1 = (Protocol*)protocols->list[i];
+
+	      if (strcmp(p1->protocol_name, protocol->protocol_name) == 0)
 		{
-			int i;
-			for (i=0 ; i<protocols->count ; i++)
-			{
-				Protocol *p1 = (Protocol*)protocols->list[i];
-				if (strcmp(p1->protocol_name, protocol->protocol_name) == 0)
-				{
-					return YES;
-				}
-				if (protocol_conformsToProtocol(p1, protocol))
-				{
-					return YES;
-				}
-			}
+		  return YES;
 		}
-		cls = cls ->super_class;
+	      if (protocol_conformsToProtocol(p1, protocol))
+		{
+		  return YES;
+		}
+	    }
 	}
-	return NO;
+      cls = cls->super_class;
+    }
+  return NO;
 }
 
 struct objc_method_description_list {
@@ -1246,75 +1255,77 @@ struct objc_method_description_list {
 };
 
 struct objc_method_description *
-protocol_copyMethodDescriptionList(Protocol * p,
-				   BOOL isRequiredMethod,
-				   BOOL isInstanceMethod, unsigned int *count)
+protocol_copyMethodDescriptionList(Protocol *p,
+  BOOL isRequiredMethod,
+  BOOL isInstanceMethod, unsigned int *count)
 {
-	struct objc_method_description *output = NULL;
-	unsigned int outputCount = 0;
-	struct objc_method_description_list *methods;
+  struct objc_method_description *output = NULL;
+  unsigned int outputCount = 0;
+  struct objc_method_description_list *methods;
 
-	if (isInstanceMethod)
+  if (isInstanceMethod)
+    {
+      methods = p->instance_methods;
+    }
+  else
+    {
+      methods = p->class_methods;
+    }
+
+  if (methods != NULL)
+    {
+      int i;
+
+      outputCount = methods->count;
+      output = malloc(outputCount * sizeof(struct objc_method_description));
+
+      for (i = 0; i < methods->count; i++)
 	{
-		methods = p->instance_methods;
+	  output[i] = methods->list[i];
+	  // HACK: the name field of the objc_method_description struct 
+	  // is supposed to be a selector, but testing reveals it is a string
+	  output[i].name = sel_registerName((const char *) output[i].name);
 	}
-	else
-	{
-		methods = p->class_methods;
-	}
+    }
 
-
-	if (methods != NULL)
-	{
-		int i;
-		outputCount = methods->count;
-		output = malloc(outputCount * sizeof(struct objc_method_description));
-
-		for (i=0 ; i<methods->count; i++)
-		{
-			output[i] = methods->list[i];
-			// HACK: the name field of the objc_method_description struct 
-			// is supposed to be a selector, but testing reveals it is a string
-			output[i].name = sel_registerName((const char *) output[i].name);
-		}
-	}
-
-	*count = outputCount;
-	return output;
+  *count = outputCount;
+  return output;
 }
 
 Protocol **
 protocol_copyProtocolList(Protocol * p, unsigned int *count)
 {
-	Protocol **output = NULL;
-	unsigned int outputCount = 0;
-	struct objc_protocol_list *list;
+  Protocol **output = NULL;
+  unsigned int outputCount = 0;
+  struct objc_protocol_list *list;
 
-	for (list = p->protocol_list ; list != NULL ; list = list->next)
+  for (list = p->protocol_list; list != NULL; list = list->next)
+    {
+      int i;
+
+      for (i = 0; i < list->count; i++)
 	{
-		int i;
-		for (i=0 ; i<list->count ; i++)
-		{
-			outputCount++;
-		}
+	  outputCount++;
 	}
+    }
 
-	if (outputCount > 0)
+  if (outputCount > 0)
+    {
+      output = malloc(outputCount * sizeof(Protocol *));
+    }
+
+  for (list = p->protocol_list; list != NULL; list = list->next)
+    {
+      int i;
+
+      for (i = 0; i < list->count; i++)
 	{
-		output = malloc(outputCount * sizeof(Protocol *));
+	  output[i] = (Protocol*)list->list[i];
 	}
+    }
 
-	for (list = p->protocol_list ; list != NULL ; list = list->next)
-	{
-		int i;
-		for (i=0 ; i<list->count ; i++)
-		{
-			output[i] = (Protocol*)list->list[i];
-		}
-	}
-
-	*count = outputCount;
-	return output;
+  *count = outputCount;
+  return output;
 }
 
 const char *
