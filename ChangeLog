@@ -1,3 +1,8 @@
+2011-12-17  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPortCoder.m (-versionForClassName:): Use NSInteger for
+	version to avoid compiler warning on 64-bit system.
+
 2011-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m:
