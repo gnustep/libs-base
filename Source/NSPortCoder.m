@@ -1925,7 +1925,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 - (NSInteger) versionForClassName: (NSString*)className
 {
   GSClassInfo	*info = nil;
-  unsigned	version = NSNotFound;
+  NSInteger	version = NSNotFound;
   unsigned	count = GSIArrayCount(_clsAry);
 
   /*
