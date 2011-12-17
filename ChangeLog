@@ -1,3 +1,12 @@
+2011-12-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m:
+	Whenever we synchronize in a state where we have changes to write,
+	but are in read-only mode (no database existed on startup, or we
+	couldn't create the lock file on startup), check to see if the
+	database is now writable (we can create the lock file).
+	Should fix problem where new defaults files were not getting created.
+
 2011-12-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m:

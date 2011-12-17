@@ -1724,10 +1724,6 @@ static BOOL isPlistObject(id o)
   NSFileManager *mgr;
   NSDictionary	*attr;
 
-  if (nil == _fileLock)
-    {
-      return NO;	// Database did not exist on startup.
-    }
   mgr = [NSFileManager defaultManager];
   attr = [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES];
   if (lastSyncDate == nil)
@@ -1776,7 +1772,18 @@ static BOOL isPlistObject(id o)
       if (_changedDomains != nil
         || YES == [self wantToReadDefaultsSince: saved])
 	{
-	  DESTROY(_dictionaryRep);
+          /* If we want to write but are currently read-only, try to
+	   * create the path to make things writable.
+	   */
+	  if (_changedDomains != nil && YES == [self _readOnly])
+	    {
+	      NSString	*path = lockPath(_defaultsDatabase, NO);
+
+	      if (nil != path)
+		{
+		  _fileLock = [[NSDistributedLock alloc] initWithPath: path];
+		}
+	    }
 	  if ([self _lockDefaultsFile: &wasLocked] == NO)
 	    {
 	      result = NO;
@@ -1788,10 +1795,14 @@ static BOOL isPlistObject(id o)
 	      NSFileManager		*mgr;
 
 	      haveNewDomain = [self _readDefaults];
+	      if (YES == haveNewDomain)
+		{
+		  DESTROY(_dictionaryRep);
+		}
 
 	      mgr = [NSFileManager defaultManager];
 
-	      if (_changedDomains != nil)
+	      if (_changedDomains != nil && NO == [self _readOnly])
 		{
 		  GSPersistentDomain	*domain;
 
