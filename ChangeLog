@@ -1,3 +1,9 @@
+2011-12-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Try to make detection of compilers which don't support
+	locale/characterset handling for string literals somewhat friendly.
+	* configure: regenerate
+
 2011-12-17  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPortCoder.m (-versionForClassName:): Use NSInteger for
