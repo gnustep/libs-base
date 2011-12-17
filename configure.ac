@@ -1063,7 +1063,7 @@ if test "$enable_unicodeconstants" != "no"; then
       GS_INPUT_CHARSET=-finput-charset=UTF-8
     else
       AC_MSG_RESULT([no]);
-      AC_MSG_WARN([Your compiler does not appear to support locales or command line options to control handling of charactersets.  This means that using any source code code containing non US-ASCII text in string literals may give unexpected results (or crashes) at runtime.  However, as long as any such literals only use the UTF-8 characterset, this is unlikely to be a problem. Please confgure using --disable-unicodeconstants to avoid seeing this warning.])
+      AC_MSG_WARN([Your compiler does not appear to support locales or command line options to control handling of charactersets, so we cannot be sure that the compiled code will contain the UTF-8 string literals expected by gnustep-base.  This means that using any source code code containing non US-ASCII text in string literals may give unexpected results (or crashes) at runtime.  However, as long as any such literals only use the UTF-8 characterset, this is unlikely to be a problem (since old/faulty compilers are likely to pass the UTF-8 literals through to the compiled code). Please configure using --disable-unicodeconstants to avoid seeing this warning.])
     fi
   fi
   export LANG="$saved_LANG"
