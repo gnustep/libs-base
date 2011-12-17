@@ -1031,7 +1031,7 @@ GS_EXEC_CHARSET=
 GS_INPUT_CHARSET=
 AC_ARG_ENABLE(unicodeconstants,
       [  --disable-unicodeconstants
-	    Permits the use of a compiler which does not support unicode
+	    Ignores the use of a compiler which does not support unicode
 	    string constants.],,)
 if test "$enable_unicodeconstants" != "no"; then
   AC_LANG_PUSH(C)
@@ -1063,7 +1063,7 @@ if test "$enable_unicodeconstants" != "no"; then
       GS_INPUT_CHARSET=-finput-charset=UTF-8
     else
       AC_MSG_RESULT([no]);
-      AC_MSG_ERROR([Your compiler does not appear to support UTF-8 string constants and any code which depends on non US-ASCII text in string constants would perform incorrectly.  If you do not care about this (or you know your code will only ever produce ASCII or UTF-8 string literals), please confgure using --disable-unicodeconstants])
+      AC_MSG_WARN([Your compiler does not appear to support locales or command line options to control handling of charactersets.  This means that using any source code code containing non US-ASCII text in string literals may give unexpected results (or crashes) at runtime.  However, as long as any such literals only use the UTF-8 characterset, this is unlikely to be a problem. Please confgure using --disable-unicodeconstants to avoid seeing this warning.])
     fi
   fi
   export LANG="$saved_LANG"
