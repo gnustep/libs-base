@@ -1,3 +1,8 @@
+2011-12-19 Riccardo Mottola <rm@gnu.org>
+
+	* Source/GSString.m:
+	Fix blocking compiler warning (ggc 4.5.3)
+
 2011-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Try to make detection of compilers which don't support
