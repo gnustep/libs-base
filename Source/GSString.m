@@ -793,6 +793,9 @@ static BOOL useTinyStrings;
 static id
 createTinyString(const char *str, int length)
 {
+  unsigned int i;
+  uintptr_t s = TINY_STRING_MASK;
+
   /* No tiny string support detected at run time, give up
    */
   if (!useTinyStrings)
@@ -813,9 +816,9 @@ createTinyString(const char *str, int length)
     {
       return nil;
     }
-  uintptr_t s = TINY_STRING_MASK;
+  
   s |= length << TINY_STRING_LENGTH_SHIFT;
-  for (unsigned int i = 0 ; i<length ; i++)
+  for (i = 0 ; i<length ; i++)
     {
       s |= ((uintptr_t)str[i]) << (57 - (i*7));
     }
