@@ -1,3 +1,9 @@
+2011-12-22  Wolfgang Lux  <wolgang.lux@gmail.com>
+
+	* Source/NSSocketPort.m	(+portNumber:onHost:forceAddress:listener):
+	Fix an uninitialized variable bug, which could lead to returning
+	ports with an incorrect port number.
+
 2011-12-19 Riccardo Mottola <rm@gnu.org>
 
 	* Source/GSString.m:

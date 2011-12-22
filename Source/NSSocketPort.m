@@ -1595,7 +1595,13 @@ static Class		tcpPortClass;
 	   * listener socket to accept incoming connections.
 	   */
 	  addrOk = GSPrivateSockaddrSetup(addr, number, nil, nil, &sockaddr);
-	  if (NO == addrOk)
+
+	  /*
+	   * Need size of buffer for getsockbyname() later.
+	   */
+	  slen = sizeof(sockaddr);
+
+	  if (addrOk == NO)
 	    {
 	      NSLog(@"Bad address (%@) specified for listening port", addr);
 	      DESTROY(port);
