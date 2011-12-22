@@ -1,4 +1,14 @@
-2011-12-22  Wolfgang Lux  <wolgang.lux@gmail.com>
+2011-12-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSRegularExpression.m (-initWithPattern:options:error:,
+	-pattern, setupRegex, -enumerateMatchesInString:options:range:,
+	FAKE_BLOCK_HACK, -replaceMatchesInString:options:range:,
+	-stringByReplacingMatchesInString:options:range:withTemplate:,
+	replacementStringForResult:inString:offset:template:): Introduce
+	support for libicu versions prior to 4.4, which don't provide the
+	UText interface to regular expressions.
+
+2011-12-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSSocketPort.m	(+portNumber:onHost:forceAddress:listener):
 	Fix an uninitialized variable bug, which could lead to returning

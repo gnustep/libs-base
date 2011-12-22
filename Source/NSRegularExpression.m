@@ -1,4 +1,4 @@
-/** Implementation of NSRegualrExpression for GNUStep
+/** Implementation of NSRegularExpression for GNUStep
 
    Copyright (C) 2010 Free Software Foundation, Inc.
 
@@ -28,7 +28,14 @@
 
 #if GS_USE_ICU == 1
 #include "unicode/uregex.h"
+
+// FIXME It would be nice to use autoconf for checking whether uregex_openUText
+// is defined.  However the naive check using AC_CHECK_FUNCS(uregex_openUText)
+// wonn't work because libicu internally renames all entry points with some cpp
+// magic.
 #if (U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
+#define HAVE_UREGEX_OPENUTEXT 1
+#endif
 
 #define NSRegularExpressionWorks
 
@@ -94,6 +101,7 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
 				  error: e] autorelease];
 }
 
+#if HAVE_UREGEX_OPENUTEXT
 - (id) initWithPattern: (NSString*)aPattern
 	       options: (NSRegularExpressionOptions)opts
 		 error: (NSError**)e
@@ -131,6 +139,42 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
   utext_close(t);
   return [str autorelease];
 }
+#else
+- (id) initWithPattern: (NSString*)aPattern
+	       options: (NSRegularExpressionOptions)opts
+		 error: (NSError**)e
+{
+  int32_t	length = [aPattern length];
+  uint32_t	flags = NSRegularExpressionOptionsToURegexpFlags(opts);
+  UParseError	pe = {0};
+  UErrorCode	s = 0;
+  TEMP_BUFFER(buffer, length);
+
+  [aPattern getCharacters: buffer range: NSMakeRange(0, length)];
+  regex = uregex_open(buffer, length, flags, &pe, &s);
+  if (U_FAILURE(s))
+    {
+      // FIXME: Do something sensible with the error parameter.
+      [self release];
+      return nil;
+    }
+  options = opts;
+  return self;
+}
+
+- (NSString*) pattern
+{
+  UErrorCode	s = 0;
+  int32_t	length;
+  const unichar *pattern = uregex_pattern(regex, &length, &s);
+  
+  if (U_FAILURE(s))
+    {
+      return nil;
+    }
+  return [NSString stringWithCharacters: pattern length: length];
+}
+#endif
 
 static UBool
 callback(const void *context, int32_t steps)
@@ -154,6 +198,7 @@ callback(const void *context, int32_t steps)
  * NSRegularExpression, is stateful, and sharing this state between threads
  * would break concurrent calls.
  */
+#if HAVE_UREGEX_OPENUTEXT
 static URegularExpression *
 setupRegex(URegularExpression *regex,
   NSString *string,
@@ -187,6 +232,42 @@ setupRegex(URegularExpression *regex,
     }
   return r;
 }
+#else
+static URegularExpression *
+setupRegex(URegularExpression *regex,
+  NSString *string,
+  unichar *buffer,
+  int32_t length,
+  NSMatchingOptions options,
+  NSRange range,
+  GSRegexBlock block)
+{
+  UErrorCode		s = 0;
+  URegularExpression	*r = uregex_clone(regex, &s);
+
+  [string getCharacters: buffer range: NSMakeRange(0, length)];
+  if (options & NSMatchingReportProgress)
+    {
+      uregex_setMatchCallback(r, callback, block, &s);
+    }
+  uregex_setText(r, buffer, length, &s);
+  uregex_setRegion(r, range.location, range.location+range.length, &s);
+  if (options & NSMatchingWithoutAnchoringBounds)
+    {
+      uregex_useAnchoringBounds(r, FALSE, &s);
+    }
+  if (options & NSMatchingWithTransparentBounds)
+    {
+      uregex_useTransparentBounds(r, TRUE, &s);
+    }
+  if (U_FAILURE(s))
+    {
+      uregex_close(r);
+      return NULL;
+    }
+  return r;
+}
+#endif
 
 static uint32_t
 prepareResult(NSRegularExpression *regex,
@@ -220,6 +301,7 @@ prepareResult(NSRegularExpression *regex,
   return flags;
 }
 
+#if HAVE_UREGEX_OPENUTEXT
 - (void) enumerateMatchesInString: (NSString*)string
                           options: (NSMatchingOptions)opts
                             range: (NSRange)range
@@ -275,6 +357,65 @@ prepareResult(NSRegularExpression *regex,
   utext_close(&txt);
   uregex_close(r);
 }
+#else
+- (void) enumerateMatchesInString: (NSString*)string
+                          options: (NSMatchingOptions)opts
+                            range: (NSRange)range
+                       usingBlock: (GSRegexBlock)block
+{
+  UErrorCode	s = 0;
+  BOOL		stop = NO;
+  int32_t	length = [string length];
+  URegularExpression *r;
+  NSUInteger	groups = [self numberOfCaptureGroups] + 1;
+  NSRange	ranges[groups];
+  TEMP_BUFFER(buffer, length);
+
+  r = setupRegex(regex, string, buffer, length, opts, range, block);
+
+  // Should this throw some kind of exception?
+  if (NULL == r)
+    {
+      return;
+    }
+  if (opts & NSMatchingAnchored)
+    {
+      if (uregex_lookingAt(r, -1, &s) && (0 == s))
+	{
+	  // FIXME: Factor all of this out into prepareResult()
+	  uint32_t		flags;
+	  NSTextCheckingResult *result;
+
+	  flags = prepareResult(self, r, ranges, groups, &s);
+	  result = [NSTextCheckingResult
+	    regularExpressionCheckingResultWithRanges: ranges
+						count: groups
+				    regularExpression: self];
+	  CALL_BLOCK(block, result, flags, &stop);
+	}
+    }
+  else
+    {
+      while (!stop && uregex_findNext(r, &s) && (0 == s))
+	{
+	  uint32_t		flags;
+	  NSTextCheckingResult	*result;
+
+	  flags = prepareResult(self, r, ranges, groups, &s);
+	  result = [NSTextCheckingResult
+	    regularExpressionCheckingResultWithRanges: ranges
+						count: groups
+				    regularExpression: self];
+	  CALL_BLOCK(block, result, flags, &stop);
+	}
+    }
+  if (opts & NSMatchingCompleted)
+    {
+      CALL_BLOCK(block, nil, NSMatchingCompleted, &stop);
+    }
+  uregex_close(r);
+}
+#endif
 
 /* The remaining methods are all meant to be wrappers around the primitive
  * method that takes a block argument.  Unfortunately, this is not really
@@ -373,6 +514,7 @@ prepareResult(NSRegularExpression *regex,
 #	ifdef __clang__
 #		warning Your compiler would support blocks if you added -fblocks to your OBJCFLAGS
 #	endif
+#if HAVE_UREGEX_OPENUTEXT
 #define FAKE_BLOCK_HACK(failRet, code) \
   UErrorCode s = 0;\
   UText txt = UTEXT_INITIALIZER;\
@@ -395,6 +537,31 @@ prepareResult(NSRegularExpression *regex,
     }\
   utext_close(&txt);\
   uregex_close(r);
+#else
+#define FAKE_BLOCK_HACK(failRet, code) \
+  UErrorCode s = 0;\
+  BOOL stop = NO;\
+  uint32_t length = [string length];\
+  URegularExpression *r;\
+  TEMP_BUFFER(buffer, length);\
+  r = setupRegex(regex, string, buffer, length, opts, range, 0);\
+  if (NULL == r) { return failRet; }\
+  if (opts & NSMatchingAnchored)\
+    {\
+      if (uregex_lookingAt(r, -1, &s) && (0==s))\
+	{\
+	  code\
+	}\
+    }\
+  else\
+    {\
+      while (!stop && uregex_findNext(r, &s) && (s == 0))\
+	{\
+	  code\
+	}\
+    }\
+  uregex_close(r);
+#endif
 
 - (NSUInteger) numberOfMatchesInString: (NSString*)string
                                options: (NSMatchingOptions)opts
@@ -468,6 +635,7 @@ prepareResult(NSRegularExpression *regex,
 
 #endif
 
+#if HAVE_UREGEX_OPENUTEXT
 - (NSUInteger) replaceMatchesInString: (NSMutableString*)string
                               options: (NSMatchingOptions)opts
                                 range: (NSRange)range
@@ -552,6 +720,104 @@ prepareResult(NSRegularExpression *regex,
   utext_close(&replacement);
   return ret;
 }
+#else
+- (NSUInteger) replaceMatchesInString: (NSMutableString*)string
+                              options: (NSMatchingOptions)opts
+                                range: (NSRange)range
+                         withTemplate: (NSString*)template
+{
+  // FIXME: We're computing a value that is most likely ignored in an
+  // expensive way.
+  NSInteger	results = [self numberOfMatchesInString: string
+						options: opts
+						  range: range];
+  UErrorCode	s = 0;
+  uint32_t	length = [string length];
+  uint32_t	replLength = [template length];
+  unichar	replacement[replLength];
+  int32_t	outLength;
+  unichar	*output;
+  NSString	*out;
+  URegularExpression *r;
+  TEMP_BUFFER(buffer, length);
+
+  r = setupRegex(regex, string, buffer, length, opts, range, 0);
+  [template getCharacters: replacement range: NSMakeRange(0, replLength)];
+
+  outLength = uregex_replaceAll(r, replacement, replLength, NULL, 0, &s);
+
+  s = 0;
+  output = NSZoneMalloc(0, outLength * sizeof(unichar));
+  uregex_replaceAll(r, replacement, replLength, output, outLength, &s);
+  out =
+    [[NSString alloc] initWithCharactersNoCopy: output
+					length: outLength
+				  freeWhenDone: YES];
+  [string setString: out];
+  RELEASE(out);
+
+  return results;
+}
+
+- (NSString*) stringByReplacingMatchesInString: (NSString*)string
+                                       options: (NSMatchingOptions)opts
+                                         range: (NSRange)range
+                                  withTemplate: (NSString*)template
+{
+  UErrorCode	s = 0;
+  uint32_t	length = [string length];
+  URegularExpression *r;
+  uint32_t	replLength = [template length];
+  unichar	replacement[replLength];
+  int32_t	outLength;
+  unichar	*output;
+  TEMP_BUFFER(buffer, length);
+
+  r = setupRegex(regex, string, buffer, length, opts, range, 0);
+  [template getCharacters: replacement range: NSMakeRange(0, replLength)];
+
+  outLength = uregex_replaceAll(r, replacement, replLength, NULL, 0, &s);
+
+  s = 0;
+  output = NSZoneMalloc(0, outLength * sizeof(unichar));
+  uregex_replaceAll(r, replacement, replLength, output, outLength, &s);
+  return AUTORELEASE([[NSString alloc] initWithCharactersNoCopy: output
+							 length: outLength
+						   freeWhenDone: YES]);
+}
+
+- (NSString*) replacementStringForResult: (NSTextCheckingResult*)result
+                                inString: (NSString*)string
+                                  offset: (NSInteger)offset
+                                template: (NSString*)template
+{
+  UErrorCode	s = 0;
+  NSRange	range = [result range];
+  URegularExpression *r;
+  uint32_t	replLength = [template length];
+  unichar	replacement[replLength];
+  int32_t	outLength;
+  unichar	*output;
+  TEMP_BUFFER(buffer, range.length);
+
+  r = setupRegex(regex,
+		 [string substringWithRange: range],
+		 buffer,
+		 range.length,
+		 0,
+		 NSMakeRange(0, range.length),
+		 0);
+  [template getCharacters: replacement range: NSMakeRange(0, replLength)];
+
+  outLength = uregex_replaceFirst(r, replacement, replLength, NULL, 0, &s);
+  s = 0;
+  output = NSZoneMalloc(0, outLength * sizeof(unichar));
+  uregex_replaceFirst(r, replacement, replLength, output, outLength, &s);
+  return AUTORELEASE([[NSString alloc] initWithCharactersNoCopy: output
+							 length: outLength
+						   freeWhenDone: YES]);
+}
+#endif
 
 - (NSRegularExpressionOptions) options
 {
@@ -624,8 +890,7 @@ prepareResult(NSRegularExpression *regex,
   return self;
 }
 @end
-#endif //U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
-#endif //HAV_ICU
+#endif //GS_ICU == 1
 
 #ifndef NSRegularExpressionWorks
 #import "Foundation/NSRegularExpression.h"
