@@ -87,6 +87,12 @@
     }
   return [self range];
 }
+
+- (NSTextCheckingResult *)resultByAdjustingRangesWithOffset: (NSInteger)offset
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
 @end
 
 
@@ -130,5 +136,29 @@
   return NSTextCheckingTypeRegularExpression;
 }
 
-@end
+- (NSTextCheckingResult *)resultByAdjustingRangesWithOffset: (NSInteger)offset
+{
+  NSUInteger i;
+  GSRegularExpressionCheckingResult *result =
+    [[GSRegularExpressionCheckingResult new] autorelease];
 
+  result->rangeCount = rangeCount;
+  result->ranges = calloc(sizeof(NSRange), rangeCount);
+  for (i = 0; i < rangeCount; i++)
+    {
+      NSRange r = ranges[i];
+      if ((offset > 0 && NSNotFound - r.location <= offset) ||
+          (offset < 0 && r.location < -offset))
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Invalid offset %ld for range: %@",
+		       (long)offset, NSStringFromRange(r)];
+	}
+      r.location += offset;
+      result->ranges[i] = r;
+    }
+  ASSIGN(result->regularExpression, regularExpression);
+  return result;
+}
+
+@end

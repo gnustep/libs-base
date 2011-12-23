@@ -72,4 +72,6 @@ static const NSTextCheckingType NSTextCheckingTypeRegularExpression  = 1ULL<<10;
 + (NSTextCheckingResult*)regularExpressionCheckingResultWithRanges: (NSRangePointer)ranges
                                                              count: (NSUInteger)count
                                                  regularExpression: (NSRegularExpression*)regularExpression;
+										- (NSRange)rangeAtIndex: (NSUInteger)idx;
+- (NSTextCheckingResult *)resultByAdjustingRangesWithOffset: (NSInteger)offset;
 @end

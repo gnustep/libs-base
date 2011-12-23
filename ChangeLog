@@ -1,6 +1,12 @@
 2011-12-23  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Headers/Foundation/NSTextCheckingResult.h:
+	* Source/NSTextCheckingResult.m	(-resultByAdjustingRangesWithOffset:):
+	Implement method.
+
+2011-12-23  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Headers/Foundation/NSTextCheckingResult.h:
 	* Source/NSTextCheckingResult.m: Add copyright notice.
 
 	* Source/NSTextCheckingResult.m(-result, -range): Raise exception
