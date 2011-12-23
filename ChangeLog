@@ -1,3 +1,8 @@
+2011-12-23  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSRegularExpression.m (-rangeOfFirstMatchInString:...):
+	Return range (NSNotFound, 0) when no match is found.
+
 2011-12-22  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSRegularExpression.m (-initWithPattern:options:error:,

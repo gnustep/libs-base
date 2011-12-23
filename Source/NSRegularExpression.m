@@ -491,7 +491,7 @@ prepareResult(NSRegularExpression *regex,
                               options: (NSMatchingOptions)opts
                                 range: (NSRange)range
 {
-  __block NSRange r;
+  __block NSRange r = {NSNotFound, 0};
 
   opts &= ~NSMatchingReportProgress;
   opts &= ~NSMatchingReportCompletion;
@@ -623,7 +623,7 @@ prepareResult(NSRegularExpression *regex,
                               options: (NSMatchingOptions)opts
                                 range: (NSRange)range
 {
-  NSRange result = {0,0};
+  NSRange result = {NSNotFound, 0};
 
   FAKE_BLOCK_HACK(result,
     {
