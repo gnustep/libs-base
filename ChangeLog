@@ -1,3 +1,8 @@
+2011-12-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Fix retain rount error spotted by
+	<rajendra@teamf1.com> (bug #35164)
+
 2011-12-23  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Headers/Foundation/NSTextCheckingResult.h:
