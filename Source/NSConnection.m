@@ -2555,8 +2555,11 @@ static NSLock	*cached_proxies_gate = nil;
 
       decoder = aRmc;
 
-      /* Decode the object, (which is always the first argument to a method). */
-      [decoder decodeValueOfObjCType: @encode(id) at: &object];
+      /* Decode the object, (which is always the first argument to a method).
+       * Use the -decodeObject method to ensure that the target of the
+       * invocation is autoreleased and will be deallocated when we finish.
+       */
+      object = [decoder decodeObject];
 
       /* Decode the selector, (which is the second argument to a method). */ 
       /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
