@@ -450,6 +450,7 @@ GSPrivateTimeNow(void)
      [self timeIntervalSinceReferenceDate] + seconds];
 	
   [newObj setTimeZone: [self timeZoneDetail]];
+  [newObj setCalendarFormat: [self calendarFormat]];
 
   return newObj;
 }
