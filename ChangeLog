@@ -1,3 +1,8 @@
+2011-12-29  Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSCalendarDate.m: Fix -addTimeInterval: to copy calendarFormat
+	of original date.
+
 2011-12-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Fix retain rount error spotted by
