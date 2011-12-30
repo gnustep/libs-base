@@ -45,8 +45,11 @@
 
 - (id) initWithName: (NSString*)name URI: (NSString*)URI
 {
-  [self notImplemented: _cmd];
-  return nil;
+  if((self = [super init]) != nil)
+    {
+      ASSIGN(_name, name);
+    }
+  return self;
 }
 
 - (id) initWithName: (NSString*)name stringValue: (NSString*)string
@@ -75,12 +78,24 @@
 
 - (void) addAttribute: (NSXMLNode*)attribute
 {
-  [self notImplemented: _cmd];
+  [_attributes addObject: attribute];
 }
 
 - (void) removeAttributeForName: (NSString*)name
 {
-  [self notImplemented: _cmd];
+  NSEnumerator *en = [_attributes objectEnumerator];
+  NSXMLNode *node = nil;
+  int index = 0;
+
+  while((node = [en nextObject]) != nil)
+    {
+      NSString *nodeName = [node name];
+      if([nodeName isEqualToString: name])
+	{
+	  [_attributes removeObjectAtIndex: index];
+	}
+      index++;
+    }
 }
 
 - (void) setAttributes: (NSArray*)attributes
@@ -96,15 +111,19 @@
 
 - (void) setAttributesAsDictionary: (NSDictionary*)attributes
 {
-  [self notImplemented: _cmd];
+  NSEnumerator *ken = [attributes keyEnumerator];
+  id key = nil;
+  while((key = [ken nextObject]) != nil)
+    {
+      id value = [attributes objectForKey: key];
+      NSXMLNode *node = [NSXMLNode attributeWithName: key
+					 stringValue: value];
+      [self addAttribute: node];
+    }
 }
 
 - (NSArray*) attributes
 {
-  if (_attributes == nil)
-    {
-      [self notImplemented: _cmd];
-    }
   return _attributes;
 }
 
@@ -181,7 +200,7 @@
 {
   NSEnumerator	*enumerator = [children objectEnumerator];
   NSXMLNode	*child;
-
+  
   while ((child = [enumerator nextObject]) != nil)
     {
       [self insertChild: child atIndex: index++];
@@ -190,22 +209,25 @@
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  [self notImplemented: _cmd];
+  [_children removeObjectAtIndex: index];
 }
 
 - (void) setChildren: (NSArray*)children
 {
-  [self notImplemented: _cmd];
+  ASSIGN(_children, [children mutableCopy]);
+  _childrenHaveMutated = YES;
 }
-
+ 
 - (void) addChild: (NSXMLNode*)child
 {
-  [self notImplemented: _cmd];
+  [_children addObject: child];
+  _childrenHaveMutated = YES;
 }
-
+ 
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
 {
-  [self notImplemented: _cmd];
+  [self removeChildAtIndex: index];
+  [self insertChild: node atIndex: index];
 }
 
 - (void) normalizeAdjacentTextNodesPreservingCDATA: (BOOL)preserve

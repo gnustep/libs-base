@@ -42,13 +42,14 @@ extern "C" {
 {
 #if	GS_EXPOSE(NSXMLElement)
 @protected
-  NSString              *_name;
+  // NSString              *_name;
   NSMutableArray        *_attributes;
   NSMutableArray        *_namespaces;
-  NSArray               *_children;
+  NSMutableArray        *_children;
   BOOL                   _childrenHaveMutated;
   NSString              *_URI;	
   NSInteger             _prefixIndex;
+  NSString              *_value;
 #endif
 }
 
