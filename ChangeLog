@@ -1,3 +1,16 @@
+2011-12-30 14:22-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSXMLDocument.h
+	* Headers/Foundation/NSXMLElement.h
+	* Headers/Foundation/NSXMLNode.h
+	* Source/NSXMLDocument.m
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m
+	* Source/NSXMLPrivate.h
+	* Tests/base/NSXMLNode/children.m
+	* Tests/base/NSXMLNode/kinds.m: First cut at NSXMLDocument
+	implementation. 
+
 2011-12-29  Doug Simons <doug.simons@testplant.com>
 
 	* Source/NSCalendarDate.m: Fix -addTimeInterval: to copy calendarFormat

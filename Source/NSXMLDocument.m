@@ -25,6 +25,11 @@
 #import "common.h"
 
 #import "NSXMLPrivate.h"
+#import <Foundation/NSXMLParser.h>
+
+// Forward declaration of interface for NSXMLParserDelegate
+@interface NSXMLDocument (NSXMLParserDelegate)
+@end
 
 @implementation	NSXMLDocument
 
@@ -35,12 +40,14 @@
 
 - (void) dealloc
 {
-  [_encoding release];
-  [_version release];
-  [_docType release];
-  [_children release];
-  [_URI release];
-  [_MIMEType release];
+  RELEASE(_encoding); 
+  RELEASE(_version);
+  RELEASE(_docType);
+  RELEASE(_children);
+  RELEASE(_URI);
+  RELEASE(_MIMEType);
+  RELEASE(_elementStack);
+  RELEASE(_xmlData);
   [super dealloc];
 }
 
@@ -68,7 +75,7 @@
 
   data = [NSData dataWithContentsOfURL: url];
   doc = [self initWithData: data options: 0 error: 0];
-  [doc setURI:  [url absoluteString]];
+  [doc setURI: [url absoluteString]];
   return doc;
 }
 
@@ -77,15 +84,36 @@
             options: (NSUInteger)mask
               error: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  _children = [NSMutableArray new];
-  return nil;
+  if((self = [super init]) != nil)
+    {
+      NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
+      if(parser != nil)
+	{
+	  _standalone = YES;
+	  _children = [[NSMutableArray alloc] initWithCapacity: 10];
+	  _elementStack = [[NSMutableArray alloc] initWithCapacity: 10];
+	  ASSIGN(_xmlData, data); 
+	  [parser setDelegate: self];
+	  [parser parse];
+	}
+    }
+  return self;
 }
 
 - (id) initWithRootElement: (NSXMLElement*)element
 {
+  if([_children containsObject: element] || [element parent] != nil)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"%@ cannot be used as root of %@", 
+		   element, 
+		   self];
+    }
   self = [self initWithData: nil options: 0 error: 0];
-  [self setRootElement: (NSXMLNode*)element];
+  if(self != nil)
+    {
+      [self setRootElement: (NSXMLNode*)element];
+    }
   return self;
 }
 
@@ -93,8 +121,12 @@
                  options: (NSUInteger)mask
                    error: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSData *data = [NSData dataWithBytes: [string UTF8String]
+				length: [string length]];
+  self = [self initWithData: data
+		    options: mask
+		      error: error];
+  return self;
 }
 
 - (BOOL) isStandalone
@@ -164,7 +196,9 @@
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  [self notImplemented: _cmd];
+  [child setParent: self];
+  [(NSMutableArray *)_children insertObject: child atIndex: index];
+  _childrenHaveMutated = YES;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -180,7 +214,8 @@
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  [self notImplemented: _cmd];
+  [(NSMutableArray *)_children removeObjectAtIndex: index];
+  _childrenHaveMutated = YES;
 }
 
 - (void) setChildren: (NSArray*)children
@@ -212,8 +247,8 @@
 
 - (NSData*) XMLDataWithOptions: (NSUInteger)options
 {
-  [self notImplemented: _cmd];
-  return nil;
+  // TODO: Apply options to data.
+  return _xmlData;
 }
 
 - (id) objectByApplyingXSLT: (NSData*)xslt
@@ -248,3 +283,47 @@
 
 @end
 
+@implementation NSXMLDocument (NSXMLParserDelegate)
+
+- (void)   parser: (NSXMLParser *)parser
+  didStartElement: (NSString *)elementName 
+     namespaceURI: (NSString *)namespaceURI 
+    qualifiedName: (NSString *)qualifiedName 
+       attributes: (NSDictionary *)attributeDict
+{
+  NSXMLElement *currentElement = 
+    [[NSXMLElement alloc] initWithName: elementName];
+  
+  [_elementStack insertObject: currentElement
+		      atIndex: 0];
+  if(_rootElement == nil)
+    {
+      [self setRootElement: currentElement];
+    }
+
+  [currentElement setAttributesAsDictionary: 
+		    attributeDict];
+}
+
+- (void)parser:(NSXMLParser *)parser
+ didEndElement:(NSString *)elementName 
+  namespaceURI:(NSString *)namespaceURI 
+ qualifiedName:(NSString *)qName 
+{
+  if([_elementStack count] > 0)
+    { 
+      NSXMLElement *currentElement = [_elementStack objectAtIndex: 0];
+      if([[currentElement name] isEqualToString: elementName])
+	{
+	  [_elementStack removeObjectAtIndex: 0];
+	} 
+    }
+}
+
+- (void) parser: (NSXMLParser *)parser
+foundCharacters: (NSString *)string
+{
+  NSXMLElement *currentElement = [_elementStack objectAtIndex: 0];
+  [currentElement setStringValue: string];
+}
+@end

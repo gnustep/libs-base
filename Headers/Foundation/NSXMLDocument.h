@@ -34,6 +34,7 @@ extern "C" {
 
 @class NSData;
 @class NSXMLDTD;
+@class NSMutableArray;
 
 /*
  * Input options
@@ -78,7 +79,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
   NSString      		*_encoding;
   NSString      		*_version;
   NSXMLDTD      		*_docType;
-  NSArray			*_children;
+  NSArray		        *_children;
   BOOL          		_childrenHaveMutated;
   BOOL          		_standalone;
   NSXMLElement  		*_rootElement;
@@ -86,6 +87,10 @@ typedef NSUInteger NSXMLDocumentContentKind;
   NSString      		*_MIMEType;
   NSUInteger    		_fidelityMask;
   NSXMLDocumentContentKind	_contentKind;
+
+@private
+  NSMutableArray                *_elementStack;
+  NSData                        *_xmlData;
 #endif
 }
 

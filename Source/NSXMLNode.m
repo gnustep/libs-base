@@ -41,7 +41,7 @@
   NSUInteger childCount; \
   NSXMLNode *previousSibling; \
   NSXMLNode *nextSibling; \
-  NSUInteger options;
+  NSUInteger options; 
 
 #define GSInternal              NSXMLNodeInternal
 #include        "GSInternal.h"
@@ -49,6 +49,18 @@
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
 #import "NSXMLPrivate.h"
+
+@implementation NSXMLNode (Private)
+- (void) setName: (NSString *)name
+{
+  ASSIGN(_name, name);
+}
+
+- (void) setParent: (NSXMLNode *)node
+{
+  ASSIGN(_parent,node);
+}
+@end
 
 @implementation NSXMLNode
 
@@ -59,6 +71,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
   n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
   [n setStringValue: stringValue];
+  [n setName: name];
   return n;
 }
 
@@ -71,6 +84,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
   [n setURI: URI];
   [n setStringValue: stringValue];
+  [n setName: name];
   return n;
 }
 
@@ -227,6 +241,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   [internal->children release];
   GS_DESTROY_INTERNAL(NSXMLNode)
   [_objectValue release];
+  [_name release];
   [super dealloc];
 }
 
@@ -346,7 +361,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSString*) name
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  return _name; // FIXME: Fetch from libxml????
 }
 
 - (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward

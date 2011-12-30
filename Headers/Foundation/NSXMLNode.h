@@ -87,6 +87,7 @@ typedef NSUInteger NSXMLNodeKind;
   NSXMLNode     *_parent;
   NSUInteger    _index;
   id            _objectValue;
+  NSString      *_name;
 #endif
 #if     GS_NONFRAGILE
 #  if	defined(GS_NSXMLNode_IVARS)
