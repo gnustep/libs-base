@@ -1,3 +1,7 @@
+2011-12-30  Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLElement.m: Set Elements to be NSXMLElementKind.
+
 2011-12-30 14:22-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSXMLDocument.h

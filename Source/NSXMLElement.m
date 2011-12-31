@@ -45,7 +45,7 @@
 
 - (id) initWithName: (NSString*)name URI: (NSString*)URI
 {
-  if((self = [super init]) != nil)
+  if((self = [super initWithKind:NSXMLElementKind]) != nil)
     {
       ASSIGN(_name, name);
     }
