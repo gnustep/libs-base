@@ -516,7 +516,7 @@ gs_protocol_selector(const char *types)
 	{
 	  types++;
 	}
-      while(isdigit(*types))
+      while (isdigit(*types))
 	{
 	  types++;
 	}

@@ -900,7 +900,7 @@ _gnu_noobjc_free_vars(void)
   if (self == [NSProcessInfo class]
     && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {
-      if(_gnu_noobjc_argv == 0 || _gnu_noobjc_env == 0)
+      if (_gnu_noobjc_argv == 0 || _gnu_noobjc_env == 0)
 	{
           _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
           exit(1);

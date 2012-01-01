@@ -274,9 +274,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   Class theSubclass = [NSXMLNode class];
   if (nil == (self = [super init]))
-  {
-    return nil;
-  }
+    {
+      return nil;
+    }
 
   GS_CREATE_INTERNAL(NSXMLNode)
 
@@ -284,34 +284,34 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
    * We find the correct subclass for specific node kinds:
    */
   switch (kind)
-  {
-    case NSXMLDocumentKind:
     {
-      theSubclass = [NSXMLDocument class];
-      break;
+      case NSXMLDocumentKind:
+      {
+	theSubclass = [NSXMLDocument class];
+	break;
+      }
+      case NSXMLElementKind:
+      {
+	theSubclass = [NSXMLElement class];
+	break;
+      }
+      case NSXMLDTDKind:
+      {
+	theSubclass = [NSXMLDTD class];
+	break;
+      }
+      case NSXMLEntityDeclarationKind:
+      case NSXMLElementDeclarationKind:
+      case NSXMLNotationDeclarationKind:
+      {
+	theSubclass = [NSXMLDTDNode class];
+	break;
+      }
+      default:
+      {
+	break;
+      }
     }
-    case NSXMLElementKind:
-    {
-      theSubclass = [NSXMLElement class];
-      break;
-    }
-    case NSXMLDTDKind:
-    {
-      theSubclass = [NSXMLDTD class];
-      break;
-    }
-    case NSXMLEntityDeclarationKind:
-    case NSXMLElementDeclarationKind:
-    case NSXMLNotationDeclarationKind:
-    {
-      theSubclass = [NSXMLDTDNode class];
-      break;
-    }
-    default:
-    {
-      break;
-    }
-  }
 
   /*
    * Check whether we are already initializing an instance of the given
@@ -319,11 +319,11 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
    * instead.
    */
   if (NO == [self isKindOfClass: theSubclass])
-  {
-    [self release];
-    return [[theSubclass alloc] initWithKind: kind
-                                     options: theOptions];
-  }
+    {
+      [self release];
+      return [[theSubclass alloc] initWithKind: kind
+				       options: theOptions];
+    }
 
   /*
    * If we are initializing for the correct class, we can actually perform
@@ -371,56 +371,56 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
   /* Node walking is a depth-first thingy. Hence, we consider children first: */
   if (0 != internal->childCount)
-  {
-    NSUInteger theIndex = 0;
-    if (NO == forward)
     {
-      theIndex = (internal->childCount) - 1;
+      NSUInteger theIndex = 0;
+      if (NO == forward)
+	{
+	  theIndex = (internal->childCount) - 1;
+	}
+      candidate = [internal->children objectAtIndex: theIndex];
     }
-    candidate = [internal->children objectAtIndex: theIndex];
-  }
 
   /* If there are no children, we move on to siblings: */
   if (nil == candidate)
-  {
-    if (forward)
     {
-      candidate = internal->nextSibling;
+      if (forward)
+	{
+	  candidate = internal->nextSibling;
+	}
+      else
+	{
+	  candidate = internal->previousSibling;
+	}
     }
-    else
-    {
-      candidate = internal->previousSibling;
-    }
-  }
 
   /* If there are no siblings left for the receiver, we recurse down to the root
    * of the tree until we find an ancestor with further siblings: */
   while ((nil == candidate) && (nil != ancestor))
-  {
-    if (forward)
     {
-      candidate = [ancestor nextSibling];
+      if (forward)
+	{
+	  candidate = [ancestor nextSibling];
+	}
+      else
+	{
+	  candidate = [ancestor previousSibling];
+	}
+      ancestor = ancestor->_parent;
     }
-    else
-    {
-      candidate = [ancestor previousSibling];
-    }
-    ancestor = ancestor->_parent;
-  }
 
   /* No children, no next siblings, no next siblings for any ancestor: We are
    * the last node */
   if (nil == candidate)
-  {
-    return nil;
-  }
+    {
+      return nil;
+    }
 
   /* Sanity check: Namespace and attribute nodes are skipped: */
   if ((NSXMLAttributeKind == candidate->_kind)
     || (NSXMLNamespaceKind == candidate->_kind))
-  {
-    return [candidate _nodeFollowingInNaturalDirection: forward];
-  }
+    {
+      return [candidate _nodeFollowingInNaturalDirection: forward];
+    }
   return candidate;
 }
 
@@ -468,9 +468,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
    * dereferenced:
    */
   while ((ancestor != nil) && (NSXMLDocumentKind != ancestor->_kind))
-  {
-    ancestor = ancestor->_parent;
-  }
+    {
+      ancestor = ancestor->_parent;
+    }
   return (NSXMLDocument*)ancestor;
 }
 

@@ -1501,7 +1501,7 @@ static void DNSSD_API
 	  
 	  TXTRecordCreate(&txt, 0, NULL);
 	  
-	  for(; i < count; i++)
+	  for (; i < count; i++)
 	    {
 	      int			length = 0;
 	      int			used = 0;
@@ -1632,7 +1632,7 @@ static void DNSSD_API
       if (result)
 	{
 	  // go through all keys
-	  for(; i < count; i++)
+	  for (; i < count; i++)
 	    {
 	      char			key[256];
 	      uint8_t			valLen = 0;

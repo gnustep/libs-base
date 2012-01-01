@@ -2314,10 +2314,10 @@ IF_NO_GC(
   if (object == nil || [object length] == 0)
     {
       object = [[self infoDictionary] objectForKey: @"CFBundleExecutable"];
-      if(object == nil || [object length] == 0)
-	  {
-	    return nil;
-	  }
+      if (object == nil || [object length] == 0)
+	{
+	  return nil;
+	}
     }
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {

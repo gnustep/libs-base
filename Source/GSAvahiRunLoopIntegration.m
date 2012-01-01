@@ -158,7 +158,8 @@
               forMode: (NSString*)mode
 {
   int fd = (int)(intptr_t)data;
-  if(fileDesc != fd)
+
+  if (fileDesc != fd)
     {
       //Not good
       return;

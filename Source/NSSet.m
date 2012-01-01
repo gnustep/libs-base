@@ -872,10 +872,10 @@ static Class NSMutableSet_concrete_class;
   FOR_IN (id, obj, enumerator)
   {
     CALL_BLOCK(aBlock, obj, &shouldStop);
-    if(shouldStop)
-    {
-      return;
-    }
+    if (shouldStop)
+      {
+	return;
+      }
   }
   END_FOR_IN(enumerator)
 }

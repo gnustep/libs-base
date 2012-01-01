@@ -45,7 +45,7 @@
 
 - (id) initWithName: (NSString*)name URI: (NSString*)URI
 {
-  if((self = [super initWithKind:NSXMLElementKind]) != nil)
+  if ((self = [super initWithKind:NSXMLElementKind]) != nil)
     {
       ASSIGN(_name, name);
     }
@@ -87,10 +87,10 @@
   NSXMLNode *node = nil;
   int index = 0;
 
-  while((node = [en nextObject]) != nil)
+  while ((node = [en nextObject]) != nil)
     {
       NSString *nodeName = [node name];
-      if([nodeName isEqualToString: name])
+      if ([nodeName isEqualToString: name])
 	{
 	  [_attributes removeObjectAtIndex: index];
 	}
@@ -113,7 +113,7 @@
 {
   NSEnumerator *ken = [attributes keyEnumerator];
   id key = nil;
-  while((key = [ken nextObject]) != nil)
+  while ((key = [ken nextObject]) != nil)
     {
       id value = [attributes objectForKey: key];
       NSXMLNode *node = [NSXMLNode attributeWithName: key
