@@ -1,3 +1,9 @@
+2012-01-01  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSXMLDTDNode.h,
+	* Headers/Foundation/NSXMLDTD.h: Remove duplicate declaration of
+	ivar _name to get base to compile again.
+
 2011-12-30  Doug Simons <doug.simons@testplant.com>
 
 	* Source/NSXMLElement.m: Set Elements to be NSXMLElementKind.
@@ -13,7 +19,7 @@
 	* Source/NSXMLPrivate.h
 	* Tests/base/NSXMLNode/children.m
 	* Tests/base/NSXMLNode/kinds.m: First cut at NSXMLDocument
-	implementation. 
+	implementation.
 
 2011-12-29  Doug Simons <doug.simons@testplant.com>
 

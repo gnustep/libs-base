@@ -43,7 +43,7 @@ extern "C" {
 {
 #if	GS_EXPOSE(NSXMLDTD)
 @private
-  NSString      *_name;
+  //NSString      *_name;
   NSString      *_publicID;
   NSString      *_systemID;
   NSArray       *_children;
