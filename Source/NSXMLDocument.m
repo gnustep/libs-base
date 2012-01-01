@@ -84,10 +84,10 @@
             options: (NSUInteger)mask
               error: (NSError**)error
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
       NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
-      if(parser != nil)
+      if (parser != nil)
 	{
 	  _standalone = YES;
 	  _children = [[NSMutableArray alloc] initWithCapacity: 10];
@@ -102,7 +102,7 @@
 
 - (id) initWithRootElement: (NSXMLElement*)element
 {
-  if([_children containsObject: element] || [element parent] != nil)
+  if ([_children containsObject: element] || [element parent] != nil)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"%@ cannot be used as root of %@", 
@@ -110,7 +110,7 @@
 		   self];
     }
   self = [self initWithData: nil options: 0 error: 0];
-  if(self != nil)
+  if (self != nil)
     {
       [self setRootElement: (NSXMLNode*)element];
     }
@@ -296,7 +296,7 @@
   
   [_elementStack insertObject: currentElement
 		      atIndex: 0];
-  if(_rootElement == nil)
+  if (_rootElement == nil)
     {
       [self setRootElement: currentElement];
     }
@@ -310,10 +310,10 @@
   namespaceURI:(NSString *)namespaceURI 
  qualifiedName:(NSString *)qName 
 {
-  if([_elementStack count] > 0)
+  if ([_elementStack count] > 0)
     { 
       NSXMLElement *currentElement = [_elementStack objectAtIndex: 0];
-      if([[currentElement name] isEqualToString: elementName])
+      if ([[currentElement name] isEqualToString: elementName])
 	{
 	  [_elementStack removeObjectAtIndex: 0];
 	} 
