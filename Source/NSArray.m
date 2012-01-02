@@ -925,7 +925,7 @@ static SEL	rlSel;
   //FIXME: probably slow!
   NSMutableArray *group = [NSMutableArray arrayWithCapacity: [indexes count]];
 
-  unsigned i = [indexes firstIndex];
+  NSUInteger i = [indexes firstIndex];
   while (i != NSNotFound)
     {
       [group addObject: [self objectAtIndex: i]];
