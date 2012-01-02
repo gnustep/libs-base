@@ -51,11 +51,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 #import "NSXMLPrivate.h"
 
 @implementation NSXMLNode (Private)
-- (void) setName: (NSString *)name
-{
-  ASSIGN(_name, name);
-}
-
 - (void) setParent: (NSXMLNode *)node
 {
   ASSIGN(_parent,node);
@@ -361,7 +356,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSString*) name
 {
-  return _name; // FIXME: Fetch from libxml????
+  return _name; 
 }
 
 - (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward
@@ -501,9 +496,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   ASSIGN(_objectValue, value);
 }
 
-- (void) setName: (NSString*)name
+- (void) setName: (NSString *)name
 {
-  [self notImplemented: _cmd];	// FIXME ... set in libxml
+  ASSIGN(_name, name);
 }
 
 - (void) setStringValue: (NSString*)string
