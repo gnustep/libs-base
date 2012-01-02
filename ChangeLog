@@ -1,5 +1,10 @@
 2012-01-02  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/GSSocketStream.m (-initWithInput:output:): Attempt to
+	replace deprecated GNUTLS functions with newer ones for GNUTLS >= 2.12.
+
+2012-01-02  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSArray.m (-objectsAtIndexes:): Fix comparision of
 	unsigned variable with NSNotFound.
 

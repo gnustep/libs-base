@@ -656,6 +656,7 @@ static gnutls_anon_client_credentials_t anoncred;
 
   if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
     {
+#if GNUTLS_VERSION_NUMBER < 0x020C00
       const int proto_prio[4] = {
 #if	defined(GNUTLS_TLS1_2)
         GNUTLS_TLS1_2,
@@ -664,13 +665,20 @@ static gnutls_anon_client_credentials_t anoncred;
         GNUTLS_TLS1_0,
         0 };
       gnutls_protocol_set_priority (session, proto_prio);
+#else
+      gnutls_priority_set_direct(session, "NORMAL:-VERS-SSL3.0:+VERS-TLS-ALL", NULL);
+#endif
     }
   if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv3] == YES)
     {
+#if GNUTLS_VERSION_NUMBER < 0x020C00
       const int proto_prio[2] = {
         GNUTLS_SSL3,
         0 };
       gnutls_protocol_set_priority (session, proto_prio);
+#else
+      gnutls_priority_set_direct(session, "NORMAL:-VERS-TLS-ALL:+VERS-SSL3.0", NULL);
+#endif
     }
 
 /*
@@ -693,7 +701,9 @@ static gnutls_anon_client_credentials_t anoncred;
   
   /* Set transport layer to use our low level stream code.
    */
+#if GNUTLS_VERSION_NUMBER < 0x020C00
   gnutls_transport_set_lowat (session, 0);
+#endif
   gnutls_transport_set_pull_function (session, GSTLSPull);
   gnutls_transport_set_push_function (session, GSTLSPush);
   gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
