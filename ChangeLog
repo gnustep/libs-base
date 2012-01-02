@@ -1,6 +1,6 @@
 2012-01-02 02:26-EST Gregory John Casamento <greg.casamento@gmail.com>
 
-	* Source/NSXMLNode.m>: Minor correction. Move setName out of 
+	* Source/NSXMLNode.m: Minor correction. Move setName out of 
 	private category.
 	* Tests/base/NSXMLNode/children.m: Update test.
 
