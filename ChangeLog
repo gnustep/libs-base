@@ -1,3 +1,7 @@
+2012-01-03 12:42-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLNode.m: Implement copyWithZone:
+
 2012-01-03 12:17-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSXMLNode.h: Add _stringValue
