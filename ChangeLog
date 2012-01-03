@@ -1,3 +1,9 @@
+2012-01-03 12:17-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSXMLNode.h: Add _stringValue
+	* Source/NSXMLNode.m: Change stringValue and setStringValue:
+	resolvingEntities: to assign to _stringValue instead of _objectValue.
+
 2012-01-03 12:06-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Change stack implementation to
