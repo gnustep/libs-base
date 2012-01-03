@@ -1,3 +1,7 @@
+2012-01-03 14:22-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLDocument.m: Implement XMLStringWithOptions:
+
 2012-01-03 13:03-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSXMLElement.h
