@@ -213,5 +213,41 @@
   [self notImplemented: _cmd];
 }
 
+- (NSString *) XMLStringWithOptions: (NSUInteger)options
+{
+  NSMutableString *result = [NSMutableString string];
+  NSEnumerator *en = nil;
+  id object = nil;
+
+  // XML Element open tag...
+  [result appendString: [NSString stringWithFormat: @"<%@",[self name]]];
+
+  // get the attributes...
+  en = [[self attributes] objectEnumerator];
+  while((object = [en nextObject]) != nil)
+    {
+      [result appendString: @" "];
+      [result appendString: [object XMLStringWithOptions: options]];
+    }
+  // close the brackets...
+  [result appendString: @">"];
+
+  [result appendString: [self stringValue]]; // need to escape entities...
+
+  // Iterate over the children...
+  en = [[self children] objectEnumerator];
+  while((object = [en nextObject]) != nil)
+    {
+      [result appendString: @" "];
+      [result appendString: [object XMLStringWithOptions: options]];
+    }
+  
+  // Close the entire tag...
+  [result appendString: [NSString stringWithFormat: @"</%@>",[self name]]];
+
+  // return 
+  return result;
+}
+
 @end
 
