@@ -282,6 +282,20 @@
   return NO;
 }
 
+- (NSString *) XMLStringWithOptions: (NSUInteger)options
+{
+  NSMutableString *string = [NSMutableString string];
+  NSEnumerator *en = [_children objectEnumerator];
+  id obj = nil;
+
+  [string appendString: @"<?xml version=\"1.0\"?>"];
+  while((obj = [en nextObject]) != nil)
+    {
+      [string appendString: [obj XMLStringWithOptions: options]];
+    }
+  return string;
+}
+
 @end
 
 @implementation NSXMLDocument (NSXMLParserDelegate)
