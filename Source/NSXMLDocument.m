@@ -95,6 +95,7 @@
 	  ASSIGN(_xmlData, data); 
 	  [parser setDelegate: self];
 	  [parser parse];
+	  RELEASE(parser);
 	}
     }
   return self;
@@ -294,8 +295,7 @@
   NSXMLElement *currentElement = 
     [[NSXMLElement alloc] initWithName: elementName];
   
-  [_elementStack insertObject: currentElement
-		      atIndex: 0];
+  [_elementStack addObject: currentElement];
   if (_rootElement == nil)
     {
       [self setRootElement: currentElement];
@@ -312,10 +312,10 @@
 {
   if ([_elementStack count] > 0)
     { 
-      NSXMLElement *currentElement = [_elementStack objectAtIndex: 0];
+      NSXMLElement *currentElement = [_elementStack lastObject];
       if ([[currentElement name] isEqualToString: elementName])
 	{
-	  [_elementStack removeObjectAtIndex: 0];
+	  [_elementStack removeLastObject];
 	} 
     }
 }
@@ -323,7 +323,7 @@
 - (void) parser: (NSXMLParser *)parser
 foundCharacters: (NSString *)string
 {
-  NSXMLElement *currentElement = [_elementStack objectAtIndex: 0];
+  NSXMLElement *currentElement = [_elementStack lastObject];
   [currentElement setStringValue: string];
 }
 @end

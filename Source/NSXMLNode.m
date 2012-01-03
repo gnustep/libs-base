@@ -488,7 +488,22 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSString*) XMLStringWithOptions: (NSUInteger)options
 {
-  return [self notImplemented: _cmd];	// FIXME ... generate from libxml
+  NSMutableString *returnValue = [NSMutableString string];
+  NSXMLNodeKind kind = [self kind];
+
+  if(kind == NSXMLAttributeKind)
+    {
+      [returnValue appendString: [self name]];
+      [returnValue appendString: @"=\""];
+      [returnValue appendString: [self stringValue]];
+      [returnValue appendString: @"\""];
+    }
+  else
+    {
+      // for all other types, do nothing for now...
+    }
+
+  return returnValue;
 }
 
 - (void) setObjectValue: (id)value
@@ -513,7 +528,14 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
 {
-  [self notImplemented: _cmd];	// FIXME ... set in libxml
+  if(resolve == NO)
+    {
+      ASSIGN(_objectValue, string);
+    }
+  else
+    {
+      ASSIGN(_objectValue, string); // need to actually resolve entities...
+    }
 }
 
 - (NSString*) XPath

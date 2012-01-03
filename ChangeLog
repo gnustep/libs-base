@@ -1,3 +1,12 @@
+2012-01-03 12:06-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLDocument.m: Change stack implementation to
+	use lastObject/removeLastObject to implement the stack instead
+	of inserting and deleting at index 0.
+	* Source/NSXMLElement.m: Implemented XMLStringWithOptions:
+	* Source/NSXMLNode.m: Implemented XMLStringWithOptions:,
+	skeletal implementation of setStringValue:resolvingEntities:
+
 2012-01-03  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSException.m (-raise): Only set the stack when the
