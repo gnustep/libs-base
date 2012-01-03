@@ -1,3 +1,9 @@
+2012-01-03  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSException.m (-raise): Only set the stack when the
+	exception gets first raised. This fixes bug #35192
+	Patch by Larry Campbell <lcampbel@akamai.com>
+
 2012-01-02 22:26-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSXMLElement.h: Change _attributes to be

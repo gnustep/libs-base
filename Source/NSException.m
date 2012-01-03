@@ -957,7 +957,11 @@ callUncaughtHandler(id value)
     {
       _reserved = NSZoneCalloc([self zone], 2, sizeof(id));
     }
-  _e_stack = [GSStackTrace new];
+  if (nil == _e_stack)
+    {
+      // Only set the stack when first raised
+      _e_stack = [GSStackTrace new];
+    }
 
 #if     defined(_NATIVE_OBJC_EXCEPTIONS)
   @throw self;
