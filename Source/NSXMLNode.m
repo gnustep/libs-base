@@ -226,17 +226,16 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  [self notImplemented: _cmd];
-  return nil;
+  return NSCopyObject(self,0,zone);
 }
 
 - (void) dealloc
 {
   [self detach];
   [internal->children release];
-  GS_DESTROY_INTERNAL(NSXMLNode)
+  GS_DESTROY_INTERNAL(NSXMLNode);
   [_objectValue release];
-  [_name release];
+  [_stringValue release];
   [super dealloc];
 }
 
@@ -557,6 +556,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   return [self notImplemented: _cmd];
 }
+
 
 @end
 
