@@ -1,3 +1,12 @@
+2012-01-02 22:26-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSXMLElement.h: Change _attributes to be
+	a NSMutableDictionary instead of an NSMutableArray.
+	* Source/NSXMLElement.m: Change implementation of some methods
+	to use an NSMutableDictionary instead of arrays.  Initialize
+	ivars in initializer.
+	* Source/NSXMLPrivate.h: Remove redundant method.
+
 2012-01-02  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/GSSocketStream.m (-initWithInput:output:): Attempt to

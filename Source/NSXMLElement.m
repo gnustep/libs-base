@@ -48,13 +48,20 @@
   if ((self = [super initWithKind:NSXMLElementKind]) != nil)
     {
       ASSIGN(_name, name);
+      _attributes = [[NSMutableDictionary alloc] initWithCapacity: 10];
+      _namespaces = [[NSMutableArray alloc] initWithCapacity: 10];
+      _children = [[NSMutableArray alloc] initWithCapacity: 10];
+      _URI = nil;
     }
   return self;
 }
 
 - (id) initWithName: (NSString*)name stringValue: (NSString*)string
 {
-  [self notImplemented: _cmd];
+  if([self initWithName: name URI: nil] != nil)
+    {
+      [self setObjectValue: string];
+    }
   return nil;
 }
 
@@ -78,24 +85,13 @@
 
 - (void) addAttribute: (NSXMLNode*)attribute
 {
-  [_attributes addObject: attribute];
+  [_attributes setObject: attribute
+		  forKey: [attribute name]];
 }
 
 - (void) removeAttributeForName: (NSString*)name
 {
-  NSEnumerator *en = [_attributes objectEnumerator];
-  NSXMLNode *node = nil;
-  int index = 0;
-
-  while ((node = [en nextObject]) != nil)
-    {
-      NSString *nodeName = [node name];
-      if ([nodeName isEqualToString: name])
-	{
-	  [_attributes removeObjectAtIndex: index];
-	}
-      index++;
-    }
+  [_attributes removeObjectForKey: name];
 }
 
 - (void) setAttributes: (NSArray*)attributes
@@ -111,35 +107,17 @@
 
 - (void) setAttributesAsDictionary: (NSDictionary*)attributes
 {
-  NSEnumerator *ken = [attributes keyEnumerator];
-  id key = nil;
-  while ((key = [ken nextObject]) != nil)
-    {
-      id value = [attributes objectForKey: key];
-      NSXMLNode *node = [NSXMLNode attributeWithName: key
-					 stringValue: value];
-      [self addAttribute: node];
-    }
+  ASSIGN(_attributes, [attributes mutableCopy]);
 }
 
 - (NSArray*) attributes
 {
-  return _attributes;
+  return [_attributes allValues];
 }
 
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
-  NSEnumerator	*enumerator = [[self attributes] objectEnumerator];
-  NSXMLNode	*attribute;
-
-  while ((attribute = [enumerator nextObject]) != nil)
-    {
-      if ([name isEqualToString: [attribute name]] == YES)
-	{
-	  return attribute;
-	}
-    }
-  return nil;
+  return [_attributes objectForKey: name];
 }
 
 - (NSXMLNode*) attributeForLocalName: (NSString*)localName

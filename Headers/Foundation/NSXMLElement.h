@@ -32,8 +32,7 @@
 extern "C" {
 #endif
 
-
-@class NSDictionary, NSEnumerator, NSMutableArray;
+@class NSDictionary, NSEnumerator, NSMutableArray, NSMutableDictionary;
 
 /**
  * Represents an XML element.<br />
@@ -42,14 +41,12 @@ extern "C" {
 {
 #if	GS_EXPOSE(NSXMLElement)
 @protected
-  // NSString              *_name;
-  NSMutableArray        *_attributes;
+  NSMutableDictionary   *_attributes;
   NSMutableArray        *_namespaces;
   NSMutableArray        *_children;
   BOOL                   _childrenHaveMutated;
   NSString              *_URI;	
   NSInteger             _prefixIndex;
-  NSString              *_value;
 #endif
 }
 
