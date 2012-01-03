@@ -1792,7 +1792,7 @@ typedef	struct {
   rl = [self reservedSpaceLength];
   if (length != 0 && length != rl)
     {
-      NSLog(@"bad reserved length - %u", length);
+      NSLog(@"bad reserved length - %lu", length);
       return NO;
     }
   if ([receivingPort isKindOfClass: messagePortClass] == NO)

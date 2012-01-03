@@ -522,12 +522,12 @@ static Class	runLoopClass;
       if (NO == GSPrivateSockaddrSetup(addr,
 	[aPort portNumber], nil, nil, &sockAddr))
 	{
-	  NSLog(@"bad address - '%s'", addr);
+	  NSLog(@"bad address - '%@'", addr);
 	}
       else
 	{
 	  gotAddr = YES;
-	  NSDebugMLLog(@"GSTcpHandle", @"Connecting to %s:%d using desc %d",
+	  NSDebugMLLog(@"GSTcpHandle", @"Connecting to %@:%d using desc %d",
 	    addr, [aPort portNumber], desc);
 	}
     }
@@ -537,7 +537,7 @@ static Class	runLoopClass;
     {
       if (!GSWOULDBLOCK)
 	{
-	  NSLog(@"unable to make connection to %d - %@",
+	  NSLog(@"unable to make connection to %lu - %@",
 	    GSPrivateSockaddrName(&sockAddr), [NSError _last]);
 	  if (addrNum < [addrs count])
 	    {
@@ -2289,7 +2289,7 @@ static Class		tcpPortClass;
   rl = [self reservedSpaceLength];
   if (length != 0 && length != rl)
     {
-      NSLog(@"bad reserved length - %u", length);
+      NSLog(@"bad reserved length - %lu", length);
       return NO;
     }
   if ([receivingPort isKindOfClass: tcpPortClass] == NO)
