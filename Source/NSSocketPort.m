@@ -537,7 +537,7 @@ static Class	runLoopClass;
     {
       if (!GSWOULDBLOCK)
 	{
-	  NSLog(@"unable to make connection to %lu - %@",
+	  NSLog(@"unable to make connection to %@ - %@",
 	    GSPrivateSockaddrName(&sockAddr), [NSError _last]);
 	  if (addrNum < [addrs count])
 	    {
