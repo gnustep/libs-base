@@ -76,6 +76,5 @@
 #endif
 
 @interface NSXMLNode (Private)
-- (void) setName: (NSString *)name;
 - (void) setParent: (NSXMLNode *)node;
 @end
