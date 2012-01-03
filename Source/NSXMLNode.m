@@ -475,7 +475,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSString*) URI
 {
-  return [self notImplemented: _cmd];	// FIXME ... fetch from libxml
+  return _URI;	// FIXME ... fetch from libxml
 }
 
 - (NSString*) XMLString
@@ -520,7 +520,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) setURI: (NSString*)URI
 {
-  [self notImplemented: _cmd];	// FIXME ... set in libxml
+  ASSIGN(_URI, URI);
 }
 
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve

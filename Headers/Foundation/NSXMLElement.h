@@ -45,7 +45,6 @@ extern "C" {
   NSMutableArray        *_namespaces;
   NSMutableArray        *_children;
   BOOL                   _childrenHaveMutated;
-  NSString              *_URI;	
   NSInteger             _prefixIndex;
 #endif
 }

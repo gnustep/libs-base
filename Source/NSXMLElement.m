@@ -30,11 +30,9 @@
 
 - (void) dealloc
 {
-  [_name release];
   [_attributes release];
   [_namespaces release];
   [_children release];
-  [_URI release];
   [super dealloc];
 }
 

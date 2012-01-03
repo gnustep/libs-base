@@ -1,3 +1,11 @@
+2012-01-03 13:03-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSXMLElement.h
+	* Headers/Foundation/NSXMLNode.h
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m: Move _URI to NSXMLNode.
+	change dealloc accordingly.
+
 2012-01-03 12:42-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLNode.m: Implement copyWithZone:
