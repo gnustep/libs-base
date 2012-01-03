@@ -43,7 +43,6 @@
   RELEASE(_encoding); 
   RELEASE(_version);
   RELEASE(_docType);
-  RELEASE(_children);
   RELEASE(_URI);
   RELEASE(_MIMEType);
   RELEASE(_elementStack);
@@ -90,12 +89,15 @@
       if (parser != nil)
 	{
 	  _standalone = YES;
-	  _children = [[NSMutableArray alloc] initWithCapacity: 10];
 	  _elementStack = [[NSMutableArray alloc] initWithCapacity: 10];
 	  ASSIGN(_xmlData, data); 
 	  [parser setDelegate: self];
 	  [parser parse];
 	  RELEASE(parser);
+	}
+      else
+	{
+	  return nil;
 	}
     }
   return self;
@@ -110,9 +112,13 @@
 		   element, 
 		   self];
     }
-  self = [self initWithData: nil options: 0 error: 0];
+  self = [self init];
   if (self != nil)
     {
+      _standalone = YES;
+      _children = [[NSMutableArray alloc] initWithCapacity: 10];
+      _elementStack = [[NSMutableArray alloc] initWithCapacity: 10];
+      
       [self setRootElement: (NSXMLNode*)element];
     }
   return self;
@@ -199,7 +205,7 @@
 {
   [child setParent: self];
   [(NSMutableArray *)_children insertObject: child atIndex: index];
-  _childrenHaveMutated = YES;
+  // _childrenHaveMutated = YES;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -215,8 +221,8 @@
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  [(NSMutableArray *)_children removeObjectAtIndex: index];
-  _childrenHaveMutated = YES;
+  [_children removeObjectAtIndex: index];
+  // _childrenHaveMutated = YES;
 }
 
 - (void) setChildren: (NSArray*)children
@@ -288,7 +294,13 @@
   NSEnumerator *en = [_children objectEnumerator];
   id obj = nil;
 
-  [string appendString: @"<?xml version=\"1.0\"?>"];
+  [string appendString: @"<?xml version=\"1.0\""];
+  if(_standalone == YES)
+    {
+      [string appendString: @" standalone=\"yes\""];
+    }
+    [string appendString: @"?>\n"];
+
   while((obj = [en nextObject]) != nil)
     {
       [string appendString: [obj XMLStringWithOptions: options]];
@@ -306,9 +318,11 @@
     qualifiedName: (NSString *)qualifiedName 
        attributes: (NSDictionary *)attributeDict
 {
+  NSXMLElement *lastElement = [_elementStack lastObject];
   NSXMLElement *currentElement = 
     [[NSXMLElement alloc] initWithName: elementName];
   
+  [lastElement addChild: currentElement];
   [_elementStack addObject: currentElement];
   if (_rootElement == nil)
     {

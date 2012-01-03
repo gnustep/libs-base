@@ -43,8 +43,6 @@ extern "C" {
 @protected
   NSMutableDictionary   *_attributes;
   NSMutableArray        *_namespaces;
-  NSMutableArray        *_children;
-  BOOL                   _childrenHaveMutated;
   NSInteger             _prefixIndex;
 #endif
 }
