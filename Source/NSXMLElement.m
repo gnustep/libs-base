@@ -32,7 +32,6 @@
 {
   [_attributes release];
   [_namespaces release];
-  [_children release];
   [super dealloc];
 }
 
@@ -105,7 +104,15 @@
 
 - (void) setAttributesAsDictionary: (NSDictionary*)attributes
 {
-  ASSIGN(_attributes, [attributes mutableCopy]);
+  NSString *key = nil;
+  NSEnumerator *en = [attributes keyEnumerator];
+
+  while((key = [en nextObject]) != nil)
+    {
+      NSXMLNode *attribute = [NSXMLNode attributeWithName: key
+					      stringValue: [attributes objectForKey: key]];
+      [self addAttribute: attribute];
+    }
 }
 
 - (NSArray*) attributes
@@ -191,13 +198,14 @@
 - (void) setChildren: (NSArray*)children
 {
   ASSIGN(_children, [children mutableCopy]);
-  _childrenHaveMutated = YES;
+  // _childrenHaveMutated = YES;
 }
  
 - (void) addChild: (NSXMLNode*)child
 {
+  [child setParent: self];
   [_children addObject: child];
-  _childrenHaveMutated = YES;
+  // _childrenHaveMutated = YES;
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node

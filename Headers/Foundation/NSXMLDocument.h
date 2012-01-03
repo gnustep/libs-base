@@ -79,8 +79,6 @@ typedef NSUInteger NSXMLDocumentContentKind;
   NSString      		*_encoding;
   NSString      		*_version;
   NSXMLDTD      		*_docType;
-  NSArray		        *_children;
-  BOOL          		_childrenHaveMutated;
   BOOL          		_standalone;
   NSXMLElement  		*_rootElement;
   NSString      		*_URI;

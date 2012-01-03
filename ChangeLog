@@ -1,3 +1,13 @@
+2012-01-03 16:33-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSXMLDocument.h
+	* Headers/Foundation/NSXMLElement.h
+	* Headers/Foundation/NSXMLNode.h: Move declarations.
+	* Source/NSXMLDocument.m: Correct parsing issues.
+	* Source/NSXMLElement.m: Remove local declaration of _children
+	* Source/NSXMLNode.m: Remove internal.  Move all declarations here
+	directly.
+	
 2012-01-03 14:22-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Implement XMLStringWithOptions:
