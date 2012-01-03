@@ -469,11 +469,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   return (NSXMLDocument*)ancestor;
 }
 
-
 - (NSString*) stringValue
 {
-  // FIXME
-  return _objectValue;
+  return _stringValue;
 }
 
 - (NSString*) URI
@@ -530,11 +528,11 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   if(resolve == NO)
     {
-      ASSIGN(_objectValue, string);
+      ASSIGN(_stringValue, string);
     }
   else
     {
-      ASSIGN(_objectValue, string); // need to actually resolve entities...
+      ASSIGN(_stringValue, string); // need to actually resolve entities...
     }
 }
 
