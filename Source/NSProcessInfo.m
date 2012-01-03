@@ -1468,7 +1468,8 @@ GSInitializeProcess(int argc, char **argv, char **envp)
   int		desc;
 
 #if	defined(__MINGW__)
-  desc = _wopen([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
+  desc = _wopen((wchar_t*)[path fileSystemRepresentation],
+    O_RDWR|O_CREAT|O_APPEND, 0644);
 #else
   desc = open([path fileSystemRepresentation], O_RDWR|O_CREAT|O_APPEND, 0644);
 #endif
