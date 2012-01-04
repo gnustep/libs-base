@@ -26,13 +26,19 @@
 
 #import "NSXMLPrivate.h"
 
+#define GSInternal              NSXMLElementInternal
+#include        "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSXMLElement)
+
 @implementation NSXMLElement
 
 - (void) dealloc
 {
-  [_attributes release];
-  [_namespaces release];
-  [_children release];
+  if (GS_EXISTS_INTERNAL && _internal != nil)
+    {
+      [internal->attributes release];
+      [internal->namespaces release];
+    }
   [super dealloc];
 }
 
@@ -43,24 +49,38 @@
 
 - (id) initWithName: (NSString*)name URI: (NSString*)URI
 {
-  if ((self = [super initWithKind:NSXMLElementKind]) != nil)
+  /* Create holder for internal instance variables so that we'll have
+   * all our ivars available rather than just those of the superclass.
+   */
+  GS_CREATE_INTERNAL(NSXMLElement)
+  if ((self = [super initWithKind: NSXMLElementKind]) != nil)
     {
-      ASSIGN(_name, name);
-      _attributes = [[NSMutableDictionary alloc] initWithCapacity: 10];
-      _namespaces = [[NSMutableArray alloc] initWithCapacity: 10];
-      _children = [[NSMutableArray alloc] initWithCapacity: 10];
-      _URI = nil;
+      ASSIGN(internal->name, name);
+      internal->attributes = [[NSMutableDictionary alloc] initWithCapacity: 10];
+      internal->namespaces = [[NSMutableArray alloc] initWithCapacity: 10];
     }
   return self;
 }
 
 - (id) initWithName: (NSString*)name stringValue: (NSString*)string
 {
-  if([self initWithName: name URI: nil] != nil)
+  if ([self initWithName: name URI: nil] != nil)
     {
       [self setObjectValue: string];
     }
   return nil;
+}
+
+- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+{
+  if (NSXMLElementKind == kind)
+    {
+      /* Create holder for internal instance variables so that we'll have
+       * all our ivars available rather than just those of the superclass.
+       */
+      GS_CREATE_INTERNAL(NSXMLElement)
+    }
+  return [super initWithKind: kind options: theOptions];
 }
 
 - (id) initWithXMLString: (NSString*)string error: (NSError**)error
@@ -83,13 +103,13 @@
 
 - (void) addAttribute: (NSXMLNode*)attribute
 {
-  [_attributes setObject: attribute
+  [internal->attributes setObject: attribute
 		  forKey: [attribute name]];
 }
 
 - (void) removeAttributeForName: (NSString*)name
 {
-  [_attributes removeObjectForKey: name];
+  [internal->attributes removeObjectForKey: name];
 }
 
 - (void) setAttributes: (NSArray*)attributes
@@ -105,17 +125,17 @@
 
 - (void) setAttributesAsDictionary: (NSDictionary*)attributes
 {
-  ASSIGN(_attributes, [attributes mutableCopy]);
+  ASSIGN(internal->attributes, [attributes mutableCopy]);
 }
 
 - (NSArray*) attributes
 {
-  return [_attributes allValues];
+  return [internal->attributes allValues];
 }
 
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
-  return [_attributes objectForKey: name];
+  return [internal->attributes objectForKey: name];
 }
 
 - (NSXMLNode*) attributeForLocalName: (NSString*)localName
@@ -142,11 +162,11 @@
 
 - (NSArray*) namespaces
 {
-  if (_namespaces == nil)
+  if (internal->namespaces == nil)
     {
       [self notImplemented: _cmd];
     }
-  return _namespaces;
+  return internal->namespaces;
 }
 
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
@@ -185,19 +205,22 @@
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  [_children removeObjectAtIndex: index];
+  [internal->children removeObjectAtIndex: index];
 }
 
 - (void) setChildren: (NSArray*)children
 {
-  ASSIGN(_children, [children mutableCopy]);
-  _childrenHaveMutated = YES;
+  NSMutableArray	*c = [children mutableCopy];
+
+  ASSIGN(internal->children, c);
+  [c release];
+  internal->childrenHaveMutated = YES;
 }
  
 - (void) addChild: (NSXMLNode*)child
 {
-  [_children addObject: child];
-  _childrenHaveMutated = YES;
+  [internal->children addObject: child];
+  internal->childrenHaveMutated = YES;
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
@@ -222,7 +245,7 @@
 
   // get the attributes...
   en = [[self attributes] objectEnumerator];
-  while((object = [en nextObject]) != nil)
+  while ((object = [en nextObject]) != nil)
     {
       [result appendString: @" "];
       [result appendString: [object XMLStringWithOptions: options]];
@@ -234,7 +257,7 @@
 
   // Iterate over the children...
   en = [[self children] objectEnumerator];
-  while((object = [en nextObject]) != nil)
+  while ((object = [en nextObject]) != nil)
     {
       [result appendString: @" "];
       [result appendString: [object XMLStringWithOptions: options]];

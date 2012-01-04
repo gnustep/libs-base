@@ -41,20 +41,15 @@ extern "C" {
  */
 @interface NSXMLDTD : NSXMLNode
 {
-#if	GS_EXPOSE(NSXMLDTD)
-@private
-  //NSString      *_name;
-  NSString      *_publicID;
-  NSString      *_systemID;
-  NSArray       *_children;
-  BOOL          _childrenHaveMutated;
-  BOOL          _modified;
-  NSMutableDictionary   *_entities;
-  NSMutableDictionary   *_elements;
-  NSMutableDictionary   *_notations;
-  NSMutableDictionary   *_attributes;
-  NSString              *_original;
+#if     GS_NONFRAGILE
+#  if	defined(GS_NSXMLDTD_IVARS)
+@public GS_NSXMLDTD_IVARS
+#  endif
 #endif
+  /* The pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available is inherited from
+   * NSXMLNode.  See Source/GSInternal.h for details.
+   */
 }
 
 /**

@@ -39,14 +39,15 @@ extern "C" {
  */
 @interface NSXMLElement : NSXMLNode
 {
-#if	GS_EXPOSE(NSXMLElement)
-@protected
-  NSMutableDictionary   *_attributes;
-  NSMutableArray        *_namespaces;
-  NSMutableArray        *_children;
-  BOOL                   _childrenHaveMutated;
-  NSInteger             _prefixIndex;
+#if     GS_NONFRAGILE
+#  if	defined(GS_NSXMLElement_IVARS)
+@public GS_NSXMLElement_IVARS
+#  endif
 #endif
+  /* The pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available is inherited from
+   * NSXMLNode.  See Source/GSInternal.h for details.
+   */
 }
 
 /**

@@ -24,36 +24,17 @@
 
 #import "common.h"
 
-/*
- * Description of internal ivars:
- * - `children': The primary storage for the descendant nodes. We use an NSArray
- *   here until somebody finds out it's not fast enough.
- * - `childCount': For efficiency, we cache the count. This means we need to
- *   update it whenever the children change.
- * - `previousSibling', `nextSibling': Tree walking is a common operation for
- *   XML. [_parent->internal->children objectAtIndex: index + 1] would be a
- *   straightforward way to obtain the next sibling of the node, but it hurts
- *   performance quite a bit. So we cache the siblings and update them when the
- *   nodes are changed.
- */
-#define GS_NSXMLNode_IVARS \
-  NSMutableArray *children; \
-  NSUInteger childCount; \
-  NSXMLNode *previousSibling; \
-  NSXMLNode *nextSibling; \
-  NSUInteger options; 
+#import "NSXMLPrivate.h"
 
 #define GSInternal              NSXMLNodeInternal
 #include        "GSInternal.h"
-@class NSXMLNode;
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
-#import "NSXMLPrivate.h"
 
 @implementation NSXMLNode (Private)
 - (void) setParent: (NSXMLNode *)node
 {
-  ASSIGN(_parent,node);
+  ASSIGN(internal->parent,node);
 }
 @end
 
@@ -226,31 +207,43 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  return NSCopyObject(self,0,zone);
+  id	c = [[self class] allocWithZone: zone];
+
+  c = [c initWithKind: internal->kind options: internal->options];
+  [c setName: [self name]];
+  [c setURI: [self URI]];
+  [c setObjectValue: [self objectValue]];
+  [c setStringValue: [self stringValue]];
+  return c;
 }
 
 - (void) dealloc
 {
-  [self detach];
-  [internal->children release];
-  GS_DESTROY_INTERNAL(NSXMLNode);
-  [_objectValue release];
-  [_stringValue release];
+  if (GS_EXISTS_INTERNAL)
+    {
+      [self detach];
+      [internal->name release];
+      [internal->URI release];
+      [internal->children release];
+      [internal->objectValue release];
+      [internal->stringValue release];
+      GS_DESTROY_INTERNAL(NSXMLNode);
+    }
   [super dealloc];
 }
 
 - (void) detach
 {
-  if (_parent != nil)
+  if (internal->parent != nil)
     {
-      [(NSXMLElement*)_parent removeChildAtIndex: _index];
-      _parent = nil;
+      [(NSXMLElement*)internal->parent removeChildAtIndex: internal->index];
+      internal->parent = nil;
     }
 }
 
 - (NSUInteger) index
 {
-  return _index;
+  return internal->index;
 }
 
 - (id) init
@@ -267,12 +260,11 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
 {
   Class theSubclass = [NSXMLNode class];
+
   if (nil == (self = [super init]))
     {
       return nil;
     }
-
-  GS_CREATE_INTERNAL(NSXMLNode)
 
   /*
    * We find the correct subclass for specific node kinds:
@@ -280,31 +272,25 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   switch (kind)
     {
       case NSXMLDocumentKind:
-      {
 	theSubclass = [NSXMLDocument class];
 	break;
-      }
+
       case NSXMLElementKind:
-      {
 	theSubclass = [NSXMLElement class];
 	break;
-      }
+
       case NSXMLDTDKind:
-      {
 	theSubclass = [NSXMLDTD class];
 	break;
-      }
+
       case NSXMLEntityDeclarationKind:
       case NSXMLElementDeclarationKind:
       case NSXMLNotationDeclarationKind:
-      {
 	theSubclass = [NSXMLDTDNode class];
 	break;
-      }
+
       default:
-      {
 	break;
-      }
     }
 
   /*
@@ -319,12 +305,14 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 				       options: theOptions];
     }
 
-  /*
-   * If we are initializing for the correct class, we can actually perform
+  /* Create holder for internal instance variables if needed.
+   */
+  GS_CREATE_INTERNAL(NSXMLNode)
+
+  /* If we are initializing for the correct class, we can actually perform
    * initializations:
    */
-
-  _kind = kind;
+  internal->kind = kind;
   internal->options = theOptions;
   internal->children = [NSMutableArray new];
   return self;
@@ -332,18 +320,18 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSXMLNodeKind) kind
 {
-  return _kind;
+  return internal->kind;
 }
 
 - (NSUInteger) level
 {
   NSUInteger	level = 0;
-  NSXMLNode	*tmp = _parent;
+  NSXMLNode	*tmp = internal->parent;
 
   while (tmp != nil)
     {
       level++;
-      tmp = tmp->_parent;
+      tmp = GSIVar(tmp, parent);
     }
   return level;
 }
@@ -355,12 +343,12 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSString*) name
 {
-  return _name; 
+  return internal->name; 
 }
 
 - (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward
 {
-  NSXMLNode *ancestor = _parent;
+  NSXMLNode *ancestor = internal->parent;
   NSXMLNode *candidate = nil;
 
   /* Node walking is a depth-first thingy. Hence, we consider children first: */
@@ -399,7 +387,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	{
 	  candidate = [ancestor previousSibling];
 	}
-      ancestor = ancestor->_parent;
+      ancestor = GSIVar(ancestor, parent);
     }
 
   /* No children, no next siblings, no next siblings for any ancestor: We are
@@ -410,8 +398,8 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
     }
 
   /* Sanity check: Namespace and attribute nodes are skipped: */
-  if ((NSXMLAttributeKind == candidate->_kind)
-    || (NSXMLNamespaceKind == candidate->_kind))
+  if ((NSXMLAttributeKind == GSIVar(candidate, kind))
+    || (NSXMLNamespaceKind == GSIVar(candidate, kind)))
     {
       return [candidate _nodeFollowingInNaturalDirection: forward];
     }
@@ -430,12 +418,12 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (id) objectValue
 {
-  return _objectValue;
+  return internal->objectValue;
 }
 
 - (NSXMLNode*) parent
 {
-  return _parent;
+  return internal->parent;
 }
 
 - (NSString*) prefix
@@ -456,26 +444,27 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSXMLDocument*) rootDocument
 {
-  NSXMLNode *ancestor = _parent;
+  NSXMLNode *ancestor = internal->parent;
   /*
    * Short-circuit evaluation gurantees that the nil-pointer is not
    * dereferenced:
    */
-  while ((ancestor != nil) && (NSXMLDocumentKind != ancestor->_kind))
+  while ((ancestor != nil)
+    && (NSXMLDocumentKind != GSIVar(ancestor, kind)))
     {
-      ancestor = ancestor->_parent;
+      ancestor = GSIVar(ancestor, parent);
     }
   return (NSXMLDocument*)ancestor;
 }
 
 - (NSString*) stringValue
 {
-  return _stringValue;
+  return internal->stringValue;
 }
 
 - (NSString*) URI
 {
-  return _URI;	// FIXME ... fetch from libxml
+  return internal->URI;	// FIXME ... fetch from libxml
 }
 
 - (NSString*) XMLString
@@ -488,7 +477,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   NSMutableString *returnValue = [NSMutableString string];
   NSXMLNodeKind kind = [self kind];
 
-  if(kind == NSXMLAttributeKind)
+  if (kind == NSXMLAttributeKind)
     {
       [returnValue appendString: [self name]];
       [returnValue appendString: @"=\""];
@@ -505,12 +494,12 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) setObjectValue: (id)value
 {
-  ASSIGN(_objectValue, value);
+  ASSIGN(internal->objectValue, value);
 }
 
 - (void) setName: (NSString *)name
 {
-  ASSIGN(_name, name);
+  ASSIGNCOPY(internal->name, name);
 }
 
 - (void) setStringValue: (NSString*)string
@@ -520,18 +509,19 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) setURI: (NSString*)URI
 {
-  ASSIGN(_URI, URI);
+  ASSIGNCOPY(internal->URI, URI);
 }
 
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
 {
-  if(resolve == NO)
+  if (resolve == NO)
     {
-      ASSIGN(_stringValue, string);
+      ASSIGN(internal->stringValue, string);
     }
   else
     {
-      ASSIGN(_stringValue, string); // need to actually resolve entities...
+      // need to actually resolve entities...
+      ASSIGN(internal->stringValue, string);
     }
 }
 

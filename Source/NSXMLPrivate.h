@@ -26,11 +26,94 @@
 #define	_INCLUDED_NSXMLPRIVATE_H
 
 #import "config.h"
+#import "GNUstepBase/GSConfig.h"
+
 #define	EXPOSE_NSXMLDTD_IVARS	1
 #define	EXPOSE_NSXMLDTDNode_IVARS	1
 #define	EXPOSE_NSXMLDocument_IVARS	1
 #define	EXPOSE_NSXMLElement_IVARS	1
 #define	EXPOSE_NSXMLNode_IVARS	1
+
+/*
+ * Description of internal ivars:
+ * - `children': The primary storage for the descendant nodes. We use an NSArray
+ *   here until somebody finds out it's not fast enough.
+ * - `childCount': For efficiency, we cache the count. This means we need to
+ *   update it whenever the children change.
+ * - `previousSibling', `nextSibling': Tree walking is a common operation for
+ *   XML. [parent->children objectAtIndex: index + 1] would be a
+ *   straightforward way to obtain the next sibling of the node, but it hurts
+ *   performance quite a bit. So we cache the siblings and update them when the
+ *   nodes are changed.
+ */
+#define GS_NSXMLNode_IVARS \
+  void		*handle; \
+  NSUInteger	kind; \
+  NSXMLNode     *parent; \
+  NSUInteger    index; \
+  id            objectValue; \
+  NSString      *stringValue; \
+  NSString      *name; \
+  NSString      *URI; \
+  NSMutableArray *children; \
+  NSUInteger childCount; \
+  NSXMLNode *previousSibling; \
+  NSXMLNode *nextSibling; \
+  NSUInteger options; \
+
+
+/* When using the non-fragile ABI, the instance variables are exposed to the
+ * compiler within the class declaration, so we don't need to incorporate
+ * superclass variables into the subclass declaration.
+ * But with the fragile ABI we need to allocate a single internal structure
+ * containing the private variables for both the subclass and the superclass.
+ */
+#if	GS_NONFRAGILE
+#define	SUPERIVARS(X)
+#else
+#define	SUPERIVARS(X)	X
+#endif
+
+#define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
+  NSString      *publicID; \
+  NSString      *systemID; \
+  BOOL          childrenHaveMutated; \
+  BOOL          modified; \
+  NSMutableDictionary   *entities; \
+  NSMutableDictionary   *elements; \
+  NSMutableDictionary   *notations; \
+  NSMutableDictionary   *attributes; \
+  NSString              *original; \
+
+
+#define GS_NSXMLDTDNode_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
+  NSUInteger	DTDKind; \
+  NSString	*notationName; \
+  NSString	*publicID; \
+  NSString	*systemID; \
+
+
+#define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
+  NSMutableDictionary   *attributes; \
+  NSMutableArray        *namespaces; \
+  BOOL                  childrenHaveMutated; \
+  NSInteger             prefixIndex; \
+
+
+#define GS_NSXMLDocument_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
+  NSString     		*encoding; \
+  NSString     		*version; \
+  NSXMLDTD     		*docType; \
+  BOOL         		childrenHaveMutated; \
+  BOOL         		standalone; \
+  NSXMLElement 		*rootElement; \
+  NSString     		*MIMEType; \
+  NSUInteger   		fidelityMask; \
+  NSInteger		contentKind; \
+  NSMutableArray	*elementStack; \
+  NSData		*xmlData; \
+
+
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDebug.h"

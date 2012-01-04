@@ -26,6 +26,10 @@
 
 #import "NSXMLPrivate.h"
 
+#define GSInternal              NSXMLDTDInternal
+#include        "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSXMLDTD)
+
 @implementation NSXMLDTD
 
 + (NSXMLDTDNode*) predefinedEntityDeclarationForName: (NSString*)name
@@ -36,15 +40,16 @@
 
 - (void) dealloc
 {
-  [_name release];
-  [_publicID release];
-  [_systemID release];
-  [_children release];
-  [_entities release];
-  [_elements release];
-  [_notations release];
-  [_attributes release];
-  [_original release];
+  if (GS_EXISTS_INTERNAL)
+    {
+      [internal->publicID release];
+      [internal->systemID release];
+      [internal->entities release];
+      [internal->elements release];
+      [internal->notations release];
+      [internal->attributes release];
+      [internal->original release];
+    }
   [super dealloc];
 }
 
@@ -93,10 +98,22 @@
   return nil;
 }
 
+- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+{
+  if (NSXMLDTDKind == kind)
+    {
+      /* Create holder for internal instance variables so that we'll have
+       * all our ivars available rather than just those of the superclass.
+       */
+      GS_CREATE_INTERNAL(NSXMLDTD)
+    }
+  return [super initWithKind: kind options: theOptions];
+}
+
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
   [self notImplemented: _cmd];
-  _childrenHaveMutated = YES;
+  internal->childrenHaveMutated = YES;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -112,7 +129,7 @@
 
 - (NSXMLDTDNode*) notationDeclarationForName: (NSString*)name
 {
-  NSXMLDTDNode	*notation = [_notations objectForKey: name];
+  NSXMLDTDNode	*notation = [internal->notations objectForKey: name];
 
   if (notation == nil)
     {
@@ -123,11 +140,11 @@
 
 - (NSString*) publicID
 {
-  if (_publicID == nil)
+  if (internal->publicID == nil)
     {
       [self notImplemented: _cmd];
     }
-  return _publicID;
+  return internal->publicID;
 }
 
 - (void) removeChildAtIndex: (NSUInteger)index
@@ -148,22 +165,22 @@
 - (void) setPublicID: (NSString*)publicID
 {
   [self notImplemented: _cmd];
-  _modified = YES;
+  internal->modified = YES;
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
   [self notImplemented: _cmd];
-  _modified = YES;
+  internal->modified = YES;
 }
 
 - (NSString*) systemID
 {
-  if (_systemID == nil)
+  if (internal->systemID == nil)
     {
       [self notImplemented: _cmd];
     }
-  return _systemID;
+  return internal->systemID;
 }
 
 @end

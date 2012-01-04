@@ -80,17 +80,6 @@ typedef NSUInteger NSXMLNodeKind;
  */
 @interface NSXMLNode : NSObject <NSCopying>
 {
-#if	GS_EXPOSE(NSXMLNode)
-@protected
-  void		*_handle;
-  NSXMLNodeKind _kind;
-  NSXMLNode     *_parent;
-  NSUInteger    _index;
-  id            _objectValue;
-  NSString      *_stringValue;
-  NSString      *_name;
-  NSString      *_URI;
-#endif
 #if     GS_NONFRAGILE
 #  if	defined(GS_NSXMLNode_IVARS)
 @public GS_NSXMLNode_IVARS
@@ -100,8 +89,10 @@ typedef NSUInteger NSXMLNodeKind;
    * when we don't have the non-fragile ABI available.
    * Use this mechanism rather than changing the instance variable
    * layout (see Source/GSInternal.h for details).
+   * In this case it's declared protected so that the NSXMLNode
+   * subclasses can share the same variables.
    */
-  @private id _internal GS_UNUSED_IVAR;
+  @protected id _internal GS_UNUSED_IVAR;
 #endif
 }
 
