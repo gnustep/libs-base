@@ -1,3 +1,9 @@
+2012-01-04  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSXMLDocument.h,
+	* Headers/Foundation/NSXMLDTD.h: Comment out duplicate declaration of
+	ivars to get base to compile again.
+
 2012-01-03 16:33-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSXMLDocument.h
@@ -7,7 +13,7 @@
 	* Source/NSXMLElement.m: Remove local declaration of _children
 	* Source/NSXMLNode.m: Remove internal.  Move all declarations here
 	directly.
-	
+
 2012-01-03 14:22-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Implement XMLStringWithOptions:
