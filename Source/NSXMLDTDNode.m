@@ -51,8 +51,8 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
 {
   if (NSXMLEntityDeclarationKind == kind
-    || NSXMLElementDeclarationKind
-    || NSXMLNotationDeclarationKind)
+    || NSXMLElementDeclarationKind == kind
+    || NSXMLNotationDeclarationKind == kind)
     {
       /* Create holder for internal instance variables so that we'll have
        * all our ivars available rather than just those of the superclass.
