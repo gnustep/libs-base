@@ -1,5 +1,23 @@
 2012-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSXMLDocument.h:
+	* Headers/Foundation/NSXMLNode.h:
+	* Headers/Foundation/NSXMLDTD.h:
+	* Headers/Foundation/NSXMLDTDNode.h:
+	* Headers/Foundation/NSXMLElement.h:
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLPrivate.h:
+	* Source/NSXMLDTD.m:
+	* Source/GSInternal.h:
+	* Source/NSXMLNode.m:
+	* Source/NSXMLDTDNode.m:
+	* Source/NSXMLElement.m:
+	The last revert still left lot's of ABI breakage, but reverting much
+	further would lose a lot of work ... so here's an attempt to fix the
+	ABI breakage by re-hiding instance variables again.
+
+2012-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSMDNSNetServices.m:
 	* Source/NSJSONSerialization.m:
 	Cosmetic tweaks (whitespace)

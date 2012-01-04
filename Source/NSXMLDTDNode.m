@@ -26,20 +26,40 @@
 
 #import	"NSXMLPrivate.h"
 
+#define GSInternal              NSXMLDTDNodeInternal
+#include        "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSXMLDTDNode)
+
 @implementation NSXMLDTDNode
 
 - (void) dealloc
 {
-  [_name release];
-  [_notationName release];
-  [_publicID release];
-  [_systemID release];
+  if (GS_EXISTS_INTERNAL)
+    {
+      [internal->notationName release];
+      [internal->publicID release];
+      [internal->systemID release];
+    }
   [super dealloc];
 }
 
 - (NSXMLDTDNodeKind) DTDKind
 {
-  return _DTDKind;
+  return internal->DTDKind;
+}
+
+- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+{
+  if (NSXMLEntityDeclarationKind == kind
+    || NSXMLElementDeclarationKind
+    || NSXMLNotationDeclarationKind)
+    {
+      /* Create holder for internal instance variables so that we'll have
+       * all our ivars available rather than just those of the superclass.
+       */
+      GS_CREATE_INTERNAL(NSXMLDTDNode)
+    }
+  return [super initWithKind: kind options: theOptions];
 }
 
 - (id) initWithXMLString: (NSString*)string
@@ -50,7 +70,7 @@
 
 - (BOOL) isExternal
 {
-  if (_systemID != nil)
+  if (internal->systemID != nil)
     {
 // FIXME ... libxml integration?
       return YES;
@@ -60,53 +80,53 @@
 
 - (NSString*) notationName
 {
-  if (_notationName == nil)
+  if (internal->notationName == nil)
     {
       [self notImplemented: _cmd];
     }
-  return _notationName;
+  return internal->notationName;
 }
 
 - (NSString*) publicID
 {
-  if (_publicID == nil)
+  if (internal->publicID == nil)
     {
       [self notImplemented: _cmd];
     }
-  return _publicID;
+  return internal->publicID;
 }
 
 - (void) setDTDKind: (NSXMLDTDNodeKind)kind
 {
-  _DTDKind = kind;
+  internal->DTDKind = kind;
   // FIXME ... libxml integration?
 }
 
 - (void) setNotationName: (NSString*)notationName
 {
-  ASSIGNCOPY(_notationName, notationName);
+  ASSIGNCOPY(internal->notationName, notationName);
   // FIXME ... libxml integration?
 }
 
 - (void) setPublicID: (NSString*)publicID
 {
-  ASSIGNCOPY(_publicID, publicID);
+  ASSIGNCOPY(internal->publicID, publicID);
   // FIXME ... libxml integration?
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  ASSIGNCOPY(_systemID, systemID);
+  ASSIGNCOPY(internal->systemID, systemID);
   // FIXME ... libxml integration?
 }
 
 - (NSString*) systemID
 {
-  if (_systemID == nil)
+  if (internal->systemID == nil)
     {
       [self notImplemented: _cmd];
     }
-  return _systemID;
+  return internal->systemID;
 }
 
 @end

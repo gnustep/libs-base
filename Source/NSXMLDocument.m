@@ -25,6 +25,11 @@
 #import "common.h"
 
 #import "NSXMLPrivate.h"
+
+#define GSInternal              NSXMLDocumentInternal
+#include        "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSXMLDocument)
+
 #import <Foundation/NSXMLParser.h>
 
 // Forward declaration of interface for NSXMLParserDelegate
@@ -40,30 +45,31 @@
 
 - (void) dealloc
 {
-  RELEASE(_encoding); 
-  RELEASE(_version);
-  RELEASE(_docType);
-  RELEASE(_children);
-  RELEASE(_URI);
-  RELEASE(_MIMEType);
-  RELEASE(_elementStack);
-  RELEASE(_xmlData);
+  if (GS_EXISTS_INTERNAL)
+    {
+      [internal->encoding release]; 
+      [internal->version release];
+      [internal->docType release];
+      [internal->MIMEType release];
+      [internal->elementStack release];
+      [internal->xmlData release];
+    }
   [super dealloc];
 }
 
 - (NSString*) characterEncoding
 {
-  return _encoding;
+  return internal->encoding;
 }
 
 - (NSXMLDocumentContentKind) documentContentKind
 {
-  return _contentKind;
+  return internal->contentKind;
 }
 
 - (NSXMLDTD*) DTD
 {
-  return _docType;
+  return internal->docType;
 }
 
 - (id) initWithContentsOfURL: (NSURL*)url
@@ -84,15 +90,16 @@
             options: (NSUInteger)mask
               error: (NSError**)error
 {
-  if ((self = [super init]) != nil)
+  GS_CREATE_INTERNAL(NSXMLDocument)
+  if ((self = [super initWithKind: NSXMLDocumentKind options: 0]) != nil)
     {
       NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
+
       if (parser != nil)
 	{
-	  _standalone = YES;
-	  _children = [[NSMutableArray alloc] initWithCapacity: 10];
-	  _elementStack = [[NSMutableArray alloc] initWithCapacity: 10];
-	  ASSIGN(_xmlData, data); 
+	  internal->standalone = YES;
+	  internal->elementStack = [[NSMutableArray alloc] initWithCapacity: 10];
+	  ASSIGN(internal->xmlData, data); 
 	  [parser setDelegate: self];
 	  [parser parse];
 	  RELEASE(parser);
@@ -101,9 +108,21 @@
   return self;
 }
 
+- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+{
+  if (NSXMLDocumentKind == kind)
+    {
+      /* Create holder for internal instance variables so that we'll have
+       * all our ivars available rather than just those of the superclass.
+       */
+      GS_CREATE_INTERNAL(NSXMLDocument)
+    }
+  return [super initWithKind: kind options: theOptions];
+}
+
 - (id) initWithRootElement: (NSXMLElement*)element
 {
-  if ([_children containsObject: element] || [element parent] != nil)
+  if ([element parent] != nil)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"%@ cannot be used as root of %@", 
@@ -132,56 +151,56 @@
 
 - (BOOL) isStandalone
 {
-  return _standalone;
+  return internal->standalone;
 }
 
 - (NSString*) MIMEType
 {
-  return _MIMEType;
+  return internal->MIMEType;
 }
 
 - (NSXMLElement*) rootElement
 {
-  return _rootElement;
+  return internal->rootElement;
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
-  ASSIGNCOPY(_encoding, encoding);
+  ASSIGNCOPY(internal->encoding, encoding);
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
 {
-  _contentKind = kind;
+  internal->contentKind = kind;
 }
 
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
 {
-  ASSIGNCOPY(_docType, documentTypeDeclaration);
+  ASSIGNCOPY(internal->docType, documentTypeDeclaration);
 }
 
 - (void) setMIMEType: (NSString*)MIMEType
 {
-  ASSIGNCOPY(_MIMEType, MIMEType);
+  ASSIGNCOPY(internal->MIMEType, MIMEType);
 }
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-  NSAssert(_rootElement == nil, NSGenericException);
-  [self insertChild: root atIndex: [_children count]];
-  _rootElement = (NSXMLElement*)root;
+  NSAssert(internal->rootElement == nil, NSGenericException);
+  [self insertChild: root atIndex: [internal->children count]];
+  internal->rootElement = (NSXMLElement*)root;
 }
 
 - (void) setStandalone: (BOOL)standalone
 {
-  _standalone = standalone;
+  internal->standalone = standalone;
 }
 
 - (void) setVersion: (NSString*)version
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
-      ASSIGNCOPY(_version, version);
+      ASSIGNCOPY(internal->version, version);
     }
   else
     {
@@ -192,14 +211,14 @@
 
 - (NSString*) version
 {
-  return _version;
+  return internal->version;
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
   [child setParent: self];
-  [(NSMutableArray *)_children insertObject: child atIndex: index];
-  _childrenHaveMutated = YES;
+  [(NSMutableArray *)internal->children insertObject: child atIndex: index];
+  internal->childrenHaveMutated = YES;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -215,15 +234,15 @@
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  [(NSMutableArray *)_children removeObjectAtIndex: index];
-  _childrenHaveMutated = YES;
+  [(NSMutableArray *)internal->children removeObjectAtIndex: index];
+  internal->childrenHaveMutated = YES;
 }
 
 - (void) setChildren: (NSArray*)children
 {
   unsigned	count;
 
-  while ((count = [_children count]) > 0)
+  while ((count = [internal->children count]) > 0)
     {
       [self removeChildAtIndex: count - 1];
     }
@@ -232,7 +251,7 @@
 
 - (void) addChild: (NSXMLNode*)child
 {
-  [self insertChild: child atIndex: [_children count]];
+  [self insertChild: child atIndex: [internal->children count]];
 }
 
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
@@ -249,7 +268,7 @@
 - (NSData*) XMLDataWithOptions: (NSUInteger)options
 {
   // TODO: Apply options to data.
-  return _xmlData;
+  return internal->xmlData;
 }
 
 - (id) objectByApplyingXSLT: (NSData*)xslt
@@ -295,8 +314,8 @@
   NSXMLElement *currentElement = 
     [[NSXMLElement alloc] initWithName: elementName];
   
-  [_elementStack addObject: currentElement];
-  if (_rootElement == nil)
+  [internal->elementStack addObject: currentElement];
+  if (internal->rootElement == nil)
     {
       [self setRootElement: currentElement];
     }
@@ -310,12 +329,12 @@
   namespaceURI:(NSString *)namespaceURI 
  qualifiedName:(NSString *)qName 
 {
-  if ([_elementStack count] > 0)
+  if ([internal->elementStack count] > 0)
     { 
-      NSXMLElement *currentElement = [_elementStack lastObject];
+      NSXMLElement *currentElement = [internal->elementStack lastObject];
       if ([[currentElement name] isEqualToString: elementName])
 	{
-	  [_elementStack removeLastObject];
+	  [internal->elementStack removeLastObject];
 	} 
     }
 }
@@ -323,7 +342,7 @@
 - (void) parser: (NSXMLParser *)parser
 foundCharacters: (NSString *)string
 {
-  NSXMLElement *currentElement = [_elementStack lastObject];
+  NSXMLElement *currentElement = [internal->elementStack lastObject];
   [currentElement setStringValue: string];
 }
 @end

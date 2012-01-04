@@ -75,14 +75,15 @@ typedef NSUInteger NSXMLDTDNodeKind;
  */
 @interface NSXMLDTDNode : NSXMLNode
 {
-#if	GS_EXPOSE(NSXMLDTDNode)
-@protected
-  NSXMLDTDNodeKind      _DTDKind;
-//NSString              *_name;
-  NSString              *_notationName;
-  NSString              *_publicID;
-  NSString              *_systemID;
+#if     GS_NONFRAGILE
+#  if	defined(GS_NSXMLDTDNode_IVARS)
+@public GS_NSXMLDTDNode_IVARS
+#  endif
 #endif
+  /* The pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available is inherited from
+   * NSXMLNode.  See Source/GSInternal.h for details.
+   */
 }
 
 /**
