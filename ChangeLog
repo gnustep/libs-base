@@ -1,3 +1,15 @@
+2012-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLNode.m:
+	* Source/NSXMLElement.m:
+	* Headers/Foundation/NSXMLDocument.h:
+	* Headers/Foundation/NSXMLNode.h:
+	* Headers/Foundation/NSXMLDTD.h:
+	* Headers/Foundation/NSXMLElement.h:
+	Revert latest changes to restore scheme for preventing ABI breakage
+	and supporting both fragile and non-fragile ABIs..
+
 2012-01-04  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSXMLDocument.h,

@@ -36,7 +36,17 @@
  *   performance quite a bit. So we cache the siblings and update them when the
  *   nodes are changed.
  */
+#define GS_NSXMLNode_IVARS \
+  NSMutableArray *children; \
+  NSUInteger childCount; \
+  NSXMLNode *previousSibling; \
+  NSXMLNode *nextSibling; \
+  NSUInteger options; 
 
+#define GSInternal              NSXMLNodeInternal
+#include        "GSInternal.h"
+@class NSXMLNode;
+GS_PRIVATE_INTERNAL(NSXMLNode)
 
 #import "NSXMLPrivate.h"
 
@@ -201,17 +211,17 @@
 
 - (NSXMLNode*) childAtIndex: (NSUInteger)index
 {
-  return [_children objectAtIndex: index];
+  return [internal->children objectAtIndex: index];
 }
 
 - (NSUInteger) childCount
 {
-  return _childCount;
+  return internal->childCount;
 }
 
 - (NSArray*)children
 {
-  return _children;
+  return internal->children;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -222,8 +232,8 @@
 - (void) dealloc
 {
   [self detach];
-  [_children release];
-  [_URI release];
+  [internal->children release];
+  GS_DESTROY_INTERNAL(NSXMLNode);
   [_objectValue release];
   [_stringValue release];
   [super dealloc];
@@ -262,9 +272,7 @@
       return nil;
     }
 
-  // GS_CREATE_INTERNAL(NSXMLNode)
-  _children = [[NSMutableArray alloc] initWithCapacity: 10];
-  _childCount = 0;
+  GS_CREATE_INTERNAL(NSXMLNode)
 
   /*
    * We find the correct subclass for specific node kinds:
@@ -317,8 +325,8 @@
    */
 
   _kind = kind;
-  _options = theOptions;
-  _children = [NSMutableArray new];
+  internal->options = theOptions;
+  internal->children = [NSMutableArray new];
   return self;
 }
 
@@ -356,14 +364,14 @@
   NSXMLNode *candidate = nil;
 
   /* Node walking is a depth-first thingy. Hence, we consider children first: */
-  if (0 != _childCount)
+  if (0 != internal->childCount)
     {
       NSUInteger theIndex = 0;
       if (NO == forward)
 	{
-	  theIndex = (_childCount) - 1;
+	  theIndex = (internal->childCount) - 1;
 	}
-      candidate = [_children objectAtIndex: theIndex];
+      candidate = [internal->children objectAtIndex: theIndex];
     }
 
   /* If there are no children, we move on to siblings: */
@@ -371,11 +379,11 @@
     {
       if (forward)
 	{
-	  candidate = _nextSibling;
+	  candidate = internal->nextSibling;
 	}
       else
 	{
-	  candidate = _previousSibling;
+	  candidate = internal->previousSibling;
 	}
     }
 
@@ -417,7 +425,7 @@
 
 - (NSXMLNode*) nextSibling
 {
-  return _nextSibling;
+  return internal->nextSibling;
 }
 
 - (id) objectValue
@@ -442,7 +450,7 @@
 
 - (NSXMLNode*) previousSibling
 {
-  return _previousSibling;
+  return internal->previousSibling;
 
 }
 
