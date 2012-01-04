@@ -81,7 +81,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
   NSXMLDTD      		*_docType;
   BOOL          		_standalone;
   NSXMLElement  		*_rootElement;
-  NSString      		*_URI;
+  //NSString      		*_URI;
   NSString      		*_MIMEType;
   NSUInteger    		_fidelityMask;
   NSXMLDocumentContentKind	_contentKind;

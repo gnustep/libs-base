@@ -46,7 +46,7 @@ extern "C" {
   //NSString      *_name;
   NSString      *_publicID;
   NSString      *_systemID;
-  NSArray       *_children;
+  //NSArray       *_children;
   BOOL          _childrenHaveMutated;
   BOOL          _modified;
   NSMutableDictionary   *_entities;
