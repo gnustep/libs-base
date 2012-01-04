@@ -1,5 +1,11 @@
 2012-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSMDNSNetServices.m:
+	* Source/NSJSONSerialization.m:
+	Cosmetic tweaks (whitespace)
+
+2012-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSXMLDocument.m:
 	* Source/NSXMLNode.m:
 	* Source/NSXMLElement.m:

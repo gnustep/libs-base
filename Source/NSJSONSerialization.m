@@ -399,7 +399,7 @@ parseNumber(ParserState *state)
       else\
 	number = realloc(number, bufferSize);\
     }\
-    number[parsedSize++] = (char)x; } while(0)
+    number[parsedSize++] = (char)x; } while (0)
   // JSON numbers must start with a - or a digit
   if (!(c == '-' || isdigit(c)))
     {

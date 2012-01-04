@@ -76,7 +76,7 @@
         do {								\
           if (self == [aClass class]) { [self setVersion: VERSION]; }	\
           else { [self doesNotRecognizeSelector: _cmd]; }		\
-        } while(0);
+        } while (0);
 
 #if defined(_REENTRANT)
 #  define THE_LOCK		GSLazyRecursiveLock	*lock
@@ -389,7 +389,7 @@ static void DNSSD_API
 	  EnumerationCallback,
 	  self);
       }
-    while(0);
+    while (0);
   }
   UNLOCK(browser);
   
@@ -747,7 +747,7 @@ static void DNSSD_API
 	  BrowserCallback,
 	  self);
       }
-    while(0);
+    while (0);
   }
   UNLOCK(browser);
   
@@ -1897,7 +1897,7 @@ static void DNSSD_API
 	  NULL, service->port, 0, NULL,
 	  RegistrationCallback, self);
       }
-    while(0);
+    while (0);
   }
   UNLOCK(service);
   
@@ -2001,7 +2001,7 @@ static void DNSSD_API
 	  ResolverCallback,
 	  self);
       }
-    while(0);
+    while (0);
   }
   UNLOCK(service);
   
@@ -2616,7 +2616,7 @@ static void DNSSD_API
 	    [monitor->timer fire];
 	  }
       }
-    while(0);
+    while (0);
   }
   UNLOCK(monitor);
 }
