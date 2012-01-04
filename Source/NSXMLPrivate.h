@@ -34,7 +34,9 @@
 #define	EXPOSE_NSXMLElement_IVARS	1
 #define	EXPOSE_NSXMLNode_IVARS	1
 
-/*
+/* Instance variables for NSXMLNode.  This macro needs to be defined before
+ * the NSXMLNode.h header is imported and before GSInternal.h is imported.
+ *
  * Description of internal ivars:
  * - `children': The primary storage for the descendant nodes. We use an NSArray
  *   here until somebody finds out it's not fast enough.
@@ -74,32 +76,11 @@
 #define	SUPERIVARS(X)	X
 #endif
 
-#define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSString      *publicID; \
-  NSString      *systemID; \
-  BOOL          childrenHaveMutated; \
-  BOOL          modified; \
-  NSMutableDictionary   *entities; \
-  NSMutableDictionary   *elements; \
-  NSMutableDictionary   *notations; \
-  NSMutableDictionary   *attributes; \
-  NSString              *original; \
-
-
-#define GS_NSXMLDTDNode_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSUInteger	DTDKind; \
-  NSString	*notationName; \
-  NSString	*publicID; \
-  NSString	*systemID; \
-
-
-#define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSMutableDictionary   *attributes; \
-  NSMutableArray        *namespaces; \
-  BOOL                  childrenHaveMutated; \
-  NSInteger             prefixIndex; \
-
-
+/* Instance variables for NSXMLDocument with/without the instance
+ * variable 'inherited' from NSXMLNode.
+ * This macro needs to be defined before the NSXMLDocument.h header
+ * is imported and before GSInternal.h is imported.
+ */
 #define GS_NSXMLDocument_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
   NSString     		*encoding; \
   NSString     		*version; \
@@ -112,6 +93,47 @@
   NSInteger		contentKind; \
   NSMutableArray	*elementStack; \
   NSData		*xmlData; \
+
+
+/* Instance variables for NSXMLDTD with/without the instance
+ * variable 'inherited' from NSXMLNode.
+ * This macro needs to be defined before the NSXMLDTD.h header
+ * is imported and before GSInternal.h is imported.
+ */
+#define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
+  NSString      *publicID; \
+  NSString      *systemID; \
+  BOOL          childrenHaveMutated; \
+  BOOL          modified; \
+  NSMutableDictionary   *entities; \
+  NSMutableDictionary   *elements; \
+  NSMutableDictionary   *notations; \
+  NSMutableDictionary   *attributes; \
+  NSString              *original; \
+
+
+/* Instance variables for NSXMLDTDNode with/without the instance
+ * variable 'inherited' from NSXMLNode.
+ * This macro needs to be defined before the NSXMLDTDNode.h header
+ * is imported and before GSInternal.h is imported.
+ */
+#define GS_NSXMLDTDNode_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
+  NSUInteger	DTDKind; \
+  NSString	*notationName; \
+  NSString	*publicID; \
+  NSString	*systemID; \
+
+
+/* Instance variables for NSXMLElement with/without the instance
+ * variable 'inherited' from NSXMLNode.
+ * This macro needs to be defined before the NSXMLElement.h header
+ * is imported and before GSInternal.h is imported.
+ */
+#define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
+  NSMutableDictionary   *attributes; \
+  NSMutableArray        *namespaces; \
+  BOOL                  childrenHaveMutated; \
+  NSInteger             prefixIndex; \
 
 
 #import "Foundation/NSArray.h"
