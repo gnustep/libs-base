@@ -24,10 +24,9 @@
 
 #import "common.h"
 
-#import "NSXMLPrivate.h"
-
 #define GSInternal              NSXMLNodeInternal
-#include        "GSInternal.h"
+#import "NSXMLPrivate.h"
+#import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
 
