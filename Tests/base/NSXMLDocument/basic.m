@@ -8,12 +8,12 @@ int main()
   NSXMLDocument         *node;
 
   node = [NSXMLDocument alloc];
-  PASS_EXCEPTION([node initWithDate: nil options: 0 error: 0],
+  PASS_EXCEPTION([node initWithData: nil options: 0 error: 0],
     NSInvalidArgumentException,
     "Cannot initialise an XML document with nil data");
 
   node = [NSXMLDocument alloc];
-  PASS_EXCEPTION([node initWithDate: (NSData*)@"bad" options: 0 error: 0],
+  PASS_EXCEPTION([node initWithData: (NSData*)@"bad" options: 0 error: 0],
     NSInvalidArgumentException,
     "Cannot initialise an XML document with bad data class");
 
