@@ -75,6 +75,14 @@ typedef NSUInteger NSXMLNodeKind;
 // Output options
 //  NSXMLNodePrettyPrint
 
+/* This next class declaration is private for internal use by the base
+ * library developers ... it is present simply to make the compiler
+ * produce symbol information to be used when debugging.
+ */
+#if	defined(GSInternal)
+@class GSInternal;
+#endif
+
 /**
  * The most primitive unit in an XML document.
  */
@@ -89,10 +97,16 @@ typedef NSUInteger NSXMLNodeKind;
    * when we don't have the non-fragile ABI available.
    * Use this mechanism rather than changing the instance variable
    * layout (see Source/GSInternal.h for details).
-   * In this case it's declared protected so that the NSXMLNode
-   * subclasses can share the same variables.
+   * In this case, when compiled the variable is a protected class
+   * available so that the NSXMLNode subclasses within the base library
+   * can share the same variables, but when viewed from outside the
+   * base library itsself, it's an opaque pointer which must not be used.
    */
-  @protected id _internal GS_UNUSED_IVAR;
+#  if	defined(GSInternal)
+  @protected GSInternal *_internal GS_UNUSED_IVAR;
+#  else
+  @private id _internal GS_UNUSED_IVAR;
+#  endif
 #endif
 }
 
