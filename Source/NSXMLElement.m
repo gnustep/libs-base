@@ -125,7 +125,16 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) setAttributesAsDictionary: (NSDictionary*)attributes
 {
-  ASSIGN(internal->attributes, [attributes mutableCopy]);
+  NSEnumerator	*en = [attributes keyEnumerator];	 
+  NSString	*key; 
+ 	 
+  while ((key = [en nextObject]) != nil)	 
+    {	 
+      NSString	*val = [attributes objectForKey: key];	 
+      NSXMLNode	*attribute = [NSXMLNode attributeWithName: key	 
+					      stringValue: val];
+      [self addAttribute: attribute];	 
+    }
 }
 
 - (NSArray*) attributes
@@ -214,13 +223,14 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
   ASSIGN(internal->children, c);
   [c release];
-  internal->childrenHaveMutated = YES;
+  // internal->childrenHaveMutated = YES;
 }
  
 - (void) addChild: (NSXMLNode*)child
 {
+  [child setParent: self];
   [internal->children addObject: child];
-  internal->childrenHaveMutated = YES;
+  // internal->childrenHaveMutated = YES;
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
