@@ -99,11 +99,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
       DESTROY(self);
       if (nil == data)
 	{
-	  [NSException raise: NSInternalInconsistencyException
+	  [NSException raise: NSInvalidArgumentException
 		      format: @"[NSXMLDocument-%@] nil argument",
 	    NSStringFromSelector(_cmd)];
 	}
-      [NSException raise: NSInternalInconsistencyException
+      [NSException raise: NSInvalidArgumentException
 		  format: @"[NSXMLDocument-%@] invalid argument",
 	NSStringFromSelector(_cmd)];
     }
