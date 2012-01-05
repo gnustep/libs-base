@@ -93,16 +93,24 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   GS_CREATE_INTERNAL(NSXMLDocument)
   if ((self = [super initWithKind: NSXMLDocumentKind options: 0]) != nil)
     {
-      NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
-
-      if (parser != nil)
+      if (nil != data)
 	{
-	  internal->standalone = YES;
-	  internal->elementStack = [[NSMutableArray alloc] initWithCapacity: 10];
-	  ASSIGN(internal->xmlData, data); 
-	  [parser setDelegate: self];
-	  [parser parse];
-	  RELEASE(parser);
+	  NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
+
+	  if (nil == parser)
+	    {
+	      DESTROY(self);
+	    }
+	  else
+	    {
+	      internal->standalone = YES;
+	      internal->elementStack
+		= [[NSMutableArray alloc] initWithCapacity: 10];
+	      ASSIGN(internal->xmlData, data); 
+	      [parser setDelegate: self];
+	      [parser parse];
+	      RELEASE(parser);
+	    }
 	}
     }
   return self;
@@ -218,7 +226,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   [child setParent: self];
   [(NSMutableArray *)internal->children insertObject: child atIndex: index];
-  internal->childrenHaveMutated = YES;
+  // internal->childrenHaveMutated = YES;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -235,7 +243,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 - (void) removeChildAtIndex: (NSUInteger)index
 {
   [(NSMutableArray *)internal->children removeObjectAtIndex: index];
-  internal->childrenHaveMutated = YES;
+  // internal->childrenHaveMutated = YES;
 }
 
 - (void) setChildren: (NSArray*)children
@@ -269,6 +277,26 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   // TODO: Apply options to data.
   return internal->xmlData;
+}
+
+- (NSString *) XMLStringWithOptions: (NSUInteger)options
+{
+  NSMutableString	*string = [NSMutableString string];
+  NSEnumerator		*en = [internal->children objectEnumerator];
+  id			obj = nil;
+
+  [string appendString: @"<?xml version=\"1.0\""];
+  if (YES == internal->standalone)
+    {
+      [string appendString: @" standalone=\"yes\""];
+    }
+  [string appendString: @"?>\n"];
+
+  while ((obj = [en nextObject]) != nil)
+    {
+      [string appendString: [obj XMLStringWithOptions: options]];
+    }
+  return string;
 }
 
 - (id) objectByApplyingXSLT: (NSData*)xslt
@@ -311,17 +339,18 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
     qualifiedName: (NSString *)qualifiedName 
        attributes: (NSDictionary *)attributeDict
 {
+  NSXMLElement *lastElement = [internal->elementStack lastObject];
   NSXMLElement *currentElement = 
     [[NSXMLElement alloc] initWithName: elementName];
   
+  [lastElement addChild: currentElement];
   [internal->elementStack addObject: currentElement];
+  [currentElement release];
   if (internal->rootElement == nil)
     {
       [self setRootElement: currentElement];
     }
-
-  [currentElement setAttributesAsDictionary: 
-		    attributeDict];
+  [currentElement setAttributesAsDictionary: attributeDict];
 }
 
 - (void)parser:(NSXMLParser *)parser
