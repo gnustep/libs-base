@@ -77,6 +77,11 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
   return nil;
 }
 
+- (id) init
+{
+  return [self initWithKind: NSXMLDTDKind options: 0];
+}
+
 - (id) initWithContentsOfURL: (NSURL*)url
                      options: (NSUInteger)mask
                        error: (NSError**)error

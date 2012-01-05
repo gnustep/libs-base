@@ -42,9 +42,26 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   [super dealloc];
 }
 
+- (id) init
+{
+  return [self initWithKind: NSXMLElementKind options: 0];
+}
+
 - (id) initWithName: (NSString*)name
 {
   return [self initWithName: name URI: nil];
+}
+
+- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+{
+  if (NSXMLElementKind == kind)
+    {
+      /* Create holder for internal instance variables so that we'll have
+       * all our ivars available rather than just those of the superclass.
+       */
+      GS_CREATE_INTERNAL(NSXMLElement)
+    }
+  return [super initWithKind: kind options: theOptions];
 }
 
 - (id) initWithName: (NSString*)name URI: (NSString*)URI
@@ -69,18 +86,6 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       [self setObjectValue: string];
     }
   return nil;
-}
-
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
-{
-  if (NSXMLElementKind == kind)
-    {
-      /* Create holder for internal instance variables so that we'll have
-       * all our ivars available rather than just those of the superclass.
-       */
-      GS_CREATE_INTERNAL(NSXMLElement)
-    }
-  return [super initWithKind: kind options: theOptions];
 }
 
 - (id) initWithXMLString: (NSString*)string error: (NSError**)error

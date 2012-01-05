@@ -72,6 +72,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   return internal->docType;
 }
 
+- (id) init
+{
+  return [self initWithKind: NSXMLDocumentKind options: 0];
+}
+
 - (id) initWithContentsOfURL: (NSURL*)url
                      options: (NSUInteger)mask
                        error: (NSError**)error
@@ -90,27 +95,37 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
             options: (NSUInteger)mask
               error: (NSError**)error
 {
+  if (NO == [data isKindOfClass: [NSData class]])
+    {
+      DESTROY(self);
+      if (nil == data)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"[NSXMLDocument-%@] nil argument",
+	    NSStringFromSelector(_cmd)];
+	}
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"[NSXMLDocument-%@] invalid argument",
+	NSStringFromSelector(_cmd)];
+    }
   GS_CREATE_INTERNAL(NSXMLDocument)
   if ((self = [super initWithKind: NSXMLDocumentKind options: 0]) != nil)
     {
-      if (nil != data)
-	{
-	  NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
+      NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
 
-	  if (nil == parser)
-	    {
-	      DESTROY(self);
-	    }
-	  else
-	    {
-	      internal->standalone = YES;
-	      internal->elementStack
-		= [[NSMutableArray alloc] initWithCapacity: 10];
-	      ASSIGN(internal->xmlData, data); 
-	      [parser setDelegate: self];
-	      [parser parse];
-	      RELEASE(parser);
-	    }
+      if (nil == parser)
+	{
+	  DESTROY(self);
+	}
+      else
+	{
+	  internal->standalone = YES;
+	  internal->elementStack
+	    = [[NSMutableArray alloc] initWithCapacity: 10];
+	  ASSIGN(internal->xmlData, data); 
+	  [parser setDelegate: self];
+	  [parser parse];
+	  RELEASE(parser);
 	}
     }
   return self;
@@ -137,7 +152,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 		   element, 
 		   self];
     }
-  self = [self initWithData: nil options: 0 error: 0];
+  self = [self initWithKind: NSXMLDocumentKind options: 0];
   if (self != nil)
     {
       [self setRootElement: (NSXMLNode*)element];
