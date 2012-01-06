@@ -218,8 +218,14 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setRootElement: (NSXMLNode*)root
 {
+  NSArray	*children;
+
   NSAssert(internal->rootElement == nil, NSGenericException);
-  [self insertChild: root atIndex: [internal->children count]];
+  /* this method replaces *all* children with the specified element.
+   */
+  children = [[NSArray alloc] initWithObjects: &root count: 1];  
+  [self setChildren: children];
+  [children release];
   internal->rootElement = (NSXMLElement*)root;
 }
 
@@ -248,48 +254,94 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  [child setParent: self];
-  [(NSMutableArray *)internal->children insertObject: child atIndex: index];
-  // internal->childrenHaveMutated = YES;
+  NSXMLNodeKind	kind;
+
+  NSAssert(nil != child, NSInvalidArgumentException);
+  NSAssert(index <= internal->childCount, NSInvalidArgumentException);
+  NSAssert(nil == [child parent], NSInvalidArgumentException);
+  kind = [child kind];
+  NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLDTDKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLDocumentKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLElementDeclarationKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLEntityDeclarationKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLInvalidKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
+
+  if (nil == internal->children)
+    {
+      internal->children = [[NSMutableArray alloc] initWithCapacity: 10];
+    }
+  [internal->children insertObject: child
+			   atIndex: index];
+  GSIVar(child, parent) = self;
+  internal->childCount++;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
 {
   NSEnumerator	*enumerator = [children objectEnumerator];
-  NSXMLNode	*node;
-
-  while ((node = [enumerator nextObject]) != nil)
+  NSXMLNode	*child;
+  
+  while ((child = [enumerator nextObject]) != nil)
     {
-      [self insertChild: node atIndex: index++];
+      [self insertChild: child atIndex: index++];
     }
 }
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  [(NSMutableArray *)internal->children removeObjectAtIndex: index];
-  // internal->childrenHaveMutated = YES;
+  NSXMLNode	*child = [internal->children objectAtIndex: index];
+
+  if (nil != child)
+    {
+      if (internal->rootElement == child)
+	{
+	  internal->rootElement = nil;
+	}
+      GSIVar(child, parent) = nil;
+      [internal->children removeObjectAtIndex: index];
+      if (0 == --internal->childCount)
+	{
+	  /* The -children method must return nil if there are no children,
+	   * so we destroy the container.
+	   */
+	  DESTROY(internal->children);
+	}
+    }
 }
 
 - (void) setChildren: (NSArray*)children
 {
-  unsigned	count;
-
-  while ((count = [internal->children count]) > 0)
+  if (children != internal->children)
     {
-      [self removeChildAtIndex: count - 1];
-    }
-  [self insertChildren: children atIndex: 0];
-}
+      NSEnumerator	*en;
+      NSXMLNode		*child;
 
+      [children retain];
+      while (internal->childCount > 0)
+	{
+	  [self removeChildAtIndex:internal->childCount - 1];
+	}
+      en = [children objectEnumerator];
+      while ((child = [en nextObject]) != nil)
+	{
+	  [self insertChild: child atIndex: internal->childCount];
+	}
+      [children release];
+    }
+}
+ 
 - (void) addChild: (NSXMLNode*)child
 {
-  [self insertChild: child atIndex: [internal->children count]];
+  [self insertChild: child atIndex: internal->childCount];
 }
-
+ 
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
 {
-  [self removeChildAtIndex: index];
   [self insertChild: node atIndex: index];
+  [self removeChildAtIndex: index + 1];
 }
 
 - (NSData*) XMLData
@@ -374,9 +426,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  id c = [super copyWithZone: zone];
+  NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
+
   [c setStandalone: internal->standalone];
-  [c setRootElement: internal->rootElement];
+  [c setChildren: internal->children];
+  GSIVar(c, rootElement) = internal->rootElement;
   [c setDTD: internal->docType];
   [c setMIMEType: internal->MIMEType];
   return c;
@@ -399,7 +453,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   [lastElement addChild: currentElement];
   [internal->elementStack addObject: currentElement];
   [currentElement release];
-  if (internal->rootElement == nil)
+  if (nil == internal->rootElement)
     {
       [self setRootElement: currentElement];
     }

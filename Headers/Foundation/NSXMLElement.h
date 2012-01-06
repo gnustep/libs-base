@@ -99,9 +99,17 @@ extern "C" {
 - (void) setAttributes: (NSArray*)attributes;
 
 /**
- * Sets attributes from the supplkied dictionary.
+ * Sets attributes from the supplied dictionary.<br />
+ * DEPRECATED ... use -setAttributesWithDictionary: instead.
  */
 - (void) setAttributesAsDictionary: (NSDictionary*)attributes;
+
+#if OS_API_VERSION(100700, GS_API_LATEST)
+/**
+ * Sets attributes from the supplied dictionary.
+ */
+- (void) setAttributesWithDictionary: (NSDictionary*)attributes;
+#endif
 
 /**
  * Returns the receiver's attributes.

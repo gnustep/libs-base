@@ -30,13 +30,6 @@
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
 
-@implementation NSXMLNode (Private)
-- (void) setParent: (NSXMLNode *)node
-{
-  ASSIGN(internal->parent,node);
-}
-@end
-
 @implementation NSXMLNode
 
 + (id) attributeWithName: (NSString*)name
@@ -199,7 +192,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   return internal->childCount;
 }
 
-- (NSArray*)children
+- (NSArray*) children
 {
   return internal->children;
 }
@@ -217,7 +210,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   [c setStringValue: [self stringValue]];
 
   /*
-  while((obj = [en nextObject]) != nil)
+  while ((obj = [en nextObject]) != nil)
     {
       NSXMLNode *n = [obj copyWithZone:zone];
       [self addChild: n];
@@ -249,6 +242,11 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
       [(NSXMLElement*)internal->parent removeChildAtIndex: internal->index];
       internal->parent = nil;
     }
+}
+
+- (NSUInteger) hash
+{
+  return [internal->name hash];
 }
 
 - (NSUInteger) index
@@ -324,8 +322,49 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
    */
   internal->kind = kind;
   internal->options = theOptions;
-  internal->children = [NSMutableArray new];
+  internal->stringValue = @"";
   return self;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  NSString	*s;
+  NSArray	*c;
+
+  if (other == (id)self)
+    {
+      return YES;
+    }
+
+  if (NO == [other isKindOfClass: [self class]])
+    {
+      return NO;
+    }
+
+  if ([(NSXMLNode*)other kind] != internal->kind)
+    {
+      return NO;
+    }
+
+  s = [other name];
+  if (s != internal->name && NO == [s isEqual: internal->name])
+    {
+      return NO;
+    }
+
+  s = [other URI];
+  if (s != internal->URI && NO == [s isEqual: internal->URI])
+    {
+      return NO;
+    }
+
+  c = [other children];
+  if (c != internal->children && NO == [c isEqual: internal->children])
+    {
+      return NO;
+    }
+
+  return YES;
 }
 
 - (NSXMLNodeKind) kind
@@ -509,7 +548,10 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) setName: (NSString *)name
 {
-  ASSIGNCOPY(internal->name, name);
+  if (NSXMLInvalidKind != internal->kind)
+    {
+      ASSIGNCOPY(internal->name, name);
+    }
 }
 
 - (void) setStringValue: (NSString*)string
@@ -519,19 +561,26 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) setURI: (NSString*)URI
 {
-  ASSIGNCOPY(internal->URI, URI);
+  if (NSXMLInvalidKind != internal->kind)
+    {
+      ASSIGNCOPY(internal->URI, URI);
+    }
 }
 
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
 {
   if (resolve == NO)
     {
-      ASSIGN(internal->stringValue, string);
+      ASSIGNCOPY(internal->stringValue, string);
     }
   else
     {
       // need to actually resolve entities...
-      ASSIGN(internal->stringValue, string);
+      ASSIGNCOPY(internal->stringValue, string);
+    }
+  if (nil == internal->stringValue)
+    {
+      internal->stringValue = @"";	// string value may not be nil
     }
 }
 
@@ -556,7 +605,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   return [self notImplemented: _cmd];
 }
-
 
 @end
 

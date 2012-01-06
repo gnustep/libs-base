@@ -1,3 +1,13 @@
+2012-01-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLElement.m:
+	* Source/NSXMLNode.m:
+	* Source/NSXMLPrivate.h:
+	Rewrote node hierarchy handling to match OSX documentation and
+	behaviors. Also implemented -hash and -isEqual: to match OSX for
+	NSXMLNode.
+
 2012-01-05 22:20-EST Doug Simons <doug.simons@testplant.com>
 
 	* Source/NSXMLDocument.m: Modify XMLStringWithOptions: to only include
