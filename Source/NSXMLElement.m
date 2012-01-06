@@ -202,6 +202,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   [child setParent: self];
   [internal->children insertObject: child
 			   atIndex: index];
+  internal->childCount++;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
