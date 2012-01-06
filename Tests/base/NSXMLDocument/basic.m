@@ -1,11 +1,13 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSXMLDocument.h>
+#import <Foundation/NSXMLElement.h>
 
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
-  NSXMLDocument         *node;
+  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  NSXMLDocument *node;
+  NSXMLElement *elem;
 
   node = [NSXMLDocument alloc];
   PASS_EXCEPTION([node initWithData: nil options: 0 error: 0],
@@ -18,8 +20,19 @@ int main()
     "Cannot initialise an XML document with bad data class");
 
   node = [[NSXMLDocument alloc] init];
-  test_alloc(@"NSXMLNode");
-  test_NSObject(@"NSXMLNode", [NSArray arrayWithObject: node]);
+  test_alloc(@"NSXMLDocument");
+  test_NSObject(@"NSXMLDocument", [NSArray arrayWithObject: node]);
+
+  elem = [[NSXMLElement alloc] initWithName: @"elem1"];
+  [node addChild: elem];
+  PASS_EQUAL([[node children] lastObject], elem, "can add elem to doc");
+  [elem release];
+  elem = [[NSXMLElement alloc] initWithName: @"root"];
+  [node setRootElement: elem];
+  PASS_EQUAL([[node children] lastObject], elem, "can set elem as root");
+  [elem release];
+  PASS([[node children] count] == 1, "set root removes other children");
+  
   [arp release];
   arp = nil;
 
