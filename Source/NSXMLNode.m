@@ -200,8 +200,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (id) copyWithZone: (NSZone*)zone
 {
   id c = [[self class] allocWithZone: zone];
-  // NSEnumerator *en = [internal->children objectEnumerator];
-  // id obj = nil;
 
   c = [c initWithKind: internal->kind options: internal->options];
   [c setName: [self name]];
@@ -209,16 +207,8 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   [c setObjectValue: [self objectValue]];
   [c setStringValue: [self stringValue]];
 
-  /*
-  while ((obj = [en nextObject]) != nil)
-    {
-      NSXMLNode *n = [obj copyWithZone:zone];
-      [self addChild: n];
-    }
-  */
-
   return c;
- }
+}
 
 - (void) dealloc
 {
