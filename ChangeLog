@@ -1,3 +1,8 @@
+2012-01-05 22:20-EST Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLDocument.m: Modify XMLStringWithOptions: to only include
+	the header when version, encoding, or standalone has been set.
+
 2012-01-05 22:20-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLElement.m: in setChildren: set the childCount.
