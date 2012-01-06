@@ -218,6 +218,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (void) removeChildAtIndex: (NSUInteger)index
 {
   [internal->children removeObjectAtIndex: index];
+  internal->childCount--;
 }
 
 - (void) setChildren: (NSArray*)children
@@ -240,6 +241,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   [child setParent: self];
   [internal->children addObject: child];
   // internal->childrenHaveMutated = YES;
+  internal->childCount++;
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
@@ -313,6 +315,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       NSXMLNode *n = [obj copyWithZone:zone];
       [self addChild: n];
     }
+  return c;
 }
 
 @end

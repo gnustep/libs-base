@@ -1,3 +1,8 @@
+2012-01-05 22:07-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLElement.m: Correct warning in copyWithZone: added
+	return.  Correct issue with childCount being out of sync.
+
 2012-01-05 21:33-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* ChangeLog
