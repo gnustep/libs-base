@@ -74,6 +74,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       ASSIGN(internal->name, name);
       internal->attributes = [[NSMutableDictionary alloc] initWithCapacity: 10];
       internal->namespaces = [[NSMutableArray alloc] initWithCapacity: 10];
+      internal->children = [[NSMutableArray alloc] initWithCapacity: 10];
     }
   return self;
 }
@@ -160,7 +161,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) addNamespace: (NSXMLNode*)aNamespace
 {
-  [self notImplemented: _cmd];
+  [internal->namespaces addObject: aNamespace]; 
 }
 
 - (void) removeNamespaceForPrefix: (NSString*)name
@@ -170,15 +171,11 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) setNamespaces: (NSArray*)namespaces
 {
-  [self notImplemented: _cmd];
+  ASSIGNCOPY(internal->namespaces, namespaces);
 }
 
 - (NSArray*) namespaces
 {
-  if (internal->namespaces == nil)
-    {
-      [self notImplemented: _cmd];
-    }
   return internal->namespaces;
 }
 
@@ -202,7 +199,9 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  [self notImplemented: _cmd];
+  [child setParent: self];
+  [internal->children insertObject: child
+			   atIndex: index];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -223,10 +222,16 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) setChildren: (NSArray*)children
 {
-  NSMutableArray	*c = [children mutableCopy];
+  NSMutableArray *c = [children mutableCopy];
+  NSEnumerator *en = [c objectEnumerator];
+  NSXMLNode *n = nil;
 
   ASSIGN(internal->children, c);
   [c release];
+  while((n = [en nextObject]) != nil)
+    {
+      [n setParent: self];
+    }
   // internal->childrenHaveMutated = YES;
 }
  
@@ -282,6 +287,32 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
   // return 
   return result;
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  id c = [super copyWithZone: zone];
+  NSEnumerator *en = [internal->namespaces objectEnumerator];
+  id obj = nil;
+
+  while((obj = [en nextObject]) != nil)
+    {
+      [c addNamespace: [obj copyWithZone: zone]];
+    }
+
+  en = [internal->attributes objectEnumerator];
+  while((obj = [en nextObject]) != nil)
+    {
+      NSXMLNode *attr = [obj copyWithZone: zone];
+      [c addAttribute: attr];
+    }
+  
+  en = [[self children] objectEnumerator];  
+  while((obj = [en nextObject]) != nil)
+    {
+      NSXMLNode *n = [obj copyWithZone:zone];
+      [self addChild: n];
+    }
 }
 
 @end

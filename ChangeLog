@@ -1,3 +1,11 @@
+2012-01-05 21:33-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* ChangeLog
+	* Source/NSXMLDocument.m
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m: Implement copyWithZone:, correct issues
+	with previous revert.
+
 2012-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLDocument.m:

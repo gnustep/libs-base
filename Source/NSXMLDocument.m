@@ -31,6 +31,17 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 #import <Foundation/NSXMLParser.h>
 
+@interface NSXMLDocument (Debug)
+- (id) elementStack;
+@end
+
+@implementation NSXMLDocument (Debug)
+- (id) elementStack
+{
+  return internal->elementStack;
+}
+@end
+
 // Forward declaration of interface for NSXMLParserDelegate
 @interface NSXMLDocument (NSXMLParserDelegate)
 @end
@@ -112,16 +123,15 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
     {
       NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
 
+      internal->standalone = YES;
+      internal->elementStack = [[NSMutableArray alloc] initWithCapacity: 10];
+      ASSIGN(internal->xmlData, data); 
       if (nil == parser)
 	{
 	  DESTROY(self);
 	}
       else
 	{
-	  internal->standalone = YES;
-	  internal->elementStack
-	    = [[NSMutableArray alloc] initWithCapacity: 10];
-	  ASSIGN(internal->xmlData, data); 
 	  [parser setDelegate: self];
 	  [parser parse];
 	  RELEASE(parser);
@@ -287,10 +297,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   return [self XMLDataWithOptions: NSXMLNodeOptionsNone]; 
 }
 
-- (NSData*) XMLDataWithOptions: (NSUInteger)options
+- (NSData *) XMLDataWithOptions: (NSUInteger)options
 {
-  // TODO: Apply options to data.
-  return internal->xmlData;
+  NSString *xmlString = [self XMLStringWithOptions: options];
+  NSData *data = [NSData dataWithBytes: [xmlString UTF8String]
+				length: [xmlString length]];
+  return data;
 }
 
 - (NSString *) XMLStringWithOptions: (NSUInteger)options
@@ -341,6 +353,16 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   [self notImplemented: _cmd];
   return NO;
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  id c = [super copyWithZone: zone];
+  [c setStandalone: internal->standalone];
+  [c setRootElement: internal->rootElement];
+  [c setDTD: internal->docType];
+  [c setMIMEType: internal->MIMEType];
+  return c;
 }
 
 @end
