@@ -229,6 +229,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   NSXMLNode *n = nil;
 
   ASSIGN(internal->children, c);
+  internal->childCount = [children count];
   [c release];
   while((n = [en nextObject]) != nil)
     {
