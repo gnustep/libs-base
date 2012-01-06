@@ -29,9 +29,11 @@ int main()
   PASS_RUNS([root insertChild: child2 atIndex: 0],
     "may add a child at index 0");
   PASS(1 == [[root children] count], "parent has a child after insertion");
+  PASS_EQUAL([child2 parent], root, "child has correct parent");
   PASS_RUNS([root removeChildAtIndex: 0],
    "removing child works");
   PASS_EQUAL([root children], nil, "children is nil after removal");
+  PASS_EQUAL([child2 parent], nil, "child has no parent");
   PASS_RUNS([root insertChild: child2 atIndex: 0],
     "may reinsert a child at index 0");
 
