@@ -311,13 +311,30 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSEnumerator		*en = [internal->children objectEnumerator];
   id			obj = nil;
 
-  [string appendString: @"<?xml version=\"1.0\""];
-  if (YES == internal->standalone)
+  if (internal->version || internal->standalone || internal->encoding)
     {
-      [string appendString: @" standalone=\"yes\""];
+      NSString *version = internal->version;
+      if (!version)
+	version = @"1.0";
+      [string appendString: @"<?xml version=\""];
+      [string appendString: version];
+      [string appendString: @"\""];
+      if (internal->encoding)
+	{
+	  [string appendString: @" encoding=\""];
+	  [string appendString: internal->encoding];
+	  [string appendString: @"\""];
+	}
+      if (YES == internal->standalone)
+        {
+          [string appendString: @" standalone=\"yes\""];
+        }
+      else
+        {
+          [string appendString: @" standalone=\"no\""];
+        }
+      [string appendString: @"?>\n"];
     }
-  [string appendString: @"?>\n"];
-
   while ((obj = [en nextObject]) != nil)
     {
       [string appendString: [obj XMLStringWithOptions: options]];
