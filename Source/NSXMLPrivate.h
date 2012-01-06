@@ -180,6 +180,3 @@
 
 #endif
 
-@interface NSXMLNode (Private)
-- (void) setParent: (NSXMLNode *)node;
-@end
