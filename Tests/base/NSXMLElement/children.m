@@ -29,6 +29,11 @@ int main()
   PASS_RUNS([root insertChild: child2 atIndex: 0],
     "may add a child at index 0");
   PASS(1 == [[root children] count], "parent has a child after insertion");
+  PASS_RUNS([root removeChildAtIndex: 0],
+   "removing child works");
+  PASS_EQUAL([root children], nil, "children is nil after removal");
+  PASS_RUNS([root insertChild: child2 atIndex: 0],
+    "may reinsert a child at index 0");
 
   PASS_RUNS([root insertChild: child1 atIndex: 0],
     "may add a child at index 0");
@@ -99,6 +104,7 @@ int main()
 
   PASS_EXCEPTION([root removeChildAtIndex: 100], NSRangeException,
    "removing child from invalid index raises");
+
 
   [root release];
   [child1 release];
