@@ -1,3 +1,9 @@
+2012-01-06 17:57-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLElement.m: Removing assertion that
+	parent must not be nil per Cocoa documentation for
+	-(id)parent method in NSXMLNode.
+
 2012-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLDocument.m:

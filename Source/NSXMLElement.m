@@ -220,9 +220,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
   NSAssert(nil != child, NSInvalidArgumentException);
   NSAssert(index <= internal->childCount, NSInvalidArgumentException);
-  NSAssert(nil == [child parent], NSInvalidArgumentException);
-  kind = [child kind];
-// FIXME ... should we check for valid kinds rather than invalid ones?
+   kind = [child kind];
+  // FIXME ... should we check for valid kinds rather than invalid ones?
   NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDTDKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDocumentKind != kind, NSInvalidArgumentException);
