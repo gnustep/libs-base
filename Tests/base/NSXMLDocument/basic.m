@@ -33,6 +33,9 @@ int main()
   [elem release];
   PASS([[node children] count] == 1, "set root removes other children");
   
+  PASS_RUNS([node setRootElement: nil], "setting a nil root is ignored");
+  PASS_EQUAL([node rootElement], elem, "root element remains");
+
   [arp release];
   arp = nil;
 
