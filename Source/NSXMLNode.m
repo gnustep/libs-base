@@ -227,11 +227,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) detach
 {
-  if (internal->parent != nil)
-    {
-      [(NSXMLElement*)internal->parent removeChildAtIndex: internal->index];
-      internal->parent = nil;
-    }
+  [(NSXMLElement*)internal->parent removeChildAtIndex: [self index]];
 }
 
 - (NSUInteger) hash
@@ -241,7 +237,11 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSUInteger) index
 {
-  return internal->index;
+  if (nil == internal->parent)
+    {
+      return 0;
+    }
+  return [GSIVar(internal->parent, children) indexOfObjectIdenticalTo: self];
 }
 
 - (id) init

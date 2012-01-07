@@ -1,3 +1,17 @@
+2012-01-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLPrivate.h:
+	* Source/NSXMLNode.m:
+	* Source/NSXMLElement.m:
+	Replace missing assertion (needed for OSX compatibility) also fix
+	several other issues in node hierarchy handling ... all rather
+	academic since greg's going to rewrite, but these fixes do mean
+	the current code passes the testsuite. It's a bad idea to leave
+	the code and testsuite in an inconsistent state, and the testsuite
+	represents accumulated information about OSX, so we want our code
+	to pass all tests rather than removing tests.
+
 2012-01-06 17:57-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLElement.m: Removing assertion that
