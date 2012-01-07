@@ -30,7 +30,6 @@ int main()
   elem = [[NSXMLElement alloc] initWithName: @"root"];
   [node setRootElement: elem];
   PASS_EQUAL([[node children] lastObject], elem, "can set elem as root");
-  [elem release];
   PASS([[node children] count] == 1, "set root removes other children");
   
   PASS_RUNS([node setRootElement: nil], "setting a nil root is ignored");
@@ -39,6 +38,7 @@ int main()
   [arp release];
   arp = nil;
 
+  [elem release];
   [node release];
   return 0;
 }
