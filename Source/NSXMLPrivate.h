@@ -52,7 +52,6 @@
   void		*handle; \
   NSUInteger	kind; \
   NSXMLNode     *parent; \
-  NSUInteger    index; \
   id            objectValue; \
   NSString      *stringValue; \
   NSString      *name; \

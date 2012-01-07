@@ -35,6 +35,10 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   if (GS_EXISTS_INTERNAL && _internal != nil)
     {
+      while (internal->childCount > 0)
+	{
+	  [self removeChildAtIndex: internal->childCount - 1];
+	}
       [internal->attributes release];
       [internal->namespaces release];
     }
@@ -220,7 +224,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
   NSAssert(nil != child, NSInvalidArgumentException);
   NSAssert(index <= internal->childCount, NSInvalidArgumentException);
-   kind = [child kind];
+  NSAssert(nil == [child parent], NSInternalInconsistencyException);
+  kind = [child kind];
   // FIXME ... should we check for valid kinds rather than invalid ones?
   NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDTDKind != kind, NSInvalidArgumentException);
@@ -254,19 +259,22 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  NSXMLNode	*child = [internal->children objectAtIndex: index];
+  NSXMLNode	*child;
 
-  if (nil != child)
+  if (index >= internal->childCount)
     {
-      GSIVar(child, parent) = nil;
-      [internal->children removeObjectAtIndex: index];
-      if (0 == --internal->childCount)
-	{
-	  /* The -children method must return nil if there are no children,
-	   * so we destroy the container.
-	   */
-	  DESTROY(internal->children);
-	}
+      [NSException raise: NSRangeException
+		  format: @"index to large"];
+    }
+  child = [internal->children objectAtIndex: index];
+  GSIVar(child, parent) = nil;
+  [internal->children removeObjectAtIndex: index];
+  if (0 == --internal->childCount)
+    {
+      /* The -children method must return nil if there are no children,
+       * so we destroy the container.
+       */
+      DESTROY(internal->children);
     }
 }
 
@@ -346,22 +354,35 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (id) copyWithZone: (NSZone *)zone
 {
   NSXMLElement	*c = (NSXMLElement*)[super copyWithZone: zone];
-  NSEnumerator	*en = [internal->namespaces objectEnumerator];
-  id obj = nil;
+  NSEnumerator	*en;
+  id obj;
 
+  en = [internal->namespaces objectEnumerator];
   while ((obj = [en nextObject]) != nil)
     {
-      [c addNamespace: [obj copyWithZone: zone]];
+      NSXMLNode *ns = [obj copyWithZone: zone];
+
+      [c addNamespace: ns];
+      [ns release];
     }
 
   en = [internal->attributes objectEnumerator];
   while ((obj = [en nextObject]) != nil)
     {
       NSXMLNode *attr = [obj copyWithZone: zone];
+
       [c addAttribute: attr];
+      [attr release];
     }
   
-  [c setChildren: [self children]];
+  en = [internal->children objectEnumerator];
+  while ((obj = [en nextObject]) != nil)
+    {
+      NSXMLNode *child = [obj copyWithZone: zone];
+
+      [c addChild: child];
+      [child release];
+    }
 
   return c;
 }
