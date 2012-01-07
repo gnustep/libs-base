@@ -110,6 +110,10 @@ int main()
 
   PASS(1 == [child1 level], "child element node level is one");
 
+  PASS_RUNS([root1 setChildren: nil],
+    "may set a nil array of children");
+  PASS(0 == [[root1 children] count], "setting nil children works");
+
   PASS_EXCEPTION([root1 removeChildAtIndex: 100], NSRangeException,
    "removing child from invalid index raises");
 
