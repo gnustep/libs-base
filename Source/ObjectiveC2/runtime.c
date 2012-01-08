@@ -1,4 +1,4 @@
-#include "ObjectiveC2/runtime.h"
+#include "ObjectiveC2/objc/runtime.h"
 
 /* Make glibc export strdup() */
 

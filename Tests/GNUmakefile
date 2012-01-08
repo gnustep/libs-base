@@ -54,7 +54,8 @@ all::
 #
 # 'make check' runs the testsuite (Objective-C tests only)
 #
-# Use 'make check GNUSTEP_TEST_OBJCXX=yes' to run both Objective-C and Objective-C++ tests
+# Use 'make check GNUSTEP_TEST_OBJCXX=yes' to run both Objective-C
+# and Objective-C++ tests
 #
 check::
 	(\
@@ -68,7 +69,11 @@ check::
 	export ADDITIONAL_LIB_DIRS;\
 	export LD_LIBRARY_PATH;\
 	export PATH;\
-	gnustep-tests base;\
+	if [ "$(DEBUG)" = "" ]; then \
+	  gnustep-tests base;\
+        else \
+	  gnustep-tests --debug base;\
+        fi; \
 	)
 
 clean::

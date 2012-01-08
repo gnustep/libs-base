@@ -49,13 +49,11 @@ after-all:: Info-gnustep.plist
 ifeq ($(OBJC2RUNTIME),0)
 after-install::
 	$(MKDIRS) $(GNUSTEP_HEADERS)/ObjectiveC2
+	$(MKDIRS) $(GNUSTEP_HEADERS)/ObjectiveC2/objc
 	for file in $(OBJECTIVEC2_HEADERS); do \
-	  $(INSTALL_DATA) ../Headers/ObjectiveC2/$$file \
-	    $(GNUSTEP_HEADERS)/ObjectiveC2/$$file ; \
+	  $(INSTALL_DATA) ../Headers/ObjectiveC2/objc/$$file \
+	    $(GNUSTEP_HEADERS)/ObjectiveC2/objc/$$file ; \
 	done
-	$(MKDIRS) $(GNUSTEP_HEADERS)/objc
-	echo "#include <ObjectiveC2/runtime.h>" \
-	> $(GNUSTEP_HEADERS)/objc/runtime.h
 endif
 # Unfortunately the way the header files are placed in relationship
 # to the source we must install the GNU header manually
@@ -88,9 +86,8 @@ after-install::
 # Things to do before uninstalling
 ifeq ($(OBJC2RUNTIME),0)
 before-uninstall::
-	rm -f $(GNUSTEP_HEADERS)/objc/runtime.h; \
 	for file in $(OBJECTIVEC2_HEADERS); do \
-	  rm -f $(GNUSTEP_HEADERS)/ObjectiveC2/$$file ; \
+	  rm -f $(GNUSTEP_HEADERS)/ObjectiveC2/objc/$$file ; \
 	done
 endif
 

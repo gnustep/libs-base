@@ -50,6 +50,13 @@ ifeq ($(BASE_MAKE_LOADED),)
     FND_LIBS = -lgnustep-baseadd -framework Foundation
   endif
 
+  # Is the ObjC2 runtime real or emulated?
+  # If it's not real, we need to use the emulation ObjectiveC2 headers.
+  OBJC2RUNTIME=@OBJC2RUNTIME@
+  ifeq ($(OBJC2RUNTIME),0)
+    AUXILIARY_OBJCFLAGS += -I$(GNUSTEP_HEADERS)/ObjectiveC2
+  endif
+
   # For literal string handling, base requires the compiler to store the
   # string as UTF-8
   AUXILIARY_OBJCFLAGS += @GS_EXEC_CHARSET@

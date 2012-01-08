@@ -1,3 +1,28 @@
+2012-01-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/ObjectiveC2/objc/capabilities.h:
+	* Headers/ObjectiveC2/objc/Availability.h:
+	* Headers/ObjectiveC2/objc/blocks_runtime.h:
+	* Headers/ObjectiveC2/objc/runtime.h:
+	Moved to subdirectory.
+	* Source/Makefile.postamble:
+	* Source/ObjectiveC2/runtime.c:
+	* Source/ObjectiveC2/caps.c:
+	* Source/ObjectiveC2/NSBlocks.m:
+	* Source/ObjectiveC2/blocks_runtime.m:
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Tests/GNUmakefile:
+	* base.make.in:
+	Move ObjectiveC2 headers to objc subdirectory so that we can refer
+	to them using the same objc/headername path as OSX, and use a -I
+	directive to point to the ObjectiveC2 directory to avoid installing
+	on top of the real objc2 library or vie versa. Should make it easier
+	to figure out how to cleanly swith between raeal/emulated objc2
+	runtimes.  This should also mean that old emulated objc2 headers are
+	*not* found at configure time, so configure should be able to tell if
+	a real objc2 runtime has been installed on a system which previously
+	used the old objc runtime.
+
 2012-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLDocument.m:

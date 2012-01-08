@@ -16,9 +16,9 @@ BOOL objc_create_block_classes_as_subclasses_of(Class super)
 #else
 
 #import <objc/objc-api.h>
-#import "ObjectiveC2/runtime.h"
+#import "ObjectiveC2/objc/runtime.h"
 
-#import "ObjectiveC2/blocks_runtime.h"
+#import "ObjectiveC2/objc/blocks_runtime.h"
 #include <assert.h>
 
 struct objc_class _NSConcreteGlobalBlock;

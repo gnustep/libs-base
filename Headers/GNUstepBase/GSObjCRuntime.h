@@ -82,8 +82,7 @@
 #else
 /* We emulate an ObjC2 runtime.
  */
-#include <objc/objc-api.h>
-#include <ObjectiveC2/runtime.h>
+#include <ObjectiveC2/objc/runtime.h>
 #endif
 
 #ifdef __cplusplus

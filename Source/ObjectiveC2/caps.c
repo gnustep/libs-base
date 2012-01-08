@@ -1,4 +1,4 @@
-#include "ObjectiveC2/capabilities.h"
+#include "ObjectiveC2/objc/capabilities.h"
 #include <stdint.h>
 
 /**
