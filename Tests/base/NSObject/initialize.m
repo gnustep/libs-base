@@ -150,7 +150,17 @@ static int	mutual = 0;
 @end
 
 static void
-alarmed(int sig)
+mutualinit(int sig)
+{
+  /* Generate a dashed hope for mutuality testing.
+   */
+  testHopeful = YES;
+  PASS(0, "+initialize mutually dependent methods work");
+  exit(0);
+}
+
+static void
+concurrency(int sig)
 {
   /* Generate a dashed hope for concurrency testing.
    */
@@ -178,6 +188,14 @@ int main(void)
    */
   PASS(1, "initialize test starts");
 
+#if defined(SIGALRM)
+  /* End in a signal if the concurrency test deadlocks.
+   */
+  signal(SIGALRM, mutualinit);
+  alarm(5);
+#else
+  SKIP("+initialize runs concurrently. No SIGALRM present, this means we cannot stop the test on deadlock.");
+#endif
   /* Make sure that classes whose +initialise methods call each other
    * can operate safely.
    */
@@ -192,6 +210,9 @@ int main(void)
     {
       [NSThread sleepForTimeInterval: 0.1];
     }
+#if defined(SIGALRM)
+  signal(SIGALRM, SIG_IGN);
+#endif
   PASS(2 == mutual, "mutually dependent +initialize is thread-safe");
 
   /* Make sure that when a class without its own +initialise is first used,
@@ -203,7 +224,7 @@ int main(void)
 #if defined(SIGALRM)
   /* End in a signal if the concurrency test deadlocks.
    */
-  signal(SIGALRM, alarmed);
+  signal(SIGALRM, concurrency);
   alarm(5);
 #else
   SKIP("+initialize runs concurrently. No SIGALRM present, this means we cannot stop the test on deadlock.");
