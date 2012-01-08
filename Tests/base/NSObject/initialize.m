@@ -1,3 +1,4 @@
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSThread.h>
 #import <Foundation/NSLock.h>
 #include <unistd.h>
@@ -18,6 +19,12 @@
 
 @interface SlowInit2
 + (void) doNothing;
+@end
+
+@interface Mutual1 : NSObject
+@end
+
+@interface Mutual2 : NSObject
 @end
 
 static NSCondition *l;
@@ -105,6 +112,43 @@ static volatile int finished = 2;
 }
 @end
 
+
+static int	mutual = 0;
+
+@implementation Mutual1
++ (void) initialize
+{
+  [NSThread sleepForTimeInterval: 0.5];
+  [Mutual2 class];
+  mutual++;
+}
+@end
+
+@implementation Mutual2
++ (void) initialize
+{
+  [NSThread sleepForTimeInterval: 0.5];
+  [Mutual1 class];
+  mutual++;
+}
+@end
+
+@interface NSObject (Mutual)
++ (void) mutual1: (id)ignored;
++ (void) mutual2: (id)ignored;
+@end
+
+@implementation NSObject (Mutual)
++ (void) mutual1: (id)ignored
+{
+  [Mutual1 class];
+}
++ (void) mutual2: (id)ignored
+{
+  [Mutual2 class];
+}
+@end
+
 static void
 alarmed(int sig)
 {
@@ -117,12 +161,14 @@ alarmed(int sig)
 
 /**
  * Test the behaviour of +initialize.
- * It's an undocumented (but nivce) feature that the Apple runtime lets
+ * It's an undocumented (but nice) feature that the Apple runtime lets
  * both of the +initialize methods run concurrently, however the first
  * one will block implicitly until the second one has completed.
  */
 int main(void)
 {
+  NSDate	*when;
+
   [NSAutoreleasePool new];
 
   START_SET("+initialize")
@@ -131,6 +177,22 @@ int main(void)
    * framework to record a test ... by passing one.
    */
   PASS(1, "initialize test starts");
+
+  /* Make sure that classes whose +initialise methods call each other
+   * can operate safely.
+   */
+  [NSThread detachNewThreadSelector: @selector(mutual1:)
+			   toTarget: [NSObject class]
+			 withObject: nil];
+  [NSThread detachNewThreadSelector: @selector(mutual2:)
+			   toTarget: [NSObject class]
+			 withObject: nil];
+  when = [NSDate dateWithTimeIntervalSinceNow: 10.0];
+  while (mutual < 2 && [when timeIntervalSinceNow] > 0.0)
+    {
+      [NSThread sleepForTimeInterval: 0.1];
+    }
+  PASS(2 == mutual, "mutually dependent +initialize is thread-safe");
 
   /* Make sure that when a class without its own +initialise is first used,
    * the inherited +initialize is called instead.
