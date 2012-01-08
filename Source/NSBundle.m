@@ -1216,7 +1216,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
    */
   if (aClass == [NSObject class])
     {
-      return _gnustep_bundle;
+      if (nil != _gnustep_bundle)
+	{
+	  return _gnustep_bundle;
+	}
     }
 
   [load_lock lock];
