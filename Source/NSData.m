@@ -3111,8 +3111,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_RDONLY);
       if (shmid == -1)			/* Created memory? */
 	{
-	  NSLog(@"[-initWithBytes:length:] shared mem get failed for %lu - %@",
-	    bufferSize, [NSError _last]);
+	  NSLog(@"[-initWithBytes:length:] shared mem get failed for %"
+	    PRIuPTR" - %@", bufferSize, [NSError _last]);
 	  DESTROY(self);
 	  self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
 	  return [self initWithBytes: aBuffer length: bufferSize];
@@ -3121,8 +3121,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     bytes = shmat(shmid, 0, 0);
     if (bytes == (void*)-1)
       {
-	NSLog(@"[-initWithBytes:length:] shared mem attach failed for %lu - %@",
-	  bufferSize, [NSError _last]);
+	NSLog(@"[-initWithBytes:length:] shared mem attach failed for %"
+	  PRIuPTR" - %@", bufferSize, [NSError _last]);
 	bytes = 0;
 	DESTROY(self);
 	self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
@@ -3301,7 +3301,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (bytes == 0)
 	{
 	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory "
-	    @"for %lu bytes - %@", size, [NSError _last]);
+	    @"for %"PRIuPTR" bytes - %@", size, [NSError _last]);
 	  DESTROY(self);
 	  return nil;
 	}
@@ -3845,7 +3845,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (shmid == -1)			/* Created memory? */
     {
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "
-	@"get failed for %lu - %@", bufferSize, [NSError _last]);
+	@"get failed for %"PRIuPTR" - %@", bufferSize, [NSError _last]);
       DESTROY(self);
       self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
       return [self initWithCapacity: bufferSize];
@@ -3855,7 +3855,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (bytes == (void*)-1)
     {
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "
-	@"attach failed for %lu - %@", bufferSize, [NSError _last]);
+	@"attach failed for %"PRIuPTR" - %@", bufferSize, [NSError _last]);
       bytes = 0;
       DESTROY(self);
       self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];

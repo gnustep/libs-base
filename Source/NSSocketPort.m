@@ -2289,7 +2289,7 @@ static Class		tcpPortClass;
   rl = [self reservedSpaceLength];
   if (length != 0 && length != rl)
     {
-      NSLog(@"bad reserved length - %lu", length);
+      NSLog(@"bad reserved length - %"PRIuPTR, length);
       return NO;
     }
   if ([receivingPort isKindOfClass: tcpPortClass] == NO)

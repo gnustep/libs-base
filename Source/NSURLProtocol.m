@@ -1535,7 +1535,8 @@ static NSURLProtocol	*placeholder = nil;
     }
   else
     {
-      NSLog(@"Unexpected event %lu occurred on stream %@ not being used by %@",
+      NSLog(@"Unexpected event %"PRIuPTR
+	" occurred on stream %@ not being used by %@",
 	event, stream, self);
     }
   if (event == NSStreamEventErrorOccurred)
@@ -1547,7 +1548,7 @@ static NSURLProtocol	*placeholder = nil;
     }
   else
     {
-      NSLog(@"Unexpected event %lu ignored on stream %@ of %@",
+      NSLog(@"Unexpected event %"PRIuPTR" ignored on stream %@ of %@",
 	event, stream, self);
     }
 }
@@ -1681,7 +1682,8 @@ static NSURLProtocol	*placeholder = nil;
     }
   else
     {
-      NSLog(@"Unexpected event %lu occurred on stream %@ not being used by %@",
+      NSLog(@"Unexpected event %"PRIuPTR
+	" occurred on stream %@ not being used by %@",
 	event, stream, self);
     }
   if (event == NSStreamEventErrorOccurred)
@@ -1693,7 +1695,7 @@ static NSURLProtocol	*placeholder = nil;
     }
   else
     {
-      NSLog(@"Unexpected event %lu ignored on stream %@ of %@",
+      NSLog(@"Unexpected event %"PRIuPTR" ignored on stream %@ of %@",
 	event, stream, self);
     }
 }

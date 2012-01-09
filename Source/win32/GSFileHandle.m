@@ -2201,7 +2201,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  NSDebugMLLog(@"NSFileHandle", @"%@ event: %lu type: %lu extra: %lu mode: %@",
+  NSDebugMLLog(@"NSFileHandle", @"%@ event: %"PRIuPTR" type: %"PRIuPTR
+    " extra: %"PRIuPTR" mode: %@",
     self, (uintptr_t)data, (uintptr_t)type, (uintptr_t)extra, mode);
 
   if (isNonBlocking == NO)
@@ -2214,7 +2215,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       if (type != ET_HANDLE)
 	{
-	  NSLog(@"Argh, TRIGGER on socket %lu %lu %@ with event %u desc %u",
+	  NSLog(@"Argh, TRIGGER on socket %"PRIuPTR" %"PRIuPTR
+	    " %@ with event %u desc %u",
 	    (uintptr_t)data, (uintptr_t)extra, mode, (uintptr_t)event,
 	    (uintptr_t)descriptor);
 /*

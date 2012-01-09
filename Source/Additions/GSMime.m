@@ -3789,8 +3789,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
   if (offset > fold)
     {
-      NSLog(@"Name '%@' too long for folding at %lu in header",
-	n, (unsigned long)fold);
+      NSLog(@"Name '%@' too long for folding at %"PRIuPTR" in header",
+	n, fold);
     }
 
   offset = appendBytes(md, offset, fold, ":", 1);

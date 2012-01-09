@@ -1,3 +1,22 @@
+2012-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcretePointerFunctions.m:
+	* Source/NSSocketPort.m:
+	* Source/unix/NSStream.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSZone.m:
+	* Source/NSMessagePort.m:
+	* Source/win32/GSFileHandle.m:
+	* Source/NSInvocation.m:
+	* Source/NSURLProtocol.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSXML.m:
+	* Source/NSData.m:
+	* Source/GSAvahiNetService.m:
+	* Source/NSTextCheckingResult.m:
+	Use PRIdPTR and PRIuPTR rather than ld and lu for printf formatting
+	of NSInteger and NSUInteger values.
+
 2012-01-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/ObjectiveC2/objc/capabilities.h:

@@ -83,7 +83,7 @@
   if (idx >= [self numberOfRanges])
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"index %lu out of range", (unsigned long)idx];
+		  format: @"index %"PRIuPTR" out of range", (unsigned long)idx];
     }
   return [self range];
 }
@@ -121,7 +121,7 @@
   if (idx >= rangeCount)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"index %lu out of range", (unsigned long)idx];
+		  format: @"index %"PRIuPTR" out of range", (unsigned long)idx];
     }
   return ranges[idx];
 }
@@ -151,8 +151,8 @@
           (offset < 0 && r.location < -offset))
 	{
 	  [NSException raise: NSInvalidArgumentException
-		      format: @"Invalid offset %ld for range: %@",
-		       (long)offset, NSStringFromRange(r)];
+		      format: @"Invalid offset %"PRIdPTR" for range: %@",
+		       offset, NSStringFromRange(r)];
 	}
       r.location += offset;
       result->ranges[i] = r;

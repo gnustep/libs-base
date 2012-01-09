@@ -192,8 +192,7 @@
     }
   else
     {
-      NSLog(@"_dispatch with unexpected status %lu",
-	(unsigned long)[self streamStatus]);
+      NSLog(@"_dispatch with unexpected status %"PRIuPTR, [self streamStatus]);
     }
 }
 @end
@@ -322,8 +321,7 @@
     }
   else
     {
-      NSLog(@"_dispatch with unexpected status %lu",
-	(unsigned long)[self streamStatus]);
+      NSLog(@"_dispatch with unexpected status %"PRIuPTR, [self streamStatus]);
     }
 }
 @end

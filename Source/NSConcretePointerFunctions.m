@@ -68,7 +68,7 @@ describeString(const void *item)
 static NSString*
 describeInteger(const void *item)
 {
-  return [NSString stringWithFormat: @"%ld", (long)(intptr_t)item];
+  return [NSString stringWithFormat: @"%"PRIdPTR, (intptr_t)item];
 }
 
 static NSString*

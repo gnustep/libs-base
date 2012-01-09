@@ -235,7 +235,8 @@ NSDataFromAvahiStringList(AvahiStringList* list)
   if (buffer == NULL)
     {
       // Should we raise an exception?
-      NSDebugLog(@"Couldn't allocate %lu bytes for txt record", len);
+      NSDebugLog(@"Couldn't allocate %"PRIuPTR" bytes for txt record",,
+	(uintptr_t)len);
       return nil;
     }
 
