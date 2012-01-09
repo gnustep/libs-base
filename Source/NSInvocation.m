@@ -114,7 +114,8 @@
 
   if (buffer == (void*)0)
     {
-      NSLog(@"Failed to map %lu bytes for execute: %@", _size, [NSError _last]);
+      NSLog(@"Failed to map %"PRIuPTR
+	" bytes for execute: %@", _size, [NSError _last]);
       buffer = 0;
       [self dealloc];
       self = nil;

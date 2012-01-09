@@ -102,8 +102,7 @@
 void *
 GSOutOfMemory(NSUInteger size, BOOL retry)
 {
-  fprintf(stderr, "GSOutOfMemory ... wanting %lu bytes.\n",
-    (unsigned long)size);
+  fprintf(stderr, "GSOutOfMemory ... wanting %"PRIuPTR" bytes.\n", size);
   return 0;
 }
 

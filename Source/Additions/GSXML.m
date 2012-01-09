@@ -4696,8 +4696,13 @@ static void indentation(unsigned level, NSMutableString *str)
   INDENT(indent);
   if (strchr("cCsSiIlL", *t) != 0)
     {
-      long	i = [self longValue];
+      int64_t	i = [self longLongValue];
 
+      if ((i & 0xffffffff) != i)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"Can't encode %"PRId64" as i4"];
+	}
       if ((i == 0 || i == 1) && (*t == 'c' || *t == 'C'))
         {
 	  if (i == 0)
@@ -4711,7 +4716,7 @@ static void indentation(unsigned level, NSMutableString *str)
 	}
       else
 	{
-	  [str appendFormat: @"<i4>%ld</i4>", i];
+	  [str appendFormat: @"<i4>%"PRId32"</i4>", (int32_t)i];
 	}
     }
   else

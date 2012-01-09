@@ -501,8 +501,8 @@ static NSMapTable	*globalClassMap = 0;
   if (i > INT_MAX || i < INT_MIN)
     {
       [NSException raise: NSRangeException
-	          format: @"[%@ +%@]: value %ld for key(%@) is out of range",
-                   NSStringFromClass([self class]), NSStringFromSelector(_cmd), i, aKey];
+	format: @"[%@ +%@]: value %"PRIu64" for key(%@) is out of range",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd), i, aKey];
     }
 #endif
   return (int)i;
@@ -534,8 +534,8 @@ static NSMapTable	*globalClassMap = 0;
   if (i > INT32_MAX || i < INT32_MIN)
     {
       [NSException raise: NSRangeException
-	          format: @"[%@ +%@]: value for key(%@) is out of range",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd), aKey];
+	format: @"[%@ +%@]: value %"PRIu64" for key(%@) is out of range",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), i, aKey];
     }
   return (int32_t)i;
 }
