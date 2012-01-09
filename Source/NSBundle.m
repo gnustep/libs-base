@@ -39,6 +39,7 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSNull.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSNotification.h"
@@ -74,6 +75,8 @@ manager()
   return mgr;
 }
 
+static NSLock *pathCacheLock = nil;
+static NSMutableDictionary *pathCache = nil;
 
 @interface NSObject (PrivateFrameworks)
 + (NSString*) frameworkEnv;
@@ -299,17 +302,32 @@ GSPrivateExecutablePath()
   return executablePath;
 }
 
-static BOOL
+static NSArray *
 bundle_directory_readable(NSString *path)
 {
-  NSFileManager	*mgr = manager();
-  BOOL		directory;
+  id	found;
 
-  if ([mgr fileExistsAtPath: path isDirectory: &directory] == NO
-    || !directory)
-    return NO;
+  [pathCacheLock lock];
+  found = [[[pathCache objectForKey: path] retain] autorelease];
+  [pathCacheLock unlock];
+  if (nil == found)
+    {
+      NSFileManager	*mgr = manager();
 
-  return [mgr isReadableFileAtPath: path];
+      found = [mgr directoryContentsAtPath: path];
+      if (nil == found)
+	{
+	  found = [NSNull null];
+	}
+      [pathCacheLock lock];
+      [pathCache setObject: found forKey: path];
+      [pathCacheLock unlock];
+    }
+  if ((id)[NSNull null] == found)
+    {
+      found = nil;
+    }
+  return (NSArray*)found;
 }
 
 /* Get the object file that should be located in the bundle of the same name */
@@ -860,6 +878,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       /* Initialise manager here so it's thread-safe.
        */
       manager();
+
+      pathCacheLock = [NSLock new];
+      pathCache = [NSMutableDictionary new];
 
       /* Need to make this recursive since both mainBundle and
        * initWithPath: want to lock the thread.
@@ -1413,7 +1434,7 @@ IF_NO_GC(
     }
   [load_lock unlock];
 
-  if (bundle_directory_readable(path) == NO)
+  if (bundle_directory_readable(path) == nil)
     {
       NSDebugMLLog(@"NSBundle", @"Could not access path %@ for bundle", path);
       // if this is not the main bundle ... deallocate and return.
@@ -1781,6 +1802,7 @@ IF_NO_GC(
 {
   NSFileManager	*mgr = manager();
   NSString	*path;
+  NSString	*file;
   NSEnumerator	*pathlist;
 
   if (name == nil)
@@ -1790,20 +1812,24 @@ IF_NO_GC(
   if ([extension length] == 0)
     {
       extension = nil;
+      file = name;
+    }
+  else
+    {
+      file = [name stringByAppendingPathExtension: extension];
     }
 
   pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
     subPath: subPath localization: nil] objectEnumerator];
   while ((path = [pathlist nextObject]) != nil)
     {
-      if (bundle_directory_readable(path))
+      id	paths = bundle_directory_readable(path);
+
+      if ((id)[NSNull null] != paths
+	&& YES == [(NSArray*)paths containsObject: file])
 	{
-	  path = [path stringByAppendingPathComponent: name];
-	  if (extension != nil)
-	    {
-	      path = [path stringByAppendingPathExtension: extension];
-	    }
-	  if ([mgr isReadableFileAtPath: path])
+	  path = [path stringByAppendingPathComponent: file];
+	  if (YES == [mgr isReadableFileAtPath: path])
 	    {
 	      return path;
 	    }

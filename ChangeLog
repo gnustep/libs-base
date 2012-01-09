@@ -1,5 +1,10 @@
 2012-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSBundle.m: Crude/simple caching of directory contents to
+	test impact on theme loading ... needs reverting or improving.
+
+2012-01-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSConcretePointerFunctions.m:
 	* Source/NSSocketPort.m:
 	* Source/unix/NSStream.m:
