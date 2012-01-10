@@ -389,15 +389,40 @@ bundle_object_name(NSString *path, NSString* executable)
 }
 
 /* Construct a path from components */
-static NSString *
-_bundle_resource_path(NSString *primary, NSString* bundlePath, NSString *lang)
+static void
+addBundlePath(NSMutableArray *list, NSArray *contents,
+  NSString *path, NSString *subdir, NSString *lang)
 {
-  if (bundlePath)
-    primary = [primary stringByAppendingPathComponent: bundlePath];
-  if (lang)
-    primary = [primary stringByAppendingPathComponent:
-      [NSString stringWithFormat: @"%@.lproj", lang]];
-  return primary;
+  if (nil == contents)
+    {
+      return;
+    }
+  if (nil != subdir)
+    {
+      if (NO == [contents containsObject: subdir])
+	{
+	  return;
+	}
+      path = [path stringByAppendingPathComponent: subdir];
+      if (nil == (contents = bundle_directory_readable(path)))
+	{
+	  return;
+	}
+    }
+  if (nil != lang)
+    {
+      lang = [lang stringByAppendingPathExtension: @"lproj"];
+      if (NO == [contents containsObject: lang])
+	{
+	  return;
+	}
+      path = [path stringByAppendingPathComponent: lang];
+      if (nil == (contents = bundle_directory_readable(path)))
+	{
+	  return;
+	}
+    }
+  [list addObject: path];
 }
 
 /* Try to locate name framework in standard places
@@ -1513,7 +1538,10 @@ IF_NO_GC(
     }
   if (_path != nil)
     {
-      NSString	*identifier = [self bundleIdentifier];
+      NSString		*identifier = [self bundleIdentifier];
+      NSUInteger	plen = [_path length];
+      NSEnumerator	*enumerator;
+      NSString		*path;
 
       [load_lock lock];
       NSMapRemove(_bundles, _path);
@@ -1522,6 +1550,41 @@ IF_NO_GC(
 	  NSMapRemove(_byIdentifier, identifier);
         }
       [load_lock unlock];
+
+      /* Clean up path cache for this bundle.
+       */
+      [pathCacheLock lock];
+      enumerator = [pathCache keyEnumerator];
+      while (nil != (path = [enumerator nextObject]))
+	{
+	  if (YES == [path hasPrefix: _path])
+	    {
+	      if ([path length] == plen)
+		{
+		  /* Remove the bundle directory path from the cache.
+		   */
+		  [pathCache removeObjectForKey: path];
+		}
+	      else
+		{
+		  unichar	c = [path characterAtIndex: plen];
+
+		  /* if the directory is inside the bundle, remove from cache.
+		   */
+		  if ('/' == c)
+		    {
+		      [pathCache removeObjectForKey: path];
+		    }
+#if defined(__MINGW__)
+		  else if ('\\' == c)
+		    {
+		      [pathCache removeObjectForKey: path];
+		    }
+#endif
+		}
+	    }
+	}
+      [pathCacheLock unlock];
       RELEASE(_path);
     }
   TEST_RELEASE(_frameworkVersion);
@@ -1751,6 +1814,7 @@ IF_NO_GC(
   NSString		*primary;
   NSString		*language;
   NSArray		*languages;
+  NSArray		*contents;
   NSMutableArray	*array;
   NSEnumerator		*enumerate;
 
@@ -1759,12 +1823,13 @@ IF_NO_GC(
     stringArrayForKey: @"NSLanguages"];
 
   primary = [rootPath stringByAppendingPathComponent: @"Resources"];
-  [array addObject: _bundle_resource_path(primary, subPath, nil)];
+  contents = bundle_directory_readable(primary);
+  addBundlePath(array, contents, primary, subPath, nil);
   /* If we have been asked for a specific localization, we add it.
    */
   if (localization != nil)
     {
-      [array addObject: _bundle_resource_path(primary, subPath, localization)];
+      addBundlePath(array, contents, primary, subPath, localization);
     }
   else
     {
@@ -1775,21 +1840,22 @@ IF_NO_GC(
       enumerate = [languages objectEnumerator];
       while ((language = [enumerate nextObject]))
 	{
-	  [array addObject: _bundle_resource_path(primary, subPath, language)];
+	  addBundlePath(array, contents, primary, subPath, language);
 	}
     }
   primary = rootPath;
-  [array addObject: _bundle_resource_path(primary, subPath, nil)];
+  contents = bundle_directory_readable(primary);
+  addBundlePath(array, contents, primary, subPath, nil);
   if (localization != nil)
     {
-      [array addObject: _bundle_resource_path(primary, subPath, localization)];
+      addBundlePath(array, contents, primary, subPath, localization);
     }
   else
     {
       enumerate = [languages objectEnumerator];
       while ((language = [enumerate nextObject]))
 	{
-	  [array addObject: _bundle_resource_path(primary, subPath, language)];
+	  addBundlePath(array, contents, primary, subPath, language);
 	}
     }
   return array;
