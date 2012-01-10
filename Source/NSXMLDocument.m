@@ -53,7 +53,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) characterEncoding
 {
-  return [NSString stringWithUTF8String: internal->doc->encoding];
+  return [NSString stringWithUTF8String: (const char *)MY_DOC->encoding];
 }
 
 - (NSXMLDocumentContentKind) documentContentKind
@@ -92,7 +92,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSString *string = [[NSString alloc] initWithData: data
 					   encoding: NSUTF8StringEncoding];
   AUTORELEASE(string);
-  return [self initWithString:string]
+  return [self initWithString:string];
 }
 
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
@@ -128,10 +128,10 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
                  options: (NSUInteger)mask
                    error: (NSError**)error
 {
-  if (NO == [data isKindOfClass: [NSData class]])
+  if (NO == [string isKindOfClass: [NSString class]])
     {
       DESTROY(self);
-      if (nil == data)
+      if (nil == string)
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"[NSXMLDocument-%@] nil argument",
@@ -144,21 +144,21 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   GS_CREATE_INTERNAL(NSXMLDocument)
   if ((self = [super initWithKind: NSXMLDocumentKind options: 0]) != nil)
     {
-      char *str = [string UTF8String];
+      const char *str = [string UTF8String];
       char *url = NULL;
       char *encoding = NULL; // "UTF8";
       int options = 0;
       
       GS_CREATE_INTERNAL(NSXMLDocument); // create internal ivars...
-      internal->doc = xmlReadDoc(str, url, encoding, options);
-      internal->doc->_private = (void *)self;
+      internal->node = xmlReadDoc((xmlChar *)str, url, encoding, options);
+      MY_DOC->_private = (void *)self;
     }
   return self;
 }
 
 - (BOOL) isStandalone
 {
-  return (internal->doc->standalone == 1);
+  return (MY_DOC->standalone == 1);
 }
 
 - (NSString*) MIMEType
@@ -168,13 +168,13 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSXMLElement*) rootElement
 {
-  xmlNodePtr node = xmlDocGetRootElement(internal->doc);
+  xmlNodePtr node = xmlDocGetRootElement(MY_DOC);
   return (NSXMLElement *)(node->_private);
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
-  internal->doc->encoding = [encoding UTF8String];
+  MY_DOC->encoding = [encoding UTF8String];
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
@@ -184,9 +184,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
 {
-  NSAssert(documentTypeDeclartion != nil, NSInvalidArgumentException);
+  NSAssert(documentTypeDeclaration != nil, NSInvalidArgumentException);
   ASSIGNCOPY(internal->docType, documentTypeDeclaration);
-  internal->doc->extSubset = [documentTypeDeclaration _node];
+  MY_DOC->extSubset = [documentTypeDeclaration _node];
 }
 
 - (void) setMIMEType: (NSString*)MIMEType
@@ -196,8 +196,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-  xmlNodePtr	nodeLib = (xmlNodePtr)[root lib];
-  xmlNodePtr	selfLib = (xmlNodePtr)[self lib];
+  xmlNodePtr	nodeLib = (xmlNodePtr)[root _node];
+  xmlNodePtr	selfLib = (xmlNodePtr)[self _node];
   NSArray	*children;
 
   NSAssert(root == nil, NSInvalidArgumentException);
@@ -210,19 +210,19 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   internal->rootElement = (NSXMLElement*)root;
   
   // Set 
-  xmlDocSetRootElement(internal->doc,[root _node]);
+  xmlDocSetRootElement(MY_DOC,[root _node]);
 }
 
 - (void) setStandalone: (BOOL)standalone
 {
-  internal->doc->standalone = standalone;
+  MY_DOC->standalone = standalone;
 }
 
 - (void) setVersion: (NSString*)version
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
-      internal->doc->version = [version UTF8String];
+      MY_DOC->version = [version UTF8String];
    }
   else
     {
@@ -233,7 +233,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) version
 {
-  return [NSString stringWithUTF8String: internal->version];
+  return [NSString stringWithUTF8String: MY_DOC->version];
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
@@ -347,7 +347,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   xmlChar	*buf = NULL;
   int		length;
 
-  xmlDocDumpFormatMemoryEnc(lib, &buf, &length, "utf-8", 1);
+  xmlDocDumpFormatMemoryEnc(MY_DOC, &buf, &length, "utf-8", 1);
 
   if (buf != 0 && length > 0)
     {
@@ -390,12 +390,13 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 - (id) copyWithZone: (NSZone *)zone
 {
   NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
-
-  [c setStandalone: internal->standalone];
-  [c setChildren: internal->children];
-  GSIVar(c, rootElement) = internal->rootElement;
-  [c setDTD: internal->docType];
-  [c setMIMEType: internal->MIMEType];
+  internal->node = (xmlDoc *)xmlCopyDoc(MY_DOC, 1); // copy recursively
+#warning need to zero out all of the _private pointers in the copied xmlDoc
+//  [c setStandalone: MY_DOC->standalone];
+//  [c setChildren: MY_DOC->children];
+  //GSIVar(c, rootElement) = MY_DOC->rootElement;
+//  [c setDTD: MY_DOC->docType];
+//  [c setMIMEType: MY_DOC->MIMEType];
   return c;
 }
 

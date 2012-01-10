@@ -34,6 +34,14 @@
 #define	EXPOSE_NSXMLElement_IVARS	1
 #define	EXPOSE_NSXMLNode_IVARS	1
 
+/*
+ * Macro to cast string to correct type for libxml2
+ */
+#define	XMLSTRING(X)	((const unsigned char*)[X UTF8String])
+
+
+#define MY_DOC	((xmlDoc *)internal->node)
+
 /* Instance variables for NSXMLNode.  This macro needs to be defined before
  * the NSXMLNode.h header is imported and before GSInternal.h is imported.
  *
