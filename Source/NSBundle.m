@@ -1889,10 +1889,9 @@ IF_NO_GC(
     subPath: subPath localization: nil] objectEnumerator];
   while ((path = [pathlist nextObject]) != nil)
     {
-      id	paths = bundle_directory_readable(path);
+      NSArray	*paths = bundle_directory_readable(path);
 
-      if ((id)[NSNull null] != paths
-	&& YES == [(NSArray*)paths containsObject: file])
+      if (YES == [paths containsObject: file])
 	{
 	  path = [path stringByAppendingPathComponent: file];
 	  if (YES == [mgr isReadableFileAtPath: path])
@@ -2013,7 +2012,6 @@ IF_NO_GC(
   NSString *path;
   NSMutableArray *resources;
   NSEnumerator *pathlist;
-  NSFileManager	*mgr = manager();
 
   pathlist = [[NSBundle _bundleResourcePathsWithRootPath: bundlePath
     subPath: subPath localization: localization] objectEnumerator];
@@ -2023,9 +2021,9 @@ IF_NO_GC(
   while ((path = [pathlist nextObject]))
     {
       NSEnumerator *filelist;
-      NSString *match;
+      NSString	*match;
 
-      filelist = [[mgr directoryContentsAtPath: path] objectEnumerator];
+      filelist = [bundle_directory_readable(path) objectEnumerator];
       while ((match = [filelist nextObject]))
 	{
 	  if (allfiles || [extension isEqual: [match pathExtension]])
