@@ -49,18 +49,20 @@
  *   nodes are changed.
  */
 #define GS_NSXMLNode_IVARS \
-  void		*handle; \
-  NSUInteger	kind; \
-  NSXMLNode     *parent; \
-  id            objectValue; \
-  NSString      *stringValue; \
-  NSString      *name; \
-  NSString      *URI; \
+  void		 *handle; \
+  NSUInteger	  kind; \
+  NSXMLNode      *parent; \
+  NSUInteger      index; \
+  id              objectValue; \
+  NSString       *stringValue; \
+  NSString       *name; \
+  NSString       *URI; \
   NSMutableArray *children; \
-  NSUInteger childCount; \
-  NSXMLNode *previousSibling; \
-  NSXMLNode *nextSibling; \
-  NSUInteger options; \
+  NSUInteger      childCount; \
+  NSXMLNode      *previousSibling; \
+  NSXMLNode      *nextSibling;\
+  NSUInteger      options; \
+  void           *node;  \
 
 
 /* When using the non-fragile ABI, the instance variables are exposed to the
@@ -81,11 +83,8 @@
  * is imported and before GSInternal.h is imported.
  */
 #define GS_NSXMLDocument_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSString     		*encoding; \
-  NSString     		*version; \
   NSXMLDTD     		*docType; \
   BOOL         		childrenHaveMutated; \
-  BOOL         		standalone; \
   NSXMLElement 		*rootElement; \
   NSString     		*MIMEType; \
   NSUInteger   		fidelityMask; \

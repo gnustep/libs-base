@@ -53,6 +53,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   [n setURI: URI];
   [n setStringValue: stringValue];
   [n setName: name];
+
+  internal
+
   return n;
 }
 
