@@ -1,3 +1,9 @@
+2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Remove cached paths when the owning bundle is
+	deallocated.  Use cache to determine which resource directories to
+	search.
+
 2012-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Crude/simple caching of directory contents to
