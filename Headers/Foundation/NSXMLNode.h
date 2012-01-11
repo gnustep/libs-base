@@ -97,13 +97,13 @@ typedef NSUInteger NSXMLNodeKind;
    * when we don't have the non-fragile ABI available.
    * Use this mechanism rather than changing the instance variable
    * layout (see Source/GSInternal.h for details).
-   * In this case, when compiled the variable is a protected class
+   * In this case, when compiled the variable is a public class pointer
    * available so that the NSXMLNode subclasses within the base library
    * can share the same variables, but when viewed from outside the
    * base library itsself, it's an opaque pointer which must not be used.
    */
 #  if	defined(GSInternal)
-  @protected GSInternal *_internal GS_UNUSED_IVAR;
+  @public GSInternal *_internal GS_UNUSED_IVAR;
 #  else
   @private id _internal GS_UNUSED_IVAR;
 #  endif
