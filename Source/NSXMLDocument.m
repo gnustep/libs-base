@@ -92,7 +92,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSString *string = [[NSString alloc] initWithData: data
 					   encoding: NSUTF8StringEncoding];
   AUTORELEASE(string);
-  return [self initWithString:string];
+  return [self initWithXMLString:string options:mask error:error];
 }
 
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
@@ -174,7 +174,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
-  MY_DOC->encoding = [encoding UTF8String];
+  MY_DOC->encoding = XMLSTRING(encoding);
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
