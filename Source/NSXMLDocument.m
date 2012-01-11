@@ -32,6 +32,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 #import <Foundation/NSXMLParser.h>
 
+// Private methods to manage libxml pointers...
+@interface NSXMLNode (Private)
+- (void *) _node;
+- (void) _setNode: (void *)_anode;
+@end
+
 @implementation	NSXMLDocument
 
 + (Class) replacementClassForClass: (Class)cls
