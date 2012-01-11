@@ -1,3 +1,8 @@
+2012-01-10 20:05-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLNode.m: Changes to move NSXML classes to using libxml 
+	more directly.
+
 2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Remove cached paths when the owning bundle is

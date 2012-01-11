@@ -29,6 +29,23 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
+// Private methods to manage libxml pointers...
+@interface NSXMLNode (Private)
+- (void *) _node;
+- (void) _setNode: (void *)_anode;
+@end
+
+@implementation NSXMLNode (Private)
+- (void *) _node
+{
+  return internal->node;
+}
+
+- (void) _setNode: (void *)_anode
+{
+  internal->node = _anode;
+}
+@end
 
 @implementation NSXMLNode
 
@@ -36,10 +53,18 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	     stringValue: (NSString*)stringValue
 {
   NSXMLNode	*n;
+  xmlNodePtr     node;
 
   n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
   [n setStringValue: stringValue];
   [n setName: name];
+
+  node = xmlNewProp(NULL,
+		    (xmlChar *)[name UTF8String],
+		    (xmlChar *)[stringValue UTF8String]);
+  
+  
+  
   return n;
 }
 
@@ -54,7 +79,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   [n setStringValue: stringValue];
   [n setName: name];
 
-  internal
+  internal->node = xmlNewProp(NULL,
+			      XMLSTRING(name),
+			      XMLSTRING(stringValue));
 
   return n;
 }
@@ -65,6 +92,10 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
   n = [[[self alloc] initWithKind: NSXMLCommentKind] autorelease];
   [n setStringValue: stringValue];
+
+  internal->node = xmlNewComment(XMLSTRING(stringValue));
+
+
   return n;
 }
 
@@ -74,6 +105,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
   n = [[[self alloc] initWithKind: NSXMLDTDKind] autorelease];
   [n setStringValue: string];
+
+  // internal->node = xmlNewDtd(NULL,NULL,NULL); // TODO: Parse the string and get the info to create this...
+
   return n;
 }
 
@@ -230,7 +264,11 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) detach
 {
-  [(NSXMLElement*)internal->parent removeChildAtIndex: [self index]];
+  if (internal->parent != nil)
+    {
+      [(NSXMLElement*)internal->parent removeChildAtIndex: internal->index];
+      internal->parent = nil;
+    }
 }
 
 - (NSUInteger) hash
@@ -240,11 +278,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSUInteger) index
 {
-  if (nil == internal->parent)
-    {
-      return 0;
-    }
-  return [GSIVar(internal->parent, children) indexOfObjectIdenticalTo: self];
+  return internal->index;
 }
 
 - (id) init
@@ -598,6 +632,5 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   return [self notImplemented: _cmd];
 }
-
 @end
 
