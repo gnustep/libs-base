@@ -98,7 +98,6 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate;
 - (NSTimeInterval) timeIntervalSinceNow;
 - (NSTimeInterval) timeIntervalSinceReferenceDate;
-- (NSTimeInterval) timeIntervalSinceReferenceDate;
 
 // Comparing dates
 

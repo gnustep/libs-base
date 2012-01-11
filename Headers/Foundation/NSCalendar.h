@@ -109,7 +109,6 @@ enum
 - (void) setHour: (NSInteger) v;
 - (void) setMinute: (NSInteger) v;
 - (void) setMonth: (NSInteger) v;
-- (void) setQuarter: (NSInteger) v;
 - (void) setSecond: (NSInteger) v;
 - (void) setWeek: (NSInteger) v;
 - (void) setWeekday: (NSInteger) v;
