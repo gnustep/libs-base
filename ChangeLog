@@ -1,3 +1,8 @@
+2012-01-11 12:54-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLNode.m: Get final methods implemented on NSXMLNode
+	except for XPath/XQuery methods.
+
 2012-01-10 20:21-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Added forward declarations for private

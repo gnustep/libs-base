@@ -53,17 +53,15 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	     stringValue: (NSString*)stringValue
 {
   NSXMLNode	*n;
-  xmlNodePtr     node;
+  xmlAttrPtr     node;
 
   n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
   [n setStringValue: stringValue];
   [n setName: name];
-
   node = xmlNewProp(NULL,
 		    (xmlChar *)[name UTF8String],
 		    (xmlChar *)[stringValue UTF8String]);
-  
-  
+  [n _setNode: node];
   
   return n;
 }
@@ -73,28 +71,27 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	     stringValue: (NSString*)stringValue
 {
   NSXMLNode	*n;
-
+  xmlAttrPtr     node = xmlNewProp(NULL,
+				   XMLSTRING(name),
+				   XMLSTRING(stringValue));
+  
   n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
   [n setURI: URI];
   [n setStringValue: stringValue];
   [n setName: name];
-
-  internal->node = xmlNewProp(NULL,
-			      XMLSTRING(name),
-			      XMLSTRING(stringValue));
-
+  [n _setNode: node];
+  
   return n;
 }
 
 + (id) commentWithStringValue: (NSString*)stringValue
 {
   NSXMLNode	*n;
+  xmlNodePtr     node = xmlNewComment(XMLSTRING(stringValue));
 
   n = [[[self alloc] initWithKind: NSXMLCommentKind] autorelease];
   [n setStringValue: stringValue];
-
-  internal->node = xmlNewComment(XMLSTRING(stringValue));
-
+  [n _setNode: node];
 
   return n;
 }
@@ -520,22 +517,15 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSXMLDocument*) rootDocument
 {
-  NSXMLNode *ancestor = internal->parent;
-  /*
-   * Short-circuit evaluation gurantees that the nil-pointer is not
-   * dereferenced:
-   */
-  while ((ancestor != nil)
-    && (NSXMLDocumentKind != GSIVar(ancestor, kind)))
-    {
-      ancestor = GSIVar(ancestor, parent);
-    }
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  NSXMLDocument *ancestor = (NSXMLDocument *)(node->doc->_private);
   return (NSXMLDocument*)ancestor;
 }
 
 - (NSString*) stringValue
 {
-  return internal->stringValue;
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  return StringFromXMLString(node->content,strlen((char *)node->content));
 }
 
 - (NSString*) URI
@@ -550,22 +540,21 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSString*) XMLStringWithOptions: (NSUInteger)options
 {
-  NSMutableString *returnValue = [NSMutableString string];
-  NSXMLNodeKind kind = [self kind];
+  NSString     *string = nil;
+  xmlNodePtr   node = (xmlNodePtr)[self _node];
+  xmlChar      *buf = NULL;
+  xmlDocPtr    doc = node->doc;
+  xmlBufferPtr buffer = NULL;
+  int error = 0;
+  int len = 0;
 
-  if (kind == NSXMLAttributeKind)
-    {
-      [returnValue appendString: [self name]];
-      [returnValue appendString: @"=\""];
-      [returnValue appendString: [self stringValue]];
-      [returnValue appendString: @"\""];
-    }
-  else
-    {
-      // for all other types, do nothing for now...
-    }
+  error = xmlNodeDump(buffer, doc, node, 1, 1);
+  buf = buffer->content;
+  len = buffer->size;
+  string = StringFromXMLString(buf,len);
+  AUTORELEASE(string);
 
-  return returnValue;
+  return string;
 }
 
 - (void) setObjectValue: (id)value
@@ -596,18 +585,19 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
 {
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
   if (resolve == NO)
     {
-      ASSIGNCOPY(internal->stringValue, string);
+      node->content = (xmlChar *)[string UTF8String];
     }
   else
     {
       // need to actually resolve entities...
-      ASSIGNCOPY(internal->stringValue, string);
+      node->content = (xmlChar *)[string UTF8String];
     }
   if (nil == internal->stringValue)
     {
-      internal->stringValue = @"";	// string value may not be nil
+      node->content = (xmlChar *)[@"" UTF8String];	// string value may not be nil
     }
 }
 
