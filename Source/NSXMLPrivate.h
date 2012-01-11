@@ -39,8 +39,19 @@
  */
 #define	XMLSTRING(X)	((const unsigned char*)[X UTF8String])
 
+inline static NSString*
+StringFromXMLString(const unsigned char *bytes, unsigned length)
+{
+  NSString	*str;
+
+  str = [[NSString alloc] initWithBytes: bytes
+				       length: length
+				     encoding: NSUTF8StringEncoding];
+  return AUTORELEASE(str);
+}
 
 #define MY_DOC	((xmlDoc *)internal->node)
+
 
 /* Instance variables for NSXMLNode.  This macro needs to be defined before
  * the NSXMLNode.h header is imported and before GSInternal.h is imported.

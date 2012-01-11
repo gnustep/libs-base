@@ -351,7 +351,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
   if (buf != 0 && length > 0)
     {
-      string = UTF8StrLen(buf, length);
+      string = StringFromXMLString(buf, length);
       free(buf);
     }
   return string;
