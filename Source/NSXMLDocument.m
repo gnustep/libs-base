@@ -202,19 +202,17 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-  xmlNodePtr	nodeLib = (xmlNodePtr)[root _node];
-  xmlNodePtr	selfLib = (xmlNodePtr)[self _node];
+/*
   NSArray	*children;
 
   NSAssert(root == nil, NSInvalidArgumentException);
 
-  /* this method replaces *all* children with the specified element.
-   */
+  // this method replaces *all* children with the specified element.
   children = [[NSArray alloc] initWithObjects: &root count: 1];  
   [self setChildren: children];
   [children release];
   internal->rootElement = (NSXMLElement*)root;
-  
+*/
   // Set 
   xmlDocSetRootElement(MY_DOC,[root _node]);
 }
