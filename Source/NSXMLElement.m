@@ -68,7 +68,10 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       /* Create holder for internal instance variables so that we'll have
        * all our ivars available rather than just those of the superclass.
        */
+      NSString *name = @"";
       GS_CREATE_INTERNAL(NSXMLElement)
+      internal->node = (void *)xmlNewNode(NULL,(xmlChar *)[name UTF8String]);
+      internal->objectValue = @"";
     }
   return [super initWithKind: kind options: theOptions];
 }

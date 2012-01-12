@@ -416,7 +416,12 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSString*) name
 {
-  return internal->name; 
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  if (node->name)
+    return StringFromXMLString(node->name,strlen((char *)node->name));
+  else
+    return @"";
+  //return internal->name; 
 }
 
 - (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward
@@ -525,7 +530,10 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (NSString*) stringValue
 {
   xmlNodePtr node = (xmlNodePtr)(internal->node);
-  return StringFromXMLString(node->content,strlen((char *)node->content));
+  if (node->content)
+    return StringFromXMLString(node->content,strlen((char *)node->content));
+  else
+    return @"";
 }
 
 - (NSString*) URI
@@ -566,7 +574,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   if (NSXMLInvalidKind != internal->kind)
     {
-      ASSIGNCOPY(internal->name, name);
+      xmlNodePtr node = (xmlNodePtr)(internal->node);
+      node->name = XMLStringCopy(name);
+      //ASSIGNCOPY(internal->name, name);
     }
 }
 

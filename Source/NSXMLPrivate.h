@@ -39,10 +39,21 @@
  */
 #define	XMLSTRING(X)	((const unsigned char*)[X UTF8String])
 
+inline static unsigned char *XMLStringCopy(NSString *source)
+{
+  unsigned int len = [source maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
+  unsigned char *xmlstr = malloc(len);
+  [source getCString:xmlstr maxLength:len encoding:NSUTF8StringEncoding];
+  return xmlstr;
+}
+
 inline static NSString*
 StringFromXMLString(const unsigned char *bytes, unsigned length)
 {
   NSString	*str;
+  
+  if (bytes == NULL)
+    return @"";
 
   str = [[NSString alloc] initWithBytes: bytes
 				       length: length
