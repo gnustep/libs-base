@@ -59,7 +59,10 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) characterEncoding
 {
-  return [NSString stringWithUTF8String: (const char *)MY_DOC->encoding];
+  if (MY_DOC->encoding)
+    return [NSString stringWithUTF8String: (const char *)MY_DOC->encoding];
+  else
+    return nil;
 }
 
 - (NSXMLDocumentContentKind) documentContentKind
@@ -108,7 +111,10 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
       /* Create holder for internal instance variables so that we'll have
        * all our ivars available rather than just those of the superclass.
        */
-      GS_CREATE_INTERNAL(NSXMLDocument)
+      xmlChar *version = (xmlChar *)"1.0";
+      GS_CREATE_INTERNAL(NSXMLDocument);
+      internal->node = xmlNewDoc(version);
+      MY_DOC->_private = (void *)self;
     }
   return [super initWithKind: kind options: theOptions];
 }
@@ -226,7 +232,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
-      MY_DOC->version = [version UTF8String];
+      MY_DOC->version = XMLStringCopy(version);
    }
   else
     {
@@ -237,7 +243,10 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) version
 {
-  return [NSString stringWithUTF8String: MY_DOC->version];
+  if (MY_DOC->version)
+    return StringFromXMLStringPtr(MY_DOC->version);
+  else
+    return @"1.0";
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index

@@ -41,10 +41,29 @@
 
 inline static unsigned char *XMLStringCopy(NSString *source)
 {
+  char *xmlstr;
   unsigned int len = [source maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
-  unsigned char *xmlstr = malloc(len);
+  if (len == 0)
+    return NULL;
+  xmlstr = malloc(len);
   [source getCString:xmlstr maxLength:len encoding:NSUTF8StringEncoding];
-  return xmlstr;
+  return (unsigned char *)xmlstr;
+}
+
+inline static NSString*
+StringFromXMLStringPtr(const unsigned char *bytes)
+{
+  NSString	*str;
+  unsigned int length;
+
+  if (bytes == NULL)
+    return @"";
+
+  length = strlen((char *)bytes);
+  str = [[NSString alloc] initWithBytes: bytes
+				       length: length
+				     encoding: NSUTF8StringEncoding];
+  return AUTORELEASE(str);
 }
 
 inline static NSString*

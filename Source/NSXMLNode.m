@@ -43,6 +43,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) _setNode: (void *)_anode
 {
+  ((xmlNodePtr)_anode)->_private = self;
   internal->node = _anode;
 }
 @end
@@ -234,12 +235,15 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (id) copyWithZone: (NSZone*)zone
 {
   id c = [[self class] allocWithZone: zone];
+  xmlNodePtr newNode = xmlCopyNode([self _node], 1); // make a deep copy
 
   c = [c initWithKind: internal->kind options: internal->options];
-  [c setName: [self name]];
-  [c setURI: [self URI]];
-  [c setObjectValue: [self objectValue]];
-  [c setStringValue: [self stringValue]];
+  [c _setNode:newNode];
+
+//  [c setName: [self name]];
+//  [c setURI: [self URI]];
+//  [c setObjectValue: [self objectValue]];
+//  [c setStringValue: [self stringValue]];
 
   return c;
 }
