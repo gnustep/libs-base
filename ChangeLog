@@ -1,3 +1,12 @@
+2012-01-12 10:10  theraven
+
+	* libs/base/trunk/Headers/Foundation/NSException.h: Tweak the
+	  exception mismatch handling so that if base is using native exceptions
+	  and the user doesn't specify an exception mode then we just don't define
+	  the NS_ macros, so code that uses @try etc. compiles without requiring
+	  every cc line to specify a long -D flag just to be allowed to #import
+	  Foundation.h.
+
 2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Remove cached paths when the owning bundle is
