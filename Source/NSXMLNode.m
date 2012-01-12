@@ -33,6 +33,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 @interface NSXMLNode (Private)
 - (void *) _node;
 - (void) _setNode: (void *)_anode;
++ (id) _newFromNode: (xmlNodePtr)node;
 @end
 
 @implementation NSXMLNode (Private)
@@ -45,6 +46,34 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   ((xmlNodePtr)_anode)->_private = self;
   internal->node = _anode;
+}
+
++ (id) _newFromNode: (xmlNodePtr)node
+{
+  xmlElementType type = node->type;
+  NSXMLNode *result = (id)node->_private;
+  xmlChar *name = NULL;
+  // NSXMLNodeKind kind = 0;
+
+  if(result == NULL)
+    {
+      switch(type)
+	{
+	case(XML_ELEMENT_NODE):
+	  name = (xmlChar *)node->name;
+	  result = [[self alloc] initWithKind: NSXMLElementKind];
+	  break;
+	case(XML_ATTRIBUTE_NODE):
+	  name = (xmlChar *)node->name;
+	  result = [[self alloc] initWithKind: NSXMLAttributeKind];
+	  [result setStringValue: StringFromXMLStringPtr(node->content)];
+	  break;
+	default:
+	  break;
+	}
+    }
+
+  return result;
 }
 @end
 
@@ -60,8 +89,8 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   [n setStringValue: stringValue];
   [n setName: name];
   node = xmlNewProp(NULL,
-		    (xmlChar *)[name UTF8String],
-		    (xmlChar *)[stringValue UTF8String]);
+		    XMLSTRING(name),
+		    XMLSTRING(stringValue));
   [n _setNode: node];
   
   return n;
@@ -219,17 +248,45 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSXMLNode*) childAtIndex: (NSUInteger)index
 {
-  return [internal->children objectAtIndex: index];
+  NSUInteger count = 0;
+  xmlNodePtr children = NULL;
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+
+  for (children = node->children; children && count != index; children = children->next)
+    {
+      count++;
+    }
+
+  return (NSXMLNode *)[NSXMLNode _newFromNode: children];
 }
 
 - (NSUInteger) childCount
 {
-  return internal->childCount;
+  NSUInteger childCount = 0;
+  xmlNodePtr children = NULL;
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+
+  for (children = node->children; children; children = children->next)
+    {
+      childCount++;
+    }
+
+  return childCount;
 }
 
 - (NSArray*) children
 {
-  return internal->children;
+  NSMutableArray *childrenArray = [NSMutableArray array];
+  xmlNodePtr children = NULL;
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+
+  for (children = node->children; children; children = children->next)
+    {
+      NSXMLNode *n = [NSXMLNode _newFromNode: children];
+      [childrenArray addObject: n];
+    }
+
+  return childrenArray;
 }
 
 - (id) copyWithZone: (NSZone*)zone

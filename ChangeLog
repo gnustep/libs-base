@@ -1,3 +1,9 @@
+2012-01-12 18:18-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m: Add code to automatically instantiate 
+	the node to fill in the _private pointer if it is not present.
+
 2012-01-12 12:05-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLElement.m: Changes to make NSXMLElement use
