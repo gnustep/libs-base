@@ -35,12 +35,10 @@
 
 #if     defined(_NATIVE_OBJC_EXCEPTIONS)
 #define USER_NATIVE_OBJC_EXCEPTIONS       1
-#elif __has_feature(objc_exceptions)
-#define USER_NATIVE_OBJC_EXCEPTIONS       1
 #else
 #define USER_NATIVE_OBJC_EXCEPTIONS       0
 #endif
-#if     BASE_NATIVE_OBJC_EXCEPTIONS != USER_NATIVE_OBJC_EXCEPTIONS
+#if     !BASE_NATIVE_OBJC_EXCEPTIONS && USER_NATIVE_OBJC_EXCEPTIONS
 #error  The current setting for native-objc-exceptions does not match that of gnustep-base ... please correct this.
 #endif
 
@@ -330,7 +328,7 @@ NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler);
    It is illegal to exit the first block of code by any other means than
    NS_VALRETURN, NS_VOIDRETURN, or just falling out the bottom.
  */
-#if     defined(_NATIVE_OBJC_EXCEPTIONS)
+#if     USER_NATIVE_OBJC_EXCEPTIONS
 
 # define NS_DURING       @try {
 # define NS_HANDLER      } @catch (NSException * localException) {
@@ -340,7 +338,7 @@ NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler);
 # define NS_VALUERETURN(object, id)     return (object)
 # define NS_VOIDRETURN                  return
 
-#else // _NATIVE_OBJC_EXCEPTIONS
+#elif   !USER_NATIVE_OBJC_EXCEPTIONS && !BASE_NATIVE_OBJC_EXCEPTIONS
 
 /** Private support routine.  Do not call directly. */
 GS_EXPORT void _NSAddHandler( NSHandler *handler );
