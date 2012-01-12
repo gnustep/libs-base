@@ -29,6 +29,12 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
 
+// Private methods to manage libxml pointers...
+@interface NSXMLNode (Private)
+- (void *) _node;
+- (void) _setNode: (void *)_anode;
+@end
+
 @implementation NSXMLElement
 
 - (void) dealloc
@@ -75,10 +81,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   GS_CREATE_INTERNAL(NSXMLElement)
   if ((self = [super initWithKind: NSXMLElementKind]) != nil)
     {
-      ASSIGNCOPY(internal->name, name);
+      internal->node = (void *)xmlNewNode(NULL,(xmlChar *)[name UTF8String]);
       ASSIGNCOPY(internal->URI, URI);
-      internal->attributes = [[NSMutableDictionary alloc] initWithCapacity: 10];
-      internal->namespaces = [[NSMutableArray alloc] initWithCapacity: 10];
       internal->objectValue = @"";
     }
   return self;
@@ -113,13 +117,15 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) addAttribute: (NSXMLNode*)attribute
 {
-  [internal->attributes setObject: attribute
-			   forKey: [attribute name]];
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlNodePtr attr = (xmlNodePtr)[attribute _node];
+  xmlAddChild(node,attr);
 }
 
 - (void) removeAttributeForName: (NSString*)name
 {
-  [internal->attributes removeObjectForKey: name];
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlUnsetProp(node,(xmlChar *)[name UTF8String]);
 }
 
 - (void) setAttributes: (NSArray*)attributes
@@ -127,7 +133,6 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   NSEnumerator	*enumerator = [attributes objectEnumerator];
   NSXMLNode	*attribute;
 
-  [internal->attributes removeAllObjects];
   while ((attribute = [enumerator nextObject]) != nil)
     {
       [self addAttribute: attribute];
@@ -173,7 +178,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) addNamespace: (NSXMLNode*)aNamespace
 {
-  [internal->namespaces addObject: aNamespace]; 
+  [self notImplemented: _cmd];
 }
 
 - (void) removeNamespaceForPrefix: (NSString*)name
@@ -183,7 +188,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) setNamespaces: (NSArray*)namespaces
 {
-  ASSIGNCOPY(internal->namespaces, namespaces);
+  [self notImplemented: _cmd];
 }
 
 - (void) setObjectValue: (id)value

@@ -1,3 +1,8 @@
+2012-01-12 12:05-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLElement.m: Changes to make NSXMLElement use
+	libxml2 structures.
+
 2012-01-11 12:54-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLNode.m: Get final methods implemented on NSXMLNode
