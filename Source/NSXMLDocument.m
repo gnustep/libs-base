@@ -219,7 +219,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   [children release];
   internal->rootElement = (NSXMLElement*)root;
 */
-  xmlElementPtr newrootnode;
+  xmlNodePtr newrootnode;
   NSAssert(root != nil, NSInvalidArgumentException);
   // Set 
   xmlDocSetRootElement(MY_DOC,[root _node]);

@@ -112,6 +112,7 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
   NSXMLNode      *nextSibling;\
   NSUInteger      options; \
   void           *node;  \
+  NSMutableArray *subNodes; \
 
 
 /* When using the non-fragile ABI, the instance variables are exposed to the

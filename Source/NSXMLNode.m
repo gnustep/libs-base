@@ -34,6 +34,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (void *) _node;
 - (void) _setNode: (void *)_anode;
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
+- (void) _addSubNode:(NSXMLNode *)subNode;
 @end
 
 @implementation NSXMLNode (Private)
@@ -50,6 +51,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node
 {
+  if (!node)
+    return nil;
+
   xmlElementType type = node->type;
   NSXMLNode *result = (id)node->_private;
   xmlChar *name = NULL;
@@ -57,6 +61,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
   if(result == NULL)
     {
+      NSXMLNode *parent = nil;
       switch(type)
 	{
 	case(XML_ELEMENT_NODE):
@@ -73,10 +78,22 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	}
       node->_private = result;
       AUTORELEASE(result);
+      if (node->parent)
+        parent = [self _objectForNode:node->parent];
+      [parent _addSubNode:result];
     }
 
   return result;
 }
+
+- (void) _addSubNode:(NSXMLNode *)subNode
+{
+  if (!internal->subNodes)
+    internal->subNodes = [[NSMutableArray alloc] init];
+  if ([internal->subNodes indexOfObjectIdenticalTo:subNode] == NSNotFound)
+    [internal->subNodes addObject:subNode];
+}
+
 @end
 
 @implementation NSXMLNode
@@ -323,6 +340,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
       [internal->children release];
       [internal->objectValue release];
       [internal->stringValue release];
+      [internal->subNodes release];
       GS_DESTROY_INTERNAL(NSXMLNode);
     }
   [super dealloc];
