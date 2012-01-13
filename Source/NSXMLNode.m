@@ -33,7 +33,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 @interface NSXMLNode (Private)
 - (void *) _node;
 - (void) _setNode: (void *)_anode;
-+ (id) _newFromNode: (xmlNodePtr)node;
++ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
 @end
 
 @implementation NSXMLNode (Private)
@@ -48,7 +48,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   internal->node = _anode;
 }
 
-+ (id) _newFromNode: (xmlNodePtr)node
++ (NSXMLNode *) _objectForNode: (xmlNodePtr)node
 {
   xmlElementType type = node->type;
   NSXMLNode *result = (id)node->_private;
@@ -71,6 +71,8 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	default:
 	  break;
 	}
+      node->_private = result;
+      AUTORELEASE(result);
     }
 
   return result;
@@ -259,7 +261,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
       count++;
     }
 
-  return (NSXMLNode *)[NSXMLNode _newFromNode: children];
+  return (NSXMLNode *)[NSXMLNode _objectForNode: children];
 }
 
 - (NSUInteger) childCount
@@ -288,7 +290,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
   for (children = node->children; children; children = children->next)
     {
-      NSXMLNode *n = [NSXMLNode _newFromNode: children];
+      NSXMLNode *n = [NSXMLNode _objectForNode: children];
       [childrenArray addObject: n];
     }
 
