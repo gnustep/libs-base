@@ -132,13 +132,9 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  */
 #define GS_NSXMLDocument_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
   NSXMLDTD     		*docType; \
-  BOOL         		childrenHaveMutated; \
-  NSXMLElement 		*rootElement; \
   NSString     		*MIMEType; \
   NSUInteger   		fidelityMask; \
   NSInteger		contentKind; \
-  NSMutableArray	*elementStack; \
-  NSData		*xmlData; \
 
 
 /* Instance variables for NSXMLDTD with/without the instance
@@ -149,8 +145,6 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
   NSString      *publicID; \
   NSString      *systemID; \
-  BOOL          childrenHaveMutated; \
-  BOOL          modified; \
   NSMutableDictionary   *entities; \
   NSMutableDictionary   *elements; \
   NSMutableDictionary   *notations; \
@@ -175,12 +169,7 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  * This macro needs to be defined before the NSXMLElement.h header
  * is imported and before GSInternal.h is imported.
  */
-#define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSMutableDictionary   *attributes; \
-  NSMutableArray        *namespaces; \
-  BOOL                  childrenHaveMutated; \
-  NSInteger             prefixIndex; \
-
+#define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"

@@ -51,8 +51,6 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
     {
       [internal->docType release];
       [internal->MIMEType release];
-      [internal->elementStack release];
-      [internal->xmlData release];
     }
   [super dealloc];
 }
@@ -246,7 +244,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
   NSXMLNodeKind	kind;
+  NSXMLNode *next = nil;
+  xmlNodePtr nextNode = NULL;
+  xmlNodePtr newNode = NULL;
+  xmlNodePtr prevNode = NULL;
 
+  // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
   NSAssert(index <= [self childCount], NSInvalidArgumentException);
   NSAssert(nil == [child parent], NSInvalidArgumentException);
@@ -260,14 +263,19 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-  if (nil == internal->children)
-    {
-      internal->children = [[NSMutableArray alloc] initWithCapacity: 10];
-    }
-  [internal->children insertObject: child
-			   atIndex: index];
+  // Get all of the nodes...
+  newNode =  ((xmlNodePtr)[child _node]);
+  next = [self childAtIndex: index];
+  nextNode = ((xmlNodePtr)[next _node]);
+  prevNode = nextNode->prev;
+
+  // Make all of the links...
+  prevNode->next = newNode;
+  newNode->next  = nextNode;
+  newNode->prev  = prevNode;
+  nextNode->prev = newNode;
+  
   GSIVar(child, parent) = self;
-  internal->childCount++;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -283,50 +291,39 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  NSXMLNode	*child = [internal->children objectAtIndex: index];
+  NSXMLNode	*child;
+  xmlNodePtr     n;
 
-  if (nil != child)
+  if (index >= [self childCount])
     {
-      if (internal->rootElement == child)
-	{
-	  internal->rootElement = nil;
-	}
-      GSIVar(child, parent) = nil;
-      [internal->children removeObjectAtIndex: index];
-      if (0 == --internal->childCount)
-	{
-	  /* The -children method must return nil if there are no children,
-	   * so we destroy the container.
-	   */
-	  DESTROY(internal->children);
-	}
+      [NSException raise: NSRangeException
+		  format: @"index to large"];
     }
+
+  child = [[self children] objectAtIndex: index];
+  n = [child _node];
+  xmlUnlinkNode(n);
 }
 
 - (void) setChildren: (NSArray*)children
 {
-  if (children != internal->children)
+  NSEnumerator	*en;
+  NSXMLNode		*child;
+  
+  while ([self childCount] > 0)
     {
-      NSEnumerator	*en;
-      NSXMLNode		*child;
-
-      [children retain];
-      while (internal->childCount > 0)
-	{
-	  [self removeChildAtIndex:internal->childCount - 1];
-	}
-      en = [children objectEnumerator];
-      while ((child = [en nextObject]) != nil)
-	{
-	  [self insertChild: child atIndex: internal->childCount];
-	}
-      [children release];
+      [self removeChildAtIndex: [self childCount] - 1];
+    }
+  en = [[self children] objectEnumerator];
+  while ((child = [en nextObject]) != nil)
+    {
+      [self insertChild: child atIndex: [self childCount]];
     }
 }
  
 - (void) addChild: (NSXMLNode*)child
 {
-  [self insertChild: child atIndex: internal->childCount];
+  [self insertChild: child atIndex: [self childCount]];
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
@@ -409,6 +406,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 @end
 
+/*
 @implementation NSXMLDocument (NSXMLParserDelegate)
 
 - (void)   parser: (NSXMLParser *)parser
@@ -453,3 +451,4 @@ foundCharacters: (NSString *)string
   [currentElement setStringValue: string];
 }
 @end
+*/

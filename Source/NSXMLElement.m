@@ -41,12 +41,10 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   if (GS_EXISTS_INTERNAL && _internal != nil)
     {
-      while (internal->childCount > 0)
+      while ([self childCount] > 0)
 	{
-	  [self removeChildAtIndex: internal->childCount - 1];
+	  [self removeChildAtIndex: [self childCount] - 1];
 	}
-      [internal->attributes release];
-      [internal->namespaces release];
     }
   [super dealloc];
 }
@@ -151,8 +149,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   NSEnumerator	*en = [attributes keyEnumerator];	 
   NSString	*key; 
- 	 
-  [internal->attributes removeAllObjects];
+  
+  // [internal->attributes removeAllObjects];
   while ((key = [en nextObject]) != nil)	 
     {	 
       NSString	*val = [attributes objectForKey: key];	 
@@ -164,12 +162,14 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (NSArray*) attributes
 {
-  return [internal->attributes allValues];
+  [self notImplemented: _cmd];
+  return nil; // [internal->attributes allValues];
 }
 
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
-  return [internal->attributes objectForKey: name];
+  [self notImplemented: _cmd];
+  return nil; // [internal->attributes objectForKey: name];
 }
 
 - (NSXMLNode*) attributeForLocalName: (NSString*)localName
@@ -205,7 +205,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (NSArray*) namespaces
 {
-  return internal->namespaces;
+  [self notImplemented: _cmd];
+  return nil; // internal->namespaces;
 }
 
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
@@ -229,13 +230,16 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
   NSXMLNodeKind	kind;
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  NSXMLNode *next = nil;
+  xmlNodePtr nextNode = NULL;
+  xmlNodePtr newNode = NULL;
+  xmlNodePtr prevNode = NULL;
 
+  // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
-  NSAssert(index <= internal->childCount, NSInvalidArgumentException);
-  NSAssert(nil == [child parent], NSInternalInconsistencyException);
+  NSAssert(index <= [self childCount], NSInvalidArgumentException);
+  NSAssert(nil == [child parent], NSInvalidArgumentException);
   kind = [child kind];
-  // FIXME ... should we check for valid kinds rather than invalid ones?
   NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDTDKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDocumentKind != kind, NSInvalidArgumentException);
@@ -245,14 +249,19 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-  if (nil == internal->children)
-    {
-      internal->children = [[NSMutableArray alloc] initWithCapacity: 10];
-    }
-  [internal->children insertObject: child
-			   atIndex: index];
+  // Get all of the nodes...
+  newNode =  ((xmlNodePtr)[child _node]);
+  next = [self childAtIndex: index];
+  nextNode = ((xmlNodePtr)[next _node]);
+  prevNode = nextNode->prev;
+
+  // Make all of the links...
+  prevNode->next = newNode;
+  newNode->next  = nextNode;
+  newNode->prev  = prevNode;
+  nextNode->prev = newNode;
+  
   GSIVar(child, parent) = self;
-  internal->childCount++;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -284,22 +293,17 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) setChildren: (NSArray*)children
 {
-  if (children != internal->children)
+  NSEnumerator	*en;
+  NSXMLNode		*child;
+  
+  while ([self childCount] > 0)
     {
-      NSEnumerator	*en;
-      NSXMLNode		*child;
-
-      [children retain];
-      while (internal->childCount > 0)
-	{
-	  [self removeChildAtIndex:internal->childCount - 1];
-	}
-      en = [children objectEnumerator];
-      while ((child = [en nextObject]) != nil)
-	{
-	  [self insertChild: child atIndex: internal->childCount];
-	}
-      [children release];
+      [self removeChildAtIndex: [self childCount] - 1];
+    }
+  en = [[self children] objectEnumerator];
+  while ((child = [en nextObject]) != nil)
+    {
+      [self insertChild: child atIndex: [self childCount]];
     }
 }
  
@@ -326,7 +330,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   NSEnumerator	*en;
   id obj;
 
-  en = [internal->namespaces objectEnumerator];
+  en = [[self namespaces] objectEnumerator];
   while ((obj = [en nextObject]) != nil)
     {
       NSXMLNode *ns = [obj copyWithZone: zone];
@@ -335,7 +339,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       [ns release];
     }
 
-  en = [internal->attributes objectEnumerator];
+  en = [[self attributes] objectEnumerator];
   while ((obj = [en nextObject]) != nil)
     {
       NSXMLNode *attr = [obj copyWithZone: zone];
@@ -344,7 +348,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       [attr release];
     }
   
-  en = [internal->children objectEnumerator];
+  en = [[self children] objectEnumerator];
   while ((obj = [en nextObject]) != nil)
     {
       NSXMLNode *child = [obj copyWithZone: zone];

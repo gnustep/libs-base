@@ -46,7 +46,6 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
       [internal->entities release];
       [internal->elements release];
       [internal->notations release];
-      [internal->attributes release];
       [internal->original release];
     }
   [super dealloc];
@@ -117,7 +116,6 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
   [self notImplemented: _cmd];
-  internal->childrenHaveMutated = YES;
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -169,13 +167,11 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 - (void) setPublicID: (NSString*)publicID
 {
   [self notImplemented: _cmd];
-  internal->modified = YES;
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
   [self notImplemented: _cmd];
-  internal->modified = YES;
 }
 
 - (NSString*) systemID

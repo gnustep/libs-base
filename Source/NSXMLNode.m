@@ -97,8 +97,8 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	{
 	case(NSXMLAttributeKind):
 	  node = xmlNewProp(NULL,
-			    XMLSTRING([object name]),
-			    XMLSTRING([object stringValue]));
+			    (xmlChar *)XMLSTRING([object name]),
+			    (xmlChar *)XMLSTRING([object stringValue]));
 	  break;
 	case(NSXMLElementKind):
 	  node = xmlNewNode(NULL,XMLSTRING([object name]));
@@ -123,12 +123,14 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	     stringValue: (NSString*)stringValue
 {
   NSXMLNode	*n;
-  xmlAttrPtr     node;
+  xmlAttrPtr     node = xmlNewProp(NULL,
+				   XMLSTRING(name),
+				   XMLSTRING(stringValue));
 
   n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
   [n setStringValue: stringValue];
   [n setName: name];
-  [n _setNode: node];
+  [n _setNode: (void *)node];
   
   return n;
 }
@@ -366,7 +368,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSUInteger) hash
 {
-  return [internal->name hash];
+  return [StringFromXMLStringPtr(MY_NODE->name) hash];
 }
 
 - (NSUInteger) index
@@ -478,7 +480,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
     }
 
   c = [other children];
-  if (c != internal->children && NO == [c isEqual: internal->children])
+  if (c != [self children] && NO == [c isEqual: [self children]])
     {
       return NO;
     }
@@ -525,14 +527,14 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   NSXMLNode *candidate = nil;
 
   /* Node walking is a depth-first thingy. Hence, we consider children first: */
-  if (0 != internal->childCount)
+  if (0 != [self childCount])
     {
       NSUInteger theIndex = 0;
       if (NO == forward)
 	{
-	  theIndex = (internal->childCount) - 1;
+	  theIndex = ([self childCount]) - 1;
 	}
-      candidate = [internal->children objectAtIndex: theIndex];
+      candidate = [[self children] objectAtIndex: theIndex];
     }
 
   /* If there are no children, we move on to siblings: */
@@ -586,7 +588,14 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSXMLNode*) nextSibling
 {
-  return internal->nextSibling;
+  xmlNodePtr node = MY_NODE->next;
+
+  if(node != NULL)
+    {
+      return node->next->_private;
+    }
+  
+  return nil;
 }
 
 - (id) objectValue
@@ -691,7 +700,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
 {
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlNodePtr node = MY_NODE;
   if (resolve == NO)
     {
       node->content = (xmlChar *)[string UTF8String];
@@ -701,7 +710,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
       // need to actually resolve entities...
       node->content = (xmlChar *)[string UTF8String];
     }
-  if (nil == internal->stringValue)
+  if (nil == string)
     {
       node->content = (xmlChar *)[@"" UTF8String];	// string value may not be nil
     }
