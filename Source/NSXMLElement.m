@@ -269,22 +269,17 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (void) removeChildAtIndex: (NSUInteger)index
 {
   NSXMLNode	*child;
+  xmlNodePtr     n;
 
-  if (index >= internal->childCount)
+  if (index >= [self childCount])
     {
       [NSException raise: NSRangeException
 		  format: @"index to large"];
     }
-  child = [internal->children objectAtIndex: index];
-  GSIVar(child, parent) = nil;
-  [internal->children removeObjectAtIndex: index];
-  if (0 == --internal->childCount)
-    {
-      /* The -children method must return nil if there are no children,
-       * so we destroy the container.
-       */
-      DESTROY(internal->children);
-    }
+
+  child = [[self children] objectAtIndex: index];
+  n = [child _node];
+  xmlUnlinkNode(n);
 }
 
 - (void) setChildren: (NSArray*)children
@@ -310,7 +305,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
  
 - (void) addChild: (NSXMLNode*)child
 {
-  [self insertChild: child atIndex: internal->childCount];
+  int count = [self childCount];
+  [self insertChild: child atIndex: count];
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node

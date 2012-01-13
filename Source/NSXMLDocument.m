@@ -208,17 +208,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-/*
-  NSArray	*children;
-
-  NSAssert(root == nil, NSInvalidArgumentException);
-
-  // this method replaces *all* children with the specified element.
-  children = [[NSArray alloc] initWithObjects: &root count: 1];  
-  [self setChildren: children];
-  [children release];
-  internal->rootElement = (NSXMLElement*)root;
-*/
+#warning properly dispose of old root element.
   xmlNodePtr newrootnode;
   NSAssert(root != nil, NSInvalidArgumentException);
   // Set 
@@ -258,7 +248,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSXMLNodeKind	kind;
 
   NSAssert(nil != child, NSInvalidArgumentException);
-  NSAssert(index <= internal->childCount, NSInvalidArgumentException);
+  NSAssert(index <= [self childCount], NSInvalidArgumentException);
   NSAssert(nil == [child parent], NSInvalidArgumentException);
   kind = [child kind];
   NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);

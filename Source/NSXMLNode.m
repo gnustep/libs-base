@@ -51,39 +51,61 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node
 {
-  if (!node)
-    return nil;
-
-  xmlElementType type = node->type;
-  NSXMLNode *result = (id)node->_private;
-  xmlChar *name = NULL;
-  // NSXMLNodeKind kind = 0;
-
-  if(result == NULL)
+  NSXMLNode *result = nil;
+  
+  if (node)
     {
-      NSXMLNode *parent = nil;
-      switch(type)
+      xmlElementType type = node->type;
+      xmlChar *name = NULL;
+      // NSXMLNodeKind kind = 0;
+      
+      if(result == NULL)
 	{
-	case(XML_ELEMENT_NODE):
-	  name = (xmlChar *)node->name;
-	  result = [[self alloc] initWithKind: NSXMLElementKind];
+	  NSXMLNode *parent = nil;
+	  switch(type)
+	    {
+	    case(XML_ELEMENT_NODE):
+	      name = (xmlChar *)node->name;
+	      result = [[self alloc] initWithKind: NSXMLElementKind];
+	      break;
+	    case(XML_ATTRIBUTE_NODE):
+	      name = (xmlChar *)node->name;
+	      result = [[self alloc] initWithKind: NSXMLAttributeKind];
+	      [result setStringValue: StringFromXMLStringPtr(node->content)];
+	      break;
+	    default:
+	      break;
+	    }
+	  node->_private = result;
+	  AUTORELEASE(result);
+	  if (node->parent)
+	    parent = [self _objectForNode:node->parent];
+	  [parent _addSubNode:result];
+	}
+    }
+  
+  return result;
+}
+
++ (xmlNodePtr) _nodeForObject: (NSXMLNode *)object
+{
+  xmlNodePtr node = NULL;
+  if(object)
+    {
+      NSXMLNodeKind kind = [object kind];
+      switch (kind)
+	{
+	case(NSXMLAttributeKind):
+	  node = xmlNewProp(NULL,
+			    XMLSTRING([object name]),
+			    XMLSTRING([object stringValue]));
 	  break;
-	case(XML_ATTRIBUTE_NODE):
-	  name = (xmlChar *)node->name;
-	  result = [[self alloc] initWithKind: NSXMLAttributeKind];
-	  [result setStringValue: StringFromXMLStringPtr(node->content)];
-	  break;
-	default:
+	case(NSXMLElementKind):
+	  node = xmlNewNode(NULL,XMLSTRING([object name]));
 	  break;
 	}
-      node->_private = result;
-      AUTORELEASE(result);
-      if (node->parent)
-        parent = [self _objectForNode:node->parent];
-      [parent _addSubNode:result];
     }
-
-  return result;
+  return node;
 }
 
 - (void) _addSubNode:(NSXMLNode *)subNode
@@ -93,7 +115,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   if ([internal->subNodes indexOfObjectIdenticalTo:subNode] == NSNotFound)
     [internal->subNodes addObject:subNode];
 }
-
 @end
 
 @implementation NSXMLNode
@@ -107,9 +128,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
   [n setStringValue: stringValue];
   [n setName: name];
-  node = xmlNewProp(NULL,
-		    XMLSTRING(name),
-		    XMLSTRING(stringValue));
   [n _setNode: node];
   
   return n;
@@ -283,18 +301,18 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSUInteger) childCount
 {
-  NSUInteger childCount = 0;
+  NSUInteger count = 0;
   xmlNodePtr children = NULL;
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlNodePtr node = MY_NODE;
   if (node->type == XML_DOCUMENT_NODE)
     node = xmlDocGetRootElement((xmlDocPtr)node);
 
   for (children = node->children; children; children = children->next)
     {
-      childCount++;
+      count++;
     }
 
-  return childCount;
+  return count;
 }
 
 - (NSArray*) children
@@ -335,11 +353,8 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   if (GS_EXISTS_INTERNAL)
     {
       [self detach];
-      [internal->name release];
       [internal->URI release];
-      [internal->children release];
       [internal->objectValue release];
-      [internal->stringValue release];
       [internal->subNodes release];
       GS_DESTROY_INTERNAL(NSXMLNode);
     }
@@ -433,7 +448,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
    */
   internal->kind = kind;
   internal->options = theOptions;
-  internal->stringValue = @"";
   return self;
 }
 
@@ -458,7 +472,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
     }
 
   s = [other name];
-  if (s != internal->name && NO == [s isEqual: internal->name])
+  if (s != [self name] && NO == [s isEqual: [self name]])
     {
       return NO;
     }

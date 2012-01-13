@@ -81,7 +81,9 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 }
 
 #define MY_DOC	((xmlDoc *)internal->node)
-
+#define MY_NODE ((xmlNode *)internal->node)
+#define MY_ATTR ((xmlAttr *)internal->node)
+#define MY_ELEM ((xmlElement *)internal->node)
 
 /* Instance variables for NSXMLNode.  This macro needs to be defined before
  * the NSXMLNode.h header is imported and before GSInternal.h is imported.
@@ -103,11 +105,7 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
   NSXMLNode      *parent; \
   NSUInteger      index; \
   id              objectValue; \
-  NSString       *stringValue; \
-  NSString       *name; \
   NSString       *URI; \
-  NSMutableArray *children; \
-  NSUInteger      childCount; \
   NSXMLNode      *previousSibling; \
   NSXMLNode      *nextSibling;\
   NSUInteger      options; \
