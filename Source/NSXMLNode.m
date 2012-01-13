@@ -613,7 +613,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   xmlNodePtr   node = (xmlNodePtr)[self _node];
   xmlChar      *buf = NULL;
   xmlDocPtr    doc = node->doc;
-  xmlBufferPtr buffer = NULL;
+  xmlBufferPtr buffer = xmlBufferCreate(); //NULL;
   int error = 0;
   int len = 0;
 
@@ -621,6 +621,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   buf = buffer->content;
   len = buffer->size;
   string = StringFromXMLString(buf,len);
+  xmlBufferFree(buffer);
   AUTORELEASE(string);
 
   return string;

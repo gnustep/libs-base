@@ -219,8 +219,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   [children release];
   internal->rootElement = (NSXMLElement*)root;
 */
+  xmlElementPtr newrootnode;
+  NSAssert(root != nil, NSInvalidArgumentException);
   // Set 
   xmlDocSetRootElement(MY_DOC,[root _node]);
+  newrootnode = MY_DOC->children;
+  newrootnode->_private = root; // hmmm, this probably isn't where this belongs, but try it...
 }
 
 - (void) setStandalone: (BOOL)standalone
