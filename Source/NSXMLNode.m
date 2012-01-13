@@ -288,8 +288,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   NSUInteger count = 0;
   xmlNodePtr children = NULL;
   xmlNodePtr node = (xmlNodePtr)(internal->node);
-  if (node->type == XML_DOCUMENT_NODE)
-    node = xmlDocGetRootElement((xmlDocPtr)node);
 
   for (children = node->children; children && count != index; children = children->next)
     {
@@ -304,8 +302,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   NSUInteger count = 0;
   xmlNodePtr children = NULL;
   xmlNodePtr node = MY_NODE;
-  if (node->type == XML_DOCUMENT_NODE)
-    node = xmlDocGetRootElement((xmlDocPtr)node);
 
   for (children = node->children; children; children = children->next)
     {
@@ -320,8 +316,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   NSMutableArray *childrenArray = [NSMutableArray array];
   xmlNodePtr children = NULL;
   xmlNodePtr node = (xmlNodePtr)(internal->node);
-  if (node->type == XML_DOCUMENT_NODE)
-    node = xmlDocGetRootElement((xmlDocPtr)node);
 
   for (children = node->children; children; children = children->next)
     {
