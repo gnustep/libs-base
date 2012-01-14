@@ -57,7 +57,8 @@ void clearPrivatePointers(xmlNodePtr aNode)
 
 - (void) _setNode: (void *)_anode
 {
-  ((xmlNodePtr)_anode)->_private = self;
+  if (_anode)
+    ((xmlNodePtr)_anode)->_private = self;
   internal->node = _anode;
 }
 
@@ -68,7 +69,6 @@ void clearPrivatePointers(xmlNodePtr aNode)
   if (node)
     {
       xmlElementType type = node->type;
-      xmlChar *name = NULL;
       // NSXMLNodeKind kind = 0;
       result = node->_private;
       
@@ -78,15 +78,18 @@ void clearPrivatePointers(xmlNodePtr aNode)
 	  switch(type)
 	    {
 	    case(XML_DOCUMENT_NODE):
-	      name = (xmlChar *)node->name;
 	      result = [[self alloc] initWithKind: NSXMLDocumentKind];
 	      break;
 	    case(XML_ELEMENT_NODE):
-	      name = (xmlChar *)node->name;
 	      result = [[self alloc] initWithKind: NSXMLElementKind];
 	      break;
+	    case(XML_PI_NODE):
+	      result = [[self alloc] initWithKind: NSXMLProcessingInstructionKind];
+	      break;
+	    case(XML_COMMENT_NODE):
+	      result = [[self alloc] initWithKind: NSXMLCommentKind];
+	      break;
 	    case(XML_ATTRIBUTE_NODE):
-	      name = (xmlChar *)node->name;
 	      result = [[self alloc] initWithKind: NSXMLAttributeKind];
 	      [result setStringValue: StringFromXMLStringPtr(node->content)];
 	      break;

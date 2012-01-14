@@ -35,6 +35,9 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 @interface NSXMLNode (Private)
 - (void *) _node;
 - (void) _setNode: (void *)_anode;
++ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
+- (void) _addSubNode:(NSXMLNode *)subNode;
+- (void) _removeSubNode:(NSXMLNode *)subNode;
 @end
 
 @implementation NSXMLElement
@@ -166,8 +169,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSArray*) attributes
 {
-  [self notImplemented: _cmd];
-  return nil; // [internal->attributes allValues];
+  NSMutableArray *attributes = [NSMutableArray array];
+  xmlNodePtr node = MY_NODE;
+  struct _xmlAttr *	attributeNode = node->properties;
+  while (attributeNode)
+    {
+      NSXMLNode *attribute = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
+      [attributes addObject:attribute];
+      attributeNode = attributeNode->next;
+    }
+  return attributes;
 }
 
 - (NSXMLNode*) attributeForName: (NSString*)name
