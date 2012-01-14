@@ -163,6 +163,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       char *url = NULL;
       char *encoding = NULL; // "UTF8";
       int options = 0;
+      if (!(mask & NSXMLNodePreserveWhitespace))
+        options |= XML_PARSE_NOBLANKS;
       
       GS_CREATE_INTERNAL(NSXMLDocument); // create internal ivars...
       internal->node = xmlReadDoc((xmlChar *)str, url, encoding, options);
