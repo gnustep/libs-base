@@ -29,6 +29,8 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
 
+extern void clearPrivatePointers(xmlNodePtr aNode);
+
 // Private methods to manage libxml pointers...
 @interface NSXMLNode (Private)
 - (void *) _node;
@@ -69,6 +71,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
       NSString *name = @"";
       GS_CREATE_INTERNAL(NSXMLElement)
       internal->node = (void *)xmlNewNode(NULL,(xmlChar *)[name UTF8String]);
+      ((xmlNodePtr)internal->node)->_private = self;
       internal->objectValue = @"";
     }
   return [super initWithKind: kind options: theOptions];
@@ -83,6 +86,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   if ((self = [super initWithKind: NSXMLElementKind]) != nil)
     {
       internal->node = (void *)xmlNewNode(NULL,(xmlChar *)[name UTF8String]);
+      ((xmlNodePtr)internal->node)->_private = self;
       ASSIGNCOPY(internal->URI, URI);
       internal->objectValue = @"";
     }
@@ -283,7 +287,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   if (index >= [self childCount])
     {
       [NSException raise: NSRangeException
-		  format: @"index to large"];
+		  format: @"index too large"];
     }
 
   child = [[self children] objectAtIndex: index];

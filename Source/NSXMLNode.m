@@ -70,12 +70,17 @@ void clearPrivatePointers(xmlNodePtr aNode)
       xmlElementType type = node->type;
       xmlChar *name = NULL;
       // NSXMLNodeKind kind = 0;
+      result = node->_private;
       
-      if(result == NULL)
+      if(result == nil)
 	{
 	  NSXMLNode *parent = nil;
 	  switch(type)
 	    {
+	    case(XML_DOCUMENT_NODE):
+	      name = (xmlChar *)node->name;
+	      result = [[self alloc] initWithKind: NSXMLDocumentKind];
+	      break;
 	    case(XML_ELEMENT_NODE):
 	      name = (xmlChar *)node->name;
 	      result = [[self alloc] initWithKind: NSXMLElementKind];
@@ -374,7 +379,9 @@ void clearPrivatePointers(xmlNodePtr aNode)
 {
   if (GS_EXISTS_INTERNAL)
     {
+      xmlNodePtr node = (xmlNodePtr)(internal->node);
       [self detach];
+      node->_private = NULL;
       [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
@@ -386,7 +393,8 @@ void clearPrivatePointers(xmlNodePtr aNode)
 - (void) detach
 {
   xmlNodePtr node = (xmlNodePtr)(internal->node);
-  NSXMLNode *parent = node->parent->_private; // get our parent object if it exists
+  xmlNodePtr parentNode = node->parent;
+  NSXMLNode *parent = (parentNode ? parentNode->_private : nil); // get our parent object if it exists
   [parent _removeSubNode:self];
   xmlUnlinkNode(node);
 /*
@@ -552,11 +560,7 @@ void clearPrivatePointers(xmlNodePtr aNode)
 
 - (NSString*) name
 {
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
-  if (node->name)
-    return StringFromXMLString(node->name,strlen((char *)node->name));
-  else
-    return @"";
+  return StringFromXMLStringPtr(MY_NODE->name);
 }
 
 - (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward
@@ -626,11 +630,11 @@ void clearPrivatePointers(xmlNodePtr aNode)
 
 - (NSXMLNode*) nextSibling
 {
-  xmlNodePtr node = MY_NODE->next;
+  xmlNodePtr next = MY_NODE->next;
 
-  if(node != NULL)
+  if(next != NULL)
     {
-      return [NSXMLNode _objectForNode:node->next];
+      return [NSXMLNode _objectForNode:next];
     }
   
   return nil;
@@ -658,24 +662,26 @@ void clearPrivatePointers(xmlNodePtr aNode)
 
 - (NSXMLNode*) previousSibling
 {
-  return internal->previousSibling;
+  xmlNodePtr prev = MY_NODE->prev;
 
+  if(prev != NULL)
+    {
+      return [NSXMLNode _objectForNode:prev];
+    }
+  
+  return nil;
 }
 
 - (NSXMLDocument*) rootDocument
 {
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
-  NSXMLDocument *ancestor = [NSXMLNode _objectForNode:(node->doc)];
-  return (NSXMLDocument*)ancestor;
+  xmlNodePtr node = MY_NODE;
+  NSXMLDocument *ancestor = (NSXMLDocument *)[NSXMLNode _objectForNode:(xmlNodePtr)(node->doc)];
+  return ancestor;
 }
 
 - (NSString*) stringValue
 {
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
-  if (node->content)
-    return StringFromXMLString(node->content,strlen((char *)node->content));
-  else
-    return @"";
+  return StringFromXMLStringPtr(MY_NODE->content);
 }
 
 - (NSString*) URI
@@ -703,7 +709,6 @@ void clearPrivatePointers(xmlNodePtr aNode)
   len = buffer->use;
   string = StringFromXMLString(buf,len);
   xmlBufferFree(buffer);
-  AUTORELEASE(string);
 
   return string;
 }
@@ -717,9 +722,8 @@ void clearPrivatePointers(xmlNodePtr aNode)
 {
   if (NSXMLInvalidKind != internal->kind)
     {
-      xmlNodePtr node = (xmlNodePtr)(internal->node);
-      node->name = XMLStringCopy(name);
-      //ASSIGNCOPY(internal->name, name);
+      xmlNodePtr node = MY_NODE;
+      xmlNodeSetName(node, XMLSTRING(name));
     }
 }
 
@@ -741,16 +745,18 @@ void clearPrivatePointers(xmlNodePtr aNode)
   xmlNodePtr node = MY_NODE;
   if (resolve == NO)
     {
-      node->content = (xmlChar *)[string UTF8String];
+      xmlNodeSetContent(node, XMLSTRING(string));
     }
   else
     {
       // need to actually resolve entities...
-      node->content = (xmlChar *)[string UTF8String];
+      xmlChar *newstr = xmlEncodeSpecialChars(node->doc, XMLSTRING(string)); // is this the right functionality??
+      xmlNodeSetContent(node, newstr);
+      xmlMemFree(newstr);
     }
   if (nil == string)
     {
-      node->content = (xmlChar *)[@"" UTF8String];	// string value may not be nil
+      xmlNodeSetContent(node, XMLSTRING(@""));	// string value may not be nil
     }
 }
 
