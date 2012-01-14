@@ -83,6 +83,9 @@ void clearPrivatePointers(xmlNodePtr aNode)
 	    case(XML_ELEMENT_NODE):
 	      result = [[self alloc] initWithKind: NSXMLElementKind];
 	      break;
+	    case(XML_TEXT_NODE):
+	      result = [[self alloc] initWithKind: NSXMLTextKind];
+	      break;
 	    case(XML_PI_NODE):
 	      result = [[self alloc] initWithKind: NSXMLProcessingInstructionKind];
 	      break;
@@ -96,7 +99,7 @@ void clearPrivatePointers(xmlNodePtr aNode)
 	    default:
 	      break;
 	    }
-	  node->_private = result;
+          [result _setNode:node];
 	  AUTORELEASE(result);
 	  if (node->parent)
 	    parent = [self _objectForNode:node->parent];
