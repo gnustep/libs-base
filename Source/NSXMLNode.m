@@ -78,10 +78,10 @@ void clearPrivatePointers(xmlNodePtr aNode)
 	  switch(type)
 	    {
 	    case(XML_DOCUMENT_NODE):
-	      result = [[self alloc] initWithKind: NSXMLDocumentKind];
+	      result = [[NSXMLDocument alloc] initWithKind: NSXMLDocumentKind];
 	      break;
 	    case(XML_ELEMENT_NODE):
-	      result = [[self alloc] initWithKind: NSXMLElementKind];
+	      result = [[NSXMLElement alloc] initWithKind: NSXMLElementKind];
 	      break;
 	    case(XML_TEXT_NODE):
 	      result = [[self alloc] initWithKind: NSXMLTextKind];

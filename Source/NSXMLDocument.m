@@ -38,6 +38,9 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 @interface NSXMLNode (Private)
 - (void *) _node;
 - (void) _setNode: (void *)_anode;
++ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
+- (void) _addSubNode:(NSXMLNode *)subNode;
+- (void) _removeSubNode:(NSXMLNode *)subNode;
 @end
 
 @implementation	NSXMLDocument
@@ -180,8 +183,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLElement*) rootElement
 {
-  xmlNodePtr node = xmlDocGetRootElement(MY_DOC);
-  return (NSXMLElement *)(node->_private);
+  xmlNodePtr rootElem = xmlDocGetRootElement(MY_DOC);
+  return (NSXMLElement *)[NSXMLNode _objectForNode:rootElem];
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
