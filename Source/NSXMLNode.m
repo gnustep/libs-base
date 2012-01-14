@@ -35,6 +35,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (void) _setNode: (void *)_anode;
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
 - (void) _addSubNode:(NSXMLNode *)subNode;
+- (void) _removeSubNode:(NSXMLNode *)subNode;
 @end
 
 @implementation NSXMLNode (Private)
@@ -96,9 +97,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
       switch (kind)
 	{
 	case(NSXMLAttributeKind):
-	  node = xmlNewProp(NULL,
-			    (xmlChar *)XMLSTRING([object name]),
-			    (xmlChar *)XMLSTRING([object stringValue]));
+	  node = (xmlNodePtr)xmlNewProp(NULL,
+				    (xmlChar *)XMLSTRING([object name]),
+				    (xmlChar *)XMLSTRING([object stringValue]));
 	  break;
 	case(NSXMLElementKind):
 	  node = xmlNewNode(NULL,XMLSTRING([object name]));
@@ -115,6 +116,12 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   if ([internal->subNodes indexOfObjectIdenticalTo:subNode] == NSNotFound)
     [internal->subNodes addObject:subNode];
 }
+
+- (void) _removeSubNode:(NSXMLNode *)subNode
+{
+  [internal->subNodes removeObjectIdenticalTo:subNode];
+}
+
 @end
 
 @implementation NSXMLNode
@@ -288,13 +295,18 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (NSXMLNode*) childAtIndex: (NSUInteger)index
 {
   NSUInteger count = 0;
-  xmlNodePtr children = NULL;
   xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlNodePtr children = node->children;
+  if (!children)
+    return nil; // the Cocoa docs say it returns nil if there are no children
 
   for (children = node->children; children && count != index; children = children->next)
     {
       count++;
     }
+
+  if (count != index)
+    [NSException raise: NSRangeException format: @"child index too large"];
 
   return (NSXMLNode *)[NSXMLNode _objectForNode: children];
 }
@@ -328,13 +340,27 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   return childrenArray;
 }
 
+static void clearPrivatePointers(xmlNodePtr aNode)
+{
+  if (!aNode)
+    return;
+  aNode->_private = NULL;
+  clearPrivatePointers(aNode->children);
+  clearPrivatePointers(aNode->next);
+  if (aNode->type == XML_ELEMENT_NODE)
+    clearPrivatePointers((xmlNodePtr)(aNode->properties));
+}
+
 - (id) copyWithZone: (NSZone*)zone
 {
   id c = [[self class] allocWithZone: zone];
   xmlNodePtr newNode = xmlCopyNode([self _node], 1); // make a deep copy
+  clearPrivatePointers(newNode);
 
   c = [c initWithKind: internal->kind options: internal->options];
   [c _setNode:newNode];
+
+  
 
 //  [c setName: [self name]];
 //  [c setURI: [self URI]];
@@ -359,11 +385,17 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) detach
 {
-  if (internal->parent != nil)
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  NSXMLNode *parent = node->parent->_private; // get our parent object if it exists
+  [parent _removeSubNode:self];
+  xmlUnlinkNode(node);
+/*
+  if (node->parent != nil)
     {
       [(NSXMLElement*)internal->parent removeChildAtIndex: internal->index];
       internal->parent = nil;
     }
+*/
 }
 
 - (NSUInteger) hash
@@ -373,7 +405,14 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSUInteger) index
 {
-  return internal->index;
+  int count = 0;
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  while ((node = node->prev))
+    {
+      count++; // count our earlier sibling nodes
+    }
+
+  return count;
 }
 
 - (id) init
@@ -496,12 +535,12 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (NSUInteger) level
 {
   NSUInteger	level = 0;
-  NSXMLNode	*tmp = internal->parent;
+  xmlNodePtr	tmp = MY_NODE->parent;
 
-  while (tmp != nil)
+  while (tmp != NULL)
     {
       level++;
-      tmp = GSIVar(tmp, parent);
+      tmp = tmp->parent;
     }
   return level;
 }
@@ -518,7 +557,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
     return StringFromXMLString(node->name,strlen((char *)node->name));
   else
     return @"";
-  //return internal->name; 
 }
 
 - (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward
@@ -592,7 +630,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
   if(node != NULL)
     {
-      return node->next->_private;
+      return [NSXMLNode _objectForNode:node->next];
     }
   
   return nil;
@@ -605,7 +643,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (NSXMLNode*) parent
 {
-  return internal->parent;
+  return [NSXMLNode _objectForNode:MY_NODE->parent];
 }
 
 - (NSString*) prefix
@@ -627,7 +665,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (NSXMLDocument*) rootDocument
 {
   xmlNodePtr node = (xmlNodePtr)(internal->node);
-  NSXMLDocument *ancestor = (NSXMLDocument *)(node->doc->_private);
+  NSXMLDocument *ancestor = [NSXMLNode _objectForNode:(node->doc)];
   return (NSXMLDocument*)ancestor;
 }
 
