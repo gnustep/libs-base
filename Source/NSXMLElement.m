@@ -33,7 +33,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) dealloc
 {
-  if (GS_EXISTS_INTERNAL && _internal != nil)
+  if (GS_EXISTS_INTERNAL)
     {
       while (internal->childCount > 0)
 	{
