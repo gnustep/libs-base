@@ -29,6 +29,17 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
+void clearPrivatePointers(xmlNodePtr aNode)
+{
+  if (!aNode)
+    return;
+  aNode->_private = NULL;
+  clearPrivatePointers(aNode->children);
+  clearPrivatePointers(aNode->next);
+  if (aNode->type == XML_ELEMENT_NODE)
+    clearPrivatePointers((xmlNodePtr)(aNode->properties));
+}
+
 // Private methods to manage libxml pointers...
 @interface NSXMLNode (Private)
 - (void *) _node;
@@ -338,17 +349,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
     }
 
   return childrenArray;
-}
-
-static void clearPrivatePointers(xmlNodePtr aNode)
-{
-  if (!aNode)
-    return;
-  aNode->_private = NULL;
-  clearPrivatePointers(aNode->children);
-  clearPrivatePointers(aNode->next);
-  if (aNode->type == XML_ELEMENT_NODE)
-    clearPrivatePointers((xmlNodePtr)(aNode->properties));
 }
 
 - (id) copyWithZone: (NSZone*)zone

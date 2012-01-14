@@ -32,6 +32,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 #import <Foundation/NSXMLParser.h>
 
+extern void clearPrivatePointers(xmlNodePtr aNode);
+
 // Private methods to manage libxml pointers...
 @interface NSXMLNode (Private)
 - (void *) _node;
@@ -297,7 +299,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   if (index >= [self childCount])
     {
       [NSException raise: NSRangeException
-		  format: @"index to large"];
+		  format: @"index too large"];
     }
 
   child = [[self children] objectAtIndex: index];
@@ -395,7 +397,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
   internal->node = (xmlDoc *)xmlCopyDoc(MY_DOC, 1); // copy recursively
-#warning need to zero out all of the _private pointers in the copied xmlDoc
+  clearPrivatePointers(internal->node); // clear out all of the _private pointers in the entire tree
+  ((xmlNodePtr)internal->node)->_private = c;
 //  [c setStandalone: MY_DOC->standalone];
 //  [c setChildren: MY_DOC->children];
   //GSIVar(c, rootElement) = MY_DOC->rootElement;
