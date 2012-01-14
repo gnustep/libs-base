@@ -687,7 +687,12 @@ void clearPrivatePointers(xmlNodePtr aNode)
 
 - (NSString*) stringValue
 {
-  return StringFromXMLStringPtr(MY_NODE->content);
+  xmlNodePtr node = MY_NODE;
+  if (node->type == XML_ATTRIBUTE_NODE)
+    {
+      node = node->children;
+    }
+  return StringFromXMLStringPtr(node->content);
 }
 
 - (NSString*) URI
