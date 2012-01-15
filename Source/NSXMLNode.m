@@ -29,17 +29,6 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
-void clearPrivatePointers(xmlNodePtr aNode)
-{
-  if (!aNode)
-    return;
-  aNode->_private = NULL;
-  clearPrivatePointers(aNode->children);
-  clearPrivatePointers(aNode->next);
-  if (aNode->type == XML_ELEMENT_NODE)
-    clearPrivatePointers((xmlNodePtr)(aNode->properties));
-}
-
 // Private methods to manage libxml pointers...
 @interface NSXMLNode (Private)
 - (void *) _node;
@@ -102,7 +91,7 @@ void clearPrivatePointers(xmlNodePtr aNode)
           [result _setNode:node];
 	  AUTORELEASE(result);
 	  if (node->parent)
-	    parent = [self _objectForNode:node->parent];
+	    parent = [NSXMLNode _objectForNode:node->parent];
 	  [parent _addSubNode:result];
 	}
     }
@@ -145,6 +134,135 @@ void clearPrivatePointers(xmlNodePtr aNode)
 }
 
 @end
+
+void clearPrivatePointers(xmlNodePtr aNode)
+{
+  if (!aNode)
+    return;
+  aNode->_private = NULL;
+  clearPrivatePointers(aNode->children);
+  clearPrivatePointers(aNode->next);
+  if (aNode->type == XML_ELEMENT_NODE)
+    clearPrivatePointers((xmlNodePtr)(aNode->properties));
+}
+
+int register_namespaces(xmlXPathContextPtr xpathCtx, 
+			const xmlChar* nsList) 
+{
+  xmlChar* nsListDup;
+  xmlChar* prefix;
+  xmlChar* href;
+  xmlChar* next;
+  
+  assert(xpathCtx);
+  assert(nsList);
+  
+  nsListDup = xmlStrdup(nsList);
+  if(nsListDup == NULL) {
+    NSLog(@"Error: unable to strdup namespaces list");
+    return(-1);	
+  }
+  
+  next = nsListDup; 
+  while(next != NULL) {
+    /* skip spaces */
+    while((*next) == ' ') next++;
+    if((*next) == '\0') break;
+    
+    /* find prefix */
+    prefix = next;
+    next = (xmlChar*)xmlStrchr(next, '=');
+    if(next == NULL) {
+      NSLog(@"Error: invalid namespaces list format");
+      xmlFree(nsListDup);
+      return(-1);	
+    }
+    *(next++) = '\0';	
+    
+    /* find href */
+    href = next;
+    next = (xmlChar*)xmlStrchr(next, ' ');
+    if(next != NULL) {
+      *(next++) = '\0';	
+    }
+    
+    /* do register namespace */
+    if(xmlXPathRegisterNs(xpathCtx, prefix, href) != 0) {
+      NSLog(@"Error: unable to register NS with prefix=\"%s\" and href=\"%s\"", prefix, href);
+      xmlFree(nsListDup);
+      return(-1);	
+    }
+  }
+  
+  xmlFree(nsListDup);
+  return(0);
+}
+
+NSArray *execute_xpath(xmlDocPtr doc,
+		       NSString *xpath_exp,
+		       NSString *nmspaces)
+{
+  NSMutableArray *result = [NSMutableArray arrayWithCapacity: 10];
+  xmlChar* xpathExpr = (xmlChar *)XMLSTRING(xpath_exp); 
+  xmlChar* nsList = (xmlChar *)XMLSTRING(nmspaces);
+  xmlXPathContextPtr xpathCtx =  NULL; 
+  xmlXPathObjectPtr xpathObj = NULL; 
+  xmlNodeSetPtr nodeset = NULL;
+  xmlNodePtr cur = NULL;
+  int i = 0; 
+
+  assert(xpathExpr);
+  
+  /* Create xpath evaluation context */
+  xpathCtx = xmlXPathNewContext(doc);
+  if(!xpathCtx) 
+    {
+      NSLog(@"Error: unable to create new XPath context.");
+      return nil;
+    }
+    
+  /* Register namespaces from list (if any) */
+  if((nsList != NULL) && (register_namespaces(xpathCtx, nsList) < 0)) 
+    {
+      NSLog(@"Error: failed to register namespaces list \"%s\"", nsList);
+      xmlXPathFreeContext(xpathCtx); 
+      return nil;
+    }
+
+  /* Evaluate xpath expression */
+  xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
+  if(xpathObj == NULL) 
+    {
+      NSLog(@"Error: unable to evaluate xpath expression \"%s\"", xpathExpr);
+      xmlXPathFreeContext(xpathCtx); 
+      xmlFreeDoc(doc); 
+      return nil;
+    }
+  
+  /* results */
+  nodeset = xpathObj->nodesetval;
+  
+  if(nodeset)
+    {
+      /* Collect results */
+      for(i = 0; i < nodeset->nodeNr; i++)
+	{
+	  id obj = nil;
+	  cur = nodeset->nodeTab[i];
+	  obj = [NSXMLNode _objectForNode: cur];
+	  if(obj)
+	    {
+	      [result addObject: obj];
+	    }
+	} 
+    }
+
+  /* Cleanup */
+  xmlXPathFreeObject(xpathObj);
+  xmlXPathFreeContext(xpathCtx); 
+
+  return result;
+}
 
 @implementation NSXMLNode
 
@@ -776,9 +894,10 @@ void clearPrivatePointers(xmlNodePtr aNode)
   return [self notImplemented: _cmd];
 }
 
- - (NSArray*) nodesForXPath: (NSString*)xpath error: (NSError**)error
+- (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
 {
-  return [self notImplemented: _cmd];
+  *error = NULL;
+  return execute_xpath(MY_NODE->doc, anxpath, NULL);
 }
 
  - (NSArray*) objectsForXQuery: (NSString*)xquery
