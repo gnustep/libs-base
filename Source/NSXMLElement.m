@@ -44,6 +44,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) dealloc
 {
+  /*
   if (GS_EXISTS_INTERNAL && _internal != nil)
     {
       while ([self childCount] > 0)
@@ -51,6 +52,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 	  [self removeChildAtIndex: [self childCount] - 1];
 	}
     }
+  */
   [super dealloc];
 }
 
@@ -76,6 +78,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       internal->node = (void *)xmlNewNode(NULL,(xmlChar *)[name UTF8String]);
       ((xmlNodePtr)internal->node)->_private = self;
       internal->objectValue = @"";
+      // return self;
     }
   return [super initWithKind: kind options: theOptions];
 }
@@ -209,6 +212,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   [self notImplemented: _cmd];
 }
 
+/*
 - (void) setObjectValue: (id)value
 {
   if (nil == value)
@@ -217,6 +221,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     }
   ASSIGN(internal->objectValue, value);
 }
+*/
 
 - (NSArray*) namespaces
 {

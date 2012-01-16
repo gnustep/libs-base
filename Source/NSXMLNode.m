@@ -99,6 +99,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   return result;
 }
 
+/*
 + (xmlNodePtr) _nodeForObject: (NSXMLNode *)object
 {
   xmlNodePtr node = NULL;
@@ -115,10 +116,14 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	case(NSXMLElementKind):
 	  node = xmlNewNode(NULL,XMLSTRING([object name]));
 	  break;
+	case(NSXMLInvalidKind):
+	  node = xmlNewNode(NULL,XMLSTRING([object name]));
+	  break;
 	}
     }
   return node;
 }
+*/
 
 - (void) _addSubNode:(NSXMLNode *)subNode
 {
@@ -198,10 +203,11 @@ int register_namespaces(xmlXPathContextPtr xpathCtx,
   return(0);
 }
 
-NSArray *execute_xpath(xmlDocPtr doc,
+NSArray *execute_xpath(NSXMLNode *node,
 		       NSString *xpath_exp,
 		       NSString *nmspaces)
 {
+  xmlDocPtr doc = ((xmlNodePtr)[node _node])->doc;
   NSMutableArray *result = [NSMutableArray arrayWithCapacity: 10];
   xmlChar* xpathExpr = (xmlChar *)XMLSTRING(xpath_exp); 
   xmlChar* nsList = (xmlChar *)XMLSTRING(nmspaces);
@@ -467,16 +473,23 @@ NSArray *execute_xpath(xmlDocPtr doc,
 
 - (NSArray*) children
 {
-  NSMutableArray *childrenArray = [NSMutableArray array];
-  xmlNodePtr children = NULL;
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
-
-  for (children = node->children; children; children = children->next)
+  NSMutableArray *childrenArray = nil;
+  if(NSXMLInvalidKind == internal->kind)
     {
-      NSXMLNode *n = [NSXMLNode _objectForNode: children];
-      [childrenArray addObject: n];
+      return nil;
     }
-
+  else
+    {
+      xmlNodePtr children = NULL;
+      xmlNodePtr node = (xmlNodePtr)(internal->node);
+      
+      childrenArray = [NSMutableArray array];
+      for (children = node->children; children; children = children->next)
+	{
+	  NSXMLNode *n = [NSXMLNode _objectForNode: children];
+	  [childrenArray addObject: n];
+	}
+    }
   return childrenArray;
 }
 
@@ -504,11 +517,11 @@ NSArray *execute_xpath(xmlDocPtr doc,
   if (GS_EXISTS_INTERNAL)
     {
       xmlNodePtr node = (xmlNodePtr)(internal->node);
-      [self detach];
-      node->_private = NULL;
       [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
+      [self detach];
+      xmlFree(node);
       GS_DESTROY_INTERNAL(NSXMLNode);
     }
   [super dealloc];
@@ -517,17 +530,13 @@ NSArray *execute_xpath(xmlDocPtr doc,
 - (void) detach
 {
   xmlNodePtr node = (xmlNodePtr)(internal->node);
-  xmlNodePtr parentNode = node->parent;
-  NSXMLNode *parent = (parentNode ? parentNode->_private : nil); // get our parent object if it exists
-  [parent _removeSubNode:self];
-  xmlUnlinkNode(node);
-/*
-  if (node->parent != nil)
+  if(node)
     {
-      [(NSXMLElement*)internal->parent removeChildAtIndex: internal->index];
-      internal->parent = nil;
+      xmlNodePtr parentNode = node->parent;
+      NSXMLNode *parent = (parentNode ? parentNode->_private : nil); // get our parent object if it exists
+      [parent _removeSubNode:self];
+      xmlUnlinkNode(node);
     }
-*/
 }
 
 - (NSUInteger) hash
@@ -561,6 +570,7 @@ NSArray *execute_xpath(xmlDocPtr doc,
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
 {
   Class theSubclass = [NSXMLNode class];
+  void *node = NULL;
 
   if (nil == (self = [super init]))
     {
@@ -572,26 +582,30 @@ NSArray *execute_xpath(xmlDocPtr doc,
    */
   switch (kind)
     {
-      case NSXMLDocumentKind:
-	theSubclass = [NSXMLDocument class];
-	break;
-
-      case NSXMLElementKind:
-	theSubclass = [NSXMLElement class];
-	break;
-
-      case NSXMLDTDKind:
-	theSubclass = [NSXMLDTD class];
-	break;
-
-      case NSXMLEntityDeclarationKind:
-      case NSXMLElementDeclarationKind:
-      case NSXMLNotationDeclarationKind:
-	theSubclass = [NSXMLDTDNode class];
-	break;
-
-      default:
-	break;
+    case NSXMLDocumentKind:
+      node = xmlNewDoc((xmlChar *)"1.0");
+      theSubclass = [NSXMLDocument class];
+      break;
+	
+    case NSXMLInvalidKind:
+    case NSXMLElementKind:
+      node = xmlNewNode(NULL,(xmlChar *)"");
+      theSubclass = [NSXMLElement class];
+      break;
+      
+    case NSXMLDTDKind:
+      node = xmlNewDtd(NULL, NULL, NULL,NULL);
+      theSubclass = [NSXMLDTD class];
+      break;
+      
+    case NSXMLEntityDeclarationKind:
+    case NSXMLElementDeclarationKind:
+    case NSXMLNotationDeclarationKind:
+      theSubclass = [NSXMLDTDNode class];
+      break;
+      
+    default:
+      break;
     }
 
   /*
@@ -608,7 +622,11 @@ NSArray *execute_xpath(xmlDocPtr doc,
 
   /* Create holder for internal instance variables if needed.
    */
-  GS_CREATE_INTERNAL(NSXMLNode)
+  GS_CREATE_INTERNAL(NSXMLNode);
+
+  /* Create libxml object to go with it...
+   */
+  [self _setNode: node];
 
   /* If we are initializing for the correct class, we can actually perform
    * initializations:
@@ -684,6 +702,10 @@ NSArray *execute_xpath(xmlDocPtr doc,
 
 - (NSString*) name
 {
+  if(NSXMLInvalidKind == internal->kind)
+    {
+      return nil;
+    }
   return StringFromXMLStringPtr(MY_NODE->name);
 }
 
@@ -806,15 +828,28 @@ NSArray *execute_xpath(xmlDocPtr doc,
 - (NSString*) stringValue
 {
   xmlNodePtr node = MY_NODE;
-  if (node->type == XML_ATTRIBUTE_NODE)
+  xmlChar *content = xmlNodeGetContent(node);
+  NSString *result = nil;
+
+  /*
+  if (node->type == XML_ATTRIBUTE_NODE ||
+      node->type == XML_ELEMENT_NODE)
     {
       node = node->children;
     }
-  return StringFromXMLStringPtr(node->content);
+  */
+
+  result = StringFromXMLStringPtr(content);
+
+  return result;
 }
 
 - (NSString*) URI
 {
+  if(NSXMLInvalidKind == internal->kind)
+    {
+      return nil;
+    }
   return internal->URI;	// FIXME ... fetch from libxml
 }
 
@@ -897,7 +932,7 @@ NSArray *execute_xpath(xmlDocPtr doc,
 - (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
 {
   *error = NULL;
-  return execute_xpath(MY_NODE->doc, anxpath, NULL);
+  return execute_xpath(self, anxpath, NULL);
 }
 
  - (NSArray*) objectsForXQuery: (NSString*)xquery

@@ -1,3 +1,8 @@
+2012-01-16 13:30-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m: Corrections to make "basic" tests pass.
+
 2012-01-15 10:48-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLNode.m
