@@ -1,3 +1,11 @@
+2012-01-16  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/NSBundle.m (addBundlePath): Handle nested subdirectories
+	(e.g.
+	[NSBundle pathForLibraryResource: @"Generic-PostScript_Printer-Postscript"
+	ofType: @"ppd"
+	inDirectory: @"PostScript/PPD"] was previously failing.)
+
 2012-01-12 10:10  theraven
 
 	* libs/base/trunk/Headers/Foundation/NSException.h: Tweak the
