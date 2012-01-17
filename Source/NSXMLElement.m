@@ -247,8 +247,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
   if(ns)
     {
-      result = [NSMutableArray array];
       xmlNsPtr cur = NULL;
+      result = [NSMutableArray array];
       for(cur = ns; cur != NULL; cur = cur->next)
 	{
 	  [result addObject: StringFromXMLStringPtr(cur->prefix)];
@@ -279,17 +279,17 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  NSXMLNodeKind	kind;
+  NSXMLNodeKind	kind = [child kind];
   NSXMLNode *next = nil;
   xmlNodePtr nextNode = NULL;
   xmlNodePtr newNode = NULL;
   xmlNodePtr prevNode = NULL;
+  NSUInteger childCount = [self childCount];
 
   // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
-  NSAssert(index <= [self childCount], NSInvalidArgumentException);
+  NSAssert(index <= childCount, NSInvalidArgumentException);
   NSAssert(nil == [child parent], NSInvalidArgumentException);
-  kind = [child kind];
   NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDTDKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDocumentKind != kind, NSInvalidArgumentException);
@@ -303,14 +303,35 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   newNode =  ((xmlNodePtr)[child _node]);
   next = [self childAtIndex: index];
   nextNode = ((xmlNodePtr)[next _node]);
-  prevNode = nextNode->prev;
+  if(nextNode != NULL)
+    {
+      prevNode = nextNode->prev;
+    }
+  else if(index > 0)
+    {
+      prevNode = (xmlNodePtr)[[self childAtIndex: index - 1] _node];
+    }
 
   // Make all of the links...
-  prevNode->next = newNode;
+  /*
+  if(prevNode != NULL)
+    {
+      prevNode = nextNode;
+    }
+  */
   newNode->next  = nextNode;
   newNode->prev  = prevNode;
-  nextNode->prev = newNode;
-  
+  if(nextNode != NULL)
+    {
+      nextNode->prev = newNode;
+    }
+
+  if(MY_NODE->children == NULL)
+    {
+      MY_NODE->children = newNode;
+    }
+
+  ((xmlNodePtr)[child _node])->parent = [self _node];
   GSIVar(child, parent) = self;
 }
 

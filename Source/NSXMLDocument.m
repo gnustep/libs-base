@@ -292,12 +292,18 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     {
       prevNode = nextNode->prev;
     }
+  else if(index > 0)
+    {
+      prevNode = (xmlNodePtr)[[self childAtIndex: index - 1] _node];
+    }
 
   // Make all of the links...
+  /*
   if(prevNode != NULL)
     {
-      prevNode->next = newNode;
+      prevNode = nextNode;
     }
+  */
   newNode->next  = nextNode;
   newNode->prev  = prevNode;
   if(nextNode != NULL)
@@ -310,6 +316,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       MY_DOC->children = newNode;
     }
 
+  ((xmlNodePtr)[child _node])->parent = [self _node];
   GSIVar(child, parent) = self;
 }
 
