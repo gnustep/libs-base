@@ -168,6 +168,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       
       GS_CREATE_INTERNAL(NSXMLDocument); // create internal ivars...
       internal->node = xmlReadDoc((xmlChar *)str, url, encoding, options);
+      if(internal->node == NULL)
+	{
+	  [NSException raise:NSInvalidArgumentException
+		      format:@"Cannot instantiate NSXMLDocument with invalid data"];
+	}
       MY_DOC->_private = (void *)self;
     }
   return self;
@@ -274,14 +279,23 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   newNode =  ((xmlNodePtr)[child _node]);
   next = [self childAtIndex: index];
   nextNode = ((xmlNodePtr)[next _node]);
-  prevNode = nextNode->prev;
+  if(nextNode != NULL)
+    {
+      prevNode = nextNode->prev;
+    }
 
   // Make all of the links...
-  prevNode->next = newNode;
+  if(prevNode != NULL)
+    {
+      prevNode->next = newNode;
+    }
   newNode->next  = nextNode;
   newNode->prev  = prevNode;
-  nextNode->prev = newNode;
-  
+  if(nextNode != NULL)
+    {
+      nextNode->prev = newNode;
+    }
+
   GSIVar(child, parent) = self;
 }
 
