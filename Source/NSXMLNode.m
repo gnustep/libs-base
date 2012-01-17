@@ -931,6 +931,11 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
 {
+  if([[anxpath substringWithRange: NSMakeRange(0,1)] isEqual: @"/"] == NO)
+    {
+      anxpath = [@"/" stringByAppendingString: anxpath];
+    }
+
   *error = NULL;
   return execute_xpath(self, anxpath, NULL);
 }

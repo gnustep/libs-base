@@ -218,8 +218,9 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-#warning properly dispose of old root element.
+  // #warning properly dispose of old root element.
   xmlNodePtr newrootnode;
+  id oldElement = [self rootElement];
 
   if(root == nil)
     {
@@ -229,6 +230,10 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   xmlDocSetRootElement(MY_DOC,[root _node]);
   newrootnode = MY_DOC->children;
   newrootnode->_private = root; // hmmm, this probably isn't where this belongs, but try it...
+
+  // Get rid of old element...
+  // xmlFree([oldElement _node]);
+  oldElement = nil; // is this correct??
 }
 
 - (void) setStandalone: (BOOL)standalone
