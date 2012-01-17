@@ -209,7 +209,24 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) setNamespaces: (NSArray*)namespaces
 {
-  [self notImplemented: _cmd];
+  NSEnumerator *en = [namespaces objectEnumerator];
+  NSString *namespace = nil;
+  xmlNsPtr cur = NULL;
+
+  while((namespace = (NSString *)[en nextObject]) != nil)
+    {
+      xmlNsPtr ns = xmlNewNs([self _node], NULL, XMLSTRING(namespace));
+      if(MY_NODE->ns == NULL)
+	{
+	  MY_NODE->ns = ns;
+	  cur = ns;
+	}
+      else
+	{
+	  cur->next = ns;
+	  cur = ns;
+	}
+    }
 }
 
 /*
@@ -225,8 +242,21 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSArray*) namespaces
 {
-  [self notImplemented: _cmd];
-  return nil; // internal->namespaces;
+  NSMutableArray *result = nil;
+  xmlNsPtr ns = MY_NODE->ns;
+
+  if(ns)
+    {
+      result = [NSMutableArray array];
+      xmlNsPtr cur = NULL;
+      for(cur = ns; cur != NULL; cur = cur->next)
+	{
+	  [result addObject: StringFromXMLStringPtr(cur->prefix)];
+	}
+    }
+  
+  // [self notImplemented: _cmd];
+  return result; // nil; // internal->namespaces;
 }
 
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
