@@ -220,8 +220,12 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
 #warning properly dispose of old root element.
   xmlNodePtr newrootnode;
-  NSAssert(root != nil, NSInvalidArgumentException);
-  // Set 
+
+  if(root == nil)
+    {
+      return;
+    }
+
   xmlDocSetRootElement(MY_DOC,[root _node]);
   newrootnode = MY_DOC->children;
   newrootnode->_private = root; // hmmm, this probably isn't where this belongs, but try it...
@@ -294,6 +298,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   if(nextNode != NULL)
     {
       nextNode->prev = newNode;
+    }
+
+  if(MY_DOC->children == NULL)
+    {
+      MY_DOC->children = newNode;
     }
 
   GSIVar(child, parent) = self;
