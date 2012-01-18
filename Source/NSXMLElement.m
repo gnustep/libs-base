@@ -38,6 +38,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
 - (void) _addSubNode:(NSXMLNode *)subNode;
 - (void) _removeSubNode:(NSXMLNode *)subNode;
+- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
 @end
 
 @implementation NSXMLElement
@@ -54,6 +55,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     }
   */
   [super dealloc];
+}
+
+- (void) _createInternal
+{
+  GS_CREATE_INTERNAL(NSXMLElement);
 }
 
 - (id) init
@@ -129,8 +135,12 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) addAttribute: (NSXMLNode*)attribute
 {
   xmlNodePtr node = (xmlNodePtr)(internal->node);
-  xmlNodePtr attr = (xmlNodePtr)[attribute _node];
-  xmlAddChild(node,attr);
+  xmlAttrPtr attr = (xmlAttrPtr)[attribute _node];
+  //xmlAddChild(node,attr);
+//  xmlSetProp(node, attr->name, attr->children);
+  xmlAttrPtr newAttr = xmlCopyProp(node, attr);
+  [attribute _setNode:newAttr];
+  [self _addSubNode:attribute];
 }
 
 - (void) removeAttributeForName: (NSString*)name
@@ -397,6 +407,12 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (id) copyWithZone: (NSZone *)zone
 {
+  NSXMLElement *c = [[self class] alloc]; ///(NSXMLElement*)[super copyWithZone: zone];
+  xmlNodePtr newNode = (xmlNodePtr)xmlCopyNode(MY_NODE, 1); // copy recursively
+  clearPrivatePointers(newNode); // clear out all of the _private pointers in the entire tree
+  c = [c _initWithNode:newNode kind:internal->kind];
+  return c;
+/*
   NSXMLElement	*c = (NSXMLElement*)[super copyWithZone: zone];
   NSEnumerator	*en;
   id obj;
@@ -429,6 +445,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     }
 
   return c;
+*/
 }
 
 @end

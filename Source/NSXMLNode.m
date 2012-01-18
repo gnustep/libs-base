@@ -36,6 +36,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
 - (void) _addSubNode:(NSXMLNode *)subNode;
 - (void) _removeSubNode:(NSXMLNode *)subNode;
+- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
 @end
 
 @implementation NSXMLNode (Private)
@@ -63,42 +64,38 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
       
       if(result == nil)
 	{
-	  NSXMLNode *parent = nil;
 	  switch(type)
 	    {
 	    case(XML_DOCUMENT_NODE):
-	      result = [[NSXMLDocument alloc] initWithKind: NSXMLDocumentKind];
+	      result = [[NSXMLDocument alloc] _initWithNode:node kind: NSXMLDocumentKind];
 	      break;
 	    case(XML_ELEMENT_NODE):
-	      result = [[NSXMLElement alloc] initWithKind: NSXMLElementKind];
+	      result = [[NSXMLElement alloc] _initWithNode:node kind: NSXMLElementKind];
 	      break;
 	    case(XML_TEXT_NODE):
-	      result = [[self alloc] initWithKind: NSXMLTextKind];
+	      result = [[self alloc] _initWithNode:node kind: NSXMLTextKind];
 	      break;
 	    case(XML_PI_NODE):
-	      result = [[self alloc] initWithKind: NSXMLProcessingInstructionKind];
+	      result = [[self alloc] _initWithNode:node kind: NSXMLProcessingInstructionKind];
 	      break;
 	    case(XML_COMMENT_NODE):
-	      result = [[self alloc] initWithKind: NSXMLCommentKind];
+	      result = [[self alloc] _initWithNode:node kind: NSXMLCommentKind];
 	      break;
 	    case(XML_ATTRIBUTE_NODE):
-	      result = [[self alloc] initWithKind: NSXMLAttributeKind];
+	      result = [[self alloc] _initWithNode:node kind: NSXMLAttributeKind];
 	      [result setStringValue: StringFromXMLStringPtr(node->content)];
 	      break;
 	    default:
+	      NSLog(@"ERROR: _objectForNode: called with a node of type %d", type);
 	      break;
 	    }
-
-	  if(node && [result _node] != NULL)
-	    {
-	      xmlFree([result _node]);
-	    } 
-
-          [result _setNode:node];
+          //[result _setNode:node];
 	  AUTORELEASE(result);
 	  if (node->parent)
-	    parent = [NSXMLNode _objectForNode:node->parent];
-	  [parent _addSubNode:result];
+            {
+	      NSXMLNode *parent = [NSXMLNode _objectForNode:node->parent];
+	      [parent _addSubNode:result];
+            }
 	}
     }
   
@@ -142,6 +139,22 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 - (void) _removeSubNode:(NSXMLNode *)subNode
 {
   [internal->subNodes removeObjectIdenticalTo:subNode];
+}
+
+- (void) _createInternal
+{
+  GS_CREATE_INTERNAL(NSXMLNode);
+}
+
+- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind
+{
+  if ((self = [super init]))
+    {
+      [self _createInternal];
+      [self _setNode:node];
+      internal->kind = kind;
+    }
+  return self;
 }
 
 @end
@@ -253,7 +266,16 @@ NSArray *execute_xpath(NSXMLNode *node,
   
   /* results */
   nodeset = xpathObj->nodesetval;
-  
+/*
+  if (nodeset == NULL || nodeset->nodeNr == 0)
+    {
+      xpathObj = xmlXPathEval(xpathExpr, xpathCtx);
+      if (xpathObj != NULL)
+        nodeset = xpathObj->nodesetval;
+      if (nodeset)
+        NSLog(@"Succeeded in evaluating as a path, using xmlXPathEval");
+    }
+*/
   if(nodeset)
     {
       /* Collect results */
@@ -505,8 +527,9 @@ NSArray *execute_xpath(NSXMLNode *node,
   xmlNodePtr newNode = xmlCopyNode([self _node], 1); // make a deep copy
   clearPrivatePointers(newNode);
 
-  c = [c initWithKind: internal->kind options: internal->options];
-  [c _setNode:newNode];
+  //c = [c initWithKind: internal->kind options: internal->options];
+  //[c _setNode:newNode];
+  c = [c _initWithNode:newNode kind:internal->kind];
 
   
 
@@ -950,11 +973,6 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
 {
-  if([[anxpath substringWithRange: NSMakeRange(0,1)] isEqual: @"/"] == NO)
-    {
-      anxpath = [@"/" stringByAppendingString: anxpath];
-    }
-
   *error = NULL;
   return execute_xpath(self, anxpath, NULL);
 }

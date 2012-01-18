@@ -78,6 +78,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   return internal->docType;
 }
 
+- (void) _createInternal
+{
+  GS_CREATE_INTERNAL(NSXMLDocument);
+}
+
 - (id) init
 {
   return [self initWithKind: NSXMLDocumentKind options: 0];

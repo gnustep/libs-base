@@ -75,6 +75,11 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
   return nil;
 }
 
+- (void) _createInternal
+{
+  GS_CREATE_INTERNAL(NSXMLDTD);
+}
+
 - (id) init
 {
   return [self initWithKind: NSXMLDTDKind options: 0];
