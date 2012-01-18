@@ -629,6 +629,9 @@ NSArray *execute_xpath(NSXMLNode *node,
     case NSXMLEntityDeclarationKind:
     case NSXMLElementDeclarationKind:
     case NSXMLNotationDeclarationKind:
+    case NSXMLAttributeDeclarationKind:
+      node = xmlNewNode(NULL, (xmlChar *)"");
+      ((xmlNodePtr)node)->type = XML_ATTRIBUTE_DECL;
       theSubclass = [NSXMLDTDNode class];
       break;
       
@@ -643,6 +646,14 @@ NSArray *execute_xpath(NSXMLNode *node,
 
     case NSXMLTextKind:
       node = xmlNewText((xmlChar *)"");
+      break;
+
+    case NSXMLNamespaceKind:
+      node = xmlNewNs(NULL,(xmlChar *)"",(xmlChar *)"");
+      break;
+
+    case NSXMLAttributeKind:
+      node = xmlNewProp(NULL,(xmlChar *)"",(xmlChar *)"");
       break;
 
     default:

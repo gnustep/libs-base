@@ -84,6 +84,7 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #define MY_NODE ((xmlNode *)internal->node)
 #define MY_ATTR ((xmlAttr *)internal->node)
 #define MY_ELEM ((xmlElement *)internal->node)
+#define MY_DTD  ((xmlDtd *)internal->node)
 
 /* Instance variables for NSXMLNode.  This macro needs to be defined before
  * the NSXMLNode.h header is imported and before GSInternal.h is imported.
