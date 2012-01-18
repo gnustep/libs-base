@@ -88,6 +88,12 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	    default:
 	      break;
 	    }
+
+	  if(node && [result _node] != NULL)
+	    {
+	      xmlFree([result _node]);
+	    } 
+
           [result _setNode:node];
 	  AUTORELEASE(result);
 	  if (node->parent)
@@ -594,7 +600,7 @@ NSArray *execute_xpath(NSXMLNode *node,
       break;
       
     case NSXMLDTDKind:
-      node = xmlNewDtd(NULL, NULL, NULL,NULL);
+      node = xmlNewDtd(NULL, (xmlChar *)"", (xmlChar *)"",(xmlChar *)"");
       theSubclass = [NSXMLDTD class];
       break;
       
@@ -604,6 +610,19 @@ NSArray *execute_xpath(NSXMLNode *node,
       theSubclass = [NSXMLDTDNode class];
       break;
       
+    case NSXMLProcessingInstructionKind:
+      node = xmlNewPI((xmlChar *)"", (xmlChar *)"");
+      break;
+
+    case NSXMLCommentKind:
+      node = xmlNewComment((xmlChar *)"");
+      break;
+
+
+    case NSXMLTextKind:
+      node = xmlNewText((xmlChar *)"");
+      break;
+
     default:
       break;
     }
