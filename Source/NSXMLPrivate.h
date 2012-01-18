@@ -113,6 +113,8 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
   void           *node;  \
   NSMutableArray *subNodes; \
   NSString       *xpath; \
+  int		externalRetains; \
+
 
 /* When using the non-fragile ABI, the instance variables are exposed to the
  * compiler within the class declaration, so we don't need to incorporate

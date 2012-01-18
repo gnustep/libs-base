@@ -540,6 +540,50 @@ NSArray *execute_xpath(NSXMLNode *node,
   return c;
 }
 
+- (void) recordExternalRetain
+{
+  id parent = [self parent];
+  if (parent)
+    [parent recordExternalRetain];
+  else
+    {
+      if (internal->externalRetains == 0)
+         [super retain]; // the top of the tree retains itself whenever there are external retains anywhere
+      internal->externalRetains++;
+    }
+}
+
+- (void) releaseExternalRetain
+{
+  id parent = [self parent];
+  if (parent)
+    [parent releaseExternalRetain];
+  else
+    {
+      internal->externalRetains--;
+      if (internal->externalRetains == 0)
+         [super release]; // the top of the tree retains itself whenever there are external retains anywhere
+    }
+}
+
+- (id) retain
+{
+  if ([self retainCount] == 1)
+    {
+      [self recordExternalRetain];
+    }
+  return [super retain];
+}
+
+- (void) release
+{
+  if ([self retainCount] == 2)
+    {
+      [self releaseExternalRetain];
+    }
+  [super release];
+}
+
 - (void) dealloc
 {
   if (GS_EXISTS_INTERNAL)
@@ -548,8 +592,10 @@ NSArray *execute_xpath(NSXMLNode *node,
       [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
-      [self detach];
-      xmlFree(node);
+      if (node->parent == NULL)
+	{
+	  xmlFree(node);  // the top level node frees the entire tree
+	}
       GS_DESTROY_INTERNAL(NSXMLNode);
     }
   [super dealloc];

@@ -335,6 +335,10 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     {
       nextNode->prev = newNode;
     }
+  if(prevNode != NULL)
+    {
+      prevNode->next = newNode;
+    }
 
   if(MY_NODE->children == NULL)
     {
@@ -342,7 +346,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     }
 
   ((xmlNodePtr)[child _node])->parent = [self _node];
-  GSIVar(child, parent) = self;
+  //GSIVar(child, parent) = self;
+  [self _addSubNode:child];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
