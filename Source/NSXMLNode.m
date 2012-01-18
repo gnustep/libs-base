@@ -83,7 +83,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 	      break;
 	    case(XML_ATTRIBUTE_NODE):
 	      result = [[self alloc] _initWithNode:node kind: NSXMLAttributeKind];
-	      [result setStringValue: StringFromXMLStringPtr(node->content)];
 	      break;
 	    default:
 	      NSLog(@"ERROR: _objectForNode: called with a node of type %d", type);
