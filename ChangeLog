@@ -1,3 +1,8 @@
+2012-01-18 12:52-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLDTDNode.m: Remove uneeded releases in dealloc.
+	* Source/NSXMLPrivate.h: Remove ivars from NSXMLDTDNode.h
+
 2012-01-18 12:22-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLNode.m: Add code in initWithKind

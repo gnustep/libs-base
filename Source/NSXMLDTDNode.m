@@ -35,9 +35,6 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 {
   if (GS_EXISTS_INTERNAL)
     {
-      [internal->notationName release];
-      [internal->publicID release];
-      [internal->systemID release];
     }
   [super dealloc];
 }

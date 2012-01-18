@@ -160,10 +160,6 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  */
 #define GS_NSXMLDTDNode_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
   NSUInteger	DTDKind; \
-  NSString	*notationName; \
-  NSString	*publicID; \
-  NSString	*systemID; \
-
 
 /* Instance variables for NSXMLElement with/without the instance
  * variable 'inherited' from NSXMLNode.
