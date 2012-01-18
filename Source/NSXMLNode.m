@@ -510,6 +510,11 @@ NSArray *execute_xpath(NSXMLNode *node,
       xmlNodePtr children = NULL;
       xmlNodePtr node = (xmlNodePtr)(internal->node);
       
+      if(node->children == NULL)
+	{
+	  return nil;
+	}
+
       childrenArray = [NSMutableArray array];
       for (children = node->children; children; children = children->next)
 	{
@@ -977,6 +982,11 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (void) setObjectValue: (id)value
 {
+  if(nil == value)
+    {
+      ASSIGN(internal->objectValue, [NSString stringWithString: @""]);
+      return;
+    }
   ASSIGN(internal->objectValue, value);
 }
 
