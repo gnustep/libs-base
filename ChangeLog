@@ -1,5 +1,10 @@
 2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSFFIInvocation.m: Fix selector types comparison to use the
+	correct function for checking equivalent types.
+
+2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* config/pathtls.m4:
 	* config/pathxml.m4:
 	Remove incorrect sed call to tidy flags (as suggested by Felix Geyer

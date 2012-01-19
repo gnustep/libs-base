@@ -584,7 +584,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
       const char	*receiverTypes = [sig methodType];
       const char	*runtimeTypes = GSTypesFromSelector(selector);
 
-      if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
+      if (NO == GSSelectorTypesMatch(receiverTypes, runtimeTypes))
 	{
 	  const char	*runtimeName = sel_getName(selector);
 
