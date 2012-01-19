@@ -71,8 +71,6 @@ main()
       sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
     tls_config_micro_version=`$TLS_CONFIG $tls_config_args --version | \
       sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    # Strip '-L/usr/lib' off since this is always in the link path.
-    TLS_LIBS=`echo $TLS_LIBS | sed -e 's|-L/usr/lib||'`
 
     if test "x$enable_tlstest" = "xyes" ; then
       ac_save_CFLAGS="$CFLAGS"
