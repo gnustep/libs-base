@@ -254,7 +254,7 @@ NSArray *execute_xpath(NSXMLNode *node,
     }
 
   if (![xpath_exp hasPrefix:@"/"])
-    xpathCtx->node = doc; // provide a context for relative paths
+    xpathCtx->node = (xmlNodePtr)doc; // provide a context for relative paths
 
   /* Evaluate xpath expression */
   xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
@@ -1037,7 +1037,8 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSString*) XPath
 {
-  return [self notImplemented: _cmd];
+  xmlNodePtr node = MY_NODE;
+  return StringFromXMLStringPtr(xmlGetNodePath(node));
 }
 
 - (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
