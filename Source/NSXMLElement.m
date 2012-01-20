@@ -173,7 +173,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   // [internal->attributes removeAllObjects];
   while ((key = [en nextObject]) != nil)	 
     {	 
-      NSString	*val = [attributes objectForKey: key];	 
+      NSString	*val = [[attributes objectForKey: key] stringValue];	 
       NSXMLNode	*attribute = [NSXMLNode attributeWithName: key	 
 					      stringValue: val];
       [self addAttribute: attribute];	 
