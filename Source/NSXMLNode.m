@@ -253,6 +253,9 @@ NSArray *execute_xpath(NSXMLNode *node,
       return nil;
     }
 
+  if (![xpath_exp hasPrefix:@"/"])
+    xpathCtx->node = doc; // provide a context for relative paths
+
   /* Evaluate xpath expression */
   xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
   if(xpathObj == NULL) 
