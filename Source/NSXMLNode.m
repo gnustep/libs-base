@@ -585,9 +585,12 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (void) release
 {
-  if ([self retainCount] == 2)
+  if(GS_EXISTS_INTERNAL)
     {
-      [self releaseExternalRetain];
+      if ([self retainCount] == [internal->subNodes count]) // 2)
+	{
+	  [self releaseExternalRetain];
+	}
     }
   [super release];
 }
@@ -683,10 +686,13 @@ NSArray *execute_xpath(NSXMLNode *node,
     case NSXMLEntityDeclarationKind:
     case NSXMLElementDeclarationKind:
     case NSXMLNotationDeclarationKind:
-    case NSXMLAttributeDeclarationKind:
       node = xmlNewNode(NULL, (xmlChar *)"");
-      ((xmlNodePtr)node)->type = XML_ATTRIBUTE_DECL;
+      // ((xmlNodePtr)node)->type = XML_ATTRIBUTE_DECL;
       theSubclass = [NSXMLDTDNode class];
+      break;
+
+    case NSXMLAttributeDeclarationKind:
+      return nil;
       break;
       
     case NSXMLProcessingInstructionKind:
@@ -985,11 +991,13 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (void) setObjectValue: (id)value
 {
+  /*
   if(nil == value)
     {
       ASSIGN(internal->objectValue, [NSString stringWithString: @""]);
       return;
     }
+  */
   ASSIGN(internal->objectValue, value);
 }
 

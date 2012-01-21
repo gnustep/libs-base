@@ -269,11 +269,12 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  NSXMLNodeKind	kind;
-  NSXMLNode *next = nil;
-  xmlNodePtr nextNode = NULL;
-  xmlNodePtr newNode = NULL;
-  xmlNodePtr prevNode = NULL;
+  NSXMLNodeKind	kind = [child kind];
+  NSXMLNode *cur = nil;
+  xmlNodePtr curNode = NULL;
+  xmlNodePtr thisNode = (xmlNodePtr)[self _node];
+  xmlNodePtr childNode = (xmlNodePtr)[child _node];
+  NSUInteger childCount = [self childCount];
 
   // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
@@ -289,40 +290,22 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
+
   // Get all of the nodes...
-  newNode =  ((xmlNodePtr)[child _node]);
-  next = [self childAtIndex: index];
-  nextNode = ((xmlNodePtr)[next _node]);
-  if(nextNode != NULL)
-    {
-      prevNode = nextNode->prev;
-    }
-  else if(index > 0)
-    {
-      prevNode = (xmlNodePtr)[[self childAtIndex: index - 1] _node];
-    }
+  childNode = ((xmlNodePtr)[child _node]);
+  cur = [self childAtIndex: index];
+  curNode = ((xmlNodePtr)[cur _node]);
 
-  // Make all of the links...
-  /*
-  if(prevNode != NULL)
+  if(0 == childCount || index == childCount)
     {
-      prevNode = nextNode;
+      xmlAddChild(thisNode, childNode);
     }
-  */
-  newNode->next  = nextNode;
-  newNode->prev  = prevNode;
-  if(nextNode != NULL)
+  else if(index < childCount)
     {
-      nextNode->prev = newNode;
+      xmlAddNextSibling(curNode, childNode);
     }
-
-  if(MY_DOC->children == NULL)
-    {
-      MY_DOC->children = newNode;
-    }
-
-  ((xmlNodePtr)[child _node])->parent = [self _node];
-  GSIVar(child, parent) = self;
+	       
+  [self _addSubNode:child];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
