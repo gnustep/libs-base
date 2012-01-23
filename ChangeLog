@@ -1,3 +1,10 @@
+2012-01-23 12:09-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLElement.m: Remove setObjectValue: implementation.
+	* Source/NSXMLNode.m: Remove comments around code to replace
+	nil value.
+	* Tests/base/NSXMLNode/basic.m: correct test.
+
 2012-01-21 06:16-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m

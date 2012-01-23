@@ -37,7 +37,8 @@ int main()
   PASS_EQUAL([node objectValue], @"anObject",
     "setting object value on invalid node works");
   [node setObjectValue: nil];
-  PASS_EQUAL([node objectValue], nil,
+  // Per documentation on NSXMLNode setObjectValue/objectValue, 
+  PASS_EQUAL([node objectValue], @"",
     "setting nil object value on invalid node works");
   [node setStringValue: @"aString"];
   PASS_EQUAL([node stringValue], @"aString",

@@ -239,16 +239,6 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     }
 }
 
-- (void) setObjectValue: (id)value
-{
-  if(nil == value)
-    {
-      ASSIGN(internal->objectValue, [NSString stringWithString: @""]);
-      return;
-    }
-  ASSIGN(internal->objectValue, value);
-}
-
 - (NSArray*) namespaces
 {
   NSMutableArray *result = nil;

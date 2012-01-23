@@ -101,32 +101,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   return result;
 }
 
-/*
-+ (xmlNodePtr) _nodeForObject: (NSXMLNode *)object
-{
-  xmlNodePtr node = NULL;
-  if(object)
-    {
-      NSXMLNodeKind kind = [object kind];
-      switch (kind)
-	{
-	case(NSXMLAttributeKind):
-	  node = (xmlNodePtr)xmlNewProp(NULL,
-				    (xmlChar *)XMLSTRING([object name]),
-				    (xmlChar *)XMLSTRING([object stringValue]));
-	  break;
-	case(NSXMLElementKind):
-	  node = xmlNewNode(NULL,XMLSTRING([object name]));
-	  break;
-	case(NSXMLInvalidKind):
-	  node = xmlNewNode(NULL,XMLSTRING([object name]));
-	  break;
-	}
-    }
-  return node;
-}
-*/
-
 - (void) _addSubNode:(NSXMLNode *)subNode
 {
   if (!internal->subNodes)
@@ -991,13 +965,11 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (void) setObjectValue: (id)value
 {
-  /*
   if(nil == value)
     {
       ASSIGN(internal->objectValue, [NSString stringWithString: @""]);
       return;
     }
-  */
   ASSIGN(internal->objectValue, value);
 }
 
