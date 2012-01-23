@@ -167,14 +167,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       const char *str = [string UTF8String];
       char *url = NULL;
       char *encoding = NULL; // "UTF8";
-      int options = 0;
+      int options = XML_PARSE_NOERROR;
       if (!(mask & NSXMLNodePreserveWhitespace))
         options |= XML_PARSE_NOBLANKS;
-      
+      //xmlKeepBlanksDefault(0);
       GS_CREATE_INTERNAL(NSXMLDocument); // create internal ivars...
       internal->node = xmlReadDoc((xmlChar *)str, url, encoding, options);
       if(internal->node == NULL)
 	{
+	  [self release];
+	  self = nil;
 	  [NSException raise:NSInvalidArgumentException
 		      format:@"Cannot instantiate NSXMLDocument with invalid data"];
 	}
@@ -223,8 +225,6 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-  // #warning properly dispose of old root element.
-  xmlNodePtr newrootnode;
   id oldElement = [self rootElement];
 
   if(root == nil)
@@ -233,12 +233,10 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     }
 
   xmlDocSetRootElement(MY_DOC,[root _node]);
-  newrootnode = MY_DOC->children;
-  newrootnode->_private = root; // hmmm, this probably isn't where this belongs, but try it...
 
-  // Get rid of old element...
-  // xmlFree([oldElement _node]);
-  oldElement = nil; // is this correct??
+  // Do our subNode housekeeping...
+  [self _removeSubNode:oldElement];
+  [self _addSubNode:root];
 }
 
 - (void) setStandalone: (BOOL)standalone
