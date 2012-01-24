@@ -188,9 +188,9 @@ typedef struct {
 {
   if ([URL isKindOfClass: [NSURL class]] == NO)
     {
-      DESTROY(self);
+      URL = nil;
     }
-  else if ((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
       this->URL = RETAIN(URL);
       this->cachePolicy = cachePolicy;

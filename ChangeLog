@@ -1,3 +1,7 @@
+2012-01-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLRequest.m: be tolerant about missing URL on init.
+
 2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFIInvocation.m: Fix selector types comparison to use the
