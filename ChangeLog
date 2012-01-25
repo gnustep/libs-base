@@ -1,5 +1,8 @@
 2012-01-24 21:59-EST Gregory John Casamento <greg.casamento@gmail.com>
 
+	* Tests/base/NSXMLElement/children.m: Remove test based
+	on tests performed on Cocoa.   Remove check for ablility
+	to instantiate NSXMLAttributeDeclarationKind.
 
 2012-01-23 12:09-EST Gregory John Casamento <greg.casamento@gmail.com>
 
