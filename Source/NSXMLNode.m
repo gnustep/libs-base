@@ -101,12 +101,27 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   return result;
 }
 
+- (void) _passExternalRetainsTo:(NSXMLNode *)parent
+{
+  // this object just became a subNode, so pass responsibility for external retains up the line
+  BOOL releaseSelf = (internal->externalRetains > 0); // if we've retained ourself
+  while (internal->externalRetains--)
+    {
+      [parent recordExternalRetain];
+    }
+  if (releaseSelf)
+    [self release];
+}
+
 - (void) _addSubNode:(NSXMLNode *)subNode
 {
   if (!internal->subNodes)
     internal->subNodes = [[NSMutableArray alloc] init];
   if ([internal->subNodes indexOfObjectIdenticalTo:subNode] == NSNotFound)
-    [internal->subNodes addObject:subNode];
+    {
+      [internal->subNodes addObject:subNode];
+      [subNode _passExternalRetainsTo:self];
+    }
 }
 
 - (void) _removeSubNode:(NSXMLNode *)subNode
@@ -542,6 +557,8 @@ NSArray *execute_xpath(NSXMLNode *node,
     [parent releaseExternalRetain];
   else
     {
+if (internal->externalRetains <=0)
+  NSLog(@"ExternalRetains going NEGATIVE: %d in %@", internal->externalRetains - 1, self);
       internal->externalRetains--;
       if (internal->externalRetains == 0)
          [super release]; // the top of the tree retains itself whenever there are external retains anywhere
@@ -577,7 +594,7 @@ NSArray *execute_xpath(NSXMLNode *node,
       [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
-      if (node->parent == NULL)
+      if (node && node->parent == NULL)
 	{
 	  xmlFree(node);  // the top level node frees the entire tree
 	}
