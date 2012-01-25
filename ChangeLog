@@ -1,3 +1,9 @@
+2012-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m: fix possible nul pointer dereference.
+	* Source/NSHost.m: cache failed lookup by name so that repeated
+	lookups for a band host name do not cause repeated DNS queries.
+
 2012-01-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLRequest.m: be tolerant about missing URL on init.

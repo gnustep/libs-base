@@ -34,6 +34,7 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSNull.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"
 
@@ -57,6 +58,7 @@ static Class			hostClass;
 static NSRecursiveLock		*_hostCacheLock = nil;
 static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
+static id			null = nil;
 
 
 @interface NSHost (Private)
@@ -75,7 +77,7 @@ static NSMutableDictionary	*_hostCache = nil;
   [s addObject: name];
   ASSIGNCOPY(_names, s);
   RELEASE(s);
-  if (_hostCacheEnabled == YES)
+  if (YES == _hostCacheEnabled)
     {
       [_hostCache setObject: self forKey: name];
     }
@@ -91,7 +93,7 @@ static NSMutableDictionary	*_hostCache = nil;
   name = [name copy];
   _names = [[NSSet alloc] initWithObjects: &name count: 1];
   _addresses = RETAIN(_names);
-  if (_hostCacheEnabled == YES)
+  if (YES == _hostCacheEnabled)
     {
       [_hostCache setObject: self forKey: name];
     }
@@ -202,7 +204,7 @@ static NSMutableDictionary	*_hostCache = nil;
   _addresses = [addresses copy];
   RELEASE(addresses);
 
-  if (_hostCacheEnabled == YES)
+  if (YES == _hostCacheEnabled)
     {
       [_hostCache setObject: self forKey: name];
     }
@@ -261,6 +263,7 @@ myHostName()
   if (self == [NSHost class])
     {
       hostClass = self;
+      null = [[NSNull null] retain];
       _hostCacheLock = [[NSRecursiveLock alloc] init];
       _hostCache = [NSMutableDictionary new];
     }
@@ -298,7 +301,7 @@ myHostName()
     }
 
   [_hostCacheLock lock];
-  if (_hostCacheEnabled == YES)
+  if (YES == _hostCacheEnabled)
     {
       host = [_hostCache objectForKey: name];
     }
@@ -332,6 +335,10 @@ myHostName()
 		}
 	      else
 		{
+		  if (YES == _hostCacheEnabled)
+		    {
+		      [_hostCache setObject: null forKey: name];
+		    }
 		  NSLog(@"Host '%@' not found using 'gethostbyname()' - "
 		    @"perhaps the hostname is wrong or networking is not "
 		    @"set up on your machine", name);
@@ -343,6 +350,10 @@ myHostName()
 	      IF_NO_GC([host autorelease];)
 	    }
 	}
+    }
+  else if ((id)host == null)
+    {
+      host = nil;
     }
   else
     {
@@ -406,7 +417,7 @@ myHostName()
 #endif
 
   [_hostCacheLock lock];
-  if (_hostCacheEnabled == YES)
+  if (YES == _hostCacheEnabled)
     {
       host = [_hostCache objectForKey: address];
     }
