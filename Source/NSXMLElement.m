@@ -174,7 +174,29 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) removeAttributeForName: (NSString*)name
 {
   xmlNodePtr node = (xmlNodePtr)(internal->node);
-  xmlUnsetProp(node,(xmlChar *)[name UTF8String]);
+  xmlAttrPtr attr = xmlHasProp(node, (xmlChar *)[name UTF8String]);
+  xmlAttrPtr newAttr = NULL;
+  NSXMLNode *attrNode = nil;
+  if (NULL == attr)
+  {
+	  return;
+  }
+
+  // We need a copy of the node because xmlRemoveProp() frees attr:
+  newAttr = xmlCopyProp(NULL, attr);
+  attrNode = [NSXMLNode _objectForNode: (xmlNodePtr)attr];
+
+  // This is supposed to return failure for DTD defined attributes
+  if (0 == xmlRemoveProp(attr))
+  {
+	  [attrNode _setNode: newAttr];
+	  [self _removeSubNode: attrNode];
+  }
+  else
+  {
+	  // In this case we throw away our copy again.
+	  xmlFreeProp(newAttr);
+  }
 }
 
 - (void) setAttributes: (NSArray*)attributes
