@@ -1,3 +1,7 @@
+2012-01-25 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSNumberFormatter.m: Call unum_format* only once.
+
 2012-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m: fix possible nul pointer dereference.
