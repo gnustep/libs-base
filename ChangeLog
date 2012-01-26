@@ -1,3 +1,9 @@
+2012-01-26 22:28-CET Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSXMLElement.m: Fix behaviour of -addAttribute:. Implement
+	-attributeForName:
+	* Tests/base/NSXMLElement/attributes.m: Add some attribute tests.
+
 2012-01-24 21:59-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Tests/base/NSXMLElement/children.m: Remove test based

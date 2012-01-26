@@ -10,7 +10,7 @@
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 3 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -136,10 +136,38 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   xmlNodePtr node = (xmlNodePtr)(internal->node);
   xmlAttrPtr attr = (xmlAttrPtr)[attribute _node];
-  //xmlAddChild(node,attr);
-//  xmlSetProp(node, attr->name, attr->children);
-  xmlAttrPtr newAttr = xmlCopyProp(node, attr);
-  [attribute _setNode:newAttr];
+  xmlAttrPtr oldAttr = xmlHasProp(node, attr->name);
+  if (nil != [attribute parent])
+  {
+	[NSException raise: @"NSInvalidArgumentException"
+	            format: @"Tried to add attribute to multiple parents."];
+  }
+
+  if (NULL != oldAttr)
+  {
+	/*
+	 * As per Cocoa documentation, we only add the attribute if it's not
+	 * already set. xmlHasProp() also looks at the DTD for default attributes
+	 * and we need  to make sure that we only bail out here on #FIXED
+	 * attributes.
+	 */
+
+	// Do not replace plain attributes.
+	if (XML_ATTRIBUTE_NODE == oldAttr->type)
+	{
+	  return;
+	}
+	else if (XML_ATTRIBUTE_DECL == oldAttr->type)
+	{
+		// If the attribute is from a DTD, do not replace it if it's #FIXED
+		xmlAttributePtr attrDecl = (xmlAttributePtr)oldAttr;
+		if (XML_ATTRIBUTE_FIXED == attrDecl->def)
+		{
+			return;
+		}
+	}
+  }
+  xmlAddChild(node, (xmlNodePtr)attr);
   [self _addSubNode:attribute];
 }
 
@@ -167,16 +195,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) setAttributesWithDictionary: (NSDictionary*)attributes
 {
-  NSEnumerator	*en = [attributes keyEnumerator];	 
-  NSString	*key; 
-  
+  NSEnumerator	*en = [attributes keyEnumerator];
+  NSString	*key;
+
   // [internal->attributes removeAllObjects];
-  while ((key = [en nextObject]) != nil)	 
-    {	 
-      NSString	*val = [[attributes objectForKey: key] stringValue];	 
-      NSXMLNode	*attribute = [NSXMLNode attributeWithName: key	 
+  while ((key = [en nextObject]) != nil)
+    {
+      NSString	*val = [[attributes objectForKey: key] stringValue];
+      NSXMLNode	*attribute = [NSXMLNode attributeWithName: key
 					      stringValue: val];
-      [self addAttribute: attribute];	 
+      [self addAttribute: attribute];
     }
 }
 
@@ -196,8 +224,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
-  [self notImplemented: _cmd];
-  return nil; // [internal->attributes objectForKey: name];
+  NSXMLNode *result = nil;
+  xmlChar *xmlName = xmlCharStrdup([name UTF8String]);
+  xmlAttrPtr attributeNode = xmlHasProp(MY_NODE, xmlName);
+  if (NULL != attributeNode)
+  {
+	result = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
+  }
+  xmlFree(xmlName);
+  xmlName = NULL;
+  return result; // [internal->attributes objectForKey: name];
 }
 
 - (NSXMLNode*) attributeForLocalName: (NSString*)localName
@@ -253,7 +289,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 	  [result addObject: StringFromXMLStringPtr(cur->prefix)];
 	}
     }
-  
+
   // [self notImplemented: _cmd];
   return result; // nil; // internal->namespaces;
 }
@@ -311,7 +347,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     {
       xmlAddNextSibling(curNode, childNode);
     }
-	       
+
   [self _addSubNode:child];
 }
 
@@ -319,7 +355,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   NSEnumerator	*enumerator = [children objectEnumerator];
   NSXMLNode	*child;
-  
+
   while ((child = [enumerator nextObject]) != nil)
     {
       [self insertChild: child atIndex: index++];
@@ -346,7 +382,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   NSEnumerator	*en;
   NSXMLNode		*child;
-  
+
   while ([self childCount] > 0)
     {
       [self removeChildAtIndex: [self childCount] - 1];
@@ -357,13 +393,13 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       [self insertChild: child atIndex: [self childCount]];
     }
 }
- 
+
 - (void) addChild: (NSXMLNode*)child
 {
   int count = [self childCount];
   [self insertChild: child atIndex: count];
 }
- 
+
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
 {
   [self insertChild: node atIndex: index];
@@ -404,7 +440,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       [c addAttribute: attr];
       [attr release];
     }
-  
+
   en = [[self children] objectEnumerator];
   while ((obj = [en nextObject]) != nil)
     {
