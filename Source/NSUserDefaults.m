@@ -942,7 +942,7 @@ newLanguages(NSArray *oldNames)
 
         added_lang = NO;
         added_locale = NO;
-        enumerator = [uL objectEnumerator];
+        enumerator = [nL objectEnumerator];
         while ((lang = [enumerator nextObject]))
           {
 	    NSDictionary	*dict = nil;
