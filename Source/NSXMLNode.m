@@ -259,6 +259,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   Class theSubclass = [NSXMLNode class];
 
+GSOnceMLog(@"WARNING  the XML DOM classes are not currently implemented to a usable level, but we expect to have an implementation based on libxml2 in place for the next release.");
   if (nil == (self = [super init]))
     {
       return nil;
