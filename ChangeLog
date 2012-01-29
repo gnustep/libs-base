@@ -1,3 +1,9 @@
+2012-01-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Try to deal with the case where a language
+	has been set to the ISO standard name rather than an OpenStep name
+	by converting to an Openstep name as an alternative lookup key.
+
 2012-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Fix copying for large files (issue #35381)
