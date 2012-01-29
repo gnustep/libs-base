@@ -105,7 +105,7 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 {
   // this object just became a subNode, so pass responsibility for external retains up the line
   BOOL releaseSelf = (internal->externalRetains > 0); // if we've retained ourself
-  while (internal->externalRetains--)
+  while (internal->externalRetains-- > 0)
     {
       [parent recordExternalRetain];
     }
