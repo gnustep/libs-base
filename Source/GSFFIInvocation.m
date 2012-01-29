@@ -148,6 +148,7 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
   NSMutableData		*frame;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
+  void			*executable;
   NSMethodSignature     *sig = nil;
   GSCodeBuffer          *memory;
   const char            *types;
@@ -207,18 +208,28 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 
   memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
   cclosure = [memory buffer];
+  executable = [memory executable];
   if (cframe == NULL || cclosure == NULL)
     {
       [NSException raise: NSMallocException format: @"Allocating closure"];
     }
+#if	HAVE_FFI_PREP_CLOSURE_LOC
+  if (ffi_prep_closure_loc(cclosure, &(cframe->cif),
+    GSFFIInvocationCallback, frame, executable) != FFI_OK)
+    {
+      [NSException raise: NSGenericException format: @"Preping closure"];
+    }
+#else
+  executable = (void*)cclosure;
   if (ffi_prep_closure(cclosure, &(cframe->cif),
     GSFFIInvocationCallback, frame) != FFI_OK)
     {
       [NSException raise: NSGenericException format: @"Preping closure"];
     }
+#endif
   [memory protect];
 
-  return (IMP)cclosure;
+  return (IMP)executable;
 }
 
 static __attribute__ ((__unused__))

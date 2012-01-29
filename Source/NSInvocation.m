@@ -73,6 +73,9 @@
 {
   if (size > 0)
     {
+#if	defined(HAVE_FFI_PREP_CLOSURE_LOC)
+      ffi_closure_free(buffer);
+#else
 #if     defined(HAVE_MMAP)
       munmap(buffer, size);
 #else
@@ -84,14 +87,34 @@
 #endif
       NSDeallocateMemoryPages(buffer, NSPageSize());
 #endif
+#endif
+      buffer = 0;
+      executable = 0;
+      size = 0;
     }
   [super dealloc];
+}
+
+- (void*) executable
+{
+  return executable;
 }
 
 - (id) initWithSize: (NSUInteger)_size
 {
   NSAssert(_size > 0, @"Tried to allocate zero length buffer.");
   NSAssert(_size <= NSPageSize(), @"Tried to allocate more than one page.");
+#if	defined(HAVE_FFI_PREP_CLOSURE_LOC)
+  buffer = ffi_closure_alloc(_size, &executable);
+  if (0 == buffer)
+    {
+      executable = 0;
+    }  
+  else
+    {
+      size = _size;
+    }
+#else
 #if     defined(HAVE_MMAP)
 #if     defined(HAVE_MPROTECT)
   /* We have mprotect, so we create memory as writable and change it to
@@ -117,13 +140,16 @@
       NSLog(@"Failed to map %"PRIuPTR
 	" bytes for execute: %@", _size, [NSError _last]);
       buffer = 0;
+      executable = 0;
       [self dealloc];
       self = nil;
     }
   else
     {
+      executable = buffer;
       size = _size;
     }
+#endif	/* USE_LIBFFI */
   return self;
 }
 
@@ -132,7 +158,8 @@
  */
 - (void) protect
 {
-#if   defined(__MINGW__)
+#if	!defined(HAVE_FFI_PREP_CLOSURE_LOC)
+#if	defined(__MINGW__)
   DWORD old;
   if (VirtualProtect(buffer, size, PAGE_EXECUTE, &old) == 0)
     {
@@ -143,6 +170,7 @@
     {
       NSLog(@"Failed to protect memory as executable: %@", [NSError _last]);
     }
+#endif
 #endif
 }
 @end
