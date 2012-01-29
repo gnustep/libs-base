@@ -1,5 +1,16 @@
 2012-01-29  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac:
+	* Headers/GNUstepBase/config.h.in:
+	* Source/GSFFIInvocation.m:
+	* Source/GSPrivate.h:
+	* Source/NSInvocation.m:
+	If modern ffi is available, use ffi_prep_closure_loc and ffi closure
+	memory management so we get the benefit of ffi library code to work
+	around restrictions of selinux etc.
+
+2012-01-29  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSUserDefaults.m: Try to deal with the case where a language
 	has been set to the ISO standard name rather than an OpenStep name
 	by converting to an Openstep name as an alternative lookup key.

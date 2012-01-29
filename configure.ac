@@ -2631,6 +2631,7 @@ if test $enable_libffi = yes; then
     if test $do_broken_libffi = yes; then
       AC_MSG_WARN([ffi may be broken on this system ... try enabling ffcall])
     fi
+    AC_CHECK_FUNCS(ffi_prep_closure_loc)
   else
     AC_MSG_ERROR([The ffi library (libffi) does not appear to be working.  Perhaps it's missing or you need a more recent version.  Version 3.0.9 or later should work, and you can find a link to it n the list of packages for download at http://www.gnustep.org/resources/sources.html])
   fi

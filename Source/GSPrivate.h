@@ -526,9 +526,11 @@ GSPrivateUnloadModule(FILE *errorStream,
 {
   unsigned      size;
   void          *buffer;
+  void		*executable;
 }
 + (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size;
 - (void*) buffer;
+- (void*) executable;
 - (id) initWithSize: (NSUInteger)_size;
 - (void) protect;
 @end
