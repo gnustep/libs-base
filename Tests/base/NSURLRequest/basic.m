@@ -49,8 +49,8 @@ int main()
   PASS(mutable != nil && [mutable isKindOfClass:[NSMutableURLRequest class]],
     "NSURLRequest +new returns a mutable request");
 
-  PASS_EQUAL([mutable URL], nil, @"nil URL from empty request");
-  PASS_EQUAL([mutable HTTPMethod], @"GET", @"GET method from empty request");
+  PASS_EQUAL([mutable URL], nil, "nil URL from empty request");
+  PASS_EQUAL([mutable HTTPMethod], @"GET", "GET method from empty request");
 
   [arp release]; arp = nil;
   return 0;
