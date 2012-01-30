@@ -31,9 +31,30 @@ notice and this notice are preserved.
 
       <section>
 	<heading>Version 1.24.0</heading>
-        <p>A new stable release with many minor bugfixes and tweaks.<br />
-	With this release the official supported compiler for GNUstep
-	is gcc-4.0 and later.<br />
+        <p>A new stable release.<br />
+	Most changes in this version are behavior updates/improvements
+	rather than new API, but you shuld be aware that there is a
+	binary incompatibility on 64bit systems in that the value of
+	the NSNotFound constant there is now 64bits rather than 32bits.
+	</p>
+	<p>With this release the official supported compiler for GNUstep
+	is gcc-4.0 and later, and the base library has been tested using
+	recent gcc development snapshots.
+	</p>
+	<p>The main changes are:<br />
+	Support for the GNU LANGUAGES environment variable and other locale
+	improvements.<br />
+	Cacheing of file and directory path information within bundles.<br />
+	IPV6 support for NSHost and networking operations.<br />
+	Support for UTF-8 string literals in source (compiler permitting).<br />
+	Improved support for building standalone application bundles.<br />
+	And of course, lots of bugfixes and OSX compatibility tweaks.
+	</p>
+	<p>One this that didn't make it into this release was functioning
+	NSXML DOM classes.  For DOM style work you still need to use the
+	GSXML classes, however there is active work on implementing NSXMLNode
+	and friends as wrappers round the corresponding libxml2 classes, and
+	we hope/expect these to be ready soon.
 	</p>
       </section>
 
