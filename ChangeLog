@@ -1,5 +1,10 @@
 2012-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Version: Bump version to 1.24.0 in preparation for release.
+	* NSTimeZones/NSTimeZones.tar: Update timezone information
+
+2012-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSJSONSerialization.m:
 	Fix buffer overrun reported by Lubomir Rintel <lubo.rintel@gooddata.com>
 
