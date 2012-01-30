@@ -1,5 +1,10 @@
 2012-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSJSONSerialization.m:
+	Fix buffer overrun reported by Lubomir Rintel <lubo.rintel@gooddata.com>
+
+2012-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSKeyValueCoding.m:
 	* Source/NSAffineTransform.m:
 	* Source/NSNotificationCenter.m:
