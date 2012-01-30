@@ -604,7 +604,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     {
       SEL		sel = 0;
       const char	*type = NULL;
-      int		off;
+      int		off = 0;
       const char	*name;
       char		key[size + 1];
       char		buf[size + 5];
@@ -711,6 +711,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
       name = buf;	// _setKey:
       type = NULL;
+      off = 0;
       sel = sel_getUid(name);
       if (sel == 0 || [self respondsToSelector: sel] == NO)
 	{
@@ -802,7 +803,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 {
   SEL		sel = 0;
   const char	*type = 0;
-  int		off;
+  int		off = 0;
   unsigned	size = [aKey length] * 8;
   char		key[size + 1];
 

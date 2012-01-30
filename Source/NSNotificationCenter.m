@@ -1276,9 +1276,9 @@ static NSNotificationCenter *default_center = nil;
   GSNotification	*notification;
 
   notification = (id)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
-  name = notification->_name = [name copyWithZone: [self zone]];
-  object = notification->_object = TEST_RETAIN(object);
-  notification->_info = TEST_RETAIN(info);
+  notification->_name = [name copyWithZone: [self zone]];
+  notification->_object = [object retain];
+  notification->_info = [info retain];
   [self _postAndRelease: notification];
 }
 
