@@ -38,6 +38,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSAffineTransform.h"
 #import "Foundation/NSCoder.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /* Private definitions */
 #define A _matrix.m11
