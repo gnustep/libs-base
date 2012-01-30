@@ -114,6 +114,7 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
   NSMutableArray *subNodes; \
   NSString       *xpath; \
   int		externalRetains; \
+  int		retainedSelf; \
 
 
 /* When using the non-fragile ABI, the instance variables are exposed to the

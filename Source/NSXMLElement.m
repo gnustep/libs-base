@@ -67,38 +67,34 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   return [self initWithKind: NSXMLElementKind options: 0];
 }
 
+- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+{
+  if (NSXMLElementKind == kind)
+    {
+      if ((self = [super initWithKind:kind options:theOptions]))
+	{
+	  internal->objectValue = @"";
+	}
+      return self;
+    }
+  else
+    {
+      [self release];
+      return [[NSXMLNode alloc] initWithKind: kind
+				       options: theOptions];
+    }
+}
+
 - (id) initWithName: (NSString*)name
 {
   return [self initWithName: name URI: nil];
 }
 
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
-{
-  if (NSXMLElementKind == kind)
-    {
-      /* Create holder for internal instance variables so that we'll have
-       * all our ivars available rather than just those of the superclass.
-       */
-      NSString *name = @"";
-      GS_CREATE_INTERNAL(NSXMLElement)
-      internal->node = (void *)xmlNewNode(NULL,(xmlChar *)[name UTF8String]);
-      ((xmlNodePtr)internal->node)->_private = self;
-      internal->objectValue = @"";
-      // return self;
-    }
-  return [super initWithKind: kind options: theOptions];
-}
-
 - (id) initWithName: (NSString*)name URI: (NSString*)URI
 {
-  /* Create holder for internal instance variables so that we'll have
-   * all our ivars available rather than just those of the superclass.
-   */
-  GS_CREATE_INTERNAL(NSXMLElement)
   if ((self = [super initWithKind: NSXMLElementKind]) != nil)
     {
-      internal->node = (void *)xmlNewNode(NULL,(xmlChar *)[name UTF8String]);
-      ((xmlNodePtr)internal->node)->_private = self;
+      [self setName:name];
       ASSIGNCOPY(internal->URI, URI);
       internal->objectValue = @"";
     }
@@ -367,7 +363,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     }
   else if(index < childCount)
     {
-      xmlAddNextSibling(curNode, childNode);
+      xmlAddPrevSibling(curNode, childNode);
     }
 
   [self _addSubNode:child];
@@ -398,6 +394,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   child = [[self children] objectAtIndex: index];
   n = [child _node];
   xmlUnlinkNode(n);
+  [self _removeSubNode:child];
 }
 
 - (void) setChildren: (NSArray*)children

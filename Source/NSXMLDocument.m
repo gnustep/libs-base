@@ -30,7 +30,8 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLDocument)
 
-#import <Foundation/NSXMLParser.h>
+//#import <Foundation/NSXMLParser.h>
+#import <Foundation/NSError.h>
 
 extern void clearPrivatePointers(xmlNodePtr aNode);
 
@@ -116,15 +117,14 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   if (NSXMLDocumentKind == kind)
     {
-      /* Create holder for internal instance variables so that we'll have
-       * all our ivars available rather than just those of the superclass.
-       */
-      xmlChar *version = (xmlChar *)"1.0";
-      GS_CREATE_INTERNAL(NSXMLDocument);
-      internal->node = xmlNewDoc(version);
-      MY_DOC->_private = (void *)self;
+      return [super initWithKind: kind options: theOptions];
     }
-  return [super initWithKind: kind options: theOptions];
+  else
+    {
+      [self release];
+      return [[NSXMLNode alloc] initWithKind: kind
+				       options: theOptions];
+    }
 }
 
 - (id) initWithRootElement: (NSXMLElement*)element
@@ -161,26 +161,27 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 		  format: @"[NSXMLDocument-%@] invalid argument",
 	NSStringFromSelector(_cmd)];
     }
-  GS_CREATE_INTERNAL(NSXMLDocument)
-  if ((self = [super initWithKind: NSXMLDocumentKind options: 0]) != nil)
+  if ((self = [self initWithKind: NSXMLDocumentKind options: 0]) != nil)
     {
       const char *str = [string UTF8String];
       char *url = NULL;
       char *encoding = NULL; // "UTF8";
       int options = XML_PARSE_NOERROR;
+      xmlDocPtr doc = NULL;
       if (!(mask & NSXMLNodePreserveWhitespace))
         options |= XML_PARSE_NOBLANKS;
       //xmlKeepBlanksDefault(0);
-      GS_CREATE_INTERNAL(NSXMLDocument); // create internal ivars...
-      internal->node = xmlReadDoc((xmlChar *)str, url, encoding, options);
-      if(internal->node == NULL)
+      doc = xmlReadDoc((xmlChar *)str, url, encoding, options);
+      if(doc == NULL)
 	{
 	  [self release];
 	  self = nil;
-	  [NSException raise:NSInvalidArgumentException
-		      format:@"Cannot instantiate NSXMLDocument with invalid data"];
+	  if (error != NULL)
+	    *error = [NSError errorWithDomain:@"NSXMLErrorDomain" code:0 userInfo:nil]; 
+	  //[NSException raise:NSInvalidArgumentException
+	  //	      format:@"Cannot instantiate NSXMLDocument with invalid data"];
 	}
-      MY_DOC->_private = (void *)self;
+      [self _setNode:doc];
     }
   return self;
 }

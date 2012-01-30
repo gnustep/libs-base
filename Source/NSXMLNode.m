@@ -101,16 +101,111 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
   return result;
 }
 
+- (int) _externalRetains
+{
+  return internal->externalRetains;
+}
+
+- (int) verifyExternalRetains 
+{
+  int extraRetains = ([self retainCount] > 1 ? 1 : 0);  // start with 1 or 0 for ourself
+  int index;
+  for (index = 0; index < [internal->subNodes count]; index++)
+    extraRetains += [[internal->subNodes objectAtIndex:index] _externalRetains];
+  return extraRetains;
+}
+
+- (void) _updateExternalRetains
+{
+  xmlNodePtr pnode = MY_NODE->parent;
+  NSXMLNode *parent = (NSXMLNode *)(pnode ? pnode->_private : nil);
+  int oldCount = internal->externalRetains;
+  int extraRetains = ([self retainCount] > 1 ? 1 : 0);  // start with 1 or 0 for ourself
+  int index;
+  for (index = 0; index < [internal->subNodes count]; index++)
+    extraRetains += [[internal->subNodes objectAtIndex:index] _externalRetains];
+  internal->externalRetains = extraRetains;
+  if (extraRetains != oldCount)
+    {
+      if (parent)
+	[parent _updateExternalRetains]; // tell our parent (if any) since our count has changed
+      else
+	{ // we're the root node of this tree, so retain or release ourself as needed
+	  if (oldCount == 0 && extraRetains > 0)
+	    {
+	      [super retain];
+	      internal->retainedSelf++;
+//NSLog(@"RETAINED SELF %@ (%d)", self, internal->retainedSelf);
+	    }
+	  else if (oldCount > 0 && extraRetains == 0 && internal->retainedSelf)
+	    {
+	      internal->retainedSelf--;
+//NSLog(@"RELEASED SELF %@ (%d)", self, internal->retainedSelf);
+	      [super release];
+	    }
+	}
+    }
+  else
+    {
+      if (!parent)
+	{
+	  if (extraRetains > 0 && internal->retainedSelf == 0)
+	    {
+	      [super retain];
+	      internal->retainedSelf++;
+//NSLog(@"RETAINED SELF AFTER STATUS CHANGED %@ (%d)", self, internal->retainedSelf);
+	    }
+	  else if (extraRetains == 0 && internal->retainedSelf > 0)
+	    {
+	      internal->retainedSelf--;
+//NSLog(@"RELEASED SELF AFTER STATUS CHANGED %@ (%d)", self, internal->retainedSelf);
+	      [super release];
+	    }
+	}
+    }
+}
+
 - (void) _passExternalRetainsTo:(NSXMLNode *)parent
 {
-  // this object just became a subNode, so pass responsibility for external retains up the line
-  BOOL releaseSelf = (internal->externalRetains > 0); // if we've retained ourself
-  while (internal->externalRetains-- > 0)
+  // this object just became a subNode, so pass knowledge of external retains up the line
+  if (internal->externalRetains > 0)
     {
-      [parent recordExternalRetain];
+//NSLog(@"_passExternalRetainsTo:%@ (%d,%d) from %@ Start:(%d,%d)", parent, [parent _externalRetains], [parent verifyExternalRetains], self, internal->externalRetains, [self verifyExternalRetains]);
+//      if ([self retainCount] == 2)
+//	{
+//	  internal->externalRetains--;
+//NSLog(@"RELEASING TRICKY EXTRA RETAIN WHILE ADDING TO PARENT in %@ now: %d", self, internal->externalRetains);
+//	}
+      //[self _updateExternalRetains];
+      if (internal->retainedSelf)
+	{
+      [super release]; // we're no longer the root of our branch, so stop retaining ourself
+	      internal->retainedSelf--;
+//NSLog(@"RELEASED SELF %@ (%d) in _passExternal...", self, internal->retainedSelf);
+	}
+      [parent _updateExternalRetains];
+//NSLog(@"DID _passExternalRetainsTo:%@ (%d,%d) from %@ End:(%d,%d)", parent, [parent _externalRetains], [parent verifyExternalRetains], self, internal->externalRetains, [self verifyExternalRetains]);
+   }
+}
+
+- (void) _removeExternalRetainsFrom:(NSXMLNode *)parent
+{
+  // this object is no longer a subNode, so pass removal of external retains up the line
+  if (internal->externalRetains > 0)
+    {
+//NSLog(@"_removeExternalRetainsTo:%@ from %@ Start: %d", parent, self, internal->externalRetains);
+///      [parent releaseExternalRetain:internal->externalRetains];
+	  if ([self retainCount] == 1)
+	    {
+	      internal->externalRetains++;
+//NSLog(@"ADDED TRICKY EXTRA COUNT WHILE REMOVING FROM PARENT in %@ now: %d subNodes(low):%d", self, internal->externalRetains, [self verifyExternalRetains]);
+	    }
+
+      [super retain]; // becoming detached, so retain ourself as the new root of our branch
+      internal->retainedSelf++;
+//NSLog(@"RETAINED SELF %@ (%d) in _removeExternal...", self, internal->retainedSelf);
+      [parent _updateExternalRetains];
     }
-  if (releaseSelf)
-    [self release];
 }
 
 - (void) _addSubNode:(NSXMLNode *)subNode
@@ -126,7 +221,10 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 - (void) _removeSubNode:(NSXMLNode *)subNode
 {
+  [subNode retain]; // retain temporarily so we can safely remove from our subNodes list first
   [internal->subNodes removeObjectIdenticalTo:subNode];
+  [subNode _removeExternalRetainsFrom:self];
+  [subNode release]; // release temporary hold
 }
 
 - (void) _createInternal
@@ -537,53 +635,71 @@ NSArray *execute_xpath(NSXMLNode *node,
   return c;
 }
 
-- (void) recordExternalRetain
+/** these methods should go away now
+- (void) recordExternalRetain:(int)count
 {
   id parent = [self parent];
   if (parent)
-    [parent recordExternalRetain];
+    [parent recordExternalRetain:count];
   else
     {
-      if (internal->externalRetains == 0)
-         [super retain]; // the top of the tree retains itself whenever there are external retains anywhere
-      internal->externalRetains++;
+      if (count > 0 && internal->externalRetains == 0)
+	{
+	  [super retain]; // the top of the tree retains itself whenever there are external retains anywhere
+	  if ([self retainCount] == 2)
+	    {
+	      internal->externalRetains++;
+NSLog(@"ADDED TRICKY EXTRA COUNT in %@ now: %d subNodes(OFF):%d", self, internal->externalRetains, [self verifyExternalRetains]);
+	    }
+	}
     }
+  internal->externalRetains += count;
+NSLog(@"recordExternalRetain in %@ now: %d subNodes:%d", self, internal->externalRetains, [self verifyExternalRetains]);
 }
 
-- (void) releaseExternalRetain
+- (void) releaseExternalRetain:(int)count
 {
   id parent = [self parent];
+  internal->externalRetains -= count;
+if (internal->externalRetains <0)
+  NSLog(@"ExternalRetains going NEGATIVE: %d in %@", internal->externalRetains - count, self);
+
+NSLog(@"releaseExternalRetain in %@ now: %d", self, internal->externalRetains);
   if (parent)
-    [parent releaseExternalRetain];
+    [parent releaseExternalRetain:count];
   else
     {
-if (internal->externalRetains <=0)
-  NSLog(@"ExternalRetains going NEGATIVE: %d in %@", internal->externalRetains - 1, self);
-      internal->externalRetains--;
-      if (internal->externalRetains == 0)
+      // check for tricky condition where our only "external" retain is from ourself and is about to go away
+      if (count > 0 && internal->externalRetains == 1 && [self retainCount] == 2)
+	{
+	  internal->externalRetains--;
+NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRetains);
+	}
+      if (count > 0 && internal->externalRetains == 0)
          [super release]; // the top of the tree retains itself whenever there are external retains anywhere
     }
 }
+**/
 
 - (id) retain
 {
-  if ([self retainCount] == 1)
+  [super retain]; // do this first
+  if ([self retainCount] == 2)
     {
-      [self recordExternalRetain];
+      [self _updateExternalRetains]; //[self recordExternalRetain:1];
     }
-  return [super retain];
+  return self;
 }
 
 - (void) release
 {
-  if(GS_EXISTS_INTERNAL)
+  if ([self retainCount] == 2)
     {
-      if ([self retainCount] == [internal->subNodes count]) // 2)
-	{
-	  [self releaseExternalRetain];
-	}
+      [super release];
+      [self _updateExternalRetains]; //[self releaseExternalRetain:1];
     }
-  [super release];
+  else
+    [super release];
 }
 
 - (void) dealloc
@@ -594,6 +710,8 @@ if (internal->externalRetains <=0)
       [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
+      if (node)
+	node->_private = NULL;
       if (node && node->parent == NULL)
 	{
 	  xmlFree(node);  // the top level node frees the entire tree
@@ -608,10 +726,29 @@ if (internal->externalRetains <=0)
   xmlNodePtr node = (xmlNodePtr)(internal->node);
   if(node)
     {
+      int extraRetains = 0;
       xmlNodePtr parentNode = node->parent;
       NSXMLNode *parent = (parentNode ? parentNode->_private : nil); // get our parent object if it exists
-      [parent _removeSubNode:self];
-      xmlUnlinkNode(node);
+      xmlUnlinkNode(node); // separate our node from its parent and siblings
+      if (parent)
+	{
+	  // transfer extra retains of this branch from our parent to ourself
+	  extraRetains = internal->externalRetains; //[self verifyExternalRetains];
+	  if (extraRetains)
+	    {
+///	      [parent releaseExternalRetain:extraRetains];
+	  if ([self retainCount] == 1)
+	    {
+	      internal->externalRetains++;
+//NSLog(@"ADDED TRICKY EXTRA COUNT WHILE DETACHING in %@ now: %d subNodes(low):%d", self, internal->externalRetains, [self verifyExternalRetains]);
+	    }
+	      [super retain]; //[self recordExternalRetain:extraRetains];
+	      internal->retainedSelf++;
+//NSLog(@"RETAINED SELF %@ (%d) in detach", self, internal->retainedSelf);
+	    }
+	  [parent _removeSubNode:self];
+	}
+//NSLog(@"DETACHED %@ from %@ and transferred extra retains: %d", self, parent, extraRetains);
     }
 }
 
@@ -659,33 +796,75 @@ if (internal->externalRetains <=0)
   switch (kind)
     {
     case NSXMLDocumentKind:
-      node = xmlNewDoc((xmlChar *)"1.0");
       theSubclass = [NSXMLDocument class];
       break;
 	
     case NSXMLInvalidKind:
     case NSXMLElementKind:
-      node = xmlNewNode(NULL,(xmlChar *)"");
       theSubclass = [NSXMLElement class];
       break;
       
     case NSXMLDTDKind:
-      node = xmlNewDtd(NULL, (xmlChar *)"", (xmlChar *)"",(xmlChar *)"");
       theSubclass = [NSXMLDTD class];
       break;
       
     case NSXMLEntityDeclarationKind:
     case NSXMLElementDeclarationKind:
     case NSXMLNotationDeclarationKind:
-      node = xmlNewNode(NULL, (xmlChar *)"");
-      // ((xmlNodePtr)node)->type = XML_ATTRIBUTE_DECL;
       theSubclass = [NSXMLDTDNode class];
       break;
 
     case NSXMLAttributeDeclarationKind:
+      [self release];
       return nil;
       break;
       
+    case NSXMLProcessingInstructionKind:
+    case NSXMLCommentKind:
+    case NSXMLTextKind:
+    case NSXMLNamespaceKind:
+    case NSXMLAttributeKind:
+      break;
+
+    default:
+      kind = NSXMLInvalidKind;
+      theSubclass = [NSXMLElement class];
+      break;
+    }
+
+  /*
+   * Check whether we are already initializing an instance of the given
+   * subclass. If we are not, release ourselves and allocate a subclass instance
+   * instead.
+   */
+  if (NO == [self isKindOfClass: theSubclass])
+    {
+      [self release];
+      return [[theSubclass alloc] initWithKind: kind
+				       options: theOptions];
+    }
+
+  switch (kind)
+    {
+    case NSXMLDocumentKind:
+      node = xmlNewDoc((xmlChar *)"1.0");
+      break;
+	
+    case NSXMLInvalidKind:
+    case NSXMLElementKind:
+      node = xmlNewNode(NULL,(xmlChar *)"");
+      break;
+      
+    case NSXMLDTDKind:
+      node = xmlNewDtd(NULL, (xmlChar *)"", (xmlChar *)"",(xmlChar *)"");
+      break;
+      
+    case NSXMLEntityDeclarationKind:
+    case NSXMLElementDeclarationKind:
+    case NSXMLNotationDeclarationKind:
+      node = xmlNewNode(NULL, (xmlChar *)"");
+      break;
+
     case NSXMLProcessingInstructionKind:
       node = xmlNewPI((xmlChar *)"", (xmlChar *)"");
       break;
@@ -693,7 +872,6 @@ if (internal->externalRetains <=0)
     case NSXMLCommentKind:
       node = xmlNewComment((xmlChar *)"");
       break;
-
 
     case NSXMLTextKind:
       node = xmlNewText((xmlChar *)"");
@@ -711,21 +889,9 @@ if (internal->externalRetains <=0)
       break;
     }
 
-  /*
-   * Check whether we are already initializing an instance of the given
-   * subclass. If we are not, release ourselves and allocate a subclass instance
-   * instead.
-   */
-  if (NO == [self isKindOfClass: theSubclass])
-    {
-      [self release];
-      return [[theSubclass alloc] initWithKind: kind
-				       options: theOptions];
-    }
-
   /* Create holder for internal instance variables if needed.
    */
-  GS_CREATE_INTERNAL(NSXMLNode);
+  [self _createInternal];
 
   /* Create libxml object to go with it...
    */

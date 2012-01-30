@@ -1,3 +1,15 @@
+2012-01-05 22:20-EST Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLPrivate.h
+	* Source/NSXMLDocument.m
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m: Simplify the memory management housekeeping by
+	just calling a new _updateExternalRetains method after any operations
+	that might have changed the retains. This still needs some cleaning up,
+	but is working much better now.
+	Clean up and simplify some of the init methods.
+	Fix a few other things.
+
 2012-01-29 12:28-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLNode.m: Correct infinite loop in releaseExtraRetains.
