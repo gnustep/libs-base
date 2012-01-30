@@ -594,6 +594,7 @@ static NSAffineTransformStruct identityTransform = {
   if ([aCoder allowsKeyedCoding])
     {
       // FIXME
+      return [self notImplemented: _cmd];
       /*
       NSData *data = [aCoder decodeObjectForKey: @"NSTransformStruct"];
       unsigned int cursor = 0;
