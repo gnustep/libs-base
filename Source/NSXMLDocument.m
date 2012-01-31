@@ -107,8 +107,27 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
             options: (NSUInteger)mask
               error: (NSError**)error
 {
-  NSString *string = [[NSString alloc] initWithData: data
-					   encoding: NSUTF8StringEncoding];
+  NSString *string = nil;
+
+  // Check for nil data and throw an exception 
+  if (![data isKindOfClass: [NSData class]])
+    {
+      DESTROY(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[NSXMLDocument-%@] non data argument",
+		   NSStringFromSelector(_cmd)];
+    }
+  if (nil == data)
+    {
+      DESTROY(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[NSXMLDocument-%@] nil argument",
+		   NSStringFromSelector(_cmd)];
+    }
+
+  // Initialize the string...
+  string = [[NSString alloc] initWithData: data
+				 encoding: NSUTF8StringEncoding];
   AUTORELEASE(string);
   return [self initWithXMLString:string options:mask error:error];
 }

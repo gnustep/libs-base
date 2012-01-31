@@ -1,3 +1,10 @@
+2012-01-30 22:55-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLDocument.m: Do type check to make sure that
+	argument passed into initWithData:... is a subclass of
+	NSData also check if it's nil.  In either case throw an
+	exception.
+
 2012-01-05 22:20-EST Doug Simons <doug.simons@testplant.com>
 
 	* Source/NSXMLPrivate.h
