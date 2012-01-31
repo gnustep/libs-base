@@ -1,3 +1,9 @@
+2012-01-31 Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLElement.m (-insertChild:atIndex:): Deal with the
+	possibility that text nodes can be merged when added, to at least
+	avoid crashing. This leaves the original NSXMLNode with a NULL node.
+
 2012-01-30 22:55-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Do type check to make sure that
@@ -5,7 +11,7 @@
 	NSData also check if it's nil.  In either case throw an
 	exception.
 
-2012-01-05 22:20-EST Doug Simons <doug.simons@testplant.com>
+2012-01-30 22:20-EST Doug Simons <doug.simons@testplant.com>
 
 	* Source/NSXMLPrivate.h
 	* Source/NSXMLDocument.m

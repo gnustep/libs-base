@@ -338,6 +338,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   xmlNodePtr thisNode = (xmlNodePtr)[self _node];
   xmlNodePtr childNode = (xmlNodePtr)[child _node];
   NSUInteger childCount = [self childCount];
+  xmlNodePtr addedNode = NULL;
 
   // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
@@ -359,11 +360,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
   if(0 == childCount || index == childCount)
     {
-      xmlAddChild(thisNode, childNode);
+      addedNode = xmlAddChild(thisNode, childNode);
     }
   else if(index < childCount)
     {
-      xmlAddPrevSibling(curNode, childNode);
+      addedNode = xmlAddPrevSibling(curNode, childNode);
+    }
+  if (addedNode != childNode)
+    {
+      [child _setNode:NULL];
+      child = [NSXMLNode _objectForNode:addedNode];
     }
 
   [self _addSubNode:child];
