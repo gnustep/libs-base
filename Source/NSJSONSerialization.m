@@ -374,6 +374,10 @@ parseString(ParserState *state)
           [str release];
         }
     }
+  else if (nil == val)
+    {
+      val = [NSMutableString new];
+    }
   if (!state->mutableStrings)
     {
       val = [val makeImmutableCopyOnFail: YES];
