@@ -97,7 +97,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSXMLDocument	*doc;
 
   data = [NSData dataWithContentsOfURL: url];
-  doc = [self initWithData: data options: 0 error: 0];
+  doc = [self initWithData: data options: mask error: error];
   [doc setURI: [url absoluteString]];
   return doc;
 }
