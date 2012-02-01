@@ -1,3 +1,13 @@
+2012-01-31 Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLDocument.m
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m (-insertChild:atIndex:): Implement our own
+	_insertChild:atIndex: method to link a child in by hand. This
+	avoids the built-in libxml functions' behavior of always merging
+	adjacent text nodes as they are added, which Cocoa doesn't do.
+	Next we need to implement -normalizeAdjacentTextNodesPreservingCDATA:.
+
 2012-01-31 17:57-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Minor corrections in 

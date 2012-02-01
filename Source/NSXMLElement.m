@@ -39,6 +39,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) _addSubNode:(NSXMLNode *)subNode;
 - (void) _removeSubNode:(NSXMLNode *)subNode;
 - (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
+- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
 @end
 
 @implementation NSXMLElement
@@ -333,12 +334,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
   NSXMLNodeKind	kind = [child kind];
-  NSXMLNode *cur = nil;
-  xmlNodePtr curNode = NULL;
-  xmlNodePtr thisNode = (xmlNodePtr)[self _node];
-  xmlNodePtr childNode = (xmlNodePtr)[child _node];
   NSUInteger childCount = [self childCount];
-  xmlNodePtr addedNode = NULL;
 
   // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
@@ -353,26 +349,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-  // Get all of the nodes...
-  childNode = ((xmlNodePtr)[child _node]);
-  cur = [self childAtIndex: index];
-  curNode = ((xmlNodePtr)[cur _node]);
-
-  if(0 == childCount || index == childCount)
-    {
-      addedNode = xmlAddChild(thisNode, childNode);
-    }
-  else if(index < childCount)
-    {
-      addedNode = xmlAddPrevSibling(curNode, childNode);
-    }
-  if (addedNode != childNode)
-    {
-      [child _setNode:NULL];
-      child = [NSXMLNode _objectForNode:addedNode];
-    }
-
-  [self _addSubNode:child];
+  [self _insertChild:child atIndex:index];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index

@@ -555,15 +555,15 @@ NSArray *execute_xpath(NSXMLNode *node,
   return [self notImplemented: _cmd];	// FIXME ... generate from libxml
 }
 
-- (NSXMLNode*) childAtIndex: (NSUInteger)index
+- (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index
 {
   NSUInteger count = 0;
   xmlNodePtr node = (xmlNodePtr)(internal->node);
   xmlNodePtr children = node->children;
   if (!children)
-    return nil; // the Cocoa docs say it returns nil if there are no children
+    return NULL; // the Cocoa docs say it returns nil if there are no children
 
-  for (children = node->children; children && count != index; children = children->next)
+  for (children = node->children; children != NULL && count != index; children = children->next)
     {
       count++;
     }
@@ -571,7 +571,13 @@ NSArray *execute_xpath(NSXMLNode *node,
   if (count != index)
     [NSException raise: NSRangeException format: @"child index too large"];
 
-  return (NSXMLNode *)[NSXMLNode _objectForNode: children];
+  return children;
+}
+
+- (NSXMLNode*) childAtIndex: (NSUInteger)index
+{
+  xmlNodePtr childNode = [self _childNodeAtIndex:index];
+  return (NSXMLNode *)[NSXMLNode _objectForNode: childNode];
 }
 
 - (NSUInteger) childCount
@@ -613,6 +619,79 @@ NSArray *execute_xpath(NSXMLNode *node,
 	}
     }
   return childrenArray;
+}
+
+- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
+{
+  // this private method provides the common insertion implementation used by NSXMLElement and NSXMLDocument
+  
+  // Get all of the nodes...
+  xmlNodePtr parentNode = MY_NODE; // we are the parent
+  xmlNodePtr childNode = ((xmlNodePtr)[child _node]);
+  xmlNodePtr curNode = [self _childNodeAtIndex: index];
+  BOOL mergeTextNodes = NO; // is there a defined option for this?
+
+  if (mergeTextNodes || childNode->type == XML_ATTRIBUTE_NODE)
+    {
+      // this uses the built-in libxml functions which merge adjacent text nodes
+      xmlNodePtr addedNode = NULL;
+      //curNode = ((xmlNodePtr)[cur _node]);
+
+      if (curNode == NULL) //(0 == childCount || index == childCount)
+        {
+          addedNode = xmlAddChild(parentNode, childNode);
+        }
+      else //if(index < childCount)
+        {
+          addedNode = xmlAddPrevSibling(curNode, childNode);
+        }
+      if (addedNode != childNode)
+        {
+          [child _setNode:NULL];
+          child = [NSXMLNode _objectForNode:addedNode];
+        }
+    }
+  else
+    {
+      // here we avoid merging adjacent text nodes by linking the new node in "by hand"
+      childNode->parent = parentNode;
+      if (curNode)
+	{
+	  // insert childNode before an existing node curNode
+	  xmlNodePtr prevNode = curNode->prev;
+	  curNode->prev = childNode;
+	  childNode->next = curNode;
+	  if (prevNode)
+	    {
+	      childNode->prev = prevNode;
+	      prevNode->next = childNode;
+	    }
+	  else
+	    {
+	      // in this case, this is the new "first child", so update our parent to point to it
+	      parentNode->children = childNode;
+	    }
+	}
+      else
+	{
+	  // not inserting before an existing node... add as new "last child"
+	  xmlNodePtr formerLastChild = parentNode->last;
+	  if (formerLastChild)
+	    {
+	      formerLastChild->next = childNode;
+	      childNode->prev = formerLastChild;
+	      parentNode->last = childNode;
+	    }
+	  else
+	    {
+	      // no former children -- this is the first
+	      parentNode->children = childNode;
+	      parentNode->last = childNode;
+	    }
+	}
+    }
+
+  [self _addSubNode:child];
 }
 
 - (id) copyWithZone: (NSZone*)zone

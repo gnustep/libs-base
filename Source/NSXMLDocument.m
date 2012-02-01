@@ -42,6 +42,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
 - (void) _addSubNode:(NSXMLNode *)subNode;
 - (void) _removeSubNode:(NSXMLNode *)subNode;
+- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
 @end
 
 @implementation	NSXMLDocument
@@ -288,15 +289,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
   NSXMLNodeKind	kind = [child kind];
-  NSXMLNode *cur = nil;
-  xmlNodePtr curNode = NULL;
-  xmlNodePtr thisNode = (xmlNodePtr)[self _node];
-  xmlNodePtr childNode = (xmlNodePtr)[child _node];
   NSUInteger childCount = [self childCount];
 
   // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
-  NSAssert(index <= [self childCount], NSInvalidArgumentException);
+  NSAssert(index <= childCount, NSInvalidArgumentException);
   NSAssert(nil == [child parent], NSInvalidArgumentException);
   kind = [child kind];
   NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
@@ -308,22 +305,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-
-  // Get all of the nodes...
-  childNode = ((xmlNodePtr)[child _node]);
-  cur = [self childAtIndex: index];
-  curNode = ((xmlNodePtr)[cur _node]);
-
-  if(0 == childCount || index == childCount)
-    {
-      xmlAddChild(thisNode, childNode);
-    }
-  else if(index < childCount)
-    {
-      xmlAddNextSibling(curNode, childNode);
-    }
-	       
-  [self _addSubNode:child];
+  [self _insertChild:child atIndex:index];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
