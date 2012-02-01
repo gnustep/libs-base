@@ -141,6 +141,10 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 	  n = [machine UTF8String];
 	}
 
+      if (0 == n)
+	{
+	  return NO;
+	}
       if (0 == strchr(n, ':'))
 	{
 	  struct sockaddr_in	*addr = (struct sockaddr_in*)sin;

@@ -55,6 +55,7 @@ ifeq ($(BASE_MAKE_LOADED),)
   OBJC2RUNTIME=@OBJC2RUNTIME@
   ifeq ($(OBJC2RUNTIME),0)
     AUXILIARY_OBJCFLAGS += -I$(GNUSTEP_HEADERS)/ObjectiveC2
+    AUXILIARY_CFLAGS += -I$(GNUSTEP_HEADERS)/ObjectiveC2
   endif
 
   # For literal string handling, base requires the compiler to store the

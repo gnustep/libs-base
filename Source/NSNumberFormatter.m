@@ -1055,20 +1055,15 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 #define STRING_FROM_NUMBER(function, number) do \
   { \
-    UChar *outStr = buffer; \
     UErrorCode err = U_ZERO_ERROR; \
     int32_t len; \
     NSString *result; \
     \
-    len = function (internal->_formatter, number, outStr, \
+    len = function (internal->_formatter, number, buffer, \
       BUFFER_SIZE, NULL, &err); \
     if (len > BUFFER_SIZE) \
-      outStr = NSZoneMalloc ([self zone], len * sizeof(UChar));\
-    err = U_ZERO_ERROR; \
-    function (internal->_formatter, number, outStr, BUFFER_SIZE, NULL, &err); \
-    result = [NSString stringWithCharacters: outStr length: len]; \
-    if (len > BUFFER_SIZE) \
-      NSZoneFree ([self zone], outStr); \
+      len = BUFFER_SIZE; \
+    result = [NSString stringWithCharacters: buffer length: len]; \
     return result; \
   } while (0)
 

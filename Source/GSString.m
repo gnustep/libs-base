@@ -4616,15 +4616,18 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
   if (encoding == internalEncoding)
     {
-      if (shouldFree == YES)
-        {
-	  _zone = NSZoneFromPointer(chars);
-	  _contents.c = chars;
-        }
-      else
+      if (0 != chars)
 	{
-	  _contents.c = NSZoneMalloc(_zone, length);
-	  memcpy(_contents.c, chars, length);
+	  if (shouldFree == YES)
+	    {
+	      _zone = NSZoneFromPointer(chars);
+	      _contents.c = chars;
+	    }
+	  else
+	    {
+	      _contents.c = NSZoneMalloc(_zone, length);
+	      memcpy(_contents.c, chars, length);
+	    }
 	}
       _count = length;
       _flags.wide = 0;
@@ -5595,9 +5598,6 @@ literalIsEqual(NXConstantString *self, id anObject)
   NSUInteger	start;
   NSUInteger	stop;
   NSRange	range;
-  BOOL		(*mImp)(id, SEL, unichar);
-  unichar	n = 0;
-  unsigned	i = 0;
   BOOL		ascii;
 
   index = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, 0);
@@ -5609,44 +5609,52 @@ literalIsEqual(NXConstantString *self, id anObject)
   range.location = NSNotFound;
   range.length = 0;
 
-  mImp = (BOOL(*)(id,SEL,unichar))
-    [aSet methodForSelector: @selector(characterIsMember:)];
+  if (stop  > start)
+    {
+      BOOL	(*mImp)(id, SEL, unichar);
+      unichar	n = 0;
+      unsigned	i = 0;
 
-  for (index = 0; index < start; index++)
-    {
-      nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
-    }
-  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
-    {
-      unichar		buf[stop - start];
-      NSUInteger	pos = 0;
-      
-      for (pos = 0; pos + start < stop; pos++)
+      mImp = (BOOL(*)(id,SEL,unichar))
+	[aSet methodForSelector: @selector(characterIsMember:)];
+
+      for (index = 0; index < start; index++)
 	{
-	  buf[pos] = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+	  nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
 	}
-      index = stop;
-      while (index-- > 0)
+      if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
 	{
-	  if ((*mImp)(aSet, @selector(characterIsMember:), buf[--pos]))
+	  unichar	buf[stop - start];
+	  NSUInteger	pos = 0;
+	  
+	  for (pos = 0; pos + start < stop; pos++)
 	    {
-	      range = NSMakeRange(index, 1);
-	      break;
+	      buf[pos] = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+	    }
+	  index = stop;
+	  while (index-- > 0)
+	    {
+	      if ((*mImp)(aSet, @selector(characterIsMember:), buf[--pos]))
+		{
+		  range = NSMakeRange(index, 1);
+		  break;
+		}
 	    }
 	}
-    }
-  else
-    {
-      while (index < stop)
+      else
 	{
-	  unichar letter = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
-
-	  if ((*mImp)(aSet, @selector(characterIsMember:), letter))
+	  while (index < stop)
 	    {
-	      range = NSMakeRange(index, 1);
-	      break;
+	      unichar letter;
+
+	      letter = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+	      if ((*mImp)(aSet, @selector(characterIsMember:), letter))
+		{
+		  range = NSMakeRange(index, 1);
+		  break;
+		}
+	      index++;
 	    }
-	  index++;
 	}
     }
 

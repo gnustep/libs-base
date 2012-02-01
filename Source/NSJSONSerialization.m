@@ -147,9 +147,16 @@ updateStreamBuffer(ParserState* state)
 		  [stream read: &bytes[++i] maxLength: 1];
 		}
 	      while (bytes[i] & 0xf);
-	      str = [[NSString alloc] initWithUTF8String: (char*)bytes];
-	      [str getCharacters: state->buffer range: NSMakeRange(0,1)];
-	      [str release];
+	      if (0 == i)
+		{
+		  state->buffer[0] = bytes[0];
+		}
+	      else
+		{
+		  str = [[NSString alloc] initWithUTF8String: (char*)bytes];
+		  [str getCharacters: state->buffer range: NSMakeRange(0,1)];
+		  [str release];
+		}
 	      break;
 	    }
 	  case NSUTF32LittleEndianStringEncoding:
@@ -273,7 +280,7 @@ NS_RETURNS_RETAINED static NSString*
 parseString(ParserState *state)
 {
   NSMutableString *val = nil;
-  unichar buffer[64];
+  unichar buffer[BUFFER_SIZE];
   int bufferIndex = 0;
   unichar next;
 
@@ -331,12 +338,13 @@ parseString(ParserState *state)
             }
         }
       buffer[bufferIndex++] = next;
-      if (bufferIndex >= 64)
+      if (bufferIndex >= BUFFER_SIZE)
         {
           NSMutableString *str;
 
           str = [[NSMutableString alloc] initWithCharacters: buffer
-						     length: 64];
+						     length: bufferIndex];
+	  bufferIndex = 0;
           if (nil == val)
             {
               val = str;
@@ -365,6 +373,10 @@ parseString(ParserState *state)
           [val appendString: str];
           [str release];
         }
+    }
+  else if (nil == val)
+    {
+      val = [NSMutableString new];
     }
   if (!state->mutableStrings)
     {

@@ -59,55 +59,60 @@ BOOL test_initWithCString(void)
 /*
 Test encoding and decoding in various character encodings.
 */
-BOOL test_encodings_helper(NSStringEncoding encoding, 
-	unsigned char *bytes, int bytes_length, 
-	unichar *characters, int characters_length)
+void
+test_encodings_helper(NSStringEncoding encoding, 
+  unsigned char *bytes, int bytes_length, 
+  unichar *characters, int characters_length)
 {
-  BOOL ok = YES;
+  NSData *encodedData = nil;
+  NSString *decodedString = nil;
+  NSData *referenceData = nil;
+  NSString *referenceString = nil;
+  NSStringEncoding *encodings;
+  const char *enc;
 
-  NSData *referenceData = [[NSData alloc]
-	  initWithBytes: bytes
-	  length: bytes_length];
-  NSString *referenceString = [[stringClass alloc]
-	  initWithCharacters: characters
-	  length: characters_length];
-
-  NSData *encodedData;
-  NSString *decodedString;
-
-
-  decodedString = [[stringClass alloc]
-	  initWithData: referenceData
-	  encoding: encoding];
-
-  if (![decodedString isEqual: referenceString])
+  encodings = [NSString availableStringEncodings];
+  if (0 != encodings)
     {
-      printf("decoding data %s in encoding %i gave string %s\n", 
-	     FORMAT_STRING(POBJECT(referenceData)), encoding, 
-	     FORMAT_STRING([decodedString lossyCString]));
-      ok = NO;
+      while (*encodings != 0 && *encodings != encoding)
+	{
+	  encodings++;
+	}
+    }
+  PASS(encodings != 0 && encoding == *encodings,
+    "String encoding %d is supported", encoding);
+  if (NO == testPassed)
+    {
+      return;
+    }
+  
+  enc = [[NSString localizedNameOfStringEncoding: encoding] UTF8String];
+
+  referenceString = [[stringClass alloc] initWithCharacters: characters
+						     length: characters_length];
+  referenceData = [[NSData alloc] initWithBytes: bytes
+					 length: bytes_length];
+
+  PASS(nil != (decodedString = [[stringClass alloc]
+    initWithData: referenceData encoding: encoding]),
+    "can instantiate string from %s", enc);
+  if (YES == testPassed)
+    {
+      PASS_EQUAL(decodedString, referenceString,
+	"new %s string matches reference", enc);
     }
 
-  encodedData = [referenceString dataUsingEncoding: encoding];
-  if (![encodedData isEqual: referenceData])
-    {
-      printf("encoding string %s in encoding %i gave data %s\n", 
-	     FORMAT_STRING([referenceString lossyCString]), encoding, 
-	     FORMAT_STRING(POBJECT(encodedData)));
-      ok = NO;
-    }
+  PASS_EQUAL((encodedData = [referenceString dataUsingEncoding: encoding]),
+    referenceData, "data using encoding %s matches reference data", enc);
 
   DESTROY(decodedString);
   DESTROY(referenceData);
   DESTROY(referenceString);
-
-  return ok;
 }
 
-BOOL test_encoding(void)
+void
+test_encoding(void)
 {
-  BOOL ok = YES;
-
   {
     NSData *d = [[NSData alloc] initWithBytes: "foo"  length: 3];
     NSString *s = [[stringClass alloc] initWithData: d  encoding: 0];
@@ -117,40 +122,39 @@ BOOL test_encoding(void)
     DESTROY(d);
   }
 
+  test_encodings_helper(NSASCIIStringEncoding, 
+    (unsigned char[]){65, 66, 67}, 3, 
+    (unichar[]){65, 66, 67}, 3);
 
-  ok = ok && test_encodings_helper(NSASCIIStringEncoding, 
-	  (unsigned char[]){65, 66, 67}, 3, 
-	  (unichar[]){65, 66, 67}, 3);
+  test_encodings_helper(NSUTF8StringEncoding, 
+    (unsigned char[]){65, 66, 67}, 3, 
+    (unichar[]){65, 66, 67}, 3);
 
-  ok = ok && test_encodings_helper(NSUTF8StringEncoding, 
-	  (unsigned char[]){65, 66, 67}, 3, 
-	  (unichar[]){65, 66, 67}, 3);
-
-  ok = ok && test_encodings_helper(NSUTF8StringEncoding, 
-	  (unsigned char[]){0xc3, 0xa5, 0xc3, 0xa4, 0xc3, 0xb6, 
-	  0xd7, 0xa9, 0xd7, 0x9c, 0xd7, 0x95, 0xd7, 0x9d}, 14, 
-	  (unichar[]){0xe5, 0xe4, 0xf6, 0x5e9, 0x5dc, 0x5d5, 0x5dd}, 7);
+  test_encodings_helper(NSUTF8StringEncoding, 
+    (unsigned char[]){0xc3, 0xa5, 0xc3, 0xa4, 0xc3, 0xb6, 
+    0xd7, 0xa9, 0xd7, 0x9c, 0xd7, 0x95, 0xd7, 0x9d}, 14, 
+    (unichar[]){0xe5, 0xe4, 0xf6, 0x5e9, 0x5dc, 0x5d5, 0x5dd}, 7);
 
   /* Codepoint U+2F801 CJK Compatiblity Ideograph */
-  ok = ok && test_encodings_helper(NSUTF8StringEncoding, 
-	  (unsigned char[]){0xf0, 0xaf, 0xa0, 0x81}, 4, 
-	  (unichar[]){0xd87e, 0xdc01}, 2);
+  test_encodings_helper(NSUTF8StringEncoding, 
+    (unsigned char[]){0xf0, 0xaf, 0xa0, 0x81}, 4, 
+    (unichar[]){0xd87e, 0xdc01}, 2);
 
 #if	defined(GNUSTEP_BASE_LIBRARY)
-  ok = ok && test_encodings_helper(NSISOHebrewStringEncoding, 
-	  (unsigned char[]){0xf9, 0xec, 0xe5, 0xed}, 4, 
-	  (unichar[]){0x5e9, 0x5dc, 0x5d5, 0x5dd}, 4);
+  test_encodings_helper(NSISOHebrewStringEncoding, 
+    (unsigned char[]){0xf9, 0xec, 0xe5, 0xed}, 4, 
+    (unichar[]){0x5e9, 0x5dc, 0x5d5, 0x5dd}, 4);
 #endif
 
-  ok = ok && test_encodings_helper(NSISOLatin1StringEncoding, 
-	  (unsigned char[]){116, 101, 115, 116, 45, 229, 228, 246}, 8, 
-	  (unichar[]){116, 101, 115, 116, 45, 229, 228, 246}, 8);
+  test_encodings_helper(NSISOLatin1StringEncoding, 
+    (unsigned char[]){116, 101, 115, 116, 45, 229, 228, 246}, 8, 
+    (unichar[]){116, 101, 115, 116, 45, 229, 228, 246}, 8);
 
-  ok = ok && test_encodings_helper(NSUTF8StringEncoding, 
-	  (unsigned char[]){0xe0, 0xb8, 0xa0, 0xe0, 0xb8, 0xb2, 0xe0, 0xb8, 0xa9, 
-	  0xe0, 0xb8, 0xb2, 0xe0, 0xb9, 0x84, 0xe0, 0xb8, 0x97, 
-	  0xe0, 0xb8, 0xa2}, 21, 
-	  (unichar[]){0xe20, 0xe32, 0xe29, 0xe32, 0xe44, 0xe17, 0xe22}, 7);
+  test_encodings_helper(NSUTF8StringEncoding, 
+    (unsigned char[]){0xe0, 0xb8, 0xa0, 0xe0, 0xb8, 0xb2, 0xe0, 0xb8, 0xa9, 
+    0xe0, 0xb8, 0xb2, 0xe0, 0xb9, 0x84, 0xe0, 0xb8, 0x97, 
+    0xe0, 0xb8, 0xa2}, 21, 
+    (unichar[]){0xe20, 0xe32, 0xe29, 0xe32, 0xe44, 0xe17, 0xe22}, 7);
 
 /*
 ;  (test-data-string
@@ -161,12 +165,10 @@ BOOL test_encoding(void)
 */
 
 #if	defined(GNUSTEP_BASE_LIBRARY)
-  ok = ok && test_encodings_helper(NSBIG5StringEncoding, 
+  test_encodings_helper(NSBIG5StringEncoding, 
     (unsigned char[]){0x41, 0x42, 0x43, 0x20, 0xa7, 0x41, 0xa6, 0x6e, 0x21}, 9, 
     (unichar[]){0x41, 0x42, 0x43, 0x20, 0x4f60, 0x597d, 0x21}, 7);
 #endif
-
-  return ok;
 }
 
 
@@ -306,7 +308,7 @@ void TestNSStringClass(Class aStringClass)
   stringClass = aStringClass;
 
   PASS(test_initWithCString(), "-initWithCString: works");
-  PASS(test_encoding(), "character set encoding/decoding works");
+  test_encoding();
   PASS(test_getCString_maxLength_range_remainingRange(), "-getCString:maxLength:range:remainingRange: works");
 
   test_return_self_optimizations();

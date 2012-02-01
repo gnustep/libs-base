@@ -399,14 +399,19 @@ addBundlePath(NSMutableArray *list, NSArray *contents,
     }
   if (nil != subdir)
     {
-      if (NO == [contents containsObject: subdir])
+      NSEnumerator *e = [[subdir pathComponents] objectEnumerator];
+      NSString *subdirComponent;
+      while ((subdirComponent = [e nextObject]) != nil)
 	{
-	  return;
-	}
-      path = [path stringByAppendingPathComponent: subdir];
-      if (nil == (contents = bundle_directory_readable(path)))
-	{
-	  return;
+	  if (NO == [contents containsObject: subdirComponent])
+	    {
+	      return;
+	    }
+	  path = [path stringByAppendingPathComponent: subdirComponent];
+	  if (nil == (contents = bundle_directory_readable(path)))
+	    {
+	      return;
+	    }	  
 	}
     }
   if (nil != lang)

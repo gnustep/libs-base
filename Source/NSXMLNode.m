@@ -864,6 +864,7 @@ NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRe
   Class theSubclass = [NSXMLNode class];
   void *node = NULL;
 
+GSOnceMLog(@"WARNING  the XML DOM classes are not currently implemented to a usable level, but we expect to have an implementation based on libxml2 in place for the next release.");
   if (nil == (self = [super init]))
     {
       return nil;
@@ -879,6 +880,9 @@ NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRe
       break;
 	
     case NSXMLInvalidKind:
+      theSubclass = [NSXMLNode class];
+      break; 
+
     case NSXMLElementKind:
       theSubclass = [NSXMLElement class];
       break;
@@ -907,7 +911,7 @@ NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRe
 
     default:
       kind = NSXMLInvalidKind;
-      theSubclass = [NSXMLElement class];
+      theSubclass = [NSXMLNode class];
       break;
     }
 

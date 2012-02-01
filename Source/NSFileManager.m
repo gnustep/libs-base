@@ -2655,11 +2655,11 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
 #else
   NSDictionary	*attributes;
-  int		i;
+  unsigned long long	fileSize;
+  unsigned long long	i;
   int		bufsize = 8096;
   int		sourceFd;
   int		destFd;
-  int		fileSize;
   int		fileMode;
   int		rbytes;
   int		wbytes;

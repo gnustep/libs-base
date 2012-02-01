@@ -942,23 +942,37 @@ newLanguages(NSArray *oldNames)
 
         added_lang = NO;
         added_locale = NO;
-        enumerator = [uL objectEnumerator];
+        enumerator = [nL objectEnumerator];
         while ((lang = [enumerator nextObject]))
           {
 	    NSDictionary	*dict = nil;
 	    NSString		*path = nil;
-	    NSEnumerator	*pathEnumerator = [paths objectEnumerator];
+	    NSString		*alt;
+	    NSEnumerator	*pathEnumerator;
 
+	    /* The language name could be an ISO language identifier rather
+	     * than an OpenStep name (OSX has moved to using them), so we
+	     * try converting as an alternative key for lookup.
+	     */
+	    alt = GSLanguageFromLocale(lang);
+	    pathEnumerator = [paths objectEnumerator];
 	    while ((path = [pathEnumerator nextObject]) != nil)
 	      {
 	        path = [[path stringByAppendingPathComponent: tail]
-		             stringByAppendingPathComponent: lang];
-
+		              stringByAppendingPathComponent: lang];
 	        if ([fm fileExistsAtPath: path])
 	          {
-		    /* Path found!  */
-		    break;
+		    break;	/* Path found!  */
 	          }
+	        if (nil != alt)
+		  {
+		    path = [[path stringByAppendingPathComponent: tail]
+				  stringByAppendingPathComponent: alt];
+		    if ([fm fileExistsAtPath: path])
+		      {
+			break;	/* Path found!  */
+		      }
+		  }
 	      }
 
 	    if (path != nil)
@@ -989,6 +1003,8 @@ newLanguages(NSArray *oldNames)
 #endif
 	        if (locale != nil)
 	          {
+		    NSString	*i18n = GSLanguageFromLocale(locale);
+
 		    /* See if we can get the dictionary from i18n
 		     * functions.  I don't think that the i18n routines
 		     * can handle more than one locale, so we don't try to
@@ -996,7 +1012,7 @@ newLanguages(NSArray *oldNames)
 		     * if it matches 'lang' ... but tell me if I'm wrong
 		     * ...
 		     */
-		    if ([lang isEqualToString: GSLanguageFromLocale (locale)])
+		    if ([lang isEqual: i18n] || [alt isEqualToString: i18n])
 		      {
 		        /* We set added_locale to YES to avoid so that we
 		         * won't do this C library locale lookup again

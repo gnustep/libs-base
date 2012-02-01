@@ -2141,6 +2141,10 @@ static NSLock	*cached_proxies_gate = nil;
 		    break;
 		}
 	    }
+	  else
+	    {
+	      datum = 0;
+	    }
 	  [inv setReturnValue: datum];
 
 	  /* Decode the values returned by reference.  Note: this logic

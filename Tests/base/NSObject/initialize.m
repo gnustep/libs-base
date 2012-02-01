@@ -217,9 +217,18 @@ int main(void)
 
   /* Make sure that when a class without its own +initialise is first used,
    * the inherited +initialize is called instead.
+   * This is a traditional feature of the Apple runtime, which was 'improved'
+   * by the GNU runtime (which actually checks to see if +initialize is
+   * implemented before trying to call it).  Good software should not depend
+   * on either behavior ... which means all good software should protext its
+   * +initialize code so that being called multiple times is OK.
+   * New GNU/GNUstep runtimes adopt the old Apple behavior purely for
+   * consistency.
    */
   [Init1 class];
+  testHopeful = YES;
   PASS(2 == initCount, "inherited +initialize is called automatically");
+  testHopeful = NO;
 
 #if defined(SIGALRM)
   /* End in a signal if the concurrency test deadlocks.

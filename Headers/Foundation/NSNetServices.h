@@ -363,7 +363,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
                    forMode: (NSString *) mode;
 
 #if OS_API_VERSION(100500,GS_API_LATEST) 
-- (NSInteger)port;
+- (NSInteger) port;
 
 - (void) publishWithOptions: (NSNetServiceOptions)options;
 #endif
@@ -376,11 +376,6 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 - (void) startMonitoring;
 - (void) stopMonitoring;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-- (NSInteger)port;
-
-- (void) publishWithOptions: (NSNetServiceOptions)options;
-#endif
 - (id<NSNetServiceDelegate>) delegate;
 - (void) setDelegate: (id<NSNetServiceDelegate>) delegate;
 

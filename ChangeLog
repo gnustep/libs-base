@@ -1,155 +1,143 @@
-2012-01-31 Doug Simons <doug.simons@testplant.com>
+2012-02-01 11:18-EST Gregory John Casamento <greg.casamento@gmail.com>
 
-	* Source/NSXMLDocument.m
-	* Source/NSXMLElement.m
-	* Source/NSXMLNode.m (-insertChild:atIndex:): Implement our own
-	_insertChild:atIndex: method to link a child in by hand. This
-	avoids the built-in libxml functions' behavior of always merging
-	adjacent text nodes as they are added, which Cocoa doesn't do.
-	Next we need to implement -normalizeAdjacentTextNodesPreservingCDATA:.
+	* base.make.in
+	* ChangeLog
+	* config/pathtls.m4
+	* config/pathxml.m4
+	* configure
+	* configure.ac
+	* Documentation/ReleaseNotes.gsdoc
+	* Headers/Foundation/NSCalendar.h
+	* Headers/Foundation/NSDate.h
+	* Headers/Foundation/NSException.h
+	* Headers/Foundation/NSNetServices.h
+	* Headers/Foundation/NSString.h
+	* Headers/Foundation/NSXMLNode.h
+	* Headers/GNUstepBase/config.h.in
+	* NSTimeZones/NSTimeZones.tar
+	* Source/GSFFIInvocation.m
+	* Source/GSPrivate.h
+	* Source/GSSocketStream.m
+	* Source/GSString.m
+	* Source/NSAffineTransform.m
+	* Source/NSBundle.m
+	* Source/NSConnection.m
+	* Source/NSFileManager.m
+	* Source/NSHost.m
+	* Source/NSInvocation.m
+	* Source/NSJSONSerialization.m
+	* Source/NSKeyValueCoding.m
+	* Source/NSNotificationCenter.m
+	* Source/NSNumberFormatter.m
+	* Source/NSURLRequest.m
+	* Source/NSUserDefaults.m
+	* Source/NSXMLNode.m: Corrected infinite loop.  Return an
+	NSXMLNode for NSXMLInvalidKind per Cocoa documentation.
+	* Tests/base/NSJSONSerialization/json.m
+	* Tests/base/NSObject/initialize.m
+	* Tests/base/NSString/NSString_tests.h
+	* Tests/base/NSURLRequest/basic.m
+	* Version: Merge with trunk.
 
-2012-01-31 17:57-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-31  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLDocument.m: Minor corrections in 
-	initWithContentsOfURL:... to pass along error and mask.
+	* Source/NSJSONSerialization.m: bugfix for empty strings.
+	* Tests/base/NSJSONSerialization/json.m: add a few emtpy element
+	tests and fixup to be more readable
 
-2012-01-31 Doug Simons <doug.simons@testplant.com>
+2012-01-31  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLElement.m (-insertChild:atIndex:): Deal with the
-	possibility that text nodes can be merged when added, to at least
-	avoid crashing. This leaves the original NSXMLNode with a NULL node.
+	* Version: revert last change as Fred pointed out I got it wrong and
+	we shoudl be updating version immediately *after* release.
 
-2012-01-30 22:55-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-31  Fred Kiefer <FredKiefer@gmx.de>
 
-	* Source/NSXMLDocument.m: Do type check to make sure that
-	argument passed into initWithData:... is a subclass of
-	NSData also check if it's nil.  In either case throw an
-	exception.
+	* Tests/base/NSURLRequest/basic.m: Remove two astray @ characters.
 
-2012-01-30 22:20-EST Doug Simons <doug.simons@testplant.com>
+2012-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLPrivate.h
-	* Source/NSXMLDocument.m
-	* Source/NSXMLElement.m
-	* Source/NSXMLNode.m: Simplify the memory management housekeeping by
-	just calling a new _updateExternalRetains method after any operations
-	that might have changed the retains. This still needs some cleaning up,
-	but is working much better now.
-	Clean up and simplify some of the init methods.
-	Fix a few other things.
+	* Version: Bump version to 1.24.0 in preparation for release.
+	* NSTimeZones/NSTimeZones.tar: Update timezone information
 
-2012-01-29 12:28-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLNode.m: Correct infinite loop in releaseExtraRetains.
+	* Source/NSJSONSerialization.m:
+	Fix buffer overrun reported by Lubomir Rintel <lubo.rintel@gooddata.com>
 
-2012-01-26 22:48-CET Niels Grewe <niels.grewe@halbordnung.de>
+2012-01-30  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLElement.m: Try to fix attribute removal semantics.
+	* Source/NSKeyValueCoding.m:
+	* Source/NSAffineTransform.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSConnection.m:
+	* Source/GSString.m:
+	Avoid a few static analyser warnings.
 
-2012-01-26 22:28-CET Niels Grewe <niels.grewe@halbordnung.de>
+2012-01-29  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLElement.m: Fix behaviour of -addAttribute:. Implement
-	-attributeForName:
-	* Tests/base/NSXMLElement/attributes.m: Add some attribute tests.
+	* configure.ac:
+	* Headers/GNUstepBase/config.h.in:
+	* Source/GSFFIInvocation.m:
+	* Source/GSPrivate.h:
+	* Source/NSInvocation.m:
+	If modern ffi is available, use ffi_prep_closure_loc and ffi closure
+	memory management so we get the benefit of ffi library code to work
+	around restrictions of selinux etc.
 
-2012-01-24 21:59-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-29  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Tests/base/NSXMLElement/children.m: Remove test based
-	on tests performed on Cocoa.   Remove check for ablility
-	to instantiate NSXMLAttributeDeclarationKind.
+	* Source/NSUserDefaults.m: Try to deal with the case where a language
+	has been set to the ISO standard name rather than an OpenStep name
+	by converting to an Openstep name as an alternative lookup key.
+	* Source/NSXMLNode.m: Add warning that the DOM classes are not really
+	functional in this release.
 
-2012-01-23 12:09-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLElement.m: Remove setObjectValue: implementation.
-	* Source/NSXMLNode.m: Remove comments around code to replace
-	nil value.
-	* Tests/base/NSXMLNode/basic.m: correct test.
+	* Source/NSFileManager.m: Fix copying for large files (issue #35381)
 
-2012-01-21 06:16-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-25 Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* Source/NSXMLDocument.m
-	* Source/NSXMLElement.m
-	* Source/NSXMLNode.m: Make all tests pass, correct child
-	issues.
+	* Source/NSNumberFormatter.m: Call unum_format* only once.
 
-2012-01-18 16:21-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLNode.m: fixes for issues found in GNUstep unit
-	tests.
+	* Source/GSSocketStream.m: fix possible nul pointer dereference.
+	* Source/NSHost.m: cache failed lookup by name so that repeated
+	lookups for a band host name do not cause repeated DNS queries.
 
-2012-01-18 12:52-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-24  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLDTDNode.m: Remove uneeded releases in dealloc.
-	* Source/NSXMLPrivate.h: Remove ivars from NSXMLDTDNode.h
+	* Source/NSURLRequest.m: be tolerant about missing URL on init.
 
-2012-01-18 12:22-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLNode.m: Add code in initWithKind
-	* Source/NSXMLDTDNode.m: Remove attributes, use libxml2 structures
-	instead.
-	* Source/NSXMLPrivate.h: Add define for MY_DTD.
+	* Source/GSFFIInvocation.m: Fix selector types comparison to use the
+	correct function for checking equivalent types.
 
-2012-01-17 19:09-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSXMLNode.m: Add code to create nodes for comments,
-	pi's and DTDs.
+	* config/pathtls.m4:
+	* config/pathxml.m4:
+	Remove incorrect sed call to tidy flags (as suggested by Felix Geyer
+	in bug #34835).
 
-2012-01-17 18:32-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-16  Eric Wasylishen  <ewasylishen@gmail.com>
 
-	* Source/NSXMLDocument.m
-	* Source/NSXMLElement.m: add code to insertChild:atIndex: to
-	handle edge cases.
+	* Source/NSBundle.m (addBundlePath): Handle nested subdirectories
+	(e.g.
+	[NSBundle pathForLibraryResource:
+	@"Generic-PostScript_Printer-Postscript" ofType: @"ppd"
+	inDirectory: @"PostScript/PPD"] was previously failing.)
 
-2012-01-17 04:05-EST Gregory John Casamento <greg.casamento@gmail.com>
+2012-01-12 10:10  theraven
 
-	* Source/NSXMLElement.m
-
-2012-01-17 03:48-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLDocument.m
-	* Source/NSXMLNode.m: Add / to xpath if it is not there.
-	Thes matches behavior observed on Mac OS X/Cocoa.
-
-2012-01-17 03:06-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLDocument.m: Correct issues with unit tests.
-	ignore nil on setRootElement:.  Correct other issues.
-
-2012-01-16 13:30-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLElement.m
-	* Source/NSXMLNode.m: Corrections to make "basic" tests pass.
-
-2012-01-15 10:48-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLNode.m
-	* Source/NSXMLPrivate.h: Implement XPath query.
-
-2012-01-12 18:18-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLElement.m
-	* Source/NSXMLNode.m: Add code to automatically instantiate 
-	the node to fill in the _private pointer if it is not present.
-
-2012-01-12 12:05-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLElement.m: Changes to make NSXMLElement use
-	libxml2 structures.
-
-2012-01-11 12:54-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLNode.m: Get final methods implemented on NSXMLNode
-	except for XPath/XQuery methods.
-
-2012-01-10 20:21-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLDocument.m: Added forward declarations for private
-	methods on NSXMLNode.
-
-2012-01-10 20:05-EST Gregory John Casamento <greg.casamento@gmail.com>
-
-	* Source/NSXMLNode.m: Changes to move NSXML classes to using libxml 
-	more directly.
+	* libs/base/trunk/Headers/Foundation/NSException.h: Tweak the
+	exception mismatch handling so that if base is using native exceptions
+	and the user doesn't specify an exception mode then we just don't define
+	the NS_ macros, so code that uses @try etc. compiles without requiring
+	every cc line to specify a long -D flag just to be allowed to #import
+	Foundation.h.
 
 2012-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 

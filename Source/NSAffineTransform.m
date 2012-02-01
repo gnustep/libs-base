@@ -38,6 +38,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSAffineTransform.h"
 #import "Foundation/NSCoder.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /* Private definitions */
 #define A _matrix.m11
@@ -594,6 +595,7 @@ static NSAffineTransformStruct identityTransform = {
   if ([aCoder allowsKeyedCoding])
     {
       // FIXME
+      return [self notImplemented: _cmd];
       /*
       NSData *data = [aCoder decodeObjectForKey: @"NSTransformStruct"];
       unsigned int cursor = 0;

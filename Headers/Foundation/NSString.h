@@ -350,7 +350,6 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (id) initWithData: (NSData*)data
 	   encoding: (NSStringEncoding)encoding;
 - (id) initWithContentsOfFile: (NSString*)path;
-- (id) init;
 
 // Getting a String's Length
 - (NSUInteger) length;
