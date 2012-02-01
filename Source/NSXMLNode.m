@@ -864,7 +864,6 @@ NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRe
   Class theSubclass = [NSXMLNode class];
   void *node = NULL;
 
-GSOnceMLog(@"WARNING  the XML DOM classes are not currently implemented to a usable level, but we expect to have an implementation based on libxml2 in place for the next release.");
   if (nil == (self = [super init]))
     {
       return nil;
