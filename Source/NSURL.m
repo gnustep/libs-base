@@ -66,7 +66,7 @@ NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
 @implementation	NSString (NSURLPrivate)
 
 /* Like the normal percent escape method, but with additional characters
- * escaped.
+ * escaped (for use by file scheme URLs).
  */
 - (NSString*) _stringByAddingPercentEscapes
 {
@@ -708,7 +708,15 @@ static NSUInteger	urlAlign;
 {
   NSString	*aUrlString = [NSString alloc];
 
-  aPath = [aPath _stringByAddingPercentEscapes];
+  if ([aScheme isEqualToString: @"file"])
+    {
+      aPath = [aPath _stringByAddingPercentEscapes];
+    }
+  else
+    {
+      aPath = [aPath
+	stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+    }
   if ([aHost length] > 0)
     {
       NSRange	r = [aHost rangeOfString: @"@"];
