@@ -121,6 +121,16 @@ int main()
     "Simple relative URL fullPath works");
 #endif
 
+  url = [NSURL URLWithString: @"http://1.2.3.4/a?b;foo"];
+  PASS_EQUAL([url absoluteString], @"http://1.2.3.4/a?b;foo",
+    "query and params not escaped");
+
+  url = [[[NSURL alloc] initWithScheme: @"http"
+                                  host: @"1.2.3.4"
+                                  path: @"/a?b;foo"] autorelease];
+  PASS_EQUAL([url absoluteString], @"http://1.2.3.4/a?b;foo",
+    "query and params not escaped");
+
   url = [NSURL URLWithString: @"http://here.and.there/testing/one.html"];
   rel = [NSURL URLWithString: @"/aaa/bbb/ccc/" relativeToURL: url];
   PASS([[rel absoluteString]
