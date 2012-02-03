@@ -101,10 +101,8 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  *   nodes are changed.
  */
 #define GS_NSXMLNode_IVARS \
-  void		 *handle; \
   NSUInteger	  kind; \
   NSXMLNode      *parent; \
-  NSUInteger      index; \
   id              objectValue; \
   NSString       *URI; \
   NSXMLNode      *previousSibling; \
@@ -112,7 +110,6 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
   NSUInteger      options; \
   void           *node;  \
   NSMutableArray *subNodes; \
-  NSString       *xpath; \
   int		externalRetains; \
   int		retainedSelf; \
 
@@ -137,7 +134,6 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #define GS_NSXMLDocument_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
   NSXMLDTD     		*docType; \
   NSString     		*MIMEType; \
-  NSUInteger   		fidelityMask; \
   NSInteger		contentKind; \
 
 

@@ -29,6 +29,163 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
+int countAttributes(xmlNodePtr node)
+{
+  int count = 0;
+  xmlAttrPtr attr = node->properties;
+
+  while (attr) 
+    {
+      count++;
+      attr = attr->next;
+    }
+
+  return count;
+}
+
+BOOL isEqualAttr(xmlAttrPtr attrA, xmlAttrPtr attrB)
+{
+  xmlChar* contentA;
+  xmlChar* contentB;
+  xmlChar* nameA;
+  xmlChar* nameB;
+
+  // what has to be the same for two attributes to be equal -- just their values??
+  if(attrA == NULL || attrB == NO)
+    {
+      return NO;
+    }
+
+  if(attrB == NULL && attrA == NULL)
+    {
+      return YES;
+    }
+
+  // get the content...
+  contentA = xmlNodeGetContent((const xmlNodePtr)attrA);
+  contentB = xmlNodeGetContent((const xmlNodePtr)attrB);
+  nameA = (xmlChar *)attrA->name;
+  nameB = (xmlChar *)attrB->name;
+
+  if(strcmp((const char *)nameA,
+	    (const char *)nameB) == 0)
+    {
+      if(strcmp((const char *)contentA,
+		(const char *)contentB) == 0)
+	{
+	  return YES;
+	}
+      return NO;
+    }
+  
+  return NO;
+}
+
+xmlAttrPtr findAttrWithName(xmlNodePtr node, xmlChar* targetName)
+{
+  xmlAttrPtr attr = node->properties;
+
+  // find an attr in node with the given name, and return it, else NULL
+  if(attr == NULL)
+    {
+      return NULL;
+    }
+
+  while (strcmp((const char *)attr->name,(const char *)targetName) != 0) 
+    {
+      attr = attr->next;
+    }
+
+  return attr;
+}
+
+
+BOOL isEqualAttributes(xmlNodePtr nodeA, xmlNodePtr nodeB)
+{
+  xmlAttrPtr attrA = NULL;
+
+  if (countAttributes(nodeA) != countAttributes(nodeB))
+    return NO;
+  
+  attrA = nodeA->properties;
+  while (attrA) 
+    {
+      xmlAttrPtr attrB = findAttrWithName(nodeB, (xmlChar *)attrA->name);
+      if (!isEqualAttr(attrA, attrB))
+	{
+	  return NO;
+	}
+      attrA = attrA->next;
+    }
+
+  return YES;
+}
+
+BOOL isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
+{
+  if (nodeA == nodeB)
+    return YES;
+
+  if (nodeA->type != nodeB->type)
+    return NO;
+  
+  if (strcmp((const char *)nodeA->name, 
+	     (const char *)nodeB->name) != 0)
+    return NO;
+  
+  if (nodeA->type == XML_ELEMENT_NODE) 
+    {
+      xmlChar *contentA = NULL;
+      xmlChar *contentB = NULL;
+
+      if (!isEqualAttributes(nodeA, nodeB))
+	{
+	  return NO;
+	}
+
+      // Get the value of any text node underneath the current element.
+      contentA = xmlNodeGetContent((const xmlNodePtr)nodeA);
+      contentB = xmlNodeGetContent((const xmlNodePtr)nodeB);
+      if(strcmp((const char *)contentA,
+		(const char *)contentB) != 0)
+	{
+	  return NO;
+	}
+    }
+  
+  return YES;
+}
+
+BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
+{
+  if (nodeA == NULL && nodeB == NULL)
+    {
+      return YES;
+    }
+  
+  if (nodeA == NULL || nodeB == NULL)
+    {
+      return NO;
+    }
+  
+  if (!isEqualNode(nodeA, nodeB))
+    {
+      return NO;
+    }
+  
+  if (!isEqualTree(nodeA->children, nodeB->children))
+    {
+      return NO;
+    }
+  
+  if (!isEqualTree(nodeA->next, nodeB->next))
+    {
+      return NO;
+    }
+  
+  return YES;
+}
+
 // Private methods to manage libxml pointers...
 @interface NSXMLNode (Private)
 - (void *) _node;
@@ -989,43 +1146,11 @@ NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRe
 
 - (BOOL) isEqual: (id)other
 {
-  NSString	*s;
-  NSArray	*c;
-
-  if (other == (id)self)
-    {
-      return YES;
-    }
-
-  if (NO == [other isKindOfClass: [self class]])
+  if([self kind] != [other kind])
     {
       return NO;
     }
-
-  if ([(NSXMLNode*)other kind] != internal->kind)
-    {
-      return NO;
-    }
-
-  s = [other name];
-  if (s != [self name] && NO == [s isEqual: [self name]])
-    {
-      return NO;
-    }
-
-  s = [other URI];
-  if (s != internal->URI && NO == [s isEqual: internal->URI])
-    {
-      return NO;
-    }
-
-  c = [other children];
-  if (c != [self children] && NO == [c isEqual: [self children]])
-    {
-      return NO;
-    }
-
-  return YES;
+  return isEqualTree(MY_NODE,(xmlNodePtr)[other _node]);
 }
 
 - (NSXMLNodeKind) kind

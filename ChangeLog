@@ -1,3 +1,12 @@
+2012-02-02 22:57-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLDocument.m: Remove commented out code
+	from old implementation.
+	* Source/NSXMLNode.m: Flesh out functions started by
+	doug to test equality for nodes.
+	* Source/NSXMLPrivate.h: Remove uneeded ivars.
+	* Tests/base/NSXMLNode/basic.m: Add tests to for equality.
+
 2012-02-01 11:32-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLNode.m: Eliminate warning message which was

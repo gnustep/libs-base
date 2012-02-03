@@ -427,59 +427,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   internal->node = (xmlDoc *)xmlCopyDoc(MY_DOC, 1); // copy recursively
   clearPrivatePointers(internal->node); // clear out all of the _private pointers in the entire tree
   ((xmlNodePtr)internal->node)->_private = c;
-//  [c setStandalone: MY_DOC->standalone];
-//  [c setChildren: MY_DOC->children];
-  //GSIVar(c, rootElement) = MY_DOC->rootElement;
-//  [c setDTD: MY_DOC->docType];
-//  [c setMIMEType: MY_DOC->MIMEType];
   return c;
 }
 
 @end
-
-/*
-@implementation NSXMLDocument (NSXMLParserDelegate)
-
-- (void)   parser: (NSXMLParser *)parser
-  didStartElement: (NSString *)elementName 
-     namespaceURI: (NSString *)namespaceURI 
-    qualifiedName: (NSString *)qualifiedName 
-       attributes: (NSDictionary *)attributeDict
-{
-  NSXMLElement *lastElement = [internal->elementStack lastObject];
-  NSXMLElement *currentElement = 
-    [[NSXMLElement alloc] initWithName: elementName];
-  
-  [lastElement addChild: currentElement];
-  [internal->elementStack addObject: currentElement];
-  [currentElement release];
-  if (nil == internal->rootElement)
-    {
-      [self setRootElement: currentElement];
-    }
-  [currentElement setAttributesAsDictionary: attributeDict];
-}
-
-- (void)parser:(NSXMLParser *)parser
- didEndElement:(NSString *)elementName 
-  namespaceURI:(NSString *)namespaceURI 
- qualifiedName:(NSString *)qName 
-{
-  if ([internal->elementStack count] > 0)
-    { 
-      NSXMLElement *currentElement = [internal->elementStack lastObject];
-      if ([[currentElement name] isEqualToString: elementName])
-	{
-	  [internal->elementStack removeLastObject];
-	} 
-    }
-}
-
-- (void) parser: (NSXMLParser *)parser
-foundCharacters: (NSString *)string
-{
-  NSXMLElement *currentElement = [internal->elementStack lastObject];
-  [currentElement setStringValue: string];
-}
-@end
-*/
