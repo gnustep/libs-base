@@ -29,6 +29,8 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
+#if defined(HAVE_LIBXML)
+
 int countAttributes(xmlNodePtr node)
 {
   int count = 0;
@@ -1430,3 +1432,4 @@ NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRe
 }
 @end
 
+#endif
