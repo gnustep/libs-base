@@ -1,3 +1,8 @@
+2012-02-03 09:15-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Tests/base/NSXMLNode/basic.m: Correct test for 
+	text node.
+
 2012-02-02 22:57-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Remove commented out code

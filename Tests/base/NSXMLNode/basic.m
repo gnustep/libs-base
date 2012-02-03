@@ -71,6 +71,13 @@ int main()
   PASS([node isEqual: other], 
        "Nodes with the same attributes are equal");
 
+  [other setStringValue: @"value"];
+  PASS(![node isEqual: other],
+       "Nodes with different values are NOT equal");
+
+  [node setStringValue: @"value"];
+  PASS([node isEqual: other],
+       "Nodes with different values are equal");
 
   [node release];
   [other release];
