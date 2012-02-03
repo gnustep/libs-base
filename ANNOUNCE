@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.22.0, is now available.
+The GNUstep Base Library, version 1.24.0, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -18,19 +18,25 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version `1.22.0'
+1.2 Noteworthy changes in version `1.24.0'
 ==========================================
 
-   * Many updates and new classes
+   * There is binary incompatibility on 64bit systems in that the value
+     of the NSNotFound constant there is now 64bits rather than 32bits.
 
-   * There is now a regression test framework included with the package
+   * gcc-4.0 is the minimum official supported compiler for GNUstep
 
-   * New support for Objective-C 2.0
+   * Support for the GNU LANGUAGES environment variable and other locale
+     improvements
+
+   * IPV6 support for NSHost and networking operations
+
+   * Support for UTF-8 string literals in source (compiler permitting)
 
 1.3 Where can you get it?  How can you compile it?
 ==================================================
 
-The gnustep-base-1.22.0.tar.gz distribution file has been placed at
+The gnustep-base-1.24.0.tar.gz distribution file has been placed at
 `ftp://ftp.gnustep.org/pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page
