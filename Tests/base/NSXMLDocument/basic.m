@@ -8,6 +8,7 @@ int main()
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
   NSArray *nodes = nil;
   NSXMLDocument *node;
+  NSXMLDocument *node2;
   NSXMLElement *elem;
   NSString *documentXML = 
     @"<?xml version=\"1.0\" encoding=\"utf-8\"?>" 
@@ -84,6 +85,12 @@ int main()
 	     "first node in Xpath result is an element");
   PASS([[elem name] isEqualToString: @"book"],
        "Got the correct elements from XPath query");
+
+  node2 = [[NSXMLDocument alloc] initWithXMLString:documentXML
+					   options:0
+					     error:NULL];
+  PASS([node isEqual: node2],
+       "Equal documents are equivalent");
 
   [arp release];
   arp = nil;
