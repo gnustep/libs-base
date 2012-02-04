@@ -1415,7 +1415,10 @@ NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRe
 
 - (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
 {
-  *error = NULL;
+  if(error != NULL)
+    {
+      *error = NULL;
+    }
   return execute_xpath(self, anxpath, NULL);
 }
 

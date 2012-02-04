@@ -1,3 +1,9 @@
+2012-02-04 08:08-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLNode.m: minor fix in nodesForXPath:... don't
+	set error to NULL if it doesn't point to anything.
+	* Tests/base/NSXMLDocument/basic.m: Improved tests.
+
 2012-02-03 11:43-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLNode.m: Conditionally compile out code if

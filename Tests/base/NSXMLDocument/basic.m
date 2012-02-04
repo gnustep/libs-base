@@ -6,8 +6,41 @@
 int main()
 {
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  NSArray *nodes = nil;
   NSXMLDocument *node;
   NSXMLElement *elem;
+  NSString *documentXML = 
+    @"<?xml version=\"1.0\" encoding=\"utf-8\"?>" 
+    @"<bookstore>"
+    @"  <book category=\"COOKING\">"
+    @"    <title lang=\"en\">Everyday Italian</title>"
+    @"    <author>Giada De Laurentiis</author>"
+    @"    <year>2005</year>"
+    @"    <price>30.00</price>"
+    @"  </book>"
+    @"  <book category=\"CHILDREN\">"
+    @"    <title lang=\"en\">Harry Potter</title>"
+    @"    <author>J K. Rowling</author>"
+    @"    <year>2005</year>"
+    @"    <price>29.99</price>"
+    @"  </book>"
+    @"  <book category=\"WEB\">"
+    @"    <title lang=\"en\">XQuery Kick Start</title>"
+    @"    <author>James McGovern</author>"
+    @"    <author>Per Bothner</author>"
+    @"    <author>Kurt Cagle</author>"
+    @"    <author>James Linn</author>"
+    @"    <author>Vaidyanathan Nagarajan</author>"
+    @"    <year>2003</year>"
+    @"    <price>49.99</price>"
+    @"  </book>"
+    @"  <book category=\"WEB\">"
+    @"    <title lang=\"en\">Learning XML</title>"
+    @"    <author>Erik T. Ray</author>"
+    @"    <year>2003</year>"
+    @"    <price>39.95</price>"
+    @"  </book>"
+    @"</bookstore>";
 
   node = [NSXMLDocument alloc];
   PASS_EXCEPTION([node initWithData: nil options: 0 error: 0],
@@ -35,10 +68,27 @@ int main()
   PASS_RUNS([node setRootElement: nil], "setting a nil root is ignored");
   PASS_EQUAL([node rootElement], elem, "root element remains");
 
+  node = [[NSXMLDocument alloc] initWithXMLString:documentXML
+					  options:0
+					    error:NULL];
+  elem = [node rootElement];
+  PASS(node != nil, "document was initialized from a string");
+  PASS_EQUAL([node rootElement], elem, "root element is correct");
+  PASS_EQUAL([elem name],@"bookstore", "root element is bookstore");
+
+  nodes = [node nodesForXPath:@"/bookstore/book" error:NULL];
+  PASS([nodes count] == 4,
+	     "Xpath function returns the correct number of elements (4)");
+  elem = [nodes objectAtIndex: 0];
+  PASS_EQUAL([elem class],[NSXMLElement class],
+	     "first node in Xpath result is an element");
+  PASS([[elem name] isEqualToString: @"book"],
+       "Got the correct elements from XPath query");
+
   [arp release];
   arp = nil;
 
-  [elem release];
-  [node release];
+  // [elem release];
+  // [node release];
   return 0;
 }
