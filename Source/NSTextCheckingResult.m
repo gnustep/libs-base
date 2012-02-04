@@ -41,9 +41,10 @@
 @end
 
 @implementation NSTextCheckingResult
-+ (NSTextCheckingResult*)regularExpressionCheckingResultWithRanges: (NSRangePointer)ranges
-                                                             count: (NSUInteger)count
-                                                 regularExpression: (NSRegularExpression*)regularExpression
++ (NSTextCheckingResult*)
+  regularExpressionCheckingResultWithRanges: (NSRangePointer)ranges
+  count: (NSUInteger)count
+  regularExpression: (NSRegularExpression*)regularExpression
 {
   GSRegularExpressionCheckingResult *result =
     [GSRegularExpressionCheckingResult new];
@@ -55,88 +56,139 @@
   return [result autorelease];
 }
 
-- (NSDictionary*)addressComponents { return nil; }
-- (NSDictionary*)components { return nil; }
-- (NSDate*)date { return nil; }
-- (NSTimeInterval) duration { return 0; }
-- (NSArray*)grammarDetails { return 0; }
-- (NSUInteger) numberOfRanges { return 1; }
-- (NSOrthography*)orthography { return nil; }
-- (NSString*)phoneNumber { return nil; }
-- (NSRange)range
+- (NSDictionary*) addressComponents
+{
+  return nil;
+}
+
+- (NSDictionary*) components
+{
+  return nil;
+}
+
+- (NSDate*) date
+{
+  return nil;
+}
+
+- (NSTimeInterval) duration
+{
+  return 0;
+}
+
+- (NSArray*) grammarDetails
+{
+  return 0;
+}
+
+- (NSUInteger) numberOfRanges
+{
+  return 1;
+}
+
+- (NSOrthography*) orthography
+{
+  return nil;
+}
+
+- (NSString*) phoneNumber
+{
+  return nil;
+}
+
+- (NSRange) range
 {
   [self subclassResponsibility: _cmd];
   return NSMakeRange(NSNotFound, 0);
 }
-- (NSRegularExpression*)regularExpression { return nil; }
-- (NSString*)replacementString { return nil; }
-- (NSTextCheckingType)resultType
+
+- (NSRegularExpression*) regularExpression
+{
+  return nil;
+}
+
+- (NSString*) replacementString
+{
+  return nil;
+}
+
+- (NSTextCheckingType) resultType
 {
   [self subclassResponsibility: _cmd];
   return -1;
 }
-- (NSTimeZone*)timeZone { return nil; }
-- (NSURL*)URL { return nil; }
 
-- (NSRange)rangeAtIndex: (NSUInteger)idx
+- (NSTimeZone*) timeZone
+{
+  return nil;
+}
+
+- (NSURL*) URL
+{
+  return nil;
+}
+
+
+- (NSRange) rangeAtIndex: (NSUInteger)idx
 {
   if (idx >= [self numberOfRanges])
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"index %"PRIuPTR" out of range", (unsigned long)idx];
+		  format: @"index %"PRIuPTR" out of range", idx];
     }
   return [self range];
 }
 
-- (NSTextCheckingResult *)resultByAdjustingRangesWithOffset: (NSInteger)offset
+- (NSTextCheckingResult *) resultByAdjustingRangesWithOffset: (NSInteger)offset
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
+
 @end
 
 
 
 @implementation GSRegularExpressionCheckingResult
 
-- (void)dealloc
+- (void) dealloc
 {
   [regularExpression release];
   free(ranges);
   [super dealloc];
 }
 
-- (NSUInteger)numberOfRanges
+- (NSUInteger) numberOfRanges
 {
   return rangeCount;
 }
 
-- (NSRange)range
+- (NSRange) range
 {
   return ranges[0];
 }
 
-- (NSRange)rangeAtIndex: (NSUInteger)idx
+- (NSRange) rangeAtIndex: (NSUInteger)idx
 {
   if (idx >= rangeCount)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"index %"PRIuPTR" out of range", (unsigned long)idx];
+		  format: @"index %"PRIuPTR" out of range", idx];
     }
   return ranges[idx];
 }
 
-- (NSRegularExpression *)regularExpression
+- (NSRegularExpression*) regularExpression
 {
   return regularExpression;
 }
 
-- (NSTextCheckingType)resultType
+- (NSTextCheckingType) resultType
 {
   return NSTextCheckingTypeRegularExpression;
 }
 
-- (NSTextCheckingResult *)resultByAdjustingRangesWithOffset: (NSInteger)offset
+- (NSTextCheckingResult*) resultByAdjustingRangesWithOffset: (NSInteger)offset
 {
   NSUInteger i;
   GSRegularExpressionCheckingResult *result =
@@ -147,8 +199,9 @@
   for (i = 0; i < rangeCount; i++)
     {
       NSRange r = ranges[i];
-      if ((offset > 0 && NSNotFound - r.location <= offset) ||
-          (offset < 0 && r.location < -offset))
+
+      if ((offset > 0 && NSNotFound - r.location <= offset)
+        || (offset < 0 && r.location < -offset))
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Invalid offset %"PRIdPTR" for range: %@",

@@ -54,24 +54,25 @@ static const NSTextCheckingType NSTextCheckingTypeRegularExpression  = 1ULL<<10;
 @property(readonly) NSTimeZone *timeZone;
 @property(readonly) NSURL *URL;
 #else
-- (NSDictionary*)addressComponents;
-- (NSDictionary*)components;
-- (NSDate*)date;
+- (NSDictionary*) addressComponents;
+- (NSDictionary*) components;
+- (NSDate*) date;
 - (NSTimeInterval) duration;
-- (NSArray*)grammarDetails;
+- (NSArray*) grammarDetails;
 - (NSUInteger) numberOfRanges;
-- (NSOrthography*)orthography;
-- (NSString*)phoneNumber;
+- (NSOrthography*) orthography;
+- (NSString*) phoneNumber;
 - (NSRange) range;
-- (NSRegularExpression*)regularExpression;
-- (NSString*)replacementString;
+- (NSRegularExpression*) regularExpression;
+- (NSString*) replacementString;
 - (NSTextCheckingType) resultType;
-- (NSTimeZone*)timeZone;
-- (NSURL*)URL;
+- (NSTimeZone*) timeZone;
+- (NSURL*) URL;
 #endif
-+ (NSTextCheckingResult*)regularExpressionCheckingResultWithRanges: (NSRangePointer)ranges
-                                                             count: (NSUInteger)count
-                                                 regularExpression: (NSRegularExpression*)regularExpression;
-										- (NSRange)rangeAtIndex: (NSUInteger)idx;
-- (NSTextCheckingResult *)resultByAdjustingRangesWithOffset: (NSInteger)offset;
++ (NSTextCheckingResult*)
+  regularExpressionCheckingResultWithRanges: (NSRangePointer)ranges
+  count: (NSUInteger)count
+  regularExpression: (NSRegularExpression*)regularExpression;
+- (NSRange) rangeAtIndex: (NSUInteger)idx;
+- (NSTextCheckingResult*) resultByAdjustingRangesWithOffset: (NSInteger)offset;
 @end

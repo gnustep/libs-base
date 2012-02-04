@@ -1,3 +1,9 @@
+2012-02-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version: 1.24.1 ... still binary compatibile with 1.24.0
+	* Source/NSTextCheckingResult.m:
+	* Headers/Foundation/NSTextCheckingResult.h: coding style tidyups
+
 2012-02-03  Adam Fedor  <fedor@gnu.org>
 
 	* Bump version 
