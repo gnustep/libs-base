@@ -1,5 +1,10 @@
 2012-02-07 Doug Simons <doug.simons@testplant.com>
 
+	* Source/win32/GSFileHandle.m: Fix some problems with the way socket
+	fileDescriptors are treated.
+
+2012-02-07 Doug Simons <doug.simons@testplant.com>
+
     * Source/NSXMLNode.m: Changed dealloc to call xmlFreeNode() or
     xmlFreeDoc() depending on the type of node.
 

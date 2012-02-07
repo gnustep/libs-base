@@ -1104,6 +1104,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
+  // first test to see whether desc is a socket descriptor
+  unsigned long dummy;
+  if (ioctlsocket((SOCKET)desc, FIONREAD, &dummy) != SOCKET_ERROR)
+    {
+      desc = _open_osfhandle((SOCKET)desc, 0);
+    }
+
   self = [super init];
   if (self != nil)
     {
@@ -1267,6 +1274,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (int) fileDescriptor
 {
+  if (isSocket)
+    return _get_osfhandle(descriptor);
   return descriptor;
 }
 
@@ -1614,7 +1623,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       WSACloseEvent(event);
       event = WSA_INVALID_EVENT;
     }
-  (void)close(descriptor);
+  else
+    {
+      (void)close(descriptor);
+    }
   descriptor = -1;
   acceptOK = NO;
   connectOK = NO;
