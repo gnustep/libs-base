@@ -952,14 +952,10 @@ NSLog(@"RELEASING TRICKY EXTRA RETAIN in %@ now: %d", self, internal->externalRe
 	node->_private = NULL;
       if (node && node->parent == NULL)
 	{
-<<<<<<< .mine
 	  if (node->type == XML_DOCUMENT_NODE)
 	    xmlFreeDoc((xmlDocPtr)node);
 	  else
 	    xmlFreeNode(node);  // the top level node frees the entire tree
-=======
-	  xmlFreeNode(node);  // the top level node frees the entire tree
->>>>>>> .r34733
 	}
       GS_DESTROY_INTERNAL(NSXMLNode);
     }
