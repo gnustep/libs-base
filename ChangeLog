@@ -1,3 +1,9 @@
+2012-02-07 13:12-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLNode.m: Correct issue with crash on
+	Windows.   Seems that calling xmlFree(..) on a xmlNode
+	causes a crash. Call xmlFreeNode in dealloc instead.
+
 2012-02-04 09:23-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: add implementation of isEqual:
