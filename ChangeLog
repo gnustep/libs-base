@@ -1,3 +1,8 @@
+2012-02-07 Doug Simons <doug.simons@testplant.com>
+
+    * Source/NSXMLNode.m: Changed dealloc to call xmlFreeNode() or
+    xmlFreeDoc() depending on the type of node.
+
 2012-02-07 13:12-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLNode.m: Correct issue with crash on
