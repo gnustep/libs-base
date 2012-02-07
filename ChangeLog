@@ -1,3 +1,8 @@
+2012-02-07  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Check for threading library on QNX.
+	* configure: Regenerate.
+
 2012-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version: 1.24.1 ... still binary compatibile with 1.24.0

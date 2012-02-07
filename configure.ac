@@ -1628,8 +1628,11 @@ else
 fi
 AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
 ismingw=no
+isqnx=no
 case "$target_os" in
   mingw*)	ismingw=yes;;
+  nto*)		isqnx=yes;;
+  qnx*)		isqnx=yes;;
 esac
 if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
@@ -1638,6 +1641,12 @@ else
     AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
     if test $pthread_ok = yes ; then
       LIBS="$LIBS -lpthreadGC2"
+    fi
+  fi
+  if test $isqnx = yes ; then
+    AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
+    if test $pthread_ok = yes ; then
+       LIBS="$LIBS -lc"
     fi
   fi
 fi
