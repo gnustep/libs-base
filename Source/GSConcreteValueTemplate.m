@@ -245,7 +245,7 @@
 - (NSString *) description
 {
 #if TYPE_ORDER == 0
-  return [NSString stringWithFormat: @"{object = %@;}", [data description]];
+  return [NSString stringWithFormat: @"{object = %p;}", data];
 #elif TYPE_ORDER == 1
   return NSStringFromPoint(data);
 #elif TYPE_ORDER == 2

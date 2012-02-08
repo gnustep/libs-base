@@ -1,3 +1,8 @@
+2012-02-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSConcreteValueTemplate.m: Don't ask a non-retained object
+	to describe itsself (in case it has gon away) bug#35477
+
 2012-02-07  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* configure.ac: Check for threading library on QNX.
