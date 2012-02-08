@@ -163,6 +163,7 @@ static NSHTTPCookieStorage   *storage = nil;
   int i;
   NSArray *properties;
   NSString *path = [self _cookieStorePath];
+
   if (path == nil)
     {
       return;
@@ -173,11 +174,20 @@ static NSHTTPCookieStorage   *storage = nil;
   NS_HANDLER
     NSLog(@"NSHTTPCookieStorage: Error reading cookies plist");
   NS_ENDHANDLER
-  if (properties == nil) 
+  if (nil == properties)
     return;
   for (i = 0; i < [properties count]; i++)
-    [this->_cookies addObject: 
-      [NSHTTPCookie cookieWithProperties: [properties objectAtIndex: i]]];
+    {
+      NSDictionary *props;
+      NSHTTPCookie *cookie;
+
+      props = [properties objectAtIndex: i];
+      cookie = [NSHTTPCookie cookieWithProperties: props];
+      if (NO == [this->_cookies containsObject: cookie])
+	{
+	  [this->_cookies addObject:cookie];
+	}
+    }
 }
 
 - (void) _updateToCookieStore
@@ -185,6 +195,7 @@ static NSHTTPCookieStorage   *storage = nil;
   int i, count;
   NSMutableArray *properties;
   NSString *path = [self _cookieStorePath];
+
   if (path == nil)
     {
       return;

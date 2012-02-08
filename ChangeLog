@@ -1,3 +1,14 @@
+2012-02-08  Lubomir Rintel <lubo.rintel@gooddata.com>
+
+	* Source/NSHTTPCookie.m:
+	* Source/NSHTTPCookieStorage.m:
+	* Source/NSURLConnection.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLRequest.m:
+	Enable the use of cookies by default ... addse setting of cookies
+	in requests and improves caching/storing.  Original patches rewritten
+	by maintainer to conform to coding standards and for clarity.
+
 2012-02-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSConcreteValueTemplate.m: Don't ask a non-retained object

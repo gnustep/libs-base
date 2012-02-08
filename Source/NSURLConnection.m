@@ -115,10 +115,9 @@
 
 @end
 
-
 typedef struct
 {
-  NSURLRequest			*_request;
+  NSMutableURLRequest		*_request;
   NSURLProtocol			*_protocol;
   id				_delegate;	// Not retained
   BOOL				_debug;
@@ -190,7 +189,33 @@ typedef struct
 {
   if ((self = [super init]) != nil)
     {
-      this->_request = [request copy];
+      this->_request = [request mutableCopyWithZone: [self zone]];
+
+      /* Enrich the request with the appropriate HTTP cookies,
+       * if desired.
+       */
+      if ([this->_request HTTPShouldHandleCookies] == YES)
+	{
+	  NSArray *cookies;
+
+	  cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage]
+	    cookiesForURL: [this->_request URL]];
+	  if ([cookies count] > 0)
+	    {
+	      NSDictionary	*headers;
+	      NSEnumerator	*enumerator;
+	      NSString		*header;
+
+	      headers = [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
+	      enumerator = [headers keyEnumerator];
+	      while (nil != (header = [enumerator nextObject]))
+		{
+		  [this->_request addValue: [headers valueForKey: header]
+			forHTTPHeaderField: header];
+		}
+	    }
+	}
+
       this->_delegate = delegate;
       this->_protocol = [[NSURLProtocol alloc]
 	initWithRequest: this->_request
