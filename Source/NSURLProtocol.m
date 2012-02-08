@@ -976,6 +976,26 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	      NSURLCacheStoragePolicy policy;
 
+	      /* Get cookies from the response and accept them into
+	       * shared storage if policy permits
+	       */
+	      if ([this->request HTTPShouldHandleCookies] == YES
+		&& [_response isKindOfClass: [NSHTTPURLResponse class]] == YES)
+		{
+		  NSDictionary	*hdrs;
+		  NSArray	*cookies;
+		  NSURL		*url;
+
+		  url = [_response URL];
+		  hdrs = [_response allHeaderFields];
+		  cookies = [NSHTTPCookie cookiesWithResponseHeaderFields: hdrs
+								   forURL: url];
+		  [[NSHTTPCookieStorage sharedHTTPCookieStorage]
+		    setCookies: cookies
+		    forURL: url
+		    mainDocumentURL: [this->request mainDocumentURL]];
+		}
+
 	      /* Tell the client that we have a response and how
 	       * it should be cached.
 	       */

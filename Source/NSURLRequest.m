@@ -197,6 +197,7 @@ typedef struct {
       this->timeoutInterval = timeoutInterval;
       this->mainDocumentURL = nil;
       this->method = @"GET";
+      this->shouldHandleCookies = YES;
     }
   return self;
 }

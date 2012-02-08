@@ -199,6 +199,7 @@ static NSRange GSRangeOfCookie(NSString *string);
   NSEnumerator   *henum = [headerFields keyEnumerator];
   NSMutableArray *a = [NSMutableArray array];
   NSString *header;
+
   while ((header = [henum nextObject]))
     {
       NSMutableArray *suba 
@@ -288,10 +289,10 @@ static NSRange GSRangeOfCookie(NSString *string);
 
   /* Check a few values.  Based on Mac OS X tests. */
   if (![self _isValidProperty: [properties objectForKey: NSHTTPCookiePath]] 
-      || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieDomain]]
-      || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieName]]
-      || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieValue]]
-      )
+    || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieDomain]]
+    || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieName]]
+    || ![self _isValidProperty: [properties objectForKey: NSHTTPCookieValue]]
+    )
     {
       [self release];
       return nil;
@@ -299,12 +300,25 @@ static NSRange GSRangeOfCookie(NSString *string);
 
   rawProps = [[properties mutableCopy] autorelease];
   if ([rawProps objectForKey: @"Created"] == nil)
-    [rawProps setObject: [NSDate date] forKey: @"Created"];
+    {
+      NSInteger seconds;
+      NSDate	*now;
+
+      /* Round to whole seconds, so that a serialization/deserialisation
+       * cycle produces an identical object whic hcan be used to eliminate
+       * duplicates.
+       */
+      seconds = [NSDate timeIntervalSinceReferenceDate];
+      now = [NSDate dateWithTimeIntervalSinceReferenceDate: seconds]; 
+      [rawProps setObject: now forKey: @"Created"];
+    }
   if ([rawProps objectForKey: NSHTTPCookieExpires] == nil
-	|| [[rawProps objectForKey: NSHTTPCookieExpires] 
+    || [[rawProps objectForKey: NSHTTPCookieExpires] 
 		isKindOfClass: [NSDate class]] == NO)
-    [rawProps setObject: [NSNumber numberWithBool: YES] 
-	         forKey: NSHTTPCookieDiscard];
+    {
+      [rawProps setObject: [NSNumber numberWithBool: YES] 
+		   forKey: NSHTTPCookieDiscard];
+    }
 
   this->_properties = [rawProps copy];
   return self;
@@ -357,6 +371,15 @@ static NSRange GSRangeOfCookie(NSString *string);
 		   [self name], [self value]];
 }
 
+- (NSUInteger) hash
+{
+  return [[self properties] hash];
+}
+
+- (BOOL) isEqual: (id)other
+{
+  return [[other properties] isEqual: [self properties]];
+}
 
 @end
 
