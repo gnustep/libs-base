@@ -8,7 +8,6 @@
 int main()
 {
   START_SET("NSXMLNode - handling children")
-    // testHopeful = YES;
   NS_DURING
   {
     NSXMLElement *node = [[NSXMLElement alloc] initWithKind: NSXMLElementKind];

@@ -18,7 +18,6 @@
 int main()
 {
   START_SET("NSXMLNode -initWithKind: initializer")
-    // testHopeful = YES;
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLNode           *node;
   NS_DURING
