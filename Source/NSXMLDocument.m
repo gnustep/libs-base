@@ -432,6 +432,10 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (BOOL) isEqual: (id)other
 {
+  if(self == other)
+    {
+      return YES;
+    }
   return [[self rootElement] isEqual: [other rootElement]];
 }
 @end

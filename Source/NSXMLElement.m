@@ -250,7 +250,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   {
 	result = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
   }
-  xmlFree(xmlName);
+  free(xmlName); // Free the name string since it's no longer needed.
   xmlName = NULL;
   return result; // [internal->attributes objectForKey: name];
 }
