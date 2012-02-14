@@ -28,10 +28,18 @@
 #define GSInternal              NSXMLDocumentInternal
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
+
+#import <libxslt/xslt.h>
+#import <libxslt/xsltInternals.h>
+#import <libxslt/transform.h>
+#import <libxslt/xsltutils.h>
+
 GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 //#import <Foundation/NSXMLParser.h>
 #import <Foundation/NSError.h>
+
+#if defined(HAVE_LIBXML)
 
 extern void clearPrivatePointers(xmlNodePtr aNode);
 
@@ -395,30 +403,70 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
                   arguments: (NSDictionary*)arguments
                       error: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  return nil;
+  xmlChar *data = (xmlChar *)[xslt bytes];
+  xmlChar **params = NULL;
+  xmlDocPtr stylesheetDoc = xmlReadDoc(data, NULL, NULL, XML_PARSE_NOERROR);
+  xsltStylesheetPtr stylesheet = xsltParseStylesheetDoc(stylesheetDoc);
+  xmlDocPtr resultDoc = NULL;
+  NSEnumerator *en = [arguments keyEnumerator];
+  NSString *key = nil;
+  NSUInteger index = 0;
+ 
+  // Iterate over the keys and put them into params...
+  if(arguments != nil)
+    {
+      int count = [[arguments allKeys] count];
+      *params = NSZoneCalloc([self zone],((count + 1) * 2),sizeof(xmlChar *));
+      while((key = [en nextObject]) != nil)
+	{
+	  params[index] = (xmlChar *)XMLSTRING(key);
+	  params[index+1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
+	  index+=2;
+	}
+    }
+
+  // Apply the stylesheet and get the result...
+  resultDoc = xsltApplyStylesheet(stylesheet,MY_DOC,(const char **)params);
+  
+  // Cleanup...
+  xsltFreeStylesheet(stylesheet);
+  xmlFreeDoc(stylesheetDoc);
+  xsltCleanupGlobals();
+  xmlCleanupParser();
+  NSZoneFree([self zone], params);
+
+  return [NSXMLNode _objectForNode: (xmlNodePtr)resultDoc];
 }
 
 - (id) objectByApplyingXSLTString: (NSString*)xslt
                         arguments: (NSDictionary*)arguments
                             error: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSData *data = [[NSData alloc] initWithBytes: [xslt UTF8String]
+					length: [xslt length]];
+  NSXMLDocument *result = [self  objectByApplyingXSLT: data
+					    arguments: arguments
+						error: error];
+  [data release];
+  return result;
 }
 
 - (id) objectByApplyingXSLTAtURL: (NSURL*)xsltURL
-                       arguments: (NSDictionary*)argument
+                       arguments: (NSDictionary*)arguments
                            error: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSData *data = [NSData dataWithContentsOfURL: xsltURL];
+  NSXMLDocument *result = [self  objectByApplyingXSLT: data
+					    arguments: arguments
+						error: error];
+  return result;
 }
 
 - (BOOL) validateAndReturnError: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  return NO;
+  xmlValidCtxtPtr ctxt = xmlNewValidCtxt();
+  BOOL result = (BOOL)(xmlValidateDocument(ctxt, MY_DOC));
+  return result;
 }
 
 - (id) copyWithZone: (NSZone *)zone
@@ -439,3 +487,5 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   return [[self rootElement] isEqual: [other rootElement]];
 }
 @end
+
+#endif

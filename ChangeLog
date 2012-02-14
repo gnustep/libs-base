@@ -1,3 +1,11 @@
+2012-02-14 13:07-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLDocument.m: Implement DTD validation and
+	XSLT transformation methods.
+	* Source/NSXMLElement.m: Implement elementsForName: and
+	remove commented out code which is no longer
+	relevant.
+
 2012-02-08 02:20-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Return YES if the self and other

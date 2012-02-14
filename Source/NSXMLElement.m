@@ -29,6 +29,8 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
 
+#if defined(HAVE_LIBXML)
+
 extern void clearPrivatePointers(xmlNodePtr aNode);
 
 // Private methods to manage libxml pointers...
@@ -111,16 +113,42 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   return nil;
 }
 
-- (id) initWithXMLString: (NSString*)string error: (NSError**)error
+- (id) initWithXMLString: (NSString*)string 
+		   error: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSXMLElement *result = nil;
+  if((self = [super init]) != nil)
+    {
+      NSXMLDocument *tempDoc = 
+	[[NSXMLDocument alloc] initWithXMLString:string
+					 options:0
+					   error:error];
+      if(tempDoc != nil)
+	{
+	  result = RETAIN([tempDoc rootElement]);
+	  [result detach]; // detach from document.
+	}
+      [tempDoc release];
+    }
+  return result;
 }
 
 - (NSArray*) elementsForName: (NSString*)name
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSMutableArray *results = [NSMutableArray arrayWithCapacity: 10];
+  xmlNodePtr cur = NULL;
+
+  for (cur = MY_NODE->children; cur != NULL; cur = cur->next)
+    {
+      NSString *n = StringFromXMLStringPtr(cur->name);
+      if([n isEqualToString: name])
+	{
+	  NSXMLNode *node = (NSXMLNode *)(cur->_private);
+	  [results addObject: node];
+	}
+    }
+  
+  return results;
 }
 
 - (NSArray*) elementsForLocalName: (NSString*)localName URI: (NSString*)URI
@@ -420,41 +448,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   clearPrivatePointers(newNode); // clear out all of the _private pointers in the entire tree
   c = [c _initWithNode:newNode kind:internal->kind];
   return c;
-/*
-  NSXMLElement	*c = (NSXMLElement*)[super copyWithZone: zone];
-  NSEnumerator	*en;
-  id obj;
-
-  en = [[self namespaces] objectEnumerator];
-  while ((obj = [en nextObject]) != nil)
-    {
-      NSXMLNode *ns = [obj copyWithZone: zone];
-
-      [c addNamespace: ns];
-      [ns release];
-    }
-
-  en = [[self attributes] objectEnumerator];
-  while ((obj = [en nextObject]) != nil)
-    {
-      NSXMLNode *attr = [obj copyWithZone: zone];
-
-      [c addAttribute: attr];
-      [attr release];
-    }
-
-  en = [[self children] objectEnumerator];
-  while ((obj = [en nextObject]) != nil)
-    {
-      NSXMLNode *child = [obj copyWithZone: zone];
-
-      [c addChild: child];
-      [child release];
-    }
-
-  return c;
-*/
 }
 
 @end
 
+#endif
