@@ -597,10 +597,11 @@ parseValue(ParserState *state)
       // Literal null
       case 'n':
         {
-          if ((consumeChar(state) == 'u') &&
-              (consumeChar(state) == 'l') &&
-              (consumeChar(state) == 'l'))
+          if ((consumeChar(state) == 'u')
+	    && (consumeChar(state) == 'l')
+	    && (consumeChar(state) == 'l'))
             {
+	      consumeChar(state);
               return [[NSNull null] retain];
             }
           break;
@@ -608,21 +609,23 @@ parseValue(ParserState *state)
       // literal 
       case 't':
         {
-          if ((consumeChar(state) == 'r') &&
-              (consumeChar(state) == 'u') &&
-              (consumeChar(state) == 'e'))
+          if ((consumeChar(state) == 'r')
+	    && (consumeChar(state) == 'u')
+	    && (consumeChar(state) == 'e'))
             {
+	      consumeChar(state);
               return [[NSNumber alloc] initWithBool: YES];
             }
           break;
         }
       case 'f':
         {
-          if ((consumeChar(state) == 'a') &&
-              (consumeChar(state) == 'l') &&
-              (consumeChar(state) == 's') &&
-              (consumeChar(state) == 'e'))
+          if ((consumeChar(state) == 'a')
+	    && (consumeChar(state) == 'l')
+	    && (consumeChar(state) == 's')
+	    && (consumeChar(state) == 'e'))
             {
+	      consumeChar(state);
               return [[NSNumber alloc] initWithBool: NO];
             }
           break;
