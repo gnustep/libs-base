@@ -1,6 +1,13 @@
+2012-02-16 17:16-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSXMLDocument.m: Add #ifdef HAVE_LIBXSLT to compile out
+	portions of the code which depend on XSLT if they are not
+	available.
+
 2012-02-16 Doug Simons <doug.simons@testplant.com>
 
-	* Source/NSXMLElement.m: Implement -normalizeAdjacentTextNodesPreservingCDATA:
+	* Source/NSXMLElement.m: Implement 
+	-normalizeAdjacentTextNodesPreservingCDATA:
 	method and supporting methods.
 	* Source/NSXMLNode.m: Fix a logic error.
 

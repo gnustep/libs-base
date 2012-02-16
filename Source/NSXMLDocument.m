@@ -29,10 +29,12 @@
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 
+#ifdef HAVE_LIBXSLT
 #import <libxslt/xslt.h>
 #import <libxslt/xsltInternals.h>
 #import <libxslt/transform.h>
 #import <libxslt/xsltutils.h>
+#endif
 
 GS_PRIVATE_INTERNAL(NSXMLDocument)
 
@@ -403,6 +405,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
                   arguments: (NSDictionary*)arguments
                       error: (NSError**)error
 {
+#ifdef HAVE_LIBXSLT
   xmlChar *data = (xmlChar *)[xslt bytes];
   xmlChar **params = NULL;
   xmlDocPtr stylesheetDoc = xmlReadDoc(data, NULL, NULL, XML_PARSE_NOERROR);
@@ -436,12 +439,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSZoneFree([self zone], params);
 
   return [NSXMLNode _objectForNode: (xmlNodePtr)resultDoc];
+#else
+  return nil;
+#endif
 }
 
 - (id) objectByApplyingXSLTString: (NSString*)xslt
                         arguments: (NSDictionary*)arguments
                             error: (NSError**)error
 {
+#ifdef HAVE_LIBXSLT
   NSData *data = [[NSData alloc] initWithBytes: [xslt UTF8String]
 					length: [xslt length]];
   NSXMLDocument *result = [self  objectByApplyingXSLT: data
@@ -449,17 +456,24 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 						error: error];
   [data release];
   return result;
+#else
+  return nil;
+#endif
 }
 
 - (id) objectByApplyingXSLTAtURL: (NSURL*)xsltURL
                        arguments: (NSDictionary*)arguments
                            error: (NSError**)error
 {
+#ifdef HAVE_LIBXSLT
   NSData *data = [NSData dataWithContentsOfURL: xsltURL];
   NSXMLDocument *result = [self  objectByApplyingXSLT: data
 					    arguments: arguments
 						error: error];
   return result;
+#else
+  return nil;
+#endif
 }
 
 - (BOOL) validateAndReturnError: (NSError**)error
