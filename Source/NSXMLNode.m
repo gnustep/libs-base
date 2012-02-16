@@ -53,14 +53,14 @@ BOOL isEqualAttr(xmlAttrPtr attrA, xmlAttrPtr attrB)
   xmlChar* nameB;
 
   // what has to be the same for two attributes to be equal -- just their values??
-  if(attrA == NULL || attrB == NO)
-    {
-      return NO;
-    }
-
   if(attrB == NULL && attrA == NULL)
     {
       return YES;
+    }
+
+  if(attrA == NULL || attrB == NULL)
+    {
+      return NO;
     }
 
   // get the content...
@@ -196,6 +196,8 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 - (void) _addSubNode:(NSXMLNode *)subNode;
 - (void) _removeSubNode:(NSXMLNode *)subNode;
 - (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
+- (void) _updateExternalRetains;
+- (void) _invalidate;
 @end
 
 @implementation NSXMLNode (Private)
@@ -276,7 +278,7 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
 - (void) _updateExternalRetains
 {
-  xmlNodePtr pnode = MY_NODE->parent;
+  xmlNodePtr pnode = (MY_NODE ? MY_NODE->parent : NULL);
   NSXMLNode *parent = (NSXMLNode *)(pnode ? pnode->_private : nil);
   int oldCount = internal->externalRetains;
   int extraRetains = ([self retainCount] > 1 ? 1 : 0);  // start with 1 or 0 for ourself
@@ -400,6 +402,12 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
       internal->kind = kind;
     }
   return self;
+}
+
+- (void) _invalidate
+{
+  internal->kind = NSXMLInvalidKind;
+  [self _setNode:NULL];
 }
 
 @end

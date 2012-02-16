@@ -42,6 +42,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) _removeSubNode:(NSXMLNode *)subNode;
 - (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
 - (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
+- (void) _updateExternalRetains;
+- (void) _invalidate;
 @end
 
 @implementation NSXMLElement
@@ -436,9 +438,68 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   [self removeChildAtIndex: index + 1];
 }
 
+static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
+{
+  NSXMLNode *objA = (nodeA->_private), *objB = (nodeB->_private);
+
+  xmlTextMerge(nodeA, nodeB); // merge nodeB into nodeA
+
+  if (objA != nil) // objA gets the merged node
+    {
+      if (objB != nil) // objB is now invalid
+	{
+	  [objB _invalidate]; // set it to be invalid and make sure it's not pointing to a freed node
+	  [nodesToDelete addObject:objB];
+	}
+    }
+  else if (objB != nil) // there is no objA -- objB gets the merged node
+    {
+      [objB _setNode:nodeA]; // nodeA is the remaining (merged) node
+    }
+}
+
 - (void) normalizeAdjacentTextNodesPreservingCDATA: (BOOL)preserve
 {
-  // FIXME: Implement this method...
+  NSEnumerator *subEnum = [internal->subNodes objectEnumerator];
+  NSXMLNode *subNode = nil;
+  NSMutableArray *nodesToDelete = [NSMutableArray array];
+  while ((subNode = [subEnum nextObject]))
+    {
+      xmlNodePtr node = [subNode _node];
+      xmlNodePtr prev = node->prev;
+      xmlNodePtr next = node->next;
+      if (node->type == XML_ELEMENT_NODE)
+	[(NSXMLElement *)subNode normalizeAdjacentTextNodesPreservingCDATA:preserve];
+      else if (node->type == XML_TEXT_NODE || (node->type == XML_CDATA_SECTION_NODE && !preserve))
+	{
+	  if (next && (next->type == XML_TEXT_NODE
+			|| (next->type == XML_CDATA_SECTION_NODE && !preserve)))
+	    {
+	      //combine node & node->next
+	      joinTextNodes(node, node->next, nodesToDelete);
+	    }
+	  if (prev && (prev->type == XML_TEXT_NODE
+			|| (prev->type == XML_CDATA_SECTION_NODE && !preserve)))
+	    {
+	      //combine node->prev & node
+		// join the text of both nodes
+		// assign the joined text to the earlier of the two nodes that has an ObjC object
+		// unlink the other node
+		// delete the other node's object (maybe add it to a list of nodes to delete when we're done? -- or just set its node to null, and then remove it from our subNodes when we're done iterating it) (or maybe we need to turn it into an NSInvalidNode too??)
+	      joinTextNodes(node->prev, node, nodesToDelete);
+	    }
+
+	}
+    }
+  if ([nodesToDelete count] > 0)
+    {
+      subEnum = [nodesToDelete objectEnumerator];
+      while ((subNode = [subEnum nextObject]))
+	{
+	  [self _removeSubNode:subNode];
+	}
+      [self _updateExternalRetains];
+    }
 }
 
 - (id) copyWithZone: (NSZone *)zone

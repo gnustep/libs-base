@@ -1,3 +1,9 @@
+2012-02-16 Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLElement.m: Implement -normalizeAdjacentTextNodesPreservingCDATA:
+	method and supporting methods.
+	* Source/NSXMLNode.m: Fix a logic error.
+
 2012-02-14 13:07-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Implement DTD validation and
