@@ -2,8 +2,9 @@
    Copyright (C) 2008 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
-   Created: September 2008
-
+   Written by:  Gregory John Casamento <greg.casamento@gmail.com>
+   Created/Modified: September 2008,2012
+      
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -27,23 +28,31 @@
 #define GSInternal              NSXMLDocumentInternal
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
+
+#ifdef HAVE_LIBXSLT
+#import <libxslt/xslt.h>
+#import <libxslt/xsltInternals.h>
+#import <libxslt/transform.h>
+#import <libxslt/xsltutils.h>
+#endif
+
 GS_PRIVATE_INTERNAL(NSXMLDocument)
 
-#import <Foundation/NSXMLParser.h>
+//#import <Foundation/NSXMLParser.h>
+#import <Foundation/NSError.h>
 
-@interface NSXMLDocument (Debug)
-- (id) elementStack;
-@end
+#if defined(HAVE_LIBXML)
 
-@implementation NSXMLDocument (Debug)
-- (id) elementStack
-{
-  return internal->elementStack;
-}
-@end
+extern void clearPrivatePointers(xmlNodePtr aNode);
 
-// Forward declaration of interface for NSXMLParserDelegate
-@interface NSXMLDocument (NSXMLParserDelegate)
+// Private methods to manage libxml pointers...
+@interface NSXMLNode (Private)
+- (void *) _node;
+- (void) _setNode: (void *)_anode;
++ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
+- (void) _addSubNode:(NSXMLNode *)subNode;
+- (void) _removeSubNode:(NSXMLNode *)subNode;
+- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
 @end
 
 @implementation	NSXMLDocument
@@ -57,23 +66,18 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   if (GS_EXISTS_INTERNAL)
     {
-      while (internal->childCount > 0)
-	{
-	  [self removeChildAtIndex: internal->childCount - 1];
-	}
-      [internal->encoding release]; 
-      [internal->version release];
       [internal->docType release];
       [internal->MIMEType release];
-      [internal->elementStack release];
-      [internal->xmlData release];
     }
   [super dealloc];
 }
 
 - (NSString*) characterEncoding
 {
-  return internal->encoding;
+  if (MY_DOC->encoding)
+    return [NSString stringWithUTF8String: (const char *)MY_DOC->encoding];
+  else
+    return nil;
 }
 
 - (NSXMLDocumentContentKind) documentContentKind
@@ -84,6 +88,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 - (NSXMLDTD*) DTD
 {
   return internal->docType;
+}
+
+- (void) _createInternal
+{
+  GS_CREATE_INTERNAL(NSXMLDocument);
 }
 
 - (id) init
@@ -99,7 +108,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSXMLDocument	*doc;
 
   data = [NSData dataWithContentsOfURL: url];
-  doc = [self initWithData: data options: 0 error: 0];
+  doc = [self initWithData: data options: mask error: error];
   [doc setURI: [url absoluteString]];
   return doc;
 }
@@ -109,51 +118,43 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
             options: (NSUInteger)mask
               error: (NSError**)error
 {
-  if (NO == [data isKindOfClass: [NSData class]])
+  NSString *string = nil;
+
+  // Check for nil data and throw an exception 
+  if (![data isKindOfClass: [NSData class]])
     {
       DESTROY(self);
-      if (nil == data)
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"[NSXMLDocument-%@] nil argument",
-	    NSStringFromSelector(_cmd)];
-	}
       [NSException raise: NSInvalidArgumentException
-		  format: @"[NSXMLDocument-%@] invalid argument",
-	NSStringFromSelector(_cmd)];
+		  format: @"[NSXMLDocument-%@] non data argument",
+		   NSStringFromSelector(_cmd)];
     }
-  GS_CREATE_INTERNAL(NSXMLDocument)
-  if ((self = [super initWithKind: NSXMLDocumentKind options: 0]) != nil)
+  if (nil == data)
     {
-      NSXMLParser *parser = [[NSXMLParser alloc] initWithData: data];
-
-      internal->standalone = YES;
-      internal->elementStack = [[NSMutableArray alloc] initWithCapacity: 10];
-      ASSIGN(internal->xmlData, data); 
-      if (nil == parser)
-	{
-	  DESTROY(self);
-	}
-      else
-	{
-	  [parser setDelegate: self];
-	  [parser parse];
-	  RELEASE(parser);
-	}
+      DESTROY(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[NSXMLDocument-%@] nil argument",
+		   NSStringFromSelector(_cmd)];
     }
-  return self;
+
+  // Initialize the string...
+  string = [[NSString alloc] initWithData: data
+				 encoding: NSUTF8StringEncoding];
+  AUTORELEASE(string);
+  return [self initWithXMLString:string options:mask error:error];
 }
 
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
 {
   if (NSXMLDocumentKind == kind)
     {
-      /* Create holder for internal instance variables so that we'll have
-       * all our ivars available rather than just those of the superclass.
-       */
-      GS_CREATE_INTERNAL(NSXMLDocument)
+      return [super initWithKind: kind options: theOptions];
     }
-  return [super initWithKind: kind options: theOptions];
+  else
+    {
+      [self release];
+      return [[NSXMLNode alloc] initWithKind: kind
+				       options: theOptions];
+    }
 }
 
 - (id) initWithRootElement: (NSXMLElement*)element
@@ -177,17 +178,47 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
                  options: (NSUInteger)mask
                    error: (NSError**)error
 {
-  NSData *data = [NSData dataWithBytes: [string UTF8String]
-				length: [string length]];
-  self = [self initWithData: data
-		    options: mask
-		      error: error];
+  if (NO == [string isKindOfClass: [NSString class]])
+    {
+      DESTROY(self);
+      if (nil == string)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"[NSXMLDocument-%@] nil argument",
+	    NSStringFromSelector(_cmd)];
+	}
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[NSXMLDocument-%@] invalid argument",
+	NSStringFromSelector(_cmd)];
+    }
+  if ((self = [self initWithKind: NSXMLDocumentKind options: 0]) != nil)
+    {
+      const char *str = [string UTF8String];
+      char *url = NULL;
+      char *encoding = NULL; // "UTF8";
+      int options = XML_PARSE_NOERROR;
+      xmlDocPtr doc = NULL;
+      if (!(mask & NSXMLNodePreserveWhitespace))
+        options |= XML_PARSE_NOBLANKS;
+      //xmlKeepBlanksDefault(0);
+      doc = xmlReadDoc((xmlChar *)str, url, encoding, options);
+      if(doc == NULL)
+	{
+	  [self release];
+	  self = nil;
+	  if (error != NULL)
+	    *error = [NSError errorWithDomain:@"NSXMLErrorDomain" code:0 userInfo:nil]; 
+	  //[NSException raise:NSInvalidArgumentException
+	  //	      format:@"Cannot instantiate NSXMLDocument with invalid data"];
+	}
+      [self _setNode:doc];
+    }
   return self;
 }
 
 - (BOOL) isStandalone
 {
-  return internal->standalone;
+  return (MY_DOC->standalone == 1);
 }
 
 - (NSString*) MIMEType
@@ -197,12 +228,13 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSXMLElement*) rootElement
 {
-  return internal->rootElement;
+  xmlNodePtr rootElem = xmlDocGetRootElement(MY_DOC);
+  return (NSXMLElement *)[NSXMLNode _objectForNode:rootElem];
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
-  ASSIGNCOPY(internal->encoding, encoding);
+  MY_DOC->encoding = XMLSTRING(encoding);
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
@@ -212,7 +244,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
 {
+  NSAssert(documentTypeDeclaration != nil, NSInvalidArgumentException);
   ASSIGNCOPY(internal->docType, documentTypeDeclaration);
+  MY_DOC->extSubset = [documentTypeDeclaration _node];
 }
 
 - (void) setMIMEType: (NSString*)MIMEType
@@ -222,31 +256,31 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-  if (nil != root)
-    {
-      NSArray	*children;
+  id oldElement = [self rootElement];
 
-      NSAssert(internal->rootElement == nil, NSGenericException);
-      /* this method replaces *all* children with the specified element.
-       */
-      children = [[NSArray alloc] initWithObjects: &root count: 1];  
-      [self setChildren: children];
-      [children release];
-      internal->rootElement = (NSXMLElement*)root;
+  if(root == nil)
+    {
+      return;
     }
+
+  xmlDocSetRootElement(MY_DOC,[root _node]);
+
+  // Do our subNode housekeeping...
+  [self _removeSubNode:oldElement];
+  [self _addSubNode:root];
 }
 
 - (void) setStandalone: (BOOL)standalone
 {
-  internal->standalone = standalone;
+  MY_DOC->standalone = standalone;
 }
 
 - (void) setVersion: (NSString*)version
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
-      ASSIGNCOPY(internal->version, version);
-    }
+      MY_DOC->version = XMLStringCopy(version);
+   }
   else
     {
       [NSException raise: NSInvalidArgumentException
@@ -256,15 +290,20 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) version
 {
-  return internal->version;
+  if (MY_DOC->version)
+    return StringFromXMLStringPtr(MY_DOC->version);
+  else
+    return @"1.0";
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  NSXMLNodeKind	kind;
+  NSXMLNodeKind	kind = [child kind];
+  NSUInteger childCount = [self childCount];
 
+  // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
-  NSAssert(index <= internal->childCount, NSInvalidArgumentException);
+  NSAssert(index <= childCount, NSInvalidArgumentException);
   NSAssert(nil == [child parent], NSInvalidArgumentException);
   kind = [child kind];
   NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
@@ -276,14 +315,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-  if (nil == internal->children)
-    {
-      internal->children = [[NSMutableArray alloc] initWithCapacity: 10];
-    }
-  [internal->children insertObject: child
-			   atIndex: index];
-  GSIVar(child, parent) = self;
-  internal->childCount++;
+  [self _insertChild:child atIndex:index];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -299,50 +331,39 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  NSXMLNode	*child = [internal->children objectAtIndex: index];
+  NSXMLNode	*child;
+  xmlNodePtr     n;
 
-  if (nil != child)
+  if (index >= [self childCount])
     {
-      if (internal->rootElement == child)
-	{
-	  internal->rootElement = nil;
-	}
-      GSIVar(child, parent) = nil;
-      [internal->children removeObjectAtIndex: index];
-      if (0 == --internal->childCount)
-	{
-	  /* The -children method must return nil if there are no children,
-	   * so we destroy the container.
-	   */
-	  DESTROY(internal->children);
-	}
+      [NSException raise: NSRangeException
+		  format: @"index too large"];
     }
+
+  child = [[self children] objectAtIndex: index];
+  n = [child _node];
+  xmlUnlinkNode(n);
 }
 
 - (void) setChildren: (NSArray*)children
 {
-  if (children != internal->children)
+  NSEnumerator	*en;
+  NSXMLNode		*child;
+  
+  while ([self childCount] > 0)
     {
-      NSEnumerator	*en;
-      NSXMLNode		*child;
-
-      [children retain];
-      while (internal->childCount > 0)
-	{
-	  [self removeChildAtIndex:internal->childCount - 1];
-	}
-      en = [children objectEnumerator];
-      while ((child = [en nextObject]) != nil)
-	{
-	  [self insertChild: child atIndex: internal->childCount];
-	}
-      [children release];
+      [self removeChildAtIndex: [self childCount] - 1];
+    }
+  en = [[self children] objectEnumerator];
+  while ((child = [en nextObject]) != nil)
+    {
+      [self insertChild: child atIndex: [self childCount]];
     }
 }
  
 - (void) addChild: (NSXMLNode*)child
 {
-  [self insertChild: child atIndex: internal->childCount];
+  [self insertChild: child atIndex: [self childCount]];
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
@@ -366,37 +387,16 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString *) XMLStringWithOptions: (NSUInteger)options
 {
-  NSMutableString	*string = [NSMutableString string];
-  NSEnumerator		*en = [internal->children objectEnumerator];
-  id			obj = nil;
+  NSString	*string = nil;
+  xmlChar	*buf = NULL;
+  int		length;
 
-  if (internal->version || internal->standalone || internal->encoding)
+  xmlDocDumpFormatMemoryEnc(MY_DOC, &buf, &length, "utf-8", 1);
+
+  if (buf != 0 && length > 0)
     {
-      NSString *version = internal->version;
-      if (!version)
-	version = @"1.0";
-      [string appendString: @"<?xml version=\""];
-      [string appendString: version];
-      [string appendString: @"\""];
-      if (internal->encoding)
-	{
-	  [string appendString: @" encoding=\""];
-	  [string appendString: internal->encoding];
-	  [string appendString: @"\""];
-	}
-      if (YES == internal->standalone)
-        {
-          [string appendString: @" standalone=\"yes\""];
-        }
-      else
-        {
-          [string appendString: @" standalone=\"no\""];
-        }
-      [string appendString: @"?>\n"];
-    }
-  while ((obj = [en nextObject]) != nil)
-    {
-      [string appendString: [obj XMLStringWithOptions: options]];
+      string = StringFromXMLString(buf, length);
+      free(buf);
     }
   return string;
 }
@@ -405,100 +405,101 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
                   arguments: (NSDictionary*)arguments
                       error: (NSError**)error
 {
-  [self notImplemented: _cmd];
+#ifdef HAVE_LIBXSLT
+  xmlChar *data = (xmlChar *)[xslt bytes];
+  xmlChar **params = NULL;
+  xmlDocPtr stylesheetDoc = xmlReadDoc(data, NULL, NULL, XML_PARSE_NOERROR);
+  xsltStylesheetPtr stylesheet = xsltParseStylesheetDoc(stylesheetDoc);
+  xmlDocPtr resultDoc = NULL;
+  NSEnumerator *en = [arguments keyEnumerator];
+  NSString *key = nil;
+  NSUInteger index = 0;
+ 
+  // Iterate over the keys and put them into params...
+  if(arguments != nil)
+    {
+      int count = [[arguments allKeys] count];
+      *params = NSZoneCalloc([self zone],((count + 1) * 2),sizeof(xmlChar *));
+      while((key = [en nextObject]) != nil)
+	{
+	  params[index] = (xmlChar *)XMLSTRING(key);
+	  params[index+1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
+	  index+=2;
+	}
+    }
+
+  // Apply the stylesheet and get the result...
+  resultDoc = xsltApplyStylesheet(stylesheet,MY_DOC,(const char **)params);
+  
+  // Cleanup...
+  xsltFreeStylesheet(stylesheet);
+  xmlFreeDoc(stylesheetDoc);
+  xsltCleanupGlobals();
+  xmlCleanupParser();
+  NSZoneFree([self zone], params);
+
+  return [NSXMLNode _objectForNode: (xmlNodePtr)resultDoc];
+#else
   return nil;
+#endif
 }
 
 - (id) objectByApplyingXSLTString: (NSString*)xslt
                         arguments: (NSDictionary*)arguments
                             error: (NSError**)error
 {
-  [self notImplemented: _cmd];
+#ifdef HAVE_LIBXSLT
+  NSData *data = [[NSData alloc] initWithBytes: [xslt UTF8String]
+					length: [xslt length]];
+  NSXMLDocument *result = [self  objectByApplyingXSLT: data
+					    arguments: arguments
+						error: error];
+  [data release];
+  return result;
+#else
   return nil;
+#endif
 }
 
 - (id) objectByApplyingXSLTAtURL: (NSURL*)xsltURL
-                       arguments: (NSDictionary*)argument
+                       arguments: (NSDictionary*)arguments
                            error: (NSError**)error
 {
-  [self notImplemented: _cmd];
+#ifdef HAVE_LIBXSLT
+  NSData *data = [NSData dataWithContentsOfURL: xsltURL];
+  NSXMLDocument *result = [self  objectByApplyingXSLT: data
+					    arguments: arguments
+						error: error];
+  return result;
+#else
   return nil;
+#endif
 }
 
 - (BOOL) validateAndReturnError: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  return NO;
+  xmlValidCtxtPtr ctxt = xmlNewValidCtxt();
+  BOOL result = (BOOL)(xmlValidateDocument(ctxt, MY_DOC));
+  return result;
 }
 
 - (id) copyWithZone: (NSZone *)zone
 {
   NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
-  NSXMLElement *r = [self rootElement];
-  NSEnumerator *en;
-  id obj;
-
-  [c setStandalone: internal->standalone];
-  en = [internal->children objectEnumerator];
-  while ((obj = [en nextObject]) != nil)
-    {
-      NSXMLNode *child = [obj copyWithZone: zone];
-
-      if ([child isEqual: r])
-	{
-	  GSIVar(c, rootElement) = (NSXMLElement*)child;
-	}
-      [c addChild: child];
-      [child release];
-    }
-  [c setDTD: internal->docType];
-  [c setMIMEType: internal->MIMEType];
+  internal->node = (xmlDoc *)xmlCopyDoc(MY_DOC, 1); // copy recursively
+  clearPrivatePointers(internal->node); // clear out all of the _private pointers in the entire tree
+  ((xmlNodePtr)internal->node)->_private = c;
   return c;
 }
 
-@end
-
-@implementation NSXMLDocument (NSXMLParserDelegate)
-
-- (void)   parser: (NSXMLParser *)parser
-  didStartElement: (NSString *)elementName 
-     namespaceURI: (NSString *)namespaceURI 
-    qualifiedName: (NSString *)qualifiedName 
-       attributes: (NSDictionary *)attributeDict
+- (BOOL) isEqual: (id)other
 {
-  NSXMLElement *lastElement = [internal->elementStack lastObject];
-  NSXMLElement *currentElement = 
-    [[NSXMLElement alloc] initWithName: elementName];
-  
-  [lastElement addChild: currentElement];
-  [internal->elementStack addObject: currentElement];
-  [currentElement release];
-  if (nil == internal->rootElement)
+  if(self == other)
     {
-      [self setRootElement: currentElement];
+      return YES;
     }
-  [currentElement setAttributesAsDictionary: attributeDict];
-}
-
-- (void)parser:(NSXMLParser *)parser
- didEndElement:(NSString *)elementName 
-  namespaceURI:(NSString *)namespaceURI 
- qualifiedName:(NSString *)qName 
-{
-  if ([internal->elementStack count] > 0)
-    { 
-      NSXMLElement *currentElement = [internal->elementStack lastObject];
-      if ([[currentElement name] isEqualToString: elementName])
-	{
-	  [internal->elementStack removeLastObject];
-	} 
-    }
-}
-
-- (void) parser: (NSXMLParser *)parser
-foundCharacters: (NSString *)string
-{
-  NSXMLElement *currentElement = [internal->elementStack lastObject];
-  [currentElement setStringValue: string];
+  return [[self rootElement] isEqual: [other rootElement]];
 }
 @end
+
+#endif

@@ -7,6 +7,7 @@ int main()
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLNode             *node;
   NSXMLNode             *other;
+  NSXMLNode             *attr; 
 
   node = [[NSXMLNode alloc] initWithKind: NSXMLInvalidKind];
   test_alloc(@"NSXMLNode");
@@ -37,7 +38,8 @@ int main()
   PASS_EQUAL([node objectValue], @"anObject",
     "setting object value on invalid node works");
   [node setObjectValue: nil];
-  PASS_EQUAL([node objectValue], nil,
+  // Per documentation on NSXMLNode setObjectValue/objectValue, 
+  PASS_EQUAL([node objectValue], @"",
     "setting nil object value on invalid node works");
   [node setStringValue: @"aString"];
   PASS_EQUAL([node stringValue], @"aString",
@@ -45,6 +47,37 @@ int main()
   [node setStringValue: nil];
   PASS_EQUAL([node stringValue], @"",
     "setting nil string value on invalid node gives empty string");
+
+  [node release];
+  [other release];
+
+  // Equality tests.
+  node = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
+  other = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
+  [other setName: @"test"];
+  [node setName: @"test"];
+  PASS([node isEqual: other], 
+       "Nodes with the same name are equal");
+  
+  attr = [NSXMLNode attributeWithName: @"key"
+			  stringValue: @"value"];
+  [node addAttribute:attr];
+  PASS(![node isEqual: other],
+       "Nodes with different attributes are NOT equal");
+
+  attr = [NSXMLNode attributeWithName: @"key"
+			  stringValue: @"value"];
+  [other addAttribute:attr];
+  PASS([node isEqual: other], 
+       "Nodes with the same attributes are equal");
+
+  [other setStringValue: @"value"];
+  PASS(![node isEqual: other],
+       "Nodes with different values are NOT equal");
+
+  [node setStringValue: @"value"];
+  PASS([node isEqual: other],
+       "Nodes with different values are equal");
 
   [node release];
   [other release];

@@ -67,10 +67,12 @@ int main()
     PASS_RUNS([root1 insertChild: c atIndex: 0],
       "may add NSXMLCommentKind child");
 
+    /* Removed based on test run on Cocoa.
     c = [[[NSXMLNode alloc] initWithKind:
       NSXMLAttributeDeclarationKind] autorelease];
     PASS_RUNS([root1 insertChild: c atIndex: 0],
       "may add NSXMLAttributeDeclarationKind child");
+    */
 
     c = [[[NSXMLNode alloc] initWithKind:
       NSXMLEntityDeclarationKind] autorelease];
