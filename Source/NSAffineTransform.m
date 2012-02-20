@@ -35,6 +35,7 @@
 #define	EXPOSE_NSAffineTransform_IVARS	1
 
 #import "Foundation/NSArray.h"
+#import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSAffineTransform.h"
 #import "Foundation/NSCoder.h"
@@ -590,22 +591,87 @@ static NSAffineTransformStruct identityTransform = {
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  NSAffineTransformStruct	replace;
+  NSAffineTransformStruct replace;
     
   if ([aCoder allowsKeyedCoding])
     {
-      // FIXME
-      return [self notImplemented: _cmd];
-      /*
-      NSData *data = [aCoder decodeObjectForKey: @"NSTransformStruct"];
-      unsigned int cursor = 0;
-      // We get lengths of 12 and 18
-      NSLog(@"length %d data %@", [data length], data);
-      [data deserializeDataAt: (CGFloat*)&replace
-	        ofObjCType: "[6f]"
-		  atCursor: &cursor
-		   context: nil];
-      */
+      if ([aCoder containsValueForKey: @"NSTransformStruct"])
+        {
+	  NSUInteger length;
+	  const uint8_t *data;
+          NSData *d;
+          unsigned int cursor = 0;
+
+          data = [aCoder decodeBytesForKey: @"NSTransformStruct"
+                              returnedLength: &length]; 
+          d = [NSData dataWithBytes: data length: length];
+
+          if (length == 9)
+            {
+              float f, g;
+              replace = identityTransform;
+              
+              cursor = 1;
+              [d deserializeDataAt: &f
+                        ofObjCType: "f"
+                          atCursor: &cursor
+                           context: nil];
+              [d deserializeDataAt: &g
+                        ofObjCType: "f"
+                          atCursor: &cursor
+                           context: nil];
+              if (data[0] == 1)
+                {
+                  replace.tX = f;
+                  replace.tY = g;
+                }
+              else if (data[0] == 2)
+                {
+                  replace.m11 = f;
+                  replace.m22 = g;
+                }
+              else
+                {
+                  // FIXME
+                  NSLog(@"Got type %d for affine transform", data[0]);
+                  return [self notImplemented: _cmd];
+                }
+            }
+          else if (16 == length)
+            {
+              float s[4];
+              
+              [d deserializeDataAt: s
+                        ofObjCType: "[4f]"
+                          atCursor: &cursor
+                           context: nil];
+              replace.m11 = s[0];
+              replace.m22 = s[1];
+              replace.tX = s[2];
+              replace.tY = s[3];
+            }
+          else if (24 == length)
+            {
+              float s[6];
+              
+              [d deserializeDataAt: s
+                        ofObjCType: "[6f]"
+                          atCursor: &cursor
+                           context: nil];
+              replace.m11 = s[0];
+              replace.m12 = s[1];
+              replace.m21 = s[2];
+              replace.m22 = s[3];
+              replace.tX = s[4];
+              replace.tY = s[5];
+            }
+          else
+            {
+              // FIXME
+              NSLog(@"Got data %@ len %d for affine transform", d, length);
+              return [self notImplemented: _cmd];
+            }
+        }
     }
   else
     {
@@ -619,12 +685,29 @@ static NSAffineTransformStruct identityTransform = {
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  NSAffineTransformStruct	replace;
+  NSAffineTransformStruct replace;
     
   replace = [self transformStruct];
   if ([aCoder allowsKeyedCoding])
     {
-      // FIXME
+      if (!_isIdentity)
+        {
+          float s[6];
+          NSMutableData *d = [NSMutableData data];
+
+          s[0] = replace.m11;
+          s[1] = replace.m12;
+          s[2] = replace.m21;
+          s[3] = replace.m22;
+          s[4] = replace.tX;
+          s[5] = replace.tY;
+          [d serializeDataAt: s
+                  ofObjCType: "[6f]"
+                     context: nil];
+          [aCoder encodeBytes: [d bytes]
+                       length: [d length]
+                       forKey: @"NSTransformStruct"];
+        }
     }
   else
     {
