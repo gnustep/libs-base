@@ -1,3 +1,8 @@
+2012-02-20  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSAffineTransform.m (-initWithCoder:, -encodeWithCoder:):
+	Add key coding and decoding for NSAffineTransform.
+
 2012-02-19 22:37-EST Gregory John Casamento <greg.casamento@gmail.com>
 	Doug Simons <doug.simons@testplant.com>
 
