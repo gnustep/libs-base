@@ -1,3 +1,20 @@
+2012-02-19 22:37-EST Gregory John Casamento <greg.casamento@gmail.com>
+	Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLDocument.m
+	* Source/NSXMLDTD.m
+	* Source/NSXMLDTDNode.m
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m
+	* Source/NSXMLPrivate.h: Reimplementation of all DOM classes based on
+	libxml2.  Implementation of all methods using libxml2 functions.
+	* Tests/base/NSXMLDocument/basic.m
+	* Tests/base/NSXMLElement/attributes.m
+	* Tests/base/NSXMLElement/children.m
+	* Tests/base/NSXMLNode/basic.m
+	* Tests/base/NSXMLNode/children.m
+	* Tests/base/NSXMLNode/kinds.m: Changes to test for new functionality.
+
 2012-02-08  Lubomir Rintel <lubo.rintel@gooddata.com>
 
 	* Source/NSHTTPCookie.m:

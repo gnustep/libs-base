@@ -34,6 +34,58 @@
 #define	EXPOSE_NSXMLElement_IVARS	1
 #define	EXPOSE_NSXMLNode_IVARS	1
 
+/*
+ * Macro to cast string to correct type for libxml2
+ */
+#define	XMLSTRING(X)	((const unsigned char*)[X UTF8String])
+
+inline static unsigned char *XMLStringCopy(NSString *source)
+{
+  char *xmlstr;
+  unsigned int len = [source maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
+  if (len == 0)
+    return NULL;
+  xmlstr = malloc(len);
+  [source getCString:xmlstr maxLength:len encoding:NSUTF8StringEncoding];
+  return (unsigned char *)xmlstr;
+}
+
+inline static NSString*
+StringFromXMLStringPtr(const unsigned char *bytes)
+{
+  NSString	*str;
+  unsigned int length;
+
+  if (bytes == NULL)
+    return @"";
+
+  length = strlen((char *)bytes);
+  str = [[NSString alloc] initWithBytes: bytes
+				       length: length
+				     encoding: NSUTF8StringEncoding];
+  return AUTORELEASE(str);
+}
+
+inline static NSString*
+StringFromXMLString(const unsigned char *bytes, unsigned length)
+{
+  NSString	*str;
+  
+  if (bytes == NULL)
+    return @"";
+
+  str = [[NSString alloc] initWithBytes: bytes
+				       length: length
+				     encoding: NSUTF8StringEncoding];
+  return AUTORELEASE(str);
+}
+
+#define MY_DOC	((xmlDoc *)internal->node)
+#define MY_NODE ((xmlNode *)internal->node)
+#define MY_ATTR ((xmlAttr *)internal->node)
+#define MY_ELEM ((xmlElement *)internal->node)
+#define MY_DTD  ((xmlDtd *)internal->node)
+
 /* Instance variables for NSXMLNode.  This macro needs to be defined before
  * the NSXMLNode.h header is imported and before GSInternal.h is imported.
  *
@@ -49,18 +101,17 @@
  *   nodes are changed.
  */
 #define GS_NSXMLNode_IVARS \
-  void		*handle; \
-  NSUInteger	kind; \
-  NSXMLNode     *parent; \
-  id            objectValue; \
-  NSString      *stringValue; \
-  NSString      *name; \
-  NSString      *URI; \
-  NSMutableArray *children; \
-  NSUInteger childCount; \
-  NSXMLNode *previousSibling; \
-  NSXMLNode *nextSibling; \
-  NSUInteger options; \
+  NSUInteger	  kind; \
+  NSXMLNode      *parent; \
+  id              objectValue; \
+  NSString       *URI; \
+  NSXMLNode      *previousSibling; \
+  NSXMLNode      *nextSibling;\
+  NSUInteger      options; \
+  void           *node;  \
+  NSMutableArray *subNodes; \
+  int		externalRetains; \
+  int		retainedSelf; \
 
 
 /* When using the non-fragile ABI, the instance variables are exposed to the
@@ -81,17 +132,9 @@
  * is imported and before GSInternal.h is imported.
  */
 #define GS_NSXMLDocument_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSString     		*encoding; \
-  NSString     		*version; \
   NSXMLDTD     		*docType; \
-  BOOL         		childrenHaveMutated; \
-  BOOL         		standalone; \
-  NSXMLElement 		*rootElement; \
   NSString     		*MIMEType; \
-  NSUInteger   		fidelityMask; \
   NSInteger		contentKind; \
-  NSMutableArray	*elementStack; \
-  NSData		*xmlData; \
 
 
 /* Instance variables for NSXMLDTD with/without the instance
@@ -102,8 +145,6 @@
 #define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
   NSString      *publicID; \
   NSString      *systemID; \
-  BOOL          childrenHaveMutated; \
-  BOOL          modified; \
   NSMutableDictionary   *entities; \
   NSMutableDictionary   *elements; \
   NSMutableDictionary   *notations; \
@@ -118,22 +159,13 @@
  */
 #define GS_NSXMLDTDNode_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
   NSUInteger	DTDKind; \
-  NSString	*notationName; \
-  NSString	*publicID; \
-  NSString	*systemID; \
-
 
 /* Instance variables for NSXMLElement with/without the instance
  * variable 'inherited' from NSXMLNode.
  * This macro needs to be defined before the NSXMLElement.h header
  * is imported and before GSInternal.h is imported.
  */
-#define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSMutableDictionary   *attributes; \
-  NSMutableArray        *namespaces; \
-  BOOL                  childrenHaveMutated; \
-  NSInteger             prefixIndex; \
-
+#define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"

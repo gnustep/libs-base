@@ -10,7 +10,7 @@
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 3 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -29,20 +29,42 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
 
+#if defined(HAVE_LIBXML)
+
+extern void clearPrivatePointers(xmlNodePtr aNode);
+
+// Private methods to manage libxml pointers...
+@interface NSXMLNode (Private)
+- (void *) _node;
+- (void) _setNode: (void *)_anode;
++ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
+- (void) _addSubNode:(NSXMLNode *)subNode;
+- (void) _removeSubNode:(NSXMLNode *)subNode;
+- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
+- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
+- (void) _updateExternalRetains;
+- (void) _invalidate;
+@end
+
 @implementation NSXMLElement
 
 - (void) dealloc
 {
-  if (GS_EXISTS_INTERNAL)
+  /*
+  if (GS_EXISTS_INTERNAL && _internal != nil)
     {
-      while (internal->childCount > 0)
+      while ([self childCount] > 0)
 	{
-	  [self removeChildAtIndex: internal->childCount - 1];
+	  [self removeChildAtIndex: [self childCount] - 1];
 	}
-      [internal->attributes release];
-      [internal->namespaces release];
     }
+  */
   [super dealloc];
+}
+
+- (void) _createInternal
+{
+  GS_CREATE_INTERNAL(NSXMLElement);
 }
 
 - (id) init
@@ -50,35 +72,35 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   return [self initWithKind: NSXMLElementKind options: 0];
 }
 
+- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+{
+  if (NSXMLElementKind == kind)
+    {
+      if ((self = [super initWithKind:kind options:theOptions]))
+	{
+	  internal->objectValue = @"";
+	}
+      return self;
+    }
+  else
+    {
+      [self release];
+      return [[NSXMLNode alloc] initWithKind: kind
+				       options: theOptions];
+    }
+}
+
 - (id) initWithName: (NSString*)name
 {
   return [self initWithName: name URI: nil];
 }
 
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
-{
-  if (NSXMLElementKind == kind)
-    {
-      /* Create holder for internal instance variables so that we'll have
-       * all our ivars available rather than just those of the superclass.
-       */
-      GS_CREATE_INTERNAL(NSXMLElement)
-    }
-  return [super initWithKind: kind options: theOptions];
-}
-
 - (id) initWithName: (NSString*)name URI: (NSString*)URI
 {
-  /* Create holder for internal instance variables so that we'll have
-   * all our ivars available rather than just those of the superclass.
-   */
-  GS_CREATE_INTERNAL(NSXMLElement)
   if ((self = [super initWithKind: NSXMLElementKind]) != nil)
     {
-      ASSIGNCOPY(internal->name, name);
+      [self setName:name];
       ASSIGNCOPY(internal->URI, URI);
-      internal->attributes = [[NSMutableDictionary alloc] initWithCapacity: 10];
-      internal->namespaces = [[NSMutableArray alloc] initWithCapacity: 10];
       internal->objectValue = @"";
     }
   return self;
@@ -93,16 +115,42 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   return nil;
 }
 
-- (id) initWithXMLString: (NSString*)string error: (NSError**)error
+- (id) initWithXMLString: (NSString*)string 
+		   error: (NSError**)error
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSXMLElement *result = nil;
+  if((self = [super init]) != nil)
+    {
+      NSXMLDocument *tempDoc = 
+	[[NSXMLDocument alloc] initWithXMLString:string
+					 options:0
+					   error:error];
+      if(tempDoc != nil)
+	{
+	  result = RETAIN([tempDoc rootElement]);
+	  [result detach]; // detach from document.
+	}
+      [tempDoc release];
+    }
+  return result;
 }
 
 - (NSArray*) elementsForName: (NSString*)name
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSMutableArray *results = [NSMutableArray arrayWithCapacity: 10];
+  xmlNodePtr cur = NULL;
+
+  for (cur = MY_NODE->children; cur != NULL; cur = cur->next)
+    {
+      NSString *n = StringFromXMLStringPtr(cur->name);
+      if([n isEqualToString: name])
+	{
+	  NSXMLNode *node = (NSXMLNode *)(cur->_private);
+	  [results addObject: node];
+	}
+    }
+  
+  return results;
 }
 
 - (NSArray*) elementsForLocalName: (NSString*)localName URI: (NSString*)URI
@@ -113,13 +161,69 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) addAttribute: (NSXMLNode*)attribute
 {
-  [internal->attributes setObject: attribute
-			   forKey: [attribute name]];
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlAttrPtr attr = (xmlAttrPtr)[attribute _node];
+  xmlAttrPtr oldAttr = xmlHasProp(node, attr->name);
+  if (nil != [attribute parent])
+  {
+	[NSException raise: @"NSInvalidArgumentException"
+	            format: @"Tried to add attribute to multiple parents."];
+  }
+
+  if (NULL != oldAttr)
+  {
+	/*
+	 * As per Cocoa documentation, we only add the attribute if it's not
+	 * already set. xmlHasProp() also looks at the DTD for default attributes
+	 * and we need  to make sure that we only bail out here on #FIXED
+	 * attributes.
+	 */
+
+	// Do not replace plain attributes.
+	if (XML_ATTRIBUTE_NODE == oldAttr->type)
+	{
+	  return;
+	}
+	else if (XML_ATTRIBUTE_DECL == oldAttr->type)
+	{
+		// If the attribute is from a DTD, do not replace it if it's #FIXED
+		xmlAttributePtr attrDecl = (xmlAttributePtr)oldAttr;
+		if (XML_ATTRIBUTE_FIXED == attrDecl->def)
+		{
+			return;
+		}
+	}
+  }
+  xmlAddChild(node, (xmlNodePtr)attr);
+  [self _addSubNode:attribute];
 }
 
 - (void) removeAttributeForName: (NSString*)name
 {
-  [internal->attributes removeObjectForKey: name];
+  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlAttrPtr attr = xmlHasProp(node, (xmlChar *)[name UTF8String]);
+  xmlAttrPtr newAttr = NULL;
+  NSXMLNode *attrNode = nil;
+  if (NULL == attr)
+  {
+	  return;
+  }
+
+  // We need a copy of the node because xmlRemoveProp() frees attr:
+  newAttr = xmlCopyProp(NULL, attr);
+  attrNode = [NSXMLNode _objectForNode: (xmlNodePtr)attr];
+
+  // This is supposed to return failure for DTD defined attributes
+  if (0 == xmlRemoveProp(attr))
+  {
+	  [attrNode _setNode: newAttr];
+	  [self _removeSubNode: attrNode];
+  }
+  else
+  {
+	  // In this case we throw away our copy again.
+	  xmlFreeProp(newAttr);
+  }
 }
 
 - (void) setAttributes: (NSArray*)attributes
@@ -127,7 +231,6 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   NSEnumerator	*enumerator = [attributes objectEnumerator];
   NSXMLNode	*attribute;
 
-  [internal->attributes removeAllObjects];
   while ((attribute = [enumerator nextObject]) != nil)
     {
       [self addAttribute: attribute];
@@ -141,27 +244,45 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) setAttributesWithDictionary: (NSDictionary*)attributes
 {
-  NSEnumerator	*en = [attributes keyEnumerator];	 
-  NSString	*key; 
- 	 
-  [internal->attributes removeAllObjects];
-  while ((key = [en nextObject]) != nil)	 
-    {	 
-      NSString	*val = [attributes objectForKey: key];	 
-      NSXMLNode	*attribute = [NSXMLNode attributeWithName: key	 
+  NSEnumerator	*en = [attributes keyEnumerator];
+  NSString	*key;
+
+  // [internal->attributes removeAllObjects];
+  while ((key = [en nextObject]) != nil)
+    {
+      NSString	*val = [[attributes objectForKey: key] stringValue];
+      NSXMLNode	*attribute = [NSXMLNode attributeWithName: key
 					      stringValue: val];
-      [self addAttribute: attribute];	 
+      [self addAttribute: attribute];
     }
 }
 
 - (NSArray*) attributes
 {
-  return [internal->attributes allValues];
+  NSMutableArray *attributes = [NSMutableArray array];
+  xmlNodePtr node = MY_NODE;
+  struct _xmlAttr *	attributeNode = node->properties;
+  while (attributeNode)
+    {
+      NSXMLNode *attribute = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
+      [attributes addObject:attribute];
+      attributeNode = attributeNode->next;
+    }
+  return attributes;
 }
 
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
-  return [internal->attributes objectForKey: name];
+  NSXMLNode *result = nil;
+  xmlChar *xmlName = xmlCharStrdup([name UTF8String]);
+  xmlAttrPtr attributeNode = xmlHasProp(MY_NODE, xmlName);
+  if (NULL != attributeNode)
+  {
+	result = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
+  }
+  free(xmlName); // Free the name string since it's no longer needed.
+  xmlName = NULL;
+  return result; // [internal->attributes objectForKey: name];
 }
 
 - (NSXMLNode*) attributeForLocalName: (NSString*)localName
@@ -173,7 +294,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) addNamespace: (NSXMLNode*)aNamespace
 {
-  [internal->namespaces addObject: aNamespace]; 
+  [self notImplemented: _cmd];
 }
 
 - (void) removeNamespaceForPrefix: (NSString*)name
@@ -183,21 +304,43 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) setNamespaces: (NSArray*)namespaces
 {
-  ASSIGNCOPY(internal->namespaces, namespaces);
-}
+  NSEnumerator *en = [namespaces objectEnumerator];
+  NSString *namespace = nil;
+  xmlNsPtr cur = NULL;
 
-- (void) setObjectValue: (id)value
-{
-  if (nil == value)
+  while((namespace = (NSString *)[en nextObject]) != nil)
     {
-      value = @"";	// May not be nil
+      xmlNsPtr ns = xmlNewNs([self _node], NULL, XMLSTRING(namespace));
+      if(MY_NODE->ns == NULL)
+	{
+	  MY_NODE->ns = ns;
+	  cur = ns;
+	}
+      else
+	{
+	  cur->next = ns;
+	  cur = ns;
+	}
     }
-  ASSIGN(internal->objectValue, value);
 }
 
 - (NSArray*) namespaces
 {
-  return internal->namespaces;
+  NSMutableArray *result = nil;
+  xmlNsPtr ns = MY_NODE->ns;
+
+  if(ns)
+    {
+      xmlNsPtr cur = NULL;
+      result = [NSMutableArray array];
+      for(cur = ns; cur != NULL; cur = cur->next)
+	{
+	  [result addObject: StringFromXMLStringPtr(cur->prefix)];
+	}
+    }
+
+  // [self notImplemented: _cmd];
+  return result; // nil; // internal->namespaces;
 }
 
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
@@ -220,13 +363,13 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  NSXMLNodeKind	kind;
+  NSXMLNodeKind	kind = [child kind];
+  NSUInteger childCount = [self childCount];
 
+  // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
-  NSAssert(index <= internal->childCount, NSInvalidArgumentException);
-  NSAssert(nil == [child parent], NSInternalInconsistencyException);
-  kind = [child kind];
-  // FIXME ... should we check for valid kinds rather than invalid ones?
+  NSAssert(index <= childCount, NSInvalidArgumentException);
+  NSAssert(nil == [child parent], NSInvalidArgumentException);
   NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDTDKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLDocumentKind != kind, NSInvalidArgumentException);
@@ -236,21 +379,14 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-  if (nil == internal->children)
-    {
-      internal->children = [[NSMutableArray alloc] initWithCapacity: 10];
-    }
-  [internal->children insertObject: child
-			   atIndex: index];
-  GSIVar(child, parent) = self;
-  internal->childCount++;
+  [self _insertChild:child atIndex:index];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
 {
   NSEnumerator	*enumerator = [children objectEnumerator];
   NSXMLNode	*child;
-  
+
   while ((child = [enumerator nextObject]) != nil)
     {
       [self insertChild: child atIndex: index++];
@@ -260,132 +396,121 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (void) removeChildAtIndex: (NSUInteger)index
 {
   NSXMLNode	*child;
+  xmlNodePtr     n;
 
-  if (index >= internal->childCount)
+  if (index >= [self childCount])
     {
       [NSException raise: NSRangeException
-		  format: @"index to large"];
+		  format: @"index too large"];
     }
-  child = [internal->children objectAtIndex: index];
-  GSIVar(child, parent) = nil;
-  [internal->children removeObjectAtIndex: index];
-  if (0 == --internal->childCount)
-    {
-      /* The -children method must return nil if there are no children,
-       * so we destroy the container.
-       */
-      DESTROY(internal->children);
-    }
+
+  child = [[self children] objectAtIndex: index];
+  n = [child _node];
+  xmlUnlinkNode(n);
+  [self _removeSubNode:child];
 }
 
 - (void) setChildren: (NSArray*)children
 {
-  if (children != internal->children)
-    {
-      NSEnumerator	*en;
-      NSXMLNode		*child;
+  NSEnumerator	*en;
+  NSXMLNode		*child;
 
-      [children retain];
-      while (internal->childCount > 0)
-	{
-	  [self removeChildAtIndex:internal->childCount - 1];
-	}
-      en = [children objectEnumerator];
-      while ((child = [en nextObject]) != nil)
-	{
-	  [self insertChild: child atIndex: internal->childCount];
-	}
-      [children release];
+  while ([self childCount] > 0)
+    {
+      [self removeChildAtIndex: [self childCount] - 1];
+    }
+  en = [[self children] objectEnumerator];
+  while ((child = [en nextObject]) != nil)
+    {
+      [self insertChild: child atIndex: [self childCount]];
     }
 }
- 
+
 - (void) addChild: (NSXMLNode*)child
 {
-  [self insertChild: child atIndex: internal->childCount];
+  int count = [self childCount];
+  [self insertChild: child atIndex: count];
 }
- 
+
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
 {
   [self insertChild: node atIndex: index];
   [self removeChildAtIndex: index + 1];
 }
 
-- (void) normalizeAdjacentTextNodesPreservingCDATA: (BOOL)preserve
+static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
 {
-  [self notImplemented: _cmd];
+  NSXMLNode *objA = (nodeA->_private), *objB = (nodeB->_private);
+
+  xmlTextMerge(nodeA, nodeB); // merge nodeB into nodeA
+
+  if (objA != nil) // objA gets the merged node
+    {
+      if (objB != nil) // objB is now invalid
+	{
+	  [objB _invalidate]; // set it to be invalid and make sure it's not pointing to a freed node
+	  [nodesToDelete addObject:objB];
+	}
+    }
+  else if (objB != nil) // there is no objA -- objB gets the merged node
+    {
+      [objB _setNode:nodeA]; // nodeA is the remaining (merged) node
+    }
 }
 
-- (NSString *) XMLStringWithOptions: (NSUInteger)options
+- (void) normalizeAdjacentTextNodesPreservingCDATA: (BOOL)preserve
 {
-  NSMutableString *result = [NSMutableString string];
-  NSEnumerator *en = nil;
-  id object = nil;
-
-  // XML Element open tag...
-  [result appendString: [NSString stringWithFormat: @"<%@",[self name]]];
-
-  // get the attributes...
-  en = [[self attributes] objectEnumerator];
-  while ((object = [en nextObject]) != nil)
+  NSEnumerator *subEnum = [internal->subNodes objectEnumerator];
+  NSXMLNode *subNode = nil;
+  NSMutableArray *nodesToDelete = [NSMutableArray array];
+  while ((subNode = [subEnum nextObject]))
     {
-      [result appendString: @" "];
-      [result appendString: [object XMLStringWithOptions: options]];
+      xmlNodePtr node = [subNode _node];
+      xmlNodePtr prev = node->prev;
+      xmlNodePtr next = node->next;
+      if (node->type == XML_ELEMENT_NODE)
+	[(NSXMLElement *)subNode normalizeAdjacentTextNodesPreservingCDATA:preserve];
+      else if (node->type == XML_TEXT_NODE || (node->type == XML_CDATA_SECTION_NODE && !preserve))
+	{
+	  if (next && (next->type == XML_TEXT_NODE
+			|| (next->type == XML_CDATA_SECTION_NODE && !preserve)))
+	    {
+	      //combine node & node->next
+	      joinTextNodes(node, node->next, nodesToDelete);
+	    }
+	  if (prev && (prev->type == XML_TEXT_NODE
+			|| (prev->type == XML_CDATA_SECTION_NODE && !preserve)))
+	    {
+	      //combine node->prev & node
+		// join the text of both nodes
+		// assign the joined text to the earlier of the two nodes that has an ObjC object
+		// unlink the other node
+		// delete the other node's object (maybe add it to a list of nodes to delete when we're done? -- or just set its node to null, and then remove it from our subNodes when we're done iterating it) (or maybe we need to turn it into an NSInvalidNode too??)
+	      joinTextNodes(node->prev, node, nodesToDelete);
+	    }
+
+	}
     }
-  // close the brackets...
-  [result appendString: @">"];
-
-  [result appendString: [self stringValue]]; // need to escape entities...
-
-  // Iterate over the children...
-  en = [[self children] objectEnumerator];
-  while ((object = [en nextObject]) != nil)
+  if ([nodesToDelete count] > 0)
     {
-      [result appendString: @" "];
-      [result appendString: [object XMLStringWithOptions: options]];
+      subEnum = [nodesToDelete objectEnumerator];
+      while ((subNode = [subEnum nextObject]))
+	{
+	  [self _removeSubNode:subNode];
+	}
+      [self _updateExternalRetains];
     }
-  
-  // Close the entire tag...
-  [result appendString: [NSString stringWithFormat: @"</%@>",[self name]]];
-
-  // return 
-  return result;
 }
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  NSXMLElement	*c = (NSXMLElement*)[super copyWithZone: zone];
-  NSEnumerator	*en;
-  id obj;
-
-  en = [internal->namespaces objectEnumerator];
-  while ((obj = [en nextObject]) != nil)
-    {
-      NSXMLNode *ns = [obj copyWithZone: zone];
-
-      [c addNamespace: ns];
-      [ns release];
-    }
-
-  en = [internal->attributes objectEnumerator];
-  while ((obj = [en nextObject]) != nil)
-    {
-      NSXMLNode *attr = [obj copyWithZone: zone];
-
-      [c addAttribute: attr];
-      [attr release];
-    }
-  
-  en = [internal->children objectEnumerator];
-  while ((obj = [en nextObject]) != nil)
-    {
-      NSXMLNode *child = [obj copyWithZone: zone];
-
-      [c addChild: child];
-      [child release];
-    }
-
+  NSXMLElement *c = [[self class] alloc]; ///(NSXMLElement*)[super copyWithZone: zone];
+  xmlNodePtr newNode = (xmlNodePtr)xmlCopyNode(MY_NODE, 1); // copy recursively
+  clearPrivatePointers(newNode); // clear out all of the _private pointers in the entire tree
+  c = [c _initWithNode:newNode kind:internal->kind];
   return c;
 }
 
 @end
 
+#endif

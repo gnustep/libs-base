@@ -35,9 +35,6 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 {
   if (GS_EXISTS_INTERNAL)
     {
-      [internal->notationName release];
-      [internal->publicID release];
-      [internal->systemID release];
     }
   [super dealloc];
 }
@@ -69,9 +66,8 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (BOOL) isExternal
 {
-  if (internal->systemID != nil)
+  if ([self systemID])
     {
-// FIXME ... libxml integration?
       return YES;
     }
   return NO;
@@ -79,53 +75,37 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (NSString*) notationName
 {
-  if (internal->notationName == nil)
-    {
-      [self notImplemented: _cmd];
-    }
-  return internal->notationName;
+  return StringFromXMLStringPtr(MY_DTD->name);
 }
 
 - (NSString*) publicID
 {
-  if (internal->publicID == nil)
-    {
-      [self notImplemented: _cmd];
-    }
-  return internal->publicID;
+ return StringFromXMLStringPtr(MY_DTD->ExternalID);
 }
 
 - (void) setDTDKind: (NSXMLDTDNodeKind)kind
 {
   internal->DTDKind = kind;
-  // FIXME ... libxml integration?
 }
 
 - (void) setNotationName: (NSString*)notationName
 {
-  ASSIGNCOPY(internal->notationName, notationName);
-  // FIXME ... libxml integration?
+  MY_DTD->name = XMLSTRING(notationName);
 }
 
 - (void) setPublicID: (NSString*)publicID
 {
-  ASSIGNCOPY(internal->publicID, publicID);
-  // FIXME ... libxml integration?
+  MY_DTD->ExternalID = XMLSTRING(publicID);
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  ASSIGNCOPY(internal->systemID, systemID);
-  // FIXME ... libxml integration?
+  MY_DTD->ExternalID = XMLSTRING(systemID);
 }
 
 - (NSString*) systemID
 {
-  if (internal->systemID == nil)
-    {
-      [self notImplemented: _cmd];
-    }
-  return internal->systemID;
+  return StringFromXMLStringPtr(MY_DTD->SystemID);
 }
 
 @end
