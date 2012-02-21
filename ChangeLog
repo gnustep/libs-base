@@ -1,3 +1,7 @@
+2012-02-21  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m: Clean up helper functions.
+
 2012-02-20  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSAffineTransform.m (-initWithCoder:, -encodeWithCoder:):
