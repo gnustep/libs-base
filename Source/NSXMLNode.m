@@ -45,55 +45,53 @@ int countAttributes(xmlNodePtr node)
   return count;
 }
 
-BOOL isEqualAttr(xmlAttrPtr attrA, xmlAttrPtr attrB)
+BOOL isEqualAttr(const xmlAttrPtr attrA, const xmlAttrPtr attrB)
 {
   xmlChar* contentA;
   xmlChar* contentB;
-  xmlChar* nameA;
-  xmlChar* nameB;
+  const xmlChar* nameA;
+  const xmlChar* nameB;
 
   // what has to be the same for two attributes to be equal -- just their values??
-  if(attrB == NULL && attrA == NULL)
+  if (attrB == attrA)
     {
       return YES;
     }
 
-  if(attrA == NULL || attrB == NULL)
+  if (attrA == NULL || attrB == NULL)
     {
       return NO;
     }
 
-  // get the content...
-  contentA = xmlNodeGetContent((const xmlNodePtr)attrA);
-  contentB = xmlNodeGetContent((const xmlNodePtr)attrB);
-  nameA = (xmlChar *)attrA->name;
-  nameB = (xmlChar *)attrB->name;
+  nameA = attrA->name;
+  nameB = attrB->name;
 
-  if(strcmp((const char *)nameA,
-	    (const char *)nameB) == 0)
+  if (xmlStrcmp(nameA, nameB) == 0)
     {
-      if(strcmp((const char *)contentA,
-		(const char *)contentB) == 0)
+      // get the content...
+      contentA = xmlNodeGetContent((const xmlNodePtr)attrA);
+      contentB = xmlNodeGetContent((const xmlNodePtr)attrB);
+
+      if (xmlStrcmp(contentA, contentB) == 0)
 	{
+          xmlFree(contentA);
+          xmlFree(contentB);
 	  return YES;
 	}
+      xmlFree(contentA);
+      xmlFree(contentB);
       return NO;
     }
   
   return NO;
 }
 
-xmlAttrPtr findAttrWithName(xmlNodePtr node, xmlChar* targetName)
+xmlAttrPtr findAttrWithName(xmlNodePtr node, const xmlChar* targetName)
 {
   xmlAttrPtr attr = node->properties;
 
   // find an attr in node with the given name, and return it, else NULL
-  if(attr == NULL)
-    {
-      return NULL;
-    }
-
-  while (strcmp((const char *)attr->name,(const char *)targetName) != 0) 
+  while ((attr != NULL) && xmlStrcmp(attr->name, targetName) != 0) 
     {
       attr = attr->next;
     }
@@ -110,9 +108,9 @@ BOOL isEqualAttributes(xmlNodePtr nodeA, xmlNodePtr nodeB)
     return NO;
   
   attrA = nodeA->properties;
-  while (attrA) 
+  while (attrA)
     {
-      xmlAttrPtr attrB = findAttrWithName(nodeB, (xmlChar *)attrA->name);
+      xmlAttrPtr attrB = findAttrWithName(nodeB, attrA->name);
       if (!isEqualAttr(attrA, attrB))
 	{
 	  return NO;
@@ -131,8 +129,7 @@ BOOL isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
   if (nodeA->type != nodeB->type)
     return NO;
   
-  if (strcmp((const char *)nodeA->name, 
-	     (const char *)nodeB->name) != 0)
+  if (xmlStrcmp(nodeA->name, nodeB->name) != 0)
     return NO;
   
   if (nodeA->type == XML_ELEMENT_NODE) 
@@ -148,11 +145,14 @@ BOOL isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
       // Get the value of any text node underneath the current element.
       contentA = xmlNodeGetContent((const xmlNodePtr)nodeA);
       contentB = xmlNodeGetContent((const xmlNodePtr)nodeB);
-      if(strcmp((const char *)contentA,
-		(const char *)contentB) != 0)
+      if (xmlStrcmp(contentA, contentB) != 0)
 	{
+          xmlFree(contentA);
+          xmlFree(contentB);
 	  return NO;
 	}
+      xmlFree(contentA);
+      xmlFree(contentB);
     }
   
   return YES;
@@ -160,7 +160,7 @@ BOOL isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
 BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 {
-  if (nodeA == NULL && nodeB == NULL)
+  if (nodeA == nodeB)
     {
       return YES;
     }
