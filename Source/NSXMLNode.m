@@ -1192,8 +1192,9 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward
 {
-  NSXMLNode *ancestor = internal->parent;
+  NSXMLNode *ancestor = self;
   NSXMLNode *candidate = nil;
+  NSXMLNodeKind kind;
 
   /* Node walking is a depth-first thingy. Hence, we consider children first: */
   if (0 != [self childCount])
@@ -1207,18 +1208,6 @@ NSArray *execute_xpath(NSXMLNode *node,
     }
 
   /* If there are no children, we move on to siblings: */
-  if (nil == candidate)
-    {
-      if (forward)
-	{
-	  candidate = internal->nextSibling;
-	}
-      else
-	{
-	  candidate = internal->previousSibling;
-	}
-    }
-
   /* If there are no siblings left for the receiver, we recurse down to the root
    * of the tree until we find an ancestor with further siblings: */
   while ((nil == candidate) && (nil != ancestor))
@@ -1231,7 +1220,7 @@ NSArray *execute_xpath(NSXMLNode *node,
 	{
 	  candidate = [ancestor previousSibling];
 	}
-      ancestor = GSIVar(ancestor, parent);
+      ancestor = [ancestor parent];
     }
 
   /* No children, no next siblings, no next siblings for any ancestor: We are
@@ -1242,8 +1231,8 @@ NSArray *execute_xpath(NSXMLNode *node,
     }
 
   /* Sanity check: Namespace and attribute nodes are skipped: */
-  if ((NSXMLAttributeKind == GSIVar(candidate, kind))
-    || (NSXMLNamespaceKind == GSIVar(candidate, kind)))
+  kind = [candidate kind];
+  if ((NSXMLAttributeKind == kind) || (NSXMLNamespaceKind == kind))
     {
       return [candidate _nodeFollowingInNaturalDirection: forward];
     }
@@ -1257,14 +1246,7 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSXMLNode*) nextSibling
 {
-  xmlNodePtr next = MY_NODE->next;
-
-  if (next != NULL)
-    {
-      return [NSXMLNode _objectForNode: next];
-    }
-  
-  return nil;
+  return [NSXMLNode _objectForNode: MY_NODE->next];
 }
 
 - (id) objectValue
@@ -1289,21 +1271,12 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSXMLNode*) previousSibling
 {
-  xmlNodePtr prev = MY_NODE->prev;
-
-  if(prev != NULL)
-    {
-      return [NSXMLNode _objectForNode: prev];
-    }
-  
-  return nil;
+  return [NSXMLNode _objectForNode: MY_NODE->prev];
 }
 
 - (NSXMLDocument*) rootDocument
 {
-  xmlNodePtr node = MY_NODE;
-  NSXMLDocument *ancestor = (NSXMLDocument *)[NSXMLNode _objectForNode: (xmlNodePtr)(node->doc)];
-  return ancestor;
+  return (NSXMLDocument *)[NSXMLNode _objectForNode: (xmlNodePtr)(MY_NODE->doc)];
 }
 
 - (NSString*) stringValue
@@ -1324,15 +1297,6 @@ NSArray *execute_xpath(NSXMLNode *node,
   xmlFree(content);
 
   return result;
-}
-
-- (NSString*) URI
-{
-  if(NSXMLInvalidKind == internal->kind)
-    {
-      return nil;
-    }
-  return internal->URI;	// FIXME ... fetch from libxml
 }
 
 - (void) setObjectValue: (id)value
@@ -1362,6 +1326,12 @@ NSArray *execute_xpath(NSXMLNode *node,
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
 {
   xmlNodePtr node = MY_NODE;
+
+  if (nil == string)
+    {
+      // string value may not be nil
+      string = @"";
+    }
   if (resolve == NO)
     {
       xmlNodeSetContent(node, XMLSTRING(string));
@@ -1369,13 +1339,10 @@ NSArray *execute_xpath(NSXMLNode *node,
   else
     {
       // need to actually resolve entities...
-      xmlChar *newstr = xmlEncodeSpecialChars(node->doc, XMLSTRING(string)); // is this the right functionality??
+      // is this the right functionality??
+      xmlChar *newstr = xmlEncodeSpecialChars(node->doc, XMLSTRING(string));
       xmlNodeSetContent(node, newstr);
       xmlMemFree(newstr);
-    }
-  if (nil == string)
-    {
-      xmlNodeSetContent(node, XMLSTRING(@""));	// string value may not be nil
     }
 }
 
@@ -1387,9 +1354,18 @@ NSArray *execute_xpath(NSXMLNode *node,
     }
 }
 
+- (NSString*) URI
+{
+  if(NSXMLInvalidKind == internal->kind)
+    {
+      return nil;
+    }
+  return internal->URI;	// FIXME ... fetch from libxml
+}
+
 - (NSString*) XMLString
 {
-  return [self XMLStringWithOptions: 0];
+  return [self XMLStringWithOptions: NSXMLNodeOptionsNone];
 }
 
 - (NSString*) XMLStringWithOptions: (NSUInteger)options
@@ -1403,6 +1379,11 @@ NSArray *execute_xpath(NSXMLNode *node,
   int len = 0;
 
   error = xmlNodeDump(buffer, doc, node, 1, 1);
+  if (-1 == error)
+    {
+      xmlBufferFree(buffer);
+      return nil;
+    }
   buf = buffer->content;
   len = buffer->use;
   string = StringFromXMLString(buf,len);
