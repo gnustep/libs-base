@@ -1,3 +1,11 @@
+2012-02-22  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m: Further clean up.
+	* Source/NSXMLDTDNode.m (-initWithXMLString:): Move comment about
+	missing code to here.
+	* Source/NSXMLElement.m (-initWithName:stringValue:): Move subnode
+	creation to here.
+
 2012-02-21  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m: Clean up helper functions.
