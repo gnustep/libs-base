@@ -331,34 +331,28 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  NSXMLNode	*child;
-  xmlNodePtr     n;
+  NSXMLNode *child;
 
   if (index >= [self childCount])
     {
       [NSException raise: NSRangeException
-		  format: @"index too large"];
+                 format: @"index too large"];
     }
 
-  child = [[self children] objectAtIndex: index];
-  n = [child _node];
-  xmlUnlinkNode(n);
+  child = [self childAtIndex: index];
+  [child detach];
 }
 
 - (void) setChildren: (NSArray*)children
 {
-  NSEnumerator	*en;
-  NSXMLNode		*child;
-  
-  while ([self childCount] > 0)
+  NSUInteger count = [self childCount];
+
+  while (count-- > 0)
     {
-      [self removeChildAtIndex: [self childCount] - 1];
+      [self removeChildAtIndex: count];
     }
-  en = [[self children] objectEnumerator];
-  while ((child = [en nextObject]) != nil)
-    {
-      [self insertChild: child atIndex: [self childCount]];
-    }
+
+  [self insertChildren: children atIndex: 0];
 }
  
 - (void) addChild: (NSXMLNode*)child
@@ -448,38 +442,33 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
                         arguments: (NSDictionary*)arguments
                             error: (NSError**)error
 {
-#ifdef HAVE_LIBXSLT
   NSData *data = [[NSData alloc] initWithBytes: [xslt UTF8String]
 					length: [xslt length]];
-  NSXMLDocument *result = [self  objectByApplyingXSLT: data
-					    arguments: arguments
-						error: error];
+  NSXMLDocument *result = [self objectByApplyingXSLT: data
+                                           arguments: arguments
+                                               error: error];
   [data release];
   return result;
-#else
-  return nil;
-#endif
 }
 
 - (id) objectByApplyingXSLTAtURL: (NSURL*)xsltURL
                        arguments: (NSDictionary*)arguments
                            error: (NSError**)error
 {
-#ifdef HAVE_LIBXSLT
   NSData *data = [NSData dataWithContentsOfURL: xsltURL];
-  NSXMLDocument *result = [self  objectByApplyingXSLT: data
-					    arguments: arguments
-						error: error];
+  NSXMLDocument *result = [self objectByApplyingXSLT: data
+                                           arguments: arguments
+                                               error: error];
   return result;
-#else
-  return nil;
-#endif
 }
 
 - (BOOL) validateAndReturnError: (NSError**)error
 {
   xmlValidCtxtPtr ctxt = xmlNewValidCtxt();
+  // FIXME: Should use xmlValidityErrorFunc and userData
+  // to get the error
   BOOL result = (BOOL)(xmlValidateDocument(ctxt, MY_DOC));
+  xmlFreeValidCtxt(ctxt);
   return result;
 }
 
@@ -494,7 +483,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (BOOL) isEqual: (id)other
 {
-  if(self == other)
+  if (self == other)
     {
       return YES;
     }
