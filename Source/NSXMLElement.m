@@ -110,7 +110,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   if ([self initWithName: name URI: nil] != nil)
     {
-      [self setObjectValue: string];
+      NSXMLNode *t;
+      t = [[NSXMLNode alloc] initWithKind: NSXMLTextKind];
+      [t setStringValue: string];
+      [self addChild: t];
+      [t release];
     }
   return nil;
 }

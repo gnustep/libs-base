@@ -60,6 +60,9 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (id) initWithXMLString: (NSString*)string
 {
+  // internal->node = xmlNewDtd(NULL,NULL,NULL);
+  // TODO: Parse the string and get the info to create this...
+
   [self notImplemented: _cmd];
   return nil;
 }
