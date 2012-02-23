@@ -193,9 +193,9 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 - (void *) _node;
 - (void) _setNode: (void *)_anode;
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
-- (void) _addSubNode:(NSXMLNode *)subNode;
-- (void) _removeSubNode:(NSXMLNode *)subNode;
-- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
+- (void) _addSubNode: (NSXMLNode *)subNode;
+- (void) _removeSubNode: (NSXMLNode *)subNode;
+- (id) _initWithNode: (xmlNodePtr)node kind: (NSXMLNodeKind)kind;
 - (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index;
 - (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
 - (void) _updateExternalRetains;
@@ -228,25 +228,25 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
 	  switch(type)
 	    {
-	    case XML_DOCUMENT_NODE:
+	    case XML_DOCUMENT_NODE: 
 	      result = [[NSXMLDocument alloc] _initWithNode: node kind: NSXMLDocumentKind];
 	      break;
-	    case XML_ELEMENT_NODE:
+	    case XML_ELEMENT_NODE: 
 	      result = [[NSXMLElement alloc] _initWithNode: node kind: NSXMLElementKind];
 	      break;
-	    case XML_TEXT_NODE:
+	    case XML_TEXT_NODE: 
 	      result = [[self alloc] _initWithNode: node kind: NSXMLTextKind];
 	      break;
-	    case XML_PI_NODE:
+	    case XML_PI_NODE: 
 	      result = [[self alloc] _initWithNode: node kind: NSXMLProcessingInstructionKind];
 	      break;
-	    case XML_COMMENT_NODE:
+	    case XML_COMMENT_NODE: 
 	      result = [[self alloc] _initWithNode: node kind: NSXMLCommentKind];
 	      break;
-	    case XML_ATTRIBUTE_NODE:
+	    case XML_ATTRIBUTE_NODE: 
 	      result = [[self alloc] _initWithNode: node kind: NSXMLAttributeKind];
 	      break;
-	    default:
+	    default: 
 	      NSLog(@"ERROR: _objectForNode: called with a node of type %d", type);
 	      break;
 	    }
@@ -272,7 +272,7 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   int extraRetains = ([self retainCount] > 1 ? 1 : 0);  // start with 1 or 0 for ourself
   int index;
   for (index = 0; index < [internal->subNodes count]; index++)
-    extraRetains += [[internal->subNodes objectAtIndex:index] _externalRetains];
+    extraRetains += [[internal->subNodes objectAtIndex: index] _externalRetains];
   return extraRetains;
 }
 
@@ -284,7 +284,7 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   int extraRetains = ([self retainCount] > 1 ? 1 : 0);  // start with 1 or 0 for ourself
   int index;
   for (index = 0; index < [internal->subNodes count]; index++)
-    extraRetains += [[internal->subNodes objectAtIndex:index] _externalRetains];
+    extraRetains += [[internal->subNodes objectAtIndex: index] _externalRetains];
   internal->externalRetains = extraRetains;
   if (extraRetains != oldCount)
     {
@@ -326,12 +326,12 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
     }
 }
 
-- (void) _passExternalRetainsTo:(NSXMLNode *)parent
+- (void) _passExternalRetainsTo: (NSXMLNode *)parent
 {
   // this object just became a subNode, so pass knowledge of external retains up the line
   if (internal->externalRetains > 0)
     {
-//NSLog(@"_passExternalRetainsTo:%@ (%d,%d) from %@ Start:(%d,%d)", parent, [parent _externalRetains], [parent verifyExternalRetains], self, internal->externalRetains, [self verifyExternalRetains]);
+//NSLog(@"_passExternalRetainsTo: %@ (%d,%d) from %@ Start: (%d,%d)", parent, [parent _externalRetains], [parent verifyExternalRetains], self, internal->externalRetains, [self verifyExternalRetains]);
 //      if ([self retainCount] == 2)
 //	{
 //	  internal->externalRetains--;
@@ -345,21 +345,21 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 //NSLog(@"RELEASED SELF %@ (%d) in _passExternal...", self, internal->retainedSelf);
 	}
       [parent _updateExternalRetains];
-//NSLog(@"DID _passExternalRetainsTo:%@ (%d,%d) from %@ End:(%d,%d)", parent, [parent _externalRetains], [parent verifyExternalRetains], self, internal->externalRetains, [self verifyExternalRetains]);
+//NSLog(@"DID _passExternalRetainsTo: %@ (%d,%d) from %@ End: (%d,%d)", parent, [parent _externalRetains], [parent verifyExternalRetains], self, internal->externalRetains, [self verifyExternalRetains]);
    }
 }
 
-- (void) _removeExternalRetainsFrom:(NSXMLNode *)parent
+- (void) _removeExternalRetainsFrom: (NSXMLNode *)parent
 {
   // this object is no longer a subNode, so pass removal of external retains up the line
   if (internal->externalRetains > 0)
     {
-//NSLog(@"_removeExternalRetainsTo:%@ from %@ Start: %d", parent, self, internal->externalRetains);
-///      [parent releaseExternalRetain:internal->externalRetains];
+//NSLog(@"_removeExternalRetainsTo: %@ from %@ Start: %d", parent, self, internal->externalRetains);
+///      [parent releaseExternalRetain: internal->externalRetains];
 	  if ([self retainCount] == 1)
 	    {
 	      internal->externalRetains++;
-//NSLog(@"ADDED TRICKY EXTRA COUNT WHILE REMOVING FROM PARENT in %@ now: %d subNodes(low):%d", self, internal->externalRetains, [self verifyExternalRetains]);
+//NSLog(@"ADDED TRICKY EXTRA COUNT WHILE REMOVING FROM PARENT in %@ now: %d subNodes(low): %d", self, internal->externalRetains, [self verifyExternalRetains]);
 	    }
 
       [super retain]; // becoming detached, so retain ourself as the new root of our branch
@@ -373,18 +373,18 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 {
   if (!internal->subNodes)
     internal->subNodes = [[NSMutableArray alloc] init];
-  if ([internal->subNodes indexOfObjectIdenticalTo:subNode] == NSNotFound)
+  if ([internal->subNodes indexOfObjectIdenticalTo: subNode] == NSNotFound)
     {
-      [internal->subNodes addObject:subNode];
-      [subNode _passExternalRetainsTo:self];
+      [internal->subNodes addObject: subNode];
+      [subNode _passExternalRetainsTo: self];
     }
 }
 
 - (void) _removeSubNode: (NSXMLNode *)subNode
 {
   [subNode retain]; // retain temporarily so we can safely remove from our subNodes list first
-  [internal->subNodes removeObjectIdenticalTo:subNode];
-  [subNode _removeExternalRetainsFrom:self];
+  [internal->subNodes removeObjectIdenticalTo: subNode];
+  [subNode _removeExternalRetainsFrom: self];
   [subNode release]; // release temporary hold
 }
 
@@ -443,14 +443,14 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
         {
           addedNode = xmlAddChild(parentNode, childNode);
         }
-      else //if(index < childCount)
+      else //if (index < childCount)
         {
           addedNode = xmlAddPrevSibling(curNode, childNode);
         }
       if (addedNode != childNode)
         {
-          [child _setNode:NULL];
-          child = [NSXMLNode _objectForNode:addedNode];
+          [child _setNode: NULL];
+          child = [NSXMLNode _objectForNode: addedNode];
         }
     }
   else
@@ -493,7 +493,7 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 	}
     }
 
-  [self _addSubNode:child];
+  [self _addSubNode: child];
 }
 
 - (void) _invalidate
@@ -537,8 +537,8 @@ int register_namespaces(xmlXPathContextPtr xpathCtx,
   while (next != NULL)
     {
       /* skip spaces */
-      while((*next) == ' ') next++;
-      if((*next) == '\0') break;
+      while ((*next) == ' ') next++;
+      if ((*next) == '\0') break;
       
       /* find prefix */
       prefix = next;
@@ -605,7 +605,7 @@ NSArray *execute_xpath(NSXMLNode *node,
       return nil;
     }
 
-  if (![xpath_exp hasPrefix:@"/"])
+  if (![xpath_exp hasPrefix: @"/"])
     xpathCtx->node = (xmlNodePtr)doc; // provide a context for relative paths
 
   /* Evaluate xpath expression */
@@ -782,27 +782,27 @@ NSArray *execute_xpath(NSXMLNode *node,
   if ([name isEqualToString: @"xml"])
     {
       return [self namespaceWithName: @"xml"
-                         stringValue: @"http://www.w3.org/XML/1998/namespace"];
+                         stringValue: @"http: //www.w3.org/XML/1998/namespace"];
     }
   if ([name isEqualToString: @"xs"])
     {
       return [self namespaceWithName: @"xs"
-                         stringValue: @"http://www.w3.org/2001/XMLSchema"];
+                         stringValue: @"http: //www.w3.org/2001/XMLSchema"];
     }
   if ([name isEqualToString: @"xsi"])
     {
       return [self namespaceWithName: @"xsi"
-                         stringValue: @"http://www.w3.org/2001/XMLSchema-instance"];
+                         stringValue: @"http: //www.w3.org/2001/XMLSchema-instance"];
     }
   if ([name isEqualToString: @"fn"])
     {
       return [self namespaceWithName: @"fn"
-                         stringValue: @"http://www.w3.org/2003/11/xpath-functions"];
+                         stringValue: @"http: //www.w3.org/2003/11/xpath-functions"];
     }
   if ([name isEqualToString: @"local"])
     {
       return [self namespaceWithName: @"local"
-                         stringValue: @"http://www.w3.org/2003/11/xpath-local-functions"];
+                         stringValue: @"http: //www.w3.org/2003/11/xpath-local-functions"];
     }
   
   return nil;
@@ -854,7 +854,7 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSXMLNode*) childAtIndex: (NSUInteger)index
 {
-  xmlNodePtr childNode = [self _childNodeAtIndex:index];
+  xmlNodePtr childNode = [self _childNodeAtIndex: index];
   return [NSXMLNode _objectForNode: childNode];
 }
 
@@ -907,7 +907,7 @@ NSArray *execute_xpath(NSXMLNode *node,
   clearPrivatePointers(newNode);
 
   //c = [c initWithKind: internal->kind options: internal->options];
-  //[c _setNode:newNode];
+  //[c _setNode: newNode];
   c = [c _initWithNode: newNode kind: internal->kind];
 
   
@@ -978,17 +978,17 @@ NSArray *execute_xpath(NSXMLNode *node,
 	  extraRetains = internal->externalRetains; //[self verifyExternalRetains];
 	  if (extraRetains)
 	    {
-///	      [parent releaseExternalRetain:extraRetains];
+///	      [parent releaseExternalRetain: extraRetains];
 	  if ([self retainCount] == 1)
 	    {
 	      internal->externalRetains++;
-//NSLog(@"ADDED TRICKY EXTRA COUNT WHILE DETACHING in %@ now: %d subNodes(low):%d", self, internal->externalRetains, [self verifyExternalRetains]);
+//NSLog(@"ADDED TRICKY EXTRA COUNT WHILE DETACHING in %@ now: %d subNodes(low): %d", self, internal->externalRetains, [self verifyExternalRetains]);
 	    }
-	      [super retain]; //[self recordExternalRetain:extraRetains];
+	      [super retain]; //[self recordExternalRetain: extraRetains];
 	      internal->retainedSelf++;
 //NSLog(@"RETAINED SELF %@ (%d) in detach", self, internal->retainedSelf);
 	    }
-	  [parent _removeSubNode:self];
+	  [parent _removeSubNode: self];
 	}
 //NSLog(@"DETACHED %@ from %@ and transferred extra retains: %d", self, parent, extraRetains);
     }
@@ -1032,45 +1032,45 @@ NSArray *execute_xpath(NSXMLNode *node,
     }
 
   /*
-   * We find the correct subclass for specific node kinds:
+   * We find the correct subclass for specific node kinds: 
    */
   switch (kind)
     {
-    case NSXMLDocumentKind:
+    case NSXMLDocumentKind: 
       theSubclass = [NSXMLDocument class];
       break;
 	
-    case NSXMLInvalidKind:
+    case NSXMLInvalidKind: 
       theSubclass = [NSXMLNode class];
       break; 
 
-    case NSXMLElementKind:
+    case NSXMLElementKind: 
       theSubclass = [NSXMLElement class];
       break;
       
-    case NSXMLDTDKind:
+    case NSXMLDTDKind: 
       theSubclass = [NSXMLDTD class];
       break;
       
-    case NSXMLEntityDeclarationKind:
-    case NSXMLElementDeclarationKind:
-    case NSXMLNotationDeclarationKind:
+    case NSXMLEntityDeclarationKind: 
+    case NSXMLElementDeclarationKind: 
+    case NSXMLNotationDeclarationKind: 
       theSubclass = [NSXMLDTDNode class];
       break;
 
-    case NSXMLAttributeDeclarationKind:
+    case NSXMLAttributeDeclarationKind: 
       [self release];
       return nil;
       break;
       
-    case NSXMLProcessingInstructionKind:
-    case NSXMLCommentKind:
-    case NSXMLTextKind:
-    case NSXMLNamespaceKind:
-    case NSXMLAttributeKind:
+    case NSXMLProcessingInstructionKind: 
+    case NSXMLCommentKind: 
+    case NSXMLTextKind: 
+    case NSXMLNamespaceKind: 
+    case NSXMLAttributeKind: 
       break;
 
-    default:
+    default: 
       kind = NSXMLInvalidKind;
       theSubclass = [NSXMLNode class];
       break;
@@ -1090,46 +1090,46 @@ NSArray *execute_xpath(NSXMLNode *node,
 
   switch (kind)
     {
-    case NSXMLDocumentKind:
+    case NSXMLDocumentKind: 
       node = xmlNewDoc((xmlChar *)"1.0");
       break;
 	
-    case NSXMLInvalidKind:
-    case NSXMLElementKind:
+    case NSXMLInvalidKind: 
+    case NSXMLElementKind: 
       node = xmlNewNode(NULL,(xmlChar *)"");
       break;
       
-    case NSXMLDTDKind:
+    case NSXMLDTDKind: 
       node = xmlNewDtd(NULL, (xmlChar *)"", (xmlChar *)"",(xmlChar *)"");
       break;
       
-    case NSXMLEntityDeclarationKind:
-    case NSXMLElementDeclarationKind:
-    case NSXMLNotationDeclarationKind:
+    case NSXMLEntityDeclarationKind: 
+    case NSXMLElementDeclarationKind: 
+    case NSXMLNotationDeclarationKind: 
       node = xmlNewNode(NULL, (xmlChar *)"");
       break;
 
-    case NSXMLProcessingInstructionKind:
+    case NSXMLProcessingInstructionKind: 
       node = xmlNewPI((xmlChar *)"", (xmlChar *)"");
       break;
 
-    case NSXMLCommentKind:
+    case NSXMLCommentKind: 
       node = xmlNewComment((xmlChar *)"");
       break;
 
-    case NSXMLTextKind:
+    case NSXMLTextKind: 
       node = xmlNewText((xmlChar *)"");
       break;
 
-    case NSXMLNamespaceKind:
+    case NSXMLNamespaceKind: 
       node = xmlNewNs(NULL,(xmlChar *)"",(xmlChar *)"");
       break;
 
-    case NSXMLAttributeKind:
+    case NSXMLAttributeKind: 
       node = xmlNewProp(NULL,(xmlChar *)"",(xmlChar *)"");
       break;
 
-    default:
+    default: 
       break;
     }
 
@@ -1142,7 +1142,7 @@ NSArray *execute_xpath(NSXMLNode *node,
   [self _setNode: node];
 
   /* If we are initializing for the correct class, we can actually perform
-   * initializations:
+   * initializations: 
    */
   internal->kind = kind;
   internal->options = theOptions;
@@ -1301,7 +1301,7 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (void) setObjectValue: (id)value
 {
-  if(nil == value)
+  if (nil == value)
     {
       ASSIGN(internal->objectValue, [NSString stringWithString: @""]);
       return;
@@ -1356,7 +1356,7 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSString*) URI
 {
-  if(NSXMLInvalidKind == internal->kind)
+  if (NSXMLInvalidKind == internal->kind)
     {
       return nil;
     }
@@ -1400,7 +1400,7 @@ NSArray *execute_xpath(NSXMLNode *node,
 
 - (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
 {
-  if(error != NULL)
+  if (error != NULL)
     {
       *error = NULL;
     }

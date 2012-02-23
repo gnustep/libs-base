@@ -202,7 +202,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
         options |= XML_PARSE_NOBLANKS;
       //xmlKeepBlanksDefault(0);
       doc = xmlReadDoc((xmlChar *)str, url, encoding, options);
-      if(doc == NULL)
+      if (doc == NULL)
 	{
 	  [self release];
 	  self = nil;
@@ -258,7 +258,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   id oldElement = [self rootElement];
 
-  if(root == nil)
+  if (root == nil)
     {
       return;
     }
@@ -410,11 +410,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSUInteger index = 0;
  
   // Iterate over the keys and put them into params...
-  if(arguments != nil)
+  if (arguments != nil)
     {
       int count = [[arguments allKeys] count];
       *params = NSZoneCalloc([self zone],((count + 1) * 2),sizeof(xmlChar *));
-      while((key = [en nextObject]) != nil)
+      while ((key = [en nextObject]) != nil)
 	{
 	  params[index] = (xmlChar *)XMLSTRING(key);
 	  params[index+1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
