@@ -29,10 +29,11 @@
 #if GS_USE_ICU == 1
 #include "unicode/uregex.h"
 
-// FIXME It would be nice to use autoconf for checking whether uregex_openUText
-// is defined.  However the naive check using AC_CHECK_FUNCS(uregex_openUText)
-// wonn't work because libicu internally renames all entry points with some cpp
-// magic.
+/* FIXME It would be nice to use autoconf for checking whether uregex_openUText
+ * is defined.  However the naive check using AC_CHECK_FUNCS(uregex_openUText)
+ * wonn't work because libicu internally renames all entry points with some cpp
+ * magic.
+ */
 #if (U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
 #define HAVE_UREGEX_OPENUTEXT 1
 #endif
@@ -69,7 +70,7 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
     }
   if (opts & NSRegularExpressionIgnoreMetacharacters)
     {
-    flags |= UREGEX_LITERAL;
+      flags |= UREGEX_LITERAL;
     }
   if (opts & NSRegularExpressionDotMatchesLineSeparators)
     {

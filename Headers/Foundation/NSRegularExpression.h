@@ -66,7 +66,8 @@ static const NSMatchingOptions NSMatchingWithTransparentBounds  = 1<<3;
 static const NSMatchingOptions NSMatchingWithoutAnchoringBounds = 1<<4;
 
 
-DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BOOL*);
+DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,
+  NSMatchingFlags, BOOL*);
 
 #ifndef GSREGEXTYPE
 #  define GSREGEXTYPE void
@@ -93,54 +94,54 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*, NSMatchingFlags, BO
 // implementation.  If you have configured GNUstep without this support then it
 // will not work, so these methods are hidden.
 #if GS_USE_ICU || GS_UNSAFE_REGEX
-+ (NSRegularExpression*)regularExpressionWithPattern: (NSString*)aPattern
-                                             options: (NSRegularExpressionOptions)opts
-                                               error: (NSError**)e;
-- initWithPattern: (NSString*)aPattern
-          options: (NSRegularExpressionOptions)opts
-            error: (NSError**)e;
-+ (NSRegularExpression*)regularExpressionWithPattern: (NSString*)aPattern
-                                             options: (NSRegularExpressionOptions)opts
-                                               error: (NSError**)e;
-- initWithPattern: (NSString*)aPattern
-          options: (NSRegularExpressionOptions)opts
-            error: (NSError**)e;
-- (NSString*)pattern;
-- (void)enumerateMatchesInString: (NSString*)string
-                         options: (NSMatchingOptions)options
-                           range: (NSRange)range
-                      usingBlock: (GSRegexBlock)block;
-- (NSUInteger)numberOfMatchesInString: (NSString*)string
++ (NSRegularExpression*) regularExpressionWithPattern: (NSString*)aPattern
+  options: (NSRegularExpressionOptions)opts
+  error: (NSError**)e;
+- (id) initWithPattern: (NSString*)aPattern
+	       options: (NSRegularExpressionOptions)opts
+		 error: (NSError**)e;
++ (NSRegularExpression*) regularExpressionWithPattern: (NSString*)aPattern
+  options: (NSRegularExpressionOptions)opts
+  error: (NSError**)e;
+- (id) initWithPattern: (NSString*)aPattern
+	       options: (NSRegularExpressionOptions)opts
+		 error: (NSError**)e;
+- (NSString*) pattern;
+- (void) enumerateMatchesInString: (NSString*)string
+                          options: (NSMatchingOptions)options
+                            range: (NSRange)range
+                       usingBlock: (GSRegexBlock)block;
+- (NSUInteger) numberOfMatchesInString: (NSString*)string
+                               options: (NSMatchingOptions)options
+                                 range: (NSRange)range;
+
+- (NSTextCheckingResult*) firstMatchInString: (NSString*)string
+                                     options: (NSMatchingOptions)options
+                                       range: (NSRange)range;
+- (NSArray*) matchesInString: (NSString*)string
+                     options: (NSMatchingOptions)options
+                       range: (NSRange)range;
+- (NSRange) rangeOfFirstMatchInString: (NSString*)string
                               options: (NSMatchingOptions)options
                                 range: (NSRange)range;
-
-- (NSTextCheckingResult*)firstMatchInString: (NSString*)string
-                                    options: (NSMatchingOptions)options
-                                      range: (NSRange)range;
-- (NSArray*)matchesInString: (NSString*)string
-                    options: (NSMatchingOptions)options
-                      range: (NSRange)range;
-- (NSRange)rangeOfFirstMatchInString: (NSString*)string
-                             options: (NSMatchingOptions)options
-                               range: (NSRange)range;
-- (NSUInteger)replaceMatchesInString: (NSMutableString*)string
-                             options: (NSMatchingOptions)options
-                               range: (NSRange)range
-                        withTemplate: (NSString*)templat;
-- (NSString*)stringByReplacingMatchesInString: (NSString*)string
-                                      options: (NSMatchingOptions)options
-                                        range: (NSRange)range
-                                 withTemplate: (NSString*)templat;
-- (NSString*)replacementStringForResult: (NSTextCheckingResult*)result
-                               inString: (NSString*)string
-                                 offset: (NSInteger)offset
-                               template: (NSString*)templat;
+- (NSUInteger) replaceMatchesInString: (NSMutableString*)string
+                              options: (NSMatchingOptions)options
+                                range: (NSRange)range
+                         withTemplate: (NSString*)templat;
+- (NSString*) stringByReplacingMatchesInString: (NSString*)string
+                                       options: (NSMatchingOptions)options
+                                         range: (NSRange)range
+                                  withTemplate: (NSString*)templat;
+- (NSString*) replacementStringForResult: (NSTextCheckingResult*)result
+                                inString: (NSString*)string
+                                  offset: (NSInteger)offset
+                                template: (NSString*)templat;
 #if GS_HAS_DECLARED_PROPERTIES
 @property (readonly) NSRegularExpressionOptions options;
 @property (readonly) NSUInteger numberOfCaptureGroups;
 #else
-- (NSRegularExpressionOptions)options;
-- (NSUInteger)numberOfCaptureGroups;
+- (NSRegularExpressionOptions) options;
+- (NSUInteger) numberOfCaptureGroups;
 #endif
 #endif // GS_USE_ICU
 @end
