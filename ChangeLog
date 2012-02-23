@@ -1,3 +1,7 @@
+2012-02-23  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLElement.m: Implement namespace methods.
+
 2012-02-22  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m (-_nodeFollowingInNaturalDirection:): Correct
