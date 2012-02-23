@@ -296,7 +296,27 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) addNamespace: (NSXMLNode*)aNamespace
 {
-  [self notImplemented: _cmd];
+  xmlNsPtr ns = (xmlNsPtr)[aNamespace _node];
+
+  if (MY_NODE->ns == NULL)
+    {
+      MY_NODE->ns = ns;
+    }
+  else
+    {
+      xmlNsPtr cur = MY_NODE->ns;
+      const xmlChar *prefix = ns->prefix;
+      
+      while (xmlStrcmp(prefix, cur->prefix) != 0)
+        {
+          if (cur->next == NULL)
+            {
+              cur->next = ns;
+              return;
+            }
+	  cur = cur->next;
+	}
+    }
 }
 
 - (void) removeNamespaceForPrefix: (NSString*)name
@@ -307,13 +327,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) setNamespaces: (NSArray*)namespaces
 {
   NSEnumerator *en = [namespaces objectEnumerator];
-  NSString *namespace = nil;
+  NSXMLNode *namespace = nil;
   xmlNsPtr cur = NULL;
 
-  while((namespace = (NSString *)[en nextObject]) != nil)
+  // FIXME: Remove old namespaces
+  // xmlFreeNsList(MY_NODE->ns);
+  // MY_NODE->ns = NULL;
+  while ((namespace = (NSXMLNode *)[en nextObject]) != nil)
     {
-      xmlNsPtr ns = xmlNewNs([self _node], NULL, XMLSTRING(namespace));
-      if(MY_NODE->ns == NULL)
+      xmlNsPtr ns = (xmlNsPtr)[namespace _node];
+      if (MY_NODE->ns == NULL)
 	{
 	  MY_NODE->ns = ns;
 	  cur = ns;
@@ -337,7 +360,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       result = [NSMutableArray array];
       for (cur = ns; cur != NULL; cur = cur->next)
 	{
-	  [result addObject: StringFromXMLStringPtr(cur->prefix)];
+	  [result addObject: [NSXMLNode _objectForNode: (xmlNodePtr)cur]];
 	}
     }
 
@@ -366,13 +389,33 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLNode*) resolveNamespaceForName: (NSString*)name
 {
-  [self notImplemented: _cmd];
+  NSString *prefix = [[self class] prefixForName: name];
+
+  if (nil != prefix)
+    {
+      return [self namespaceForPrefix: prefix];
+    }
+
   return nil;
 }
 
 - (NSString*) resolvePrefixForNamespaceURI: (NSString*)namespaceURI
 {
-  [self notImplemented: _cmd];
+  xmlNsPtr ns = MY_NODE->ns;
+
+  if (ns)
+    {
+      const xmlChar *uri = XMLSTRING(namespaceURI);
+      xmlNsPtr cur = NULL;
+      for (cur = ns; cur != NULL; cur = cur->next)
+	{
+          if (xmlStrcmp(uri, cur->href) == 0)
+            {
+              return StringFromXMLStringPtr(cur->prefix);
+            }
+	}
+    }
+
   return nil;
 }
 
