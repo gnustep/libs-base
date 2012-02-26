@@ -1,5 +1,9 @@
 2012-02-26  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSXMLNode.m (execute_xpath): Use correct node for
+	relative paths.
+	* Source/NSXMLNode.m (isEqualTree): Correct equality test to
+	ignore siblings.
 	* Source/NSXMLNode.m (+elementWithName:stringValue:): Correct
 	recursive call.
 	Patch by Ivan Vučica <ivucica@gmail.com>

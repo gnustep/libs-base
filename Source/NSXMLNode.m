@@ -582,11 +582,12 @@ int register_namespaces(xmlXPathContextPtr xpathCtx,
   return 0;
 }
 
-NSArray *execute_xpath(NSXMLNode *node,
+NSArray *execute_xpath(NSXMLNode *xmlNode,
 		       NSString *xpath_exp,
 		       NSString *nmspaces)
 {
-  xmlDocPtr doc = ((xmlNodePtr)[node _node])->doc;
+  xmlNodePtr node = [xmlNode _node];
+  xmlDocPtr doc = node->doc;
   NSMutableArray *result = [NSMutableArray arrayWithCapacity: 10];
   xmlChar* xpathExpr = (xmlChar *)XMLSTRING(xpath_exp); 
   xmlChar* nsList = (xmlChar *)XMLSTRING(nmspaces);
@@ -615,7 +616,10 @@ NSArray *execute_xpath(NSXMLNode *node,
     }
 
   if (![xpath_exp hasPrefix: @"/"])
-    xpathCtx->node = (xmlNodePtr)doc; // provide a context for relative paths
+    {
+      // provide a context for relative paths
+      xpathCtx->node = node;
+    }
 
   /* Evaluate xpath expression */
   xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
