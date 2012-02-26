@@ -351,6 +351,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSArray*) namespaces
 {
+  // FIXME: Should use  xmlGetNsList()
   NSMutableArray *result = nil;
   xmlNsPtr ns = MY_NODE->ns;
 
@@ -369,8 +370,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
 {
+  // FIXME: Should use xmlSearchNs()
   xmlNsPtr ns = MY_NODE->ns;
-
   if (ns)
     {
       const xmlChar *prefix = XMLSTRING(name);
@@ -401,6 +402,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSString*) resolvePrefixForNamespaceURI: (NSString*)namespaceURI
 {
+  // FIXME Should use xmlSearchNsByHref()
   xmlNsPtr ns = MY_NODE->ns;
 
   if (ns)

@@ -160,6 +160,9 @@ BOOL isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
 BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 {
+  xmlNodePtr childA;
+  xmlNodePtr childB;
+
   if (nodeA == nodeB)
     {
       return YES;
@@ -175,17 +178,23 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
       return NO;
     }
   
-  if (!isEqualTree(nodeA->children, nodeB->children))
+  // Check children
+  childA = nodeA->children;
+  childB = nodeB->children;
+  while (isEqualTree(childA, childB))
     {
-      return NO;
+      if (childA == NULL)
+        {
+          return YES;
+        }
+      else
+        {
+          childA = childA->next;
+          childB = childB->next;
+        }
     }
   
-  if (!isEqualTree(nodeA->next, nodeB->next))
-    {
-      return NO;
-    }
-  
-  return YES;
+  return NO;
 }
 
 // Private methods to manage libxml pointers...
@@ -748,7 +757,7 @@ NSArray *execute_xpath(NSXMLNode *node,
 {
   NSXMLElement *e;
   
-  e = [self elementWithName: name stringValue: string];
+  e = [[NSXMLElement alloc] initWithName: name stringValue: string];
   return e;
 }
 

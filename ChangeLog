@@ -1,3 +1,10 @@
+2012-02-26  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (+elementWithName:stringValue:): Correct
+	recursive call.
+	Patch by Ivan Vučica <ivucica@gmail.com>
+	* Source/NSXMLElement.m: Add FIXME comments for name space methods.
+
 2012-02-23  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLElement.m: Implement namespace methods.
