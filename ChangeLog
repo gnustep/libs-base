@@ -1,6 +1,12 @@
+2012-02-27  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (-copyWithZone:): Copy name spaces as well.
+	* Source/NSXMLDocument.m (-copyWithZone:): Rewrite copy method.
+	* Source/NSXMLElement.m: Remove copy method.
+
 2012-02-27 Doug Simons <doug.simons@testplant.com>
 	Merged to trunk by: greg.casamento@gmail.com
-	
+
 	* Source/NSXMLDocument.m: Fix bugs in setCharacterEncoding: and
 	copyWithZone: that cause a memory crash when tree is freed.
 	Doug Simons <doug.simons@testplant.com>
