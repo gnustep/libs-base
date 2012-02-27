@@ -233,32 +233,53 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
       result = node->_private;
       if (result == nil)
 	{
+          Class cls;
+          NSXMLNodeKind kind;
           xmlElementType type = node->type;
 
-	  switch(type)
+	  switch (type)
 	    {
-	    case XML_DOCUMENT_NODE: 
-	      result = [[NSXMLDocument alloc] _initWithNode: node kind: NSXMLDocumentKind];
+	    case XML_DOCUMENT_NODE:
+              cls = [NSXMLDocument class];
+              kind = NSXMLDocumentKind;
 	      break;
 	    case XML_ELEMENT_NODE: 
-	      result = [[NSXMLElement alloc] _initWithNode: node kind: NSXMLElementKind];
+              cls = [NSXMLElement class];
+              kind = NSXMLElementKind;
 	      break;
 	    case XML_TEXT_NODE: 
-	      result = [[self alloc] _initWithNode: node kind: NSXMLTextKind];
+              cls = [NSXMLNode class];
+              kind = NSXMLTextKind;
 	      break;
 	    case XML_PI_NODE: 
-	      result = [[self alloc] _initWithNode: node kind: NSXMLProcessingInstructionKind];
+              cls = [NSXMLNode class];
+              kind = NSXMLProcessingInstructionKind;
 	      break;
 	    case XML_COMMENT_NODE: 
-	      result = [[self alloc] _initWithNode: node kind: NSXMLCommentKind];
+              cls = [NSXMLNode class];
+              kind = NSXMLCommentKind;
 	      break;
 	    case XML_ATTRIBUTE_NODE: 
-	      result = [[self alloc] _initWithNode: node kind: NSXMLAttributeKind];
+              cls = [NSXMLNode class];
+              kind = NSXMLAttributeKind;
 	      break;
 	    default: 
 	      NSLog(@"ERROR: _objectForNode: called with a node of type %d", type);
+              return nil;
 	      break;
 	    }
+          if ((node->doc != NULL) && ((xmlNodePtr)(node->doc) != node))
+            {
+              NSXMLDocument *doc;
+              
+              doc = (NSXMLDocument*)[self _objectForNode: (xmlNodePtr)node->doc];
+              if (doc != nil)
+                {
+                  cls = [[doc class] replacementClassForClass: cls];
+                }
+            }
+
+          result = [[cls alloc] _initWithNode: node kind: kind];
 	  AUTORELEASE(result);
 	  if (node->parent)
             {
@@ -931,6 +952,13 @@ NSArray *execute_xpath(NSXMLNode *xmlNode,
 //  [c setStringValue: [self stringValue]];
 
   return c;
+}
+
+- (NSString*) description
+{
+  return [NSString stringWithFormat:@"<%@ %@ %d>%@\n",
+                   NSStringFromClass([self class]),
+                   [self name], [self kind], [self stringValue]];
 }
 
 - (id) retain

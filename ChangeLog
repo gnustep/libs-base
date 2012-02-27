@@ -1,3 +1,11 @@
+2012-02-27  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (+_objectForNode:): Get the actual class from
+	the document.
+	* Source/NSXMLNode.m (-description): Add a simple description method.
+	* Source/NSXMLDocument.m: Further cleanup. Exchange the contents of
+	-initWithData:... and initWithXMLString:...
+
 2012-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArchiver.m:
