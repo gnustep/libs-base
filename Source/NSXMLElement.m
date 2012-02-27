@@ -110,7 +110,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   if ([self initWithName: name URI: nil] != nil)
     {
-      [self setObjectValue: string];
+      NSXMLNode *t;
+      t = [[NSXMLNode alloc] initWithKind: NSXMLTextKind];
+      [t setStringValue: string];
+      [self addChild: t];
+      [t release];
     }
   return nil;
 }
@@ -119,19 +123,17 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 		   error: (NSError**)error
 {
   NSXMLElement *result = nil;
-  if((self = [super init]) != nil)
+  NSXMLDocument *tempDoc = 
+    [[NSXMLDocument alloc] initWithXMLString: string
+                                     options: 0
+                                       error: error];
+  if (tempDoc != nil)
     {
-      NSXMLDocument *tempDoc = 
-	[[NSXMLDocument alloc] initWithXMLString:string
-					 options:0
-					   error:error];
-      if(tempDoc != nil)
-	{
-	  result = RETAIN([tempDoc rootElement]);
-	  [result detach]; // detach from document.
-	}
-      [tempDoc release];
+      result = RETAIN([tempDoc rootElement]);
+      [result detach]; // detach from document.
     }
+  [tempDoc release];
+
   return result;
 }
 
@@ -143,7 +145,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   for (cur = MY_NODE->children; cur != NULL; cur = cur->next)
     {
       NSString *n = StringFromXMLStringPtr(cur->name);
-      if([n isEqualToString: name])
+      if ([n isEqualToString: name])
 	{
 	  NSXMLNode *node = (NSXMLNode *)(cur->_private);
 	  [results addObject: node];
@@ -294,7 +296,27 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) addNamespace: (NSXMLNode*)aNamespace
 {
-  [self notImplemented: _cmd];
+  xmlNsPtr ns = (xmlNsPtr)[aNamespace _node];
+
+  if (MY_NODE->ns == NULL)
+    {
+      MY_NODE->ns = ns;
+    }
+  else
+    {
+      xmlNsPtr cur = MY_NODE->ns;
+      const xmlChar *prefix = ns->prefix;
+      
+      while (xmlStrcmp(prefix, cur->prefix) != 0)
+        {
+          if (cur->next == NULL)
+            {
+              cur->next = ns;
+              return;
+            }
+	  cur = cur->next;
+	}
+    }
 }
 
 - (void) removeNamespaceForPrefix: (NSString*)name
@@ -305,13 +327,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) setNamespaces: (NSArray*)namespaces
 {
   NSEnumerator *en = [namespaces objectEnumerator];
-  NSString *namespace = nil;
+  NSXMLNode *namespace = nil;
   xmlNsPtr cur = NULL;
 
-  while((namespace = (NSString *)[en nextObject]) != nil)
+  // FIXME: Remove old namespaces
+  // xmlFreeNsList(MY_NODE->ns);
+  // MY_NODE->ns = NULL;
+  while ((namespace = (NSXMLNode *)[en nextObject]) != nil)
     {
-      xmlNsPtr ns = xmlNewNs([self _node], NULL, XMLSTRING(namespace));
-      if(MY_NODE->ns == NULL)
+      xmlNsPtr ns = (xmlNsPtr)[namespace _node];
+      if (MY_NODE->ns == NULL)
 	{
 	  MY_NODE->ns = ns;
 	  cur = ns;
@@ -326,38 +351,73 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSArray*) namespaces
 {
+  // FIXME: Should use  xmlGetNsList()
   NSMutableArray *result = nil;
   xmlNsPtr ns = MY_NODE->ns;
 
-  if(ns)
+  if (ns)
     {
       xmlNsPtr cur = NULL;
       result = [NSMutableArray array];
-      for(cur = ns; cur != NULL; cur = cur->next)
+      for (cur = ns; cur != NULL; cur = cur->next)
 	{
-	  [result addObject: StringFromXMLStringPtr(cur->prefix)];
+	  [result addObject: [NSXMLNode _objectForNode: (xmlNodePtr)cur]];
 	}
     }
 
-  // [self notImplemented: _cmd];
-  return result; // nil; // internal->namespaces;
+  return result;
 }
 
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
 {
-  [self notImplemented: _cmd];
+  // FIXME: Should use xmlSearchNs()
+  xmlNsPtr ns = MY_NODE->ns;
+  if (ns)
+    {
+      const xmlChar *prefix = XMLSTRING(name);
+      xmlNsPtr cur = NULL;
+      for (cur = ns; cur != NULL; cur = cur->next)
+	{
+          if (xmlStrcmp(prefix, cur->prefix) == 0)
+            {
+              return [NSXMLNode _objectForNode: (xmlNodePtr)cur];
+            }
+	}
+    }
+
   return nil;
 }
 
 - (NSXMLNode*) resolveNamespaceForName: (NSString*)name
 {
-  [self notImplemented: _cmd];
+  NSString *prefix = [[self class] prefixForName: name];
+
+  if (nil != prefix)
+    {
+      return [self namespaceForPrefix: prefix];
+    }
+
   return nil;
 }
 
 - (NSString*) resolvePrefixForNamespaceURI: (NSString*)namespaceURI
 {
-  [self notImplemented: _cmd];
+  // FIXME Should use xmlSearchNsByHref()
+  xmlNsPtr ns = MY_NODE->ns;
+
+  if (ns)
+    {
+      const xmlChar *uri = XMLSTRING(namespaceURI);
+      xmlNsPtr cur = NULL;
+      for (cur = ns; cur != NULL; cur = cur->next)
+	{
+          if (xmlStrcmp(uri, cur->href) == 0)
+            {
+              return StringFromXMLStringPtr(cur->prefix);
+            }
+	}
+    }
+
   return nil;
 }
 
@@ -379,7 +439,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-  [self _insertChild:child atIndex:index];
+  [self _insertChild: child atIndex: index];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -395,41 +455,33 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
-  NSXMLNode	*child;
-  xmlNodePtr     n;
+  NSXMLNode *child;
 
   if (index >= [self childCount])
     {
       [NSException raise: NSRangeException
-		  format: @"index too large"];
+                 format: @"index too large"];
     }
 
-  child = [[self children] objectAtIndex: index];
-  n = [child _node];
-  xmlUnlinkNode(n);
-  [self _removeSubNode:child];
+  child = [self childAtIndex: index];
+  [child detach];
 }
 
 - (void) setChildren: (NSArray*)children
 {
-  NSEnumerator	*en;
-  NSXMLNode		*child;
+  NSUInteger count = [self childCount];
 
-  while ([self childCount] > 0)
+  while (count-- > 0)
     {
-      [self removeChildAtIndex: [self childCount] - 1];
+      [self removeChildAtIndex: count];
     }
-  en = [[self children] objectEnumerator];
-  while ((child = [en nextObject]) != nil)
-    {
-      [self insertChild: child atIndex: [self childCount]];
-    }
+
+  [self insertChildren: children atIndex: 0];
 }
 
 - (void) addChild: (NSXMLNode*)child
 {
-  int count = [self childCount];
-  [self insertChild: child atIndex: count];
+  [self insertChild: child atIndex: [self childCount]];
 }
 
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
