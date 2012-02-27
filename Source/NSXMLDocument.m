@@ -59,7 +59,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 + (Class) replacementClassForClass: (Class)cls
 {
-  return Nil;
+  return cls;
 }
 
 - (void) dealloc
@@ -118,16 +118,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
             options: (NSUInteger)mask
               error: (NSError**)error
 {
-  NSString *string = nil;
-
   // Check for nil data and throw an exception 
-  if (![data isKindOfClass: [NSData class]])
-    {
-      DESTROY(self);
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[NSXMLDocument-%@] non data argument",
-		   NSStringFromSelector(_cmd)];
-    }
   if (nil == data)
     {
       DESTROY(self);
@@ -135,12 +126,41 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 		  format: @"[NSXMLDocument-%@] nil argument",
 		   NSStringFromSelector(_cmd)];
     }
+  if (![data isKindOfClass: [NSData class]])
+    {
+      DESTROY(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[NSXMLDocument-%@] non data argument",
+		   NSStringFromSelector(_cmd)];
+    }
 
-  // Initialize the string...
-  string = [[NSString alloc] initWithData: data
-				 encoding: NSUTF8StringEncoding];
-  AUTORELEASE(string);
-  return [self initWithXMLString:string options:mask error:error];
+  if ((self = [self initWithKind: NSXMLDocumentKind options: 0]) != nil)
+    {
+      char *url = NULL;
+      char *encoding = NULL; // "UTF8";
+      int options = XML_PARSE_NOERROR;
+      xmlDocPtr doc = NULL;
+
+      if (!(mask & NSXMLNodePreserveWhitespace))
+        {
+          options |= XML_PARSE_NOBLANKS;
+          //xmlKeepBlanksDefault(0);
+        }
+      doc = xmlReadMemory([data bytes], [data length], 
+                          url, encoding, options);
+      if (doc == NULL)
+	{
+          DESTROY(self);
+	  if (error != NULL)
+            {
+              *error = [NSError errorWithDomain: @"NSXMLErrorDomain"
+                                           code: 0
+                                       userInfo: nil]; 
+            }
+	}
+      [self _setNode: doc];
+    }
+  return self;
 }
 
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
@@ -159,13 +179,6 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (id) initWithRootElement: (NSXMLElement*)element
 {
-  if ([element parent] != nil)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"%@ cannot be used as root of %@", 
-		   element, 
-		   self];
-    }
   self = [self initWithKind: NSXMLDocumentKind options: 0];
   if (self != nil)
     {
@@ -178,42 +191,23 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
                  options: (NSUInteger)mask
                    error: (NSError**)error
 {
+  if (nil == string)
+    {
+      DESTROY(self);
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[NSXMLDocument-%@] nil argument",
+                   NSStringFromSelector(_cmd)];
+    }
   if (NO == [string isKindOfClass: [NSString class]])
     {
       DESTROY(self);
-      if (nil == string)
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"[NSXMLDocument-%@] nil argument",
-	    NSStringFromSelector(_cmd)];
-	}
       [NSException raise: NSInvalidArgumentException
 		  format: @"[NSXMLDocument-%@] invalid argument",
-	NSStringFromSelector(_cmd)];
+                   NSStringFromSelector(_cmd)];
     }
-  if ((self = [self initWithKind: NSXMLDocumentKind options: 0]) != nil)
-    {
-      const char *str = [string UTF8String];
-      char *url = NULL;
-      char *encoding = NULL; // "UTF8";
-      int options = XML_PARSE_NOERROR;
-      xmlDocPtr doc = NULL;
-      if (!(mask & NSXMLNodePreserveWhitespace))
-        options |= XML_PARSE_NOBLANKS;
-      //xmlKeepBlanksDefault(0);
-      doc = xmlReadDoc((xmlChar *)str, url, encoding, options);
-      if (doc == NULL)
-	{
-	  [self release];
-	  self = nil;
-	  if (error != NULL)
-	    *error = [NSError errorWithDomain:@"NSXMLErrorDomain" code:0 userInfo:nil]; 
-	  //[NSException raise:NSInvalidArgumentException
-	  //	      format:@"Cannot instantiate NSXMLDocument with invalid data"];
-	}
-      [self _setNode:doc];
-    }
-  return self;
+  return [self initWithData: [string dataUsingEncoding: NSUTF8StringEncoding]
+                    options: mask
+                      error: error];
 }
 
 - (BOOL) isStandalone
@@ -229,7 +223,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (NSXMLElement*) rootElement
 {
   xmlNodePtr rootElem = xmlDocGetRootElement(MY_DOC);
-  return (NSXMLElement *)[NSXMLNode _objectForNode:rootElem];
+  return (NSXMLElement *)[NSXMLNode _objectForNode: rootElem];
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
@@ -262,12 +256,19 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     {
       return;
     }
+  if ([root parent] != nil)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"%@ cannot be used as root of %@", 
+		   root, 
+		   self];
+    }
 
-  xmlDocSetRootElement(MY_DOC,[root _node]);
+  xmlDocSetRootElement(MY_DOC, [root _node]);
 
   // Do our subNode housekeeping...
-  [self _removeSubNode:oldElement];
-  [self _addSubNode:root];
+  [self _removeSubNode: oldElement];
+  [self _addSubNode: root];
 }
 
 - (void) setStandalone: (BOOL)standalone
@@ -400,30 +401,31 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
                       error: (NSError**)error
 {
 #ifdef HAVE_LIBXSLT
-  xmlChar *data = (xmlChar *)[xslt bytes];
   xmlChar **params = NULL;
-  xmlDocPtr stylesheetDoc = xmlReadDoc(data, NULL, NULL, XML_PARSE_NOERROR);
+  xmlDocPtr stylesheetDoc = xmlReadMemory([xslt bytes], [xslt length],
+                                          NULL, NULL, XML_PARSE_NOERROR);
   xsltStylesheetPtr stylesheet = xsltParseStylesheetDoc(stylesheetDoc);
   xmlDocPtr resultDoc = NULL;
-  NSEnumerator *en = [arguments keyEnumerator];
-  NSString *key = nil;
-  NSUInteger index = 0;
  
   // Iterate over the keys and put them into params...
   if (arguments != nil)
     {
+      NSEnumerator *en = [arguments keyEnumerator];
+      NSString *key = nil;
+      NSUInteger index = 0;
       int count = [[arguments allKeys] count];
-      *params = NSZoneCalloc([self zone],((count + 1) * 2),sizeof(xmlChar *));
+
+      *params = NSZoneCalloc([self zone], ((count + 1) * 2), sizeof(xmlChar *));
       while ((key = [en nextObject]) != nil)
 	{
 	  params[index] = (xmlChar *)XMLSTRING(key);
 	  params[index+1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
-	  index+=2;
+	  index += 2;
 	}
     }
 
   // Apply the stylesheet and get the result...
-  resultDoc = xsltApplyStylesheet(stylesheet,MY_DOC,(const char **)params);
+  resultDoc = xsltApplyStylesheet(stylesheet, MY_DOC, (const char **)params);
   
   // Cleanup...
   xsltFreeStylesheet(stylesheet);
@@ -442,12 +444,10 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
                         arguments: (NSDictionary*)arguments
                             error: (NSError**)error
 {
-  NSData *data = [[NSData alloc] initWithBytes: [xslt UTF8String]
-					length: [xslt length]];
+  NSData *data =  [xslt dataUsingEncoding: NSUTF8StringEncoding];
   NSXMLDocument *result = [self objectByApplyingXSLT: data
                                            arguments: arguments
                                                error: error];
-  [data release];
   return result;
 }
 
