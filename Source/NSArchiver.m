@@ -267,7 +267,7 @@ static Class	NSMutableDataMallocClass;
    * data and using the eighth (top) bit to indicate that there are more
    * bytes in the sequence.
    */
-  if ([self systemVersion] >= ((((1 * 100) + 24) * 100) + 1))
+  if ([self systemVersion] > 12401)
     {
       NSUInteger	tmp = count;
 

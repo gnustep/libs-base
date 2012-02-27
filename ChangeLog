@@ -2,6 +2,15 @@
 
 	* Source/NSArchiver.m:
 	* Source/NSUnarchiver.m:
+	* Source/NSPortCoder.m:
+	* Version: Update to 12402
+	Bump subminor version as suggested by eric Wasylishen, in case there
+	are any archives which would be caugt by the new version number.
+
+2012-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArchiver.m:
+	* Source/NSUnarchiver.m:
 	Revise archive format to allow for variable sized array counts ...
 	original versionallowed for variable encodings of integral types in
 	archived data, but not for the count of the nuymber of items in the

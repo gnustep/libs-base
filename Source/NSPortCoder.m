@@ -440,7 +440,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   NSUInteger	count;
 
   (*_dTagImp)(_src, dTagSel, &info, 0, &_cursor);
-  if ([self systemVersion] >= ((((1 * 100) + 24) * 100) + 1))
+  if (_version > 12401)
     {
       uint8_t	c;
 
@@ -1147,7 +1147,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
    * data and using the eighth (top) bit to indicate that there are more
    * bytes in the sequence.
    */
-  if ([self systemVersion] >= ((((1 * 100) + 24) * 100) + 1))
+  if ([self systemVersion] > 12401)
     {
       NSUInteger	tmp = count;
 
