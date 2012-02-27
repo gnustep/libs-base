@@ -433,47 +433,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 			 count: (NSUInteger)expected
 			    at: (void*)buf
 {
-  NSUInteger	i;
-  NSUInteger	offset = 0;
-  unsigned	size = objc_sizeof_type(type);
+  unsigned int	i;
+  int		offset = 0;
+  int		size = objc_sizeof_type(type);
   unsigned char	info;
-  NSUInteger	count;
+  unsigned	count;
 
   (*_dTagImp)(_src, dTagSel, &info, 0, &_cursor);
-  if (_version > 12401)
-    {
-      uint8_t	c;
-
-      /* Unpack variable length count.
-       */
-      count = 0;
-      for (;;)
-	{
-	  if (count * 128 < count)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"overflow in array count"];
-	    }
-	  count *= 128;
-	  (*_dDesImp)(self, dDesSel, &c, @encode(uint8_t), &_cursor, nil);
-	  if (c & 128)
-	    {
-	      count += (c & 127);
-	    }
-	  else
-	    {
-	      count += c;
-	      break;
-	    }
-	}
-    }
-  else
-    {
-      unsigned	c;
-
-      (*_dDesImp)(self, dDesSel, &c, @encode(unsigned), &_cursor, nil);
-      count = c;
-    }
+  (*_dDesImp)(_src, dDesSel, &count, @encode(unsigned), &_cursor, nil);
   if (info != _GSC_ARY_B)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -1134,32 +1101,10 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 			 count: (NSUInteger)count
 			    at: (const void*)buf
 {
-  NSUInteger	i;
-  unsigned      c = count;
-  uint8_t	bytes[20];
-  uint8_t	*bytePtr = 0;
-  uint8_t	byteCount = 0;
-  NSUInteger	offset = 0;
+  unsigned	i;
+  unsigned	offset = 0;
   unsigned	size = objc_sizeof_type(type);
   uchar		info;
-
-  /* The array count is encoded as a sequence of bytes containing 7bits of
-   * data and using the eighth (top) bit to indicate that there are more
-   * bytes in the sequence.
-   */
-  if ([self systemVersion] > 12401)
-    {
-      NSUInteger	tmp = count;
-
-      bytes[sizeof(bytes) - ++byteCount] = (uint8_t)(tmp % 128);
-      tmp /= 128;
-      while (tmp > 0)
-	{
-	  bytes[sizeof(bytes) - ++byteCount] = (uint8_t)(128 | (tmp % 128));
-	  tmp /= 128;
-	}
-      bytePtr = &bytes[sizeof(bytes) - byteCount];
-    }
 
   switch (*type)
     {
@@ -1188,19 +1133,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       if (_initialPass == NO)
 	{
 	  (*_eTagImp)(_dst, eTagSel, _GSC_ARY_B);
-	  if (0 == byteCount)
-	    {
-	      (*_eSerImp)(_dst, eSerSel, &c, @encode(unsigned), nil);
-	    }
-	  else
-	    {
-	      i = byteCount;
-	      for (i = 0; i < byteCount; i++)
-		{
-		  (*_eSerImp)
-		    (_dst, eSerSel, bytePtr + i, @encode(uint8_t), nil);
-		}
-	    }
+	  (*_eSerImp)(_dst, eSerSel, &count, @encode(unsigned), nil);
 	}
       for (i = 0; i < count; i++)
 	{
@@ -1211,18 +1144,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   else if (_initialPass == NO)
     {
       (*_eTagImp)(_dst, eTagSel, _GSC_ARY_B);
-      if (0 == byteCount)
-	{
-	  (*_eSerImp)(_dst, eSerSel, &c, @encode(unsigned), nil);
-	}
-      else
-	{
-	  i = byteCount;
-	  for (i = 0; i < byteCount; i++)
-	    {
-	      (*_eSerImp)(_dst, eSerSel, bytePtr + i, @encode(uint8_t), nil);
-	    }
-	}
+      (*_eSerImp)(_dst, eSerSel, &count, @encode(unsigned), nil);
 
       (*_eTagImp)(_dst, eTagSel, info);
       for (i = 0; i < count; i++)
