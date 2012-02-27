@@ -76,7 +76,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (NSString*) characterEncoding
 {
   if (MY_DOC->encoding)
-    return [NSString stringWithUTF8String: (const char *)MY_DOC->encoding];
+    return StringFromXMLStringPtr(MY_DOC->encoding);
   else
     return nil;
 }
@@ -229,7 +229,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
-  MY_DOC->encoding = xmlStrdup(XMLSTRING(encoding));
+  MY_DOC->encoding = XMLStringCopy(encoding);
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
@@ -475,12 +475,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  id c = [[self class] allocWithZone: zone];
-  xmlDocPtr newNode = xmlCopyDoc(MY_DOC, 1); // make a deep copy
-  clearPrivatePointers((xmlNodePtr)newNode);
+  NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
 
-  c = [c _initWithNode:(xmlNodePtr)newNode kind:internal->kind];
-
+  [c setMIMEType: [self MIMEType]];
+  [c setDTD: [self DTD]];
+  [c setDocumentContentKind: [self documentContentKind]];
   return c;
 }
 

@@ -554,15 +554,6 @@ static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *no
     }
 }
 
-- (id) copyWithZone: (NSZone *)zone
-{
-  NSXMLElement *c = [[self class] alloc]; ///(NSXMLElement*)[super copyWithZone: zone];
-  xmlNodePtr newNode = (xmlNodePtr)xmlCopyNode(MY_NODE, 1); // copy recursively
-  clearPrivatePointers(newNode); // clear out all of the _private pointers in the entire tree
-  c = [c _initWithNode:newNode kind:internal->kind];
-  return c;
-}
-
 @end
 
 #endif
