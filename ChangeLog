@@ -1,5 +1,11 @@
 2012-02-27 Doug Simons <doug.simons@testplant.com>
 
+	* Source/NSXMLNode.m:
+	* Source/NSXMLDocument.m: Standardize copyWithZone: for NSXMLNode
+	and NSXMLDocument. 
+
+2012-02-27 Doug Simons <doug.simons@testplant.com>
+
 	* Source/NSXMLDocument.m: Fix bugs in setCharacterEncoding: and
 	copyWithZone: that cause a memory crash when tree is freed. 
 

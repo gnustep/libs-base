@@ -484,15 +484,9 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   return result;
 }
 
-- (id) copyWithZone: (NSZone *)zone
+- (xmlNodePtr) _copyNode
 {
-  id c = [[self class] allocWithZone: zone];
-  xmlDocPtr newNode = xmlCopyDoc(MY_DOC, 1); // make a deep copy
-  clearPrivatePointers((xmlNodePtr)newNode);
-
-  c = [c _initWithNode:(xmlNodePtr)newNode kind:internal->kind];
-
-  return c;
+  return (xmlNodePtr)xmlCopyDoc(MY_DOC, 1); // make a deep copy
 }
 
 - (BOOL) isEqual: (id)other

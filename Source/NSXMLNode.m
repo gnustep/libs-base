@@ -213,6 +213,11 @@ BOOL isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   internal->node = _anode;
 }
 
+- (xmlNodePtr) _copyNode
+{
+  return xmlCopyNode([self _node], 1); // make a deep copy
+}
+
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node
 {
   NSXMLNode *result = nil;
@@ -864,20 +869,11 @@ NSArray *execute_xpath(NSXMLNode *node,
 - (id) copyWithZone: (NSZone*)zone
 {
   id c = [[self class] allocWithZone: zone];
-  xmlNodePtr newNode = xmlCopyNode([self _node], 1); // make a deep copy
+  xmlNodePtr newNode = [self _copyNode];
   clearPrivatePointers(newNode);
 
-  //c = [c initWithKind: internal->kind options: internal->options];
-  //[c _setNode:newNode];
   c = [c _initWithNode:newNode kind:internal->kind];
-
   
-
-//  [c setName: [self name]];
-//  [c setURI: [self URI]];
-//  [c setObjectValue: [self objectValue]];
-//  [c setStringValue: [self stringValue]];
-
   return c;
 }
 
