@@ -314,7 +314,6 @@ static Class	NSMutableDataMallocClass;
 	    }
 	  else
 	    {
-	      i = byteCount;
 	      for (i = 0; i < byteCount; i++)
 		{
 		  (*_serImp)(_dst, serSel, bytePtr + i, @encode(uint8_t), nil);
@@ -337,7 +336,6 @@ static Class	NSMutableDataMallocClass;
 	}
       else
 	{
-	  i = byteCount;
 	  for (i = 0; i < byteCount; i++)
 	    {
 	      (*_serImp)(_dst, serSel, bytePtr + i, @encode(uint8_t), nil);
