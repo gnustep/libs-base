@@ -180,9 +180,9 @@ if test $enable_openssl = yes; then
     if test $ac_cv_lib_crypto_CRYPTO_malloc = yes; then
       # ssl needs socket on Solaris
       AC_CHECK_LIB(socket, main)
-      AC_CHECK_LIB(ssl, ssl2_clear)
+      AC_CHECK_LIB(ssl, SSL_clear)
       AC_CHECK_LIB(cipher,des_setkey)
-      if test $ac_cv_lib_ssl_ssl2_clear = yes; then
+      if test $ac_cv_lib_ssl_SSL_clear = yes; then
         ssl_ok=yes
       fi
       AC_CHECK_FUNC(CRYPTO_THREADID_set_callback)

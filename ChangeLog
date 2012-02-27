@@ -1,3 +1,11 @@
+2012-02-27  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* SSL/configure.ac: Change test for ssl2_clear in -lssl
+	to test for SSL_clear, which is a public function and
+	is acutally used by the SSL bundle. The test for ssl2_clear
+	was failing with OpenSSL 1.0.0e.
+	* SSL/configure: Regenerate
+
 2012-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArchiver.m:
