@@ -1870,7 +1870,7 @@ failure:
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  NSUInteger	length = [self length];
+  unsigned	length = [self length];
   void		*bytes = [self mutableBytes];
 
   if ([aCoder allowsKeyedCoding])
@@ -1881,7 +1881,7 @@ failure:
     }
   else
     {  
-      [aCoder encodeValueOfObjCType: @encode(NSUInteger)
+      [aCoder encodeValueOfObjCType: @encode(unsigned)
 			         at: &length];
       if (length)
         {
@@ -1917,9 +1917,9 @@ failure:
     }
   else
     {  
-      NSUInteger  l;
+      unsigned	l;
 
-      [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &l];
+      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &l];
       if (l)
         {
           void *b;

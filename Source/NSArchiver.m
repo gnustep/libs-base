@@ -254,9 +254,9 @@ static Class	NSMutableDataMallocClass;
 			 count: (NSUInteger)count
 			    at: (const void*)buf
 {
-  unsigned      c = count;
-  unsigned	i;
-  unsigned	offset = 0;
+  NSUInteger	c = count;
+  NSUInteger	i;
+  NSUInteger	offset = 0;
   unsigned	size = objc_sizeof_type(type);
   uchar		info;
 
@@ -287,7 +287,7 @@ static Class	NSMutableDataMallocClass;
       if (_initialPass == NO)
 	{
 	  (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-	  (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
+	  (*_serImp)(_dst, serSel, &c, @encode(NSUInteger), nil);
 	}
       for (i = 0; i < c; i++)
 	{
@@ -298,7 +298,7 @@ static Class	NSMutableDataMallocClass;
   else if (_initialPass == NO)
     {
       (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-      (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
+      (*_serImp)(_dst, serSel, &c, @encode(NSUInteger), nil);
 
       (*_tagImp)(_dst, tagSel, info);
       for (i = 0; i < c; i++)
@@ -320,7 +320,7 @@ static Class	NSMutableDataMallocClass;
 
       case _C_ARY_B:
 	{
-	  unsigned	count = atoi(++type);
+	  NSUInteger	count = atoll(++type);
 
 	  while (isdigit(*type))
 	    {
@@ -734,9 +734,9 @@ static Class	NSMutableDataMallocClass;
 
 - (void) encodeDataObject: (NSData*)anObject
 {
-  unsigned	l = [anObject length];
+  NSUInteger	l = [anObject length];
 
-  (*_eValImp)(self, eValSel, @encode(unsigned int), &l);
+  (*_eValImp)(self, eValSel, @encode(NSUInteger), &l);
   if (l)
     {
       const void	*b = [anObject bytes];

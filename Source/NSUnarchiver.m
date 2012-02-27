@@ -529,14 +529,14 @@ static Class NSDataMallocClass;
 			 count: (NSUInteger)expected
 			    at: (void*)buf
 {
-  unsigned int	i;
-  int		offset = 0;
-  unsigned int	size = (unsigned int)objc_sizeof_type(type);
+  NSUInteger	i;
+  NSUInteger	offset = 0;
+  NSUInteger	size = (unsigned int)objc_sizeof_type(type);
   unsigned char	info;
-  unsigned	count;
+  NSUInteger	count;
 
   (*tagImp)(src, tagSel, &info, 0, &cursor);
-  (*desImp)(src, desSel, &count, @encode(unsigned), &cursor, nil);
+  (*desImp)(src, desSel, &count, @encode(NSUInteger), &cursor, nil);
   if (info != _GSC_ARY_B)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -545,7 +545,7 @@ static Class NSDataMallocClass;
   if (count != expected)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"expected array count %u and got %u",
+		  format: @"expected array count %"PRIuPTR" and got %"PRIuPTR,
 			expected, count];
     }
 
@@ -1219,9 +1219,9 @@ static Class NSDataMallocClass;
 
 - (NSData*) decodeDataObject
 {
-  unsigned	l;
+  NSUInteger	l;
 
-  (*dValImp)(self, dValSel, @encode(unsigned int), &l);
+  (*dValImp)(self, dValSel, @encode(NSUInteger), &l);
   if (l)
     {
       unsigned char	c;
