@@ -536,7 +536,7 @@ static Class NSDataMallocClass;
   NSUInteger	count;
 
   (*tagImp)(src, tagSel, &info, 0, &cursor);
-  if ([self systemVersion] >= ((((1 * 100) + 24) * 100) + 1))
+  if (version > 12401)
     {
       uint8_t	c;
 
