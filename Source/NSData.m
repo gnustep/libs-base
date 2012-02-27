@@ -141,7 +141,7 @@ static SEL	appendSel;
 static IMP	appendImp;
 
 static BOOL
-readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
+readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
 {
 #if defined(__MINGW__)
   const unichar	*thePath = 0;
@@ -175,6 +175,10 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       NSDebugFLog(@"Open (%@) attempt failed - %@", path, [NSError _last]);
       goto failure;
     }
+
+  // FIXME: since fseek returns a long, this code will fail on files
+  // larger than ~2GB on 32-bit systems. Probably this entire function should
+  // be removed and NSFileHandle used instead. -Eric
 
   /*
    *	Seek to the end of the file.
@@ -629,7 +633,7 @@ failure:
 - (id) initWithContentsOfFile: (NSString*)path
 {
   void		*fileBytes;
-  unsigned	fileLength;
+  long          fileLength;
 
 #if	GS_WITH_GC
   if (readContentsOfFile(path, &fileBytes, &fileLength, 0) == NO)
@@ -754,7 +758,7 @@ failure:
  */
 - (void) getBytes: (void*)buffer range: (NSRange)aRange
 {
-  unsigned	size = [self length];
+  NSUInteger	size = [self length];
 
   GS_RANGE_CHECK(aRange, size);
   memcpy(buffer, [self bytes] + aRange.location, aRange.length);
@@ -774,7 +778,7 @@ failure:
 - (NSData*) subdataWithRange: (NSRange)aRange
 {
   void		*buffer;
-  unsigned	l = [self length];
+  NSUInteger	l = [self length];
 
   GS_RANGE_CHECK(aRange, l);
 
@@ -796,8 +800,8 @@ failure:
 - (NSUInteger) hash
 {
   unsigned char	buf[64];
-  unsigned	l = [self length];
-  unsigned	ret =0;
+  NSUInteger	l = [self length];
+  NSUInteger	ret =0;
 
   l = MIN(l,64);
 
@@ -1866,7 +1870,7 @@ failure:
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  unsigned	length = [self length];
+  NSUInteger	length = [self length];
   void		*bytes = [self mutableBytes];
 
   if ([aCoder allowsKeyedCoding])
@@ -1877,7 +1881,7 @@ failure:
     }
   else
     {  
-      [aCoder encodeValueOfObjCType: @encode(unsigned int)
+      [aCoder encodeValueOfObjCType: @encode(NSUInteger)
 			         at: &length];
       if (length)
         {
@@ -1913,9 +1917,9 @@ failure:
     }
   else
     {  
-      unsigned  l;
+      NSUInteger  l;
 
-      [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &l];
+      [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &l];
       if (l)
         {
           void *b;
@@ -2012,7 +2016,7 @@ failure:
 - (void) appendBytes: (const void*)aBuffer
 	      length: (NSUInteger)bufferSize
 {
-  unsigned	oldLength = [self length];
+  NSUInteger	oldLength = [self length];
   void*		buffer;
 
   [self setLength: oldLength + bufferSize];
@@ -2042,8 +2046,8 @@ failure:
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes
 {
-  unsigned	size = [self length];
-  unsigned	need = NSMaxRange(aRange);
+  NSUInteger	size = [self length];
+  NSUInteger	need = NSMaxRange(aRange);
 
   if (aRange.location > size)
     {
@@ -2069,10 +2073,10 @@ failure:
 		   withBytes: (const void*)bytes
 		      length: (NSUInteger)length
 {
-  unsigned	size = [self length];
-  unsigned	end = NSMaxRange(aRange);
-  int		shift = length - aRange.length;
-  unsigned	need = size + shift;
+  NSUInteger	size = [self length];
+  NSUInteger	end = NSMaxRange(aRange);
+  NSInteger    	shift = length - aRange.length;
+  NSUInteger	need = size + shift;
   void		*buf;
 
   if (aRange.location > size)
@@ -2119,7 +2123,7 @@ failure:
  */
 - (void) resetBytesInRange: (NSRange)aRange
 {
-  unsigned	size = [self length];
+  NSUInteger	size = [self length];
 
   GS_RANGE_CHECK(aRange, size);
   memset((char*)[self bytes] + aRange.location, 0, aRange.length);
@@ -3342,8 +3346,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (bufferSize > 0)
     {
-      unsigned	oldLength = length;
-      unsigned	minimum = length + bufferSize;
+      NSUInteger oldLength = length;
+      NSUInteger minimum = length + bufferSize;
 
       if (aBuffer == 0)
 	{
@@ -3369,12 +3373,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (minimum > capacity)
     {
-      unsigned	nextCapacity = capacity + growth;
-      unsigned	nextGrowth = capacity ? capacity : 1;
+      NSUInteger nextCapacity = capacity + growth;
+      NSUInteger nextGrowth = capacity ? capacity : 1;
 
       while (nextCapacity < minimum)
 	{
-	  unsigned	tmp = nextCapacity + nextGrowth;
+	  NSUInteger tmp = nextCapacity + nextGrowth;
 
 	  nextGrowth = nextCapacity;
 	  nextCapacity = tmp;
@@ -3392,7 +3396,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)moreBytes
 {
-  unsigned	need = NSMaxRange(aRange);
+  NSUInteger need = NSMaxRange(aRange);
 
   if (aRange.location > length)
     {
@@ -3760,7 +3764,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (void) setData: (NSData*)data
 {
-  unsigned	l = [data length];
+  NSUInteger l = [data length];
 
   [self setCapacity: l];
   length = l;
