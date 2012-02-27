@@ -1,3 +1,8 @@
+2012-02-27 Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLDocument.m: Fix bugs in setCharacterEncoding: and
+	copyWithZone: that cause a memory crash when tree is freed. 
+
 2012-02-16 17:16-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSXMLDocument.m: Add #ifdef HAVE_LIBXSLT to compile out

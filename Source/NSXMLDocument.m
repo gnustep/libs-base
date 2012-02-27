@@ -53,6 +53,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (void) _addSubNode:(NSXMLNode *)subNode;
 - (void) _removeSubNode:(NSXMLNode *)subNode;
 - (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
+- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
 @end
 
 @implementation	NSXMLDocument
@@ -234,7 +235,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
-  MY_DOC->encoding = XMLSTRING(encoding);
+  MY_DOC->encoding = xmlStrdup(XMLSTRING(encoding));
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
@@ -485,10 +486,12 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
-  internal->node = (xmlDoc *)xmlCopyDoc(MY_DOC, 1); // copy recursively
-  clearPrivatePointers(internal->node); // clear out all of the _private pointers in the entire tree
-  ((xmlNodePtr)internal->node)->_private = c;
+  id c = [[self class] allocWithZone: zone];
+  xmlDocPtr newNode = xmlCopyDoc(MY_DOC, 1); // make a deep copy
+  clearPrivatePointers((xmlNodePtr)newNode);
+
+  c = [c _initWithNode:(xmlNodePtr)newNode kind:internal->kind];
+
   return c;
 }
 
