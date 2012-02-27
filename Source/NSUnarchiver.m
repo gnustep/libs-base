@@ -531,12 +531,40 @@ static Class NSDataMallocClass;
 {
   NSUInteger	i;
   NSUInteger	offset = 0;
-  NSUInteger	size = (unsigned int)objc_sizeof_type(type);
+  unsigned int	size = (unsigned int)objc_sizeof_type(type);
   unsigned char	info;
   NSUInteger	count;
 
   (*tagImp)(src, tagSel, &info, 0, &cursor);
-  (*desImp)(src, desSel, &count, @encode(NSUInteger), &cursor, nil);
+  if ([self systemVersion] >= ((((1 * 100) + 24) * 100) + 1))
+    {
+      uint8_t	c;
+
+      /* Unpack variable length count.
+       */
+      count = 0;
+      for (;;)
+	{
+	  count *= 128;
+	  (*desImp)(src, desSel, &c, @encode(uint8_t), &cursor, nil);
+	  if (c & 128)
+	    {
+	      count += (c & 127);
+	    }
+	  else
+	    {
+	      count += c;
+	      break;
+	    }
+	}
+    }
+  else
+    {
+      unsigned	c;
+
+      (*desImp)(src, desSel, &c, @encode(unsigned), &cursor, nil);
+      count = c;
+    }
   if (info != _GSC_ARY_B)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -545,7 +573,7 @@ static Class NSDataMallocClass;
   if (count != expected)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"expected array count %"PRIuPTR" and got %"PRIuPTR,
+		  format: @"expected array count %u and got %u",
 			expected, count];
     }
 
@@ -1219,9 +1247,9 @@ static Class NSDataMallocClass;
 
 - (NSData*) decodeDataObject
 {
-  NSUInteger	l;
+  unsigned	l;
 
-  (*dValImp)(self, dValSel, @encode(NSUInteger), &l);
+  (*dValImp)(self, dValSel, @encode(unsigned int), &l);
   if (l)
     {
       unsigned char	c;
