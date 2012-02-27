@@ -1,3 +1,10 @@
+2012-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArchiver.m:
+	* Source/NSUnarchiver.m:
+	Alter to support encoding and decoding arrays with NSUInteger counts
+	(ie more than 2^32 objects if on a 64bit system).
+
 2012-02-26  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/NSData.m: Various 64-bit compatibility fixes, mostly changing
