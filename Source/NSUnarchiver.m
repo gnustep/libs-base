@@ -545,6 +545,11 @@ static Class NSDataMallocClass;
       count = 0;
       for (;;)
 	{
+	  if (count * 128 < count)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"overflow in array count"];
+	    }
 	  count *= 128;
 	  (*desImp)(src, desSel, &c, @encode(uint8_t), &cursor, nil);
 	  if (c & 128)
