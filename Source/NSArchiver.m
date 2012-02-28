@@ -1040,7 +1040,7 @@ static Class	NSMutableDataMallocClass;
    */
   _startPos = [_data length];
   [self serializeHeaderAt: _startPos
-		  version: 0
+		  version: [self systemVersion]
 		  classes: 0
 		  objects: 0
 		 pointers: 0];
