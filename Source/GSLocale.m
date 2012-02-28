@@ -29,6 +29,23 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSLock.h"
 
+static NSString *
+privateSetLocale(int category, NSString *locale);
+
+const char*
+GSSetLocaleC(int category, const char *loc)
+{
+  NSWarnLog(@"GSSetLocaleC is deprecated and has no effect");
+  return NULL;
+}
+
+NSString *
+GSSetLocale(int category, NSString *locale)
+{
+  NSWarnLog(@"GSSetLocale is deprecated and has no effect");
+  return nil;
+}
+
 #ifdef HAVE_LOCALE_H
 
 #include <locale.h>
@@ -39,51 +56,24 @@
 
 #import "GSPrivate.h"
 
-/*
- * Function called by [NSObject +initialize] to setup locale information
- * from environment variables.  Must *not* use any ObjC code since it needs
- * to run before any ObjC classes are fully initialised so that they can
- * make use of locale information.
- */
-const char*
-GSSetLocaleC(int category, const char *loc)
-{
-  return setlocale(category, loc);
-}
-
 #define ToString(value) [NSString stringWithCString: (value) \
 encoding: GSPrivateNativeCStringEncoding()]
 
-/* Set the locale for libc functions from the supplied string or from
-   the environment if not specified. This function should be called
-   as soon as possible after the start of the program. Passing
-   @"" will set the locale from the environment variables LC_CTYPE or LANG (or
-   whatever is specified by setlocale) Passing nil will just return the
-   current locale. */
-NSString *
-GSSetLocale(int category, NSString *locale)
+static NSString *
+privateSetLocale(int category, NSString *locale)
 {
-  const char *clocale;
-
-  clocale = NULL;
+  const char *clocale = NULL;
   if (locale != nil)
     {
       clocale = [locale cString];
     }
-  clocale = GSSetLocaleC(category, clocale);
+  clocale = setlocale(category, clocale);
 
-  if (clocale == NULL || strcmp(clocale, "C") == 0
-    || strcmp(clocale, "POSIX") == 0)
+  if (clocale != NULL)
     {
-      clocale = NULL;
+      return ToString(clocale);
     }
-
-  locale = nil;
-  if (clocale != 0)
-    {
-      locale = ToString(clocale);
-    }
-  return locale;
+  return nil;
 }
 
 #define GSLanginfo(value) ToString(nl_langinfo (value))
@@ -104,6 +94,7 @@ GSDomainFromDefaultLocale(void)
   int			i;
   NSMutableArray	*arr;
 #endif
+  NSString              *backupLocale;
 
   if (saved != nil)
     return saved;
@@ -114,6 +105,13 @@ GSDomainFromDefaultLocale(void)
    * it and interfering with the buffer.
    */
   [gnustep_global_lock lock];
+
+  /**
+   * Set the current locale to the system default, and backup
+   * what it was previously (should have been @"C").
+   */
+  backupLocale = privateSetLocale(LC_ALL, nil);
+  privateSetLocale(LC_ALL, @"");
 
 #ifdef HAVE_LANGINFO_H
   /* Time/Date Information */
@@ -199,7 +197,7 @@ GSDomainFromDefaultLocale(void)
   /* FIXME: Get currency format from localeconv */
 
 #ifdef	LC_MESSAGES
-  str1 = GSSetLocale(LC_MESSAGES, nil);
+  str1 = privateSetLocale(LC_MESSAGES, nil);
 #else
   str1 = nil;
 #endif
@@ -221,13 +219,20 @@ GSDomainFromDefaultLocale(void)
     {
       saved = [NSObject leak: dict];
     }
+
+  /**
+   * Restore the current locale to what we backed up (again, should
+   * be restored to @"C")
+   */
+  privateSetLocale(LC_ALL, backupLocale);
+
   [gnustep_global_lock unlock];
   return saved;
 }
 
 #else /* HAVE_LOCALE_H */
-NSString *
-GSSetLocale(int category, NSString *locale)
+static NSString *
+privateSetLocale(int category, NSString *locale)
 {
   return nil;
 }
@@ -309,4 +314,22 @@ GSLanguagesFromLocale(NSString *locale)
 	}
     }
   return result;
+}
+
+NSString *GSDefaultLanguageLocale()
+{
+  NSString *backup, *locale = nil;
+
+#ifdef HAVE_LOCALE_H
+  [gnustep_global_lock lock];
+
+  backup = privateSetLocale(LC_ALL, nil);
+  privateSetLocale(LC_ALL, @"");
+  locale = privateSetLocale(LC_MESSAGES, nil);  
+  privateSetLocale(LC_ALL, backup);
+
+  [gnustep_global_lock unlock];
+#endif
+
+  return locale;  
 }

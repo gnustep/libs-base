@@ -1098,15 +1098,6 @@ static id gs_weak_load(id obj)
 #  endif
 #endif
 
-
-#ifdef HAVE_LOCALE_H
-      /* Set up locale from environment.
-       * This function should not use any ObjC code since important
-       * classes are not yet initialized.
-       */
-      GSSetLocaleC(LC_ALL, "");
-#endif
-
       /* Create the global lock.
        * NB. Ths is one of the first things we do ... setting up a new lock
        * must not call any other Objective-C classes and must not involve

@@ -353,19 +353,16 @@ systemLanguages()
   }	
   
   // If LANGUAGES did not yield any languages, try LC_MESSAGES
-#ifdef HAVE_LOCALE_H
-#ifdef LC_MESSAGES
+
   if ([names count] == 0)
     {
-      NSString *locale = GSSetLocale(LC_MESSAGES, nil);
+      NSString *locale = GSDefaultLanguageLocale();
 
       if (locale != nil)
 	{
 	  [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
 	}
     }
-#endif
-#endif
 
   return names;
 }
@@ -994,13 +991,8 @@ newLanguages(NSArray *oldNames)
 	         * precisely because it is the currently set locale in the
 	         * C library.
 	         */
-	        NSString	*locale = nil;
+	        NSString	*locale = GSDefaultLanguageLocale();
 
-#ifdef HAVE_LOCALE_H
-#ifdef LC_MESSAGES
-	        locale = GSSetLocale(LC_MESSAGES, nil);
-#endif
-#endif
 	        if (locale != nil)
 	          {
 		    NSString	*i18n = GSLanguageFromLocale(locale);
