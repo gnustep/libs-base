@@ -1,5 +1,11 @@
 2012-02-27  Eric Wasylishen  <ewasylishen@gmail.com>
 
+	* Source/NSArchiver.m (-resetArchiver): Write [self systemVersion] as
+	the archive version instead of 0, because this is what will be stored in
+	the archive if -encodeRootObject: is not called.
+
+2012-02-27  Eric Wasylishen  <ewasylishen@gmail.com>
+
 	* SSL/configure.ac: Change test for ssl2_clear in -lssl
 	to test for SSL_clear, which is a public function and
 	is acutally used by the SSL bundle. The test for ssl2_clear
