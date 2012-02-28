@@ -1,5 +1,18 @@
 2012-02-27  Eric Wasylishen  <ewasylishen@gmail.com>
 
+	* Source/GSLocale.m:
+	 - Deprecate GSSetLocale and GSSetLocaleC; they now do nothing
+	   but print a warning.
+	 - Introduce GSDefaultLanguageLocale(), which is a
+	   substitute for GSSetLocale(LC_MESSAGES, nil), which just returns the
+	   current setting of LC_MESSAGES.
+	* Source/NSObject.m (+initialize): Remove GSSetLocaleC call,
+	which was changing the libc locale.
+	* Source/NSUserDefaults.m: Use GSDefaultLanguageLocale() instead of
+	GSSetLocale(LC_MESSAGES, nil)
+
+2012-02-27  Eric Wasylishen  <ewasylishen@gmail.com>
+
 	* Source/NSArchiver.m (-resetArchiver): Write [self systemVersion] as
 	the archive version instead of 0, because this is what will be stored in
 	the archive if -encodeRootObject: is not called.

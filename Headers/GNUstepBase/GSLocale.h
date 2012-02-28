@@ -45,6 +45,11 @@ GS_EXPORT NSString   *GSSetLocale(int category, NSString *locale);
 GS_EXPORT NSDictionary *GSDomainFromDefaultLocale(void);
 
 /**
+ * Returns the locale string for LC_MESSAGES
+ */
+GS_EXPORT NSString *GSDefaultLanguageLocale(void);
+
+/**
  * Returns a language name string for a given locale.
  * e.g. GSLanguageFromLocale(@"en_CA") returns @"CanadaEnglish"
  */
