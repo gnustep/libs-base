@@ -647,8 +647,7 @@ NSArray *execute_xpath(NSXMLNode *xmlNode,
   if (xpathObj == NULL) 
     {
       NSLog(@"Error: unable to evaluate xpath expression \"%s\"", xpathExpr);
-      xmlXPathFreeContext(xpathCtx); 
-      xmlFreeDoc(doc); 
+      xmlXPathFreeContext(xpathCtx);
       return nil;
     }
   
