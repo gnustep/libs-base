@@ -1379,15 +1379,6 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   _initialPass = NO;
   (*_eObjImp)(self, eObjSel, rootObject);
 
-  /*
-   *	Write sizes of crossref arrays to head of archive.
-   */
-  [self _serializeHeaderAt: _cursor
-		   version: [self systemVersion]
-		   classes: _clsMap->nodeCount
-		   objects: _uIdMap->nodeCount
-		  pointers: _ptrMap->nodeCount];
-
   _encodingRoot = NO;
 }
 
@@ -1802,7 +1793,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	   *	Write dummy header
 	   */
 	  [self _serializeHeaderAt: _cursor
-			   version: 0
+			   version: [self systemVersion]
 			   classes: 0
 			   objects: 0
 			  pointers: 0];
@@ -1963,6 +1954,17 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
 - (NSMutableArray*) _components
 {
+  if (nil != _dst)
+    {
+      /*
+       *	Write sizes of crossref arrays to head of archive.
+       */
+      [self _serializeHeaderAt: _cursor
+		       version: [self systemVersion]
+		       classes: _clsMap->nodeCount
+		       objects: _uIdMap->nodeCount
+		      pointers: _ptrMap->nodeCount];
+    }
   return _comp;
 }
 
