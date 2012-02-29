@@ -23,12 +23,23 @@
 
 */
 
-#import "common.h"
-
-#ifndef	_XOPEN_SOURCE
+/* Carefully turn off _GNU_SOURCE and on _XOPEN_SOURCE for string.h so we
+ * get the POSIX strerror_r
+ */
+#ifdef	_GNU_SOURCE
+#undef	_GNU_SOURCE
+#define	_GNU_SOURCE 0
+#endif
+#ifdef	_XOPEN_SOURCE
+#undef	_XOPEN_SOURCE
 #define	_XOPEN_SOURCE 600
 #endif
 #include <string.h>
+#undef	_GNU_SOURCE
+#undef	_XOPEN_SOURCE
+
+#import "config.h"
+
 #include <stdio.h>
 
 #import "Foundation/NSDictionary.h"
