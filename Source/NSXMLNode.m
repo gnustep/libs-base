@@ -647,8 +647,7 @@ NSArray *execute_xpath(NSXMLNode *xmlNode,
   if (xpathObj == NULL) 
     {
       NSLog(@"Error: unable to evaluate xpath expression \"%s\"", xpathExpr);
-      xmlXPathFreeContext(xpathCtx); 
-      xmlFreeDoc(doc); 
+      xmlXPathFreeContext(xpathCtx);
       return nil;
     }
   
@@ -937,11 +936,14 @@ NSArray *execute_xpath(NSXMLNode *xmlNode,
 - (id) copyWithZone: (NSZone*)zone
 {
   id c = [[self class] allocWithZone: zone];
-  // make a deep copy
-  xmlNodePtr newNode = xmlCopyNode([self _node], 2);
+  xmlNodePtr newNode = xmlCopyNode([self _node], 1); // make a deep copy
   clearPrivatePointers(newNode);
 
+  //c = [c initWithKind: internal->kind options: internal->options];
+  //[c _setNode: newNode];
   c = [c _initWithNode: newNode kind: internal->kind];
+
+  
 
 //  [c setName: [self name]];
 //  [c setURI: [self URI]];
