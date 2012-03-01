@@ -829,7 +829,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
         }
       else
         {
-          [output appendFormat: @"%f", [obj doubleValue]];
+          [output appendFormat: @"%g", [obj doubleValue]];
         }
     }
   else if ([obj isKindOfClass: NSNullClass])

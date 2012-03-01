@@ -1,3 +1,8 @@
+2012-03-01  Jens Alfke <jens@mooseyard.com>
+
+	* Source/NSJSONSerialization.m:
+	Use %g for numeric output format.
+
 2012-03-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSRunLoopWatcher.h:
