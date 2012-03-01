@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-#include "config.h"
+#import "common.h"
 
 #include <ctype.h>
 #include <sys/types.h>

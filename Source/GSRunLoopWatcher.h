@@ -54,8 +54,8 @@
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
 
-#include "config.h"
-#include <Foundation/NSRunLoop.h>
+#import "common.h"
+#import "Foundation/NSRunLoop.h"
 
 @class NSDate;
 

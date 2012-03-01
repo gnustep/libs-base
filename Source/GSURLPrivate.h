@@ -27,7 +27,7 @@
 /*
  * Headers needed by many URL loading classes
  */
-#import "config.h"
+#import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSData.h"

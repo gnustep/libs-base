@@ -25,8 +25,7 @@
 #ifndef	_INCLUDED_NSXMLPRIVATE_H
 #define	_INCLUDED_NSXMLPRIVATE_H
 
-#import "config.h"
-#import "GNUstepBase/GSConfig.h"
+#import "common.h"
 
 #define	EXPOSE_NSXMLDTD_IVARS	1
 #define	EXPOSE_NSXMLDTDNode_IVARS	1
@@ -42,7 +41,9 @@
 inline static unsigned char *XMLStringCopy(NSString *source)
 {
   char *xmlstr;
-  unsigned int len = [source maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
+  unsigned int len;
+
+  len = [source maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
   if (len == 0)
     return NULL;
   xmlstr = malloc(len);
