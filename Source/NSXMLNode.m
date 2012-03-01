@@ -161,6 +161,7 @@ isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
       xmlFree(contentA);
       xmlFree(contentB);
     }
+  // FIXME: Handle more node types
   
   return YES;
 }
@@ -222,7 +223,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 @implementation NSXMLNode (Private)
 - (void *) _node
 {
-  return internal->node;
+  return MY_NODE;
 }
 
 - (void) _setNode: (void *)_anode
@@ -230,6 +231,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   if (_anode)
     ((xmlNodePtr)_anode)->_private = self;
   internal->node = _anode;
+  DESTROY(internal->subNodes);
 }
 
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node
@@ -505,7 +507,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 - (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index
 {
   NSUInteger count = 0;
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlNodePtr node = MY_NODE;
   xmlNodePtr children = node->children;
 
   if (!children)
@@ -530,7 +532,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   
   // Get all of the nodes...
   xmlNodePtr parentNode = MY_NODE; // we are the parent
-  xmlNodePtr childNode = ((xmlNodePtr)[child _node]);
+  xmlNodePtr childNode = (xmlNodePtr)[child _node];
   xmlNodePtr curNode = [self _childNodeAtIndex: index];
   BOOL mergeTextNodes = NO; // is there a defined option for this?
 
@@ -538,13 +540,12 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
     {
       // this uses the built-in libxml functions which merge adjacent text nodes
       xmlNodePtr addedNode = NULL;
-      //curNode = ((xmlNodePtr)[cur _node]);
 
-      if (curNode == NULL) //(0 == childCount || index == childCount)
+      if (curNode == NULL)
         {
           addedNode = xmlAddChild(parentNode, childNode);
         }
-      else //if (index < childCount)
+      else
         {
           addedNode = xmlAddPrevSibling(curNode, childNode);
         }
@@ -619,6 +620,7 @@ clearPrivatePointers(xmlNodePtr aNode)
   clearPrivatePointers(aNode->next);
   if (aNode->type == XML_ELEMENT_NODE)
     clearPrivatePointers((xmlNodePtr)(aNode->properties));
+  // FIXME: Handle more node types
 }
 
 static int
@@ -972,6 +974,11 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   xmlNodePtr children = NULL;
   xmlNodePtr node = MY_NODE;
 
+  if (!node)
+    {
+      return 0;
+    }
+
   for (children = node->children; children; children = children->next)
     {
       count++;
@@ -991,9 +998,9 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   else
     {
       xmlNodePtr children = NULL;
-      xmlNodePtr node = (xmlNodePtr)(internal->node);
+      xmlNodePtr node = MY_NODE;
       
-      if (node->children == NULL)
+      if ((node == NULL) || (node->children == NULL))
 	{
 	  return nil;
 	}
@@ -1011,18 +1018,14 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 - (id) copyWithZone: (NSZone*)zone
 {
   id c = [[self class] allocWithZone: zone];
-  xmlNodePtr newNode = xmlCopyNode([self _node], 1); // make a deep copy
+  xmlNodePtr newNode = xmlCopyNode([self _node], 2); // make a deep copy
   clearPrivatePointers(newNode);
 
-  //c = [c initWithKind: internal->kind options: internal->options];
-  //[c _setNode: newNode];
   c = [c _initWithNode: newNode kind: internal->kind];
 
-  
-
+  [c setObjectValue: [self objectValue]];
+  [c setURI: [self URI]];
 //  [c setName: [self name]];
-//  [c setURI: [self URI]];
-//  [c setObjectValue: [self objectValue]];
 //  [c setStringValue: [self stringValue]];
 
   return c;
@@ -1064,7 +1067,8 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 {
   if (GS_EXISTS_INTERNAL)
     {
-      xmlNodePtr node = (xmlNodePtr)(internal->node);
+      xmlNodePtr node = MY_NODE;
+
       [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
@@ -1084,39 +1088,18 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (void) detach
 {
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlNodePtr node = MY_NODE;
+
   if (node)
     {
       xmlNodePtr parentNode = node->parent;
       NSXMLNode *parent = (parentNode ? parentNode->_private : nil);
 
-      xmlUnlinkNode(node); // separate our node from its parent and siblings
+      // separate our node from its parent and siblings
+      xmlUnlinkNode(node);
       if (parent)
 	{
-          int extraRetains = 0;
-	  // transfer extra retains of this branch from our parent to ourself
-	  extraRetains = internal->externalRetains;
-	  //[self verifyExternalRetains];
-	  if (extraRetains)
-	    {
-///	      [parent releaseExternalRetain: extraRetains];
-	      if ([self retainCount] == 1)
-		{
-		  internal->externalRetains++;
-		  NSDebugLLog(@"NSXMLNode", 
-		    @"ADDED TRICKY EXTRA COUNT WHILE DETACHING in %@ now: "
-		    @"%d subNodes(low): %d", self, internal->externalRetains,
-		    [self verifyExternalRetains]);
-		}
-	      [super retain]; //[self recordExternalRetain: extraRetains];
-	      internal->retainedSelf++;
-	      NSDebugLLog(@"NSXMLNode", @"RETAINED SELF %@ (%d) in detach",
-		self, internal->retainedSelf);
-	    }
 	  [parent _removeSubNode: self];
-	  NSDebugLLog(@"NSXMLNode",
-	    @"DETACHED %@ from %@ and transferred extra retains: %d",
-	    self, parent, extraRetains);
 	}
     }
 }
@@ -1128,8 +1111,9 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSUInteger) index
 {
+  xmlNodePtr node = MY_NODE;
   int count = 0;
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
+
   while ((node = node->prev))
     {
       count++; // count our earlier sibling nodes
@@ -1152,11 +1136,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 {
   Class theSubclass = [NSXMLNode class];
   void *node = NULL;
-
-  if (nil == (self = [super init]))
-    {
-      return nil;
-    }
 
   /*
    * We find the correct subclass for specific node kinds: 
@@ -1215,6 +1194,9 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 				       options: theOptions];
     }
 
+  /* If we are initializing for the correct class, we can actually perform
+   * initializations: 
+   */
   switch (kind)
     {
       case NSXMLDocumentKind: 
@@ -1260,18 +1242,11 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 	break;
     }
 
-  /* Create holder for internal instance variables if needed.
-   */
-  [self _createInternal];
+  if (nil == (self = [self _initWithNode: node kind: kind]))
+    {
+      return nil;
+    }
 
-  /* Create libxml object to go with it...
-   */
-  [self _setNode: node];
-
-  /* If we are initializing for the correct class, we can actually perform
-   * initializations: 
-   */
-  internal->kind = kind;
   internal->options = theOptions;
   return self;
 }
@@ -1282,7 +1257,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     {
       return NO;
     }
-  return isEqualTree(MY_NODE,(xmlNodePtr)[other _node]);
+  return isEqualTree(MY_NODE, (xmlNodePtr)[other _node]);
 }
 
 - (NSXMLNodeKind) kind
@@ -1293,8 +1268,14 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 - (NSUInteger) level
 {
   NSUInteger level = 0;
-  xmlNodePtr tmp = MY_NODE->parent;
+  xmlNodePtr tmp;
 
+  if (!MY_NODE)
+    {
+      return 0;
+    }
+
+  tmp = MY_NODE->parent;
   while (tmp != NULL)
     {
       level++;
@@ -1431,7 +1412,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 {
   if (nil == value)
     {
-      ASSIGN(internal->objectValue, [NSString stringWithString: @""]);
+      ASSIGN(internal->objectValue, @"");
       return;
     }
   ASSIGN(internal->objectValue, value);
@@ -1439,11 +1420,12 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (void) setName: (NSString *)name
 {
-  if (NSXMLInvalidKind != internal->kind)
+  if (NSXMLInvalidKind == internal->kind)
     {
-      xmlNodePtr node = MY_NODE;
-      xmlNodeSetName(node, XMLSTRING(name));
+      return;
     }
+  
+  xmlNodeSetName(MY_NODE, XMLSTRING(name));
 }
 
 - (void) setStringValue: (NSString*)string
@@ -1476,10 +1458,12 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (void) setURI: (NSString*)URI
 {
-  if (NSXMLInvalidKind != internal->kind)
+  if (NSXMLInvalidKind == internal->kind)
     {
-      ASSIGNCOPY(internal->URI, URI);
+      return;
     }
+  ASSIGNCOPY(internal->URI, URI);
+  //xmlNodeSetBase(MY_NODE, XMLSTRING(URI));
 }
 
 - (NSString*) URI
@@ -1488,7 +1472,8 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     {
       return nil;
     }
-  return internal->URI;	// FIXME ... fetch from libxml
+  return internal->URI;
+  //return StringFromXMLStringPtr(xmlNodeGetBase(NULL, MY_NODE));
 }
 
 - (NSString*) XMLString
@@ -1502,7 +1487,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   xmlNodePtr   node = (xmlNodePtr)[self _node];
   xmlChar      *buf = NULL;
   xmlDocPtr    doc = node->doc;
-  xmlBufferPtr buffer = xmlBufferCreate(); //NULL;
+  xmlBufferPtr buffer = xmlBufferCreate();
   int error = 0;
   int len = 0;
 
