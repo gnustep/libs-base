@@ -98,6 +98,8 @@
 #  endif
 #endif
 
+#import "GSPrivate.h" 
+
 NSString*
 GSPrivateSockaddrHost(struct sockaddr *addr) GS_ATTRIB_PRIVATE;
 

@@ -55,12 +55,45 @@ typedef struct {
 
 @implementation	NSURLResponse (Private)
 
+- (void) _checkHeaders
+{
+  if (NSURLResponseUnknownLength == this->expectedContentLength)
+    {
+      NSString	*s= [self _valueForHTTPHeaderField: @"content-length"];
+
+      if ([s length] > 0)
+	{
+	  this->expectedContentLength = [s intValue];
+	}
+    }
+
+  if (nil == this->MIMEType)
+    {
+      GSMimeHeader	*c;
+      GSMimeParser	*p;
+      NSScanner		*s;
+      NSString		*v;
+
+      v = [self _valueForHTTPHeaderField: @"content-type"];
+      if (v == nil)
+        {
+	  v = @"text/plain";	// No content type given.
+	}
+      s = [NSScanner scannerWithString: v];
+      p = [GSMimeParser new];
+      c = AUTORELEASE([GSMimeHeader new]);
+      [p scanHeaderBody: s into: c];
+      RELEASE(p);
+      ASSIGNCOPY(this->MIMEType, [c value]);
+      v = [c parameterForKey: @"charset"];
+      ASSIGNCOPY(this->textEncodingName, v);
+    }
+}
+
 - (void) _setHeaders: (id)headers
 {
   NSEnumerator	*e;
   NSString	*v;
-  NSString	*contentLength = nil;
-  GSMimeHeader	*contentType = nil;
 
   if ([headers isKindOfClass: [NSDictionary class]] == YES)
     {
@@ -83,46 +116,10 @@ typedef struct {
 	  NSString	*n = [h namePreservingCase: YES];
 	  NSString	*v = [h fullValue];
 
-	  if ([n caseInsensitiveCompare: @"content-type"] == NSOrderedSame)
-	    {
-	      contentType = h;
-	    }
 	  [self _setValue: v forHTTPHeaderField: n];
 	}
     }
-
-  if (contentLength == nil)
-    {
-      contentLength = [self _valueForHTTPHeaderField: @"content-length"];
-    }
-  if ([contentLength length] == 0)
-    {
-      this->expectedContentLength = -1;
-    }
-  else
-    {
-      this->expectedContentLength = [contentLength intValue];
-    }
-
-  if (contentType == nil)
-    {
-      GSMimeParser	*p;
-      NSScanner		*s;
-
-      v = [self _valueForHTTPHeaderField: @"content-type"];
-      if (v == nil)
-        {
-	  v = @"text/plain";	// No content type given.
-	}
-      s = [NSScanner scannerWithString: v];
-      p = [GSMimeParser new];
-      contentType = AUTORELEASE([GSMimeHeader new]);
-      [p scanHeaderBody: s into: contentType];
-      RELEASE(p);
-    }
-  ASSIGNCOPY(this->MIMEType, [contentType value]);
-  v = [contentType parameterForKey: @"charset"];
-  ASSIGNCOPY(this->textEncodingName, v);
+  [self _checkHeaders];
 }
 - (void) _setStatusCode: (NSInteger)code text: (NSString*)text
 {
@@ -246,6 +243,24 @@ typedef struct {
       ASSIGNCOPY(this->MIMEType, MIMEType);
       ASSIGNCOPY(this->textEncodingName, name);
       this->expectedContentLength = length;
+    }
+  return self;
+}
+
+- (id) initWithURL: (NSURL*)URL
+	statusCode: (NSInteger)statusCode
+       HTTPVersion: (NSString*)HTTPVersion
+      headerFields: (NSDictionary*)headerFields;
+{
+  self = [self initWithURL: URL
+		  MIMEType: nil
+     expectedContentLength: NSURLResponseUnknownLength
+	  textEncodingName: nil];
+  if (nil != self)
+    {
+      this->statusCode = statusCode;
+      this->headers = [headerFields copy];
+      [self _checkHeaders];
     }
   return self;
 }

@@ -26,7 +26,7 @@
 #define __NSURLResponse_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
+#if OS_API_VERSION(100200,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -66,6 +66,17 @@ extern "C" {
   MIMEType: (NSString *)MIMEType
   expectedContentLength: (NSInteger)length
   textEncodingName: (NSString *)name;
+
+#if OS_API_VERSION(100700,GS_API_LATEST)
+/**
+ * Initialises the receiver with the URL, statusCode, HTTPVersion, and
+ * headerFields provided.
+ */
+- (id) initWithURL: (NSURL*)URL
+	statusCode: (NSInteger)statusCode
+       HTTPVersion: (NSString*)HTTPVersion
+      headerFields: (NSDictionary*)headerFields;
+#endif
 
 /**
  * Returns the receiver's MIME type.
