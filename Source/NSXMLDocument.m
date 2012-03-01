@@ -385,7 +385,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   xmlChar	*buf = NULL;
   int		length;
 
-  xmlDocDumpFormatMemoryEnc(MY_DOC, &buf, &length, "utf-8", 1);
+  xmlDocDumpFormatMemoryEnc(MY_DOC, &buf, &length, "utf-8",
+    ((options & NSXMLNodePrettyPrint) ? 1 : 0));
 
   if (buf != 0 && length > 0)
     {
