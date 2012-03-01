@@ -1,3 +1,14 @@
+2012-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSRunLoopWatcher.h:
+	* Source/NSXMLPrivate.h:
+	* Source/GSRunLoopCtxt.h:
+	* Source/common.h:
+	* Source/Additions/NSError+GNUstepBase.m:
+	* Source/GSURLPrivate.h:
+	Include config.h via common.h ... and have that turn off _GNU_SOURCE
+	so GNU extensions aren't used and we stick to standard strerror_r
+
 2012-03-01  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m: More cleanup.

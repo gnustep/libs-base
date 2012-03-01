@@ -4,6 +4,12 @@
  * might be from an earlier build.
  */
 
+// disable extensions ... we want to use standard code
+#ifdef	_GNU_SOURCE
+#undef	_GNU_SOURCE
+#endif
+#define	_GNU_SOURCE	0
+
 #import	"config.h"
 
 /* If this is included in a file in the Additions subdirectory, and we are

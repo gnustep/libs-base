@@ -25,10 +25,10 @@
    $Date$ $Revision$
 */
 
-#include "config.h"
-#include <Foundation/NSException.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSRunLoop.h>
+#import "common.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSMapTable.h"
+#import "Foundation/NSRunLoop.h"
 
 /*
  *      Setup for inline operation of arrays.
