@@ -43,8 +43,6 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 #if defined(HAVE_LIBXML)
 
-extern void clearPrivatePointers(xmlNodePtr aNode);
-
 // Private methods to manage libxml pointers...
 @interface NSXMLNode (Private)
 - (void *) _node;

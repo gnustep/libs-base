@@ -31,7 +31,6 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 #if defined(HAVE_LIBXML)
 
-extern void clearPrivatePointers(xmlNodePtr aNode);
 
 // Private methods to manage libxml pointers...
 @interface NSXMLNode (Private)
@@ -167,35 +166,35 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   xmlAttrPtr attr = (xmlAttrPtr)[attribute _node];
   xmlAttrPtr oldAttr = xmlHasProp(node, attr->name);
   if (nil != [attribute parent])
-  {
-	[NSException raise: @"NSInvalidArgumentException"
-	            format: @"Tried to add attribute to multiple parents."];
-  }
+    {
+      [NSException raise: @"NSInvalidArgumentException"
+		  format: @"Tried to add attribute to multiple parents."];
+    }
 
   if (NULL != oldAttr)
-  {
-	/*
-	 * As per Cocoa documentation, we only add the attribute if it's not
-	 * already set. xmlHasProp() also looks at the DTD for default attributes
-	 * and we need  to make sure that we only bail out here on #FIXED
-	 * attributes.
-	 */
+    {
+      /*
+       * As per Cocoa documentation, we only add the attribute if it's not
+       * already set. xmlHasProp() also looks at the DTD for default attributes
+       * and we need  to make sure that we only bail out here on #FIXED
+       * attributes.
+       */
 
-	// Do not replace plain attributes.
-	if (XML_ATTRIBUTE_NODE == oldAttr->type)
+      // Do not replace plain attributes.
+      if (XML_ATTRIBUTE_NODE == oldAttr->type)
 	{
 	  return;
 	}
-	else if (XML_ATTRIBUTE_DECL == oldAttr->type)
+      else if (XML_ATTRIBUTE_DECL == oldAttr->type)
 	{
-		// If the attribute is from a DTD, do not replace it if it's #FIXED
-		xmlAttributePtr attrDecl = (xmlAttributePtr)oldAttr;
-		if (XML_ATTRIBUTE_FIXED == attrDecl->def)
-		{
-			return;
-		}
+	  // If the attribute is from a DTD, do not replace it if it's #FIXED
+	  xmlAttributePtr attrDecl = (xmlAttributePtr)oldAttr;
+	  if (XML_ATTRIBUTE_FIXED == attrDecl->def)
+	    {
+	      return;
+	    }
 	}
-  }
+    }
   xmlAddChild(node, (xmlNodePtr)attr);
   [self _addSubNode:attribute];
 }
@@ -206,10 +205,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   xmlAttrPtr attr = xmlHasProp(node, (xmlChar *)[name UTF8String]);
   xmlAttrPtr newAttr = NULL;
   NSXMLNode *attrNode = nil;
+
   if (NULL == attr)
-  {
-	  return;
-  }
+    {
+      return;
+    }
 
   // We need a copy of the node because xmlRemoveProp() frees attr:
   newAttr = xmlCopyProp(NULL, attr);
@@ -217,15 +217,15 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
   // This is supposed to return failure for DTD defined attributes
   if (0 == xmlRemoveProp(attr))
-  {
-	  [attrNode _setNode: newAttr];
-	  [self _removeSubNode: attrNode];
-  }
+    {
+      [attrNode _setNode: newAttr];
+      [self _removeSubNode: attrNode];
+    }
   else
-  {
-	  // In this case we throw away our copy again.
-	  xmlFreeProp(newAttr);
-  }
+    {
+      // In this case we throw away our copy again.
+      xmlFreeProp(newAttr);
+    }
 }
 
 - (void) setAttributes: (NSArray*)attributes
@@ -261,12 +261,14 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSArray*) attributes
 {
-  NSMutableArray *attributes = [NSMutableArray array];
-  xmlNodePtr node = MY_NODE;
-  struct _xmlAttr *	attributeNode = node->properties;
+  NSMutableArray	*attributes = [NSMutableArray array];
+  xmlNodePtr		node = MY_NODE;
+  struct _xmlAttr	*attributeNode = node->properties;
+
   while (attributeNode)
     {
-      NSXMLNode *attribute = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
+      NSXMLNode *attribute;
+      attribute = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
       [attributes addObject:attribute];
       attributeNode = attributeNode->next;
     }
@@ -275,13 +277,14 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
-  NSXMLNode *result = nil;
-  xmlChar *xmlName = xmlCharStrdup([name UTF8String]);
-  xmlAttrPtr attributeNode = xmlHasProp(MY_NODE, xmlName);
+  NSXMLNode	*result = nil;
+  xmlChar	*xmlName = xmlCharStrdup([name UTF8String]);
+  xmlAttrPtr	attributeNode = xmlHasProp(MY_NODE, xmlName);
+
   if (NULL != attributeNode)
-  {
-	result = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
-  }
+    {
+      result = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
+    }
   free(xmlName); // Free the name string since it's no longer needed.
   xmlName = NULL;
   return result; // [internal->attributes objectForKey: name];
@@ -490,7 +493,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   [self removeChildAtIndex: index + 1];
 }
 
-static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
+static void
+joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
 {
   NSXMLNode *objA = (nodeA->_private), *objB = (nodeB->_private);
 
@@ -500,7 +504,10 @@ static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *no
     {
       if (objB != nil) // objB is now invalid
 	{
-	  [objB _invalidate]; // set it to be invalid and make sure it's not pointing to a freed node
+	  /* set it to be invalid and make sure it's not
+	   * pointing to a freed node
+	   */
+	  [objB _invalidate];
 	  [nodesToDelete addObject:objB];
 	}
     }
@@ -515,29 +522,40 @@ static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *no
   NSEnumerator *subEnum = [internal->subNodes objectEnumerator];
   NSXMLNode *subNode = nil;
   NSMutableArray *nodesToDelete = [NSMutableArray array];
+
   while ((subNode = [subEnum nextObject]))
     {
       xmlNodePtr node = [subNode _node];
       xmlNodePtr prev = node->prev;
       xmlNodePtr next = node->next;
       if (node->type == XML_ELEMENT_NODE)
-	[(NSXMLElement *)subNode normalizeAdjacentTextNodesPreservingCDATA:preserve];
-      else if (node->type == XML_TEXT_NODE || (node->type == XML_CDATA_SECTION_NODE && !preserve))
+	{
+	  [(NSXMLElement *)subNode
+	    normalizeAdjacentTextNodesPreservingCDATA:preserve];
+	}
+      else if (node->type == XML_TEXT_NODE
+	|| (node->type == XML_CDATA_SECTION_NODE && !preserve))
 	{
 	  if (next && (next->type == XML_TEXT_NODE
-			|| (next->type == XML_CDATA_SECTION_NODE && !preserve)))
+	    || (next->type == XML_CDATA_SECTION_NODE && !preserve)))
 	    {
 	      //combine node & node->next
 	      joinTextNodes(node, node->next, nodesToDelete);
 	    }
 	  if (prev && (prev->type == XML_TEXT_NODE
-			|| (prev->type == XML_CDATA_SECTION_NODE && !preserve)))
+	    || (prev->type == XML_CDATA_SECTION_NODE && !preserve)))
 	    {
-	      //combine node->prev & node
-		// join the text of both nodes
-		// assign the joined text to the earlier of the two nodes that has an ObjC object
-		// unlink the other node
-		// delete the other node's object (maybe add it to a list of nodes to delete when we're done? -- or just set its node to null, and then remove it from our subNodes when we're done iterating it) (or maybe we need to turn it into an NSInvalidNode too??)
+	      /* combine node->prev & node
+	       * join the text of both nodes
+	       * assign the joined text to the earlier of the two
+	       * nodes that has an ObjC object
+	       * unlink the other node
+	       * delete the other node's object (maybe add it to a
+	       * list of nodes to delete when we're done? --
+	       * or just set its node to null, and then remove it
+	       * from our subNodes when we're done iterating it)
+	       * (or maybe we need to turn it into an NSInvalidNode too??)
+	       */
 	      joinTextNodes(node->prev, node, nodesToDelete);
 	    }
 
