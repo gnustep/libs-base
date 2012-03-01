@@ -1,3 +1,13 @@
+2012-03-01  Graham Lee
+
+	* Source/GSNetworks.h: import GSPrivate.h
+
+2012-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURLResponse.h:
+	* Source/NSURLResponse.m:
+	Implement new initialiser from 10.7
+
 2012-03-01  Jens Alfke <jens@mooseyard.com>
 
 	* Source/NSJSONSerialization.m:
