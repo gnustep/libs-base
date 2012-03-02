@@ -1,4 +1,10 @@
-2012-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+2012-03-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLConnection.m: Compatibility fix for bug #35686
+	In this case Cocoa breaks its own convention about delegates
+	not being retained, so we need to do the same.
+
+2012-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/config.h.in: add missing ICU headers
 	* Source/NSString.m: fix minor coding standard violations.
