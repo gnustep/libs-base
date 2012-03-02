@@ -218,9 +218,10 @@ typedef struct
 	    }
 	}
 
-      /* According to bug #35686, Cocoa has a bizarre deviation from the convention
-       * that delegates are not retained here.  For compatibility we retain the
-       * delegate and release it aggain when the operation is over.
+      /* According to bug #35686, Cocoa has a bizarre deviation from the
+       * convention that delegates are not retained here.
+       * For compatibility we retain the delegate and release it again
+       * when the operation is over.
        */
       this->_delegate = [delegate retain];
       this->_protocol = [[NSURLProtocol alloc]
