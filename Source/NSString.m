@@ -2154,14 +2154,15 @@ handle_printf_atsign (FILE *stream,
 		{
 		  if ((mask & NSAnchoredSearch) == NSAnchoredSearch)
 		    {
-		      if ((mask & NSBackwardsSearch) == NSBackwardsSearch
-			&& (matchLocation + matchLength == NSMaxRange(aRange)))
+		      if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
 			{
-			  result = NSMakeRange(matchLocation, matchLength);
+			  if (matchLocation + matchLength == NSMaxRange(aRange))
+			    result = NSMakeRange(matchLocation, matchLength);
 			}
-		      else if (matchLocation == 0)
+		      else
 			{
-			  result = NSMakeRange(matchLocation, matchLength);
+			  if (matchLocation == 0)
+			    result = NSMakeRange(matchLocation, matchLength);
 			}
 		    }
 		  else 
