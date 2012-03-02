@@ -4216,7 +4216,7 @@ static NSFileManager *fm = nil;
 		    {
 		      c = t - '0';
 		    }
-		  else if (t <= 'A')
+		  else if (t <= 'F')
 		    {
 		      c = t - 'A' + 10;
 		    }
@@ -4244,7 +4244,7 @@ static NSFileManager *fm = nil;
 		    {
 		      c |= t - '0';
 		    }
-		  else if (t <= 'A')
+		  else if (t <= 'F')
 		    {
 		      c |= t - 'A' + 10;
 		    }

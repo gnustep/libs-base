@@ -1,3 +1,10 @@
+2012-03-01  Jens Alfke <jens@mooseyard.com>
+
+	* Source/NSString.m:
+	* Source/NSURL.m:
+	Fix decoding of percent escapes with uppercase hex values
+	(bug #35685)
+
 2012-03-01  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Source/NSString.m: Implement a codepath using ICU for

@@ -1013,7 +1013,7 @@ static NSUInteger	urlAlign;
 			    {
 			      c = *str - '0';
 			    }
-			  else if (*str <= 'A')
+			  else if (*str <= 'F')
 			    {
 			      c = *str - 'A' + 10;
 			    }
@@ -1027,7 +1027,7 @@ static NSUInteger	urlAlign;
 			    {
 			      c |= *str - '0';
 			    }
-			  else if (*str <= 'A')
+			  else if (*str <= 'F')
 			    {
 			      c |= *str - 'A' + 10;
 			    }
