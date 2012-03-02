@@ -2100,8 +2100,8 @@ handle_printf_atsign (FILE *stream,
     }
 
 #if GS_USE_ICU == 1
-  if (locale != nil && 
-      ((mask & NSLiteralSearch) != NSLiteralSearch))
+  if (locale != nil
+    && ((mask & NSLiteralSearch) != NSLiteralSearch))
     {
       NSRange result = NSMakeRange(NSNotFound, 0);
 
@@ -2115,10 +2115,14 @@ handle_printf_atsign (FILE *stream,
 	{
 	  NSUInteger countSelf = aRange.length;
 	  NSUInteger countOther = [aString length];       
-	  unichar *charsSelf = NSZoneMalloc(NSDefaultMallocZone(), countSelf * sizeof(unichar));
-	  unichar *charsOther = NSZoneMalloc(NSDefaultMallocZone(), countOther * sizeof(unichar));
+	  unichar *charsSelf;
+	  unichar *charsOther;
 	  UStringSearch *search = NULL;
 
+	  charsSelf = NSZoneMalloc(NSDefaultMallocZone(),
+	    countSelf * sizeof(unichar));
+	  charsOther = NSZoneMalloc(NSDefaultMallocZone(),
+	    countOther * sizeof(unichar));
 	  if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
 	    {
 	      ucol_setStrength(coll, UCOL_PRIMARY);
@@ -2151,13 +2155,13 @@ handle_printf_atsign (FILE *stream,
 		  if ((mask & NSAnchoredSearch) == NSAnchoredSearch)
 		    {
 		      if ((mask & NSBackwardsSearch) == NSBackwardsSearch
-			  && (matchLocation + matchLength == NSMaxRange(aRange)))
+			&& (matchLocation + matchLength == NSMaxRange(aRange)))
 			{
-			    result = NSMakeRange(matchLocation, matchLength);
+			  result = NSMakeRange(matchLocation, matchLength);
 			}
 		      else if (matchLocation == 0)
 			{
-			    result = NSMakeRange(matchLocation, matchLength);
+			  result = NSMakeRange(matchLocation, matchLength);
 			}
 		    }
 		  else 
@@ -4940,8 +4944,8 @@ static NSFileManager *fm = nil;
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
 
 #if GS_USE_ICU == 1
-  if ((mask & NSLiteralSearch) != NSLiteralSearch &&
-      nil != dict)
+  if ((mask & NSLiteralSearch) != NSLiteralSearch
+    && nil != dict)
     {
       NSString *localeId = [dict objectForKey: NSLocaleIdentifier];
       const char *localeCString = [localeId UTF8String];
@@ -4952,10 +4956,14 @@ static NSFileManager *fm = nil;
 	{
 	  NSUInteger countSelf = compareRange.length;
 	  NSUInteger countOther = [string length];       
-	  unichar *charsSelf = NSZoneMalloc(NSDefaultMallocZone(), countSelf * sizeof(unichar));
-	  unichar *charsOther = NSZoneMalloc(NSDefaultMallocZone(), countOther * sizeof(unichar));
+	  unichar *charsSelf;
+	  unichar *charsOther;
 	  UCollationResult result;
 	  
+	  charsSelf = NSZoneMalloc(NSDefaultMallocZone(),
+	    countSelf * sizeof(unichar));
+	  charsOther = NSZoneMalloc(NSDefaultMallocZone(),
+	    countOther * sizeof(unichar));
 	  // Copy to buffer
 
 	  [self getCharacters: charsSelf range: compareRange];
@@ -4963,7 +4971,7 @@ static NSFileManager *fm = nil;
 	  
 	  if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
 	    {
-	      // see http://icu-project.org/docs/papers/efficient_text_searching_in_java.html
+// see http://icu-project.org/docs/papers/efficient_text_searching_in_java.html
 	      ucol_setStrength(coll, UCOL_PRIMARY);
 	    }
 	  
@@ -4973,7 +4981,8 @@ static NSFileManager *fm = nil;
 	      ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_ON, &status);
 	    }
 	  
-	  result = ucol_strcoll(coll, charsSelf, countSelf, charsOther, countOther);
+	  result = ucol_strcoll(coll,
+	    charsSelf, countSelf, charsOther, countOther);
 	  
 	  NSZoneFree(NSDefaultMallocZone(), charsSelf);
 	  NSZoneFree(NSDefaultMallocZone(), charsOther);	  
@@ -4981,9 +4990,9 @@ static NSFileManager *fm = nil;
 	  
 	  switch (result)
 	    {
-	    case UCOL_EQUAL: return NSOrderedSame;
-	    case UCOL_GREATER: return NSOrderedDescending;
-	    case UCOL_LESS: return NSOrderedAscending;
+	      case UCOL_EQUAL: return NSOrderedSame;
+	      case UCOL_GREATER: return NSOrderedDescending;
+	      case UCOL_LESS: return NSOrderedAscending;
 	    }
 	}
     }

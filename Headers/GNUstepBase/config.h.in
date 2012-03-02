@@ -624,6 +624,9 @@
 /* Define to 1 if you have the <unicode/ucal.h> header file. */
 #undef HAVE_UNICODE_UCAL_H
 
+/* Define to 1 if you have the <unicode/ucol.h> header file. */
+#undef HAVE_UNICODE_UCOL_H
+
 /* Define to 1 if you have the <unicode/ucurr.h> header file. */
 #undef HAVE_UNICODE_UCURR_H
 
@@ -644,6 +647,12 @@
 
 /* Define to 1 if you have the <unicode/uregex.h> header file. */
 #undef HAVE_UNICODE_UREGEX_H
+
+/* Define to 1 if you have the <unicode/usearch.h> header file. */
+#undef HAVE_UNICODE_USEARCH_H
+
+/* Define to 1 if you have the <unicode/ustring.h> header file. */
+#undef HAVE_UNICODE_USTRING_H
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
