@@ -252,8 +252,11 @@ static void testLineRange(char *s, NSRange range, NSRange want)
 }
 
 int main()
-{ 
+{
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  NSString	*str;
+  NSString	*sub;
+  char	buf[10];
   
   PASS_EXCEPTION([NSString stringWithUTF8String: 0],
     NSInvalidArgumentException,
@@ -355,6 +358,16 @@ int main()
   PASS([@"1.2e3" doubleValue] == 1.2e3, "Simple double conversion works");
   PASS([@"4.5E6" floatValue] == 4.5e6, "Simple float conversion works");
 
+  strcpy(buf, "xxaaaxx");
+  str = [[NSString alloc] initWithBytesNoCopy: buf
+				       length: 7
+				     encoding: NSASCIIStringEncoding
+				 freeWhenDone: NO];
+  sub = [str substringWithRange: NSMakeRange(2, 3)];
+  strcpy(buf, "xxbbbxx");
+  PASS_EQUAL(str, @"xxbbbxx", "a no-copy string uses the buffer");
+  [str release];
+  PASS_EQUAL(sub, @"aaa", "a substring uses its own buffer");
   
   [arp release]; arp = nil;
   return 0;
