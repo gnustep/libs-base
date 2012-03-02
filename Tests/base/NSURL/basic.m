@@ -186,6 +186,18 @@ int main()
   PASS([url scheme] == nil,
     "empty string gives nil scheme");
 
+  url = [NSURL URLWithString: @"/%65"];
+  PASS_EQUAL([url path], @"/e",
+    "escapes are decoded in path");
+
+  url = [NSURL URLWithString: @"/%3D"];
+  PASS_EQUAL([url path], @"/=",
+    "uppercase percent escape for '=' in path");
+
+  url = [NSURL URLWithString: @"/%3d"];
+  PASS_EQUAL([url path], @"/=",
+    "lowercase percent escape for '=' in path");
+
   url = [NSURL URLWithString: @"aaa%20ccc/"];
   PASS([[url absoluteString] isEqual: @"aaa%20ccc/"],
     "absolute URL absoluteString works with encoded space");
