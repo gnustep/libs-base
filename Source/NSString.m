@@ -64,6 +64,7 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSMapTable.h"
+#import "Foundation/NSLocale.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSUserDefaults.h"
@@ -92,6 +93,15 @@
 #endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
+#endif
+#if	defined(HAVE_UNICODE_UCOL_H)
+# include <unicode/ucol.h>
+#endif
+#if     defined(HAVE_UNICODE_USTRING_H)
+# include <unicode/ustring.h>
+#endif
+#if     defined(HAVE_UNICODE_USEARCH_H)
+# include <unicode/usearch.h>
 #endif
 
 #import "GNUstepBase/Unicode.h"
@@ -2050,9 +2060,21 @@ handle_printf_atsign (FILE *stream,
 		  options: (NSUInteger)mask
 		    range: (NSRange)aRange
 {
+  return [self rangeOfString: aString
+                     options: mask
+                       range: aRange
+		      locale: nil];
+}
+
+- (NSRange) rangeOfString: (NSString *)aString
+                  options: (NSStringCompareOptions)mask
+                    range: (NSRange)aRange
+                   locale: (NSLocale *)locale
+{
   GS_RANGE_CHECK(aRange, [self length]);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
+
   if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
     {
       NSRange			r = {NSNotFound, 0};
@@ -2076,19 +2098,85 @@ handle_printf_atsign (FILE *stream,
       [regex release];
       return r;
     }
-  return strRangeNsNs(self, aString, mask, aRange);
-}
 
-- (NSRange) rangeOfString: (NSString *)aString
-                  options: (NSStringCompareOptions)mask
-                    range: (NSRange)searchRange
-                   locale: (NSLocale *)locale
-{
-  // FIXME: Doing a locale-insensitive search is better than returning {0, 0},
-  // but it's still wrong.
-  return [self rangeOfString: aString
-                     options: mask
-                       range: searchRange];
+#if GS_USE_ICU == 1
+  if (locale != nil && 
+      ((mask & NSLiteralSearch) != NSLiteralSearch))
+    {
+      NSRange result = NSMakeRange(NSNotFound, 0);
+
+      NSString *localeId = [locale objectForKey: NSLocaleIdentifier];
+      const char *localeCString = [localeId UTF8String];
+
+      UErrorCode status = U_ZERO_ERROR; 
+      UCollator *coll = ucol_open(localeCString, &status);
+
+      if (U_SUCCESS(status))
+	{
+	  NSUInteger countSelf = aRange.length;
+	  NSUInteger countOther = [aString length];       
+	  unichar *charsSelf = NSZoneMalloc(NSDefaultMallocZone(), countSelf * sizeof(unichar));
+	  unichar *charsOther = NSZoneMalloc(NSDefaultMallocZone(), countOther * sizeof(unichar));
+	  UStringSearch *search = NULL;
+
+	  if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
+	    {
+	      ucol_setStrength(coll, UCOL_PRIMARY);
+	    }
+
+	  // Copy to buffer
+      
+	  [self getCharacters: charsSelf range: aRange];
+	  [aString getCharacters: charsOther range: NSMakeRange(0, countOther)];
+	  
+	  search = usearch_openFromCollator(charsOther, countOther,
+					    charsSelf, countSelf,
+					    coll, NULL, &status);
+	  if (search != NULL && U_SUCCESS(status))
+	    {
+	      int32_t matchLocation;
+	      int32_t matchLength;
+	      if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+		{		
+		  matchLocation = usearch_last(search, &status);
+		}
+	      else
+		{
+		  matchLocation = usearch_first(search, &status);
+		}
+	      matchLength = usearch_getMatchedLength(search);
+	      
+	      if (matchLocation != USEARCH_DONE && matchLength != 0)
+		{
+		  if ((mask & NSAnchoredSearch) == NSAnchoredSearch)
+		    {
+		      if ((mask & NSBackwardsSearch) == NSBackwardsSearch
+			  && (matchLocation + matchLength == NSMaxRange(aRange)))
+			{
+			    result = NSMakeRange(matchLocation, matchLength);
+			}
+		      else if (matchLocation == 0)
+			{
+			    result = NSMakeRange(matchLocation, matchLength);
+			}
+		    }
+		  else 
+		    {
+		      result = NSMakeRange(matchLocation, matchLength);
+		    }
+		}
+	    }
+	  NSZoneFree(NSDefaultMallocZone(), charsSelf);
+	  NSZoneFree(NSDefaultMallocZone(), charsOther);	  
+	  usearch_close(search);
+	}
+      ucol_close(coll);
+
+      return result;
+    }
+#endif
+
+  return strRangeNsNs(self, aString, mask, aRange);
 }
 
 - (NSUInteger) indexOfString: (NSString *)substring
@@ -2186,10 +2274,10 @@ handle_printf_atsign (FILE *stream,
 		       options: (NSUInteger)mask
 			 range: (NSRange)aRange
 {
-  GS_RANGE_CHECK(aRange, [self length]);
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
-  return strCompNsNs(self, aString, mask, aRange);
+  return [self compare: aString
+	       options: mask
+		 range: aRange
+		locale: nil];
 }
 
 /**
@@ -4841,19 +4929,67 @@ static NSFileManager *fm = nil;
  * <p>Returns <code>NSOrderedAscending</code>, <code>NSOrderedDescending</code>,
  * or <code>NSOrderedSame</code>, depending on whether this instance occurs
  * before or after string in lexical order, or is equal to it.</p>
- *
- * <p><em><strong>Warning:</strong> this implementation and others in NSString
- * IGNORE the locale.</em></p>
  */
 - (NSComparisonResult) compare: (NSString *)string
 		       options: (NSUInteger)mask
 			 range: (NSRange)compareRange
-			locale: (NSDictionary *)dict
+			locale: (id)dict
 {
-  // FIXME: This does only a normal compare, ignoring locale
-  return [self compare: string
-	       options: mask
-		 range: compareRange];
+  GS_RANGE_CHECK(compareRange, [self length]);
+  if (string == nil)
+    [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
+
+#if GS_USE_ICU == 1
+  if ((mask & NSLiteralSearch) != NSLiteralSearch &&
+      nil != dict)
+    {
+      NSString *localeId = [dict objectForKey: NSLocaleIdentifier];
+      const char *localeCString = [localeId UTF8String];
+      
+      UErrorCode status = U_ZERO_ERROR; 
+      UCollator *coll = ucol_open(localeCString, &status); 
+      if (U_SUCCESS(status))
+	{
+	  NSUInteger countSelf = compareRange.length;
+	  NSUInteger countOther = [string length];       
+	  unichar *charsSelf = NSZoneMalloc(NSDefaultMallocZone(), countSelf * sizeof(unichar));
+	  unichar *charsOther = NSZoneMalloc(NSDefaultMallocZone(), countOther * sizeof(unichar));
+	  UCollationResult result;
+	  
+	  // Copy to buffer
+
+	  [self getCharacters: charsSelf range: compareRange];
+	  [string getCharacters: charsOther range: NSMakeRange(0, countOther)];
+	  
+	  if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
+	    {
+	      // see http://icu-project.org/docs/papers/efficient_text_searching_in_java.html
+	      ucol_setStrength(coll, UCOL_PRIMARY);
+	    }
+	  
+	  if ((mask & NSNumericSearch) == NSNumericSearch)
+	    {
+	      status = U_ZERO_ERROR;
+	      ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_ON, &status);
+	    }
+	  
+	  result = ucol_strcoll(coll, charsSelf, countSelf, charsOther, countOther);
+	  
+	  NSZoneFree(NSDefaultMallocZone(), charsSelf);
+	  NSZoneFree(NSDefaultMallocZone(), charsOther);	  
+	  ucol_close(coll); 
+	  
+	  switch (result)
+	    {
+	    case UCOL_EQUAL: return NSOrderedSame;
+	    case UCOL_GREATER: return NSOrderedDescending;
+	    case UCOL_LESS: return NSOrderedAscending;
+	    }
+	}
+    }
+#endif
+
+  return strCompNsNs(self, string, mask, compareRange);
 }
 
 /**
@@ -4863,8 +4999,8 @@ static NSFileManager *fm = nil;
 {
   return [self compare: string
                options: 0
-                 range: ((NSRange){0, [self length]})
-                locale: GSPrivateDefaultLocale()];
+                 range: NSMakeRange(0, [self length])
+                locale: [NSLocale currentLocale]];
 }
 
 /**
@@ -4875,8 +5011,8 @@ static NSFileManager *fm = nil;
 {
   return [self compare: string
                options: NSCaseInsensitiveSearch
-                 range: ((NSRange){0, [self length]})
-                locale: GSPrivateDefaultLocale()];
+                 range: NSMakeRange(0, [self length])
+                locale: [NSLocale currentLocale]];
 }
 
 /**

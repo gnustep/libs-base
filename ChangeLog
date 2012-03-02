@@ -1,3 +1,15 @@
+2012-03-01  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/NSString.m: Implement a codepath using ICU for
+	-compare:options:range:locale: and
+	-rangeOfString:options:range:locale: when a non-nil locale
+	is provided.
+	* Headers/Foundation/NSString.h (-compare:options:range:locale:):
+	Change type of locale parameter to id; it can be NSDictionary or
+	NSLocale.
+	* configure.ac: add some ICU headers used in NSString change
+	* configure: regenerate
+
 2012-03-01  Graham Lee
 
 	* Source/GSNetworks.h: import GSPrivate.h
