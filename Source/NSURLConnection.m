@@ -78,7 +78,7 @@
 
 - (void) setConnection: (NSURLConnection*)c
 {
-  _connection = c;
+  _connection = c;	// Not retained ... the connection retains us
 }
 
 - (void) connection: (NSURLConnection *)connection
@@ -163,6 +163,7 @@ typedef struct
 {
   [this->_protocol stopLoading];
   DESTROY(this->_protocol);
+  DESTROY(this->_delegate);
 }
 
 - (void) dealloc
@@ -170,7 +171,8 @@ typedef struct
   if (this != 0)
     {
       [self cancel];
-      RELEASE(this->_request);
+      DESTROY(this->_request);
+      DESTROY(this->_delegate);
       NSZoneFree([self zone], this);
       _NSURLConnectionInternal = 0;
     }
@@ -216,7 +218,11 @@ typedef struct
 	    }
 	}
 
-      this->_delegate = delegate;
+      /* According to bug #35686, Cocoa has a bizarre deviation from the convention
+       * that delegates are not retained here.  For compatibility we retain the
+       * delegate and release it aggain when the operation is over.
+       */
+      this->_delegate = [delegate retain];
       this->_protocol = [[NSURLProtocol alloc]
 	initWithRequest: this->_request
 	cachedResponse: nil
@@ -309,8 +315,8 @@ typedef struct
       NSRunLoop				*loop;
 
       collector = [_NSURLConnectionDataCollector new];
-      conn = [self alloc];
-      conn = [conn initWithRequest: request delegate: [collector autorelease]];
+      conn = [[self alloc] initWithRequest: request delegate: collector];
+      [collector release];	// retained by connection
       [collector setConnection: conn];
       loop = [NSRunLoop currentRunLoop];
       while ([collector done] == NO)
