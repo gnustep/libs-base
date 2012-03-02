@@ -1,3 +1,7 @@
+2012-03-02  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/NSString.m: Fix for ICU anchored backwards search
+
 2012-03-02  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/GSLocale.m (GSDefaultLanguageLocale): Add missing check
