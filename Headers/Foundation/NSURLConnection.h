@@ -80,7 +80,9 @@ extern "C" {
  * method, so the thread must run its current run loop
  * (in NSDefaultRunLoopMode) for processing to continue/complete.<br />
  * The delegate will receive callbacks informing it of the progress
- * of the load.
+ * of the load.<br />
+ * This method breaks with convention and retains the delegate object,
+ * releasing it when the connection finished loading, fails, or is cancelled.
  */
 - (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate;
 
