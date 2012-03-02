@@ -3768,14 +3768,22 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  GS_RANGE_CHECK(aRange, _count);
-  return substring_c((GSStr)self, aRange);
+  if (_flags.owned)
+    {
+      GS_RANGE_CHECK(aRange, _count);
+      return substring_c((GSStr)self, aRange);
+    }
+  return [super substringWithRange: aRange];
 }
 
 - (NSString*) substringWithRange: (NSRange)aRange
 {
-  GS_RANGE_CHECK(aRange, _count);
-  return substring_c((GSStr)self, aRange);
+  if (_flags.owned)
+    {
+      GS_RANGE_CHECK(aRange, _count);
+      return substring_c((GSStr)self, aRange);
+    }
+  return [super substringWithRange: aRange];
 }
 
 - (id) uppercaseString
@@ -4106,14 +4114,22 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  GS_RANGE_CHECK(aRange, _count);
-  return substring_u((GSStr)self, aRange);
+  if (_flags.owned)
+    {
+      GS_RANGE_CHECK(aRange, _count);
+      return substring_u((GSStr)self, aRange);
+    }
+  return [super substringWithRange: aRange];
 }
 
 - (NSString*) substringWithRange: (NSRange)aRange
 {
-  GS_RANGE_CHECK(aRange, _count);
-  return substring_u((GSStr)self, aRange);
+  if (_flags.owned)
+    {
+      GS_RANGE_CHECK(aRange, _count);
+      return substring_u((GSStr)self, aRange);
+    }
+  return [super substringWithRange: aRange];
 }
 
 - (id) uppercaseString

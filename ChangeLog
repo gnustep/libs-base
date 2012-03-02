@@ -1,5 +1,10 @@
 2012-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSString.m: Compatribility fix ... copy strings implicitly
+	when taking a substring of a string whose buffer is not owned.
+
+2012-03-02  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLConnection.m: Compatibility fix for bug #35686
 	In this case Cocoa breaks its own convention about delegates
 	not being retained, so we need to do the same.
