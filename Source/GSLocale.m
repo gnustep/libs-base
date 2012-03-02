@@ -321,6 +321,7 @@ NSString *GSDefaultLanguageLocale()
   NSString *backup, *locale = nil;
 
 #ifdef HAVE_LOCALE_H
+#ifdef LC_MESSAGES
   [gnustep_global_lock lock];
 
   backup = privateSetLocale(LC_ALL, nil);
@@ -329,6 +330,7 @@ NSString *GSDefaultLanguageLocale()
   privateSetLocale(LC_ALL, backup);
 
   [gnustep_global_lock unlock];
+#endif
 #endif
 
   return locale;  
