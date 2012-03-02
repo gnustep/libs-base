@@ -1,3 +1,8 @@
+2012-03-02  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/GSLocale.m (GSDefaultLanguageLocale): Add missing check
+	for LC_MESSAGES definition.
+
 2012-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Compatribility fix ... copy strings implicitly
