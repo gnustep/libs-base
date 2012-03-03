@@ -12,6 +12,7 @@ int main()
   NSString *dir = @"NSFileManagerTestDir"; 
   NSString *dirInDir;
   NSString *str1,*str2;
+  NSError *err;
 
   dirInDir
     = [@"TestDirectory" stringByAppendingPathComponent: @"WithinDirectory"];
@@ -48,6 +49,16 @@ int main()
     PASS([NSUserName() isEqual: [attr fileOwnerAccountName]],
       "newly created file is owned by current user");
 NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
+    attr = [mgr attributesOfItemAtPath: dir error: &err]; 
+    PASS(attr != nil && err == nil, 
+      "[NSFileManager attributesOfItemAtPath:error:] returns non-nil for "
+      "attributes and nil for error in the case of existing file"); 
+    attr = [mgr attributesOfItemAtPath:
+      [dir stringByAppendingPathComponent:
+	@"thispathMUSTNOTexistatyoursystem"] error: &err]; 
+    PASS(attr == nil && err != nil, 
+      "[NSFileManager attributesOfItemAtPath:error:] returns nil for "
+      "attributes and non-nil for error in the case of non-existent file"); 
   }
   
   PASS([mgr changeCurrentDirectoryPath: dir],
