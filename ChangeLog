@@ -1,3 +1,11 @@
+2012-03-03  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m: Remove all the extra reference handling code
+	and the special retain and release methods.
+	* Tests/base/NSXMLNode/basic.m,
+	* Tests/base/NSXMLNode/children.m: A few more test
+	cases. Validated on MacOSX 10.6.
+
 2012-03-02  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Tests/base/NSString/locale.m: Add a simple test for locale sensitive

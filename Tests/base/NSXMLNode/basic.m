@@ -10,10 +10,13 @@ int main()
   NSXMLNode             *attr; 
 
   node = [[NSXMLNode alloc] initWithKind: NSXMLInvalidKind];
-  test_alloc(@"NSXMLNode");
-  test_NSObject(@"NSXMLNode", [NSArray arrayWithObject: node]);
-
   other = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
+  // We need to set the name, otherwise isEqual: wont work.
+  [other setName: @"test"];
+  test_alloc(@"NSXMLNode");
+  test_NSObject(@"NSXMLNode", [NSArray arrayWithObjects: node, other, nil]);
+  test_NSCopying(@"NSXMLNode", @"NSXMLNode", [NSArray arrayWithObjects: node, other, nil], NO, YES);
+
   PASS(NO == [other isEqual: node], "different node kinds are not equal");
   [other release];
 
@@ -39,7 +42,8 @@ int main()
     "setting object value on invalid node works");
   [node setObjectValue: nil];
   // Per documentation on NSXMLNode setObjectValue/objectValue, 
-  PASS_EQUAL([node objectValue], @"",
+  // On 10.6 this returns nil not @""
+  PASS_EQUAL([node objectValue], nil,
     "setting nil object value on invalid node works");
   [node setStringValue: @"aString"];
   PASS_EQUAL([node stringValue], @"aString",
