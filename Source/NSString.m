@@ -997,7 +997,10 @@ handle_printf_atsign (FILE *stream,
  * If the data is not in a format which can be used internally unmodified,
  * it is copied, otherwise it is used as is.  If the data is not copied
  * the flag determines whether the string will free it when it is no longer
- * needed.<br />
+ * needed (ie whether the new NSString instance 'owns' the memory).<br />
+ * In the case of non-owned memory, it is the caller's responsibility to
+ * ensure that the data continues to exist and is not modified until the
+ * receiver is deallocated.<br />
  * If the data can not be interpreted using the encoding, the receiver
  * is released and nil is returned.
  * <p>Note, this is the most basic initialiser for strings.
@@ -1017,6 +1020,7 @@ handle_printf_atsign (FILE *stream,
  * <p>Initialize with given unicode chars up to length, regardless of presence
  *  of null bytes.  Does not copy the string.  If flag, frees its storage when
  *  this instance is deallocated.</p>
+ * See -initWithBytesNoCopy:length:encoding:freeWhenDone: for more details.
  */
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (NSUInteger)length
@@ -1045,6 +1049,7 @@ handle_printf_atsign (FILE *stream,
  *  presence of null bytes.  Characters converted to unicode based on the
  *  default C encoding.  Does not copy the string.  If flag, frees its storage
  *  when this instance is deallocated.</p>
+ * See -initWithBytesNoCopy:length:encoding:freeWhenDone: for more details.
  */
 - (id) initWithCStringNoCopy: (char*)byteString
 		      length: (NSUInteger)length
