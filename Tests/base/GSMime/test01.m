@@ -70,6 +70,16 @@ int main()
   PASS ([parser parse: data] == NO, "can parse HTTP 200 reponse in one go");
   PASS ([parser isComplete], "parse is complete");
 
+  data = [NSData dataWithContentsOfFile: @"HTTP2.dat"];
+  parser = [GSMimeParser mimeParser];
+  PASS ([parser parse: data] == NO, "can parse HTTP chunked in one go");
+  PASS ([parser isComplete], "parse is complete");
+  PASS ([parser isComplete], "parse is complete");
+
+  PASS_EQUAL([[parser document] convertToText],
+    @"This is the data in the first chunk\r\nand this is the second one\r\n"
+    @"consequence", "content correct");
+
   [arp release]; arp = nil;
   return 0;
 }
