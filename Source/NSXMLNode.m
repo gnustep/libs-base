@@ -216,7 +216,6 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 - (id) _initWithNode: (xmlNodePtr)node kind: (NSXMLNodeKind)kind;
 - (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index;
 - (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
-- (void) _updateExternalRetains;
 - (void) _invalidate;
 @end
 
@@ -304,170 +303,6 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   return result;
 }
 
-/* FIXME ... the whole following section working with externalRetains
- * depends on unsafe assumptions about the functioning of the (deprecated)
- * -retainCount method).
- * There's no documented policy on object ownership ... so it's not clear
- * what this code *should* do.
- * The actual OSX policy should be determined and documented, then we
- * need to produce code which implements the same behavior in a manner
- * consistent with ARC and CR as well as old fashioned retain counts
- * (though we may not want to replicate OSX bugs).
- * It seems to me that there should be no need for the externalRetains
- * counter and definitely no overriding of -retain or -release  or use
- * of -retainCount
- * A naive (simple/obvious) model would be to say that parents own their
- * children, so when the root is deallocated, all the children get detached
- * and released.  In this case retaining a node within a document would cause
- * that node and its children to persist when the document was released.
- * But maybe Apple did something different?
- */
-- (int) _externalRetains
-{
-  return internal->externalRetains;
-}
-
-- (int) verifyExternalRetains 
-{
-// start with 1 or 0 for ourself
-  int extraRetains = ([self retainCount] > 1 ? 1 : 0); 
-  int index;
-  for (index = 0; index < [internal->subNodes count]; index++)
-    extraRetains
-      += [[internal->subNodes objectAtIndex: index] _externalRetains];
-  return extraRetains;
-}
-
-- (void) _updateExternalRetains
-{
-  xmlNodePtr pnode = (MY_NODE ? MY_NODE->parent : NULL);
-  NSXMLNode *parent = (NSXMLNode *)(pnode ? pnode->_private : nil);
-  int oldCount = internal->externalRetains;
-  // start with 1 or 0 for ourself
-  int extraRetains = ([self retainCount] > 1 ? 1 : 0);
-  int index;
-  for (index = 0; index < [internal->subNodes count]; index++)
-    extraRetains
-      += [[internal->subNodes objectAtIndex: index] _externalRetains];
-  internal->externalRetains = extraRetains;
-  if (extraRetains != oldCount)
-    {
-      if (parent)
-	{
-	  // tell our parent (if any) since our count has changed
-	  [parent _updateExternalRetains];
-	}
-      else
-	{
-	  /* we're the root node of this tree, so retain or
-	   * release ourself as needed
-	   */
-	  if (oldCount == 0 && extraRetains > 0)
-	    {
-	      [super retain];
-	      internal->retainedSelf++;
-	      NSDebugLLog(@"NSXMLNode", @"RETAINED SELF %@ (%d)",
-		self, internal->retainedSelf);
-	    }
-	  else if (oldCount > 0 && extraRetains == 0 && internal->retainedSelf)
-	    {
-	      internal->retainedSelf--;
-	      NSDebugLLog(@"NSXMLNode", @"RELEASED SELF %@ (%d)",
-		self, internal->retainedSelf);
-	      [super release];
-	    }
-	}
-    }
-  else
-    {
-      if (!parent)
-	{
-	  if (extraRetains > 0 && internal->retainedSelf == 0)
-	    {
-	      [super retain];
-	      internal->retainedSelf++;
-	      NSDebugLLog(@"NSXMLNode",
-		@"RETAINED SELF AFTER STATUS CHANGED %@ (%d)",
-		self, internal->retainedSelf);
-	    }
-	  else if (extraRetains == 0 && internal->retainedSelf > 0)
-	    {
-	      internal->retainedSelf--;
-	      NSDebugLLog(@"NSXMLNode",
-		@"RELEASED SELF AFTER STATUS CHANGED %@ (%d)",
-		self, internal->retainedSelf);
-	      [super release];
-	    }
-	}
-    }
-}
-
-- (void) _passExternalRetainsTo: (NSXMLNode *)parent
-{
-  /* this object just became a subNode, so pass knowledge of
-   * external retains up the line
-   */
-  if (internal->externalRetains > 0)
-    {
-      NSDebugLLog(@"NSXMLNode",
-	@"_passExternalRetainsTo: %@ (%d,%d) from %@ Start: (%d,%d)",
-	parent, [parent _externalRetains], [parent verifyExternalRetains],
-	self, internal->externalRetains, [self verifyExternalRetains]);
-//      if ([self retainCount] == 2)
-//	{
-//	  internal->externalRetains--;
-//        NSDebugLLog(@"NSXMLNode",
-//	    @"RELEASING TRICKY EXTRA RETAIN WHILE ADDING TO PARENT "
-//	    @"in %@ now: %d", self, internal->externalRetains);
-//	}
-      //[self _updateExternalRetains];
-      if (internal->retainedSelf)
-	{
-	  // we're no longer the root of our branch, so stop retaining ourself
-	  [super release];
-	  internal->retainedSelf--;
-	  NSDebugLLog(@"NSXMLNode",
-	    @"RELEASED SELF %@ (%d) in _passExternal...",
-	    self, internal->retainedSelf);
-	}
-      [parent _updateExternalRetains];
-      NSDebugLLog(@"NSXMLNode",
-	@"DID _passExternalRetainsTo: %@ (%d,%d) from %@ End: (%d,%d)",
-	parent, [parent _externalRetains], [parent verifyExternalRetains],
-	self, internal->externalRetains, [self verifyExternalRetains]);
-   }
-}
-
-- (void) _removeExternalRetainsFrom: (NSXMLNode *)parent
-{
-  /* this object is no longer a subNode, so pass removal of
-   * external retains up the line
-   */
-  if (internal->externalRetains > 0)
-    {
-      NSDebugLLog(@"NSXMLNode",
-	@"_removeExternalRetainsTo: %@ from %@ Start: %d",
-	parent, self, internal->externalRetains);
-//      [parent releaseExternalRetain: internal->externalRetains];
-      if ([self retainCount] == 1)
-	{
-	  internal->externalRetains++;
-	  NSDebugLLog(@"NSXMLNode",
-	    @"ADDED TRICKY EXTRA COUNT WHILE REMOVING FROM PARENT in %@ "
-	    @"now: %d subNodes(low): %d", self, internal->externalRetains,
-	    [self verifyExternalRetains]);
-	}
-
-      // becoming detached, so retain ourself as the new root of our branch
-      [super retain];
-      internal->retainedSelf++;
-      NSDebugLLog(@"NSXMLNode",
-	@"RETAINED SELF %@ (%d) in _removeExternal...",
-	self, internal->retainedSelf);
-      [parent _updateExternalRetains];
-    }
-}
-
 - (void) _addSubNode: (NSXMLNode *)subNode
 {
   if (!internal->subNodes)
@@ -475,7 +310,6 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   if ([internal->subNodes indexOfObjectIdenticalTo: subNode] == NSNotFound)
     {
       [internal->subNodes addObject: subNode];
-      [subNode _passExternalRetainsTo: self];
     }
 }
 
@@ -484,7 +318,6 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   // retain temporarily so we can safely remove from our subNodes list first
   [subNode retain]; 
   [internal->subNodes removeObjectIdenticalTo: subNode];
-  [subNode _removeExternalRetainsFrom: self];
   [subNode release]; // release temporary hold
 }
 
@@ -1038,36 +871,20 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     [self name], [self kind], [self stringValue]];
 }
 
-/* FIXME ... this method should be deleted!
- */
-- (id) retain
-{
-  [super retain]; // do this first
-  if ([self retainCount] == 2)
-    {
-      [self _updateExternalRetains];
-    }
-  return self;
-}
-
-/* FIXME ... this method should be deleted!
- */
-- (void) release
-{
-  if ([self retainCount] == 2)
-    {
-      [super release];
-      [self _updateExternalRetains];
-    }
-  else
-    [super release];
-}
-
 - (void) dealloc
 {
   if (GS_EXISTS_INTERNAL)
     {
       xmlNodePtr node = MY_NODE;
+      NSArray *subNodes = [internal->subNodes copy];
+      NSEnumerator *enumerator = [subNodes objectEnumerator];
+      NSXMLNode *subNode;
+
+      while ((subNode = [enumerator nextObject]) != nil)
+        {
+          [subNode detach];
+        }
+      [subNodes release];
 
       [internal->URI release];
       [internal->objectValue release];
@@ -1359,6 +1176,12 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (id) objectValue
 {
+  // FIXME: Most likely this is wrong, but currently needed for an NSXMLElement test
+  if ((NSXMLInvalidKind != internal->kind) &&
+      (internal->objectValue == nil))
+    {
+      return @"";
+    }
   return internal->objectValue;
 }
 
@@ -1410,11 +1233,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (void) setObjectValue: (id)value
 {
-  if (nil == value)
-    {
-      ASSIGN(internal->objectValue, @"");
-      return;
-    }
   ASSIGN(internal->objectValue, value);
 }
 
