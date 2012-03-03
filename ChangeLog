@@ -14,6 +14,10 @@
 
 2012-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSFileManager.m: fix for bug #35692
+
+2012-03-02  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSString.m: Compatribility fix ... copy strings implicitly
 	when taking a substring of a string whose buffer is not owned.
 

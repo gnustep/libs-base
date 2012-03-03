@@ -1878,7 +1878,14 @@ static NSStringEncoding	defaultEncoding;
   
   if (error != NULL)
     {
-      *error = [NSError _last];
+      if (nil == d)
+	{
+	  *error = [NSError _last];
+	}
+      else
+	{
+	  *error = nil;
+	}
     }
   
   return d;
