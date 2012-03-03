@@ -1,3 +1,8 @@
+2012-03-03 Doug Simons <doug.simons@testplant.com>
+
+	* Source/NSXMLNode.m: xmlFree() crashes on Windows so try calling
+	free() instead, which works. 
+
 2012-02-27 Doug Simons <doug.simons@testplant.com>
 
 	* Source/NSXMLNode.m: Fix a crashing bug after an invalid xpath

@@ -74,12 +74,22 @@ BOOL isEqualAttr(const xmlAttrPtr attrA, const xmlAttrPtr attrB)
 
       if (xmlStrcmp(contentA, contentB) == 0)
 	{
+#ifdef __MINGW32__
+          free(contentA);
+          free(contentB);
+#else
           xmlFree(contentA);
           xmlFree(contentB);
+#endif
 	  return YES;
 	}
+#ifdef __MINGW32__
+      free(contentA);
+      free(contentB);
+#else
       xmlFree(contentA);
       xmlFree(contentB);
+#endif
       return NO;
     }
   
@@ -147,12 +157,22 @@ BOOL isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
       contentB = xmlNodeGetContent((const xmlNodePtr)nodeB);
       if (xmlStrcmp(contentA, contentB) != 0)
 	{
+#ifdef __MINGW32__
+          free(contentA);
+          free(contentB);
+#else
           xmlFree(contentA);
           xmlFree(contentB);
+#endif
 	  return NO;
 	}
+#ifdef __MINGW32__
+      free(contentA);
+      free(contentB);
+#else
       xmlFree(contentA);
       xmlFree(contentB);
+#endif
     }
   
   return YES;
@@ -576,7 +596,11 @@ int register_namespaces(xmlXPathContextPtr xpathCtx,
       if (next == NULL)
         {
           NSLog(@"Error: invalid namespaces list format");
+#ifdef __MINGW32__
+          free(nsListDup);
+#else
           xmlFree(nsListDup);
+#endif
           return -1;	
         }
       *(next++) = '\0';	
@@ -594,12 +618,20 @@ int register_namespaces(xmlXPathContextPtr xpathCtx,
         {
           NSLog(@"Error: unable to register NS with prefix=\"%s\" and href=\"%s\"",
                 prefix, href);
+#ifdef __MINGW32__
+          free(nsListDup);
+#else
           xmlFree(nsListDup);
+#endif
           return -1;	
         }
     }
   
+#ifdef __MINGW32__
+  free(nsListDup);
+#else
   xmlFree(nsListDup);
+#endif
   return 0;
 }
 
@@ -1334,7 +1366,11 @@ NSArray *execute_xpath(NSXMLNode *xmlNode,
   */
 
   result = StringFromXMLStringPtr(content);
+#ifdef __MINGW32__
+  free(content);
+#else
   xmlFree(content);
+#endif
 
   return result;
 }
