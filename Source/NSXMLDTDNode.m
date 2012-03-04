@@ -44,18 +44,25 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
   return internal->DTDKind;
 }
 
+- (void) _createInternal
+{
+  GS_CREATE_INTERNAL(NSXMLDTDNode);
+}
+
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
 {
   if (NSXMLEntityDeclarationKind == kind
-    || NSXMLElementDeclarationKind == kind
-    || NSXMLNotationDeclarationKind == kind)
+      || NSXMLElementDeclarationKind == kind
+      || NSXMLNotationDeclarationKind == kind)
     {
-      /* Create holder for internal instance variables so that we'll have
-       * all our ivars available rather than just those of the superclass.
-       */
-      GS_CREATE_INTERNAL(NSXMLDTDNode)
+      return [super initWithKind: kind options: theOptions];
     }
-  return [super initWithKind: kind options: theOptions];
+  else
+    {
+      [self release];
+      return [[NSXMLNode alloc] initWithKind: kind
+                                     options: theOptions];
+    }
 }
 
 - (id) initWithXMLString: (NSString*)string

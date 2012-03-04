@@ -94,7 +94,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
   data = [NSData dataWithContentsOfURL: url];
   doc = [self initWithData: data options: 0 error: 0];
-  [doc setURI:  [url absoluteString]];
+  [doc setURI: [url absoluteString]];
   return doc;
 }
 
@@ -110,12 +110,14 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 {
   if (NSXMLDTDKind == kind)
     {
-      /* Create holder for internal instance variables so that we'll have
-       * all our ivars available rather than just those of the superclass.
-       */
-      GS_CREATE_INTERNAL(NSXMLDTD)
+      return [super initWithKind: kind options: theOptions];
     }
-  return [super initWithKind: kind options: theOptions];
+  else
+    {
+      [self release];
+      return [[NSXMLNode alloc] initWithKind: kind
+                                     options: theOptions];
+    }
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
