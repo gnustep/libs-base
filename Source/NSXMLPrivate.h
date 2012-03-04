@@ -103,16 +103,11 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  */
 #define GS_NSXMLNode_IVARS \
   NSUInteger	  kind; \
-  NSXMLNode      *parent; \
+  void           *node;  \
+  NSUInteger      options; \
   id              objectValue; \
   NSString       *URI; \
-  NSXMLNode      *previousSibling; \
-  NSXMLNode      *nextSibling;\
-  NSUInteger      options; \
-  void           *node;  \
-  NSMutableArray *subNodes; \
-  int		externalRetains; \
-  int		retainedSelf; \
+  NSMutableArray *subNodes;
 
 
 /* When using the non-fragile ABI, the instance variables are exposed to the
@@ -207,6 +202,19 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #endif /* HAVE_LIBXSLT */
 
 #undef	id
+
+// Private methods to manage libxml pointers...
+@interface NSXMLNode (Private)
+- (void *) _node;
+- (void) _setNode: (void *)_anode;
++ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
+- (void) _addSubNode:(NSXMLNode *)subNode;
+- (void) _removeSubNode:(NSXMLNode *)subNode;
+- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
+- (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index;
+- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
+- (void) _invalidate;
+@end
 
 #endif /* HAVE_LIBXML */
 

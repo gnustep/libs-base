@@ -29,30 +29,12 @@
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 
-#ifdef HAVE_LIBXSLT
-#import <libxslt/xslt.h>
-#import <libxslt/xsltInternals.h>
-#import <libxslt/transform.h>
-#import <libxslt/xsltutils.h>
-#endif
-
 GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 //#import <Foundation/NSXMLParser.h>
 #import <Foundation/NSError.h>
 
 #if defined(HAVE_LIBXML)
-
-// Private methods to manage libxml pointers...
-@interface NSXMLNode (Private)
-- (void *) _node;
-- (void) _setNode: (void *)_anode;
-+ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
-- (void) _addSubNode:(NSXMLNode *)subNode;
-- (void) _removeSubNode:(NSXMLNode *)subNode;
-- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
-- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
-@end
 
 @implementation	NSXMLDocument
 
@@ -112,7 +94,6 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   return doc;
 }
 
-
 - (id) initWithData: (NSData*)data
             options: (NSUInteger)mask
               error: (NSError**)error
@@ -157,6 +138,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
                                        userInfo: nil]; 
             }
 	}
+      // FIXME: Free old node
       [self _setNode: doc];
     }
   return self;
@@ -172,7 +154,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
     {
       [self release];
       return [[NSXMLNode alloc] initWithKind: kind
-				       options: theOptions];
+                                     options: theOptions];
     }
 }
 
@@ -262,6 +244,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 		   root, 
 		   self];
     }
+
+  // FIXME: Should remove all sub nodes
 
   xmlDocSetRootElement(MY_DOC, [root _node]);
 

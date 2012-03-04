@@ -206,19 +206,6 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   return NO;
 }
 
-// Private methods to manage libxml pointers...
-@interface NSXMLNode (Private)
-- (void *) _node;
-- (void) _setNode: (void *)_anode;
-+ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
-- (void) _addSubNode: (NSXMLNode *)subNode;
-- (void) _removeSubNode: (NSXMLNode *)subNode;
-- (id) _initWithNode: (xmlNodePtr)node kind: (NSXMLNodeKind)kind;
-- (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index;
-- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
-- (void) _invalidate;
-@end
-
 @implementation NSXMLNode (Private)
 - (void *) _node
 {
@@ -227,10 +214,12 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
 - (void) _setNode: (void *)_anode
 {
-  if (_anode)
-    ((xmlNodePtr)_anode)->_private = self;
-  internal->node = _anode;
   DESTROY(internal->subNodes);
+  if (_anode)
+    {
+      ((xmlNodePtr)_anode)->_private = self;
+    }
+  internal->node = _anode;
 }
 
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node
@@ -318,7 +307,8 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   // retain temporarily so we can safely remove from our subNodes list first
   [subNode retain]; 
   [internal->subNodes removeObjectIdenticalTo: subNode];
-  [subNode release]; // release temporary hold
+  // release temporary hold. Apple seems to do an autorelease here.
+  [subNode autorelease];
 }
 
 - (void) _createInternal

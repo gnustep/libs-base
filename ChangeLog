@@ -1,3 +1,13 @@
+2012-03-04  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLPrivate.h: Move private method declarations for
+	NSXMLNode to here.
+	* Source/NSXMLDocument.m
+	* Source/NSXMLDTD.m
+	* Source/NSXMLDTDNode.m
+	* Source/NSXMLElement.m
+	* Source/NSXMLNode.m: Clean up and add comments about missing code.
+
 2012-03-03  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m: Remove all the extra reference handling code
