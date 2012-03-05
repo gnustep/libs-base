@@ -155,7 +155,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
   if (nil != [attribute parent])
     {
-      [NSException raise: @"NSInvalidArgumentException"
+      [NSException raise: NSInternalInconsistencyException
 		  format: @"Tried to add attribute to multiple parents."];
     }
 
