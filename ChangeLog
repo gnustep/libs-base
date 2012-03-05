@@ -1,3 +1,8 @@
+2012-03-05  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLElement.m (-addAttribute:): Raise correct exception.
+	* Tests/base/NSXMLNode/children.m: Add test cases for attributes.
+
 2012-03-05  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Tests/base/NSString/locale.m: Expand test of compare:
