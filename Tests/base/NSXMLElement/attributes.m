@@ -35,7 +35,7 @@ int main()
     "may not overwrite pre-existing attributes");
 
   PASS_EXCEPTION([root2 addAttribute: attr1],
-    NSInvalidArgumentException,
+    NSInternalInconsistencyException,
     "cannot add attributes to multiple parents");
 
 

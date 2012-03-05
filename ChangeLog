@@ -1,3 +1,12 @@
+2012-03-05  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tests/base/NSXMLElement/attributes.m: Test for changed
+	exception.
+	* Tests/base/NSXMLNode/basic.m: More tests.
+	* Source/NSXMLNode.m: Rewrite object value handling.
+	* Source/NSXMLElement.m (-objectValue): Return @"" when the value
+	is nil.
+
 2012-03-05  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Source/NSString.m (-rangeOfString:options:range:locale:):

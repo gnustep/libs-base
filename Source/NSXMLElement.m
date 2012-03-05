@@ -61,11 +61,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   if (NSXMLElementKind == kind)
     {
-      if ((self = [super initWithKind: kind options: theOptions]))
-	{
-	  internal->objectValue = @"";
-	}
-      return self;
+      return [super initWithKind: kind options: theOptions];
     }
   else
     {
@@ -121,6 +117,15 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   [self release];
 
   return result;
+}
+
+- (id) objectValue
+{
+  if (internal->objectValue == nil)
+    {
+      return @"";
+    }
+  return internal->objectValue;
 }
 
 - (NSArray*) elementsForName: (NSString*)name
