@@ -2162,17 +2162,17 @@ handle_printf_atsign (FILE *stream,
 		      if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
 			{
 			  if (matchLocation + matchLength == NSMaxRange(aRange))
-			    result = NSMakeRange(matchLocation, matchLength);
+			    result = NSMakeRange(aRange.location + matchLocation, matchLength);
 			}
 		      else
 			{
 			  if (matchLocation == 0)
-			    result = NSMakeRange(matchLocation, matchLength);
+			    result = NSMakeRange(aRange.location + matchLocation, matchLength);
 			}
 		    }
 		  else 
 		    {
-		      result = NSMakeRange(matchLocation, matchLength);
+		      result = NSMakeRange(aRange.location + matchLocation, matchLength);
 		    }
 		}
 	    }
