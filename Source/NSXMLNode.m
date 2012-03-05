@@ -840,7 +840,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  id c = [[self class] allocWithZone: zone];
+  NSXMLNode *c = [[self class] allocWithZone: zone];
   xmlNodePtr newNode = xmlCopyNode([self _node], 2); // make a deep copy
   clearPrivatePointers(newNode);
 
@@ -858,7 +858,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 {
   return [NSString stringWithFormat:@"<%@ %@ %d>%@\n",
     NSStringFromClass([self class]),
-    [self name], [self kind], [self stringValue]];
+    [self name], [self kind], [self XMLString]];
 }
 
 - (void) dealloc
@@ -1166,12 +1166,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (id) objectValue
 {
-  // FIXME: Most likely this is wrong, but currently needed for an NSXMLElement test
-  if ((NSXMLInvalidKind != internal->kind) &&
-      (internal->objectValue == nil))
-    {
-      return @"";
-    }
   return internal->objectValue;
 }
 
@@ -1215,14 +1209,27 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     }
   */
 
-  result = StringFromXMLStringPtr(content);
-  xmlFree(content);
+  if (NULL != content)
+    {
+      result = StringFromXMLStringPtr(content);
+      xmlFree(content);
+    }
+  else
+    {
+      result = @"";
+    }
 
   return result;
 }
 
 - (void) setObjectValue: (id)value
 {
+  NSString *stringValue;
+
+  // FIXME: Use correct formatter here
+  stringValue = [value description];
+  [self setStringValue: stringValue];
+
   ASSIGN(internal->objectValue, value);
 }
 
@@ -1245,11 +1252,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 {
   xmlNodePtr node = MY_NODE;
 
-  if (nil == string)
-    {
-      // string value may not be nil
-      string = @"";
-    }
   if (resolve == NO)
     {
       xmlNodeSetContent(node, XMLSTRING(string));
@@ -1257,11 +1259,12 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   else
     {
       // need to actually resolve entities...
-      // is this the right functionality??
-      xmlChar *newstr = xmlEncodeSpecialChars(node->doc, XMLSTRING(string));
+      // is this the right functionality?? xmlEncodeSpecialChars()
+      xmlChar *newstr = xmlEncodeEntitiesReentrant(node->doc, XMLSTRING(string));
       xmlNodeSetContent(node, newstr);
       xmlMemFree(newstr);
     }
+  ASSIGN(internal->objectValue, string);
 }
 
 - (void) setURI: (NSString*)URI
