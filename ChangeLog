@@ -1,3 +1,8 @@
+2012-03-05  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Source/NSString.m (-rangeOfString:options:range:locale:):
+	Correct result range with ICU codepath
+
 2012-03-05  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLElement.m (-addAttribute:): Raise correct exception.
