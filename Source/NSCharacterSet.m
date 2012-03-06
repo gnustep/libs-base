@@ -332,10 +332,10 @@
   length = [aString length];
   if (length > 0)
     {
-      unsigned	i;
-      unichar	(*get)(id, SEL, unsigned);
+      NSUInteger i;
+      unichar	(*get)(id, SEL, NSUInteger);
 
-      get = (unichar (*)(id, SEL, unsigned))
+      get = (unichar (*)(id, SEL, NSUInteger))
 	[aString methodForSelector: @selector(characterAtIndex:)];
       for (i = 0; i < length; i++)
 	{
@@ -502,10 +502,10 @@
   length = [aString length];
   if (length > 0)
     {
-      unsigned	i;
-      unichar	(*get)(id, SEL, unsigned);
+      NSUInteger	i;
+      unichar	(*get)(id, SEL, NSUInteger);
 
-      get = (unichar (*)(id, SEL, unsigned))
+      get = (unichar (*)(id, SEL, NSUInteger))
 	[aString methodForSelector: @selector(characterAtIndex:)];
 
       for (i = 0; i < length; i++)
@@ -1227,7 +1227,7 @@ static Class concreteMutableClass = nil;
 {
   NSMutableBitmapCharSet	*tmp;
   NSData			*result;
-  unsigned			index = 0;
+  NSUInteger			index = 0;
 
   tmp = [NSMutableBitmapCharSet new];
   while ((index = [indexes indexGreaterThanOrEqualToIndex: index])
@@ -1276,7 +1276,7 @@ static Class concreteMutableClass = nil;
 
 - (BOOL) hasMemberInPlane: (uint8_t)aPlane
 {
-  unsigned	found;
+  NSUInteger	found;
 
   found = [indexes indexGreaterThanOrEqualToIndex: 0x10000 * aPlane];
   if (found != NSNotFound && found < 0x10000 * (aPlane + 1))
@@ -1417,10 +1417,10 @@ static Class concreteMutableClass = nil;
   length = [aString length];
   if (length > 0)
     {
-      unsigned	i;
-      unichar	(*get)(id, SEL, unsigned);
+      NSUInteger	i;
+      unichar	(*get)(id, SEL, NSUInteger);
 
-      get = (unichar (*)(id, SEL, unsigned))
+      get = (unichar (*)(id, SEL, NSUInteger))
 	[aString methodForSelector: @selector(characterAtIndex:)];
       for (i = 0; i < length; i++)
 	{
@@ -1450,9 +1450,9 @@ static Class concreteMutableClass = nil;
 - (void) formIntersectionWithCharacterSet: (NSCharacterSet *)otherSet
 {
   NSIndexSet		*otherIndexes;
-  unsigned		index = 0;
-  unsigned		i0;
-  unsigned		i1;
+  NSUInteger		index = 0;
+  NSUInteger		i0;
+  NSUInteger		i1;
   
   if ([otherSet isKindOfClass: [_GSIndexCharSet class]] == YES)
     {
@@ -1521,7 +1521,7 @@ static Class concreteMutableClass = nil;
 - (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet
 {
   NSIndexSet		*otherIndexes;
-  unsigned		index;
+  NSUInteger		index;
   
   if ([otherSet isKindOfClass: [_GSIndexCharSet class]] == YES)
     {
@@ -1553,7 +1553,7 @@ static Class concreteMutableClass = nil;
 - (void) invert
 {
   NSMutableIndexSet	*tmp;
-  unsigned		index;
+  NSUInteger		index;
 
   tmp = [NSMutableIndexSet new];
 
@@ -1614,10 +1614,10 @@ static Class concreteMutableClass = nil;
   length = [aString length];
   if (length > 0)
     {
-      unsigned	i;
-      unichar	(*get)(id, SEL, unsigned);
+      NSUInteger	i;
+      unichar	(*get)(id, SEL, NSUInteger);
 
-      get = (unichar (*)(id, SEL, unsigned))
+      get = (unichar (*)(id, SEL, NSUInteger))
 	[aString methodForSelector: @selector(characterAtIndex:)];
 
       for (i = 0; i < length; i++)

@@ -1,5 +1,14 @@
 2012-03-05  Eric Wasylishen  <ewasylishen@gmail.com>
 
+	* Source/NSUserDefaults.m:
+	* Source/NSConnection.m:
+	* Source/NSCharacterSet.m:
+	* Tools/make_strings/StringsFile.m:
+	* Tools/pl.m: Fix instances where NSNotFound is stored in or
+	compared to an unsigned or int variable.
+
+2012-03-05  Eric Wasylishen  <ewasylishen@gmail.com>
+
 	* Source/NSString.m: Factor out code for opening an ICU collator
 	into static function GSICUCollatorOpen. Support
 	NSDiacriticInsensitiveSearch.

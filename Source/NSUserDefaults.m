@@ -1214,7 +1214,7 @@ newLanguages(NSArray *oldNames)
 
 - (void) addSuiteNamed: (NSString*)aName
 {
-  unsigned	index;
+  NSUInteger	index;
 
   if (aName == nil)
     {
