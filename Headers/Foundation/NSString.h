@@ -741,7 +741,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (NSComparisonResult) compare: (NSString*)string 
 		       options: (NSUInteger)mask 
 			 range: (NSRange)compareRange 
-			locale: (id)dict;
+			locale: (id)locale;
 - (NSComparisonResult) localizedCompare: (NSString *)string;
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string;
 - (BOOL) writeToFile: (NSString*)filename
