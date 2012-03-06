@@ -1,3 +1,9 @@
+2012-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m: check for parse complete explicitly and
+	remove case where complete is set to NO if using chunked coding ...
+	it seems to be jsut wrong.
+
 2012-03-06  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m (-copyWithZone:): Use objectValue ivar
