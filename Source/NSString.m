@@ -4928,13 +4928,24 @@ static NSFileManager *fm = nil;
 }
 
 /**
- * <p>Compares this instance with string, using rules in locale given by dict.
- * mask may be either <code>NSCaseInsensitiveSearch</code> or
- * <code>NSLiteralSearch</code>.  The latter requests a literal byte-by-byte
+ * <p>Compares this instance with string. If locale is an NSLocale
+ * instance and ICU is available, performs a comparison using the 
+ * ICU collator for that locale. If locale is an instance of a class 
+ * other than NSLocale, perform a comparison using +[NSLocale currentLocale].
+ * If locale is nil, or ICU is not available, use a POSIX-style
+ * collation (for example, latin capital letters A-Z are ordered before all of the 
+ * lowercase letter, a-z.) 
+ *
+ * <p>mask may be <code>NSLiteralSearch</code>, which requests a literal byte-by-byte
  * comparison, which is fastest but may return inaccurate results in cases
  * where two different composed character sequences may be used to express
- * the same character.  compareRange refers to this instance, and should be
- * set to 0..length to compare the whole string.</p>
+ * the same character; <code>NSCaseInsensitiveSearch</code>, which ignores case
+ * differences; <code>NSDiacriticInsensitiveSearch</code> which ignores accent differences;
+ * <code>NSNumericSearch</code>, which sorts groups of digits as numbers, so "abc2" 
+ * sorts before "abc100".</p>
+ * 
+ * <p>compareRange refers to this instance, and should be set to 0..length to compare
+ * the whole string.</p>
  *
  * <p>Returns <code>NSOrderedAscending</code>, <code>NSOrderedDescending</code>,
  * or <code>NSOrderedSame</code>, depending on whether this instance occurs
@@ -4943,17 +4954,23 @@ static NSFileManager *fm = nil;
 - (NSComparisonResult) compare: (NSString *)string
 		       options: (NSUInteger)mask
 			 range: (NSRange)compareRange
-			locale: (id)dict
+			locale: (id)locale
 {
   GS_RANGE_CHECK(compareRange, [self length]);
   if (string == nil)
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
 
+  if (nil != locale
+      && ![locale isKindOfClass: [NSLocale class]])
+    {
+      locale = [NSLocale currentLocale];
+    }
+
 #if GS_USE_ICU == 1
   if ((mask & NSLiteralSearch) != NSLiteralSearch
-    && nil != dict)
+    && nil != locale)
     {
-      NSString *localeId = [dict objectForKey: NSLocaleIdentifier];
+      NSString *localeId = [locale objectForKey: NSLocaleIdentifier];
       const char *localeCString = [localeId UTF8String];
       
       UErrorCode status = U_ZERO_ERROR; 
@@ -5008,7 +5025,7 @@ static NSFileManager *fm = nil;
 }
 
 /**
- * Compares this instance with string, using rules in the default locale.
+ * Compares this instance with string, using +[NSLocale currentLocale].
  */
 - (NSComparisonResult) localizedCompare: (NSString *)string
 {
@@ -5019,7 +5036,7 @@ static NSFileManager *fm = nil;
 }
 
 /**
- * Compares this instance with string, using rules in the default locale,
+ * Compares this instance with string, using +[NSLocale currentLocale],
  * ignoring case.
  */
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string

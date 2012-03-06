@@ -1,3 +1,12 @@
+2012-03-05  Eric Wasylishen  <ewasylishen@gmail.com>
+
+	* Headers/Foundation/NSString.h (-compare:options:range:locale:):
+	Rename locale parameter from "dict" to "locale".
+	* Source/NSString.m (-compare:options:range:locale:): If locale
+	paramater is not nil and not an NSLocale instance, substitute
+	+[NSLocale currentLocale].
+	* Source/NSString.m: Clarify some locale related documentation.
+
 2012-03-05  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tests/base/NSXMLElement/attributes.m: Test for changed
