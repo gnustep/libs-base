@@ -864,7 +864,8 @@ static NSURLProtocol	*placeholder = nil;
       GSMimeDocument	*document = [_parser mimeDocument];
       unsigned		bodyLength;
 
-      if (wasInHeaders == YES && isInHeaders == NO)
+      _complete = [_parser isComplete];
+      if (YES == wasInHeaders && NO == isInHeaders)
         {
 	  GSMimeHeader		*info;
 	  NSString		*enc;
@@ -930,11 +931,7 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	      _complete = YES;	// No body expected.
 	    }
-	  else if ([enc isEqualToString: @"chunked"] == YES)	
-	    {
-	      _complete = NO;	// Read chunked body data
-	    }
-	  if (_complete == NO && [d length] == 0)
+	  else if (_complete == NO && [d length] == 0)
 	    {
 	      _complete = YES;	// Had EOF ... terminate
 	    }
