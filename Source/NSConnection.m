@@ -1583,7 +1583,7 @@ static NSLock	*cached_proxies_gate = nil;
   GS_M_LOCK(IrefGate);
   if (IrunLoops != nil)
     {
-      unsigned	pos = [IrunLoops indexOfObjectIdenticalTo: loop];
+      NSUInteger	pos = [IrunLoops indexOfObjectIdenticalTo: loop];
 
       if (pos != NSNotFound)
 	{
