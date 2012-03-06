@@ -587,6 +587,17 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 @implementation NSXMLNode
 
++ (void) initialize
+{
+  xmlCheckVersion(LIBXML_VERSION);
+  // Protect against libxml2 not being correctly set up on Windows.
+  // See: http://www.linuxquestions.org/questions/programming-9/%5Bsolved%5Dusing-libxml2-on-mingw-xmlfree-crashes-839802/
+  if (!xmlFree)
+    {
+      xmlMemGet(&xmlFree, &xmlMalloc, &xmlRealloc, NULL);
+    }
+}
+
 + (id) attributeWithName: (NSString*)name
 	     stringValue: (NSString*)stringValue
 {
@@ -768,6 +779,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
   n = [[[self alloc] initWithKind: NSXMLProcessingInstructionKind] autorelease];
   [n setStringValue: stringValue];
+  [n setName: name];
   return n;
 }
 
