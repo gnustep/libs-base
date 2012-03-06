@@ -584,6 +584,79 @@ handle_printf_atsign (FILE *stream,
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
 
+#if GS_USE_ICU == 1
+/**
+ * Returns an ICU collator for the given locale and options, or returns
+ * NULL if a collator couldn't be created or the GNUstep comparison code should be
+ * used instead.
+ */
+static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
+{
+  UErrorCode status = U_ZERO_ERROR;
+  const char *localeCString;
+  UCollator *coll;
+  
+  if (mask & NSLiteralSearch)
+    {
+      return NULL;
+    }
+  
+  if (locale == nil)
+    {
+      /*
+       * a nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort before 'a'),
+       * and support for this was added in ICU 4.6 under the locale name
+       * en_US_POSIX, but it doesn't fit our requirements (e.g. 'e' and 'E' don't
+       * compare as equal with case insensitive comparison.) - so return NULL to
+       * indicate that the GNUstep comparison code should be used.
+       */
+      return NULL;
+    }
+  else
+    {
+      localeCString = [[locale localeIdentifier] UTF8String];
+
+      if (localeCString == NULL
+	  || strcmp("", localeCString) == 0)
+	{
+	  return NULL;
+	}
+    }
+	  
+  coll = ucol_open(localeCString, &status);
+
+  if (U_SUCCESS(status))
+    {
+      if (mask & (NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch))
+	{
+	  ucol_setStrength(coll, UCOL_PRIMARY);
+	}
+      else if (mask & NSCaseInsensitiveSearch)
+	{
+	  ucol_setStrength(coll, UCOL_SECONDARY);
+	}
+      else if (mask & NSDiacriticInsensitiveSearch)
+	{
+	  ucol_setStrength(coll, UCOL_PRIMARY);
+	  ucol_setAttribute(coll, UCOL_CASE_LEVEL, UCOL_ON, &status);
+	}
+      
+      if (mask & NSNumericSearch)
+	{
+	  ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_ON, &status);
+	}
+	  
+      if (U_SUCCESS(status))
+	{
+	  return coll;
+	}
+    }
+
+  ucol_close(coll);
+  return NULL;
+}
+#endif
+
 + (void) atExit
 {
   DESTROY(placeholderLock);
@@ -2105,19 +2178,13 @@ handle_printf_atsign (FILE *stream,
     }
 
 #if GS_USE_ICU == 1
-  if (locale != nil
-    && ((mask & NSLiteralSearch) != NSLiteralSearch))
     {
-      NSRange result = NSMakeRange(NSNotFound, 0);
+      UCollator *coll = GSICUCollatorOpen(mask, locale);
 
-      NSString *localeId = [locale objectForKey: NSLocaleIdentifier];
-      const char *localeCString = [localeId UTF8String];
-
-      UErrorCode status = U_ZERO_ERROR; 
-      UCollator *coll = ucol_open(localeCString, &status);
-
-      if (U_SUCCESS(status))
+      if (NULL != coll)
 	{
+	  NSRange result = NSMakeRange(NSNotFound, 0);
+	  UErrorCode status = U_ZERO_ERROR; 
 	  NSUInteger countSelf = aRange.length;
 	  NSUInteger countOther = [aString length];       
 	  unichar *charsSelf;
@@ -2128,10 +2195,6 @@ handle_printf_atsign (FILE *stream,
 	    countSelf * sizeof(unichar));
 	  charsOther = NSZoneMalloc(NSDefaultMallocZone(),
 	    countOther * sizeof(unichar));
-	  if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
-	    {
-	      ucol_setStrength(coll, UCOL_PRIMARY);
-	    }
 
 	  // Copy to buffer
       
@@ -2179,10 +2242,9 @@ handle_printf_atsign (FILE *stream,
 	  NSZoneFree(NSDefaultMallocZone(), charsSelf);
 	  NSZoneFree(NSDefaultMallocZone(), charsOther);	  
 	  usearch_close(search);
+	  ucol_close(coll);
+	  return result;
 	}
-      ucol_close(coll);
-
-      return result;
     }
 #endif
 
@@ -4967,15 +5029,10 @@ static NSFileManager *fm = nil;
     }
 
 #if GS_USE_ICU == 1
-  if ((mask & NSLiteralSearch) != NSLiteralSearch
-    && nil != locale)
     {
-      NSString *localeId = [locale objectForKey: NSLocaleIdentifier];
-      const char *localeCString = [localeId UTF8String];
-      
-      UErrorCode status = U_ZERO_ERROR; 
-      UCollator *coll = ucol_open(localeCString, &status); 
-      if (U_SUCCESS(status))
+      UCollator *coll = GSICUCollatorOpen(mask, locale);
+
+      if (coll != NULL)
 	{
 	  NSUInteger countSelf = compareRange.length;
 	  NSUInteger countOther = [string length];       
@@ -4992,21 +5049,9 @@ static NSFileManager *fm = nil;
 	  [self getCharacters: charsSelf range: compareRange];
 	  [string getCharacters: charsOther range: NSMakeRange(0, countOther)];
 	  
-	  if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
-	    {
-// see http://icu-project.org/docs/papers/efficient_text_searching_in_java.html
-	      ucol_setStrength(coll, UCOL_PRIMARY);
-	    }
-	  
-	  if ((mask & NSNumericSearch) == NSNumericSearch)
-	    {
-	      status = U_ZERO_ERROR;
-	      ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_ON, &status);
-	    }
-	  
 	  result = ucol_strcoll(coll,
 	    charsSelf, countSelf, charsOther, countOther);
-	  
+
 	  NSZoneFree(NSDefaultMallocZone(), charsSelf);
 	  NSZoneFree(NSDefaultMallocZone(), charsOther);	  
 	  ucol_close(coll); 

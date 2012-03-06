@@ -1,5 +1,11 @@
 2012-03-05  Eric Wasylishen  <ewasylishen@gmail.com>
 
+	* Source/NSString.m: Factor out code for opening an ICU collator
+	into static function GSICUCollatorOpen. Support
+	NSDiacriticInsensitiveSearch.
+
+2012-03-05  Eric Wasylishen  <ewasylishen@gmail.com>
+
 	* Headers/Foundation/NSString.h (-compare:options:range:locale:):
 	Rename locale parameter from "dict" to "locale".
 	* Source/NSString.m (-compare:options:range:locale:): If locale
