@@ -846,7 +846,8 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
   c = [c _initWithNode: newNode kind: internal->kind];
 
-  [c setObjectValue: [self objectValue]];
+  GSIVar(c, options) = internal->options;
+  [c setObjectValue: internal->objectValue];
   [c setURI: [self URI]];
 //  [c setName: [self name]];
 //  [c setStringValue: [self stringValue]];
@@ -1064,6 +1065,11 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     {
       return NO;
     }
+  /*
+  NSLog(@"self %@ other %@", self, other);
+  NSLog(@"s sV '%@' oV '%@', other sV '%@' oV '%@'", [self stringValue], [self objectValue],
+        [other stringValue], [other objectValue]);
+  */
   return isEqualTree(MY_NODE, (xmlNodePtr)[other _node]);
 }
 
