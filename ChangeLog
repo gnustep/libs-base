@@ -1,3 +1,8 @@
+2012-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSStream.m: Attempt to fix logic for event handling of data
+	streams.
+
 2012-03-01  Jens Alfke <jens@mooseyard.com>
 
 	* Headers/GNUstepBase/NSURL+GNUstepBase.h:
