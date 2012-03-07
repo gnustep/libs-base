@@ -59,12 +59,18 @@
       return 1;
     }
 
-  lengthHeader = [NSString stringWithFormat: @"Content-Length: %d\r\n",
-			                     [bodyData length]];
-  headers = [[NSArray alloc] initWithObjects: @"HTTP/1.1 200 OK\r\n",
-                                              @"Content-type: text/plain\r\n",
-                                              lengthHeader,
-                                              nil];
+  if (YES == [defs boolForKey: @"FileHdrs"])
+    {
+      headers = nil;	// Already in the file
+    }
+  else
+    {
+      lengthHeader = [NSString stringWithFormat: @"Content-Length: %d\r\n",
+	[bodyData length]];
+      headers = [[NSArray alloc] initWithObjects: @"HTTP/1.1 200 OK\r\n",
+	@"Content-type: text/plain\r\n", lengthHeader, nil];
+    }
+
   serverStream = [GSServerStream serverStreamToAddr: [host address] port: port];
   if (nil == serverStream)
     {
@@ -161,15 +167,20 @@
 	  }
 
 	headerEnumeration = [headerArray objectEnumerator];
-
-	while ((header = [headerEnumeration nextObject]))
-	  [payload appendData: [header dataUsingEncoding: NSASCIIStringEncoding]];
-	[payload appendData: [@"\n" dataUsingEncoding: NSASCIIStringEncoding]];
+	if (nil != headerEnumeration)
+	  {
+	    while ((header = [headerEnumeration nextObject]))
+	      [payload appendData:
+		[header dataUsingEncoding: NSASCIIStringEncoding]];
+	    [payload appendData:
+	      [@"\n" dataUsingEncoding: NSASCIIStringEncoding]];
+	  }
 	[payload appendData: bodyData];
 
 	// provide the reply
-	written = [outStream write: [payload bytes] maxLength: [payload length]];
-	if (written <=0)
+	written = [outStream write: [payload bytes]
+			 maxLength: [payload length]];
+	if (written <= 0)
 	  {
 	    // something seriously wrong....
 	    closeConnection = YES;

@@ -19,12 +19,43 @@ int main()
   NSString		*helpers;
   NSString		*capture;
   NSString		*respond;
+  NSString		*keepalive;
   
   helpers = [[NSFileManager defaultManager] currentDirectoryPath];
   helpers = [helpers stringByAppendingPathComponent: @"Helpers"];
   helpers = [helpers stringByAppendingPathComponent: @"obj"];
   capture = [helpers stringByAppendingPathComponent: @"capture"];
+  keepalive = [helpers stringByAppendingPathComponent: @"keepalive"];
   respond = [helpers stringByAppendingPathComponent: @"respond"];
+
+  t = [NSTask launchedTaskWithLaunchPath: keepalive
+    arguments: [NSArray arrayWithObjects:
+    @"-FileName", @"Chunked.dat",
+    @"-FileHdrs", @"YES",	// Headers are in file
+    @"-Port", @"54321",
+    @"-Count", @"1",
+    nil]];
+  if (t != nil)
+    {
+      const char *lit = "This is the data in the first chunk\r\n"
+	"and this is the second one\r\n"
+	"consequence";
+
+      cont = [NSData dataWithBytes: lit length: strlen(lit)];
+
+      // Pause to allow server subtask to set up.
+      [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5]];
+      u = [NSURL URLWithString: @"http://localhost:54321/chunked"];
+      // Talk to server.
+      data = [u resourceDataUsingCache: NO];
+      // Get status code
+      str = [u propertyForKey: NSHTTPPropertyStatusCodeKey];
+      PASS([data isEqual: cont], "chunked test OK");
+      // Wait for server termination
+      [t terminate];
+      [t waitUntilExit];
+    }
+
 
   url = [NSURL URLWithString: @"http://localhost:54321/"];
 
