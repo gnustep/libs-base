@@ -716,8 +716,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
-  unsigned long dataSize;
-  unsigned long copySize;
+  NSUInteger dataSize;
 
   if (buffer == 0)
     {
@@ -730,33 +729,29 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 		  format: @"zero byte read write requested"];
     }
 
-  _events &= ~NSStreamEventHasSpaceAvailable;
-
-  if ([self streamStatus] == NSStreamStatusClosed)
+  if ([self streamStatus] == NSStreamStatusClosed
+    || [self streamStatus] == NSStreamStatusAtEnd)
     {
       return 0;
     }
 
+  /* Mark the data availability event as handled, so we can generate more.
+   */
+  _events &= ~NSStreamEventHasBytesAvailable;
+
   dataSize = [_data length];
   NSAssert(dataSize >= _pointer, @"Buffer overflow!");
-  if (len + _pointer > dataSize)
+  if (len + _pointer >= dataSize)
     {
-      copySize = dataSize - _pointer;
-    }
-  else
-    {
-      copySize = len;
-    }
-  if (copySize) 
-    {
-      memcpy(buffer, [_data bytes] + _pointer, copySize);
-      _pointer = _pointer + copySize;
-    }
-  else
-    {
+      len = dataSize - _pointer;
       [self _setStatus: NSStreamStatusAtEnd];
     }
-  return copySize;
+  if (len > 0) 
+    {
+      memcpy(buffer, [_data bytes] + _pointer, len);
+      _pointer = _pointer + len;
+    }
+  return len;
 }
 
 - (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
@@ -823,24 +818,27 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 		  format: @"zero byte length write requested"];
     }
 
-  _events &= ~NSStreamEventHasBytesAvailable;
-
-  if ([self streamStatus] == NSStreamStatusClosed)
+  if ([self streamStatus] == NSStreamStatusClosed
+    || [self streamStatus] == NSStreamStatusAtEnd)
     {
       return 0;
     }
 
+  /* We have consumed the 'writable' event ... mark that so another can
+   * be generated.
+   */
+  _events &= ~NSStreamEventHasSpaceAvailable;
   if ((_pointer + len) > _capacity)
     {
       len = _capacity - _pointer;
-      if (len == 0)
-	{
-	  [self _setStatus: NSStreamStatusAtEnd];
-	  return 0;
-	}
+      [self _setStatus: NSStreamStatusAtEnd];
     }
-  memcpy((_buffer + _pointer), buffer, len);
-  _pointer += len;
+
+  if (len > 0)
+    {
+      memcpy((_buffer + _pointer), buffer, len);
+      _pointer += len;
+    }
   return len;
 }
 
@@ -895,13 +893,15 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 		  format: @"zero byte length write requested"];
     }
 
-  _events &= ~NSStreamEventHasBytesAvailable;
-
   if ([self streamStatus] == NSStreamStatusClosed)
     {
       return 0;
     }
 
+  /* We have consumed the 'writable' event ... mark that so another can
+   * be generated.
+   */
+  _events &= ~NSStreamEventHasSpaceAvailable;
   [_data appendBytes: buffer length: len];
   _pointer += len;
   return len;
