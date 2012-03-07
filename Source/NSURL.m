@@ -1415,7 +1415,7 @@ static NSUInteger	urlAlign;
   return fragment;
 }
 
-- (char*) _path: (char*)buf
+- (char*) _path: (char*)buf withEscapes: (BOOL)withEscapes
 {
   char	*ptr = buf;
   char	*tmp = buf;
@@ -1472,7 +1472,10 @@ static NSUInteger	urlAlign;
 	}
     }
 
-  unescape(buf, buf);
+  if (!withEscapes)
+    {
+      unescape(buf, buf);
+    }
 
 #if	defined(__MINGW__)
   /* On windows a file URL path may be of the form C:\xxx (ie we should
@@ -1602,7 +1605,7 @@ static NSUInteger	urlAlign;
   return password;
 }
 
-- (NSString*) path
+- (NSString*) _pathWithEscapes: (BOOL)withEscapes
 {
   NSString	*path = nil;
   unsigned int	len = 3;
@@ -1632,7 +1635,7 @@ static NSUInteger	urlAlign;
       char		*ptr;
       char		*tmp;
 
-      ptr = [self _path: buf];
+      ptr = [self _path: buf withEscapes: withEscapes];
 
       /* Remove any trailing '/' from the path for MacOS-X compatibility.
        */
@@ -1645,6 +1648,11 @@ static NSUInteger	urlAlign;
       path = [NSString stringWithUTF8String: ptr];
     }
   return path;
+}
+
+- (NSString*) path
+{
+  return [self _pathWithEscapes: NO];
 }
 
 - (NSArray*) pathComponents 
@@ -2036,10 +2044,15 @@ static NSUInteger	urlAlign;
       char		buf[len];
       char		*ptr;
 
-      ptr = [self _path: buf];
+      ptr = [self _path: buf withEscapes: NO];
       path = [NSString stringWithUTF8String: ptr];
     }
   return path;
+}
+
+- (NSString*) pathWithEscapes
+{
+  return [self _pathWithEscapes: YES];
 }
 @end
 
