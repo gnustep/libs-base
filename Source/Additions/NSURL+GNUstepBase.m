@@ -99,7 +99,11 @@
 @end
 
 #ifndef	GNUSTEP
+
+#import	<CFURL.h>
+
 @implementation NSURL (GNUstepBase)
+
 /* For efficiency this is built in to the main library.
  */
 - (NSString*) fullPath
@@ -122,6 +126,14 @@
   s = [s substringFromIndex: r.location];
   return s;
 }
+
+/* For efficiency this is built in to the main library.
+ */
+- (NSString*) pathWithEscapes
+{
+  return CFURLCopyPath(self);
+}
+
 @end
 #endif
 

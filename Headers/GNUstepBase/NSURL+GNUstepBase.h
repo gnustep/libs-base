@@ -56,6 +56,14 @@ extern "C" {
 /** Returns the full path for this URL including any trailing slash.
  */
 - (NSString*) fullPath;
+
+/** Returns the full path for this URL, without decoding percent-escapes.<br />
+ * This is useful if you need to distinguish between "/" and "%2F" in the path.
+ * The normal -path method will convert all "%2F" value in the path into "/"
+ * so that you have no way of knowing whether a "/" is part of a path component
+ * ir is a path separator.
+ */
+- (NSString*) pathWithEscapes;
 @end
 
 #endif	/* OS_API_VERSION */

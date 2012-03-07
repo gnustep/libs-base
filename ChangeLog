@@ -1,3 +1,11 @@
+2012-03-01  Jens Alfke <jens@mooseyard.com>
+
+	* Headers/GNUstepBase/NSURL+GNUstepBase.h:
+	* Source/Additions/NSURL+GNUstepBase.m:
+	* Source/NSURL.m:
+	New -pathWithEscapes method to enable differentiation between '/'
+	characters in the original path and '%2F' escapes in it.
+
 2012-03-06  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m (+initialize): Add workaround for Windows
