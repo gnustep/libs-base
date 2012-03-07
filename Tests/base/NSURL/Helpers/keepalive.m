@@ -138,8 +138,8 @@
 	else
 	  {
 	    unsigned char buffer[BUFSIZ];
-	    int           readSize;
-	    readSize = [inStream read: buffer maxLength: BUFSIZ];
+
+	    (void)[inStream read: buffer maxLength: BUFSIZ];
 	    // make outStream available for writing
 	    [outStream scheduleInRunLoop: runLoop
                                  forMode: NSDefaultRunLoopMode];
