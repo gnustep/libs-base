@@ -413,6 +413,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
        * the new node in "by hand"
        */
       childNode->parent = parentNode;
+      xmlSetTreeDoc(childNode, parentNode->doc);
       if (curNode)
 	{
 	  // insert childNode before an existing node curNode
@@ -946,6 +947,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
       // separate our node from its parent and siblings
       xmlUnlinkNode(node);
+      xmlSetTreeDoc(node, NULL);
       if (parent)
 	{
 	  [parent _removeSubNode: self];
