@@ -1,3 +1,8 @@
+2012-03-08  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (+_objectForNode:): Add a few more libxml2
+	node types.
+
 2012-03-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSStream.m: Attempt to fix logic for event handling of data

@@ -234,10 +234,11 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
           Class cls;
           NSXMLNodeKind kind;
           xmlElementType type = node->type;
-
+          
 	  switch (type)
 	    {
 	      case XML_DOCUMENT_NODE:
+              case XML_HTML_DOCUMENT_NODE:
 		cls = [NSXMLDocument class];
 		kind = NSXMLDocumentKind;
 		break;
@@ -260,6 +261,34 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 	      case XML_ATTRIBUTE_NODE: 
 		cls = [NSXMLNode class];
 		kind = NSXMLAttributeKind;
+		break;
+	      case XML_DTD_NODE:
+		cls = [NSXMLDTD class];
+		kind = NSXMLDTDKind;
+		break;
+	      case XML_CDATA_SECTION_NODE:
+		cls = [NSXMLNode class];
+		kind = NSXMLTextKind;
+		break;
+	      case XML_NAMESPACE_DECL: 
+		cls = [NSXMLNode class];
+		kind = NSXMLNamespaceKind;
+		break;
+	      case XML_ELEMENT_DECL: 
+		cls = [NSXMLNode class];
+		kind = NSXMLElementDeclarationKind;
+		break;
+	      case XML_ATTRIBUTE_DECL: 
+		cls = [NSXMLNode class];
+		kind = NSXMLAttributeDeclarationKind;
+		break;
+	      case XML_ENTITY_DECL: 
+		cls = [NSXMLNode class];
+		kind = NSXMLEntityDeclarationKind;
+		break;
+	      case XML_NOTATION_NODE: 
+		cls = [NSXMLNode class];
+		kind = NSXMLNotationDeclarationKind;
 		break;
 	      default: 
 		NSLog(@"ERROR: _objectForNode: called with a node of type %d",
@@ -1358,7 +1387,9 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSArray*) objectsForXQuery: (NSString*)xquery error: (NSError**)error
 {
-  return [self notImplemented: _cmd];
+  return [self objectsForXQuery: xquery
+                      constants: nil
+                          error: error];
 }
 @end
 
