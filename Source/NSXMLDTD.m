@@ -41,8 +41,6 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 {
   if (GS_EXISTS_INTERNAL)
     {
-      [internal->publicID release];
-      [internal->systemID release];
       [internal->entities release];
       [internal->elements release];
       [internal->notations release];
@@ -93,7 +91,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
   NSXMLDTD	*doc;
 
   data = [NSData dataWithContentsOfURL: url];
-  doc = [self initWithData: data options: 0 error: 0];
+  doc = [self initWithData: data options: mask error: error];
   [doc setURI: [url absoluteString]];
   return doc;
 }
@@ -149,11 +147,9 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (NSString*) publicID
 {
-  if (internal->publicID == nil)
-    {
-      [self notImplemented: _cmd];
-    }
-  return internal->publicID;
+  xmlDtd *node = MY_DTD;
+
+  return StringFromXMLStringPtr(node->ExternalID); 
 }
 
 - (void) removeChildAtIndex: (NSUInteger)index
@@ -173,21 +169,23 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (void) setPublicID: (NSString*)publicID
 {
-  [self notImplemented: _cmd];
+  xmlDtd *node = MY_DTD;
+
+  node->ExternalID = XMLStringCopy(publicID); 
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  [self notImplemented: _cmd];
+  xmlDtd *node = MY_DTD;
+
+  node->SystemID = XMLStringCopy(systemID); 
 }
 
 - (NSString*) systemID
 {
-  if (internal->systemID == nil)
-    {
-      [self notImplemented: _cmd];
-    }
-  return internal->systemID;
+  xmlDtd *node = MY_DTD;
+
+  return StringFromXMLStringPtr(node->SystemID); 
 }
 
 @end

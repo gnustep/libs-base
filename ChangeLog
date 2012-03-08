@@ -1,5 +1,11 @@
 2012-03-08  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSXMLNode.m (-detach, -_insertChild:atIndex:): Maintain
+	doc pointer.
+	* Source/NSXMLDTD.m: Implement a few methods.
+
+2012-03-08  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSXMLNode.m (+_objectForNode:): Add a few more libxml2
 	node types.
 
