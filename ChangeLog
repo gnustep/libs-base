@@ -1,3 +1,11 @@
+2012-03-09  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (-copyWithZone:): Don't set object value of
+	copy if it is nil.
+	* Source/NSXMLNode.m (+_objectForNode:): Use correct sub class for
+	decl nodes.
+	* Tests/base/NSXMLNode/basic.m: More tests.
+
 2012-03-08  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m (-detach, -_insertChild:atIndex:): Maintain

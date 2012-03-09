@@ -246,49 +246,50 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 		cls = [NSXMLElement class];
 		kind = NSXMLElementKind;
 		break;
-	      case XML_TEXT_NODE: 
-		cls = [NSXMLNode class];
-		kind = NSXMLTextKind;
+	      case XML_DTD_NODE:
+		cls = [NSXMLDTD class];
+		kind = NSXMLDTDKind;
 		break;
-	      case XML_PI_NODE: 
-		cls = [NSXMLNode class];
-		kind = NSXMLProcessingInstructionKind;
+	      case XML_ATTRIBUTE_DECL: 
+		cls = [NSXMLDTDNode class];
+		kind = NSXMLAttributeDeclarationKind;
 		break;
-	      case XML_COMMENT_NODE: 
-		cls = [NSXMLNode class];
-		kind = NSXMLCommentKind;
+	      case XML_ELEMENT_DECL: 
+		cls = [NSXMLDTDNode class];
+		kind = NSXMLElementDeclarationKind;
+		break;
+	      case XML_ENTITY_DECL: 
+		cls = [NSXMLDTDNode class];
+		kind = NSXMLEntityDeclarationKind;
+		break;
+	      case XML_NOTATION_NODE: 
+		cls = [NSXMLDTDNode class];
+		kind = NSXMLNotationDeclarationKind;
 		break;
 	      case XML_ATTRIBUTE_NODE: 
 		cls = [NSXMLNode class];
 		kind = NSXMLAttributeKind;
 		break;
-	      case XML_DTD_NODE:
-		cls = [NSXMLDTD class];
-		kind = NSXMLDTDKind;
-		break;
 	      case XML_CDATA_SECTION_NODE:
 		cls = [NSXMLNode class];
 		kind = NSXMLTextKind;
+                // FIXME: Should set option
+		break;
+	      case XML_COMMENT_NODE: 
+		cls = [NSXMLNode class];
+		kind = NSXMLCommentKind;
 		break;
 	      case XML_NAMESPACE_DECL: 
 		cls = [NSXMLNode class];
 		kind = NSXMLNamespaceKind;
 		break;
-	      case XML_ELEMENT_DECL: 
+	      case XML_PI_NODE: 
 		cls = [NSXMLNode class];
-		kind = NSXMLElementDeclarationKind;
+		kind = NSXMLProcessingInstructionKind;
 		break;
-	      case XML_ATTRIBUTE_DECL: 
+	      case XML_TEXT_NODE: 
 		cls = [NSXMLNode class];
-		kind = NSXMLAttributeDeclarationKind;
-		break;
-	      case XML_ENTITY_DECL: 
-		cls = [NSXMLNode class];
-		kind = NSXMLEntityDeclarationKind;
-		break;
-	      case XML_NOTATION_NODE: 
-		cls = [NSXMLNode class];
-		kind = NSXMLNotationDeclarationKind;
+		kind = NSXMLTextKind;
 		break;
 	      default: 
 		NSLog(@"ERROR: _objectForNode: called with a node of type %d",
@@ -889,7 +890,17 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   c = [c _initWithNode: newNode kind: internal->kind];
 
   GSIVar(c, options) = internal->options;
-  [c setObjectValue: internal->objectValue];
+  if (nil != internal->objectValue)
+    {
+      /*
+        Only copy the objectValue when externally set.
+        The problem here are nodes created by parsing XML.
+        There the stringValue may be set, but the objectValue isn't.
+        This should rather be solved by creating a suitable objectValue,
+        when the node gets instantiated.
+      */
+      [c setObjectValue: internal->objectValue];
+    }
   [c setURI: [self URI]];
 //  [c setName: [self name]];
 //  [c setStringValue: [self stringValue]];
@@ -1009,24 +1020,23 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
       theSubclass = [NSXMLDTD class];
       break;
       
-    case NSXMLEntityDeclarationKind: 
     case NSXMLElementDeclarationKind: 
+    case NSXMLEntityDeclarationKind: 
     case NSXMLNotationDeclarationKind: 
       theSubclass = [NSXMLDTDNode class];
+      break;
+
+    case NSXMLAttributeKind: 
+    case NSXMLCommentKind: 
+    case NSXMLNamespaceKind: 
+    case NSXMLProcessingInstructionKind: 
+    case NSXMLTextKind: 
       break;
 
     case NSXMLAttributeDeclarationKind: 
       [self release];
       return nil;
-      break;
       
-    case NSXMLProcessingInstructionKind: 
-    case NSXMLCommentKind: 
-    case NSXMLTextKind: 
-    case NSXMLNamespaceKind: 
-    case NSXMLAttributeKind: 
-      break;
-
     default: 
       kind = NSXMLInvalidKind;
       theSubclass = [NSXMLNode class];

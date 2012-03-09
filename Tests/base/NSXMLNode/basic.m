@@ -5,22 +5,35 @@
 
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
-  NSXMLNode             *node;
-  NSXMLNode             *other;
-  NSXMLNode             *attr;
+  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  NSXMLNode *node;
+  NSXMLNode *other;
+  NSXMLNode *text;
+  NSXMLNode *pi;
+  NSXMLNode *comment;
+  NSXMLNode *ns;
+  NSXMLNode *attr;
   NSNumber *number;
+  NSArray *instances;
+
+  test_alloc(@"NSXMLNode");
 
   node = [[NSXMLNode alloc] initWithKind: NSXMLInvalidKind];
   other = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
   // We need to set the name, otherwise isEqual: wont work.
   [other setName: @"test"];
+  text = [NSXMLNode textWithStringValue: @"Text node"];
+  pi = [NSXMLNode processingInstructionWithName: @"PI name"
+                                    stringValue: @"PI string"];
+  ns = [NSXMLNode processingInstructionWithName: @"name space name"
+                                    stringValue: @"name space string"];
+  comment = [NSXMLNode commentWithStringValue: @"Comment node"];
   attr = [NSXMLNode attributeWithName: @"key"
 			  stringValue: @"value"];
-
-  test_alloc(@"NSXMLNode");
-  test_NSObject(@"NSXMLNode", [NSArray arrayWithObjects: node, other, attr, nil]);
-  test_NSCopying(@"NSXMLNode", @"NSXMLNode", [NSArray arrayWithObjects: node, other, attr, nil], NO, YES);
+  instances = [NSArray arrayWithObjects: node, other, text, pi, 
+                       ns, comment, attr, nil];
+  test_NSObject(@"NSXMLNode", instances);
+  test_NSCopying(@"NSXMLNode", @"NSXMLNode", instances, NO, YES);
 
   PASS(NO == [other isEqual: node], "different node kinds are not equal");
   [other release];
