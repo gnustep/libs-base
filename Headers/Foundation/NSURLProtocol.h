@@ -113,7 +113,7 @@ extern "C" {
  * structure for the subclasses.
  * </p>
  * <p>You never instantiate NSURLProtocol yourself ... it should only
- * ever be done by other classes within mthe URL loading system.
+ * ever be done by other classes within the URL loading system.
  * </p>
  */
 @interface NSURLProtocol : NSObject

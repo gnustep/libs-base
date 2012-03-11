@@ -536,6 +536,14 @@ static NSURLProtocol	*placeholder = nil;
   return this->request;
 }
 
+/* This method is here so that it's safe to set debug on any NSURLProtocol
+ * even if the concrete subclass doesn't actually support debug logging.
+ */
+- (void) setDebug: (BOOL)flag
+{
+  return;
+}
+
 @end
 
 
@@ -615,6 +623,15 @@ static NSURLProtocol	*placeholder = nil;
   [super dealloc];
 }
 
+- (id) init
+{
+  if (nil != (self = [super init]))
+    {
+      _debug = GSDebugSet(@"NSURLProtocol");
+    }
+  return self;
+}
+
 - (void) setDebug: (BOOL)flag
 {
   _debug = flag;
@@ -656,7 +673,6 @@ static NSURLProtocol	*placeholder = nil;
   _statusCode = 0;	/* No status returned yet.	*/
   _isLoading = YES;
   _complete = NO;
-  _debug = GSDebugSet(@"NSHTTPURLProtocol");
 
   /* Perform a redirect if the path is empty.
    * As per MacOs-X documentation.

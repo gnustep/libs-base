@@ -228,56 +228,21 @@ static NSLock			*urlLock = nil;
 
 static Class			sslClass = 0;
 
-static NSLock			*debugLock = nil;
-static NSString			*debugFile;
-
-static void debugRead(GSHTTPURLHandle *handle, NSData *data)
+static void
+debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
-  NSString	*s;
-  int		d;
+  int		len = (int)[data length];
+  const char	*ptr = (const char*)[data bytes];
 
-  [debugLock lock];
-#if	defined(__MINGW__)
-  d = _wopen((const unichar*)[debugFile  fileSystemRepresentation],
-    O_WRONLY|O_CREAT|O_APPEND, 0644);
-#else
-  d = open([debugFile  fileSystemRepresentation],
-    O_WRONLY|O_CREAT|O_APPEND, 0644);
-#endif
-  if (d >= 0)
-    {
-      s = [NSString stringWithFormat: @"\nRead for %p at %@ %u bytes - '",
-	handle, [NSDate date], [data length]];
-      write(d, [s cString], [s cStringLength]);
-      write(d, [data bytes], [data length]);
-      write(d, "'", 1);
-      close(d);
-    }
-  [debugLock unlock];
+  NSLog(@"Read for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
 }
-static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
+static void
+debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
-  NSString	*s;
-  int		d;
+  int		len = (int)[data length];
+  const char	*ptr = (const char*)[data bytes];
 
-  [debugLock lock];
-#if	defined(__MINGW__)
-  d = _wopen((const unichar*)[debugFile  fileSystemRepresentation],
-    O_WRONLY|O_CREAT|O_APPEND, 0644);
-#else
-  d = open([debugFile  fileSystemRepresentation],
-    O_WRONLY|O_CREAT|O_APPEND, 0644);
-#endif
-  if (d >= 0)
-    {
-      s = [NSString stringWithFormat: @"\nWrite for %p at %@ %u bytes - '",
-	handle, [NSDate date], [data length]];
-      write(d, [s cString], [s cStringLength]);
-      write(d, [data bytes], [data length]);
-      write(d, "'", 1);
-      close(d);
-    }
-  [debugLock unlock];
+  NSLog(@"Write for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
@@ -310,12 +275,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
       urlCache = [NSMutableDictionary new];
       urlOrder = [NSMutableArray new];
       urlLock = [GSLazyLock new];
-      debugLock = [GSLazyLock new];
-      debugFile = [NSString stringWithFormat: @"%@/GSHTTP.%d",
-			     NSTemporaryDirectory(),
-			     [[NSProcessInfo processInfo] processIdentifier]];
-      IF_NO_GC([debugFile retain];)
-
 #if	!defined(__MINGW__)
       sslClass = [NSFileHandle sslClass];
 #endif
@@ -352,6 +311,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
   if ((self = [super initWithURL: newUrl cached: cached]) != nil)
     {
+      debug = GSDebugSet(@"NSURLHandle");
       dat = [NSMutableData new];
       pageInfo = [NSMutableDictionary new];
       wProperties = NSCreateMapTable(writeKeyCallBacks,
@@ -554,7 +514,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   /*
    * Send request to server.
    */
-  if (debug == YES) debugWrite(self, buf);
+  if (YES == debug) debugWrite(self, buf);
   [sock writeInBackgroundAndNotify: buf];
   RELEASE(buf);
   RELEASE(s);
@@ -574,7 +534,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (debug)
     NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
-  if (debug == YES) debugRead(self, d);
+  if (YES == debug) debugRead(self, d);
   readCount = [d length];
 
   if (connectionState == idle)
@@ -584,7 +544,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
        * it should just be the connection being closed by the other
        * end because of a timeout etc.
        */
-      if (debug == YES && [d length] != 0)
+      if (YES == debug && [d length] != 0)
 	{
 	  NSLog(@"%@ %p %s Unexpected data (%*.*s) from remote!",
 	    NSStringFromSelector(_cmd), self, keepalive?"K":"",
@@ -596,7 +556,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   else if ([parser parse: d] == NO && [parser isComplete] == NO)
     {
-      if (debug == YES)
+      if (YES == debug)
 	{
 	  NSLog(@"HTTP parse failure - %@", parser);
 	}
@@ -826,7 +786,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * lost in the network or the remote end received it and
 	   * the response was lost.
 	   */
-	  if (debug == YES)
+	  if (YES == debug)
 	    {
 	      NSLog(@"HTTP response not received - %@", parser);
 	    }
@@ -856,7 +816,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (debug)
     NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
-  if (debug == YES) debugRead(self, d);
+  if (YES == debug) debugRead(self, d);
 
   if ([d length] > 0)
     {
@@ -1012,7 +972,7 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
                object: sock];
 
       buf = [cmd dataUsingEncoding: NSASCIIStringEncoding];
-      if (debug == YES) debugWrite(self, buf);
+      if (YES == debug) debugWrite(self, buf);
       [sock writeInBackgroundAndNotify: buf];
 
       when = [NSDate alloc];
