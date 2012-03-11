@@ -548,6 +548,14 @@ static Class		NSURLHandleClass = 0;
   return [self availableResourceData];
 }
 
+/* Private method ... subclasses override this to enable debug to be
+ * turned off and on.
+ */
+- (void) setDebug: (BOOL)aFlag
+{
+  return;
+}
+
 /**
  * Returns the current status of the handle.
  */
