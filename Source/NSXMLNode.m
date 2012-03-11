@@ -31,6 +31,9 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 #if defined(HAVE_LIBXML)
 
+@interface NSXMLNamespaceNode : NSXMLNode
+@end
+
 static int
 countAttributes(xmlNodePtr node)
 {
@@ -205,6 +208,22 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   
   return NO;
 }
+
+/* FIXME ... the libxml2 data structure representing a namespace has a
+ * completely different layout from that of almost all other nodes, so
+ * the generix NSXMLNode code won't work and we need to override every
+ * method we use!
+ */
+@implementation	NSXMLNamespaceNode
+- (NSUInteger) level
+{
+  return 0;
+}
+- (NSXMLNode*) parent
+{
+  return nil;
+}
+@end
 
 @implementation NSXMLNode (Private)
 - (void *) _node
@@ -1004,43 +1023,46 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
    */
   switch (kind)
     {
-    case NSXMLDocumentKind: 
-      theSubclass = [NSXMLDocument class];
-      break;
+      case NSXMLDocumentKind: 
+	theSubclass = [NSXMLDocument class];
+	break;
+	  
+      case NSXMLInvalidKind: 
+	theSubclass = [NSXMLNode class];
+	break; 
+
+      case NSXMLElementKind: 
+	theSubclass = [NSXMLElement class];
+	break;
 	
-    case NSXMLInvalidKind: 
-      theSubclass = [NSXMLNode class];
-      break; 
+      case NSXMLDTDKind: 
+	theSubclass = [NSXMLDTD class];
+	break;
+	
+      case NSXMLElementDeclarationKind: 
+      case NSXMLEntityDeclarationKind: 
+      case NSXMLNotationDeclarationKind: 
+	theSubclass = [NSXMLDTDNode class];
+	break;
 
-    case NSXMLElementKind: 
-      theSubclass = [NSXMLElement class];
-      break;
-      
-    case NSXMLDTDKind: 
-      theSubclass = [NSXMLDTD class];
-      break;
-      
-    case NSXMLElementDeclarationKind: 
-    case NSXMLEntityDeclarationKind: 
-    case NSXMLNotationDeclarationKind: 
-      theSubclass = [NSXMLDTDNode class];
-      break;
+      case NSXMLNamespaceKind: 
+	theSubclass = [NSXMLNamespaceNode class];
+	break;
 
-    case NSXMLAttributeKind: 
-    case NSXMLCommentKind: 
-    case NSXMLNamespaceKind: 
-    case NSXMLProcessingInstructionKind: 
-    case NSXMLTextKind: 
-      break;
+      case NSXMLAttributeKind: 
+      case NSXMLCommentKind: 
+      case NSXMLProcessingInstructionKind: 
+      case NSXMLTextKind: 
+	break;
 
-    case NSXMLAttributeDeclarationKind: 
-      [self release];
-      return nil;
-      
-    default: 
-      kind = NSXMLInvalidKind;
-      theSubclass = [NSXMLNode class];
-      break;
+      case NSXMLAttributeDeclarationKind: 
+	[self release];
+	return nil;
+	
+      default: 
+	kind = NSXMLInvalidKind;
+	theSubclass = [NSXMLNode class];
+	break;
     }
 
   /*

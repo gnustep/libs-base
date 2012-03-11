@@ -1,5 +1,11 @@
 2012-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSXMLNode.m: Avoid crash when trying to get the parent of a
+	namespace ... namespaces don't have parents and in fact have a
+	completely different in-memory layout to other 'node' types.
+
+2012-03-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSURLHandle.m:
 	* Source/GSHTTPURLHandle.m:
 	* Source/NSURLProtocol.m:
