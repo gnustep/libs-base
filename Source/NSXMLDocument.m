@@ -25,7 +25,9 @@
 
 #import "common.h"
 
-#define GSInternal              NSXMLDocumentInternal
+#define	GS_XMLNODETYPE	xmlDoc
+#define GSInternal	NSXMLDocumentInternal
+
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 
@@ -55,8 +57,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) characterEncoding
 {
-  if (MY_DOC->encoding)
-    return StringFromXMLStringPtr(MY_DOC->encoding);
+  if (internal->node->encoding)
+    return StringFromXMLStringPtr(internal->node->encoding);
   else
     return nil;
 }
@@ -193,7 +195,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (BOOL) isStandalone
 {
-  return (MY_DOC->standalone == 1);
+  return (internal->node->standalone == 1);
 }
 
 - (NSString*) MIMEType
@@ -203,13 +205,13 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSXMLElement*) rootElement
 {
-  xmlNodePtr rootElem = xmlDocGetRootElement(MY_DOC);
+  xmlNodePtr rootElem = xmlDocGetRootElement(internal->node);
   return (NSXMLElement *)[NSXMLNode _objectForNode: rootElem];
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
-  MY_DOC->encoding = XMLStringCopy(encoding);
+  internal->node->encoding = XMLStringCopy(encoding);
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
@@ -221,7 +223,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   NSAssert(documentTypeDeclaration != nil, NSInvalidArgumentException);
   ASSIGNCOPY(internal->docType, documentTypeDeclaration);
-  MY_DOC->extSubset = [documentTypeDeclaration _node];
+  internal->node->extSubset = [documentTypeDeclaration _node];
 }
 
 - (void) setMIMEType: (NSString*)MIMEType
@@ -247,7 +249,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
   // FIXME: Should remove all sub nodes
 
-  xmlDocSetRootElement(MY_DOC, [root _node]);
+  xmlDocSetRootElement(internal->node, [root _node]);
 
   // Do our subNode housekeeping...
   [self _removeSubNode: oldElement];
@@ -256,14 +258,14 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setStandalone: (BOOL)standalone
 {
-  MY_DOC->standalone = standalone;
+  internal->node->standalone = standalone;
 }
 
 - (void) setVersion: (NSString*)version
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
-      MY_DOC->version = XMLStringCopy(version);
+      internal->node->version = XMLStringCopy(version);
    }
   else
     {
@@ -274,8 +276,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) version
 {
-  if (MY_DOC->version)
-    return StringFromXMLStringPtr(MY_DOC->version);
+  if (internal->node->version)
+    return StringFromXMLStringPtr(internal->node->version);
   else
     return @"1.0";
 }
@@ -369,7 +371,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   xmlChar	*buf = NULL;
   int		length;
 
-  xmlDocDumpFormatMemoryEnc(MY_DOC, &buf, &length, "utf-8",
+  xmlDocDumpFormatMemoryEnc(internal->node, &buf, &length, "utf-8",
     ((options & NSXMLNodePrettyPrint) ? 1 : 0));
 
   if (buf != 0 && length > 0)
@@ -409,7 +411,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
     }
 
   // Apply the stylesheet and get the result...
-  resultDoc = xsltApplyStylesheet(stylesheet, MY_DOC, (const char **)params);
+  resultDoc
+    = xsltApplyStylesheet(stylesheet, internal->node, (const char **)params);
   
   // Cleanup...
   xsltFreeStylesheet(stylesheet);
@@ -451,7 +454,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   xmlValidCtxtPtr ctxt = xmlNewValidCtxt();
   // FIXME: Should use xmlValidityErrorFunc and userData
   // to get the error
-  BOOL result = (BOOL)(xmlValidateDocument(ctxt, MY_DOC));
+  BOOL result = (BOOL)(xmlValidateDocument(ctxt, internal->node));
   xmlFreeValidCtxt(ctxt);
   return result;
 }

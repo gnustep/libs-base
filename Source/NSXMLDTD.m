@@ -24,7 +24,9 @@
 
 #import "common.h"
 
-#define GSInternal              NSXMLDTDInternal
+#define	GS_XMLNODETYPE	xmlDtd
+#define GSInternal	NSXMLDTDInternal
+
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLDTD)
@@ -147,7 +149,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (NSString*) publicID
 {
-  xmlDtd *node = MY_DTD;
+  xmlDtd *node = internal->node;
 
   return StringFromXMLStringPtr(node->ExternalID); 
 }
@@ -169,21 +171,21 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (void) setPublicID: (NSString*)publicID
 {
-  xmlDtd *node = MY_DTD;
+  xmlDtd *node = internal->node;
 
   node->ExternalID = XMLStringCopy(publicID); 
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  xmlDtd *node = MY_DTD;
+  xmlDtd *node = internal->node;
 
   node->SystemID = XMLStringCopy(systemID); 
 }
 
 - (NSString*) systemID
 {
-  xmlDtd *node = MY_DTD;
+  xmlDtd *node = internal->node;
 
   return StringFromXMLStringPtr(node->SystemID); 
 }

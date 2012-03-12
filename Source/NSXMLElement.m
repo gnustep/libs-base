@@ -24,7 +24,9 @@
 
 #import "common.h"
 
-#define GSInternal              NSXMLElementInternal
+#define GSInternal	NSXMLElementInternal
+#define	GS_XMLNODETYPE	xmlNode
+
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
@@ -133,7 +135,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   NSMutableArray *results = [NSMutableArray arrayWithCapacity: 10];
   xmlNodePtr cur = NULL;
 
-  for (cur = MY_NODE->children; cur != NULL; cur = cur->next)
+  for (cur = internal->node->children; cur != NULL; cur = cur->next)
     {
       NSString *n = StringFromXMLStringPtr(cur->name);
       if ([n isEqualToString: name])
@@ -154,7 +156,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) addAttribute: (NSXMLNode*)attribute
 {
-  xmlNodePtr node = MY_NODE;
+  xmlNodePtr node = internal->node;
   xmlAttrPtr attr = (xmlAttrPtr)[attribute _node];
   xmlAttrPtr oldAttr = xmlHasProp(node, attr->name);
 
@@ -194,7 +196,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) removeAttributeForName: (NSString*)name
 {
-  xmlNodePtr node = MY_NODE;
+  xmlNodePtr node = internal->node;
   xmlAttrPtr attr = xmlHasProp(node, XMLSTRING(name));
   NSXMLNode *attrNode = nil;
 
@@ -242,7 +244,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (NSArray*) attributes
 {
   NSMutableArray *attributes = [NSMutableArray array];
-  xmlNodePtr node = MY_NODE;
+  xmlNodePtr node = internal->node;
   xmlAttrPtr attributeNode = node->properties;
 
   while (attributeNode)
@@ -259,7 +261,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
   NSXMLNode	*result = nil;
-  xmlAttrPtr	attributeNode = xmlHasProp(MY_NODE, XMLSTRING(name));
+  xmlAttrPtr	attributeNode = xmlHasProp(internal->node, XMLSTRING(name));
 
   if (NULL != attributeNode)
     {
@@ -280,13 +282,13 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   xmlNsPtr ns = (xmlNsPtr)[aNamespace _node];
 
-  if (MY_NODE->ns == NULL)
+  if (internal->node->ns == NULL)
     {
-      MY_NODE->ns = ns;
+      internal->node->ns = ns;
     }
   else
     {
-      xmlNsPtr cur = MY_NODE->ns;
+      xmlNsPtr cur = internal->node->ns;
       const xmlChar *prefix = ns->prefix;
       
       while (xmlStrcmp(prefix, cur->prefix) != 0)
@@ -313,14 +315,14 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   xmlNsPtr cur = NULL;
 
   // FIXME: Remove old namespaces
-  // xmlFreeNsList(MY_NODE->ns);
-  // MY_NODE->ns = NULL;
+  // xmlFreeNsList(internal->node->ns);
+  // internal->node->ns = NULL;
   while ((namespace = (NSXMLNode *)[en nextObject]) != nil)
     {
       xmlNsPtr ns = (xmlNsPtr)[namespace _node];
-      if (MY_NODE->ns == NULL)
+      if (internal->node->ns == NULL)
 	{
-	  MY_NODE->ns = ns;
+	  internal->node->ns = ns;
 	  cur = ns;
 	}
       else
@@ -335,7 +337,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   // FIXME: Should use  xmlGetNsList()
   NSMutableArray *result = nil;
-  xmlNsPtr ns = MY_NODE->ns;
+  xmlNsPtr ns = internal->node->ns;
 
   if (ns)
     {
@@ -353,7 +355,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
 {
   // FIXME: Should use xmlSearchNs()
-  xmlNsPtr ns = MY_NODE->ns;
+  xmlNsPtr ns = internal->node->ns;
   if (ns)
     {
       const xmlChar *prefix = XMLSTRING(name);
@@ -385,7 +387,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (NSString*) resolvePrefixForNamespaceURI: (NSString*)namespaceURI
 {
   // FIXME Should use xmlSearchNsByHref()
-  xmlNsPtr ns = MY_NODE->ns;
+  xmlNsPtr ns = internal->node->ns;
 
   if (ns)
     {
