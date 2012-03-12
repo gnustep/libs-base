@@ -1,5 +1,12 @@
 2012-03-12  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSXMLNode.m (-detach): Don't handle the namespace case.
+	* Source/NSXMLElement.m (-removeNamespaceForPrefix:): Implement.
+	* Tests/base/NSXMLNode/basic.m: Move tests from here ...
+	* Tests/base/NSXMLElement/basic.m: ... to here.
+
+2012-03-12  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSXMLElement.m: Correct used namespace field.
 	* Source/NSXMLNode.m: Implement special handling for namespace nodes.
 	* Tests/base/NSXMLNode/basic.m: Correct method name for namespace node.
