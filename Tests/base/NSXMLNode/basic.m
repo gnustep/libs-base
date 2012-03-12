@@ -25,8 +25,8 @@ int main()
   text = [NSXMLNode textWithStringValue: @"Text node"];
   pi = [NSXMLNode processingInstructionWithName: @"PI name"
                                     stringValue: @"PI string"];
-  ns = [NSXMLNode processingInstructionWithName: @"name space name"
-                                    stringValue: @"name space string"];
+  ns = [NSXMLNode namespaceWithName: @"name space name"
+                        stringValue: @"name space string"];
   comment = [NSXMLNode commentWithStringValue: @"Comment node"];
   attr = [NSXMLNode attributeWithName: @"key"
 			  stringValue: @"value"];
