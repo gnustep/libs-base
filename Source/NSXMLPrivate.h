@@ -81,29 +81,12 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
   return AUTORELEASE(str);
 }
 
-#define MY_DOC	((xmlDoc *)internal->node)
-#define MY_NODE ((xmlNode *)internal->node)
-#define MY_ATTR ((xmlAttr *)internal->node)
-#define MY_ELEM ((xmlElement *)internal->node)
-#define MY_DTD  ((xmlDtd *)internal->node)
-
 /* Instance variables for NSXMLNode.  This macro needs to be defined before
  * the NSXMLNode.h header is imported and before GSInternal.h is imported.
- *
- * Description of internal ivars:
- * - `children': The primary storage for the descendant nodes. We use an NSArray
- *   here until somebody finds out it's not fast enough.
- * - `childCount': For efficiency, we cache the count. This means we need to
- *   update it whenever the children change.
- * - `previousSibling', `nextSibling': Tree walking is a common operation for
- *   XML. [parent->children objectAtIndex: index + 1] would be a
- *   straightforward way to obtain the next sibling of the node, but it hurts
- *   performance quite a bit. So we cache the siblings and update them when the
- *   nodes are changed.
  */
 #define GS_NSXMLNode_IVARS \
   NSUInteger	  kind; \
-  void           *node;  \
+  GS_XMLNODETYPE *node;  \
   NSUInteger      options; \
   id              objectValue; \
   NSString       *URI; \
@@ -163,6 +146,14 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  */
 #define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
 
+/* Instance variables for NSXMLNamespace with/without the instance
+ * variable 'inherited' from NSXMLNode.
+ * This macro needs to be defined before the NSXMLNamespace interface
+ * is declared and before GSInternal.h is imported.
+ */
+#define GS_NSXMLNamespace_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
+
+
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDebug.h"
@@ -208,9 +199,9 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 - (void *) _node;
 - (void) _setNode: (void *)_anode;
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
-- (void) _addSubNode:(NSXMLNode *)subNode;
-- (void) _removeSubNode:(NSXMLNode *)subNode;
-- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
+- (void) _addSubNode: (NSXMLNode *)subNode;
+- (void) _removeSubNode: (NSXMLNode *)subNode;
+- (id) _initWithNode: (xmlNodePtr)node kind: (NSXMLNodeKind)kind;
 - (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index;
 - (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
 - (void) _invalidate;

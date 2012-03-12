@@ -1,5 +1,18 @@
 2012-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSXMLNamespace.m: New class for namespaces
+	* Source/GNUmakefile: Build with new class
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLPrivate.h:
+	* Source/NSXMLDTD.m:
+	* Source/NSXMLNode.m:
+	* Source/NSXMLDTDNode.m:
+	* Source/NSXMLElement.m:
+	Use a new class for namespaces ... just a placeholder/skeleton so far.
+	Change other classes to know the correct type of their 'node' pointer.
+
+2012-03-11  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSXMLNode.m: Avoid crash when trying to get the parent of a
 	namespace ... namespaces don't have parents and in fact have a
 	completely different in-memory layout to other 'node' types.

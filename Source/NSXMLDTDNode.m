@@ -24,7 +24,9 @@
 
 #import "common.h"
 
-#define GSInternal              NSXMLDTDNodeInternal
+#define GS_XMLNODETYPE	xmlDtd
+#define GSInternal	NSXMLDTDNodeInternal
+
 #import	"NSXMLPrivate.h"
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLDTDNode)
@@ -85,12 +87,12 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (NSString*) notationName
 {
-  return StringFromXMLStringPtr(MY_DTD->name);
+  return StringFromXMLStringPtr(internal->node->name);
 }
 
 - (NSString*) publicID
 {
- return StringFromXMLStringPtr(MY_DTD->ExternalID);
+ return StringFromXMLStringPtr(internal->node->ExternalID);
 }
 
 - (void) setDTDKind: (NSXMLDTDNodeKind)kind
@@ -100,22 +102,22 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (void) setNotationName: (NSString*)notationName
 {
-  MY_DTD->name = XMLSTRING(notationName);
+  internal->node->name = XMLSTRING(notationName);
 }
 
 - (void) setPublicID: (NSString*)publicID
 {
-  MY_DTD->ExternalID = XMLSTRING(publicID);
+  internal->node->ExternalID = XMLSTRING(publicID);
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  MY_DTD->ExternalID = XMLSTRING(systemID);
+  internal->node->ExternalID = XMLSTRING(systemID);
 }
 
 - (NSString*) systemID
 {
-  return StringFromXMLStringPtr(MY_DTD->SystemID);
+  return StringFromXMLStringPtr(internal->node->SystemID);
 }
 
 @end
