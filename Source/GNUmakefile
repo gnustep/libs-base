@@ -286,7 +286,6 @@ NSXMLDocument.m \
 NSXMLDTD.m \
 NSXMLDTDNode.m \
 NSXMLElement.m \
-NSXMLNamespace.m \
 NSXMLNode.m \
 NSXMLParser.m \
 NSZone.m \

@@ -146,13 +146,6 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  */
 #define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
 
-/* Instance variables for NSXMLNamespace with/without the instance
- * variable 'inherited' from NSXMLNode.
- * This macro needs to be defined before the NSXMLNamespace interface
- * is declared and before GSInternal.h is imported.
- */
-#define GS_NSXMLNamespace_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
-
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"

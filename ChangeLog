@@ -1,3 +1,11 @@
+2012-03-11  Richard Frith-Macdonald & Fred Kiefer
+
+	* Source/NSXMLNamespace.m:
+	* Source/GNUmakefile:
+	* Source/NSXMLPrivate.h:
+	* Source/NSXMLNode.m:
+	Revert most of my last change in favour of Fred's changes.
+
 2012-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLNamespace.m: New class for namespaces
