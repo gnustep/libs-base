@@ -33,7 +33,8 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 #if defined(HAVE_LIBXML)
 
-@class NSXMLNamespace;
+@interface NSXMLNamespaceNode : NSXMLNode
+@end
 
 static int
 countAttributes(xmlNodePtr node)
@@ -210,6 +211,22 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   return NO;
 }
 
+/* FIXME ... the libxml2 data structure representing a namespace has a
+ * completely different layout from that of almost all other nodes, so
+ * the generix NSXMLNode code won't work and we need to override every
+ * method we use!
+ */
+@implementation	NSXMLNamespaceNode
+- (NSUInteger) level
+{
+  return 0;
+}
+- (NSXMLNode*) parent
+{
+  return nil;
+}
+@end
+
 @implementation NSXMLNode (Private)
 - (void *) _node
 {
@@ -219,11 +236,18 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 - (void) _setNode: (void *)_anode
 {
   DESTROY(internal->subNodes);
-  if (_anode)
-    {
-      ((xmlNodePtr)_anode)->_private = self;
-    }
   internal->node = _anode;
+  if (internal->node != NULL)
+    {
+      if (internal->node->type == XML_NAMESPACE_DECL)
+        {
+          ((xmlNsPtr)(internal->node))->_private = self;
+        }
+      else
+        {
+          internal->node->_private = self;
+        }
+    }
 }
 
 + (NSXMLNode *) _objectForNode: (xmlNodePtr)node
@@ -232,12 +256,21 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   
   if (node)
     {
-      result = node->_private;
+      if (node->type == XML_NAMESPACE_DECL)
+        {
+          result = ((xmlNs *)node)->_private;
+        }
+      else
+        {
+          result = node->_private;
+        }
       if (result == nil)
 	{
           Class cls;
           NSXMLNodeKind kind;
           xmlElementType type = node->type;
+          xmlDoc *docNode;
+          NSXMLDocument *doc = nil;
           
 	  switch (type)
 	    {
@@ -301,12 +334,18 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 		return nil;
 		break;
 	    }
-          if ((node->doc != NULL) && ((xmlNodePtr)(node->doc) != node))
+          if (node->type == XML_NAMESPACE_DECL)
             {
-              NSXMLDocument *doc;
-              
-              doc = (NSXMLDocument*)[self
-		_objectForNode: (xmlNodePtr)node->doc];
+              docNode = NULL;
+            }
+          else
+            {
+              docNode = node->doc;
+            }
+
+          if ((docNode != NULL) && ((xmlNodePtr)docNode != node))
+            {
+              doc = (NSXMLDocument*)[self _objectForNode: (xmlNodePtr)docNode];
               if (doc != nil)
                 {
                   cls = [[doc class] replacementClassForClass: cls];
@@ -315,10 +354,17 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
           result = [[cls alloc] _initWithNode: node kind: kind];
 	  AUTORELEASE(result);
-	  if (node->parent)
+          if (node->type == XML_NAMESPACE_DECL)
             {
-	      NSXMLNode *parent = [self _objectForNode: node->parent];
-	      [parent _addSubNode: result];
+              [doc _addSubNode: result];
+            }
+          else
+            {
+              if (node->parent)
+                {
+                  NSXMLNode *parent = [self _objectForNode: node->parent];
+                  [parent _addSubNode: result];
+                }
             }
 	}
     }
@@ -365,8 +411,12 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 {
   NSUInteger count = 0;
   xmlNodePtr node = internal->node;
-  xmlNodePtr children = node->children;
+  xmlNodePtr children;
 
+  if (node->type == XML_NAMESPACE_DECL)
+    return NULL;
+
+  children = node->children;
   if (!children)
     return NULL; // the Cocoa docs say it returns nil if there are no children
 
@@ -473,11 +523,23 @@ clearPrivatePointers(xmlNodePtr aNode)
 {
   if (!aNode)
     return;
+
+  if (aNode->type == XML_NAMESPACE_DECL)
+    {
+      xmlNsPtr	ns = (xmlNsPtr)aNode;
+
+      ns->_private = NULL;
+      clearPrivatePointers((xmlNodePtr)ns->next);
+      return;
+    }
+
   aNode->_private = NULL;
   clearPrivatePointers(aNode->children);
   clearPrivatePointers(aNode->next);
   if (aNode->type == XML_ELEMENT_NODE)
-    clearPrivatePointers((xmlNodePtr)(aNode->properties));
+    {
+      clearPrivatePointers((xmlNodePtr)(aNode->properties));
+    }
   // FIXME: Handle more node types
 }
 
@@ -829,7 +891,8 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSString*) canonicalXMLStringPreservingComments: (BOOL)comments
 {
-  return [self notImplemented: _cmd];	// FIXME ... generate from libxml
+  // FIXME ... generate from libxml
+  return [self notImplemented: _cmd];
 }
 
 - (NSXMLNode*) childAtIndex: (NSUInteger)index
@@ -845,6 +908,11 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   xmlNodePtr node = internal->node;
 
   if (!node)
+    {
+      return 0;
+    }
+
+  if (node->type == XML_NAMESPACE_DECL)
     {
       return 0;
     }
@@ -870,7 +938,9 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
       xmlNodePtr children = NULL;
       xmlNodePtr node = internal->node;
       
-      if ((node == NULL) || (node->children == NULL))
+      if ((node == NULL) ||
+          (node->type == XML_NAMESPACE_DECL) ||
+          (node->children == NULL))
 	{
 	  return nil;
 	}
@@ -938,14 +1008,25 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
       [internal->objectValue release];
       [internal->subNodes release];
       if (node)
-	node->_private = NULL;
-      if (node && node->parent == NULL)
-	{
-	  if (node->type == XML_DOCUMENT_NODE)
-	    xmlFreeDoc((xmlDocPtr)node);
-	  else
-	    xmlFreeNode(node);  // the top level node frees the entire tree
-	}
+        {
+          if (internal->node->type == XML_NAMESPACE_DECL)
+            {
+              ((xmlNsPtr)internal->node)->_private = NULL;
+              xmlFreeNode(node);
+            }
+          else
+            {
+              node->_private = NULL;
+              if (node->parent == NULL)
+                {
+                  // the top level node frees the entire tree
+                  if (node->type == XML_DOCUMENT_NODE)
+                    xmlFreeDoc((xmlDocPtr)node);
+                  else
+                    xmlFreeNode(node);
+                }
+            }
+        }
       GS_DESTROY_INTERNAL(NSXMLNode);
     }
   [super dealloc];
@@ -979,6 +1060,12 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 {
   xmlNodePtr node = internal->node;
   int count = 0;
+
+  if (internal->node->type == XML_NAMESPACE_DECL)
+    {
+      // FIXME: Could try to go to document an loop over the namespaces
+      return 0;
+    }
 
   while ((node = node->prev))
     {
@@ -1031,7 +1118,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 	break;
 
       case NSXMLNamespaceKind: 
-	theSubclass = [NSXMLNamespace class];
+	theSubclass = [NSXMLNamespaceNode class];
 	break;
 
       case NSXMLAttributeKind: 
@@ -1144,6 +1231,11 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   xmlNodePtr tmp;
 
   if (!internal->node)
+    {
+      return 0;
+    }
+
+  if (internal->node->type == XML_NAMESPACE_DECL)
     {
       return 0;
     }
