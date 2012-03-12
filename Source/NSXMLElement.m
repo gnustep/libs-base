@@ -196,16 +196,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (void) removeAttributeForName: (NSString*)name
 {
-  xmlNodePtr node = internal->node;
-  xmlAttrPtr attr = xmlHasProp(node, XMLSTRING(name));
-  NSXMLNode *attrNode = nil;
+  NSXMLNode *attrNode = [self attributeForName: name];
 
-  if (NULL == attr)
-    {
-      return;
-    }
-
-  attrNode = [NSXMLNode _objectForNode: (xmlNodePtr)attr];
   [attrNode detach];
 }
 
@@ -260,8 +252,9 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
-  NSXMLNode	*result = nil;
-  xmlAttrPtr	attributeNode = xmlHasProp(internal->node, XMLSTRING(name));
+  NSXMLNode *result = nil;
+  xmlNodePtr node = internal->node;
+  xmlAttrPtr attributeNode = xmlHasProp(node, XMLSTRING(name));
 
   if (NULL != attributeNode)
     {
@@ -282,13 +275,13 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   xmlNsPtr ns = (xmlNsPtr)[aNamespace _node];
 
-  if (internal->node->ns == NULL)
+  if (internal->node->nsDef == NULL)
     {
-      internal->node->ns = ns;
+      internal->node->nsDef = ns;
     }
   else
     {
-      xmlNsPtr cur = internal->node->ns;
+      xmlNsPtr cur = internal->node->nsDef;
       const xmlChar *prefix = ns->prefix;
       
       while (xmlStrcmp(prefix, cur->prefix) != 0)
@@ -315,14 +308,14 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   xmlNsPtr cur = NULL;
 
   // FIXME: Remove old namespaces
-  // xmlFreeNsList(internal->node->ns);
-  // internal->node->ns = NULL;
+  // xmlFreeNsList(internal->node->nsDef);
+  // internal->node->nsDef = NULL;
   while ((namespace = (NSXMLNode *)[en nextObject]) != nil)
     {
       xmlNsPtr ns = (xmlNsPtr)[namespace _node];
-      if (internal->node->ns == NULL)
+      if (internal->node->nsDef == NULL)
 	{
-	  internal->node->ns = ns;
+	  internal->node->nsDef = ns;
 	  cur = ns;
 	}
       else
@@ -337,7 +330,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   // FIXME: Should use  xmlGetNsList()
   NSMutableArray *result = nil;
-  xmlNsPtr ns = internal->node->ns;
+  xmlNsPtr ns = internal->node->nsDef;
 
   if (ns)
     {
@@ -355,7 +348,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
 {
   // FIXME: Should use xmlSearchNs()
-  xmlNsPtr ns = internal->node->ns;
+  xmlNsPtr ns = internal->node->nsDef;
+
   if (ns)
     {
       const xmlChar *prefix = XMLSTRING(name);
@@ -387,7 +381,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 - (NSString*) resolvePrefixForNamespaceURI: (NSString*)namespaceURI
 {
   // FIXME Should use xmlSearchNsByHref()
-  xmlNsPtr ns = internal->node->ns;
+  xmlNsPtr ns = internal->node->nsDef;
 
   if (ns)
     {

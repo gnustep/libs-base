@@ -33,9 +33,6 @@ GS_PRIVATE_INTERNAL(NSXMLNode)
 
 #if defined(HAVE_LIBXML)
 
-@interface NSXMLNamespaceNode : NSXMLNode
-@end
-
 static int
 countAttributes(xmlNodePtr node)
 {
@@ -141,6 +138,23 @@ isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
   if (nodeA->type != nodeB->type)
     return NO;
   
+  if (nodeA->type == XML_NAMESPACE_DECL) 
+    {
+      xmlNsPtr nsA = (xmlNsPtr)nodeA;
+      xmlNsPtr nsB = (xmlNsPtr)nodeB;
+      
+      if (xmlStrcmp(nsA->href, nsB->href) != 0)
+	{
+	  return NO;
+	}
+      if (xmlStrcmp(nsA->prefix, nsB->prefix) != 0)
+	{
+	  return NO;
+	}
+      
+      return YES;
+    }
+
   if (xmlStrcmp(nodeA->name, nodeB->name) != 0)
     return NO;
   
@@ -192,6 +206,11 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
       return NO;
     }
   
+  if (nodeA->type == XML_NAMESPACE_DECL) 
+    {
+      return YES;
+    }
+
   // Check children
   childA = nodeA->children;
   childB = nodeB->children;
@@ -213,20 +232,9 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
 /* FIXME ... the libxml2 data structure representing a namespace has a
  * completely different layout from that of almost all other nodes, so
- * the generix NSXMLNode code won't work and we need to override every
- * method we use!
+ * the generic xmlNode code won't work and we need to check the type
+ * in every method we use!
  */
-@implementation	NSXMLNamespaceNode
-- (NSUInteger) level
-{
-  return 0;
-}
-- (NSXMLNode*) parent
-{
-  return nil;
-}
-@end
-
 @implementation NSXMLNode (Private)
 - (void *) _node
 {
@@ -336,7 +344,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 	    }
           if (node->type == XML_NAMESPACE_DECL)
             {
-              docNode = NULL;
+              docNode = ((xmlNsPtr)node)->context;
             }
           else
             {
@@ -461,6 +469,10 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
           [child _setNode: NULL];
           child = [NSXMLNode _objectForNode: addedNode];
         }
+    }
+  else if (childNode->type == XML_NAMESPACE_DECL)
+    {
+      // FIXME
     }
   else
     {
@@ -1009,9 +1021,9 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
       [internal->subNodes release];
       if (node)
         {
-          if (internal->node->type == XML_NAMESPACE_DECL)
+          if (node->type == XML_NAMESPACE_DECL)
             {
-              ((xmlNsPtr)internal->node)->_private = NULL;
+              ((xmlNsPtr)node)->_private = NULL;
               xmlFreeNode(node);
             }
           else
@@ -1038,8 +1050,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
   if (node)
     {
-      xmlNodePtr parentNode = node->parent;
-      NSXMLNode *parent = (parentNode ? parentNode->_private : nil);
+      NSXMLNode *parent = [self parent];
 
       // separate our node from its parent and siblings
       xmlUnlinkNode(node);
@@ -1061,7 +1072,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   xmlNodePtr node = internal->node;
   int count = 0;
 
-  if (internal->node->type == XML_NAMESPACE_DECL)
+  if (node->type == XML_NAMESPACE_DECL)
     {
       // FIXME: Could try to go to document an loop over the namespaces
       return 0;
@@ -1118,7 +1129,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 	break;
 
       case NSXMLNamespaceKind: 
-	theSubclass = [NSXMLNamespaceNode class];
+	theSubclass = [NSXMLNode class];
 	break;
 
       case NSXMLAttributeKind: 
@@ -1227,26 +1238,16 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSUInteger) level
 {
-  NSUInteger level = 0;
-  xmlNodePtr tmp;
-
-  if (!internal->node)
+  NSXMLNode *parent = [self parent];
+  
+  if (nil == parent)
     {
       return 0;
     }
-
-  if (internal->node->type == XML_NAMESPACE_DECL)
+  else
     {
-      return 0;
+      return [parent level] + 1;
     }
-
-  tmp = internal->node->parent;
-  while (tmp != NULL)
-    {
-      level++;
-      tmp = tmp->parent;
-    }
-  return level;
 }
 
 - (NSString*) localName
@@ -1256,11 +1257,21 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSString*) name
 {
+  xmlNodePtr node = internal->node;
+
   if (NSXMLInvalidKind == internal->kind)
     {
       return nil;
     }
-  return StringFromXMLStringPtr(internal->node->name);
+
+  if (node->type == XML_NAMESPACE_DECL)
+    {
+      return StringFromXMLStringPtr(((xmlNs *)node)->prefix);
+    }
+  else
+    {
+      return StringFromXMLStringPtr(node->name);
+    }
 }
 
 - (NSXMLNode*) _nodeFollowingInNaturalDirection: (BOOL)forward
@@ -1329,7 +1340,23 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSXMLNode*) parent
 {
-  return [NSXMLNode _objectForNode: internal->node->parent];
+  xmlNodePtr parent = NULL;
+  xmlNodePtr node = internal->node;
+
+  if (NULL == node)
+    {
+      return nil;
+    }
+
+  if (node->type == XML_NAMESPACE_DECL)
+    {
+      parent = (xmlNodePtr)(((xmlNs *)node)->context);
+    }
+  else
+    {
+      parent = node->parent;
+    }
+  return [NSXMLNode _objectForNode: parent];
 }
 
 - (NSString*) prefix
@@ -1359,14 +1386,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   xmlChar *content = xmlNodeGetContent(node);
   NSString *result = nil;
 
-  /*
-  if (node->type == XML_ATTRIBUTE_NODE
-    || node->type == XML_ELEMENT_NODE)
-    {
-      node = node->children;
-    }
-  */
-
   if (NULL != content)
     {
       result = StringFromXMLStringPtr(content);
@@ -1393,12 +1412,27 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (void) setName: (NSString *)name
 {
+  xmlNodePtr node = internal->node;
+
   if (NSXMLInvalidKind == internal->kind)
     {
       return;
     }
   
-  xmlNodeSetName(internal->node, XMLSTRING(name));
+  if (node->type == XML_NAMESPACE_DECL)
+    {
+      xmlNsPtr ns = (xmlNsPtr)node;
+
+      if (ns->prefix != NULL)
+        {
+          xmlFree((xmlChar *)ns->prefix);
+        }
+      ns->prefix = XMLStringCopy(name);
+    }
+  else
+    {
+      xmlNodeSetName(node, XMLSTRING(name));
+    }
 }
 
 - (void) setStringValue: (NSString*)string
@@ -1410,17 +1444,29 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 {
   xmlNodePtr node = internal->node;
 
-  if (resolve == NO)
+  if (node->type == XML_NAMESPACE_DECL)
     {
-      xmlNodeSetContent(node, XMLSTRING(string));
+      xmlNsPtr ns = (xmlNsPtr)node;
+      if (ns->href != NULL)
+        {
+          xmlFree((xmlChar *)ns->href);
+        }
+      ns->href = XMLStringCopy(string);
     }
   else
     {
-      // need to actually resolve entities...
-      // is this the right functionality?? xmlEncodeSpecialChars()
-      xmlChar *newstr = xmlEncodeEntitiesReentrant(node->doc, XMLSTRING(string));
-      xmlNodeSetContent(node, newstr);
-      xmlMemFree(newstr);
+      if (resolve == NO)
+        {
+          xmlNodeSetContent(node, XMLSTRING(string));
+        }
+      else
+        {
+          // need to actually resolve entities...
+          // is this the right functionality?? xmlEncodeSpecialChars()
+          xmlChar *newstr = xmlEncodeEntitiesReentrant(node->doc, XMLSTRING(string));
+          xmlNodeSetContent(node, newstr);
+          xmlMemFree(newstr);
+        }
     }
   ASSIGN(internal->objectValue, string);
 }
@@ -1455,11 +1501,19 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   NSString     *string = nil;
   xmlNodePtr   node = (xmlNodePtr)[self _node];
   xmlChar      *buf = NULL;
-  xmlDocPtr    doc = node->doc;
+  xmlDocPtr    doc;
   xmlBufferPtr buffer = xmlBufferCreate();
   int error = 0;
   int len = 0;
 
+  if (node->type == XML_NAMESPACE_DECL)
+    {
+      doc = ((xmlNs *)node)->context;
+    }
+  else
+    {
+      doc = node->doc;
+    }
   error = xmlNodeDump(buffer, doc, node, 1, 1);
   if (-1 == error)
     {
