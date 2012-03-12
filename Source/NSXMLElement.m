@@ -294,11 +294,44 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 	  cur = cur->next;
 	}
     }
+  [self _addSubNode: aNamespace];
 }
 
 - (void) removeNamespaceForPrefix: (NSString*)name
 {
-  [self notImplemented: _cmd];
+  if (internal->node->nsDef != NULL)
+    {
+      xmlNsPtr cur = internal->node->nsDef;
+      xmlNsPtr last = NULL;
+      const xmlChar *prefix = XMLSTRING(name);
+      
+      while (cur != NULL)
+        {
+          if (xmlStrcmp(prefix, cur->prefix) == 0)
+            {
+              if (last == NULL)
+                {
+                  internal->node->nsDef = cur->next;
+                }
+              else
+                {
+                  last->next = cur->next;
+                }
+              cur->next = NULL;
+              if (cur->_private != NULL)
+                {
+                  [self _removeSubNode: (NSXMLNode *)cur->_private];
+                }
+              else
+                {
+                  xmlFreeNode(cur);
+                }
+              return;
+            }
+          last = cur;
+	  cur = cur->next;
+	}
+    }
 }
 
 - (void) setNamespaces: (NSArray*)namespaces
@@ -312,17 +345,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   // internal->node->nsDef = NULL;
   while ((namespace = (NSXMLNode *)[en nextObject]) != nil)
     {
-      xmlNsPtr ns = (xmlNsPtr)[namespace _node];
-      if (internal->node->nsDef == NULL)
-	{
-	  internal->node->nsDef = ns;
-	  cur = ns;
-	}
-      else
-	{
-	  cur->next = ns;
-	  cur = ns;
-	}
+      [self addNamespace: namespace];
     }
 }
 
@@ -543,7 +566,7 @@ joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
       subEnum = [nodesToDelete objectEnumerator];
       while ((subNode = [subEnum nextObject]))
 	{
-	  [self _removeSubNode:subNode];
+	  [self _removeSubNode: subNode];
 	}
     }
 }

@@ -7,10 +7,18 @@ int main()
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLElement          *node;
   NSXMLElement          *other;
+  NSXMLElement          *xml;
+  NSXMLNode *attr;
+  NSArray *instances;
 
   node = [[NSXMLElement alloc] initWithName: @"node"];
+  xml = [[NSXMLElement alloc] initWithXMLString: @"<element attr=\"value\"></element>"
+                                          error: NULL];
+  other = [NSXMLNode elementWithName: @"other" children: nil attributes: nil];
+  instances = [NSArray arrayWithObjects: node, other, xml, nil];
   test_alloc(@"NSXMLElement");
-  test_NSObject(@"NSXMLElement", [NSArray arrayWithObject: node]);
+  test_NSObject(@"NSXMLElement", instances);
+  test_NSCopying(@"NSXMLElement", @"NSXMLElement", instances, NO, YES);
 
   other = [[NSXMLElement alloc] initWithName: @"other"];
   PASS(NO == [other isEqual: node], "differently named elements are not equal");
@@ -21,7 +29,7 @@ int main()
 
   [other release];
 
-  PASS(NSXMLElementKind == [node kind], "invalid node kind is correct");
+  PASS(NSXMLElementKind == [node kind], "element node kind is correct");
   PASS(0 == [node level], "element node level is zero");
   PASS_EQUAL([node URI], nil, "element node URI is nil");
   PASS_EQUAL([node objectValue], @"", "element node object value is empty");
@@ -45,6 +53,37 @@ int main()
     "setting nil string value on element node gives empty string");
 
   [node release];
+
+  // Equality tests.
+  node = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
+  other = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
+  [other setName: @"test"];
+  [node setName: @"test"];
+  PASS([node isEqual: other], 
+       "Elements with the same name are equal");
+  
+  attr = [NSXMLNode attributeWithName: @"key"
+			  stringValue: @"value"];
+  [node addAttribute:attr];
+  PASS(![node isEqual: other],
+       "Elements with different attributes are NOT equal");
+
+  attr = [NSXMLNode attributeWithName: @"key"
+			  stringValue: @"value"];
+  [other addAttribute:attr];
+  PASS([node isEqual: other], 
+       "Elements with the same attributes are equal");
+
+  [other setStringValue: @"value"];
+  PASS(![node isEqual: other],
+       "Elements with different values are NOT equal");
+
+  [node setStringValue: @"value"];
+  PASS([node isEqual: other],
+       "Elements with same values are equal");
+
+  [node release];
+  [other release];
 
   [arp release];
   arp = nil;

@@ -1052,9 +1052,17 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     {
       NSXMLNode *parent = [self parent];
 
-      // separate our node from its parent and siblings
-      xmlUnlinkNode(node);
-      xmlSetTreeDoc(node, NULL);
+      if (node->type == XML_NAMESPACE_DECL)
+        {
+          // FIXME
+        }
+      else
+        {
+          // separate our node from its parent and siblings
+          xmlUnlinkNode(node);
+          xmlSetTreeDoc(node, NULL);
+        }
+
       if (parent)
 	{
 	  [parent _removeSubNode: self];

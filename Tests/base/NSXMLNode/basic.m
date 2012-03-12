@@ -103,6 +103,7 @@ int main()
   PASS_EQUAL([attr stringValue], @"value", "string value on attr node works");
   // In libxml2 the value is on a child node
   //PASS_EQUAL([attr children], nil, "attr node children is nil");
+  //PASS([attr childCount] == 0, "No child on attr node");
 
   [attr setName: @"name"];
   PASS_EQUAL([attr name], @"name",
@@ -110,39 +111,6 @@ int main()
   [attr setStringValue: @"aString"];
   PASS_EQUAL([attr stringValue], @"aString",
     "setting string value on attr node works");
-  // In libxml2 the value is on a child node
-  //PASS([attr childCount] == 0, "No child on attr node");
-
-  // Equality tests.
-  node = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
-  other = [[NSXMLNode alloc] initWithKind: NSXMLElementKind];
-  [other setName: @"test"];
-  [node setName: @"test"];
-  PASS([node isEqual: other], 
-       "Nodes with the same name are equal");
-  
-  attr = [NSXMLNode attributeWithName: @"key"
-			  stringValue: @"value"];
-  [node addAttribute:attr];
-  PASS(![node isEqual: other],
-       "Nodes with different attributes are NOT equal");
-
-  attr = [NSXMLNode attributeWithName: @"key"
-			  stringValue: @"value"];
-  [other addAttribute:attr];
-  PASS([node isEqual: other], 
-       "Nodes with the same attributes are equal");
-
-  [other setStringValue: @"value"];
-  PASS(![node isEqual: other],
-       "Nodes with different values are NOT equal");
-
-  [node setStringValue: @"value"];
-  PASS([node isEqual: other],
-       "Nodes with different values are equal");
-
-  [node release];
-  [other release];
 
   [arp release];
   arp = nil;
