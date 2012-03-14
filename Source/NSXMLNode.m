@@ -904,7 +904,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 - (NSString*) canonicalXMLStringPreservingComments: (BOOL)comments
 {
   // FIXME ... generate from libxml
-  return [self notImplemented: _cmd];
+  return [self XMLStringWithOptions: NSXMLNodePreserveWhitespace];
 }
 
 - (NSXMLNode*) childAtIndex: (NSUInteger)index
@@ -1016,6 +1016,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
         }
       [subNodes release];
 
+      [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
       if (node)
@@ -1504,20 +1505,32 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 {
   NSString     *string = nil;
   xmlChar      *buf = NULL;
-  xmlDocPtr    doc;
   xmlBufferPtr buffer;
   int error = 0;
   int len = 0;
+  xmlSaveCtxtPtr ctxt;
+  int xmlOptions = 0;
 
-  if (internal->node->type == XML_NAMESPACE_DECL)
-    {
-      xmlNsPtr	ns = (xmlNsPtr)internal->node;
-
-      return StringFromXMLStringPtr(ns->href);
-    }
   buffer = xmlBufferCreate();
-  doc = internal->node->doc;
-  error = xmlNodeDump(buffer, doc, internal->node, 1, 1);
+
+  // XML_SAVE_XHTML XML_SAVE_AS_HTML XML_SAVE_NO_DECL XML_SAVE_NO_XHTML
+  xmlOptions |= XML_SAVE_AS_XML;
+  if (options & NSXMLNodePreserveWhitespace)
+    {
+      xmlOptions |= XML_SAVE_WSNONSIG;
+    }
+  if (options & NSXMLNodeCompactEmptyElement)
+    {
+      xmlOptions |= XML_SAVE_NO_EMPTY;
+    }
+  if (options & NSXMLNodePrettyPrint)
+    {
+      xmlOptions |= XML_SAVE_FORMAT;
+    }
+  
+  ctxt = xmlSaveToBuffer(buffer, "utf-8", xmlOptions);
+  xmlSaveTree(ctxt, internal->node);
+  error = xmlSaveClose(ctxt);
   if (-1 == error)
     {
       xmlBufferFree(buffer);

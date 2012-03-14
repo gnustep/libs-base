@@ -86,25 +86,32 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  *
  * The 'kind' tells us what sort of node this is.
  * The 'node' points to the underlying libxml2 node structure.
- * The 'nsParent' points to the parent node of a namspace structure, needed
- *   because older (but still used on at least one major linux distribution)
- *   versions of libxml2 don't have a link to the parent of a namespace.
  * The 'options' field is a bitmask of options for this node.
  * The 'objectValue' is the object value set for the node.
+ * The 'subNodes' array is used to retain the objects pointed to by subnodes.
  *
- * The 'subNodes' array is confusing ... what *is* the ownership policy for
- * NSXMLNode with respect to the libxml2 tree?  The simple/obvious one would
- * be that each NSXMLNode owns any NSXMLNode pointed to by children of the
- * corresponding libxml2 structure ... in which case there would be no need
- * for this array because the references to the owned NSXMLNode instances
- * would be the'_private' fields of the libxml2 structures.
+ * When we create an Objective-C object for a node we also create objects
+ * for all parents up to the root object. (Reusing existing once as we find 
+ * them in the _private points of parent nodes)
+ * This adds the object to the subnode array of the parent object, retaining 
+ * the object in this process.
+ * This means a document object will retain all the objects we have created
+ * for its node tree, but we don't have to create all these objects at once.
+ * When we remove an object from its parent we always call the detach method.
+ * Here we unlink the libxml2 node and remove the object from its parent's
+ * subnode array, This will release the object.
+ * When an object gets deallocated it detaches all the subnodes, releasing
+ * them in the process and then it frees the node. That way each object takes
+ * care of freeing its own node, but nodes that don't have objects attached
+ * to them will get freed when their parent object (e.g. the NSXMLDocument)
+ * gets deallocated.
+ * For namespace nodes special rules apply as they don't have a parent pointer.
  *
  * URI is probably not needed at all ... I'm not sure
  */
 #define GS_NSXMLNode_IVARS \
   NSUInteger	  kind; \
   GS_XMLNODETYPE *node;  \
-  xmlNodePtr	  nsParent; \
   NSUInteger      options; \
   id              objectValue; \
   NSString       *URI; \
@@ -193,6 +200,7 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #include <libxml/parserInternals.h>
 #include <libxml/HTMLparser.h>
 #include <libxml/xmlmemory.h>
+#include <libxml/xmlsave.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 
