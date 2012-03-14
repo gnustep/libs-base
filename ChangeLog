@@ -1,3 +1,10 @@
+2012-03-14  Richard Frith-Macdonald & Fred Kiefer
+
+	* Source/NSXMLPrivate.h:
+	* Source/NSXMLNode.m:
+	* Source/NSXMLElement.m:
+	Fixups to get the code to build on CentOS/RedHat linux.
+
 2012-03-12  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m (-detach): Don't handle the namespace case.
