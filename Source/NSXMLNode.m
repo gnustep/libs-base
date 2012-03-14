@@ -344,7 +344,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 	    }
           if (node->type == XML_NAMESPACE_DECL)
             {
-              docNode = ((xmlNsPtr)node)->context;
+              docNode = NULL;
             }
           else
             {
@@ -1016,7 +1016,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
         }
       [subNodes release];
 
-      [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
       if (node)
@@ -1355,15 +1354,12 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     {
       return nil;
     }
+  if (XML_NAMESPACE_DECL == node->type)
+    {
+      return nil;
+    }
 
-  if (node->type == XML_NAMESPACE_DECL)
-    {
-      parent = (xmlNodePtr)(((xmlNs *)node)->context);
-    }
-  else
-    {
-      parent = node->parent;
-    }
+  parent = node->parent;
   return [NSXMLNode _objectForNode: parent];
 }
 
@@ -1507,22 +1503,21 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 - (NSString*) XMLStringWithOptions: (NSUInteger)options
 {
   NSString     *string = nil;
-  xmlNodePtr   node = (xmlNodePtr)[self _node];
   xmlChar      *buf = NULL;
   xmlDocPtr    doc;
-  xmlBufferPtr buffer = xmlBufferCreate();
+  xmlBufferPtr buffer;
   int error = 0;
   int len = 0;
 
-  if (node->type == XML_NAMESPACE_DECL)
+  if (internal->node->type == XML_NAMESPACE_DECL)
     {
-      doc = ((xmlNs *)node)->context;
+      xmlNsPtr	ns = (xmlNsPtr)internal->node;
+
+      return StringFromXMLStringPtr(ns->href);
     }
-  else
-    {
-      doc = node->doc;
-    }
-  error = xmlNodeDump(buffer, doc, node, 1, 1);
+  buffer = xmlBufferCreate();
+  doc = internal->node->doc;
+  error = xmlNodeDump(buffer, doc, internal->node, 1, 1);
   if (-1 == error)
     {
       xmlBufferFree(buffer);
@@ -1530,7 +1525,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     }
   buf = buffer->content;
   len = buffer->use;
-  string = StringFromXMLString(buf,len);
+  string = StringFromXMLString(buf, len);
   xmlBufferFree(buffer);
 
   return string;

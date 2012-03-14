@@ -83,10 +83,28 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 
 /* Instance variables for NSXMLNode.  This macro needs to be defined before
  * the NSXMLNode.h header is imported and before GSInternal.h is imported.
+ *
+ * The 'kind' tells us what sort of node this is.
+ * The 'node' points to the underlying libxml2 node structure.
+ * The 'nsParent' points to the parent node of a namspace structure, needed
+ *   because older (but still used on at least one major linux distribution)
+ *   versions of libxml2 don't have a link to the parent of a namespace.
+ * The 'options' field is a bitmask of options for this node.
+ * The 'objectValue' is the object value set for the node.
+ *
+ * The 'subNodes' array is confusing ... what *is* the ownership policy for
+ * NSXMLNode with respect to the libxml2 tree?  The simple/obvious one would
+ * be that each NSXMLNode owns any NSXMLNode pointed to by children of the
+ * corresponding libxml2 structure ... in which case there would be no need
+ * for this array because the references to the owned NSXMLNode instances
+ * would be the'_private' fields of the libxml2 structures.
+ *
+ * URI is probably not needed at all ... I'm not sure
  */
 #define GS_NSXMLNode_IVARS \
   NSUInteger	  kind; \
   GS_XMLNODETYPE *node;  \
+  xmlNodePtr	  nsParent; \
   NSUInteger      options; \
   id              objectValue; \
   NSString       *URI; \

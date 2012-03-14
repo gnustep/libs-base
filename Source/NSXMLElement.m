@@ -324,7 +324,7 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
                 }
               else
                 {
-                  xmlFreeNode(cur);
+                  xmlFreeNs(cur);
                 }
               return;
             }
@@ -338,7 +338,6 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
 {
   NSEnumerator *en = [namespaces objectEnumerator];
   NSXMLNode *namespace = nil;
-  xmlNsPtr cur = NULL;
 
   // FIXME: Remove old namespaces
   // xmlFreeNsList(internal->node->nsDef);
@@ -409,7 +408,8 @@ GS_PRIVATE_INTERNAL(NSXMLElement)
   if (ns)
     {
       const xmlChar *uri = XMLSTRING(namespaceURI);
-      xmlNsPtr cur = NULL;
+      xmlNsPtr cur;
+
       for (cur = ns; cur != NULL; cur = cur->next)
 	{
           if (xmlStrcmp(uri, cur->href) == 0)
