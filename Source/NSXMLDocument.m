@@ -365,23 +365,6 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   return data;
 }
 
-- (NSString *) XMLStringWithOptions: (NSUInteger)options
-{
-  NSString	*string = nil;
-  xmlChar	*buf = NULL;
-  int		length;
-
-  xmlDocDumpFormatMemoryEnc(internal->node, &buf, &length, "utf-8",
-    ((options & NSXMLNodePrettyPrint) ? 1 : 0));
-
-  if (buf != 0 && length > 0)
-    {
-      string = StringFromXMLString(buf, length);
-      free(buf);
-    }
-  return string;
-}
-
 - (id) objectByApplyingXSLT: (NSData*)xslt
                   arguments: (NSDictionary*)arguments
                       error: (NSError**)error

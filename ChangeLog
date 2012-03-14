@@ -1,4 +1,11 @@
-2012-03-14  Richard Frith-Macdonald & Fred Kiefer
+2012-03-12  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLPrivate.h: Add comments on owner policy.
+	* Source/NSXMLNode.m (-XMLStringWithOptions:): Reimplement to
+	allow closer control over output.
+	* Source/NSXMLDocument.m (-XMLStringWithOptions:): Remove this method.
+
+2012-03-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLPrivate.h:
 	* Source/NSXMLNode.m:
