@@ -1,5 +1,10 @@
 2012-03-12  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSXMLDocument.m (-XMLDataWithOptions:): Correct convesion
+	to NSData. Add some comments.
+
+2012-03-12  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSXMLPrivate.h: Add comments on owner policy.
 	* Source/NSXMLNode.m (-XMLStringWithOptions:): Reimplement to
 	allow closer control over output.

@@ -222,6 +222,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
 {
   NSAssert(documentTypeDeclaration != nil, NSInvalidArgumentException);
+  // FIXME: do node house keeping, remove ivar, use intSubset
   ASSIGNCOPY(internal->docType, documentTypeDeclaration);
   internal->node->extSubset = [documentTypeDeclaration _node];
 }
@@ -233,8 +234,6 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-  id oldElement = [self rootElement];
-
   if (root == nil)
     {
       return;
@@ -247,12 +246,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 		   self];
     }
 
-  // FIXME: Should remove all sub nodes
+  // remove all sub nodes
+  [self setChildren: nil];
 
   xmlDocSetRootElement(internal->node, [root _node]);
 
   // Do our subNode housekeeping...
-  [self _removeSubNode: oldElement];
   [self _addSubNode: root];
 }
 
@@ -360,9 +359,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 - (NSData *) XMLDataWithOptions: (NSUInteger)options
 {
   NSString *xmlString = [self XMLStringWithOptions: options];
-  NSData *data = [NSData dataWithBytes: [xmlString UTF8String]
-				length: [xmlString length]];
-  return data;
+
+  return [xmlString dataUsingEncoding: NSUTF8StringEncoding
+                 allowLossyConversion: NO];
 }
 
 - (id) objectByApplyingXSLT: (NSData*)xslt
@@ -447,6 +446,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
 
   [c setMIMEType: [self MIMEType]];
+  // the extSubset isnt copied by libxml2
   [c setDTD: [self DTD]];
   [c setDocumentContentKind: [self documentContentKind]];
   return c;
@@ -458,6 +458,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
     {
       return YES;
     }
+  // FIXME
   return [[self rootElement] isEqual: [other rootElement]];
 }
 @end
