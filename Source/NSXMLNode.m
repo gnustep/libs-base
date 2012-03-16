@@ -1514,19 +1514,27 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
   buffer = xmlBufferCreate();
 
   // XML_SAVE_XHTML XML_SAVE_AS_HTML XML_SAVE_NO_DECL XML_SAVE_NO_XHTML
+#if LIBXML_VERSION >= 20702
   xmlOptions |= XML_SAVE_AS_XML;
+#endif
+#if LIBXML_VERSION >= 20708
   if (options & NSXMLNodePreserveWhitespace)
     {
       xmlOptions |= XML_SAVE_WSNONSIG;
     }
+#endif
+#if LIBXML_VERSION >= 20622
   if (options & NSXMLNodeCompactEmptyElement)
     {
       xmlOptions |= XML_SAVE_NO_EMPTY;
     }
+#endif
+#if LIBXML_VERSION >= 20617
   if (options & NSXMLNodePrettyPrint)
     {
       xmlOptions |= XML_SAVE_FORMAT;
     }
+#endif
   
   ctxt = xmlSaveToBuffer(buffer, "utf-8", xmlOptions);
   xmlSaveTree(ctxt, internal->node);
