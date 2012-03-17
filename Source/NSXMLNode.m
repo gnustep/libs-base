@@ -538,10 +538,10 @@ clearPrivatePointers(xmlNodePtr aNode)
 
   if (aNode->type == XML_NAMESPACE_DECL)
     {
-      xmlNsPtr	ns = (xmlNsPtr)aNode;
+      xmlNsPtr ns = (xmlNsPtr)aNode;
 
       ns->_private = NULL;
-      clearPrivatePointers((xmlNodePtr)ns->next);
+      clearPrivatePointers((xmlNodePtr)(ns->next));
       return;
     }
 
@@ -551,6 +551,17 @@ clearPrivatePointers(xmlNodePtr aNode)
   if (aNode->type == XML_ELEMENT_NODE)
     {
       clearPrivatePointers((xmlNodePtr)(aNode->properties));
+      clearPrivatePointers((xmlNodePtr)(aNode->nsDef));
+    }
+  if (aNode->type == XML_ELEMENT_DECL)
+    {
+      xmlElementPtr elem = (xmlElementPtr)aNode;
+      clearPrivatePointers((xmlNodePtr)(elem->attributes));
+    }
+  if (aNode->type == XML_DOCUMENT_NODE)
+    {
+      xmlDocPtr doc = (xmlDocPtr)aNode;
+      clearPrivatePointers((xmlNodePtr)(doc->intSubset));
     }
   // FIXME: Handle more node types
 }
@@ -924,7 +935,8 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
       return 0;
     }
 
-  if (node->type == XML_NAMESPACE_DECL)
+  if ((node->type == XML_NAMESPACE_DECL) ||
+      (node->type == XML_ATTRIBUTE_NODE))
     {
       return 0;
     }
@@ -952,6 +964,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
       
       if ((node == NULL) ||
           (node->type == XML_NAMESPACE_DECL) ||
+          (node->type == XML_ATTRIBUTE_NODE) ||
           (node->children == NULL))
 	{
 	  return nil;

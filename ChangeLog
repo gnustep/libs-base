@@ -1,3 +1,12 @@
+2012-03-17  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLPrivate.h: Remvoe unused ivars.
+	* Source/NSXMLDocument.m: Get DTD from node and and validation in
+	init methods.
+	* Source/NSXMLDTD.m: Implement.
+	* Source/NSXMLNode.m: No children for attribute nodes.
+	* Tests/base/NSXMLNode/basic.m: Test empty attribute children
+
 2012-03-16  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m (-XMLStringWithOptions:): Protect the

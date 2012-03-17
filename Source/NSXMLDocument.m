@@ -49,7 +49,6 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   if (GS_EXISTS_INTERNAL)
     {
-      [internal->docType release];
       [internal->MIMEType release];
     }
   [super dealloc];
@@ -70,7 +69,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSXMLDTD*) DTD
 {
-  return internal->docType;
+  xmlDtdPtr dtd = xmlGetIntSubset(internal->node);
+  return (NSXMLDTD *)[NSXMLNode _objectForNode: (xmlNodePtr)dtd];
 }
 
 - (void) _createInternal
@@ -139,10 +139,19 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
                                            code: 0
                                        userInfo: nil]; 
             }
+          return nil;
 	}
-      // FIXME: Free old node
+
+      // Free old node
+      xmlFreeDoc((xmlDocPtr)internal->node);
       [self _setNode: doc];
+
+      if (mask & NSXMLDocumentValidate)
+        {
+          [self validateAndReturnError: error];
+        }
     }
+
   return self;
 }
 
@@ -221,10 +230,16 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
 {
+  NSXMLDTD *old;
+
   NSAssert(documentTypeDeclaration != nil, NSInvalidArgumentException);
-  // FIXME: do node house keeping, remove ivar, use intSubset
-  ASSIGNCOPY(internal->docType, documentTypeDeclaration);
-  internal->node->extSubset = [documentTypeDeclaration _node];
+
+  // detach the old DTD, this also removes the corresponding child
+  old = [self DTD];
+  [old detach];
+
+  internal->node->intSubset = (xmlDtdPtr)[documentTypeDeclaration _node];
+  [self addChild: documentTypeDeclaration];
 }
 
 - (void) setMIMEType: (NSString*)MIMEType
@@ -300,7 +315,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-  [self _insertChild:child atIndex:index];
+  [self _insertChild: child atIndex: index];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -387,14 +402,16 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
       while ((key = [en nextObject]) != nil)
 	{
 	  params[index] = (xmlChar *)XMLSTRING(key);
-	  params[index+1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
+	  params[index + 1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
 	  index += 2;
 	}
+      params[index] = NULL;
+      params[index + 1] = NULL;
     }
 
   // Apply the stylesheet and get the result...
-  resultDoc
-    = xsltApplyStylesheet(stylesheet, internal->node, (const char **)params);
+  resultDoc = xsltApplyStylesheet(stylesheet, internal->node,
+                                  (const char **)params);
   
   // Cleanup...
   xsltFreeStylesheet(stylesheet);
@@ -446,8 +463,8 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
 
   [c setMIMEType: [self MIMEType]];
-  // the extSubset isnt copied by libxml2
-  [c setDTD: [self DTD]];
+  // the intSubset is copied by libxml2
+  //[c setDTD: [self DTD]];
   [c setDocumentContentKind: [self documentContentKind]];
   return c;
 }
