@@ -136,25 +136,15 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  * is imported and before GSInternal.h is imported.
  */
 #define GS_NSXMLDocument_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSXMLDTD     		*docType; \
   NSString     		*MIMEType; \
   NSInteger		contentKind; \
-
 
 /* Instance variables for NSXMLDTD with/without the instance
  * variable 'inherited' from NSXMLNode.
  * This macro needs to be defined before the NSXMLDTD.h header
  * is imported and before GSInternal.h is imported.
  */
-#define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSString      *publicID; \
-  NSString      *systemID; \
-  NSMutableDictionary   *entities; \
-  NSMutableDictionary   *elements; \
-  NSMutableDictionary   *notations; \
-  NSMutableDictionary   *attributes; \
-  NSString              *original; \
-
+#define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
 
 /* Instance variables for NSXMLDTDNode with/without the instance
  * variable 'inherited' from NSXMLNode.
@@ -229,4 +219,3 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #endif /* HAVE_LIBXML */
 
 #endif
-

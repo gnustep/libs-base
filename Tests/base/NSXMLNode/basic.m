@@ -101,9 +101,9 @@ int main()
   PASS_EQUAL([attr URI], nil, "attr node URI is nil");
   PASS_EQUAL([attr objectValue], @"value", "attr node object value works");
   PASS_EQUAL([attr stringValue], @"value", "string value on attr node works");
-  // In libxml2 the value is on a child node
-  //PASS_EQUAL([attr children], nil, "attr node children is nil");
-  //PASS([attr childCount] == 0, "No child on attr node");
+  // In libxml2 the value is on a child node, but we don't report that
+  PASS_EQUAL([attr children], nil, "attr node children is nil");
+  PASS([attr childCount] == 0, "No child on attr node");
 
   [attr setName: @"name"];
   PASS_EQUAL([attr name], @"name",
