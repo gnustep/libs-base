@@ -5,6 +5,6 @@ MAKE=${2-make}
 
 . $PREFIX/System/Library/Makefiles/GNUstep.sh
 
-$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
+$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM messages=yes install
 
 exit 0
