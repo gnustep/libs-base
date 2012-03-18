@@ -479,8 +479,18 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
       /* here we avoid merging adjacent text nodes by linking
        * the new node in "by hand"
        */
+      xmlDocPtr tmp = childNode->doc;
+
+      if (tmp)
+        {
+          xmlDOMWrapAdoptNode(NULL, childNode->doc, childNode, parentNode->doc, parentNode, 0);
+        }
+      else
+        {
+          xmlSetTreeDoc(childNode, parentNode->doc);
+        }
+
       childNode->parent = parentNode;
-      xmlSetTreeDoc(childNode, parentNode->doc);
       if (curNode)
 	{
 	  // insert childNode before an existing node curNode
@@ -1046,9 +1056,25 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
                 {
                   // the top level node frees the entire tree
                   if (node->type == XML_DOCUMENT_NODE)
-                    xmlFreeDoc((xmlDocPtr)node);
+                    {
+                      xmlFreeDoc((xmlDocPtr)node);
+                    }
+                  else if (node->type == XML_ENTITY_DECL && 
+                           ((xmlEntityPtr)node)->etype == XML_INTERNAL_PREDEFINED_ENTITY)
+                    {
+                      // Don't free internal entity nodes
+                    }
                   else
-                    xmlFreeNode(node);
+                    {
+                      xmlDocPtr tmp = node->doc;
+
+                      xmlFreeNode(node);
+                      // Free the private document we allocated in detach
+                      if (tmp)
+                        {
+                          xmlFreeDoc(tmp);
+                        }
+                    }
                 }
             }
         }
@@ -1071,9 +1097,23 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
         }
       else
         {
-          // separate our node from its parent and siblings
-          xmlUnlinkNode(node);
-          xmlSetTreeDoc(node, NULL);
+          if (node->doc)
+            {
+              /* Create a private document and move the node over.
+               * This is needed so that the strings of the nodes subtree
+               * get stored in the dictionary of this new document.
+               */
+              // FIXME: Should flag this doc so it wont get returned in
+              // the method rootDocument
+              xmlDocPtr tmp = xmlNewDoc((xmlChar *)"1.0");
+
+              xmlDOMWrapAdoptNode(NULL, node->doc, node, tmp, NULL, 0);
+            }
+          else
+            {
+              // separate our node from its parent and siblings
+              xmlUnlinkNode(node);
+            }
         }
 
       if (parent)
@@ -1199,9 +1239,24 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 	node = xmlNewDtd(NULL, (xmlChar *)"", (xmlChar *)"",(xmlChar *)"");
 	break;
 	
-      case NSXMLEntityDeclarationKind: 
       case NSXMLElementDeclarationKind: 
-      case NSXMLNotationDeclarationKind: 
+        {
+          xmlElementPtr ret;
+          ret = (xmlElementPtr) xmlMalloc(sizeof(xmlElement));
+          memset(ret, 0, sizeof(xmlElement));
+          ret->type = XML_ELEMENT_DECL;
+          ret->name = xmlStrdup((xmlChar *)"");
+          node = ret;
+          break;
+        }
+
+      case NSXMLEntityDeclarationKind: 
+        node = xmlNewEntity(NULL, (xmlChar *)"", 0, (xmlChar *)"", 
+                            (xmlChar *)"", (xmlChar *)"");
+        break;
+
+      case NSXMLNotationDeclarationKind:
+        // FIXME
 	node = xmlNewNode(NULL, (xmlChar *)"");
 	break;
 

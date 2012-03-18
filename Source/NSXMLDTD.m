@@ -35,54 +35,8 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 + (NSXMLDTDNode*) predefinedEntityDeclarationForName: (NSString*)name
 {
-  // FIXME: We should cache these instances
-  if ([name isEqualToString: @"lt"])
-    {
-      NSXMLDTDNode *node;
-      
-      node = [[NSXMLDTDNode alloc] initWithKind: NSXMLEntityDeclarationKind];
-      [node setName: @"lt"];
-      [node setStringValue: @"<"];
-      return AUTORELEASE(node);
-    }
-  if ([name isEqualToString: @"gt"])
-    {
-      NSXMLDTDNode *node;
-      
-      node = [[NSXMLDTDNode alloc] initWithKind: NSXMLEntityDeclarationKind];
-      [node setName: @"gt"];
-      [node setStringValue: @">"];
-      return AUTORELEASE(node);
-    }
-  if ([name isEqualToString: @"amp"])
-    {
-      NSXMLDTDNode *node;
-      
-      node = [[NSXMLDTDNode alloc] initWithKind: NSXMLEntityDeclarationKind];
-      [node setName: @"amp"];
-      [node setStringValue: @"&"];
-      return AUTORELEASE(node);
-    }
-  if ([name isEqualToString: @"quot"])
-    {
-      NSXMLDTDNode *node;
-      
-      node = [[NSXMLDTDNode alloc] initWithKind: NSXMLEntityDeclarationKind];
-      [node setName: @"qout"];
-      [node setStringValue: @"\""];
-      return AUTORELEASE(node);
-    }
-  if ([name isEqualToString: @"apos"])
-    {
-      NSXMLDTDNode *node;
-      
-      node = [[NSXMLDTDNode alloc] initWithKind: NSXMLEntityDeclarationKind];
-      [node setName: @"apos"];
-      [node setStringValue: @"'"];
-      return AUTORELEASE(node);
-    }
-
-  return nil;
+  xmlEntityPtr node = xmlGetPredefinedEntity(XMLSTRING(name));
+  return (NSXMLDTDNode*)[self _objectForNode: (xmlNodePtr)node];
 }
 
 - (void) dealloc
@@ -159,7 +113,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (NSXMLDTDNode*) entityDeclarationForName: (NSString*)name
 {
-  //xmlGetEntityFromDtd
+  //xmlGetEntityFromDtd 
   xmlDtdPtr node = internal->node;
   xmlNodePtr children = NULL;
   const xmlChar *xmlName = XMLSTRING(name);

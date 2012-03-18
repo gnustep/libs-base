@@ -24,7 +24,7 @@
 
 #import "common.h"
 
-#define GS_XMLNODETYPE	xmlDtd
+#define GS_XMLNODETYPE	xmlEntity
 #define GSInternal	NSXMLDTDNodeInternal
 
 #import	"NSXMLPrivate.h"
@@ -69,11 +69,21 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (id) initWithXMLString: (NSString*)string
 {
-  // internal->node = xmlNewDtd(NULL,NULL,NULL);
-  // TODO: Parse the string and get the info to create this...
+  NSXMLDTDNode *result = nil;
+  NSError *error;
+  NSXMLDocument *tempDoc = 
+    [[NSXMLDocument alloc] initWithXMLString: string
+                                     options: 0
+                                       error: &error];
+  if (tempDoc != nil)
+    {
+      result = RETAIN([tempDoc rootElement]);
+      [result detach]; // detach from document.
+    }
+  [tempDoc release];
+  [self release];
 
-  [self notImplemented: _cmd];
-  return nil;
+  return result;
 }
 
 - (BOOL) isExternal
