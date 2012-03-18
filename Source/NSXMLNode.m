@@ -483,7 +483,9 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
       if (tmp)
         {
-          xmlDOMWrapAdoptNode(NULL, childNode->doc, childNode, parentNode->doc, parentNode, 0);
+          xmlDOMWrapAdoptNode(NULL, childNode->doc, childNode, 
+                              parentNode->doc, parentNode, 0);
+          xmlFreeDoc(tmp);
         }
       else
         {
