@@ -1,3 +1,10 @@
+2012-03-18  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLDTDNode.m: Correct node type, at least for entity nodes.
+	* Source/NSXMLDTD.m: Use predefined entities from libxml2.
+	* Source/NSXMLNode.m: Rewrite the ownership transfer to preserve
+	names in dictionaries.
+
 2012-03-17  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLPrivate.h: Remvoe unused ivars.
