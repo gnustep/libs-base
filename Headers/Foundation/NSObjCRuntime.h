@@ -3,19 +3,19 @@
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
@@ -24,7 +24,7 @@
     AutogsdocSource: NSObjCRuntime.m
     AutogsdocSource: NSLog.m
 
-   */ 
+   */
 
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
@@ -76,7 +76,7 @@ typedef float           CGFloat;
 extern "C" {
 #endif
 
-enum 
+enum
 {
   NSEnumerationConcurrent = (1UL << 0), /** Specifies that the enumeration
    * is concurrency-safe.  Note that this does not mean that it will be
@@ -94,7 +94,7 @@ typedef NSUInteger NSEnumerationOptions;
 
 #import <GNUstepBase/GSObjCRuntime.h>
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(100500,GS_API_LATEST)
 GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);
 GS_EXPORT Protocol	*NSProtocolFromString(NSString *aProtocolName);
 #endif
@@ -138,13 +138,19 @@ GS_EXPORT void			NSLogv (NSString *format, va_list args);
  * <code>NSOrderedDescending</code>, for left hand side equals, less than, or
  * greater than right hand side.
  */
-typedef enum _NSComparisonResult 
+typedef enum _NSComparisonResult
 {
   NSOrderedAscending = -1, NSOrderedSame, NSOrderedDescending
-} 
+}
 NSComparisonResult;
 
 enum {NSNotFound = NSIntegerMax};
+
+
+#ifdef __clang__
+#define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
+#endif //__clang__
+
 
 #if	defined(__cplusplus)
 }
