@@ -39,11 +39,11 @@
 #define USER_NATIVE_OBJC_EXCEPTIONS       0
 #endif
 #if     !BASE_NATIVE_OBJC_EXCEPTIONS && USER_NATIVE_OBJC_EXCEPTIONS
-#error There are two separate exception handling mechanisms available ... one based on the standard setjmp() function (which does not require special compiler support), and one 'native' version where the compiler manages the exception handling.  If you try to use both in the same executable, exception handlers won't work... which can be pretty disastrous.  This error is telling you that the gnustep-base library was built using one form of exception handling, but that the gnustep-make package you are using is building code to use the other form of exception handling ... with the consequence that exception handling would be broken in the program you are building.  So, somehow your gnustep-base and gnustep-make package are incompatible, and you need to replace one of them with a version configured to match the other.
+#error "There are two separate exception handling mechanisms available ... one based on the standard setjmp() function (which does not require special compiler support), and one 'native' version where the compiler manages the exception handling.  If you try to use both in the same executable, exception handlers will not work... which can be pretty disastrous.  This error is telling you that the gnustep-base library was built using one form of exception handling, but that the gnustep-make package you are using is building code to use the other form of exception handling ... with the consequence that exception handling would be broken in the program you are building.  So, somehow your gnustep-base and gnustep-make package are incompatible, and you need to replace one of them with a version configured to match the other."
 #if     BASE_NATIVE_OBJC_EXCEPTIONS
-#error  gnustep-base is configured to use 'native' exceptions, but you are building for 'traditional' exceptions.
+#error  "gnustep-base is configured to use 'native' exceptions, but you are building for 'traditional' exceptions."
 #else
-#error  gnustep-base is configured to use 'traditional' exceptions, but you are building for 'native' exceptions.
+#error  "gnustep-base is configured to use 'traditional' exceptions, but you are building for 'native' exceptions."
 #endif
 #endif
 
