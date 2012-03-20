@@ -1,3 +1,9 @@
+2012-03-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSException.h:
+	Try to make error message more helpful when building with incompatible
+	exception handling settings.
+
 2012-03-18  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLDTDNode.m: Correct node type, at least for entity nodes.
