@@ -34,6 +34,7 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSKeyValueCoding.h"
 #import "Foundation/NSUserDefaults.h"
@@ -366,7 +367,7 @@ static SEL	appSel;
 	  id	*vals = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*count);
 	  unsigned	i;
 	  IMP	dec;
-	
+
 	  dec = [aCoder methodForSelector: @selector(decodeObject)];
 	  for (i = 0; i < count; i++)
 	    {
@@ -824,6 +825,7 @@ static SEL	appSel;
       return AUTORELEASE(result);
     }
 }
+
 - (void)getObjects: (__unsafe_unretained id[])objects
            andKeys: (__unsafe_unretained id[])keys
 {
@@ -964,6 +966,75 @@ compareIt(id o1, id o2, void* context)
     }
 }
 
+#if OS_API_VERSION(100600, GS_API_LATEST)
+- (void)enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
+                                usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock
+{
+  /*
+   * NOTE: For the moment, we ignore the NSEnumerationOptions because, according
+   * to the Cocoa documentation, NSEnumerationReverse is undefined for
+   * NSDictionary and we cannot handle NSEnumerationConcurrent without
+   * libdispatch.
+   */
+   id<NSFastEnumeration> enumerator = [self keyEnumerator];
+   SEL objectForKeySelector = @selector(objectForKey:);
+   IMP objectForKey = [self methodForSelector: objectForKeySelector];
+   BOOL shouldStop = NO;
+   FOR_IN(id, key, enumerator)
+     id obj = objectForKey(self, objectForKeySelector, key);
+     CALL_BLOCK(aBlock, key, obj, &shouldStop);
+     if (YES == shouldStop)
+     {
+       break;
+     }
+   END_FOR_IN(enumerator)
+}
+
+- (void)enumerateKeysAndObjectsUsingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock
+{
+  [self enumerateKeysAndObjectsWithOptions: 0
+                                usingBlock: aBlock];
+}
+
+
+- (NSSet*)keysOfEntriesWithOptions: (NSEnumerationOptions)opts
+                       passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
+{
+  /*
+   * See -enumerateKeysAndObjectsWithOptions:usingBlock: for note about
+   * NSEnumerationOptions.
+   */
+   id<NSFastEnumeration> enumerator = [self keyEnumerator];
+   SEL objectForKeySelector = @selector(objectForKey:);
+   IMP objectForKey = [self methodForSelector: objectForKeySelector];
+   BOOL shouldStop = NO;
+   NSMutableSet *buildSet = [NSMutableSet new];
+   SEL addObjectSelector = @selector(addObject:);
+   IMP addObject = [buildSet methodForSelector: addObjectSelector];
+   NSSet *resultSet = nil;
+   FOR_IN(id, key, enumerator)
+     id obj = objectForKey(self, objectForKeySelector, key);
+     if (CALL_BLOCK(aPredicate, key, obj, &shouldStop))
+     {
+       addObject(buildSet, addObjectSelector, key);
+     }
+     if (YES == shouldStop)
+     {
+       break;
+     }
+   END_FOR_IN(enumerator)
+   resultSet = [NSSet setWithSet: buildSet];
+   [buildSet release];
+   return resultSet;
+}
+
+- (NSSet*)keysOfEntriesPassingTest: (GSKeysAndObjectsPredicateBlock)aPredicate
+{
+  return [self keysOfEntriesWithOptions: 0
+                            passingTest: aPredicate];
+}
+
+#endif //OS_API_VERSION(100600,GS_API_LATEST)
 /**
  * <p>Writes the contents of the dictionary to the file specified by path.
  * The file contents will be in property-list format ... under GNUstep
@@ -1109,7 +1180,7 @@ compareIt(id o1, id o2, void* context)
  */
 - (id) valueForKey: (NSString*)key
 {
-  id	o; 
+  id	o;
 
   if ([key hasPrefix: @"@"] == YES)
     {
@@ -1121,7 +1192,7 @@ compareIt(id o1, id o2, void* context)
     }
   return o;
 }
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
                                    objects: (__unsafe_unretained id[])stackbuf
                                      count: (NSUInteger)len
 {
