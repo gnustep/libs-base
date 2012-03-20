@@ -1253,8 +1253,12 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
         }
 
       case NSXMLEntityDeclarationKind: 
+        // FIXME ... xmlNewEntity doesn't exist in common version of libxml2
+/*
         node = xmlNewEntity(NULL, (xmlChar *)"", 0, (xmlChar *)"", 
                             (xmlChar *)"", (xmlChar *)"");
+ */
+	node = xmlNewNode(NULL, (xmlChar *)"");
         break;
 
       case NSXMLNotationDeclarationKind:
