@@ -1,3 +1,7 @@
+2012-03-20  Niels Grewe <niels.grewe@halbordnung.de>
+	* Headers/Foundation/NSObjCRuntime.h: Define NS_REQUIRES_NIL_TERMINATION
+	macro.
+
 2012-03-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSException.h:
