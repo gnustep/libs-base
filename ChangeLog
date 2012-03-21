@@ -1,3 +1,10 @@
+2012-03-21  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLDocument.m: Correct memory management.
+	* Source/NSXMLElement.m,
+	* Source/NSXMLNode.m: Add partial support for namespaces.
+	Try to bracket more libxml2 functions with version checks.
+
 2012-03-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLDocument.m:

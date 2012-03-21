@@ -220,6 +220,10 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
+  if (internal->node->encoding != NULL)
+    {
+      xmlFree((xmlChar *)internal->node->encoding);
+    }
   internal->node->encoding = XMLStringCopy(encoding);
 }
 
@@ -264,6 +268,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   // remove all sub nodes
   [self setChildren: nil];
 
+  // FIXME: Should we use addChild: here? 
   xmlDocSetRootElement(internal->node, [root _node]);
 
   // Do our subNode housekeeping...
@@ -279,8 +284,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
+      if (internal->node->version != NULL)
+        {
+          xmlFree((xmlChar *)internal->node->version);
+        }
       internal->node->version = XMLStringCopy(version);
-   }
+    }
   else
     {
       [NSException raise: NSInvalidArgumentException
