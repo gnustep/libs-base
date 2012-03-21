@@ -2821,8 +2821,8 @@ if test $enable_xml = yes; then
 	echo "You do not appear to have usable libxslt headers/library."
 	echo "Building without them will disable the XSLT extensions."
 	echo "If you really want to build gnustep-base without XSLT support,"
-	echo "add --disable-xslt to the configure arguments."
-	AC_MSG_ERROR([Missing support for XSLT functionality.])
+	echo "add --disable-xslt to the configure arguments to avoid warning."
+	AC_MSG_WARN([Missing support for XSLT functionality.])
       fi
     else
       HAVE_LIBXSLT=0
