@@ -1,3 +1,17 @@
+2012-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLDTD.m:
+	* Source/NSXMLNode.m:
+	* Source/NSXMLDTDNode.m:
+	* Source/NSXMLElement.m:
+	Bracket everything in test of HAVE_LIBXML2
+	* configure.ac:
+	* configure:
+	Alter tests for major dependencies (ICU, XML, TLS) so that they all
+	abort configuration unless specifically disabled ... we want a
+	consistent build with all major features.
+
 2012-03-20  Niels Grewe <niels.grewe@halbordnung.de>
 	* Headers/Foundation/NSObjCRuntime.h: Define NS_REQUIRES_NIL_TERMINATION
 	macro.

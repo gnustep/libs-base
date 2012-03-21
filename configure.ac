@@ -40,6 +40,11 @@
 # The configure script should support a --disable-xxx option in such a case,
 # where 'xxx' is the name of the dependency.
 #
+# If a major dependency is NOT specifically disabled, the configuration
+# process must fail with an error message ... all builds of gnustep-base
+# should support all expected functionality unless the person configuring
+# and building is very certain they don't want it.
+#
 # Where a dependency is introduced this script should do this by setting
 # HAVE_XXX to 1 or 0 and calling AC_SUBST(XXX) to substitute the information
 # into the make files:
@@ -2771,8 +2776,8 @@ if test $found_iconv = no ; then
 fi
 
 #--------------------------------------------------------------------
-# Check recent libxml for Properytlists, GSXML, GSDoc etc.
-# See DEPENDENCIES POLICY at the start of thsi file.
+# Check recent libxml2 for GSXML and NSXMLNode
+# See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(xml,
   [  --disable-xml			Compile even if XML-dependencies are not met],,
@@ -2813,11 +2818,11 @@ if test $enable_xml = yes; then
 	LIBS="-lxslt $LIBS"
       else
 	echo
-	echo "You may not want to build base without XSLT support."
-	echo "Doing so will disable the XSLT extensions."
-	echo "If you really want to build -base without XSLT support,"
+	echo "You do not appear to have usable libxslt headers/library."
+	echo "Building without them will disable the XSLT extensions."
+	echo "If you really want to build gnustep-base without XSLT support,"
 	echo "add --disable-xslt to the configure arguments."
-	AC_MSG_WARN([Missing support for XSLT functionality.])
+	AC_MSG_ERROR([Missing support for XSLT functionality.])
       fi
     else
       HAVE_LIBXSLT=0
@@ -2830,11 +2835,12 @@ if test $enable_xml = yes; then
     LIBS="$saved_LIBS"
     CFLAGS="$saved_CFLAGS"
     echo
-    echo "You may not want to build base without libxml2."
-    echo "Doing so will disable the XML, XPATH, and XMLRPC extensions."
-    echo "If you really want to build -base without XML support,"
+    echo "You do not appear to have usable libxml2 headers/library."
+    echo "Building without them will disable the GSXML and NSXMLNode."
+    echo "If you really want to build gnustep-base without XML DOM support"
+    echo " (though NSXMLParser is unaffected),  please"
     echo "add --disable-xml to the configure arguments."
-    AC_MSG_ERROR([Missing support for XML functionality.])
+    AC_MSG_ERROR([Missing support for XML DOM functionality.])
   fi
 else
   AC_MSG_WARN([Disabled support for XML funtionality.])
@@ -2889,12 +2895,13 @@ if test $enable_tls = yes; then
     LIBS="$saved_LIBS"
     CFLAGS="$saved_CFLAGS"
     AC_MSG_RESULT(no)
-    AC_MSG_WARN([Missing support for TLS functionality.])
     echo
-    echo "You may not want to build base without libgnutls."
-    echo "Doing so will disable SSL support in the NSStream class."
-    echo "If you really want to build -base without TLS support,"
+    echo "You do not appear to have usable libgnutls headers/library."
+    echo "Building without them will disable SSL/TLS/HTTPS in NSStream"
+    echo "and NSConnection."
+    echo "If you really want to build gnustep-base without TLS support,"
     echo "add --disable-tls to the configure arguments."
+    AC_MSG_ERROR([Missing support for TLS functionality.])
   else
     AC_MSG_RESULT(yes)
     CPPFLAGS="$CPPFLAGS $TLS_CFLAGS"
@@ -2916,7 +2923,7 @@ AC_SUBST(HAVE_GNUTLS)
 
 #--------------------------------------------------------------------
 # Check for NSNetServices
-# See DEPENDENCIES POLICY at the start of thsi file.
+# See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 HAVE_MDNS=0
 HAVE_AVAHI=0
@@ -2961,7 +2968,7 @@ AC_SUBST(HAVE_MDNS)
 AC_SUBST(HAVE_AVAHI)
 #--------------------------------------------------------------------
 # Check for International Components for Unicode
-# See DEPENDENCIES POLICY at the start of thsi file.
+# See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 HAVE_ICU=0
 AC_ARG_ENABLE(icu,
@@ -2979,7 +2986,12 @@ if test $enable_icu = yes; then
     HAVE_ICU=1
   else
     AC_MSG_RESULT(no)
-    AC_MSG_WARN([The International Components for Unicode (ICU) development headers and libraries do not appear to be available on this system.  Please install them and re-run configure.  If you do not do this gnustep-base will build but will have important functionality missing!])
+    echo
+    echo "You do not appear to have usable ICU headers/libraries."
+    echo "Building without them will disable major functionality."
+    echo "If you really want to build gnustep-base without ICU,"
+    echo "add --disable-icu to the configure arguments."
+    AC_MSG_ERROR([Missing support for International Components for Unicode (ICU).])
   fi
 fi
 AC_SUBST(HAVE_ICU)

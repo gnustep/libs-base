@@ -24,6 +24,8 @@
 
 #import "common.h"
 
+#if defined(HAVE_LIBXML)
+
 #define GS_XMLNODETYPE	xmlEntity
 #define GSInternal	NSXMLDTDNodeInternal
 
@@ -54,8 +56,8 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
 {
   if (NSXMLEntityDeclarationKind == kind
-      || NSXMLElementDeclarationKind == kind
-      || NSXMLNotationDeclarationKind == kind)
+    || NSXMLElementDeclarationKind == kind
+    || NSXMLNotationDeclarationKind == kind)
     {
       return [super initWithKind: kind options: theOptions];
     }
@@ -132,3 +134,4 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 @end
 
+#endif	/* HAVE_LIBXML */

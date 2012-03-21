@@ -24,6 +24,8 @@
 
 #import "common.h"
 
+#if defined(HAVE_LIBXML)
+
 #define	GS_XMLNODETYPE	xmlDtd
 #define GSInternal	NSXMLDTDInternal
 
@@ -323,3 +325,4 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 @end
 
+#endif	/* HAVE_LIBXML */
