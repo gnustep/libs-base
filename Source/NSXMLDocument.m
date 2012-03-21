@@ -25,6 +25,8 @@
 
 #import "common.h"
 
+#if defined(HAVE_LIBXML)
+
 #define	GS_XMLNODETYPE	xmlDoc
 #define GSInternal	NSXMLDocumentInternal
 
@@ -35,8 +37,6 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 //#import <Foundation/NSXMLParser.h>
 #import <Foundation/NSError.h>
-
-#if defined(HAVE_LIBXML)
 
 @implementation	NSXMLDocument
 

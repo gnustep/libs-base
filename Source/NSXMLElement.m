@@ -24,14 +24,14 @@
 
 #import "common.h"
 
+#if defined(HAVE_LIBXML)
+
 #define GSInternal	NSXMLElementInternal
 #define	GS_XMLNODETYPE	xmlNode
 
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
-
-#if defined(HAVE_LIBXML)
 
 @implementation NSXMLElement
 
@@ -573,4 +573,4 @@ joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
 
 @end
 
-#endif
+#endif	/* HAVE_LIBXML */

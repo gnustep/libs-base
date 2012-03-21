@@ -24,14 +24,14 @@
 
 #import "common.h"
 
+#if defined(HAVE_LIBXML)
+
 #define GSInternal	NSXMLNodeInternal
 #define	GS_XMLNODETYPE	xmlNode
 
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
-
-#if defined(HAVE_LIBXML)
 
 static int
 countAttributes(xmlNodePtr node)
@@ -1656,4 +1656,4 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 }
 @end
 
-#endif
+#endif	/* HAVE_LIBXML */
