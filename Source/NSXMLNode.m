@@ -33,6 +33,34 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
+extern void
+cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns);
+
+static void
+ensure_oldNs(xmlNodePtr node)
+{
+  if (node->doc == NULL)
+    {
+      // Create a private document for this node
+      xmlDocPtr tmp = xmlNewDoc((xmlChar *)"1.0");
+      
+#if LIBXML_VERSION >= 20620
+      xmlDOMWrapAdoptNode(NULL, NULL, node, tmp, NULL, 0);
+#else
+      xmlSetTreeDoc(node, tmp);
+#endif
+    }
+  if (node->doc->oldNs == NULL)
+    {
+      xmlNsPtr ns = (xmlNsPtr) xmlMalloc(sizeof(xmlNs));
+      memset(ns, 0, sizeof(xmlNs));
+      ns->type = XML_LOCAL_NAMESPACE;
+      ns->href = xmlStrdup(XML_XML_NAMESPACE);
+      ns->prefix = xmlStrdup((const xmlChar *)"xml");
+      node->doc->oldNs = ns;
+    }
+}
+
 static int
 countAttributes(xmlNodePtr node)
 {
@@ -105,7 +133,6 @@ findAttrWithName(xmlNodePtr node, const xmlChar* targetName)
 
   return attr;
 }
-
 
 static BOOL
 isEqualAttributes(xmlNodePtr nodeA, xmlNodePtr nodeB)
@@ -458,16 +485,86 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
     }
   else 
     {
-#if LIBXML_VERSION >= 20620
       xmlDocPtr tmp = childNode->doc;
 
       if (tmp)
         {
+          // Try to resolve half defined namespaces
+          xmlNsPtr ns = tmp->oldNs;
+          xmlNsPtr last = NULL;
+
+          ensure_oldNs(parentNode);
+
+          while (ns != NULL)
+            {
+              BOOL resolved = NO;
+
+              if (ns->href == NULL)
+                {
+                  xmlNsPtr ns1 = xmlSearchNs(parentNode->doc, parentNode, ns->prefix);
+
+                  if (ns1 != NULL)
+                    {
+                      cleanup_namespaces(childNode, ns1);
+                      resolved = YES;
+                    }
+                }
+              else if (ns->prefix == NULL)
+                {
+                  xmlNsPtr ns1 = xmlSearchNsByHref(parentNode->doc, parentNode, ns->href);
+
+                  if (ns1 != NULL)
+                    {
+                      cleanup_namespaces(childNode, ns1);
+                      resolved = YES;
+                    }
+                }
+              if (!resolved)
+                {
+                  xmlNsPtr cur = ns;
+                  xmlNsPtr oldNs1;
+
+                  // FIXME: Need to transfer the namespace to the new tree
+                  // Unlink in old
+                  if (last == NULL)
+                    {
+                      tmp->oldNs = NULL;
+                    }
+                  else
+                    {
+                      last->next = ns->next;
+                    }
+
+                  ns = ns->next;
+                  cur->next = NULL;
+                  
+                  // Insert in new
+                  oldNs1 = parentNode->doc->oldNs;
+                  while (oldNs1)
+                    {
+                      if (oldNs1->next == NULL)
+                        {
+                          oldNs1->next = cur;
+                          break;
+                        }
+                      oldNs1 = oldNs1->next;
+                    }
+                }
+              else
+                {
+                  last = ns;
+                  ns = ns->next;
+                }
+            }
+
+#if LIBXML_VERSION >= 20620
           xmlDOMWrapAdoptNode(NULL, childNode->doc, childNode, 
                               parentNode->doc, parentNode, 0);
+#else
+          xmlSetTreeDoc(childNode, parentNode->doc);
+#endif
           xmlFreeDoc(tmp);
         }
-#endif
     }
 
   if (mergeTextNodes ||
@@ -1062,7 +1159,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
         }
       [subNodes release];
 
-      [internal->URI release];
       [internal->objectValue release];
       [internal->subNodes release];
       if (node)
@@ -1073,7 +1169,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
               // FIXME: Not sure when to free the node here,
               // the same namespace node might be referenced
               // from other places.
-              //xmlFreeNode(node);
+              xmlFreeNode(node);
             }
           else
             {
@@ -1123,7 +1219,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
         }
       else
         {
-#if LIBXML_VERSION >= 20620
           if (node->doc)
             {
               /* Create a private document and move the node over.
@@ -1134,10 +1229,13 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
               // the method rootDocument
               xmlDocPtr tmp = xmlNewDoc((xmlChar *)"1.0");
 
+#if LIBXML_VERSION >= 20620
               xmlDOMWrapAdoptNode(NULL, node->doc, node, tmp, NULL, 0);
+#else
+              xmlSetTreeDoc(node, tmp);
+#endif
             }
           else
-#endif
             {
               // separate our node from its parent and siblings
               xmlUnlinkNode(node);
@@ -1588,57 +1686,57 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
         }
       
       localName = xmlSplitQName2(xmlName, &prefix);
-      if (localName != NULL)
+      if (prefix != NULL)
         {
           // FIXME: Which other nodes get namespaces?
           if ((node->type == XML_ATTRIBUTE_NODE) ||
               (node->type == XML_ELEMENT_NODE))
             {
-              xmlNsPtr ns;
-
-              // Set namespace
-              if (node->doc == NULL)
+              if ((node->ns != NULL && node->ns->prefix == NULL))
                 {
-#if LIBXML_VERSION >= 20620
-                  // Create a private document for this node
-                  xmlDocPtr tmp = xmlNewDoc((xmlChar *)"1.0");
-                  
-                  xmlDOMWrapAdoptNode(NULL, NULL, node, tmp, NULL, 0);
-#endif
-                }
-
-              ns = xmlSearchNs(node->doc, node, prefix);
-              if (ns)
-                {
-                  xmlSetNs(node, ns);
+                  node->ns->prefix = xmlStrdup(prefix);
                 }
               else
                 {
-                  // FIXME: Fake the name space and fix it later
-                  // xmlReconciliateNs or xmlDOMWrapReconcileNamespaces ?
-                  // This function is private, so re reimplemt it.
-                  //ns = xmlDOMWrapStoreNs(node->doc, NULL, prefix);
-                  xmlNsPtr oldNs = node->doc->oldNs;
+                  xmlNsPtr ns;
 
-                  while (oldNs)
+                  // Set namespace
+                  ns = xmlSearchNs(node->doc, node, prefix);
+                  if (ns)
                     {
-                      if (xmlStrEqual(oldNs->prefix, prefix))
-                        {
-                          ns = oldNs;
-                          break;
-                        }
-                      if (oldNs->next == NULL)
-                        {
-                          ns = xmlNewNs(NULL, NULL, prefix);
-                          oldNs->next = ns;
-                          break;
-                        }
-                      oldNs = oldNs->next;
+                      xmlSetNs(node, ns);
                     }
-                  xmlSetNs(node, ns);
+                  else
+                    {
+                      xmlNsPtr oldNs;
+
+                      ensure_oldNs(node);
+
+                      // FIXME: Fake the name space and fix it later
+                      // xmlReconciliateNs or xmlDOMWrapReconcileNamespaces ?
+                      // This function is private, so re reimplemt it.
+                      //ns = xmlDOMWrapStoreNs(node->doc, NULL, prefix);
+                      oldNs = node->doc->oldNs;
+                      while (oldNs)
+                        {
+                          if (oldNs->prefix != NULL && xmlStrEqual(oldNs->prefix, prefix))
+                            {
+                              ns = oldNs;
+                              break;
+                            }
+                          if (oldNs->next == NULL)
+                            {
+                              ns = xmlNewNs(NULL, NULL, prefix);
+                              oldNs->next = ns;
+                              break;
+                            }
+                          oldNs = oldNs->next;
+                        }
+                      xmlSetNs(node, ns);
+                    }
                 }
             }
-
+          
           xmlNodeSetName(node, localName);
           xmlFree(localName);
           xmlFree(prefix);
@@ -1688,22 +1786,84 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (void) setURI: (NSString*)URI
 {
+  xmlNodePtr node = internal->node;
+
   if (NSXMLInvalidKind == internal->kind)
     {
       return;
     }
-  ASSIGNCOPY(internal->URI, URI);
-  //xmlNodeSetBase(internal->node, XMLSTRING(URI));
+  if ((node->type == XML_ATTRIBUTE_NODE) ||
+      (node->type == XML_ELEMENT_NODE))
+    {
+      const xmlChar *uri = XMLSTRING(URI);
+      xmlNsPtr ns;
+      
+      if (uri == NULL)
+        {
+          node->ns = NULL;
+          return;
+        }
+
+      ns = xmlSearchNsByHref(node->doc, node, uri);
+      if (ns == NULL)
+        {
+          if ((node->ns != NULL && node->ns->href == NULL))
+            {
+              node->ns->href = xmlStrdup(uri);
+              return;
+            }
+          {
+            xmlNsPtr oldNs;
+
+            ensure_oldNs(node);
+
+            // FIXME: Fake the name space and fix it later
+            // xmlReconciliateNs or xmlDOMWrapReconcileNamespaces ?
+            // This function is private, so re reimplemt it.
+            //ns = xmlDOMWrapStoreNs(node->doc, NULL, prefix);
+            oldNs = node->doc->oldNs;
+            while (oldNs)
+              {
+                if (oldNs->href != NULL && xmlStrEqual(oldNs->href, uri))
+                  {
+                    ns = oldNs;
+                    break;
+                  }
+                if (oldNs->next == NULL)
+                  {
+                    ns = xmlNewNs(NULL, uri, NULL);
+                    oldNs->next = ns;
+                    break;
+                  }
+                oldNs = oldNs->next;
+              }
+          }
+        }
+      
+      xmlSetNs(node, ns);
+    }
 }
 
 - (NSString*) URI
 {
+  xmlNodePtr node = internal->node;
+
   if (NSXMLInvalidKind == internal->kind)
     {
       return nil;
     }
-  return internal->URI;
-  //return StringFromXMLStringPtr(xmlNodeGetBase(NULL, internal->node));
+  if ((node->type == XML_ATTRIBUTE_NODE) ||
+      (node->type == XML_ELEMENT_NODE))
+    {
+      xmlNsPtr ns = internal->node->ns;
+      
+      if ((ns != NULL) && (ns->href != NULL))
+        {
+          return StringFromXMLStringPtr(ns->href);
+        }
+    }
+
+  return nil;
 }
 
 - (NSString*) XMLString

@@ -114,7 +114,6 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
   GS_XMLNODETYPE *node;  \
   NSUInteger      options; \
   id              objectValue; \
-  NSString       *URI; \
   NSMutableArray *subNodes;
 
 
