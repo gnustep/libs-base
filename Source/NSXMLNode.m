@@ -33,10 +33,45 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
 
-extern void
-cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns);
+void
+cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
+{
+  if ((node == NULL) || (ns == NULL))
+    return;
 
-static void
+  if ((node->type == XML_ATTRIBUTE_NODE) ||
+      (node->type == XML_ELEMENT_NODE))
+    {
+      xmlNsPtr ns1 = node->ns;
+      
+      if (ns1 == ns)
+        {
+          return;
+        }
+
+      // Either both the same or one NULL and the other the same
+      if (ns1 != NULL &&
+          (((ns1->href == NULL) &&
+            (xmlStrcmp(ns1->prefix, ns->prefix) == 0)) ||
+           ((ns1->prefix == NULL) &&
+            (xmlStrcmp(ns1->href, ns->href) == 0)) ||
+           ((xmlStrcmp(ns1->prefix, ns->prefix) == 0) &&
+            (xmlStrcmp(ns1->href, ns->href) == 0))))
+        {
+          //xmlFreeNs(ns1);
+          xmlSetNs(node, ns);
+        }
+ 
+      cleanup_namespaces(node->children, ns);
+      cleanup_namespaces(node->next, ns);
+      if (node->type == XML_ELEMENT_NODE)
+        {
+          cleanup_namespaces((xmlNodePtr)node->properties, ns);
+        }
+    }
+}
+
+void
 ensure_oldNs(xmlNodePtr node)
 {
   if (node->doc == NULL)

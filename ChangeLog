@@ -1,5 +1,12 @@
 2012-03-22  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSXMLElement.m,
+	* Source/NSXMLNode.m: Fix memory leak for attribute private
+	documents found by valgrind.
+	* Tests/base/NSXMLNode/namespace.m: Use drain instead of release.
+
+2012-03-22  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSXMLDocument.m (-URI, -setURI:): Specific implementation.
 	* Source/NSXMLPrivate.h: Remove URI ivar.
 	* Source/NSXMLElement.m,
