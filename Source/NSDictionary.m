@@ -129,6 +129,61 @@ static SEL	appSel;
 }
 
 /**
+ * Returns a new copy of the receiver.<br />
+ * The default abstract implementation of a copy is to use the
+ * -initWithDictionary:copyItems: method with the flag set to YES.<br />
+ * Immutable subclasses generally simply retain and return the receiver.
+ */
+- (id) copyWithZone: (NSZone*)z
+{
+  NSDictionary	*copy = [NSDictionaryClass allocWithZone: z];
+
+  return [copy initWithDictionary: self copyItems: NO];
+}
+
+/**
+ * Returns an unsigned integer which is the number of elements
+ * stored in the dictionary.
+ */
+- (NSUInteger) count
+{
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+- (void) enumerateKeysAndObjectsUsingBlock:
+  (GSKeysAndObjectsEnumeratorBlock)aBlock
+{
+  [self enumerateKeysAndObjectsWithOptions: 0
+                                usingBlock: aBlock];
+}
+
+- (void) enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
+  usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock
+{
+  /*
+   * NOTE: For the moment, we ignore the NSEnumerationOptions because, according
+   * to the Cocoa documentation, NSEnumerationReverse is undefined for
+   * NSDictionary and we cannot handle NSEnumerationConcurrent without
+   * libdispatch.
+   */
+   id<NSFastEnumeration> enumerator = [self keyEnumerator];
+   SEL objectForKeySelector = @selector(objectForKey:);
+   IMP objectForKey = [self methodForSelector: objectForKeySelector];
+   BOOL shouldStop = NO;
+   id obj;
+
+   FOR_IN(id, key, enumerator)
+     obj = (*objectForKey)(self, objectForKeySelector, key);
+     CALL_BLOCK(aBlock, key, obj, &shouldStop);
+     if (YES == shouldStop)
+       {
+	 break;
+       }
+   END_FOR_IN(enumerator)
+}
+
+/**
  * <p>In MacOS-X class clusters do not have designated initialisers,
  * and there is a general rule that -init is treated as the designated
  * initialiser of the class cluster, but that other intitialisers
@@ -176,13 +231,12 @@ static SEL	appSel;
 }
 
 /**
- * Returns an unsigned integer which is the number of elements
- * stored in the dictionary.
+ * Return an enumerator object containing all the keys of the dictionary.
  */
-- (NSUInteger) count
+- (NSEnumerator*) keyEnumerator
 {
   [self subclassResponsibility: _cmd];
-  return 0;
+  return nil;
 }
 
 /**
@@ -196,34 +250,12 @@ static SEL	appSel;
 }
 
 /**
- * Return an enumerator object containing all the keys of the dictionary.
- */
-- (NSEnumerator*) keyEnumerator
-{
-  [self subclassResponsibility: _cmd];
-  return nil;
-}
-
-/**
  * Return an enumerator object containing all the objects of the dictionary.
  */
 - (NSEnumerator*) objectEnumerator
 {
   [self subclassResponsibility: _cmd];
   return nil;
-}
-
-/**
- * Returns a new copy of the receiver.<br />
- * The default abstract implementation of a copy is to use the
- * -initWithDictionary:copyItems: method with the flag set to YES.<br />
- * Immutable subclasses generally simply retain and return the receiver.
- */
-- (id) copyWithZone: (NSZone*)z
-{
-  NSDictionary	*copy = [NSDictionaryClass allocWithZone: z];
-
-  return [copy initWithDictionary: self copyItems: NO];
 }
 
 /**
@@ -966,37 +998,6 @@ compareIt(id o1, id o2, void* context)
     }
 }
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
-- (void)enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
-                                usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock
-{
-  /*
-   * NOTE: For the moment, we ignore the NSEnumerationOptions because, according
-   * to the Cocoa documentation, NSEnumerationReverse is undefined for
-   * NSDictionary and we cannot handle NSEnumerationConcurrent without
-   * libdispatch.
-   */
-   id<NSFastEnumeration> enumerator = [self keyEnumerator];
-   SEL objectForKeySelector = @selector(objectForKey:);
-   IMP objectForKey = [self methodForSelector: objectForKeySelector];
-   BOOL shouldStop = NO;
-   FOR_IN(id, key, enumerator)
-     id obj = objectForKey(self, objectForKeySelector, key);
-     CALL_BLOCK(aBlock, key, obj, &shouldStop);
-     if (YES == shouldStop)
-     {
-       break;
-     }
-   END_FOR_IN(enumerator)
-}
-
-- (void)enumerateKeysAndObjectsUsingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock
-{
-  [self enumerateKeysAndObjectsWithOptions: 0
-                                usingBlock: aBlock];
-}
-
-
 - (NSSet*)keysOfEntriesWithOptions: (NSEnumerationOptions)opts
                        passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
 {
@@ -1012,29 +1013,30 @@ compareIt(id o1, id o2, void* context)
    SEL addObjectSelector = @selector(addObject:);
    IMP addObject = [buildSet methodForSelector: addObjectSelector];
    NSSet *resultSet = nil;
+   id obj;
+
    FOR_IN(id, key, enumerator)
-     id obj = objectForKey(self, objectForKeySelector, key);
+     obj = (*objectForKey)(self, objectForKeySelector, key);
      if (CALL_BLOCK(aPredicate, key, obj, &shouldStop))
-     {
-       addObject(buildSet, addObjectSelector, key);
-     }
+       {
+	 addObject(buildSet, addObjectSelector, key);
+       }
      if (YES == shouldStop)
-     {
-       break;
-     }
+       {
+	 break;
+       }
    END_FOR_IN(enumerator)
    resultSet = [NSSet setWithSet: buildSet];
    [buildSet release];
    return resultSet;
 }
 
-- (NSSet*)keysOfEntriesPassingTest: (GSKeysAndObjectsPredicateBlock)aPredicate
+- (NSSet*) keysOfEntriesPassingTest: (GSKeysAndObjectsPredicateBlock)aPredicate
 {
   return [self keysOfEntriesWithOptions: 0
                             passingTest: aPredicate];
 }
 
-#endif //OS_API_VERSION(100600,GS_API_LATEST)
 /**
  * <p>Writes the contents of the dictionary to the file specified by path.
  * The file contents will be in property-list format ... under GNUstep
