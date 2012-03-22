@@ -33,43 +33,8 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
 
-void
-cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
-{
-  if ((node == NULL) || (ns == NULL))
-    return;
-
-  if ((node->type == XML_ATTRIBUTE_NODE) ||
-      (node->type == XML_ELEMENT_NODE))
-    {
-      xmlNsPtr ns1 = node->ns;
-      
-      if (ns1 == ns)
-        {
-          return;
-        }
-
-      // Either both the same or one NULL and the other the same
-      if (ns1 != NULL &&
-          (((ns1->href == NULL) &&
-            (xmlStrcmp(ns1->prefix, ns->prefix) == 0)) ||
-           ((ns1->prefix == NULL) &&
-            (xmlStrcmp(ns1->href, ns->href) == 0)) ||
-           ((xmlStrcmp(ns1->prefix, ns->prefix) == 0) &&
-            (xmlStrcmp(ns1->href, ns->href) == 0))))
-        {
-          //xmlFreeNs(ns1);
-          xmlSetNs(node, ns);
-        }
- 
-      cleanup_namespaces(node->children, ns);
-      cleanup_namespaces(node->next, ns);
-      if (node->type == XML_ELEMENT_NODE)
-        {
-          cleanup_namespaces((xmlNodePtr)node->properties, ns);
-        }
-    }
-}
+extern void cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns);
+extern void ensure_oldNs(xmlNodePtr node);
 
 @implementation NSXMLElement
 
@@ -239,7 +204,7 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
             }
 
           if ((cur->ns == childNS) ||
-              ((cur->ns == NULL) && (xmlStrcmp(childNS->prefix, "") == 0)))
+              ((cur->ns == NULL) && (xmlStrcmp(childNS->prefix, (const xmlChar*)"") == 0)))
             {
               if (xmlStrcmp(xmlName, cur->name) == 0)
                 {
@@ -268,6 +233,8 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
   if (attr->ns != NULL)
     {
       xmlNsPtr ns = attr->ns;
+      xmlDocPtr tmp = attr->doc;
+      BOOL resolved = NO;
     
       if (ns->href == NULL)
         {
@@ -277,6 +244,7 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
             {
               ns = newNs;
               attr->ns = ns;
+              resolved = YES;
             }
         }
       else //if (ns->prefix == NULL)
@@ -287,9 +255,58 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
             {
               ns = newNs;
               attr->ns = ns;
+              resolved = YES;
             }
         }
       
+      if (!resolved && (tmp != NULL))
+        {
+          xmlNsPtr cur = tmp->oldNs;
+          xmlNsPtr last = NULL;
+          xmlNsPtr oldNs1;
+
+          // Need to transfer the namespace to the new tree
+          // Unlink in old
+          while (cur)
+            {
+              if (cur == ns)
+                {
+                  if (last == NULL)
+                    {
+                      tmp->oldNs = NULL;
+                    }
+                  else
+                    {
+                      last->next = ns->next;
+                    }
+                  cur->next = NULL;
+                  break;
+                } 
+              cur = cur->next;
+            }
+
+          // Insert in new
+          ensure_oldNs(node);
+          oldNs1 = node->doc->oldNs;
+          while (oldNs1)
+            {
+              if (oldNs1->next == NULL)
+                {
+                  oldNs1->next = cur;
+                  break;
+                }
+              oldNs1 = oldNs1->next;
+            }
+        }
+
+#if LIBXML_VERSION >= 20620
+      xmlDOMWrapAdoptNode(NULL, attr->doc, (xmlNodePtr)attr, 
+                          node->doc, node, 0);
+#else
+      xmlSetTreeDoc((xmlNodePtr)aattr, node->doc);
+#endif
+      xmlFreeDoc(tmp);
+
       oldAttr = xmlHasNsProp(node, attr->name, ns->href);
     }
   else

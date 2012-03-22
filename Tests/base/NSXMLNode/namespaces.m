@@ -178,7 +178,7 @@ int main()
   PASS_EQUAL(actualXML, expectedXML, "unexpected xml output");
   testHopeful = NO;
 
-  [arp release];
+  [arp drain];
   arp = nil;
   END_SET("NSXMLNode namespace handling")
   return 0;
