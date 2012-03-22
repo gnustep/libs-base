@@ -59,11 +59,23 @@ extern "C" {
 - (NSString*) descriptionWithLocale: (id)locale
 			     indent: (NSUInteger)level;
 
+#if OS_API_VERSION(100600, GS_API_LATEST)
+DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, id, id, BOOL*);
+- (void) enumerateKeysAndObjectsUsingBlock:
+  (GSKeysAndObjectsEnumeratorBlock)aBlock;
+- (void) enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
+  usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock;
+#endif
+
+- (void) getObjects: (__unsafe_unretained id[])objects
+            andKeys: (__unsafe_unretained id[])keys;
 - (id) init;
 - (id) initWithContentsOfFile: (NSString*)path;
+
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) initWithContentsOfURL: (NSURL*)aURL;
 #endif
+
 - (id) initWithDictionary: (NSDictionary*)otherDictionary;
 - (id) initWithDictionary: (NSDictionary*)other copyItems: (BOOL)shouldCopy;
 - (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
@@ -74,30 +86,30 @@ extern "C" {
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
 
 - (NSEnumerator*) keyEnumerator;				// Primitive
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, id, id, BOOL*);
+- (NSSet*) keysOfEntriesPassingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
+- (NSSet*) keysOfEntriesWithOptions: (NSEnumerationOptions)opts
+                        passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
+#endif
+
 - (NSArray*) keysSortedByValueUsingSelector: (SEL)comp;
 - (NSEnumerator*) objectEnumerator;				// Primitive
 - (id) objectForKey: (id)aKey;					// Primitive
 - (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)marker;
-- (void)getObjects: (__unsafe_unretained id[])objects
-           andKeys: (__unsafe_unretained id[])keys;
 
-- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (id) valueForKey: (NSString*)key;
+#endif
+
+- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 #endif
 
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
-DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, id, id, BOOL*);
-DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, id, id, BOOL*);
-- (void)enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
-                                usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock;
-- (void)enumerateKeysAndObjectsUsingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock;
-- (NSSet*)keysOfEntriesWithOptions: (NSEnumerationOptions)opts
-                       passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
-- (NSSet*)keysOfEntriesPassingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
-#endif
 @end
 
 @interface NSMutableDictionary: NSDictionary
@@ -112,9 +124,9 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, id, id, BOOL*);
 - (void) setObject: (id)anObject forKey: (id)aKey;		// Primitive
 - (void) setDictionary: (NSDictionary*)otherDictionary;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+- (void) setValue: (id)value forKey: (NSString*)key;
 - (void) takeStoredValue: (id)value forKey: (NSString*)key;
 - (void) takeValue: (id)value forKey: (NSString*)key;
-- (void) setValue: (id)value forKey: (NSString*)key;
 #endif
 @end
 
