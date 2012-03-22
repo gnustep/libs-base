@@ -280,15 +280,42 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   internal->node->standalone = standalone;
 }
 
+- (void) setURI: (NSString*)URI
+{
+  xmlDocPtr node = internal->node;
+
+  if (node->URL != NULL)
+    {
+      xmlFree((xmlChar *)node->URL);
+    }
+  node->URL = XMLStringCopy(URI);
+}
+
+- (NSString*) URI
+{
+  xmlDocPtr node = internal->node;
+
+  if (node->URL)
+    {
+      return StringFromXMLStringPtr(node->URL);
+    }
+  else
+    {
+      return nil;
+    }
+}
+
 - (void) setVersion: (NSString*)version
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
-      if (internal->node->version != NULL)
+      xmlDocPtr node = internal->node;
+  
+      if (node->version != NULL)
         {
-          xmlFree((xmlChar *)internal->node->version);
+          xmlFree((xmlChar *)node->version);
         }
-      internal->node->version = XMLStringCopy(version);
+      node->version = XMLStringCopy(version);
     }
   else
     {
@@ -299,8 +326,10 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) version
 {
-  if (internal->node->version)
-    return StringFromXMLStringPtr(internal->node->version);
+  xmlDocPtr node = internal->node;
+
+  if (node->version)
+    return StringFromXMLStringPtr(node->version);
   else
     return @"1.0";
 }

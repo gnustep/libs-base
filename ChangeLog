@@ -1,3 +1,12 @@
+2012-03-22  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLDocument.m (-URI, -setURI:): Specific implementation.
+	* Source/NSXMLPrivate.h: Remove URI ivar.
+	* Source/NSXMLElement.m,
+	* Source/NSXMLNode.m: Full support for namespaces.
+	* Tests/base/NSXMLNode/namespace.m: Test code borrowed from Google
+	data project.
+
 2012-03-21  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLDocument.m: Correct memory management.
