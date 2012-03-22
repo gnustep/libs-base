@@ -524,7 +524,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
                   xmlNsPtr cur = ns;
                   xmlNsPtr oldNs1;
 
-                  // FIXME: Need to transfer the namespace to the new tree
+                  // Need to transfer the namespace to the new tree
                   // Unlink in old
                   if (last == NULL)
                     {
@@ -640,7 +640,6 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
     }
 
   [self _addSubNode: child];
-  // FIXME: Need to replace fake namespaces in subnodes
 }
 
 - (void) _invalidate
@@ -1261,7 +1260,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
   if (node->type == XML_NAMESPACE_DECL)
     {
-      // FIXME: Could try to go to document an loop over the namespaces
       return 0;
     }
 
@@ -1688,7 +1686,6 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
       localName = xmlSplitQName2(xmlName, &prefix);
       if (prefix != NULL)
         {
-          // FIXME: Which other nodes get namespaces?
           if ((node->type == XML_ATTRIBUTE_NODE) ||
               (node->type == XML_ELEMENT_NODE))
             {
@@ -1712,8 +1709,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
                       ensure_oldNs(node);
 
-                      // FIXME: Fake the name space and fix it later
-                      // xmlReconciliateNs or xmlDOMWrapReconcileNamespaces ?
+                      // Fake the name space and fix it later
                       // This function is private, so re reimplemt it.
                       //ns = xmlDOMWrapStoreNs(node->doc, NULL, prefix);
                       oldNs = node->doc->oldNs;
@@ -1817,8 +1813,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
             ensure_oldNs(node);
 
-            // FIXME: Fake the name space and fix it later
-            // xmlReconciliateNs or xmlDOMWrapReconcileNamespaces ?
+            // Fake the name space and fix it later
             // This function is private, so re reimplemt it.
             //ns = xmlDOMWrapStoreNs(node->doc, NULL, prefix);
             oldNs = node->doc->oldNs;
