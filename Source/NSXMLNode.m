@@ -1147,7 +1147,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 - (id) copyWithZone: (NSZone*)zone
 {
   NSXMLNode *c = [[self class] allocWithZone: zone];
-  xmlNodePtr newNode = xmlCopyNode([self _node], 2); // make a deep copy
+  xmlNodePtr newNode = xmlCopyNode([self _node], 1); // make a deep copy
   clearPrivatePointers(newNode);
 
   c = [c _initWithNode: newNode kind: internal->kind];
@@ -1591,7 +1591,17 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSXMLNode*) nextSibling
 {
-  return [NSXMLNode _objectForNode: internal->node->next];
+  xmlNodePtr node = internal->node;
+
+  if (NULL == node)
+    {
+      return nil;
+    }
+  if (XML_NAMESPACE_DECL == node->type)
+    {
+      return nil;
+    }
+  return [NSXMLNode _objectForNode: node->next];
 }
 
 - (id) objectValue
@@ -1648,13 +1658,40 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSXMLNode*) previousSibling
 {
-  return [NSXMLNode _objectForNode: internal->node->prev];
+  xmlNodePtr node = internal->node;
+
+  if (NULL == node)
+    {
+      return nil;
+    }
+  if (XML_NAMESPACE_DECL == node->type)
+    {
+      return nil;
+    }
+  return [NSXMLNode _objectForNode: node->prev];
 }
 
 - (NSXMLDocument*) rootDocument
 {
+  xmlNodePtr node = internal->node;
+
+  if (NULL == node)
+    {
+      return nil;
+    }
+  if (XML_NAMESPACE_DECL == node->type)
+    {
+      return nil;
+    }
+  if (NULL == node->parent)
+    {
+      // This is a standalone node, we still may have a private document,
+      // but we don't want to return this.
+      return nil;
+    }
+
   return
-    (NSXMLDocument *)[NSXMLNode _objectForNode: (xmlNodePtr)(internal->node->doc)];
+    (NSXMLDocument *)[NSXMLNode _objectForNode: (xmlNodePtr)(node->doc)];
 }
 
 - (NSString*) stringValue

@@ -1,3 +1,13 @@
+2012-03-23  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (-copyWithZone_): Use value 1 instead of 2
+	for deep copy. Bug found by Doug Simons <doug.simons@testplant.com>.
+	* Source/NSXMLNode.m (-rootDocument): Don't return the private document.
+	* Source/NSXMLNode.m (-nextSibling, -previousSibling): Protect
+	against namspace nodes.
+	* Tests/base/NSXMLNode/transfer.m: New test case for problem
+	reported by Doug Simons.
+
 2012-03-22  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLElement.m,
