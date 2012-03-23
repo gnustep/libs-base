@@ -79,7 +79,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
                                        error: &error];
   if (tempDoc != nil)
     {
-      result = RETAIN([tempDoc rootElement]);
+      result = RETAIN([tempDoc childAtIndex: 0]);
       [result detach]; // detach from document.
     }
   [tempDoc release];

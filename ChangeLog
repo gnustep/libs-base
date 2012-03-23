@@ -1,5 +1,11 @@
 2012-03-23  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Source/NSXMLNode.m (-rootDocument): Better test for private document.
+	* Source/NSXMLDTDNode.m (-initWithXMLString:): Use childAtIndex:
+	instead of rootElement.
+
+2012-03-23  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSXMLNode.m (-copyWithZone_): Use value 1 instead of 2
 	for deep copy. Bug found by Doug Simons <doug.simons@testplant.com>.
 	* Source/NSXMLNode.m (-rootDocument): Don't return the private document.

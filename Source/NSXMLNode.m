@@ -1683,7 +1683,7 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     {
       return nil;
     }
-  if (NULL == node->parent)
+  if ((NULL == node->doc) || (NULL == node->doc->children))
     {
       // This is a standalone node, we still may have a private document,
       // but we don't want to return this.
