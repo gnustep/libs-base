@@ -1,3 +1,8 @@
+2012-03-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLPrivate.h: Change order of includes to ensure libxml2
+	headers are seen early.
+
 2012-03-23  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m (-rootDocument): Better test for private document.
