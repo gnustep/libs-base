@@ -27,6 +27,34 @@
 
 #import "common.h"
 
+#ifdef	HAVE_LIBXML
+
+/* Avoid problems on systems where the xml headers use 'id'
+ */
+#define	id	GSXMLID
+
+/* libxml headers */
+#include <libxml/tree.h>
+#include <libxml/entities.h>
+#include <libxml/parser.h>
+#include <libxml/parserInternals.h>
+#include <libxml/HTMLparser.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/xmlsave.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
+
+#ifdef HAVE_LIBXSLT
+#include <libxslt/xslt.h>
+#include <libxslt/xsltInternals.h>
+#include <libxslt/transform.h>
+#include <libxslt/xsltutils.h>
+#endif /* HAVE_LIBXSLT */
+
+#undef	id
+
+#endif	/* HAVE_LIBXML */
+
 #define	EXPOSE_NSXMLDTD_IVARS	1
 #define	EXPOSE_NSXMLDTDNode_IVARS	1
 #define	EXPOSE_NSXMLDocument_IVARS	1
@@ -177,30 +205,6 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #ifdef	HAVE_LIBXML
-
-/* Avoid problems on systems where the xml headers use 'id'
- */
-#define	id	GSXMLID
-
-/* libxml headers */
-#include <libxml/tree.h>
-#include <libxml/entities.h>
-#include <libxml/parser.h>
-#include <libxml/parserInternals.h>
-#include <libxml/HTMLparser.h>
-#include <libxml/xmlmemory.h>
-#include <libxml/xmlsave.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
-
-#ifdef HAVE_LIBXSLT
-#include <libxslt/xslt.h>
-#include <libxslt/xsltInternals.h>
-#include <libxslt/transform.h>
-#include <libxslt/xsltutils.h>
-#endif /* HAVE_LIBXSLT */
-
-#undef	id
 
 // Private methods to manage libxml pointers...
 @interface NSXMLNode (Private)
