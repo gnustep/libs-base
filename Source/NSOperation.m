@@ -4,19 +4,19 @@
    Written by:  Gregory Casamento <greg.casamento@gmail.com>
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2009,2010
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
@@ -24,7 +24,7 @@
 
    <title>NSOperation class reference</title>
    $Date: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008) $ $Revision: 26606 $
-   */ 
+   */
 
 #import "common.h"
 
@@ -41,7 +41,8 @@
   BOOL finished; \
   BOOL blocked; \
   BOOL ready; \
-  NSMutableArray *dependencies;
+  NSMutableArray *dependencies; \
+  GSOperationCompletionBlock completionBlock
 
 #define	GS_NSOperationQueue_IVARS \
   NSRecursiveLock	*lock; \
@@ -396,6 +397,18 @@ static NSArray	*empty = nil;
   internal->threadPriority = pri;
 }
 
+
+- (void) setCompletionBlock:(GSOperationCompletionBlock)aBlock
+{
+  ASSIGN(internal->completionBlock, aBlock);
+  GSPrintf(stderr, @"Setting block: %p", internal->completionBlock);
+}
+
+- (GSOperationCompletionBlock)completionBlock
+{
+  return internal->completionBlock;
+}
+
 - (void) start
 {
   NSAutoreleasePool	*pool = [NSAutoreleasePool new];
@@ -524,6 +537,11 @@ static NSArray	*empty = nil;
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
+    if (NULL != internal->completionBlock)
+    {
+      GSPrintf(stderr, @"Calling block: %p", internal->completionBlock);
+      CALL_BLOCK_NO_ARGS(internal->completionBlock);
+    }
     }
   [internal->lock unlock];
   [self release];
@@ -554,7 +572,7 @@ sortFunc(id o1, id o2, void *ctxt)
 {
   NSOperationQueuePriority p1 = [o1 queuePriority];
   NSOperationQueuePriority p2 = [o2 queuePriority];
-  
+
   if (p1 < p2) return NSOrderedDescending;
   if (p1 > p2) return NSOrderedAscending;
   return NSOrderedSame;

@@ -1,3 +1,11 @@
+2012-03-26 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Foundation/NSOperation.h
+	* Source/NSOperation.m:
+	Implement -setCompletionBlock: and -completionBlock.
+	* Headers/GNUstepBase/GSBlocks: Make blocks without arguments callable
+	* Tests/base/NSOperation/basic.m: Test whether completion blocks work.
+
 2012-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLPrivate.h: Change order of includes to ensure libxml2
@@ -55,6 +63,14 @@
 	Alter tests for major dependencies (ICU, XML, TLS) so that they all
 	abort configuration unless specifically disabled ... we want a
 	consistent build with all major features.
+
+2012-03-20  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Foundation/NSDictionary.h
+	* Source/NSDictionary.m:
+	Implement blocks related enumeration methods.
+	* Tests/base/NSDictionary/blocks.m:
+	Test cases for blocks support.
 
 2012-03-20  Niels Grewe <niels.grewe@halbordnung.de>
 	* Headers/Foundation/NSObjCRuntime.h: Define NS_REQUIRES_NIL_TERMINATION
