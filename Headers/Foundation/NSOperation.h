@@ -4,31 +4,31 @@
    Written by:  Gregory Casamento <greg.casamento@gmail.com>
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2009,2010
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   */ 
+   */
 
 #ifndef __NSOperation_h_GNUSTEP_BASE_INCLUDE
 #define __NSOperation_h_GNUSTEP_BASE_INCLUDE
 
 #import <Foundation/NSObject.h>
-
+#import <GNUstepBase/GSBlocks.h>
 #if OS_API_VERSION(100500, GS_API_LATEST)
 
 #if	defined(__cplusplus)
@@ -149,6 +149,14 @@ typedef NSInteger NSOperationQueuePriority;
  * The valid range is 0.0 to 1.0
  */
 - (void) setThreadPriority: (double)prio;
+
+
+DEFINE_BLOCK_TYPE(GSOperationCompletionBlock, void, void);
+
+/**
+ * Sets the block that will be executed when the operation has finished.
+ */
+- (void)setCompletionBlock: (GSOperationCompletionBlock)aBlock;
 #endif
 
 /** This method is called to start execution of the receiver.<br />
@@ -177,6 +185,11 @@ typedef NSInteger NSOperationQueuePriority;
  * from the same thread that the receiver started in.
  */
 - (void) waitUntilFinished;
+
+/**
+ * Returns the block that will be executed after the operation finishes.
+ */
+- (GSOperationCompletionBlock)completionBlock;
 #endif
 
 @end

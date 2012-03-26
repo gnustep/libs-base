@@ -4,6 +4,12 @@
 #import "ObjectTesting.h"
 
 
+# ifndef __has_feature
+# define __has_feature(x) 0
+# endif
+
+static BOOL blockDidRun = NO;
+
 int main()
 {
   id                    obj1;
@@ -11,12 +17,12 @@ int main()
   NSMutableArray        *testObjs = [[NSMutableArray alloc] init];
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
 
-  test_alloc(@"NSOperation"); 
+  test_alloc(@"NSOperation");
   obj1 = [NSOperation new];
   PASS((obj1 != nil), "can create an operation");
   [testObjs addObject: obj1];
   test_NSObject(@"NSOperation", testObjs);
-  
+
   PASS(([obj1 isReady] == YES), "operation is ready");
   PASS(([obj1 isConcurrent] == NO), "operation is not concurrent");
   PASS(([obj1 isCancelled] == NO), "operation is not cancelled");
@@ -51,11 +57,16 @@ int main()
   obj1 = [NSOperation new];
   [testObjs replaceObjectAtIndex: 0 withObject: obj1];
   [obj2 addDependency: obj1];
+# if __has_feature(blocks)
+  [obj1 setCompletionBlock: ^(void){blockDidRun = YES;}];
+# endif
   [obj1 start];
-
   [NSThread sleepForTimeInterval: 1.0];
   PASS(([obj1 isFinished] == YES), "operation is finished");
   PASS(([obj1 isReady] == YES), "a finished operation is ready");
+# if __has_feature(blocks)
+  PASS(YES == blockDidRun, "completion block is executed");
+# endif
   PASS(([[obj2 dependencies] isEqual: testObjs]),
     "finished dependency continues");
   PASS(([obj2 isReady] == YES), "operation with finished dependency is ready");
@@ -80,13 +91,13 @@ int main()
   PASS(([obj2 waitUntilFinished], YES), "wait returns at once");
 
 
-  test_alloc(@"NSOperationQueue"); 
+  test_alloc(@"NSOperationQueue");
   obj1 = [NSOperationQueue new];
   PASS((obj1 != nil), "can create an operation queue");
   [testObjs removeAllObjects];
   [testObjs addObject: obj1];
   test_NSObject(@"NSOperationQueue", testObjs);
-  
+
   PASS(([obj1 isSuspended] == NO), "not suspended by default");
   [obj1 setSuspended: YES];
   PASS(([obj1 isSuspended] == YES), "set suspended yes");

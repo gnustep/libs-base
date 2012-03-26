@@ -7,24 +7,24 @@
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   */ 
+   */
 
 #ifndef __GSBlocks_h_GNUSTEP_BASE_INCLUDE
 #define __GSBlocks_h_GNUSTEP_BASE_INCLUDE
 
 /* Define the has_feature pseudo-macro for GCC. */
-#ifndef __has_feature 
+#ifndef __has_feature
 #define __has_feature(x) 0
 #endif
 
@@ -41,6 +41,10 @@ typedef retTy(^name)(argTys, ## __VA_ARGS__)
  */
 #define CALL_BLOCK(block, args, ...) block(args, ## __VA_ARGS__)
 
+/**
+ * Calls a block without arguments.
+ */
+#define CALL_BLOCK_NO_ARGS(block) block()
 #else
 
 /* Fall-back versions for when the compiler doesn't have native blocks support.
@@ -56,6 +60,8 @@ typedef retTy(^name)(argTys, ## __VA_ARGS__)
   } *name
 
 #define CALL_BLOCK(block, args, ...) block->invoke(block, args, ## __VA_ARGS__)
+
+#define CALL_BLOCK_NO_ARGS(block) block->invoke()
 
 #else /* GCC_VERSION >= 3000 */
 
