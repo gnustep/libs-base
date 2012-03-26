@@ -171,8 +171,10 @@ extern void ensure_oldNs(xmlNodePtr node);
         {
           if (cur->type == XML_ELEMENT_NODE)
             {
-              // FIXME: no namespace or default namespace
-              if ((xmlStrcmp(xmlName, cur->name) == 0) && (cur->ns == NULL))
+              // no namespace or default namespace
+              if ((xmlStrcmp(xmlName, cur->name) == 0) &&
+                  ((cur->ns == NULL) || (cur->ns->prefix == NULL) ||
+                   (xmlStrcmp(cur->ns->prefix, (const xmlChar*)"") == 0)))
                 {
                   NSXMLNode *node = [NSXMLNode _objectForNode: cur];
                   [results addObject: node];
@@ -196,17 +198,21 @@ extern void ensure_oldNs(xmlNodePtr node);
     {
       if (cur->type == XML_ELEMENT_NODE)
         {
-          xmlNsPtr childNS = parentNS;
-
-          if (cur->nsDef != NULL)
+          if (xmlStrcmp(xmlName, cur->name) == 0)
             {
-              childNS = xmlSearchNsByHref(internal->node->doc, cur, href);
-            }
+              xmlNsPtr childNS = parentNS;
 
-          if ((cur->ns == childNS) ||
-              ((cur->ns == NULL) && (xmlStrcmp(childNS->prefix, (const xmlChar*)"") == 0)))
-            {
-              if (xmlStrcmp(xmlName, cur->name) == 0)
+              if (cur->nsDef != NULL)
+                {
+                  childNS = xmlSearchNsByHref(internal->node->doc, cur, href);
+                }
+
+              
+              if (((childNS != NULL) && 
+                   ((cur->ns == childNS) ||
+                    ((cur->ns == NULL) &&
+                     (xmlStrcmp(childNS->prefix, (const xmlChar*)"") == 0)))) ||
+                  ((cur->ns != NULL) && (xmlStrcmp(cur->ns->href, href) == 0)))
                 {
                   NSXMLNode *node = [NSXMLNode _objectForNode: cur];
                   [results addObject: node];
@@ -449,6 +455,7 @@ extern void ensure_oldNs(xmlNodePtr node);
 {
   xmlNsPtr ns = xmlCopyNamespace((xmlNsPtr)[aNamespace _node]);
   xmlNodePtr node = internal->node;
+  const xmlChar *prefix = ns->prefix;
 
   if (node->nsDef == NULL)
     {
@@ -458,7 +465,6 @@ extern void ensure_oldNs(xmlNodePtr node);
     {
       xmlNsPtr cur = node->nsDef;
       xmlNsPtr last = NULL;
-      const xmlChar *prefix = ns->prefix;
       
       while (cur != NULL)
         {
@@ -496,6 +502,12 @@ extern void ensure_oldNs(xmlNodePtr node);
           ns->next = cur->next;
           cur->next = NULL;
         }
+    }
+
+  // Are we setting a default namespace?
+  if ((node->ns == NULL) && (xmlStrcmp(prefix, (const xmlChar*)"") == 0))
+    {
+      node->ns = ns;
     }
 
   // Need to replace fake namespaces in subnodes
@@ -544,9 +556,11 @@ extern void ensure_oldNs(xmlNodePtr node);
   NSEnumerator *en = [namespaces objectEnumerator];
   NSXMLNode *namespace = nil;
 
-  // FIXME: Remove old namespaces
-  // xmlFreeNsList(internal->node->nsDef);
-  // internal->node->nsDef = NULL;
+  // Remove old namespaces
+  xmlFreeNsList(internal->node->nsDef);
+  internal->node->nsDef = NULL;
+
+  // Add new ones
   while ((namespace = (NSXMLNode *)[en nextObject]) != nil)
     {
       [self addNamespace: namespace];
@@ -576,13 +590,23 @@ extern void ensure_oldNs(xmlNodePtr node);
 
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
 {
-  const xmlChar *prefix = XMLSTRING(name);
-  xmlNodePtr node = internal->node;
-  xmlNsPtr ns = xmlSearchNs(node->doc, node, prefix);
-
-  if (ns)
+  if (name != nil)
     {
-      return [NSXMLNode _objectForNode: (xmlNodePtr)xmlCopyNamespace(ns)];
+      const xmlChar *prefix = XMLSTRING(name);
+      xmlNodePtr node = internal->node;
+      xmlNsPtr ns;
+      
+      ns = xmlSearchNs(node->doc, node, prefix);
+      if ((ns == NULL) && ([name length] == 0))
+        {
+          prefix = NULL;
+          ns = xmlSearchNs(node->doc, node, prefix);
+        }
+
+      if (ns != NULL)
+        {
+          return [NSXMLNode _objectForNode: (xmlNodePtr)xmlCopyNamespace(ns)];
+        }
     }
 
   return nil;
