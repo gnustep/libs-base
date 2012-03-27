@@ -1,5 +1,10 @@
 2012-03-27  Fred Kiefer <FredKiefer@gmx.de>
 
+	* Headers/Foundation/NSObject.h (-error:): Declare return type.
+	Patch by Benoît Garrigues <bgarrigues@gmail.com>
+
+2012-03-27  Fred Kiefer <FredKiefer@gmx.de>
+
 	* Source/NSXMLNode.m (execute_xpath): Clean up.
 
 2012-03-27 Niels Grewe <niels.grewe@halbordnung.de>
