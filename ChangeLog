@@ -1,3 +1,11 @@
+2012-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSOperation.m:
+	* Source/NSRegularExpression.m:
+	* Headers/GNUstepBase/GSBlocks.h:
+	* Headers/Foundation/NSOperation.h:
+	Get things compiling/linking again with gcc after blocks changes.
+
 2012-03-26 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Foundation/NSOperation.h
@@ -8,7 +16,8 @@
 
 	* Source/NSXMLElement.m,
 	* Source/NSXMLNode.m: Better support for namespaces. Corrected
-	-_nodeFollowingInNaturalDirection:, -setStringValue: and -XMLStringWithOptions:
+	-_nodeFollowingInNaturalDirection:, -setStringValue:
+	and -XMLStringWithOptions:
 
 2012-03-26 Niels Grewe <niels.grewe@halbordnung.de>
 

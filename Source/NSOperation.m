@@ -42,7 +42,7 @@
   BOOL blocked; \
   BOOL ready; \
   NSMutableArray *dependencies; \
-  GSOperationCompletionBlock completionBlock
+  GSOperationCompletionBlock completionBlock;
 
 #define	GS_NSOperationQueue_IVARS \
   NSRecursiveLock	*lock; \
@@ -187,6 +187,11 @@ static NSArray	*empty = nil;
 	}
       [internal->lock unlock];
     }
+}
+
+- (GSOperationCompletionBlock) completionBlock
+{
+  return internal->completionBlock;
 }
 
 - (void) dealloc
@@ -354,6 +359,12 @@ static NSArray	*empty = nil;
   [internal->lock unlock];
 }
 
+- (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock
+{
+  internal->completionBlock = aBlock;
+  GSPrintf(stderr, @"Setting block: %p", internal->completionBlock);
+}
+
 - (void) setQueuePriority: (NSOperationQueuePriority)pri
 {
   if (pri <= NSOperationQueuePriorityVeryLow)
@@ -395,18 +406,6 @@ static NSArray	*empty = nil;
   if (pri > 1) pri = 1;
   else if (pri < 0) pri = 0;
   internal->threadPriority = pri;
-}
-
-
-- (void) setCompletionBlock:(GSOperationCompletionBlock)aBlock
-{
-  ASSIGN(internal->completionBlock, aBlock);
-  GSPrintf(stderr, @"Setting block: %p", internal->completionBlock);
-}
-
-- (GSOperationCompletionBlock)completionBlock
-{
-  return internal->completionBlock;
 }
 
 - (void) start
@@ -537,11 +536,11 @@ static NSArray	*empty = nil;
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
-    if (NULL != internal->completionBlock)
-    {
-      GSPrintf(stderr, @"Calling block: %p", internal->completionBlock);
-      CALL_BLOCK_NO_ARGS(internal->completionBlock);
-    }
+      if (NULL != internal->completionBlock)
+	{
+	  GSPrintf(stderr, @"Calling block: %p", internal->completionBlock);
+	  CALL_BLOCK_NO_ARGS(internal->completionBlock);
+	}
     }
   [internal->lock unlock];
   [self release];
