@@ -1,3 +1,9 @@
+2012-03-26 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Foundation/NSOperation.h
+	* Headers/GNUstepBase/GSBlocks.h:
+	Fix definitions of blocks without arguments for GCC.
+
 2012-03-27  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLElement.m,

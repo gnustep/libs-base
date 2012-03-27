@@ -151,7 +151,7 @@ typedef NSInteger NSOperationQueuePriority;
 - (void) setThreadPriority: (double)prio;
 
 
-DEFINE_BLOCK_TYPE(GSOperationCompletionBlock, void, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
 
 /**
  * Sets the block that will be executed when the operation has finished.
