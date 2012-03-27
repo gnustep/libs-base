@@ -729,77 +729,27 @@ clearPrivatePointers(xmlNodePtr aNode)
   // FIXME: Handle more node types
 }
 
-static int
-register_namespaces(xmlXPathContextPtr xpathCtx, const xmlChar* nsList) 
-{
-  xmlChar* nsListDup;
-  xmlChar* prefix;
-  xmlChar* href;
-  xmlChar* next;
-  
-  assert(xpathCtx);
-  assert(nsList);
-  
-  nsListDup = xmlStrdup(nsList);
-  if (nsListDup == NULL)
-    {
-      NSLog(@"Error: unable to strdup namespaces list");
-      return -1;	
-    }
-  
-  next = nsListDup; 
-  while (next != NULL)
-    {
-      /* skip spaces */
-      while ((*next) == ' ') next++;
-      if ((*next) == '\0') break;
-      
-      /* find prefix */
-      prefix = next;
-      next = (xmlChar*)xmlStrchr(next, '=');
-      if (next == NULL)
-        {
-          NSLog(@"Error: invalid namespaces list format");
-          xmlFree(nsListDup);
-          return -1;	
-        }
-      *(next++) = '\0';	
-    
-      /* find href */
-      href = next;
-      next = (xmlChar*)xmlStrchr(next, ' ');
-      if (next != NULL)
-        {
-          *(next++) = '\0';	
-        }
-    
-      /* do register namespace */
-      if (xmlXPathRegisterNs(xpathCtx, prefix, href) != 0)
-        {
-          NSLog(@"Error: unable to register NS with prefix=\"%s\""
-	    @" and href=\"%s\"", prefix, href);
-          xmlFree(nsListDup);
-          return -1;	
-        }
-    }
-  
-  xmlFree(nsListDup);
-  return 0;
-}
-
 static NSArray *
-execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
+execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
+              BOOL nodesOnly, NSError **error)
 {
-  xmlNodePtr node = [xmlNode _node];
   xmlDocPtr doc = node->doc;
-  NSMutableArray *result = [NSMutableArray arrayWithCapacity: 10];
-  xmlChar* xpathExpr = (xmlChar *)XMLSTRING(xpath_exp); 
-  xmlChar* nsList = (xmlChar *)XMLSTRING(nmspaces);
+  NSMutableArray *result = nil;
+  const xmlChar* xpathExpr = XMLSTRING(xpath_exp); 
   xmlXPathContextPtr xpathCtx =  NULL; 
   xmlXPathObjectPtr xpathObj = NULL; 
-  xmlNodeSetPtr nodeset = NULL;
-  xmlNodePtr cur = NULL;
-  int i = 0; 
+  xmlNodePtr rootNode = NULL;
+
+  if (error != NULL)
+    {
+      *error = NULL;
+    }
+
+  if (doc == NULL)
+    {
+      // FIXME: Create temporary document
+      return nil;
+    }
 
   assert(xpathExpr);
   
@@ -811,18 +761,41 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
       return nil;
     }
     
-  /* Register namespaces from list (if any) */
-  if ((nsList != NULL) && (register_namespaces(xpathCtx, nsList) < 0)) 
+  // provide a context for relative paths
+  xpathCtx->node = node;
+
+  /* Register namespaces from root node (if any) */
+  rootNode = xmlDocGetRootElement(doc);
+  if (rootNode != NULL)
     {
-      NSLog(@"Error: failed to register namespaces list \"%s\"", nsList);
-      xmlXPathFreeContext(xpathCtx); 
-      return nil;
+      xmlNsPtr ns = rootNode->nsDef;
+
+      while (ns != NULL)
+        {
+          xmlXPathRegisterNs(xpathCtx, ns->prefix, ns->href);
+          ns = ns->next;
+        }
     }
 
-  if (![xpath_exp hasPrefix: @"/"])
+  // Add constants
+  if (constants != nil)
     {
-      // provide a context for relative paths
-      xpathCtx->node = node;
+      NSEnumerator *keyEnum = [constants keyEnumerator];
+      NSString *key;
+
+      while ((key = [keyEnum nextObject]) != nil)
+        {
+          id obj = [constants objectForKey: key];
+          const xmlChar *name = XMLSTRING(key);
+          
+          // FIXME: Add more conversions
+          if ([obj isKindOfClass: [NSString class]])
+            {
+              xmlXPathObjectPtr value = xmlXPathNewString(XMLSTRING(obj));
+              
+              xmlXPathRegisterVariable(xpathCtx, name, value);
+            }
+        }
     }
 
   /* Evaluate xpath expression */
@@ -835,30 +808,43 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
     }
   
   /* results */
-  nodeset = xpathObj->nodesetval;
-/*
-  if (nodeset == NULL || nodeset->nodeNr == 0)
+  if (xpathObj->type == XPATH_NODESET)
     {
-      xpathObj = xmlXPathEval(xpathExpr, xpathCtx);
-      if (xpathObj != NULL)
-        nodeset = xpathObj->nodesetval;
-      if (nodeset)
-        NSLog(@"Succeeded in evaluating as a path, using xmlXPathEval");
+      xmlNodeSetPtr nodeset = NULL;
+
+      nodeset = xpathObj->nodesetval;
+      if (!xmlXPathNodeSetIsEmpty(nodeset))
+        {
+          int i = 0; 
+
+          /* Collect results */
+          result = [NSMutableArray arrayWithCapacity: nodeset->nodeNr];
+          for (i = 0; i < nodeset->nodeNr; i++)
+            {
+              id obj = nil;
+              xmlNodePtr cur = NULL;
+
+              cur = nodeset->nodeTab[i];
+              obj = [NSXMLNode _objectForNode: cur];
+              if (obj)
+                {
+                  [result addObject: obj];
+                }
+            } 
+        }
     }
-*/
-  if (nodeset)
+  else if (!nodesOnly)
     {
-      /* Collect results */
-      for (i = 0; i < nodeset->nodeNr; i++)
-	{
-	  id obj = nil;
-	  cur = nodeset->nodeTab[i];
-	  obj = [NSXMLNode _objectForNode: cur];
-	  if (obj)
-	    {
-	      [result addObject: obj];
-	    }
-	} 
+      switch (xpathObj->type)
+        {
+        case XPATH_STRING:
+          result = [NSMutableArray arrayWithObject:
+                                     StringFromXMLStringPtr(xpathObj->stringval)];
+          break;
+          // FIXME: Handle other types
+        default:
+          break;
+        }
     }
 
   /* Cleanup */
@@ -872,12 +858,19 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 + (void) initialize
 {
-  xmlCheckVersion(LIBXML_VERSION);
-  // Protect against libxml2 not being correctly set up on Windows.
-  // See: http://www.linuxquestions.org/questions/programming-9/%5Bsolved%5Dusing-libxml2-on-mingw-xmlfree-crashes-839802/
-  if (!xmlFree)
+  if (self == [NSXMLNode class])
     {
-      xmlMemGet(&xmlFree, &xmlMalloc, &xmlRealloc, NULL);
+      xmlCheckVersion(LIBXML_VERSION);
+
+      // Protect against libxml2 not being correctly set up on Windows.
+      // See: http://www.linuxquestions.org/questions/programming-9/%5Bsolved%5Dusing-libxml2-on-mingw-xmlfree-crashes-839802/
+      if (!xmlFree)
+        {
+          xmlMemGet(&xmlFree, &xmlMalloc, &xmlRealloc, NULL);
+        }
+
+      // Switch off default
+      xmlKeepBlanksDefault(0);
     }
 }
 
@@ -2060,11 +2053,18 @@ execute_xpath(NSXMLNode *xmlNode, NSString *xpath_exp, NSString *nmspaces)
 
 - (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
 {
-  if (error != NULL)
+  xmlNodePtr node = internal->node;
+
+  if (NSXMLInvalidKind == internal->kind)
     {
-      *error = NULL;
+      return nil;
     }
-  return execute_xpath(self, anxpath, NULL);
+  if (node->type == XML_NAMESPACE_DECL)
+    {
+      return nil;
+    }
+
+  return execute_xpath(node, anxpath, nil, YES, error);
 }
 
  - (NSArray*) objectsForXQuery: (NSString*)xquery

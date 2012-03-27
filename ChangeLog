@@ -1,3 +1,7 @@
+2012-03-27  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (execute_xpath): Clean up.
+
 2012-03-27 Niels Grewe <niels.grewe@halbordnung.de>
 	* configure.ac
 	* config.mak.in
