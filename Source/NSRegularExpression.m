@@ -102,6 +102,7 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
 				  error: e] autorelease];
 }
 
+
 #if HAVE_UREGEX_OPENUTEXT
 - (id) initWithPattern: (NSString*)aPattern
 	       options: (NSRegularExpressionOptions)opts
@@ -111,6 +112,13 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
   UText		p = UTEXT_INITIALIZER;
   UParseError	pe = {0};
   UErrorCode	s = 0;
+
+#if !__has_feature(blocks)
+  if ([self class] != [NSRegularExpression class])
+    {
+      GSOnceMLog(@"Warning: NSRegularExpression was built by a compiler without blocks support.  NSRegularExpression will deviate from the documented behaviour when subclassing and any code that subclasses NSRegularExpression may break in unexpected ways.  If you must subclass NSRegularExpression, you are strongly recommended to use a compiler with blocks support.");
+    }
+#endif
 
   UTextInitWithNSString(&p, aPattern);
   regex = uregex_openUText(&p, flags, &pe, &s);
@@ -150,6 +158,13 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
   UParseError	pe = {0};
   UErrorCode	s = 0;
   TEMP_BUFFER(buffer, length);
+
+#if !__has_feature(blocks)
+  if ([self class] != [NSRegularExpression class])
+    {
+      GSOnceMLog(@"Warning: NSRegularExpression was built by a compiler without blocks support.  NSRegularExpression will deviate from the documented behaviour when subclassing and any code that subclasses NSRegularExpression may break in unexpected ways.  If you must subclass NSRegularExpression, you are strongly recommended to use a compiler with blocks support.");
+    }
+#endif
 
   [aPattern getCharacters: buffer range: NSMakeRange(0, length)];
   regex = uregex_open(buffer, length, flags, &pe, &s);
@@ -511,10 +526,10 @@ prepareResult(NSRegularExpression *regex,
 }
 
 #else
-#	warning Your compiler does not support blocks.  NSRegularExpression will deviate from the documented behaviour when subclassing and any code that subclasses NSRegularExpression may break in unexpected ways.  It is strongly recommended that you use a compiler with blocks support.
-#	ifdef __clang__
-#		warning Your compiler would support blocks if you added -fblocks to your OBJCFLAGS
-#	endif
+#  ifdef __clang__
+#    warning Your compiler does not support blocks.  NSRegularExpression will deviate from the documented behaviour when subclassing and any code that subclasses NSRegularExpression may break in unexpected ways.  If you must subclass NSRegularExpression, you may want to use a compiler with blocks support.
+#    warning Your compiler would support blocks if you added -fblocks to your OBJCFLAGS
+#  endif
 #if HAVE_UREGEX_OPENUTEXT
 #define FAKE_BLOCK_HACK(failRet, code) \
   UErrorCode s = 0;\

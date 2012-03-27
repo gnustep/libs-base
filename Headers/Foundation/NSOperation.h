@@ -28,11 +28,15 @@
 #define __NSOperation_h_GNUSTEP_BASE_INCLUDE
 
 #import <Foundation/NSObject.h>
-#import <GNUstepBase/GSBlocks.h>
 #if OS_API_VERSION(100500, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
+#endif
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+#import <GNUstepBase/GSBlocks.h>
+DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
 #endif
 
 @class NSMutableArray;
@@ -77,6 +81,13 @@ typedef NSInteger NSOperationQueuePriority;
  * has no effect.
  */
 - (void) cancel;
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/**
+ * Returns the block that will be executed after the operation finishes.
+ */
+- (GSOperationCompletionBlock) completionBlock;
+#endif
 
 /** Returns all the dependencies of the receiver in the order in which they
  * were added.
@@ -136,6 +147,13 @@ typedef NSInteger NSOperationQueuePriority;
  */
 - (void) removeDependency: (NSOperation *)op;
 
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/**
+ * Sets the block that will be executed when the operation has finished.
+ */
+- (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock;
+#endif
+
 /** Sets the priority for the receiver.  If the value supplied is not one of
  * the predefined queue priorities, it is converted into the next available
  * defined value moving towards NSOperationQueuePriorityNormal.
@@ -149,14 +167,6 @@ typedef NSInteger NSOperationQueuePriority;
  * The valid range is 0.0 to 1.0
  */
 - (void) setThreadPriority: (double)prio;
-
-
-DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
-
-/**
- * Sets the block that will be executed when the operation has finished.
- */
-- (void)setCompletionBlock: (GSOperationCompletionBlock)aBlock;
 #endif
 
 /** This method is called to start execution of the receiver.<br />
@@ -185,11 +195,6 @@ DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
  * from the same thread that the receiver started in.
  */
 - (void) waitUntilFinished;
-
-/**
- * Returns the block that will be executed after the operation finishes.
- */
-- (GSOperationCompletionBlock)completionBlock;
 #endif
 
 @end
