@@ -1,4 +1,8 @@
-2012-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+2012-03-27 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSOperation.m: Remove leftover debugging statements.
+
+2012-03-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m:
 	* Source/NSRegularExpression.m:
@@ -6,7 +10,7 @@
 	* Headers/Foundation/NSOperation.h:
 	Get things compiling/linking again with gcc after blocks changes.
 
-2012-03-26 Niels Grewe <niels.grewe@halbordnung.de>
+2012-03-27 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Foundation/NSOperation.h
 	* Headers/GNUstepBase/GSBlocks.h:
