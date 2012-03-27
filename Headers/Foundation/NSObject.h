@@ -490,7 +490,7 @@ NSIncrementExtraRefCount(id anObject);
 GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 @interface NSObject (NEXTSTEP)
-- error:(const char *)aString, ...;
+- (id) error:(const char *)aString, ...;
 /* - (const char *) name;
    Removed because OpenStep has -(NSString*)name; */
 @end
