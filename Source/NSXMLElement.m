@@ -40,7 +40,7 @@ extern void ensure_oldNs(xmlNodePtr node);
 
 - (void) dealloc
 {
-  if (GS_EXISTS_INTERNAL && _internal != nil)
+  if (GS_EXISTS_INTERNAL && internal != nil)
     {
       /*
       NSArray *subNodes = [internal->subNodes copy];
