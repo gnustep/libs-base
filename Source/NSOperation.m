@@ -362,7 +362,6 @@ static NSArray	*empty = nil;
 - (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock
 {
   internal->completionBlock = aBlock;
-  GSPrintf(stderr, @"Setting block: %p", internal->completionBlock);
 }
 
 - (void) setQueuePriority: (NSOperationQueuePriority)pri
@@ -538,7 +537,6 @@ static NSArray	*empty = nil;
 	}
       if (NULL != internal->completionBlock)
 	{
-	  GSPrintf(stderr, @"Calling block: %p", internal->completionBlock);
 	  CALL_BLOCK_NO_ARGS(internal->completionBlock);
 	}
     }
