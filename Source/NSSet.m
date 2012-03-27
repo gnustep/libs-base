@@ -39,6 +39,7 @@
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSFastEnumeration.h"
+#import "GSDispatch.h"
 
 @class	GSSet;
 @interface GSSet : NSObject	// Help the compiler
@@ -260,7 +261,7 @@ static Class NSMutableSet_concrete_class;
         {
 	  unsigned	i;
 	  GS_BEGINIDBUF(objs, count);
-	
+
 	  for (i = 0; i < count; i++)
 	    {
 	      [aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
@@ -663,7 +664,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   while ((o = [e nextObject]) != nil)
                     {
                       d += [[o valueForKeyPath: rem] doubleValue];
@@ -678,7 +679,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   while ((o = [e nextObject]) != nil)
                     {
                       o = [o valueForKeyPath: rem];
@@ -696,7 +697,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   while ((o = [e nextObject]) != nil)
                     {
                       o = [o valueForKeyPath: rem];
@@ -716,7 +717,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   while ((o = [e nextObject]) != nil)
                     {
                       d += [[o valueForKeyPath: rem] doubleValue];
@@ -730,7 +731,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [NSMutableSet set];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -750,7 +751,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [NSMutableSet set];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -770,7 +771,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [NSMutableSet set];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -790,7 +791,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [GSMutableArray array];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -810,7 +811,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [GSMutableArray array];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -830,7 +831,7 @@ static Class NSMutableSet_concrete_class;
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [GSMutableArray array];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -866,18 +867,20 @@ static Class NSMutableSet_concrete_class;
 - (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
                           usingBlock: (GSSetEnumeratorBlock)aBlock
 {
-  BOOL shouldStop = NO;
+  BLOCK_SCOPE BOOL shouldStop = NO;
   id<NSFastEnumeration> enumerator = self;
-  
+
+  GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   FOR_IN (id, obj, enumerator)
   {
-    CALL_BLOCK(aBlock, obj, &shouldStop);
+    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup,enumQueue, if (shouldStop) {return;}, return;, aBlock, obj, &shouldStop);
     if (shouldStop)
       {
-	return;
+	break;
       }
   }
   END_FOR_IN(enumerator)
+  GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 }
 
 /** Return a set formed by adding anObject to the receiver.
@@ -922,7 +925,7 @@ static Class NSMutableSet_concrete_class;
   return [s autorelease];
 }
 
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
                                    objects: (id*)stackbuf
                                      count: (NSUInteger)len
 {

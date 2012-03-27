@@ -226,7 +226,7 @@ typedef	struct {
 #define GS_USE_AVAHI @HAVE_AVAHI@
 #define GS_USE_MDNS @HAVE_MDNS@
 #define GS_USE_ICU @HAVE_ICU@
-
+#define GS_USE_LIBDISPATCH @HAVE_LIBDISPATCH@
 
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
 #  if	!defined(__WIN32__)
@@ -292,11 +292,11 @@ typedef	struct {
     beenHere = YES; fprintf(stderr, "%s:%d %s", __FILE__, __LINE__, (M));}})
 
 #define OBJC_MALLOC(VAR, TYPE, NUM) \
-   (OBJC_DEP("OBJC_MALLOC is deprecated ... use malloc\n"),(VAR) = (TYPE *) malloc ((unsigned)(NUM)*sizeof(TYPE))) 
+   (OBJC_DEP("OBJC_MALLOC is deprecated ... use malloc\n"),(VAR) = (TYPE *) malloc ((unsigned)(NUM)*sizeof(TYPE)))
 #define OBJC_VALLOC(VAR, TYPE, NUM) \
-   (OBJC_DEP("OBJC_VALLOC is deprecated\n"),(VAR) = (TYPE *) valloc ((unsigned)(NUM)*sizeof(TYPE))) 
+   (OBJC_DEP("OBJC_VALLOC is deprecated\n"),(VAR) = (TYPE *) valloc ((unsigned)(NUM)*sizeof(TYPE)))
 #define OBJC_ATOMIC_MALLOC(VAR, TYPE, NUM) \
-   (OBJC_DEP("OBJC_ATOMIC_MALLOC is deprecated\n"),(VAR) = (TYPE *) malloc ((unsigned)(NUM)*sizeof(TYPE))) 
+   (OBJC_DEP("OBJC_ATOMIC_MALLOC is deprecated\n"),(VAR) = (TYPE *) malloc ((unsigned)(NUM)*sizeof(TYPE)))
 #define OBJC_REALLOC(VAR, TYPE, NUM) \
    (OBJC_DEP("OBJC_REALLOC is deprecated ... use realloc\n"),(VAR) = (TYPE *) realloc ((VAR), (unsigned)(NUM)*sizeof(TYPE)))
 #define OBJC_CALLOC(VAR, TYPE, NUM) \
@@ -338,13 +338,13 @@ typedef	struct {
 #define LONG2PTR(L) (((char*)0)+(L))
 #endif
 
-#if VSPRINTF_RETURNS_LENGTH 
+#if VSPRINTF_RETURNS_LENGTH
 #define VSPRINTF_LENGTH(VSPF_CALL) (VSPF_CALL)
 #else
 #define VSPRINTF_LENGTH(VSPF_CALL) strlen((VSPF_CALL))
 #endif /* VSPRINTF_RETURNS_LENGTH */
 
-#if VASPRINTF_RETURNS_LENGTH 
+#if VASPRINTF_RETURNS_LENGTH
 #define VASPRINTF_LENGTH(VASPF_CALL) (VASPF_CALL)
 #else
 #define VASPRINTF_LENGTH(VASPF_CALL) strlen((VASPF_CALL))
@@ -390,8 +390,8 @@ typedef	struct {
 #    define __strong __attribute__((objc_gc(strong)))
 #    define __weak __attribute__((objc_gc(weak)))
 #  else
-#    define __strong 
-#    define __weak 
+#    define __strong
+#    define __weak
 #  endif
 #endif
 

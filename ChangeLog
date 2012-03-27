@@ -1,4 +1,29 @@
 2012-03-27 Niels Grewe <niels.grewe@halbordnung.de>
+	* configure.ac
+	* config.mak.in
+	* Headers/GNUstepBase/GSConfig.h.in
+	* Headers/GNUstepBase/config.h.in:
+	Implement configure check for libdispatch.
+	* configure: Regenerate
+	* Source/GSDispatch.h: Add portability header with macros for compiling
+	  with or without libdispatch.
+	* Source/NSArray.m
+	* Source/NSDictionary.m
+	* Source/NSIndexSet.m
+	* Source/NSSet.m
+	* Headers/Foundation/NSIndexSet.h:
+	Implement libdispatch support for block enumeration methods.
+	* Tests/base/NSMutableIndexSet/blocks.m
+	* Tests/base/NSDictionary/blocks.m
+	* Tests/base/NSArray/blocks.m:
+	Test cases for new code.
+
+	Detect the presence of libdispatch and, if available, use it for
+	collection enumeration methods that take blocks as arguments. This
+	allows us to implement the NSEnumerationConcurrent option of those
+	methods with minimal effort. 
+
+2012-03-27 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSOperation.m: Remove leftover debugging statements.
 

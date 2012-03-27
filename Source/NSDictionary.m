@@ -34,6 +34,7 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSLock.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSKeyValueCoding.h"
@@ -43,6 +44,7 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSFastEnumeration.h"
+#import "GSDispatch.h"
 
 static BOOL GSMacOSXCompatiblePropertyLists(void)
 {
@@ -162,25 +164,26 @@ static SEL	appSel;
   usingBlock: (GSKeysAndObjectsEnumeratorBlock)aBlock
 {
   /*
-   * NOTE: For the moment, we ignore the NSEnumerationOptions because, according
-   * to the Cocoa documentation, NSEnumerationReverse is undefined for
-   * NSDictionary and we cannot handle NSEnumerationConcurrent without
-   * libdispatch.
+   * NOTE: According to the Cocoa documentation, NSEnumerationReverse is
+   * undefined for NSDictionary. NSEnumerationConcurrent will be handled through
+   * the GS_DISPATCH_* macros if libdispatch is available.
    */
    id<NSFastEnumeration> enumerator = [self keyEnumerator];
    SEL objectForKeySelector = @selector(objectForKey:);
    IMP objectForKey = [self methodForSelector: objectForKeySelector];
-   BOOL shouldStop = NO;
+   BLOCK_SCOPE BOOL shouldStop = NO;
    id obj;
 
+   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
    FOR_IN(id, key, enumerator)
      obj = (*objectForKey)(self, objectForKeySelector, key);
-     CALL_BLOCK(aBlock, key, obj, &shouldStop);
+     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop){return;};, return;, aBlock, key, obj, &shouldStop);
      if (YES == shouldStop)
        {
 	 break;
        }
    END_FOR_IN(enumerator)
+   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 }
 
 /**
@@ -1008,24 +1011,47 @@ compareIt(id o1, id o2, void* context)
    id<NSFastEnumeration> enumerator = [self keyEnumerator];
    SEL objectForKeySelector = @selector(objectForKey:);
    IMP objectForKey = [self methodForSelector: objectForKeySelector];
-   BOOL shouldStop = NO;
+   BLOCK_SCOPE BOOL shouldStop = NO;
    NSMutableSet *buildSet = [NSMutableSet new];
    SEL addObjectSelector = @selector(addObject:);
    IMP addObject = [buildSet methodForSelector: addObjectSelector];
    NSSet *resultSet = nil;
-   id obj;
+   id obj = nil;
+   BLOCK_SCOPE NSLock *setLock = nil;
 
+   if (opts & NSEnumerationConcurrent)
+   {
+     setLock = [NSLock new];
+   }
+   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
    FOR_IN(id, key, enumerator)
      obj = (*objectForKey)(self, objectForKeySelector, key);
+#    if (__has_feature(blocks) && (GS_USE_LIBDISPATCH == 1))
+     dispatch_group_async(enumQueueGroup, enumQueue, ^(void){if (shouldStop)
+       {
+	 return;
+       }
+       if (aPredicate(key, obj, &shouldStop))
+       {
+	 [setLock lock];
+	 addObject(buildSet, addObjectSelector, key);
+	 [setLock unlock];
+       }
+     });
+#    else
      if (CALL_BLOCK(aPredicate, key, obj, &shouldStop))
        {
 	 addObject(buildSet, addObjectSelector, key);
        }
+#    endif
+
      if (YES == shouldStop)
        {
 	 break;
        }
    END_FOR_IN(enumerator)
+   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+   [setLock release];
    resultSet = [NSSet setWithSet: buildSet];
    [buildSet release];
    return resultSet;

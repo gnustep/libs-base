@@ -2972,7 +2972,7 @@ AC_SUBST(HAVE_AVAHI)
 #--------------------------------------------------------------------
 HAVE_ICU=0
 AC_ARG_ENABLE(icu,
-  [  --disable-icu		Disable International Components for Unicode],,
+  [  --disable-icu			Disable International Components for Unicode],,
   enable_icu=yes)
 
 if test $enable_icu = yes; then
@@ -2995,6 +2995,47 @@ if test $enable_icu = yes; then
   fi
 fi
 AC_SUBST(HAVE_ICU)
+
+#--------------------------------------------------------------------
+# Check for libdispatch
+# See DEPENDENCIES POLICY at the start of this file.
+#--------------------------------------------------------------------
+HAVE_LIBDISPATCH=0
+AC_ARG_ENABLE(libdispatch,
+  [  --disable-libdispatch		Disable dispatching blocks via libdispatch],
+  enable_libdispatch=no,
+  enable_libdispatch=yes)
+
+if test $enable_libdispatch = yes; then
+  AC_CHECK_HEADERS(dispatch.h, have_dispatch=yes, have_dispatch=no)
+  if test "$have_dispatch" = "no"; then
+    AC_CHECK_HEADERS(dispatch/dispatch.h, have_dispatch=yes, have_dispatch=no)
+  fi
+  if test "$have_dispatch" = "yes"; then
+    AC_CHECK_LIB(dispatch, dispatch_queue_create, have_dispatch=yes, have_dispatch=no)
+    if test "$have_dispatch" = "yes"; then
+      saveLIBS="$LIBS"
+      LIBS="-lobjc -ldispatch";
+      # This check is needed because libdispatch might be linked against a
+      # version of libBlocksRuntime that defines symbols conflicting with libobjc
+      AC_MSG_CHECKING(whether we can link libdispatch and libobjc at the same time)
+      AC_TRY_LINK(,,have_dispatch=yes, have_dispatch=no)
+      if test "$have_dispatch" = "yes"; then
+	LIBS="$saveLIBS -ldispatch";
+	AC_MSG_RESULT(yes);
+	HAVE_LIBDISPATCH=1;
+      else
+	LIBS="$saveLIBS";
+	AC_MSG_RESULT(no);
+      fi
+    fi
+  else
+  HAVE_LIBDISPATCH=0;
+  # just ignore libdispatch if it's not there
+  fi
+fi
+AC_SUBST(HAVE_LIBDISPATCH)
+
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal

@@ -29,6 +29,7 @@
 #import "Foundation/NSData.h"
 #import	"Foundation/NSIndexSet.h"
 #import	"Foundation/NSException.h"
+#import "GSDispatch.h"
 
 #define	GSI_ARRAY_TYPE	NSRange
 
@@ -44,6 +45,7 @@
 static void sanity(GSIArray array)
 {
   if (array != 0)
+
     {
       NSUInteger	c = GSIArrayCount(array);
       NSUInteger	i;
@@ -68,7 +70,7 @@ static void sanity(GSIArray array)
 }
 #define	SANITY()	sanity(_array)
 #else
-#define	SANITY()	
+#define	SANITY()
 #endif
 
 /*
@@ -254,7 +256,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
       while (i < count)
 	{
 	  NSRange	r = GSIArrayItemAtIndex(_array, i).ext;
-          
+
           r = NSIntersectionRange(r, range);
 	  total += r.length;
 	  i++;
@@ -313,7 +315,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
     {
       rangeCount = GSIArrayCount(_array);
     }
-          
+
   if ([aCoder allowsKeyedCoding])
     {
       [aCoder encodeInt: rangeCount forKey: @"NSRangeCount"];
@@ -323,7 +325,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
       [aCoder encodeValueOfObjCType: @encode(NSUInteger)
                                  at: &rangeCount];
     }
-  
+
   if (rangeCount == 0)
     {
       // Do nothing
@@ -331,7 +333,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   else if (rangeCount == 1)
     {
       NSRange	r;
-      
+
       r = GSIArrayItemAtIndex(_array, 0).ext;
       if ([aCoder allowsKeyedCoding])
         {
@@ -356,14 +358,14 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
           NSRange	r;
           NSUInteger    v;
           uint8_t       b;
-      
+
           r = GSIArrayItemAtIndex(_array, i).ext;
           v = r.location;
           do
             {
               if (v > 0x7f)
                 {
-                  b = (v & 0x7f) | 0x80; 
+                  b = (v & 0x7f) | 0x80;
                 }
               else
                 {
@@ -378,7 +380,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
             {
               if (v > 0x7f)
                 {
-                  b = (v & 0x7f) | 0x80; 
+                  b = (v & 0x7f) | 0x80;
                 }
               else
                 {
@@ -602,7 +604,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
     {
       NSUInteger len = 0;
       NSUInteger loc = 0;
-      
+
       if ([aCoder allowsKeyedCoding])
         {
           if ([aCoder containsValueForKey: @"NSLocation"])
@@ -861,6 +863,125 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   return [c initWithIndexSet: self];
 }
 
+
+- (void)enumerateIndexesInRange: (NSRange)range
+                        options: (NSEnumerationOptions)opts
+		     usingBlock: (GSIndexSetEnumerationBlock)aBlock
+{
+  NSUInteger lastInRange = (NSMaxRange(range) - 1);
+  NSUInteger startArrayIndex = posForIndex(_array, range.location);
+  NSUInteger endArrayIndex = MIN(posForIndex(_array, lastInRange), (GSIArrayCount(_array) - 1));
+  NSUInteger i;
+  NSUInteger c;
+  BOOL isReverse = opts & NSEnumerationReverse;
+  BLOCK_SCOPE BOOL shouldStop = NO;
+
+  if ((0 == [self count]) || (NSNotFound == range.location))
+  {
+    return;
+  }
+
+  if (NSNotFound == startArrayIndex)
+  {
+    startArrayIndex = 0;
+  }
+
+  if (NSNotFound == endArrayIndex)
+  {
+    endArrayIndex = GSIArrayCount(_array) - 1;
+  }
+
+  if (isReverse)
+  {
+    i = endArrayIndex;
+    c = startArrayIndex;
+  }
+  else
+  {
+    i = startArrayIndex;
+    c = endArrayIndex;
+  }
+
+  GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  while (isReverse ? i >= c : i <= c)
+  {
+    NSRange r = GSIArrayItemAtIndex(_array, i).ext;
+    NSUInteger innerI;
+    NSUInteger innerC;
+    if (isReverse)
+    {
+      innerI = NSMaxRange(r) - 1;
+      innerC = r.location;
+    }
+    else
+    {
+      innerI = r.location;
+      innerC = NSMaxRange(r) - 1;
+    }
+    while (isReverse ? innerI >= innerC : innerI <= innerC)
+    {
+      if ((innerI <= lastInRange) && (innerI >= range.location))
+      {
+        GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop) {return;}, return;, aBlock, innerI, &shouldStop);
+      }
+      if (shouldStop)
+      {
+	break;
+      }
+      if (isReverse)
+      {
+	if (0 == innerI)
+	{
+	  break;
+	}
+	innerI--;
+      }
+      else
+      {
+	innerI++;
+      }
+    }
+
+    if (shouldStop)
+    {
+      break;
+    }
+    if (isReverse)
+    {
+      if (0 == i)
+      {
+	break;
+      }
+      i--;
+    }
+    else
+    {
+      i++;
+    }
+  }
+  GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+
+}
+
+- (void)enumerateIndexesWithOptions: (NSEnumerationOptions)opts
+		         usingBlock: (GSIndexSetEnumerationBlock)aBlock
+{
+  NSUInteger firstIndex = [self firstIndex];
+  NSUInteger lastIndex = [self lastIndex];
+  if (NSNotFound == firstIndex)
+  {
+    return;
+  }
+  [self enumerateIndexesInRange: NSMakeRange(firstIndex, ((lastIndex - firstIndex) + 1))
+                        options: opts
+                     usingBlock: aBlock];
+}
+
+- (void)enumerateIndexesUsingBlock: (GSIndexSetEnumerationBlock)aBlock
+{
+  [self enumerateIndexesWithOptions: 0
+                         usingBlock: aBlock];
+}
 @end
 
 

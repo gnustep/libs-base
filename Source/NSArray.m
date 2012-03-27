@@ -52,7 +52,7 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSFastEnumeration.h"
-
+#import "GSDispatch.h"
 static BOOL GSMacOSXCompatiblePropertyLists(void)
 {
   if (GSPrivateDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
@@ -388,7 +388,7 @@ static SEL	rlSel;
   return 0;
 }
 
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
 				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
@@ -1442,7 +1442,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   while ((o = [e nextObject]) != nil)
                     {
                       d += [[o valueForKeyPath: rem] doubleValue];
@@ -1457,7 +1457,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   while ((o = [e nextObject]) != nil)
                     {
                       o = [o valueForKeyPath: rem];
@@ -1475,7 +1475,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   while ((o = [e nextObject]) != nil)
                     {
                       o = [o valueForKeyPath: rem];
@@ -1495,7 +1495,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   while ((o = [e nextObject]) != nil)
                     {
                       d += [[o valueForKeyPath: rem] doubleValue];
@@ -1509,7 +1509,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [NSMutableSet set];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -1529,7 +1529,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [NSMutableSet set];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -1549,7 +1549,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [NSMutableSet set];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -1569,7 +1569,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [GSMutableArray array];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -1589,7 +1589,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [GSMutableArray array];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -1609,7 +1609,7 @@ compare(id elem1, id elem2, void* context)
                 {
                   NSEnumerator  *e = [self objectEnumerator];
                   id            o;
-                  
+
                   result = [GSMutableArray array];
                   while ((o = [e nextObject]) != nil)
                     {
@@ -1641,45 +1641,63 @@ compare(id elem1, id elem2, void* context)
 {
   [self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
 }
-- (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts 
+- (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
 			  usingBlock: (GSEnumeratorBlock)aBlock
 {
   NSUInteger count = 0;
-  BOOL shouldStop = NO;
+  BLOCK_SCOPE BOOL shouldStop = NO;
+  BOOL isReverse = (opts & NSEnumerationReverse);
   id<NSFastEnumeration> enumerator = self;
 
   /* If we are enumerating in reverse, use the reverse enumerator for fast
    * enumeration. */
-  if (opts & NSEnumerationReverse)
+  if (isReverse)
     {
       enumerator = [self reverseObjectEnumerator];
+      count = ([self count] - 1);
     }
 
+  {
+  GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   FOR_IN (id, obj, enumerator)
-    CALL_BLOCK(aBlock, obj, count++, &shouldStop);
-    if (shouldStop)
-    {
-      return;
-    }
-  END_FOR_IN(enumerator)
+    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (YES == shouldStop) {return;}, return, aBlock, obj, count, &shouldStop);
+      if (isReverse)
+      {
+        count--;
+      }
+      else
+      {
+        count++;
+      }
+
+      if (shouldStop)
+      {
+        break;
+      }
+    END_FOR_IN(enumerator)
+    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  }
 }
 
 - (void) enumerateObjectsAtIndexes: (NSIndexSet*)indexSet
 			   options: (NSEnumerationOptions)opts
 		        usingBlock: (GSEnumeratorBlock)block
 {
-  [[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts 
+  [[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts
 						      usingBlock: block];
 }
 
-- (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts 
+- (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts
 				 passingTest: (GSPredicateBlock)predicate
 {
   /* TODO: Concurrency. */
   NSMutableIndexSet *set = [NSMutableIndexSet indexSet];
-  BOOL shouldStop = NO;
+  BLOCK_SCOPE BOOL shouldStop = NO;
   id<NSFastEnumeration> enumerator = self;
   NSUInteger count = 0;
+  BLOCK_SCOPE NSLock *setLock = nil;
+
+
 
   /* If we are enumerating in reverse, use the reverse enumerator for fast
    * enumeration. */
@@ -1687,20 +1705,44 @@ compare(id elem1, id elem2, void* context)
     {
       enumerator = [self reverseObjectEnumerator];
     }
+  if (opts & NSEnumerationConcurrent)
+  {
+    setLock = [NSLock new];
+  }
+  {
+    GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+    FOR_IN (id, obj, enumerator)
+#     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
 
-  FOR_IN (id, obj, enumerator)
-    if (CALL_BLOCK(predicate, obj, count, &shouldStop))
-      {
-	/* TODO: It would be more efficient to collect an NSRange and only
-	 * pass it to the index set when CALL_BLOCK returned NO. */
-	[set addIndex: count];
-      }
-    if (shouldStop)
-      {
-	return set;
-      }
-    count++;
-  END_FOR_IN(enumerator)
+      dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+        if (shouldStop)
+        {
+	  return;
+        }
+        if (predicate(obj, count, &shouldStop))
+        {
+	  [setLock lock];
+	  [set addIndex: count];
+	  [setLock unlock];
+        }
+      });
+#     else
+      if (CALL_BLOCK(predicate, obj, count, &shouldStop))
+        {
+	  /* TODO: It would be more efficient to collect an NSRange and only
+	   * pass it to the index set when CALL_BLOCK returned NO. */
+	  [set addIndex: count];
+        }
+#     endif
+      if (shouldStop)
+        {
+	  break;
+        }
+      count++;
+    END_FOR_IN(enumerator)
+    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
+  }
+  [setLock release];
   return set;
 }
 
@@ -1718,14 +1760,15 @@ compare(id elem1, id elem2, void* context)
     passingTest: predicate];
 }
 
-- (NSUInteger)indexOfObjectWithOptions: (NSEnumerationOptions)opts 
+- (NSUInteger)indexOfObjectWithOptions: (NSEnumerationOptions)opts
 			   passingTest: (GSPredicateBlock)predicate
 {
   /* TODO: Concurrency. */
   id<NSFastEnumeration> enumerator = self;
-  BOOL shouldStop = NO;
+  BLOCK_SCOPE BOOL shouldStop = NO;
   NSUInteger count = 0;
-
+  BLOCK_SCOPE NSUInteger index = NSNotFound;
+  BLOCK_SCOPE NSLock *indexLock = nil;
   /* If we are enumerating in reverse, use the reverse enumerator for fast
    * enumeration. */
   if (opts & NSEnumerationReverse)
@@ -1733,18 +1776,48 @@ compare(id elem1, id elem2, void* context)
       enumerator = [self reverseObjectEnumerator];
     }
 
-  FOR_IN (id, obj, enumerator)
-    if (CALL_BLOCK(predicate, obj, count, &shouldStop))
-      {
-	return count;
-      }
-    if (shouldStop)
-      {
-	return NSNotFound;
-      }
-    count++;
-  END_FOR_IN(enumerator)
-  return NSNotFound;
+  if (opts & NSEnumerationConcurrent)
+  {
+    indexLock = [NSLock new];
+  }
+  {
+    GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+    FOR_IN (id, obj, enumerator)
+#     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
+      dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+        if (shouldStop)
+        {
+	  return;
+        }
+        if (predicate(obj, count, &shouldStop))
+        {
+	  // FIXME: atomic operation on the shouldStop variable would be nicer,
+	  // but we don't expose the GSAtomic* primitives anywhere.
+	  [indexLock lock];
+	  index =  count;
+	  // Cancel all other predicate evaluations:
+	  shouldStop = YES;
+	  [indexLock unlock];
+        }
+      });
+#     else
+      if (CALL_BLOCK(predicate, obj, count, &shouldStop))
+        {
+
+	  index = count;
+	  shouldStop = YES;
+        }
+#     endif
+      if (shouldStop)
+        {
+	  break;
+        }
+      count++;
+    END_FOR_IN(enumerator)
+    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
+  }
+  [indexLock release];
+  return index;
 }
 
 - (NSUInteger) indexOfObjectPassingTest: (GSPredicateBlock)predicate
@@ -2215,8 +2288,8 @@ compare(id elem1, id elem2, void* context)
   NSUInteger count = [indexes count];
   NSUInteger indexArray[count];
 
-  [indexes getIndexes: indexArray 
-             maxCount: count 
+  [indexes getIndexes: indexArray
+             maxCount: count
          inIndexRange: NULL];
 
   [self removeObjectsFromIndices: indexArray
