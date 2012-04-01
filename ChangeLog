@@ -1,3 +1,10 @@
+2012-04-01 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSNumber.m: Add special small object class for floats.
+	Previously, NSSmallRepeatableDouble would be used which resulted in
+	the float being printed as a double when calling -stringValue or
+	-description.
+
 2012-03-27  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSObject.h (-error:): Declare return type.

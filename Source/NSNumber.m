@@ -6,7 +6,7 @@
     (to compile on gnu/linux and mswindows,
     to meet coding/style standards,
     to restore lost functionality)
-   
+
    Date: February 2010
 
    This file is part of the GNUstep Base Library.
@@ -292,7 +292,7 @@ return NSOrderedSame;
  */
 @interface NSFloatingPointNumber : NSNumber
 @end
- 
+
 @implementation NSFloatingPointNumber
 /* For floats, the type promotion rules say that we always promote to a
  * floating point type, even if the other value is really an integer.
@@ -352,10 +352,12 @@ return NSOrderedSame;
 static BOOL useSmallInt;
 static BOOL useSmallExtendedDouble;
 static BOOL useSmallRepeatingDouble;
+static BOOL useSmallFloat;
 #define SMALL_INT_MASK 1
 #define SMALL_EXTENDED_DOUBLE_MASK 2
 #define SMALL_REPEATING_DOUBLE_MASK 3
-
+// 4 is GSTinyString
+#define SMALL_FLOAT_MASK 5
 
 @interface NSSmallInt : NSSignedIntegerNumber
 @end
@@ -569,6 +571,39 @@ load
   return;
 }
 @end
+
+
+/*
+ * Technically, all floats are small on 64bit and fit into a NSRepeatingDouble,
+ * but we want to get the description FORMAT right for floats (i.e. "%0.7g" and
+ * not "%0.16g".
+ */
+@interface NSSmallFloat : NSSmallRepeatingDouble
+@end
+@implementation NSSmallFloat
+#undef VALUE
+#define VALUE (unboxSmallRepeatingDouble((uintptr_t)self))
+#define FORMAT @"%0.7g"
+#include "NSNumberMethods.h"
+
++ (void) load
+{
+  useSmallFloat = objc_registerSmallObjectClass_np
+    (self, SMALL_FLOAT_MASK);
+}
+
++ (id) alloc
+{
+  return (id)SMALL_FLOAT_MASK;
+}
+
++ (id) allocWithZone: (NSZone*)aZone
+{
+  return (id)SMALL_FLOAT_MASK;
+}
+@end
+
+
 #endif
 #endif
 
@@ -691,7 +726,7 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
 
 /*
  * Macro for checking whether this value is the same as one of the singleton
- * instances.  
+ * instances.
  */
 #define CHECK_SINGLETON(aValue) \
 if (aValue >= -1 && aValue <= 12)\
@@ -860,9 +895,9 @@ if (aValue >= -1 && aValue <= 12)\
         objCType: @encode(float)] autorelease];
     }
 #if OBJC_SMALL_OBJECT_SHIFT == 3
-  if (useSmallRepeatingDouble)
+  if (useSmallFloat)
     {
-      return boxDouble(aValue, SMALL_REPEATING_DOUBLE_MASK);
+      return boxDouble(aValue, SMALL_FLOAT_MASK);
     }
 #endif
   n = NSAllocateObject (NSFloatNumberClass, 0, 0);
