@@ -309,7 +309,7 @@ extern void ensure_oldNs(xmlNodePtr node);
       xmlDOMWrapAdoptNode(NULL, attr->doc, (xmlNodePtr)attr, 
                           node->doc, node, 0);
 #else
-      xmlSetTreeDoc((xmlNodePtr)aattr, node->doc);
+      xmlSetTreeDoc((xmlNodePtr)attr, node->doc);
 #endif
       xmlFreeDoc(tmp);
 

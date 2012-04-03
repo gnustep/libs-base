@@ -1,3 +1,9 @@
+2012-04-03  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLElement.m,
+	* Source/NSXMLNode.m: Fix compiler error and warning for older
+	version of libxml2.
+
 2012-04-01 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSNumber.m: Add special small object class for floats.

@@ -1980,7 +1980,6 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   xmlBufferPtr buffer;
   int error = 0;
   int len = 0;
-  xmlSaveCtxtPtr ctxt;
   int xmlOptions = 0;
 
   buffer = xmlBufferCreate();
@@ -2010,9 +2009,13 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 #endif
   
 #if LIBXML_VERSION >= 20623
-  ctxt = xmlSaveToBuffer(buffer, "utf-8", xmlOptions);
-  xmlSaveTree(ctxt, internal->node);
-  error = xmlSaveClose(ctxt);
+  {
+    xmlSaveCtxtPtr ctxt;
+
+    ctxt = xmlSaveToBuffer(buffer, "utf-8", xmlOptions);
+    xmlSaveTree(ctxt, internal->node);
+    error = xmlSaveClose(ctxt);
+  }
 #else
   {
     xmlDocPtr doc = NULL;
