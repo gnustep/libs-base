@@ -3,6 +3,7 @@
 #import <Foundation/NSXMLDocument.h>
 #import <Foundation/NSXMLElement.h>
 
+/*
 int main()
 {
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
@@ -15,6 +16,37 @@ int main()
   PASS_EQUAL(copy1, copy2, "equal after setStringValue:");
 
   [arp drain];
+  arp = nil;
+
+  return 0;
+}
+*/
+
+int main()
+{
+  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  NSXMLDocument *doc;
+  NSXMLElement *elem;
+  NSXMLNode *child;
+  NSString *simpleXML = @"<num>6</num>";
+
+  doc = [[NSXMLDocument alloc] initWithXMLString: simpleXML
+					  options: 0
+					    error: NULL];
+  PASS(doc != nil, "document was initialized from a string");
+
+  // detach the root element from its document
+  elem = [doc rootElement];
+  //  PASS_EQUAL([elem XMLString], simpleXML, "root element is correct");
+  [elem detach];
+
+  // now, simply accessing the text node child of the element leads to a CRASH
+  // when releasing the document
+  child = [elem childAtIndex: 0];
+  
+  [doc release];
+
+  [arp release];
   arp = nil;
 
   return 0;

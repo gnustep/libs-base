@@ -416,7 +416,8 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
               docNode = node->doc;
             }
 
-          if ((docNode != NULL) && ((xmlNodePtr)docNode != node))
+          if ((docNode != NULL) && ((xmlNodePtr)docNode != node) &&
+              (NULL != docNode->children))
             {
               doc = (NSXMLDocument*)[self _objectForNode: (xmlNodePtr)docNode];
               if (doc != nil)

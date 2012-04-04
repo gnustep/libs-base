@@ -1,3 +1,10 @@
+2012-04-04  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (+_objectForNode:): Don't create a document
+	object for a private document.
+	* Tests/base/NSXMLNode/transfer.m: New code for test case
+	contributed by Doug Simons.
+
 2012-04-03  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLElement.m,
