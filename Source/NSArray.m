@@ -920,6 +920,11 @@ static SEL	rlSel;
   return nil;
 }
 
+- (id) objectAtIndexedSubscript: (size_t)index
+{
+  return [self objectAtIndex: (NSUInteger)index];
+}
+
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes
 {
   //FIXME: probably slow!
@@ -1919,6 +1924,11 @@ compare(id elem1, id elem2, void* context)
 - (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
+}
+
+- (void)setObject: (id)anObject atIndexedSubscript: (size_t)anIndex
+{
+  [self replaceObjectAtIndex: (NSUInteger)anIndex withObject: anObject];
 }
 
 /** Replaces the values in the receiver at the locations given by the

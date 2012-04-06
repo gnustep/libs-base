@@ -252,6 +252,11 @@ static SEL	appSel;
   return 0;
 }
 
+- (id) objectForKeyedSubscript: (id)aKey
+{
+  return [self objectForKey: aKey];
+}
+
 /**
  * Return an enumerator object containing all the objects of the dictionary.
  */
@@ -1319,6 +1324,11 @@ compareIt(id o1, id o2, void* context)
 - (void) setObject: anObject forKey: (id)aKey
 {
   [self subclassResponsibility: _cmd];
+}
+
+- (void) setObject: (id)anObject forKeyedSubscript: (id)aKey
+{
+  [self setObject: anObject forKey: aKey];
 }
 
 /**

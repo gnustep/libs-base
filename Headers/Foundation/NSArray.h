@@ -213,6 +213,11 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 			      options: (NSEnumerationOptions)opts
 			  passingTest: (GSPredicateBlock)predicate;
 #endif
+/**
+ * Accessor for subscripting.  This is called by the compiler when you write
+ * code like anArray[12].  It should not be called directly.
+ */
+- (id) objectAtIndexedSubscript: (size_t)anIndex;
 @end
 
 
@@ -264,7 +269,10 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) setValue: (id)value forKey: (NSString*)key;
 #endif
-
+/**
+ * Set method called by the compiler with array subscripting.
+ */
+- (void) setObject: (id)anObject atIndexedSubscript: (size_t)anIndex;
 @end
 
 #if	defined(__cplusplus)

@@ -34,6 +34,17 @@ int main()
 #endif
   obj = [obj objectAtIndex: 0];
   PASS([obj isKindOfClass: [NSMutableArray class]] == YES,"array mutable");
+  START_SET("NSArray subscripting")
+# ifndef __has_feature
+# define __has_feature(x) 0
+# endif
+#if __has_feature(objc_subscripting)
+  NSArray *a = @[ @"foo", @"bar" ];
+  PASS([@"foo" isEqualToString:a[0]], "Array subscripting works");
+# else
+  SKIP("No collection subscripting support in the compiler.")
+# endif
+  END_SET("NSArray subscripting")
   [arp release]; arp = nil;
   return 0;
 }

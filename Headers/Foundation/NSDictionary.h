@@ -108,8 +108,10 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, id, id, BOOL*);
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 #endif
-
-
+/**
+ * Method called by array subscripting.
+ */
+- (id) objectForKeyedSubscript: (id)aKey;
 @end
 
 @interface NSMutableDictionary: NSDictionary
@@ -128,6 +130,11 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, id, id, BOOL*);
 - (void) takeStoredValue: (id)value forKey: (NSString*)key;
 - (void) takeValue: (id)value forKey: (NSString*)key;
 #endif
+/**
+ * Method called by array subscripting.
+ */
+- (void) setObject: (id)anObject forKeyedSubscript: (id)aKey;
+
 @end
 
 #if	defined(__cplusplus)
