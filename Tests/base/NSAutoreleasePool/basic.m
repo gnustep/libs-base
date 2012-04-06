@@ -16,9 +16,11 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSObject *o = [NSObject new];
-  for (unsigned i=0 ; i<1000 ; i++)
+  unsigned i;
+
+  for (i = 0; i < 1000; i++)
   {
-	  [[o retain] autorelease];
+    [[o retain] autorelease];
   }
   NSUInteger totalCount = [arp autoreleaseCount];
   PASS(totalCount == 1000, "Autorelease count is correct");

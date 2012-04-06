@@ -120,16 +120,16 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
     {
       char *url = NULL;
       char *encoding = NULL; // "UTF8";
-      int options = XML_PARSE_NOERROR;
+      int xmlOptions = XML_PARSE_NOERROR;
       xmlDocPtr doc = NULL;
 
       if (!(mask & NSXMLNodePreserveWhitespace))
         {
-          options |= XML_PARSE_NOBLANKS;
+          xmlOptions |= XML_PARSE_NOBLANKS;
           //xmlKeepBlanksDefault(0);
         }
       doc = xmlReadMemory([data bytes], [data length], 
-                          url, encoding, options);
+                          url, encoding, xmlOptions);
       if (doc == NULL)
 	{
           DESTROY(self);
@@ -155,17 +155,19 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   return self;
 }
 
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+- (id) initWithKind: (NSXMLNodeKind)theKind options: (NSUInteger)theOptions
 {
-  if (NSXMLDocumentKind == kind)
+  if (NSXMLDocumentKind == theKind)
     {
-      return [super initWithKind: kind options: theOptions];
+      return [super initWithKind: theKind options: theOptions];
     }
   else
     {
       [self release];
-      return [[NSXMLNode alloc] initWithKind: kind
-                                     options: theOptions];
+      // This cast is here to keep clang quite that expects an init* method to 
+      // return an object of the same class, which is not true here.
+      return (NSXMLDocument*)[[NSXMLNode alloc] initWithKind: theKind
+                                                     options: theOptions];
     }
 }
 
@@ -227,9 +229,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   internal->node->encoding = XMLStringCopy(encoding);
 }
 
-- (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
+- (void) setDocumentContentKind: (NSXMLDocumentContentKind)theContentKind
 {
-  internal->contentKind = kind;
+  internal->contentKind = theContentKind;
 }
 
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
@@ -246,9 +248,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   [self addChild: documentTypeDeclaration];
 }
 
-- (void) setMIMEType: (NSString*)MIMEType
+- (void) setMIMEType: (NSString*)theMIMEType
 {
-  ASSIGNCOPY(internal->MIMEType, MIMEType);
+  ASSIGNCOPY(internal->MIMEType, theMIMEType);
 }
 
 - (void) setRootElement: (NSXMLNode*)root
@@ -282,22 +284,22 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (void) setURI: (NSString*)URI
 {
-  xmlDocPtr node = internal->node;
+  xmlDocPtr theNode = internal->node;
 
-  if (node->URL != NULL)
+  if (theNode->URL != NULL)
     {
-      xmlFree((xmlChar *)node->URL);
+      xmlFree((xmlChar *)theNode->URL);
     }
-  node->URL = XMLStringCopy(URI);
+  theNode->URL = XMLStringCopy(URI);
 }
 
 - (NSString*) URI
 {
-  xmlDocPtr node = internal->node;
+  xmlDocPtr theNode = internal->node;
 
-  if (node->URL)
+  if (theNode->URL)
     {
-      return StringFromXMLStringPtr(node->URL);
+      return StringFromXMLStringPtr(theNode->URL);
     }
   else
     {
@@ -309,13 +311,13 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
-      xmlDocPtr node = internal->node;
+      xmlDocPtr theNode = internal->node;
   
-      if (node->version != NULL)
+      if (theNode->version != NULL)
         {
-          xmlFree((xmlChar *)node->version);
+          xmlFree((xmlChar *)theNode->version);
         }
-      node->version = XMLStringCopy(version);
+      theNode->version = XMLStringCopy(version);
     }
   else
     {
@@ -326,32 +328,31 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) version
 {
-  xmlDocPtr node = internal->node;
+  xmlDocPtr theNode = internal->node;
 
-  if (node->version)
-    return StringFromXMLStringPtr(node->version);
+  if (theNode->version)
+    return StringFromXMLStringPtr(theNode->version);
   else
     return @"1.0";
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  NSXMLNodeKind	kind = [child kind];
+  NSXMLNodeKind	theKind = [child kind];
   NSUInteger childCount = [self childCount];
 
   // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
   NSAssert(index <= childCount, NSInvalidArgumentException);
   NSAssert(nil == [child parent], NSInvalidArgumentException);
-  kind = [child kind];
-  NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLDTDKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLDocumentKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLElementDeclarationKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLEntityDeclarationKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLInvalidKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLAttributeKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLDTDKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLDocumentKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLElementDeclarationKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLEntityDeclarationKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLInvalidKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLNamespaceKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLNotationDeclarationKind != theKind, NSInvalidArgumentException);
 
   [self _insertChild: child atIndex: index];
 }
@@ -398,9 +399,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   [self insertChild: child atIndex: [self childCount]];
 }
  
-- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
+- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)theNode
 {
-  [self insertChild: node atIndex: index];
+  [self insertChild: theNode atIndex: index];
   [self removeChildAtIndex: index + 1];
 }
 
@@ -409,9 +410,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   return [self XMLDataWithOptions: NSXMLNodeOptionsNone]; 
 }
 
-- (NSData *) XMLDataWithOptions: (NSUInteger)options
+- (NSData *) XMLDataWithOptions: (NSUInteger)theOptions
 {
-  NSString *xmlString = [self XMLStringWithOptions: options];
+  NSString *xmlString = [self XMLStringWithOptions: theOptions];
 
   return [xmlString dataUsingEncoding: NSUTF8StringEncoding
                  allowLossyConversion: NO];
