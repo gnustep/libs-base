@@ -2,6 +2,7 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSDictionary.h>
+#import <Foundation/NSValue.h>
 #import <Foundation/NSString.h>
 
 int main()
@@ -27,6 +28,19 @@ int main()
   test_NSCoding(testObjs);
   test_NSCopying(@"NSDictionary", @"NSMutableDictionary", testObjs, YES, NO);
   test_NSMutableCopying(@"NSDictionary", @"NSMutableDictionary", testObjs);
+  START_SET("NSArray subscripting")
+# ifndef __has_feature
+# define __has_feature(x) 0
+# endif
+#if __has_feature(objc_subscripting)
+  NSDictionary *dictionary = @{@123 : @123.4 ,
+                               @"date" : @"today" };
+  PASS([dictionary[@123] isEqual: @123.4], "Dictionary subscripting works");
+# else
+   SKIP("No dictionary subscripting support in the compiler.")
+# endif
+  END_SET("NSDictionary subscripting")
+
 
   [arp release]; arp = nil;
   return 0;

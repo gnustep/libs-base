@@ -270,7 +270,7 @@
 
 #if defined(__clang__) && defined(__OBJC__)
 static inline void gs_consumed(id NS_CONSUMED o) __attribute__ ((unused));
-static inline void gs_consumed(id NS_CONSUMED o) { return; }
+static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { return; }
 #define	GS_CONSUMED(O)	gs_consumed(O);
 #else
 #define	GS_CONSUMED(O)
