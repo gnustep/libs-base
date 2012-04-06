@@ -29,7 +29,14 @@
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
+#ifdef __cplusplus
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS 1
+#endif
+#endif
+
 #include <stdarg.h>
+#include <stdint.h>
 #include <limits.h>
 #include <float.h>
 
