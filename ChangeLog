@@ -1,3 +1,10 @@
+2012-04-06 12:37  theraven
+
+	* libs/base/trunk/Source/NSConnection.m,
+	  libs/base/trunk/Source/NSData.m,
+	  libs/base/trunk/Source/NSKeyValueObserving.m: Fix a few compiler
+	  warnings caused by type mismatches in NSLog statements.
+
 2012-04-06 12:23  theraven
 
 	* libs/base/trunk/Headers/Foundation/NSArray.h,
