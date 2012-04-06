@@ -1,3 +1,11 @@
+2012-04-06 12:02  theraven
+
+	* libs/base/trunk/Source/NSAutoreleasePool.m,
+	  libs/base/trunk/Tests/base/NSAutoreleasePool,
+	  libs/base/trunk/Tests/base/NSAutoreleasePool/TestInfo,
+	  libs/base/trunk/Tests/base/NSAutoreleasePool/basic.m: Use the
+	  runtime's ARC autorelease pools if available.
+
 2012-04-04  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSXMLNode.m (+_objectForNode:): Don't create a document
