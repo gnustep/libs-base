@@ -57,18 +57,18 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 - (NSXMLDTDNode*) attributeDeclarationForName: (NSString*)name
                                   elementName: (NSString*)elementName
 {
-  xmlDtdPtr node = internal->node;
+  xmlDtdPtr theNode = internal->node;
   xmlNodePtr children = NULL;
   const xmlChar *xmlName = XMLSTRING(name);
   const xmlChar *xmlElementName = XMLSTRING(elementName);
 
-  if ((node == NULL) ||
-      (node->children == NULL))
+  if ((theNode == NULL) ||
+      (theNode->children == NULL))
     {
       return nil;
     }
      
- for (children = node->children; children; children = children->next)
+ for (children = theNode->children; children; children = children->next)
    {
      if (children->type == XML_ATTRIBUTE_DECL)
        {
@@ -87,17 +87,17 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (NSXMLDTDNode*) elementDeclarationForName: (NSString*)name
 {
-  xmlDtdPtr node = internal->node;
+  xmlDtdPtr theNode = internal->node;
   xmlNodePtr children = NULL;
   const xmlChar *xmlName = XMLSTRING(name);
 
-  if ((node == NULL) ||
-      (node->children == NULL))
+  if ((theNode == NULL) ||
+      (theNode->children == NULL))
     {
       return nil;
     }
      
- for (children = node->children; children; children = children->next)
+ for (children = theNode->children; children; children = children->next)
    {
      if (children->type == XML_ELEMENT_DECL)
        {
@@ -116,17 +116,17 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 - (NSXMLDTDNode*) entityDeclarationForName: (NSString*)name
 {
   //xmlGetEntityFromDtd 
-  xmlDtdPtr node = internal->node;
+  xmlDtdPtr theNode = internal->node;
   xmlNodePtr children = NULL;
   const xmlChar *xmlName = XMLSTRING(name);
 
-  if ((node == NULL) ||
-      (node->children == NULL))
+  if ((theNode == NULL) ||
+      (theNode->children == NULL))
     {
       return nil;
     }
      
- for (children = node->children; children; children = children->next)
+ for (children = theNode->children; children; children = children->next)
    {
      if (children->type == XML_ENTITY_DECL)
        {
@@ -192,36 +192,38 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
   return self;
 }
 
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+- (id) initWithKind: (NSXMLNodeKind)theKind options: (NSUInteger)theOptions
 {
-  if (NSXMLDTDKind == kind)
+  if (NSXMLDTDKind == theKind)
     {
-      return [super initWithKind: kind options: theOptions];
+      return [super initWithKind: theKind options: theOptions];
     }
   else
     {
       [self release];
-      return [[NSXMLNode alloc] initWithKind: kind
-                                     options: theOptions];
+      // This cast is here to keep clang quite that expects an init* method to 
+      // return an object of the same class, which is not true here.
+      return (NSXMLDTD*)[[NSXMLNode alloc] initWithKind: theKind
+                                                options: theOptions];
     }
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
-  NSXMLNodeKind	kind = [child kind];
+  NSXMLNodeKind	theKind = [child kind];
   NSUInteger childCount = [self childCount];
 
   // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
   NSAssert(index <= childCount, NSInvalidArgumentException);
   NSAssert(nil == [child parent], NSInvalidArgumentException);
-  NSAssert(NSXMLAttributeKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLDTDKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLDocumentKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLElementKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLInvalidKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
-  NSAssert(NSXMLTextKind != kind, NSInvalidArgumentException);
+  NSAssert(NSXMLAttributeKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLDTDKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLDocumentKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLElementKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLInvalidKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLNamespaceKind != theKind, NSInvalidArgumentException);
+  NSAssert(NSXMLTextKind != theKind, NSInvalidArgumentException);
 
   [self _insertChild: child atIndex: index];
 }
@@ -239,17 +241,17 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (NSXMLDTDNode*) notationDeclarationForName: (NSString*)name
 {
-  xmlDtdPtr node = internal->node;
+  xmlDtdPtr theNode = internal->node;
   xmlNodePtr children = NULL;
   const xmlChar *xmlName = XMLSTRING(name);
 
-  if ((node == NULL) ||
-      (node->children == NULL))
+  if ((theNode == NULL) ||
+      (theNode->children == NULL))
     {
       return nil;
     }
      
- for (children = node->children; children; children = children->next)
+ for (children = theNode->children; children; children = children->next)
    {
      if (children->type == XML_NOTATION_NODE)
        {
@@ -265,9 +267,9 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (NSString*) publicID
 {
-  xmlDtd *node = internal->node;
+  xmlDtd *theNode = internal->node;
 
-  return StringFromXMLStringPtr(node->ExternalID); 
+  return StringFromXMLStringPtr(theNode->ExternalID); 
 }
 
 - (void) removeChildAtIndex: (NSUInteger)index
@@ -284,9 +286,9 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
   [child detach];
 }
 
-- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node
+- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)theNode
 {
-  [self insertChild: node atIndex: index];
+  [self insertChild: theNode atIndex: index];
   [self removeChildAtIndex: index + 1];
 }
 
@@ -304,23 +306,23 @@ GS_PRIVATE_INTERNAL(NSXMLDTD)
 
 - (void) setPublicID: (NSString*)publicID
 {
-  xmlDtd *node = internal->node;
+  xmlDtd *theNode = internal->node;
 
-  node->ExternalID = XMLStringCopy(publicID); 
+  theNode->ExternalID = XMLStringCopy(publicID); 
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  xmlDtd *node = internal->node;
+  xmlDtd *theNode = internal->node;
 
-  node->SystemID = XMLStringCopy(systemID); 
+  theNode->SystemID = XMLStringCopy(systemID); 
 }
 
 - (NSString*) systemID
 {
-  xmlDtd *node = internal->node;
+  xmlDtd *theNode = internal->node;
 
-  return StringFromXMLStringPtr(node->SystemID); 
+  return StringFromXMLStringPtr(theNode->SystemID); 
 }
 
 @end

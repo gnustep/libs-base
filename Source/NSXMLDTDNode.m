@@ -53,19 +53,21 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
   GS_CREATE_INTERNAL(NSXMLDTDNode);
 }
 
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+- (id) initWithKind: (NSXMLNodeKind)theKind options: (NSUInteger)theOptions
 {
-  if (NSXMLEntityDeclarationKind == kind
-    || NSXMLElementDeclarationKind == kind
-    || NSXMLNotationDeclarationKind == kind)
+  if (NSXMLEntityDeclarationKind == theKind
+    || NSXMLElementDeclarationKind == theKind
+    || NSXMLNotationDeclarationKind == theKind)
     {
-      return [super initWithKind: kind options: theOptions];
+      return [super initWithKind: theKind options: theOptions];
     }
   else
     {
       [self release];
-      return [[NSXMLNode alloc] initWithKind: kind
-                                     options: theOptions];
+      // This cast is here to keep clang quite that expects an init* method to 
+      // return an object of the same class, which is not true here.
+      return (NSXMLDTDNode*)[[NSXMLNode alloc] initWithKind: theKind
+                                                    options: theOptions];
     }
 }
 
@@ -79,7 +81,7 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
                                        error: &error];
   if (tempDoc != nil)
     {
-      result = RETAIN([tempDoc childAtIndex: 0]);
+      result = (NSXMLDTDNode*)RETAIN([tempDoc childAtIndex: 0]);
       [result detach]; // detach from document.
     }
   [tempDoc release];

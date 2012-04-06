@@ -1,3 +1,14 @@
+2012-04-07  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLDTD.m:
+	* Source/NSXMLNode.m:
+	* Source/NSXMLDTDNode.m:
+	* Source/NSXMLElement.m: Remove compiler warnings for clang
+	reported by David Chisnall.
+	* Tests/base/NSAutoreleasePool/basic.m: Get to compile again
+	without -C99.
+
 2012-04-06 12:37  theraven
 
 	* libs/base/trunk/Source/NSConnection.m,
@@ -15,7 +26,7 @@
 	  libs/base/trunk/Tests/base/NSArray/basic.m,
 	  libs/base/trunk/Tests/base/NSDictionary/basic.m: Support for
 	  collection subscripting (NSArray and NSDictionary).
-	  
+
 	  Yes, the syntax is ugly, but no doubt people will start using it
 	  in June...
 

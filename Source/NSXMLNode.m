@@ -470,13 +470,13 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   GS_CREATE_INTERNAL(NSXMLNode);
 }
 
-- (id) _initWithNode: (xmlNodePtr)node kind: (NSXMLNodeKind)kind
+- (id) _initWithNode: (xmlNodePtr)theNode kind: (NSXMLNodeKind)theKind
 {
   if ((self = [super init]))
     {
       [self _createInternal];
-      [self _setNode: node];
-      internal->kind = kind;
+      [self _setNode: theNode];
+      internal->kind = theKind;
     }
   return self;
 }
@@ -484,16 +484,16 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 - (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index
 {
   NSUInteger count = 0;
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
   xmlNodePtr children;
 
-  if ((node->type == XML_NAMESPACE_DECL) ||
-      (node->type == XML_ATTRIBUTE_NODE))
+  if ((theNode->type == XML_NAMESPACE_DECL) ||
+      (theNode->type == XML_ATTRIBUTE_NODE))
     {
       return NULL;
     }
 
-  children = node->children;
+  children = theNode->children;
   if (!children)
     return NULL; // the Cocoa docs say it returns nil if there are no children
 
@@ -1096,20 +1096,20 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 {
   NSUInteger count = 0;
   xmlNodePtr children = NULL;
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
-  if (!node)
+  if (!theNode)
     {
       return 0;
     }
 
-  if ((node->type == XML_NAMESPACE_DECL) ||
-      (node->type == XML_ATTRIBUTE_NODE))
+  if ((theNode->type == XML_NAMESPACE_DECL) ||
+      (theNode->type == XML_ATTRIBUTE_NODE))
     {
       return 0;
     }
 
-  for (children = node->children; children; children = children->next)
+  for (children = theNode->children; children; children = children->next)
     {
       count++;
     }
@@ -1128,18 +1128,18 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   else
     {
       xmlNodePtr children = NULL;
-      xmlNodePtr node = internal->node;
+      xmlNodePtr theNode = internal->node;
       
-      if ((node == NULL) ||
-          (node->type == XML_NAMESPACE_DECL) ||
-          (node->type == XML_ATTRIBUTE_NODE) ||
-          (node->children == NULL))
+      if ((theNode == NULL) ||
+          (theNode->type == XML_NAMESPACE_DECL) ||
+          (theNode->type == XML_ATTRIBUTE_NODE) ||
+          (theNode->children == NULL))
 	{
 	  return nil;
 	}
 
       childrenArray = [NSMutableArray array];
-      for (children = node->children; children; children = children->next)
+      for (children = theNode->children; children; children = children->next)
 	{
 	  NSXMLNode *n = [NSXMLNode _objectForNode: children];
 	  [childrenArray addObject: n];
@@ -1186,49 +1186,49 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 {
   if (GS_EXISTS_INTERNAL)
     {
-      xmlNodePtr node = internal->node;
-      NSArray *subNodes = [internal->subNodes copy];
-      NSEnumerator *enumerator = [subNodes objectEnumerator];
+      xmlNodePtr theNode = internal->node;
+      NSArray *theSubNodes = [internal->subNodes copy];
+      NSEnumerator *enumerator = [theSubNodes objectEnumerator];
       NSXMLNode *subNode;
 
       while ((subNode = [enumerator nextObject]) != nil)
         {
           [subNode detach];
         }
-      [subNodes release];
+      [theSubNodes release];
 
       [internal->objectValue release];
       [internal->subNodes release];
-      if (node)
+      if (theNode)
         {
-          if (node->type == XML_NAMESPACE_DECL)
+          if (theNode->type == XML_NAMESPACE_DECL)
             {
-              ((xmlNsPtr)node)->_private = NULL;
+              ((xmlNsPtr)theNode)->_private = NULL;
               // FIXME: Not sure when to free the node here,
               // the same namespace node might be referenced
               // from other places.
-              xmlFreeNode(node);
+              xmlFreeNode(theNode);
             }
           else
             {
-              node->_private = NULL;
-              if (node->parent == NULL)
+              theNode->_private = NULL;
+              if (theNode->parent == NULL)
                 {
                   // the top level node frees the entire tree
-                  if (node->type == XML_DOCUMENT_NODE)
+                  if (theNode->type == XML_DOCUMENT_NODE)
                     {
-                      xmlFreeDoc((xmlDocPtr)node);
+                      xmlFreeDoc((xmlDocPtr)theNode);
                     }
-                  else if (node->type == XML_ENTITY_DECL && 
-                           ((xmlEntityPtr)node)->etype == XML_INTERNAL_PREDEFINED_ENTITY)
+                  else if (theNode->type == XML_ENTITY_DECL && 
+                           ((xmlEntityPtr)theNode)->etype == XML_INTERNAL_PREDEFINED_ENTITY)
                     {
                       // Don't free internal entity nodes
                     }
                   else
                     {
-                      xmlDocPtr tmp = node->doc;
+                      xmlDocPtr tmp = theNode->doc;
 
-                      xmlFreeNode(node);
+                      xmlFreeNode(theNode);
                       // Free the private document we allocated in detach
                       if (tmp)
                         {
@@ -1245,19 +1245,19 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (void) detach
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
-  if (node)
+  if (theNode)
     {
       NSXMLNode *parent = [self parent];
 
-      if (node->type == XML_NAMESPACE_DECL)
+      if (theNode->type == XML_NAMESPACE_DECL)
         {
           // FIXME
         }
       else
         {
-          if (node->doc)
+          if (theNode->doc)
             {
               /* Create a private document and move the node over.
                * This is needed so that the strings of the nodes subtree
@@ -1268,15 +1268,15 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
               xmlDocPtr tmp = xmlNewDoc((xmlChar *)"1.0");
 
 #if LIBXML_VERSION >= 20620
-              xmlDOMWrapAdoptNode(NULL, node->doc, node, tmp, NULL, 0);
+              xmlDOMWrapAdoptNode(NULL, theNode->doc, theNode, tmp, NULL, 0);
 #else
-              xmlSetTreeDoc(node, tmp);
+              xmlSetTreeDoc(theNode, tmp);
 #endif
             }
           else
             {
               // separate our node from its parent and siblings
-              xmlUnlinkNode(node);
+              xmlUnlinkNode(theNode);
             }
         }
 
@@ -1294,15 +1294,15 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (NSUInteger) index
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
   int count = 0;
 
-  if (node->type == XML_NAMESPACE_DECL)
+  if (theNode->type == XML_NAMESPACE_DECL)
     {
       return 0;
     }
 
-  while ((node = node->prev))
+  while ((theNode = theNode->prev))
     {
       count++; // count our earlier sibling nodes
     }
@@ -1315,20 +1315,20 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   return [self initWithKind: NSXMLInvalidKind];
 }
 
-- (id) initWithKind: (NSXMLNodeKind) kind
+- (id) initWithKind: (NSXMLNodeKind)theKind
 {
-  return [self initWithKind: kind options: 0];
+  return [self initWithKind: theKind options: 0];
 }
 
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
+- (id) initWithKind: (NSXMLNodeKind)theKind options: (NSUInteger)theOptions
 {
   Class theSubclass = [NSXMLNode class];
-  void *node = NULL;
+  void *theNode = NULL;
 
   /*
    * We find the correct subclass for specific node kinds: 
    */
-  switch (kind)
+  switch (theKind)
     {
       case NSXMLDocumentKind: 
 	theSubclass = [NSXMLDocument class];
@@ -1367,7 +1367,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 	return nil;
 	
       default: 
-	kind = NSXMLInvalidKind;
+	theKind = NSXMLInvalidKind;
 	theSubclass = [NSXMLNode class];
 	break;
     }
@@ -1380,26 +1380,26 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   if (NO == [self isKindOfClass: theSubclass])
     {
       [self release];
-      return [[theSubclass alloc] initWithKind: kind
+      return [[theSubclass alloc] initWithKind: theKind
 				       options: theOptions];
     }
 
   /* If we are initializing for the correct class, we can actually perform
    * initializations: 
    */
-  switch (kind)
+  switch (theKind)
     {
       case NSXMLDocumentKind: 
-	node = xmlNewDoc((xmlChar *)"1.0");
+	theNode = xmlNewDoc((xmlChar *)"1.0");
 	break;
 	  
       case NSXMLInvalidKind: 
       case NSXMLElementKind: 
-	node = xmlNewNode(NULL,(xmlChar *)"");
+	theNode = xmlNewNode(NULL,(xmlChar *)"");
 	break;
 	
       case NSXMLDTDKind: 
-	node = xmlNewDtd(NULL, (xmlChar *)"", (xmlChar *)"",(xmlChar *)"");
+	theNode = xmlNewDtd(NULL, (xmlChar *)"", (xmlChar *)"",(xmlChar *)"");
 	break;
 	
       case NSXMLElementDeclarationKind: 
@@ -1409,14 +1409,14 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
           memset(ret, 0, sizeof(xmlElement));
           ret->type = XML_ELEMENT_DECL;
           ret->name = xmlStrdup((xmlChar *)"");
-          node = ret;
+          theNode = ret;
           break;
         }
 
       case NSXMLEntityDeclarationKind: 
 #if LIBXML_VERSION >= 20700
-        node = xmlNewEntity(NULL, (xmlChar *)"", 0, (xmlChar *)"", 
-                            (xmlChar *)"", (xmlChar *)"");
+        theNode = xmlNewEntity(NULL, (xmlChar *)"", 0, (xmlChar *)"", 
+                               (xmlChar *)"", (xmlChar *)"");
 #else
         {
           xmlEntityPtr ret;
@@ -1427,41 +1427,41 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
           ret->ExternalID = xmlStrdup((xmlChar *)"");
           ret->SystemID = xmlStrdup((xmlChar *)"");
           ret->content = xmlStrdup((xmlChar *)"");
-          node = ret;
+          theNode = ret;
         }
 #endif
         break;
 
       case NSXMLNotationDeclarationKind:
         // FIXME
-	node = xmlNewNode(NULL, (xmlChar *)"");
+	theNode = xmlNewNode(NULL, (xmlChar *)"");
 	break;
 
       case NSXMLProcessingInstructionKind: 
-	node = xmlNewPI((xmlChar *)"", (xmlChar *)"");
+	theNode = xmlNewPI((xmlChar *)"", (xmlChar *)"");
 	break;
 
       case NSXMLCommentKind: 
-	node = xmlNewComment((xmlChar *)"");
+	theNode = xmlNewComment((xmlChar *)"");
 	break;
 
       case NSXMLTextKind: 
-	node = xmlNewText((xmlChar *)"");
+	theNode = xmlNewText((xmlChar *)"");
 	break;
 
       case NSXMLNamespaceKind: 
-	node = xmlNewNs(NULL,(xmlChar *)"",(xmlChar *)"");
+	theNode = xmlNewNs(NULL,(xmlChar *)"",(xmlChar *)"");
 	break;
 
       case NSXMLAttributeKind: 
-	node = xmlNewProp(NULL,(xmlChar *)"",(xmlChar *)"");
+	theNode = xmlNewProp(NULL,(xmlChar *)"",(xmlChar *)"");
 	break;
 
       default: 
 	break;
     }
 
-  if (nil == (self = [self _initWithNode: node kind: kind]))
+  if (nil == (self = [self _initWithNode: theNode kind: theKind]))
     {
       return nil;
     }
@@ -1505,20 +1505,20 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (NSString*) localName
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
   if (NSXMLInvalidKind == internal->kind)
     {
       return nil;
     }
 
-  if (node->type == XML_NAMESPACE_DECL)
+  if (theNode->type == XML_NAMESPACE_DECL)
     {
-      return StringFromXMLStringPtr(((xmlNs *)node)->prefix);
+      return StringFromXMLStringPtr(((xmlNs *)theNode)->prefix);
     }
   else
     {
-      return StringFromXMLStringPtr(node->name);
+      return StringFromXMLStringPtr(theNode->name);
     }
 }
 
@@ -1543,7 +1543,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 {
   NSXMLNode *ancestor = self;
   NSXMLNode *candidate = nil;
-  NSXMLNodeKind kind;
+  NSXMLNodeKind theKind;
 
   if (forward)
     {
@@ -1588,8 +1588,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
     }
 
   /* Sanity check: Namespace and attribute nodes are skipped: */
-  kind = [candidate kind];
-  if ((NSXMLAttributeKind == kind) || (NSXMLNamespaceKind == kind))
+  theKind = [candidate kind];
+  if ((NSXMLAttributeKind == theKind) || (NSXMLNamespaceKind == theKind))
     {
       return [candidate _nodeFollowingInNaturalDirection: forward];
     }
@@ -1603,17 +1603,17 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (NSXMLNode*) nextSibling
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
-  if (NULL == node)
+  if (NULL == theNode)
     {
       return nil;
     }
-  if (XML_NAMESPACE_DECL == node->type)
+  if (XML_NAMESPACE_DECL == theNode->type)
     {
       return nil;
     }
-  return [NSXMLNode _objectForNode: node->next];
+  return [NSXMLNode _objectForNode: theNode->next];
 }
 
 - (id) objectValue
@@ -1624,43 +1624,43 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 - (NSXMLNode*) parent
 {
   xmlNodePtr parent = NULL;
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
-  if (NULL == node)
+  if (NULL == theNode)
     {
       return nil;
     }
-  if (XML_NAMESPACE_DECL == node->type)
+  if (XML_NAMESPACE_DECL == theNode->type)
     {
       return nil;
     }
 
-  parent = node->parent;
+  parent = theNode->parent;
   return [NSXMLNode _objectForNode: parent];
 }
 
 - (NSString*) prefix
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
-  if (NULL == node)
+  if (NULL == theNode)
     {
       return nil;
     }
-  if (XML_NAMESPACE_DECL == node->type)
+  if (XML_NAMESPACE_DECL == theNode->type)
     {
       return @"";
     }
-  if (XML_ELEMENT_NODE != node->type)
+  if (XML_ELEMENT_NODE != theNode->type)
     {
       return @"";
     }
-  if (node->ns == NULL)
+  if (theNode->ns == NULL)
     {
       return @"";
     }
 
-  return StringFromXMLStringPtr(node->ns->prefix);
+  return StringFromXMLStringPtr(theNode->ns->prefix);
 }
 
 - (NSXMLNode*) previousNode
@@ -1670,32 +1670,32 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (NSXMLNode*) previousSibling
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
-  if (NULL == node)
+  if (NULL == theNode)
     {
       return nil;
     }
-  if (XML_NAMESPACE_DECL == node->type)
+  if (XML_NAMESPACE_DECL == theNode->type)
     {
       return nil;
     }
-  return [NSXMLNode _objectForNode: node->prev];
+  return [NSXMLNode _objectForNode: theNode->prev];
 }
 
 - (NSXMLDocument*) rootDocument
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
-  if (NULL == node)
+  if (NULL == theNode)
     {
       return nil;
     }
-  if (XML_NAMESPACE_DECL == node->type)
+  if (XML_NAMESPACE_DECL == theNode->type)
     {
       return nil;
     }
-  if ((NULL == node->doc) || (NULL == node->doc->children))
+  if ((NULL == theNode->doc) || (NULL == theNode->doc->children))
     {
       // This is a standalone node, we still may have a private document,
       // but we don't want to return this.
@@ -1703,13 +1703,13 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
     }
 
   return
-    (NSXMLDocument *)[NSXMLNode _objectForNode: (xmlNodePtr)(node->doc)];
+    (NSXMLDocument *)[NSXMLNode _objectForNode: (xmlNodePtr)(theNode->doc)];
 }
 
 - (NSString*) stringValue
 {
-  xmlNodePtr node = internal->node;
-  xmlChar *content = xmlNodeGetContent(node);
+  xmlNodePtr theNode = internal->node;
+  xmlChar *content = xmlNodeGetContent(theNode);
   NSString *result = nil;
 
   if (NULL != content)
@@ -1738,16 +1738,16 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (void) setName: (NSString *)name
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
   if (NSXMLInvalidKind == internal->kind)
     {
       return;
     }
   
-  if (node->type == XML_NAMESPACE_DECL)
+  if (theNode->type == XML_NAMESPACE_DECL)
     {
-      xmlNsPtr ns = (xmlNsPtr)node;
+      xmlNsPtr ns = (xmlNsPtr)theNode;
 
       if (ns->prefix != NULL)
         {
@@ -1763,40 +1763,40 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       
       if (NULL == xmlName)
         {
-          xmlNodeSetName(node, (const xmlChar *)"");
+          xmlNodeSetName(theNode, (const xmlChar *)"");
           return;
         }
       
       localName = xmlSplitQName2(xmlName, &prefix);
       if (prefix != NULL)
         {
-          if ((node->type == XML_ATTRIBUTE_NODE) ||
-              (node->type == XML_ELEMENT_NODE))
+          if ((theNode->type == XML_ATTRIBUTE_NODE) ||
+              (theNode->type == XML_ELEMENT_NODE))
             {
-              if ((node->ns != NULL && node->ns->prefix == NULL))
+              if ((theNode->ns != NULL && theNode->ns->prefix == NULL))
                 {
-                  node->ns->prefix = xmlStrdup(prefix);
+                  theNode->ns->prefix = xmlStrdup(prefix);
                 }
               else
                 {
                   xmlNsPtr ns;
 
                   // Set namespace
-                  ns = xmlSearchNs(node->doc, node, prefix);
+                  ns = xmlSearchNs(theNode->doc, theNode, prefix);
                   if (ns)
                     {
-                      xmlSetNs(node, ns);
+                      xmlSetNs(theNode, ns);
                     }
                   else
                     {
                       xmlNsPtr oldNs;
 
-                      ensure_oldNs(node);
+                      ensure_oldNs(theNode);
 
                       // Fake the name space and fix it later
                       // This function is private, so re reimplemt it.
                       //ns = xmlDOMWrapStoreNs(node->doc, NULL, prefix);
-                      oldNs = node->doc->oldNs;
+                      oldNs = theNode->doc->oldNs;
                       while (oldNs)
                         {
                           if (oldNs->prefix != NULL && xmlStrEqual(oldNs->prefix, prefix))
@@ -1812,18 +1812,18 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                             }
                           oldNs = oldNs->next;
                         }
-                      xmlSetNs(node, ns);
+                      xmlSetNs(theNode, ns);
                     }
                 }
             }
           
-          xmlNodeSetName(node, localName);
+          xmlNodeSetName(theNode, localName);
           xmlFree(localName);
           xmlFree(prefix);
         }
       else
         {
-          xmlNodeSetName(node, xmlName);
+          xmlNodeSetName(theNode, xmlName);
         }
     }
 }
@@ -1835,11 +1835,11 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
-  if (node->type == XML_NAMESPACE_DECL)
+  if (theNode->type == XML_NAMESPACE_DECL)
     {
-      xmlNsPtr ns = (xmlNsPtr)node;
+      xmlNsPtr ns = (xmlNsPtr)theNode;
       if (ns->href != NULL)
         {
           xmlFree((xmlChar *)ns->href);
@@ -1851,8 +1851,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       // Remove all child nodes except attributes
       if (internal->subNodes)
         {
-          NSArray *subNodes = [internal->subNodes copy];
-          NSEnumerator *enumerator = [subNodes objectEnumerator];
+          NSArray *theSubNodes = [internal->subNodes copy];
+          NSEnumerator *enumerator = [theSubNodes objectEnumerator];
           NSXMLNode *subNode;
           
           while ((subNode = [enumerator nextObject]) != nil)
@@ -1862,18 +1862,19 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                   [subNode detach];
                 }
             }
+          [theSubNodes release];
         }
 
       if (resolve == NO)
         {
-          xmlNodeSetContent(node, XMLSTRING(string));
+          xmlNodeSetContent(theNode, XMLSTRING(string));
         }
       else
         {
           // need to actually resolve entities...
           // is this the right functionality?? xmlEncodeSpecialChars()
-          xmlChar *newstr = xmlEncodeEntitiesReentrant(node->doc, XMLSTRING(string));
-          xmlNodeSetContent(node, newstr);
+          xmlChar *newstr = xmlEncodeEntitiesReentrant(theNode->doc, XMLSTRING(string));
+          xmlNodeSetContent(theNode, newstr);
           xmlMemFree(newstr);
         }
     }
@@ -1882,49 +1883,49 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (void) setURI: (NSString*)URI
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
   if (NSXMLInvalidKind == internal->kind)
     {
       return;
     }
-  if ((node->type == XML_ATTRIBUTE_NODE) ||
-      (node->type == XML_ELEMENT_NODE))
+  if ((theNode->type == XML_ATTRIBUTE_NODE) ||
+      (theNode->type == XML_ELEMENT_NODE))
     {
       const xmlChar *uri = XMLSTRING(URI);
       xmlNsPtr ns;
       
       if (uri == NULL)
         {
-          node->ns = NULL;
+          theNode->ns = NULL;
           return;
         }
 
-      ns = xmlSearchNsByHref(node->doc, node, uri);
+      ns = xmlSearchNsByHref(theNode->doc, theNode, uri);
       if (ns == NULL)
         {
-          if ((node->ns != NULL && node->ns->href == NULL))
+          if ((theNode->ns != NULL && theNode->ns->href == NULL))
             {
-              node->ns->href = xmlStrdup(uri);
+              theNode->ns->href = xmlStrdup(uri);
               return;
             }
           /*
-          if (node->type == XML_ELEMENT_NODE)
+          if (theNode->type == XML_ELEMENT_NODE)
             {
-              //ns = xmlNewNs(node, uri, (const xmlChar *)"");
-              ns = xmlNewNs(node, uri, NULL);
+              //ns = xmlNewNs(theNode, uri, (const xmlChar *)"");
+              ns = xmlNewNs(theNode, uri, NULL);
             }
           else
           */
             {
               xmlNsPtr oldNs;
               
-              ensure_oldNs(node);
+              ensure_oldNs(theNode);
               
               // Fake the name space and fix it later
               // This function is private, so re reimplemt it.
               //ns = xmlDOMWrapStoreNs(node->doc, NULL, prefix);
-              oldNs = node->doc->oldNs;
+              oldNs = theNode->doc->oldNs;
               while (oldNs)
                 {
                   if (oldNs->href != NULL && xmlStrEqual(oldNs->href, uri))
@@ -1943,22 +1944,22 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
             }
         }
       
-      xmlSetNs(node, ns);
+      xmlSetNs(theNode, ns);
     }
 }
 
 - (NSString*) URI
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
   if (NSXMLInvalidKind == internal->kind)
     {
       return nil;
     }
-  if ((node->type == XML_ATTRIBUTE_NODE) ||
-      (node->type == XML_ELEMENT_NODE))
+  if ((theNode->type == XML_ATTRIBUTE_NODE) ||
+      (theNode->type == XML_ELEMENT_NODE))
     {
-      xmlNsPtr ns = internal->node->ns;
+      xmlNsPtr ns = theNode->ns;
       
       if ((ns != NULL) && (ns->href != NULL))
         {
@@ -1974,7 +1975,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   return [self XMLStringWithOptions: NSXMLNodeOptionsNone];
 }
 
-- (NSString*) XMLStringWithOptions: (NSUInteger)options
+- (NSString*) XMLStringWithOptions: (NSUInteger)theOptions
 {
   NSString     *string = nil;
   xmlChar      *buf = NULL;
@@ -1990,20 +1991,20 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   xmlOptions |= XML_SAVE_AS_XML;
 #endif
 #if LIBXML_VERSION >= 20708
-  if (options & NSXMLNodePreserveWhitespace)
+  if (theOptions & NSXMLNodePreserveWhitespace)
     {
       xmlOptions |= XML_SAVE_WSNONSIG;
     }
 #endif
 #if LIBXML_VERSION >= 20622
   //NSXMLNodeExpandEmptyElement is the default
-  if ((options & NSXMLNodeCompactEmptyElement) == 0)
+  if ((theOptions & NSXMLNodeCompactEmptyElement) == 0)
     {
       xmlOptions |= XML_SAVE_NO_EMPTY;
     }
 #endif
 #if LIBXML_VERSION >= 20617
-  if (options & NSXMLNodePrettyPrint)
+  if (theOptions & NSXMLNodePrettyPrint)
     {
       xmlOptions |= XML_SAVE_FORMAT;
     }
@@ -2051,24 +2052,24 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (NSString*) XPath
 {
-  xmlNodePtr node = internal->node;
-  return StringFromXMLStringPtr(xmlGetNodePath(node));
+  xmlNodePtr theNode = internal->node;
+  return StringFromXMLStringPtr(xmlGetNodePath(theNode));
 }
 
 - (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
 {
-  xmlNodePtr node = internal->node;
+  xmlNodePtr theNode = internal->node;
 
   if (NSXMLInvalidKind == internal->kind)
     {
       return nil;
     }
-  if (node->type == XML_NAMESPACE_DECL)
+  if (theNode->type == XML_NAMESPACE_DECL)
     {
       return nil;
     }
 
-  return execute_xpath(node, anxpath, nil, YES, error);
+  return execute_xpath(theNode, anxpath, nil, YES, error);
 }
 
  - (NSArray*) objectsForXQuery: (NSString*)xquery
