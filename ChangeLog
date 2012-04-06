@@ -1,3 +1,17 @@
+2012-04-06 12:23  theraven
+
+	* libs/base/trunk/Headers/Foundation/NSArray.h,
+	  libs/base/trunk/Headers/Foundation/NSDictionary.h,
+	  libs/base/trunk/Headers/GNUstepBase/GSVersionMacros.h,
+	  libs/base/trunk/Source/NSArray.m,
+	  libs/base/trunk/Source/NSDictionary.m,
+	  libs/base/trunk/Tests/base/NSArray/basic.m,
+	  libs/base/trunk/Tests/base/NSDictionary/basic.m: Support for
+	  collection subscripting (NSArray and NSDictionary).
+	  
+	  Yes, the syntax is ugly, but no doubt people will start using it
+	  in June...
+
 2012-04-06 12:02  theraven
 
 	* libs/base/trunk/Source/NSAutoreleasePool.m,
