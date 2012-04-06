@@ -1932,7 +1932,7 @@ failure:
           if (b == 0)
             {
               NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %u bytes",
-                l);
+                (unsigned int)l);
               DESTROY(self);
               return nil;
             }

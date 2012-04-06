@@ -2549,8 +2549,8 @@ static NSLock	*cached_proxies_gate = nil;
 
       if (debug_connection > 1)
       NSLog(
-	@"Handling message (sig %s) RMC %d from %@",
-	forward_type, seq, (uintptr_t)self);
+	@"Handling message (sig %s) RMC %d from %p",
+	forward_type, seq, self);
 
       IreqInCount++;	/* Handling an incoming request. */
 

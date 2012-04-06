@@ -573,7 +573,7 @@ replacementForClass(Class c)
 		}
 	      else
 		{
-		  NSLog(@"Failed to add setter method for %s to %@",
+		  NSLog(@"Failed to add setter method for %s to %s",
 		    sel_getName(sel), class_getName(original));
 		}
             }
