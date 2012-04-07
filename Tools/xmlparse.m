@@ -30,11 +30,11 @@
 #import	"Foundation/NSUserDefaults.h"
 #import "GNUstepBase/Additions.h"
 
-@interface GSXMLParser (Loader)
+@interface GSXMLParse : GSXMLParser 
 + (NSString*) loadEntity: (NSString*)publicId
                       at: (NSString*)location;
 @end
-@implementation	GSXMLParser (Loader)
+@implementation	GSXMLParse : GSXMLParser 
 + (NSString*) loadEntity: (NSString*)publicId
                       at: (NSString*)location
 {
@@ -95,7 +95,7 @@ main(int argc, char **argv, char **env)
       GSXMLNode		*root;
       GSXMLParser	*parser;
 
-      parser = [GSXMLParser parserWithContentsOfFile: file];
+      parser = [GSXMLParse parserWithContentsOfFile: file];
       [parser substituteEntities: NO];
       [parser doValidityChecking: YES];
       [parser keepBlanks: NO];
