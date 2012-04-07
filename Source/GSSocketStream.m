@@ -80,13 +80,14 @@ GSPrivateSockaddrHost(struct sockaddr *addr)
 #if     defined(AF_INET6)
   if (AF_INET6 == addr->sa_family)
     {
-      struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)addr;
+      struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)(void*)addr;
 
       inet_ntop(AF_INET, &addr6->sin6_addr, buf, sizeof(buf));
       return [NSString stringWithUTF8String: buf];
     } 
 #endif
-  inet_ntop(AF_INET, &((struct sockaddr_in*)addr)->sin_addr, buf, sizeof(buf));
+  inet_ntop(AF_INET, &((struct sockaddr_in*)(void*)addr)->sin_addr,
+		  buf, sizeof(buf));
   return [NSString stringWithUTF8String: buf];
 }
 
@@ -106,14 +107,14 @@ GSPrivateSockaddrPort(struct sockaddr *addr)
 #if     defined(AF_INET6)
   if (AF_INET6 == addr->sa_family)
     {
-      struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)addr;
+      struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)(void*)addr;
 
       port = addr6->sin6_port;
       port = GSSwapBigI16ToHost(port);
       return port;
     } 
 #endif
-  port = ((struct sockaddr_in*)addr)->sin_port;
+  port = ((struct sockaddr_in*)(void*)addr)->sin_port;
   port = GSSwapBigI16ToHost(port);
   return port;
 }
@@ -147,7 +148,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 	}
       if (0 == strchr(n, ':'))
 	{
-	  struct sockaddr_in	*addr = (struct sockaddr_in*)sin;
+	  struct sockaddr_in	*addr = (struct sockaddr_in*)(void*)sin;
 
 	  if (inet_pton(AF_INET, n, &addr->sin_addr) <= 0)
 	    {
@@ -157,7 +158,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
       else
 	{
 #if     defined(AF_INET6)
-	  struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)sin;
+	  struct sockaddr_in6	*addr6 = (struct sockaddr_in6*)(void*)sin;
 
 	  sin->sa_family = AF_INET6;
 	  if (inet_pton(AF_INET6, n, &addr6->sin6_addr) <= 0)
@@ -171,7 +172,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
     }
   else
     {
-      ((struct sockaddr_in*)sin)->sin_addr.s_addr
+      ((struct sockaddr_in*)(void*)sin)->sin_addr.s_addr
 	= GSSwapHostI32ToBig(INADDR_ANY);
     }
 
@@ -229,11 +230,11 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 #if     defined(AF_INET6)
   if (AF_INET6 == sin->sa_family)
     {
-      ((struct sockaddr_in6*)sin)->sin6_port = GSSwapHostI16ToBig(port);
+      ((struct sockaddr_in6*)(void*)sin)->sin6_port = GSSwapHostI16ToBig(port);
     }
   else
     {
-      ((struct sockaddr_in*)sin)->sin_port = GSSwapHostI16ToBig(port);
+      ((struct sockaddr_in*)(void*)sin)->sin_port = GSSwapHostI16ToBig(port);
     }
 #else
   ((struct sockaddr_ind*)sin)->sin6_port = GSSwapHostI16ToBig(port);
@@ -347,6 +348,11 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 /* Temporarily redefine 'id' in case the headers use the objc reserved word.
  */
 #define	id	GNUTLSID
+/* gcrypt uses __attribute__((deprecated)) to mark structure members that are
+ * private.  This causes compiler warnings just from using the header.  Turn
+ * them off...
+ */
+#define	_GCRYPT_IN_LIBGCRYPT
 #include <gnutls/gnutls.h>
 #include <gcrypt.h>
 #undef	id

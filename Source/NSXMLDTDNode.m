@@ -109,9 +109,9 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
  return StringFromXMLStringPtr(internal->node->ExternalID);
 }
 
-- (void) setDTDKind: (NSXMLDTDNodeKind)kind
+- (void) setDTDKind: (NSXMLDTDNodeKind)nodeKind
 {
-  internal->DTDKind = kind;
+  internal->DTDKind = nodeKind;
 }
 
 - (void) setNotationName: (NSString*)notationName
