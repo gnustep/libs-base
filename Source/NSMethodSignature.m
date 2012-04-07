@@ -122,6 +122,11 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
       case _C_ID:
 	info->size = sizeof(id);
 	info->align = __alignof__(id);
+	/* Blocks are encoded as @? */
+	if (*(typePtr) == '?')
+	  {
+	    typePtr++;
+	  }
 	break;
 
       case _C_CLASS:
