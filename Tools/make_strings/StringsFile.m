@@ -127,7 +127,7 @@ static NSString *parse_string(NSString **ptr)
     NSMutableArray *update_list=[[NSMutableArray alloc] init];
     NSArray *lines;
     NSString *l;
-    NSInteger i,c,pos;
+    NSUInteger i,c,pos;	
     NSMutableDictionary *dummy_entries=[[NSMutableDictionary alloc] init];
 
     NSMutableString *user_comment=[[NSMutableString alloc] init];

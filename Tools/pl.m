@@ -39,7 +39,7 @@ void create_output(id propertyList)
   NSFileHandle *fileHandle = nil;
   NSProcessInfo *processInfo = [NSProcessInfo processInfo];
   NSArray *arguments = [processInfo arguments];
-  NSInteger outputIndex = 0;
+  NSUInteger outputIndex = 0;
 
   // insert your code here
   outputIndex = [arguments indexOfObject: @"-output"];
@@ -94,7 +94,7 @@ NSData *read_input()
   NSFileHandle *fileHandle = nil;
   NSProcessInfo *processInfo = [NSProcessInfo processInfo];
   NSArray *arguments = [processInfo arguments];
-  NSInteger inputIndex = 0;
+  NSUInteger inputIndex = 0;
 
   // insert your code here
   inputIndex = [arguments indexOfObject: @"-input"];
