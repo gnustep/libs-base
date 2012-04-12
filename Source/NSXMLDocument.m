@@ -25,36 +25,18 @@
 
 #import "common.h"
 
-#define GSInternal              NSXMLDocumentInternal
+#if defined(HAVE_LIBXML)
+
+#define	GS_XMLNODETYPE	xmlDoc
+#define GSInternal	NSXMLDocumentInternal
+
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
-
-#ifdef HAVE_LIBXSLT
-#import <libxslt/xslt.h>
-#import <libxslt/xsltInternals.h>
-#import <libxslt/transform.h>
-#import <libxslt/xsltutils.h>
-#endif
 
 GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 //#import <Foundation/NSXMLParser.h>
 #import <Foundation/NSError.h>
-
-#if defined(HAVE_LIBXML)
-
-extern void clearPrivatePointers(xmlNodePtr aNode);
-
-// Private methods to manage libxml pointers...
-@interface NSXMLNode (Private)
-- (void *) _node;
-- (void) _setNode: (void *)_anode;
-+ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
-- (void) _addSubNode:(NSXMLNode *)subNode;
-- (void) _removeSubNode:(NSXMLNode *)subNode;
-- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
-- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
-@end
 
 @implementation	NSXMLDocument
 
@@ -67,7 +49,6 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   if (GS_EXISTS_INTERNAL)
     {
-      [internal->docType release];
       [internal->MIMEType release];
     }
   [super dealloc];
@@ -75,8 +56,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSString*) characterEncoding
 {
-  if (MY_DOC->encoding)
-    return [NSString stringWithUTF8String: (const char *)MY_DOC->encoding];
+  if (internal->node->encoding)
+    return StringFromXMLStringPtr(internal->node->encoding);
   else
     return nil;
 }
@@ -88,7 +69,8 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLDTD*) DTD
 {
-  return internal->docType;
+  xmlDtdPtr dtd = xmlGetIntSubset(internal->node);
+  return (NSXMLDTD *)[NSXMLNode _objectForNode: (xmlNodePtr)dtd];
 }
 
 - (void) _createInternal
@@ -113,7 +95,6 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   [doc setURI: [url absoluteString]];
   return doc;
 }
-
 
 - (id) initWithData: (NSData*)data
             options: (NSUInteger)mask
@@ -158,9 +139,19 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
                                            code: 0
                                        userInfo: nil]; 
             }
+          return nil;
 	}
+
+      // Free old node
+      xmlFreeDoc((xmlDocPtr)internal->node);
       [self _setNode: doc];
+
+      if (mask & NSXMLDocumentValidate)
+        {
+          [self validateAndReturnError: error];
+        }
     }
+
   return self;
 }
 
@@ -174,7 +165,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     {
       [self release];
       return [[NSXMLNode alloc] initWithKind: kind
-				       options: theOptions];
+                                     options: theOptions];
     }
 }
 
@@ -213,7 +204,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (BOOL) isStandalone
 {
-  return (MY_DOC->standalone == 1);
+  return (internal->node->standalone == 1);
 }
 
 - (NSString*) MIMEType
@@ -223,13 +214,17 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLElement*) rootElement
 {
-  xmlNodePtr rootElem = xmlDocGetRootElement(MY_DOC);
+  xmlNodePtr rootElem = xmlDocGetRootElement(internal->node);
   return (NSXMLElement *)[NSXMLNode _objectForNode: rootElem];
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
-  MY_DOC->encoding = xmlStrdup(XMLSTRING(encoding));
+  if (internal->node->encoding != NULL)
+    {
+      xmlFree((xmlChar *)internal->node->encoding);
+    }
+  internal->node->encoding = XMLStringCopy(encoding);
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind
@@ -239,9 +234,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
 {
+  NSXMLDTD *old;
+
   NSAssert(documentTypeDeclaration != nil, NSInvalidArgumentException);
-  ASSIGNCOPY(internal->docType, documentTypeDeclaration);
-  MY_DOC->extSubset = [documentTypeDeclaration _node];
+
+  // detach the old DTD, this also removes the corresponding child
+  old = [self DTD];
+  [old detach];
+
+  internal->node->intSubset = (xmlDtdPtr)[documentTypeDeclaration _node];
+  [self addChild: documentTypeDeclaration];
 }
 
 - (void) setMIMEType: (NSString*)MIMEType
@@ -251,8 +253,6 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (void) setRootElement: (NSXMLNode*)root
 {
-  id oldElement = [self rootElement];
-
   if (root == nil)
     {
       return;
@@ -265,24 +265,58 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 		   self];
     }
 
-  xmlDocSetRootElement(MY_DOC, [root _node]);
+  // remove all sub nodes
+  [self setChildren: nil];
+
+  // FIXME: Should we use addChild: here? 
+  xmlDocSetRootElement(internal->node, [root _node]);
 
   // Do our subNode housekeeping...
-  [self _removeSubNode: oldElement];
   [self _addSubNode: root];
 }
 
 - (void) setStandalone: (BOOL)standalone
 {
-  MY_DOC->standalone = standalone;
+  internal->node->standalone = standalone;
+}
+
+- (void) setURI: (NSString*)URI
+{
+  xmlDocPtr node = internal->node;
+
+  if (node->URL != NULL)
+    {
+      xmlFree((xmlChar *)node->URL);
+    }
+  node->URL = XMLStringCopy(URI);
+}
+
+- (NSString*) URI
+{
+  xmlDocPtr node = internal->node;
+
+  if (node->URL)
+    {
+      return StringFromXMLStringPtr(node->URL);
+    }
+  else
+    {
+      return nil;
+    }
 }
 
 - (void) setVersion: (NSString*)version
 {
   if ([version isEqualToString: @"1.0"] || [version isEqualToString: @"1.1"])
     {
-      MY_DOC->version = XMLStringCopy(version);
-   }
+      xmlDocPtr node = internal->node;
+  
+      if (node->version != NULL)
+        {
+          xmlFree((xmlChar *)node->version);
+        }
+      node->version = XMLStringCopy(version);
+    }
   else
     {
       [NSException raise: NSInvalidArgumentException
@@ -292,8 +326,10 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSString*) version
 {
-  if (MY_DOC->version)
-    return StringFromXMLStringPtr(MY_DOC->version);
+  xmlDocPtr node = internal->node;
+
+  if (node->version)
+    return StringFromXMLStringPtr(node->version);
   else
     return @"1.0";
 }
@@ -317,7 +353,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSAssert(NSXMLNamespaceKind != kind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != kind, NSInvalidArgumentException);
 
-  [self _insertChild:child atIndex:index];
+  [self _insertChild: child atIndex: index];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
@@ -376,25 +412,9 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (NSData *) XMLDataWithOptions: (NSUInteger)options
 {
   NSString *xmlString = [self XMLStringWithOptions: options];
-  NSData *data = [NSData dataWithBytes: [xmlString UTF8String]
-				length: [xmlString length]];
-  return data;
-}
 
-- (NSString *) XMLStringWithOptions: (NSUInteger)options
-{
-  NSString	*string = nil;
-  xmlChar	*buf = NULL;
-  int		length;
-
-  xmlDocDumpFormatMemoryEnc(MY_DOC, &buf, &length, "utf-8", 1);
-
-  if (buf != 0 && length > 0)
-    {
-      string = StringFromXMLString(buf, length);
-      free(buf);
-    }
-  return string;
+  return [xmlString dataUsingEncoding: NSUTF8StringEncoding
+                 allowLossyConversion: NO];
 }
 
 - (id) objectByApplyingXSLT: (NSData*)xslt
@@ -420,13 +440,16 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       while ((key = [en nextObject]) != nil)
 	{
 	  params[index] = (xmlChar *)XMLSTRING(key);
-	  params[index+1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
+	  params[index + 1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
 	  index += 2;
 	}
+      params[index] = NULL;
+      params[index + 1] = NULL;
     }
 
   // Apply the stylesheet and get the result...
-  resultDoc = xsltApplyStylesheet(stylesheet, MY_DOC, (const char **)params);
+  resultDoc = xsltApplyStylesheet(stylesheet, internal->node,
+                                  (const char **)params);
   
   // Cleanup...
   xsltFreeStylesheet(stylesheet);
@@ -468,14 +491,20 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   xmlValidCtxtPtr ctxt = xmlNewValidCtxt();
   // FIXME: Should use xmlValidityErrorFunc and userData
   // to get the error
-  BOOL result = (BOOL)(xmlValidateDocument(ctxt, MY_DOC));
+  BOOL result = (BOOL)(xmlValidateDocument(ctxt, internal->node));
   xmlFreeValidCtxt(ctxt);
   return result;
 }
 
-- (xmlNodePtr) _copyNode
+- (id) copyWithZone: (NSZone *)zone
 {
-  return (xmlNodePtr)xmlCopyDoc(MY_DOC, 1); // make a deep copy
+  NSXMLDocument *c = (NSXMLDocument*)[super copyWithZone: zone];
+
+  [c setMIMEType: [self MIMEType]];
+  // the intSubset is copied by libxml2
+  //[c setDTD: [self DTD]];
+  [c setDocumentContentKind: [self documentContentKind]];
+  return c;
 }
 
 - (BOOL) isEqual: (id)other
@@ -484,6 +513,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
     {
       return YES;
     }
+  // FIXME
   return [[self rootElement] isEqual: [other rootElement]];
 }
 @end

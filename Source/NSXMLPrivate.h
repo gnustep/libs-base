@@ -25,8 +25,35 @@
 #ifndef	_INCLUDED_NSXMLPRIVATE_H
 #define	_INCLUDED_NSXMLPRIVATE_H
 
-#import "config.h"
-#import "GNUstepBase/GSConfig.h"
+#import "common.h"
+
+#ifdef	HAVE_LIBXML
+
+/* Avoid problems on systems where the xml headers use 'id'
+ */
+#define	id	GSXMLID
+
+/* libxml headers */
+#include <libxml/tree.h>
+#include <libxml/entities.h>
+#include <libxml/parser.h>
+#include <libxml/parserInternals.h>
+#include <libxml/HTMLparser.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/xmlsave.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
+
+#ifdef HAVE_LIBXSLT
+#include <libxslt/xslt.h>
+#include <libxslt/xsltInternals.h>
+#include <libxslt/transform.h>
+#include <libxslt/xsltutils.h>
+#endif /* HAVE_LIBXSLT */
+
+#undef	id
+
+#endif	/* HAVE_LIBXML */
 
 #define	EXPOSE_NSXMLDTD_IVARS	1
 #define	EXPOSE_NSXMLDTDNode_IVARS	1
@@ -42,7 +69,9 @@
 inline static unsigned char *XMLStringCopy(NSString *source)
 {
   char *xmlstr;
-  unsigned int len = [source maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
+  unsigned int len;
+
+  len = [source maximumLengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1;
   if (len == 0)
     return NULL;
   xmlstr = malloc(len);
@@ -80,38 +109,40 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
   return AUTORELEASE(str);
 }
 
-#define MY_DOC	((xmlDoc *)internal->node)
-#define MY_NODE ((xmlNode *)internal->node)
-#define MY_ATTR ((xmlAttr *)internal->node)
-#define MY_ELEM ((xmlElement *)internal->node)
-#define MY_DTD  ((xmlDtd *)internal->node)
-
 /* Instance variables for NSXMLNode.  This macro needs to be defined before
  * the NSXMLNode.h header is imported and before GSInternal.h is imported.
  *
- * Description of internal ivars:
- * - `children': The primary storage for the descendant nodes. We use an NSArray
- *   here until somebody finds out it's not fast enough.
- * - `childCount': For efficiency, we cache the count. This means we need to
- *   update it whenever the children change.
- * - `previousSibling', `nextSibling': Tree walking is a common operation for
- *   XML. [parent->children objectAtIndex: index + 1] would be a
- *   straightforward way to obtain the next sibling of the node, but it hurts
- *   performance quite a bit. So we cache the siblings and update them when the
- *   nodes are changed.
+ * The 'kind' tells us what sort of node this is.
+ * The 'node' points to the underlying libxml2 node structure.
+ * The 'options' field is a bitmask of options for this node.
+ * The 'objectValue' is the object value set for the node.
+ * The 'subNodes' array is used to retain the objects pointed to by subnodes.
+ *
+ * When we create an Objective-C object for a node we also create objects
+ * for all parents up to the root object. (Reusing existing once as we find 
+ * them in the _private points of parent nodes)
+ * This adds the object to the subnode array of the parent object, retaining 
+ * the object in this process.
+ * This means a document object will retain all the objects we have created
+ * for its node tree, but we don't have to create all these objects at once.
+ * When we remove an object from its parent we always call the detach method.
+ * Here we unlink the libxml2 node and remove the object from its parent's
+ * subnode array, This will release the object.
+ * When an object gets deallocated it detaches all the subnodes, releasing
+ * them in the process and then it frees the node. That way each object takes
+ * care of freeing its own node, but nodes that don't have objects attached
+ * to them will get freed when their parent object (e.g. the NSXMLDocument)
+ * gets deallocated.
+ * For namespace nodes special rules apply as they don't have a parent pointer.
+ *
+ * URI is probably not needed at all ... I'm not sure
  */
 #define GS_NSXMLNode_IVARS \
   NSUInteger	  kind; \
-  NSXMLNode      *parent; \
-  id              objectValue; \
-  NSString       *URI; \
-  NSXMLNode      *previousSibling; \
-  NSXMLNode      *nextSibling;\
+  GS_XMLNODETYPE *node;  \
   NSUInteger      options; \
-  void           *node;  \
-  NSMutableArray *subNodes; \
-  int		externalRetains; \
-  int		retainedSelf; \
+  id              objectValue; \
+  NSMutableArray *subNodes;
 
 
 /* When using the non-fragile ABI, the instance variables are exposed to the
@@ -132,25 +163,15 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  * is imported and before GSInternal.h is imported.
  */
 #define GS_NSXMLDocument_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSXMLDTD     		*docType; \
   NSString     		*MIMEType; \
   NSInteger		contentKind; \
-
 
 /* Instance variables for NSXMLDTD with/without the instance
  * variable 'inherited' from NSXMLNode.
  * This macro needs to be defined before the NSXMLDTD.h header
  * is imported and before GSInternal.h is imported.
  */
-#define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS) \
-  NSString      *publicID; \
-  NSString      *systemID; \
-  NSMutableDictionary   *entities; \
-  NSMutableDictionary   *elements; \
-  NSMutableDictionary   *notations; \
-  NSMutableDictionary   *attributes; \
-  NSString              *original; \
-
+#define GS_NSXMLDTD_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
 
 /* Instance variables for NSXMLDTDNode with/without the instance
  * variable 'inherited' from NSXMLNode.
@@ -166,6 +187,7 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
  * is imported and before GSInternal.h is imported.
  */
 #define GS_NSXMLElement_IVARS SUPERIVARS(GS_NSXMLNode_IVARS)
+
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
@@ -184,30 +206,19 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 
 #ifdef	HAVE_LIBXML
 
-/* Avoid problems on systems where the xml headers use 'id'
- */
-#define	id	GSXMLID
-
-/* libxml headers */
-#include <libxml/tree.h>
-#include <libxml/entities.h>
-#include <libxml/parser.h>
-#include <libxml/parserInternals.h>
-#include <libxml/HTMLparser.h>
-#include <libxml/xmlmemory.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
-
-#ifdef HAVE_LIBXSLT
-#include <libxslt/xslt.h>
-#include <libxslt/xsltInternals.h>
-#include <libxslt/transform.h>
-#include <libxslt/xsltutils.h>
-#endif /* HAVE_LIBXSLT */
-
-#undef	id
+// Private methods to manage libxml pointers...
+@interface NSXMLNode (Private)
+- (void *) _node;
+- (void) _setNode: (void *)_anode;
++ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
+- (void) _addSubNode: (NSXMLNode *)subNode;
+- (void) _removeSubNode: (NSXMLNode *)subNode;
+- (id) _initWithNode: (xmlNodePtr)node kind: (NSXMLNodeKind)kind;
+- (xmlNodePtr) _childNodeAtIndex: (NSUInteger)index;
+- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
+- (void) _invalidate;
+@end
 
 #endif /* HAVE_LIBXML */
 
 #endif
-

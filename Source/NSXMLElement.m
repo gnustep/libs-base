@@ -24,41 +24,39 @@
 
 #import "common.h"
 
-#define GSInternal              NSXMLElementInternal
+#if defined(HAVE_LIBXML)
+
+#define GSInternal	NSXMLElementInternal
+#define	GS_XMLNODETYPE	xmlNode
+
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
 
-#if defined(HAVE_LIBXML)
-
-extern void clearPrivatePointers(xmlNodePtr aNode);
-
-// Private methods to manage libxml pointers...
-@interface NSXMLNode (Private)
-- (void *) _node;
-- (void) _setNode: (void *)_anode;
-+ (NSXMLNode *) _objectForNode: (xmlNodePtr)node;
-- (void) _addSubNode:(NSXMLNode *)subNode;
-- (void) _removeSubNode:(NSXMLNode *)subNode;
-- (id) _initWithNode:(xmlNodePtr)node kind:(NSXMLNodeKind)kind;
-- (void) _insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index;
-- (void) _updateExternalRetains;
-- (void) _invalidate;
-@end
+extern void cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns);
+extern void ensure_oldNs(xmlNodePtr node);
 
 @implementation NSXMLElement
 
 - (void) dealloc
 {
-  /*
-  if (GS_EXISTS_INTERNAL && _internal != nil)
+  if (GS_EXISTS_INTERNAL && internal != nil)
     {
-      while ([self childCount] > 0)
-	{
-	  [self removeChildAtIndex: [self childCount] - 1];
-	}
+      /*
+      NSArray *subNodes = [internal->subNodes copy];
+      NSEnumerator *enumerator = [subNodes objectEnumerator];
+      NSXMLNode *subNode;
+
+      while ((subNode = [enumerator nextObject]) != nil)
+        {
+          if ([subNode kind] == NSXMLNamespaceKind)
+            {
+              [self removeNamespaceForPrefix: [subNode name]];
+            }
+        }
+      */
     }
-  */
+
   [super dealloc];
 }
 
@@ -76,17 +74,13 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   if (NSXMLElementKind == kind)
     {
-      if ((self = [super initWithKind:kind options:theOptions]))
-	{
-	  internal->objectValue = @"";
-	}
-      return self;
+      return [super initWithKind: kind options: theOptions];
     }
   else
     {
       [self release];
       return [[NSXMLNode alloc] initWithKind: kind
-				       options: theOptions];
+                                     options: theOptions];
     }
 }
 
@@ -97,26 +91,30 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (id) initWithName: (NSString*)name URI: (NSString*)URI
 {
-  if ((self = [super initWithKind: NSXMLElementKind]) != nil)
+  if ((self = [self initWithKind: NSXMLElementKind]) != nil)
     {
-      [self setName:name];
-      ASSIGNCOPY(internal->URI, URI);
-      internal->objectValue = @"";
+      [self setName: name];
+      // Without this check this could unset a namespace set via the name
+      if (URI != nil)
+        {
+          [self setURI: URI];
+        }
     }
   return self;
 }
 
 - (id) initWithName: (NSString*)name stringValue: (NSString*)string
 {
-  if ([self initWithName: name URI: nil] != nil)
+  if ((self = [self initWithName: name URI: nil]) != nil)
     {
       NSXMLNode *t;
+
       t = [[NSXMLNode alloc] initWithKind: NSXMLTextKind];
       [t setStringValue: string];
       [self addChild: t];
       [t release];
     }
-  return nil;
+  return self;
 }
 
 - (id) initWithXMLString: (NSString*)string 
@@ -133,99 +131,228 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
       [result detach]; // detach from document.
     }
   [tempDoc release];
+  [self release];
 
   return result;
 }
 
+- (id) objectValue
+{
+  if (internal->objectValue == nil)
+    {
+      return @"";
+    }
+  return internal->objectValue;
+}
+
 - (NSArray*) elementsForName: (NSString*)name
+{
+  NSString *prefix = [[self class] prefixForName: name];
+
+  if ((nil != prefix) && [prefix length] > 0)
+    {
+      NSXMLNode *ns = [self namespaceForPrefix: prefix];
+
+      if (nil != ns)
+        {
+          NSString *localName = [[self class] localNameForName: name];
+
+          // Namespace nodes have the URI as their stringValue
+          return [self elementsForLocalName: localName URI: [ns stringValue]];
+        }
+    }
+
+    {
+      NSMutableArray *results = [NSMutableArray arrayWithCapacity: 10];
+      xmlNodePtr cur = NULL;
+      const xmlChar *xmlName = XMLSTRING(name);
+      
+      for (cur = internal->node->children; cur != NULL; cur = cur->next)
+        {
+          if (cur->type == XML_ELEMENT_NODE)
+            {
+              // no namespace or default namespace
+              if ((xmlStrcmp(xmlName, cur->name) == 0) &&
+                  ((cur->ns == NULL) || (cur->ns->prefix == NULL) ||
+                   (xmlStrcmp(cur->ns->prefix, (const xmlChar*)"") == 0)))
+                {
+                  NSXMLNode *node = [NSXMLNode _objectForNode: cur];
+                  [results addObject: node];
+                }
+            }
+        }
+  
+      return results;
+    }
+}
+
+- (NSArray*) elementsForLocalName: (NSString*)localName URI: (NSString*)URI
 {
   NSMutableArray *results = [NSMutableArray arrayWithCapacity: 10];
   xmlNodePtr cur = NULL;
+  const xmlChar *href = XMLSTRING(URI);
+  const xmlChar *xmlName = XMLSTRING(localName);
+  xmlNsPtr parentNS = xmlSearchNsByHref(internal->node->doc, internal->node, href);
 
-  for (cur = MY_NODE->children; cur != NULL; cur = cur->next)
+  for (cur = internal->node->children; cur != NULL; cur = cur->next)
     {
-      NSString *n = StringFromXMLStringPtr(cur->name);
-      if ([n isEqualToString: name])
-	{
-	  NSXMLNode *node = (NSXMLNode *)(cur->_private);
-	  [results addObject: node];
-	}
+      if (cur->type == XML_ELEMENT_NODE)
+        {
+          if (xmlStrcmp(xmlName, cur->name) == 0)
+            {
+              xmlNsPtr childNS = parentNS;
+
+              if (cur->nsDef != NULL)
+                {
+                  childNS = xmlSearchNsByHref(internal->node->doc, cur, href);
+                }
+
+              
+              if (((childNS != NULL) && 
+                   ((cur->ns == childNS) ||
+                    ((cur->ns == NULL) &&
+                     (xmlStrcmp(childNS->prefix, (const xmlChar*)"") == 0)))) ||
+                  ((cur->ns != NULL) && (xmlStrcmp(cur->ns->href, href) == 0)))
+                {
+                  NSXMLNode *node = [NSXMLNode _objectForNode: cur];
+                  [results addObject: node];
+                }
+            }
+        }
     }
   
   return results;
 }
 
-- (NSArray*) elementsForLocalName: (NSString*)localName URI: (NSString*)URI
-{
-  [self notImplemented: _cmd];
-  return nil;
-}
-
 - (void) addAttribute: (NSXMLNode*)attribute
 {
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
+  xmlNodePtr node = internal->node;
   xmlAttrPtr attr = (xmlAttrPtr)[attribute _node];
-  xmlAttrPtr oldAttr = xmlHasProp(node, attr->name);
+  xmlAttrPtr oldAttr;
+
   if (nil != [attribute parent])
-  {
-	[NSException raise: @"NSInvalidArgumentException"
-	            format: @"Tried to add attribute to multiple parents."];
-  }
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Tried to add attribute to multiple parents."];
+    }
+
+  if (attr->ns != NULL)
+    {
+      xmlNsPtr ns = attr->ns;
+      xmlDocPtr tmp = attr->doc;
+      BOOL resolved = NO;
+    
+      if (ns->href == NULL)
+        {
+          xmlNsPtr newNs = xmlSearchNs(node->doc, node, ns->prefix);
+          
+          if (newNs != NULL)
+            {
+              ns = newNs;
+              attr->ns = ns;
+              resolved = YES;
+            }
+        }
+      else //if (ns->prefix == NULL)
+        {
+          xmlNsPtr newNs = xmlSearchNsByHref(node->doc, node, ns->href);
+          
+          if (newNs != NULL)
+            {
+              ns = newNs;
+              attr->ns = ns;
+              resolved = YES;
+            }
+        }
+      
+      if (!resolved && (tmp != NULL))
+        {
+          xmlNsPtr cur = tmp->oldNs;
+          xmlNsPtr last = NULL;
+          xmlNsPtr oldNs1;
+
+          // Need to transfer the namespace to the new tree
+          // Unlink in old
+          while (cur)
+            {
+              if (cur == ns)
+                {
+                  if (last == NULL)
+                    {
+                      tmp->oldNs = NULL;
+                    }
+                  else
+                    {
+                      last->next = ns->next;
+                    }
+                  cur->next = NULL;
+                  break;
+                } 
+              cur = cur->next;
+            }
+
+          // Insert in new
+          ensure_oldNs(node);
+          oldNs1 = node->doc->oldNs;
+          while (oldNs1)
+            {
+              if (oldNs1->next == NULL)
+                {
+                  oldNs1->next = cur;
+                  break;
+                }
+              oldNs1 = oldNs1->next;
+            }
+        }
+
+#if LIBXML_VERSION >= 20620
+      xmlDOMWrapAdoptNode(NULL, attr->doc, (xmlNodePtr)attr, 
+                          node->doc, node, 0);
+#else
+      xmlSetTreeDoc((xmlNodePtr)attr, node->doc);
+#endif
+      xmlFreeDoc(tmp);
+
+      oldAttr = xmlHasNsProp(node, attr->name, ns->href);
+    }
+  else
+    {
+      oldAttr = xmlHasProp(node, attr->name);
+    }
 
   if (NULL != oldAttr)
-  {
-	/*
-	 * As per Cocoa documentation, we only add the attribute if it's not
-	 * already set. xmlHasProp() also looks at the DTD for default attributes
-	 * and we need  to make sure that we only bail out here on #FIXED
-	 * attributes.
-	 */
+    {
+      /*
+       * As per Cocoa documentation, we only add the attribute if it's not
+       * already set. xmlHasProp() also looks at the DTD for default attributes
+       * and we need  to make sure that we only bail out here on #FIXED
+       * attributes.
+       */
 
-	// Do not replace plain attributes.
-	if (XML_ATTRIBUTE_NODE == oldAttr->type)
+      // Do not replace plain attributes.
+      if (XML_ATTRIBUTE_NODE == oldAttr->type)
 	{
 	  return;
 	}
-	else if (XML_ATTRIBUTE_DECL == oldAttr->type)
+      else if (XML_ATTRIBUTE_DECL == oldAttr->type)
 	{
-		// If the attribute is from a DTD, do not replace it if it's #FIXED
-		xmlAttributePtr attrDecl = (xmlAttributePtr)oldAttr;
-		if (XML_ATTRIBUTE_FIXED == attrDecl->def)
-		{
-			return;
-		}
+	  // If the attribute is from a DTD, do not replace it if it's #FIXED
+	  xmlAttributePtr attrDecl = (xmlAttributePtr)oldAttr;
+	  if (XML_ATTRIBUTE_FIXED == attrDecl->def)
+	    {
+	      return;
+	    }
 	}
-  }
+    }
   xmlAddChild(node, (xmlNodePtr)attr);
-  [self _addSubNode:attribute];
+  [self _addSubNode: attribute];
 }
 
 - (void) removeAttributeForName: (NSString*)name
 {
-  xmlNodePtr node = (xmlNodePtr)(internal->node);
-  xmlAttrPtr attr = xmlHasProp(node, (xmlChar *)[name UTF8String]);
-  xmlAttrPtr newAttr = NULL;
-  NSXMLNode *attrNode = nil;
-  if (NULL == attr)
-  {
-	  return;
-  }
+  NSXMLNode *attrNode = [self attributeForName: name];
 
-  // We need a copy of the node because xmlRemoveProp() frees attr:
-  newAttr = xmlCopyProp(NULL, attr);
-  attrNode = [NSXMLNode _objectForNode: (xmlNodePtr)attr];
-
-  // This is supposed to return failure for DTD defined attributes
-  if (0 == xmlRemoveProp(attr))
-  {
-	  [attrNode _setNode: newAttr];
-	  [self _removeSubNode: attrNode];
-  }
-  else
-  {
-	  // In this case we throw away our copy again.
-	  xmlFreeProp(newAttr);
-  }
+  [attrNode detach];
 }
 
 - (void) setAttributes: (NSArray*)attributes
@@ -233,6 +360,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSEnumerator	*enumerator = [attributes objectEnumerator];
   NSXMLNode	*attribute;
 
+  // FIXME: Remove all previous attributes
   while ((attribute = [enumerator nextObject]) != nil)
     {
       [self addAttribute: attribute];
@@ -249,7 +377,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   NSEnumerator	*en = [attributes keyEnumerator];
   NSString	*key;
 
-  // [internal->attributes removeAllObjects];
+  // FIXME: Remove all previous attributes
   while ((key = [en nextObject]) != nil)
     {
       NSString	*val = [[attributes objectForKey: key] stringValue];
@@ -262,12 +390,15 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 - (NSArray*) attributes
 {
   NSMutableArray *attributes = [NSMutableArray array];
-  xmlNodePtr node = MY_NODE;
-  struct _xmlAttr *	attributeNode = node->properties;
+  xmlNodePtr node = internal->node;
+  xmlAttrPtr attributeNode = node->properties;
+
   while (attributeNode)
     {
-      NSXMLNode *attribute = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
-      [attributes addObject:attribute];
+      NSXMLNode *attribute;
+
+      attribute = [NSXMLNode _objectForNode: (xmlNodePtr)attributeNode];
+      [attributes addObject: attribute];
       attributeNode = attributeNode->next;
     }
   return attributes;
@@ -275,93 +406,182 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLNode*) attributeForName: (NSString*)name
 {
-  NSXMLNode *result = nil;
-  xmlChar *xmlName = xmlCharStrdup([name UTF8String]);
-  xmlAttrPtr attributeNode = xmlHasProp(MY_NODE, xmlName);
-  if (NULL != attributeNode)
+  NSString *prefix = [[self class] prefixForName: name];
+
+  if ((nil != prefix) && [prefix length] > 0)
+    {
+      NSXMLNode *ns = [self namespaceForPrefix: prefix];
+
+      if (nil != ns)
+        {
+          NSString *localName = [[self class] localNameForName: name];
+
+          // Namespace nodes have the URI as their stringValue
+          return [self attributeForLocalName: localName URI: [ns stringValue]];
+        }
+    }
+
   {
-	result = [NSXMLNode _objectForNode:(xmlNodePtr)attributeNode];
+    NSXMLNode *result = nil;
+    xmlNodePtr node = internal->node;
+    xmlAttrPtr attributeNode = xmlHasProp(node, XMLSTRING(name));
+    
+    if (NULL != attributeNode)
+      {
+        result = [NSXMLNode _objectForNode: (xmlNodePtr)attributeNode];
+      }
+    
+    return result;
   }
-  free(xmlName); // Free the name string since it's no longer needed.
-  xmlName = NULL;
-  return result; // [internal->attributes objectForKey: name];
 }
 
 - (NSXMLNode*) attributeForLocalName: (NSString*)localName
                                  URI: (NSString*)URI
 {
-  [self notImplemented: _cmd];
-  return nil;
+  NSXMLNode *result = nil;
+  xmlNodePtr node = internal->node;
+  xmlAttrPtr attributeNode = xmlHasNsProp(node, XMLSTRING(localName),
+                                          XMLSTRING(URI));
+  
+  if (NULL != attributeNode)
+    {
+      result = [NSXMLNode _objectForNode: (xmlNodePtr)attributeNode];
+    }
+    
+    return result;
 }
 
 - (void) addNamespace: (NSXMLNode*)aNamespace
 {
-  xmlNsPtr ns = (xmlNsPtr)[aNamespace _node];
+  xmlNsPtr ns = xmlCopyNamespace((xmlNsPtr)[aNamespace _node]);
+  xmlNodePtr node = internal->node;
+  const xmlChar *prefix = ns->prefix;
 
-  if (MY_NODE->ns == NULL)
+  if (node->nsDef == NULL)
     {
-      MY_NODE->ns = ns;
+      node->nsDef = ns;
     }
   else
     {
-      xmlNsPtr cur = MY_NODE->ns;
-      const xmlChar *prefix = ns->prefix;
+      xmlNsPtr cur = node->nsDef;
+      xmlNsPtr last = NULL;
       
-      while (xmlStrcmp(prefix, cur->prefix) != 0)
+      while (cur != NULL)
         {
+          if ((prefix != NULL) &&
+              (cur->prefix != NULL) &&
+              (xmlStrcmp(prefix, cur->prefix) == 0))
+            {
+              break;
+            }
           if (cur->next == NULL)
             {
               cur->next = ns;
               return;
             }
+          last = cur;
 	  cur = cur->next;
 	}
+
+      // Found the same prefix
+      if (cur->href == NULL)
+        {
+          // This was a fake namespace we added
+          if (node->ns == cur)
+            {
+              node->ns = ns;
+            }
+          if (last == NULL)
+            {
+              node->nsDef = ns;
+            }
+          else
+            {
+              last->next = ns;
+            }
+          ns->next = cur->next;
+          cur->next = NULL;
+        }
     }
+
+  // Are we setting a default namespace?
+  if ((node->ns == NULL) && (xmlStrcmp(prefix, (const xmlChar*)"") == 0))
+    {
+      node->ns = ns;
+    }
+
+  // Need to replace fake namespaces in subnodes
+  cleanup_namespaces(node, ns);
 }
 
 - (void) removeNamespaceForPrefix: (NSString*)name
 {
-  [self notImplemented: _cmd];
+  xmlNodePtr node = internal->node;
+
+  if (node->nsDef != NULL)
+    {
+      xmlNsPtr cur = node->nsDef;
+      xmlNsPtr last = NULL;
+      const xmlChar *prefix = XMLSTRING(name);
+      
+      while (cur != NULL)
+        {
+          if ((cur->prefix != NULL) && 
+              (xmlStrcmp(prefix, cur->prefix) == 0))
+            {
+              if (last == NULL)
+                {
+                  internal->node->nsDef = cur->next;
+                }
+              else
+                {
+                  last->next = cur->next;
+                }
+              cur->next = NULL;
+              if (node->ns == cur)
+                {
+                  node->ns = NULL;
+                }
+              xmlFreeNs(cur);
+              return;
+            }
+          last = cur;
+	  cur = cur->next;
+	}
+    }
 }
 
 - (void) setNamespaces: (NSArray*)namespaces
 {
   NSEnumerator *en = [namespaces objectEnumerator];
   NSXMLNode *namespace = nil;
-  xmlNsPtr cur = NULL;
 
-  // FIXME: Remove old namespaces
-  // xmlFreeNsList(MY_NODE->ns);
-  // MY_NODE->ns = NULL;
+  // Remove old namespaces
+  xmlFreeNsList(internal->node->nsDef);
+  internal->node->nsDef = NULL;
+
+  // Add new ones
   while ((namespace = (NSXMLNode *)[en nextObject]) != nil)
     {
-      xmlNsPtr ns = (xmlNsPtr)[namespace _node];
-      if (MY_NODE->ns == NULL)
-	{
-	  MY_NODE->ns = ns;
-	  cur = ns;
-	}
-      else
-	{
-	  cur->next = ns;
-	  cur = ns;
-	}
+      [self addNamespace: namespace];
     }
 }
 
 - (NSArray*) namespaces
 {
-  // FIXME: Should use  xmlGetNsList()
+  // FIXME: Should we use xmlGetNsList()?
   NSMutableArray *result = nil;
-  xmlNsPtr ns = MY_NODE->ns;
+  xmlNsPtr ns = internal->node->nsDef;
 
   if (ns)
     {
       xmlNsPtr cur = NULL;
+
       result = [NSMutableArray array];
       for (cur = ns; cur != NULL; cur = cur->next)
 	{
-	  [result addObject: [NSXMLNode _objectForNode: (xmlNodePtr)cur]];
+	  [result addObject: [NSXMLNode _objectForNode:
+                                          (xmlNodePtr)xmlCopyNamespace(cur)]];
 	}
     }
 
@@ -370,19 +590,23 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSXMLNode*) namespaceForPrefix: (NSString*)name
 {
-  // FIXME: Should use xmlSearchNs()
-  xmlNsPtr ns = MY_NODE->ns;
-  if (ns)
+  if (name != nil)
     {
       const xmlChar *prefix = XMLSTRING(name);
-      xmlNsPtr cur = NULL;
-      for (cur = ns; cur != NULL; cur = cur->next)
-	{
-          if (xmlStrcmp(prefix, cur->prefix) == 0)
-            {
-              return [NSXMLNode _objectForNode: (xmlNodePtr)cur];
-            }
-	}
+      xmlNodePtr node = internal->node;
+      xmlNsPtr ns;
+      
+      ns = xmlSearchNs(node->doc, node, prefix);
+      if ((ns == NULL) && ([name length] == 0))
+        {
+          prefix = NULL;
+          ns = xmlSearchNs(node->doc, node, prefix);
+        }
+
+      if (ns != NULL)
+        {
+          return [NSXMLNode _objectForNode: (xmlNodePtr)xmlCopyNamespace(ns)];
+        }
     }
 
   return nil;
@@ -392,6 +616,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 {
   NSString *prefix = [[self class] prefixForName: name];
 
+  // Return the default namespace for an empty prefix
   if (nil != prefix)
     {
       return [self namespaceForPrefix: prefix];
@@ -402,20 +627,12 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
 
 - (NSString*) resolvePrefixForNamespaceURI: (NSString*)namespaceURI
 {
-  // FIXME Should use xmlSearchNsByHref()
-  xmlNsPtr ns = MY_NODE->ns;
+  const xmlChar *uri = XMLSTRING(namespaceURI);
+  xmlNsPtr ns = xmlSearchNsByHref(internal->node->doc, internal->node, uri);
 
   if (ns)
     {
-      const xmlChar *uri = XMLSTRING(namespaceURI);
-      xmlNsPtr cur = NULL;
-      for (cur = ns; cur != NULL; cur = cur->next)
-	{
-          if (xmlStrcmp(uri, cur->href) == 0)
-            {
-              return StringFromXMLStringPtr(cur->prefix);
-            }
-	}
+      return StringFromXMLStringPtr(ns->prefix);
     }
 
   return nil;
@@ -460,7 +677,7 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   if (index >= [self childCount])
     {
       [NSException raise: NSRangeException
-                 format: @"index too large"];
+                  format: @"index too large"];
     }
 
   child = [self childAtIndex: index];
@@ -490,9 +707,11 @@ extern void clearPrivatePointers(xmlNodePtr aNode);
   [self removeChildAtIndex: index + 1];
 }
 
-static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
+static void
+joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *nodesToDelete)
 {
-  NSXMLNode *objA = (nodeA->_private), *objB = (nodeB->_private);
+  NSXMLNode *objA = (nodeA->_private);
+  NSXMLNode *objB = (nodeB->_private);
 
   xmlTextMerge(nodeA, nodeB); // merge nodeB into nodeA
 
@@ -500,13 +719,16 @@ static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *no
     {
       if (objB != nil) // objB is now invalid
 	{
-	  [objB _invalidate]; // set it to be invalid and make sure it's not pointing to a freed node
-	  [nodesToDelete addObject:objB];
+	  /* set it to be invalid and make sure it's not
+	   * pointing to a freed node
+	   */
+	  [objB _invalidate];
+	  [nodesToDelete addObject: objB];
 	}
     }
   else if (objB != nil) // there is no objA -- objB gets the merged node
     {
-      [objB _setNode:nodeA]; // nodeA is the remaining (merged) node
+      [objB _setNode: nodeA]; // nodeA is the remaining (merged) node
     }
 }
 
@@ -515,29 +737,41 @@ static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *no
   NSEnumerator *subEnum = [internal->subNodes objectEnumerator];
   NSXMLNode *subNode = nil;
   NSMutableArray *nodesToDelete = [NSMutableArray array];
+
   while ((subNode = [subEnum nextObject]))
     {
       xmlNodePtr node = [subNode _node];
       xmlNodePtr prev = node->prev;
       xmlNodePtr next = node->next;
+
       if (node->type == XML_ELEMENT_NODE)
-	[(NSXMLElement *)subNode normalizeAdjacentTextNodesPreservingCDATA:preserve];
-      else if (node->type == XML_TEXT_NODE || (node->type == XML_CDATA_SECTION_NODE && !preserve))
+	{
+	  [(NSXMLElement *)subNode
+	    normalizeAdjacentTextNodesPreservingCDATA:preserve];
+	}
+      else if (node->type == XML_TEXT_NODE
+	|| (node->type == XML_CDATA_SECTION_NODE && !preserve))
 	{
 	  if (next && (next->type == XML_TEXT_NODE
-			|| (next->type == XML_CDATA_SECTION_NODE && !preserve)))
+	    || (next->type == XML_CDATA_SECTION_NODE && !preserve)))
 	    {
 	      //combine node & node->next
 	      joinTextNodes(node, node->next, nodesToDelete);
 	    }
 	  if (prev && (prev->type == XML_TEXT_NODE
-			|| (prev->type == XML_CDATA_SECTION_NODE && !preserve)))
+	    || (prev->type == XML_CDATA_SECTION_NODE && !preserve)))
 	    {
-	      //combine node->prev & node
-		// join the text of both nodes
-		// assign the joined text to the earlier of the two nodes that has an ObjC object
-		// unlink the other node
-		// delete the other node's object (maybe add it to a list of nodes to delete when we're done? -- or just set its node to null, and then remove it from our subNodes when we're done iterating it) (or maybe we need to turn it into an NSInvalidNode too??)
+	      /* combine node->prev & node
+	       * join the text of both nodes
+	       * assign the joined text to the earlier of the two
+	       * nodes that has an ObjC object
+	       * unlink the other node
+	       * delete the other node's object (maybe add it to a
+	       * list of nodes to delete when we're done? --
+	       * or just set its node to null, and then remove it
+	       * from our subNodes when we're done iterating it)
+	       * (or maybe we need to turn it into an NSInvalidNode too??)
+	       */
 	      joinTextNodes(node->prev, node, nodesToDelete);
 	    }
 
@@ -548,21 +782,11 @@ static void joinTextNodes(xmlNodePtr nodeA, xmlNodePtr nodeB, NSMutableArray *no
       subEnum = [nodesToDelete objectEnumerator];
       while ((subNode = [subEnum nextObject]))
 	{
-	  [self _removeSubNode:subNode];
+	  [self _removeSubNode: subNode];
 	}
-      [self _updateExternalRetains];
     }
-}
-
-- (id) copyWithZone: (NSZone *)zone
-{
-  NSXMLElement *c = [[self class] alloc]; ///(NSXMLElement*)[super copyWithZone: zone];
-  xmlNodePtr newNode = (xmlNodePtr)xmlCopyNode(MY_NODE, 1); // copy recursively
-  clearPrivatePointers(newNode); // clear out all of the _private pointers in the entire tree
-  c = [c _initWithNode:newNode kind:internal->kind];
-  return c;
 }
 
 @end
 
-#endif
+#endif	/* HAVE_LIBXML */

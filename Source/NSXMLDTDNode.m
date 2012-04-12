@@ -24,7 +24,11 @@
 
 #import "common.h"
 
-#define GSInternal              NSXMLDTDNodeInternal
+#if defined(HAVE_LIBXML)
+
+#define GS_XMLNODETYPE	xmlEntity
+#define GSInternal	NSXMLDTDNodeInternal
+
 #import	"NSXMLPrivate.h"
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLDTDNode)
@@ -44,27 +48,44 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
   return internal->DTDKind;
 }
 
+- (void) _createInternal
+{
+  GS_CREATE_INTERNAL(NSXMLDTDNode);
+}
+
 - (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)theOptions
 {
   if (NSXMLEntityDeclarationKind == kind
     || NSXMLElementDeclarationKind == kind
     || NSXMLNotationDeclarationKind == kind)
     {
-      /* Create holder for internal instance variables so that we'll have
-       * all our ivars available rather than just those of the superclass.
-       */
-      GS_CREATE_INTERNAL(NSXMLDTDNode)
+      return [super initWithKind: kind options: theOptions];
     }
-  return [super initWithKind: kind options: theOptions];
+  else
+    {
+      [self release];
+      return [[NSXMLNode alloc] initWithKind: kind
+                                     options: theOptions];
+    }
 }
 
 - (id) initWithXMLString: (NSString*)string
 {
-  // internal->node = xmlNewDtd(NULL,NULL,NULL);
-  // TODO: Parse the string and get the info to create this...
+  NSXMLDTDNode *result = nil;
+  NSError *error;
+  NSXMLDocument *tempDoc = 
+    [[NSXMLDocument alloc] initWithXMLString: string
+                                     options: 0
+                                       error: &error];
+  if (tempDoc != nil)
+    {
+      result = RETAIN([tempDoc childAtIndex: 0]);
+      [result detach]; // detach from document.
+    }
+  [tempDoc release];
+  [self release];
 
-  [self notImplemented: _cmd];
-  return nil;
+  return result;
 }
 
 - (BOOL) isExternal
@@ -78,12 +99,12 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (NSString*) notationName
 {
-  return StringFromXMLStringPtr(MY_DTD->name);
+  return StringFromXMLStringPtr(internal->node->name);
 }
 
 - (NSString*) publicID
 {
- return StringFromXMLStringPtr(MY_DTD->ExternalID);
+ return StringFromXMLStringPtr(internal->node->ExternalID);
 }
 
 - (void) setDTDKind: (NSXMLDTDNodeKind)kind
@@ -93,23 +114,24 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (void) setNotationName: (NSString*)notationName
 {
-  MY_DTD->name = XMLSTRING(notationName);
+  internal->node->name = XMLSTRING(notationName);
 }
 
 - (void) setPublicID: (NSString*)publicID
 {
-  MY_DTD->ExternalID = XMLSTRING(publicID);
+  internal->node->ExternalID = XMLSTRING(publicID);
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  MY_DTD->ExternalID = XMLSTRING(systemID);
+  internal->node->ExternalID = XMLSTRING(systemID);
 }
 
 - (NSString*) systemID
 {
-  return StringFromXMLStringPtr(MY_DTD->SystemID);
+  return StringFromXMLStringPtr(internal->node->SystemID);
 }
 
 @end
 
+#endif	/* HAVE_LIBXML */
