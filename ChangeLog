@@ -1,23 +1,28 @@
+2012-04-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m:
+	Fix test for availability of lossy conversion via iconv.
+
 2012-04-10 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 
 	* Tools/make_strings/StringsFile.m
 	* Tools/pl.m
-	  some NSInteger -> NSUInteger changes to match return
-	  values of methods
+	some NSInteger -> NSUInteger changes to match return
+	values of methods
 
 2012-04-07 13:54  theraven
 
 	* libs/base/trunk/Source/NSMethodSignature.m: Fix NSMethodSignature
-	  generating nonsense values when it encounters a type encoding
-	  including blocks.
+	generating nonsense values when it encounters a type encoding
+	including blocks.
 
 2012-04-07 10:45  theraven
 
 	* libs/base/trunk/Source/GSSocketStream.m,
-	  libs/base/trunk/Source/NSAffineTransform.m,
-	  libs/base/trunk/Source/NSXMLDTDNode.m,
-	  libs/base/trunk/Tools/xmlparse.m: Fix the remaining compiler
-	  warnings.
+	libs/base/trunk/Source/NSAffineTransform.m,
+	libs/base/trunk/Source/NSXMLDTDNode.m,
+	libs/base/trunk/Tools/xmlparse.m: Fix the remaining compiler
+	warnings.
 
 2012-04-07  Fred Kiefer <FredKiefer@gmx.de>
 
@@ -33,31 +38,31 @@
 2012-04-06 12:37  theraven
 
 	* libs/base/trunk/Source/NSConnection.m,
-	  libs/base/trunk/Source/NSData.m,
-	  libs/base/trunk/Source/NSKeyValueObserving.m: Fix a few compiler
-	  warnings caused by type mismatches in NSLog statements.
+	libs/base/trunk/Source/NSData.m,
+	libs/base/trunk/Source/NSKeyValueObserving.m: Fix a few compiler
+	warnings caused by type mismatches in NSLog statements.
 
 2012-04-06 12:23  theraven
 
 	* libs/base/trunk/Headers/Foundation/NSArray.h,
-	  libs/base/trunk/Headers/Foundation/NSDictionary.h,
-	  libs/base/trunk/Headers/GNUstepBase/GSVersionMacros.h,
-	  libs/base/trunk/Source/NSArray.m,
-	  libs/base/trunk/Source/NSDictionary.m,
-	  libs/base/trunk/Tests/base/NSArray/basic.m,
-	  libs/base/trunk/Tests/base/NSDictionary/basic.m: Support for
-	  collection subscripting (NSArray and NSDictionary).
+	libs/base/trunk/Headers/Foundation/NSDictionary.h,
+	libs/base/trunk/Headers/GNUstepBase/GSVersionMacros.h,
+	libs/base/trunk/Source/NSArray.m,
+	libs/base/trunk/Source/NSDictionary.m,
+	libs/base/trunk/Tests/base/NSArray/basic.m,
+	libs/base/trunk/Tests/base/NSDictionary/basic.m: Support for
+	collection subscripting (NSArray and NSDictionary).
 
-	  Yes, the syntax is ugly, but no doubt people will start using it
-	  in June...
+	Yes, the syntax is ugly, but no doubt people will start using it
+	in June...
 
 2012-04-06 12:02  theraven
 
 	* libs/base/trunk/Source/NSAutoreleasePool.m,
-	  libs/base/trunk/Tests/base/NSAutoreleasePool,
-	  libs/base/trunk/Tests/base/NSAutoreleasePool/TestInfo,
-	  libs/base/trunk/Tests/base/NSAutoreleasePool/basic.m: Use the
-	  runtime's ARC autorelease pools if available.
+	libs/base/trunk/Tests/base/NSAutoreleasePool,
+	libs/base/trunk/Tests/base/NSAutoreleasePool/TestInfo,
+	libs/base/trunk/Tests/base/NSAutoreleasePool/basic.m: Use the
+	runtime's ARC autorelease pools if available.
 
 2012-04-04  Fred Kiefer <FredKiefer@gmx.de>
 
