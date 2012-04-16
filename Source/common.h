@@ -8,7 +8,6 @@
 #ifdef	_GNU_SOURCE
 #undef	_GNU_SOURCE
 #endif
-#define	_GNU_SOURCE	0
 
 #import	"config.h"
 
