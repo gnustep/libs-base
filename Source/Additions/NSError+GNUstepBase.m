@@ -28,8 +28,8 @@
  */
 #ifdef	_XOPEN_SOURCE
 #undef	_XOPEN_SOURCE
-#define	_XOPEN_SOURCE 600
 #endif
+#define	_XOPEN_SOURCE 600
 
 #import "common.h"
 
