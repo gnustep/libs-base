@@ -2548,7 +2548,7 @@ if test $enable_ffcall = yes; then
 fi
 
 AC_ARG_ENABLE(invocations,
-  [  --disable-invocations		Compile even if invocation-dependencies are not met],,
+  [  --disable-invocations		Build even if invocation-dependencies are not met],,
   enable_invocations=yes)
 
 # DO isn't used on apple-apple-apple
@@ -2718,11 +2718,85 @@ AC_SUBST(WITH_FFI)
 # libiconv's iconv.h, it will redefine iconv() to functions that exist
 # only in libiconv, and we'll get link errors.
 #
+# Some versions of iconv don't support the '//TRANSLIT' option, which is
+# needed for a lossy conversion (where we pick the closest equivalent for
+# any character present in the source string which does not exist in the
+# destination characterset), so we check for support of that first.
+
 # First, check if there's a working iconv in libc (ie. if the test program
-# compiles and links without any extra flags).
+# runs without any extra flags).
+AC_ARG_ENABLE(iconv,
+  [  --disable-iconv		Build even if iconv is not available],,
+  enable_iconv=yes)
+
+if test $enable_iconv = yes; then
 AC_MSG_CHECKING(iconv support)
-AC_LINK_IFELSE([[#include <iconv.h>
-int main(int argc,char **argv) { iconv_open("foo","bar"); }]]
+AC_RUN_IFELSE([[#include <iconv.h>
+int main(int argc,char **argv)
+{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }]]
+,
+  # libc has a working iconv.
+  AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+  AC_MSG_RESULT([[yes, in libc]])
+  found_iconv=yes
+,
+  found_iconv=no
+)
+
+if test $found_iconv = no ; then
+  # libc doesn't have a working iconv with translit.
+  # Try adding -liconv and any user supplied directory.
+  AC_ARG_WITH(libiconv-library,
+    [  --with-libiconv-library=PATH  Library path for libiconv libraries],
+    libiconv_libdir="$withval", libiconv_libdir="no")
+
+  if test "$libiconv_libdir" != "no"; then
+    GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
+  fi
+
+  old_LIBS="$LIBS"
+  LIBS="-liconv $LIBS"
+  AC_RUN_IFELSE([[#include <iconv.h>
+  int main(int argc,char **argv)
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }]]
+  ,
+    # -liconv works.
+    AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+    AC_MSG_RESULT([[yes, -liconv]])
+    found_iconv=yes
+  ,
+    found_iconv=no
+    LIBS="$old_LIBS"
+  )
+fi
+
+if test $found_iconv = no ; then
+  # -liconv with translit didn't work. Try giconv.h and -lgiconv.
+  # BSDs install this lib as libgiconv.
+  old_LIBS="$LIBS"
+  LIBS="-lgiconv $LIBS"
+  AC_RUN_IFELSE([[#include <giconv.h>
+  int main(int argc,char **argv)
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }]]
+  ,
+    AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+    AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
+    AC_MSG_RESULT([[yes, -lgiconv]])
+    found_iconv=yes
+  ,
+    found_iconv=no
+    LIBS="$old_LIBS"
+  )
+fi
+
+AC_ARG_ENABLE(stricticonv,
+  [  --enable-stricticonv		Build even if iconv is strict],,
+  enable_stricticonv=no)
+if test $enable_stricticonv = yes; then
+AC_MSG_CHECKING(non-lossy iconv support)
+AC_RUN_IFELSE([[#include <iconv.h>
+int main(int argc,char **argv)
+{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }]]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -2740,13 +2814,14 @@ if test $found_iconv = no ; then
     libiconv_libdir="$withval", libiconv_libdir="no")
 
   if test "$libiconv_libdir" != "no"; then
-	GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
+    GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
   fi
 
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
-  AC_LINK_IFELSE([[#include <iconv.h>
-  int main(int argc,char **argv) { iconv_open("foo","bar"); }]]
+  AC_RUN_IFELSE([[#include <iconv.h>
+  int main(int argc,char **argv)
+  { return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }]]
   ,
     # -liconv works.
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -2763,16 +2838,30 @@ if test $found_iconv = no ; then
   # BSDs install this lib as libgiconv.
   old_LIBS="$LIBS"
   LIBS="-lgiconv $LIBS"
-  AC_LINK_IFELSE([[#include <giconv.h>
-  int main(int argc,char **argv) { iconv_open("foo","bar"); }]]
+  AC_RUN_IFELSE([[#include <giconv.h>
+  int main(int argc,char **argv)
+  { return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }]]
   ,
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
     AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
     AC_MSG_RESULT([[yes, -lgiconv]])
+    found_iconv=yes
   ,
-    AC_MSG_RESULT([[no]])
+    found_iconv=no
     LIBS="$old_LIBS"
   )
+fi
+fi
+
+if test $found_iconv = no ; then
+  AC_MSG_RESULT([[no]])
+  echo
+  echo "You do not appear to have usable iconv header/library."
+  echo "Building without them will disable much characterset support."
+  echo "If you really want to build gnustep-base without character conversion"
+  echo " support, please add --disable-iconv to the configure arguments."
+  AC_MSG_ERROR([Missing support for character conversion functionality.])
+fi
 fi
 
 #--------------------------------------------------------------------
@@ -2780,7 +2869,7 @@ fi
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(xml,
-  [  --disable-xml			Compile even if XML-dependencies are not met],,
+  [  --disable-xml			Build even if XML-dependencies are not met],,
   enable_xml=yes)
 
 if test $enable_xml = yes; then
@@ -2801,7 +2890,7 @@ if test $enable_xml = yes; then
     # Check for (optional) libxslt
     #--------------------------------------------------------------------
     AC_ARG_ENABLE(xslt,
-      [  --disable-xslt		Compile even if XSLT-dependency is not met],,
+      [  --disable-xslt		Build even if XSLT-dependency is not met],,
       enable_xslt=yes)
 
     if test $enable_xslt = yes; then

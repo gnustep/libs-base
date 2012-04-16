@@ -1,3 +1,10 @@
+2012-04-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add tests for lossy conversion using iconv and 
+	provide options to disable use of iconv or allow use of iconv
+	where //TRANSLIT is missing.
+	* configure: regenerate.
+
 2012-04-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m:
