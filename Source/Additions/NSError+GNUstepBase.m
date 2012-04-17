@@ -26,16 +26,23 @@
 /* Carefully turn on _XOPEN_SOURCE for string.h so we
  * get the POSIX strerror_r
  */
-#ifdef	_XOPEN_SOURCE
-#undef	_XOPEN_SOURCE
+#if	defined(_GNU_SOURCE)
+#undef	_GNU_SOURCE
 #endif
+#if	defined(_XOPEN_SOURCE)
+#if	_XOPEN_SOURCE < 600
+#undef	_XOPEN_SOURCE
 #define	_XOPEN_SOURCE 600
+#endif
+#else
+#define	_XOPEN_SOURCE 600
+#endif
+#include <string.h>
 
 #import "common.h"
 
 #include <errno.h>
 #include <stdio.h>
-#include <string.h>
 
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
@@ -123,10 +130,12 @@ strerror_r(int eno, char *buf, int len)
   FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
     NULL, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
     (LPWSTR) &lpMsgBuf, 0, NULL );
-  if (lpMsgBuf != NULL) {
-    message = [NSString stringWithCharacters: lpMsgBuf length: wcslen(lpMsgBuf)];
-    LocalFree(lpMsgBuf);
-  }
+  if (lpMsgBuf != NULL)
+    {
+      message
+	= [NSString stringWithCharacters: lpMsgBuf length: wcslen(lpMsgBuf)];
+      LocalFree(lpMsgBuf);
+    }
   info = [NSMutableDictionary dictionaryWithObjectsAndKeys:
     message, NSLocalizedDescriptionKey,
     nil];
