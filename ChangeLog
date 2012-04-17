@@ -1,3 +1,9 @@
+2012-04-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/runtime.c: Fi error calculating instance
+	variable offset size as reported/suggested by James Cook
+	<mokus@deepbondi.net>
+
 2012-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Add tests for lossy conversion using iconv and 

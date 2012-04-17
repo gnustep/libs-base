@@ -182,7 +182,10 @@ class_addIvar(Class cls, const char *name,
   // Round up the offset of the ivar so it is correctly aligned.
   off = cls->instance_size >> alignment;
   if (off << alignment != cls->instance_size)
-    off = (off + 1) << alignment;
+    {
+      off++;
+    }
+  off = off << alignment; 
   ivar->ivar_offset = off;
   // Increase the instance size to make space for this.
   cls->instance_size = ivar->ivar_offset + size;
