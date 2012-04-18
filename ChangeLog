@@ -1,3 +1,9 @@
+2012-04-18  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tools/pl2link.m (main): Get the category from a new entry named
+	FreeDesktopCategories.
+	Patch by Philippe Roussel <p.o.roussel@free.fr>.
+
 2012-04-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/ObjectiveC2/runtime.c: Fi error calculating instance

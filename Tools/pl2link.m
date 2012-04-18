@@ -102,8 +102,18 @@ main(int argc, char** argv, char **env)
   fileContents = [NSMutableString stringWithCapacity: 200];
   [fileContents appendString:
     @"[Desktop Entry]\nEncoding=UTF-8\nType=Application\n"];
-  [fileContents appendString:
-    @"Categories=X-GNUstep;\n"];
+  list = [plist objectForKey: @"FreeDesktopCategories"];
+  if (list != nil && [list isKindOfClass: [NSArray class]] && [list count] > 0)
+    {
+      [fileContents appendString: @"Categories="];
+      [fileContents appendString: [list componentsJoinedByString: @";"]];
+      [fileContents appendString: @";\n"];
+    }
+  else
+    {
+      [fileContents appendString:
+                      @"Categories=X-GNUstep;\n"];
+    }
   entry = [plist objectForKey: @"ApplicationName"];
   if (entry != nil)
     {
