@@ -49,7 +49,11 @@
 #import "GSPrivate.h"
 
 #ifdef HAVE_MALLOC_H
+#if defined(__OpenBSD__)
+#include <stdlib.h>
+#else
 #include <malloc.h>
+#endif
 #endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>

@@ -1,3 +1,8 @@
+2012-04-22 Riccardo Mottola <rm@gnu.org>
+
+	* Source/GSString.m
+	Do not include malloc on OpenBSD to avoid warning.
+
 2012-04-18  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tools/pl2link.m (main): Get the category from a new entry named
