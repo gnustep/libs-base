@@ -1,3 +1,12 @@
+2012-04-23 12:47  theraven
+
+	* libs/base/trunk/Source/NSAutoreleasePool.m,
+	  libs/base/trunk/Tests/base/NSAutoreleasePool/autorelease_eh.m:
+	  Fix a bug in the new autorelease pool implementation when pools
+	  are destroyed in the wrong order.
+	  
+	  Test cast by Chris Armstrong!
+
 2012-04-22 Riccardo Mottola <rm@gnu.org>
 
 	* Source/GSString.m
