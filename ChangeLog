@@ -1,10 +1,15 @@
+2012-04-23  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tests/base/NSAutoreleasePool/autorelease_eh.m:
+	Get new test to run with older compilers.
+
 2012-04-23 12:47  theraven
 
 	* libs/base/trunk/Source/NSAutoreleasePool.m,
 	  libs/base/trunk/Tests/base/NSAutoreleasePool/autorelease_eh.m:
 	  Fix a bug in the new autorelease pool implementation when pools
 	  are destroyed in the wrong order.
-	  
+
 	  Test cast by Chris Armstrong!
 
 2012-04-22 Riccardo Mottola <rm@gnu.org>
@@ -26,7 +31,7 @@
 
 2012-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* configure.ac: Add tests for lossy conversion using iconv and 
+	* configure.ac: Add tests for lossy conversion using iconv and
 	provide options to disable use of iconv or allow use of iconv
 	where //TRANSLIT is missing.
 	* configure: regenerate.
