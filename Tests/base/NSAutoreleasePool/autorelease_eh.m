@@ -33,7 +33,7 @@
   NSAutoreleasePool *pool = [NSAutoreleasePool new];
   [@"Hello" stringByAppendingString: @" something to create a autoreleased object"];
   NSLog(@"Throwing an exception");
-  @throw [NSException exceptionWithName: @"MyFunException" reason: @"it was always meant to happen" userInfo: [NSDictionary dictionary]];
+  [[NSException exceptionWithName: @"MyFunException" reason: @"it was always meant to happen" userInfo: [NSDictionary dictionary]] raise];
   [pool release]; // Obviously this doesn't get run, but the [NSAutorelease new] at the top causes the problem
 }
 
