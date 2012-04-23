@@ -400,6 +400,14 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 }
 - (void) emptyPool
 {
+  struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
+  while (_child)
+    {
+      NSAutoreleasePool *pool = _child;
+      _child = pool->_child;
+      push_pool_to_cache(tv, pool);
+    }
+  tv->current_pool = self;
   objc_autoreleasePoolPop(_released);
 }
 /**
