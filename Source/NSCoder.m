@@ -36,14 +36,42 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSSerialization.h"
+#import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSCoder
+
+/* We used to use a system version which actually reflected the version
+ * of GNUstep-base ... but people screwed that up by releasing versions
+ * of base with unofficial version numbers conflicting with the scheme.
+ * So ... we are now starting from a basepoint of 1 million ... on the
+ * basis that the old numbering scheme derived from the gnustep-base
+ * major.minor.subminor versioning (in which each can range from 0 to 99)
+ * should not have allowed anyone to create an archive with a version
+ * greater than 999999.
+ * In future, the system version will change if (and only if) the format
+ * of the encoded data changes.
+ */
+#define	MAX_SUPPORTED_SYSTEM_VERSION	1000000
+
+static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
 + (void) initialize
 {
   if (self == [NSCoder class])
     {
+      unsigned	sv;
+
+      /* The GSCoderSystemVersion user default is provided for testing
+       * and to allow new code to communicate (via Distributed Objects)
+       * with systems running older versions.
+       */
+      sv = [[NSUserDefaults standardUserDefaults]
+	integerForKey: @"GSCoderSystemVersion"];
+      if (sv > 0 && sv <= MAX_SUPPORTED_SYSTEM_VERSION)
+	{
+	  systemVersion = sv;
+	} 
     }
 }
 
@@ -298,8 +326,7 @@
 
 - (unsigned) systemVersion
 {
-  return (((GNUSTEP_BASE_MAJOR_VERSION * 100)
-    + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
+  return systemVersion;
 }
 
 

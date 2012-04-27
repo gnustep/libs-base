@@ -351,10 +351,16 @@ static IMP	_eSerImp;	/* Method to serialize with.	*/
 static IMP	_eTagImp;	/* Serialize a type tag.	*/
 static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
+static unsigned	encodingVersion;
+
 + (void) initialize
 {
   if (self == [NSPortCoder class])
     {
+      NSCoder	*coder = [NSCoder new];
+
+      encodingVersion = [coder systemVersion];
+      [coder release];
 #if	GS_WITH_GC
       /* We create a typed memory descriptor for map nodes.
        */
@@ -435,12 +441,12 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 {
   NSUInteger	i;
   NSUInteger	offset = 0;
-  unsigned	size = objc_sizeof_type(type);
+  uint32_t	size = objc_sizeof_type(type);
   unsigned char	info;
   NSUInteger	count;
 
   (*_dTagImp)(_src, dTagSel, &info, 0, &_cursor);
-  if (_version > 12401)
+  if (12402 == _version)
     {
       uint8_t	c;
 
@@ -469,10 +475,15 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
     }
   else
     {
-      unsigned	c;
+      uint32_t	c;
 
-      (*_dDesImp)(_src, dDesSel, &c, @encode(unsigned), &_cursor, nil);
+      (*_dDesImp)(_src, dDesSel, &c, @encode(uint32_t), &_cursor, nil);
       count = c;
+      if (0xffffffff == c)
+	{
+	  (*_dDesImp)(_src, dDesSel,
+	    &count, @encode(NSUInteger), &_cursor, nil);
+	}
     }
   if (info != _GSC_ARY_B)
     {
@@ -1135,19 +1146,16 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 			    at: (const void*)buf
 {
   NSUInteger	i;
-  unsigned      c = count;
+  uint32_t      c = count;
   uint8_t	bytes[20];
   uint8_t	*bytePtr = 0;
   uint8_t	byteCount = 0;
   NSUInteger	offset = 0;
-  unsigned	size = objc_sizeof_type(type);
+  uint32_t	size = objc_sizeof_type(type);
+  uint32_t	version = [self systemVersion];
   uchar		info;
 
-  /* The array count is encoded as a sequence of bytes containing 7bits of
-   * data and using the eighth (top) bit to indicate that there are more
-   * bytes in the sequence.
-   */
-  if ([self systemVersion] > 12401)
+  if (12402 == version)
     {
       NSUInteger	tmp = count;
 
@@ -1159,6 +1167,21 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  tmp /= 128;
 	}
       bytePtr = &bytes[sizeof(bytes) - byteCount];
+    }
+  else
+    {
+      /* We normally store the count as a 32bit integer ... but if it's
+       * very big, we store 0xffffffff and then an additional 64bit value
+       * containing the actual count.
+       */
+      if (count >= 0xffffffff)
+	{
+	  c = 0xffffffff;
+	}
+      else
+	{
+	  c = count;
+	}
     }
 
   switch (*type)
@@ -1188,16 +1211,20 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       if (_initialPass == NO)
 	{
 	  (*_eTagImp)(_dst, eTagSel, _GSC_ARY_B);
-	  if (0 == byteCount)
-	    {
-	      (*_eSerImp)(_dst, eSerSel, &c, @encode(unsigned), nil);
-	    }
-	  else
+          if (12402 == version)
 	    {
 	      for (i = 0; i < byteCount; i++)
 		{
 		  (*_eSerImp)
 		    (_dst, eSerSel, bytePtr + i, @encode(uint8_t), nil);
+		}
+	    }
+	  else
+	    {
+	      (*_eSerImp)(_dst, eSerSel, &c, @encode(uint32_t), nil);
+	      if (0xffffffff == c)
+		{
+		  (*_eSerImp)(_dst, eSerSel, &count, @encode(NSUInteger), nil);
 		}
 	    }
 	}
@@ -1210,15 +1237,19 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
   else if (_initialPass == NO)
     {
       (*_eTagImp)(_dst, eTagSel, _GSC_ARY_B);
-      if (0 == byteCount)
-	{
-	  (*_eSerImp)(_dst, eSerSel, &c, @encode(unsigned), nil);
-	}
-      else
+      if (12402 == version)
 	{
 	  for (i = 0; i < byteCount; i++)
 	    {
 	      (*_eSerImp)(_dst, eSerSel, bytePtr + i, @encode(uint8_t), nil);
+	    }
+	}
+      else
+	{
+	  (*_eSerImp)(_dst, eSerSel, &c, @encode(unsigned), nil);
+	  if (0xffffffff == c)
+	    {
+	      (*_eSerImp)(_dst, eSerSel, &count, @encode(NSUInteger), nil);
 	    }
 	}
 
@@ -1919,6 +1950,12 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 			     classes: &sizeC
 			     objects: &sizeO
 			    pointers: &sizeP];
+
+	  if (_version > encodingVersion)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+		format: @"Message systemVersion (%u) not recognised", _version];
+	    }
 
 	  /*
 	   *	Allocate and initialise arrays to build crossref maps in.

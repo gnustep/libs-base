@@ -398,16 +398,22 @@ mapClassName(NSUnarchiverObjectInfo *info)
 @implementation NSUnarchiver
 
 static Class NSDataMallocClass;
+static unsigned	encodingVersion;
 
 + (void) initialize
 {
   if ([self class] == [NSUnarchiver class])
     {
+      NSArchiver	*archiver = [NSArchiver new];
+
+      encodingVersion = [archiver systemVersion];
+      [archiver release];
       desSel = @selector(deserializeDataAt:ofObjCType:atCursor:context:);
       tagSel = @selector(deserializeTypeTag:andCrossRef:atCursor:);
       dValSel = @selector(decodeValueOfObjCType:at:);
       clsDict = [[NSMutableDictionary alloc] initWithCapacity: 200];
       NSDataMallocClass = [NSDataMalloc class];
+      
     }
 }
 
@@ -536,7 +542,7 @@ static Class NSDataMallocClass;
   NSUInteger	count;
 
   (*tagImp)(src, tagSel, &info, 0, &cursor);
-  if ([self systemVersion] > 12401)
+  if ([self systemVersion] == 12402)
     {
       uint8_t	c;
 
@@ -565,10 +571,14 @@ static Class NSDataMallocClass;
     }
   else
     {
-      unsigned	c;
+      uint32_t	c;
 
-      (*desImp)(src, desSel, &c, @encode(unsigned), &cursor, nil);
+      (*desImp)(src, desSel, &c, @encode(uint32_t), &cursor, nil);
       count = c;
+      if (0xffffffff == c)
+	{
+	  (*desImp)(src, desSel, &count, @encode(NSUInteger), &cursor, nil);
+	}
     }
   if (info != _GSC_ARY_B)
     {
@@ -1524,6 +1534,11 @@ static Class NSDataMallocClass;
 		    classes: &sizeC
 		    objects: &sizeO
 		   pointers: &sizeP];
+  if (version > encodingVersion)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"Archive systemVersion (%u) not recognised", version];
+    }
 
   if (clsMap == 0)
     {

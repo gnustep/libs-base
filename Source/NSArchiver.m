@@ -254,20 +254,17 @@ static Class	NSMutableDataMallocClass;
 			 count: (NSUInteger)count
 			    at: (const void*)buf
 {
-  unsigned      c = count;
+  uint32_t      c;
   uint8_t	bytes[20];
   uint8_t	*bytePtr = 0;
   uint8_t	byteCount = 0;
   NSUInteger	i;
   NSUInteger	offset = 0;
-  unsigned	size = objc_sizeof_type(type);
+  uint32_t	size = objc_sizeof_type(type);
+  uint32_t	version = [self systemVersion];
   uchar		info;
 
-  /* The array count is encoded as a sequence of bytes containing 7bits of
-   * data and using the eighth (top) bit to indicate that there are more
-   * bytes in the sequence.
-   */
-  if ([self systemVersion] > 12401)
+  if (12402 == version)
     {
       NSUInteger	tmp = count;
 
@@ -279,6 +276,21 @@ static Class	NSMutableDataMallocClass;
 	  tmp /= 128;
 	}
       bytePtr = &bytes[sizeof(bytes) - byteCount];
+    }
+  else
+    {
+      /* We normally store the count as a 32bit integer ... but if it's
+       * very big, we store 0xffffffff and then an additional 64bit value
+       * containing the actual count.
+       */
+      if (count >= 0xffffffff)
+	{
+	  c = 0xffffffff;
+	}
+      else
+	{
+	  c = count;
+	}
     }
 
   switch (*type)
@@ -308,15 +320,19 @@ static Class	NSMutableDataMallocClass;
       if (_initialPass == NO)
 	{
 	  (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-	  if (0 == byteCount)
-	    {
-	      (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
-	    }
-	  else
+	  if (12402 == version)
 	    {
 	      for (i = 0; i < byteCount; i++)
 		{
 		  (*_serImp)(_dst, serSel, bytePtr + i, @encode(uint8_t), nil);
+		}
+	    }
+	  else
+	    {
+	      (*_serImp)(_dst, serSel, &c, @encode(uint32_t), nil);
+	      if (0xffffffff == c)
+		{
+		  (*_serImp)(_dst, serSel, &count, @encode(NSUInteger), nil);
 		}
 	    }
 	}
@@ -330,15 +346,19 @@ static Class	NSMutableDataMallocClass;
   else if (_initialPass == NO)
     {
       (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
-      if (0 == byteCount)
-	{
-	  (*_serImp)(_dst, serSel, &c, @encode(unsigned), nil);
-	}
-      else
+      if (12402 == version)
 	{
 	  for (i = 0; i < byteCount; i++)
 	    {
 	      (*_serImp)(_dst, serSel, bytePtr + i, @encode(uint8_t), nil);
+	    }
+	}
+      else
+	{
+	  (*_serImp)(_dst, serSel, &c, @encode(uint32_t), nil);
+	  if (0xffffffff == c)
+	    {
+	      (*_serImp)(_dst, serSel, &count, @encode(NSUInteger), nil);
 	    }
 	}
 
