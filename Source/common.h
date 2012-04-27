@@ -4,12 +4,35 @@
  * might be from an earlier build.
  */
 
-// disable extensions ... we want to use standard code
+/* disable extensions ... we want to use standard code
+ */
 #ifdef	_GNU_SOURCE
 #undef	_GNU_SOURCE
 #endif
 
+/* Ensure we have _XOPEN_SOURCE turned on at the appropriate
+ * level for the facilities we need.
+ *
+ * Minimum of 600 for string.h so we get the POSIX strerror_r() behavior
+ */
+#if	defined(_XOPEN_SOURCE)
+#if	_XOPEN_SOURCE < 600
+#undef	_XOPEN_SOURCE
+#define	_XOPEN_SOURCE 600
+#endif
+#else
+#define	_XOPEN_SOURCE 600
+#endif
+
 #import	"config.h"
+
+#if	defined(HAVE_STRING_H)
+/* For POSIX strerror_r()
+ */
+#include <string.h>
+#endif
+
+#include <errno.h>
 
 /* If this is included in a file in the Additions subdirectory, and we are
  * building for use with the NeXT/Apple Foundation, then we need to import

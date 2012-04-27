@@ -1,3 +1,22 @@
+2012-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArchiver.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSPortCoder.m:
+	* Source/Coder.m:
+	Updates to cope with the fact that some BSD ports of gnustep-base
+	used incorrect versioning, and that people have released Gorm
+	files with versioning incompatible with current releases.
+	1. dissociate coder -systemVersion from the actual system version,
+	so that if people mess with the gnustep-base version, their
+	non-standard releases will still interoperate with normal code.
+	2. Implement new array encoding/decoding compatible with earlier
+	versions (except if the array contains exactly 0xffffffff items).
+	3. Raise exception if decoding archives with an unsupported version.
+	4. Add GSCoderSystemVersion user default to override the system
+	version used for encoding ... for testing and tweaking to generate
+	archives in, or communicate with DO servers using an earlier version.
+
 2012-04-23  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tests/base/NSAutoreleasePool/autorelease_eh.m:
@@ -6,11 +25,11 @@
 2012-04-23 12:47  theraven
 
 	* libs/base/trunk/Source/NSAutoreleasePool.m,
-	  libs/base/trunk/Tests/base/NSAutoreleasePool/autorelease_eh.m:
-	  Fix a bug in the new autorelease pool implementation when pools
-	  are destroyed in the wrong order.
+	libs/base/trunk/Tests/base/NSAutoreleasePool/autorelease_eh.m:
+	Fix a bug in the new autorelease pool implementation when pools
+	are destroyed in the wrong order.
 
-	  Test cast by Chris Armstrong!
+	Test cast by Chris Armstrong!
 
 2012-04-22 Riccardo Mottola <rm@gnu.org>
 
