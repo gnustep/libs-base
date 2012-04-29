@@ -15,6 +15,9 @@
  *
  * Minimum of 600 for string.h so we get the POSIX strerror_r() behavior
  */
+/* This hack work around for glibc breaks FreeBSD and probably other platforms.
+ */
+#ifndef __FreeBSD__
 #if	defined(_XOPEN_SOURCE)
 #if	_XOPEN_SOURCE < 600
 #undef	_XOPEN_SOURCE
@@ -22,6 +25,7 @@
 #endif
 #else
 #define	_XOPEN_SOURCE 600
+#endif
 #endif
 
 #import	"config.h"
