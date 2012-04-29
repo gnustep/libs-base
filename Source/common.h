@@ -17,7 +17,7 @@
  */
 /* This hack work around for glibc breaks FreeBSD and probably other platforms.
  */
-#ifndef __FreeBSD__
+#if defined(__linux__) &&!defined(__GNU__)
 #if	defined(_XOPEN_SOURCE)
 #if	_XOPEN_SOURCE < 600
 #undef	_XOPEN_SOURCE
