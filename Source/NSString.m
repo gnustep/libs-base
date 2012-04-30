@@ -1,5 +1,5 @@
 /** Implementation of GNUSTEP string class
-   Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1995-2012 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
@@ -47,6 +47,12 @@
 #import "common.h"
 #include <stdio.h>
 #include <string.h>
+
+/* OpenBSD recommends impodring stdlib but not malloc.h for malloc */
+#ifdef HAVE_STDLIB_H
+#  include <stdlib.h>
+#endif
+
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSDecimal.h"
@@ -89,7 +95,9 @@
 #include <wchar.h>
 
 #ifdef HAVE_MALLOC_H
-#include <malloc.h>
+#  ifndef __OpenBSD__
+#    include <malloc.h>
+#  endif
 #endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
