@@ -1,3 +1,8 @@
+2012-04-30 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSString:
+	Do not include malloc on OpenBSD to avoid warning (and include stdlib always).
+
 2012-04-29 Riccardo Mottola <rm@gnu.org>
 
 	* Source/common.h:
