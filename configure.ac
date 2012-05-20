@@ -2987,7 +2987,7 @@ if test $enable_tls = yes; then
     echo
     echo "You do not appear to have usable libgnutls headers/library."
     echo "Building without them will disable SSL/TLS/HTTPS in NSStream"
-    echo "and NSConnection."
+    echo "and NSURLConnection."
     echo "If you really want to build gnustep-base without TLS support,"
     echo "add --disable-tls to the configure arguments."
     AC_MSG_ERROR([Missing support for TLS functionality.])
