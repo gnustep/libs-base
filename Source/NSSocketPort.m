@@ -1802,6 +1802,8 @@ static Class		tcpPortClass;
 #if	defined(__MINGW__)
 - (void) getFds: (NSInteger*)fds count: (NSInteger*)count
 {
+  NSInteger             limit = *count;
+  NSInteger             pos = 0;
   NSMapEnumerator	me;
   void			*event;
   SOCKET                fd;
@@ -1810,19 +1812,18 @@ static Class		tcpPortClass;
 
   M_LOCK(myLock);
 
-  /*
-   * Make sure there is enough room in the provided array.
-   */
-  NSAssert(*count > (int)NSCountMapTable(events),
-    NSInternalInconsistencyException);
+  *count = NSCountMapTable(events);
 
   /*
    * Put in our listening socket.
    */
-  *count = 0;
   if (eventListener != WSA_INVALID_EVENT)
     {
-      fds[(*count)++] = (uintptr_t)eventListener;
+      *count++;
+      if (pos < limit)
+        {
+          fds[pos++] = (uintptr_t)eventListener;
+        }
     }
 
   /*
@@ -1834,9 +1835,11 @@ static Class		tcpPortClass;
   while (NSNextMapEnumeratorPair(&me, &event, (void**)&fd))
     { 
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)fd);
-      if (handle->recvPort == recvSelf && handle->inReplyMode == NO)
+      if (handle->recvPort == recvSelf
+        && handle->inReplyMode == NO
+        && pos < limit)
 	{
-	  fds[(*count)++] = (uintptr_t)event;
+	  fds[pos++] = (uintptr_t)event;
           NSDebugMLLog(@"NSPort", @"Add event %p", event);
 	}
     }
@@ -1846,6 +1849,8 @@ static Class		tcpPortClass;
 #else
 - (void) getFds: (NSInteger*)fds count: (NSInteger*)count
 {
+  NSInteger             limit = *count;
+  NSInteger             pos = 0;
   NSMapEnumerator	me;
   void			*sock;
   GSTcpHandle		*handle;
@@ -1853,19 +1858,18 @@ static Class		tcpPortClass;
 
   M_LOCK(myLock);
 
-  /*
-   * Make sure there is enough room in the provided array.
-   */
-  NSAssert(*count > (int)NSCountMapTable(handles),
-    NSInternalInconsistencyException);
+  *count = NSCountMapTable(handles);
 
   /*
    * Put in our listening socket.
    */
-  *count = 0;
   if (listener >= 0)
     {
-      fds[(*count)++] = listener;
+      *count = *count + 1;
+      if (pos < limit)
+        {
+          fds[pos++] = listener;
+        }
     }
 
   /*
@@ -1876,9 +1880,10 @@ static Class		tcpPortClass;
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &sock, (void**)&handle))
     {
-      if (handle->recvPort == recvSelf)
+      if (handle->recvPort == recvSelf
+        && pos < limit)
 	{
-	  fds[(*count)++] = (int)(intptr_t)sock;
+	  fds[pos++] = (int)(intptr_t)sock;
 	}
     }
   NSEndMapTableEnumeration(&me);

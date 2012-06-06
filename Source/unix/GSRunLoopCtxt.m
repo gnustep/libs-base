@@ -27,7 +27,7 @@
 #include <poll.h>
 #endif
 
-#define	FDCOUNT	128
+#define	FDCOUNT	1024
 
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
@@ -378,10 +378,20 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	      case ET_RPORT: 
 		{
 		  id port = info->receiver;
+                  NSInteger port_fd_size = FDCOUNT;
 		  NSInteger port_fd_count = FDCOUNT;
-		  NSInteger port_fd_array[FDCOUNT];
+		  NSInteger port_fd_buffer[FDCOUNT];
+		  NSInteger *port_fd_array = port_fd_buffer;
 
 		  [port getFds: port_fd_array count: &port_fd_count];
+                  while (port_fd_count > port_fd_size)
+                    {
+                      if (port_fd_array != port_fd_buffer) free(port_fd_array);
+                      port_fd_size = port_fd_count;
+                      port_fd_count = port_fd_size;
+                      port_fd_array = malloc(sizeof(NSInteger)*port_fd_size);
+                      [port getFds: port_fd_array count: &port_fd_count];
+                    }
 		  NSDebugMLLog(@"NSRunLoop",
 		    @"listening to %d port handles\n", port_fd_count);
 		  while (port_fd_count--)
@@ -391,6 +401,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		      NSMapInsert(_rfdMap, 
 			(void*)(intptr_t)port_fd_array[port_fd_count], info);
 		    }
+                  if (port_fd_array != port_fd_buffer) free(port_fd_array);
 		}
 		break;
 	    }
@@ -792,10 +803,20 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	      case ET_RPORT: 
 		{
 		  id port = info->receiver;
+                  NSInteger port_fd_size = FDCOUNT;
 		  NSInteger port_fd_count = FDCOUNT;
-		  NSInteger port_fd_array[FDCOUNT];
+		  NSInteger port_fd_buffer[FDCOUNT];
+		  NSInteger port_fd_array = port_fd_count;
 
 		  [port getFds: port_fd_array count: &port_fd_count];
+                  while (port_fd_count > port_fd_size)
+                    {
+                      if (port_fd_array != port_fd_buffer) free(port_fd_array);
+                      port_fd_size = port_fd_count;
+                      port_fd_count = port_fd_size;
+                      port_fd_array = malloc(sizeof(NSInteger)*port_fd_size);
+                      [port getFds: port_fd_array count: &port_fd_count];
+                    }
 		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port sockets",
 		    port_fd_count);
 		  while (port_fd_count--)
@@ -807,6 +828,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		      NSMapInsert(_rfdMap, 
 			(void*)(intptr_t)port_fd_array[port_fd_count], info);
 		    }
+                  if (port_fd_array != port_fd_buffer) free(port_fd_array);
 		}
 		break;
 

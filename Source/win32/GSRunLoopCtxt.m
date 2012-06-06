@@ -17,7 +17,7 @@
 #import "../GSRunLoopWatcher.h"
 #import "../GSPrivate.h"
 
-#define	FDCOUNT	128
+#define	FDCOUNT	1024
 
 #if	GS_WITH_GC == 0
 static SEL	wRelSel;
@@ -347,19 +347,30 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	      case ET_RPORT:
 		{
 		  id port = info->receiver;
-		  NSInteger port_handle_count = FDCOUNT;
-		  NSInteger port_handle_array[FDCOUNT];
+		  NSInteger port_hd_size = FDCOUNT;
+		  NSInteger port_hd_count = FDCOUNT;
+		  NSInteger port_hd_buffer[FDCOUNT];
+		  NSInteger *port_hd_array = port_hd_buffer;
 
-		  [port getFds: port_handle_array count: &port_handle_count];
+		  [port getFds: port_hd_array count: &port_hd_count];
+                  while (port_hd_count > port_hd_size)
+                    {
+                      if (port_hd_array != port_hd_buffer) free(port_hd_array);
+                      port_hd_size = port_hd_count;
+                      port_hd_count = port_hd_size;
+                      port_hd_array = malloc(sizeof(NSInteger)*port_hd_size);
+                      [port getFds: port_hd_array count: &port_hd_count];
+                    }
 		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port handles",
-		    port_handle_count);
-		  while (port_handle_count--)
+		    port_hd_count);
+		  while (port_hd_count--)
 		    {
 		      NSMapInsert(handleMap, 
-			(void*)(size_t) port_handle_array[port_handle_count],
+			(void*)(size_t) port_hd_array[port_hd_count],
 			info);
 		      num_handles++;
 		    }
+                  if (port_hd_array != port_hd_buffer) free(port_hd_array);
 		}
 		break;
 	      case ET_WINMSG:
