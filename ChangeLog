@@ -1,3 +1,68 @@
+2012-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSSocketPort.m:
+        * Source/unix/GSRunLoopCtxt.m:
+        * Source/NSMessagePort.m:
+        * Source/win32/GSRunLoopCtxt.m:
+        Modify code for getting file descriptors to cope with an unlimited
+        number (allocate buffer on heap if necessary) for server processes
+        with very large numbers of distributed object connections.
+
+2012-04-30 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSString:
+	Do not include malloc on OpenBSD to avoid warning (and include
+        stdlib always).
+
+2012-04-29 Riccardo Mottola <rm@gnu.org>
+
+	* Source/common.h:
+	Extend David's hack to all known non-glibc platforms
+
+2012-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArchiver.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSPortCoder.m:
+	* Source/Coder.m:
+	Updates to cope with the fact that some BSD ports of gnustep-base
+	used incorrect versioning, and that people have released Gorm
+	files with versioning incompatible with current releases.
+	1. dissociate coder -systemVersion from the actual system version,
+	so that if people mess with the gnustep-base version, their
+	non-standard releases will still interoperate with normal code.
+	2. Implement new array encoding/decoding compatible with earlier
+	versions (except if the array contains exactly 0xffffffff items).
+	3. Raise exception if decoding archives with an unsupported version.
+	4. Add GSCoderSystemVersion user default to override the system
+	version used for encoding ... for testing and tweaking to generate
+	archives in, or communicate with DO servers using an earlier version.
+
+2012-04-23  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tests/base/NSAutoreleasePool/autorelease_eh.m:
+	Get new test to run with older compilers.
+
+2012-04-23 12:47  theraven
+
+	* libs/base/trunk/Source/NSAutoreleasePool.m,
+	libs/base/trunk/Tests/base/NSAutoreleasePool/autorelease_eh.m:
+	Fix a bug in the new autorelease pool implementation when pools
+	are destroyed in the wrong order.
+
+	Test cast by Chris Armstrong!
+
+2012-04-22 Riccardo Mottola <rm@gnu.org>
+
+	* Source/GSString.m
+	Do not include malloc on OpenBSD to avoid warning.
+
+2012-04-18  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tools/pl2link.m (main): Get the category from a new entry named
+	FreeDesktopCategories.
+	Patch by Philippe Roussel <p.o.roussel@free.fr>.
+
 2012-04-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/ObjectiveC2/runtime.c: Fi error calculating instance

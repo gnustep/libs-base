@@ -2573,7 +2573,7 @@ GSPrivateDefaultCStringEncoding()
 	   * First handle the fallback response from nl_langinfo() ...
 	   * if we are getting the default value we can't assume that
 	   * the user has set anything up at all, so we must use the
-	   * OpenStep/GNUstep default encopding ... latin1, even though
+	   * OpenStep/GNUstep default encoding ... latin1, even though
 	   * the nl_langinfo() stuff would say default is ascii.
 	   */
 	  if (strcmp(encoding, "ANSI_X3.4-1968") == 0 /* glibc */
