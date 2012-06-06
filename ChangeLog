@@ -1,7 +1,18 @@
+2012-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSSocketPort.m:
+        * Source/unix/GSRunLoopCtxt.m:
+        * Source/NSMessagePort.m:
+        * Source/win32/GSRunLoopCtxt.m:
+        Modify code for getting file descriptors to cope with an unlimited
+        number (allocate buffer on heap if necessary) for server processes
+        with very large numbers of distributed object connections.
+
 2012-04-30 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSString:
-	Do not include malloc on OpenBSD to avoid warning (and include stdlib always).
+	Do not include malloc on OpenBSD to avoid warning (and include
+        stdlib always).
 
 2012-04-29 Riccardo Mottola <rm@gnu.org>
 

@@ -1414,6 +1414,8 @@ typedef	struct {
  */
 - (void) getFds: (NSInteger*)fds count: (NSInteger*)count
 {
+  NSInteger             limit = *count;
+  NSInteger             pos = 0;
   NSMapEnumerator	me;
   void			*sock;
   GSMessageHandle	*handle;
@@ -1421,19 +1423,18 @@ typedef	struct {
 
   M_LOCK(myLock);
 
-  /*
-   * Make sure there is enough room in the provided array.
-   */
-  NSAssert(*count > (int)NSCountMapTable(handles),
-    NSInternalInconsistencyException);
+  *count = NSCountMapTable(handles);
 
   /*
    * Put in our listening socket.
    */
-  *count = 0;
   if (lDesc >= 0)
     {
-      fds[(*count)++] = lDesc;
+      *count = *count + 1;
+      if (pos < limit)
+        {
+          fds[pos++] = lDesc;
+        }
     }
 
   /*
@@ -1444,9 +1445,10 @@ typedef	struct {
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &sock, (void**)&handle))
     {
-      if (handle->recvPort == recvSelf)
+      if (handle->recvPort == recvSelf
+        && pos < limit)
 	{
-	  fds[(*count)++] = (int)(intptr_t)sock;
+          fds[pos++] = (int)(intptr_t)sock;
 	}
     }
   NSEndMapTableEnumeration(&me);
