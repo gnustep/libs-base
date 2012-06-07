@@ -1,3 +1,8 @@
+2012-06-07  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/unix/GSRunLoopCtxt.m (-pollUntil:within:): Fix previous
+	change to compile again when using select() instead of poll().
+
 2012-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSSocketPort.m:
