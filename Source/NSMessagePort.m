@@ -1423,18 +1423,16 @@ typedef	struct {
 
   M_LOCK(myLock);
 
-  *count = NSCountMapTable(handles);
-
   /*
    * Put in our listening socket.
    */
   if (lDesc >= 0)
     {
-      *count = *count + 1;
       if (pos < limit)
         {
-          fds[pos++] = lDesc;
+          fds[pos] = lDesc;
         }
+      pos++;
     }
 
   /*
@@ -1445,14 +1443,18 @@ typedef	struct {
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &sock, (void**)&handle))
     {
-      if (handle->recvPort == recvSelf
-        && pos < limit)
-	{
-          fds[pos++] = (int)(intptr_t)sock;
-	}
+      if (handle->recvPort == recvSelf)
+        {
+          if (pos < limit)
+            {
+              fds[pos] = (int)(intptr_t)sock;
+            }
+          pos++;
+        }
     }
   NSEndMapTableEnumeration(&me);
   M_UNLOCK(myLock);
+  *count = pos;
 }
 
 - (id) conversation: (NSPort*)recvPort
