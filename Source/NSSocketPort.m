@@ -1858,18 +1858,16 @@ static Class		tcpPortClass;
 
   M_LOCK(myLock);
 
-  *count = NSCountMapTable(handles);
-
   /*
    * Put in our listening socket.
    */
   if (listener >= 0)
     {
-      *count = *count + 1;
       if (pos < limit)
         {
-          fds[pos++] = listener;
+          fds[pos] = listener;
         }
+      pos++;
     }
 
   /*
@@ -1880,14 +1878,18 @@ static Class		tcpPortClass;
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &sock, (void**)&handle))
     {
-      if (handle->recvPort == recvSelf
-        && pos < limit)
-	{
-	  fds[pos++] = (int)(intptr_t)sock;
-	}
+      if (handle->recvPort == recvSelf)
+        {
+          if (pos < limit)
+            {
+              fds[pos] = (int)(intptr_t)sock;
+            }
+          pos++;
+        }
     }
   NSEndMapTableEnumeration(&me);
   M_UNLOCK(myLock);
+  *count = pos;
 }
 #endif
 
