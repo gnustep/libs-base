@@ -100,8 +100,8 @@ strerror_r(int eno, char *buf, int len)
 #endif
 #endif
 
-/*
- * Returns an NSError instance encapsulating the last system error.
+/* Returns an NSError instance encapsulating the last system error,
+ * or nil if the last system call did not result in an error.
  * The user info dictionary of this object will be mutable, so that
  * additional information can be placed in it by higher level code.
  */
@@ -114,6 +114,10 @@ strerror_r(int eno, char *buf, int len)
 #else
   eno = errno;
 #endif
+  if (0 == eno)
+    {
+      return nil;
+    }
   return [self _systemError: eno];
 }
 
