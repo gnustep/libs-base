@@ -2376,6 +2376,13 @@ static BOOL	classInitialized = NO;
   NSDictionary	*loc;
   int		step = 2;
 
+  if (nil == aPropertyList)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[%@ +%@]: nil property list",
+        NSStringFromClass(self), NSStringFromSelector(_cmd)];
+    }
+
   loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   dest = [NSMutableData dataWithCapacity: 1024];
 

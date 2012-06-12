@@ -1,3 +1,15 @@
+<<<<<<< HEAD
+=======
+2012-06-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * NSPropertyList.m: Check for nil property list argument.
+
+2012-06-07  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/unix/GSRunLoopCtxt.m (-pollUntil:within:): Fix previous
+	change to compile again when using select() instead of poll().
+
+>>>>>>> 7bef14a32 (check for nil argument and raise as per apple documentation)
 2012-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSSocketPort.m:
