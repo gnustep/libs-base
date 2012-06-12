@@ -1,3 +1,7 @@
+2012-06-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * NSPropertyList.m: Check for nil property list argument.
+
 2012-06-07  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/unix/GSRunLoopCtxt.m (-pollUntil:within:): Fix previous
