@@ -1,6 +1,11 @@
+2012-06-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSScanner.m: Fix missing 'else' which was causing a
+        memory leak and minor performance degradation.
+
 2012-06-12  Richard Frith-Macdonald <rfm@gnu.org>
 
-        * NSPropertyList.m: Check for nil property list argument.
+        * Source/NSPropertyList.m: Check for nil property list argument.
 
 2012-06-07  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
