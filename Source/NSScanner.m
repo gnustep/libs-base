@@ -205,7 +205,7 @@ typedef GSString	*ivars;
     {
       _string = [_holder initWithString: aString];
     }
-  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
+  else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
     {
       _string = RETAIN(aString);
     }
