@@ -95,6 +95,7 @@ typedef enum {
 /* Class variables - We keep track of all the bundles */
 static NSBundle		*_mainBundle = nil;
 static NSMapTable	*_bundles = NULL;
+static NSMapTable	*_byClass = NULL;
 static NSMapTable	*_byIdentifier = NULL;
 
 /* Store the working directory at startup */
@@ -517,7 +518,8 @@ _find_main_bundle_for_tool(NSString *toolName)
 
 @interface NSBundle (Private)
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
-+ (void) _addFrameworkFromClass: (Class)frameworkClass;
++ (NSBundle*) _addFrameworkFromClass: (Class)frameworkClass;
++ (NSMutableArray*) _addFrameworks;
 + (NSString*) _gnustep_target_cpu;
 + (NSString*) _gnustep_target_dir;
 + (NSString*) _gnustep_target_os;
@@ -577,17 +579,17 @@ _find_main_bundle_for_tool(NSString *toolName)
    disk to those framework bundles.
 
 */
-+ (void) _addFrameworkFromClass: (Class)frameworkClass
++ (NSBundle*) _addFrameworkFromClass: (Class)frameworkClass
 {
   NSBundle	*bundle = nil;
   NSString	**fmClasses;
   NSString	*bundlePath = nil;
   unsigned int	len;
-  const char *frameworkClassName;
+  const char    *frameworkClassName;
 
   if (frameworkClass == Nil)
     {
-      return;
+      return nil;
     }
 
   frameworkClassName = class_getName(frameworkClass);
@@ -595,10 +597,24 @@ _find_main_bundle_for_tool(NSString *toolName)
   len = strlen (frameworkClassName);
 
   if (len > 12 * sizeof(char)
-      && !strncmp ("NSFramework_", frameworkClassName, 12))
+    && !strncmp ("NSFramework_", frameworkClassName, 12))
     {
       /* The name of the framework.  */
       NSString *name;
+
+      /* If the bundle for this framework class is already loaded,
+       * simply return it.  The lookup will return an NSNull object
+       * if the framework class has no known bundle.
+       */
+      bundle = (id)NSMapGet(_byClass, frameworkClass);
+      if (nil != bundle)
+        {
+          if ((id)bundle == (id)[NSNull null])
+            {
+              bundle = nil;
+            }
+          return bundle;
+        }
 
       name = [NSString stringWithUTF8String: &frameworkClassName[12]];
       /* Important - gnustep-make mangles framework names to encode
@@ -751,12 +767,21 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    }
 	}
 
+      [load_lock lock];
       if (bundle == nil)
 	{
+          NSMapInsert(_byClass, frameworkClass, [NSNull null]);
+          [load_lock unlock];
 	  NSWarnMLog (@"Could not find framework %@ in any standard location",
 	    name);
-	  return;
+	  return nil;
 	}
+      else
+        {
+          bundle->_principalClass = frameworkClass;
+          NSMapInsert(_byClass, frameworkClass, bundle);
+          [load_lock unlock];
+        }
 
       bundle->_bundleType = NSBUNDLE_FRAMEWORK;
       bundle->_codeLoaded = YES;
@@ -773,6 +798,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	  NSValue *value;
 	  Class    class = NSClassFromString(*fmClasses);
 
+          NSMapInsert(_byClass, class, bundle);
 	  value = [NSValue valueWithPointer: (void*)class];
 	  [bundle->_bundleClasses addObject: value];
 
@@ -816,6 +842,39 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    }
 	}
     }
+  return bundle;
+}
+
++ (NSMutableArray*) _addFrameworks
+{
+  int                   i;
+  int                   numClasses = 0;
+  int                   newNumClasses;
+  Class                 *classes = NULL;
+  NSMutableArray        *added = nil;
+
+  newNumClasses = objc_getClassList(NULL, 0);
+  while (numClasses < newNumClasses)
+    {
+      numClasses = newNumClasses;
+      classes = realloc(classes, sizeof(Class) * numClasses);
+      newNumClasses = objc_getClassList(classes, numClasses);
+    }
+  for (i = 0; i < numClasses; i++)
+    {
+      NSBundle  *bundle = [self _addFrameworkFromClass: classes[i]];
+
+      if (nil != bundle)
+        {
+          if (nil == added)
+            {
+              added = [NSMutableArray arrayWithCapacity: 100];
+            }
+          [added addObject: bundle];
+        }
+    }
+  free(classes);
+  return added;
 }
 
 + (NSString*) _gnustep_target_cpu
@@ -952,40 +1011,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       handle = objc_open_main_module(stderr);
       printf("%08x\n", handle);
 #endif
-#if NeXT_RUNTIME || defined(__GNUSTEP_RUNTIME__) || defined(__GNU_LIBOBJC__)
-      {
-	int i, numClasses = 0, newNumClasses = objc_getClassList(NULL, 0);
-	Class *classes = NULL;
-	while (numClasses < newNumClasses)
-	  {
-	    numClasses = newNumClasses;
-	    classes = realloc(classes, sizeof(Class) * numClasses);
-	    newNumClasses = objc_getClassList(classes, numClasses);
-	  }
-	for (i = 0; i < numClasses; i++)
-	  {
-	    [self _addFrameworkFromClass: classes[i]];
-	  }
-	free(classes);
-      }
-#else
-      {
-	void	*state = NULL;
-	Class	class;
-
-	while ((class = objc_next_class(&state)))
-	  {
-	    const char *className = class_getName(class);
-	    unsigned int len = strlen (className);
-
-	    if (len > sizeof("NSFramework_")
-		&& !strncmp("NSFramework_", className, 12))
-	      {
-		[self _addFrameworkFromClass: class];
-	      }
-	  }
-      }
-#endif
+      [self _addFrameworks];
 #if 0
       //  _bundle_load_callback(class, NULL);
       //  bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
@@ -1274,28 +1300,44 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   [load_lock lock];
-  bundle = nil;
-  enumerate = NSEnumerateMapTable(_bundles);
-  while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
+  /* Try lookup ... if not found, make sure that all loaded bundles have
+   * class->bundle mapp entries set up and check again.
+   */
+  bundle = (NSBundle *)NSMapGet(_byClass, aClass);
+  if ((id)bundle == (id)[NSNull null])
     {
-      int i, j;
-      NSArray *bundleClasses = bundle->_bundleClasses;
-      BOOL found = NO;
+      [load_lock unlock];
+      return nil;
+    }
+  if (nil == bundle)
+    {
+      enumerate = NSEnumerateMapTable(_bundles);
+      while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
+        {
+          NSArray           *classes = bundle->_bundleClasses;
+          NSUInteger        count = [classes count];
 
-      j = [bundleClasses count];
-      for (i = 0; i < j && found == NO; i++)
-	{
-	  if ([[bundleClasses objectAtIndex: i] pointerValue] == (void*)aClass)
-	    found = YES;
-	}
-
-      if (found == YES)
-	break;
-
-      bundle = nil;
+          if (count > 0
+            && 0 == NSMapGet(_byClass, [[classes lastObject] pointerValue]))
+            {
+              while (count-- > 0)
+                {
+                  NSMapInsert(_byClass,
+                    (void*)[[classes objectAtIndex: count] pointerValue],
+                    (void*)bundle);
+                }
+            }
+        }
+      NSEndMapTableEnumeration(&enumerate);
+      bundle = (NSBundle *)NSMapGet(_byClass, aClass);
+      if ((id)bundle == (id)[NSNull null])
+        {
+          [load_lock unlock];
+          return nil;
+        }
     }
 
-  if (bundle == nil)
+  if (nil == bundle)
     {
       /* Is it in the main bundle or a library? */
       if (!class_isMetaClass(aClass))
@@ -1315,11 +1357,21 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 	  /*
 	   * Get the library bundle ... if there wasn't one then we
-	   * will assume the class was in the program executable and
-	   * return the mainBundle instead.
+	   * will check to see if it's in a newly loaded framework
+           * and if not, assume the class was in the program executable
+	   * and return the mainBundle instead.
 	   */
 	  bundle = [NSBundle bundleForLibrary: lib];
-	  if (bundle == nil)
+          if (nil == bundle && [[self _addFrameworks] count] > 0)
+            {
+              bundle = (NSBundle *)NSMapGet(_byClass, aClass);
+              if ((id)bundle == (id)[NSNull null])
+                {
+                  [load_lock unlock];
+                  return nil;
+                }
+            }
+	  if (nil == bundle)
 	    {
 	      bundle = [self mainBundle];
 	    }
@@ -1497,6 +1549,13 @@ IF_NO_GC(
       _bundles = NSCreateMapTable(NSObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
     }
+  if (!_byClass)
+    {
+      /* Used later by framework code.
+       */
+      _byClass = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+    }
   if (!_byIdentifier)
     {
       _byIdentifier = NSCreateMapTable(NSObjectMapKeyCallBacks,
@@ -1544,6 +1603,7 @@ IF_NO_GC(
   if (_path != nil)
     {
       NSString		*identifier = [self bundleIdentifier];
+      NSUInteger        count;
       NSUInteger	plen = [_path length];
       NSEnumerator	*enumerator;
       NSString		*path;
@@ -1554,6 +1614,16 @@ IF_NO_GC(
         {
 	  NSMapRemove(_byIdentifier, identifier);
         }
+      if (_principalClass != nil)
+        {
+	  NSMapRemove(_byClass, _principalClass);
+        }
+      count = [_bundleClasses count];
+      while (count-- > 0)
+	{
+	  NSMapRemove(_byClass,
+            [[_bundleClasses objectAtIndex: count] pointerValue]);
+	}
       [load_lock unlock];
 
       /* Clean up path cache for this bundle.
@@ -1771,6 +1841,7 @@ IF_NO_GC(
       classEnumerator = [_bundleClasses objectEnumerator];
       while ((class = [classEnumerator nextObject]) != nil)
 	{
+          NSMapInsert(_byClass, class, self);
 	  [classNames addObject:
 	    NSStringFromClass((Class)[class pointerValue])];
 	}

@@ -1,3 +1,10 @@
+2012-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSBundle.m: Attempted fix for bug #34191 ... change framework
+        class association to keep a map of loaded frameworks/bundles by class
+        for quick lookup and alter code to check the runtime for new frameworks
+        if we are asked for the bundle for a class and we can't find it.
+
 2012-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSScanner.m: Fix missing 'else' which was causing a
