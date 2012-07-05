@@ -1,8 +1,14 @@
+2012-07-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSBundle.m: Don't assume that code loading won't be called
+        re-entrantly.
+
 2012-07-05  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Source/NSPathUtilities.m: Fixed constant string comparison error 
 	reported by Clang SVN trunk r158230 or more recent.
 	See http://llvm.org/viewvc/llvm-project?view=rev&revision=158230
+        This is a workaround for a Clang compiler bug ...
 
 2012-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
