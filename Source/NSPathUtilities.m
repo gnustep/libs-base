@@ -269,9 +269,11 @@ static void ShutdownPathUtilities(void);
     }\
 })
 
-/* Conditionally assign lval to var only if var is nil */
+/* Conditionally assign lval to var only if var is nil
+
+lval must be casted because Clang disallows ObjC literals comparison */
 #define TEST_ASSIGN(var, lval) ({\
-  if ((var == nil)&&(lval != nil))\
+  if ((var == nil)&&((NSString *)lval != nil))\
     {\
       var = RETAIN(lval);\
     }\
