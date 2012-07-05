@@ -634,7 +634,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 
       if ([bundlePath isEqualToString: GSPrivateExecutablePath()])
 	{
-	  /* Ops ... the NSFramework_xxx class is linked in the main
+	  /* Oops ... the NSFramework_xxx class is linked in the main
 	   * executable.  Maybe the framework was statically linked
 	   * into the application ... resort to searching the
 	   * framework bundle on the filesystem manually.
@@ -924,8 +924,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   /* Don't store the internal NSFramework_xxx class into the list of
      bundle classes, but store the linked frameworks in _loadingFrameworks  */
-  if (strlen (className) > 12   &&  !strncmp ("NSFramework_",
-						   className, 12))
+  if (strlen (className) > 12
+    &&  !strncmp ("NSFramework_", className, 12))
     {
       if (_currentFrameworkName)
 	{
@@ -1792,18 +1792,26 @@ IF_NO_GC(
       NSEnumerator   *classEnumerator;
       NSMutableArray *classNames;
       NSValue        *class;
+      NSBundle       *savedLoadingBundle;
 
+      /* Get the binary and set up fraework name if it is a framework.
+       */
       object = [self executablePath];
       if (object == nil || [object length] == 0)
 	{
 	  [load_lock unlock];
 	  return NO;
 	}
+      savedLoadingBundle = _loadingBundle;
       _loadingBundle = self;
       _bundleClasses = [[NSMutableArray alloc] initWithCapacity: 2];
-      _loadingFrameworks = RETAIN([NSMutableArray arrayWithCapacity: 2]);
 
-      /* This code is executed twice if a class linked in the bundle call a
+      if (nil == savedLoadingBundle)
+        {
+          _loadingFrameworks = [[NSMutableArray alloc] initWithCapacity: 2];
+        }
+
+      /* This code is executed twice if a class linked in the bundle calls a
 	 NSBundle method inside +load (-principalClass). To avoid this we set
 	 _codeLoaded before loading the bundle. */
       _codeLoaded = YES;
@@ -1811,8 +1819,12 @@ IF_NO_GC(
       if (GSPrivateLoadModule(object, stderr, _bundle_load_callback, 0, 0))
 	{
 	  _codeLoaded = NO;
-	  DESTROY(_loadingFrameworks);
-	  DESTROY(_currentFrameworkName);
+          _loadingBundle = savedLoadingBundle;
+          if (nil == _loadingBundle)
+            {
+              DESTROY(_loadingFrameworks);
+              DESTROY(_currentFrameworkName);
+            }
 	  [load_lock unlock];
 	  return NO;
 	}
@@ -1832,10 +1844,6 @@ IF_NO_GC(
 	 normally want all loaded bundles to appear when they call
 	 +allBundles.  */
       IF_NO_GC([self retain];)
-      _loadingBundle = nil;
-
-      DESTROY(_loadingFrameworks);
-      DESTROY(_currentFrameworkName);
 
       classNames = [NSMutableArray arrayWithCapacity: [_bundleClasses count]];
       classEnumerator = [_bundleClasses objectEnumerator];
@@ -1846,6 +1854,12 @@ IF_NO_GC(
 	    NSStringFromClass((Class)[class pointerValue])];
 	}
 
+      _loadingBundle = savedLoadingBundle;
+      if (nil == _loadingBundle)
+        {
+          DESTROY(_loadingFrameworks);
+          DESTROY(_currentFrameworkName);
+        }
       [load_lock unlock];
 
       [[NSNotificationCenter defaultCenter]
