@@ -1,3 +1,9 @@
+2012-07-05  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Source/NSPathUtilities.m: Fixed constant string comparison error 
+	reported by Clang SVN trunk r158230 or more recent.
+	See http://llvm.org/viewvc/llvm-project?view=rev&revision=158230
+
 2012-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSBundle.m: Attempted fix for bug #34191 ... change framework
