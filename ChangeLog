@@ -1,5 +1,10 @@
 2012-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Headers/GNUstepBase/GSVersionMacros.h:
+        fix for bug #36650
+
+2012-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/NSURL.m:
         * Source/NSURLHandle.m:
         Re-load a cached  handle if the content has been invalidated.
