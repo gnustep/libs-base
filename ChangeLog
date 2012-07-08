@@ -2,6 +2,7 @@
 
         * Headers/GNUstepBase/GSVersionMacros.h:
         fix for bug #36650
+        * Source/NSFileManager.m: Apply rewritten patch by Sergey Golovin
 
 2012-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
