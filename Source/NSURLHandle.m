@@ -529,7 +529,15 @@ static Class		NSURLHandleClass = 0;
  */
 - (NSData*) resourceData
 {
-  if (_status != NSURLHandleLoadSucceeded)
+  NSData        *d = nil;
+
+  if (NSURLHandleLoadSucceeded == _status)
+    {
+      d = [self availableResourceData];
+    }
+  if (nil == d
+    && _status != NSURLHandleLoadSucceeded
+    && _status != NSURLHandleLoadFailed)
     {
       if (_status == NSURLHandleLoadInProgress)
 	{
@@ -537,15 +545,14 @@ static Class		NSURLHandleClass = 0;
 	}
       else
 	{
-	  NSData	*d = [self loadInForeground];
-
+	  d = [self loadInForeground];
 	  if (d != nil)
 	    {
 	      ASSIGNCOPY(_data, d);
 	    }
 	}
     }
-  return [self availableResourceData];
+  return d;
 }
 
 /* Private method ... subclasses override this to enable debug to be
@@ -697,6 +704,7 @@ static NSLock			*fileLock = nil;
 	      // File has been modified
 	      DESTROY(_data);
 	      DESTROY(_attributes);
+              _status = NSURLHandleNotLoaded;
 	    }
 	}
     }

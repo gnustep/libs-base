@@ -1,3 +1,11 @@
+2012-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSURL.m:
+        * Source/NSURLHandle.m:
+        Re-load a cached  handle if the content has been invalidated.
+        Set the status of a file handle to not-loaded if the fiel is modified.
+        Should fix bug #36726
+        
 2012-07-05  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSBundle.m: Don't assume that code loading won't be called

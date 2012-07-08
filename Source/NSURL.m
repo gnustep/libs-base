@@ -1732,13 +1732,20 @@ static NSUInteger	urlAlign;
 - (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache
 {
   NSURLHandle	*handle = [self URLHandleUsingCache: YES];
-  NSData	*data;
+  NSData	*data = nil;
 
+  if ([handle status] == NSURLHandleLoadSucceeded)
+    {
+      data = [handle availableResourceData];
+    }
   if (shouldUseCache == NO || [handle status] != NSURLHandleLoadSucceeded)
     {
-      [handle loadInForeground];
+      data = [handle loadInForeground];
     }
-  data = [handle availableResourceData];
+  if (nil == data)
+    {
+      data = [handle availableResourceData];
+    }
   return data;
 }
 
