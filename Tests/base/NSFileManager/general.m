@@ -4,15 +4,20 @@
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSProcessInfo.h>
 #import <Foundation/NSPathUtilities.h>
+#import <Foundation/NSError.h>
 
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSFileManager *mgr = [NSFileManager defaultManager];
   NSString *dir = @"NSFileManagerTestDir"; 
+  NSDictionary *attr;
   NSString *dirInDir;
   NSString *str1,*str2;
   NSError *err;
+  NSDictionary *errInfo;
+  BOOL exists;
+  BOOL isDir;
 
   dirInDir
     = [@"TestDirectory" stringByAppendingPathComponent: @"WithinDirectory"];
@@ -20,46 +25,38 @@ int main()
   PASS(mgr != nil && [mgr isKindOfClass: [NSFileManager class]],
        "NSFileManager understands +defaultManager");
 
-/* remove test directory if it exists */
-  {
-    BOOL exists,isDir;
-    exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
-    if (exists)
-      {
-        [mgr removeFileAtPath: dir handler: nil];
-      }
-  }
+  /* remove test directory if it exists */
+  exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
+  if (exists)
+    {
+      [mgr removeFileAtPath: dir handler: nil];
+    }
   PASS([mgr fileAttributesAtPath: dir traverseLink: NO] == nil,
     "NSFileManager returns nil for attributes of non-existent file");
 
-
-  {
-    NSDictionary *attr;
-    BOOL isDir;
-    PASS([mgr createDirectoryAtPath: dir attributes: nil],
-         "NSFileManager can create a directory");
-    PASS([mgr fileExistsAtPath: dir isDirectory: &isDir] &&
-         isDir == YES,
-	 "exists and is a directory");
-    PASS([mgr fileAttributesAtPath: dir traverseLink: NO] != nil,
-      "NSFileManager returns non-nil for attributes of existing file");
-    attr = [mgr fileAttributesAtPath: dir traverseLink: NO];
-    PASS(attr != nil,
-      "NSFileManager returns non-nil for attributes of existing file");
-    PASS([NSUserName() isEqual: [attr fileOwnerAccountName]],
-      "newly created file is owned by current user");
+  PASS([mgr createDirectoryAtPath: dir attributes: nil],
+       "NSFileManager can create a directory");
+  PASS([mgr fileExistsAtPath: dir isDirectory: &isDir] &&
+       isDir == YES,
+       "exists and is a directory");
+  PASS([mgr fileAttributesAtPath: dir traverseLink: NO] != nil,
+    "NSFileManager returns non-nil for attributes of existing file");
+  attr = [mgr fileAttributesAtPath: dir traverseLink: NO];
+  PASS(attr != nil,
+    "NSFileManager returns non-nil for attributes of existing file");
+  PASS([NSUserName() isEqual: [attr fileOwnerAccountName]],
+    "newly created file is owned by current user");
 NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
-    attr = [mgr attributesOfItemAtPath: dir error: &err]; 
-    PASS(attr != nil && err == nil, 
-      "[NSFileManager attributesOfItemAtPath:error:] returns non-nil for "
-      "attributes and nil for error in the case of existing file"); 
-    attr = [mgr attributesOfItemAtPath:
-      [dir stringByAppendingPathComponent:
-	@"thispathMUSTNOTexistatyoursystem"] error: &err]; 
-    PASS(attr == nil && err != nil, 
-      "[NSFileManager attributesOfItemAtPath:error:] returns nil for "
-      "attributes and non-nil for error in the case of non-existent file"); 
-  }
+  attr = [mgr attributesOfItemAtPath: dir error: &err]; 
+  PASS(attr != nil && err == nil, 
+    "[NSFileManager attributesOfItemAtPath:error:] returns non-nil for "
+    "attributes and nil for error in the case of existing file"); 
+  attr = [mgr attributesOfItemAtPath:
+    [dir stringByAppendingPathComponent:
+      @"thispathMUSTNOTexistatyoursystem"] error: &err]; 
+  PASS(attr == nil && err != nil, 
+    "[NSFileManager attributesOfItemAtPath:error:] returns nil for "
+    "attributes and non-nil for error in the case of non-existent file"); 
   
   PASS([mgr changeCurrentDirectoryPath: dir],
        "NSFileManager can change directories");
@@ -160,23 +157,23 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
   PASS([mgr changeCurrentDirectoryPath: @"subdir"], 
        "NSFileManager can move into subdir");
 
-  {
-    BOOL isDir;
-    PASS([mgr createDirectoryAtPath: dirInDir
-        withIntermediateDirectories: NO  
-                         attributes: nil
-                              error: NULL] == NO,
-      "NSFileManager refuses to create non-existent intermediate directories withIntermediateDirectories == NO"); 
-  
-    PASS([mgr createDirectoryAtPath: dirInDir
-        withIntermediateDirectories: YES
-                         attributes: nil
-                              error: NULL],
-      "NSFileManager can create intermediate directories withIntermediateDirectories == YES"); 
-    PASS([mgr fileExistsAtPath: dirInDir isDirectory: &isDir] && isDir == YES,
-      "NSFileManager create directory and intermediate directory that actually exist");
+  PASS([mgr createDirectoryAtPath: dirInDir
+      withIntermediateDirectories: NO  
+                       attributes: nil
+                            error: &err] == NO
+    && err != nil && [[err domain] isEqual: NSCocoaErrorDomain]
+    && (errInfo = [err userInfo]) != nil
+    && [errInfo objectForKey: NSLocalizedDescriptionKey] != nil
+    && [errInfo objectForKey: @"Path"] != nil,
+       "NSFileManager refuses to create intermediate directories"); 
 
-  }
+  PASS([mgr createDirectoryAtPath: dirInDir
+      withIntermediateDirectories: YES
+                       attributes: nil
+                            error: &err] && err == nil,
+   "NSFileManager can create intermediate directories"); 
+  PASS([mgr fileExistsAtPath: dirInDir isDirectory: &isDir] && isDir == YES,
+    "NSFileManager create directory and intermediate directory");
   
   PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
                  NSInvalidArgumentException,
@@ -186,19 +183,14 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
                  NSInvalidArgumentException,
 		 "NSFileManager -removeFileAtPath: @\"..\" throws exception");
 /* clean up */ 
-  {
-    BOOL exists,isDir;
-    [mgr changeCurrentDirectoryPath: [[[mgr currentDirectoryPath] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent]];
-    exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
-    if (exists || isDir)
-      {
-        PASS([mgr removeFileAtPath: dir handler: nil],
-	     "NSFileManager removes a directory");
-        PASS(![mgr fileExistsAtPath: dir],"directory no longer exists");
-      }
-    
-    isDir = NO;
-  }
+  [mgr changeCurrentDirectoryPath: [[[mgr currentDirectoryPath] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent]];
+  exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
+  if (exists || isDir)
+    {
+      PASS([mgr removeFileAtPath: dir handler: nil],
+           "NSFileManager removes a directory");
+      PASS(![mgr fileExistsAtPath: dir],"directory no longer exists");
+    }
   
   [arp release]; arp = nil;
   return 0;
