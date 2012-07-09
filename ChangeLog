@@ -1,8 +1,16 @@
+2012-07-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSBundle.m: Fixes for bug #34815 ... map between old and
+        new style language names and use the best language specific
+        resource available.
+
 2012-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/GNUstepBase/GSVersionMacros.h:
         fix for bug #36650
         * Source/NSFileManager.m: Apply rewritten patch by Sergey Golovin
+        * Source/NSBundle.m: Fix for bug #34815 ... we shoudl now move to
+        using ISO names.
 
 2012-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 

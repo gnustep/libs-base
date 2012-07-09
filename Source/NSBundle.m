@@ -75,6 +75,56 @@ manager()
   return mgr;
 }
 
+static NSDictionary     *alternativeLanguageMap = nil;
+
+/* Map a language name to any alternative versions.   This function should
+ * return an array of alternative language/localisation directry names in
+ * the preferred order of precedence (ie resources in the directories named
+ * earlier in the array are to be preferred to those in directories named
+ * later).
+ * We should support regional language specifications (such as en-GB)
+ * as our first priority, and then fall back to the more general names.
+ */
+static NSArray *
+altLang(NSString *lang)
+{
+  if (lang)
+    {
+      NSArray   *a;
+      NSRange   r;
+
+      r = [lang rangeOfString: @"-"];
+      if (r.length > 0)
+        {
+          NSString      *full = lang;
+
+          lang = [full substringToIndex: r.location];
+          a = [alternativeLanguageMap objectForKey: lang];
+          if (nil == a)
+            {
+              return [NSArray arrayWithObjects: full, lang, nil];
+            }
+          else
+            {
+              NSMutableArray    *m = [a mutableCopy];
+
+              [m insertObject: full atIndex: 0];
+              return [m autorelease];
+            }
+        }
+      else
+        {
+          a = [alternativeLanguageMap objectForKey: lang];
+          if (nil == a)
+            {
+              return [NSArray arrayWithObject: lang];
+            }
+          return a;
+        }
+    }
+  return nil;
+}
+
 static NSLock *pathCacheLock = nil;
 static NSMutableDictionary *pathCache = nil;
 
@@ -400,8 +450,9 @@ addBundlePath(NSMutableArray *list, NSArray *contents,
     }
   if (nil != subdir)
     {
-      NSEnumerator *e = [[subdir pathComponents] objectEnumerator];
-      NSString *subdirComponent;
+      NSEnumerator      *e = [[subdir pathComponents] objectEnumerator];
+      NSString          *subdirComponent;
+
       while ((subdirComponent = [e nextObject]) != nil)
 	{
 	  if (NO == [contents containsObject: subdirComponent])
@@ -415,20 +466,30 @@ addBundlePath(NSMutableArray *list, NSArray *contents,
 	    }	  
 	}
     }
-  if (nil != lang)
+  if (nil == lang)
     {
-      lang = [lang stringByAppendingPathExtension: @"lproj"];
-      if (NO == [contents containsObject: lang])
-	{
-	  return;
-	}
-      path = [path stringByAppendingPathComponent: lang];
-      if (nil == (contents = bundle_directory_readable(path)))
-	{
-	  return;
-	}
+      [list addObject: path];
     }
-  [list addObject: path];
+  else
+    {
+      NSEnumerator      *enumerator = [altLang(lang) objectEnumerator];
+      NSString          *alt;
+
+      /* Add each language specific subdirectory in order.
+       */
+      while (nil != (alt = [enumerator nextObject]))
+        {
+          alt = [alt stringByAppendingPathExtension: @"lproj"];
+          if (YES == [contents containsObject: alt])
+            {
+              alt = [path stringByAppendingPathComponent: alt];
+              if (nil != (contents = bundle_directory_readable(alt)))
+                {
+                  [list addObject: alt];
+                }
+            }
+        }
+    }
 }
 
 /* Try to locate name framework in standard places
@@ -963,6 +1024,27 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
        */
       mode = GSPathHandling("right");
       _emptyTable = RETAIN([NSDictionary dictionary]);
+
+      /* Check ... I think this is all the languages we traditionally
+       * support ... but maybe we need others.
+       */
+      alternativeLanguageMap = [[NSDictionary alloc] initWithObjectsAndKeys:
+        [NSArray arrayWithObjects: @"zh", @"Chinese", nil], @"Chinese",
+        [NSArray arrayWithObjects: @"en", @"English", nil], @"English",
+        [NSArray arrayWithObjects: @"eo", @"Esperanto", nil], @"Esperanto",
+        [NSArray arrayWithObjects: @"fr", @"French", nil], @"French",
+        [NSArray arrayWithObjects: @"de", @"German", nil], @"German",
+        [NSArray arrayWithObjects: @"it", @"Italian", nil], @"Italian",
+        [NSArray arrayWithObjects: @"ko", @"Korean", nil], @"Korean",
+        [NSArray arrayWithObjects: @"zh", @"Chinese", nil], @"zh",
+        [NSArray arrayWithObjects: @"en", @"English", nil], @"en",
+        [NSArray arrayWithObjects: @"eo", @"Esperanto", nil], @"eo",
+        [NSArray arrayWithObjects: @"fr", @"French", nil], @"fr",
+        [NSArray arrayWithObjects: @"de", @"German", nil], @"de",
+        [NSArray arrayWithObjects: @"it", @"Italian", nil], @"it",
+        [NSArray arrayWithObjects: @"ko", @"Korean", nil], @"ko",
+        [NSArray arrayWithObjects: @"es", @"Spanish", nil], @"es",
+        nil];
 
       /* Initialise manager here so it's thread-safe.
        */
@@ -2162,16 +2244,22 @@ IF_NO_GC(
     {
       /* Add all non-localized paths, plus ones in the particular localization
 	 (if there is one). */
-      NSString *theDir = [path stringByDeletingLastPathComponent];
+      NSString  *theDir = [path stringByDeletingLastPathComponent];
+      NSString  *last = [theDir lastPathComponent];
 
-      if ([[theDir pathExtension] isEqual: @"lproj"] == NO)
+      if ([[last pathExtension] isEqual: @"lproj"] == NO)
 	{
 	  [result addObject: path];
 	}
-      else if ([localizationName length] > 0
-	&& [[theDir lastPathComponent] hasPrefix: localizationName])
-	{
-	  [result insertObject: path atIndex: 0];
+      else
+        {
+          NSString      *lang = [last stringByDeletingPathExtension];
+          NSArray       *alternatives = altLang(lang);
+
+          if ([alternatives count] > 0)
+            {
+              [result addObject: path];
+            }
 	}
     }
 

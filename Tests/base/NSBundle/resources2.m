@@ -20,23 +20,63 @@ int main()
   /* --- [NSBundle -pathsForResourcesOfType:inDirectory:] --- */
   bundle = [NSBundle bundleWithPath: path];
   arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil];
-  PASS((arr && [arr count]), "-pathsForResourcesOfType:inDirectory: returns an array");
-  localPath = [path stringByAppendingPathComponent: @"Resources/NonLocalRes.txt"];
-  PASS([arr containsObject: localPath], "Returned array contains non-localized resource");
-  localPath = [path stringByAppendingPathComponent: @"Resources/English.lproj/TextRes.txt"];
-  PASS([arr containsObject: localPath], "Returned array contains localized resource");
+  PASS((arr && [arr count]),
+    "-pathsForResourcesOfType:inDirectory: returns an array");
+  localPath = [path stringByAppendingPathComponent:
+    @"Resources/NonLocalRes.txt"];
+  PASS([arr containsObject: localPath],
+    "Returned array contains non-localized resource");
+  localPath = [path stringByAppendingPathComponent:
+    @"Resources/English.lproj/TextRes.txt"];
+  PASS([arr containsObject: localPath],
+    "Returned array contains localized resource");
 
   /* --- [NSBundle +pathsForResourcesOfType:inDirectory:] --- */
   carr = [NSBundle pathsForResourcesOfType:@"txt" inDirectory: path];
-  PASS([arr isEqual: carr], "+pathsForResourcesOfType:inDirectory: returns same array");
+  PASS([arr isEqual: carr],
+    "+pathsForResourcesOfType:inDirectory: returns same array");
 
   /* --- [NSBundle -pathsForResourcesOfType:inDirectory:forLocalization:] --- */
-  arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil forLocalization: @"English"];
-  PASS((arr && [arr count]), "-pathsForResourcesOfType:inDirectory:forLocalization returns an array");
-  localPath = [path stringByAppendingPathComponent: @"Resources/NonLocalRes.txt"];
-  PASS([arr containsObject: localPath], "Returned array contains non-localized resource");
-  localPath = [path stringByAppendingPathComponent: @"Resources/English.lproj/TextRes.txt"];
-  PASS([arr containsObject: localPath], "Returned array contains localized resource");
+  arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil
+    forLocalization: @"English"];
+  PASS((arr && [arr count]),
+    "-pathsForResourcesOfType:inDirectory:forLocalization returns an array");
+  localPath = [path stringByAppendingPathComponent:
+    @"Resources/NonLocalRes.txt"];
+  PASS([arr containsObject: localPath],
+    "Returned array contains non-localized resource");
+  localPath = [path stringByAppendingPathComponent:
+    @"Resources/English.lproj/TextRes.txt"];
+  PASS([arr containsObject: localPath],
+    "Returned array contains localized resource");
+
+  /* --- [NSBundle -pathsForResourcesOfType:inDirectory:forLocalization:] --- */
+  arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil
+    forLocalization: @"en"];
+  PASS((arr && [arr count]),
+    "-pathsForResources... returns an array for 'en'");
+  localPath = [path stringByAppendingPathComponent:
+    @"Resources/NonLocalRes.txt"];
+  PASS([arr containsObject: localPath],
+    "Returned array for 'en' contains non-localized resource");
+  localPath = [path stringByAppendingPathComponent:
+    @"Resources/English.lproj/TextRes.txt"];
+  PASS([arr containsObject: localPath],
+    "Returned array for 'en' contains localized resource");
+
+  /* --- [NSBundle -pathsForResourcesOfType:inDirectory:forLocalization:] --- */
+  arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil
+    forLocalization: @"German"];
+  PASS((arr && [arr count]),
+    "-pathsForResources... returns an array for 'German'");
+  localPath = [path stringByAppendingPathComponent:
+    @"Resources/NonLocalRes.txt"];
+  PASS([arr containsObject: localPath],
+    "Returned array for 'German' contains non-localized resource");
+  localPath = [path stringByAppendingPathComponent:
+    @"Resources/de.lproj/TextRes.txt"];
+  PASS([arr containsObject: localPath],
+    "Returned array for 'German' contains localized resource");
 
   [arp release]; arp = nil;
   return 0;
