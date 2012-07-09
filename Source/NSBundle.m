@@ -84,6 +84,8 @@ static NSDictionary     *alternativeLanguageMap = nil;
  * later).
  * We should support regional language specifications (such as en-GB)
  * as our first priority, and then fall back to the more general names.
+ * NB. Also handle the form  like en-GB_US (English language, British dialect,
+ * in the United States region).
  */
 static NSArray *
 altLang(NSString *lang)
@@ -99,27 +101,75 @@ altLang(NSString *lang)
           NSString      *full = lang;
 
           lang = [full substringToIndex: r.location];
-          a = [alternativeLanguageMap objectForKey: lang];
-          if (nil == a)
+          r = [lang rangeOfString: @"_"];
+          if (r.length > 0)
             {
-              return [NSArray arrayWithObjects: full, lang, nil];
+              NSString  *national = [full substringToIndex: r.location];
+
+              // language-dialect_region
+              a = [alternativeLanguageMap objectForKey: lang];
+              if (nil == a)
+                {
+                  return [NSArray arrayWithObjects: full, national, lang, nil];
+                }
+              else
+                {
+                  NSMutableArray    *m = [a mutableCopy];
+
+                  [m insertObject: full atIndex: 0];
+                  [m insertObject: national atIndex: 0];
+                  return [m autorelease];
+                }
             }
           else
             {
-              NSMutableArray    *m = [a mutableCopy];
+              // language-dialect
+              a = [alternativeLanguageMap objectForKey: lang];
+              if (nil == a)
+                {
+                  return [NSArray arrayWithObjects: full, lang, nil];
+                }
+              else
+                {
+                  NSMutableArray    *m = [a mutableCopy];
 
-              [m insertObject: full atIndex: 0];
-              return [m autorelease];
+                  [m insertObject: full atIndex: 0];
+                  return [m autorelease];
+                }
             }
         }
       else
         {
-          a = [alternativeLanguageMap objectForKey: lang];
-          if (nil == a)
+          NSString  *full = lang;
+
+          r = [lang rangeOfString: @"_"];
+          if (r.length > 0)
             {
-              return [NSArray arrayWithObject: lang];
+              // language_region
+              lang = [full substringToIndex: r.location];
+              a = [alternativeLanguageMap objectForKey: lang];
+              if (nil == a)
+                {
+                  return [NSArray arrayWithObjects: full, lang, nil];
+                }
+              else
+                {
+                  NSMutableArray    *m = [a mutableCopy];
+
+                  [m insertObject: full atIndex: 0];
+                  return [m autorelease];
+                }
             }
-          return a;
+          else
+            {
+              // language
+              a = [alternativeLanguageMap objectForKey: lang];
+              if (nil == a)
+                {
+                  return [NSArray arrayWithObject: lang];
+                }
+              return a;
+            }
         }
     }
   return nil;
