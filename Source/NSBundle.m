@@ -75,10 +75,11 @@ manager()
   return mgr;
 }
 
-static NSDictionary     *alternativeLanguageMap = nil;
+static NSDictionary     *langAliases = nil;
+static NSDictionary     *langCanonical = nil;
 
 /* Map a language name to any alternative versions.   This function should
- * return an array of alternative language/localisation directry names in
+ * return an array of alternative language/localisation directory names in
  * the preferred order of precedence (ie resources in the directories named
  * earlier in the array are to be preferred to those in directories named
  * later).
@@ -88,91 +89,85 @@ static NSDictionary     *alternativeLanguageMap = nil;
  * in the United States region).
  */
 static NSArray *
-altLang(NSString *lang)
+altLang(NSString *full)
 {
-  if (lang)
+  NSMutableArray        *a = nil;
+
+  if (nil != full)
     {
-      NSArray   *a;
+      NSString  *alias = nil;
+      NSString  *canon = nil;
+      NSString  *lang = nil;
+      NSString  *dialect = nil;
+      NSString  *region = nil;
       NSRange   r;
 
-      r = [lang rangeOfString: @"-"];
-      if (r.length > 0)
+      alias = [langAliases objectForKey: full];
+      if (nil == alias)
         {
-          NSString      *full = lang;
-
-          lang = [full substringToIndex: r.location];
-          r = [lang rangeOfString: @"_"];
-          if (r.length > 0)
+          canon = [langCanonical objectForKey: full];
+          if (nil != canon)
             {
-              NSString  *national = [full substringToIndex: r.location];
-
-              // language-dialect_region
-              a = [alternativeLanguageMap objectForKey: lang];
-              if (nil == a)
-                {
-                  return [NSArray arrayWithObjects: full, national, lang, nil];
-                }
-              else
-                {
-                  NSMutableArray    *m = [a mutableCopy];
-
-                  [m insertObject: full atIndex: 0];
-                  [m insertObject: national atIndex: 0];
-                  return [m autorelease];
-                }
+              alias = [langAliases objectForKey: canon];
             }
-          else
+          if (nil == alias)
             {
-              // language-dialect
-              a = [alternativeLanguageMap objectForKey: lang];
-              if (nil == a)
-                {
-                  return [NSArray arrayWithObjects: full, lang, nil];
-                }
-              else
-                {
-                  NSMutableArray    *m = [a mutableCopy];
-
-                  [m insertObject: full atIndex: 0];
-                  return [m autorelease];
-                }
+              alias = full;
             }
+        }
+      canon = [langCanonical objectForKey: alias];
+      if (nil == canon)
+        {
+          canon = [langCanonical objectForKey: full];
+          if (nil == canon)
+            {
+              canon = full;
+            }
+        }
+
+      if ([canon rangeOfString: @"-"].length > 1)
+        {
+          dialect = [canon substringFromIndex: NSMaxRange(r)];
+          lang = [canon substringToIndex: r.location];
+          if ([dialect rangeOfString: @"_"].length > 1)
+            {
+              region = [dialect substringFromIndex: NSMaxRange(r)];
+              dialect = [dialect substringToIndex: r.location];
+            }
+        }
+      else if ([canon rangeOfString: @"_"].length > 1)
+        {
+          region = [canon substringFromIndex: NSMaxRange(r)];
+          lang = [canon substringToIndex: r.location];
         }
       else
         {
-          NSString  *full = lang;
+          lang = canon;
+        }
 
-          r = [lang rangeOfString: @"_"];
-          if (r.length > 0)
-            {
-              // language_region
-              lang = [full substringToIndex: r.location];
-              a = [alternativeLanguageMap objectForKey: lang];
-              if (nil == a)
-                {
-                  return [NSArray arrayWithObjects: full, lang, nil];
-                }
-              else
-                {
-                  NSMutableArray    *m = [a mutableCopy];
-
-                  [m insertObject: full atIndex: 0];
-                  return [m autorelease];
-                }
-            }
-          else
-            {
-              // language
-              a = [alternativeLanguageMap objectForKey: lang];
-              if (nil == a)
-                {
-                  return [NSArray arrayWithObject: lang];
-                }
-              return a;
-            }
+      a = [NSMutableArray arrayWithCapacity: 5];
+      if (nil != dialect && nil != region)
+        {
+          [a addObject: [NSString stringWithFormat: @"%@-%@_%@",
+            lang, dialect, region]];
+        }
+      if (nil != dialect)
+        {
+          [a addObject: [NSString stringWithFormat: @"%@-%@",
+            lang, dialect]];
+        }
+      if (nil != region)
+        {
+          [a addObject: [NSString stringWithFormat: @"%@_%@",
+            lang, region]];
+        }
+      [a addObject: lang];
+      if (NO == [a containsObject: alias])
+        {
+          [a addObject: alias];
         }
     }
-  return nil;
+  return a;
 }
 
 static NSLock *pathCacheLock = nil;
@@ -1066,6 +1061,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (self == [NSBundle class])
     {
       extern const char	*GSPathHandling(const char *);
+      NSString          *file;
       const char	*mode;
       NSDictionary	*env;
       NSString		*str;
@@ -1075,25 +1071,41 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       mode = GSPathHandling("right");
       _emptyTable = RETAIN([NSDictionary dictionary]);
 
-      /* Check ... I think this is all the languages we traditionally
-       * support ... but maybe we need others.
+      /* Create basic mapping dictionaries for bootstrapping and
+       * for use if the full ductionaries can't be loaded from the
+       * gnustep-base library resource bundle.
        */
-      alternativeLanguageMap = [[NSDictionary alloc] initWithObjectsAndKeys:
-        [NSArray arrayWithObjects: @"zh", @"Chinese", nil], @"Chinese",
-        [NSArray arrayWithObjects: @"en", @"English", nil], @"English",
-        [NSArray arrayWithObjects: @"eo", @"Esperanto", nil], @"Esperanto",
-        [NSArray arrayWithObjects: @"fr", @"French", nil], @"French",
-        [NSArray arrayWithObjects: @"de", @"German", nil], @"German",
-        [NSArray arrayWithObjects: @"it", @"Italian", nil], @"Italian",
-        [NSArray arrayWithObjects: @"ko", @"Korean", nil], @"Korean",
-        [NSArray arrayWithObjects: @"zh", @"Chinese", nil], @"zh",
-        [NSArray arrayWithObjects: @"en", @"English", nil], @"en",
-        [NSArray arrayWithObjects: @"eo", @"Esperanto", nil], @"eo",
-        [NSArray arrayWithObjects: @"fr", @"French", nil], @"fr",
-        [NSArray arrayWithObjects: @"de", @"German", nil], @"de",
-        [NSArray arrayWithObjects: @"it", @"Italian", nil], @"it",
-        [NSArray arrayWithObjects: @"ko", @"Korean", nil], @"ko",
-        [NSArray arrayWithObjects: @"es", @"Spanish", nil], @"es",
+      langAliases = [[NSDictionary alloc] initWithObjectsAndKeys:
+        @"German", @"de",
+        @"English", @"en",
+        @"Esperanto", @"eo",
+        @"Spanish", @"es",
+        @"French", @"fr",
+        @"Italian", @"it",
+        @"Korean", @"ko",
+        @"TraditionalChinese", @"zh",
+        nil];
+      langCanonical = [[NSDictionary alloc] initWithObjectsAndKeys:
+        @"en", @"English",
+        @"en", @"eng",
+        @"ep", @"Esperanto",
+        @"ep", @"epo",
+        @"ep", @"epo",
+        @"fr", @"French",
+        @"fr", @"fra",
+        @"fr", @"fre",
+        @"de", @"German",
+        @"de", @"ger",
+        @"de", @"deu",
+        @"it", @"Italian",
+        @"it", @"ita",
+        @"ko", @"Korean",
+        @"ko", @"kir",
+        @"sp", @"Spanish",
+        @"sp", @"spa",
+        @"zh", @"TraditionalChinese",
+        @"zh", @"chi",
+        @"zh", @"zho",
         nil];
 
       /* Initialise manager here so it's thread-safe.
@@ -1138,6 +1150,43 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
 					      version: _base_version]);
+
+      /* The Locale aliases map converts canonical names to old-style names
+       */
+      file = [_gnustep_bundle pathForResource: @"Locale"
+                                       ofType: @"aliases"
+                                  inDirectory: @"Languages"];
+      if (file != nil)
+        {
+          NSDictionary  *d;
+
+          d = [[NSDictionary alloc] initWithContentsOfFile: file];
+          if ([d count] > 0)
+            {
+              ASSIGN(langAliases, d);
+            }
+          [d release];
+        }
+
+      /* The Locale canonical map converts old-style names to ISO 639 names
+       * and converts ISO 639-2 names to the preferred ISO 639-1 names where
+       * an ISO 639-1 name exists.
+       */
+      file = [_gnustep_bundle pathForResource: @"Locale"
+                                       ofType: @"canonical"
+                                  inDirectory: @"Languages"];
+      if (file != nil)
+        {
+          NSDictionary  *d;
+
+          d = [[NSDictionary alloc] initWithContentsOfFile: file];
+          if ([d count] > 0)
+            {
+              ASSIGN(langCanonical, d);
+            }
+          [d release];
+        }
+
 #if 0
       _loadingBundle = [self mainBundle];
       handle = objc_open_main_module(stderr);
