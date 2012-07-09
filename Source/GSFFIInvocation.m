@@ -191,6 +191,14 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 	}
       if (nil == sig)
 	{
+          if (nil == receiver)
+            {
+              /* If we have a nil receiver, so the runtime is probably trying
+               * to check for forwarding ... return NULL to let it fall back
+               * on the standard forwarding mechanism.
+               */
+              return NULL;
+            }
 	  [NSException raise: NSInvalidArgumentException
 	    format: @"%c[%s %s]: unrecognized selector sent to instance %p",
 	    (class_isMetaClass(c) ? '+' : '-'),
