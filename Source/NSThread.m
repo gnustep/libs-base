@@ -578,7 +578,7 @@ unregisterActiveThread(NSThread *thread)
  */
 + (void) setThreadPriority: (double)pri
 {
-#ifdef _POSIX_THREAD_PRIORITY_SCHEDULING
+#if defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING > 0)
   int	policy;
   struct sched_param param;
 
@@ -616,7 +616,7 @@ unregisterActiveThread(NSThread *thread)
 + (double) threadPriority
 {
   double pri = 0;
-#ifdef _POSIX_THREAD_PRIORITY_SCHEDULING
+#if defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING > 0)
   int policy;
   struct sched_param param;
 
