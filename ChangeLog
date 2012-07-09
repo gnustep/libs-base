@@ -1,6 +1,7 @@
 2012-07-09  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSFFIInvocation.m: Fix for bug #36706
+        * Source/NSObject.m: Also, apply patch by Niels Grewe with modsvn commit
 
 2012-07-09  Sebastian Reitenbach <buzzdee>
 
