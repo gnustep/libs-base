@@ -59,9 +59,8 @@ loc_read_file(const char *dir, const char *file)
 
   language[0] = '\0';
   country[0] = '\0';
-  while (1)
+  while (NULL != fgets(buf, MAXSTRING, fp))
     {
-      fgets(buf, MAXSTRING, fp);
       if (strstr(buf, "anguage") != NULL)
 	{
 	  sscanf(&buf[2], "%s", language);
@@ -131,7 +130,7 @@ main(int argc, char *argv[])
 
   /* Write out a skeleton file from the current locale */
   dict = GSDomainFromDefaultLocale();
-  lang = GSLanguageFromLocale(GSSetLocale(NULL));
+  lang = GSLanguageFromLocale(GSSetLocale(0,NULL));
   if (lang == nil)
     lang = @"Locale";
   if (dict)

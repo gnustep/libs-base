@@ -3,6 +3,8 @@
         * Source/NSBundle.m: Fixes for bug #34815 ... map between old and
         new style language names and use the best language specific
         resource available.
+        * Resources/Languages/Locale.canonical: Add mappings from three
+        letter language names to two letter names where they exist.
 
 2012-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -1,3 +1,8 @@
+The file Locale.aliases is used to map common language specifications to
+old-style long names.
+
+The file Locale.canonical is used to map old style names and three letter
+ISO-639-2 names to the preferred tewo letter ISO-639-1 names.
 
 Language files which contain non-ascii characters should either be properly
 marked unicode files (UTF-8 with a leading Byte Order Mark or UTF-16 with a
@@ -13,14 +18,14 @@ in the default encoding used by your system.
 For example, to edit the French language file so that it contains an ascii
 propertly list with \u escape sequeneces, you could do -
 
-cvtenc -EscapeIn yes French > tmpfile
+cvtenc -EscapeIn yes fr > tmpfile
 vi tmpfile
-cvtenc -EscapeOut yes tmpfile > French
+cvtenc -EscapeOut yes tmpfile > fr
 rm tmpfile
 
 A common case is where you have a file in UTF-8, but the Byte Order Mark is
 missing, so you need to fix it up ...
 
 cvtenc -Encoding 'UNICODE UTF-8' FileWithMissingBOM >tmpFile
-cvtenc -EscapeOut yes tmpFile > French
+cvtenc -EscapeOut yes tmpFile > fr
 
