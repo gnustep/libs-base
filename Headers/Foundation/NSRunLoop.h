@@ -98,27 +98,8 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 
 @end
 
-/*
- * The following interface is not yet deprecated,
- * but may be deprecated in the next release and
- * removed thereafter.
- *
- * The run loop watcher API was originally intended to perform two
- * tasks ...
- * 1. provide the most efficient API reasonably possible to integrate
- * unix networking code into the runloop.
- * 2. provide a standard mechanism to allow people to contribute
- * code to add new I/O mechanisms to GNUstep (OpenStep didn't allow this).
- * It succeeded in 1, and partially succeeded in 2 (adding support
- * for the win32 API).
- *
- * However, several years on, CPU's are even faster with respect to I/O
- * and the performance issue is less significant, and Apple have provided
- * the NSStream API which allows yoiu to write stream subclasses and add
- * them to the run loop.
- *
- * We are likely to follow Apple for compatibility, and restructure code
- * using NSStream, at which point this API will be redundant.
+/** This type specifies the kinds of event which may be 'watched' in a
+ * run loop.
  */
 typedef	enum {
 #ifdef __MINGW__
@@ -134,15 +115,22 @@ typedef	enum {
     ET_TRIGGER	/* Trigger immediately when the loop runs.	*/
 #endif
 } RunLoopEventType;
+
+/** This protocol defines the mandatory interface a run loop watcher must
+ * provide in order for it to be notified of events occurring in the loop
+ * it is watching.<br />
+ * Optional methods are documented in the NSObject(RunLoopEvents)
+ * category.
+ */
 @protocol RunLoopEvents
-/* This is the message sent back to a watcher when an event is observed
- * by the run loop.
+/** This is the message sent back to a watcher when an event is observed
+ * by the run loop.<br />
  * The 'data', 'type' and 'mode' arguments are the same as the arguments
- * passed to the -addEvent:type:watcher:forMode: method.
+ * passed to the -addEvent:type:watcher:forMode: method.<br />
  * The 'extra' argument varies.  For an ET_TRIGGER event, it is the same
  * as the 'data' argument.  For other events on unix it is the file
  * descriptor associated with the event (which may be the same as the
- * 'data' argument, but is not in the case of ET_RPORT).
+ * 'data' argument, but is not in the case of ET_RPORT).<br />
  * For windows it will be the handle or the windows message assciated
  * with the event.
  */ 
@@ -151,15 +139,45 @@ typedef	enum {
 		 extra: (void*)extra
 	       forMode: (NSString*)mode;
 @end
+
+/** This informal protocol defiens optional methods of the run loop watcher.
+ */
 @interface NSObject (RunLoopEvents)
+/** Called by the run loop to find out whether it needs to block to wait
+ * for events for this watcher.  The shouldTrigger flag is used to inform
+ * the run loop if tit should immediately trigger a received event for the
+ * watcher.
+ */
 - (BOOL) runLoopShouldBlock: (BOOL*)shouldTrigger;
 @end
-@class	NSStream;
+
+/**
+ * The run loop watcher API was originally intended to perform two
+ * tasks ...
+ * 1. provide the most efficient API reasonably possible to integrate
+ * unix networking code into the runloop.
+ * 2. provide a standard mechanism to allow people to contribute
+ * code to add new I/O mechanisms to GNUstep (OpenStep didn't allow this).
+ * It succeeded in 1, and partially succeeded in 2 (adding support
+ * for the win32 API).
+ */
 @interface NSRunLoop(GNUstepExtensions)
+/** Adds a watcher to the receiver ... the watcher is used to monitor events
+ * of the specified type which are associted with the event handle data and
+ * it operates in the specified run loop modes.<br />
+ * The watcher remains in place until a corresponding call to
+ * -removeEvent:type:forMode:all: is made.
+ */
 - (void) addEvent: (void*)data
 	     type: (RunLoopEventType)type
 	  watcher: (id<RunLoopEvents>)watcher
 	  forMode: (NSString*)mode;
+/** Removes a watcher from the receiver ... the watcher must have been 
+ * previously added using -addEvent:type:watcher:forMode:<br />
+ * This method mirrors exactly one addition of a watcher unless removeAll
+ * is YES, in which case it removes all additions of watchers matching the
+ * other paramters.
+ */
 - (void) removeEvent: (void*)data
 	        type: (RunLoopEventType)type
 	     forMode: (NSString*)mode
