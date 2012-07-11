@@ -1,5 +1,10 @@
 2012-07-11  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/Additions/GSMime.m: Don't accept documents where header lines
+        contain bytes which can't be converted to a string.
+
+2012-07-11  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/NSKeyedArchiver.m:
         * Source/NSCoder.m:
         * Source/Additions/GSObjCRuntime.m:

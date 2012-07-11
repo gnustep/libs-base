@@ -1538,6 +1538,10 @@ wordData(NSString *word)
       [data appendData: d];
       bytes = (unsigned char*)[data bytes];
       dataEnd = [data length];
+      /* We need more data, so we have to return YES
+       * to ask our caller to provide it.
+       */
+      return YES;
     }
   else
     {
@@ -2917,6 +2921,12 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 				  encoding: NSUTF8StringEncoding];
 		    }
 		}
+              if (nil == s)
+                {
+                  NSLog(@"Bad header ... illegal characters");
+                  flags.hadErrors = 1;
+                  return nil;
+                }
 	      [hdr appendString: s];
 	      RELEASE(s);
 	    }
