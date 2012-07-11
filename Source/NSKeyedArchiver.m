@@ -702,6 +702,7 @@ static NSDictionary *makeReference(unsigned ref)
   NSString	*aKey;
   id		o;
 
+  type = GSSkipTypeQualifierAndLayoutInfo(type);
   if (*type == _C_ID || *type == _C_CLASS)
     {
       [self encodeObject: *(id*)address];

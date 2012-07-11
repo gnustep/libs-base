@@ -627,8 +627,8 @@ GSGetMethod(Class cls, SEL sel,
 }
 
 
-static inline const char *
-gs_skip_type_qualifier_and_layout_info (const char *types)
+GS_EXPORT const char *
+GSSkipTypeQualifierAndLayoutInfo(const char *types)
 {
   while (*types == '+'
     || *types == '-'
@@ -657,8 +657,8 @@ GSSelectorTypesMatch(const char *types1, const char *types2)
 
   while (*types1 && *types2)
     {
-      types1 = gs_skip_type_qualifier_and_layout_info (types1);
-      types2 = gs_skip_type_qualifier_and_layout_info (types2);
+      types1 = GSSkipTypeQualifierAndLayoutInfo (types1);
+      types2 = GSSkipTypeQualifierAndLayoutInfo (types2);
 
       /* Reached the end of the selector.  */
       if (! *types1 && ! *types2)
@@ -681,8 +681,8 @@ GSSelectorTypesMatch(const char *types1, const char *types2)
       types2++;
     }
 
-  types1 = gs_skip_type_qualifier_and_layout_info (types1);
-  types2 = gs_skip_type_qualifier_and_layout_info (types2);
+  types1 = GSSkipTypeQualifierAndLayoutInfo (types1);
+  types2 = GSSkipTypeQualifierAndLayoutInfo (types2);
 
   return (! *types1 && ! *types2);
 }

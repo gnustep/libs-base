@@ -499,6 +499,7 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
 - (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a
 {
+  t = GSSkipTypeQualifierAndLayoutInfo(t);
   _t[0] = *t;
   _t[1] = '\0';
   _s = objc_sizeof_type(_t);
