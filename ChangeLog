@@ -1,3 +1,15 @@
+2012-07-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSKeyedArchiver.m:
+        * Source/NSCoder.m:
+        * Source/Additions/GSObjCRuntime.m:
+        * Source/NSArchiver.m:
+        * Headers/GNUstepBase/GSObjCRuntime.h:
+        Have leading type qualifiers and laout information skipped when
+        encoding a value of on ObjC type, rather than objecting that the
+        supplied type string is not a known type.
+        Fix for bug #36824
+
 2012-07-09  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSFFIInvocation.m: Fix for bug #36706
