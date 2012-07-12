@@ -1,3 +1,8 @@
+2012-07-12 19:26-EDT Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSFileManager.m: Correct misspelled ASSIGN which was
+	causing link errors.
+
 2012-07-11  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/Additions/GSMime.m: Don't accept documents where header lines
