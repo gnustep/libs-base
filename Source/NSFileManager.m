@@ -1421,7 +1421,7 @@ static NSStringEncoding	defaultEncoding;
   [self changeFileAttributes: attrs atPath: destination];
   return YES;
 #else
-  ASSIN(_lastError, @"Links not supported on this platform");
+  ASSIGN(_lastError, @"Links not supported on this platform");
   return NO;
 #endif
 }
