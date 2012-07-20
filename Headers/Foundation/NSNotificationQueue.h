@@ -94,7 +94,7 @@ typedef NSUInteger NSPostingStyle;
 enum {
   NSNotificationNoCoalescing = 0,
   NSNotificationCoalescingOnName = 1,
-  NSNotificationCoalescingOnSender = 2,
+  NSNotificationCoalescingOnSender = 2
 };
 typedef NSUInteger NSNotificationCoalescing;
 

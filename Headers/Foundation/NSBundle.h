@@ -47,7 +47,7 @@ enum {
   NSBundleExecutableArchitectureI386      = 0x00000007,
   NSBundleExecutableArchitecturePPC       = 0x00000012,
   NSBundleExecutableArchitecturePPC64     = 0x01000012,
-  NSBundleExecutableArchitectureX86_64    = 0x01000007,
+  NSBundleExecutableArchitectureX86_64    = 0x01000007
 };
 #endif
 

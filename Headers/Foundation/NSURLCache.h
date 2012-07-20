@@ -47,7 +47,7 @@ typedef enum
 {
   NSURLCacheStorageAllowed,	/** Unrestricted caching */
   NSURLCacheStorageAllowedInMemoryOnly,	/** In memory caching only */
-  NSURLCacheStorageNotAllowed, /** No caching allowed */
+  NSURLCacheStorageNotAllowed /** No caching allowed */
 } NSURLCacheStoragePolicy;
 
 
