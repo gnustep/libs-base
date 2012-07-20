@@ -186,7 +186,7 @@ enum
   NSLocalDomainMask = 2,	/** Local for all users on the machine */
   NSNetworkDomainMask = 4,	/** Public for all users on network */
   NSSystemDomainMask = 8,	/** Standard GNUstep items */
-  NSAllDomainsMask = 0x0ffff,	/** all domains */
+  NSAllDomainsMask = 0x0ffff	/** all domains */
 };
 /**
  * Mask type for NSSearchPathForDirectoriesInDomains() function.  A bitwise OR

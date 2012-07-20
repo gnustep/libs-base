@@ -62,7 +62,7 @@ enum {
   NSPropertyListBinaryFormat_v1_0 = 200,
 
   NSPropertyListGNUstepFormat = 1000,
-  NSPropertyListGNUstepBinaryFormat,
+  NSPropertyListGNUstepBinaryFormat
 };
 
 #if OS_API_VERSION(100600,GS_API_LATEST)

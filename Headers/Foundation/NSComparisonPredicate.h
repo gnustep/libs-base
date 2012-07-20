@@ -39,13 +39,13 @@ typedef enum _NSComparisonPredicateModifier
 {
   NSDirectPredicateModifier=0,
   NSAllPredicateModifier,
-  NSAnyPredicateModifier,
+  NSAnyPredicateModifier
 } NSComparisonPredicateModifier;
 
 typedef enum _NSComparisonPredicateOptions
 {
   NSCaseInsensitivePredicateOption=0x01,
-  NSDiacriticInsensitivePredicateOption=0x02,
+  NSDiacriticInsensitivePredicateOption=0x02
 } NSComparisonPredicateOptions;
 
 typedef enum _NSPredicateOperatorType

@@ -46,7 +46,7 @@ enum
   NSURLRequestUseProtocolCachePolicy,
   NSURLRequestReloadIgnoringCacheData,
   NSURLRequestReturnCacheDataElseLoad,
-  NSURLRequestReturnCacheDataDontLoad,
+  NSURLRequestReturnCacheDataDontLoad
 };
 /**
  * <deflist>

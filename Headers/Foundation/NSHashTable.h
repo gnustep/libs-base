@@ -52,7 +52,7 @@ enum {
   NSHashTableCopyIn
     = NSPointerFunctionsCopyIn,
   NSHashTableObjectPointerPersonality
-    = NSPointerFunctionsObjectPointerPersonality,
+    = NSPointerFunctionsObjectPointerPersonality
 };
 
 typedef NSUInteger NSHashTableOptions;

@@ -86,7 +86,7 @@ enum
   NSURLErrorCannotRemoveFile = 			-3004,
   NSURLErrorCannotMoveFile = 			-3005,
   NSURLErrorDownloadDecodingFailedMidStream =	-3006,
-  NSURLErrorDownloadDecodingFailedToComplete =	-3007,
+  NSURLErrorDownloadDecodingFailedToComplete =	-3007
 };
 
 #if	defined(__cplusplus)
