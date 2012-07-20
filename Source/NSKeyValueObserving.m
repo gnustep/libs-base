@@ -535,22 +535,22 @@ replacementForClass(Class c)
                   instanceMethodForSelector: @selector(setter:)];
                 break;
               case _C_STRUCT_B:
-                if (strcmp(@encode(NSRange), type) == 0)
+                if (GSSelectorTypesMatch(@encode(NSRange), type))
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterRange:)];
                   }
-                else if (strcmp(@encode(NSPoint), type) == 0)
+                else if (GSSelectorTypesMatch(@encode(NSPoint), type))
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterPoint:)];
                   }
-                else if (strcmp(@encode(NSSize), type) == 0)
+                else if (GSSelectorTypesMatch(@encode(NSSize), type))
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterSize:)];
                   }
-                else if (strcmp(@encode(NSRect), type) == 0)
+                else if (GSSelectorTypesMatch(@encode(NSRect), type))
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterRect:)];

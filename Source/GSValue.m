@@ -159,7 +159,7 @@ typeSize(const char* type)
     return NO;
   if (object_getClass(aValue) != object_getClass(self))
     return NO;
-  if (strcmp(objctype, ((GSValue*)aValue)->objctype) != 0)
+  if (GSSelectorTypesMatch(objctype, ((GSValue*)aValue)->objctype))
     return NO;
   else
     {

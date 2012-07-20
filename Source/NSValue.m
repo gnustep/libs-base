@@ -175,6 +175,8 @@ static NSLock			*placeholderLock;
   if (!type)
     return theClass;
 
+  /* Try for an exact type match.
+   */
   if (strcmp(@encode(id), type) == 0)
     theClass = nonretainedObjectValueClass;
   else if (strcmp(@encode(NSPoint), type) == 0)
@@ -186,6 +188,21 @@ static NSLock			*placeholderLock;
   else if (strcmp(@encode(NSRect), type) == 0)
     theClass = rectValueClass;
   else if (strcmp(@encode(NSSize), type) == 0)
+    theClass = sizeValueClass;
+
+  /* Try for equivalent types match.
+   */
+  else if (GSSelectorTypesMatch(@encode(id), type))
+    theClass = nonretainedObjectValueClass;
+  else if (GSSelectorTypesMatch(@encode(NSPoint), type))
+    theClass = pointValueClass;
+  else if (GSSelectorTypesMatch(@encode(void *), type))
+    theClass = pointerValueClass;
+  else if (GSSelectorTypesMatch(@encode(NSRange), type))
+    theClass = rangeValueClass;
+  else if (GSSelectorTypesMatch(@encode(NSRect), type))
+    theClass = rectValueClass;
+  else if (GSSelectorTypesMatch(@encode(NSSize), type))
     theClass = sizeValueClass;
 
   return theClass;

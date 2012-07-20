@@ -1,3 +1,13 @@
+2012-07-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/NSProtocolChecker.m:
+	* Source/GSValue.m:
+	* Source/NSValue.m:
+        Use GSSelectorTypesMatch() for type comparisons.
+
 2012-07-12 19:26-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSFileManager.m: Correct misspelled ASSIGN which was

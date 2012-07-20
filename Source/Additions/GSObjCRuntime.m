@@ -1293,7 +1293,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
             break;
 
           case _C_STRUCT_B:
-            if (strcmp(@encode(NSPoint), type) == 0)
+            if (GSSelectorTypesMatch(@encode(NSPoint), type))
               {
                 NSPoint	v;
 
@@ -1310,7 +1310,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithPoint: v];
               }
-            else if (strcmp(@encode(NSRange), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSRange), type))
               {
                 NSRange	v;
 
@@ -1327,7 +1327,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRange: v];
               }
-            else if (strcmp(@encode(NSRect), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSRect), type))
               {
                 NSRect	v;
 
@@ -1344,7 +1344,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRect: v];
               }
-            else if (strcmp(@encode(NSSize), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSSize), type))
               {
                 NSSize	v;
 
@@ -1740,7 +1740,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
 	    break;
 
           case _C_STRUCT_B:
-            if (strcmp(@encode(NSPoint), type) == 0)
+            if (GSSelectorTypesMatch(@encode(NSPoint), type))
               {
                 NSPoint	v = [val pointValue];
 
@@ -1758,7 +1758,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
                     (*imp)(self, sel, v);
                   }
               }
-            else if (strcmp(@encode(NSRange), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSRange), type))
               {
                 NSRange	v = [val rangeValue];
 
@@ -1776,7 +1776,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
                     (*imp)(self, sel, v);
                   }
               }
-            else if (strcmp(@encode(NSRect), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSRect), type))
               {
                 NSRect	v = [val rectValue];
 
@@ -1794,7 +1794,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
                     (*imp)(self, sel, v);
                   }
               }
-            else if (strcmp(@encode(NSSize), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSSize), type))
               {
                 NSSize	v = [val sizeValue];
 
