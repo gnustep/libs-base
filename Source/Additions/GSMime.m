@@ -1538,10 +1538,8 @@ wordData(NSString *word)
       [data appendData: d];
       bytes = (unsigned char*)[data bytes];
       dataEnd = [data length];
-      /* We need more data, so we have to return YES
-       * to ask our caller to provide it.
+      /* Fall through to parse the headers so far.
        */
-      return YES;
     }
   else
     {
