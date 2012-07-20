@@ -98,13 +98,15 @@
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"<%s -%@> not declared",
-	    protocol_getName(_myProtocol), NSStringFromSelector([anInvocation selector])];
+	    protocol_getName(_myProtocol),
+              NSStringFromSelector([anInvocation selector])];
 	}
       else
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"<%s +%@> not declared",
-	    protocol_getName(_myProtocol), NSStringFromSelector([anInvocation selector])];
+	    protocol_getName(_myProtocol),
+              NSStringFromSelector([anInvocation selector])];
 	}
     }
   [anInvocation invokeWithTarget: _myTarget];
@@ -114,7 +116,7 @@
    * returned value with the protocol checker.
    */
   type = [[anInvocation methodSignature] methodReturnType];
-  if (strcmp(type, @encode(id)) == 0)
+  if (GSSelectorTypesMatch(type, @encode(id)))
     {
       id	buf;
 
