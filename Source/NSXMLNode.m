@@ -1177,7 +1177,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat:@"<%@ %@ %d>%@\n",
+  return [NSString stringWithFormat:@"<%@ %@ %d>%@",
     NSStringFromClass([self class]),
     [self name], [self kind], [self XMLString]];
 }
