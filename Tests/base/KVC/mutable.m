@@ -1,6 +1,12 @@
 #import "ObjectTesting.h"
 #import <Foundation/Foundation.h>
 
+typedef struct {
+  int a;
+  float b;
+  char *c;
+} aStruct;
+
 @interface Observer : NSObject
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
@@ -25,14 +31,33 @@
   NSMutableArray * numbers;
   NSMutableArray * third;
   NSString *string;
+  aStruct x;
 }
 
+- (int) a;
+- (float) b;
+- (const char*) c;
 @end
 
 
 @implementation Lists
 
-- (id)init
+- (int) a
+{
+  return x.a;
+}
+
+- (float) b
+{
+  return x.b;
+}
+
+- (const char*) c
+{
+  return x.c;
+}
+
+- (id) init
 {
   cities = [[NSMutableArray alloc] initWithObjects:
     @"Grand Rapids",
@@ -53,7 +78,7 @@
   return self;
 }
 
-- (void)insertObject:(id)obj inNumbersAtIndex:(unsigned int)index
+- (void) insertObject:(id)obj inNumbersAtIndex:(unsigned int)index
 {
   if (![obj isEqualToString:@"NaN"])
     {
@@ -61,20 +86,20 @@
     }
 }
 
-- (void)removeObjectFromNumbersAtIndex:(unsigned int)index
+- (void) removeObjectFromNumbersAtIndex:(unsigned int)index
 {
   if (![[numbers objectAtIndex:index] isEqualToString:@"One"])
     [numbers removeObjectAtIndex:index];
 }
 
-- (void)replaceObjectInNumbersAtIndex:(unsigned int)index withObject:(id)obj
+- (void) replaceObjectInNumbersAtIndex:(unsigned int)index withObject:(id)obj
 {
   if (index == 1)
     obj = @"Two";
   [numbers replaceObjectAtIndex:index withObject:obj];
 }
 
-- (void)setCities:(NSArray *)other
+- (void) setCities:(NSArray *)other
 {
   [cities setArray:other];
 }
@@ -83,6 +108,11 @@
 {
   NSLog(@"%@ %@", NSStringFromSelector(_cmd), k);
   [super didChangeValueForKey: k];
+}
+
+- (void) setX: (aStruct)s
+{
+  x = s;
 }
 
 - (void) willChangeValueForKey: (NSString*)k
@@ -117,13 +147,13 @@
   return self;
 }
 
-- (void)addOneObject:(id)anObject
+- (void) addOneObject:(id)anObject
 {
   if (![anObject isEqualToString:@"ten"])
     [one addObject:anObject];
 }
 
-- (void)removeOneObject:(id)anObject
+- (void) removeOneObject:(id)anObject
 {
   if (![anObject isEqualToString:@"one"])
     {
@@ -131,7 +161,7 @@
     }
 }
 
-- (void)setTwo:(NSMutableSet *)set
+- (void) setTwo:(NSMutableSet *)set
 {
   [two setSet:set];
 }
@@ -144,12 +174,14 @@ int main(void)
 
   Lists *list = [[[Lists alloc] init] autorelease];
   Observer *observer = [Observer new];
+  aStruct s = {1, 2, "3" };
   id o;
   NSMutableArray * proxy;
   NSDictionary * temp;
 
   [list addObserver: observer forKeyPath: @"numbers" options: 15 context: 0];
   [list addObserver: observer forKeyPath: @"string" options: 15 context: 0];
+  [list addObserver: observer forKeyPath: @"x" options: 15 context: 0];
 
   [list setValue: @"x" forKey: @"string"];
 
@@ -239,8 +271,13 @@ int main(void)
   PASS([setProxy isKindOfClass:NSClassFromString(@"NSKeyValueMutableSet")],
        "mutableSetValueForKey: works")
 
+  [list setX: s];
+  PASS([list a] == 1 && [list b] == 2.0 && strcmp([list c], "3") == 0,
+    "able to set struct");
+
   [list removeObserver: observer forKeyPath: @"numbers"];
   [list removeObserver: observer forKeyPath: @"string"];
+  [list removeObserver: observer forKeyPath: @"x"];
 
   [arp release]; arp = nil;
   return 0;

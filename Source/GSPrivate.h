@@ -527,12 +527,14 @@ GSPrivateUnloadModule(FILE *errorStream,
   unsigned      size;
   void          *buffer;
   void		*executable;
+  id            frame;
 }
 + (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size;
 - (void*) buffer;
 - (void*) executable;
 - (id) initWithSize: (NSUInteger)_size;
 - (void) protect;
+- (void) setFrame: (id)aFrame;
 @end
 
 BOOL
