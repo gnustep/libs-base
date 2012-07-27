@@ -409,13 +409,13 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       // pre setting code here
       [obj willChangeValueForKey: key];
-      ffi_call(cif, imp, retp, args);
+      ffi_call(cif, (void*)imp, retp, args);
       // post setting code here
       [obj didChangeValueForKey: key];
     }
   else
     {
-      ffi_call(cif, imp, retp, args);
+      ffi_call(cif, (void*)imp, retp, args);
     }
   RELEASE(key);
 }
@@ -1875,9 +1875,12 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       if (pathInfo->recursion++ == 0)
         {
-          NSMutableSet      *set;
+          id    set = objects;
 
-          set = [self valueForKey: aKey];
+          if (nil == set)
+            {
+              set = [self valueForKey: aKey];
+            }
           [pathInfo->change setValue: [set mutableCopy] forKey: @"oldSet"];
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
         }
@@ -1906,10 +1909,13 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
       if (pathInfo->recursion == 1)
         {
           NSMutableSet  *oldSet;
-          NSMutableSet  *set;
+          id            set = objects;
 
           oldSet = [pathInfo->change valueForKey: @"oldSet"];
-          set = [self valueForKey: aKey];
+          if (nil == set)
+            {
+              set = [self valueForKey: aKey];
+            }
           [pathInfo->change removeObjectForKey: @"oldSet"];
 
           if (mutationKind == NSKeyValueUnionSetMutation)

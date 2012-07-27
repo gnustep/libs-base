@@ -1,5 +1,10 @@
 2012-07-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSKeyValueObserving.m:
+        Try fix for bug #36967
+
+2012-07-27  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/NSXMLNode.m: Just report string value as description ...
         which appears to be what OSX does.
         * Tests/base/KVC/mutable.m: Add tests based on code by Riccardo.
