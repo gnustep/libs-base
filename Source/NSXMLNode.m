@@ -1177,9 +1177,12 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (NSString*) description
 {
+/* OSX simply uses the XML string value of a node as its description.
   return [NSString stringWithFormat:@"<%@ %@ %d>%@",
     NSStringFromClass([self class]),
     [self name], [self kind], [self XMLString]];
+*/
+  return [self XMLString];
 }
 
 - (void) dealloc
