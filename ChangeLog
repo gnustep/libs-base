@@ -1,3 +1,8 @@
+2012-07-27  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSXMLNode.m (-description): Remove trailing newline. This
+	should fix #36976.
+
 2012-07-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFCallInvocation.m:
