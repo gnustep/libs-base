@@ -44,6 +44,10 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSInvocation.h"
 
+#if defined(USE_LIBFFI)
+#import "cifframe.h"
+#endif
+
 /*
  * IMPLEMENTATION NOTES
  *
@@ -385,6 +389,38 @@ replacementForClass(Class c)
   return r;
 }
 
+#if defined(USE_LIBFFI)
+static void
+cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
+{
+  id            obj;
+  SEL           sel;
+  NSString	*key;
+  Class		c;
+  void		(*imp)(id,SEL,void*);
+
+  obj = *(id *)args[0];
+  sel = *(SEL *)args[1];
+  c = [obj class];
+
+  imp = (void (*)(id,SEL,void*))[c instanceMethodForSelector: sel];
+  key = newKey(sel);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [obj willChangeValueForKey: key];
+      ffi_call(cif, imp, retp, args);
+      // post setting code here
+      [obj didChangeValueForKey: key];
+    }
+  else
+    {
+      ffi_call(cif, imp, retp, args);
+    }
+  RELEASE(key);
+}
+#endif
+
 @implementation	GSKVOReplacement
 - (void) dealloc
 {
@@ -557,7 +593,15 @@ replacementForClass(Class c)
                   }
                 else
                   {
+#if defined(USE_LIBFFI)
+                    GSCodeBuffer    *b;
+
+                    b = cifframe_closure(sig, cifframe_callback);
+                    [b retain];
+                    imp = [b executable];
+#else
                     imp = 0;
+#endif
                   }
                 break;
               default:

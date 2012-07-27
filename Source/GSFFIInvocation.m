@@ -145,10 +145,6 @@ gs_find_best_typed_sel (SEL sel)
 
 static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 {
-  NSMutableData		*frame;
-  cifframe_t            *cframe;
-  ffi_closure           *cclosure;
-  void			*executable;
   NSMethodSignature     *sig = nil;
   GSCodeBuffer          *memory;
   const char            *types;
@@ -206,38 +202,9 @@ static IMP gs_objc_msg_forward2 (id receiver, SEL sel)
 	}
     }
       
-  /* Construct the frame and closure. */
-  /* Note: We obtain cframe here, but it's passed to GSFFIInvocationCallback
-     where it becomes owned by the callback invocation, so we don't have to
-     worry about ownership */
-  frame = cifframe_from_signature(sig);
-  cframe = [frame mutableBytes];
-  /* Autorelease the closure through GSAutoreleasedBuffer */
+  memory = cifframe_closure(sig, GSFFIInvocationCallback);
 
-  memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
-  cclosure = [memory buffer];
-  executable = [memory executable];
-  if (cframe == NULL || cclosure == NULL)
-    {
-      [NSException raise: NSMallocException format: @"Allocating closure"];
-    }
-#if	HAVE_FFI_PREP_CLOSURE_LOC
-  if (ffi_prep_closure_loc(cclosure, &(cframe->cif),
-    GSFFIInvocationCallback, frame, executable) != FFI_OK)
-    {
-      [NSException raise: NSGenericException format: @"Preping closure"];
-    }
-#else
-  executable = (void*)cclosure;
-  if (ffi_prep_closure(cclosure, &(cframe->cif),
-    GSFFIInvocationCallback, frame) != FFI_OK)
-    {
-      [NSException raise: NSGenericException format: @"Preping closure"];
-    }
-#endif
-  [memory protect];
-
-  return (IMP)executable;
+  return (IMP)[memory executable];
 }
 
 static __attribute__ ((__unused__))

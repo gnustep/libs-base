@@ -40,6 +40,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSData.h"
 #import "GSInvocation.h"
+#import "GSPrivate.h"
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;
@@ -527,6 +528,46 @@ cifframe_type(const char *typePtr, const char **advance)
     *advance = typePtr;
 
   return ftype;
+}
+
+GSCodeBuffer*
+cifframe_closure (NSMethodSignature *sig, void (*cb)())
+{
+  NSMutableData		*frame;
+  cifframe_t            *cframe;
+  ffi_closure           *cclosure;
+  void			*executable;
+  GSCodeBuffer          *memory;
+
+  /* Construct the frame (stored in an NSMutableDate object) and sety it
+   * in a new closure.
+   */
+  frame = cifframe_from_signature(sig);
+  cframe = [frame mutableBytes];
+  memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
+  [memory setFrame: frame];
+  cclosure = [memory buffer];
+  executable = [memory executable];
+  if (cframe == NULL || cclosure == NULL)
+    {
+      [NSException raise: NSMallocException format: @"Allocating closure"];
+    }
+#if	HAVE_FFI_PREP_CLOSURE_LOC
+  if (ffi_prep_closure_loc(cclosure, &(cframe->cif),
+    cb, frame, executable) != FFI_OK)
+    {
+      [NSException raise: NSGenericException format: @"Preping closure"];
+    }
+#else
+  executable = (void*)cclosure;
+  if (ffi_prep_closure(cclosure, &(cframe->cif),
+    cb, frame) != FFI_OK)
+    {
+      [NSException raise: NSGenericException format: @"Preping closure"];
+    }
+#endif
+  [memory protect];
+  return memory;
 }
 
 /*-------------------------------------------------------------------------*/

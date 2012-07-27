@@ -71,6 +71,7 @@
 
 - (void) dealloc
 {
+  DESTROY(frame);
   if (size > 0)
     {
 #if	defined(HAVE_FFI_PREP_CLOSURE_LOC)
@@ -172,6 +173,11 @@
     }
 #endif
 #endif
+}
+
+- (void) setFrame: (id)aFrame
+{
+  ASSIGN(frame, aFrame);
 }
 @end
 
