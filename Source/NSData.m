@@ -3775,7 +3775,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (size > capacity)
     {
-      [self setCapacity: size];
+      NSUInteger    growTo = capacity + capacity / 2;
+
+      if (size > growTo)
+        {
+          growTo = size;
+        }
+      [self setCapacity: growTo];
     }
   if (size > length)
     {
