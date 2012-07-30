@@ -1,3 +1,11 @@
+2012-07-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSData.m: ([setLength:]) increase size of buffer in chunks
+        proportional to the current size ... so if we add small amounts to a
+        buffer many, many times, we don't reallocate the memory for each tiny
+        increment.  Should make accumulating large amounts of data into a
+        buffer much more efficient.
+
 2012-07-27  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSKeyValueObserving.m:
