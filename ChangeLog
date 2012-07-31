@@ -1,3 +1,12 @@
+2012-07-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/Additions/GSMime.m: Optimisations for chunked encoding.
+        a. Don't resize the buffer for each chunk ... that's very inefficient
+        if the other end sends tiny chunks.  Instead, make the buffer big
+        enough to handle all the available data, then shrink back to the
+        decoded size.
+        b. Move method call out of the loop handling individual bytes.
+
 2012-07-30  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSData.m: ([setLength:]) increase size of buffer in chunks
