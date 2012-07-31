@@ -1071,31 +1071,36 @@ wordData(NSString *word)
     {
       GSMimeChunkedDecoderContext	*ctxt;
       NSUInteger			size = [dData length];
-      unsigned char		*beg;
-      unsigned char		*dst;
-      const char		*src;
-      const char		*end;
-      const char		*footers;
+      unsigned char                     *buf;
+      unsigned char                     *beg;
+      unsigned char		        *dst;
+      const char		        *src;
+      const char		        *end;
+      const char		        *footers;
+      BOOL                              atEnd;
 
       ctxt = (GSMimeChunkedDecoderContext*)con;
 
-      /*
-       * Get pointers into source data buffer.
+      /* Get pointers into source data buffer.
        */
       src = (const char *)[sData bytes];
       footers = src;
       src += aRange.location;
       end = src + aRange.length;
       beg = 0;
-      /*
-       * Make sure buffer is big enough, and set up output pointers.
+
+      /* Make sure buffer is big enough, and set up output pointers.
+       * ctxt->size is the amount of data laready decoded, so if we
+       * add the size of the chunked source data we are guaranteed
+       * to have enough space for the unchunked data.
        */
-      [dData setLength: ctxt->size];
-      dst = (unsigned char*)[dData mutableBytes];
-      dst = dst + size;
+      [dData setLength: ctxt->size + [sData length]];
+      buf = (unsigned char*)[dData mutableBytes];
+      dst = buf + size;
       beg = dst;
 
-      while ([ctxt atEnd] == NO && src < end)
+      atEnd = [ctxt atEnd];
+      while (NO == atEnd && src < end)
 	{
 	  switch (ctxt->state)
 	    {
@@ -1139,16 +1144,13 @@ wordData(NSString *word)
 			  }
 		      }
 		    ctxt->pos = val;
-		    /*
-		     * If we have read a chunk already, make sure that our
-		     * destination size is updated correctly before growing
-		     * the buffer for another chunk.
+
+		    /* If we have read a chunk already, make sure that our
+		     * destination size stored in context is updated before
+		     * resetting the destination pointer for a new chunk.
 		     */
 		    size += (dst - beg);
 		    ctxt->size = size + val;
-		    [dData setLength: ctxt->size];
-		    dst = (unsigned char*)[dData mutableBytes];
-		    dst += size;
 		    beg = dst;
 		  }
 		break;
@@ -1208,7 +1210,8 @@ wordData(NSString *word)
 		}
 	      else if (*src == '\n')
 		{
-		  [ctxt setAtEnd: YES];
+                  atEnd = YES;
+		  [ctxt setAtEnd: atEnd];
 		}
 	      else
 		{
@@ -1228,7 +1231,7 @@ wordData(NSString *word)
       if (ctxt->state == ChunkFoot || ctxt->state == ChunkFootA)
 	{
 	  [ctxt->data appendBytes: footers length: src - footers];
-	  if ([ctxt atEnd] == YES)
+	  if (YES == atEnd)
 	    {
 	      NSMutableData	*old;
 
@@ -1270,8 +1273,9 @@ wordData(NSString *word)
 	      flags.inBody = 1;
 	    }
 	}
-      /*
-       * Correct size of output buffer.
+
+      /** Correct the size of the output buffer (shrink back from the
+       * original allocation to the actual unchunked size).
        */
       [dData setLength: size + dst - beg];
     }
