@@ -1,3 +1,10 @@
+2012-08-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSValue.m: ([-isEqualToValue:]) add check for self equality
+        and fix error checking tyep signature.
+        * Source/Additions/GSObjCRuntime.m: (GSSelectorTypesMatch) fix to
+        return a true BOOL value.
+
 2012-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/Additions/GSMime.m: Optimisations for chunked encoding.
