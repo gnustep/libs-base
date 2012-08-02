@@ -653,8 +653,13 @@ GS_EXPORT BOOL
 GSSelectorTypesMatch(const char *types1, const char *types2)
 {
   if (! types1 || ! types2)
-    return NO;
-
+    {
+      return NO;        // Nul pointers never match
+    }
+  if (types1 == types2)
+    {
+      return YES;
+    }
   while (*types1 && *types2)
     {
       types1 = GSSkipTypeQualifierAndLayoutInfo (types1);
@@ -662,21 +667,27 @@ GSSelectorTypesMatch(const char *types1, const char *types2)
 
       /* Reached the end of the selector.  */
       if (! *types1 && ! *types2)
-        return YES;
+        {
+          return YES;
+        }
 
       /* Ignore structure name yet compare layout.  */
       if (*types1 == '{' && *types2 == '{')
 	{
 	  while (*types1 != '=' && *types1 != '}')
-	    types1++;
-
+            {
+              types1++;
+            }
 	  while (*types2 != '=' && *types2 != '}')
-	    types2++;
+            {
+              types2++;
+            }
 	}
 
       if (*types1 != *types2)
-        return NO;
-
+        {
+          return NO;
+        }
       types1++;
       types2++;
     }
@@ -684,7 +695,7 @@ GSSelectorTypesMatch(const char *types1, const char *types2)
   types1 = GSSkipTypeQualifierAndLayoutInfo (types1);
   types2 = GSSkipTypeQualifierAndLayoutInfo (types2);
 
-  return (! *types1 && ! *types2);
+  return (! *types1 && ! *types2) ? YES : NO;
 }
 
 /* See header for documentation. */
