@@ -5320,26 +5320,26 @@ literalIsEqual(NXConstantString *self, id anObject)
           BOOL	ascii;
 
           lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, 0);
-          return ascii;
+          NS_VALRETURN(ascii);
         }
       else if (NSISOLatin1StringEncoding == encoding)
         {
           BOOL	latin1;
 
           lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, &latin1);
-          return latin1;
+          NS_VALRETURN(latin1);
         }
       else if (NSUTF8StringEncoding == encoding
         || NSUnicodeStringEncoding == encoding)
         {
           lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, 0);
-          return YES;
+          NS_VALRETURN(YES);
         }
       else
         {
           id d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
 
-          return d != nil ? YES : NO;
+          NS_VALRETURN(d != nil ? YES : NO);
         }
     }
   NS_HANDLER
