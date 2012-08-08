@@ -533,7 +533,7 @@ the instance iself.
 }
 @end
 
-@interface GSUnicodeInlineString : GSUnicodeString
+@interface GSUInlineString : GSUnicodeString
 {
 }
 @end
@@ -612,7 +612,7 @@ static Class GSCSubStringClass = 0;
 static Class GSUnicodeStringClass = 0;
 static Class GSUnicodeBufferStringClass = 0;
 static Class GSUnicodeSubStringClass = 0;
-static Class GSUnicodeInlineStringClass = 0;
+static Class GSUInlineStringClass = 0;
 static Class GSMutableStringClass = 0;
 static Class NSConstantStringClass = 0;
 
@@ -663,7 +663,7 @@ setup(BOOL rerun)
       GSCBufferStringClass = [GSCBufferString class];
       GSUnicodeBufferStringClass = [GSUnicodeBufferString class];
       GSCInlineStringClass = [GSCInlineString class];
-      GSUnicodeInlineStringClass = [GSUnicodeInlineString class];
+      GSUInlineStringClass = [GSUInlineString class];
       GSCSubStringClass = [GSCSubString class];
       GSUnicodeSubStringClass = [GSUnicodeSubString class];
       GSMutableStringClass = [GSMutableString class];
@@ -689,6 +689,36 @@ setup(BOOL rerun)
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
     }
+}
+
+static GSCInlineString*
+newCInline(unsigned length, NSZone *zone)
+{
+  GSCInlineString *me;
+
+  me = (GSCInlineString*)
+    NSAllocateObject(GSCInlineStringClass, length, zone);
+  me->_contents.c = (unsigned char*)
+    (((void*)me)+class_getInstanceSize(GSCInlineStringClass));
+  me->_count = length;
+  me->_flags.wide = 0;
+  me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+  return me;
+}
+
+static GSUInlineString*
+newUInline(unsigned length, NSZone *zone)
+{
+  GSUInlineString *me;
+
+  me = (GSUInlineString*)
+    NSAllocateObject(GSUInlineStringClass, length*sizeof(unichar), zone);
+  me->_contents.u = (unichar*)
+    (((void*)me)+class_getInstanceSize(GSUInlineStringClass));
+  me->_count = length;
+  me->_flags.wide = 1;
+  me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+  return me;
 }
 
 /* Predeclare a few functions
@@ -1139,12 +1169,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        */
       if (GSPrivateIsCollectable(chars.c) == NO)
 	{
-          me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
-	    [self zone]);
-          me->_contents.c = (unsigned char*)&((GSCInlineString*)me)[1];
-          me->_count = length;
-          me->_flags.wide = 0;
-          me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+          me = newCInline(length, [self zone]);
 	  memcpy(me->_contents.c, chars.c, length);
 	  NSZoneFree(NSZoneFromPointer(chars.c), chars.c);
           return (id)me;
@@ -1197,13 +1222,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   if (isASCII == YES
     || (internalEncoding == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
-      me = (GSStr)NSAllocateObject(GSCInlineStringClass, length,
-	[self zone]);
-      me->_contents.c = (unsigned char*)
-        (((void*)me)+class_getInstanceSize(GSCInlineStringClass));
-      me->_count = length;
-      me->_flags.wide = 0;
-      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      me = (GSStr)newCInline(length, [self zone]);
       while (length-- > 0)
         {
 	  me->_contents.c[length] = chars.u[length];
@@ -1221,12 +1240,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        */
       if (GSPrivateIsCollectable(chars.u) == NO)
 	{
-          me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass, length,
-	    [self zone]);
-          me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
-          me->_count = length;
-          me->_flags.wide = 1;
-          me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+          me = newUInline(length, [self zone]);
 	  memcpy(me->_contents.u, chars.u, length * sizeof(unichar));
 	  NSZoneFree(NSZoneFromPointer(chars.u), chars.u);
           return (id)me;
@@ -1239,7 +1253,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
       me->_flags.wide = 1;
       me->_flags.owned = flag;
     }
-  return (id)me;
+  return me;
 }
 
 - (id) initWithCharacters: (const unichar*)chars
@@ -1331,24 +1345,12 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
    */
   if (f->_flags.wide == 1)
     {
-      me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
-	f->_count*sizeof(unichar), [self zone]);
-      me->_contents.u = (unichar*)
-        (((void*)me)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      me->_count = f->_count;
-      me->_flags.wide = 1;
-      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      me = (GSStr)newUInline(f->_count, [self zone]);
       memcpy(me->_contents.u, f->_contents.u, f->_count*sizeof(unichar));
     }
   else
     {
-      me = (GSStr)NSAllocateObject(GSCInlineStringClass, f->_count,
-	[self zone]);
-      me->_contents.c = (unsigned char*)
-        (((void*)me)+class_getInstanceSize(GSCInlineStringClass));
-      me->_count = f->_count;
-      me->_flags.wide = 0;
-      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      me = (GSStr)newCInline(f->_count, [self zone]);
       memcpy(me->_contents.c, f->_contents.c, f->_count);
     }
 
@@ -1356,7 +1358,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
    * If the string had to grow beyond the initial buffer size, we must
    * release any allocated memory.
    */
-  if (f->_flags.owned == 1)
+  if (1 == f->_flags.owned)
     {
       NSZoneFree(f->_zone, f->_contents.c);
     }
@@ -1388,15 +1390,9 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     {
       /*
        * For a GSCString subclass, or an 8-bit GSMutableString,
-       * we can copy the bytes directly into a GSCString.
+       * we can copy the bytes directly into an inline string.
        */
-      me = (GSStr)NSAllocateObject(GSCInlineStringClass,
-	length, [self zone]);
-      me->_contents.c = (unsigned char*)
-        (((void*)me)+class_getInstanceSize(GSCInlineStringClass));
-      me->_count = length;
-      me->_flags.wide = 0;
-      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      me = (GSStr)newCInline(length, [self zone]);
       memcpy(me->_contents.c, ((GSStr)string)->_contents.c, length);
     }
   else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
@@ -1404,15 +1400,9 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     {
       /*
        * For a GSUnicodeString subclass, or a 16-bit GSMutableString,
-       * we can copy the bytes directly into a GSUnicodeString.
+       * we can copy the bytes directly into an inline string.
        */
-      me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
-	length*sizeof(unichar), [self zone]);
-      me->_contents.u = (unichar*)
-        (((void*)me)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      me->_count = length;
-      me->_flags.wide = 1;
-      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      me = (GSStr)newUInline(length, [self zone]);
       memcpy(me->_contents.u, ((GSStr)string)->_contents.u,
 	length*sizeof(unichar));
     }
@@ -1422,13 +1412,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        * For a string with an unknown class, we can initialise by
        * having the string copy its content directly into our buffer.
        */
-      me = (GSStr)NSAllocateObject(GSUnicodeInlineStringClass,
-	length*sizeof(unichar), [self zone]);
-      me->_contents.u = (unichar*)
-        (((void*)me)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      me->_count = length;
-      me->_flags.wide = 1;
-      me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
+      me = (GSStr)newUInline(length, [self zone]);
       [string getCharacters: me->_contents.u];
     }
   return (id)me;
@@ -1461,7 +1445,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
  * GSCSubString, GSCInlineString, GSCBufferString
  * inherit methods from GSCString.
  * GSUnicodeString uses the functions with the _u suffix.
- * GSUnicodeSubString, GSUnicodeInlineString, and GSUnicodeBufferString
+ * GSUnicodeSubString, GSUInlineString, and GSUnicodeBufferString
  * inherit methods from GSUnicodeString.
  * GSMutableString uses all the functions, selecting the _c or _u versions
  * depending on whether its storage is 8-bit or 16-bit.
@@ -3549,16 +3533,10 @@ agree, create a new GSCInlineString otherwise.
 {
   if (!_flags.owned || NSShouldRetainWithZone(self, z) == NO)
     {
-      GSCInlineString *o;
+      GSCInlineString   *me = newCInline(_count, z);
 
-      o = (typeof(o))NSAllocateObject(GSCInlineStringClass, _count, z);
-      o->_contents.c = (unsigned char*)
-        (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-      o->_count = _count;
-      memcpy(o->_contents.c, _contents.c, _count);
-      o->_flags.wide = 0;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return (id)o;
+      memcpy(me->_contents.c, _contents.c, _count);
+      return me;
     }
   else
     {
@@ -3695,18 +3673,13 @@ agree, create a new GSCInlineString otherwise.
   GSCInlineString	*o;
   unsigned		i;
 
-  o = (typeof(o))NSAllocateObject(GSCInlineStringClass,
-    _count, NSDefaultMallocZone());
-  o->_contents.c = (unsigned char*)
-    (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-  i = o->_count = _count;
+  o = [newCInline(_count, [self zone]) autorelease];
+  i = _count;
   while (i-- > 0)
     {
       o->_contents.c[i] = tolower(_contents.c[i]);
     }
-  o->_flags.wide = 0;
-  o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-  return [(id)o autorelease];
+  return o;
 }
 
 - (id) mutableCopy
@@ -3795,18 +3768,13 @@ agree, create a new GSCInlineString otherwise.
   GSCInlineString	*o;
   unsigned		i;
 
-  o = (typeof(o))NSAllocateObject(GSCInlineStringClass,
-    _count, NSDefaultMallocZone());
-  o->_contents.c = (unsigned char*)
-    (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-  i = o->_count = _count;
+  o = [newCInline(_count, [self zone]) autorelease];
+  i = _count;
   while (i-- > 0)
     {
       o->_contents.c[i] = toupper(_contents.c[i]);
     }
-  o->_flags.wide = 0;
-  o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-  return [(id)o autorelease];
+  return o;
 }
 
 - (const char *) UTF8String
@@ -3855,13 +3823,8 @@ agree, create a new GSCInlineString otherwise.
 {
   GSCInlineString *o;
 
-  o = (typeof(o))NSAllocateObject(GSCInlineStringClass, _count, z);
-  o->_contents.c = (unsigned char*)
-    (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-  o->_count = _count;
+  o = newCInline(_count, z);
   memcpy(o->_contents.c, _contents.c, _count);
-  o->_flags.wide = 0;
-  o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
   return (id)o;
 }
 
@@ -4038,21 +4001,16 @@ agree, create a new GSCInlineString otherwise.
 
 - (id) lowercaseString
 {
-  GSUnicodeInlineString	*o;
+  GSUInlineString	*o;
   unsigned		i;
 
-  o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-    _count * sizeof(unichar), NSDefaultMallocZone());
-  o->_contents.u = (unichar*)
-    (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-  i = o->_count = _count;
+  o = [newUInline(_count, [self zone]) autorelease];
+  i = _count;
   while (i-- > 0)
     {
       o->_contents.u[i] = uni_tolower(_contents.u[i]);
     }
-  o->_flags.wide = 1;
-  o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-  return [(id)o autorelease];
+  return o;
 }
 
 - (id) mutableCopy
@@ -4138,21 +4096,16 @@ agree, create a new GSCInlineString otherwise.
 
 - (id) uppercaseString
 {
-  GSUnicodeInlineString	*o;
+  GSUInlineString	*o;
   unsigned		i;
 
-  o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-    _count * sizeof(unichar), NSDefaultMallocZone());
-  o->_contents.u = (unichar*)
-    (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-  i = o->_count = _count;
+  o = [newUInline(_count, [self zone]) autorelease];
+  i = _count;
   while (i-- > 0)
     {
       o->_contents.u[i] = uni_toupper(_contents.u[i]);
     }
-  o->_flags.wide = 1;
-  o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-  return [(id)o autorelease];
+  return o;
 }
 
 // private method for Unicode level 3 implementation
@@ -4169,23 +4122,17 @@ agree, create a new GSCInlineString otherwise.
 
 /*
 Default -copy implementation. Retain if we own the buffer and the zones
-agree, create a new GSUnicodeInlineString otherwise.
+agree, create a new GSUInlineString otherwise.
 */
 - (id) copyWithZone: (NSZone*)z
 {
   if (!_flags.owned || NSShouldRetainWithZone(self, z) == NO)
     {
-      GSUnicodeInlineString *o;
+      GSUInlineString *o;
 
-      o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-	_count * sizeof(unichar), z);
-      o->_contents.u = (unichar*)
-        (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      o->_count = _count;
+      o = newUInline(_count, z);
       memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
-      o->_flags.wide = 1;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return (id)o;
+      return o;
     }
   else
     {
@@ -4214,7 +4161,7 @@ agree, create a new GSUnicodeInlineString otherwise.
 
 
 
-@implementation	GSUnicodeInlineString
+@implementation	GSUInlineString
 @end
 
 
@@ -4226,17 +4173,11 @@ agree, create a new GSUnicodeInlineString otherwise.
  */
 - (id) copyWithZone: (NSZone*)z
 {
-  GSUnicodeInlineString *o;
+  GSUInlineString *o;
 
-  o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-    _count * sizeof(unichar), z);
-  o->_contents.u = (unichar*)
-    (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-  o->_count = _count;
+  o = newUInline(_count, z);
   memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
-  o->_flags.wide = 1;
-  o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-  return (id)o;
+  return o;
 }
 
 - (void) dealloc
@@ -4355,30 +4296,19 @@ agree, create a new GSUnicodeInlineString otherwise.
 {
   if (_flags.wide == 1)
     {
-      GSUnicodeInlineString *o;
+      GSUInlineString *o;
 
-      o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-	_count * sizeof(unichar), z);
-      o->_contents.u = (unichar*)
-        (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      o->_count = _count;
+      o = newUInline(_count, z);
       memcpy(o->_contents.u, _contents.u, _count * sizeof(unichar));
-      o->_flags.wide = 1;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return (id)o;
+      return o;
     }
   else
     {
       GSCInlineString *o;
 
-      o = (typeof(o))NSAllocateObject(GSCInlineStringClass, _count, z);
-      o->_contents.c = (unsigned char*)
-        (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-      o->_count = _count;
+      o = newCInline(_count, z);
       memcpy(o->_contents.c, _contents.c, _count);
-      o->_flags.wide = 0;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return (id)o;
+      return o;
     }
 }
 
@@ -4854,39 +4784,29 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 {
   if (_flags.wide == 1)
     {
-      GSUnicodeInlineString	*o;
-      unsigned			i;
+      GSUInlineString	*o;
+      unsigned          i;
 
-      o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-	_count * sizeof(unichar), NSDefaultMallocZone());
-      o->_contents.u = (unichar*)
-        (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      i = o->_count = _count;
+      o = newUInline(_count, [self zone]);
+      i = _count;
       while (i-- > 0)
 	{
           o->_contents.u[i] = uni_tolower(_contents.u[i]);
 	}
-      o->_flags.wide = 1;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return [(id)o autorelease];
+      return [o autorelease];
     }
   else
     {
       GSCInlineString	*o;
       unsigned		i;
 
-      o = (typeof(o))NSAllocateObject(GSCInlineStringClass,
-	_count, NSDefaultMallocZone());
-      o->_contents.c = (unsigned char*)
-        (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-      i = o->_count = _count;
+      o = newCInline(_count, [self zone]);
+      i = _count;
       while (i-- > 0)
 	{
           o->_contents.c[i] = tolower(_contents.c[i]);
 	}
-      o->_flags.wide = 0;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return [(id)o autorelease];
+      return [o autorelease];
     }
 }
 
@@ -5175,32 +5095,20 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     }
   if (_flags.wide == 1)
     {
-      GSUnicodeInlineString *o;
+      GSUInlineString *o;
 
-      o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-	aRange.length * sizeof(unichar), NSDefaultMallocZone());
-      o->_contents.u = (unichar*)
-        (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      o->_count = aRange.length;
+      o = [newUInline(aRange.length, [self zone]) autorelease];
       memcpy(o->_contents.u, _contents.u + aRange.location,
 	aRange.length * sizeof(unichar));
-      o->_flags.wide = 1;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return AUTORELEASE((id)o);
+      return o;
     }
   else
     {
       GSCInlineString *o;
 
-      o = (typeof(o))NSAllocateObject(GSCInlineStringClass,
-	aRange.length, NSDefaultMallocZone());
-      o->_contents.c = (unsigned char*)
-        (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-      o->_count = aRange.length;
+      o = [newCInline(aRange.length, [self zone]) autorelease];
       memcpy(o->_contents.c, _contents.c + aRange.location, aRange.length);
-      o->_flags.wide = 0;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return AUTORELEASE((id)o);
+      return o;
     }
 }
 
@@ -5214,32 +5122,20 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     }
   if (_flags.wide == 1)
     {
-      GSUnicodeInlineString *o;
+      GSUInlineString *o;
 
-      o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-	aRange.length * sizeof(unichar), NSDefaultMallocZone());
-      o->_contents.u = (unichar*)
-        (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      o->_count = aRange.length;
+      o = [newUInline(aRange.length, [self zone]) autorelease];
       memcpy(o->_contents.u, _contents.u + aRange.location,
 	aRange.length * sizeof(unichar));
-      o->_flags.wide = 1;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return AUTORELEASE((id)o);
+      return o;
     }
   else
     {
       GSCInlineString *o;
 
-      o = (typeof(o))NSAllocateObject(GSCInlineStringClass,
-	aRange.length, NSDefaultMallocZone());
-      o->_contents.c = (unsigned char*)
-        (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-      o->_count = aRange.length;
+      o = [newCInline(aRange.length, [self zone]) autorelease];
       memcpy(o->_contents.c, _contents.c + aRange.location, aRange.length);
-      o->_flags.wide = 0;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return AUTORELEASE((id)o);
+      return o;
     }
 }
 
@@ -5247,39 +5143,29 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 {
   if (_flags.wide == 1)
     {
-      GSUnicodeInlineString	*o;
-      unsigned			i;
+      GSUInlineString	*o;
+      unsigned		i;
 
-      o = (typeof(o))NSAllocateObject(GSUnicodeInlineStringClass,
-	_count * sizeof(unichar), NSDefaultMallocZone());
-      o->_contents.u = (unichar*)
-        (((void*)o)+class_getInstanceSize(GSUnicodeInlineStringClass));
-      i = o->_count = _count;
+      o = [newUInline(_count, [self zone]) autorelease];
+      i = _count;
       while (i-- > 0)
 	{
           o->_contents.u[i] = uni_toupper(_contents.u[i]);
 	}
-      o->_flags.wide = 1;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return [(id)o autorelease];
+      return o;
     }
   else
     {
       GSCInlineString	*o;
       unsigned		i;
 
-      o = (typeof(o))NSAllocateObject(GSCInlineStringClass,
-	_count, NSDefaultMallocZone());
-      o->_contents.c = (unsigned char*)
-        (((void*)o)+class_getInstanceSize(GSCInlineStringClass));
-      i = o->_count = _count;
+      o = [newCInline(_count, [self zone]) autorelease];
+      i = _count;
       while (i-- > 0)
 	{
           o->_contents.c[i] = toupper(_contents.c[i]);
 	}
-      o->_flags.wide = 0;
-      o->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
-      return [(id)o autorelease];
+      return o;
     }
 }
 
@@ -5423,84 +5309,103 @@ literalIsEqual(NXConstantString *self, id anObject)
 
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
 {
-  if (NSASCIIStringEncoding == encoding)
+  /* If the string contains bad (non-utf8) data, the lengthUTF8() function
+   * will raise an exception ... we catch it and return NO in that case
+   * since this method is not expected to raise exceptions.
+   */
+  NS_DURING
     {
-      BOOL	ascii;
+      if (NSASCIIStringEncoding == encoding)
+        {
+          BOOL	ascii;
 
-      lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, 0);
-      return ascii;
-    }
-  else if (NSISOLatin1StringEncoding == encoding)
-    {
-      BOOL	latin1;
+          lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, 0);
+          return ascii;
+        }
+      else if (NSISOLatin1StringEncoding == encoding)
+        {
+          BOOL	latin1;
 
-      lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, &latin1);
-      return latin1;
-    }
-  else if (NSUTF8StringEncoding == encoding
-    || NSUnicodeStringEncoding == encoding)
-    {
-      return YES;
-    }
-  else
-    {
-      id d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
+          lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, &latin1);
+          return latin1;
+        }
+      else if (NSUTF8StringEncoding == encoding
+        || NSUnicodeStringEncoding == encoding)
+        {
+          lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, 0);
+          return YES;
+        }
+      else
+        {
+          id d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
 
-      return d != nil ? YES : NO;
+          return d != nil ? YES : NO;
+        }
     }
+  NS_HANDLER
+    {
+      return NO;
+    }
+  NS_ENDHANDLER
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
 	 allowLossyConversion: (BOOL)flag
 {
+  BOOL	        ascii;
+  BOOL	        latin1;
+  unsigned	length;
+
   if (0 == nxcslen)
     {
       return [NSDataClass data];
     }
+
+  /* Check what is actually in this string ... if it's corrupt an exception
+   * is raised.
+   */
+  length = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, &latin1);
+
   if (NSUTF8StringEncoding == encoding)
     {
       /* We want utf-8, so we can just return an object pointing to the
-       * constant string data.
+       * constant string data since e just checked that it's UTF8 in
+       * lengthUTF8().
        */
       return [NSDataClass dataWithBytesNoCopy: (void*)nxcsptr
 				       length: nxcslen
 				 freeWhenDone: NO];
     }
-  if (NSASCIIStringEncoding == encoding
-    || NSISOLatin1StringEncoding == encoding)
+
+  if (YES == ascii && GSPrivateIsByteEncoding(encoding))
     {
-      BOOL	ascii;
-      BOOL	latin1;
-      unsigned	length;
-
-      length = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, &latin1);
-      if (YES == ascii)
-	{
-	  /* The coonstant string data is just ascii, so we can return a
-	   * pointer to it dierctly.
-	   */
-	  return [NSDataClass dataWithBytesNoCopy: (void*)nxcsptr
-					   length: nxcslen
-				     freeWhenDone: NO];
-	}
-      if (YES == latin1)
-	{
-	  unsigned	i = 0;
-	  unichar	n = 0;
-	  uint8_t	*b;
-
-	  /* If all the characters are latin1 we can copy them efficiently.
-	   */
-	  b = NSAllocateCollectable(length, 0);
-	  while (i < length)
-	    {
-	      b[i] = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
-	    }
-	  return [NSDataClass dataWithBytesNoCopy: (void*)b
-					   length: length
-				     freeWhenDone: YES];
-	}
+      /* The constant string data is just ascii, so we can return a
+       * pointer to it directly for any encoding which has ascii as
+       * a subset.
+       */
+      return [NSDataClass dataWithBytesNoCopy: (void*)nxcsptr
+                                       length: nxcslen
+                                 freeWhenDone: NO];
     }
+
+  if (YES == latin1 && NSISOLatin1StringEncoding == encoding)
+    {
+      unsigned	i = 0;
+      unichar	n = 0;
+      uint8_t	*b;
+
+      /* If all the characters are latin1 we can copy them efficiently.
+       */
+      b = NSAllocateCollectable(length, 0);
+      while (i < length)
+        {
+          b[i] = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+        }
+      return [NSDataClass dataWithBytesNoCopy: (void*)b
+                                       length: length
+                                 freeWhenDone: YES];
+    }
+
   return [super dataUsingEncoding: encoding allowLossyConversion: flag];
 }
 
@@ -5608,6 +5513,50 @@ literalIsEqual(NXConstantString *self, id anObject)
 - (NSUInteger) length
 {
   return lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, 0);
+}
+
+- (NSString*) lowercaseString
+{
+  if (nxcslen > 0)
+    {
+      BOOL              ascii;
+      BOOL              latin1;
+      unsigned          length;
+      unsigned	        i = 0;
+
+      length = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, &latin1);
+      if (YES == ascii)
+        {
+          GSCInlineString       *result;
+
+          result = [newCInline(length, [self zone]) autorelease];
+          while (i < length)
+            {
+              result->_contents.c[i] = tolower(((const char*)nxcsptr)[i]);
+              i++;
+            }
+          return result;
+        }
+      else
+        {
+          NSUInteger	        l = 0;
+          unichar       	u;
+          unichar       	n = 0;
+          GSUInlineString       *result;
+
+          result = [newUInline(length, [self zone]) autorelease];
+          while (l < length)
+            {
+              u = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+              result->_contents.u[l++] = uni_tolower(u);
+            }
+          return result;
+        }
+    }
+  else
+    {
+      return self;
+    }
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
@@ -5723,6 +5672,50 @@ literalIsEqual(NXConstantString *self, id anObject)
   [NSException raise: NSInvalidArgumentException
     format: @"-rangeOfComposedCharacterSequenceAtIndex: index out of range"];
   return NSMakeRange(NSNotFound, 0);
+}
+
+- (NSString*) uppercaseString
+{
+  if (nxcslen > 0)
+    {
+      BOOL              ascii;
+      BOOL              latin1;
+      unsigned          length;
+      unsigned	        i = 0;
+
+      length = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, &latin1);
+      if (YES == ascii)
+        {
+          GSCInlineString       *result;
+
+          result = [newCInline(length, [self zone]) autorelease];
+          while (i < length)
+            {
+              result->_contents.c[i] = toupper(((const char*)nxcsptr)[i]);
+              i++;
+            }
+          return result;
+        }
+      else
+        {
+          NSUInteger	        l = 0;
+          unichar	        u;
+          unichar	        n = 0;
+          GSUInlineString       *result;
+
+          result = [newUInline(length, [self zone]) autorelease];
+          while (l < length)
+            {
+              u = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
+              result->_contents.u[l++] = uni_toupper(u);
+            }
+          return result;
+        }
+    }
+  else
+    {
+      return self;
+    }
 }
 
 - (id) retain
