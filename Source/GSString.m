@@ -3668,20 +3668,6 @@ agree, create a new GSCInlineString otherwise.
   return lossyCString_c((GSStr)self);
 }
 
-- (id) lowercaseString
-{
-  GSCInlineString	*o;
-  unsigned		i;
-
-  o = [newCInline(_count, [self zone]) autorelease];
-  i = _count;
-  while (i-- > 0)
-    {
-      o->_contents.c[i] = tolower(_contents.c[i]);
-    }
-  return o;
-}
-
 - (id) mutableCopy
 {
   GSMutableString	*obj;
@@ -3761,20 +3747,6 @@ agree, create a new GSCInlineString otherwise.
       return substring_c((GSStr)self, aRange);
     }
   return [super substringWithRange: aRange];
-}
-
-- (id) uppercaseString
-{
-  GSCInlineString	*o;
-  unsigned		i;
-
-  o = [newCInline(_count, [self zone]) autorelease];
-  i = _count;
-  while (i-- > 0)
-    {
-      o->_contents.c[i] = toupper(_contents.c[i]);
-    }
-  return o;
 }
 
 - (const char *) UTF8String
@@ -4795,19 +4767,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	}
       return [o autorelease];
     }
-  else
-    {
-      GSCInlineString	*o;
-      unsigned		i;
-
-      o = newCInline(_count, [self zone]);
-      i = _count;
-      while (i-- > 0)
-	{
-          o->_contents.c[i] = tolower(_contents.c[i]);
-	}
-      return [o autorelease];
-    }
+  return [super lowercaseString];
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
@@ -5154,19 +5114,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	}
       return o;
     }
-  else
-    {
-      GSCInlineString	*o;
-      unsigned		i;
-
-      o = [newCInline(_count, [self zone]) autorelease];
-      i = _count;
-      while (i-- > 0)
-	{
-          o->_contents.c[i] = toupper(_contents.c[i]);
-	}
-      return o;
-    }
+  return [super uppercaseString];
 }
 
 // private method for Unicode level 3 implementation
@@ -5515,50 +5463,6 @@ literalIsEqual(NXConstantString *self, id anObject)
   return lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, 0);
 }
 
-- (NSString*) lowercaseString
-{
-  if (nxcslen > 0)
-    {
-      BOOL              ascii;
-      BOOL              latin1;
-      unsigned          length;
-      unsigned	        i = 0;
-
-      length = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, &latin1);
-      if (YES == ascii)
-        {
-          GSCInlineString       *result;
-
-          result = [newCInline(length, [self zone]) autorelease];
-          while (i < length)
-            {
-              result->_contents.c[i] = tolower(((const char*)nxcsptr)[i]);
-              i++;
-            }
-          return result;
-        }
-      else
-        {
-          NSUInteger	        l = 0;
-          unichar       	u;
-          unichar       	n = 0;
-          GSUInlineString       *result;
-
-          result = [newUInline(length, [self zone]) autorelease];
-          while (l < length)
-            {
-              u = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
-              result->_contents.u[l++] = uni_tolower(u);
-            }
-          return result;
-        }
-    }
-  else
-    {
-      return self;
-    }
-}
-
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 			    options: (NSUInteger)mask
 			      range: (NSRange)aRange
@@ -5672,50 +5576,6 @@ literalIsEqual(NXConstantString *self, id anObject)
   [NSException raise: NSInvalidArgumentException
     format: @"-rangeOfComposedCharacterSequenceAtIndex: index out of range"];
   return NSMakeRange(NSNotFound, 0);
-}
-
-- (NSString*) uppercaseString
-{
-  if (nxcslen > 0)
-    {
-      BOOL              ascii;
-      BOOL              latin1;
-      unsigned          length;
-      unsigned	        i = 0;
-
-      length = lengthUTF8((const uint8_t*)nxcsptr, nxcslen, &ascii, &latin1);
-      if (YES == ascii)
-        {
-          GSCInlineString       *result;
-
-          result = [newCInline(length, [self zone]) autorelease];
-          while (i < length)
-            {
-              result->_contents.c[i] = toupper(((const char*)nxcsptr)[i]);
-              i++;
-            }
-          return result;
-        }
-      else
-        {
-          NSUInteger	        l = 0;
-          unichar	        u;
-          unichar	        n = 0;
-          GSUInlineString       *result;
-
-          result = [newUInline(length, [self zone]) autorelease];
-          while (l < length)
-            {
-              u = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
-              result->_contents.u[l++] = uni_toupper(u);
-            }
-          return result;
-        }
-    }
-  else
-    {
-      return self;
-    }
 }
 
 - (id) retain
