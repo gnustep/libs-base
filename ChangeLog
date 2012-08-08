@@ -1,3 +1,9 @@
+2012-08-08 Riccardo Mottola <rm@gnu.org>
+
+	* Tools/AGSParser.m:
+	Add macro detection for MacOS version 10.1 to 10.6 and make
+	GS_API_LATEST the last in priority.
+
 2012-08-08  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSString.m: Simplify/remove upper and lower case conversion

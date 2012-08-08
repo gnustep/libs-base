@@ -3820,10 +3820,6 @@ fail:
     {
       str = @"000000";
     }
-  else if ([str isEqualToString: @"GS_API_LATEST"] == YES)
-    {
-      str = @"999999";
-    }
   else if ([str isEqualToString: @"GS_API_OSSPEC"] == YES)
     {
       str = @"010000";
@@ -3836,6 +3832,35 @@ fail:
     {
       str = @"100000";
     }
+  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_1"] == YES)
+    {
+      str = @"101000";
+    }
+  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_2"] == YES)
+    {
+      str = @"102000";
+    }
+  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_3"] == YES)
+    {
+      str = @"103000";
+    }
+  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_4"] == YES)
+    {
+      str = @"104000";
+    }
+  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_5"] == YES)
+    {
+      str = @"105000";
+    }
+  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_6"] == YES)
+    {
+      str = @"106000";
+    }
+  else if ([str isEqualToString: @"GS_API_LATEST"] == YES)
+    {
+      str = @"999999";
+    }
+
   i = [str intValue];
   return [NSString stringWithFormat: @"%d.%d.%d",
     i/10000, (i/100)%100, i%100];
