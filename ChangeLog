@@ -1,3 +1,9 @@
+2012-08-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSString.m: Add upper and lower case methods for literal
+        strings.  Change other literal string methods to check that content
+        is really utf8 in more places.  Generally simplify/cleanup a bit.
+
 2012-08-02  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSValue.m: ([-isEqualToValue:]) add check for self equality
