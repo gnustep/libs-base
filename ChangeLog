@@ -3,6 +3,9 @@
         * Source/NSPropertyList.m:
         Fix problem considering a lack of whitespace at the end of the
         list as an error.
+        * GSeq.h: Replace tolower() with uni_tolower() where using 8bit
+        strings and the internal coding is latin1 and may not be the same
+        as the native encoding.
 
 2012-08-08 Riccardo Mottola <rm@gnu.org>
 

@@ -459,21 +459,60 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 
       if (mask & NSCaseInsensitiveSearch)
 	{
+#if	GSEQ_O == GSEQ_CS || GSEQ_S == GSEQ_CS
+          if (GSPrivateDefaultCStringEncoding() == NSISOLatin1StringEncoding)
+            {
+              /* Using latin1 internally, rather than native encoding,
+               * so we can't use native tolower() function.
+               */
+              for (i = 0; i < end; i++)
+                {
+                  unichar	c1 = uni_tolower((unichar)sBuf[i]);
+                  unichar	c2 = uni_tolower((unichar)oBuf[i]);
+
+                  if (c1 < c2)
+                    return NSOrderedAscending;
+                  if (c1 > c2)
+                    return NSOrderedDescending;
+                }
+            }
+          else
+            {
+              /* We are not using latin1 encoding internally, so we trust
+               * that the internal encoding matches the native encoding
+               * and the native tolower() function will work.
+               */
+              for (i = 0; i < end; i++)
+                {
+#if	GSEQ_S == GSEQ_CS
+                  unichar	c1 = tolower(sBuf[i]);
+#else
+                  unichar	c1 = uni_tolower((unichar)sBuf[i]);
+#endif
+#if	GSEQ_O == GSEQ_CS
+                  unichar	c2 = tolower(oBuf[i]);
+#else
+                  unichar       c2 = uni_tolower((unichar)oBuf[i]);
+#endif
+
+                  if (c1 < c2)
+                    return NSOrderedAscending;
+                  if (c1 > c2)
+                    return NSOrderedDescending;
+                }
+            }
+#else
 	  for (i = 0; i < end; i++)
 	    {
-#if	GSEQ_O == GSEQ_CS && GSEQ_S == GSEQ_CS
-	      char	c1 = tolower(sBuf[i]);
-	      char	c2 = tolower(oBuf[i]);
-#else
 	      unichar	c1 = uni_tolower((unichar)sBuf[i]);
 	      unichar	c2 = uni_tolower((unichar)oBuf[i]);
-#endif
 
 	      if (c1 < c2)
 		return NSOrderedAscending;
 	      if (c1 > c2)
 		return NSOrderedDescending;
 	    }
+#endif
 	}
       else
 	{
