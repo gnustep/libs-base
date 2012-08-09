@@ -3788,8 +3788,10 @@ fail:
 
 - (NSString*) parseVersion
 {
-  unsigned	i;
-  NSString	*str;
+  static NSDictionary   *known = nil;
+  unsigned	        i;
+  NSString	        *str;
+  NSString	        *tmp;
 
   while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
     {
@@ -3816,49 +3818,27 @@ fail:
 	}
       str = [NSString stringWithCharacters: &buffer[i] length: pos - i];
     }
-  if ([str isEqualToString: @"GS_API_NONE"] == YES)
+
+  if (nil == known)
     {
-      str = @"000000";
+      known = [[NSDictionary alloc] initWithObjectsAndKeys:
+	OBJC_STRINGIFY(GS_API_NONE), @"GS_API_NONE",
+	OBJC_STRINGIFY(GS_API_OSSPEC), @"GS_API_OSSPEC",
+	OBJC_STRINGIFY(GS_API_OPENSTEP), @"GS_API_OPENSTEP",
+	OBJC_STRINGIFY(GS_API_MACOSX), @"GS_API_MACOSX",
+	OBJC_STRINGIFY(MAC_OS_X_VERSION_10_1), @"MAC_OS_X_VERSION_10_1",
+	OBJC_STRINGIFY(MAC_OS_X_VERSION_10_2), @"MAC_OS_X_VERSION_10_2",
+	OBJC_STRINGIFY(MAC_OS_X_VERSION_10_3), @"MAC_OS_X_VERSION_10_3",
+	OBJC_STRINGIFY(MAC_OS_X_VERSION_10_4), @"MAC_OS_X_VERSION_10_4",
+	OBJC_STRINGIFY(MAC_OS_X_VERSION_10_5), @"MAC_OS_X_VERSION_10_5",
+	OBJC_STRINGIFY(MAC_OS_X_VERSION_10_6), @"MAC_OS_X_VERSION_10_6",
+	OBJC_STRINGIFY(GS_API_LATEST), @"GS_API_LATEST",
+        nil];
     }
-  else if ([str isEqualToString: @"GS_API_OSSPEC"] == YES)
+  tmp = [known objectForKey: str];
+  if (nil != tmp)
     {
-      str = @"010000";
-    }
-  else if ([str isEqualToString: @"GS_API_OPENSTEP"] == YES)
-    {
-      str = @"040000";
-    }
-  else if ([str isEqualToString: @"GS_API_MACOSX"] == YES)
-    {
-      str = @"100000";
-    }
-  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_1"] == YES)
-    {
-      str = @"101000";
-    }
-  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_2"] == YES)
-    {
-      str = @"102000";
-    }
-  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_3"] == YES)
-    {
-      str = @"103000";
-    }
-  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_4"] == YES)
-    {
-      str = @"104000";
-    }
-  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_5"] == YES)
-    {
-      str = @"105000";
-    }
-  else if ([str isEqualToString: @"MAC_OS_X_VERSION_10_6"] == YES)
-    {
-      str = @"106000";
-    }
-  else if ([str isEqualToString: @"GS_API_LATEST"] == YES)
-    {
-      str = @"999999";
+      str = tmp;
     }
 
   i = [str intValue];
