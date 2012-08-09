@@ -1250,13 +1250,17 @@ static id parsePlItem(pldata* pld)
 	result = parseUnquotedString(pld);
 	break;
     }
-  if (start == YES && result != nil)
+  if (YES == start && result != nil && nil == pld->err)
     {
       if (skipSpace(pld) == YES)
 	{
 	  pld->err = @"extra data after parsed string";
 	  result = nil;		// Not at end of string.
 	}
+      else
+        {
+	  pld->err = nil;       // end expcted
+        }
     }
   return result;
 }
