@@ -1,3 +1,9 @@
+2012-08-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSPropertyList.m:
+        Fix problem considering a lack of whitespace at the end of the
+        list as an error.
+
 2012-08-08 Riccardo Mottola <rm@gnu.org>
 
 	* Tools/AGSParser.m:
