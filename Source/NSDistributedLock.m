@@ -192,7 +192,9 @@ static NSFileManager	*mgr = nil;
 		      forKey: NSFilePosixPermissions];
 	
   locked = [mgr createDirectoryAtPath: _lockPath
-			   attributes: attributesToSet];
+          withIntermediateDirectories: YES
+			   attributes: attributesToSet
+                                error: NULL];
   if (locked == NO)
     {
       BOOL	dir;
@@ -206,7 +208,9 @@ static NSFileManager	*mgr = nil;
       if ([mgr fileExistsAtPath: _lockPath isDirectory: &dir] == NO)
 	{
 	  locked = [mgr createDirectoryAtPath: _lockPath
-				   attributes: attributesToSet];
+                  withIntermediateDirectories: YES
+				   attributes: attributesToSet
+                                        error: NULL];
 	  if (locked == NO)
 	    {
 	      NSLog(@"Failed to create lock directory '%@' - %@",

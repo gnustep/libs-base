@@ -1,3 +1,16 @@
+2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSpellServer.m:
+	* Source/NSPropertyList.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSDistributedLock.m:
+	* Source/NSMessagePort.m:
+	* Source/NSHTTPCookieStorage.m:
+        Use new method for creating intermediate directories rater than 
+        depending on incorrect behavior of the old method. 
+
 2012-08-09  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSPropertyList.m:

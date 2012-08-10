@@ -682,7 +682,10 @@ static void ExtractValuesFromConfig(NSDictionary *config)
       if ([manager fileExistsAtPath: path isDirectory: &flag] == NO
 	|| flag == NO)
 	{
-	  [manager createDirectoryAtPath: path attributes: attr];
+	  [manager createDirectoryAtPath: path
+             withIntermediateDirectories: YES
+                              attributes: attr
+                                   error: NULL];
 	}
     }
 
@@ -2005,7 +2008,9 @@ NSTemporaryDirectory(void)
 	  attr = [NSDictionary dictionaryWithObject: p
 					     forKey: NSFilePosixPermissions];
 	  if ([manager createDirectoryAtPath: tempDirName
-				  attributes: attr] == NO)
+                 withIntermediateDirectories: YES
+				  attributes: attr
+                                       error: NULL] == NO)
 	    {
 	      NSWarnFLog(@"Attempt to create a secure temporary"
 	        @" directory (%@) failed.", tempDirName);

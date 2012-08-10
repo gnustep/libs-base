@@ -126,8 +126,11 @@ static NSHTTPCookieStorage   *storage = nil;
         fileExistsAtPath: path isDirectory: &isDir] == NO || isDir == NO)
     {
       BOOL ok;
+
       ok = [[NSFileManager defaultManager] createDirectoryAtPath: path 
-      	      withIntermediateDirectories: YES attributes: nil error: NULL];
+                                     withIntermediateDirectories: YES
+                                                      attributes: nil
+                                                           error: NULL];
       if (ok == NO)
         return nil; 
     }

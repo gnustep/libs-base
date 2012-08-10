@@ -1196,11 +1196,15 @@ typedef	struct {
 
   path = [path stringByAppendingPathComponent: @"NSMessagePort"];
   [[NSFileManager defaultManager] createDirectoryAtPath: path
-				  attributes: attr];
+                            withIntermediateDirectories: YES
+                                             attributes: attr
+                                                  error: NULL];
 
   path = [path stringByAppendingPathComponent: @"ports"];
   [[NSFileManager defaultManager] createDirectoryAtPath: path
-				  attributes: attr];
+                            withIntermediateDirectories: YES
+                                             attributes: attr
+                                                  error: NULL];
 
   M_LOCK(messagePortLock);
   path = [path stringByAppendingPathComponent:
