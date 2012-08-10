@@ -209,7 +209,10 @@ GSSpellServerName(NSString *vendor, NSString *language)
 	  else
 	    {
 	      // The directory does not exist create it.
-	      if ([mgr createDirectoryAtPath: dirPath attributes: nil])
+	      if ([mgr createDirectoryAtPath: dirPath
+                 withIntermediateDirectories: YES
+                                  attributes: nil
+                                       error: NULL])
 		{
 		  // Directory created. Now create the empty file.
 		  NSArray *emptyDict = [NSArray array];

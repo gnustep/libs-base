@@ -163,7 +163,10 @@ lockPath(NSString *defaultsDatabase, BOOL verbose)
 
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
-      if ([mgr createDirectoryAtPath: path attributes: attr] == NO)
+      if ([mgr createDirectoryAtPath: path
+         withIntermediateDirectories: YES
+                          attributes: attr
+                               error: NULL] == NO)
 	{
 	  if (verbose)
 	    NSLog(@"Defaults path '%@' does not exist - failed to create it.",
@@ -186,7 +189,10 @@ lockPath(NSString *defaultsDatabase, BOOL verbose)
   path = [path stringByAppendingPathComponent: @".lck"];
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
-      if ([mgr createDirectoryAtPath: path attributes: attr] == NO)
+      if ([mgr createDirectoryAtPath: path
+         withIntermediateDirectories: YES
+                          attributes: attr
+                               error: NULL] == NO)
 	{
 	  if (verbose)
 	    NSLog(@"Defaults path '%@' does not exist - failed to create it.",

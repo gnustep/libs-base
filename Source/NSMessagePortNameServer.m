@@ -278,11 +278,15 @@ static void clean_up_names(void)
 
       path = [path stringByAppendingPathComponent: @"NSMessagePort"];
       [[NSFileManager defaultManager] createDirectoryAtPath: path
-				      attributes: attr];
+                                withIntermediateDirectories: YES
+                                                 attributes: attr
+                                                      error: NULL];
 
       path = [path stringByAppendingPathComponent: @"names"];
       [[NSFileManager defaultManager] createDirectoryAtPath: path
-				      attributes: attr];
+                                withIntermediateDirectories: YES
+                                                 attributes: attr
+                                                      error: NULL];
 
       base_path = RETAIN(path);
     }

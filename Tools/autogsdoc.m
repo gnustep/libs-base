@@ -913,7 +913,10 @@ main(int argc, char **argv, char **env)
   if ([documentationDirectory length] > 0
     && [mgr fileExistsAtPath: documentationDirectory] == NO)
     {
-      [mgr createDirectoryAtPath: documentationDirectory attributes: nil];
+      [mgr createDirectoryAtPath: documentationDirectory
+     withIntermediateDirectories: YES
+                      attributes: nil
+                           error: NULL];
     }
 
   symbolDeclsFile = [documentationDirectory 
@@ -2359,7 +2362,10 @@ main(int argc, char **argv, char **env)
       file = [stamp stringByDeletingLastPathComponent];
       if ([file length]> 0 && [mgr fileExistsAtPath: file] == NO)
 	{
-	  [mgr createDirectoryAtPath: file attributes: nil];
+	  [mgr createDirectoryAtPath: file
+         withIntermediateDirectories: YES
+                          attributes: nil
+                               error: NULL];
 	}
       [depend writeToFile: stamp atomically: YES];
     }

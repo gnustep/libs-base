@@ -467,8 +467,10 @@ foundIgnorableWhitespace: (NSString *)string
   unsigned int *table;
 }
 
-+ (void) serializePropertyList: (id)aPropertyList intoData: (NSMutableData *)destination;
-- (id) initWithPropertyList: (id)aPropertyList intoData: (NSMutableData *)destination;
++ (void) serializePropertyList: (id)aPropertyList
+                      intoData: (NSMutableData *)destination;
+- (id) initWithPropertyList: (id)aPropertyList
+                   intoData: (NSMutableData *)destination;
 - (void) generate;
 - (void) storeObject: (id)object;
 - (void) cleanup;
