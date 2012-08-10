@@ -3332,22 +3332,82 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
 
 /**
  * <p>Returns the string's content as an int.<br/>
- * Current implementation uses C library <code>atoi()</code>, which does not
+ * Current implementation uses a C runtime library function, which does not
  * detect conversion errors -- use with care!</p>
  */
 - (int) intValue
 {
-  return atoi([self UTF8String]);
+  const char *ptr = [self UTF8String];
+
+  while (isspace(*ptr))
+    {
+      ptr++;
+    }
+  if ('-' == *ptr)
+    {
+      return (int)atoi(ptr);
+    }
+  else
+    {
+      uint64_t v;
+
+#if defined(__MINGW__)
+      v = _strtoui64(ptr, 0, 10);
+#else
+      v = strtoul(ptr, 0, 10);
+#endif
+      return (int)v;
+    } 
 }
 
 - (NSInteger) integerValue
 {
-  return atol([self UTF8String]);
+  const char *ptr = [self UTF8String];
+
+  while (isspace(*ptr))
+    {
+      ptr++;
+    }
+  if ('-' == *ptr)
+    {
+      return (NSInteger)atoll(ptr);
+    }
+  else
+    {
+      uint64_t  v;
+
+#if defined(__MINGW__)
+      v = _strtoui64(ptr, 0, 10);
+#else
+      v = strtoull(ptr, 0, 10);
+#endif
+      return (NSInteger)v;
+    } 
 }
 
 - (long long) longLongValue
 {
-  return atoll([self UTF8String]);
+  const char *ptr = [self UTF8String];
+
+  while (isspace(*ptr))
+    {
+      ptr++;
+    }
+  if ('-' == *ptr)
+    {
+      return atoll(ptr);
+    }
+  else
+    {
+      unsigned long long l;
+
+#if defined(__MINGW__)
+      l = _strtoui64(ptr, 0, 10);
+#else
+      l = strtoull(ptr, 0, 10);
+#endif
+      return (long long)l;
+    } 
 }
 
 // Working With Encodings

@@ -27,11 +27,13 @@
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSFileHandle.h"
 #import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSPropertyList.h"
 
 
-/** <p>This tool converts a binary serialised property list to a text
-    representation.
-</p> */
+/** <p>This tool converts a serialised property list to a text
+ *  representation.
+ * </p>
+ */
 int
 main(int argc, char** argv, char **env)
 {
@@ -69,15 +71,22 @@ main(int argc, char** argv, char **env)
 
 	  NS_DURING
 	    {
-	      NSData	*myData;
-	      NSString	*myString;
-	      id	result;
+	      NSData	                *myData;
+	      NSString	                *myString;
+	      id	                result;
+              NSPropertyListFormat      aFormat;
+              NSError                   *anError;
 
 	      myData = [NSData dataWithContentsOfFile: file];
-	      result = [NSDeserializer deserializePropertyListFromData: myData
-						     mutableContainers: NO];
+	      result = [NSPropertyListSerialization
+                propertyListWithData: myData
+                             options: NSPropertyListImmutable
+                              format: &aFormat
+                               error: &anError];
 	      if (result == nil)
-		GSPrintf(stderr, @"Loading '%@' - nil property list\n", file);
+                {
+                  GSPrintf(stderr, @"Loading '%@' - %@\n", file, anError);
+                }
 	      else
 		{
 		  NSFileHandle	*out;

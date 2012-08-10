@@ -1,5 +1,16 @@
 2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSScanner.m: Fix error in comment
+        * Tools/pldes.m: Update to more modern APIs
+        * Tools/plser.m: Update to more modern APIs
+        * Source/NSPropertyList.m: Update for usigned long long
+        * Source/NSString.m: Make intValue, integerValue, longLongValue
+        return large unsigned values as negative.
+        Fixes to try to cope with property lists containing very large
+        unsigned integers (top bit set).
+
+2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSPathUtilities.m:
         Fix permissions on temporary directory rarther than just failing ...
         suggestion by Wolfgang.
