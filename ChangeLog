@@ -1,5 +1,11 @@
 2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSPathUtilities.m:
+        Fix permissions on temporary directory rarther than just failing ...
+        suggestion by Wolfgang.
+
+2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/NSFileManager.m: ([-createDirectoryAtPath:attributes:])
         OSX compatibility change to no longer create intermediate directories
         (fixing bug #35672).
