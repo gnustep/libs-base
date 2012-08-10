@@ -1186,13 +1186,15 @@ typedef	struct {
 {
   static int unique_index = 0;
   NSString	*path;
-  NSNumber	*p = [NSNumber numberWithInt: 0700];
   NSDictionary	*attr;
 
-  attr = [NSDictionary dictionaryWithObject: p
-				     forKey: NSFilePosixPermissions];
+  if (nil == (path = NSTemporaryDirectory()))
+    {
+      return nil;
+    }
 
-  path = NSTemporaryDirectory();
+  attr = [NSDictionary dictionaryWithObject: [NSNumber numberWithInt: 0700]
+				     forKey: NSFilePosixPermissions];
 
   path = [path stringByAppendingPathComponent: @"NSMessagePort"];
   [[NSFileManager defaultManager] createDirectoryAtPath: path
