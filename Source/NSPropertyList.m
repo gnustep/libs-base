@@ -316,7 +316,15 @@ foundIgnorableWhitespace: (NSString *)string
     }
   else if ([elementName isEqualToString: @"integer"])
     {
-      ASSIGN(plist, [NSNumber numberWithLongLong: [value longLongValue]]);
+      if ([value hasPrefix: @"-"])
+        {
+          ASSIGN(plist, [NSNumber numberWithLongLong: [value longLongValue]]);
+        }
+      else
+        {
+          ASSIGN(plist, [NSNumber numberWithUnsignedLongLong:
+            (unsigned long long)[value longLongValue]]);
+        }
     }
   else if ([elementName isEqualToString: @"real"])
     {
@@ -1132,7 +1140,21 @@ static id parsePlItem(pldata* pld)
 
 		    for (i = 0; i < len; i++) buf[i] = (char)ptr[i];
 		    buf[len] = '\0';
-		    result = [[NSNumber alloc] initWithLongLong: atoll(buf)];
+                    if ('-' == buf[0])
+                      {
+                        result = [[NSNumber alloc]
+                          initWithLongLong: atoll(buf)];
+                      }
+                    else
+                      {
+#if     defined(__MINGW__)
+                        result = [[NSNumber alloc]
+                          initWithUnsignedLongLong: _strtoui64(buf, 0, 10)];
+#else
+                        result = [[NSNumber alloc]
+                          initWithUnsignedLongLong: strtoull(buf, 0, 10)];
+#endif
+                      }
 		  }
 		else if (type == 'B')
 		  {

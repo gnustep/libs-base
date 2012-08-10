@@ -27,15 +27,19 @@
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSFileHandle.h"
 #import	"Foundation/NSAutoreleasePool.h"
+#import	"Foundation/NSPropertyList.h"
+#import	"Foundation/NSUserDefaults.h"
 
 
-/** <p> This tool converts a text property list to a binary serialised
-    representation.
- </p> */
+/** <p> This tool converts a text property list to a another serialised
+ *  representation.
+ * </p>
+ */
 int
 main(int argc, char** argv, char **env)
 {
   NSAutoreleasePool	*pool;
+  NSUserDefaults	*defs;
   NSProcessInfo		*proc;
   NSArray		*args;
   unsigned		i;
@@ -52,33 +56,106 @@ main(int argc, char** argv, char **env)
       exit(EXIT_SUCCESS);
     }
 
+  defs = [NSUserDefaults standardUserDefaults];
   args = [proc arguments];
 
-  if ([args count] <= 1)
+  if ([args count] <= 1
+    || ([defs objectForKey: @"Format"] != nil && [args count] < 3))
     {
-      GSPrintf(stderr, @"No file names given to serialize.\n");
+      GSPrintf(stderr, @"No file names given to serialize. Try --help\n");
     }
   else
     {
+      NSString  *fmt = [defs stringForKey: @"Format"];
+
       for (i = 1; i < [args count]; i++)
 	{
 	  NSString	*file = [args objectAtIndex: i];
 
+          if ([file isEqual: @"--help"])
+            {
+              GSPrintf(stdout,
+                @"This program takes one or more property list files\n");
+              GSPrintf(stdout,
+                @"as input and reserialises them to stdout.\n");
+              GSPrintf(stdout,
+                @"The only permitted argument is -Format to\n");
+              GSPrintf(stdout,
+                @"specify the output format to use... one of:\n");
+              GSPrintf(stdout,
+                @"  NSPropertyListOpenStepFormat\n");
+              GSPrintf(stdout,
+                @"  NSPropertyListXMLFormat_v1_0\n");
+              GSPrintf(stdout,
+                @"  NSPropertyListBinaryFormat_v1_0\n");
+              GSPrintf(stdout,
+                @"  NSPropertyListGNUstepFormat\n");
+              GSPrintf(stdout,
+                @"  NSPropertyListGNUstepBinaryFormat\n");
+              [pool release];
+              exit(EXIT_SUCCESS);
+            }
+          if ([file isEqual: @"-Format"])
+            {
+              i++;
+              continue;
+            }
 	  NS_DURING
 	    {
-	      NSData	*myData;
-	      NSString	*myString;
-	      id	result;
+	      NSData	                *myData;
+	      id	                incoming;
+              NSPropertyListFormat      inFormat;
+              NSError                   *anError;
 
-	      myString = [NSString stringWithContentsOfFile: file];
-	      result = [myString propertyList];
-	      if (result == nil)
-		GSPrintf(stderr, @"Loading '%@' - nil property list\n", file);
+	      myData = [NSData dataWithContentsOfFile: file];
+	      incoming = [NSPropertyListSerialization
+                propertyListWithData: myData
+                             options: NSPropertyListImmutable
+                              format: &inFormat
+                               error: &anError];
+	      if (nil == incoming)
+                {
+                  GSPrintf(stderr, @"Loading '%@' - %@\n", file, anError);
+                }
 	      else
 		{
-		  NSFileHandle	*out;
+		  NSFileHandle	        *out;
+                  NSPropertyListFormat  outFormat;
 
-		  myData = [NSSerializer serializePropertyList: result];
+                  outFormat = NSPropertyListGNUstepBinaryFormat;
+                  if ([fmt isEqual: @"NSPropertyListOpenStepFormat"])
+                    outFormat = NSPropertyListOpenStepFormat;
+                  else if ([fmt isEqual: @"NSPropertyListXMLFormat_v1_0"])
+                    outFormat = NSPropertyListXMLFormat_v1_0;
+                  else if ([fmt isEqual: @"NSPropertyListBinaryFormat_v1_0"])
+                    outFormat = NSPropertyListBinaryFormat_v1_0;
+                  else if ([fmt isEqual: @"NSPropertyListGNUstepFormat"])
+                    outFormat = NSPropertyListGNUstepFormat;
+                  else if ([fmt isEqual: @"NSPropertyListGNUstepBinaryFormat"])
+                    outFormat = NSPropertyListGNUstepBinaryFormat;
+
+		  myData = [NSPropertyListSerialization
+                    dataWithPropertyList: incoming
+                                  format: outFormat
+                                 options: 0
+                                   error: &anError];
+#if 0
+/* Check serialisation/deserialisation gives original value.
+ */
+{
+  id	                result;
+  result = [NSPropertyListSerialization
+    propertyListWithData: myData
+                 options: NSPropertyListImmutable
+                  format: 0
+                   error: &anError];
+
+  if (NO == [incoming isEqual: result])
+    {
+      NSLog(@"Lossy conversion");
+    }
+}
+#endif
 		  out = [NSFileHandle fileHandleWithStandardOutput];
 		  [out writeData: myData];
 		  [out synchronizeFile];
