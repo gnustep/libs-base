@@ -783,8 +783,8 @@ static NSStringEncoding	defaultEncoding;
 
 /**
  * Creates a new directory, and sets its attributes as specified.<br />
- * Creates other directories in the path as necessary.<br />
- * Returns YES on success, NO on failure.
+ * Fails if directories in the path are missing.<br />
+ * Returns YES if the directory was created (or already exists), NO otherwise.
  */
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes
@@ -821,22 +821,38 @@ static NSStringEncoding	defaultEncoding;
       if ([self fileExistsAtPath: completePath isDirectory: &isDir])
 	{
 	  if (!isDir)
-	    NSLog(@"WARNING: during creation of directory %@:"
-		  @" sub path %@ exists, but is not a directory !",
-		  path, completePath);
+            {
+              NSString  *e;
+
+              e = [NSString stringWithFormat:
+                @"path %@ exists, but is not a directory", completePath];
+              ASSIGN(_lastError, e);
+              return NO;
+            }
         }
       else
 	{
-	  const _CHAR *lpath;
+          if (nil == [paths nextObject])
+            {
+              const _CHAR *lpath;
+              
+              lpath = [self fileSystemRepresentationWithPath: completePath];
+              if (CreateDirectoryW(lpath, 0) == FALSE)
+                {
+                  return NO;
+                }
+            }
+          else
+            {
+              NSString  *e;
 
-	  lpath = [self fileSystemRepresentationWithPath: completePath];
-	  if (CreateDirectoryW(lpath, 0) == FALSE)
-	    {
-	      return NO;
-	    }
+              e = [NSString stringWithFormat:
+                @"path %@ is not accessible", completePath];
+              ASSIGN(_lastError, e);
+              return NO;
+            }
         }
     }
-
 #else
 
   /*
@@ -885,46 +901,53 @@ static NSStringEncoding	defaultEncoding;
 	}
       // check if path from 0 to cur is valid
       dirpath[cur] = '\0';
-      if (_STAT(dirpath, &statbuf) == 0)
+      if (_STAT(dirpath, &statbuf) != 0)
 	{
-	  if (cur == len)
-	    {
-	      ASSIGN(_lastError,
-		@"Could not create directory - already exists");
-	      return NO;
-	    }
-	}
-      else
-	{
-	  // make new directory
-	  if (mkdir(dirpath, 0777) != 0)
-	    {
-	      NSString	*s;
+          NSString  *p;
 
-	      s = [NSString stringWithFormat: @"Could not create '%s' - '%@'",
-		dirpath, [NSError _last]];
-	      ASSIGN(_lastError, s);
-	      return NO;
-	    }
-	  // if last directory and attributes then change
-	  if (cur == len && attributes != nil)
-	    {
-	      if ([self changeFileAttributes: attributes
-		atPath: [self stringWithFileSystemRepresentation: dirpath
-			length: cur]] == NO)
-		return NO;
-	      if (needChown != nil)
-		{
-		  if ([self changeFileAttributes: needChown
-		    atPath: [self stringWithFileSystemRepresentation: dirpath
-		      length: cur]] == NO)
-		    {
-		      NSLog(@"Failed to change ownership of '%s' to '%@'",
-			      dirpath, NSUserName());
-		    }
-		}
-	      return YES;
-	    }
+          p = [self stringWithFileSystemRepresentation: dirpath length: cur];
+
+	  if (cur != len)
+            {
+              NSString	*e;
+
+              e = [NSString stringWithFormat: @"path %@ is not accessible", p];
+              ASSIGN(_lastError, e);
+              return NO;
+            }
+          else
+            {
+              // make new directory
+              if (mkdir(dirpath, 0777) != 0)
+                {
+                  NSString	*e;
+
+                  e = [NSString stringWithFormat:
+                    @"Could not create '%@' - '%@'",
+                    p, [NSError _last]];
+                  ASSIGN(_lastError, e);
+                  return NO;
+                }
+              // if last directory and attributes then change
+              if (attributes != nil)
+                {
+                  if ([self changeFileAttributes: attributes
+                                          atPath: p] == NO)
+                    {
+                      return NO;
+                    }
+                  if (needChown != nil)
+                    {
+                      if ([self changeFileAttributes: needChown
+                                              atPath: p] == NO)
+                        {
+                          NSLog(@"Failed to change ownership of '%p' to '%@'",
+                            p, NSUserName());
+                        }
+                    }
+                  return YES;
+                }
+            }
 	}
       dirpath[cur] = '/';
       cur++;

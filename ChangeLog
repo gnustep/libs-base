@@ -1,5 +1,14 @@
 2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSFileManager.m: ([-createDirectoryAtPath:attributes:])
+        OSX compatibility change to no longer create intermediate directories
+        (fixing bug #35672).
+        NB. Code depending on the original incorrect behavior should be 
+        updated to use the new method:
+        -createDirectoryAtPath:withIntermediateDirectories:attributes:error:
+        
+2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSSpellServer.m:
 	* Source/NSPropertyList.m:
 	* Source/NSPathUtilities.m:
