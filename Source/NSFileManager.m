@@ -398,16 +398,18 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
+  NSDictionary  *old;
   const _CHAR	*lpath = 0;
-  unsigned long	num;
+  NSUInteger	num;
   NSString	*str;
   NSDate	*date;
   BOOL		allOk = YES;
 
-  if (attributes == nil)
+  if (0 == [attributes count])
     {
       return YES;
     }
+  old = [self fileAttributesAtPath: path traverseLink: YES];
   lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef __MINGW__
@@ -421,7 +423,7 @@ static NSStringEncoding	defaultEncoding;
 
       num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
     }
-  if (num != NSNotFound)
+  if (num != NSNotFound && num != [[old fileOwnerAccountID] unsignedLongValue])
     {
       if (chown(lpath, num, -1) != 0)
 	{
@@ -434,7 +436,8 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-      if ((str = [attributes fileOwnerAccountName]) != nil)
+      if ((str = [attributes fileOwnerAccountName]) != nil
+        && NO == [str isEqual: [old fileOwnerAccountName]])
 	{
 	  BOOL	ok = NO;
 #ifdef HAVE_PWD_H
@@ -485,7 +488,8 @@ static NSStringEncoding	defaultEncoding;
 
       num = tmpNum ? [tmpNum unsignedLongValue] : NSNotFound;
     }
-  if (num != NSNotFound)
+  if (num != NSNotFound
+    && num != [[old fileGroupOwnerAccountID] unsignedLongValue])
     {
       if (chown(lpath, -1, num) != 0)
 	{
@@ -496,7 +500,8 @@ static NSStringEncoding	defaultEncoding;
 	  ASSIGN(_lastError, str);
 	}
     }
-  else if ((str = [attributes fileGroupOwnerAccountName]) != nil)
+  else if ((str = [attributes fileGroupOwnerAccountName]) != nil
+    && NO == [str isEqual: [old fileGroupOwnerAccountName]])
     {
       BOOL	ok = NO;
 #ifdef HAVE_GRP_H
@@ -538,7 +543,7 @@ static NSStringEncoding	defaultEncoding;
 #endif	/* __MINGW__ */
 
   num = [attributes filePosixPermissions];
-  if (num != NSNotFound)
+  if (num != NSNotFound && num != [old filePosixPermissions])
     {
       if (_CHMOD(lpath, num) != 0)
 	{
@@ -551,7 +556,7 @@ static NSStringEncoding	defaultEncoding;
     }
 
   date = [attributes fileModificationDate];
-  if (date != nil)
+  if (date != nil && NO == [date isEqual: [old fileModificationDate]])
     {
       BOOL		ok = NO;
       struct _STATB	sb;
@@ -789,17 +794,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes
 {
-#if defined(__MINGW__)
-  NSEnumerator	*paths = [[path pathComponents] objectEnumerator];
-  NSString	*subPath;
-  NSString	*completePath = nil;
-#else
-  const char	*lpath;
-  char		dirpath[PATH_MAX+1];
-  struct _STATB	statbuf;
-  int		len, cur;
-  NSDictionary	*needChown = nil;
-#endif
+  BOOL  isDir;
 
   /* This is consistent with MacOSX - just return NO for an invalid path. */
   if ([path length] == 0)
@@ -808,159 +803,69 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
+  if (YES == [self fileExistsAtPath: path isDirectory: &isDir])
+    {
+      if (NO == isDir)
+        {
+          NSString  *e;
+
+          e = [NSString stringWithFormat:
+            @"path %@ exists, but is not a directory", path];
+          ASSIGN(_lastError, e);
+          return NO;
+        }
+    }
+  else
+    {
 #if defined(__MINGW__)
-  while ((subPath = [paths nextObject]))
-    {
-      BOOL isDir = NO;
-
-      if (completePath == nil)
-	completePath = subPath;
-      else
-	completePath = [completePath stringByAppendingPathComponent: subPath];
-
-      if ([self fileExistsAtPath: completePath isDirectory: &isDir])
-	{
-	  if (!isDir)
-            {
-              NSString  *e;
-
-              e = [NSString stringWithFormat:
-                @"path %@ exists, but is not a directory", completePath];
-              ASSIGN(_lastError, e);
-              return NO;
-            }
-        }
-      else
-	{
-          if (nil == [paths nextObject])
-            {
-              const _CHAR *lpath;
-              
-              lpath = [self fileSystemRepresentationWithPath: completePath];
-              if (CreateDirectoryW(lpath, 0) == FALSE)
-                {
-                  return NO;
-                }
-            }
-          else
-            {
-              NSString  *e;
-
-              e = [NSString stringWithFormat:
-                @"path %@ is not accessible", completePath];
-              ASSIGN(_lastError, e);
-              return NO;
-            }
-        }
-    }
+      const _CHAR   *lpath;
+          
+      lpath = [self fileSystemRepresentationWithPath: path];
+      isDir = (CreateDirectoryW(lpath, 0) != FALSE) ? YES : NO;
 #else
+      const char    *lpath;
 
-  /*
-   * If there is no file owner specified, and we are running setuid to
-   * root, then we assume we need to change ownership to correct user.
-   */
-  if (attributes == nil || ([attributes fileOwnerAccountID] == nil
-    && [attributes fileOwnerAccountName] == nil))
-    {
-      if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
-	{
-	  needChown = [NSDictionary dictionaryWithObjectsAndKeys:
-	    NSFileOwnerAccountName, NSUserName(), nil];
-	}
-    }
-  lpath = [self fileSystemRepresentationWithPath: path];
-  len = strlen(lpath);
-  if (len > PATH_MAX) // name too long
-    {
-      ASSIGN(_lastError, @"Could not create directory - name too long");
-      return NO;
-    }
-
-  if (strcmp(lpath, "/") == 0 || len == 0) // cannot use "/" or ""
-    {
-      ASSIGN(_lastError, @"Could not create directory - no name given");
-      return NO;
-    }
-
-  strncpy(dirpath, lpath, len);
-  dirpath[len] = '\0';
-  if (dirpath[len-1] == '/')
-    dirpath[len-1] = '\0';
-  cur = 0;
-
-  do
-    {
-      // find next '/'
-      while (dirpath[cur] != '/' && cur < len)
-	cur++;
-      // if first char is '/' then again; (cur == len) -> last component
-      if (cur == 0)
-	{
-	  cur++;
-	  continue;
-	}
-      // check if path from 0 to cur is valid
-      dirpath[cur] = '\0';
-      if (_STAT(dirpath, &statbuf) != 0)
-	{
-          NSString  *p;
-
-          p = [self stringWithFileSystemRepresentation: dirpath length: cur];
-
-	  if (cur != len)
+      lpath = [self fileSystemRepresentationWithPath: path];
+      isDir = (mkdir(lpath, 0777) == 0) ? YES : NO;
+      if (YES == isDir)
+        {
+          /*
+           * If there is no file owner specified, and we are running
+           * setuid to root, then we assume we need to change ownership
+           * to the correct user.
+           */
+          if (attributes == nil || ([attributes fileOwnerAccountID] == nil
+            && [attributes fileOwnerAccountName] == nil))
             {
-              NSString	*e;
-
-              e = [NSString stringWithFormat: @"path %@ is not accessible", p];
-              ASSIGN(_lastError, e);
-              return NO;
-            }
-          else
-            {
-              // make new directory
-              if (mkdir(dirpath, 0777) != 0)
+              if (geteuid() == 0
+                && [@"root" isEqualToString: NSUserName()] == NO)
                 {
-                  NSString	*e;
+                  NSMutableDictionary       *m;
 
-                  e = [NSString stringWithFormat:
-                    @"Could not create '%@' - '%@'",
-                    p, [NSError _last]];
-                  ASSIGN(_lastError, e);
-                  return NO;
-                }
-              // if last directory and attributes then change
-              if (attributes != nil)
-                {
-                  if ([self changeFileAttributes: attributes
-                                          atPath: p] == NO)
+                  m = [[attributes mutableCopy] autorelease];
+                  if (nil == m)
                     {
-                      return NO;
+                      m = [NSMutableDictionary dictionaryWithCapacity: 1];
                     }
-                  if (needChown != nil)
-                    {
-                      if ([self changeFileAttributes: needChown
-                                              atPath: p] == NO)
-                        {
-                          NSLog(@"Failed to change ownership of '%p' to '%@'",
-                            p, NSUserName());
-                        }
-                    }
-                  return YES;
+                  [m setObject: NSUserName()
+                        forKey: NSFileOwnerAccountName];
+                  attributes = m;
                 }
             }
-	}
-      dirpath[cur] = '/';
-      cur++;
-    }
-  while (cur < len);
+        }
+#endif
+      if (NO == isDir)
+        {
+          NSString	*e;
 
-#endif /* !MINGW */
-
-  // change attributes of last directory
-  if ([attributes count] == 0)
-    {
-      return YES;
+          e = [NSString stringWithFormat:
+            @"Could not create '%@' - '%@'",
+            path, [NSError _last]];
+          ASSIGN(_lastError, e);
+          return NO;
+        }
     }
+
   return [self changeFileAttributes: attributes atPath: path];
 }
 
