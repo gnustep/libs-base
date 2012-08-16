@@ -1669,6 +1669,26 @@ AC_CHECK_LIB(rt, sched_yield)
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(nanosleep usleep Sleep)
 
+AC_MSG_CHECKING(for objc_root_class attribute support)
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Werror $OBJCFLAGS -x objective-c"
+AC_COMPILE_IFELSE([
+  __attribute__((objc_root_class)) @interface RootObject
+  @end
+  @implementation RootObject
+  @end],
+  AC_MSG_RESULT([found])
+  gs_objc_root_class_attr=1,
+  AC_MSG_RESULT([not present])
+  gs_objc_root_class_attr=0
+)
+
+GS_HAVE_OBJC_ROOT_CLASS_ATTR=$gs_objc_root_class_attr
+AC_SUBST(GS_HAVE_OBJC_ROOT_CLASS_ATTR)
+AC_DEFINE_UNQUOTED(HAVE_OBJC_ROOT_CLASS_ATTRIBUTE,$gs_objc_root_class_attr,
+  [Says whether the objc_root_class attribute works])
+CFLAGS=$saved_CFLAGS
+
 #--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
 #--------------------------------------------------------------------

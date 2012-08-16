@@ -283,7 +283,7 @@ extern "C" {
 @end
 
 
-@interface NSObject <NSObject>
+GS_ROOT_CLASS @interface NSObject <NSObject>
 {
  /**
   * Points to instance's class.  Used by runtime to access method
