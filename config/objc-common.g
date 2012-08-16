@@ -16,10 +16,17 @@
 #include <objc/hooks.h>
 #endif
 
+
+#if HAVE_OBJC_ROOT_CLASS_ATTRIBUTE
+#define GS_OBJC_ROOT_CLASS __attribute__((objc_root_class))
+#else
+#define GS_OBJC_ROOT_CLASS
+#endif
+
 /* Provide an implementation of NXConstantString for an old libobjc when
    built stand-alone without an NXConstantString implementation.  */
 #if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
-@implementation NXConstantString
+GS_OBJC_ROOT_CLASS @implementation NXConstantString
 - (const char*) cString
 {
   return 0;
@@ -34,7 +41,7 @@
 /* Provide dummy implementations for NSObject and NSConstantString
  * for libobjc2 which needs them.
  */
-@interface NSObject
+GS_OBJC_ROOT_CLASS @interface NSObject
 { 
  id isa;
 }

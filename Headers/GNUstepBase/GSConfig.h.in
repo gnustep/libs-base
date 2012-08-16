@@ -227,6 +227,7 @@ typedef	struct {
 #define GS_USE_MDNS @HAVE_MDNS@
 #define GS_USE_ICU @HAVE_ICU@
 #define GS_USE_LIBDISPATCH @HAVE_LIBDISPATCH@
+#define GS_HAVE_OBJC_ROOT_CLASS_ATTR @GS_HAVE_OBJC_ROOT_CLASS_ATTR@
 
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
 #  if	!defined(__WIN32__)

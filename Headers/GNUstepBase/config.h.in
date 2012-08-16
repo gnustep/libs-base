@@ -388,6 +388,9 @@
 /* Define to 1 if you have the <objc/objc.h> header file. */
 #undef HAVE_OBJC_OBJC_H
 
+/* Says whether the objc_root_class attribute works */
+#undef HAVE_OBJC_ROOT_CLASS_ATTRIBUTE
+
 /* Define to 1 if you have the <objc/runtime.h> header file. */
 #undef HAVE_OBJC_RUNTIME_H
 

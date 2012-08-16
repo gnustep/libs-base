@@ -1,3 +1,21 @@
+2012-08-16  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Check for objc_root_class attribute
+	* configure: Regenerate
+	* config/objc-common.g: Annotate root classes.
+	* Headers/GNUstepBase/config.h.in: Regenerate
+	* Headers/GNUstepBase/GSConfig.h.in: Add macro for root class
+	attribute availability.
+	* Headers/GNUstepBase/GSVersionMacros.h: Define GS_ROOT_CLASS
+	depending on whether the compiler supports it.
+	* Headers/Foundation/NSObject.h: Mark NSObject as a root class.
+	* Headers/Foundation/NSProxy.h: Mark NSProxy as a root class.
+	* Source/NSDistantObject: Mark GSDistantObjectPlaceholder as a
+	root class.
+	* Source/NSObject.m: Mark NSZombie as a root class.
+
+	Changes to support clang's __attribute__((objc_root_class)).
+ 	
 2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSScanner.m: Fix error in comment

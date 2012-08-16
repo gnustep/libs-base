@@ -108,7 +108,7 @@ static Class	NSConstantStringClass;
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
 
-@interface	NSZombie
+GS_ROOT_CLASS @interface	NSZombie
 {
   Class	isa;
 }
@@ -430,7 +430,7 @@ typedef	struct obj_layout *obj;
 
 /**
  * If -base is compiled in GC mode, then we want to still support manual
- * reference counting if we are linked with non-GC code.  
+ * reference counting if we are linked with non-GC code.
  */
 static BOOL GSDecrementExtraRefCountWasZero(id anObject);
 
@@ -549,7 +549,7 @@ NSExtraRefCount(id anObject)
 
 /**
  * If -base is compiled in GC mode, then we want to still support manual
- * reference counting if we are linked with non-GC code.  
+ * reference counting if we are linked with non-GC code.
  */
 static void GSIncrementExtraRefCount(id anObject);
 

@@ -3,24 +3,24 @@
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
    Date: Oct, October 2006
-   
+
    This file is part of GNUstep.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
-*/ 
+*/
 
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 #define __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
@@ -91,7 +91,7 @@
  * two digits are the major version number, the second two are the minor
  * version number and the last two are the subminor number (all left padded
  * with a zero where necessary).  However, for convenience you can also
- * use any of several predefined constants ... 
+ * use any of several predefined constants ...
  * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
  * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
  * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
@@ -124,7 +124,7 @@
  * two digits are the major version number, the second two are the minor
  * version number and the last two are the subminor number (all left padded
  * with a zero where necessary).  However, for convenience you can also
- * use any of several predefined constants ... 
+ * use any of several predefined constants ...
  * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
  * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
  * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
@@ -297,7 +297,7 @@ static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { retur
 
 
 #if	defined(GNUSTEP_WITH_DLL)
- 
+
 #if BUILD_libgnustep_base_DLL
 #
 # if defined(__MINGW__)
@@ -305,7 +305,7 @@ static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { retur
    * __declspec(dllexport) is not needed.
    */
 #  define GS_EXPORT  extern
-#  define GS_DECLARE 
+#  define GS_DECLARE
 # else
 #  define GS_EXPORT  __declspec(dllexport)
 #  define GS_DECLARE __declspec(dllexport)
@@ -314,11 +314,11 @@ static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { retur
 #  define GS_EXPORT  extern __declspec(dllimport)
 #  define GS_DECLARE __declspec(dllimport)
 #endif
- 
+
 #else /* GNUSTEP_WITH[OUT]_DLL */
 
 #  define GS_EXPORT extern
-#  define GS_DECLARE 
+#  define GS_DECLARE
 
 #endif
 
@@ -341,5 +341,17 @@ static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { retur
 #  define GS_UNUSED_IVAR
 #endif
 
+
+/*
+ * Attribute definition for root classes, annotates the interface declaration of
+ * the class.
+ */
+#ifndef GS_ROOT_CLASS
+#  if GS_HAVE_OBJC_ROOT_CLASS_ATTR || __has_feature(attribute_objc_root_class)
+#    define GS_ROOT_CLASS __attribute__((objc_root_class))
+#  else
+#    define GS_ROOT_CLASS
+#  endif
+#endif
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */
