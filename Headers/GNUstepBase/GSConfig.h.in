@@ -29,6 +29,10 @@
 #ifndef	included_GSConfig_h
 #define	included_GSConfig_h
 
+// Make sure we expose the constants that we use in ObjC++ mode
+#define __STDC_CONSTANT_MACROS 1
+#define __STDC_LIMIT_MACROS 1
+
 #if !defined(NeXT_Foundation_LIBRARY)
 
 /* An alternate to GS_FAKE_MAIN which forces the user to call the
