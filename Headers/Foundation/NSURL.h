@@ -70,6 +70,10 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 + (id) fileURLWithPath: (NSString*)aPath;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
++ (id) fileURLWithPath: (NSString*)aPath isDirectory: (BOOL) isDir;
+#endif
+
 #if OS_API_VERSION(100600,GS_API_LATEST) 
 /** Creates a file URL using a path built from components.
  */
