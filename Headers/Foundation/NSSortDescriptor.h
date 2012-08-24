@@ -61,6 +61,11 @@ extern "C" {
 #endif
 }
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (id) sortDescriptorWithKey: (NSString*)key ascending: (BOOL)ascending;
++ (id) sortDescriptorWithKey: (NSString*)key ascending: (BOOL)ascending selector: (SEL)theSelector;
+#endif
+
 /** Returns a flag indicating whether the sort descriptor sorts objects
  * in ascending order (YES) or descending order (NO).
  */

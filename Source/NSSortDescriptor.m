@@ -37,6 +37,16 @@
 
 @implementation NSSortDescriptor
 
++ (id) sortDescriptorWithKey: (NSString*)key ascending: (BOOL)ascending
+{
+  return AUTORELEASE([[NSSortDescriptor alloc] initWithKey: key ascending: ascending]);
+}
+
++ (id) sortDescriptorWithKey: (NSString*)key ascending: (BOOL)ascending selector: (SEL)theSelector;
+{
+  return AUTORELEASE([[NSSortDescriptor alloc] initWithKey: key ascending: ascending selector: theSelector]);
+}
+
 - (BOOL) ascending
 {
   return _ascending;
