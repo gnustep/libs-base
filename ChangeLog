@@ -1,3 +1,15 @@
+2012-08-25  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Allow a cross-compilation configuration to be
+	specified using the `--with-cross-compilation-info=' switch.
+	Tweak configure script to behave gracefully when
+	cross-compiling.
+	* configure: Regenerate.
+	* cross.config: Add default values for cross-compilation.
+
+	Make the configure script behave more friendly when
+	cross-compiling.
+
 2012-08-16  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* configure.ac: Check for objc_root_class attribute
