@@ -755,11 +755,13 @@ static BOOL useTinyStrings;
 @interface GSTinyString : NSString
 @end
 
+#ifdef GS_PROFILE_TINY_STRINGS
 static int tinyStrings = 0;
 static void logTinyStringCount(void)
 {
 	fprintf(stderr, "%d tiny strings created\n", tinyStrings);
 }
+#endif
 @implementation GSTinyString
 - (NSUInteger) length
 {
@@ -788,7 +790,9 @@ static void logTinyStringCount(void)
 + (void) load
 {
   useTinyStrings = objc_registerSmallObjectClass_np(self, TINY_STRING_MASK);
+#ifdef GS_PROFILE_TINY_STRINGS
   atexit(logTinyStringCount);
+#endif
 }
 
 + (id) alloc
@@ -864,7 +868,9 @@ createTinyString(const char *str, int length)
       if (str[i] & 0x80) { return nil; }
       s |= ((uintptr_t)str[i]) << (57 - (i*7));
     }
+#ifdef GS_PROFILE_TINY_STRINGS
   __sync_fetch_and_add(&tinyStrings, 1);
+#endif
   return (id)s;
 }
 #else
