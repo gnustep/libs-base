@@ -1406,6 +1406,12 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-cross-compilation-info=PATH
+				Specify path to the configuration file that
+				contains information for the configure script in
+				case of cross compilation. This information
+				replaces those obtained from running programmes
+				during the configuration phase.
   --with-config-file=PATH       Specify path to the GNUstep config file.
 				This is the location to be used by the base
 				library to locate path information at
@@ -2104,6 +2110,37 @@ test -n "$target_alias" &&
   test "$program_prefix$program_suffix$program_transform_name" = \
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
+
+#--------------------------------------------------------------------
+# Setup cross-compilation-information
+#--------------------------------------------------------------------
+
+
+# Check whether --with-cross-compilation-info was given.
+if test "${with_cross_compilation_info+set}" = set; then
+  withval=$with_cross_compilation_info; cross_result="$withval"
+else
+  cross_result="no"
+
+fi
+
+CROSS_CONFIG="./cross.config"
+if test "$cross_result" != "no"
+then
+ if test -f "$cross_result" && test -r "$cross_result"
+  then
+    CROSS_CONFIG="$cross_result"
+  else
+    { { echo "$as_me:$LINENO: error: \"Could not load cross-compilation variables from $cross_result\"" >&5
+echo "$as_me: error: \"Could not load cross-compilation variables from $cross_result\"" >&2;}
+   { (exit 1); exit 1; }; }
+  fi
+fi
+
+# import information from the cross-config.
+. "$CROSS_CONFIG"
+
+
 
 #---------------------------------------------------------------------
 # Location of the GNUstep.conf config file (--with-config-file)
@@ -5227,7 +5264,7 @@ echo $ECHO_N "checking whether compiler supports UTF-8 constants in executable..
   # We are working in a latin1 locale so we can build a program containing
   # a latin1 pound character, and see if the executable has a utf-8 literal.
   if test "$cross_compiling" = yes; then
-  utf8literal_ok=no
+  utf8literal_ok="$cross_utf8literal_ok"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -5278,7 +5315,7 @@ echo "${ECHO_T}yes" >&6; };
     # given the appropriate flags to tell it what charactersets to use.
     CFLAGS="$CFLAGS -finput-charset=ISO-8859-1 -fexec-charset=UTF-8"
     if test "$cross_compiling" = yes; then
-  utf8literal_ok=no
+  utf8literal_ok="$cross_utf8literal_ok"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -6918,7 +6955,7 @@ CFLAGS="$saved_CFLAGS"
 { echo "$as_me:$LINENO: checking whether SO_REUSEADDR is broken" >&5
 echo $ECHO_N "checking whether SO_REUSEADDR is broken... $ECHO_C" >&6; }
 if test "$cross_compiling" = yes; then
-  reuseaddr_ok=0
+  reuseaddr_ok="$cross_reuseaddr_ok"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -14789,7 +14826,7 @@ if test "${gs_cv_objc_works+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   if test "$cross_compiling" = yes; then
-  gs_cv_objc_works=yes
+  gs_cv_objc_works="$cross_gs_cv_objc_works"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -14873,7 +14910,7 @@ echo $ECHO_N "checking if the compiler supports -fconstant-string-class... $ECHO
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   if test "$cross_compiling" = yes; then
-  gs_cv_objc_compiler_supports_constant_string_class=no
+  gs_cv_objc_compiler_supports_constant_string_class="$cross_gs_cv_objc_compiler_supports_constant_string_class"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -14965,7 +15002,7 @@ if test "${gs_cv_objc_load_method_worked+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   if test "$cross_compiling" = yes; then
-  gs_cv_objc_load_method_worked=no
+  gs_cv_objc_load_method_worked="$cross_gs_cv_objc_load_method_worked"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -15398,11 +15435,7 @@ if test "$nonfragile" = "yes"; then
   { echo "$as_me:$LINENO: checking for non-fragile-abi support" >&5
 echo $ECHO_N "checking for non-fragile-abi support... $ECHO_C" >&6; }
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }
+  non_fragile="$cross_non_fragile"
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include "$srcdir/config/config.non-fragile-ivars.m"
@@ -15648,11 +15681,7 @@ echo "${ECHO_T}$have_set_unexpected" >&6; }
 { echo "$as_me:$LINENO: checking for _objc_unexpected_exception in runtime" >&5
 echo $ECHO_N "checking for _objc_unexpected_exception in runtime... $ECHO_C" >&6; }
 if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }
+  have_unexpected="$cross_have_unexpected"
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include "$srcdir/config/config.unexpected.m"
@@ -15859,11 +15888,7 @@ fi
 { echo "$as_me:$LINENO: checking for thread-safe +initialize in runtime" >&5
 echo $ECHO_N "checking for thread-safe +initialize in runtime... $ECHO_C" >&6; }
 if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }
+  safe_initialize="$cross_safe_initialize"
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include "$srcdir/config/config.initialize.m"
@@ -15913,8 +15938,6 @@ echo "$as_me: WARNING: Your ObjectiveC runtime does not support thread-safe clas
 fi
 { echo "$as_me:$LINENO: result: $safe_initialize" >&5
 echo "${ECHO_T}$safe_initialize" >&6; }
-
-
 
 LIBS="$saved_LIBS"
 CPPFLAGS="$saved_CPPFLAGS"
@@ -19453,11 +19476,7 @@ echo "${ECHO_T}no" >&6; }
     { echo "$as_me:$LINENO: checking if poll supports devices" >&5
 echo $ECHO_N "checking if poll supports devices... $ECHO_C" >&6; }
     if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }
+  have_poll="$cross_have_poll"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -19465,7 +19484,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include "$srcdir/config/config.poll-dev.c"
+#include "$srcdir/config/config.poll-dev.c"i
 _ACEOF
 rm -f conftest$ac_exeext
 if { (ac_try="$ac_link"
@@ -19636,7 +19655,7 @@ done
 
 if test $ac_cv_func_vsprintf = yes ; then
     if test "$cross_compiling" = yes; then
-  VSPRINTF_RETURNS_LENGTH=1
+  VSPRINTF_RETURNS_LENGTH="$cross_VSPRINTF_RETURNS_LENGTH"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -19687,7 +19706,7 @@ _ACEOF
 fi
 if test $ac_cv_func_vasprintf = yes ; then
     if test "$cross_compiling" = yes; then
-  VASPRINTF_RETURNS_LENGTH=1
+  VASPRINTF_RETURNS_LENGTH="$cross_VASPRINTF_RETURNS_LENGTH"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -22813,7 +22832,7 @@ done
 { echo "$as_me:$LINENO: checking short/int needs to be word aligned" >&5
 echo $ECHO_N "checking short/int needs to be word aligned... $ECHO_C" >&6; }
 if test "$cross_compiling" = yes; then
-  NEED_WORD_ALIGNMENT=1
+  NEED_WORD_ALIGNMENT="$cross_NEED_WORD_ALIGNMENT"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -23087,7 +23106,7 @@ fi
 
 if test $register_printf = 1; then
   if test "$cross_compiling" = yes; then
-  working_register_printf=1
+  working_register_printf="$cross_working_register_printf"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -23137,7 +23156,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     if test "$cross_compiling" = yes; then
-  wide_register_printf=1
+  wide_register_printf="$cross_wide_register_printf"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -23315,7 +23334,7 @@ if test "${gs_cv_program_invocation_name_worked+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   if test "$cross_compiling" = yes; then
-  gs_cv_program_invocation_name_worked=no
+  gs_cv_program_invocation_name_worked="$cross_gs_cv_program_invocation_name_worked"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -24166,7 +24185,7 @@ _ACEOF
 { echo "$as_me:$LINENO: checking /proc/$$/cmdline terminated by nul" >&5
 echo $ECHO_N "checking /proc/$$/cmdline terminated by nul... $ECHO_C" >&6; }
 if test "$cross_compiling" = yes; then
-  CMDLINE_TERMINATED=0
+  CMDLINE_TERMINATED="$cross_CMDLINE_TERMINATED"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -24318,7 +24337,7 @@ if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
   { echo "$as_me:$LINENO: checking if we can access kernel memory" >&5
 echo $ECHO_N "checking if we can access kernel memory... $ECHO_C" >&6; }
   if test "$cross_compiling" = yes; then
-  have_kvm_env=0
+  have_kvm_env="$cross_have_kvm_env"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -24943,13 +24962,9 @@ echo "$as_me: WARNING: ffi support seems to be missing on this system ... please
   fi
 fi
 
+have_forward_hook=yes
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
-
-
-
-
-have_forward_hook=yes
 { echo "$as_me:$LINENO: checking for forwarding callback in runtime" >&5
 echo $ECHO_N "checking for forwarding callback in runtime... $ECHO_C" >&6; }
 cat >conftest.$ac_ext <<_ACEOF
@@ -25077,7 +25092,7 @@ _ACEOF
   fi
   LIBS="$ffi_LIBS $LIBS"
   if test "$cross_compiling" = yes; then
-  ffi_ok="yes"
+  ffi_ok="$cross_ffi_ok"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -25435,11 +25450,7 @@ if test $enable_iconv = yes; then
 { echo "$as_me:$LINENO: checking iconv support" >&5
 echo $ECHO_N "checking iconv support... $ECHO_C" >&6; }
 if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }
+  found_iconv="$cross_found_iconv_libc"
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include <iconv.h>
@@ -25519,11 +25530,11 @@ esac
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }
+  found_iconv="$cross_found_iconv_liconv";
+    if test "$found_iconv" = "no"; then
+      LIBS="$old_LIBS"
+    fi
+
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include <iconv.h>
@@ -25583,11 +25594,11 @@ if test $found_iconv = no ; then
   old_LIBS="$LIBS"
   LIBS="-lgiconv $LIBS"
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }
+  found_iconv="$cross_found_iconv_lgiconv";
+    if test "$found_iconv" = "no"; then
+      LIBS="$old_LIBS"
+    fi
+
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include <giconv.h>
