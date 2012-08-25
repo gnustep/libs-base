@@ -1,3 +1,13 @@
+2012-08-26  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Check for QNX slog facilities.
+	* Headers/GNUstepBase/config.h.in
+	* configure:
+	Regenerate
+	* Source/NSLog.m: Implement logging to the QNX slog.
+
+	Add support for logging to the QNX slog via NSLog().
+
 2012-08-25  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* configure.ac: Allow a cross-compilation configuration to be

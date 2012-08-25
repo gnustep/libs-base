@@ -484,6 +484,9 @@
 /* Define to 1 if you have the `Sleep' function. */
 #undef HAVE_SLEEP
 
+/* Define to 1 if you have the `slogf' function. */
+#undef HAVE_SLOGF
+
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
@@ -563,6 +566,12 @@
 
 /* Define to 1 if you have the <sys/signal.h> header file. */
 #undef HAVE_SYS_SIGNAL_H
+
+/* Define to 1 if you have the <sys/slogcodes.h> header file. */
+#undef HAVE_SYS_SLOGCODES_H
+
+/* Define to 1 if you have the <sys/slog.h> header file. */
+#undef HAVE_SYS_SLOG_H
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #undef HAVE_SYS_SOCKET_H

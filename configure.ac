@@ -2122,9 +2122,16 @@ AC_CHECK_FUNCS(__builtin_extract_return_address)
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(syslog.h)
+AC_CHECK_HEADERS(syslog.h sys/slog.h sys/slogcodes.h)
 AC_CHECK_FUNCS(syslog)
-
+if test "$ac_cv_header_sys_slog_h" = "yes"; then
+  oldLibs="$LIBS";
+  LIBS="$LIBS -l:libc.a";
+  AC_CHECK_FUNCS(slogf)
+  if test "$ac_cv_func_slogf" = "no"; then
+    LIBS="$oldLibs"
+  fi
+fi
 #--------------------------------------------------------------------
 # These headers/functions needed by NSRunLoop.m
 #--------------------------------------------------------------------
