@@ -867,6 +867,12 @@ createTinyString(const char *str, int length)
   __sync_fetch_and_add(&tinyStrings, 1);
   return (id)s;
 }
+#else
+static id
+createTinyString(const char *str, int length)
+{
+  return nil;
+}
 #endif
 /*
  * The GSPlaceholderString class is used by the abstract cluster root
@@ -3740,7 +3746,7 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  if (useTinyStrings && !_flags.wide)
+  if (!_flags.wide)
     {
       id tinyString = createTinyString((char*)_contents.c + aRange.location, aRange.length);
 
@@ -3764,7 +3770,7 @@ agree, create a new GSCInlineString otherwise.
       GS_RANGE_CHECK(aRange, _count);
       return substring_c((GSStr)self, aRange);
     }
-  if (useTinyStrings && !_flags.wide)
+  if (!_flags.wide)
     {
       id tinyString = createTinyString((char*)_contents.c + aRange.location, aRange.length);
 
@@ -4075,7 +4081,7 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  if (useTinyStrings && !_flags.wide)
+  if (!_flags.wide)
     {
       id tinyString = createTinyString((char*)_contents.c + aRange.location, aRange.length);
 
@@ -4094,7 +4100,7 @@ agree, create a new GSCInlineString otherwise.
 
 - (NSString*) substringWithRange: (NSRange)aRange
 {
-  if (useTinyStrings && !_flags.wide)
+  if (!_flags.wide)
     {
       id tinyString = createTinyString((char*)_contents.c + aRange.location, aRange.length);
 
@@ -5107,7 +5113,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	aRange.length * sizeof(unichar));
       return o;
     }
-  else if (useTinyStrings)
+  else
     {
       id tinyString = createTinyString((char*)_contents.c + aRange.location, aRange.length);
 
@@ -5142,7 +5148,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	aRange.length * sizeof(unichar));
       return o;
     }
-  else if (useTinyStrings)
+  else
     {
       id tinyString = createTinyString((char*)_contents.c + aRange.location, aRange.length);
 
