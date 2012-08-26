@@ -77,7 +77,7 @@
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
-#ifdef	__POSIX_SOURCE
+#if defined(__POSIX_SOURCE) || defined(__EXT_POSIX1_198808)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -93,7 +93,9 @@
 #endif
 
 #if	defined(__svr4__)
-#include <sys/stropts.h>
+#  if defined(HAVE_SYS_STROPTS)
+#    include <sys/stropts.h>
+#  endif
 #endif
 
 @interface NSProcessInfo (private)

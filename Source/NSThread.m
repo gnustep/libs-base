@@ -56,7 +56,7 @@
 #  include <fcntl.h>
 #endif
 
-#ifdef	__POSIX_SOURCE
+#if defined(__POSIX_SOURCE) || defined(__EXT_POSIX1_198808)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -462,7 +462,7 @@ unregisterActiveThread(NSThread *thread)
 
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
       [thread  release];
-	  
+
       [[NSGarbageCollector defaultCollector] enableCollectorForPointer: thread];
       pthread_setspecific(thread_object_key, nil);
     }
@@ -574,7 +574,7 @@ unregisterActiveThread(NSThread *thread)
 /**
  * Set the priority of the current thread.  This is a value in the
  * range 0.0 (lowest) to 1.0 (highest) which is mapped to the underlying
- * system priorities.  
+ * system priorities.
  */
 + (void) setThreadPriority: (double)pri
 {
@@ -980,7 +980,7 @@ static void *nsthreadLauncher(void* thread)
       [NSException raise: NSInternalInconsistencyException
         format: @"Failed to create pipe to handle perform in thread"];
     }
-#endif  
+#endif
   lock = [NSLock new];
   performers = [NSMutableArray new];
   return self;

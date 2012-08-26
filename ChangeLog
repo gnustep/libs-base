@@ -1,5 +1,26 @@
 2012-08-26  Niels Grewe <niels.grewe@halbordnung.de>
 
+	*  configure.ac: Check for sys/filio.h and whether we need to
+	link libsocket (as on QNX).
+	*  configure
+	*  SSL/configure
+	*  Headers/GNUstepBase/config.h.in:
+	Regenerate.
+	*  Source/common.h
+	*  Source/GSFileHandle.m
+	*  Source/NSMessagePort.m
+	*  Source/NSSocketPort.m
+	*  Source/NSThread.m
+	*  SSL/GSSSLHandle.m:
+	QNX compatibility tweaks.
+	*  Tools/gdnc.m
+	*  Tools/gdomap.c:
+	Use slog facility for logging on QNX.
+
+	Compatibility improvements for building for QNX.
+
+2012-08-26  Niels Grewe <niels.grewe@halbordnung.de>
+
 	* configure.ac: Check for QNX slog facilities.
 	* Headers/GNUstepBase/config.h.in
 	* configure:
