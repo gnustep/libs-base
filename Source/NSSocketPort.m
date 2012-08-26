@@ -84,7 +84,7 @@
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
-#ifdef	__POSIX_SOURCE
+#if defined(__POSIX_SOURCE) || defined(__EXT_POSIX1_198808)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -100,7 +100,9 @@
 #endif
 
 #if	defined(__svr4__)
-#include <sys/stropts.h>
+#  if defined(HAVE_SYS_STROPTS_H)
+#    include <sys/stropts.h>
+#  endif
 #endif
 
 #define	SOCKET	int
@@ -429,7 +431,7 @@ static Class	runLoopClass;
     }
   rc = WSAEventSelect(handle->desc, ev, FD_ALL_EVENTS);
   NSAssert(rc == 0, @"WSAEventSelect failed!");
-  
+
   handle->event = ev;
   handle->inReplyMode = NO;
   handle->readyToSend = YES;
@@ -1131,7 +1133,7 @@ static Class	runLoopClass;
       int		res;
       unsigned	l;
       const void	*b;
-      
+
       if (wData == nil)
         {
           if ([wMsgs count] > 0)
@@ -1310,7 +1312,7 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents)
     {
       NSLog(@"Event not get %d", ocurredEvents.lNetworkEvents);
-      abort();      
+      abort();
     }
 #else
   if (type != ET_WDESC)
@@ -1388,7 +1390,7 @@ static Class	runLoopClass;
         }
 #else
       [l runMode: NSConnectionReplyMode beforeDate: when];
-#endif  
+#endif
       M_LOCK(myLock);
     }
 
@@ -1660,7 +1662,7 @@ static Class		tcpPortClass;
 	       * we did the 'bind' call.
 	       */
 	      port->listener = desc;
-	      port->portNum = GSPrivateSockaddrPort(&sockaddr); 
+	      port->portNum = GSPrivateSockaddrPort(&sockaddr);
 #if	defined(__MINGW__)
               port->eventListener = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
               if (port->eventListener == WSA_INVALID_EVENT)
@@ -1833,7 +1835,7 @@ static Class		tcpPortClass;
   recvSelf = GS_GC_HIDE(self);
   me = NSEnumerateMapTable(events);
   while (NSNextMapEnumeratorPair(&me, &event, (void**)&fd))
-    { 
+    {
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)fd);
       if (handle->recvPort == recvSelf
         && handle->inReplyMode == NO
@@ -2053,7 +2055,7 @@ static Class		tcpPortClass;
 	      listener = -1;
 #if	defined(__MINGW__)
 	      WSACloseEvent(eventListener);
-	      eventListener = WSA_INVALID_EVENT;                   
+	      eventListener = WSA_INVALID_EVENT;
 #endif
 	    }
 

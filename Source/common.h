@@ -17,15 +17,15 @@
  */
 /* This hack work around for glibc breaks FreeBSD and probably other platforms.
  */
-#if defined(__linux__) &&!defined(__GNU__)
-#if	defined(_XOPEN_SOURCE)
-#if	_XOPEN_SOURCE < 600
-#undef	_XOPEN_SOURCE
-#define	_XOPEN_SOURCE 600
-#endif
-#else
-#define	_XOPEN_SOURCE 600
-#endif
+#if (defined(__linux__) &&!defined(__GNU__)) || defined(__QNXNTO__)
+#  if	defined(_XOPEN_SOURCE)
+#    if	_XOPEN_SOURCE < 600
+#      undef	_XOPEN_SOURCE
+#      define	_XOPEN_SOURCE 600
+#    endif
+#  else
+#     define	_XOPEN_SOURCE 600
+#  endif
 #endif
 
 #import	"config.h"

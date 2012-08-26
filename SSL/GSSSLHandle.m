@@ -95,7 +95,9 @@
 
 #include <sys/ioctl.h>
 #ifdef	__svr4__
+#ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
+#endif
 #endif
 #include <netdb.h>
 #include <string.h>
@@ -130,30 +132,30 @@ sslError(int err)
 static NSLock	**locks = 0;
 
 static void
-locking_function(int mode, int n, const char *file, int line) 
-{ 
+locking_function(int mode, int n, const char *file, int line)
+{
   if (mode & CRYPTO_LOCK)
-    { 
+    {
       [locks[n] lock];
     }
   else
-    { 
+    {
       [locks[n] unlock];
-    } 
-} 
+    }
+}
 
 #if	defined(HAVE_CRYPTO_THREADID_SET_CALLBACK)
 static void
-threadid_function(CRYPTO_THREADID *ref) 
-{ 
+threadid_function(CRYPTO_THREADID *ref)
+{
   CRYPTO_THREADID_set_pointer(ref, GSCurrentThread());
-} 
+}
 #else
 static unsigned long
-threadid_function() 
-{ 
+threadid_function()
+{
   return (unsigned long) GSCurrentThread();
-} 
+}
 #endif
 
 
@@ -200,11 +202,11 @@ static NSString	*cipherList = nil;
 	{
 	  locks[count] = [NSLock new];
 	}
-      CRYPTO_set_locking_callback(locking_function); 
+      CRYPTO_set_locking_callback(locking_function);
 #if	defined(HAVE_CRYPTO_THREADID_SET_CALLBACK)
-      CRYPTO_THREADID_set_callback(threadid_function); 
+      CRYPTO_THREADID_set_callback(threadid_function);
 #else
-      CRYPTO_set_id_callback(threadid_function); 
+      CRYPTO_set_id_callback(threadid_function);
 #endif
 
       /*

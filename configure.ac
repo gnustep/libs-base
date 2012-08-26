@@ -1625,6 +1625,12 @@ OBJC_SYS_DYNAMIC_LINKER()
 # NOTE: libdl should be in LIBS now if it's available.
 AC_CHECK_FUNCS(dladdr)
 
+AC_CHECK_FUNCS(gethostbyname)
+if test "$ac_cv_func_gethostbyname" = "no"; then
+  # QNX has gethostbyname and friends in libsocket
+  AC_CHECK_LIB(socket, gethostbyname)
+fi
+
 #--------------------------------------------------------------------
 # Check for pthread.h 
 #--------------------------------------------------------------------
@@ -2239,6 +2245,7 @@ AC_CHECK_HEADERS(dnl
 	string.h dnl
 	sys/fcntl.h dnl
 	sys/file.h dnl
+	sys/filio.h dnl
 	sys/inttypes.h dnl
 	sys/ioctl.h dnl
 	sys/signal.h dnl

@@ -79,7 +79,7 @@
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
-#if	defined(__POSIX_SOURCE)
+#if	defined(__POSIX_SOURCE) || defined(__EXT_POSIX1_198808)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -95,13 +95,20 @@
 #endif
 
 #if	defined(__svr4__)
+#if defined(HAVE_SYS_STROPTS_H)
 #include <sys/stropts.h>
+#endif
 #endif
 #endif /* !__MINGW__ */
 
 
 #if	defined(HAVE_SYSLOG_H)
 #include <syslog.h>
+#elif   defined(HAVE_SYS_SLOG_H)
+#  include <sys/slog.h>
+#  if 	defined(HAVE_SYS_SLOGCODES_H)
+#    include <sys/slogcodes.h>
+#  endif
 #endif
 
 #if	HAVE_STRERROR
@@ -277,7 +284,15 @@ getopt(int argc, char **argv, char *options)
 static char	ebuf[2048];
 
 
-#if	defined(HAVE_SYSLOG)
+#if	defined(HAVE_SYSLOG) || defined(HAVE_SLOGF)
+#  if defined(HAVE_SLOGF)
+#    define LOG_CRIT _SLOG_CRITICAL
+#    define LOG_DEBUG _SLOG_DEBUG1
+#    define LOG_ERR _SLOG_ERROR
+#    define LOG_INFO _SLOG_INFO
+#    define LOG_WARNING _SLOG_WARNING
+#    define syslog(prio, msg,...) slogf(_SLOG_SETCODE(_SLOG_SYSLOG, 0), prio, msg, __VA_ARGS__)
+#  endif
 
 static int	log_priority;
 
@@ -295,7 +310,12 @@ gdomap_log (int prio)
     }
   if (is_daemon)
     {
+#if   defined(HAVE_SLOGF)
+      // QNX doesn't like 0 as the prio. It means "shutdown" to them.
+      syslog (prio ? log_priority : prio, "%s", ebuf);
+#     else
       syslog (log_priority | prio, "%s", ebuf);
+#endif
     }
   else if (prio == LOG_INFO)
     {
@@ -312,7 +332,7 @@ gdomap_log (int prio)
     {
       if (is_daemon)
 	{
-	  syslog (LOG_CRIT, "exiting.");
+	  syslog (LOG_CRIT, "%s", "exiting.");
 	}
       else
      	{
@@ -1254,7 +1274,8 @@ init_iface()
       perror("socket for init_iface");
       exit(EXIT_FAILURE);
     }
-#if	defined(__svr4__)
+// QNX seems to disagree about what it means to be SysV r4.
+#if	defined(__svr4__) && !defined(__QNXNTO__)
     {
       struct strioctl	ioc;
 
@@ -1320,7 +1341,7 @@ init_iface()
     {
       ifreq = *(struct ifreq*)ifr_ptr;
 #if	defined(HAVE_SA_LEN)
-      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_addr) 
+      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_addr)
 	+ ROUND(ifreq.ifr_addr.sa_len, sizeof(struct ifreq*));
 #else
       ifr_ptr += sizeof(ifreq);
@@ -3296,7 +3317,7 @@ handle_send()
     {
       int	r;
 
-      r = sendto(udp_desc, (const char *)&entry->dat[entry->pos], 
+      r = sendto(udp_desc, (const char *)&entry->dat[entry->pos],
       entry->len - entry->pos, 0, (void*)&entry->addr, sizeof(entry->addr));
       /*
        *	'r' is the number of bytes sent. This should be the number
@@ -3956,7 +3977,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   if (multi || host == 0 || *host == '\0')
     {
       local_hostname = xgethostname();
-      if (!local_hostname) 
+      if (!local_hostname)
 	{
 	  snprintf(ebuf, sizeof(ebuf),
 	    "gethostname() failed: %s", strerror(errno));
@@ -4156,7 +4177,7 @@ donames(const char *host)
        */
 
       local_hostname = xgethostname();
-      if (!local_hostname) 
+      if (!local_hostname)
 	{
 	  snprintf(ebuf, sizeof(ebuf),
 	    "gethostname() failed: %s", strerror(errno));
@@ -4291,7 +4312,7 @@ static void do_help(int argc, char **argv, char *options)
 	}
       if (i == argc)
 	{
-	  return;	// --help not found ... 
+	  return;	// --help not found ...
 	}
     }
   printf("%s -[%s]\n", argv[0], options);
@@ -4428,7 +4449,7 @@ main(int argc, char** argv)
 #if	defined(SYSLOG_4_2)
   openlog ("gdomap", LOG_NDELAY);
   log_priority = LOG_DAEMON;
-#else
+#elif !defined(HAVE_SLOGF)
   openlog ("gdomap", LOG_NDELAY, LOG_DAEMON);
 #endif
 #endif
@@ -5082,7 +5103,7 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
 }
 
 /* Copyright (c) 2001 Neal H Walfield <neal@cs.uml.edu>.
-   
+
    This file is placed into the public domain.  Its distribution
    is unlimited.
 
@@ -5165,7 +5186,7 @@ xgethostname (void)
 	  errno = ENOMEM;
 	  return NULL;
 	}
-      
+
       err = gethostname (buf, size);
     }
 
