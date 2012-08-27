@@ -1,3 +1,8 @@
+2012-08-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSSstring.m: ([-stringByAppendingPathComponent:]) fix for
+	append to an empty string with a windows path as an argument.
+
 2012-08-26  Niels Grewe <niels.grewe@halbordnung.de>
 
 	*  configure.ac: Check for sys/filio.h and whether we need to
