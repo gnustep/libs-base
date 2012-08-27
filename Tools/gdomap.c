@@ -1200,7 +1200,7 @@ init_iface()
   if (addr != 0) free(addr);
   addr = (struct in_addr*)malloc((countActive+1)*IASIZE);
   if (bcok != 0) free(bcok);
-  bcok = (char*)malloc((countActive+1)*sizeof(char));
+  bcok = (unsigned char*)malloc((countActive+1)*sizeof(unsigned char));
   if (bcst != 0) free(bcst);
   bcst = (struct in_addr*)malloc((countActive+1)*IASIZE);
   if (mask != 0) free(mask);
