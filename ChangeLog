@@ -1,3 +1,9 @@
+2012-09-01  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Implement `--disable-icu-config' switch to
+	configure for platforms that ship libicu but not icu-config.
+	* configure: Regenerate.
+
 2012-08-27  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSSstring.m: ([-stringByAppendingPathComponent:]) fix for
