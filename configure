@@ -1390,6 +1390,8 @@ Optional Features:
   --disable-tlstest		Do not try to compile and run a test TLS program
   --disable-zeroconf		Disable NSNetServices support
   --disable-icu			Disable International Components for Unicode
+  --disable-icu-config		Do not use the icu-config script to check
+				for ICU.
   --disable-libdispatch		Disable dispatching blocks via libdispatch
 
   --enable-setuid-gdomap        Enable installing gdomap as a setuid
@@ -1462,6 +1464,8 @@ Optional Packages:
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
+  --with-icu-library=PATH  	library path for ICU libraries (only checked
+				if not using icu-config)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
   --with-gdomap-port=PORT  alternative port for gdomap
@@ -28203,7 +28207,25 @@ else
 fi
 
 
+# Check whether --enable-icu-config was given.
+if test "${enable_icu_config+set}" = set; then
+  enableval=$enable_icu_config;
+else
+  enable_icu_config=yes
+fi
+
+
+
+# Check whether --with-icu-library was given.
+if test "${with_icu_library+set}" = set; then
+  withval=$with_icu_library; icu_libdir="$withval"
+else
+  icu_libdir="no"
+fi
+
+
 if test $enable_icu = yes; then
+  if test "$enable_icu_config" = "yes"; then
 
   ok=no
 
@@ -28289,6 +28311,77 @@ echo "${ECHO_T}$ICU_LDFLAGS" >&6; }
     have_icu=yes
   else
     have_icu=no
+  fi
+
+  else
+    { echo "$as_me:$LINENO: checking for libicu (icu-config disabled)..." >&5
+echo "$as_me: checking for libicu (icu-config disabled)..." >&6;}
+    if test "$icu_libdir" != "no"; then
+      ICU_LDFLAGS="-I$icu_libdir";
+    fi
+    saved_LDFLAGS="$LDFLAGS";
+    LDFLAGS="$LDFLAGS $LIBS $ICU_LDFLAGS -licui18n -licuuc -licudata -lm"
+    cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag" || test ! -s conftest.err'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  have_icu="yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	have_icu="no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext;
+    LDFLAGS="$saved_LDFLAGS";
+    ICU_LIBS="-licui18n -licuuc -licudata -lm"
   fi
 
   if test "$have_icu" = "yes"; then
