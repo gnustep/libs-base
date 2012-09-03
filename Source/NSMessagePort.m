@@ -54,7 +54,6 @@
 #include <sys/types.h>
 #include <sys/un.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 
 #if	defined(HAVE_SYS_FCNTL_H)

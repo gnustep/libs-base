@@ -58,7 +58,6 @@
 #endif
 
 #include <stdio.h>
-#include <string.h>
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCharacterSet.h"

@@ -82,7 +82,6 @@
   int			cState
 
 
-#include <string.h>
 #include <ctype.h>
 
 #import	"Foundation/NSArray.h"

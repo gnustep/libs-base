@@ -61,8 +61,6 @@ NSString * const NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
 NSString * const NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
 NSString * const NSLoadedClasses = @"NSLoadedClasses";
 
-#include <string.h>
-
 static NSFileManager	*
 manager()
 {

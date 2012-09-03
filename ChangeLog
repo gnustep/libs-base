@@ -1,3 +1,40 @@
+2012-09-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source\NSTimeZone.m:
+	* Source\NSBundle.m:
+	* Source\NSPropertyList.m:
+	* Source\NSProcessInfo.m:
+	* Source\NSSocketPort.m:
+	* Source\NSRunLoop.m:
+	* Source\NSMessagePortNameServer.m:
+	* Source\NSDistributedLock.m:
+	* Source\GSHTTPURLHandle.m:
+	* Source\NSZone.m:
+	* Source\NSPage.m:
+	* Source\NSMessagePort.m:
+	* Source\NSUnarchiver.m:
+	* Source\win32\GSFileHandle.m:
+	* Source\NSFileManager.m:
+	* Source\common.h:
+	* Source\NSString.m:
+	* Source\Additions\NSData+GNUstepBase.m:
+	* Source\Additions\Unicode.m:
+	* Source\Additions\NSMutableString+GNUstepBase.m:
+	* Source\Additions\NSError+GNUstepBase.m:
+	* Source\Additions\GSMime.m:
+	* Source\Additions\NSString+GNUstepBase.m:
+	* Source\Additions\GCArray.m:
+	* Source\Additions\GSXML.m:
+	* Source\Additions\NSNumber+GNUstepBase.m:
+	* Source\Additions\GSObjCRuntime.m:
+	* Source\GSString.m:
+	* Source\NSObjCRuntime.m:
+	* Source\GSFormat.m:
+	* Source\GSFileHandle.m:
+	* Source\NSTask.m:
+	On windows with mingw we can use strtoull() rather than _strtoui64().
+	Also, remove redundant header includes since string.h is in common.h
+
 2012-09-03  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* configure.ac: Fallback to the non icu-config check for ICU in

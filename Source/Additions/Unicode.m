@@ -47,7 +47,6 @@
 #import "../GSPrivate.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #if HAVE_LANGINFO_CODESET
 #include <langinfo.h>

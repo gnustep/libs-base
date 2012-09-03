@@ -88,7 +88,6 @@
 
 #import "common.h"
 #include <stddef.h>
-#include <string.h>
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "GSPrivate.h"

@@ -25,7 +25,6 @@
 */
 
 #import "common.h"
-#include <string.h>
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSException.h"
 #import "Foundation/NSRange.h"

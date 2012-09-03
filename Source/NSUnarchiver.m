@@ -32,7 +32,6 @@
 #endif
 
 #define	EXPOSE_NSUnarchiver_IVARS	1
-#include <string.h>
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSByteOrder.h"

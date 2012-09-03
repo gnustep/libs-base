@@ -63,7 +63,6 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
-#include <string.h>
 #include <stdio.h>
 
 /* determine directory reading files */

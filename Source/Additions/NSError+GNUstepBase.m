@@ -37,11 +37,9 @@
 #else
 #define	_XOPEN_SOURCE 600
 #endif
-#include <string.h>
 
 #import "common.h"
 
-#include <errno.h>
 #include <stdio.h>
 
 #import "Foundation/NSDictionary.h"
