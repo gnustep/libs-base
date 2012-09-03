@@ -53,8 +53,6 @@
 #include <io.h>
 #include <stdio.h>
 
-#include <string.h>
-
 #ifndef	O_BINARY
 #ifdef	_O_BINARY
 #define	O_BINARY	_O_BINARY

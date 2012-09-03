@@ -72,8 +72,6 @@
 #endif
 #include <netdb.h>
 
-#include <string.h>
-
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */

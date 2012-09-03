@@ -26,7 +26,6 @@
    */
 
 #import "common.h"
-#include <string.h>
 #define	EXPOSE_NSDistributedLock_IVARS	1
 #import "Foundation/NSDistributedLock.h"
 #import "Foundation/NSFileManager.h"

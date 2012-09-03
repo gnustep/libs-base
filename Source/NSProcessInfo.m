@@ -57,14 +57,9 @@
 #import "common.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #ifdef HAVE_WINDOWS_H
 #  include <windows.h>
-#endif
-
-#ifdef HAVE_STRERROR
-#  include <errno.h>
 #endif
 
 #if	defined(HAVE_SYS_SIGNAL_H)

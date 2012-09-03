@@ -31,7 +31,7 @@
 #import	"config.h"
 
 #if	defined(HAVE_STRING_H)
-/* For POSIX strerror_r()
+/* For POSIX strerror_r() and others
  */
 #include <string.h>
 #endif

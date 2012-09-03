@@ -54,7 +54,6 @@
 #  include	<fcntl.h>
 #endif
 
-#include <string.h>
 #include <sys/un.h>
 
 /* Older systems (Solaris) compatibility */

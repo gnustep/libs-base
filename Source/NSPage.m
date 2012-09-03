@@ -26,7 +26,6 @@
    */
 
 #import "common.h"
-#include <string.h>
 #include <stdio.h>
 #if __mach__
 #include <mach.h>

@@ -24,7 +24,6 @@
    */
 
 #import "common.h"
-#include <string.h>
 #import "GNUstepBase/GSMime.h"
 
 #import "Foundation/NSArray.h"
@@ -1147,13 +1146,8 @@ static id parsePlItem(pldata* pld)
                       }
                     else
                       {
-#if     defined(__MINGW__)
-                        result = [[NSNumber alloc]
-                          initWithUnsignedLongLong: _strtoui64(buf, 0, 10)];
-#else
                         result = [[NSNumber alloc]
                           initWithUnsignedLongLong: strtoull(buf, 0, 10)];
-#endif
                       }
 		  }
 		else if (type == 'B')

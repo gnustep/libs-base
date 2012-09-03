@@ -61,7 +61,6 @@
 #endif
 #include <math.h>
 #include <time.h>
-#include <string.h>		/* for memset() */
 
 
 NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";

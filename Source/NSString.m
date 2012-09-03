@@ -46,12 +46,6 @@
 #define GS_UNSAFE_REGEX 1
 #import "common.h"
 #include <stdio.h>
-#include <string.h>
-
-/* OpenBSD recommends impodring stdlib but not malloc.h for malloc */
-#ifdef HAVE_STDLIB_H
-#  include <stdlib.h>
-#endif
 
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCalendarDate.h"
@@ -3351,11 +3345,7 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
     {
       uint64_t v;
 
-#if defined(__MINGW__)
-      v = _strtoui64(ptr, 0, 10);
-#else
       v = strtoul(ptr, 0, 10);
-#endif
       return (int)v;
     } 
 }
@@ -3376,11 +3366,7 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
     {
       uint64_t  v;
 
-#if defined(__MINGW__)
-      v = _strtoui64(ptr, 0, 10);
-#else
-      v = strtoull(ptr, 0, 10);
-#endif
+      v = (uint64_t)strtoull(ptr, 0, 10);
       return (NSInteger)v;
     } 
 }
@@ -3401,11 +3387,7 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
     {
       unsigned long long l;
 
-#if defined(__MINGW__)
-      l = _strtoui64(ptr, 0, 10);
-#else
       l = strtoull(ptr, 0, 10);
-#endif
       return (long long)l;
     } 
 }
