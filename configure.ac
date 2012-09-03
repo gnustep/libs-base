@@ -3156,6 +3156,9 @@ if test $enable_icu = yes; then
   if test "$enable_icu_config" = "yes"; then
     AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
   else
+    have_icu=no;
+  fi
+  if test "$have_icu" = "no"; then
     AC_CHECKING([for libicu (icu-config disabled)])
     if test "$icu_libdir" != "no"; then
       ICU_LDFLAGS="-I$icu_libdir";

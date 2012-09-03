@@ -28314,6 +28314,9 @@ echo "${ECHO_T}$ICU_LDFLAGS" >&6; }
   fi
 
   else
+    have_icu=no;
+  fi
+  if test "$have_icu" = "no"; then
     { echo "$as_me:$LINENO: checking for libicu (icu-config disabled)..." >&5
 echo "$as_me: checking for libicu (icu-config disabled)..." >&6;}
     if test "$icu_libdir" != "no"; then
