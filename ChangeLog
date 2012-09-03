@@ -1,3 +1,9 @@
+2012-09-03  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Fallback to the non icu-config check for ICU in
+	the general case.
+	* configure: Regenerate.
+
 2012-09-01  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* configure.ac: Implement `--disable-icu-config' switch to
