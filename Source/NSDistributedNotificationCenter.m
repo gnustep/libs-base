@@ -120,6 +120,13 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  */
 + (NSNotificationCenter*) defaultCenter
 {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+
+  if([defaults boolForKey: @"GSDisableDistributedNotifications"])
+    { // return nil so that any calls to distributed notifications are ignored.
+      return nil;  
+    }
+
   return [self notificationCenterForType: NSLocalNotificationCenterType];
 }
 
