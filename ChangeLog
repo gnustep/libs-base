@@ -1,3 +1,7 @@
+2012-09-04  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tests/base/NSXMLDocument/cdata.m: New test case for CDATA.
+
 2012-09-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source\NSTimeZone.m:
