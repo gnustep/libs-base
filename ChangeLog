@@ -1,3 +1,10 @@
+2012-09-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSScanner.m: Compatibility tweak reported by hns@computer.org
+        A string like '1.2eX' where X is not a numeric exponent, needs to be
+        scanned as a float/double up to (but not including) the 'e' (or 'E')
+        rather than being treated as a badly formatted float/double.
+
 2012-09-04  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tests/base/NSXMLDocument/cdata.m: New test case for CDATA.
