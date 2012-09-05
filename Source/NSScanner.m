@@ -724,32 +724,28 @@ typedef GSString	*ivars;
   /* Check for trailing exponent */
   if ((_scanLocation < myLength()) && ((c == 'e') || (c == 'E')))
     {
+      unsigned int	expScanLocation = _scanLocation;
       int expval;
+      
 
       _scanLocation++;
       if ([self _scanInt: &expval])
 	{
-      /* Check for exponent overflow */
-	if (num)
-	  {
-	    if ((exponent > 0) && (expval > (LONG_MAX - exponent)))
-	      exponent = LONG_MAX;
-	    else if ((exponent < 0) && (expval < (LONG_MIN - exponent)))
-	      exponent = LONG_MIN;
-	    else
-	      exponent += expval;
-	  }
+        /* Check for exponent overflow */
+          if (num)
+            {
+              if ((exponent > 0) && (expval > (LONG_MAX - exponent)))
+                exponent = LONG_MAX;
+              else if ((exponent < 0) && (expval < (LONG_MIN - exponent)))
+                exponent = LONG_MIN;
+              else
+                exponent += expval;
+            }
 	}
       else
 	{
-#ifdef _ACCEPT_BAD_EXPONENTS_
 	  /* Numbers like 1.23eFOO are accepted (as 1.23). */
 	  _scanLocation = expScanLocation;
-#else
-	  /* Numbers like 1.23eFOO are rejected. */
-	  _scanLocation = saveScanLocation;
-	  return NO;
-#endif
 	}
     }
   if (value)
