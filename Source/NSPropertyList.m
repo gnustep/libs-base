@@ -88,7 +88,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   id					key;
   BOOL					inArray;
   BOOL					inDictionary;
-  BOOL					inString;
+  BOOL					inPCData;
   BOOL					parsed;
   BOOL					success;
   id					plist;
@@ -143,7 +143,7 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
 - (void) parser: (NSXMLParser *)parser
 foundCharacters: (NSString *)string
 {
-  if (YES == inString)
+  if (YES == inPCData)
     {
       [value appendString: string];
     }
@@ -156,7 +156,7 @@ foundCharacters: (NSString *)string
 - (void) parser: (NSXMLParser *)parser
 foundIgnorableWhitespace: (NSString *)string
 {
-  if (YES == inString)
+  if (YES == inPCData)
     {
       [value appendString: string];
     }
@@ -200,9 +200,9 @@ foundIgnorableWhitespace: (NSString *)string
       inArray = YES;
       inDictionary = NO;
     }
-  else if ([elementName isEqualToString: @"string"] == YES)
+  else
     {
-      inString = YES;
+      inPCData = YES;
     }
 }
 
@@ -213,7 +213,7 @@ foundIgnorableWhitespace: (NSString *)string
 {
   BOOL	inContainer = NO;
 
-  inString = NO;
+  inPCData = NO;
   if ([elementName isEqualToString: @"dict"] == YES)
     {
       inContainer = YES;
@@ -441,6 +441,7 @@ foundIgnorableWhitespace: (NSString *)string
 @interface GSBinaryPLParser : NSObject
 {
   NSPropertyListMutabilityOptions	mutability;
+  unsigned              _length;
   const unsigned char	*_bytes;
   NSData		*data;
   unsigned		offset_size;	// Number of bytes per table entry
@@ -2810,10 +2811,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 - (id) initWithData: (NSData*)plData
 	 mutability: (NSPropertyListMutabilityOptions)m
 {
-  unsigned length;
-
-  length = [plData length];
-  if (length < 32)
+  _length = [plData length];
+  if (_length < 32)
     {
       DESTROY(self);
     }
@@ -2821,7 +2820,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       unsigned char postfix[32];
 
-      [plData getBytes: postfix range: NSMakeRange(length - 32, 32)];
+      [plData getBytes: postfix range: NSMakeRange(_length - 32, 32)];
       offset_size = postfix[6];
       index_size = postfix[7];
       // FIXME: Looks like the following are actually 8 byte values.
@@ -2849,11 +2848,17 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	  [NSException raise: NSGenericException
 		      format: @"Unknown table size %d", saved];
 	}
+      else if (table_start + object_count * offset_size > _length)
+        {
+	  DESTROY(self);	// Bad format
+	  [NSException raise: NSGenericException
+		      format: @"Table size larger than supplied data"];
+        }
       else if (root_index >= object_count)
 	{
 	  DESTROY(self);	// Bad format
 	}
-      else if (table_start > length - 32)
+      else if (table_start > _length - 32)
 	{
 	  DESTROY(self);	// Bad format
 	}
@@ -2874,124 +2879,92 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     {
       [NSException raise: NSRangeException
 		   format: @"Object table index out of bounds %d.", index];
-    }
-
-  if (offset_size == 1)
-    {
-      unsigned char offset;
-
-      [data getBytes: &offset range: NSMakeRange(table_start + index, 1)];
-
-      return offset;
-    }
-  else if (offset_size == 2)
-    {
-      unsigned short offset;
-
-      [data getBytes: &offset range: NSMakeRange(table_start + 2*index, 2)];
-
-      return NSSwapBigShortToHost(offset);
+      return 0; /* Not reached */
     }
   else
     {
-      unsigned char buffer[offset_size];
-      int i;
-      unsigned long num = 0;
-      NSRange	r;
+      unsigned long     offset;
+      unsigned          count;
+      unsigned          pos;
 
-      r = NSMakeRange(table_start + offset_size*index, offset_size);
-      [data getBytes: &buffer range: r];
-      for (i = 0; i < offset_size; i++)
+      /* An offset is stored in big-endian byte order, so we can simply
+       * read it byte by byte.
+       */
+      pos = table_start + index * offset_size;
+      offset = _bytes[pos++];
+      for (count = 1; count < offset_size; count++)
         {
-	  num = (num << 8) + buffer[i];
-	}
-      return num;
+          offset = (offset << 8) + _bytes[pos++];
+        }
+      return offset;
     }
-  return 0;
 }
 
 - (unsigned) readObjectIndexAt: (unsigned*)counter
 {
-  if (index_size == 1)
+  unsigned      index;
+  unsigned      count;
+  unsigned      pos;
+
+NSAssert(0 != counter, NSInvalidArgumentException);
+  pos = *counter;
+NSAssert(pos + index_size < _length, NSInvalidArgumentException);
+  index = _bytes[pos++];
+  for (count = 1; count < index_size; count++)
     {
-      unsigned char oid;
-
-      [data getBytes: &oid range: NSMakeRange(*counter,1)];
-      *counter += 1;
-      return oid;
+      index = (index << 8) + _bytes[pos++];
     }
-  else if (index_size == 2)
-    {
-      unsigned short oid;
-
-      [data getBytes: &oid range: NSMakeRange(*counter, 2)];
-      *counter += 2;
-
-      return NSSwapBigShortToHost(oid);
-    }
-  else
-    {
-      unsigned char buffer[index_size];
-      int i;
-      unsigned num = 0;
-
-      [data getBytes: &buffer range: NSMakeRange(*counter, index_size)];
-      *counter += index_size;
-      for (i = 0; i < index_size; i++)
-        {
-	  num = (num << 8) + buffer[i];
-	}
-      return num;
-    }
-  return 0;
+  *counter = pos;
+  return index;
 }
 
 - (unsigned long) readCountAt: (unsigned*) counter
 {
+  unsigned long count;
+  unsigned      pos;
   unsigned char c;
 
-  [data getBytes: &c range: NSMakeRange(*counter,1)];
-  *counter += 1;
+NSAssert(0 != counter, NSInvalidArgumentException);
+  pos = *counter;
+NSAssert(pos <= _length, NSInvalidArgumentException);
+  c = _bytes[pos++];
 
   if (c == 0x10)
     {
-      unsigned char count;
-
-      [data getBytes: &count range: NSMakeRange(*counter,1)];
-      *counter += 1;
+NSAssert(pos + 1 < _length, NSInvalidArgumentException);
+      count = _bytes[pos++];
+      *counter = pos;
       return count;
     }
   else if (c == 0x11)
     {
-      unsigned short count;
-
-      [data getBytes: &count range: NSMakeRange(*counter,2)];
-      *counter += 2;
-      return NSSwapBigShortToHost(count);
+NSAssert(pos + 2 < _length, NSInvalidArgumentException);
+      count = _bytes[pos++];
+      count = (count << 8) + _bytes[pos++];
+      *counter = pos;
+      return count;
     }
   else if ((c > 0x11) && (c <= 0x13))
     {
-      unsigned len = c - 0x0f;
-      unsigned char buffer[len];
-      int i;
-      unsigned long num = 0;
+      unsigned len = c - 0x10;
 
-      [data getBytes: &buffer range: NSMakeRange(*counter, len)];
-      *counter += len;
-      for (i = 0; i < len; i++)
+NSAssert(pos + 1 < _length, NSInvalidArgumentException);
+      count = _bytes[pos++];
+NSAssert(pos + count < _length, NSInvalidArgumentException);
+      while (len-- > 0)
         {
-	  num = (num << 8) + buffer[i];
-	}
-      return num;
+          count = (count << 8) + _bytes[pos++];
+        }
+      *counter = pos;
+      return count;
     }
   else
     {
       //FIXME
       [NSException raise: NSGenericException
 		   format: @"Unknown count type %d", c];
+      return 0;
     }
-
-  return 0;
 }
 
 - (id) rootObject
@@ -3003,7 +2976,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 {
   unsigned char	next;
   unsigned counter = [self offsetForIndex: index];
-  id		result = nil;
+  id	        result = nil;
 
   [data getBytes: &next range: NSMakeRange(counter,1)];
   //NSLog(@"read object %d at index %d type %d", index, counter, next);
@@ -3071,6 +3044,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       // short data
       unsigned len = next - 0x40;
 
+NSAssert(counter + len <= _length, NSInvalidArgumentException);
       if (mutability == NSPropertyListMutableContainersAndLeaves)
 	{
 	  result = [NSMutableData dataWithBytes: _bytes + counter
@@ -3078,7 +3052,8 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	}
       else
 	{
-	  result = [data subdataWithRange: NSMakeRange(counter, len)];
+	  result = [NSData dataWithBytes: _bytes + counter
+                                  length: len];
 	}
     }
   else if (next == 0x4F)
@@ -3087,6 +3062,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       unsigned long len;
 
       len = [self readCountAt: &counter];
+NSAssert(counter + len <= _length, NSInvalidArgumentException);
       if (mutability == NSPropertyListMutableContainersAndLeaves)
 	{
 	  result = [NSMutableData dataWithBytes: _bytes + counter
@@ -3094,95 +3070,85 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	}
       else
 	{
-	  result = [data subdataWithRange: NSMakeRange(counter, len)];
+	  result = [NSData dataWithBytes: _bytes + counter
+                                  length: len];
 	}
     }
   else if ((next >= 0x50) && (next < 0x5F))
     {
-      // Short string
-      unsigned	len = next - 0x50;
-      char 	buffer[len+1];
+      NSString  *s;     // Short utf8 string
+      unsigned	len;
 
-      [data getBytes: buffer range: NSMakeRange(counter, len)];
-      buffer[len] = '\0';
       if (mutability == NSPropertyListMutableContainersAndLeaves)
 	{
-	  result = [NSMutableString stringWithUTF8String: buffer];
+	  s = [NSMutableString alloc];
 	}
       else
 	{
-	  result = [NSString stringWithUTF8String: buffer];
+	  s = [NSString alloc];
 	}
+      len = next - 0x50;
+      s = [s initWithBytes: _bytes + counter
+                    length: len
+                  encoding: NSUTF8StringEncoding];
+      result = [s autorelease];
     }
   else if (next == 0x5F)
     {
-      // long string
-      unsigned long len;
-      char *buffer;
+      NSString  *s;     // Long utf8 string
+      unsigned	len;
 
-      len = [self readCountAt: &counter];
-      buffer = NSAllocateCollectable(len + 1, 0);
-      [data getBytes: buffer range: NSMakeRange(counter, len)];
-      buffer[len] = '\0';
       if (mutability == NSPropertyListMutableContainersAndLeaves)
 	{
-	  result = [NSMutableString stringWithUTF8String: buffer];
+	  s = [NSMutableString alloc];
 	}
       else
 	{
-	  result = [NSString stringWithUTF8String: buffer];
+	  s = [NSString alloc];
 	}
-      NSZoneFree(NSDefaultMallocZone(), buffer);
+      len = [self readCountAt: &counter];
+      s = [s initWithBytes: _bytes + counter
+                    length: len
+                  encoding: NSUTF8StringEncoding];
+      result = [s autorelease];
     }
   else if ((next >= 0x60) && (next < 0x6F))
     {
-      // Short unicode string
-      unsigned	len = next - 0x60;
-      unsigned 	i;
-      unichar	buffer[len];
-
-      [data getBytes: buffer
-	       range: NSMakeRange(counter, sizeof(unichar)*len)];
-
-      for (i = 0; i < len; i++)
-        {
-	  buffer[i] = NSSwapBigShortToHost(buffer[i]);
-	}
+      NSString  *s;     // Short unicode string
+      unsigned	len;
 
       if (mutability == NSPropertyListMutableContainersAndLeaves)
 	{
-	  result = [NSMutableString stringWithCharacters: buffer length: len];
+	  s = [NSMutableString alloc];
 	}
       else
 	{
-	  result = [NSString stringWithCharacters: buffer length: len];
+	  s = [NSString alloc];
 	}
+      len = next - 0x60;
+      s = [s initWithBytes: _bytes + counter
+                    length: len * sizeof(unichar)
+                  encoding: NSUTF16BigEndianStringEncoding];
+      result = [s autorelease];
     }
   else if (next == 0x6F)
     {
-      // long unicode string
-      unsigned	long len;
-      unsigned	i;
-      unichar	*buffer;
-
-      len = [self readCountAt: &counter];
-      buffer = NSAllocateCollectable(sizeof(unichar) * len, 0);
-      [data getBytes: buffer range: NSMakeRange(counter, sizeof(unichar)*len)];
-
-      for (i = 0; i < len; i++)
-        {
-	  buffer[i] = NSSwapBigShortToHost(buffer[i]);
-	}
+      NSString          *s;     // Short unicode string
+      unsigned long     len;
 
       if (mutability == NSPropertyListMutableContainersAndLeaves)
 	{
-	  result = [NSMutableString stringWithCharacters: buffer length: len];
+	  s = [NSMutableString alloc];
 	}
       else
 	{
-	  result = [NSString stringWithCharacters: buffer length: len];
+	  s = [NSString alloc];
 	}
-      NSZoneFree(NSDefaultMallocZone(), buffer);
+      len = [self readCountAt: &counter];
+      s = [s initWithBytes: _bytes + counter
+                    length: len * sizeof(unichar)
+                  encoding: NSUTF16BigEndianStringEncoding];
+      result = [s autorelease];
     }
   else if (next == 0x80)
     {
@@ -3247,11 +3213,11 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
       if (mutability == NSPropertyListMutableContainersAndLeaves
 	|| mutability == NSPropertyListMutableContainers)
 	{
-	  result =[NSMutableArray arrayWithObjects: objects count: len];
+	  result = [NSMutableArray arrayWithObjects: objects count: len];
 	}
       else
 	{
-	  result =[NSArray arrayWithObjects: objects count: len];
+	  result = [NSArray arrayWithObjects: objects count: len];
 	}
       NSZoneFree(NSDefaultMallocZone(), objects);
     }
@@ -3342,7 +3308,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 @end
 
-/* Test two items for equality ... boith are objects.
+/* Test two items for equality ... both are objects.
  * If either is an NSNumber, we insist that they are the same class
  * so that numbers with the same numeric value but different classes
  * are not treated as the same number (that confuses OSXs decoding).
@@ -3720,71 +3686,59 @@ isEqualFunc(const void *item1, const void *item2,
 - (void) storeString: (NSString*) string
 {
   unsigned int len;
-  BOOL ascii = YES;
+  NSData        *ascii;
   unsigned char code;
-  unsigned int i;
-  unichar uchar;
 
   len = [string length];
 
-  for (i = 0; i < len; i++)
-    {
-      uchar = [string characterAtIndex: i];
-      if (uchar > 127)
-        {
-	  ascii = NO;
-	  break;
-	}
-    }
-
+  ascii = [string dataUsingEncoding: NSASCIIStringEncoding
+               allowLossyConversion: NO];
   if (ascii)
     {
       if (len < 0x0F)
 	{
 	  code = 0x50 + len;
 	  [dest appendBytes: &code length: 1];
-	  [dest appendBytes: [string cString] length: len];
+	  [dest appendData: ascii];
 	}
       else
 	{
 	  code = 0x5F;
 	  [dest appendBytes: &code length: 1];
 	  [self storeCount: len];
-	  [dest appendBytes: [string cString] length: len];
+	  [dest appendData: ascii];
 	}
     }
   else
     {
+      NSUInteger        offset;
+      uint8_t           *buffer;
+
       if (len < 0x0F)
 	{
-	  unichar buffer[len + 1];
-	  int i;
-
 	  code = 0x60 + len;
 	  [dest appendBytes: &code length: 1];
-	  [string getCharacters: buffer];
-	  for (i = 0; i < len; i++)
-	    {
-	      buffer[i] = NSSwapHostShortToBig(buffer[i]);
-	    }
-	  [dest appendBytes: buffer length: len * sizeof(unichar)];
 	}
       else
         {
-	  unichar *buffer;
-
 	  code = 0x6F;
 	  [dest appendBytes: &code length: 1];
-	  buffer = NSZoneMalloc(0, sizeof(unichar)*(len + 1));
 	  [self storeCount: len];
-	  [string getCharacters: buffer];
-	  for (i = 0; i < len; i++)
-	    {
-	      buffer[i] = NSSwapHostShortToBig(buffer[i]);
-	    }
-	  [dest appendBytes: buffer length: sizeof(unichar)*len];
-	  NSZoneFree(0, buffer);
 	}
+
+      offset = [dest length];
+      [dest setLength: offset + sizeof(unichar)*len];
+      buffer = [dest mutableBytes] + offset;
+      [string getCharacters: (unichar*)buffer];
+#if     GS_WORDS_BIGENDIAN
+      for (i = 0; i < len; i++)
+        {
+          uint8_t       o = *buffer++;
+
+          buffer[-1] = *buffer;
+          *buffer++ = o;
+        }
+#endif
     }
 }
 
