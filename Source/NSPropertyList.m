@@ -200,7 +200,7 @@ foundIgnorableWhitespace: (NSString *)string
       inArray = YES;
       inDictionary = NO;
     }
-  else
+  else if ([elementName isEqualToString: @"plist"] == NO)
     {
       inPCData = YES;
     }
