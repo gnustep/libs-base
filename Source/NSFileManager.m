@@ -363,7 +363,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
   static Class	bundleClass = 0;
-  const _CHAR	*lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR	*lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
 
   /*
    * On some systems the only way NSBundle can determine the path to the
@@ -400,7 +400,7 @@ static NSStringEncoding	defaultEncoding;
     {
       return YES;
     }
-  lpath = [defaultManager fileSystemRepresentationWithPath: path];
+  lpath = (const _CHAR *)[defaultManager fileSystemRepresentationWithPath: path];
 
 #ifndef __MINGW__
   if (object_getClass(attributes) == GSAttrDictionaryClass)
@@ -792,7 +792,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  const _CHAR *lpath;
 
-	  lpath = [self fileSystemRepresentationWithPath: completePath];
+	  lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: completePath];
 	  if (CreateDirectoryW(lpath, 0) == FALSE)
 	    {
 	      return NO;
@@ -914,7 +914,7 @@ static NSStringEncoding	defaultEncoding;
 	       attributes: (NSDictionary*)attributes
 {
 #if	defined(__MINGW__)
-  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR *lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
   HANDLE fh;
   DWORD	written = 0;
   DWORD	len = [contents length];
@@ -1171,8 +1171,8 @@ static NSStringEncoding	defaultEncoding;
   const _CHAR	*sourcePath;
   const _CHAR	*destPath;
 
-  sourcePath = [self fileSystemRepresentationWithPath: source];
-  destPath = [self fileSystemRepresentationWithPath: destination];
+  sourcePath = (const _CHAR *)[self fileSystemRepresentationWithPath: source];
+  destPath = (const _CHAR *)[self fileSystemRepresentationWithPath: destination];
 
   if ([self fileExistsAtPath: destination] == YES)
     {
@@ -1375,7 +1375,7 @@ static NSStringEncoding	defaultEncoding;
 
   [self _sendToHandler: handler willProcessPath: path];
 
-  lpath = [self fileSystemRepresentationWithPath: path];
+  lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
   if (lpath == 0 || *lpath == 0)
     {
       return NO;
@@ -1452,7 +1452,7 @@ static NSStringEncoding	defaultEncoding;
 	    }
 	}
 
-      if (_RMDIR([self fileSystemRepresentationWithPath: path]) < 0)
+      if (_RMDIR((const _CHAR *)[self fileSystemRepresentationWithPath: path]) < 0)
 	{
 	  NSString	*message = [[NSError _last] localizedDescription];
 
@@ -1492,7 +1492,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory
 {
-  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR *lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
 
   if (isDirectory != 0)
     {
@@ -1551,7 +1551,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isReadableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1587,7 +1587,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isWritableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1628,7 +1628,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isExecutableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1675,7 +1675,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isDeletableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1791,7 +1791,7 @@ static NSStringEncoding	defaultEncoding;
 {
   NSDictionary	*d;
 
-  d = [GSAttrDictionaryClass attributesAt:
+  d = [GSAttrDictionaryClass attributesAt:(const _CHAR *)
     [self fileSystemRepresentationWithPath: path] traverseLink: flag];
   return d;
 }
@@ -1873,7 +1873,7 @@ static NSStringEncoding	defaultEncoding;
 {
   NSDictionary	*d;
   
-  d = [GSAttrDictionaryClass attributesAt:
+  d = [GSAttrDictionaryClass attributesAt:(const _CHAR *)
     [self fileSystemRepresentationWithPath: path] traverseLink: NO];
   
   if (error != NULL)
@@ -1889,6 +1889,17 @@ static NSStringEncoding	defaultEncoding;
     }
   
   return d;
+}
+- (BOOL)setAttributes:(NSDictionary *) attributes
+         ofItemAtPath:(NSString *) path
+                error:(NSError **) error
+{
+  BOOL result = [self changeFileAttributes:attributes atPath:path];
+  if ((result == NO) && (error != NULL))
+    {
+      *error = [NSError _last];
+    }
+  return result;
 }
 
 /**
@@ -1922,7 +1933,7 @@ static NSStringEncoding	defaultEncoding;
   DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
   DWORD TotalNumberClusters;
   DWORD volumeSerialNumber = 0;
-  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR *lpath = (const _CHAR *)[self fileSystemRepresentationWithPath: path];
   _CHAR volumePathName[128];
 
   if (!GetVolumePathNameW(lpath, volumePathName, 128))
@@ -2179,7 +2190,7 @@ static NSStringEncoding	defaultEncoding;
 - (NSString*) stringWithFileSystemRepresentation: (const GSNativeChar*)string
 					  length: (NSUInteger)len
 {
-  return [NSString stringWithCharacters: string length: len];
+  return [NSString stringWithCharacters: (const unichar *)string length: len];
 }
 #else
 - (const GSNativeChar*) fileSystemRepresentationWithPath: (NSString*)path
@@ -2277,7 +2288,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
   _topPath = [[NSString alloc] initWithString: path];
 
-  localPath = [_mgr fileSystemRepresentationWithPath: path];
+  localPath = (const _CHAR *)[_mgr fileSystemRepresentationWithPath: path];
   dir_pointer = _OPENDIR(localPath);
   if (dir_pointer)
     {
@@ -2386,7 +2397,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    }
 	  /* Name of file to return  */
 	  returnFileName = [_mgr
-	    stringWithFileSystemRepresentation: dirbuf->d_name
+	    stringWithFileSystemRepresentation: (const char *)dirbuf->d_name
 	    length: wcslen(dirbuf->d_name)];
 #else
 	  /* Skip "." and ".." directory entries */
@@ -2432,7 +2443,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #endif
 #endif
 		{
-		  if (_STAT([_mgr fileSystemRepresentationWithPath:
+		  if (_STAT((const _CHAR *)[_mgr fileSystemRepresentationWithPath:
 		    _currentFilePath], &statbuf) != 0)
 		    {
 		      break;
@@ -2443,7 +2454,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		  _DIR*  dir_pointer;
 
 		  dir_pointer
-		    = _OPENDIR([_mgr fileSystemRepresentationWithPath:
+		    = _OPENDIR((const _CHAR *)[_mgr fileSystemRepresentationWithPath:
 		    _currentFilePath]);
 		  if (dir_pointer)
 		    {
@@ -2648,8 +2659,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	   handler: (id)handler
 {
 #if defined(__MINGW__)
-  if (CopyFileW([self fileSystemRepresentationWithPath: source],
-    [self fileSystemRepresentationWithPath: destination], NO))
+  if (CopyFileW((const _CHAR *)[self fileSystemRepresentationWithPath: source],
+    (const _CHAR *)[self fileSystemRepresentationWithPath: destination], NO))
     {
       return YES;
     }

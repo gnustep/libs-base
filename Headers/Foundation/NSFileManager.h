@@ -219,6 +219,9 @@ typedef	uint32_t	OSType;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 - (NSDictionary *) attributesOfItemAtPath: (NSString*)path
 				    error: (NSError**)error;
+- (BOOL)setAttributes:(NSDictionary *) attributes
+         ofItemAtPath:(NSString *) path
+                error:(NSError **) error;
 - (BOOL) copyItemAtPath: (NSString*)src
 		 toPath: (NSString*)dst
 		  error: (NSError**)error;
