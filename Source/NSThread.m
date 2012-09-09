@@ -1067,7 +1067,7 @@ static void *nsthreadLauncher(void* thread)
 		   argument: nil
 		      order: 0
 		      modes: [h modes]];
-	  NS_HANDER
+	  NS_HANDLER
 	    NSLog(@"Exception During Perform Loop (%@ on %@):\n%@", NSStringFromSelector(h->selector), h->receiver, localException);
 	  NS_ENDHANDLER
     }
