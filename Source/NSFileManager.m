@@ -749,8 +749,12 @@ static NSStringEncoding	defaultEncoding;
       while ((path = (NSString *)[paths nextObject]) != nil)
 	{
 	  dir = [dir stringByAppendingPathComponent: path];
-	  result = [self createDirectoryAtPath: dir
-                                    attributes: attributes];
+	  // create directory only if it doesn't exist
+	  if (NO == [self fileExistsAtPath: dir])
+	    {
+	      result = [self createDirectoryAtPath: dir
+		     			attributes: attributes];
+	    }
 	}
     }
   else

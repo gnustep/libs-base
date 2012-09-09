@@ -1,7 +1,8 @@
-2012-09-09  Wolfgang Lux  <wolfgang.lux@gmail.com>
+2012-09-10  Sergii Stoian <stoyan255@gmail.com>
 
-	* Source/NSPropertyList.m (-storeString): Add missing variable
-	declaration on big-endian systems.
+	* Source/NSFileManager.m:
+	[createDirectoryAtPath:withIntermediateDirectories:attributes:error:]:
+	Create directories only if it doesn't exist.
 
 2012-09-06  Richard Frith-Macdonald <rfm@gnu.org>
 
