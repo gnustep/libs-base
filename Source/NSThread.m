@@ -1068,7 +1068,7 @@ static void *nsthreadLauncher(void* thread)
 		      order: 0
 		      modes: [h modes]];
 	  NS_HANDLER
-	    NSLog(@"Exception During Perform Loop (%@ on %@):\n%@", NSStringFromSelector(h->selector), h->receiver, localException);
+	    NSLog(@"Exception During Perform Loop (%@):\n%@", h, localException);
 	  NS_ENDHANDLER
     }
 }
@@ -1180,6 +1180,11 @@ GSRunLoopInfoForThread(NSThread *aThread)
 - (NSArray*) modes
 {
   return modes;
+}
+
+- (NSString *) description
+{
+	return [NSString stringWithFormat:@"%@ on %@", NSStringFromSelector(selector), receiver];
 }
 @end
 
