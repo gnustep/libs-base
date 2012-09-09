@@ -6,9 +6,8 @@
 
 2012-09-09  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
-	* Source/NSFileManager.m:
-	[createDirectoryAtPath:withIntermediateDirectories:attributes:error:]:
-	Create directories only if it doesn't exist.
+        * Source/NSPropertyList.m (-storeString): Add missing variable
+        declaration on big-endian systems.
 
 2012-09-06  Richard Frith-Macdonald <rfm@gnu.org>
 
