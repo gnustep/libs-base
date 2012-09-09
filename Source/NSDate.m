@@ -956,6 +956,16 @@ otherTime(NSDate* other)
 }
 
 /**
+ * Returns an autoreleased instance with the offset from the current
+ * date/time given by seconds (which may be fractional).
+ * Mac OS 10.6
+ */
++ (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
+{
+  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceNow: seconds]);
+}
+
+/**
  * Returns an autoreleased instance with the offset from the unix system
  * reference date of 1 January 1970, GMT.
  */

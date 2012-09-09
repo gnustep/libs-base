@@ -1,3 +1,7 @@
+2012-09-09  Jonathan Gillaspie <jonathan.gillaspie@testplant.com>
+
+        * NSDate.m: Added 10.6 Call for + dateByAddingTimeInterval:
+
 2012-06-12  Richard Frith-Macdonald <rfm@gnu.org>
 
         * NSPropertyList.m: Check for nil property list argument.
