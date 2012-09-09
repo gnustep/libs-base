@@ -3731,13 +3731,16 @@ isEqualFunc(const void *item1, const void *item2,
       buffer = [dest mutableBytes] + offset;
       [string getCharacters: (unichar*)buffer];
 #if     GS_WORDS_BIGENDIAN
-      for (i = 0; i < len; i++)
-        {
-          uint8_t       o = *buffer++;
+      {
+	int i;
+	for (i = 0; i < len; i++)
+	  {
+	    uint8_t       o = *buffer++;
 
-          buffer[-1] = *buffer;
-          *buffer++ = o;
-        }
+	    buffer[-1] = *buffer;
+	    *buffer++ = o;
+	  }
+      }
 #endif
     }
 }
