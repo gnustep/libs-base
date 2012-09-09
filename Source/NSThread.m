@@ -1061,12 +1061,15 @@ static void *nsthreadLauncher(void* thread)
   for (i = 0; i < c; i++)
     {
       GSPerformHolder	*h = [toDo objectAtIndex: i];
-
+	  NS_DURING
       [loop performSelector: @selector(fire)
 		     target: h
 		   argument: nil
 		      order: 0
 		      modes: [h modes]];
+	  NS_HANDER
+	    NSLog(@"Exception During Perform Loop (%@ on %@):\n%@", NSStringFromSelector(h->selector), h->receiver, localException);
+	  NS_ENDHANDLER
     }
 }
 @end
