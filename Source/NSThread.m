@@ -1141,7 +1141,12 @@ GSRunLoopInfoForThread(NSThread *aThread)
     }
   threadInfo = GSRunLoopInfoForThread(GSCurrentThread());
   [threadInfo->loop cancelPerformSelectorsWithTarget: self];
+  NS_DURING
   [receiver performSelector: selector withObject: argument];
+  NS_HANDLER
+    NSLog(@"Exception During Perform Fire (%@):\n%@", self, localException);
+  NS_ENDHANDLER
+
   DESTROY(receiver);
   DESTROY(argument);
   DESTROY(modes);
