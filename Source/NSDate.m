@@ -956,16 +956,6 @@ otherTime(NSDate* other)
 }
 
 /**
- * Returns an autoreleased instance with the offset from the current
- * date/time given by seconds (which may be fractional).
- * Mac OS 10.6
- */
-+ (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
-{
-  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceNow: seconds]);
-}
-
-/**
  * Returns an autoreleased instance with the offset from the unix system
  * reference date of 1 January 1970, GMT.
  */
@@ -1155,6 +1145,16 @@ otherTime(NSDate* other)
   [d setCalendarFormat: formatString];
   [d setTimeZone: timeZone];
   return AUTORELEASE(d);
+}
+
+/**
+ * Returns an autoreleased instance with the offset from the target
+ * date/time given by seconds (which may be fractional).
+ * Mac OS 10.6
+ */
+- (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
+{
+  return AUTORELEASE([[self alloc] initWithTimeInterval:seconds sinceDate:self]);
 }
 
 /**
