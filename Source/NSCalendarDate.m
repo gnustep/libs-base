@@ -446,6 +446,20 @@ GSPrivateTimeNow(void)
  */
 - (id) addTimeInterval: (NSTimeInterval)seconds
 {
+  return [self dateByAddingTimeInterval: seconds];
+}
+
+- (Class) classForCoder
+{
+  return [self class];
+}
+
+/**
+ * Creates and returns a new NSCalendarDate object by taking the
+ * value of the receiver and adding the interval specified.
+ */
+- (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
+{
   id newObj = [[self class] dateWithTimeIntervalSinceReferenceDate:
      [self timeIntervalSinceReferenceDate] + seconds];
 	
@@ -453,11 +467,6 @@ GSPrivateTimeNow(void)
   [newObj setCalendarFormat: [self calendarFormat]];
 
   return newObj;
-}
-
-- (Class) classForCoder
-{
-  return [self class];
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc

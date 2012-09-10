@@ -1132,6 +1132,12 @@ otherTime(NSDate* other)
   return self;
 }
 
+- (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
+{
+  return [[self class] dateWithTimeIntervalSinceReferenceDate:
+    otherTime(self) + seconds];
+}
+
 /**
  * Returns an autoreleased instance of the [NSCalendarDate] class whose
  * date/time value is the same as that of the receiver, and which uses
@@ -1203,15 +1209,9 @@ otherTime(NSDate* other)
   return [s autorelease];
 }
 
-/**
- * Returns an autoreleased NSDate instance whose value if offset from
- * that of the receiver by seconds.
- */
 - (id) addTimeInterval: (NSTimeInterval)seconds
 {
-  /* xxx We need to check for overflow? */
-  return [[self class] dateWithTimeIntervalSinceReferenceDate:
-    otherTime(self) + seconds];
+  return [self dateByAddingTimeInterval: seconds];
 }
 
 /**

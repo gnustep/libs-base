@@ -105,7 +105,19 @@ static NSDate	*theFuture = nil;
 
 - (void) fire
 {
-  [target performSelector: selector withObject: argument];
+  NS_DURING
+    {
+      [target performSelector: selector withObject: argument];
+    }
+  NS_HANDLER
+    {
+      NSLog(@"*** NSRunLoop ignoring exception '%@' (reason '%@') "
+        @"raised during performSelector... with target %p "
+        @"and selector '%@'",
+        [localException name], [localException reason], target,
+        NSStringFromSelector([target selector]));
+    }
+  NS_ENDHANDLER
 }
 
 - (id) initWithSelector: (SEL)aSelector
