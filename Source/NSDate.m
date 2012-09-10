@@ -1154,7 +1154,7 @@ otherTime(NSDate* other)
  */
 - (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
 {
-  return AUTORELEASE([[self alloc] initWithTimeInterval:seconds sinceDate:self]);
+  return AUTORELEASE([[[self class] alloc] initWithTimeInterval:seconds sinceDate:self]);
 }
 
 /**
