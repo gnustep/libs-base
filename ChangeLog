@@ -1,3 +1,11 @@
+2012-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/Foundation/NSDate.h: Declare new OSX method to add time
+        interval to a date.
+        * Source/NSDate.m: Implement it
+        * Source/NSCalendarDate.m: Ditto
+        * Source/NSRunLoop.m: Add exception handling for run loop performer.
+
 2012-09-10  Sergii Stoian <stoyan255@gmail.com>
 
         * Source/NSFileManager.m:
