@@ -11,6 +11,11 @@
 #import <GNUstepBase/NSObject+GNUstepBase.h>
 #import "GSFastEnumeration.h"
 
+/* Boolean constants.
+ */
+static id       boolN;
+static id       boolY;
+
 /**
  * The number of (unicode) characters to fetch from the source at once.
  */
@@ -614,7 +619,7 @@ parseValue(ParserState *state)
 	    && (consumeChar(state) == 'e'))
             {
 	      consumeChar(state);
-              return [[NSNumber alloc] initWithBool: YES];
+              return [boolY retain];
             }
           break;
         }
@@ -626,7 +631,7 @@ parseValue(ParserState *state)
 	    && (consumeChar(state) == 'e'))
             {
 	      consumeChar(state);
-              return [[NSNumber alloc] initWithBool: NO];
+              return [boolN retain];
             }
           break;
         }
@@ -710,8 +715,11 @@ getEncoding(const uint8_t BOM[4], ParserState *state)
 /**
  * Classes that are permitted to be written.  
  */
-static Class NSNullClass, NSArrayClass, NSStringClass, NSDictionaryClass,
-             NSNumberClass;
+static Class NSArrayClass;
+static Class NSDictionaryClass;
+static Class NSNullClass;
+static Class NSNumberClass;
+static Class NSStringClass;
 
 static NSCharacterSet *escapeSet;
 
@@ -814,23 +822,17 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
           [output appendFormat: @"\"%@\"", obj];
         }
     }
+  else if (obj == boolN)
+    {
+      [output appendString: @"false"];
+    }
+  else if (obj == boolY)
+    {
+      [output appendString: @"true"];
+    }
   else if ([obj isKindOfClass: NSNumberClass])
     {
-      if ([obj objCType][0] == @encode(BOOL)[0])
-        {
-          if ([obj boolValue])
-            {
-              [output appendString: @"true"];
-            }
-          else
-            {
-              [output appendString: @"false"];
-            }
-        }
-      else
-        {
-          [output appendFormat: @"%g", [obj doubleValue]];
-        }
+      [output appendFormat: @"%g", [obj doubleValue]];
     }
   else if ([obj isKindOfClass: NSNullClass])
     {
@@ -853,7 +855,8 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
   NSNumberClass = [NSNumber class];
   escapeSet
     = [[NSCharacterSet characterSetWithCharactersInString: @"\"\\"] retain];
-
+  boolN = [[NSNumber numberWithBool: NO] retain];
+  boolY = [[NSNumber numberWithBool: YES] retain];
 }
 
 + (NSData*) dataWithJSONObject: (id)obj
