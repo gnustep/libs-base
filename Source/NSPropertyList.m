@@ -51,6 +51,16 @@
 
 #import "GSPrivate.h"
 
+static id       boolN = nil;
+static id       boolY = nil;
+
+static void
+setupBooleans()
+{
+  if (nil == boolN) boolN = [[NSNumber numberWithBool: NO] retain];
+  if (nil == boolY) boolY = [[NSNumber numberWithBool: YES] retain];
+}
+
 @class  GSSloppyXMLParser;
 
 #define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
@@ -331,11 +341,11 @@ foundIgnorableWhitespace: (NSString *)string
     }
   else if ([elementName isEqualToString: @"true"])
     {
-      ASSIGN(plist, [NSNumber numberWithBool: YES]);
+      ASSIGN(plist, boolY);
     }
   else if ([elementName isEqualToString: @"false"])
     {
-      ASSIGN(plist, [NSNumber numberWithBool: NO]);
+      ASSIGN(plist, boolN);
     }
   else if ([elementName isEqualToString: @"plist"])
     {
@@ -1155,11 +1165,11 @@ static id parsePlItem(pldata* pld)
 		  {
 		    if (ptr[0] == 'Y')
 		      {
-			result = [[NSNumber alloc] initWithBool: YES];
+			result = [boolY retain];
 		      }
 		    else if (ptr[0] == 'N')
 		      {
-			result = [[NSNumber alloc] initWithBool: NO];
+			result = [boolN retain];
 		      }
 		    else
 		      {
@@ -1830,46 +1840,41 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  PString(obj, dest);
 	}
     }
+  else if (obj == boolY)
+    {
+      if (x == NSPropertyListXMLFormat_v1_0)
+        {
+          [dest appendBytes: "<true/>\n" length: 8];
+        }
+      else if (x == NSPropertyListGNUstepFormat)
+        {
+          [dest appendBytes: "<*BY>" length: 5];
+        }
+      else
+        {
+          PString([obj description], dest);
+        }
+    }
+  else if (obj == boolN)
+    {
+      if (x == NSPropertyListXMLFormat_v1_0)
+        {
+          [dest appendBytes: "<false/>\n" length: 9];
+        }
+      else if (x == NSPropertyListGNUstepFormat)
+        {
+          [dest appendBytes: "<*BN>" length: 5];
+        }
+      else
+        {
+          PString([obj description], dest);
+        }
+    }
   else if ([obj isKindOfClass: NSNumberClass])
     {
       const char	*t = [obj objCType];
 
-      if (*t ==  'c' || *t == 'C')
-	{
-	  BOOL	val = [obj boolValue];
-
-	  if (val == YES)
-	    {
-	      if (x == NSPropertyListXMLFormat_v1_0)
-		{
-		  [dest appendBytes: "<true/>\n" length: 8];
-		}
-	      else if (x == NSPropertyListGNUstepFormat)
-		{
-		  [dest appendBytes: "<*BY>" length: 5];
-		}
-	      else
-		{
-		  PString([obj description], dest);
-		}
-	    }
-	  else
-	    {
-	      if (x == NSPropertyListXMLFormat_v1_0)
-		{
-		  [dest appendBytes: "<false/>\n" length: 9];
-		}
-	      else if (x == NSPropertyListGNUstepFormat)
-		{
-		  [dest appendBytes: "<*BN>" length: 5];
-		}
-	      else
-		{
-		  PString([obj description], dest);
-		}
-	    }
-	}
-      else if (strchr("sSiIlLqQ", *t) != 0)
+      if (strchr("cCsSiIlLqQ", *t) != 0)
 	{
 	  if (x == NSPropertyListXMLFormat_v1_0)
 	    {
@@ -2369,6 +2374,7 @@ static BOOL	classInitialized = NO;
 	[plDictionary instanceMethodForSelector: @selector(setObject:forKey:)];
 
       setupQuotables();
+      setupBooleans();
     }
 }
 
@@ -2985,12 +2991,12 @@ NSAssert(pos + count < _length, NSInvalidArgumentException);
   if (next == 0x08)
     {
       // NO
-      result = [NSNumber numberWithBool: NO];
+      result = boolN;
     }
   else if (next == 0x09)
     {
       // YES
-      result = [NSNumber numberWithBool: YES];
+      result = boolY;
     }
   else if ((next >= 0x10) && (next < 0x17))
     {
