@@ -103,6 +103,7 @@
 #import	<Foundation/NSRange.h>
 #import	<Foundation/NSRunLoop.h>
 #import	<Foundation/NSScanner.h>
+#import	<Foundation/NSScriptWhoseTests.h>
 #import	<Foundation/NSSerialization.h>
 #import	<Foundation/NSSet.h>
 #import	<Foundation/NSSortDescriptor.h>

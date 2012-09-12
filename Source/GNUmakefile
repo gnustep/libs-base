@@ -410,6 +410,7 @@ NSRange.h \
 NSRegularExpression.h\
 NSRunLoop.h \
 NSScanner.h \
+NSScriptWhoseTests.h \
 NSSerialization.h \
 NSSet.h \
 NSSortDescriptor.h \
