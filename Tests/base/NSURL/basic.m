@@ -296,6 +296,12 @@ GSPathHandling("right");
   PASS([url resourceDataUsingCache: NO] != nil,
     "can load file URL with anchor");
 
+  url = [NSURL URLWithString: @"data:,a23"];
+  PASS_EQUAL([url scheme], @"data", "can get scheme of data URL");
+  PASS_EQUAL([url path], nil, "path of data URL is nil");
+  PASS_EQUAL([url host], nil, "host of data URL is nil");
+  PASS_EQUAL([url resourceSpecifier], @",a23", "resourceSpecifier of data URL");
+  PASS_EQUAL([url absoluteString], @"data:,a23", "can get string of data URL");
 
   [arp release]; arp = nil;
   return 0;

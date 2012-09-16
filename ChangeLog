@@ -1,3 +1,9 @@
+2012-09-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSURL.m:
+        * Tests/base/NSURL/basic.m:
+        Add support for data: URL
+
 2012-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSJSONSerialization.m:
