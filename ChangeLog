@@ -1,3 +1,14 @@
+2012-09-17 12:03-EDT Gregory John Casamento <greg.casamento@gmail.com>
+	Merged from the testplant branch.
+
+	* Headers/Foundation/Foundation.h
+	* Headers/Foundation/NSScriptWhoseTests.h
+	* Source/GNUmakefile
+	* Source/NSObject+NSComparisonMethods.m: Move the
+	comparison methods to the header for NSScriptWhoseTests.h,
+	but don't define the abstract class since we don't support
+	Apple script.
+
 2012-09-16  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSURL.m:
