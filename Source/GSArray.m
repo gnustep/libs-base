@@ -797,9 +797,10 @@ static Class	GSInlineArrayClass;
 {
   _version++;
   if ((1 < _count) && (NULL != compare))
-  {
-    GSSortUnstable(_contents_array, NSMakeRange(0,_count), (id)compare, GSComparisonTypeFunction, context);
-  }
+    {
+      GSSortUnstable(_contents_array, NSMakeRange(0,_count), (id)compare,
+        GSComparisonTypeFunction, context);
+    }
   _version++;
 }
 
@@ -808,34 +809,34 @@ static Class	GSInlineArrayClass;
 {
   _version++;
   if ((1 < _count) && (NULL != comparator))
-  {
-    if (options & NSSortStable)
     {
-       if (options & NSSortConcurrent)
-       {
-          GSSortStableConcurrent(_contents_array, NSMakeRange(0,_count),
-	    (id)comparator, GSComparisonTypeComparatorBlock, NULL);
-       }
-       else
-       {
-          GSSortStable(_contents_array, NSMakeRange(0,_count),
-	    (id)comparator, GSComparisonTypeComparatorBlock, NULL);
-       }
-    }
-    else
-    {
-      if (options & NSSortConcurrent)
-      {
-         GSSortUnstableConcurrent(_contents_array, NSMakeRange(0,_count),
-	   (id)comparator, GSComparisonTypeComparatorBlock, NULL);
-      }
+      if (options & NSSortStable)
+        {
+          if (options & NSSortConcurrent)
+            {
+              GSSortStableConcurrent(_contents_array, NSMakeRange(0,_count),
+                  (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+          else
+            {
+              GSSortStable(_contents_array, NSMakeRange(0,_count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+        }
       else
-      {
-         GSSortUnstable(_contents_array, NSMakeRange(0,_count),
-	   (id)comparator, GSComparisonTypeComparatorBlock, NULL);
-      }
+        {
+          if (options & NSSortConcurrent)
+            {
+              GSSortUnstableConcurrent(_contents_array, NSMakeRange(0,_count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+          else
+            {
+              GSSortUnstable(_contents_array, NSMakeRange(0,_count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+        }
     }
-  }
   _version++;
 }
 

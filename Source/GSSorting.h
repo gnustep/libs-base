@@ -47,28 +47,35 @@ typedef NSUInteger GSComparisonType;
  * may or may not be implemented by one of the sorting implementations in
  * GNUstep.
  */
-extern void (*_GSSortUnstable)(id* buffer, NSRange range, id comparisonEntity, GSComparisonType cmprType, void *context);
+extern void (*_GSSortUnstable)(id *buffer, NSRange range, id comparisonEntity,
+  GSComparisonType cmprType, void *context);
+
 /**
  * This is the internal prototype of an stable, non-concurrency safe sorting
  * function that can be used either through NSComparator or NSSortDescriptor.
  * It may or may not be implemented by one of the sorting implementations in
  * GNUstep.
  */
-extern void (*_GSSortStable)(id* buffer, NSRange range, id comparisonEntity, GSComparisonType cmprType, void *context);
+extern void (*_GSSortStable)(id *buffer, NSRange range, id comparisonEntity,
+  GSComparisonType cmprType, void *context);
+
 /**
  * This is the internal prototype of an unstable, concurrency safe sorting
  * function that can be used either through NSComparator or NSSortDescriptor.
  * It may or may not be implemented by one of the sorting implementations in
  * GNUstep.
  */
-extern void (*_GSSortUnstableConcurrent)(id* buffer, NSRange range, id comparisonEntity, GSComparisonType cmprType, void *context);
+extern void (*_GSSortUnstableConcurrent)(id *buffer, NSRange range,
+  id comparisonEntity, GSComparisonType cmprType, void *context);
+
 /**
  * This is the internal prototype of an stable, concurrency safe sorting
  * function that can be used either through NSComparator or NSSortDescriptor.
  * It may or may not be implemented by one of the sorting implementations in
  * GNUstep.
  */
-extern void (*_GSSortStableConcurrent)(id* buffer, NSRange range, id comparisonEntity, GSComparisonType cmprType, void *context);
+extern void (*_GSSortStableConcurrent)(id *buffer, NSRange range,
+  id comparisonEntity, GSComparisonType cmprType, void *context);
 
 /**
  * GSSortUnstable() uses the above prototypes to provide sorting that does not
@@ -76,15 +83,16 @@ extern void (*_GSSortStableConcurrent)(id* buffer, NSRange range, id comparisonE
  * available, it will fall through to stable sorting.
  */
 void
-GSSortUnstable(id* buffer, NSRange range, id sortDecriptorOrCompatator, GSComparisonType cmprType, void *context);
+GSSortUnstable(id *buffer, NSRange range, id sortDecriptorOrCompatator,
+  GSComparisonType cmprType, void *context);
 
 /**
  * GSSortStable() uses one of the internal sorting algorithms to provide stable
  * sorting. If no stable sorting method is available, it raises an exception.
  */
 void
-GSSortStable(id* buffer, NSRange range, id sortDecriptorOrCompatator, GSComparisonType cmprType, void *context);
-
+GSSortStable(id *buffer, NSRange range, id sortDecriptorOrCompatator,
+  GSComparisonType cmprType, void *context);
 
 /**
  * GSSortUnstableConcurrent() uses the above prototypes to provide sorting that
@@ -94,7 +102,8 @@ GSSortStable(id* buffer, NSRange range, id sortDecriptorOrCompatator, GSComparis
  * concurrent sorting.
  */
 void
-GSSortUnstableConcurrent(id* buffer, NSRange range, id sortDecriptorOrCompatator, GSComparisonType cmprType, void *context);
+GSSortUnstableConcurrent(id *buffer, NSRange range,
+  id sortDecriptorOrCompatator, GSComparisonType cmprType, void *context);
 
 /**
  * GSSortStableConcurrent() uses one of the internal sorting algorithms to
@@ -102,7 +111,8 @@ GSSortUnstableConcurrent(id* buffer, NSRange range, id sortDecriptorOrCompatator
  * algorithm is available, it falls through to non-concurrent GSSortStable().
  */
 void
-GSSortStableConcurrent(id* buffer, NSRange range, id sortDecriptorOrCompatator, GSComparisonType cmprType, void *context);
+GSSortStableConcurrent(id *buffer, NSRange range, id sortDecriptorOrCompatator,
+  GSComparisonType cmprType, void *context);
 
 
 /**
@@ -112,7 +122,8 @@ GSSortStableConcurrent(id* buffer, NSRange range, id sortDecriptorOrCompatator, 
  * This function is provided using the implementation of the timsort algorithm.
  */
 NSUInteger
-GSRightInsertionPointForKeyInSortedRange(id key, id* buffer, NSRange range, NSComparator comparator);
+GSRightInsertionPointForKeyInSortedRange(id key, id *buffer,
+  NSRange range, NSComparator comparator);
 
 /**
  * This function finds the proper point for inserting a new key into a sorted
@@ -121,27 +132,34 @@ GSRightInsertionPointForKeyInSortedRange(id key, id* buffer, NSRange range, NSCo
  * This function is provided using the implementation of the timsort algorithm.
  */
 NSUInteger
-GSLeftInsertionPointForKeyInSortedRange(id key, id* buffer, NSRange range, NSComparator comparator);
+GSLeftInsertionPointForKeyInSortedRange(id key, id* buffer,
+  NSRange range, NSComparator comparator);
 
 /**
- * Convenience function to operate with sort descriptors, comparator blocks and functions.
+ * Convenience function to operate with sort descriptors,
+ * comparator blocks and functions.
  */
 static inline NSComparisonResult
-GSCompareUsingDescriptorOrComparator(id first, id second, id descOrComp, GSComparisonType cmprType, void* context)
+GSCompareUsingDescriptorOrComparator(id first, id second, id descOrComp,
+  GSComparisonType cmprType, void* context)
 {
 
   switch (cmprType)
-  {
-    case GSComparisonTypeSortDescriptor:
-      return [(NSSortDescriptor*)descOrComp compareObject: first toObject: second];
-    case GSComparisonTypeComparatorBlock:
-      return CALL_BLOCK(((NSComparator)descOrComp), first, second);
-    case GSComparisonTypeFunction:
-      return  ((NSInteger (*)(id, id, void *))descOrComp)(first, second, context);
-    default:
-      [NSException raise: @"NSInternalInconstitencyException"
-                  format: @"Invalid comparison type"];
-  }
+    {
+      case GSComparisonTypeSortDescriptor:
+        return [(NSSortDescriptor*)descOrComp compareObject: first
+                                                   toObject: second];
+      case GSComparisonTypeComparatorBlock:
+        return CALL_BLOCK(((NSComparator)descOrComp), first, second);
+
+      case GSComparisonTypeFunction:
+        return ((NSInteger (*)(id, id, void *))descOrComp)(first,
+          second, context);
+
+      default:
+        [NSException raise: @"NSInternalInconstitencyException"
+                    format: @"Invalid comparison type"];
+    }
   // Not reached:
   return 0;
 }

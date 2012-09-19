@@ -55,22 +55,25 @@
 #define GS_MIN_GALLOP 7
 #define GS_INITIAL_TEMP_STORAGE 256
 
-static inline void reverseRange(id* buffer, NSRange r)
+static inline void
+reverseRange(id *buffer, NSRange r)
 {
   NSUInteger loc = r.location;
   NSUInteger max = (NSMaxRange(r) - 1);
+
   while (loc < max)
-  {
-    id temp = buffer[loc];
-    buffer[loc++] = buffer[max];
-    buffer[max--] = temp;
-  }
+    {
+      id temp = buffer[loc];
+      buffer[loc++] = buffer[max];
+      buffer[max--] = temp;
+    }
 }
 
-// In-place binary insertion sorting for small arrays (i.e. those which are
-// smaller than GS_MIN_MERGE. We use this to generate minimal runs for timsort.
+/* In-place binary insertion sorting for small arrays (i.e. those which are
+ * smaller than GS_MIN_MERGE. We use this to generate minimal runs for timsort.
+ */
 static void
-internalBinarySort(id* buffer,
+internalBinarySort(id *buffer,
   NSRange r,
   NSUInteger start,
   id compOrDesc,
@@ -79,45 +82,48 @@ internalBinarySort(id* buffer,
 {
   NSUInteger min = r.location;
   NSUInteger max = NSMaxRange(r);
+
   NSCAssert2(NSLocationInRange(start, r),
     @"Start index %lu not in range %@",
     start, NSStringFromRange(r));
+
   if (min == start)
-  {
-    start++;
-  }
+    {
+      start++;
+    }
   // We assume that everything before start is sorted.
   for (; start < max; ++start)
-  {
-    NSUInteger left = min;
-    NSUInteger right = start;
-    id pivot = buffer[right];
-    int i = 0;
-    do
     {
-      NSUInteger midPoint = (left + ((right - left) >> 1));
-      NSComparisonResult res = GSCompareUsingDescriptorOrComparator(pivot,
-        buffer[midPoint],
-        compOrDesc,
-        type,
-	context);
-      if (NSOrderedAscending == res)
-      {
-	right = midPoint;
-      }
-      else
-      {
-	left = midPoint + 1;
-      }
-    } while (left < right);
-    NSCAssert(left == right, @"Binary sort iteration did not end correctly,");
-    // We make room for the pivot and place it at left.
-    for (i = start; i > left; --i)
-    {
-      buffer[i] = buffer[(i - 1)];
+      NSUInteger left = min;
+      NSUInteger right = start;
+      id pivot = buffer[right];
+      int i = 0;
+
+      do
+        {
+          NSUInteger midPoint = (left + ((right - left) >> 1));
+          NSComparisonResult res = GSCompareUsingDescriptorOrComparator(pivot,
+            buffer[midPoint],
+            compOrDesc,
+            type,
+            context);
+          if (NSOrderedAscending == res)
+            {
+              right = midPoint;
+            }
+          else
+            {
+              left = midPoint + 1;
+            }
+        } while (left < right);
+      NSCAssert(left == right, @"Binary sort iteration did not end correctly,");
+      // We make room for the pivot and place it at left.
+      for (i = start; i > left; --i)
+        {
+          buffer[i] = buffer[(i - 1)];
+        }
+      buffer[left] = pivot;
     }
-    buffer[left] = pivot;
-  }
 }
 
 
@@ -127,35 +133,37 @@ internalBinarySort(id* buffer,
  * same way.
  */
 static inline NSUInteger
-countAscendizedRun(id* buf, NSRange r, id descOrComp, GSComparisonType type, void*context)
+countAscendizedRun(id *buf, NSRange r, id descOrComp,
+  GSComparisonType type, void*context)
 {
   NSUInteger min = r.location;
   NSUInteger runMax = min + 1;
   NSUInteger rangeMax = NSMaxRange(r);
+
   if (runMax == rangeMax)
-  {
-    return 1;
-  }
+    {
+      return 1;
+    }
   if (NSOrderedDescending == GSCompareUsingDescriptorOrComparator(buf[min],
     buf[runMax++], descOrComp, type, context))
-  {
-    while ((runMax < rangeMax)
-      && NSOrderedDescending == GSCompareUsingDescriptorOrComparator(buf[runMax - 1],
-	buf[runMax], descOrComp, type, context))
     {
-      runMax++;
+      while ((runMax < rangeMax) && NSOrderedDescending
+        == GSCompareUsingDescriptorOrComparator(buf[runMax - 1],
+        buf[runMax], descOrComp, type, context))
+        {
+          runMax++;
+        }
+      reverseRange(buf, NSMakeRange(min, (runMax - min)));
     }
-    reverseRange(buf, NSMakeRange(min, (runMax - min)));
-  }
   else // ascending or equal
-  {
-    while ((runMax < rangeMax)
-      && NSOrderedDescending != GSCompareUsingDescriptorOrComparator(buf[runMax - 1],
-	buf[runMax], descOrComp, type, context))
     {
-      runMax++;
+      while ((runMax < rangeMax) && NSOrderedDescending
+        != GSCompareUsingDescriptorOrComparator(buf[runMax - 1],
+        buf[runMax], descOrComp, type, context))
+        {
+          runMax++;
+        }
     }
-  }
   return (runMax - min);
 }
 
@@ -165,14 +173,16 @@ countAscendizedRun(id* buf, NSRange r, id descOrComp, GSComparisonType type, voi
  * two, or less than, but close to, one, but always at least GS_MIN_MERGE. For
  * details on why this is useful, see Python's listsort.txt.
  */
-static inline NSUInteger minimumRunLength(NSUInteger length)
+static inline NSUInteger
+minimumRunLength(NSUInteger length)
 {
   NSUInteger r = 0;
+
   while (length >= GS_MIN_MERGE)
-  {
-    r |= length & 1;
-    length >>= 1;
-  }
+    {
+      r |= length & 1;
+      length >>= 1;
+    }
 
   return (length + r);
 }
@@ -182,16 +192,18 @@ static inline NSUInteger minimumRunLength(NSUInteger length)
  * pre-ordering at the begining of the range and sort the rest using binary
  * sort.
  */
-static inline void miniTimSort(id* buf, NSRange r, id descOrComp,
-  GSComparisonType ty, void* ctx)
+static inline void
+miniTimSort(id *buf, NSRange r, id descOrComp, GSComparisonType ty, void *ctx)
 {
   NSUInteger firstRunLength = countAscendizedRun(buf, r, descOrComp, ty, ctx);
+
   if (r.length == firstRunLength)
-  {
-    // In this case, we have already sorted the array here.
-    return;
-  }
-  internalBinarySort(buf, r, (r.location + firstRunLength), descOrComp, ty, ctx);
+    {
+      // In this case, we have already sorted the array here.
+      return;
+    }
+  internalBinarySort(buf, r, (r.location + firstRunLength),
+    descOrComp, ty, ctx);
 }
 
 /*
@@ -205,96 +217,108 @@ static inline void miniTimSort(id* buf, NSRange r, id descOrComp,
  * to give galloping a sensible start point for the search (it's usually 0 or
  * (r.length - 1)).
  */
-static NSUInteger gallopLeft(id key, id* buf, NSRange r, NSUInteger hint, id descOrComp, GSComparisonType type, void* context)
+static NSUInteger
+gallopLeft(id key, id *buf, NSRange r, NSUInteger hint, id descOrComp,
+  GSComparisonType type, void* context)
 {
   NSInteger offset =  1;
   NSInteger lastOffset = 0;
   NSInteger k = 0;
+
   buf += (hint + r.location);
   if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(*buf,
     key,
     descOrComp,
     type,
     context))
-  {
-    // In an ascending order, we gallop to the right until the key is no longer
-    // greater than the element from the range
-    NSInteger maxOffset = r.length - hint;
-    while (offset < maxOffset)
     {
-      if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(buf[offset],
-	key,
-	descOrComp,
-	type,
-	context))
-      {
-	lastOffset = offset;
-	// We gallop by 1, 3, 7, 15,...
-	offset = (offset << 1) + 1;
-	if (offset <= 0)
-	{
-	  offset = maxOffset;
-	}
-      }
-      else
-      {
-	break;
-      }
-    }
-    if (offset > maxOffset)
-    {
-      offset = maxOffset;
-    }
-    // we incremented the buf pointer by hint, so we need to account for that in
-    // order to get the offset to the base address
-    lastOffset += r.location + hint;
-    offset += r.location + hint;
-  }
-  else
-  {
-    // In descending (or equal) order, we gallop to the left until the key is no
-    // longer less than the element from the range
+      /* In an ascending order, we gallop to the right until the key
+       * is no longer greater than the element from the range
+       */
+      NSInteger maxOffset = r.length - hint;
+      while (offset < maxOffset)
+        {
+          if (NSOrderedAscending
+            == GSCompareUsingDescriptorOrComparator(buf[offset],
+            key,
+            descOrComp,
+            type,
+            context))
+            {
+              lastOffset = offset;
+              // We gallop by 1, 3, 7, 15,...
+              offset = (offset << 1) + 1;
 
-    NSInteger maxOffset = hint + 1;
-    while (offset < maxOffset)
-    {
-      if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(*(buf - offset),
-	key, descOrComp, type, context))
-      {
-	break;
-      }
-      lastOffset = offset;
-      offset = (offset << 1) + 1;
-      if (offset <= 0)
-      {
-	offset = maxOffset;
-      }
+              if (offset <= 0)
+                {
+                  offset = maxOffset;
+                }
+            }
+          else
+            {
+              break;
+            }
+        }
+      if (offset > maxOffset)
+        {
+          offset = maxOffset;
+        }
+      /* we incremented the buf pointer by hint, so we need to
+       * account for that in order to get the offset to the base address
+       */
+      lastOffset += r.location + hint;
+      offset += r.location + hint;
     }
+  else
+    {
+      /* In descending (or equal) order, we gallop to the left
+       * until the key is no longer less than the element from the range
+       */
+      NSInteger maxOffset = hint + 1;
+
+      while (offset < maxOffset)
+        {
+          if (NSOrderedAscending
+            == GSCompareUsingDescriptorOrComparator(*(buf - offset),
+            key, descOrComp, type, context))
+            {
+              break;
+            }
+          lastOffset = offset;
+          offset = (offset << 1) + 1;
+          if (offset <= 0)
+            {
+              offset = maxOffset;
+            }
+        }
       // Translate into positive offsets from array base address again.
       k = lastOffset;
       lastOffset = (r.location + hint) - offset;
       offset = (r.location + hint) - k;
-  }
+    }
   // Restore base address:
   buf -= (hint + r.location);
 
-  // We are now sure that we need to insert key somewhere between offset and
-  // lastOffset. So do a binary search with a vastly diminished search space.
+  /* We are now sure that we need to insert key somewhere between offset and
+   * lastOffset. So do a binary search with a vastly diminished search space.
+   */
 
   lastOffset++;
   while (lastOffset < offset)
-  {
-    NSInteger midPoint = lastOffset + ((offset - lastOffset) >> 1);
-    if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(buf[midPoint],
-      key, descOrComp, type, context))
     {
-      lastOffset = midPoint + 1;
+      NSInteger midPoint = lastOffset + ((offset - lastOffset) >> 1);
+
+      if (NSOrderedAscending
+        == GSCompareUsingDescriptorOrComparator(buf[midPoint],
+        key, descOrComp, type, context))
+        {
+          lastOffset = midPoint + 1;
+        }
+      else
+        {
+          offset = midPoint;
+        }
     }
-    else
-    {
-      offset = midPoint;
-    }
-  }
   return (NSUInteger)offset;
 }
 
@@ -302,113 +326,124 @@ static NSUInteger gallopLeft(id key, id* buf, NSRange r, NSUInteger hint, id des
  * Equivalent to gallopLeft() except that it searches for an insertion point
  * right of the last equal element.
  */
-static NSUInteger gallopRight(id key, id* buf,
-  NSRange r, NSUInteger hint,
-  id descOrComp, GSComparisonType type, void* context)
+static NSUInteger
+gallopRight(id key, id *buf, NSRange r, NSUInteger hint,
+  id descOrComp, GSComparisonType type, void *context)
 {
   NSInteger offset = 1;
   NSInteger lastOffset = 0;
   NSInteger k = 0;
+
   buf += (hint + r.location);
   if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(key, *buf,
     descOrComp, type, context))
-  {
-    // In an ascending order, we gallop to the right until the key is no longer
-    // greater than the element from the range
-    NSInteger maxOffset = hint + 1;
-    while (offset < maxOffset)
     {
-      if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(key,
-	*(buf - offset), descOrComp, type, context))
-      {
-	lastOffset = offset;
-	offset = (offset << 1) + 1;
-	if (offset <= 0)
-	{
-	  offset = maxOffset;
-	}
-      }
-      else
-      {
-	break;
-      }
-    }
-    if (offset > maxOffset)
-    {
-      offset = maxOffset;
-    }
-    else if (offset < r.location)
-    {
-      offset = r.location;
-    }
-    // Translation to positive offsets against the base address.
-    k = lastOffset;
-    lastOffset = (r.location + hint) - offset;
-    offset = (r.location + hint) - k;
-  }
-  else
-  {
-    // In descending (or equal) order, we gallop to the right
+      /* In an ascending order, we gallop to the right until
+       * the key is no longer greater than the element from the range
+       */
+      NSInteger maxOffset = hint + 1;
 
-    NSInteger maxOffset = r.length - hint;
-    while (offset < maxOffset)
-    {
-      if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(key, buf[offset],
-	descOrComp, type, context))
-      {
-	break;
-      }
-      lastOffset = offset;
-      offset = (offset << 1) + 1;
-      if (offset <= 0)
-      {
-	offset = maxOffset;
-      }
+      while (offset < maxOffset)
+        {
+          if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(key,
+            *(buf - offset), descOrComp, type, context))
+            {
+              lastOffset = offset;
+              offset = (offset << 1) + 1;
+              if (offset <= 0)
+                {
+                  offset = maxOffset;
+                }
+            }
+          else
+            {
+              break;
+            }
+        }
+      if (offset > maxOffset)
+        {
+          offset = maxOffset;
+        }
+      else if (offset < r.location)
+        {
+          offset = r.location;
+        }
+      // Translation to positive offsets against the base address.
+      k = lastOffset;
+      lastOffset = (r.location + hint) - offset;
+      offset = (r.location + hint) - k;
     }
-      // Translate into positive offsets from array base address again.
-    lastOffset += (hint + r.location);
-    offset += (hint + r.location);
-  }
+  else
+    {
+      // In descending (or equal) order, we gallop to the right
+
+      NSInteger maxOffset = r.length - hint;
+      while (offset < maxOffset)
+        {
+          if (NSOrderedAscending
+            == GSCompareUsingDescriptorOrComparator(key, buf[offset],
+            descOrComp, type, context))
+            {
+              break;
+            }
+          lastOffset = offset;
+          offset = (offset << 1) + 1;
+          if (offset <= 0)
+            {
+              offset = maxOffset;
+            }
+        }
+        // Translate into positive offsets from array base address again.
+      lastOffset += (hint + r.location);
+      offset += (hint + r.location);
+    }
   // Restore base address:
   buf -= (hint + r.location);
 
-  // We are now sure that we need to insert key somewhere between offset and
-  // lastOffset. So do a binary search with a vastly diminished search space.
+  /* We are now sure that we need to insert key somewhere between offset and
+   * lastOffset. So do a binary search with a vastly diminished search space.
+   */
 
   lastOffset++;
   while (lastOffset < offset)
-  {
-    NSInteger midPoint = lastOffset + ((offset - lastOffset) >> 1);
-    if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(key, buf[midPoint],
-      descOrComp, type, context))
     {
-      offset = midPoint;
+      NSInteger midPoint = lastOffset + ((offset - lastOffset) >> 1);
+      if (NSOrderedAscending
+        == GSCompareUsingDescriptorOrComparator(key, buf[midPoint],
+        descOrComp, type, context))
+        {
+          offset = midPoint;
+        }
+      else
+        {
+          lastOffset = midPoint + 1;
+        }
     }
-    else
-    {
-      lastOffset = midPoint + 1;
-    }
-  }
   return (NSUInteger)offset;
 }
 
 
 // Public versions of the galloping functions
 NSUInteger
-GSLeftInsertionPointForKeyInSortedRange(id key, id* buffer, NSRange range, NSComparator cmptr)
+GSLeftInsertionPointForKeyInSortedRange(id key, id *buffer,
+  NSRange range, NSComparator cmptr)
 {
-  return gallopLeft(key, buffer, range, 0, (id)cmptr, GSComparisonTypeComparatorBlock, NULL);
+  return gallopLeft(key, buffer, range, 0, (id)cmptr,
+    GSComparisonTypeComparatorBlock, NULL);
 }
 
 
 NSUInteger
-GSRightInsertionPointForKeyInSortedRange(id key, id* buffer, NSRange range, NSComparator cmptr)
+GSRightInsertionPointForKeyInSortedRange(id key, id *buffer,
+NSRange range, NSComparator cmptr)
 {
-  return gallopRight(key, buffer, range, 0, (id)cmptr, GSComparisonTypeComparatorBlock, NULL);
+  return gallopRight(key, buffer, range, 0, (id)cmptr,
+    GSComparisonTypeComparatorBlock, NULL);
 }
 
-// These macros make calling the cached IMPs easier, if we choose to do so
-// later.
+/* These macros make calling the cached IMPs easier,
+ * if we choose to do so later.
+ */
 
 #define GS_TIMSORT_CACHED_MSG(recv, sel) sel ## Imp(recv,@selector(sel))
 #define GS_TIMSORT_CACHED_MSGV(recv, imp, sel, ...) imp(recv, @selector(sel), __VA_ARGS__)
@@ -437,14 +472,14 @@ static IMP ensureCapImp;
 
 @interface GSTimSortDescriptor : NSObject
 {
-  id* objects;
+  id *objects;
   NSRange sortRange;
   id sortDescriptorOrComparator;
   GSComparisonType comparisonType;
   void *functionContext;
   NSUInteger minGallop;
   NSUInteger tempCapacity;
-  id* tempBuffer;
+  id *tempBuffer;
   NSUInteger stackSize;
   NSRange* runStack;
 }
@@ -465,38 +500,39 @@ static IMP ensureCapImp;
 // Prototype for the actual timsort function.
 static void
 _GSTimSort(id *objects,
-           NSRange sortRange,
-           id sortDescriptorOrComparator,
-           GSComparisonType comparisonType,
-           void* context);
+  NSRange sortRange,
+  id sortDescriptorOrComparator,
+  GSComparisonType comparisonType,
+  void *context);
 
 @implementation GSTimSortDescriptor
-+ (void)load
++ (void) load
 {
 #ifndef GS_DISABLE_TIMSORT
   _GSSortStable = _GSTimSort;
 #endif
 }
-+ (void)initialize
+
++ (void) initialize
 {
   if ([GSTimSortDescriptor class] == [self class])
-  {
-    // We need to be fast, so we cache a lot of IMPs
-    pushRunImp =
-      [self instanceMethodForSelector: @selector(pushRun:)];
-    suggestMergeImp =
-      [self instanceMethodForSelector: @selector(suggestMerge)];
-    forceMergeImp =
-      [self instanceMethodForSelector: @selector(forceMerge)];
-    mergeAtIndexImp =
-      [self instanceMethodForSelector: @selector(mergeAtIndex:)];
-    mergeLowImp =
-      [self instanceMethodForSelector: @selector(mergeLowRun:withRun:)];
-    mergeHighImp =
-      [self instanceMethodForSelector: @selector(mergeHighRun:withRun:)];
-    ensureCapImp =
-      [self instanceMethodForSelector: @selector(ensureTempCapacity:)];
-  }
+    {
+      // We need to be fast, so we cache a lot of IMPs
+      pushRunImp =
+        [self instanceMethodForSelector: @selector(pushRun:)];
+      suggestMergeImp =
+        [self instanceMethodForSelector: @selector(suggestMerge)];
+      forceMergeImp =
+        [self instanceMethodForSelector: @selector(forceMerge)];
+      mergeAtIndexImp =
+        [self instanceMethodForSelector: @selector(mergeAtIndex:)];
+      mergeLowImp =
+        [self instanceMethodForSelector: @selector(mergeLowRun:withRun:)];
+      mergeHighImp =
+        [self instanceMethodForSelector: @selector(mergeHighRun:withRun:)];
+      ensureCapImp =
+        [self instanceMethodForSelector: @selector(ensureTempCapacity:)];
+    }
 }
 
 - (id) initWithObjects: (id*)theObjects
@@ -507,40 +543,46 @@ descriptorOrComparator: (id)descriptorOrComparator
 {
   NSUInteger sortLength = theSortRange.length;
   NSUInteger stackSpace = 0;
+
   if (nil == (self = [super init]))
-  {
-    return nil;
-  }
-  // GSTimSortDescriptors are ephemeral objects that just track state, so we
-  // don't bother making sure that the objects don't go away.
+    {
+      return nil;
+    }
+  /* GSTimSortDescriptors are ephemeral objects that just track state, so we
+   * don't bother making sure that the objects don't go away.
+   */
   objects = theObjects;
   sortRange = theSortRange;
   sortDescriptorOrComparator = descriptorOrComparator;
   comparisonType = ty;
   functionContext = ctx;
-  // minGallop will be adjusted based on heuristics on whether we have a highly
-  // structured array (in which case galloping is useful) or a more random one
-  // (when it isn't).
+  /* minGallop will be adjusted based on heuristics on whether we have a highly
+   * structured array (in which case galloping is useful) or a more random one
+   * (when it isn't).
+   */
   minGallop = GS_MIN_GALLOP;
   stackSize = 0;
-  // timsort needs at most half the array size as temporary storage, so
-  // we optimize for arrays that require less storage than we'd usually
-  // allocate.
-  tempCapacity = ((sortLength < (2 * GS_INITIAL_TEMP_STORAGE)) ? sortLength >> 1 :
-      GS_INITIAL_TEMP_STORAGE);
+  /* timsort needs at most half the array size as temporary storage, so
+   * we optimize for arrays that require less storage than we'd usually
+   * allocate.
+   */
+  tempCapacity = ((sortLength < (2 * GS_INITIAL_TEMP_STORAGE))
+    ? sortLength >> 1 : GS_INITIAL_TEMP_STORAGE);
   tempBuffer = malloc(sizeof(id) * tempCapacity );
 
-  // We also allocate the stack in which we track the runs based on the array
-  // size. (The values are based of the OpenJDK implementation of timsort)
+  /* We also allocate the stack in which we track the runs based on the array
+   * size. (The values are based of the OpenJDK implementation of timsort)
+   */
   stackSpace = (sortLength < 120 ? 5 :
                   sortLength < 1542 ? 10 :
                    sortLength < 119151 ? 19 : 40);
   runStack = malloc(sizeof(NSRange) * stackSpace);
   return self;
 }
-- (id)initWithObjects: (id*)theObjects
-            sortRange: (NSRange)theSortRange
-           descriptor: (NSSortDescriptor*)descriptor
+
+- (id) initWithObjects: (id*)theObjects
+             sortRange: (NSRange)theSortRange
+            descriptor: (NSSortDescriptor*)descriptor
 {
   return [self initWithObjects: theObjects
                      sortRange: theSortRange
@@ -549,9 +591,9 @@ descriptorOrComparator: (id)descriptorOrComparator
                functionContext: NULL];
 }
 
-- (id)initWithObjects: (id*)theObjects
-            sortRange: (NSRange)theSortRange
-           comparator: (NSComparator)comparator
+- (id) initWithObjects: (id*)theObjects
+             sortRange: (NSRange)theSortRange
+            comparator: (NSComparator)comparator
 {
   return [self initWithObjects: theObjects
                      sortRange: theSortRange
@@ -561,50 +603,52 @@ descriptorOrComparator: (id)descriptorOrComparator
 }
 
 
-- (void)pushRun: (NSRange)r
+- (void) pushRun: (NSRange)r
 {
   runStack[stackSize] = r;
   stackSize++;
 }
 
-- (void)suggestMerge
+- (void) suggestMerge
 {
   while (stackSize > 1)
-  {
-    NSInteger n = stackSize -2;
-    if (n > 0)
     {
-      NSUInteger topLen = runStack[n+1].length;
-      NSUInteger midLen = runStack[n].length;
-      NSUInteger botLen = runStack[n-1].length;
-      if (botLen <= (midLen + topLen))
-      {
-	if (botLen < topLen)
-	{
-	  n--;
-	}
-	GS_TIMSORT_MERGE_AT_INDEX(self, n);
-      }
-      else if (midLen <= topLen)
-      {
-	GS_TIMSORT_MERGE_AT_INDEX(self, n);
-      }
+      NSInteger n = stackSize -2;
+
+      if (n > 0)
+        {
+          NSUInteger topLen = runStack[n+1].length;
+          NSUInteger midLen = runStack[n].length;
+          NSUInteger botLen = runStack[n-1].length;
+          if (botLen <= (midLen + topLen))
+            {
+              if (botLen < topLen)
+                {
+                  n--;
+                }
+              GS_TIMSORT_MERGE_AT_INDEX(self, n);
+            }
+          else if (midLen <= topLen)
+            {
+              GS_TIMSORT_MERGE_AT_INDEX(self, n);
+            }
+        }
+      else
+        {
+          break;
+        }
     }
-    else
-    {
-      break;
-    }
-  }
 }
 
-- (void)ensureTempCapacity: (NSUInteger)elementsRequired
+- (void) ensureTempCapacity: (NSUInteger)elementsRequired
 {
   if (elementsRequired <= tempCapacity)
-  {
-    return;
-  }
-  // We don't realloc any memory because we don't care about the contents from
-  // previous merge iterations.
+    {
+      return;
+    }
+  /* We don't realloc any memory because we don't care about the contents from
+   * previous merge iterations.
+   */
   free(tempBuffer);
   tempBuffer = malloc(sizeof(id) * elementsRequired);
   tempCapacity = elementsRequired;
@@ -618,23 +662,23 @@ descriptorOrComparator: (id)descriptorOrComparator
  * array. This method is called if r1 is the shorter run (i.e. the one which
  * requires less temporary storage).
  */
-- (void)mergeLowRun: (NSRange)r1 withRun: (NSRange)r2
+- (void) mergeLowRun: (NSRange)r1 withRun: (NSRange)r2
 {
   NSUInteger num1 = r1.length;
   NSUInteger num2 = r2.length;
   id *buf1 = objects + r1.location;
   id *buf2 = objects + r2.location;
-
   id *destination = buf1;
   NSUInteger k = 0;
   // Local variables for performance
   NSUInteger localMinGallop = minGallop;
   id descOrComp = sortDescriptorOrComparator;
   GSComparisonType ty = comparisonType;
-  void* ctx = functionContext;
+  void *ctx = functionContext;
 
-  // We use the first run as our destination, so we copy out its contents into
-  // the temporary storage (which needs to be large enough, though).
+  /* We use the first run as our destination, so we copy out its contents into
+   * the temporary storage (which needs to be large enough, though).
+   */
   GS_TIMSORT_ENSURE_TEMP_CAPACITY(self, r1.length);
   memcpy(tempBuffer, buf1, (sizeof(id) * r1.length));
 
@@ -642,130 +686,138 @@ descriptorOrComparator: (id)descriptorOrComparator
   buf1 = tempBuffer;
   *destination++ = *buf2++;
   num2--;
-  // The C implementation from Python uses gotos in order to avoid function
-  // calls for performance reasons. We do the same.
+  /* The C implementation from Python uses gotos in order to avoid function
+   * calls for performance reasons. We do the same.
+   */
   if (num2 == 0)
-  {
-    goto Success;
-  }
+    {
+      goto Success;
+    }
   if (num1 == 1)
-  {
-    goto CopyB;
-  }
-
+    {
+      goto CopyB;
+    }
 
   NS_DURING
-  {
-    for (;;)
     {
-      // Variables to track whether galloping is useful
-      NSUInteger winners1 = 0;
-      NSUInteger winners2 = 0;
+      for (;;)
+        {
+          // Variables to track whether galloping is useful
+          NSUInteger winners1 = 0;
+          NSUInteger winners2 = 0;
 
-      do
-      {
-	if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(*buf2, *buf1,
-	  descOrComp, ty, ctx))
-	{
-	  *destination++ = *buf2++;
-	  winners2++;
-	  winners1 = 0;
-	  num2--;
-	  if (num2 == 0)
-	  {
-	    goto Success;
-	  }
-	}
-	else
-	{
-	  *destination++ = *buf1++;
-	  winners1++;
-	  winners2 = 0;
-	  num1--;
-	  if (num1 == 1)
-	  {
-	    goto CopyB;
-	  }
-	}
-      } while ((winners1 | winners2) < localMinGallop);
+          do
+            {
+              if (NSOrderedAscending
+                == GSCompareUsingDescriptorOrComparator(*buf2, *buf1,
+                descOrComp, ty, ctx))
+                {
+                  *destination++ = *buf2++;
+                  winners2++;
+                  winners1 = 0;
+                  num2--;
+                  if (num2 == 0)
+                    {
+                      goto Success;
+                    }
+                }
+              else
+                {
+                  *destination++ = *buf1++;
+                  winners1++;
+                  winners2 = 0;
+                  num1--;
+                  if (num1 == 1)
+                    {
+                      goto CopyB;
+                    }
+                }
+            } while ((winners1 | winners2) < localMinGallop);
 
-      localMinGallop++;
-      do
-      {
-	// If we fall through here, one of the runs is very structured, so we assume
-	// that galloping will also be useful in the future.
-	localMinGallop -= localMinGallop > 1;
-	minGallop = localMinGallop;
-	k = gallopRight(*buf2, buf1, NSMakeRange(0,num1), 0, descOrComp, ty, ctx);
-	winners1 = k;
-	if (0 != k)
-	{
-	  memcpy(destination, buf1, k * sizeof(id));
-	  destination += k;
-	  buf1 += k;
-	  num1 -= k;
-	  if (1 == num1)
-	  {
-	    goto CopyB;
-	  }
-	  if (0 == num1)
-	  {
-	    goto Success;
-	  }
-	}
-	// Since our galloping run finishes here, the next element comes from r2
-	*destination++ = *buf2++;
-	num2--;
-	if (0 == num2)
-	{
-	  goto Success;
-	}
+          localMinGallop++;
+          do
+            {
+              /* If we fall through here, one of the runs is very structured,
+               * so we assume that galloping will also be useful in the future.
+               */
+              localMinGallop -= localMinGallop > 1;
+              minGallop = localMinGallop;
+              k = gallopRight(*buf2, buf1, NSMakeRange(0,num1), 0, descOrComp, ty, ctx);
+              winners1 = k;
+              if (0 != k)
+                {
+                  memcpy(destination, buf1, k * sizeof(id));
+                  destination += k;
+                  buf1 += k;
+                  num1 -= k;
+                  if (1 == num1)
+                    {
+                      goto CopyB;
+                    }
+                  if (0 == num1)
+                    {
+                      goto Success;
+                    }
+                }
+              /* Since our galloping run finishes here, the next element
+               * comes from r2
+               */
+              *destination++ = *buf2++;
+              num2--;
+              if (0 == num2)
+                {
+                  goto Success;
+                }
 
-	// Now we try to gallop into the other direction
-	k = gallopLeft(*buf1, buf2, NSMakeRange(0, num2), 0, descOrComp, ty, ctx);
-	winners2 = k;
-	if (0 != k)
-	{
-	  // buf2 is part of the destination, not the temporary storage, so we
-	  // need to memmove instead of memcpy to account for potential overlap.
-	  memmove(destination, buf2, k * sizeof(id));
-	  destination += k;
-	  buf2 += k;
-	  num2 -= k;
-	  if (0 == num2)
-	  {
-	    goto Success;
-	  }
+              // Now we try to gallop into the other direction
+              k = gallopLeft(*buf1, buf2, NSMakeRange(0, num2),
+                0, descOrComp, ty, ctx);
+              winners2 = k;
+              if (0 != k)
+                {
+                  /* buf2 is part of the destination, not the temporary
+                   * storage, so we need to memmove instead of memcpy to
+                   * account for potential overlap.
+                   */
+                  memmove(destination, buf2, k * sizeof(id));
+                  destination += k;
+                  buf2 += k;
+                  num2 -= k;
+                  if (0 == num2)
+                    {
+                      goto Success;
+                    }
+                }
+              /* Galloping run for r2 finished, next element comes from r1,
+               * and starts the next loop iteration
+               */
+              *destination++ = *buf1++;
+              num1--;
+              if (1 == num1)
+                {
+                  goto CopyB;
+                }
+            } while (winners1 >= GS_MIN_GALLOP || winners2 >= GS_MIN_GALLOP);
+          localMinGallop++;
+          minGallop = localMinGallop;
         }
-	// Galloping run for r2 finished, next element comes from r1, and starts
-	// the next loop iteration
-	*destination++ = *buf1++;
-	num1--;
-	if (1 == num1)
-	{
-	  goto CopyB;
-	}
-      } while (winners1 >= GS_MIN_GALLOP || winners2 >= GS_MIN_GALLOP);
-      localMinGallop++;
-      minGallop = localMinGallop;
     }
-  }
   NS_HANDLER
-  {
-    //In case of an exception, we need to copy back r1 into its original
-    //position
-    if (0 != num1)
     {
-      memcpy(destination, buf1, num1 * sizeof(id));
+      //In case of an exception, we need to copy back r1 into its original
+      //position
+      if (0 != num1)
+        {
+          memcpy(destination, buf1, num1 * sizeof(id));
+        }
+      [localException raise];
     }
-    [localException raise];
-  }
   NS_ENDHANDLER
   Success:
     if (0 != num1)
-    {
-      memcpy(destination, buf1, num1 * sizeof(id));
-    }
+      {
+        memcpy(destination, buf1, num1 * sizeof(id));
+      }
     return;
   CopyB:
     memmove(destination, buf2, num2 * sizeof(id));
@@ -773,7 +825,7 @@ descriptorOrComparator: (id)descriptorOrComparator
     return;
 }
 
-- (void)mergeHighRun: (NSRange)r1 withRun: (NSRange)r2
+- (void) mergeHighRun: (NSRange)r1 withRun: (NSRange)r2
 {
   NSUInteger num1 = r1.length;
   NSUInteger num2 = r2.length;
@@ -787,7 +839,7 @@ descriptorOrComparator: (id)descriptorOrComparator
   NSUInteger localMinGallop = minGallop;
   id descOrComp = sortDescriptorOrComparator;
   GSComparisonType ty = comparisonType;
-  void* ctx = functionContext;
+  void *ctx = functionContext;
 
   // We use the first run as our destination, so we copy out its contents into
   // the temporary storage (which needs to be large enough, though).
@@ -802,128 +854,128 @@ descriptorOrComparator: (id)descriptorOrComparator
   // The C implementation from Python uses gotos in order to avoid function
   // calls for performance reasons. We do the same.
   if (num1 == 0)
-  {
-    goto Success;
-  }
+    {
+      goto Success;
+    }
   if (num2 == 1)
-  {
-    goto CopyA;
-  }
+    {
+      goto CopyA;
+    }
 
 
   NS_DURING
-  {
-    for (;;)
     {
-      // Variables to track whether galloping is useful
-      NSUInteger winners1 = 0;
-      NSUInteger winners2 = 0;
+      for (;;)
+        {
+          // Variables to track whether galloping is useful
+          NSUInteger winners1 = 0;
+          NSUInteger winners2 = 0;
 
-      do
-      {
-	if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(*buf2, *buf1,
-	  descOrComp, ty, ctx))
-	{
-	  *destination-- = *buf1--;
-	  winners1++;
-	  winners2 = 0;
-	  num1--;
-	  if (num1 == 0)
-	  {
-	    goto Success;
-	  }
-	}
-	else
-	{
-	  *destination-- = *buf2--;
-	  winners2++;
-	  winners1 = 0;
-	  num2--;
-	  if (num2 == 1)
-	  {
-	    goto CopyA;
-	  }
-	}
-      } while ((winners1 | winners2) < localMinGallop);
+          do
+            {
+              if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(*buf2, *buf1,
+                descOrComp, ty, ctx))
+                {
+                  *destination-- = *buf1--;
+                  winners1++;
+                  winners2 = 0;
+                  num1--;
+                  if (num1 == 0)
+                    {
+                      goto Success;
+                    }
+                }
+              else
+                {
+                  *destination-- = *buf2--;
+                  winners2++;
+                  winners1 = 0;
+                  num2--;
+                  if (num2 == 1)
+                    {
+                      goto CopyA;
+                    }
+                }
+            } while ((winners1 | winners2) < localMinGallop);
 
-      localMinGallop++;
-      do
-      {
-        // If we fall through here, one of the runs is very structured, so we assume
-        // that galloping will also be useful in the future.
-	localMinGallop -= localMinGallop > 1;
-	minGallop = localMinGallop;
-	k = gallopRight(*buf2, base1, NSMakeRange(0, num1), num1 - 1, descOrComp, ty, ctx);
-	k = num1 - k;
-	winners1 = k;
-	if (0 != k)
-	{
-	  destination -= k;
-	  buf1 -= k;
-	  memmove(destination+1, buf1+1, k * sizeof(id));
-	  num1 -= k;
-	  if (0 == num1)
-	  {
-	    goto Success;
-	  }
-	}
-	// Since our galloping run finishes here, the next element comes from r2
-	*destination-- = *buf2--;
-	num2--;
-	if (1 == num2)
-	{
-	  goto CopyA;
-	}
+          localMinGallop++;
+          do
+            {
+              // If we fall through here, one of the runs is very structured, so we assume
+              // that galloping will also be useful in the future.
+              localMinGallop -= localMinGallop > 1;
+              minGallop = localMinGallop;
+              k = gallopRight(*buf2, base1, NSMakeRange(0, num1), num1 - 1, descOrComp, ty, ctx);
+              k = num1 - k;
+              winners1 = k;
+              if (0 != k)
+                {
+                  destination -= k;
+                  buf1 -= k;
+                  memmove(destination+1, buf1+1, k * sizeof(id));
+                  num1 -= k;
+                  if (0 == num1)
+                    {
+                      goto Success;
+                    }
+                }
+              // Since our galloping run finishes here, the next element comes from r2
+              *destination-- = *buf2--;
+              num2--;
+              if (1 == num2)
+                {
+                  goto CopyA;
+                }
 
-	// Now we try to gallop into the other direction
-	k = gallopLeft(*buf1, base2, NSMakeRange(0, num2), num2-1, descOrComp, ty, ctx);
-	k = num2 - k;
-	winners2 = k;
-	if (0 != k)
-	{
-	  destination -= k;
-	  buf2 -= k;
-	  memcpy(destination + 1, buf2 + 1, k * sizeof(id));
-	  num2 -= k;
-	  if (1 == num2)
-	  {
-	    goto CopyA;
-	  }
-	  if (0 == num2)
-	  {
-	    goto Success;
-	  }
+              // Now we try to gallop into the other direction
+              k = gallopLeft(*buf1, base2, NSMakeRange(0, num2), num2-1, descOrComp, ty, ctx);
+              k = num2 - k;
+              winners2 = k;
+              if (0 != k)
+                {
+                  destination -= k;
+                  buf2 -= k;
+                  memcpy(destination + 1, buf2 + 1, k * sizeof(id));
+                  num2 -= k;
+                  if (1 == num2)
+                    {
+                      goto CopyA;
+                    }
+                  if (0 == num2)
+                    {
+                      goto Success;
+                    }
+                }
+              // Galloping run for r2 finished, next element comes from r1, and starts
+              // the next loop iteration
+              *destination-- = *buf1--;
+              num1--;
+              if (0 == num1)
+                {
+                  goto Success;
+                }
+            } while (winners1 >= GS_MIN_GALLOP || winners2 >= GS_MIN_GALLOP);
+          localMinGallop++;
+          minGallop = localMinGallop;
         }
-	// Galloping run for r2 finished, next element comes from r1, and starts
-	// the next loop iteration
-	*destination-- = *buf1--;
-	num1--;
-	if (0 == num1)
-	{
-	  goto Success;
-	}
-      } while (winners1 >= GS_MIN_GALLOP || winners2 >= GS_MIN_GALLOP);
-      localMinGallop++;
-      minGallop = localMinGallop;
     }
-  }
   NS_HANDLER
-  {
-    //In case of an exception, we need to copy back r1 into its original
-    //position
-    if (0 != num2)
     {
-      memcpy(destination - (num2-1), base2, num2 * sizeof(id));
+      //In case of an exception, we need to copy back r1 into its original
+      //position
+      if (0 != num2)
+        {
+          memcpy(destination - (num2-1), base2, num2 * sizeof(id));
+        }
+      [localException raise];
     }
-    [localException raise];
-  }
   NS_ENDHANDLER
 
   Success:
     if (0 != num1)
-    {
-      memcpy(destination - (num2-1), base2, num2 * sizeof(id));
-    }
+      {
+        memcpy(destination - (num2-1), base2, num2 * sizeof(id));
+      }
     return;
   CopyA:
     destination -= num1;
@@ -934,7 +986,7 @@ descriptorOrComparator: (id)descriptorOrComparator
 }
 
 
-- (void)mergeAtIndex: (NSUInteger)i
+- (void) mergeAtIndex: (NSUInteger)i
 {
   NSRange r1;
   NSRange r2;
@@ -952,9 +1004,9 @@ descriptorOrComparator: (id)descriptorOrComparator
   // and the stack shrinks.
   runStack[i] = NSUnionRange(r1, r2);
   if (i == (stackSize - 3))
-  {
-    runStack[i+1] = runStack[i+2];
-  }
+    {
+      runStack[i+1] = runStack[i+2];
+    }
   stackSize--;
 
   // Find an insertion point for the first element in r2 into r1
@@ -963,10 +1015,10 @@ descriptorOrComparator: (id)descriptorOrComparator
   r1.location += insert;
   r1.length -= insert;
   if (r1.length == 0)
-  {
-    // The entire run r2 lies after r1, just return.
-    return;
-  }
+    {
+      // The entire run r2 lies after r1, just return.
+      return;
+    }
 
   // Find an insertion point for the last element of r1 into r2. Subtracting the
   // location from that point gives us the length of the subrange we need to
@@ -976,9 +1028,9 @@ descriptorOrComparator: (id)descriptorOrComparator
     sortDescriptorOrComparator, comparisonType, functionContext)
      - r2.location);
   if (r2.length == 0)
-  {
-    return;
-  }
+    {
+      return;
+    }
 
   (r1.length <= r2.length) ? GS_TIMSORT_MERGE_LOW(self, r1, r2) : GS_TIMSORT_MERGE_HIGH(self, r1, r2);
 }
@@ -987,27 +1039,26 @@ descriptorOrComparator: (id)descriptorOrComparator
  * Force a final merge of the runs on the stack, so that only one run, covering
  * the whole array, remains.
  */
-- (void)forceMerge
+- (void) forceMerge
 {
   while (stackSize > 1)
-  {
-    NSInteger n = stackSize - 2;
-    if ((n > 0) && (runStack[n-1].length < runStack[n+1].length))
     {
-      n--;
+      NSInteger n = stackSize - 2;
+      if ((n > 0) && (runStack[n-1].length < runStack[n+1].length))
+        {
+          n--;
+        }
+      GS_TIMSORT_MERGE_AT_INDEX(self, n);
     }
-    GS_TIMSORT_MERGE_AT_INDEX(self, n);
-  }
 }
 
 
 
-- (void)dealloc
+- (void) dealloc
 {
   free(runStack);
   free(tempBuffer);
   [super dealloc];
-
 }
 
 
@@ -1015,10 +1066,10 @@ descriptorOrComparator: (id)descriptorOrComparator
 #ifndef GS_DISABLE_TIMSORT
 static void
 _GSTimSort(id *objects,
-           NSRange sortRange,
-           id sortDescriptorOrComparator,
-           GSComparisonType comparisonType,
-           void* context)
+  NSRange sortRange,
+  id sortDescriptorOrComparator,
+  GSComparisonType comparisonType,
+  void *context)
 {
   NSUInteger sortStart = sortRange.location;
   NSUInteger sortEnd = NSMaxRange(sortRange);
@@ -1026,16 +1077,16 @@ _GSTimSort(id *objects,
   NSUInteger minimalRunLen = 0;
   GSTimSortDescriptor *desc = nil;
   if (sortLen < 2)
-  {
-    // Don't sort anything that doesn't contain at least two elements.
-    return;
-  }
+    {
+      // Don't sort anything that doesn't contain at least two elements.
+      return;
+    }
 
   if (sortLen < GS_MIN_MERGE)
-  {
-    miniTimSort(objects, sortRange, sortDescriptorOrComparator, comparisonType, context);
-    return;
-  }
+    {
+      miniTimSort(objects, sortRange, sortDescriptorOrComparator, comparisonType, context);
+      return;
+    }
 
   // Now we need a timsort descriptor for state-tracking.
   desc = [[GSTimSortDescriptor alloc] initWithObjects: objects
@@ -1045,44 +1096,44 @@ _GSTimSort(id *objects,
                                       functionContext: context];
 
   NS_DURING
-  {
-    minimalRunLen = minimumRunLength(sortLen);
-    do
     {
-      NSUInteger runLen = countAscendizedRun(objects,
-	NSMakeRange(sortStart, sortLen),
-	sortDescriptorOrComparator,
-	comparisonType, context);
+      minimalRunLen = minimumRunLength(sortLen);
+      do
+        {
+          NSUInteger runLen = countAscendizedRun(objects,
+            NSMakeRange(sortStart, sortLen),
+            sortDescriptorOrComparator,
+            comparisonType, context);
 
-      // If the run is too short, coerce it up to minimalRunLen or the end of the
-      // sortRange.
-      if (runLen < MAX(sortLen, minimalRunLen))
-      {
-	NSUInteger coercionLen = sortLen <= minimalRunLen ? sortLen : minimalRunLen;
-	internalBinarySort(objects,
-	  NSMakeRange(sortStart, coercionLen),
-	  sortStart + runLen,
-	  sortDescriptorOrComparator,
-	  comparisonType,
-	  context);
-	runLen = coercionLen;
-      }
+          // If the run is too short, coerce it up to minimalRunLen or the end of the
+          // sortRange.
+          if (runLen < MAX(sortLen, minimalRunLen))
+            {
+              NSUInteger coercionLen = sortLen <= minimalRunLen ? sortLen : minimalRunLen;
+              internalBinarySort(objects,
+                NSMakeRange(sortStart, coercionLen),
+                sortStart + runLen,
+                sortDescriptorOrComparator,
+                comparisonType,
+                context);
+              runLen = coercionLen;
+            }
 
-      GS_TIMSORT_PUSH_RUN(desc, NSMakeRange(sortStart, runLen));
-      GS_TIMSORT_SUGGEST_MERGE(desc);
-      sortStart += runLen;
-      sortLen -= runLen;
-    } while (sortLen != 0);
+          GS_TIMSORT_PUSH_RUN(desc, NSMakeRange(sortStart, runLen));
+          GS_TIMSORT_SUGGEST_MERGE(desc);
+          sortStart += runLen;
+          sortLen -= runLen;
+        } while (sortLen != 0);
 
-    NSCAssert(sortStart == sortEnd, @"Sorting did not complete");
-    GS_TIMSORT_FORCE_MERGE(desc);
+      NSCAssert(sortStart == sortEnd, @"Sorting did not complete");
+      GS_TIMSORT_FORCE_MERGE(desc);
 
-  }
+    }
   NS_HANDLER
-  {
-    [desc release];
-    [localException raise];
-  }
+    {
+      [desc release];
+      [localException raise];
+    }
   NS_ENDHANDLER
   [desc release];
 }

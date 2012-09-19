@@ -48,10 +48,10 @@ SwapObjects(id * o1, id * o2)
 #ifndef GS_DISABLE_QUICKSORT
 static void
 _GSQuickSort(id *objects,
-             NSRange sortRange,
-             id comparisonEntity,
-             GSComparisonType type,
-             void *context)
+  NSRange sortRange,
+  id comparisonEntity,
+  GSComparisonType type,
+  void *context)
 {
   if (sortRange.length > 1)
     {
@@ -84,7 +84,7 @@ _GSQuickSort(id *objects,
 @end
 
 @implementation GSQuickSortPlaceHolder
-+ (void)load
++ (void) load
 {
   _GSSortUnstable = _GSQuickSort;
 }

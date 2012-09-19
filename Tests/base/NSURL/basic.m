@@ -302,6 +302,8 @@ GSPathHandling("right");
   PASS_EQUAL([url host], nil, "host of data URL is nil");
   PASS_EQUAL([url resourceSpecifier], @",a23", "resourceSpecifier of data URL");
   PASS_EQUAL([url absoluteString], @"data:,a23", "can get string of data URL");
+  url = [NSURL URLWithString: @"data:,%2A"];
+  PASS_EQUAL([url resourceSpecifier], @",%2A", "resourceSpecifier escape OK");
 
   [arp release]; arp = nil;
   return 0;

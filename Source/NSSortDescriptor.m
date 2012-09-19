@@ -218,65 +218,73 @@ void
 
 // Sorting functions that select the adequate algorithms
 void
-GSSortUnstable(id* buffer, NSRange range, id descriptorOrComparator, GSComparisonType type, void* context)
+GSSortUnstable(id* buffer, NSRange range, id descriptorOrComparator,
+  GSComparisonType type, void* context)
 {
   if (NULL != _GSSortUnstable)
-  {
-    _GSSortUnstable(buffer, range, descriptorOrComparator, type, context);
-  }
+    {
+      _GSSortUnstable(buffer, range, descriptorOrComparator, type, context);
+    }
   else if (NULL != _GSSortStable)
-  {
-    _GSSortStable(buffer, range, descriptorOrComparator, type, context);
-  }
+    {
+      _GSSortStable(buffer, range, descriptorOrComparator, type, context);
+    }
   else
-  {
-    [NSException raise: @"NSInternalInconsistencyException"
-                format: @"The GNUstep-base library was compiled without sorting support."];
-  }
+    {
+      [NSException raise: @"NSInternalInconsistencyException" format:
+        @"The GNUstep-base library was compiled without sorting support."];
+    }
 }
 
 void
-GSSortStable(id* buffer, NSRange range, id descriptorOrComparator, GSComparisonType type, void* context)
+GSSortStable(id* buffer, NSRange range, id descriptorOrComparator,
+  GSComparisonType type, void* context)
 {
   if (NULL != _GSSortStable)
-  {
-    _GSSortStable(buffer, range, descriptorOrComparator, type, context);
-  }
+    {
+      _GSSortStable(buffer, range, descriptorOrComparator, type, context);
+    }
   else
-  {
-    [NSException raise: @"NSInternalInconsistencyException"
-                format: @"The GNUstep-base library was compiled without a stable sorting algorithm."];
-  }
+    {
+      [NSException raise: @"NSInternalInconsistencyException" format:
+        @"The GNUstep-base library was compiled without a"
+        @" stable sorting algorithm."];
+    }
 }
 
 void
-GSSortStableConcurrent(id* buffer, NSRange range, id descriptorOrComparator, GSComparisonType type, void* context)
+GSSortStableConcurrent(id* buffer, NSRange range, id descriptorOrComparator,
+  GSComparisonType type, void* context)
 {
   if (NULL != _GSSortStableConcurrent)
-  {
-    _GSSortStableConcurrent(buffer, range, descriptorOrComparator, type, context);
-  }
+    {
+      _GSSortStableConcurrent(buffer, range, descriptorOrComparator,
+        type, context);
+    }
   else
-  {
-    GSSortStable(buffer, range, descriptorOrComparator, type, context);
-  }
+    {
+      GSSortStable(buffer, range, descriptorOrComparator, type, context);
+    }
 }
 
 void
-GSSortUnstableConcurrent(id* buffer, NSRange range, id descriptorOrComparator, GSComparisonType type, void* context)
+GSSortUnstableConcurrent(id* buffer, NSRange range, id descriptorOrComparator,
+  GSComparisonType type, void* context)
 {
   if (NULL != _GSSortUnstableConcurrent)
-  {
-    _GSSortUnstableConcurrent(buffer, range, descriptorOrComparator, type, context);
-  }
+    {
+      _GSSortUnstableConcurrent(buffer, range, descriptorOrComparator,
+        type, context);
+    }
   else if (NULL != _GSSortStableConcurrent)
-  {
-    _GSSortStableConcurrent(buffer, range, descriptorOrComparator, type, context);
-  }
+    {
+      _GSSortStableConcurrent(buffer, range, descriptorOrComparator,
+        type, context);
+    }
   else
-  {
-    GSSortUnstable(buffer, range, descriptorOrComparator, type, context);
-  }
+    {
+      GSSortUnstable(buffer, range, descriptorOrComparator, type, context);
+    }
 }
 
 
@@ -400,7 +408,5 @@ SortRange(id *objects, NSRange range, id *descriptors,
       GS_ENDIDBUF();
     }
 }
-
-
 
 @end
