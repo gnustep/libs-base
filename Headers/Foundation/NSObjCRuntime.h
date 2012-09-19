@@ -42,6 +42,7 @@
 
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<GNUstepBase/GSConfig.h>
+#import	<GNUstepBase/GSBlocks.h>
 
 /* These typedefs must be in place before GSObjCRuntime.h is imported.
  */
@@ -99,6 +100,21 @@ enum
  */
 typedef NSUInteger NSEnumerationOptions;
 
+enum
+{
+    NSSortConcurrent = (1UL << 0), /** Specifies that the sort
+     * is concurrency-safe.  Note that this does not mean that it will be
+     * carried out in a concurrent manner, only that it can be.
+     */
+    NSSortStable = (1UL << 4), /** Specifies that the sort should keep
+     * equal objects in the same order in the collection.
+     */
+};
+
+/** Bitfield used to specify options to control the sorting of collections.
+ */
+typedef NSUInteger NSSortOptions;
+
 #import <GNUstepBase/GSObjCRuntime.h>
 
 #if OS_API_VERSION(100500,GS_API_LATEST)
@@ -153,6 +169,7 @@ NSComparisonResult;
 
 enum {NSNotFound = NSIntegerMax};
 
+DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 
 #ifdef __clang__
 #define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))

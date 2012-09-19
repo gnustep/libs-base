@@ -1,3 +1,45 @@
+2012-09-19  Niels Grewe <niels.grewe@halbordnung.de>
+	* Source/GSSorting.h
+	* Source/NSSortDescriptor.m:
+	Add new generic interface for sorting.
+	* Source/GSTimSort.m: Implement timsort sorting algorithm.
+	* Source/GSQuickSort.m
+	* Source/GSShellSort.m:
+	Factor out previously used sorting algorithms. 
+	* Source/GSArray.m
+	* Source/NSArray.m:
+	Modify to use the new sorting interface for sorting using
+	functions, NSSortDescriptor, and NSComparator. Implement
+	NSComparator based sorting and insertion index searching
+	methods.
+	* Source/GNUmakefile: Connect new files to the build.
+	* configure.ac: Add configure switch to allow selection of sort
+	algorithm.
+	* Headers/GNUstepBase/GSConfig.h.in: Add defines for sort
+	algorithm selection.
+	* configure: Regenerate
+	* Headers/Foundation/NSObjCRuntime.h
+	* Headers/Foundation/NSArray.h:
+	Declarations for new NSComparator based sorting methods.
+	* Tests/base/NSArray/general.m
+	* Tests/base/NSArray/blocks.m:
+	Add tests for new functionality.
+	* Tests/base/NSArray/random.plist
+	* Tests/base/NSArray/sorted.plist:
+	Add sorting example data that is large enough to test more
+	sophisticated sorting algorithms. 
+
+	Completely overhaul how we do sorting in -base. GSSorting.h now
+	defines an interface that can be used for all sorting tasks in
+	the library. The actual sort algorithms to use are now plugable.
+	Timsort is the new default sorting algorithm, the existing
+	algorithms, shellsort and quicksort can still be selected using
+	a configure switch, but they do not override timsort completely
+	because they are unstable.
+	Also implement the new NSComparator (blocks) based sorting and
+	insertion index searching methods for NSMutableArray and
+	NSArray.
+
 2012-09-17 12:03-EDT Gregory John Casamento <greg.casamento@gmail.com>
 	Merged from the testplant branch.
 

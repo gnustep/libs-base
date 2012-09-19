@@ -233,6 +233,27 @@ typedef	struct {
 #define GS_USE_LIBDISPATCH @HAVE_LIBDISPATCH@
 #define GS_HAVE_OBJC_ROOT_CLASS_ATTR @GS_HAVE_OBJC_ROOT_CLASS_ATTR@
 
+#define GS_USE_TIMSORT @GS_USE_TIMSORT@
+#define GS_USE_QUICKSORT @GS_USE_QUICKSORT@
+#define GS_USE_SHELLSORT @GS_USE_SHELLSORT@
+
+#if GS_USE_TIMSORT
+#define GS_DISABLE_QUICKSORT
+#define GS_DISABLE_SHELLSORT
+#endif
+
+/*
+ * QuickSort and ShellSort cannot override TimSort because that would leave us
+ * without a stable sorting algorithm.
+ */
+#if GS_USE_QUICKSORT
+#define GS_DISABLE_SHELLSORT
+#endif
+
+#if GS_USE_SHELLSORT
+#define GS_DISABLE_QUICKSORT
+#endif
+
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
 #  if	!defined(__WIN32__)
 #    define __WIN32__

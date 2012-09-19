@@ -4,7 +4,7 @@
 #import <Foundation/NSIndexSet.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSEnumerator.h>
-
+#import <Foundation/NSValue.h>
 
 static NSUInteger fooCount = 0;
 static NSUInteger lastIndex = NSNotFound;
@@ -50,6 +50,14 @@ int main()
     && (NO == [set containsIndex: 1])),
     "Can select object indices based on block predicate.");
   [arp release]; arp = nil;
+  
+  array = [NSArray arrayWithObjects:[NSNumber numberWithInteger:2], [NSNumber numberWithInteger:5], [NSNumber numberWithInteger:3], [NSNumber numberWithInteger:2], [NSNumber numberWithInteger:10], nil];
+  NSArray *sortedArray = [NSArray arrayWithObjects:[NSNumber numberWithInteger:2], [NSNumber numberWithInteger:2], [NSNumber numberWithInteger:3], [NSNumber numberWithInteger:5], [NSNumber numberWithInteger:10], nil];
+  PASS([sortedArray isEqualToArray:[array sortedArrayUsingComparator:^ NSComparisonResult (NSNumber *a, NSNumber *b) { return [a compare:b]; }]], "Can sort arrays with NSComparators.");
+  PASS(0 == [sortedArray indexOfObject:[NSNumber numberWithInteger:2] inSortedRange:NSMakeRange(0, [sortedArray count]) options:NSBinarySearchingFirstEqual usingComparator:^ NSComparisonResult (NSNumber *a, NSNumber *b) { return [a compare:b]; }], "Can find index of first object in sorted array");
+  PASS(1 == [sortedArray indexOfObject:[NSNumber numberWithInteger:2] inSortedRange:NSMakeRange(0, [sortedArray count]) options:NSBinarySearchingLastEqual usingComparator:^ NSComparisonResult (NSNumber *a, NSNumber *b) { return [a compare:b]; }], "Can find index of first object in sorted array");
+  PASS(3 == [sortedArray indexOfObject:[NSNumber numberWithInteger:4] inSortedRange:NSMakeRange(0, [sortedArray count]) options:NSBinarySearchingInsertionIndex usingComparator:^ NSComparisonResult (NSNumber *a, NSNumber *b) { return [a compare:b]; }], "Can find insertion index in sorted array");
+  PASS(NSNotFound == [sortedArray indexOfObject:[NSNumber numberWithInteger:4] inSortedRange:NSMakeRange(0, [sortedArray count]) options:0 usingComparator:^ NSComparisonResult (NSNumber *a, NSNumber *b) { return [a compare:b]; }], "Can not find non existant object in sorted array");
 # else
   SKIP("No Blocks support in the compiler.")
 # endif

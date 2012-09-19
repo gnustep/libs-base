@@ -34,6 +34,7 @@
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
+#import "GSSorting.h"
 
 @implementation NSSortDescriptor
 
@@ -199,52 +200,86 @@
 
 @end
 
-/// Swaps the two provided objects.
-static inline void
-SwapObjects(id * o1, id * o2)
-{
-  id temp;
 
-  temp = *o1;
-  *o1 = *o2;
-  *o2 = temp;
+/* Symbols for the sorting functions, the actual algorithms fill these. */
+void
+(*_GSSortUnstable)(id* buffer, NSRange range,
+  id comparisonEntity, GSComparisonType cmprType, void *context) = NULL;
+void
+(*_GSSortStable)(id* buffer, NSRange range,
+  id comparisonEntity, GSComparisonType cmprType, void *context) = NULL;
+void
+(*_GSSortUnstableConcurrent)(id* buffer, NSRange range,
+  id comparisonEntity, GSComparisonType cmprType, void *context) = NULL;
+void
+(*_GSSortStableConcurrent)(id* buffer, NSRange range,
+  id comparisonEntity, GSComparisonType cmprType, void *context) = NULL;
+
+
+// Sorting functions that select the adequate algorithms
+void
+GSSortUnstable(id* buffer, NSRange range, id descriptorOrComparator, GSComparisonType type, void* context)
+{
+  if (NULL != _GSSortUnstable)
+  {
+    _GSSortUnstable(buffer, range, descriptorOrComparator, type, context);
+  }
+  else if (NULL != _GSSortStable)
+  {
+    _GSSortStable(buffer, range, descriptorOrComparator, type, context);
+  }
+  else
+  {
+    [NSException raise: @"NSInternalInconsistencyException"
+                format: @"The GNUstep-base library was compiled without sorting support."];
+  }
 }
 
-/**
- * Sorts the provided object array's sortRange according to sortDescriptor.
- */
-// Quicksort algorithm copied from Wikipedia :-).
-static void
-SortObjectsWithDescriptor(id *objects,
-                          NSRange sortRange,
-                          NSSortDescriptor *sortDescriptor)
+void
+GSSortStable(id* buffer, NSRange range, id descriptorOrComparator, GSComparisonType type, void* context)
 {
-  if (sortRange.length > 1)
-    {
-      id pivot = objects[sortRange.location];
-      unsigned int left = sortRange.location + 1;
-      unsigned int right = NSMaxRange(sortRange);
-
-      while (left < right)
-        {
-          if ([sortDescriptor compareObject: objects[left] toObject: pivot] ==
-            NSOrderedDescending)
-            {
-              SwapObjects(&objects[left], &objects[--right]);
-            }
-          else
-            {
-              left++;
-            }
-        }
-
-      SwapObjects(&objects[--left], &objects[sortRange.location]);
-      SortObjectsWithDescriptor(objects, NSMakeRange(sortRange.location, left
-        - sortRange.location), sortDescriptor);
-      SortObjectsWithDescriptor(objects, NSMakeRange(right,
-        NSMaxRange(sortRange) - right), sortDescriptor);
-    }
+  if (NULL != _GSSortStable)
+  {
+    _GSSortStable(buffer, range, descriptorOrComparator, type, context);
+  }
+  else
+  {
+    [NSException raise: @"NSInternalInconsistencyException"
+                format: @"The GNUstep-base library was compiled without a stable sorting algorithm."];
+  }
 }
+
+void
+GSSortStableConcurrent(id* buffer, NSRange range, id descriptorOrComparator, GSComparisonType type, void* context)
+{
+  if (NULL != _GSSortStableConcurrent)
+  {
+    _GSSortStableConcurrent(buffer, range, descriptorOrComparator, type, context);
+  }
+  else
+  {
+    GSSortStable(buffer, range, descriptorOrComparator, type, context);
+  }
+}
+
+void
+GSSortUnstableConcurrent(id* buffer, NSRange range, id descriptorOrComparator, GSComparisonType type, void* context)
+{
+  if (NULL != _GSSortUnstableConcurrent)
+  {
+    _GSSortUnstableConcurrent(buffer, range, descriptorOrComparator, type, context);
+  }
+  else if (NULL != _GSSortStableConcurrent)
+  {
+    _GSSortStableConcurrent(buffer, range, descriptorOrComparator, type, context);
+  }
+  else
+  {
+    GSSortUnstable(buffer, range, descriptorOrComparator, type, context);
+  }
+}
+
+
 
 @implementation NSArray (NSSortDescriptorSorting)
 
@@ -269,7 +304,7 @@ SortRange(id *objects, NSRange range, id *descriptors,
 {
   NSSortDescriptor	*sd = (NSSortDescriptor*)descriptors[0];
 
-  SortObjectsWithDescriptor(objects, range, sd);
+  GSSortUnstable(objects, range, sd, GSComparisonTypeSortDescriptor, NULL);
   if (numDescriptors > 1)
     {
       unsigned	start = range.location;
@@ -365,5 +400,7 @@ SortRange(id *objects, NSRange range, id *descriptors,
       GS_ENDIDBUF();
     }
 }
+
+
 
 @end

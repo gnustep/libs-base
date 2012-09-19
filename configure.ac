@@ -3266,6 +3266,31 @@ fi
 
 AC_SUBST(USE_GMP)
 
+
+#--------------------------------------------------------------------
+# Check which sorting algorithm to use.
+#--------------------------------------------------------------------
+AC_ARG_WITH(sort-algorithm,
+  [  --with-sort-algorithm=ALG  force use of a specific sorting algorithm. 
+				Possible values are timsort, quicksort, and shellsort.
+				Defaults to timsort. Timsort cannot be completely
+				disabled because it is required for stable sorting.],
+  sort_algorithm="$withval", sort_algorithm="timsort")
+GS_USE_TIMSORT=1
+GS_USE_QUICKSORT=0
+GS_USE_SHELLSORT=0
+if test "$sort_algorithm" = "quicksort"; then
+  use_quicksort=1
+else
+  if test "$srot_algorithm" = "shellsort"; then
+    use_shellsort=1
+  fi
+fi
+
+AC_SUBST(GS_USE_TIMSORT)
+AC_SUBST(GS_USE_QUICKSORT)
+AC_SUBST(GS_USE_SHELLSORT)
+
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
 #--------------------------------------------------------------------

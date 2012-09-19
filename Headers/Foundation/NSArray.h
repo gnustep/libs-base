@@ -212,6 +212,47 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 - (NSUInteger) indexOfObjectAtIndexes: (NSIndexSet*)indexSet
 			      options: (NSEnumerationOptions)opts
 			  passingTest: (GSPredicateBlock)predicate;
+
+/**
+ * Returns a sorted array using the block to determine the order of objects.
+ */
+- (NSArray *)sortedArrayUsingComparator:(NSComparator)cmptr;
+
+/**
+ * Returns a sorted array using the block to determine the order of objects.
+ *
+ * The opts argument is a bitfield.  Setting the NSSortConcurrent flag
+ * specifies that it is thread-safe.  The NSSortStable bit specifies that
+ * it should keep equal objects in the same order.
+ */
+- (NSArray *)sortedArrayWithOptions:(NSSortOptions)opts usingComparator:(NSComparator)cmptr;
+
+enum
+{
+  NSBinarySearchingFirstEqual = (1UL << 8), /** Specifies that the binary
+   * search should find the first object equal in the array.
+   */
+  NSBinarySearchingLastEqual = (1UL << 9), /** Specifies that the binary
+   * search should find the last object equal in the array.
+   */
+  NSBinarySearchingInsertionIndex = (1UL << 10), /** Specifies that the binary
+   * search should find the index at which an equal object should be inserted
+   * in order to keep the array sorted
+   */
+};
+
+typedef NSUInteger NSBinarySearchingOptions;
+
+/**
+ * Performs a binary search of the array within the specified range for the
+ * index of an object equal to obj according to cmp.
+ * If NSBinarySearchingInsertionIndex is specified, searches for the index
+ * at which such an object should be inserted.
+ */
+- (NSUInteger)indexOfObject:(id)obj
+              inSortedRange:(NSRange)r
+                    options:(NSBinarySearchingOptions)opts
+            usingComparator:(NSComparator)cmp;
 #endif
 /**
  * Accessor for subscripting.  This is called by the compiler when you write
@@ -266,6 +307,19 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 		   context: (void*)context;
 - (void) sortUsingSelector: (SEL)comparator;
 
+
+#if OS_API_VERSION(100600, GS_API_LATEST)
+/**
+ * Sorts the array using the specified comparator block.
+ */
+- (void) sortUsingComparator: (NSComparator)comparator;
+
+/**
+ * Sorts the array using the specified comparator block and options. 
+ */
+- (void) sortWithOptions: (NSSortOptions)options
+         usingComparator: (NSComparator)comparator;
+#endif
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) setValue: (id)value forKey: (NSString*)key;
 #endif

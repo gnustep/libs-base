@@ -744,6 +744,9 @@ ICU_LIBS
 HAVE_ICU
 HAVE_LIBDISPATCH
 USE_GMP
+GS_USE_TIMSORT
+GS_USE_QUICKSORT
+GS_USE_SHELLSORT
 INCLUDE_FLAGS
 LDIR_FLAGS
 WARN_FLAGS
@@ -1468,6 +1471,10 @@ Optional Packages:
 				if not using icu-config)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
+  --with-sort-algorithm=ALG  force use of a specific sorting algorithm.
+				Possible values are timsort, quicksort, and shellsort.
+				Defaults to timsort. Timsort cannot be completely
+				disabled because it is required for stable sorting.
   --with-gdomap-port=PORT  alternative port for gdomap
   --with-openssl-include=PATH  include path for openssl headers
   --with-openssl-library=PATH  library path for openssl libraries
@@ -29482,6 +29489,33 @@ fi
 
 
 
+
+#--------------------------------------------------------------------
+# Check which sorting algorithm to use.
+#--------------------------------------------------------------------
+
+# Check whether --with-sort-algorithm was given.
+if test "${with_sort_algorithm+set}" = set; then
+  withval=$with_sort_algorithm; sort_algorithm="$withval"
+else
+  sort_algorithm="timsort"
+fi
+
+GS_USE_TIMSORT=1
+GS_USE_QUICKSORT=0
+GS_USE_SHELLSORT=0
+if test "$sort_algorithm" = "quicksort"; then
+  use_quicksort=1
+else
+  if test "$srot_algorithm" = "shellsort"; then
+    use_shellsort=1
+  fi
+fi
+
+
+
+
+
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
 #--------------------------------------------------------------------
@@ -30533,6 +30567,9 @@ ICU_LIBS!$ICU_LIBS$ac_delim
 HAVE_ICU!$HAVE_ICU$ac_delim
 HAVE_LIBDISPATCH!$HAVE_LIBDISPATCH$ac_delim
 USE_GMP!$USE_GMP$ac_delim
+GS_USE_TIMSORT!$GS_USE_TIMSORT$ac_delim
+GS_USE_QUICKSORT!$GS_USE_QUICKSORT$ac_delim
+GS_USE_SHELLSORT!$GS_USE_SHELLSORT$ac_delim
 INCLUDE_FLAGS!$INCLUDE_FLAGS$ac_delim
 LDIR_FLAGS!$LDIR_FLAGS$ac_delim
 WARN_FLAGS!$WARN_FLAGS$ac_delim
@@ -30548,7 +30585,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 62; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 65; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
