@@ -686,16 +686,20 @@ descriptorOrComparator: (id)descriptorOrComparator
   buf1 = tempBuffer;
   *destination++ = *buf2++;
   num2--;
-  /* The C implementation from Python uses gotos in order to avoid function
-   * calls for performance reasons. We do the same.
-   */
+
   if (num2 == 0)
     {
-      goto Success;
+      if (0 != num1)
+        {
+          memcpy(destination, buf1, num1 * sizeof(id));
+        }
+      return;
     }
   if (num1 == 1)
     {
-      goto CopyB;
+      memmove(destination, buf2, num2 * sizeof(id));
+      destination[num2] = *buf1;
+      return;
     }
 
   NS_DURING
@@ -801,6 +805,16 @@ descriptorOrComparator: (id)descriptorOrComparator
           localMinGallop++;
           minGallop = localMinGallop;
         }
+      Success:
+        if (0 != num1)
+          {
+            memcpy(destination, buf1, num1 * sizeof(id));
+          }
+        NS_VOIDRETURN;
+      CopyB:
+        memmove(destination, buf2, num2 * sizeof(id));
+        destination[num2] = *buf1;
+        NS_VOIDRETURN;
     }
   NS_HANDLER
     {
@@ -813,16 +827,6 @@ descriptorOrComparator: (id)descriptorOrComparator
       [localException raise];
     }
   NS_ENDHANDLER
-  Success:
-    if (0 != num1)
-      {
-        memcpy(destination, buf1, num1 * sizeof(id));
-      }
-    return;
-  CopyB:
-    memmove(destination, buf2, num2 * sizeof(id));
-    destination[num2] = *buf1;
-    return;
 }
 
 - (void) mergeHighRun: (NSRange)r1 withRun: (NSRange)r2
@@ -851,17 +855,23 @@ descriptorOrComparator: (id)descriptorOrComparator
   buf1 += num1 - 1;
   *destination-- = *buf1--;
   num1--;
-  // The C implementation from Python uses gotos in order to avoid function
-  // calls for performance reasons. We do the same.
+
   if (num1 == 0)
     {
-      goto Success;
+      if (0 != num1)
+        {
+          memcpy(destination - (num2-1), base2, num2 * sizeof(id));
+        }
+      return;
     }
   if (num2 == 1)
     {
-      goto CopyA;
+      destination -= num1;
+      buf1 -= num1;
+      memmove(destination + 1, buf1 + 1, num1 * sizeof(id));
+      *destination = *buf2;
+      return;
     }
-
 
   NS_DURING
     {
@@ -873,7 +883,8 @@ descriptorOrComparator: (id)descriptorOrComparator
 
           do
             {
-              if (NSOrderedAscending == GSCompareUsingDescriptorOrComparator(*buf2, *buf1,
+              if (NSOrderedAscending
+                == GSCompareUsingDescriptorOrComparator(*buf2, *buf1,
                 descOrComp, ty, ctx))
                 {
                   *destination-- = *buf1--;
@@ -901,11 +912,13 @@ descriptorOrComparator: (id)descriptorOrComparator
           localMinGallop++;
           do
             {
-              // If we fall through here, one of the runs is very structured, so we assume
-              // that galloping will also be useful in the future.
+              /* If we fall through here, one of the runs is very structured,
+               * so we assume that galloping will also be useful in the future.
+               */
               localMinGallop -= localMinGallop > 1;
               minGallop = localMinGallop;
-              k = gallopRight(*buf2, base1, NSMakeRange(0, num1), num1 - 1, descOrComp, ty, ctx);
+              k = gallopRight(*buf2, base1,
+                NSMakeRange(0, num1), num1 - 1, descOrComp, ty, ctx);
               k = num1 - k;
               winners1 = k;
               if (0 != k)
@@ -919,7 +932,9 @@ descriptorOrComparator: (id)descriptorOrComparator
                       goto Success;
                     }
                 }
-              // Since our galloping run finishes here, the next element comes from r2
+              /* Since our galloping run finishes here,
+               * the next element comes from r2
+               */
               *destination-- = *buf2--;
               num2--;
               if (1 == num2)
@@ -928,7 +943,8 @@ descriptorOrComparator: (id)descriptorOrComparator
                 }
 
               // Now we try to gallop into the other direction
-              k = gallopLeft(*buf1, base2, NSMakeRange(0, num2), num2-1, descOrComp, ty, ctx);
+              k = gallopLeft(*buf1, base2,
+                NSMakeRange(0, num2), num2-1, descOrComp, ty, ctx);
               k = num2 - k;
               winners2 = k;
               if (0 != k)
@@ -946,8 +962,9 @@ descriptorOrComparator: (id)descriptorOrComparator
                       goto Success;
                     }
                 }
-              // Galloping run for r2 finished, next element comes from r1, and starts
-              // the next loop iteration
+              /* Galloping run for r2 finished, next element comes from r1,
+               * and starts the next loop iteration
+               */
               *destination-- = *buf1--;
               num1--;
               if (0 == num1)
@@ -958,6 +975,18 @@ descriptorOrComparator: (id)descriptorOrComparator
           localMinGallop++;
           minGallop = localMinGallop;
         }
+      Success:
+        if (0 != num1)
+          {
+            memcpy(destination - (num2-1), base2, num2 * sizeof(id));
+          }
+        NS_VOIDRETURN;
+      CopyA:
+        destination -= num1;
+        buf1 -= num1;
+        memmove(destination + 1, buf1 + 1, num1 * sizeof(id));
+        *destination = *buf2;
+        NS_VOIDRETURN;
     }
   NS_HANDLER
     {
@@ -970,19 +999,6 @@ descriptorOrComparator: (id)descriptorOrComparator
       [localException raise];
     }
   NS_ENDHANDLER
-
-  Success:
-    if (0 != num1)
-      {
-        memcpy(destination - (num2-1), base2, num2 * sizeof(id));
-      }
-    return;
-  CopyA:
-    destination -= num1;
-    buf1 -= num1;
-    memmove(destination + 1, buf1 + 1, num1 * sizeof(id));
-    *destination = *buf2;
-    return;
 }
 
 
@@ -998,10 +1014,12 @@ descriptorOrComparator: (id)descriptorOrComparator
   r1 = runStack[i];
   r2 = runStack[i+1];
 
-  // Do some housekeeping on the stack: We combine the two runs being merged and
-  // move around the last run on the stack if we are merging on the
-  // antepenultimate run. In any case, the run at i+1 is consumed in the merge
-  // and the stack shrinks.
+  /* Do some housekeeping on the stack: We combine the two runs
+   * being merged and move around the last run on the stack
+   * if we are merging on the antepenultimate run.
+   * In any case, the run at i+1 is consumed in the merge and
+   * the stack shrinks.
+   */
   runStack[i] = NSUnionRange(r1, r2);
   if (i == (stackSize - 3))
     {
@@ -1105,11 +1123,14 @@ _GSTimSort(id *objects,
             sortDescriptorOrComparator,
             comparisonType, context);
 
-          // If the run is too short, coerce it up to minimalRunLen or the end of the
-          // sortRange.
+          /* If the run is too short, coerce it up to minimalRunLen
+           * or the end of the sortRange.
+           */
           if (runLen < MAX(sortLen, minimalRunLen))
             {
-              NSUInteger coercionLen = sortLen <= minimalRunLen ? sortLen : minimalRunLen;
+              NSUInteger coercionLen;
+
+              coercionLen = sortLen <= minimalRunLen ? sortLen : minimalRunLen;
               internalBinarySort(objects,
                 NSMakeRange(sortStart, coercionLen),
                 sortStart + runLen,
@@ -1127,7 +1148,6 @@ _GSTimSort(id *objects,
 
       NSCAssert(sortStart == sortEnd, @"Sorting did not complete");
       GS_TIMSORT_FORCE_MERGE(desc);
-
     }
   NS_HANDLER
     {
