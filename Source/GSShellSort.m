@@ -34,10 +34,10 @@
 #ifndef GS_DISABLE_SHELLSORT
 void
 _GSShellSort(id *objects,
-             NSRange sortRange,
-             id comparisonEntity,
-             GSComparisonType type,
-             void *context)
+  NSRange sortRange,
+  id comparisonEntity,
+  GSComparisonType type,
+  void *context)
 {
     /* Shell sort algorithm taken from SortingInAction - a NeXT example */
 #define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
@@ -73,7 +73,9 @@ _GSShellSort(id *objects,
 	      id			a = objects[d + stride];
 	      id			b = objects[d];
 	      NSComparisonResult	r;
-	      r = GSCompareUsingDescriptorOrComparator(a, b, comparisonEntity, context);
+
+	      r = GSCompareUsingDescriptorOrComparator(a, b,
+                comparisonEntity, context);
 	      if (r < 0)
 		{
 #ifdef	GSWARN
@@ -82,7 +84,7 @@ _GSShellSort(id *objects,
 		      badComparison = YES;
 		    }
 #endif
-		  objects[d+stride] = b;
+		  objects[d + stride] = b;
 		  objects[d] = a;
 		  if (stride > d)
 		    {
@@ -117,7 +119,7 @@ _GSShellSort(id *objects,
 @end
 
 @implementation GSShellSortPlaceHolder
-+ (void)load
++ (void) load
 {
   _GSSortUnstable = _GSShellSort;
 }

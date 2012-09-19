@@ -54,6 +54,7 @@
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
+
 static BOOL GSMacOSXCompatiblePropertyLists(void)
 {
   if (GSPrivateDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
@@ -1080,8 +1081,9 @@ compare(id elem1, id elem2, void* context)
  * according to a sort with comparator.  This invokes
  * -sortedArrayUsingFunction:context:hint: with a nil hint.
  */
-- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator
-   context: (void*)context
+- (NSArray*) sortedArrayUsingFunction:
+  (NSComparisonResult(*)(id,id,void*))comparator
+  context: (void*)context
 {
   return [self sortedArrayUsingFunction: comparator context: context hint: nil];
 }
@@ -1101,9 +1103,10 @@ compare(id elem1, id elem2, void* context)
  * is passed two objects to compare, and the context as the third
  * argument.  The hint argument is currently ignored, and may be nil.
  */
-- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator
-   context: (void*)context
-   hint: (NSData*)hint
+- (NSArray*) sortedArrayUsingFunction:
+  (NSComparisonResult(*)(id,id,void*))comparator
+  context: (void*)context
+  hint: (NSData*)hint
 {
   NSMutableArray	*sortedArray;
 
@@ -1116,7 +1119,7 @@ compare(id elem1, id elem2, void* context)
 
 
 - (NSArray*) sortedArrayWithOptions: (NSSortOptions)options
-                    usingComparator:(NSComparator)comparator
+                    usingComparator: (NSComparator)comparator
 {
   NSMutableArray	*sortedArray;
 
@@ -1138,67 +1141,77 @@ compare(id elem1, id elem2, void* context)
              usingComparator: (NSComparator)comparator
 {
   if (range.length == 0)
-  {
-    return options & NSBinarySearchingInsertionIndex ? range.location : NSNotFound;
-  }
+    {
+      return options & NSBinarySearchingInsertionIndex
+        ? range.location : NSNotFound;
+    }
   if (range.length == 1)
-  {
-    switch (CALL_BLOCK(comparator, key, [self objectAtIndex: range.location]))
     {
-      case NSOrderedSame:
-        return range.location;
-      case NSOrderedAscending:
-        return options & NSBinarySearchingInsertionIndex ? range.location : NSNotFound;
-      case NSOrderedDescending:
-        return options & NSBinarySearchingInsertionIndex ? (range.location + 1) : NSNotFound;
-      default:
-        // Shouldn't happen
-        return NSNotFound;
+      switch (CALL_BLOCK(comparator, key, [self objectAtIndex: range.location]))
+        {
+          case NSOrderedSame:
+            return range.location;
+          case NSOrderedAscending:
+            return options & NSBinarySearchingInsertionIndex
+              ? range.location : NSNotFound;
+          case NSOrderedDescending:
+            return options & NSBinarySearchingInsertionIndex
+              ? (range.location + 1) : NSNotFound;
+          default:
+            // Shouldn't happen
+            return NSNotFound;
+        }
     }
-  }
   else
-  {
-    NSUInteger index = NSNotFound;
-    NSUInteger count = [self count];
-    GS_BEGINIDBUF(objects, count);
-    [self getObjects: objects];
-    // We use the timsort galloping to find the insertion index:
-    if (options & NSBinarySearchingLastEqual)
     {
-      index = GSRightInsertionPointForKeyInSortedRange(key, objects, range, comparator);
-    }
-    else
-    {
-      // Left insertion is our default
-      index = GSLeftInsertionPointForKeyInSortedRange(key, objects, range, comparator);
-    }
-    GS_ENDIDBUF()
+      NSUInteger index = NSNotFound;
+      NSUInteger count = [self count];
+      GS_BEGINIDBUF(objects, count);
 
-    // If we were looking for the insertion point, we are done here
-    if (options & NSBinarySearchingInsertionIndex)
-    {
-      return index;
-    }
+      [self getObjects: objects];
+      // We use the timsort galloping to find the insertion index:
+      if (options & NSBinarySearchingLastEqual)
+        {
+          index = GSRightInsertionPointForKeyInSortedRange(key,
+            objects, range, comparator);
+        }
+      else
+        {
+          // Left insertion is our default
+          index = GSLeftInsertionPointForKeyInSortedRange(key,
+            objects, range, comparator);
+        }
+      GS_ENDIDBUF()
 
-    // Otherwise, we need need another equality check in order to know whether
-    // we need return NSNotFound.
+      // If we were looking for the insertion point, we are done here
+      if (options & NSBinarySearchingInsertionIndex)
+        {
+          return index;
+        }
 
-    if (options & NSBinarySearchingLastEqual)
-    {
-      // For search from the right, the equal object would be the one before the
-      // index, but only if it's not at the very beginning of the range (though
-      // that might not actually be possible, it's better to check nonetheless).
-      if (index > range.location)
-      {
-	index--;
-      }
+      /* Otherwise, we need need another equality check in order to
+       * know whether we need return NSNotFound.
+       */
+
+      if (options & NSBinarySearchingLastEqual)
+        {
+          /* For search from the right, the equal object would be
+           * the one before the index, but only if it's not at the
+           * very beginning of the range (though that might not
+           * actually be possible, it's better to check nonetheless).
+           */
+          if (index > range.location)
+            {
+              index--;
+            }
+        }
+      /*
+       * For a search from the left, we'd have the correct index anyways. Check
+       * whether it's equal to the key and return NSNotFound otherwise
+       */
+      return (NSOrderedSame == CALL_BLOCK(comparator,
+        key, [self objectAtIndex: index]) ? index : NSNotFound);
     }
-    /*
-     * For a search from the left, we'd have the correct index anyways. Check
-     * whether it's equal to the key and return NSNotFound otherwise
-     */
-    return (NSOrderedSame == CALL_BLOCK(comparator, key, [self objectAtIndex: index]) ? index : NSNotFound);
-  }
   // Never reached
   return NSNotFound;
 }
@@ -2516,61 +2529,68 @@ compare(id elem1, id elem2, void* context)
 		   context: (void*)context
 {
   NSUInteger count = [self count];
+
   if ((1 < count) && (NULL != compare))
-  {
-    NSArray *res = nil;
-    GS_BEGINIDBUF(objects, count);
-    [self getObjects: objects];
+    {
+      NSArray *res = nil;
+      GS_BEGINIDBUF(objects, count);
+      [self getObjects: objects];
 
-    GSSortUnstable(objects, NSMakeRange(0,count), (id)compare, GSComparisonTypeFunction, context);
+      GSSortUnstable(objects,
+        NSMakeRange(0,count), (id)compare, GSComparisonTypeFunction, context);
 
-    res = [[NSArray alloc] initWithObjects: objects count: count];
-    [self setArray: res];
-    RELEASE(res);
-    GS_ENDIDBUF();
-  }
+      res = [[NSArray alloc] initWithObjects: objects count: count];
+      [self setArray: res];
+      RELEASE(res);
+      GS_ENDIDBUF();
+    }
 }
 
 - (void) sortWithOptions: (NSSortOptions)options
          usingComparator: (NSComparator)comparator
 {
   NSUInteger count = [self count];
-  if ((1 < count) && (NULL != comparator))
-  {
-    NSArray *res = nil;
-    GS_BEGINIDBUF(objects, count);
-    [self getObjects: objects];
 
-    if (options & NSSortStable)
+  if ((1 < count) && (NULL != comparator))
     {
-       if (options & NSSortConcurrent)
-       {
-          GSSortStableConcurrent(objects, NSMakeRange(0,count), (id)comparator, GSComparisonTypeComparatorBlock, NULL);
-       }
-       else
-       {
-          GSSortStable(objects, NSMakeRange(0,count), (id)comparator, GSComparisonTypeComparatorBlock, NULL);
-       }
+      NSArray *res = nil;
+      GS_BEGINIDBUF(objects, count);
+      [self getObjects: objects];
+
+      if (options & NSSortStable)
+        {
+          if (options & NSSortConcurrent)
+            {
+              GSSortStableConcurrent(objects, NSMakeRange(0,count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+          else
+            {
+              GSSortStable(objects, NSMakeRange(0,count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+        }
+      else
+        {
+          if (options & NSSortConcurrent)
+            {
+              GSSortUnstableConcurrent(objects, NSMakeRange(0,count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+          else
+            {
+              GSSortUnstable(objects, NSMakeRange(0,count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+        }
+      res = [[NSArray alloc] initWithObjects: objects count: count];
+      [self setArray: res];
+      RELEASE(res);
+      GS_ENDIDBUF();
     }
-    else
-    {
-       if (options & NSSortConcurrent)
-       {
-          GSSortUnstableConcurrent(objects, NSMakeRange(0,count), (id)comparator, GSComparisonTypeComparatorBlock, NULL);
-       }
-       else
-       {
-          GSSortUnstable(objects, NSMakeRange(0,count), (id)comparator, GSComparisonTypeComparatorBlock, NULL);
-       }
-    }
-    res = [[NSArray alloc] initWithObjects: objects count: count];
-    [self setArray: res];
-    RELEASE(res);
-    GS_ENDIDBUF();
-  }
 }
 
-- (void)sortUsingComparator: (NSComparator)comparator
+- (void) sortUsingComparator: (NSComparator)comparator
 {
   [self sortWithOptions: 0 usingComparator: comparator];
 }
