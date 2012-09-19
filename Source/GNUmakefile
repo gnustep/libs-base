@@ -168,6 +168,9 @@ GSSocketStream.m \
 GSStream.m \
 GSString.m \
 GSICUString.m \
+GSTimSort.m \
+GSQuickSort.m \
+GSShellSort.m \
 GSValue.m \
 NSAffineTransform.m \
 NSArchiver.m \

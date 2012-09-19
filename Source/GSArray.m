@@ -37,6 +37,7 @@
 #import "Foundation/NSKeyedArchiver.h"
 
 #import "GSPrivate.h"
+#import "GSSorting.h"
 
 static SEL	eqSel;
 static SEL	oaiSel;
@@ -375,7 +376,7 @@ static Class	GSInlineArrayClass;
     }
 }
 
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
 				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
@@ -791,81 +792,50 @@ static Class	GSInlineArrayClass;
   _version++;
 }
 
-- (void) sortUsingFunction: (NSComparisonResult(*)(id,id,void*))compare
+- (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare
 		   context: (void*)context
 {
-  /* Shell sort algorithm taken from SortingInAction - a NeXT example */
-#define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
-                        // 3 is a fairly good choice (Sedgewick)
-  NSUInteger	c;
-  NSUInteger	d;
-  NSUInteger	stride = 1;
-  BOOL		found;
-  NSUInteger	count = _count;
-#ifdef	GSWARN
-  BOOL		badComparison = NO;
-#endif
-
   _version++;
-  while (stride <= count)
-    {
-      stride = stride * STRIDE_FACTOR + 1;
-    }
+  if ((1 < _count) && (NULL != compare))
+  {
+    GSSortUnstable(_contents_array, NSMakeRange(0,_count), (id)compare, GSComparisonTypeFunction, context);
+  }
+  _version++;
+}
 
-  while (stride > (STRIDE_FACTOR - 1))
+- (void) sortWithOptions: (NSSortOptions)options
+         usingComparator: (NSComparator)comparator
+{
+  _version++;
+  if ((1 < _count) && (NULL != comparator))
+  {
+    if (options & NSSortStable)
     {
-      // loop to sort for each value of stride
-      stride = stride / STRIDE_FACTOR;
-      for (c = stride; c < count; c++)
-	{
-	  found = NO;
-	  if (stride > c)
-	    {
-	      break;
-	    }
-	  d = c - stride;
-	  while (!found)	/* move to left until correct place */
-	    {
-	      id			a = _contents_array[d + stride];
-	      id			b = _contents_array[d];
-	      NSComparisonResult	r;
-
-	      r = (*compare)(a, b, context);
-	      if (r < 0)
-		{
-#ifdef	GSWARN
-		  if (r != NSOrderedAscending)
-		    {
-		      badComparison = YES;
-		    }
-#endif
-		  _contents_array[d+stride] = b;
-		  _contents_array[d] = a;
-		  if (stride > d)
-		    {
-		      break;
-		    }
-		  d -= stride;		// jump by stride factor
-		}
-	      else
-		{
-#ifdef	GSWARN
-		  if (r != NSOrderedDescending && r != NSOrderedSame)
-		    {
-		      badComparison = YES;
-		    }
-#endif
-		  found = YES;
-		}
-	    }
-	}
+       if (options & NSSortConcurrent)
+       {
+          GSSortStableConcurrent(_contents_array, NSMakeRange(0,_count),
+	    (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+       }
+       else
+       {
+          GSSortStable(_contents_array, NSMakeRange(0,_count),
+	    (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+       }
     }
-#ifdef	GSWARN
-  if (badComparison == YES)
+    else
     {
-      NSWarnMLog(@"Detected bad return value from comparison");
+      if (options & NSSortConcurrent)
+      {
+         GSSortUnstableConcurrent(_contents_array, NSMakeRange(0,_count),
+	   (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+      }
+      else
+      {
+         GSSortUnstable(_contents_array, NSMakeRange(0,_count),
+	   (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+      }
     }
-#endif
+  }
   _version++;
 }
 
@@ -885,7 +855,7 @@ static Class	GSInlineArrayClass;
   return AUTORELEASE([enumerator initWithArray: (GSArray*)self]);
 }
 
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state 	
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
 				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
