@@ -23,7 +23,6 @@
    */
 
 #import "common.h"
-
 #import "Foundation/NSSortDescriptor.h"
 
 #import "Foundation/NSCoder.h"
@@ -441,6 +440,8 @@ NSRange range, NSComparator cmptr)
     GSComparisonTypeComparatorBlock, NULL);
 }
 
+#if GS_USE_TIMSORT
+
 /* These macros make calling the cached IMPs easier,
  * if we choose to do so later.
  */
@@ -508,9 +509,7 @@ _GSTimSort(id *objects,
 @implementation GSTimSortDescriptor
 + (void) load
 {
-#ifndef GS_DISABLE_TIMSORT
   _GSSortStable = _GSTimSort;
-#endif
 }
 
 + (void) initialize
@@ -1030,8 +1029,8 @@ descriptorOrComparator: (id)descriptorOrComparator
   // Find an insertion point for the first element in r2 into r1
   insert = gallopRight(objects[r2.location], objects, r1, 0,
     sortDescriptorOrComparator, comparisonType, functionContext);
-  r1.location += insert;
-  r1.length -= insert;
+  r1.length = insert - r1.location;
+  r1.location = insert;
   if (r1.length == 0)
     {
       // The entire run r2 lies after r1, just return.
@@ -1081,7 +1080,6 @@ descriptorOrComparator: (id)descriptorOrComparator
 
 
 @end
-#ifndef GS_DISABLE_TIMSORT
 static void
 _GSTimSort(id *objects,
   NSRange sortRange,

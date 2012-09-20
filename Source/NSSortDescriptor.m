@@ -36,7 +36,36 @@
 #import "GSPrivate.h"
 #import "GSSorting.h"
 
+static BOOL     initialized = NO;
+
+#if     GS_USE_TIMSORT
+@class  GSTimSortDescriptor;
+#endif
+#if     GS_USE_QUICKSORT
+@class  GSQuickSortPlaceHolder;
+#endif
+#if     GS_USE_SHELLSORT
+@class  GSShellSortPlaceHolder;
+#endif
+
 @implementation NSSortDescriptor
+
++ (void) initialize
+{
+  if (NO == initialized)
+    {
+#if     GS_USE_TIMSORT
+      [GSTimSortDescriptor class];
+#endif
+#if     GS_USE_QUICKSORT
+      [GSQuickSortPlaceHolder class];
+#endif
+#if     GS_USE_SHELLSORT
+      [GSShellSortPlaceHolder class];
+#endif
+      initialized = YES;
+    }
+}
 
 - (BOOL) ascending
 {
@@ -205,12 +234,15 @@
 void
 (*_GSSortUnstable)(id* buffer, NSRange range,
   id comparisonEntity, GSComparisonType cmprType, void *context) = NULL;
+
 void
 (*_GSSortStable)(id* buffer, NSRange range,
   id comparisonEntity, GSComparisonType cmprType, void *context) = NULL;
+
 void
 (*_GSSortUnstableConcurrent)(id* buffer, NSRange range,
   id comparisonEntity, GSComparisonType cmprType, void *context) = NULL;
+
 void
 (*_GSSortStableConcurrent)(id* buffer, NSRange range,
   id comparisonEntity, GSComparisonType cmprType, void *context) = NULL;
@@ -221,6 +253,7 @@ void
 GSSortUnstable(id* buffer, NSRange range, id descriptorOrComparator,
   GSComparisonType type, void* context)
 {
+  if (NO == initialized) [NSSortDescriptor class];
   if (NULL != _GSSortUnstable)
     {
       _GSSortUnstable(buffer, range, descriptorOrComparator, type, context);
@@ -240,6 +273,7 @@ void
 GSSortStable(id* buffer, NSRange range, id descriptorOrComparator,
   GSComparisonType type, void* context)
 {
+  if (NO == initialized) [NSSortDescriptor class];
   if (NULL != _GSSortStable)
     {
       _GSSortStable(buffer, range, descriptorOrComparator, type, context);
@@ -256,6 +290,7 @@ void
 GSSortStableConcurrent(id* buffer, NSRange range, id descriptorOrComparator,
   GSComparisonType type, void* context)
 {
+  if (NO == initialized) [NSSortDescriptor class];
   if (NULL != _GSSortStableConcurrent)
     {
       _GSSortStableConcurrent(buffer, range, descriptorOrComparator,
@@ -271,6 +306,7 @@ void
 GSSortUnstableConcurrent(id* buffer, NSRange range, id descriptorOrComparator,
   GSComparisonType type, void* context)
 {
+  if (NO == initialized) [NSSortDescriptor class];
   if (NULL != _GSSortUnstableConcurrent)
     {
       _GSSortUnstableConcurrent(buffer, range, descriptorOrComparator,

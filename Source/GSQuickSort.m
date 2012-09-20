@@ -25,6 +25,7 @@
    Boston, MA 02111 USA.
    */
 
+#import "common.h"
 #import "Foundation/NSSortDescriptor.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSObjCRuntime.h"
@@ -45,7 +46,7 @@ SwapObjects(id * o1, id * o2)
  * Sorts the provided object array's sortRange according to sortDescriptor.
  */
 // Quicksort algorithm copied from Wikipedia :-).
-#ifndef GS_DISABLE_QUICKSORT
+#if GS_USE_QUICKSORT
 static void
 _GSQuickSort(id *objects,
   NSRange sortRange,

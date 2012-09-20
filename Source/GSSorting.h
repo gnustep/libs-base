@@ -29,7 +29,6 @@
 #import "Foundation/NSException.h"
 #import "GSPrivate.h"
 
-
 enum
 {
   GSComparisonTypeSortDescriptor = 0, /** Comparison using an NSSortDescriptor */

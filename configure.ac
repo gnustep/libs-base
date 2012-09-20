@@ -3273,23 +3273,22 @@ AC_SUBST(USE_GMP)
 AC_ARG_WITH(sort-algorithm,
   [  --with-sort-algorithm=ALG  force use of a specific sorting algorithm. 
 				Possible values are timsort, quicksort, and shellsort.
-				Defaults to timsort. Timsort cannot be completely
-				disabled because it is required for stable sorting.],
-  sort_algorithm="$withval", sort_algorithm="timsort")
-GS_USE_TIMSORT=1
-GS_USE_QUICKSORT=0
-GS_USE_SHELLSORT=0
-if test "$sort_algorithm" = "quicksort"; then
-  use_quicksort=1
+				Defaults to shellsort (others broken).],
+  sort_algorithm="$withval", sort_algorithm="shellsort")
+
+if test "$sort_algorithm" = "timsort"; then
+  AC_DEFINE(GS_USE_TIMSORT,1,[Build in/use timsort])
 else
-  if test "$srot_algorithm" = "shellsort"; then
-    use_shellsort=1
+  if test "$sort_algorithm" = "quicksort"; then
+    AC_DEFINE(GS_USE_QUICKSORT,1,[Build in/use quicksort])
+  else
+    if test "$sort_algorithm" = "shellsort"; then
+      AC_DEFINE(GS_USE_SHELLSORT,1,[Build in/use shellsort])
+    else
+      AC_MSG_ERROR([Unknown sort_algorithm defined!])
+    fi
   fi
 fi
-
-AC_SUBST(GS_USE_TIMSORT)
-AC_SUBST(GS_USE_QUICKSORT)
-AC_SUBST(GS_USE_SHELLSORT)
 
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
