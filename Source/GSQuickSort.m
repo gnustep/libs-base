@@ -62,7 +62,7 @@ _GSQuickSort(id *objects,
 
       while (left < right)
         {
-          if (GSCompareUsingDescriptorOrComparator(left, right,
+          if (GSCompareUsingDescriptorOrComparator(objects[left], pivot,
 	    comparisonEntity, type, context) == NSOrderedDescending)
             {
               SwapObjects(&objects[left], &objects[--right]);
@@ -74,10 +74,12 @@ _GSQuickSort(id *objects,
         }
 
       SwapObjects(&objects[--left], &objects[sortRange.location]);
-      SortObjectsWithDescriptor(objects, NSMakeRange(sortRange.location, left
-        - sortRange.location), sortDescriptor);
-      SortObjectsWithDescriptor(objects, NSMakeRange(right,
-        NSMaxRange(sortRange) - right), sortDescriptor);
+      _GSQuickSort(objects,
+        NSMakeRange(sortRange.location, left - sortRange.location),
+        comparisonEntity, type, context);
+      _GSQuickSort(objects,
+        NSMakeRange(right, NSMaxRange(sortRange) - right),
+        comparisonEntity, type, context);
     }
 }
 

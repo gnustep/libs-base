@@ -1,5 +1,9 @@
 2012-09-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/GSQuickSort.m: Fixed this to compile and (apparently) work.
+
+2012-09-20  Richard Frith-Macdonald <rfm@gnu.org>
+
         * configure.ac: Change sort selection to use shellsort by default and
         to make sort selection internal to gnustep-base rather than public.
         * configure: regenerate
