@@ -1,3 +1,7 @@
+2012-09-20  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSTimSort.m: Fix bugs in the timsort implementation.
+
 2012-09-20  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSQuickSort.m: Fixed this to compile and (apparently) work.
