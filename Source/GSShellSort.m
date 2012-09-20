@@ -24,14 +24,13 @@
    Boston, MA 02111 USA.
    */
 
-
-
+#import "common.h"
 #import "Foundation/NSSortDescriptor.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSObjCRuntime.h"
 #import "GSSorting.h"
 
-#ifndef GS_DISABLE_SHELLSORT
+#if GS_USE_SHELLSORT
 void
 _GSShellSort(id *objects,
   NSRange sortRange,
@@ -75,7 +74,7 @@ _GSShellSort(id *objects,
 	      NSComparisonResult	r;
 
 	      r = GSCompareUsingDescriptorOrComparator(a, b,
-                comparisonEntity, context);
+                comparisonEntity, type, context);
 	      if (r < 0)
 		{
 #ifdef	GSWARN

@@ -1,3 +1,29 @@
+2012-09-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Change sort selection to use shellsort by default and
+        to make sort selection internal to gnustep-base rather than public.
+        * configure: regenerate
+        * Headers/GNUstepBase/config.h.in: regenerate
+        * Headers/GNUstepBase/GSConfig.h.in: Remove public sort selection info
+        * Source/GSQuickSort.m: Use config.h to control build/not-build.
+        * Source/NSSortDescriptor.m: Reference the selected sort class to
+        ensure that it is linked in  and loaded at runtime.
+        * Source/GSShellSort.m: Fix bug in function arguments.
+        Use config.h to control build/not-build.
+        * Source/GSSorting.h: tidied a little
+        * Source/GSTimSort.m: Use config.h to control build/not-build.
+        The changes are basically to keep sort information internal to
+        base rather than exposing it and, more importantly, to get sorting
+        working again.  This involves:
+        1. minor fix to shellsort to get it to work.
+        2. change configure script to select shellsort.
+        The problems with the other sorts are:
+        a. quicksort won't even compile
+        b. timsort does compile, but segfaults when you try to give it
+        real-world datasets to sort
+        Anyone wantng to fix these, please do (it would be really cool
+        to have timsort working).
+
 2012-09-19  Niels Grewe <niels.grewe@halbordnung.de>
 	* Source/GSSorting.h
 	* Source/NSSortDescriptor.m:
