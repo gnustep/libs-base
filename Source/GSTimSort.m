@@ -606,6 +606,7 @@ descriptorOrComparator: (id)descriptorOrComparator
 {
   runStack[stackSize] = r;
   stackSize++;
+  NSDebugMLLog(@"GSTimSort", @"Pushing run: %@\n", NSStringFromRange(r));
 }
 
 - (void) suggestMerge
@@ -836,6 +837,8 @@ descriptorOrComparator: (id)descriptorOrComparator
   id *buf2 = objects + r2.location;
   id *base1 = buf1;
   id *base2 = NULL;
+  // We are walking backwards, so destination pointer is at the high end
+  // initially.
   id *destination = buf2 + num2 - 1;
   NSUInteger k = 0;
   // Local variables for performance
@@ -857,7 +860,7 @@ descriptorOrComparator: (id)descriptorOrComparator
 
   if (num1 == 0)
     {
-      if (0 != num1)
+      if (0 != num2)
         {
           memcpy(destination - (num2-1), base2, num2 * sizeof(id));
         }
@@ -975,7 +978,7 @@ descriptorOrComparator: (id)descriptorOrComparator
           minGallop = localMinGallop;
         }
       Success:
-        if (0 != num1)
+        if (0 != num2)
           {
             memcpy(destination - (num2-1), base2, num2 * sizeof(id));
           }
@@ -1012,6 +1015,8 @@ descriptorOrComparator: (id)descriptorOrComparator
 
   r1 = runStack[i];
   r2 = runStack[i+1];
+  NSDebugMLLog(@"GSTimSort", @"Merging from stack location %lu of %lu (%@ with %@)\n", i,
+    stackSize, NSStringFromRange(r1), NSStringFromRange(r2));
 
   /* Do some housekeeping on the stack: We combine the two runs
    * being merged and move around the last run on the stack
@@ -1029,8 +1034,10 @@ descriptorOrComparator: (id)descriptorOrComparator
   // Find an insertion point for the first element in r2 into r1
   insert = gallopRight(objects[r2.location], objects, r1, 0,
     sortDescriptorOrComparator, comparisonType, functionContext);
-  r1.length = insert - r1.location;
+  r1.length = r1.length - (insert - r1.location);
   r1.location = insert;
+  NSDebugMLLog(@"GSTimSort", @"Insertion point for r2 in r1: %lu.\nr1 for the merge is now %@.\n",
+    insert, NSStringFromRange(r1));
   if (r1.length == 0)
     {
       // The entire run r2 lies after r1, just return.
