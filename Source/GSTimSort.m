@@ -234,7 +234,7 @@ gallopLeft(id key, id *buf, NSRange r, NSUInteger hint, id descOrComp,
       /* In an ascending order, we gallop to the right until the key
        * is no longer greater than the element from the range
        */
-      NSInteger maxOffset = r.length - hint;
+      NSInteger maxOffset = (r.length - hint);
       while (offset < maxOffset)
         {
           if (NSOrderedAscending
@@ -274,7 +274,6 @@ gallopLeft(id key, id *buf, NSRange r, NSUInteger hint, id descOrComp,
        * until the key is no longer less than the element from the range
        */
       NSInteger maxOffset = hint + 1;
-
       while (offset < maxOffset)
         {
           if (NSOrderedAscending
@@ -298,11 +297,16 @@ gallopLeft(id key, id *buf, NSRange r, NSUInteger hint, id descOrComp,
   // Restore base address:
   buf -= (hint + r.location);
 
-  /* We are now sure that we need to insert key somewhere between offset and
-   * lastOffset. So do a binary search with a vastly diminished search space.
+  /*
+   * We are now sure that we need to insert key somewhere between offset and
+   * lastOffset, though the stride might have been to large for the range.
+   * Fix the range and do a binary search with a vastly diminished search space.
    */
-
-  lastOffset++;
+  offset = MIN(offset, NSMaxRange(r));
+  if (lastOffset < (NSInteger)r.location)
+  {
+    lastOffset = (NSInteger)r.location;
+  }
   while (lastOffset < offset)
     {
       NSInteger midPoint = lastOffset + ((offset - lastOffset) >> 1);
@@ -363,10 +367,6 @@ gallopRight(id key, id *buf, NSRange r, NSUInteger hint,
         {
           offset = maxOffset;
         }
-      else if (offset < r.location)
-        {
-          offset = r.location;
-        }
       // Translation to positive offsets against the base address.
       k = lastOffset;
       lastOffset = (r.location + hint) - offset;
@@ -376,7 +376,7 @@ gallopRight(id key, id *buf, NSRange r, NSUInteger hint,
     {
       // In descending (or equal) order, we gallop to the right
 
-      NSInteger maxOffset = r.length - hint;
+      NSInteger maxOffset = (r.length - hint);
       while (offset < maxOffset)
         {
           if (NSOrderedAscending
@@ -399,14 +399,21 @@ gallopRight(id key, id *buf, NSRange r, NSUInteger hint,
   // Restore base address:
   buf -= (hint + r.location);
 
-  /* We are now sure that we need to insert key somewhere between offset and
-   * lastOffset. So do a binary search with a vastly diminished search space.
+  /*
+   * We are now sure that we need to insert key somewhere between offset and
+   * lastOffset, though the stride might have been to large for the range.
+   * Fix the range and do a binary search with a vastly diminished search space.
    */
-
   lastOffset++;
+  offset = MIN(offset, NSMaxRange(r));
+  if (lastOffset < (NSInteger)r.location)
+  {
+    lastOffset = (NSInteger)r.location;
+  }
   while (lastOffset < offset)
     {
       NSInteger midPoint = lastOffset + ((offset - lastOffset) >> 1);
+
       if (NSOrderedAscending
         == GSCompareUsingDescriptorOrComparator(key, buf[midPoint],
         descOrComp, type, context))
@@ -606,7 +613,7 @@ descriptorOrComparator: (id)descriptorOrComparator
 {
   runStack[stackSize] = r;
   stackSize++;
-  NSDebugMLLog(@"GSTimSort", @"Pushing run: %@\n", NSStringFromRange(r));
+  NSDebugMLLog(@"GSTimSort", @"Pushing run: %@", NSStringFromRange(r));
 }
 
 - (void) suggestMerge
@@ -632,11 +639,15 @@ descriptorOrComparator: (id)descriptorOrComparator
             {
               GS_TIMSORT_MERGE_AT_INDEX(self, n);
             }
+          else
+            {
+              break;
+            }
         }
-      else
-        {
-          break;
-        }
+	else
+	  {
+	    break;
+	  }
     }
 }
 
@@ -1015,7 +1026,7 @@ descriptorOrComparator: (id)descriptorOrComparator
 
   r1 = runStack[i];
   r2 = runStack[i+1];
-  NSDebugMLLog(@"GSTimSort", @"Merging from stack location %lu of %lu (%@ with %@)\n", i,
+  NSDebugMLLog(@"GSTimSort", @"Merging stack location %lu (stack size: %lu, run %@ with %@)", i,
     stackSize, NSStringFromRange(r1), NSStringFromRange(r2));
 
   /* Do some housekeeping on the stack: We combine the two runs
@@ -1036,19 +1047,19 @@ descriptorOrComparator: (id)descriptorOrComparator
     sortDescriptorOrComparator, comparisonType, functionContext);
   r1.length = r1.length - (insert - r1.location);
   r1.location = insert;
-  NSDebugMLLog(@"GSTimSort", @"Insertion point for r2 in r1: %lu.\nr1 for the merge is now %@.\n",
-    insert, NSStringFromRange(r1));
   if (r1.length == 0)
-    {
-      // The entire run r2 lies after r1, just return.
-      return;
-    }
+  {
+    // The entire run r2 lies after r1, just return.
+    return;
+  }
+  NSDebugMLLog(@"GSTimSort", @"Insertion point for r2 in r1: %lu, r1 for the merge is now %@.",
+    insert, NSStringFromRange(r1));
 
   // Find an insertion point for the last element of r1 into r2. Subtracting the
   // location from that point gives us the length of the subrange we need to
   // merge.
   r2.length = (gallopLeft(objects[NSMaxRange(r1) - 1], objects, r2,
-    (r2.length - 1),
+    (r2.length - 2),
     sortDescriptorOrComparator, comparisonType, functionContext)
      - r2.location);
   if (r2.length == 0)
@@ -1131,7 +1142,7 @@ _GSTimSort(id *objects,
           /* If the run is too short, coerce it up to minimalRunLen
            * or the end of the sortRange.
            */
-          if (runLen < MAX(sortLen, minimalRunLen))
+          if (runLen < MIN(sortLen, minimalRunLen))
             {
               NSUInteger coercionLen;
 
