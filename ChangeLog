@@ -1,5 +1,9 @@
 2012-09-20  Niels Grewe <niels.grewe@halbordnung.de>
 
+	* Source/GSTimSort.m: A few more timsort bugfixes.
+
+2012-09-20  Niels Grewe <niels.grewe@halbordnung.de>
+
 	* Source/GSTimSort.m: Fix bugs in the timsort implementation.
 
 2012-09-20  Richard Frith-Macdonald <rfm@gnu.org>
