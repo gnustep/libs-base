@@ -1006,60 +1006,61 @@ compareIt(id o1, id o2, void* context)
     }
 }
 
-- (NSSet*)keysOfEntriesWithOptions: (NSEnumerationOptions)opts
-                       passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
+- (NSSet*) keysOfEntriesWithOptions: (NSEnumerationOptions)opts
+                        passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate
 {
   /*
    * See -enumerateKeysAndObjectsWithOptions:usingBlock: for note about
    * NSEnumerationOptions.
    */
-   id<NSFastEnumeration> enumerator = [self keyEnumerator];
-   SEL objectForKeySelector = @selector(objectForKey:);
-   IMP objectForKey = [self methodForSelector: objectForKeySelector];
-   BLOCK_SCOPE BOOL shouldStop = NO;
-   NSMutableSet *buildSet = [NSMutableSet new];
-   SEL addObjectSelector = @selector(addObject:);
-   IMP addObject = [buildSet methodForSelector: addObjectSelector];
-   NSSet *resultSet = nil;
-   id obj = nil;
-   BLOCK_SCOPE NSLock *setLock = nil;
+  id<NSFastEnumeration> enumerator = [self keyEnumerator];
+  SEL objectForKeySelector = @selector(objectForKey:);
+  IMP objectForKey = [self methodForSelector: objectForKeySelector];
+  BLOCK_SCOPE BOOL shouldStop = NO;
+  NSMutableSet *buildSet = [NSMutableSet new];
+  SEL addObjectSelector = @selector(addObject:);
+  IMP addObject = [buildSet methodForSelector: addObjectSelector];
+  NSSet *resultSet = nil;
+  id obj = nil;
+  BLOCK_SCOPE NSLock *setLock = nil;
 
-   if (opts & NSEnumerationConcurrent)
-   {
-     setLock = [NSLock new];
-   }
-   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-   FOR_IN(id, key, enumerator)
-     obj = (*objectForKey)(self, objectForKeySelector, key);
-#    if (__has_feature(blocks) && (GS_USE_LIBDISPATCH == 1))
-     dispatch_group_async(enumQueueGroup, enumQueue, ^(void){if (shouldStop)
-       {
-	 return;
-       }
-       if (aPredicate(key, obj, &shouldStop))
-       {
-	 [setLock lock];
-	 addObject(buildSet, addObjectSelector, key);
-	 [setLock unlock];
-       }
-     });
-#    else
-     if (CALL_BLOCK(aPredicate, key, obj, &shouldStop))
-       {
-	 addObject(buildSet, addObjectSelector, key);
-       }
-#    endif
+  if (opts & NSEnumerationConcurrent)
+    {
+      setLock = [NSLock new];
+    }
+  GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  FOR_IN(id, key, enumerator)
+    obj = (*objectForKey)(self, objectForKeySelector, key);
+#if (__has_feature(blocks) && (GS_USE_LIBDISPATCH == 1))
+      dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+        if (shouldStop)
+          {
+	    return;
+          }
+        if (aPredicate(key, obj, &shouldStop))
+          {
+	    [setLock lock];
+	    addObject(buildSet, addObjectSelector, key);
+	    [setLock unlock];
+          }
+    });
+#else
+    if (CALL_BLOCK(aPredicate, key, obj, &shouldStop))
+      {
+        addObject(buildSet, addObjectSelector, key);
+      }
+#endif
 
-     if (YES == shouldStop)
-       {
-	 break;
-       }
-   END_FOR_IN(enumerator)
-   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
-   [setLock release];
-   resultSet = [NSSet setWithSet: buildSet];
-   [buildSet release];
-   return resultSet;
+    if (YES == shouldStop)
+      {
+	break;
+      }
+  END_FOR_IN(enumerator)
+  GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  [setLock release];
+  resultSet = [NSSet setWithSet: buildSet];
+  [buildSet release];
+  return resultSet;
 }
 
 - (NSSet*) keysOfEntriesPassingTest: (GSKeysAndObjectsPredicateBlock)aPredicate

@@ -1132,10 +1132,10 @@ otherTime(NSDate* other)
   return self;
 }
 
-- (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
+- (id) dateByAddingTimeInterval: (NSTimeInterval)ti
 {
   return [[self class] dateWithTimeIntervalSinceReferenceDate:
-    otherTime(self) + seconds];
+    otherTime(self) + ti];
 }
 
 /**

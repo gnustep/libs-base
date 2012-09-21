@@ -1,3 +1,14 @@
+2012-09-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSArray.m:
+        * Source/NSDate.m:
+        * Source/NSDictionary.m:
+        * Headers/Foundation/NSArray.h:
+        Comment/documentation fixups to avoid warnings etc.
+        * Tools/AGSParser.h:
+        * Tools/AGSParser.m:
+        Fix memory management error causing reference to deallocated object.
+
 2012-09-20  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GSTimSort.m: A few more timsort bugfixes.

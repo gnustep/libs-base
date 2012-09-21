@@ -381,9 +381,6 @@ static SEL	rlSel;
   return [copy initWithArray: self copyItems: YES];
 }
 
-/** <override-subclass />
- * Returns the number of elements contained in the receiver.
- */
 - (NSUInteger) count
 {
   [self subclassResponsibility: _cmd];
@@ -874,13 +871,6 @@ static SEL	rlSel;
   return self;
 }
 
-/** <init /> <override-subclass />
- * This should initialize the array with count (may be zero) objects.<br />
- * Retains each object placed in the array.<br />
- * Calls -init (which does nothing but maintain MacOS-X compatibility),
- * and needs to be re-implemented in subclasses in order to have all
- * other initialisers work.
- */
 - (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
   self = [self init];
@@ -912,19 +902,15 @@ static SEL	rlSel;
   return [copy initWithArray: self copyItems: NO];
 }
 
-/** <override-subclass />
- * Returns the object at the specified index.
- * Raises an exception of the index is beyond the array.
- */
 - (id) objectAtIndex: (NSUInteger)index
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (id) objectAtIndexedSubscript: (size_t)index
+- (id) objectAtIndexedSubscript: (size_t)anIndex
 {
-  return [self objectAtIndex: (NSUInteger)index];
+  return [self objectAtIndex: (NSUInteger)anIndex];
 }
 
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes
@@ -1983,23 +1969,12 @@ compare(id elem1, id elem2, void* context)
   return NSMutableArrayClass;
 }
 
-/** <init /> <override-subclass />
- * Initialise the array with the specified capacity ... this
- * should ensure that the array can have numItems added efficiently.<br />
- * Calls -init (which does nothing but maintain MacOS-X compatibility),
- * and needs to be re-implemented in subclasses in order to have all
- * other initialisers work.
- */
 - (id) initWithCapacity: (NSUInteger)numItems
 {
   self = [self init];
   return self;
 }
 
-/** <override-subclass />
- * Adds anObject at the end of the array, thus increasing the size of
- * the array.  The object is retained upon addition.
- */
 - (void) addObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
@@ -2020,17 +1995,12 @@ compare(id elem1, id elem2, void* context)
   RELEASE(tmp);
 }
 
-/** <override-subclass />
- * Places an object into the receiver at the specified location.<br />
- * Raises an exception if given an array index which is too large.<br />
- * The object is retained by the array.
- */
 - (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)setObject: (id)anObject atIndexedSubscript: (size_t)anIndex
+- (void) setObject: (id)anObject atIndexedSubscript: (size_t)anIndex
 {
   [self replaceObjectAtIndex: (NSUInteger)anIndex withObject: anObject];
 }
@@ -2083,12 +2053,6 @@ compare(id elem1, id elem2, void* context)
 	 withObjectsFromArray: [anArray subarrayWithRange: anotherRange]];
 }
 
-/** <override-subclass />
- * Inserts an object into the receiver at the specified location.<br />
- * Raises an exception if given an array index which is too large.<br />
- * The size of the array increases by one.<br />
- * The object is retained by the array.
- */
 - (void) insertObject: anObject atIndex: (NSUInteger)index
 {
   [self subclassResponsibility: _cmd];
@@ -2113,11 +2077,6 @@ compare(id elem1, id elem2, void* context)
     }
 }
 
-/** <override-subclass />
- * Removes an object from the receiver at the specified location.<br />
- * The size of the array decreases by one.<br />
- * Raises an exception if given an array index which is too large.<br />
- */
 - (void) removeObjectAtIndex: (NSUInteger)index
 {
   [self subclassResponsibility: _cmd];
