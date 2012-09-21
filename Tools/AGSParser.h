@@ -44,10 +44,10 @@
   /*
    * The following items are used for logging/debug purposes.
    */
-  NSString	*fileName;	/** Not retained - file being parsed. */
-  NSString	*unitName;	/** Not retained - unit being parsed. */
-  NSString	*itemName;	/** Not retained - item being parsed. */
-  NSArray	*lines;		/** Not retained - line number mapping. */
+  NSString	*fileName;	/** The file being parsed. */
+  NSString	*unitName;	/** The unit being parsed. */
+  NSString	*itemName;	/** The item being parsed. */
+  NSArray	*lines;		/** The line number mapping. */
 
   /*
    * The next few ivars represent the data currently being parsed.

@@ -147,6 +147,8 @@
   DESTROY(spaces);
   DESTROY(spacenl);
   DESTROY(source);
+  DESTROY(itemName);
+  DESTROY(unitName);
   [super dealloc];
 }
 
@@ -1922,7 +1924,7 @@ fail:
       inHeader = YES;
     }
   commentsRead = NO;
-  fileName = name;
+  ASSIGNCOPY(fileName, name);
   if (declared == nil)
     {
       ASSIGN(declared, [fileName lastPathComponent]);
@@ -1977,8 +1979,8 @@ fail:
 	  [source addObject: path];
 	}
     }
-  unitName = nil;
-  itemName = nil;
+  DESTROY(unitName);
+  DESTROY(itemName);
   DESTROY(comment);
 
   [self setupBuffer];
@@ -2153,7 +2155,7 @@ fail:
       [self log: @"implementation with bad name"];
       goto fail;
     }
-  unitName = name;
+  ASSIGNCOPY(unitName, name);
 
   /*
    * After the class name, we may have a category name or
@@ -2171,7 +2173,7 @@ fail:
 	  goto fail;
 	}
       name = [name stringByAppendingFormat: @"(%@)", category];
-      unitName = name;
+      ASSIGN(unitName, name);
     }
   else if (buffer[pos] == ':')
     {
@@ -2240,13 +2242,13 @@ fail:
 
   // [self log: @"Found implementation %@", dict];
 
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   return dict;
 
 fail:
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   return nil;
@@ -2279,7 +2281,7 @@ fail:
       [self log: @"interface with bad name"];
       goto fail;
     }
-  unitName = name;
+  ASSIGNCOPY(unitName, name);
 
   [dict setObject: @"class" forKey: @"Type"];
   [self setStandards: dict];
@@ -2302,7 +2304,7 @@ fail:
       [dict setObject: category forKey: @"Category"];
       [dict setObject: name forKey: @"BaseClass"];
       name = [name stringByAppendingFormat: @"(%@)", category];
-      unitName = name;
+      ASSIGN(unitName, name);
       [dict setObject: @"category" forKey: @"Type"];
       if ([category length] >= 7
 	&& [category compare: @"Private"
@@ -2396,13 +2398,13 @@ fail:
 
   // [self log: @"Found interface %@", dict];
 
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   return dict;
 
 fail:
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   return nil;
@@ -2896,7 +2898,7 @@ fail:
     {
       [self setStandards: method];
     }
-  itemName = mname;
+  ASSIGNCOPY(itemName, mname);
 
   if (term == ';')
     {
@@ -2946,13 +2948,13 @@ fail:
       [self appendComment: c to: method];
     }
 
-  itemName = nil;
+  DESTROY(itemName);
   [arp drain];
   IF_NO_GC([method autorelease];)
   return method;
 
 fail:
-  itemName = nil;
+  DESTROY(itemName);
   DESTROY(comment);
   [arp drain];
   RELEASE(method);
@@ -3062,10 +3064,10 @@ fail:
 		  {
 		    if ([a0 isEqual: a1] == NO)
 		      {
-			itemName = token;
+			ASSIGNCOPY(itemName, token);
 			[self log: @"method args in interface %@ don't match "
 			  @"those in implementation %@", a0, a1];
-			itemName = nil;
+			DESTROY(itemName);
 			[exist setObject: a1 forKey: @"Args"];
 		      }
 		  }
@@ -3076,10 +3078,10 @@ fail:
 		  {
 		    if ([a0 isEqual: a1] == NO)
 		      {
-			itemName = token;
+			ASSIGNCOPY(itemName, token);
 			[self log: @"method types in interface %@ don't match "
 			  @"those in implementation %@", a0, a1];
-			itemName = nil;
+			DESTROY(itemName);
 			[exist setObject: a1 forKey: @"Types"];
 		      }
 		  }
@@ -3601,7 +3603,8 @@ fail:
 
   [dict setObject: name forKey: @"Name"];
   [self setStandards: dict];
-  unitName = [NSString stringWithFormat: @"(%@)", name];
+  DESTROY(unitName);
+  unitName = [[NSString alloc] initWithFormat: @"(%@)", name];
 
   /*
    * Protocols may themselves conform to protocols.
@@ -3655,14 +3658,14 @@ fail:
 
   // [self log: @"Found protocol %@", dict];
 
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   IF_NO_GC([dict autorelease];)
   return dict;
 
 fail:
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   RELEASE(dict);
@@ -3854,10 +3857,10 @@ fail:
   haveSource = NO;
   DESTROY(declared);
   DESTROY(comment);
-  fileName = nil;
-  unitName = nil;
-  itemName = nil;
-  lines = nil;
+  DESTROY(fileName);
+  DESTROY(unitName);
+  DESTROY(itemName);
+  DESTROY(lines);
   buffer = 0;
   length = 0;
   pos = 0;
@@ -4108,9 +4111,8 @@ fail:
   [data setLength: length*sizeof(unichar)];
   buffer = [data mutableBytes];
   pos = 0;
-  lines = [[NSArray alloc] initWithArray: a];
+  ASSIGN(lines, [NSArray arrayWithArray: a]);
   [arp drain];
-  IF_NO_GC([lines autorelease];)
   IF_NO_GC([data autorelease];)
 }
 
