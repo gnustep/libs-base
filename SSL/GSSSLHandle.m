@@ -122,8 +122,19 @@ sslError(int err)
     }
   else
     {
-      str = [NSString stringWithFormat: @"%s", ERR_reason_error_string(err)];
+      const char        *s = ERR_reason_error_string(err);
 
+      if (0 == s)
+        {
+          char  buf[128];
+
+          ERR_error_string(err, buf);
+          str = [NSString stringWithFormat: @"%s", buf];
+        }
+      else
+        {
+          str = [NSString stringWithFormat: @"%s", s];
+        }
     }
   return str;
 }
