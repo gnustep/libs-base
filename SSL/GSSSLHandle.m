@@ -401,7 +401,7 @@ static NSString	*cipherList = nil;
   /*
    * Ensure we have a context and handle to connect with.
    */
-  if (ctx == 0)
+  if (0 == ctx)
     {
       ctx = SSL_CTX_new(SSLv23_client_method());
       if (permitSSLv2 == NO)
@@ -413,16 +413,22 @@ static NSString	*cipherList = nil;
           SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
 	}
     }
-  if (ssl == 0)
+  if (0 == ssl)
     {
       ssl = SSL_new(ctx);
     }
 
-  /*
-   * Set non-blocking so accept won't hang if remote end goes wrong.
-   */
-  [self setNonBlocking: YES];
-  ret = SSL_set_fd(ssl, descriptor);
+  if (SSL_get_fd(ssl) == descriptor)
+    {
+      ret = 1;
+    }
+  else
+    {
+      /* Set non-blocking so accept won't hang if remote end goes wrong.
+       */
+      [self setNonBlocking: YES];
+      ret = SSL_set_fd(ssl, descriptor);
+    }
   if (1 == ret)
     {
       if (YES == isOutgoing)
