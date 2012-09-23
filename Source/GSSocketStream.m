@@ -39,6 +39,7 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
+#define	EXPOSE_GSFileHandle_IVARS	1
 #import "GSFileHandle.h"
 #import "GSStream.h"
 #import "GSSocketStream.h"
@@ -88,7 +89,7 @@ GSPrivateSockaddrHost(struct sockaddr *addr)
 
       inet_ntop(AF_INET, &addr6->sin6_addr, buf, sizeof(buf));
       return [NSString stringWithUTF8String: buf];
-    } 
+    }
 #endif
   inet_ntop(AF_INET, &((struct sockaddr_in*)(void*)addr)->sin_addr,
 		  buf, sizeof(buf));
@@ -116,7 +117,7 @@ GSPrivateSockaddrPort(struct sockaddr *addr)
       port = addr6->sin6_port;
       port = GSSwapBigI16ToHost(port);
       return port;
-    } 
+    }
 #endif
   port = ((struct sockaddr_in*)(void*)addr)->sin_port;
   port = GSSwapBigI16ToHost(port);
@@ -510,7 +511,7 @@ static NSMutableDictionary      *certificateListCache = nil;
       GNUTLSCertificateList     *list;
 
       list = [certificateListCache objectForKey: key];
-   
+
       if ([now timeIntervalSinceDate: list->when] > 300.0)
         {
           [certificateListCache removeObjectForKey: key];
@@ -577,7 +578,7 @@ static NSMutableDictionary      *certificateListCache = nil;
       l->crts = malloc(sizeof(gnutls_x509_crt_t) * count);
       memcpy(l->crts, crts, sizeof(gnutls_x509_crt_t) * count);
       l->count = count;
-      
+
       [certificateListLock lock];
       [certificateListCache setObject: l forKey: l->path];
       [certificateListLock unlock];
@@ -667,7 +668,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       while (nil != (iKey = [inner nextObject]))
         {
           GNUTLSPrivateKey  *key = [m objectForKey: iKey];
-       
+
           if ([now timeIntervalSinceDate: key->when] > 300.0)
             {
               [m removeObjectForKey: iKey];
@@ -745,7 +746,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       k->path = [f copy];
       k->password = [p copy];
       gnutls_x509_privkey_init(&k->key);
-      
+
       if (nil == k->password)
         {
           ret = gnutls_x509_privkey_import(k->key, &datum,
@@ -823,7 +824,7 @@ GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
 {
   ssize_t       result;
   GSTLS         *tls = (GSTLS*)handle;
-  
+
   result = [[tls istream] _read: buffer maxLength: len];
   if (result < 0)
     {
@@ -854,7 +855,7 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 {
   ssize_t       result;
   GSTLS         *tls = (GSTLS*)handle;
-  
+
   result = [[tls ostream] _write: buffer maxLength: len];
   if (result < 0)
     {
@@ -1139,12 +1140,12 @@ static gnutls_anon_client_credentials_t anoncred;
     gnutls_kx_set_priority (session, kx_prio);
     gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
   }
- */ 
+ */
 
   /* Set certificate credentials for this session.
    */
   gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
-  
+
   /* Set transport layer to use our low level stream code.
    */
 #if GNUTLS_VERSION_NUMBER < 0x020C00
@@ -1258,7 +1259,7 @@ GSTLSHandlePull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
   ssize_t       result = 0;
   GSTLSHandle   *tls = (GSTLSHandle*)handle;
   int           descriptor = [tls fileDescriptor];
-  
+
   result = read(descriptor, buffer, len);
   if (result < 0)
     {
@@ -1278,7 +1279,7 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   ssize_t       result = 0;
   GSTLSHandle   *tls = (GSTLSHandle*)handle;
   int           descriptor = [tls fileDescriptor];
-  
+
   result = write(descriptor, buffer, len);
   if (result < 0)
     {
@@ -1499,13 +1500,13 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
     gnutls_kx_set_priority (session, kx_prio);
     gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
   }
- */ 
+ */
 
 
       /* Set certificate credentials for this session.
        */
       gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
-  
+
       /* Set transport layer to use our low level stream code.
        */
 #if GNUTLS_VERSION_NUMBER < 0x020C00
@@ -1851,7 +1852,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
           /* Record the host and port that the streams are supposed to be
            * connecting to.
-           */ 
+           */
 	  addr = (struct sockaddr_in*)(void*)[istream _address];
 	  address = [[NSString alloc] initWithUTF8String:
 	    (char*)inet_ntoa(addr->sin_addr)];
@@ -2826,7 +2827,7 @@ setNonBlocking(SOCKET fd)
        * It is possible the stream is closed yet recieving event because
        * of not closed sibling
        */
-      NSAssert([_sibling streamStatus] != NSStreamStatusClosed, 
+      NSAssert([_sibling streamStatus] != NSStreamStatusClosed,
 	@"Received event for closed stream");
       [_sibling _dispatch];
     }
@@ -3061,7 +3062,7 @@ setNonBlocking(SOCKET fd)
   else
     {
       int result;
-      
+
       if ([self _sock] == INVALID_SOCKET)
         {
           SOCKET        s;
@@ -3138,7 +3139,7 @@ setNonBlocking(SOCKET fd)
         }
     }
 
- open_ok: 
+ open_ok:
 #if	defined(__MINGW__)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
@@ -3232,7 +3233,7 @@ setNonBlocking(SOCKET fd)
        * It is possible the stream is closed yet recieving event because
        * of not closed sibling
        */
-      NSAssert([_sibling streamStatus] != NSStreamStatusClosed, 
+      NSAssert([_sibling streamStatus] != NSStreamStatusClosed,
 	@"Received event for closed stream");
       [_sibling _dispatch];
     }
@@ -3501,7 +3502,7 @@ setNonBlocking(SOCKET fd)
   _sock = INVALID_SOCKET;
 }
 
-- (void) acceptWithInputStream: (NSInputStream **)inputStream 
+- (void) acceptWithInputStream: (NSInputStream **)inputStream
                   outputStream: (NSOutputStream **)outputStream
 {
   GSSocketStream *ins = AUTORELEASE([[self _inputStreamClass] new]);
@@ -3549,7 +3550,7 @@ setNonBlocking(SOCKET fd)
 {
 #if	defined(__MINGW__)
   WSANETWORKEVENTS events;
-  
+
   if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
     {
       errno = WSAGetLastError();

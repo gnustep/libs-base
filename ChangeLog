@@ -1,5 +1,12 @@
 2012-09-23  Niels Grewe <niels.grewe@halbordnung.de>
 
+	* Source/GSSocketStream.m: Expose GSFileHandle ivars for compilation
+	with the non-fragile ABI.
+	* Headers/GNUstepBase/GSVersionMacros.h: Restore line that was
+	accidentally commented out.
+
+2012-09-23  Niels Grewe <niels.grewe@halbordnung.de>
+
 	* Source/GSTimSort.m: Fix typo.
 
 2012-09-21  Richard Frith-Macdonald <rfm@gnu.org>
