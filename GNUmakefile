@@ -65,8 +65,10 @@ include ./Version
 # The list of subproject directories
 #
 SUBPROJECTS = Source
+ifeq ($(GNUSTEP_BASE_HAVE_GNUTLS), 0)
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   SUBPROJECTS += SSL
+endif
 endif
 SUBPROJECTS += Tools NSTimeZones Resources Tests
 

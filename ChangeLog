@@ -8,6 +8,11 @@
         using GNUTLS.
         * Source/NSFileHandle.m: Some ssl/tls restructuring, use GNUTLS if
         available.
+        * configure.ac: Don't build SSL bundle if isupport is built-in.
+        * GNUmakefile: ditto
+        * base.make.in: ditto ... plus fix to define setting to show whether
+        ICU is avaiable.
+        * configure: regenerate
 
 2012-09-23  Niels Grewe <niels.grewe@halbordnung.de>
 

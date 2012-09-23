@@ -3064,8 +3064,8 @@ if test $enable_tls = yes; then
     AC_MSG_RESULT(no)
     echo
     echo "You do not appear to have usable libgnutls headers/library."
-    echo "Building without them will disable SSL/TLS/HTTPS in NSStream"
-    echo "and NSURLConnection."
+    echo "Building without them will disable SSL/TLS/HTTPS in NSStream,"
+    echo "NSFileHandle, NSURLHandle and NSURLConnection."
     echo "If you really want to build gnustep-base without TLS support,"
     echo "add --disable-tls to the configure arguments."
     AC_MSG_ERROR([Missing support for TLS functionality.])
@@ -3360,6 +3360,11 @@ fi
 
 AC_SUBST(GNUSTEP_INSTALL_GDOMAP_AS_SETUID)
 
+# If there's no TLS support ... try to get some limited functionality
+# by using OpenSSL instead.
+
+if test "$HAVE_TLS" = "0"; then
+
 #--------------------------------------------------------------------
 # Configure flags from sub-configure runs, so they show up in our
 # help file.
@@ -3367,6 +3372,7 @@ AC_SUBST(GNUSTEP_INSTALL_GDOMAP_AS_SETUID)
 AC_ARG_ENABLE(openssl,
   [  --disable-openssl		Disable support for openssl in URL classes],,
   enable_openssl=yes)
+  HAVE_GNUTLS=0
 AC_ARG_WITH(openssl-include,
   [  --with-openssl-include=PATH  include path for openssl headers],
   openssl_incdir="$withval", openssl_incdir="no")
@@ -3375,6 +3381,7 @@ AC_ARG_WITH(openssl-library,
   openssl_libdir="$withval", openssl_libdir="no")
 
 AC_CONFIG_SUBDIRS(SSL)
+fi
 
 #--------------------------------------------------------------------
 # Record the version
