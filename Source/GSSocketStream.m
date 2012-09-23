@@ -30,12 +30,16 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSFileHandle.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSLock.h"
+#import "Foundation/NSNotification.h"
 #import "Foundation/NSRunLoop.h"
+#import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
+#import "GSFileHandle.h"
 #import "GSStream.h"
 #import "GSSocketStream.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
@@ -354,6 +358,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
  */
 #define	_GCRYPT_IN_LIBGCRYPT
 #include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
 #include <gcrypt.h>
 #undef	id
 
@@ -388,6 +393,418 @@ static struct gcry_thread_cbs gcry_threads_other = {
   gcry_mutex_lock,
   gcry_mutex_unlock
 };
+
+
+@interface      GNUTLSDHParams : NSObject
+{
+  gnutls_dh_params_t    params;
+}
++ (GNUTLSDHParams*) current;
+- (gnutls_dh_params_t) params;
+@end
+
+@implementation GNUTLSDHParams
+static NSLock           *paramsLock = nil;
+static NSDate           *when = nil;
+static GNUTLSDHParams   *current = nil;
+
++ (GNUTLSDHParams*) current
+{
+  GNUTLSDHParams        *p;
+
+  [paramsLock lock];
+  if (nil == current)
+    {
+      current = [self new];
+    }
+  p = [current retain];
+  [paramsLock unlock];
+  return [current autorelease];
+}
+
++ (void) housekeeping: (NSNotification*)n
+{
+  NSDate        *now;
+
+  now = [NSDate date];
+  [paramsLock lock];
+  /* Regenerate DH params once per day.
+   */
+  if ([now timeIntervalSinceDate: when] > 24 * 60 * 60)
+    {
+      ASSIGN(when, [NSDate date]);
+      ASSIGN(current, [self new]);
+    }
+  [paramsLock unlock];
+}
+
++ (void) initialize
+{
+  if (nil == paramsLock)
+    {
+      paramsLock = [NSLock new];
+      when = [NSDate new];
+      current = [self new];
+      [[NSNotificationCenter defaultCenter] addObserver: self
+	selector: @selector(housekeeping:)
+	name: @"GSHousekeeping" object: nil];
+    }
+}
+
+- (void) dealloc
+{
+  gnutls_dh_params_deinit (params);
+  [super dealloc];
+}
+
+- (id) init
+{
+  /* Generate Diffie-Hellman parameters - for use with DHE
+   * kx algorithms. When short bit length is used, it might
+   * be wise to regenerate parameters often.
+   */
+  gnutls_dh_params_init (&params);
+  gnutls_dh_params_generate2 (params, 2048);
+  return self;
+}
+
+- (gnutls_dh_params_t) params
+{
+  return params;
+}
+@end
+
+/* Manage certificate lists (for servers and clients) and also provide
+ * DH params.
+ */
+@interface      GNUTLSCertificateList : NSObject
+{
+  NSDate                *when;
+  NSString              *path;
+  gnutls_x509_crt_t     *crts;
+  unsigned int          count;
+}
++ (GNUTLSCertificateList*) listFromFile: (NSString*)f;
+- (gnutls_x509_crt_t*) certificateList;
+- (unsigned int) count;
+@end
+
+@implementation GNUTLSCertificateList
+
+static NSLock                   *certificateListLock = nil;
+static NSMutableDictionary      *certificateListCache = nil;
+
+/* Method to purge older lists from cache.
+ */
++ (void) housekeeping: (NSNotification*)n
+{
+  NSEnumerator  *enumerator;
+  NSString      *key;
+  NSDate        *now;
+
+  now = [NSDate date];
+  [certificateListLock lock];
+  enumerator = [[certificateListCache allKeys] objectEnumerator];
+  while (nil != (key = [enumerator nextObject]))
+    {
+      GNUTLSCertificateList     *list;
+
+      list = [certificateListCache objectForKey: key];
+   
+      if ([now timeIntervalSinceDate: list->when] > 300.0)
+        {
+          [certificateListCache removeObjectForKey: key];
+        }
+    }
+  [certificateListLock unlock];
+}
+
++ (void) initialize
+{
+  if (nil == certificateListLock)
+    {
+      certificateListLock = [NSLock new];
+      certificateListCache = [NSMutableDictionary new];
+      [[NSNotificationCenter defaultCenter] addObserver: self
+	selector: @selector(housekeeping:)
+	name: @"GSHousekeeping" object: nil];
+    }
+}
+
++ (GNUTLSCertificateList*) listFromFile: (NSString*)f
+{
+  GNUTLSCertificateList *l;
+
+  if (nil == f)
+    {
+      return nil;
+    }
+  [certificateListLock lock];
+  l = [[certificateListCache objectForKey: f] retain];
+  [certificateListLock unlock];
+
+  if (nil == l)
+    {
+      NSData                    *data;
+      int                       ret;
+      gnutls_datum_t            datum;
+      unsigned int              count = 100;
+      gnutls_x509_crt_t         crts[count];
+
+      data = [NSData dataWithContentsOfFile: f];
+      if (nil == data)
+        {
+          NSLog(@"Unable to read certificate file '%@'", f);
+          return nil;
+        }
+      datum.data = (unsigned char*)[data bytes];
+      datum.size = (unsigned int)[data length];
+
+      l = [self alloc];
+      l->when = [NSDate new];
+      l->path = [f copy];
+      ret = gnutls_x509_crt_list_import(crts, &count, &datum,
+        GNUTLS_X509_FMT_PEM,
+//            GNUTLS_X509_CRT_LIST_FAIL_IF_UNSORTED |
+        GNUTLS_X509_CRT_LIST_IMPORT_FAIL_IF_EXCEED);
+      if (ret < 0)
+        {
+          NSLog(@"Unable to parse certificate file '%@': %s",
+            l->path, gnutls_strerror(ret));
+          [l release];
+          return nil;
+        }
+      l->crts = malloc(sizeof(gnutls_x509_crt_t) * count);
+      memcpy(l->crts, crts, sizeof(gnutls_x509_crt_t) * count);
+      l->count = count;
+      
+      [certificateListLock lock];
+      [certificateListCache setObject: l forKey: l->path];
+      [certificateListLock unlock];
+    }
+
+  return [l autorelease];
+}
+
+- (gnutls_x509_crt_t*) certificateList
+{
+  return crts;
+}
+
+- (unsigned int) count
+{
+  return count;
+}
+
+- (void) dealloc
+{
+  if (nil != path)
+    {
+      DESTROY(when);
+      DESTROY(path);
+      if (count > 0)
+        {
+          while (count-- > 0)
+            {
+              gnutls_x509_crt_deinit(crts[count]);
+            }
+          free(crts);
+        }
+    }
+  [super dealloc];
+}
+
+@end
+
+
+@interface      GNUTLSPrivateKey : NSObject
+{
+  NSDate                *when;
+  NSString              *path;
+  NSString              *password;
+  gnutls_x509_privkey_t key;
+}
++ (GNUTLSPrivateKey*) keyFromFile: (NSString*)f withPassword: (NSString*)p;
+- (gnutls_x509_privkey_t) key;
+@end
+
+@implementation GNUTLSPrivateKey
+
+static NSLock                   *privateKeyLock = nil;
+static NSMutableDictionary      *privateKeyCache0 = nil;
+static NSMutableDictionary      *privateKeyCache1 = nil;
+
+/* Method to purge older keys from cache.
+ */
++ (void) housekeeping: (NSNotification*)n
+{
+  NSEnumerator  *outer;
+  NSString      *oKey;
+  NSDate        *now;
+
+  now = [NSDate date];
+  [privateKeyLock lock];
+  outer = [[privateKeyCache0 allKeys] objectEnumerator];
+  while (nil != (oKey = [outer nextObject]))
+    {
+      GNUTLSPrivateKey  *key;
+
+      key = [privateKeyCache0 objectForKey: oKey];
+      if ([now timeIntervalSinceDate: key->when] > 300.0)
+        {
+          [privateKeyCache0 removeObjectForKey: oKey];
+        }
+    }
+  outer = [[privateKeyCache1 allKeys] objectEnumerator];
+  while (nil != (oKey = [outer nextObject]))
+    {
+      NSMutableDictionary       *m;
+      NSEnumerator              *inner;
+      NSString                  *iKey;
+
+      m = [privateKeyCache1 objectForKey: oKey];
+      inner = [[m allKeys] objectEnumerator];
+      while (nil != (iKey = [inner nextObject]))
+        {
+          GNUTLSPrivateKey  *key = [m objectForKey: iKey];
+       
+          if ([now timeIntervalSinceDate: key->when] > 300.0)
+            {
+              [m removeObjectForKey: iKey];
+              if (0 == [m count])
+                {
+                  [privateKeyCache1 removeObjectForKey: oKey];
+                }
+            }
+        }
+    }
+  [privateKeyLock unlock];
+}
+
++ (void) initialize
+{
+  if (nil == privateKeyLock)
+    {
+      privateKeyLock = [NSLock new];
+      privateKeyCache0 = [NSMutableDictionary new];
+      privateKeyCache1 = [NSMutableDictionary new];
+
+      [[NSNotificationCenter defaultCenter] addObserver: self
+	selector: @selector(housekeeping:)
+	name: @"GSHousekeeping" object: nil];
+    }
+}
+
++ (GNUTLSPrivateKey*) keyFromFile: (NSString*)f withPassword: (NSString*)p
+{
+  GNUTLSPrivateKey      *k;
+
+  if (nil == f)
+    {
+      return nil;
+    }
+  [privateKeyLock lock];
+  if (nil == p)
+    {
+      k = [privateKeyCache0 objectForKey: f];
+    }
+  else
+    {
+      NSMutableDictionary       *m;
+
+      m = [privateKeyCache1 objectForKey: f];
+      if (nil == m)
+        {
+          k = nil;
+        }
+      else
+        {
+          k = [m objectForKey: p];
+        }
+    }
+  [k retain];
+  [privateKeyLock unlock];
+
+  if (nil == k)
+    {
+      NSData                    *data;
+      int                       ret;
+      gnutls_datum_t            datum;
+
+      data = [NSData dataWithContentsOfFile: f];
+      if (nil == data)
+        {
+          NSLog(@"Unable to read private key file '%@'", f);
+          return nil;
+        }
+      datum.data = (unsigned char*)[data bytes];
+      datum.size = (unsigned int)[data length];
+
+      k = [self alloc];
+      k->when = [NSDate new];
+      k->path = [f copy];
+      k->password = [p copy];
+      gnutls_x509_privkey_init(&k->key);
+      
+      if (nil == k->password)
+        {
+          ret = gnutls_x509_privkey_import(k->key, &datum,
+            GNUTLS_X509_FMT_PEM);
+        }
+      else
+        {
+          ret = gnutls_x509_privkey_import_pkcs8(k->key, &datum,
+            GNUTLS_X509_FMT_PEM, [k->password UTF8String], 0);
+        }
+      if (ret < 0)
+        {
+          NSLog(@"Unable to parse private key file '%@': %s",
+            k->path, gnutls_strerror(ret));
+          [k release];
+          return nil;
+        }
+      [privateKeyLock lock];
+      if (nil == k->password)
+        {
+          [privateKeyCache0 setObject: k forKey: k->path];
+        }
+      else
+        {
+          NSMutableDictionary   *m;
+
+          m = [privateKeyCache1 objectForKey: f];
+          if (nil == m)
+            {
+              m = [NSMutableDictionary new];
+              [privateKeyCache1 setObject: m forKey: f];
+              [m release];
+            }
+          [m setObject: k forKey: p];
+        }
+      [privateKeyLock unlock];
+    }
+
+  return [k autorelease];
+}
+
+- (void) dealloc
+{
+  if (nil != path)
+    {
+      DESTROY(when);
+      DESTROY(path);
+      DESTROY(password);
+      gnutls_x509_privkey_deinit(key);
+    }
+  [super dealloc];
+}
+
+- (gnutls_x509_privkey_t) key
+{
+  return key;
+}
+@end
+
 
 
 @interface      GSTLS : GSStreamHandler
@@ -468,9 +885,18 @@ GSTLSLog(int level, const char *msg)
 }
 
 
-@implementation GSTLS
+static NSString *cipherList = nil;
 
 static gnutls_anon_client_credentials_t anoncred;
+
+
+@implementation GSTLS
+
++ (void) _defaultsChanged: (NSNotification*)n
+{
+  cipherList
+    = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSCipherList"];
+}
 
 + (void) initialize
 {
@@ -478,7 +904,17 @@ static gnutls_anon_client_credentials_t anoncred;
 
   if (beenHere == NO)
     {
+      NSUserDefaults	*defs;
+
       beenHere = YES;
+
+      defs = [NSUserDefaults standardUserDefaults];
+      cipherList = [defs stringForKey: @"GSCipherList"];
+      [[NSNotificationCenter defaultCenter]
+	addObserver: self
+	   selector: @selector(_defaultsChanged:)
+	       name: NSUserDefaultsDidChangeNotification
+	     object: nil];
 
       /* Make gcrypt thread-safe
        */
@@ -789,6 +1225,421 @@ static gnutls_anon_client_credentials_t anoncred;
 }
 
 @end
+
+#if	!defined(__MINGW__)
+
+@interface      GSTLSHandle : GSFileHandle
+{
+  GNUTLSDHParams                        *dhParams;
+@public
+  gnutls_session_t                      session;
+  gnutls_certificate_credentials_t      certcred;
+  BOOL                                  active;         // able to read/write
+  BOOL                                  handshake;      // performing handshake
+  BOOL                                  outgoing;       // handshake direction
+  BOOL                                  setup;          // have set certificate
+}
+- (BOOL) sslAccept;
+- (BOOL) sslConnect;
+- (void) sslDisconnect;
+- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
+- (void) sslSetCertificate: (NSString*)certFile
+                privateKey: (NSString*)privateKey
+                 PEMpasswd: (NSString*)PEMpasswd;
+@end
+
+
+/* Callback to allow the TLS code to pull data from the remote system.
+ * If the operation fails, this sets the error number.
+ */
+static ssize_t
+GSTLSHandlePull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
+{
+  ssize_t       result = 0;
+  GSTLSHandle   *tls = (GSTLSHandle*)handle;
+  int           descriptor = [tls fileDescriptor];
+  
+  result = read(descriptor, buffer, len);
+  if (result < 0)
+    {
+#if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
+      gnutls_transport_set_errno (tls->session, errno);
+#endif
+    }
+  return result;
+}
+
+/* Callback to allow the TLS code to push data to the remote system.
+ * If the operation fails, this sets the error number.
+ */
+static ssize_t
+GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
+{
+  ssize_t       result = 0;
+  GSTLSHandle   *tls = (GSTLSHandle*)handle;
+  int           descriptor = [tls fileDescriptor];
+  
+  result = write(descriptor, buffer, len);
+  if (result < 0)
+    {
+#if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
+      gnutls_transport_set_errno (tls->session, errno);
+#endif
+    }
+  return result;
+}
+
+@implementation GSTLSHandle
+
++ (void) initialize
+{
+  if (self == [GSTLSHandle class])
+    {
+      [GSTLS class];        // Force initialisation of gnu tls stuff
+    }
+}
+
+- (void) closeFile
+{
+  [self sslDisconnect];
+  [super closeFile];
+}
+
+- (void) finalize
+{
+  [self sslDisconnect];
+  if (YES == setup)
+    {
+      setup = NO;
+      gnutls_certificate_free_credentials (certcred);
+    }
+  [super finalize];
+}
+
+- (NSInteger) read: (void*)buf length: (NSUInteger)len
+{
+  if (YES == active)
+    {
+      return gnutls_record_recv (session, buf, len);
+    }
+  return [super read: buf length: len];
+}
+
+- (BOOL) sslAccept
+{
+  BOOL		result = NO;
+
+  if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
+    {
+      NSRunLoop	*loop;
+
+      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      loop = [NSRunLoop currentRunLoop];
+      [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
+      if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
+	{
+	  NSDate		*final;
+	  NSDate		*when;
+	  NSTimeInterval	last = 0.0;
+	  NSTimeInterval	limit = 0.1;
+
+	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
+	  when = [NSDate alloc];
+
+	  while (NO == [self sslHandshakeEstablished: &result outgoing: NO]
+	    && [final timeIntervalSinceNow] > 0.0)
+	    {
+	      NSTimeInterval	tmp = limit;
+
+	      limit += last;
+	      last = tmp;
+	      if (limit > 0.5)
+		{
+		  limit = 0.1;
+		  last = 0.1;
+		}
+	      when = [when initWithTimeIntervalSinceNow: limit];
+	      [loop runUntilDate: when];
+	    }
+	  RELEASE(when);
+	  RELEASE(final);
+	}
+      DESTROY(self);
+    }
+  return result;
+}
+
+- (BOOL) sslConnect
+{
+  BOOL		result = NO;
+
+  if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
+    {
+      NSRunLoop	*loop;
+
+      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      loop = [NSRunLoop currentRunLoop];
+      [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
+      if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
+	{
+	  NSDate		*final;
+	  NSDate		*when;
+	  NSTimeInterval	last = 0.0;
+	  NSTimeInterval	limit = 0.1;
+
+	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
+	  when = [NSDate alloc];
+
+	  while (NO == [self sslHandshakeEstablished: &result outgoing: YES]
+	    && [final timeIntervalSinceNow] > 0.0)
+	    {
+	      NSTimeInterval	tmp = limit;
+
+	      limit += last;
+	      last = tmp;
+	      if (limit > 0.5)
+		{
+		  limit = 0.1;
+		  last = 0.1;
+		}
+	      when = [when initWithTimeIntervalSinceNow: limit];
+	      [loop runUntilDate: when];
+	    }
+	  RELEASE(when);
+	  RELEASE(final);
+	}
+      DESTROY(self);
+    }
+  return result;
+}
+
+- (void) sslDisconnect
+{
+  if (YES == active || YES == handshake)
+    {
+      active = NO;
+      handshake = NO;
+      gnutls_bye (session, GNUTLS_SHUT_RDWR);
+      gnutls_db_remove_session (session);
+      gnutls_deinit (session);
+    }
+  DESTROY(dhParams);
+}
+
+- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing
+{
+  int   ret;
+
+  NSAssert(0 != result, NSInvalidArgumentException);
+
+  if (YES == active)
+    {
+      return YES;	/* Already connected.	*/
+    }
+
+  if (YES == isStandardFile)
+    {
+      NSLog(@"Attempt to perform ssl handshake with a standard file");
+      return NO;
+    }
+
+  /* Set the handshake direction so we know how to set up the connection.
+   */
+  outgoing = isOutgoing;
+
+  if (NO == setup)
+    {
+      [self sslSetCertificate: nil privateKey: nil PEMpasswd: nil];
+    }
+
+  if (NO == handshake)
+    {
+      handshake = YES;          // Set flag to say a handshake is in progress
+
+      /* Now initialise session and set it up
+       */
+      if (YES == outgoing)
+        {
+          gnutls_init (&session, GNUTLS_CLIENT);
+        }
+      else
+        {
+          gnutls_init (&session, GNUTLS_SERVER);
+
+          /* We don't request any certificate from the client.
+           * If we did we would need to verify it.
+           */
+          gnutls_certificate_server_set_request (session, GNUTLS_CERT_IGNORE);
+
+          /* FIXME ... need to set up DH information and key/certificate. */
+        }
+      gnutls_set_default_priority (session);
+
+#if GNUTLS_VERSION_NUMBER < 0x020C00
+      {
+        const int proto_prio[2] = {
+          GNUTLS_SSL3,
+          0 };
+        gnutls_protocol_set_priority (session, proto_prio);
+      }
+#else
+      gnutls_priority_set_direct(session,
+        "NORMAL:-VERS-TLS-ALL:+VERS-SSL3.0", NULL);
+#endif
+
+/*
+ {
+    const int kx_prio[] = {
+      GNUTLS_KX_RSA,
+      GNUTLS_KX_RSA_EXPORT,
+      GNUTLS_KX_DHE_RSA,
+      GNUTLS_KX_DHE_DSS,
+      GNUTLS_KX_ANON_DH,
+      0 };
+    gnutls_kx_set_priority (session, kx_prio);
+    gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
+  }
+ */ 
+
+
+      /* Set certificate credentials for this session.
+       */
+      gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
+  
+      /* Set transport layer to use our low level stream code.
+       */
+#if GNUTLS_VERSION_NUMBER < 0x020C00
+      gnutls_transport_set_lowat (session, 0);
+#endif
+      gnutls_transport_set_pull_function (session, GSTLSHandlePull);
+      gnutls_transport_set_push_function (session, GSTLSHandlePush);
+      gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
+
+      [self setNonBlocking: YES];
+    }
+
+  if (outgoing != isOutgoing)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Attempt to change direction of TLS handshake"];
+    }
+
+  ret = gnutls_handshake (session);
+  if (ret < 0)
+    {
+      if (gnutls_error_is_fatal(ret))
+        {
+          NSLog(@"unable to make SSL connection to %@:%@ - %s",
+            address, service, gnutls_strerror(ret));
+          *result = NO;
+        }
+      else
+        {
+          if (GSDebugSet(@"NSStream") == YES)
+            {
+              gnutls_perror(ret);
+            }
+          return NO;        // Non-fatal error needs a retry.
+        }
+    }
+  else
+    {
+      handshake = NO;       // Handshake is now complete.
+      active = YES;         // The TLS session is now active.
+      *result = active;
+    }
+  return YES;
+}
+
+- (void) sslSetCertificate: (NSString*)certFile
+		privateKey: (NSString*)privateKey
+		 PEMpasswd: (NSString*)PEMpasswd
+{
+  if (isStandardFile == YES)
+    {
+      NSLog(@"Attempt to set ssl certificate for a standard file");
+      return;
+    }
+
+  if (NO == setup)
+    {
+      GNUTLSPrivateKey          *key = nil;
+      GNUTLSCertificateList     *list = nil;
+      int                       ret;
+
+      if (nil != privateKey)
+        {
+          key = [GNUTLSPrivateKey keyFromFile: privateKey
+                                 withPassword: PEMpasswd];
+          if (nil == key)
+            {
+              return;
+            }
+        }
+
+      if (nil != certFile)
+        {
+          list = [GNUTLSCertificateList listFromFile: certFile];
+          if (nil == list)
+            {
+              return;
+            }
+        }
+
+      setup = YES;
+
+      /* Configure this session to support certificate based
+       * operation.
+       */
+      gnutls_certificate_allocate_credentials (&certcred);
+
+      /* FIXME ... should get the trusted authority certificates
+       * from somewhere sensible to validate the remote end!
+       */
+      gnutls_certificate_set_x509_trust_file
+        (certcred, "ca.pem", GNUTLS_X509_FMT_PEM);
+
+/*
+      gnutls_certificate_set_x509_crl_file (x509_cred,
+        [certFile UTF8String], GNUTLS_X509_FMT_PEM);
+*/
+
+      if (nil != list)
+        {
+          ret = gnutls_certificate_set_x509_key (certcred,
+            [list certificateList], [list count], [key key]);
+          if (ret < 0)
+            {
+              gnutls_perror(ret);
+            }
+          else if (NO == outgoing)
+            {
+              dhParams = [[GNUTLSDHParams current] retain];
+              gnutls_certificate_set_dh_params (certcred, [dhParams params]);
+            }
+        }
+
+#if 0
+      if (nil != cipherList)
+	{
+          SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
+	}
+#endif
+
+    }
+}
+
+- (NSInteger) write: (const void*)buf length: (NSUInteger)len
+{
+  if (YES == active)
+    {
+      return gnutls_record_send (session, buf, len);
+    }
+  return [super write: buf length: len];
+}
+
+@end
+#endif  /* MINGW */
 
 #else   /* HAVE_GNUTLS */
 
