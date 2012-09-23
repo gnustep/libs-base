@@ -45,6 +45,13 @@
 #import "GSSocketStream.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
+/* Perhaps thse should be elsewhere ... maybe in a new file along with
+ * the gnutls infrastructure.
+ */
+NSString * const GSTLSCertificateFileKey = @"GSTLSCertificateFileKey";
+NSString * const GSTLSPrivateKeyFileKey = @"GSTLSPrivateKeyFile";
+NSString * const GSTLSPrivateKeyPasswordKey = @"GSTLSPrivateKeyPassword";
+
 #ifndef SHUT_RD
 # ifdef  SD_RECEIVE
 #   define SHUT_RD      SD_RECEIVE
@@ -489,10 +496,6 @@ _verify_certificate_callback (gnutls_session_t session)
   /* notify gnutls to continue handshake normally */
   return 0;
 }
-
-NSString * const GSTLSCertificateFileKey = @"GSTLSCertificateFileKey";
-NSString * const GSTLSPrivateKeyFileKey = @"GSTLSPrivateKeyFile";
-NSString * const GSTLSPrivateKeyPasswordKey = @"GSTLSPrivateKeyPassword";
 
 /* This class is used to ensure that the GNUTLS system is initialised
  * and thread-safe.

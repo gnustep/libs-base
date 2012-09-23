@@ -24838,8 +24838,8 @@ $as_echo "$as_me: WARNING: Missing support for thread-safe operation in GNUTLS. 
 $as_echo "no" >&6; }
     echo
     echo "You do not appear to have usable libgnutls headers/library."
-    echo "Building without them will disable SSL/TLS/HTTPS in NSStream"
-    echo "and NSURLConnection."
+    echo "Building without them will disable SSL/TLS/HTTPS in NSStream,"
+    echo "NSFileHandle, NSURLHandle and NSURLConnection."
     echo "If you really want to build gnustep-base without TLS support,"
     echo "add --disable-tls to the configure arguments."
     { { $as_echo "$as_me:$LINENO: error: Missing support for TLS functionality." >&5
@@ -26836,6 +26836,11 @@ fi
 
 
 
+# If there's no TLS support ... try to get some limited functionality
+# by using OpenSSL instead.
+
+if test "$HAVE_TLS" = "0"; then
+
 #--------------------------------------------------------------------
 # Configure flags from sub-configure runs, so they show up in our
 # help file.
@@ -26847,6 +26852,7 @@ else
   enable_openssl=yes
 fi
 
+  HAVE_GNUTLS=0
 
 # Check whether --with-openssl-include was given.
 if test "${with_openssl_include+set}" = set; then
@@ -26868,6 +26874,7 @@ fi
 
 subdirs="$subdirs SSL"
 
+fi
 
 #--------------------------------------------------------------------
 # Record the version
