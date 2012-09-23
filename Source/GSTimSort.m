@@ -1059,7 +1059,7 @@ descriptorOrComparator: (id)descriptorOrComparator
   // location from that point gives us the length of the subrange we need to
   // merge.
   r2.length = (gallopLeft(objects[NSMaxRange(r1) - 1], objects, r2,
-    (r2.length - 2),
+    (r2.length - 1),
     sortDescriptorOrComparator, comparisonType, functionContext)
      - r2.location);
   if (r2.length == 0)

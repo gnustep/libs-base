@@ -1,3 +1,7 @@
+2012-09-23  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSTimSort.m: Fix typo.
+
 2012-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSArray.m:
