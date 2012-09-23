@@ -1,5 +1,9 @@
 2012-09-24  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSBundle.m: Fix error spotted by Fred.
+
+2012-09-24  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Headers/Foundation/NSFileHandle.h: deprecate old method for setting
         certificate and add new one.
         * SSL/GSSSLHandle.m: Support new method and move generic code to
