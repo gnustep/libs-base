@@ -703,74 +703,167 @@ NSString * const NSFileHandleOperationException
 
 @end
 
-@implementation NSFileHandle (GNUstepOpenSSL)
+@implementation NSFileHandle (GNUstepTLS)
 /**
- * returns the concrete class used to implement SSL connections.
+ * returns the concrete class used to implement SSL/TLS connections.
  */
 + (Class) sslClass
 {
-  if (NSFileHandle_ssl_class == 0)
+  if (0 == NSFileHandle_ssl_class)
     {
-      NSString  *path;
-      NSBundle	*bundle;
+      NSFileHandle_ssl_class = NSClassFromString(@"GSTLSHandle");
 
-      path = [[NSBundle bundleForClass: [NSObject class]] bundlePath];
-      path = [path stringByAppendingPathComponent: @"SSL.bundle"];
+      if (0 == NSFileHandle_ssl_class)
+        {
+          NSString      *path;
+          NSBundle      *bundle;
 
-      bundle = [NSBundle bundleWithPath: path];
-      NSFileHandle_ssl_class = [bundle principalClass];
-      if (NSFileHandle_ssl_class == 0 && bundle != nil)
-	{
-	  NSLog(@"Failed to load principal class from bundle (%@)", path);
-	}
+          path = [[NSBundle bundleForClass: [NSObject class]] bundlePath];
+          path = [path stringByAppendingPathComponent: @"SSL.bundle"];
+
+          bundle = [NSBundle bundleWithPath: path];
+          NSFileHandle_ssl_class = [bundle principalClass];
+          if (NSFileHandle_ssl_class == 0 && bundle != nil)
+            {
+              NSLog(@"Failed to load principal class from bundle (%@)", path);
+            }
+        }
     }
   return NSFileHandle_ssl_class;
 }
 
-/** <override-dummy />
- * Establishes an SSL connection from the system that the handle
- * is talking to.<br />
- * This is implemented by an SSL handling subclass.<br />
- * The default implementation just returns NO.
- */
 - (BOOL) sslAccept
 {
-  return NO;
+  BOOL		result = NO;
+
+  if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
+    {
+      NSRunLoop	*loop;
+
+      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      loop = [NSRunLoop currentRunLoop];
+      [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
+      if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
+	{
+	  NSDate		*final;
+	  NSDate		*when;
+	  NSTimeInterval	last = 0.0;
+	  NSTimeInterval	limit = 0.1;
+
+	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
+	  when = [NSDate alloc];
+
+	  while (NO == [self sslHandshakeEstablished: &result outgoing: NO]
+	    && [final timeIntervalSinceNow] > 0.0)
+	    {
+	      NSTimeInterval	tmp = limit;
+
+	      limit += last;
+	      last = tmp;
+	      if (limit > 0.5)
+		{
+		  limit = 0.1;
+		  last = 0.1;
+		}
+	      when = [when initWithTimeIntervalSinceNow: limit];
+	      [loop runUntilDate: when];
+	    }
+	  RELEASE(when);
+	  RELEASE(final);
+	}
+      DESTROY(self);
+    }
+  return result;
 }
 
-/** <override-dummy />
- * Establishes an SSL connection to the system that the handle
- * is talking to.<br />
- * This is implemented by an SSL handling subclass.<br />
- * The default implementation just returns NO.
- */
 - (BOOL) sslConnect
 {
-  return NO;
+  BOOL		result = NO;
+
+  if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
+    {
+      NSRunLoop	*loop;
+
+      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      loop = [NSRunLoop currentRunLoop];
+      [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
+      if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
+	{
+	  NSDate		*final;
+	  NSDate		*when;
+	  NSTimeInterval	last = 0.0;
+	  NSTimeInterval	limit = 0.1;
+
+	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
+	  when = [NSDate alloc];
+
+	  while (NO == [self sslHandshakeEstablished: &result outgoing: YES]
+	    && [final timeIntervalSinceNow] > 0.0)
+	    {
+	      NSTimeInterval	tmp = limit;
+
+	      limit += last;
+	      last = tmp;
+	      if (limit > 0.5)
+		{
+		  limit = 0.1;
+		  last = 0.1;
+		}
+	      when = [when initWithTimeIntervalSinceNow: limit];
+	      [loop runUntilDate: when];
+	    }
+	  RELEASE(when);
+	  RELEASE(final);
+	}
+      DESTROY(self);
+    }
+  return result;
 }
 
-/** <override-dummy />
- * Shuts down the SSL connection to the system that the handle is talking to.
- */
 - (void) sslDisconnect
 {
+  return;
 }
 
-/** <override-dummy />
- */
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing
 {
-  return NO;
+  if (0 != result)
+    {
+      *result = NO;
+    }
+  return YES;
 }
 
-/** <override-dummy />
- * Sets the certificate chain to be used to identify this process to the server
- * at the opposite end of the network connection.
- */
 - (void) sslSetCertificate: (NSString*)certFile
                 privateKey: (NSString*)privateKey
                  PEMpasswd: (NSString*)PEMpasswd
 {
+  NSMutableDictionary   *opts;
+  NSString              *err;
+
+  opts = [NSMutableDictionary dictionaryWithCapacity: 3];
+  if (nil != certFile)
+    {
+      [opts setObject: certFile forKey: GSTLSCertificateFileKey];
+    }
+  if (nil != privateKey)
+    {
+      [opts setObject: privateKey forKey: GSTLSPrivateKeyFileKey];
+    }
+  if (nil != PEMpasswd)
+    {
+      [opts setObject: PEMpasswd forKey: GSTLSPrivateKeyPasswordKey];
+    }
+  err = [self sslSetOptions: opts];
+  if (nil != err)
+    {
+      NSLog(@"%@", err);
+    }
+}
+
+- (NSString*) sslSetOptions: (NSDictionary*)options
+{
+  return nil;
 }
 
 @end
