@@ -123,17 +123,17 @@ altLang(NSString *full)
             }
         }
 
-      if ([canon rangeOfString: @"-"].length > 1)
+      if ((r = [canon rangeOfString: @"-"]).length > 1)
         {
           dialect = [canon substringFromIndex: NSMaxRange(r)];
           lang = [canon substringToIndex: r.location];
-          if ([dialect rangeOfString: @"_"].length > 1)
+          if ((r = [dialect rangeOfString: @"_"]).length > 1)
             {
               region = [dialect substringFromIndex: NSMaxRange(r)];
               dialect = [dialect substringToIndex: r.location];
             }
         }
-      else if ([canon rangeOfString: @"_"].length > 1)
+      else if ((r = [canon rangeOfString: @"_"]).length > 1)
         {
           region = [canon substringFromIndex: NSMaxRange(r)];
           lang = [canon substringToIndex: r.location];
