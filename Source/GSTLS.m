@@ -238,31 +238,51 @@ static gnutls_anon_client_credentials_t anoncred;
 @end
 
 @implementation GSTLSDHParams
-static NSLock           *paramsLock = nil;
-static NSDate           *when = nil;
-static BOOL             generating = NO;
-static GSTLSDHParams    *current = nil;
+static NSLock                   *paramsLock = nil;
+static NSMutableDictionary      *paramsCache = nil;
+static NSDate                   *paramsWhen = nil;
+static BOOL                     paramsGenerating = NO;
+static GSTLSDHParams            *paramsCurrent = nil;
 
 + (GSTLSDHParams*) current
 {
   GSTLSDHParams *p;
 
   [paramsLock lock];
-  while (nil == current)
+  if (nil == paramsCurrent)
     {
-      [paramsLock unlock];
-      [NSThread sleepForTimeInterval: 0.2];
-      [paramsLock lock];
+      if (NO == paramsGenerating)
+        {
+          [paramsLock unlock];
+          [self generate];
+          [paramsLock lock];
+        }
+      while (nil == paramsCurrent)
+        {
+          [paramsLock unlock];
+          [NSThread sleepForTimeInterval: 0.2];
+          [paramsLock lock];
+        }
     }
-  p = [current retain];
+  p = [paramsCurrent retain];
   [paramsLock unlock];
-  return [current autorelease];
+  return [paramsCurrent autorelease];
 }
 
 + (void) generate
 {
-  GSTLSDHParams         *p = [GSTLSDHParams new];
+  GSTLSDHParams         *p;
 
+  [paramsLock lock];
+  if (YES == paramsGenerating)
+    {
+      [paramsLock unlock];
+      return;
+    }
+  paramsGenerating = YES;
+  [paramsLock unlock];
+
+  p = [GSTLSDHParams new];
   /* Generate Diffie-Hellman parameters - for use with DHE
    * kx algorithms. When short bit length is used, it might
    * be wise to regenerate parameters often.
@@ -270,26 +290,41 @@ static GSTLSDHParams    *current = nil;
   gnutls_dh_params_init (&p->params);
   gnutls_dh_params_generate2 (p->params, 2048);
   [paramsLock lock];
-  [current release];
-  current = p;
-  ASSIGN(when, [NSDate date]);
-  generating = NO;
+  [paramsCurrent release];
+  paramsCurrent = p;
+  ASSIGN(paramsWhen, [NSDate date]);
+  paramsGenerating = NO;
   [paramsLock unlock];
 }
 
 + (void) housekeeping: (NSNotification*)n
 {
+  NSEnumerator  *enumerator;
+  NSString      *key;
   NSDate        *now;
 
   now = [NSDate date];
   [paramsLock lock];
+
+  enumerator = [[paramsCache allKeys] objectEnumerator];
+  while (nil != (key = [enumerator nextObject]))
+    {
+      GSTLSDHParams     *p;
+
+      p = [paramsCache objectForKey: key];
+
+      if ([now timeIntervalSinceDate: p->when] > 300.0)
+        {
+          [paramsCache removeObjectForKey: key];
+        }
+    }
+
   /* Regenerate DH params once per day, perfoming generation in another
    * thread since it's likely to be rather slow.
    */
-  if (NO == generating
-    && (nil == when || [now timeIntervalSinceDate: when] > 24 * 60 * 60))
+  if (nil != paramsCurrent && NO == paramsGenerating
+    && [now timeIntervalSinceDate: paramsWhen] > 24 * 60 * 60)
     {
-      generating = YES;
       [NSThread detachNewThreadSelector: @selector(generate)
                                toTarget: self
                              withObject: nil];
@@ -302,12 +337,60 @@ static GSTLSDHParams    *current = nil;
   if (nil == paramsLock)
     {
       paramsLock = [NSLock new];
-      when = [NSDate new];
+      paramsWhen = [NSDate new];
+      paramsCache = [NSMutableDictionary new];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
-      [self housekeeping: nil];
     }
+}
+
++ (GSTLSDHParams*) paramsFromFile: (NSString*)f
+{
+  GSTLSDHParams *p;
+
+  if (nil == f)
+    {
+      return nil;
+    }
+  [paramsLock lock];
+  p = [[paramsCache objectForKey: f] retain];
+  [paramsLock unlock];
+
+  if (nil == p)
+    {
+      NSData                    *data;
+      int                       ret;
+      gnutls_datum_t            datum;
+
+      data = [NSData dataWithContentsOfFile: f];
+      if (nil == data)
+        {
+          NSLog(@"Unable to read DF params file '%@'", f);
+          return nil;
+        }
+      datum.data = (unsigned char*)[data bytes];
+      datum.size = (unsigned int)[data length];
+
+      p = [self alloc];
+      p->when = [NSDate new];
+      p->path = [f copy];
+      gnutls_dh_params_init(&p->params);
+      ret = gnutls_dh_params_import_pkcs3(p->params, &datum,
+        GNUTLS_X509_FMT_PEM);
+      if (ret < 0)
+        {
+          NSLog(@"Unable to parse DH params file '%@': %s",
+            p->path, gnutls_strerror(ret));
+          [p release];
+          return nil;
+        }
+      [paramsLock lock];
+      [paramsCache setObject: p forKey: p->path];
+      [paramsLock unlock];
+    }
+
+  return [p autorelease];
 }
 
 - (void) dealloc
@@ -320,6 +403,7 @@ static GSTLSDHParams    *current = nil;
 {
   return params;
 }
+
 @end
 
 @implementation GSTLSCertificateList
