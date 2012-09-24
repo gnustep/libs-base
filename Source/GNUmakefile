@@ -171,6 +171,7 @@ GSSocketStream.m \
 GSStream.m \
 GSString.m \
 GSTimSort.m \
+GSTLS.m \
 GSValue.m \
 NSAffineTransform.m \
 NSArchiver.m \

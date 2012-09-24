@@ -1,3 +1,14 @@
+2012-09-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GNUmakefile:
+        * Source/GSSocketStream.m:
+        * Source/NSFileHandle.m:
+        * Headers/Foundation/NSFileHandle.h:
+        * SSL/GSSSLHandle.m:
+        * Source/GSTLS.h:
+        * Source/GSTLS.m:
+        Restructure to separate some of the tls functionality out.
+
 2012-09-24  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSBundle.m: Fix error spotted by Fred.

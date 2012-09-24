@@ -365,9 +365,9 @@ static NSString	*cipherList = nil;
   NSString      *PEMpasswd;
   int	        ret;
 
-  certFile = [options objectForKey: GSTLSCertificateFileKey];
-  privateKey = [options objectForKey: GSTLSPrivateKeyFileKey];
-  PEMpasswd = [options objectForKey: GSTLSPrivateKeyPasswordKey];
+  certFile = [options objectForKey: GSTLSCertificateFile];
+  privateKey = [options objectForKey: GSTLSPrivateKeyFile];
+  PEMpasswd = [options objectForKey: GSTLSPrivateKeyPassword];
 
   if (isStandardFile == YES)
     {
