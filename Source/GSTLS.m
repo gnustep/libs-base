@@ -361,11 +361,6 @@ static NSMutableDictionary      *certificateListCache = nil;
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
-
-      /* Start initialisation of DH params so we can use the certificate
-       * to handle an incoming connection negotiated using DH.
-       */
-      [GSTLSDHParams class];
     }
 }
 
