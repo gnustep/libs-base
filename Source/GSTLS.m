@@ -31,6 +31,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
+#import "Foundation/NSThread.h"
 #import "Foundation/NSUserDefaults.h"
 
 #import "GSTLS.h"
@@ -239,6 +240,7 @@ static gnutls_anon_client_credentials_t anoncred;
 @implementation GSTLSDHParams
 static NSLock           *paramsLock = nil;
 static NSDate           *when = nil;
+static BOOL             generating = NO;
 static GSTLSDHParams    *current = nil;
 
 + (GSTLSDHParams*) current
@@ -246,13 +248,33 @@ static GSTLSDHParams    *current = nil;
   GSTLSDHParams *p;
 
   [paramsLock lock];
-  if (nil == current)
+  while (nil == current)
     {
-      current = [self new];
+      [paramsLock unlock];
+      [NSThread sleepForTimeInterval: 0.2];
+      [paramsLock lock];
     }
   p = [current retain];
   [paramsLock unlock];
   return [current autorelease];
+}
+
++ (void) generate
+{
+  GSTLSDHParams         *p = [GSTLSDHParams new];
+
+  /* Generate Diffie-Hellman parameters - for use with DHE
+   * kx algorithms. When short bit length is used, it might
+   * be wise to regenerate parameters often.
+   */
+  gnutls_dh_params_init (&p->params);
+  gnutls_dh_params_generate2 (p->params, 2048);
+  [paramsLock lock];
+  [current release];
+  current = p;
+  ASSIGN(when, [NSDate date]);
+  generating = NO;
+  [paramsLock unlock];
 }
 
 + (void) housekeeping: (NSNotification*)n
@@ -261,12 +283,16 @@ static GSTLSDHParams    *current = nil;
 
   now = [NSDate date];
   [paramsLock lock];
-  /* Regenerate DH params once per day.
+  /* Regenerate DH params once per day, perfoming generation in another
+   * thread since it's likely to be rather slow.
    */
-  if ([now timeIntervalSinceDate: when] > 24 * 60 * 60)
+  if (NO == generating
+    && (nil == when || [now timeIntervalSinceDate: when] > 24 * 60 * 60))
     {
-      ASSIGN(when, [NSDate date]);
-      ASSIGN(current, [self new]);
+      generating = YES;
+      [NSThread detachNewThreadSelector: @selector(generate)
+                               toTarget: self
+                             withObject: nil];
     }
   [paramsLock unlock];
 }
@@ -277,10 +303,10 @@ static GSTLSDHParams    *current = nil;
     {
       paramsLock = [NSLock new];
       when = [NSDate new];
-      current = [self new];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
+      [self housekeeping: nil];
     }
 }
 
@@ -288,17 +314,6 @@ static GSTLSDHParams    *current = nil;
 {
   gnutls_dh_params_deinit (params);
   [super dealloc];
-}
-
-- (id) init
-{
-  /* Generate Diffie-Hellman parameters - for use with DHE
-   * kx algorithms. When short bit length is used, it might
-   * be wise to regenerate parameters often.
-   */
-  gnutls_dh_params_init (&params);
-  gnutls_dh_params_generate2 (params, 2048);
-  return self;
 }
 
 - (gnutls_dh_params_t) params
@@ -346,6 +361,11 @@ static NSMutableDictionary      *certificateListCache = nil;
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
+
+      /* Start initialisation of DH params so we can use the certificate
+       * to handle an incoming connection negotiated using DH.
+       */
+      [GSTLSDHParams class];
     }
 }
 
