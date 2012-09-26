@@ -353,8 +353,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 @interface      GSTLSHandler : GSStreamHandler
 {
 @public
-  gnutls_session_t      session;
-  gnutls_certificate_credentials_t      certcred;
+  GSTLSSession  *session;
 }
 @end
 
@@ -381,7 +380,7 @@ GSTLSPull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
           e = EAGAIN;	// Tell GNUTLS this would block.
         }
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
-      gnutls_transport_set_errno (tls->session, e);
+      gnutls_transport_set_errno (tls->session->session, e);
 #else
       errno = e;	// Not thread-safe
 #endif
@@ -412,7 +411,7 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
           e = EAGAIN;	// Tell GNUTLS this would block.
         }
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
-      gnutls_transport_set_errno (tls->session, e);
+      gnutls_transport_set_errno (tls->session->session, e);
 #else
       errno = e;	// Not thread-safe
 #endif
@@ -459,20 +458,15 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) bye
 {
-  if (active == YES || handshake == YES)
-    {
-      active = NO;
-      handshake = NO;
-      gnutls_bye (session, GNUTLS_SHUT_RDWR);
-    }
+  handshake = NO;
+  active = NO;
+  [session disconnect];
 }
 
 - (void) dealloc
 {
   [self bye];
-  gnutls_db_remove_session (session);
-  gnutls_deinit (session);
-  gnutls_certificate_free_credentials (certcred);
+  DESTROY(session);
   [super dealloc];
 }
 
@@ -485,28 +479,16 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 {
   if (active == NO)
     {
-      int   ret;
-
       if (handshake == NO)
         {
           /* Set flag to say we are now doing a handshake.
            */
           handshake = YES;
         }
-      ret = gnutls_handshake (session);
-      if (ret < 0)
+      if ([session handshake] == YES)
         {
-          NSDebugMLLog(@"NSStream",
-            @"Handshake status %d", ret);
-	  if (GSDebugSet(@"NSStream") == YES)
-	    {
-              gnutls_perror(ret);
-	    }
-        }
-      else
-        {
-          handshake = NO;       // Handshake is now complete.
-          active = YES;         // The TLS session is now active.
+          handshake = NO;               // Handshake is now complete.
+          active = [session active];    // The TLS session is now active.
         }
     }
 }
@@ -514,9 +496,11 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 - (id) initWithInput: (GSSocketInputStream*)i
               output: (GSSocketOutputStream*)o
 {
-  NSString      *proto = [i propertyForKey: NSStreamSocketSecurityLevelKey];
+  NSString      *proto;
+  NSDictionary  *opts;
   BOOL		server = NO;
 
+  proto = [i propertyForKey: NSStreamSocketSecurityLevelKey];
 /* FIXME
   if ([[o propertyForKey: NSStreamSocketCertificateServerKey] boolValue] == YES)
     {
@@ -539,119 +523,22 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
       DESTROY(self);
       return nil;
     }
-  if ([proto isEqualToString: NSStreamSocketSecurityLevelNone] == YES)
-    {
-      // proto = NSStreamSocketSecurityLevelNone;
-      DESTROY(self);
-      return nil;
-    }
-  else if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv2] == YES)
-    {
-      // proto = NSStreamSocketSecurityLevelSSLv2;
-      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
-        @" not implemented");
-      DESTROY(self);
-      return nil;
-    }
-  else if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv3] == YES)
-    {
-      proto = NSStreamSocketSecurityLevelSSLv3;
-    }
-  else if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
-    {
-      proto = NSStreamSocketSecurityLevelTLSv1;
-    }
-  else
-    {
-      proto = NSStreamSocketSecurityLevelNegotiatedSSL;
-    }
+  opts = [NSDictionary dictionaryWithObjectsAndKeys:
+    proto, NSStreamSocketSecurityLevelKey,
+    nil];
 
   if ((self = [super initWithInput: i output: o]) == nil)
     {
       return nil;
     }
 
+  session = [[GSTLSSession alloc] initWithOptions: opts
+                                        direction: (server ? NO : YES)
+                                        transport: (void*)self
+                                             push: GSTLSPush
+                                             pull: GSTLSPull
+                                             host: nil];
   initialised = YES;
-  /* Configure this session to support certificate based
-   * operation.
-   */
-  gnutls_certificate_allocate_credentials (&certcred);
-
-  /* FIXME ... should get the trusted authority certificates
-   * from somewhere sensible to validate the remote end!
-   */
-  gnutls_certificate_set_x509_trust_file
-    (certcred, "ca.pem", GNUTLS_X509_FMT_PEM);
-
-  /* Initialise session and set default priorities foir key exchange.
-   */
-  if (server)
-    {
-      gnutls_init (&session, GNUTLS_SERVER);
-      /* FIXME ... need to set up DH information and key/certificate. */
-    }
-  else
-    {
-      gnutls_init (&session, GNUTLS_CLIENT);
-    }
-  gnutls_set_default_priority (session);
-
-  if ([proto isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
-    {
-#if GNUTLS_VERSION_NUMBER < 0x020C00
-      const int proto_prio[4] = {
-#if	defined(GNUTLS_TLS1_2)
-        GNUTLS_TLS1_2,
-#endif
-        GNUTLS_TLS1_1,
-        GNUTLS_TLS1_0,
-        0 };
-      gnutls_protocol_set_priority (session, proto_prio);
-#else
-      gnutls_priority_set_direct(session,
-        "NORMAL:-VERS-SSL3.0:+VERS-TLS-ALL", NULL);
-#endif
-    }
-  if ([proto isEqualToString: NSStreamSocketSecurityLevelSSLv3] == YES)
-    {
-#if GNUTLS_VERSION_NUMBER < 0x020C00
-      const int proto_prio[2] = {
-        GNUTLS_SSL3,
-        0 };
-      gnutls_protocol_set_priority (session, proto_prio);
-#else
-      gnutls_priority_set_direct(session,
-        "NORMAL:-VERS-TLS-ALL:+VERS-SSL3.0", NULL);
-#endif
-    }
-
-/*
- {
-    const int kx_prio[] = {
-      GNUTLS_KX_RSA,
-      GNUTLS_KX_RSA_EXPORT,
-      GNUTLS_KX_DHE_RSA,
-      GNUTLS_KX_DHE_DSS,
-      GNUTLS_KX_ANON_DH,
-      0 };
-    gnutls_kx_set_priority (session, kx_prio);
-    gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
-  }
- */
-
-  /* Set certificate credentials for this session.
-   */
-  gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
-
-  /* Set transport layer to use our low level stream code.
-   */
-#if GNUTLS_VERSION_NUMBER < 0x020C00
-  gnutls_transport_set_lowat (session, 0);
-#endif
-  gnutls_transport_set_pull_function (session, GSTLSPull);
-  gnutls_transport_set_push_function (session, GSTLSPush);
-  gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
-
   return self;
 }
 
@@ -667,7 +554,7 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
-  return gnutls_record_recv (session, buffer, len);
+  return [session read: buffer length: len];
 }
 
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
@@ -719,7 +606,7 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
-  return gnutls_record_send (session, buffer, len);
+  return [session write: buffer length: len];
 }
 
 @end

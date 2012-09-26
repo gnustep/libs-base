@@ -279,15 +279,15 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
  *   <desc>The path to a PEM encoded certificate used to identify this end
  *   of the connection.  This option <em>must</em> be set for handing an
  *   incoming connection, but is optional for outgoing connections.<br />
- *   This must be used in conjunction with GSTLSPrivateKeyFile.
+ *   This must be used in conjunction with GSTLSCertificateKeyFile.
  *  </desc>
- *   <term>GSTLSPrivateKeyFile</term>
+ *   <term>GSTLSCertificateKeyFile</term>
  *   <desc>The path to a PEM encoded key used to unlock the certificate
  *   file for the connection.  The key in the file may or may not be
  *   encrypted, but if it is encrypted you must specify
- *   GSTLSPrivateKeyPassword.
+ *   GSTLSCertificateKeyPassword.
  *  </desc>
- *   <term>GSTLSPrivateKeyPassword</term>
+ *   <term>GSTLSCertificateKeyPassword</term>
  *   <desc>A string to be used as the password to decrypt a key which was
  *   specified using GSTLSKeyPassword.
  *  </desc>
@@ -305,12 +305,12 @@ GS_EXPORT NSString * const GSTLSCertificateFile;
 /** Dictionary key for the path to a PEM encoded private key used
  * to unlock the certificate used by this end of a connection.
  */
-GS_EXPORT NSString * const GSTLSPrivateKeyFile;
+GS_EXPORT NSString * const GSTLSCertificateKeyFile;
 
 /** Dictionary key for the password used to decrypt the key file used
  * to unlock the certificate used by this end of a connection.
  */
-GS_EXPORT NSString * const GSTLSPrivateKeyPassword;
+GS_EXPORT NSString * const GSTLSCertificateKeyPassword;
 
 // GNUstep Notification names.
 
