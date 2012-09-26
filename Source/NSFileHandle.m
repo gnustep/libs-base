@@ -36,6 +36,8 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSNetwork.h"
+#import "GSTLS.h"
+
 
 #define	EXPOSE_GSFileHandle_IVARS	1
 #import "GSFileHandle.h"
@@ -874,8 +876,6 @@ NSString * const NSFileHandleOperationException
 @end
 
 #if     defined(HAVE_GNUTLS)
-
-#import "GSTLS.h"
 
 #if	!defined(__MINGW__)
 
