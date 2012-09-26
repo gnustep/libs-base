@@ -709,7 +709,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
                            transport: (void*)handle
                                 push: (GSTLSIOW)pushFunc
                                 pull: (GSTLSIOR)pullFunc
-                                host: (NSHost*)host
 {
   GSTLSSession  *sess;
 
@@ -717,8 +716,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
                              direction: isOutgoing
                              transport: handle
                                   push: pushFunc
-                                  pull: pullFunc
-                                  host: host];
+                                  pull: pullFunc];
   return [sess autorelease];
 }
 
@@ -731,7 +729,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 {
   [self finalize];
   DESTROY(opts);
-  DESTROY(host);
   DESTROY(list);
   DESTROY(key);
   DESTROY(dhParams);
@@ -766,7 +763,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
              transport: (void*)handle
                   push: (GSTLSIOW)pushFunc
                   pull: (GSTLSIOR)pullFunc
-                  host: (NSHost*)remote
 {
   if (nil != (self = [super init]))
     {
@@ -779,7 +775,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       BOOL      debug = (globalDebug > 0) ? YES : NO;
 
       opts = [options copy];
-      host = [remote copy];
       outgoing = isOutgoing ? YES : NO;
 
       if (NO == debug)
@@ -1157,19 +1152,20 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
         if (cert_list_size > 0
           && gnutls_certificate_type_get(session) == GNUTLS_CRT_X509)
           {
-            char                dn[128];
-            char                serial[40];
-            size_t              dn_size = sizeof(dn);
-            size_t              serial_size = sizeof(serial);
-            time_t              expiret;
-            time_t              activet;
-            int                 algo;
-            unsigned int        bits;
-            int                 i;
             int                 cert_num;
         
             for (cert_num = 0; cert_num < cert_list_size; cert_num++)
               {
+                char            dn[1024];
+                size_t          dn_size = sizeof(dn);
+                char            serial[40];
+                size_t          serial_size = sizeof(serial);
+                time_t          expiret;
+                time_t          activet;
+                int             algo;
+                unsigned int    bits;
+                int             i;
+
                 gnutls_x509_crt_init(&cert);
                 /* NB. the list of peer certificate is in memory in native
                  * format (DER) rather than the normal file format (PEM).
@@ -1177,6 +1173,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
                 gnutls_x509_crt_import(cert,
                   &cert_list[cert_num], GNUTLS_X509_FMT_DER);
 
+                [str appendString: @"\n"];
                 [str appendFormat: _(@"- Certificate %d info:\n"), cert_num];
 
                 expiret = gnutls_x509_crt_get_expiration_time(cert);
@@ -1233,11 +1230,17 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
                 [str appendFormat: _(@"- Certificate version: #%d\n"),
                   gnutls_x509_crt_get_version(cert)];
 
+                dn_size = sizeof(dn);
                 gnutls_x509_crt_get_dn(cert, dn, &dn_size);
-                [str appendFormat: @"- Certificate DN: %s\n", dn];
+                dn[dn_size - 1] = '\0';
+                [str appendFormat: @"- Certificate DN: %@\n",
+                  [NSString stringWithUTF8String: dn]];
 
+                dn_size = sizeof(dn);
                 gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
-                [str appendFormat: _(@"- Certificate Issuer's DN: %s\n"), dn];
+                dn[dn_size - 1] = '\0';
+                [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
+                  [NSString stringWithUTF8String: dn]];
 
                 gnutls_x509_crt_deinit(cert);
               }
@@ -1371,15 +1374,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
   str = [opts objectForKey: GSTLSRemoteHosts];
   if (nil == str)
     {
-      /* No names specified ... use all known names for the host we are
-       * connecting to.
-       */
-      names = [host names];
-    }
-  else if ([str length] == 0)
-    {
-      /* Empty name ... disable host name checking.
-       */
       names = nil;
     }
   else
