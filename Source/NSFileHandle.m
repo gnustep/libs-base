@@ -851,11 +851,11 @@ NSString * const NSFileHandleOperationException
     }
   if (nil != privateKey)
     {
-      [opts setObject: privateKey forKey: GSTLSPrivateKeyFile];
+      [opts setObject: privateKey forKey: GSTLSCertificateKeyFile];
     }
   if (nil != PEMpasswd)
     {
-      [opts setObject: PEMpasswd forKey: GSTLSPrivateKeyPassword];
+      [opts setObject: PEMpasswd forKey: GSTLSCertificateKeyPassword];
     }
   err = [self sslSetOptions: opts];
   if (nil != err)
@@ -879,14 +879,9 @@ NSString * const NSFileHandleOperationException
 
 @interface      GSTLSHandle : GSFileHandle
 {
-  GSTLSDHParams                         *dhParams;
 @public
-  gnutls_session_t                      session;
-  gnutls_certificate_credentials_t      certcred;
-  BOOL                                  active;         // able to read/write
-  BOOL                                  handshake;      // performing handshake
-  BOOL                                  outgoing;       // handshake direction
-  BOOL                                  setup;          // have set certificate
+  NSDictionary  *opts;
+  GSTLSSession  *session;
 }
 - (void) sslDisconnect;
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
@@ -908,7 +903,7 @@ GSTLSHandlePull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
   if (result < 0)
     {
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
-      gnutls_transport_set_errno (tls->session, errno);
+      gnutls_transport_set_errno (tls->session->session, errno);
 #endif
     }
   return result;
@@ -928,7 +923,7 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   if (result < 0)
     {
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
-      gnutls_transport_set_errno (tls->session, errno);
+      gnutls_transport_set_errno (tls->session->session, errno);
 #endif
     }
   return result;
@@ -950,46 +945,38 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   [super closeFile];
 }
 
+- (void) dealloc
+{
+  DESTROY(opts);
+  DESTROY(session);
+  [super dealloc];
+}
+
 - (void) finalize
 {
   [self sslDisconnect];
-  if (YES == setup)
-    {
-      setup = NO;
-      gnutls_certificate_free_credentials (certcred);
-    }
   [super finalize];
 }
 
 - (NSInteger) read: (void*)buf length: (NSUInteger)len
 {
-  if (YES == active)
+  if (YES == [session active])
     {
-      return gnutls_record_recv (session, buf, len);
+      return [session read: buf length: len];
     }
   return [super read: buf length: len];
 }
 
 - (void) sslDisconnect
 {
-  if (YES == active || YES == handshake)
-    {
-      active = NO;
-      handshake = NO;
-      gnutls_bye (session, GNUTLS_SHUT_RDWR);
-      gnutls_db_remove_session (session);
-      gnutls_deinit (session);
-    }
-  DESTROY(dhParams);
+  [session disconnect];
 }
 
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing
 {
-  int   ret;
-
   NSAssert(0 != result, NSInvalidArgumentException);
 
-  if (YES == active)
+  if (YES == [session active])
     {
       return YES;	/* Already connected.	*/
     }
@@ -997,124 +984,30 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   if (YES == isStandardFile)
     {
       NSLog(@"Attempt to perform ssl handshake with a standard file");
-      return NO;
+      return YES;
     }
 
   /* Set the handshake direction so we know how to set up the connection.
    */
-  outgoing = isOutgoing;
-
-  if (NO == setup)
+  if (nil == session)
     {
-      [self sslSetCertificate: nil privateKey: nil PEMpasswd: nil];
+      session = [[GSTLSSession alloc] initWithOptions: opts
+                                            direction: isOutgoing
+                                            transport: (void*)self
+                                                 push: GSTLSHandlePush
+                                                 pull: GSTLSHandlePull
+                                                 host: nil];
     }
 
-  if (NO == handshake)
+  if (NO == [session handshake])
     {
-      handshake = YES;          // Set flag to say a handshake is in progress
-
-      /* Now initialise session and set it up
-       */
-      if (YES == outgoing)
-        {
-          gnutls_init (&session, GNUTLS_CLIENT);
-        }
-      else
-        {
-          gnutls_init (&session, GNUTLS_SERVER);
-
-          /* We don't request any certificate from the client.
-           * If we did we would need to verify it.
-           */
-          gnutls_certificate_server_set_request (session, GNUTLS_CERT_IGNORE);
-
-          /* FIXME ... need to set up DH information and key/certificate. */
-        }
-      gnutls_set_default_priority (session);
-
-#if GNUTLS_VERSION_NUMBER < 0x020C00
-      {
-        const int proto_prio[2] = {
-          GNUTLS_SSL3,
-          0 };
-        gnutls_protocol_set_priority (session, proto_prio);
-      }
-#else
-      gnutls_priority_set_direct(session,
-        "NORMAL:-VERS-TLS-ALL:+VERS-SSL3.0", NULL);
-#endif
-
-/*
- {
-    const int kx_prio[] = {
-      GNUTLS_KX_RSA,
-      GNUTLS_KX_RSA_EXPORT,
-      GNUTLS_KX_DHE_RSA,
-      GNUTLS_KX_DHE_DSS,
-      GNUTLS_KX_ANON_DH,
-      0 };
-    gnutls_kx_set_priority (session, kx_prio);
-    gnutls_credentials_set (session, GNUTLS_CRD_ANON, anoncred);
-  }
- */
-
-
-      /* Set certificate credentials for this session.
-       */
-      gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, certcred);
-
-      /* Set transport layer to use our low level stream code.
-       */
-#if GNUTLS_VERSION_NUMBER < 0x020C00
-      gnutls_transport_set_lowat (session, 0);
-#endif
-      gnutls_transport_set_pull_function (session, GSTLSHandlePull);
-      gnutls_transport_set_push_function (session, GSTLSHandlePush);
-      gnutls_transport_set_ptr (session, (gnutls_transport_ptr_t)self);
-
-      [self setNonBlocking: YES];
-    }
-
-  if (outgoing != isOutgoing)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"Attempt to change direction of TLS handshake"];
-    }
-
-  ret = gnutls_handshake (session);
-  if (ret < 0)
-    {
-      if (gnutls_error_is_fatal(ret))
-        {
-          NSLog(@"unable to make SSL connection to %@:%@ - %s",
-            address, service, gnutls_strerror(ret));
-          *result = NO;
-        }
-      else
-        {
-          if (GSDebugSet(@"NSStream") == YES)
-            {
-              gnutls_perror(ret);
-            }
-          return NO;        // Non-fatal error needs a retry.
-        }
+      return NO;        // Need more.
     }
   else
     {
-      handshake = NO;       // Handshake is now complete.
-      active = YES;         // The TLS session is now active.
-{
-  ret = [GSTLSObject verify: session];
-  if (ret < 0)
-    {
-      NSLog(@"unable to verify SSL connection to %@:%@ - %s",
-        address, service, gnutls_strerror(ret));
-      // active = NO;
+      *result = [session active];
+      return YES;
     }
-}
-      *result = active;
-    }
-  return YES;
 }
 
 - (NSString*) sslSetOptions: (NSDictionary*)options
@@ -1123,93 +1016,15 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
     {
       return @"Attempt to set ssl options for a standard file";
     }
-
-  if (NO == setup)
-    {
-      NSString                  *certFile;
-      NSString                  *privateKey;
-      NSString                  *PEMpasswd;
-      GSTLSPrivateKey           *key = nil;
-      GSTLSCertificateList      *list = nil;
-      int                       ret;
-
-      certFile = [options objectForKey: GSTLSCertificateFile];
-      privateKey = [options objectForKey: GSTLSPrivateKeyFile];
-      PEMpasswd = [options objectForKey: GSTLSPrivateKeyPassword];
-
-      if (nil != privateKey)
-        {
-          key = [GSTLSPrivateKey keyFromFile: privateKey
-                                withPassword: PEMpasswd];
-          if (nil == key)
-            {
-              return @"Unable to load key file";
-            }
-        }
-
-      if (nil != certFile)
-        {
-          list = [GSTLSCertificateList listFromFile: certFile];
-          if (nil == list)
-            {
-              return @"Unable to load certificate file";
-            }
-        }
-
-      setup = YES;
-
-      /* Configure this session to support certificate based
-       * operation.
-       */
-      gnutls_certificate_allocate_credentials (&certcred);
-
-      /* FIXME ... should get the trusted authority certificates
-       * from somewhere sensible to validate the remote end!
-       */
-      gnutls_certificate_set_x509_trust_file
-        (certcred, "ca.pem", GNUTLS_X509_FMT_PEM);
-
-/*
-      gnutls_certificate_set_x509_crl_file
-        (certcred, "crl.pem", GNUTLS_X509_FMT_PEM);
-      gnutls_certificate_set_verify_function (certcred,
-        _verify_certificate_callback);
-
-*/
-
-      if (nil != list)
-        {
-          ret = gnutls_certificate_set_x509_key (certcred,
-            [list certificateList], [list count], [key key]);
-          if (ret < 0)
-            {
-              return [NSString stringWithFormat:
-                @"Unable to set certificate for session: %s",
-                gnutls_strerror(ret)];
-            }
-          else if (NO == outgoing)
-            {
-              dhParams = [[GSTLSDHParams current] retain];
-              gnutls_certificate_set_dh_params (certcred, [dhParams params]);
-            }
-        }
-
-#if 0
-      if (nil != cipherList)
-	{
-          SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
-	}
-#endif
-
-    }
+  ASSIGNCOPY(opts, options);
   return nil;
 }
 
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len
 {
-  if (YES == active)
+  if (YES == [session active])
     {
-      return gnutls_record_send (session, buf, len);
+      return [session write: buf length: len];
     }
   return [super write: buf length: len];
 }

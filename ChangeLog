@@ -2,6 +2,12 @@
 
         * Source/NSUserDefaults.m: Fix error synchronising from changes in
         database ... was not sending the notification to say we had updated.
+        * Headers/Foundation/NSFileHandle.h:
+        * Source/GSSocketStream.m:
+        * Source/GSTLS.h:
+        * Source/GSTLS.m:
+        * Source/NSFileHandle.m:
+        More TLS reorganisation and adding diagnostics
 
 2012-09-25  Richard Frith-Macdonald <rfm@gnu.org>
 
