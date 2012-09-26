@@ -28,6 +28,14 @@
 @class  NSHost;
 @class  NSString;
 
+extern NSString * const GSTLSCAFile;
+extern NSString * const GSTLSCertificateFile;
+extern NSString * const GSTLSCertificateKeyFile;
+extern NSString * const GSTLSCertificateKeyPassword;
+extern NSString * const GSTLSDebug;
+extern NSString * const GSTLSCAVerify;
+extern NSString * const GSTLSRemoteHosts;
+
 #if     defined(HAVE_GNUTLS)
 /* Temporarily redefine 'id' in case the headers use the objc reserved word.
  */
@@ -41,14 +49,6 @@
 #include <gnutls/x509.h>
 #include <gcrypt.h>
 #undef	id
-
-extern NSString * const GSTLSCAFile;
-extern NSString * const GSTLSCertificateFile;
-extern NSString * const GSTLSCertificateKeyFile;
-extern NSString * const GSTLSCertificateKeyPassword;
-extern NSString * const GSTLSDebug;
-extern NSString * const GSTLSCAVerify;
-extern NSString * const GSTLSRemoteHosts;
 
 /* This class is used to ensure that the GNUTLS system is initialised
  * and thread-safe.
