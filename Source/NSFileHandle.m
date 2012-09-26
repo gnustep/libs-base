@@ -28,10 +28,12 @@
 #import "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
 #import "Foundation/NSData.h"
-#import "Foundation/NSFileHandle.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSHost.h"
+#import "Foundation/NSFileHandle.h"
 #import "Foundation/NSPathUtilities.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSNetwork.h"
 
@@ -991,12 +993,33 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
    */
   if (nil == session)
     {
+      /* If No value is specified for GSTLSRemoteHosts, make a comma separated
+       * list of all known names for the remote host and use that.
+       */
+      if (nil == [opts objectForKey: GSTLSRemoteHosts])
+        {
+          NSHost        *host = [NSHost hostWithAddress: [self socketAddress]];
+          NSString      *s = [[host names] description];
+
+          s = [s stringByReplacingString: @"\"" withString: @""];
+          if ([s length] > 1)
+            {
+              s = [s substringWithRange: NSMakeRange(1, [s length] - 2)];
+            }
+          if ([s length] > 0)
+            {
+              NSMutableDictionary   *d = [opts mutableCopy];
+
+              [d setObject:s forKey: GSTLSRemoteHosts];
+              ASSIGNCOPY(opts, d);
+              [d release];
+            }
+        }
       session = [[GSTLSSession alloc] initWithOptions: opts
                                             direction: isOutgoing
                                             transport: (void*)self
                                                  push: GSTLSHandlePush
-                                                 pull: GSTLSHandlePull
-                                                 host: nil];
+                                                 pull: GSTLSHandlePull];
     }
 
   if (NO == [session handshake])

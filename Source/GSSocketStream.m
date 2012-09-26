@@ -536,8 +536,7 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
                                         direction: (server ? NO : YES)
                                         transport: (void*)self
                                              push: GSTLSPush
-                                             pull: GSTLSPull
-                                             host: nil];
+                                             pull: GSTLSPull];
   initialised = YES;
   return self;
 }

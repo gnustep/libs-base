@@ -42,6 +42,14 @@
 #include <gcrypt.h>
 #undef	id
 
+extern NSString * const GSTLSCAFile;
+extern NSString * const GSTLSCertificateFile;
+extern NSString * const GSTLSCertificateKeyFile;
+extern NSString * const GSTLSCertificateKeyPassword;
+extern NSString * const GSTLSDebug;
+extern NSString * const GSTLSCAVerify;
+extern NSString * const GSTLSRemoteHosts;
+
 /* This class is used to ensure that the GNUTLS system is initialised
  * and thread-safe.
  */
@@ -112,13 +120,11 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
 /* This class encapsulates a session to a remote system.
  * Sessions are created with a direction and an options dictionary,
  * defining how they will operate.  The handle, pushFunc and pullFunc
- * provide the I/O mechanism, and the host specifies the host that the
- * session is connected to.
+ * provide the I/O mechanism.
  */
 @interface      GSTLSSession : GSTLSObject
 {
   NSDictionary                          *opts;
-  NSHost                                *host;
   GSTLSPrivateKey                       *key;
   GSTLSCertificateList                  *list;
   GSTLSDHParams                         *dhParams;
@@ -134,15 +140,13 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
                            direction: (BOOL)isOutgoing
                            transport: (void*)handle
                                 push: (GSTLSIOW)pushFunc
-                                pull: (GSTLSIOR)pullFunc
-                                host: (NSHost*)remote;
+                                pull: (GSTLSIOR)pullFunc;
 
 - (id) initWithOptions: (NSDictionary*)options
              direction: (BOOL)isOutgoing
              transport: (void*)handle
                   push: (GSTLSIOW)pushFunc
-                  pull: (GSTLSIOR)pullFunc
-                  host: (NSHost*)remote;
+                  pull: (GSTLSIOR)pullFunc;
 
 /* Return YES if the session is active (handshake has succeeded and the
  * session has not been disconnected), NO otherwise.
