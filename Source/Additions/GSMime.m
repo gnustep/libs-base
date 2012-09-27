@@ -5520,11 +5520,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       return NO;
     }
-  if (NO == [[self allHeaders] isEqual: [other allHeaders]])
+  if (NO == [headers isEqual: ((GSMimeDocument*)other)->headers])
     {
       return NO;
     }
-  if (NO == [[self content] isEqual: [(GSMimeDocument*)other content]])
+  if (NO == [content isEqual: ((GSMimeDocument*)other)->content])
     {
       return NO;
     }
