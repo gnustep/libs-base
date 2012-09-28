@@ -24,6 +24,7 @@
 #import "common.h"
 
 #import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
@@ -43,6 +44,7 @@
 /* Constants to control TLS/SSL (options).
  */
 NSString * const GSTLSCAFile = @"GSTLSCAFile";
+NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
 NSString * const GSTLSCertificateFile = @"GSTLSCertificateFile";
 NSString * const GSTLSCertificateKeyFile = @"GSTLSCertificateKeyFile";
 NSString * const GSTLSCertificateKeyPassword = @"GSTLSCertificateKeyPassword";
@@ -98,6 +100,7 @@ GSTLSLog(int level, const char *msg)
  * default string.
  */
 static NSString *caFile = @"/etc/ssl/certs/ca-certificates.crt";
+static NSString *revokeFile = @"/etc/ssl/certs/revoke.crl";
 
 /* The verifyServer variable tells us if connections to a remote server should
  * (by default) verify its certificate against trusted authorities.
@@ -143,6 +146,15 @@ static gnutls_anon_client_credentials_t anoncred;
       ASSIGN(caFile, str);
     }
 
+  /* The GSTLSRevokeFile user default overrides the builtin value or the
+   * GS_TLS_REVOKE environment variable.
+   */
+  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSRevokeFile];
+  if (nil != str)
+    {
+      ASSIGN(revokeFile, str);
+    }
+
   str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSCAVerify];
   if (nil != str)
     {
@@ -171,19 +183,38 @@ static gnutls_anon_client_credentials_t anoncred;
         {
           NSUserDefaults	*defs;
           NSProcessInfo         *pi;
+          NSBundle              *bundle;
           NSString              *str;
 
           beenHere = YES;
+
+          bundle = [NSBundle bundleForClass: [NSObject class]];
 
           /* Let the GS_TLS_CA_FILE environment variable override the
            * default certificate authority location.
            */
           pi = [NSProcessInfo processInfo];
           str = [[pi environment] objectForKey: @"GS_TLS_CA_FILE"];
-          if (nil != str)
+          if (nil == str)
             {
-              ASSIGN(caFile, str);
+              str = [bundle pathForResource: @"ca-certificates"
+                                     ofType: @"crt"
+                                inDirectory: @"GNUTLS"];
             }
+          ASSIGN(caFile, str);
+
+          /* Let the GS_TLS_REVOKE environment variable override the
+           * default revocation list location.
+           */
+          pi = [NSProcessInfo processInfo];
+          str = [[pi environment] objectForKey: @"GS_TLS_REVOKE"];
+          if (nil == str)
+            {
+              str = [bundle pathForResource: @"revoke"
+                                     ofType: @"crl"
+                                inDirectory: @"GNUTLS"];
+            }
+          ASSIGN(revokeFile, str);
 
           str = [[pi environment] objectForKey: @"GS_TLS_CA_VERIFY"];
           if (nil != str)
@@ -843,9 +874,48 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
             }
         }
 
+      /* Load default revocation list.
+       */
+      if ([revokeFile length] > 0)
+        {
+          const char    *path = [revokeFile fileSystemRepresentation];
+          int           ret;
+
+          ret = gnutls_certificate_set_x509_crl_file(certcred,
+            path, GNUTLS_X509_FMT_PEM);
+          if (ret < 0)
+            {
+              NSLog(@"Problem loading revocation list from %@: %s",
+                revokeFile, gnutls_strerror(ret));
+            }
+          else if (0 == ret && YES == debug)
+            {
+              NSLog(@"No revocation loaded from %@", revokeFile);
+            }
+        }
+
+      /* Load any specified revocation list.
+       */
+      str = [opts objectForKey: GSTLSRevokeFile];
+      if ([str length] > 0)
+        {
+          const char    *path = [str fileSystemRepresentation];
+          int           ret;
+
+          ret = gnutls_certificate_set_x509_crl_file(certcred,
+            path, GNUTLS_X509_FMT_PEM);
+          if (ret < 0)
+            {
+              NSLog(@"Problem loading revocation list from %@: %s",
+                str, gnutls_strerror(ret));
+            }
+          else if (0 == ret && YES == debug)
+            {
+              NSLog(@"No revocation loaded from %@", str);
+            }
+        }
+
 /*
-      gnutls_certificate_set_x509_crl_file
-        (certcred, "crl.pem", GNUTLS_X509_FMT_PEM);
       gnutls_certificate_set_verify_function(certcred,
         _verify_certificate_callback);
 

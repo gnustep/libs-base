@@ -29,6 +29,7 @@
 @class  NSString;
 
 extern NSString * const GSTLSCAFile;
+extern NSString * const GSTLSRevokeFile;
 extern NSString * const GSTLSCertificateFile;
 extern NSString * const GSTLSCertificateKeyFile;
 extern NSString * const GSTLSCertificateKeyPassword;
