@@ -29,13 +29,13 @@
 @class  NSString;
 
 extern NSString * const GSTLSCAFile;
-extern NSString * const GSTLSRevokeFile;
 extern NSString * const GSTLSCertificateFile;
 extern NSString * const GSTLSCertificateKeyFile;
 extern NSString * const GSTLSCertificateKeyPassword;
 extern NSString * const GSTLSDebug;
-extern NSString * const GSTLSCAVerify;
 extern NSString * const GSTLSRemoteHosts;
+extern NSString * const GSTLSRevokeFile;
+extern NSString * const GSTLSVerify;
 
 #if     defined(HAVE_GNUTLS)
 /* Temporarily redefine 'id' in case the headers use the objc reserved word.
