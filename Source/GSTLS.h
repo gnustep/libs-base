@@ -33,6 +33,7 @@ extern NSString * const GSTLSCertificateFile;
 extern NSString * const GSTLSCertificateKeyFile;
 extern NSString * const GSTLSCertificateKeyPassword;
 extern NSString * const GSTLSDebug;
+extern NSString * const GSTLSPriority;
 extern NSString * const GSTLSRemoteHosts;
 extern NSString * const GSTLSRevokeFile;
 extern NSString * const GSTLSVerify;
