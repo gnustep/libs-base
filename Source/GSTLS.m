@@ -44,13 +44,13 @@
 /* Constants to control TLS/SSL (options).
  */
 NSString * const GSTLSCAFile = @"GSTLSCAFile";
-NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
 NSString * const GSTLSCertificateFile = @"GSTLSCertificateFile";
 NSString * const GSTLSCertificateKeyFile = @"GSTLSCertificateKeyFile";
 NSString * const GSTLSCertificateKeyPassword = @"GSTLSCertificateKeyPassword";
 NSString * const GSTLSDebug = @"GSTLSDebug";
-NSString * const GSTLSCAVerify = @"GSTLSCAVerify";
 NSString * const GSTLSRemoteHosts = @"GSTLSRemoteHosts";
+NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
+NSString * const GSTLSVerify = @"GSTLSVerify";
 
 
 #if     defined(HAVE_GNUTLS)
@@ -95,19 +95,38 @@ GSTLSLog(int level, const char *msg)
 
 /* The caFile variable holds the location of the file containing the default
  * certificate authorities to be used by our system.
- * The hard-coded value can be overridden by the GS_TLS_CA_FILE environment
- * variable, which in turn will be overridden by the GSTLSCAFile user
- * default string.
+ * The hard-coded value is a file in the GNUTLS folder of the base library
+ * resource bundle, but this can be overridden by the GS_TLS_CA_FILE
+ * environment variable, which in turn will be overridden by the GSTLSCAFile
+ * user default string.
  */
-static NSString *caFile = @"/etc/ssl/certs/ca-certificates.crt";
-static NSString *revokeFile = @"/etc/ssl/certs/revoke.crl";
+static NSString *caFile = nil;          // GNUTLS/ca-certificates.crt
+
+/* The caRevoke variable holds the location of the file containing the default
+ * certificate revocation list to be used by our system.
+ * The hard-coded value is a file in the GNUTLS folder of the base library
+ * resource bundle, but this can be overridden by the GS_TLS_REVOKE
+ * environment variable, which in turn will be overridden by the GSTLSRevokeFile
+ * user default string.
+ */
+static NSString *revokeFile = nil;      // GNUTLS/revoke.crl
+
+/* The verifyClient variable tells us if connections from a remote server
+ * should (by default) require and verify a client certificate against
+ * trusted authorities.
+ * The hard-coded value can be overridden by the GS_TLS_VERIFY_C environment
+ * variable, which in turn will be overridden by the GSTLSVerifyClient user
+ * default string.
+ * A GSTLSVerify option set for a specific session overrides this default
+ */
+static BOOL     verifyClient = NO;
 
 /* The verifyServer variable tells us if connections to a remote server should
  * (by default) verify its certificate against trusted authorities.
- * The hard-coded value can be overridden by the GS_TLS_CA_VERIFY environment
- * variable, which in turn will be overridden by the GSTLSCAVerify user
+ * The hard-coded value can be overridden by the GS_TLS_VERIFY_S environment
+ * variable, which in turn will be overridden by the GSTLSVerifyServer user
  * default string.
- * Any option set for a specific session overrides this default
+ * A GSTLSVerify option set for a specific session overrides this default
  */
 static BOOL     verifyServer = NO;
 
@@ -155,7 +174,15 @@ static gnutls_anon_client_credentials_t anoncred;
       ASSIGN(revokeFile, str);
     }
 
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSCAVerify];
+  str = [[NSUserDefaults standardUserDefaults]
+    stringForKey: @"GSTLSVerifyClient"];
+  if (nil != str)
+    {
+      verifyClient = [str boolValue];
+    }
+
+  str = [[NSUserDefaults standardUserDefaults]
+    stringForKey: @"GSTLSVerifyServer"];
   if (nil != str)
     {
       verifyServer = [str boolValue];
@@ -216,7 +243,13 @@ static gnutls_anon_client_credentials_t anoncred;
             }
           ASSIGN(revokeFile, str);
 
-          str = [[pi environment] objectForKey: @"GS_TLS_CA_VERIFY"];
+          str = [[pi environment] objectForKey: @"GS_TLS_VERIFY_C"];
+          if (nil != str)
+            {
+              verifyClient = [str boolValue];
+            }
+
+          str = [[pi environment] objectForKey: @"GS_TLS_VERIFY_S"];
           if (nil != str)
             {
               verifyServer = [str boolValue];
@@ -826,10 +859,15 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
         {
           gnutls_init(&session, GNUTLS_SERVER);
 
-          /* We don't request any certificate from the client.
-           * If we did we would need to verify it.
-           */
-          gnutls_certificate_server_set_request(session, GNUTLS_CERT_IGNORE);
+          if (NO == verifyClient
+            && NO == [[opts objectForKey: GSTLSVerify] boolValue])
+            {
+              /* We don't want to request/verify the client certificate,
+               * so we mustn't ask the other end to send it.
+               */
+              gnutls_certificate_server_set_request(session,
+                GNUTLS_CERT_IGNORE);
+            }
         }
       setup = YES;
 
@@ -915,12 +953,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
             }
         }
 
-/*
-      gnutls_certificate_set_verify_function(certcred,
-        _verify_certificate_callback);
-
-*/
-
       certFile = [opts objectForKey: GSTLSCertificateFile];
       privateKey = [opts objectForKey: GSTLSCertificateKeyFile];
       PEMpasswd = [opts objectForKey: GSTLSCertificateKeyPassword];
@@ -958,8 +990,9 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
               return nil;
             }
 /*
-          else if (NO == outgoing)
+          if (NO == outgoing)
             {
+                // FIXME ... if the server certificate required DH params ...
               dhParams = [[GSTLSDHParams current] retain];
               gnutls_certificate_set_dh_params(certcred, [dhParams params]);
             }
@@ -1071,7 +1104,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
         {
           shouldVerify = verifyServer;  // Verify remote server?
         }
-      str = [opts objectForKey: GSTLSCAVerify];
+      else
+        {
+          shouldVerify = verifyClient;  // Verify remote client?
+        }
+      str = [opts objectForKey: GSTLSVerify];
       if (nil != str)
         {
           shouldVerify = [str boolValue];
