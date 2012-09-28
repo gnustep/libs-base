@@ -272,25 +272,54 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 /** <override-dummy />
  * Sets options to be used to configure this channel before the handshake.<br />
  * Returns nil on success, or an error message if some options could not
- * be set.<br />>
+ * be set.<br />
  * Expects key value pairs with the follwiing names/meanings:
  * <deflist>
+ *   <term>GSTLSCAFile</term>
+ *   <desc>A string identifying the full path to the file containing any
+ *   trusted certificate authorities to be used when verifying a certificate
+ *   presented by the remote end of a connection.
+ *   </desc>
  *   <term>GSTLSCertificateFile</term>
  *   <desc>The path to a PEM encoded certificate used to identify this end
  *   of the connection.  This option <em>must</em> be set for handing an
  *   incoming connection, but is optional for outgoing connections.<br />
  *   This must be used in conjunction with GSTLSCertificateKeyFile.
- *  </desc>
+ *   </desc>
  *   <term>GSTLSCertificateKeyFile</term>
  *   <desc>The path to a PEM encoded key used to unlock the certificate
  *   file for the connection.  The key in the file may or may not be
  *   encrypted, but if it is encrypted you must specify
  *   GSTLSCertificateKeyPassword.
- *  </desc>
+ *   </desc>
  *   <term>GSTLSCertificateKeyPassword</term>
  *   <desc>A string to be used as the password to decrypt a key which was
  *   specified using GSTLSKeyPassword.
- *  </desc>
+ *   </desc>
+ *   <term>GSTLSDebug</term>
+ *   <desc>A boolean specifying whether diagnostic debug is to be enabled
+ *   to log information about a connection where the handshake fails.<br />
+ *   </desc>
+ *   <term>GSTLSPriority</term>
+ *   <desc>A GNUTLS priority string describing the ciphers etc which may be
+ *   used for the connection.  In addition the string may be one of
+ *   SSLv2, SSLv3, or TLSv1 to use the appropriate general settings
+ *   for negotiating a connection of the specified type.
+ *   </desc>
+ *   <term>GSTLSRemoteHosts</term>
+ *   <desc>A comma delimited list of host names to be allowed when verifying
+ *   the certificate of the host we are connecting to.<br />
+ *   If this is not specified, all the names provided by NSHost are used.
+ *   </desc>
+ *   <term>GSTLSRevokeFile</term>
+ *   <desc>The full path of a file containing certificate revocation
+ *   information for certificates issued by our trusted authorites but
+ *   no longer valid.
+ *   </desc>
+ *   <term>GSTLSVerify</term>
+ *   <desc>A boolean specifying whether we should require the remote end to
+ *   supply a valid certificate in order to establish an encrypted connection.
+ *   </desc>
  * </deflist>
  */
 - (NSString*) sslSetOptions: (NSDictionary*)options;

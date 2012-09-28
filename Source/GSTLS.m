@@ -48,6 +48,7 @@ NSString * const GSTLSCertificateFile = @"GSTLSCertificateFile";
 NSString * const GSTLSCertificateKeyFile = @"GSTLSCertificateKeyFile";
 NSString * const GSTLSCertificateKeyPassword = @"GSTLSCertificateKeyPassword";
 NSString * const GSTLSDebug = @"GSTLSDebug";
+NSString * const GSTLSPriority = @"GSTLSPriority";
 NSString * const GSTLSRemoteHosts = @"GSTLSRemoteHosts";
 NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
 NSString * const GSTLSVerify = @"GSTLSVerify";
@@ -140,7 +141,9 @@ static BOOL     verifyServer = NO;
  */
 static int      globalDebug = 0;
 
-static NSString *cipherList = nil;
+/* Defines the default priority list.
+ */
+static NSString *priority = nil;
 
 static gnutls_anon_client_credentials_t anoncred;
 
@@ -153,8 +156,11 @@ static gnutls_anon_client_credentials_t anoncred;
 {
   NSString      *str;
 
-  cipherList
-    = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSCipherList"];
+  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSPriority];
+  if (nil != str)
+    {
+      ASSIGN(priority, str);
+    }
 
   /* The GSTLSCAFile user default overrides the builtin value or the
    * GS_TLS_CA_FILE environment variable.
@@ -1000,51 +1006,82 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
         }
 
       gnutls_set_default_priority(session);
+
       pri = [opts objectForKey: NSStreamSocketSecurityLevelKey];
-      if ([pri isEqualToString: NSStreamSocketSecurityLevelNone] == YES)
+      str = [opts objectForKey: GSTLSPriority];
+      if (nil == pri && nil == str)
         {
-          // pri = NSStreamSocketSecurityLevelNone;
-          GSOnceMLog(@"NSStreamSocketSecurityLevelNone is insecure ..."
-            @" not implemented");
-          DESTROY(self);
-          return nil;
+          str = priority;       // Default setting
         }
-      else if ([pri isEqualToString: NSStreamSocketSecurityLevelSSLv2] == YES)
+      if (YES == [str isEqual: @"SSLv3"])
         {
-          // pri = NSStreamSocketSecurityLevelSSLv2;
-          GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
-            @" not implemented");
-          DESTROY(self);
-          return nil;
+          pri = NSStreamSocketSecurityLevelSSLv3;
+          str = nil;
         }
-      else if ([pri isEqualToString: NSStreamSocketSecurityLevelSSLv3] == YES)
+      else if (YES == [str isEqual: @"SSLv2"])
         {
+          pri = NSStreamSocketSecurityLevelSSLv2;
+          str = nil;
+        }
+      else if (YES == [str isEqual: @"TLSv1"])
+        {
+          pri = NSStreamSocketSecurityLevelTLSv1;
+          str = nil;
+        }
+
+      if (nil == str)
+        {
+          if ([pri isEqual: NSStreamSocketSecurityLevelNone] == YES)
+            {
+              // pri = NSStreamSocketSecurityLevelNone;
+              GSOnceMLog(@"NSStreamSocketSecurityLevelNone is insecure ..."
+                @" not implemented");
+              DESTROY(self);
+              return nil;
+            }
+          else if ([pri isEqual: NSStreamSocketSecurityLevelSSLv2] == YES)
+            {
+              // pri = NSStreamSocketSecurityLevelSSLv2;
+              GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
+                @" not implemented");
+              DESTROY(self);
+              return nil;
+            }
+          else if ([pri isEqual: NSStreamSocketSecurityLevelSSLv3] == YES)
+            {
 #if GNUTLS_VERSION_NUMBER < 0x020C00
-          const int proto_prio[2] = {
-            GNUTLS_SSL3,
-            0 };
-          gnutls_protocol_set_priority(session, proto_prio);
+              const int proto_prio[2] = {
+                GNUTLS_SSL3,
+                0 };
+              gnutls_protocol_set_priority(session, proto_prio);
 #else
-          gnutls_priority_set_direct(session,
-            "NORMAL:-VERS-TLS-ALL:+VERS-SSL3.0", NULL);
+              gnutls_priority_set_direct(session,
+                "NORMAL:-VERS-TLS-ALL:+VERS-SSL3.0", NULL);
 #endif
-        }
-      else if ([pri isEqualToString: NSStreamSocketSecurityLevelTLSv1] == YES)
-        {
+            }
+          else if ([pri isEqual: NSStreamSocketSecurityLevelTLSv1] == YES)
+            {
 #if GNUTLS_VERSION_NUMBER < 0x020C00
-          const int proto_prio[4] = {
+              const int proto_prio[4] = {
 #if	defined(GNUTLS_TLS1_2)
-            GNUTLS_TLS1_2,
+                GNUTLS_TLS1_2,
 #endif
-            GNUTLS_TLS1_1,
-            GNUTLS_TLS1_0,
-            0 };
-          gnutls_protocol_set_priority(session, proto_prio);
+                GNUTLS_TLS1_1,
+                GNUTLS_TLS1_0,
+                0 };
+              gnutls_protocol_set_priority(session, proto_prio);
 #else
-          gnutls_priority_set_direct(session,
-            "NORMAL:-VERS-SSL3.0:+VERS-TLS-ALL", NULL);
+              gnutls_priority_set_direct(session,
+                "NORMAL:-VERS-SSL3.0:+VERS-TLS-ALL", NULL);
 #endif
+            }
         }
+#if GNUTLS_VERSION_NUMBER >= 0x020C00
+      else
+        {
+          gnutls_priority_set_direct(session, [str UTF8String], NULL);
+        }
+#endif
 
       /* Set certificate credentials for this session.
        */
