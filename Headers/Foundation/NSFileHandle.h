@@ -303,7 +303,7 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
  *   <term>GSTLSPriority</term>
  *   <desc>A GNUTLS priority string describing the ciphers etc which may be
  *   used for the connection.  In addition the string may be one of
- *   SSLv2, SSLv3, or TLSv1 to use the appropriate general settings
+ *   SSLv3, or TLSv1 to use the appropriate general settings
  *   for negotiating a connection of the specified type.
  *   </desc>
  *   <term>GSTLSRemoteHosts</term>

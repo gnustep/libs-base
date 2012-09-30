@@ -1018,11 +1018,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
           pri = NSStreamSocketSecurityLevelSSLv3;
           str = nil;
         }
-      else if (YES == [str isEqual: @"SSLv2"])
-        {
-          pri = NSStreamSocketSecurityLevelSSLv2;
-          str = nil;
-        }
       else if (YES == [str isEqual: @"TLSv1"])
         {
           pri = NSStreamSocketSecurityLevelTLSv1;
