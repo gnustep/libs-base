@@ -33,6 +33,7 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
+#import "GSTLS.h"
 #import "GSURLPrivate.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
@@ -780,10 +781,39 @@ static NSURLProtocol	*placeholder = nil;
 #endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
+          static NSArray        *keys;
+          NSUInteger            count;
+
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
                             forKey: NSStreamSocketSecurityLevelKey];
           [this->output setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
                              forKey: NSStreamSocketSecurityLevelKey];
+          if (nil == keys)
+            {
+              keys = [[NSArray alloc] initWithObjects:
+                GSTLSCAFile,
+                GSTLSCertificateFile,
+                GSTLSCertificateKeyFile,
+                GSTLSCertificateKeyPassword,
+                GSTLSDebug,
+                GSTLSPriority,
+                GSTLSRemoteHosts,
+                GSTLSRevokeFile,
+                GSTLSVerify,
+                nil];
+            }
+          count = [keys count];
+          while (count-- > 0)
+            {
+              NSString      *key = [keys objectAtIndex: count];
+              NSString      *str = [this->request _propertyForKey: key];
+
+              if (nil != str)
+                {
+                  [this->output setProperty: str forKey: key];
+                }
+            }
+          if (_debug) [this->output setProperty: @"YES" forKey: GSTLSDebug];
         }
       [this->input setDelegate: self];
       [this->output setDelegate: self];

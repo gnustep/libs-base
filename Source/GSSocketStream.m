@@ -422,9 +422,25 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 @implementation GSTLSHandler
 
+static NSArray  *keys = nil;
+
 + (void) initialize
 {
   [GSTLSObject class];
+  if (nil == keys)
+    {
+      keys = [[NSArray alloc] initWithObjects:
+        GSTLSCAFile,
+        GSTLSCertificateFile,
+        GSTLSCertificateKeyFile,
+        GSTLSCertificateKeyPassword,
+        GSTLSDebug,
+        GSTLSPriority,
+        GSTLSRemoteHosts,
+        GSTLSRevokeFile,
+        GSTLSVerify,
+        nil];
+    }
 }
 
 + (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
@@ -496,47 +512,68 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 - (id) initWithInput: (GSSocketInputStream*)i
               output: (GSSocketOutputStream*)o
 {
-  NSString      *proto;
-  NSDictionary  *opts;
-  BOOL		server = NO;
+  NSString              *str;
+  NSMutableDictionary   *opts;
+  NSUInteger            count;
+  BOOL		        server;
 
-  proto = [i propertyForKey: NSStreamSocketSecurityLevelKey];
-/* FIXME
-  if ([[o propertyForKey: NSStreamSocketCertificateServerKey] boolValue] == YES)
-    {
-      server = YES;
-    }
- */
+  server = [[o propertyForKey: @"IsServer"] boolValue];
 
-  if (GSDebugSet(@"NSStream") == YES)
+  str = [o propertyForKey: NSStreamSocketSecurityLevelKey];
+  if (nil == str) str = [i propertyForKey: NSStreamSocketSecurityLevelKey];
+  if ([str isEqual: NSStreamSocketSecurityLevelNone] == YES)
     {
-      gnutls_global_set_log_level (11); // Full debug output
-    }
-  else
-    {
-      gnutls_global_set_log_level (0);  // No debug
-    }
-
-  if ([[o propertyForKey: NSStreamSocketSecurityLevelKey] isEqual: proto] == NO)
-    {
-      NSLog(@"NSStreamSocketSecurityLevel on input stream does not match output stream");
+      GSOnceMLog(@"NSStreamSocketSecurityLevelNone is insecure ..."
+        @" not implemented");
       DESTROY(self);
       return nil;
     }
-  opts = [NSDictionary dictionaryWithObjectsAndKeys:
-    proto, NSStreamSocketSecurityLevelKey,
-    nil];
+  else if ([str isEqual: NSStreamSocketSecurityLevelSSLv2] == YES)
+    {
+      GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
+        @" not implemented");
+      DESTROY(self);
+      return nil;
+    }
+  else if ([str isEqual: NSStreamSocketSecurityLevelSSLv3] == YES)
+    {
+      str = @"SSLv3";
+    }
+  else if ([str isEqual: NSStreamSocketSecurityLevelTLSv1] == YES)
+    {
+      str = @"TLSV1";
+    }
+  else
+    {
+      str = nil;
+    }
 
   if ((self = [super initWithInput: i output: o]) == nil)
     {
       return nil;
     }
 
+  /* Create the options dictionary, copying in any option from the stream
+   * properties.  GSTLSPriority overrides NSStreamSocketSecurityLevelKey.
+   */
+  opts = [NSMutableDictionary new];
+  if (nil != str) [opts setObject: str forKey: GSTLSPriority];
+  count = [keys count];
+  while (count-- > 0)
+    {
+      NSString  *key = [keys objectAtIndex: count];
+
+      str = [o propertyForKey: key];
+      if (nil == str) str = [i propertyForKey: key];
+      if (nil != str) [opts setObject: str forKey: key];
+    }
+  
   session = [[GSTLSSession alloc] initWithOptions: opts
                                         direction: (server ? NO : YES)
                                         transport: (void*)self
                                              push: GSTLSPush
                                              pull: GSTLSPull];
+  [opts release];
   initialised = YES;
   return self;
 }
@@ -2501,6 +2538,7 @@ setNonBlocking(SOCKET fd)
       [outs _setAddress: addr];
       [ins _setSock: acceptReturn];
       [outs _setSock: acceptReturn];
+      [ins setProperty: @"YES" forKey: @"IsServer"];
     }
   if (inputStream)
     {

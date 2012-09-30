@@ -48,6 +48,7 @@
 #import "NSCallBacks.h"
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"
+#import "GSTLS.h"
 
 #ifdef	HAVE_SYS_FILE_H
 #  include <sys/file.h>
@@ -999,11 +1000,45 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   if ([[u scheme] isEqualToString: @"https"])
     {
+      static NSArray            *keys = nil;
+      NSMutableDictionary       *opts;
+      NSUInteger                count;
+
       /* If we are an https connection, negotiate secure connection.
        * Make sure we are not an observer of the file handle while
        * it is connecting...
        */
       [nc removeObserver: self name: nil object: sock];
+
+      if (nil == keys)
+        {
+          keys = [[NSArray alloc] initWithObjects:
+            GSTLSCAFile,
+            GSTLSCertificateFile,
+            GSTLSCertificateKeyFile,
+            GSTLSCertificateKeyPassword,
+            GSTLSDebug,
+            GSTLSPriority,
+            GSTLSRemoteHosts,
+            GSTLSRevokeFile,
+            GSTLSVerify,
+            nil];
+        }
+      count = [keys count];
+      opts = [[NSMutableDictionary alloc] initWithCapacity: count];
+      while (count-- > 0)
+        {
+          NSString      *key = [keys objectAtIndex: count];
+          NSString      *str = [request objectForKey: key];
+
+          if (nil != str)
+            {
+              [opts setObject: str forKey: key];
+            }
+        }
+      if (debug) [opts setObject: @"YES" forKey: GSTLSDebug];
+      [sock sslSetOptions: opts];
+      [opts release];
       if ([sock sslConnect] == NO)
 	{
 	  if (debug)
