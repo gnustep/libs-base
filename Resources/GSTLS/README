@@ -1,0 +1,15 @@
+
+Files here are for TLS/SSL certificate verification.
+
+ca-certificates.crt
+        a list of PEM encoded certificates of trusted authorities
+
+        NB. This is just the list of trusted authorities from my personal
+        machine, it may bot be suitable for you ... please replace/remove
+        to meet your own needs.
+
+revoke.crl
+
+        may be set to a revocation list for certificates which have been
+        revoked by the trusted authorities.
+        At present, no revocation list is provided.
