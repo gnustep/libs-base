@@ -96,21 +96,21 @@ GSTLSLog(int level, const char *msg)
 
 /* The caFile variable holds the location of the file containing the default
  * certificate authorities to be used by our system.
- * The hard-coded value is a file in the GNUTLS folder of the base library
+ * The hard-coded value is a file in the GSTLS folder of the base library
  * resource bundle, but this can be overridden by the GS_TLS_CA_FILE
  * environment variable, which in turn will be overridden by the GSTLSCAFile
  * user default string.
  */
-static NSString *caFile = nil;          // GNUTLS/ca-certificates.crt
+static NSString *caFile = nil;          // GSTLS/ca-certificates.crt
 
 /* The caRevoke variable holds the location of the file containing the default
  * certificate revocation list to be used by our system.
- * The hard-coded value is a file in the GNUTLS folder of the base library
+ * The hard-coded value is a file in the GSTLS folder of the base library
  * resource bundle, but this can be overridden by the GS_TLS_REVOKE
  * environment variable, which in turn will be overridden by the GSTLSRevokeFile
  * user default string.
  */
-static NSString *revokeFile = nil;      // GNUTLS/revoke.crl
+static NSString *revokeFile = nil;      // GSTLS/revoke.crl
 
 /* The verifyClient variable tells us if connections from a remote server
  * should (by default) require and verify a client certificate against
@@ -155,6 +155,12 @@ static gnutls_anon_client_credentials_t anoncred;
 + (void) _defaultsChanged: (NSNotification*)n
 {
   NSString      *str;
+
+  str = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSCipherList"];
+  if (nil != str)
+    {
+      GSOnceMLog(@"GSCipherList is no longer used, please try GSTLSPriority");
+    }
 
   str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSPriority];
   if (nil != str)
@@ -232,7 +238,7 @@ static gnutls_anon_client_credentials_t anoncred;
             {
               str = [bundle pathForResource: @"ca-certificates"
                                      ofType: @"crt"
-                                inDirectory: @"GNUTLS"];
+                                inDirectory: @"GSTLS"];
             }
           ASSIGN(caFile, str);
 
@@ -245,7 +251,7 @@ static gnutls_anon_client_credentials_t anoncred;
             {
               str = [bundle pathForResource: @"revoke"
                                      ofType: @"crl"
-                                inDirectory: @"GNUTLS"];
+                                inDirectory: @"GSTLS"];
             }
           ASSIGN(revokeFile, str);
 
@@ -842,11 +848,28 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       NSString  *pri;
       NSString  *str;
       int       ret;
-      BOOL      debug = (globalDebug > 0) ? YES : NO;
+      BOOL      trust;
+      BOOL      debug;
+      BOOL      verify;
 
       opts = [options copy];
       outgoing = isOutgoing ? YES : NO;
 
+      if (YES == outgoing)
+        {
+          verify = verifyServer;        // Verify connection to remote server
+        }
+      else
+        {
+          verify = verifyClient;        // Verify certificate of remote client
+        }
+      str = [opts objectForKey: GSTLSVerify];
+      if (nil != str)
+        {
+          verify = [str boolValue];
+        }
+
+      debug = (globalDebug > 0) ? YES : NO;
       if (NO == debug)
         {
           debug = [[opts objectForKey: GSTLSDebug] boolValue];
@@ -864,9 +887,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       else
         {
           gnutls_init(&session, GNUTLS_SERVER);
-
-          if (NO == verifyClient
-            && NO == [[opts objectForKey: GSTLSVerify] boolValue])
+          if (NO == verify)
             {
               /* We don't want to request/verify the client certificate,
                * so we mustn't ask the other end to send it.
@@ -876,6 +897,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
             }
         }
       setup = YES;
+      trust = NO;
 
       /* Set the default trusted authority certificates.
        */
@@ -891,7 +913,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
               NSLog(@"Problem loading trusted authorities from %@: %s",
                 caFile, gnutls_strerror(ret));
             }
-          else if (0 == ret && YES == debug)
+          else if (ret > 0)
+            {
+              trust = YES;      // Loaded at least one trusted CA
+            }
+          else if (YES == debug)
             {
               NSLog(@"No certificates processed from %@", caFile);
             }
@@ -912,10 +938,29 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
               NSLog(@"Problem loading trusted authorities from %@: %s",
                 str, gnutls_strerror(ret));
             }
+          else if (ret > 0)
+            {
+              trust = YES;
+            }
           else if (0 == ret)
             {
               NSLog(@"No certificates processed from %@", str);
             }
+        }
+
+      if (YES == verify && NO == trust)
+        {
+          NSLog(@"You have requested that a TLS/SSL connection be to a remote"
+            @" system with a verified certificate, but have provided no trusted"
+            @" certificate authorities.");
+          NSLog(@"If you did not use the GSTLSCAFile option to specify a file"
+            @" containing certificate authorities for a session, and did not"
+            @" specify a default file using the GSTLSCAFile user default or"    
+            @" the GS_TLS_CA_FILE environment variable, then the system will"
+            @" have attempted to use the GSTLS/ca-certificates.crt file in the"
+            @" gnustep-base resource bundle.  Unfortunately, it has not been"
+            @" possible to ready any trusted certificate authoritied from"
+            @" these locations.");
         }
 
       /* Load default revocation list.
@@ -1134,11 +1179,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 
       if (YES == outgoing)
         {
-          shouldVerify = verifyServer;  // Verify remote server?
+          shouldVerify = verifyServer;  // Verify remote server certificate?
         }
       else
         {
-          shouldVerify = verifyClient;  // Verify remote client?
+          shouldVerify = verifyClient;  // Verify remote client certificate?
         }
       str = [opts objectForKey: GSTLSVerify];
       if (nil != str)

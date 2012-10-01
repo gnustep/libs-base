@@ -57,8 +57,10 @@ endif
 base-resources_LANGUAGES = English German French Italian TraditionalChinese \
 Spanish Esperanto Korean
 base-resources_LOCALIZED_RESOURCE_FILES = Localizable.strings
-base-resources_RESOURCE_DIRS = Languages
-base-resources_RESOURCE_FILES = $(LANGUAGE_INSTALL_FILES)
+base-resources_RESOURCE_DIRS = Languages GSTLS
+base-resources_RESOURCE_FILES = \
+        $(LANGUAGE_INSTALL_FILES) \
+        $(GSTLS_INSTALL_FILES)
 
 LANGUAGE_FILES = \
 Languages/Dutch \
@@ -76,6 +78,9 @@ Languages/Esperanto \
 Languages/Korean 
 LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases \
 	Languages/Locale.encodings Languages/Locale.canonical
+
+GSTLS_INSTALL_FILES = \
+        GSTLS/ca-certificates.crt
 
 include $(GNUSTEP_MAKEFILES)/resource-set.make
 
