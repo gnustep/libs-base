@@ -182,23 +182,12 @@ threadid_function()
 - (NSString*) sslSetOptions: (NSDictionary*)options;
 @end
 
-static BOOL	permitSSLv2 = NO;
-static NSString	*cipherList = nil;
-
 @implementation	GSSSLHandle
-+ (void) _defaultsChanged: (NSNotification*)n
-{
-  permitSSLv2
-    = [[NSUserDefaults standardUserDefaults] boolForKey: @"GSPermitSSLv2"];
-  cipherList
-    = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSCipherList"];
-}
 
 + (void) initialize
 {
   if (self == [GSSSLHandle class])
     {
-      NSUserDefaults	*defs;
       unsigned		count;
 
       SSL_library_init();
@@ -227,14 +216,6 @@ static NSString	*cipherList = nil;
 	  inf = [[[NSProcessInfo processInfo] globallyUniqueString] UTF8String];
 	  RAND_seed(inf, strlen(inf));
 	}
-      defs = [NSUserDefaults standardUserDefaults];
-      permitSSLv2 = [defs boolForKey: @"GSPermitSSLv2"];
-      cipherList = [defs stringForKey: @"GSCipherList"];
-      [[NSNotificationCenter defaultCenter]
-	addObserver: self
-	   selector: @selector(_defaultsChanged:)
-	       name: NSUserDefaultsDidChangeNotification
-	     object: nil];
     }
 }
 
@@ -302,14 +283,7 @@ static NSString	*cipherList = nil;
   if (0 == ctx)
     {
       ctx = SSL_CTX_new(SSLv23_client_method());
-      if (permitSSLv2 == NO)
-	{
-          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
-	}
-      if (nil != cipherList)
-	{
-          SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
-	}
+      SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
     }
   if (0 == ssl)
     {
@@ -380,14 +354,7 @@ static NSString	*cipherList = nil;
   if (ctx == 0)
     {
       ctx = SSL_CTX_new(SSLv23_method());
-      if (permitSSLv2 == NO)
-	{
-          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
-	}
-      if (nil != cipherList)
-	{
-          SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
-	}
+      SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
     }
   if ([PEMpasswd length] > 0)
     {
