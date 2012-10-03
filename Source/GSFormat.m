@@ -1758,37 +1758,40 @@ NSDictionary *locale)
 		byteEncoding = GSPrivateIsByteEncoding(enc);
 	      }
 
-	    len = strlen(str);	// Number of bytes to convert.
-	    blen = len;		// Size of unichar output buffer.
-
-	    if (prec != -1)
+	    if (-1 == prec)
+              {
+                len = strlen(str);	// Number of bytes to convert.
+                blen = len;		// Size of unichar output buffer.
+              }
+	    else
 	      {
-		if (prec < len)
-		  {
-		    /* We don't neeed an output buffer bigger than the
-		     * precision specifies.
-		     */
-		    blen = prec;
-		  }
 		if (byteEncoding == YES)
 		  {
 		    /* Where the external encoding is one byte per character,
 		     * we know we don't need to convert more bytes than the
 		     * precision required for output.
 		     */
-		    if (prec < len)
-		      {
-			len = prec;
+                    len = 0;
+                    while (len < prec && str[0] != 0)
+                      {
+                        len++;
 		      }
+                    blen = len;
 		  }
-		else if (prec * 4 < len)
+		else
 		  {
-		    /* We assume no multibyte encoding is going to use more
-		     * than the maximum four bytes used by utf-8 for any
-		     * unicode code point.  So we do not need to convert
-		     * more than four times the precision.
-		     */
-		    len = prec * 4;
+                    /* FIXME ... it looks like modern standards mean that
+                     * the number of *bytes* in an input string may not
+                     * exceed the precision ... but that's unintuitive for
+                     * input strings with multibyte characters, so we need
+                     * to check and emulate OSX behavior.
+                     */
+                    len = 0;
+                    while (len < prec && str[0] != 0)
+                      {
+                        len++;
+		      }
+                    blen = len;
 		  }
 	      }
 
