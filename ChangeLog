@@ -1,3 +1,8 @@
+2012-10-03  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* SSL/GSSSLHandle.m (-sslSetOptions): Apply string name change
+	missed during TLS reorganisation.
+
 2012-09-30  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSSocketStream.m:
