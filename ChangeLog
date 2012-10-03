@@ -1,3 +1,12 @@
+2012-10-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSFormat.m: for C-string formatting, avoid reading to the
+        nul terminator ... limit to a number of bytes equal to the precision
+        (if any) given in the format. This may be the wrong thing to do when
+        handling multibyte encodings (where a natural expectation is to have
+        precision mean number of characters), but seems legitimate going by
+        current xopen printf documentation.
+
 2012-10-03  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* SSL/GSSSLHandle.m (-sslSetOptions): Apply string name change
