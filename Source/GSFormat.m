@@ -1772,7 +1772,7 @@ NSDictionary *locale)
 		     * precision required for output.
 		     */
                     len = 0;
-                    while (len < prec && str[0] != 0)
+                    while (len < prec && str[len] != 0)
                       {
                         len++;
 		      }
@@ -1787,7 +1787,7 @@ NSDictionary *locale)
                      * to check and emulate OSX behavior.
                      */
                     len = 0;
-                    while (len < prec && str[0] != 0)
+                    while (len < prec && str[len] != 0)
                       {
                         len++;
 		      }
