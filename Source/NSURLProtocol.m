@@ -1529,6 +1529,18 @@ static NSURLProtocol	*placeholder = nil;
 				  _writeOffset = 0;
 				}
 			    }
+				else
+				  {
+					if ([this->output streamStatus] == NSStreamStatusWriting)
+					  {
+						_writeData = [[NSData alloc] initWithBytes:	buffer length: len];
+						_writeOffset = 0;
+					  }
+					else if (_debug == YES)
+					  {
+					    NSLog(@"%@ Failed to write data", self);
+					  }
+				  }
 			}
 		      else
 		        {
