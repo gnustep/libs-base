@@ -1400,6 +1400,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  if ([[u scheme] isEqualToString: @"https"])
 	    {
 	      NSString	*cert;
+              NSString	*key;
+              NSString	*pwd;
 
 	      if (sslClass == 0)
 		{
@@ -1410,16 +1412,27 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host
 							       service: port
 							      protocol: s];
-	      cert = [request objectForKey: GSHTTPPropertyCertificateFileKey];
-	      if ([cert length] > 0)
-		{
-		  NSString	*key;
-		  NSString	*pwd;
 
-		  key = [request objectForKey: GSHTTPPropertyKeyFileKey];
-		  pwd = [request objectForKey: GSHTTPPropertyPasswordKey];
-		  [sock sslSetCertificate: cert privateKey: key PEMpasswd: pwd];
-		}
+              /* Map old SSL keys onto new.
+               */
+	      cert = [request objectForKey: GSHTTPPropertyCertificateFileKey];
+	      if (nil != cert)
+		{
+                  [request setObject: cert
+                              forKey: GSTLSCertificateFile];
+                }
+              key = [request objectForKey: GSHTTPPropertyKeyFileKey];
+              if (nil != key)
+                {
+                  [request setObject: key
+                              forKey: GSTLSCertificateKeyFile];
+                }
+              pwd = [request objectForKey: GSHTTPPropertyPasswordKey];
+              if (nil != pwd)
+                {
+                  [request setObject: pwd
+                              forKey: GSTLSCertificateKeyPassword];
+                }
 	    }
 	  else
 	    {
