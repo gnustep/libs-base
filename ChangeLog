@@ -1,3 +1,9 @@
+2012-10-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/GNUstepBase/NSDebug+GNUstepBase.h:
+        Fix format of logs produced by two of the three method macros ...
+        a bug spotted by Fred.
+
 2012-10-03  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSFormat.m: for C-string formatting, avoid reading to the
