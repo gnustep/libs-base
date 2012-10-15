@@ -1,3 +1,12 @@
+2012-10-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/Foundation/NSCharacterSet.h:
+        * Source/NSCharacterSet.m:
+        For a long time Apple's docs and headers said that the methods for
+        returning standard charactersets returned 'NSCharacterSet*', which
+        was annoying when they were called on NSMutableCharacterSet.
+        It seems they finally changed to returning id, so we can do the same.
+
 2012-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/GNUstepBase/NSDebug+GNUstepBase.h:
