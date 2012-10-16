@@ -1,5 +1,9 @@
 2012-10-15  Eric Wasylishen  <ewasylishen@gmail.com>
 
+	* Tests/base/NSArchiver/stringEncoding.m: add test for last commit
+
+2012-10-15  Eric Wasylishen  <ewasylishen@gmail.com>
+
 	* Source/NSPropertyList.m (-[GSBinaryPLGenerator storeString:):
 	Write unicode strings in big-endian instead of little-endian.
 	The resulting plists now load properly on OS X. Thanks to
