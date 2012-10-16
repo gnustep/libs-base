@@ -3736,7 +3736,11 @@ isEqualFunc(const void *item1, const void *item2,
       [dest setLength: offset + sizeof(unichar)*len];
       buffer = [dest mutableBytes] + offset;
       [string getCharacters: (unichar*)buffer];
-#if     GS_WORDS_BIGENDIAN
+
+      // Always store in big-endian, so if machine is little-endian,
+      // perform byte-swapping.
+
+#if     !GS_WORDS_BIGENDIAN
       {
 	int i;
 	for (i = 0; i < len; i++)
