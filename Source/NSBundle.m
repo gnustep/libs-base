@@ -1059,6 +1059,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (self == [NSBundle class])
     {
       extern const char	*GSPathHandling(const char *);
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSString          *file;
       const char	*mode;
       NSDictionary	*env;
@@ -1067,7 +1068,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       /* Ensure we do 'right' path handling while initializing core paths.
        */
       mode = GSPathHandling("right");
-      _emptyTable = RETAIN([NSDictionary dictionary]);
+      _emptyTable = [NSDictionary new];
 
       /* Create basic mapping dictionaries for bootstrapping and
        * for use if the full ductionaries can't be loaded from the
@@ -1126,6 +1127,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       /* Initialise manager here so it's thread-safe.
        */
       manager();
+
+      /* Set up tables for bundle lookups
+       */
+      _bundles = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+      _byClass = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
+      _byIdentifier = NSCreateMapTable(NSObjectMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
 
       pathCacheLock = [NSLock new];
       pathCache = [NSMutableDictionary new];
@@ -1216,6 +1226,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       _loadingBundle = nil;
 #endif
       GSPathHandling(mode);
+      [pool release];
     }
 }
 
@@ -1226,32 +1237,30 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 + (NSArray *) allBundles
 {
   NSMutableArray	*array = [NSMutableArray arrayWithCapacity: 2];
+  NSMapEnumerator	enumerate;
+  void		        *key;
+  NSBundle		*bundle;
 
   [load_lock lock];
   if (!_mainBundle)
     {
       [self mainBundle];
     }
-  if (_bundles != 0)
-    {
-      NSMapEnumerator	enumerate;
-      void		*key;
-      NSBundle		*bundle;
 
-      enumerate = NSEnumerateMapTable(_bundles);
-      while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
-	{
-	  if (bundle->_bundleType == NSBUNDLE_FRAMEWORK)
-	    {
-	      continue;
-	    }
-	  if ([array indexOfObjectIdenticalTo: bundle] == NSNotFound)
-	    {
-	      [array addObject: bundle];
-	    }
-	}
-      NSEndMapTableEnumeration(&enumerate);
+  enumerate = NSEnumerateMapTable(_bundles);
+  while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
+    {
+      if (bundle->_bundleType == NSBUNDLE_FRAMEWORK)
+        {
+          continue;
+        }
+      if ([array indexOfObjectIdenticalTo: bundle] == NSNotFound)
+        {
+          [array addObject: bundle];
+        }
     }
+  NSEndMapTableEnumeration(&enumerate);
+
   [load_lock unlock];
   return array;
 }
@@ -1631,6 +1640,7 @@ IF_NO_GC(
 - (id) initWithPath: (NSString*)path
 {
   NSString	*identifier;
+  NSBundle	*bundle;
 
   self = [super init];
 
@@ -1698,17 +1708,13 @@ IF_NO_GC(
 
   /* check if we were already initialized for this directory */
   [load_lock lock];
-  if (_bundles)
+  bundle = (NSBundle *)NSMapGet(_bundles, path);
+  if (bundle != nil)
     {
-      NSBundle	*bundle = (NSBundle *)NSMapGet(_bundles, path);
-
-      if (bundle != nil)
-	{
-	  IF_NO_GC([bundle retain];)
-	  [load_lock unlock];
-	  [self dealloc];
-	  return bundle;
-	}
+      IF_NO_GC([bundle retain];)
+      [load_lock unlock];
+      [self dealloc];
+      return bundle;
     }
   [load_lock unlock];
 
@@ -1723,7 +1729,14 @@ IF_NO_GC(
 	}
     }
 
+  /* OK ... this is a new bundle ... need to insert it in the global map
+   * to be found by this path so that a leter call to -bundleIdentifier
+   * can work.
+   */
   _path = [path copy];
+  [load_lock lock];
+  NSMapInsert(_bundles, _path, self);
+  [load_lock unlock];
 
   if ([[[_path lastPathComponent] pathExtension] isEqual: @"framework"] == YES)
     {
@@ -1740,37 +1753,22 @@ IF_NO_GC(
   identifier = [self bundleIdentifier];
 
   [load_lock lock];
-  if (!_bundles)
-    {
-      _bundles = NSCreateMapTable(NSObjectMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-    }
-  if (!_byClass)
-    {
-      /* Used later by framework code.
-       */
-      _byClass = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-    }
-  if (!_byIdentifier)
-    {
-      _byIdentifier = NSCreateMapTable(NSObjectMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-    }
   if (identifier != nil)
     {
       NSBundle	*bundle = (NSBundle *)NSMapGet(_byIdentifier, identifier);
 
-      if (bundle != nil)
-	{
-	  IF_NO_GC([bundle retain];)
-	  [load_lock unlock];
-	  [self dealloc];
-	  return bundle;
-	}
-      NSMapInsert(_byIdentifier, identifier, self);
+      if (bundle != self)
+        {
+          if (bundle != nil)
+            {
+              IF_NO_GC([bundle retain];)
+              [load_lock unlock];
+              [self dealloc];
+              return bundle;
+            }
+          NSMapInsert(_byIdentifier, identifier, self);
+        }
     }
-  NSMapInsert(_bundles, _path, self);
   [load_lock unlock];
 
   return self;

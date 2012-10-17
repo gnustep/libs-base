@@ -721,7 +721,7 @@ static Class NSNullClass;
 static Class NSNumberClass;
 static Class NSStringClass;
 
-static NSCharacterSet *escapeSet;
+static NSMutableCharacterSet *escapeSet;
 
 static inline void
 writeTabs(NSMutableString *output, NSInteger tabs)
@@ -902,10 +902,10 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
   NSStringClass = [NSString class];
   NSDictionaryClass = [NSDictionary class];
   NSNumberClass = [NSNumber class];
-  escapeSet
-    = [[NSCharacterSet characterSetWithCharactersInString: @"\"\\"] retain];
-  boolN = [[NSNumber numberWithBool: NO] retain];
-  boolY = [[NSNumber numberWithBool: YES] retain];
+  escapeSet = [NSMutableCharacterSet new];
+  [escapeSet addCharactersInString: @"\"\\"];
+  boolN = [[NSNumber alloc] initWithBool: NO];
+  boolY = [[NSNumber alloc] initWithBool: YES];
 }
 
 + (NSData*) dataWithJSONObject: (id)obj
