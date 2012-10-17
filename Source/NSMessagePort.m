@@ -1130,6 +1130,7 @@ typedef	struct {
 {
   if (self == [NSMessagePort class])
     {
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSFileManager	*mgr;
       NSString		*path;
       NSString		*pref;
@@ -1180,6 +1181,7 @@ typedef	struct {
 		}
 	    }
 	}
+      [pool release];
     }
 }
 

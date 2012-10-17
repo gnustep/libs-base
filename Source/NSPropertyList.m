@@ -591,30 +591,28 @@ static NSCharacterSet *xmlQuotables = nil;
 
 static void setupQuotables(void)
 {
-  if (oldQuotables == nil)
+  if (nil == oldQuotables)
     {
       NSMutableCharacterSet	*s;
 
       /* The '$', '.', '/' and '_' characters used to be OK to use in
        * property lists, but OSX now quotes them, so we follow suite.
        */
-      s = [[NSCharacterSet characterSetWithCharactersInString:
+      s = [NSMutableCharacterSet new];
+      [s addCharactersInString:
 	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	@"abcdefghijklmnopqrstuvwxyz"]
-	mutableCopy];
+	@"abcdefghijklmnopqrstuvwxyz"];
       [s invert];
-      oldQuotables = [s copy];
-      RELEASE(s);
+      oldQuotables = s;
 
-      s = [[NSCharacterSet characterSetWithCharactersInString:
-	@"&<>'\\\""] mutableCopy];
+      s = [NSMutableCharacterSet new];
+      [s addCharactersInString: @"&<>'\\\""];
       [s addCharactersInRange: NSMakeRange(0x0001, 0x001f)];
       [s removeCharactersInRange: NSMakeRange(0x0009, 0x0002)];
       [s removeCharactersInRange: NSMakeRange(0x000D, 0x0001)];
       [s addCharactersInRange: NSMakeRange(0xD800, 0x07FF)];
       [s addCharactersInRange: NSMakeRange(0xFFFE, 0x0002)];
-      xmlQuotables = [s copy];
-      RELEASE(s);
+      xmlQuotables = s;
     }
 }
 

@@ -349,8 +349,10 @@ GSPrivateTimeNow(void)
 
 + (void) initialize
 {
-  if (self == [NSCalendarDate class])
+  if (self == [NSCalendarDate class] && nil == NSCalendarDateClass)
     {
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
+
       NSCalendarDateClass = self;
       [self setVersion: 1];
       localTZ = RETAIN([NSTimeZone localTimeZone]);
@@ -375,6 +377,7 @@ GSPrivateTimeNow(void)
 	[absClass instanceMethodForSelector: abrSEL];
 
       GSObjCAddClassBehavior(self, [NSGDate class]);
+      [pool release];
     }
 }
 

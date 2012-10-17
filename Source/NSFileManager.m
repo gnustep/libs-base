@@ -3116,7 +3116,7 @@ static NSSet	*fileKeys = nil;
 {
   if (fileKeys == nil)
     {
-      fileKeys = [NSSet setWithObjects:
+      fileKeys = [[NSSet alloc] initWithObjects:
 	NSFileAppendOnly,
 	NSFileCreationDate,
 	NSFileDeviceIdentifier,
@@ -3136,7 +3136,6 @@ static NSSet	*fileKeys = nil;
 	NSFileSystemNumber,
 	NSFileType,
 	nil];
-      IF_NO_GC([fileKeys retain];)
     }
 }
 

@@ -1,3 +1,16 @@
+2012-10-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSBundle.m:
+        * Source/NSCalendarDate.m:
+        * Source/NSFileManager.m:
+        * Source/NSJSONSerialization.m:
+        * Source/NSMessagePort.m:
+        * Source/NSMessagePortNameServer.m:
+        * Source/NSPropertyList.m:
+        Avoid autoreleasing things in +initialize when there may be no
+        autorelease pool present ... we don't want to either leak or
+        cause recursive loops when we want to log any leaks.
+
 2012-10-15  Eric Wasylishen  <ewasylishen@gmail.com>
 
 	* Tests/base/NSArchiver/stringEncoding.m: add test for last commit

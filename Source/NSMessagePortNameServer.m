@@ -128,6 +128,7 @@ static void clean_up_names(void)
 {
   if (self == [NSMessagePortNameServer class])
     {
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSFileManager	*mgr;
       NSString		*path;
       NSString		*pref;
@@ -177,6 +178,7 @@ static void clean_up_names(void)
 		}
 	    }
 	}
+      [pool release];
     }
 }
 
