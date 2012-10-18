@@ -1,3 +1,7 @@
+2012-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSXMLParser.m: Try to fix entity parsing bug #37596
+
 2012-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSBundle.m:

@@ -1383,26 +1383,32 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
   if (*ep == '#')
     {
-      // &#ddd; or &#xhh;
-      // !!! ep+1 is not 0-terminated - but by ;!!
-      if (sscanf((char *)ep+1, "x%x;", &val))
-	{
-	  // &#xhh; hex value
-	  if (result != 0)
-	    {
-	      *result = [[NSString alloc] initWithFormat: @"%C", val];
-	    }
-	  return YES;
-	}
-      else if (sscanf((char *)ep+1, "%d;", &val))
-	{
-	  // &ddd; decimal value
-	  if (result != 0)
-	    {
-	      *result = [[NSString alloc] initWithFormat: @"%C", val];
-	    }
-	  return YES;
-	}
+      if (len < 8)
+        {
+          char  buf[8];
+
+          memcpy(buf, ep + 1, len - 1);
+          buf[len - 1] = '\0';
+          // &#ddd; or &#xhh;
+          if (sscanf(buf, "x%x;", &val))
+            {
+              // &#xhh; hex value
+              if (result != 0)
+                {
+                  *result = [[NSString alloc] initWithFormat: @"%C", val];
+                }
+              return YES;
+            }
+          else if (sscanf(buf, "%d;", &val))
+            {
+              // &ddd; decimal value
+              if (result != 0)
+                {
+                  *result = [[NSString alloc] initWithFormat: @"%C", val];
+                }
+              return YES;
+            }
+        }
     }
   else
     {
