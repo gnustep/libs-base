@@ -220,7 +220,6 @@ static gnutls_anon_client_credentials_t anoncred;
 
       if (beenHere == NO)
         {
-          NSUserDefaults	*defs;
           NSProcessInfo         *pi;
           NSBundle              *bundle;
           NSString              *str;
@@ -273,8 +272,6 @@ static gnutls_anon_client_credentials_t anoncred;
               globalDebug = [str intValue];
             }
 
-          defs = [NSUserDefaults standardUserDefaults];
-
           [[NSNotificationCenter defaultCenter]
             addObserver: self
                selector: @selector(_defaultsChanged:)
@@ -313,8 +310,8 @@ static GSTLSDHParams            *paramsCurrent = nil;
 
 + (GSTLSDHParams*) current
 {
-  GSTLSDHParams *p;
-
+  GSTLSDHParams	*p; 
+  
   [paramsLock lock];
   if (nil == paramsCurrent)
     {
@@ -333,7 +330,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
     }
   p = [paramsCurrent retain];
   [paramsLock unlock];
-  return [paramsCurrent autorelease];
+  return [p autorelease];
 }
 
 + (void) generate
