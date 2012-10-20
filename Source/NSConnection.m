@@ -832,7 +832,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       if ([IrequestModes containsObject: mode] == NO)
 	{
-	  unsigned	c = [IrunLoops count];
+	  NSUInteger	c = [IrunLoops count];
 
 	  while (c-- > 0)
 	    {
@@ -857,7 +857,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       if ([IrunLoops indexOfObjectIdenticalTo: loop] == NSNotFound)
 	{
-	  unsigned		c = [IrequestModes count];
+	  NSUInteger		c = [IrequestModes count];
 
 	  while (c-- > 0)
 	    {
@@ -1131,7 +1131,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   if (parent != nil)
     {
-      unsigned	count;
+      NSUInteger	count;
 
       ImultipleThreads = GSIVar(parent, _multipleThreads);
       IindependentQueueing = GSIVar(parent, _independentQueueing);
@@ -1331,7 +1331,7 @@ static NSLock	*cached_proxies_gate = nil;
   if (IlocalTargets != 0)
     {
       NSMutableArray		*targets;
-      unsigned	 		i = IlocalTargets->nodeCount;
+      NSUInteger		i = IlocalTargets->nodeCount;
       GSIMapEnumerator_t	enumerator;
       GSIMapNode 		node;
 
@@ -1560,7 +1560,7 @@ static NSLock	*cached_proxies_gate = nil;
   GS_M_LOCK(IrefGate);
   if (IrequestModes != nil && [IrequestModes containsObject: mode])
     {
-      unsigned	c = [IrunLoops count];
+      NSUInteger	c = [IrunLoops count];
 
       while (c-- > 0)
 	{
@@ -1587,7 +1587,7 @@ static NSLock	*cached_proxies_gate = nil;
 
       if (pos != NSNotFound)
 	{
-	  unsigned	c = [IrequestModes count];
+	  NSUInteger	c = [IrequestModes count];
 
 	  while (c-- > 0)
 	    {
@@ -2290,8 +2290,8 @@ static NSLock	*cached_proxies_gate = nil;
   if (GSIVar(conn, _authenticateIn) == YES
     && (type == METHOD_REQUEST || type == METHOD_REPLY))
     {
-      NSData	*d;
-      unsigned	count = [components count];
+      NSData	        *d;
+      NSUInteger	count = [components count];
 
       d = RETAIN([components objectAtIndex: --count]);
       [components removeObjectAtIndex: count];
@@ -3297,7 +3297,7 @@ static NSLock	*cached_proxies_gate = nil;
 - (NSPortCoder*) _makeInRmc: (NSMutableArray*)components
 {
   NSPortCoder	*coder;
-  unsigned	count;
+  NSUInteger	count;
 
   NSParameterAssert(IisValid);
 
@@ -3332,7 +3332,7 @@ static NSLock	*cached_proxies_gate = nil;
 - (NSPortCoder*) _makeOutRmc: (int)sno generate: (int*)ret reply: (BOOL)rep
 {
   NSPortCoder	*coder;
-  unsigned	count;
+  NSUInteger	count;
 
   NSParameterAssert(IisValid);
 
