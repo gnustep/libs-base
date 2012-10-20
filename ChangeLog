@@ -1,3 +1,7 @@
+2012-10-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSConnection.m: Use NSUInteger for array indexes/counters.
+
 2012-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSXMLParser.m: Try to fix entity parsing bug #37596
