@@ -1,3 +1,10 @@
+2012-10-22  Rene Hexel <rhexel+savannah@mac.com>
+
+        * Source/Additions/GSXML.m:
+        In libxml2 the content and use fields have become private and are only
+        exposed through xmlBufContent() and xmlBufUse() since libxml-2.9.0.
+        Use those macros for newer versions of libxml2.
+
 2012-10-20  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSConnection.m: Use NSUInteger for array indexes/counters.
