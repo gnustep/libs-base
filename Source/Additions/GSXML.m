@@ -983,7 +983,11 @@ static NSMapTable	*nodeNames = 0;
 	1,
 	"utf-8");
       xmlOutputBufferFlush(buf);
+#if LIBXML_VERSION < 20900
       string = UTF8StrLen(buf->buffer->content, buf->buffer->use);
+#else
+      string = UTF8StrLen(xmlBufContent(buf->buffer), xmlBufUse(buf->buffer));
+#endif
       xmlOutputBufferClose(buf);
     }
   return string;
