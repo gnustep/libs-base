@@ -883,6 +883,38 @@ static Class NSMutableSet_concrete_class;
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 }
 
+- (NSSet *) objectsPassingTest: (GSSetFilterBlock)aBlock
+{
+  return [self objectsWithOptions: 0 passingTest: aBlock];
+}
+
+- (NSSet *) objectsWithOptions: (NSEnumerationOptions)opts
+                   passingTest: (GSSetFilterBlock)aBlock
+{
+  BOOL                  shouldStop = NO;
+  id<NSFastEnumeration> enumerator = self;
+  NSMutableSet          *resultSet;
+
+  resultSet = [NSMutableSet setWithCapacity: [self count]];
+    
+  FOR_IN (id, obj, enumerator)
+    {
+      BOOL include = CALL_BLOCK(aBlock, obj, &shouldStop);
+
+      if (include)
+        {
+          [resultSet addObject:obj];
+        }
+      if (shouldStop)
+        {
+          break;
+        }
+    }
+  END_FOR_IN(enumerator)
+    
+  return [resultSet makeImmutableCopyOnFail: NO];
+}
+
 /** Return a set formed by adding anObject to the receiver.
  */
 - (NSSet *) setByAddingObject: (id)anObject

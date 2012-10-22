@@ -1,3 +1,9 @@
+2012-10-22  Thomas Davie <tom.davie@gmail.com>
+
+        * Headers/Foundation/NSSet.h:
+        * Source/NSSet.m:
+        Add -objectsPassingTest:
+
 2012-10-22  Rene Hexel <rhexel+savannah@mac.com>
 
         * Source/Additions/GSXML.m:
