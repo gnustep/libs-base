@@ -30,8 +30,12 @@
 #define	included_GSConfig_h
 
 // Make sure we expose the constants that we use in ObjC++ mode
+#ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS 1
+#endif
+#ifndef __STDC_LIMIT_MACROS 
 #define __STDC_LIMIT_MACROS 1
+#endif
 
 #if !defined(NeXT_Foundation_LIBRARY)
 
