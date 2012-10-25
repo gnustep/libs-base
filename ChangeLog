@@ -1,3 +1,8 @@
+2012-10-25  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Headers/GNUstepBase/GSConfig.h.in: Prevent redefinition warnings for 
+	__STDC_LIMIT_MACROS and __STC_CONSTANT_MACROS (both are ObjC++ related).
+
 2012-10-22  Thomas Davie <tom.davie@gmail.com>
 
         * Headers/Foundation/NSSet.h:
