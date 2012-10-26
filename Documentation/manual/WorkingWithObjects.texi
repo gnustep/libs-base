@@ -124,6 +124,7 @@ in the same area of memory, or allocate in chunks - perhaps for performance
 reasons, you may create a Zone from where you would allocate those objects by
 using the @code{NSCreateZone} function.  This will minimise the paging
 required by your application when accessing those objects frequently.
+In all normal yuse however, you should confine yourself to the default zone.
 
 Low level memory allocation is performed by the @code{NSAllocateObject()}
 function.  This is rarely used but available when you require more advanced
@@ -455,10 +456,14 @@ future point.  It is best to balance retains and releases within each
 individual block of code.
 
 @item
-If you receive an autoreleased object, it will normally remain valid for the
-rest of the current method call and can even be returned as the result of the
-method.  If you need to store it away for future use (e.g. as an instance
-variable), you must retain it.
+If you receive an object, it should remain valid until the object which
+provided it is sent another message or until the autorelease pool which
+was in use at the point when you received it is emptied.  So you can
+usually expect it to remain valid for the rest of the current method call
+and can even return it as the result of the method.
+If you need to store it away for future use (e.g. as an instance variable,
+or to use after emptying/destroying an autorelease pool, or to be used
+after sending another message to the object's owner), you must retain it.
 
 @item
 The retain counts mentioned are guidelines only ... more sophisticated classes
