@@ -70,6 +70,16 @@ geom_string()
   PASS(!NSEqualRects(r, NSMakeRect(23.45, -3.45, 2044.3, 2033.0001)),
     "moderately similar rects are not equal");
 
+  PASS(NSIntersectsRect(r, NSMakeRect(23.45, -3.45, 2044.3, 2033)),
+    "identical rects intersect");
+
+  PASS(!NSIntersectsRect(NSMakeRect(1,1,2,2), NSMakeRect(2,2,0,0)),
+    "an empty rect does not intersect with one containing it");
+  PASS(!NSIntersectsRect(NSMakeRect(1,1,2,2), NSMakeRect(3,3,0,0)),
+    "an empty rect does not intersect with one touching it");
+  PASS(!NSIntersectsRect(NSMakeRect(1,1,0,0), NSMakeRect(1,1,0,0)),
+    "identical empty rects do not intersec");
+
 #if     defined(GNUSTEP_BASE_LIBRARY)
   if (compat_mode == YES)
     {
