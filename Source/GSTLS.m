@@ -417,6 +417,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
     {
       return nil;
     }
+  f = [f stringByStandardizingPath];
   [paramsLock lock];
   p = [[paramsCache objectForKey: f] retain];
   [paramsLock unlock];
@@ -520,6 +521,7 @@ static NSMutableDictionary      *certificateListCache = nil;
     {
       return nil;
     }
+  f = [f stringByStandardizingPath];
   [certificateListLock lock];
   l = [[certificateListCache objectForKey: f] retain];
   [certificateListLock unlock];
@@ -673,6 +675,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
     {
       return nil;
     }
+  f = [f stringByStandardizingPath];
   [privateKeyLock lock];
   if (nil == p)
     {
@@ -900,9 +903,10 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
        */
       if ([caFile length] > 0)
         {
-          const char    *path = [caFile fileSystemRepresentation];
+          const char    *path;
           int           ret;
 
+          path = [caFile fileSystemRepresentation];
           ret = gnutls_certificate_set_x509_trust_file(certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -925,9 +929,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       str = [opts objectForKey: GSTLSCAFile];
       if ([str length] > 0)
         {
-          const char    *path = [str fileSystemRepresentation];
+          const char    *path;
           int           ret;
 
+	  str = [str stringByStandardizingPath];
+          path = [str fileSystemRepresentation];
           ret = gnutls_certificate_set_x509_trust_file(certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -964,9 +970,10 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
        */
       if ([revokeFile length] > 0)
         {
-          const char    *path = [revokeFile fileSystemRepresentation];
+          const char    *path;
           int           ret;
 
+          path = [revokeFile fileSystemRepresentation];
           ret = gnutls_certificate_set_x509_crl_file(certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -985,9 +992,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       str = [opts objectForKey: GSTLSRevokeFile];
       if ([str length] > 0)
         {
-          const char    *path = [str fileSystemRepresentation];
+          const char    *path;
           int           ret;
 
+	  str = [str stringByStandardizingPath];
+          path = [str fileSystemRepresentation];
           ret = gnutls_certificate_set_x509_crl_file(certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
