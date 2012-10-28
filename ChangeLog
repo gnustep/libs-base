@@ -1,3 +1,14 @@
+2012-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/Foundation/NSGeometry.m: Fix so that an empty rect can never
+        intersect any other (including itsself).  Reported by Banly Kemiyatorn
+        and Fred Kiefer.
+
+2012-10-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Instance/Documentation/texi.make:
+        Fix installation/clean of html documents generated from texi files.
+
 2012-10-25  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Headers/GNUstepBase/GSConfig.h.in: Prevent redefinition warnings for 
