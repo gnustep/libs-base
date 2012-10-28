@@ -445,15 +445,19 @@ GS_GEOM_SCOPE BOOL
 NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped)
 {
   if (flipped)
-    return ((aPoint.x >= NSMinX(aRect))
-            && (aPoint.y >= NSMinY(aRect))
-            && (aPoint.x < NSMaxX(aRect))
-            && (aPoint.y < NSMaxY(aRect))) ? YES : NO;
+    {
+      return ((aPoint.x >= NSMinX(aRect))
+        && (aPoint.y >= NSMinY(aRect))
+        && (aPoint.x < NSMaxX(aRect))
+        && (aPoint.y < NSMaxY(aRect))) ? YES : NO;
+    }
   else
-    return ((aPoint.x >= NSMinX(aRect))
-            && (aPoint.y > NSMinY(aRect))
-            && (aPoint.x < NSMaxX(aRect))
-            && (aPoint.y <= NSMaxY(aRect))) ? YES : NO;
+    {
+      return ((aPoint.x >= NSMinX(aRect))
+        && (aPoint.y > NSMinY(aRect))
+        && (aPoint.x < NSMaxX(aRect))
+        && (aPoint.y <= NSMaxY(aRect))) ? YES : NO;
+    }
 }
 
 GS_GEOM_SCOPE BOOL
@@ -478,10 +482,10 @@ GS_GEOM_SCOPE BOOL
 NSContainsRect(NSRect aRect, NSRect bRect)
 {
   return (!NSIsEmptyRect(bRect)
-	  && (NSMinX(aRect) <= NSMinX(bRect))
-	  && (NSMinY(aRect) <= NSMinY(bRect))
-	  && (NSMaxX(aRect) >= NSMaxX(bRect))
-	  && (NSMaxY(aRect) >= NSMaxY(bRect))) ? YES : NO;
+    && (NSMinX(aRect) <= NSMinX(bRect))
+    && (NSMinY(aRect) <= NSMinY(bRect))
+    && (NSMaxX(aRect) >= NSMaxX(bRect))
+    && (NSMaxY(aRect) >= NSMaxY(bRect))) ? YES : NO;
 }
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -495,9 +499,11 @@ NSIntersectsRect(NSRect aRect, NSRect bRect)
 {
   /* Note that intersecting at a line or a point doesn't count */
   return (NSMaxX(aRect) <= NSMinX(bRect)
-          || NSMaxX(bRect) <= NSMinX(aRect)
-              || NSMaxY(aRect) <= NSMinY(bRect)
-              || NSMaxY(bRect) <= NSMinY(aRect)) ? NO : YES;
+    || NSMaxX(bRect) <= NSMinX(aRect)
+    || NSMaxY(aRect) <= NSMinY(bRect)
+    || NSMaxY(bRect) <= NSMinY(aRect)
+    || NSIsEmptyRect(aRect)
+    || NSIsEmptyRect(bRect)) ? NO : YES;
 }
 #endif
 
