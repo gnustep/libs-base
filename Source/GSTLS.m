@@ -174,6 +174,7 @@ static gnutls_anon_client_credentials_t anoncred;
   str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSCAFile];
   if (nil != str)
     {
+      str = [str stringByStandardizingPath];
       ASSIGN(caFile, str);
     }
 
@@ -183,6 +184,7 @@ static gnutls_anon_client_credentials_t anoncred;
   str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSRevokeFile];
   if (nil != str)
     {
+      str = [str stringByStandardizingPath];
       ASSIGN(revokeFile, str);
     }
 
@@ -239,6 +241,10 @@ static gnutls_anon_client_credentials_t anoncred;
                                      ofType: @"crt"
                                 inDirectory: @"GSTLS"];
             }
+          else
+            {
+              str = [str stringByStandardizingPath];
+            }
           ASSIGN(caFile, str);
 
           /* Let the GS_TLS_REVOKE environment variable override the
@@ -251,6 +257,10 @@ static gnutls_anon_client_credentials_t anoncred;
               str = [bundle pathForResource: @"revoke"
                                      ofType: @"crl"
                                 inDirectory: @"GSTLS"];
+            }
+          else
+            {
+              str = [str stringByStandardizingPath];
             }
           ASSIGN(revokeFile, str);
 
