@@ -63,6 +63,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSFileHandle.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSString.h"
@@ -5170,10 +5171,9 @@ static void indentation(unsigned level, NSMutableString *str)
 	  handle = RETAIN([u URLHandleUsingCache: NO]);
 	  if (cert != nil && pKey != nil && pwd != nil)
 	    {
-	      [handle writeProperty: cert 
-			     forKey: GSHTTPPropertyCertificateFileKey];
-	      [handle writeProperty: pKey forKey: GSHTTPPropertyKeyFileKey];
-	      [handle writeProperty: pwd forKey: GSHTTPPropertyPasswordKey];
+	      [handle writeProperty: cert forKey: GSTLSCertificateFile];
+	      [handle writeProperty: pKey forKey: GSTLSCertificateKeyFile];
+	      [handle writeProperty: pwd forKey: GSTLSCertificateKeyPassword];
 	    }
 #else
 	  connectionURL = [url copy];
