@@ -1007,7 +1007,7 @@ wordData(NSString *word)
  * If the parse has parsed the body of the message, this will be
  * the data of the body, with any transfer encoding removed.
  */
-- (NSData*) data
+- (NSMutableData*) data
 {
   return data;
 }
