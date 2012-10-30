@@ -237,7 +237,7 @@ extern "C" {
 + (GSMimeParser*) mimeParser;
 
 - (GSMimeCodingContext*) contextFor: (GSMimeHeader*)info;
-- (NSData*) data;
+- (NSMutableData*) data;
 - (BOOL) decodeData: (NSData*)sData
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData
