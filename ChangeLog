@@ -1,3 +1,17 @@
+2012-10-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/NSError+GNUstepBase.m:
+	* Source/GSFileHandle.m:
+	* Source/GSMDNSNetServices.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSThread.m:
+	* Source/common.h:
+        Changes to try to get inclusion of system specific features right.
+        In particular, we want strerror_r() to be POSIX complient so that
+        we get correct system erorr messages.
+
 2012-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/Foundation/NSGeometry.m: Fix so that an empty rect can never

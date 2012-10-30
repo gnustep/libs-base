@@ -56,7 +56,9 @@
 #  include <fcntl.h>
 #endif
 
-#if defined(__POSIX_SOURCE) || defined(__EXT_POSIX1_198808)
+#if defined(__POSIX_SOURCE)\
+        || defined(__EXT_POSIX1_198808)\
+        || defined(O_NONBLOCK)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
