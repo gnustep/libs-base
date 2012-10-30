@@ -39,6 +39,7 @@
 
 #import <dns_sd.h>		// Apple's DNS Service Discovery
 
+#import <sys/select.h>
 #import <sys/types.h>
 #import <sys/socket.h>		// AF_INET / AF_INET6
 

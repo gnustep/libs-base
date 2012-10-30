@@ -4,36 +4,52 @@
  * might be from an earlier build.
  */
 
-/* disable extensions ... we want to use standard code
+#import	"config.h"
+
+/* Disable extensions (config.h may have turned them on) ...
+ * we want to use standard code.
  */
-#ifdef	_GNU_SOURCE
-#undef	_GNU_SOURCE
+#if     defined(_GNU_SOURCE)
+#  undef _GNU_SOURCE
 #endif
+
 
 /* Ensure we have _XOPEN_SOURCE turned on at the appropriate
  * level for the facilities we need.
  *
  * Minimum of 600 for string.h so we get the POSIX strerror_r() behavior
+ * on systems using glibc.
+ *
+ * Any systems where using XOPEN causes problems can define GSXOPEN to 0
  */
-/* This hack work around for glibc breaks FreeBSD and probably other platforms.
- */
-#if (defined(__linux__) &&!defined(__GNU__)) || defined(__QNXNTO__)
-#  if	defined(_XOPEN_SOURCE)
-#    if	_XOPEN_SOURCE < 600
-#      undef	_XOPEN_SOURCE
-#      define	_XOPEN_SOURCE 600
-#    endif
-#  else
-#     define	_XOPEN_SOURCE 600
-#  endif
+
+#if     defined(__FreeBSD__)
+#  define GSXOPEN 0
+#else
+#  define GSXOPEN 600
 #endif
 
-#import	"config.h"
+#if     GSXOPEN > 0
+#  if	defined(_XOPEN_SOURCE)
+#    if	_XOPEN_SOURCE < GSXOPEN
+#      undef	_XOPEN_SOURCE
+#      define	_XOPEN_SOURCE GSXOPEN
+#    endif
+#  else
+#    define	_XOPEN_SOURCE GSXOPEN
+#  endif
+#endif
 
 #if	defined(HAVE_STRING_H)
 /* For POSIX strerror_r() and others
  */
 #include <string.h>
+#endif
+
+#if	defined(HAVE_STRINGS_H)
+/* For strcasecmp() and others
+ */
+#include <strings.h>
 #endif
 
 #include <errno.h>

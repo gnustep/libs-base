@@ -23,23 +23,7 @@
 
 */
 
-/* Carefully turn on _XOPEN_SOURCE for string.h so we
- * get the POSIX strerror_r
- */
-#if	defined(_GNU_SOURCE)
-#undef	_GNU_SOURCE
-#endif
-#if	defined(_XOPEN_SOURCE)
-#if	_XOPEN_SOURCE < 600
-#undef	_XOPEN_SOURCE
-#define	_XOPEN_SOURCE 600
-#endif
-#else
-#define	_XOPEN_SOURCE 600
-#endif
-
 #import "common.h"
-
 #include <stdio.h>
 
 #import "Foundation/NSDictionary.h"
@@ -144,10 +128,12 @@ strerror_r(int eno, char *buf, int len)
 #else
   NSString	*message;
   char          buf[BUFSIZ];
+  int           result;
 
   /* FIXME ... not all are POSIX, should we use NSMachErrorDomain for some? */
   domain = NSPOSIXErrorDomain;
-  if (strerror_r(code, buf, BUFSIZ) < 0)
+  result = strerror_r(code, buf, BUFSIZ);
+  if (result < 0)
     {
       snprintf(buf, sizeof(buf), "%ld", code);
     }
