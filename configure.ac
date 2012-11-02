@@ -2341,7 +2341,8 @@ AC_CHECK_FUNCS(setrlimit)
 #--------------------------------------------------------------------
 # One of these functions needed by NSDebug.m and NSProcessInfo.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(strerror_r strerror)
+AC_CHECK_FUNCS(strerror)
+AC_FUNC_STRERROR_R
 
 #--------------------------------------------------------------------
 # Needed by NSDebug.m
