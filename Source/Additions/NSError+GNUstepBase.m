@@ -128,17 +128,31 @@ strerror_r(int eno, char *buf, int len)
 #else
   NSString	*message;
   char          buf[BUFSIZ];
+# if STRERROR_R_CHAR_P
+  char          *result;
+# else
   int           result;
+#endif
 
   /* FIXME ... not all are POSIX, should we use NSMachErrorDomain for some? */
   domain = NSPOSIXErrorDomain;
   result = strerror_r(code, buf, BUFSIZ);
+# if STRERROR_R_CHAR_P
+  if (result == 0)
+    {
+      snprintf(buf, sizeof(buf), "%ld", code);
+      result = buf;
+    }
+  message = [NSString stringWithCString: result
+			       encoding: [NSString defaultCStringEncoding]];
+# else
   if (result < 0)
     {
       snprintf(buf, sizeof(buf), "%ld", code);
     }
   message = [NSString stringWithCString: buf
 			       encoding: [NSString defaultCStringEncoding]];
+# endif
   /* FIXME ... can we do better localisation? */
   info = [NSMutableDictionary dictionaryWithObjectsAndKeys:
     message, NSLocalizedDescriptionKey,
