@@ -594,12 +594,18 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 
   if (sig == nil)
     {
-      selector = gs_find_best_typed_sel (selector);
+      /* NB Don't overwrite selector prematurely, so we can show the untyped
+       * selector in the error message below if there is no best selector. */
+      SEL typed_sel = gs_find_best_typed_sel (selector);
 
-      if (GSTypesFromSelector(selector) != 0)
+      if (typed_sel != 0)
 	{
-	  sig = [NSMethodSignature signatureWithObjCTypes:
-	    GSTypesFromSelector(selector)];
+	  selector = typed_sel;
+	  if (GSTypesFromSelector(selector) != 0)
+	    {
+	      sig = [NSMethodSignature signatureWithObjCTypes:
+	        GSTypesFromSelector(selector)];
+	    }
 	}
     }
 

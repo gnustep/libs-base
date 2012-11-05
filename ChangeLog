@@ -1,4 +1,9 @@
-2012-11-02  Wolfgang Lux  <wlux@uni-muenster.de>
+2012-11-05  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/GSFFIInvocation.m (GSFFIInvocationCallback): Generate
+	useful error message when no best typed selector can be found.
+
+2012-11-02  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* configure.ac: Use AC_FUNC_STRERROR_R to check for presence and
 	version of the strerror_r function.
