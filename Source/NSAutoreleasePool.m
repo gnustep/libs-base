@@ -369,6 +369,12 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 	  format: @"Too many (%u) autorelease pools ... leaking them?", level];
       }
   }
+
+  /* Catch the case where the receiver is a pool still in use (wrongly put in 
+     the pool cache previously). */
+  NSCAssert(_child != self, @"Invalid child pool");
+  NSCAssert(_parent != self, @"Invalid parent pool");
+
   return self;
 }
 
@@ -401,12 +407,6 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 - (void) emptyPool
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
-  while (_child)
-    {
-      NSAutoreleasePool *pool = _child;
-      _child = pool->_child;
-      push_pool_to_cache(tv, pool);
-    }
   tv->current_pool = self;
   objc_autoreleasePoolPop(_released);
 }
