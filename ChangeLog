@@ -1,3 +1,12 @@
+2012-11-15  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Source/NSAutoreleasePool.m (-emptyPool): Fixed not to push a pool to 
+	the cache in the ARC_RUNTIME implementation, -dealloc does it already. 
+	For the same current pool instance, the ARC_RUNTIME implementation was 
+	calling push_pool_to_cache() twice, once in -emptyPool and another 
+	-dealloc. Which meant a pool still in use could be reused, then it was 
+	possible to get stuck in an infinite loop.
+
 2012-11-05  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSFFIInvocation.m (GSFFIInvocationCallback): Generate
