@@ -1,10 +1,22 @@
+2012-11-18 11:29-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/Foundation.h: Add NSMetadataQuery.h to
+	include list.
+	* Headers/Foundation/NSMetadataQuery.h: New header for class.
+	* Source/GNUmakefile: Add NSMetadataQuery.[hm] to makefile.
+	* Source/NSMetadataQuery.m: Abstract implementation for
+	NSMetdataQuery.  The idea is much like NSFileStream and other
+	classes which have operating system specific implementations.
+	On linux this will, most likely, interface with locate/slocate.
+	I'm not certain what it will talk to on Win32.
+
 2012-11-15  Quentin Mathe <quentin.mathe@gmail.com>
 
-	* Source/NSAutoreleasePool.m (-emptyPool): Fixed not to push a pool to 
-	the cache in the ARC_RUNTIME implementation, -dealloc does it already. 
-	For the same current pool instance, the ARC_RUNTIME implementation was 
-	calling push_pool_to_cache() twice, once in -emptyPool and another 
-	-dealloc. Which meant a pool still in use could be reused, then it was 
+	* Source/NSAutoreleasePool.m (-emptyPool): Fixed not to push a pool to
+	the cache in the ARC_RUNTIME implementation, -dealloc does it already.
+	For the same current pool instance, the ARC_RUNTIME implementation was
+	calling push_pool_to_cache() twice, once in -emptyPool and another
+	-dealloc. Which meant a pool still in use could be reused, then it was
 	possible to get stuck in an infinite loop.
 
 2012-11-05  Wolfgang Lux  <wolfgang.lux@gmail.com>
