@@ -1,3 +1,10 @@
+2012-11-18 11:47-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSMetadataQuery.h: Remove old file.
+	* Source/GNUmakefile: Change name to NSMetadata.[hm].
+	* Source/NSMetadata.m: Add new file with correct name.
+	* Source/NSMetadataQuery.m: Remove old file.
+
 2012-11-18 11:29-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/Foundation.h: Add NSMetadataQuery.h to
