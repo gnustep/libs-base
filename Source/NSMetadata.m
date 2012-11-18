@@ -21,10 +21,10 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   AutogsdocSource: NSMetadataQuery.h
+   AutogsdocSource: NSMetadata.m
 */ 
 
-#import <Foundation/NSMetadataQuery.h>
+#import <Foundation/NSMetadata.h>
 #import <Foundation/NSArray.h>
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
