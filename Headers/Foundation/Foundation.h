@@ -83,7 +83,7 @@
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
-#import <Foundation/NSMetadataQuery.h>
+#import <Foundation/NSMetadata.h>
 #import	<Foundation/NSMethodSignature.h>
 #import	<Foundation/NSNotification.h>
 #import	<Foundation/NSNotificationQueue.h>
