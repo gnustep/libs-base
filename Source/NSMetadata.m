@@ -26,7 +26,57 @@
 
 #import <Foundation/NSMetadata.h>
 #import <Foundation/NSArray.h>
+#import <Foundation/NSDictionary.h>
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+
+// Metadata item constants...
+NSString * const NSMetadataItemFSNameKey = @"NSMetadataItemFSNameKey";
+NSString * const NSMetadataItemDisplayNameKey = @"NSMetadataItemDisplayNameKey";
+NSString * const NSMetadataItemURLKey = @"NSMetadataItemURLKey";
+NSString * const NSMetadataItemPathKey = @"NSMetadataItemPathKey";
+NSString * const NSMetadataItemFSSizeKey = @"NSMetadataItemFSSizeKey";
+NSString * const NSMetadataItemFSCreationDateKey = @"NSMetadataItemFSCreationDateKey";
+NSString * const NSMetadataItemFSContentChangeDateKey = @"NSMetadataItemFSContentChangeDateKey";
+
+@implementation NSMetadataItem
+- (NSArray *)attributes
+{
+  return [attributes allKeys];
+}
+
+- (id)valueForAttribute: (NSString *)key
+{
+  return [attributes objectForKey: key];
+}
+
+- (NSDictionary *)valuesForAttributes: (NSArray *)keys
+{
+  NSMutableDictionary *results = [NSMutableDictionary dictionary];
+  NSEnumerator *en = [keys objectEnumerator];
+  id key = nil;
+
+  while((key = [en nextObject]) != nil)
+    {
+      id value = [self valueForAttribute: key];
+      [results setObject: value forKey: key];
+    }
+
+  return results;
+}
+
+@end
+
+// Metdata Query Constants...
+NSString * const NSMetadataQueryUserHomeScope = @"NSMetadataQueryUserHomeScope";
+NSString * const NSMetadataQueryLocalComputerScope = @"NSMetadataQueryLocalComputerScope";
+NSString * const NSMetadataQueryNetworkScope = @"NSMetadataQueryNetworkScope";
+NSString * const NSMetadataQueryUbiquitousDocumentsScope = @"NSMetadataQueryUbiquitousDocumentsScope";
+NSString * const NSMetadataQueryUbiquitousDataScope = @"NSMetadataQueryUbiquitousDataScope";
+
+NSString * const NSMetadataQueryDidFinishGatheringNotification = @"NSMetadataQueryDidFinishGatheringNotification";
+NSString * const NSMetadataQueryDidStartGatheringNotification = @"NSMetadataQueryDidStartGatheringNotification";
+NSString * const NSMetadataQueryDidUpdateNotification = @"NSMetadataQueryDidUpdateNotification";
+NSString * const NSMetadataQueryGatheringProgressNotification = @"NSMetadataQueryGatheringProgressNotification";
 
 @implementation NSMetadataQuery
 

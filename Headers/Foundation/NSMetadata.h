@@ -24,20 +24,58 @@
    AutogsdocSource: NSMetadataQuery.h
 */ 
 
-#ifndef __NSMetadataQuery_h_GNUSTEP_BASE_INCLUDE
-#define __NSMetadataQuery_h_GNUSTEP_BASE_INCLUDE
+#ifndef __NSMetadata_h_GNUSTEP_BASE_INCLUDE
+#define __NSMetadata_h_GNUSTEP_BASE_INCLUDE
 
 #import <Foundation/NSObject.h>
 #import <Foundation/NSTimer.h>
 
-@class NSPredicate;
+@class NSPredicate, NSMutableDictionary, NSDictionary;
+@protocol NSMetadataQueryDelegate;
 
+// Metadata item constants...
+GS_EXPORT NSString * const NSMetadataItemFSNameKey;
+GS_EXPORT NSString * const NSMetadataItemDisplayNameKey;
+GS_EXPORT NSString * const NSMetadataItemURLKey;
+GS_EXPORT NSString * const NSMetadataItemPathKey;
+GS_EXPORT NSString * const NSMetadataItemFSSizeKey;
+GS_EXPORT NSString * const NSMetadataItemFSCreationDateKey;
+GS_EXPORT NSString * const NSMetadataItemFSContentChangeDateKey;
+
+@interface NSMetadataItem : NSObject
+{
+  NSMutableDictionary *attributes;
+}
+
+- (NSArray *)attributes;
+- (id)valueForAttribute: (NSString *)key;
+- (NSDictionary *)valuesForAttributes: (NSArray *)keys;
+@end
+
+// Metdata Query Constants...
+GS_EXPORT NSString * const NSMetadataQueryUserHomeScope;
+GS_EXPORT NSString * const NSMetadataQueryLocalComputerScope;
+GS_EXPORT NSString * const NSMetadataQueryNetworkScope;
+GS_EXPORT NSString * const NSMetadataQueryUbiquitousDocumentsScope;
+GS_EXPORT NSString * const NSMetadataQueryUbiquitousDataScope;
+
+GS_EXPORT NSString * const NSMetadataQueryDidFinishGatheringNotification;
+GS_EXPORT NSString * const NSMetadataQueryDidStartGatheringNotification;
+GS_EXPORT NSString * const NSMetadataQueryDidUpdateNotification;
+GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
+
+/* Abstract interface for metadata query... */
 @interface NSMetadataQuery : NSObject
+{
+  NSUInteger     _flags;
+  NSTimeInterval _interval;
+  NSMutableDictionary *_results;
+}
 
 /* Instance methods */
 - (id)valueOfAttribute:(id)attr forResultAtIndex:(NSUInteger)index;
 - (NSArray *)groupedResults;
-- (NSArray *)valueLists;
+- (NSDictionary *)valueLists;
 - (NSUInteger)indexOfResult:(id)result;
 - (NSArray *)results;
 - (id)resultAtIndex:(NSUInteger)index;
@@ -74,16 +112,24 @@
 
 // Sort descriptors
 - (void)setSortDescriptors:(NSArray *)attrs;
-- (id)sortDescriptors;
+- (NSArray *)sortDescriptors;
 
 // Predicate
 - (void)setPredicate:(NSPredicate *)predicate;
 - (NSPredicate *)predicate;
 
 // Delegate
-- (void)setDelegate:(id)delegate;
-- (id)delegate;
+- (void)setDelegate:(id<NSMetadataQueryDelegate>)delegate;
+- (id<NSMetadataQueryDelegate>)delegate;
 
+@end
+
+@protocol NSMetadataQueryDelegate
+#ifdef __OBJC2__
+@optional
+#endif
+- (id)metadataQuery:(NSMetadataQuery *)query replacementObjectForResultObject:(NSMetadataItem *)result;
+- (id)metadataQuery:(NSMetadataQuery *)query replacementValueForAttribute:(NSString *)attribute value:(id)attributeValue;
 @end
 
 #endif
