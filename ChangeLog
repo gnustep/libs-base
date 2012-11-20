@@ -1,3 +1,9 @@
+2012-11-19 18:54-CET Ivan Vučica <ivan@vucica.net>
+
+	* Source/GSInvocation.h: Renamed GSFrameInvocation to
+	GSDummyInvocation, to match implementation in
+	Source/NSInvocation.m.
+
 2012-11-18 11:47-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSMetadataQuery.h: Remove old file.
