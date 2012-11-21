@@ -1,3 +1,8 @@
+2012-11-21 12:10-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSMetadata.h: Add ivars.
+	* Source/NSMetadata.m: Cleanup compilation error.
+	
 2012-11-20 12:50-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSMetadata.h: Declaratioins for constants and
