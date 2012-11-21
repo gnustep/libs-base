@@ -67,9 +67,21 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
 /* Abstract interface for metadata query... */
 @interface NSMetadataQuery : NSObject
 {
-  NSUInteger     _flags;
-  NSTimeInterval _interval;
+  BOOL _isStopped;
+  BOOL _isGathering;
+  BOOL _isStarted;
+
+  NSArray *_searchURLs;
+  NSArray *_scopes;
+  NSArray *_sortDescriptors;
+  NSPredicate *_predicate;
+  NSArray *_groupingAttributes;
+  NSArray *_valueListAttributes;
+
+  NSTimeInterval _notificationBatchingInterval;
   NSMutableDictionary *_results;
+
+  id<NSMetadataQueryDelegate> delegate;
 }
 
 /* Instance methods */
