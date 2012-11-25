@@ -94,7 +94,7 @@ NSString * const NSMetadataQueryGatheringProgressNotification = @"NSMetadataQuer
   return [NSArray array];
 }
 
-- (NSArray *)valueLists
+- (NSDictionary *)valueLists
 {
   [self subclassResponsibility: _cmd];
   return [NSArray array];
@@ -249,15 +249,68 @@ NSString * const NSMetadataQueryGatheringProgressNotification = @"NSMetadataQuer
 }
 
 // Delegate
-- (void)setDelegate:(id)delegate
+- (void)setDelegate:(id<NSMetadataQueryDelegate>)delegate;
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (id)delegate
+- (id<NSMetadataQueryDelegate>)delegate;
 {
   [self subclassResponsibility: _cmd];
   return nil;
+}
+
+@end
+
+@implementation NSMetadataQueryAttributeValueTuple
+
+- (NSString *) attribute
+{
+  return _attribute;
+}
+
+- (id) value
+{
+  return _value;
+}
+
+- (NSUInteger) count
+{
+  return _count;
+}
+
+@end
+
+@implementation NSMetadataQueryResultGroup : NSObject
+
+- (NSString *) attribute
+{
+  return _attribute;
+}
+
+- (id) value
+{
+  return _value;
+}
+
+- (NSArray *) subgroups
+{
+  return _subgroups;
+}
+
+- (NSUInteger) resultCount
+{
+  return [_subgroups count];
+}
+
+- (id) resultAtIndex: (NSUInteger)index
+{
+  return [_subgroups objectAtIndex:index];
+}
+
+- (NSArray *) results
+{
+  return [self subgroups];
 }
 
 @end

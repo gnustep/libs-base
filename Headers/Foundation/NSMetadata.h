@@ -30,7 +30,7 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSTimer.h>
 
-@class NSPredicate, NSMutableDictionary, NSDictionary;
+@class NSPredicate, NSMutableDictionary, NSDictionary, NSMutableArray;
 @protocol NSMetadataQueryDelegate;
 
 // Metadata item constants...
@@ -142,6 +142,35 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
 #endif
 - (id)metadataQuery:(NSMetadataQuery *)query replacementObjectForResultObject:(NSMetadataItem *)result;
 - (id)metadataQuery:(NSMetadataQuery *)query replacementValueForAttribute:(NSString *)attribute value:(id)attributeValue;
+@end
+
+@interface NSMetadataQueryAttributeValueTuple : NSObject
+{
+  id         _attribute;
+  id         _value;
+  NSUInteger _count;
+}
+
+- (NSString *) attribute;
+- (id) value;
+- (NSUInteger) count;
+
+@end
+
+@interface NSMetadataQueryResultGroup : NSObject
+{
+  NSString *_attribute;
+  id _value;
+  NSMutableArray *_subgroups;
+}
+
+- (NSString *) attribute;
+- (id) value;
+- (NSArray *) subgroups;
+- (NSUInteger) resultCount;
+- (id) resultAtIndex: (NSUInteger)index;
+- (NSArray *) results;
+
 @end
 
 #endif
