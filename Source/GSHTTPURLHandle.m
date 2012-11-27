@@ -404,11 +404,16 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
 
-  if ([wData length] > 0)
+  /* Ensure we set the correct content length (may be zero)
+   */
+  if ((id)NSMapGet(wProperties, (void*)@"Content-Length") == nil)
     {
       NSMapInsert(wProperties, (void*)@"Content-Length",
-	(void*)[NSString stringWithFormat: @"%d", [wData length]]);
+        (void*)[NSString stringWithFormat: @"%d", [wData length]]);
+    }
 
+  if ([wData length] > 0)
+    {
       /*
        * Assume content type if not specified.
        */
@@ -418,6 +423,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    (void*)@"application/x-www-form-urlencoded");
 	}
     }
+
   if ((id)NSMapGet(wProperties, (void*)@"Authorization") == nil)
     {
       NSURLProtectionSpace	*space;
