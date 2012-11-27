@@ -24,10 +24,10 @@
    AutogsdocSource: NSMetadata.m
 */ 
 
-#import <Foundation/NSMetadata.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSString.h>
+#import "Foundation/NSMetadata.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSString.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // Metadata item constants...
