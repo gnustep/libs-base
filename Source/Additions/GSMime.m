@@ -3607,20 +3607,11 @@ static NSCharacterSet	*tokenSet = nil;
   return [m makeImmutableCopyOnFail: YES];
 }
 
-/**
- * Returns the full text of the header, built from its component parts,
- * and including a terminating CR-LF
- */
-- (NSMutableData*) rawMimeData
-{
-  return [self rawMimeDataPreservingCase: NO];
-}
-
 static NSUInteger
 appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   const char *bytes, NSUInteger size)
 {
-  if (offset + size > fold && size + 8 <= fold)
+  if (fold > 0 && offset + size > fold && size + 8 <= fold)
     {
       NSUInteger  len = [m length];
 
@@ -3713,7 +3704,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           d = wordData(sub);
           offset = appendBytes(m, offset, fold, [d bytes], [d length]);
         }
-      if (offset > fold)
+      if (fold > 0 && offset > fold)
         {
           *ok = NO;
         }
@@ -3723,28 +3714,43 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 /**
  * Returns the full text of the header, built from its component parts,
+ * and including a terminating CR-LF
+ */
+- (NSMutableData*) rawMimeData
+{
+  return [self rawMimeDataPreservingCase: NO];
+}
+
+- (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
+{
+  // 78 is what the RFCs say we should limit length to.
+  return [self rawMimeDataPreservingCase: NO foldedAt: 78];
+}
+
+/**
+ * Returns the full text of the header, built from its component parts,
  * and including a terminating CR-LF.<br />
  * If preserve is YES then we attempt to build the text using the same
  * case as it was originally parsed/set from, otherwise we use common
  * conventions of capitalising the header names and using lowercase
- * parameter names.
+ * parameter names.<br />
+ * If fold is greater than zero, lines with more than the specified
+ * number of characters are considered 'long' and are folded into
+ * multiple lines.
  */
 - (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
+                                    foldedAt: (NSUInteger)fold
 {
   NSMutableData	*md = [NSMutableData dataWithCapacity: 128];
   NSEnumerator	*e = [params keyEnumerator];
   NSString	*k;
   NSString	*n;
   NSData	*d;
-  NSUInteger	fold = 78;      // Maybe pass as a parameter in a later release?
   NSUInteger	offset = 0;
   BOOL		conv = YES;
   BOOL          ok = YES;
 
-  if (fold == 0)
-    {
-      fold = 78;        // This is what the RFCs say we should limit length to.
-    }
+  
   n = [self namePreservingCase: preserve];
   d = [n dataUsingEncoding: NSASCIIStringEncoding];
   if (preserve == YES)
@@ -3762,8 +3768,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
   else
     {
-      NSUInteger  l = [d length];
-      char	buf[l];
+      NSUInteger        l = [d length];
+      char	        buf[l];
       NSUInteger	i = 0;
 
       /*
@@ -5654,6 +5660,25 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  * <p>The isOuter flag denotes whether this document is the outermost
  * part of a MIME message, or is a part of a multipart message.
  * </p>
+ * <p>Long lines are folded at the default column.
+ * </p>
+ */
+- (NSMutableData*) rawMimeData: (BOOL)isOuter
+{
+  // 78 is the maximum line lengt specified by MIME RFCs
+  return [self rawMimeData: isOuter foldedAt: 78];
+}
+
+/**
+ * <p>Return an NSData object representing the MIME document as raw data
+ * ready to be sent via an email system.
+ * </p>
+ * <p>The isOuter flag denotes whether this document is the outermost
+ * part of a MIME message, or is a part of a multipart message.
+ * </p>
+ * <p>The fold number specifes the column at which lines are considered
+ * to be 'long', and get broken/folded.
+ * </p>
  * <p>During generation of the document this method will perform some
  * consistency checks and try to automatically generate missing header
  * information needed to build the mime data (eg. filling in the boundary
@@ -5662,7 +5687,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  * fill in as much detail as possible before generating data.
  * </p>
  */
-- (NSMutableData*) rawMimeData: (BOOL)isOuter
+- (NSMutableData*) rawMimeData: (BOOL)isOuter foldedAt: (NSUInteger)fold
 {
   NSMutableArray	*partData = nil;
   NSMutableData		*md = [NSMutableData dataWithCapacity: 1024];
@@ -5714,14 +5739,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  GSMimeDocument	*part = [content objectAtIndex: i];
 
-	  [partData addObject: [part rawMimeData: NO]];
+	  [partData addObject: [part rawMimeData: NO foldedAt: fold]];
 
 	  /*
 	   * If any part of a multipart document is not 7bit then
 	   * the document as a whole must not be 7bit either.
 	   * It is important to check this *after* the part has been
-	   * processed by -rawMimeData:, so we know that the encoding
-	   * set for the part is valid.
+	   * processed by -rawMimeData:foldedAt:, so we know that the
+           * encoding set for the part is valid.
 	   */
 	  if (contentIs7bit == YES)
 	    {
@@ -6030,7 +6055,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   enumerator = [headers objectEnumerator];
   while ((hdr = [enumerator nextObject]) != nil)
     {
-      [md appendData: [hdr rawMimeData]];
+      [md appendData: [hdr rawMimeDataPreservingCase: NO foldedAt: fold]];
     }
 
   if (partData != nil)
