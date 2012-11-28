@@ -1,3 +1,10 @@
+2012-11-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Fixup ICU test error
+        * configure: regenerate
+        Change tests so that we no longer ignore it when icu-config tells
+        us we have too old a version to use.
+
 2012-11-27  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSHTTPURLHandle.m: Set content-length header in outgoing
