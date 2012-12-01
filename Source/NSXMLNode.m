@@ -1981,10 +1981,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 - (NSString*) XMLStringWithOptions: (NSUInteger)theOptions
 {
   NSString     *string = nil;
-  xmlChar      *buf = NULL;
   xmlBufferPtr buffer;
   int error = 0;
-  int len = 0;
   int xmlOptions = 0;
 
   buffer = xmlBufferCreate();
@@ -2037,9 +2035,11 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       xmlBufferFree(buffer);
       return nil;
     }
-  buf = buffer->content;
-  len = buffer->use;
-  string = StringFromXMLString(buf, len);
+#if LIBXML_VERSION < 20900
+  string = StringFromXMLString(buffer->content, buffer->use);
+#else
+  string = StringFromXMLString(xmlBufContent(buffer), xmlBufUse(buffer));
+#endif
   xmlBufferFree(buffer);
 
   if ([self kind] == NSXMLTextKind)
