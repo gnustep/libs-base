@@ -1,3 +1,8 @@
+2012-12-01  Fred Kiefer <FredKiefer@gmx.de>
+
+        * Source/NSXMLNode.m (-XMLStringWithOptions:): Use macros for
+	versions of libxml2.
+
 2012-11-28  Richard Frith-Macdonald <rfm@gnu.org>
 
         * configure.ac: Fixup ICU test error
