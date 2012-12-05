@@ -1,3 +1,9 @@
+2012-12-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSFileHandle: ([-sslHandshakeEstablished:outgoing:])
+        Set the connection into non-blocking mode so that the handshake
+        will not block if the other end refuses to talk to us.
+
 2012-12-01  Fred Kiefer <FredKiefer@gmx.de>
 
         * Source/NSXMLNode.m (-XMLStringWithOptions:): Use macros for
