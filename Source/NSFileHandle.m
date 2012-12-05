@@ -1015,6 +1015,7 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
               [d release];
             }
         }
+      [self setNonBlocking: YES];
       session = [[GSTLSSession alloc] initWithOptions: opts
                                             direction: isOutgoing
                                             transport: (void*)self
