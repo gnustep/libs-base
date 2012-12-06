@@ -2317,14 +2317,12 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 
       if (x == NSPropertyListXMLFormat_v1_0)
 	{
-	  NSDebugLog(@"Non-property-list class (%@) encoded as string", cls);
 	  [dest appendBytes: "<string>" length: 8];
 	  XString([obj description], dest);
 	  [dest appendBytes: "</string>" length: 9];
 	}
       else
 	{
-	  NSDebugLog(@"Non-property-list class (%@) encoded as string", cls);
 	  PString([obj description], dest);
 	}
     }

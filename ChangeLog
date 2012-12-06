@@ -1,3 +1,14 @@
+2012-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSPropertyList.m: remove a couple of useless debug logs.
+        * Source/GSTLS.h: Add credentials object
+        * Source/GSTLS.m: Implement caching of credentials so that they are
+        shared between different sessions (eg a web server accepting multiple
+        incoming connections can re-use the same credentials for each of them).
+        This is to address a performance issue due to decoding certificate
+        information from file to create new credentials when lots of incoming
+        connections occur.
+
 2012-12-05  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSFileHandle: ([-sslHandshakeEstablished:outgoing:])

@@ -113,6 +113,31 @@ extern NSString * const GSTLSVerify;
 - (gnutls_x509_privkey_t) key;
 @end
 
+/* This encapsulates a credentials setup for a sessions
+ */
+@interface      GSTLSCredentials : GSTLSObject
+{
+  NSDate                                *when;
+  NSString                              *name;
+  GSTLSPrivateKey                       *key;
+  GSTLSCertificateList                  *list;
+  GSTLSDHParams                         *dhParams;
+  BOOL                                  trust;
+  gnutls_certificate_credentials_t      certcred;
+}
++ (GSTLSCredentials*) credentialsFromCAFile: (NSString*)ca
+                              defaultCAFile: (NSString*)dca
+                                 revokeFile: (NSString*)rv
+                          defaultRevokeFile: (NSString*)drv
+                            certificateFile: (NSString*)cf
+                         certificateKeyFile: (NSString*)ck
+                     certificateKeyPassword: (NSString*)cp
+                                   asClient: (BOOL)client
+                                      debug: (BOOL)debug;
+- (gnutls_certificate_credentials_t) credentials;
+- (BOOL) trust;
+@end
+
 
 /* Declare a pointer to a function to be used for I/O
  */
@@ -127,14 +152,13 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
 @interface      GSTLSSession : GSTLSObject
 {
   NSDictionary                          *opts;
-  GSTLSPrivateKey                       *key;
-  GSTLSCertificateList                  *list;
-  GSTLSDHParams                         *dhParams;
-  gnutls_certificate_credentials_t      certcred;
+  GSTLSCredentials                      *credentials;
+  NSString                              *problem;
   BOOL                                  outgoing;
   BOOL                                  active;
   BOOL                                  handshake;
   BOOL                                  setup;
+  BOOL                                  debug;
 @public
   gnutls_session_t                      session;
 }
@@ -163,6 +187,11 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  * to try again (would have to wait for the remote end).<br />
  */
 - (BOOL) handshake;
+
+/* After a failed handshake, this should contain a description of the
+ * failure reason.
+ */
+- (NSString*) problem;
 
 /* Read data from the session.
  */
