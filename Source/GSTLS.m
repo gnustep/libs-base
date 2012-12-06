@@ -788,6 +788,297 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 }
 @end
 
+
+@implementation GSTLSCredentials
+
+static NSLock                   *credentialsLock = nil;
+static NSMutableDictionary      *credentialsCache = nil;
+
+/* Method to purge older credentials from cache.
+ */
++ (void) housekeeping: (NSNotification*)n
+{
+  NSEnumerator  *enumerator;
+  NSDictionary  *key;
+  NSDate        *now;
+
+  now = [NSDate date];
+  [credentialsLock lock];
+  enumerator = [[credentialsCache allKeys] objectEnumerator];
+  while (nil != (key = [enumerator nextObject]))
+    {
+      GSTLSCredentials   *cred;
+
+      cred = [credentialsCache objectForKey: key];
+      if ([now timeIntervalSinceDate: cred->when] > 300.0)
+        {
+          [credentialsCache removeObjectForKey: key];
+        }
+    }
+  [credentialsLock unlock];
+}
+
++ (void) initialize
+{
+  if (nil == credentialsLock)
+    {
+      credentialsLock = [NSLock new];
+      credentialsCache = [NSMutableDictionary new];
+
+      [[NSNotificationCenter defaultCenter] addObserver: self
+	selector: @selector(housekeeping:)
+	name: @"GSHousekeeping" object: nil];
+    }
+}
+
++ (GSTLSCredentials*) credentialsFromCAFile: (NSString*)ca
+                              defaultCAFile: (NSString*)dca
+                                 revokeFile: (NSString*)rv
+                          defaultRevokeFile: (NSString*)drv
+                            certificateFile: (NSString*)cf
+                         certificateKeyFile: (NSString*)ck
+                     certificateKeyPassword: (NSString*)cp
+                                   asClient: (BOOL)client
+                                      debug: (BOOL)debug
+{
+  GSTLSCredentials      *c;
+  NSMutableString       *k;
+
+  k = [NSMutableString stringWithCapacity: 1024];
+  ca = [ca stringByStandardizingPath];
+  if (nil != ca) [k appendString: ca];
+  [k appendString: @":"];
+  if (nil != dca) [k appendString: dca];
+  [k appendString: @":"];
+  rv = [rv stringByStandardizingPath];
+  if (nil != rv) [k appendString: rv];
+  [k appendString: @":"];
+  if (nil != drv) [k appendString: drv];
+  [k appendString: @":"];
+  if (nil != cf) [k appendString: cf];
+  [k appendString: @":"];
+  if (nil != ck) [k appendString: ck];
+  [k appendString: @":"];
+  if (nil != cp) [k appendString: cp];
+
+  [credentialsLock lock];
+  c = [credentialsCache objectForKey: k];
+  if (nil != c)
+    {
+      [c retain];
+      if (YES == debug)
+        {
+          NSLog(@"Re-used credentials %p for '%@'", c, k);
+        }
+    }
+  [credentialsLock unlock];
+
+  if (nil == c)
+    {
+      c = [self new];
+      c->name = [k copy];
+      c->when = [NSDate new];
+
+      gnutls_certificate_allocate_credentials(&c->certcred);
+
+      /* Set the default trusted authority certificates.
+       */
+      if ([dca length] > 0)
+        {
+          const char    *path;
+          int           ret;
+
+          path = [dca fileSystemRepresentation];
+          ret = gnutls_certificate_set_x509_trust_file(c->certcred,
+            path, GNUTLS_X509_FMT_PEM);
+          if (ret < 0)
+            {
+              NSLog(@"Problem loading trusted authorities from %@: %s",
+                dca, gnutls_strerror(ret));
+            }
+          else
+            {
+              if (ret > 0)
+                {
+                  c->trust = YES;   // Loaded at least one trusted CA
+                }
+              if (YES == debug)
+                {
+                  NSLog(@"Default trusted authorities (from %@): %d",
+                   dca, ret);
+                }
+            }
+        }
+
+      /* Load any specified trusted authority certificates.
+       */
+      if ([ca length] > 0)
+        {
+          const char    *path;
+          int           ret;
+
+          path = [dca fileSystemRepresentation];
+          ret = gnutls_certificate_set_x509_trust_file(c->certcred,
+            path, GNUTLS_X509_FMT_PEM);
+          if (ret < 0)
+            {
+              NSLog(@"Problem loading trusted authorities from %@: %s",
+                ca, gnutls_strerror(ret));
+            }
+          else
+            {
+              if (ret > 0)
+                {
+                  c->trust = YES;
+                }
+              else if (0 == ret)
+                {
+                  NSLog(@"No certificates processed from %@", ca);
+                }
+              if (YES == debug)
+                {
+                  NSLog(@"Trusted authorities (from %@): %d", ca, ret);
+                }
+            }
+        }
+
+      /* Load default revocation list.
+       */
+      if ([drv length] > 0)
+        {
+          const char    *path;
+          int           ret;
+
+          path = [drv fileSystemRepresentation];
+          ret = gnutls_certificate_set_x509_crl_file(c->certcred,
+            path, GNUTLS_X509_FMT_PEM);
+          if (ret < 0)
+            {
+              NSLog(@"Problem loading revocation list from %@: %s",
+                drv, gnutls_strerror(ret));
+            }
+          else
+            {
+              if (YES == debug)
+                {
+                  NSLog(@"Default revocations (from %@): %d", drv, ret);
+                }
+            }
+        }
+
+      /* Load any specified revocation list.
+       */
+      if ([rv length] > 0)
+        {
+          const char    *path;
+          int           ret;
+
+          path = [rv fileSystemRepresentation];
+          ret = gnutls_certificate_set_x509_crl_file(c->certcred,
+            path, GNUTLS_X509_FMT_PEM);
+          if (ret < 0)
+            {
+              NSLog(@"Problem loading revocation list from %@: %s",
+                rv, gnutls_strerror(ret));
+            }
+          else
+            {
+              if (0 == ret)
+                {
+                  NSLog(@"No revocations processed from %@", rv);
+                }
+              if (YES == debug)
+                {
+                  NSLog(@"Revocations (from %@): %d", rv, ret);
+                }
+            }
+        }
+
+      if (nil != ck)
+        {
+          c->key = [[GSTLSPrivateKey keyFromFile: ck
+                                    withPassword: cp] retain];
+          if (nil == c->key)
+            {
+              [c release];
+              return nil;
+            }
+        }
+
+      if (nil != cf)
+        {
+          c->list = [[GSTLSCertificateList listFromFile: cf] retain];
+          if (nil == c->list)
+            {
+              [c release];
+              return nil;
+            }
+        }
+
+      if (nil != c->list)
+        {
+          int   ret;
+
+          ret = gnutls_certificate_set_x509_key(c->certcred,
+            [c->list certificateList], [c->list count], [c->key key]);
+          if (ret < 0)
+            {
+              NSLog(@"Unable to set certificate for session: %s",
+                gnutls_strerror(ret));
+              [c release];
+              return nil;
+            }
+/*
+          if (NO == client)
+            {
+                // FIXME ... if the server certificate required DH params ...
+              c->dhParams = [[GSTLSDHParams current] retain];
+              gnutls_certificate_set_dh_params(c->certcred,
+                [c->dhParams params]);
+            }
+*/
+        }
+
+      if (YES == debug)
+        {
+          NSLog(@"Created credentials %p for '%@'", c, k);
+        }
+      [credentialsLock lock];
+      [credentialsCache setObject: c forKey: c->name];
+      [credentialsLock unlock];
+    }
+
+  return [c autorelease];
+}
+
+- (void) dealloc
+{
+  if (nil != when)
+    {
+      gnutls_certificate_free_credentials(certcred);
+      DESTROY(when);
+      DESTROY(key);
+      DESTROY(list);
+      DESTROY(dhParams);
+      DESTROY(name);
+    }
+  [super dealloc];
+}
+
+- (gnutls_certificate_credentials_t) credentials
+{
+  return certcred;
+}
+
+- (BOOL) trust
+{
+  return trust;
+}
+@end
+
+
+
+
 @implementation GSTLSSession
 
 + (GSTLSSession*) sessionWithOptions: (NSDictionary*)options
@@ -815,9 +1106,8 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 {
   [self finalize];
   DESTROY(opts);
-  DESTROY(list);
-  DESTROY(key);
-  DESTROY(dhParams);
+  DESTROY(credentials);
+  DESTROY(problem);
   [super dealloc];
 }
 
@@ -834,7 +1124,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       setup = NO;
       gnutls_db_remove_session(session);
       gnutls_deinit(session);
-      gnutls_certificate_free_credentials(certcred);
     }
 }
 
@@ -852,14 +1141,16 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 {
   if (nil != (self = [super init]))
     {
-      NSString  *certFile;
-      NSString  *privateKey;
-      NSString  *PEMpasswd;
+      NSString  *ca;
+      NSString  *dca;
+      NSString  *rv;
+      NSString  *drv;
+      NSString  *cf;
+      NSString  *ck;
+      NSString  *cp;
       NSString  *pri;
       NSString  *str;
-      int       ret;
       BOOL      trust;
-      BOOL      debug;
       BOOL      verify;
 
       opts = [options copy];
@@ -889,7 +1180,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
        * allocate a credentials structure at this point (and get rid of
        * it when the session is disconnected) too.
        */
-      gnutls_certificate_allocate_credentials(&certcred);
       if (YES == outgoing)
         {
           gnutls_init(&session, GNUTLS_CLIENT);
@@ -909,58 +1199,32 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       setup = YES;
       trust = NO;
 
-      /* Set the default trusted authority certificates.
-       */
-      if ([caFile length] > 0)
-        {
-          const char    *path;
-          int           ret;
+      ca = [opts objectForKey: GSTLSCAFile];
+      dca = caFile;
+      rv = [opts objectForKey: GSTLSRevokeFile];
+      drv = revokeFile;
+      cf = [opts objectForKey: GSTLSCertificateFile];
+      ck = [opts objectForKey: GSTLSCertificateKeyFile];
+      cp =  [opts objectForKey: GSTLSCertificateKeyPassword];
 
-          path = [caFile fileSystemRepresentation];
-          ret = gnutls_certificate_set_x509_trust_file(certcred,
-            path, GNUTLS_X509_FMT_PEM);
-          if (ret < 0)
-            {
-              NSLog(@"Problem loading trusted authorities from %@: %s",
-                caFile, gnutls_strerror(ret));
-            }
-          else if (ret > 0)
-            {
-              trust = YES;      // Loaded at least one trusted CA
-            }
-          else if (YES == debug)
-            {
-              NSLog(@"No certificates processed from %@", caFile);
-            }
+      credentials = [[GSTLSCredentials credentialsFromCAFile: ca
+                                               defaultCAFile: dca
+                                                  revokeFile: rv
+                                           defaultRevokeFile: drv
+                                             certificateFile: cf
+                                          certificateKeyFile: ck
+                                      certificateKeyPassword: cp
+                                                    asClient: outgoing
+                                                       debug: debug] retain];
+
+
+      if (nil == credentials)
+        {
+          [self release];
+          return nil;
         }
 
-      /* Load any specified trusted authority certificates.
-       */
-      str = [opts objectForKey: GSTLSCAFile];
-      if ([str length] > 0)
-        {
-          const char    *path;
-          int           ret;
-
-	  str = [str stringByStandardizingPath];
-          path = [str fileSystemRepresentation];
-          ret = gnutls_certificate_set_x509_trust_file(certcred,
-            path, GNUTLS_X509_FMT_PEM);
-          if (ret < 0)
-            {
-              NSLog(@"Problem loading trusted authorities from %@: %s",
-                str, gnutls_strerror(ret));
-            }
-          else if (ret > 0)
-            {
-              trust = YES;
-            }
-          else if (0 == ret)
-            {
-              NSLog(@"No certificates processed from %@", str);
-            }
-        }
-
+      trust = [credentials trust];
       if (YES == verify && NO == trust)
         {
           NSLog(@"You have requested that a TLS/SSL connection be to a remote"
@@ -974,96 +1238,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
             @" gnustep-base resource bundle.  Unfortunately, it has not been"
             @" possible to ready any trusted certificate authoritied from"
             @" these locations.");
-        }
-
-      /* Load default revocation list.
-       */
-      if ([revokeFile length] > 0)
-        {
-          const char    *path;
-          int           ret;
-
-          path = [revokeFile fileSystemRepresentation];
-          ret = gnutls_certificate_set_x509_crl_file(certcred,
-            path, GNUTLS_X509_FMT_PEM);
-          if (ret < 0)
-            {
-              NSLog(@"Problem loading revocation list from %@: %s",
-                revokeFile, gnutls_strerror(ret));
-            }
-          else if (0 == ret && YES == debug)
-            {
-              NSLog(@"No revocation loaded from %@", revokeFile);
-            }
-        }
-
-      /* Load any specified revocation list.
-       */
-      str = [opts objectForKey: GSTLSRevokeFile];
-      if ([str length] > 0)
-        {
-          const char    *path;
-          int           ret;
-
-	  str = [str stringByStandardizingPath];
-          path = [str fileSystemRepresentation];
-          ret = gnutls_certificate_set_x509_crl_file(certcred,
-            path, GNUTLS_X509_FMT_PEM);
-          if (ret < 0)
-            {
-              NSLog(@"Problem loading revocation list from %@: %s",
-                str, gnutls_strerror(ret));
-            }
-          else if (0 == ret && YES == debug)
-            {
-              NSLog(@"No revocation loaded from %@", str);
-            }
-        }
-
-      certFile = [opts objectForKey: GSTLSCertificateFile];
-      privateKey = [opts objectForKey: GSTLSCertificateKeyFile];
-      PEMpasswd = [opts objectForKey: GSTLSCertificateKeyPassword];
-
-      if (nil != privateKey)
-        {
-          key = [[GSTLSPrivateKey keyFromFile: privateKey
-                                 withPassword: PEMpasswd] retain];
-          if (nil == key)
-            {
-              [self release];
-              return nil;
-            }
-        }
-
-      if (nil != certFile)
-        {
-          list = [[GSTLSCertificateList listFromFile: certFile] retain];
-          if (nil == list)
-            {
-              [self release];
-              return nil;
-            }
-        }
-
-      if (nil != list)
-        {
-          ret = gnutls_certificate_set_x509_key(certcred,
-            [list certificateList], [list count], [key key]);
-          if (ret < 0)
-            {
-              NSLog(@"Unable to set certificate for session: %s",
-                gnutls_strerror(ret));
-              [self release];
-              return nil;
-            }
-/*
-          if (NO == outgoing)
-            {
-                // FIXME ... if the server certificate required DH params ...
-              dhParams = [[GSTLSDHParams current] retain];
-              gnutls_certificate_set_dh_params(certcred, [dhParams params]);
-            }
-*/
         }
 
       gnutls_set_default_priority(session);
@@ -1141,7 +1315,8 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 
       /* Set certificate credentials for this session.
        */
-      gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, certcred);
+      gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE,
+        [credentials credentials]);
 
       /* Set transport layer to use 
        */
@@ -1171,17 +1346,36 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
     {
       if (gnutls_error_is_fatal(ret))
         {
-          NSLog(@"unable to make SSL connection: %s",
-            gnutls_strerror(ret));
+          NSString      *p;
+
+          p = [NSString stringWithFormat: @"%s", gnutls_strerror(ret)];
+
+          /* We want to differentiate between errors which are usually
+           * due to the remote end not expecting to be using TLS/SSL,
+           * and errors which are caused by other interoperability
+           * issues.  The first sort are not normally worth reporting.
+           */
+          if (GNUTLS_E_UNSUPPORTED_VERSION_PACKET == ret
+            || GNUTLS_E_UNEXPECTED_PACKET_LENGTH == ret)
+            {
+              p = [p stringByAppendingString:
+                @"\nmost often due to the remote end not expecting TLS/SSL"];
+              ASSIGN(problem, p);
+              if (YES == debug)
+                {
+                  NSLog(@"%@", p);
+                }
+            }
+          else
+            {
+              ASSIGN(problem, p);
+              NSLog(@"%@", p);
+            }
           [self disconnect];
           return YES;   // Failed ... not active.
         }
       else
         {
-          if (GSDebugSet(@"NSStream") == YES)
-            {
-              gnutls_perror(ret);
-            }
           return NO;    // Non-fatal error needs a retry.
         }
     }
@@ -1228,6 +1422,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
         }
       return YES;       // Handshake complete
     }
+}
+
+- (NSString*) problem
+{
+  return problem;
 }
 
 - (NSInteger) read: (void*)buf length: (NSUInteger)len
@@ -1495,7 +1694,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 
 - (int) verify
 {
-  BOOL                  debug = (globalDebug > 0) ? YES : NO;
   NSArray               *names;
   NSString              *str;
   unsigned int          status;
@@ -1503,11 +1701,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
   unsigned int          cert_list_size;
   int                   ret;
   gnutls_x509_crt_t     cert;
-
-  if (NO == debug)
-    {
-      debug = [[opts objectForKey: GSTLSDebug] boolValue];
-    }
 
   /* This verification function uses the trusted CAs in the credentials
    * structure. So you must have installed one or more CA certificates.
