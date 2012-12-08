@@ -2303,18 +2303,10 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else
     {
-      NSString	*cls;
-
-      if (obj == nil)
+      if (nil == obj)
 	{
 	  obj = @"(nil)";
-	  cls = @"(nil)";
 	}
-      else
-	{
-	  cls = NSStringFromClass([obj class]);
-	}
-
       if (x == NSPropertyListXMLFormat_v1_0)
 	{
 	  [dest appendBytes: "<string>" length: 8];

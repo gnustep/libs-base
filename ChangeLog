@@ -1,3 +1,10 @@
+2012-12-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSTLS.m:
+        * Source/NSNotificationCenter.m:
+        * Source/NSPropertyList.m:
+        Tweaks to avoid compiler warnings spotted by Fred.
+
 2012-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSHTTPCookieStorage.m: Don't read store if it doesn't exist.

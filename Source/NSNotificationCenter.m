@@ -32,6 +32,7 @@
 #import "common.h"
 #define	EXPOSE_NSNotificationCenter_IVARS	1
 #import "Foundation/NSNotification.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSThread.h"

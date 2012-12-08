@@ -1533,8 +1533,8 @@ static NSMutableDictionary      *credentialsCache = nil;
       case GNUTLS_CRD_CERTIFICATE:       /* certificate authentication */
       {
         unsigned int            cert_list_size = 0;
-        const gnutls_datum      *cert_list;
-        gnutls_x509_crt         cert;
+        const gnutls_datum_t    *cert_list;
+        gnutls_x509_crt_t       cert;
 
         /* Check if we have been using ephemeral Diffie-Hellman.
          */
