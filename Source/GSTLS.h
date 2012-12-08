@@ -63,7 +63,7 @@ extern NSString * const GSTLSVerify;
  */
 @interface      GSTLSDHParams : GSTLSObject
 {
-  NSDate                *when;
+  NSTimeInterval        when;
   NSString              *path;
   gnutls_dh_params_t    params;
 }
@@ -90,7 +90,7 @@ extern NSString * const GSTLSVerify;
  */
 @interface      GSTLSCertificateList : GSTLSObject
 {
-  NSDate                *when;
+  NSTimeInterval        when;
   NSString              *path;
   gnutls_x509_crt_t     *crts;
   unsigned int          count;
@@ -104,7 +104,7 @@ extern NSString * const GSTLSVerify;
  */
 @interface      GSTLSPrivateKey : GSTLSObject
 {
-  NSDate                *when;
+  NSTimeInterval        when;
   NSString              *path;
   NSString              *password;
   gnutls_x509_privkey_t key;
@@ -117,7 +117,7 @@ extern NSString * const GSTLSVerify;
  */
 @interface      GSTLSCredentials : GSTLSObject
 {
-  NSDate                                *when;
+  NSTimeInterval                        when;
   NSString                              *name;
   GSTLSPrivateKey                       *key;
   GSTLSCertificateList                  *list;

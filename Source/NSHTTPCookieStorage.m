@@ -123,7 +123,7 @@ static NSHTTPCookieStorage   *storage = nil;
   	  NSUserDomainMask, YES);
   path = [[dirs objectAtIndex: 0] stringByAppendingPathComponent: @"Cookies"];
   if ([[NSFileManager defaultManager] 
-        fileExistsAtPath: path isDirectory: &isDir] == NO || isDir == NO)
+    fileExistsAtPath: path isDirectory: &isDir] == NO || isDir == NO)
     {
       BOOL ok;
 
@@ -173,7 +173,10 @@ static NSHTTPCookieStorage   *storage = nil;
     }
   properties = nil;
   NS_DURING
-    properties = [[NSString stringWithContentsOfFile: path] propertyList];
+    if (YES == [[NSFileManager defaultManager] fileExistsAtPath: path])
+      {
+        properties = [[NSString stringWithContentsOfFile: path] propertyList];
+      }
   NS_HANDLER
     NSLog(@"NSHTTPCookieStorage: Error reading cookies plist");
   NS_ENDHANDLER

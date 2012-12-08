@@ -314,7 +314,7 @@ static gnutls_anon_client_credentials_t anoncred;
 @implementation GSTLSDHParams
 static NSLock                   *paramsLock = nil;
 static NSMutableDictionary      *paramsCache = nil;
-static NSDate                   *paramsWhen = nil;
+static NSTimeInterval           paramsWhen = 0.0;
 static BOOL                     paramsGenerating = NO;
 static GSTLSDHParams            *paramsCurrent = nil;
 
@@ -366,18 +366,18 @@ static GSTLSDHParams            *paramsCurrent = nil;
   [paramsLock lock];
   [paramsCurrent release];
   paramsCurrent = p;
-  ASSIGN(paramsWhen, [NSDate date]);
+  paramsWhen = [NSDate timeIntervalSinceReferenceDate];
   paramsGenerating = NO;
   [paramsLock unlock];
 }
 
 + (void) housekeeping: (NSNotification*)n
 {
-  NSEnumerator  *enumerator;
-  NSString      *key;
-  NSDate        *now;
+  NSEnumerator          *enumerator;
+  NSString              *key;
+  NSTimeInterval        now;
 
-  now = [NSDate date];
+  now = [NSDate timeIntervalSinceReferenceDate];
   [paramsLock lock];
 
   enumerator = [[paramsCache allKeys] objectEnumerator];
@@ -387,7 +387,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
 
       p = [paramsCache objectForKey: key];
 
-      if ([now timeIntervalSinceDate: p->when] > 300.0)
+      if (now - p->when > 300.0)
         {
           [paramsCache removeObjectForKey: key];
         }
@@ -397,7 +397,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
    * thread since it's likely to be rather slow.
    */
   if (nil != paramsCurrent && NO == paramsGenerating
-    && [now timeIntervalSinceDate: paramsWhen] > 24 * 60 * 60)
+    && (now = paramsWhen) > 24.0 * 60.0 * 60.0)
     {
       [NSThread detachNewThreadSelector: @selector(generate)
                                toTarget: self
@@ -411,7 +411,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
   if (nil == paramsLock)
     {
       paramsLock = [NSLock new];
-      paramsWhen = [NSDate new];
+      paramsWhen = [NSDate timeIntervalSinceReferenceDate];
       paramsCache = [NSMutableDictionary new];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
@@ -448,7 +448,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
       datum.size = (unsigned int)[data length];
 
       p = [self alloc];
-      p->when = [NSDate new];
+      p->when = [NSDate timeIntervalSinceReferenceDate];
       p->path = [f copy];
       gnutls_dh_params_init(&p->params);
       ret = gnutls_dh_params_import_pkcs3(p->params, &datum,
@@ -490,11 +490,11 @@ static NSMutableDictionary      *certificateListCache = nil;
  */
 + (void) housekeeping: (NSNotification*)n
 {
-  NSEnumerator  *enumerator;
-  NSString      *key;
-  NSDate        *now;
+  NSEnumerator          *enumerator;
+  NSString              *key;
+  NSTimeInterval        now;
 
-  now = [NSDate date];
+  now = [NSDate timeIntervalSinceReferenceDate];
   [certificateListLock lock];
   enumerator = [[certificateListCache allKeys] objectEnumerator];
   while (nil != (key = [enumerator nextObject]))
@@ -503,7 +503,7 @@ static NSMutableDictionary      *certificateListCache = nil;
 
       list = [certificateListCache objectForKey: key];
 
-      if ([now timeIntervalSinceDate: list->when] > 300.0)
+      if (now - list->when > 300.0)
         {
           [certificateListCache removeObjectForKey: key];
         }
@@ -554,7 +554,7 @@ static NSMutableDictionary      *certificateListCache = nil;
       datum.size = (unsigned int)[data length];
 
       l = [self alloc];
-      l->when = [NSDate new];
+      l->when = [NSDate timeIntervalSinceReferenceDate];
       l->path = [f copy];
       ret = gnutls_x509_crt_list_import(crts, &count, &datum,
         GNUTLS_X509_FMT_PEM,
@@ -593,7 +593,6 @@ static NSMutableDictionary      *certificateListCache = nil;
 {
   if (nil != path)
     {
-      DESTROY(when);
       DESTROY(path);
       if (count > 0)
         {
@@ -620,11 +619,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
  */
 + (void) housekeeping: (NSNotification*)n
 {
-  NSEnumerator  *outer;
-  NSString      *oKey;
-  NSDate        *now;
+  NSEnumerator          *outer;
+  NSString              *oKey;
+  NSTimeInterval        now;
 
-  now = [NSDate date];
+  now = [NSDate timeIntervalSinceReferenceDate];
   [privateKeyLock lock];
   outer = [[privateKeyCache0 allKeys] objectEnumerator];
   while (nil != (oKey = [outer nextObject]))
@@ -632,7 +631,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       GSTLSPrivateKey   *key;
 
       key = [privateKeyCache0 objectForKey: oKey];
-      if ([now timeIntervalSinceDate: key->when] > 300.0)
+      if (now - key->when > 300.0)
         {
           [privateKeyCache0 removeObjectForKey: oKey];
         }
@@ -650,7 +649,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
         {
           GSTLSPrivateKey       *key = [m objectForKey: iKey];
 
-          if ([now timeIntervalSinceDate: key->when] > 300.0)
+          if (now - key->when > 300.0)
             {
               [m removeObjectForKey: iKey];
               if (0 == [m count])
@@ -724,7 +723,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       datum.size = (unsigned int)[data length];
 
       k = [self alloc];
-      k->when = [NSDate new];
+      k->when = [NSDate timeIntervalSinceReferenceDate];
       k->path = [f copy];
       k->password = [p copy];
       gnutls_x509_privkey_init(&k->key);
@@ -774,7 +773,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 {
   if (nil != path)
     {
-      DESTROY(when);
       DESTROY(path);
       DESTROY(password);
       gnutls_x509_privkey_deinit(key);
@@ -798,11 +796,11 @@ static NSMutableDictionary      *credentialsCache = nil;
  */
 + (void) housekeeping: (NSNotification*)n
 {
-  NSEnumerator  *enumerator;
-  NSDictionary  *key;
-  NSDate        *now;
+  NSEnumerator          *enumerator;
+  NSDictionary          *key;
+  NSTimeInterval        now;
 
-  now = [NSDate date];
+  now = [NSDate timeIntervalSinceReferenceDate];
   [credentialsLock lock];
   enumerator = [[credentialsCache allKeys] objectEnumerator];
   while (nil != (key = [enumerator nextObject]))
@@ -810,7 +808,7 @@ static NSMutableDictionary      *credentialsCache = nil;
       GSTLSCredentials   *cred;
 
       cred = [credentialsCache objectForKey: key];
-      if ([now timeIntervalSinceDate: cred->when] > 300.0)
+      if (now - cred->when > 300.0)
         {
           [credentialsCache removeObjectForKey: key];
         }
@@ -844,6 +842,9 @@ static NSMutableDictionary      *credentialsCache = nil;
   GSTLSCredentials      *c;
   NSMutableString       *k;
 
+  /* Build a unique key for the credentials based on all the
+   * information (file names and password) used to build them.
+   */
   k = [NSMutableString stringWithCapacity: 1024];
   ca = [ca stringByStandardizingPath];
   if (nil != ca) [k appendString: ca];
@@ -877,7 +878,7 @@ static NSMutableDictionary      *credentialsCache = nil;
     {
       c = [self new];
       c->name = [k copy];
-      c->when = [NSDate new];
+      c->when = [NSDate timeIntervalSinceReferenceDate];
 
       gnutls_certificate_allocate_credentials(&c->certcred);
 
@@ -994,6 +995,8 @@ static NSMutableDictionary      *credentialsCache = nil;
             }
         }
 
+      /* Get the key for our sertificat .. if one is specified.
+       */
       if (nil != ck)
         {
           c->key = [[GSTLSPrivateKey keyFromFile: ck
@@ -1005,6 +1008,8 @@ static NSMutableDictionary      *credentialsCache = nil;
             }
         }
 
+      /* Load our certificate (may be a list) ifthe file is specified.
+       */
       if (nil != cf)
         {
           c->list = [[GSTLSCertificateList listFromFile: cf] retain];
@@ -1015,6 +1020,9 @@ static NSMutableDictionary      *credentialsCache = nil;
             }
         }
 
+      /* If we have loaded a certificate, we add it to the credentials
+       * using the certificate key so we can use it.
+       */
       if (nil != c->list)
         {
           int   ret;
@@ -1053,10 +1061,9 @@ static NSMutableDictionary      *credentialsCache = nil;
 
 - (void) dealloc
 {
-  if (nil != when)
+  if (nil != key)
     {
       gnutls_certificate_free_credentials(certcred);
-      DESTROY(when);
       DESTROY(key);
       DESTROY(list);
       DESTROY(dhParams);
