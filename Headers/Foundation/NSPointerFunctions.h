@@ -56,6 +56,12 @@ enum {
   /** MACH virtual memory (not implemented) */
   NSPointerFunctionsMachVirtualMemory = (4<<0),
 
+  /** Uses read and write barriers appropriate for either automatic reference
+   * counting or garbage collection.  Note that the GNUstep implementation will
+   * behave correctly when used with manual or automatic reference counting, as
+   * long as the Objective-C runtime supports automatic reference counting.
+   */
+  NSPointerFunctionsWeakMemory = (5<<0),
 
   /** Use the -hash and -isEqual: methods for storing objects, and the
    * -description method to describe them. */

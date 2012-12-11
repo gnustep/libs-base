@@ -55,6 +55,15 @@ extern "C" {
  */
 + (id) pointerArrayWithPointerFunctions: (NSPointerFunctions *)functions;
 
+/** Returns a new pointer array for storing strong (retained) references to
+ * objects.
+ */
++ (id) strongObjectsPointerArray;
+/** Returns a new pointer array for storing zeroing weak references to objects.
+ */
++ (id) weakObjectsPointerArray;
+
+
 /** Removes all nil/zero items from the array.
  */
 - (void) compact;   // eliminate NULLs

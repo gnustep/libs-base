@@ -79,6 +79,17 @@ static Class	concreteClass = Nil;
 {
   return AUTORELEASE([[self alloc] initWithPointerFunctions: functions]);
 }
++ (id) strongObjectsPointerArray
+{
+ return [self pointerArrayWithOptions: NSPointerFunctionsObjectPersonality |
+     NSPointerFunctionsStrongMemory];
+}
++ (id) weakObjectsPointerArray
+{
+ return [self pointerArrayWithOptions: NSPointerFunctionsObjectPersonality |
+     NSPointerFunctionsWeakMemory];
+}
+
 
 - (void) compact
 {
