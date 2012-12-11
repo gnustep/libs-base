@@ -335,6 +335,13 @@ static Class	concreteClass = Nil;
 - (void) dealloc
 {
   [self finalize];
+  // For weak memory, we must zero all of the elements, or the runtime will
+  // keep pointers to them lying around.  For strong memory, we must release
+  // things or they will leak.
+  for (int i=0 ; i<_count ; i++)
+    {
+      pointerFunctionsAssign(&_pf, &_contents[i], 0);
+    }
   if (_contents != 0)
     {
       NSZoneFree([self zone], _contents);
