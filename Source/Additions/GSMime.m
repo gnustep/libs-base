@@ -2601,41 +2601,50 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  if (lineStart == 0 || buf[lineStart-1] == '\r'
 		    || buf[lineStart-1] == '\n')
 		    {
-		      BOOL		lastPart = NO;
-
 		      lineEnd = lineStart + bLength;
 		      eol = lineEnd;
 		      if (lineEnd + 2 <= len && buf[lineEnd] == '-'
 			&& buf[lineEnd+1] == '-')
 			{
+                          /* The final boundary (shown by the trailng '--').
+                           * Any data after this should be ignored.
+                           * NB. careful reading of section 7.2.1 of RFC1341
+                           * reveals that the final boundary does NOT include
+                           * a trailing CRLF (but that excess data after the
+                           * final boundary is to be ignored).
+                           */
 			  eol += 2;
-			  lastPart = YES;
-			}
-		      /*
-		       * Ignore space/tab characters after boundary marker
-		       * and before crlf.  Strictly this is wrong ... but
-		       * at least one mailer generates bogus whitespace here.
-		       */
-		      while (eol < len
-			&& (buf[eol] == ' ' || buf[eol] == '\t'))
-			{
-			  eol++;
-			}
-		      if (eol < len && buf[eol] == '\r')
-			{
-			  eol++;
-			}
-		      if (eol < len && buf[eol] == '\n')
-			{
-			  eol++;
 			  flags.wantEndOfLine = 0;
+                          endedFinalPart = YES;
 			  found = YES;
-			  endedFinalPart = lastPart;
 			}
-		      else
-			{
-			  flags.wantEndOfLine = 1;
-			}
+                      else
+                        {
+                          /*
+                           * Ignore space/tab characters after boundary marker
+                           * and before crlf.  Strictly this is wrong ... but
+                           * at least one mailer generates bogus whitespace.
+                           */
+                          while (eol < len
+                            && (buf[eol] == ' ' || buf[eol] == '\t'))
+                            {
+                              eol++;
+                            }
+                          if (eol < len && buf[eol] == '\r')
+                            {
+                              eol++;
+                            }
+                          if (eol < len && buf[eol] == '\n')
+                            {
+                              eol++;
+                              flags.wantEndOfLine = 0;
+                              found = YES;
+                            }
+                          else
+                            {
+                              flags.wantEndOfLine = 1;
+                            }
+                        }
 		      break;
 		    }
 		}
