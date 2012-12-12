@@ -98,23 +98,27 @@ static Class	concreteClass = 0;
 			 valueOptions: NSPointerFunctionsObjectPersonality
     | NSPointerFunctionsZeroingWeakMemory];
 }
+
 + (id) strongToStrongObjectsMapTable
 {
   return [self mapTableWithKeyOptions: NSMapTableObjectPointerPersonality
                          valueOptions: NSMapTableObjectPointerPersonality];
 }
+
 + (id) strongToWeakObjectsMapTable
 {
   return [self mapTableWithKeyOptions: NSMapTableObjectPointerPersonality
                          valueOptions: NSMapTableObjectPointerPersonality |
                                          NSMapTableWeakMemory];
 }
+
 + (id) weakToStrongObjectsMapTable
 {
   return [self mapTableWithKeyOptions: NSMapTableObjectPointerPersonality |
                                          NSMapTableWeakMemory
                          valueOptions: NSMapTableObjectPointerPersonality];
 }
+
 + (id) weakToWeakObjectsMapTable
 {
   return [self mapTableWithKeyOptions: NSMapTableObjectPointerPersonality | 
@@ -122,7 +126,6 @@ static Class	concreteClass = 0;
                          valueOptions: NSMapTableObjectPointerPersonality |
                                          NSMapTableWeakMemory];
 }
-
 
 - (id) initWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
 	     valueOptions: (NSPointerFunctionsOptions)valueOptions
