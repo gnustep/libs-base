@@ -182,6 +182,15 @@ lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii, BOOL *latin1)
   return l;
 }
 
+/* Count the number of bytes that make up this UTF-8 code point.
+   This to keep in mind:
+      * This macro doesn't return anything larger than '4'
+      * Legal UTF-8 cannot be larger than 4 bytes long (0x10FFFF)
+      * It will return 0 for anything illegal
+ */
+#define UTF8_BYTE_COUNT(c) \
+  (((c) < 0xf8) ? 1 + ((c) >= 0xc0) + ((c) >= 0xe0) + ((c) >= 0xf0) : 0)
+
 /* Sequentially extracts characters from UTF-8 string
  * p = pointer to the utf-8 data
  * l = length (bytes) of the utf-8 data
@@ -216,14 +225,10 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
 	  int j, sle = 0;
 
 	  /* calculated the expected sequence length */
-	  while (c & 0x80)
-	    {
-	      c = c << 1;
-	      sle++;
-	    }
+	  sle = UTF8_BYTE_COUNT(c);
 
 	  /* legal ? */
-	  if ((sle < 2) || (sle > 6))
+	  if (sle < 2)
 	    {
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"bad multibyte character length"];
@@ -261,12 +266,6 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
 	    {
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"invalid unicode codepoint"];
-	    }
-
-	  if ((u >= 0xd800) && (u <= 0xdfff))
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"unmatched half of surrogate pair"];
 	    }
 	}
       else
