@@ -1,3 +1,10 @@
+2012-12-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSNetServices.m: patch by Marcus Muller to correctly check
+        that either the input or the output stream has been opened.
+        * Source/GSString.m: patch by Stefan Bidi to optimise utf-8 to
+        utf-16 conversion a little.
+
 2012-12-12  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSMime.m: Fix parsing of final boundary in a multipart

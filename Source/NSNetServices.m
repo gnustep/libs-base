@@ -281,7 +281,7 @@ static Class concreteBrowserClass;
                  inputStream: inputStream
                 outputStream: outputStream];
   
-  return inputStream && outputStream;
+  return inputStream || outputStream;
 }
 
 /*
