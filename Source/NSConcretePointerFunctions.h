@@ -89,6 +89,11 @@ typedef struct
 
 } PFInfo;
 
+inline static BOOL memoryType(int options, int flag)
+{
+	return (options & 0xff) == flag;
+}
+
 /* Declare the concrete pointer functions class as a wrapper around
  * an instance of the PFInfo structure.
  */
@@ -108,11 +113,11 @@ typedef struct
  */
 static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
 {
-  if (PF->options & NSPointerFunctionsWeakMemory)
+  if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
     {
       return ARC_WEAK_READ((id*)addr);
     }
-  else if (PF->options & NSPointerFunctionsZeroingWeakMemory)
+  if (memoryType(PF->options, NSPointerFunctionsZeroingWeakMemory))
     {
       return WEAK_READ((id*)addr);
     }
@@ -124,15 +129,15 @@ static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
  */
 static inline void pointerFunctionsAssign(PFInfo *PF, void **addr, void *value)
 {
-  if (PF->options & NSPointerFunctionsWeakMemory)
+  if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
     {
       ARC_WEAK_WRITE(addr, value);
     }
-  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
+  else if (memoryType(PF->options, NSPointerFunctionsZeroingWeakMemory))
     {
       WEAK_WRITE(addr, value);
     }
-  else if (PF->options & NSPointerFunctionsStrongMemory)
+  else if (memoryType(PF->options, NSPointerFunctionsStrongMemory))
     {
       STRONG_WRITE(addr, value);
     }
@@ -211,8 +216,10 @@ pointerFunctionsRelinquish(PFInfo *PF, void **itemptr)
   
   if (PF->relinquishFunction != 0)
     (*PF->relinquishFunction)(*itemptr, PF->sizeFunction);
-  if (PF->options & NSPointerFunctionsZeroingWeakMemory)
-    GSAssignZeroingWeakPointer(itemptr, (void*)0);
+  if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
+    ARC_WEAK_WRITE(itemptr, 0);
+  else if (memoryType(PF->options, NSPointerFunctionsZeroingWeakMemory))
+    WEAK_WRITE(itemptr, (void*)0);
   else
     *itemptr = 0;
 }
@@ -228,8 +235,10 @@ pointerFunctionsReplace(PFInfo *PF, void **dst, void *src)
           PF->options & NSPointerFunctionsCopyIn ? YES : NO);
       if (PF->relinquishFunction != 0)
 	(*PF->relinquishFunction)(*dst, PF->sizeFunction);
-      if (PF->options & NSPointerFunctionsZeroingWeakMemory)
-        WEAK_WRITE(dst, src);
+      if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
+        ARC_WEAK_WRITE(dst, 0);
+      else if (memoryType(PF->options, NSPointerFunctionsZeroingWeakMemory))
+        WEAK_WRITE(dst, (void*)0);
       else
 	*dst = src;
     }
