@@ -561,15 +561,15 @@ static INLINE void
 GSIMapMoreNodes(GSIMapTable map, unsigned required)
 {
   GSIMapNode	*newArray;
-  uintptr_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
 
 #if     GS_WITH_GC
+  uintptr_t	arraySize = (map->chunkCount+1)*sizeof(GSIMapNode);
   /* We don't want our nodes collected before we have finished with them,
    * so we must keep the array of pointers to memory chunks in scanned memory.
    */
   newArray = (GSIMapNode*)NSAllocateCollectable(arraySize, NSScannedOption);
 #else
-  newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
+  newArray = (GSIMapNode*)NSZoneCalloc(map->zone, (map->chunkCount+1), sizeof(GSIMapNode));
 #endif
   if (newArray)
     {
@@ -605,7 +605,7 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
       newNodes = GSI_MAP_NODES(map, chunkCount);
 #else
       newNodes
-        = (GSIMapNode)NSZoneMalloc(map->zone, chunkCount*sizeof(GSIMapNode_t));
+        = (GSIMapNode)NSZoneCalloc(map->zone, chunkCount, sizeof(GSIMapNode_t));
 #endif
       if (newNodes)
 	{
