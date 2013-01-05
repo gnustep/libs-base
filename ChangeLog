@@ -1,3 +1,14 @@
+2013-01-05 00:49-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSMetadata.h: Add _ to delegate.
+	* Source/GNUmakefile: Remove reference to NSMetadata.m
+	* Source/NSMetadata.m: Remove from here and add OS specific
+	implementations.
+	* Source/unix/GNUmakefile: Add new file...
+	* Source/unix/NSMetadata.m: UNIX implementation...
+	* Source/win32/GNUmakefile: Add new file..
+	* Source/win32/NSMetadata.m: Windows implementation.
+
 2012-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSNetServices.m: patch by Marcus Muller to correctly check

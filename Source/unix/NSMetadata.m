@@ -28,6 +28,7 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSString.h"
+#import "Foundation/NSTimer.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // Metadata item constants...
@@ -80,6 +81,18 @@ NSString * const NSMetadataQueryDidUpdateNotification = @"NSMetadataQueryDidUpda
 NSString * const NSMetadataQueryGatheringProgressNotification = @"NSMetadataQueryGatheringProgressNotification";
 
 @implementation NSMetadataQuery
+
+- (id) init
+{
+  if((self = [super init]) != nil)
+    {
+      _isStopped = YES;
+      _isGathering = NO;
+      _isStarted = NO;
+      _notificationBatchingInterval = (NSTimeInterval)0.0;
+    }
+  return self;
+}
 
 /* Instance methods */
 - (id)valueOfAttribute:(id)attr forResultAtIndex:(NSUInteger)index
@@ -138,20 +151,17 @@ NSString * const NSMetadataQueryGatheringProgressNotification = @"NSMetadataQuer
 // Status of the query...
 - (BOOL)isStopped
 {
-  [self subclassResponsibility: _cmd];
-  return NO;
+  return _isStopped;
 }
 
 - (BOOL)isGathering
 {
-  [self subclassResponsibility: _cmd];
-  return NO;
+  return _isGathering;
 }
 
 - (BOOL)isStarted
 {
-  [self subclassResponsibility: _cmd];
-  return NO;
+  return _isStarted;
 }
 
 - (void)stopQuery
@@ -168,25 +178,23 @@ NSString * const NSMetadataQueryGatheringProgressNotification = @"NSMetadataQuer
 // Search URLS
 - (void)setSearchItemURLs:(NSArray *)urls
 {
-  [self subclassResponsibility: _cmd];
+  ASSIGNCOPY(_searchURLs,urls); 
 }
 
 - (NSArray *)searchItemURLs
 {
-  [self subclassResponsibility: _cmd];
-  return [NSArray array];
+  return _searchURLs;
 }
 
 // Search scopes 
 - (void)setSearchScopes:(NSArray *)scopes
 {
-  [self subclassResponsibility: _cmd];
+  ASSIGNCOPY(_scopes,scopes);
 }
 
 - (NSArray *)searchScopes
 {
-  [self subclassResponsibility: _cmd];
-  return [NSArray array];
+  return _scopes;
 }
 
 // Notification interval
@@ -225,39 +233,36 @@ NSString * const NSMetadataQueryGatheringProgressNotification = @"NSMetadataQuer
 }
 
 // Sort descriptors
-- (void)setSortDescriptors:(NSArray *)attrs
+- (void)setSortDescriptors:(NSArray *)descriptors
 {
-  [self subclassResponsibility: _cmd];
+  ASSIGNCOPY(_sortDescriptors,descriptors);
 }
 
 - (NSArray *)sortDescriptors
 {
-  [self subclassResponsibility: _cmd];
-  return [NSArray array];
+  return _sortDescriptors;
 }
 
 // Predicate
 - (void)setPredicate:(NSPredicate *)predicate
 {
-  [self subclassResponsibility: _cmd];
+  ASSIGNCOPY(_predicate,predicate);
 }
 
 - (NSPredicate *)predicate
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return _predicate;
 }
 
 // Delegate
 - (void)setDelegate:(id<NSMetadataQueryDelegate>)delegate;
 {
-  [self subclassResponsibility: _cmd];
+  _delegate = delegate;
 }
 
 - (id<NSMetadataQueryDelegate>)delegate;
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return _delegate;
 }
 
 @end
