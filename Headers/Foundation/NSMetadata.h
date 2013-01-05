@@ -81,7 +81,7 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
   NSTimeInterval _notificationBatchingInterval;
   NSMutableDictionary *_results;
 
-  id<NSMetadataQueryDelegate> delegate;
+  id<NSMetadataQueryDelegate> _delegate;
 }
 
 /* Instance methods */
