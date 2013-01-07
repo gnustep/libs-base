@@ -1376,7 +1376,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       // Apple documentation for NSFileHandleOperationException states:
       // Raised by NSFileHandle if attempts to determine file-handle type fail or
       // if attempts to read from a file or channel fail.
-      NSWarnMLog(@"write failed - status: %d", WSAGetLastError());
+      NSWarnMLog(@"write failed - status: %d", errno);
     }
 }
 
