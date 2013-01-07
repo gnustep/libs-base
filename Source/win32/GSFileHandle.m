@@ -1427,9 +1427,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (rval < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"unable to write to descriptor - %@",
-                  [NSError _last]];
+      // NSFileHandleOperationException should not be thrown in write cases...
+      // Apple documentation for NSFileHandleOperationException states: 
+      // Raised by NSFileHandle if attempts to determine file-handle type fail or
+      // if attempts to read from a file or channel fail.
+      NSWarnMLog(@"write failed - status: %d", WSAGetLastError());
     }
 }
 
