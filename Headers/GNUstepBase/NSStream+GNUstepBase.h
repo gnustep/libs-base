@@ -36,7 +36,7 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 /**
- * The additionalinterface defined for GNUstep.<br />
+ * The additional interface defined for GNUstep.<br />
  * Currently NOT implemented when using the Apple Foundation!<br />
  * Please contribute an Apple implementation.
  */
@@ -63,7 +63,7 @@ extern "C" {
 
 /**
  * GSServerStream is a subclass of NSStream that encapsulate a "server"
- * stream; * that is a stream that binds to a socket and accepts incoming
+ * stream; that is a stream that binds to a socket and accepts incoming
  * connections.<br />
  * Currently NOT implemented when using the Apple Foundation!<br />
  * Please contribute an Apple implementation.
@@ -71,32 +71,40 @@ extern "C" {
 @interface GSServerStream : NSStream
 
 /**
- * Createe a ip (ipv6) server stream
+ * Create an IP (ipv4 or ipv6) server stream.<br />
+ * The addr argument must be a string object containing a standard text
+ * representation of an internet address (either the dot separated ipv4
+ * syntax or the colon separated ipv6 syntax).
  */
 + (id) serverStreamToAddr: (NSString*)addr port: (NSInteger)port;
 
 /**
- * Create a local (unix domain or named pipe) server stream
+ * Create a local (unix domain or named pipe) server stream.
  */
 + (id) serverStreamToAddr: (NSString*)addr;
 
 /**
  * This is the method that accepts a connection and generates two streams
- * as the server side inputStream and OutputStream.
- * Although you still need to open them, the open will be
- * instantanious, and no NSStreamEventOpenCompleted event will be delivered.
+ * as the server side inputStream and OutputStream.<br />
+ * You call this when you receive an event on the server stream signalling
+ * that it is 'readable' (bytes available).<br />
+ * Although you still need to open them, the open will be instantaneous,
+ * and no NSStreamEventOpenCompleted event will be delivered.
  */
 - (void) acceptWithInputStream: (NSInputStream **)inputStream 
                   outputStream: (NSOutputStream **)outputStream;
 
 /**
- * the designated initializer for a ip (ipv6) server stream
+ * The designated initializer for an IP (ipv4 or ipv6) server stream.<br />
+ * The addr argument must be a string object containing a standard text
+ * representation of an internet address (either the dot separated ipv4
+ * syntax or the colon separated ipv6 syntax).
  */
 - (id) initToAddr: (NSString*)addr port: (NSInteger)port;
 
 /**
- * the designated initializer for a local (unix domain or named pipe)
- * server stream
+ * The designated initializer for a local (unix domain or named pipe)
+ * server stream.
  */
 - (id) initToAddr: (NSString*)addr;
 

@@ -3855,6 +3855,7 @@ agree, create a new GSCInlineString otherwise.
   s = createTinyString((char*)_contents.c + aRange.location, aRange.length);
   if (nil == s)
     {
+      aRange.location += (_contents.c - _parent->_contents.c);
       s = substring_c((GSStr)_parent, aRange);
     }
   return s;
@@ -3868,6 +3869,7 @@ agree, create a new GSCInlineString otherwise.
   s = createTinyString((char*)_contents.c + aRange.location, aRange.length);
   if (nil == s)
     {
+      aRange.location += (_contents.c - _parent->_contents.c);
       s = substring_c((GSStr)_parent, aRange);
     }
   return s;
