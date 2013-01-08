@@ -3846,6 +3846,33 @@ agree, create a new GSCInlineString otherwise.
   DESTROY(_parent);
   [super dealloc];
 }
+
+- (NSString*) substringFromRange: (NSRange)aRange
+{
+  id    s;
+
+  GS_RANGE_CHECK(aRange, _count);
+  s = createTinyString((char*)_contents.c + aRange.location, aRange.length);
+  if (nil == s)
+    {
+      s = substring_c((GSStr)_parent, aRange);
+    }
+  return s;
+}
+
+- (NSString*) substringWithRange: (NSRange)aRange
+{
+  id    s;
+
+  GS_RANGE_CHECK(aRange, _count);
+  s = createTinyString((char*)_contents.c + aRange.location, aRange.length);
+  if (nil == s)
+    {
+      s = substring_c((GSStr)_parent, aRange);
+    }
+  return s;
+}
+
 @end
 
 
@@ -4220,6 +4247,21 @@ agree, create a new GSUInlineString otherwise.
   DESTROY(_parent);
   [super dealloc];
 }
+
+- (NSString*) substringFromRange: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, _count);
+  aRange.location += (_contents.u - _parent->_contents.u);
+  return substring_u((GSStr)_parent, aRange);
+}
+
+- (NSString*) substringWithRange: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, _count);
+  aRange.location += (_contents.u - _parent->_contents.u);
+  return substring_u((GSStr)_parent, aRange);
+}
+
 @end
 
 
