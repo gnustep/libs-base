@@ -1,3 +1,11 @@
+2013-01-11  Doug Simons <doug.simons@testplant.com>
+
+       * NSString.m: Don't strip trailing path separator in
+        stringByAppendingPathComponent: when appending the root.
+        This fixes problems where adding the components "C:\" and
+        "MyFolder" would end up as "C:MyFolder" instead of
+        "C:\MyFolder".
+
 2012-10-08  Doug Simons <doug.simons@testplant.com>
 
         * NSURLProtocol.m: Don't quit writing to output stream when it fails because it would block.

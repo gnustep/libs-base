@@ -3818,7 +3818,12 @@ static NSFileManager *fm = nil;
     {
       [aString getCharacters: buf range: ((NSRange){0, aLength})];
       length = aLength;
-    }
+      // Trim trailing path separators, but only down to the root
+      while (length > root && pathSepMember(buf[length-1]) == YES)
+        {
+          length--;
+        }
+	}
   else
     {
       [self getCharacters: buf range: ((NSRange){0, length})];
@@ -3850,13 +3855,13 @@ static NSFileManager *fm = nil;
 	}
       // Find length of root part of new path.
       root = rootOf(self, originalLength);
-    }
-
-  // Trim trailing path separators
-  while (length > 1 && pathSepMember(buf[length-1]) == YES)
-    {
-      length--;
-    }
+	  
+      // Trim trailing path separators
+      while (length > 1 && pathSepMember(buf[length-1]) == YES)
+        {
+          length--;
+        }
+	}
 
   /* Trim multi separator sequences outside root (root may contain an
    * initial // pair if it is a windows UNC path).
