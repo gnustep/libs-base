@@ -1,12 +1,18 @@
+2013-01-13  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSDistributedNotificationCenter.h,
+	* Source/NSDistributedNotificationCenter.m: Correct the return
+	types of the factory methods.
+
 2013-01-08  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSString.m:
-        When creating a substring (A) of a substring (B) or a string (C),
-        we now retain the (C) in (A) rather than having (C) retain (B)
+        When creating a substring (C) of a substring (B) or a string (A),
+        we now retain the (A) in (C) rather than having (C) retain (B)
         which in turn retains (A).  This has the advantage that it is
         possible for the intermediate (B) to be released if nothing else
         ues it.
-        
+
 2013-01-05 00:49-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSMetadata.h: Add _ to delegate.

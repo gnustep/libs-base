@@ -118,7 +118,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  * equivalent to calling +notificationCenterForType: with
  * <code>NSLocalNotificationCenterType</code> as its argument.
  */
-+ (NSNotificationCenter*) defaultCenter
++ (id) defaultCenter
 {
   return [self notificationCenterForType: NSLocalNotificationCenterType];
 }
@@ -135,7 +135,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  * a notification center used by processes on the local network.<br />
  * MacOS-X supports only <code>NSLocalNotificationCenterType</code>.
  */
-+ (NSNotificationCenter*) notificationCenterForType: (NSString*)type
++ (NSDistributedNotificationCenter*) notificationCenterForType: (NSString*)type
 {
   if ([type isEqual: NSLocalNotificationCenterType] == YES)
     {
