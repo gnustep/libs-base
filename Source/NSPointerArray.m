@@ -594,6 +594,8 @@ static Class	concreteClass = Nil;
 	      [NSException raise: NSMallocException
 			  format: @"Unable to grow array"];
 	    }
+	  memset(ptr + _capacity, '\0',
+	    (new_cap - _capacity) * sizeof(void*));
 	  _contents = ptr;
 	  _capacity = new_cap;
 	  _grow_factor = new_gf;
