@@ -1823,11 +1823,13 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
   NSRange	complete;
   NSRange	found;
   NSMutableArray *array;
+  IF_NO_GC(NSAutoreleasePool *pool; NSUInteger count;)
 
   if (separator == nil)
     [NSException raise: NSInvalidArgumentException format: @"separator is nil"];
 
   array = [NSMutableArray array];
+  IF_NO_GC(pool = [NSAutoreleasePool new]; count = 0;)
   search = NSMakeRange (0, [self length]);
   complete = search;
   found = [self rangeOfCharacterFromSet: separator];
@@ -1844,10 +1846,11 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
       found = [self rangeOfCharacterFromSet: separator
                                     options: 0
                                       range: search];
+      IF_NO_GC(if (0 == count % 200) [pool emptyPool];)
     }
   // Add the last search string range
   [array addObject: [self substringWithRange: search]];
-
+  IF_NO_GC([pool release];)
   // FIXME: Need to make mutable array into non-mutable array?
   return array;
 }
