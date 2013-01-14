@@ -3837,6 +3837,7 @@ static NSFileManager *fm = nil;
     {
       [aString getCharacters: buf range: ((NSRange){0, aLength})];
       length = aLength;
+      root = rootOf(aString, aLength);
     }
   else
     {

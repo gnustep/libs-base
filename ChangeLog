@@ -1,3 +1,8 @@
+2013-01-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSString.m: ([stringByAppendingPathComponent:]) recalculate
+        root of patch correctly before stripping trailing separators.
+
 2013-01-13  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSDistributedNotificationCenter.h,
