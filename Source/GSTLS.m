@@ -486,6 +486,88 @@ static GSTLSDHParams            *paramsCurrent = nil;
 static NSLock                   *certificateListLock = nil;
 static NSMutableDictionary      *certificateListCache = nil;
 
++ (void) certInfo: (gnutls_x509_crt_t)cert to: (NSMutableString*)str
+{
+  char            dn[1024];
+  size_t          dn_size = sizeof(dn);
+  char            serial[40];
+  size_t          serial_size = sizeof(serial);
+  time_t          expiret;
+  time_t          activet;
+  int             algo;
+  unsigned int    bits;
+  int             i;
+
+  [str appendString: @"\n"];
+  [str appendFormat: _(@"- Certificate info:\n")];
+
+  expiret = gnutls_x509_crt_get_expiration_time(cert);
+  activet = gnutls_x509_crt_get_activation_time(cert);
+  [str appendFormat: _(@"- Certificate is valid since: %s"),
+    ctime(&activet)];
+  [str appendFormat: _(@"- Certificate expires: %s"),
+    ctime (&expiret)];
+
+#if 0
+{
+  char        digest[20];
+  size_t      digest_size = sizeof(digest);
+  if (gnutls_x509_fingerprint(GNUTLS_DIG_MD5,
+    &cert_list[0], digest, &digest_size) >= 0)
+    {
+      [str appendString: _(@"- Certificate fingerprint: ")];
+      for (i = 0; i < digest_size; i++)
+        {
+          [str appendFormat: @"%.2x ", (unsigned char)digest[i]];
+        }
+      [str appendString: @"\n"];
+    }
+}
+#endif
+
+  if (gnutls_x509_crt_get_serial(cert, serial, &serial_size) >= 0)
+    {
+      [str appendString: _(@"- Certificate serial number: ")];
+      for (i = 0; i < serial_size; i++)
+        {
+          [str appendFormat: @"%.2x ", (unsigned char)serial[i]];
+        }
+      [str appendString: @"\n"];
+    }
+
+  [str appendString: _(@"- Certificate public key: ")];
+  algo = gnutls_x509_crt_get_pk_algorithm(cert, &bits);
+  if (GNUTLS_PK_RSA == algo)
+    {
+      [str appendString: _(@"RSA\n")];
+      [str appendFormat: _(@"- Modulus: %d bits\n"), bits];
+    }
+  else if (GNUTLS_PK_DSA == algo)
+    {
+      [str appendString: _(@"DSA\n")];
+      [str appendFormat: _(@"- Exponent: %d bits\n"), bits];
+    }
+  else
+    {
+      [str appendString: _(@"UNKNOWN\n")];
+    }
+
+  [str appendFormat: _(@"- Certificate version: #%d\n"),
+    gnutls_x509_crt_get_version(cert)];
+
+  dn_size = sizeof(dn);
+  gnutls_x509_crt_get_dn(cert, dn, &dn_size);
+  dn[dn_size - 1] = '\0';
+  [str appendFormat: @"- Certificate DN: %@\n",
+    [NSString stringWithUTF8String: dn]];
+
+  dn_size = sizeof(dn);
+  gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
+  dn[dn_size - 1] = '\0';
+  [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
+    [NSString stringWithUTF8String: dn]];
+}
+ 
 /* Method to purge older lists from cache.
  */
 + (void) housekeeping: (NSNotification*)n
@@ -570,6 +652,37 @@ static NSMutableDictionary      *certificateListCache = nil;
       l->crts = malloc(sizeof(gnutls_x509_crt_t) * count);
       memcpy(l->crts, crts, sizeof(gnutls_x509_crt_t) * count);
       l->count = count;
+
+      if (count > 0)
+        {
+          time_t        now = (time_t)[[NSDate date] timeIntervalSince1970];
+          unsigned int  i;
+
+          for (i = 0; i < count; i++)
+            {
+              time_t    expiret = gnutls_x509_crt_get_expiration_time(crts[i]);
+              time_t    activet = gnutls_x509_crt_get_activation_time(crts[i]);
+
+              if (expiret <= now)
+                {
+                  NSLog(@"WARNING: at index %u in %@ ... expired at %s",
+                    i, l->path, ctime(&activet));
+                }
+              if (activet > now)
+                {
+                  NSLog(@"WARNING: at index %u in %@ ... not valid until %s",
+                    i, l->path, ctime(&activet));
+                }
+              if (expiret <= now || activet > now)
+                {
+                  NSMutableString       *m;
+
+                  m = [NSMutableString stringWithCapacity: 2000];
+                  [self certInfo: crts[i] to: m];
+                  NSLog(@"%@", m);
+                }
+            }
+        }
 
       [certificateListLock lock];
       [certificateListCache setObject: l forKey: l->path];
@@ -1558,20 +1671,10 @@ static NSMutableDictionary      *credentialsCache = nil;
         if (cert_list_size > 0
           && gnutls_certificate_type_get(session) == GNUTLS_CRT_X509)
           {
-            int                 cert_num;
+            int cert_num;
         
             for (cert_num = 0; cert_num < cert_list_size; cert_num++)
               {
-                char            dn[1024];
-                size_t          dn_size = sizeof(dn);
-                char            serial[40];
-                size_t          serial_size = sizeof(serial);
-                time_t          expiret;
-                time_t          activet;
-                int             algo;
-                unsigned int    bits;
-                int             i;
-
                 gnutls_x509_crt_init(&cert);
                 /* NB. the list of peer certificate is in memory in native
                  * format (DER) rather than the normal file format (PEM).
@@ -1582,71 +1685,7 @@ static NSMutableDictionary      *credentialsCache = nil;
                 [str appendString: @"\n"];
                 [str appendFormat: _(@"- Certificate %d info:\n"), cert_num];
 
-                expiret = gnutls_x509_crt_get_expiration_time(cert);
-                activet = gnutls_x509_crt_get_activation_time(cert);
-                [str appendFormat: _(@"- Certificate is valid since: %s"),
-                  ctime(&activet)];
-                [str appendFormat: _(@"- Certificate expires: %s"),
-                  ctime (&expiret)];
-
-#if 0
-              {
-                char        digest[20];
-                size_t      digest_size = sizeof(digest);
-                if (gnutls_x509_fingerprint(GNUTLS_DIG_MD5,
-                  &cert_list[0], digest, &digest_size) >= 0)
-                  {
-                    [str appendString: _(@"- Certificate fingerprint: ")];
-                    for (i = 0; i < digest_size; i++)
-                      {
-                        [str appendFormat: @"%.2x ", (unsigned char)digest[i]];
-                      }
-                    [str appendString: @"\n"];
-                  }
-              }
-#endif
-
-                if (gnutls_x509_crt_get_serial(cert, serial, &serial_size) >= 0)
-                  {
-                    [str appendString: _(@"- Certificate serial number: ")];
-                    for (i = 0; i < serial_size; i++)
-                      {
-                        [str appendFormat: @"%.2x ", (unsigned char)serial[i]];
-                      }
-                    [str appendString: @"\n"];
-                  }
-
-                [str appendString: _(@"- Certificate public key: ")];
-                algo = gnutls_x509_crt_get_pk_algorithm(cert, &bits);
-                if (GNUTLS_PK_RSA == algo)
-                  {
-                    [str appendString: _(@"RSA\n")];
-                    [str appendFormat: _(@"- Modulus: %d bits\n"), bits];
-                  }
-                else if (GNUTLS_PK_DSA == algo)
-                  {
-                    [str appendString: _(@"DSA\n")];
-                    [str appendFormat: _(@"- Exponent: %d bits\n"), bits];
-                  }
-                else
-                  {
-                    [str appendString: _(@"UNKNOWN\n")];
-                  }
-
-                [str appendFormat: _(@"- Certificate version: #%d\n"),
-                  gnutls_x509_crt_get_version(cert)];
-
-                dn_size = sizeof(dn);
-                gnutls_x509_crt_get_dn(cert, dn, &dn_size);
-                dn[dn_size - 1] = '\0';
-                [str appendFormat: @"- Certificate DN: %@\n",
-                  [NSString stringWithUTF8String: dn]];
-
-                dn_size = sizeof(dn);
-                gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
-                dn[dn_size - 1] = '\0';
-                [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
-                  [NSString stringWithUTF8String: dn]];
+                [GSTLSCertificateList certInfo: cert to: str];
 
                 gnutls_x509_crt_deinit(cert);
               }

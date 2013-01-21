@@ -8,6 +8,8 @@
         * Source/NSURLConnection.m: a synchronous download with no response
         body should return an empty data item rather than nil ... fix for
         bug #38043
+        * Source/GSTLS.m: Log a warning message if we load a certificate
+        which has expired or is not yet valid.
 
 2013-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
