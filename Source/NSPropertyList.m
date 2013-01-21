@@ -1978,9 +1978,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	}
       else
 	{
-	  obj = [obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
-	    timeZone: z locale: nil];
-	  PString(obj, dest);
+	  PString([obj description], dest);
 	}
     }
   else if ([obj isKindOfClass: NSArrayClass])
