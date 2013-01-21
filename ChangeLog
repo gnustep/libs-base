@@ -1,5 +1,10 @@
 2013-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSLocale.m: ([-_getExemplarCharacterSet]) Fix error in handling
+        returned range (bug #38118 reported by X Y <macgritsch>
+
+2013-01-14  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/NSString.m: ([stringByAppendingPathComponent:]) recalculate
         root of patch correctly before stripping trailing separators.
 

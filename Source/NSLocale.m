@@ -977,7 +977,7 @@ static NSRecursiveLock *classLock = nil;
         }
       if (strLen == 0)
         {
-          [mSet addCharactersInRange: NSMakeRange(start, end)];
+          [mSet addCharactersInRange: NSMakeRange(start, (end - start) + 1)];
         }
       else if (strLen >= 2)
         {
