@@ -2,6 +2,9 @@
 
         * Source/NSLocale.m: ([-_getExemplarCharacterSet]) Fix error in handling
         returned range (bug #38118 reported by X Y <macgritsch>
+        * Source/NSPropertyList.m: Fix encoding of date objects when using the
+        OpenStep format to simply used the description of the3 date.
+        Fixes bug #38017
 
 2013-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
