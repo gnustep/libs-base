@@ -66,6 +66,15 @@
   return _data;
 }
 
+- (id) init
+{
+  if (nil != (self = [super init]))
+    {
+      _data = [NSMutableData new];      // Empty data unless we get an error
+    }
+  return self;
+}
+
 - (NSError*) error
 {
   return _error;
@@ -85,6 +94,7 @@
    didFailWithError: (NSError *)error
 {
   ASSIGN(_error, error);
+  DESTROY(_data);       // On error, we make the data nil
   _done = YES;
 }
 
@@ -103,14 +113,7 @@
 - (void) connection: (NSURLConnection *)connection
      didReceiveData: (NSData *)data
 {
-  if (nil == _data)
-    {
-      _data = [data mutableCopy];
-    }
-  else
-    {
-      [_data appendData: data];
-    }
+  [_data appendData: data];
 }
 
 @end
@@ -313,31 +316,35 @@ typedef struct
     {
       _NSURLConnectionDataCollector	*collector;
       NSURLConnection			*conn;
-      NSRunLoop				*loop;
 
       collector = [_NSURLConnectionDataCollector new];
       conn = [[self alloc] initWithRequest: request delegate: collector];
       [collector release];	// retained by connection
-      [collector setConnection: conn];
-      loop = [NSRunLoop currentRunLoop];
-      while ([collector done] == NO)
+      if (nil != conn)
         {
-	  NSDate	*limit;
+          NSRunLoop	*loop;
 
-	  limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
-	  [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
-	  RELEASE(limit);
-	}
-      data = [[[collector data] retain] autorelease];
-      if (0 != response)
-	{
-          *response = [[[collector response] retain] autorelease];
-	}
-      if (0 != error)
-	{
-          *error = [[[collector error] retain] autorelease];
-	}
-      [conn release];
+          [collector setConnection: conn];
+          loop = [NSRunLoop currentRunLoop];
+          while ([collector done] == NO)
+            {
+              NSDate	*limit;
+
+              limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
+              [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+              RELEASE(limit);
+            }
+          data = [[[collector data] retain] autorelease];
+          if (0 != response)
+            {
+              *response = [[[collector response] retain] autorelease];
+            }
+          if (0 != error)
+            {
+              *error = [[[collector error] retain] autorelease];
+            }
+          [conn release];
+        }
     }
   return data;
 }

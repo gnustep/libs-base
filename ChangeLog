@@ -5,6 +5,9 @@
         * Source/NSPropertyList.m: Fix encoding of date objects when using the
         OpenStep format to simply used the description of the3 date.
         Fixes bug #38017
+        * Source/NSURLConnection.m: a synchronous download with no response
+        body should return an empty data item rather than nil ... fix for
+        bug #38043
 
 2013-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
