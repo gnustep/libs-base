@@ -784,7 +784,7 @@ static NSExpression	*evaluatedObjectExpression = nil;
         opt = @"[cd]";
         break;
       default:
-        opt = @"[?options?]";
+        //opt = @"[?options?]";
         break;
     }
   return [NSString stringWithFormat: @"%@%@ %@%@ %@",
@@ -1096,7 +1096,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   NSString		*s;
 
   e = [[GSFunctionExpression alloc] initWithExpressionType: NSFunctionExpressionType];
-  s = [NSString stringWithFormat: @"_eval_%@: context: ", name];
+  s = [NSString stringWithFormat: @"_eval_%@:", name];
   e->_selector = NSSelectorFromString(s);
   if (![e respondsToSelector: e->_selector])
     {
@@ -1396,6 +1396,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (NSString *) function
 {
   return _function;
+}
+
+- (NSString *) keyPath
+{
+  return nil;
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -2047,11 +2052,32 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return [self parseBinaryExpression];
 }
 
-- (NSExpression *) parseSimpleExpression
+- (NSExpression *) parseIdentifierExpression
 {
   static NSCharacterSet *_identifier;
-  unsigned      location;
   NSString      *ident;
+
+  // skip # as prefix (reserved words)
+  [self scanString: @"#" intoString: NULL];
+  if (!_identifier)
+    {
+      ASSIGN(_identifier, [NSCharacterSet characterSetWithCharactersInString: 
+	 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"]);
+    }
+
+  if (![self scanCharactersFromSet: _identifier intoString: &ident])
+    {
+      [NSException raise: NSInvalidArgumentException 
+                  format: @"Missing identifier: %@", 
+                   [[self string] substringFromIndex: [self scanLocation]]];
+    }
+
+  return [NSExpression expressionForKeyPath: ident];
+}
+
+- (NSExpression *) parseSimpleExpression
+{
+  unsigned      location;
   double        dbl;
 
   if ([self scanDouble: &dbl])
@@ -2128,7 +2154,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   if ([self scanString: @"$" intoString: NULL])
     {
       // variable
-      NSExpression *var = [self parseExpression];
+      NSExpression *var = [self parseIdentifierExpression];
 
       if (![var keyPath])
         {
@@ -2247,7 +2273,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
   if ([self scanString: @"@" intoString: NULL])
     {
-      NSExpression *e = [self parseExpression];
+      NSExpression *e = [self parseIdentifierExpression];
 
       if (![e keyPath])
         {
@@ -2260,22 +2286,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
         [NSString stringWithFormat: @"@%@", [e keyPath]]];
     }
 
-  // skip # as prefix (reserved words)
-  [self scanString: @"#" intoString: NULL];
-  if (!_identifier)
-    {
-      ASSIGN(_identifier, [NSCharacterSet characterSetWithCharactersInString: 
-	 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"]);
-    }
-
-  if (![self scanCharactersFromSet: _identifier intoString: &ident])
-    {
-      [NSException raise: NSInvalidArgumentException 
-                  format: @"Missing identifier: %@", 
-                   [[self string] substringFromIndex: [self scanLocation]]];
-    }
-
-  return [NSExpression expressionForKeyPath: ident];
+  return [self parseIdentifierExpression];
 }
 
 - (NSExpression *) parseFunctionalExpression

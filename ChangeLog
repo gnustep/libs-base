@@ -1,3 +1,7 @@
+2013-01-22  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPredicate.m: Fixup parsing of function expressions.
+
 2013-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSLocale.m: ([-_getExemplarCharacterSet]) Fix error in handling
