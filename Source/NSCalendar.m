@@ -334,13 +334,21 @@ static NSRecursiveLock *classLock = nil;
     ucal_roll (_cal, c, n, &err); \
   else \
     ucal_add (_cal, c, n, &err);
-  if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
-    {
-      _ADD_COMPONENT(UCAL_DAY_OF_MONTH, amount);
-    }
   if ((amount = (int32_t)[comps era]) != NSUndefinedDateComponent)
     {
       _ADD_COMPONENT(UCAL_ERA, amount);
+    }
+  if ((amount = (int32_t)[comps year]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_YEAR, amount);
+    }
+  if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_MONTH, amount);
+    }
+  if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_DAY_OF_MONTH, amount);
     }
   if ((amount = (int32_t)[comps hour]) != NSUndefinedDateComponent)
     {
@@ -349,10 +357,6 @@ static NSRecursiveLock *classLock = nil;
   if ((amount = (int32_t)[comps minute]) != NSUndefinedDateComponent)
     {
       _ADD_COMPONENT(UCAL_MINUTE, amount);
-    }
-  if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
-    {
-      _ADD_COMPONENT(UCAL_MONTH, amount);
     }
   if ((amount = (int32_t)[comps second]) != NSUndefinedDateComponent)
     {
@@ -388,13 +392,21 @@ static NSRecursiveLock *classLock = nil;
   [self _resetCalendar];
   ucal_clear (_cal);
   
-  if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
-    {
-      ucal_set (_cal, UCAL_DAY_OF_MONTH, amount);
-    }
   if ((amount = (int32_t)[comps era]) != NSUndefinedDateComponent)
     {
       ucal_set (_cal, UCAL_ERA, amount);
+    }
+  if ((amount = (int32_t)[comps year]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_YEAR, amount);
+    }
+  if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_MONTH, amount);
+    }
+  if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_DAY_OF_MONTH, amount);
     }
   if ((amount = (int32_t)[comps hour]) != NSUndefinedDateComponent)
     {
@@ -403,10 +415,6 @@ static NSRecursiveLock *classLock = nil;
   if ((amount = (int32_t)[comps minute]) != NSUndefinedDateComponent)
     {
       ucal_set (_cal, UCAL_MINUTE, amount);
-    }
-  if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
-    {
-      ucal_set (_cal, UCAL_MONTH, amount);
     }
   if ((amount = (int32_t)[comps second]) != NSUndefinedDateComponent)
     {
