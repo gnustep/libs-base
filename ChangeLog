@@ -1,3 +1,8 @@
+2013-01-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSCalendar.m: (-[dateByAddingComponents:toDate:options:]),
+        ([-dateFromComponents:]) add support for missing components.
+
 2013-01-22  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPredicate.m: Fixup parsing of function expressions.
