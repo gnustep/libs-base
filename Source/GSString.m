@@ -817,6 +817,10 @@ static void logTinyStringCount(void)
 {
   return self;
 }
+- (NSUInteger) retainCount
+{
+  return UINT_MAX;
+}
 
 - (id) autorelease
 {

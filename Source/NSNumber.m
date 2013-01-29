@@ -402,6 +402,11 @@ static BOOL useSmallFloat;
   return self;
 }
 
+- (NSUInteger) retainCount
+{
+  return UINT_MAX;
+}
+
 - (id) autorelease
 {
   return self;
@@ -510,6 +515,11 @@ load
   return self;
 }
 
+- (NSUInteger) retainCount
+{
+  return UINT_MAX;
+}
+
 - (id) autorelease
 {
   return self;
@@ -559,6 +569,11 @@ load
 - (id) retain
 {
   return self;
+}
+
+- (NSUInteger) retainCount
+{
+  return UINT_MAX;
 }
 
 - (id) autorelease
@@ -804,7 +819,7 @@ if (aValue >= -1 && aValue <= 12)\
       (aValue < (INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)) &&
       (aValue > -(INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)))
     {
-       return (id)((aValue << OBJC_SMALL_OBJECT_SHIFT) | SMALL_INT_MASK);
+       return (id)((((NSInteger)aValue) << OBJC_SMALL_OBJECT_SHIFT) | SMALL_INT_MASK);
     }
 #endif
   n = NSAllocateObject (NSIntNumberClass, 0, 0);
