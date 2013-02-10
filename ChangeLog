@@ -1,3 +1,7 @@
+2013-02-10  Marcus Muller <znek@mulle-kybernetik.com>
+
+        * Source/GSMDNSNetServices.msh whether a delegate is set or not.
+:
 2013-02-10  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSURL.m: For OSX compatibility, if we are creating a relative
