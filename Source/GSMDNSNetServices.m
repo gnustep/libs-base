@@ -794,7 +794,7 @@ static void DNSSD_API
       Browser	*browser;
       
       browser = malloc(sizeof (struct _Browser));
-      memset(browser, 0, sizeof browser);
+      memset(browser, 0, sizeof &browser);
       
       CREATELOCK(browser);
       
@@ -1736,7 +1736,7 @@ static void DNSSD_API
       Service	*service;
       
       service = malloc(sizeof (struct _Service));
-      memset(service, 0, sizeof service);
+      memset(service, 0, sizeof &service);
       
       CREATELOCK(service);
       
@@ -2473,7 +2473,7 @@ static void DNSSD_API
       Monitor	*monitor;
       
       monitor = malloc(sizeof (struct _Monitor));
-      memset(monitor, 0, sizeof monitor);
+      memset(monitor, 0, sizeof &monitor);
       
       CREATELOCK(monitor);
       
