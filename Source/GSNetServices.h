@@ -28,20 +28,7 @@
 #import	"Foundation/NSNetServices.h"
 #import "GNUstepBase/NSNetServices+GNUstepBase.h"
 
-// Subclasses using mDNSResponder:
-
-/**
- * NSNetService using the mDNSResponder API.
- */
-@interface GSMDNSNetService : NSNetService
-@end
-
-
-/**
- * NSNetServiceBrowser using the mDNSResponder API.
- */
-@interface GSMDNSNetServiceBrowser : NSNetServiceBrowser
-@end
+#if GS_USE_AVAHI==1
 
 // Subclasses using Avahi:
 
@@ -139,3 +126,29 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
   NSMutableDictionary *_services;
 }
 @end
+
+#else // GS_USE_MDNS
+
+// Subclasses using mDNSResponder:
+
+/**
+ * NSNetService using the mDNSResponder API.
+ */
+#ifdef __clang__
+@interface GSMDNSNetService : NSNetService <NSNetServiceDelegate>
+#else
+@interface GSMDNSNetService : NSNetService
+#endif
+@end
+
+/**
+ * NSNetServiceBrowser using the mDNSResponder API.
+ */
+#ifdef __clang__
+@interface GSMDNSNetServiceBrowser : NSNetServiceBrowser <NSNetServiceBrowserDelegate>
+#else
+@interface GSMDNSNetServiceBrowser : NSNetServiceBrowser
+#endif
+@end
+
+#endif // GS_USE_AVAHI
