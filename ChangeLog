@@ -1,3 +1,9 @@
+2013-02-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSURL.m: For OSX compatibility, if we are creating a relative
+        URL and the base URL has a different scheme from the base, then we
+        ignore the base URL rather than raising an exception.
+
 2013-02-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Fix error in check for perform on finished thread.
