@@ -110,6 +110,13 @@ int main()
     "resourceSpecifier of file:///usr is /usr");
 
   url = [NSURL URLWithString: @"http://here.and.there/testing/one.html"];
+  rel = [NSURL URLWithString: @"https://here.and.there/aaa/bbb/ccc/"
+    relativeToURL: url];
+  PASS_EQUAL([rel absoluteString],
+    @"https://here.and.there/aaa/bbb/ccc/",
+    "Absolute URL relative to URL works");
+
+  url = [NSURL URLWithString: @"http://here.and.there/testing/one.html"];
   rel = [NSURL URLWithString: @"aaa/bbb/ccc/" relativeToURL: url];
   PASS_EQUAL([rel absoluteString],
     @"http://here.and.there/testing/aaa/bbb/ccc/",
@@ -308,6 +315,7 @@ GSPathHandling("right");
   url = [NSURL URLWithString: @"http://here.and.there/testing/one.html"];
   rel = [NSURL URLWithString: @"data:,$2A" relativeToURL: url];
   PASS_EQUAL([rel absoluteString], @"data:,$2A", "relative data URL works");
+  PASS_EQUAL([rel baseURL], nil, "Base URL of relative data URL is nil");
 
   [arp release]; arp = nil;
   return 0;
