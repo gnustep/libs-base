@@ -305,6 +305,10 @@ GSPathHandling("right");
   url = [NSURL URLWithString: @"data:,%2A"];
   PASS_EQUAL([url resourceSpecifier], @",%2A", "resourceSpecifier escape OK");
 
+  url = [NSURL URLWithString: @"http://here.and.there/testing/one.html"];
+  rel = [NSURL URLWithString: @"data:,$2A" relativeToURL: url];
+  PASS_EQUAL([rel absoluteString], @"data:,$2A", "relative data URL works");
+
   [arp release]; arp = nil;
   return 0;
 }
