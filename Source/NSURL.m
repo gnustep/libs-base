@@ -868,19 +868,19 @@ static NSUInteger	urlAlign;
 		      *ptr = tolower(*ptr);
 		    }
 		}
-	      if (base != 0 && base->scheme != 0
-		&& strcmp(base->scheme, buf->scheme) != 0)
-		{
-		  [NSException raise: NSInvalidArgumentException
-                    format: @"[%@ %@](%@, %@) "
-		    @"scheme of base and relative parts does not match",
-                    NSStringFromClass([self class]),
-                    NSStringFromSelector(_cmd),
-                    aUrlString, aBaseUrl];
-		}
 	    }
 	}
       start = end;
+
+      if (buf->scheme != 0 && base != 0
+        && 0 != strcmp(buf->scheme, base->scheme))
+        {
+          /* The relative URL is of a different scheme to the base ...
+           * so it's actually an absolute URL without a base.
+           */
+          DESTROY(_baseURL);
+          base = 0;
+        }
 
       if (buf->scheme == 0 && base != 0)
 	{
@@ -896,7 +896,8 @@ static NSUInteger	urlAlign;
 	    {
 	      buf->isFile = YES;
 	    }
-	  else if (strcmp(buf->scheme, "mailto") == 0)
+	  else if (strcmp(buf->scheme, "data") == 0
+            || strcmp(buf->scheme, "mailto") == 0)
 	    {
 	      usesFragments = NO;
 	      usesParameters = NO;
