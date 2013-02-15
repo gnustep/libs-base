@@ -1,3 +1,8 @@
+2013-02-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSPredicate.m: updates to output correct predicate format
+        for binary operators.
+
 2013-02-10  Marcus Muller <znek@mulle-kybernetik.com>
 
         * Source/GSMDNSNetServices.m: enable whether a delegate is set or not.
