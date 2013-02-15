@@ -2,6 +2,7 @@
 
         * Source/NSPredicate.m: updates to output correct predicate format
         for binary operators.
+        * Source/NSURL.m: unescape data for -relativePath
 
 2013-02-10  Marcus Muller <znek@mulle-kybernetik.com>
 

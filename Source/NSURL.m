@@ -1714,7 +1714,11 @@ static NSUInteger	urlAlign;
 
       if (myData->path != 0)
 	{
-	  path = [NSString stringWithUTF8String: myData->path];
+          char		buf[strlen(myData->path) + 1];
+
+          strcpy(buf, myData->path);
+          unescape(buf, buf);
+	  path = [NSString stringWithUTF8String: buf];
 	}
       return path;
     }
