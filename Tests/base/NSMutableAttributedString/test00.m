@@ -2,6 +2,25 @@
 #import <Foundation/NSAttributedString.h>
 #import <Foundation/NSAutoreleasePool.h>
 
+@interface NSColor : NSObject
++ (id) redColor;
++ (id) blueColor;
+@end
+
+@implementation NSColor
++ (id) redColor;
+{
+  return [[self new] autorelease];
+}
++ (id) blueColor;
+{
+  return [[self new] autorelease];
+}
+@end
+
+NSString *NSForegroundColorAttributeName = @"NSForegroundColorAttributeName";
+
+
 @interface NSMutableAttributedString (TestingAdditions)
 -(BOOL)checkAttributes:(NSDictionary *)attr location:(int)location;
 -(BOOL)checkAttributes:(NSDictionary *)attr range:(NSRange)range;
@@ -38,6 +57,28 @@ int main()
   NSString *baseString = @"0123456789";
   NSDictionary *red, *gray, *blue;
   
+  NSMutableAttributedString *s;
+  s = [[[NSMutableAttributedString alloc]
+    initWithString: @"string"] autorelease];
+  PASS_EQUAL([s string], @"string", "equality OK for string value");
+  PASS([s length] == 6, "length reported correctly");
+  PASS_EQUAL([s attributesAtIndex: 0 effectiveRange: NULL], 
+    [NSDictionary dictionary], "empty range has empty attributes dictionary");
+  [s setAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSColor redColor], NSForegroundColorAttributeName, nil]
+    range: NSMakeRange(0, 3)];
+  PASS([[s attributesAtIndex: 0 effectiveRange: NULL] count] == 1,
+    "newly set attribute dictionary contains one attribute");
+  PASS([[s attributesAtIndex: 3 effectiveRange: NULL] count] == 0,
+    "attribute dictionary at 3 contains no attributes");
+  [s setAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSColor blueColor], NSForegroundColorAttributeName, nil]
+    range: NSMakeRange(3, 3)];
+  PASS([[s attributesAtIndex: 0 effectiveRange: NULL] count] == 1,
+    "attribute count at 0 unchanged");
+  PASS([[s attributesAtIndex: 3 effectiveRange: NULL] count] == 1,
+    "new attribute count is 1");
+
   red = [NSDictionary dictionaryWithObject:@"Red" forKey:@"Color"];
   gray = [NSDictionary dictionaryWithObject:@"Gray" forKey:@"Color"];
   blue = [NSDictionary dictionaryWithObject:@"Blue" forKey:@"Color"];
