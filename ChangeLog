@@ -1,6 +1,7 @@
 2013-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSURL.m: a data url ignores any base URL.
+        * Source/GSAvahiClient.m: remove self from runloop on dealloc.
 
 2013-02-15  Richard Frith-Macdonald <rfm@gnu.org>
 
