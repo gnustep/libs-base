@@ -896,8 +896,13 @@ static NSUInteger	urlAlign;
 	    {
 	      buf->isFile = YES;
 	    }
-	  else if (strcmp(buf->scheme, "data") == 0
-            || strcmp(buf->scheme, "mailto") == 0)
+	  else if (strcmp(buf->scheme, "data") == 0)
+            {
+	      canBeGeneric = NO;
+              DESTROY(_baseURL);
+              base = 0;
+            }
+          else if (strcmp(buf->scheme, "mailto") == 0)
 	    {
 	      usesFragments = NO;
 	      usesParameters = NO;

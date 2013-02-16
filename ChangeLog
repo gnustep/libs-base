@@ -1,4 +1,8 @@
-2013-02-14  Richard Frith-Macdonald <rfm@gnu.org>
+2013-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSURL.m: a data url ignores any base URL.
+
+2013-02-15  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSPredicate.m: updates to output correct predicate format
         for binary operators.
