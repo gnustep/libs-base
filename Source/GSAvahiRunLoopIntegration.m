@@ -165,17 +165,21 @@
       return;
     }
   
+  /* FIXME ... in the following switch, as well as setting lastEvent the
+   * code was clearing the corresponding bit in the oldEvents bitmask.
+   * This was causng a crash becasue it meant that we didn't unregister
+   * the event watcher from the run loop before deallocating it and a
+   * new incoming event was sent to the deallocated instance.
+   * I therefore removed that code, but can't see what it was intended
+   * to do.
+   */
   switch (type)
     {
       case ET_RDESC:
         lastEvent = AVAHI_WATCH_IN;
-        // Remove the corresponding bit from the event mask:
-        oldEvents = (oldEvents ^ AVAHI_WATCH_IN);
         break;
       case ET_WDESC:
         lastEvent = AVAHI_WATCH_OUT;
-        // Remove the corresponding bit from the event mask:
-        oldEvents = (oldEvents ^ AVAHI_WATCH_OUT);
         break;
       default:
         return;
@@ -494,53 +498,36 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
 - (void)removeFromRunLoop: (NSRunLoop*)rl
                   forMode: (NSString*)m
 {
+  [lock lock];
   if ((rl == runLoop) && [mode isEqualToString: m])
     {
-      [lock lock];
-      //Test again:
-      if ((rl == runLoop) && [mode isEqualToString: m])
+      FOR_IN(GSAvahiWatcher*, child, children)
         {
-          FOR_IN(GSAvahiWatcher*, child, children)
-            {
-              [child unschedule];
-            }
-          END_FOR_IN(children)
-          runLoop = nil;
-          [mode release];
-          mode = nil;
+          [child unschedule];
         }
-      [lock unlock];
+      END_FOR_IN(children)
+      runLoop = nil;
+      [mode release];
+      mode = nil;
     }
-  else
-    {
-      //FIXME: Raise exception?
-    }
+  [lock unlock];
 }
 - (void)scheduleInRunLoop: (NSRunLoop*)rl
                   forMode: (NSString*)m
 {
+  [lock lock];
   if ((runLoop == nil) && (mode == nil)
     && ((rl != nil) && (m != nil)))
     {
-      [lock lock];
-      //Test again:
-      if ((runLoop == nil) && (mode == nil)
-        && ((rl != nil) && (m != nil)))
+      runLoop = rl;
+      ASSIGNCOPY(mode,m);
+      FOR_IN(GSAvahiWatcher*, child, children)
         {
-          runLoop = rl;
-          ASSIGNCOPY(mode,m);
-          FOR_IN(GSAvahiWatcher*, child, children)
-            {
-              [child reschedule];
-            }
-          END_FOR_IN(children)
+          [child reschedule];
         }
-      [lock unlock];
+      END_FOR_IN(children)
     }
-  else
-    {
-      //FIXME: Raise exception.
-    }
+  [lock unlock];
 }
 
 - (void)release
