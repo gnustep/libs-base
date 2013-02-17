@@ -1,3 +1,9 @@
+2013-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSAvahiRunLoopIntegration.m: Remove code which was clearing
+        bitmask values needed to track whether watcher needed to be removed
+        from run loop.
+
 2013-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSURL.m: a data url ignores any base URL.
