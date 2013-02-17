@@ -26,7 +26,7 @@
 /* Provide an implementation of NXConstantString for an old libobjc when
    built stand-alone without an NXConstantString implementation.  */
 #if !defined(NeXT_RUNTIME) && !defined(__GNUSTEP_RUNTIME__)
-GS_OBJC_ROOT_CLASS @implementation NXConstantString
+@implementation NXConstantString
 - (const char*) cString
 {
   return 0;
