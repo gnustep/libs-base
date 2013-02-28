@@ -11,6 +11,17 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.24.3}
+
+@itemize @bullet
+@item Implementation of the NSXML DOM classes
+@item Implementation of consistent TLS/SSL support
+@item Implementation of new/selectable sorting algorithms
+@item More explicit dependencies on external libraries.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.24.0}
 
 @itemize @bullet
@@ -22,7 +33,6 @@ improvements
 @item IPV6 support for NSHost and networking operations
 @item Support for UTF-8 string literals in source (compiler permitting)
 @end itemize
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.23.0}
 

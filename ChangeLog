@@ -1,5 +1,29 @@
 2013-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Version:
+	* Source/NSRegularExpression.m:
+	* Source/NSURLResponse.m:
+	* Source/NSString.m:
+	* Source/DocMakefile:
+	* Source/GSNetServices.h:
+	* Documentation/news.texi:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	* Headers/Foundation/NSNetServices.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSXMLDocument.h:
+	* Headers/Foundation/NSXMLNode.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Headers/Foundation/NSXMLDTD.h:
+	* Headers/Foundation/NSXMLDTDNode.h:
+	* Headers/Foundation/NSXMLElement.h:
+	* Headers/Foundation/NSXMLParser.h:
+	* Tools/DocMakefile:
+	* Tools/AGSParser.m:
+        Bump version for new release, add release notes, clean up documentation.
+
+2013-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Tests/base/NSString/test00.m: Add a few tests for searching subrange
         of a string.
         * Source/GSString.m: ([rangeOfCharacterFromSet:options:range:])

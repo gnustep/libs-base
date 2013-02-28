@@ -41,7 +41,7 @@ extern "C" {
 {
 #if     GS_NONFRAGILE
 #  if	defined(GS_NSXMLElement_IVARS)
-@public GS_NSXMLElement_IVARS
+@public GS_NSXMLElement_IVARS;
 #  endif
 #endif
   /* The pointer to private additional data used to avoid breaking ABI
@@ -191,7 +191,7 @@ extern "C" {
 /**
  * Replaces the child at the specified index.
  */
-- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node;
+- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)theNode;
 
 /**
  * Merges adjacent text nodes. If a node's value is the empty string,

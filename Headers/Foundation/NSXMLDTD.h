@@ -43,7 +43,7 @@ extern "C" {
 {
 #if     GS_NONFRAGILE
 #  if	defined(GS_NSXMLDTD_IVARS)
-@public GS_NSXMLDTD_IVARS
+@public GS_NSXMLDTD_IVARS;
 #  endif
 #endif
   /* The pointer to private additional data used to avoid breaking ABI
@@ -118,7 +118,7 @@ extern "C" {
 /**
  * Replaces the child at index with another child.
  */
-- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node;
+- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)theNode;
 
 /**
  * Replaces all existing children with the child nodes in the array.

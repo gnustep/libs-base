@@ -111,7 +111,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 
 @protocol  NSNetServiceDelegate
-#ifdef __clang__
+#ifdef __clang__ /* FIXME ... this is not clang specific */
 @optional
 #else
 @end
@@ -224,7 +224,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  */
 
 @protocol NSNetServiceBrowserDelegate
-#ifdef __clang__
+#ifdef __clang__ /* FIXME ... this is not clang specific */
 @optional
 #else
 @end

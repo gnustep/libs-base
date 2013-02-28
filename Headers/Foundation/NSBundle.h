@@ -326,24 +326,17 @@ GS_EXPORT NSString* const NSLoadedClasses;
 #endif
 
 /**
-   <p>Returns the value for the key found in the strings file tableName, or
-   Localizable.strings if tableName is nil.</p>
-
-   <p>If the user default <code>NSShowNonLocalizedStrings</code> is set, the
-   value of the key will be returned as an uppercase string rather than any
-   localized equivalent found.  This can be useful during development to check
-   where a given string in the UI is "coming from".</p>
+ * <p>Returns the value for the key found in the strings file tableName, or
+ * Localizable.strings if tableName is nil.
+ * </p>
+ * <p>If the user default <code>NSShowNonLocalizedStrings</code> is set, the
+ * value of the key will be returned as an uppercase string rather than any
+ * localized equivalent found.  This can be useful during development to check
+ * where a given string in the UI is "coming from".</p>
  */
-#ifdef __clang__
-- (NSString*) localizedStringForKey: (NSString*)key
-			      value: (NSString*)value
-			      table: (NSString*)tableName
-				  __attribute__((format_arg(1)));
-#else
 - (NSString*) localizedStringForKey: (NSString*)key
 			      value: (NSString*)value
 			      table: (NSString*)tableName;
-#endif
 
 /** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;

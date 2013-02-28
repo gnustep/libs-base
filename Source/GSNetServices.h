@@ -134,7 +134,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 /**
  * NSNetService using the mDNSResponder API.
  */
-#ifdef __clang__
+#ifdef __clang__        /* FIXME ... this is not clang specific! */
 @interface GSMDNSNetService : NSNetService <NSNetServiceDelegate>
 #else
 @interface GSMDNSNetService : NSNetService
@@ -144,7 +144,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 /**
  * NSNetServiceBrowser using the mDNSResponder API.
  */
-#ifdef __clang__
+#ifdef __clang__        /* FIXME ... this is not clang specific! */
 @interface GSMDNSNetServiceBrowser : NSNetServiceBrowser <NSNetServiceBrowserDelegate>
 #else
 @interface GSMDNSNetServiceBrowser : NSNetServiceBrowser

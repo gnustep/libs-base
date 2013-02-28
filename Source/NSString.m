@@ -2151,10 +2151,10 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
 
 - (NSRange) rangeOfString: (NSString *)aString
                   options: (NSStringCompareOptions)mask
-                    range: (NSRange)aRange
+                    range: (NSRange)searchRange
                    locale: (NSLocale *)locale
 {
-  GS_RANGE_CHECK(aRange, [self length]);
+  GS_RANGE_CHECK(searchRange, [self length]);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
 
@@ -2176,7 +2176,7 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
 	    ? NSMatchingAnchored : 0;
 	  r = [regex rangeOfFirstMatchInString: self
 				       options: options
-					 range: aRange];
+					 range: searchRange];
 	}
       [regex release];
       return r;
@@ -2190,7 +2190,7 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
 	{
 	  NSRange result = NSMakeRange(NSNotFound, 0);
 	  UErrorCode status = U_ZERO_ERROR; 
-	  NSUInteger countSelf = aRange.length;
+	  NSUInteger countSelf = searchRange.length;
 	  NSUInteger countOther = [aString length];       
 	  unichar *charsSelf;
 	  unichar *charsOther;
@@ -2203,7 +2203,7 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
 
 	  // Copy to buffer
       
-	  [self getCharacters: charsSelf range: aRange];
+	  [self getCharacters: charsSelf range: searchRange];
 	  [aString getCharacters: charsOther range: NSMakeRange(0, countOther)];
 	  
 	  search = usearch_openFromCollator(charsOther, countOther,
@@ -2229,18 +2229,26 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
 		    {
 		      if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
 			{
-			  if (matchLocation + matchLength == NSMaxRange(aRange))
-			    result = NSMakeRange(aRange.location + matchLocation, matchLength);
+			  if (matchLocation + matchLength
+                            == NSMaxRange(searchRange))
+                            {
+                              result = NSMakeRange(searchRange.location
+                                + matchLocation, matchLength);
+                            }
 			}
 		      else
 			{
 			  if (matchLocation == 0)
-			    result = NSMakeRange(aRange.location + matchLocation, matchLength);
+                            {
+                              result = NSMakeRange(searchRange.location
+                                + matchLocation, matchLength);
+                            }
 			}
 		    }
 		  else 
 		    {
-		      result = NSMakeRange(aRange.location + matchLocation, matchLength);
+		      result = NSMakeRange(searchRange.location
+                        + matchLocation, matchLength);
 		    }
 		}
 	    }
@@ -2253,7 +2261,7 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
     }
 #endif
 
-  return strRangeNsNs(self, aString, mask, aRange);
+  return strRangeNsNs(self, aString, mask, searchRange);
 }
 
 - (NSUInteger) indexOfString: (NSString *)substring
@@ -2814,12 +2822,12 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
 - (void) getParagraphStart: (NSUInteger *)startIndex 
                        end: (NSUInteger *)parEndIndex
                contentsEnd: (NSUInteger *)contentsEndIndex
-                  forRange: (NSRange)aRange
+                  forRange: (NSRange)range
 {
   [self _getStart: startIndex
 	      end: parEndIndex
       contentsEnd: contentsEndIndex
-         forRange: aRange
+         forRange: range
 	  lineSep: NO];
 }
 
@@ -5056,23 +5064,26 @@ static NSFileManager *fm = nil;
  * ICU collator for that locale. If locale is an instance of a class 
  * other than NSLocale, perform a comparison using +[NSLocale currentLocale].
  * If locale is nil, or ICU is not available, use a POSIX-style
- * collation (for example, latin capital letters A-Z are ordered before all of the 
- * lowercase letter, a-z.) 
- *
- * <p>mask may be <code>NSLiteralSearch</code>, which requests a literal byte-by-byte
+ * collation (for example, latin capital letters A-Z are ordered before
+ * all of the lowercase letter, a-z.) 
+ * </p>
+ * <p>mask may be <code>NSLiteralSearch</code>, which requests a literal
+ * byte-by-byte
  * comparison, which is fastest but may return inaccurate results in cases
  * where two different composed character sequences may be used to express
  * the same character; <code>NSCaseInsensitiveSearch</code>, which ignores case
- * differences; <code>NSDiacriticInsensitiveSearch</code> which ignores accent differences;
- * <code>NSNumericSearch</code>, which sorts groups of digits as numbers, so "abc2" 
- * sorts before "abc100".</p>
- * 
- * <p>compareRange refers to this instance, and should be set to 0..length to compare
- * the whole string.</p>
- *
+ * differences; <code>NSDiacriticInsensitiveSearch</code>
+ * which ignores accent differences;
+ * <code>NSNumericSearch</code>, which sorts groups of digits as numbers,
+ * so "abc2" sorts before "abc100".
+ * </p>
+ * <p>compareRange refers to this instance, and should be set to 0..length
+ * to compare the whole string.
+ * </p>
  * <p>Returns <code>NSOrderedAscending</code>, <code>NSOrderedDescending</code>,
  * or <code>NSOrderedSame</code>, depending on whether this instance occurs
- * before or after string in lexical order, or is equal to it.</p>
+ * before or after string in lexical order, or is equal to it.
+ * </p>
  */
 - (NSComparisonResult) compare: (NSString *)string
 		       options: (NSUInteger)mask

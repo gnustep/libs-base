@@ -1782,7 +1782,7 @@ recheck:
 		      [self log: @"strange format function attributes"];
 		    }
 		}
-	      else if (ident != nil)
+	      else if ([ident length] > 0)
 		{
 		  [self log: @"ignoring '%@' in function declaration", ident];
 		}
