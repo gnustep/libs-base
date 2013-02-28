@@ -1,3 +1,10 @@
+2013-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Tests/base/NSString/test00.m: Add a few tests for searching subrange
+        of a string.
+        * Source/GSString.m: ([rangeOfCharacterFromSet:options:range:])
+        Fix for overrun when searching backwards ... spotted by Fred.
+ 
 2013-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSAvahiRunLoopIntegration.m: Remove code which was clearing
