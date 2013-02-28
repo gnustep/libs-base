@@ -5638,7 +5638,7 @@ literalIsEqual(NXConstantString *self, id anObject)
 	      buf[pos] = nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
 	    }
 	  index = stop;
-	  while (index-- > 0)
+	  while (index-- > start)
 	    {
 	      if ((*mImp)(aSet, @selector(characterIsMember:), buf[--pos]))
 		{

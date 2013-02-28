@@ -342,14 +342,29 @@ int main()
 		  NSMakeRange(0,9), NSMakeRange(8,1));
 
   strRangeFromSet("boaboaboa", 
+		  [NSCharacterSet alphanumericCharacterSet],
+		  NSCaseInsensitiveSearch | NSBackwardsSearch,
+		  NSMakeRange(2,6), NSMakeRange(7,1));
+
+  strRangeFromSet("boaboaboa", 
 		  [NSCharacterSet whitespaceCharacterSet],
 		  NSCaseInsensitiveSearch | NSBackwardsSearch,
 		  NSMakeRange(0,9), NSMakeRange(NSNotFound,0));
+  
+  strRangeFromSet("boaboaboa", 
+		  [NSCharacterSet whitespaceCharacterSet],
+		  NSCaseInsensitiveSearch | NSBackwardsSearch,
+		  NSMakeRange(2,6), NSMakeRange(NSNotFound,0));
   
   strRangeFromSet("bo boaboa", 
 		  [NSCharacterSet whitespaceCharacterSet],
 		  NSCaseInsensitiveSearch | NSBackwardsSearch,
 		  NSMakeRange(0,9), NSMakeRange(2,1));
+  
+  strRangeFromSet("bo boaboa", 
+		  [NSCharacterSet whitespaceCharacterSet],
+		  NSCaseInsensitiveSearch | NSBackwardsSearch,
+		  NSMakeRange(2,6), NSMakeRange(2,1));
   
   testLineRange("This is a line of text\n", NSMakeRange(10, 10), NSMakeRange(0, 23));
   testLineRange("This is a line of text\r\n", NSMakeRange(10, 10), NSMakeRange(0, 24));
