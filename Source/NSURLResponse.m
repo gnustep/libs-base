@@ -250,7 +250,7 @@ typedef struct {
 - (id) initWithURL: (NSURL*)URL
 	statusCode: (NSInteger)statusCode
        HTTPVersion: (NSString*)HTTPVersion
-      headerFields: (NSDictionary*)headerFields;
+      headerFields: (NSDictionary*)headerFields
 {
   self = [self initWithURL: URL
 		  MIMEType: nil

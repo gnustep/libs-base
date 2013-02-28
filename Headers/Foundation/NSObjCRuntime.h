@@ -171,11 +171,6 @@ enum {NSNotFound = NSIntegerMax};
 
 DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 
-#ifdef __clang__
-#define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
-#endif //__clang__
-
-
 #if	defined(__cplusplus)
 }
 #endif

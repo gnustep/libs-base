@@ -30,6 +30,34 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.24.3</heading>
+        <p>A new stable release.<br />
+	Many changes in this version are behavior updates/improvements
+	but there are also new APIs, none of which should effect binary
+	compatibility with earlier 1.24.x releases.<br />
+	An important change at the configure stage is that configure policy
+        now requires you to explicitly disable features in order to build if
+        external packages that those features depend on are missing.  This
+        should ensure that builds of base contain consistent feature sets
+        unless you really want to change that.
+	</p>
+	<p>The main changes are:<br />
+	Implementation of the NSXML DOM classes (previously stubs).  This is
+        by far the biggest chunk of new code in this release.
+        The DOM support has a dependency on the libxml2 library.<br />
+	Implementation of cookies in the NSURLConnection related classes.<br />
+	Implementation of common HTTPS support in the NSURLConnection
+        related classes and the older NSURLHandle.  The HTTPS support has
+        a dependency on the gnutls library.<br />
+        Implementation of new sorting code for faster sorting and to allow
+        sorting algorithms to be changed.<br />
+	Many changes to add support for ObjectiveC-2.0 additions.<br />
+	Implementation of Encoding/Decoding of NSAffineTransform.<br />
+	Many, many minor bugfixes and tweaks.
+	</p>
+      </section>
+
+      <section>
 	<heading>Version 1.24.0</heading>
         <p>A new stable release.<br />
 	Most changes in this version are behavior updates/improvements

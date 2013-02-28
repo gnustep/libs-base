@@ -526,7 +526,7 @@ prepareResult(NSRegularExpression *regex,
 }
 
 #else
-#  ifdef __clang__
+#  ifdef __clang__ /* FIXME ... this is blocks specific, not clang specific */
 #    warning Your compiler does not support blocks.  NSRegularExpression will deviate from the documented behaviour when subclassing and any code that subclasses NSRegularExpression may break in unexpected ways.  If you must subclass NSRegularExpression, you may want to use a compiler with blocks support.
 #    warning Your compiler would support blocks if you added -fblocks to your OBJCFLAGS
 #  endif
