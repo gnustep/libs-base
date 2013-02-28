@@ -101,7 +101,7 @@ int main()
     "relativePath");
   PASS_EQUAL([url description],
     @"file://localhost/this%23is%20a%20Path%20with%20%25%20%3C%20%3E%20%3F",
-    @"description");
+    "description");
   END_SET("test5")
 
   START_SET("test5b")
