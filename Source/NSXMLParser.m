@@ -993,7 +993,7 @@ static SEL	foundIgnorableSel;
   const unsigned char	*tp;
   NSString	*decl;
   NSString	*name;
-  char		c;
+  int		c;
 
   if (NO == this->hasStarted)
     {

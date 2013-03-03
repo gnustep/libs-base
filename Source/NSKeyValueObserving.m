@@ -329,7 +329,7 @@ static NSString *newKey(SEL _cmd)
   len -= 4;			// allow for 'set' and trailing ':'
   for (i = 0; i < len; i++)
     {
-      if (name[i] < 0)
+      if (name[i] & 0x80)
 	{
 	  break;
 	}
