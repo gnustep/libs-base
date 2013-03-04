@@ -45,8 +45,8 @@
 @end
 
 @implementation GSAvahiWatcher
-- (void)listenForEvents: (AvahiWatchEvent)events
-              saveState: (BOOL)saveState
+- (void) listenForEvents: (AvahiWatchEvent)events
+               saveState: (BOOL)saveState
 {
   /* FIXME: NSRunLoop doesn't expose equivalents for POLLERR and POLLHUP but
    * Avahi doesn't seem to strictly require them (their Qt API doesn't handle
@@ -95,31 +95,32 @@
     }
 }
 
-- (void)listenForEvents: (AvahiWatchEvent)events
+- (void) listenForEvents: (AvahiWatchEvent)events
 {
   [self listenForEvents: events
               saveState: YES];
 }
 
-- (void)unschedule
+- (void) unschedule
 {
-  // Don't save the new event state (i.e. no events) if we are unscheduling
-  // the watcher. We might want to reschedule it with the prior state.
+  /* Don't save the new event state (i.e. no events) if we are unscheduling
+   * the watcher. We might want to reschedule it with the prior state.
+   */
   [self listenForEvents: (AvahiWatchEvent)0
               saveState: NO];
 }
 
-- (void)reschedule
+- (void) reschedule
 {
   [self listenForEvents: oldEvents
               saveState: NO];
 }
 
-- (id)initWithCallback: (AvahiWatchCallback)cback
-            andContext: (GSAvahiRunLoopContext*)aCtx
-               onEvent: (AvahiWatchEvent)someEvents
-                 forFd: (int)fd
-              userData: (void*)ud
+- (id) initWithCallback: (AvahiWatchCallback)cback
+             andContext: (GSAvahiRunLoopContext*)aCtx
+                onEvent: (AvahiWatchEvent)someEvents
+                  forFd: (int)fd
+               userData: (void*)ud
 {
   if (nil == (self = [super init]))
     {
@@ -134,7 +135,7 @@
   return self;
 }
 
-- (AvahiWatchEvent)getEvents
+- (AvahiWatchEvent) getEvents
 {
   if (callbackInProgress)
     {
@@ -143,7 +144,7 @@
   return lastEvent;
 }
 
-- (void)removeFromContext
+- (void) removeFromContext
 {
   [self unschedule];
   [ctx removeWatcher: self];
@@ -152,10 +153,10 @@
   ctx = nil;
 }
 
-- (void)receivedEvent: (void*)data
-                 type: (RunLoopEventType)type
-                extra: (void*)extra
-              forMode: (NSString*)mode
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+                 extra: (void*)extra
+               forMode: (NSString*)mode
 {
   int fd = (int)(intptr_t)data;
 
@@ -194,12 +195,12 @@
   callbackInProgress = NO;
 }
 
-- (void)setContext: (GSAvahiRunLoopContext*)aCtxt
+- (void) setContext: (GSAvahiRunLoopContext*)aCtxt
 {
   ctx = aCtxt;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   // Remove all leftover event-handlers from the runLoop:
   [self listenForEvents: (AvahiWatchEvent)0];
@@ -219,12 +220,12 @@
 @end
 
 @implementation GSAvahiTimer
-- (void)didTimeout: (NSTimer*)timer
+- (void) didTimeout: (NSTimer*)timer
 {
   callback((AvahiTimeout*)self, userData);
 }
 
-- (void)setTimerToInterval: (NSTimeInterval)interval
+- (void) setTimerToInterval: (NSTimeInterval)interval
 {
   // Invalidate the old timer;
   if (timer != nil)
@@ -244,7 +245,7 @@
                   forMode: [ctx mode]];
 }
 
-- (void)setTimerToTimeval: (const struct timeval*)tv
+- (void) setTimerToTimeval: (const struct timeval*)tv
 {
   // Invalidate the old timer
   if (timer != nil)
@@ -261,10 +262,10 @@
       [self setTimerToInterval: interval];
     }
 }
-- (id)initWithCallback: (AvahiTimeoutCallback)aCallback
-            andContext: (GSAvahiRunLoopContext*)aCtx
-            forTimeval: (const struct timeval*)tv
-              userData: (void*)ud
+- (id) initWithCallback: (AvahiTimeoutCallback)aCallback
+             andContext: (GSAvahiRunLoopContext*)aCtx
+             forTimeval: (const struct timeval*)tv
+               userData: (void*)ud
 {
   if (nil == (self = [super init]))
     {
@@ -278,7 +279,7 @@
   return self;
 }
 
-- (void)unschedule
+- (void) unschedule
 {
   if ([timer isValid])
     {
@@ -288,19 +289,19 @@
     }
 }
 
-- (void)removeFromContext
+- (void) removeFromContext
 {
   [self unschedule];
   [ctx removeTimeout: self];
   ctx = nil;
 }
 
-- (void)setContext: (GSAvahiRunLoopContext*)aCtxt
+- (void) setContext: (GSAvahiRunLoopContext*)aCtxt
 {
   ctx = aCtxt;
 }
 
-- (void)reschedule
+- (void) reschedule
 {
   // Only reschedule if fireDate has been set, otherwise the Avahi layer will
   // schedule a new timer.
@@ -313,7 +314,7 @@
     }
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   if (nil != timer)
     {
@@ -388,8 +389,8 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
 }
 
 @implementation GSAvahiRunLoopContext
-- (id)initWithRunLoop: (NSRunLoop*)rl
-              forMode: (NSString*)aMode
+- (id) initWithRunLoop: (NSRunLoop*)rl
+               forMode: (NSString*)aMode
 {
   if (nil == (self = [super init]))
     {
@@ -414,7 +415,7 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   return self;
 }
 
-- (NSRunLoop*)runLoop
+- (NSRunLoop*) runLoop
 {
   // NOTE: We don't protect this with the lock because it will only ever be
   // changed by -removeFromRunLoop:forMode: or -scheduleInRunLoop:forMode:,
@@ -422,7 +423,7 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   return runLoop;
 }
 
-- (NSString*)mode
+- (NSString*) mode
 {
   /* NOTE: We don't protect this with the lock because it will only ever be
    * changed by -removeFromRunLoop:forMode: or -scheduleInRunLoop:forMode:,
@@ -431,14 +432,14 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   return mode;
 }
 
-- (const AvahiPoll*)avahiPoll
+- (const AvahiPoll*) avahiPoll
 {
   return (const AvahiPoll*)poll;
 }
 
-- (GSAvahiTimer*)avahiTimerWithCallback: (AvahiTimeoutCallback)callback
-                            withTimeval: (const struct timeval*)tv
-                               userData: (void*)ud
+- (GSAvahiTimer*) avahiTimerWithCallback: (AvahiTimeoutCallback)callback
+                             withTimeval: (const struct timeval*)tv
+                                userData: (void*)ud
 {
   GSAvahiTimer *timer = nil;
   [lock lock];
@@ -454,12 +455,13 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   return timer;
 }
 
-- (GSAvahiWatcher*)avahiWatcherWithCallback: (AvahiWatchCallback)callback
-                                    onEvent: (AvahiWatchEvent)someEvents
-                          forFileDescriptor: (NSInteger)fd
-                                   userData: (void*)ud
+- (GSAvahiWatcher*) avahiWatcherWithCallback: (AvahiWatchCallback)callback
+                                     onEvent: (AvahiWatchEvent)someEvents
+                           forFileDescriptor: (NSInteger)fd
+                                    userData: (void*)ud
 {
   GSAvahiWatcher *w = nil;
+
   [lock lock];
   w = [[[GSAvahiWatcher alloc] initWithCallback: callback
                                      andContext: self
@@ -475,7 +477,7 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   return w;
 }
 
-- (void)removeChild: (id)c
+- (void) removeChild: (id)c
 {
   if (nil != c)
     {
@@ -485,18 +487,18 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
     }
 }
 
-- (void)removeWatcher: (GSAvahiWatcher*)w
+- (void) removeWatcher: (GSAvahiWatcher*)w
 {
   [self removeChild: w];
 }
 
-- (void)removeTimeout: (GSAvahiTimer*)at
+- (void) removeTimeout: (GSAvahiTimer*)at
 {
   [self removeChild: at];
 }
 
-- (void)removeFromRunLoop: (NSRunLoop*)rl
-                  forMode: (NSString*)m
+- (void) removeFromRunLoop: (NSRunLoop*)rl
+                   forMode: (NSString*)m
 {
   [lock lock];
   if ((rl == runLoop) && [mode isEqualToString: m])
@@ -512,8 +514,9 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
     }
   [lock unlock];
 }
-- (void)scheduleInRunLoop: (NSRunLoop*)rl
-                  forMode: (NSString*)m
+
+- (void) scheduleInRunLoop: (NSRunLoop*)rl
+                   forMode: (NSString*)m
 {
   [lock lock];
   if ((runLoop == nil) && (mode == nil)
@@ -530,11 +533,7 @@ GSAvahiTimeoutFree(AvahiTimeout* timeout)
   [lock unlock];
 }
 
-- (void)release
-{
-  [super release];
-}
-- (void)dealloc
+- (void) dealloc
 {
   /* Some avahi internals might still reference the poll structure and could
    * try to create additional watchers and timers on the runloop, so we should
