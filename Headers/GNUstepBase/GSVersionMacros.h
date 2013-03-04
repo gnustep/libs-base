@@ -196,26 +196,29 @@
 
 /* Attribute definitions for attributes which may or may not be supported
  * depending on the compiler being used.
+ * NB we currently expect gcc to be version 4 or later.
+ *
  * The definition should be of the form GS_XXX_CONTEXT where XXX is the
  * name of the attribute and CONTEXT is one of FUNC, METH, or IVAR
  * depending on where the attribute can be applied.
  */
 
-#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#if __GNUC__*10+__GNUC_MINOR__ >= 31
 #  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
 #else
 #  define GS_DEPRECATED_FUNC
 #endif
 
-#ifdef __clang__        /* FIXME .... not clang specific */
-#  define GS_UNUSED_IVAR __attribute__((unused))
-#else
-#  define GS_UNUSED_IVAR
-#endif
-
 #define GS_UNUSED_ARG __attribute__((unused))
+
 #define GS_UNUSED_FUNC __attribute__((unused))
 
+// FIXME ... what version of gcc?
+#if __clang__
+#  define GS_UNUSED_IVAR __attribute__((unused))
+#else
+#  define GS_UNUSED_IVAR 
+#endif
 
 
 
@@ -320,6 +323,17 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #  endif
 #endif
 
+/* Attribute definition for root classes, annotates the interface declaration
+ * of the class.
+ */
+#ifndef GS_ROOT_CLASS
+#  if GS_HAVE_OBJC_ROOT_CLASS_ATTR || __has_feature(attribute_objc_root_class)
+#    define GS_ROOT_CLASS __attribute__((objc_root_class))
+#  else
+#    define GS_ROOT_CLASS
+#  endif
+#endif
+
 
 
 #if	defined(GNUSTEP_WITH_DLL)
@@ -349,18 +363,22 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #endif
 
 
-/*
- * Attribute definition for root classes, annotates the interface declaration of
- * the class.
+/* Attribute macros compatible with Apple.
  */
-#ifndef GS_ROOT_CLASS
-#  if GS_HAVE_OBJC_ROOT_CLASS_ATTR || __has_feature(attribute_objc_root_class)
-#    define GS_ROOT_CLASS __attribute__((objc_root_class))
-#  else
-#    define GS_ROOT_CLASS
-#  endif
+
+#if __GNUC__*10+__GNUC_MINOR__ >= 42
+#  define NS_FORMAT_ARGUMENT(A) __attribute__((format_arg(A)))
+#else
+#  define NS_FORMAT_ARGUMENT(F,A) 
+#endif
+
+#if __GNUC__*10+__GNUC_MINOR__ >= 42
+#  define NS_FORMAT_FUNCTION(F,A) __attribute__((format(__NSString__, F, A)))
+#else
+#  define NS_FORMAT_FUNCTION(F,A) 
 #endif
 
 #define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
+
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */
