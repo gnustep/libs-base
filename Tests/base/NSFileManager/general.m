@@ -48,10 +48,11 @@ int main()
   PASS([NSUserName() isEqual: [attr fileOwnerAccountName]],
     "newly created file is owned by current user");
 NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
+  err = (id)(void*)42;
   attr = [mgr attributesOfItemAtPath: dir error: &err]; 
-  PASS(attr != nil && err == nil, 
+  PASS(attr != nil && err == (id)(void*)42, 
     "[NSFileManager attributesOfItemAtPath:error:] returns non-nil for "
-    "attributes and nil for error in the case of existing file"); 
+    "attributes and leaves error unchanged in the case of existing file"); 
   attr = [mgr attributesOfItemAtPath:
     [dir stringByAppendingPathComponent:
       @"thispathMUSTNOTexistatyoursystem"] error: &err]; 
@@ -158,16 +159,19 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
   PASS([mgr changeCurrentDirectoryPath: @"subdir"], 
        "NSFileManager can move into subdir");
 
+  err = nil;
   PASS([mgr createDirectoryAtPath: dirInDir
       withIntermediateDirectories: NO  
                        attributes: nil
-                            error: &err] == NO
-    && err != nil && [[err domain] isEqual: NSCocoaErrorDomain]
-    && (errInfo = [err userInfo]) != nil
-    && [errInfo objectForKey: NSLocalizedDescriptionKey] != nil
-    && [errInfo objectForKey: @"Path"] != nil,
+                            error: &err] == NO,
        "NSFileManager refuses to create intermediate directories"); 
+  PASS(err != nil, "error value is set"); 
+  PASS_EQUAL([err domain], NSCocoaErrorDomain, "cocoa error domain");
+  PASS((errInfo = [err userInfo]) != nil, "error user info is set"); 
+  PASS([errInfo objectForKey: NSFilePathErrorKey] != nil,
+    "error info has a path");
 
+  err = nil;
   PASS([mgr createDirectoryAtPath: dirInDir
       withIntermediateDirectories: YES
                        attributes: nil
@@ -185,16 +189,17 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
       PASS(![mgr fileExistsAtPath: dir],"directory no longer exists");
     }  
   
+  err = nil;
   PASS([mgr createDirectoryAtURL: [NSURL fileURLWithPath:dirInDir]
       withIntermediateDirectories: NO  
                        attributes: nil
                             error: &err] == NO
     && err != nil && [[err domain] isEqual: NSCocoaErrorDomain]
     && (errInfo = [err userInfo]) != nil
-    && [errInfo objectForKey: NSLocalizedDescriptionKey] != nil
-    && [errInfo objectForKey: @"Path"] != nil,
+    && [errInfo objectForKey: NSFilePathErrorKey] != nil,
        "NSFileManager refuses to create intermediate directories on URL"); 
 
+  err = nil;
   PASS([mgr createDirectoryAtURL: [NSURL fileURLWithPath:dirInDir]
       withIntermediateDirectories: YES
                        attributes: nil
@@ -213,7 +218,7 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
 /* clean up */ 
   [mgr changeCurrentDirectoryPath: [[[mgr currentDirectoryPath] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent]];
   exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
-  if (exists || isDir)
+  if (exists && isDir)
     {
       PASS([mgr removeFileAtPath: dir handler: nil],
            "NSFileManager removes a directory");
