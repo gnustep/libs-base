@@ -690,7 +690,8 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      ok = NO;
 	    }
-	  else if ([t isEqual: NSFileTypeDirectory])
+	  else if ([t isEqual: NSFileTypeDirectory]
+            || [t isEqual: NSFileTypeRegular])
 	    {
 	      ok = [self contentsEqualAtPath: p1 andPath: p2];
 	    }

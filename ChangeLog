@@ -1,3 +1,8 @@
+2012-03-05  Larry Campbell <lcampbel@akamai.com>
+
+        * Source/NSFileManager.m: Fix for ([-contentsEqualAtPath:andPath:])
+        compare contents of regular files in subdirectories.
+
 2012-03-05 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 
         * Source/NSFileManager.m:
