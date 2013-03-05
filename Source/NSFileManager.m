@@ -58,6 +58,7 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSSet.h"
+#import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
 #import "GSPrivate.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
@@ -716,10 +717,6 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  *error = [self _errorFrom: path to: nil];
 	}
-      else
-	{
-	  *error = nil;
-	}
     }
 
   return result; 
@@ -780,13 +777,28 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  *error = [self _errorFrom: path to: nil];
 	}
-      else
-	{
-	  *error = nil;
-	}
     }
 
   return result;
+}
+
+/**
+ * Creates a new directory and all intermediate directories in the file URL
+ * if flag is YES.
+ * Creates only the last directory in the URL if flag is NO.<br />
+ * The directory is created with the attributes
+ * specified in attributes and any error is returned in error.<br />
+ * returns YES on success, NO on failure.
+ */
+- (BOOL) createDirectoryAtURL: (NSURL *)url
+  withIntermediateDirectories: (BOOL)flag
+		   attributes: (NSDictionary *)attributes
+			error: (NSError **) error
+{
+  return [self createDirectoryAtPath: [url path]
+	 withIntermediateDirectories: flag 
+			  attributes: attributes
+			       error: error];
 }
 
 /**
@@ -1128,10 +1140,6 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  *error = [self _errorFrom: src to: dst];
 	}
-      else
-	{
-	  *error = nil;
-	}
     }
 
   return result;
@@ -1238,10 +1246,6 @@ static NSStringEncoding	defaultEncoding;
       if (NO == result)
 	{
 	  *error = [self _errorFrom: src to: dst];
-	}
-      else
-	{
-	  *error = nil;
 	}
     }
 
@@ -1484,10 +1488,6 @@ static NSStringEncoding	defaultEncoding;
       if (NO == result)
 	{
 	  *error = [self _errorFrom: path to: nil];
-	}
-      else
-	{
-	  *error = nil;
 	}
     }
 
@@ -1905,10 +1905,6 @@ static NSStringEncoding	defaultEncoding;
       if (nil == d)
 	{
 	  *error = [self _errorFrom: path to: nil];
-	}
-      else
-	{
-	  *error = nil;
 	}
     }
   
@@ -2983,7 +2979,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     @selector (fileManager:shouldProceedAfterError:)])
     {
       NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                path, @"Path",
+                                                path, NSFilePathErrorKey,
                                               error, @"Error", nil];
       return [handler fileManager: self
 	  shouldProceedAfterError: errorInfo];
@@ -3001,7 +2997,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     @selector (fileManager:shouldProceedAfterError:)])
     {
       NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                path, @"Path",
+                                                path, NSFilePathErrorKey,
                                               fromPath, @"FromPath",
                                               toPath, @"ToPath",
                                               error, @"Error", nil];
@@ -3044,7 +3040,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   else if (fromPath)
     {
       errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-        fromPath, @"Path",
+        fromPath, NSFilePathErrorKey,
         message, NSLocalizedDescriptionKey,
         nil];      
     }

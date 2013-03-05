@@ -1,4 +1,14 @@
+2012-03-05 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+        * Source/NSFileManager.m:
+        * Headers/Foundation/NSFileManager.h:
+        ([createDirectoryAtURL:withIntermediateDirectories:attributes:error:])
+        implemented.
+        Also, for OSX compatibility, RFM 'fixed' the ...error: methods to
+        leave the error value unmodified in the case where no error occurs.
+
 2012-03-03 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
 	* Source/NSKeyValueObserving.m
 	* Source/NSXMLParser.m
 	  char is unsigned on macppc, so don't compare it 
