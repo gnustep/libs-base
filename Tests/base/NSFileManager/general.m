@@ -159,6 +159,25 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
   PASS([mgr changeCurrentDirectoryPath: @"subdir"], 
        "NSFileManager can move into subdir");
 
+  [mgr createDirectoryAtPath: @"sub1" attributes: nil];
+  [mgr createFileAtPath: @"sub1/x" 
+               contents: [@"hello" dataUsingEncoding: NSASCIIStringEncoding]
+             attributes: nil],
+  [mgr createDirectoryAtPath: @"sub2" attributes: nil];
+  [mgr createFileAtPath: @"sub2/x" 
+               contents: [@"hello" dataUsingEncoding: NSASCIIStringEncoding]
+             attributes: nil];
+  PASS(YES == [mgr contentsEqualAtPath: @"sub1/x" andPath: @"sub2/x"],
+    "directories containing identical files are equal");
+  [mgr removeFileAtPath: @"sub2/x" handler: nil],
+  [mgr createFileAtPath: @"sub2/x" 
+               contents: [@"goodbye" dataUsingEncoding: NSASCIIStringEncoding]
+             attributes: nil];
+  PASS(NO == [mgr contentsEqualAtPath: @"sub1/x" andPath: @"sub2/x"],
+    "directories containing files with different content are not equal");
+  [mgr removeFileAtPath: @"sub1" handler: nil];
+  [mgr removeFileAtPath: @"sub2" handler: nil];
+
   err = nil;
   PASS([mgr createDirectoryAtPath: dirInDir
       withIntermediateDirectories: NO  
@@ -187,7 +206,7 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
       PASS([mgr removeFileAtPath: dir handler: nil],
            "NSFileManager removes a directory");
       PASS(![mgr fileExistsAtPath: dir],"directory no longer exists");
-    }  
+    }
   
   err = nil;
   PASS([mgr createDirectoryAtURL: [NSURL fileURLWithPath:dirInDir]
