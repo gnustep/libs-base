@@ -189,6 +189,7 @@ extern "C" {
 @class NSEnumerator;
 @class NSDirectoryEnumerator;
 @class NSError;
+@class NSURL;
 
 /* MacOS-X defines OSType as a 32bit unsigned integer.
  */
@@ -255,6 +256,10 @@ typedef	uint32_t	OSType;
    withIntermediateDirectories: (BOOL)flag
 		    attributes: (NSDictionary *)attributes
                          error: (NSError **) error;
+- (BOOL) createDirectoryAtURL: (NSURL *)url
+  withIntermediateDirectories: (BOOL)flag
+		   attributes: (NSDictionary *)attributes
+                        error: (NSError **) error;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes;
 - (BOOL) createFileAtPath: (NSString*)path
