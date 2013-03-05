@@ -5,6 +5,7 @@
 #import <Foundation/NSProcessInfo.h>
 #import <Foundation/NSPathUtilities.h>
 #import <Foundation/NSError.h>
+#import <Foundation/NSURL.h>
 
 int main()
 {
@@ -174,6 +175,33 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
    "NSFileManager can create intermediate directories"); 
   PASS([mgr fileExistsAtPath: dirInDir isDirectory: &isDir] && isDir == YES,
     "NSFileManager create directory and intermediate directory");
+
+  [mgr changeCurrentDirectoryPath: [[[mgr currentDirectoryPath] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent]];
+  exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
+  if (exists || isDir)
+    {
+      PASS([mgr removeFileAtPath: dir handler: nil],
+           "NSFileManager removes a directory");
+      PASS(![mgr fileExistsAtPath: dir],"directory no longer exists");
+    }  
+  
+  PASS([mgr createDirectoryAtURL: [NSURL fileURLWithPath:dirInDir]
+      withIntermediateDirectories: NO  
+                       attributes: nil
+                            error: &err] == NO
+    && err != nil && [[err domain] isEqual: NSCocoaErrorDomain]
+    && (errInfo = [err userInfo]) != nil
+    && [errInfo objectForKey: NSLocalizedDescriptionKey] != nil
+    && [errInfo objectForKey: @"Path"] != nil,
+       "NSFileManager refuses to create intermediate directories on URL"); 
+
+  PASS([mgr createDirectoryAtURL: [NSURL fileURLWithPath:dirInDir]
+      withIntermediateDirectories: YES
+                       attributes: nil
+                            error: &err] && err == nil,
+   "NSFileManager can create intermediate directories on URL"); 
+  PASS([mgr fileExistsAtPath: dirInDir isDirectory: &isDir] && isDir == YES,
+    "NSFileManager create directory and intermediate directory on URL");
   
   PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
                  NSInvalidArgumentException,
