@@ -1276,7 +1276,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
       me->_flags.wide = 1;
       me->_flags.owned = flag;
     }
-  return me;
+  return (id)me;
 }
 
 - (id) initWithCharacters: (const unichar*)chars

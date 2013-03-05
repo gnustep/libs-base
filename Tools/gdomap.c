@@ -1678,8 +1678,6 @@ load_iface(const char* from)
 static void
 init_my_port()
 {
-  struct servent	*sp;
-
   /*
    *	First we determine the port for the 'gdomap' service - ideally
    *	this should be the default port, since we should have registered
@@ -1688,6 +1686,8 @@ init_my_port()
 #if	defined(GDOMAP_PORT_OVERRIDE)
   my_port = htons(GDOMAP_PORT_OVERRIDE);
 #else
+  struct servent	*sp;
+
   my_port = htons(GDOMAP_PORT);
   if ((sp = getservbyname("gdomap", "tcp")) == 0)
     {
@@ -3926,7 +3926,6 @@ static int
 nameServer(const char* name, const char* host, int op, int ptype, struct sockaddr_in* addr, int pnum, int max)
 {
   struct sockaddr_in	sin;
-  struct servent*	sp;
   struct hostent*	hp;
   unsigned short	p = htons(GDOMAP_PORT);
   unsigned short	port = 0;
@@ -3953,6 +3952,8 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 #if	GDOMAP_PORT_OVERRIDE
   p = htons(GDOMAP_PORT_OVERRIDE);
 #else
+{
+  struct servent*	sp;
   /*
    *	Ensure we have port number to connect to name server.
    *	The TCP service name 'gdomap' overrides the default port.
@@ -3961,6 +3962,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
     {
       p = sp->s_port;		/* Network byte order.	*/
     }
+}
 #endif
 
   /*
@@ -4148,7 +4150,6 @@ static void
 donames(const char *host)
 {
   struct sockaddr_in	sin;
-  struct servent*	sp;
   struct hostent*	hp;
   unsigned short	p = htons(GDOMAP_PORT);
   unsigned short	num = 0;
@@ -4160,6 +4161,8 @@ donames(const char *host)
 #if	GDOMAP_PORT_OVERRIDE
   p = htons(GDOMAP_PORT_OVERRIDE);
 #else
+{
+  struct servent*	sp;
   /*
    *	Ensure we have port number to connect to name server.
    *	The TCP service name 'gdomap' overrides the default port.
@@ -4168,6 +4171,7 @@ donames(const char *host)
     {
       p = sp->s_port;		/* Network byte order.	*/
     }
+}
 #endif
 
   if (host == 0 || *host == '\0')
