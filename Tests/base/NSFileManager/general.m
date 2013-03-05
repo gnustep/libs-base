@@ -20,8 +20,7 @@ int main()
   BOOL exists;
   BOOL isDir;
 
-  dirInDir
-    = [@"TestDirectory" stringByAppendingPathComponent: @"WithinDirectory"];
+  dirInDir = [dir stringByAppendingPathComponent: @"WithinDirectory"];
 
   PASS(mgr != nil && [mgr isKindOfClass: [NSFileManager class]],
        "NSFileManager understands +defaultManager");
@@ -201,7 +200,7 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
 
   [mgr changeCurrentDirectoryPath: [[[mgr currentDirectoryPath] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent]];
   exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
-  if (exists || isDir)
+  if (exists && isDir)
     {
       PASS([mgr removeFileAtPath: dir handler: nil],
            "NSFileManager removes a directory");
