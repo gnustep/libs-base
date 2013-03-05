@@ -38,6 +38,8 @@
 
 static BOOL     initialized = NO;
 
+#pragma clang diagnostic ignored "-Wreceiver-forward-class"
+
 #if     GS_USE_TIMSORT
 @class  GSTimSortDescriptor;
 #endif
