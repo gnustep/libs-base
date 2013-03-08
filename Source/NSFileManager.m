@@ -1126,6 +1126,27 @@ static NSStringEncoding	defaultEncoding;
   return YES;
 }
 
+/**
+ * Copies the a file or directory specified by the <i>src</i> URL to the 
+ * location specified by the <i>dst</i> URL. If the <i>src</i> is a directory,
+ * it is copied recursively with all of its contents.<br />
+ * Errors are returned in the <i>error</i> variable.
+ * Returns YES on success, NO otherwise.
+ */
+- (BOOL) copyItemAtURL: (NSURL*)src
+		 toURL: (NSURL*)dst
+		 error: (NSError**)error
+{
+  return [self copyItemAtPath: [src path] toPath: [dst path] error: error];
+}
+
+/**
+ * Copies the item specified by the <i>src</i> path to the 
+ * location specified by the <i>dst</i> path. If the <i>src</i> is a directory,
+ * it is copied recursively with all of its contents.<br />
+ * Errors are returned in the <i>error</i> variable.
+ * Returns YES on success, NO otherwise.
+ */
 - (BOOL) copyItemAtPath: (NSString*)src
 		 toPath: (NSString*)dst
 		  error: (NSError**)error
@@ -1233,6 +1254,25 @@ static NSStringEncoding	defaultEncoding;
   return NO;
 }
 
+/**
+ * Moves a file or directory specified by <i>src</i> to 
+ * its destination specified by <i>dst</i>, errors are
+ * returned in <i>error</i>.<br />
+ * Returns YES on success, NO otherwise.
+ */
+- (BOOL) moveItemAtURL: (NSURL*)src
+		 toURL: (NSURL*)dst
+		 error: (NSError**)error
+{
+  return [self moveItemAtPath: [src path] toPath: [dst path] error: error];
+}
+
+/**
+ * Moves a file or directory specified by <i>src</i> to 
+ * its destination specified by <i>dst</i>, errors are
+ * returned in <i>error</i>.<br />
+ * Returns YES on success, NO otherwise.
+ */
 - (BOOL) moveItemAtPath: (NSString*)src
 		 toPath: (NSString*)dst
 		  error: (NSError**)error
@@ -1476,6 +1516,26 @@ static NSStringEncoding	defaultEncoding;
     }
 }
 
+
+
+/**
+ * Removes the file or directory specified by the <i>url</i>
+ * to be removed. If the <i>url</i> points to a directory,
+ * the directory is deleted recursively.<br />
+ * Returns YES on success, otherwise NO.
+ */
+- (BOOL) removeItemAtURL: (NSURL*)url
+		   error: (NSError**)error
+{
+  return [self removeItemAtPath: [url path] error: error];
+}
+
+/**
+ * Removes the file or directory specified by the <i>path</i>
+ * to be removed. If the <i>path</i> points to a directory,
+ * the directory is deleted recursively.<br />
+ * Returns YES on success, otherwise NO.
+ */
 - (BOOL) removeItemAtPath: (NSString*)path
 		    error: (NSError**)error
 {

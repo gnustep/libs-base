@@ -7,6 +7,9 @@
 #import <Foundation/NSError.h>
 #import <Foundation/NSURL.h>
 
+#include <unistd.h>
+
+
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
@@ -225,14 +228,46 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
    "NSFileManager can create intermediate directories on URL"); 
   PASS([mgr fileExistsAtPath: dirInDir isDirectory: &isDir] && isDir == YES,
     "NSFileManager create directory and intermediate directory on URL");
+
+  [mgr createDirectoryAtPath: @"sub1"
+	withIntermediateDirectories: YES
+			 attributes: nil
+	    		      error: &err];
+  [mgr createDirectoryAtPath: @"sub2"
+	withIntermediateDirectories: YES
+			 attributes: nil
+	    		      error: &err];
+  [mgr copyItemAtURL: [NSURL fileURLWithPath: @"sub1"] 
+               toURL: [NSURL fileURLWithPath: @"sub2/sub1"] 
+               error: &err];
+  PASS([mgr fileExistsAtPath: @"sub2/sub1" isDirectory: &isDir]
+    && isDir == YES, "NSFileManager copy item at URL");
+  [mgr copyItemAtPath: @"sub2" toPath: @"sub1/sub2" error: &err];
+  PASS([mgr fileExistsAtPath: @"sub1/sub2/sub1" isDirectory: &isDir]
+    && isDir == YES, "NSFileManager copy item at Path");
+  [mgr moveItemAtURL: [NSURL fileURLWithPath: @"sub2/sub1"]
+	       toURL: [NSURL fileURLWithPath: @"sub1/moved"]
+	       error: &err];
+  PASS([mgr fileExistsAtPath: @"sub1/moved" isDirectory: &isDir]
+    && isDir == YES, "NSFileManager move item at URL");
+  [mgr moveItemAtPath:@"sub1/sub2" toPath:@"sub2/moved" error: &err];
+  PASS([mgr fileExistsAtPath: @"sub2/moved" isDirectory: &isDir]
+    && isDir == YES, "NSFileManager move item at Path");
+  [mgr removeItemAtURL: [NSURL fileURLWithPath: @"sub1"]
+	         error: &err];
+  PASS([mgr fileExistsAtPath: @"sub1" isDirectory: &isDir] == NO,
+    "NSFileManager remove item at URL");
+  [mgr removeItemAtPath: @"sub2" error: &err];
+  PASS([mgr fileExistsAtPath: @"sub2" isDirectory: &isDir] == NO,
+    "NSFileManager remove item at Path");
   
   PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
-                 NSInvalidArgumentException,
-		 "NSFileManager -removeFileAtPath: @\".\" throws exception");
+    NSInvalidArgumentException,
+    "NSFileManager -removeFileAtPath: @\".\" throws exception");
        
   PASS_EXCEPTION([mgr removeFileAtPath: @".." handler: nil];, 
-                 NSInvalidArgumentException,
-		 "NSFileManager -removeFileAtPath: @\"..\" throws exception");
+    NSInvalidArgumentException,
+    "NSFileManager -removeFileAtPath: @\"..\" throws exception");
 /* clean up */ 
   [mgr changeCurrentDirectoryPath: [[[mgr currentDirectoryPath] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent]];
   exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
