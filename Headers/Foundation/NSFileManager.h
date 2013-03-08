@@ -228,6 +228,14 @@ typedef	uint32_t	OSType;
 		  error: (NSError**)error;
 - (BOOL) removeItemAtPath: (NSString*)path
                     error: (NSError**)error;
+- (BOOL) copyItemAtURL: (NSURL*)src
+		 toURL: (NSURL*)dst
+		 error: (NSError**)error;
+- (BOOL) moveItemAtURL: (NSURL*)src
+		 toURL: (NSURL*)dst
+		 error: (NSError**)error;
+- (BOOL) removeItemAtURL: (NSURL*)path
+                   error: (NSError**)error;
 #endif
 
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path;
