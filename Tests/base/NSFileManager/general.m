@@ -7,9 +7,6 @@
 #import <Foundation/NSError.h>
 #import <Foundation/NSURL.h>
 
-#include <unistd.h>
-
-
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
