@@ -1,3 +1,9 @@
+2012-03-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSFileManager.m:
+        Fix some autorelease pool management issues.
+
+=======
 2013-03-09 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 	* Tests/base/NSFileManager/general.m
 	  remove accidently snucked in header
