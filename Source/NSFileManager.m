@@ -679,7 +679,7 @@ static NSStringEncoding	defaultEncoding;
 	  NSString	*n = [a1 objectAtIndex: index];
 	  NSString	*p1;
 	  NSString	*p2;
-	  NSAutoreleasePool *pool = [NSAutoreleasePool new];
+	  CREATE_AUTORELEASE_POOL(pool);
 
 	  p1 = [path1 stringByAppendingPathComponent: n];
 	  p2 = [path2 stringByAppendingPathComponent: n];
@@ -695,7 +695,7 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      ok = [self contentsEqualAtPath: p1 andPath: p2];
 	    }
-	  [pool drain];
+	  RELEASE(pool);
 	}
       return ok;
     }
@@ -1489,12 +1489,12 @@ static NSStringEncoding	defaultEncoding;
 	  NSString		*item;
 	  NSString		*next;
 	  BOOL			result;
-	  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+	  CREATE_AUTORELEASE_POOL(pool);
 
 	  item = [contents objectAtIndex: i];
 	  next = [path stringByAppendingPathComponent: item];
 	  result = [self removeFileAtPath: next handler: handler];
-	  [arp drain];
+	  RELEASE(pool);
 	  if (result == NO)
 	    {
 	      return NO;
@@ -2836,7 +2836,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   NSDirectoryEnumerator	*enumerator;
   NSString		*dirEntry;
-  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  CREATE_AUTORELEASE_POOL(pool);
 
   enumerator = [self enumeratorAtPath: source];
   while ((dirEntry = [enumerator nextObject]))
@@ -2868,6 +2868,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 					   fromPath: sourceFile
 					     toPath: destinationFile])
                 {
+                  RELEASE(pool);
                   return NO;
                 }
 	      /*
@@ -2885,7 +2886,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	      if (![self _copyPath: sourceFile
                          toPath: destinationFile
                          handler: handler])
-		return NO;
+                {
+                  RELEASE(pool);
+                  return NO;
+                }
 	    }
 	}
       else if ([fileType isEqual: NSFileTypeRegular])
@@ -2893,7 +2897,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	  if (![self _copyFile: sourceFile
 			toFile: destinationFile
 		       handler: handler])
-	    return NO;
+            {
+              RELEASE(pool);
+              return NO;
+            }
 	}
       else if ([fileType isEqual: NSFileTypeSymbolicLink])
 	{
@@ -2909,6 +2916,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		fromPath: sourceFile
 		toPath: destinationFile])
                 {
+                  RELEASE(pool);
                   return NO;
                 }
 	    }
@@ -2925,7 +2933,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
     }
-  [pool drain];
+  RELEASE(pool);
 
   return YES;
 }
@@ -2937,7 +2945,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #ifdef HAVE_LINK
   NSDirectoryEnumerator	*enumerator;
   NSString		*dirEntry;
-  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  CREATE_AUTORELEASE_POOL(pool);
 
   enumerator = [self enumeratorAtPath: source];
   while ((dirEntry = [enumerator nextObject]))
@@ -2966,6 +2974,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 					  fromPath: sourceFile
 					    toPath: destinationFile] == NO)
                 {
+                  RELEASE(pool);
                   return NO;
                 }
 	    }
@@ -2976,6 +2985,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 			   toPath: destinationFile
 			  handler: handler] == NO)
 		{
+                  RELEASE(pool);
 		  return NO;
 		}
 	    }
@@ -2994,6 +3004,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		fromPath: sourceFile
 		toPath: destinationFile] == NO)
                 {
+                  RELEASE(pool);
                   return NO;
                 }
 	    }
@@ -3009,13 +3020,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		fromPath: sourceFile
 		toPath: destinationFile] == NO)
                 {
+                  RELEASE(pool);
                   return NO;
                 }
 	    }
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
     }
-  [pool drain];
+  RELEASE(pool);
   return YES;
 #else
   ASSIGN(_lastError, @"Links not supported on this platform");
