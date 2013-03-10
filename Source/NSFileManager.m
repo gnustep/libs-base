@@ -2340,42 +2340,43 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		justContents: (BOOL)justContents
 			 for: (NSFileManager*)mgr
 {
-//TODO: the justContents flag is currently basically useless and should be
-//      removed
-  _DIR		*dir_pointer;
-  const _CHAR	*localPath;
+  if (nil != (self = [super init]))
+    {
+    //TODO: the justContents flag is currently basically useless and should be
+    //      removed
+      _DIR		*dir_pointer;
+      const _CHAR	*localPath;
 
-  self = [super init];
-
-  _mgr = RETAIN(mgr);
+      _mgr = RETAIN(mgr);
 #if	GS_WITH_GC
-  _stack = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
+      _stack = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
 #else
-  _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
+      _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
 #endif
-  GSIArrayInitWithZoneAndCapacity(_stack, [self zone], 64);
+      GSIArrayInitWithZoneAndCapacity(_stack, [self zone], 64);
 
-  _flags.isRecursive = recurse;
-  _flags.isFollowing = follow;
-  _flags.justContents = justContents;
+      _flags.isRecursive = recurse;
+      _flags.isFollowing = follow;
+      _flags.justContents = justContents;
 
-  _topPath = [[NSString alloc] initWithString: path];
+      _topPath = [[NSString alloc] initWithString: path];
 
-  localPath = [_mgr fileSystemRepresentationWithPath: path];
-  dir_pointer = _OPENDIR(localPath);
-  if (dir_pointer)
-    {
-      GSIArrayItem item;
+      localPath = [_mgr fileSystemRepresentationWithPath: path];
+      dir_pointer = _OPENDIR(localPath);
+      if (dir_pointer)
+        {
+          GSIArrayItem item;
 
-      item.ext.path = @"";
-      item.ext.pointer = dir_pointer;
+          item.ext.path = @"";
+          item.ext.pointer = dir_pointer;
 
-      GSIArrayAddItem(_stack, item);
-    }
-  else
-    {
-      NSLog(@"Failed to recurse into directory '%@' - %@", path,
-	[NSError _last]);
+          GSIArrayAddItem(_stack, item);
+        }
+      else
+        {
+          NSLog(@"Failed to recurse into directory '%@' - %@", path,
+            [NSError _last]);
+        }
     }
   return self;
 }
