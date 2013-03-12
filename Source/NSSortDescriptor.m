@@ -38,7 +38,9 @@
 
 static BOOL     initialized = NO;
 
+#ifdef  __clang__
 #pragma clang diagnostic ignored "-Wreceiver-forward-class"
+#endif
 
 #if     GS_USE_TIMSORT
 @class  GSTimSortDescriptor;
@@ -117,7 +119,7 @@ static BOOL     initialized = NO;
 {
   const char	*sel = sel_getName(_selector);
 
-  return _ascending + GSPrivateHash(sel, strlen(sel), 16, YES) + [_key hash];
+  return _ascending + GSPrivateHash(0, sel, strlen(sel)) + [_key hash];
 }
 
 - (id) initWithKey: (NSString *) key ascending: (BOOL) ascending
