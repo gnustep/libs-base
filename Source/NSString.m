@@ -2430,29 +2430,17 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
  */
 - (NSUInteger) hash
 {
-  unsigned	ret = 0;
-  unsigned	len = [self length];
+  uint32_t	ret = 0;
+  int   	len = (int)[self length];
 
   if (len > 0)
     {
       unichar		buf[64];
       unichar		*ptr = (len <= 64) ? buf :
 	NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
-      unichar		*p;
-      unsigned		char_count = 0;
 
       [self getCharacters: ptr range: NSMakeRange(0,len)];
-
-      p = ptr;
-
-      while (char_count++ < len)
-	{
-	  unichar	c = *p++;
-
-	  // FIXME ... should normalize composed character sequences.
-	  ret = (ret << 5) + ret + c;
-	}
-
+      ret = GSPrivateHash(0, (const void*)ptr, len * sizeof(unichar));
       if (ptr != buf)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), ptr);

@@ -1,9 +1,21 @@
+2012-03-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSPrivate.h: Change hash function args and add new functions
+        * for incremental hash.
+        * Source/NSString.m: Update to use the private hash function introduced
+        for NSSortdescriptor.
+        * Source/GSString.m: ditto.
+        * Source/NSSortDescriptor.m: Update for new function arguments.
+        * Source/GSPrivateHash.m: Add alternative version of hash functions
+        (old code plus new public domain murmurhash3 code).
+        * Source/GNUmakefile: Build alternative hash functions.
+        build with OLDHASH defined to 0 to get new alternatives.
+
 2012-03-10  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSFileManager.m:
         Fix some autorelease pool management issues.
 
-=======
 2013-03-09 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 	* Tests/base/NSFileManager/general.m
 	  remove accidently snucked in header
