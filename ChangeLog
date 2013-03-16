@@ -2,6 +2,9 @@
 
         * base/Source/NSCalendar.m:
         Add simple quarter calculation.
+        * base/Source/NSPathUtilities.m:
+        Fix bug handling defaults dir config (was treating absolute path
+        as relative).
 
 2012-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 

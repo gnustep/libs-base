@@ -856,9 +856,10 @@ MyApp.app/MyApp
 	  </p>
 	  <p>
 	    The defaults database for a user is stored in the
-	    subdirectory of the users home directory given by
-	    GNUSTEP_USER_DEFAULTS_DIR (by default, the
-	    <code>GNUstep/Defaults</code> subdirectory).
+            location given by GNUSTEP_USER_DEFAULTS_DIR in the
+            config file.  This is usually a relative path (default, the
+	    <code>GNUstep/Defaults</code> subdirectory) taken to specify
+	    a subdirectory of the user's home directory.<br />
 	    On mswindows this may be set to be ':REGISTRY:' to have defaults
 	    stored in the windows registry rather than in the standard file
 	    format.<br />
