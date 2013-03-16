@@ -2124,7 +2124,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 }
 
 /**
- * Returns TRUE if the time zones have the same name.
+ * Returns YES if the time zones have the same name.
  */
 - (BOOL) isEqualToTimeZone: (NSTimeZone*)aTimeZone
 {
