@@ -12749,11 +12749,12 @@ else
 fi
 
 ismingw=no
-isqnx=no
+checkinlibc=no
 case "$target_os" in
   mingw*)	ismingw=yes;;
-  nto*)		isqnx=yes;;
-  qnx*)		isqnx=yes;;
+  nto*)		checkinlibc=yes;;
+  qnx*)		checkinlibc=yes;;
+  *android*)   checkinlibc=yes;;
 esac
 if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
@@ -12834,7 +12835,8 @@ fi
       LIBS="$LIBS -lpthreadGC2"
     fi
   fi
-  if test $isqnx = yes ; then
+  # Android and QNX have pthread in libc instead of libpthread
+  if test $checkinlibc = yes ; then
     { $as_echo "$as_me:$LINENO: checking for pthread_join in -lc" >&5
 $as_echo_n "checking for pthread_join in -lc... " >&6; }
 if test "${ac_cv_lib_c_pthread_join+set}" = set; then
@@ -15751,6 +15753,67 @@ fi
 done
 
 LIBS="$saved_LIBS"
+
+{ $as_echo "$as_me:$LINENO: checking for pw_gecos field in struct passwd" >&5
+$as_echo_n "checking for pw_gecos field in struct passwd... " >&6; }
+if test "${ac_cv_have_pw_gecos_in_struct_passwd+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+
+	cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+ #include <pwd.h>
+int
+main ()
+{
+ struct passwd p; p.pw_gecos = 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+   ac_cv_have_pw_gecos_in_struct_passwd="yes"
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	 ac_cv_have_pw_gecos_in_struct_passwd="no"
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_pw_gecos_in_struct_passwd" >&5
+$as_echo "$ac_cv_have_pw_gecos_in_struct_passwd" >&6; }
+if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_PW_GECOS_IN_PASSWD 1
+_ACEOF
+
+fi
 
 #--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m

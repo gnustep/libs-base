@@ -1,3 +1,11 @@
+2012-03-16  Emmanuel Maillard <mailing-lists@e-maillard.com>
+
+        * configure.ac: checks for pthread library and password structure
+        * Headers/GNUstepBase/config.h.in: new define for password field
+        * Source/NSPathUtilities.m: use new define
+        * configure: regenerate
+        Changes for Android build
+
 2012-03-12  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSPrivate.h: Change hash function args and add new functions
