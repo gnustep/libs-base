@@ -1669,11 +1669,12 @@ else
 fi
 AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
 ismingw=no
-isqnx=no
+checkinlibc=no
 case "$target_os" in
   mingw*)	ismingw=yes;;
-  nto*)		isqnx=yes;;
-  qnx*)		isqnx=yes;;
+  nto*)		checkinlibc=yes;;
+  qnx*)		checkinlibc=yes;;
+  *android*)   checkinlibc=yes;;
 esac
 if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
@@ -1684,7 +1685,8 @@ else
       LIBS="$LIBS -lpthreadGC2"
     fi
   fi
-  if test $isqnx = yes ; then
+  # Android and QNX have pthread in libc instead of libpthread
+  if test $checkinlibc = yes ; then
     AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
     if test $pthread_ok = yes ; then
        LIBS="$LIBS -lc"
@@ -2078,6 +2080,19 @@ saved_LIBS="$LIBS"
 AC_CHECK_LIB(m, main)
 AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt)
 LIBS="$saved_LIBS"
+
+AC_CACHE_CHECK([for pw_gecos field in struct passwd],
+		ac_cv_have_pw_gecos_in_struct_passwd, [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <pwd.h> ]],
+	[[ struct passwd p; p.pw_gecos = 0; ]])],
+	[ ac_cv_have_pw_gecos_in_struct_passwd="yes" ],
+	[ ac_cv_have_pw_gecos_in_struct_passwd="no" 
+	])
+])
+if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
+	AC_DEFINE([HAVE_PW_GECOS_IN_PASSWD], [1],
+		[Define if you have pw_gecos field in struct passwd])
+fi
 
 #--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m
