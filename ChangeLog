@@ -1,3 +1,11 @@
+2013-03-16  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tests/base/NSLocale/general.m,
+	* Tests/base/NSTimeZone/use.m: Mark more tests that depend on
+	locale setting as hopes.
+	* Tests/base/GSXML/basic.m: Set the timezone of the GSXMLRPC to
+	get the same date string in the output.
+
 2012-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar:

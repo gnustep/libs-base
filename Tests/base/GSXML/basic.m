@@ -136,6 +136,7 @@ int main()
   PASS([str isEqual: @"method"] && [iparams isEqual: oparams],
     "Can parse a method call with binary data");
 
+  [rpc setTimeZone: [NSTimeZone systemTimeZone]];
   [iparams addObject: [NSDate date]];
   dat = [rpc buildMethod: @"method" params: iparams];
   PASS(dat != nil, "Can build a method call with a date");

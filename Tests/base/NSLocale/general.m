@@ -67,6 +67,7 @@ int main(void)
     "NSLocaleCurrencyCode key returns 'ESP'");
   PASS_EQUAL([locale objectForKey: NSLocaleCollatorIdentifier],
     @"es_ES@currency=ESP", "NSLocaleCollatorIdentifier for Spain");
+  testHopeful = YES;
   u = 8216;
   PASS_EQUAL([locale objectForKey: NSLocaleQuotationBeginDelimiterKey],
     [NSString stringWithCharacters: &u length: 1],
@@ -83,6 +84,7 @@ int main(void)
   PASS_EQUAL([locale objectForKey: NSLocaleAlternateQuotationEndDelimiterKey],
     [NSString stringWithCharacters: &u length: 1],
     "NSLocaleAlternateQuotationEndDelimiterKey key returns 'xx8'");
+  testHopeful = NO;
   RELEASE(locale);
   
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"en_US"];
