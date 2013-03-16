@@ -68,7 +68,8 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
     // FIXME: Is this right???
     return UCAL_DAY_OF_WEEK_IN_MONTH;
   // ICU doesn't include a quarter DateField...
-  
+  if (unit & NSQuarterCalendarUnit)
+    return (UCAL_MONTH + 2) / 3;
   return -1;
 }
 #endif /* GS_USE_ICU */
