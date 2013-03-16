@@ -1,3 +1,8 @@
+2012-03-16  reussandras@gmail.com
+
+        * base/Source/NSCalendar.m:
+        Add simple quarter calculation.
+
 2012-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: Update timezone information
