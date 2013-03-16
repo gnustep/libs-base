@@ -1,3 +1,16 @@
+2012-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar:
+	* Tools/gsdoc-1_0_0.dtd:
+	* Tools/gsdoc-1_0_1.dtd:
+	* Tools/gsdoc-1_0_2.dtd:
+	* Tools/gsdoc-1_0_3.dtd:
+	* Tools/gsdoc-0_6_5.dtd:
+	* Tools/gsdoc-0_6_6.dtd:
+	* Tools/gsdoc-0_6_7.dtd:
+	* Tools/plist-0_9.dtd:
+        Update/correct FSF address.
+
 2012-03-16  reussandras@gmail.com
 
         * base/Source/NSCalendar.m:
