@@ -1,3 +1,7 @@
+2012-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: Update timezone information
+
 2012-03-16  Emmanuel Maillard <mailing-lists@e-maillard.com>
 
         * configure.ac: checks for pthread library and password structure
