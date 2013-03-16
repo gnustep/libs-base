@@ -56,6 +56,7 @@ int main()
 
   current = [NSTimeZone timeZoneWithName: @"America/Sao_Paulo"];
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"en_GB"];
+  testHopeful = YES;
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleStandard locale: locale],
     @"Brasilia Time",
@@ -63,7 +64,6 @@ int main()
 
   /* The next few depend on ICU issues
    */
-  testHopeful = YES;
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleShortStandard locale: locale],
     @"GMT-03:00",
