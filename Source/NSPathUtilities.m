@@ -1851,7 +1851,6 @@ NSFullUserName(void)
 NSString *
 GSDefaultsRootForUser(NSString *userName)
 {
-  NSString *home;
   NSString *defaultsDir;
 
   InitialisePathUtilities();
@@ -1859,7 +1858,6 @@ GSDefaultsRootForUser(NSString *userName)
     {
       userName = NSUserName();
     }
-  home = NSHomeDirectoryForUser(userName);
   if ([userName isEqual: NSUserName()])
     {
       defaultsDir = gnustepUserDefaultsDir;
@@ -1882,9 +1880,14 @@ GSDefaultsRootForUser(NSString *userName)
       return defaultsDir;	// Just use windows registry.
     }
 #endif
-  home = [home stringByAppendingPathComponent: defaultsDir];
+  if (NO == [defaultsDir isAbsolutePath])
+    {
+      NSString  *home = NSHomeDirectoryForUser(userName);
 
-  return home;
+      defaultsDir = [home stringByAppendingPathComponent: defaultsDir];
+    }
+
+  return defaultsDir;
 }
 
 NSArray *
