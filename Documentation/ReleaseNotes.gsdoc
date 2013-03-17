@@ -61,7 +61,7 @@ notice and this notice are preserved.
 	<heading>Version 1.24.0</heading>
         <p>A new stable release.<br />
 	Most changes in this version are behavior updates/improvements
-	rather than new API, but you shuld be aware that there is a
+	rather than new API, but you should be aware that there is a
 	binary incompatibility on 64bit systems in that the value of
 	the NSNotFound constant there is now 64bits rather than 32bits.
 	</p>
@@ -72,7 +72,7 @@ notice and this notice are preserved.
 	<p>The main changes are:<br />
 	Support for the GNU LANGUAGES environment variable and other locale
 	improvements.<br />
-	Cacheing of file and directory path information within bundles.<br />
+	Caching of file and directory path information within bundles.<br />
 	IPV6 support for NSHost and networking operations.<br />
 	Support for UTF-8 string literals in source (compiler permitting).<br />
 	Improved support for building standalone application bundles.<br />
@@ -88,7 +88,7 @@ notice and this notice are preserved.
 
       <section>
 	<heading>Version 1.23.0</heading>
-        <p>A new stable release with many minor bugfices and tweaks.<br />
+        <p>A new stable release with many minor bugfixes and tweaks.<br />
 	The main changes however are David Chisnall's work adding support
 	of the clang compiler and Objective-C 2.0 language/runtime (the
 	compiler/runtime combination now provides full support for the
@@ -98,7 +98,7 @@ notice and this notice are preserved.
 	Going beyond that, for people who don't like garbage collection,
 	there is now support for automated reference counting, where the
 	clang compiler adds reference count calls to manage object lifetimes,
-	reliveing the application developer from the need to manage reference
+	relieving the application developer from the need to manage reference
 	counts.
 	</p>
 	<p>An important point to note is that this is the last release to
@@ -118,7 +118,7 @@ notice and this notice are preserved.
 	to many new classes and methods, there is now a regression test
 	framework included in the base release.  
 	</p>
-	<p>In addtion, base now
+	<p>In addition, base now
 	supports and uses the Objective-C 2.0 runtime API from Apple and
 	we encourage anyone programming with GNUstep to move to using this
 	new runtime and the new functionality it supports. Note however, 
@@ -175,10 +175,10 @@ notice and this notice are preserved.
 	branch is at least as up to date as the latest stable release.<br />
 	The changes in this release
 	are a timezone handling update to the latest zone information,
-	various minor bug fixes and portibility updates, some small
-	cleanups and optimisations, a few tweaks to help packagers,
+	various minor bug fixes and portability updates, some small
+	cleanups and optimizations, a few tweaks to help packagers,
 	and finally an alteration to the additions library on OSX to
-	add a category to re-enable serialisation of property lists
+	add a category to re-enable serialization of property lists
 	in the more readable and compact OpenStep format (something the
 	most recent versions of OSX lost).
 	</p>
@@ -234,7 +234,7 @@ notice and this notice are preserved.
 
       <section>
 	<heading>Version 1.21.0</heading>
-        <p>This is an unstable release synchronised wityh the 1.20.0
+        <p>This is an unstable release synchronized with the 1.20.0
 	  stable release. There have been major changes
 	  and reorganizations to support, among other things, the new
 	  non-fragile ABI from clang. These changes, although they
@@ -267,7 +267,7 @@ notice and this notice are preserved.
 	  <term>NSOperation</term>
           <desc>
 	    Complete NSOperation and NSOperationQueue 
-	    (compatibile with 10.6 apart from blocks).
+	    (compatible with 10.6 apart from blocks).
           </desc>
 	  <term>Fast Enumeration</term>
           <desc>
@@ -288,7 +288,7 @@ notice and this notice are preserved.
 	introduction of a change in the behavior of NSURL's -path
 	method to match OSX.  We add a new -fullPath method which
 	returns the actual path of the URL the way the old -path
-	implementaiton did.  This is necessary because the OSX behavior
+	implementation did.  This is necessary because the OSX behavior
 	is to strip any trailing '/' from a path so that it's no longer
 	possible to reliably build a URL string from its component parts.
 	</p>
@@ -314,7 +314,7 @@ notice and this notice are preserved.
           <desc>
 	    Uses a much more compact internal representation to decrease the
 	    memory footprint of applications which make extensive use of
-	    charactersets.
+	    character sets.
           </desc>
 	  <term>NSFileHandle</term>
           <desc>
@@ -348,7 +348,7 @@ notice and this notice are preserved.
       </section>
       <section>
 	<heading>Version 1.19.1</heading>
-	<p>A great deal of improvements have occured recently.  This includes
+	<p>A great deal of improvements have occurred recently.  This includes
 	many improvements in garbage collection (first to get it working again).
 	Also many Mac OS X 10.5 methods and classes have been added, as well
 	as compatibility improvements.
@@ -378,7 +378,7 @@ notice and this notice are preserved.
 	    Methods have been converted to use return types and
 	    arguments of NSInteger, NSUInteger and CGFloat.  For now,
 	    these types are equivalent to the old types. This can be
-	    changed in NSObjCRuntime.h so that integer tpyes are the
+	    changed in NSObjCRuntime.h so that integer types are the
 	    same size as a pointer, and the float type is actually a
 	    double on 64bit processors.
           </desc>
@@ -414,8 +414,8 @@ notice and this notice are preserved.
 	  the socket based connections on Unix.
           </desc>
 	  <term>NSException</term>
-          <desc>Implement full support for native objecive-c exceptions,
-	  though this requires a fix for the objc runtme which is not yet
+          <desc>Implement full support for native objective-c exceptions,
+	  though this requires a fix for the objc runtime which is not yet
 	  available in gcc.  The patch for the runtime can be found at
 	  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27466
           </desc>
@@ -428,7 +428,7 @@ notice and this notice are preserved.
 	  <term>Portability and compatibility work</term>
           <desc>There are various minor changes to improve portability
 	  (both improved configuration/detection of system software and
-	  runtime iimprovements) to different operating systems such as
+	  runtime improvements) to different operating systems such as
 	  64bit ms-windows.  There are also various improvements to
 	  MacOS-X compatibility.
 	  </desc>
@@ -599,7 +599,7 @@ notice and this notice are preserved.
 	  </desc>
 	  <term>NSErrorRecoveryAttempting</term>
 	  <desc>
-	  Added header (and some support in the gui library).
+	  Added header (and some support in the GUI library).
 	  </desc>
 	  <term>NSArray</term>
 	  <desc>
@@ -635,7 +635,7 @@ notice and this notice are preserved.
 	</p>
 	<p>
 	  This release continues the process of cleanup and restructuring
-	  to further improve MacOS-X compatibility, fix bugs, optimise
+	  to further improve MacOS-X compatibility, fix bugs, optimize
 	  performance, and improve portability between different
 	  hardware/operating system platforms.
 	</p>
@@ -643,7 +643,7 @@ notice and this notice are preserved.
 	<deflist>
 	  <term>NSAffineTransform</term>
 	  <desc>
-	    Imported from gui library for MacOS-X compatibility.
+	    Imported from GUI library for MacOS-X compatibility.
 	  </desc>
 	  <term>NSBundle</term>
 	  <desc>
@@ -673,7 +673,7 @@ notice and this notice are preserved.
 	  </desc>
 	  <term>NSSpellServer</term>
 	  <desc>
-	    Imported from gui library for MacOS-X compatibility.
+	    Imported from GUI library for MacOS-X compatibility.
 	  </desc>
 	  <term>NSValueTransformer</term>
 	  <desc>
@@ -693,14 +693,14 @@ notice and this notice are preserved.
 	<deflist>
 	  <term>NSBundle</term>
 	  <desc>
-	    Fix for crash when initialising the bundle system in
+	    Fix for crash when initializing the bundle system in
 	    an application linked with many frameworks.
 	  </desc>
 	  <term>NSCalendarDate</term>
 	  <desc>
-	     Fix for buffer overrun problem when initialising
+	     Fix for buffer overrun problem when initializing
 	     date from string.  Also fixed to return nil when
-	     initialising from some illegal strings.
+	     initializing from some illegal strings.
 	  </desc>
 	  <term>NSConnection</term>
 	  <desc>
@@ -709,7 +709,7 @@ notice and this notice are preserved.
 	  </desc>
 	  <term>NSDecimalNumber</term>
 	  <desc>
-	     Fix to handle current locale properly when initialising.
+	     Fix to handle current locale properly when initializing.
 	  </desc>
 	  <term>NSIndexSet</term>
 	  <desc>
@@ -747,7 +747,7 @@ notice and this notice are preserved.
       <section>
 	<heading>Version 1.13.0</heading>
 	<p> 
-          Several sets of classes have been added for dealing with urls and
+          Several sets of classes have been added for dealing with URLs and
           predicates. A few minor api changes have occurred as well.
 	</p>
 	  <deflist>
@@ -867,7 +867,7 @@ notice and this notice are preserved.
 	    the deprecated win32 specific methods for NSRunLoop were
 	    removed.
 	    </desc>
-	    <term>NSAttribtedString deprecated method</term>
+	    <term>NSAttributedString deprecated method</term>
 	    <desc>
 	    The non-standard
 	    <code>attributedSubstringWithRange:</code> method (just a
@@ -1141,10 +1141,10 @@ notice and this notice are preserved.
 	      The NSString documentation contains some clarification
 	      on the lifetime of returned NSString objects.
 	    </desc>
-	    <term>URL classes support persistant connections</term>
+	    <term>URL classes support persistent connections</term>
 	    <desc>
 	      The NSURLHandle and other classes have support for
-	      persistant connections.
+	      persistent connections.
 	    </desc>
 	    <term>NSMethodSignature clarification</term>
 	    <desc>
