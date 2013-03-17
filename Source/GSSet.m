@@ -280,14 +280,10 @@ static Class	mutableSetClass;
 {
   Class	c;
 
-  /*
-   *  If this set is empty, or the other is nil, this method should return NO.
+  /* If this set is empty, or the other is nil/empty,
+   * this method should return NO.
    */
-  if (map.nodeCount == 0)
-    {
-      return NO;
-    }
-  if (otherSet == nil)
+  if (0 == map.nodeCount || nil == otherSet || [otherSet count] == 0)
     {
       return NO;
     }
@@ -632,26 +628,76 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (void) intersectSet: (NSSet*) other
+- (void) intersectSet: (NSSet*)other
 {
-  if (other != self)
+  if (nil == other)
     {
-      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-      GSIMapBucket		bucket = GSIMapEnumeratorBucket(&enumerator);
-      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
+      GSIMapCleanMap(&map);
+    }
+  else if (other != self && map.nodeCount > 0)
+    {
+      GSIMapEnumerator_t	enumerator;
+      GSIMapBucket		bucket;
+      GSIMapNode 		node;
+      Class                     c;
 
-      while (node != 0)
-	{
+      if (NO == [other isKindOfClass: [NSSet class]])
+        {
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"-intersectSet: other object is not a set"];
+        }
+      if (0 == map.nodeCount)
+        {
+          return;                       // Already empty ... nothing to do
+        }
+      if (0 == [other count])
+        {
+          GSIMapCleanMap(&map);         // Other empty ... no intersection
+          return;
+        }
 
-	  if ([other containsObject: node->key.obj] == NO)
-	    {
-	      GSIMapRemoveNodeFromMap(&map, bucket, node);
-	      GSIMapFreeNode(&map, node);
-	    }
-	  bucket = GSIMapEnumeratorBucket(&enumerator);
-	  node = GSIMapEnumeratorNextNode(&enumerator);
-	}
-      GSIMapEndEnumerator(&enumerator);
+      c = object_getClass(other);
+      if (c == setClass || c == mutableSetClass)
+        {
+          GSSet *o = (GSSet*)other;
+
+          enumerator = GSIMapEnumeratorForMap(&map);
+          bucket = GSIMapEnumeratorBucket(&enumerator);
+          node = GSIMapEnumeratorNextNode(&enumerator);
+
+          while (node != 0)
+            {
+              if (0 == GSIMapNodeForKey(&o->map, node->key))
+                {
+                  GSIMapRemoveNodeFromMap(&map, bucket, node);
+                  GSIMapFreeNode(&map, node);
+                }
+              bucket = GSIMapEnumeratorBucket(&enumerator);
+              node = GSIMapEnumeratorNextNode(&enumerator);
+            }
+          GSIMapEndEnumerator(&enumerator);
+        }
+      else
+        {
+	  SEL	sel = @selector(member:);
+	  IMP	imp = [other methodForSelector: sel];
+
+          enumerator = GSIMapEnumeratorForMap(&map);
+          bucket = GSIMapEnumeratorBucket(&enumerator);
+          node = GSIMapEnumeratorNextNode(&enumerator);
+
+          while (node != 0)
+            {
+              if (nil == (*imp)(other, sel, node->key.obj))
+                {
+                  GSIMapRemoveNodeFromMap(&map, bucket, node);
+                  GSIMapFreeNode(&map, node);
+                }
+              bucket = GSIMapEnumeratorBucket(&enumerator);
+              node = GSIMapEnumeratorNextNode(&enumerator);
+            }
+          GSIMapEndEnumerator(&enumerator);
+        }
     }
 }
 

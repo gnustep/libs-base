@@ -1,3 +1,7 @@
+2012-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSSet.m: Some optimisation for set intersection.
+
 2013-03-16  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tests/base/NSLocale/general.m,
