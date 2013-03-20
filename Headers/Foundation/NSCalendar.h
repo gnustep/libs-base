@@ -85,10 +85,8 @@ enum
   NSInteger _weekday;
   NSInteger _weekdayOrdinal;
   NSInteger _quarter;
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
   NSCalendar *_cal;
   NSTimeZone *_tz;
-#endif
 }
 
 - (NSInteger) day;
