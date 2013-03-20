@@ -717,6 +717,8 @@ typedef struct {
 {
   if (0 != _NSDateComponentsInternal)
     {
+      RELEASE(_cal);
+      RELEASE(_tz);
       free(_NSDateComponentsInternal);
     }
   [super dealloc];
@@ -910,18 +912,12 @@ typedef struct {
 
 - (void) setCalendar: (NSCalendar *) cal
 {
-  if (_cal)
-    RELEASE(_cal);
-  
-  _cal = RETAIN(cal);
+  ASSIGN(_cal, cal);
 }
 
 - (void) setTimeZone: (NSTimeZone *) tz
 {
-  if (_tz)
-    RELEASE(_tz);
-  
-  _tz = RETAIN(tz);
+  ASSIGN(_tz, tz);
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -934,6 +930,10 @@ typedef struct {
       
       memcpy(c->_NSDateComponentsInternal, _NSDateComponentsInternal,
         sizeof(DateComp));
+      /* We gave objects to the copy, so we need to retain them too.
+       */
+      RETAIN(_cal);
+      RETAIN(_tz);
       return c;
     }
 }
