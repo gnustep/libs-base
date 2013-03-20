@@ -85,9 +85,7 @@ enum
   NSInteger _weekday;
   NSInteger _weekdayOrdinal;
   NSInteger _quarter;
-// FIXME: In reality these are only available on iOS > 4.  Will probably show
-// up in OS X 10.7.
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
   NSCalendar *_cal;
   NSTimeZone *_tz;
 #endif
@@ -120,8 +118,7 @@ enum
 - (void) setQuarter: (NSInteger) v;
 #endif
 
-// FIXME: In reality these are only available on iOS > 4.
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 - (NSCalendar *) calendar;
 - (NSTimeZone *) timeZone;
 - (void) setCalendar: (NSCalendar *) cal;
