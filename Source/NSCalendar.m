@@ -41,7 +41,6 @@
 #endif
 
 
-
 #if GS_USE_ICU == 1
 static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
 {
@@ -287,7 +286,7 @@ static NSRecursiveLock *classLock = nil;
   if (unitFlags & NSYearCalendarUnit)
     [comps setYear: ucal_get (_cal, UCAL_YEAR, &err)];
   if (unitFlags & NSMonthCalendarUnit)
-    [comps setMonth: ucal_get (_cal, UCAL_MONTH, &err)];
+    [comps setMonth: ucal_get (_cal, UCAL_MONTH, &err)+1];
   if (unitFlags & NSDayCalendarUnit)
     [comps setDay: ucal_get (_cal, UCAL_DAY_OF_MONTH, &err)];
   if (unitFlags & NSHourCalendarUnit)
@@ -296,12 +295,16 @@ static NSRecursiveLock *classLock = nil;
     [comps setMinute: ucal_get (_cal, UCAL_MINUTE, &err)];
   if (unitFlags & NSSecondCalendarUnit)
     [comps setSecond: ucal_get (_cal, UCAL_SECOND, &err)];
-  if (unitFlags & NSWeekCalendarUnit)
+  if (unitFlags & (NSWeekCalendarUnit|NSWeekOfYearCalendarUnit))
     [comps setWeek: ucal_get (_cal, UCAL_WEEK_OF_YEAR, &err)];
   if (unitFlags & NSWeekdayCalendarUnit)
     [comps setWeekday: ucal_get (_cal, UCAL_DAY_OF_WEEK, &err)];
   if (unitFlags & NSWeekdayOrdinalCalendarUnit)
-    [comps setWeekdayOrdinal: ucal_get (_cal, UCAL_WEEK_OF_MONTH, &err)];
+    [comps setWeekdayOrdinal: ucal_get (_cal, UCAL_DAY_OF_WEEK_IN_MONTH, &err)];
+  if (unitFlags & NSWeekOfMonthCalendarUnit)
+    [comps setWeekOfMonth: ucal_get (_cal, UCAL_WEEK_OF_MONTH, &err)];
+  if (unitFlags & NSYearForWeekOfYearCalendarUnit)
+    [comps setYearForWeekOfYear: ucal_get (_cal, UCAL_YEAR_WOY, &err)];
   
   return AUTORELEASE(comps);
 #else
@@ -371,6 +374,14 @@ static NSRecursiveLock *classLock = nil;
     {
       _ADD_COMPONENT(UCAL_DAY_OF_WEEK, amount);
     }
+  if ((amount = (int32_t)[comps weekOfMonth]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_WEEK_OF_MONTH, amount);
+    }
+  if ((amount = (int32_t)[comps yearForWeekOfYear]) != NSUndefinedDateComponent)
+    {
+      _ADD_COMPONENT(UCAL_YEAR_WOY, amount);
+    }
 #undef _ADD_COMPONENT
   
   udate = ucal_getMillis (_cal, &err);
@@ -403,7 +414,7 @@ static NSRecursiveLock *classLock = nil;
     }
   if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
     {
-      ucal_set (_cal, UCAL_MONTH, amount);
+      ucal_set (_cal, UCAL_MONTH, amount-1);
     }
   if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
     {
@@ -428,6 +439,14 @@ static NSRecursiveLock *classLock = nil;
   if ((amount = (int32_t)[comps weekday]) != NSUndefinedDateComponent)
     {
       ucal_set (_cal, UCAL_DAY_OF_WEEK, amount);
+    }
+  if ((amount = (int32_t)[comps weekOfMonth]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_WEEK_OF_MONTH, amount);
+    }
+  if ((amount = (int32_t)[comps yearForWeekOfYear]) != NSUndefinedDateComponent)
+    {
+      ucal_set (_cal, UCAL_YEAR_WOY, amount);
     }
   
   udate = ucal_getMillis (_cal, &err);
@@ -660,20 +679,70 @@ static NSRecursiveLock *classLock = nil;
 
 @implementation NSDateComponents
 
+typedef struct {
+  NSInteger era;
+  NSInteger year;
+  NSInteger month;
+  NSInteger day;
+  NSInteger hour;
+  NSInteger minute;
+  NSInteger second;
+  NSInteger week;
+  NSInteger weekday;
+  NSInteger weekdayOrdinal;
+  NSInteger quarter;
+  NSInteger weekOfMonth;
+  NSInteger yearForWeekOfYear;
+  NSCalendar *cal;
+  NSTimeZone *tz;
+} DateComp;
+
+#define	_era ((DateComp*)_NSDateComponentsInternal)->era
+#define	_year ((DateComp*)_NSDateComponentsInternal)->year
+#define	_month ((DateComp*)_NSDateComponentsInternal)->month
+#define	_day ((DateComp*)_NSDateComponentsInternal)->day
+#define	_hour ((DateComp*)_NSDateComponentsInternal)->hour
+#define	_minute ((DateComp*)_NSDateComponentsInternal)->minute
+#define	_second ((DateComp*)_NSDateComponentsInternal)->second
+#define	_week ((DateComp*)_NSDateComponentsInternal)->week
+#define	_weekday ((DateComp*)_NSDateComponentsInternal)->weekday
+#define	_weekdayOrdinal ((DateComp*)_NSDateComponentsInternal)->weekdayOrdinal
+#define	_quarter ((DateComp*)_NSDateComponentsInternal)->quarter
+#define	_weekOfMonth ((DateComp*)_NSDateComponentsInternal)->weekOfMonth
+#define	_yearForWeekOfYear ((DateComp*)_NSDateComponentsInternal)->yearForWeekOfYear
+#define	_cal ((DateComp*)_NSDateComponentsInternal)->cal
+#define	_tz ((DateComp*)_NSDateComponentsInternal)->tz
+
+- (void) dealloc
+{
+  if (0 != _NSDateComponentsInternal)
+    {
+      free(_NSDateComponentsInternal);
+    }
+  [super dealloc];
+}
+
 - (id) init
 {
-  _era = NSUndefinedDateComponent;
-  _year = NSUndefinedDateComponent;
-  _month = NSUndefinedDateComponent;
-  _day = NSUndefinedDateComponent;
-  _hour = NSUndefinedDateComponent;
-  _minute = NSUndefinedDateComponent;
-  _second = NSUndefinedDateComponent;
-  _week = NSUndefinedDateComponent;
-  _weekday = NSUndefinedDateComponent;
-  _weekdayOrdinal = NSUndefinedDateComponent;
-  _quarter = NSUndefinedDateComponent;
-  
+  if (nil != (self = [super init]))
+    {
+      _NSDateComponentsInternal = malloc(sizeof(DateComp));
+      _era = NSUndefinedDateComponent;
+      _year = NSUndefinedDateComponent;
+      _month = NSUndefinedDateComponent;
+      _day = NSUndefinedDateComponent;
+      _hour = NSUndefinedDateComponent;
+      _minute = NSUndefinedDateComponent;
+      _second = NSUndefinedDateComponent;
+      _week = NSUndefinedDateComponent;
+      _weekday = NSUndefinedDateComponent;
+      _weekdayOrdinal = NSUndefinedDateComponent;
+      _quarter = NSUndefinedDateComponent;
+      _weekOfMonth = NSUndefinedDateComponent;
+      _yearForWeekOfYear = NSUndefinedDateComponent;
+      _cal = NULL;
+      _tz = NULL;
+     } 
   return self;
 }
 
@@ -732,6 +801,21 @@ static NSRecursiveLock *classLock = nil;
   return _year;
 }
 
+- (NSInteger) weekOfMonth
+{
+  return _weekOfMonth;
+}
+
+- (NSInteger) weekOfYear
+{
+  return _week;
+}
+
+- (NSInteger) yearForWeekOfYear
+{
+  return _yearForWeekOfYear;
+}
+
 - (NSCalendar *) calendar
 {
   return _cal;
@@ -742,6 +826,16 @@ static NSRecursiveLock *classLock = nil;
   return _tz;
 }
 
+- (NSDate *) date
+{
+  NSCalendar* cal = [self calendar];
+  NSTimeZone* zone = [self timeZone];
+
+  if (zone != NULL)
+    [cal setTimeZone: zone];
+
+  return [cal dateFromComponents: self];
+}
 
 
 - (void) setDay: (NSInteger) v
@@ -799,6 +893,21 @@ static NSRecursiveLock *classLock = nil;
   _year = v;
 }
 
+- (void) setWeekOfYear: (NSInteger) v
+{
+  _week = v;
+}
+
+- (void) setWeekOfMonth: (NSInteger) v
+{
+  _weekOfMonth = v;
+}
+
+- (void) setYearForWeekOfYear: (NSInteger) v
+{
+  _yearForWeekOfYear = v;
+}
+
 - (void) setCalendar: (NSCalendar *) cal
 {
   if (_cal)
@@ -820,7 +929,13 @@ static NSRecursiveLock *classLock = nil;
   if (NSShouldRetainWithZone(self, zone))
     return RETAIN(self);
   else
-    return NSCopyObject(self, 0, zone);
+    {
+      NSDateComponents  *c = [[NSDateComponents allocWithZone: zone] init];
+      
+      memcpy(c->_NSDateComponentsInternal, _NSDateComponentsInternal,
+        sizeof(DateComp));
+      return c;
+    }
 }
 
 @end

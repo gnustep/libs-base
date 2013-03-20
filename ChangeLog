@@ -1,3 +1,11 @@
+2012-03-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Tests/base/NSCalendar/features-10-7.m:
+        * Source/NSCalendar.m:
+        * Headers/Foundation/NSCalendar.h:
+        New OSX 10.7 methods supplied by Lobos Dolezel and rewritten somewhat
+        to avoid breaking binary compatibility.
+
 2012-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSSet.m: Some optimisation for set intersection.
