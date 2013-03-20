@@ -1722,8 +1722,8 @@ setNonBlocking(SOCKET fd)
     close((intptr_t)_loopID);
   else
     shutdown((intptr_t)_loopID, SHUT_RD);
-  _loopID = (void*)(intptr_t)-1;
   [super close];
+  _loopID = (void*)(intptr_t)-1;
 #endif
   _sock = INVALID_SOCKET;
 }
@@ -2196,8 +2196,8 @@ setNonBlocking(SOCKET fd)
     close((intptr_t)_loopID);
   else
     shutdown((intptr_t)_loopID, SHUT_WR);
-  _loopID = (void*)(intptr_t)-1;
   [super close];
+  _loopID = (void*)(intptr_t)-1;
 #endif
   _sock = INVALID_SOCKET;
 }
@@ -2500,8 +2500,8 @@ setNonBlocking(SOCKET fd)
   if (_loopID != (void*)(intptr_t)-1)
     {
       close((intptr_t)_loopID);
-      _loopID = (void*)(intptr_t)-1;
       [super close];
+      _loopID = (void*)(intptr_t)-1;
     }
 #endif
   _sock = INVALID_SOCKET;
