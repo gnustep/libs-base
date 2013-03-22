@@ -22,14 +22,16 @@ int main()
   if (!NSCALENDAR_SUPPORTED)
     SKIP("NSCalendar not supported\nThe ICU library was not available when GNUstep-base was built")
   
-  cal = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+  cal = [[NSCalendar alloc] initWithCalendarIdentifier: NSGregorianCalendar];
   
+  [cal setMinimumDaysInFirstWeek: 4];
+  [cal setFirstWeekday: 1];
+
   date = [NSDate dateWithString: @"2012-12-31 13:57:00 +0100"];
 
   comps = [cal components: NSYearForWeekOfYearCalendarUnit
                          | NSWeekOfYearCalendarUnit | NSWeekOfMonthCalendarUnit
                  fromDate: date];
-
   PASS([comps weekOfMonth] == 5, "-weekOfMonth returns the correct week");
   PASS([comps weekOfYear] == 1, "-weekOfYear returns the correct week");
   PASS([comps yearForWeekOfYear] == 2013,
