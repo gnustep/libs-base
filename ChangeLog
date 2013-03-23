@@ -1,4 +1,9 @@
-2012-03-20  Richard Frith-Macdonald <rfm@gnu.org>
+2013-03-23  Fred Kiefer <FredKiefer@gmx.de>
+
+        * Source/NSXMLNode.m (-XMLStringWithOptions:): Revert change I
+	made on 2012-12-01.
+
+2013-03-20  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Tests/base/NSCalendar/features-10-7.m:
         * Source/NSCalendar.m:
@@ -6,7 +11,7 @@
         New OSX 10.7 methods supplied by Lobos Dolezel and rewritten somewhat
         to avoid breaking binary compatibility.
 
-2012-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+2013-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSSet.m: Some optimisation for set intersection.
 
