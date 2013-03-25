@@ -672,6 +672,10 @@ static NSAffineTransformStruct identityTransform = {
               return [self notImplemented: _cmd];
             }
         }
+      else
+        {
+          replace = identityTransform;
+        }
     }
   else
     {
