@@ -19,6 +19,7 @@ int main()
   
   test_NSObject(@"NSSet", testObjs);
   test_NSCoding(testObjs);
+  test_keyed_NSCoding(testObjs);
   test_NSCopying(@"NSSet", @"NSMutableSet", testObjs, YES, NO);
   test_NSMutableCopying(@"NSSet", @"NSMutableSet", testObjs);
   
