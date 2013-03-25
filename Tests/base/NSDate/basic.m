@@ -9,6 +9,7 @@ int main()
   
   test_NSObject(@"NSDate",[NSArray arrayWithObject:[NSDate new]]);
   test_NSCoding([NSArray arrayWithObject:testObj]);
+  test_keyed_NSCoding([NSArray arrayWithObject:testObj]);
   test_NSCopying(@"NSDate",@"NSDate",[NSArray arrayWithObject:testObj],NO,NO);
    
   [arp release]; arp = nil;

@@ -9,6 +9,7 @@ int main()
   test_alloc(@"NSMutableAttributedString");
   test_NSObject(@"NSMutableAttributedString", arr);
   test_NSCoding(arr);
+  test_keyed_NSCoding(arr);
   test_NSCopying(@"NSAttributedString",@"NSMutableAttributedString",arr,NO, NO);
   test_NSMutableCopying(@"NSAttributedString",@"NSMutableAttributedString",arr);
 

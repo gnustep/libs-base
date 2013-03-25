@@ -14,6 +14,7 @@ int main()
   test_alloc(@"NSString");
   test_NSObject(@"NSString",[NSArray arrayWithObject:testObj]);
   test_NSCoding([NSArray arrayWithObject:testObj]);
+  test_keyed_NSCoding([NSArray arrayWithObject:testObj]);
   test_NSCopying(@"NSString", @"NSMutableString", 
                  [NSArray arrayWithObject:testObj], NO, NO);
   test_NSMutableCopying(@"NSString", @"NSMutableString",
