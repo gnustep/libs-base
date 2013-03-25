@@ -2,6 +2,10 @@
 
 	* Source/NSAffineTransform.m:
         Fix decoding of keyed archive containing identity transform.
+	* Source/NSString.m:
+	* Tests/base/NSString/tilde.m:
+        Fix to standardize string if necessary to determine whether it has
+        the home directory as a prefix.
 
 2013-03-23  Fred Kiefer <FredKiefer@gmx.de>
 

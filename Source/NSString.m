@@ -4209,9 +4209,20 @@ static NSFileManager *fm = nil;
 {
   NSString	*homedir = NSHomeDirectory ();
 
-  if (![self hasPrefix: homedir])
+  if (YES == [self hasPrefix: @"~"])
     {
       return IMMUTABLE(self);
+    }
+  if (NO == [self hasPrefix: homedir])
+    {
+      /* OSX compatibility ... we clean up the path to try to get a
+       * home directory we can abbreviate.
+       */
+      self = [self stringByStandardizingPath];
+      if (NO == [self hasPrefix: homedir])
+        {
+          return IMMUTABLE(self);
+        }
     }
   if ([self length] == [homedir length])
     {
