@@ -178,10 +178,13 @@ enum
 
 @interface NSCalendar : NSObject <NSCoding, NSCopying>
 {
-  NSString   *_identifier;
-  NSString   *_localeId;
-  NSTimeZone *_tz;
-  void       *_cal;
+@private
+  void  *_NSCalendarInternal;
+/* FIXME ... remove dummy fields at next binary incompatible release
+ */
+  void  *_dummy1;
+  void  *_dummy2;
+  void  *_dummy3;
 }
 
 + (id) currentCalendar;
