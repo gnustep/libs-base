@@ -24,8 +24,17 @@ int main()
   
   cal = [[NSCalendar alloc] initWithCalendarIdentifier: NSGregorianCalendar];
   
-  [cal setMinimumDaysInFirstWeek: 4];
+  [cal setFirstWeekday: 3];
+  PASS([cal firstWeekday] == 3, "-firstWeekDay returns the correct day");
   [cal setFirstWeekday: 1];
+  PASS([cal firstWeekday] == 1, "-setFirstWeekDay: works");
+
+  [cal setMinimumDaysInFirstWeek: 1];
+  PASS([cal minimumDaysInFirstWeek] == 1,
+    "-minimumDaysInFirstWeek returns the correct count");
+  [cal setMinimumDaysInFirstWeek: 4];
+  PASS([cal minimumDaysInFirstWeek] == 4,
+    "-setMinimumDaysInFirstWeek: works");
 
   date = [NSDate dateWithString: @"2012-12-31 13:57:00 +0100"];
 
