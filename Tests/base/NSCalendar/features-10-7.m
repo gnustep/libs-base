@@ -23,19 +23,9 @@ int main()
     SKIP("NSCalendar not supported\nThe ICU library was not available when GNUstep-base was built")
   
   cal = [[NSCalendar alloc] initWithCalendarIdentifier: NSGregorianCalendar];
-  
-  [cal setFirstWeekday: 3];
-  PASS([cal firstWeekday] == 3, "-firstWeekday returns the correct day");
   [cal setFirstWeekday: 1];
-  PASS([cal firstWeekday] == 1, "-setFirstWeekday: works");
-
-  [cal setMinimumDaysInFirstWeek: 1];
-  PASS([cal minimumDaysInFirstWeek] == 1,
-    "-minimumDaysInFirstWeek returns the correct count");
   [cal setMinimumDaysInFirstWeek: 4];
-  PASS([cal minimumDaysInFirstWeek] == 4,
-    "-setMinimumDaysInFirstWeek: works");
-
+  
   date = [NSDate dateWithString: @"2012-12-31 13:57:00 +0100"];
 
   comps = [cal components: NSYearForWeekOfYearCalendarUnit
