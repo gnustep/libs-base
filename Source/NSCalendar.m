@@ -79,8 +79,8 @@ typedef struct {
   NSString      *localeID;
   NSTimeZone    *tz; 
   void          *cal;
-  NSInteger     firstWeekday;
-  NSInteger     minimumDaysInFirstWeek;
+  int32_t       firstWeekday;
+  int32_t       minimumDaysInFirstWeek;
 } Calendar; 
 #define my ((Calendar*)_NSCalendarInternal)
 #define aac ((Calendar*)(autoupdatingCalendar->_NSCalendarInternal))
