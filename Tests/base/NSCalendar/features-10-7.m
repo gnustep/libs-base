@@ -25,9 +25,9 @@ int main()
   cal = [[NSCalendar alloc] initWithCalendarIdentifier: NSGregorianCalendar];
   
   [cal setFirstWeekday: 3];
-  PASS([cal firstWeekday] == 3, "-firstWeekDay returns the correct day");
+  PASS([cal firstWeekday] == 3, "-firstWeekday returns the correct day");
   [cal setFirstWeekday: 1];
-  PASS([cal firstWeekday] == 1, "-setFirstWeekDay: works");
+  PASS([cal firstWeekday] == 1, "-setFirstWeekday: works");
 
   [cal setMinimumDaysInFirstWeek: 1];
   PASS([cal minimumDaysInFirstWeek] == 1,
