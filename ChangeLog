@@ -1,3 +1,11 @@
+2013-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSCalendar.m:
+        * Headers/Foundation/NSCalendar.h:
+        Rewrite NSCalendar instance variable usage to avoid breaking binary
+        compatibility.  Fix methods for setting the first week day and
+        the minimum number of days in the first week of a month.
+
 2013-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAffineTransform.m:
