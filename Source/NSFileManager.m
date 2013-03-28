@@ -321,10 +321,6 @@ static Class	GSAttrDictionaryClass = 0;
 static NSFileManager* defaultManager = nil;
 static NSStringEncoding	defaultEncoding;
 
-/**
- * Returns a shared default file manager which may be used throughout an
- * application.
- */
 + (NSFileManager*) defaultManager
 {
   if (defaultManager == nil)
@@ -361,13 +357,6 @@ static NSStringEncoding	defaultEncoding;
   [super dealloc];
 }
 
-/**
- * Changes the current directory used for all subsequent operations.<br />
- * All non-absolute paths are interpreted relative to this directory.<br />
- * The current directory is set on a per-task basis, so the current
- * directory for other file manager instances will also be changed
- * by this method.
- */
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
   static Class	bundleClass = 0;
@@ -1126,27 +1115,6 @@ static NSStringEncoding	defaultEncoding;
   return YES;
 }
 
-/**
- * Copies the a file or directory specified by the <i>src</i> URL to the 
- * location specified by the <i>dst</i> URL. If the <i>src</i> is a directory,
- * it is copied recursively with all of its contents.<br />
- * Errors are returned in the <i>error</i> variable.
- * Returns YES on success, NO otherwise.
- */
-- (BOOL) copyItemAtURL: (NSURL*)src
-		 toURL: (NSURL*)dst
-		 error: (NSError**)error
-{
-  return [self copyItemAtPath: [src path] toPath: [dst path] error: error];
-}
-
-/**
- * Copies the item specified by the <i>src</i> path to the 
- * location specified by the <i>dst</i> path. If the <i>src</i> is a directory,
- * it is copied recursively with all of its contents.<br />
- * Errors are returned in the <i>error</i> variable.
- * Returns YES on success, NO otherwise.
- */
 - (BOOL) copyItemAtPath: (NSString*)src
 		 toPath: (NSString*)dst
 		  error: (NSError**)error
@@ -1165,6 +1133,13 @@ static NSStringEncoding	defaultEncoding;
     }
 
   return result;
+}
+
+- (BOOL) copyItemAtURL: (NSURL*)src
+		 toURL: (NSURL*)dst
+		 error: (NSError**)error
+{
+  return [self copyItemAtPath: [src path] toPath: [dst path] error: error];
 }
 
 /**
@@ -1254,25 +1229,6 @@ static NSStringEncoding	defaultEncoding;
   return NO;
 }
 
-/**
- * Moves a file or directory specified by <i>src</i> to 
- * its destination specified by <i>dst</i>, errors are
- * returned in <i>error</i>.<br />
- * Returns YES on success, NO otherwise.
- */
-- (BOOL) moveItemAtURL: (NSURL*)src
-		 toURL: (NSURL*)dst
-		 error: (NSError**)error
-{
-  return [self moveItemAtPath: [src path] toPath: [dst path] error: error];
-}
-
-/**
- * Moves a file or directory specified by <i>src</i> to 
- * its destination specified by <i>dst</i>, errors are
- * returned in <i>error</i>.<br />
- * Returns YES on success, NO otherwise.
- */
 - (BOOL) moveItemAtPath: (NSString*)src
 		 toPath: (NSString*)dst
 		  error: (NSError**)error
@@ -1291,6 +1247,13 @@ static NSStringEncoding	defaultEncoding;
     }
 
   return result;
+}
+
+- (BOOL) moveItemAtURL: (NSURL*)src
+		 toURL: (NSURL*)dst
+		 error: (NSError**)error
+{
+  return [self moveItemAtPath: [src path] toPath: [dst path] error: error];
 }
 
 /**
@@ -1402,13 +1365,6 @@ static NSStringEncoding	defaultEncoding;
 #endif
 }
 
-/**
- * Removes the file or directory at path, using a
- * handler object which should respond to
- * [NSObject(NSFileManagerHandler)-fileManager:willProcessPath:] and
- * [NSObject(NSFileManagerHandler)-fileManager:shouldProceedAfterError:]
- * messages.
- */
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: handler
 {
@@ -1516,26 +1472,6 @@ static NSStringEncoding	defaultEncoding;
     }
 }
 
-
-
-/**
- * Removes the file or directory specified by the <i>url</i>
- * to be removed. If the <i>url</i> points to a directory,
- * the directory is deleted recursively.<br />
- * Returns YES on success, otherwise NO.
- */
-- (BOOL) removeItemAtURL: (NSURL*)url
-		   error: (NSError**)error
-{
-  return [self removeItemAtPath: [url path] error: error];
-}
-
-/**
- * Removes the file or directory specified by the <i>path</i>
- * to be removed. If the <i>path</i> points to a directory,
- * the directory is deleted recursively.<br />
- * Returns YES on success, otherwise NO.
- */
 - (BOOL) removeItemAtPath: (NSString*)path
 		    error: (NSError**)error
 {
@@ -1555,20 +1491,17 @@ static NSStringEncoding	defaultEncoding;
   return result;
 }
 
-/**
- * Returns YES if a file (or directory etc) exists at the specified path.
- */
+- (BOOL) removeItemAtURL: (NSURL*)url
+		   error: (NSError**)error
+{
+  return [self removeItemAtPath: [url path] error: error];
+}
+
 - (BOOL) fileExistsAtPath: (NSString*)path
 {
   return [self fileExistsAtPath: path isDirectory: 0];
 }
 
-/**
- * Returns YES if a file (or directory etc) exists at the specified path.<br />
- * If the isDirectory argument is not a nul pointer, stores a flag
- * in the location it points to, indicating whether the file is a
- * directory or not.<br />
- */
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory
 {
   const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];

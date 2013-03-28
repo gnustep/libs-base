@@ -30,6 +30,24 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.24.4</heading>
+        <p>A new stable (bugfix) release.<br />
+        The main reason for this version is the inclusion of the latest
+        available time zone data (something accidentally omitted from the
+        previous release).<br />
+        Most of the other changes in this version are fairly minor portability
+        and bugfixes (and the addition of a number of new testcases).<br />
+        API changes are limited to the addition of a few OSX-10.7 methods
+        for NSCalendar and a few new NSFileManager methods for working
+        with URLs.<br />
+        Finally, there is experimental code to change the hashing algorithm
+        used in the library ... enabling it will cause slower hash generation
+        but a better distribution of hash values ... which might improve the
+        performance of large collections.
+        </p>
+      </section>
+
+      <section>
 	<heading>Version 1.24.3</heading>
         <p>A new stable release.<br />
 	Many changes in this version are behavior updates/improvements
