@@ -11,6 +11,17 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.24.4}
+
+@itemize @bullet
+@item Updated time zone data
+@item OSX 10.7 NSCalendar methods
+@item Portability improvments and minor bugfixes
+@item More testcases in the testsuite
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.24.3}
 
 @itemize @bullet
@@ -19,8 +30,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item Implementation of new/selectable sorting algorithms
 @item More explicit dependencies on external libraries.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.24.0}
 

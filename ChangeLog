@@ -1,3 +1,11 @@
+2013-03-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Documentation/ReleaseNotes.gsdoc:
+        * Documentation/news.texi:
+        * Headers/Foundation/NSFileManager.h:
+        * Source/NSFileManager.m:
+        Prepare documentation for release
+
 2013-03-26  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSCalendar.m:

@@ -215,29 +215,82 @@ typedef	uint32_t	OSType;
 #endif
 }
 
+/**
+ * Returns a shared default file manager which may be used throughout an
+ * application.
+ */
 + (NSFileManager*) defaultManager;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 - (NSDictionary *) attributesOfItemAtPath: (NSString*)path
 				    error: (NSError**)error;
+
+/**
+ * Copies the item specified by the src path to the 
+ * location specified by the dst path. If the src is a directory,
+ * it is copied recursively with all of its contents.<br />
+ * Errors are returned in the error variable.
+ * Returns YES on success, NO otherwise.
+ */
 - (BOOL) copyItemAtPath: (NSString*)src
 		 toPath: (NSString*)dst
 		  error: (NSError**)error;
+/**
+ * Moves a file or directory specified by src to 
+ * its destination specified by dst, errors are
+ * returned in error.<br />
+ * Returns YES on success, NO otherwise.
+ */
 - (BOOL) moveItemAtPath: (NSString*)src
 		 toPath: (NSString*)dst
 		  error: (NSError**)error;
+
+/**
+ * Removes the file or directory specified by the path
+ * to be removed. If the path points to a directory,
+ * the directory is deleted recursively.<br />
+ * Returns YES on success, otherwise NO.
+ */
 - (BOOL) removeItemAtPath: (NSString*)path
                     error: (NSError**)error;
+
+/**
+ * Copies the a file or directory specified by the src URL to the 
+ * location specified by the dst URL. If the src is a directory,
+ * it is copied recursively with all of its contents.<br />
+ * Errors are returned in the error variable.
+ * Returns YES on success, NO otherwise.
+ */
 - (BOOL) copyItemAtURL: (NSURL*)src
 		 toURL: (NSURL*)dst
 		 error: (NSError**)error;
+
+/**
+ * Moves a file or directory specified by src to 
+ * its destination specified by dst, errors are
+ * returned in error.<br />
+ * Returns YES on success, NO otherwise.
+ */
 - (BOOL) moveItemAtURL: (NSURL*)src
 		 toURL: (NSURL*)dst
 		 error: (NSError**)error;
-- (BOOL) removeItemAtURL: (NSURL*)path
+/**
+ * Removes the file or directory specified by the url
+ * to be removed. If the url points to a directory,
+ * the directory is deleted recursively.<br />
+ * Returns YES on success, otherwise NO.
+ */
+- (BOOL) removeItemAtURL: (NSURL*)url
                    error: (NSError**)error;
 #endif
 
+/**
+ * Changes the current directory used for all subsequent operations.<br />
+ * All non-absolute paths are interpreted relative to this directory.<br />
+ * The current directory is set on a per-task basis, so the current
+ * directory for other file manager instances will also be changed
+ * by this method.
+ */
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path;
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes
 		       atPath: (NSString*)path;
@@ -293,7 +346,17 @@ typedef	uint32_t	OSType;
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path
 			  traverseLink: (BOOL)flag;
 
+/**
+ * Returns YES if a file (or directory etc) exists at the specified path.
+ */
 - (BOOL) fileExistsAtPath: (NSString*)path;
+
+/**
+ * Returns YES if a file (or directory etc) exists at the specified path.<br />
+ * If the isDirectory argument is not a nul pointer, stores a flag
+ * in the location it points to, indicating whether the file is a
+ * directory or not.<br />
+ */
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
 
@@ -321,6 +384,14 @@ typedef	uint32_t	OSType;
 	   toPath: (NSString*)destination 
 	  handler: (id)handler;
 - (NSString*) pathContentOfSymbolicLinkAtPath: (NSString*)path;
+
+/**
+ * Removes the file or directory at path, using a
+ * handler object which should respond to
+ * [NSObject(NSFileManagerHandler)-fileManager:willProcessPath:] and
+ * [NSObject(NSFileManagerHandler)-fileManager:shouldProceedAfterError:]
+ * messages.
+ */
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: (id)handler;
 
