@@ -1,5 +1,6 @@
 2013-03-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+        Make release 1.24.4
         * Documentation/ReleaseNotes.gsdoc:
         * Documentation/news.texi:
         * Headers/Foundation/NSFileManager.h:
