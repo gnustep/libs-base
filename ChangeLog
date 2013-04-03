@@ -1,3 +1,9 @@
+2013-04-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSSocketPort.m: Improve/simplify invalidation.
+        * Source/NSXMLParser.m:
+        Fix (implement) parsing of entities inside quoted strings.
+
 2013-03-28  Richard Frith-Macdonald <rfm@gnu.org>
 
         Make release 1.24.4

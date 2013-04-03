@@ -1218,37 +1218,23 @@ static Class	runLoopClass;
 {
 #if	defined(__MINGW__)
   WSANETWORKEVENTS ocurredEvents;
-#else
-#endif
-  /*
-   * If we have been invalidated (desc < 0) then we should ignore this
+
+  /* If we have been invalidated then we should ignore this
    * event and remove ourself from the runloop.
    */
-  if (desc == INVALID_SOCKET)
+  if (NO == valid || desc == INVALID_SOCKET)
     {
       NSRunLoop	*l = [runLoopClass currentRunLoop];
 
-#if	defined(__MINGW__)
       [l removeEvent: data
 		type: ET_HANDLE
 	     forMode: mode
 		 all: YES];
-#else
-      [l removeEvent: data
-		type: ET_WDESC
-	     forMode: mode
-		 all: YES];
-      [l removeEvent: data
-		type: ET_EDESC
-	     forMode: mode
-		 all: YES];
-#endif
       return;
     }
 
   M_LOCK(myLock);
 
-#if	defined(__MINGW__)
   if (WSAEnumNetworkEvents(desc, event, &ocurredEvents)==SOCKET_ERROR)
     {
       NSLog(@"Error getting event type %d", WSAGetLastError());
@@ -1315,7 +1301,31 @@ static Class	runLoopClass;
       NSLog(@"Event not get %d", ocurredEvents.lNetworkEvents);
       abort();
     }
+
+  M_UNLOCK(myLock);
+
 #else
+
+  /* If we have been invalidated then we should ignore this
+   * event and remove ourself from the runloop.
+   */
+  if (NO == valid || desc < 0)
+    {
+      NSRunLoop	*l = [runLoopClass currentRunLoop];
+
+      [l removeEvent: data
+		type: ET_WDESC
+	     forMode: mode
+		 all: YES];
+      [l removeEvent: data
+		type: ET_EDESC
+	     forMode: mode
+		 all: YES];
+      return;
+    }
+
+  M_LOCK(myLock);
+
   if (type != ET_WDESC)
     {
       [self receivedEventRead];
@@ -1324,9 +1334,9 @@ static Class	runLoopClass;
     {
       [self receivedEventWrite];
     }
-#endif
 
   M_UNLOCK(myLock);
+#endif
 }
 
 - (BOOL) sendMessage: (NSArray*)components beforeDate: (NSDate*)when
