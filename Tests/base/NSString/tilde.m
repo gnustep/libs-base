@@ -33,8 +33,11 @@ int main()
     "dot directory reference retained");
 
   tmp  = NSHomeDirectoryForUser(@"root");
-  PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], tmp,
-    "tilde does nothing for root's home");
+  if (NO == [tmp isEqual: NSHomeDirectory()])
+    {
+      PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], tmp,
+        "tilde does nothing for root's home");
+    }
 
   tmp = [NSString stringWithFormat: @"////%@//Documents///", home];
   PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], @"~/Documents",
