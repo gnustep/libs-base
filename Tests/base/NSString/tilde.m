@@ -32,13 +32,6 @@ int main()
   PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], @"~/Documents/./..",
     "dot directory reference retained");
 
-  tmp  = NSHomeDirectoryForUser(@"root");
-  if (NO == [tmp isEqual: NSHomeDirectory()])
-    {
-      PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], tmp,
-        "tilde does nothing for root's home");
-    }
-
   tmp = [NSString stringWithFormat: @"////%@//Documents///", home];
   PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], @"~/Documents",
     "multiple slashes removed");
@@ -52,5 +45,28 @@ int main()
     "multiple slashes removed without tilde replacement");
 
   END_SET("tilde")
+
+  START_SET("tilde abbreviation for other home")
+  NSString      *home = NSHomeDirectory();
+  NSString      *tmp;
+
+  /* The idea here is to use a home directory for a user other than the
+   * current one.  We pick root as a user which will exist on most systems.
+   * If the current user is root then this will not work, so we skip the
+   * test in that case.
+   */
+  tmp  = NSHomeDirectoryForUser(@"root");
+  if (0 == [tmp length])
+    {
+      SKIP("can't determine root's home directory for tilde test")
+    }
+  if (YES == [tmp isEqual: home])
+    {
+      SKIP("home directory of current user is root's home")
+    }
+  PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], tmp,
+    "tilde does nothing for root's home");
+
+  END_SET("tilde abbreviation for other home")
   return 0;
 }
