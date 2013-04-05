@@ -354,72 +354,75 @@ static NSString		*mainFont = nil;
       dict = [refs objectForKey: type];
     }
 
-  if ([dict count] > 1 && [type isEqual: @"title"] == YES)
+  if ([type isEqual: @"title"] == YES)
     {
-      if (!isBareStyle)
+      if ([dict count] > 1)
         {
-          [buf appendString: indent];
-          [buf appendFormat: @"<b>%@ Index</b>\n", title];
-          [buf appendString: indent];
-          [buf appendString: @"<ul>\n"];
-          [self incIndent];
-        }
-
-      a = [dict allKeys];
-      a = [a sortedArrayUsingSelector: @selector(compare:)];
-      c = [a count];
-
-      for (i = 0; i < c; i++)
-	{
-	  NSString	*ref = [a objectAtIndex: i];
-	  NSString	*text = [dict objectForKey: ref];
-	  NSString	*file = ref;
-
-	  ref = [ref stringByReplacingString: @":" withString: @"$"];
-	  if ([file isEqual: base] == YES)
-	    {
-	      continue;	// Don't list current file.
-	    }
-
-	  [buf appendString: indent];
           if (!isBareStyle)
             {
-              [buf appendString: @"<li>"];
+              [buf appendString: indent];
+              [buf appendFormat: @"<b>%@ Index</b>\n", title];
+              [buf appendString: indent];
+              [buf appendString: @"<ul>\n"];
+              [self incIndent];
             }
-          [buf appendString: @"<a rel=\"gsdoc\" "];
-          if (target != nil)
+
+          a = [dict allKeys];
+          a = [a sortedArrayUsingSelector: @selector(compare:)];
+          c = [a count];
+
+          for (i = 0; i < c; i++)
             {
-              [buf appendFormat: @"target=\"%@\" ", target];
+              NSString	*ref = [a objectAtIndex: i];
+              NSString	*text = [dict objectForKey: ref];
+              NSString	*file = ref;
+
+              ref = [ref stringByReplacingString: @":" withString: @"$"];
+              if ([file isEqual: base] == YES)
+                {
+                  continue;	// Don't list current file.
+                }
+
+              [buf appendString: indent];
+              if (!isBareStyle)
+                {
+                  [buf appendString: @"<li>"];
+                }
+              [buf appendString: @"<a rel=\"gsdoc\" "];
+              if (target != nil)
+                {
+                  [buf appendFormat: @"target=\"%@\" ", target];
+                }
+              if  (([type isEqual: @"protocol"] == YES)
+                   && ([text hasPrefix: @"("] == NO))
+                {
+                  // it's an informal protocol, detected earlier as an
+                  // unimplemented category of NSObject; make proper link
+                  [buf appendFormat: @"href=\"%@.html#%@$NSObject%@\">(%@)</a>",
+                       file, @"category", ref, text];
+                }
+              else
+                {
+                  [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
+                       file, type, ref, text];
+                }
+              if (!isBareStyle)
+                {
+                  [buf appendString: @"</li>"];
+                }
+              else
+                {
+                  [buf appendString: @"<br/>"];
+                }
+              [buf appendString: @"\n"];
             }
-          if  (([type isEqual: @"protocol"] == YES)
-               && ([text hasPrefix: @"("] == NO))
-            {
-              // it's an informal protocol, detected earlier as an
-              // unimplemented category of NSObject; make proper link
-              [buf appendFormat: @"href=\"%@.html#%@$NSObject%@\">(%@)</a>",
-                   file, @"category", ref, text];
-            }
-          else
-            {
-              [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
-                   file, type, ref, text];
-            }
+
           if (!isBareStyle)
             {
-              [buf appendString: @"</li>"];
+              [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</ul>\n"];
             }
-          else
-            {
-              [buf appendString: @"<br/>"];
-            }
-          [buf appendString: @"\n"];
-	}
-
-      if (!isBareStyle)
-        {
-          [self decIndent];
-          [buf appendString: indent];
-          [buf appendString: @"</ul>\n"];
         }
     }
   else if ([dict count] > 0)

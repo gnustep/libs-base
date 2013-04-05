@@ -18,14 +18,22 @@ AC_ARG_ENABLE(tlstest,
       TLS_CONFIG=$tls_config_prefix/bin/libgnutls-config
     fi
   fi
+  if test ! -x "$TLS_CONFIG" ; then
+    unset TLS_CONFIG
+  fi
 
   AC_PATH_PROG(TLS_CONFIG, libgnutls-config, no)
   min_tls_version=ifelse([$1], ,2.0.0, [$1])
   AC_MSG_CHECKING(for libgnutls - version >= $min_tls_version)
   no_tls=""
   if test "$TLS_CONFIG" = "no" ; then
-    TLS_CFLAGS="-I/usr/include"
-    TLS_LIBS="-L/usr/lib -lgnutls -lgcrypt"
+    if test x$tls_config_prefix != x ; then
+      TLS_CFLAGS="-I$tls_config_prefix/include"
+      TLS_LIBS="-L$tls_config_prefix/lib -lgnutls -lgcrypt"
+    else
+      TLS_CFLAGS="-I/usr/include"
+      TLS_LIBS="-L/usr/lib -lgnutls -lgcrypt"
+    fi
 
     ac_save_CFLAGS="$CFLAGS"
     ac_save_LIBS="$LIBS"
@@ -118,7 +126,7 @@ main()
     AC_MSG_RESULT(no)
     if test "$TLS_CONFIG" = "no" ; then
       echo "*** The libgnutls-config script installed by libgnutls could not be found"
-      echo "*** If libtgnuls was installed in PREFIX, make sure PREFIX/bin is in"
+      echo "*** If libtgnuls-config was installed in PREFIX, make sure PREFIX/bin is in"
       echo "*** your path."
     else
       if test -f conf.tlstest ; then
