@@ -24857,6 +24857,9 @@ fi
       TLS_CONFIG=$tls_config_prefix/bin/libgnutls-config
     fi
   fi
+  if test ! -x "$TLS_CONFIG" ; then
+    unset TLS_CONFIG
+  fi
 
   # Extract the first word of "libgnutls-config", so it can be a program name with args.
 set dummy libgnutls-config; ac_word=$2
@@ -24904,8 +24907,13 @@ fi
 $as_echo_n "checking for libgnutls - version >= $min_tls_version... " >&6; }
   no_tls=""
   if test "$TLS_CONFIG" = "no" ; then
-    TLS_CFLAGS="-I/usr/include"
-    TLS_LIBS="-L/usr/lib -lgnutls -lgcrypt"
+    if test x$tls_config_prefix != x ; then
+      TLS_CFLAGS="-I$tls_config_prefix/include"
+      TLS_LIBS="-L$tls_config_prefix/lib -lgnutls -lgcrypt"
+    else
+      TLS_CFLAGS="-I/usr/include"
+      TLS_LIBS="-L/usr/lib -lgnutls -lgcrypt"
+    fi
 
     ac_save_CFLAGS="$CFLAGS"
     ac_save_LIBS="$LIBS"
@@ -25086,7 +25094,7 @@ $as_echo "yes" >&6; }
 $as_echo "no" >&6; }
     if test "$TLS_CONFIG" = "no" ; then
       echo "*** The libgnutls-config script installed by libgnutls could not be found"
-      echo "*** If libtgnuls was installed in PREFIX, make sure PREFIX/bin is in"
+      echo "*** If libtgnuls-config was installed in PREFIX, make sure PREFIX/bin is in"
       echo "*** your path."
     else
       if test -f conf.tlstest ; then
