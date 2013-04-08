@@ -86,7 +86,7 @@ static Class concrete = 0;
     {
       return [self retain];
     }
-  n = (GSNotification*)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
+  n = (GSNotification*)NSAllocateObject(concrete, 0, zone);
   n->_name = [_name copyWithZone: [self zone]];
   n->_object = TEST_RETAIN(_object);
   n->_info = TEST_RETAIN(_info);
@@ -795,7 +795,9 @@ static NSNotificationCenter *default_center = nil;
                 name: (NSString*)name
 	      object: (id)object
 {
-  IMP		method;
+  Class         cls;
+  Method        method;
+  IMP		imp;
   Observation	*list;
   Observation	*o;
   GSIMapTable	m;
@@ -809,20 +811,28 @@ static NSNotificationCenter *default_center = nil;
     [NSException raise: NSInvalidArgumentException
 		format: @"Null selector passed to addObserver ..."];
 
-#if	defined(DEBUG)
-  if ([observer respondsToSelector: selector] == NO)
-    NSLog(@"Observer '%@' does not respond to selector '%@'", observer,
-      NSStringFromSelector(selector));
-#endif
-
-  method = [observer methodForSelector: selector];
-  if (method == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"Observer can not handle specified selector"];
+  cls = object_getClass(observer);
+  method = class_getInstanceMethod(cls, selector);
+  imp = method_getImplementation(method);
+  if (0 == imp)
+    {
+      /* A class may not implement the selector (in which case we can't
+       * cache the method), but if it's going to forward the message to
+       * some other object it must at least say it responds to the
+       * selector.
+       */
+      if ([observer respondsToSelector: selector] == NO)
+        {
+          [NSException raise: NSInvalidArgumentException
+            format: @"[%@-%@] Observer '%@' does not respond to selector '%@'",
+            NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+            observer, NSStringFromSelector(selector)];
+        }
+    }
 
   lockNCTable(TABLE);
 
-  o = obsNew(TABLE, selector, method, observer);
+  o = obsNew(TABLE, selector, imp, observer);
 
   if (object != nil)
     {
@@ -1221,7 +1231,15 @@ static NSNotificationCenter *default_center = nil;
 	{
           NS_DURING
             {
-              (*o->method)(o->observer, o->selector, notification);
+              if (0 == o->method)
+                {
+                  [o->observer performSelector: o->selector
+                                    withObject: notification];
+                }
+              else
+                {
+                  (*o->method)(o->observer, o->selector, notification);
+                }
             }
           NS_HANDLER
             {
