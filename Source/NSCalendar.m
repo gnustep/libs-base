@@ -79,8 +79,8 @@ typedef struct {
   NSString      *localeID;
   NSTimeZone    *tz; 
   void          *cal;
-  int32_t       firstWeekday;
-  int32_t       minimumDaysInFirstWeek;
+  NSInteger     firstWeekday;
+  NSInteger     minimumDaysInFirstWeek;
 } Calendar; 
 #define my ((Calendar*)_NSCalendarInternal)
 #define aac ((Calendar*)(autoupdatingCalendar->_NSCalendarInternal))
@@ -133,7 +133,7 @@ typedef struct {
   else
     {
       ucal_setAttribute(my->cal, UCAL_FIRST_DAY_OF_WEEK,
-        my->firstWeekday);
+        (int32_t)my->firstWeekday);
     }
 
   if (NSNotFound == my->minimumDaysInFirstWeek)
@@ -144,7 +144,7 @@ typedef struct {
   else
     {
       ucal_setAttribute(my->cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK,
-        my->minimumDaysInFirstWeek);
+        (int32_t)my->minimumDaysInFirstWeek);
     }
 
 #endif
@@ -531,7 +531,7 @@ static NSRecursiveLock *classLock = nil;
 
 - (void) setFirstWeekday: (NSUInteger)weekday
 {
-  my->firstWeekday = (int32_t)weekday;
+  my->firstWeekday = weekday;
 #if GS_USE_ICU == 1
   ucal_setAttribute (my->cal, UCAL_FIRST_DAY_OF_WEEK, my->firstWeekday);
 #endif
