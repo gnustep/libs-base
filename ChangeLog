@@ -1,3 +1,9 @@
+2013-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSScanner.m: improve the algoritm for parsing double values
+        (new algorithm based on public domain pseudo code).. should be more
+        accurate (for bug #38640).
+
 2013-04-08  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSNotificationCenter.m: Fix bug #38680

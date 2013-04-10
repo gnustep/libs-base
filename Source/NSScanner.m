@@ -1215,6 +1215,13 @@ GSScanInt(unichar *buf, unsigned length, int *result)
   return YES;
 }
 
+/* Table of binary powers of 10 represented by bits in a byte.
+ * Used to convert decimal integer exponents to doubles.
+ */
+static double powersOf10[] = {
+  1.0e1, 1.0e2, 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256
+};
+
 /**
  * Scan in a double value in the standard locale ('.' as decimal point).<br />
  * Return YES on success, NO on failure.<br />
@@ -1225,15 +1232,22 @@ BOOL
 GSScanDouble(unichar *buf, unsigned length, double *result)
 {
   unichar	c = 0;
-  double	num = 0.0;
-  long int	exponent = 0;
-  BOOL		negative = NO;
-  BOOL		got_dot = NO;
-  BOOL		got_digit = NO;
+  char          mantissa[20];
+  const char    *ptr;
+  double        *d;
+  double        value;
+  double        e;
+  int	        exponent = 0;
+  BOOL	        negativeMantissa = NO;
+  BOOL		negativeExponent = NO;
   unsigned	pos = 0;
+  int           mantissaLength;
+  int           dotPos = -1;
+  int           hi = 0;
+  int           lo = 0;
 
   /* Skip whitespace */
-  while (pos < length && isspace((NSInteger)buf[pos]))
+  while (pos < length && isspace((int)buf[pos]))
     {
       pos++;
     }
@@ -1247,84 +1261,166 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
 	    pos++;
 	    break;
 	  case '-':
-	    negative = YES;
+            negativeMantissa = YES;
 	    pos++;
 	    break;
 	}
     }
 
-    /* Process number */
-  while (pos < length)
+  /* Scan the mantissa ... at most 18 digits and a decimal point.
+   */
+  for (mantissaLength = 0; pos < length && mantissaLength < 19; pos++)
     {
+      mantissa[mantissaLength] = c = buf[pos];
+      if (!isdigit(c))
+        {
+          if ('.' != c || dotPos >= 0)
+            {
+              break;    // End of mantissa
+            }
+          dotPos = mantissaLength;
+        }
+      mantissaLength++;
+    }
+  if (dotPos < 0)
+    {
+      dotPos = mantissaLength;
+    }
+  else
+    {
+      mantissaLength -= 1;
+    }
+
+  if (0 == mantissaLength)
+    {
+      return NO;        // No mantissa ... not a double
+    }
+  if (19 == mantissaLength
+    || (18 == mantissaLength && pos < length && isdigit(buf[pos])))
+    {
+      return NO;        // Mantissa is too long.
+    }
+  dotPos -= mantissaLength;      // Exponent offset for decimal point
+
+  /* Convert mantissa characters to a double value
+   */
+  for (ptr = mantissa; mantissaLength > 9; mantissaLength -= 1)
+    {
+      c = *ptr;
+      ptr += 1;
+      if ('.' == c)
+        {
+          c = *ptr;
+          ptr += 1;
+        }
+      hi = hi * 10 + (c - '0');
+    }
+  for (; mantissaLength > 0; mantissaLength -= 1)
+    {
+      c = *ptr;
+      ptr += 1;
+      if ('.' == c)
+        {
+          c = *ptr;
+          ptr += 1;
+        }
+      lo = lo * 10 + (c - '0');
+    }
+  value = (1.0e9 * hi) + lo;
+
+  /* Scan the exponent (if any)
+   */
+  if (pos < length && ('E' == (c = buf[pos]) || 'e' == c))
+    {
+      if (++pos >= length)
+        {
+          return NO;    // Missing exponent
+        }
       c = buf[pos];
-      if ((c >= '0') && (c <= '9'))
-	{
-	  /* Ensure that the number being accumulated will not overflow. */
-	  if (num >= (DBL_MAX / 10.000000001))
-	    {
-	      ++exponent;
-	    }
-	  else
-	    {
-	      num = (num * 10.0) + (c - '0');
-	      got_digit = YES;
-	    }
-            /* Keep track of the number of digits after the decimal point.
-	       If we just divided by 10 here, we would lose precision. */
-	  if (got_dot)
-	    {
-	      --exponent;
-	    }
+      if ('-' == c)
+        {
+          negativeExponent = YES;
+          if (++pos >= length)
+            {
+              return NO;    // Missing exponent
+            }
+          c = buf[pos];
         }
-      else if (!got_dot && (c == '.'))
-	{
-	  /* Note that we have found the decimal point. */
-	  got_dot = YES;
+      else if ('+' == c)
+        {
+          if (++pos >= length)
+            {
+              return NO;    // Missing exponent
+            }
+          c = buf[pos];
         }
-      else
-	{
-	  /* Any other character terminates the number. */
-	  break;
+      while (isdigit(c))
+        {
+          exponent = exponent * 10 + (c - '0');
+          if (++pos >= length)
+            {
+              break;
+            }
+          c = buf[pos];
         }
-      pos++;
-    }
-  if (!got_digit)
-    {
-      return NO;
     }
 
-  /* Check for trailing exponent */
-  if ((pos < length) && ((c == 'e') || (c == 'E')))
+  /* Add in the amount to shift the exponent depending on the position
+   * of the decimal point in the mantissa and check the adjusted sign
+   * of the exponent.
+   */
+  if (YES == negativeExponent)
     {
-      int expval;
-
-      pos++;
-      if (GSScanInt(&buf[pos], length - pos, &expval) == YES)
-	{
-      /* Check for exponent overflow */
-	if (num)
-	  {
-	    if ((exponent > 0) && (expval > (LONG_MAX - exponent)))
-	      exponent = LONG_MAX;
-	    else if ((exponent < 0) && (expval < (LONG_MIN - exponent)))
-	      exponent = LONG_MIN;
-	    else
-	      exponent += expval;
-	  }
-	}
-      else
-	{
-	  return NO;
-	}
+      exponent = dotPos - exponent;
     }
-  if (result)
+  else
     {
-      if (num && exponent)
-	num *= pow(10.0, (double) exponent);
-      if (negative)
-	*result = -num;
+      exponent = dotPos + exponent;
+    }
+  if (exponent < 0)
+    {
+      negativeExponent = YES;
+      exponent = -exponent;
+    }
+  else
+    {
+      negativeExponent = NO;
+    }
+  if (exponent > 511)
+    {
+      return NO;        // Maximum exponent exceeded
+    }
+
+  /* Convert the exponent to a double then apply it to the value from
+   * the mantissa.
+   */
+  e = 1.0;
+  for (d = powersOf10; exponent != 0; exponent >>= 1, d += 1)
+    {
+      if (exponent & 1)
+        {
+          e *= *d;
+        }
+    }
+  if (YES == negativeExponent)
+    {
+      value /= e;
+    }
+  else
+    {
+      value *= e;
+    }
+
+  if (0 != result)
+    {
+      if (YES == negativeMantissa)
+        {
+          *result = -value;
+        }
       else
-	*result = num;
+        {
+          *result = value;
+        }
     }
   return YES;
 }
