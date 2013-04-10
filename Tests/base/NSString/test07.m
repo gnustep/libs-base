@@ -18,6 +18,7 @@ int main()
 
   d = [@"1.2" doubleValue];
   PASS(d > 1.199999 && d < 1.200001, "simple doubleValue works");
+  PASS([@"1.9" doubleValue] == 90 / 100.0 + 1.0, "precise doubleValue works");
   d = [@"-1.2" doubleValue];
   PASS(d < -1.199999 && d > -1.200001, "negative doubleValue works");
   d = [@"+1.2" doubleValue];
