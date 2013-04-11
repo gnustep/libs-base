@@ -8,6 +8,7 @@ int main()
   NSMutableURLRequest *mutable;
   NSURLConnection *connection;
   NSURLResponse *response;
+  NSURLRequest *request;
   NSError *error;
   NSData *data;
   NSURL *httpURL;
@@ -36,7 +37,7 @@ int main()
                                            error: &error];
   PASS(data != nil && [data length] > 0,
     "NSURLConnection synchronously load data from an http URL");
-  PASS(response != nil && [response statusCode] > 0,
+  PASS(response != nil && [(NSHTTPURLResponse*)response statusCode] > 0,
     "NSURLConnection synchronous load returns a response");
 
   path = [[NSFileManager defaultManager] currentDirectoryPath];
@@ -47,6 +48,17 @@ int main()
                                            error: &error];
   PASS(data != nil && [data length] > 0,
     "NSURLConnection synchronously load data from a local file");
+
+  request = [NSURLRequest requestWithURL:
+    [NSURL URLWithString:@"https://www.google.com/"]];
+  response = nil;
+  error = nil;
+  data = [NSURLConnection sendSynchronousRequest: request
+                               returningResponse: &response
+                                           error: &error];
+
+  PASS(nil == error, "https://www.google.com/ does not return an error")
+  PASS(nil != data, "https://www.google.com/ returns data")
 
   [arp release]; arp = nil;
   return 0;
