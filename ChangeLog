@@ -1,3 +1,8 @@
+2013-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSPortCoder.m:
+        Fix bug looking up class version information.
+
 2013-04-10  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSScanner.m: improve the algoritm for parsing double values
