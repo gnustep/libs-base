@@ -422,7 +422,8 @@ static unsigned	encodingVersion;
     {
       unsigned	count = GSIArrayCount(_clsAry);
 
-      while (count-- > 0)
+      // Zero'th item is nul
+      while (count-- > 1)
 	{
 	  RELEASE(GSIArrayItemAtIndex(_clsAry, count).obj);
 	}
@@ -2042,10 +2043,11 @@ static unsigned	encodingVersion;
     }
   if ([_cInfo count] == 0)
     {
-      while (count-- > 0)
+      // Zero'th item is nul
+      while (count-- > 1)
 	{
 	  info = GSIArrayItemAtIndex(_clsAry, count).obj;
-	  if (info->class != 0)
+	  if (0 != info->class)
 	    {
 	      [_cInfo setObject: info forKey: NSStringFromClass(info->class)];
 	    }
