@@ -666,15 +666,6 @@ callCXXConstructors(Class aClass, id anObject)
  */
 #if	GS_WITH_GC
 
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
-  /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
-   */
-  return NSDefaultMallocZone();
-}
-
 static void
 GSFinalize(void* object, void* data)
 {
@@ -763,23 +754,7 @@ NSDeallocateObject(id anObject)
 
 #else	/* GS_WITH_GC */
 
-#if !__OBJC_GC__
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
-  if (object_getClass(object) == NSConstantStringClass)
-    return NSDefaultMallocZone();
-  return NSZoneFromPointer(object);
-}
-#endif
-
 #if __OBJC_GC__
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  return NSDefaultMallocZone();
-}
 static inline id
 GSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone);
 
@@ -1417,7 +1392,7 @@ static id gs_weak_load(id obj)
 #ifdef OBJC_SMALL_OBJECT_MASK
   if (((NSUInteger)self & OBJC_SMALL_OBJECT_MASK) == 0)
 #endif
-  destructorClass = isa;
+  destructorClass = object_getClass(self);
 
   /* C++ destructors must be called in the opposite order to their
    * creators, so start at the leaf class and then go up the tree until we

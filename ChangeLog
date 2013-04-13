@@ -1,3 +1,11 @@
+2013-04-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GNUstep.h: NSInteger/NSUInteger cleanup.
+	* Source/NSAffineTransform.m: Fix -isEqual: for subclassing.
+	* Source/NSObject.m: Remove previously deprecarted function
+	* Source/NSProxy.m: Avoid compiler warning
+	* Source/NSDistantObject.m: Avoid compiler warning
+
 2013-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSPortCoder.m:

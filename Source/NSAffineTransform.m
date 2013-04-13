@@ -578,13 +578,18 @@ static NSAffineTransformStruct identityTransform = {
 
 - (BOOL) isEqual: (id)anObject
 {
-  if ([anObject class] == isa)
+  if (anObject == self)
     {
-      NSAffineTransform	*o = anObject;
+      return YES;
+    }
+  if (YES == [anObject isKindOfClass: [NSAffineTransform class]])
+    {
+      NSAffineTransformStruct	o = [anObject transformStruct];
 
-      if (A == o->A && B == o->B && C == o->C
-	&& D == o->D && TX == o->TX && TY == o->TY)
-	return YES;
+      if (0 == memcmp((void*)&o, (void*)&_matrix, sizeof(o)))
+	{
+	  return YES;
+	}
     }
   return NO;
 }
