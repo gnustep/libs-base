@@ -338,19 +338,22 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
 /**
  * To be used inside a method for making sure that a range does not specify
  * anything outside the size of an array/string.  Raises exception if range
- * extends beyond [0,size).
+ * extends beyond [0,size]. Size must be an unsigned integer (NSUInteger).
  */
 #define GS_RANGE_CHECK(RANGE, SIZE) \
-  if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
-    [NSException raise: NSRangeException \
-                 format: @"in %s, range { %u, %u } extends beyond size (%u)", \
-		 GSNameFromSelector(_cmd), RANGE.location, RANGE.length, SIZE]
+  if (RANGE.location > (NSUInteger)SIZE \
+    || RANGE.length > ((NSUInteger)SIZE - RANGE.location)) \
+    [NSException raise: NSRangeException format: @"in %s, range { %"\
+      PRIuPTR", %"PRIuPTR" } extends beyond size (%"PRIuPTR")", \
+      GSNameFromSelector(_cmd), RANGE.location, RANGE.length, (NSUInteger)SIZE]
 
-/** Checks whether INDEX is strictly less than OVER (within C array space). */
+/** Checks whether INDEX is strictly less than OVER (within C array space).
+ * INDEX and OVER must be unsigned integers (NSUInteger).
+ */
 #define CHECK_INDEX_RANGE_ERROR(INDEX, OVER) \
-if (INDEX >= OVER) \
+if ((NSUInteger)INDEX >= (NSUInteger)OVER) \
   [NSException raise: NSRangeException \
-               format: @"in %s, index %d is out of range", \
-               GSNameFromSelector(_cmd), INDEX]
+    format: @"in %s, index %"PRIuPTR" is out of range", \
+    GSNameFromSelector(_cmd), (NSUInteger)INDEX]
 
 #endif /* __GNUSTEP_GNUSTEP_H_INCLUDED_ */
