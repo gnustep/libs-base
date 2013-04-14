@@ -238,8 +238,7 @@ static SEL	appSel;
  */
 - (NSEnumerator*) keyEnumerator
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return [self subclassResponsibility: _cmd];
 }
 
 /**
@@ -248,8 +247,7 @@ static SEL	appSel;
  */
 - (id) objectForKey: (id)aKey
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  return [self subclassResponsibility: _cmd];
 }
 
 - (id) objectForKeyedSubscript: (id)aKey
@@ -262,8 +260,7 @@ static SEL	appSel;
  */
 - (NSEnumerator*) objectEnumerator
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return [self subclassResponsibility: _cmd];
 }
 
 /**
@@ -1230,8 +1227,8 @@ compareIt(id o1, id o2, void* context)
                                    objects: (__unsafe_unretained id[])stackbuf
                                      count: (NSUInteger)len
 {
-    [self subclassResponsibility: _cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 @end
 

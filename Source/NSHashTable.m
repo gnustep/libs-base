@@ -98,7 +98,7 @@ static Class	concreteClass = 0;
 }
 
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
-		capacity: (NSUInteger)initialCapacity
+		       capacity: (NSUInteger)initialCapacity
 {
   [self subclassResponsibility: _cmd];
   return nil;
