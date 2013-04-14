@@ -638,7 +638,9 @@ static NSLock			*placeholderLock;
 	    [coder decodeArrayOfObjCType: @encode(unsigned char)
 				   count: size
 				      at: (void*)serialized];
-	    d = [d initWithBytesNoCopy: (void*)serialized length: size];
+	    d = [d initWithBytesNoCopy: (void*)serialized
+				length: size
+			  freeWhenDone: NO];
 	    [d deserializeDataAt: data
 		      ofObjCType: objctype
 			atCursor: &cursor
