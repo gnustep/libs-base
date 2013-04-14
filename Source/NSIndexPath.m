@@ -443,7 +443,6 @@ static	NSIndexPath	*dummy = nil;
       if (NSDecrementExtraRefCountWasZero(self))
 	{
 	  [self dealloc];
-	  self = nil;
 	}
       [lock unlock];
     }

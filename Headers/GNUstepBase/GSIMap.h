@@ -30,11 +30,13 @@
 #if	defined(GNUSTEP_BASE_INTERNAL)
 #import "Foundation/NSObject.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSZone.h"
 #else
 #import <Foundation/NSObject.h>
 #import <Foundation/NSEnumerator.h>
+#import <Foundation/NSException.h>
 #import <Foundation/NSGarbageCollector.h>
 #import <Foundation/NSZone.h>
 #endif
@@ -619,6 +621,10 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
 	  map->freeNodes = newNodes;
 	}
     }
+  else
+    {
+      [NSException raise: NSMallocException format: @"No memory for nodes"];
+    }
 }
 
 static INLINE GSIMapNode 
@@ -1056,10 +1062,6 @@ GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
     {
       GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
       node = map->freeNodes;
-      if (node == 0)
-	{
-	  return 0;
-	}
     }
   map->freeNodes = node->nextInBucket;
   GSI_MAP_WRITE_KEY(map, &node->key, key);
@@ -1079,10 +1081,6 @@ GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
     {
       GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
       node = map->freeNodes;
-      if (node == 0)
-	{
-	  return 0;
-	}
     }
   map->freeNodes = node->nextInBucket;
   GSI_MAP_WRITE_KEY(map, &node->key, key);
@@ -1104,10 +1102,6 @@ GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
     {
       GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
       node = map->freeNodes;
-      if (node == 0)
-	{
-	  return 0;
-	}
     }
   map->freeNodes = node->nextInBucket;
   GSI_MAP_WRITE_KEY(map, &node->key, key);
@@ -1126,10 +1120,6 @@ GSIMapAddKey(GSIMapTable map, GSIMapKey key)
     {
       GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
       node = map->freeNodes;
-      if (node == 0)
-	{
-	  return 0;
-	}
     }
   map->freeNodes = node->nextInBucket;
   GSI_MAP_WRITE_KEY(map, &node->key, key);
