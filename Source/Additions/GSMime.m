@@ -7169,6 +7169,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
       if (sep != ' ' && sep != '-')
 	{
 	  NSLog(@"Server made illegal response ... %@", s);
+          RELEASE(s);
 	  [self _shutdown: [self _response: @"bad format"]];
 	  return;
 	}

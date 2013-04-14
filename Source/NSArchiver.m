@@ -281,20 +281,18 @@ static Class	NSMutableDataMallocClass;
 	}
       bytePtr = &bytes[sizeof(bytes) - byteCount];
     }
+
+  /* We normally store the count as a 32bit integer ... but if it's
+   * very big, we store 0xffffffff and then an additional 64bit value
+   * containing the actual count.
+   */
+  if (count >= 0xffffffff)
+    {
+      c = 0xffffffff;
+    }
   else
     {
-      /* We normally store the count as a 32bit integer ... but if it's
-       * very big, we store 0xffffffff and then an additional 64bit value
-       * containing the actual count.
-       */
-      if (count >= 0xffffffff)
-	{
-	  c = 0xffffffff;
-	}
-      else
-	{
-	  c = count;
-	}
+      c = count;
     }
 
   switch (*type)
