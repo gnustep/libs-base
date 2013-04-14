@@ -609,103 +609,106 @@ GSListModules()
 
 - (NSArray*) symbols
 {
+  if (nil == symbols) 
+    {
+      NSUInteger	count = [addresses count];
+
+      if (count > 0)
+	{
 #if	defined(HAVE_BACKTRACE)
-  if (nil == symbols) 
-    {
-      char	**strs;
-      void	**addr;
-      NSString	**symbolArray;
-      unsigned	count;
-      int 	i;
+	  char		**strs;
+	  void		**addr;
+	  NSString	**symbolArray;
+	  NSUInteger 	i;
 
-      count = [addresses count];
-      addr = alloca(count * sizeof(void*));
-      for (i = 0; i < count; i++)
-	{
-	  addr[i] = (void*)[[addresses objectAtIndex: i] unsignedIntegerValue];
-	}
-
-      strs = backtrace_symbols(addr, count);
-      symbolArray = alloca(count * sizeof(NSString*));
-      for (i = 0; i < count; i++)
-	{
-	  symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
-	}
-      symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
-      free(strs);
-    }
-#elif	defined(USE_BINUTILS)
-  if (nil == symbols) 
-    {
-      NSMutableArray	*a;
-      int i;
-      int n;
-
-      n = [addresses count];
-      a = [[NSMutableArray alloc] initWithCapacity: n];
-
-      for (i = 0; i < n; i++)
-	{
-	  GSFunctionInfo	*aFrame = nil;
-	  void			*address;
-	  void			*base;
-	  NSString		*modulePath;
-	  GSBinaryFileInfo	*bfi;
-
-	  address = (void*)[[addresses objectAtIndex: i] pointerValue];
-	  modulePath = GSPrivateBaseAddress(address, &base);
-	  if (modulePath != nil && (bfi = GSLoadModule(modulePath)) != nil)
+	  addr = alloca(count * sizeof(void*));
+	  for (i = 0; i < count; i++)
 	    {
-	      aFrame = [bfi functionForAddress: (void*)(address - base)];
-	      if (aFrame == nil)
-		{
-		  /* We know we have the right module but function lookup
-		   * failed ... perhaps we need to use the absolute
-		   * address rather than offest by 'base' in this case.
-		   */
-		  aFrame = [bfi functionForAddress: address];
-		}
+	      addr[i] = (void*)[[addresses objectAtIndex: i]
+		unsignedIntegerValue];
 	    }
-	  else
+
+	  strs = backtrace_symbols(addr, count);
+	  symbolArray = alloca(count * sizeof(NSString*));
+	  for (i = 0; i < count; i++)
 	    {
-	      NSArray	*modules;
-	      int		j;
-	      int		m;
+	      symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
+	    }
+	  symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
+	  free(strs);
+#elif	defined(USE_BINUTILS)
+	  NSMutableArray	*a;
+	  NSUInteger 		i;
 
-	      modules = GSListModules();
-	      m = [modules count];
-	      for (j = 0; j < m; j++)
+	  a = [[NSMutableArray alloc] initWithCapacity: count];
+
+	  for (i = 0; i < count; i++)
+	    {
+	      GSFunctionInfo	*aFrame = nil;
+	      void		*address;
+	      void		*base;
+	      NSString		*modulePath;
+	      GSBinaryFileInfo	*bfi;
+
+	      address = (void*)[[addresses objectAtIndex: i] pointerValue];
+	      modulePath = GSPrivateBaseAddress(address, &base);
+	      if (modulePath != nil && (bfi = GSLoadModule(modulePath)) != nil)
 		{
-		  bfi = [modules objectAtIndex: j];
-
-		  if ((id)bfi != (id)[NSNull null])
+		  aFrame = [bfi functionForAddress: (void*)(address - base)];
+		  if (aFrame == nil)
 		    {
+		      /* We know we have the right module but function lookup
+		       * failed ... perhaps we need to use the absolute
+		       * address rather than offest by 'base' in this case.
+		       */
 		      aFrame = [bfi functionForAddress: address];
-		      if (aFrame != nil)
+		    }
+		}
+	      else
+		{
+		  NSArray	*modules;
+		  int		j;
+		  int		m;
+
+		  modules = GSListModules();
+		  m = [modules count];
+		  for (j = 0; j < m; j++)
+		    {
+		      bfi = [modules objectAtIndex: j];
+
+		      if ((id)bfi != (id)[NSNull null])
 			{
-			  break;
+			  aFrame = [bfi functionForAddress: address];
+			  if (aFrame != nil)
+			    {
+			      break;
+			    }
 			}
 		    }
 		}
-	    }
 
-	  // not found (?!), add an 'unknown' function
-	  if (aFrame == nil)
-	    {
-	      aFrame = [GSFunctionInfo alloc];
-	      [aFrame initWithModule: nil
-			     address: address 
-				file: nil
-			    function: nil
-				line: 0];
-	      [aFrame autorelease];
+	      // not found (?!), add an 'unknown' function
+	      if (aFrame == nil)
+		{
+		  aFrame = [GSFunctionInfo alloc];
+		  [aFrame initWithModule: nil
+				 address: address 
+				    file: nil
+				function: nil
+				    line: 0];
+		  [aFrame autorelease];
+		}
+	      [a addObject: [aFrame description]];
 	    }
-	  [a addObject: [aFrame description]];
-	}
-      symbols = [a copy];
-      [a release];
-    }
+	  symbols = [a copy];
+	  [a release];
 #endif
+	}
+      else
+	{
+	  symbols = [NSArray new];
+	}
+    }
   return symbols;
 }
 

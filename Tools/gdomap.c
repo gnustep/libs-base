@@ -2289,6 +2289,7 @@ handle_accept()
   socklen_t		len = sizeof(sa);
   int			desc;
 
+  memset(&sa, '\0', len);
   desc = accept(tcp_desc, (void*)&sa, &len);
   if (desc >= 0)
     {

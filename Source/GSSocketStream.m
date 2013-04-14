@@ -1361,6 +1361,7 @@ setNonBlocking(SOCKET fd)
       struct sockaddr	sin;
       socklen_t	        size = sizeof(sin);
 
+      memset(&sin, '\0', size);
       if ([key isEqualToString: GSStreamLocalAddressKey])
 	{
 	  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
