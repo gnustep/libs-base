@@ -2077,7 +2077,6 @@ IF_NO_GC(
   if (NSDecrementExtraRefCountWasZero(self))
     {
       [self dealloc];
-      self = nil;
     }
   [load_lock unlock];
 }
@@ -2161,7 +2160,6 @@ IF_NO_GC(
     }
   if ([extension length] == 0)
     {
-      extension = nil;
       file = name;
     }
   else

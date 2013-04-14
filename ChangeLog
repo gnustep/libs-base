@@ -1,3 +1,18 @@
+2013-04-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/GSFormat.m:
+	* Source/GSPrivate.h:
+	* Source/GSString.m:
+	* Source/NSBundle.m:
+	* Source/NSJSONSerialization.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSScanner.m:
+	* Tools/gdomap.c:
+	Tweaks to keep static analyser happy.
+
 2013-04-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GNUstep.h: NSInteger/NSUInteger cleanup.

@@ -561,7 +561,7 @@ parseObject(ParserState *state)
       c = consumeSpace(state);
       if (c == ',')
         {
-          c = consumeChar(state);
+          consumeChar(state);
         }
       c = consumeSpace(state);
     }

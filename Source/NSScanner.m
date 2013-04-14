@@ -1251,20 +1251,25 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
     {
       pos++;
     }
+  if (pos >= length)
+    {
+      return NO;
+    }
 
   /* Check for sign */
-  if (pos < length)
+  switch (buf[pos])
     {
-      switch (buf[pos])
-	{
-	  case '+':
-	    pos++;
-	    break;
-	  case '-':
-            negativeMantissa = YES;
-	    pos++;
-	    break;
-	}
+      case '+':
+	pos++;
+	break;
+      case '-':
+	negativeMantissa = YES;
+	pos++;
+	break;
+    }
+  if (pos >= length)
+    {
+      return NO;
     }
 
   /* Scan the mantissa ... at most 18 digits and a decimal point.
@@ -1280,15 +1285,14 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
             }
           dotPos = mantissaLength;
         }
-      mantissaLength++;
+      else
+	{
+          mantissaLength++;
+	}
     }
   if (dotPos < 0)
     {
       dotPos = mantissaLength;
-    }
-  else
-    {
-      mantissaLength -= 1;
     }
 
   if (0 == mantissaLength)
@@ -1308,22 +1312,12 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
     {
       c = *ptr;
       ptr += 1;
-      if ('.' == c)
-        {
-          c = *ptr;
-          ptr += 1;
-        }
       hi = hi * 10 + (c - '0');
     }
   for (; mantissaLength > 0; mantissaLength -= 1)
     {
       c = *ptr;
       ptr += 1;
-      if ('.' == c)
-        {
-          c = *ptr;
-          ptr += 1;
-        }
       lo = lo * 10 + (c - '0');
     }
   value = (1.0e9 * hi) + lo;

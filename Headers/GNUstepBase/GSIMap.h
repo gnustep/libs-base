@@ -484,10 +484,11 @@ GSIMapRemoveAndFreeNode(GSIMapTable map, uintptr_t bkt, GSIMapNode node)
 static INLINE void
 GSIMapRemoveWeak(GSIMapTable map)
 {
-  uintptr_t bucketCount = map->bucketCount;
-  GSIMapBucket bucket = map->buckets;
   if (GSI_MAP_ZEROED(map))
     {
+      uintptr_t bucketCount = map->bucketCount;
+      GSIMapBucket bucket = map->buckets;
+
       while (bucketCount-- > 0)
         {
           GSIMapNode node = bucket->firstNode;
@@ -627,7 +628,8 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 
   if (GSI_MAP_ZEROED(map))
     {
-      while ((node != 0) && GSI_MAP_EQUAL(map, GSI_MAP_READ_KEY(map, &node->key), key) == NO)
+      while ((node != 0)
+	&& GSI_MAP_EQUAL(map, GSI_MAP_READ_KEY(map, &node->key), key) == NO)
 	{
 	  GSIMapNode	tmp = node->nextInBucket;
 
@@ -640,7 +642,8 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 	}
       return node;
     }
-  while ((node != 0) && GSI_MAP_EQUAL(map, GSI_MAP_READ_KEY(map, &node->key), key) == NO)
+  while ((node != 0)
+    && GSI_MAP_EQUAL(map, GSI_MAP_READ_KEY(map, &node->key), key) == NO)
     {
       node = node->nextInBucket;
     }
@@ -917,7 +920,8 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 
   /* Find the frst available non-zeroed node.
    */
-  if (node != 0 && GSI_MAP_ZEROED(map) && GSI_MAP_READ_KEY(map, &node->key).addr == 0)
+  if (node != 0 && GSI_MAP_ZEROED(map)
+    && GSI_MAP_READ_KEY(map, &node->key).addr == 0)
     {
       uintptr_t		bucketCount = map->bucketCount;
       uintptr_t		bucket = ((_GSIE)enumerator)->bucket;
