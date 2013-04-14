@@ -1317,7 +1317,6 @@ static NSMutableDictionary      *credentialsCache = nil;
             }
         }
       setup = YES;
-      trust = NO;
 
       ca = [opts objectForKey: GSTLSCAFile];
       dca = caFile;
@@ -1694,13 +1693,15 @@ static NSMutableDictionary      *credentialsCache = nil;
       break;
     }                           /* switch */
 
-#if 0
   if (ecdh != 0)
     {
       [str appendFormat: _(@"- Ephemeral ECDH using curve %s\n"),
+#if 1
+	"curve not available"];
+#else
         gnutls_ecc_curve_get_name(gnutls_ecc_curve_get(session))];
-    }
 #endif
+    }
   if (dhe != 0)
     {
       [str appendFormat: _(@"- Ephemeral DH using prime of %d bits\n"),

@@ -917,7 +917,6 @@ static NSURLProtocol	*placeholder = nil;
       if (YES == wasInHeaders && NO == isInHeaders)
         {
 	  GSMimeHeader		*info;
-	  NSString		*enc;
 	  int			len = -1;
 	  NSString		*ct;
 	  NSString		*st;
@@ -950,11 +949,15 @@ static NSURLProtocol	*placeholder = nil;
 	    }
 
 	  s = [info objectForKey: NSHTTPPropertyStatusReasonKey];
+
+/* Should use this?
+	  NSString		*enc;
 	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
 	  if (enc == nil)
 	    {
 	      enc = [[document headerNamed: @"transfer-encoding"] value];
 	    }
+*/
 
 	  info = [document headerNamed: @"content-type"];
 	  ct = [document contentType];
