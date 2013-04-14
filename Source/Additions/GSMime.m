@@ -429,10 +429,12 @@ decodeWord(unsigned char *dst, const unsigned char *src, const unsigned char *en
 	  NSUInteger	i;
 
 	  for (i = pos; i < 4; i++)
-	    buf[i] = '\0';
+	    {
+	      buf[i] = '\0';
+	    }
 	  pos--;
+	  decodebase64(dst, buf);
 	}
-      decodebase64(dst, buf);
       dst += pos;
       *dst = '\0';
       return dst;
