@@ -14,6 +14,36 @@ int main()
   NSString      *val;
   NSString      *raw;
 
+  PASS_EQUAL([GSMimeDocument encodeBase64String: @""],
+    @"", "base64 encoding vector 1")
+  PASS_EQUAL([GSMimeDocument encodeBase64String: @"f"],
+    @"Zg==", "base64 encoding vector 2")
+  PASS_EQUAL([GSMimeDocument encodeBase64String: @"fo"],
+    @"Zm8=", "base64 encoding vector 3")
+  PASS_EQUAL([GSMimeDocument encodeBase64String: @"foo"],
+    @"Zm9v", "base64 encoding vector 4")
+  PASS_EQUAL([GSMimeDocument encodeBase64String: @"foob"],
+    @"Zm9vYg==", "base64 encoding vector 5")
+  PASS_EQUAL([GSMimeDocument encodeBase64String: @"fooba"],
+    @"Zm9vYmE=", "base64 encoding vector 6")
+  PASS_EQUAL([GSMimeDocument encodeBase64String: @"foobar"],
+    @"Zm9vYmFy", "base64 encoding vector 7")
+
+  PASS_EQUAL([GSMimeDocument decodeBase64String: @""],
+    @"", "base64 decoding vector 1")
+  PASS_EQUAL([GSMimeDocument decodeBase64String: @"Zg=="],
+    @"f", "base64 decoding vector 2")
+  PASS_EQUAL([GSMimeDocument decodeBase64String: @"Zm8="],
+    @"fo", "base64 decoding vector 3")
+  PASS_EQUAL([GSMimeDocument decodeBase64String: @"Zm9v"],
+    @"foo", "base64 decoding vector 4")
+  PASS_EQUAL([GSMimeDocument decodeBase64String: @"Zm9vYg=="],
+    @"foob", "base64 decoding vector 5")
+  PASS_EQUAL([GSMimeDocument decodeBase64String: @"Zm9vYmE="],
+    @"fooba", "base64 decoding vector 6")
+  PASS_EQUAL([GSMimeDocument decodeBase64String: @"Zm9vYmFy"],
+    @"foobar", "base64 decoding vector 7")
+
   data = [@"Content-type: application/xxx\r\n" dataUsingEncoding: enc];
   PASS([parser parse:data] && [parser isInHeaders] && (doc != nil),
        "can parse one header");
