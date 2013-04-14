@@ -717,12 +717,12 @@ static inline BOOL timerInvalidated(NSTimer *t)
   GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(nil);
   NSRunLoop             *current = info->loop;
 
-  if (current == nil)
+  if (nil == current)
     {
       current = info->loop = [[self alloc] _init];
       /* If this is the main thread, set up a housekeeping timer.
        */
-      if ([GSCurrentThread() isMainThread] == YES)
+      if (nil != current && [GSCurrentThread() isMainThread] == YES)
         {
           NSAutoreleasePool		*arp = [NSAutoreleasePool new];
           GSRunLoopCtxt	                *context;

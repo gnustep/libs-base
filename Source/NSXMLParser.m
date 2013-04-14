@@ -1446,9 +1446,9 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
   len = this->cp - ep - 1;
 
   *result = [self _newEntity: ep length: len];
-  if (entity == *result)
+  if (&entity == result)
     {
-      [entity release]; // Won't be used
+      [*result release]; // Won't be used
     }
   return YES;
 }

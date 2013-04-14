@@ -596,7 +596,7 @@ static NSAffineTransformStruct identityTransform = {
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  NSAffineTransformStruct replace;
+  NSAffineTransformStruct replace = identityTransform;
     
   if ([aCoder allowsKeyedCoding])
     {

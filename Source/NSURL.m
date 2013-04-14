@@ -1439,7 +1439,7 @@ static NSUInteger	urlAlign;
           memcpy(tmp, myData->path, l + 1);
 	}
     }
-  else if (_baseURL == nil)
+  else if (nil == _baseURL)
     {
       if (myData->path != 0)
 	{
@@ -1447,7 +1447,7 @@ static NSUInteger	urlAlign;
           memcpy(tmp, myData->path, l + 1);
 	}
     }
-  else if (*myData->path == 0)
+  else if (0 == myData->path || 0 == *myData->path)
     {
       if (baseData->hasNoPath == NO)
 	{

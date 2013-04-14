@@ -29,6 +29,7 @@
 #endif
 
 #import	"GNUstepBase/GSConfig.h"
+#import	"GNUstepBase/GSVersionMacros.h"
 
 /* Set localisation macro for use within the base library itsself.
  */
