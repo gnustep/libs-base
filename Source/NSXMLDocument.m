@@ -437,11 +437,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
       NSUInteger index = 0;
       int count = [[arguments allKeys] count];
 
-      *params = NSZoneCalloc([self zone], ((count + 1) * 2), sizeof(xmlChar *));
+      params = NSZoneCalloc([self zone], ((count + 1) * 2), sizeof(xmlChar *));
       while ((key = [en nextObject]) != nil)
 	{
 	  params[index] = (xmlChar *)XMLSTRING(key);
-	  params[index + 1] = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
+	  params[index + 1]
+            = (xmlChar *)XMLSTRING([arguments objectForKey: key]);
 	  index += 2;
 	}
       params[index] = NULL;
