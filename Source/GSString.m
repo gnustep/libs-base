@@ -1035,8 +1035,14 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     }
   if (length > 0)
     {
-      const void	*original = bytes;
+      const void	*original;
 
+      if (0 == bytes)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"-initWithBytes:lenth:encoding given nul bytes"];
+	}
+      original = bytes;
 #if defined(OBJC_SMALL_OBJECT_SHIFT) && (OBJC_SMALL_OBJECT_SHIFT == 3)
       if (useTinyStrings)
         {
@@ -2632,11 +2638,11 @@ intValue_c(GSStr self)
     }
   else
     {
-      unsigned	len = (end - ptr) < 32 ? (end - ptr) : 31;
-      char	buf[len+1];
+      unsigned int	l = (end - ptr) < 32 ? (end - ptr) : 31;
+      char		buf[32];
 
-      memcpy(buf, ptr, len);
-      buf[len] = '\0';
+      memcpy(buf, ptr, l);
+      buf[l] = '\0';
       return atol((const char*)buf);
     }
 }
@@ -2658,7 +2664,7 @@ intValue_u(GSStr self)
   else
     {
       unsigned int	l = (end - ptr) < 32 ? (end - ptr) : 31;
-      unsigned char	buf[l+1];
+      unsigned char	buf[32];
       unsigned char	*b = buf;
 
       GSFromUnicode(&b, &l, ptr, l, internalEncoding, 0, GSUniTerminate);
@@ -4593,6 +4599,15 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     {
       fixBOM((unsigned char**)&bytes, &length, &shouldFree, encoding);
       chars = (unsigned char*)bytes;
+    }
+  if (0 == length)
+    {
+      return [self initWithCapacity: 0];
+    }
+  if (0 == chars)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"-initWithBytes:lenth:encoding given nul bytes"];
     }
 
   if (encoding == NSUTF8StringEncoding)

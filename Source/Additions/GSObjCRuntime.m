@@ -443,8 +443,6 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
   Class		newClass;
   Class		classSuperClass;
   const char	*classNameCString;
-  char		*tmp;
-  int		len;
 
   NSCAssert(name, @"no name");
   NSCAssert(superName, @"no superName");
@@ -455,12 +453,6 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
   NSCAssert1(!NSClassFromString(name), @"A class %@ already exists", name);
 
   classNameCString = [name UTF8String];
-  len = strlen(classNameCString);
-  tmp = malloc(len + 1);
-  strncpy(tmp, classNameCString, len);
-  tmp[len] = '\0';
-  classNameCString = tmp;
-
   newClass = objc_allocateClassPair(classSuperClass, classNameCString, 0);
   if ([iVars count] > 0)
     {

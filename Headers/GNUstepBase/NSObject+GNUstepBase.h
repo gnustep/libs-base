@@ -144,7 +144,7 @@ extern "C" {
  * it is released during process exit if cleanup is enabled.<br />
  * Returns its argument.
  */
-+ (id) leak: (id)anObject;
++ (id) NS_RETURNS_RETAINED leak: (id)anObject;
 
 /** This method retains the object at *anAddress so that it will never be
  * deallocated during normal operation, but keeps track of the address
@@ -152,7 +152,7 @@ extern "C" {
  * exit if cleanup is enabled.<br />
  * Returns the object at *anAddress.
  */
-+ (id) leakAt: (id*)anAddress;
++ (id) NS_RETURNS_RETAINED leakAt: (id*)anAddress;
 
 /** Sets the receiver to have its +atExit method called at the point when
  * the process terminates.<br />

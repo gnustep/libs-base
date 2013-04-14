@@ -185,6 +185,8 @@ static struct in_addr	class_b_mask;
 static unsigned long	class_c_net;
 struct in_addr	class_c_mask;
 
+static char	*local_hostname = 0;
+
 /*
  *	Predeclare some of the functions used.
  */
@@ -921,16 +923,18 @@ prb_add(struct in_addr *p)
    * If we already have an entry for this address, remove it from the list
    * ready for re-insertion in the correct place.
    */
-  for (i = 0; i < prb_used; i++)
+  i = prb_used;
+  while (i-- > 0)
     {
       if (memcmp(&prb[i]->sin, p, IASIZE) == 0)
 	{
 	  n = prb[i];
-	  for (i++; i < prb_used; i++)
+	  prb_used--;
+	  while (i++ < prb_used)
 	    {
 	      prb[i-1] = prb[i];
 	    }
-	  prb_used--;
+	  break;
 	}
     }
 
@@ -938,9 +942,9 @@ prb_add(struct in_addr *p)
    * Create a new entry structure if necessary.
    * Set the current time in the structure, so we know when we last had contact.
    */
-  if (n == 0)
+  if (0 == n)
     {
-      n = (prb_type*)malloc(sizeof(prb_type));
+      n = (prb_type*)calloc(sizeof(prb_type), 1);
       n->sin = *p;
     }
   n->when = time(0);
@@ -950,25 +954,21 @@ prb_add(struct in_addr *p)
    */
   if (prb_used >= prb_size)
     {
-      int	size = (prb_size + 16) * sizeof(prb_type*);
-
-      if (prb_size)
+      prb_size = prb_used + 16;
+      if (prb)
 	{
-	  prb = (prb_type**)realloc(prb, size);
-	  prb_size += 16;
+	  prb = (prb_type**)realloc(prb, prb_size * sizeof(prb_type*));
 	}
       else
 	{
-	  prb = (prb_type**)malloc(size);
-	  prb_size = 16;
+	  prb = (prb_type**)calloc(prb_size * sizeof(prb_type*), 1);
 	}
     }
 
   /*
    * Append the new item at the end of the list.
    */
-  prb[prb_used] = n;
-  prb_used++;
+  prb[prb_used++] = n;
 }
 
 
@@ -979,20 +979,18 @@ prb_add(struct in_addr *p)
 static void
 prb_del(struct in_addr *p)
 {
-  unsigned int	i;
+  unsigned int	i = prb_used;
 
-  for (i = 0; i < prb_used; i++)
+  while (i-- > 0)
     {
       if (memcmp(&prb[i]->sin, p, IASIZE) == 0)
 	{
-	  unsigned int	j;
-
 	  free(prb[i]);
-	  for (j = i + 1; j < prb_used; j++)
-	    {
-	      prb[j-1] = prb[j];
-	    }
 	  prb_used--;
+	  while (i++ < prb_used)
+	    {
+	      prb[i - 1] = prb[i];
+	    }
 	  return;
 	}
     }
@@ -1005,10 +1003,10 @@ prb_del(struct in_addr *p)
 static void
 prb_tim(time_t when)
 {
-  int	i;
+  int	i = prb_used;
 
   when -= 1800;
-  for (i = prb_used - 1; i >= 0; i--)
+  while (i-- > 0)
     {
       if (noprobe == 0 && prb[i]->when < when && prb[i]->when < last_probe)
 	{
@@ -1330,7 +1328,7 @@ init_iface()
   if (addr != 0) free(addr);
   addr = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
   if (bcok != 0) free(bcok);
-  bcok = (unsigned char*)malloc((MAX_IFACE+1)*sizeof(char));
+  bcok = (unsigned char*)malloc((MAX_IFACE+1)*sizeof(unsigned char));
   if (bcst != 0) free(bcst);
   bcst = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
   if (mask != 0) free(mask);
@@ -1563,7 +1561,7 @@ load_iface(const char* from)
   num_iface++;
   addr = (struct in_addr*)malloc((num_iface+1)*IASIZE);
   mask = (struct in_addr*)malloc((num_iface+1)*IASIZE);
-  bcok = (unsigned char*)malloc((num_iface+1)*sizeof(char));
+  bcok = (unsigned char*)malloc((num_iface+1)*sizeof(unsigned char));
   bcst = (struct in_addr*)malloc((num_iface+1)*IASIZE);
 
   addr[interfaces].s_addr = inet_addr("127.0.0.1");
@@ -2234,7 +2232,7 @@ init_probe()
 	}
       if (indirect)
 	{
-	  struct in_addr	*other;
+	  struct in_addr	*other = 0;
 	  int			elen;
 
 	  /*
@@ -2261,7 +2259,7 @@ init_probe()
 		  queue_probe(&p->addr, addr, len, other, 0);
 		}
 	    }
-	  if (elen > 0)
+	  if (0 != other)
 	    {
 	      free(other);
 	    }
@@ -2677,6 +2675,12 @@ handle_request(int desc)
   map_ent	*m;
 
   ri = getRInfo(desc, 0);
+  if (0 == ri)
+    {
+      snprintf(ebuf, sizeof(ebuf), "request not found on descriptor %d", desc);
+      gdomap_log(LOG_DEBUG);
+      return;
+    }
   type = ri->buf.r.rtype;
   size = ri->buf.r.nsize;
   ptype = ri->buf.r.ptype;
@@ -3056,8 +3060,8 @@ handle_request(int desc)
       unsigned int	j;
 
       free(wi->buf);
-      wi->buf = (char*)malloc(sizeof(unsigned long)
-	+ (prb_used+1)*IASIZE);
+      wi->buf = (char*)calloc(sizeof(unsigned long)
+	+ (prb_used+1)*IASIZE, 1);
       *(unsigned long*)wi->buf = htonl(prb_used+1);
       memcpy(&wi->buf[4], &ri->addr.sin_addr, IASIZE);
 
@@ -3176,7 +3180,7 @@ handle_request(int desc)
 	{
 	  struct in_addr	laddr;
 	  struct in_addr	raddr;
-	  struct in_addr	*other;
+	  struct in_addr	*other = 0;
 	  unsigned int		elen;
 	  void			*rbuf = ri->buf.r.name;
 	  void			*wbuf;
@@ -3184,8 +3188,8 @@ handle_request(int desc)
 	  gdo_req		*r;
 
 	  free(wi->buf);
-	  wi->buf = (char*)calloc(GDO_REQ_SIZE,1);
-	  r = (gdo_req*)wi->buf;
+	  r = (gdo_req*)calloc(GDO_REQ_SIZE, 1);
+	  wi->buf = (char*)r;
 	  wbuf = r->name;
 	  r->rtype = GDO_PREPLY;
 	  r->nsize = IASIZE*2;
@@ -3239,6 +3243,10 @@ handle_request(int desc)
 		  queue_probe(&raddr, &laddr, MAX_EXTRA, &other[elen], 1);
 		}
 	      queue_probe(&raddr, &laddr, elen, other, 1);
+	    }
+	  if (0 != other)
+	    {
+	      free(other);
 	    }
 	}
       else
@@ -3769,7 +3777,10 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       port = 0;
     }
   msg.port = htonl(port);
-  memcpy(msg.name, name, len);
+  if (name && len)
+    {
+      memcpy(msg.name, name, len);
+    }
 
   e = tryWrite(desc, 10, (uptr)&msg, GDO_REQ_SIZE);
   if (e != GDO_REQ_SIZE)
@@ -3867,7 +3878,10 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  gdomap_log(LOG_ERR);
 	  port = 0;
 	}
-      *v = b;
+      if (0 != v)
+	{
+	  *v = b;
+	}
     }
 
   *p = (unsigned short)port;
@@ -3928,14 +3942,13 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 {
   struct sockaddr_in	sin;
   struct hostent*	hp;
-  unsigned short	p = htons(GDOMAP_PORT);
+  unsigned short	p;
   unsigned short	port = 0;
   int			len = strlen(name);
   int			multi = 0;
   int			found = 0;
   int			rval;
   char			*first_dot = 0;
-  char			*local_hostname = 0;
 
   if (len == 0)
     {
@@ -3963,6 +3976,10 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
     {
       p = sp->s_port;		/* Network byte order.	*/
     }
+  else
+    {
+      p = htons(GDOMAP_PORT);
+    }
 }
 #endif
 
@@ -3979,14 +3996,6 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
    */
   if (multi || host == 0 || *host == '\0')
     {
-      local_hostname = xgethostname();
-      if (!local_hostname)
-	{
-	  snprintf(ebuf, sizeof(ebuf),
-	    "gethostname() failed: %s", strerror(errno));
-	  gdomap_log(LOG_ERR);
-	  return -1;
-	}
       first_dot = strchr(local_hostname, '.');
       if (first_dot)
 	{
@@ -4093,7 +4102,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 	    }
 	}
       rval = tryHost(op, len, (unsigned char*)name, ptype, &sin, &port, 0);
-      if (rval != 0 && host == local_hostname)
+      if (rval != 0)
 	{
 	  snprintf(ebuf, sizeof(ebuf),
 	    "failed to contact gdomap on %s(%s) - %s",
@@ -4122,7 +4131,6 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   memcpy(&addr->sin_addr, &sin.sin_addr, sizeof(sin.sin_addr));
   addr->sin_family = AF_INET;
   addr->sin_port = htons(port);
-  free(local_hostname);
   return 1;
 }
 
@@ -4152,12 +4160,11 @@ donames(const char *host)
 {
   struct sockaddr_in	sin;
   struct hostent*	hp;
-  unsigned short	p = htons(GDOMAP_PORT);
+  unsigned short	p;
   unsigned short	num = 0;
   int			rval;
   uptr			b;
   char			*first_dot = 0;
-  char			*local_hostname = NULL;
 
 #if	GDOMAP_PORT_OVERRIDE
   p = htons(GDOMAP_PORT_OVERRIDE);
@@ -4172,6 +4179,10 @@ donames(const char *host)
     {
       p = sp->s_port;		/* Network byte order.	*/
     }
+  else
+    {
+      p = htons(GDOMAP_PORT);
+    }
 }
 #endif
 
@@ -4180,15 +4191,6 @@ donames(const char *host)
       /*
        * If no host name is given, we use the name of the local host.
        */
-
-      local_hostname = xgethostname();
-      if (!local_hostname)
-	{
-	  snprintf(ebuf, sizeof(ebuf),
-	    "gethostname() failed: %s", strerror(errno));
-	  gdomap_log(LOG_ERR);
-	  return;
-	}
       first_dot = strchr(local_hostname, '.');
       if (first_dot)
 	{
@@ -4252,7 +4254,6 @@ donames(const char *host)
 	}
     }
   free(b);
-  free(local_hostname);
 }
 
 static void
@@ -4466,6 +4467,15 @@ main(int argc, char** argv)
   wVersionRequested = MAKEWORD(2, 2);
   WSAStartup(wVersionRequested, &wsaData);
 #endif
+
+  local_hostname = xgethostname();
+  if (!local_hostname)
+    {
+      snprintf(ebuf, sizeof(ebuf),
+	"gethostname() failed: %s", strerror(errno));
+      gdomap_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
+    }
 
   /*
    *	Would use inet_aton(), but older systems don't have it.

@@ -95,7 +95,7 @@ typedef struct objc_category* Category;
  * arrays are allocated on the stack (for speed), but large arrays are
  * allocated from the heap (to avoid stack overflow).
  */
-#if __GNUC__ > 3
+#if __GNUC__ > 3 && !defined(__clang__)
 __attribute__((unused)) static void GSFreeTempBuffer(void **b)
 {
   if (NULL != *b) free(*b);
@@ -110,8 +110,10 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
       P = _base;\
     }
 #else
+/* Make minimum size of _ibuf 1 to avoid compiler warnings.
+ */
 #  define	GS_BEGINITEMBUF(P, S, T) { \
-  T _ibuf[(S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 0]; \
+  T _ibuf[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
   T *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
     : (T*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(T)); \
   T *(P) = _base;
@@ -122,7 +124,7 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
  * arrays of items.  Use GS_BEGINITEMBUF() to start the block of code using
  * the array and this macro to end it.
  */
-#if __GNUC__ > 3
+#if __GNUC__ > 3 && !defined(__clang__)
 # define	GS_ENDITEMBUF() }
 #else
 #  define	GS_ENDITEMBUF() \

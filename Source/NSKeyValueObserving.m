@@ -315,15 +315,25 @@ setup()
 static NSString *newKey(SEL _cmd)
 {
   const char	*name = sel_getName(_cmd);
-  unsigned	len = strlen(name);
+  unsigned	len;
   NSString	*key;
   unsigned	i;
-  NSCAssert(len > 0, @"Invalid selector name!");
 
+  if (0 == _cmd || 0 == (name = sel_getName(_cmd)))
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Missing selector name"];
+    }
+  len = strlen(name);
   if (*name == '_')
     {
       name++;
       len--;
+    }
+  if (len < 5 || name[len-1] != ':' || strncmp(name, "set", 3) != 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Invalid selector name"];
     }
   name += 3;			// Step past 'set'
   len -= 4;			// allow for 'set' and trailing ':'
