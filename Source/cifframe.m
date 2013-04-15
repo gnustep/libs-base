@@ -198,7 +198,7 @@ cifframe_from_signature (NSMethodSignature *info)
       memcpy(cframe->arg_types, arg_types, sizeof(ffi_type *) * numargs);
       cframe->values = buf + offset;
 
-      if (ffi_prep_cif (&cframe->cif, FFI_DEFAULT_ABI, cframe->nargs,
+      if (ffi_prep_cif (&cframe->cif, FFI_DEFAULT_ABI, numargs,
 	rtype, cframe->arg_types) != FFI_OK)
 	{
 	  cframe = NULL;
@@ -213,7 +213,7 @@ cifframe_from_signature (NSMethodSignature *info)
 	    {
 	      offset += align - (offset % align);
 	    }
-	  for (i = 0; i < cframe->nargs; i++)
+	  for (i = 0; i < numargs; i++)
 	    {
 	      cframe->values[i] = buf + offset;
 

@@ -2151,7 +2151,7 @@ failure:
 - (void) resetBytesInRange: (NSRange)aRange
 {
   NSUInteger	size = [self length];
-  void		*bytes = [self bytes];
+  void		*bytes = [self mutableBytes];
 
   GS_RANGE_CHECK(aRange, size);
   if (0 == bytes)
