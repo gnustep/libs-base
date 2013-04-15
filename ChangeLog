@@ -1,3 +1,54 @@
+2013-04-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUmakefile:
+	* Source/unix/GNUmakefile:
+	* Source/unix/NSMetadata.m:
+	* Source/win32/GNUmakefile:
+	* Source/win32/NSMetadata.m:
+	* Source/NSMetadata.m:
+	* Headers/Foundation/NSMetadata.h:
+	Move identical system specific metadata code to generic area so we
+	can have system specific subclasses inherit common functionality.
+	Fix instance variables so we won't break binrary compatibility in
+	future.
+
+2013-04-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* cifframe.m:
+	* GSString.m:
+	* GSTLS.m:
+	* NSArchiver.m:
+	* NSCalendar.m:
+	* NSCoder.m:
+	* NSData.m:
+	* NSDecimal.m:
+	* NSDictionary.m:
+	* NSDistantObject.m:
+	* NSException.m:
+	* NSFileManager.m:
+	* NSHashTable.m:
+	* NSIndexPath.m:
+	* NSLocale.m:
+	* NSMethodSignature.m:
+	* NSNotificationCenter.m:
+	* NSNumberFormatter.m:
+	* NSObject.m:
+	* NSPortCoder.m:
+	* NSProcessInfo.m:
+	* NSProxy.m:
+	* NSRunLoop.m:
+	* NSSocketPort.m:
+	* NSString.m:
+	* NSURL.m:
+	* NSURLProtocol.m:
+	* NSValue.m:
+	* NSXMLDocument.m:
+	* NSXMLNode.m:
+	* NSXMLParser.m:
+	More changes to avoid static analyzer false-positives/non-issues so we
+	can see when real issues arise.  Changes remove around 60 warnings and
+	include about half a dozen minor bugfixes.
+
 2013-04-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSIMap.h:

@@ -33,7 +33,6 @@ SUBPROJECT_NAME = unix
 unix_OBJC_FILES = \
 	GSRunLoopCtxt.m \
 	NSStream.m \
-	NSMetadata.m
 
 -include Makefile.preamble
 
