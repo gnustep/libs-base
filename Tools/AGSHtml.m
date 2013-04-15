@@ -1217,7 +1217,6 @@ static NSString		*mainFont = nil;
 		  if ([[tmp name] isEqual: @"desc"] == YES)
 		    {
 		      desc = tmp;
-		      tmp = [tmp nextElement];
 		    }
 
 		  [buf appendString: indent];
@@ -1256,7 +1255,6 @@ static NSString		*mainFont = nil;
 		    {
 		      [self incIndent];
                       [self outputNode: desc to: buf];
-                      desc = nil;
 		      [self decIndent];
 		    }
 		  [buf appendString: indent];
@@ -1304,7 +1302,6 @@ static NSString		*mainFont = nil;
 	      [buf appendString: @"<p><b>Copyright:</b> (C) "];
 	      [self outputText: [children firstChild] to: buf];
 	      [buf appendString: @"</p>\n"];
-	      children = [children nextElement];
 	    }
 	}
       else if ([name isEqual: @"heading"] == YES)
@@ -1373,10 +1370,13 @@ static NSString		*mainFont = nil;
 	    }
 	  [buf appendFormat: @"%@@%@ %@ <b>%@</b>;<br />\n", indent, v, t, n];
 
+/*
 	  if ([[children name] isEqual: @"desc"] == YES)
 	    {
 	      children = [children nextElement];
 	    }
+*/
+
 	  /*
 	   * List standards with which ivar complies
 	   */
@@ -1867,7 +1867,6 @@ static NSString		*mainFont = nil;
 	  if (node != nil && [[node name] isEqual: @"desc"] == YES)
 	    {
 	      [self outputNode: node to: buf];
-	      node = [node nextElement];
 	    }
 
 	  [buf appendString: indent];
@@ -1962,7 +1961,6 @@ static NSString		*mainFont = nil;
 	    {
 	      NSLog(@"Element '%@' not implemented", name);	// FIXME
 	    }
-	  node = tmp;
 	}
     }
   [arp drain];
@@ -2212,13 +2210,15 @@ static NSString		*mainFont = nil;
           NSDictionary	*dProp = [dItem attributes];
           NSString	*value = [dProp objectForKey: @"value"];
           GSXMLNode	*dChild;
+
           if (![@"dictionaryItem" isEqualToString: [dItem name]])
             {
               continue;
             }
           [buf appendString: indent];
           [buf appendString: @"<dt>"];
-          [buf appendString: [[dProp objectForKey: @"key"] stringByEscapingXML]];
+          [buf appendString:
+	    [[dProp objectForKey: @"key"] stringByEscapingXML]];
           [buf appendString: @" = </dt>\n"];
 	  [buf appendString: indent];
           [buf appendString: @"<dd>\n"];
@@ -2236,8 +2236,8 @@ static NSString		*mainFont = nil;
                   dChild = [dItem firstChild];
                   [buf appendString: indent];
                 }
-              dItem = [self outputBlock: dChild to: buf inPara: NO];
-              //PENDING should check that dItem is what it should be...
+              [self outputBlock: dChild to: buf inPara: NO];
+              //PENDING use returne value  for dItem?
             }
           [buf appendString: @"\n"];
           [self decIndent];

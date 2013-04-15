@@ -872,6 +872,10 @@ main(int argc, char **argv, char **env)
 
   verbose = [defs boolForKey: @"Verbose"];
   warn = [defs boolForKey: @"Warn"];
+  if (YES == warn)
+    {
+      verbose = YES; // Do we want this?
+    }
   ignoreDependencies = [defs boolForKey: @"IgnoreDependencies"];
   showDependencies = [defs boolForKey: @"ShowDependencies"];
   if (ignoreDependencies == YES)

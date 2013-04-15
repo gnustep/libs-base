@@ -1332,11 +1332,16 @@ recheck:
 	  if ([self skipSpaces] < length && buffer[pos] == '(')
 	    {
 	      unsigned	start = pos;
-	      NSString	*attr;
 
 	      [self skipBlock];	// Skip the attributes
-	      attr = [NSString stringWithCharacters: buffer + start
-					     length: pos - start];
+	      if (YES == verbose)
+		{
+		  NSString	*attr;
+
+		  attr = [NSString stringWithCharacters: buffer + start
+						 length: pos - start];
+		  [self log: @"skip __attribute__ %@", attr];
+		}
 	    }
 	  else
 	    {
@@ -2984,7 +2989,6 @@ fail:
 
   if (flag == YES)
     {
-      exist = nil;	// Declaration ... no existing methods.
       methods = [NSMutableDictionary dictionaryWithCapacity: 8];
     }
   else
