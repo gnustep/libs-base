@@ -44,12 +44,15 @@ GS_EXPORT NSString * const NSMetadataItemFSContentChangeDateKey;
 
 @interface NSMetadataItem : NSObject
 {
-  NSMutableDictionary *attributes;
+#if	GS_EXPOSE(NSMetadataItem)
+@private
+  void  *_NSMetadataItemInternal;	/** Private internal data */
+#endif
 }
 
-- (NSArray *)attributes;
-- (id)valueForAttribute: (NSString *)key;
-- (NSDictionary *)valuesForAttributes: (NSArray *)keys;
+- (NSArray *) attributes;
+- (id) valueForAttribute: (NSString *)key;
+- (NSDictionary *) valuesForAttributes: (NSArray *)keys;
 @end
 
 // Metdata Query Constants...
@@ -67,72 +70,61 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
 /* Abstract interface for metadata query... */
 @interface NSMetadataQuery : NSObject
 {
-  BOOL _isStopped;
-  BOOL _isGathering;
-  BOOL _isStarted;
-
-  NSArray *_searchURLs;
-  NSArray *_scopes;
-  NSArray *_sortDescriptors;
-  NSPredicate *_predicate;
-  NSArray *_groupingAttributes;
-  NSArray *_valueListAttributes;
-
-  NSTimeInterval _notificationBatchingInterval;
-  NSMutableDictionary *_results;
-
-  id<NSMetadataQueryDelegate> _delegate;
+#if	GS_EXPOSE(NSMetadataQuery)
+@private
+  void	*_NSMetadataQueryInternal;	/** Private internal data */
+#endif
 }
 
 /* Instance methods */
-- (id)valueOfAttribute:(id)attr forResultAtIndex:(NSUInteger)index;
-- (NSArray *)groupedResults;
-- (NSDictionary *)valueLists;
-- (NSUInteger)indexOfResult:(id)result;
-- (NSArray *)results;
-- (id)resultAtIndex:(NSUInteger)index;
-- (NSUInteger)resultCount;
+- (id) valueOfAttribute: (id)attr forResultAtIndex: (NSUInteger)index;
+- (NSArray *) groupedResults;
+- (NSDictionary *) valueLists;
+- (NSUInteger) indexOfResult: (id)result;
+- (NSArray *) results;
+- (id) resultAtIndex: (NSUInteger)index;
+- (NSUInteger) resultCount;
 
 // Enable/Disable updates
-- (void)enableUpdates;
-- (void)disableUpdates;
+- (void) enableUpdates;
+- (void) disableUpdates;
 
 // Status of the query...
-- (BOOL)isStopped;
-- (BOOL)isGathering;
-- (BOOL)isStarted;
-- (void)stopQuery;
-- (BOOL)startQuery;
+- (BOOL) isStopped;
+- (BOOL) isGathering;
+- (BOOL) isStarted;
+- (void) stopQuery;
+- (BOOL) startQuery;
 
 // Search URLS
-- (void)setSearchItemURLs:(NSArray *)urls;
-- (NSArray *)searchItemURLs;
+- (void) setSearchItemURLs: (NSArray *)urls;
+- (NSArray *) searchItemURLs;
 
 // Search scopes 
-- (void)setSearchScopes:(NSArray *)scopes;
-- (NSArray *)searchScopes;
+- (void) setSearchScopes: (NSArray *)scopes;
+- (NSArray *) searchScopes;
 
 // Notification interval
-- (void)setNotificationBatchingInterval:(NSTimeInterval)interval;
-- (NSTimeInterval)notificationBatchingInterval;
+- (void) setNotificationBatchingInterval: (NSTimeInterval)interval;
+- (NSTimeInterval) notificationBatchingInterval;
 
 // Grouping Attributes.
-- (void)setGroupingAttributes:(NSArray *)attrs;
-- (NSArray *)groupingAttributes;
-- (void)setValueListAttributes:(NSArray *)attrs;
-- (NSArray *)valueListAttributes;
+- (void) setGroupingAttributes: (NSArray *)attrs;
+- (NSArray *) groupingAttributes;
+- (void) setValueListAttributes: (NSArray *)attrs;
+- (NSArray *) valueListAttributes;
 
 // Sort descriptors
-- (void)setSortDescriptors:(NSArray *)attrs;
-- (NSArray *)sortDescriptors;
+- (void) setSortDescriptors: (NSArray *)attrs;
+- (NSArray *) sortDescriptors;
 
 // Predicate
-- (void)setPredicate:(NSPredicate *)predicate;
-- (NSPredicate *)predicate;
+- (void) setPredicate: (NSPredicate *)predicate;
+- (NSPredicate *) predicate;
 
 // Delegate
-- (void)setDelegate:(id<NSMetadataQueryDelegate>)delegate;
-- (id<NSMetadataQueryDelegate>)delegate;
+- (void) setDelegate: (id<NSMetadataQueryDelegate>)delegate;
+- (id<NSMetadataQueryDelegate>) delegate;
 
 @end
 
@@ -140,15 +132,20 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
 #ifdef __OBJC2__
 @optional
 #endif
-- (id)metadataQuery:(NSMetadataQuery *)query replacementObjectForResultObject:(NSMetadataItem *)result;
-- (id)metadataQuery:(NSMetadataQuery *)query replacementValueForAttribute:(NSString *)attribute value:(id)attributeValue;
+- (id) metadataQuery: (NSMetadataQuery *)query
+  replacementObjectForResultObject: (NSMetadataItem *)result;
+- (id) metadataQuery: (NSMetadataQuery *)query
+  replacementValueForAttribute: (NSString *)attribute
+  value: (id)attributeValue;
 @end
 
 @interface NSMetadataQueryAttributeValueTuple : NSObject
 {
-  id         _attribute;
-  id         _value;
-  NSUInteger _count;
+#if	GS_EXPOSE(NSMetadataQueryAttributeValueTuple)
+@private
+  /** Private internal data */
+  void  *_NSMetadataQueryAttributeValueTupleInternal;
+#endif
 }
 
 - (NSString *) attribute;
@@ -159,9 +156,10 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
 
 @interface NSMetadataQueryResultGroup : NSObject
 {
-  NSString *_attribute;
-  id _value;
-  NSMutableArray *_subgroups;
+#if	GS_EXPOSE(NSMetadataQueryResultGroup)
+@private
+  void	*_NSMetadataQueryResultGroupInternal;	/** Private internal data */
+#endif
 }
 
 - (NSString *) attribute;

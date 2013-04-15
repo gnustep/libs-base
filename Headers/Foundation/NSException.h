@@ -357,8 +357,8 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 		    if( !setjmp(NSLocalHandler.jumpState) ) {
 
 #define NS_HANDLER _NSRemoveHandler(&NSLocalHandler); } else { \
-		    NSException *localException;               \
-		    localException = NSLocalHandler.exception; \
+		    NSException __attribute__((unused)) *localException \
+		      = NSLocalHandler.exception; \
 		    {
 
 #define NS_ENDHANDLER }}}

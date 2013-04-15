@@ -102,6 +102,7 @@
 #import	<Foundation/NSProtocolChecker.h>
 #import	<Foundation/NSProxy.h>
 #import	<Foundation/NSRange.h>
+#import	<Foundation/NSRegularExpression.h>
 #import	<Foundation/NSRunLoop.h>
 #import	<Foundation/NSScanner.h>
 #import	<Foundation/NSScriptWhoseTests.h>
