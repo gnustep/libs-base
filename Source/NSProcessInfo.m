@@ -844,10 +844,10 @@ static char	**_gnu_noobjc_env = NULL;
 #else  /* !HAVE_FUNCTION_STRERROR */
   fprintf(stderr, "Couldn't open file %s when starting gnustep-base.\n",
 	   proc_file_name);
-  free(proc_file_name);
 #endif /* HAVE_FUNCTION_STRERROR */
   fprintf(stderr, "Your gnustep-base library is compiled for a kernel supporting the /proc filesystem, but it can't access it.\n");
   fprintf(stderr, "You should recompile or change your kernel.\n");
+  free(proc_file_name);
 #ifdef HAVE_PROGRAM_INVOCATION_NAME
   fprintf(stderr, "We try to go on anyway; but the program will ignore any argument which were passed to it.\n");
   _gnu_noobjc_argc = 1;

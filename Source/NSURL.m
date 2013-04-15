@@ -332,9 +332,12 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	{
 	  *tmp++ = '/';
 	}
-      l = strlen(base->path);
-      memcpy(tmp, base->path, l);
-      tmp += l;
+      if (base->path)
+	{
+	  l = strlen(base->path);
+	  memcpy(tmp, base->path, l);
+	  tmp += l;
+	}
     }
   else
     {
