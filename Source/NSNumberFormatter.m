@@ -644,7 +644,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     {
       BOOL result;
       NSRange range = NSMakeRange (0, [string length]);
-      NSError *outError;
+      NSError *outError = nil;
       
       result = [self getObjectValue: anObject
                           forString: string

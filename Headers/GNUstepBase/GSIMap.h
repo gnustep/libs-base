@@ -620,10 +620,14 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
 	    }
 	  map->freeNodes = newNodes;
 	}
+      else
+	{
+	  [NSException raise: NSMallocException format: @"No memory for nodes"];
+	}
     }
   else
     {
-      [NSException raise: NSMallocException format: @"No memory for nodes"];
+      [NSException raise: NSMallocException format: @"No memory for chunks"];
     }
 }
 
@@ -1190,8 +1194,10 @@ GSIMapCleanMap(GSIMapTable map)
 	  bucket->firstNode = 0;
 	  bucket++;
 	}
-      
-      prevNode->nextInBucket = map->freeNodes;
+      if (prevNode != 0)
+	{
+          prevNode->nextInBucket = map->freeNodes;
+	}
       map->freeNodes = startNode;
     }
 }
