@@ -1,3 +1,8 @@
+2013-04-18      Marcus Muller <znek@mulle-kybernetik.com>
+
+        * Source/NSMetadata.m: Fix to expose variables to compiler building
+        with non-fragile ABI.
+
 2013-04-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile:

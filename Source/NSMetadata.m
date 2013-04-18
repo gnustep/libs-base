@@ -24,6 +24,12 @@
    AutogsdocSource: NSMetadata.m
 */ 
 
++#define EXPOSE_NSMetadataItem_IVARS 1
++#define EXPOSE_NSMetadataQuery_IVARS 1
++#define EXPOSE_NSMetadataQueryAttributeValueTuple_IVARS 1
++#define EXPOSE_NSMetadataQueryResultGroupInternal_IVARS 1
++#define EXPOSE_NSMetadataQueryResultGroup_IVARS 1
+
 #import "Foundation/NSMetadata.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
