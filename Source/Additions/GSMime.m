@@ -1540,7 +1540,7 @@ wordData(NSString *word)
   r = [self _endOfHeaders: d];
   if (r.location == NSNotFound)
     {
-      [data appendData: d];
+      [data appendBytes: [d bytes] length: [d length]];
       bytes = (unsigned char*)[data bytes];
       dataEnd = [data length];
       /* Fall through to parse the headers so far.
@@ -1556,6 +1556,9 @@ wordData(NSString *word)
       dataEnd = [data length];
       if (l > i)
 	{
+          /* NB. Take care ... the data object we create does not own or
+           * free its storage.
+           */
 	  d = [[[NSData alloc] initWithBytesNoCopy: (void*)([d bytes] + i)
 					    length: l - i
 				      freeWhenDone: NO] autorelease];
@@ -1653,7 +1656,12 @@ wordData(NSString *word)
        */
       if ([d length] > 0)
 	{
-          ASSIGNCOPY(boundary, d);
+          /* NB. We must copy the bytes from 'd' as that object doesn't
+           * own its storage.
+           */
+          RELEASE(boundary);
+          boundary = [[NSData alloc] initWithBytes: [d bytes]
+                                            length: [d length]];
 	  flags.excessData = 1;
 	}
     }
