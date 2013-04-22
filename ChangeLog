@@ -1,3 +1,8 @@
+2013-04-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSMime.m: Fix memory management error with excess bytes
+        after parsing mime headers.
+
 2013-04-18      Marcus Muller <znek@mulle-kybernetik.com>
 
         * Source/NSMetadata.m: Fix to expose variables to compiler building
