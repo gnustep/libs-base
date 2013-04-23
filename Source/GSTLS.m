@@ -1178,10 +1178,10 @@ static NSMutableDictionary      *credentialsCache = nil;
     {
       gnutls_certificate_free_credentials(certcred);
       DESTROY(key);
-      DESTROY(list);
-      DESTROY(dhParams);
-      DESTROY(name);
     }
+  DESTROY(list);
+  DESTROY(dhParams);
+  DESTROY(name);
   [super dealloc];
 }
 
