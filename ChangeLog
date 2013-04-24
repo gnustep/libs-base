@@ -1,3 +1,8 @@
+2013-04-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSMime.m: ([GSMimeParser-parse:]) fix possible infinite
+        recursion when encountering a bad document.
+
 2013-04-22  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSMime.m: Fix memory management error with excess bytes

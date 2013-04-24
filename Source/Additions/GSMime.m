@@ -1447,13 +1447,13 @@ wordData(NSString *word)
  */
 - (BOOL) parse: (NSData*)d
 {
-  if (flags.complete == 1)
+  if (1 == flags.complete || 1 == flags.hadErrors)
     {
-      return NO;	/* Already completely parsed! */
+      return NO;	/* Already completely parsed or failed! */
     }
   if ([d length] > 0)
     {
-      if (flags.inBody == 0)
+      if (0 == flags.inBody)
         {
           if ([self parseHeaders: d remaining: &d] == YES)
             {
@@ -1462,7 +1462,7 @@ wordData(NSString *word)
         }
       if ([d length] > 0)
 	{
-	  if (flags.inBody == 1)
+	  if (1 == flags.inBody)
 	    {
 	      /*
 	       * We can't just re-call -parse: ...
@@ -1475,7 +1475,7 @@ wordData(NSString *word)
 	      return [self parse: d];
 	    }
 	}
-      if (flags.complete == 1)
+      if (1 == flags.complete)
 	{
 	  return NO;
 	}
@@ -1483,11 +1483,11 @@ wordData(NSString *word)
     }
   else
     {
-      if (flags.wantEndOfLine == 1)
+      if (1 == flags.wantEndOfLine)
 	{
 	  [self parse: [NSData dataWithBytes: "\r\n" length: 2]];
 	}
-      else if (flags.inBody == 1)
+      else if (1 == flags.inBody)
 	{
 	  [self _decodeBody: d];
 	}
