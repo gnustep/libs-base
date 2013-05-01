@@ -2943,7 +2943,8 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		}
               if (nil == s)
                 {
-                  NSLog(@"Bad header ... illegal characters");
+                  NSLog(@"Bad header ... illegal characters in %@",
+                    [NSData dataWithBytes: beg length: src - beg]);
                   flags.hadErrors = 1;
                   return nil;
                 }
