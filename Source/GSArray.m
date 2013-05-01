@@ -773,7 +773,7 @@ static Class	GSInlineArrayClass;
 
       info = [NSDictionary dictionaryWithObjectsAndKeys:
 	[NSNumber numberWithUnsignedInt: index], @"Index",
-        _contents_array[index], @"OLdObject",
+        _contents_array[index], @"OldObject",
 	self, @"Array", nil, nil];
 
       exception = [NSException exceptionWithName: NSInvalidArgumentException
