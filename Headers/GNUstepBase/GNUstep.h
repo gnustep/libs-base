@@ -344,7 +344,7 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
   if (RANGE.location > (NSUInteger)SIZE \
     || RANGE.length > ((NSUInteger)SIZE - RANGE.location)) \
     [NSException raise: NSRangeException format: @"in %s, range { %"\
-      PRIuPTR", %"PRIuPTR" } extends beyond size (%"PRIuPTR")", \
+      PRIuPTR ", %" PRIuPTR " } extends beyond size (%" PRIuPTR ")", \
       GSNameFromSelector(_cmd), RANGE.location, RANGE.length, (NSUInteger)SIZE]
 
 /** Checks whether INDEX is strictly less than OVER (within C array space).
@@ -353,7 +353,7 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
 #define CHECK_INDEX_RANGE_ERROR(INDEX, OVER) \
 if ((NSUInteger)INDEX >= (NSUInteger)OVER) \
   [NSException raise: NSRangeException \
-    format: @"in %s, index %"PRIuPTR" is out of range", \
+    format: @"in %s, index %" PRIuPTR " is out of range", \
     GSNameFromSelector(_cmd), (NSUInteger)INDEX]
 
 #endif /* __GNUSTEP_GNUSTEP_H_INCLUDED_ */
