@@ -1388,11 +1388,31 @@ static id gs_weak_load(id obj)
 - (void) finalize
 {
   Class	destructorClass = Nil;
-  IMP	destructor = 0;
+  IMP	  destructor = 0;
+  /*
+   * We're pretending to be the Objective-C runtime here, so we have to do some
+   * unsafe things (i.e. access the class directly, and not via the
+   * object_getClass() so that hidden classes get their destructors called.  If
+   * the runtime supports small objects (those embedded in a pointer), then we
+   * must use object_getClass() for them, because they do not have an isa
+   * pointer (but can not have a hidden class interposed).
+   */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-objc-pointer-introspection"
+#pragma clang diagnostic ignored "-Wdeprecated-objc-isa-usage"
 #ifdef OBJC_SMALL_OBJECT_MASK
   if (((NSUInteger)self & OBJC_SMALL_OBJECT_MASK) == 0)
+    {
+      destructorClass = object_getClass(self);
+    }
+  else
+    {
+      destructorClass = isa;
+    }
+#else
+  destructorClass = isa;
 #endif
-  destructorClass = object_getClass(self);
+#pragma clang diagnostic pop
 
   /* C++ destructors must be called in the opposite order to their
    * creators, so start at the leaf class and then go up the tree until we
