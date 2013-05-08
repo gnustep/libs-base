@@ -3704,7 +3704,7 @@ isEqualFunc(const void *item1, const void *item2,
   else
     {
       NSUInteger        offset;
-      uint8_t           *buffer;
+      unichar           *buffer;
 
       if (len < 0x0F)
 	{
@@ -3721,7 +3721,7 @@ isEqualFunc(const void *item1, const void *item2,
       offset = [dest length];
       [dest setLength: offset + sizeof(unichar)*len];
       buffer = [dest mutableBytes] + offset;
-      [string getCharacters: (unichar*)buffer];
+      [string getCharacters: buffer];
 
       // Always store in big-endian, so if machine is little-endian,
       // perform byte-swapping.
