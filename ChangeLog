@@ -1,3 +1,9 @@
+2013-05-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSURLConnection.m: Release delegate immediately after
+        failure or succeess of communicationm (bug #38955).
+        * Source/Additions/Unicode.m: Fix possible read beyond end of buf.
+
 2013-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSMime.m: ([GSMimeParser-parse:]) fix possible infinite
