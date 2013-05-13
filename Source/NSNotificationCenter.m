@@ -155,7 +155,6 @@ struct	NCTbl;		/* Notification Center Table structure	*/
   @public
   __weak id	observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
-  IMP		method;		/* Method implementation.	*/
   struct Obs	*next;		/* Next item in linked list.	*/
   struct NCTbl	*link;		/* Pointer back to chunk table	*/
 }
@@ -169,7 +168,6 @@ struct	NCTbl;		/* Notification Center Table structure	*/
 typedef	struct	Obs {
   id		observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
-  IMP		method;		/* Method implementation.	*/
   struct Obs	*next;		/* Next item in linked list.	*/
   int		retained;	/* Retain count for structure.	*/
   struct NCTbl	*link;		/* Pointer back to chunk table	*/
@@ -248,8 +246,7 @@ static void obsFree(Observation *o);
 #include "GNUstepBase/GSIArray.h"
 
 #define GSI_MAP_RETAIN_KEY(M, X)
-#define GSI_MAP_RELEASE_KEY(M, X) ({if ((((uintptr_t)X.obj) & 1) == 0) \
-  RELEASE(X.obj);})
+#define GSI_MAP_RELEASE_KEY(M, X) ({if (YES == M->extra) RELEASE(X.obj);})
 #define GSI_MAP_HASH(M, X)        doHash(X.obj)
 #define GSI_MAP_EQUAL(M, X,Y)     doEqual(X.obj, Y.obj)
 #define GSI_MAP_RETAIN_VAL(M, X)
@@ -258,7 +255,7 @@ static void obsFree(Observation *o);
 #define GSI_MAP_KTYPES GSUNION_OBJ|GSUNION_NSINT
 #define GSI_MAP_VTYPES GSUNION_PTR
 #define GSI_MAP_VEXTRA Observation*
-#define	GSI_MAP_EXTRA	void*
+#define	GSI_MAP_EXTRA	BOOL
 
 #if	GS_WITH_GC
 #include	<gc/gc_typed.h>
@@ -313,7 +310,7 @@ typedef struct NCTbl {
 #define	LOCKCOUNT	(TABLE->lockCount)
 
 static Observation *
-obsNew(NCTable *t, SEL s, IMP m, id o)
+obsNew(NCTable *t, SEL s, id o)
 {
   Observation	*obs;
 
@@ -373,7 +370,6 @@ obsNew(NCTable *t, SEL s, IMP m, id o)
 #endif
 
   obs->selector = s;
-  obs->method = m;
 #if	GS_WITH_GC
   GSAssignZeroingWeakPointer((void**)&obs->observer, (void*)o);
 #else
@@ -490,6 +486,7 @@ static NCTable *newNCTable(void)
   t->named = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
   GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
+  t->named->extra = YES;        // This table retains keys
 
   t->_lock = [NSRecursiveLock new];
   return t;
@@ -651,10 +648,6 @@ purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
  * extra bit.  This should be ok for the objects we deal with
  * which are all aligned on 4 or 8 byte boundaries on all the machines
  * I know of.
- *
- * We also use this trick to differentiate between map table keys that
- * should be treated as objects (notification names) and those that
- * should be treated as pointers (notification objects)
  */
 #define	CHEATGC(X)	(id)(((uintptr_t)X) | 1)
 
@@ -795,9 +788,6 @@ static NSNotificationCenter *default_center = nil;
                 name: (NSString*)name
 	      object: (id)object
 {
-  Class         cls;
-  Method        method;
-  IMP		imp;
   Observation	*list;
   Observation	*o;
   GSIMapTable	m;
@@ -811,28 +801,17 @@ static NSNotificationCenter *default_center = nil;
     [NSException raise: NSInvalidArgumentException
 		format: @"Null selector passed to addObserver ..."];
 
-  cls = object_getClass(observer);
-  method = class_getInstanceMethod(cls, selector);
-  imp = method_getImplementation(method);
-  if (0 == imp)
+  if ([observer respondsToSelector: selector] == NO)
     {
-      /* A class may not implement the selector (in which case we can't
-       * cache the method), but if it's going to forward the message to
-       * some other object it must at least say it responds to the
-       * selector.
-       */
-      if ([observer respondsToSelector: selector] == NO)
-        {
-          [NSException raise: NSInvalidArgumentException
-            format: @"[%@-%@] Observer '%@' does not respond to selector '%@'",
-            NSStringFromClass([self class]), NSStringFromSelector(_cmd),
-            observer, NSStringFromSelector(selector)];
-        }
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-%@] Observer '%@' does not respond to selector '%@'",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+        observer, NSStringFromSelector(selector)];
     }
 
   lockNCTable(TABLE);
 
-  o = obsNew(TABLE, selector, imp, observer);
+  o = obsNew(TABLE, selector, observer);
 
   if (object != nil)
     {
@@ -1231,15 +1210,8 @@ static NSNotificationCenter *default_center = nil;
 	{
           NS_DURING
             {
-              if (0 == o->method)
-                {
-                  [o->observer performSelector: o->selector
-                                    withObject: notification];
-                }
-              else
-                {
-                  (*o->method)(o->observer, o->selector, notification);
-                }
+              [o->observer performSelector: o->selector
+                                withObject: notification];
             }
           NS_HANDLER
             {

@@ -1,5 +1,15 @@
 2013-05-13  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/ObjectiveC2/runtime.c: when replacing a method, update the
+        cache so we don't use the old version.
+        * Source/NSNotificationCenter.m: trivial tweak to map release code
+        and remove method caching for OSX compatibility :-(
+        * Source/NSPropertyList.m: Fix bug byte swapping unicode in apple
+        binary plist generation.
+        * Tests/base/NSNotification/dynamic.m: Fix crash in testcase.
+
+2013-05-13  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/NSURLConnection.m: Release delegate immediately after
         failure or succeess of communicationm (bug #38955).
         * Source/Additions/Unicode.m: Fix possible read beyond end of buf.
