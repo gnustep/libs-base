@@ -3723,18 +3723,20 @@ isEqualFunc(const void *item1, const void *item2,
       buffer = [dest mutableBytes] + offset;
       [string getCharacters: buffer];
 
-      // Always store in big-endian, so if machine is little-endian,
-      // perform byte-swapping.
-
 #if     !GS_WORDS_BIGENDIAN
+      /* Always store in big-endian, so if machine is little-endian,
+       * perform byte-swapping.
+       */
       {
-	int i;
+        uint8_t *o = (uint8_t*)buffer;
+	int     i;
+
 	for (i = 0; i < len; i++)
 	  {
-	    uint8_t       o = *buffer++;
+	    uint8_t c = *o++;
 
-	    buffer[-1] = *buffer;
-	    *buffer++ = o;
+	    o[-1] = *o;
+            *o++ = c;
 	  }
       }
 #endif
