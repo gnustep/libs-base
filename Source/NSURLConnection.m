@@ -122,7 +122,7 @@ typedef struct
 {
   NSMutableURLRequest		*_request;
   NSURLProtocol			*_protocol;
-  id				_delegate;	// Not retained
+  id				_delegate;
   BOOL				_debug;
 } Internal;
  
@@ -222,7 +222,7 @@ typedef struct
 	}
 
       /* According to bug #35686, Cocoa has a bizarre deviation from the
-       * convention that delegates are not retained here.
+       * convention that delegates are retained here.
        * For compatibility we retain the delegate and release it again
        * when the operation is over.
        */
@@ -319,7 +319,6 @@ typedef struct
 
       collector = [_NSURLConnectionDataCollector new];
       conn = [[self alloc] initWithRequest: request delegate: collector];
-      [collector release];	// retained by connection
       if (nil != conn)
         {
           NSRunLoop	*loop;
@@ -345,6 +344,7 @@ typedef struct
             }
           [conn release];
         }
+      [collector release];
     }
   return data;
 }
@@ -363,7 +363,11 @@ typedef struct
 - (void) URLProtocol: (NSURLProtocol *)protocol
     didFailWithError: (NSError *)error
 {
-  [this->_delegate connection: self didFailWithError: error];
+  id    o = this->_delegate;
+
+  this->_delegate = nil;
+  [o connection: self didFailWithError: error];
+  DESTROY(o);
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
@@ -438,14 +442,18 @@ typedef struct
 
 - (void) URLProtocolDidFinishLoading: (NSURLProtocol *)protocol
 {
-  [this->_delegate connectionDidFinishLoading: self];
+  id    o = this->_delegate;
+
+  this->_delegate = nil;
+  [o connectionDidFinishLoading: self];
+  DESTROY(o);
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
   didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
   [this->_delegate connection: self
-  didCancelAuthenticationChallenge: challenge];
+    didCancelAuthenticationChallenge: challenge];
 }
 
 @end
