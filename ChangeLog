@@ -1,3 +1,8 @@
+2013-05-13  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tests/base/NSArchiver/stringEncoding.m: Use PASS_EQUAL instead
+	of PASS.
+
 2013-05-13  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/ObjectiveC2/runtime.c: when replacing a method, update the

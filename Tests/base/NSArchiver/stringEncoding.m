@@ -13,22 +13,22 @@ int main(int argc, const char **argv)
   {
     NSData *data = [NSKeyedArchiver archivedDataWithRootObject: EszettStr];
     NSString *unarchivedString = [NSKeyedUnarchiver unarchiveObjectWithData: data];
-    
-    PASS([unarchivedString isEqual: EszettStr],
+
+    PASS_EQUAL(unarchivedString, EszettStr,
 	 "'eszett' character roundtrip to binary plist seems to work.");
   }
 
   {
     NSString *plist1String = [NSKeyedUnarchiver unarchiveObjectWithFile: @"eszett1.plist"];
     
-    PASS([plist1String isEqual: EszettStr],
+    PASS_EQUAL(plist1String, EszettStr,
 	 "'eszett' character read from OSX binary plist");
   }
 
   {
     NSString *plist2String = [NSKeyedUnarchiver unarchiveObjectWithFile: @"eszett2.plist"];
     
-    PASS([plist2String isEqual: EszettStr],
+    PASS_EQUAL(plist2String, EszettStr,
 	 "'eszett' character read from GNUstep binary plist");
   }
 
