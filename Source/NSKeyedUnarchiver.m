@@ -139,6 +139,31 @@ static NSMapTable	*globalClassMap = 0;
 
   return o;
 }
+
+
+/**
+ * This method is used to replace oldObj with newObj
+ * in the map that is maintained in NSKeyedUnarchiver.
+ */
+- (BOOL) replaceObject: (id)oldObj withObject: (id)newObj
+{
+  unsigned int i = 0;
+  unsigned int count = GSIArrayCount(_objMap);
+  for (i = 0; i < count; i++)
+    {
+      id obj = GSIArrayItemAtIndex(_objMap, i).obj;
+      if (obj == oldObj)
+        break;
+    }
+
+  if (i < count)
+    {
+      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)newObj, i);
+      return YES;
+    }
+
+  return NO;
+}
 @end
 
 @implementation NSKeyedUnarchiver (Private)
