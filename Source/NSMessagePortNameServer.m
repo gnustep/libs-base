@@ -131,7 +131,7 @@ static void clean_up_names(void)
       NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSFileManager	*mgr;
       NSString		*path;
-      NSString		*pref;
+      NSString		*pid;
       NSString		*file;
       NSEnumerator	*files;
 
@@ -149,34 +149,41 @@ static void clean_up_names(void)
       path = NSTemporaryDirectory();
       path = [path stringByAppendingPathComponent: @"NSMessagePort"];
       path = [path stringByAppendingPathComponent: @"names"];
-      pref = [NSString stringWithFormat: @"%i.",
+      pid = [NSString stringWithFormat: @"%i",
 	[[NSProcessInfo processInfo] processIdentifier]];
       mgr = [NSFileManager defaultManager];
       files = [[mgr directoryContentsAtPath: path] objectEnumerator];
       while ((file = [files nextObject]) != nil)
 	{
           NSString	*old = [path stringByAppendingPathComponent: file];
-	  NSString	*port = [NSString stringWithContentsOfFile: old];
+          NSArray       *lines;
 
-	  if (YES == [port hasPrefix: pref])
-	    {
-	      NSDebugMLLog(@"NSMessagePort", @"Removing old name %@", old);
-	      [mgr removeFileAtPath: old handler: nil];
-	    }
-	  else
-	    {
-	      int	pid = [port intValue];
+	  lines = [[NSString stringWithContentsOfFile: old]
+            componentsSeparatedByString: @"\n"];
+          if ([lines count] == 2)
+            {
+              NSString      *opid = [lines objectAtIndex: 1];
 
-	      if (pid > 0)
-		{
-		  if (NO == [NSProcessInfo _exists: pid])
-		    {
-		      NSDebugMLLog(@"NSMessagePort",
-		        @"Removing old name %@ for process %d", old, pid);
-		      [mgr removeFileAtPath: old handler: nil];
-		    }
-		}
-	    }
+              if (YES == [opid isEqual: pid])
+                {
+                  NSDebugMLLog(@"NSMessagePort", @"Removing old name %@", old);
+                  [mgr removeFileAtPath: old handler: nil];
+                }
+              else if ([opid intValue] > 0)
+                {
+                  if (NO == [NSProcessInfo _exists: [opid intValue]])
+                    {
+                      NSDebugMLLog(@"NSMessagePort",
+                        @"Removing old name %@ for process %@", old, pid);
+                      [mgr removeFileAtPath: old handler: nil];
+                    }
+                }
+            }
+          else
+            {
+              NSDebugMLLog(@"NSMessagePort", @"Removing bad name %@", old);
+              [mgr removeFileAtPath: old handler: nil];
+            }
 	}
       [pool release];
     }
