@@ -1,3 +1,7 @@
+2013-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSMessagePortNameServer.m: fix for bug #38981
+
 2013-05-13  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSKeyedArchiver.h,
