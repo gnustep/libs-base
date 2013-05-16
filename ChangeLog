@@ -1,5 +1,14 @@
 2013-05-16  Ivan Vučica <ivan@vucica.net>
 
+	* Source/GSLocale.m:
+	* configure.ac:
+	Added check for whether there is any useful information in
+	struct lconv. Android doesn't have anything there, despite
+	having locale.h, so it makes little sense to try to access
+	the nonexistent fields in GSLocale.m
+
+2013-05-16  Ivan Vučica <ivan@vucica.net>
+
 	* configure.ac:
 	* cross.config:
 	When cross-compiling, obeying an additional setting for

@@ -2099,6 +2099,19 @@ if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
 		[Define if you have pw_gecos field in struct passwd])
 fi
 
+AC_CACHE_CHECK([for currency_symbol field in struct lconv],
+		ac_cv_have_currency_symbol_in_struct_lconv, [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <locale.h> ]],
+	[[ struct lconv l; l.currency_symbol = NULL; ]])],
+	[ ac_cv_have_currency_symbol_in_struct_lconv="yes" ],
+	[ ac_cv_have_currency_symbol_in_struct_lconv="no" 
+	])
+])
+if test "x$ac_cv_have_currency_symbol_in_struct_lconv" = "xyes" ; then
+	AC_DEFINE([HAVE_CURRENCY_SYMBOL_IN_LCONV], [1],
+		[Define if you have currency_symbol field in struct lconv])
+fi
+
 #--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m
 #--------------------------------------------------------------------
