@@ -1845,11 +1845,16 @@ AC_SUBST(OBJCSYNC)
 #--------------------------------------------------------------------
 # Check for ObjC2 support in runtime
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(objc_setProperty)
-if test $ac_cv_func_objc_setProperty = yes ; then
-  OBJC2RUNTIME=1
+if test "$cross_compiling"="yes"; then
+  AC_MSG_NOTICE(["Cross compiling! Using predefined OBJC2RUNTIME variable"])
+  OBJC2RUNTIME="$cross_objc2_runtime"
 else
-  OBJC2RUNTIME=0
+  AC_CHECK_FUNCS(objc_setProperty)
+  if test $ac_cv_func_objc_setProperty = yes ; then
+    OBJC2RUNTIME=1
+  else
+    OBJC2RUNTIME=0
+  fi
 fi
 AC_SUBST(OBJC2RUNTIME)
 
