@@ -46,7 +46,9 @@ GSSetLocale(int category, NSString *locale)
   return nil;
 }
 
-#ifdef HAVE_LOCALE_H
+#if defined(HAVE_LOCALE_H) && defined(HAVE_CURRENCY_SYMBOL_IN_LCONV)
+/* There is little point in using locale.h if no useful information
+   is exposed through struct lconv. An example platform is Android. */
 
 #include <locale.h>
 #ifdef HAVE_LANGINFO_H
