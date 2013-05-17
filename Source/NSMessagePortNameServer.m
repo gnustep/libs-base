@@ -157,26 +157,24 @@ static void clean_up_names(void)
 	{
           NSString	*old = [path stringByAppendingPathComponent: file];
           NSArray       *lines;
+          NSString      *line;
+          int           opid;
 
 	  lines = [[NSString stringWithContentsOfFile: old]
             componentsSeparatedByString: @"\n"];
-          if ([lines count] == 2)
+          if ([lines count] > 1
+            && (opid = [(line = [lines objectAtIndex: 1]) intValue]) > 0)
             {
-              NSString      *opid = [lines objectAtIndex: 1];
-
-              if (YES == [opid isEqual: pid])
+              if (YES == [line isEqual: pid])
                 {
                   NSDebugMLLog(@"NSMessagePort", @"Removing old name %@", old);
                   [mgr removeFileAtPath: old handler: nil];
                 }
-              else if ([opid intValue] > 0)
+              else if (NO == [NSProcessInfo _exists: opid])
                 {
-                  if (NO == [NSProcessInfo _exists: [opid intValue]])
-                    {
-                      NSDebugMLLog(@"NSMessagePort",
-                        @"Removing old name %@ for process %@", old, pid);
-                      [mgr removeFileAtPath: old handler: nil];
-                    }
+                  NSDebugMLLog(@"NSMessagePort",
+                    @"Removing old name %@ for process %d", old, opid);
+                  [mgr removeFileAtPath: old handler: nil];
                 }
             }
           else

@@ -1,3 +1,8 @@
+2013-05-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSMessagePortNameServer.m: fix error in line count check
+        in last change.
+
 2013-05-16  Ivan Vučica <ivan@vucica.net>
 
 	* Source/GSLocale.m:
