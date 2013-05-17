@@ -1233,7 +1233,11 @@ otherTime(NSDate* other)
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
   if (otherDate == nil)
+#ifndef NAN
     return nan("");
+#else
+    return NAN;
+#endif
 /*
     {
       [NSException raise: NSInvalidArgumentException

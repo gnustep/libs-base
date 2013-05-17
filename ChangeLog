@@ -1,3 +1,9 @@
+2013-05-17  Ivan Vučica <ivan@vucica.net>
+
+	* Source/NSDate.m:
+	In case NAN macro is defined in math.h, prefer that over
+	using the nan() function call.
+
 2013-05-17  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSMessagePortNameServer.m: fix error in line count check
