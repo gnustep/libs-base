@@ -148,7 +148,7 @@ typedef NSUInteger NSStringCompareOptions;
  *  NSGSM0338StringEncoding, NSBIG5StringEncoding,
  *  NSKoreanEUCStringEncoding</code>.</p>
  */
-typedef enum _NSStringEncoding
+enum
 {
 /* NB. Must not have an encoding with value zero - so we can use zero to
    tell that a variable that should contain an encoding has not yet been
@@ -204,7 +204,8 @@ typedef enum _NSStringEncoding
   NSUTF32BigEndianStringEncoding = 0x98000100,
   NSUTF32LittleEndianStringEncoding = 0x9c000100
 #endif
-} NSStringEncoding;
+};
+typedef NSUInteger NSStringEncoding;
 
 enum {
   NSOpenStepUnicodeReservedBase = 0xF400
