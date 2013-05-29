@@ -1,3 +1,9 @@
+2013-05-29 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+	* Headers/Foundation/NSString.h
+	  make NSStringEncoding enum typdef to NSUInteger
+	* Source/Additions/Unicode.m
+	  fix format string to print out NSStringEncoding
+
 2013-05-17  Ivan Vučica <ivan@vucica.net>
 
 	* Source/NSDate.m:
