@@ -1,4 +1,13 @@
+2013-05-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSLock.m: ([-lockWhenCondition:beforeDate:])
+        Lock mutex using -lockBeforeDate: so that we can abandon the wait
+        for the condition at the spacified date in the case where we can't
+        even obtain a lock before that date.
+        Fix for bug #39126
+
 2013-05-29 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
 	* Headers/Foundation/NSString.h
 	  make NSStringEncoding enum typdef to NSUInteger
 	* Source/Additions/Unicode.m

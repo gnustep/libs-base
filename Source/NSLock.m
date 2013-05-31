@@ -404,7 +404,10 @@ MUNLOCK
 - (BOOL) lockWhenCondition: (NSInteger)condition_to_meet
                 beforeDate: (NSDate*)limitDate
 {
-  [_condition lock];
+  if (NO == [_condition lockBeforeDate: limitDate])
+    {
+      return NO;
+    }
   if (condition_to_meet == _condition_value)
     {
       return YES;
