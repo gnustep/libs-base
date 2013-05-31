@@ -100,7 +100,7 @@
 
 #ifndef	GNUSTEP
 
-#import	<CFURL.h>
+#import	<CoreFoundation/CFURL.h>
 
 @implementation NSURL (GNUstepBase)
 
