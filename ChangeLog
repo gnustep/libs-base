@@ -1,3 +1,10 @@
+2013-06-06 Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+	* Source/Additions/Unicode.m
+	  Headers/Foundation/NSString.h
+	  revert my change from 2013-05-29
+	  breaks decoding of .gorm files in NSString for me on amd64
+
 2013-05-31  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSLock.m: ([-lockWhenCondition:beforeDate:])

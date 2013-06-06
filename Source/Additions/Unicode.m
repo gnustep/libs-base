@@ -1350,7 +1350,7 @@ tables:
 	   */
 	  if (estr == 0)
 	    {
-	      NSLog(@"GSToUnicode() No iconv for encoding x%02"PRIxPTR, enc);
+	      NSLog(@"GSToUnicode() No iconv for encoding x%02x", enc);
 	      result = NO;
 	      goto done;
 	    }
@@ -2313,7 +2313,7 @@ iconv_start:
 	   */
 	  if (estr == 0)
 	    {
-	      NSLog(@"GSFromUnicode() No iconv for encoding x%02"PRIxPTR, enc);
+	      NSLog(@"GSFromUnicode() No iconv for encoding x%02x", enc);
 	      result = NO;
 	      goto done;
 	    }
