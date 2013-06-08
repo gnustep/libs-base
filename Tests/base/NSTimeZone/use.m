@@ -50,6 +50,12 @@ int main()
        && [current isDaylightSavingTime] == NO,
        "can set default time zone");
   
+  current = [NSTimeZone timeZoneWithName: @"Europe/Brussels"];
+  date = [current nextDaylightSavingTimeTransitionAfterDate:
+    [NSDate dateWithString: @"2013-06-08 20:00:00 +0200"]];
+  PASS_EQUAL(date, [NSDate dateWithString: @"2013-10-27 03:00:00 +0200"],
+    "can calculate next DST transition");
+  
   START_SET("NSLocale")
   if (!NSLOCALE_SUPPORTED)
     SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
