@@ -166,6 +166,7 @@ NSString * const NSSystemTimeZoneDidChangeNotification
 #endif
 
 #define BUFFER_SIZE 512
+#define WEEK_MILLISECONDS (7.0*24.0*60.0*60.0*1000.0)
 
 #if GS_USE_ICU == 1
 static inline int
@@ -2231,7 +2232,73 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 
 - (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate
 {
+#if GS_USE_ICU == 1
+  /* ICU doesn't provide transition information per se.
+   * The canonical method of retrieving this piece of information is to
+   * use binary search.
+   */
+  
+  int32_t originalOffset, currentOffset;
+  UCalendar *cal;
+  UErrorCode err = U_ZERO_ERROR;
+  UDate currentTime;
+  int i;
+  NSDate* result = nil;
+  
+  cal = ICUCalendarSetup (self, nil);
+  if (cal == NULL)
+    return nil;
+  
+  currentTime = [aDate timeIntervalSince1970] * 1000.0;
+  ucal_setMillis (cal, currentTime, &err);
+  originalOffset = ucal_get (cal, UCAL_DST_OFFSET, &err);
+  if (U_FAILURE(err))
+    return nil;
+
+  /* First try to find the next transition by adding a week at a time */
+  /* Avoid ending in an infinite loop in case there is no transition at all */
+
+  for (i = 0; i < 53; i++)
+    {
+      /* Add a single week */
+      currentTime += WEEK_MILLISECONDS;
+
+	  ucal_setMillis (cal, currentTime, &err);
+	  if (U_FAILURE(err))
+        break;
+
+	  currentOffset = ucal_get (cal, UCAL_DST_OFFSET, &err);
+	  if (U_FAILURE(err))
+        break;
+
+	  if (currentOffset != originalOffset)
+        {
+          double interval = WEEK_MILLISECONDS / 2.0;
+          /* Now use bisection to determine the exact moment */
+
+		  while (interval >= 1.0)
+            {
+              ucal_setMillis (cal, currentTime - interval, &err);
+
+              currentOffset = ucal_get (cal, UCAL_DST_OFFSET, &err);
+
+              if (currentOffset != originalOffset)
+                currentTime -= interval; /* it is in the lower half */
+
+              interval /= 2.0;
+            }
+
+           result =
+             [NSDate dateWithTimeIntervalSince1970: floor(currentTime/1000.0)];
+        }
+    }
+
+  ucal_close (cal);
+  
+  return result;
+#else
   return nil;   // FIXME;
+#endif
 }
 
 - (NSTimeInterval) daylightSavingTimeOffset
