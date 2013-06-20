@@ -94,5 +94,29 @@ typedef retTy(^name)()
 
 #endif /* __has_feature(blocks) */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * _Block_copy and _Block_release are weakly imported, but can be assumed
+ * to be available whenever a feature using blocks is accessed
+ * by an application.
+ */
+
+void *_Block_copy(void *) __attribute__((weak_import));
+void _Block_release(void *) __attribute__((weak_import));
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifndef Block_copy
+#  define Block_copy(x) ((__typeof(x))_Block_copy((void *)(x)))
+#endif
+#ifndef Block_release
+#  define Block_release(x) _Block_release((void *)(x))
+#endif
+
 #endif /* __GSBlocks_h_GNUSTEP_BASE_INCLUDE */
 
