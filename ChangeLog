@@ -1,3 +1,7 @@
+2013-06-21 Lubos Dolezel <lubos@dolezel.info>
+
+	* Headers/GSBlocks.h: weakly import _Block_copy and _Block_release
+
 2013-06-08 Lubos Dolezel <lubos@dolezel.info>
 
 	* Source/NSTimeZone.m
