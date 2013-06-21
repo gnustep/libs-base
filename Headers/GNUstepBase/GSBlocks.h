@@ -104,8 +104,8 @@ extern "C" {
  * by an application.
  */
 
-void *_Block_copy(void *) __attribute__((weak_import));
-void _Block_release(void *) __attribute__((weak_import));
+void *_Block_copy(void *) __attribute__((weak));
+void _Block_release(void *) __attribute__((weak));
 
 #ifdef __cplusplus
 }
