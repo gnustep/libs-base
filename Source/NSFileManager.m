@@ -1047,8 +1047,8 @@ static NSStringEncoding	defaultEncoding;
   attrs = AUTORELEASE([attrs mutableCopy]);
   [(NSMutableDictionary*)attrs removeObjectForKey: NSFileOwnerAccountID];
   [(NSMutableDictionary*)attrs removeObjectForKey: NSFileGroupOwnerAccountID];
-  (NSMutableDictionary*)mattrs removeObjectForKey: NSFileGroupOwnerAccountName];
-  (NSMutableDictionary*)mattrs setObject: NSUserName()
+  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileGroupOwnerAccountName];
+  [(NSMutableDictionary*)attrs setObject: NSUserName()
                                   forKey: NSFileOwnerAccountName];
 
   if ([fileType isEqualToString: NSFileTypeDirectory] == YES)

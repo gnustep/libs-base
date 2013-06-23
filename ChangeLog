@@ -1,3 +1,7 @@
+2013-06-23  Ivan Vucica <ivan@vucica.net>
+
+        * Source/NSFileManager.m: Fixed syntax error.
+
 2013-06-23  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSFileManager.m: Don't attempt to set ownership of copied
