@@ -1,3 +1,9 @@
+2013-06-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSFileManager.m: Don't attempt to set ownership of copied
+        file.  The code was already doing this right for directories, but
+        not for other file types.
+
 2013-06-21 Lubos Dolezel <lubos@dolezel.info>
 
 	* Headers/GSBlocks.h: weakly import _Block_copy and _Block_release
