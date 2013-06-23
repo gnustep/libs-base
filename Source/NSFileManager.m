@@ -1039,31 +1039,32 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
   fileType = [attrs fileType];
+
+  /*
+   * Don't attempt to retain ownership of copy ... we want the copy
+   * to be owned by the current user.
+   */
+  attrs = AUTORELEASE([attrs mutableCopy]);
+  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileOwnerAccountID];
+  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileGroupOwnerAccountID];
+  (NSMutableDictionary*)mattrs removeObjectForKey: NSFileGroupOwnerAccountName];
+  (NSMutableDictionary*)mattrs setObject: NSUserName()
+                                  forKey: NSFileOwnerAccountName];
+
   if ([fileType isEqualToString: NSFileTypeDirectory] == YES)
     {
-      NSMutableDictionary	*mattrs;
 
       /* If destination directory is a descendant of source directory copying
 	  isn't possible. */
       if ([[destination stringByAppendingString: @"/"]
 	hasPrefix: [source stringByAppendingString: @"/"]])
 	{
-	  ASSIGN(_lastError, @"Could not copy - destination is a descendant of source");
+	  ASSIGN(_lastError,
+            @"Could not copy - destination is a descendant of source");
 	  return NO;
 	}
 
       [self _sendToHandler: handler willProcessPath: destination];
-
-      /*
-       * Don't attempt to retain ownership of copy ... we want the copy
-       * to be owned by the current user.
-       */
-      mattrs = [attrs mutableCopy];
-      [mattrs removeObjectForKey: NSFileOwnerAccountID];
-      [mattrs removeObjectForKey: NSFileGroupOwnerAccountID];
-      [mattrs removeObjectForKey: NSFileGroupOwnerAccountName];
-      [mattrs setObject: NSUserName() forKey: NSFileOwnerAccountName];
-      attrs = AUTORELEASE(mattrs);
 
       if ([self createDirectoryAtPath: destination attributes: attrs] == NO)
 	{
