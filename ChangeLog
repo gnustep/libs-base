@@ -1,3 +1,7 @@
+2013-06-24  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Tools/AGSIndex.m (mergeDictionaries): Fix typo in warning.
+
 2013-06-23  Ivan Vucica <ivan@vucica.net>
 
         * Source/NSFileManager.m: Fixed syntax error.
