@@ -277,7 +277,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   m = m * 60;
   c = a - h - m;
   *second = (NSInteger)c;
-  *mil = (NSInteger)((a - h - m - c) * 1000.0 + 0.5);
+  *mil = (NSInteger)((a - h - m - c) * 1000.0);
 }
 
 /**

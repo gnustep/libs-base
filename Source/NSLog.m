@@ -108,7 +108,7 @@ GSLogLock()
 }
 
 static void
-_NSLog_standard_printf_handler (NSString* message)
+_NSLog_standard_printf_handler(NSString* message)
 {
   NSData	*d;
   const char	*buf;
@@ -190,30 +190,34 @@ _NSLog_standard_printf_handler (NSString* message)
   if (GSPrivateDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
     {
-      // QNX's slog has a size limit per entry. We might need to iterate over
-	  // _SLOG_MAXSIZEd chunks of the buffer
+      /* QNX's slog has a size limit per entry. We might need to iterate over
+       * _SLOG_MAXSIZEd chunks of the buffer
+       */
       const char *newBuf = buf;
       unsigned newLen = len;
 
       // Allocate at most _SLOG_MAXSIZE bytes
-	  null_terminated_buf = malloc(sizeof(char) * MIN(newLen, _SLOG_MAXSIZE));
-	  // If it's shorter than that, we never even enter the loop
-	  while (newLen >= _SLOG_MAXSIZE)
-	  {
-        strncpy (null_terminated_buf, newBuf, (_SLOG_MAXSIZE - 1));
-        null_terminated_buf[_SLOG_MAXSIZE] = '\0';
-        slogf(_SLOG_SETCODE(_SLOG_SYSLOG, 0), _SLOG_ERROR, "%s",  null_terminated_buf);
-		newBuf+= (_SLOG_MAXSIZE - 1);
-		newLen-= (_SLOG_MAXSIZE - 1 );
-	  }
-	  // Write out the rest (which will be at most (_SLOG_MAXSIZE - 1) chars, so
-	  // the terminator still fits.
-	  if (0 != newLen)
-	  {
-		  strncpy(null_terminated_buf, newBuf, newLen);
-		  null_terminated_buf[newLen] = '\0';
-          slogf(_SLOG_SETCODE(_SLOG_SYSLOG, 0), _SLOG_ERROR, "%s",  null_terminated_buf);
-	  }
+      null_terminated_buf = malloc(sizeof(char) * MIN(newLen, _SLOG_MAXSIZE));
+      // If it's shorter than that, we never even enter the loop
+      while (newLen >= _SLOG_MAXSIZE)
+        {
+          strncpy(null_terminated_buf, newBuf, (_SLOG_MAXSIZE - 1));
+          null_terminated_buf[_SLOG_MAXSIZE] = '\0';
+          slogf(_SLOG_SETCODE(_SLOG_SYSLOG, 0), _SLOG_ERROR, "%s",
+            null_terminated_buf);
+          newBuf += (_SLOG_MAXSIZE - 1);
+          newLen -= (_SLOG_MAXSIZE - 1);
+        }
+      /* Write out the rest (which will be at most (_SLOG_MAXSIZE - 1) chars,
+       * so the terminator still fits.
+       */
+      if (0 != newLen)
+        {
+          strncpy(null_terminated_buf, newBuf, newLen);
+          null_terminated_buf[newLen] = '\0';
+          slogf(_SLOG_SETCODE(_SLOG_SYSLOG, 0), _SLOG_ERROR, "%s",
+            null_terminated_buf);
+        }
       free(null_terminated_buf);
     }
 #else
@@ -279,13 +283,13 @@ NSLog_printf_handler *_NSLog_printf_handler = _NSLog_standard_printf_handler;
  * </p>
  */
 void
-NSLog (NSString* format, ...)
+NSLog(NSString* format, ...)
 {
   va_list ap;
 
-  va_start (ap, format);
-  NSLogv (format, ap);
-  va_end (ap);
+  va_start(ap, format);
+  NSLogv(format, ap);
+  va_end(ap);
 }
 
 /**
@@ -315,7 +319,7 @@ NSLog (NSString* format, ...)
  * </p>
  */
 void
-NSLogv (NSString* format, va_list args)
+NSLogv(NSString* format, va_list args)
 {
   NSString		*prefix;
   NSString		*message;
