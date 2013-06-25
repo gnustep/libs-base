@@ -322,16 +322,16 @@ typedef struct
       if (nil != conn)
         {
           NSRunLoop	*loop;
+          NSDate	*limit;
 
           [collector setConnection: conn];
           loop = [NSRunLoop currentRunLoop];
-          while ([collector done] == NO)
-            {
-              NSDate	*limit;
+          limit = [[NSDate alloc] initWithTimeIntervalSinceNow:
+            [request timeoutInterval]];
 
-              limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
+          while ([collector done] == NO && [limit timeIntervalSinceNow] > 0.0)
+            {
               [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
-              RELEASE(limit);
             }
           data = [[[collector data] retain] autorelease];
           if (0 != response)
