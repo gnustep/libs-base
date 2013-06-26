@@ -26,6 +26,7 @@
 
 #define	EXPOSE_NSURLConnection_IVARS	1
 #import "Foundation/NSError.h"
+#import "Foundation/NSURLError.h"
 #import "Foundation/NSRunLoop.h"
 #import "GSURLPrivate.h"
 
@@ -333,14 +334,31 @@ typedef struct
             {
               [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
             }
-          data = [[[collector data] retain] autorelease];
-          if (0 != response)
+          if (NO == [collector done])
             {
-              *response = [[[collector response] retain] autorelease];
+              data = nil;
+              if (0 != response)
+                {
+                  *response = nil;
+                }
+              if (0 != error)
+                {
+                  *error = [NSError errorWithDomain: NSURLErrorDomain
+                                               code: NSURLErrorTimedOut
+                                           userInfo: nil];
+                }
             }
-          if (0 != error)
+          else
             {
-              *error = [[[collector error] retain] autorelease];
+              data = [[[collector data] retain] autorelease];
+              if (0 != response)
+                {
+                  *response = [[[collector response] retain] autorelease];
+                }
+              if (0 != error)
+                {
+                  *error = [[[collector error] retain] autorelease];
+                }
             }
           [conn release];
         }
