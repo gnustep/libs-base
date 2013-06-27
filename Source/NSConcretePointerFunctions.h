@@ -91,7 +91,7 @@ typedef struct
 
 inline static BOOL memoryType(int options, int flag)
 {
-	return (options & 0xff) == flag;
+  return (options & 0xff) == flag;
 }
 
 /* Declare the concrete pointer functions class as a wrapper around
