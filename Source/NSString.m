@@ -111,6 +111,9 @@
 #if     defined(HAVE_UNICODE_USEARCH_H)
 # include <unicode/usearch.h>
 #endif
+#if GS_USE_ICU == 1
+# include <unicode/unorm2.h>
+#endif
 
 #import "GNUstepBase/Unicode.h"
 
@@ -2311,6 +2314,65 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
     }
 
   return NSMakeRange(start, end-start);
+}
+
+#if GS_USE_ICU == 1
+- (NSString *) _normalizedICUStringOfType:(char *)normalization mode:(UNormalizationMode)mode
+{
+	UErrorCode errorCode = 0;
+	const UNormalizer2 *normalizer = unorm2_getInstance(NULL, normalization, UNORM2_COMPOSE, &errorCode);
+	int32_t length = 0, capacity = 0, newLength = 0;
+	UChar *src = NULL, *dest = NULL;
+	NSString *newString = nil;
+	length = capacity = [self length];
+	if (mode == (UNormalizationMode)UNORM2_DECOMPOSE)
+		capacity = capacity * 3; // Decomposed string can be much longer than original -- is there a way to calculate actual space needed?
+	src = malloc(length * sizeof(unichar));
+	dest = malloc(capacity * sizeof(unichar));
+	[self getCharacters:(unichar *)src range:NSMakeRange(0,length)];
+	newLength = unorm2_normalize(normalizer, src, length, dest, capacity, &errorCode);
+	if (U_FAILURE(errorCode)) {
+		free(src);
+		free(dest);
+		[NSException raise: NSCharacterConversionException format: @"precompose/decompose failed"];
+	}
+	newString = [[NSString alloc] initWithCharacters:(unichar *)dest length:newLength];
+	free(src);
+	free(dest);
+	return [newString autorelease];
+}
+#endif
+
+- (NSString *) precomposedStringWithCanonicalMapping {
+#if GS_USE_ICU == 1
+	return [self _normalizedICUStringOfType:"nfc" mode:UNORM2_COMPOSE];
+#else
+	return self;
+#endif
+}
+
+- (NSString *) precomposedStringWithCompatibilityMapping {
+#if GS_USE_ICU == 1
+	return [self _normalizedICUStringOfType:"nfkc" mode:UNORM2_COMPOSE];
+#else
+	return self;
+#endif
+}
+
+- (NSString *) decomposedStringWithCanonicalMapping {
+#if GS_USE_ICU == 1
+	return [self _normalizedICUStringOfType:"nfc" mode:UNORM2_DECOMPOSE];
+#else
+	return self;
+#endif
+}
+
+- (NSString *) decomposedStringWithCompatibilityMapping {
+#if GS_USE_ICU == 1
+	return [self _normalizedICUStringOfType:"nfkc" mode:UNORM2_DECOMPOSE];
+#else
+	return self;
+#endif
 }
 
 // Identifying and Comparing Strings
