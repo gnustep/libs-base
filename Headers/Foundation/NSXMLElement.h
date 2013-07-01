@@ -104,7 +104,7 @@ extern "C" {
  */
 - (void) setAttributesAsDictionary: (NSDictionary*)attributes;
 
-#if OS_API_VERSION(100700, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 /**
  * Sets attributes from the supplied dictionary.
  */

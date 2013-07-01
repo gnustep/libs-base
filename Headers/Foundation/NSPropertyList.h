@@ -65,7 +65,7 @@ enum {
   NSPropertyListGNUstepBinaryFormat
 };
 
-#if OS_API_VERSION(100600,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
 typedef NSUInteger NSPropertyListWriteOptions;
 typedef NSUInteger NSPropertyListReadOptions;
 @class NSError;
@@ -261,7 +261,7 @@ typedef NSUInteger NSPropertyListFormat;
 		     format: (NSPropertyListFormat*)aFormat
 	   errorDescription: (NSString**)anErrorString;
 
-#if OS_API_VERSION(100600,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
 + (NSData *) dataWithPropertyList: (id)aPropertyList
                            format: (NSPropertyListFormat)aFormat
                           options: (NSPropertyListWriteOptions)anOption

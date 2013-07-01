@@ -80,7 +80,7 @@ extern "C" {
 - (id) member: (id)anObject;
 - (NSEnumerator*) objectEnumerator;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 
 DEFINE_BLOCK_TYPE(GSSetEnumeratorBlock, void, id, BOOL*);
 DEFINE_BLOCK_TYPE(GSSetFilterBlock, BOOL, id, BOOL*);
@@ -113,7 +113,7 @@ DEFINE_BLOCK_TYPE(GSSetFilterBlock, BOOL, id, BOOL*);
 
 #endif
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 - (NSSet *) setByAddingObject: (id)anObject;
 - (NSSet *) setByAddingObjectsFromSet: (NSSet *)other;
 - (NSSet *) setByAddingObjectsFromArray: (NSArray *)other;

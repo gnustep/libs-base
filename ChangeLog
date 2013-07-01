@@ -1,3 +1,65 @@
+2013-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Add test for another libicu header
+        * configure: regenerate
+        * Headers/GNUstepBase/config.h.in: regenerate
+        * Source/NSString.m: Add decompose/precompose methods derived from
+        change in testplant branch.
+        * Headers/GNUstepBase/GSVersionMacros.h: OSX compatibility tweak ...
+        handle OSX style 4 digit versionn constants.
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSAutoreleasePool.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSCoder.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSCompoundPredicate.h:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSDate.h:
+	* Headers/Foundation/NSDictionary.h:
+	* Headers/Foundation/NSError.h:
+	* Headers/Foundation/NSException.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/NSHTTPCookie.h:
+	* Headers/Foundation/NSHTTPCookieStorage.h:
+	* Headers/Foundation/NSIndexPath.h:
+	* Headers/Foundation/NSIndexSet.h:
+	* Headers/Foundation/NSKeyValueObserving.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSNetServices.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Headers/Foundation/NSOperation.h:
+	* Headers/Foundation/NSPathUtilities.h:
+	* Headers/Foundation/NSPointerArray.h:
+	* Headers/Foundation/NSPointerFunctions.h:
+	* Headers/Foundation/NSPredicate.h:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSScanner.h:
+	* Headers/Foundation/NSSet.h:
+	* Headers/Foundation/NSSortDescriptor.h:
+	* Headers/Foundation/NSSpellServer.h:
+	* Headers/Foundation/NSStream.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSTimeZone.h:
+	* Headers/Foundation/NSTimer.h:
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSURLAuthenticationChallenge.h:
+	* Headers/Foundation/NSURLCache.h:
+	* Headers/Foundation/NSURLConnection.h:
+	* Headers/Foundation/NSURLCredential.h:
+	* Headers/Foundation/NSURLCredentialStorage.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSURLError.h:
+	* Headers/Foundation/NSURLProtectionSpace.h:
+	* Headers/Foundation/NSURLProtocol.h:
+	* Headers/Foundation/NSURLRequest.h:
+	* Headers/Foundation/NSURLResponse.h:
+	* Headers/Foundation/NSValueTransformer.h:
+	* Headers/Foundation/NSXMLElement.h:
+	* Headers/Foundation/NSXMLParser.h:
+        Replace numeric version constants with OSX compatibility macros.
+
 2013-06-27  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSConcreteMapTable.m: attempt to fix double retain bug

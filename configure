@@ -13537,6 +13537,11 @@ fi
 #--------------------------------------------------------------------
 # Check for ObjC2 support in runtime
 #--------------------------------------------------------------------
+if test "$cross_compiling"="yes"; then
+  { $as_echo "$as_me:$LINENO: \"Cross compiling! Using predefined OBJC2RUNTIME variable\"" >&5
+$as_echo "$as_me: \"Cross compiling! Using predefined OBJC2RUNTIME variable\"" >&6;}
+  OBJC2RUNTIME="$cross_objc2_runtime"
+else
 
 for ac_func in objc_setProperty
 do
@@ -13638,10 +13643,11 @@ _ACEOF
 fi
 done
 
-if test $ac_cv_func_objc_setProperty = yes ; then
-  OBJC2RUNTIME=1
-else
-  OBJC2RUNTIME=0
+  if test $ac_cv_func_objc_setProperty = yes ; then
+    OBJC2RUNTIME=1
+  else
+    OBJC2RUNTIME=0
+  fi
 fi
 
 
@@ -15811,6 +15817,67 @@ if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_PW_GECOS_IN_PASSWD 1
+_ACEOF
+
+fi
+
+{ $as_echo "$as_me:$LINENO: checking for currency_symbol field in struct lconv" >&5
+$as_echo_n "checking for currency_symbol field in struct lconv... " >&6; }
+if test "${ac_cv_have_currency_symbol_in_struct_lconv+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+
+	cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+ #include <locale.h>
+int
+main ()
+{
+ struct lconv l; l.currency_symbol = NULL;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+   ac_cv_have_currency_symbol_in_struct_lconv="yes"
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	 ac_cv_have_currency_symbol_in_struct_lconv="no"
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_currency_symbol_in_struct_lconv" >&5
+$as_echo "$ac_cv_have_currency_symbol_in_struct_lconv" >&6; }
+if test "x$ac_cv_have_currency_symbol_in_struct_lconv" = "xyes" ; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_CURRENCY_SYMBOL_IN_LCONV 1
 _ACEOF
 
 fi
@@ -26022,7 +26089,8 @@ $as_echo "yes" >&6; }
 
 
 
-for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h
+
+for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/unorm2.h
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
