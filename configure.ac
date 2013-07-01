@@ -1845,7 +1845,7 @@ AC_SUBST(OBJCSYNC)
 #--------------------------------------------------------------------
 # Check for ObjC2 support in runtime
 #--------------------------------------------------------------------
-if test "$cross_compiling"="yes"; then
+if test "$cross_compiling" = "yes"; then
   AC_MSG_NOTICE(["Cross compiling! Using predefined OBJC2RUNTIME variable"])
   OBJC2RUNTIME="$cross_objc2_runtime"
 else

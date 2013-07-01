@@ -13537,7 +13537,7 @@ fi
 #--------------------------------------------------------------------
 # Check for ObjC2 support in runtime
 #--------------------------------------------------------------------
-if test "$cross_compiling"="yes"; then
+if test "$cross_compiling" = "yes"; then
   { $as_echo "$as_me:$LINENO: \"Cross compiling! Using predefined OBJC2RUNTIME variable\"" >&5
 $as_echo "$as_me: \"Cross compiling! Using predefined OBJC2RUNTIME variable\"" >&6;}
   OBJC2RUNTIME="$cross_objc2_runtime"
