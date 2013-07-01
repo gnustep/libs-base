@@ -46,7 +46,7 @@
 /* Define the GS_OSX_ADJUST() macro to adjust OSX style version macros
  * to GNUstep style version macros.
  */
-#define	GS_OSX_ADJUST(V) ((V) < 10000 ? (V) : ((V)/10*100 + (V)%10*10)
+#define	GS_OSX_ADJUST(V) ((V) < 10000 ? (V) : ((V)/10*100 + (V)%10*10))
 
 /* Define OSX compatibility version macros if necessary.
  */
