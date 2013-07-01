@@ -75,7 +75,6 @@
 #endif	/* MAC_OS_X_VERSION_MIN_ALLOWED */
 #endif	/* GS_OPENSTEP_V */
 
-
 /*
  * NB. The version values below must be integers ... by convention these are
  * made up of two digits each for major, minor and subminor version numbers
@@ -142,7 +141,8 @@
  * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
-  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= GS_OSX_ADJUST(ADD) && GS_OPENSTEP_V < GS_OSX_ADJUST(REM)))
+  (!defined(GS_OPENSTEP_V) \
+  || (GS_OPENSTEP_V>=GS_OSX_ADJUST(ADD) && GS_OPENSTEP_V<GS_OSX_ADJUST(REM)))
 
 /**
  * A constant which is the lowest possible version number (0) so that
@@ -192,6 +192,15 @@
  * denotes code present from the initial MacOS-X version onwards.
  */
 #define	GS_API_MACOSX	100000
+
+/** OSX compatibility definitions.
+ */
+#ifndef MAC_OS_X_VERSION_MAX_ALLOWED
+#define MAC_OS_X_VERSION_MAX_ALLOWED    GS_API_MACOSX
+#endif
+#ifndef MAC_OS_X_VERSION_MIN_ALLOWED
+#define MAC_OS_X_VERSION_MIN_ALLOWED    GS_API_LATEST
+#endif
 
 
 #if	defined(GNUSTEP_BASE_INTERNAL)
