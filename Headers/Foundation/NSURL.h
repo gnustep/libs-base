@@ -70,7 +70,7 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 + (id) fileURLWithPath: (NSString*)aPath;
 
-#if OS_API_VERSION(100600,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Creates a file URL using a path built from components.
  */
 + (NSURL*) fileURLWithPathComponents: (NSArray*)components;
@@ -104,7 +104,7 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 - (id) initFileURLWithPath: (NSString*)aPath;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 /**
  * Initialise as a file URL with the specified path (which must
  * be a valid path on the local filesystem).<br />
@@ -166,7 +166,7 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 - (NSURL*) baseURL;
 
-#if OS_API_VERSION(100600,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Attempts to load from the specified URL and provides an error
  * response if the data is unrachable.<br />
  * Returns YES on success, NO on failure.
@@ -197,7 +197,7 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 - (BOOL) isFileURL;
 
-#if OS_API_VERSION(100600,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Returns the last (rightmost) path component of the receiver.
  */
 - (NSString*) lastPathComponent;
@@ -260,7 +260,7 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 - (NSString*) path;
 
-#if OS_API_VERSION(100600,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Returns thepath components of the receiver.<br />
  * See [NSString-pathComponents].
  */
@@ -346,7 +346,7 @@ GS_EXPORT NSString* const NSURLFileScheme;
  */
 - (NSURL*) standardizedURL;
 
-#if OS_API_VERSION(100600,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Returns a URL formed by adding a path component to the path of the
  * receiver.<br />
  * See [NSString-stringByAppendingPathComponent:].

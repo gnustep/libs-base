@@ -81,7 +81,7 @@ extern "C" {
  */
 typedef uint16_t unichar;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 #define NSMaximumStringLength   (INT_MAX-1)
 #endif
 
@@ -104,13 +104,13 @@ enum
   NSBackwardsSearch = 4,
   NSAnchoredSearch = 8,
   NSNumericSearch = 64	/* MacOS-X 10.2 */
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
  ,
  NSDiacriticInsensitiveSearch = 128,
  NSWidthInsensitiveSearch = 256,
  NSForcedOrderingSearch = 512
 #endif
-#if OS_API_VERSION(100700,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST) 
  ,
  /**
   * Treats the search string as a regular expression.  This option may be
@@ -196,7 +196,7 @@ typedef enum _NSStringEncoding
   NSBIG5StringEncoding,			// Traditional chinese
   NSKoreanEUCStringEncoding		// Korean
 
-#if OS_API_VERSION(100400,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) 
   ,
   NSUTF16BigEndianStringEncoding = 0x90000100,
   NSUTF16LittleEndianStringEncoding = 0x94000100,
@@ -210,7 +210,7 @@ enum {
   NSOpenStepUnicodeReservedBase = 0xF400
 };
 
-#if OS_API_VERSION(100400,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) 
 enum {
   NSStringEncodingConversionAllowLossy = 1,
   NSStringEncodingConversionExternalRepresentation = 2
@@ -267,7 +267,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 + (id) string;
 + (id) stringWithCharacters: (const unichar*)chars
 		     length: (NSUInteger)length;
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 + (id) stringWithCString: (const char*)byteString
 		encoding: (NSStringEncoding)encoding;
 #endif
@@ -279,7 +279,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 // Initializing Newly Allocated Strings
 - (id) init;
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 - (id) initWithBytes: (const void*)bytes
 	      length: (NSUInteger)length
 	    encoding: (NSStringEncoding)encoding;
@@ -288,7 +288,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 		  encoding: (NSStringEncoding)encoding 
 	      freeWhenDone: (BOOL)flag;
 #endif
-#if OS_API_VERSION(100400,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST)
 + (id) stringWithContentsOfFile: (NSString*)path
                    usedEncoding: (NSStringEncoding*)enc
                           error: (NSError**)error;
@@ -322,7 +322,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 	   encoding: (NSStringEncoding)enc
 	      error: (NSError**)error;
 #endif
-#if OS_API_VERSION(100500,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 - (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
                                        withString: (NSString*)by
                                           options: (NSStringCompareOptions)opts
@@ -386,8 +386,26 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 // Determining Composed Character Sequences
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) 
+/** Returns a copy of the receiver normalised using the KD form.
+ */
+- (NSString *) decomposedStringWithCompatibilityMapping;
+
+/** Returns a copy of the receiver normalised using the D form.
+ */
+- (NSString *) decomposedStringWithCanonicalMapping;
+
+/** Returns a copy of the receiver normalised using the KC form.
+ */
+- (NSString *) precomposedStringWithCompatibilityMapping;
+
+/** Returns a copy of the receiver normalised using the C form.
+ */
+- (NSString *) precomposedStringWithCanonicalMapping;
+#endif
+
 // Converting String Contents into a Property List
-- (id)propertyList;
+- (id) propertyList;
 - (NSDictionary*) propertyListFromStringsFileFormat;
 
 // Identifying and Comparing Strings
@@ -416,7 +434,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (const char*) cString;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 - (const char*) cStringUsingEncoding: (NSStringEncoding)encoding;
 - (BOOL) getCString: (char*)buffer
 	  maxLength: (NSUInteger)maxLength
@@ -765,7 +783,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (const char *)UTF8String;
 #endif
 
-#if OS_API_VERSION(100300,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3,GS_API_LATEST) 
 /** Not implemented */
 - (void) getParagraphStart: (NSUInteger *)startIndex
                        end: (NSUInteger *)parEndIndex
@@ -775,7 +793,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  - (NSRange) paragraphRangeForRange: (NSRange)range;
 #endif
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 /**
  * Returns YES when scanning the receiver's text from left to right
  * finds an initial digit in the range 1-9 or a letter in the set

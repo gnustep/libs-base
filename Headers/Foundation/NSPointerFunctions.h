@@ -28,7 +28,7 @@
 
 #import	<Foundation/NSObject.h>
 
-#if OS_API_VERSION(100500, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -154,5 +154,5 @@ typedef	NSUInteger NSPointerFunctionsOptions;
 }
 #endif
 
-#endif /* OS_API_VERSION(100500, GS_API_LATEST) */
+#endif /* OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST) */
 #endif /* __NSPointerFunctions_h_GNUSTEP_BASE_INCLUDE */

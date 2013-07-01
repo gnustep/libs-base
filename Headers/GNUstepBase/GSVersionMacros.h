@@ -43,22 +43,28 @@
 #  define	NO_GNUSTEP	1
 #endif
 
-/*
- * For MacOS-X compatibility, we define the MacOS-X version constants and
- * we allow MAC_OS_X_VERSION_MIN_ALLOWED or MAC_OS_X_VERSION_MAX_ALLOWED
- * instead of GS_OPENSTEP_V
+/* Define the GS_OSX_ADJUST() macro to adjust OSX style version macros
+ * to GNUstep style version macros.
  */
+#define	GS_OSX_ADJUST(V) ((V) < 10000 ? (V) : (V) * 100)
 
-#ifndef	MAC_OS_X_VERSION_10_0
-#define	MAC_OS_X_VERSION_10_0	100000
-#define	MAC_OS_X_VERSION_10_1	100100
-#define	MAC_OS_X_VERSION_10_2	100200
-#define	MAC_OS_X_VERSION_10_3	100300
-#define	MAC_OS_X_VERSION_10_4	100400
-#define	MAC_OS_X_VERSION_10_5	100500
-#define	MAC_OS_X_VERSION_10_6	100600
+/* Define OSX compatibility version macros if necessary.
+ */
+#if     !defined(MAC_OS_X_VERSION_10_0)
+#define	MAC_OS_X_VERSION_10_0	1000
+#define	MAC_OS_X_VERSION_10_1	1001
+#define	MAC_OS_X_VERSION_10_2	1002
+#define	MAC_OS_X_VERSION_10_3	1003
+#define	MAC_OS_X_VERSION_10_4	1004
+#define	MAC_OS_X_VERSION_10_5	1005
+#define	MAC_OS_X_VERSION_10_6	1006
+#define	MAC_OS_X_VERSION_10_7	1007
+#define	MAC_OS_X_VERSION_10_8	1008
 #endif	/* MAC_OS_X_VERSION_10_0 */
 
+/* Allow MAC_OS_X_VERSION_MIN_ALLOWED or MAC_OS_X_VERSION_MAX_ALLOWED to be
+ * used in place of GS_OPENSTEP_V
+ */
 #ifndef	GS_OPENSTEP_V
 #ifdef	MAC_OS_X_VERSION_MIN_ALLOWED
 #define	GS_OPENSTEP_V	MAC_OS_X_VERSION_MIN_ALLOWED
@@ -68,6 +74,7 @@
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED */
 #endif	/* MAC_OS_X_VERSION_MIN_ALLOWED */
 #endif	/* GS_OPENSTEP_V */
+
 
 /*
  * NB. The version values below must be integers ... by convention these are
@@ -135,7 +142,7 @@
  * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
-  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
+  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= GS_OSX_ADJUST(ADD) && GS_OPENSTEP_V < GS_OSX_ADJUST(REM)))
 
 /**
  * A constant which is the lowest possible version number (0) so that

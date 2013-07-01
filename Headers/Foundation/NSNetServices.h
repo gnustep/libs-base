@@ -362,7 +362,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 - (void) scheduleInRunLoop: (NSRunLoop *) aRunLoop
                    forMode: (NSString *) mode;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 - (NSInteger) port;
 
 - (void) publishWithOptions: (NSNetServiceOptions)options;

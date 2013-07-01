@@ -98,7 +98,7 @@ extern "C" {
  */
 - (void) unlock;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 /** Return the name of the receiver or nil of none has been set.
  */
 - (NSString*) name;
@@ -236,7 +236,7 @@ extern "C" {
  */
 - (void) unlock;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 /** Return the name of the receiver or nil of none has been set.
  */
 - (NSString*) name;
@@ -286,7 +286,7 @@ extern "C" {
  */
 - (void) unlock;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 /** Return the name of the receiver or nil of none has been set.
  */
 - (NSString*) name;

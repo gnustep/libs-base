@@ -59,7 +59,7 @@ extern "C" {
 - (NSString*) descriptionWithLocale: (id)locale
 			     indent: (NSUInteger)level;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, id, id, BOOL*);
 - (void) enumerateKeysAndObjectsUsingBlock:
   (GSKeysAndObjectsEnumeratorBlock)aBlock;
@@ -87,7 +87,7 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, id, id, BOOL*);
 
 - (NSEnumerator*) keyEnumerator;				// Primitive
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, id, id, BOOL*);
 - (NSSet*) keysOfEntriesPassingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
 - (NSSet*) keysOfEntriesWithOptions: (NSEnumerationOptions)opts

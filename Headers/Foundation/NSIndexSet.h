@@ -90,14 +90,14 @@ extern "C" {
  */
 - (NSUInteger) count;
 
-#if OS_API_VERSION(100500,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 /** Not implemented
  * Returns the number of indexes set within the specified range.
  */
 - (NSUInteger) countOfIndexesInRange: (NSRange)range;
 #endif
 
-#if OS_API_VERSION(100600,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSIndexSetEnumerationBlock, void, NSUInteger, BOOL*);
 - (void)enumerateIndexesInRange: (NSRange)range
                         options: (NSEnumerationOptions)opts

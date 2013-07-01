@@ -39,7 +39,7 @@ extern "C" {
 @class NSURL;
 @class NSIndexSet;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 enum
 {
   NSBinarySearchingFirstEqual = (1UL << 8), /** Specifies that the binary
@@ -112,7 +112,7 @@ typedef NSUInteger NSBinarySearchingOptions;
  */
 - (id) objectAtIndex: (NSUInteger)index;
 
-#if OS_API_VERSION(100400, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes;
 #endif
 
@@ -154,7 +154,7 @@ typedef NSUInteger NSBinarySearchingOptions;
 - (id) valueForKey: (NSString*)key;
 #endif
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 
 DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, id, NSUInteger, BOOL*);
 DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
@@ -314,7 +314,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * The object is retained by the array.
  */
 - (void) insertObject: (id)anObject atIndex: (NSUInteger)index;
-#if OS_API_VERSION(100400, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 - (void) insertObjects: (NSArray *)objects atIndexes: (NSIndexSet *)indexes;
 #endif
 
@@ -335,7 +335,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 - (void) replaceObjectAtIndex: (NSUInteger)index
 		   withObject: (id)anObject;
 
-#if OS_API_VERSION(100400, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
                      withObjects: (NSArray *)objects;
 #endif
@@ -365,7 +365,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 - (void) sortUsingSelector: (SEL)comparator;
 
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /**
  * Sorts the array using the specified comparator block.
  */

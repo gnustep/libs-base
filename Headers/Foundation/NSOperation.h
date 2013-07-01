@@ -28,13 +28,13 @@
 #define __NSOperation_h_GNUSTEP_BASE_INCLUDE
 
 #import <Foundation/NSObject.h>
-#if OS_API_VERSION(100500, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 #import <GNUstepBase/GSBlocks.h>
 DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
 #endif
@@ -82,7 +82,7 @@ typedef NSInteger NSOperationQueuePriority;
  */
 - (void) cancel;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /**
  * Returns the block that will be executed after the operation finishes.
  */
@@ -147,7 +147,7 @@ typedef NSInteger NSOperationQueuePriority;
  */
 - (void) removeDependency: (NSOperation *)op;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /**
  * Sets the block that will be executed when the operation has finished.
  */
@@ -160,7 +160,7 @@ typedef NSInteger NSOperationQueuePriority;
  */
 - (void) setQueuePriority: (NSOperationQueuePriority)priority;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /** Sets the thread priority to be used while executing then -main method.
  * The priority change is implemented in the -start method, so if you are
  * replacing -start you are responsible for managing this.<br />
@@ -184,7 +184,7 @@ typedef NSInteger NSOperationQueuePriority;
  */
 - (void) start;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /** Returns the thread priority to be used executing the -main method.
  * The default is 0.5
  */
@@ -219,7 +219,7 @@ enum {
 @private id _internal;
 #endif
 }
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /** If called from within the -main method of an operation which is
  * currently being executed by a queue, this returns the queue instance
  * in use.
@@ -235,7 +235,7 @@ enum {
  */
 - (void) addOperation: (NSOperation *)op;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /** Adds multiple operations to the receiver and (optionally) waits for
  * all the operations in the queue to finish.
  */
@@ -257,7 +257,7 @@ enum {
  */
 - (NSInteger) maxConcurrentOperationCount;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /** Return the name of this operation queue.
  */
 - (NSString*) name;
@@ -278,7 +278,7 @@ enum {
  */
 - (void) setMaxConcurrentOperationCount: (NSInteger)cnt;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /** Sets the name for this operation queue.
  */
 - (void) setName: (NSString*)s;

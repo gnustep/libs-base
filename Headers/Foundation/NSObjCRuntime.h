@@ -117,7 +117,7 @@ typedef NSUInteger NSSortOptions;
 
 #import <GNUstepBase/GSObjCRuntime.h>
 
-#if OS_API_VERSION(100500,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);
 GS_EXPORT Protocol	*NSProtocolFromString(NSString *aProtocolName);
 #endif

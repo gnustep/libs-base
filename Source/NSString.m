@@ -99,6 +99,9 @@
 #if	defined(HAVE_UNICODE_UCOL_H)
 # include <unicode/ucol.h>
 #endif
+#if	defined(HAVE_UNICODE_UNORM2_H)
+# include <unicode/unorm2.h>
+#endif
 #if     defined(HAVE_UNICODE_USTRING_H)
 # include <unicode/ustring.h>
 #endif
@@ -589,10 +592,11 @@ handle_printf_atsign (FILE *stream,
 #if GS_USE_ICU == 1
 /**
  * Returns an ICU collator for the given locale and options, or returns
- * NULL if a collator couldn't be created or the GNUstep comparison code should be
- * used instead.
+ * NULL if a collator couldn't be created or the GNUstep comparison code
+ * should be used instead.
  */
-static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
+static UCollator *
+GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 {
   UErrorCode status = U_ZERO_ERROR;
   const char *localeCString;
@@ -605,12 +609,12 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
   
   if (locale == nil)
     {
-      /*
-       * a nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort before 'a'),
-       * and support for this was added in ICU 4.6 under the locale name
-       * en_US_POSIX, but it doesn't fit our requirements (e.g. 'e' and 'E' don't
-       * compare as equal with case insensitive comparison.) - so return NULL to
-       * indicate that the GNUstep comparison code should be used.
+      /* A nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort
+       * before 'a'), and support for this was added in ICU 4.6 under the
+       * locale name en_US_POSIX, but it doesn't fit our requirements
+       * (e.g. 'e' and 'E' don't compare as equal with case insensitive
+       * comparison.) - so return NULL to indicate that the GNUstep
+       * comparison code should be used.
        */
       return NULL;
     }
@@ -656,6 +660,94 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
 
   ucol_close(coll);
   return NULL;
+}
+
+- (NSString *) _normalizedICUStringOfType: (const char*)normalization
+                                     mode: (UNormalizationMode)mode
+{
+  UErrorCode            err;
+  const UNormalizer2    *normalizer;
+  int32_t               length;
+  int32_t               newLength;
+  NSString              *newString;
+
+  length = (uint32_t)[self length];
+  if (0 == length)
+    {
+      return @"";       // Simple case ... empty string
+    }
+
+  err = 0;
+  normalizer = unorm2_getInstance(NULL, normalization, UNORM2_COMPOSE, &err);
+  if (U_FAILURE(err))
+    {
+      [NSException raise: NSCharacterConversionException
+                  format: @"libicu unorm2_getInstance() failed"];
+    }
+
+  if (length < 200)
+    {
+      unichar   src[length];
+      unichar   dst[length*3];
+
+      /* For a short string, it's very efficient to just use on-stack
+       * buffers for the libicu work, and then let the standard string
+       * initialiser convert that to an inline string.
+       */
+      [self getCharacters: (unichar *)src range: NSMakeRange(0, length)];
+      err = 0;
+      newLength = unorm2_normalize(normalizer, (UChar*)src, length,
+        (UChar*)dst, length*3, &err);
+      if (U_FAILURE(err))
+        {
+          [NSException raise: NSCharacterConversionException
+                      format: @"precompose/decompose failed"];
+        }
+      newString = [[NSString alloc] initWithCharacters: dst length: newLength];
+    }
+  else
+    {
+      unichar   *src;
+      unichar   *dst;
+
+      /* For longer strings, we copy the source into a buffer on the heap
+       * for the libicu operation, determine the length needed for the
+       * output buffer, then do the actual conversion to build the string.
+       */
+      src = (unichar*)malloc(length * sizeof(unichar));
+      [self getCharacters: (unichar*)src range: NSMakeRange(0, length)];
+      err = 0;
+      newLength = unorm2_normalize(normalizer, (UChar*)src, length,
+        0, 0, &err);
+      if (U_BUFFER_OVERFLOW_ERROR != err)
+        {
+          free(src);
+          [NSException raise: NSCharacterConversionException
+                      format: @"precompose/decompose length check failed"];
+        }
+#if	GS_WITH_GC
+      dst = NSAllocateCollectable(newLength * sizeof(unichar), 0);
+#else
+      dst = NSZoneMalloc(NSDefaultMallocZone(), newLength * sizeof(unichar));
+#endif
+      err = 0;
+      unorm2_normalize(normalizer, (UChar*)src, length,
+        (UChar*)dst, newLength, &err);
+      free(src);
+      if (U_FAILURE(err))
+        {
+#if	!GS_WITH_GC
+          NSZoneFree(NSDefaultMallocZone(), dst);
+#endif
+          [NSException raise: NSCharacterConversionException
+                      format: @"precompose/decompose failed"];
+        }
+      newString = [[NSString alloc] initWithCharactersNoCopy: dst
+                                                      length: newLength
+                                                freeWhenDone: YES];
+    }
+
+  return AUTORELEASE(newString);
 }
 #endif
 
@@ -1675,6 +1767,24 @@ static UCollator *GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *local
   return (unichar)0;
 }
 
+- (NSString *) decomposedStringWithCompatibilityMapping
+{
+#if GS_USE_ICU == 1
+  return [self _normalizedICUStringOfType: "nfkc" mode: UNORM2_DECOMPOSE];
+#else
+  return [self notImplemented: _cmd];
+#endif
+}
+
+- (NSString *) decomposedStringWithCanonicalMapping
+{
+#if GS_USE_ICU == 1
+  return [self _normalizedICUStringOfType: "nfc" mode: UNORM2_DECOMPOSE];
+#else
+  return [self notImplemented: _cmd];
+#endif
+}
+ 
 /**
  * Returns this string as an array of 16-bit <code>unichar</code> (unsigned
  * short) values.  buffer must be preallocated and should be capable of
@@ -3819,6 +3929,24 @@ static NSFileManager *fm = nil;
   return @"";
 }
 
+- (NSString *) precomposedStringWithCompatibilityMapping
+{
+#if GS_USE_ICU == 1
+  return [self _normalizedICUStringOfType: "nfkc" mode: UNORM2_COMPOSE];
+#else
+  return [self notImplemented: _cmd];
+#endif
+}
+ 
+- (NSString *) precomposedStringWithCanonicalMapping
+{
+#if GS_USE_ICU == 1
+   return [self _normalizedICUStringOfType: "nfc" mode: UNORM2_COMPOSE];
+#else
+  return [self notImplemented: _cmd];
+#endif
+}
+ 
 - (NSString*) stringByAppendingPathComponent: (NSString*)aString
 {
   unsigned	originalLength = [self length];

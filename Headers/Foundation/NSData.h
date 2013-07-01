@@ -39,7 +39,7 @@ extern "C" {
 @class	NSURL;
 #endif
 
-#if OS_API_VERSION(100400,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) 
 enum {
   NSMappedRead = 1,
   NSUncachedRead = 2
@@ -141,7 +141,7 @@ enum {
 		   count: (unsigned int)numInts
 		 atIndex: (unsigned int)index;
 
-#if OS_API_VERSION(100400,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) 
 /**
  * <p>Writes a copy of the data encapsulated by the receiver to a file
  * at path.  If the NSAtomicWrite option is set, this writes to a

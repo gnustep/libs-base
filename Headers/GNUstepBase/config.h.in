@@ -198,6 +198,9 @@
 /* Define to 1 if you have the `ctime' function. */
 #undef HAVE_CTIME
 
+/* Define if you have currency_symbol field in struct lconv */
+#undef HAVE_CURRENCY_SYMBOL_IN_LCONV
+
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
 #undef HAVE_DECL_STRERROR_R
@@ -684,6 +687,9 @@
 
 /* Define to 1 if you have the <unicode/uloc.h> header file. */
 #undef HAVE_UNICODE_ULOC_H
+
+/* Define to 1 if you have the <unicode/unorm2.h> header file. */
+#undef HAVE_UNICODE_UNORM2_H
 
 /* Define to 1 if you have the <unicode/unum.h> header file. */
 #undef HAVE_UNICODE_UNUM_H

@@ -26,7 +26,7 @@
 #define __NSKeyValueObserving_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100300,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSArray.h>
@@ -42,7 +42,7 @@ extern "C" {
 enum {
   NSKeyValueObservingOptionNew = 1,
   NSKeyValueObservingOptionOld = 2
-#if OS_API_VERSION(100500,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 ,  NSKeyValueObservingOptionInitial = 4,
   NSKeyValueObservingOptionPrior = 8
 #endif
@@ -69,7 +69,7 @@ GS_EXPORT NSString *const NSKeyValueChangeIndexesKey;
 GS_EXPORT NSString *const NSKeyValueChangeKindKey;
 GS_EXPORT NSString *const NSKeyValueChangeNewKey;
 GS_EXPORT NSString *const NSKeyValueChangeOldKey;
-#if OS_API_VERSION(100500,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
 #endif
 
@@ -180,7 +180,7 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
     valuesAtIndexes: (NSIndexSet*)indexes
 	     forKey: (NSString*)aKey;
 
-#if OS_API_VERSION(100400,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST)
 
 /** <override-dummy />
  */
