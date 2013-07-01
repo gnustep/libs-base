@@ -678,7 +678,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 
   err = 0;
-  normalizer = unorm2_getInstance(NULL, normalization, UNORM2_COMPOSE, &err);
+  normalizer = unorm2_getInstance(NULL, normalization, mode, &err);
   if (U_FAILURE(err))
     {
       [NSException raise: NSCharacterConversionException
