@@ -177,15 +177,15 @@ typedef	struct	Obs {
 
 #define	ENDOBS	((Observation*)-1)
 
-static inline unsigned doHash(NSString* key)
+static inline NSUInteger doHash(BOOL shouldHash, NSString* key)
 {
   if (key == nil)
     {
       return 0;
     }
-  else if (((uintptr_t)key) & 1)
+  else if (NO == shouldHash)
     {
-      return (unsigned)(uintptr_t)key;
+      return (NSUInteger)(uintptr_t)key;
     }
   else
     {
@@ -193,13 +193,13 @@ static inline unsigned doHash(NSString* key)
     }
 }
 
-static inline BOOL doEqual(NSString* key1, NSString* key2)
+static inline BOOL doEqual(BOOL shouldHash, NSString* key1, NSString* key2)
 {
   if (key1 == key2)
     {
       return YES;
     }
-  else if ((((uintptr_t)key1) & 1) || key1 == nil)
+  else if (NO == shouldHash)
     {
       return NO;
     }
@@ -247,8 +247,8 @@ static void obsFree(Observation *o);
 
 #define GSI_MAP_RETAIN_KEY(M, X)
 #define GSI_MAP_RELEASE_KEY(M, X) ({if (YES == M->extra) RELEASE(X.obj);})
-#define GSI_MAP_HASH(M, X)        doHash(X.obj)
-#define GSI_MAP_EQUAL(M, X,Y)     doEqual(X.obj, Y.obj)
+#define GSI_MAP_HASH(M, X)        doHash(M->extra, X.obj)
+#define GSI_MAP_EQUAL(M, X,Y)     doEqual(M->extra, X.obj, Y.obj)
 #define GSI_MAP_RETAIN_VAL(M, X)
 #define GSI_MAP_RELEASE_VAL(M, X)
 
@@ -643,14 +643,6 @@ purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
 #define purgeCollectedFromMapNode(X, Y) ((Observation*)Y->value.ext)
 #endif
 
-/*
- * In order to hide pointers from garbage collection, we OR in an
- * extra bit.  This should be ok for the objects we deal with
- * which are all aligned on 4 or 8 byte boundaries on all the machines
- * I know of.
- */
-#define	CHEATGC(X)	(id)(((uintptr_t)X) | 1)
-
 
 
 /**
@@ -813,11 +805,6 @@ static NSNotificationCenter *default_center = nil;
 
   o = obsNew(TABLE, selector, observer);
 
-  if (object != nil)
-    {
-      object = CHEATGC(object);
-    }
-
   /*
    * Record the Observation in one of the linked lists.
    *
@@ -910,11 +897,6 @@ static NSNotificationCenter *default_center = nil;
    */
 
   lockNCTable(TABLE);
-
-  if (object != nil)
-    {
-      object = CHEATGC(object);
-    }
 
   if (name == nil && object == nil)
     {
@@ -1092,10 +1074,6 @@ static NSNotificationCenter *default_center = nil;
 		  format: @"Tried to post a notification with no name."];
     }
   object = [notification object];
-  if (object != nil)
-    {
-      object = CHEATGC(object);
-    }
 
   /*
    * Lock the table of observations while we traverse it.
