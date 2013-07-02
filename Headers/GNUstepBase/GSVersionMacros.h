@@ -388,7 +388,8 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #  define NS_FORMAT_ARGUMENT(F,A) 
 #endif
 
-#if __GNUC__*10+__GNUC_MINOR__ >= 42
+// FIXME ... what version of gcc?
+#if __clang__
 #  define NS_FORMAT_FUNCTION(F,A) __attribute__((format(__NSString__, F, A)))
 #else
 #  define NS_FORMAT_FUNCTION(F,A) 
