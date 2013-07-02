@@ -143,8 +143,8 @@ GS_EXPORT int	_NSLogDescriptor;
 GS_EXPORT NSRecursiveLock	*GSLogLock(void);
 #endif
 
-GS_EXPORT void			NSLog (NSString *format, ...);
-GS_EXPORT void			NSLogv (NSString *format, va_list args);
+GS_EXPORT void	NSLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
+GS_EXPORT void	NSLogv(NSString *format, va_list args) NS_FORMAT_FUNCTION(1,0);
 
 #ifndef YES
 #define YES		1
