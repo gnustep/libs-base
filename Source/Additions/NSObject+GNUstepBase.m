@@ -37,7 +37,7 @@
 + (id) notImplemented: (SEL)selector
 {
   [NSException raise: NSGenericException
-    format: @"method %@ not implemented in %s(class)",
+    format: @"method %@ not implemented in %@(class)",
     selector ? (id)NSStringFromSelector(selector) : (id)@"(null)",
     NSStringFromClass(self)];
   return nil;

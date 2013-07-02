@@ -297,7 +297,7 @@ static	NSIndexPath	*dummy = nil;
                   NSZoneFree(NSDefaultMallocZone(), dst);
                 }
               [NSException raise: NSGenericException format:
-                @"Unable to decode unsigned integers of size %u", s];
+                @"Unable to decode unsigned integers of size %"PRIuPTR, s];
             }
           self = [self initWithIndexes: dst length: length];
           if ((void*)dst != src)

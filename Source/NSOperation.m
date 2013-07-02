@@ -718,7 +718,7 @@ static NSOperationQueue *mainQueue = nil;
       if (YES == invalidArg)
 	{
 	  [NSException raise: NSInvalidArgumentException
-	    format: @"[%@-%@] object at index %u is not an NSOperation",
+	    format: @"[%@-%@] object at index %"PRIuPTR" is not an NSOperation",
 	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    index];
 	}
@@ -813,7 +813,7 @@ static NSOperationQueue *mainQueue = nil;
     && cnt != NSOperationQueueDefaultMaxConcurrentOperationCount)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"[%@-%@] cannot set negative (%d) count",
+		  format: @"[%@-%@] cannot set negative (%"PRIdPTR") count",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), cnt];
     }
   [internal->lock lock];

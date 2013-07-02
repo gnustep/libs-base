@@ -494,7 +494,7 @@ static unsigned	encodingVersion;
   if (count != expected)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"expected array count %u and got %u",
+		  format: @"expected array count %"PRIuPTR" and got %"PRIuPTR,
 			expected, count];
     }
 

@@ -735,7 +735,7 @@ unregisterActiveThread(NSThread *thread)
   if (_active == NO)
     {
       [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on inactive thread",
+                  format: @"[%@-%@] called on inactive thread",
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }
@@ -821,21 +821,21 @@ static void *nsthreadLauncher(void* thread)
   if (_active == YES)
     {
       [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on active thread",
+                  format: @"[%@-%@] called on active thread",
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }
   if (_cancelled == YES)
     {
       [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on cancelled thread",
+                  format: @"[%@-%@] called on cancelled thread",
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }
   if (_finished == YES)
     {
       [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on finished thread",
+                  format: @"[%@-%@] called on finished thread",
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }

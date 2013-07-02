@@ -1835,7 +1835,8 @@ static id gs_weak_load(id obj)
         [NSException
 	  raise: NSGenericException
 	  format: @"Autorelease would release object too many times.\n"
-	  @"%d release(s) versus %d retain(s)", release_count, retain_count];
+	  @"%"PRIuPTR" release(s) versus %"PRIuPTR" retain(s)",
+	  release_count, retain_count];
     }
 
   (*autorelease_imp)(autorelease_class, autorelease_sel, self);

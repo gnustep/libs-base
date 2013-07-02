@@ -5517,9 +5517,9 @@ literalIsEqual(NXConstantString *self, id anObject)
   NSUInteger	index = 0;
 
   if (NSNotFound == aRange.location)
-    [NSException raise: NSRangeException
-                format: @"in %s, range { %u, %u } extends beyond string",
-     GSNameFromSelector(_cmd), aRange.location, aRange.length];
+    [NSException raise: NSRangeException format:
+      @"in %s, range { %"PRIuPTR", %"PRIuPTR" } extends beyond string",
+      GSNameFromSelector(_cmd), aRange.location, aRange.length];
 
   while (index < aRange.location && (i < nxcslen || n > 0))
     {
@@ -5536,9 +5536,9 @@ literalIsEqual(NXConstantString *self, id anObject)
     }
   if (index != max)
     {
-      [NSException raise: NSRangeException
-		  format: @"in %s, range { %u, %u } extends beyond string",
-       GSNameFromSelector(_cmd), aRange.location, aRange.length];
+      [NSException raise: NSRangeException format:
+	@"in %s, range { %"PRIuPTR", %"PRIuPTR" } extends beyond string",
+        GSNameFromSelector(_cmd), aRange.location, aRange.length];
     }
 }
 

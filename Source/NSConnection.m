@@ -3453,7 +3453,7 @@ static NSLock	*cached_proxies_gate = nil;
 	}
       if (raiseException == YES)
 	{
-	  [NSException raise: NSPortTimeoutException format: text];
+	  [NSException raise: NSPortTimeoutException format: @"%@", text];
 	}
       else
 	{
