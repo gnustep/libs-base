@@ -43,7 +43,7 @@
 #if !defined(ENCODING_INLINE)
 #  if defined(__GNUC__)
 #    define ENCODING_INLINE static __inline__ __attribute__((always_inline))
-#  elif
+#  else
 #    define ENCODING_INLINE static inline
 #  endif
 #endif
