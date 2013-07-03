@@ -45,9 +45,9 @@
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat:
-    @"NSPortMessage 0x%x (Id %u)\n  Send: %@\n  Recv: %@\n  Components -\n%@",
-    self, _msgid, _send, _recv, _components];
+  return [NSString stringWithFormat: @"NSPortMessage 0x%"PRIxPTR
+    @" (Id %u)\n  Send: %@\n  Recv: %@\n  Components -\n%@",
+    (NSUInteger)self, _msgid, _send, _recv, _components];
 }
 
 /*	PortMessages MUST be initialised with ports and data.	*/

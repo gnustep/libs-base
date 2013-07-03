@@ -46,7 +46,7 @@ extern "C" {
  * to build an explicit <code>va_list</code> structure.
  */
 + (id) stringWithFormat: (NSString*)format
-	      arguments: (va_list)argList;
+	      arguments: (va_list)argList NS_FORMAT_FUNCTION(1,0);
 
 /**
  * Returns a string formed by removing the prefix string from the

@@ -418,7 +418,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileOwnerAccountID to '%u' - %@",
+	    @"Unable to change NSFileOwnerAccountID to '%"PRIuPTR"' - %@",
 	    num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
@@ -484,7 +484,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileGroupOwnerAccountID to '%u' - %@",
+	    @"Unable to change NSFileGroupOwnerAccountID to '%"PRIuPTR"' - %@",
 	    num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
@@ -539,7 +539,7 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFilePosixPermissions to '%o' - %@",
-	    num, [NSError _last]];
+	    (unsigned)num, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
     }

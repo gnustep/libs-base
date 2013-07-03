@@ -288,7 +288,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
         [super description]];
     }
   m = [NSMutableString stringWithFormat:
-    @"%@[number of indexes: %u (in %u ranges), indexes:",
+    @"%@[number of indexes: %"PRIuPTR" (in %"PRIuPTR" ranges), indexes:",
     [super description], [self count], c];
   for (i = 0; i < c; i++)
     {
@@ -296,11 +296,12 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
 
       if (r.length > 1)
         {
-          [m appendFormat: @" (%u-%u)", r.location, NSMaxRange(r) - 1];
+          [m appendFormat: @" (%"PRIuPTR"-%"PRIuPTR")",
+	    r.location, NSMaxRange(r) - 1];
 	}
       else
         {
-          [m appendFormat: @" %u", r.location];
+          [m appendFormat: @" %"PRIuPTR, r.location];
 	}
     }
   [m appendString: @"]"];

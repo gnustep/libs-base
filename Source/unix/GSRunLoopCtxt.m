@@ -393,7 +393,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
                       [port getFds: port_fd_array count: &port_fd_count];
                     }
 		  NSDebugMLLog(@"NSRunLoop",
-		    @"listening to %d port handles\n", port_fd_count);
+		    @"listening to %"PRIdPTR" port handles\n", port_fd_count);
 		  while (port_fd_count--)
 		    {
 		      fd = port_fd_array[port_fd_count];

@@ -136,14 +136,14 @@ static	NSIndexPath	*dummy = nil;
   NSMutableString	*m = [[super description] mutableCopy];
   NSUInteger		i;
 
-  [m appendFormat: @"%u indexes [", _length];
+  [m appendFormat: @"%"PRIuPTR" indexes [", _length];
   for (i = 0; i < _length; i++)
     {
       if (i > 0)
 	{
 	  [m appendString: @", "];
 	}
-      [m appendFormat: @"%u", _indexes[i]];
+      [m appendFormat: @"%"PRIuPTR, _indexes[i]];
     }
   [m appendString: @"]"];
   return AUTORELEASE(m);

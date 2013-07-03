@@ -274,7 +274,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 + (id) stringWithCString: (const char*)byteString
 		  length: (NSUInteger)length;
 + (id) stringWithCString: (const char*)byteString;
-+ (id) stringWithFormat: (NSString*)format,...;
++ (id) stringWithFormat: (NSString*)format,... NS_FORMAT_FUNCTION(1,2);
 + (id) stringWithContentsOfFile:(NSString *)path;
 
 // Initializing Newly Allocated Strings
@@ -344,9 +344,9 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 	        length: (NSUInteger)length;
 - (id) initWithCString: (const char*)byteString;
 - (id) initWithString: (NSString*)string;
-- (id) initWithFormat: (NSString*)format, ...;
+- (id) initWithFormat: (NSString*)format, ... NS_FORMAT_FUNCTION(1,2);
 - (id) initWithFormat: (NSString*)format
-	    arguments: (va_list)argList;
+	    arguments: (va_list)argList NS_FORMAT_FUNCTION(1,0);
 - (id) initWithData: (NSData*)data
 	   encoding: (NSStringEncoding)encoding;
 - (id) initWithContentsOfFile: (NSString*)path;
@@ -361,7 +361,8 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 		 range: (NSRange)aRange;
 
 // Combining Strings
-- (NSString*) stringByAppendingFormat: (NSString*)format,...;
+- (NSString*) stringByAppendingFormat: (NSString*)format,...
+  NS_FORMAT_FUNCTION(1,2);
 - (NSString*) stringByAppendingString: (NSString*)aString;
 
 // Dividing Strings into Substrings
@@ -742,16 +743,17 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  */
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths;
 
-+ (NSString*) localizedStringWithFormat: (NSString*)format, ...;
++ (NSString*) localizedStringWithFormat: (NSString*)format, ...
+  NS_FORMAT_FUNCTION(1,2);
 
 + (id) stringWithString: (NSString*)aString;
 + (id) stringWithContentsOfURL: (NSURL*)url;
 + (id) stringWithUTF8String: (const char*)bytes;
 - (id) initWithFormat: (NSString*)format
-	       locale: (NSDictionary*)locale, ...;
+	       locale: (NSDictionary*)locale, ...  NS_FORMAT_FUNCTION(1,3);
 - (id) initWithFormat: (NSString*)format
 	       locale: (NSDictionary*)locale
-	    arguments: (va_list)argList;
+	    arguments: (va_list)argList NS_FORMAT_FUNCTION(1,0);
 - (id) initWithUTF8String: (const char *)bytes;
 - (id) initWithContentsOfURL: (NSURL*)url;
 - (NSString*) substringWithRange: (NSRange)aRange;
@@ -831,7 +833,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 + (id) stringWithCString: (const char*)byteString
 		  length: (NSUInteger)length;
 + (id) stringWithCString: (const char*)byteString;
-+ (id) stringWithFormat: (NSString*)format,...;
++ (id) stringWithFormat: (NSString*)format,... NS_FORMAT_FUNCTION(1,2);
 + (id) stringWithContentsOfFile: (NSString*)path;
 + (NSMutableString*) stringWithCapacity: (NSUInteger)capacity;
 
@@ -839,7 +841,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (id) initWithCapacity: (NSUInteger)capacity;
 
 // Modify A String
-- (void) appendFormat: (NSString*)format, ...;
+- (void) appendFormat: (NSString*)format, ... NS_FORMAT_FUNCTION(1,2);
 - (void) appendString: (NSString*)aString;
 - (void) deleteCharactersInRange: (NSRange)range;
 - (void) insertString: (NSString*)aString atIndex: (NSUInteger)loc;

@@ -409,7 +409,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if ((id)NSMapGet(wProperties, (void*)@"Content-Length") == nil)
     {
       NSMapInsert(wProperties, (void*)@"Content-Length",
-        (void*)[NSString stringWithFormat: @"%d", [wData length]]);
+        (void*)[NSString stringWithFormat: @"%"PRIuPTR, [wData length]]);
     }
 
   if ([wData length] > 0)

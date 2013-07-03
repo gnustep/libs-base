@@ -265,7 +265,7 @@ parseError(ParserState *state)
    */
   NSDictionary *userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
     _(@"JSON Parse error"), NSLocalizedDescriptionKey,
-    _(([NSString stringWithFormat: @"Unexpected character %c at index %d",
+    _(([NSString stringWithFormat: @"Unexpected character %c at index %"PRIdPTR,
         (char)currentChar(state), state->sourceIndex])), 
       NSLocalizedFailureReasonErrorKey,
     nil];

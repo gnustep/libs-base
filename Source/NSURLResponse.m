@@ -342,7 +342,7 @@ typedef struct {
 + (NSString *) localizedStringForStatusCode: (NSInteger)statusCode
 {
 // FIXME ... put real responses in here
-  return [NSString stringWithFormat: @"%d", statusCode];
+  return [NSString stringWithFormat: @"%"PRIdPTR, statusCode];
 }
 
 - (NSDictionary *) allHeaderFields

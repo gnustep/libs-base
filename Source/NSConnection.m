@@ -2039,8 +2039,8 @@ static NSLock	*cached_proxies_gate = nil;
     }
 
   [self _sendOutRmc: op type: METHOD_REQUEST];
-  NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%x",
-    sel_getName([inv selector]), seq, (uintptr_t)self);
+  NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%"PRIxPTR,
+    sel_getName([inv selector]), seq, (NSUInteger)self);
 
   if (needsResponse == NO)
     {
@@ -3230,7 +3230,8 @@ static NSLock	*cached_proxies_gate = nil;
     }
   NS_ENDHANDLER
 
-  NSDebugMLLog(@"NSConnection", @"Consuming reply RMC %d on %x", sn, self);
+  NSDebugMLLog(@"NSConnection", @"Consuming reply RMC %d on %"PRIxPTR,
+    sn, (NSUInteger)self);
   return rmc;
 }
 

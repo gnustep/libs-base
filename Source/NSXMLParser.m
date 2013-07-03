@@ -1370,7 +1370,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
     {
       if (len < 8)
         {
-          unsigned int val;
+          uint32_t val;
           char  buf[8];
 
           memcpy(buf, ep + 1, len - 1);
@@ -1379,12 +1379,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
           if (sscanf(buf, "x%x;", &val))
             {
               // &#xhh; hex value
-              return [[NSString alloc] initWithFormat: @"%C", val];
+              return [[NSString alloc] initWithFormat: @"%C", (unichar)val];
             }
           else if (sscanf(buf, "%d;", &val))
             {
               // &ddd; decimal value
-              return [[NSString alloc] initWithFormat: @"%C", val];
+              return [[NSString alloc] initWithFormat: @"%C", (unichar)val];
             }
         }
     }
