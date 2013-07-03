@@ -1048,6 +1048,15 @@ LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GN
 #--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
+if test "$CC" = ""; then
+  CC=`gnustep-config --variable=CC`
+fi
+if test "$CPP" = ""; then
+  CPP=`gnustep-config --variable=CPP`
+fi
+if test "$CXX" = ""; then
+  CXX=`gnustep-config --variable=CXX`
+fi
 AC_PROG_CC
 AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS

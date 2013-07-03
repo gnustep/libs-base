@@ -31,6 +31,9 @@ include ../../config.mak
 
 SUBPROJECT_NAME = Additions
 
+Additions_C_FILES =\
+	GSTypeEncoding.c \
+
 Additions_OBJC_FILES =\
 	GSObjCRuntime.m \
 	GCObject.m \
@@ -60,7 +63,6 @@ Additions_OBJC_FILES =\
 	NSTask+GNUstepBase.m \
 	NSThread+GNUstepBase.m \
 	NSURL+GNUstepBase.m \
-
 
 Additions_OBJC_FILES += Unicode.m
 
