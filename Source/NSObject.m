@@ -1397,9 +1397,11 @@ static id gs_weak_load(id obj)
    * must use object_getClass() for them, because they do not have an isa
    * pointer (but can not have a hidden class interposed).
    */
+#ifdef	__clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-objc-pointer-introspection"
 #pragma clang diagnostic ignored "-Wdeprecated-objc-isa-usage"
+#endif
 #ifdef OBJC_SMALL_OBJECT_MASK
   if (((NSUInteger)self & OBJC_SMALL_OBJECT_MASK) == 0)
     {
@@ -1412,7 +1414,9 @@ static id gs_weak_load(id obj)
 #else
   destructorClass = isa;
 #endif
+#ifdef	__clang__
 #pragma clang diagnostic pop
+#endif
 
   /* C++ destructors must be called in the opposite order to their
    * creators, so start at the leaf class and then go up the tree until we
