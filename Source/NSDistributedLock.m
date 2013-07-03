@@ -187,6 +187,7 @@ static NSFileManager	*mgr = nil;
   NSDictionary		*attributes;
   BOOL			locked;
 
+  
   attributesToSet = [NSMutableDictionary dictionaryWithCapacity: 1];
   [attributesToSet setObject: [NSNumber numberWithUnsignedInt: 0755]
 		      forKey: NSFilePosixPermissions];
@@ -204,15 +205,15 @@ static NSFileManager	*mgr = nil;
        * or we have a severe problem!
        */
       if ([mgr fileExistsAtPath: _lockPath isDirectory: &dir] == NO)
-	{
-	  locked = [mgr createDirectoryAtPath: _lockPath
-				   attributes: attributesToSet];
-	  if (locked == NO)
 	    {
-	      NSLog(@"Failed to create lock directory '%@' - %@",
-		    _lockPath, [NSError _last]);
+	      locked = [mgr createDirectoryAtPath: _lockPath
+				                   attributes: attributesToSet];
+	      if (locked == NO)
+	        {
+	          NSLog(@"Failed to create lock directory '%@' - %@",
+		      _lockPath, [NSError _last]);
+	        }
 	    }
-	}
     }
 
   if (locked == NO)
@@ -224,10 +225,22 @@ static NSFileManager	*mgr = nil;
       attributes = [mgr fileAttributesAtPath: _lockPath
 				traverseLink: YES];
       if (attributes == nil)
-	{
-	  [NSException raise: NSGenericException
-		      format: @"Unable to get attributes of lock file we made"];
-	}
+	    {
+          /*
+           * We've seen cases where several instances of the same
+           * program were launched at once, where this exception
+           * got raised. It may be possible that one process removed
+           * the lock we've been using here, and with the right timing
+           * the exception could get raised, however we would only
+           * expect a failure in setting the lock:
+           */
+           /*
+            * [NSException raise: NSGenericException
+            *             format: @"Unable to get attributes of lock file we made"];
+            */
+           NSLog(@"Unable to get attributes of lock file we made");
+           return NO;
+	    }
       ASSIGN(_lockTime, [attributes fileModificationDate]);
       return YES;
     }
