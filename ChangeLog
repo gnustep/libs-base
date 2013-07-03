@@ -1,3 +1,10 @@
+2013-07-03  Ibadinov Marat <ibadinov@me.com>
+
+        * Source/Additions/GNUmakefile:
+        * Headers/GNUstepBase/GSTypeEncoding.c:
+        * Headers/GNUstepBase/GSTypeEncoding.h:
+        New type encoding parser.
+
 2013-07-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSException.h:
