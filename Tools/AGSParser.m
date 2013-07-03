@@ -78,7 +78,7 @@
   if (createSec)
     {
       secHeading = [NSString stringWithFormat:
-        @"<section id=\"_main\">\n<heading></heading>\n", toolName];
+        @"<section id=\"_main\">\n<heading>%@</heading>\n", toolName];
   //The %@ tool
       [m replaceCharactersInRange: r withString: secHeading];
     }

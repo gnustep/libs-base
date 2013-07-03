@@ -663,7 +663,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 }
 
 - (NSString *) _normalizedICUStringOfType: (const char*)normalization
-                                     mode: (UNormalizationMode)mode
+                                     mode: (UNormalization2Mode)mode
 {
   UErrorCode            err;
   const UNormalizer2    *normalizer;

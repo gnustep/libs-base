@@ -65,12 +65,20 @@ typedef enum
  */
 NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 
-@class GSAvahiRunLoopContext, NSTimer, NSLock, NSRecursiveLock, NSMutableDictionary, NSMapTable;
+@class GSAvahiRunLoopContext;
+@class NSTimer;
+@class NSRecursiveLock;
+@class NSMutableDictionary;
+@class NSMapTable;
 
 /**
  * NSNetService using the avahi-client API.
  */
+#ifdef __clang__        /* FIXME ... this is not clang specific! */
+@interface GSAvahiNetService : NSNetService <NSNetServiceDelegate>
+#else
 @interface GSAvahiNetService : NSNetService
+#endif
 {
   // GSAvahiClient behaviour ivars:
   // From superclass: id _delegate;
@@ -79,7 +87,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
   NSRecursiveLock *_lock;
   // Ivars for this class:
   NSMutableDictionary *_info;
-  NSLock *_infoLock;
+  NSRecursiveLock *_infoLock;
   NSUInteger _infoSeq;
   GSNetServiceState _serviceState;
   int _ifIndex;
@@ -112,7 +120,12 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 /**
  * NSNetServiceBrowser using the avahi-client API.
  */
+#ifdef __clang__        /* FIXME ... this is not clang specific! */
+@interface GSAvahiNetServiceBrowser
+  : NSNetServiceBrowser <NSNetServiceBrowserDelegate>
+#else
 @interface GSAvahiNetServiceBrowser: NSNetServiceBrowser
+#endif
 {
   // GSAvahiClient behaviour ivars:
   // from superclass: id _delegate;

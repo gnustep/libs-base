@@ -97,7 +97,7 @@ NSString *const NSAssertionHandlerKey = @"NSAssertionHandler";
   va_start(ap, format);
   message =
     [NSString
-      stringWithFormat: @"%@:%d  Assertion failed in %@.  %@",
+      stringWithFormat: @"%@:%"PRIdPTR"  Assertion failed in %@.  %@",
       fileName, line, functionName, format];
   NSLogv(message, ap);
 
@@ -124,8 +124,8 @@ NSString *const NSAssertionHandlerKey = @"NSAssertionHandler";
 
   va_start(ap, format);
   message =
-    [NSString
-      stringWithFormat: @"%@:%d  Assertion failed in %@(%@), method %@.  %@",
+    [NSString stringWithFormat:
+      @"%@:%"PRIdPTR"  Assertion failed in %@(%@), method %@.  %@",
       fileName, line, NSStringFromClass([object class]),
       class_isMetaClass([object class]) ? @"class" : @"instance",
       NSStringFromSelector(aSelector), format];

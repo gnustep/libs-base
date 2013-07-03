@@ -365,11 +365,7 @@ static BOOL useSmallFloat;
 @implementation NSSmallInt
 #undef VALUE
 #define VALUE (((intptr_t)self) >> OBJC_SMALL_OBJECT_SHIFT)
-#if OBJC_SMALL_OBJECT_SHIFT == 1
-#define FORMAT @"%d"
-#else
-#define FORMAT @"%lld"
-#endif
+#define FORMAT @"%"PRIdPTR
 #include "NSNumberMethods.h"
 
 + (void) load

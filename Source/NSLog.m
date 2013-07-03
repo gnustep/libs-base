@@ -345,8 +345,8 @@ NSLogv(NSString* format, va_list args)
     {
       if (GSPrivateDefaultsFlag(GSLogThread) == YES)
 	{
-	  prefix = [NSString stringWithFormat: @"[thread:%x] ",
-	    GSCurrentThread()];
+	  prefix = [NSString stringWithFormat: @"[thread:%"PRIxPTR"] ",
+	    (NSUInteger)GSCurrentThread()];
 	}
       else
 	{
@@ -359,11 +359,11 @@ NSLogv(NSString* format, va_list args)
       if (GSPrivateDefaultsFlag(GSLogThread) == YES)
 	{
 	  prefix = [NSString
-	    stringWithFormat: @"%@ %@[%d,%x] ",
+	    stringWithFormat: @"%@ %@[%d,%"PRIxPTR"x] ",
 	    [[NSCalendarDate calendarDate]
 	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
 	    [[NSProcessInfo processInfo] processName],
-	    pid, GSCurrentThread()];
+	    pid, (NSUInteger)GSCurrentThread()];
 	}
       else
 	{

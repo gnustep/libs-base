@@ -596,7 +596,7 @@ static NSArray  *keys = nil;
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
   NSDebugMLLog(@"NSStream",
-    @"GSTLSHandler got %d on %p", event, stream);
+    @"GSTLSHandler got %"PRIdPTR" on %p", event, stream);
 
   if (handshake == YES)
     {
@@ -862,7 +862,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  address = [[NSString alloc] initWithUTF8String:
 	    (char*)inet_ntoa(addr->sin_addr)];
 	  port = [[NSString alloc] initWithFormat: @"%d",
-	    (NSInteger)GSSwapBigI16ToHost(addr->sin_port)];
+	    (int)GSSwapBigI16ToHost(addr->sin_port)];
 
           /* Now reconfigure the streams so they will actually connect
            * to the socks proxy server.

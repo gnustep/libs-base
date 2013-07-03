@@ -100,7 +100,7 @@ _NS_owned_void_p_release(void *table, void *p)
 NSString *
 _NS_owned_void_p_describe(void *table, void *p)
 {
-  return [NSString stringWithFormat: @"%#x", p];
+  return [NSString stringWithFormat: @"%#"PRIxPTR, (NSUInteger)p];
 }
 
 /** For non-retained Objective-C objects **/
@@ -199,7 +199,7 @@ _NS_non_owned_void_p_release(void *table, void *p)
 NSString *
 _NS_non_owned_void_p_describe(void *table, void *p)
 {
-  return [NSString stringWithFormat: @"%0x", p];
+  return [NSString stringWithFormat: @"%0"PRIxPTR, (NSUInteger)p];
 }
 
 /** For pointers to structures and `int *' **/
@@ -232,5 +232,5 @@ NSString *
 _NS_int_p_describe(void *table, int *p)
 {
   /* Is this useful? */
-  return [NSString stringWithFormat: @"%d(%#x)", *p, p];
+  return [NSString stringWithFormat: @"%d(%#"PRIxPTR")", *p, (NSUInteger)p];
 }

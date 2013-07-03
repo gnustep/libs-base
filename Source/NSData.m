@@ -2877,7 +2877,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (*cursor >= length)
     {
       [NSException raise: NSRangeException
-		  format: @"Range: (%u, 1) Size: %d", *cursor, length];
+		  format: @"Range: (%u, 1) Size: %"PRIuPTR, *cursor, length];
     }
   *tag = *((unsigned char*)bytes + (*cursor)++);
   if (*tag & _GSC_MAYX)
@@ -2893,7 +2893,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	      if (*cursor >= length)
 		{
 		  [NSException raise: NSRangeException
-			      format: @"Range: (%u, 1) Size: %d",
+			      format: @"Range: (%u, 1) Size: %"PRIuPTR,
 			  *cursor, length];
 		}
 	      *ref = (unsigned int)*((unsigned char*)bytes + (*cursor)++);
@@ -2906,7 +2906,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	      if (*cursor >= length-1)
 		{
 		  [NSException raise: NSRangeException
-			      format: @"Range: (%u, 1) Size: %d",
+			      format: @"Range: (%u, 1) Size: %"PRIuPTR,
 			  *cursor, length];
 		}
 #if NEED_WORD_ALIGNMENT
@@ -2926,7 +2926,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	      if (*cursor >= length-3)
 		{
 		  [NSException raise: NSRangeException
-			      format: @"Range: (%u, 1) Size: %d",
+			      format: @"Range: (%u, 1) Size: %"PRIuPTR,
 			  *cursor, length];
 		}
 #if NEED_WORD_ALIGNMENT
@@ -3091,7 +3091,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
   if (bytes == MAP_FAILED)
     {
-      NSWarnMLog(@"mapping failed for %s - %@", path, [NSError _last]);
+      NSWarnMLog(@"mapping failed for %@ - %@", path, [NSError _last]);
       close(fd);
       DESTROY(self);
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
@@ -3761,7 +3761,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (tmp == 0)
 	{
 	  [NSException raise: NSMallocException
-	    format: @"Unable to set data capacity to '%d'", size];
+	    format: @"Unable to set data capacity to '%"PRIuPTR"'", size];
 	}
       if (bytes)
 	{
@@ -3955,8 +3955,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (newid == -1)			/* Created memory? */
 	{
 	  [NSException raise: NSMallocException
-	    format: @"Unable to create shared memory segment (size:%u) - %@.",
-	    size, [NSError _last]];
+	    format: @"Unable to create shared memory segment"
+	    @" (size:%"PRIuPTR") - %@.", size, [NSError _last]];
 	}
       tmp = shmat(newid, 0, 0);
       if ((intptr_t)tmp == -1)			/* Attached memory? */
