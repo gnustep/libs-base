@@ -945,7 +945,7 @@ wordData(NSString *word)
  *   <item>chunked (for HTTP/1.1)</item>
  *   <item>x-uuencode</item>
  * </list>
- * To add new coding schemes to the parser, you need to ovrride
+ * To add new coding schemes to the parser, you need to override
  * this method to return a new coding context for your scheme
  * when the info argument indicates that this is appropriate.
  */
