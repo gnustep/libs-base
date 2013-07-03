@@ -1,3 +1,55 @@
+2013-07-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSException.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	* Headers/GNUstepBase/NSString+GNUstepBase.h:
+	* Source/Additions/GCArray.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/GSArray.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSNetServices.h:
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/GSString.m:
+	* Source/GSTLS.m:
+	* Source/NSAssertionHandler.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSCallBacks.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSFileManager.m:
+	* Source/NSIndexPath.m:
+	* Source/NSIndexSet.m:
+	* Source/NSJSONSerialization.m:
+	* Source/NSKeyValueCoding.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSLog.m:
+	* Source/NSMessagePort.m:
+	* Source/NSNetServices.m:
+	* Source/NSNumber.m:
+	* Source/NSObject.m:
+	* Source/NSOperation.m:
+	* Source/NSPointerArray.m:
+	* Source/NSPortCoder.m:
+	* Source/NSPortMessage.m:
+	* Source/NSRange.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSortDescriptor.m:
+	* Source/NSString.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURLResponse.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSXMLParser.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Tools/AGSParser.m:
+        Fixes for errors in printf style formats, (mostly 64bit issues)
+        inspired by work done by Ibadinov Marat.
+
 2013-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
         * configure.ac: Add test for another libicu header
