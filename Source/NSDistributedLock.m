@@ -186,12 +186,23 @@ static NSFileManager	*mgr = nil;
   NSMutableDictionary	*attributesToSet;
   NSDictionary		*attributes;
   BOOL			locked;
+  BOOL existingDir;
 
   
   attributesToSet = [NSMutableDictionary dictionaryWithCapacity: 1];
   [attributesToSet setObject: [NSNumber numberWithUnsignedInt: 0755]
 		      forKey: NSFilePosixPermissions];
-	
+
+  if ([mgr fileExistsAtPath: _lockPath isDirectory: &existingDir] == YES)
+    {
+	  /*
+	   * The lock already exists, so our attempt to
+	   * set it has failed.
+	   */
+	  NSLog (@"Lock directory is already set: %@", _lockPath);
+	  return NO;
+	}
+			  
   locked = [mgr createDirectoryAtPath: _lockPath
 			   attributes: attributesToSet];
   if (locked == NO)
