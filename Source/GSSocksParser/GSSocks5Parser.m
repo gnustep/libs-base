@@ -27,7 +27,6 @@
 
 #import "GSSocks5Parser.h"
 #import "GSSocksParserPrivate.h"
-#import <arpa/inet.h>
 
 typedef enum GSSocks5ParserState {
   GSSocks5ParserStateHandshake,
@@ -222,7 +221,7 @@ typedef enum GSSocks5ResponseStatus {
               [data appendBytes: &length length: 1];
             }
           [data appendData: addressData];
-          portWithNetworkEndianness = htons((uint16_t)port);
+          portWithNetworkEndianness = NSSwapHostShortToBig((uint16_t)port);
           [data appendBytes: &portWithNetworkEndianness length: 2];
           
           state = GSSocks5ParserStateResponse;
@@ -269,7 +268,7 @@ typedef enum GSSocks5ResponseStatus {
                                 length: addressSize];
           bndAddress = [self addressFromData: data
                                     withType: addressType];
-          bndPort = ntohs(*(uint16_t *)(bytes + addressSize));
+          bndPort = NSSwapBigShortToHost(*(uint16_t *)(bytes + addressSize));
           [delegate parser: self finishedWithAddress: bndAddress port: bndPort];
           break;
         }

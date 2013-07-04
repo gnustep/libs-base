@@ -27,7 +27,6 @@
 
 #import "GSSocks4Parser.h"
 #import "GSSocksParserPrivate.h"
-#import <arpa/inet.h>
 
 typedef enum GSSocks4InternalError {
   GSSocks4InternalErrorIPv6 = 0x4a
@@ -83,7 +82,7 @@ typedef enum GSSocks4ResponseStatus {
   bytes = [data mutableBytes];
   bytes[0] = 0x4;
   bytes[1] = 0x1;
-  *(uint16_t *)(bytes + 2) = htons((uint16_t)port);
+  *(uint16_t *)(bytes + 2) = NSSwapHostShortToBig((uint16_t)port);
   if (addressType == GSSocksAddressTypeDomain)
     {
       bytes[4] = bytes[5] = bytes[6] = 0;
@@ -93,7 +92,7 @@ typedef enum GSSocks4ResponseStatus {
     {
       const uint32_t *addressBytes = [[self addressData] bytes];
 
-      *(uint32_t *)(bytes + 4) = htonl(*addressBytes);
+      *(uint32_t *)(bytes + 4) = NSSwapHostLongToBig(*addressBytes);
     }
   zero = 0x0;
   user = [configuration objectForKey: NSStreamSOCKSProxyUserKey];
@@ -152,8 +151,8 @@ typedef enum GSSocks4ResponseStatus {
       return;
     }
   
-  bndPort = ntohs(*(uint16_t *)(bytes + 2));
-  addressBytes = ntohl(*(uint32_t *)(bytes + 4));
+  bndPort = NSSwapBigShortToHost(*(uint16_t *)(bytes + 2));
+  addressBytes = NSSwapBigLongToHost(*(uint32_t *)(bytes + 4));
   addressData = [NSData dataWithBytesNoCopy: &addressBytes
                                      length: 4
                                freeWhenDone: NO];

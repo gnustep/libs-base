@@ -1,3 +1,11 @@
+2013-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source\GSSocksParser\GSSocksParser.h:
+	* Source\GSSocksParser\GSSocksParserPrivate.m:
+	* Source\GSSocksParser\GSSocks4Parser.m:
+	* Source\GSSocksParser\GSSocks5Parser.m:
+	More portability fixes ... this tme for mswindows.
+
 2013-07-04  Ibadinov Marat <ibadinov@me.com>
 
         * GSSocksParser/GSSocks5Parser.m:
