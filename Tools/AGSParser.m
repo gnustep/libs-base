@@ -3828,11 +3828,6 @@ fail:
 
   if (nil == known)
     {
-      NSString  *osxMax;
-
-      osxMax = [NSString stringWithFormat: @"%d",
-        GS_OSX_ADJUST(MAC_OS_X_VERSION_MAX_ALLOWED)];
-
       known = [[NSDictionary alloc] initWithObjectsAndKeys:
 	@"0", @"GS_API_NONE",
 	@"999999", @"GS_API_LATEST",
@@ -3848,7 +3843,6 @@ fail:
 	@"100700", @"MAC_OS_X_VERSION_10_7",
 	@"100800", @"MAC_OS_X_VERSION_10_8",
 	@"100800", @"MAC_OS_X_VERSION_10_8",
-	osxMax, @"MAC_OS_X_VERSION_MAX_ALLOWED",
         nil];
     }
   tmp = [known objectForKey: str];
