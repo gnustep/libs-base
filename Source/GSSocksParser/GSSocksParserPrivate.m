@@ -104,10 +104,16 @@
         {
           NSMutableData *result = [NSMutableData dataWithLength: 4];
           const char *cString = [address UTF8String];
+ 	  int	elements[4];
           uint8_t *bytes = [result mutableBytes];
 
-          sscanf(cString, "%hhu.%hhu.%hhu.%hhu",
-            &bytes[0], &bytes[1], &bytes[2], &bytes[3]);
+          sscanf(cString, "%d.%d.%d.%d",
+            &elements[0], &elements[1], &elements[2], &elements[3]);
+          bytes[0] = (uint8_t)elements[0];
+          bytes[1] = (uint8_t)elements[1];
+          bytes[2] = (uint8_t)elements[2];
+          bytes[3] = (uint8_t)elements[3];
+
           return result;
         }
       case GSSocksAddressTypeIPv6:

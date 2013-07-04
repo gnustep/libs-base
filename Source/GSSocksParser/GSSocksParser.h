@@ -25,6 +25,7 @@
  * $Date$ $Revision$
  */
 
+#import <Foundation/NSByteOrder.h>
 #import <Foundation/NSData.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSError.h>
