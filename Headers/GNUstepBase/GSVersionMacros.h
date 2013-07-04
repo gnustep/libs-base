@@ -92,12 +92,9 @@
  * two digits are the major version number, the second two are the minor
  * version number and the last two are the subminor number (all left padded
  * with a zero where necessary).  However, for convenience you can also
- * use any of several predefined constants ...
+ * use the predefined constants ...
  * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
  * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
- * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
- * <ref type="macro" id="GS_API_OPENSTEP">GS_API_OPENSTEP</ref>,
- * <ref type="macro" id="GS_API_MACOSX">GS_API_MACOSX</ref>
  * </p>
  * <p>Also see <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
  * </p>
@@ -133,6 +130,22 @@
  * <ref type="macro" id="GS_API_MACOSX">GS_API_MACOSX</ref>
  * </p>
  * <p>Also see <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
+ * </p>
+ * <p>For OSX compatibility, this macro also supports the use of Apple's
+ * symbolic constants for version numbering.  Their contants are currently
+ * four digit values (two digits for the major version, one for the minor,
+ * and one for the subminor). 
+ * </p>
+ * <p>The Apple compatibility version macros are currently:
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_0">MAC_OS_X_VERSION_10_0</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_1">MAC_OS_X_VERSION_10_1</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_2">MAC_OS_X_VERSION_10_2</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_3">MAC_OS_X_VERSION_10_3</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_4">MAC_OS_X_VERSION_10_4</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_5">MAC_OS_X_VERSION_10_5</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_6">MAC_OS_X_VERSION_10_6</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_7">MAC_OS_X_VERSION_10_7</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_8">MAC_OS_X_VERSION_10_8</ref>
  * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
@@ -187,12 +200,6 @@
  * denotes code present from the initial MacOS-X version onwards.
  */
 #define	GS_API_MACOSX	100000
-
-/** OSX compatibility definitions.
- */
-#ifndef MAC_OS_X_VERSION_MAX_ALLOWED
-#define MAC_OS_X_VERSION_MAX_ALLOWED    GS_API_LATEST
-#endif
 
 
 #if	defined(GNUSTEP_BASE_INTERNAL)
