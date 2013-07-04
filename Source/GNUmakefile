@@ -174,6 +174,10 @@ GSString.m \
 GSTimSort.m \
 GSTLS.m \
 GSValue.m \
+GSSocksParser/GSSocksParser.m \
+GSSocksParser/GSSocksParserPrivate.m \
+GSSocksParser/GSSocks4Parser.m \
+GSSocksParser/GSSocks5Parser.m \
 NSAffineTransform.m \
 NSArchiver.m \
 NSArray.m \

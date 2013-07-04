@@ -1,3 +1,15 @@
+2013-07-04  Ibadinov Marat <ibadinov@me.com>
+
+        * GSSocksParser/GSSocks5Parser.m:
+        * GSSocksParser/GSSocks5Parser.h:
+        * GSSocksParser/GSSocksParserPrivate.h:
+        * GSSocksParser/GSSocksParser.m:
+        * GSSocksParser/GSSocksParserPrivate.m:
+        * GSSocksParser/GSSocksParser.h:
+        * GSSocksParser/GSSocks4Parser.m:
+        * GSSocksParser/GSSocks4Parser.h:
+        Parsing code for SOCKS versions 4 and 5.
+
 2013-07-03  Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 
 	* Source/Additions/GSMime.m
