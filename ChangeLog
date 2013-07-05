@@ -1,3 +1,8 @@
+2013-07-05  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/GNUstepBase/GSTypeEncoding.h
+	Include objc.h otherwise __GNU_LIBOBJC__ isn't defined.
+
 2013-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source\GSSocksParser\GSSocksParser.h:
