@@ -761,11 +761,16 @@ GSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone);
 inline id
 NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
+  id    new;
+
   if (!objc_collecting_enabled())
     {
-      GSAllocateObject(aClass, extraBytes, zone);
+      new = GSAllocateObject(aClass, extraBytes, zone);
     }
-  id	new = class_createInstance(aClass, extraBytes);
+  else
+    {
+      new = class_createInstance(aClass, extraBytes);
+    }
   if (0 == cxx_construct)
     {
       cxx_construct = sel_registerName(".cxx_construct");
