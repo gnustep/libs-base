@@ -1039,11 +1039,11 @@ fi
 
 #
 # Add standard library and header directories for configure to use to locate
-# plain C developer headers/libraries which haver been installed in the
-# GNUstep hierarchy.
+# plain C developer headers/libraries which have been installed in the
+# GNUstep hierarchy. These take precedence 
 #
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_LOCAL_HEADERS"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_LOCAL_LIBRARIES"
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_SYSTEM_HEADERS"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_SYSTEM_LIBRARIES"
 
 #--------------------------------------------------------------------
 # Find the compiler
@@ -3202,7 +3202,7 @@ if test $enable_icu = yes; then
     have_icu=no;
     AC_CHECKING([for libicu (icu-config disabled)])
     if test "$icu_libdir" != "no"; then
-      ICU_LDFLAGS="-I$icu_libdir";
+      ICU_LDFLAGS="-L$icu_libdir";
     fi
     saved_LDFLAGS="$LDFLAGS";
     LDFLAGS="$LDFLAGS $LIBS $ICU_LDFLAGS -licui18n -licuuc -licudata -lm"

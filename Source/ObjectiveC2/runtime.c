@@ -358,9 +358,8 @@ class_copyProtocolList(Class cls, unsigned int *outCount)
 id
 class_createInstance(Class cls, size_t extraBytes)
 {
-  id obj = malloc(cls->instance_size + extraBytes);
-  obj->isa = cls;
-  return obj;
+  extern id NSAllocateObject(Class, uintptr_t, void*);
+  return NSAllocateObject(cls, extraBytes, 0);
 }
 
 Method
