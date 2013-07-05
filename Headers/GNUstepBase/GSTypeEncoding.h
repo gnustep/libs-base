@@ -32,6 +32,7 @@
 #if defined (NeXT_RUNTIME)
 #  include <objc/objc-runtime.h>
 #else
+#  include <objc/objc.h>
 #  if defined (__GNU_LIBOBJC__)
 #    include <objc/runtime.h>
 #  else
@@ -95,7 +96,7 @@ typedef enum GSObjCType
   GSObjCTypeUnknown           = '?'
 } GSObjCType;
 
-/* maximum an minimum char values in a type specification */
+/* maximum and minimum char values in a type specification */
 typedef enum GSObjCTypeBound
 {
   GSObjCTypeMin               = ' ',
