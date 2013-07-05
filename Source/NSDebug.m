@@ -525,27 +525,30 @@ _GSDebugAllocationList(BOOL difference)
       buf = NSZoneMalloc(NSDefaultMallocZone(), siz);
     }
 
-  if (buf)
+  if (0 == buf)
     {
-      pos = 0;
-      for (i = 0; i < num_classes; i++)
+      return "";
+    }
+
+  pos = 0;
+  for (i = 0; i < num_classes; i++)
+    {
+      int	val = the_table[i].count;
+
+      if (difference)
 	{
-	  int	val = the_table[i].count;
+	  val -= the_table[i].lastc;
+	}
+      the_table[i].lastc = the_table[i].count;
 
-	  if (difference)
-	    {
-	      val -= the_table[i].lastc;
-	    }
-	  the_table[i].lastc = the_table[i].count;
-
-	  if (val != 0)
-	    {
-	      snprintf(&buf[pos], siz - pos, "%d\t%s\n",
-		val, class_getName(the_table[i].class));
-	      pos += strlen(&buf[pos]);
-	    }
+      if (val != 0)
+	{
+	  snprintf(&buf[pos], siz - pos, "%d\t%s\n",
+	    val, class_getName(the_table[i].class));
+	  pos += strlen(&buf[pos]);
 	}
     }
+
   return buf;
 }
 
@@ -612,21 +615,24 @@ _GSDebugAllocationListAll(void)
       buf = NSZoneMalloc(NSDefaultMallocZone(), siz);
     }
 
-  if (buf)
+  if (0 == buf)
     {
-      pos = 0;
-      for (i = 0; i < num_classes; i++)
-	{
-	  int	val = the_table[i].total;
+      return "";
+    }
 
-	  if (val != 0)
-	    {
-	      snprintf(&buf[pos], siz - pos, "%d\t%s\n",
-		val, class_getName(the_table[i].class));
-	      pos += strlen(&buf[pos]);
-	    }
+  pos = 0;
+  for (i = 0; i < num_classes; i++)
+    {
+      int	val = the_table[i].total;
+
+      if (val != 0)
+	{
+	  snprintf(&buf[pos], siz - pos, "%d\t%s\n",
+	    val, class_getName(the_table[i].class));
+	  pos += strlen(&buf[pos]);
 	}
     }
+
   return buf;
 }
 
