@@ -1,3 +1,8 @@
+2013-07-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/cifframe.m: Fix possible incorrect free of non-malloc'ed
+	memory.
+
 2013-07-05  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSObject.m: Fix error creating instasnce when using the
