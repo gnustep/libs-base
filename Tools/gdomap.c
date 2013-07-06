@@ -2085,7 +2085,7 @@ init_probe()
       int		broadcast = 0;
       int		elen = 0;
       struct in_addr	*other = 0;
-      struct in_addr	sin;
+      struct in_addr	sin { 0 };
       int		high = 0;
       int		low = 0;
       unsigned long	net = 0;
@@ -2567,6 +2567,13 @@ handle_read(int desc)
   int	r;
 
   ri = getRInfo(desc, 0);
+  if (0 == ri)
+    {
+      snprintf(ebuf, sizeof(ebuf),
+	"request not found on descriptor %d", desc);
+      gdomap_log(LOG_DEBUG);
+      return;
+    }
   ptr = ri->buf.b;
 
   while (ri->pos < GDO_REQ_SIZE && done == 0)
@@ -2619,6 +2626,13 @@ handle_recv()
   int	r;
 
   ri = getRInfo(udp_desc, 0);
+  if (0 == ri)
+    {
+      snprintf(ebuf, sizeof(ebuf),
+	"request not found on descriptor %d", udp_desc);
+      gdomap_log(LOG_DEBUG);
+      return;
+    }
   addr = &(ri->addr);
   ptr = ri->buf.b;
 
@@ -3674,8 +3688,8 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
  *			On error - return non-zero with reason in 'errno'
  */
 static int
-tryHost(unsigned char op, unsigned char len, const unsigned char* name,
-int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
+tryHost(unsigned char op, unsigned char len, const unsigned char *name,
+int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
 {
   int desc = socket(AF_INET, SOCK_STREAM, 0);
   int	e = 0;
@@ -3835,7 +3849,10 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 #endif
 	  return 5;
 	}
-      *v = b;
+      if (0 != v)
+	{
+          *v = b;
+	}
     }
   /*
    *	Special case for GDO_NAMES - allocate buffer and read list.
@@ -4031,7 +4048,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   if (multi)
     {
       unsigned short	num;
-      struct in_addr*	b;
+      struct in_addr	*b;
 
       /*
        * A host name of '*' is a special case which should do lookup on
