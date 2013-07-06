@@ -6,6 +6,11 @@
 	* Source/NSMethodSignature.m: fix uninitialised variable
 	* Source/NSPropertyList.m: avoid static analyser warning
 	* Tools/gdomap.c: fix uninitialised data warning
+	* Source/NSObject.m: fixup error in alignment calculation;
+	was assuming that the alignment of a double would do but that's
+	not good enough. On GCC we use the __BIGGEST_ALIGNMENT__ used on
+	the machine, but clang has no support for that, so if it's not
+	defined we now guess 16 rather than __alignof__(double).
 
 2013-07-05  Richard Frith-Macdonald <rfm@gnu.org>
 
