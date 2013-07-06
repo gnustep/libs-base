@@ -2633,15 +2633,6 @@ if test "$exceptions" = "yes"; then
   # ffcall will mess up native exceptions, so we must disable it.
   do_broken_libffcall=yes
   do_enable_libffcall=no
-
-  if test "$have_unexpected" = "no"; then
-    echo
-    echo "Your gnustep-make is configured to use native objc exceptions, but"
-    echo "the objc runtime does not appear to support setting an uncaught"
-    echo "exception handler.  This means that any uncaught exception will"
-    echo "cause a program to abort immediately."
-    echo "Consider reconfiguring gnustep-make or updating libobjc to fix this."
-  fi
 fi
 
 AC_ARG_ENABLE(libffi,
