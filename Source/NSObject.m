@@ -397,14 +397,10 @@ static inline NSLock *GSAllocationLockForObject(id p)
 
 #endif
 
-#ifdef ALIGN
-#undef ALIGN
-#endif
 #if defined(__GNUC__) && __GNUC__ < 4
 #define __builtin_offsetof(s, f) (uintptr_t)(&(((s*)0)->f))
 #endif
 #define alignof(type) __builtin_offsetof(struct { const char c; type member; }, member)
-#define	ALIGN alignof(double)
 
 /*
  *	Define a structure to hold information that is held locally
@@ -415,13 +411,22 @@ typedef struct obj_layout_unpadded {
 } unp;
 #define	UNP sizeof(unp)
 
+/* GCC provides a defined value for the largest alignment required on a
+ * machine, and we must lay objects out to that alignment.
+ * For compilers that don't define it, we try to pick a likely value.
+ */
+#ifndef	__BIGGEST_ALIGNMENT__
+#define	__BIGGEST_ALIGNMENT__ 16
+#endif
+
 /*
  *	Now do the REAL version - using the other version to determine
  *	what padding (if any) is required to get the alignment of the
  *	structure correct.
  */
 struct obj_layout {
-    char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
+    char	padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)
+      ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];
     NSUInteger	retained;
 };
 typedef	struct obj_layout *obj;
