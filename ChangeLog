@@ -2,6 +2,10 @@
 
 	* Source/cifframe.m: Fix possible incorrect free of non-malloc'ed
 	memory.
+	* Source/NSHost.m: fix uninitialised data warning
+	* Source/NSMethodSignature.m: fix uninitialised variable
+	* Source/NSPropertyList.m: avoid static analyser warning
+	* Tools/gdomap.c: fix uninitialised data warning
 
 2013-07-05  Richard Frith-Macdonald <rfm@gnu.org>
 

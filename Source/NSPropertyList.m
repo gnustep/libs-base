@@ -1133,14 +1133,10 @@ static id parsePlItem(pldata* pld)
 
 		len--;
 		// Allow for quoted values.
-		if (ptr[0] == '"' && len > 1)
+		if (len > 2 && '"' == ptr[0] && '"' == ptr[len - 1])
 		  {
-		    len--;
+		    len -= 2;
 		    ptr++;
-		    if (ptr[len - 1] == '"')
-		      {
-			len--;
-		      }
 		  }
 		if (type == 'I')
 		  {
