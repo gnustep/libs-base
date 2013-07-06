@@ -2085,7 +2085,7 @@ init_probe()
       int		broadcast = 0;
       int		elen = 0;
       struct in_addr	*other = 0;
-      struct in_addr	sin { 0 };
+      struct in_addr	sin = { 0 };
       int		high = 0;
       int		low = 0;
       unsigned long	net = 0;
