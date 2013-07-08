@@ -1,4 +1,18 @@
-2013-06-8  Doug Simons <doug.simons@testplant.com>
+2013-07-08  Jonathan Gillaspie <jonathan.gillaspie@testplant.com>
+
+       * NSRunLoop.m: Added to the 1000's of performers log message to report the
+	   target and selector of the most recent performer in an effort to identify
+	   loops.
+
+2013-07-03	Frank Le Grand <frank.legrand@testplant.com>
+
+		* NSDistributedLock.m: Modified behavior of tryLock to return NO if
+		the lock directory we're about the create already exist. Also changed
+		the exception raised when we're unable to read the lock's attributes to
+		a log message along with returning NO. We suspect the latter was a
+		side effect of the first issue.
+
+2013-06-08  Doug Simons <doug.simons@testplant.com>
 
        * NSString.m: Implemented precomposedStringWithCanonicalMapping and its
 	   decomposedString... and ...CompatibilityMapping variants when ICU is
@@ -29,7 +43,6 @@
 	* Source/unix/GSRunLoopCtxt.m (-pollUntil:within:): Fix previous
 	change to compile again when using select() instead of poll().
 
->>>>>>> 7bef14a32 (check for nil argument and raise as per apple documentation)
 2012-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSSocketPort.m:
