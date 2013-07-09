@@ -1,5 +1,9 @@
 2013-07-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/GSTLS.m: Fix memory leak (credentials)
+
+2013-07-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/GNUstepBase/GSVersionMacros.h:
         Re-add define to set MAC_OS_X_VERSION_MAX_ALLOWED for OSX compatibility.
 

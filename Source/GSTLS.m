@@ -1107,7 +1107,7 @@ static NSMutableDictionary      *credentialsCache = nil;
             }
         }
 
-      /* Get the key for our sertificat .. if one is specified.
+      /* Get the key for our certificate .. if one is specified.
        */
       if (nil != ck)
         {
@@ -1173,14 +1173,14 @@ static NSMutableDictionary      *credentialsCache = nil;
 
 - (void) dealloc
 {
-  if (nil != key)
+  if (nil != name)
     {
       gnutls_certificate_free_credentials(certcred);
       DESTROY(key);
+      DESTROY(list);
+      DESTROY(dhParams);
+      DESTROY(name);
     }
-  DESTROY(list);
-  DESTROY(dhParams);
-  DESTROY(name);
   [super dealloc];
 }
 
