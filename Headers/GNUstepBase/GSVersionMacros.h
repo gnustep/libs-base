@@ -63,6 +63,7 @@
 #endif	/* MAC_OS_X_VERSION_10_0 */
 
 /* Allow MAC_OS_X_VERSION_MAX_ALLOWED to be used in place of GS_OPENSTEP_V
+ * if GS_OPENSTEP_V is not defined.
  */
 #ifndef	GS_OPENSTEP_V
 #ifdef	MAC_OS_X_VERSION_MAX_ALLOWED
@@ -200,6 +201,14 @@
  * denotes code present from the initial MacOS-X version onwards.
  */
 #define	GS_API_MACOSX	100000
+
+/* Allow OSX code comparing MAC_OS_X_VERSION_MAX_ALLOWED with a specific
+ * version to see if that version is allowed, to always have it allowed
+ * on GNUstep.
+ */
+#ifndef	MAC_OS_X_VERSION_MAX_ALLOWED
+#define	MAC_OS_X_VERSION_MAX_ALLOWED    GS_API_LATEST
+#endif  /* MAC_OS_X_VERSION_MAX_ALLOWED */
 
 
 #if	defined(GNUSTEP_BASE_INTERNAL)

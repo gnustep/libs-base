@@ -1,3 +1,8 @@
+2013-07-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSVersionMacros.h:
+        Re-add define to set MAC_OS_X_VERSION_MAX_ALLOWED for OSX compatibility.
+
 2013-07-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/cifframe.m: Fix possible incorrect free of non-malloc'ed
