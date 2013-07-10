@@ -27,11 +27,11 @@
 
 #import "common.h"
 
-#import <Foundation/NSInvocationOperation.h>
-#import <Foundation/NSException.h>
-#import <Foundation/NSInvocation.h>
-#import <Foundation/NSMethodSignature.h>
-#import <Foundation/NSValue.h>
+#import "Foundation/NSInvocationOperation.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSInvocation.h"
+#import "Foundation/NSMethodSignature.h"
+#import "Foundation/NSValue.h"
 
 @implementation NSInvocationOperation
 
