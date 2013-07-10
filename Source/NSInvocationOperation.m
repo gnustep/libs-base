@@ -32,6 +32,7 @@
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSValue.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 
 @implementation NSInvocationOperation
 
@@ -97,12 +98,14 @@
     {
       const char *returnType = [[_invocation methodSignature] methodReturnType];
 
-      if (0 == strncmp(@encode(void), returnType, 1))
+      if (0 == strncmp(@encode(void),
+        GSSkipTypeQualifierAndLayoutInfo(returnType), 1))
 	{
 	  [NSException raise: (id)NSInvocationOperationVoidResultException
             format: @"*** %s: void result", __PRETTY_FUNCTION__];
 	}
-      else if (0 == strncmp(@encode(id), returnType, 1))
+      else if (0 == strncmp(@encode(id),
+        GSSkipTypeQualifierAndLayoutInfo(returnType), 1))
 	{
 	  [_invocation getReturnValue: &result];
 	}
