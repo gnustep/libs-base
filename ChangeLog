@@ -1,3 +1,11 @@
+2013-07-11  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Headers/GNUstepBase/GSVersionMacros.h: Fix definition of
+	GS_OSX_ADJUST, which got things backward (converting a GNUstep
+	style version into an OS X version instead of the other way
+	around). Also make sure that MAC_OS_X_VERSION_MAX_ALLOWED gets
+	converted when used in the definition of GS_OPENSTEP_V.
+
 2013-07-09  Graham Lee <iamleeg@gmail.com>
 
         * Source/GNUmakefile:

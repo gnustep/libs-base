@@ -46,7 +46,7 @@
 /* Define the GS_OSX_ADJUST() macro to adjust OSX style version macros
  * to GNUstep style version macros.
  */
-#define	GS_OSX_ADJUST(V) ((V) < 10000 ? (V) : ((V)/10*100 + (V)%10*10))
+#define	GS_OSX_ADJUST(V) ((V) >= 10000 ? (V) : ((V)/100*10000 + (V)%100*10))
 
 /* Define OSX compatibility version macros if necessary.
  */
@@ -67,7 +67,7 @@
  */
 #ifndef	GS_OPENSTEP_V
 #ifdef	MAC_OS_X_VERSION_MAX_ALLOWED
-#define	GS_OPENSTEP_V	MAC_OS_X_VERSION_MAX_ALLOWED
+#define	GS_OPENSTEP_V	GS_OSX_ADJUST(MAC_OS_X_VERSION_MAX_ALLOWED)
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED */
 #endif	/* GS_OPENSTEP_V */
 
