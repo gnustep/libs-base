@@ -662,6 +662,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   return NULL;
 }
 
+#if defined(HAVE_UNICODE_UNORM2_H)
 - (NSString *) _normalizedICUStringOfType: (const char*)normalization
                                      mode: (UNormalization2Mode)mode
 {
@@ -749,6 +750,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
   return AUTORELEASE(newString);
 }
+#endif
 #endif
 
 + (void) atExit
@@ -1769,7 +1771,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
 - (NSString *) decomposedStringWithCompatibilityMapping
 {
-#if GS_USE_ICU == 1
+#if (GS_USE_ICU == 1) && defined(HAVE_UNICODE_UNORM2_H)
   return [self _normalizedICUStringOfType: "nfkc" mode: UNORM2_DECOMPOSE];
 #else
   return [self notImplemented: _cmd];
@@ -1778,7 +1780,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
 - (NSString *) decomposedStringWithCanonicalMapping
 {
-#if GS_USE_ICU == 1
+#if (GS_USE_ICU == 1) && defined(HAVE_UNICODE_UNORM2_H)
   return [self _normalizedICUStringOfType: "nfc" mode: UNORM2_DECOMPOSE];
 #else
   return [self notImplemented: _cmd];
@@ -3931,7 +3933,7 @@ static NSFileManager *fm = nil;
 
 - (NSString *) precomposedStringWithCompatibilityMapping
 {
-#if GS_USE_ICU == 1
+#if (GS_USE_ICU == 1) && defined(HAVE_UNICODE_UNORM2_H)
   return [self _normalizedICUStringOfType: "nfkc" mode: UNORM2_COMPOSE];
 #else
   return [self notImplemented: _cmd];
@@ -3940,7 +3942,7 @@ static NSFileManager *fm = nil;
  
 - (NSString *) precomposedStringWithCanonicalMapping
 {
-#if GS_USE_ICU == 1
+#if (GS_USE_ICU == 1) && defined(HAVE_UNICODE_UNORM2_H)
    return [self _normalizedICUStringOfType: "nfc" mode: UNORM2_COMPOSE];
 #else
   return [self notImplemented: _cmd];
