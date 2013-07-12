@@ -416,7 +416,7 @@ typedef struct obj_layout_unpadded {
  * For compilers that don't define it, we try to pick a likely value.
  */
 #ifndef	__BIGGEST_ALIGNMENT__
-#define	__BIGGEST_ALIGNMENT__ 16
+#define	__BIGGEST_ALIGNMENT__ (SIZEOF_VOIDP * 2)
 #endif
 
 /*
