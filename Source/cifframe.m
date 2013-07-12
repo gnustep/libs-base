@@ -259,8 +259,12 @@ cifframe_arg_addr(cifframe_t *cframe, int index)
 ffi_type *
 cifframe_type(const char *typePtr, const char **advance)
 {
+  static ffi_type	stypeNSPoint = { 0 };
+  static ffi_type	stypeNSRange = { 0 };
+  static ffi_type	stypeNSRect = { 0 };
+  static ffi_type	stypeNSSize = { 0 };
   const char *type;
-  ffi_type *ftype;
+  ffi_type *ftype = 0;
 
   typePtr = objc_skip_type_qualifiers (typePtr);
   type = typePtr;
@@ -352,19 +356,17 @@ cifframe_type(const char *typePtr, const char **advance)
 	 */
 	if (GSSelectorTypesMatch(typePtr - 1, @encode(NSRange)))
 	  {
-	    static ffi_type	*elems[3];
-	    static ffi_type	stype = { 0 };
-
-	    if (stype.type == 0)
+	    ftype = &stypeNSRange;
+	    if (ftype->type == 0)
 	      {
-                const char      *t = @encode(NSUInteger);
+                static ffi_type	*elems[3];
 
-		if (*t == _C_ULNG)
+		if (*@encode(NSUInteger) == _C_ULNG)
 		  {
 		    elems[0] = &gsffi_type_ulong;
 		  }
 #ifdef	_C_LNG_LNG
-		else if (*t == _C_ULNG_LNG)
+		else if (*@encode(NSUInteger) == _C_ULNG_LNG)
 		  {
 		    elems[0] = &gsffi_type_ulong_long;
 		  }
@@ -375,20 +377,19 @@ cifframe_type(const char *typePtr, const char **advance)
 		  }
 		elems[1] = elems[0];
 		elems[2] = 0;
-		stype.elements = elems;
-		stype.type = FFI_TYPE_STRUCT;
+		ftype->elements = elems;
+		ftype->type = FFI_TYPE_STRUCT;
 	      }
-	    ftype = &stype;
 	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
-	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSSize)))
+	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSPoint)))
 	  {
-	    static ffi_type	*elems[3];
-	    static ffi_type	stype = { 0 };
-
-	    if (stype.type == 0)
+	    ftype = &stypeNSPoint;
+	    if (ftype->type == 0)
 	      {
+                static ffi_type	*elems[3];
+
 		if (*@encode(CGFloat) == _C_DBL)
 		  {
 		    elems[0] = &ffi_type_double;
@@ -399,30 +400,51 @@ cifframe_type(const char *typePtr, const char **advance)
 		  }
 		elems[1] = elems[0];
 		elems[2] = 0;
-		stype.elements = elems;
-		stype.type = FFI_TYPE_STRUCT;
+		ftype->elements = elems;
+		ftype->type = FFI_TYPE_STRUCT;
 	      }
-	    ftype = &stype;
+	    typePtr = objc_skip_typespec (typePtr - 1);
+	    break;
+	  }
+	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSSize)))
+	  {
+	    ftype = &stypeNSSize;
+	    if (ftype->type == 0)
+	      {
+                static ffi_type	*elems[3];
+
+		if (*@encode(CGFloat) == _C_DBL)
+		  {
+		    elems[0] = &ffi_type_double;
+		  }
+		else
+		  {
+		    elems[0] = &ffi_type_float;
+		  }
+		elems[1] = elems[0];
+		elems[2] = 0;
+		ftype->elements = elems;
+		ftype->type = FFI_TYPE_STRUCT;
+	      }
 	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
 	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSRect)))
 	  {
-	    static ffi_type	*elems[3];
-	    static ffi_type	stype = { 0 };
-
-	    if (stype.type == 0)
+	    ftype = &stypeNSRect;
+	    if (ftype->type == 0)
 	      {
+                static ffi_type	*elems[3];
+
 		/* An NSRect is an NSPoint and an NSSize, but those
 	 	 * two structures are actually identical.
 		 */
 		elems[0] = cifframe_type(@encode(NSSize), NULL);
-		elems[1] = elems[0];
+		elems[1] = cifframe_type(@encode(NSPoint), NULL);
 		elems[2] = 0;
-		stype.elements = elems;
-		stype.type = FFI_TYPE_STRUCT;
+		ftype->elements = elems;
+		ftype->type = FFI_TYPE_STRUCT;
 	      }
-	    ftype = &stype;
 	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
@@ -497,8 +519,14 @@ cifframe_type(const char *typePtr, const char **advance)
 	    NSCAssert(typePtr, @"End of signature while parsing");
 	    if (align > max_align)
 	      {
-		if (ftype && ftype->type == FFI_TYPE_STRUCT)
-		  free(ftype);
+		if (ftype && ftype->type == FFI_TYPE_STRUCT
+		  && ftype != &stypeNSPoint
+		  && ftype != &stypeNSRange
+		  && ftype != &stypeNSRect
+		  && ftype != &stypeNSSize)
+		  {
+		    free(ftype);
+		  }
 		ftype = local;
 		max_align = align;
 	      }
