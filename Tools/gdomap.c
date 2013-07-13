@@ -712,28 +712,43 @@ compare(uptr n0, int l0, uptr n1, int l1)
 static map_ent*
 map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
 {
-  map_ent	*m = (map_ent*)malloc(sizeof(map_ent));
+  map_ent	*m;
   int		i;
 
+  m = (map_ent*)malloc(sizeof(map_ent));
+  if (0 == m)
+    {
+      perror("no memory for map entry");
+      exit(EXIT_FAILURE);
+    }
   m->port = p;
   m->name = (unsigned char*)malloc(l);
+  if (0 == m->name)
+    {
+      perror("no memory for map entry name");
+      exit(EXIT_FAILURE);
+    }
   m->size = l;
   m->net = (t & GDO_NET_MASK);
   m->svc = (t & GDO_SVC_MASK);
   memcpy(m->name, n, l);
 
-  if (map_used >= map_size)
+  if (map_used == map_size)
     {
-      if (map_size)
+      map_size += 16;
+      if (map)
 	{
-	  map = (map_ent**)realloc(map, (map_size + 16)*sizeof(map_ent*));
-	  map_size += 16;
+	  map = (map_ent**)realloc(map, map_size * sizeof(map_ent*));
 	}
       else
 	{
-	  map = (map_ent**)calloc(16,sizeof(map_ent*));
-	  map_size = 16;
+	  map = (map_ent**)calloc(map_size, sizeof(map_ent*));
 	}
+      if (0 == map)
+        {
+          perror("no memory for map");
+          exit(EXIT_FAILURE);
+        }
     }
   for (i = 0; i < map_used; i++)
     {

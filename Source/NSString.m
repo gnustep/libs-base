@@ -5223,13 +5223,13 @@ static NSFileManager *fm = nil;
   if (string == nil)
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
 
+#if GS_USE_ICU == 1
   if (nil != locale
-      && ![locale isKindOfClass: [NSLocale class]])
+    && ![locale isKindOfClass: [NSLocale class]])
     {
       locale = [NSLocale currentLocale];
     }
 
-#if GS_USE_ICU == 1
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
 
