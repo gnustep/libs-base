@@ -1,3 +1,9 @@
+2013-07-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* config/objc-common.g: Add +initialize to fake NSObject class
+	when compiling with the Apple runtime, since it expects	that
+	method to be defined.
+
 2013-07-11  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Headers/GNUstepBase/GSVersionMacros.h: Fix definition of

@@ -53,6 +53,10 @@ GS_OBJC_ROOT_CLASS @interface NSObject
   obj->isa = self;
   return obj;
 }
+#if defined(NeXT_RUNTIME)
+/* The Apple runtime always calls this method */
++ (void)initialize { }
+#endif
 @end
 
 @interface NSConstantString : NSObject
