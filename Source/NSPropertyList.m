@@ -787,15 +787,7 @@ static inline id parseQuotedString(pldata* pld)
     }
   if (pld->pos - start - shrink == 0)
     {
-      if (pld->key == NO
-        && pld->opt == NSPropertyListMutableContainersAndLeaves)
-        {
-          obj = [GSMutableString new];
-        }
-      else
-        {
-          obj = @"";
-        }
+      obj = @"";
     }
   else
     {
@@ -900,8 +892,8 @@ static inline id parseQuotedString(pldata* pld)
       NSZoneFree(NSDefaultMallocZone(), temp);
       length = k;
 
-      if (pld->key == NO
-        && pld->opt == NSPropertyListMutableContainersAndLeaves)
+      if (pld->key ==
+	NO && pld->opt == NSPropertyListMutableContainersAndLeaves)
 	{
 	  obj = [GSMutableString alloc];
 	  obj = [obj initWithCharactersNoCopy: chars
@@ -910,7 +902,7 @@ static inline id parseQuotedString(pldata* pld)
 	}
       else
 	{
-	  obj = [GSString alloc];
+	  obj = [GSMutableString alloc];
 	  obj = [obj initWithCharactersNoCopy: chars
 				       length: length
 				 freeWhenDone: YES];
@@ -951,7 +943,7 @@ static inline id parseUnquotedString(pldata *pld)
     }
   else
     {
-      obj = [GSString alloc];
+      obj = [GSMutableString alloc];
       obj = [obj initWithCharactersNoCopy: chars
 				   length: length
 			     freeWhenDone: YES];
@@ -1286,7 +1278,7 @@ static id parsePlItem(pldata* pld)
       if (skipSpace(pld) == YES)
 	{
 	  pld->err = @"extra data after parsed string";
-	  DESTROY(result);      // Not at end of string.
+	  result = nil;		// Not at end of string.
 	}
       else
         {
