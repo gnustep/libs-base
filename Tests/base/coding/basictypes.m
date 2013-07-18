@@ -11,10 +11,11 @@
 
 @interface Model : NSObject <NSCoding>
 {
-  int cint;
-  unsigned int cuint;
-  NSInteger nsint;
-  NSUInteger nsuint;
+  int		cint;
+  unsigned int	cuint;
+  NSInteger	nsint;
+  NSUInteger	nsuint;
+  NSInteger	a[4];
 }
 @end
 @implementation Model
@@ -24,33 +25,51 @@
   cuint = 1234567890;
   nsint = -1234567890;
   nsuint = 1234567890;
+  a[0] = 1;
+  a[1] = 1000;
+  a[2] = 1000000;
+  a[3] = 100000000;
 }
 - (BOOL)testCInt:(Model *)o
 {
-  return (cint == o->cint);
+  return (cint == o->cint) ? YES : NO;
 }
 - (BOOL)testCUInt:(Model *)o
 {
-  return (cuint == o->cuint);
+  return (cuint == o->cuint) ? YES : NO;
 }
 - (BOOL)testNSInteger:(Model *)o
 {
-  return (nsint == o->nsint);
+  return (nsint == o->nsint) ? YES : NO;
 }
 - (BOOL)testNSUInteger:(Model *)o
 {
-  return (nsuint == o->nsuint);
+  return (nsuint == o->nsuint) ? YES : NO;
+}
+- (BOOL)testArray:(Model *)o
+{
+  return (a[0] == o->a[0]
+	  && a[1] == o->a[1]
+	  && a[2] == o->a[2]
+	  && a[3] == o->a[3]) ? YES : NO;
 }
 
 -(void)encodeWithCoder:(NSCoder *)coder
 {
-  [coder encodeValueOfObjCType:@encode(int) at:&cint];
-  [coder encodeValueOfObjCType:@encode(unsigned int) at:&cuint];
-  [coder encodeValueOfObjCType:@encode(NSInteger) at:&nsint];
-  [coder encodeValueOfObjCType:@encode(NSUInteger) at:&nsuint];
+  [coder encodeArrayOfObjCType: @encode(NSInteger) count: 4 at: a];
+  [coder encodeValueOfObjCType: @encode(int) at: &cint];
+  [coder encodeValueOfObjCType: @encode(unsigned int) at: &cuint];
+  [coder encodeValueOfObjCType: @encode(NSInteger) at: &nsint];
+  [coder encodeValueOfObjCType: @encode(NSUInteger) at: &nsuint];
 }
 -(id)initWithCoder:(NSCoder *)coder
 {
+  long long   ia[4];
+  [coder decodeArrayOfObjCType: @encode(long long) count: 4 at: ia];
+  a[0] = ia[0];
+  a[1] = ia[1];
+  a[2] = ia[2];
+  a[3] = ia[3];
   /* encoded as int - decoded as NSInteger. */
   [coder decodeValueOfObjCType: @encode(NSInteger) at: &nsint];
   /* encoded as unsinged int - decoded as NSUInteger. */
@@ -212,6 +231,7 @@ int main()
   PASS([obj1 testCUInt:obj2],      "archiving as unsigned int - dearchiving as NSUInteger");
   PASS([obj1 testNSInteger:obj2],  "archiving as NSInteger - dearchiving as int");
   PASS([obj1 testNSUInteger:obj2], "archiving as NSUInteger - dearchiving as unsigned int");
+  PASS([obj1 testArray:obj2], "archiving as NSInteger array - dearchiving as long long");
   
   [pool release]; pool = nil;
   return 0;
