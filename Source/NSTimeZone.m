@@ -153,7 +153,7 @@ NSString * const NSSystemTimeZoneDidChangeNotification
 #define LOCAL_TIME_FILE @"localtime"
 
 /* Directory that contains the actual time zones. */
-#define ZONES_DIR @"zones/"
+#define ZONES_DIR @"zones"
 
 /* Many systems have this file */
 #define SYSTEM_TIME_FILE @"/etc/localtime"

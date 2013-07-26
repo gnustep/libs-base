@@ -4,6 +4,7 @@
         * Documentation/news.texi: 1.24.5 news
         * Documentation/ReleaseNotes.gsdoc: 1.24.5 release notes
         * NSTimeZones/NSTimeZones.tar: new timezone data
+        * Sourcew/NSTimeZone.m: fix error in zone directory name
 
 2013-07-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
