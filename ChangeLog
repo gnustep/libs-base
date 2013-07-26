@@ -1,3 +1,10 @@
+2013-07-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Version: make ready for 1.24.5 release
+        * Documentation/news.texi: 1.24.5 news
+        * Documentation/ReleaseNotes.gsdoc: 1.24.5 release notes
+        * NSTimeZones/NSTimeZones.tar: new timezone data
+
 2013-07-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* config/objc-common.g: Add +initialize to fake NSObject class

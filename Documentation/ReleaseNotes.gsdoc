@@ -30,6 +30,23 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.24.5</heading>
+        <p>A new stable (bugfix) release.<br />
+        The main reason for this version is to release a collection of minor
+        bugfixes before making more extensive changes which will break ABI
+        compatibility and appear in a 1.25 branch.<br />
+        This release contains a new class (NSInvocationOperation) and a few
+        new methods.<br />
+        The OSX version compatibility macros have been updated to permit use
+        of the same numeric values as on OSX.<br />
+        The release has been through the clang static analyzer (with minor
+        issues resolved) and has had clang's printf format checking used
+        to correct issues (mostly with NSInteger/NSUInteger on 64bit systems)
+        with printf formats in various debug/logging messages.<br />
+        Timezone data was updated for this release.
+      </section>
+
+      <section>
 	<heading>Version 1.24.4</heading>
         <p>A new stable (bugfix) release.<br />
         The main reason for this version is the inclusion of the latest
