@@ -76,6 +76,7 @@
 #import	<Foundation/NSIndexPath.h>
 #import	<Foundation/NSIndexSet.h>
 #import	<Foundation/NSInvocation.h>
+#import <Foundation/NSInvocationOperation.h>
 #import	<Foundation/NSJSONSerialization.h>
 #import	<Foundation/NSKeyedArchiver.h>
 #import	<Foundation/NSKeyValueCoding.h>
@@ -83,6 +84,7 @@
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
+#import <Foundation/NSMetadata.h>
 #import	<Foundation/NSMethodSignature.h>
 #import	<Foundation/NSNotification.h>
 #import	<Foundation/NSNotificationQueue.h>
@@ -101,6 +103,7 @@
 #import	<Foundation/NSProtocolChecker.h>
 #import	<Foundation/NSProxy.h>
 #import	<Foundation/NSRange.h>
+#import	<Foundation/NSRegularExpression.h>
 #import	<Foundation/NSRunLoop.h>
 #import	<Foundation/NSScanner.h>
 #import	<Foundation/NSScriptWhoseTests.h>

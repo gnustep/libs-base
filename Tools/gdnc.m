@@ -69,8 +69,17 @@ static BOOL	debugging = NO;
 static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
 static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
 
-#ifdef HAVE_SYSLOG
-
+#if defined(HAVE_SYSLOG) || defined(HAVE_SLOGF)
+#  if defined(HAVE_SLOGF)
+#    include <sys/slogcodes.h>
+#    include <sys/slog.h>
+#    define LOG_CRIT _SLOG_CRITICAL
+#    define LOG_DEBUG _SLOG_DEBUG1
+#    define LOG_ERR _SLOG_ERROR
+#    define LOG_INFO _SLOG_INFO
+#    define LOG_WARNING _SLOG_WARNING
+#    define syslog(prio, msg,...) slogf(_SLOG_SETCODE(_SLOG_SYSLOG, 0), prio, msg, __VA_ARGS__)
+#  endif
 static int	log_priority = LOG_DEBUG;
 
 static void
@@ -78,7 +87,12 @@ gdnc_log (int prio, const char *ebuf)
 {
   if (is_daemon)
     {
+#   if defined(HAVE_SLOGF)
+	  // Let's not have 0 as the value for prio. It means "shutdown" on QNX
+      syslog (prio ? prio : log_priority, "%s", ebuf);
+#   else
       syslog (log_priority | prio, "%s", ebuf);
+#   endif
     }
   else if (prio == LOG_INFO)
     {
@@ -95,7 +109,7 @@ gdnc_log (int prio, const char *ebuf)
     {
       if (is_daemon)
 	{
-	  syslog (LOG_CRIT, "exiting.");
+	  syslog (LOG_CRIT, "%s", "exiting.");
 	}
       else
      	{
@@ -105,6 +119,7 @@ gdnc_log (int prio, const char *ebuf)
       exit(EXIT_FAILURE);
     }
 }
+
 #else
 
 #define	LOG_CRIT	2

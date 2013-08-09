@@ -25,7 +25,6 @@
 */
 
 #import "common.h"
-#include <string.h>
 #ifndef NeXT_Foundation_LIBRARY
 #import "Foundation/NSException.h"
 #import "Foundation/NSRange.h"
@@ -209,7 +208,7 @@ static Class	gcClass = 0;
   if (index >= _count)
     {
       [NSException raise: NSRangeException
-		  format: @"[%@-%@]: index: %u",
+		  format: @"[%@-%@]: index: %"PRIuPTR,
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), index];
     }
   return _contents[index];
@@ -334,7 +333,7 @@ static Class	gcClass = 0;
   if (index > _count)
     {
       [NSException raise: NSRangeException
-		  format: @"[%@-%@]: bad index %u",
+		  format: @"[%@-%@]: bad index %"PRIuPTR,
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), index];
     }
 
@@ -420,7 +419,7 @@ static Class	gcClass = 0;
   if (index >= _count)
     {
       [NSException raise: NSRangeException
-		  format: @"[%@-%@]: bad index %u",
+		  format: @"[%@-%@]: bad index %"PRIuPTR,
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), index];
     }
   ASSIGN(_contents[index], anObject);

@@ -269,9 +269,11 @@ static void ShutdownPathUtilities(void);
     }\
 })
 
-/* Conditionally assign lval to var only if var is nil */
+/* Conditionally assign lval to var only if var is nil
+
+lval must be casted because Clang disallows ObjC literals comparison */
 #define TEST_ASSIGN(var, lval) ({\
-  if ((var == nil)&&(lval != nil))\
+  if ((var == nil)&&((NSString *)lval != nil))\
     {\
       var = RETAIN(lval);\
     }\
@@ -680,7 +682,10 @@ static void ExtractValuesFromConfig(NSDictionary *config)
       if ([manager fileExistsAtPath: path isDirectory: &flag] == NO
 	|| flag == NO)
 	{
-	  [manager createDirectoryAtPath: path attributes: attr];
+	  [manager createDirectoryAtPath: path
+             withIntermediateDirectories: YES
+                              attributes: attr
+                                   error: NULL];
 	}
     }
 
@@ -1803,6 +1808,7 @@ NSFullUserName(void)
 #else
 #ifdef  HAVE_PWD_H
 #if     defined(HAVE_GETPWNAM_R)
+#if     defined(HAVE_PW_GECOS_IN_PASSWD)
       struct passwd pw;
       struct passwd *p;
       char buf[BUFSIZ*10];
@@ -1814,8 +1820,10 @@ NSFullUserName(void)
               userName = [NSString stringWithUTF8String: pw.pw_gecos];
 	    }
         }
+#endif /* HAVE_PW_GECOS_IN_PASSWD */
 #else
 #if     defined(HAVE_GETPWNAM)
+#if     defined(HAVE_PW_GECOS_IN_PASSWD)
       struct passwd	*pw;
 
       [gnustep_global_lock lock];
@@ -1825,6 +1833,7 @@ NSFullUserName(void)
           userName = [NSString stringWithUTF8String: pw->pw_gecos];
         }
       [gnustep_global_lock lock];
+#endif /* HAVE_PW_GECOS_IN_PASSWD */
 #endif /* HAVE_GETPWNAM */
 #endif /* HAVE_GETPWNAM_R */
 #endif /* HAVE_PWD_H */
@@ -1842,7 +1851,6 @@ NSFullUserName(void)
 NSString *
 GSDefaultsRootForUser(NSString *userName)
 {
-  NSString *home;
   NSString *defaultsDir;
 
   InitialisePathUtilities();
@@ -1850,7 +1858,6 @@ GSDefaultsRootForUser(NSString *userName)
     {
       userName = NSUserName();
     }
-  home = NSHomeDirectoryForUser(userName);
   if ([userName isEqual: NSUserName()])
     {
       defaultsDir = gnustepUserDefaultsDir;
@@ -1873,9 +1880,14 @@ GSDefaultsRootForUser(NSString *userName)
       return defaultsDir;	// Just use windows registry.
     }
 #endif
-  home = [home stringByAppendingPathComponent: defaultsDir];
+  if (NO == [defaultsDir isAbsolutePath])
+    {
+      NSString  *home = NSHomeDirectoryForUser(userName);
 
-  return home;
+      defaultsDir = [home stringByAppendingPathComponent: defaultsDir];
+    }
+
+  return defaultsDir;
 }
 
 NSArray *
@@ -1984,6 +1996,10 @@ NSTemporaryDirectory(void)
   if ((perm != 0700 && perm != 0600) || owner != uid)
     {
       NSString	*secure;
+      NSNumber	*p = [NSNumber numberWithInt: 0700];
+
+      attr = [NSDictionary dictionaryWithObject: p
+                                         forKey: NSFilePosixPermissions];
 
       /*
        * The name of the secure subdirectory reflects the user ID rather
@@ -1998,18 +2014,20 @@ NSTemporaryDirectory(void)
 
       if ([manager fileExistsAtPath: tempDirName] == NO)
 	{
-	  NSNumber	*p = [NSNumber numberWithInt: 0700];
-
-	  attr = [NSDictionary dictionaryWithObject: p
-					     forKey: NSFilePosixPermissions];
 	  if ([manager createDirectoryAtPath: tempDirName
-				  attributes: attr] == NO)
+                 withIntermediateDirectories: YES
+				  attributes: attr
+                                       error: NULL] == NO)
 	    {
 	      NSWarnFLog(@"Attempt to create a secure temporary"
 	        @" directory (%@) failed.", tempDirName);
 	      return nil;
 	    }
 	}
+      else
+        {
+          [manager changeFileAttributes: attr atPath: tempDirName];
+        }
 
       /*
        * Check that the new directory is really secure.

@@ -69,6 +69,8 @@ int main()
   int intmax = 2147483647;
   int intmin = (0 - (intmax - 1));
   NSScanner *scn;
+  float flt;
+  NSString      *em;
 
   PASS(scanInt((intmax - 20),&ret), "NSScanner large ints"); 
   PASS(scanInt((intmin + 20),&ret), "NSScanner small ints");
@@ -119,6 +121,28 @@ int main()
        && scanDouble(@"1e-1", 1e-1, &dret)
        && scanDouble(@"1e-10", 1e-10, &dret),
        "NSScanner scans double with exponents");
+
+  scn = [NSScanner scannerWithString: @"1.0e+2m"];
+  flt = 0.0;
+  em = @"";
+  [scn scanFloat: &flt];
+  [scn scanString: @"m" intoString: &em];
+  PASS(flt == 1e+2f, "flt = 1e+2");
+  PASS_EQUAL(em, @"m", "e is part of exponent");
+  PASS([scn scanLocation] == 7u, "all scanned");
+  PASS([scn isAtEnd], "is at end");
+
+
+  scn = [NSScanner scannerWithString: @"1.0em"];
+  flt = 0.0;
+  em = @"";
+  [scn scanFloat: &flt];
+  [scn scanString: @"em" intoString: &em];
+  PASS(flt == 1.0f, "flt = 1.0");
+  PASS_EQUAL(em, @"em", "em is not part of exponent");
+  PASS([scn scanLocation] == 5u, "all scanned");
+  PASS([scn isAtEnd], "is at end");
+
   [arp release]; arp = nil;
   return 0;
 }

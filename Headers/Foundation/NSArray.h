@@ -39,7 +39,26 @@ extern "C" {
 @class NSURL;
 @class NSIndexSet;
 
-@interface NSArray : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+enum
+{
+  NSBinarySearchingFirstEqual = (1UL << 8), /** Specifies that the binary
+   * search should find the first object equal in the array.
+   */
+  NSBinarySearchingLastEqual = (1UL << 9), /** Specifies that the binary
+   * search should find the last object equal in the array.
+   */
+  NSBinarySearchingInsertionIndex = (1UL << 10), /** Specifies that the binary
+   * search should find the index at which an equal object should be inserted
+   * in order to keep the array sorted
+   */
+};
+
+typedef NSUInteger NSBinarySearchingOptions;
+#endif
+
+@interface NSArray : NSObject
+  <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
 + (id) array;
 + (id) arrayWithArray: (NSArray*)array;
@@ -54,7 +73,11 @@ extern "C" {
 - (NSArray*) arrayByAddingObject: (id)anObject;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
 - (BOOL) containsObject: anObject;
-- (NSUInteger) count;						// Primitive
+
+/** <override-subclass />
+ * Returns the number of elements contained in the receiver.
+ */
+- (NSUInteger) count;
 - (void) getObjects: (__unsafe_unretained id[])aBuffer;
 - (void) getObjects: (__unsafe_unretained id[])aBuffer range: (NSRange)aRange;
 - (NSUInteger) indexOfObject: (id)anObject;
@@ -71,11 +94,25 @@ extern "C" {
 - (id) initWithContentsOfURL: (NSURL*)aURL;
 #endif
 - (id) initWithObjects: firstObject, ...;
-- (id) initWithObjects: (const id[])objects count: (NSUInteger)count;	// Primitive
 
+/** <init /> <override-subclass />
+ * This should initialize the array with count (may be zero) objects.<br />
+ * Retains each object placed in the array.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
+ */
+- (id) initWithObjects: (const id[])objects
+                 count: (NSUInteger)count;
 - (id) lastObject;
-- (id) objectAtIndex: (NSUInteger)index;			// Primitive
-#if OS_API_VERSION(100400, GS_API_LATEST)
+
+/** <override-subclass />
+ * Returns the object at the specified index.
+ * Raises an exception of the index is beyond the array.
+ */
+- (id) objectAtIndex: (NSUInteger)index;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes;
 #endif
 
@@ -117,7 +154,7 @@ extern "C" {
 - (id) valueForKey: (NSString*)key;
 #endif
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 
 DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, id, NSUInteger, BOOL*);
 DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
@@ -212,6 +249,31 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 - (NSUInteger) indexOfObjectAtIndexes: (NSIndexSet*)indexSet
 			      options: (NSEnumerationOptions)opts
 			  passingTest: (GSPredicateBlock)predicate;
+
+/** Returns a sorted array using the comparator to determine the
+ * order of objects.
+ */
+- (NSArray *) sortedArrayUsingComparator: (NSComparator)comparator;
+
+/** Returns a sorted array using the block to determine the order of objects.
+ *
+ * The opts argument is a bitfield.  Setting the NSSortConcurrent flag
+ * specifies that it is thread-safe.  The NSSortStable bit specifies that
+ * it should keep equal objects in the same order.
+ */
+- (NSArray *) sortedArrayWithOptions: (NSSortOptions)options
+                     usingComparator: (NSComparator)comparator;
+
+/**
+ * Performs a binary search of the array within the specified range for the
+ * index of an object equal to obj according to cmp.
+ * If NSBinarySearchingInsertionIndex is specified, searches for the index
+ * at which such an object should be inserted.
+ */
+- (NSUInteger) indexOfObject: (id)key
+               inSortedRange: (NSRange)range
+                     options: (NSBinarySearchingOptions)options
+             usingComparator: (NSComparator)comparator;
 #endif
 /**
  * Accessor for subscripting.  This is called by the compiler when you write
@@ -225,30 +287,66 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 
 + (id) arrayWithCapacity: (NSUInteger)numItems;
 
-- (void) addObject: (id)anObject;				// Primitive
+/** <override-subclass />
+ * Adds anObject at the end of the array, thus increasing the size of
+ * the array.  The object is retained upon addition.
+ */
+- (void) addObject: (id)anObject;
 - (void) addObjectsFromArray: (NSArray*)otherArray;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) exchangeObjectAtIndex: (NSUInteger)i1
 	     withObjectAtIndex: (NSUInteger)i2;
 #endif
-- (id) initWithCapacity: (NSUInteger)numItems;			// Primitive
-- (void) insertObject: (id)anObject atIndex: (NSUInteger)index;	// Primitive
-#if OS_API_VERSION(100400, GS_API_LATEST)
+
+/** <init /> <override-subclass />
+ * Initialise the array with the specified capacity ... this
+ * should ensure that the array can have numItems added efficiently.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
+ */
+- (id) initWithCapacity: (NSUInteger)numItems;
+
+/** <override-subclass />
+ * Inserts an object into the receiver at the specified location.<br />
+ * Raises an exception if given an array index which is too large.<br />
+ * The size of the array increases by one.<br />
+ * The object is retained by the array.
+ */
+- (void) insertObject: (id)anObject atIndex: (NSUInteger)index;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 - (void) insertObjects: (NSArray *)objects atIndexes: (NSIndexSet *)indexes;
 #endif
-- (void) removeObjectAtIndex: (NSUInteger)index;			// Primitive
+
+/** <override-subclass />
+ * Removes an object from the receiver at the specified location.<br />
+ * The size of the array decreases by one.<br />
+ * Raises an exception if given an array index which is too large.<br />
+ */
+- (void) removeObjectAtIndex: (NSUInteger)index;
+
 - (void) removeObjectsAtIndexes: (NSIndexSet *)indexes;
+
+/** <override-subclass />
+ * Places an object into the receiver at the specified location.<br />
+ * Raises an exception if given an array index which is too large.<br />
+ * The object is retained by the array.
+ */
 - (void) replaceObjectAtIndex: (NSUInteger)index
-		   withObject: (id)anObject;			// Primitive
-#if OS_API_VERSION(100400, GS_API_LATEST)
+		   withObject: (id)anObject;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
                      withObjects: (NSArray *)objects;
 #endif
+
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray;
+
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray
 			 range: (NSRange)anotherRange;
+
 - (void) setArray: (NSArray *)otherArray;
 
 - (void) removeAllObjects;
@@ -266,6 +364,19 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 		   context: (void*)context;
 - (void) sortUsingSelector: (SEL)comparator;
 
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+/**
+ * Sorts the array using the specified comparator block.
+ */
+- (void) sortUsingComparator: (NSComparator)comparator;
+
+/**
+ * Sorts the array using the specified comparator block and options. 
+ */
+- (void) sortWithOptions: (NSSortOptions)options
+         usingComparator: (NSComparator)comparator;
+#endif
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) setValue: (id)value forKey: (NSString*)key;
 #endif

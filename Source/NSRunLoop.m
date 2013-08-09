@@ -61,7 +61,6 @@
 #endif
 #include <math.h>
 #include <time.h>
-#include <string.h>		/* for memset() */
 
 
 NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
@@ -106,7 +105,19 @@ static NSDate	*theFuture = nil;
 
 - (void) fire
 {
-  [target performSelector: selector withObject: argument];
+  NS_DURING
+    {
+      [target performSelector: selector withObject: argument];
+    }
+  NS_HANDLER
+    {
+      NSLog(@"*** NSRunLoop ignoring exception '%@' (reason '%@') "
+        @"raised during performSelector... with target %p "
+        @"and selector '%@'",
+        [localException name], [localException reason], target,
+        NSStringFromSelector([target selector]));
+    }
+  NS_ENDHANDLER
 }
 
 - (id) initWithSelector: (SEL)aSelector
@@ -706,12 +717,12 @@ static inline BOOL timerInvalidated(NSTimer *t)
   GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(nil);
   NSRunLoop             *current = info->loop;
 
-  if (current == nil)
+  if (nil == current)
     {
       current = info->loop = [[self alloc] _init];
       /* If this is the main thread, set up a housekeeping timer.
        */
-      if ([GSCurrentThread() isMainThread] == YES)
+      if (nil != current && [GSCurrentThread() isMainThread] == YES)
         {
           NSAutoreleasePool		*arp = [NSAutoreleasePool new];
           GSRunLoopCtxt	                *context;
@@ -1480,8 +1491,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  if (i % 1000 == 0 && i > context->maxPerformers)
 	    {
 	      context->maxPerformers = i;
-	      NSLog(@"WARNING ... there are %u performers scheduled in mode %@ of %@\n(Latest: [%@ %@])",
-                i, mode, self, NSStringFromClass([target class]), NSStringFromSelector(aSelector));
+              NSLog(@"WARNING ... there are %u performers scheduled"
+                @" in mode %@ of %@\n(Latest: [%@ %@])",
+                i, mode, self, NSStringFromClass([target class]),
+                NSStringFromSelector(aSelector));
 	    }
 	}
       RELEASE(item);

@@ -26,7 +26,7 @@
 #define __NSComparisonPredicate_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if	OS_API_VERSION(100400, GS_API_LATEST)
+#if	OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 
 #import	<Foundation/NSExpression.h>
 #import	<Foundation/NSPredicate.h>
@@ -39,13 +39,13 @@ typedef enum _NSComparisonPredicateModifier
 {
   NSDirectPredicateModifier=0,
   NSAllPredicateModifier,
-  NSAnyPredicateModifier,
+  NSAnyPredicateModifier
 } NSComparisonPredicateModifier;
 
 typedef enum _NSComparisonPredicateOptions
 {
   NSCaseInsensitivePredicateOption=0x01,
-  NSDiacriticInsensitivePredicateOption=0x02,
+  NSDiacriticInsensitivePredicateOption=0x02
 } NSComparisonPredicateOptions;
 
 typedef enum _NSPredicateOperatorType
@@ -62,7 +62,7 @@ typedef enum _NSPredicateOperatorType
   NSEndsWithPredicateOperatorType,
   NSInPredicateOperatorType,
   NSCustomSelectorPredicateOperatorType
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
   ,
   NSContainsPredicateOperatorType = 99,
   NSBetweenPredicateOperatorType

@@ -104,6 +104,8 @@ extern "C" {
 - (NSDictionary*) parametersPreservingCase: (BOOL)preserve;
 - (NSMutableData*) rawMimeData;
 - (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve;
+- (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
+                                    foldedAt: (NSUInteger)fold;
 - (void) setName: (NSString*)s;
 - (void) setObject: (id)o  forKey: (NSString*)k;
 - (void) setParameter: (NSString*)v forKey: (NSString*)k;
@@ -186,6 +188,7 @@ extern "C" {
 - (GSMimeHeader*) makeMessageID;
 - (NSMutableData*) rawMimeData;
 - (NSMutableData*) rawMimeData: (BOOL)isOuter;
+- (NSMutableData*) rawMimeData: (BOOL)isOuter foldedAt: (NSUInteger)fold;
 - (void) setContent: (id)newContent;
 - (void) setContent: (id)newContent
 	       type: (NSString*)type;
@@ -237,7 +240,7 @@ extern "C" {
 + (GSMimeParser*) mimeParser;
 
 - (GSMimeCodingContext*) contextFor: (GSMimeHeader*)info;
-- (NSData*) data;
+- (NSMutableData*) data;
 - (BOOL) decodeData: (NSData*)sData
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData

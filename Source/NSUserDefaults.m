@@ -163,7 +163,10 @@ lockPath(NSString *defaultsDatabase, BOOL verbose)
 
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
-      if ([mgr createDirectoryAtPath: path attributes: attr] == NO)
+      if ([mgr createDirectoryAtPath: path
+         withIntermediateDirectories: YES
+                          attributes: attr
+                               error: NULL] == NO)
 	{
 	  if (verbose)
 	    NSLog(@"Defaults path '%@' does not exist - failed to create it.",
@@ -186,7 +189,10 @@ lockPath(NSString *defaultsDatabase, BOOL verbose)
   path = [path stringByAppendingPathComponent: @".lck"];
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
-      if ([mgr createDirectoryAtPath: path attributes: attr] == NO)
+      if ([mgr createDirectoryAtPath: path
+         withIntermediateDirectories: YES
+                          attributes: attr
+                               error: NULL] == NO)
 	{
 	  if (verbose)
 	    NSLog(@"Defaults path '%@' does not exist - failed to create it.",
@@ -1767,7 +1773,7 @@ static BOOL isPlistObject(id o)
   NSDate		*saved;
   BOOL			wasLocked;
   BOOL			result = YES;
-  BOOL			haveNewDomain = NO;
+  BOOL			haveChange = NO;
 
   [_lock lock];
   saved = _lastSync;
@@ -1802,8 +1808,8 @@ static BOOL isPlistObject(id o)
 	      NSString			*domainName;
 	      NSFileManager		*mgr;
 
-	      haveNewDomain = [self _readDefaults];
-	      if (YES == haveNewDomain)
+	      haveChange = [self _readDefaults];
+	      if (YES == haveChange)
 		{
 		  DESTROY(_dictionaryRep);
 		}
@@ -1835,7 +1841,7 @@ static BOOL isPlistObject(id o)
 		    }
 		}
 
-	      if (YES == haveNewDomain)
+	      if (YES == haveChange)
 		{
 		  updateCache(self);
 		}
@@ -1886,7 +1892,7 @@ static BOOL isPlistObject(id o)
       [self _changePersistentDomain: NSGlobalDomain];
     }
   [_lock unlock];
-  if (YES == haveNewDomain)
+  if (YES == haveChange)
     {
       [[NSNotificationCenter defaultCenter]
 	postNotificationName: NSUserDefaultsDidChangeNotification
@@ -2334,7 +2340,7 @@ static BOOL isLocked = NO;
   NSEnumerator		*enumerator;
   NSString		*domainName;
   NSFileManager		*mgr;
-  BOOL			haveNewDomain = NO;
+  BOOL			haveChange = NO;
 
   mgr = [NSFileManager defaultManager];
 
@@ -2371,7 +2377,7 @@ static BOOL isLocked = NO;
 			      owner: self];
 	      [_persDomains setObject: pd forKey: domainName];
 	      [pd release];
-	      haveNewDomain = YES;
+	      haveChange = YES;
 	    }
 	  if (YES == [_searchList containsObject: domainName])
 	    {
@@ -2379,11 +2385,11 @@ static BOOL isLocked = NO;
 	       * synchronize to load the domain contents into memory
 	       * so a lookup will work.
 	       */
-	      [pd synchronize];
+	      haveChange = [pd synchronize];
 	    }
 	}
     }
-  return haveNewDomain;
+  return haveChange;
 }
 
 - (BOOL) _readOnly
@@ -2464,12 +2470,12 @@ static BOOL isLocked = NO;
 
 - (BOOL) synchronize
 {
-  BOOL		wasLocked;
-  BOOL		result;
+  BOOL  wasLocked;
+  BOOL	hadChange = NO; // Have we read a change from disk?
 
   if (NO == [owner _lockDefaultsFile: &wasLocked])
     {
-      result = NO;
+      hadChange = NO;
       wasLocked = NO;
     }
   else
@@ -2482,6 +2488,7 @@ static BOOL isLocked = NO;
       if (YES == modified && NO == [owner _readOnly])
 	{
 	  NSDate	*mod;
+          BOOL          result;
 
           mod = [NSDate date];
 	  if (0 == [contents count])
@@ -2537,15 +2544,15 @@ static BOOL isLocked = NO;
 			}
 		    }
 		}
+              hadChange = YES;
 	    }
-	  result = YES;
 	}
       if (NO == wasLocked)
 	{
 	  [owner _unlockDefaultsFile];
 	}
     }
-  return result;
+  return hadChange;
 }
 
 - (NSDate*) updated

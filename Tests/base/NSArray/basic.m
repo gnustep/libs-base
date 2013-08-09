@@ -18,6 +18,7 @@ int main()
   [testObjs addObject: obj];
   test_NSObject(@"NSArray", testObjs);
   test_NSCoding(testObjs);
+  test_keyed_NSCoding(testObjs);
   test_NSCopying(@"NSArray",@"NSMutableArray",testObjs,YES,NO);
   test_NSMutableCopying(@"NSArray",@"NSMutableArray",testObjs);
   
@@ -28,7 +29,7 @@ int main()
    * mutable array ... we currently copy that
    */
   PASS([obj isKindOfClass: [NSMutableArray class]] == YES,"array mutable");
-  PASS_RUNS([obj addObject: @"x"],"can add to array");
+  PASS_RUNS([(NSMutableArray*)obj addObject: @"x"],"can add to array");
 #else
   PASS([obj isKindOfClass: [NSMutableArray class]] == NO,"array immutable");
 #endif

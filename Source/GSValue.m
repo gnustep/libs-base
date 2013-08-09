@@ -155,20 +155,27 @@ typeSize(const char* type)
 
 - (BOOL) isEqualToValue: (NSValue*)aValue
 {
-  if (aValue == nil)
-    return NO;
-  if (object_getClass(aValue) != object_getClass(self))
-    return NO;
-  if (strcmp(objctype, ((GSValue*)aValue)->objctype) != 0)
-    return NO;
-  else
+  if (aValue == self)
     {
-      unsigned	size = (unsigned)typeSize(objctype);
-
-      if (memcmp(((GSValue*)aValue)->data, data, size) != 0)
-	return NO;
       return YES;
     }
+  if (aValue == nil)
+    {
+      return NO;
+    }
+  if (object_getClass(aValue) != object_getClass(self))
+    {
+      return NO;
+    }
+  if (!GSSelectorTypesMatch(objctype, ((GSValue*)aValue)->objctype))
+    {
+      return NO;
+    }
+  if (memcmp(((GSValue*)aValue)->data, data, typeSize(objctype)) != 0)
+    {
+      return NO;
+    }
+  return YES;
 }
 
 - (const char *)objCType

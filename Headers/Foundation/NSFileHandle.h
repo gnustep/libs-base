@@ -231,31 +231,115 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
  * to allow another incoming connection <em>before</em> you perform an
  * -sslAccept on a connection you have just accepted.
  */
-@interface NSFileHandle (GNUstepOpenSSL)
+@interface NSFileHandle (GNUstepTLS)
+
+/** Returns the class to handle ssl enabled connections.
+ */
 + (Class) sslClass;
+
+/** Repeatedly attempt an incoming handshake for up to 30 seconds or until
+ * the handshake completes.
+ */
 - (BOOL) sslAccept;
+
+/** Repeatedly attempt an outgoing handshake for up to 30 seconds or until
+ * the handshake completes.
+ */
 - (BOOL) sslConnect;
+
+/** <override-dummy />
+ * Shuts down the SSL connection to the system that the handle is talking to.
+ */
 - (void) sslDisconnect;
-/** Make a non-blocking handshake attempt.  Calls to this method should be
+
+/** <override-dummy />
+ * Make a non-blocking handshake attempt.  Calls to this method should be
  * repeated until the method returns YES indicating that the handshake
  * completed.  If the method returns YES indicating completion of the
  * handshake, the result indicates whether the handshake succeeded in
- * establishing a connection or not.
+ * establishing a connection or not.<br />
+ * The default implementation simply returns YES and sets result to NO.<br />
+ * This is implemented by an SSL handling subclass to perform real work.
  */
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
-/** Sets certification data for the SSL connection.<br />
- * The value of certFile is the path to a file containing a PEM encoded
- * certificate for this host (optionally followed by other PEM encoded
- * certificates in a chain leading to a root certificate authority).<br />
- * The value of privatekey is the path of a file containing a PEM encoded key
- * used to establish handshakes using the host certificate.<br />
- * The value of PEMpasswd is a string used as the password to access the
- * content of the key file.
+
+/** Deprecated ... use -sslSetOptions: instead
  */
 - (void) sslSetCertificate: (NSString*)certFile
                 privateKey: (NSString*)privateKey
                  PEMpasswd: (NSString*)PEMpasswd;
+
+/** <override-dummy />
+ * Sets options to be used to configure this channel before the handshake.<br />
+ * Returns nil on success, or an error message if some options could not
+ * be set.<br />
+ * Expects key value pairs with the follwiing names/meanings:
+ * <deflist>
+ *   <term>GSTLSCAFile</term>
+ *   <desc>A string identifying the full path to the file containing any
+ *   trusted certificate authorities to be used when verifying a certificate
+ *   presented by the remote end of a connection.
+ *   </desc>
+ *   <term>GSTLSCertificateFile</term>
+ *   <desc>The path to a PEM encoded certificate used to identify this end
+ *   of the connection.  This option <em>must</em> be set for handing an
+ *   incoming connection, but is optional for outgoing connections.<br />
+ *   This must be used in conjunction with GSTLSCertificateKeyFile.
+ *   </desc>
+ *   <term>GSTLSCertificateKeyFile</term>
+ *   <desc>The path to a PEM encoded key used to unlock the certificate
+ *   file for the connection.  The key in the file may or may not be
+ *   encrypted, but if it is encrypted you must specify
+ *   GSTLSCertificateKeyPassword.
+ *   </desc>
+ *   <term>GSTLSCertificateKeyPassword</term>
+ *   <desc>A string to be used as the password to decrypt a key which was
+ *   specified using GSTLSKeyPassword.
+ *   </desc>
+ *   <term>GSTLSDebug</term>
+ *   <desc>A boolean specifying whether diagnostic debug is to be enabled
+ *   to log information about a connection where the handshake fails.<br />
+ *   </desc>
+ *   <term>GSTLSPriority</term>
+ *   <desc>A GNUTLS priority string describing the ciphers etc which may be
+ *   used for the connection.  In addition the string may be one of
+ *   SSLv3, or TLSv1 to use the appropriate general settings
+ *   for negotiating a connection of the specified type.
+ *   </desc>
+ *   <term>GSTLSRemoteHosts</term>
+ *   <desc>A comma delimited list of host names to be allowed when verifying
+ *   the certificate of the host we are connecting to.<br />
+ *   If this is not specified, all the names provided by NSHost are used.
+ *   </desc>
+ *   <term>GSTLSRevokeFile</term>
+ *   <desc>The full path of a file containing certificate revocation
+ *   information for certificates issued by our trusted authorites but
+ *   no longer valid.
+ *   </desc>
+ *   <term>GSTLSVerify</term>
+ *   <desc>A boolean specifying whether we should require the remote end to
+ *   supply a valid certificate in order to establish an encrypted connection.
+ *   </desc>
+ * </deflist>
+ */
+- (NSString*) sslSetOptions: (NSDictionary*)options;
+
 @end
+
+/** Dictionary key for the path to a PEM encoded certificate used
+ * to identify this end of a connection.
+ */
+GS_EXPORT NSString * const GSTLSCertificateFile;
+
+/** Dictionary key for the path to a PEM encoded private key used
+ * to unlock the certificate used by this end of a connection.
+ */
+GS_EXPORT NSString * const GSTLSCertificateKeyFile;
+
+/** Dictionary key for the password used to decrypt the key file used
+ * to unlock the certificate used by this end of a connection.
+ */
+GS_EXPORT NSString * const GSTLSCertificateKeyPassword;
 
 // GNUstep Notification names.
 

@@ -80,9 +80,11 @@ extern "C" {
 - (id) member: (id)anObject;
 - (NSEnumerator*) objectEnumerator;
 
-#if OS_API_VERSION(100600, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 
 DEFINE_BLOCK_TYPE(GSSetEnumeratorBlock, void, id, BOOL*);
+DEFINE_BLOCK_TYPE(GSSetFilterBlock, BOOL, id, BOOL*);
+
 /**
  * Enumerate over the collection using a given block.  The first argument is
  * the object.  The second argument is a pointer to a BOOL indicating
@@ -103,9 +105,15 @@ DEFINE_BLOCK_TYPE(GSSetEnumeratorBlock, void, id, BOOL*);
  */
 - (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
                           usingBlock: (GSSetEnumeratorBlock)aBlock;
+
+- (NSSet *) objectsPassingTest: (GSSetFilterBlock)aBlock;
+
+- (NSSet *) objectsWithOptions: (NSEnumerationOptions)opts
+                   passingTest: (GSSetFilterBlock)aBlock;
+
 #endif
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 - (NSSet *) setByAddingObject: (id)anObject;
 - (NSSet *) setByAddingObjectsFromSet: (NSSet *)other;
 - (NSSet *) setByAddingObjectsFromArray: (NSArray *)other;

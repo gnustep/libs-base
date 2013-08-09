@@ -57,7 +57,7 @@ typedef struct	{
 }
 @end
 
-@interface GSFrameInvocation : NSInvocation
+@interface GSDummyInvocation : NSInvocation
 {
 }
 @end

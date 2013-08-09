@@ -38,7 +38,6 @@ win32_OBJC_FILES =\
 	NSStream.m \
 	NSUserDefaults.m \
 
-
 -include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/subproject.make

@@ -23,7 +23,6 @@
 
 */
 #import "common.h"
-#include <string.h>
 #include <ctype.h>
 
 #import "Foundation/NSException.h"

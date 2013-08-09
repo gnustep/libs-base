@@ -95,7 +95,9 @@
 
 #include <sys/ioctl.h>
 #ifdef	__svr4__
+#ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
+#endif
 #endif
 #include <netdb.h>
 #include <string.h>
@@ -120,8 +122,19 @@ sslError(int err)
     }
   else
     {
-      str = [NSString stringWithFormat: @"%s", ERR_reason_error_string(err)];
+      const char        *s = ERR_reason_error_string(err);
 
+      if (0 == s)
+        {
+          char  buf[128];
+
+          ERR_error_string(err, buf);
+          str = [NSString stringWithFormat: @"%s", buf];
+        }
+      else
+        {
+          str = [NSString stringWithFormat: @"%s", s];
+        }
     }
   return str;
 }
@@ -130,30 +143,30 @@ sslError(int err)
 static NSLock	**locks = 0;
 
 static void
-locking_function(int mode, int n, const char *file, int line) 
-{ 
+locking_function(int mode, int n, const char *file, int line)
+{
   if (mode & CRYPTO_LOCK)
-    { 
+    {
       [locks[n] lock];
     }
   else
-    { 
+    {
       [locks[n] unlock];
-    } 
-} 
+    }
+}
 
 #if	defined(HAVE_CRYPTO_THREADID_SET_CALLBACK)
 static void
-threadid_function(CRYPTO_THREADID *ref) 
-{ 
+threadid_function(CRYPTO_THREADID *ref)
+{
   CRYPTO_THREADID_set_pointer(ref, GSCurrentThread());
-} 
+}
 #else
 static unsigned long
-threadid_function() 
-{ 
+threadid_function()
+{
   return (unsigned long) GSCurrentThread();
-} 
+}
 #endif
 
 
@@ -164,32 +177,17 @@ threadid_function()
   BOOL		connected;
 }
 
-- (BOOL) sslAccept;
-- (BOOL) sslConnect;
 - (void) sslDisconnect;
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
-- (void) sslSetCertificate: (NSString*)certFile
-		privateKey: (NSString*)privateKey
-		 PEMpasswd: (NSString*)PEMpasswd;
+- (NSString*) sslSetOptions: (NSDictionary*)options;
 @end
 
-static BOOL	permitSSLv2 = NO;
-static NSString	*cipherList = nil;
-
 @implementation	GSSSLHandle
-+ (void) _defaultsChanged: (NSNotification*)n
-{
-  permitSSLv2
-    = [[NSUserDefaults standardUserDefaults] boolForKey: @"GSPermitSSLv2"];
-  cipherList
-    = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSCipherList"];
-}
 
 + (void) initialize
 {
   if (self == [GSSSLHandle class])
     {
-      NSUserDefaults	*defs;
       unsigned		count;
 
       SSL_library_init();
@@ -200,11 +198,11 @@ static NSString	*cipherList = nil;
 	{
 	  locks[count] = [NSLock new];
 	}
-      CRYPTO_set_locking_callback(locking_function); 
+      CRYPTO_set_locking_callback(locking_function);
 #if	defined(HAVE_CRYPTO_THREADID_SET_CALLBACK)
-      CRYPTO_THREADID_set_callback(threadid_function); 
+      CRYPTO_THREADID_set_callback(threadid_function);
 #else
-      CRYPTO_set_id_callback(threadid_function); 
+      CRYPTO_set_id_callback(threadid_function);
 #endif
 
       /*
@@ -218,14 +216,6 @@ static NSString	*cipherList = nil;
 	  inf = [[[NSProcessInfo processInfo] globallyUniqueString] UTF8String];
 	  RAND_seed(inf, strlen(inf));
 	}
-      defs = [NSUserDefaults standardUserDefaults];
-      permitSSLv2 = [defs boolForKey: @"GSPermitSSLv2"];
-      cipherList = [defs stringForKey: @"GSCipherList"];
-      [[NSNotificationCenter defaultCenter]
-	addObserver: self
-	   selector: @selector(_defaultsChanged:)
-	       name: NSUserDefaultsDidChangeNotification
-	     object: nil];
     }
 }
 
@@ -248,104 +238,6 @@ static NSString	*cipherList = nil;
       return SSL_read(ssl, buf, len);
     }
   return [super read: buf length: len];
-}
-
-- (BOOL) sslAccept
-{
-  BOOL		result = NO;
-
-  if (YES == isStandardFile)
-    {
-      NSLog(@"Attempt to make ssl connection to a standard file");
-      return NO;
-    }
-  if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
-    {
-      NSRunLoop	*loop;
-
-      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
-      loop = [NSRunLoop currentRunLoop];
-      [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
-      if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
-	{
-	  NSDate		*final;
-	  NSDate		*when;
-	  NSTimeInterval	last = 0.0;
-	  NSTimeInterval	limit = 0.1;
-
-	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
-	  when = [NSDate alloc];
-
-	  while (NO == [self sslHandshakeEstablished: &result outgoing: NO]
-	    && [final timeIntervalSinceNow] > 0.0)
-	    {
-	      NSTimeInterval	tmp = limit;
-
-	      limit += last;
-	      last = tmp;
-	      if (limit > 0.5)
-		{
-		  limit = 0.1;
-		  last = 0.1;
-		}
-	      when = [when initWithTimeIntervalSinceNow: limit];
-	      [loop runUntilDate: when];
-	    }
-	  RELEASE(when);
-	  RELEASE(final);
-	}
-      DESTROY(self);
-    }
-  return result;
-}
-
-- (BOOL) sslConnect
-{
-  BOOL		result = NO;
-
-  if (YES == isStandardFile)
-    {
-      NSLog(@"Attempt to make ssl connection to a standard file");
-      return NO;
-    }
-  if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
-    {
-      NSRunLoop	*loop;
-
-      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
-      loop = [NSRunLoop currentRunLoop];
-      [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
-      if (NO == [self sslHandshakeEstablished: &result outgoing: YES])
-	{
-	  NSDate		*final;
-	  NSDate		*when;
-	  NSTimeInterval	last = 0.0;
-	  NSTimeInterval	limit = 0.1;
-
-	  final = [[NSDate alloc] initWithTimeIntervalSinceNow: 30.0];
-	  when = [NSDate alloc];
-
-	  while (NO == [self sslHandshakeEstablished: &result outgoing: YES]
-	    && [final timeIntervalSinceNow] > 0.0)
-	    {
-	      NSTimeInterval	tmp = limit;
-
-	      limit += last;
-	      last = tmp;
-	      if (limit > 0.5)
-		{
-		  limit = 0.1;
-		  last = 0.1;
-		}
-	      when = [when initWithTimeIntervalSinceNow: limit];
-	      [loop runUntilDate: when];
-	    }
-	  RELEASE(when);
-	  RELEASE(final);
-	}
-      DESTROY(self);
-    }
-  return result;
 }
 
 - (void) sslDisconnect
@@ -388,28 +280,27 @@ static NSString	*cipherList = nil;
   /*
    * Ensure we have a context and handle to connect with.
    */
-  if (ctx == 0)
+  if (0 == ctx)
     {
       ctx = SSL_CTX_new(SSLv23_client_method());
-      if (permitSSLv2 == NO)
-	{
-          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
-	}
-      if (nil != cipherList)
-	{
-          SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
-	}
+      SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
     }
-  if (ssl == 0)
+  if (0 == ssl)
     {
       ssl = SSL_new(ctx);
     }
 
-  /*
-   * Set non-blocking so accept won't hang if remote end goes wrong.
-   */
-  [self setNonBlocking: YES];
-  ret = SSL_set_fd(ssl, descriptor);
+  if (SSL_get_fd(ssl) == descriptor)
+    {
+      ret = 1;
+    }
+  else
+    {
+      /* Set non-blocking so accept won't hang if remote end goes wrong.
+       */
+      [self setNonBlocking: YES];
+      ret = SSL_set_fd(ssl, descriptor);
+    }
   if (1 == ret)
     {
       if (YES == isOutgoing)
@@ -441,31 +332,29 @@ static NSString	*cipherList = nil;
   return YES;
 }
 
-- (void) sslSetCertificate: (NSString*)certFile
-		privateKey: (NSString*)privateKey
-		 PEMpasswd: (NSString*)PEMpasswd
+- (NSString*) sslSetOptions: (NSDictionary*)options
 {
-  int	ret;
+  NSString      *certFile;
+  NSString      *privateKey;
+  NSString      *PEMpasswd;
+  int	        ret;
+
+  certFile = [options objectForKey: GSTLSCertificateFile];
+  privateKey = [options objectForKey: GSTLSCertificateKeyFile];
+  PEMpasswd = [options objectForKey: GSTLSCertificateKeyPassword];
 
   if (isStandardFile == YES)
     {
-      NSLog(@"Attempt to set ssl certificate for a standard file");
-      return;
+      return @"Attempt to set ssl certificate for a standard file";
     }
+
   /*
    * Ensure we have a context to set the certificate for.
    */
   if (ctx == 0)
     {
       ctx = SSL_CTX_new(SSLv23_method());
-      if (permitSSLv2 == NO)
-	{
-          SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
-	}
-      if (nil != cipherList)
-	{
-          SSL_CTX_set_cipher_list(ctx, [cipherList UTF8String]);
-	}
+      SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
     }
   if ([PEMpasswd length] > 0)
     {
@@ -479,6 +368,7 @@ static NSString	*cipherList = nil;
 	{
 	  NSLog(@"Failed to set certificate file to %@ - %@",
 	    certFile, sslError(ERR_get_error()));
+          return @"Failed to set certificate file";
 	}
     }
   if ([privateKey length] > 0)
@@ -489,8 +379,10 @@ static NSString	*cipherList = nil;
 	{
 	  NSLog(@"Failed to set private key file to %@ - %@",
 	    privateKey, sslError(ERR_get_error()));
+          return @"Failed to set key file";
 	}
     }
+  return nil;
 }
 
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len

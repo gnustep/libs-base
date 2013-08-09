@@ -644,7 +644,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     {
       BOOL result;
       NSRange range = NSMakeRange (0, [string length]);
-      NSError *outError;
+      NSError *outError = nil;
       
       result = [self getObjectValue: anObject
                           forString: string
@@ -1434,7 +1434,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   range = [string rangeOfString: @"."];
   if (range.location == NSNotFound)
     {
-      intNum = unum_parseInt64 (internal->_formatter, ustring, length, NULL, &err);
+      intNum = unum_parseInt64(internal->_formatter,
+        ustring, length, NULL, &err);
       if (U_FAILURE(err))
         return nil;
       if (intNum == 0 || intNum == 1)
@@ -1446,7 +1447,8 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
     }
   else
     {
-      doubleNum = unum_parseDouble (internal->_formatter, ustring, length, NULL, &err);
+      doubleNum = unum_parseDouble(internal->_formatter,
+        ustring, length, NULL, &err);
       if (U_FAILURE(err))
         return nil;
       result = [NSNumber numberWithDouble: doubleNum];

@@ -19,13 +19,27 @@ int main()
   TEST_FOR_CLASS(@"NSHTTPCookie", cookie,
     "NSHTTPCookie +cookieWithProperties: returns an NSHTTPCookie");
   
+  dict = [NSDictionary dictionaryWithObjectsAndKeys:
+    @"myname", NSHTTPCookieName,
+    @"myvalue", NSHTTPCookieValue,
+    @"/mypath", NSHTTPCookiePath,
+    @".test.com", NSHTTPCookieDomain,
+    @"http://www.origin.org", NSHTTPCookieOriginURL,
+    @"0", NSHTTPCookieVersion,
+    @"FALSE", NSHTTPCookieDiscard,
+    @"FALSE", NSHTTPCookieSecure,
+    nil];
+  cookie = [NSHTTPCookie cookieWithProperties: dict];
+  TEST_FOR_CLASS(@"NSHTTPCookie", cookie,
+    "NSHTTPCookie +cookieWithProperties: works with all constants");
+  
   dict = [NSDictionary dictionaryWithObjectsAndKeys: @"myname", @"Name", 
   	@"myvalue", @"Value", @".test.com", @"Domain", nil];
   cookie = [NSHTTPCookie cookieWithProperties: dict];
   PASS(cookie == nil, "cookie without path returns nil");
 
   dict = [NSDictionary dictionaryWithObject:
-        @"S=calendar=R7tjDKqNB5L8YTZSvf29Bg;Expires=Wed, 09-Mar-2011 23:00:35 GMT"
+    @"S=calendar=R7tjDKqNB5L8YTZSvf29Bg;Expires=Wed, 09-Mar-2011 23:00:35 GMT"
  	                             forKey: @"Set-Cookie"];
 
   url = [NSURL URLWithString: @"http://www.google.com/calendar/feeds/default/"];
@@ -41,8 +55,9 @@ int main()
   	   "NSHTTPCookie returns proper domain");
   
   dict = [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
-  PASS([[dict objectForKey: @"Cookie"] isEqual: @"S=calendar=R7tjDKqNB5L8YTZSvf29Bg"],
-  	"NSHTTPCookie can generate proper cookie");
+  PASS_EQUAL([dict objectForKey: @"Cookie"],
+    @"S=calendar=R7tjDKqNB5L8YTZSvf29Bg",
+    "NSHTTPCookie can generate proper cookie");
 
   [arp release]; arp = nil;
   return 0;

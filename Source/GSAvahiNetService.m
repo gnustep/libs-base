@@ -646,8 +646,8 @@ GSAvahiEntryGroupStateChanged(AvahiEntryGroup *group,
   if ([[self delegate] respondsToSelector:
     @selector(netService:didUpdateAddresses:)])
     {
-      [[self delegate] netService: service
-	       didUpdateAddresses: addresses];
+      [(id)[self delegate] netService: service
+                   didUpdateAddresses: addresses];
     }
 }
 
@@ -680,9 +680,9 @@ didUpdateRecordData: (id)data
   else if ([[self delegate] respondsToSelector:
     @selector(netService:didUpdateRecordData:forRecordType:)])
     {
-      [[self delegate] netService: service
-	      didUpdateRecordData: data
-		    forRecordType: rrType];
+      [(id)[self delegate] netService: service
+                  didUpdateRecordData: data
+                        forRecordType: rrType];
     }
 }
 
@@ -1676,6 +1676,14 @@ didUpdateRecordData: (id)data
      forRecordType: rrType];
 }
 
+#if GS_USE_AVAHI==1
+- (id<NSObject,GSNetServiceDelegate>)delegate
+#else
+- (id<NSObject>)delegate
+#endif
+{
+  return _delegate;
+}
 
 /**
  * Dispatcher method for error notifications to the delegate.

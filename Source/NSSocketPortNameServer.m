@@ -24,6 +24,10 @@
    $Date$ $Revision$
    */
 
+/* define to get system-v functions including inet_aton()
+ */
+#define _SVID_SOURCE    1
+
 #import "common.h"
 #define	EXPOSE_NSSocketPortNameServer_IVARS	1
 #import "Foundation/NSData.h"

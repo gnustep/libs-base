@@ -295,7 +295,7 @@ NSCopyMemoryPages (const void *src, void *dest, NSUInteger bytes);
 
 enum {
   NSScannedOption = (1<<0),
-  NSCollectorDisabledOption = (1<<1),
+  NSCollectorDisabledOption = (1<<1)
 };
 
 /** Allocate memory.  If garbage collection is not enabled this uses the

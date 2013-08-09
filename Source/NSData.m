@@ -761,7 +761,17 @@ failure:
   NSUInteger	size = [self length];
 
   GS_RANGE_CHECK(aRange, size);
-  memcpy(buffer, [self bytes] + aRange.location, aRange.length);
+  if (aRange.length > 0)
+    {
+      const void	*bytes = [self bytes];
+
+      if (0 == bytes)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"missing bytes in getBytes:range:"];
+	}
+      memcpy(buffer, bytes + aRange.location, aRange.length);
+    }
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
@@ -2017,10 +2027,15 @@ failure:
 	      length: (NSUInteger)bufferSize
 {
   NSUInteger	oldLength = [self length];
-  void*		buffer;
+  void		*buffer;
 
   [self setLength: oldLength + bufferSize];
   buffer = [self mutableBytes];
+  if (0 == buffer)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"missing bytes in appendBytes:length:"];
+    }
   memcpy(buffer + oldLength, aBuffer, bufferSize);
 }
 
@@ -2056,11 +2071,18 @@ failure:
     }
   if (aRange.length > 0)
     {
+      void	*buf = [self mutableBytes];
+
+      if (0 == buf)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"missing bytes in replaceBytesInRange:withBytes:"];
+	}
       if (need > size)
 	{
 	  [self setLength: need];
 	}
-      memmove([self mutableBytes] + aRange.location, bytes, aRange.length);
+      memmove(buf + aRange.location, bytes, aRange.length);
     }
 }
 
@@ -2089,6 +2111,11 @@ failure:
       [self setLength: need];
     }
   buf = [self mutableBytes];
+  if (0 == buf)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"missing bytes in replaceByteInRange:withBytes:"];
+    }
   if (shift < 0)
     {
       if (length > 0)
@@ -2124,9 +2151,15 @@ failure:
 - (void) resetBytesInRange: (NSRange)aRange
 {
   NSUInteger	size = [self length];
+  void		*bytes = [self mutableBytes];
 
   GS_RANGE_CHECK(aRange, size);
-  memset((char*)[self bytes] + aRange.location, 0, aRange.length);
+  if (0 == bytes)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"missing bytes in resetBytesInRange:"];
+    }
+  memset((char*)bytes + aRange.location, 0, aRange.length);
 }
 
 /**
@@ -2844,7 +2877,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (*cursor >= length)
     {
       [NSException raise: NSRangeException
-		  format: @"Range: (%u, 1) Size: %d", *cursor, length];
+		  format: @"Range: (%u, 1) Size: %"PRIuPTR, *cursor, length];
     }
   *tag = *((unsigned char*)bytes + (*cursor)++);
   if (*tag & _GSC_MAYX)
@@ -2860,7 +2893,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	      if (*cursor >= length)
 		{
 		  [NSException raise: NSRangeException
-			      format: @"Range: (%u, 1) Size: %d",
+			      format: @"Range: (%u, 1) Size: %"PRIuPTR,
 			  *cursor, length];
 		}
 	      *ref = (unsigned int)*((unsigned char*)bytes + (*cursor)++);
@@ -2873,7 +2906,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	      if (*cursor >= length-1)
 		{
 		  [NSException raise: NSRangeException
-			      format: @"Range: (%u, 1) Size: %d",
+			      format: @"Range: (%u, 1) Size: %"PRIuPTR,
 			  *cursor, length];
 		}
 #if NEED_WORD_ALIGNMENT
@@ -2893,7 +2926,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	      if (*cursor >= length-3)
 		{
 		  [NSException raise: NSRangeException
-			      format: @"Range: (%u, 1) Size: %d",
+			      format: @"Range: (%u, 1) Size: %"PRIuPTR,
 			  *cursor, length];
 		}
 #if NEED_WORD_ALIGNMENT
@@ -3058,7 +3091,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
   if (bytes == MAP_FAILED)
     {
-      NSWarnMLog(@"mapping failed for %s - %@", path, [NSError _last]);
+      NSWarnMLog(@"mapping failed for %@ - %@", path, [NSError _last]);
       close(fd);
       DESTROY(self);
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
@@ -3728,7 +3761,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (tmp == 0)
 	{
 	  [NSException raise: NSMallocException
-	    format: @"Unable to set data capacity to '%d'", size];
+	    format: @"Unable to set data capacity to '%"PRIuPTR"'", size];
 	}
       if (bytes)
 	{
@@ -3775,7 +3808,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (size > capacity)
     {
-      [self setCapacity: size];
+      NSUInteger    growTo = capacity + capacity / 2;
+
+      if (size > growTo)
+        {
+          growTo = size;
+        }
+      [self setCapacity: growTo];
     }
   if (size > length)
     {
@@ -3916,8 +3955,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (newid == -1)			/* Created memory? */
 	{
 	  [NSException raise: NSMallocException
-	    format: @"Unable to create shared memory segment (size:%u) - %@.",
-	    size, [NSError _last]];
+	    format: @"Unable to create shared memory segment"
+	    @" (size:%"PRIuPTR") - %@.", size, [NSError _last]];
 	}
       tmp = shmat(newid, 0, 0);
       if ((intptr_t)tmp == -1)			/* Attached memory? */

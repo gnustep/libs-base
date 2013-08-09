@@ -1177,9 +1177,12 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat:@"<%@ %@ %d>%@\n",
+/* OSX simply uses the XML string value of a node as its description.
+  return [NSString stringWithFormat:@"<%@ %@ %d>%@",
     NSStringFromClass([self class]),
     [self name], [self kind], [self XMLString]];
+*/
+  return [self XMLString];
 }
 
 - (void) dealloc
@@ -1978,13 +1981,16 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 - (NSString*) XMLStringWithOptions: (NSUInteger)theOptions
 {
   NSString     *string = nil;
-  xmlChar      *buf = NULL;
   xmlBufferPtr buffer;
   int error = 0;
-  int len = 0;
   int xmlOptions = 0;
 
   buffer = xmlBufferCreate();
+  if (buffer == NULL)
+    {
+      // FIXME: xmlGetLastError()
+      return nil;
+    }
 
   // XML_SAVE_XHTML XML_SAVE_AS_HTML XML_SAVE_NO_DECL XML_SAVE_NO_XHTML
 #if LIBXML_VERSION >= 20702
@@ -2034,9 +2040,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       xmlBufferFree(buffer);
       return nil;
     }
-  buf = buffer->content;
-  len = buffer->use;
-  string = StringFromXMLString(buf, len);
+
+  string = StringFromXMLString(buffer->content, buffer->use);
   xmlBufferFree(buffer);
 
   if ([self kind] == NSXMLTextKind)

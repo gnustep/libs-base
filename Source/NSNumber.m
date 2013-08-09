@@ -365,11 +365,7 @@ static BOOL useSmallFloat;
 @implementation NSSmallInt
 #undef VALUE
 #define VALUE (((intptr_t)self) >> OBJC_SMALL_OBJECT_SHIFT)
-#if OBJC_SMALL_OBJECT_SHIFT == 1
-#define FORMAT @"%d"
-#else
-#define FORMAT @"%lld"
-#endif
+#define FORMAT @"%"PRIdPTR
 #include "NSNumberMethods.h"
 
 + (void) load
@@ -400,6 +396,11 @@ static BOOL useSmallFloat;
 - (id) retain
 {
   return self;
+}
+
+- (NSUInteger) retainCount
+{
+  return UINT_MAX;
 }
 
 - (id) autorelease
@@ -510,6 +511,11 @@ load
   return self;
 }
 
+- (NSUInteger) retainCount
+{
+  return UINT_MAX;
+}
+
 - (id) autorelease
 {
   return self;
@@ -559,6 +565,11 @@ load
 - (id) retain
 {
   return self;
+}
+
+- (NSUInteger) retainCount
+{
+  return UINT_MAX;
 }
 
 - (id) autorelease
@@ -804,7 +815,7 @@ if (aValue >= -1 && aValue <= 12)\
       (aValue < (INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)) &&
       (aValue > -(INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)))
     {
-       return (id)((aValue << OBJC_SMALL_OBJECT_SHIFT) | SMALL_INT_MASK);
+       return (id)((((NSInteger)aValue) << OBJC_SMALL_OBJECT_SHIFT) | SMALL_INT_MASK);
     }
 #endif
   n = NSAllocateObject (NSIntNumberClass, 0, 0);

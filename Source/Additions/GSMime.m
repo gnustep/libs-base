@@ -82,7 +82,6 @@
   int			cState
 
 
-#include <string.h>
 #include <ctype.h>
 
 #import	"Foundation/NSArray.h"
@@ -430,10 +429,12 @@ decodeWord(unsigned char *dst, const unsigned char *src, const unsigned char *en
 	  NSUInteger	i;
 
 	  for (i = pos; i < 4; i++)
-	    buf[i] = '\0';
+	    {
+	      buf[i] = '\0';
+	    }
 	  pos--;
+	  decodebase64(dst, buf);
 	}
-      decodebase64(dst, buf);
       dst += pos;
       *dst = '\0';
       return dst;
@@ -944,7 +945,7 @@ wordData(NSString *word)
  *   <item>chunked (for HTTP/1.1)</item>
  *   <item>x-uuencode</item>
  * </list>
- * To add new coding schemes to the parser, you need to ovrride
+ * To add new coding schemes to the parser, you need to override
  * this method to return a new coding context for your scheme
  * when the info argument indicates that this is appropriate.
  */
@@ -1008,7 +1009,7 @@ wordData(NSString *word)
  * If the parse has parsed the body of the message, this will be
  * the data of the body, with any transfer encoding removed.
  */
-- (NSData*) data
+- (NSMutableData*) data
 {
   return data;
 }
@@ -1071,31 +1072,36 @@ wordData(NSString *word)
     {
       GSMimeChunkedDecoderContext	*ctxt;
       NSUInteger			size = [dData length];
-      unsigned char		*beg;
-      unsigned char		*dst;
-      const char		*src;
-      const char		*end;
-      const char		*footers;
+      unsigned char                     *buf;
+      unsigned char                     *beg;
+      unsigned char		        *dst;
+      const char		        *src;
+      const char		        *end;
+      const char		        *footers;
+      BOOL                              atEnd;
 
       ctxt = (GSMimeChunkedDecoderContext*)con;
 
-      /*
-       * Get pointers into source data buffer.
+      /* Get pointers into source data buffer.
        */
       src = (const char *)[sData bytes];
       footers = src;
       src += aRange.location;
       end = src + aRange.length;
       beg = 0;
-      /*
-       * Make sure buffer is big enough, and set up output pointers.
+
+      /* Make sure buffer is big enough, and set up output pointers.
+       * ctxt->size is the amount of data laready decoded, so if we
+       * add the size of the chunked source data we are guaranteed
+       * to have enough space for the unchunked data.
        */
-      [dData setLength: ctxt->size];
-      dst = (unsigned char*)[dData mutableBytes];
-      dst = dst + size;
+      [dData setLength: ctxt->size + [sData length]];
+      buf = (unsigned char*)[dData mutableBytes];
+      dst = buf + size;
       beg = dst;
 
-      while ([ctxt atEnd] == NO && src < end)
+      atEnd = [ctxt atEnd];
+      while (NO == atEnd && src < end)
 	{
 	  switch (ctxt->state)
 	    {
@@ -1139,16 +1145,13 @@ wordData(NSString *word)
 			  }
 		      }
 		    ctxt->pos = val;
-		    /*
-		     * If we have read a chunk already, make sure that our
-		     * destination size is updated correctly before growing
-		     * the buffer for another chunk.
+
+		    /* If we have read a chunk already, make sure that our
+		     * destination size stored in context is updated before
+		     * resetting the destination pointer for a new chunk.
 		     */
 		    size += (dst - beg);
 		    ctxt->size = size + val;
-		    [dData setLength: ctxt->size];
-		    dst = (unsigned char*)[dData mutableBytes];
-		    dst += size;
 		    beg = dst;
 		  }
 		break;
@@ -1208,7 +1211,8 @@ wordData(NSString *word)
 		}
 	      else if (*src == '\n')
 		{
-		  [ctxt setAtEnd: YES];
+                  atEnd = YES;
+		  [ctxt setAtEnd: atEnd];
 		}
 	      else
 		{
@@ -1228,7 +1232,7 @@ wordData(NSString *word)
       if (ctxt->state == ChunkFoot || ctxt->state == ChunkFootA)
 	{
 	  [ctxt->data appendBytes: footers length: src - footers];
-	  if ([ctxt atEnd] == YES)
+	  if (YES == atEnd)
 	    {
 	      NSMutableData	*old;
 
@@ -1270,8 +1274,9 @@ wordData(NSString *word)
 	      flags.inBody = 1;
 	    }
 	}
-      /*
-       * Correct size of output buffer.
+
+      /** Correct the size of the output buffer (shrink back from the
+       * original allocation to the actual unchunked size).
        */
       [dData setLength: size + dst - beg];
     }
@@ -1297,7 +1302,8 @@ wordData(NSString *word)
 {
   NSMutableString	*desc;
 
-  desc = [NSMutableString stringWithFormat: @"GSMimeParser <%0x> -\n", self];
+  desc = [NSMutableString stringWithFormat: @"GSMimeParser <0x%"PRIxPTR"> -\n",
+    (NSUInteger)self];
   [desc appendString: [document description]];
   return desc;
 }
@@ -1442,13 +1448,13 @@ wordData(NSString *word)
  */
 - (BOOL) parse: (NSData*)d
 {
-  if (flags.complete == 1)
+  if (1 == flags.complete || 1 == flags.hadErrors)
     {
-      return NO;	/* Already completely parsed! */
+      return NO;	/* Already completely parsed or failed! */
     }
   if ([d length] > 0)
     {
-      if (flags.inBody == 0)
+      if (0 == flags.inBody)
         {
           if ([self parseHeaders: d remaining: &d] == YES)
             {
@@ -1457,7 +1463,7 @@ wordData(NSString *word)
         }
       if ([d length] > 0)
 	{
-	  if (flags.inBody == 1)
+	  if (1 == flags.inBody)
 	    {
 	      /*
 	       * We can't just re-call -parse: ...
@@ -1470,7 +1476,7 @@ wordData(NSString *word)
 	      return [self parse: d];
 	    }
 	}
-      if (flags.complete == 1)
+      if (1 == flags.complete)
 	{
 	  return NO;
 	}
@@ -1478,11 +1484,11 @@ wordData(NSString *word)
     }
   else
     {
-      if (flags.wantEndOfLine == 1)
+      if (1 == flags.wantEndOfLine)
 	{
 	  [self parse: [NSData dataWithBytes: "\r\n" length: 2]];
 	}
-      else if (flags.inBody == 1)
+      else if (1 == flags.inBody)
 	{
 	  [self _decodeBody: d];
 	}
@@ -1530,14 +1536,17 @@ wordData(NSString *word)
       return NO;		/* Want no more data	*/
     }
 
-  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
+  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'",
+    (unsigned)l, (unsigned)l, (unsigned)l, [d bytes]);
 
   r = [self _endOfHeaders: d];
   if (r.location == NSNotFound)
     {
-      [data appendData: d];
+      [data appendBytes: [d bytes] length: [d length]];
       bytes = (unsigned char*)[data bytes];
       dataEnd = [data length];
+      /* Fall through to parse the headers so far.
+       */
     }
   else
     {
@@ -1549,6 +1558,9 @@ wordData(NSString *word)
       dataEnd = [data length];
       if (l > i)
 	{
+          /* NB. Take care ... the data object we create does not own or
+           * free its storage.
+           */
 	  d = [[[NSData alloc] initWithBytesNoCopy: (void*)([d bytes] + i)
 					    length: l - i
 				      freeWhenDone: NO] autorelease];
@@ -1615,8 +1627,7 @@ wordData(NSString *word)
                * This is an intermediary response ... so we have
                * to restart the parsing operation!
                */
-              NSDebugMLLog(@"GSMime",
-                @"Parsed http continuation", "");
+              NSDebugMLLog(@"GSMime", @"%@", @"Parsed http continuation");
               flags.inBody = 0;
               if ([d length] == 0)
                 {
@@ -1646,7 +1657,12 @@ wordData(NSString *word)
        */
       if ([d length] > 0)
 	{
-          ASSIGNCOPY(boundary, d);
+          /* NB. We must copy the bytes from 'd' as that object doesn't
+           * own its storage.
+           */
+          RELEASE(boundary);
+          boundary = [[NSData alloc] initWithBytes: [d bytes]
+                                            length: [d length]];
 	  flags.excessData = 1;
 	}
     }
@@ -2409,7 +2425,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       NSDebugMLLog(@"GSMime", @"Parse body expects %u bytes", expect);
     }
 
-  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
+  NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'",
+    (unsigned)l, (unsigned)l, (unsigned)l, [d bytes]);
   // NSDebugMLLog(@"GSMime", @"Boundary - '%*.*s'", [boundary length], [boundary length], [boundary bytes]);
 
   if ([context atEnd] == YES)
@@ -2419,7 +2436,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       if ([d length] > 0)
 	{
 	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
-	    (int)[d length], (int)[d length], [d bytes]);
+	    (unsigned)[d length], (unsigned)[d length], [d bytes]);
 	}
       needsMore = NO;	/* Nothing more to do	*/
     }
@@ -2465,7 +2482,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      flags.inBody = 0;
 	      flags.complete = 1;
 
-	      NSDebugMLLog(@"GSMime", @"Parse body complete", "");
+	      NSDebugMLLog(@"GSMime", @"%@", @"Parse body complete");
 	      /*
 	       * If no content type is supplied, we assume text ... unless
 	       * we have something that's known to be a file.
@@ -2596,41 +2613,50 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  if (lineStart == 0 || buf[lineStart-1] == '\r'
 		    || buf[lineStart-1] == '\n')
 		    {
-		      BOOL		lastPart = NO;
-
 		      lineEnd = lineStart + bLength;
 		      eol = lineEnd;
 		      if (lineEnd + 2 <= len && buf[lineEnd] == '-'
 			&& buf[lineEnd+1] == '-')
 			{
+                          /* The final boundary (shown by the trailng '--').
+                           * Any data after this should be ignored.
+                           * NB. careful reading of section 7.2.1 of RFC1341
+                           * reveals that the final boundary does NOT include
+                           * a trailing CRLF (but that excess data after the
+                           * final boundary is to be ignored).
+                           */
 			  eol += 2;
-			  lastPart = YES;
-			}
-		      /*
-		       * Ignore space/tab characters after boundary marker
-		       * and before crlf.  Strictly this is wrong ... but
-		       * at least one mailer generates bogus whitespace here.
-		       */
-		      while (eol < len
-			&& (buf[eol] == ' ' || buf[eol] == '\t'))
-			{
-			  eol++;
-			}
-		      if (eol < len && buf[eol] == '\r')
-			{
-			  eol++;
-			}
-		      if (eol < len && buf[eol] == '\n')
-			{
-			  eol++;
 			  flags.wantEndOfLine = 0;
+                          endedFinalPart = YES;
 			  found = YES;
-			  endedFinalPart = lastPart;
 			}
-		      else
-			{
-			  flags.wantEndOfLine = 1;
-			}
+                      else
+                        {
+                          /*
+                           * Ignore space/tab characters after boundary marker
+                           * and before crlf.  Strictly this is wrong ... but
+                           * at least one mailer generates bogus whitespace.
+                           */
+                          while (eol < len
+                            && (buf[eol] == ' ' || buf[eol] == '\t'))
+                            {
+                              eol++;
+                            }
+                          if (eol < len && buf[eol] == '\r')
+                            {
+                              eol++;
+                            }
+                          if (eol < len && buf[eol] == '\n')
+                            {
+                              eol++;
+                              flags.wantEndOfLine = 0;
+                              found = YES;
+                            }
+                          else
+                            {
+                              flags.wantEndOfLine = 1;
+                            }
+                        }
 		      break;
 		    }
 		}
@@ -2917,6 +2943,13 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 				  encoding: NSUTF8StringEncoding];
 		    }
 		}
+              if (nil == s)
+                {
+                  NSLog(@"Bad header ... illegal characters in %@",
+                    [NSData dataWithBytes: beg length: src - beg]);
+                  flags.hadErrors = 1;
+                  return nil;
+                }
 	      [hdr appendString: s];
 	      RELEASE(s);
 	    }
@@ -3399,7 +3432,8 @@ static NSCharacterSet	*tokenSet = nil;
 {
   NSMutableString	*desc;
 
-  desc = [NSMutableString stringWithFormat: @"GSMimeHeader <%0x> -\n", self];
+  desc = [NSMutableString stringWithFormat: @"GSMimeHeader <0x%"PRIxPTR"> -\n",
+    (NSUInteger)self];
   [desc appendFormat: @"  name: %@\n", [self name]];
   [desc appendFormat: @"  value: %@\n", [self value]];
   [desc appendFormat: @"  params: %@\n", [self parameters]];
@@ -3596,20 +3630,11 @@ static NSCharacterSet	*tokenSet = nil;
   return [m makeImmutableCopyOnFail: YES];
 }
 
-/**
- * Returns the full text of the header, built from its component parts,
- * and including a terminating CR-LF
- */
-- (NSMutableData*) rawMimeData
-{
-  return [self rawMimeDataPreservingCase: NO];
-}
-
 static NSUInteger
 appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   const char *bytes, NSUInteger size)
 {
-  if (offset + size > fold && size + 8 <= fold)
+  if (fold > 0 && offset + size > fold && size + 8 <= fold)
     {
       NSUInteger  len = [m length];
 
@@ -3702,7 +3727,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           d = wordData(sub);
           offset = appendBytes(m, offset, fold, [d bytes], [d length]);
         }
-      if (offset > fold)
+      if (fold > 0 && offset > fold)
         {
           *ok = NO;
         }
@@ -3712,28 +3737,43 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 /**
  * Returns the full text of the header, built from its component parts,
+ * and including a terminating CR-LF
+ */
+- (NSMutableData*) rawMimeData
+{
+  return [self rawMimeDataPreservingCase: NO];
+}
+
+- (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
+{
+  // 78 is what the RFCs say we should limit length to.
+  return [self rawMimeDataPreservingCase: NO foldedAt: 78];
+}
+
+/**
+ * Returns the full text of the header, built from its component parts,
  * and including a terminating CR-LF.<br />
  * If preserve is YES then we attempt to build the text using the same
  * case as it was originally parsed/set from, otherwise we use common
  * conventions of capitalising the header names and using lowercase
- * parameter names.
+ * parameter names.<br />
+ * If fold is greater than zero, lines with more than the specified
+ * number of characters are considered 'long' and are folded into
+ * multiple lines.
  */
 - (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
+                                    foldedAt: (NSUInteger)fold
 {
   NSMutableData	*md = [NSMutableData dataWithCapacity: 128];
   NSEnumerator	*e = [params keyEnumerator];
   NSString	*k;
   NSString	*n;
   NSData	*d;
-  NSUInteger	fold = 78;      // Maybe pass as a parameter in a later release?
   NSUInteger	offset = 0;
   BOOL		conv = YES;
   BOOL          ok = YES;
 
-  if (fold == 0)
-    {
-      fold = 78;        // This is what the RFCs say we should limit length to.
-    }
+  
   n = [self namePreservingCase: preserve];
   d = [n dataUsingEncoding: NSASCIIStringEncoding];
   if (preserve == YES)
@@ -3751,8 +3791,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
   else
     {
-      NSUInteger  l = [d length];
-      char	buf[l];
+      NSUInteger        l = [d length];
+      char	        buf[l];
       NSUInteger	i = 0;
 
       /*
@@ -3787,7 +3827,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	}
       offset = appendBytes(md, offset, fold, buf, l);
     }
-  if (offset > fold)
+  if (fold > 0 && offset > fold)
     {
       NSLog(@"Name '%@' too long for folding at %"PRIuPTR" in header",
 	n, fold);
@@ -3799,7 +3839,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (ok == NO)
     {
       NSDebugMLLog(@"GSMime",
-	@"Value for '%@' too long for folding at %u in header", n, fold);
+	@"Value for '%@' too long for folding at %"PRIuPTR" in header",
+	n, fold);
     }
 
   while ((k = [e nextObject]) != nil)
@@ -3817,7 +3858,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       if (ok == NO)
         {
 	  NSDebugMLLog(@"GSMime",
-	    @"Parameter name '%@' in '%@' too long for folding at %u",
+	    @"Parameter name '%@' in '%@' too long for folding at %"PRIuPTR,
             k, n, fold);
         }
       offset = appendBytes(md, offset, fold, "=", 1);
@@ -3825,7 +3866,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       if (ok == NO)
         {
 	  NSDebugMLLog(@"GSMime",
-	    @"Parameter value for '%@' in '%@' too long for folding at %u",
+	    @"Parameter value for '%@' in '%@' "
+	    @"too long for folding at %"PRIuPTR,
             k, n, fold);
         }
     }
@@ -5412,7 +5454,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSMutableString	*desc;
   NSDictionary		*locale;
 
-  desc = [NSMutableString stringWithFormat: @"GSMimeDocument <%0x> -\n", self];
+  desc = [NSMutableString
+    stringWithFormat: @"GSMimeDocument <0x%"PRIxPTR"> -\n",
+    (NSUInteger)self];
   locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   [desc appendString: [headers descriptionWithLocale: locale]];
   [desc appendFormat: @"\nDocument content -\n%@", content];
@@ -5509,11 +5553,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       return NO;
     }
-  if (NO == [[self allHeaders] isEqual: [other allHeaders]])
+  if (NO == [headers isEqual: ((GSMimeDocument*)other)->headers])
     {
       return NO;
     }
-  if (NO == [[self content] isEqual: [(GSMimeDocument*)other content]])
+  if (NO == [content isEqual: ((GSMimeDocument*)other)->content])
     {
       return NO;
     }
@@ -5643,6 +5687,25 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  * <p>The isOuter flag denotes whether this document is the outermost
  * part of a MIME message, or is a part of a multipart message.
  * </p>
+ * <p>Long lines are folded at the default column.
+ * </p>
+ */
+- (NSMutableData*) rawMimeData: (BOOL)isOuter
+{
+  // 78 is the maximum line lengt specified by MIME RFCs
+  return [self rawMimeData: isOuter foldedAt: 78];
+}
+
+/**
+ * <p>Return an NSData object representing the MIME document as raw data
+ * ready to be sent via an email system.
+ * </p>
+ * <p>The isOuter flag denotes whether this document is the outermost
+ * part of a MIME message, or is a part of a multipart message.
+ * </p>
+ * <p>The fold number specifes the column at which lines are considered
+ * to be 'long', and get broken/folded.
+ * </p>
  * <p>During generation of the document this method will perform some
  * consistency checks and try to automatically generate missing header
  * information needed to build the mime data (eg. filling in the boundary
@@ -5651,7 +5714,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  * fill in as much detail as possible before generating data.
  * </p>
  */
-- (NSMutableData*) rawMimeData: (BOOL)isOuter
+- (NSMutableData*) rawMimeData: (BOOL)isOuter foldedAt: (NSUInteger)fold
 {
   NSMutableArray	*partData = nil;
   NSMutableData		*md = [NSMutableData dataWithCapacity: 1024];
@@ -5703,14 +5766,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  GSMimeDocument	*part = [content objectAtIndex: i];
 
-	  [partData addObject: [part rawMimeData: NO]];
+	  [partData addObject: [part rawMimeData: NO foldedAt: fold]];
 
 	  /*
 	   * If any part of a multipart document is not 7bit then
 	   * the document as a whole must not be 7bit either.
 	   * It is important to check this *after* the part has been
-	   * processed by -rawMimeData:, so we know that the encoding
-	   * set for the part is valid.
+	   * processed by -rawMimeData:foldedAt:, so we know that the
+           * encoding set for the part is valid.
 	   */
 	  if (contentIs7bit == YES)
 	    {
@@ -6019,7 +6082,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   enumerator = [headers objectEnumerator];
   while ((hdr = [enumerator nextObject]) != nil)
     {
-      [md appendData: [hdr rawMimeData]];
+      [md appendData: [hdr rawMimeDataPreservingCase: NO foldedAt: fold]];
     }
 
   if (partData != nil)
@@ -7124,6 +7187,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
       if (sep != ' ' && sep != '-')
 	{
 	  NSLog(@"Server made illegal response ... %@", s);
+          RELEASE(s);
 	  [self _shutdown: [self _response: @"bad format"]];
 	  return;
 	}

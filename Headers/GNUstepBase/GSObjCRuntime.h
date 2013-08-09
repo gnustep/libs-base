@@ -342,6 +342,12 @@ GSTypesFromSelector(SEL sel);
 GS_EXPORT BOOL
 GSSelectorTypesMatch(const char *types1, const char *types2);
 
+/** Takes full type information and skips forward to the actual type
+ * as specified in the _C_... constants.
+ */
+GS_EXPORT const char *
+GSSkipTypeQualifierAndLayoutInfo(const char *types);
+
 /**
  * Returns a protocol object with the corresponding name.
  * This function searches the registered classes for any protocol

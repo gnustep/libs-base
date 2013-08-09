@@ -166,7 +166,7 @@ enum {
  * Returns a human readable version string for the current operating system
  * version.
  */
-#if OS_API_VERSION(100200,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST)
 - (NSString *) operatingSystemVersionString;
 #endif
 
@@ -189,7 +189,7 @@ enum {
  */
 - (void) setProcessName: (NSString*)newName;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 /** Not implemented */
 - (NSUInteger) processorCount;
 /** Not implemented */

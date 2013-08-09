@@ -26,7 +26,7 @@
 #define __NSURLError_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -86,7 +86,7 @@ enum
   NSURLErrorCannotRemoveFile = 			-3004,
   NSURLErrorCannotMoveFile = 			-3005,
   NSURLErrorDownloadDecodingFailedMidStream =	-3006,
-  NSURLErrorDownloadDecodingFailedToComplete =	-3007,
+  NSURLErrorDownloadDecodingFailedToComplete =	-3007
 };
 
 #if	defined(__cplusplus)

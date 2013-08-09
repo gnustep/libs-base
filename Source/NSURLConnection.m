@@ -26,6 +26,7 @@
 
 #define	EXPOSE_NSURLConnection_IVARS	1
 #import "Foundation/NSError.h"
+#import "Foundation/NSURLError.h"
 #import "Foundation/NSRunLoop.h"
 #import "GSURLPrivate.h"
 
@@ -66,6 +67,15 @@
   return _data;
 }
 
+- (id) init
+{
+  if (nil != (self = [super init]))
+    {
+      _data = [NSMutableData new];      // Empty data unless we get an error
+    }
+  return self;
+}
+
 - (NSError*) error
 {
   return _error;
@@ -85,6 +95,7 @@
    didFailWithError: (NSError *)error
 {
   ASSIGN(_error, error);
+  DESTROY(_data);       // On error, we make the data nil
   _done = YES;
 }
 
@@ -103,14 +114,7 @@
 - (void) connection: (NSURLConnection *)connection
      didReceiveData: (NSData *)data
 {
-  if (nil == _data)
-    {
-      _data = [data mutableCopy];
-    }
-  else
-    {
-      [_data appendData: data];
-    }
+  [_data appendData: data];
 }
 
 @end
@@ -119,7 +123,7 @@ typedef struct
 {
   NSMutableURLRequest		*_request;
   NSURLProtocol			*_protocol;
-  id				_delegate;	// Not retained
+  id				_delegate;
   BOOL				_debug;
 } Internal;
  
@@ -219,7 +223,7 @@ typedef struct
 	}
 
       /* According to bug #35686, Cocoa has a bizarre deviation from the
-       * convention that delegates are not retained here.
+       * convention that delegates are retained here.
        * For compatibility we retain the delegate and release it again
        * when the operation is over.
        */
@@ -313,31 +317,52 @@ typedef struct
     {
       _NSURLConnectionDataCollector	*collector;
       NSURLConnection			*conn;
-      NSRunLoop				*loop;
 
       collector = [_NSURLConnectionDataCollector new];
       conn = [[self alloc] initWithRequest: request delegate: collector];
-      [collector release];	// retained by connection
-      [collector setConnection: conn];
-      loop = [NSRunLoop currentRunLoop];
-      while ([collector done] == NO)
+      if (nil != conn)
         {
-	  NSDate	*limit;
+          NSRunLoop	*loop;
+          NSDate	*limit;
 
-	  limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
-	  [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
-	  RELEASE(limit);
-	}
-      data = [[[collector data] retain] autorelease];
-      if (0 != response)
-	{
-          *response = [[[collector response] retain] autorelease];
-	}
-      if (0 != error)
-	{
-          *error = [[[collector error] retain] autorelease];
-	}
-      [conn release];
+          [collector setConnection: conn];
+          loop = [NSRunLoop currentRunLoop];
+          limit = [[NSDate alloc] initWithTimeIntervalSinceNow:
+            [request timeoutInterval]];
+
+          while ([collector done] == NO && [limit timeIntervalSinceNow] > 0.0)
+            {
+              [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+            }
+          if (NO == [collector done])
+            {
+              data = nil;
+              if (0 != response)
+                {
+                  *response = nil;
+                }
+              if (0 != error)
+                {
+                  *error = [NSError errorWithDomain: NSURLErrorDomain
+                                               code: NSURLErrorTimedOut
+                                           userInfo: nil];
+                }
+            }
+          else
+            {
+              data = [[[collector data] retain] autorelease];
+              if (0 != response)
+                {
+                  *response = [[[collector response] retain] autorelease];
+                }
+              if (0 != error)
+                {
+                  *error = [[[collector error] retain] autorelease];
+                }
+            }
+          [conn release];
+        }
+      [collector release];
     }
   return data;
 }
@@ -356,7 +381,11 @@ typedef struct
 - (void) URLProtocol: (NSURLProtocol *)protocol
     didFailWithError: (NSError *)error
 {
-  [this->_delegate connection: self didFailWithError: error];
+  id    o = this->_delegate;
+
+  this->_delegate = nil;
+  [o connection: self didFailWithError: error];
+  DESTROY(o);
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
@@ -431,14 +460,18 @@ typedef struct
 
 - (void) URLProtocolDidFinishLoading: (NSURLProtocol *)protocol
 {
-  [this->_delegate connectionDidFinishLoading: self];
+  id    o = this->_delegate;
+
+  this->_delegate = nil;
+  [o connectionDidFinishLoading: self];
+  DESTROY(o);
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
   didCancelAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
   [this->_delegate connection: self
-  didCancelAuthenticationChallenge: challenge];
+    didCancelAuthenticationChallenge: challenge];
 }
 
 @end

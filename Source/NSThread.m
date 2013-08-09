@@ -56,7 +56,9 @@
 #  include <fcntl.h>
 #endif
 
-#ifdef	__POSIX_SOURCE
+#if defined(__POSIX_SOURCE)\
+        || defined(__EXT_POSIX1_198808)\
+        || defined(O_NONBLOCK)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -462,7 +464,7 @@ unregisterActiveThread(NSThread *thread)
 
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
       [thread  release];
-	  
+
       [[NSGarbageCollector defaultCollector] enableCollectorForPointer: thread];
       pthread_setspecific(thread_object_key, nil);
     }
@@ -574,11 +576,11 @@ unregisterActiveThread(NSThread *thread)
 /**
  * Set the priority of the current thread.  This is a value in the
  * range 0.0 (lowest) to 1.0 (highest) which is mapped to the underlying
- * system priorities.  
+ * system priorities.
  */
 + (void) setThreadPriority: (double)pri
 {
-#ifdef _POSIX_THREAD_PRIORITY_SCHEDULING
+#if defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING > 0)
   int	policy;
   struct sched_param param;
 
@@ -616,7 +618,7 @@ unregisterActiveThread(NSThread *thread)
 + (double) threadPriority
 {
   double pri = 0;
-#ifdef _POSIX_THREAD_PRIORITY_SCHEDULING
+#if defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING > 0)
   int policy;
   struct sched_param param;
 
@@ -733,7 +735,7 @@ unregisterActiveThread(NSThread *thread)
   if (_active == NO)
     {
       [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on inactive thread",
+                  format: @"[%@-%@] called on inactive thread",
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }
@@ -819,21 +821,21 @@ static void *nsthreadLauncher(void* thread)
   if (_active == YES)
     {
       [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on active thread",
+                  format: @"[%@-%@] called on active thread",
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }
   if (_cancelled == YES)
     {
       [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on cancelled thread",
+                  format: @"[%@-%@] called on cancelled thread",
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }
   if (_finished == YES)
     {
       [NSException raise: NSInternalInconsistencyException
-                  format: @"[%@-$@] called on finished thread",
+                  format: @"[%@-%@] called on finished thread",
         NSStringFromClass([self class]),
         NSStringFromSelector(_cmd)];
     }
@@ -980,7 +982,7 @@ static void *nsthreadLauncher(void* thread)
       [NSException raise: NSInternalInconsistencyException
         format: @"Failed to create pipe to handle perform in thread"];
     }
-#endif  
+#endif
   lock = [NSLock new];
   performers = [NSMutableArray new];
   return self;
@@ -1271,7 +1273,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
       GSPerformHolder   *h;
       NSConditionLock	*l = nil;
 
-      if ([t isFinished] == YES)
+      if ([aThread isFinished] == YES)
         {
           [NSException raise: NSInternalInconsistencyException
                       format: @"perform on finished thread"];

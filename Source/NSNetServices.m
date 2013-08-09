@@ -217,10 +217,11 @@ static Class concreteBrowserClass;
    * It uses [self class] to obtain the concrete subclass that implements
    * +dictionaryFromTXTRecordData:.
    */
-  NSDictionary *dict = [[self class] dictionaryFromTXTRecordData: [self TXTRecordData]];
+  NSDictionary *dict;
   NSMutableArray *array = nil;
   NSString *retVal = nil;
 
+  dict = [[self class] dictionaryFromTXTRecordData: [self TXTRecordData]];
   if (dict == nil)
     {
       return nil;
@@ -229,12 +230,16 @@ static Class concreteBrowserClass;
   FOR_IN(NSString*, key, dict)
     {
       NSData *value = [dict objectForKey: key];
+
       if ([value length] > 0)
         {
-          NSString *valueString = [[NSString alloc] initWithBytes: [value bytes]
-                                                           length: [value length]
-                                                         encoding: NSUTF8StringEncoding];
-          [array addObject: [NSString stringWithFormat: @"%@=%@", key, valueString]];
+          NSString *valueString;
+
+          valueString = [[NSString alloc] initWithBytes: [value bytes]
+						 length: [value length]
+					       encoding: NSUTF8StringEncoding];
+          [array addObject:
+	    [NSString stringWithFormat: @"%@=%@", key, valueString]];
           DESTROY(valueString);
         }
       else if ([key length] > 0)
@@ -258,18 +263,24 @@ static Class concreteBrowserClass;
     
   if (array != nil)
     {
-      NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithCapacity: [array count]];
+      NSMutableDictionary *dictionary;
+
+      dictionary
+	= [[NSMutableDictionary alloc] initWithCapacity: [array count]];
       FOR_IN(NSString*, item, array)
         {
-          NSArray *parts = [item componentsSeparatedByString:@"="];
-          NSData *value = [[parts objectAtIndex: 1] dataUsingEncoding: NSUTF8StringEncoding];
+          NSArray	*parts;
+          NSData	*value;
 
+          parts = [item componentsSeparatedByString: @"="];
+          value = [[parts objectAtIndex: 1]
+	    dataUsingEncoding: NSUTF8StringEncoding];
           [dictionary setObject: value
                          forKey: [parts objectAtIndex: 0]];
         }
       END_FOR_IN(array)
-    [self setTXTRecordData:
-      [[self class] dataFromTXTRecordDictionary: dictionary]];
+      [self setTXTRecordData:
+        [[self class] dataFromTXTRecordDictionary: dictionary]];
     }
 }
 
@@ -281,7 +292,7 @@ static Class concreteBrowserClass;
                  inputStream: inputStream
                 outputStream: outputStream];
   
-  return inputStream && outputStream;
+  return inputStream || outputStream;
 }
 
 /*
@@ -351,34 +362,34 @@ static Class concreteBrowserClass;
  * Define extensions for the Avahi API subclass.
  */
 #if GS_USE_AVAHI==1
-- (void)startMonitoringForRecordType: (NSString*)recordType
+- (void) startMonitoringForRecordType: (NSString*)recordType
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)stopMonitoringForRecordType: (NSString*)recordType
+- (void) stopMonitoringForRecordType: (NSString*)recordType
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (BOOL)addServiceRecord
-{
-  [self subclassResponsibility: _cmd];
-  return 0;
-}
-
-- (BOOL)addRecordData: (NSData*)data
+- (BOOL) addServiceRecord
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
-- (id)recordDataForRecordType: (NSString*)type
+- (BOOL) addRecordData: (NSData*)data
+{
+  [self subclassResponsibility: _cmd];
+  return 0;
+}
+
+- (id) recordDataForRecordType: (NSString*)type
 {
   return [self subclassResponsibility: _cmd];
 }
 
-- (NSString*)fullServiceName
+- (NSString*) fullServiceName
 {
   return [self subclassResponsibility: _cmd];
 }
@@ -386,7 +397,7 @@ static Class concreteBrowserClass;
 @end
 
 @implementation NSNetServiceBrowser
-+ (void)initialize
++ (void) initialize
 {
   if (self == [NSNetServiceBrowser class])
     {
@@ -407,6 +418,7 @@ static Class concreteBrowserClass;
     }
   return [super allocWithZone: zone];
 }
+
 - (id) init
 {
   return [super init];
@@ -465,7 +477,7 @@ static Class concreteBrowserClass;
   _delegate = delegate;
 }
 
-- (void)netServiceBrowserWillSearch: (NSNetServiceBrowser*)aBrowser
+- (void) netServiceBrowserWillSearch: (NSNetServiceBrowser*)aBrowser
 {
   if ([_delegate respondsToSelector: @selector(netServiceBrowserWillSearch:)])
     {
@@ -473,41 +485,45 @@ static Class concreteBrowserClass;
     }
 }
 
-- (void)netServiceBrowserDidStopSearch: (NSNetServiceBrowser*)aBrowser
+- (void) netServiceBrowserDidStopSearch: (NSNetServiceBrowser*)aBrowser
 {
-  if ([_delegate respondsToSelector: @selector(netServiceBrowserDidStopSearch:)])
+  if ([_delegate respondsToSelector:
+    @selector(netServiceBrowserDidStopSearch:)])
     {
       [_delegate netServiceBrowserDidStopSearch: aBrowser];
     }
 }
 
-- (void)netServiceBrowser: (NSNetServiceBrowser*)aBrowser
-             didNotSearch: (NSDictionary*)errorDict
+- (void) netServiceBrowser: (NSNetServiceBrowser*)aBrowser
+              didNotSearch: (NSDictionary*)errorDict
 {
-  if ([_delegate respondsToSelector: @selector(netServiceBrowser:didNotSearch:)])
+  if ([_delegate respondsToSelector:
+    @selector(netServiceBrowser:didNotSearch:)])
     {
       [_delegate netServiceBrowser: aBrowser
                       didNotSearch: errorDict];
     }
 }
 
-- (void)netServiceBrowser: (NSNetServiceBrowser*)aBrowser
-            didFindDomain: (NSString*)theDomain
-               moreComing: (BOOL)moreComing
+- (void) netServiceBrowser: (NSNetServiceBrowser*)aBrowser
+             didFindDomain: (NSString*)theDomain
+                moreComing: (BOOL)moreComing
 {
-  if ([_delegate respondsToSelector: @selector(netServiceBrowser:didFindDomain:moreComing:)])
+  if ([_delegate respondsToSelector:
+    @selector(netServiceBrowser:didFindDomain:moreComing:)])
     {
-     [_delegate netServiceBrowser: aBrowser
-                    didFindDomain: theDomain
-                       moreComing: moreComing];
+      [_delegate netServiceBrowser: aBrowser
+                     didFindDomain: theDomain
+                        moreComing: moreComing];
     }
 }
 
-- (void)netServiceBrowser: (NSNetServiceBrowser*)aBrowser
-          didRemoveDomain: (NSString*)theDomain
-               moreComing: (BOOL)moreComing
+- (void) netServiceBrowser: (NSNetServiceBrowser*)aBrowser
+           didRemoveDomain: (NSString*)theDomain
+                moreComing: (BOOL)moreComing
 {
-  if ([_delegate respondsToSelector: @selector(netServiceBrowser:didRemoveDomain:moreComing:)])
+  if ([_delegate respondsToSelector:
+    @selector(netServiceBrowser:didRemoveDomain:moreComing:)])
     {
       [_delegate netServiceBrowser: aBrowser
                   didRemoveDomain: theDomain
@@ -515,11 +531,12 @@ static Class concreteBrowserClass;
     }
 }
 
-- (void)netServiceBrowser: (NSNetServiceBrowser*)aBrowser
-           didFindService: (NSNetService*)theService
-               moreComing: (BOOL)moreComing
+- (void) netServiceBrowser: (NSNetServiceBrowser*)aBrowser
+            didFindService: (NSNetService*)theService
+                moreComing: (BOOL)moreComing
 {
-  if ([_delegate respondsToSelector: @selector(netServiceBrowser:didFindService:moreComing:)])
+  if ([_delegate respondsToSelector:
+    @selector(netServiceBrowser:didFindService:moreComing:)])
     {
       [_delegate netServiceBrowser: aBrowser
                     didFindService: theService
@@ -527,11 +544,12 @@ static Class concreteBrowserClass;
     }
 }
 
-- (void)netServiceBrowser: (NSNetServiceBrowser*)aBrowser
-         didRemoveService: (NSNetService*)theService
-               moreComing: (BOOL)moreComing
+- (void) netServiceBrowser: (NSNetServiceBrowser*)aBrowser
+          didRemoveService: (NSNetService*)theService
+                moreComing: (BOOL)moreComing
 {
-  if ([_delegate respondsToSelector: @selector(netServiceBrowser:didRemoveService:moreComing:)])
+  if ([_delegate respondsToSelector:
+    @selector(netServiceBrowser:didRemoveService:moreComing:)])
     {
       [_delegate netServiceBrowser: aBrowser
                   didRemoveService: theService

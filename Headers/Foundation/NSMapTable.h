@@ -52,7 +52,9 @@ enum {
   NSMapTableCopyIn
     = NSPointerFunctionsCopyIn,
   NSMapTableObjectPointerPersonality
-    = NSPointerFunctionsObjectPointerPersonality
+    = NSPointerFunctionsObjectPointerPersonality,
+  NSMapTableWeakMemory
+    = NSPointerFunctionsWeakMemory
 };
 
 typedef NSUInteger NSMapTableOptions;
@@ -84,6 +86,27 @@ typedef NSUInteger NSMapTableOptions;
  * object values with non-retained object keys.
  */
 + (id) mapTableWithWeakToWeakObjects;
+
+/** Convenience method for creating a map table to store object values
+ * using object keys.  The collection will retain both the key and the value.
+ */
++ (id) strongToStrongObjectsMapTable;
+/** Convenience method for creating a map table to store object values
+ * using object keys.  The collection will retain the key, the value will be a
+ * zeroing weak reference.
+ */
++ (id) strongToWeakObjectsMapTable;
+/** Convenience method for creating a map table to store object values
+ * using object keys.  The collection will retain the value, the key will be a
+ * zeroing weak reference.
+ */
++ (id) weakToStrongObjectsMapTable;
+/** Convenience method for creating a map table to store object values
+ * using object keys.  The collection will use zeroing weak references for both
+ * the key and the value.
+ */
++ (id) weakToWeakObjectsMapTable;
+
 
 /** Initialiser using option bitmasks to describe the keys and values.
  */

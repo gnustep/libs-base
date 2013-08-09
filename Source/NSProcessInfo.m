@@ -57,14 +57,9 @@
 #import "common.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #ifdef HAVE_WINDOWS_H
 #  include <windows.h>
-#endif
-
-#ifdef HAVE_STRERROR
-#  include <errno.h>
 #endif
 
 #if	defined(HAVE_SYS_SIGNAL_H)
@@ -763,8 +758,7 @@ static char	**_gnu_noobjc_env = NULL;
   if (_gnu_noobjc_argv == NULL)
     goto malloc_error;
 
-
-  ifp=fopen(proc_file_name,"r");
+  ifp = fopen(proc_file_name,"r");
   //freopen(proc_file_name, "r", ifp);
   if (ifp == NULL)
     {
@@ -786,17 +780,25 @@ static char	**_gnu_noobjc_env = NULL;
 	  argument++;
 	  length = 0;
 	  if (c == EOF) // End of command line
-	    break;
+	    {
+	      _gnu_noobjc_argc = argument;
+	      break;
+	    }
 	}
     }
   fclose(ifp);
-  ifp=fopen(proc_file_name,"r");
+  ifp = fopen(proc_file_name,"r");
   //freopen(proc_file_name, "r", ifp);
   if (ifp == NULL)
     {
-      for (c = 0; c < _gnu_noobjc_argc; c++)
-	free(_gnu_noobjc_argv[c]);
-      free(_gnu_noobjc_argv);
+      if (0 != _gnu_noobjc_argv)
+	{
+	  for (c = 0; c < _gnu_noobjc_argc; c++)
+	    {
+	      free(_gnu_noobjc_argv[c]);
+	    }
+	  free(_gnu_noobjc_argv);
+	}
       goto proc_fs_error;
     }
   argument = 0;
@@ -845,6 +847,7 @@ static char	**_gnu_noobjc_env = NULL;
 #endif /* HAVE_FUNCTION_STRERROR */
   fprintf(stderr, "Your gnustep-base library is compiled for a kernel supporting the /proc filesystem, but it can't access it.\n");
   fprintf(stderr, "You should recompile or change your kernel.\n");
+  free(proc_file_name);
 #ifdef HAVE_PROGRAM_INVOCATION_NAME
   fprintf(stderr, "We try to go on anyway; but the program will ignore any argument which were passed to it.\n");
   _gnu_noobjc_argc = 1;

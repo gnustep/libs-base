@@ -73,13 +73,12 @@ typedef enum _NSGNUstepStringEncoding
   NSGSM0338StringEncoding,		// GSM (mobile phone) default alphabet
   NSBIG5StringEncoding,			// Traditional chinese
   NSKoreanEUCStringEncoding,
-#if MAC_OS_X_VERSION_10_4 >= MAC_OS_X_VERSION_MAX_ALLOWED
-    NSUTF16BigEndianStringEncoding = 0x90000100,          /* NSUTF16StringEncoding encoding with explicit endianness specified */
-    NSUTF16LittleEndianStringEncoding = 0x94000100,       /* NSUTF16StringEncoding encoding with explicit endianness specified */
-
-    NSUTF32StringEncoding = 0x8c000100,
-    NSUTF32BigEndianStringEncoding = 0x98000100,          /* NSUTF32StringEncoding encoding with explicit endianness specified */
-    NSUTF32LittleEndianStringEncoding = 0x9c000100,        /* NSUTF32StringEncoding encoding with explicit endianness specified */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_ANY)
+  NSUTF16BigEndianStringEncoding = 0x90000100,
+  NSUTF16LittleEndianStringEncoding = 0x94000100,
+  NSUTF32StringEncoding = 0x8c000100,
+  NSUTF32BigEndianStringEncoding = 0x98000100,
+  NSUTF32LittleEndianStringEncoding = 0x9c000100,
 #endif
 
   GSEncodingUnusedLast

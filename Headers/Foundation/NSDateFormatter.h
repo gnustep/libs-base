@@ -52,7 +52,7 @@ enum
 {
   NSDateFormatterBehaviorDefault = 0,
   NSDateFormatterBehavior10_0    = 1000,
-  NSDateFormatterBehavior10_4    = 1040,
+  NSDateFormatterBehavior10_4    = 1040
 };
 typedef NSUInteger NSDateFormatterBehavior;
 #endif

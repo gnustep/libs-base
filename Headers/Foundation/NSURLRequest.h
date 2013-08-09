@@ -26,7 +26,7 @@
 #define __NSURLRequest_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -46,7 +46,7 @@ enum
   NSURLRequestUseProtocolCachePolicy,
   NSURLRequestReloadIgnoringCacheData,
   NSURLRequestReturnCacheDataElseLoad,
-  NSURLRequestReturnCacheDataDontLoad,
+  NSURLRequestReturnCacheDataDontLoad
 };
 /**
  * <deflist>
@@ -193,7 +193,7 @@ typedef NSUInteger NSURLRequestCachePolicy;
  */
 - (NSData *) HTTPBody;
 
-#if OS_API_VERSION(100400,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST)
 /**
  * Returns the currently set stream (if any) to be used to provide data
  * to send as the request body.<br />
@@ -242,7 +242,7 @@ typedef NSUInteger NSURLRequestCachePolicy;
  */
 - (void) setAllHTTPHeaderFields: (NSDictionary *)headerFields;
 
-#if OS_API_VERSION(100400,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST)
 /**
  * Sets the request body to be the contents of the given stream.<br />
  * The stream should be unopened when it is set, and the load process

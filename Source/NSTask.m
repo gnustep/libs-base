@@ -48,7 +48,6 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 
-#include <string.h>
 #include <sys/types.h>
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <fcntl.h>

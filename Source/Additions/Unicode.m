@@ -47,7 +47,6 @@
 #import "../GSPrivate.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #if HAVE_LANGINFO_CODESET
 #include <langinfo.h>
@@ -1308,11 +1307,11 @@ tables:
 		GROW();
 	      }
 	    ptr[dpos] = GSM0338_char_to_uni_table[c];
-	    if (c == 0x1b && spos < slen)
+	    if (c == 0x1b && spos < slen + 1)
 	      {
 		unsigned	i = 0;
 
-		c = (unc)src[spos+1];
+		c = (unc)src[spos + 1];
 		while (i < sizeof(GSM0338_escapes)/sizeof(GSM0338_escapes[0]))
 		  {
 		    if (GSM0338_escapes[i].to == c)

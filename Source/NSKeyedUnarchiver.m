@@ -139,6 +139,31 @@ static NSMapTable	*globalClassMap = 0;
 
   return o;
 }
+
+
+/**
+ * This method is used to replace oldObj with newObj
+ * in the map that is maintained in NSKeyedUnarchiver.
+ */
+- (BOOL) replaceObject: (id)oldObj withObject: (id)newObj
+{
+  unsigned int i = 0;
+  unsigned int count = GSIArrayCount(_objMap);
+  for (i = 0; i < count; i++)
+    {
+      id obj = GSIArrayItemAtIndex(_objMap, i).obj;
+      if (obj == oldObj)
+        break;
+    }
+
+  if (i < count)
+    {
+      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)newObj, i);
+      return YES;
+    }
+
+  return NO;
+}
 @end
 
 @implementation NSKeyedUnarchiver (Private)
@@ -393,13 +418,13 @@ static NSMapTable	*globalClassMap = 0;
   if (strcmp([o type], type) != 0)
     {
       [NSException raise: NSInvalidUnarchiveOperationException
-		  format: @"[%@ +%@]: type missmatch",
+		  format: @"[%@ +%@]: type missmatch for %@",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
     }
   if ([o count] != expected)
     {
       [NSException raise: NSInvalidUnarchiveOperationException
-		  format: @"[%@ +%@]: count missmatch",
+		  format: @"[%@ +%@]: count missmatch for %@",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
     }
   NSGetSizeAndAlignment(type, 0, &size);

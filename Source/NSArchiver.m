@@ -260,9 +260,13 @@ static Class	NSMutableDataMallocClass;
   uint8_t	byteCount = 0;
   NSUInteger	i;
   NSUInteger	offset = 0;
-  uint32_t	size = objc_sizeof_type(type);
-  uint32_t	version = [self systemVersion];
+  uint32_t	size;
+  uint32_t	version;
   uchar		info;
+
+  type = GSSkipTypeQualifierAndLayoutInfo(type);
+  size = objc_sizeof_type(type);
+  version = [self systemVersion];
 
   if (12402 == version)
     {
@@ -277,20 +281,18 @@ static Class	NSMutableDataMallocClass;
 	}
       bytePtr = &bytes[sizeof(bytes) - byteCount];
     }
+
+  /* We normally store the count as a 32bit integer ... but if it's
+   * very big, we store 0xffffffff and then an additional 64bit value
+   * containing the actual count.
+   */
+  if (count >= 0xffffffff)
+    {
+      c = 0xffffffff;
+    }
   else
     {
-      /* We normally store the count as a 32bit integer ... but if it's
-       * very big, we store 0xffffffff and then an additional 64bit value
-       * containing the actual count.
-       */
-      if (count >= 0xffffffff)
-	{
-	  c = 0xffffffff;
-	}
-      else
-	{
-	  c = count;
-	}
+      c = count;
     }
 
   switch (*type)
@@ -374,6 +376,7 @@ static Class	NSMutableDataMallocClass;
 - (void) encodeValueOfObjCType: (const char*)type
 			    at: (const void*)buf
 {
+  type = GSSkipTypeQualifierAndLayoutInfo(type);
   switch (*type)
     {
       case _C_ID:

@@ -191,6 +191,7 @@ static id			null = nil;
 	    {
 	      NSString	*addr;
 
+	      memset((void*)&in, '\0', sizeof(in));
 	      memcpy((void*)&in.s_addr, (const void*)ptr, entry->h_length);
 	      addr = [NSString stringWithUTF8String: (char*)inet_ntoa(in)];
 	      [addresses addObject: addr];

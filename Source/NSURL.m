@@ -332,9 +332,12 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	{
 	  *tmp++ = '/';
 	}
-      l = strlen(base->path);
-      memcpy(tmp, base->path, l);
-      tmp += l;
+      if (base->path)
+	{
+	  l = strlen(base->path);
+	  memcpy(tmp, base->path, l);
+	  tmp += l;
+	}
     }
   else
     {
@@ -873,19 +876,19 @@ static NSUInteger	urlAlign;
 		      *ptr = tolower(*ptr);
 		    }
 		}
-	      if (base != 0 && base->scheme != 0
-		&& strcmp(base->scheme, buf->scheme) != 0)
-		{
-		  [NSException raise: NSInvalidArgumentException
-                    format: @"[%@ %@](%@, %@) "
-		    @"scheme of base and relative parts does not match",
-                    NSStringFromClass([self class]),
-                    NSStringFromSelector(_cmd),
-                    aUrlString, aBaseUrl];
-		}
 	    }
 	}
       start = end;
+
+      if (buf->scheme != 0 && base != 0
+        && 0 != strcmp(buf->scheme, base->scheme))
+        {
+          /* The relative URL is of a different scheme to the base ...
+           * so it's actually an absolute URL without a base.
+           */
+          DESTROY(_baseURL);
+          base = 0;
+        }
 
       if (buf->scheme == 0 && base != 0)
 	{
@@ -901,7 +904,13 @@ static NSUInteger	urlAlign;
 	    {
 	      buf->isFile = YES;
 	    }
-	  else if (strcmp(buf->scheme, "mailto") == 0)
+	  else if (strcmp(buf->scheme, "data") == 0)
+            {
+	      canBeGeneric = NO;
+              DESTROY(_baseURL);
+              base = 0;
+            }
+          else if (strcmp(buf->scheme, "mailto") == 0)
 	    {
 	      usesFragments = NO;
 	      usesParameters = NO;
@@ -1438,7 +1447,7 @@ static NSUInteger	urlAlign;
           memcpy(tmp, myData->path, l + 1);
 	}
     }
-  else if (_baseURL == nil)
+  else if (nil == _baseURL)
     {
       if (myData->path != 0)
 	{
@@ -1446,7 +1455,7 @@ static NSUInteger	urlAlign;
           memcpy(tmp, myData->path, l + 1);
 	}
     }
-  else if (*myData->path == 0)
+  else if (0 == myData->path || 0 == *myData->path)
     {
       if (baseData->hasNoPath == NO)
 	{
@@ -1613,44 +1622,48 @@ static NSUInteger	urlAlign;
 - (NSString*) _pathWithEscapes: (BOOL)withEscapes
 {
   NSString	*path = nil;
-  unsigned int	len = 3;
 
-  if (_baseURL != nil)
+  if (YES == myData->isGeneric || 0 == myData->scheme)
     {
-      if (baseData->path && *baseData->path)
+      unsigned int	len = 3;
+
+      if (_baseURL != nil)
         {
-          len += strlen(baseData->path);
-	}
-      else if (baseData->hasNoPath == NO)
-	{
-	  len++;
-	}
-    }
-  if (myData->path && *myData->path)
-    {
-      len += strlen(myData->path);
-    }
-  else if (myData->hasNoPath == NO)
-    {
-      len++;
-    }
-  if (len > 3)
-    {
-      char		buf[len];
-      char		*ptr;
-      char		*tmp;
+          if (baseData->path && *baseData->path)
+            {
+              len += strlen(baseData->path);
+            }
+          else if (baseData->hasNoPath == NO)
+            {
+              len++;
+            }
+        }
+      if (myData->path && *myData->path)
+        {
+          len += strlen(myData->path);
+        }
+      else if (myData->hasNoPath == NO)
+        {
+          len++;
+        }
+      if (len > 3)
+        {
+          char		buf[len];
+          char		*ptr;
+          char		*tmp;
 
-      ptr = [self _path: buf withEscapes: withEscapes];
+          ptr = [self _path: buf withEscapes: withEscapes];
 
-      /* Remove any trailing '/' from the path for MacOS-X compatibility.
-       */
-      tmp = ptr + strlen(ptr) - 1;
-      if (tmp > ptr && *tmp == '/')
-	{
-	  *tmp = '\0';
-	}
+          /* Remove any trailing '/' from the path for MacOS-X compatibility.
+           */
+          tmp = ptr + strlen(ptr) - 1;
+          if (tmp > ptr && *tmp == '/')
+            {
+              *tmp = '\0';
+            }
 
-      path = [NSString stringWithUTF8String: ptr];
+          path = [NSString stringWithUTF8String: ptr];
+        }
     }
   return path;
 }
@@ -1714,7 +1727,11 @@ static NSUInteger	urlAlign;
 
       if (myData->path != 0)
 	{
-	  path = [NSString stringWithUTF8String: myData->path];
+          char		buf[strlen(myData->path) + 1];
+
+          strcpy(buf, myData->path);
+          unescape(buf, buf);
+	  path = [NSString stringWithUTF8String: buf];
 	}
       return path;
     }
@@ -1737,52 +1754,66 @@ static NSUInteger	urlAlign;
 - (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache
 {
   NSURLHandle	*handle = [self URLHandleUsingCache: YES];
-  NSData	*data;
+  NSData	*data = nil;
 
+  if ([handle status] == NSURLHandleLoadSucceeded)
+    {
+      data = [handle availableResourceData];
+    }
   if (shouldUseCache == NO || [handle status] != NSURLHandleLoadSucceeded)
     {
-      [handle loadInForeground];
+      data = [handle loadInForeground];
     }
-  data = [handle availableResourceData];
+  if (nil == data)
+    {
+      data = [handle availableResourceData];
+    }
   return data;
 }
 
 - (NSString*) resourceSpecifier
 {
-  NSRange	range = [_urlString rangeOfString: @"://"];
-
-  if (range.length > 0)
+  if (YES == myData->isGeneric)
     {
-      NSString *specifier;
+      NSRange	range = [_urlString rangeOfString: @"://"];
 
-      /* MacOSX compatibility - in the case where there is no
-       * host in the URL, just return the path (without the "//").
-       * For all other cases we return the whole specifier.
-       */
-      if (nil == [self host])
-	{
-          specifier = [_urlString substringFromIndex: NSMaxRange(range)];
-	}
+      if (range.length > 0)
+        {
+          NSString *specifier;
+
+          /* MacOSX compatibility - in the case where there is no
+           * host in the URL, just return the path (without the "//").
+           * For all other cases we return the whole specifier.
+           */
+          if (nil == [self host])
+            {
+              specifier = [_urlString substringFromIndex: NSMaxRange(range)];
+            }
+          else
+            {
+              specifier = [_urlString substringFromIndex: range.location+1];
+            }
+          return specifier;
+        }
       else
-	{
-          specifier = [_urlString substringFromIndex: range.location+1];
-	}
-      return specifier;
+        {
+          /*
+           * Cope with URLs missing net_path info -  <scheme>:/<path>...
+           */
+          range = [_urlString rangeOfString: @":"];
+          if (range.length > 0)
+            {
+              return [_urlString substringFromIndex: range.location + 1];
+            }
+          else
+            {
+              return _urlString;
+            }
+        }
     }
   else
     {
-      /*
-       * Cope with URLs missing net_path info -  <scheme>:/<path>...
-       */
-      range = [_urlString rangeOfString: @":"];
-      if (range.length > 0)
-	{
-	  return [_urlString substringFromIndex: range.location + 1];
-	}
-      else
-	{
-	  return _urlString;
-	}
+      return [NSString stringWithUTF8String: myData->path];
     }
 }
 
@@ -2023,34 +2054,38 @@ static NSUInteger	urlAlign;
 - (NSString*) fullPath
 {
   NSString	*path = nil;
-  unsigned int	len = 3;
 
-  if (_baseURL != nil)
+  if (YES == myData->isGeneric || 0 == myData->scheme)
     {
-      if (baseData->path && *baseData->path)
+      unsigned int	len = 3;
+
+      if (_baseURL != nil)
         {
-          len += strlen(baseData->path);
-	}
-      else if (baseData->hasNoPath == NO)
-	{
-	  len++;
-	}
-    }
-  if (myData->path && *myData->path)
-    {
-      len += strlen(myData->path);
-    }
-  else if (myData->hasNoPath == NO)
-    {
-      len++;
-    }
-  if (len > 3)
-    {
-      char		buf[len];
-      char		*ptr;
+          if (baseData->path && *baseData->path)
+            {
+              len += strlen(baseData->path);
+            }
+          else if (baseData->hasNoPath == NO)
+            {
+              len++;
+            }
+        }
+      if (myData->path && *myData->path)
+        {
+          len += strlen(myData->path);
+        }
+      else if (myData->hasNoPath == NO)
+        {
+          len++;
+        }
+      if (len > 3)
+        {
+          char		buf[len];
+          char		*ptr;
 
-      ptr = [self _path: buf withEscapes: NO];
-      path = [NSString stringWithUTF8String: ptr];
+          ptr = [self _path: buf withEscapes: NO];
+          path = [NSString stringWithUTF8String: ptr];
+        }
     }
   return path;
 }

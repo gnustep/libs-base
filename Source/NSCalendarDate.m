@@ -277,7 +277,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   m = m * 60;
   c = a - h - m;
   *second = (NSInteger)c;
-  *mil = (NSInteger)((a - h - m - c) * 1000.0 + 0.5);
+  *mil = (NSInteger)((a - h - m - c) * 1000.0);
 }
 
 /**
@@ -349,8 +349,10 @@ GSPrivateTimeNow(void)
 
 + (void) initialize
 {
-  if (self == [NSCalendarDate class])
+  if (self == [NSCalendarDate class] && nil == NSCalendarDateClass)
     {
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
+
       NSCalendarDateClass = self;
       [self setVersion: 1];
       localTZ = RETAIN([NSTimeZone localTimeZone]);
@@ -375,6 +377,7 @@ GSPrivateTimeNow(void)
 	[absClass instanceMethodForSelector: abrSEL];
 
       GSObjCAddClassBehavior(self, [NSGDate class]);
+      [pool release];
     }
 }
 
@@ -446,6 +449,20 @@ GSPrivateTimeNow(void)
  */
 - (id) addTimeInterval: (NSTimeInterval)seconds
 {
+  return [self dateByAddingTimeInterval: seconds];
+}
+
+- (Class) classForCoder
+{
+  return [self class];
+}
+
+/**
+ * Creates and returns a new NSCalendarDate object by taking the
+ * value of the receiver and adding the interval specified.
+ */
+- (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
+{
   id newObj = [[self class] dateWithTimeIntervalSinceReferenceDate:
      [self timeIntervalSinceReferenceDate] + seconds];
 	
@@ -453,11 +470,6 @@ GSPrivateTimeNow(void)
   [newObj setCalendarFormat: [self calendarFormat]];
 
   return newObj;
-}
-
-- (Class) classForCoder
-{
-  return [self class];
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
@@ -905,8 +917,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 			error = YES;
 			NSDebugMLog(
 			  @"Expected literal '%%' but got end of string parsing"
-			  @"'%@' using '%@'", source[sourceIdx],
-			  description, fmt);
+			  @"'%@' using '%@'", description, fmt);
 		      }
 		    break;
 
@@ -1518,24 +1529,24 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 
   if (month < 1 || month > 12)
     {
-      NSWarnMLog(@"invalid month given - %u", month);
+      NSWarnMLog(@"invalid month given - %"PRIuPTR, month);
     }
   c = lastDayOfGregorianMonth(month, year);
   if (day < 1 || day > c)
     {
-      NSWarnMLog(@"invalid day given - %u", day);
+      NSWarnMLog(@"invalid day given - %"PRIuPTR, day);
     }
   if (hour > 23)
     {
-      NSWarnMLog(@"invalid hour given - %u", hour);
+      NSWarnMLog(@"invalid hour given - %"PRIuPTR, hour);
     }
   if (minute > 59)
     {
-      NSWarnMLog(@"invalid minute given - %u", minute);
+      NSWarnMLog(@"invalid minute given - %"PRIuPTR, minute);
     }
   if (second > 59)
     {
-      NSWarnMLog(@"invalid second given - %u", second);
+      NSWarnMLog(@"invalid second given - %"PRIuPTR, second);
     }
 
   // Calculate date as GMT

@@ -51,7 +51,6 @@
 #include <objc/Protocol.h>
 
 #include <stdio.h>
-#include <string.h>
 #include <ctype.h>
 
 #ifndef NeXT_RUNTIME
@@ -444,8 +443,6 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
   Class		newClass;
   Class		classSuperClass;
   const char	*classNameCString;
-  char		*tmp;
-  int		len;
 
   NSCAssert(name, @"no name");
   NSCAssert(superName, @"no superName");
@@ -456,12 +453,6 @@ GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars)
   NSCAssert1(!NSClassFromString(name), @"A class %@ already exists", name);
 
   classNameCString = [name UTF8String];
-  len = strlen(classNameCString);
-  tmp = malloc(len + 1);
-  strncpy(tmp, classNameCString, len);
-  tmp[len] = '\0';
-  classNameCString = tmp;
-
   newClass = objc_allocateClassPair(classSuperClass, classNameCString, 0);
   if ([iVars count] > 0)
     {
@@ -627,8 +618,8 @@ GSGetMethod(Class cls, SEL sel,
 }
 
 
-static inline const char *
-gs_skip_type_qualifier_and_layout_info (const char *types)
+GS_EXPORT const char *
+GSSkipTypeQualifierAndLayoutInfo(const char *types)
 {
   while (*types == '+'
     || *types == '-'
@@ -653,38 +644,49 @@ GS_EXPORT BOOL
 GSSelectorTypesMatch(const char *types1, const char *types2)
 {
   if (! types1 || ! types2)
-    return NO;
-
+    {
+      return NO;        // Nul pointers never match
+    }
+  if (types1 == types2)
+    {
+      return YES;
+    }
   while (*types1 && *types2)
     {
-      types1 = gs_skip_type_qualifier_and_layout_info (types1);
-      types2 = gs_skip_type_qualifier_and_layout_info (types2);
+      types1 = GSSkipTypeQualifierAndLayoutInfo (types1);
+      types2 = GSSkipTypeQualifierAndLayoutInfo (types2);
 
       /* Reached the end of the selector.  */
       if (! *types1 && ! *types2)
-        return YES;
+        {
+          return YES;
+        }
 
       /* Ignore structure name yet compare layout.  */
       if (*types1 == '{' && *types2 == '{')
 	{
 	  while (*types1 != '=' && *types1 != '}')
-	    types1++;
-
+            {
+              types1++;
+            }
 	  while (*types2 != '=' && *types2 != '}')
-	    types2++;
+            {
+              types2++;
+            }
 	}
 
       if (*types1 != *types2)
-        return NO;
-
+        {
+          return NO;
+        }
       types1++;
       types2++;
     }
 
-  types1 = gs_skip_type_qualifier_and_layout_info (types1);
-  types2 = gs_skip_type_qualifier_and_layout_info (types2);
+  types1 = GSSkipTypeQualifierAndLayoutInfo (types1);
+  types2 = GSSkipTypeQualifierAndLayoutInfo (types2);
 
-  return (! *types1 && ! *types2);
+  return (! *types1 && ! *types2) ? YES : NO;
 }
 
 /* See header for documentation. */
@@ -1293,7 +1295,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
             break;
 
           case _C_STRUCT_B:
-            if (strcmp(@encode(NSPoint), type) == 0)
+            if (GSSelectorTypesMatch(@encode(NSPoint), type))
               {
                 NSPoint	v;
 
@@ -1310,7 +1312,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithPoint: v];
               }
-            else if (strcmp(@encode(NSRange), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSRange), type))
               {
                 NSRange	v;
 
@@ -1327,7 +1329,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRange: v];
               }
-            else if (strcmp(@encode(NSRect), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSRect), type))
               {
                 NSRect	v;
 
@@ -1344,7 +1346,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRect: v];
               }
-            else if (strcmp(@encode(NSSize), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSSize), type))
               {
                 NSSize	v;
 
@@ -1397,8 +1399,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
 
 	      cls = [self class];
 	      type_slot = objc_get_slot(cls, @selector(retain));
-	      typed = GSSelectorFromNameAndTypes(sel_getName(sel),
-		type_slot->types);
+	      typed = GSSelectorFromNameAndTypes(sel_getName(sel), NULL);
 	      slot = objc_get_slot(cls, typed);
 	      if (strcmp(slot->types, type_slot->types) == 0)
 		{
@@ -1740,7 +1741,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
 	    break;
 
           case _C_STRUCT_B:
-            if (strcmp(@encode(NSPoint), type) == 0)
+            if (GSSelectorTypesMatch(@encode(NSPoint), type))
               {
                 NSPoint	v = [val pointValue];
 
@@ -1758,7 +1759,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
                     (*imp)(self, sel, v);
                   }
               }
-            else if (strcmp(@encode(NSRange), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSRange), type))
               {
                 NSRange	v = [val rangeValue];
 
@@ -1776,7 +1777,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
                     (*imp)(self, sel, v);
                   }
               }
-            else if (strcmp(@encode(NSRect), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSRect), type))
               {
                 NSRect	v = [val rectValue];
 
@@ -1794,7 +1795,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
                     (*imp)(self, sel, v);
                   }
               }
-            else if (strcmp(@encode(NSSize), type) == 0)
+            else if (GSSelectorTypesMatch(@encode(NSSize), type))
               {
                 NSSize	v = [val sizeValue];
 

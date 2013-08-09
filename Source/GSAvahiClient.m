@@ -284,6 +284,7 @@ GSAvahiClientState(AvahiClient *client, AvahiClientState state, void *userInfo)
 
 - (void) avahiClientDealloc
 {
+  [ctx removeFromRunLoop: [ctx runLoop] forMode: [ctx mode]];
   [self freeClient];
   [ctx release];
   [_lock release];

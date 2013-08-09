@@ -57,7 +57,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #endif /* !__MINGW__ */
-#include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
 
 #if	defined(HAVE_SYS_FCNTL_H)
@@ -84,7 +83,9 @@
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
-#ifdef	__POSIX_SOURCE
+#if defined(__POSIX_SOURCE)\
+        || defined(__EXT_POSIX1_198808)\
+        || defined(O_NONBLOCK)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -100,7 +101,9 @@
 #endif
 
 #if	defined(__svr4__)
-#include <sys/stropts.h>
+#  if defined(HAVE_SYS_STROPTS_H)
+#    include <sys/stropts.h>
+#  endif
 #endif
 
 #define	SOCKET	int
@@ -429,7 +432,7 @@ static Class	runLoopClass;
     }
   rc = WSAEventSelect(handle->desc, ev, FD_ALL_EVENTS);
   NSAssert(rc == 0, @"WSAEventSelect failed!");
-  
+
   handle->event = ev;
   handle->inReplyMode = NO;
   handle->readyToSend = YES;
@@ -462,7 +465,8 @@ static Class	runLoopClass;
   NSRunLoop		*l;
 
   M_LOCK(myLock);
-  NSDebugMLLog(@"GSTcpHandle", @"Connecting on 0x%x before %@", self, when);
+  NSDebugMLLog(@"GSTcpHandle",
+    @"Connecting on 0x%"PRIxPTR" before %@", (NSUInteger)self, when);
   if (state != GS_H_UNCON)
     {
       BOOL	result;
@@ -677,7 +681,7 @@ static Class	runLoopClass;
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"Handle (%d) to %s:%d",
+  return [NSString stringWithFormat: @"Handle (%d) to %@",
     desc, GSPrivateSockaddrName(&sockAddr)];
 }
 
@@ -730,7 +734,8 @@ static Class	runLoopClass;
 		 forMode: nil
 		     all: YES];
 #endif
-	  NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x", self);
+	  NSDebugMLLog(@"GSTcpHandle",
+	    @"invalidated 0x%"PRIxPTR, (NSUInteger)self);
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
 #if	defined(__MINGW__)
@@ -796,7 +801,8 @@ static Class	runLoopClass;
     {
       if (res == 0)
         {
-          NSDebugMLLog(@"GSTcpHandle", @"read eof on 0x%x", self);
+          NSDebugMLLog(@"GSTcpHandle",
+	    @"read eof on 0x%"PRIxPTR, (NSUInteger)self);
           [self invalidate];
           return;
         }
@@ -814,7 +820,8 @@ static Class	runLoopClass;
 	}
 	res = 0;	/* Interrupted - continue	*/
     }
-  NSDebugMLLog(@"GSTcpHandle", @"read %d bytes on 0x%x", res, self);
+  NSDebugMLLog(@"GSTcpHandle",
+    @"read %d bytes on 0x%"PRIxPTR, res, (NSUInteger)self);
   rLength += res;
 
   while (valid == YES && rLength >= rWant)
@@ -1065,7 +1072,7 @@ static Class	runLoopClass;
           rId = 0;
           DESTROY(rItems);
           NSDebugMLLog(@"GSTcpHandle",
-        	@"got message %@ on 0x%x", pm, self);
+	    @"got message %@ on 0x%"PRIxPTR, pm, (NSUInteger)self);
           IF_NO_GC(RETAIN(rp);)
           M_UNLOCK(myLock);
           NS_DURING
@@ -1114,7 +1121,7 @@ static Class	runLoopClass;
             {
 	      ASSIGN(defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 	      NSDebugMLLog(@"GSTcpHandle",
-	        @"wrote %d bytes on 0x%x", len, self);
+	        @"wrote %d bytes on 0x%"PRIxPTR, len, (NSUInteger)self);
 	      state = GS_H_CONNECTED;
 	    }
 	  else
@@ -1131,7 +1138,7 @@ static Class	runLoopClass;
       int		res;
       unsigned	l;
       const void	*b;
-      
+
       if (wData == nil)
         {
           if ([wMsgs count] > 0)
@@ -1143,7 +1150,7 @@ static Class	runLoopClass;
 	    }
 	  else
 	    {
-	      // NSLog(@"No messages to write on 0x%x.", self);
+// NSLog(@"No messages to write on 0x%"PRIxPTR".", (NSUInteger)self);
 	      return;
 	    }
 	}
@@ -1173,7 +1180,7 @@ static Class	runLoopClass;
       else
         {
           NSDebugMLLog(@"GSTcpHandle",
-            @"wrote %d bytes on 0x%x", res, self);
+            @"wrote %d bytes on 0x%"PRIxPTR, res, (NSUInteger)self);
 	  wLength += res;
           if (wLength == l)
             {
@@ -1198,7 +1205,8 @@ static Class	runLoopClass;
 	           * message completed - remove from list.
 	           */
 	          NSDebugMLLog(@"GSTcpHandle",
-	            @"completed 0x%x on 0x%x", components, self);
+	            @"completed 0x%"PRIxPTR" on 0x%"PRIxPTR,
+		    (NSUInteger)components, (NSUInteger)self);
 		  wData = nil;
 	          wItem = 0;
 	          [wMsgs removeObjectAtIndex: 0];
@@ -1215,37 +1223,23 @@ static Class	runLoopClass;
 {
 #if	defined(__MINGW__)
   WSANETWORKEVENTS ocurredEvents;
-#else
-#endif
-  /*
-   * If we have been invalidated (desc < 0) then we should ignore this
+
+  /* If we have been invalidated then we should ignore this
    * event and remove ourself from the runloop.
    */
-  if (desc == INVALID_SOCKET)
+  if (NO == valid || desc == INVALID_SOCKET)
     {
       NSRunLoop	*l = [runLoopClass currentRunLoop];
 
-#if	defined(__MINGW__)
       [l removeEvent: data
 		type: ET_HANDLE
 	     forMode: mode
 		 all: YES];
-#else
-      [l removeEvent: data
-		type: ET_WDESC
-	     forMode: mode
-		 all: YES];
-      [l removeEvent: data
-		type: ET_EDESC
-	     forMode: mode
-		 all: YES];
-#endif
       return;
     }
 
   M_LOCK(myLock);
 
-#if	defined(__MINGW__)
   if (WSAEnumNetworkEvents(desc, event, &ocurredEvents)==SOCKET_ERROR)
     {
       NSLog(@"Error getting event type %d", WSAGetLastError());
@@ -1310,9 +1304,33 @@ static Class	runLoopClass;
   if (ocurredEvents.lNetworkEvents)
     {
       NSLog(@"Event not get %d", ocurredEvents.lNetworkEvents);
-      abort();      
+      abort();
     }
+
+  M_UNLOCK(myLock);
+
 #else
+
+  /* If we have been invalidated then we should ignore this
+   * event and remove ourself from the runloop.
+   */
+  if (NO == valid || desc < 0)
+    {
+      NSRunLoop	*l = [runLoopClass currentRunLoop];
+
+      [l removeEvent: data
+		type: ET_WDESC
+	     forMode: mode
+		 all: YES];
+      [l removeEvent: data
+		type: ET_EDESC
+	     forMode: mode
+		 all: YES];
+      return;
+    }
+
+  M_LOCK(myLock);
+
   if (type != ET_WDESC)
     {
       [self receivedEventRead];
@@ -1321,9 +1339,9 @@ static Class	runLoopClass;
     {
       [self receivedEventWrite];
     }
-#endif
 
   M_UNLOCK(myLock);
+#endif
 }
 
 - (BOOL) sendMessage: (NSArray*)components beforeDate: (NSDate*)when
@@ -1333,8 +1351,8 @@ static Class	runLoopClass;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
   NSDebugMLLog(@"GSTcpHandle",
-    @"Sending message 0x%x %@ on 0x%x(%d) before %@",
-    components, components, self, desc, when);
+    @"Sending message 0x%"PRIxPTR" %@ on 0x%"PRIxPTR"(%d) before %@",
+    (NSUInteger)components, components, (NSUInteger)self, desc, when);
   M_LOCK(myLock);
   [wMsgs addObject: components];
 
@@ -1388,7 +1406,7 @@ static Class	runLoopClass;
         }
 #else
       [l runMode: NSConnectionReplyMode beforeDate: when];
-#endif  
+#endif
       M_LOCK(myLock);
     }
 
@@ -1427,7 +1445,8 @@ static Class	runLoopClass;
     }
   M_UNLOCK(myLock);
   NSDebugMLLog(@"GSTcpHandle",
-    @"Message send 0x%x on 0x%x status %d", components, self, sent);
+    @"Message send 0x%"PRIxPTR" on 0x%"PRIxPTR" status %d",
+    (NSUInteger)components, (NSUInteger)self, sent);
   RELEASE(self);
   return sent;
 }
@@ -1660,7 +1679,7 @@ static Class		tcpPortClass;
 	       * we did the 'bind' call.
 	       */
 	      port->listener = desc;
-	      port->portNum = GSPrivateSockaddrPort(&sockaddr); 
+	      port->portNum = GSPrivateSockaddrPort(&sockaddr);
 #if	defined(__MINGW__)
               port->eventListener = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
               if (port->eventListener == WSA_INVALID_EVENT)
@@ -1783,7 +1802,8 @@ static Class		tcpPortClass;
 
 - (void) finalize
 {
-  NSDebugMLLog(@"NSPort", @"NSSocketPort 0x%x finalized", self);
+  NSDebugMLLog(@"NSPort",
+    @"NSSocketPort 0x%"PRIxPTR" finalized", (NSUInteger)self);
   [self invalidate];
   if (handles != 0)
     {
@@ -1833,7 +1853,7 @@ static Class		tcpPortClass;
   recvSelf = GS_GC_HIDE(self);
   me = NSEnumerateMapTable(events);
   while (NSNextMapEnumeratorPair(&me, &event, (void**)&fd))
-    { 
+    {
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)fd);
       if (handle->recvPort == recvSelf
         && handle->inReplyMode == NO
@@ -1998,12 +2018,12 @@ static Class		tcpPortClass;
 
   if (d == nil)
     {
-      NSDebugMLLog(@"NSPort", @"No delegate to handle incoming message", 0);
+      NSDebugMLLog(@"NSPort", @"%@", @"No delegate to handle incoming message");
       return;
     }
   if ([d respondsToSelector: @selector(handlePortMessage:)] == NO)
     {
-      NSDebugMLLog(@"NSPort", @"delegate doesn't handle messages", 0);
+      NSDebugMLLog(@"NSPort", @"%@", @"delegate doesn't handle messages");
       return;
     }
   [d handlePortMessage: m];
@@ -2053,7 +2073,7 @@ static Class		tcpPortClass;
 	      listener = -1;
 #if	defined(__MINGW__)
 	      WSACloseEvent(eventListener);
-	      eventListener = WSA_INVALID_EVENT;                   
+	      eventListener = WSA_INVALID_EVENT;
 #endif
 	    }
 
@@ -2119,8 +2139,8 @@ static Class		tcpPortClass;
 #endif
   GSTcpHandle	*handle;
 
-  NSDebugMLLog(@"NSPort", @"received %s event %p on 0x%x",
-    type == ET_RPORT ? "read" : "write", extra, self);
+  NSDebugMLLog(@"NSPort", @"received %s event %p on 0x%"PRIxPTR,
+    type == ET_RPORT ? "read" : "write", extra, (NSUInteger)self);
 
 #if	defined(__MINGW__)
   if (event == eventListener)

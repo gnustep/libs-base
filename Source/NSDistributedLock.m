@@ -26,7 +26,6 @@
    */
 
 #import "common.h"
-#include <string.h>
 #define	EXPOSE_NSDistributedLock_IVARS	1
 #import "Foundation/NSDistributedLock.h"
 #import "Foundation/NSFileManager.h"
@@ -192,7 +191,7 @@ static NSFileManager	*mgr = nil;
   attributesToSet = [NSMutableDictionary dictionaryWithCapacity: 1];
   [attributesToSet setObject: [NSNumber numberWithUnsignedInt: 0755]
 		      forKey: NSFilePosixPermissions];
-
+	
   if ([mgr fileExistsAtPath: _lockPath isDirectory: &existingDir] == YES)
     {
 	  /*
@@ -204,7 +203,9 @@ static NSFileManager	*mgr = nil;
 	}
 			  
   locked = [mgr createDirectoryAtPath: _lockPath
-			   attributes: attributesToSet];
+          withIntermediateDirectories: YES
+			   attributes: attributesToSet
+                                error: NULL];
   if (locked == NO)
     {
       BOOL	dir;
@@ -216,15 +217,17 @@ static NSFileManager	*mgr = nil;
        * or we have a severe problem!
        */
       if ([mgr fileExistsAtPath: _lockPath isDirectory: &dir] == NO)
+	{
+	  locked = [mgr createDirectoryAtPath: _lockPath
+                  withIntermediateDirectories: YES
+				   attributes: attributesToSet
+                                        error: NULL];
+	  if (locked == NO)
 	    {
-	      locked = [mgr createDirectoryAtPath: _lockPath
-				                   attributes: attributesToSet];
-	      if (locked == NO)
-	        {
-	          NSLog(@"Failed to create lock directory '%@' - %@",
-		      _lockPath, [NSError _last]);
-	        }
+	      NSLog(@"Failed to create lock directory '%@' - %@",
+		    _lockPath, [NSError _last]);
 	    }
+	}
     }
 
   if (locked == NO)
@@ -236,7 +239,7 @@ static NSFileManager	*mgr = nil;
       attributes = [mgr fileAttributesAtPath: _lockPath
 				traverseLink: YES];
       if (attributes == nil)
-	    {
+	{
           /*
            * We've seen cases where several instances of the same
            * program were launched at once, where this exception
@@ -251,7 +254,7 @@ static NSFileManager	*mgr = nil;
             */
            NSLog(@"Unable to get attributes of lock file we made");
            return NO;
-	    }
+	}
       ASSIGN(_lockTime, [attributes fileModificationDate]);
       return YES;
     }

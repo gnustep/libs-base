@@ -407,6 +407,7 @@ extern "C" {
 @interface	NSKeyedUnarchiver (Internal)
 - (id) _decodeArrayOfObjectsForKey: (NSString*)aKey;
 - (id) _decodePropertyListForKey: (NSString*)aKey;
+- (BOOL) replaceObject: (id)oldObj withObject: (id)newObj;
 @end
 
 

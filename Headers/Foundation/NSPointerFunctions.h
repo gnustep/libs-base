@@ -28,7 +28,7 @@
 
 #import	<Foundation/NSObject.h>
 
-#if OS_API_VERSION(100500, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -56,6 +56,12 @@ enum {
   /** MACH virtual memory (not implemented) */
   NSPointerFunctionsMachVirtualMemory = (4<<0),
 
+  /** Uses read and write barriers appropriate for either automatic reference
+   * counting or garbage collection.  Note that the GNUstep implementation will
+   * behave correctly when used with manual or automatic reference counting, as
+   * long as the Objective-C runtime supports automatic reference counting.
+   */
+  NSPointerFunctionsWeakMemory = (5<<0),
 
   /** Use the -hash and -isEqual: methods for storing objects, and the
    * -description method to describe them. */
@@ -148,5 +154,5 @@ typedef	NSUInteger NSPointerFunctionsOptions;
 }
 #endif
 
-#endif /* OS_API_VERSION(100500, GS_API_LATEST) */
+#endif /* OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST) */
 #endif /* __NSPointerFunctions_h_GNUSTEP_BASE_INCLUDE */

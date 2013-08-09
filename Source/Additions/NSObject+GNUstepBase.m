@@ -37,7 +37,7 @@
 + (id) notImplemented: (SEL)selector
 {
   [NSException raise: NSGenericException
-    format: @"method %@ not implemented in %s(class)",
+    format: @"method %@ not implemented in %@(class)",
     selector ? (id)NSStringFromSelector(selector) : (id)@"(null)",
     NSStringFromClass(self)];
   return nil;
@@ -99,7 +99,7 @@
     format: @"[%@%c%@] not implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return nil;
+  return self;	// Not reached
 }
 
 - (id) shouldNotImplement: (SEL)aSel
@@ -111,7 +111,7 @@
     format: @"[%@%c%@] should not be implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return nil;
+  return self;	// Not reached
 }
 
 - (id) subclassResponsibility: (SEL)aSel
@@ -122,7 +122,7 @@
     format: @"[%@%c%@] should be overridden by subclass",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return nil;
+  return self;	// Not reached
 }
 
 @end
@@ -318,6 +318,8 @@ handleExit()
 {
   return NO;
 }
+
+@end
 
 #endif
 

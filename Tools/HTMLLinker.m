@@ -712,6 +712,7 @@ static int verbose = 0;
 
   /* Generate the output.  */
   {
+    NSString *result;
     /* Allocate space for the whole output in a single chunk now that
        we know how big it should be.  */
     unichar *outputChars = malloc (sizeof(unichar) * totalNumberOfChars);
@@ -738,8 +739,10 @@ static int verbose = 0;
 	head = s;
       }
 
-    return [NSString stringWithCharacters: outputChars
-		     length: totalNumberOfChars];
+    result = [NSString stringWithCharacters: outputChars
+				     length: totalNumberOfChars];
+    free(outputChars);
+    return result;
   }
 }
 

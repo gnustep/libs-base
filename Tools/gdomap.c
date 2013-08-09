@@ -79,7 +79,7 @@
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
-#if	defined(__POSIX_SOURCE)
+#if	defined(__POSIX_SOURCE) || defined(__EXT_POSIX1_198808)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -95,13 +95,20 @@
 #endif
 
 #if	defined(__svr4__)
+#if defined(HAVE_SYS_STROPTS_H)
 #include <sys/stropts.h>
+#endif
 #endif
 #endif /* !__MINGW__ */
 
 
 #if	defined(HAVE_SYSLOG_H)
 #include <syslog.h>
+#elif   defined(HAVE_SYS_SLOG_H)
+#  include <sys/slog.h>
+#  if 	defined(HAVE_SYS_SLOGCODES_H)
+#    include <sys/slogcodes.h>
+#  endif
 #endif
 
 #if	HAVE_STRERROR
@@ -177,6 +184,8 @@ static unsigned long	class_b_net;
 static struct in_addr	class_b_mask;
 static unsigned long	class_c_net;
 struct in_addr	class_c_mask;
+
+static char	*local_hostname = 0;
 
 /*
  *	Predeclare some of the functions used.
@@ -277,7 +286,15 @@ getopt(int argc, char **argv, char *options)
 static char	ebuf[2048];
 
 
-#if	defined(HAVE_SYSLOG)
+#if	defined(HAVE_SYSLOG) || defined(HAVE_SLOGF)
+#  if defined(HAVE_SLOGF)
+#    define LOG_CRIT _SLOG_CRITICAL
+#    define LOG_DEBUG _SLOG_DEBUG1
+#    define LOG_ERR _SLOG_ERROR
+#    define LOG_INFO _SLOG_INFO
+#    define LOG_WARNING _SLOG_WARNING
+#    define syslog(prio, msg,...) slogf(_SLOG_SETCODE(_SLOG_SYSLOG, 0), prio, msg, __VA_ARGS__)
+#  endif
 
 static int	log_priority;
 
@@ -295,7 +312,12 @@ gdomap_log (int prio)
     }
   if (is_daemon)
     {
+#if   defined(HAVE_SLOGF)
+      // QNX doesn't like 0 as the prio. It means "shutdown" to them.
+      syslog (prio ? log_priority : prio, "%s", ebuf);
+#     else
       syslog (log_priority | prio, "%s", ebuf);
+#endif
     }
   else if (prio == LOG_INFO)
     {
@@ -312,7 +334,7 @@ gdomap_log (int prio)
     {
       if (is_daemon)
 	{
-	  syslog (LOG_CRIT, "exiting.");
+	  syslog (LOG_CRIT, "%s", "exiting.");
 	}
       else
      	{
@@ -690,28 +712,43 @@ compare(uptr n0, int l0, uptr n1, int l1)
 static map_ent*
 map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
 {
-  map_ent	*m = (map_ent*)malloc(sizeof(map_ent));
+  map_ent	*m;
   int		i;
 
+  m = (map_ent*)malloc(sizeof(map_ent));
+  if (0 == m)
+    {
+      perror("no memory for map entry");
+      exit(EXIT_FAILURE);
+    }
   m->port = p;
   m->name = (unsigned char*)malloc(l);
+  if (0 == m->name)
+    {
+      perror("no memory for map entry name");
+      exit(EXIT_FAILURE);
+    }
   m->size = l;
   m->net = (t & GDO_NET_MASK);
   m->svc = (t & GDO_SVC_MASK);
   memcpy(m->name, n, l);
 
-  if (map_used >= map_size)
+  if (map_used == map_size)
     {
-      if (map_size)
+      map_size += 16;
+      if (map)
 	{
-	  map = (map_ent**)realloc(map, (map_size + 16)*sizeof(map_ent*));
-	  map_size += 16;
+	  map = (map_ent**)realloc(map, map_size * sizeof(map_ent*));
 	}
       else
 	{
-	  map = (map_ent**)calloc(16,sizeof(map_ent*));
-	  map_size = 16;
+	  map = (map_ent**)calloc(map_size, sizeof(map_ent*));
 	}
+      if (0 == map)
+        {
+          perror("no memory for map");
+          exit(EXIT_FAILURE);
+        }
     }
   for (i = 0; i < map_used; i++)
     {
@@ -901,16 +938,18 @@ prb_add(struct in_addr *p)
    * If we already have an entry for this address, remove it from the list
    * ready for re-insertion in the correct place.
    */
-  for (i = 0; i < prb_used; i++)
+  i = prb_used;
+  while (i-- > 0)
     {
       if (memcmp(&prb[i]->sin, p, IASIZE) == 0)
 	{
 	  n = prb[i];
-	  for (i++; i < prb_used; i++)
+	  prb_used--;
+	  while (i++ < prb_used)
 	    {
 	      prb[i-1] = prb[i];
 	    }
-	  prb_used--;
+	  break;
 	}
     }
 
@@ -918,9 +957,9 @@ prb_add(struct in_addr *p)
    * Create a new entry structure if necessary.
    * Set the current time in the structure, so we know when we last had contact.
    */
-  if (n == 0)
+  if (0 == n)
     {
-      n = (prb_type*)malloc(sizeof(prb_type));
+      n = (prb_type*)calloc(sizeof(prb_type), 1);
       n->sin = *p;
     }
   n->when = time(0);
@@ -930,25 +969,21 @@ prb_add(struct in_addr *p)
    */
   if (prb_used >= prb_size)
     {
-      int	size = (prb_size + 16) * sizeof(prb_type*);
-
-      if (prb_size)
+      prb_size = prb_used + 16;
+      if (prb)
 	{
-	  prb = (prb_type**)realloc(prb, size);
-	  prb_size += 16;
+	  prb = (prb_type**)realloc(prb, prb_size * sizeof(prb_type*));
 	}
       else
 	{
-	  prb = (prb_type**)malloc(size);
-	  prb_size = 16;
+	  prb = (prb_type**)calloc(prb_size * sizeof(prb_type*), 1);
 	}
     }
 
   /*
    * Append the new item at the end of the list.
    */
-  prb[prb_used] = n;
-  prb_used++;
+  prb[prb_used++] = n;
 }
 
 
@@ -959,20 +994,18 @@ prb_add(struct in_addr *p)
 static void
 prb_del(struct in_addr *p)
 {
-  unsigned int	i;
+  unsigned int	i = prb_used;
 
-  for (i = 0; i < prb_used; i++)
+  while (i-- > 0)
     {
       if (memcmp(&prb[i]->sin, p, IASIZE) == 0)
 	{
-	  unsigned int	j;
-
 	  free(prb[i]);
-	  for (j = i + 1; j < prb_used; j++)
-	    {
-	      prb[j-1] = prb[j];
-	    }
 	  prb_used--;
+	  while (i++ < prb_used)
+	    {
+	      prb[i - 1] = prb[i];
+	    }
 	  return;
 	}
     }
@@ -985,10 +1018,10 @@ prb_del(struct in_addr *p)
 static void
 prb_tim(time_t when)
 {
-  int	i;
+  int	i = prb_used;
 
   when -= 1800;
-  for (i = prb_used - 1; i >= 0; i--)
+  while (i-- > 0)
     {
       if (noprobe == 0 && prb[i]->when < when && prb[i]->when < last_probe)
 	{
@@ -1180,7 +1213,7 @@ init_iface()
   if (addr != 0) free(addr);
   addr = (struct in_addr*)malloc((countActive+1)*IASIZE);
   if (bcok != 0) free(bcok);
-  bcok = (char*)malloc((countActive+1)*sizeof(char));
+  bcok = (unsigned char*)malloc((countActive+1)*sizeof(unsigned char));
   if (bcst != 0) free(bcst);
   bcst = (struct in_addr*)malloc((countActive+1)*IASIZE);
   if (mask != 0) free(mask);
@@ -1254,7 +1287,8 @@ init_iface()
       perror("socket for init_iface");
       exit(EXIT_FAILURE);
     }
-#if	defined(__svr4__)
+// QNX seems to disagree about what it means to be SysV r4.
+#if	defined(__svr4__) && !defined(__QNXNTO__)
     {
       struct strioctl	ioc;
 
@@ -1309,7 +1343,7 @@ init_iface()
   if (addr != 0) free(addr);
   addr = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
   if (bcok != 0) free(bcok);
-  bcok = (unsigned char*)malloc((MAX_IFACE+1)*sizeof(char));
+  bcok = (unsigned char*)malloc((MAX_IFACE+1)*sizeof(unsigned char));
   if (bcst != 0) free(bcst);
   bcst = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
   if (mask != 0) free(mask);
@@ -1320,7 +1354,7 @@ init_iface()
     {
       ifreq = *(struct ifreq*)ifr_ptr;
 #if	defined(HAVE_SA_LEN)
-      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_addr) 
+      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_addr)
 	+ ROUND(ifreq.ifr_addr.sa_len, sizeof(struct ifreq*));
 #else
       ifr_ptr += sizeof(ifreq);
@@ -1542,7 +1576,7 @@ load_iface(const char* from)
   num_iface++;
   addr = (struct in_addr*)malloc((num_iface+1)*IASIZE);
   mask = (struct in_addr*)malloc((num_iface+1)*IASIZE);
-  bcok = (unsigned char*)malloc((num_iface+1)*sizeof(char));
+  bcok = (unsigned char*)malloc((num_iface+1)*sizeof(unsigned char));
   bcst = (struct in_addr*)malloc((num_iface+1)*IASIZE);
 
   addr[interfaces].s_addr = inet_addr("127.0.0.1");
@@ -1657,8 +1691,6 @@ load_iface(const char* from)
 static void
 init_my_port()
 {
-  struct servent	*sp;
-
   /*
    *	First we determine the port for the 'gdomap' service - ideally
    *	this should be the default port, since we should have registered
@@ -1667,6 +1699,8 @@ init_my_port()
 #if	defined(GDOMAP_PORT_OVERRIDE)
   my_port = htons(GDOMAP_PORT_OVERRIDE);
 #else
+  struct servent	*sp;
+
   my_port = htons(GDOMAP_PORT);
   if ((sp = getservbyname("gdomap", "tcp")) == 0)
     {
@@ -2066,7 +2100,7 @@ init_probe()
       int		broadcast = 0;
       int		elen = 0;
       struct in_addr	*other = 0;
-      struct in_addr	sin;
+      struct in_addr	sin = { 0 };
       int		high = 0;
       int		low = 0;
       unsigned long	net = 0;
@@ -2213,7 +2247,7 @@ init_probe()
 	}
       if (indirect)
 	{
-	  struct in_addr	*other;
+	  struct in_addr	*other = 0;
 	  int			elen;
 
 	  /*
@@ -2240,7 +2274,7 @@ init_probe()
 		  queue_probe(&p->addr, addr, len, other, 0);
 		}
 	    }
-	  if (elen > 0)
+	  if (0 != other)
 	    {
 	      free(other);
 	    }
@@ -2268,6 +2302,7 @@ handle_accept()
   socklen_t		len = sizeof(sa);
   int			desc;
 
+  memset(&sa, '\0', len);
   desc = accept(tcp_desc, (void*)&sa, &len);
   if (desc >= 0)
     {
@@ -2547,6 +2582,13 @@ handle_read(int desc)
   int	r;
 
   ri = getRInfo(desc, 0);
+  if (0 == ri)
+    {
+      snprintf(ebuf, sizeof(ebuf),
+	"request not found on descriptor %d", desc);
+      gdomap_log(LOG_DEBUG);
+      return;
+    }
   ptr = ri->buf.b;
 
   while (ri->pos < GDO_REQ_SIZE && done == 0)
@@ -2599,6 +2641,13 @@ handle_recv()
   int	r;
 
   ri = getRInfo(udp_desc, 0);
+  if (0 == ri)
+    {
+      snprintf(ebuf, sizeof(ebuf),
+	"request not found on descriptor %d", udp_desc);
+      gdomap_log(LOG_DEBUG);
+      return;
+    }
   addr = &(ri->addr);
   ptr = ri->buf.b;
 
@@ -2655,6 +2704,12 @@ handle_request(int desc)
   map_ent	*m;
 
   ri = getRInfo(desc, 0);
+  if (0 == ri)
+    {
+      snprintf(ebuf, sizeof(ebuf), "request not found on descriptor %d", desc);
+      gdomap_log(LOG_DEBUG);
+      return;
+    }
   type = ri->buf.r.rtype;
   size = ri->buf.r.nsize;
   ptype = ri->buf.r.ptype;
@@ -3034,8 +3089,8 @@ handle_request(int desc)
       unsigned int	j;
 
       free(wi->buf);
-      wi->buf = (char*)malloc(sizeof(unsigned long)
-	+ (prb_used+1)*IASIZE);
+      wi->buf = (char*)calloc(sizeof(unsigned long)
+	+ (prb_used+1)*IASIZE, 1);
       *(unsigned long*)wi->buf = htonl(prb_used+1);
       memcpy(&wi->buf[4], &ri->addr.sin_addr, IASIZE);
 
@@ -3154,7 +3209,7 @@ handle_request(int desc)
 	{
 	  struct in_addr	laddr;
 	  struct in_addr	raddr;
-	  struct in_addr	*other;
+	  struct in_addr	*other = 0;
 	  unsigned int		elen;
 	  void			*rbuf = ri->buf.r.name;
 	  void			*wbuf;
@@ -3162,8 +3217,8 @@ handle_request(int desc)
 	  gdo_req		*r;
 
 	  free(wi->buf);
-	  wi->buf = (char*)calloc(GDO_REQ_SIZE,1);
-	  r = (gdo_req*)wi->buf;
+	  r = (gdo_req*)calloc(GDO_REQ_SIZE, 1);
+	  wi->buf = (char*)r;
 	  wbuf = r->name;
 	  r->rtype = GDO_PREPLY;
 	  r->nsize = IASIZE*2;
@@ -3217,6 +3272,10 @@ handle_request(int desc)
 		  queue_probe(&raddr, &laddr, MAX_EXTRA, &other[elen], 1);
 		}
 	      queue_probe(&raddr, &laddr, elen, other, 1);
+	    }
+	  if (0 != other)
+	    {
+	      free(other);
 	    }
 	}
       else
@@ -3296,7 +3355,7 @@ handle_send()
     {
       int	r;
 
-      r = sendto(udp_desc, (const char *)&entry->dat[entry->pos], 
+      r = sendto(udp_desc, (const char *)&entry->dat[entry->pos],
       entry->len - entry->pos, 0, (void*)&entry->addr, sizeof(entry->addr));
       /*
        *	'r' is the number of bytes sent. This should be the number
@@ -3644,8 +3703,8 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
  *			On error - return non-zero with reason in 'errno'
  */
 static int
-tryHost(unsigned char op, unsigned char len, const unsigned char* name,
-int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
+tryHost(unsigned char op, unsigned char len, const unsigned char *name,
+int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
 {
   int desc = socket(AF_INET, SOCK_STREAM, 0);
   int	e = 0;
@@ -3747,7 +3806,10 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
       port = 0;
     }
   msg.port = htonl(port);
-  memcpy(msg.name, name, len);
+  if (name && len)
+    {
+      memcpy(msg.name, name, len);
+    }
 
   e = tryWrite(desc, 10, (uptr)&msg, GDO_REQ_SIZE);
   if (e != GDO_REQ_SIZE)
@@ -3802,7 +3864,10 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 #endif
 	  return 5;
 	}
-      *v = b;
+      if (0 != v)
+	{
+          *v = b;
+	}
     }
   /*
    *	Special case for GDO_NAMES - allocate buffer and read list.
@@ -3845,7 +3910,10 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	  gdomap_log(LOG_ERR);
 	  port = 0;
 	}
-      *v = b;
+      if (0 != v)
+	{
+	  *v = b;
+	}
     }
 
   *p = (unsigned short)port;
@@ -3905,16 +3973,14 @@ static int
 nameServer(const char* name, const char* host, int op, int ptype, struct sockaddr_in* addr, int pnum, int max)
 {
   struct sockaddr_in	sin;
-  struct servent*	sp;
   struct hostent*	hp;
-  unsigned short	p = htons(GDOMAP_PORT);
+  unsigned short	p;
   unsigned short	port = 0;
   int			len = strlen(name);
   int			multi = 0;
   int			found = 0;
   int			rval;
   char			*first_dot = 0;
-  char			*local_hostname = 0;
 
   if (len == 0)
     {
@@ -3932,6 +3998,8 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 #if	GDOMAP_PORT_OVERRIDE
   p = htons(GDOMAP_PORT_OVERRIDE);
 #else
+{
+  struct servent*	sp;
   /*
    *	Ensure we have port number to connect to name server.
    *	The TCP service name 'gdomap' overrides the default port.
@@ -3940,6 +4008,11 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
     {
       p = sp->s_port;		/* Network byte order.	*/
     }
+  else
+    {
+      p = htons(GDOMAP_PORT);
+    }
+}
 #endif
 
   /*
@@ -3955,14 +4028,6 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
    */
   if (multi || host == 0 || *host == '\0')
     {
-      local_hostname = xgethostname();
-      if (!local_hostname) 
-	{
-	  snprintf(ebuf, sizeof(ebuf),
-	    "gethostname() failed: %s", strerror(errno));
-	  gdomap_log(LOG_ERR);
-	  return -1;
-	}
       first_dot = strchr(local_hostname, '.');
       if (first_dot)
 	{
@@ -3998,7 +4063,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   if (multi)
     {
       unsigned short	num;
-      struct in_addr*	b;
+      struct in_addr	*b;
 
       /*
        * A host name of '*' is a special case which should do lookup on
@@ -4069,7 +4134,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 	    }
 	}
       rval = tryHost(op, len, (unsigned char*)name, ptype, &sin, &port, 0);
-      if (rval != 0 && host == local_hostname)
+      if (rval != 0)
 	{
 	  snprintf(ebuf, sizeof(ebuf),
 	    "failed to contact gdomap on %s(%s) - %s",
@@ -4098,7 +4163,6 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   memcpy(&addr->sin_addr, &sin.sin_addr, sizeof(sin.sin_addr));
   addr->sin_family = AF_INET;
   addr->sin_port = htons(port);
-  free(local_hostname);
   return 1;
 }
 
@@ -4127,18 +4191,18 @@ static void
 donames(const char *host)
 {
   struct sockaddr_in	sin;
-  struct servent*	sp;
   struct hostent*	hp;
-  unsigned short	p = htons(GDOMAP_PORT);
+  unsigned short	p;
   unsigned short	num = 0;
   int			rval;
   uptr			b;
   char			*first_dot = 0;
-  char			*local_hostname = NULL;
 
 #if	GDOMAP_PORT_OVERRIDE
   p = htons(GDOMAP_PORT_OVERRIDE);
 #else
+{
+  struct servent*	sp;
   /*
    *	Ensure we have port number to connect to name server.
    *	The TCP service name 'gdomap' overrides the default port.
@@ -4147,6 +4211,11 @@ donames(const char *host)
     {
       p = sp->s_port;		/* Network byte order.	*/
     }
+  else
+    {
+      p = htons(GDOMAP_PORT);
+    }
+}
 #endif
 
   if (host == 0 || *host == '\0')
@@ -4154,15 +4223,6 @@ donames(const char *host)
       /*
        * If no host name is given, we use the name of the local host.
        */
-
-      local_hostname = xgethostname();
-      if (!local_hostname) 
-	{
-	  snprintf(ebuf, sizeof(ebuf),
-	    "gethostname() failed: %s", strerror(errno));
-	  gdomap_log(LOG_ERR);
-	  return;
-	}
       first_dot = strchr(local_hostname, '.');
       if (first_dot)
 	{
@@ -4226,7 +4286,6 @@ donames(const char *host)
 	}
     }
   free(b);
-  free(local_hostname);
 }
 
 static void
@@ -4291,7 +4350,7 @@ static void do_help(int argc, char **argv, char *options)
 	}
       if (i == argc)
 	{
-	  return;	// --help not found ... 
+	  return;	// --help not found ...
 	}
     }
   printf("%s -[%s]\n", argv[0], options);
@@ -4428,7 +4487,7 @@ main(int argc, char** argv)
 #if	defined(SYSLOG_4_2)
   openlog ("gdomap", LOG_NDELAY);
   log_priority = LOG_DAEMON;
-#else
+#elif !defined(HAVE_SLOGF)
   openlog ("gdomap", LOG_NDELAY, LOG_DAEMON);
 #endif
 #endif
@@ -4440,6 +4499,15 @@ main(int argc, char** argv)
   wVersionRequested = MAKEWORD(2, 2);
   WSAStartup(wVersionRequested, &wsaData);
 #endif
+
+  local_hostname = xgethostname();
+  if (!local_hostname)
+    {
+      snprintf(ebuf, sizeof(ebuf),
+	"gethostname() failed: %s", strerror(errno));
+      gdomap_log(LOG_CRIT);
+      exit(EXIT_FAILURE);
+    }
 
   /*
    *	Would use inet_aton(), but older systems don't have it.
@@ -5082,7 +5150,7 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
 }
 
 /* Copyright (c) 2001 Neal H Walfield <neal@cs.uml.edu>.
-   
+
    This file is placed into the public domain.  Its distribution
    is unlimited.
 
@@ -5165,7 +5233,7 @@ xgethostname (void)
 	  errno = ENOMEM;
 	  return NULL;
 	}
-      
+
       err = gethostname (buf, size);
     }
 

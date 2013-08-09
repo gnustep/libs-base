@@ -358,9 +358,8 @@ class_copyProtocolList(Class cls, unsigned int *outCount)
 id
 class_createInstance(Class cls, size_t extraBytes)
 {
-  id obj = malloc(cls->instance_size + extraBytes);
-  obj->isa = cls;
-  return obj;
+  extern id NSAllocateObject(Class, uintptr_t, void*);
+  return NSAllocateObject(cls, extraBytes, 0);
 }
 
 Method
@@ -575,16 +574,22 @@ IMP
 class_replaceMethod(Class cls, SEL name, IMP imp, const char *types)
 {
   Method method = class_getInstanceMethodNonrecursive(cls, name);
-  IMP old;
 
   if (method == NULL)
     {
       class_addMethod(cls, name, imp, types);
       return NULL;
     }
-  old = (IMP) method->method_imp;
-  method->method_imp = (objc_imp_gnu) imp;
-  return old;
+  else
+    {
+      IMP old = (IMP) method->method_imp;
+      method->method_imp = (objc_imp_gnu) imp;
+      if (CLS_ISRESOLV(cls))
+        {
+          __objc_update_dispatch_table_for_class(cls);
+        }
+      return old;
+    }
 }
 
 

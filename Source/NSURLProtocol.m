@@ -33,6 +33,7 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
+#import "GSTLS.h"
 #import "GSURLPrivate.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
@@ -282,6 +283,8 @@ static NSLock		*pairLock = nil;
 @interface _NSHTTPSURLProtocol : _NSHTTPURLProtocol
 @end
 
+@interface _NSDataURLProtocol : NSURLProtocol
+@end
 
 
 // Internal data storage
@@ -370,6 +373,7 @@ static NSURLProtocol	*placeholder = nil;
       [self registerClass: [_NSFTPURLProtocol class]];
       [self registerClass: [_NSFileURLProtocol class]];
       [self registerClass: [_NSAboutURLProtocol class]];
+      [self registerClass: [_NSDataURLProtocol class]];
     }
 }
 
@@ -780,10 +784,39 @@ static NSURLProtocol	*placeholder = nil;
 #endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
+          static NSArray        *keys;
+          NSUInteger            count;
+
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
                             forKey: NSStreamSocketSecurityLevelKey];
           [this->output setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
                              forKey: NSStreamSocketSecurityLevelKey];
+          if (nil == keys)
+            {
+              keys = [[NSArray alloc] initWithObjects:
+                GSTLSCAFile,
+                GSTLSCertificateFile,
+                GSTLSCertificateKeyFile,
+                GSTLSCertificateKeyPassword,
+                GSTLSDebug,
+                GSTLSPriority,
+                GSTLSRemoteHosts,
+                GSTLSRevokeFile,
+                GSTLSVerify,
+                nil];
+            }
+          count = [keys count];
+          while (count-- > 0)
+            {
+              NSString      *key = [keys objectAtIndex: count];
+              NSString      *str = [this->request _propertyForKey: key];
+
+              if (nil != str)
+                {
+                  [this->output setProperty: str forKey: key];
+                }
+            }
+          if (_debug) [this->output setProperty: @"YES" forKey: GSTLSDebug];
         }
       [this->input setDelegate: self];
       [this->output setDelegate: self];
@@ -884,7 +917,6 @@ static NSURLProtocol	*placeholder = nil;
       if (YES == wasInHeaders && NO == isInHeaders)
         {
 	  GSMimeHeader		*info;
-	  NSString		*enc;
 	  int			len = -1;
 	  NSString		*ct;
 	  NSString		*st;
@@ -917,11 +949,15 @@ static NSURLProtocol	*placeholder = nil;
 	    }
 
 	  s = [info objectForKey: NSHTTPPropertyStatusReasonKey];
+
+/* Should use this?
+	  NSString		*enc;
 	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
 	  if (enc == nil)
 	    {
 	      enc = [[document headerNamed: @"transfer-encoding"] value];
 	    }
+*/
 
 	  info = [document headerNamed: @"content-type"];
 	  ct = [document contentType];
@@ -1787,6 +1823,93 @@ static NSURLProtocol	*placeholder = nil;
   [this->client URLProtocol: self
     didReceiveResponse: r
     cacheStoragePolicy: NSURLRequestUseProtocolCachePolicy];
+  [this->client URLProtocol: self didLoadData: data];
+  [this->client URLProtocolDidFinishLoading: self];
+  RELEASE(r);
+}
+
+- (void) stopLoading
+{
+  return;
+}
+
+@end
+
+@implementation _NSDataURLProtocol
+
++ (BOOL) canInitWithRequest: (NSURLRequest*)request
+{
+  return [[[request URL] scheme] isEqualToString: @"data"];
+}
+
++ (NSURLRequest*) canonicalRequestForRequest: (NSURLRequest*)request
+{
+  return request;
+}
+
+- (void) startLoading
+{
+  NSURLResponse *r;
+  NSString      *mime = @"text/plain";
+  NSString      *encoding = @"US-ASCII";
+  NSData        *data;
+  NSString      *spec = [[this->request URL] resourceSpecifier];
+  NSRange       comma = [spec rangeOfString:@","];
+  NSEnumerator  *types;
+  NSString      *type;
+  BOOL          base64 = NO;
+
+  if (comma.location == NSNotFound)
+    {
+      NSDictionary      *ui;
+      NSError           *error;
+
+      ui = [NSDictionary dictionaryWithObjectsAndKeys:
+        [this->request URL], @"URL",
+        [[this->request URL] path], @"path",
+        nil];
+      error = [NSError errorWithDomain: @"can't load data"
+                                  code: 0
+                              userInfo: ui];
+      [this->client URLProtocol: self didFailWithError: error];
+      return;
+    }
+  types = [[[spec substringToIndex: comma.location]
+    componentsSeparatedByString: @";"] objectEnumerator];
+  while (nil != (type = [types nextObject]))
+    {
+      if ([type isEqualToString: @"base64"])
+	{
+	  base64 = YES;
+	}
+      else if ([type hasPrefix: @"charset="])
+	{
+	  encoding = [type substringFromIndex: 8];
+	}
+      else if ([type length] > 0)
+	{
+	  mime = type;
+	}
+    }
+  spec = [spec substringFromIndex: comma.location + 1];
+  if (YES == base64)
+    {
+      data = [GSMimeDocument decodeBase64:
+        [spec dataUsingEncoding: NSUTF8StringEncoding]];
+    }
+  else
+    {
+      data = [[spec stringByReplacingPercentEscapesUsingEncoding:
+        NSUTF8StringEncoding] dataUsingEncoding: NSUTF8StringEncoding];
+    }
+  r = [[NSURLResponse alloc] initWithURL: [this->request URL]
+    MIMEType: mime
+    expectedContentLength: [data length]
+    textEncodingName: encoding];
+
+  [this->client URLProtocol: self
+         didReceiveResponse: r 
+	 cacheStoragePolicy: NSURLRequestUseProtocolCachePolicy];
   [this->client URLProtocol: self didLoadData: data];
   [this->client URLProtocolDidFinishLoading: self];
   RELEASE(r);

@@ -3,24 +3,24 @@
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
    Date: Oct, October 2006
-   
+
    This file is part of GNUstep.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
-*/ 
+*/
 
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
 #define __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
@@ -43,30 +43,32 @@
 #  define	NO_GNUSTEP	1
 #endif
 
-/*
- * For MacOS-X compatibility, we define the MacOS-X version constants and
- * we allow MAC_OS_X_VERSION_MIN_ALLOWED or MAC_OS_X_VERSION_MAX_ALLOWED
- * instead of GS_OPENSTEP_V
+/* Define the GS_OSX_ADJUST() macro to adjust OSX style version macros
+ * to GNUstep style version macros.
  */
+#define	GS_OSX_ADJUST(V) ((V) >= 10000 ? (V) : ((V)/100*10000 + (V)%100*10))
 
-#ifndef	MAC_OS_X_VERSION_10_0
-#define	MAC_OS_X_VERSION_10_0	100000
-#define	MAC_OS_X_VERSION_10_1	100100
-#define	MAC_OS_X_VERSION_10_2	100200
-#define	MAC_OS_X_VERSION_10_3	100300
-#define	MAC_OS_X_VERSION_10_4	100400
-#define	MAC_OS_X_VERSION_10_5	100500
-#define	MAC_OS_X_VERSION_10_6	100600
+/* Define OSX compatibility version macros if necessary.
+ */
+#if     !defined(MAC_OS_X_VERSION_10_0)
+#define	MAC_OS_X_VERSION_10_0	1000
+#define	MAC_OS_X_VERSION_10_1	1010
+#define	MAC_OS_X_VERSION_10_2	1020
+#define	MAC_OS_X_VERSION_10_3	1030
+#define	MAC_OS_X_VERSION_10_4	1040
+#define	MAC_OS_X_VERSION_10_5	1050
+#define	MAC_OS_X_VERSION_10_6	1060
+#define	MAC_OS_X_VERSION_10_7	1070
+#define	MAC_OS_X_VERSION_10_8	1080
 #endif	/* MAC_OS_X_VERSION_10_0 */
 
+/* Allow MAC_OS_X_VERSION_MAX_ALLOWED to be used in place of GS_OPENSTEP_V
+ * if GS_OPENSTEP_V is not defined.
+ */
 #ifndef	GS_OPENSTEP_V
-#ifdef	MAC_OS_X_VERSION_MIN_ALLOWED
-#define	GS_OPENSTEP_V	MAC_OS_X_VERSION_MIN_ALLOWED
-#else
 #ifdef	MAC_OS_X_VERSION_MAX_ALLOWED
-#define	GS_OPENSTEP_V	MAC_OS_X_VERSION_MAX_ALLOWED
+#define	GS_OPENSTEP_V	GS_OSX_ADJUST(MAC_OS_X_VERSION_MAX_ALLOWED)
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED */
-#endif	/* MAC_OS_X_VERSION_MIN_ALLOWED */
 #endif	/* GS_OPENSTEP_V */
 
 /*
@@ -91,12 +93,9 @@
  * two digits are the major version number, the second two are the minor
  * version number and the last two are the subminor number (all left padded
  * with a zero where necessary).  However, for convenience you can also
- * use any of several predefined constants ... 
+ * use the predefined constants ...
  * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
  * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
- * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
- * <ref type="macro" id="GS_API_OPENSTEP">GS_API_OPENSTEP</ref>,
- * <ref type="macro" id="GS_API_MACOSX">GS_API_MACOSX</ref>
  * </p>
  * <p>Also see <ref type="macro" id="OS_API_VERSION">OS_API_VERSION</ref>
  * </p>
@@ -124,7 +123,7 @@
  * two digits are the major version number, the second two are the minor
  * version number and the last two are the subminor number (all left padded
  * with a zero where necessary).  However, for convenience you can also
- * use any of several predefined constants ... 
+ * use any of several predefined constants ...
  * <ref type="macro" id="GS_API_NONE">GS_API_NONE</ref>,
  * <ref type="macro" id="GS_API_LATEST">GS_API_LATEST</ref>,
  * <ref type="macro" id="GS_API_OSSPEC">GS_API_OSSPEC</ref>,
@@ -133,9 +132,26 @@
  * </p>
  * <p>Also see <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
  * </p>
+ * <p>For OSX compatibility, this macro also supports the use of Apple's
+ * symbolic constants for version numbering.  Their contants are currently
+ * four digit values (two digits for the major version, one for the minor,
+ * and one for the subminor). 
+ * </p>
+ * <p>The Apple compatibility version macros are currently:
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_0">MAC_OS_X_VERSION_10_0</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_1">MAC_OS_X_VERSION_10_1</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_2">MAC_OS_X_VERSION_10_2</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_3">MAC_OS_X_VERSION_10_3</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_4">MAC_OS_X_VERSION_10_4</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_5">MAC_OS_X_VERSION_10_5</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_6">MAC_OS_X_VERSION_10_6</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_7">MAC_OS_X_VERSION_10_7</ref>,
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_8">MAC_OS_X_VERSION_10_8</ref>
+ * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
-  (!defined(GS_OPENSTEP_V) || (GS_OPENSTEP_V >= ADD && GS_OPENSTEP_V < REM))
+  (!defined(GS_OPENSTEP_V) \
+  || (GS_OPENSTEP_V>=GS_OSX_ADJUST(ADD) && GS_OPENSTEP_V<GS_OSX_ADJUST(REM)))
 
 /**
  * A constant which is the lowest possible version number (0) so that
@@ -186,12 +202,49 @@
  */
 #define	GS_API_MACOSX	100000
 
+/* Allow OSX code comparing MAC_OS_X_VERSION_MAX_ALLOWED with a specific
+ * version to see if that version is allowed, to always have it allowed
+ * on GNUstep.
+ */
+#ifndef	MAC_OS_X_VERSION_MAX_ALLOWED
+#define	MAC_OS_X_VERSION_MAX_ALLOWED    GS_API_LATEST
+#endif  /* MAC_OS_X_VERSION_MAX_ALLOWED */
+
 
 #if	defined(GNUSTEP_BASE_INTERNAL)
 #import "GNUstepBase/GSConfig.h"
 #else
 #import <GNUstepBase/GSConfig.h>
 #endif
+
+
+/* Attribute definitions for attributes which may or may not be supported
+ * depending on the compiler being used.
+ * NB we currently expect gcc to be version 4 or later.
+ *
+ * The definition should be of the form GS_XXX_CONTEXT where XXX is the
+ * name of the attribute and CONTEXT is one of FUNC, METH, or IVAR
+ * depending on where the attribute can be applied.
+ */
+
+#if __GNUC__*10+__GNUC_MINOR__ >= 31
+#  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
+#else
+#  define GS_DEPRECATED_FUNC
+#endif
+
+#define GS_UNUSED_ARG __attribute__((unused))
+
+#define GS_UNUSED_FUNC __attribute__((unused))
+
+// FIXME ... what version of gcc?
+#if __clang__
+#  define GS_UNUSED_IVAR __attribute__((unused))
+#else
+#  define GS_UNUSED_IVAR 
+#endif
+
+
 
 #ifndef __has_feature
 #define __has_feature(x) 0
@@ -216,7 +269,7 @@
 #  if (__has_feature(objc_nonfragile_abi))
 #    if	!GS_NONFRAGILE
 #      if	defined(GNUSTEP_BASE_INTERNAL)
-//#        error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
+#        error "You are building gnustep-base using the objc-nonfragile-abi but your gnustep-base was not configured to use it."
 #      endif
 #    endif
 #  else
@@ -269,8 +322,8 @@
 #endif
 
 #if defined(__clang__) && defined(__OBJC__)
-static inline void gs_consumed(id NS_CONSUMED o) __attribute__ ((unused));
-static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { return; }
+static inline void gs_consumed(id NS_CONSUMED o) GS_UNUSED_FUNC;
+static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #define	GS_CONSUMED(O)	gs_consumed(O);
 #else
 #define	GS_CONSUMED(O)
@@ -284,16 +337,31 @@ static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { retur
  */
 #if __has_feature(blocks)
 #  if	OBJC2RUNTIME
-#    include <objc/blocks_runtime.h>
+#    if defined(_APPLE_)
+#      include <Block.h>
+#    else
+#      include <objc/blocks_runtime.h>
+#    endif
 #  else
 #    include <ObjectiveC2/blocks_runtime.h>
+#  endif
+#endif
+
+/* Attribute definition for root classes, annotates the interface declaration
+ * of the class.
+ */
+#ifndef GS_ROOT_CLASS
+#  if GS_HAVE_OBJC_ROOT_CLASS_ATTR || __has_feature(attribute_objc_root_class)
+#    define GS_ROOT_CLASS __attribute__((objc_root_class))
+#  else
+#    define GS_ROOT_CLASS
 #  endif
 #endif
 
 
 
 #if	defined(GNUSTEP_WITH_DLL)
- 
+
 #if BUILD_libgnustep_base_DLL
 #
 # if defined(__MINGW__)
@@ -301,7 +369,7 @@ static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { retur
    * __declspec(dllexport) is not needed.
    */
 #  define GS_EXPORT  extern
-#  define GS_DECLARE 
+#  define GS_DECLARE
 # else
 #  define GS_EXPORT  __declspec(dllexport)
 #  define GS_DECLARE __declspec(dllexport)
@@ -310,32 +378,32 @@ static inline void gs_consumed(id NS_CONSUMED __attribute__ ((unused))o) { retur
 #  define GS_EXPORT  extern __declspec(dllimport)
 #  define GS_DECLARE __declspec(dllimport)
 #endif
- 
+
 #else /* GNUSTEP_WITH[OUT]_DLL */
 
 #  define GS_EXPORT extern
-#  define GS_DECLARE 
+#  define GS_DECLARE
 
 #endif
 
-/* Attribute definitions for attributes which may or may not be supported
- * depending on the compiler being used.
- * The definition should be of the form GS_XXX_CONTEXT where XXX is the
- * name of the attribute and CONTEXT is one of FUNC, METH, or IVAR
- * depending on where the attribute can be applied.
+
+/* Attribute macros compatible with Apple.
  */
 
-#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
-#  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
+#if __GNUC__*10+__GNUC_MINOR__ >= 42
+#  define NS_FORMAT_ARGUMENT(A) __attribute__((format_arg(A)))
 #else
-#  define GS_DEPRECATED_FUNC
+#  define NS_FORMAT_ARGUMENT(F,A) 
 #endif
 
-#ifdef __clang__
-#  define GS_UNUSED_IVAR __attribute__((unused))
+// FIXME ... what version of gcc?
+#if __clang__
+#  define NS_FORMAT_FUNCTION(F,A) __attribute__((format(__NSString__, F, A)))
 #else
-#  define GS_UNUSED_IVAR
+#  define NS_FORMAT_FUNCTION(F,A) 
 #endif
+
+#define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
 
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */

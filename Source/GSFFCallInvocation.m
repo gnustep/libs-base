@@ -918,7 +918,8 @@ GSInvocationCallback (void *callback_data, va_alist args)
       const char	*receiverTypes = [sig methodType];
       const char	*runtimeTypes = sel_get_type (selector);
 
-      if (runtimeTypes == 0 || strcmp(receiverTypes, runtimeTypes) != 0)
+      if (runtimeTypes == 0
+        || NO == GSSelectorTypesMatch(receiverTypes, runtimeTypes))
 	{
 	  const char	*runtimeName = sel_getName(selector);
 

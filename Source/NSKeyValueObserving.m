@@ -44,6 +44,10 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSInvocation.h"
 
+#if defined(USE_LIBFFI)
+#import "cifframe.h"
+#endif
+
 /*
  * IMPLEMENTATION NOTES
  *
@@ -311,21 +315,31 @@ setup()
 static NSString *newKey(SEL _cmd)
 {
   const char	*name = sel_getName(_cmd);
-  unsigned	len = strlen(name);
+  unsigned	len;
   NSString	*key;
   unsigned	i;
-  NSCAssert(len > 0, @"Invalid selector name!");
 
+  if (0 == _cmd || 0 == (name = sel_getName(_cmd)))
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Missing selector name"];
+    }
+  len = strlen(name);
   if (*name == '_')
     {
       name++;
       len--;
     }
+  if (len < 5 || name[len-1] != ':' || strncmp(name, "set", 3) != 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Invalid selector name"];
+    }
   name += 3;			// Step past 'set'
   len -= 4;			// allow for 'set' and trailing ':'
   for (i = 0; i < len; i++)
     {
-      if (name[i] < 0)
+      if (name[i] & 0x80)
 	{
 	  break;
 	}
@@ -384,6 +398,38 @@ replacementForClass(Class c)
   [kvoLock unlock];
   return r;
 }
+
+#if defined(USE_LIBFFI)
+static void
+cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
+{
+  id            obj;
+  SEL           sel;
+  NSString	*key;
+  Class		c;
+  void		(*imp)(id,SEL,void*);
+
+  obj = *(id *)args[0];
+  sel = *(SEL *)args[1];
+  c = [obj class];
+
+  imp = (void (*)(id,SEL,void*))[c instanceMethodForSelector: sel];
+  key = newKey(sel);
+  if ([c automaticallyNotifiesObserversForKey: key] == YES)
+    {
+      // pre setting code here
+      [obj willChangeValueForKey: key];
+      ffi_call(cif, (void*)imp, retp, args);
+      // post setting code here
+      [obj didChangeValueForKey: key];
+    }
+  else
+    {
+      ffi_call(cif, (void*)imp, retp, args);
+    }
+  RELEASE(key);
+}
+#endif
 
 @implementation	GSKVOReplacement
 - (void) dealloc
@@ -535,29 +581,37 @@ replacementForClass(Class c)
                   instanceMethodForSelector: @selector(setter:)];
                 break;
               case _C_STRUCT_B:
-                if (strcmp(@encode(NSRange), type) == 0)
+                if (GSSelectorTypesMatch(@encode(NSRange), type))
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterRange:)];
                   }
-                else if (strcmp(@encode(NSPoint), type) == 0)
+                else if (GSSelectorTypesMatch(@encode(NSPoint), type))
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterPoint:)];
                   }
-                else if (strcmp(@encode(NSSize), type) == 0)
+                else if (GSSelectorTypesMatch(@encode(NSSize), type))
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterSize:)];
                   }
-                else if (strcmp(@encode(NSRect), type) == 0)
+                else if (GSSelectorTypesMatch(@encode(NSRect), type))
                   {
                     imp = [[GSKVOSetter class]
                       instanceMethodForSelector: @selector(setterRect:)];
                   }
                 else
                   {
+#if defined(USE_LIBFFI)
+                    GSCodeBuffer    *b;
+
+                    b = cifframe_closure(sig, cifframe_callback);
+                    [b retain];
+                    imp = [b executable];
+#else
                     imp = 0;
+#endif
                   }
                 break;
               default:
@@ -1831,9 +1885,12 @@ replacementForClass(Class c)
     {
       if (pathInfo->recursion++ == 0)
         {
-          NSMutableSet      *set;
+          id    set = objects;
 
-          set = [self valueForKey: aKey];
+          if (nil == set)
+            {
+              set = [self valueForKey: aKey];
+            }
           [pathInfo->change setValue: [set mutableCopy] forKey: @"oldSet"];
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
         }
@@ -1862,10 +1919,13 @@ replacementForClass(Class c)
       if (pathInfo->recursion == 1)
         {
           NSMutableSet  *oldSet;
-          NSMutableSet  *set;
+          id            set = objects;
 
           oldSet = [pathInfo->change valueForKey: @"oldSet"];
-          set = [self valueForKey: aKey];
+          if (nil == set)
+            {
+              set = [self valueForKey: aKey];
+            }
           [pathInfo->change removeObjectForKey: @"oldSet"];
 
           if (mutationKind == NSKeyValueUnionSetMutation)

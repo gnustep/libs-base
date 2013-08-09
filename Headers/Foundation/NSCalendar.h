@@ -56,7 +56,12 @@ enum
   NSWeekdayCalendarUnit = (1UL << 9),
   NSWeekdayOrdinalCalendarUnit = (1UL << 10),
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-  NSQuarterCalendarUnit = (1UL << 11)
+  NSQuarterCalendarUnit = (1UL << 11),
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+  NSWeekOfMonthCalendarUnit = (1UL << 12),
+  NSWeekOfYearCalendarUnit = (1UL << 13),
+  NSYearForWeekOfYearCalendarUnit = (1UL << 14),
 #endif
 };
 
@@ -74,23 +79,22 @@ enum
 
 @interface NSDateComponents : NSObject <NSCopying>
 {
-  NSInteger _era;
-  NSInteger _year;
-  NSInteger _month;
-  NSInteger _day;
-  NSInteger _hour;
-  NSInteger _minute;
-  NSInteger _second;
-  NSInteger _week;
-  NSInteger _weekday;
-  NSInteger _weekdayOrdinal;
-  NSInteger _quarter;
-// FIXME: In reality these are only available on iOS > 4.  Will probably show
-// up in OS X 10.7.
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-  NSCalendar *_cal;
-  NSTimeZone *_tz;
-#endif
+@private
+  void  *_NSDateComponentsInternal;
+/* FIXME ... remove dummy fields at next binary incompatible release
+ */
+  void  *_dummy1;
+  void  *_dummy2;
+  void  *_dummy3;
+  void  *_dummy4;
+  void  *_dummy5;
+  void  *_dummy6;
+  void  *_dummy7;
+  void  *_dummy8;
+  void  *_dummy9;
+  void  *_dummy10;
+  void  *_dummy11;
+  void  *_dummy12;
 }
 
 - (NSInteger) day;
@@ -120,12 +124,53 @@ enum
 - (void) setQuarter: (NSInteger) v;
 #endif
 
-// FIXME: In reality these are only available on iOS > 4.
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 - (NSCalendar *) calendar;
 - (NSTimeZone *) timeZone;
 - (void) setCalendar: (NSCalendar *) cal;
 - (void) setTimeZone: (NSTimeZone *) tz;
+
+/**
+ * <p>
+ * Computes a date by using the components set in this NSDateComponents
+ * instance.
+ * </p>
+ * <p>
+ * A calendar (and optionally a time zone) must be set prior to
+ * calling this method.
+ * </p>
+ */
+- (NSDate *) date;
+
+/** Returns the number of the week in this month. */
+- (NSInteger) weekOfMonth;
+/**
+ * Returns the number of the week in this year.
+ * Identical to calling <code>week</code>. */
+- (NSInteger) weekOfYear;
+/**
+ * The year corresponding to the current week.
+ * This value may differ from year around the end of the year.
+ * 
+ * For example, for 2012-12-31, the year number is 2012, but
+ * yearForWeekOfYear is 2013, since it's already week 1 in 2013.
+ */
+- (NSInteger) yearForWeekOfYear;
+
+/** Sets the number of the week in this month. */
+- (void) setWeekOfMonth: (NSInteger) v;
+
+/**
+ * Sets the number of the week in this year.
+ * Identical to calling <code>-setWeek</code>. */
+- (void) setWeekOfYear: (NSInteger) v;
+
+/**
+ * Sets the year number for the current week.
+ * See the explanation at <code>-yearForWeekOfYear</code>.
+ */
+- (void) setYearForWeekOfYear: (NSInteger) v;
+
 #endif
 @end
 
@@ -133,10 +178,13 @@ enum
 
 @interface NSCalendar : NSObject <NSCoding, NSCopying>
 {
-  NSString   *_identifier;
-  NSString   *_localeId;
-  NSTimeZone *_tz;
-  void       *_cal;
+@private
+  void  *_NSCalendarInternal;
+/* FIXME ... remove dummy fields at next binary incompatible release
+ */
+  void  *_dummy1;
+  void  *_dummy2;
+  void  *_dummy3;
 }
 
 + (id) currentCalendar;

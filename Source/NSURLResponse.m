@@ -250,7 +250,7 @@ typedef struct {
 - (id) initWithURL: (NSURL*)URL
 	statusCode: (NSInteger)statusCode
        HTTPVersion: (NSString*)HTTPVersion
-      headerFields: (NSDictionary*)headerFields;
+      headerFields: (NSDictionary*)headerFields
 {
   self = [self initWithURL: URL
 		  MIMEType: nil
@@ -342,7 +342,7 @@ typedef struct {
 + (NSString *) localizedStringForStatusCode: (NSInteger)statusCode
 {
 // FIXME ... put real responses in here
-  return [NSString stringWithFormat: @"%d", statusCode];
+  return [NSString stringWithFormat: @"%"PRIdPTR, statusCode];
 }
 
 - (NSDictionary *) allHeaderFields

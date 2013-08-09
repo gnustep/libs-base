@@ -136,14 +136,14 @@ static	NSIndexPath	*dummy = nil;
   NSMutableString	*m = [[super description] mutableCopy];
   NSUInteger		i;
 
-  [m appendFormat: @"%u indexes [", _length];
+  [m appendFormat: @"%"PRIuPTR" indexes [", _length];
   for (i = 0; i < _length; i++)
     {
       if (i > 0)
 	{
 	  [m appendString: @", "];
 	}
-      [m appendFormat: @"%u", _indexes[i]];
+      [m appendFormat: @"%"PRIuPTR, _indexes[i]];
     }
   [m appendString: @"]"];
   return AUTORELEASE(m);
@@ -297,7 +297,7 @@ static	NSIndexPath	*dummy = nil;
                   NSZoneFree(NSDefaultMallocZone(), dst);
                 }
               [NSException raise: NSGenericException format:
-                @"Unable to decode unsigned integers of size %u", s];
+                @"Unable to decode unsigned integers of size %"PRIuPTR, s];
             }
           self = [self initWithIndexes: dst length: length];
           if ((void*)dst != src)
@@ -443,7 +443,6 @@ static	NSIndexPath	*dummy = nil;
       if (NSDecrementExtraRefCountWasZero(self))
 	{
 	  [self dealloc];
-	  self = nil;
 	}
       [lock unlock];
     }

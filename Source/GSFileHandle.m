@@ -66,16 +66,18 @@
 
 #include <sys/ioctl.h>
 #ifdef	__svr4__
-#include <sys/filio.h>
+#  ifdef HAVE_SYS_FILIO_H
+#    include <sys/filio.h>
+#  endif
 #endif
 #include <netdb.h>
-
-#include <string.h>
 
 /*
  *	Stuff for setting the sockets into non-blocking mode.
  */
-#ifdef	__POSIX_SOURCE
+#if defined(__POSIX_SOURCE)\
+        || defined(__EXT_POSIX1_198808)\
+        || defined(O_NONBLOCK)
 #define NBLK_OPT     O_NONBLOCK
 #else
 #define NBLK_OPT     FNDELAY
@@ -773,7 +775,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      return nil;
 	    }
 	}
-	
+
       info = [[NSMutableDictionary alloc] initWithCapacity: 4];
       [info setObject: address forKey: NSFileHandleNotificationDataItem];
       if (shost == nil)

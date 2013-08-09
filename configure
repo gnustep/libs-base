@@ -694,6 +694,7 @@ OBJC2RUNTIME
 OBJCSYNC
 NX_CONST_STRING_CLASS
 NX_CONST_STRING_OBJCFLAGS
+GS_HAVE_OBJC_ROOT_CLASS_ATTR
 GS_ALIGNOF_COND_T
 GS_ALIGNOF_MUTEX_T
 GS_SIZEOF_COND_T
@@ -797,6 +798,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_cross_compilation_info
 with_config_file
 enable_environment_config_file
 enable_importing_config_file
@@ -830,9 +832,12 @@ enable_tlstest
 enable_zeroconf
 with_zeroconf_api
 enable_icu
+enable_icu_config
+with_icu_library
 enable_libdispatch
 with_gmp_include
 with_gmp_library
+with_sort_algorithm
 with_gdomap_port
 enable_setuid_gdomap
 enable_openssl
@@ -1523,6 +1528,8 @@ Optional Features:
   --disable-tlstest		Do not try to compile and run a test TLS program
   --disable-zeroconf		Disable NSNetServices support
   --disable-icu			Disable International Components for Unicode
+  --disable-icu-config		Do not use the icu-config script to check
+				for ICU.
   --disable-libdispatch		Disable dispatching blocks via libdispatch
 
   --enable-setuid-gdomap        Enable installing gdomap as a setuid
@@ -1539,6 +1546,12 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-cross-compilation-info=PATH
+				Specify path to the configuration file that
+				contains information for the configure script in
+				case of cross compilation. This information
+				replaces those obtained from running programmes
+				during the configuration phase.
   --with-config-file=PATH       Specify path to the GNUstep config file.
 				This is the location to be used by the base
 				library to locate path information at
@@ -1589,8 +1602,13 @@ Optional Packages:
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
+  --with-icu-library=PATH  	library path for ICU libraries (only checked
+				if not using icu-config)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
+  --with-sort-algorithm=ALG  force use of a specific sorting algorithm.
+				Possible values are timsort, quicksort, and shellsort.
+				Defaults to shellsort (others broken).
   --with-gdomap-port=PORT  alternative port for gdomap
   --with-openssl-include=PATH  include path for openssl headers
   --with-openssl-library=PATH  library path for openssl libraries
@@ -2255,6 +2273,37 @@ test -n "$target_alias" &&
   test "$program_prefix$program_suffix$program_transform_name" = \
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
+
+#--------------------------------------------------------------------
+# Setup cross-compilation-information
+#--------------------------------------------------------------------
+
+
+# Check whether --with-cross-compilation-info was given.
+if test "${with_cross_compilation_info+set}" = set; then
+  withval=$with_cross_compilation_info; cross_result="$withval"
+else
+  cross_result="no"
+
+fi
+
+CROSS_CONFIG="./cross.config"
+if test "$cross_result" != "no"
+then
+ if test -f "$cross_result" && test -r "$cross_result"
+  then
+    CROSS_CONFIG="$cross_result"
+  else
+    { { $as_echo "$as_me:$LINENO: error: \"Could not load cross-compilation variables from $cross_result\"" >&5
+$as_echo "$as_me: error: \"Could not load cross-compilation variables from $cross_result\"" >&2;}
+   { (exit 1); exit 1; }; }
+  fi
+fi
+
+# import information from the cross-config.
+. "$CROSS_CONFIG"
+
+
 
 #---------------------------------------------------------------------
 # Location of the GNUstep.conf config file (--with-config-file)
@@ -3336,15 +3385,24 @@ fi
 
 #
 # Add standard library and header directories for configure to use to locate
-# plain C developer headers/libraries which haver been installed in the
-# GNUstep hierarchy.
+# plain C developer headers/libraries which have been installed in the
+# GNUstep hierarchy. These take precedence
 #
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_LOCAL_HEADERS"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_LOCAL_LIBRARIES"
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_SYSTEM_HEADERS"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_SYSTEM_LIBRARIES"
 
 #--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
+if test "$CC" = ""; then
+  CC=`gnustep-config --variable=CC`
+fi
+if test "$CPP" = ""; then
+  CPP=`gnustep-config --variable=CPP`
+fi
+if test "$CXX" = ""; then
+  CXX=`gnustep-config --variable=CXX`
+fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -5167,7 +5225,7 @@ $as_echo_n "checking whether compiler supports UTF-8 constants in executable... 
   # We are working in a latin1 locale so we can build a program containing
   # a latin1 pound character, and see if the executable has a utf-8 literal.
   if test "$cross_compiling" = yes; then
-  utf8literal_ok=no
+  utf8literal_ok="$cross_utf8literal_ok"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -5221,7 +5279,7 @@ $as_echo "yes" >&6; };
     # given the appropriate flags to tell it what charactersets to use.
     CFLAGS="$CFLAGS -finput-charset=ISO-8859-1 -fexec-charset=UTF-8"
     if test "$cross_compiling" = yes; then
-  utf8literal_ok=no
+  utf8literal_ok="$cross_utf8literal_ok"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -6694,7 +6752,7 @@ CFLAGS="$saved_CFLAGS"
 { $as_echo "$as_me:$LINENO: checking whether SO_REUSEADDR is broken" >&5
 $as_echo_n "checking whether SO_REUSEADDR is broken... " >&6; }
 if test "$cross_compiling" = yes; then
-  reuseaddr_ok=0
+  reuseaddr_ok="$cross_reuseaddr_ok"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -10737,6 +10795,186 @@ fi
 done
 
 
+
+for ac_func in gethostbyname
+do
+as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+{ $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
+$as_echo_n "checking for $ac_func... " >&6; }
+if { as_var=$as_ac_var; eval "test \"\${$as_var+set}\" = set"; }; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_$ac_func || defined __stub___$ac_func
+choke me
+#endif
+
+int
+main ()
+{
+return $ac_func ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  eval "$as_ac_var=yes"
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_var=no"
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+ac_res=`eval 'as_val=${'$as_ac_var'}
+		 $as_echo "$as_val"'`
+	       { $as_echo "$as_me:$LINENO: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+as_val=`eval 'as_val=${'$as_ac_var'}
+		 $as_echo "$as_val"'`
+   if test "x$as_val" = x""yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+if test "$ac_cv_func_gethostbyname" = "no"; then
+  # QNX has gethostbyname and friends in libsocket
+
+{ $as_echo "$as_me:$LINENO: checking for gethostbyname in -lsocket" >&5
+$as_echo_n "checking for gethostbyname in -lsocket... " >&6; }
+if test "${ac_cv_lib_socket_gethostbyname+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsocket  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gethostbyname ();
+int
+main ()
+{
+return gethostbyname ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  ac_cv_lib_socket_gethostbyname=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_socket_gethostbyname=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_socket_gethostbyname" >&5
+$as_echo "$ac_cv_lib_socket_gethostbyname" >&6; }
+if test "x$ac_cv_lib_socket_gethostbyname" = x""yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSOCKET 1
+_ACEOF
+
+  LIBS="-lsocket $LIBS"
+
+fi
+
+fi
+
 #--------------------------------------------------------------------
 # Check for pthread.h
 #--------------------------------------------------------------------
@@ -12520,11 +12758,12 @@ else
 fi
 
 ismingw=no
-isqnx=no
+checkinlibc=no
 case "$target_os" in
   mingw*)	ismingw=yes;;
-  nto*)		isqnx=yes;;
-  qnx*)		isqnx=yes;;
+  nto*)		checkinlibc=yes;;
+  qnx*)		checkinlibc=yes;;
+  *android*)   checkinlibc=yes;;
 esac
 if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
@@ -12605,7 +12844,8 @@ fi
       LIBS="$LIBS -lpthreadGC2"
     fi
   fi
-  if test $isqnx = yes ; then
+  # Android and QNX have pthread in libc instead of libpthread
+  if test $checkinlibc = yes ; then
     { $as_echo "$as_me:$LINENO: checking for pthread_join in -lc" >&5
 $as_echo_n "checking for pthread_join in -lc... " >&6; }
 if test "${ac_cv_lib_c_pthread_join+set}" = set; then
@@ -12874,6 +13114,59 @@ fi
 done
 
 
+{ $as_echo "$as_me:$LINENO: checking for objc_root_class attribute support" >&5
+$as_echo_n "checking for objc_root_class attribute support... " >&6; }
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Werror $OBJCFLAGS -x objective-c"
+cat >conftest.$ac_ext <<_ACEOF
+
+  __attribute__((objc_root_class)) @interface RootObject
+  @end
+  @implementation RootObject
+  @end
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  { $as_echo "$as_me:$LINENO: result: found" >&5
+$as_echo "found" >&6; }
+  gs_objc_root_class_attr=1
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	{ $as_echo "$as_me:$LINENO: result: not present" >&5
+$as_echo "not present" >&6; }
+  gs_objc_root_class_attr=0
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+GS_HAVE_OBJC_ROOT_CLASS_ATTR=$gs_objc_root_class_attr
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_OBJC_ROOT_CLASS_ATTRIBUTE $gs_objc_root_class_attr
+_ACEOF
+
+CFLAGS=$saved_CFLAGS
+
 #--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
 #--------------------------------------------------------------------
@@ -12891,7 +13184,7 @@ if test "${gs_cv_objc_works+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
   if test "$cross_compiling" = yes; then
-  gs_cv_objc_works=yes
+  gs_cv_objc_works="$cross_gs_cv_objc_works"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -12978,7 +13271,7 @@ $as_echo_n "checking if the compiler supports -fconstant-string-class... " >&6; 
   $as_echo_n "(cached) " >&6
 else
   if test "$cross_compiling" = yes; then
-  gs_cv_objc_compiler_supports_constant_string_class=no
+  gs_cv_objc_compiler_supports_constant_string_class="$cross_gs_cv_objc_compiler_supports_constant_string_class"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -13073,7 +13366,7 @@ if test "${gs_cv_objc_load_method_worked+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
   if test "$cross_compiling" = yes; then
-  gs_cv_objc_load_method_worked=no
+  gs_cv_objc_load_method_worked="$cross_gs_cv_objc_load_method_worked"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -13253,6 +13546,11 @@ fi
 #--------------------------------------------------------------------
 # Check for ObjC2 support in runtime
 #--------------------------------------------------------------------
+if test "$cross_compiling" = "yes"; then
+  { $as_echo "$as_me:$LINENO: \"Cross compiling! Using predefined OBJC2RUNTIME variable\"" >&5
+$as_echo "$as_me: \"Cross compiling! Using predefined OBJC2RUNTIME variable\"" >&6;}
+  OBJC2RUNTIME="$cross_objc2_runtime"
+else
 
 for ac_func in objc_setProperty
 do
@@ -13354,10 +13652,11 @@ _ACEOF
 fi
 done
 
-if test $ac_cv_func_objc_setProperty = yes ; then
-  OBJC2RUNTIME=1
-else
-  OBJC2RUNTIME=0
+  if test $ac_cv_func_objc_setProperty = yes ; then
+    OBJC2RUNTIME=1
+  else
+    OBJC2RUNTIME=0
+  fi
 fi
 
 
@@ -13482,13 +13781,7 @@ if test "$nonfragile" = "yes"; then
   { $as_echo "$as_me:$LINENO: checking for non-fragile-abi support" >&5
 $as_echo_n "checking for non-fragile-abi support... " >&6; }
   if test "$cross_compiling" = yes; then
-  { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-{ { $as_echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-$as_echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }; }
+  non_fragile="$cross_non_fragile"
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include "$srcdir/config/config.non-fragile-ivars.m"
@@ -13713,13 +14006,7 @@ $as_echo "$have_set_unexpected" >&6; }
 { $as_echo "$as_me:$LINENO: checking for _objc_unexpected_exception in runtime" >&5
 $as_echo_n "checking for _objc_unexpected_exception in runtime... " >&6; }
 if test "$cross_compiling" = yes; then
-  { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-{ { $as_echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-$as_echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }; }
+  have_unexpected="$cross_have_unexpected"
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include "$srcdir/config/config.unexpected.m"
@@ -13920,13 +14207,7 @@ fi
 { $as_echo "$as_me:$LINENO: checking for thread-safe +initialize in runtime" >&5
 $as_echo_n "checking for thread-safe +initialize in runtime... " >&6; }
 if test "$cross_compiling" = yes; then
-  { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-{ { $as_echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-$as_echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }; }
+  safe_initialize="$cross_safe_initialize"
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include "$srcdir/config/config.initialize.m"
@@ -15488,6 +15769,128 @@ done
 
 LIBS="$saved_LIBS"
 
+{ $as_echo "$as_me:$LINENO: checking for pw_gecos field in struct passwd" >&5
+$as_echo_n "checking for pw_gecos field in struct passwd... " >&6; }
+if test "${ac_cv_have_pw_gecos_in_struct_passwd+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+
+	cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+ #include <pwd.h>
+int
+main ()
+{
+ struct passwd p; p.pw_gecos = 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+   ac_cv_have_pw_gecos_in_struct_passwd="yes"
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	 ac_cv_have_pw_gecos_in_struct_passwd="no"
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_pw_gecos_in_struct_passwd" >&5
+$as_echo "$ac_cv_have_pw_gecos_in_struct_passwd" >&6; }
+if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_PW_GECOS_IN_PASSWD 1
+_ACEOF
+
+fi
+
+{ $as_echo "$as_me:$LINENO: checking for currency_symbol field in struct lconv" >&5
+$as_echo_n "checking for currency_symbol field in struct lconv... " >&6; }
+if test "${ac_cv_have_currency_symbol_in_struct_lconv+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+
+	cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+ #include <locale.h>
+int
+main ()
+{
+ struct lconv l; l.currency_symbol = NULL;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+   ac_cv_have_currency_symbol_in_struct_lconv="yes"
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	 ac_cv_have_currency_symbol_in_struct_lconv="no"
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_currency_symbol_in_struct_lconv" >&5
+$as_echo "$ac_cv_have_currency_symbol_in_struct_lconv" >&6; }
+if test "x$ac_cv_have_currency_symbol_in_struct_lconv" = "xyes" ; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_CURRENCY_SYMBOL_IN_LCONV 1
+_ACEOF
+
+fi
+
 #--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m
 #--------------------------------------------------------------------
@@ -16687,7 +17090,9 @@ done
 # These headers/functions needed by NSLog.m
 #--------------------------------------------------------------------
 
-for ac_header in syslog.h
+
+
+for ac_header in syslog.h sys/slog.h sys/slogcodes.h
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -16933,7 +17338,114 @@ _ACEOF
 fi
 done
 
+if test "$ac_cv_header_sys_slog_h" = "yes"; then
+  oldLibs="$LIBS";
+  LIBS="$LIBS -l:libc.a";
 
+for ac_func in slogf
+do
+as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+{ $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
+$as_echo_n "checking for $ac_func... " >&6; }
+if { as_var=$as_ac_var; eval "test \"\${$as_var+set}\" = set"; }; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_$ac_func || defined __stub___$ac_func
+choke me
+#endif
+
+int
+main ()
+{
+return $ac_func ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  eval "$as_ac_var=yes"
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_var=no"
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+ac_res=`eval 'as_val=${'$as_ac_var'}
+		 $as_echo "$as_val"'`
+	       { $as_echo "$as_me:$LINENO: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+as_val=`eval 'as_val=${'$as_ac_var'}
+		 $as_echo "$as_val"'`
+   if test "x$as_val" = x""yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+  if test "$ac_cv_func_slogf" = "no"; then
+    LIBS="$oldLibs"
+  fi
+fi
 #--------------------------------------------------------------------
 # These headers/functions needed by NSRunLoop.m
 #--------------------------------------------------------------------
@@ -17209,13 +17721,7 @@ $as_echo "no" >&6; }
     { $as_echo "$as_me:$LINENO: checking if poll supports devices" >&5
 $as_echo_n "checking if poll supports devices... " >&6; }
     if test "$cross_compiling" = yes; then
-  { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-{ { $as_echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-$as_echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }; }
+  have_poll="$cross_have_poll"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -17223,7 +17729,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include "$srcdir/config/config.poll-dev.c"
+#include "$srcdir/config/config.poll-dev.c"i
 _ACEOF
 rm -f conftest$ac_exeext
 if { (ac_try="$ac_link"
@@ -17388,7 +17894,7 @@ done
 
 if test $ac_cv_func_vsprintf = yes ; then
     if test "$cross_compiling" = yes; then
-  VSPRINTF_RETURNS_LENGTH=1
+  VSPRINTF_RETURNS_LENGTH="$cross_VSPRINTF_RETURNS_LENGTH"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -17442,7 +17948,7 @@ _ACEOF
 fi
 if test $ac_cv_func_vasprintf = yes ; then
     if test "$cross_compiling" = yes; then
-  VASPRINTF_RETURNS_LENGTH=1
+  VASPRINTF_RETURNS_LENGTH="$cross_VASPRINTF_RETURNS_LENGTH"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -18985,7 +19491,8 @@ _ACEOF
 
 
 
-for ac_header in 	fcntl.h 	inttypes.h 	libc.h 	limits.h 	malloc.h 	memory.h 	signal.h 	stdint.h 	string.h 	sys/fcntl.h 	sys/file.h 	sys/inttypes.h 	sys/ioctl.h 	sys/signal.h 	sys/stropts.h 	sys/wait.h 	unistd.h 	utime.h         stdlib.h
+
+for ac_header in 	fcntl.h 	inttypes.h 	libc.h 	limits.h 	malloc.h 	memory.h 	signal.h 	stdint.h 	string.h 	sys/fcntl.h 	sys/file.h 	sys/filio.h 	sys/inttypes.h 	sys/ioctl.h 	sys/signal.h 	sys/stropts.h 	sys/wait.h 	unistd.h 	utime.h         stdlib.h
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -19855,8 +20362,7 @@ done
 # One of these functions needed by NSDebug.m and NSProcessInfo.m
 #--------------------------------------------------------------------
 
-
-for ac_func in strerror_r strerror
+for ac_func in strerror
 do
 as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -19955,6 +20461,306 @@ _ACEOF
 
 fi
 done
+
+{ $as_echo "$as_me:$LINENO: checking whether strerror_r is declared" >&5
+$as_echo_n "checking whether strerror_r is declared... " >&6; }
+if test "${ac_cv_have_decl_strerror_r+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+#ifndef strerror_r
+  (void) strerror_r;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl_strerror_r=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl_strerror_r=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_decl_strerror_r" >&5
+$as_echo "$ac_cv_have_decl_strerror_r" >&6; }
+if test "x$ac_cv_have_decl_strerror_r" = x""yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_STRERROR_R 1
+_ACEOF
+
+
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_STRERROR_R 0
+_ACEOF
+
+
+fi
+
+
+
+for ac_func in strerror_r
+do
+as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+{ $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
+$as_echo_n "checking for $ac_func... " >&6; }
+if { as_var=$as_ac_var; eval "test \"\${$as_var+set}\" = set"; }; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_$ac_func || defined __stub___$ac_func
+choke me
+#endif
+
+int
+main ()
+{
+return $ac_func ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  eval "$as_ac_var=yes"
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_var=no"
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+ac_res=`eval 'as_val=${'$as_ac_var'}
+		 $as_echo "$as_val"'`
+	       { $as_echo "$as_me:$LINENO: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+as_val=`eval 'as_val=${'$as_ac_var'}
+		 $as_echo "$as_val"'`
+   if test "x$as_val" = x""yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+{ $as_echo "$as_me:$LINENO: checking whether strerror_r returns char *" >&5
+$as_echo_n "checking whether strerror_r returns char *... " >&6; }
+if test "${ac_cv_func_strerror_r_char_p+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+
+    ac_cv_func_strerror_r_char_p=no
+    if test $ac_cv_have_decl_strerror_r = yes; then
+      cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+
+	  char buf[100];
+	  char x = *strerror_r (0, buf, sizeof buf);
+	  char *p = strerror_r (0, buf, sizeof buf);
+	  return !p || x;
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_func_strerror_r_char_p=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    else
+      # strerror_r is not declared.  Choose between
+      # systems that have relatively inaccessible declarations for the
+      # function.  BeOS and DEC UNIX 4.0 fall in this category, but the
+      # former has a strerror_r that returns char*, while the latter
+      # has a strerror_r that returns `int'.
+      # This test should segfault on the DEC system.
+      if test "$cross_compiling" = yes; then
+  :
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+	extern char *strerror_r ();
+int
+main ()
+{
+char buf[100];
+	  char x = *strerror_r (0, buf, sizeof buf);
+	  return ! isalpha (x);
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_strerror_r_char_p=yes
+else
+  $as_echo "$as_me: program exited with status $ac_status" >&5
+$as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+fi
+rm -rf conftest.dSYM
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+
+    fi
+
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_func_strerror_r_char_p" >&5
+$as_echo "$ac_cv_func_strerror_r_char_p" >&6; }
+if test $ac_cv_func_strerror_r_char_p = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define STRERROR_R_CHAR_P 1
+_ACEOF
+
+fi
 
 
 #--------------------------------------------------------------------
@@ -20321,7 +21127,7 @@ done
 { $as_echo "$as_me:$LINENO: checking short/int needs to be word aligned" >&5
 $as_echo_n "checking short/int needs to be word aligned... " >&6; }
 if test "$cross_compiling" = yes; then
-  NEED_WORD_ALIGNMENT=1
+  NEED_WORD_ALIGNMENT="$cross_NEED_WORD_ALIGNMENT"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -20577,7 +21383,7 @@ fi
 
 if test $register_printf = 1; then
   if test "$cross_compiling" = yes; then
-  working_register_printf=1
+  working_register_printf="$cross_working_register_printf"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -20630,7 +21436,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     if test "$cross_compiling" = yes; then
-  wide_register_printf=1
+  wide_register_printf="$cross_wide_register_printf"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -20802,7 +21608,7 @@ if test "${gs_cv_program_invocation_name_worked+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
   if test "$cross_compiling" = yes; then
-  gs_cv_program_invocation_name_worked=no
+  gs_cv_program_invocation_name_worked="$cross_gs_cv_program_invocation_name_worked"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -21596,7 +22402,7 @@ _ACEOF
 { $as_echo "$as_me:$LINENO: checking /proc/$$/cmdline terminated by nul" >&5
 $as_echo_n "checking /proc/$$/cmdline terminated by nul... " >&6; }
 if test "$cross_compiling" = yes; then
-  CMDLINE_TERMINATED=0
+  CMDLINE_TERMINATED="$cross_CMDLINE_TERMINATED"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -21739,7 +22545,7 @@ if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
   { $as_echo "$as_me:$LINENO: checking if we can access kernel memory" >&5
 $as_echo_n "checking if we can access kernel memory... " >&6; }
   if test "$cross_compiling" = yes; then
-  have_kvm_env=0
+  have_kvm_env="$cross_have_kvm_env"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -21932,15 +22738,6 @@ if test "$exceptions" = "yes"; then
   # ffcall will mess up native exceptions, so we must disable it.
   do_broken_libffcall=yes
   do_enable_libffcall=no
-
-  if test "$have_unexpected" = "no"; then
-    echo
-    echo "Your gnustep-make is configured to use native objc exceptions, but"
-    echo "the objc runtime does not appear to support setting an uncaught"
-    echo "exception handler.  This means that any uncaught exception will"
-    echo "cause a program to abort immediately."
-    echo "Consider reconfiguring gnustep-make or updating libobjc to fix this."
-  fi
 fi
 
 # Check whether --enable-libffi was given.
@@ -22425,7 +23222,7 @@ _ACEOF
   fi
   LIBS="$ffi_LIBS $LIBS"
   if test "$cross_compiling" = yes; then
-  ffi_ok="yes"
+  ffi_ok="$cross_ffi_ok"
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -22768,13 +23565,7 @@ if test $enable_iconv = yes; then
 { $as_echo "$as_me:$LINENO: checking iconv support" >&5
 $as_echo_n "checking iconv support... " >&6; }
 if test "$cross_compiling" = yes; then
-  { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-{ { $as_echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-$as_echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }; }
+  found_iconv="$cross_found_iconv_libc"
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include <iconv.h>
@@ -22857,13 +23648,11 @@ esac
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
   if test "$cross_compiling" = yes; then
-  { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-{ { $as_echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-$as_echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }; }
+  found_iconv="$cross_found_iconv_liconv";
+    if test "$found_iconv" = "no"; then
+      LIBS="$old_LIBS"
+    fi
+
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include <iconv.h>
@@ -22926,13 +23715,11 @@ if test $found_iconv = no ; then
   old_LIBS="$LIBS"
   LIBS="-lgiconv $LIBS"
   if test "$cross_compiling" = yes; then
-  { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-{ { $as_echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&5
-$as_echo "$as_me: error: cannot run test program while cross compiling
-See \`config.log' for more details." >&2;}
-   { (exit 1); exit 1; }; }; }
+  found_iconv="$cross_found_iconv_lgiconv";
+    if test "$found_iconv" = "no"; then
+      LIBS="$old_LIBS"
+    fi
+
 else
   cat >conftest.$ac_ext <<_ACEOF
 #include <giconv.h>
@@ -24137,6 +24924,9 @@ fi
       TLS_CONFIG=$tls_config_prefix/bin/libgnutls-config
     fi
   fi
+  if test ! -x "$TLS_CONFIG" ; then
+    unset TLS_CONFIG
+  fi
 
   # Extract the first word of "libgnutls-config", so it can be a program name with args.
 set dummy libgnutls-config; ac_word=$2
@@ -24184,8 +24974,13 @@ fi
 $as_echo_n "checking for libgnutls - version >= $min_tls_version... " >&6; }
   no_tls=""
   if test "$TLS_CONFIG" = "no" ; then
-    TLS_CFLAGS="-I/usr/include"
-    TLS_LIBS="-L/usr/lib -lgnutls -lgcrypt"
+    if test x$tls_config_prefix != x ; then
+      TLS_CFLAGS="-I$tls_config_prefix/include"
+      TLS_LIBS="-L$tls_config_prefix/lib -lgnutls -lgcrypt"
+    else
+      TLS_CFLAGS="-I/usr/include"
+      TLS_LIBS="-L/usr/lib -lgnutls -lgcrypt"
+    fi
 
     ac_save_CFLAGS="$CFLAGS"
     ac_save_LIBS="$LIBS"
@@ -24366,7 +25161,7 @@ $as_echo "yes" >&6; }
 $as_echo "no" >&6; }
     if test "$TLS_CONFIG" = "no" ; then
       echo "*** The libgnutls-config script installed by libgnutls could not be found"
-      echo "*** If libtgnuls was installed in PREFIX, make sure PREFIX/bin is in"
+      echo "*** If libtgnuls-config was installed in PREFIX, make sure PREFIX/bin is in"
       echo "*** your path."
     else
       if test -f conf.tlstest ; then
@@ -24480,8 +25275,8 @@ $as_echo "$as_me: WARNING: Missing support for thread-safe operation in GNUTLS. 
 $as_echo "no" >&6; }
     echo
     echo "You do not appear to have usable libgnutls headers/library."
-    echo "Building without them will disable SSL/TLS/HTTPS in NSStream"
-    echo "and NSURLConnection."
+    echo "Building without them will disable SSL/TLS/HTTPS in NSStream,"
+    echo "NSFileHandle, NSURLHandle and NSURLConnection."
     echo "If you really want to build gnustep-base without TLS support,"
     echo "add --disable-tls to the configure arguments."
     { { $as_echo "$as_me:$LINENO: error: Missing support for TLS functionality." >&5
@@ -25114,7 +25909,25 @@ else
 fi
 
 
+# Check whether --enable-icu-config was given.
+if test "${enable_icu_config+set}" = set; then
+  enableval=$enable_icu_config;
+else
+  enable_icu_config=yes
+fi
+
+
+
+# Check whether --with-icu-library was given.
+if test "${with_icu_library+set}" = set; then
+  withval=$with_icu_library; icu_libdir="$withval"
+else
+  icu_libdir="no"
+fi
+
+
 if test $enable_icu = yes; then
+  if test "$enable_icu_config" = "yes"; then
 
   ok=no
 
@@ -25202,6 +26015,66 @@ $as_echo "$ICU_LDFLAGS" >&6; }
     have_icu=no
   fi
 
+  else
+    have_icu=no;
+    { $as_echo "$as_me:$LINENO: checking for libicu (icu-config disabled)..." >&5
+$as_echo "$as_me: checking for libicu (icu-config disabled)..." >&6;}
+    if test "$icu_libdir" != "no"; then
+      ICU_LDFLAGS="-L$icu_libdir";
+    fi
+    saved_LDFLAGS="$LDFLAGS";
+    LDFLAGS="$LDFLAGS $LIBS $ICU_LDFLAGS -licui18n -licuuc -licudata -lm"
+    cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  have_icu="yes"
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	have_icu="no"
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext;
+    LDFLAGS="$saved_LDFLAGS";
+    ICU_LIBS="-licui18n -licuuc -licudata -lm"
+  fi
+
   if test "$have_icu" = "yes"; then
     { $as_echo "$as_me:$LINENO: result: yes" >&5
 $as_echo "yes" >&6; }
@@ -25216,7 +26089,8 @@ $as_echo "yes" >&6; }
 
 
 
-for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h
+
+for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -26177,6 +27051,47 @@ fi
 
 
 
+
+#--------------------------------------------------------------------
+# Check which sorting algorithm to use.
+#--------------------------------------------------------------------
+
+# Check whether --with-sort-algorithm was given.
+if test "${with_sort_algorithm+set}" = set; then
+  withval=$with_sort_algorithm; sort_algorithm="$withval"
+else
+  sort_algorithm="shellsort"
+fi
+
+
+if test "$sort_algorithm" = "timsort"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define GS_USE_TIMSORT 1
+_ACEOF
+
+else
+  if test "$sort_algorithm" = "quicksort"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define GS_USE_QUICKSORT 1
+_ACEOF
+
+  else
+    if test "$sort_algorithm" = "shellsort"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define GS_USE_SHELLSORT 1
+_ACEOF
+
+    else
+      { { $as_echo "$as_me:$LINENO: error: Unknown sort_algorithm defined!" >&5
+$as_echo "$as_me: error: Unknown sort_algorithm defined!" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+  fi
+fi
+
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
 #--------------------------------------------------------------------
@@ -26357,6 +27272,11 @@ fi
 
 
 
+# If there's no TLS support ... try to get some limited functionality
+# by using OpenSSL instead.
+
+if test "$HAVE_TLS" = "0"; then
+
 #--------------------------------------------------------------------
 # Configure flags from sub-configure runs, so they show up in our
 # help file.
@@ -26368,6 +27288,7 @@ else
   enable_openssl=yes
 fi
 
+  HAVE_GNUTLS=0
 
 # Check whether --with-openssl-include was given.
 if test "${with_openssl_include+set}" = set; then
@@ -26389,6 +27310,7 @@ fi
 
 subdirs="$subdirs SSL"
 
+fi
 
 #--------------------------------------------------------------------
 # Record the version

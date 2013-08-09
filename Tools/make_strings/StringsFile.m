@@ -7,13 +7,13 @@
 
    This file is part of the GNUstep Project
 
-   This program is free software; you can redistribute it and/or
+   This program is free software;  you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either
+   as published by the Free Software Foundation;  either
    version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program; see the file COPYINGv3.
+   License along with this program;  see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -35,35 +35,35 @@
 
 static NSString *parse_string(NSString **ptr)
 {
-  NSString *str=*ptr;
+  NSString *str = *ptr;
   NSString *ret;
   int i,c;
   unichar ch;
 
-  c=[str length];
-  for (i=0;i<c;i++)
+  c = [str length];
+  for (i = 0; i < c; i++)
     {
-      ch=[str characterAtIndex: i];
-      if (ch=='\\')
+      ch = [str characterAtIndex: i];
+      if (ch == '\\')
 	{
-	  if (i==c)
+	  if (i == c)
 	    {
 	      fprintf(stderr,"parse error, \\ without second character\n");
 	      exit(1);
 	    }
 	  i++;
 	}
-      if (ch=='\"')
+      if (ch == '\"')
 	break;
     }
-  if (i==c)
+  if (i == c)
     {
       fprintf(stderr,"parse error, unterminated string\n");
       exit(1);
     }
-  ret=[str substringToIndex: i];
-  str=[str substringFromIndex: i+1];
-  *ptr=str;
+  ret = [str substringToIndex: i];
+  str = [str substringFromIndex: i+1];
+  *ptr = str;
 
   return ret;
 }
@@ -99,10 +99,10 @@ static NSString *parse_string(NSString **ptr)
 
 - init
 {
-  self=[super init];
-  strings=[[NSMutableArray alloc] init];
-  keys_translated=[[NSMutableArray alloc] init];
-  keys_matched=[[NSMutableArray alloc] init];
+  self = [super init];
+  strings = [[NSMutableArray alloc] init];
+  keys_translated = [[NSMutableArray alloc] init];
+  keys_matched = [[NSMutableArray alloc] init];
   return self;
 }
 
@@ -117,29 +117,29 @@ static NSString *parse_string(NSString **ptr)
 {
   NSString *str;
 
-  self=[self init];
+  self = [self init];
 
-  str=[NSString stringWithContentsOfFile: filename];
+  str = [NSString stringWithContentsOfFile: filename];
   if (!str) return self;
 
   {
-    StringsEntry *se=nil;
-    NSMutableArray *update_list=[[NSMutableArray alloc] init];
+    StringsEntry *se = nil;
+    NSMutableArray *update_list = [[NSMutableArray alloc] init];
     NSArray *lines;
     NSString *l;
-    NSUInteger i,c,pos;	
-    NSMutableDictionary *dummy_entries=[[NSMutableDictionary alloc] init];
+    NSUInteger i,c,pos; 	
+    NSMutableDictionary *dummy_entries = [[NSMutableDictionary alloc] init];
 
-    NSMutableString *user_comment=[[NSMutableString alloc] init];
+    NSMutableString *user_comment = [[NSMutableString alloc] init];
 
     NSString *key,*trans;
 
     /* this is a bit yucky, but it works */
-    lines=[str componentsSeparatedByString: @"/*"];
-    c=[lines count];
-    for (i=0;i<c;i++)
+    lines = [str componentsSeparatedByString: @"/*"];
+    c = [lines count];
+    for (i = 0; i < c; i++)
       {
-	l=[lines objectAtIndex: i];
+	l = [lines objectAtIndex: i];
 	/* First entry has everything before the first comment and needs
 	   to be handled specially. */
 	if (i)
@@ -151,83 +151,93 @@ static NSString *parse_string(NSString **ptr)
 		if (user_comment)
 		  {
 		    if (![user_comment isEqual: @""])
-		      global_comment=[user_comment copy];
+		      global_comment = [user_comment copy];
 		    DESTROY(user_comment);
 		  }
 	      }
 	    else if ([l hasPrefix: @" File: "])
 	      {
-		se=[[StringsEntry alloc] init];
-		[se addFlag: FLAG_UNMATCHED]; /* TODO: ? */
+		se = [[StringsEntry alloc] init];
+		[se addFlag: FLAG_UNMATCHED];  /* TODO: ? */
 		[update_list addObject: se];
 		[se release];
 
-		l=[l substringFromIndex: 7];
-		pos=[l rangeOfString: @":"].location;
+		l = [l substringFromIndex: 7];
+		pos = [l rangeOfString: @":"].location;
 		[se setFile: [l substringToIndex: pos]];
-		l=[l substringFromIndex: pos+1];
+		l = [l substringFromIndex: pos+1];
 		[se setLine: [l intValue]];
 	      }
 	    else if ([l hasPrefix: @" Flag: untranslated */"])
 	      [se addFlag: FLAG_UNTRANSLATED];
 	    else if ([l hasPrefix: @" Flag: unmatched */"])
-	      [se addFlag: FLAG_UNMATCHED]; /* this is essentially a noop */
+	      [se addFlag: FLAG_UNMATCHED];  /* this is essentially a noop */
 	    else if ([l hasPrefix: @" Comment: "])
 	      {
-		l=[l substringFromIndex: 10];
-		pos=[l rangeOfString: @" */"].location;
+		l = [l substringFromIndex: 10];
+		pos = [l rangeOfString: @" */"].location;
+                if (pos == NSNotFound) continue;
 		[se setComment: [l substringToIndex: pos]];
 	      }
 	    else
 	      {
-		pos=[l rangeOfString: @"*/"].location;
+		pos = [l rangeOfString: @"*/"].location;
+                if (pos == NSNotFound)
+                  {
+                    fprintf(stderr,"parse error in '%s', missing '*\'\n",
+                      [filename cString]);
+                    pos = [l length]; 
+                  }
 		if ([user_comment length])
 		  [user_comment appendString: @"\n"];
 		[user_comment appendString: [l substringToIndex: pos]];
 	      }
 
-	    pos=[l rangeOfString: @"*/"].location;
-	    if (pos==NSNotFound) continue;
-	    l=[l substringFromIndex: pos+2];
+	    pos = [l rangeOfString: @"*/"].location;
+	    if (pos == NSNotFound) continue;
+	    l = [l substringFromIndex: pos+2];
 	  }
 
 	while (1)
 	  {
-	    pos=[l rangeOfString: @"\""].location;
-	    if (pos==NSNotFound) break;
+	    pos = [l rangeOfString: @"\""].location;
+	    if (pos == NSNotFound) break;
 
-	    l=[l substringFromIndex: pos+1];
-	    key=parse_string(&l);
+	    l = [l substringFromIndex: pos+1];
+	    key = parse_string( & l);
 
-	    pos=[l rangeOfString: @"="].location;
-	    if (pos==NSNotFound)
+	    pos = [l rangeOfString: @"="].location;
+	    if (pos == NSNotFound)
 	      {
-		fprintf(stderr,"parse error in '%s', expecting '='\n",[filename cString]);
+		fprintf(stderr,"parse error in '%s', expecting '='\n",
+                  [filename cString]);
 		exit(1);
 	      }
-	    l=[l substringFromIndex: pos+1];
-	    pos=[l rangeOfString: @"\""].location;
-	    if (pos==NSNotFound)
+	    l = [l substringFromIndex: pos+1];
+	    pos = [l rangeOfString: @"\""].location;
+	    if (pos == NSNotFound)
 	      {
-		fprintf(stderr,"parse error in '%s', expecting second string\n",[filename cString]);
+		fprintf(stderr,"parse error in '%s', expecting second string\n",
+                  [filename cString]);
 		exit(1);
 	      }
-	    l=[l substringFromIndex: pos+1];
-	    trans=parse_string(&l);
+	    l = [l substringFromIndex: pos+1];
+	    trans = parse_string( & l);
 
-	    pos=[l rangeOfString: @";"].location;
-	    if (pos==NSNotFound)
+	    pos = [l rangeOfString: @"; "].location;
+	    if (pos == NSNotFound)
 	      {
-		fprintf(stderr,"parse error in '%s', expecting ';'\n",[filename cString]);
+		fprintf(stderr,"parse error in '%s', expecting '; '\n",
+                  [filename cString]);
 		exit(1);
 	      }
-	    l=[l substringFromIndex: pos+1];
+	    l = [l substringFromIndex: pos+1];
 
 	    if (![update_list count])
 	      { /* we're probably parsing a file not created by us */
 		if (![dummy_entries objectForKey: key])
 		  {
-		    se=[[StringsEntry alloc] init];
+		    se = [[StringsEntry alloc] init];
 		    [se setFile: DUMMY];
 		    [se setFlags: FLAG_UNMATCHED];
 		    [update_list addObject: se];
@@ -236,28 +246,30 @@ static NSString *parse_string(NSString **ptr)
 		  }
 	      }
 
-	    [update_list makeObjectsPerformSelector: @selector(setKey:) withObject: key];
-	    [update_list makeObjectsPerformSelector: @selector(setTranslated:) withObject: trans];
+	    [update_list makeObjectsPerformSelector: @selector(setKey:)
+                                         withObject: key];
+	    [update_list makeObjectsPerformSelector: @selector(setTranslated:)
+                                         withObject: trans];
 
 	    {
-	      int i,c=[update_list count];
-		for (i=0;i<c;i++)
-		  {
+	      int i,c = [update_list count];
+              for (i = 0; i < c; i++)
+                {
 //		    printf("%4i : %@\n",i,[update_list objectAtIndex: i]);
-		    se=[update_list objectAtIndex: i];
-		    if (!([se flags]&FLAG_UNTRANSLATED))
-		      {
-			[self addTranslated: key];
-			break;
-		      }
-		  }
+                  se = [update_list objectAtIndex: i];
+                  if (!([se flags] & FLAG_UNTRANSLATED))
+                    {
+                      [self addTranslated: key];
+                      break;
+                    }
+                }
 	    }
 
 
 	    [strings addObjectsFromArray: update_list];
 
 	    [update_list removeAllObjects];
-	    se=nil;
+	    se = nil;
 	  }
       }
 
@@ -288,12 +300,12 @@ static NSString *parse_string(NSString **ptr)
 
 -(void) _writeTo: (NSMutableString *)str  entryFlags: (StringsEntry *)se
 {
-  int flags=[se flags];
+  int flags = [se flags];
   if (!flags) return;
-  if (flags&FLAG_UNMATCHED)
+  if (flags & FLAG_UNMATCHED)
     [str appendString: @"/* Flag: unmatched */\n"];
   else
-    if (flags&FLAG_UNTRANSLATED)
+    if (flags & FLAG_UNTRANSLATED)
       [str appendString: @"/* Flag: untranslated */\n"];
     else
       {
@@ -306,13 +318,13 @@ static NSString *parse_string(NSString **ptr)
   [str appendString: @"\""];
   [str appendString: [se key]];
 
-  if ([[se key] length]+[[se translated] length]<70)
-    [str appendString: @"\" = \""];
+  if ([[se key] length]+[[se translated] length] < 70)
+    [str appendString: @"\"  =  \""];
   else
-    [str appendString: @"\"\n= \""];
+    [str appendString: @"\"\n =  \""];
 
   [str appendString: [se translated]];
-  [str appendString: @"\";\n"];
+  [str appendString: @"\"; \n"];
 }
 
 
@@ -322,18 +334,18 @@ static NSString *parse_string(NSString **ptr)
   StringsEntry *tr,*cur;
 
   [list sortUsingSelector: @selector(compareFileLine:)];
-  c=[list count];
+  c = [list count];
   if (!c) return;
-  cur=tr=nil;
-  for (i=0;i<c;i++)
+  cur = tr=nil;
+  for (i = 0; i < c; i++)
     {
-      cur=[list objectAtIndex: i];
+      cur = [list objectAtIndex: i];
       [self _writeTo: str  entryHead: cur];
       if ([cur flags])
 	[self _writeTo: str  entryFlags: cur];
 
-      if (!([cur flags]&FLAG_UNTRANSLATED))
-	tr=cur;
+      if (!([cur flags] & FLAG_UNTRANSLATED))
+	tr = cur;
     }
   if (tr)
     [self _writeTo: str  entryKey: tr];
@@ -343,14 +355,14 @@ static NSString *parse_string(NSString **ptr)
 
 -(BOOL) _shouldIgnore: (StringsEntry *)se
 {
-  if (([se flags]&(FLAG_UNMATCHED|FLAG_UNTRANSLATED))==
+  if (([se flags] & (FLAG_UNMATCHED|FLAG_UNTRANSLATED)) == 
 		    (FLAG_UNMATCHED|FLAG_UNTRANSLATED))
     return YES;
 
   if (aggressive_import && [[se file] isEqual: DUMMY] && [self isMatched: [se key]])
     return YES;
 
-  if (aggressive_remove && ([se flags]&FLAG_UNMATCHED) && [self isMatched: [se key]])
+  if (aggressive_remove && ([se flags] & FLAG_UNMATCHED) && [self isMatched: [se key]])
     return YES;
 
   return NO;
@@ -360,18 +372,18 @@ static NSString *parse_string(NSString **ptr)
 {
   unsigned int i,c;
   BOOL result;
-  NSMutableString *str=[[NSMutableString alloc] initWithCapacity: 32*1024];
+  NSMutableString *str = [[NSMutableString alloc] initWithCapacity: 32*1024];
   StringsEntry *se;
 
-  NSMutableArray *strings_left=[strings mutableCopy];
-  NSMutableArray *str_list=[[NSMutableArray alloc] init];
-  NSMutableArray *dup_list=[[NSMutableArray alloc] init];
-  NSMutableArray *un_list=[[NSMutableArray alloc] init];
+  NSMutableArray *strings_left = [strings mutableCopy];
+  NSMutableArray *str_list = [[NSMutableArray alloc] init];
+  NSMutableArray *dup_list = [[NSMutableArray alloc] init];
+  NSMutableArray *un_list = [[NSMutableArray alloc] init];
 
   StringsEntry *cur,*c2;
 
   int single_file,wrote_banner,unflags;
-  int un_count=0;
+  int un_count = 0;
 
   if (global_comment && ![global_comment isEqual: @""])
     {
@@ -389,7 +401,7 @@ static NSString *parse_string(NSString **ptr)
 		   @"***/\n",
 		   filename,[NSDate dateWithTimeIntervalSinceNow: 0]]];
 
-  wrote_banner=0;
+  wrote_banner = 0;
 
   /* First, output all keys that appear in multiple places (unless all
      appearances are in one file and none are marked unmatched or untranslated).
@@ -397,7 +409,7 @@ static NSString *parse_string(NSString **ptr)
      translated (single/multiple in one file) entries in str_list. */
   while ([strings_left count])
     {
-      cur=[strings_left objectAtIndex: 0];
+      cur = [strings_left objectAtIndex: 0];
       if ([self _shouldIgnore: cur])
 	{
 	  [strings_left removeObjectAtIndex: 0];
@@ -406,11 +418,11 @@ static NSString *parse_string(NSString **ptr)
       [dup_list addObject: cur];
       [strings_left removeObjectAtIndex: 0];
 
-      single_file=1;
-      unflags=[cur flags];
-      for (i=0;i<[strings_left count];i++)
+      single_file = 1;
+      unflags = [cur flags];
+      for (i = 0; i < [strings_left count]; i++)
 	{
-	  c2=[strings_left objectAtIndex: i];
+	  c2 = [strings_left objectAtIndex: i];
 
 	  if ([self _shouldIgnore: c2])
 	    {
@@ -421,12 +433,12 @@ static NSString *parse_string(NSString **ptr)
 
 	  if ([[cur key] isEqual: [c2 key]])
 	    {
-	      unflags|=[c2 flags];
+	      unflags |= [c2 flags];
 	      [dup_list addObject: c2];
 	      [strings_left removeObjectAtIndex: i];
 	      if (single_file)
 		if (![[cur file] isEqual: [c2 file]])
-		  single_file=0;
+		  single_file = 0;
 	      i--;
 	    }
 	}
@@ -436,7 +448,7 @@ static NSString *parse_string(NSString **ptr)
 	  [dup_list removeAllObjects];
 	  continue;
 	}
-      if ([dup_list count]==1)
+      if ([dup_list count] == 1)
 	{
 	  [un_list addObjectsFromArray: dup_list];
 	  [dup_list removeAllObjects];
@@ -444,12 +456,12 @@ static NSString *parse_string(NSString **ptr)
 	}
 
       if (unflags)
-	un_count+=[dup_list count];
+	un_count += [dup_list count];
 
       if (!wrote_banner)
 	{
 	  [str appendString: @"\n\n/*** Keys found in multiple places ***/\n"];
-	  wrote_banner=1;
+	  wrote_banner = 1;
 	}
 
       [str appendString: @"\n"];
@@ -465,11 +477,11 @@ static NSString *parse_string(NSString **ptr)
     {
       [str appendString: @"\n\n/*** Unmatched/untranslated keys ***/\n"];
       [un_list sortUsingSelector: @selector(compareFileLine:)];
-      c=[un_list count];
-      un_count+=c;
-      for (i=0;i<c;i++)
+      c = [un_list count];
+      un_count += c;
+      for (i = 0; i < c; i++)
 	{
-	  se=[un_list objectAtIndex: i];
+	  se = [un_list objectAtIndex: i];
 	  [str appendString: @"\n"];
 	  [self _writeTo: str  entryHead: se];
 	  [self _writeTo: str  entryFlags: se];
@@ -482,22 +494,22 @@ static NSString *parse_string(NSString **ptr)
      or something). */
   if ([str_list count])
     {
-      NSString *last_filename=nil;
+      NSString *last_filename = nil;
 
       [str_list sortUsingSelector: @selector(compareFileKeyComment:)];
-      c=[str_list count];
-      for (i=0;i<c;i++)
+      c = [str_list count];
+      for (i = 0; i < c; i++)
 	{
-	  se=[str_list objectAtIndex: i];
+	  se = [str_list objectAtIndex: i];
 	  if (!last_filename || ![last_filename isEqual: [se file]])
 	    {
-	      last_filename=[se file];
+	      last_filename = [se file];
 	      [str appendString:
 		     [NSString stringWithFormat: @"\n\n/*** Strings from %@ ***/\n",
 			       last_filename]];
 	    }
 	  [self _writeTo: str  entryHead: se];
-	  if (i==c-1 || ![[se key] isEqual: [[str_list objectAtIndex: i+1] key]])
+	  if (i == c-1 || ![[se key] isEqual: [[str_list objectAtIndex: i+1] key]])
 	    [self _writeTo: str  entryKey: se];
 	}
     }
@@ -505,10 +517,12 @@ static NSString *parse_string(NSString **ptr)
   DESTROY(dup_list);
 
   {
-    NSString *backupname=[filename stringByAppendingString: @"~"];
+    NSString *backupname = [filename stringByAppendingString: @"~"];
     [[NSFileManager defaultManager] removeFileAtPath: backupname handler: nil];
-    [[NSFileManager defaultManager] movePath: filename  toPath: backupname handler: nil];
-    result=[str writeToFile: filename atomically: YES];
+    [[NSFileManager defaultManager] movePath: filename
+                                      toPath: backupname
+                                     handler: nil];
+    result = [str writeToFile: filename atomically: YES];
 
     if (!result)
       fprintf(stderr,"Error saving '%s'!\n",[filename cString]);
@@ -518,7 +532,8 @@ static NSString *parse_string(NSString **ptr)
   DESTROY(un_list);
 
   if (un_count)
-    fprintf(stderr,"'%s': %i untranslated or unmatched messages\n",[filename cString],un_count);
+    fprintf(stderr,"'%s': %i untranslated or unmatched messages\n",
+      [filename cString],un_count);
 
   return result;
 }
@@ -532,28 +547,28 @@ static NSString *parse_string(NSString **ptr)
   int i,c;
   StringsEntry *se;
 
-  c=[strings count];
+  c = [strings count];
 
   [self addMatched: [e key]];
 
   /* Look for exact matches. If we find an exact match (same file, key, and
      comment) we mark the StringsEntry matched and don't add the SourceEntry.
   */
-  for (i=0;i<c;i++)
+  for (i = 0; i < c; i++)
     {
-      se=[strings objectAtIndex: i];
-      if (!([se flags]&FLAG_UNMATCHED))
+      se = [strings objectAtIndex: i];
+      if (!([se flags] & FLAG_UNMATCHED))
 	continue;
 
       if (![[se key] isEqual: [e key]])
 	continue;
 
-      if (([se flags]&FLAG_UNMATCHED) && [[se file] isEqual: [e file]])
+      if (([se flags] & FLAG_UNMATCHED) && [[se file] isEqual: [e file]])
 	{
-	  if ((![se comment] && ![e comment]) ||
-	      ([[se comment] isEqual: [e comment]]))
+	  if ((![se comment] && ![e comment])
+            || ([[se comment] isEqual: [e comment]]))
 	    {
-	      [se setFlags: [se flags]&~FLAG_UNMATCHED];
+	      [se setFlags: [se flags] & ~FLAG_UNMATCHED];
 	      [se setLine: [e line]];
 	      return;
 	    }
@@ -566,18 +581,18 @@ static NSString *parse_string(NSString **ptr)
 	 translated StringsEntry. If we find we add a new StringsEntry from
 	 the SourceEntry with the same translation and marked as translated.
       */
-      for (i=0;i<c;i++)
+      for (i = 0; i < c; i++)
 	{
-	  se=[strings objectAtIndex: i];
+	  se = [strings objectAtIndex: i];
 
-	  if ([se flags]&FLAG_UNTRANSLATED)
+	  if ([se flags] & FLAG_UNTRANSLATED)
 	    continue;
 
 	  if (![[se key] isEqual: [e key]])
 	    continue;
 
 	  {
-	    StringsEntry *se2=[StringsEntry stringsEntryFromSourceEntry: e];
+	    StringsEntry *se2 = [StringsEntry stringsEntryFromSourceEntry: e];
 	    [se2 setFlags: 0];
 	    [se2 setTranslated: [se translated]];
 	    [strings addObject: se2];

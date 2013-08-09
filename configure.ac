@@ -127,6 +127,36 @@ AC_CONFIG_HEADER(Headers/GNUstepBase/config.h)
 #--------------------------------------------------------------------
 AC_CANONICAL_TARGET([])
 
+#--------------------------------------------------------------------
+# Setup cross-compilation-information
+#--------------------------------------------------------------------
+
+AC_ARG_WITH(cross-compilation-info,
+[  --with-cross-compilation-info=PATH
+				Specify path to the configuration file that
+				contains information for the configure script in
+				case of cross compilation. This information
+				replaces those obtained from running programmes
+				during the configuration phase.], 
+  cross_result="$withval",
+  cross_result="no"
+)
+CROSS_CONFIG="./cross.config"
+if test "$cross_result" != "no"
+then
+ if test -f "$cross_result" && test -r "$cross_result"
+  then 
+    CROSS_CONFIG="$cross_result"
+  else
+    AC_MSG_ERROR(["Could not load cross-compilation variables from $cross_result"])
+  fi
+fi
+
+# import information from the cross-config.
+. "$CROSS_CONFIG"
+
+
+
 #---------------------------------------------------------------------
 # Location of the GNUstep.conf config file (--with-config-file)
 #---------------------------------------------------------------------
@@ -1009,15 +1039,24 @@ fi
 
 #
 # Add standard library and header directories for configure to use to locate
-# plain C developer headers/libraries which haver been installed in the
-# GNUstep hierarchy.
+# plain C developer headers/libraries which have been installed in the
+# GNUstep hierarchy. These take precedence 
 #
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_LOCAL_HEADERS"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_LOCAL_LIBRARIES"
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_SYSTEM_HEADERS"
+LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_SYSTEM_LIBRARIES"
 
 #--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
+if test "$CC" = ""; then
+  CC=`gnustep-config --variable=CC`
+fi
+if test "$CPP" = ""; then
+  CPP=`gnustep-config --variable=CPP`
+fi
+if test "$CXX" = ""; then
+  CXX=`gnustep-config --variable=CXX`
+fi
 AC_PROG_CC
 AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
@@ -1051,7 +1090,7 @@ if test "$enable_unicodeconstants" != "no"; then
   AC_TRY_RUN([#include "$srcdir/config/config.constant-string-encoding.c"],
 	  utf8literal_ok=yes,
 	  utf8literal_ok=no,
-	  utf8literal_ok=no)
+	  utf8literal_ok="$cross_utf8literal_ok")
   if test "$utf8literal_ok" = "yes"; then
     AC_MSG_RESULT([yes]);
   else
@@ -1061,7 +1100,7 @@ if test "$enable_unicodeconstants" != "no"; then
     AC_TRY_RUN([#include "$srcdir/config/config.constant-string-encoding.c"],
 	  utf8literal_ok=yes,
 	  utf8literal_ok=no,
-	  utf8literal_ok=no)
+	  utf8literal_ok="$cross_utf8literal_ok")
     if test "$utf8literal_ok" = "yes"; then
       AC_MSG_RESULT([yes]);
       GS_EXEC_CHARSET=-fexec-charset=UTF-8
@@ -1353,7 +1392,7 @@ AC_MSG_CHECKING(whether SO_REUSEADDR is broken)
 AC_TRY_RUN([#include "$srcdir/config/config.reuseaddr.c"],
 	reuseaddr_ok=1,
 	reuseaddr_ok=0,
-	reuseaddr_ok=0)
+	reuseaddr_ok="$cross_reuseaddr_ok")
 if test $reuseaddr_ok = 0; then
   AC_DEFINE(BROKEN_SO_REUSEADDR,1,
             [Define if SO_REUSEADDR is broken on this system])
@@ -1595,6 +1634,12 @@ OBJC_SYS_DYNAMIC_LINKER()
 # NOTE: libdl should be in LIBS now if it's available.
 AC_CHECK_FUNCS(dladdr)
 
+AC_CHECK_FUNCS(gethostbyname)
+if test "$ac_cv_func_gethostbyname" = "no"; then
+  # QNX has gethostbyname and friends in libsocket
+  AC_CHECK_LIB(socket, gethostbyname)
+fi
+
 #--------------------------------------------------------------------
 # Check for pthread.h 
 #--------------------------------------------------------------------
@@ -1633,11 +1678,12 @@ else
 fi
 AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
 ismingw=no
-isqnx=no
+checkinlibc=no
 case "$target_os" in
   mingw*)	ismingw=yes;;
-  nto*)		isqnx=yes;;
-  qnx*)		isqnx=yes;;
+  nto*)		checkinlibc=yes;;
+  qnx*)		checkinlibc=yes;;
+  *android*)   checkinlibc=yes;;
 esac
 if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
@@ -1648,7 +1694,8 @@ else
       LIBS="$LIBS -lpthreadGC2"
     fi
   fi
-  if test $isqnx = yes ; then
+  # Android and QNX have pthread in libc instead of libpthread
+  if test $checkinlibc = yes ; then
     AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
     if test $pthread_ok = yes ; then
        LIBS="$LIBS -lc"
@@ -1669,6 +1716,26 @@ AC_CHECK_LIB(rt, sched_yield)
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(nanosleep usleep Sleep)
 
+AC_MSG_CHECKING(for objc_root_class attribute support)
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Werror $OBJCFLAGS -x objective-c"
+AC_COMPILE_IFELSE([
+  __attribute__((objc_root_class)) @interface RootObject
+  @end
+  @implementation RootObject
+  @end],
+  AC_MSG_RESULT([found])
+  gs_objc_root_class_attr=1,
+  AC_MSG_RESULT([not present])
+  gs_objc_root_class_attr=0
+)
+
+GS_HAVE_OBJC_ROOT_CLASS_ATTR=$gs_objc_root_class_attr
+AC_SUBST(GS_HAVE_OBJC_ROOT_CLASS_ATTR)
+AC_DEFINE_UNQUOTED(HAVE_OBJC_ROOT_CLASS_ATTRIBUTE,$gs_objc_root_class_attr,
+  [Says whether the objc_root_class attribute works])
+CFLAGS=$saved_CFLAGS
+
 #--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
 #--------------------------------------------------------------------
@@ -1685,7 +1752,7 @@ AC_CACHE_VAL(gs_cv_objc_works,
   AC_TRY_RUN([#include "$srcdir/config/config.objc.m"],
   gs_cv_objc_works=yes, 
   gs_cv_objc_works=no, 
-  gs_cv_objc_works=yes)
+  gs_cv_objc_works="$cross_gs_cv_objc_works")
 )
 if test $gs_cv_objc_works = yes; then
   AC_MSG_RESULT(yes)
@@ -1720,7 +1787,7 @@ else
     AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
     gs_cv_objc_compiler_supports_constant_string_class=yes,
     gs_cv_objc_compiler_supports_constant_string_class=no,
-    gs_cv_objc_compiler_supports_constant_string_class=no)
+    gs_cv_objc_compiler_supports_constant_string_class="$cross_gs_cv_objc_compiler_supports_constant_string_class")
   )
   if test $gs_cv_objc_compiler_supports_constant_string_class = yes; then
     NX_CONST_STRING_OBJCFLAGS="-fconstant-string-class=NSConstantString"
@@ -1759,7 +1826,7 @@ AC_CACHE_VAL(gs_cv_objc_load_method_worked,
   AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
 	gs_cv_objc_load_method_worked=yes,
 	gs_cv_objc_load_method_worked=no,
-	gs_cv_objc_load_method_worked=no)
+	gs_cv_objc_load_method_worked="$cross_gs_cv_objc_load_method_worked")
 )
 if test $gs_cv_objc_load_method_worked = yes; then
   AC_DEFINE(HAVE_LOAD_METHOD,1,
@@ -1787,11 +1854,16 @@ AC_SUBST(OBJCSYNC)
 #--------------------------------------------------------------------
 # Check for ObjC2 support in runtime
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(objc_setProperty)
-if test $ac_cv_func_objc_setProperty = yes ; then
-  OBJC2RUNTIME=1
+if test "$cross_compiling" = "yes"; then
+  AC_MSG_NOTICE(["Cross compiling! Using predefined OBJC2RUNTIME variable"])
+  OBJC2RUNTIME="$cross_objc2_runtime"
 else
-  OBJC2RUNTIME=0
+  AC_CHECK_FUNCS(objc_setProperty)
+  if test $ac_cv_func_objc_setProperty = yes ; then
+    OBJC2RUNTIME=1
+  else
+    OBJC2RUNTIME=0
+  fi
 fi
 AC_SUBST(OBJC2RUNTIME)
 
@@ -1815,7 +1887,8 @@ if test "$nonfragile" = "yes"; then
   CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
   AC_MSG_CHECKING(for non-fragile-abi support)
   AC_RUN_IFELSE([#include "$srcdir/config/config.non-fragile-ivars.m"],
-    non_fragile=yes, non_fragile=no)
+    non_fragile=yes, non_fragile=no,
+    non_fragile="$cross_non_fragile")
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
     OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
@@ -1904,7 +1977,7 @@ AC_MSG_RESULT($have_set_unexpected)
 
 AC_MSG_CHECKING(for _objc_unexpected_exception in runtime)
 AC_RUN_IFELSE([#include "$srcdir/config/config.unexpected.m"],
-	have_unexpected=yes, have_unexpected=no)
+	have_unexpected=yes, have_unexpected=no, have_unexpected="$cross_have_unexpected")
 if test $have_unexpected = yes; then
   AC_DEFINE(HAVE_UNEXPECTED,1,
 	    [Define if libobjc has the _objc_unexpected_exception callback])
@@ -1954,7 +2027,7 @@ AC_SUBST(HAVE_OBJC_SYNC_ENTER)
 
 AC_MSG_CHECKING(for thread-safe +initialize in runtime)
 AC_RUN_IFELSE([#include "$srcdir/config/config.initialize.m"],
-	safe_initialize=yes, safe_initialize=no)
+	safe_initialize=yes, safe_initialize=no, safe_initialize="$cross_safe_initialize")
 if test $safe_initialize = yes; then
   AC_DEFINE(HAVE_INITIALIZE,1,
 	    [Define if libobjc has thread-safe +initialize support])
@@ -2022,6 +2095,32 @@ AC_CHECK_LIB(m, main)
 AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt)
 LIBS="$saved_LIBS"
 
+AC_CACHE_CHECK([for pw_gecos field in struct passwd],
+		ac_cv_have_pw_gecos_in_struct_passwd, [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <pwd.h> ]],
+	[[ struct passwd p; p.pw_gecos = 0; ]])],
+	[ ac_cv_have_pw_gecos_in_struct_passwd="yes" ],
+	[ ac_cv_have_pw_gecos_in_struct_passwd="no" 
+	])
+])
+if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
+	AC_DEFINE([HAVE_PW_GECOS_IN_PASSWD], [1],
+		[Define if you have pw_gecos field in struct passwd])
+fi
+
+AC_CACHE_CHECK([for currency_symbol field in struct lconv],
+		ac_cv_have_currency_symbol_in_struct_lconv, [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <locale.h> ]],
+	[[ struct lconv l; l.currency_symbol = NULL; ]])],
+	[ ac_cv_have_currency_symbol_in_struct_lconv="yes" ],
+	[ ac_cv_have_currency_symbol_in_struct_lconv="no" 
+	])
+])
+if test "x$ac_cv_have_currency_symbol_in_struct_lconv" = "xyes" ; then
+	AC_DEFINE([HAVE_CURRENCY_SYMBOL_IN_LCONV], [1],
+		[Define if you have currency_symbol field in struct lconv])
+fi
+
 #--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m
 #--------------------------------------------------------------------
@@ -2071,9 +2170,16 @@ AC_CHECK_FUNCS(__builtin_extract_return_address)
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(syslog.h)
+AC_CHECK_HEADERS(syslog.h sys/slog.h sys/slogcodes.h)
 AC_CHECK_FUNCS(syslog)
-
+if test "$ac_cv_header_sys_slog_h" = "yes"; then
+  oldLibs="$LIBS";
+  LIBS="$LIBS -l:libc.a";
+  AC_CHECK_FUNCS(slogf)
+  if test "$ac_cv_func_slogf" = "no"; then
+    LIBS="$oldLibs"
+  fi
+fi
 #--------------------------------------------------------------------
 # These headers/functions needed by NSRunLoop.m
 #--------------------------------------------------------------------
@@ -2088,7 +2194,7 @@ if test $ac_cv_header_poll_h = yes; then
   if test $have_poll = yes; then
     AC_MSG_RESULT(no)
     AC_MSG_CHECKING([if poll supports devices])
-    AC_TRY_RUN([#include "$srcdir/config/config.poll-dev.c"], ,have_poll=no, )
+    AC_TRY_RUN([#include "$srcdir/config/config.poll-dev.c"i], ,have_poll=no, have_poll="$cross_have_poll" )
     if test $have_poll = yes; then
       AC_MSG_RESULT(yes)
       AC_DEFINE(HAVE_POLL_F,1, [ Define if poll is NOT emulated via select])
@@ -2108,7 +2214,7 @@ if test $ac_cv_func_vsprintf = yes ; then
     AC_TRY_RUN([#include "$srcdir/config/config.vsprintf.c"],
 		VSPRINTF_RETURNS_LENGTH=1,
 		VSPRINTF_RETURNS_LENGTH=0,
-		VSPRINTF_RETURNS_LENGTH=1)
+		VSPRINTF_RETURNS_LENGTH="$cross_VSPRINTF_RETURNS_LENGTH")
     AC_DEFINE_UNQUOTED(VSPRINTF_RETURNS_LENGTH, $VSPRINTF_RETURNS_LENGTH,
                        [Define if vsprintf returns the length printed])
 fi
@@ -2116,7 +2222,7 @@ if test $ac_cv_func_vasprintf = yes ; then
     AC_TRY_RUN([#include "$srcdir/config/config.vasprintf.c"],
 		VASPRINTF_RETURNS_LENGTH=1,
 		VASPRINTF_RETURNS_LENGTH=0,
-		VASPRINTF_RETURNS_LENGTH=1)
+		VASPRINTF_RETURNS_LENGTH="$cross_VASPRINTF_RETURNS_LENGTH")
     AC_DEFINE_UNQUOTED(VASPRINTF_RETURNS_LENGTH, $VASPRINTF_RETURNS_LENGTH,
                        [Define if vasprintf returns the length printed])
 fi
@@ -2181,6 +2287,7 @@ AC_CHECK_HEADERS(dnl
 	string.h dnl
 	sys/fcntl.h dnl
 	sys/file.h dnl
+	sys/filio.h dnl
 	sys/inttypes.h dnl
 	sys/ioctl.h dnl
 	sys/signal.h dnl
@@ -2276,7 +2383,8 @@ AC_CHECK_FUNCS(setrlimit)
 #--------------------------------------------------------------------
 # One of these functions needed by NSDebug.m and NSProcessInfo.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(strerror_r strerror)
+AC_CHECK_FUNCS(strerror)
+AC_FUNC_STRERROR_R
 
 #--------------------------------------------------------------------
 # Needed by NSDebug.m
@@ -2296,7 +2404,7 @@ AC_MSG_CHECKING(short/int needs to be word aligned)
 AC_TRY_RUN([#include "$srcdir/config/config.align.c"],
 	NEED_WORD_ALIGNMENT=0,
 	NEED_WORD_ALIGNMENT=1,
-	NEED_WORD_ALIGNMENT=1)
+	NEED_WORD_ALIGNMENT="$cross_NEED_WORD_ALIGNMENT")
 AC_DEFINE_UNQUOTED(NEED_WORD_ALIGNMENT, $NEED_WORD_ALIGNMENT,
                    [Define if your system needs to have short/int word aligned])
 if test $NEED_WORD_ALIGNMENT = 1; then
@@ -2314,13 +2422,13 @@ register_printf=0)
 if test $register_printf = 1; then
   AC_TRY_RUN([#include "$srcdir/config/config.printf.c"],
 	       working_register_printf=1, working_register_printf=0, 
-               working_register_printf=1)
+               working_register_printf="$cross_working_register_printf")
   if test $working_register_printf = 1; then
     AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,1,
               [Define if you have the register_printf_function function])
     AC_TRY_RUN([#include "$srcdir/config/config.wprintf.c"],
 	       wide_register_printf=1, wide_register_printf=0, 
-               wide_register_printf=1)
+               wide_register_printf="$cross_wide_register_printf")
     if test $wide_register_printf = 1; then
       AC_DEFINE(HAVE_WIDE_PRINTF_FUNCTION,1,
               [Define if register_printf_function supports wide characters])
@@ -2348,7 +2456,8 @@ main (int argc, char *argv[])
   extern char *program_invocation_name;
   return (strcmp (program_invocation_name, argv[0]));
 }
-], gs_cv_program_invocation_name_worked=yes, gs_cv_program_invocation_name_worked=no, gs_cv_program_invocation_name_worked=no)])
+], gs_cv_program_invocation_name_worked=yes, gs_cv_program_invocation_name_worked=no,
+ gs_cv_program_invocation_name_worked="$cross_gs_cv_program_invocation_name_worked")])
 if test $gs_cv_program_invocation_name_worked = yes; then
   AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,1,
             [Define if your Lib C defines program_invocation_name])
@@ -2384,7 +2493,7 @@ AC_MSG_CHECKING(/proc/$$/cmdline terminated by nul)
 AC_TRY_RUN([#include "$srcdir/config/config.proccmd.c"],
 	CMDLINE_TERMINATED=1,
 	CMDLINE_TERMINATED=0,
-	CMDLINE_TERMINATED=0)
+	CMDLINE_TERMINATED="$cross_CMDLINE_TERMINATED")
 AC_DEFINE_UNQUOTED(CMDLINE_TERMINATED, $CMDLINE_TERMINATED,
 		   [Define if your system terminates the final argument in /proc/$$/cmdline])
 if test $CMDLINE_TERMINATED = 1; then
@@ -2404,7 +2513,7 @@ if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
   AC_TRY_RUN([#include "$srcdir/config/config.kvmopen.c"],
 	have_kvm_env=1,
 	have_kvm_env=0,
-	have_kvm_env=0)
+	have_kvm_env="$cross_have_kvm_env")
   if test $have_kvm_env = 1; then
     AC_MSG_RESULT(yes)
     AC_DEFINE(HAVE_KVM_ENV, 1, 
@@ -2524,15 +2633,6 @@ if test "$exceptions" = "yes"; then
   # ffcall will mess up native exceptions, so we must disable it.
   do_broken_libffcall=yes
   do_enable_libffcall=no
-
-  if test "$have_unexpected" = "no"; then
-    echo
-    echo "Your gnustep-make is configured to use native objc exceptions, but"
-    echo "the objc runtime does not appear to support setting an uncaught"
-    echo "exception handler.  This means that any uncaught exception will"
-    echo "cause a program to abort immediately."
-    echo "Consider reconfiguring gnustep-make or updating libobjc to fix this."
-  fi
 fi
 
 AC_ARG_ENABLE(libffi,
@@ -2639,7 +2739,7 @@ if test $enable_libffi = yes; then
   fi
   LIBS="$ffi_LIBS $LIBS"
   AC_TRY_RUN([#include "$srcdir/config/config.ffi.c"],
-             ffi_ok="yes",ffi_ok="no",ffi_ok="yes")
+             ffi_ok="yes",ffi_ok="no",ffi_ok="$cross_ffi_ok")
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(libffi)
     if test $do_broken_libffi = yes; then
@@ -2741,6 +2841,8 @@ int main(int argc,char **argv)
   found_iconv=yes
 ,
   found_iconv=no
+,
+  found_iconv="$cross_found_iconv_libc",
 )
 
 if test $found_iconv = no ; then
@@ -2767,6 +2869,11 @@ if test $found_iconv = no ; then
   ,
     found_iconv=no
     LIBS="$old_LIBS"
+  ,
+    found_iconv="$cross_found_iconv_liconv";
+    if test "$found_iconv" = "no"; then
+      LIBS="$old_LIBS"
+    fi
   )
 fi
 
@@ -2786,6 +2893,11 @@ if test $found_iconv = no ; then
   ,
     found_iconv=no
     LIBS="$old_LIBS"
+  ,
+    found_iconv="$cross_found_iconv_lgiconv";
+    if test "$found_iconv" = "no"; then
+      LIBS="$old_LIBS"
+    fi
   )
 fi
 
@@ -2986,8 +3098,8 @@ if test $enable_tls = yes; then
     AC_MSG_RESULT(no)
     echo
     echo "You do not appear to have usable libgnutls headers/library."
-    echo "Building without them will disable SSL/TLS/HTTPS in NSStream"
-    echo "and NSURLConnection."
+    echo "Building without them will disable SSL/TLS/HTTPS in NSStream,"
+    echo "NSFileHandle, NSURLHandle and NSURLConnection."
     echo "If you really want to build gnustep-base without TLS support,"
     echo "add --disable-tls to the configure arguments."
     AC_MSG_ERROR([Missing support for TLS functionality.])
@@ -3064,11 +3176,35 @@ AC_ARG_ENABLE(icu,
   [  --disable-icu			Disable International Components for Unicode],,
   enable_icu=yes)
 
+AC_ARG_ENABLE(icu-config,
+  [  --disable-icu-config		Do not use the icu-config script to check
+				for ICU.],,
+  enable_icu_config=yes)
+
+AC_ARG_WITH(icu-library,
+  [  --with-icu-library=PATH  	library path for ICU libraries (only checked
+				if not using icu-config)],
+  icu_libdir="$withval", icu_libdir="no")
+
 if test $enable_icu = yes; then
-  AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
+  if test "$enable_icu_config" = "yes"; then
+    AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
+  else
+    have_icu=no;
+    AC_CHECKING([for libicu (icu-config disabled)])
+    if test "$icu_libdir" != "no"; then
+      ICU_LDFLAGS="-L$icu_libdir";
+    fi
+    saved_LDFLAGS="$LDFLAGS";
+    LDFLAGS="$LDFLAGS $LIBS $ICU_LDFLAGS -licui18n -licuuc -licudata -lm"
+    AC_TRY_LINK([],[], have_icu="yes", have_icu="no");
+    LDFLAGS="$saved_LDFLAGS";
+    ICU_LIBS="-licui18n -licuuc -licudata -lm" 
+  fi
+    
   if test "$have_icu" = "yes"; then
     AC_MSG_RESULT(yes)
-    AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h)
+    AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h)
     LIBS="$LIBS $ICU_LIBS"
     LDFLAGS="$LDFLAGS $ICU_LDFLAGS"
     LDIR_FLAGS="$LDIR_FLAGS $ICU_LDFLAGS"
@@ -3162,6 +3298,30 @@ fi
 
 AC_SUBST(USE_GMP)
 
+
+#--------------------------------------------------------------------
+# Check which sorting algorithm to use.
+#--------------------------------------------------------------------
+AC_ARG_WITH(sort-algorithm,
+  [  --with-sort-algorithm=ALG  force use of a specific sorting algorithm. 
+				Possible values are timsort, quicksort, and shellsort.
+				Defaults to shellsort (others broken).],
+  sort_algorithm="$withval", sort_algorithm="shellsort")
+
+if test "$sort_algorithm" = "timsort"; then
+  AC_DEFINE(GS_USE_TIMSORT,1,[Build in/use timsort])
+else
+  if test "$sort_algorithm" = "quicksort"; then
+    AC_DEFINE(GS_USE_QUICKSORT,1,[Build in/use quicksort])
+  else
+    if test "$sort_algorithm" = "shellsort"; then
+      AC_DEFINE(GS_USE_SHELLSORT,1,[Build in/use shellsort])
+    else
+      AC_MSG_ERROR([Unknown sort_algorithm defined!])
+    fi
+  fi
+fi
+
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
 #--------------------------------------------------------------------
@@ -3232,6 +3392,11 @@ fi
 
 AC_SUBST(GNUSTEP_INSTALL_GDOMAP_AS_SETUID)
 
+# If there's no TLS support ... try to get some limited functionality
+# by using OpenSSL instead.
+
+if test "$HAVE_TLS" = "0"; then
+
 #--------------------------------------------------------------------
 # Configure flags from sub-configure runs, so they show up in our
 # help file.
@@ -3239,6 +3404,7 @@ AC_SUBST(GNUSTEP_INSTALL_GDOMAP_AS_SETUID)
 AC_ARG_ENABLE(openssl,
   [  --disable-openssl		Disable support for openssl in URL classes],,
   enable_openssl=yes)
+  HAVE_GNUTLS=0
 AC_ARG_WITH(openssl-include,
   [  --with-openssl-include=PATH  include path for openssl headers],
   openssl_incdir="$withval", openssl_incdir="no")
@@ -3247,6 +3413,7 @@ AC_ARG_WITH(openssl-library,
   openssl_libdir="$withval", openssl_libdir="no")
 
 AC_CONFIG_SUBDIRS(SSL)
+fi
 
 #--------------------------------------------------------------------
 # Record the version

@@ -149,8 +149,8 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
  */
 #define NSDebugMLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) { \
-    NSString *s = GSDebugFunctionMsg( \
-      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+    NSString *s = GSDebugMethodMsg( \
+      self, _cmd, __FILE__, __LINE__, \
       [NSString stringWithFormat: format, ##args]); \
     NSLog(@"%@", s); }} while (0)
 
@@ -160,8 +160,8 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
  */
 #define NSDebugMLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) { \
-    NSString *s = GSDebugFunctionMsg( \
-      __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+    NSString *s = GSDebugMethodMsg( \
+      self, _cmd, __FILE__, __LINE__, \
       [NSString stringWithFormat: format, ##args]); \
     NSLog(@"%@", s); }} while (0)
 

@@ -95,7 +95,7 @@ int main()
   [(NSMutableData*)data appendBytes: "\r\n\r\n" length: 4];
   [parser parse: data];
   doc = [parser document];
-  PASS([[parser excess] length] == 4, "Can detect excess data in multipart");
+  PASS([[parser excess] length] == 5, "Can detect excess data in multipart");
   [parser release];
   
   data = [NSData dataWithContentsOfFile: @"mime2.dat"];

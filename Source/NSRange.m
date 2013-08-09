@@ -88,7 +88,8 @@ NSString *
 NSStringFromRange(NSRange range)
 {
   setupCache();
-  return [NSStringClass stringWithFormat: @"{location=%d, length=%d}",
+  return [NSStringClass
+    stringWithFormat: @"{location=%"PRIuPTR", length=%"PRIuPTR"}",
     range.location, range.length];
 }
 

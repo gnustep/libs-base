@@ -29,6 +29,14 @@
 #ifndef	included_GSConfig_h
 #define	included_GSConfig_h
 
+// Make sure we expose the constants that we use in ObjC++ mode
+#ifndef __STDC_CONSTANT_MACROS
+#define __STDC_CONSTANT_MACROS 1
+#endif
+#ifndef __STDC_LIMIT_MACROS 
+#define __STDC_LIMIT_MACROS 1
+#endif
+
 #if !defined(NeXT_Foundation_LIBRARY)
 
 /* An alternate to GS_FAKE_MAIN which forces the user to call the
@@ -227,6 +235,7 @@ typedef	struct {
 #define GS_USE_MDNS @HAVE_MDNS@
 #define GS_USE_ICU @HAVE_ICU@
 #define GS_USE_LIBDISPATCH @HAVE_LIBDISPATCH@
+#define GS_HAVE_OBJC_ROOT_CLASS_ATTR @GS_HAVE_OBJC_ROOT_CLASS_ATTR@
 
 #if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
 #  if	!defined(__WIN32__)

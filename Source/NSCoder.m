@@ -244,7 +244,7 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
 - (id) decodeObject
 {
-  id	o;
+  id	o = nil;
 
   [self decodeValueOfObjCType: @encode(id) at: &o];
   return AUTORELEASE(o);
@@ -253,7 +253,7 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 - (id) decodePropertyList
 {
   id	o;
-  id	d;
+  id	d = nil;
 
   [self decodeValueOfObjCType: @encode(id) at: &d];
   if (d != nil)
@@ -499,6 +499,7 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
 - (id) initWithObjCType: (const char*)t count: (NSInteger)c at: (const void*)a
 {
+  t = GSSkipTypeQualifierAndLayoutInfo(t);
   _t[0] = *t;
   _t[1] = '\0';
   _s = objc_sizeof_type(_t);

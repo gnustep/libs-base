@@ -116,18 +116,18 @@ enum
   NSDeveloperDirectory,			/** Developer */
   NSUserDirectory,			/** user home directories */
   NSDocumentationDirectory,		/** Documentation */
-#if OS_API_VERSION(100200, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
   NSDocumentDirectory,			/** Documents */
 #endif
-#if OS_API_VERSION(100300, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
   NSCoreServicesDirectory,		/** CoreServices */
 #endif
-#if OS_API_VERSION(100400, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
   NSDesktopDirectory = 12,		/** location of users desktop */
   NSCachesDirectory = 13,		/** location of users cache files */
   NSApplicationSupportDirectory = 14,	/** location of app support files */
 #endif
-#if OS_API_VERSION(100500, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
   NSDownloadsDirectory = 15,	        /** location of downloaded files */
 #endif
 
@@ -186,7 +186,7 @@ enum
   NSLocalDomainMask = 2,	/** Local for all users on the machine */
   NSNetworkDomainMask = 4,	/** Public for all users on network */
   NSSystemDomainMask = 8,	/** Standard GNUstep items */
-  NSAllDomainsMask = 0x0ffff,	/** all domains */
+  NSAllDomainsMask = 0x0ffff	/** all domains */
 };
 /**
  * Mask type for NSSearchPathForDirectoriesInDomains() function.  A bitwise OR

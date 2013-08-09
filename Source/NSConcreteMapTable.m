@@ -98,27 +98,42 @@ typedef GSIMapNode_t *GSIMapNode;
  (M->legacy ? M->cb.old.v.retain(M, X.ptr) \
  : pointerFunctionsAcquire(&M->cb.pf.v, &X.ptr, X.ptr))
 
+/* 2013-05-25 Here are the macros originally added for GC/ARC ...
+ * but they caused map table entries to be doubly retained :-(
+ * The question is, are the new versions I hacked in below to
+ * fix this correct?
+ 
 #define GSI_MAP_WRITE_KEY(M, addr, x) \
 	if (M->legacy) \
-		*(addr) = x;\
+	  *(addr) = x;\
 	else\
-	 pointerFunctionsAssign(&M->cb.pf.k, (void**)addr, (x).obj);
+	  pointerFunctionsAssign(&M->cb.pf.k, (void**)addr, (x).obj);
 #define GSI_MAP_WRITE_VAL(M, addr, x) \
 	if (M->legacy) \
-		*(addr) = x;\
+	  *(addr) = x;\
 	else\
-	 pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj);
+	  pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj);
+*/
+#define GSI_MAP_WRITE_KEY(M, addr, x) \
+	if (M->legacy) \
+          *(addr) = x;\
+	else\
+	  *(id*)(addr) = (x).obj;
+#define GSI_MAP_WRITE_VAL(M, addr, x) \
+	if (M->legacy) \
+          *(addr) = x;\
+	else\
+	  *(id*)(addr) = (x).obj;
 #define GSI_MAP_READ_KEY(M,addr) \
-	(M->legacy ? *(addr) :\
-	 (typeof(*addr))pointerFunctionsRead(&M->cb.pf.k, (void**)addr))
+	(M->legacy ? *(addr)\
+	  : (typeof(*addr))pointerFunctionsRead(&M->cb.pf.k, (void**)addr))
 #define GSI_MAP_READ_VALUE(M,addr) \
-	(M->legacy ? *(addr) :\
-	 (typeof(*addr))pointerFunctionsRead(&M->cb.pf.v, (void**)addr))
+	(M->legacy ? *(addr)\
+	  : (typeof(*addr))pointerFunctionsRead(&M->cb.pf.v, (void**)addr))
 #define GSI_MAP_ZEROED(M)\
- (M->legacy ? 0 \
- : (((M->cb.pf.k.options | M->cb.pf.v.options) & NSPointerFunctionsZeroingWeakMemory) ?\
-      YES : NO))
-
+        (M->legacy ? 0\
+          : (((M->cb.pf.k.options | M->cb.pf.v.options)\
+            & NSPointerFunctionsZeroingWeakMemory) ? YES : NO))
 
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 

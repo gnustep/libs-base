@@ -47,7 +47,7 @@ extern "C" {
 @class NSMutableArray;
 @class NSMutableDictionary;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 GS_EXPORT NSString *const NSGrammarCorrections;
 GS_EXPORT NSString *const NSGrammarRange;
 GS_EXPORT NSString *const NSGrammarUserDescription;
@@ -143,7 +143,7 @@ findMisspelledWordInString: (NSString *)stringToCheck
        didForgetWord: (NSString *)word
           inLanguage: (NSString *)language;
 
-#if OS_API_VERSION(100300,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3,GS_API_LATEST) 
 /** Not implemented */
 - (NSArray *) spellServer: (NSSpellServer *)sender
   suggestCompletionsForPartialWordRange: (NSRange)range
@@ -151,7 +151,7 @@ findMisspelledWordInString: (NSString *)stringToCheck
   language: (NSString *)language;
 #endif
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 /** Not implemented */
 - (NSRange) spellServer: (NSSpellServer *)sender
   checkGrammarInString: (NSString *)stringToCheck

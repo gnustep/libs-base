@@ -32,7 +32,6 @@
 #endif
 
 #import "Foundation/NSException.h"
-#include <string.h>
 
 /**
  * Returns a string object containing the name for

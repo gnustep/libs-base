@@ -76,7 +76,11 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   BOOL			flag;
   BOOL			negative = NO;
 
-  if (info == 0)
+  if (0 == typePtr)
+    {
+      return 0;
+    }
+  if (0 == info)
     {
       info = &local;
     }

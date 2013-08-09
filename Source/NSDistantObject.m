@@ -129,7 +129,7 @@ enum proxyLocation
  *	instance, we will get a pre-existing one, so we don't want to go
  *	allocating the memory for a new instance unless absolutely necessary.
  */
-@interface	GSDistantObjectPlaceHolder
+GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 + (id) initWithCoder: (NSCoder*)aCoder;
 + (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection;
 + (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection;
@@ -908,7 +908,7 @@ enum proxyLocation
 
 - (Class) classForPortCoder
 {
-  return isa;
+  return object_getClass(self);
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc;

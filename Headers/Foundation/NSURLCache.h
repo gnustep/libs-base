@@ -26,7 +26,7 @@
 #define __NSURLCache_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100200,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -47,7 +47,7 @@ typedef enum
 {
   NSURLCacheStorageAllowed,	/** Unrestricted caching */
   NSURLCacheStorageAllowedInMemoryOnly,	/** In memory caching only */
-  NSURLCacheStorageNotAllowed, /** No caching allowed */
+  NSURLCacheStorageNotAllowed /** No caching allowed */
 } NSURLCacheStoragePolicy;
 
 

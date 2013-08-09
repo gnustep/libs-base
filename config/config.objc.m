@@ -1,7 +1,7 @@
 
 #include "objc-common.g"
 
-@interface Test 
+GS_OBJC_ROOT_CLASS @interface Test 
 +(int) testResult;
 @end
 

@@ -54,7 +54,6 @@
 #  include	<fcntl.h>
 #endif
 
-#include <string.h>
 #include <sys/un.h>
 
 /* Older systems (Solaris) compatibility */
@@ -129,9 +128,10 @@ static void clean_up_names(void)
 {
   if (self == [NSMessagePortNameServer class])
     {
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSFileManager	*mgr;
       NSString		*path;
-      NSString		*pref;
+      NSString		*pid;
       NSString		*file;
       NSEnumerator	*files;
 
@@ -149,35 +149,41 @@ static void clean_up_names(void)
       path = NSTemporaryDirectory();
       path = [path stringByAppendingPathComponent: @"NSMessagePort"];
       path = [path stringByAppendingPathComponent: @"names"];
-      pref = [NSString stringWithFormat: @"%i.",
+      pid = [NSString stringWithFormat: @"%i",
 	[[NSProcessInfo processInfo] processIdentifier]];
       mgr = [NSFileManager defaultManager];
       files = [[mgr directoryContentsAtPath: path] objectEnumerator];
       while ((file = [files nextObject]) != nil)
 	{
           NSString	*old = [path stringByAppendingPathComponent: file];
-	  NSString	*port = [NSString stringWithContentsOfFile: old];
+          NSArray       *lines;
+          NSString      *line;
+          int           opid;
 
-	  if (YES == [port hasPrefix: pref])
-	    {
-	      NSDebugMLLog(@"NSMessagePort", @"Removing old name %@", old);
-	      [mgr removeFileAtPath: old handler: nil];
-	    }
-	  else
-	    {
-	      int	pid = [port intValue];
-
-	      if (pid > 0)
-		{
-		  if (NO == [NSProcessInfo _exists: pid])
-		    {
-		      NSDebugMLLog(@"NSMessagePort",
-		        @"Removing old name %@ for process %d", old, pid);
-		      [mgr removeFileAtPath: old handler: nil];
-		    }
-		}
-	    }
+	  lines = [[NSString stringWithContentsOfFile: old]
+            componentsSeparatedByString: @"\n"];
+          if ([lines count] > 1
+            && (opid = [(line = [lines objectAtIndex: 1]) intValue]) > 0)
+            {
+              if (YES == [line isEqual: pid])
+                {
+                  NSDebugMLLog(@"NSMessagePort", @"Removing old name %@", old);
+                  [mgr removeFileAtPath: old handler: nil];
+                }
+              else if (NO == [NSProcessInfo _exists: opid])
+                {
+                  NSDebugMLLog(@"NSMessagePort",
+                    @"Removing old name %@ for process %d", old, opid);
+                  [mgr removeFileAtPath: old handler: nil];
+                }
+            }
+          else
+            {
+              NSDebugMLLog(@"NSMessagePort", @"Removing bad name %@", old);
+              [mgr removeFileAtPath: old handler: nil];
+            }
 	}
+      [pool release];
     }
 }
 
@@ -269,20 +275,28 @@ static void clean_up_names(void)
   [serverLock lock];
   if (!base_path)
     {
-      NSNumber		*p = [NSNumber numberWithInt: 0700];
       NSDictionary	*attr;
 
-      path = NSTemporaryDirectory();
-      attr = [NSDictionary dictionaryWithObject: p
-				     forKey: NSFilePosixPermissions];
+      if (nil == (path = NSTemporaryDirectory()))
+        {
+          [serverLock unlock];
+          return nil;
+        }
+
+      attr = [NSDictionary dictionaryWithObject: [NSNumber numberWithInt: 0700]
+                                         forKey: NSFilePosixPermissions];
 
       path = [path stringByAppendingPathComponent: @"NSMessagePort"];
       [[NSFileManager defaultManager] createDirectoryAtPath: path
-				      attributes: attr];
+                                withIntermediateDirectories: YES
+                                                 attributes: attr
+                                                      error: NULL];
 
       path = [path stringByAppendingPathComponent: @"names"];
       [[NSFileManager defaultManager] createDirectoryAtPath: path
-				      attributes: attr];
+                                withIntermediateDirectories: YES
+                                                 attributes: attr
+                                                      error: NULL];
 
       base_path = RETAIN(path);
     }

@@ -680,84 +680,84 @@ static Class concreteMutableClass = nil;
   return cache_set[number];
 }
 
-+ (NSCharacterSet*) alphanumericCharacterSet
++ (id) alphanumericCharacterSet
 {
   return [self _staticSet: alphanumericCharSet
 		   length: sizeof(alphanumericCharSet)
 		   number: 0];
 }
 
-+ (NSCharacterSet*) capitalizedLetterCharacterSet
++ (id) capitalizedLetterCharacterSet
 {
   return [self _staticSet: titlecaseLetterCharSet
 		   length: sizeof(titlecaseLetterCharSet)
 		   number: 13];
 }
 
-+ (NSCharacterSet*) controlCharacterSet
++ (id) controlCharacterSet
 {
   return [self _staticSet: controlCharSet
 		   length: sizeof(controlCharSet)
 		   number: 1];
 }
 
-+ (NSCharacterSet*) decimalDigitCharacterSet
++ (id) decimalDigitCharacterSet
 {
   return [self _staticSet: decimalDigitCharSet
 		   length: sizeof(decimalDigitCharSet)
 		   number: 2];
 }
 
-+ (NSCharacterSet*) decomposableCharacterSet
++ (id) decomposableCharacterSet
 {
   return [self _staticSet: decomposableCharSet
 		   length: sizeof(decomposableCharSet)
 		   number: 3];
 }
 
-+ (NSCharacterSet*) illegalCharacterSet
++ (id) illegalCharacterSet
 {
   return [self _staticSet: illegalCharSet
 		   length: sizeof(illegalCharSet)
 		   number: 4];
 }
 
-+ (NSCharacterSet*) letterCharacterSet
++ (id) letterCharacterSet
 {
   return [self _staticSet: letterCharSet
 		   length: sizeof(letterCharSet)
 		   number: 5];
 }
 
-+ (NSCharacterSet*) lowercaseLetterCharacterSet
++ (id) lowercaseLetterCharacterSet
 {
   return [self _staticSet: lowercaseLetterCharSet
 		   length: sizeof(lowercaseLetterCharSet)
 		   number: 6];
 }
 
-+ (NSCharacterSet*) newlineCharacterSet
++ (id) newlineCharacterSet
 {
   return [self _staticSet: newlineCharSet
 		   length: sizeof(newlineCharSet)
 		   number: 14];
 }
 
-+ (NSCharacterSet*) nonBaseCharacterSet
++ (id) nonBaseCharacterSet
 {
   return [self _staticSet: nonBaseCharSet
 		   length: sizeof(nonBaseCharSet)
 		   number: 7];
 }
 
-+ (NSCharacterSet*) punctuationCharacterSet
++ (id) punctuationCharacterSet
 {
   return [self _staticSet: punctuationCharSet
 		   length: sizeof(punctuationCharSet)
 		   number: 8];
 }
 
-+ (NSCharacterSet*) symbolCharacterSet
++ (id) symbolCharacterSet
 {
   return [self _staticSet: symbolAndOperatorCharSet
 		   length: sizeof(symbolAndOperatorCharSet)
@@ -765,7 +765,7 @@ static Class concreteMutableClass = nil;
 }
 
 // FIXME ... deprecated ... remove after next release.
-+ (NSCharacterSet*) symbolAndOperatorCharacterSet
++ (id) symbolAndOperatorCharacterSet
 {
   GSOnceMLog(@"symbolAndOperatorCharacterSet is deprecated ... use symbolCharacterSet");
   return [self _staticSet: symbolAndOperatorCharSet
@@ -773,33 +773,33 @@ static Class concreteMutableClass = nil;
 		   number: 9];
 }
 
-+ (NSCharacterSet*) uppercaseLetterCharacterSet
++ (id) uppercaseLetterCharacterSet
 {
   return [self _staticSet: uppercaseLetterCharSet
 		   length: sizeof(uppercaseLetterCharSet)
 		   number: 10];
 }
 
-+ (NSCharacterSet*) whitespaceAndNewlineCharacterSet
++ (id) whitespaceAndNewlineCharacterSet
 {
   return [self _staticSet: whitespaceAndNlCharSet
 		   length: sizeof(whitespaceAndNlCharSet)
 		   number: 11];
 }
 
-+ (NSCharacterSet*) whitespaceCharacterSet
++ (id) whitespaceCharacterSet
 {
   return [self _staticSet: whitespaceCharSet
 		   length: sizeof(whitespaceCharSet)
 		   number: 12];
 }
 
-+ (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
++ (id) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[concreteClass alloc] initWithBitmap: data]);
 }
 
-+ (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
++ (id) characterSetWithCharactersInString: (NSString*)aString
 {
   NSMutableCharacterSet	*ms;
   NSCharacterSet	*cs;
@@ -811,7 +811,7 @@ static Class concreteMutableClass = nil;
   return AUTORELEASE(cs);
 }
 
-+ (NSCharacterSet*) characterSetWithRange: (NSRange)aRange
++ (id) characterSetWithRange: (NSRange)aRange
 {
   NSMutableCharacterSet	*ms;
   NSCharacterSet	*cs;
@@ -823,7 +823,7 @@ static Class concreteMutableClass = nil;
   return AUTORELEASE(cs);
 }
 
-+ (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile
++ (id) characterSetWithContentsOfFile: (NSString*)aFile
 {
   if ([@"bitmap" isEqual: [aFile pathExtension]])
     {
@@ -1033,93 +1033,93 @@ static Class concreteMutableClass = nil;
 @implementation NSMutableCharacterSet
 
 /* Override this from NSCharacterSet to create the correct class */
-+ (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
++ (id) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[concreteMutableClass alloc] initWithBitmap: data]);
 }
 
-+ (NSCharacterSet*) alphanumericCharacterSet
++ (id) alphanumericCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) capitalizedLetterCharacterSet
++ (id) capitalizedLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) controlCharacterSet
++ (id) controlCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) decimalDigitCharacterSet
++ (id) decimalDigitCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) decomposableCharacterSet
++ (id) decomposableCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) illegalCharacterSet
++ (id) illegalCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) letterCharacterSet
++ (id) letterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) lowercaseLetterCharacterSet
++ (id) lowercaseLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) newlineCharacterSet
++ (id) newlineCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) nonBaseCharacterSet
++ (id) nonBaseCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) punctuationCharacterSet
++ (id) punctuationCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) symbolCharacterSet
++ (id) symbolCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
 // FIXME ... deprecated ... remove after next release.
-+ (NSCharacterSet*) symbolAndOperatorCharacterSet
++ (id) symbolAndOperatorCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) uppercaseLetterCharacterSet
++ (id) uppercaseLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) whitespaceAndNewlineCharacterSet
++ (id) whitespaceAndNewlineCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) whitespaceCharacterSet
++ (id) whitespaceCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
++ (id) characterSetWithCharactersInString: (NSString*)aString
 {
   NSMutableCharacterSet	*ms;
 
@@ -1128,7 +1128,7 @@ static Class concreteMutableClass = nil;
   return AUTORELEASE(ms);
 }
 
-+ (NSCharacterSet*) characterSetWithRange: (NSRange)aRange
++ (id) characterSetWithRange: (NSRange)aRange
 {
   NSMutableCharacterSet	*ms;
 

@@ -42,6 +42,7 @@
 
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<GNUstepBase/GSConfig.h>
+#import	<GNUstepBase/GSBlocks.h>
 
 /* These typedefs must be in place before GSObjCRuntime.h is imported.
  */
@@ -99,9 +100,24 @@ enum
  */
 typedef NSUInteger NSEnumerationOptions;
 
+enum
+{
+    NSSortConcurrent = (1UL << 0), /** Specifies that the sort
+     * is concurrency-safe.  Note that this does not mean that it will be
+     * carried out in a concurrent manner, only that it can be.
+     */
+    NSSortStable = (1UL << 4), /** Specifies that the sort should keep
+     * equal objects in the same order in the collection.
+     */
+};
+
+/** Bitfield used to specify options to control the sorting of collections.
+ */
+typedef NSUInteger NSSortOptions;
+
 #import <GNUstepBase/GSObjCRuntime.h>
 
-#if OS_API_VERSION(100500,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 GS_EXPORT NSString	*NSStringFromProtocol(Protocol *aProtocol);
 GS_EXPORT Protocol	*NSProtocolFromString(NSString *aProtocolName);
 #endif
@@ -127,8 +143,8 @@ GS_EXPORT int	_NSLogDescriptor;
 GS_EXPORT NSRecursiveLock	*GSLogLock(void);
 #endif
 
-GS_EXPORT void			NSLog (NSString *format, ...);
-GS_EXPORT void			NSLogv (NSString *format, va_list args);
+GS_EXPORT void	NSLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
+GS_EXPORT void	NSLogv(NSString *format, va_list args) NS_FORMAT_FUNCTION(1,0);
 
 #ifndef YES
 #define YES		1
@@ -153,11 +169,7 @@ NSComparisonResult;
 
 enum {NSNotFound = NSIntegerMax};
 
-
-#ifdef __clang__
-#define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
-#endif //__clang__
-
+DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 
 #if	defined(__cplusplus)
 }

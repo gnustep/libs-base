@@ -354,72 +354,75 @@ static NSString		*mainFont = nil;
       dict = [refs objectForKey: type];
     }
 
-  if ([dict count] > 1 && [type isEqual: @"title"] == YES)
+  if ([type isEqual: @"title"] == YES)
     {
-      if (!isBareStyle)
+      if ([dict count] > 1)
         {
-          [buf appendString: indent];
-          [buf appendFormat: @"<b>%@ Index</b>\n", title];
-          [buf appendString: indent];
-          [buf appendString: @"<ul>\n"];
-          [self incIndent];
-        }
-
-      a = [dict allKeys];
-      a = [a sortedArrayUsingSelector: @selector(compare:)];
-      c = [a count];
-
-      for (i = 0; i < c; i++)
-	{
-	  NSString	*ref = [a objectAtIndex: i];
-	  NSString	*text = [dict objectForKey: ref];
-	  NSString	*file = ref;
-
-	  ref = [ref stringByReplacingString: @":" withString: @"$"];
-	  if ([file isEqual: base] == YES)
-	    {
-	      continue;	// Don't list current file.
-	    }
-
-	  [buf appendString: indent];
           if (!isBareStyle)
             {
-              [buf appendString: @"<li>"];
+              [buf appendString: indent];
+              [buf appendFormat: @"<b>%@ Index</b>\n", title];
+              [buf appendString: indent];
+              [buf appendString: @"<ul>\n"];
+              [self incIndent];
             }
-          [buf appendString: @"<a rel=\"gsdoc\" "];
-          if (target != nil)
+
+          a = [dict allKeys];
+          a = [a sortedArrayUsingSelector: @selector(compare:)];
+          c = [a count];
+
+          for (i = 0; i < c; i++)
             {
-              [buf appendFormat: @"target=\"%@\" ", target];
+              NSString	*ref = [a objectAtIndex: i];
+              NSString	*text = [dict objectForKey: ref];
+              NSString	*file = ref;
+
+              ref = [ref stringByReplacingString: @":" withString: @"$"];
+              if ([file isEqual: base] == YES)
+                {
+                  continue;	// Don't list current file.
+                }
+
+              [buf appendString: indent];
+              if (!isBareStyle)
+                {
+                  [buf appendString: @"<li>"];
+                }
+              [buf appendString: @"<a rel=\"gsdoc\" "];
+              if (target != nil)
+                {
+                  [buf appendFormat: @"target=\"%@\" ", target];
+                }
+              if  (([type isEqual: @"protocol"] == YES)
+                   && ([text hasPrefix: @"("] == NO))
+                {
+                  // it's an informal protocol, detected earlier as an
+                  // unimplemented category of NSObject; make proper link
+                  [buf appendFormat: @"href=\"%@.html#%@$NSObject%@\">(%@)</a>",
+                       file, @"category", ref, text];
+                }
+              else
+                {
+                  [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
+                       file, type, ref, text];
+                }
+              if (!isBareStyle)
+                {
+                  [buf appendString: @"</li>"];
+                }
+              else
+                {
+                  [buf appendString: @"<br/>"];
+                }
+              [buf appendString: @"\n"];
             }
-          if  (([type isEqual: @"protocol"] == YES)
-               && ([text hasPrefix: @"("] == NO))
-            {
-              // it's an informal protocol, detected earlier as an
-              // unimplemented category of NSObject; make proper link
-              [buf appendFormat: @"href=\"%@.html#%@$NSObject%@\">(%@)</a>",
-                   file, @"category", ref, text];
-            }
-          else
-            {
-              [buf appendFormat: @"href=\"%@.html#%@$%@\">%@</a>",
-                   file, type, ref, text];
-            }
+
           if (!isBareStyle)
             {
-              [buf appendString: @"</li>"];
+              [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</ul>\n"];
             }
-          else
-            {
-              [buf appendString: @"<br/>"];
-            }
-          [buf appendString: @"\n"];
-	}
-
-      if (!isBareStyle)
-        {
-          [self decIndent];
-          [buf appendString: indent];
-          [buf appendString: @"</ul>\n"];
         }
     }
   else if ([dict count] > 0)
@@ -1214,7 +1217,6 @@ static NSString		*mainFont = nil;
 		  if ([[tmp name] isEqual: @"desc"] == YES)
 		    {
 		      desc = tmp;
-		      tmp = [tmp nextElement];
 		    }
 
 		  [buf appendString: indent];
@@ -1253,7 +1255,6 @@ static NSString		*mainFont = nil;
 		    {
 		      [self incIndent];
                       [self outputNode: desc to: buf];
-                      desc = nil;
 		      [self decIndent];
 		    }
 		  [buf appendString: indent];
@@ -1301,7 +1302,6 @@ static NSString		*mainFont = nil;
 	      [buf appendString: @"<p><b>Copyright:</b> (C) "];
 	      [self outputText: [children firstChild] to: buf];
 	      [buf appendString: @"</p>\n"];
-	      children = [children nextElement];
 	    }
 	}
       else if ([name isEqual: @"heading"] == YES)
@@ -1370,10 +1370,13 @@ static NSString		*mainFont = nil;
 	    }
 	  [buf appendFormat: @"%@@%@ %@ <b>%@</b>;<br />\n", indent, v, t, n];
 
+/*
 	  if ([[children name] isEqual: @"desc"] == YES)
 	    {
 	      children = [children nextElement];
 	    }
+*/
+
 	  /*
 	   * List standards with which ivar complies
 	   */
@@ -1864,7 +1867,6 @@ static NSString		*mainFont = nil;
 	  if (node != nil && [[node name] isEqual: @"desc"] == YES)
 	    {
 	      [self outputNode: node to: buf];
-	      node = [node nextElement];
 	    }
 
 	  [buf appendString: indent];
@@ -1959,7 +1961,6 @@ static NSString		*mainFont = nil;
 	    {
 	      NSLog(@"Element '%@' not implemented", name);	// FIXME
 	    }
-	  node = tmp;
 	}
     }
   [arp drain];
@@ -2209,13 +2210,15 @@ static NSString		*mainFont = nil;
           NSDictionary	*dProp = [dItem attributes];
           NSString	*value = [dProp objectForKey: @"value"];
           GSXMLNode	*dChild;
+
           if (![@"dictionaryItem" isEqualToString: [dItem name]])
             {
               continue;
             }
           [buf appendString: indent];
           [buf appendString: @"<dt>"];
-          [buf appendString: [[dProp objectForKey: @"key"] stringByEscapingXML]];
+          [buf appendString:
+	    [[dProp objectForKey: @"key"] stringByEscapingXML]];
           [buf appendString: @" = </dt>\n"];
 	  [buf appendString: indent];
           [buf appendString: @"<dd>\n"];
@@ -2233,8 +2236,8 @@ static NSString		*mainFont = nil;
                   dChild = [dItem firstChild];
                   [buf appendString: indent];
                 }
-              dItem = [self outputBlock: dChild to: buf inPara: NO];
-              //PENDING should check that dItem is what it should be...
+              [self outputBlock: dChild to: buf inPara: NO];
+              //PENDING use returne value  for dItem?
             }
           [buf appendString: @"\n"];
           [self decIndent];

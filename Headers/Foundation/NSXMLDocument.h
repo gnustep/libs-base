@@ -76,7 +76,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
 {
 #if     GS_NONFRAGILE
 #  if	defined(GS_NSXMLDocument_IVARS)
-@public GS_NSXMLDocument_IVARS
+@public GS_NSXMLDocument_IVARS;
 #  endif
 #endif
   /* The pointer to private additional data used to avoid breaking ABI
@@ -155,7 +155,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
 /**
  * Sets the kind of document.
  */
-- (void) setDocumentContentKind: (NSXMLDocumentContentKind)kind;
+- (void) setDocumentContentKind: (NSXMLDocumentContentKind)theContentKind;
 
 /**
  * Sets the DTD of the receiver.  If this is set then the DTD will be
@@ -166,7 +166,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
 /**
  * Sets the document MIME type (usually text/xml).
  */
-- (void) setMIMEType: (NSString*)MIMEType;
+- (void) setMIMEType: (NSString*)theMIMEType;
 
 /**
  * Sets the root object of the receiver, removing any children which
@@ -221,7 +221,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
 /**
  * Replacs the child at the specified index.
  */
-- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)node;
+- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)theNode;
 
 /**
  * Outputs XML data using -XMLDataWithOptions: with NSXMLNodeOptionsNone.
@@ -231,7 +231,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
 /**
  * Outputs the reciever encoded using the specified options.
  */
-- (NSData*) XMLDataWithOptions: (NSUInteger)options;
+- (NSData*) XMLDataWithOptions: (NSUInteger)theOptions;
 
 /**
  * Returns a new document created by applying xslt (with a set of
@@ -254,7 +254,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
  * by applying it (with a set of key/value pairs) to the receiver.
  */
 - (id) objectByApplyingXSLTAtURL: (NSURL*)xsltURL
-                       arguments: (NSDictionary*)argument
+                       arguments: (NSDictionary*)arguments
                            error: (NSError**)error;
 
 /* Validate the receiver according to its DTD.

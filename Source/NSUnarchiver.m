@@ -32,7 +32,6 @@
 #endif
 
 #define	EXPOSE_NSUnarchiver_IVARS	1
-#include <string.h>
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSByteOrder.h"
@@ -539,6 +538,8 @@ static unsigned	encodingVersion;
   NSUInteger	offset = 0;
   unsigned int	size = (unsigned int)objc_sizeof_type(type);
   unsigned char	info;
+  unsigned char	ainfo;
+  unsigned char	amask;
   NSUInteger	count;
 
   (*tagImp)(src, tagSel, &info, 0, &cursor);
@@ -588,7 +589,7 @@ static unsigned	encodingVersion;
   if (count != expected)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"expected array count %u and got %u",
+		  format: @"expected array count %"PRIuPTR" and got %"PRIuPTR"",
 			expected, count];
     }
 
@@ -617,25 +618,209 @@ static unsigned	encodingVersion;
 	  (*dValImp)(self, dValSel, type, (char*)buf + offset);
 	  offset += size;
 	}
+      return;
     }
-  else
+
+  (*tagImp)(src, tagSel, &ainfo, 0, &cursor);
+  amask = (ainfo & _GSC_MASK);
+
+  /* If we have a perfect type match or we are coding a class as an ID,
+   * we can just decode the array simply.
+   */
+  if (info == amask || (info == _GSC_ID && amask == _GSC_CID))
     {
-      unsigned char	ainfo;
-
-      (*tagImp)(src, tagSel, &ainfo, 0, &cursor);
-      if (info != (ainfo & _GSC_MASK))
-        {
-	  if (info != _GSC_ID || (ainfo & _GSC_MASK) != _GSC_CID)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"expected %s and got %s",
-			    typeToName2(info), typeToName2(ainfo)];
-	    }
-        }
-
       for (i = 0; i < count; i++)
 	{
 	  (*desImp)(src, desSel, (char*)buf + offset, type, &cursor, nil);
+	  offset += size;
+	}
+      return;
+    }
+
+  /* This will raise an exception if the types don't match at all.
+   */
+  typeCheck(*type, ainfo);
+
+  /* We fall through to here only when we have to decode a value
+   * whose natural size on this system is not the same as on the
+   * machine on which the archive was created.
+   */
+
+  if (*type == _C_FLT)
+    {
+      for (i = 0; i < count; i++)
+	{
+	  double	d;
+
+	  (*desImp)(src, desSel, &d, @encode(double), &cursor, nil);
+	  *(float*)(buf + offset) = (float)d;
+	  offset += size;
+	}
+    }
+  else if (*type == _C_DBL)
+    {
+      for (i = 0; i < count; i++)
+	{
+	  float		f;
+
+	  (*desImp)(src, desSel, &f, @encode(float), &cursor, nil);
+	  *(double*)(buf + offset) = (double)f;
+	  offset += size;
+	}
+    }
+  else if (*type == _C_SHT
+    || *type == _C_INT
+    || *type == _C_LNG
+    || *type == _C_LNG_LNG)
+    {
+      int64_t	big;
+      int64_t	max;
+      int64_t	min;
+
+      switch (size)
+	{
+	  case 1:
+	    max = 0x80;
+	    min = 0x7f;
+	    break;
+	  case 2:
+	    max = 0x8000;
+	    min = 0x7fff;
+	    break;
+	  case 4:
+	    max = 0x80000000;
+	    min = 0x7fffffff;
+	    break;
+	  default:
+	    max = 0x8000000000000000;
+	    min = 0x7fffffffffffffff;
+	}
+
+      for (i = 0; i < count; i++)
+	{
+	  void	*address = (void*)buf + offset;
+
+	  switch (ainfo & _GSC_SIZE)
+	    {
+	      case _GSC_I16:	/* Encoded as 16-bit	*/
+		{
+		  int16_t	val;
+
+		  (*desImp)(src, desSel, &val, @encode(int16_t), &cursor, nil);
+		  big = val;
+		  break;
+		}
+
+	      case _GSC_I32:	/* Encoded as 32-bit	*/
+		{
+		  int32_t	val;
+
+		  (*desImp)(src, desSel, &val, @encode(int32_t), &cursor, nil);
+		  big = val;
+		  break;
+		}
+
+	      case _GSC_I64:	/* Encoded as 64-bit	*/
+		{
+		  (*desImp)(src, desSel, &big, @encode(int64_t), &cursor, nil);
+		  break;
+		}
+	    }
+	  /*
+	   * Now we copy from the big value to the destination location.
+	   */
+	  switch (size)
+	    {
+	      case 1:
+		*(int8_t*)address = (int8_t)big;
+		break;
+	      case 2:
+		*(int16_t*)address = (int16_t)big;
+		break;
+	      case 4:
+		*(int32_t*)address = (int32_t)big;
+		break;
+	      default:
+		*(int64_t*)address = big;
+	    }
+	  if (big < min || big > max)
+	    {
+	      NSLog(@"Loss of information converting large decoded value");
+	    }
+	  offset += size;
+	}
+    }
+  else
+    {
+      uint64_t  big;
+      uint64_t	max;
+
+      switch (size)
+	{
+	  case 1:
+	    max = 0xff;
+	    break;
+	  case 2:
+	    max = 0xffff;
+	    break;
+	  case 4:
+	    max = 0xffffffff;
+	    break;
+	  default:
+	    max = 0xffffffffffffffff;
+	}
+
+      for (i = 0; i < count; i++)
+	{
+	  void	*address = (void*)buf + offset;
+
+	  switch (info & _GSC_SIZE)
+	    {
+	      case _GSC_I16:	/* Encoded as 16-bit	*/
+		{
+		  uint16_t	val;
+
+		  (*desImp)(src, desSel, &val, @encode(uint16_t), &cursor, nil);
+		  big = val;
+		  break;
+		}
+
+	      case _GSC_I32:	/* Encoded as 32-bit	*/
+		{
+		  uint32_t	val;
+
+		  (*desImp)(src, desSel, &val, @encode(uint32_t), &cursor, nil);
+		  big = val;
+		  break;
+		}
+
+	      case _GSC_I64:	/* Encoded as 64-bit	*/
+		{
+		  (*desImp)(src, desSel, &big, @encode(uint64_t), &cursor, nil);
+		  break;
+		}
+	    }
+	  /*
+	   * Now we copy from the big value to the destination location.
+	   */
+	  switch (size)
+	    {
+	      case 1:
+		*(uint8_t*)address = (uint8_t)big;
+		break;
+	      case 2:
+		*(uint16_t*)address = (uint16_t)big;
+		break;
+	      case 4:
+		*(uint32_t*)address = (uint32_t)big;
+		break;
+	      case 8:
+		*(uint64_t*)address = big;
+	    }
+	  if (big > max)
+	    {
+	      NSLog(@"Loss of information converting large decoded value");
+	    }
 	  offset += size;
 	}
     }

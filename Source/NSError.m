@@ -28,7 +28,7 @@
 #import	"Foundation/NSError.h"
 #import	"Foundation/NSCoder.h"
 
-NSString* const NSFilePathErrorKey = @"NSFilePathErrorKey";
+NSString* const NSFilePathErrorKey = @"NSFilePath";
 NSString* const NSLocalizedDescriptionKey = @"NSLocalizedDescriptionKey";
 NSString* const NSStringEncodingErrorKey = @"NSStringEncodingErrorKey";
 NSString* const NSURLErrorKey = @"NSURLErrorKey";

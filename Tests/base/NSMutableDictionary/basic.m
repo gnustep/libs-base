@@ -12,6 +12,8 @@ int main()
   test_NSObject(@"NSMutableDictionary", [NSArray arrayWithObject:testObj]);
   
   test_NSCoding([NSArray arrayWithObject:testObj]);
+
+  test_keyed_NSCoding([NSArray arrayWithObject:testObj]);
   
   test_NSCopying(@"NSDictionary",@"NSMutableDictionary", 
                  [NSArray arrayWithObject:testObj], NO, NO);

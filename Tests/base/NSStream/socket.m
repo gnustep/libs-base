@@ -116,7 +116,7 @@ int main()
   host = [NSHost hostWithName: @"www.google.com"];
   //host = [NSHost hostWithName: @"localhost"];
 
-#if 0
+#if 1
   li = [[Listener new] autorelease];
   [NSStream getStreamsToHost: host port: 80
     inputStream: &defaultInput outputStream: &defaultOutput];

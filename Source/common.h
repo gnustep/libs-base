@@ -4,36 +4,18 @@
  * might be from an earlier build.
  */
 
-/* disable extensions ... we want to use standard code
- */
-#ifdef	_GNU_SOURCE
-#undef	_GNU_SOURCE
-#endif
-
-/* Ensure we have _XOPEN_SOURCE turned on at the appropriate
- * level for the facilities we need.
- *
- * Minimum of 600 for string.h so we get the POSIX strerror_r() behavior
- */
-/* This hack work around for glibc breaks FreeBSD and probably other platforms.
- */
-#if defined(__linux__) &&!defined(__GNU__)
-#if	defined(_XOPEN_SOURCE)
-#if	_XOPEN_SOURCE < 600
-#undef	_XOPEN_SOURCE
-#define	_XOPEN_SOURCE 600
-#endif
-#else
-#define	_XOPEN_SOURCE 600
-#endif
-#endif
-
 #import	"config.h"
 
 #if	defined(HAVE_STRING_H)
-/* For POSIX strerror_r()
+/* For POSIX strerror_r() and others
  */
 #include <string.h>
+#endif
+
+#if	defined(HAVE_STRINGS_H)
+/* For strcasecmp() and others
+ */
+#include <strings.h>
 #endif
 
 #include <errno.h>
@@ -47,6 +29,7 @@
 #endif
 
 #import	"GNUstepBase/GSConfig.h"
+#import	"GNUstepBase/GSVersionMacros.h"
 
 /* Set localisation macro for use within the base library itsself.
  */

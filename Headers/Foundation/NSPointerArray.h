@@ -30,7 +30,7 @@
 #import <Foundation/NSArray.h>
 #import <Foundation/NSPointerFunctions.h>
 
-#if OS_API_VERSION(100500, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -54,6 +54,15 @@ extern "C" {
  * return it autoreleased.
  */
 + (id) pointerArrayWithPointerFunctions: (NSPointerFunctions *)functions;
+
+/** Returns a new pointer array for storing strong (retained) references to
+ * objects.
+ */
++ (id) strongObjectsPointerArray;
+/** Returns a new pointer array for storing zeroing weak references to objects.
+ */
++ (id) weakObjectsPointerArray;
+
 
 /** Removes all nil/zero items from the array.
  */

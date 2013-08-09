@@ -288,7 +288,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
         [super description]];
     }
   m = [NSMutableString stringWithFormat:
-    @"%@[number of indexes: %u (in %u ranges), indexes:",
+    @"%@[number of indexes: %"PRIuPTR" (in %"PRIuPTR" ranges), indexes:",
     [super description], [self count], c];
   for (i = 0; i < c; i++)
     {
@@ -296,11 +296,12 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
 
       if (r.length > 1)
         {
-          [m appendFormat: @" (%u-%u)", r.location, NSMaxRange(r) - 1];
+          [m appendFormat: @" (%"PRIuPTR"-%"PRIuPTR")",
+	    r.location, NSMaxRange(r) - 1];
 	}
       else
         {
-          [m appendFormat: @" %u", r.location];
+          [m appendFormat: @" %"PRIuPTR, r.location];
 	}
     }
   [m appendString: @"]"];
@@ -864,120 +865,134 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
 }
 
 
-- (void)enumerateIndexesInRange: (NSRange)range
-                        options: (NSEnumerationOptions)opts
-		     usingBlock: (GSIndexSetEnumerationBlock)aBlock
+- (void) enumerateIndexesInRange: (NSRange)range
+                         options: (NSEnumerationOptions)opts
+		      usingBlock: (GSIndexSetEnumerationBlock)aBlock
 {
-  NSUInteger lastInRange = (NSMaxRange(range) - 1);
-  NSUInteger startArrayIndex = posForIndex(_array, range.location);
-  NSUInteger endArrayIndex = MIN(posForIndex(_array, lastInRange), (GSIArrayCount(_array) - 1));
-  NSUInteger i;
-  NSUInteger c;
-  BOOL isReverse = opts & NSEnumerationReverse;
-  BLOCK_SCOPE BOOL shouldStop = NO;
+  NSUInteger    lastInRange;
+  NSUInteger    startArrayIndex;
+  NSUInteger    endArrayIndex;
+  NSUInteger    i;
+  NSUInteger    c;
+  BOOL          isReverse = opts & NSEnumerationReverse;
+  BLOCK_SCOPE BOOL      shouldStop = NO;
 
   if ((0 == [self count]) || (NSNotFound == range.location))
-  {
-    return;
-  }
+    {
+      return;
+    }
 
+  startArrayIndex = posForIndex(_array, range.location);
   if (NSNotFound == startArrayIndex)
-  {
-    startArrayIndex = 0;
-  }
+    {
+      startArrayIndex = 0;
+    }
 
+  lastInRange = (NSMaxRange(range) - 1);
+  endArrayIndex = MIN(posForIndex(_array, lastInRange),
+    (GSIArrayCount(_array) - 1));
   if (NSNotFound == endArrayIndex)
-  {
-    endArrayIndex = GSIArrayCount(_array) - 1;
-  }
+    {
+      endArrayIndex = GSIArrayCount(_array) - 1;
+    }
 
   if (isReverse)
-  {
-    i = endArrayIndex;
-    c = startArrayIndex;
-  }
+    {
+      i = endArrayIndex;
+      c = startArrayIndex;
+    }
   else
-  {
-    i = startArrayIndex;
-    c = endArrayIndex;
-  }
+    {
+      i = startArrayIndex;
+      c = endArrayIndex;
+    }
 
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   while (isReverse ? i >= c : i <= c)
-  {
-    NSRange r = GSIArrayItemAtIndex(_array, i).ext;
-    NSUInteger innerI;
-    NSUInteger innerC;
-    if (isReverse)
     {
-      innerI = NSMaxRange(r) - 1;
-      innerC = r.location;
-    }
-    else
-    {
-      innerI = r.location;
-      innerC = NSMaxRange(r) - 1;
-    }
-    while (isReverse ? innerI >= innerC : innerI <= innerC)
-    {
-      if ((innerI <= lastInRange) && (innerI >= range.location))
-      {
-        GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop) {return;}, return;, aBlock, innerI, &shouldStop);
-      }
-      if (shouldStop)
-      {
-	break;
-      }
-      if (isReverse)
-      {
-	if (0 == innerI)
-	{
-	  break;
-	}
-	innerI--;
-      }
-      else
-      {
-	innerI++;
-      }
-    }
+      NSRange r = GSIArrayItemAtIndex(_array, i).ext;
+      NSUInteger innerI;
+      NSUInteger innerC;
 
-    if (shouldStop)
-    {
-      break;
+      if (isReverse)
+        {
+          innerI = NSMaxRange(r) - 1;
+          innerC = r.location;
+        }
+      else
+        {
+          innerI = r.location;
+          innerC = NSMaxRange(r) - 1;
+        }
+      while (isReverse ? innerI >= innerC : innerI <= innerC)
+        {
+          if ((innerI <= lastInRange) && (innerI >= range.location))
+            {
+              GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
+                if (shouldStop) {return;}, return;,
+                aBlock, innerI, &shouldStop);
+            }
+          if (shouldStop)
+            {
+              break;
+            }
+          if (isReverse)
+            {
+              if (0 == innerI)
+                {
+                  break;
+                }
+              innerI--;
+            }
+          else
+            {
+              innerI++;
+            }
+        }
+
+      if (shouldStop)
+        {
+          break;
+        }
+      if (isReverse)
+        {
+          if (0 == i)
+            {
+              break;
+            }
+          i--;
+        }
+      else
+        {
+          i++;
+        }
     }
-    if (isReverse)
-    {
-      if (0 == i)
-      {
-	break;
-      }
-      i--;
-    }
-    else
-    {
-      i++;
-    }
-  }
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 
 }
 
-- (void)enumerateIndexesWithOptions: (NSEnumerationOptions)opts
-		         usingBlock: (GSIndexSetEnumerationBlock)aBlock
+- (void) enumerateIndexesWithOptions: (NSEnumerationOptions)opts
+		          usingBlock: (GSIndexSetEnumerationBlock)aBlock
 {
-  NSUInteger firstIndex = [self firstIndex];
-  NSUInteger lastIndex = [self lastIndex];
+  NSUInteger    firstIndex;
+  NSUInteger    lastIndex;
+  NSRange       range;
+
+  firstIndex = [self firstIndex];
   if (NSNotFound == firstIndex)
-  {
-    return;
-  }
-  [self enumerateIndexesInRange: NSMakeRange(firstIndex, ((lastIndex - firstIndex) + 1))
+    {
+      return;
+    }
+
+  lastIndex = [self lastIndex];
+  range = NSMakeRange(firstIndex, ((lastIndex - firstIndex) + 1));
+
+  [self enumerateIndexesInRange: range
                         options: opts
                      usingBlock: aBlock];
 }
 
-- (void)enumerateIndexesUsingBlock: (GSIndexSetEnumerationBlock)aBlock
+- (void) enumerateIndexesUsingBlock: (GSIndexSetEnumerationBlock)aBlock
 {
   [self enumerateIndexesWithOptions: 0
                          usingBlock: aBlock];

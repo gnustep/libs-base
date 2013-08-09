@@ -35,7 +35,7 @@ extern "C" {
 @class  NSLocale;
 @class	NSString;
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 enum {
   NSTimeZoneNameStyleStandard,
   NSTimeZoneNameStyleShortStandard,
@@ -64,13 +64,13 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 + (NSArray*) timeZoneArray;
 - (NSArray*) timeZoneDetailArray;
 
-#if	OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if	OS_API_VERSION(GS_API_NONE, GS_API_LATEST)
 /* Returns an dictionary that maps abbreviations to the array
    containing all the time zone names that use the abbreviation. */
 + (NSDictionary*) abbreviationMap;
 #endif
 
-#if	OS_API_VERSION(GS_API_MACOSX, GS_API_NONE)
+#if	OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (void) resetSystemTimeZone;
 + (NSTimeZone*) systemTimeZone;
 + (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data;
@@ -87,8 +87,7 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 - (NSInteger) secondsFromGMTForDate: (NSDate*)aDate;
 #endif
 
-#if OS_API_VERSION(100500,GS_API_LATEST) 
-/** Not implemented */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 - (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate;
 /** Not implemented */
 - (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate;

@@ -46,76 +46,76 @@ extern "C" {
  *  marks.  Note that "letters" includes all alphabetic as well as Chinese
  *  characters, etc..
  */
-+ (NSCharacterSet*) alphanumericCharacterSet;
++ (id) alphanumericCharacterSet;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  *  Returns a character set containing letters in the unicode
  *  Titlecase category.
  */
-+ (NSCharacterSet*) capitalizedLetterCharacterSet;
++ (id) capitalizedLetterCharacterSet;
 #endif
 
 /**
  * Returns a character set containing control and format characters.
  */
-+ (NSCharacterSet*) controlCharacterSet;
++ (id) controlCharacterSet;
 
 /**
  * Returns a character set containing characters that represent
  * the decimal digits 0 through 9.
  */
-+ (NSCharacterSet*) decimalDigitCharacterSet;
++ (id) decimalDigitCharacterSet;
 
 /**
  * Returns a character set containing individual characters that
  * can be represented also by a composed character sequence.
  */
-+ (NSCharacterSet*) decomposableCharacterSet;
++ (id) decomposableCharacterSet;
 
 /**
  * Returns a character set containing unassigned and explicitly illegal
  * character values.
  */
-+ (NSCharacterSet*) illegalCharacterSet;
++ (id) illegalCharacterSet;
 
 /**
  *  Returns a character set containing letters, including all alphabetic as
  *  well as Chinese characters, etc..
  */
-+ (NSCharacterSet*) letterCharacterSet;
++ (id) letterCharacterSet;
 
 /**
  * Returns a character set that contains the lowercase characters.
  * This set does not include caseless characters, only those that
  * have corresponding characters in uppercase and/or titlecase.
  */
-+ (NSCharacterSet*) lowercaseLetterCharacterSet;
++ (id) lowercaseLetterCharacterSet;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * Returns a character set containing the newline characters, values 
  * 0x000A and 0x000D and nextline 0x0085 character.
  */
-+ (NSCharacterSet*) newlineCharacterSet;
++ (id) newlineCharacterSet;
 #endif
 
 /**
  *  Returns a character set containing characters for diacritical marks, which
  *  are usually only rendered in conjunction with another character.
  */
-+ (NSCharacterSet*) nonBaseCharacterSet;
++ (id) nonBaseCharacterSet;
 
 /**
  *  Returns a character set containing punctuation marks.
  */
-+ (NSCharacterSet*) punctuationCharacterSet;
++ (id) punctuationCharacterSet;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  *  Returns a character set containing mathematical symbols, etc..
  */
-+ (NSCharacterSet*) symbolCharacterSet;
++ (id) symbolCharacterSet;
 #endif
 
 /**
@@ -123,36 +123,36 @@ extern "C" {
  * This set does not include caseless characters, only those that
  * have corresponding characters in lowercase and/or titlecase.
  */
-+ (NSCharacterSet*) uppercaseLetterCharacterSet;
++ (id) uppercaseLetterCharacterSet;
 
 /**
  * Returns a character set that contains the whitespace characters,
  * plus the newline characters, values 0x000A and 0x000D and nextline
  * 0x0085 character.
  */
-+ (NSCharacterSet*) whitespaceAndNewlineCharacterSet;
++ (id) whitespaceAndNewlineCharacterSet;
 
 /**
  * Returns a character set that contains the whitespace characters.
  */
-+ (NSCharacterSet*) whitespaceCharacterSet;
++ (id) whitespaceCharacterSet;
 
 /**
  * Returns a character set containing characters as encoded in the
  * data object (8192 bytes)
  */
-+ (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data;
++ (id) characterSetWithBitmapRepresentation: (NSData*)data;
 
 /**
  *  Returns set with characters in aString, or empty set for empty string.
  *  Raises an exception if given a nil string.
  */
-+ (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString;
++ (id) characterSetWithCharactersInString: (NSString*)aString;
 
 /**
  *  Returns set containing unicode index range given by aRange.
  */
-+ (NSCharacterSet*) characterSetWithRange: (NSRange)aRange;
++ (id) characterSetWithRange: (NSRange)aRange;
 
 #if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 /**
@@ -163,7 +163,7 @@ extern "C" {
  *  To get around this load the file into data yourself and use
  *  [NSCharacterSet -characterSetWithBitmapRepresentation].
  */
-+ (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile;
++ (id) characterSetWithContentsOfFile: (NSString*)aFile;
 #endif
 
 /**

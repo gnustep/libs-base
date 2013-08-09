@@ -61,6 +61,7 @@ int main()
    
   test_NSObject(@"NSAffineTransform", testObjs);
   test_NSCoding(testObjs);
+  test_keyed_NSCoding(testObjs);
   test_NSCopying(@"NSAffineTransform", @"NSAffineTransform", testObjs, NO, YES);
   
   testObj = [NSAffineTransform transform];

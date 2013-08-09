@@ -9,6 +9,7 @@ int main()
   test_alloc(@"NSMutableArray");
   test_NSObject(@"NSMutableArray", [NSArray arrayWithObject:testObj]); 
   test_NSCoding([NSArray arrayWithObject:testObj]); 
+  test_keyed_NSCoding([NSArray arrayWithObject:testObj]); 
   test_NSCopying(@"NSArray",@"NSMutableArray", 
                  [NSArray arrayWithObject:testObj], NO, NO); 
   test_NSMutableCopying(@"NSArray",@"NSMutableArray", 

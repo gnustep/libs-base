@@ -26,6 +26,7 @@ int main()
   
   test_NSObject(@"NSDictionary", testObjs);
   test_NSCoding(testObjs);
+  test_keyed_NSCoding(testObjs);
   test_NSCopying(@"NSDictionary", @"NSMutableDictionary", testObjs, YES, NO);
   test_NSMutableCopying(@"NSDictionary", @"NSMutableDictionary", testObjs);
   START_SET("NSArray subscripting")

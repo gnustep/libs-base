@@ -10,10 +10,10 @@
 void
 testKVC(NSDictionary *dict)
 {
-	PASS([@"A Title" isEqual: [dict valueForKey: @"title"]], "valueForKeyPath: with string");
-	PASS([@"A Title" isEqual: [dict valueForKeyPath: @"title"]], "valueForKeyPath: with string");
-  PASS([@"John" isEqual: [dict valueForKeyPath: @"Record1.Name"]], "valueForKeyPath: with string");
-	PASS(30 == [[dict valueForKeyPath: @"Record2.Age"] intValue], "valueForKeyPath: with int");
+  PASS([@"A Title" isEqual: [dict valueForKey: @"title"]], "valueForKeyPath: with string");
+  PASS([@"A Title" isEqual: [dict valueForKeyPath: @"title"]], "valueForKeyPath: with string");
+PASS([@"John" isEqual: [dict valueForKeyPath: @"Record1.Name"]], "valueForKeyPath: with string");
+  PASS(30 == [[dict valueForKeyPath: @"Record2.Age"] intValue], "valueForKeyPath: with int");
 }
 
 void
@@ -21,10 +21,10 @@ testContains(NSDictionary *dict)
 {
   NSPredicate *p;
 
-	p = [NSPredicate predicateWithFormat: @"%@ CONTAINS %@", @"AABBBAA", @"BBB"];
-	PASS([p evaluateWithObject: dict], "%%@ CONTAINS %%@");
-	p = [NSPredicate predicateWithFormat: @"%@ IN %@", @"BBB", @"AABBBAA"];
-	PASS([p evaluateWithObject: dict], "%%@ IN %%@");
+  p = [NSPredicate predicateWithFormat: @"%@ CONTAINS %@", @"AABBBAA", @"BBB"];
+  PASS([p evaluateWithObject: dict], "%%@ CONTAINS %%@");
+  p = [NSPredicate predicateWithFormat: @"%@ IN %@", @"BBB", @"AABBBAA"];
+  PASS([p evaluateWithObject: dict], "%%@ IN %%@");
 }
 
 void
@@ -32,14 +32,14 @@ testString(NSDictionary *dict)
 {
   NSPredicate *p;
 
-	p = [NSPredicate predicateWithFormat: @"%K == %@", @"Record1.Name", @"John"];
-	PASS([p evaluateWithObject: dict], "%%K == %%@");
-	p = [NSPredicate predicateWithFormat: @"%K MATCHES[c] %@", @"Record1.Name", @"john"];
-	PASS([p evaluateWithObject: dict], "%%K MATCHES[c] %%@");
-	p = [NSPredicate predicateWithFormat: @"%K BEGINSWITH %@", @"Record1.Name", @"Jo"];
-	PASS([p evaluateWithObject: dict], "%%K BEGINSWITH %%@");
-	p = [NSPredicate predicateWithFormat: @"(%K == %@) AND (%K == %@)", @"Record1.Name", @"John", @"Record2.Name", @"Mary"];
-	PASS([p evaluateWithObject: dict], "(%%K == %%@) AND (%%K == %%@)");
+  p = [NSPredicate predicateWithFormat: @"%K == %@", @"Record1.Name", @"John"];
+  PASS([p evaluateWithObject: dict], "%%K == %%@");
+  p = [NSPredicate predicateWithFormat: @"%K MATCHES[c] %@", @"Record1.Name", @"john"];
+  PASS([p evaluateWithObject: dict], "%%K MATCHES[c] %%@");
+  p = [NSPredicate predicateWithFormat: @"%K BEGINSWITH %@", @"Record1.Name", @"Jo"];
+  PASS([p evaluateWithObject: dict], "%%K BEGINSWITH %%@");
+  p = [NSPredicate predicateWithFormat: @"(%K == %@) AND (%K == %@)", @"Record1.Name", @"John", @"Record2.Name", @"Mary"];
+  PASS([p evaluateWithObject: dict], "(%%K == %%@) AND (%%K == %%@)");
 }
 
 void
@@ -47,34 +47,34 @@ testInteger(NSDictionary *dict)
 {
   NSPredicate *p;
 
-	p = [NSPredicate predicateWithFormat: @"%K == %d", @"Record1.Age", 34];
-	PASS([p evaluateWithObject: dict], "%%K == %%d");
-	p = [NSPredicate predicateWithFormat: @"%K = %@", @"Record1.Age", [NSNumber numberWithInt: 34]];
-	PASS([p evaluateWithObject: dict], "%%K = %%@");
-	p = [NSPredicate predicateWithFormat: @"%K == %@", @"Record1.Age", [NSNumber numberWithInt: 34]];
-	PASS([p evaluateWithObject: dict], "%%K == %%@");
-	p = [NSPredicate predicateWithFormat: @"%K < %d", @"Record1.Age", 40];
-	PASS([p evaluateWithObject: dict], "%%K < %%d");
-	p = [NSPredicate predicateWithFormat: @"%K < %@", @"Record1.Age", [NSNumber numberWithInt: 40]];
-	PASS([p evaluateWithObject: dict], "%%K < %%@");
-	p = [NSPredicate predicateWithFormat: @"%K <= %@", @"Record1.Age", [NSNumber numberWithInt: 40]];
-	PASS([p evaluateWithObject: dict], "%%K <= %%@");
-	p = [NSPredicate predicateWithFormat: @"%K <= %@", @"Record1.Age", [NSNumber numberWithInt: 34]];
-	PASS([p evaluateWithObject: dict], "%%K <= %%@");
-	p = [NSPredicate predicateWithFormat: @"%K > %@", @"Record1.Age", [NSNumber numberWithInt: 20]];
-	PASS([p evaluateWithObject: dict], "%%K > %%@");
-	p = [NSPredicate predicateWithFormat: @"%K >= %@", @"Record1.Age", [NSNumber numberWithInt: 34]];
-	PASS([p evaluateWithObject: dict], "%%K >= %%@");
-	p = [NSPredicate predicateWithFormat: @"%K >= %@", @"Record1.Age", [NSNumber numberWithInt: 20]];
-	PASS([p evaluateWithObject: dict], "%%K >= %%@");
-	p = [NSPredicate predicateWithFormat: @"%K != %@", @"Record1.Age", [NSNumber numberWithInt: 20]];
-	PASS([p evaluateWithObject: dict], "%%K != %%@");
-	p = [NSPredicate predicateWithFormat: @"%K <> %@", @"Record1.Age", [NSNumber numberWithInt: 20]];
-	PASS([p evaluateWithObject: dict], "%%K <> %%@");
-	p = [NSPredicate predicateWithFormat: @"%K BETWEEN %@", @"Record1.Age", [NSArray arrayWithObjects: [NSNumber numberWithInt: 20], [NSNumber numberWithInt: 40], nil]];
-	PASS([p evaluateWithObject: dict], "%%K BETWEEN %%@");
-	p = [NSPredicate predicateWithFormat: @"(%K == %d) OR (%K == %d)", @"Record1.Age", 34, @"Record2.Age", 34];
-	PASS([p evaluateWithObject: dict], "(%%K == %%d) OR (%%K == %%d)");
+  p = [NSPredicate predicateWithFormat: @"%K == %d", @"Record1.Age", 34];
+  PASS([p evaluateWithObject: dict], "%%K == %%d");
+  p = [NSPredicate predicateWithFormat: @"%K = %@", @"Record1.Age", [NSNumber numberWithInt: 34]];
+  PASS([p evaluateWithObject: dict], "%%K = %%@");
+  p = [NSPredicate predicateWithFormat: @"%K == %@", @"Record1.Age", [NSNumber numberWithInt: 34]];
+  PASS([p evaluateWithObject: dict], "%%K == %%@");
+  p = [NSPredicate predicateWithFormat: @"%K < %d", @"Record1.Age", 40];
+  PASS([p evaluateWithObject: dict], "%%K < %%d");
+  p = [NSPredicate predicateWithFormat: @"%K < %@", @"Record1.Age", [NSNumber numberWithInt: 40]];
+  PASS([p evaluateWithObject: dict], "%%K < %%@");
+  p = [NSPredicate predicateWithFormat: @"%K <= %@", @"Record1.Age", [NSNumber numberWithInt: 40]];
+  PASS([p evaluateWithObject: dict], "%%K <= %%@");
+  p = [NSPredicate predicateWithFormat: @"%K <= %@", @"Record1.Age", [NSNumber numberWithInt: 34]];
+  PASS([p evaluateWithObject: dict], "%%K <= %%@");
+  p = [NSPredicate predicateWithFormat: @"%K > %@", @"Record1.Age", [NSNumber numberWithInt: 20]];
+  PASS([p evaluateWithObject: dict], "%%K > %%@");
+  p = [NSPredicate predicateWithFormat: @"%K >= %@", @"Record1.Age", [NSNumber numberWithInt: 34]];
+  PASS([p evaluateWithObject: dict], "%%K >= %%@");
+  p = [NSPredicate predicateWithFormat: @"%K >= %@", @"Record1.Age", [NSNumber numberWithInt: 20]];
+  PASS([p evaluateWithObject: dict], "%%K >= %%@");
+  p = [NSPredicate predicateWithFormat: @"%K != %@", @"Record1.Age", [NSNumber numberWithInt: 20]];
+  PASS([p evaluateWithObject: dict], "%%K != %%@");
+  p = [NSPredicate predicateWithFormat: @"%K <> %@", @"Record1.Age", [NSNumber numberWithInt: 20]];
+  PASS([p evaluateWithObject: dict], "%%K <> %%@");
+  p = [NSPredicate predicateWithFormat: @"%K BETWEEN %@", @"Record1.Age", [NSArray arrayWithObjects: [NSNumber numberWithInt: 20], [NSNumber numberWithInt: 40], nil]];
+  PASS([p evaluateWithObject: dict], "%%K BETWEEN %%@");
+  p = [NSPredicate predicateWithFormat: @"(%K == %d) OR (%K == %d)", @"Record1.Age", 34, @"Record2.Age", 34];
+  PASS([p evaluateWithObject: dict], "(%%K == %%d) OR (%%K == %%d)");
 
 
 }
@@ -84,10 +84,10 @@ testFloat(NSDictionary *dict)
 {
   NSPredicate *p;
 
-	p = [NSPredicate predicateWithFormat: @"%K < %f", @"Record1.Age", 40.5];
-	PASS([p evaluateWithObject: dict], "%%K < %%f");
-  p = [NSPredicate predicateWithFormat: @"%f > %K", 40.5, @"Record1.Age"];
-	PASS([p evaluateWithObject: dict], "%%f > %%K");
+  p = [NSPredicate predicateWithFormat: @"%K < %f", @"Record1.Age", 40.5];
+  PASS([p evaluateWithObject: dict], "%%K < %%f");
+p = [NSPredicate predicateWithFormat: @"%f > %K", 40.5, @"Record1.Age"];
+  PASS([p evaluateWithObject: dict], "%%f > %%K");
 }
 
 void
@@ -158,6 +158,30 @@ int main()
 
   p = [NSPredicate predicateWithFormat: @"SELF == 'aaa'"];
   PASS([p evaluateWithObject: @"aaa"], "SELF equality works");
+
+  p = [NSPredicate predicateWithFormat:
+    @"%K like %@+$b+$c", @"$single", @"b\""];
+  PASS_EQUAL([p predicateFormat], @"$single LIKE (\"b\\\"\" + $b) + $c",
+    "predicate created with format has the format is preserved");
+
+#if 0
+  if ([p respondsToSelector: @selector(subpredicates)])
+    NSLog(@"subpredicates=%@", [(NSCompoundPredicate *)p subpredicates]);
+  if ([p respondsToSelector: @selector(leftExpression)])
+    NSLog(@"left=%@", [(NSComparisonPredicate *)p leftExpression]);
+  if ([p respondsToSelector: @selector(rightExpression)])
+    NSLog(@"right=%@", [(NSComparisonPredicate *)p rightExpression]);
+#endif
+
+  p = [p predicateWithSubstitutionVariables:
+    [NSDictionary dictionaryWithObjectsAndKeys:
+      @"val_for_single_string", @"single", // why %K does not make a variable
+      @"val_for_$b", @"b",
+      @"val_for_$c", @"c",
+      nil]];
+  PASS_EQUAL([p predicateFormat],
+    @"$single LIKE (\"b\\\"\" + \"val_for_$b\") + \"val_for_$c\"",
+    "Predicate created by substitution has the expected format");
 
   [arp release]; arp = nil;
   return 0;

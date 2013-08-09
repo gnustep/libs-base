@@ -90,7 +90,7 @@ typedef NSUInteger NSXMLNodeKind;
 {
 #if     GS_NONFRAGILE
 #  if	defined(GS_NSXMLNode_IVARS)
-@public GS_NSXMLNode_IVARS
+@public GS_NSXMLNode_IVARS;
 #  endif
 #else
   /* Pointer to private additional data used to avoid breaking ABI
@@ -234,13 +234,13 @@ typedef NSUInteger NSXMLNodeKind;
  * Calls -initWithKind:options: using NSXMLNodeOptionsNone and
  * returns the result.
  */
-- (id) initWithKind: (NSXMLNodeKind)kind;
+- (id) initWithKind: (NSXMLNodeKind)theKind;
 
 /** <init />
  * Initialises the receiver as the specified kind of node and with the
  * specified options.
  */
-- (id) initWithKind: (NSXMLNodeKind)kind options: (NSUInteger)options;
+- (id) initWithKind: (NSXMLNodeKind)theKind options: (NSUInteger)theOptions;
 
 /** Return the level of the receiver within the tree of nodes.<br />
  *  A document or a node which is not inside another is at level 0.
@@ -274,7 +274,7 @@ typedef NSUInteger NSXMLNodeKind;
  * in order to avoid problems where the xpath syntax cannot cope with
  * multiple text nodes.
  */
-- (NSArray*) nodesForXPath: (NSString*)xpath error: (NSError**)error;
+- (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error;
 
 /** Returns the data resulting from calling the query on the receiver.<br />
  * The same as objectsForXQuery:constants:error: without the constants.
@@ -381,7 +381,7 @@ typedef NSUInteger NSXMLNodeKind;
  * Returns the text of the receiver as XML (ie in the form it would have
  * in an XML document), with the specified options controlling it.
  */
-- (NSString*) XMLStringWithOptions: (NSUInteger)options;
+- (NSString*) XMLStringWithOptions: (NSUInteger)theOptions;
 
 @end
 

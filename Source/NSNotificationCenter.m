@@ -32,6 +32,7 @@
 #import "common.h"
 #define	EXPOSE_NSNotificationCenter_IVARS	1
 #import "Foundation/NSNotification.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSThread.h"
@@ -85,7 +86,7 @@ static Class concrete = 0;
     {
       return [self retain];
     }
-  n = (GSNotification*)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
+  n = (GSNotification*)NSAllocateObject(concrete, 0, zone);
   n->_name = [_name copyWithZone: [self zone]];
   n->_object = TEST_RETAIN(_object);
   n->_info = TEST_RETAIN(_info);
@@ -154,7 +155,6 @@ struct	NCTbl;		/* Notification Center Table structure	*/
   @public
   __weak id	observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
-  IMP		method;		/* Method implementation.	*/
   struct Obs	*next;		/* Next item in linked list.	*/
   struct NCTbl	*link;		/* Pointer back to chunk table	*/
 }
@@ -168,7 +168,6 @@ struct	NCTbl;		/* Notification Center Table structure	*/
 typedef	struct	Obs {
   id		observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
-  IMP		method;		/* Method implementation.	*/
   struct Obs	*next;		/* Next item in linked list.	*/
   int		retained;	/* Retain count for structure.	*/
   struct NCTbl	*link;		/* Pointer back to chunk table	*/
@@ -178,15 +177,15 @@ typedef	struct	Obs {
 
 #define	ENDOBS	((Observation*)-1)
 
-static inline unsigned doHash(NSString* key)
+static inline NSUInteger doHash(BOOL shouldHash, NSString* key)
 {
   if (key == nil)
     {
       return 0;
     }
-  else if (((uintptr_t)key) & 1)
+  else if (NO == shouldHash)
     {
-      return (unsigned)(uintptr_t)key;
+      return (NSUInteger)(uintptr_t)key;
     }
   else
     {
@@ -194,13 +193,13 @@ static inline unsigned doHash(NSString* key)
     }
 }
 
-static inline BOOL doEqual(NSString* key1, NSString* key2)
+static inline BOOL doEqual(BOOL shouldHash, NSString* key1, NSString* key2)
 {
   if (key1 == key2)
     {
       return YES;
     }
-  else if ((((uintptr_t)key1) & 1) || key1 == nil)
+  else if (NO == shouldHash)
     {
       return NO;
     }
@@ -247,17 +246,16 @@ static void obsFree(Observation *o);
 #include "GNUstepBase/GSIArray.h"
 
 #define GSI_MAP_RETAIN_KEY(M, X)
-#define GSI_MAP_RELEASE_KEY(M, X) ({if ((((uintptr_t)X.obj) & 1) == 0) \
-  RELEASE(X.obj);})
-#define GSI_MAP_HASH(M, X)        doHash(X.obj)
-#define GSI_MAP_EQUAL(M, X,Y)     doEqual(X.obj, Y.obj)
+#define GSI_MAP_RELEASE_KEY(M, X) ({if (YES == M->extra) RELEASE(X.obj);})
+#define GSI_MAP_HASH(M, X)        doHash(M->extra, X.obj)
+#define GSI_MAP_EQUAL(M, X,Y)     doEqual(M->extra, X.obj, Y.obj)
 #define GSI_MAP_RETAIN_VAL(M, X)
 #define GSI_MAP_RELEASE_VAL(M, X)
 
 #define GSI_MAP_KTYPES GSUNION_OBJ|GSUNION_NSINT
 #define GSI_MAP_VTYPES GSUNION_PTR
 #define GSI_MAP_VEXTRA Observation*
-#define	GSI_MAP_EXTRA	void*
+#define	GSI_MAP_EXTRA	BOOL
 
 #if	GS_WITH_GC
 #include	<gc/gc_typed.h>
@@ -312,7 +310,7 @@ typedef struct NCTbl {
 #define	LOCKCOUNT	(TABLE->lockCount)
 
 static Observation *
-obsNew(NCTable *t, SEL s, IMP m, id o)
+obsNew(NCTable *t, SEL s, id o)
 {
   Observation	*obs;
 
@@ -372,7 +370,6 @@ obsNew(NCTable *t, SEL s, IMP m, id o)
 #endif
 
   obs->selector = s;
-  obs->method = m;
 #if	GS_WITH_GC
   GSAssignZeroingWeakPointer((void**)&obs->observer, (void*)o);
 #else
@@ -489,6 +486,7 @@ static NCTable *newNCTable(void)
   t->named = NSAllocateCollectable(sizeof(GSIMapTable_t), NSScannedOption);
   GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
+  t->named->extra = YES;        // This table retains keys
 
   t->_lock = [NSRecursiveLock new];
   return t;
@@ -645,18 +643,6 @@ purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
 #define purgeCollectedFromMapNode(X, Y) ((Observation*)Y->value.ext)
 #endif
 
-/*
- * In order to hide pointers from garbage collection, we OR in an
- * extra bit.  This should be ok for the objects we deal with
- * which are all aligned on 4 or 8 byte boundaries on all the machines
- * I know of.
- *
- * We also use this trick to differentiate between map table keys that
- * should be treated as objects (notification names) and those that
- * should be treated as pointers (notification objects)
- */
-#define	CHEATGC(X)	(id)(((uintptr_t)X) | 1)
-
 
 
 /**
@@ -794,7 +780,6 @@ static NSNotificationCenter *default_center = nil;
                 name: (NSString*)name
 	      object: (id)object
 {
-  IMP		method;
   Observation	*list;
   Observation	*o;
   GSIMapTable	m;
@@ -808,25 +793,17 @@ static NSNotificationCenter *default_center = nil;
     [NSException raise: NSInvalidArgumentException
 		format: @"Null selector passed to addObserver ..."];
 
-#if	defined(DEBUG)
   if ([observer respondsToSelector: selector] == NO)
-    NSLog(@"Observer '%@' does not respond to selector '%@'", observer,
-      NSStringFromSelector(selector));
-#endif
-
-  method = [observer methodForSelector: selector];
-  if (method == 0)
-    [NSException raise: NSInvalidArgumentException
-		format: @"Observer can not handle specified selector"];
+    {
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-%@] Observer '%@' does not respond to selector '%@'",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+        observer, NSStringFromSelector(selector)];
+    }
 
   lockNCTable(TABLE);
 
-  o = obsNew(TABLE, selector, method, observer);
-
-  if (object != nil)
-    {
-      object = CHEATGC(object);
-    }
+  o = obsNew(TABLE, selector, observer);
 
   /*
    * Record the Observation in one of the linked lists.
@@ -920,11 +897,6 @@ static NSNotificationCenter *default_center = nil;
    */
 
   lockNCTable(TABLE);
-
-  if (object != nil)
-    {
-      object = CHEATGC(object);
-    }
 
   if (name == nil && object == nil)
     {
@@ -1102,10 +1074,6 @@ static NSNotificationCenter *default_center = nil;
 		  format: @"Tried to post a notification with no name."];
     }
   object = [notification object];
-  if (object != nil)
-    {
-      object = CHEATGC(object);
-    }
 
   /*
    * Lock the table of observations while we traverse it.
@@ -1220,7 +1188,8 @@ static NSNotificationCenter *default_center = nil;
 	{
           NS_DURING
             {
-              (*o->method)(o->observer, o->selector, notification);
+              [o->observer performSelector: o->selector
+                                withObject: notification];
             }
           NS_HANDLER
             {

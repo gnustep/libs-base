@@ -46,7 +46,6 @@
 #ifndef	_XOPEN_SOURCE
 #define	_XOPEN_SOURCE 600
 #endif
-#include <string.h>
 #include <stdio.h>
 
 
@@ -64,6 +63,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSFileHandle.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSString.h"
@@ -984,7 +984,11 @@ static NSMapTable	*nodeNames = 0;
 	1,
 	"utf-8");
       xmlOutputBufferFlush(buf);
+#if LIBXML_VERSION < 20900
       string = UTF8StrLen(buf->buffer->content, buf->buffer->use);
+#else
+      string = UTF8StrLen(xmlBufContent(buf->buffer), xmlBufUse(buf->buffer));
+#endif
       xmlOutputBufferClose(buf);
     }
   return string;
@@ -3302,7 +3306,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
        colNumber: (NSInteger)colNumber
       lineNumber: (NSInteger)lineNumber
 {
-  e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
+  e = [NSString stringWithFormat:
+    @"at line: %"PRIdPTR" column: %"PRIdPTR" ... %@",
     lineNumber, colNumber, e];
   [self warning: e];
 }
@@ -3314,7 +3319,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
      colNumber: (NSInteger)colNumber
     lineNumber: (NSInteger)lineNumber
 {
-  e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
+  e = [NSString stringWithFormat:
+    @"at line: %"PRIdPTR" column: %"PRIdPTR" ... %@",
     lineNumber, colNumber, e];
   [self error: e];
 }
@@ -3326,7 +3332,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
           colNumber: (NSInteger)colNumber
          lineNumber: (NSInteger)lineNumber
 {
-  e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
+  e = [NSString stringWithFormat:
+    @"at line: %"PRIdPTR" column: %"PRIdPTR" ... %@",
     lineNumber, colNumber, e];
   [self fatalError: e];
 }
@@ -3787,7 +3794,8 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 }
 - (NSString *) description
 {
-  return [NSString_class stringWithFormat: @"NodeSet (count %u)", [self count]];
+  return [NSString_class stringWithFormat:
+    @"NodeSet (count %"PRIuPTR")", [self count]];
 }
 @end
 
@@ -4694,14 +4702,14 @@ static void indentation(unsigned level, NSMutableString *str)
   BOOL		compact = [rpc compact];
 
   INDENT(indent);
-  if (strchr("cCsSiIlL", *t) != 0)
+  if (strchr("cCsSiIlLqQ", *t) != 0)
     {
       int64_t	i = [self longLongValue];
 
       if ((i & 0xffffffff) != i)
 	{
 	  [NSException raise: NSInternalInconsistencyException
-		      format: @"Can't encode %"PRId64" as i4"];
+		      format: @"Can't encode %"PRId64" as i4", i];
 	}
       if ((i == 0 || i == 1) && (*t == 'c' || *t == 'C'))
         {
@@ -5167,10 +5175,9 @@ static void indentation(unsigned level, NSMutableString *str)
 	  handle = RETAIN([u URLHandleUsingCache: NO]);
 	  if (cert != nil && pKey != nil && pwd != nil)
 	    {
-	      [handle writeProperty: cert 
-			     forKey: GSHTTPPropertyCertificateFileKey];
-	      [handle writeProperty: pKey forKey: GSHTTPPropertyKeyFileKey];
-	      [handle writeProperty: pwd forKey: GSHTTPPropertyPasswordKey];
+	      [handle writeProperty: cert forKey: GSTLSCertificateFile];
+	      [handle writeProperty: pKey forKey: GSTLSCertificateKeyFile];
+	      [handle writeProperty: pwd forKey: GSTLSCertificateKeyPassword];
 	    }
 #else
 	  connectionURL = [url copy];

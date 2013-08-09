@@ -77,6 +77,12 @@ static Class	concreteClass = 0;
     NSPointerFunctionsObjectPersonality | NSPointerFunctionsZeroingWeakMemory];
 }
 
++ (id) weakObjectsHashTable
+{
+  return [self hashTableWithOptions:
+    NSPointerFunctionsObjectPersonality | NSPointerFunctionsWeakMemory];
+}
+
 - (id) initWithOptions: (NSPointerFunctionsOptions)options
 	      capacity: (NSUInteger)initialCapacity
 {
@@ -92,7 +98,7 @@ static Class	concreteClass = 0;
 }
 
 - (id) initWithPointerFunctions: (NSPointerFunctions*)functions
-		capacity: (NSUInteger)initialCapacity
+		       capacity: (NSUInteger)initialCapacity
 {
   [self subclassResponsibility: _cmd];
   return nil;

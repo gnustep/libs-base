@@ -993,7 +993,7 @@ static SEL	foundIgnorableSel;
   const unsigned char	*tp;
   NSString	*decl;
   NSString	*name;
-  char		c;
+  int		c;
 
   if (NO == this->hasStarted)
     {
@@ -1362,14 +1362,78 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
     }
 }
 
+- (NSString*) _newEntity: (const unsigned char *)ep length: (int)len
+{
+  NSString      *entity;
+
+  if (*ep == '#')
+    {
+      if (len < 8)
+        {
+          uint32_t val;
+          char  buf[8];
+
+          memcpy(buf, ep + 1, len - 1);
+          buf[len - 1] = '\0';
+          // &#ddd; or &#xhh;
+          if (sscanf(buf, "x%x;", &val))
+            {
+              // &#xhh; hex value
+              return [[NSString alloc] initWithFormat: @"%C", (unichar)val];
+            }
+          else if (sscanf(buf, "%d;", &val))
+            {
+              // &ddd; decimal value
+              return [[NSString alloc] initWithFormat: @"%C", (unichar)val];
+            }
+        }
+    }
+  else
+    {
+      // the five predefined entities
+      if (len == 3 && strncmp((char *)ep, "amp", len) == 0)
+	{
+	  return @"&";
+	}
+      else if (len == 2 && strncmp((char *)ep, "lt", len) == 0)
+	{
+	  return @"<";
+	}
+      else if (len == 2 && strncmp((char *)ep, "gt", len) == 0)
+	{
+	  return @">";
+	}
+      else if (len == 4 && strncmp((char *)ep, "quot", len) == 0)
+	{
+	  return @"\"";
+	}
+      else if (len == 4 && strncmp((char *)ep, "apos", len) == 0)
+	{
+	  return @"'";
+	}
+    }
+  entity = NewUTF8STR(ep, len);
+
+#if 1
+  NSLog(@"NSXMLParser: unrecognized entity: &%@;", entity);
+#endif
+//  entity=[entitiesTable objectForKey: entity];  // look up string in entity translation table
+
+  if (nil == entity)
+    {
+      entity = @"&??;";  // unknown entity
+    }
+  return entity;
+}
+
 - (BOOL) _parseEntity: (NSString**)result
 {
   int c;
   const unsigned char *ep = this->cp;  // should be position behind &
   int len;
-  unsigned int val;
   NSString *entity;
 
+  if (0 == result) result = &entity;
   do {
     c = cget();
   } while (c != EOF && c != '<' && c != ';');
@@ -1381,72 +1445,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
     }
   len = this->cp - ep - 1;
 
-  if (*ep == '#')
+  *result = [self _newEntity: ep length: len];
+  if (&entity == result)
     {
-      // &#ddd; or &#xhh;
-      // !!! ep+1 is not 0-terminated - but by ;!!
-      if (sscanf((char *)ep+1, "x%x;", &val))
-	{
-	  // &#xhh; hex value
-	  if (result != 0)
-	    {
-	      *result = [[NSString alloc] initWithFormat: @"%C", val];
-	    }
-	  return YES;
-	}
-      else if (sscanf((char *)ep+1, "%d;", &val))
-	{
-	  // &ddd; decimal value
-	  if (result != 0)
-	    {
-	      *result = [[NSString alloc] initWithFormat: @"%C", val];
-	    }
-	  return YES;
-	}
-    }
-  else
-    {
-      // the five predefined entities
-      if (len == 3 && strncmp((char *)ep, "amp", len) == 0)
-	{
-	  if (result != 0) *result = @"&";
-	  return YES;
-	}
-      else if (len == 2 && strncmp((char *)ep, "lt", len) == 0)
-	{
-	  if (result != 0) *result = @"<";
-	  return YES;
-	}
-      else if (len == 2 && strncmp((char *)ep, "gt", len) == 0)
-	{
-	  if (result != 0) *result = @">";
-	  return YES;
-	}
-      else if (len == 4 && strncmp((char *)ep, "quot", len) == 0)
-	{
-	  if (result != 0) *result = @"\"";
-	  return YES;
-	}
-      else if (len == 4 && strncmp((char *)ep, "apos", len) == 0)
-	{
-	  if (result != 0) *result = @"'";
-	  return YES;
-	}
-    }
-  entity = NewUTF8STR(ep, len);
-
-#if 1
-  NSLog(@"NSXMLParser: unrecognized entity: &%@;", entity);
-#endif
-//  entity=[entitiesTable objectForKey: entity];  // look up string in entity translation table
-
-  if (entity == nil)
-    {
-      entity = @"&??;";  // unknown entity
-    }
-  if (result != 0)
-    {
-      *result = entity;
+      [*result release]; // Won't be used
     }
   return YES;
 }
@@ -1456,6 +1458,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 // get argument (might be quoted)
   const unsigned char *ap = --this->cp;  // argument start pointer
   int c = cget();  // refetch first character
+  int len;
+  BOOL containsEntity = NO;
 
 #if EXTRA_DEBUG
   NSLog(@"_newQarg: %02x %c", c, isprint(c)?c: ' ');
@@ -1469,11 +1473,16 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	    {
 	      return nil;  // unterminated!
 	    }
+	  if ('&' == c)
+            {
+              containsEntity = YES;
+            }
 	}
       while (c != '\"');
-      return NewUTF8STR(ap + 1, this->cp - ap - 2);
+      len = this->cp - ap - 2;
+      ap++;
     }
-  if (c == '\'')
+  else if (c == '\'')
     {
       do
 	{
@@ -1482,18 +1491,74 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	    {
 	      return nil;  // unterminated!
 	    }
+	  if ('&' == c)
+            {
+              containsEntity = YES;
+            }
 	}
       while (c != '\'');
-      return NewUTF8STR(ap + 1, this->cp - ap - 2);
+      len = this->cp - ap - 2;
+      ap++;
     }
-  /* strict XML requires quoting (?)
-  if (!this->acceptHTML)
-    ;
-  */
-  while (!isspace(c) && c != '>' && c != '/' && c != '?' && c != '=' &&c != EOF)
-    c = cget();
-  this->cp--;  // go back to terminating character
-  return NewUTF8STR(ap, this->cp - ap);
+  else
+    {
+      /* strict XML requires quoting (?)
+      if (!this->acceptHTML)
+        ;
+      */
+      while (!isspace(c)
+        && c != '>' && c != '/' && c != '?' && c != '=' && c != EOF)
+        {
+          if ('&' == c)
+            {
+              containsEntity = YES;
+            }
+          c = cget();
+        }
+      this->cp--;  // go back to terminating character
+      len = this->cp - ap;
+    }
+  if (YES == containsEntity)
+    {
+      NSString                  *seg;
+      NSMutableString           *m;
+      const unsigned char       *start = ap;
+      const unsigned char       *end = start + len;
+      const unsigned char       *ptr = start;
+
+      m = [[NSMutableString alloc] initWithCapacity: len];
+      while (ptr < end)
+        {
+          while (ptr < end && *ptr != '&')
+            {
+              ptr++;
+            }
+          if (ptr > start)
+            {
+              seg = NewUTF8STR(start, ptr - start);
+              [m appendString: seg];
+              RELEASE(seg);
+              start = ptr;
+            }
+          else
+            {
+              while (ptr < end && *ptr != ';')
+                {
+                  ptr++;
+                }
+              seg = [self _newEntity: start + 1 length: ptr - start - 1];
+              [m appendString: seg];
+              RELEASE(seg);
+              if (ptr < end)
+                {
+                  ptr++;        // Step past trailing semicolon
+                }
+              start = ptr;
+            }
+        }
+      return m;
+    }
+  return NewUTF8STR(ap, len);
 }
 
 - (BOOL) parse

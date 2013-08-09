@@ -78,7 +78,7 @@
   if (createSec)
     {
       secHeading = [NSString stringWithFormat:
-        @"<section id=\"_main\">\n<heading></heading>\n", toolName];
+        @"<section id=\"_main\">\n<heading>%@</heading>\n", toolName];
   //The %@ tool
       [m replaceCharactersInRange: r withString: secHeading];
     }
@@ -147,6 +147,8 @@
   DESTROY(spaces);
   DESTROY(spacenl);
   DESTROY(source);
+  DESTROY(itemName);
+  DESTROY(unitName);
   [super dealloc];
 }
 
@@ -1330,11 +1332,16 @@ recheck:
 	  if ([self skipSpaces] < length && buffer[pos] == '(')
 	    {
 	      unsigned	start = pos;
-	      NSString	*attr;
 
 	      [self skipBlock];	// Skip the attributes
-	      attr = [NSString stringWithCharacters: buffer + start
-					     length: pos - start];
+	      if (YES == verbose)
+		{
+		  NSString	*attr;
+
+		  attr = [NSString stringWithCharacters: buffer + start
+						 length: pos - start];
+		  [self log: @"skip __attribute__ %@", attr];
+		}
 	    }
 	  else
 	    {
@@ -1780,7 +1787,7 @@ recheck:
 		      [self log: @"strange format function attributes"];
 		    }
 		}
-	      else if (ident != nil)
+	      else if ([ident length] > 0)
 		{
 		  [self log: @"ignoring '%@' in function declaration", ident];
 		}
@@ -1922,7 +1929,7 @@ fail:
       inHeader = YES;
     }
   commentsRead = NO;
-  fileName = name;
+  ASSIGNCOPY(fileName, name);
   if (declared == nil)
     {
       ASSIGN(declared, [fileName lastPathComponent]);
@@ -1977,8 +1984,8 @@ fail:
 	  [source addObject: path];
 	}
     }
-  unitName = nil;
-  itemName = nil;
+  DESTROY(unitName);
+  DESTROY(itemName);
   DESTROY(comment);
 
   [self setupBuffer];
@@ -2153,7 +2160,7 @@ fail:
       [self log: @"implementation with bad name"];
       goto fail;
     }
-  unitName = name;
+  ASSIGNCOPY(unitName, name);
 
   /*
    * After the class name, we may have a category name or
@@ -2171,7 +2178,7 @@ fail:
 	  goto fail;
 	}
       name = [name stringByAppendingFormat: @"(%@)", category];
-      unitName = name;
+      ASSIGN(unitName, name);
     }
   else if (buffer[pos] == ':')
     {
@@ -2240,13 +2247,13 @@ fail:
 
   // [self log: @"Found implementation %@", dict];
 
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   return dict;
 
 fail:
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   return nil;
@@ -2279,7 +2286,7 @@ fail:
       [self log: @"interface with bad name"];
       goto fail;
     }
-  unitName = name;
+  ASSIGNCOPY(unitName, name);
 
   [dict setObject: @"class" forKey: @"Type"];
   [self setStandards: dict];
@@ -2302,7 +2309,7 @@ fail:
       [dict setObject: category forKey: @"Category"];
       [dict setObject: name forKey: @"BaseClass"];
       name = [name stringByAppendingFormat: @"(%@)", category];
-      unitName = name;
+      ASSIGN(unitName, name);
       [dict setObject: @"category" forKey: @"Type"];
       if ([category length] >= 7
 	&& [category compare: @"Private"
@@ -2396,13 +2403,13 @@ fail:
 
   // [self log: @"Found interface %@", dict];
 
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   return dict;
 
 fail:
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   return nil;
@@ -2896,7 +2903,7 @@ fail:
     {
       [self setStandards: method];
     }
-  itemName = mname;
+  ASSIGNCOPY(itemName, mname);
 
   if (term == ';')
     {
@@ -2946,13 +2953,13 @@ fail:
       [self appendComment: c to: method];
     }
 
-  itemName = nil;
+  DESTROY(itemName);
   [arp drain];
   IF_NO_GC([method autorelease];)
   return method;
 
 fail:
-  itemName = nil;
+  DESTROY(itemName);
   DESTROY(comment);
   [arp drain];
   RELEASE(method);
@@ -2982,7 +2989,6 @@ fail:
 
   if (flag == YES)
     {
-      exist = nil;	// Declaration ... no existing methods.
       methods = [NSMutableDictionary dictionaryWithCapacity: 8];
     }
   else
@@ -3062,10 +3068,10 @@ fail:
 		  {
 		    if ([a0 isEqual: a1] == NO)
 		      {
-			itemName = token;
+			ASSIGNCOPY(itemName, token);
 			[self log: @"method args in interface %@ don't match "
 			  @"those in implementation %@", a0, a1];
-			itemName = nil;
+			DESTROY(itemName);
 			[exist setObject: a1 forKey: @"Args"];
 		      }
 		  }
@@ -3076,10 +3082,10 @@ fail:
 		  {
 		    if ([a0 isEqual: a1] == NO)
 		      {
-			itemName = token;
+			ASSIGNCOPY(itemName, token);
 			[self log: @"method types in interface %@ don't match "
 			  @"those in implementation %@", a0, a1];
-			itemName = nil;
+			DESTROY(itemName);
 			[exist setObject: a1 forKey: @"Types"];
 		      }
 		  }
@@ -3601,7 +3607,8 @@ fail:
 
   [dict setObject: name forKey: @"Name"];
   [self setStandards: dict];
-  unitName = [NSString stringWithFormat: @"(%@)", name];
+  DESTROY(unitName);
+  unitName = [[NSString alloc] initWithFormat: @"(%@)", name];
 
   /*
    * Protocols may themselves conform to protocols.
@@ -3655,14 +3662,14 @@ fail:
 
   // [self log: @"Found protocol %@", dict];
 
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   IF_NO_GC([dict autorelease];)
   return dict;
 
 fail:
-  unitName = nil;
+  DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
   RELEASE(dict);
@@ -3788,8 +3795,10 @@ fail:
 
 - (NSString*) parseVersion
 {
-  unsigned	i;
-  NSString	*str;
+  static NSDictionary   *known = nil;
+  unsigned	        i;
+  NSString	        *str;
+  NSString	        *tmp;
 
   while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
     {
@@ -3816,26 +3825,32 @@ fail:
 	}
       str = [NSString stringWithCharacters: &buffer[i] length: pos - i];
     }
-  if ([str isEqualToString: @"GS_API_NONE"] == YES)
+
+  if (nil == known)
     {
-      str = @"000000";
+      known = [[NSDictionary alloc] initWithObjectsAndKeys:
+	@"0", @"GS_API_NONE",
+	@"999999", @"GS_API_LATEST",
+	@"10000", @"GS_API_OSSPEC",
+	@"40000", @"GS_API_OPENSTEP",
+	@"100000", @"GS_API_MACOSX",
+	@"100100", @"MAC_OS_X_VERSION_10_1",
+	@"100200", @"MAC_OS_X_VERSION_10_2",
+	@"100300", @"MAC_OS_X_VERSION_10_3",
+	@"100400", @"MAC_OS_X_VERSION_10_4",
+	@"100500", @"MAC_OS_X_VERSION_10_5",
+	@"100600", @"MAC_OS_X_VERSION_10_6",
+	@"100700", @"MAC_OS_X_VERSION_10_7",
+	@"100800", @"MAC_OS_X_VERSION_10_8",
+	@"100800", @"MAC_OS_X_VERSION_10_8",
+        nil];
     }
-  else if ([str isEqualToString: @"GS_API_LATEST"] == YES)
+  tmp = [known objectForKey: str];
+  if (nil != tmp)
     {
-      str = @"999999";
+      str = tmp;
     }
-  else if ([str isEqualToString: @"GS_API_OSSPEC"] == YES)
-    {
-      str = @"010000";
-    }
-  else if ([str isEqualToString: @"GS_API_OPENSTEP"] == YES)
-    {
-      str = @"040000";
-    }
-  else if ([str isEqualToString: @"GS_API_MACOSX"] == YES)
-    {
-      str = @"100000";
-    }
+
   i = [str intValue];
   return [NSString stringWithFormat: @"%d.%d.%d",
     i/10000, (i/100)%100, i%100];
@@ -3849,10 +3864,10 @@ fail:
   haveSource = NO;
   DESTROY(declared);
   DESTROY(comment);
-  fileName = nil;
-  unitName = nil;
-  itemName = nil;
-  lines = nil;
+  DESTROY(fileName);
+  DESTROY(unitName);
+  DESTROY(itemName);
+  DESTROY(lines);
   buffer = 0;
   length = 0;
   pos = 0;
@@ -4103,9 +4118,8 @@ fail:
   [data setLength: length*sizeof(unichar)];
   buffer = [data mutableBytes];
   pos = 0;
-  lines = [[NSArray alloc] initWithArray: a];
+  ASSIGN(lines, [NSArray arrayWithArray: a]);
   [arp drain];
-  IF_NO_GC([lines autorelease];)
   IF_NO_GC([data autorelease];)
 }
 

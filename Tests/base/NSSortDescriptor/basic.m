@@ -24,6 +24,7 @@ int main()
   array = [NSArray arrayWithObject: s1];
   test_NSObject(@"NSSortDescriptor", array);
   test_NSCoding(array);
+  test_keyed_NSCoding(array);
   test_NSCopying(@"NSSortDescriptor", @"NSSortDescriptor", array, NO, NO);
 
   s2 = [[NSSortDescriptor alloc] initWithKey: @"name" ascending: YES];

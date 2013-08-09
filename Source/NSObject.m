@@ -108,7 +108,7 @@ static Class	NSConstantStringClass;
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
 
-@interface	NSZombie
+GS_ROOT_CLASS @interface	NSZombie
 {
   Class	isa;
 }
@@ -397,14 +397,10 @@ static inline NSLock *GSAllocationLockForObject(id p)
 
 #endif
 
-#ifdef ALIGN
-#undef ALIGN
-#endif
 #if defined(__GNUC__) && __GNUC__ < 4
 #define __builtin_offsetof(s, f) (uintptr_t)(&(((s*)0)->f))
 #endif
 #define alignof(type) __builtin_offsetof(struct { const char c; type member; }, member)
-#define	ALIGN alignof(double)
 
 /*
  *	Define a structure to hold information that is held locally
@@ -415,13 +411,22 @@ typedef struct obj_layout_unpadded {
 } unp;
 #define	UNP sizeof(unp)
 
+/* GCC provides a defined value for the largest alignment required on a
+ * machine, and we must lay objects out to that alignment.
+ * For compilers that don't define it, we try to pick a likely value.
+ */
+#ifndef	__BIGGEST_ALIGNMENT__
+#define	__BIGGEST_ALIGNMENT__ (SIZEOF_VOIDP * 2)
+#endif
+
 /*
  *	Now do the REAL version - using the other version to determine
  *	what padding (if any) is required to get the alignment of the
  *	structure correct.
  */
 struct obj_layout {
-    char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
+    char	padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)
+      ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];
     NSUInteger	retained;
 };
 typedef	struct obj_layout *obj;
@@ -430,7 +435,7 @@ typedef	struct obj_layout *obj;
 
 /**
  * If -base is compiled in GC mode, then we want to still support manual
- * reference counting if we are linked with non-GC code.  
+ * reference counting if we are linked with non-GC code.
  */
 static BOOL GSDecrementExtraRefCountWasZero(id anObject);
 
@@ -549,7 +554,7 @@ NSExtraRefCount(id anObject)
 
 /**
  * If -base is compiled in GC mode, then we want to still support manual
- * reference counting if we are linked with non-GC code.  
+ * reference counting if we are linked with non-GC code.
  */
 static void GSIncrementExtraRefCount(id anObject);
 
@@ -666,15 +671,6 @@ callCXXConstructors(Class aClass, id anObject)
  */
 #if	GS_WITH_GC
 
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
-  /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
-   */
-  return NSDefaultMallocZone();
-}
-
 static void
 GSFinalize(void* object, void* data)
 {
@@ -763,34 +759,23 @@ NSDeallocateObject(id anObject)
 
 #else	/* GS_WITH_GC */
 
-#if !__OBJC_GC__
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  GSOnceFLog(@"GSObjCZone() is deprecated ... use -zone instead");
-  if (object_getClass(object) == NSConstantStringClass)
-    return NSDefaultMallocZone();
-  return NSZoneFromPointer(object);
-}
-#endif
-
 #if __OBJC_GC__
-inline NSZone *
-GSObjCZone(NSObject *object)
-{
-  return NSDefaultMallocZone();
-}
 static inline id
 GSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone);
 
 inline id
 NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
+  id    new;
+
   if (!objc_collecting_enabled())
     {
-      GSAllocateObject(aClass, extraBytes, zone);
+      new = GSAllocateObject(aClass, extraBytes, zone);
     }
-  id	new = class_createInstance(aClass, extraBytes);
+  else
+    {
+      new = class_createInstance(aClass, extraBytes);
+    }
   if (0 == cxx_construct)
     {
       cxx_construct = sel_registerName(".cxx_construct");
@@ -1413,11 +1398,35 @@ static id gs_weak_load(id obj)
 - (void) finalize
 {
   Class	destructorClass = Nil;
-  IMP	destructor = 0;
+  IMP	  destructor = 0;
+  /*
+   * We're pretending to be the Objective-C runtime here, so we have to do some
+   * unsafe things (i.e. access the class directly, and not via the
+   * object_getClass() so that hidden classes get their destructors called.  If
+   * the runtime supports small objects (those embedded in a pointer), then we
+   * must use object_getClass() for them, because they do not have an isa
+   * pointer (but can not have a hidden class interposed).
+   */
+#ifdef	__clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-objc-pointer-introspection"
+#pragma clang diagnostic ignored "-Wdeprecated-objc-isa-usage"
+#endif
 #ifdef OBJC_SMALL_OBJECT_MASK
   if (((NSUInteger)self & OBJC_SMALL_OBJECT_MASK) == 0)
-#endif
+    {
+      destructorClass = object_getClass(self);
+    }
+  else
+    {
+      destructorClass = isa;
+    }
+#else
   destructorClass = isa;
+#endif
+#ifdef	__clang__
+#pragma clang diagnostic pop
+#endif
 
   /* C++ destructors must be called in the opposite order to their
    * creators, so start at the leaf class and then go up the tree until we
@@ -1575,13 +1584,15 @@ static id gs_weak_load(id obj)
   if (aSelector == 0)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
-  /*
-   *	If 'self' is an instance, object_getClass() will get the class,
-   *	and class_getMethodImplementation() will get the instance method.
-   *	If 'self' is a class, object_getClass() will get the meta-class,
-   *	and class_getMethodImplementation() will get the class method.
+  /* The Apple runtime API would do:
+   * return class_getMethodImplementation(object_getClass(self), aSelector);
+   * but this cannot ask self for information about any method reached by
+   * forwarding, so the returned forwarding function would ge a generic one
+   * rather than one aware of hardware issues with returning structures
+   * and floating points.  We therefore prefer the GNU API which is able to
+   * use forwarding callbacks to get better type information.
    */
-  return class_getMethodImplementation(object_getClass(self), aSelector);
+  return objc_msg_lookup(self, aSelector);
 }
 
 /**
@@ -1838,7 +1849,8 @@ static id gs_weak_load(id obj)
         [NSException
 	  raise: NSGenericException
 	  format: @"Autorelease would release object too many times.\n"
-	  @"%d release(s) versus %d retain(s)", release_count, retain_count];
+	  @"%"PRIuPTR" release(s) versus %"PRIuPTR" retain(s)",
+	  release_count, retain_count];
     }
 
   (*autorelease_imp)(autorelease_class, autorelease_sel, self);
@@ -1964,7 +1976,15 @@ static id gs_weak_load(id obj)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = class_getMethodImplementation(object_getClass(self), aSelector);
+  /* The Apple runtime API would do:
+   * msg = class_getMethodImplementation(object_getClass(self), aSelector);
+   * but this cannot ask self for information about any method reached by
+   * forwarding, so the returned forwarding function would ge a generic one
+   * rather than one aware of hardware issues with returning structures
+   * and floating points.  We therefore prefer the GNU API which is able to
+   * use forwarding callbacks to get better type information.
+   */
+  msg = objc_msg_lookup(self, aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1989,7 +2009,15 @@ static id gs_weak_load(id obj)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = class_getMethodImplementation(object_getClass(self), aSelector);
+  /* The Apple runtime API would do:
+   * msg = class_getMethodImplementation(object_getClass(self), aSelector);
+   * but this cannot ask self for information about any method reached by
+   * forwarding, so the returned forwarding function would ge a generic one
+   * rather than one aware of hardware issues with returning structures
+   * and floating points.  We therefore prefer the GNU API which is able to
+   * use forwarding callbacks to get better type information.
+   */
+  msg = objc_msg_lookup(self, aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -2017,7 +2045,15 @@ static id gs_weak_load(id obj)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  msg = class_getMethodImplementation(object_getClass(self), aSelector);
+  /* The Apple runtime API would do:
+   * msg = class_getMethodImplementation(object_getClass(self), aSelector);
+   * but this cannot ask self for information about any method reached by
+   * forwarding, so the returned forwarding function would ge a generic one
+   * rather than one aware of hardware issues with returning structures
+   * and floating points.  We therefore prefer the GNU API which is able to
+   * use forwarding callbacks to get better type information.
+   */
+  msg = objc_msg_lookup(self, aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException

@@ -60,6 +60,8 @@
  */
 static NSExpression	*evaluatedObjectExpression = nil;
 
+extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
+
 @interface GSPredicateScanner : NSScanner
 {
   NSEnumerator	*_args;		// Not retained.
@@ -135,7 +137,8 @@ static NSExpression	*evaluatedObjectExpression = nil;
   NSString		*_function;
   NSArray		*_args;
   unsigned int		_argc;
-  SEL _selector;
+  SEL                   _selector;
+  NSString              *_op;        // Not retained;
 }
 @end
 
@@ -521,10 +524,10 @@ static NSExpression	*evaluatedObjectExpression = nil;
       else
         {
           if (cnt == 1
-              && [[_subs objectAtIndex: 0]
-                     isKindOfClass: [NSCompoundPredicate class]]
-              && [(NSCompoundPredicate *)[_subs objectAtIndex: 0]
-                                         compoundPredicateType] == NSOrPredicateType)
+            && [[_subs objectAtIndex: 0]
+              isKindOfClass: [NSCompoundPredicate class]]
+            && [(NSCompoundPredicate *)[_subs objectAtIndex: 0]
+              compoundPredicateType] == NSOrPredicateType)
             {
               // we need () around first OR on left side
               fmt = [NSString stringWithFormat: @"(%@)", fmt]; 
@@ -784,7 +787,7 @@ static NSExpression	*evaluatedObjectExpression = nil;
         opt = @"[cd]";
         break;
       default:
-        opt = @"[?options?]";
+        //opt = @"[?options?]";
         break;
     }
   return [NSString stringWithFormat: @"%@%@ %@%@ %@",
@@ -793,23 +796,25 @@ static NSExpression	*evaluatedObjectExpression = nil;
 
 - (NSPredicate *) predicateWithSubstitutionVariables: (NSDictionary *)variables
 {
-  NSExpression *left = [_left _expressionWithSubstitutionVariables: variables];
-  NSExpression *right = [_right _expressionWithSubstitutionVariables: variables];
+  NSExpression *left;
+  NSExpression *right;
    
-   if (_type == NSCustomSelectorPredicateOperatorType)
-     {
-       return [NSComparisonPredicate predicateWithLeftExpression: left 
-                                                 rightExpression: right 
-                                                  customSelector: _selector];
-     }
-   else
-     {
-       return [NSComparisonPredicate predicateWithLeftExpression: left 
-                                                 rightExpression: right 
-                                                        modifier: _modifier 
-                                                            type: _type 
-                                                         options: _options];
-     }
+  left = [_left _expressionWithSubstitutionVariables: variables];
+  right = [_right _expressionWithSubstitutionVariables: variables];
+  if (_type == NSCustomSelectorPredicateOperatorType)
+    {
+      return [NSComparisonPredicate predicateWithLeftExpression: left 
+                                                rightExpression: right 
+                                                 customSelector: _selector];
+    }
+  else
+    {
+      return [NSComparisonPredicate predicateWithLeftExpression: left 
+                                                rightExpression: right 
+                                                       modifier: _modifier 
+                                                           type: _type 
+                                                        options: _options];
+    }
 }
 
 #if	GS_USE_ICU == 1
@@ -1095,8 +1100,9 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   GSFunctionExpression	*e;
   NSString		*s;
 
-  e = [[GSFunctionExpression alloc] initWithExpressionType: NSFunctionExpressionType];
-  s = [NSString stringWithFormat: @"_eval_%@: context: ", name];
+  e = [[GSFunctionExpression alloc]
+    initWithExpressionType: NSFunctionExpressionType];
+  s = [NSString stringWithFormat: @"_eval_%@:", name];
   e->_selector = NSSelectorFromString(s);
   if (![e respondsToSelector: e->_selector])
     {
@@ -1106,6 +1112,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   ASSIGN(e->_function, name);
   e->_argc = [args count];
   ASSIGN(e->_args, args);
+  if ([name isEqualToString: @"_add"]) e->_op = @"+";
+  else if ([name isEqualToString: @"_sub"]) e->_op = @"-";
+  else if ([name isEqualToString: @"_mul"]) e->_op = @"*";
+  else if ([name isEqualToString: @"_div"]) e->_op = @"/";
+  else if ([name isEqualToString: @"_pow"]) e->_op = @"**";
   return AUTORELEASE(e);
 }
 
@@ -1237,6 +1248,15 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (NSString *) description
 {
+  if ([_obj isKindOfClass: [NSString class]])
+    {
+      NSMutableString	*result = nil;
+
+      /* Quote the result string as necessary.
+       */
+      GSPropertyListMake(_obj, nil, NO, YES, 2, &result);
+      return result;
+    }
   return [_obj description];
 }
 
@@ -1386,16 +1406,49 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (NSString *) description
 {
-  // FIXME: here we should recognize binary and unary operators
-  // and convert back to standard format
-  // and add parentheses if required
-  return [NSString stringWithFormat: @"%@(%@)",
-    [self function], _args];
+  if (nil != _op && 1 == [_args count])
+    {
+      GSFunctionExpression      *a0 = [_args objectAtIndex: 0];
+
+      if (YES == [a0 isKindOfClass: [self class]] && nil != a0->_op)
+        {
+          return [NSString stringWithFormat: @"%@(%@)", _op, a0];
+        }
+      return [NSString stringWithFormat: @"%@%@", _op, a0];
+    }
+
+  if (nil != _op)
+    {
+      GSFunctionExpression      *a0 = [_args objectAtIndex: 0];
+      GSFunctionExpression      *a1 = [_args objectAtIndex: 1];
+
+      if (YES == [a0 isKindOfClass: [self class]] && nil != a0->_op)
+        {
+          if (YES == [a1 isKindOfClass: [self class]] && nil != a1->_op)
+            {
+              return [NSString stringWithFormat: @"(%@) %@ (%@)", a0, _op, a1];
+            }
+          return [NSString stringWithFormat: @"(%@) %@ %@", a0, _op, a1];
+        }
+
+      if (YES == [a1 isKindOfClass: [self class]] && nil != a1->_op)
+        {
+          return [NSString stringWithFormat: @"%@ %@ (%@)", a0, _op, a1];
+        }
+
+      return [NSString stringWithFormat: @"%@ %@ %@", a0, _op, a1];
+    }
+  return [NSString stringWithFormat: @"%@(%@)", [self function], _args];
 }
 
 - (NSString *) function
 {
   return _function;
+}
+
+- (NSString *) keyPath
+{
+  return nil;
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -2047,11 +2100,32 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return [self parseBinaryExpression];
 }
 
-- (NSExpression *) parseSimpleExpression
+- (NSExpression *) parseIdentifierExpression
 {
   static NSCharacterSet *_identifier;
-  unsigned      location;
   NSString      *ident;
+
+  // skip # as prefix (reserved words)
+  [self scanString: @"#" intoString: NULL];
+  if (!_identifier)
+    {
+      ASSIGN(_identifier, [NSCharacterSet characterSetWithCharactersInString: 
+	 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"]);
+    }
+
+  if (![self scanCharactersFromSet: _identifier intoString: &ident])
+    {
+      [NSException raise: NSInvalidArgumentException 
+                  format: @"Missing identifier: %@", 
+                   [[self string] substringFromIndex: [self scanLocation]]];
+    }
+
+  return [NSExpression expressionForKeyPath: ident];
+}
+
+- (NSExpression *) parseSimpleExpression
+{
+  unsigned      location;
   double        dbl;
 
   if ([self scanDouble: &dbl])
@@ -2128,7 +2202,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   if ([self scanString: @"$" intoString: NULL])
     {
       // variable
-      NSExpression *var = [self parseExpression];
+      NSExpression *var = [self parseIdentifierExpression];
 
       if (![var keyPath])
         {
@@ -2247,7 +2321,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
   if ([self scanString: @"@" intoString: NULL])
     {
-      NSExpression *e = [self parseExpression];
+      NSExpression *e = [self parseIdentifierExpression];
 
       if (![e keyPath])
         {
@@ -2260,22 +2334,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
         [NSString stringWithFormat: @"@%@", [e keyPath]]];
     }
 
-  // skip # as prefix (reserved words)
-  [self scanString: @"#" intoString: NULL];
-  if (!_identifier)
-    {
-      ASSIGN(_identifier, [NSCharacterSet characterSetWithCharactersInString: 
-	 @"_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"]);
-    }
-
-  if (![self scanCharactersFromSet: _identifier intoString: &ident])
-    {
-      [NSException raise: NSInvalidArgumentException 
-                  format: @"Missing identifier: %@", 
-                   [[self string] substringFromIndex: [self scanLocation]]];
-    }
-
-  return [NSExpression expressionForKeyPath: ident];
+  return [self parseIdentifierExpression];
 }
 
 - (NSExpression *) parseFunctionalExpression
@@ -2438,13 +2497,13 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       if ([self scanString: @"+" intoString: NULL])
         {
           right = [self parseMultiplicationExpression];
-          left = [NSExpression expressionForFunction: @"_add" 
+          left = [NSExpression expressionForFunction: @"_add"
             arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else if ([self scanString: @"-" intoString: NULL])
         {
           right = [self parseMultiplicationExpression];
-          left = [NSExpression expressionForFunction: @"_sub" 
+          left = [NSExpression expressionForFunction: @"_sub"
             arguments: [NSArray arrayWithObjects: left, right, nil]];
         }
       else

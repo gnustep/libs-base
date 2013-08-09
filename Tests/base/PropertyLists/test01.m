@@ -315,6 +315,19 @@ int main()
 	  "We can generate a property list from an array containing various things");
       }
     }
+#if     defined(GNUSTEP_BASE_LIBRARY)
+{
+  NSData        	*d = [NSData dataWithContentsOfFile: @"props"];
+  NSPropertyListFormat	format;
+  id			u;
+
+  u = [NSPropertyListSerialization propertyListFromData: d
+    mutabilityOption: NSPropertyListImmutable
+    format: &format
+    errorDescription: 0];
+  PASS(nil != u, "parses complex plist");
+}
+#endif
 
   [arp release]; arp = nil;
   return 0;

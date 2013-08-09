@@ -106,6 +106,14 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 - (BOOL) isEqualToDate: (NSDate*)other;
 - (NSDate*) laterDate: (NSDate*)otherDate;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+/**
+ * Returns an autoreleased NSDate instance whose value is offset from
+ * that of the receiver by the specified interval.
+ */
+- (id) dateByAddingTimeInterval: (NSTimeInterval)ti;
+#endif
+
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 + (id) dateWithNaturalLanguageString: (NSString*)string;
 + (id) dateWithNaturalLanguageString: (NSString*)string

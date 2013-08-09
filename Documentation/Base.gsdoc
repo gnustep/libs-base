@@ -44,7 +44,7 @@ notice and this notice are preserved.
 	  for more information on OpenStep Compliance.
 	</p>
 	<p>
-	  In order to deal with compatiblity issues, GNUstep uses two
+	  In order to deal with compatibility issues, GNUstep uses two
 	  mechanisms - it provides conditionally compiled sections of
 	  the library header files, so that software can be built that
 	  will conform strictly to a particular API, and it provides
@@ -221,7 +221,7 @@ notice and this notice are preserved.
 	    <term>NSLanguages</term>
 	    <desc>
               <p>
-              An array of strings that lists the users prefered languages,
+              An array of strings that lists the users preferred languages,
               in order or preference. If not found the default is just 
               English.
               </p>
@@ -296,10 +296,10 @@ notice and this notice are preserved.
 	      </p>
 	      <p>
 	        When this is set to <em>NO</em> the raw stack trace provided
-		by [NSException-callStackReturnAddresses] is didsabled.<br />
+		by [NSException-callStackReturnAddresses] is disabled.<br />
 		The possible reasons for disabling this are:<br />
 		1. that the feature is implemented using a function of the
-		gcc complier to provide stack addresses, and the function is
+		gcc compiler to provide stack addresses, and the function is
 		buggy on some systems/compiler versions, and will cause a
 		signal to be sent which would crash your program if not caught.
 		The GNUstep code catches the signal and recovers using a signal
@@ -307,16 +307,16 @@ notice and this notice are preserved.
 		with no known cause.<br />
 		2. that you have code which uses exceptions in a way in which
 		they were not designed to be used ... so that they are
-		routinely and frquently called rather than being called only
+		routinely and frequently called rather than being called only
 		occasionally when exceptional conditions occur.  In this case
 		you may want to disable the stack frame generation implicit	
 		in each raised exception, in order to improve performance.
 	      </p>
 	      <p>
 		When this is not set, or is set to a non-boolean value, the
-		stack trace handling on exceptionsis MacOS-X compatible ...
+		stack trace handling on exceptions is MacOS-X compatible ...
 		stack return addresses are available but a human readable
-		traceback is not logged.
+		trace back is not logged.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_STRING_ENCODING</term>
@@ -400,7 +400,7 @@ notice and this notice are preserved.
 		the gnustep config file used to determine the locations of
 		paths for the gnustep system (see later).<br />
 		This is provided to support situations such as when you
-		install into a sndbox during packaging, or where you may
+		install into a sandbox during packaging, or where you may
 		want to simultaneously run applications using different sets
 		of resources but linked to a single copy of the base library,
 		or you want to use an alternative config file for some reason.
@@ -429,7 +429,7 @@ notice and this notice are preserved.
             <desc>
               <p>
                 If there is no NSLanguages user default set, and there is
-		no language infromation available in the native system locale
+		no language information available in the native system locale
 		mechanism, then this environment variable is used to provide
 		a list of the languages that the user prefers to use.
 		languages listed in this variable must be separated by
@@ -474,7 +474,7 @@ notice and this notice are preserved.
 		As this overrides actual object deallocation, all memory
 		allocated for objects will be leaked!<br />
 		You can use the <code>CRASH_ON_ZOMBIE</code> environment
-		variable to force an abort afdter the message is logged.
+		variable to force an abort after the message is logged.
 	      </p>
 	    </desc>
 	    <term>SOCKS5_SERVER</term>
@@ -482,7 +482,7 @@ notice and this notice are preserved.
 	      <p>
 		Specifies the default socks server to be used when making
 		outgoing tcp/ip connections using NSFileHandle.  This may
-		also specify a port after the host name (and spearated
+		also specify a port after the host name (and separated
 		from it by a colon).<br />
 		This environment variable is used only if the GSSOCKS
 		user default is not set.
@@ -520,6 +520,14 @@ notice and this notice are preserved.
 	    On a GNU/Linux system, the default would be
 	    /etc/GNUstep/GNUstep.conf for instance, while on mswindows
 	    it would be ./GNUstep.conf.
+	  </p>
+          <p>
+            If setting up GNUstep in a sandbox for packaging it as part
+            of an operating system distribution, you may well want a
+            special configuration for use within the sandbox.  The normal
+            way to do that would be to create a GNUstep.conf file in /tmp
+            and set the GNUSTEP_CONFIG_FILE environment variable to point
+            to that while doing the packaging setup.
 	  </p>
 	  <p>
 	    NB. The gnustep-make package sets up a configuration file to
@@ -817,7 +825,7 @@ MyApp.app/MyApp
 	    distribution so that users can't change the config
 	    file and mess up paths, you can specify the config file name as
 	    a path with a trailing slash so that the base library will
-	    <em>not</em> read it, and will use the builtin default values.<br />
+	    <em>not</em> read it, and will use the built in default values.<br />
 	    To do this, you would configure using options like
 	    <code>--disable-environment-config-file</code> with
 	    <code>--with-config-file=/not-used/</code> and
@@ -856,9 +864,10 @@ MyApp.app/MyApp
 	  </p>
 	  <p>
 	    The defaults database for a user is stored in the
-	    subdirectory of the users home directory given by
-	    GNUSTEP_USER_DEFAULTS_DIR (by default, the
-	    <code>GNUstep/Defaults</code> subdirectory).
+            location given by GNUSTEP_USER_DEFAULTS_DIR in the
+            config file.  This is usually a relative path (default, the
+	    <code>GNUstep/Defaults</code> subdirectory) taken to specify
+	    a subdirectory of the user's home directory.<br />
 	    On mswindows this may be set to be ':REGISTRY:' to have defaults
 	    stored in the windows registry rather than in the standard file
 	    format.<br />

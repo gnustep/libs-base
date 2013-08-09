@@ -40,6 +40,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSData.h"
 #import "GSInvocation.h"
+#import "GSPrivate.h"
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;
@@ -197,7 +198,7 @@ cifframe_from_signature (NSMethodSignature *info)
       memcpy(cframe->arg_types, arg_types, sizeof(ffi_type *) * numargs);
       cframe->values = buf + offset;
 
-      if (ffi_prep_cif (&cframe->cif, FFI_DEFAULT_ABI, cframe->nargs,
+      if (ffi_prep_cif (&cframe->cif, FFI_DEFAULT_ABI, numargs,
 	rtype, cframe->arg_types) != FFI_OK)
 	{
 	  cframe = NULL;
@@ -212,7 +213,7 @@ cifframe_from_signature (NSMethodSignature *info)
 	    {
 	      offset += align - (offset % align);
 	    }
-	  for (i = 0; i < cframe->nargs; i++)
+	  for (i = 0; i < numargs; i++)
 	    {
 	      cframe->values[i] = buf + offset;
 
@@ -258,8 +259,12 @@ cifframe_arg_addr(cifframe_t *cframe, int index)
 ffi_type *
 cifframe_type(const char *typePtr, const char **advance)
 {
+  static ffi_type	stypeNSPoint = { 0 };
+  static ffi_type	stypeNSRange = { 0 };
+  static ffi_type	stypeNSRect = { 0 };
+  static ffi_type	stypeNSSize = { 0 };
   const char *type;
-  ffi_type *ftype;
+  ffi_type *ftype = 0;
 
   typePtr = objc_skip_type_qualifiers (typePtr);
   type = typePtr;
@@ -351,19 +356,17 @@ cifframe_type(const char *typePtr, const char **advance)
 	 */
 	if (GSSelectorTypesMatch(typePtr - 1, @encode(NSRange)))
 	  {
-	    static ffi_type	*elems[3];
-	    static ffi_type	stype = { 0 };
-
-	    if (stype.type == 0)
+	    ftype = &stypeNSRange;
+	    if (ftype->type == 0)
 	      {
-                const char      *t = @encode(NSUInteger);
+                static ffi_type	*elems[3];
 
-		if (*t == _C_ULNG)
+		if (*@encode(NSUInteger) == _C_ULNG)
 		  {
 		    elems[0] = &gsffi_type_ulong;
 		  }
 #ifdef	_C_LNG_LNG
-		else if (*t == _C_ULNG_LNG)
+		else if (*@encode(NSUInteger) == _C_ULNG_LNG)
 		  {
 		    elems[0] = &gsffi_type_ulong_long;
 		  }
@@ -374,20 +377,19 @@ cifframe_type(const char *typePtr, const char **advance)
 		  }
 		elems[1] = elems[0];
 		elems[2] = 0;
-		stype.elements = elems;
-		stype.type = FFI_TYPE_STRUCT;
+		ftype->elements = elems;
+		ftype->type = FFI_TYPE_STRUCT;
 	      }
-	    ftype = &stype;
 	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
-	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSSize)))
+	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSPoint)))
 	  {
-	    static ffi_type	*elems[3];
-	    static ffi_type	stype = { 0 };
-
-	    if (stype.type == 0)
+	    ftype = &stypeNSPoint;
+	    if (ftype->type == 0)
 	      {
+                static ffi_type	*elems[3];
+
 		if (*@encode(CGFloat) == _C_DBL)
 		  {
 		    elems[0] = &ffi_type_double;
@@ -398,30 +400,51 @@ cifframe_type(const char *typePtr, const char **advance)
 		  }
 		elems[1] = elems[0];
 		elems[2] = 0;
-		stype.elements = elems;
-		stype.type = FFI_TYPE_STRUCT;
+		ftype->elements = elems;
+		ftype->type = FFI_TYPE_STRUCT;
 	      }
-	    ftype = &stype;
+	    typePtr = objc_skip_typespec (typePtr - 1);
+	    break;
+	  }
+	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSSize)))
+	  {
+	    ftype = &stypeNSSize;
+	    if (ftype->type == 0)
+	      {
+                static ffi_type	*elems[3];
+
+		if (*@encode(CGFloat) == _C_DBL)
+		  {
+		    elems[0] = &ffi_type_double;
+		  }
+		else
+		  {
+		    elems[0] = &ffi_type_float;
+		  }
+		elems[1] = elems[0];
+		elems[2] = 0;
+		ftype->elements = elems;
+		ftype->type = FFI_TYPE_STRUCT;
+	      }
 	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
 	else if (GSSelectorTypesMatch(typePtr - 1, @encode(NSRect)))
 	  {
-	    static ffi_type	*elems[3];
-	    static ffi_type	stype = { 0 };
-
-	    if (stype.type == 0)
+	    ftype = &stypeNSRect;
+	    if (ftype->type == 0)
 	      {
+                static ffi_type	*elems[3];
+
 		/* An NSRect is an NSPoint and an NSSize, but those
 	 	 * two structures are actually identical.
 		 */
 		elems[0] = cifframe_type(@encode(NSSize), NULL);
-		elems[1] = elems[0];
+		elems[1] = cifframe_type(@encode(NSPoint), NULL);
 		elems[2] = 0;
-		stype.elements = elems;
-		stype.type = FFI_TYPE_STRUCT;
+		ftype->elements = elems;
+		ftype->type = FFI_TYPE_STRUCT;
 	      }
-	    ftype = &stype;
 	    typePtr = objc_skip_typespec (typePtr - 1);
 	    break;
 	  }
@@ -496,8 +519,14 @@ cifframe_type(const char *typePtr, const char **advance)
 	    NSCAssert(typePtr, @"End of signature while parsing");
 	    if (align > max_align)
 	      {
-		if (ftype && ftype->type == FFI_TYPE_STRUCT)
-		  free(ftype);
+		if (ftype && ftype->type == FFI_TYPE_STRUCT
+		  && ftype != &stypeNSPoint
+		  && ftype != &stypeNSRange
+		  && ftype != &stypeNSRect
+		  && ftype != &stypeNSSize)
+		  {
+		    free(ftype);
+		  }
 		ftype = local;
 		max_align = align;
 	      }
@@ -527,6 +556,46 @@ cifframe_type(const char *typePtr, const char **advance)
     *advance = typePtr;
 
   return ftype;
+}
+
+GSCodeBuffer*
+cifframe_closure (NSMethodSignature *sig, void (*cb)())
+{
+  NSMutableData		*frame;
+  cifframe_t            *cframe;
+  ffi_closure           *cclosure;
+  void			*executable;
+  GSCodeBuffer          *memory;
+
+  /* Construct the frame (stored in an NSMutableDate object) and sety it
+   * in a new closure.
+   */
+  frame = cifframe_from_signature(sig);
+  cframe = [frame mutableBytes];
+  memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
+  [memory setFrame: frame];
+  cclosure = [memory buffer];
+  executable = [memory executable];
+  if (cframe == NULL || cclosure == NULL)
+    {
+      [NSException raise: NSMallocException format: @"Allocating closure"];
+    }
+#if	HAVE_FFI_PREP_CLOSURE_LOC
+  if (ffi_prep_closure_loc(cclosure, &(cframe->cif),
+    cb, frame, executable) != FFI_OK)
+    {
+      [NSException raise: NSGenericException format: @"Preping closure"];
+    }
+#else
+  executable = (void*)cclosure;
+  if (ffi_prep_closure(cclosure, &(cframe->cif),
+    cb, frame) != FFI_OK)
+    {
+      [NSException raise: NSGenericException format: @"Preping closure"];
+    }
+#endif
+  [memory protect];
+  return memory;
 }
 
 /*-------------------------------------------------------------------------*/
