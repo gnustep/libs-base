@@ -243,6 +243,10 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Return the path to the bundle - an absolute path.  */
 - (NSString*) bundlePath;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+- (NSURL*) bundleURL;
+#endif
+
 /** Returns the class in the bundle with the given name. If no class
     of this name exists in the bundle, then Nil is returned.
  */
