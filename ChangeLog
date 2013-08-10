@@ -1,6 +1,7 @@
 2013-08-10  Lubos Dolezel <lubos@dolezel.info>
 
-	* Source/NSBundle.m: add -[NSBundle bundleURL]
+	* Source/NSBundle.m: add NSBundle bundleURL, builtInPlugInsURL,
+	executableURL
 
 2013-07-26  Richard Frith-Macdonald <rfm@gnu.org>
 
