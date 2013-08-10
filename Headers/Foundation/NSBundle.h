@@ -348,6 +348,11 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Returns the full path to the plug-in subdirectory of the bundle.  */
 - (NSString *) builtInPlugInsPath;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) 
+/** Returns the full path to the plug-in subdirectory of the bundle.  */
+- (NSURL *) builtInPlugInsURL;
+#endif
+
 /** Returns the bundle identifier, as defined by the CFBundleIdentifier
     key in the infoDictionary */
 - (NSString *) bundleIdentifier;
@@ -444,6 +449,11 @@ GS_EXPORT NSString* const NSLoadedClasses;
 
 /** Returns the path to the executable code in the bundle */
 - (NSString *) executablePath;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+- (NSURL *) executableURL;
+#endif
+
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 

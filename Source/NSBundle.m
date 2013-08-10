@@ -2737,6 +2737,11 @@ IF_NO_GC(
   return object;
 }
 
+- (NSURL *) executableURL
+{
+  return [NSURL fileURLWithPath: [self executablePath]];
+}
+
 - (NSString *) resourcePath
 {
   NSString *version = _frameworkVersion;
@@ -2809,6 +2814,11 @@ IF_NO_GC(
     {
       return [_path stringByAppendingPathComponent: @"PlugIns"];
     }
+}
+
+- (NSURL *) builtInPlugInsURL
+{
+  return [NSURL fileURLWithPath: [self builtInPlugInsPath]];
 }
 
 - (NSString*) bundleIdentifier
