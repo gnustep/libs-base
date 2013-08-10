@@ -1,3 +1,7 @@
+2013-08-10  Lubos Dolezel <lubos@dolezel.info>
+
+	* Source/NSBundle.m: add -[NSBundle bundleURL]
+
 2013-07-26  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Version: make ready for 1.24.5 release
