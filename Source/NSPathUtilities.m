@@ -1942,6 +1942,7 @@ NSTemporaryDirectory(void)
 	  if (baseTempDirName == nil)
 	    {
 #if	defined(__CYGWIN__)
+#warning Basing temporary directory in /cygdrive/c; any reason?
 	      baseTempDirName = @"/cygdrive/c/";
 #elif	defined(__MINGW__)
 	      baseTempDirName = @"C:\\";
@@ -1982,7 +1983,9 @@ NSTemporaryDirectory(void)
   perm = perm & 0777;
 
 // Mateu Batle: secure temporary directories don't work in MinGW
-#ifndef __MINGW__
+// Ivan Vucica: there are also problems with Cygwin
+//              probable cause: http://stackoverflow.com/q/9561759/39974
+#if !defined(__MINGW__) && !defined(__CYGWIN__)
 
 #if	defined(__MINGW__)
   uid = owner;
