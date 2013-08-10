@@ -1,3 +1,17 @@
+2013-08-10  Ivan Vucica <ivan@vucica.net>
+
+	* Source/NSPathUtilities.m:
+	Disabled check for secure temporary directories under Cygwin. Refer
+	to: 
+	  http://stackoverflow.com/q/9561759/39974
+	for a possible cause of problems.
+
+	* Source/objc-load.m:
+	Codepaths used for MinGW are now also used for Cygwin. Even in
+	case of some functionality that should be standard under UNIX systems,
+	it turns out that this functionality is, sadly, not present under
+	Cygwin (e.g. dladdr()).
+
 2013-08-10  Lubos Dolezel <lubos@dolezel.info>
 
 	* Source/NSBundle.m: add NSBundle bundleURL, builtInPlugInsURL,
