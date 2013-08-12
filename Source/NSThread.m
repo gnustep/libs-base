@@ -1303,6 +1303,15 @@ GSRunLoopInfoForThread(NSThread *aThread)
           waitUntilDone: aFlag
                   modes: commonModes()];
 }
+
+- (void) performSelectorInBackground: (SEL)aSelector 
+                          withObject: (id)anObject
+{
+  [NSThread detachNewThreadSelector: aSelector
+                           toTarget: self
+                         withObject: anObject];
+}
+
 @end
 
 /**

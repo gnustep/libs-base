@@ -1,3 +1,10 @@
+2013-08-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/Foundation/NSThread.h:
+        * Source/NSThread.m:
+        Added ([-performSelectorInBackground:withObject:]) convenience method
+        from OSX 10.5
+
 2013-08-10  Ivan Vucica <ivan@vucica.net>
 
 	* Source/NSPathUtilities.m:

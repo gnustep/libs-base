@@ -315,6 +315,13 @@ extern "C" {
                 onThread: (NSThread*)aThread
               withObject: (id)anObject
            waitUntilDone: (BOOL)aFlag;
+
+/**
+ * Creates and runs a new background thread sending aSelector to the receiver
+ * and passing anObject (which may be nil) as the argument.
+ */
+- (void) performSelectorInBackground: (SEL)aSelector
+                          withObject: (id)anObject; 
 #endif
 @end
 
