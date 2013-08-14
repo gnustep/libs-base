@@ -2,6 +2,8 @@
 
 	* Source/NSBundle.m: add NSBundle pathForAuxiliaryExecutable: and
 	-privateFrameworksPath and their URL counterparts
+	* Headers/GNUstepBase/GSBlocks.h: Fixed the DEFINE_BLOCK_TYPE macro
+	for certain GCC versions
 
 2013-08-12  Richard Frith-Macdonald <rfm@gnu.org>
 
