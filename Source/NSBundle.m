@@ -2742,6 +2742,35 @@ IF_NO_GC(
   return [NSURL fileURLWithPath: [self executablePath]];
 }
 
+- (NSString *) pathForAuxiliaryExecutable: (NSString *) executableName
+{
+  NSString  *version = _frameworkVersion;
+
+  if (!version)
+    version = @"Current";
+
+  if (_bundleType == NSBUNDLE_FRAMEWORK)
+    {
+#if !defined(__MINGW__)
+      return [_path stringByAppendingPathComponent:
+                      [NSString stringWithFormat:@"Versions/%@/%@",
+                      version, executableName]];
+#else
+      return [_path stringByAppendingPathComponent: executableName];
+#endif
+    }
+  else
+    {
+      return [_path stringByAppendingPathComponent: executableName];
+    }
+}
+
+- (NSURL *) URLForAuxiliaryExecutable: (NSString *) executableName
+{
+  return [NSURL fileURLWithPath: [self pathForAuxiliaryExecutable:
+                       executableName]];
+}
+
 - (NSString *) resourcePath
 {
   NSString *version = _frameworkVersion;
@@ -2820,6 +2849,35 @@ IF_NO_GC(
 {
   return [NSURL fileURLWithPath: [self builtInPlugInsPath]];
 }
+
+- (NSString *) privateFrameworksPath
+{
+  NSString  *version = _frameworkVersion;
+
+  if (!version)
+    version = @"Current";
+
+  if (_bundleType == NSBUNDLE_FRAMEWORK)
+    {
+#if !defined(__MINGW__)
+      return [_path stringByAppendingPathComponent:
+                      [NSString stringWithFormat:@"Versions/%@/PrivateFrameworks",
+                      version]];
+#else
+      return [_path stringByAppendingPathComponent: @"PrivateFrameworks"];
+#endif
+    }
+  else
+    {
+      return [_path stringByAppendingPathComponent: @"PrivateFrameworks"];
+    }
+}
+
+- (NSURL *) privateFrameworksURL
+{
+  return [NSURL fileURLWithPath: [self privateFrameworksPath]];
+}
+
 
 - (NSString*) bundleIdentifier
 {

@@ -1,3 +1,8 @@
+2013-08-14  Lubos Dolezel <lubos@dolezel.info>
+
+	* Source/NSBundle.m: add NSBundle pathForAuxiliaryExecutable: and
+	-privateFrameworksPath and their URL counterparts
+
 2013-08-12  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/Foundation/NSThread.h:
