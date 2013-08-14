@@ -70,12 +70,12 @@ typedef retTy(^name)()
 
 #else /* GCC_VERSION >= 3000 */
 
-#define DEFINE_BLOCK_TYPE(name, retTy, argTys, args...) \
+#define DEFINE_BLOCK_TYPE(name, retTy, argTys...) \
   typedef struct {\
     void *isa;\
     int flags;\
     int reserved;\
-    retTy (*invoke)(void*, argTys, args);\
+    retTy (*invoke)(void*, argTys);\
   } *name
 
 #define DEFINE_BLOCK_TYPE_NO_ARGS(name, retTy) \
