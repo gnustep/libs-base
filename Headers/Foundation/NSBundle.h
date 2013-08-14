@@ -348,10 +348,21 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Returns the full path to the plug-in subdirectory of the bundle.  */
 - (NSString *) builtInPlugInsPath;
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Returns the full path to the plug-in subdirectory of the bundle.  */
 - (NSURL *) builtInPlugInsURL;
 #endif
+
+/** Returns the full path to the private frameworks subdirectory of the bundle.  */
+- (NSString *) privateFrameworksPath;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+/** Returns the full path to the private frameworks subdirectory of the bundle.  */
+- (NSURL *) privateFrameworksURL;
+#endif
+
+
+
 
 /** Returns the bundle identifier, as defined by the CFBundleIdentifier
     key in the infoDictionary */
@@ -453,6 +464,13 @@ GS_EXPORT NSString* const NSLoadedClasses;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
 - (NSURL *) executableURL;
 #endif
+
+- (NSString *) pathForAuxiliaryExecutable: (NSString *) executableName;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+- (NSURL *)URLForAuxiliaryExecutable: (NSString *) executableName;
+#endif
+
 
 #endif
 
