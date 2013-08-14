@@ -28,6 +28,10 @@
 #define __has_feature(x) 0
 #endif
 
+#ifndef GCC_VERSION
+#define GCC_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
+#endif
+
 #if __has_feature(blocks)
 
 #define BLOCK_SCOPE __block
