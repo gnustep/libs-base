@@ -68,9 +68,17 @@ typedef retTy(^name)()
     retTy (*invoke)(void*, argTys, ## __VA_ARGS__);\
   } *name
 
+#define DEFINE_BLOCK_TYPE_NO_ARGS(name, retTy) \
+  typedef struct {\
+    void *isa;\
+    int flags;\
+    int reserved;\
+    retTy (*invoke)(void*);\
+  } *name
+
 #define CALL_BLOCK(block, args, ...) block->invoke(block, args, ## __VA_ARGS__)
 
-#define CALL_BLOCK_NO_ARGS(block) block->invoke()
+#define CALL_BLOCK_NO_ARGS(block) block->invoke(block)
 #define BLOCK_SCOPE
 
 #else /* GCC_VERSION >= 3000 */
