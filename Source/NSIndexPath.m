@@ -127,9 +127,15 @@ static	NSIndexPath	*dummy = nil;
   if (self != empty)
     {
       [lock lock];
-      NSHashRemove(shared, self);
+      if (shared != nil)
+        {
+          NSHashRemove(shared, self);
+        }
       [lock unlock];
-      NSZoneFree(NSDefaultMallocZone(), _indexes);
+      if (_indexes != 0)
+        {
+          NSZoneFree(NSDefaultMallocZone(), _indexes);
+        }
       [super dealloc];
     }
   GSNOSUPERDEALLOC;
@@ -160,7 +166,8 @@ static	NSIndexPath	*dummy = nil;
       [aCoder encodeInt: (NSInteger)_length forKey: @"NSIndexPathLength"];
       if (_length == 1)
 	{
-	  [aCoder encodeInt: (NSInteger)_indexes[0] forKey: @"NSIndexPathValue"];
+	  [aCoder encodeInt: (NSInteger)_indexes[0]
+                     forKey: @"NSIndexPathValue"];
 	}
       else if (_length > 1)
 	{
@@ -317,8 +324,7 @@ static	NSIndexPath	*dummy = nil;
       [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &length];
       if (length == 0)
 	{
-	  DESTROY(self);
-	  self = empty;
+	  ASSIGN(self, empty);
 	}
       else
 	{
@@ -378,6 +384,7 @@ static	NSIndexPath	*dummy = nil;
     {
       if (self == empty)
 	{
+          RELEASE(self);
 	  self = (NSIndexPath*)NSAllocateObject([self class],
 	    0, NSDefaultMallocZone());
 	}
@@ -390,9 +397,9 @@ static	NSIndexPath	*dummy = nil;
     }
   else
     {
-      DESTROY(self);
-      self = RETAIN(found);
+      ASSIGN(self, found);
     }
+  dummy->_indexes = 0;  // Don't want static indexes deallocated atExit
   [lock unlock];
   return self;
 }

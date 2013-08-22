@@ -1827,7 +1827,10 @@ IF_NO_GC(
       NSString		*path;
 
       [load_lock lock];
-      NSMapRemove(_bundles, _path);
+      if (_bundles != nil)
+        {
+          NSMapRemove(_bundles, _path);
+        }
       if (identifier != nil)
         {
 	  NSMapRemove(_byIdentifier, identifier);
@@ -1836,12 +1839,15 @@ IF_NO_GC(
         {
 	  NSMapRemove(_byClass, _principalClass);
         }
-      count = [_bundleClasses count];
-      while (count-- > 0)
-	{
-	  NSMapRemove(_byClass,
-            [[_bundleClasses objectAtIndex: count] pointerValue]);
-	}
+      if (_byClass != nil)
+        {
+          count = [_bundleClasses count];
+          while (count-- > 0)
+            {
+              NSMapRemove(_byClass,
+                [[_bundleClasses objectAtIndex: count] pointerValue]);
+            }
+        }
       [load_lock unlock];
 
       /* Clean up path cache for this bundle.
