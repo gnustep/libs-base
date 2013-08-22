@@ -1,3 +1,9 @@
+2013-08-22  Doug Simons <doug.simons@testplant.com>
+
+       * NSScanner.m: Fixed GSScanDouble() function to use NSScanner's code
+	   which works correctly for large and small numbers including numbers
+	   with more than 19 digits.
+	   
 2013-08-08  Frank Le Grand <frank.legrand@testplant.com>
 
        Merged changes from Trunk (since rev 35219) to TestPlant branch.

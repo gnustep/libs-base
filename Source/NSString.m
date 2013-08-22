@@ -3403,7 +3403,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (double) doubleValue
 {
-  unichar	buf[32];
+  unichar	buf[512];
   double	d = 0.0;
   NSRange	r;
 
@@ -3411,7 +3411,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   r = [self rangeOfCharacterFromSet: nonspace];
   if (NSNotFound == r.location) return 0.0;
   r.length = [self length] - r.location;
-  if (r.length > 32) r.length = 32;
+  if (r.length > 512) r.length = 512;
   [self getCharacters: buf range: r];
   GSScanDouble(buf, r.length, &d);
   return d;
