@@ -277,6 +277,9 @@ int main()
 		 NSRangeException,
 		 "NSString comparison with range beyond end of string");
 
+  PASS_EQUAL([@"a\"b" description], @"a\"b",
+    "the description of a string is itsself");
+
   strCompare("hello", "hello", NSOrderedSame, NSOrderedSame, NSOrderedSame,
   	     NSOrderedSame,NSMakeRange(0,5)); 
   strCompare("", "",NSOrderedSame, NSOrderedSame, NSOrderedSame, NSOrderedSame,
