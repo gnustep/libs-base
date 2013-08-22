@@ -35,7 +35,6 @@
 #import "Foundation/NSZone.h"
 #import "GSInvocation.h"
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #if defined(USE_LIBFFI)
 #include "cifframe.h"

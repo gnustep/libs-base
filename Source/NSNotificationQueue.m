@@ -285,6 +285,7 @@ static NSArray	*defaultMode = nil;
     {
       defaultMode = [[NSArray alloc] initWithObjects: (id*)&NSDefaultRunLoopMode
 					       count: 1];
+      [[NSObject leakAt: &defaultMode] release];
     }
 }
 

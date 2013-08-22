@@ -42,11 +42,11 @@
 #endif
 
 
+#import "common.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDecimalNumber.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSValue.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #if __has_include(<objc/runtime.h>)
 #  include <objc/runtime.h>
 #endif
@@ -653,9 +653,11 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
   NSDoubleNumberClass = [NSDoubleNumber class];
 
   boolY = NSAllocateObject (NSBoolNumberClass, 0, 0);
+  [[NSObject leakAt: &boolY] release];
   boolY->value = 1;
   boolN = NSAllocateObject (NSBoolNumberClass, 0, 0);
   boolN->value = 0;
+  [[NSObject leakAt: &boolN] release];
 
   for (i = 0; i < 14; i++)
     {
@@ -663,6 +665,7 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
 
       n->value = i - 1;
       ReusedInstances[i] = n;
+      [[NSObject leakAt: &ReusedInstances[i]] release];
     }
 }
 

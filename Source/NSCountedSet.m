@@ -34,7 +34,6 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSThread.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSCountedSet;
 @interface GSCountedSet : NSObject	// Help the compiler
@@ -74,6 +73,7 @@ static Class NSCountedSet_concrete_class;
       NSCountedSet_abstract_class = self;
       NSCountedSet_concrete_class = [GSCountedSet class];
       uniqueLock = [GSLazyRecursiveLock new];
+      [[NSObject leakAt: &uniqueLock] release];
       lockImp = [uniqueLock methodForSelector: @selector(lock)];
       unlockImp = [uniqueLock methodForSelector: @selector(unlock)];
     }

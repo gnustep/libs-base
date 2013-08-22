@@ -45,6 +45,7 @@
 #import "Foundation/NSValue.h"
 #endif
 #import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "../GSPrivate.h"
 

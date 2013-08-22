@@ -1,3 +1,112 @@
+2013-08-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexPath.m:
+	* Source/NSMapTable.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/GSLocale.m:
+	* Source/NSNetServices.m:
+	* Source/NSTimeZone.m:
+	* Source/NSHashTable.m:
+	* Source/GSSocketStream.m:
+	* Source/NSValueTransformer.m:
+	* Source/NSBundle.m:
+	* Source/NSURLHandle.m:
+	* Source/NSPropertyList.m:
+	* Source/NSAffineTransform.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSScanner.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSNotificationQueue.m:
+	* Source/NSSocketPort.m:
+	* Source/NSAttributedString.m:
+	* Source/NSRunLoop.m:
+	* Source/NSOperation.m:
+	* Source/NSObject+NSComparisonMethods.m:
+	* Source/NSFormatter.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSArray.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/GSStream.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSDebug.m:
+	* Source/NSXMLPrivate.h:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSPortMessage.m:
+	* Source/NSFileHandle.m:
+	* Source/NSDistributedLock.m:
+	* Source/GSTLS.m:
+	* Source/NSPredicate.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSAssertionHandler.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSDispatch.h:
+	* Source/NSPort.m:
+	* Source/NSSortDescriptor.m:
+	* Source/NSMessagePort.m:
+	* Source/win32/NSMessagePort.m:
+	* Source/win32/NSMessagePortNameServer.m:
+	* Source/NSInvocation.m:
+	* Source/NSFileManager.m:
+	* Source/common.h:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLCache.m:
+	* Source/NSNotificationCenter.m:
+	* Source/GSAttributedString.m:
+	* Source/externs.m:
+	* Source/NSCoder.m:
+	* Source/NSHTTPCookieStorage.m:
+	* Source/NSURL.m:
+	* Source/NSString.m:
+	* Source/NSObject.m:
+	* Source/NSDecimalNumber.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSPointerFunctions.m:
+	* Source/GSSorting.h:
+	* Source/NSPointerArray.m:
+	* Source/Additions/GCObject.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/NSNotification.m:
+	* Source/NSNumber.m:
+	* Source/GSTimSort.m:
+	* Source/NSConnection.m:
+	* Source/GSString.m:
+	* Source/NSHTTPCookie.m:
+	* Source/NSData.m:
+	* Source/NSHost.m:
+	* Source/NSDate.m:
+	* Source/NSMetadata.m:
+	* Source/NSDictionary.m:
+	* Source/GSMDNSNetServices.m:
+	* Source/GSHTTPAuthentication.m:
+	* Source/NSClassDescription.m:
+	* Source/NSSerializer.m:
+	* Source/NSNull.m:
+	* Source/NSValue.m:
+	* Source/NSCountedSet.m:
+	* Source/GSFileHandle.h:
+	* Source/GSFileHandle.m:
+	* Source/NSLock.m:
+	* Source/NSSet.m:
+	* Source/NSLocale.m:
+	* Source/NSTask.m:
+	* Source/NSJSONSerialization.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSPortNameServer.m:
+	* Source/NSXMLParser.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSTextCheckingResult.m:
+	* Source/NSEnumerator.m:
+	* Source/GSFTPURLHandle.m:
+        Improve atExit/leak handling to be executed with a thread and an
+        autorelease pool in place.
+        Record as deliberately 'leaked', objects created in +initialize
+        methods and intended to persist until exit.
+        Fix a couple of bugs exposed by turning on clean up of leaked objects.
+
 2013-08-14  Lubos Dolezel <lubos@dolezel.info>
 
 	* Source/NSBundle.m: add NSBundle pathForAuxiliaryExecutable: and

@@ -223,6 +223,9 @@ static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict,
 static void InitialisePathUtilities(void);
 static void ShutdownPathUtilities(void);
 
+@interface GSPathUtilities : NSObject
+@end
+
 /* Conditionally assign an object from a dictionary to var
  * We don't need to retain val before releasing var, because we
  * can be sure that if var is val it is retained by the dictionary
@@ -894,10 +897,16 @@ NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig)
 {
   static NSDictionary	*config = nil;
+  static BOOL beenHere = NO;
   NSMutableDictionary	*conf = nil;
   BOOL			changedSystemConfig = NO;
 
   [gnustep_global_lock lock];
+  if (NO == beenHere)
+    {
+      beenHere = YES;
+      [[NSObject leakAt: &config] release];
+    }
   if (config == nil || (newConfig != nil && [config isEqual: newConfig] == NO))
     {
       NS_DURING
@@ -1124,8 +1133,18 @@ static void InitialisePathUtilities(void)
   NS_DURING
     {
       NSMutableDictionary	*config;
+      static BOOL               beenHere = NO;
 
       [gnustep_global_lock lock];
+      if (NO == beenHere)
+        {
+          beenHere = YES;
+          if (YES == [NSObject shouldCleanUp])
+            {
+              // Get path utilities shutdown called at process exit.
+              [GSPathUtilities class];
+            }
+        }
       ASSIGNCOPY(uninstalled, [[[NSProcessInfo processInfo] environment]
 	objectForKey: @"GNUSTEP_UNINSTALLED_LIBRARY_DIRECTORY"]);
       gnustepUserName = [NSUserName() copy];
@@ -2470,3 +2489,14 @@ if (domainMask & mask) \
 
   return paths;
 }
+
+@implementation GSPathUtilities
++ (void) atExit
+{
+  ShutdownPathUtilities();
+}
++ (void) initialize
+{
+  [self registerAtExit];
+}
+@end

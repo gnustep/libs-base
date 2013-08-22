@@ -1494,9 +1494,10 @@ static Class		tcpPortClass;
     {
       tcpPortClass = self;
       tcpPortMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-
+	NSObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: &tcpPortMap] release];
       tcpPortLock = [GSLazyRecursiveLock new];
+      [[NSObject leakAt: &tcpPortLock] release];
     }
 }
 
@@ -1706,6 +1707,7 @@ static Class		tcpPortClass;
 		    NSNonOwnedPointerMapValueCallBacks, 0);
 		  NSMapInsert(tcpPortMap, (void*)(uintptr_t)port->portNum,
 		    (void*)thePorts);
+                  RELEASE(thePorts);
 		}
 	      /*
 	       * Ok - now add the port for the host
@@ -1732,6 +1734,7 @@ static Class		tcpPortClass;
 			      NSNonOwnedPointerMapValueCallBacks, 0);
 	      NSMapInsert(tcpPortMap,
 		(void*)(uintptr_t)number, (void*)thePorts);
+              RELEASE(thePorts);
 	    }
 	  /*
 	   * Record the port by host.

@@ -40,7 +40,6 @@
 #import "GSPrivate.h"
 #import "GSStream.h"
 #import "GSSocketStream.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "GSTLS.h"
 
@@ -440,6 +439,7 @@ static NSArray  *keys = nil;
         GSTLSRevokeFile,
         GSTLSVerify,
         nil];
+      [[NSObject leakAt: &keys] release];
     }
 }
 

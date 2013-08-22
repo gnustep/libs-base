@@ -47,7 +47,6 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSMapTable.h"
 #import "GNUstepBase/GSLocale.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif

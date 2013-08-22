@@ -84,7 +84,6 @@
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #include <stdio.h>
 
 #ifdef	HAVE_MMAP

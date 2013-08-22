@@ -108,7 +108,6 @@
 #include <crt_externs.h>
 #endif
 
-#import "GNUstepBase/GSConfig.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCharacterSet.h"

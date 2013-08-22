@@ -74,7 +74,6 @@
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -271,7 +270,7 @@ pathSeps(void)
 	    {
 	      rPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
-	      IF_NO_GC(RETAIN(rPathSeps));
+              rPathSeps = [NSObject leakAt: &rPathSeps];
 	    }
 	  [placeholderLock unlock];
 	}
@@ -286,7 +285,7 @@ pathSeps(void)
 	    {
 	      uPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"/"];
-	      IF_NO_GC(RETAIN(uPathSeps));
+              uPathSeps = [NSObject leakAt: &uPathSeps];
 	    }
 	  [placeholderLock unlock];
 	}
@@ -301,7 +300,7 @@ pathSeps(void)
 	    {
 	      wPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"\\"];
-	      IF_NO_GC(RETAIN(wPathSeps));
+              wPathSeps = [NSObject leakAt: &wPathSeps];
 	    }
 	  [placeholderLock unlock];
 	}

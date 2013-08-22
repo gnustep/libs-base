@@ -30,7 +30,6 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSValue.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
@@ -505,6 +504,7 @@ static NSDictionary *makeReference(unsigned ref)
       globalClassMap =
 	NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 			  NSObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: &globalClassMap] release];
     }
 }
 

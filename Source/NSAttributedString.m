@@ -56,7 +56,6 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSRange.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSAttributedString;
 @interface GSAttributedString : NSObject	// Help the compiler

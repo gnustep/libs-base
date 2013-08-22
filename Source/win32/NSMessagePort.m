@@ -185,9 +185,9 @@ static Class		messagePortClass = 0;
       messagePortClass = self;
       ports = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
-
+      [[NSObject leakAt: &ports] release];
       messagePortLock = [GSLazyRecursiveLock new];
-
+      [[NSObject leakAt: &messagePortLock] release];
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default
       security.bInheritHandle = FALSE;

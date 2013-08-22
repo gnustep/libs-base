@@ -92,6 +92,7 @@ static NSArray	*empty = nil;
 + (void) initialize
 {
   empty = [NSArray new];
+  [[NSObject leakAt: &empty] release];
 }
 
 - (void) addDependency: (NSOperation *)op
@@ -878,6 +879,7 @@ static NSOperationQueue *mainQueue = nil;
   if (mainQueue == nil)
     {
       mainQueue = [self new];
+      [[NSObject leakAt: &mainQueue] release];
       [[[NSThread currentThread] threadDictionary] setObject: mainQueue
 						      forKey: threadKey];
     }

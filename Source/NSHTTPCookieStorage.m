@@ -31,7 +31,6 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSDistributedNotificationCenter.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSHTTPCookieManagerAcceptPolicyChangedNotification
   = @"NSHTTPCookieManagerAcceptPolicyChangedNotification";

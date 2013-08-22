@@ -623,6 +623,7 @@ static NSUInteger	urlAlign;
     {
       NSGetSizeAndAlignment(@encode(parsedURL), &urlAlign, 0);
       clientsLock = [NSLock new];
+      [[NSObject leakAt: &clientsLock] release];
     }
 }
 

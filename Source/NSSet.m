@@ -37,7 +37,6 @@
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 

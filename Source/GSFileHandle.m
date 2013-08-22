@@ -40,7 +40,6 @@
 #import "Foundation/NSUserDefaults.h"
 #import "GSPrivate.h"
 #import "GSNetwork.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSFileHandle.h"
 
 #import "../Tools/gdomap.h"

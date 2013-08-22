@@ -706,6 +706,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
+      [[NSObject leakAt: &theFuture] release];
     }
 }
 

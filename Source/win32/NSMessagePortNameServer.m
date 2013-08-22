@@ -63,28 +63,6 @@ static SECURITY_ATTRIBUTES	security;
 @end
 
 
-static void clean_up_names(void)
-{
-  NSMapEnumerator mEnum;
-  NSMessagePort	*port;
-  NSString	*name;
-  BOOL	unknownThread = GSRegisterCurrentThread();
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
-
-  mEnum = NSEnumerateMapTable(portToNamesMap);
-  while (NSNextMapEnumeratorPair(&mEnum, (void *)&port, (void *)&name))
-    {
-      [defaultServer removePort: port];
-    }
-  NSEndMapTableEnumeration(&mEnum);
-  IF_NO_GC([arp release]);
-  RegCloseKey(key);
-  if (unknownThread == YES)
-    {
-      GSUnregisterCurrentThread();
-    }
-}
-
 /**
  * Subclass of [NSPortNameServer] taking/returning instances of [NSMessagePort].
  * Port removal functionality is not supported; if you want to cancel a service,
@@ -92,6 +70,23 @@ static void clean_up_names(void)
  * [NSPortNameServer-registerPort:forName:]).
  */
 @implementation NSMessagePortNameServer
+
+- (void) atExit
+{
+  NSMapEnumerator mEnum;
+  NSMessagePort	*port;
+  NSString	*name;
+
+  mEnum = NSEnumerateMapTable(portToNamesMap);
+  while (NSNextMapEnumeratorPair(&mEnum, (void *)&port, (void *)&name))
+    {
+      [defaultServer removePort: port];
+    }
+  NSEndMapTableEnumeration(&mEnum);
+  DESTROY(portToNamesMap);
+  DESTROY(serverLock);
+  RegCloseKey(key);
+}
 
 + (void) initialize
 {
@@ -102,7 +97,7 @@ static void clean_up_names(void)
       serverLock = [NSRecursiveLock new];
       portToNamesMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
-      atexit(clean_up_names);
+      [self registerAtExit];
 
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default

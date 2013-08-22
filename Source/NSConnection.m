@@ -81,7 +81,6 @@
 
 #import "Foundation/NSEnumerator.h"
 #import "GNUstepBase/GSLock.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /* Skip past an argument and also any offset information before the next.
  */
@@ -661,29 +660,36 @@ static NSLock	*cached_proxies_gate = nil;
       runLoopClass = [NSRunLoop class];
 
       dummyObject = [NSObject new];
+      [[NSObject leakAt: &dummyObject] release];
 
       connection_table =
 	NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
+      [[NSObject leakAt: &connection_table] release];
 
       targetToCached =
 	NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	  NSObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: &targetToCached] release];
 
       root_object_map =
 	NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	  NSObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: &root_object_map] release];
 
       if (connection_table_gate == nil)
 	{
 	  connection_table_gate = [GSLazyRecursiveLock new];
+          [[NSObject leakAt: &connection_table_gate] release];
 	}
       if (cached_proxies_gate == nil)
 	{
 	  cached_proxies_gate = [GSLazyLock new];
+          [[NSObject leakAt: &cached_proxies_gate] release];
 	}
       if (root_object_map_gate == nil)
 	{
 	  root_object_map_gate = [GSLazyLock new];
+          [[NSObject leakAt: &root_object_map_gate] release];
 	}
 
       /*

@@ -55,6 +55,7 @@ static NSFileManager	*mgr = nil;
   if (mgr == nil)
     {
       mgr = RETAIN([NSFileManager defaultManager]);
+      [[NSObject leakAt: &mgr] release];
     }
 }
 

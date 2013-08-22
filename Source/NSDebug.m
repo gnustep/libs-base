@@ -87,6 +87,7 @@ static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
 + (void) initialize
 {
   uniqueLock = [GSLazyRecursiveLock new];
+  [[NSObject leakAt: &uniqueLock] release];
 }
 @end
 

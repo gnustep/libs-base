@@ -36,7 +36,6 @@
 #import "GSTLS.h"
 #import "GSURLPrivate.h"
 #import "GNUstepBase/GSMime.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
@@ -98,7 +97,9 @@ static NSLock		*pairLock = nil;
        * to the same value.
        */
       pairCache = [NSMutableArray new];
+      [[NSObject leakAt: &pairCache] release];
       pairLock = [NSLock new];
+      [[NSObject leakAt: &pairLock] release];
       /*  Purge expired pairs at intervals.
        */
       [[NSNotificationCenter defaultCenter] addObserver: self
@@ -366,8 +367,11 @@ static NSURLProtocol	*placeholder = nil;
       placeholderClass = [NSURLProtocolPlaceholder class];
       placeholder = (NSURLProtocol*)NSAllocateObject(placeholderClass, 0,
 	NSDefaultMallocZone());
+      [[NSObject leakAt: &placeholder] release];
       registered = [NSMutableArray new];
+      [[NSObject leakAt: &registered] release];
       regLock = [NSLock new];
+      [[NSObject leakAt: &regLock] release];
       [self registerClass: [_NSHTTPURLProtocol class]];
       [self registerClass: [_NSHTTPSURLProtocol class]];
       [self registerClass: [_NSFTPURLProtocol class]];

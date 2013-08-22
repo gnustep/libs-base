@@ -61,7 +61,6 @@
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #include <stdio.h>
@@ -3143,6 +3142,7 @@ static NSSet	*fileKeys = nil;
 	NSFileSystemNumber,
 	NSFileType,
 	nil];
+      [[NSObject leakAt: &fileKeys] release];
     }
 }
 
