@@ -1,5 +1,13 @@
 2013-08-22  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSScanner.m: GSScanDouble() permit overlong mantissa (more
+        digits than can be represented in a double) and ignore excess digits
+        for compatibility with OSX.  Inspired by testplant branch r37004
+        which tries to allow more digits at the cost of breaking parsing
+        in locales where the decimal point is a comma rather than a dot.
+
+2013-08-22  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSIndexPath.m:
 	* Source/NSMapTable.m:
 	* Source/NSSocketPortNameServer.m:

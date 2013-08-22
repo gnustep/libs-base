@@ -1289,19 +1289,26 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
           mantissaLength++;
 	}
     }
-  if (dotPos < 0)
-    {
-      dotPos = mantissaLength;
-    }
-
   if (0 == mantissaLength)
     {
       return NO;        // No mantissa ... not a double
     }
-  if (19 == mantissaLength
-    || (18 == mantissaLength && pos < length && isdigit(buf[pos])))
+  if (mantissaLength > 18)
     {
-      return NO;        // Mantissa is too long.
+      /* Mantissa too long ... ignore excess.
+       */
+      if (19 == mantissaLength && (dotPos < 0 || dotPos >= mantissaLength))
+        {
+          mantissaLength--;
+        }
+      else
+        {
+          mantissaLength = 19;
+        }
+    }
+  if (dotPos < 0)
+    {
+      dotPos = mantissaLength;
     }
   dotPos -= mantissaLength;      // Exponent offset for decimal point
 
