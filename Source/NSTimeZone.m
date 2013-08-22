@@ -1357,6 +1357,12 @@ static NSMapTable	*absolutes = 0;
       zone_mutex = [GSLazyRecursiveLock new];
       [[NSObject leakAt: (id*)&zone_mutex] release];
 
+      [[NSObject leakAt: (id*)&defaultTimeZone] release];
+      [[NSObject leakAt: (id*)&systemTimeZone] release];
+      [[NSObject leakAt: (id*)&abbreviationDictionary] release];
+      [[NSObject leakAt: (id*)&abbreviationMap] release];
+      [[NSObject leakAt: (id*)&absolutes] release];
+
       [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(_notified:)
         name: NSUserDefaultsDidChangeNotification
