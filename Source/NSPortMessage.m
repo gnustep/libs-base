@@ -31,7 +31,6 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPortMessage.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation	NSPortMessage
 

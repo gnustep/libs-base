@@ -30,7 +30,6 @@
 #import "Foundation/NSKeyValueCoding.h"
 
 #import "GNUstepBase/GSObjCRuntime.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSSorting.h"
 

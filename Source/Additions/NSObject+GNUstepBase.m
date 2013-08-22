@@ -28,6 +28,7 @@
 #import "Foundation/NSLock.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
+#import "GNUstepBase/NSThread+GNUstepBase.h"
 
 /**
  * Extension methods for the NSObject class
@@ -142,6 +143,9 @@ static BOOL		shouldCleanUp = NO;
 static void
 handleExit()
 {
+  BOOL  unknownThread = GSRegisterCurrentThread();
+  CREATE_AUTORELEASE_POOL(arp);
+
   while (exited != 0)
     {
       struct exitLink	*tmp = exited;
@@ -170,7 +174,11 @@ handleExit()
 	}
       free(tmp);
     }
-
+  DESTROY(arp);
+  if (unknownThread == YES)
+    {
+      GSUnregisterCurrentThread();
+    }
 }
 
 @implementation NSObject(GSCleanup)

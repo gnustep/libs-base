@@ -3282,8 +3282,10 @@ static NSCharacterSet	*tokenSet = nil;
       [ms addCharactersInRange: NSMakeRange(33, 126-32)];
       [ms removeCharactersInString: @"()<>@,;:\\\"/[]?="];
       tokenSet = [ms copy];
+      [[NSObject leakAt: &tokenSet] release];
       RELEASE(ms);
       nonToken = RETAIN([tokenSet invertedSet]);
+      [[NSObject leakAt: &nonToken] release];
       if (NSArrayClass == 0)
 	{
 	  NSArrayClass = [NSArray class];
@@ -4438,13 +4440,16 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       [m formUnionWithCharacterSet:
 	[NSCharacterSet illegalCharacterSet]];
       rfc822Specials = [m copy];
+      [[NSObject leakAt: &rfc822Specials] release];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet characterSetWithCharactersInString:
 	@"/?="]];
       [m removeCharactersInString: @"."];
       rfc2045Specials = [m copy];
+      [[NSObject leakAt: &rfc2045Specials] release];
       [m release];
       whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
+      [[NSObject leakAt: &whitespace] release];
       if (NSArrayClass == 0)
 	{
 	  NSArrayClass = [NSArray class];
@@ -4457,6 +4462,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
 	    NSIntegerMapValueCallBacks, 0);
+          [[NSObject leakAt: &charsets] release];
 
 	  /*
 	   * These mappings were obtained primarily from
@@ -4738,6 +4744,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  encodings = NSCreateMapTable (NSIntegerMapKeyCallBacks,
 	    NSObjectMapValueCallBacks, 0);
+          [[NSObject leakAt: &encodings] release];
 
 	  /* While the charset mappings above are many to one,
 	   * mapping a variety of names to one encoding,

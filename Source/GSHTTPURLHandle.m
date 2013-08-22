@@ -272,8 +272,11 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (self == [GSHTTPURLHandle class])
     {
       urlCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &urlCache] release];
       urlOrder = [NSMutableArray new];
+      [[NSObject leakAt: &urlOrder] release];
       urlLock = [GSLazyLock new];
+      [[NSObject leakAt: &urlLock] release];
 #if	!defined(__MINGW__)
       sslClass = [NSFileHandle sslClass];
 #endif

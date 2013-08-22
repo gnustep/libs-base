@@ -27,6 +27,7 @@
 #define	EXPOSE_NSMessagePort_IVARS	1
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSRunLoop.h"
@@ -37,7 +38,6 @@
 #import "Foundation/NSPortMessage.h"
 #import "Foundation/NSPortNameServer.h"
 #import "Foundation/NSLock.h"
-#import "Foundation/NSThread.h"
 #import "Foundation/NSConnection.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSValue.h"
@@ -1099,12 +1099,11 @@ static NSMapTable	*messagePortMap = 0;
 static Class		messagePortClass;
 
 
-static void clean_up_sockets(void)
++ (void) atExit
 {
   NSMessagePort		*port;
   NSData		*name;
   NSMapEnumerator	mEnum;
-  BOOL			unknownThread = GSRegisterCurrentThread();
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   mEnum = NSEnumerateMapTable(messagePortMap);
@@ -1114,11 +1113,9 @@ static void clean_up_sockets(void)
 	unlink([name bytes]);
     }
   NSEndMapTableEnumeration(&mEnum);
+  DESTROY(messagePortMap);
+  DESTROY(messagePortLock);
   [arp drain];
-  if (unknownThread == YES)
-    {
-      GSUnregisterCurrentThread();
-    }
 }
 
 typedef	struct {
@@ -1149,7 +1146,6 @@ typedef	struct {
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       messagePortLock = [GSLazyRecursiveLock new];
-      atexit(clean_up_sockets);
 
       /* It's possible that an old process, with the same process ID as
        * this one, got forcibly killed or crashed so that clean_up_sockets
@@ -1189,6 +1185,7 @@ typedef	struct {
 	    }
 	}
       [pool release];
+      [self registerAtExit];
     }
 }
 

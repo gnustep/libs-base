@@ -35,7 +35,6 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSNull.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSMime.h"
 
 @interface GSMimeDocument (internal)
@@ -441,6 +440,7 @@ static  NSNull  *null = nil;
   if (null == nil)
     {
       null = RETAIN([NSNull null]);
+      [[NSObject leakAt: &null] release];
     }
 }
 
@@ -676,6 +676,7 @@ static SEL	foundIgnorableSel;
   if (null == nil)
     {
       null = RETAIN([NSNull null]);
+      [[NSObject leakAt: &null] release];
     }
   if (didEndElementSel == 0)
     {

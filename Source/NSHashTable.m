@@ -32,7 +32,6 @@
 #import "Foundation/NSHashTable.h"
 #import "NSCallBacks.h"
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @interface	NSConcreteHashTable : NSHashTable
 @end

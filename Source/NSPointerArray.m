@@ -31,7 +31,6 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSKeyedArchiver.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "NSConcretePointerFunctions.h"
 

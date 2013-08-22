@@ -44,7 +44,6 @@
 #import "Foundation/NSValue.h"
 #import "Foundation/NSKeyedArchiver.h"
 #import "GNUstepBase/GSObjCRuntime.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "GSPrivate.h"
 

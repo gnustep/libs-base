@@ -30,7 +30,6 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDictionary.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @class	GSNotification;
 @interface GSNotification : NSObject	// Help the compiler

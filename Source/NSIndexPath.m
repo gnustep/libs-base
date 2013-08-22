@@ -70,10 +70,14 @@ static	NSIndexPath	*dummy = nil;
     {
       myClass = self;
       empty = (NSIndexPath*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      [[NSObject leakAt: &empty] release];
       dummy = (NSIndexPath*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      [[NSObject leakAt: &dummy] release];
       shared = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 1024);
+      [[NSObject leakAt: &shared] release];
       NSHashInsert(shared, empty);
       lock = [GSLazyRecursiveLock new];
+      [[NSObject leakAt: &lock] release];
     }
 }
 

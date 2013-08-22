@@ -275,49 +275,6 @@ static void	(*remImp)(NSMutableArray*,SEL,unsigned);
 #define	OBJECTAT(I)	((*oatImp)(_infoArray, oatSel, (I)))
 #define	REMOVEAT(I)	((*remImp)(_infoArray, remSel, (I)))
 
-static void _setup(void)
-{
-  if (infCls == 0)
-    {
-      NSMutableArray	*a;
-      NSDictionary	*d;
-
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       * Only the pointer to the key needs to be scanned.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
-      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
-
-      infSel = @selector(newWithZone:value:at:);
-      addSel = @selector(addObject:);
-      cntSel = @selector(count);
-      insSel = @selector(insertObject:atIndex:);
-      oatSel = @selector(objectAtIndex:);
-      remSel = @selector(removeObjectAtIndex:);
-
-      infCls = [GSAttrInfo class];
-      infImp = [infCls methodForSelector: infSel];
-
-      a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
-      a = [a initWithCapacity: 1];
-      addImp = (void (*)(NSMutableArray*,SEL,id))[a methodForSelector: addSel];
-      cntImp = (unsigned (*)(NSArray*,SEL))[a methodForSelector: cntSel];
-      insImp = (void (*)(NSMutableArray*,SEL,id,unsigned))
-	[a methodForSelector: insSel];
-      oatImp = [a methodForSelector: oatSel];
-      remImp = (void (*)(NSMutableArray*,SEL,unsigned))
-	[a methodForSelector: remSel];
-      RELEASE(a);
-      d = [NSDictionary new];
-      blank = cacheAttributes(d);
-      RELEASE(d);
-    }
-}
-
 static void
 _setAttributesFrom(
   NSAttributedString *attributedString,
@@ -447,9 +404,48 @@ _attributesAtIndexEffectiveRange(
 
 + (void) initialize
 {
-  _setup();
+  if (infCls == 0)
+    {
+      NSMutableArray	*a;
+      NSDictionary	*d;
 
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * Only the pointer to the key needs to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
+      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
+
+      infSel = @selector(newWithZone:value:at:);
+      addSel = @selector(addObject:);
+      cntSel = @selector(count);
+      insSel = @selector(insertObject:atIndex:);
+      oatSel = @selector(objectAtIndex:);
+      remSel = @selector(removeObjectAtIndex:);
+
+      infCls = [GSAttrInfo class];
+      infImp = [infCls methodForSelector: infSel];
+
+      a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
+      a = [a initWithCapacity: 1];
+      addImp = (void (*)(NSMutableArray*,SEL,id))[a methodForSelector: addSel];
+      cntImp = (unsigned (*)(NSArray*,SEL))[a methodForSelector: cntSel];
+      insImp = (void (*)(NSMutableArray*,SEL,id,unsigned))
+	[a methodForSelector: insSel];
+      oatImp = [a methodForSelector: oatSel];
+      remImp = (void (*)(NSMutableArray*,SEL,unsigned))
+	[a methodForSelector: remSel];
+      RELEASE(a);
+      d = [NSDictionary new];
+      blank = cacheAttributes(d);
+      [[NSObject leakAt: &blank] release];
+      RELEASE(d);
+    }
   attrLock = [GSLazyLock new];
+  [[NSObject leakAt: &attrLock] release];
   lockSel = @selector(lock);
   unlockSel = @selector(unlock);
   lockImp = [attrLock methodForSelector: lockSel];

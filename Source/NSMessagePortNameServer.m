@@ -95,12 +95,19 @@ static NSMapTable *portToNamesMap;
 @end
 
 
-static void clean_up_names(void)
+/**
+ * Subclass of [NSPortNameServer] taking/returning instances of [NSMessagePort].
+ * Port removal functionality is not supported; if you want to cancel a service,
+ * you have to destroy the port (invalidate the [NSMessagePort] given to
+ * [NSPortNameServer-registerPort:forName:]).
+ */
+@implementation NSMessagePortNameServer
+
++ (void) atExit
 {
   NSMapEnumerator	mEnum;
   NSMessagePort		*port;
   NSString		*name;
-  BOOL			unknownThread = GSRegisterCurrentThread();
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   mEnum = NSEnumerateMapTable(portToNamesMap);
@@ -109,20 +116,10 @@ static void clean_up_names(void)
       [defaultServer removePort: port];
     }
   NSEndMapTableEnumeration(&mEnum);
+  DESTROY(portToNamesMap);
+  DESTROY(serverLock);
   [arp drain];
-  if (unknownThread == YES)
-    {
-      GSUnregisterCurrentThread();
-    }
 }
-
-/**
- * Subclass of [NSPortNameServer] taking/returning instances of [NSMessagePort].
- * Port removal functionality is not supported; if you want to cancel a service,
- * you have to destroy the port (invalidate the [NSMessagePort] given to
- * [NSPortNameServer-registerPort:forName:]).
- */
-@implementation NSMessagePortNameServer
 
 + (void) initialize
 {
@@ -138,10 +135,10 @@ static void clean_up_names(void)
       serverLock = [NSRecursiveLock new];
       portToNamesMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 			 NSObjectMapValueCallBacks, 0);
-      atexit(clean_up_names);
+      [self registerAtExit];
 
       /* It's possible that an old process, with the same process ID as
-       * this one, got forcibly killed or crashed so that clean_up_names
+       * this one, got forcibly killed or crashed so that +atExit
        * was never called.
        * To deal with that unlikely situation, we need to remove all such
        * names which have been left over.

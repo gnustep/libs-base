@@ -49,6 +49,7 @@
  * "Foundation/NSObject.h" first, to ensure we have a local copy.
  */
 #import	"Foundation/NSObject.h"
+#import	"GNUstepBase/NSObject+GNUstepBase.h"
 
 /* These headers are used in almost every file.
  */

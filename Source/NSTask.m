@@ -45,7 +45,6 @@
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSLock.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 
 #include <sys/types.h>
@@ -259,6 +258,7 @@ pty_slave(const char* name)
       if (tasksLock == nil)
         {
           tasksLock = [NSRecursiveLock new];
+          [[NSObject leakAt: &tasksLock] release];
 	  /* The activeTasks map contains the NSTask objects corresponding
 	   * to running subtasks, and retains them until the subprocess
 	   * actually terminates.
@@ -283,6 +283,7 @@ pty_slave(const char* name)
 	   */
           activeTasks = NSCreateMapTable(NSIntegerMapKeyCallBacks,
                 NSObjectMapValueCallBacks, 0);
+          [[NSObject leakAt: &activeTasks] release];
         }
       [gnustep_global_lock unlock];
 

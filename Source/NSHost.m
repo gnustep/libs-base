@@ -265,8 +265,11 @@ myHostName()
     {
       hostClass = self;
       null = [[NSNull null] retain];
+      [[NSObject leakAt: &null] release];
       _hostCacheLock = [[NSRecursiveLock alloc] init];
+      [[NSObject leakAt: &_hostCacheLock] release];
       _hostCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &_hostCache] release];
     }
 }
 

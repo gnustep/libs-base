@@ -171,16 +171,21 @@ static NSDecimalNumber *one;
   NSDecimal d = { 0 };
 
   notANumber = [[self alloc] initWithDecimal: d];
+  [[NSObject leakAt: &notANumber] release];
   NSDecimalMax(&d);
   maxNumber = [[self alloc] initWithDecimal: d];
+  [[NSObject leakAt: &maxNumber] release];
   NSDecimalMin(&d);
   minNumber = [[self alloc] initWithDecimal: d];
+  [[NSObject leakAt: &minNumber] release];
   zero = [[self alloc] initWithMantissa: 0
 			       exponent: 0
 			     isNegative: NO];
+  [[NSObject leakAt: &zero] release];
   one = [[self alloc] initWithMantissa: 1
 			      exponent: 0
 			    isNegative: NO];
+  [[NSObject leakAt: &one] release];
   NSDecimalNumberClass = [NSDecimalNumber class];
 }
 

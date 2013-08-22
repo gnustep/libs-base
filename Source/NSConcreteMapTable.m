@@ -37,7 +37,6 @@
 
 #import "NSConcretePointerFunctions.h"
 #import "NSCallBacks.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 static Class	concreteClass = Nil;
 

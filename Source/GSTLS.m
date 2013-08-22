@@ -411,8 +411,10 @@ static GSTLSDHParams            *paramsCurrent = nil;
   if (nil == paramsLock)
     {
       paramsLock = [NSLock new];
+      [[NSObject leakAt: &paramsLock] release];
       paramsWhen = [NSDate timeIntervalSinceReferenceDate];
       paramsCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &paramsCache] release];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
@@ -597,7 +599,9 @@ static NSMutableDictionary      *certificateListCache = nil;
   if (nil == certificateListLock)
     {
       certificateListLock = [NSLock new];
+      [[NSObject leakAt: &certificateListLock] release];
       certificateListCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &certificateListCache] release];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
@@ -779,8 +783,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
   if (nil == privateKeyLock)
     {
       privateKeyLock = [NSLock new];
+      [[NSObject leakAt: &privateKeyLock] release];
       privateKeyCache0 = [NSMutableDictionary new];
+      [[NSObject leakAt: &privateKeyCache0] release];
       privateKeyCache1 = [NSMutableDictionary new];
+      [[NSObject leakAt: &privateKeyCache1] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
@@ -933,7 +940,9 @@ static NSMutableDictionary      *credentialsCache = nil;
   if (nil == credentialsLock)
     {
       credentialsLock = [NSLock new];
+      [[NSObject leakAt: &credentialsLock] release];
       credentialsCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &credentialsCache] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)

@@ -561,10 +561,13 @@ typedef enum {
   if (self == [NSSocketPortNameServer class])
     {
       serverLock = [NSRecursiveLock new];
+      [[NSObject leakAt: &serverLock] release];
       modes = [[NSArray alloc] initWithObjects: &mode count: 1];
+      [[NSObject leakAt: &modes] release];
 #ifdef	GDOMAP_PORT_OVERRIDE
       serverPort = RETAIN([NSString stringWithUTF8String:
 	make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
+      [[NSObject leakAt: &serverPort] release];
 #endif
       portClass = [NSSocketPort class];
     }

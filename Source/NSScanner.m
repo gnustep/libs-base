@@ -51,7 +51,6 @@
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSUserDefaults.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "GSPrivate.h"
 

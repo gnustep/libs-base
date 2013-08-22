@@ -51,7 +51,6 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #import "GSPrivate.h"
@@ -69,6 +68,7 @@ manager()
   if (mgr == nil)
     {
       mgr = RETAIN([NSFileManager defaultManager]);
+      [[NSObject leakAt: &mgr] release];
     }
   return mgr;
 }
@@ -1054,6 +1054,29 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 @implementation NSBundle
 
++ (void) atExit
+{
+  if ([NSObject shouldCleanUp])
+    {
+      DESTROY(_emptyTable);
+      DESTROY(langAliases);
+      DESTROY(langCanonical);
+      DESTROY(_bundles);
+      DESTROY(_byClass);
+      DESTROY(_byIdentifier);
+      DESTROY(pathCache);
+      DESTROY(pathCacheLock);
+      DESTROY(load_lock);
+      DESTROY(gnustep_target_cpu);
+      DESTROY(gnustep_target_os);
+      DESTROY(gnustep_target_dir);
+      DESTROY(library_combo);
+      DESTROY(_launchDirectory);
+      DESTROY(_gnustep_bundle);
+      DESTROY(_mainBundle);
+    }
+}
+
 + (void) initialize
 {
   if (self == [NSBundle class])
@@ -1227,6 +1250,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 #endif
       GSPathHandling(mode);
       [pool release];
+      [self registerAtExit];
     }
 }
 

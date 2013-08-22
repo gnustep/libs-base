@@ -39,7 +39,6 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /* Using and index set to hold a characterset is more space efficient but
  * on the intel core-2 system I benchmarked on, it made my applications
@@ -637,9 +636,9 @@ static Class concreteMutableClass = nil;
 
 + (void) initialize
 {
-  static BOOL one_time = NO;
+  static BOOL beenHere = NO;
 
-  if (one_time == NO)
+  if (beenHere == NO)
     {
       abstractClass = [NSCharacterSet class];
       abstractMutableClass = [NSMutableCharacterSet class];
@@ -650,9 +649,10 @@ static Class concreteMutableClass = nil;
       concreteClass = [NSBitmapCharSet class];
       concreteMutableClass = [NSMutableBitmapCharSet class];
 #endif
-      one_time = YES;
+      cache_lock = [GSLazyLock new];
+      [[NSObject leakAt: &cache_lock] release];
+      beenHere = YES;
     }
-  cache_lock = [GSLazyLock new];
 }
 
 /**
@@ -674,6 +674,7 @@ static Class concreteMutableClass = nil;
 					    freeWhenDone: NO];
       cache_set[number]
 	= [[_GSStaticCharSet alloc] initWithBitmap: bitmap number: number];
+      [[NSObject leakAt: &cache_set[number]] release];
       RELEASE(bitmap);
     }
   [cache_lock unlock];

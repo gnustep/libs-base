@@ -32,7 +32,6 @@
 #import "Foundation/NSArchiver.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSValueTransformer.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSLock.h"
 
 @interface NSNegateBooleanTransformer : NSValueTransformer
@@ -62,7 +61,9 @@ static GSLazyLock *lock = nil;
       NSValueTransformer	*t;
 
       lock = [GSLazyLock new];
+      [[NSObject leakAt: &lock] release];
       registry = [[NSMutableDictionary alloc] init];
+      [[NSObject leakAt: &registry] release];
 
       t = [NSNegateBooleanTransformer new];
       [self setValueTransformer: t

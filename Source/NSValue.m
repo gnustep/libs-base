@@ -35,7 +35,6 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSData.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @interface	GSPlaceholderValue : NSValue
 @end

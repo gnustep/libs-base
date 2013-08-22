@@ -54,7 +54,6 @@
 #import "GNUstepBase/GSLocale.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #if	defined(__MINGW__)
@@ -543,11 +542,9 @@ newLanguages(NSArray *oldNames)
 
 + (void) atExit
 {
-  id	tmp;
-
-  tmp = sharedDefaults;
-  sharedDefaults = nil;
-  [tmp release];
+  DESTROY(sharedDefaults);
+  DESTROY(processName);
+  DESTROY(classLock);
 }
 
 + (void) initialize

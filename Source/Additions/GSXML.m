@@ -53,7 +53,7 @@
 
 // #undef	HAVE_LIBXML_SAX2_H
 #import "GNUstepBase/GSObjCRuntime.h"
-
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSXML.h"
 #import "Foundation/NSArray.h"
@@ -232,6 +232,7 @@ static NSMapTable	*attrNames = 0;
 	setupCache();
       attrNames = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: &attrNames] release];
       NSMapInsert(attrNames,
 	(void*)XML_ATTRIBUTE_CDATA, (void*)@"XML_ATTRIBUTE_CDATA");
       NSMapInsert(attrNames,
@@ -598,6 +599,7 @@ static NSMapTable	*nsNames = 0;
 	setupCache();
       nsNames = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: &nsNames] release];
       NSMapInsert(nsNames,
 	(void*)XML_LOCAL_NAMESPACE, (void*)@"XML_LOCAL_NAMESPACE");
     }
@@ -776,6 +778,7 @@ static NSMapTable	*nodeNames = 0;
 	setupCache();
       nodeNames = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: &nodeNames] release];
       NSMapInsert(nodeNames,
 	(void*)XML_ELEMENT_NODE, (void*)@"XML_ELEMENT_NODE");
       NSMapInsert(nodeNames,

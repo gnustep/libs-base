@@ -7,8 +7,18 @@
  * data for the parse can be either a static JSON string or some JSON data.
  */
 
-#import <Foundation/Foundation.h>
-#import <GNUstepBase/NSObject+GNUstepBase.h>
+#import "common.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSJSONSerialization.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSStream.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
 #import "GSFastEnumeration.h"
 
 /* Boolean constants.
@@ -897,15 +907,24 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
 @implementation NSJSONSerialization
 + (void) initialize
 {
-  NSNullClass = [NSNull class];
-  NSArrayClass = [NSArray class];
-  NSStringClass = [NSString class];
-  NSDictionaryClass = [NSDictionary class];
-  NSNumberClass = [NSNumber class];
-  escapeSet = [NSMutableCharacterSet new];
-  [escapeSet addCharactersInString: @"\"\\"];
-  boolN = [[NSNumber alloc] initWithBool: NO];
-  boolY = [[NSNumber alloc] initWithBool: YES];
+  static BOOL beenHere = NO;
+
+  if (NO == beenHere)
+    {
+      NSNullClass = [NSNull class];
+      NSArrayClass = [NSArray class];
+      NSStringClass = [NSString class];
+      NSDictionaryClass = [NSDictionary class];
+      NSNumberClass = [NSNumber class];
+      escapeSet = [NSMutableCharacterSet new];
+      [[NSObject leakAt: &escapeSet] release];
+      [escapeSet addCharactersInString: @"\"\\"];
+      boolN = [[NSNumber alloc] initWithBool: NO];
+      [[NSObject leakAt: &boolN] release];
+      boolY = [[NSNumber alloc] initWithBool: YES];
+      [[NSObject leakAt: &boolY] release];
+      beenHere = YES;
+    }
 }
 
 + (NSData*) dataWithJSONObject: (id)obj

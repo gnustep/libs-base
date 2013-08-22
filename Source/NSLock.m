@@ -24,7 +24,6 @@
 
 #import "common.h"
 #include <pthread.h>
-#import "GNUstepBase/GSConfig.h"
 #import "GSPrivate.h"
 #define	gs_cond_t	pthread_cond_t
 #define	gs_mutex_t	pthread_mutex_t

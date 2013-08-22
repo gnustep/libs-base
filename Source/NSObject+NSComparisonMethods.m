@@ -27,7 +27,6 @@
 
 #import "common.h"
 #import "Foundation/NSArray.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSObject (NSComparisonMethods)
 - (BOOL) doesContain: (id) object

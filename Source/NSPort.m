@@ -37,7 +37,6 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 @class NSMessagePort;
