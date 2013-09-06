@@ -1803,7 +1803,6 @@ static BOOL isPlistObject(id o)
 	    {
 	      NSEnumerator		*enumerator;
 	      NSString			*domainName;
-	      NSFileManager		*mgr;
 
 	      haveChange = [self _readDefaults];
 	      if (YES == haveChange)
@@ -1811,32 +1810,37 @@ static BOOL isPlistObject(id o)
 		  DESTROY(_dictionaryRep);
 		}
 
-	      mgr = [NSFileManager defaultManager];
+	      if (_changedDomains != nil)
+                {
+                  haveChange = YES;
 
-	      if (_changedDomains != nil && NO == [self _readOnly])
-		{
-		  GSPersistentDomain	*domain;
+                  if (NO == [self _readOnly])
+                    {
+                      GSPersistentDomain	*domain;
+                      NSFileManager		*mgr;
 
-		  enumerator = [_changedDomains objectEnumerator];
-		  DESTROY(_changedDomains);	// Retained by enumerator.
-		  while ((domainName = [enumerator nextObject]) != nil)
-		    {
-		      domain = [_persDomains objectForKey: domainName];
-		      if (domain != nil)	// Domain was added or changed
-			{
-			  [domain synchronize];
-			}
-		      else			// Domain was removed
-			{
-			  NSString	*path;
+                      mgr = [NSFileManager defaultManager];
+                      enumerator = [_changedDomains objectEnumerator];
+                      DESTROY(_changedDomains);	// Retained by enumerator.
+                      while ((domainName = [enumerator nextObject]) != nil)
+                        {
+                          domain = [_persDomains objectForKey: domainName];
+                          if (domain != nil)	// Domain was added or changed
+                            {
+                              [domain synchronize];
+                            }
+                          else			// Domain was removed
+                            {
+                              NSString	*path;
 
-			  path = [[_defaultsDatabase
-			    stringByAppendingPathComponent: domainName]
-			    stringByAppendingPathExtension: @"plist"];
-			  [mgr removeFileAtPath: path handler: nil];
-			}
-		    }
-		}
+                              path = [[_defaultsDatabase
+                                stringByAppendingPathComponent: domainName]
+                                stringByAppendingPathExtension: @"plist"];
+                              [mgr removeFileAtPath: path handler: nil];
+                            }
+                        }
+                    }
+                }
 
 	      if (YES == haveChange)
 		{

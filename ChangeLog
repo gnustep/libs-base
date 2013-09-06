@@ -1,4 +1,10 @@
-2013-09-30  Fred Kiefer <FredKiefer@gmx.de>
+2013-09-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSUserDefaults.m: Update cache when we syunchronise a new
+        domain to disk (was only updating on changes to existing domains).
+        Should fix bug #39300
+
+2013-08-30  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/GNUstepBase/GSVersionMacros.h: Fix usage of __APPLE__ macro.
 	Patch by Graham Lee <iamleeg@gmail.com>
