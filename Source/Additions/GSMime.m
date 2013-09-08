@@ -2929,14 +2929,25 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 				length: src - beg
 			      encoding: NSASCIIStringEncoding];
 		}
-	      if (s == nil && _defaultEncoding != NSASCIIStringEncoding)
+	      if (nil == s && _defaultEncoding != NSASCIIStringEncoding)
 		{
+                  /* The parser has been explicitly set to accept an
+                   * alternative coding ... which means that this is
+                   * not a MIME document.  Trey the encoding we were
+                   * given.
+                   */
 		  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		  s = [s initWithBytes: beg
 				length: src - beg
 			      encoding: _defaultEncoding];
-		  if (s == nil && _defaultEncoding != NSUTF8StringEncoding)
+                  if (nil == s && _defaultEncoding != NSUTF8StringEncoding)
 		    {
+                      /* The specified encoding didn't work, but the case
+                       * where we would not be paresing a MIME document is
+                       * generally when parsing HTTP, and if the remote
+                       * system (usually browser) is buggy and sending the
+                       * wrong characterset it's almost certain to be UTF8
+                       */
 		      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		      s = [s initWithBytes: beg
 				    length: src - beg
