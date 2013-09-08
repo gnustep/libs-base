@@ -2324,7 +2324,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  * header (which are treated as text/plain) should use the specified
  * characterset rather than the default (us-ascii).<br />
  * This also controls the parsing of headers ... in a legal MIME document
- * these must consst solely of us-ascii characters, but setting a different
+ * these must consist solely of us-ascii characters, but setting a different
  * default characterset (such as latin1) will permit many illegal header
  * lines (produced by faulty mail clients) to be parsed.<br />
  * HTTP requests use headers in the latin1 characterset,  so this is the
