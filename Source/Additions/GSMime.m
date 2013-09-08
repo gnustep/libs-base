@@ -2917,7 +2917,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	  if (src > beg)
 	    {
 	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-	      if (flags.isHttp == 1)
+	      if (1 == flags.isHttp)
 		{
 		  s = [s initWithBytes: beg
 				length: src - beg
@@ -2940,18 +2940,29 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		  s = [s initWithBytes: beg
 				length: src - beg
 			      encoding: _defaultEncoding];
-                  if (nil == s && _defaultEncoding != NSUTF8StringEncoding)
+                  if (nil == s
+                    && _defaultEncoding != NSUTF8StringEncoding)
 		    {
                       /* The specified encoding didn't work, but the case
-                       * where we would not be paresing a MIME document is
+                       * where we would not be parsing a MIME document is
                        * generally when parsing HTTP, and if the remote
                        * system (usually browser) is buggy and sending the
                        * wrong characterset it's almost certain to be UTF8
+                       * or (for very old browsers) latin1.
                        */
 		      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		      s = [s initWithBytes: beg
 				    length: src - beg
 				  encoding: NSUTF8StringEncoding];
+                      if (nil == s
+                        && _defaultEncoding != NSISOLatin1StringEncoding)
+                        {
+                          s = [NSStringClass
+                            allocWithZone: NSDefaultMallocZone()];
+                          s = [s initWithBytes: beg
+                                        length: src - beg
+                                      encoding: NSISOLatin1StringEncoding];
+                        }
 		    }
 		}
               if (nil == s)
