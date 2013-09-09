@@ -48,6 +48,9 @@
 
 #include <stdio.h>
 
+#if HAVE_LOCALE_H
+#include <locale.h>
+#endif
 #if HAVE_LANGINFO_CODESET
 #include <langinfo.h>
 #endif
@@ -2558,11 +2561,19 @@ GSPrivateDefaultCStringEncoding()
 
       if (natEnc == GSUndefinedEncoding)
 	{
-          
 	  /* Encoding not set */
 #if HAVE_LANGINFO_CODESET
+          char  *old;
 	  /* Take it from the system locale information.  */
           [gnustep_global_lock lock];
+          /* Initialise locale system by setting current locale from
+           * environment and then resetting it.  Must be done before
+           * any call to nl_langinfo()
+           */
+          if (0 != (old = setlocale(LC_CTYPE, "")))
+            {
+              setlocale(LC_CTYPE, old);
+            }
           strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
           encbuf[sizeof(encbuf)-1] = '\0';
           [gnustep_global_lock unlock];
