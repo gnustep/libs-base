@@ -2921,17 +2921,26 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		{
                   /* Old web code tends to use latin1 (and RFCs say we
                    * should use latin1 for headers).  However newer systems
-                   * tend to use utf-8. We default to latin1 (as specified
-                   * in the RFCs) unless the encoding has been set to utf-8.
+                   * tend to use utf-8. We try any explicitly set encoding,
+                   * then the modern utf-8, and finally fall back to latin1.
                    */
-                  if (NSUTF8StringEncoding == _defaultEncoding)
+                  if (NSUTF8StringEncoding != _defaultEncoding)
                     {
+                      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+                      s = [s initWithBytes: beg
+                                    length: src - beg
+                                  encoding: _defaultEncoding];
+                    }
+                  if (nil == s)
+                    {
+                      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
                       s = [s initWithBytes: beg
                                     length: src - beg
                                   encoding: NSUTF8StringEncoding];
                     }
-                  else
+                  if (nil == s)
                     {
+                      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
                       s = [s initWithBytes: beg
                                     length: src - beg
                                   encoding: NSISOLatin1StringEncoding];
@@ -2942,43 +2951,18 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		  s = [s initWithBytes: beg
 				length: src - beg
 			      encoding: NSASCIIStringEncoding];
-		}
-	      if (nil == s && _defaultEncoding != NSASCIIStringEncoding)
-		{
-                  /* The parser has been explicitly set to accept an
-                   * alternative coding ... which means that this is
-                   * not a MIME document.  Trey the encoding we were
-                   * given.
-                   */
-		  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-		  s = [s initWithBytes: beg
-				length: src - beg
-			      encoding: _defaultEncoding];
-                  if (nil == s
-                    && _defaultEncoding != NSUTF8StringEncoding)
-		    {
-                      /* The specified encoding didn't work, but the case
-                       * where we would not be parsing a MIME document is
-                       * generally when parsing HTTP, and if the remote
-                       * system (usually browser) is buggy and sending the
-                       * wrong characterset it's almost certain to be UTF8
-                       * or (for very old browsers) latin1.
+                  if (nil == s && _defaultEncoding != NSASCIIStringEncoding)
+                    {
+                      /* The parser has been explicitly set to accept an
+                       * alternative coding ... Try the encoding we were
+                       * given.
                        */
-		      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-		      s = [s initWithBytes: beg
-				    length: src - beg
-				  encoding: NSUTF8StringEncoding];
-                      if (nil == s
-                        && _defaultEncoding != NSISOLatin1StringEncoding)
-                        {
-                          s = [NSStringClass
-                            allocWithZone: NSDefaultMallocZone()];
-                          s = [s initWithBytes: beg
-                                        length: src - beg
-                                      encoding: NSISOLatin1StringEncoding];
-                        }
-		    }
-		}
+                      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+                      s = [s initWithBytes: beg
+                                    length: src - beg
+                                  encoding: _defaultEncoding];
+                    }
+                }
               if (nil == s)
                 {
                   NSLog(@"Bad header ... illegal characters in %@",
