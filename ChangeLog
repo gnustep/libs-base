@@ -1,3 +1,10 @@
+2013-09-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/Additions/GSMime.m: Add comments and a further fallback
+        mechanism for parsing HTTP when the default encoding is set.
+        * Source/NSUnarchiver.m: Fix integer size values to use constants
+        from stdint.h
+
 2013-09-06  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSUserDefaults.m: Update cache when we syunchronise a new
