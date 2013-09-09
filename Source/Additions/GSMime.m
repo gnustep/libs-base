@@ -2370,9 +2370,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 {
   DESTROY(child);
   child = [GSMimeParser new];
-  if (flags.buggyQuotes == 1)
+  if (1 == flags.buggyQuotes)
     {
       [child setBuggyQuotes: YES];
+    }
+  if (1 == flags.isHttp)
+    {
+      [child setIsHttp];
     }
   /*
    * Tell child parser the default encoding to use.

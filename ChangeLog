@@ -1,3 +1,8 @@
+2013-09-09  Pirmin Braun <pb@intars.de>
+
+        * Source/Additions/GSMime.m: When creating a child parser, pass on
+        the flag to say we are parsing HTTP rather than MIME.
+        
 2013-09-09  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/Additions/GSMime.m: Add comments and a further fallback
