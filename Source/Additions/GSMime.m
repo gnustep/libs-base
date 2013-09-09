@@ -2919,9 +2919,23 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 	      if (1 == flags.isHttp)
 		{
-		  s = [s initWithBytes: beg
-				length: src - beg
-			      encoding: NSISOLatin1StringEncoding];
+                  /* Old web code tends to use latin1 (and RFCs say we
+                   * should use latin1 for headers).  However newer systems
+                   * tend to use utf-8. We default to latin1 (as specified
+                   * in the RFCs) unless the encoding has been set to utf-8.
+                   */
+                  if (NSUTF8StringEncoding == _defaultEncoding)
+                    {
+                      s = [s initWithBytes: beg
+                                    length: src - beg
+                                  encoding: NSUTF8StringEncoding];
+                    }
+                  else
+                    {
+                      s = [s initWithBytes: beg
+                                    length: src - beg
+                                  encoding: NSISOLatin1StringEncoding];
+                    }
 		}
 	      else
 		{
