@@ -5,11 +5,18 @@
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  uint8_t       bytes[256];
   unichar	u0 = 'a';
   unichar	u1 = 0xfe66;
+  int           i = 256;
   char          buf[32];
   NSString	*s;
   NSString *testObj = [NSString stringWithCString: "Hello\n"];
+
+  while (i-- > 0)
+    {
+      bytes[i] = (uint8_t)i;
+    }
 
   test_alloc(@"NSString");
   test_NSObject(@"NSString",[NSArray arrayWithObject:testObj]);
@@ -44,6 +51,25 @@ int main()
   PASS([@"hell" getCString: buf maxLength: 5 encoding: NSASCIIStringEncoding],
     "buffer length+1 works");
   PASS(strcmp(buf, "hell") == 0, "getCString:maxLength:encoding");
+
+  PASS([(s = [[NSString alloc] initWithBytes: bytes
+                                      length: 256
+                                    encoding: NSISOLatin1StringEncoding])
+    isKindOfClass: [NSString class]]
+    && ![s isKindOfClass: [NSMutableString class]],
+    "can create latin1 string with 256 values");
+
+  PASS([(s = [[NSString alloc] initWithBytes: bytes
+                                      length: 128
+                                    encoding: NSASCIIStringEncoding])
+    isKindOfClass: [NSString class]]
+    && ![s isKindOfClass: [NSMutableString class]],
+    "can create ascii string with 128 values");
+
+  PASS(nil == [[NSString alloc] initWithBytes: bytes
+                                       length: 256
+                                     encoding: NSASCIIStringEncoding],
+    "reject 8bit characters in ascii");
 
   [arp release]; arp = nil;
   return 0;
