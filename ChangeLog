@@ -1,3 +1,11 @@
+2013-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Check for another unicode header
+        * Headers/GNUstepBase/config.h.in: regenerate
+        * configure: regenerate
+        * Source/Additions/Unicode.m: If ICU is available, use it to obtain
+        default C-string encoding.
+
 2013-09-09  Pirmin Braun <pb@intars.de>
 
         * Source/Additions/GSMime.m: When creating a child parser, pass on

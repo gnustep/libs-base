@@ -3204,7 +3204,7 @@ if test $enable_icu = yes; then
     
   if test "$have_icu" = "yes"; then
     AC_MSG_RESULT(yes)
-    AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h)
+    AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h)
     LIBS="$LIBS $ICU_LIBS"
     LDFLAGS="$LDFLAGS $ICU_LDFLAGS"
     LDIR_FLAGS="$LDIR_FLAGS $ICU_LDFLAGS"

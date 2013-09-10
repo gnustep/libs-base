@@ -670,6 +670,9 @@
 /* Define to 1 if you have the <unicode/ucal.h> header file. */
 #undef HAVE_UNICODE_UCAL_H
 
+/* Define to 1 if you have the <unicode/ucnv.h> header file. */
+#undef HAVE_UNICODE_UCNV_H
+
 /* Define to 1 if you have the <unicode/ucol.h> header file. */
 #undef HAVE_UNICODE_UCOL_H
 
