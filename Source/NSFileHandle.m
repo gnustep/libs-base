@@ -710,6 +710,12 @@ NSString * const NSFileHandleOperationException
 @end
 
 @implementation NSFileHandle (GNUstepTLS)
+
++ (void) setData: (NSData*)data forTLSFile: (NSString*)fileName
+{
+  [GSTLSObject setData: data forTLSFile: fileName];
+}
+
 /**
  * returns the concrete class used to implement SSL/TLS connections.
  */

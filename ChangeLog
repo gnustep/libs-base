@@ -1,3 +1,13 @@
+2013-09-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSTLS.h:
+        * Source/GSTLS.m:
+        * Source/NSFileHandle.m:
+        * Headers/Foundation/NSFileHandle.h:
+        Add mechanism to set the contents of TLS certificate and key files
+        in memory rather than reading from disk.  Expose TLS property keys
+        in the NSFileHandle header to allow more control over certificates.
+
 2013-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
         * configure.ac: Check for another unicode header
