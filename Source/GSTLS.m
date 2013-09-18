@@ -152,6 +152,9 @@ static gnutls_anon_client_credentials_t anoncred;
  */
 @implementation GSTLSObject
 
+static NSLock                   *fileLock = nil;
+static NSMutableDictionary      *fileMap = nil;
+
 + (void) _defaultsChanged: (NSNotification*)n
 {
   NSString      *str;
@@ -214,6 +217,25 @@ static gnutls_anon_client_credentials_t anoncred;
   gnutls_global_set_log_level(globalDebug);
 }
 
++ (NSData*) dataForTLSFile: (NSString*)fileName
+{
+  NSData        *result;
+
+  if (NO == [fileName isKindOfClass: [NSString class]])
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[GSTLS+dataForTLSFile:] called with bad file name"];
+    }
+  [fileLock lock];
+  result = [[fileMap objectForKey: fileName] retain];
+  [fileLock unlock];
+  if (nil == result)
+    {
+      return [NSData dataWithContentsOfFile: fileName];
+    }
+  return [result autorelease];
+}
+
 + (void) initialize
 {
   if ([GSTLSObject class] == self)
@@ -229,6 +251,9 @@ static gnutls_anon_client_credentials_t anoncred;
           beenHere = YES;
 
           bundle = [NSBundle bundleForClass: [NSObject class]];
+
+          fileLock = [NSLock new];
+          fileMap = [NSMutableDictionary new];
 
           /* Let the GS_TLS_CA_FILE environment variable override the
            * default certificate authority location.
@@ -307,6 +332,23 @@ static gnutls_anon_client_credentials_t anoncred;
           [self _defaultsChanged: nil];
         }
     }
+}
+
++ (void) setData: (NSData*)data forTLSFile: (NSString*)fileName
+{
+  if (nil != data && NO == [data isKindOfClass: [NSData class]])
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[GSTLS+setData:forTLSFile:] called with bad data"];
+    }
+  if (NO == [fileName isKindOfClass: [NSString class]])
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[GSTLS+setData:forTLSFile:] called with bad file"];
+    }
+  [fileLock lock];
+  [fileMap setObject: data forKey: fileName];
+  [fileLock unlock];
 }
 
 @end
@@ -440,7 +482,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
       int                       ret;
       gnutls_datum_t            datum;
 
-      data = [NSData dataWithContentsOfFile: f];
+      data = [[self class] dataForTLSFile: f];
       if (nil == data)
         {
           NSLog(@"Unable to read DF params file '%@'", f);
@@ -629,7 +671,7 @@ static NSMutableDictionary      *certificateListCache = nil;
       unsigned int              count = 100;
       gnutls_x509_crt_t         crts[count];
 
-      data = [NSData dataWithContentsOfFile: f];
+      data = [[self class] dataForTLSFile: f];
       if (nil == data)
         {
           NSLog(@"Unable to read certificate file '%@'", f);
@@ -832,7 +874,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       int                       ret;
       gnutls_datum_t            datum;
 
-      data = [NSData dataWithContentsOfFile: f];
+      data = [[self class] dataForTLSFile: f];
       if (nil == data)
         {
           NSLog(@"Unable to read private key file '%@'", f);
