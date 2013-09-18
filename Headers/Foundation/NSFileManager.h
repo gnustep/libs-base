@@ -492,7 +492,7 @@ typedef	uint32_t	OSType;
   NSString *_topPath;
   NSString *_currentFilePath;
   NSFileManager *_mgr;
-  struct 
+  struct _NSDirectoryEnumeratorFlags      // tag for objc++ w/gcc 4.6 
   {
     BOOL isRecursive: 1;
     BOOL isFollowing: 1;
