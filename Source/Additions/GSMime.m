@@ -2920,7 +2920,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	   */
 	  if (src > beg)
 	    {
-	      s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
+              s = nil;
 	      if (1 == flags.isHttp)
 		{
                   /* Old web code tends to use latin1 (and RFCs say we
@@ -2952,6 +2952,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		}
 	      else
 		{
+                  s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 		  s = [s initWithBytes: beg
 				length: src - beg
 			      encoding: NSASCIIStringEncoding];
