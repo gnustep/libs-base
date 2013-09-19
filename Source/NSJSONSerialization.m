@@ -891,7 +891,18 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
     }
   else if ([obj isKindOfClass: NSNumberClass])
     {
-      [output appendFormat: @"%g", [obj doubleValue]];
+      const char        *t = [obj objCType];
+
+      if (strchr("cCsSiIlLqQ", *t) != 0)
+        {
+          long long     i = [(NSNumber*)obj longLongValue];
+
+          [output appendFormat: @"%lld", i];
+        }
+      else
+        {
+          [output appendFormat: @"%g", [(NSNumber*)obj doubleValue]];
+        }
     }
   else if ([obj isKindOfClass: NSNullClass])
     {
