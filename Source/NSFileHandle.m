@@ -713,7 +713,12 @@ NSString * const NSFileHandleOperationException
 
 + (void) setData: (NSData*)data forTLSFile: (NSString*)fileName
 {
+#if     defined(HAVE_GNUTLS)
   [GSTLSObject setData: data forTLSFile: fileName];
+#else
+  [NSException raise: NSInternalInconsistencyException
+              format: @"[NSFileHandle+setData:forTLSFile:] called for a copy of gnustep-base which had GNUTLS support explicitly disabled at configure time"];
+#endif
 }
 
 /**
