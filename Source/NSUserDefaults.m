@@ -2386,7 +2386,10 @@ static BOOL isLocked = NO;
 	       * synchronize to load the domain contents into memory
 	       * so a lookup will work.
 	       */
-	      haveChange = [pd synchronize];
+              if (YES == [pd synchronize])
+                {
+                  haveChange = YES;
+                }
 	    }
 	}
     }
