@@ -10,12 +10,18 @@
 
 int main ()
 {
-  char buf[12];
-  short sval = 4;
-  int   ival = 3;
-  *(short *)(buf+1) = sval;
-  *(int *)(buf+1) = ival;
-  buf[0] = 0;
-  puts (buf);	/* force compiler not to optimise out the above assignments */
-  exit (0);
+ char buf[12];
+ char *ptr = buf;
+ short sval = 4;
+ int   ival = 3;
+ if (0 == ((int)ptr % 2))
+   {
+     ptr++;
+   }
+ *(short *)ptr = sval;
+ *(int *)ptr = ival;
+ ptr[0] = 0;
+ puts (ptr);   /* force compiler not to optimise out the above assignments */
+ exit (0);
 }
+

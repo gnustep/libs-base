@@ -1,3 +1,10 @@
+2013-10-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * config/config.align.c: Try to more reliably detect whether word
+        alignment is needed.
+        * Source/NSUserDefaults.m: Fix failure to send notification when
+        defaults are updated.
+
 2013-09-18  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSTLS.h:
