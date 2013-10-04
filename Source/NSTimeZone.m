@@ -296,30 +296,6 @@ static NSRecursiveLock *zone_mutex = nil;
 static Class	NSTimeZoneClass;
 static Class	GSPlaceholderTimeZoneClass;
 
-/* Decode the four bytes at PTR as a signed integer in network byte order.
-   Based on code included in the GNU C Library 2.0.3. */
-static inline int
-decode (const void *ptr)
-{
-#if defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4
-#if NEED_WORD_ALIGNMENT
-  int value;
-  memcpy(&value, ptr, sizeof(NSInteger));
-  return value;
-#else
-  return *(const NSInteger*) ptr;
-#endif
-#else /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
-  const unsigned char *p = ptr;
-  int result = *p & (1 << (CHAR_BIT - 1)) ? ~0 : 0;
-
-  result = (result << 8) | *p++;
-  result = (result << 8) | *p++;
-  result = (result << 8) | *p++;
-  result = (result << 8) | *p;
-  return result;
-#endif /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
-}
 
 /* Return path to a TimeZone directory file */
 static NSString *_time_zone_path(NSString *subpath, NSString *type)
@@ -3113,10 +3089,12 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
       for (i = 0; i < n_types; i++)
 	{
 	  struct ttinfo	*ptr = (struct ttinfo*)(bytes + pos);
+          uint32_t      off;
 
 	  types[i].isdst = (ptr->isdst != 0 ? YES : NO);
 	  types[i].abbr_idx = ptr->abbr_idx;
-	  types[i].offset = decode(ptr->offset);
+          memcpy(&off, ptr->offset, 4);
+	  types[i].offset = GSSwapBigI32ToHost(off);
 	  pos += sizeof(struct ttinfo);
 	}
       abbr = (unsigned char*)(bytes + pos);
