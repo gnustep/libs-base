@@ -1,3 +1,7 @@
+2013-10-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSTimeZone.m: Fix bug with byte swapping ... use NSByteOrder.h
+
 2013-10-01  Richard Frith-Macdonald <rfm@gnu.org>
 
         * config/config.align.c: Try to more reliably detect whether word
