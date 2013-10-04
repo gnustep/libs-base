@@ -10,7 +10,7 @@
 
 int main ()
 {
- char buf[12];
+ char buf[32];
  char *ptr = buf;
  short sval = 4;
  int   ival = 3;
@@ -19,8 +19,8 @@ int main ()
      ptr++;
    }
  *(short *)ptr = sval;
- *(int *)ptr = ival;
- ptr[0] = 0;
+ *(int *)(ptr + sizeof(short)) = ival;
+ ptr[sizeof(short) + sizeof(int)] = 0;
  puts (ptr);   /* force compiler not to optimise out the above assignments */
  exit (0);
 }
