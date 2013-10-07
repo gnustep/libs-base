@@ -10,18 +10,34 @@
 
 int main ()
 {
- char buf[32];
- char *ptr = buf;
- short sval = 4;
- int   ival = 3;
- if (0 == ((int)ptr % 2))
-   {
-     ptr++;
-   }
- *(short *)ptr = sval;
- *(int *)(ptr + sizeof(short)) = ival;
- ptr[sizeof(short) + sizeof(int)] = 0;
- puts (ptr);   /* force compiler not to optimise out the above assignments */
- exit (0);
+  char  *buf = malloc(30);
+  void  *v;
+  int   *sp;
+  int   *sq;
+  int   *ip;
+  int   *iq;
+  int   i;
+
+  for (i = 0 ; i < 30; i++)
+    {
+      buf[i] = i;
+    }
+  v = buf;
+
+  sp = (short*)(v + 1);
+  sq = (short*)(v + 2);
+  if (*sp == *sq)
+    {
+      return 1;
+    }
+
+  ip = (int*)(v + 1);
+  iq = (int*)(v + 2);
+  if (*ip == *iq)
+    {
+      return 1;
+    }
+
+  return 0;
 }
 
