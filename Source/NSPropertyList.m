@@ -346,7 +346,7 @@ foundIgnorableWhitespace: (NSString *)string
     }
   else // invalid tag
     {
-      NSLog(@"unrecognized tag <%@>", elementName);
+      // NSLog(@"unrecognized tag <%@>", elementName);
       [parser abortParsing];
       return;
     }
