@@ -975,6 +975,11 @@ otherTime(NSDate* other)
     seconds]);
 }
 
++ (id)dateWithTimeInterval:(NSTimeInterval)seconds sinceDate:(NSDate *)date
+{
+  return AUTORELEASE([[self alloc] initWithTimeInterval:seconds sinceDate:date]);
+}
+
 /**
  * Returns an autoreleased instance with th date/time set in the far
  * future.
