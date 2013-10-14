@@ -112,6 +112,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
  * that of the receiver by the specified interval.
  */
 - (id) dateByAddingTimeInterval: (NSTimeInterval)ti;
++ (id) dateWithTimeInterval: (NSTimeInterval)seconds sinceDate: (NSDate*)date;
 #endif
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)

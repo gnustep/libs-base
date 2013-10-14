@@ -1,3 +1,10 @@
+2013-10-15  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSDate.h,
+	* Source/NSDate.m:
+	Add 10.6 class method dateWithTimeInterval:sinceDate:
+	Patch by Marcian Lytwyn <marcian.lytwyn@advcsi.com>
+
 2013-10-04  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSTimeZone.m: Fix bug with byte swapping ... use NSByteOrder.h
