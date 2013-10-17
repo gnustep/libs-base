@@ -434,7 +434,15 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   if ((self = [super init]) != nil)
     {
       _type = type;
-      ASSIGN(_subs, list);
+      if ([list isMemberOfClass: [NSMutableArray class]])
+        {
+          ASSIGN(_subs, list);
+        }
+      else if (_subs != list)
+        {
+          [_subs release];
+          _subs = [list mutableCopy];
+        }
     }
   return self;
 }
