@@ -325,6 +325,16 @@ extern "C" {
 #endif
 @end
 
+@interface NSThread (CallStackSymbols)
+#if	GS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+/** Returns an array of NSString objects representing the current stack
+ * in an implementation-defined format. May return an empty array if
+ * this feature is not available.
+ */
++ (NSArray *) callStackSymbols;
+#endif
+@end
+
 #if	GS_API_VERSION(GS_API_NONE, GS_API_NONE)
 /*
  * Don't use the following functions unless you really know what you are 

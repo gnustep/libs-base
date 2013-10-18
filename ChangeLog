@@ -1,3 +1,9 @@
+2013-10-17  Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Source/NSException.m:
+	* Headers/Foundation/NSThread.h: Add trivial implementation of
+	+[NSThread callStackSymbols] that uses GSStackTrace.
+
 2013-10-15  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSDate.h,
