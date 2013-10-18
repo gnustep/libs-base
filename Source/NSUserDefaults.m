@@ -2176,10 +2176,13 @@ NSDictionary *GSPrivateDefaultLocale()
 	    {
 	      NSString	*old = nil;
 
-	      /* anything beginning with a '-' is a defaults key and we must strip
-	          the '-' from it.  As a special case, we leave the '- in place
-	          for '-GS...' and '--GS...' for backward compatibility. */
-	      if ([key hasPrefix: @"-GS"] == YES || [key hasPrefix: @"--GS"] == YES)
+	      /* anything beginning with a '-' is a defaults key and we
+               * must strip the '-' from it.
+               * As a special case, we leave the '- in place for '-GS...'
+               * and '--GS...' for backward compatibility.
+               */
+	      if ([key hasPrefix: @"-GS"] == YES
+                || [key hasPrefix: @"--GS"] == YES)
 	        {
 	          old = key;
 	        }
@@ -2195,7 +2198,8 @@ NSDictionary *GSPrivateDefaultLocale()
 	          done = YES;
 	          continue;
 	        }
-	      else if ([val hasPrefix: @"-"] == YES && [val isEqual: @"-"] == NO)
+	      else if ([val hasPrefix: @"-"] == YES
+                && [val isEqual: @"-"] == NO)
 	        {  // Yet another argument
 	          [argDict setObject: @"" forKey: key];		// arg is empty.
 	          if (old != nil)
