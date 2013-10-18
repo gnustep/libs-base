@@ -405,21 +405,23 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 + (NSPredicate *) andPredicateWithSubpredicates: (NSArray *)list
 {
-  return AUTORELEASE([[GSAndCompoundPredicate alloc] initWithType: NSAndPredicateType
-                                                     subpredicates: list]);
+  return AUTORELEASE([[GSAndCompoundPredicate alloc]
+    initWithType: NSAndPredicateType subpredicates: list]);
 }
 
 + (NSPredicate *) notPredicateWithSubpredicate: (NSPredicate *)predicate
 {
+  NSArray       *list;
+
+  list = [NSArray arrayWithObject: predicate];
   return AUTORELEASE([[GSNotCompoundPredicate alloc] 
-                         initWithType: NSNotPredicateType
-                         subpredicates: [NSArray arrayWithObject: predicate]]);
+    initWithType: NSNotPredicateType subpredicates: list]);
 }
 
 + (NSPredicate *) orPredicateWithSubpredicates: (NSArray *)list
 {
-  return AUTORELEASE([[GSOrCompoundPredicate alloc] initWithType: NSOrPredicateType
-                                                     subpredicates: list]);
+  return AUTORELEASE([[GSOrCompoundPredicate alloc]
+    initWithType: NSOrPredicateType subpredicates: list]);
 }
 
 - (NSCompoundPredicateType) compoundPredicateType
@@ -433,7 +435,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   if ((self = [super init]) != nil)
     {
       _type = type;
-      ASSIGN(_subs, list);
+      ASSIGNCOPY(_subs, list);
     }
   return self;
 }
@@ -458,7 +460,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 {
   unsigned int count = [_subs count];
   NSMutableArray *esubs = [NSMutableArray arrayWithCapacity: count];
-   unsigned int i;
+  unsigned int i;
 
   for (i = 0; i < count; i++)
     {
@@ -1827,28 +1829,44 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
         && [(NSCompoundPredicate *)r compoundPredicateType]
         == NSAndPredicateType)
         {
+          NSCompoundPredicate   *right = (NSCompoundPredicate*)r;
+
           // merge
           if ([l isKindOfClass:[NSCompoundPredicate class]]
             && [(NSCompoundPredicate *)l compoundPredicateType]
             == NSAndPredicateType)
             {
-              [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-                addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+              NSCompoundPredicate       *left;
+              NSMutableArray            *subs;
+
+              left = (NSCompoundPredicate*)l;
+              subs = [[left subpredicates] mutableCopy];
+              [subs addObjectsFromArray: [right subpredicates]];
+              l = [NSCompoundPredicate andPredicateWithSubpredicates: subs];
+              [subs release];
             }
           else
             {
-              [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-                insertObject: l atIndex: 0];
-              l = r;
+              NSMutableArray            *subs;
+
+              subs = [[right subpredicates] mutableCopy];
+              [subs insertObject: l atIndex: 0];
+              l = [NSCompoundPredicate andPredicateWithSubpredicates: subs];
+              [subs release];
             }
         }
       else if ([l isKindOfClass: [NSCompoundPredicate class]]
         && [(NSCompoundPredicate *)l compoundPredicateType]
         == NSAndPredicateType)
         {
-          // add to l
-          [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
-            addObject: r];
+          NSCompoundPredicate   *left;
+          NSMutableArray        *subs;
+
+          left = (NSCompoundPredicate*)l;
+          subs = [[left subpredicates] mutableCopy];
+          [subs addObject: r];
+          l = [NSCompoundPredicate andPredicateWithSubpredicates: subs];
+          [subs release];
         }
       else
         {
@@ -1905,27 +1923,42 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
         && [(NSCompoundPredicate *)r compoundPredicateType]
         == NSOrPredicateType)
         {
+          NSCompoundPredicate   *right = (NSCompoundPredicate*)r;
+
           // merge
           if ([l isKindOfClass: [NSCompoundPredicate class]]
             && [(NSCompoundPredicate *)l compoundPredicateType]
             == NSOrPredicateType)
             {
-              [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-                addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+              NSCompoundPredicate       *left = (NSCompoundPredicate*)l;
+              NSMutableArray            *subs;
+
+              subs = [[left subpredicates] mutableCopy];
+              [subs addObjectsFromArray: [right subpredicates]];
+              l = [NSCompoundPredicate orPredicateWithSubpredicates: subs];
+              [subs release];
             }
           else
             {
-              [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-                insertObject: l atIndex: 0];
-              l = r;
+              NSMutableArray            *subs;
+
+              subs = [[right subpredicates] mutableCopy];
+              [subs insertObject: l atIndex: 0];
+              l = [NSCompoundPredicate orPredicateWithSubpredicates: subs];
+              [subs release];
             }
         }
       else if ([l isKindOfClass: [NSCompoundPredicate class]]
         && [(NSCompoundPredicate *)l compoundPredicateType]
         == NSOrPredicateType)
         {
-          [(NSMutableArray *) [(NSCompoundPredicate *) l subpredicates]
-            addObject:r];
+          NSCompoundPredicate   *left = (NSCompoundPredicate*)l;
+          NSMutableArray        *subs;
+
+          subs = [[left subpredicates] mutableCopy];
+          [subs addObject:r];
+          l = [NSCompoundPredicate orPredicateWithSubpredicates: subs];
+          [subs release];
         }
       else
         {

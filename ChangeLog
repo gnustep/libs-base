@@ -1,3 +1,7 @@
+2013-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSPredicate.m: Fix faulty casts of immutable array to mutable.
+
 2013-10-17  Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/NSException.m:
