@@ -597,6 +597,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   static NSString	*esocks = nil;
   static NSString	*dsocks = nil;
+  static int            rbuf = 0;
+  static int            sbuf = 0;
   static BOOL		beenHere = NO;
   int			net;
   struct sockaddr	sin;
@@ -625,6 +627,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	  esocks = [esocks copy];
 	}
+      /* Hack for network testing.
+       */
+      rbuf = (int)[defs integerForKey: @"GSTcpRcvBuf"];
+      sbuf = (int)[defs integerForKey: @"GSTcpSndBuf"];
     }
 
   if (a == nil || [a isEqualToString: @""])
@@ -742,6 +748,38 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
    */
   status = 1;
   setsockopt(net, SOL_SOCKET, SO_KEEPALIVE, (char *)&status, sizeof(status));
+
+  /* Hack for network testing ... allow explicit setting of the socket
+   * receive and send buffer sizes
+   */
+  if (rbuf > 0)
+    {
+      /* Set the receive buffer for the socket.
+       */
+      if (setsockopt(net, SOL_SOCKET, SO_RCVBUF,
+        (char *)&rbuf, sizeof(rbuf)) < 0)
+        {
+          NSLog(@"Failed to set GSTcpRcvBuf %d: %@", rbuf, [NSError _last]);
+        }
+      else
+        {
+          NSLog(@"Set GSTcpRcvBuf %d", rbuf);
+        }
+    }
+  if (sbuf > 0)
+    {
+      /* Set the send buffer for the socket.
+       */
+      if (setsockopt(net, SOL_SOCKET, SO_SNDBUF,
+        (char *)&sbuf, sizeof(sbuf)) < 0)
+        {
+          NSLog(@"Failed to set GSTcpSndBuf %d: %@", sbuf, [NSError _last]);
+        }
+      else
+        {
+          NSLog(@"Set GSTcpSndBuf %d", sbuf);
+        }
+    }
 
   if (lhost != nil)
     {
