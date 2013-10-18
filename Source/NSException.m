@@ -1107,6 +1107,16 @@ callUncaughtHandler(id value)
 
 @end
 
+@implementation NSThread (CallStackSymbols)
+
++ (NSArray *) callStackSymbols
+{
+  GSStackTrace *stackTrace = [[[GSStackTrace alloc] init] autorelease];
+  NSArray *symbols = [stackTrace symbols];
+  return symbols;
+}
+
+@end
 
 void
 _NSAddHandler (NSHandler* handler)
