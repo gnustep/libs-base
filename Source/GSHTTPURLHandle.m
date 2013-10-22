@@ -232,15 +232,33 @@ debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
   int		len = (int)[data length];
   const char	*ptr = (const char*)[data bytes];
+  int           pos;
 
-  NSLog(@"Read for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          NSLog(@"Read for %p of %d bytes - %@", handle, len, data); 
+          return;
+        }
+    }
+  NSLog(@"Read for %p of %d bytes - '%*.*s'", handle, len, len, len, ptr); 
 }
 static void
 debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
   int		len = (int)[data length];
   const char	*ptr = (const char*)[data bytes];
+  int           pos = len;
 
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          NSLog(@"Write for %p of %d bytes - %@", handle, len, data); 
+          return;
+        }
+    }
   NSLog(@"Write for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
 }
 
