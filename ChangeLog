@@ -1,3 +1,9 @@
+2013-10-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSHTTPURLHandle.m:
+        Close socket immediately on SSL handlshake failure, rather than
+        waiting for cleanup on dealloc.
+
 2013-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSPredicate.m: Fix faulty casts of immutable array to mutable.
