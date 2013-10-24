@@ -1071,6 +1071,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  if (debug)
 	    NSLog(@"%@ %p %s Failed to make ssl connect",
 	      NSStringFromSelector(_cmd), self, keepalive?"K":"");
+          [sock closeFile];
+          DESTROY(sock);
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason:
 	    @"Failed to make ssl connect"];

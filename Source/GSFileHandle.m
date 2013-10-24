@@ -627,8 +627,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	  esocks = [esocks copy];
 	}
-      /* Hack for network testing.
-       */
       rbuf = (int)[defs integerForKey: @"GSTcpRcvBuf"];
       sbuf = (int)[defs integerForKey: @"GSTcpSndBuf"];
     }
@@ -749,9 +747,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   status = 1;
   setsockopt(net, SOL_SOCKET, SO_KEEPALIVE, (char *)&status, sizeof(status));
 
-  /* Hack for network testing ... allow explicit setting of the socket
-   * receive and send buffer sizes
-   */
   if (rbuf > 0)
     {
       /* Set the receive buffer for the socket.
@@ -1002,7 +997,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
-      ASSIGN(fh_stderr, self);
+      fh_stderr = self;
       if (self)
 	{
 	  readOK = NO;
@@ -1020,7 +1015,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
-      ASSIGN(fh_stdin, self);
+      fh_stdin = self;
       if (self)
 	{
 	  writeOK = NO;
@@ -1038,7 +1033,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
-      ASSIGN(fh_stdout, self);
+      fh_stdout = self;
       if (self)
 	{
 	  readOK = NO;
