@@ -1269,7 +1269,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 
 - (BOOL) active
 {
-   return active;
+  return active;
 }
 
 - (void) dealloc
@@ -1805,30 +1805,35 @@ static NSMutableDictionary      *credentialsCache = nil;
   ret = gnutls_certificate_verify_peers2 (session, &status);
   if (ret < 0)
     {
-      NSLog(@"Error %s", gnutls_strerror(ret));
+      str = [NSString stringWithFormat:
+        @"TLS verification: error %s", gnutls_strerror(ret)];
+      ASSIGN(problem, str);
+      if (YES == debug) NSLog(@"%@", problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   if (YES == debug)
     {
       if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
-        NSLog(@"The certificate hasn't got a known issuer.");
+        NSLog(@"TLS verification: certificate hasn't got a known issuer.");
 
       if (status & GNUTLS_CERT_REVOKED)
-        NSLog(@"The certificate has been revoked.");
+        NSLog(@"TLS verification: certificate has been revoked.");
 
     /*
       if (status & GNUTLS_CERT_EXPIRED)
-        NSLog(@"The certificate has expired");
+        NSLog(@"TLS verification: certificate has expired");
 
       if (status & GNUTLS_CERT_NOT_ACTIVATED)
-        NSLog(@"The certificate is not yet activated");
+        NSLog(@"TLS verification: certificate is not yet activated");
     */
     }
 
   if (status & GNUTLS_CERT_INVALID)
     {
-      NSLog(@"The remote certificate is not trusted.");
+      ASSIGN(problem,
+        @"TLS verification: remote certificate is not trusted.");
+      if (YES == debug) NSLog(@"%@", problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1838,26 +1843,34 @@ static NSMutableDictionary      *credentialsCache = nil;
    */
   if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509)
     {
-      NSLog(@"The remote certificate is not of the X509 type.");
+      ASSIGN(problem,
+        @"TLS verification: remote certificate not of the X509 type.");
+      if (YES == debug) NSLog(@"%@", problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   if (gnutls_x509_crt_init(&cert) < 0)
     {
-      NSLog(@"error in certificate initialization");
+      ASSIGN(problem, @"TLS verification: error in certificate initialization");
+      gnutls_x509_crt_deinit(cert);
+      if (YES == debug) NSLog(@"%@", problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
   if (cert_list == NULL)
     {
-      NSLog(@"No certificate form remote end was found!");
+      ASSIGN(problem, @"TLS verification: no certificate from remote end!");
+      gnutls_x509_crt_deinit(cert);
+      if (YES == debug) NSLog(@"%@", problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   if (gnutls_x509_crt_import(cert, &cert_list[0], GNUTLS_X509_FMT_DER) < 0)
     {
-      NSLog(@"error parsing certificate");
+      ASSIGN(problem, @"TLS verification: error parsing certificate");
+      gnutls_x509_crt_deinit(cert);
+      if (YES == debug) NSLog(@"%@", problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1889,8 +1902,12 @@ static NSMutableDictionary      *credentialsCache = nil;
         }
       if (NO == found)
         {
-          NSLog(@"The certificate's owner does not match '%@'", names);
+          str = [NSString stringWithFormat:
+            @"TLS verification: certificate's owner does not match '%@'",
+            names];
+          ASSIGN(problem, str);
           gnutls_x509_crt_deinit(cert);
+          if (YES == debug) NSLog(@"%@", problem);
           return GNUTLS_E_CERTIFICATE_ERROR;
         }
     }

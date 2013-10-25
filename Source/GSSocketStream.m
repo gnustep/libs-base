@@ -504,7 +504,30 @@ static NSArray  *keys = nil;
       if ([session handshake] == YES)
         {
           handshake = NO;               // Handshake is now complete.
-          active = [session active];    // The TLS session is now active.
+          active = [session active];    // Is the TLS session now active?
+          if (NO == active)
+            {
+              NSString  *problem = [session problem];
+              NSError   *theError;
+
+              if (nil == problem)
+                {
+                  problem = @"TLS handshake failure";
+                }
+              theError = [NSError errorWithDomain: NSCocoaErrorDomain
+                code: 0
+                userInfo: [NSDictionary dictionaryWithObject: problem
+                  forKey: NSLocalizedDescriptionKey]];
+              if ([istream streamStatus] != NSStreamStatusError)
+                {
+                  [istream _recordError: theError];
+                }
+              if ([ostream streamStatus] != NSStreamStatusError)
+                {
+                  [ostream _recordError: theError];
+                }
+              [self bye];
+            }
         }
     }
 }

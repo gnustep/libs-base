@@ -1,3 +1,9 @@
+2013-10-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSSocketStream.m:
+        * Source/GSTLS.m:
+        Attempt to better handle TLS handshake failure.
+
 2013-10-24  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSHTTPURLHandle.m:
