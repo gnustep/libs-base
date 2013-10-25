@@ -1,5 +1,10 @@
 2013-10-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Tools/make_strings/StringsFile.m:
+        Fix bogus space after semicolon.
+
+2013-10-25  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/GSSocketStream.m:
         * Source/GSTLS.m:
         Attempt to better handle TLS handshake failure.
