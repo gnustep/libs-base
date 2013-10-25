@@ -7,13 +7,13 @@
 
    This file is part of the GNUstep Project
 
-   This program is free software;  you can redistribute it and/or
+   This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation;  either
+   as published by the Free Software Foundation; either
    version 3 of the License, or (at your option) any later version.
 
    You should have received a copy of the GNU General Public
-   License along with this program;  see the file COPYINGv3.
+   License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -186,7 +186,7 @@ static NSString *parse_string(NSString **ptr)
                   {
                     fprintf(stderr,"parse error in '%s', missing '*\'\n",
                       [filename cString]);
-                    pos = [l length]; 
+                    pos = [l length];
                   }
 		if ([user_comment length])
 		  [user_comment appendString: @"\n"];
@@ -222,12 +222,12 @@ static NSString *parse_string(NSString **ptr)
 		exit(1);
 	      }
 	    l = [l substringFromIndex: pos+1];
-	    trans = parse_string( & l);
+	    trans = parse_string(&l);
 
-	    pos = [l rangeOfString: @"; "].location;
+	    pos = [l rangeOfString: @";"].location;
 	    if (pos == NSNotFound)
 	      {
-		fprintf(stderr,"parse error in '%s', expecting '; '\n",
+		fprintf(stderr,"parse error in '%s', expecting ';'\n",
                   [filename cString]);
 		exit(1);
 	      }
@@ -324,7 +324,7 @@ static NSString *parse_string(NSString **ptr)
     [str appendString: @"\"\n =  \""];
 
   [str appendString: [se translated]];
-  [str appendString: @"\"; \n"];
+  [str appendString: @"\";\n"];
 }
 
 
