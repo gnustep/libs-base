@@ -888,10 +888,16 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       /* One of the values is nil. The result is YES,
        * if both are nil and equality is requested.
        */
-      return ((leftIsNil == rightIsNil)
-	&& ((_type == NSEqualToPredicateOperatorType)
-	|| (_type == NSLessThanOrEqualToPredicateOperatorType)
-	|| (_type == NSGreaterThanOrEqualToPredicateOperatorType)));
+      switch (_type)
+      {
+        case NSEqualToPredicateOperatorType:
+        case NSLessThanOrEqualToPredicateOperatorType:
+        case NSGreaterThanOrEqualToPredicateOperatorType:
+          return (leftIsNil == rightIsNil);
+          
+        default:
+          return (leftIsNil != rightIsNil);
+      }
     }
 
   // Change predicate options into string options.
