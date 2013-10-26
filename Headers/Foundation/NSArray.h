@@ -152,6 +152,7 @@ typedef NSUInteger NSBinarySearchingOptions;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 - (id) valueForKey: (NSString*)key;
+- (void) setValue: (id)value forKey: (NSString*)key;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
@@ -376,9 +377,6 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  */
 - (void) sortWithOptions: (NSSortOptions)options
          usingComparator: (NSComparator)comparator;
-#endif
-#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (void) setValue: (id)value forKey: (NSString*)key;
 #endif
 /**
  * Set method called by the compiler with array subscripting.
