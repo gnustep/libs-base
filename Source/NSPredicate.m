@@ -884,7 +884,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       return ((leftIsNil == rightIsNil)
 	&& ((_type == NSEqualToPredicateOperatorType)
 	|| (_type == NSLessThanOrEqualToPredicateOperatorType)
-	|| (_type == NSGreaterThanOrEqualToPredicateOperatorType)));
+	|| (_type == NSGreaterThanOrEqualToPredicateOperatorType))) ? YES : NO;
     }
 
   // Change predicate options into string options.
@@ -903,13 +903,17 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   switch (_type)
     {
       case NSLessThanPredicateOperatorType:
-	return ([leftResult compare: rightResult] == NSOrderedAscending);
+	return ([leftResult compare: rightResult] == NSOrderedAscending)
+          ? YES : NO;
       case NSLessThanOrEqualToPredicateOperatorType:
-	return ([leftResult compare: rightResult] != NSOrderedDescending);
+	return ([leftResult compare: rightResult] != NSOrderedDescending)
+          ? YES : NO;
       case NSGreaterThanPredicateOperatorType:
-	return ([leftResult compare: rightResult] == NSOrderedDescending);
+	return ([leftResult compare: rightResult] == NSOrderedDescending)
+          ? YES : NO;
       case NSGreaterThanOrEqualToPredicateOperatorType:
-	return ([leftResult compare: rightResult] != NSOrderedAscending);
+	return ([leftResult compare: rightResult] != NSOrderedAscending)
+          ? YES : NO;
       case NSEqualToPredicateOperatorType:
 	return [leftResult isEqual: rightResult];
       case NSNotEqualToPredicateOperatorType:
@@ -919,7 +923,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	return GSICUStringMatchesRegex(leftResult, rightResult, compareOptions);
 #else
 	return [leftResult compare: rightResult options: compareOptions]
-	  == NSOrderedSame;  
+	  == NSOrderedSame ? YES : NO;
 #endif
       case NSLikePredicateOperatorType:
 #if	GS_USE_ICU == 1
@@ -939,14 +943,14 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	}
 #else
 	return [leftResult compare: rightResult options: compareOptions]
-	  == NSOrderedSame;
+	  == NSOrderedSame ? YES : NO;
 #endif
       case NSBeginsWithPredicateOperatorType:
 	{
 	  NSRange range = NSMakeRange(0, [rightResult length]);
 	  return ([leftResult compare: rightResult
 			      options: compareOptions
-				range: range] == NSOrderedSame);
+				range: range] == NSOrderedSame ? YES : NO);
 	}
       case NSEndsWithPredicateOperatorType:
 	{
@@ -956,7 +960,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	    [rightResult length]);
 	  return ([leftResult compare: rightResult
 			      options: compareOptions
-				range: range] == NSOrderedSame);
+				range: range] == NSOrderedSame ? YES : NO);
 	}
       case NSInPredicateOperatorType:
 	/* Handle special case where rightResult is a collection
@@ -985,7 +989,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	  }
 	return ([rightResult rangeOfString: leftResult
 				   options: compareOptions].location
-	  != NSNotFound);
+	  != NSNotFound ? YES : NO);
       case NSCustomSelectorPredicateOperatorType:
 	{
 	  BOOL (*function)(id,SEL,id) = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
