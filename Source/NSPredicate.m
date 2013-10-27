@@ -878,13 +878,26 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
   if (leftIsNil || rightIsNil)
     {
-      /* One of the values is nil. The result is YES,
-       * if both are nil and equality is requested.
-       */
-      return ((leftIsNil == rightIsNil)
-	&& ((_type == NSEqualToPredicateOperatorType)
-	|| (_type == NSLessThanOrEqualToPredicateOperatorType)
-	|| (_type == NSGreaterThanOrEqualToPredicateOperatorType))) ? YES : NO;
+      if (leftIsNil == rightIsNil)
+        {
+          /* Both of the values are nil.
+           * The result is YES if equality is requested.
+           */
+          if (NSEqualToPredicateOperatorType == _type
+            || NSLessThanOrEqualToPredicateOperatorType == _type
+            || NSGreaterThanOrEqualToPredicateOperatorType == _type)
+            {
+              return YES;
+            }
+        }
+      else if (NSNotEqualToPredicateOperatorType == _type)
+        {
+          /* One, but not both of the values are nil.
+           * The result is YES if inequality is requested.
+           */
+          return YES;
+        }
+      return NO;
     }
 
   // Change predicate options into string options.
@@ -992,7 +1005,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	  != NSNotFound ? YES : NO);
       case NSCustomSelectorPredicateOperatorType:
 	{
-	  BOOL (*function)(id,SEL,id) = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
+	  BOOL (*function)(id,SEL,id)
+            = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
 	  return function(leftResult, _selector, rightResult);
 	}
       default:
