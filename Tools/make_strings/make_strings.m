@@ -174,7 +174,7 @@ ParseFile(const char *filename, NSMutableDictionary *tables)
       ch = nch;
       if (ch == EOF) break;
       nch = fgetc(f);
-      //		printf("ch = %02x '%c'  state =%i skip =%i\n", ch, ch, state, skip);
+      // printf("ch = %02x '%c'  state =%i skip =%i\n", ch, ch, state, skip);
       if (skip)
 	{
 	  skip--;
@@ -274,8 +274,9 @@ ParseFile(const char *filename, NSMutableDictionary *tables)
 	      old_name = name;
 	      for (name++;loc_funcs[name].func_name;name++)
 		{
-		  if (!strncmp(loc_funcs[old_name].func_name, loc_funcs[name].func_name, nindex) &&
-		      loc_funcs[name].func_name[nindex] == ch)
+		  if (!strncmp(loc_funcs[old_name].func_name,
+                    loc_funcs[name].func_name, nindex)
+                    && loc_funcs[name].func_name[nindex] == ch)
 		    break;
 		}
 	      if (loc_funcs[name].func_name)
@@ -289,8 +290,9 @@ ParseFile(const char *filename, NSMutableDictionary *tables)
 	      int old_name = name;
 	      for (name++;loc_funcs[name].func_name;name++)
 		{
-		  if (!strncmp(loc_funcs[old_name].func_name, loc_funcs[name].func_name, nindex) &&
-		      loc_funcs[name].func_name[nindex] == 0)
+		  if (!strncmp(loc_funcs[old_name].func_name,
+                    loc_funcs[name].func_name, nindex)
+                    && loc_funcs[name].func_name[nindex] == 0)
 		    break;
 		}
 	    }
@@ -301,7 +303,9 @@ ParseFile(const char *filename, NSMutableDictionary *tables)
 	    }
 	  else
 	    {
-	      //				printf("found call to '%s' at line %i\n", loc_funcs[name].func_name, cur_line);
+	      /* printf("found call to '%s' at line %i\n",
+               * loc_funcs[name].func_name, cur_line);
+               */
 	      state = 7;
 	    }
 	}
@@ -319,9 +323,11 @@ ParseFile(const char *filename, NSMutableDictionary *tables)
 		  arg_len[i] = 0;
 		  arg_ok[i] = 1;
 		}
-	      //				printf(" start arg list, want %i args\n", loc_funcs[name].num_args);
+	      /* printf(" start arg list, want %i args\n",
+               * loc_funcs[name].num_args);
+               */
 	    }
-	  else if (ch>32)
+	  else if (ch > 32)
 	    state = 0;
 	  continue;
 	}
@@ -425,7 +431,7 @@ printf("  %3i : %i '%s'\n", i, arg_ok[i], args[i]);
 	}
     }
 
-  for (i = 0;i<MAX_ARGS;i++)
+  for (i = 0; i<MAX_ARGS; i++)
     if (args[i])
       free(args[i]);
 
@@ -461,7 +467,7 @@ UpdateTable(NSArray *source_table, NSString *filename)
   sf = [[StringsFile alloc] initWithFile: filename];
 
   c = [source_table count];
-  for (i = 0;i<c;i++)
+  for (i = 0; i < c; i++)
     {
       [sf addSourceEntry: [source_table objectAtIndex: i]];
     }
@@ -548,8 +554,8 @@ int main(int argc, char **argv)
 		NSLog (@"syntax error\n");
 		return 1;
 	      }
-	    d = argv[i];
-	    while (1)
+            d =  argv[i];
+            while (1)
 	      {
 		d2 = strchr (d, ' ');
 		if (d2)

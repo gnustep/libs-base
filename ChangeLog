@@ -1,3 +1,12 @@
+2013-10-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSFileHandle.m: Fix retention of singletons and add exception
+        if an attempt is made to release too many times.
+        * Tools/make_strings/make_strings.m: fix minor coding standard errrors.
+        * Tests/base/NSFileHandle/basic.m:
+        * Tests/base/NSFileHandle/singleton.m:
+        Correct faulty tests.
+
 2013-10-26  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSPredicate.m: ([_evaluateLeftValue:rightValue:object:])
