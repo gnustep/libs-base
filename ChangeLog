@@ -6,6 +6,8 @@
         * Tests/base/NSFileHandle/basic.m:
         * Tests/base/NSFileHandle/singleton.m:
         Correct faulty tests.
+        * Source/NSPredicate.m: ([_evaluateLeftValue:rightValue:object:])
+        Add missing check for NSNotEqualToPredicateOperatorType spotted by Fred
 
 2013-10-26  Richard Frith-Macdonald <rfm@gnu.org>
 
