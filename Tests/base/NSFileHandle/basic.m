@@ -29,7 +29,7 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   test_NSObject(@"NSFileHandle", 
-                [NSArray arrayWithObject:[NSFileHandle fileHandleWithStandardInput]]);
+    [NSArray arrayWithObject:[NSFileHandle fileHandleWithStandardInput]]);
   [arp release]; arp = nil;
   return 0;
 }

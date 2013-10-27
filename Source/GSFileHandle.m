@@ -179,6 +179,24 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 - (void) dealloc
 {
+  if (self == fh_stdin)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard input handle"];
+    }
+  if (self == fh_stdout)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard output handle"];
+    }
+  if (self == fh_stderr)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard error handle"];
+    }
   DESTROY(address);
   DESTROY(service);
   DESTROY(protocol);
@@ -192,13 +210,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 - (void) finalize
 {
-  if (self == fh_stdin)
-    fh_stdin = nil;
-  if (self == fh_stdout)
-    fh_stdout = nil;
-  if (self == fh_stderr)
-    fh_stderr = nil;
-
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
@@ -997,7 +1008,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
-      fh_stderr = self;
+      ASSIGN(fh_stderr, self);
       if (self)
 	{
 	  readOK = NO;
@@ -1015,7 +1026,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
-      fh_stdin = self;
+      ASSIGN(fh_stdin, self);
       if (self)
 	{
 	  writeOK = NO;
@@ -1033,7 +1044,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
-      fh_stdout = self;
+      ASSIGN(fh_stdout, self);
       if (self)
 	{
 	  readOK = NO;
