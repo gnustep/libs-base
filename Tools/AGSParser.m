@@ -448,9 +448,11 @@ patata
            paragraphs until we reach </example> */
         if ([tag isEqualToString: @"example"])
           {
-            [scanner setCharactersToBeSkipped: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            [scanner setCharactersToBeSkipped:
+              [NSCharacterSet whitespaceAndNewlineCharacterSet]];
             [scanner scanUpToString: @"</example>" intoString: NULL];
-            inUnclosedExample = ([scanner scanString: @"</example>" intoString: NULL] == NO);
+            inUnclosedExample
+              = ([scanner scanString: @"</example>" intoString: NULL] == NO);
           }
 
         return NO;
@@ -3755,7 +3757,20 @@ fail:
 
 		  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
 						      length: pos - start];
-		  val = [wordMap objectForKey: tmp];
+                  if ([tmp isEqualToString: @"NS_FORMAT_ARGUMENT"]
+                    || [tmp isEqualToString: @"NS_FORMAT_FUNCTION"])
+                    {
+                      /* These macros need to be skipped as they appear inside
+                       * method declarations.
+                       */
+                      val = @"";
+                      [self skipSpaces];
+                      [self skipBlock];
+                    }
+                  else
+                    {
+                      val = [wordMap objectForKey: tmp];
+                    }
 		  RELEASE(tmp);
 		  if (val == nil)
 		    {
