@@ -2113,6 +2113,11 @@ failure:
   buf = [self mutableBytes];
   if (0 == buf)
     {
+		if ([[NSClassFromString(@"NSUserDefaults") standardUserDefaults] boolForKey:@"CrashOnMissingBytesException"]) {
+			int zero = floor(0.5), x = 1;
+			NSLog(@"Should crash now in replaceBytesInRange:... with [self mutableBytes] == 0");
+			[NSNumber numberWithInt:(x/zero)];
+		}
       [NSException raise: NSInternalInconsistencyException
 		  format: @"missing bytes in replaceByteInRange:withBytes:"];
     }
