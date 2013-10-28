@@ -1,3 +1,8 @@
+2013-10-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Tools/AGSParser.m: Add code to ignore NS_FORMAT_ARGUMENT and
+        NS_FORMAT_FUNCTION macros inside variable declarations.
+
 2013-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSFileHandle.m: Fix retention of singletons and add exception
