@@ -73,24 +73,24 @@ static NSString *parse_string(NSString **ptr)
 
 @implementation StringsFile
 
--(BOOL) isTranslated: (NSString *)key
+- (BOOL) isTranslated: (NSString *)key
 {
   return [keys_translated containsObject: key];
 }
 
--(void) addTranslated: (NSString *)key
+- (void) addTranslated: (NSString *)key
 {
   if (![self isTranslated: key])
     [keys_translated addObject: key];
 }
 
 
--(BOOL) isMatched: (NSString *)key
+- (BOOL) isMatched: (NSString *)key
 {
   return [keys_matched containsObject: key];
 }
 
--(void) addMatched: (NSString *)key
+- (void) addMatched: (NSString *)key
 {
   if (![self isMatched: key])
     [keys_matched addObject: key];
@@ -106,7 +106,7 @@ static NSString *parse_string(NSString **ptr)
   return self;
 }
 
--(void) dealloc
+- (void) dealloc
 {
   DESTROY(global_comment);
   DESTROY(strings);
@@ -204,7 +204,7 @@ static NSString *parse_string(NSString **ptr)
 	    if (pos == NSNotFound) break;
 
 	    l = [l substringFromIndex: pos+1];
-	    key = parse_string( & l);
+	    key = parse_string(&l);
 
 	    pos = [l rangeOfString: @"="].location;
 	    if (pos == NSNotFound)
@@ -282,7 +282,7 @@ static NSString *parse_string(NSString **ptr)
 }
 
 
--(void) _writeTo: (NSMutableString *)str  entryHead: (StringsEntry *)se
+- (void) _writeTo: (NSMutableString *)str  entryHead: (StringsEntry *)se
 {
   if ([se file])
     {
@@ -298,7 +298,7 @@ static NSString *parse_string(NSString **ptr)
     }
 }
 
--(void) _writeTo: (NSMutableString *)str  entryFlags: (StringsEntry *)se
+- (void) _writeTo: (NSMutableString *)str  entryFlags: (StringsEntry *)se
 {
   int flags = [se flags];
   if (!flags) return;
@@ -313,22 +313,25 @@ static NSString *parse_string(NSString **ptr)
       }
 }
 
--(void) _writeTo: (NSMutableString *)str  entryKey: (StringsEntry *)se
+- (void) _writeTo: (NSMutableString *)str  entryKey: (StringsEntry *)se
 {
   [str appendString: @"\""];
   [str appendString: [se key]];
 
-  if ([[se key] length]+[[se translated] length] < 70)
-    [str appendString: @"\"  =  \""];
+  /* Try to write a nice readable output ... key and value with whitrespace
+   * around the '=' charactger, or wrap to a new line with a two space indent.
+   */
+  if ([[se key] length] + [[se translated] length] < 70)
+    [str appendString: @"\" = \""];
   else
-    [str appendString: @"\"\n =  \""];
+    [str appendString: @"\"\n  = \""];
 
   [str appendString: [se translated]];
   [str appendString: @"\";\n"];
 }
 
 
--(void) _writeTo: (NSMutableString *)str  manyEntries: (NSMutableArray *)list
+- (void) _writeTo: (NSMutableString *)str  manyEntries: (NSMutableArray *)list
 {
   int i,c;
   StringsEntry *tr,*cur;
@@ -336,7 +339,7 @@ static NSString *parse_string(NSString **ptr)
   [list sortUsingSelector: @selector(compareFileLine:)];
   c = [list count];
   if (!c) return;
-  cur = tr=nil;
+  cur = tr = nil;
   for (i = 0; i < c; i++)
     {
       cur = [list objectAtIndex: i];
@@ -353,22 +356,24 @@ static NSString *parse_string(NSString **ptr)
     [self _writeTo: str  entryKey: cur];
 }
 
--(BOOL) _shouldIgnore: (StringsEntry *)se
+- (BOOL) _shouldIgnore: (StringsEntry *)se
 {
-  if (([se flags] & (FLAG_UNMATCHED|FLAG_UNTRANSLATED)) == 
-		    (FLAG_UNMATCHED|FLAG_UNTRANSLATED))
+  if (([se flags] & (FLAG_UNMATCHED|FLAG_UNTRANSLATED))
+    == (FLAG_UNMATCHED|FLAG_UNTRANSLATED))
     return YES;
 
-  if (aggressive_import && [[se file] isEqual: DUMMY] && [self isMatched: [se key]])
+  if (aggressive_import && [[se file] isEqual: DUMMY]
+    && [self isMatched: [se key]])
     return YES;
 
-  if (aggressive_remove && ([se flags] & FLAG_UNMATCHED) && [self isMatched: [se key]])
+  if (aggressive_remove && ([se flags] & FLAG_UNMATCHED)
+    && [self isMatched: [se key]])
     return YES;
 
   return NO;
 }
 
--(BOOL) writeToFile: (NSString *)filename
+- (BOOL) writeToFile: (NSString *)filename
 {
   unsigned int i,c;
   BOOL result;
@@ -505,11 +510,12 @@ static NSString *parse_string(NSString **ptr)
 	    {
 	      last_filename = [se file];
 	      [str appendString:
-		     [NSString stringWithFormat: @"\n\n/*** Strings from %@ ***/\n",
-			       last_filename]];
+                [NSString stringWithFormat: @"\n\n/*** Strings from %@ ***/\n",
+                  last_filename]];
 	    }
 	  [self _writeTo: str  entryHead: se];
-	  if (i == c-1 || ![[se key] isEqual: [[str_list objectAtIndex: i+1] key]])
+	  if (i == c - 1
+            || ![[se key] isEqual: [[str_list objectAtIndex: i + 1] key]])
 	    [self _writeTo: str  entryKey: se];
 	}
     }
@@ -539,7 +545,7 @@ static NSString *parse_string(NSString **ptr)
 }
 
 
--(void) addSourceEntry: (SourceEntry *)e
+- (void) addSourceEntry: (SourceEntry *)e
 {
   /* First try to find a match among our unmatched strings. We consider
      two entries to match if they have the same key, file and comment. This
