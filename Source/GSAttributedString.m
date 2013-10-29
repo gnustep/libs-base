@@ -132,25 +132,29 @@ static IMP		unlockImp;
 static NSDictionary*
 cacheAttributes(NSDictionary *attrs)
 {
-  GSIMapNode	node;
+  if (nil != attrs)
+    {
+      GSIMapNode	node;
 
-  ALOCK();
-  node = GSIMapNodeForKey(&attrMap, (GSIMapKey)((id)attrs));
-  if (node == 0)
-    {
-      /*
-       * Shallow copy of dictionary, without copying objects ... results
-       * in an immutable dictionary that can safely be cached.
-       */
-      attrs = [[NSDictionary alloc] initWithDictionary: attrs copyItems: NO];
-      GSIMapAddPair(&attrMap, (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
+      ALOCK();
+      node = GSIMapNodeForKey(&attrMap, (GSIMapKey)((id)attrs));
+      if (node == 0)
+        {
+          /* Shallow copy of dictionary, without copying objects ....
+           * result in an immutable dictionary that can safely be cached.
+           */
+          attrs = [[NSDictionary alloc] initWithDictionary: attrs
+                                                 copyItems: NO];
+          GSIMapAddPair(&attrMap,
+            (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
+        }
+      else
+        {
+          node->value.nsu++;
+          attrs = RETAIN(node->key.obj);
+        }
+      AUNLOCK();
     }
-  else
-    {
-      node->value.nsu++;
-      attrs = RETAIN(node->key.obj);
-    }
-  AUNLOCK();
   return attrs;
 }
 
@@ -160,30 +164,34 @@ cacheAttributes(NSDictionary *attrs)
 static void
 unCacheAttributes(NSDictionary *attrs)
 {
-  GSIMapBucket  bucket;
-  NSDictionary  *found;
-
-  found = nil;
-  ALOCK();
-  bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
-  if (bucket != 0)
+  if (nil != attrs)
     {
-      GSIMapNode     node;
+      GSIMapBucket  bucket;
+      NSDictionary  *found;
 
-      node = GSIMapNodeForKeyInBucket(&attrMap, bucket, (GSIMapKey)((id)attrs));
-      if (node != 0)
-	{
-          found = node->key.obj;
-	  if (--node->value.nsu == 0)
-	    {
-	      GSIMapRemoveNodeFromMap(&attrMap, bucket, node);
-	      GSIMapFreeNode(&attrMap, node);
-	    }
-	}
+      found = nil;
+      ALOCK();
+      bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
+      if (bucket != 0)
+        {
+          GSIMapNode     node;
+
+          node = GSIMapNodeForKeyInBucket(&attrMap,
+            bucket, (GSIMapKey)((id)attrs));
+          if (node != 0)
+            {
+              found = node->key.obj;
+              if (--node->value.nsu == 0)
+                {
+                  GSIMapRemoveNodeFromMap(&attrMap, bucket, node);
+                  GSIMapFreeNode(&attrMap, node);
+                }
+            }
+        }
+      AUNLOCK();
+      NSCAssert(found == attrs, NSInternalInconsistencyException);
+      RELEASE(found);
     }
-  AUNLOCK();
-  NSCAssert(found == attrs, NSInternalInconsistencyException);
-  RELEASE(found);
 }
 
 
