@@ -1,3 +1,15 @@
+2012-10-29  Riccardo Mottola <rm@gnu.org>
+
+        * configure.ac:
+        * Headers/GNUstepBase/GSConfig.h.in:
+        * Headers/GNUstepBase/GSTypeEncoding.h:
+        * Headers/GNUstepBase/GNUstep.h:
+        * Headers/Foundation/NSString.h:
+        * Headers/Foundation/NSObjCRuntime.h:
+        * configure: regenerate
+        Use inttypes.h rather than stdint.h as it's more inclusive and works
+        on Solaris where some defines are in the wrong place.
+ 
 2013-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSTimeZone.m: Implement -hash as the hash of the time zone

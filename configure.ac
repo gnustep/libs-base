@@ -2298,18 +2298,18 @@ AC_CHECK_HEADERS(dnl
         stdlib.h dnl
 	)
 
-if test $ac_cv_header_stdint_h = yes; then
-INCLUDE_STDINT="#include <stdint.h>"
-elif test $ac_cv_header_inttypes_h = yes; then
-INCLUDE_STDINT="#include <inttypes.h>"
+if test $ac_cv_header_inttypes_h = yes; then
+INCLUDE_INTTYPES="#include <inttypes.h>"
 elif test $ac_cv_header_sys_inttypes_h = yes; then
-INCLUDE_STDINT="#include <sys/inttypes.h>"
+INCLUDE_INTTYPES="#include <sys/inttypes.h>"
+elif test $ac_cv_header_stdint_h = yes; then
+INCLUDE_INTTYPES="#include <stdint.h>"
 else
-INCLUDE_STDINT="no"
+INCLUDE_INTTYPES="no"
 fi
 
-if test "$INCLUDE_STDINT" = "no"; then
-INCLUDE_STDINT=""
+if test "$INCLUDE_INTTYPES" = "no"; then
+INCLUDE_INTTYPES=""
 DEFINE_INT8_T="#define int8_t gss8"
 DEFINE_UINT8_T="#define uint8_t gsu8"
 DEFINE_INT16_T="#define int16_t gss16"
@@ -2333,7 +2333,7 @@ DEFINE_INTPTR_T=""
 DEFINE_UINTPTR_T=""
 fi
 
-AC_SUBST(INCLUDE_STDINT)
+AC_SUBST(INCLUDE_INTTYPES)
 AC_SUBST(DEFINE_INT8_T)
 AC_SUBST(DEFINE_UINT8_T)
 AC_SUBST(DEFINE_INT16_T)

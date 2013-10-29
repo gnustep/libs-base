@@ -35,14 +35,13 @@
 #endif
 #endif
 
-#include <stdarg.h>
-#include <stdint.h>
-#include <limits.h>
-#include <float.h>
-
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<GNUstepBase/GSConfig.h>
 #import	<GNUstepBase/GSBlocks.h>
+
+#include <stdarg.h>
+#include <limits.h>
+#include <float.h>
 
 /* These typedefs must be in place before GSObjCRuntime.h is imported.
  */
