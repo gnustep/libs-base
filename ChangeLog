@@ -1,3 +1,9 @@
+2013-10-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSAttributedString.m:
+        Simplify dictionary caching code and add check to ensure we don't
+        uncache a dictionary which isn't cached.
+
 2012-10-29  Riccardo Mottola <rm@gnu.org>
 
         * configure.ac:
