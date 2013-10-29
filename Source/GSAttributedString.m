@@ -125,8 +125,7 @@ static IMP		unlockImp;
 #define	ALOCK()	if (attrLock != nil) (*lockImp)(attrLock, lockSel)
 #define	AUNLOCK() if (attrLock != nil) (*unlockImp)(attrLock, unlockSel)
 
-/*
- * Add a dictionary to the cache - if it was not already there, return
+/* Add a dictionary to the cache - if it was not already there, return
  * the copy added to the cache, if it was, count it and return retained
  * object that was there.
  */
@@ -155,11 +154,16 @@ cacheAttributes(NSDictionary *attrs)
   return attrs;
 }
 
+/* Decrement the count of a dictionary in the cache and release it.
+ * If the count goes to zero, remove it from the cache.
+ */
 static void
 unCacheAttributes(NSDictionary *attrs)
 {
-  GSIMapBucket       bucket;
+  GSIMapBucket  bucket;
+  NSDictionary  *found;
 
+  found = nil;
   ALOCK();
   bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
   if (bucket != 0)
@@ -169,6 +173,7 @@ unCacheAttributes(NSDictionary *attrs)
       node = GSIMapNodeForKeyInBucket(&attrMap, bucket, (GSIMapKey)((id)attrs));
       if (node != 0)
 	{
+          found = node->key.obj;
 	  if (--node->value.nsu == 0)
 	    {
 	      GSIMapRemoveNodeFromMap(&attrMap, bucket, node);
@@ -177,6 +182,8 @@ unCacheAttributes(NSDictionary *attrs)
 	}
     }
   AUNLOCK();
+  NSCAssert(found == attrs, NSInternalInconsistencyException);
+  RELEASE(found);
 }
 
 
@@ -204,7 +211,7 @@ unCacheAttributes(NSDictionary *attrs)
   GSAttrInfo	*info = (GSAttrInfo*)NSAllocateObject(self, 0, z);
 
   info->loc = l;
-  info->attrs = a;
+  info->attrs = cacheAttributes(a);
   return info;
 }
 
@@ -229,7 +236,7 @@ unCacheAttributes(NSDictionary *attrs)
 - (void) finalize
 {
   unCacheAttributes(attrs);
-  DESTROY(attrs);
+  attrs = nil;
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -302,7 +309,6 @@ _setAttributesFrom(
       attr = [attributedString attributesAtIndex: aRange.location
 				  effectiveRange: &range];
     }
-  attr = cacheAttributes(attr);
   info = NEWINFO(z, attr, 0);
   ADDOBJECT(info);
   RELEASE(info);
@@ -311,7 +317,6 @@ _setAttributesFrom(
     {
       attr = [attributedString attributesAtIndex: loc
 				  effectiveRange: &range];
-      attr = cacheAttributes(attr);
       info = NEWINFO(z, attr, loc - aRange.location);
       ADDOBJECT(info);
       RELEASE(info);
@@ -486,7 +491,6 @@ _attributesAtIndexEffectiveRange(
 	{
 	  attributes = blank;
 	}
-      attributes = cacheAttributes(attributes);
       info = NEWINFO(z, attributes, 0);
       ADDOBJECT(info);
       RELEASE(info);
@@ -596,7 +600,6 @@ _attributesAtIndexEffectiveRange(
         {
           attributes = blank;
         }
-      attributes = cacheAttributes(attributes);
       info = NEWINFO(z, attributes, 0);
       ADDOBJECT(info);
       RELEASE(info);
@@ -665,7 +668,6 @@ SANITY();
     {
       attributes = blank;
     }
-  attributes = cacheAttributes(attributes);
 SANITY();
   tmpLength = [_textChars length];
   GS_RANGE_CHECK(range, tmpLength);
@@ -711,7 +713,7 @@ SANITY();
 	   * The located range ends after our range.
 	   * Create a subrange to go from our end to the end of the old range.
 	   */
-	  info = NEWINFO(z, cacheAttributes(attrs), afterRangeLoc);
+	  info = NEWINFO(z, attrs, afterRangeLoc);
 	  arrayIndex++;
 	  INSOBJECT(info, arrayIndex);
 	  RELEASE(info);
@@ -743,24 +745,13 @@ SANITY();
   if (info->loc >= beginRangeLoc)
     {
       info->loc = beginRangeLoc;
-      if (info->attrs == attributes)
-	{
-	  unCacheAttributes(attributes);
-	  RELEASE(attributes);
-	}
-      else
+      if (info->attrs != attributes)
 	{
 	  unCacheAttributes(info->attrs);
-	  RELEASE(info->attrs);
-	  info->attrs = attributes;
+	  info->attrs = cacheAttributes(attributes);
 	}
     }
-  else if (info->attrs == attributes)
-    {
-      unCacheAttributes(attributes);
-      RELEASE(attributes);
-    }
-  else
+  else if (info->attrs != attributes)
     {
       arrayIndex++;
       info = NEWINFO(z, attributes, beginRangeLoc);
@@ -890,9 +881,7 @@ SANITY();
 
 	      info = OBJECTAT(0);
 	      unCacheAttributes(info->attrs);
-	      DESTROY(info->attrs);
-	      d = cacheAttributes(d);
-	      info->attrs = d;
+	      info->attrs = cacheAttributes(d);
 	      info->loc = NSMaxRange(range);
 	    }
 	}
