@@ -1,3 +1,9 @@
+2013-10-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSTimeZone.m: Implement -hash as the hash of the time zone
+        name so that we can find equal timezones in a set/dictionary as we
+        should, rather than onlyn finding identical time zones.
+
 2013-10-28  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Tools/AGSParser.m: Add code to ignore NS_FORMAT_ARGUMENT and

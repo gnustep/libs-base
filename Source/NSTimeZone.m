@@ -2036,6 +2036,11 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   [aCoder encodeObject: [self name]];
 }
 
+- (NSUInteger) hash
+{
+  return [[self name] hash];
+}
+
 - (id) init
 {
   return [self initWithName: @"NSLocalTimeZone" data: nil];
