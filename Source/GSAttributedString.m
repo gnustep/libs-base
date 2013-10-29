@@ -151,7 +151,7 @@ cacheAttributes(NSDictionary *attrs)
       else
         {
           node->value.nsu++;
-          attrs = RETAIN(node->key.obj);
+          attrs = node->key.obj;
         }
       AUNLOCK();
     }
@@ -167,9 +167,8 @@ unCacheAttributes(NSDictionary *attrs)
   if (nil != attrs)
     {
       GSIMapBucket  bucket;
-      NSDictionary  *found;
+      NSDictionary  *removed = nil;
 
-      found = nil;
       ALOCK();
       bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
       if (bucket != 0)
@@ -180,17 +179,16 @@ unCacheAttributes(NSDictionary *attrs)
             bucket, (GSIMapKey)((id)attrs));
           if (node != 0)
             {
-              found = node->key.obj;
               if (--node->value.nsu == 0)
                 {
+                  removed = node->key.obj;
                   GSIMapRemoveNodeFromMap(&attrMap, bucket, node);
                   GSIMapFreeNode(&attrMap, node);
                 }
             }
         }
       AUNLOCK();
-      NSCAssert(found == attrs, NSInternalInconsistencyException);
-      RELEASE(found);
+      RELEASE(removed);
     }
 }
 
