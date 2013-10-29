@@ -184,7 +184,7 @@ typedef	gsuaddr gsaddr;
 /*
  * Ensure some standard types are defined.
  */
-@INCLUDE_STDINT@
+@INCLUDE_INTTYPES@
 @DEFINE_INT8_T@
 @DEFINE_UINT8_T@
 @DEFINE_INT16_T@
@@ -381,9 +381,7 @@ typedef	struct {
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <inttypes.h>
 #include <stdbool.h>
-#include <stdint.h>
 #endif
 
 // Strong has different semantics in GC and ARC modes, so we need to have a

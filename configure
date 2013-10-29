@@ -682,7 +682,7 @@ DEFINE_UINT16_T
 DEFINE_INT16_T
 DEFINE_UINT8_T
 DEFINE_INT8_T
-INCLUDE_STDINT
+INCLUDE_INTTYPES
 HAVE_PTS_STREAM_MODULES
 OBJCFLAGS
 HAVE_OBJC_SYNC_ENTER
@@ -19638,18 +19638,18 @@ fi
 done
 
 
-if test $ac_cv_header_stdint_h = yes; then
-INCLUDE_STDINT="#include <stdint.h>"
-elif test $ac_cv_header_inttypes_h = yes; then
-INCLUDE_STDINT="#include <inttypes.h>"
+if test $ac_cv_header_inttypes_h = yes; then
+INCLUDE_INTTYPES="#include <inttypes.h>"
 elif test $ac_cv_header_sys_inttypes_h = yes; then
-INCLUDE_STDINT="#include <sys/inttypes.h>"
+INCLUDE_INTTYPES="#include <sys/inttypes.h>"
+elif test $ac_cv_header_stdint_h = yes; then
+INCLUDE_INTTYPES="#include <stdint.h>"
 else
-INCLUDE_STDINT="no"
+INCLUDE_INTTYPES="no"
 fi
 
-if test "$INCLUDE_STDINT" = "no"; then
-INCLUDE_STDINT=""
+if test "$INCLUDE_INTTYPES" = "no"; then
+INCLUDE_INTTYPES=""
 DEFINE_INT8_T="#define int8_t gss8"
 DEFINE_UINT8_T="#define uint8_t gsu8"
 DEFINE_INT16_T="#define int16_t gss16"

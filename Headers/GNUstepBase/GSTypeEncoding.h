@@ -27,7 +27,8 @@
 #ifndef GS_TYPE_ENCODING_H
 #define GS_TYPE_ENCODING_H
 
-#include <stdint.h>
+#import <GNUstepBase/GSVersionMacros.h>
+#import <GNUstepBase/GSConfig.h>
 
 #if defined (NeXT_RUNTIME)
 #  include <objc/objc-runtime.h>
