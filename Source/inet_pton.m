@@ -20,7 +20,10 @@
 #include "config.h"
 
 #include <ctype.h>
-#ifdef  HAVE_STDINT_H
+
+#if     defined(HAVE_INTTYPES_H)
+#include <inttypes.h>
+#elif   defined(HAVE_STDINT_H)
 #include <stdint.h>
 #endif
 
