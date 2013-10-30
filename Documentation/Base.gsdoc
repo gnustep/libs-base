@@ -469,10 +469,12 @@ notice and this notice are preserved.
 	        the object to be morphed into a Zombie ... a special object
 		which will call the GNUstep specific GSLogZombie() function
 		to log the method call.<br />
-		You can set a breakpoint in this function and examine the
-		process memory if you are running under a debugger.<br />
+		If GNUstep-base was built for debugging (make debug=yes),
+                you can set a breakpoint in this function and examine the
+		process memory when you are running under a debugger.<br />
 		As this overrides actual object deallocation, all memory
-		allocated for objects will be leaked!<br />
+		allocated for objects will be leaked unless the
+                NSDeallocateZombies environment variable is also set.<br />
 		You can use the <code>CRASH_ON_ZOMBIE</code> environment
 		variable to force an abort after the message is logged.
 	      </p>
