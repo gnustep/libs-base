@@ -25,20 +25,6 @@
 #ifndef __GNUSTEP_GNUSTEP_H_INCLUDED_
 #define __GNUSTEP_GNUSTEP_H_INCLUDED_
 
-/* Solaris < 10 kludge.  */
-#if defined(__sun__) && defined(__svr4__) && !defined(PRIuPTR)
-#  if defined(__arch64__) || defined (__x86_64__)
-#    define PRIuPTR "lu"
-#    define PRIxPTR "lx"
-#    define PRIdPTR "ld"
-#  else
-#    define PRIuPTR "u"
-#    define PRIxPTR "x"
-#    define PRIdPTR "d"
-#  endif
-#endif
-
-
 /* The contents of this file are designed to be usable with either
  * GNUstep-base or MacOS-X Foundation.
  */
