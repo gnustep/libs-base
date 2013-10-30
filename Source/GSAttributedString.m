@@ -143,11 +143,12 @@ cacheAttributes(NSDictionary *attrs)
       node = GSIMapNodeForKey(&attrMap, (GSIMapKey)((id)attrs));
       if (node == 0)
         {
-          /* Shallow copy of dictionary, without copying objects ....
-           * result in an immutable dictionary that can safely be cached.
+          /* Deep copy of dictionary, including copying objects ....
+           * result in an immutable dictionary that can safely be cached
+           * unless the copied objects or their contents are mutated.
            */
           attrs = [(NSDictionary*)[GSCachedDictionary alloc]
-            initWithDictionary: attrs copyItems: NO];
+            initWithDictionary: attrs copyItems: YES];
           GSIMapAddPair(&attrMap,
             (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
         }
@@ -169,8 +170,9 @@ unCacheAttributes(NSDictionary *attrs)
 {
   if (nil != attrs)
     {
-      GSIMapBucket  bucket;
-      id<GSCachedDictionary> removed = nil;
+      GSIMapBucket              bucket;
+      BOOL                      found = NO;
+      id<GSCachedDictionary>    removed = nil;
 
       ALOCK();
       bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
@@ -182,6 +184,7 @@ unCacheAttributes(NSDictionary *attrs)
             bucket, (GSIMapKey)((id)attrs));
           if (node != 0)
             {
+              found = YES;
               if (--node->value.nsu == 0)
                 {
                   removed = node->key.obj;
@@ -194,6 +197,11 @@ unCacheAttributes(NSDictionary *attrs)
       if (nil != removed)
         {
           [removed _uncache];
+        }
+      if (NO == found)
+        {
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"NSAttributedString attempt to remove attributes which are not found in the cache.  Did someone mutate an object in the attributes dictionary?  The object to remove was %@", attrs];
         }
     }
 }
