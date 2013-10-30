@@ -1,3 +1,10 @@
+2013-10-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/GSDictionary.m: Add priovate class GSCachedDictionary which
+        will raise an exception if deallocated without being uncached.
+        * Source/GSAttributedString.m: Use GSCachedDictionary for attributes
+        to aid in detection of things improperly releasing them.
+
 2013-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSAttributedString.m:

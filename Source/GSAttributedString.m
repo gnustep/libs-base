@@ -59,8 +59,6 @@
 
 #define		SANITY_CHECKS	0
 
-static	NSDictionary	*blank;
-
 
 @interface GSAttributedString : NSAttributedString
 {
@@ -125,6 +123,11 @@ static IMP		unlockImp;
 #define	ALOCK()	if (attrLock != nil) (*lockImp)(attrLock, lockSel)
 #define	AUNLOCK() if (attrLock != nil) (*unlockImp)(attrLock, unlockSel)
 
+@class  GSCachedDictionary;
+@protocol       GSCachedDictionary
+- (void) _uncache;
+@end
+
 /* Add a dictionary to the cache - if it was not already there, return
  * the copy added to the cache, if it was, count it and return retained
  * object that was there.
@@ -143,8 +146,8 @@ cacheAttributes(NSDictionary *attrs)
           /* Shallow copy of dictionary, without copying objects ....
            * result in an immutable dictionary that can safely be cached.
            */
-          attrs = [[NSDictionary alloc] initWithDictionary: attrs
-                                                 copyItems: NO];
+          attrs = [(NSDictionary*)[GSCachedDictionary alloc]
+            initWithDictionary: attrs copyItems: NO];
           GSIMapAddPair(&attrMap,
             (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
         }
@@ -167,7 +170,7 @@ unCacheAttributes(NSDictionary *attrs)
   if (nil != attrs)
     {
       GSIMapBucket  bucket;
-      NSDictionary  *removed = nil;
+      id<GSCachedDictionary> removed = nil;
 
       ALOCK();
       bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
@@ -188,7 +191,10 @@ unCacheAttributes(NSDictionary *attrs)
             }
         }
       AUNLOCK();
-      RELEASE(removed);
+      if (nil != removed)
+        {
+          [removed _uncache];
+        }
     }
 }
 
@@ -266,6 +272,8 @@ unCacheAttributes(NSDictionary *attrs)
 
 @implementation GSAttributedString
 
+static	GSAttrInfo	*blank;
+
 static Class	infCls = 0;
 
 static SEL	infSel;
@@ -307,7 +315,7 @@ _setAttributesFrom(
 
   if (aRange.length == 0)
     {
-      attr = blank;
+      attr = blank->attrs;
       range = aRange; /* Set to satisfy the loop condition below. */
     }
   else
@@ -451,7 +459,7 @@ _attributesAtIndexEffectiveRange(
 	[a methodForSelector: remSel];
       RELEASE(a);
       d = [NSDictionary new];
-      blank = cacheAttributes(d);
+      blank = NEWINFO(NSDefaultMallocZone(), d, 0);
       [[NSObject leakAt: &blank] release];
       RELEASE(d);
     }
@@ -495,7 +503,7 @@ _attributesAtIndexEffectiveRange(
 
       if (attributes == nil)
 	{
-	  attributes = blank;
+	  attributes = blank->attrs;
 	}
       info = NEWINFO(z, attributes, 0);
       ADDOBJECT(info);
@@ -604,7 +612,7 @@ _attributesAtIndexEffectiveRange(
 
       if (attributes == nil)
         {
-          attributes = blank;
+          attributes = blank->attrs;
         }
       info = NEWINFO(z, attributes, 0);
       ADDOBJECT(info);
@@ -672,7 +680,7 @@ SANITY();
     }
   if (attributes == nil)
     {
-      attributes = blank;
+      attributes = blank->attrs;
     }
 SANITY();
   tmpLength = [_textChars length];
@@ -883,11 +891,9 @@ SANITY();
 	    }
 	  else
 	    {
-	      NSDictionary	*d = blank;
-
 	      info = OBJECTAT(0);
 	      unCacheAttributes(info->attrs);
-	      info->attrs = cacheAttributes(d);
+	      info->attrs = cacheAttributes(blank->attrs);
 	      info->loc = NSMaxRange(range);
 	    }
 	}
