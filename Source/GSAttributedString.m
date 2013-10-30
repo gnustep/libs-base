@@ -213,6 +213,19 @@ unCacheAttributes(NSDictionary *attrs)
 
 @implementation	GSAttrInfo
 
++ (void) initialize
+{
+  if (nil == attrLock)
+    {
+      attrLock = [NSLock new];
+      lockSel = @selector(lock);
+      unlockSel = @selector(unlock);
+      lockImp = [attrLock methodForSelector: lockSel];
+      unlockImp = [attrLock methodForSelector: unlockSel];
+      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
+    }
+}
+
 /*
  * Called to record attributes at a particular location - the given attributes
  * dictionary must have been produced by 'cacheAttributes()' so that it is
@@ -436,7 +449,6 @@ _attributesAtIndexEffectiveRange(
       GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
       nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
 #endif
-      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
 
       infSel = @selector(newWithZone:value:at:);
       addSel = @selector(addObject:);
@@ -448,6 +460,11 @@ _attributesAtIndexEffectiveRange(
       infCls = [GSAttrInfo class];
       infImp = [infCls methodForSelector: infSel];
 
+      d = [NSDictionary new];
+      blank = NEWINFO(NSDefaultMallocZone(), d, 0);
+      [[NSObject leakAt: &blank] release];
+      RELEASE(d);
+
       a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
       a = [a initWithCapacity: 1];
       addImp = (void (*)(NSMutableArray*,SEL,id))[a methodForSelector: addSel];
@@ -458,17 +475,8 @@ _attributesAtIndexEffectiveRange(
       remImp = (void (*)(NSMutableArray*,SEL,unsigned))
 	[a methodForSelector: remSel];
       RELEASE(a);
-      d = [NSDictionary new];
-      blank = NEWINFO(NSDefaultMallocZone(), d, 0);
-      [[NSObject leakAt: &blank] release];
-      RELEASE(d);
     }
-  attrLock = [GSLazyLock new];
   [[NSObject leakAt: &attrLock] release];
-  lockSel = @selector(lock);
-  unlockSel = @selector(unlock);
-  lockImp = [attrLock methodForSelector: lockSel];
-  unlockImp = [attrLock methodForSelector: unlockSel];
 }
 
 - (id) initWithString: (NSString*)aString
