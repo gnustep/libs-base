@@ -543,3 +543,24 @@ static SEL	objSel;
 }
 @end
 
+@interface	GSCachedDictionary : GSDictionary
+{
+  BOOL  _uncached;
+}
+@end
+@implementation	GSCachedDictionary
+- (void) dealloc
+{
+  if (NO == _uncached)
+    {
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"Deallocating attributes which are still cached"];
+    }
+  [super dealloc];
+}
+- (void) _uncache
+{
+  _uncached = YES;
+  RELEASE(self);
+}
+@end
