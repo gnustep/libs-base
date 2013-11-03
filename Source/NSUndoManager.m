@@ -695,7 +695,7 @@
 	  return [NSString stringWithFormat: @"%@ %@", _(@"Redo"), actionName];
 	}
     }
-  return actionName;
+  return _(@"Redo");
 }
 
 /**
@@ -975,7 +975,7 @@
 	  return [NSString stringWithFormat: @"%@ %@", _(@"Undo"), actionName];
 	}
     }
-  return actionName;
+  return _(@"Undo");
 }
 
 /**
