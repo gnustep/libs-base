@@ -1,3 +1,10 @@
+2013-11-03 German Arias <germanandre@gmx.es>
+
+	* Source/NSUndoManager.m (-redoMenuTitleForUndoActionName:):
+	* Source/NSUndoManager.m (-undoMenuTitleForUndoActionName:):
+	Return "Redo" and "Undo", respectively, if actionName is null.
+	If not, it removes the item title.
+
 2013-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSAttributedString.m: Use exact equality test when removing
