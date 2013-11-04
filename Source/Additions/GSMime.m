@@ -4334,9 +4334,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 }
 
 /**
- * Converts the base64 encoded data in source to a decoded ASCII string
- * using the +decodeBase64: method.  If the encoded data does not represent
- * an ASCII string, you should use the +decodeBase64: method directly.
+ * Converts the base64 encoded data in source to a decoded ASCII or UTF8
+ * string using the +decodeBase64: method.  If the encoded data does not
+ * represent an ASCII or UTF8 string, you should use the +decodeBase64:
+ * method directly.
  */
 + (NSString*) decodeBase64String: (NSString*)source
 {
@@ -4347,7 +4348,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (d != nil)
     {
       r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-      r = [r initWithData: d encoding: NSASCIIStringEncoding];
+      r = [r initWithData: d encoding: NSUTF8StringEncoding];
       IF_NO_GC([r autorelease];)
     }
   return r;
@@ -4399,13 +4400,13 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 }
 
 /**
- * Converts the ASCII string source into base64 encoded data using the
- * +encodeBase64: method.  If the original data is not an ASCII string,
- * you should use the +encodeBase64: method directly.
+ * Converts the ASCII or UTF8 string source into base64 encoded data using
+ * the +encodeBase64: method.  If the original data is not an ASCII or UTF8
+ * string, you should use the +encodeBase64: method directly.
  */
 + (NSString*) encodeBase64String: (NSString*)source
 {
-  NSData	*d = [source dataUsingEncoding: NSASCIIStringEncoding];
+  NSData	*d = [source dataUsingEncoding: NSUTF8StringEncoding];
   NSString	*r = nil;
 
   d = [self encodeBase64: d];
