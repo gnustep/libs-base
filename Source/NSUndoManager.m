@@ -944,7 +944,15 @@
     {
       return nil;
     }
-  return [[_undoStack lastObject] actionName];
+
+  if (_group != nil)
+    {
+      return [_group actionName];
+    }
+  else
+    {
+      return [[_undoStack lastObject] actionName];
+    }
 }
 
 /**
