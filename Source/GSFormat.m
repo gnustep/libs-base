@@ -1,5 +1,5 @@
 /** Implementation of GNUSTEP printf-style formatting
-   Copyright (C) 1994-2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1994-2000, 2001-2013 Free Software Foundation, Inc.
 
    Hacked together by Kai Henningsen <kai@cats.ms>
    from the glibc 2.2.1 sources
@@ -51,7 +51,9 @@
 #endif
 
 #ifdef HAVE_MALLOC_H
+#if !defined(__OpenBSD__)
 #include <malloc.h>
+#endif
 #endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
@@ -98,9 +100,6 @@ typedef uint32_t wint_t;
 #endif
 #ifdef HAVE_SYS_INTTYPES_H
 #include <sys/inttypes.h>
-#endif
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
 #endif
 #ifndef HAVE_UINTMAX_T
 typedef unsigned long long uintmax_t;

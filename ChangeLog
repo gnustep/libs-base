@@ -1,3 +1,10 @@
+2013-11-07 Riccardo Mottola <rm@gnu.org>
+
+	* Source/GSFormat.m
+	* Source/NSException.m
+	* Source/NSConnection.m
+	Openbsd malloc.h warning fix.
+
 2013-11-05 German Arias <germanandre@gmx.es>
 
 	* Source/NSUndoManager.m (-undoActionName): Try first with the name

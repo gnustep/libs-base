@@ -1,5 +1,5 @@
 /** NSException - Object encapsulation of a general exception handler
-   Copyright (C) 1993, 1994, 1996, 1997, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1993-2013 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -48,7 +48,9 @@
 #endif
 
 #ifdef HAVE_MALLOC_H
+#if !defined(__OpenBSD__)
 #include <malloc.h>
+#endif
 #endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
