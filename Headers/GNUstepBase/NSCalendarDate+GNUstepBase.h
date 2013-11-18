@@ -38,6 +38,16 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface NSCalendarDate (GNUstepBase)
+
+/** According to the ISO definition of a week, each year begins with the
+  * Monday of the week containing the 4th of January. If we a have a date
+  * early in January or late in December we therefore may need to adjust
+  * the year to match the definition of a week.<br />
+  * This method is used to return the ISO year rather than the normal
+  * calendar year.
+  */
+- (NSUInteger) isoYear;
+
 /**
  * The ISO standard week of the year is based on the first week of the
  * year being that week (starting on monday) for which the thursday
@@ -49,6 +59,7 @@ extern "C" {
  * part of week 1 of the next year.
  */
 - (NSInteger) weekOfYear;
+
 @end
 
 #endif	/* OS_API_VERSION */
