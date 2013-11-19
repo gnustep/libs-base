@@ -959,8 +959,14 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) dealloc
 {
-  DESTROY(opts);
-  DESTROY(session);
+  // TLS may need to read data during teardown, and we need to wait for it.
+  [self setNonBlocking: NO];
+  // Don't DESTROY ivars below. First release them, then set nil, because
+  // `session' may need this back-reference during TLS teardown.
+  TEST_RELEASE(opts);
+  TEST_RELEASE(session);
+  opts = nil;
+  session = nil;
   [super dealloc];
 }
 

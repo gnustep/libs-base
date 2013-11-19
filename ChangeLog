@@ -1,3 +1,8 @@
+2013-11-19  Saso Kiselkov <skiselkov>
+
+	Releasing a GSTLSHandle (created from +[NSFileHandle sslClass]) after
+	the TLS handshake will result in a segfault. Fix it.
+
 2013-11-18  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Headers/GNUstepBase/NSCalendarDate+GNUstepBase.m:
