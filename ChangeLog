@@ -1,3 +1,8 @@
+2013-11-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Fix for bug 40620
+	Prevent recursion while parsing process arguments.
+
 2013-11-19  Saso Kiselkov <skiselkov>
 
 	Releasing a GSTLSHandle (created from +[NSFileHandle sslClass]) after
