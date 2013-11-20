@@ -100,6 +100,7 @@ static BOOL		hasSharedDefaults = NO;
 /*
  * Caching some defaults.
  */
+static BOOL     parsingArguments = NO;
 static BOOL	flags[GSUserDefaultMaxFlag] = { 0 };
 
 /* An instance of the GSPersistentDomain class is used to encapsulate
@@ -2108,7 +2109,7 @@ static BOOL isPlistObject(id o)
 BOOL
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
-  if (sharedDefaults == nil)
+  if (nil == sharedDefaults && NO == parsingArguments)
     {
       [NSUserDefaults standardUserDefaults];
     }
@@ -2162,6 +2163,12 @@ NSDictionary *GSPrivateDefaultLocale()
   id		key, val;
 
   [_lock lock];
+  if (YES == parsingArguments)
+    {
+      [_lock unlock];
+      return nil;       // Prevent recursion
+    }
+  parsingArguments = YES;
   NS_DURING
     {
       args = [[NSProcessInfo processInfo] arguments];
@@ -2244,10 +2251,12 @@ NSDictionary *GSPrivateDefaultLocale()
 	    }
           done = ((key = [enumerator nextObject]) == nil);
         }
+      parsingArguments = NO;
       [_lock unlock];
     }
   NS_HANDLER
     {
+      parsingArguments = NO;
       [_lock unlock];
       [localException raise];
     }
