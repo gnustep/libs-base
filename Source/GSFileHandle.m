@@ -214,7 +214,8 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
   [self ignoreWriteDescriptor];
 
 #if	USE_ZLIB
-  /* The gzDescriptor should always be closed when we have done with it.
+  /*
+   * The gzDescriptor should always be closed when we have done with it.
    */
   if (gzDescriptor != 0)
     {
@@ -222,14 +223,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
       gzDescriptor = 0;
     }
 #endif
-
-  /* Ensure any SSL/TLS connection has been properly shut down.
-   */
-  [self sslDisconnect];
-
-  /* Close file descriptor if necessary (setting correct non-blocking
-   * characteristics since we may have changed them).
-   */
   if (descriptor != -1)
     {
       [self setNonBlocking: wasNonBlocking];
@@ -239,7 +232,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 	  descriptor = -1;
 	}
     }
-  [super finalize];
 }
 
 // Initializing a GSFileHandle Object
