@@ -270,6 +270,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       gzclose(gzDescriptor);
     }
 #endif
+
+  /* Ensure any SSL/TLS connection has been properly shut down.
+   */
+  [self sslDisconnect];
+
   if (descriptor != -1)
     {
       [self setNonBlocking: wasNonBlocking];
