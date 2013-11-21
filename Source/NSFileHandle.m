@@ -953,27 +953,20 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) closeFile
 {
-  [self sslDisconnect];
+  [self sslDisconnect];         // Shut down TLS before closing socket
   [super closeFile];
 }
 
 - (void) dealloc
 {
-  // TLS may need to read data during teardown, and we need to wait for it.
-  [self setNonBlocking: NO];
-  // Don't DESTROY ivars below. First release them, then set nil, because
-  // `session' may need this back-reference during TLS teardown.
-  TEST_RELEASE(opts);
-  TEST_RELEASE(session);
-  opts = nil;
-  session = nil;
+  /* Any TLS connection needs to be shut down before the network connection
+   * is closed, which means that the concrete subclass must do that.
+   * Therefore, the session should be inactive by the time we get here.
+   */
+  NSAssert(NO == [session active], NSInternalInconsistencyException);
+  DESTROY(session);
+  DESTROY(opts);
   [super dealloc];
-}
-
-- (void) finalize
-{
-  [self sslDisconnect];
-  [super finalize];
 }
 
 - (NSInteger) read: (void*)buf length: (NSUInteger)len
@@ -987,7 +980,14 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) sslDisconnect
 {
-  [session disconnect];
+  if (nil != session)
+    {
+      // TLS may need to read data during teardown, and we need to wait for it.
+      [self setNonBlocking: NO];
+      [session disconnect];
+      DESTROY(session);
+    }
+  DESTROY(opts);
 }
 
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing

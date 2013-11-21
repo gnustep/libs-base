@@ -1,3 +1,10 @@
+2013-11-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: Do an -sslDisconnect while finalising
+	(before underlying network connection is closed).
+	* Source/NSFileHandle.m: Add assertion to check that TLS has been
+	shut down by concrete subclass dealloc.
+
 2013-11-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Fix for bug 40620
