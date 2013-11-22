@@ -1212,7 +1212,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 
       if (YES == debug)
         {
-          NSLog(@"Created credentials %p for '%@'", c, k);
+          NSLog(@"%@ created credentials %p for '%@'", c, k);
         }
       [credentialsLock lock];
       [credentialsCache setObject: c forKey: c->name];
@@ -1524,21 +1524,26 @@ static NSMutableDictionary      *credentialsCache = nil;
            * and errors which are caused by other interoperability
            * issues.  The first sort are not normally worth reporting.
            */
-          if (GNUTLS_E_UNSUPPORTED_VERSION_PACKET == ret
-            || GNUTLS_E_UNEXPECTED_PACKET_LENGTH == ret)
+          if (ret == GNUTLS_E_UNEXPECTED_PACKET_LENGTH
+            || ret == GNUTLS_E_FATAL_ALERT_RECEIVED
+            || ret == GNUTLS_E_DECRYPTION_FAILED
+#ifdef GNUTLS_E_PREMATURE_TERMINATION
+            || ret == GNUTLS_E_PREMATURE_TERMINATION
+#endif
+            || ret == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
             {
               p = [p stringByAppendingString:
                 @"\nmost often due to the remote end not expecting TLS/SSL"];
               ASSIGN(problem, p);
               if (YES == debug)
                 {
-                  NSLog(@"%@", p);
+                  NSLog(@"%@ %@", self, p);
                 }
             }
           else
             {
               ASSIGN(problem, p);
-              NSLog(@"%@", p);
+              NSLog(@"%@ %@", self, p);
             }
           [self disconnect];
           return YES;   // Failed ... not active.
@@ -1572,7 +1577,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 
       if (globalDebug > 1)
         {
-          NSLog(@"Before verify:\n%@", [self sessionInfo]);
+          NSLog(@"%@ before verify:\n%@", self, [self sessionInfo]);
         }
       if (YES == shouldVerify)
         {
@@ -1582,9 +1587,9 @@ static NSMutableDictionary      *credentialsCache = nil;
               if (globalDebug > 0
                 || YES == [[opts objectForKey: GSTLSDebug] boolValue])
                 {
-                  NSLog(@"unable to verify SSL connection - %s",
-                    gnutls_strerror(ret));
-                  NSLog(@"%@", [self sessionInfo]);
+                  NSLog(@"%@ unable to verify SSL connection - %s",
+                    self, gnutls_strerror(ret));
+                  NSLog(@"%@ %@", self, [self sessionInfo]);
                 }
               [self disconnect];
             }
@@ -1600,7 +1605,32 @@ static NSMutableDictionary      *credentialsCache = nil;
 
 - (NSInteger) read: (void*)buf length: (NSUInteger)len
 {
-  return gnutls_record_recv(session, buf, len);
+  int   result = gnutls_record_recv(session, buf, len);
+
+  if (result < 0)
+    {
+      NSString  *p;
+
+      if (GNUTLS_E_WARNING_ALERT_RECEIVED == result)
+        {
+          if (YES == debug)
+            {
+              p = [NSString stringWithFormat: @"%s",
+                gnutls_alert_get_name(gnutls_alert_get(session))];
+              NSLog(@"%@ %@", self, p);
+            }
+        }
+      else if (gnutls_error_is_fatal(result))
+        {
+          p = [NSString stringWithFormat: @"%s", gnutls_strerror(result)];
+          ASSIGN(problem, p);
+          if (YES == debug)
+            {
+              NSLog(@"%@ %@", self, p);
+            }
+        }
+    }
+  return result;
 }
 
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len
@@ -1808,24 +1838,25 @@ static NSMutableDictionary      *credentialsCache = nil;
       str = [NSString stringWithFormat:
         @"TLS verification: error %s", gnutls_strerror(ret)];
       ASSIGN(problem, str);
-      if (YES == debug) NSLog(@"%@", problem);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   if (YES == debug)
     {
       if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
-        NSLog(@"TLS verification: certificate hasn't got a known issuer.");
+        NSLog(@"%@ TLS verification: certificate hasn't got a known issuer.",
+          self);
 
       if (status & GNUTLS_CERT_REVOKED)
-        NSLog(@"TLS verification: certificate has been revoked.");
+        NSLog(@"%@ TLS verification: certificate has been revoked.", self);
 
     /*
       if (status & GNUTLS_CERT_EXPIRED)
-        NSLog(@"TLS verification: certificate has expired");
+        NSLog(@"%@ TLS verification: certificate has expired", self);
 
       if (status & GNUTLS_CERT_NOT_ACTIVATED)
-        NSLog(@"TLS verification: certificate is not yet activated");
+        NSLog(@"%@ TLS verification: certificate is not yet activated", self);
     */
     }
 
@@ -1833,7 +1864,7 @@ static NSMutableDictionary      *credentialsCache = nil;
     {
       ASSIGN(problem,
         @"TLS verification: remote certificate is not trusted.");
-      if (YES == debug) NSLog(@"%@", problem);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1845,7 +1876,7 @@ static NSMutableDictionary      *credentialsCache = nil;
     {
       ASSIGN(problem,
         @"TLS verification: remote certificate not of the X509 type.");
-      if (YES == debug) NSLog(@"%@", problem);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1853,7 +1884,7 @@ static NSMutableDictionary      *credentialsCache = nil;
     {
       ASSIGN(problem, @"TLS verification: error in certificate initialization");
       gnutls_x509_crt_deinit(cert);
-      if (YES == debug) NSLog(@"%@", problem);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1862,7 +1893,7 @@ static NSMutableDictionary      *credentialsCache = nil;
     {
       ASSIGN(problem, @"TLS verification: no certificate from remote end!");
       gnutls_x509_crt_deinit(cert);
-      if (YES == debug) NSLog(@"%@", problem);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1870,7 +1901,7 @@ static NSMutableDictionary      *credentialsCache = nil;
     {
       ASSIGN(problem, @"TLS verification: error parsing certificate");
       gnutls_x509_crt_deinit(cert);
-      if (YES == debug) NSLog(@"%@", problem);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1907,7 +1938,7 @@ static NSMutableDictionary      *credentialsCache = nil;
             names];
           ASSIGN(problem, str);
           gnutls_x509_crt_deinit(cert);
-          if (YES == debug) NSLog(@"%@", problem);
+          if (YES == debug) NSLog(@"%@ %@", self, problem);
           return GNUTLS_E_CERTIFICATE_ERROR;
         }
     }
