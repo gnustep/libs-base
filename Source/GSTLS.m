@@ -1212,7 +1212,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 
       if (YES == debug)
         {
-          NSLog(@"%@ created credentials %p for '%@'", c, k);
+          NSLog(@"%@ created credentials %p for '%@'", self, c, k);
         }
       [credentialsLock lock];
       [credentialsCache setObject: c forKey: c->name];
