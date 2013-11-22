@@ -1611,14 +1611,13 @@ static NSMutableDictionary      *credentialsCache = nil;
     {
       NSString  *p;
 
-      if (GNUTLS_E_WARNING_ALERT_RECEIVED == result)
+      if (GNUTLS_E_AGAIN == result)
         {
-          if (YES == debug)
-            {
-              p = [NSString stringWithFormat: @"%s",
-                gnutls_alert_get_name(gnutls_alert_get(session))];
-              NSLog(@"%@ %@", self, p);
-            }
+          errno = EAGAIN;       // Need to retry.
+        }
+      else if (GNUTLS_E_INTERRUPTED == result)
+        {
+          errno = EINTR;        // Need to retry
         }
       else if (gnutls_error_is_fatal(result))
         {
@@ -1629,13 +1628,56 @@ static NSMutableDictionary      *credentialsCache = nil;
               NSLog(@"%@ %@", self, p);
             }
         }
+      else
+        {
+          if (GNUTLS_E_WARNING_ALERT_RECEIVED == result)
+            {
+              if (YES == debug)
+                {
+                  p = [NSString stringWithFormat: @"%s",
+                    gnutls_alert_get_name(gnutls_alert_get(session))];
+                  NSLog(@"%@ %@", self, p);
+                }
+            }
+          errno = EAGAIN;       // Need to retry.
+        }
+      result = -1;
     }
   return result;
 }
 
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len
 {
-  return gnutls_record_send(session, buf, len);
+  int   result = gnutls_record_send(session, buf, len);
+
+  if (result < 0)
+    {
+      if (GNUTLS_E_AGAIN == result)
+        {
+          errno = EAGAIN;       // Need to retry.
+        }
+      else if (GNUTLS_E_INTERRUPTED == result)
+        {
+          errno = EINTR;        // Need to retry
+        }
+      else if (gnutls_error_is_fatal(result))
+        {
+          NSString      *p;
+
+          p = [NSString stringWithFormat: @"%s", gnutls_strerror(result)];
+          ASSIGN(problem, p);
+          if (YES == debug)
+            {
+              NSLog(@"%@ %@", self, p);
+            }
+        }
+      else
+        {
+          errno = EAGAIN;       // Need to retry.
+        }
+      result = -1;
+    }
+  return result;
 }
 
 /* Copied/based on the public domain code provided by gnutls
