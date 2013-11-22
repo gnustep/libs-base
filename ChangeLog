@@ -1,3 +1,10 @@
+2013-11-222 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m:
+	Set errno to EAGAIN if TLS layer fails in a non-fatal way during
+	read/write.
+	Add more/better debug logging.
+
 2013-11-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Fix for bug 40620

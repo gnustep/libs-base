@@ -2047,7 +2047,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
           int	written;
 
           written = [self write: (char*)ptr+writePos
-    		     length: length-writePos];
+                         length: length-writePos];
           if (written <= 0)
             {
 	      if (written < 0 && errno != EAGAIN && errno != EINTR)
