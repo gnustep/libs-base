@@ -829,16 +829,19 @@ GSProtocolGetMethodDescriptionRecursive(Protocol *aProtocol, SEL aSel, BOOL isRe
     {
       Protocol **list;
       unsigned int count;
+
       list = protocol_copyProtocolList(aProtocol, &count);
       if (list != NULL)
         {
           unsigned int i;
+
           for (i = 0; i < count; i++)
             {
-              desc = GSProtocolGetMethodDescriptionRecursive(list[i], aSel, isRequired, isInstance);
+              desc = GSProtocolGetMethodDescriptionRecursive(list[i],
+                aSel, isRequired, isInstance);
               if (desc.name != NULL || desc.types != NULL)
                 {
-                  return desc;
+                  break;
                 }
             }
           free(list);
