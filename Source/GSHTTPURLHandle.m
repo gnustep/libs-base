@@ -751,6 +751,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
 		      [self _tryLoadInBackground: u];
+                      RELEASE(self);
 		      return;	// Retrying.
 		    }
 		}
