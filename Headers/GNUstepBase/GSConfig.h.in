@@ -263,6 +263,7 @@ typedef	struct {
 #endif
 
 #if defined(__WIN32__)
+#define BOOL WinBOOL
 #include <w32api.h>
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT Windows2000
@@ -274,6 +275,7 @@ typedef	struct {
 #define WINVER Windows2000
 #endif
 #include <windows.h>
+#undef  BOOL
 #endif
 
 // Include the blocks runtime header if it's available (It shouldn't matter
