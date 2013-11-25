@@ -1,4 +1,14 @@
-2013-11-222 Richard Frith-Macdonald <rfm@gnu.org>
+2013-11-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUstepBase/GSConfig.h.in: temporarily redefine BOOL while
+	including windows headers, so we don't get conflict between windows
+	and objc booleans.
+	* base.make.in:
+	Add to CONFIG_SYSTEM_LIBS, CONFIG_SYSTEM_LIB_DIR, CONFIG_SYSTEM_INCL
+	So that the libraries/headers used to build base are available for
+	software using base.
+
+2013-11-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m:
 	Set errno to EAGAIN if TLS layer fails in a non-fatal way during
