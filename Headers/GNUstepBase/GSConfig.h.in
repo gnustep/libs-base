@@ -152,11 +152,11 @@ typedef	gsuaddr gsaddr;
  * PTR Limit information replacements for buggy headers
  */ 
 #if @BUGGY_PTR_LIMITS@
-#undefine INTPTR_MAX
+#undef INTPTR_MAX
 #define INTPTR_MAX @GS_INTPTR_MAX@
-#undefine INTPTR_MIN
+#undef INTPTR_MIN
 #define INTPTR_MIN @GS_INTPTR_MIN@
-#undefine UINTPTR_MAX
+#undef UINTPTR_MAX
 #define UINTPTR_MAX @GS_UINTPTR_MAX@
 #endif
 
