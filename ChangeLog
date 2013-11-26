@@ -1,3 +1,12 @@
+2013-11-26 Riccardo Mottola <rm@gnu.org>
+
+	* Headers/GNUstepBase/GSConfig.h.in
+	* configure.ac
+	Detect broken PTR limits (notably solaris 8) and provide replacements
+
+	* configure
+	regenerated
+
 2013-11-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUstepBase/GSConfig.h.in: temporarily redefine BOOL while

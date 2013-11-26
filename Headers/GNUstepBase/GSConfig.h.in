@@ -149,6 +149,19 @@ typedef	gsuaddr gsaddr;
 #define GS_HAVE_I128	@GS_HAVE_I128@
 
 /*
+ * PTR Limit information replacements for buggy headers
+ */ 
+#if @BUGGY_PTR_LIMITS@
+#undefine INTPTR_MAX
+#define INTPTR_MAX @GS_INTPTR_MAX@
+#undefine INTPTR_MIN
+#define INTPTR_MIN @GS_INTPTR_MIN@
+#undefine UINTPTR_MAX
+#define UINTPTR_MAX @GS_UINTPTR_MAX@
+#endif
+
+
+/*
  *	Do we have zlib for file handle compression?
  */
 #define USE_ZLIB	@USE_ZLIB@

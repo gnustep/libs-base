@@ -1627,6 +1627,49 @@ else
 fi
 AC_SUBST(_GSC_S_LNG_LNG)
 
+
+#--------------------------------------------------------------------
+# Limit information needed for foundation headers.
+#--------------------------------------------------------------------
+AC_LANG_PUSH(C)
+AC_MSG_CHECKING([for working INTPTR_MAX, INTPTR_MIN, UINTPTR_MAX]);
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[#include <inttypes.h>]],
+    [[int imax = INTPTR_MAX; int imin = INTPTR_MIN; unsigned umax = UINTPTR_MAX;]])],
+  have_valid_ptr_limits=yes,
+  have_valid_ptr_limits=no);
+  if test "$have_valid_ptr_limits" = "yes"; then
+    AC_MSG_RESULT([yes]);
+    BUGGY_PTR_LIMITS=0
+  else
+    AC_MSG_RESULT([no]);
+    BUGGY_PTR_LIMITS=1
+    case "$target_os" in
+      solaris*)
+        case "$target_cpu" in
+          sparc64*|x86_64*)
+            GS_INTPTR_MAX="INT64_MAX"
+            GS_INTPTR_MIN="INT64_MIN"
+            GS_UINTPTR_MAX="UINT64_MAX"
+            ;;
+          sparc*|i386*|i586*|i686*)
+            GS_INTPTR_MAX="INT32_MAX"
+            GS_INTPTR_MIN="INT32_MIN"
+            GS_UINTPTR_MAX="UINT32_MAX"
+            ;;
+          *) ;;
+        esac ;;
+      # support for other OS's with broken macros to be added here (HP-UX, IRIX being known)
+      *)
+      ;;
+    esac
+    AC_SUBST(GS_INTPTR_MAX)
+    AC_SUBST(GS_INTPTR_MIN)
+    AC_SUBST(GS_UINTPTR_MAX)
+  fi
+AC_SUBST(BUGGY_PTR_LIMITS)
+AC_LANG_POP(C)
+
 #--------------------------------------------------------------------
 # Setup dynamic linking 
 #--------------------------------------------------------------------
