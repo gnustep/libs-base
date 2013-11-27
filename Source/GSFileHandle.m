@@ -366,24 +366,26 @@ static GSTcpTune        *tune = nil;
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
-#if	USE_ZLIB
-  /*
-   * The gzDescriptor should always be closed when we have done with it.
-   */
-  if (gzDescriptor != 0)
+  if (closeOnDealloc == YES && descriptor != -1)
     {
-      gzclose(gzDescriptor);
-      gzDescriptor = 0;
+      [self closeFile];
     }
-#endif
-  if (descriptor != -1)
+  else
     {
-      [self setNonBlocking: wasNonBlocking];
-      if (closeOnDealloc == YES)
-	{
-	  close(descriptor);
-	  descriptor = -1;
-	}
+#if	USE_ZLIB
+      /*
+       * The gzDescriptor should always be closed when we have done with it.
+       */
+      if (gzDescriptor != 0)
+        {
+          gzclose(gzDescriptor);
+          gzDescriptor = 0;
+        }
+#endif
+      if (descriptor != -1)
+        {
+          [self setNonBlocking: wasNonBlocking];
+        }
     }
 }
 

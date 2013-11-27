@@ -985,9 +985,7 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) sslDisconnect
 {
-  // TLS may need to read data during teardown, and we need to wait for it.
-  [self setNonBlocking: NO];
-  [session disconnect];
+  [session disconnect: NO];
 }
 
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing

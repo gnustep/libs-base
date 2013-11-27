@@ -197,9 +197,13 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  */
 - (BOOL) active;
 
-/* Disconnects and closes down the session.
+/* Disconnects and closes down the session.<br />
+ * The reusable flag specifies whether we intend to reuse the underlying
+ * connection.<br />
+ * Returns YES on success, NO if the shutdown did not complete cleanly
+ * and the underlying connection cannot be reused.
  */
-- (void) disconnect;
+- (BOOL) disconnect: (BOOL)reusable;
 
 /* Try to complete a handshake ... return YES if complete, NO if we need
  * to try again (would have to wait for the remote end).<br />

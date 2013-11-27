@@ -1281,13 +1281,32 @@ static NSMutableDictionary      *credentialsCache = nil;
   [super dealloc];
 }
 
-- (void) disconnect
+- (BOOL) disconnect: (BOOL)reusable
 {
+  BOOL  ok = YES;
+
   if (YES == active || YES == handshake)
     {
       active = NO;
       handshake = NO;
-      gnutls_bye(session, GNUTLS_SHUT_RDWR);
+      if (NO == reusable)
+        {
+          gnutls_bye(session, GNUTLS_SHUT_WR);
+        }
+      else
+        {
+          int   result;
+
+          do
+            {
+              result = gnutls_bye(session, GNUTLS_SHUT_RDWR);
+            }
+          while (GNUTLS_E_AGAIN == result || GNUTLS_E_INTERRUPTED == result);
+          if (result < 0)
+            {
+              ok = NO;
+            }
+        }
     }
   if (YES == setup)
     {
@@ -1295,11 +1314,12 @@ static NSMutableDictionary      *credentialsCache = nil;
       gnutls_db_remove_session(session);
       gnutls_deinit(session);
     }
+  return ok;
 }
 
 - (void) finalize
 {
-  [self disconnect];
+  [self disconnect: NO];
   [super finalize];
 }
 
@@ -1545,7 +1565,7 @@ static NSMutableDictionary      *credentialsCache = nil;
               ASSIGN(problem, p);
               NSLog(@"%@ %@", self, p);
             }
-          [self disconnect];
+          [self disconnect: NO];
           return YES;   // Failed ... not active.
         }
       else
@@ -1591,7 +1611,7 @@ static NSMutableDictionary      *credentialsCache = nil;
                     self, gnutls_strerror(ret));
                   NSLog(@"%@ %@", self, [self sessionInfo]);
                 }
-              [self disconnect];
+              [self disconnect: NO];
             }
         }
       return YES;       // Handshake complete
