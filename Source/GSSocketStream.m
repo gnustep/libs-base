@@ -476,7 +476,7 @@ static NSArray  *keys = nil;
 {
   handshake = NO;
   active = NO;
-  [session disconnect];
+  [session disconnect: NO];
 }
 
 - (void) dealloc
