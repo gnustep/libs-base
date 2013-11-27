@@ -149,6 +149,21 @@ typedef	gsuaddr gsaddr;
 #define GS_HAVE_I128	@GS_HAVE_I128@
 
 /*
+ * Ensure some standard types are defined.
+ */
+@INCLUDE_INTTYPES@
+@DEFINE_INT8_T@
+@DEFINE_UINT8_T@
+@DEFINE_INT16_T@
+@DEFINE_UINT16_T@
+@DEFINE_INT32_T@
+@DEFINE_UINT32_T@
+@DEFINE_INT64_T@
+@DEFINE_UINT64_T@
+@DEFINE_INTPTR_T@
+@DEFINE_UINTPTR_T@
+
+/*
  * PTR Limit information replacements for buggy headers
  */ 
 #if @BUGGY_PTR_LIMITS@
@@ -194,20 +209,6 @@ typedef	gsuaddr gsaddr;
  */
 #define NXConstantString	@NX_CONST_STRING_CLASS@
 
-/*
- * Ensure some standard types are defined.
- */
-@INCLUDE_INTTYPES@
-@DEFINE_INT8_T@
-@DEFINE_UINT8_T@
-@DEFINE_INT16_T@
-@DEFINE_UINT16_T@
-@DEFINE_INT32_T@
-@DEFINE_UINT32_T@
-@DEFINE_INT64_T@
-@DEFINE_UINT64_T@
-@DEFINE_INTPTR_T@
-@DEFINE_UINTPTR_T@
 
 /*
  * Wide unicode character type.
