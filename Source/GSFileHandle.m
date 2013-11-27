@@ -103,6 +103,7 @@ static GSFileHandle*	fh_stdout = nil;
 static GSFileHandle*	fh_stderr = nil;
 
 @interface      GSTcpTune : NSObject
+- (int) delay;
 - (int) recvSize;
 - (int) sendSize: (int)bytesToSend;
 - (void) tune: (void*)handle;
@@ -110,6 +111,7 @@ static GSFileHandle*	fh_stderr = nil;
 
 @implementation GSTcpTune
 
+static int      tuneDelay = 0;
 static int      tuneLinger = -1;
 static int      tuneReceive = 0;
 static BOOL     tuneSendAll = NO;
@@ -138,6 +140,7 @@ static int	tuneSBuf = 0;
   tuneSBuf = (int)[defs integerForKey: @"GSTcpSndBuf"];
   tuneReceive = (int)[defs integerForKey: @"GSTcpReceive"];
   tuneSendAll = [defs boolForKey: @"GSTcpSendAll"];
+  tuneDelay = [defs boolForKey: @"GSTcpDelay"];
 }
 
 + (void) initialize
@@ -158,6 +161,11 @@ static int	tuneSBuf = 0;
                object: defs];
       [self defaultsChanged: nil];
     }
+}
+
+- (int) delay
+{
+  return tuneDelay;             // Milliseconds to delay close
 }
 
 - (int) recvSize
@@ -1718,22 +1726,38 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 #endif
   if (YES == isSocket)
     {
-      shutdown(descriptor, SHUT_WR);
-      for(;;)
-        {
-          int       result;
-          char      buffer[4096];
+      int       milli = [tune delay];
 
-          result = read(descriptor, buffer, sizeof(buffer));
-          if (result <= 0)
+      shutdown(descriptor, SHUT_WR);
+      if (milli > 0)
+        {
+          NSTimeInterval        until;
+
+          until = [NSDate timeIntervalSinceReferenceDate];
+          until += ((double)milli) / 1000.0;
+
+          [self setNonBlocking: YES];
+          while ([NSDate timeIntervalSinceReferenceDate] < until)
             {
-              if (result < 0)
+              int       result;
+              char      buffer[4096];
+
+              result = read(descriptor, buffer, sizeof(buffer));
+              if (result <= 0)
                 {
-                  NSLog(@"%@ read fail on socket shutdown: %@",
-                    self, [NSError _last]);
+                  if (result < 0)
+                    {
+                      if (EAGAIN == errno || EINTR == errno)
+                        {
+                          continue;
+                        }
+                      NSLog(@"%@ read fail on socket shutdown: %@",
+                        self, [NSError _last]);
+                    }
+                  break;
                 }
-              break;
             }
+          [self setNonBlocking: YES];
         }
     }
   (void)close(descriptor);
