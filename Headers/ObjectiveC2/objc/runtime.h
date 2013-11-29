@@ -1,6 +1,12 @@
 #ifndef __OBJECTIVEC2_RUNTIME_H_INCLUDED__
 #define __OBJECTIVEC2_RUNTIME_H_INCLUDED__
+
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#else
+#include <inttypes.h>
+#endif
+
 #include <stddef.h>
 #include <sys/types.h>
 
