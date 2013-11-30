@@ -915,7 +915,10 @@ GSTLSHandlePull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
   if (result < 0)
     {
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
-      gnutls_transport_set_errno (tls->session->session, errno);
+      if (tls->session && tls->session->session)
+        {
+          gnutls_transport_set_errno (tls->session->session, errno);
+        }
 #endif
     }
   return result;
@@ -935,7 +938,10 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   if (result < 0)
     {
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
-      gnutls_transport_set_errno (tls->session->session, errno);
+      if (tls->session && tls->session->session)
+        {
+          gnutls_transport_set_errno (tls->session->session, errno);
+        }
 #endif
     }
   return result;
@@ -985,6 +991,7 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) sslDisconnect
 {
+  [self setNonBlocking: NO];
   [session disconnect: NO];
 }
 
