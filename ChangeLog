@@ -1,8 +1,14 @@
+2013-12-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLCredential.m: ([-isEqual:]) needs to take the password
+	and persistence into account, not just the username.
+
 2013-11-29 Riccardo Mottola <rm@gnu.org>
 
 	* Headers/ObjectiveC2/objc/runtime.h
 	* Headers/Foundation/NSObjCRuntime.h
-	Insert some kludge for PTR stuff on systems with fake C99 compatible headers.
+	Insert some kludge for PTR stuff on systems with fake C99
+	compatible headers.
 
 2013-11-26 Riccardo Mottola <rm@gnu.org>
 
