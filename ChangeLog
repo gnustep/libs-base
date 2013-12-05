@@ -1,3 +1,14 @@
+2013-12-05  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Headers/Foundation/NSDictionary.h:
+	* Source/NSDictionary.m:
+	* Source/Additions/GCDictionary.m:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/GSDictionary.m:
+	Changed keys argument type to (const id <NSCopying>[]) in 
+	-initWithObjects:forKeys:count: and +dictionaryWithObjects:forKeys:count:, 
+	to follow the current Cocoa API.
+
 2013-12-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLCredential.m: ([-isEqual:]) needs to take the password
