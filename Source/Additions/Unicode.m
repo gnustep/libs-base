@@ -2566,7 +2566,7 @@ GSPrivateDefaultCStringEncoding()
       if (natEnc == GSUndefinedEncoding)
 	{
 	  /* Encoding not set */
-#if GS_USE_ICU == 1
+#if HAVE_UNICODE_UCNV_H
 
           const char *defaultName;
           UErrorCode err = U_ZERO_ERROR;

@@ -1,3 +1,8 @@
+2013-12-07  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Additions/Unicode.m (GSPrivateDefaultCStringEncoding):
+	Use correct feature test for presence of ucnv functions.
+
 2013-12-05  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Headers/Foundation/NSDictionary.h:
