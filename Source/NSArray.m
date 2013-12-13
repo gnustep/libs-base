@@ -1731,6 +1731,24 @@ compare(id elem1, id elem2, void* context)
   return result;
 }
 
+/**
+ * Call setValue:forKey: on each of the receiver's items
+ * with the value and key.
+ */
+- (void) setValue: (id)value forKey: (NSString*)key
+{
+  unsigned	i;
+  unsigned	count = [self count];
+  volatile id	object = nil;
+
+  for (i = 0; i < count; i++)
+    {
+      object = [self objectAtIndex: i];
+      [object setValue: value
+		forKey: key];
+    }
+}
+
 - (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock
 {
   [self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
@@ -2551,24 +2569,6 @@ compare(id elem1, id elem2, void* context)
 - (void) sortUsingComparator: (NSComparator)comparator
 {
   [self sortWithOptions: 0 usingComparator: comparator];
-}
-
-/**
- * Call setValue:forKey: on each of the receiver's items
- * with the value and key.
- */
-- (void) setValue: (id)value forKey: (NSString*)key
-{
-  unsigned	i;
-  unsigned	count = [self count];
-  volatile id	object = nil;
-
-  for (i = 0; i < count; i++)
-    {
-      object = [self objectAtIndex: i];
-      [object setValue: value
-		forKey: key];
-    }
 }
 @end
 
