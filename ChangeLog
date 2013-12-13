@@ -1,3 +1,10 @@
+2013-12-13  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSArray.h,
+	* Source/NSArray.m: Move -setValue:forKey: from NSMutableArray to
+	NSArray.
+	Patch by Marcian Lytwyn <marcian.lytwyn@advcsi.com>.
+
 2013-12-07  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/Additions/Unicode.m (GSPrivateDefaultCStringEncoding):
