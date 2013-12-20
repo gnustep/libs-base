@@ -710,12 +710,9 @@ static inline BOOL timerInvalidated(NSTimer *t)
     }
 }
 
-/**
- * Returns the run loop instance for the current thread.
- */
-+ (NSRunLoop*) currentRunLoop
++ (NSRunLoop*) _runLoopForThread: (NSThread*) aThread
 {
-  GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(nil);
+  GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(aThread);
   NSRunLoop             *current = info->loop;
 
   if (nil == current)
@@ -770,6 +767,16 @@ static inline BOOL timerInvalidated(NSTimer *t)
         }
     }
   return current;
+}
+
++ (NSRunLoop*) currentRunLoop
+{
+  return [self _runLoopForThread: nil];
+}
+
++ (NSRunLoop*) mainRunLoop
+{
+  return [self _runLoopForThread: [NSThread mainThread]];
 }
 
 - (id) init

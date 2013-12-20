@@ -270,7 +270,8 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyVersion4;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion5;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
 
-#ifdef _clang_ /* FIXME ... this is not clang specific */ 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST) && defined(_clang_)
+/* FIXME ... this is not clang specific */ 
 @protocol NSStreamDelegate <NSObject> 
 @optional 
 #else 
