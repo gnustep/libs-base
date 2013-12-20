@@ -60,6 +60,7 @@
 #define	MAC_OS_X_VERSION_10_6	1060
 #define	MAC_OS_X_VERSION_10_7	1070
 #define	MAC_OS_X_VERSION_10_8	1080
+#define	MAC_OS_X_VERSION_10_9	1090
 #endif	/* MAC_OS_X_VERSION_10_0 */
 
 /* Allow MAC_OS_X_VERSION_MAX_ALLOWED to be used in place of GS_OPENSTEP_V
@@ -147,6 +148,7 @@
  * <ref type="macro" id="MAC_OS_X_VERSION_10_6">MAC_OS_X_VERSION_10_6</ref>,
  * <ref type="macro" id="MAC_OS_X_VERSION_10_7">MAC_OS_X_VERSION_10_7</ref>,
  * <ref type="macro" id="MAC_OS_X_VERSION_10_8">MAC_OS_X_VERSION_10_8</ref>
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_9">MAC_OS_X_VERSION_10_9</ref>
  * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
