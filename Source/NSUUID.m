@@ -53,7 +53,7 @@ static const int kUUIDByteCount = 16;
 
 - (id) init
 {
-  uint8_t       localUUID[16];
+  gsuuid_t      localUUID;
   int           result;
 
   result = random_uuid(localUUID);
@@ -67,7 +67,7 @@ static const int kUUIDByteCount = 16;
 
 - (id) initWithUUIDString: (NSString *)string
 {
-  uint8_t       localUUID[16];
+  gsuuid_t      localUUID;
   const char    *cString;
   int           parseResult;
 
@@ -81,7 +81,7 @@ static const int kUUIDByteCount = 16;
   return [self initWithUUIDBytes: localUUID];
 }
 
-- (id) initWithUUIDBytes: (uint8_t*)bytes
+- (id) initWithUUIDBytes: (gsuuid_t)bytes
 {
   if (nil != (self = [super init]))
     {
@@ -101,7 +101,7 @@ static const int kUUIDByteCount = 16;
   return AUTORELEASE(string);
 }
 
-- (void) getUUIDBytes: (uint8_t*)bytes
+- (void) getUUIDBytes: (gsuuid_t)bytes
 {
   memcpy(bytes, uuid, kUUIDByteCount);
 }

@@ -25,25 +25,34 @@
 #ifndef __NSUUID_h_GNUSTEP_BASE_INCLUDE
 #define __NSUUID_h_GNUSTEP_BASE_INCLUDE
 
+
 #import	<Foundation/NSObject.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
+typedef uint8_t gsuuid_t[16];
+
+#if	defined(uuid_t)
+#undef	uuid_t
+#endif
+#define	uuid_t	gsuuid_t
+
+
 @class NSString;
 
 @interface NSUUID : NSObject <NSCopying, NSCoding>
 {
   @private
-  uint8_t uuid[16];
+  gsuuid_t uuid;
 }
 
-+ (id) UUID;
-- (id) initWithUUIDString: (NSString *)string;
-- (id) initWithUUIDBytes: (uint8_t*)bytes;
-- (NSString *) UUIDString;
-- (void) getUUIDBytes: (uint8_t*)bytes;
++ (id)UUID;
+- (id)initWithUUIDString:(NSString *)string;
+- (id)initWithUUIDBytes:(gsuuid_t)bytes;
+- (NSString *)UUIDString;
+- (void)getUUIDBytes:(gsuuid_t)bytes;
 
 @end
 
