@@ -854,14 +854,15 @@ pty_slave(const char* name)
  */
 - (void) waitUntilExit
 {
+  CREATE_AUTORELEASE_POOL(arp);
+  NSRunLoop     *loop = [NSRunLoop currentRunLoop];
   NSTimer	*timer = nil;
+  NSDate	*limit = nil;
 
+  IF_NO_GC([[self retain] autorelease];)
   while ([self isRunning])
     {
-      NSDate	*limit;
-
-      /*
-       *	Poll at 0.1 second intervals.
+      /* Poll at 0.1 second intervals.
        */
       limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
       if (timer == nil)
@@ -872,11 +873,17 @@ pty_slave(const char* name)
 						 userInfo: nil
 						  repeats: YES];
 	}
-      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
-			       beforeDate: limit];
-      RELEASE(limit);
+      [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+      DESTROY(limit);
     }
   [timer invalidate];
+
+  /* Run loop one last time (with limit date in past) so that any
+   * notification about the task ending is sent immediately.
+   */
+  limit = [NSDate dateWithTimeIntervalSinceNow: 0.0];
+  [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+  IF_NO_GC([arp release];)
 }
 @end
 

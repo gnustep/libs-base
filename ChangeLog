@@ -1,3 +1,9 @@
+2013-12-20 Graham Lee <graham@iamleeg.com>
+
+	* Headers/Foundation/NSUUID.h:
+	* Source/NSUUID.m: implemented for unix
+	* Tests/base/NSUUID: testcases
+
 2013-12-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: initialise defaults system at end of NSObject
