@@ -270,10 +270,15 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyVersion4;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion5;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
 
+#ifdef _clang_ /* FIXME ... this is not clang specific */ 
+@protocol NSStreamDelegate <NSObject> 
+@optional 
+#else 
 /**
  * Informal protocol for delegates of instance of the [NSStream] class.
  */
 @interface	NSObject (NSStreamDelegate)
+#endif
 - (void) stream: (NSStream*)sStream handleEvent: (NSStreamEvent)anEvent;
 @end
 
