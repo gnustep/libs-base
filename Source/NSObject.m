@@ -46,6 +46,7 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSMapTable.h"
+#import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/GSLocale.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
@@ -1131,7 +1132,7 @@ static id gs_weak_load(id obj)
        */
       zombieClass = objc_lookUpClass("NSZombie");
 
-      /* Now that we have a workign autorelease system and working string
+      /* Now that we have a working autorelease system and working string
        * classes we are able to set up notifications.
        */
       [[NSNotificationCenter defaultCenter]
@@ -1139,6 +1140,11 @@ static id gs_weak_load(id obj)
 	   selector: @selector(_becomeMultiThreaded:)
 	       name: NSWillBecomeMultiThreadedNotification
 	     object: nil];
+
+      /* It is also safer to set upo the user defaults system before doing
+       * other stuff which might use it.
+       */
+      [NSUserDefaults class];
     }
   return;
 }

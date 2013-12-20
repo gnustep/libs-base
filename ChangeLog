@@ -1,3 +1,10 @@
+2013-12-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: initialise defaults system at end of NSObject
+	initialisation, in the hope of preventing deadlocks if the +initialize
+	methods of other classes in different threads try to use defaults.
+	May fix #39125
+
 2013-12-20  Marcus Müller <znek@mulle-kybernetik.com>
 
 	* Headers/Foundation/NSStream.h: OSX compatibilityy ... use formal
