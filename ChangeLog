@@ -2,6 +2,7 @@
 
 	* Headers/Foundation/NSStream.h: OSX compatibilityy ... use formal
 	protocol if possible (bug #40925).
+	* Headers/GNUstepBase/GSVersionMacros.h: OSX 10.9 define added.
 
 2013-12-13  Fred Kiefer <FredKiefer@gmx.de>
 
