@@ -53,7 +53,17 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 #endif
 }
 
+/**
+ * Returns the run loop instance for the current thread.
+ */
 + (NSRunLoop*) currentRunLoop;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+/**
+ * Returns the run loop instance of the main thread.
+ */
++ (NSRunLoop*) mainRunLoop;
+#endif
 
 - (void) acceptInputForMode: (NSString*)mode
                  beforeDate: (NSDate*)limit_date;
