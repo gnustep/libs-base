@@ -31,21 +31,19 @@
 extern "C" {
 #endif
 
-typedef unsigned char uuid_t[16];
-
 @class NSString;
 
 @interface NSUUID : NSObject <NSCopying, NSCoding>
 {
   @private
-  uuid_t uuid;
+  uint8_t uuid[16];
 }
 
-+ (id)UUID;
-- (id)initWithUUIDString:(NSString *)string;
-- (id)initWithUUIDBytes:(uuid_t)bytes;
-- (NSString *)UUIDString;
-- (void)getUUIDBytes:(uuid_t)bytes;
++ (id) UUID;
+- (id) initWithUUIDString: (NSString *)string;
+- (id) initWithUUIDBytes: (uint8_t*)bytes;
+- (NSString *) UUIDString;
+- (void) getUUIDBytes: (uint8_t*)bytes;
 
 @end
 
