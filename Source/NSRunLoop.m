@@ -1240,18 +1240,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   [arp drain];
 }
 
-/**
- * Calls -limitDateForMode: to determine if a timeout occurs before the
- * specified date, then calls -acceptInputForMode:beforeDate: to run the
- * loop once.<br />
- * The specified date may be nil ... in which case the loop runs
- * until the limit date of the first input or timeout.<br />
- * If the specified date is in the past, this runs the loop once only,
- * to handle any events already available.<br />
- * If there are no input sources or timers in mode, this method
- * returns NO without running the loop (irrespective of the supplied
- * date argument), otherwise returns YES.
- */
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
@@ -1259,7 +1247,13 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
   NSAssert(mode != nil, NSInvalidArgumentException);
 
-  /* Find out how long we can wait before first limit date. */
+  /* Process any pending notifications.
+   */
+  GSPrivateCheckTasks(); 
+  GSPrivateNotifyASAP(mode); 
+
+  /* Find out how long we can wait before first limit date.
+   */
   d = [self limitDateForMode: mode];
   if (d == nil)
     {
@@ -1267,8 +1261,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       return NO;
     }
 
-  /*
-   * Use the earlier of the two dates we have.
+  /* Use the earlier of the two dates we have.
    * Retain the date in case the firing of a timer (or some other event)
    * releases it.
    */

@@ -25,8 +25,10 @@
 #ifndef __NSUUID_h_GNUSTEP_BASE_INCLUDE
 #define __NSUUID_h_GNUSTEP_BASE_INCLUDE
 
-
+#import <GNUstepBase/GSVersionMacros.h>
 #import	<Foundation/NSObject.h>
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8,GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -58,6 +60,8 @@ typedef uint8_t gsuuid_t[16];
 
 #if     defined(__cplusplus)
 }
+#endif
+
 #endif
 
 #endif /* __NSUUID_h_GNUSTEP_BASE_INCLUDE */

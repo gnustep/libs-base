@@ -77,6 +77,18 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
 
 - (void) run;
 
+/**
+ * Calls -limitDateForMode: to determine if a timeout occurs before the
+ * specified date, then calls -acceptInputForMode:beforeDate: to run the
+ * loop once.<br />
+ * The specified date may be nil ... in which case the loop runs
+ * until the limit date of the first input or timeout.<br />
+ * If the specified date is in the past, this runs the loop once only,
+ * to handle any events already available.<br />
+ * If there are no input sources or timers in mode, this method
+ * returns NO without running the loop (irrespective of the supplied
+ * date argument), otherwise returns YES.
+ */
 - (BOOL) runMode: (NSString*)mode
       beforeDate: (NSDate*)date;
 
