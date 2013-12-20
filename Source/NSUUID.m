@@ -53,7 +53,7 @@ static const int kUUIDByteCount = 16;
 
 - (id) init
 {
-  uuid_t        localUUID;
+  uint8_t       localUUID[16];
   int           result;
 
   result = random_uuid(localUUID);
@@ -67,7 +67,7 @@ static const int kUUIDByteCount = 16;
 
 - (id) initWithUUIDString: (NSString *)string
 {
-  uuid_t        localUUID;
+  uint8_t       localUUID[16];
   const char    *cString;
   int           parseResult;
 
@@ -81,7 +81,7 @@ static const int kUUIDByteCount = 16;
   return [self initWithUUIDBytes: localUUID];
 }
 
-- (id) initWithUUIDBytes: (uuid_t)bytes
+- (id) initWithUUIDBytes: (uint8_t*)bytes
 {
   if (nil != (self = [super init]))
     {
@@ -101,18 +101,20 @@ static const int kUUIDByteCount = 16;
   return AUTORELEASE(string);
 }
 
-- (void) getUUIDBytes: (uuid_t)bytes
+- (void) getUUIDBytes: (uint8_t*)bytes
 {
   memcpy(bytes, uuid, kUUIDByteCount);
 }
 
 - (BOOL) isEqual: (NSUUID *)other
 {
+  int comparison;
+
   if (![other isKindOfClass: [NSUUID class]])
     {
       return NO;
     }
-  int comparison = memcmp(self->uuid, other->uuid, kUUIDByteCount);
+  comparison = memcmp(self->uuid, other->uuid, kUUIDByteCount);
   return (comparison == 0) ? YES : NO;
 }
 
@@ -121,9 +123,10 @@ static const int kUUIDByteCount = 16;
   // more expensive than casting but that's not alignment-safe
   NSUInteger    uintegerArray[kUUIDByteCount/sizeof(NSUInteger)];
   NSUInteger    hash = 0;
+  int		i;
 
   memcpy(uintegerArray, uuid, kUUIDByteCount);
-  for (int i = 0; i < kUUIDByteCount/sizeof(NSUInteger); i++)
+  for (i = 0; i < kUUIDByteCount/sizeof(NSUInteger); i++)
     {
       hash ^= uintegerArray[i];
     }
@@ -182,13 +185,14 @@ static NSString *uuidKey = @"uuid";
 
 static int uuid_from_string(const char *string, unsigned char *uuid)
 {
-  char unformatted[kUnformattedUUIDStringLength];
+  char	unformatted[kUnformattedUUIDStringLength];
+  int	i;
 
   if (strlen(string) != kUUIDStringLength)
     {
       return -1;
     }
-  for (int i = 0; i < kUUIDStringLength; i++)
+  for (i = 0; i < kUUIDStringLength; i++)
     {
       char c = string[i];
 
@@ -213,7 +217,7 @@ static int uuid_from_string(const char *string, unsigned char *uuid)
   strncpy(unformatted+16, string+19, 4);
   strncpy(unformatted+20, string+24, 12);
 
-  for (int i = 0; i < kUUIDByteCount; i++)
+  for (i = 0; i < kUUIDByteCount; i++)
     {
       {
 	char thisDigit[3];
@@ -228,9 +232,10 @@ static int uuid_from_string(const char *string, unsigned char *uuid)
 
 static void string_from_uuid(const unsigned char *uuid, char *string)
 {
-  char unformatted[kUnformattedUUIDStringLength];
+  char	unformatted[kUnformattedUUIDStringLength];
+  int	i;
 
-  for (int i = 0; i < kUUIDByteCount; i++)
+  for (i = 0; i < kUUIDByteCount; i++)
     {
       unsigned char byte = uuid[i];
       char thisPair[3];
@@ -251,28 +256,34 @@ static void string_from_uuid(const unsigned char *uuid, char *string)
 
 static int random_uuid(unsigned char *uuid)
 {
-  /*Only supporting Version 4 UUIDs (see RFC4412, section 4.4),
-   *consistent with Apple.  Other variants suffer from privacy
-   *problems (and are more work...)
+  int		devUrandom;
+  ssize_t	bytesRead;
+  unsigned char timeByte;
+  unsigned char sequenceByte;
+
+  /* Only supporting Version 4 UUIDs (see RFC4412, section 4.4),
+   * consistent with Apple.  Other variants suffer from privacy
+   * problems (and are more work...)
    */
-  int devUrandom = open("/dev/urandom", O_RDONLY);
+  devUrandom = open("/dev/urandom", O_RDONLY);
   if (devUrandom == -1)
     {
       return -1;
     }
-  ssize_t bytesRead = read(devUrandom, uuid, kUUIDByteCount);
+  bytesRead = read(devUrandom, uuid, kUUIDByteCount);
   close(devUrandom);
   if (bytesRead != kUUIDByteCount)
     {
       return -1;
     }
-  // as required by the RFC, bits 48-51 should contain 0b0100 (4)
-  // and bits 64-65 should contain 0b01 (1)
-  unsigned char timeByte = uuid[6];
+  /* as required by the RFC, bits 48-51 should contain 0b0100 (4)
+   * and bits 64-65 should contain 0b01 (1)
+   */
+  timeByte = uuid[6];
   timeByte = (4 << 8) + (timeByte & 0x0f);
   uuid[7] = timeByte;
 
-  unsigned char sequenceByte = uuid[8];
+  sequenceByte = uuid[8];
   sequenceByte = (1 << 6) + (sequenceByte & 0x3f);
   uuid[8] = sequenceByte;
 
