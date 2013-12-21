@@ -206,9 +206,17 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
   int		l;
   unsigned int	len = 1;
 
+  if (NO == rel->hasNoPath)
+    {
+      len += 1;                         // trailing '/' to be added
+    }
   if (rel->scheme != 0)
     {
       len += strlen(rel->scheme) + 3;	// scheme://
+    }
+  else if (YES == rel->isGeneric)
+    {
+      len += 2;                         // need '//' even if no scheme
     }
   if (rel->user != 0)
     {
