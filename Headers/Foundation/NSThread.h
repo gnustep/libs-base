@@ -315,6 +315,23 @@ extern "C" {
                 onThread: (NSThread*)aThread
               withObject: (id)anObject
            waitUntilDone: (BOOL)aFlag;
+
+/**
+ * Creates and runs a new background thread sending aSelector to the receiver
+ * and passing anObject (which may be nil) as the argument.
+ */
+- (void) performSelectorInBackground: (SEL)aSelector
+                          withObject: (id)anObject; 
+#endif
+@end
+
+@interface NSThread (CallStackSymbols)
+#if	GS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+/** Returns an array of NSString objects representing the current stack
+ * in an implementation-defined format. May return an empty array if
+ * this feature is not available.
+ */
++ (NSArray *) callStackSymbols;
 #endif
 @end
 
