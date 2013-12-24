@@ -1,3 +1,9 @@
+2013-12-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Version: make ready for 1.24.6 release
+        * Documentation/news.texi: 1.24.6 news
+        * Documentation/ReleaseNotes.gsdoc: 1.24.6 release notes
+
 2013-12-20 Graham Lee <graham@iamleeg.com>
 
 	* Headers/Foundation/NSUUID.h:
@@ -416,7 +422,7 @@
         * Documentation/news.texi: 1.24.5 news
         * Documentation/ReleaseNotes.gsdoc: 1.24.5 release notes
         * NSTimeZones/NSTimeZones.tar: new timezone data
-        * Sourcew/NSTimeZone.m: fix error in zone directory name
+        * Source/NSTimeZone.m: fix error in zone directory name
 
 2013-07-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
