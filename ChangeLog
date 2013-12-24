@@ -45,7 +45,8 @@
 	* Source/Additions/GSInsensitiveDictionary.m:
 	* Source/GSDictionary.m:
 	Changed keys argument type to (const id <NSCopying>[]) in 
-	-initWithObjects:forKeys:count: and +dictionaryWithObjects:forKeys:count:, 
+	-initWithObjects:forKeys:count: and
+	+dictionaryWithObjects:forKeys:count:, 
 	to follow the current Cocoa API.
 
 2013-12-04 Richard Frith-Macdonald <rfm@gnu.org>
@@ -257,7 +258,7 @@
 
 2013-09-06  Richard Frith-Macdonald <rfm@gnu.org>
 
-        * Source/NSUserDefaults.m: Update cache when we syunchronise a new
+        * Source/NSUserDefaults.m: Update cache when we synchronise a new
         domain to disk (was only updating on changes to existing domains).
         Should fix bug #39300
 
