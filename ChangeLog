@@ -1,3 +1,7 @@
+2013-12-26  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Headers/Foundation/NSStream.h: fixed typo (_clang_ -> __clang__)
+
 2013-12-24  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Version: make ready for 1.24.6 release
