@@ -93,7 +93,10 @@ enum
 typedef NSUInteger NSNetServicesError;
 
 enum {
-  NSNetServiceNoAutoRename = 1 << 0
+  NSNetServiceNoAutoRename          = 1 << 0
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
+  ,NSNetServiceListenForConnections = 1 << 1
+#endif
 };
 typedef NSUInteger NSNetServiceOptions;
 
@@ -201,6 +204,22 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 - (void)      netService: (NSNetService *) sender
   didUpdateTXTRecordData: (NSData *) data;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
+
+/**
+ * Notifies the delegate that the service, which must have been published with
+ * option NSNetServiceListenForConnections, received a new connection.
+ * In order to communicate with the connecting client, you must -open
+ * the streams and schedule them with a runloop.
+ * To reject a connection, just -open and immediately -close both streams.
+ */
+
+- (void)                  netService: (NSNetService *) sender
+  didAcceptConnectionWithInputStream: (NSInputStream *) inputStream
+						outputStream: (NSOutputStream *)outputStream;
+
+#endif
 
 @end
 

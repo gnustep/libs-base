@@ -33,6 +33,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSException.h"
 #import "GNUstepBase/GSObjCRuntime.h"
+#import <GNUstepBase/NSStream+GNUstepBase.h>
 #include <avahi-common/error.h>
 #include <avahi-common/malloc.h>
 #include <avahi-common/strlst.h>
@@ -990,6 +991,48 @@ didUpdateRecordData: (id)data
         }
     }
 
+  if (options & NSNetServiceListenForConnections)
+    {
+      /* setup server socket first, as port is required in
+       * -[self addServiceEntry] (see below)
+       */
+        NSInteger port = [self port];
+        if (port < 0)
+          {
+            port = 0;
+		  }
+		GSServerStream *serverStream = [GSServerStream serverStreamToAddr: @""
+                                                                     port: port];
+        if (serverStream != nil)
+          {
+            [serverStream setDelegate:self];
+            [serverStream open];
+            if ([serverStream streamStatus] != NSStreamStatusOpen)
+              {
+                ret = 1;
+              }
+            else
+              {
+                [serverStream scheduleInRunLoop: [NSRunLoop currentRunLoop]
+                                        forMode: NSDefaultRunLoopMode];
+                [self setInfoObject: serverStream forKey: @"serverStream"];
+                NSNumber *portNumber = [serverStream propertyForKey: GSStreamLocalPortKey];
+                [self setInfoObject: portNumber forKey: @"port"];
+              }
+		  }
+        else
+          {
+            ret = 1;
+          }
+
+        if (ret != 0)
+          {
+            [self handleError:NSNetServicesBadArgumentError];
+            [_lock unlock];
+            return NO;
+          }
+    }
+
   /* Try adding the service to the entry group until we find an unused name
    * for it (but only if NSNetServiceNoAutoRename is not set).
    */
@@ -1011,14 +1054,8 @@ didUpdateRecordData: (id)data
         }
     }
 
-  // Handle any new error condition.
-  if (ret != 0)
-    {
-      [_lock unlock];
-      return NO;
-    }
   [_lock unlock];
-  return YES;
+  return ret == 0 ? YES : NO;
 }
 
 - (BOOL) addServiceRecord
@@ -1029,15 +1066,12 @@ didUpdateRecordData: (id)data
 - (void) publishWithOptions: (NSNetServiceOptions)options
 {
   [_lock lock];
-  if (_entryGroup != NULL)
+  if (_entryGroup == NULL)
     {
-      [self commitEntryGroup];
-      return;
-    }
-
-  if (NO == [self addServiceRecordWithOptions: options])
-    {
-      [self handleError: avahi_client_errno((AvahiClient*)_client)];
+      if (NO == [self addServiceRecordWithOptions: options])
+        {
+          [self handleError: avahi_client_errno((AvahiClient*)_client)];
+        }
     }
   [self commitEntryGroup];
   [_lock unlock];
@@ -1204,6 +1238,7 @@ didUpdateRecordData: (id)data
     }
   if (!hadError)
     {
+      [self removeInfoObjectForKey: @"serverStream"];
       [self netServiceDidStop: self];
     }
   _serviceState = GSNetServiceIdle;
@@ -1929,6 +1964,35 @@ didUpdateRecordData: (id)data
         }
     }
   [_lock unlock];
+}
+
+/**
+ * GSServerStream delegate method, called only when this service has been
+ * published with the NSNetServiceListenForConnections option.
+ */
+- (void) stream:(NSStream*) stream handleEvent: (NSStreamEvent)anEvent
+{
+  switch (anEvent)
+    {
+      case NSStreamEventHasBytesAvailable:
+        {
+          if ([[self delegate]
+			         respondsToSelector:
+			         @selector(netService:didAcceptConnectionWithInputStream:outputStream:)])
+            {
+              NSInputStream  *is;
+              NSOutputStream *os;
+              GSServerStream *serverStream = [self infoObjectForKey: @"serverStream"];
+			  [serverStream acceptWithInputStream: &is outputStream: &os];
+			  [[self delegate] netService: self
+                               didAcceptConnectionWithInputStream: is
+                               outputStream: os];
+            }
+		  break;
+		}
+	  default:
+        break;
+	}
 }
 
 - (void) dealloc
