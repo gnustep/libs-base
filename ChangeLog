@@ -1,5 +1,10 @@
 2013-12-26  Marcus Mueller <znek@mulle-kybernetik.com>
 
+	* Headers/Foundation/NSNetServices.h:
+	* Source/GSAvahiNetService.m:
+          added NSNetServiceListenForConnections option (introduced in
+	  OSX 10.9) and accompanying delegate method, currently implemented in
+	  GSAvahiNetService.m only.
 	* Headers/Foundation/NSStream.h: fixed typo (_clang_ -> __clang__)
 
 2013-12-24  Richard Frith-Macdonald <rfm@gnu.org>
