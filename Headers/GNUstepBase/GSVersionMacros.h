@@ -220,6 +220,20 @@
 #endif
 
 
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__clang__)
+#  define GS_GCC_MINREQ(maj, min) \
+  ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+#  define GS_GCC_MINREQ(maj, min) 0
+#endif
+
+#if defined(__clang__)
+#  define GS_CLANG_MINREQ(maj, min) \
+  ((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
+#else
+#  define GS_CLANG_MINREQ(maj, min) 0
+#endif
+
 /* Attribute definitions for attributes which may or may not be supported
  * depending on the compiler being used.
  * NB we currently expect gcc to be version 4 or later.
@@ -229,7 +243,7 @@
  * depending on where the attribute can be applied.
  */
 
-#if __GNUC__*10+__GNUC_MINOR__ >= 31
+#if defined(__clang__) || GS_GCC_MINREQ(3,1)
 #  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
 #else
 #  define GS_DEPRECATED_FUNC
@@ -392,7 +406,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 /* Attribute macros compatible with Apple.
  */
 
-#if __GNUC__*10+__GNUC_MINOR__ >= 42
+#if defined(__clang__) || GS_GCC_MINREQ(4,2)
 #  define NS_FORMAT_ARGUMENT(A) __attribute__((format_arg(A)))
 #else
 #  define NS_FORMAT_ARGUMENT(F,A) 
@@ -407,5 +421,12 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 
 #define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
 
+/* Check if compiler supports @optional in protocols
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(4,6)
+#  define GS_PROTOCOLS_HAVE_OPTIONAL 1
+#else
+#  define GS_PROTOCOLS_HAVE_OPTIONAL 0
+#endif
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */

@@ -1,3 +1,18 @@
+2013-12-30  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Headers/GNUstepBase/GSVersionMacros.h: added macros
+	GS_GCC_MINREQ(maj,min) and GS_CLANG_MINREQ(maj,min) to check for
+	minimum required versions of GCC and CLANG compilers. Changed several
+	occurrences of previous macros to improve readability.
+	Added GS_PROTOCOLS_HAVE_OPTIONAL to correctly mark all appropriate
+	declarations.
+	* Headers/Foundation/NSNetServices.h,
+	* Headers/Foundation/NSStream.h,
+	* Headers/Foundation/NSXMLParser.h,
+	* Headers/GNUstepBase/NSNetServices+GNUstepBase.h,
+	* Source/GSNetServices.h:
+	use GS_PROTOCOLS_HAVE_OPTIONAL macro where appropriate
+
 2013-12-26  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Headers/Foundation/NSNetServices.h:
