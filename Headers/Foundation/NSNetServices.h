@@ -114,7 +114,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 
 @protocol  NSNetServiceDelegate
-#ifdef __clang__ /* FIXME ... this is not clang specific */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) && GS_PROTOCOLS_HAVE_OPTIONAL
 @optional
 #else
 @end
@@ -243,7 +243,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  */
 
 @protocol NSNetServiceBrowserDelegate
-#ifdef __clang__ /* FIXME ... this is not clang specific */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) && GS_PROTOCOLS_HAVE_OPTIONAL
 @optional
 #else
 @end
