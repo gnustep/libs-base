@@ -1,3 +1,11 @@
+2013-12-31  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Headers/Foundation/NSMetadata.h: use GS_PROTOCOLS_HAVE_OPTIONAL for
+	NSMetadataQueryDelegate. Always define the protocol, even if it's empty
+	(so we don't have to adjust any headers), but fallback to the informal
+	protocol if OS version < 10.6 OR compiler doesn't support @optional
+	keyword in protocols.
+
 2013-12-30  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Headers/GNUstepBase/GSVersionMacros.h: added macros

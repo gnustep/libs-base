@@ -26,6 +26,7 @@
 
 #ifndef __NSMetadata_h_GNUSTEP_BASE_INCLUDE
 #define __NSMetadata_h_GNUSTEP_BASE_INCLUDE
+#import	<GNUstepBase/GSVersionMacros.h>
 
 #import <Foundation/NSObject.h>
 #import <Foundation/NSTimer.h>
@@ -129,9 +130,12 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
 @end
 
 @protocol NSMetadataQueryDelegate
-#ifdef __OBJC2__
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) && GS_PROTOCOLS_HAVE_OPTIONAL
 @optional
-#endif
+#else
+@end
+@interface NSObject (NSMetadataQueryDelegate)
+#endif // GS_PROTOCOLS_HAVE_OPTIONAL
 - (id) metadataQuery: (NSMetadataQuery *)query
   replacementObjectForResultObject: (NSMetadataItem *)result;
 - (id) metadataQuery: (NSMetadataQuery *)query
