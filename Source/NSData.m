@@ -2066,7 +2066,7 @@ failure:
   if (aRange.location > size)
     {
       [NSException raise: NSRangeException
-		  format: @"location bad in replaceByteInRange:withBytes:"];
+                  format: @"location bad in %@", NSStringFromSelector(_cmd)];
     }
   if (aRange.length > 0)
     {
@@ -2080,7 +2080,7 @@ failure:
       if (0 == buf)
 	{
 	  [NSException raise: NSInternalInconsistencyException
-	    format: @"missing bytes in replaceBytesInRange:withBytes:"];
+            format: @"missing bytes in %@", NSStringFromSelector(_cmd)];
 	}
       memmove(buf + aRange.location, bytes, aRange.length);
     }
@@ -2104,7 +2104,11 @@ failure:
   if (aRange.location > size)
     {
       [NSException raise: NSRangeException
-        format: @"location bad in replaceByteInRange:withBytes:length:"];
+                  format: @"location bad in %@", NSStringFromSelector(_cmd)];
+    }
+  if (0 == length && 0 == shift)
+    {
+      return;   // Nothing to do
     }
   if (need > size)
     {
@@ -2114,7 +2118,7 @@ failure:
   if (0 == buf)
     {
       [NSException raise: NSInternalInconsistencyException
-        format: @"missing bytes in replaceByteInRange:withBytes:length:"];
+                  format: @"missing bytes in %@", NSStringFromSelector(_cmd)];
     }
   if (shift < 0)
     {
