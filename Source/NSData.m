@@ -2070,16 +2070,17 @@ failure:
     }
   if (aRange.length > 0)
     {
-      void	*buf = [self mutableBytes];
+      void	*buf;
 
+      if (need > size)
+	{
+	  [self setLength: need];
+	}
+      buf = [self mutableBytes];
       if (0 == buf)
 	{
 	  [NSException raise: NSInternalInconsistencyException
 	    format: @"missing bytes in replaceBytesInRange:withBytes:"];
-	}
-      if (need > size)
-	{
-	  [self setLength: need];
 	}
       memmove(buf + aRange.location, bytes, aRange.length);
     }
@@ -2103,7 +2104,7 @@ failure:
   if (aRange.location > size)
     {
       [NSException raise: NSRangeException
-		  format: @"location bad in replaceByteInRange:withBytes:"];
+        format: @"location bad in replaceByteInRange:withBytes:length:"];
     }
   if (need > size)
     {
@@ -2113,7 +2114,7 @@ failure:
   if (0 == buf)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"missing bytes in replaceByteInRange:withBytes:"];
+        format: @"missing bytes in replaceByteInRange:withBytes:length:"];
     }
   if (shift < 0)
     {
