@@ -993,44 +993,48 @@ didUpdateRecordData: (id)data
 
   if (options & NSNetServiceListenForConnections)
     {
+      GSServerStream *serverStream;
+      NSInteger port;
+
       /* setup server socket first, as port is required in
        * -[self addServiceEntry] (see below)
        */
-        NSInteger port = [self port];
-        if (port < 0)
-          {
-            port = 0;
-		  }
-		GSServerStream *serverStream = [GSServerStream serverStreamToAddr: @""
-                                                                     port: port];
-        if (serverStream != nil)
-          {
-            [serverStream setDelegate:self];
-            [serverStream open];
-            if ([serverStream streamStatus] != NSStreamStatusOpen)
-              {
-                ret = 1;
-              }
-            else
-              {
-                [serverStream scheduleInRunLoop: [NSRunLoop currentRunLoop]
-                                        forMode: NSDefaultRunLoopMode];
-                [self setInfoObject: serverStream forKey: @"serverStream"];
-                NSNumber *portNumber = [serverStream propertyForKey: GSStreamLocalPortKey];
-                [self setInfoObject: portNumber forKey: @"port"];
-              }
-		  }
-        else
-          {
-            ret = 1;
-          }
+      port = [self port];
+      if (port < 0)
+        {
+          port = 0;
+        }
+      serverStream = [GSServerStream serverStreamToAddr: @"" port: port];
+      if (serverStream != nil)
+        {
+          [serverStream setDelegate:self];
+          [serverStream open];
+          if ([serverStream streamStatus] != NSStreamStatusOpen)
+            {
+              ret = 1;
+            }
+          else
+            {
+              NSNumber *portNumber;
 
-        if (ret != 0)
-          {
-            [self handleError:NSNetServicesBadArgumentError];
-            [_lock unlock];
-            return NO;
-          }
+              [serverStream scheduleInRunLoop: [NSRunLoop currentRunLoop]
+                                      forMode: NSDefaultRunLoopMode];
+              [self setInfoObject: serverStream forKey: @"serverStream"];
+              portNumber = [serverStream propertyForKey: GSStreamLocalPortKey];
+              [self setInfoObject: portNumber forKey: @"port"];
+            }
+        }
+      else
+        {
+          ret = 1;
+        }
+
+      if (ret != 0)
+        {
+          [self handleError: NSNetServicesBadArgumentError];
+          [_lock unlock];
+          return NO;
+        }
     }
 
   /* Try adding the service to the entry group until we find an unused name
