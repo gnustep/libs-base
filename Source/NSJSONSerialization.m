@@ -901,7 +901,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
         }
       else
         {
-          [output appendFormat: @"%g", [(NSNumber*)obj doubleValue]];
+          [output appendFormat: @"%.17g", [(NSNumber*)obj doubleValue]];
         }
     }
   else if ([obj isKindOfClass: NSNullClass])
