@@ -554,7 +554,6 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
 
 
 @interface	NSOperationQueue (Private)
-+ (void) _mainQueue;
 - (void) _execute;
 - (void) _thread;
 - (void) observeValueForKeyPath: (NSString *)keyPath
@@ -583,16 +582,18 @@ static NSOperationQueue *mainQueue = nil;
 
 + (id) currentQueue
 {
+  if ([NSThread isMainThread])
+    {
+      return mainQueue;
+    }
   return [[[NSThread currentThread] threadDictionary] objectForKey: threadKey];
 }
 
 + (void) initialize
 {
-  if (mainQueue == nil)
+  if (nil == mainQueue)
     {
-      [self performSelectorOnMainThread: @selector(_mainQueue)
-			     withObject: nil
-			  waitUntilDone: YES];
+      mainQueue = [self new];
     }
 }
 
@@ -874,17 +875,6 @@ static NSOperationQueue *mainQueue = nil;
 
 @implementation	NSOperationQueue (Private)
 
-+ (void) _mainQueue
-{
-  if (mainQueue == nil)
-    {
-      mainQueue = [self new];
-      [[NSObject leakAt: &mainQueue] release];
-      [[[NSThread currentThread] threadDictionary] setObject: mainQueue
-						      forKey: threadKey];
-    }
-}
-
 - (void) observeValueForKeyPath: (NSString *)keyPath
 		       ofObject: (id)object
                          change: (NSDictionary *)change
@@ -916,6 +906,8 @@ static NSOperationQueue *mainQueue = nil;
 {
   NSAutoreleasePool	*pool = [NSAutoreleasePool new];
 
+  [[[NSThread currentThread] threadDictionary] setObject: self
+                                                  forKey: threadKey];
   for (;;)
     {
       NSOperation	*op;
@@ -974,6 +966,7 @@ static NSOperationQueue *mainQueue = nil;
 	}
     }
 
+  [[[NSThread currentThread] threadDictionary] removeObjectForKey: threadKey];
   [internal->lock lock];
   internal->threadCount--;
   [internal->lock unlock];

@@ -1,5 +1,11 @@
 2014-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSOperation.m: Make sure current queue is set for threads
+	owned by a queue (and return the main queue for the main thread).
+	Avoid needing to create the main queue in the main thread.
+
+2014-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSObject.m: Fixed logic error in David's libobjc2 integration
 	for deallocation; should use object_getClass() if the object is NOT a
 	small object, use isa otherwise.
