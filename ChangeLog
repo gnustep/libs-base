@@ -1,3 +1,9 @@
+2014-01-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Fixed logic error in David's libobjc2 integration
+	for deallocation; should use object_getClass() if the object is NOT a
+	small object, use isa otherwise.
+
 2013-12-31  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Headers/Foundation/NSMetadata.h: use GS_PROTOCOLS_HAVE_OPTIONAL for

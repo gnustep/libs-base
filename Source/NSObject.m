@@ -1420,11 +1420,11 @@ static id gs_weak_load(id obj)
 #ifdef OBJC_SMALL_OBJECT_MASK
   if (((NSUInteger)self & OBJC_SMALL_OBJECT_MASK) == 0)
     {
-      destructorClass = object_getClass(self);
+      destructorClass = isa;                    // Potentially hidden class
     }
   else
     {
-      destructorClass = isa;
+      destructorClass = object_getClass(self);  // Small object
     }
 #else
   destructorClass = isa;
@@ -1450,7 +1450,7 @@ static id gs_weak_load(id obj)
       destructorClass = class_getSuperclass(destructorClass);
 
       if (newDestructor != destructor)
-	  {
+	{
 	  newDestructor(self, cxx_destruct);
 	  destructor = newDestructor;
 	}
