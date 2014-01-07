@@ -31,7 +31,6 @@ static const char* objc_setAssociatedObjectKey = "objc_setAssociatedObjectKey";
 
 int main()
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
   associatedObjectTestAllocatedObject* object = 
   	[associatedObjectTestAllocatedObject new];
 
