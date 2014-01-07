@@ -36,11 +36,10 @@ int main()
   	[associatedObjectTestAllocatedObject new];
 
   associatedObjectTestAssociatedObject *info = 
-  	[[associatedObjectTestAssociatedObject new] autorelease];
-  // silence -Wunused-variable
-  [info description];
+  	[associatedObjectTestAssociatedObject new];
   objc_setAssociatedObject(object, &objc_setAssociatedObjectKey, info, 
 	OBJC_ASSOCIATION_RETAIN);
+  [info release];
   [object release];
 
   PASS(AssociatedObjectDeallocCalled == YES, 
