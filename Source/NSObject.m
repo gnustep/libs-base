@@ -138,11 +138,8 @@ static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
 #if	!GS_WITH_GC
-static void GSMakeZombie(NSObject *o)
+static void GSMakeZombie(NSObject *o, Class c)
 {
-  Class		c;
-
-  c = object_getClass(o);
   object_setClass(o, zombieClass);
   if (0 != zombieMap)
     {
@@ -854,7 +851,7 @@ NSDeallocateObject(id anObject)
       AREM(aClass, (id)anObject);
       if (NSZombieEnabled == YES)
 	{
-	  GSMakeZombie(anObject);
+	  GSMakeZombie(anObject, aClass);
 	  if (NSDeallocateZombies == YES)
 	    {
 	      NSZoneFree(z, o);
