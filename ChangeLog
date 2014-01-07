@@ -1,3 +1,13 @@
+2014-01-07  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Source/NSJSONSerialization.m (writeObject()): Fixed double number 
+	serialization to encode 17 significant digits (this matches the max number 
+	of significant digits in the double-precision floating point format). This 
+	prevents a loss of precision, in case the number has more than 3 digits 
+	after the decimal point.
+	* Tests/base/NSJSONSerialization/json.m: Updated to test double number  
+	serialization. 
+
 2014-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: Make sure current queue is set for threads
