@@ -37,6 +37,16 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface NSData (GNUstepBase)
+
+/** Returns an autoreleased data instance initialised with pseudo-random
+ * bytes of the specified length.<br />
+ * On failure returns nil.  This may be due to:<br />
+ * A zero length or unreasonably large length argument or,<br />
+ * Failure to allocate memory to hold the random data or,<br />
+ * Failure of the underlying random data generation.
+ */
++ (id) dataWithRandomBytesOfLength: (NSUInteger)length;
+
 /**
  * Returns an NSString object containing an ASCII hexadecimal representation
  * of the receiver.  This means that the returned object will contain
