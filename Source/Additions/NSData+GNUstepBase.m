@@ -31,10 +31,86 @@
 
 #include <ctype.h>
 
+#if	defined(__MINGW32__)
+#include <wincrypt.h>
+#else
+#include <fcntl.h>
+#endif
+
+static int
+randombytes(uint8_t *buf, unsigned len)
+{
+#if	defined(__MINGW32__)
+
+  HCRYPTPROV hProvider = 0;
+
+  if (!CryptAcquireContextW(&hProvider, 0, 0,
+    PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT))
+    {
+      return -1;
+    }
+
+  if (!CryptGenRandom(hProvider, len, buf))
+    {
+      CryptReleaseContext(hProvider, 0);
+      return -1;
+    }
+
+  CryptReleaseContext(hProvider, 0);
+
+#else
+
+  int		devUrandom;
+  ssize_t	bytesRead;
+
+  devUrandom = open("/dev/urandom", O_RDONLY);
+  if (devUrandom == -1)
+    {
+      return -1;
+    }
+  bytesRead = read(devUrandom, buf, len);
+  close(devUrandom);
+  if (bytesRead != len)
+    {
+      return -1;
+    }
+
+#endif
+  return 0;
+}
+
 /**
  * Extension methods for the NSData class.
  */
 @implementation NSData (GNUstepBase)
+
++ (id) dataWithRandomBytesOfLength: (NSUInteger)length
+{
+  uint8_t       *buf = 0;
+  NSData        *d;
+
+  if (0 == length || length > 0xffffffff)
+    {
+      return nil;       // Unreasonable length for random data
+    }
+  buf = malloc(length);
+  if (0 == buf)
+    {
+      return nil;       // Not enough memory for random data
+    }
+  if (randombytes(buf, (unsigned)length) < 0)
+    {
+      free(buf);
+      return nil;       // Unable to generate the random data
+    }
+  d = [[self alloc] initWithBytesNoCopy: buf length: length freeWhenDone: YES];
+  if (nil == d)
+    {
+      free(buf);
+      return nil;       // Unable to create NSData instance
+    }
+  return AUTORELEASE(d);
+}
 
 /**
  * Returns an NSString object containing an ASCII hexadecimal representation

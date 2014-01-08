@@ -26,12 +26,8 @@
 #import "common.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSUUID.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
 
-#if	defined(__MINGW32__)
-#include <wincrypt.h>
-#else
-#include <fcntl.h>
-#endif
 
 static int uuid_from_string(const char *string, unsigned char *uuid);
 static void string_from_uuid(const unsigned char *uuid, char *string);
@@ -260,6 +256,7 @@ static void string_from_uuid(const unsigned char *uuid, char *string)
 
 static int random_uuid(unsigned char *uuid)
 {
+  NSData        *rnd;
   unsigned char timeByte;
   unsigned char sequenceByte;
 
@@ -268,40 +265,13 @@ static int random_uuid(unsigned char *uuid)
    * problems (and are more work...)
    */
 
-#if	defined(__MINGW32__)
-
-  HCRYPTPROV hProvider = 0;
-
-  if (!CryptAcquireContextW(&hProvider, 0, 0,
-    PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT))
+  rnd = [NSData dataWithRandomBytesOfLength: kUUIDByteCount];
+  if (nil == rnd)
     {
       return -1;
     }
 
-  if (!CryptGenRandom(hProvider, kUUIDByteCount, uuid))
-    {
-      CryptReleaseContext(hProvider, 0);
-      return -1;
-    }
-
-  CryptReleaseContext(hProvider, 0);
-#else
-
-  int		devUrandom;
-  ssize_t	bytesRead;
-
-  devUrandom = open("/dev/urandom", O_RDONLY);
-  if (devUrandom == -1)
-    {
-      return -1;
-    }
-  bytesRead = read(devUrandom, uuid, kUUIDByteCount);
-  close(devUrandom);
-  if (bytesRead != kUUIDByteCount)
-    {
-      return -1;
-    }
-#endif
+  memcpy(uuid, [rnd bytes], kUUIDByteCount);
 
   /* as required by the RFC, bits 48-51 should contain 0b0100 (4)
    * and bits 64-65 should contain 0b01 (1)
