@@ -102,6 +102,20 @@ static GSLazyLock *lock = nil;
   [lock lock];
   transformer = [registry objectForKey: name];
   IF_NO_GC([transformer retain];)
+
+  if (transformer == nil)
+    {
+      Class transformerClass = NSClassFromString(name);
+
+      if (transformerClass != Nil 
+        && [transformerClass isSubclassOfClass: [NSValueTransformer class]])
+        {
+          transformer = [[transformerClass alloc] init];
+
+          [registry setObject: transformer forKey: name];
+        }
+    }
+
   [lock unlock];
   return AUTORELEASE(transformer);
 }
