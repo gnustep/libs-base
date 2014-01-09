@@ -399,11 +399,11 @@ static SEL	rlSel;
    * iteration.   If it changes during the iteration then
    * objc_enumerationMutation() will be called, throwing an exception.
    * The abstract base class implementation points to a fixed value
-   * (the instance itsself is guaranteed to exist for as long as the
-   * enumeration process runs), which is fine for enumerating an
-   * immutable array.
+   * (the enumeration state pointer should exist and be unchanged for as
+   * long as the enumeration process runs), which is fine for enumerating
+   * an immutable array.
    */
-  state->mutationsPtr = (unsigned long *)self;
+  state->mutationsPtr = (unsigned long *)&state->mutationsPtr;
   count = MIN(len, [self count] - state->state);
   /* If a mutation has occurred then it's possible that we are being asked to
    * get objects from after the end of the array.  Don't pass negative values
