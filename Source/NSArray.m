@@ -390,15 +390,21 @@ static SEL	rlSel;
 				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
-  NSUInteger size = [self count];
   NSInteger count;
 
-  /* This is cached in the caller at the start and compared at each
+  /* In a mutable subclass, the mutationsPtr should be set to point to a
+   * value (unsigned long) which will be changed (incremented) whenever
+   * the container is mutated (content added, removed, re-ordered).
+   * This is cached in the caller at the start and compared at each
    * iteration.   If it changes during the iteration then
    * objc_enumerationMutation() will be called, throwing an exception.
+   * The abstract base class implementation points to a fixed value
+   * (the instance itsself is guaranteed to exist for as long as the
+   * enumeration process runs), which is fine for enumerating an
+   * immutable array.
    */
-  state->mutationsPtr = (unsigned long *)size;
-  count = MIN(len, size - state->state);
+  state->mutationsPtr = (unsigned long *)self;
+  count = MIN(len, [self count] - state->state);
   /* If a mutation has occurred then it's possible that we are being asked to
    * get objects from after the end of the array.  Don't pass negative values
    * to memcpy.
