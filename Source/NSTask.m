@@ -771,32 +771,25 @@ pty_slave(const char* name)
   arch_path = [arch_path stringByAppendingPathComponent: os];
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
-  lpath = [full_path stringByAppendingPathComponent: prog];
 #ifdef	__MINGW__
-  if ([mgr isExecutableFileAtPath: lpath] == NO
-    && [mgr isExecutableFileAtPath:
-    (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
-#else
-  if ([mgr isExecutableFileAtPath: lpath] == NO)
+  /* As a convenience on windows, if the program was supplied without
+   * an extension (which means it can't be executable) try using the
+   * most common extension.
+   */
+  if ([[prog pathExtension] length] == 0)
+    {
+      prog = [prog stringByAppendingPathExtension: @"exe"];
+    }
 #endif
+
+  lpath = [full_path stringByAppendingPathComponent: prog];
+  if ([mgr isExecutableFileAtPath: lpath] == NO)
     {
       lpath = [arch_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW__
-      if ([mgr isExecutableFileAtPath: lpath] == NO
-	&& [mgr isExecutableFileAtPath:
-	(lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
-#else
       if ([mgr isExecutableFileAtPath: lpath] == NO)
-#endif
 	{
 	  lpath = [base_path stringByAppendingPathComponent: prog];
-#ifdef	__MINGW__
-	  if ([mgr isExecutableFileAtPath: lpath] == NO
-	    && [mgr isExecutableFileAtPath:
-	    (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
-#else
 	  if ([mgr isExecutableFileAtPath: lpath] == NO)
-#endif
 	    {
 	      /*
 	       * Last resort - if the launch path was simply a program name
@@ -809,14 +802,7 @@ pty_slave(const char* name)
 		}
 	      if (lpath != nil)
 		{
-#ifdef	__MINGW__
-		  if ([mgr isExecutableFileAtPath: lpath] == NO
-		    && [mgr isExecutableFileAtPath:
-		    (lpath = [lpath stringByAppendingPathExtension: @"exe"])]
-		    == NO)
-#else
 		  if ([mgr isExecutableFileAtPath: lpath] == NO)
-#endif
 		    {
 		      lpath = nil;
 		    }
