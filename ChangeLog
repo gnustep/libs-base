@@ -3,6 +3,8 @@
 	* Source/NSFileManager.m:
 	On mingw a file is executable if its extension is in the list
 	provided by the PATHEXT environment variable.
+	* Source/NSTask.m:
+	Simplification/clarification suggested by Riccardo
 
 2014-01-08  Quentin Mathe <quentin.mathe@gmail.com>
 
