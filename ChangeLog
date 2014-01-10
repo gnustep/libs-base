@@ -1,3 +1,9 @@
+2014-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m:
+	On mingw a file is executable if its extension is in the list
+	provided by the PATHEXT environment variable.
+
 2014-01-08  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Source/NSValueTransformer (+valueTransformerForName:): Fixed to 

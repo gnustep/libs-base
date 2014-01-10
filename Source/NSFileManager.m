@@ -1654,6 +1654,7 @@ static NSStringEncoding	defaultEncoding;
 #if defined(__MINGW__)
     {
       DWORD res;
+      NSString  *ext;
 
       res = GetFileAttributesW(lpath);
 
@@ -1661,10 +1662,50 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  return NO;
 	}
-	// TODO: Actually should check all extensions in env var PATHEXT
-      if ([[[path pathExtension] lowercaseString] isEqualToString: @"exe"])
-	{
-	  return YES;
+
+      ext = [[path pathExtension] uppercaseString];
+      if ([ext length] > 0)
+        {
+          static NSSet  *executable = nil;
+
+          if (nil == executable)
+            {
+              NSMutableSet      *m;
+              NSEnumerator      *e;
+              NSString          *s;
+
+              /* Get PATHEXT environment variable and split apart on ';'
+               */
+              e = [[[[[NSProcessInfo processInfo] environment]
+                objectForKey: @"PATHEXT"]
+                componentsSeparatedByString: @";"] objectEnumerator];
+
+              m = [NSMutableSet set];
+              while (nil != (s = [e nextObject]))
+                {
+                  /* We don't have a '.' in a file extension, but the
+                   * environment variable probably does ... fix it.
+                   */
+                  s = [s stringByTrimmingSpaces];
+                  if ([s hasPrefix: @"."])
+                    {
+                      s = [s substringFromIndex: 1];
+                    }
+                  if ([s length] > 0)
+                    {
+                      [m addObject: s];
+                    }
+                }
+              /* Make sure we at least have the EXE extension.
+               */
+              [m addObject: @"EXE"];
+              ASSIGNCOPY(executable, m);
+            }
+
+          if (nil != [executable member: ext])
+            {
+              return YES;
+            }
 	}
       /* FIXME: On unix, directory accessible == executable, so we simulate that
       here for Windows. Is there a better check for directory access? */
