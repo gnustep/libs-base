@@ -307,28 +307,56 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	    {
 	      NSString	*extension = [path pathExtension];
 
-	      /* Also add common executable extensions on windows */
-	      if (extension == nil || [extension length] == 0)
+	      /* Also try adding any executable extensions on windows
+               */
+	      if ([extension length] == 0)
 		{
-		  NSString *wpath;
+                  static NSSet  *executable = nil;
+		  NSString      *wpath;
+                  NSEnumerator  *e;
+                  NSString      *s;
 
-		  wpath = [prefix stringByAppendingPathExtension: @"exe"];
-		  if ([mgr isExecutableFileAtPath: wpath])
-		    {
-		      result = [wpath stringByStandardizingPath];
-		      break;
-		    }
-		  wpath = [prefix stringByAppendingPathExtension: @"com"];
-		  if ([mgr isExecutableFileAtPath: wpath])
-		    {
-		      result = [wpath stringByStandardizingPath];
-		      break;
-		    }
-		  wpath = [prefix stringByAppendingPathExtension: @"cmd"];
-		  if ([mgr isExecutableFileAtPath: wpath])
-		    {
-		      result = [wpath stringByStandardizingPath];
-		      break;
+                  if (nil == executable)
+                    {
+                      NSMutableSet      *m;
+
+                      /* Get PATHEXT environment variable and split apart on ';'
+                       */
+                      e = [[[[[NSProcessInfo processInfo] environment]
+                        objectForKey: @"PATHEXT"]
+                        componentsSeparatedByString: @";"] objectEnumerator];
+
+                      m = [NSMutableSet set];
+                      while (nil != (s = [e nextObject]))
+                        {
+                          /* We don't have a '.' in a file extension, but the
+                           * environment variable probably does ... fix it.
+                           */
+                          s = [s stringByTrimmingSpaces];
+                          if ([s hasPrefix: @"."])
+                            {
+                              s = [s substringFromIndex: 1];
+                            }
+                          if ([s length] > 0)
+                            {
+                              [m addObject: s];
+                            }
+                        }
+                      /* Make sure we at least have the EXE extension.
+                       */
+                      [m addObject: @"EXE"];
+                      ASSIGNCOPY(executable, m);
+                    }
+
+                  e = [executable objectEnumerator];
+                  while (nil != (s = [e nextObject]))
+                    {
+                      wpath = [prefix stringByAppendingPathExtension: s];
+                      if ([mgr isExecutableFileAtPath: wpath])
+                        {
+                          result = [wpath stringByStandardizingPath];
+                          break;
+                        }
 		    }
 		}
 	    }
