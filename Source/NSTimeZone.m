@@ -2543,7 +2543,7 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
   else
     {
       if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
-          L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
+          L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones",
           0,
           KEY_READ,
           &regDirKey))
