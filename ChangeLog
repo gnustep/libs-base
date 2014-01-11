@@ -1,3 +1,12 @@
+2014-01-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPathUtilities.m: The NSDeveloperDirectory key is deprecated
+	on OSX, but lets use it for the development system root.
+	On windows systems with the GNUstep development packages installed
+	this will point to the location at which those packages are installed.
+	In other cases (no specific development environment installed) the
+	system root directory is returned.
+
 2014-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m:

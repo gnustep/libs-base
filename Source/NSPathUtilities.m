@@ -2185,21 +2185,12 @@ if (domainMask & mask) \
 
       case NSDeveloperApplicationDirectory:
 	{
+	  /* Deprecated key ... for now just point to normal apps.
+	   */
 	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserApps);
 	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalApps);
 	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkApps);
 	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemApps);
-
-	  /* I imagine if ever wanted a separate Developer directory, the
-	   * only way for this to have some meaning across filesystems
-	   * would be as a subdirectory of Applications, as follows.
-	   */
-	  /*
-	    ADD_PATH(NSUserDomainMask, gnustepUserApps, @"Developer");
-	    ADD_PATH(NSLocalDomainMask, gnustepLocalApps, @"Developer");
-	    ADD_PATH(NSNetworkDomainMask, gnustepNetworkApps, @"Developer");
-	    ADD_PATH(NSSystemDomainMask, gnustepSystemApps, @"Developer");
-	  */
 	}
 	break;
 
@@ -2238,13 +2229,68 @@ if (domainMask & mask) \
 
       case NSDeveloperDirectory:
 	{
-	  /* The only way of having a Developer directory is as a
-	   * sub-dir of Library.
+	  static NSString	*root = nil;
+
+#if	defined(__MINGW__)
+	  HKEY			regKey;
+	  BOOL			found = NO;
+
+	  /* Open the key in the current user or local machine hive where
+	   * the application path for GNUstep is stored.
 	   */
-	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Developer");
-	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"Developer");
-	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"Developer");
-	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"Developer");
+	  if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER,
+	    L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
+	    0,
+	    KEY_READ,
+	    &regKey))
+	    {
+	      found = YES;
+	    }
+	  else
+	    {
+	      if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+		L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
+		0,
+		KEY_READ,
+		&regKey))
+		{
+		  found = YES;
+		}
+	    }
+
+	  if (found)
+	    {
+	      wchar_t buf[1024];
+	      DWORD bufsize;
+	      DWORD type;
+
+	      bufsize = sizeof(buf);
+	      if (ERROR_SUCCESS == RegQueryValueExW(regKey,
+		0, 0, &type, (BYTE *)buf, &bufsize))
+		{
+		  root = [[NSString alloc] initWithCharacters: buf
+		    length: wcslen(buf)];
+		}
+
+	      RegCloseKey(regKey);
+	    }			       
+#endif
+	  if (nil == root)
+	    {
+	      root = RETAIN(NSOpenStepRootDirectory());
+	    }
+
+	  /* The Developer directory is deprecated on OSX, but for GNUstep
+	   * specific apps we return the root of the system containing the
+	   * development environment.  On most systems, that's the root
+	   * directory, but on windows with the GNUstep package installed,
+	   * it's the location of the GNUstep package installation containing
+	   * mingw and msys.
+	   */
+	  ADD_PLATFORM_PATH(NSUserDomainMask, root);
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, root);
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, root);
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, root);
 	}
 	break;
 
