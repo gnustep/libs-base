@@ -110,10 +110,10 @@ enum
 {
   NSApplicationDirectory = 1,		/** Applications */
   NSDemoApplicationDirectory,		/** Demos */
-  NSDeveloperApplicationDirectory,	/** Developer/Applications */
+  NSDeveloperApplicationDirectory,	/** Deprecated */
   NSAdminApplicationDirectory,		/** Administration */
   NSLibraryDirectory,			/** Library */
-  NSDeveloperDirectory,			/** Developer */
+  NSDeveloperDirectory,			/** Developer (deprecated on OSX). */
   NSUserDirectory,			/** user home directories */
   NSDocumentationDirectory,		/** Documentation */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
