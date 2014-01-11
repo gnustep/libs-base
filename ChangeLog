@@ -1,3 +1,13 @@
+2014-01-11  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Source/GSMDNSNetServices.m: minor fixes - does now properly compile
+	on Windows, too.
+	NOTE:
+	If you want to link against Apple's Bonjour SDK on Windows, you have
+	to convert the dnssd.lib from MSVC/__stdcall format to GCC/__cdecl
+	and provide the result as libdns_sd.a. Also, DNSSD_API in dns_sd.h
+	needs to be defined empty.
+
 2014-01-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPathUtilities.m: The NSDeveloperDirectory key is deprecated
