@@ -38,12 +38,7 @@
 
 #import <dns_sd.h>		// Apple's DNS Service Discovery
 
-#import <sys/select.h>
-#import <sys/types.h>
-#import <sys/socket.h>		// AF_INET / AF_INET6
-
-#import <netinet/in.h>		// struct sockaddr_in / sockaddr_in6
-#import <arpa/inet.h>		// inet_pton(3)
+#import "GSNetwork.h"
 
 //
 // Define
@@ -2794,7 +2789,7 @@ ConvertError(int errorCode)
  *
  */
 
-static void
+static void DNSSD_API
 EnumerationCallback(DNSServiceRef sdRef,
                       DNSServiceFlags flags,
                       uint32_t interfaceIndex,
@@ -2816,7 +2811,7 @@ EnumerationCallback(DNSServiceRef sdRef,
  *
  */
 
-static void
+static void DNSSD_API
 BrowserCallback(DNSServiceRef sdRef,
                   DNSServiceFlags flags,
                   uint32_t interfaceIndex,
@@ -2842,7 +2837,7 @@ BrowserCallback(DNSServiceRef sdRef,
  *
  */
 
-static void
+static void DNSSD_API
 ResolverCallback(DNSServiceRef sdRef,
                    DNSServiceFlags flags,
                    uint32_t interfaceIndex,
@@ -2872,7 +2867,7 @@ ResolverCallback(DNSServiceRef sdRef,
  *
  */
 
-static void
+static void DNSSD_API
 RegistrationCallback(DNSServiceRef sdRef,
                        DNSServiceFlags flags,
                        DNSServiceErrorType errorCode,
@@ -2896,7 +2891,7 @@ RegistrationCallback(DNSServiceRef sdRef,
  *
  */
 
-static void
+static void DNSSD_API
 QueryCallback(DNSServiceRef sdRef,
                 DNSServiceFlags flags,
                 uint32_t interfaceIndex,
