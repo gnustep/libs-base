@@ -2261,9 +2261,10 @@ if (domainMask & mask) \
 #if	defined(__MINGW__)
           if (nil == root)
             {
-              NSString              *installation = nil;
-              NSString              *path = nil;
-              NSFileManager	    *mgr;
+              NSString          *installation = nil;
+              NSString          *path = nil;
+              NSFileManager	*mgr;
+	      BOOL 		isDir;
 
               mgr = [NSFileManager defaultManager];
 
@@ -2279,7 +2280,6 @@ if (domainMask & mask) \
                 {
                   HKEY	regKey;
                   BOOL	found = NO;
-                  BOOL      isDir;
 
                   /* Open the key for the current user or local machine where
                    * the installation path for the GNUstep package is stored.
@@ -2344,7 +2344,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 
                       while (nil != (file = [e nextObject]))
                         {
-                          if (isdigit([file characterAtIndex: 0])
+                          if (isdigit([file characterAtIndex: 0]))
                             {
                               float v = atof([file UTF8String]);
 
