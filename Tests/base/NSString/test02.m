@@ -12,6 +12,8 @@ int main()
   char *testPath = NULL;
   char *resultPath = NULL;
 
+NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory, NSAllDomainsMask, YES));
+
   PASS([[[@"home" pathComponents] objectAtIndex:0] isEqual: @"home"],
        "[@\"home\" pathComponents] == @\"home\"]");
   
