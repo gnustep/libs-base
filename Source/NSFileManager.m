@@ -1701,7 +1701,6 @@ static NSStringEncoding	defaultEncoding;
               [m addObject: @"EXE"];
               ASSIGNCOPY(executable, m);
             }
-
           if (nil != [executable member: ext])
             {
               return YES;

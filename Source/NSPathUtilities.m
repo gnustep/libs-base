@@ -2092,8 +2092,8 @@ NSOpenStepRootDirectory(void)
 
 #if	defined(__MINGW__)
 /* The developer root on a windows system (where we have an msys environment
- * set up) is the point in the filesystem where we can reference both
- * bin/make and usr/bin/make ... a simple heuristic to let us find the
+ * set up) is the point in the filesystem where we can reference bin/make
+ * bin/make from msys/version ... a simple heuristic to let us find the
  * native windows path to the msys root.
  */
 static NSString*
@@ -2103,16 +2103,47 @@ devroot(NSFileManager *manager, NSString *path)
 
   while (NO == [tmp isEqual: path])
     {
-      if ([manager isExecutableFileAtPath:
-        [path stringByAppendingPathComponent: @"bin/make.exe"]]
-        && [manager isExecutableFileAtPath:
-          [path stringByAppendingPathComponent: @"usr/bin/make.exe"]])
-        {
-          return path;
-        }
+      NSString	*msys;
+      BOOL 	isDir;
+
+      msys = [path stringByAppendingPathComponent: @"msys"];
+      if (YES == [manager fileExistsAtPath: msys isDirectory: &isDir]
+	&& YES == isDir)
+	{
+	  NSEnumerator  *e;
+	  NSString      *best = nil;
+	  NSString      *file;
+	  float         maxVersion = 0.0;
+
+	  e = [[manager directoryContentsAtPath: msys] objectEnumerator];
+	  while (nil != (file = [e nextObject]))
+	    {
+	      if (isdigit([file characterAtIndex: 0]))
+		{
+		  NSString	*pb;
+		  float 	v = atof([file UTF8String]);
+
+		  if (v <= maxVersion)
+		    {
+		      continue;
+		    }
+		  file = [msys stringByAppendingPathComponent: file];
+		  pb = [file stringByAppendingPathComponent: @"bin/make.exe"];
+		  if ([manager isExecutableFileAtPath: pb])
+		    {
+		      best = file;
+		    }
+		}
+	    }
+	  if (nil != best)
+	    {
+	      return [best stringByStandardizingPath];
+	    }
+	}
       tmp = path;
       path = [tmp stringByDeletingLastPathComponent];
     }
+
   return nil;
 }
 #endif
@@ -2261,10 +2292,8 @@ if (domainMask & mask) \
 #if	defined(__MINGW__)
           if (nil == root)
             {
-              NSString          *installation = nil;
               NSString          *path = nil;
               NSFileManager	*mgr;
-	      BOOL 		isDir;
 
               mgr = [NSFileManager defaultManager];
 
@@ -2313,57 +2342,11 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
                       if (ERROR_SUCCESS == RegQueryValueExW(regKey,
                         0, 0, &type, (BYTE *)buf, &bufsize))
                         {
-                          installation = [NSString stringWithCharacters: buf
+                          path = [NSString stringWithCharacters: buf
                             length: wcslen(buf)];
+			  path = devroot(mgr, path);
                         }
                       RegCloseKey(regKey);
-                    }
-                }
-
-              if (nil == path && nil != installation)
-                {
-                  /* The path to the msys filesystem within the installation
-                   * directory is (at the time of writing) msys/1.0
-                   * For future versions of msys we expect the version number
-                   * to change, so the following code looks for the highest
-                   * version number it can find.
-                   */
-                  path = [installation stringByAppendingPathComponent: @"msys"];
-                  if (nil == path
-                    || NO == [mgr fileExistsAtPath: path isDirectory: &isDir]
-                    || NO == isDir)
-                    {
-                      path = nil;
-                    }
-                  else
-                    {
-                      NSEnumerator  *e = [mgr enumeratorAtPath: path];
-                      NSString      *best = nil;
-                      NSString      *file;
-                      float         maxVersion = 0.0;
-
-                      while (nil != (file = [e nextObject]))
-                        {
-                          if (isdigit([file characterAtIndex: 0]))
-                            {
-                              float v = atof([file UTF8String]);
-
-                              if (v <= maxVersion)
-                                {
-                                  continue;
-                                }
-                              file = devroot(mgr,
-                                [path stringByAppendingPathComponent: file]);
-                              if (nil != file)
-                                {
-                                  best = file;
-                                }
-                            }
-                        }
-                      if (nil != file)
-                        {
-                          path = file;
-                        }
                     }
                 }
               ASSIGNCOPY(root, path);
