@@ -2303,10 +2303,13 @@ if (domainMask & mask) \
                */
               path = devroot(mgr, gnustepSystemTools);
 
-              /* Failing that, try looking above the base library.
-               */
-              path = devroot(mgr,
-		[[NSBundle bundleForLibrary: @"gnustep-base"] bundlePath]);
+	      /* Failing that, try looking above the base library.
+	       */
+	      if (nil == path)
+		{
+		  path = devroot(mgr,
+		    [[NSBundle bundleForLibrary: @"gnustep-base"] bundlePath]);
+		}
 
               /* If we havent found the developer area relative to the
 	       * hierarchy used by the current process, look for the
