@@ -2316,6 +2316,7 @@ if (domainMask & mask) \
               NSString          *path = nil;
 	      NSString		*bpath = nil;
 	      NSString		*ipath = nil;
+	      NSString		*mpath = nil;
               NSFileManager	*mgr;
 
               mgr = [NSFileManager defaultManager];
@@ -2386,17 +2387,19 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
                       RegCloseKey(regKey);
                     }
                 }
+              if (nil == path)
+                {
+		  mpath = [NSBundle _absolutePathOfExecutable: @"make.exe"];
+		  if (nil != mpath)
+		    {
+		      path = devroot(mgr, mpath);
+		    }
+		}
               ASSIGNCOPY(root, path);
 	      if (nil == root)
 		{
-		  if (nil == ipath)
-		    {
-		      NSLog(@"Failed to locate NSDeveloperDirectory above system tools at %@, or base library at %@, and failed to find any installed GNUstep package.", gnustepSystemTools, bpath);
-		    }
-		  else
-		    {
-		      NSLog(@"Failed to locate NSDeveloperDirectory above system tools at %@, or base library at %@, or installed package at %@", gnustepSystemTools, bpath, ipath);
-		    }
+	          NSLog(@"Failed to locate NSDeveloperDirectory by GNUstep configuration, installed GNUstep package, or process PATH.");
+
 		}
             }
 #endif

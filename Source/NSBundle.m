@@ -621,17 +621,6 @@ _find_main_bundle_for_tool(NSString *toolName)
 }
 
 
-
-@interface NSBundle (Private)
-+ (NSString *) _absolutePathOfExecutable: (NSString *)path;
-+ (NSBundle*) _addFrameworkFromClass: (Class)frameworkClass;
-+ (NSMutableArray*) _addFrameworks;
-+ (NSString*) _gnustep_target_cpu;
-+ (NSString*) _gnustep_target_dir;
-+ (NSString*) _gnustep_target_os;
-+ (NSString*) _library_combo;
-@end
-
 @implementation NSBundle (Private)
 
 + (NSString *) _absolutePathOfExecutable: (NSString *)path
