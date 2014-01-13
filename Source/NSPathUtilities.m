@@ -2093,9 +2093,8 @@ NSOpenStepRootDirectory(void)
 
 #if	defined(__MINGW__)
 /* The developer root on a windows system (where we have an msys environment
- * set up) is the point in the filesystem where we can reference bin/make
- * bin/make from msys/version ... a simple heuristic to let us find the
- * native windows path to the msys root.
+ * set up) is the point in the filesystem where we can reference bin/make ...
+ * simple heuristic to let us find the native windows path to the msys root.
  */
 static NSString*
 devroot(NSFileManager *manager, NSString *path)
@@ -2104,47 +2103,68 @@ devroot(NSFileManager *manager, NSString *path)
 
   while (NO == [tmp isEqual: path])
     {
-      NSString	*msys;
-      BOOL 	isDir;
+      NSString	*pb;
 
-      msys = [path stringByAppendingPathComponent: @"msys"];
-      if (YES == [manager fileExistsAtPath: msys isDirectory: &isDir]
-	&& YES == isDir)
+      pb = [path stringByAppendingPathComponent: @"bin/make.exe"];
+      if ([manager isExecutableFileAtPath: pb])
 	{
-	  NSEnumerator  *e;
-	  NSString      *best = nil;
-	  NSString      *file;
-	  float         maxVersion = 0.0;
-
-	  e = [[manager directoryContentsAtPath: msys] objectEnumerator];
-	  while (nil != (file = [e nextObject]))
-	    {
-	      if (isdigit([file characterAtIndex: 0]))
-		{
-		  NSString	*pb;
-		  float 	v = atof([file UTF8String]);
-
-		  if (v <= maxVersion)
-		    {
-		      continue;
-		    }
-		  file = [msys stringByAppendingPathComponent: file];
-		  pb = [file stringByAppendingPathComponent: @"bin/make.exe"];
-		  if ([manager isExecutableFileAtPath: pb])
-		    {
-		      best = file;
-		    }
-		}
-	    }
-	  if (nil != best)
-	    {
-	      return [best stringByStandardizingPath];
-	    }
+	  return path;
 	}
       tmp = path;
       path = [tmp stringByDeletingLastPathComponent];
     }
 
+  return nil;
+}
+
+/* Like devroot(), but also checks for msys/version subdirectories
+ * as found inside the GNUstep windows package installations.
+ */
+static NSString*
+idevroot(NSFileManager *manager, NSString *path)
+{
+  NSString	*pb;
+  NSString	*tmp;
+  NSString	*msys;
+  BOOL 		isDir;
+
+  if (nil != (tmp = devroot(manager, path)))
+    {
+      return tmp;
+    }
+  msys = [path stringByAppendingPathComponent: @"msys"];
+  if (YES == [manager fileExistsAtPath: msys isDirectory: &isDir]
+    && YES == isDir)
+    {
+      NSEnumerator  *e;
+      NSString      *best = nil;
+      NSString      *file;
+      float         maxVersion = 0.0;
+
+      e = [[manager directoryContentsAtPath: msys] objectEnumerator];
+      while (nil != (file = [e nextObject]))
+	{
+	  if (isdigit([file characterAtIndex: 0]))
+	    {
+	      float 	v = atof([file UTF8String]);
+
+	      if (v <= maxVersion)
+		{
+		  continue;
+		}
+	      file = [msys stringByAppendingPathComponent: file];
+	      pb = [file stringByAppendingPathComponent: @"bin/make.exe"];
+	      if ([manager isExecutableFileAtPath: pb])
+		{
+		  best = file;
+		}
+	    }
+	}
+      if (nil != best)
+	{
+	  return [best stringByStandardizingPath];
+	}
+    }
   return nil;
 }
 #endif
@@ -2360,7 +2380,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
                         {
                           ipath = [NSString stringWithCharacters: buf
                             length: wcslen(buf)];
-			  path = devroot(mgr, ipath);
+
+			  path = idevroot(mgr, ipath);
                         }
                       RegCloseKey(regKey);
                     }
