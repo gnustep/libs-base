@@ -27,6 +27,7 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSSet.h"
+#import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
 @implementation	NSTask (GNUstepBase)
