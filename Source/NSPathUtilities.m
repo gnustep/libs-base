@@ -63,6 +63,7 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSProcessInfo.h"
@@ -2297,13 +2298,20 @@ if (domainMask & mask) \
 
               mgr = [NSFileManager defaultManager];
 
-              /* First see if we can find the developer root above the sytem
-               * tools directory of the current running process.
+              /* First see if we can find the developer root above the
+               * system tools directory of the current running process.
                */
               path = devroot(mgr, gnustepSystemTools);
 
-              /* If we havent found the developer area relative to the current
-               * process, look for the GNUstep package installation root.
+              /* Failing that, try looking above the base library.
+               */
+              path = devroot(mgr,
+		[[NSBundle bundleForLibrary: @"gnustep-base"] bundlePath]);
+
+              /* If we havent found the developer area relative to the
+	       * hierarchy used by the current process, look for the
+	       * GNUstep package installation root in case we have the
+	       * developer environment installed from a package.
                */
               if (nil == path)
                 {
