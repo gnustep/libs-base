@@ -1,3 +1,9 @@
+2014-01-13  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Source/NSString.m: absolute paths on __MINGW__ can also start
+	with "/" if GSPathHandlingRight() is YES, otherwise GNUstep config
+	paths can't be used during startup.
+
 2014-01-11  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Source/GSMDNSNetServices.m: minor fixes - does now properly compile
