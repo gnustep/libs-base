@@ -2294,6 +2294,8 @@ if (domainMask & mask) \
           if (nil == root)
             {
               NSString          *path = nil;
+	      NSString		*bpath = nil;
+	      NSString		*ipath = nil;
               NSFileManager	*mgr;
 
               mgr = [NSFileManager defaultManager];
@@ -2307,8 +2309,11 @@ if (domainMask & mask) \
 	       */
 	      if (nil == path)
 		{
-		  path = devroot(mgr,
-		    [[NSBundle bundleForLibrary: @"gnustep-base"] bundlePath]);
+		  NSBundle	*baseBundle;
+
+		  baseBundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+		  bpath = [baseBundle bundlePath];
+		  path = devroot(mgr, bpath);
 		}
 
               /* If we havent found the developer area relative to the
@@ -2353,14 +2358,25 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
                       if (ERROR_SUCCESS == RegQueryValueExW(regKey,
                         0, 0, &type, (BYTE *)buf, &bufsize))
                         {
-                          path = [NSString stringWithCharacters: buf
+                          ipath = [NSString stringWithCharacters: buf
                             length: wcslen(buf)];
-			  path = devroot(mgr, path);
+			  path = devroot(mgr, ipath);
                         }
                       RegCloseKey(regKey);
                     }
                 }
               ASSIGNCOPY(root, path);
+	      if (nil == root)
+		{
+		  if (nil == ipath)
+		    {
+		      NSLog(@"Failed to locate NSDeveloperDirectory above system tools at %@, or base library at %@, and failed to find any installed GNUstep package.", gnustepSystemTools, bpath);
+		    }
+		  else
+		    {
+		      NSLog(@"Failed to locate NSDeveloperDirectory above system tools at %@, or base library at %@, or installed package at %@", gnustepSystemTools, bpath, ipath);
+		    }
+		}
             }
 #endif
 	  if (nil == root)
