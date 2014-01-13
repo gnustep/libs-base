@@ -52,6 +52,7 @@
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSTask+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
@@ -318,34 +319,7 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 
                   if (nil == executable)
                     {
-                      NSMutableSet      *m;
-
-                      /* Get PATHEXT environment variable and split apart on ';'
-                       */
-                      e = [[[[[NSProcessInfo processInfo] environment]
-                        objectForKey: @"PATHEXT"]
-                        componentsSeparatedByString: @";"] objectEnumerator];
-
-                      m = [NSMutableSet set];
-                      while (nil != (s = [e nextObject]))
-                        {
-                          /* We don't have a '.' in a file extension, but the
-                           * environment variable probably does ... fix it.
-                           */
-                          s = [s stringByTrimmingSpaces];
-                          if ([s hasPrefix: @"."])
-                            {
-                              s = [s substringFromIndex: 1];
-                            }
-                          if ([s length] > 0)
-                            {
-                              [m addObject: s];
-                            }
-                        }
-                      /* Make sure we at least have the EXE extension.
-                       */
-                      [m addObject: @"EXE"];
-                      ASSIGNCOPY(executable, m);
+                      executable = [[NSTask executableExtensions] copy];
                     }
 
                   e = [executable objectEnumerator];

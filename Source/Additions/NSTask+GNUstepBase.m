@@ -26,34 +26,83 @@
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSSet.h"
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
 @implementation	NSTask (GNUstepBase)
+
++ (NSSet*) executableExtensions
+{
+  static NSSet  *executable = nil;
+
+#if defined(__MINGW__)
+  if (nil == executable)
+    {
+      NSMutableSet      *m;
+      NSEnumerator      *e;
+      NSString          *s;
+
+      /* Get PATHEXT environment variable and split apart on ';'
+       */
+      e = [[[[[NSProcessInfo processInfo] environment]
+        objectForKey: @"PATHEXT"]
+        componentsSeparatedByString: @";"] objectEnumerator];
+
+      m = [NSMutableSet set];
+      while (nil != (s = [e nextObject]))
+        {
+          /* We don't have a '.' in a file extension, but the
+           * environment variable probably does ... fix it.
+           */
+          s = [s stringByTrimmingSpaces];
+          if ([s hasPrefix: @"."])
+            {
+              s = [s substringFromIndex: 1];
+            }
+          if ([s length] > 0)
+            {
+              [m addObject: s];
+            }
+        }
+      /* Make sure we at least have the EXE extension.
+       */
+      [m addObject: @"EXE"];
+      ASSIGNCOPY(executable, m);
+    }
+#endif
+  return executable;
+}
 
 static	NSString*
 executablePath(NSFileManager *mgr, NSString *path)
 {
 #if defined(__MINGW__)
-  NSString	*tmp;
+  NSString	*tmp = [path pathExtension];
 
-  if ([mgr isExecutableFileAtPath: path])
+  if ([tmp length] == 0)
     {
-      return path;
+      NSEnumerator      *e = [[NSTask executableExtensions] objectEnumerator];
+      NSString          *ext = @"EXE";
+
+      /* Try 'EXE' first, but otherwise iterate through all available
+       * extensions to find an executable path.
+       */
+      do
+        {
+          tmp = [path stringByAppendingPathExtension: ext];
+          if ([mgr isExecutableFileAtPath: path])
+            {
+              return path;
+            }
+        }
+      while (nil != (ext = [e nextObject]));
     }
-  tmp = [path stringByAppendingPathExtension: @"exe"];
-  if ([mgr isExecutableFileAtPath: tmp])
+  else
     {
-      return tmp;
-    }
-  tmp = [path stringByAppendingPathExtension: @"com"];
-  if ([mgr isExecutableFileAtPath: tmp])
-    {
-      return tmp;
-    }
-  tmp = [path stringByAppendingPathExtension: @"cmd"];
-  if ([mgr isExecutableFileAtPath: tmp])
-    {
-      return tmp;
+      if ([mgr isExecutableFileAtPath: path])
+        {
+          return path;
+        }
     }
 #else
   if ([mgr isExecutableFileAtPath: path])
@@ -62,6 +111,11 @@ executablePath(NSFileManager *mgr, NSString *path)
     }
 #endif
   return nil;
+}
+
++ (NSString*) executablePath: (NSString*)aPath
+{
+  return executablePath([NSFileManager defaultManager], aPath);
 }
 
 + (NSString*) launchPathForTool: (NSString*)name

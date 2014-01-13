@@ -45,6 +45,7 @@
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSLock.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSTask+GNUstepBase.h"
 #import "GSPrivate.h"
 
 #include <sys/types.h>
@@ -771,17 +772,6 @@ pty_slave(const char* name)
   arch_path = [arch_path stringByAppendingPathComponent: os];
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
-#ifdef	__MINGW__
-  /* As a convenience on windows, if the program was supplied without
-   * an extension (which means it can't be executable) try using the
-   * most common extension.
-   */
-  if ([[prog pathExtension] length] == 0)
-    {
-      prog = [prog stringByAppendingPathExtension: @"exe"];
-    }
-#endif
-
   lpath = [full_path stringByAppendingPathComponent: prog];
   if ([mgr isExecutableFileAtPath: lpath] == NO)
     {
@@ -812,8 +802,12 @@ pty_slave(const char* name)
     }
   if (lpath != nil)
     {
-      /*
-       * Make sure we have a standardised absolute path to pass to execve()
+      /* Fix up path by adding any extension required on systems like
+       * mswindows which don't work by file permission.
+       */
+      lpath = [NSTask executablePath: lpath];
+
+      /* Make sure we have a standardised absolute path to pass to execve()
        */
       if ([lpath isAbsolutePath] == NO)
 	{
@@ -823,12 +817,6 @@ pty_slave(const char* name)
 	}
       lpath = [lpath stringByStandardizingPath];
     }
-#ifdef	__MINGW__
-  /** We need this to be native windows format, and some of the standardisation
-   * above may have left unix style separators in the string.
-   */
-  lpath = [lpath stringByReplacingString: @"/" withString: @"\\"];
-#endif
   return lpath;
 }
 
