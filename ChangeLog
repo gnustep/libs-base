@@ -1,3 +1,8 @@
+2014-01-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Revert last change to get -isAbsolutePath working
+	on mingw again ... need to analyse startup problem.
+
 2014-01-13  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Source/NSString.m: absolute paths on __MINGW__ can also start
