@@ -26,6 +26,7 @@
 
 #include <errno.h>
 
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSError.h"
 
 @class	_GSInsensitiveDictionary;
@@ -240,6 +241,16 @@ typedef enum {
 } GSUserDefaultFlagType;
 
 
+
+@interface NSBundle (Private)
++ (NSString *) _absolutePathOfExecutable: (NSString *)path;
++ (NSBundle*) _addFrameworkFromClass: (Class)frameworkClass;
++ (NSMutableArray*) _addFrameworks;
++ (NSString*) _gnustep_target_cpu;
++ (NSString*) _gnustep_target_dir;
++ (NSString*) _gnustep_target_os;
++ (NSString*) _library_combo;
+@end
 
 /**
  * This class exists simply as a mechanism for encapsulating arrays
