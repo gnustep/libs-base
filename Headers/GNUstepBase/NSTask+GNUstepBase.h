@@ -36,6 +36,18 @@ extern "C" {
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 @interface	NSTask (GNUstepBase)
+/** Returns the set of extensions known to indicate an executable file
+ * type on systems which require that (currently mswindows).
+ */
++ (NSSet*) executableExtensions;
+
+/** Checks the specified file to see if it is executable or if by
+ * appending one of the +executableExtensions it can be made executable.
+ * The return value is the actual executable path or nil if the file
+ * cannot be executed.
+ */
++ (NSString*) executablePath: (NSString*)aFile;
+
 /** Returns the launch path for a tool given the name of a tool.<br />
  * Locates the tool by looking in the standard directories and,
  * if not found there, looking in the PATH set in the environment.<br />
