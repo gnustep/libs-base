@@ -5044,7 +5044,7 @@ static NSFileManager *fm = nil;
   if (c == pathSepChar())
     {
 #if defined(__MINGW__)
-      if ((GSPathHandlingUnix() == YES) || (GSPathHandlingRight() == YES))
+      if (GSPathHandlingUnix() == YES)
 	{
 	  return YES;
 	}
