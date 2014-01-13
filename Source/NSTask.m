@@ -733,7 +733,6 @@ pty_slave(const char* name)
  */
 - (NSString*) validatedLaunchPath
 {
-  NSFileManager	*mgr;
   NSString	*libs;
   NSString	*cpu;
   NSString	*os;
@@ -748,7 +747,6 @@ pty_slave(const char* name)
       return nil;
     }
 
-  mgr = [NSFileManager defaultManager];
   libs = [NSBundle _library_combo];
   os = [NSBundle _gnustep_target_os];
   cpu = [NSBundle _gnustep_target_cpu];
@@ -773,13 +771,13 @@ pty_slave(const char* name)
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
   lpath = [full_path stringByAppendingPathComponent: prog];
-  if ([mgr isExecutableFileAtPath: lpath] == NO)
+  if (nil == (lpath = [NSTask executablePath: lpath]))
     {
       lpath = [arch_path stringByAppendingPathComponent: prog];
-      if ([mgr isExecutableFileAtPath: lpath] == NO)
+      if (nil == (lpath = [NSTask executablePath: lpath]))
 	{
 	  lpath = [base_path stringByAppendingPathComponent: prog];
-	  if ([mgr isExecutableFileAtPath: lpath] == NO)
+	  if (nil == (lpath = [NSTask executablePath: lpath]))
 	    {
 	      /*
 	       * Last resort - if the launch path was simply a program name
@@ -792,30 +790,29 @@ pty_slave(const char* name)
 		}
 	      if (lpath != nil)
 		{
-		  if ([mgr isExecutableFileAtPath: lpath] == NO)
-		    {
-		      lpath = nil;
-		    }
+		  lpath = [NSTask executablePath: lpath];
 		}
 	    }
 	}
     }
   if (lpath != nil)
     {
-      /* Fix up path by adding any extension required on systems like
-       * mswindows which don't work by file permission.
-       */
-      lpath = [NSTask executablePath: lpath];
-
       /* Make sure we have a standardised absolute path to pass to execve()
        */
       if ([lpath isAbsolutePath] == NO)
 	{
-	  NSString	*current = [mgr currentDirectoryPath];
+	  NSString	*current;
 
+	  current = [[NSFileManager defaultManager] currentDirectoryPath];
 	  lpath = [current stringByAppendingPathComponent: lpath];
 	}
       lpath = [lpath stringByStandardizingPath];
+#if	defined(__MINGW__)
+      if ([lpath rangeOfString: @"/"].length > 0)
+	{
+	  lpath = [lpath stringByReplacingString: @"/" withString: @"\\"];
+	}
+#endif
     }
   return lpath;
 }

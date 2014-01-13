@@ -82,8 +82,13 @@ executablePath(NSFileManager *mgr, NSString *path)
 
   if ([tmp length] == 0)
     {
-      NSEnumerator      *e = [[NSTask executableExtensions] objectEnumerator];
-      NSString          *ext = @"EXE";
+      NSSet     	*exts;
+      NSString		*ext;
+      NSEnumerator	*e;
+
+      exts = [NSTask executableExtensions];
+      e = [exts objectEnumerator];
+      ext = @"EXE";
 
       /* Try 'EXE' first, but otherwise iterate through all available
        * extensions to find an executable path.
@@ -91,9 +96,9 @@ executablePath(NSFileManager *mgr, NSString *path)
       do
         {
           tmp = [path stringByAppendingPathExtension: ext];
-          if ([mgr isExecutableFileAtPath: path])
+          if ([mgr isExecutableFileAtPath: tmp])
             {
-              return path;
+              return tmp;
             }
         }
       while (nil != (ext = [e nextObject]));
