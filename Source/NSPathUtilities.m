@@ -200,6 +200,8 @@ static NSString *gnustepUserDocumentation = nil;
 static NSString *gnustepUserDocumentationInfo = nil;
 static NSString *gnustepUserDocumentationMan = nil;
 
+static NSString	*gnustepDeveloperDir = nil;
+
 /* These are the same as the corresponding User variables, but
  * they hold the path before GNUSTEP_HOME is prepended.  It's what
  * we read from config files.
@@ -396,7 +398,7 @@ getPathConfig(NSDictionary *dict, NSString *key)
 	  NSLog(@"GNUstep configuration file entry '%@' ('%@') is not "
 	    @"an absolute path.  Please fix your configuration file",
 	    key, [dict objectForKey: key]);
-#if	defined(__MINGW32_)
+#if	defined(__MINGW_)
 	  if ([path length] > 2)
 	    {
 	      unichar	buf[3];
@@ -432,6 +434,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
 
   ASSIGN_PATH(gnustepMakefiles, c,
     @"GNUSTEP_MAKEFILES");
+
+  ASSIGN_PATH(gnustepDeveloperDir, c,
+    @"GNUSTEP_DEVELOPER_DIR");
 
   ASSIGN_PATH(gnustepSystemUsersDir, c,
     @"GNUSTEP_SYSTEM_USERS_DIR");
@@ -979,7 +984,7 @@ GNUstepConfig(NSDictionary *newConfig)
 			@"an absolute path.  Please rebuild GNUstep-base "
 			@"specifying a valid path to the config file.", file);
 		    }
-#if	defined(__MINGW32_)
+#if	defined(__MINGW_)
 		  if ([file length] > 2)
 		    {
 		      unichar	buf[3];
@@ -1253,6 +1258,8 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepLocalDocumentation);
   DESTROY(gnustepLocalDocumentationMan);
   DESTROY(gnustepLocalDocumentationInfo);
+
+  DESTROY(gnustepDeveloperDir);
 
   DESTROY(gnustepUserApps);
   DESTROY(gnustepUserAdminApps);
@@ -2093,8 +2100,8 @@ NSOpenStepRootDirectory(void)
 
 #if	defined(__MINGW__)
 /* The developer root on a windows system (where we have an msys environment
- * set up) is the point in the filesystem where we can reference bin/make ...
- * simple heuristic to let us find the native windows path to the msys root.
+ * set up) is the point in the filesystem where we can reference make.exe via
+ * msys/.../bin/.  That is, it's the windows path at which msys is installed.
  */
 static NSString*
 devroot(NSFileManager *manager, NSString *path)
@@ -2104,66 +2111,38 @@ devroot(NSFileManager *manager, NSString *path)
   while (NO == [tmp isEqual: path])
     {
       NSString	*pb;
+      NSString	*msys;
+      BOOL 	isDir;
 
-      pb = [path stringByAppendingPathComponent: @"bin/make.exe"];
-      if ([manager isExecutableFileAtPath: pb])
+      msys = [path stringByAppendingPathComponent: @"msys"];
+      if (YES == [manager fileExistsAtPath: msys isDirectory: &isDir]
+	&& YES == isDir)
 	{
-	  return path;
-	}
-      tmp = path;
-      path = [tmp stringByDeletingLastPathComponent];
-    }
+	  NSEnumerator  *e;
+	  NSString      *file;
 
-  return nil;
-}
-
-/* Like devroot(), but also checks for msys/version subdirectories
- * as found inside the GNUstep windows package installations.
- */
-static NSString*
-idevroot(NSFileManager *manager, NSString *path)
-{
-  NSString	*pb;
-  NSString	*tmp;
-  NSString	*msys;
-  BOOL 		isDir;
-
-  if (nil != (tmp = devroot(manager, path)))
-    {
-      return tmp;
-    }
-  msys = [path stringByAppendingPathComponent: @"msys"];
-  if (YES == [manager fileExistsAtPath: msys isDirectory: &isDir]
-    && YES == isDir)
-    {
-      NSEnumerator  *e;
-      NSString      *best = nil;
-      NSString      *file;
-      float         maxVersion = 0.0;
-
-      e = [[manager directoryContentsAtPath: msys] objectEnumerator];
-      while (nil != (file = [e nextObject]))
-	{
-	  if (isdigit([file characterAtIndex: 0]))
+	  e = [[manager directoryContentsAtPath: msys] objectEnumerator];
+	  while (nil != (file = [e nextObject]))
 	    {
-	      float 	v = atof([file UTF8String]);
+	      if (isdigit([file characterAtIndex: 0]))
+		{
+		  float 	v = atof([file UTF8String]);
 
-	      if (v <= maxVersion)
-		{
-		  continue;
-		}
-	      file = [msys stringByAppendingPathComponent: file];
-	      pb = [file stringByAppendingPathComponent: @"bin/make.exe"];
-	      if ([manager isExecutableFileAtPath: pb])
-		{
-		  best = file;
+		  if (v <= 0)
+		    {
+		      continue;
+		    }
+		  file = [msys stringByAppendingPathComponent: file];
+		  pb = [file stringByAppendingPathComponent: @"bin/make.exe"];
+		  if ([manager isExecutableFileAtPath: pb])
+		    {
+		      return path;
+		    }
 		}
 	    }
 	}
-      if (nil != best)
-	{
-	  return [best stringByStandardizingPath];
-	}
+      tmp = path;
+      path = [tmp stringByDeletingLastPathComponent];
     }
   return nil;
 }
@@ -2308,10 +2287,8 @@ if (domainMask & mask) \
 
       case NSDeveloperDirectory:
 	{
-	  static NSString	*root = nil;
-
 #if	defined(__MINGW__)
-          if (nil == root)
+          if (nil == gnustepDeveloperDir)
             {
               NSString          *path = nil;
 	      NSString		*bpath = nil;
@@ -2321,10 +2298,10 @@ if (domainMask & mask) \
 
               mgr = [NSFileManager defaultManager];
 
-              /* First see if we can find the developer root above the
+              /* See if we can find the developer root above the
                * system tools directory of the current running process.
                */
-              path = devroot(mgr, gnustepSystemTools);
+	      path = devroot(mgr, gnustepSystemTools);
 
 	      /* Failing that, try looking above the base library.
 	       */
@@ -2382,7 +2359,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
                           ipath = [NSString stringWithCharacters: buf
                             length: wcslen(buf)];
 
-			  path = idevroot(mgr, ipath);
+			  path = devroot(mgr, ipath);
                         }
                       RegCloseKey(regKey);
                     }
@@ -2395,31 +2372,32 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 		      path = devroot(mgr, mpath);
 		    }
 		}
-              ASSIGNCOPY(root, path);
-	      if (nil == root)
+              ASSIGNCOPY(gnustepDeveloperDir, path);
+	      if (nil == gnustepDeveloperDir)
 		{
 	          NSLog(@"Failed to locate NSDeveloperDirectory by GNUstep configuration, installed GNUstep package, or process PATH.");
 
 		}
             }
 #endif
-	  if (nil == root)
+	  if (nil == gnustepDeveloperDir)
 	    {
-	      root = RETAIN(NSOpenStepRootDirectory());
+	      gnustepDeveloperDir = RETAIN(NSOpenStepRootDirectory());
 	    }
 
 	  /* The Developer directory is deprecated on OSX, but for GNUstep
 	   * specific apps we return the root of the system containing the
 	   * development environment.  On most systems, that's the root
 	   * directory, but on windows it can be anywhere the user has put it.
-	   * If not found relative to the hierarchy of the running process,
-	   * with the GNUstep package installed, it's the location of the
-	   * msys filesystem within the GNUstep package installation.
+	   * If not explicitly defined, or found relative to the hierarchy
+	   * of the running process, *with the GNUstep package installed it's
+	   * the location of the msys filesystem within the GNUstep package
+	   * installation.
 	   */
-	  ADD_PLATFORM_PATH(NSUserDomainMask, root);
-	  ADD_PLATFORM_PATH(NSLocalDomainMask, root);
-	  ADD_PLATFORM_PATH(NSNetworkDomainMask, root);
-	  ADD_PLATFORM_PATH(NSSystemDomainMask, root);
+	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepDeveloperDir);
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepDeveloperDir);
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepDeveloperDir);
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepDeveloperDir);
 	}
 	break;
 

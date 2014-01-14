@@ -1,3 +1,11 @@
+2014-01-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source\NSPathUtilities.m:
+	* Documentation\Base.gsdoc:
+	Add GNUSTEP_DEVELOPER_DIR to allow definition of the native path
+	to the msys/mingw development tools on windows.
+	Also improve/fix lookup heuristics.
+
 2014-01-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Revert last change to get -isAbsolutePath working
@@ -23,10 +31,10 @@
 
 	* Source/NSPathUtilities.m: The NSDeveloperDirectory key is deprecated
 	on OSX, but lets use it for the development system root.
-	On windows systems this should be the root of the msys filesystem
-	found relative to the current process if possible, but otherwise
-	with the GNUstep packages installed, found relative to the
-	installation directory.
+	On windows systems this should be the native windows path at which
+	the msys system is installed, found relative to the current process
+	if possible, but otherwise with the GNUstep packages installed,
+	found relative to the package installation directory.
 	In other cases (no specific development environment found) the
 	system root directory is returned.
 
