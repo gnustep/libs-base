@@ -345,6 +345,11 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+/** Returns the absolute path to the resources directory of the bundle.  */
+- (NSURL *) resourceURL;
+#endif
+
 /** Returns the full path to the plug-in subdirectory of the bundle.  */
 - (NSString *) builtInPlugInsPath;
 

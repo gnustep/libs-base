@@ -2816,6 +2816,12 @@ IF_NO_GC(
     }
 }
 
+- (NSURL *) resourceURL
+{
+  return [NSURL fileURLWithPath: [self resourcePath]];
+}
+
+
 - (NSDictionary *) infoDictionary
 {
   NSString* path;
