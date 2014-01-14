@@ -1,3 +1,7 @@
+2014-01-14  Lubos Dolezel <lubos@dolezel.info>
+	* Source/NSBundle.m:
+	* Headers/Foundation/NSBundle.h: add -resourceURL
+
 2014-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source\NSPathUtilities.m:
