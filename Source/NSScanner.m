@@ -1146,7 +1146,11 @@ typedef GSString	*ivars;
 }
 - (BOOL) scanInteger: (NSInteger *)value
 {
-  return NO;    // FIXME
+#if GS_SIZEOF_VOIDP < 8
+  return [self scanInt: value];
+#else
+  return [self scanLongLong: value];
+#endif
 }
 @end
 
