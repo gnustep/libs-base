@@ -1,11 +1,17 @@
+2014-01-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueObserving.m:
+	Path info lifetime fixups to avoid crashes of the kind reported
+	by Mathias Bauer <mathias_bauer@gmx.net>
+
 2014-01-14  Lubos Dolezel <lubos@dolezel.info>
 	* Source/NSBundle.m:
 	* Headers/Foundation/NSBundle.h: add -resourceURL
 
 2014-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source\NSPathUtilities.m:
-	* Documentation\Base.gsdoc:
+	* Source/NSPathUtilities.m:
+	* Documentation/Base.gsdoc:
 	Add GNUSTEP_DEVELOPER_DIR to allow definition of the native path
 	to the msys/mingw development tools on windows.
 	Also improve/fix lookup heuristics.

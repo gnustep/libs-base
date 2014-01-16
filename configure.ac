@@ -245,7 +245,7 @@ AC_ARG_ENABLE(environment-config-file,
 				so that the base library will not use a
 				config file intended for the gnustep-make
 				system (and containing unix-style paths
-				which cannot be used by widnows apps).
+				which cannot be used by windows apps).
 				Normally this should be left at its default
 				setting.], 
   ac_cv_environment_config_file=$enableval,

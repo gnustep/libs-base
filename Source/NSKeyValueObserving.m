@@ -1096,15 +1096,17 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   return instance;
 }
 
-/* Locks receiver and returns path info on success, otherwise
- * leaves receiver munlocked and returns nil.
+/* Locks receiver and returns path info on success, otherwise leaves
+ * receiver unlocked and returns nil.
+ * The returned path info is retained and autoreleased in case something
+ * removes it from the receiver while it's being used by the caller.
  */
 - (GSKVOPathInfo*) lockReturningPathInfoForKey: (NSString*)key
 {
   GSKVOPathInfo *pathInfo;
 
   [iLock lock];
-  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)key);
+  pathInfo = AUTORELEASE(RETAIN((GSKVOPathInfo*)NSMapGet(paths, (void*)key)));
   if (pathInfo == nil)
     {
       [iLock unlock];
