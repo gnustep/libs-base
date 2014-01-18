@@ -1,3 +1,9 @@
+2014-01-18  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Source/NSObject.m (-respondsToSelector, 
+	+instancesRespondToSelector:): Fixed to check +resolveInstanceMethod: and 
+	+resolveClassMethod: as documented in Cocoa NSObject API.
+
 2014-01-16  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSScanner.m: Implement -scanInteger: by conditionally

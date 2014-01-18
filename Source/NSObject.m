@@ -1519,7 +1519,22 @@ static id gs_weak_load(id obj)
 	}
       return NO;
     }
-  return class_respondsToSelector(self, aSelector) ? YES : NO;
+
+  if (class_respondsToSelector(self, aSelector))
+    {
+      return YES;
+    }
+
+  if (class_isMetaClass(self))
+    {
+      /* It seems convoluted to attempt to access the class from the 
+         metaclass just to call +resolveClassMethod: in this rare case. */
+      return NO;
+    }
+  else
+    {
+      return [self resolveInstanceMethod: aSelector];
+    }
 }
 
 /**
@@ -2111,6 +2126,8 @@ static id gs_weak_load(id obj)
  */
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
+  Class cls = object_getClass(self);
+
   if (aSelector == 0)
     {
       if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
@@ -2122,7 +2139,19 @@ static id gs_weak_load(id obj)
       return NO;
     }
 
-  return class_respondsToSelector(object_getClass(self), aSelector) ? YES : NO;
+  if (class_respondsToSelector(cls, aSelector))
+    {
+      return YES;
+    }
+
+  if (class_isMetaClass(cls))
+    {
+      return [(Class)self resolveClassMethod: aSelector];
+    }
+  else
+    {
+      return [cls resolveInstanceMethod: aSelector];
+    }
 }
 
 /**
