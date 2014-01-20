@@ -1148,8 +1148,6 @@ typedef GSString	*ivars;
 {
 #if GS_SIZEOF_VOIDP == GS_SIZEOF_INT
   return [self scanInt: (int *)value];
-#elseif GS_SIZEOF_VOIDP == GS_SIZEOF_LONG
-  return [self scanLong: (long *)value];
 #else
   return [self scanLongLong: (long long *)value];
 #endif
