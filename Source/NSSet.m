@@ -625,6 +625,24 @@ static Class NSMutableSet_concrete_class;
   return [[self allObjects] descriptionWithLocale: locale];
 }
 
+- (id) valueForKey: (NSString*)key
+{
+  NSEnumerator *e = [self objectEnumerator];
+  id object = nil;
+  NSMutableSet *results = [NSMutableSet setWithCapacity: [self count]];
+
+  while ((object = [e nextObject]) != nil)
+    {
+      id result = [object valueForKey: key];
+
+      if (result == nil)
+        continue;
+
+      [results addObject: result];
+    }
+  return results;
+}
+
 - (id) valueForKeyPath: (NSString*)path
 {
   id result = (id) nil;
