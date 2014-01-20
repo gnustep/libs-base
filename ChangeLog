@@ -1,3 +1,10 @@
+2014-01-20  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Source/NSKeyValueMutableArray.m:
+	* Source/NSKeyValueMutableSet.m:
+	Don't post KVO notifications if +automaticallyNotifiesObserversForKey: 
+	returns NO, this ensures we match Cocoa behavior.
+
 2014-01-18  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Source/NSObject.m (-respondsToSelector, 
