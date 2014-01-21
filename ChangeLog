@@ -1,3 +1,7 @@
+2014-01-21  Pirmin Braun <pb@intars.de>
+
+	* Source/NSDecimal.m: Fix for rounding precision.
+
 2014-01-20  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Source/NSSet.m: Added missing ([-valueForKey:]) method.

@@ -264,7 +264,7 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
 
   if (result->length <= l)
     return;
-  else if (l <= 0)
+  else if (l < 0)
     {
       result->length = 0;
       result->exponent = 0;
@@ -275,6 +275,21 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
     {
       int c, n;
       BOOL up;
+
+      if (l == 0)
+        {
+          int x;
+             
+          x = result->length;
+          result->length += 1;
+          l += 1;
+          while (x > 0)
+            {
+               result->cMantissa[x] = result->cMantissa[x-1];
+               x--;
+            }
+          result->cMantissa[0] = 0;
+        }
 
       // Adjust length and exponent
       result->exponent += result->length - l;
