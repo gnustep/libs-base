@@ -46,9 +46,10 @@ extern "C" {
 #endif
 
 /* To easily un-inline functions for debugging */
-#ifndef	INLINE
-#define INLINE inline
+#ifndef GS_STATIC_INLINE
+#define GS_STATIC_INLINE static inline
 #endif
+
 
 #ifdef	GSI_ARRAY_CHECKS
 #define	GSI_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap, NSInternalInconsistencyException)
@@ -175,19 +176,19 @@ struct	_GSIArray {
 typedef	struct	_GSIArray	GSIArray_t;
 typedef	struct	_GSIArray	*GSIArray;
 
-static INLINE unsigned
+GS_STATIC_INLINE unsigned
 GSIArrayCapacity(GSIArray array)
 {
   return array->cap;
 }
 
-static INLINE unsigned
+GS_STATIC_INLINE unsigned
 GSIArrayCount(GSIArray array)
 {
   return array->count;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayGrow(GSIArray array)
 {
   unsigned int	next;
@@ -236,7 +237,7 @@ GSIArrayGrow(GSIArray array)
   array->cap = next;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayGrowTo(GSIArray array, unsigned next)
 {
   unsigned int	size;
@@ -280,7 +281,7 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
   array->cap = next;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
 {
   unsigned int	i;
@@ -299,7 +300,7 @@ GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
   GSI_ARRAY_CHECK;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayInsertItemNoRetain(GSIArray array, GSIArrayItem item, unsigned index)
 {
   unsigned int	i;
@@ -317,7 +318,7 @@ GSIArrayInsertItemNoRetain(GSIArray array, GSIArrayItem item, unsigned index)
   GSI_ARRAY_CHECK;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayAddItem(GSIArray array, GSIArrayItem item)
 {
   GSI_ARRAY_CHECK;
@@ -330,7 +331,7 @@ GSIArrayAddItem(GSIArray array, GSIArrayItem item)
   GSI_ARRAY_CHECK;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayAddItemNoRetain(GSIArray array, GSIArrayItem item)
 {
   GSI_ARRAY_CHECK;
@@ -349,7 +350,7 @@ GSIArrayAddItemNoRetain(GSIArray array, GSIArrayItem item)
  *      added is 'less than' the item in the array, NSOrderedDescending
  *      if it is greater, and NSOrderedSame if it is equal.
  */
-static INLINE unsigned
+GS_STATIC_INLINE unsigned
 GSIArraySearch(GSIArray array, GSIArrayItem item, 
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
@@ -382,7 +383,7 @@ GSIArraySearch(GSIArray array, GSIArrayItem item,
   return index;
 }
 
-static INLINE unsigned
+GS_STATIC_INLINE unsigned
 GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item, 
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
@@ -405,7 +406,7 @@ GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item,
 }
 
 #ifdef	GSI_ARRAY_CHECKS
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayCheckSort(GSIArray array, 
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
@@ -421,7 +422,7 @@ GSIArrayCheckSort(GSIArray array,
 }
 #endif
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayInsertSorted(GSIArray array, GSIArrayItem item, 
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
@@ -437,7 +438,7 @@ GSIArrayInsertSorted(GSIArray array, GSIArrayItem item,
 #endif
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayInsertSortedNoRetain(GSIArray array, GSIArrayItem item,
   NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
@@ -453,7 +454,7 @@ GSIArrayInsertSortedNoRetain(GSIArray array, GSIArrayItem item,
 #endif
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
 {
 #if	defined(GSI_ARRAY_NO_RELEASE)
@@ -482,7 +483,7 @@ GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
 #endif
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayRemoveLastItem(GSIArray array)
 {
 #ifdef	GSI_ARRAY_CHECKS
@@ -497,7 +498,7 @@ GSIArrayRemoveLastItem(GSIArray array)
 #endif
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
 {
 #ifdef	GSI_ARRAY_CHECKS
@@ -511,7 +512,7 @@ GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
 #endif
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArraySetItemAtIndex(GSIArray array, GSIArrayItem item, unsigned index)
 {
 #if	defined(GSI_ARRAY_NO_RELEASE)
@@ -536,13 +537,13 @@ GSIArraySetItemAtIndex(GSIArray array, GSIArrayItem item, unsigned index)
  * For direct access ... unsafe if you change the array in any way while
  * examining the contents of this buffer.
  */
-static INLINE GSIArrayItem *
+GS_STATIC_INLINE GSIArrayItem *
 GSIArrayItems(GSIArray array)
 {
   return array->ptr;
 }
 
-static INLINE GSIArrayItem
+GS_STATIC_INLINE GSIArrayItem
 GSIArrayItemAtIndex(GSIArray array, unsigned index)
 {
 #ifdef	GSI_ARRAY_CHECKS
@@ -551,7 +552,7 @@ GSIArrayItemAtIndex(GSIArray array, unsigned index)
   return array->ptr[index];
 }
 
-static INLINE GSIArrayItem
+GS_STATIC_INLINE GSIArrayItem
 GSIArrayLastItem(GSIArray array)
 {
 #ifdef	GSI_ARRAY_CHECKS
@@ -560,7 +561,7 @@ GSIArrayLastItem(GSIArray array)
   return array->ptr[array->count-1];
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayClear(GSIArray array)
 {
   if (array->ptr)
@@ -579,7 +580,7 @@ GSIArrayClear(GSIArray array)
     }
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
 {
   if (index < array->count)
@@ -597,7 +598,7 @@ GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
     }
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayRemoveAllItems(GSIArray array)
 {
 #ifndef	GSI_ARRAY_NO_RELEASE
@@ -612,14 +613,14 @@ GSIArrayRemoveAllItems(GSIArray array)
   array->count = 0;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIArrayEmpty(GSIArray array)
 {
   GSIArrayRemoveAllItems(array);
   GSIArrayClear(array);
 }
 
-static INLINE GSIArray
+GS_STATIC_INLINE GSIArray
 GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
 {
   unsigned int	size;
@@ -640,7 +641,7 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
   return array;
 }
 
-static INLINE GSIArray
+GS_STATIC_INLINE GSIArray
 GSIArrayInitWithZoneAndStaticCapacity(GSIArray array, NSZone *zone,
     size_t capacity, GSIArrayItem *buffer)
 {
@@ -652,7 +653,7 @@ GSIArrayInitWithZoneAndStaticCapacity(GSIArray array, NSZone *zone,
   return array;
 }
 
-static INLINE GSIArray
+GS_STATIC_INLINE GSIArray
 GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
 {
   unsigned int i;

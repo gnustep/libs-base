@@ -46,9 +46,10 @@ extern "C" {
 #endif
 
 /* To easily un-inline functions for debugging */
-#ifndef	INLINE
-#define INLINE inline
+#ifndef GS_STATIC_INLINE
+#define GS_STATIC_INLINE static inline
 #endif
+
 
 /*
  *      NB. This file is intended for internal use by the GNUstep libraries
@@ -389,27 +390,27 @@ typedef struct _GSIMapEnumerator GSIMapEnumerator_t;
 #endif
 typedef GSIMapEnumerator_t	*GSIMapEnumerator;
 
-static INLINE GSIMapBucket
+GS_STATIC_INLINE GSIMapBucket
 GSIMapPickBucket(unsigned hash, GSIMapBucket buckets, uintptr_t bucketCount)
 {
   return buckets + hash % bucketCount;
 }
 
-static INLINE GSIMapBucket
+GS_STATIC_INLINE GSIMapBucket
 GSIMapBucketForKey(GSIMapTable map, GSIMapKey key)
 {
   return GSIMapPickBucket(GSI_MAP_HASH(map, key),
     map->buckets, map->bucketCount);
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapLinkNodeIntoBucket(GSIMapBucket bucket, GSIMapNode node)
 {
   node->nextInBucket = bucket->firstNode;
   bucket->firstNode = node;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapUnlinkNodeFromBucket(GSIMapBucket bucket, GSIMapNode node)
 {
   if (node == bucket->firstNode)
@@ -429,14 +430,14 @@ GSIMapUnlinkNodeFromBucket(GSIMapBucket bucket, GSIMapNode node)
   node->nextInBucket = 0;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapAddNodeToBucket(GSIMapBucket bucket, GSIMapNode node)
 {
   GSIMapLinkNodeIntoBucket(bucket, node);
   bucket->nodeCount += 1;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapAddNodeToMap(GSIMapTable map, GSIMapNode node)
 {
   GSIMapBucket	bucket;
@@ -446,21 +447,21 @@ GSIMapAddNodeToMap(GSIMapTable map, GSIMapNode node)
   map->nodeCount++;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapRemoveNodeFromBucket(GSIMapBucket bucket, GSIMapNode node)
 {
   bucket->nodeCount--;
   GSIMapUnlinkNodeFromBucket(bucket, node);
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapRemoveNodeFromMap(GSIMapTable map, GSIMapBucket bkt, GSIMapNode node)
 {
   map->nodeCount--;
   GSIMapRemoveNodeFromBucket(bkt, node);
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapFreeNode(GSIMapTable map, GSIMapNode node)
 {
   GSI_MAP_RELEASE_KEY(map, node->key);
@@ -474,7 +475,7 @@ GSIMapFreeNode(GSIMapTable map, GSIMapNode node)
   map->freeNodes = node;
 }
 
-static INLINE GSIMapNode
+GS_STATIC_INLINE GSIMapNode
 GSIMapRemoveAndFreeNode(GSIMapTable map, uintptr_t bkt, GSIMapNode node)
 {
   GSIMapNode	next = node->nextInBucket;
@@ -483,7 +484,7 @@ GSIMapRemoveAndFreeNode(GSIMapTable map, uintptr_t bkt, GSIMapNode node)
   return next;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapRemoveWeak(GSIMapTable map)
 {
   if (GSI_MAP_ZEROED(map))
@@ -511,7 +512,7 @@ GSIMapRemoveWeak(GSIMapTable map)
     }
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapRemangleBuckets(GSIMapTable map,
   GSIMapBucket old_buckets, uintptr_t old_bucketCount,
   GSIMapBucket new_buckets, uintptr_t new_bucketCount)
@@ -560,7 +561,7 @@ GSIMapRemangleBuckets(GSIMapTable map,
     }
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapMoreNodes(GSIMapTable map, unsigned required)
 {
   GSIMapNode	*newArray;
@@ -631,7 +632,7 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
     }
 }
 
-static INLINE GSIMapNode 
+GS_STATIC_INLINE GSIMapNode 
 GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
 {
   GSIMapNode	node = bucket->firstNode;
@@ -660,7 +661,7 @@ GSIMapNodeForKeyInBucket(GSIMapTable map, GSIMapBucket bucket, GSIMapKey key)
   return node;
 }
 
-static INLINE GSIMapNode 
+GS_STATIC_INLINE GSIMapNode 
 GSIMapNodeForKey(GSIMapTable map, GSIMapKey key)
 {
   GSIMapBucket	bucket;
@@ -675,7 +676,7 @@ GSIMapNodeForKey(GSIMapTable map, GSIMapKey key)
   return node;
 }
 
-static INLINE GSIMapNode 
+GS_STATIC_INLINE GSIMapNode 
 GSIMapFirstNode(GSIMapTable map)
 {
   if (map->nodeCount > 0)
@@ -724,7 +725,7 @@ GSIMapFirstNode(GSIMapTable map)
  * or pointer values that are their own hash values (when converted to unsigned
  * integers) and can be compared with a test for integer equality.
  */
-static INLINE GSIMapNode 
+GS_STATIC_INLINE GSIMapNode 
 GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
 {
   GSIMapBucket	bucket;
@@ -759,7 +760,7 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
 }
 #endif
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapResize(GSIMapTable map, uintptr_t new_capacity)
 {
   GSIMapBucket	new_buckets;
@@ -815,7 +816,7 @@ GSIMapResize(GSIMapTable map, uintptr_t new_capacity)
     }
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
 {
   /* FIXME: Now, this is a guess, based solely on my intuition.  If anyone
@@ -849,7 +850,7 @@ GSIMapRightSizeMap(GSIMapTable map, uintptr_t capacity)
  * is in progress.  The results of doing so are reasonably unpredictable.
  * <br />Remember, DON'T MESS WITH A MAP WHILE YOU'RE ENUMERATING IT.
  */
-static INLINE GSIMapEnumerator_t
+GS_STATIC_INLINE GSIMapEnumerator_t
 GSIMapEnumeratorForMap(GSIMapTable map)
 {
   GSIMapEnumerator_t	enumerator;
@@ -893,7 +894,7 @@ GSIMapEnumeratorForMap(GSIMapTable map)
 /**
  * Tidies up after map enumeration ... effectively destroys the enumerator.
  */
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapEndEnumerator(GSIMapEnumerator enumerator)
 {
   ((_GSIE)enumerator)->map = 0;
@@ -907,7 +908,7 @@ GSIMapEndEnumerator(GSIMapEnumerator enumerator)
  * bucket and node to remove the node from the map using the
  * GSIMapRemoveNodeFromMap() function.
  */
-static INLINE GSIMapBucket 
+GS_STATIC_INLINE GSIMapBucket 
 GSIMapEnumeratorBucket(GSIMapEnumerator enumerator)
 {
   if (((_GSIE)enumerator)->node != 0)
@@ -922,7 +923,7 @@ GSIMapEnumeratorBucket(GSIMapEnumerator enumerator)
 /**
  * Returns the next node in the map, or a nul pointer if at the end.
  */
-static INLINE GSIMapNode 
+GS_STATIC_INLINE GSIMapNode 
 GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 {
   GSIMapNode	node = ((_GSIE)enumerator)->node;
@@ -1000,7 +1001,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
  * Used to implement fast enumeration methods in classes that use GSIMap for
  * their data storage.
  */
-static INLINE NSUInteger 
+GS_STATIC_INLINE NSUInteger 
 GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
                                               NSFastEnumerationState *state,
                                               id *stackbuf,
@@ -1057,7 +1058,7 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
 }
 
 #if	GSI_MAP_HAS_VALUE
-static INLINE GSIMapNode
+GS_STATIC_INLINE GSIMapNode
 GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
   GSIMapNode	node = map->freeNodes;
@@ -1076,7 +1077,7 @@ GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
   return node;
 }
 
-static INLINE GSIMapNode
+GS_STATIC_INLINE GSIMapNode
 GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
   GSIMapNode	node = map->freeNodes;
@@ -1097,7 +1098,7 @@ GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
   return node;
 }
 #else
-static INLINE GSIMapNode
+GS_STATIC_INLINE GSIMapNode
 GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 {
   GSIMapNode	node = map->freeNodes;
@@ -1115,7 +1116,7 @@ GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
   return node;
 }
 
-static INLINE GSIMapNode
+GS_STATIC_INLINE GSIMapNode
 GSIMapAddKey(GSIMapTable map, GSIMapKey key)
 {
   GSIMapNode	node = map->freeNodes;
@@ -1139,7 +1140,7 @@ GSIMapAddKey(GSIMapTable map, GSIMapKey key)
  * Removes the item for the specified key from the map.
  * If the key was present, returns YES, otherwise returns NO.
  */
-static INLINE BOOL
+GS_STATIC_INLINE BOOL
 GSIMapRemoveKey(GSIMapTable map, GSIMapKey key)
 {
   GSIMapBucket	bucket = GSIMapBucketForKey(map, key);
@@ -1155,7 +1156,7 @@ GSIMapRemoveKey(GSIMapTable map, GSIMapKey key)
   return NO;
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapCleanMap(GSIMapTable map)
 {
   if (map->nodeCount > 0)
@@ -1202,7 +1203,7 @@ GSIMapCleanMap(GSIMapTable map)
     }
 }
 
-static INLINE void
+GS_STATIC_INLINE void
 GSIMapEmptyMap(GSIMapTable map)
 {
 #ifdef	GSI_MAP_NOCLEAN
@@ -1243,7 +1244,7 @@ GSIMapEmptyMap(GSIMapTable map)
   map->zone = 0;
 }
 
-static INLINE void 
+GS_STATIC_INLINE void 
 GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, uintptr_t capacity)
 {
   map->zone = zone;
