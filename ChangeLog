@@ -1,3 +1,16 @@
+2014-01-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFFIInvocation.m:
+	* Source/Additions/GSTypeEncoding.c:
+	* Headers/GNUstepBase/GSIArray.h:
+	* Headers/GNUstepBase/GSTypeEncoding.h:
+	* Headers/GNUstepBase/GSIMap.h:
+	Fixup to use GS_STATIC_INLINE consistently.
+	* Tools/autogsdoc.m:
+	Set up default work map for public macros whose use in headers
+	would otherwise confuse documentation generation.
+
 2014-01-21  Pirmin Braun <pb@intars.de>
 
 	* Source/NSDecimal.m: Fix for rounding precision.

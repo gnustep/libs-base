@@ -42,11 +42,11 @@
 #  endif
 #endif
 
-#if !defined(ENCODING_INLINE)
+#if !defined(GS_STATIC_INLINE)
 #  if defined(__GNUC__)
-#    define ENCODING_INLINE static __inline__ __attribute__((always_inline))
+#    define GS_STATIC_INLINE static __inline__ __attribute__((always_inline))
 #  else
-#    define ENCODING_INLINE static inline
+#    define GS_STATIC_INLINE static inline
 #  endif
 #endif
 
@@ -154,13 +154,13 @@ GSObjCParseTypeSpecification (const char *cursor,
                               void *context,
                               unsigned options);
 
-ENCODING_INLINE size_t
+GS_STATIC_INLINE size_t
 GSObjCPadSize (size_t size, uint8_t alignment)
 {
   return alignment * ((size + alignment - 1) / alignment);
 }
 
-ENCODING_INLINE size_t
+GS_STATIC_INLINE size_t
 GSObjCGetPadding (size_t size, uint8_t alignment)
 {
   return (alignment - (size & (alignment - 1))) & (alignment - 1);

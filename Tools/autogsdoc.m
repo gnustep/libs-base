@@ -1247,9 +1247,10 @@ main(int argc, char **argv, char **env)
   count = [sFiles count];
   if (count > 0)
     {
-      AGSParser		*parser;
-      AGSOutput		*output;
-      NSString		*up;
+      AGSParser		        *parser;
+      AGSOutput		        *output;
+      NSString		        *up;
+      NSMutableDictionary       *wm;
 
       up = [defs stringForKey: @"Up"];
 
@@ -1258,7 +1259,43 @@ main(int argc, char **argv, char **env)
 #endif
 
       parser = [AGSParser new];
-      [parser setWordMap: [defs dictionaryForKey: @"WordMap"]];
+      wm = [[defs dictionaryForKey: @"WordMap"] mutableCopy];
+      if (nil == wm)
+        {
+          wm = [NSMutableDictionary new];
+        }
+      if ([defs boolForKey: @"DisableDefaultWords"] == NO)
+        {
+	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
+	  [wm setObject: @"" forKey: @"GS_ATTRIB_DEPRECATED"];
+	  [wm setObject: @"" forKey: @"GS_DECLARE"];
+	  [wm setObject: @"" forKey: @"GS_DEPRECATED_FUNC"];
+	  [wm setObject: @"extern" forKey: @"GS_EXPORT"];
+	  [wm setObject: @"" forKey: @"GS_GC_STRONG"];
+	  [wm setObject: @"" forKey: @"GS_GEOM_ATTR"];
+	  [wm setObject: @"extern" forKey: @"GS_GEOM_SCOPE"];
+	  [wm setObject: @"" forKey: @"GS_NORETURN_METHOD"];
+	  [wm setObject: @"" forKey: @"GS_RANGE_ATTR"];
+	  [wm setObject: @"extern" forKey: @"GS_RANGE_SCOPE"];
+	  [wm setObject: @"" forKey: @"GS_ROOT_CLASS"];
+	  [wm setObject: @"static inline" forKey: @"GS_STATIC_INLINE"];
+	  [wm setObject: @"" forKey: @"GS_UNUSED_ARG"];
+	  [wm setObject: @"" forKey: @"GS_UNUSED_FUNC"];
+	  [wm setObject: @"" forKey: @"GS_UNUSED_IVAR"];
+	  [wm setObject: @"" forKey: @"GS_ZONE_ATTR"];
+	  [wm setObject: @"extern" forKey: @"GS_ZONE_SCOPE"];
+	  [wm setObject: @"" forKey: @"NS_AUTOMATED_REFCOUNT_UNAVAILABLE"];
+	  [wm setObject: @"" forKey: @"NS_CONSUMED"];
+	  [wm setObject: @"" forKey: @"NS_CONSUMES_SELF"];
+	  [wm setObject: @"" forKey: @"NS_RETURNS_NOT_RETAINED"];
+	  [wm setObject: @"" forKey: @"NS_RETURNS_RETAINED"];
+	  [wm setObject: @"" forKey: @"__strong"];
+	  [wm setObject: @"" forKey: @"__weak"];
+        }
+      [parser setWordMap: wm];
+#if GS_WITH_GC == 0
+      RELEASE(wm);
+#endif
       output = [AGSOutput new];
       if ([defs boolForKey: @"Standards"] == YES)
 	{

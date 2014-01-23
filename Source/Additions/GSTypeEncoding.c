@@ -81,7 +81,7 @@ static const int8_t typeInfoTable[] =
 #pragma GCC diagnostic ignored "-Wchar-subscripts"
 #endif
 
-ENCODING_INLINE uint8_t
+GS_STATIC_INLINE uint8_t
 RoundToThePowerOfTwo (uint8_t value)
 {
   --value;
@@ -91,7 +91,7 @@ RoundToThePowerOfTwo (uint8_t value)
   return ++value;
 }
 
-ENCODING_INLINE const char *
+GS_STATIC_INLINE const char *
 GetNumericValue (const char *cursor, int *value)
 {
   *value = 0;
@@ -102,7 +102,7 @@ GetNumericValue (const char *cursor, int *value)
   return cursor;
 }
 
-ENCODING_INLINE const char *
+GS_STATIC_INLINE const char *
 SkipName (const char *cursor)
 {
   if (*cursor == '"')
@@ -112,7 +112,7 @@ SkipName (const char *cursor)
   return cursor;
 }
 
-ENCODING_INLINE const char *
+GS_STATIC_INLINE const char *
 SkipType (const char *cursor)
 {
   unsigned depth = 0;
@@ -147,7 +147,7 @@ SkipType (const char *cursor)
   return cursor;
 }
 
-ENCODING_INLINE const char *
+GS_STATIC_INLINE const char *
 GetQualifiers (const char *cursor, uint8_t *qualifiers)
 {
   *qualifiers = 0;
@@ -198,7 +198,7 @@ typedef struct ParserState
  */
 static const unsigned ParserInitialStackSize = 3;
 
-ENCODING_INLINE ParserStackElement *
+GS_STATIC_INLINE ParserStackElement *
 ParserStackTop (ParserState *state)
 {
   return state->stackSize ? &state->stack[state->stackSize - 1] : NULL;
