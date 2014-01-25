@@ -1194,7 +1194,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
         {
           id    value;
 
-          value = [instance valueForKey: aPath];
+          value = [instance valueForKeyPath: aPath];
           if (value == nil)
             {
               value = null;
