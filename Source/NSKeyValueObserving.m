@@ -2019,7 +2019,7 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
 + (NSSet*) keyPathsForValuesAffectingValueForKey: (NSString*)dependentKey
 {
   NSString *selString = [NSString stringWithFormat: @"keyPathsForValuesAffecting%@",
-                                  dependentKey];
+                                  [dependentKey capitalizedString]];
   SEL sel = NSSelectorFromString(selString);
   NSMapTable *affectingKeys;
   NSEnumerator *enumerator;
