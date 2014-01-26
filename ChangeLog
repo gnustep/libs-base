@@ -1,10 +1,16 @@
+2014-01-26  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSKeyValueObserving.h,
+	* Source/NSKeyValueObserving.m: Add method
+	-keyPathsForValuesAffectingValueForKey:.
+
 2014-01-25  Frederik <ego@frederikseiffert.de>
 
 	* Source/NSKeyValueObserving.m: When using
 	(NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew)
 	as option for observeValueForKeyPath:ofObject:change:context:,
 	we should use -valueForKeyPath: instead of -valueForKey: to retrieve
-	the current (initial) value. 
+	the current (initial) value.
 
 2014-01-23  Richard Frith-Macdonald <rfm@gnu.org>
 

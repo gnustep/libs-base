@@ -2016,6 +2016,32 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
     }
 }
 
++ (NSSet*) keyPathsForValuesAffectingValueForKey: (NSString*)dependentKey
+{
+  NSString *selString = [NSString stringWithFormat: @"keyPathsForValuesAffecting%@",
+                                  dependentKey];
+  SEL sel = NSSelectorFromString(selString);
+  NSMapTable *affectingKeys;
+  NSEnumerator *enumerator;
+  NSString *affectingKey;
+  NSMutableSet *keyPaths;
+
+  if ([self respondsToSelector: sel])
+    {
+      return [self performSelector: sel];
+    }
+
+  affectingKeys = NSMapGet(dependentKeyTable, self);
+  keyPaths = [[NSMutableSet alloc] initWithCapacity: [affectingKeys count]];
+  enumerator = [affectingKeys keyEnumerator];
+  while ((affectingKey = [enumerator nextObject]))
+    {
+      [keyPaths addObject: affectingKey];
+    }
+
+  return AUTORELEASE(keyPaths);
+}
+
 - (void*) observationInfo
 {
   void	*info;

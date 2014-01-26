@@ -202,7 +202,6 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
  * These methods permit modifications to the observing system.
  */
 @interface NSObject(NSKeyValueObservingCustomization)
-
 /**
  * Specifies whether the class should send the notification methods of
  * the NSKeyValueObserverNotification protocol when instances of the
@@ -218,6 +217,15 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
  */
 + (void) setKeys: (NSArray*)triggerKeys
 triggerChangeNotificationsForDependentKey: (NSString*)dependentKey;
+
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+/**
+ * Returns a set of key paths for properties whose values affect the value
+ * of the specified dependentKey.
+ */
++ (NSSet*) keyPathsForValuesAffectingValueForKey: (NSString*)dependentKey;
+#endif
 
 /**
  * Returns a reference to the observation information for the receiver
