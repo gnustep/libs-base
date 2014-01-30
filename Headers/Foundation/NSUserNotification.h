@@ -44,11 +44,11 @@ extern "C" {
 
 enum
 {
-    NSUserNotificationActivationTypeNone				= 0,
-    NSUserNotificationActivationTypeContentsClicked		= 1,
-    NSUserNotificationActivationTypeActionButtonClicked = 2
+  NSUserNotificationActivationTypeNone				= 0,
+  NSUserNotificationActivationTypeContentsClicked		= 1,
+  NSUserNotificationActivationTypeActionButtonClicked           = 2
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
-    ,NSUserNotificationActivationTypeReplied			= 3
+  ,NSUserNotificationActivationTypeReplied			= 3
 #endif
 };
 typedef NSInteger NSUserNotificationActivationType;
@@ -57,8 +57,8 @@ typedef NSInteger NSUserNotificationActivationType;
 @interface NSUserNotification : NSObject <NSCopying>
 {
 #if	GS_EXPOSE(NSUserNotification)
-	@public
-	id _uniqueId;
+  @public
+  id _uniqueId;
 #endif
 }
 
@@ -96,8 +96,8 @@ GS_EXPORT NSString * const NSUserNotificationDefaultSoundName;
 @interface NSUserNotificationCenter : NSObject
 {
 #if	GS_EXPOSE(NSUserNotificationCenter)
-	NSMutableArray *_scheduledNotifications;
-	NSMutableArray *_deliveredNotifications;
+  NSMutableArray *_scheduledNotifications;
+  NSMutableArray *_deliveredNotifications;
 #endif
 }
 
@@ -126,9 +126,12 @@ GS_EXPORT NSString * const NSUserNotificationDefaultSoundName;
 @interface NSObject (NSUserNotificationCenterDelegateMethods)
 #endif
 
-- (void) userNotificationCenter: (NSUserNotificationCenter *)center didDeliverNotification: (NSUserNotification *)notification;
-- (void) userNotificationCenter: (NSUserNotificationCenter *)center didActivateNotification: (NSUserNotification *)notification;
-- (BOOL) userNotificationCenter: (NSUserNotificationCenter *)center shouldPresentNotification: (NSUserNotification *)notification;
+- (void) userNotificationCenter: (NSUserNotificationCenter *)center
+         didDeliverNotification: (NSUserNotification *)notification;
+- (void) userNotificationCenter: (NSUserNotificationCenter *)center
+        didActivateNotification: (NSUserNotification *)notification;
+- (BOOL) userNotificationCenter: (NSUserNotificationCenter *)center
+      shouldPresentNotification: (NSUserNotification *)notification;
 
 @end
 

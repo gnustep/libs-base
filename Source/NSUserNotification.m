@@ -46,33 +46,32 @@
 
 - (id) init
 {
-	self = [super init];
-	if (self)
-	{
-		self.hasActionButton = YES;
-	}
-	return self;
+  if (nil != (self = [super init]))
+    {
+      self.hasActionButton = YES;
+    }
+  return self;
 }
 
 - (void) dealloc
 {
-	RELEASE(_uniqueId);
-	[super dealloc];
+  RELEASE(_uniqueId);
+  [super dealloc];
 }
 
 - (id) copyWithZone: (NSZone *)zone
 {
-	return NSCopyObject(self, 0, zone);
+  return NSCopyObject(self, 0, zone);
 }
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%s:%p> { title: \"%@\" "
-					                   "informativeText: \"%@\" "
-					                   "actionButtonTitle: \"%@\" }",
-									   object_getClassName(self), self,
-									   self.title, self.informativeText,
-									   self.actionButtonTitle];
+  return [NSString stringWithFormat:@"<%s:%p> { title: \"%@\" "
+    "informativeText: \"%@\" "
+    "actionButtonTitle: \"%@\" }",
+    object_getClassName(self), self,
+    self.title, self.informativeText,
+    self.actionButtonTitle];
 }
 
 @end
@@ -93,106 +92,110 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 + (Class) defaultUserNotificationCenterClass
 {
-	NSBundle *bundle = [NSBundle bundleForClass: [self class]];
-	NSString *bundlePath = [bundle pathForResource: @"NSUserNotification"
-								   ofType: @"bundle"
-								   inDirectory: nil];
-	if (bundlePath)
-	  {
-		bundle = [NSBundle bundleWithPath: bundlePath];
-		if (bundle)
-			return [bundle principalClass];
-	  }
-	return self;
+  NSBundle *bundle = [NSBundle bundleForClass: [self class]];
+  NSString *bundlePath = [bundle pathForResource: @"NSUserNotification"
+                                          ofType: @"bundle"
+                                     inDirectory: nil];
+  if (bundlePath)
+    {
+      bundle = [NSBundle bundleWithPath: bundlePath];
+      if (bundle)
+        {
+          return [bundle principalClass];
+        }
+    }
+  return self;
 }
 
 + (void) atExit
 {
-	DESTROY(defaultUserNotificationCenter);
+  DESTROY(defaultUserNotificationCenter);
 }
 
 + (void) initialize
 {
-	if ([NSUserNotificationCenter class] == self)
+  if ([NSUserNotificationCenter class] == self)
     {
-		Class uncClass = [self defaultUserNotificationCenterClass];
-		defaultUserNotificationCenter = [[uncClass alloc] init];
-		[self registerAtExit];
+      Class uncClass = [self defaultUserNotificationCenterClass];
+      defaultUserNotificationCenter = [[uncClass alloc] init];
+      [self registerAtExit];
     }
 }
 
 + (void) setDefaultUserNotificationCenter: (NSUserNotificationCenter *)unc
 {
-	ASSIGN(defaultUserNotificationCenter, unc);
+  ASSIGN(defaultUserNotificationCenter, unc);
 }
 
 + (NSUserNotificationCenter *) defaultUserNotificationCenter
 {
-	return defaultUserNotificationCenter;
+  return defaultUserNotificationCenter;
 }
 
 
 - (id) init
 {
-	self = [super init];
-	if (self)
-	  {
-		_scheduledNotifications = [[NSMutableArray alloc] init];
-		_deliveredNotifications = [[NSMutableArray alloc] init];
-	  }
-	return self;
+  if (nil != (self = self = [super init]))
+    {
+      _scheduledNotifications = [[NSMutableArray alloc] init];
+      _deliveredNotifications = [[NSMutableArray alloc] init];
+    }
+  return self;
 }
 
 - (void) dealloc
 {
-	[NSObject cancelPreviousPerformRequestsWithTarget: self];
-	RELEASE(_scheduledNotifications);
-	[self removeAllDeliveredNotifications];
-	RELEASE(_deliveredNotifications);
-	[super dealloc];
+  [NSObject cancelPreviousPerformRequestsWithTarget: self];
+  RELEASE(_scheduledNotifications);
+  [self removeAllDeliveredNotifications];
+  RELEASE(_deliveredNotifications);
+  [super dealloc];
 }
 
 - (void) scheduleNotification: (NSUserNotification *)un
 {
-	if (!un.deliveryDate)
-	  {
-		[self deliverNotification: un];
-		return;
-	  }
-	[_scheduledNotifications addObject: un];
-	NSTimeInterval delay = [un.deliveryDate timeIntervalSinceNow];
-	[self performSelector: @selector(deliverNotification:)
-		  withObject: un
-		  afterDelay: delay];
+  if (!un.deliveryDate)
+    {
+      [self deliverNotification: un];
+      return;
+    }
+  [_scheduledNotifications addObject: un];
+  NSTimeInterval delay = [un.deliveryDate timeIntervalSinceNow];
+  [self performSelector: @selector(deliverNotification:)
+             withObject: un
+             afterDelay: delay];
 }
 
 - (void) removeScheduledNotification: (NSUserNotification *)un
 {
-	[NSObject cancelPreviousPerformRequestsWithTarget: self
-			  selector: @selector(deliverNotification:)
-			  object: un];
-	[_scheduledNotifications removeObject: un];
+  [NSObject cancelPreviousPerformRequestsWithTarget: self
+    selector: @selector(deliverNotification:)
+    object: un];
+  [_scheduledNotifications removeObject: un];
 }
 
 - (void) _deliverNotification: (NSUserNotification *)un
 {
-	NSLog(@"%s -- needs implementation", __PRETTY_FUNCTION__);
+  NSLog(@"%s -- needs implementation", __PRETTY_FUNCTION__);
 }
 
 - (void) deliverNotification: (NSUserNotification *)un
 {
-	[self removeScheduledNotification: un];
-	[self _deliverNotification: un];
+  [self removeScheduledNotification: un];
+  [self _deliverNotification: un];
 
-	NSDate *actualDeliveryDate = un.deliveryDate;
-	if (!actualDeliveryDate)
-		actualDeliveryDate = [NSDate date];
-	un.actualDeliveryDate = actualDeliveryDate;
-	[_deliveredNotifications addObject: un];
-	un.presented = YES;
+  NSDate *actualDeliveryDate = un.deliveryDate;
+  if (!actualDeliveryDate)
+    actualDeliveryDate = [NSDate date];
+  un.actualDeliveryDate = actualDeliveryDate;
+  [_deliveredNotifications addObject: un];
+  un.presented = YES;
 
-	if (self.delegate && [self.delegate respondsToSelector: @selector(userNotificationCenter:didDeliverNotification:)])
-		[self.delegate userNotificationCenter: self didDeliverNotification: un];
+  if (self.delegate && [self.delegate respondsToSelector:
+    @selector(userNotificationCenter:didDeliverNotification:)])
+    {
+      [self.delegate userNotificationCenter: self didDeliverNotification: un];
+    }
 }
 
 - (void) _removeDeliveredNotification: (NSUserNotification *)un
@@ -201,31 +204,35 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 - (void) removeDeliveredNotification: (NSUserNotification *)un
 {
-	[self _removeDeliveredNotification: un];
-	[_deliveredNotifications removeObject: un];
+  [self _removeDeliveredNotification: un];
+  [_deliveredNotifications removeObject: un];
 }
 
 - (void) removeAllDeliveredNotifications
 {
-	NSUInteger i, count = [_deliveredNotifications count];
-	for (i = 0; i < count; i++)
-	{
-		NSUserNotification *un = [_deliveredNotifications objectAtIndex: i];
-		[self _removeDeliveredNotification:un];
-	}
-	[_deliveredNotifications removeAllObjects];
+  NSUInteger i, count = [_deliveredNotifications count];
+
+  for (i = 0; i < count; i++)
+    {
+      NSUserNotification *un = [_deliveredNotifications objectAtIndex: i];
+      [self _removeDeliveredNotification:un];
+    }
+  [_deliveredNotifications removeAllObjects];
 }
 
 - (NSUserNotification *) deliveredNotificationWithUniqueId: (id)uniqueId
 {
-	NSUInteger i, count = [_deliveredNotifications count];
-	for (i = 0; i < count; i++)
-	{
-		NSUserNotification *un = [_deliveredNotifications objectAtIndex: i];
-		if ([un->_uniqueId isEqual: uniqueId])
-			return un;
-	}
-	return nil;
+  NSUInteger i, count = [_deliveredNotifications count];
+
+  for (i = 0; i < count; i++)
+    {
+      NSUserNotification *un = [_deliveredNotifications objectAtIndex: i];
+      if ([un->_uniqueId isEqual: uniqueId])
+        {
+          return un;
+        }
+    }
+  return nil;
 }
 
 @end
