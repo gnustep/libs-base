@@ -1,3 +1,11 @@
+2014-01-30  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Headers/Foundation/NSUserNotification.h:
+	* Source/NSUserNotification.m:
+	Added default implementation which provides infrastructure but no real
+	transport mechanisms. An implementation utilizing DBus
+	(Desktop Notifications Specification) is provided via DBusKit.
+
 2014-01-26  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/Foundation/NSKeyValueObserving.h,
