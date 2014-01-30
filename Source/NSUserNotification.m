@@ -22,6 +22,8 @@
    Boston, MA 02111 USA.
 */
 
+#import	<GNUstepBase/GSVersionMacros.h>
+
 #if __has_feature(objc_default_synthesize_properties)
 
 #define	EXPOSE_NSUserNotification_IVARS	1
