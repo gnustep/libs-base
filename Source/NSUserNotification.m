@@ -33,8 +33,10 @@
 #import "Foundation/NSUserNotification.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSBundle.h"
+#import "Foundation/NSCalendar.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSString.h"
+#import "Foundation/NSTimeZone.h"
 
 @interface NSUserNotification ()
 @property (readwrite) NSDate *actualDeliveryDate;
@@ -68,12 +70,19 @@
 
 - (NSString *)description
 {
-  return [NSString stringWithFormat:@"<%s:%p> { title: \"%@\" "
-    "informativeText: \"%@\" "
-    "actionButtonTitle: \"%@\" }",
-    object_getClassName(self), self,
-    self.title, self.informativeText,
-    self.actionButtonTitle];
+  NSMutableString *d = [NSMutableString stringWithCapacity:80];
+  [d appendFormat:@"<%s:%p< {", object_getClassName(self), self];
+  [d appendFormat:@" title: \"%@\"", self.title];
+  [d appendFormat:@" informativeText: \"%@\"", self.informativeText];
+  [d appendFormat:@" actionButtonTitle: \"%@\"", self.actionButtonTitle];
+  if (self.actualDeliveryDate)
+  {
+    [d appendFormat:@" actualDeliveryDate: %@", self.actualDeliveryDate];
+    [d appendFormat:@" presented: %s", self.presented ? "YES" : "NO"];
+  }
+  [d appendFormat:@" next delivery date: %@", self.deliveryDate];
+  [d appendString:@" }"];
+  return d;
 }
 
 @end
@@ -86,6 +95,7 @@
 + (Class) defaultUserNotificationCenterClass;
 + (void) setDefaultUserNotificationCenter: (NSUserNotificationCenter *)unc;
 - (NSUserNotification *) deliveredNotificationWithUniqueId: (id)uniqueId;
+- (NSDate *) nextDeliveryDateForNotification: (NSUserNotification *)un;
 @end
 
 @implementation NSUserNotificationCenter
@@ -137,7 +147,8 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 - (id) init
 {
-  if (nil != (self = self = [super init]))
+  self = [super init];
+  if (self)
     {
       _scheduledNotifications = [[NSMutableArray alloc] init];
       _deliveredNotifications = [[NSMutableArray alloc] init];
@@ -178,7 +189,29 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 - (void) _deliverNotification: (NSUserNotification *)un
 {
-  NSLog(@"%s -- needs implementation", __PRETTY_FUNCTION__);
+  un.presented = YES;
+  NSLog(@"NOTE: %@", un);
+}
+
+- (NSDate *) nextDeliveryDateForNotification: (NSUserNotification *)un
+{
+  NSDateComponents *repeatInterval = un.deliveryRepeatInterval;
+  if (!repeatInterval)
+    return nil;
+
+  NSCalendar *cal = [[repeatInterval calendar] copy];
+  if (!cal)
+    cal = [[NSCalendar currentCalendar] copy];
+  if ([repeatInterval timeZone])
+    [cal setTimeZone:[repeatInterval timeZone]];
+  if (![cal timeZone])
+    [cal setTimeZone:[NSTimeZone localTimeZone]];
+
+  NSDate *nextDeliveryDate = [cal dateByAddingComponents: repeatInterval
+                                                  toDate: un.actualDeliveryDate
+                                                 options: 0];
+  RELEASE(cal);
+  return nextDeliveryDate;
 }
 
 - (void) deliverNotification: (NSUserNotification *)un
@@ -191,7 +224,9 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
     actualDeliveryDate = [NSDate date];
   un.actualDeliveryDate = actualDeliveryDate;
   [_deliveredNotifications addObject: un];
-  un.presented = YES;
+  un.deliveryDate = [self nextDeliveryDateForNotification: un];
+  if (un.deliveryDate)
+    [self scheduleNotification: un];
 
   if (self.delegate && [self.delegate respondsToSelector:
     @selector(userNotificationCenter:didDeliverNotification:)])
@@ -199,6 +234,7 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
       [self.delegate userNotificationCenter: self didDeliverNotification: un];
     }
 }
+
 
 - (void) _removeDeliveredNotification: (NSUserNotification *)un
 {

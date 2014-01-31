@@ -1,3 +1,12 @@
+2014-01-31  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Source/NSUserNotification.m:
+	Implemented repetitions, moved "presented" flagging to the appropriate
+	method (subclassers may have different opinions about presentation,
+	i.e. gnustep-gui might want to prevent presentation if application
+	is already frontmost [the OSX behavior]). Improved -description
+	(similar to OSX's output, eases cross-platform debugging).
+
 2014-01-30  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Headers/Foundation/NSUserNotification.h:
