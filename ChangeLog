@@ -6,6 +6,8 @@
 	i.e. gnustep-gui might want to prevent presentation if application
 	is already frontmost [the OSX behavior]). Improved -description
 	(similar to OSX's output, eases cross-platform debugging).
+	* Headers/Foundation/Foundation.h:
+	added NSUserNotification.h
 
 2014-01-30  Marcus Mueller <znek@mulle-kybernetik.com>
 
