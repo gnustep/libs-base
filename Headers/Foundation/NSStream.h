@@ -273,14 +273,16 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST) && GS_PROTOCOLS_HAVE_OPTIONAL
 @protocol NSStreamDelegate <NSObject> 
 @optional 
+- (void) stream: (NSStream*)sStream handleEvent: (NSStreamEvent)anEvent;
+@end
 #else 
 /**
  * Informal protocol for delegates of instance of the [NSStream] class.
  */
 @interface	NSObject (NSStreamDelegate)
-#endif
 - (void) stream: (NSStream*)sStream handleEvent: (NSStreamEvent)anEvent;
 @end
+#endif
 
 #if	defined(__cplusplus)
 }

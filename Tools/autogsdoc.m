@@ -1278,7 +1278,7 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"" forKey: @"GS_RANGE_ATTR"];
 	  [wm setObject: @"extern" forKey: @"GS_RANGE_SCOPE"];
 	  [wm setObject: @"" forKey: @"GS_ROOT_CLASS"];
-	  [wm setObject: @"static inline" forKey: @"GS_STATIC_INLINE"];
+	  [wm setObject: @"static" forKey: @"GS_STATIC_INLINE"];
 	  [wm setObject: @"" forKey: @"GS_UNUSED_ARG"];
 	  [wm setObject: @"" forKey: @"GS_UNUSED_FUNC"];
 	  [wm setObject: @"" forKey: @"GS_UNUSED_IVAR"];

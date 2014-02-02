@@ -509,6 +509,7 @@ notice and this notice are preserved.
 		mechanism is to use the 'Local Time Zone' value from the
 		user defaults system.
 	      </p>
+	    </desc>
 
 	    <term>USERPROFILE</term>
 	    <desc>

@@ -63,7 +63,7 @@ DTD_FILES = plist-0_9.dtd \
 
 # Manual pages to install
 MAN1_PAGES = gdnc.1 autogsdoc.1 cvtenc.1 defaults.1 gspath.1 \
-  pldes.1 sfparse.1 xmlparse.1
+  pldes.1 sfparse.1 xmlparse.1 HTMLLinker.1
 MAN7_PAGES = gsdoc.7
 MAN8_PAGES = gdomap.8
 
