@@ -4558,6 +4558,12 @@ static NSFileManager *fm = nil;
 #else
 
 {
+  #if defined(__GLIBC__) || defined(__FreeBSD__)
+  #define GS_MAXSYMLINKS sysconf(_SC_SYMLOOP_MAX)
+  #else
+  #define GS_MAXSYMLINKS MAXSYMLINKS
+  #endif
+ 
   #ifndef PATH_MAX
   #define PATH_MAX 1024
   /* Don't use realpath unless we know we have the correct path size limit */
@@ -4655,7 +4661,7 @@ static NSFileManager *fm = nil;
               char	buf[PATH_MAX];
 	      int	l;
 
-              if (++num_links > MAXSYMLINKS)
+              if (++num_links > GS_MAXSYMLINKS)
 		{
 		  return IMMUTABLE(self);	/* Too many links.	*/
 		}

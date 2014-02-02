@@ -1,3 +1,10 @@
+2014-02-02 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSString.m (stringByResolvingSymlinksInPath)
+	On GLIBC and FreeBSD use sysconf(_SC_SYMLOOP_MAX) instead of just
+	MAXSYMLINKS. For HURD this is necessary, since the latter is not 
+	defined.
+
 2014-01-31  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Source/NSUserNotification.m:
