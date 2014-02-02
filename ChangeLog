@@ -1,3 +1,16 @@
+2014-02-02 Yavor Doganov  <yavor@gnu.org>
+
+	* configure.ac: Force use for fake main on kfreebsd to work around bug
+	handling large number of arguments.
+	* Documentation/coding-standards.texi:
+	* Documentation/manual/manual.texi:
+	* Tools/cvtenc.1:
+	* Tools/pldes.1:
+	* Tools/defaults.1:
+	* Tools/autogsdoc.1:
+	* Tools/gdomap.8:
+	Minor cosmetic tweaks
+
 2014-02-02 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSString.m (stringByResolvingSymlinksInPath)

@@ -1,15 +1,12 @@
 \input texinfo  @c -*-texinfo-*-
-@setfilename coding-standards.info
+@setfilename gs-standards.info
 @set DATE 26 Jun 1996
 
-@ifinfo
-@format
-INFO-DIR-SECTION GNUstep
-START-INFO-DIR-ENTRY
-* Coding: (coding-standards).           Coding Standards for GNUstep Libraries
-END-INFO-DIR-ENTRY
-@end format
-@end ifinfo
+@dircategory GNU organization
+@direntry
+* GNUstepStandards: (gs-standards).     Coding Standards for GNUstep
+                                          Libraries.
+@end direntry
 
 @ifinfo
 Copyright @copyright{} 1997-2005 Free Software Foundation

@@ -1,18 +1,16 @@
 \input texinfo              @c -*-texinfo-*-
 
 @c %**start of header
-@setfilename manual.info
+@setfilename gs-base.info
 @settitle Objective-C GNUstep Base Programming Manual
 @c %**end of header
 
-@ifinfo
-@format
-INFO-DIR-SECTION GNUstep
-START-INFO-DIR-ENTRY
-* GNUstepBase: (manual).        Objective C Language and GNUstep Base Library
-END-INFO-DIR-ENTRY
-@end format
-@end ifinfo
+@dircategory Software libraries
+@direntry
+* GNUstepBase: (gs-base).       Objective-C Language and GNUstep Base
+                                  Library Programming Manual.
+@end direntry
+
 
 @ifinfo
 Copyright @copyright{} 2001 Free Software Foundation
