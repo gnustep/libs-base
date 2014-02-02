@@ -38,6 +38,7 @@ notice and this notice are preserved.
         to add the latest version of OSX.<br />
         The release has various platform/portability tweaks, as
         well as a variety of bugfixes.
+        </p>
       </section>
 
       <section>
@@ -55,6 +56,7 @@ notice and this notice are preserved.
         to correct issues (mostly with NSInteger/NSUInteger on 64bit systems)
         with printf formats in various debug/logging messages.<br />
         Timezone data was updated for this release.
+        </p>
       </section>
 
       <section>
