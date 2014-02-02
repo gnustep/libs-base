@@ -2390,9 +2390,9 @@ AC_SUBST(DEFINE_UINTPTR_T)
 
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
-# On some systems we need -lnsl ... so check for that first.
+# On some systems we need -lnsl ... so check for that case.
 #--------------------------------------------------------------------
-AC_CHECK_LIB(nsl, inet_ntop)
+AC_SEARCH_LIBS([inet_ntop],[nsl])
 AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
 USE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)
@@ -2600,6 +2600,7 @@ if test "$enable_pass_arguments" = "no"; then
   case "$target_os" in
     freebsd2*)	enable_fake_main=yes;;
     freebsd*)	;;
+    kfreebsd*)	enable_fake_main=yes;;
     netbsd*)	enable_fake_main=yes;;
     openbsd*)	enable_fake_main=yes;;
     *sysv*)	enable_fake_main=yes;;
