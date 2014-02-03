@@ -177,10 +177,17 @@ int main()
   data = [NSData dataWithContentsOfFile: @"mime10.dat"];
   idoc = exact(0, data);
   doc = [GSMimeParser documentFromData: data];
-  PASS([idoc isEqual: doc], "mime10.dat documents are the same");
+  PASS_EQUAL(idoc, doc, "mime10.dat documents are the same");
   data = [idoc rawMimeData];
   doc = [GSMimeParser documentFromData: data];
-  PASS([idoc isEqual: doc], "rawMimeData reproduces docuement");
+  PASS_EQUAL(idoc, doc, "rawMimeData reproduces document");
+
+  /* Test a document containing encoded words in header
+   */
+  data = [NSData dataWithContentsOfFile: @"mime11.dat"];
+  idoc = exact(0, data);
+  doc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL(idoc, doc, "mime11.dat documents are the same");
 
   
   [arp release]; arp = nil;

@@ -3103,9 +3103,15 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		  return hdr;
 		}
 	      /* Folded line ... add space at fold and continue parsing.
-               * NB Space is ignored between encoded words; don't reset flag.
 	       */
 	      [hdr appendString: @" "];
+              if (1 == flags.encodedWord)
+                {
+                  /* NB Space is ignored between encoded words;
+                   * count expected space but don't reset flag.
+                   */
+                  expect++;
+                }
 	      beg = src;
 	      continue;
 	    }
