@@ -1,5 +1,12 @@
 2014-02-03  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSString.m: Fix standardising a path to use unix separators
+	consistently with appending a pathc component ... paths should be
+	(as far as possible) portable, and the filesystem representation
+	methods convert to backslashes as necessary on windows anyway.
+
+2014-02-03  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSMime.m:
 	* Headers/GNUstepBase/GSMime.h:
 	Add support for stripping white space between encoded words (RFC2047)

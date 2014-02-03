@@ -23,5 +23,5 @@ include $(GNUSTEP_MAKEFILES)/test-tool.make
 -include GNUmakefile.postamble
 
 after-clean::
-	rm -f core tests.log tests.sum oldtests.log oldtests.sum
+	rm -f core core.* *.core tests.log tests.sum oldtests.log oldtests.sum
 
