@@ -63,6 +63,9 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   PASS([[@"/home/nicola./" pathExtension] isEqual: @""],
        "[@\"/home/nicola./\" pathExtension] == @\"\"");
   
+  PASS_EQUAL([@"/home" stringByAppendingPathComponent: @"/"], @"/home",
+    "'/home' stringByAppendingPathComponent: '/' == '/home'");
+  
   PASS([[@"/home" stringByAppendingPathComponent: @"nicola.jpg"] isEqual: @"/home/nicola.jpg"],
        "'/home' stringByAppendingPathComponent: 'nicola.jpg' == '/home/nicola.jpg'");
   
