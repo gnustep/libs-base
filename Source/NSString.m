@@ -330,10 +330,12 @@ pathSepMember(unichar c)
   return NO;
 }
 
-/*
- * For cross-platform portability we always use slash as the separator
+/* For cross-platform portability we always use slash as the separator
  * when building paths ... unless specific windows path handling is
  * required.
+ * This ensures that standardised paths and anything built by adding path
+ * components to them use a consistent separator character anad can be
+ * compared readily using standard string comparisons.
  */
 inline static unichar
 pathSepChar()
@@ -4762,13 +4764,19 @@ static NSFileManager *fm = nil;
       s = AUTORELEASE([self mutableCopy]);
     }
 
-  if (GSPathHandlingUnix() == YES)
-    {
-      [s replaceString: @"\\" withString: @"/"];
-    }
-  else if (GSPathHandlingWindows() == YES)
+  /* We must always use the standard path separator unless specifically set
+   * to use the mswindows one.  That ensures that standardised paths and
+   * anything built by adding path components to them use a consistent
+   * separator character anad can be compared readily using standard string
+   * comparisons.
+   */
+  if (GSPathHandlingWindows() == YES)
     {
       [s replaceString: @"/" withString: @"\\"];
+    }
+  else
+    {
+      [s replaceString: @"\\" withString: @"/"];
     }
 
   l = [s length];

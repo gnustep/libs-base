@@ -214,8 +214,7 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   
 #ifdef	GNUSTEP_BASE_LIBRARY
 
-  PASS_EQUAL([@"//home/user/" stringByStandardizingPath], @"//home/user/",
-    "//home/user/ stringByStandardizingPath == //home/user/");
+  GSPathHandling("windows");
 
   PASS_EQUAL([@"\\\\home\\user\\" stringByStandardizingPath],
     @"\\\\home\\user\\",
@@ -226,9 +225,25 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   
   PASS_EQUAL([@"c:\\..." stringByStandardizingPath], @"c:\\...",
     "'c:\\...' stringByStandardizingPath == 'c:\\...'");
+
+  PASS([@"c:\\home" isAbsolutePath] == YES,
+       "'c:\\home' isAbsolutePath == YES");
+
+  GSPathHandling("right");
   
+  PASS_EQUAL([@"//home/user/" stringByStandardizingPath],
+    @"//home/user/",
+    "//home/user/ stringByStandardizingPath == //home/user/");
+
+  PASS_EQUAL([@"c:/." stringByStandardizingPath], @"c:/.",
+    "'c:/.' stringByStandardizingPath == 'c:/.'");
+  
+  PASS_EQUAL([@"c:/..." stringByStandardizingPath], @"c:/...",
+    "'c:/...' stringByStandardizingPath == 'c:/...'");
+
   PASS([@"c:/home" isAbsolutePath] == YES,
        "'c:/home' isAbsolutePath == YES");
+
 
   PASS([@"//host/share/" isAbsolutePath] == YES,
        "'//host/share/' isAbsolutePath == YES");
