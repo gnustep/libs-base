@@ -1,3 +1,9 @@
+2014-02-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	* Headers/GNUstepBase/GSMime.h:
+	Add support for stripping white space between encoded words (RFC2047)
+
 2014-02-02 Yavor Doganov  <yavor@gnu.org>
 
 	* configure.ac: Force use for fake main on kfreebsd to work around bug

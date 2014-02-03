@@ -3039,6 +3039,14 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		  NSLog(@"Bad encoded word - data terminator missing");
 		  break;
 		}
+              /* If we are expecting to have white space after an encoded
+               * word, we must get rid of it between words.
+               */
+              if (1 == flags.encodedWord && expect > 0)
+                {
+                  [hdr deleteCharactersInRange:
+                    NSMakeRange([hdr length] - expect, expect)];
+                }
 	      /* If the data part is not empty, decode it and append to header.
 	       */
 	      if (tmp > src)
@@ -3058,6 +3066,8 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	       */
 	      src = tmp + 2;
 	      beg = src;
+              flags.encodedWord = 1;    // We just parsed an encoded word
+              expect = 0;               // No space expected after word yet
 	      continue;
 	    }
 	  else
@@ -3073,6 +3083,8 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		   * between headers and body.
 		   */
 		  flags.inBody = 1;
+		  flags.encodedWord = 0;
+                  expect = 0;
 		  input = src - bytes;
 		  return nil;
 		}
@@ -3086,15 +3098,30 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		  /* End of line ... return this header.
 		   */
 		  input = src - bytes;
+		  flags.encodedWord = 0;
+                  expect = 0;
 		  return hdr;
 		}
 	      /* Folded line ... add space at fold and continue parsing.
+               * NB Space is ignored between encoded words; don't reset flag.
 	       */
 	      [hdr appendString: @" "];
 	      beg = src;
 	      continue;
 	    }
 	}
+      else if (1 == flags.encodedWord)
+        {
+          if (isspace(src[0]))
+            {
+              expect++;                 // Count expected space after word
+            }
+          else
+            {
+              flags.encodedWord = 0;    // No longer in encoded word
+              expect = 0;
+            }
+        }
       src++;
     }
 

@@ -213,6 +213,10 @@ extern "C" {
   unsigned		lineStart;
   unsigned		lineEnd;
   unsigned		input;
+  /* During header parsing, we use this field to count white space we are
+   * expecting to have after an encoded word.
+   * During bnody parsing, we use the field to count expected content bytes.
+   */
   unsigned		expect;
   unsigned		rawBodyLength;
   struct {
@@ -224,6 +228,7 @@ extern "C" {
     unsigned int	wantEndOfLine:1;
     unsigned int	excessData:1;
     unsigned int	headersOnly:1;
+    unsigned int        encodedWord:1;
   } flags;
   NSData		*boundary;	// Also overloaded to hold excess
   GSMimeDocument	*document;
