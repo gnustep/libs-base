@@ -344,8 +344,8 @@ static BOOL snuggleStart(NSString *t)
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
-  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.3//EN\" "];
-  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"];
+  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.4//EN\" "];
+  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_4.dtd\">\n"];
   [str appendFormat: @"<gsdoc"];
 
   if (base != nil)
@@ -2346,8 +2346,9 @@ static BOOL snuggleStart(NSString *t)
 
 	  [str appendString: @"<?xml version=\"1.0\"?>\n"];
 	  [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
-	  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.3//EN\" "];
-	  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"];
+	  [str appendString: @"\"-//GNUstep//DTD gsdoc 1.0.4//EN\" "];
+	  [str appendString: @"\"http://www.gnustep.org/gsdoc-1_0_4.dtd\">\n"];
+
 	  [str appendString: @"<gsdoc base=\""];
 	  [str appendString: [name lastPathComponent]];
 	  /*

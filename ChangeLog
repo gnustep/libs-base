@@ -1,3 +1,13 @@
+2014-02-12  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Tools/gsdoc-1_0_4.dtd: Added new DTD version that declares 'package' 
+	visibility as a valid ivar qualifier.
+	* Tools/AGSParser.m: Added 'package' visibility parsing.
+	* Tools/AGSOutput.m:
+	* Tools/autogsdoc.m: 
+	* Tools/GNUmakefile.m:
+	Updated to refer to the latest DTD version.
+
 2014-02-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix standardising a path to use unix separators
