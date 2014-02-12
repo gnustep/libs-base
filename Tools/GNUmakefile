@@ -59,6 +59,7 @@ DTD_FILES = plist-0_9.dtd \
 	gsdoc-1_0_1.dtd \
 	gsdoc-1_0_2.dtd \
 	gsdoc-1_0_3.dtd \
+	gsdoc-1_0_4.dtd \
 	gsdoc-1_0_1.rnc
 
 # Manual pages to install

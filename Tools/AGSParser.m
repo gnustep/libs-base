@@ -2502,6 +2502,11 @@ try:
 	      ASSIGN(validity, token);
 	      shouldDocument = documentInstanceVariables;
 	    }
+	  else if ([token isEqual: @"package"] == YES)
+	    {
+	      ASSIGN(validity, token);
+	      shouldDocument = documentInstanceVariables;
+	    }
 	  else if ([token isEqual: @"public"] == YES)
 	    {
 	      ASSIGN(validity, token);
