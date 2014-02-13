@@ -1,3 +1,9 @@
+2014-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.m: Fix to cope with cases where a format specifies
+	a field width larger than can reasonably fit on the strack ... use
+	the heap.
+
 2014-02-13  Larry Campbell <lcampbel@akamai.com>
 
 	* Source/NSCalendarDate.m: Fixup millisecond formatting to match OSX
